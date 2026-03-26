@@ -22,7 +22,6 @@
 #include "GCode/TimelapsePosPicker.hpp"
 
 #include <cfloat>
-#include <functional>
 #include <memory>
 #include <map>
 #include <set>
@@ -114,8 +113,6 @@ public:
     void set_wipe_tower_bbx(const BoundingBoxf & bbx) { m_wipe_tower_bbx = bbx; }
     void set_rib_offset(const Vec2f &rib_offset) { m_rib_offset = rib_offset; }
 
-    // Max squared distance from camera (plate_offset) to any corner of the wipe tower in plate coords
-    double get_farthest_dist_sq_from(const Vec2d &plate_offset) const;
 private:
     WipeTowerIntegration& operator=(const WipeTowerIntegration&);
     std::string append_tcr(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id, double z = -1.) const;
@@ -579,12 +576,6 @@ private:
     int m_timelapse_warning_code = 0;
     bool m_support_traditional_timelapse = true;
 
-    // Traditional timelapse: trigger at farthest point from camera on layer path
-    double m_timelapse_farthest_dist_sq = -1.0;
-    bool m_timelapse_inserted_this_layer = false;
-    bool m_timelapse_farthest_on_wipe_tower = false; // true if farthest point is on wipe tower path
-    std::function<std::string()> m_insert_timelapse_gcode_callback;
-
     bool m_silent_time_estimator_enabled;
 
     Print *m_print{nullptr};
@@ -618,14 +609,6 @@ private:
     ExtrusionPaths set_speed_transition(std::vector<ExtrusionPaths> &paths);
     void split_and_mapping_speed(double other_path_v, double final_v, ExtrusionPaths &this_path, double max_smooth_length, ExtrusionPaths &interpolated_paths, bool split_from_left = true);
     bool is_enable_overhang_speed();
-    void set_layer_timelapse_farthest_point(double max_dist_sq, std::function<std::string()> insert_callback);
-    std::string maybe_emit_timelapse_at_farthest(const Point &dest_print_point);
-    std::string try_insert_timelapse_at_farthest(const Point &point, LiftType lift_type);
-    // when farthest point is on wipe tower: emit timelapse at tool_change (called from WipeTowerIntegration::append_tcr)
-    std::string emit_timelapse_if_farthest_on_wipe_tower(const Point & wipe_tower_print_point);
-    static double compute_layer_farthest_dist_sq_from_camera(
-        const std::map<unsigned int, std::vector<InstanceToPrint>> & filament_to_print_instances,
-        const Vec2d &plate_offset);
     double get_path_speed(const ExtrusionPath &path);
     double get_overhang_degree_corr_speed(float speed, double path_degree);
     double mapping_speed(double dist);

@@ -644,29 +644,6 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         return res;
     }
 
-    double WipeTowerIntegration::get_farthest_dist_sq_from(const Vec2d &plate_offset) const{
-        float alpha = m_wipe_tower_rotation / 180.f * float(M_PI);
-        auto transform_wt_pt = [&alpha, this](const Vec2f &pt)->Vec2f{
-            Vec2f out = Eigen::Rotation2Df(alpha)*pt;
-            out += m_wipe_tower_pos + m_rib_offset;
-            return out;
-        };
-        double max_d2 = 0.;
-        for (const Vec2f corner : {
-            Vec2f(float(m_wipe_tower_bbx.min.x()), float(m_wipe_tower_bbx.min.y())),
-            Vec2f(float(m_wipe_tower_bbx.max.x()), float(m_wipe_tower_bbx.min.y())),
-            Vec2f(float(m_wipe_tower_bbx.max.x()), float(m_wipe_tower_bbx.max.y())),
-            Vec2f(float(m_wipe_tower_bbx.min.x()), float(m_wipe_tower_bbx.max.y())),
-        })
-        {
-            Vec2f pc = transform_wt_pt(corner);
-            double dx = pc.x() - plate_offset.x(), dy = pc.y() - plate_offset.y();
-            double d2 = dx*dx + dy*dy;
-            if (d2 > max_d2) max_d2 = d2;
-        }
-        return max_d2;
-    }
-
     std::string WipeTowerIntegration::append_tcr(GCode& gcodegen, const WipeTower::ToolChangeResult& tcr, int new_filament_id, double z) const
     {
         gcodegen.reset_last_acceleration();
@@ -723,7 +700,6 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 erMixed,
                 "Travel to a Wipe Tower");
             gcode += gcodegen.unretract();
-            gcode += gcodegen.emit_timelapse_if_farthest_on_wipe_tower(wipe_tower_point_to_object_point(gcodegen, start_pos + plate_origin_2d));
         }
 
 
@@ -998,7 +974,6 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 std::string start_pos_str = gcodegen.travel_to(wipe_tower_point_to_object_point(gcodegen, tool_change_start_pos + plate_origin_2d), erMixed, "Move to start pos");
                 check_add_eol(start_pos_str);
                 wipe_next_start_point_str = start_pos_str;
-                wipe_next_start_point_str += gcodegen.emit_timelapse_if_farthest_on_wipe_tower(wipe_tower_point_to_object_point(gcodegen, tool_change_start_pos + plate_origin_2d));
             } else {
                 // BBS:change travel_path
                 Vec3f gcode_last_pos;
@@ -1032,7 +1007,6 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                     if (i == travel_polyline.points.size() - 1) {
                         wipe_next_start_point_str = gcodegen.travel_to(p, erMixed, "Move to start pos");
                         check_add_eol(wipe_next_start_point_str);
-                        wipe_next_start_point_str += gcodegen.emit_timelapse_if_farthest_on_wipe_tower(start_wipe_pos);
                         break;
                     }
                     travel_to_wipe_tower_gcode += gcodegen.travel_to(p, erMixed, "Move to start pos");
@@ -4105,11 +4079,9 @@ GCode::LayerResult GCode::process_layer(
     bool is_i3_printer = printer_structure == PrinterStructure::psI3;
     bool is_multi_extruder = m_config.nozzle_diameter.size() > 1;
 
-    std::string printer_model = m_config.printer_model.value;
-    bool is_farthest_timelapse_supported = (printer_model == "Bambu Lab X2D" || printer_model == "Bambu Lab P2S" || printer_model == "Bambu Lab H2C");
     bool need_insert_timelapse_gcode_for_traditional = false;
     if (!m_wipe_tower || !m_wipe_tower->enable_timelapse_print()) {
-        need_insert_timelapse_gcode_for_traditional = ((is_i3_printer && !m_spiral_vase) || is_multi_extruder || (is_farthest_timelapse_supported && !m_spiral_vase));
+        need_insert_timelapse_gcode_for_traditional = ((is_i3_printer && !m_spiral_vase)|| is_multi_extruder);
     }
 
     bool has_insert_timelapse_gcode = false;
@@ -4510,32 +4482,16 @@ GCode::LayerResult GCode::process_layer(
         }
     }
 
-    auto insert_timelapse_gcode = [this, print_z, &print, &most_used_extruder, &layer_object_label_ids,&printed_objects = std::as_const(m_printed_objects)](bool use_current_pos = false) -> std::string {
-        int pos_x, pos_y;
-        bool has_safe_pos;
-        int curr_extruder_id = m_writer.filament()->extruder_id();
-        if (use_current_pos)
-        {
-            pos_x = (int)std::round(m_writer.get_position().x());
-            pos_y = (int)std::round(m_writer.get_position().y());
-            has_safe_pos = true;
-        }
-        else
-        {
-            PosPickCtx ctx;
-            ctx.curr_pos = { (coord_t)(scale_(m_writer.get_position().x())),(coord_t)(scale_(m_writer.get_position().y())) };
-            ctx.curr_layer = this->layer();
-            ctx.curr_extruder_id = curr_extruder_id;
-            ctx.picture_extruder_id = most_used_extruder;
-            if (m_config.print_sequence == PrintSequence::ByObject && print.objects().size() > 1)
-                ctx.printed_objects = printed_objects;
+    auto insert_timelapse_gcode = [this, print_z, &print, &most_used_extruder, &layer_object_label_ids,&printed_objects = std::as_const(m_printed_objects)]() -> std::string {
+        PosPickCtx ctx;
+        ctx.curr_pos = { (coord_t)(scale_(m_writer.get_position().x())),(coord_t)(scale_(m_writer.get_position().y())) };
+        ctx.curr_layer = this->layer();
+        ctx.curr_extruder_id = m_writer.filament()->extruder_id();
+        ctx.picture_extruder_id = most_used_extruder;
+        if (m_config.print_sequence == PrintSequence::ByObject && print.objects().size() > 1)
+            ctx.printed_objects = printed_objects;
 
-            Point timelapse_pos=m_timelapse_pos_picker.pick_pos(ctx);
-            pos_x = timelapse_pos.x();
-            pos_y = timelapse_pos.y();
-            has_safe_pos = (timelapse_pos != DefaultTimelapsePos);
-        }
-
+        auto timelapse_pos=m_timelapse_pos_picker.pick_pos(ctx);
 
         std::string timepals_gcode;
         if (!print.config().time_lapse_gcode.value.empty()) {
@@ -4544,10 +4500,10 @@ GCode::LayerResult GCode::process_layer(
             config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
             config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
             config.set_key_value("most_used_physical_extruder_id", new ConfigOptionInt(m_config.physical_extruder_map.get_at(most_used_extruder)));
-            config.set_key_value("curr_physical_extruder_id", new ConfigOptionInt(m_config.physical_extruder_map.get_at(curr_extruder_id)));
-            config.set_key_value("timelapse_pos_x", new ConfigOptionInt(pos_x));
-            config.set_key_value("timelapse_pos_y", new ConfigOptionInt(pos_y));
-            config.set_key_value("has_timelapse_safe_pos", new ConfigOptionBool(has_safe_pos));
+            config.set_key_value("curr_physical_extruder_id", new ConfigOptionInt(m_config.physical_extruder_map.get_at(ctx.curr_extruder_id)));
+            config.set_key_value("timelapse_pos_x", new ConfigOptionInt(timelapse_pos.x()));
+            config.set_key_value("timelapse_pos_y", new ConfigOptionInt(timelapse_pos.y()));
+            config.set_key_value("has_timelapse_safe_pos", new ConfigOptionBool(timelapse_pos != DefaultTimelapsePos));
             timepals_gcode = this->placeholder_parser_process("timelapse_gcode", print.config().time_lapse_gcode.value, m_writer.filament()->id(), &config) + "\n";
         }
         m_writer.set_current_position_clear(false);
@@ -4582,39 +4538,6 @@ GCode::LayerResult GCode::process_layer(
 
         return timepals_gcode;
     };
-
-    // Traditional timelapse: trigger at farthest point from camera and use current pos (in-place photo)
-    bool use_farthest_point_timelapse = need_insert_timelapse_gcode_for_traditional
-        && is_farthest_timelapse_supported
-        && m_config.timelapse_type.value == TimelapseType::tlTraditional;
-    if(use_farthest_point_timelapse){
-        Vec2d plate_offset(m_writer.get_xy_offset().x(), m_writer.get_xy_offset().y());
-
-        double max_dist_sq = this->compute_layer_farthest_dist_sq_from_camera(filament_to_print_instances, plate_offset);
-        bool farthest_on_wt = false;
-        if (has_wipe_tower && m_wipe_tower)
-        {
-            double wipe_tower_max_dist_sq = m_wipe_tower->get_farthest_dist_sq_from(plate_offset);
-            if (wipe_tower_max_dist_sq > 0 && wipe_tower_max_dist_sq >= max_dist_sq)
-            {
-                max_dist_sq = wipe_tower_max_dist_sq;
-                farthest_on_wt = true;
-            }
-        }
-        if (max_dist_sq > 0)
-        {
-            set_layer_timelapse_farthest_point(max_dist_sq, [this, insert_timelapse_gcode](){return insert_timelapse_gcode(true);});
-            m_timelapse_farthest_on_wipe_tower = farthest_on_wt;
-        }
-        else
-        {
-            set_layer_timelapse_farthest_point(-1, nullptr);
-        }
-    }
-    else
-    {
-        set_layer_timelapse_farthest_point(-1, nullptr);
-    }
 
     if (!need_insert_timelapse_gcode_for_traditional) { // Equivalent to the timelapse gcode placed in layer_change_gcode
         if (FILAMENT_CONFIG(retract_when_changing_layer)) {
@@ -4690,7 +4613,7 @@ GCode::LayerResult GCode::process_layer(
 
         if (has_wipe_tower) {
             if (!m_wipe_tower->is_empty_wipe_tower_gcode(*this, extruder_id, extruder_id == layer_tools.extruders.back())) {
-                if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode && !use_farthest_point_timelapse) {
+                if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
                     bool should_insert = true;
                     if (m_config.nozzle_diameter.values.size() == 2){
                         if (!writer().filament() || get_extruder_id(writer().filament()->id()) != most_used_extruder) {
@@ -4718,7 +4641,6 @@ GCode::LayerResult GCode::process_layer(
         } else {
             if (need_insert_timelapse_gcode_for_traditional &&
                 !has_insert_timelapse_gcode &&
-                !use_farthest_point_timelapse &&
                 m_writer.need_toolchange(extruder_id) &&
                 m_config.nozzle_diameter.values.size() == 2 &&
                 writer().filament() &&
@@ -4928,7 +4850,7 @@ GCode::LayerResult GCode::process_layer(
                     //This behaviour is same with cura
                     if (is_infill_first && !first_layer) {
                         if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && printer_structure == PrinterStructure::psI3
-                            && m_timelapse_farthest_dist_sq < 0 && !has_insert_timelapse_gcode && has_infill(by_region_specific)) {
+                            && !has_insert_timelapse_gcode && has_infill(by_region_specific)) {
                             gcode += this->retract(false, false, auto_lift_type, true);
                             if (!temp_start_str.empty() && m_writer.empty_object_start_str()) {
                                 std::string end_str = std::string("; stop printing object, unique label id: ") + std::to_string(instance_to_print.label_object_id) + "\n";
@@ -4949,7 +4871,7 @@ GCode::LayerResult GCode::process_layer(
                     } else {
                         gcode += this->extrude_perimeters(print, by_region_specific);
                         if (!has_wipe_tower && need_insert_timelapse_gcode_for_traditional && printer_structure == PrinterStructure::psI3
-                            && m_timelapse_farthest_dist_sq < 0  && !has_insert_timelapse_gcode && has_infill(by_region_specific)) {
+                            && !has_insert_timelapse_gcode && has_infill(by_region_specific)) {
                             gcode += this->retract(false, false, auto_lift_type, true);
                             if (!temp_start_str.empty() && m_writer.empty_object_start_str()) {
                                 std::string end_str = std::string("; stop printing object, unique label id: ") + std::to_string(instance_to_print.label_object_id) + "\n";
@@ -5028,8 +4950,7 @@ GCode::LayerResult GCode::process_layer(
     BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z <<
     log_memory_info();
 
-    if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode
-        && (m_timelapse_farthest_dist_sq < 0 || !m_timelapse_inserted_this_layer)) {
+    if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
         // The traditional model of thin-walled object will have flaws for I3
         if (m_support_traditional_timelapse
             && printer_structure == PrinterStructure::psI3
@@ -5050,8 +4971,7 @@ GCode::LayerResult GCode::process_layer(
         }
         m_writer.add_object_change_labels(gcode);
 
-        // When fallback in farthest-point mode, use current position for in-place photo
-        gcode += insert_timelapse_gcode(m_timelapse_farthest_dist_sq > 0);
+        gcode += insert_timelapse_gcode();
     }
 
     result.gcode = std::move(gcode);
@@ -5112,120 +5032,6 @@ void GCode::set_origin(const Vec2d &pointf)
     m_last_pos += translate;
     m_wipe.path.translate(translate);
     m_origin = pointf;
-}
-
-// Compute max squared distance from camera (0, 0) over all extrusion path points on this layer (plate-relative coords).
-double GCode::compute_layer_farthest_dist_sq_from_camera(
-    const std::map<unsigned int, std::vector<InstanceToPrint>> &filament_to_print_instances,
-    const Vec2d & plate_offset)
-{
-    double max_dist_sq = 0.0;
-    Points pts;
-    for (const auto &kv : filament_to_print_instances)
-    {
-        for (const InstanceToPrint &inst :kv.second)
-        {
-            const Vec2d shift = unscale(inst.print_object.instances()[inst.instance_id].shift);
-            const ObjectByExtruder &obj = inst.object_by_extruder;
-            for (const ObjectByExtruder::Island & island : obj.islands)
-            {
-                for (const ObjectByExtruder::Island::Region & region : island.by_region)
-                {
-                    for (const ExtrusionEntity *ee : region.perimeters)
-                    {
-                        pts.clear();
-                        ee->collect_points(pts);
-                        for (const Point &p : pts)
-                        {
-                            Vec2d plate_rel = unscale(p) + shift - plate_offset;
-                            double d2 = plate_rel.x() * plate_rel.x() + plate_rel.y() *plate_rel.y();
-                            if (d2 > max_dist_sq) max_dist_sq = d2;
-                        }
-
-                    }
-                    for (const ExtrusionEntity * ee : region.infills)
-                    {
-                        pts.clear();
-                        ee->collect_points(pts);
-                        for (const Point & p : pts)
-                        {
-                            Vec2d plate_rel = unscale(p) + shift - plate_offset;
-                            double d2 = plate_rel.x() * plate_rel.x() + plate_rel.y() *plate_rel.y();
-                            if (d2 > max_dist_sq) max_dist_sq = d2;
-                        }
-                    }
-                }
-
-            }
-            if (obj.support && !obj.support->entities.empty())
-            {
-                for (const ExtrusionEntity *ee : obj.support->entities)
-                {
-                    pts.clear();
-                    ee->collect_points(pts);
-                    for (const Point & p : pts)
-                    {
-                        Vec2d plate_rel = unscale(p) +shift - plate_offset;
-                        double d2 = plate_rel.x() * plate_rel.x() + plate_rel.y() *plate_rel.y();
-                        if (d2 > max_dist_sq) max_dist_sq = d2;
-                    }
-
-                }
-            }
-
-        }
-
-    }
-    return max_dist_sq;
-}
-
-void GCode::set_layer_timelapse_farthest_point(double max_dist_sq, std::function<std::string()> insert_callback)
-{
-    m_timelapse_farthest_dist_sq = max_dist_sq;
-    m_timelapse_inserted_this_layer = false;
-    m_timelapse_farthest_on_wipe_tower = false;
-    m_insert_timelapse_gcode_callback = std::move(insert_callback);
-}
-
-std::string GCode::maybe_emit_timelapse_at_farthest(const Point &dest_print_point)
-{
-    if (m_timelapse_farthest_dist_sq <= 0 || m_timelapse_inserted_this_layer || !m_insert_timelapse_gcode_callback)
-        return {};
-    Vec2d plate_offset(m_writer.get_xy_offset().x(), m_writer.get_xy_offset().y());
-    Vec2d plate_rel = unscale(dest_print_point) + m_origin - plate_offset;
-    double d2 = plate_rel.x() * plate_rel.x() + plate_rel.y() * plate_rel.y();
-    const double ratio_min = 0.9;
-    const double ratio_max = 1.1;
-    double ratio = d2 / m_timelapse_farthest_dist_sq;
-
-    if (ratio  < ratio_min || ratio > ratio_max)
-        return {};
-    m_timelapse_inserted_this_layer = true;
-    std::string gcode = m_insert_timelapse_gcode_callback();
-    m_insert_timelapse_gcode_callback = nullptr; // one-shot
-    return gcode;
-}
-
-std::string GCode::try_insert_timelapse_at_farthest(const Point &point, LiftType lift_type)
-{
-    std::string tl = maybe_emit_timelapse_at_farthest(point);
-    if (tl.empty())
-        return {};
-    std::string gcode;
-    gcode += this->retract(false, false, lift_type, true);
-    gcode += tl;
-    gcode += this->unretract();
-    return gcode;
-}
-
-std::string GCode::emit_timelapse_if_farthest_on_wipe_tower(const Point &wipe_tower_print_point)
-{
-    if (!m_timelapse_farthest_on_wipe_tower || m_timelapse_inserted_this_layer || !m_insert_timelapse_gcode_callback)
-        return {};
-    m_timelapse_inserted_this_layer = true;
-    std::string gcode = m_insert_timelapse_gcode_callback();
-    m_insert_timelapse_gcode_callback = nullptr; // one-shot
-    return gcode;
 }
 
 std::string GCode::preamble()
@@ -6632,25 +6438,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     //if (sloped == nullptr)
     gcode += m_writer.set_speed(F, "", comment);
 
-    // Farthest-point timelapse may trigger mid-path (retract → photo → unretract).
-    // The unretract leaves the firmware feedrate at the deretraction speed (e.g. F1800)
-    // and the retract switches acceleration to travel mode — while GCodeWriter's internal
-    // m_current_speed still holds the extrusion speed, so subsequent extrude_to_xy() calls
-    // won't re-emit F, causing the extruder to creep at retract speed.
-    // Fix: close the current cooling block, emit timelapse, then re-open a new block with
-    // the correct extrusion speed, acceleration, and cooling markers so the cooling buffer
-    // can adjust both halves independently.
-    auto try_timelapse_and_restore_speed = [&](const Point &pt) {
-        std::string tl = try_insert_timelapse_at_farthest(pt, LiftType::SpiralLift);
-        if (!tl.empty()) {
-            if (cooling_extrude)
-                gcode += ";_EXTRUDE_END\n";
-            gcode += tl;
-            gcode += m_writer.set_speed(F, "", comment);
-            m_writer.reset_last_acceleration();
-        }
-    };
-
     double path_length = 0.;
     {
         std::string comment = GCodeWriter::full_gcode_comment ? description : "";
@@ -6673,7 +6460,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                         this->point_to_gcode(line.b),
                         e_per_mm * line_length,
                         comment,path.is_force_no_extrusion());
-                    try_timelapse_and_restore_speed(line.b);
                 } else {
                     // Sloped extrusion
                     auto dE = e_per_mm * line_length;
@@ -6685,7 +6471,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                     //BBS: todo, should use small e at start to get good seam
                     double slope_e = dE * e_ratio;
                     gcode += m_writer.extrude_to_xyz(dest3d, slope_e);
-                    try_timelapse_and_restore_speed(line.b);
                 }
             }
         } else {
@@ -6707,7 +6492,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                             this->point_to_gcode(line.b),
                             e_per_mm * line_length,
                             comment, path.is_force_no_extrusion());
-                        try_timelapse_and_restore_speed(line.b);
                     }
                     break;
                 }
@@ -6726,7 +6510,6 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                             e_per_mm * arc_length,
                             arc.direction == ArcDirection::Arc_Dir_CCW,
                             comment, path.is_force_no_extrusion());
-                    try_timelapse_and_restore_speed(arc.end_point);
                     break;
                 }
                 default:
@@ -6928,7 +6711,6 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
             }
         }
         this->set_last_pos(travel.points.back());
-        gcode += try_insert_timelapse_at_farthest(point, lift_type);
     }
 
     return gcode;
