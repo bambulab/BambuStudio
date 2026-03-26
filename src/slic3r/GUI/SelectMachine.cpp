@@ -2487,8 +2487,8 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
 
     if (m_checkbox_list["flow_cali"]->IsShown() && has_bowden_extuder(obj)) {
         m_checkbox_list["flow_cali"]->update_tooltip(
-            _L("Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value.\n") +
-            _L("On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value.\n") +
+            _L("Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value.") + "\n" +
+            _L("On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value.") + "\n" +
             _L("Off: Prioritize using the value from your manual flow calibration."));
 
         if (m_checkbox_list["flow_cali"]->getValue() == "auto") {
