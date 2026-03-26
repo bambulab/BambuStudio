@@ -2280,6 +2280,13 @@ Vec3d PartPlate::estimate_wipe_tower_size(const DynamicPrintConfig & config, con
     double volume = wipe_volume * filament_depth_count;
     if (extruder_count == 2) volume += filament_change_volume * (int) (plate_extruder_size / 2);
 
+    // For single extruder treating hotends as extruders (e.g. N10),
+    // every nozzle change needs ramming. Add ramming volume analogous to
+    // the filament_change_volume addition for dual-extruder machines above.
+    auto hotend_as_ext_opt = config.option<ConfigOptionBool>("handle_hotend_as_extruder");
+    if (hotend_as_ext_opt && hotend_as_ext_opt->value && plate_extruder_size >= 2 && filament_change_volume > 0)
+        volume += filament_change_volume * (plate_extruder_size - 1);
+
     const ConfigOption* layer_height_opt = config.option("layer_height");
     double layer_height = layer_height_opt ? layer_height_opt->getFloat() : 0.08;
 
@@ -5025,10 +5032,10 @@ void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx, bool ini
     bool enable_wrapping = dynamic_cast<const ConfigOptionBool*>(full_config.option("enable_wrapping_detection"))->value;
     int nozzle_nums = wxGetApp().preset_bundle->get_printer_extruder_count();
     double wipe_vol = get_max_element(v);
-    Vec3d wipe_tower_size = part_plate->estimate_wipe_tower_size(print_cfg, w, wipe_vol, nozzle_nums, init_pos ? 2 : 0, false, enable_wrapping);
+    Vec3d wipe_tower_size = part_plate->estimate_wipe_tower_size(full_config, w, wipe_vol, nozzle_nums, init_pos ? 2 : 0, false, enable_wrapping);
 
     if (!init_pos && (is_approx(wipe_tower_size(0), 0.0) || is_approx(wipe_tower_size(1), 0.0))) {
-        wipe_tower_size = part_plate->estimate_wipe_tower_size(print_cfg, w, wipe_vol, nozzle_nums, 2, false, enable_wrapping);
+        wipe_tower_size = part_plate->estimate_wipe_tower_size(full_config, w, wipe_vol, nozzle_nums, 2, false, enable_wrapping);
     }
 
     // Pull back into the same legal range dragging allows, then avoid forbidden regions --
