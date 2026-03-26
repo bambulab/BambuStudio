@@ -2825,6 +2825,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         }
 
         CalibPressureAdvanceLine pa_test(this);
+        if (this->is_BBL_Printer()) {
+            int filament_id = m_writer.filament() ? m_writer.filament()->id() : 0;
+            int ext_id = m_config.filament_map.get_at(filament_id) - 1;
+            if (ext_id >= 0 && ext_id < (int) m_config.extruder_type.values.size() &&
+                (ExtruderType) m_config.extruder_type.values[ext_id] == ExtruderType::etBowden) {
+                pa_test.set_bbl_bowden_mode();
+            }
+        }
         double                 filament_max_volumetric_speed = m_config.option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed")->get_at(initial_extruder_id);
         Flow                   pattern_line                  = Flow(pa_test.line_width(), 0.2, m_config.nozzle_diameter.get_at(0));
         auto                   fast_speed = std::min(print.default_region_config().outer_wall_speed.get_at(get_nozzle_config_index(m_writer.filament()->id())), filament_max_volumetric_speed / pattern_line.mm3_per_mm());

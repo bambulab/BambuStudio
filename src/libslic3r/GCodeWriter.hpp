@@ -65,7 +65,7 @@ public:
     std::vector<unsigned int> &get_travel_short_acceleration() { return m_travel_short_accelerations; }
     void set_first_layer_travel_acceleration(const std::vector<unsigned int>& travel_accelerations);
     void set_first_layer(bool is_first_layer);
-    std::string set_pressure_advance(double pa) const;
+    std::string set_pressure_advance(double pa, bool is_bbl_bowden = false) const;
     std::string set_jerk_xy(double jerk);
     std::string reset_e(bool force = false);
     std::string update_progress(unsigned int num, unsigned int tot, bool allow_100 = false) const;

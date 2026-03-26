@@ -194,6 +194,8 @@ class CalibPressureAdvance
 public:
     static float find_optimal_PA_speed(const DynamicPrintConfig &config, double line_width, double layer_height, int extruder_id = 0, int filament_idx = 0);
 
+    void set_bbl_bowden_mode() { m_is_bbl_bowden = true; }
+
 protected:
     CalibPressureAdvance() = default;
     CalibPressureAdvance(const DynamicPrintConfig &config) : m_config(config){};
@@ -222,6 +224,7 @@ protected:
 
     Vec3d              m_last_pos;
     DynamicPrintConfig m_config;
+    bool               m_is_bbl_bowden = false;
 
     const double                 m_encroachment{1. / 3.};
     DrawDigitMode                m_draw_digit_mode{DrawDigitMode::Left_To_Right};
