@@ -616,16 +616,46 @@ namespace Slic3r
         }
 
         // r_j -> group_g
+        // Compute per-nozzle incoming edge count as capacity upper bound.
+        // When unlink_limits restrict multiple filaments to the same nozzle,
+        // capacity=1 would block valid assignments. Using the actual in-degree
+        // allows the necessary flow while still preserving nozzle-level balance
+        // (a nozzle with fewer forced filaments keeps a tighter cap).
+        // The first unit carries a small nozzle-bonus to encourage spreading
+        // filaments across distinct nozzles within the same group.
+        int nozzle_bonus = max_flush + 1;
+        std::vector<int> r_in_degree(R, 0);
+        for (int i = 0; i < L; ++i) {
+            if (auto it = m_uv_link_limits.find(i); it != m_uv_link_limits.end()) {
+                for (int j : it->second)
+                    r_in_degree[j]++;
+                continue;
+            }
+            std::optional<std::vector<int>> unlink_limits;
+            if (auto it = m_uv_unlink_limits.find(i); it != m_uv_unlink_limits.end())
+                unlink_limits = it->second;
+            for (int j = 0; j < R; ++j) {
+                if (unlink_limits.has_value() && std::find(unlink_limits->begin(), unlink_limits->end(), j) != unlink_limits->end())
+                    continue;
+                r_in_degree[j]++;
+            }
+        }
+
         for (int j = 0; j < R; ++j) {
             int g = r_nodes_group[j];
-            m_solver->add_edge(L + j, L + R + g, 1, 0);
+            int cap = std::max(r_in_degree[j], 1);
+            // First unit gets -nozzle_bonus to prefer using distinct nozzles
+            m_solver->add_edge(L + j, L + R + g, 1, -nozzle_bonus);
+            if (cap > 1)
+                m_solver->add_edge(L + j, L + R + g, cap - 1, 0);
         }
 
         // group_g -> sink (split: first unit gets -bonus, rest gets 0)
+        // bonus >> nozzle_bonus, so group coverage always takes priority
         for (int g = 0; g < G; ++g) {
             m_solver->add_edge(L + R + g, m_solver->sink_id, 1, -bonus);
-            if (R > 1)
-                m_solver->add_edge(L + R + g, m_solver->sink_id, R - 1, 0);
+            if (L > 1)
+                m_solver->add_edge(L + R + g, m_solver->sink_id, L - 1, 0);
         }
     }
 
