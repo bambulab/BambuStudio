@@ -4416,15 +4416,14 @@ void StatusPanel::on_filament_extrusion_cali(wxCommandEvent &event)
         int tray_id_int = 0;
 
         // set ams_filament id is is bbl filament
-        if (ams_id.compare(std::to_string(VIRTUAL_TRAY_MAIN_ID)) == 0) {
-            tray_id_int                           = VIRTUAL_TRAY_MAIN_ID;
+        if (devPrinterUtil::IsVirtualSlot(ams_id)) {
+            // tray_id_int                           = VIRTUAL_TRAY_MAIN_ID;
             m_extrusion_cali_dlg->ams_filament_id = "";
         } else {
             ams_id_int  = atoi(ams_id.c_str());
             tray_id_int = atoi(tray_id.c_str());
 
-            auto tray = obj->GetFilaSystem()->GetAmsTray(ams_id, tray_id);
-            if (tray) {
+            if (auto tray = obj->GetFilaSystem()->GetAmsTray(ams_id, tray_id)) {
                 if (DevFilaSystem::IsBBL_Filament(tray->tag_uid))
                     m_extrusion_cali_dlg->ams_filament_id = tray->setting_id;
                 else
@@ -4433,8 +4432,8 @@ void StatusPanel::on_filament_extrusion_cali(wxCommandEvent &event)
         }
 
         try {
-            m_extrusion_cali_dlg->ams_id  = ams_id_int;
-            m_extrusion_cali_dlg->tray_id = tray_id_int;
+            m_extrusion_cali_dlg->m_ams_id  = ams_id_int;
+            m_extrusion_cali_dlg->m_slot_id = tray_id_int;
             m_extrusion_cali_dlg->SetPosition(m_staticText_control->GetScreenPosition());
             m_extrusion_cali_dlg->Popup();
         } catch (...) {
