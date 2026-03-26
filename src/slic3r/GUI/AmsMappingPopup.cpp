@@ -216,6 +216,59 @@ void MaterialItem::match(bool mat)
     Refresh();
 }
 
+static constexpr size_t MAPPED_NOZZLE_STR_MAX_CHARS_PER_LINE = 7;
+
+static wxString s_wrap_mapped_nozzle_str(const wxString& text)
+{
+    if (text.length() <= MAPPED_NOZZLE_STR_MAX_CHARS_PER_LINE) {
+        return text;
+    }
+
+    wxArrayString parts = wxSplit(text, ',');
+    wxString wrapped;
+    std::vector<wxString> buffers;
+    for (auto& part : parts) {
+        if (!part.empty()) {
+            buffers.push_back(part.Trim(false).Trim(true));
+        }
+
+        if (buffers.size() > 2) {
+            if (!wrapped.empty()) {
+                wrapped += "\n";
+            }
+
+            wrapped += buffers[0];
+            wrapped += " ";
+            wrapped += buffers[1];
+            wrapped += " ";
+            wrapped += buffers[2];
+            buffers.clear();
+        }
+    }
+
+    if (!wrapped.empty()) {
+        wrapped += "\n";
+    }
+    if (buffers.size() > 0) {
+        wrapped += buffers[0];
+    }
+    if (buffers.size() > 1) {
+        wrapped += " ";
+        wrapped += buffers[1];
+    }
+
+    return wrapped;
+}
+
+static int s_get_mapped_nozzle_str_line_count(const wxString& text)
+{
+    if (text.empty()) {
+        return 0;
+    }
+
+    return std::max(1, static_cast<int>(wxSplit(s_wrap_mapped_nozzle_str(text), '\n', '\0').size()));
+}
+
 void MaterialItem::doRender(wxDC& dc)
 {
     wxSize size = GetSize();
@@ -402,11 +455,17 @@ void MaterialItem::doRender(wxDC& dc)
         int bitmap_l = wheel_left + (m_ams_wheel_mitem.GetBmpWidth() - m_rack_nozzle_bitmap.GetBmpWidth()) / 2 + FromDIP(2);
         dc.DrawBitmap(m_rack_nozzle_bitmap.bmp(), bitmap_l, bitmap_y);
 
-        const auto& text_size = dc.GetTextExtent(m_mapped_nozzle_str);
+        const wxString wrapped_nozzle_str = s_wrap_mapped_nozzle_str(m_mapped_nozzle_str);
+        dc.SetFont(::Label::Head_12);
+        int text_area_left = bitmap_l + m_rack_nozzle_bitmap.GetBmpWidth() + FromDIP(2);
+        int text_area_width = std::max(FromDIP(8), size.x - text_area_left - FromDIP(2));
+        int text_area_height = std::max(FromDIP(8), size.y - up);
+        WxFontUtils::get_suitable_font_size(text_area_height, text_area_width, wrapped_nozzle_str, dc, ::Label::Body_8.GetPointSize(), ::Label::Body_12.GetPointSize());
+        
+        const auto& text_size = dc.GetTextExtent(wrapped_nozzle_str);
         int text_x = (size.x + bitmap_l + m_rack_nozzle_bitmap.GetBmpWidth() - text_size.x) / 2;
         int text_y = up + (size.y - up - text_size.y) / 2;
-        dc.SetFont(::Label::Head_12);
-        dc.DrawText(m_mapped_nozzle_str, text_x, text_y);
+        dc.DrawText(wrapped_nozzle_str, text_x, text_y);
     }
 }
 
@@ -416,14 +475,16 @@ void MaterialItem::reset_valid_info() {
 
 void MaterialItem::messure_size()
 {
-    if (m_mapped_nozzle_str.IsEmpty()) {
+    if (m_mapped_nozzle_str.empty()) {
         SetSize(wxSize(FromDIP(65), FromDIP(50)));
         SetMinSize(wxSize(FromDIP(65), FromDIP(50)));
         SetMaxSize(wxSize(FromDIP(65), FromDIP(50)));
     } else {
-        SetSize(wxSize(FromDIP(65), FromDIP(84)));
-        SetMinSize(wxSize(FromDIP(65), FromDIP(84)));
-        SetMaxSize(wxSize(FromDIP(65), FromDIP(84)));
+        const int line_count = s_get_mapped_nozzle_str_line_count(m_mapped_nozzle_str);
+        const int item_height = FromDIP(84 + std::max(0, line_count - 1) * 10);
+        SetSize(wxSize(FromDIP(65), item_height));
+        SetMinSize(wxSize(FromDIP(65), item_height));
+        SetMaxSize(wxSize(FromDIP(65), item_height));
     }
 }
 

@@ -331,6 +331,53 @@ void Slic3r::GUI::WxFontUtils::get_suitable_font_size(int max_height, wxDC &dc)
     }
 }
 
+static bool sIsFontFitting(wxDC& dc, const wxString& text, const wxFont& font, int fontSize, const wxSize& boxSize)
+{
+    wxFont tempFont = font;
+    tempFont.SetPointSize(fontSize);
+
+    wxCoord w, h;
+    dc.SetFont(tempFont);
+    dc.GetTextExtent(text, &w, &h);
+    return (w <= boxSize.GetWidth() && h <= boxSize.GetHeight());
+}
+
+/**
+ * @brief get_suitable_font_size for that the content can display well on the srceen
+ */
+void WxFontUtils::get_suitable_font_size(int height,
+                                         int width,
+                                         const wxString& content,
+                                         wxDC& dc,
+                                         int minSize,
+                                         int maxSize)
+{
+    if (content.IsEmpty() || height <= 0 || width <= 0) {
+        return;
+    }
+
+    // 复制一份字体用于测试
+    wxFont testFont = dc.GetFont();
+    int low = minSize;
+    int high = maxSize;
+    int bestSize = minSize;
+    const wxSize& boxSize = wxSize(width, height);
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        if (sIsFontFitting(dc, content, testFont, mid, boxSize)) {
+            // 如果这个字号能放下，记下来，并尝试更大的字号
+            bestSize = mid;
+            low = mid + 1;
+        } else {
+            // 如果放不下，尝试更小的字号
+            high = mid - 1;
+        }
+    }
+
+    testFont.SetPointSize(bestSize);
+    dc.SetFont(testFont);
+}
+
 std::unique_ptr<Emboss::FontFile> WxFontUtils::set_italic(wxFont &font, const Emboss::FontFile &font_file)
 {
     static std::vector<wxFontStyle> italic_styles = {
