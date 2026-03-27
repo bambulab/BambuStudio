@@ -1127,7 +1127,11 @@ void PerimeterGenerator::process_classic()
                     last_box.offset(SCALED_EPSILON);
 
                     // BBS: get the Polygons upper the polygon this layer
-                    Polygons upper_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->upper_slices, last_box);
+                    Polygons upper_polygons_series_clipped;
+                    if (this->object_config->interface_shells && this->upper_slices_same_region != nullptr)
+                        upper_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(to_expolygons(this->upper_slices_same_region->surfaces), last_box);
+                    else
+                        upper_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->upper_slices, last_box);
                     upper_polygons_series_clipped = offset(upper_polygons_series_clipped, min_width_top_surface);
 
                     //set the clip to a virtual "second perimeter"
@@ -1137,6 +1141,20 @@ void PerimeterGenerator::process_classic()
                     ExPolygons bridge_checker;
 
                     ExPolygons top_polygons = diff_ex(last, upper_polygons_series_clipped, ApplySafetyOffset::Yes);
+                    // Fill holes in top areas that are covered by the upper layer to prevent
+                    // different wall counts at material transitions (e.g., text on keytags).
+                    if (this->fill_top_surface_holes && ! top_polygons.empty() && this->upper_slices) {
+                        ExPolygons top_union = union_ex(top_polygons);
+                        Polygons   filled_holes;
+                        for (const ExPolygon &ep : top_union)
+                            for (const Polygon &hole : ep.holes) {
+                                ExPolygons hole_ex = to_expolygons(Polygons{hole});
+                                if (! intersection_ex(hole_ex, *this->upper_slices, ApplySafetyOffset::Yes).empty())
+                                    filled_holes.push_back(hole);
+                            }
+                        if (! filled_holes.empty())
+                            top_polygons = union_ex(top_union, to_expolygons(filled_holes));
+                    }
                     //get the not-top surface, from the "real top" but enlarged by external_infill_margin (and the min_width_top_surface we removed a bit before)
                     ExPolygons temp_gap        = diff_ex(top_polygons, fill_clip);
                     ExPolygons inner_polygons = diff_ex(last,
@@ -1569,9 +1587,27 @@ void PerimeterGenerator::process_arachne()
                 infill_bbox.offset(EPSILON);
 
                 Polygons upper_polygons_clipped;
-                if (this->upper_slices)
-                    upper_polygons_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->upper_slices, infill_bbox);
+                if (this->upper_slices) {
+                    if (this->object_config->interface_shells && this->upper_slices_same_region != nullptr)
+                        upper_polygons_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(to_expolygons(this->upper_slices_same_region->surfaces), infill_bbox);
+                    else
+                        upper_polygons_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->upper_slices, infill_bbox);
+                }
                 top_expolys_by_one_wall = diff_ex(infill_contour_by_one_wall, upper_polygons_clipped);
+                // Fill holes in top areas that are covered by the upper layer to prevent
+                // different wall counts at material transitions (e.g., text on keytags).
+                if (this->fill_top_surface_holes && ! top_expolys_by_one_wall.empty() && this->upper_slices) {
+                    ExPolygons top_union = union_ex(top_expolys_by_one_wall);
+                    Polygons   filled_holes;
+                    for (const ExPolygon &ep : top_union)
+                        for (const Polygon &hole : ep.holes) {
+                            ExPolygons hole_ex = to_expolygons(Polygons{hole});
+                            if (! intersection_ex(hole_ex, *this->upper_slices, ApplySafetyOffset::Yes).empty())
+                                filled_holes.push_back(hole);
+                        }
+                    if (! filled_holes.empty())
+                        top_expolys_by_one_wall = union_ex(top_union, to_expolygons(filled_holes));
+                }
 
                 Polygons lower_polygons_clipped;
                 if (this->lower_slices)
