@@ -478,6 +478,7 @@ private:
     // apply defaults based on enabled printers when no filaments/materials are installed.
     void                        load_installed_filaments(AppConfig &config);
     void                        load_installed_sla_materials(AppConfig &config);
+    void                        quick_fix_for_filaments_due_to_upgrade(AppConfig &config);
 
     // Load print, filament & printer presets from a config. If it is an external config, then the name is extracted from the external path.
     // and the external config is just referenced, not stored into user profile directory.

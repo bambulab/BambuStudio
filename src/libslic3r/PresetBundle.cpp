@@ -1,6 +1,7 @@
 #include <cassert>
 
 #include "PresetBundle.hpp"
+#include "Semver.hpp"
 #include "nlohmann/json.hpp"
 #include "libslic3r.h"
 #include "I18N.hpp"
@@ -1907,7 +1908,53 @@ void PresetBundle::load_installed_filaments(AppConfig &config)
 
     for (auto &preset : filaments)
         preset.set_visible_from_appconfig(config);
+
+    quick_fix_for_filaments_due_to_upgrade(config);
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": exit.");
+}
+
+void PresetBundle::quick_fix_for_filaments_due_to_upgrade(AppConfig &config)
+{
+    // for a visible/selected filament recorded in BambuStudio.conf fialments section
+    // make all filaments of the same series(vendor+type) visible no matter the corresponding machine is selected or not
+    // this is also the behaviour of the configure guide at fist startup of a clean install
+    // filaments are always selected as a group by type, which is filament.alias in code
+    static bool upgraded = false;
+    if (upgraded) return;
+    upgraded = true;
+
+    if (!config.has_section(AppConfig::SECTION_FILAMENTS)) return;
+
+    const auto &old_version = config.orig_version();
+    const auto &cur_version = Semver(config.get("version"));
+    if (old_version == cur_version) return;
+
+    const std::map<std::string, std::string> &installed_filament = config.get_section(AppConfig::SECTION_FILAMENTS);
+
+    std::unordered_set<std::string> visible_aliases;
+    for (const auto &[name, _] : installed_filament) {
+        Preset *filament = filaments.find_preset(name, false, true);
+        if (!filament || !filament->is_visible || filament->alias.empty()) continue;
+        visible_aliases.insert(filament->alias);
+    }
+
+    std::vector<PresetWithVendorProfile> printer_profiles;
+    for (const Preset &printer : printers) {
+        if (printer.printer_technology() != ptFFF) continue;
+        printer_profiles.emplace_back(printers.get_preset_with_vendor_profile(printer));
+    }
+
+    // For each invisible filament, check if it should become visible
+    for (auto &filament : filaments) {
+        if (filament.is_visible || filament.alias.empty() || !filament.is_system) continue;
+
+        for (const auto &printer_profile : printer_profiles) {
+            if (!is_compatible_with_printer(filaments.get_preset_with_vendor_profile(filament), printer_profile)) continue;
+            if (std::find(visible_aliases.cbegin(), visible_aliases.cend(), filament.alias) == visible_aliases.cend()) continue;
+            filament.is_visible = true;
+            config.set(AppConfig::SECTION_FILAMENTS, filament.name, "true");
+        }
+    }
 }
 
 void PresetBundle::load_installed_sla_materials(AppConfig &config)
