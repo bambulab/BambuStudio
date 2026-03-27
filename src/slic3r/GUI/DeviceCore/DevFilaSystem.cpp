@@ -372,12 +372,6 @@ std::map<int, DevAmsSlotId> DevFilaSystem::GetTrayIndexMap()
 
 int DevFilaSystem::GetTrayIdByAmsSlotId(int ams_id, int slot_id)
 {
-    if (devPrinterUtil::IsVirtualSlot(ams_id)) {
-        if (!GetOwner()->is_enable_np) {
-            return VIRTUAL_TRAY_DEPUTY_ID;
-        }
-    }
-
     auto tray_ams_slot_map = GetTrayIndexMap();
     auto tray_it = std::find_if(tray_ams_slot_map.begin(), tray_ams_slot_map.end(),
     [ams_id, slot_id](auto& item) {
