@@ -1006,6 +1006,8 @@ void AmsMapingPopup::on_left_down(wxMouseEvent &evt)
             }
 
             if (item->m_tray_data.type == TrayType::EMPTY) return;
+            if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC && devPrinterUtil::IsVirtualSlot(item->m_ams_id)) return;
+
             if ((m_show_type == ShowType::LEFT && item->GetParent()->GetName() == "left") ||
                 (m_show_type == ShowType::RIGHT && item->GetParent()->GetName() == "right") ||
                 m_show_type == ShowType::LEFT_AND_RIGHT ||
