@@ -3869,9 +3869,9 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
             int main_extder_nozzle_id = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
             if (main_extder_nozzle_id != 0xE) {
                 if (main_extder_nozzle_id >= 16) {
-                    m_main_extruder_nozzle_idx->SetValue(main_extder_nozzle_id - 16);
+                    m_main_extruder_nozzle_idx->SetValue(main_extder_nozzle_id - 16 + 1);
                 } else {
-                    m_main_extruder_nozzle_idx->SetValue(main_extder_nozzle_id);
+                    m_main_extruder_nozzle_idx->SetValue(main_extder_nozzle_id + 1);
                 }
 
                 m_main_extruder_nozzle_idx->Show();

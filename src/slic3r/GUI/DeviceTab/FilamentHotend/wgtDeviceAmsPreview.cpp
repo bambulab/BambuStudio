@@ -116,6 +116,10 @@ void wgtDeviceAmsPreview::CreateGui()
 void wgtDeviceAmsPreview::UpdateBy(std::shared_ptr<Slic3r::DevFilaSystem> fila_system,
                                    const std::map<int, std::optional<DevAmsSlotId>>& nozzle_slots)
 {
+    if (!fila_system) {
+        return;
+    }
+
     if (m_nozzle_slots.size() != nozzle_slots.size()) {
         m_sizer_slots->Clear(true);
         m_slot_widgets.clear();
@@ -149,6 +153,12 @@ void wgtDeviceAmsPreview::UpdateBy(std::shared_ptr<Slic3r::DevFilaSystem> fila_s
         }
 
         iter++;
+    }
+
+    if (!fila_system->GetAmsList().empty()) {
+        m_label_title->SetLabel("AMS");
+    } else {
+        m_label_title->SetLabel("External Spools");
     }
 
     Layout();

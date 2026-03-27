@@ -335,7 +335,7 @@ void AmsMapingPopup::update_mapping_items(MachineObject* obj, const std::vector<
                 }
             }
         }
-    } else {
+    } else if (m_amsmapping_container_list.empty() /*no ams use external spools*/) {
         wxPanel* target_panel = m_right_marea_panel;
         auto sizer_mapping_list = new wxBoxSizer(wxHORIZONTAL);
         auto ams_mapping_item_container = new MappingContainer(target_panel, "External Spools", vir_list.size());

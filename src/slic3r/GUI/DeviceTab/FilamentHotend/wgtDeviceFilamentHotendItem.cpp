@@ -1,7 +1,5 @@
 #include "wgtDeviceFilamentHotendItem.h"
 #include "slic3r/GUI/AMSMaterialsSetting.hpp"
-#include "slic3r/GUI/DeviceCore/DevDefs.h"
-#include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/Widgets/AnimaController.hpp"
 #include "slic3r/GUI/Widgets/Button.hpp"
@@ -9,6 +7,10 @@
 #include "slic3r/GUI/Widgets/StaticBox.hpp"
 #include "slic3r/GUI/Widgets/wgtCircleItem.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
+
+#include "slic3r/GUI/DeviceCore/DevDefs.h"
+#include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
+#include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 
 #include <algorithm>
 #include <wx/dcbuffer.h>
@@ -25,6 +27,7 @@ namespace {
 enum FilamentHotendMenuActionId {
     ID_FILAMENT_HOTEND_MENU_EDIT = wxID_HIGHEST + 510,
     ID_FILAMENT_HOTEND_MENU_LOAD,
+    ID_FILAMENT_HOTEND_MENU_UNLOAD,
     ID_FILAMENT_HOTEND_MENU_READ
 };
 
@@ -60,7 +63,8 @@ public:
         auto *root = new wxBoxSizer(wxVERTICAL);
         root->Add(CreateActionButton(_L("Edit"), ID_FILAMENT_HOTEND_MENU_EDIT), 0, wxEXPAND);
         root->Add(CreateActionButton(_L("Load"), ID_FILAMENT_HOTEND_MENU_LOAD), 0, wxEXPAND);
-        root->Add(CreateActionButton(_L("Reread"), ID_FILAMENT_HOTEND_MENU_READ), 0, wxEXPAND);
+        root->Add(CreateActionButton(_L("Unload"), ID_FILAMENT_HOTEND_MENU_UNLOAD), 0, wxEXPAND);
+        root->Add(CreateActionButton(_L("Refresh"), ID_FILAMENT_HOTEND_MENU_READ), 0, wxEXPAND);
         SetSizerAndFit(root);
         SetBackgroundColour(*wxWHITE);
         SetCanFocus(false);
@@ -684,6 +688,21 @@ void wgtDeviceFilamentHotendItem::OnMenuLoad(wxCommandEvent &event)
     }
 }
 
+void wgtDeviceFilamentHotendItem::OnMenuUnLoad(wxCommandEvent& event)
+{
+    DismissMenuPopup();
+
+    if (auto ptr = m_fila_system.lock()) {
+        try {
+            for (auto ext : ptr->GetOwner()->GetExtderSystem()->GetExtruders()) {
+                if (ext.GetSlotNow().ams_id == m_ams_id && ext.GetSlotNow().slot_id == m_slot_id) {
+                    ptr->GetOwner()->command_ams_change_filament(false, m_ams_id, "255");
+                }
+            }
+        } catch (...) {}
+    }
+}
+
 void wgtDeviceFilamentHotendItem::OnMenuRead(wxCommandEvent &event)
 {
     DismissMenuPopup();
@@ -719,6 +738,7 @@ void wgtDeviceFilamentHotendItem::ShowMenuPopup()
         m_menu_popup = new wgtFilamentHotendMenuDialog(this);
         m_menu_popup->Bind(wxEVT_BUTTON, &wgtDeviceFilamentHotendItem::OnMenuEdit, this, ID_FILAMENT_HOTEND_MENU_EDIT);
         m_menu_popup->Bind(wxEVT_BUTTON, &wgtDeviceFilamentHotendItem::OnMenuLoad, this, ID_FILAMENT_HOTEND_MENU_LOAD);
+        m_menu_popup->Bind(wxEVT_BUTTON, &wgtDeviceFilamentHotendItem::OnMenuUnLoad, this, ID_FILAMENT_HOTEND_MENU_UNLOAD);
         m_menu_popup->Bind(wxEVT_BUTTON, &wgtDeviceFilamentHotendItem::OnMenuRead, this, ID_FILAMENT_HOTEND_MENU_READ);
         m_menu_popup->Bind(wxEVT_SHOW, [this](wxShowEvent &evt) {
             if (!evt.IsShown()) { m_menu_dismiss_time = std::chrono::steady_clock::now(); }

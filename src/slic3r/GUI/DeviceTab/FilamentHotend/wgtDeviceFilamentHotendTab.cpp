@@ -148,7 +148,7 @@ void wgtDeviceFilamentHotendTab::OnHeaderBatchLoad(wxCommandEvent &evt)
 
 void wgtDeviceFilamentHotendTab::OnHeaderBatchUnload(wxCommandEvent &evt)
 {
-    m_batch_action = BatchAction::Load;
+    m_batch_action = BatchAction::Unload;
     m_filament_panel->GetAmsFilamentsWidget()->SetEnableSelection(true);
     m_tab_header->EnterBatchMode();
     m_load_tips->Show();

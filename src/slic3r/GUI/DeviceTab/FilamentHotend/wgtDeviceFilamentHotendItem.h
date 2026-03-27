@@ -66,6 +66,7 @@ private:
     void OnMenuButton(wxCommandEvent &event);
     void OnMenuEdit(wxCommandEvent &event);
     void OnMenuLoad(wxCommandEvent &event);
+    void OnMenuUnLoad(wxCommandEvent &event);
     void OnMenuRead(wxCommandEvent &event);
     void ShowMenuPopup();
     void DismissMenuPopup();
