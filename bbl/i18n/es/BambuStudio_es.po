@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-20 11:52+0800\n"
+"POT-Creation-Date: 2026-03-27 09:56+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -117,19 +117,19 @@ msgstr "%s no es compatible con el %s del extrusor."
 
 #, c-format, boost-format
 msgid "There may be critical print quality issues when printing '%s' with %s Bowden extruder. Use with caution!"
-msgstr ""
+msgstr "Pueden producirse problemas críticos en la calidad de la impresión al imprimir '%s' con %s el extrusor Bowden. ¡Úselo con precaución!"
 
 #, c-format, boost-format
 msgid "There may be critical print quality issues when printing '%s' with %s extruder. Use with caution!"
-msgstr ""
+msgstr "Pueden producirse problemas críticos en la calidad de la impresión al imprimir '%s' con %s el extrusor. ¡Úselo con precaución!"
 
 #, c-format, boost-format
 msgid "There may be print quality issues when printing '%s' with %s Bowden extruder. Use with caution."
-msgstr ""
+msgstr "Es posible que se produzcan problemas en la calidad de la impresión al imprimir '%s' con %s el extrusor Bowden. Úselo con precaución."
 
 #, c-format, boost-format
 msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
-msgstr ""
+msgstr "Es posible que se produzcan problemas en la calidad de la impresión al imprimir '%s' con %s el extrusor. Úselo con precaución."
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr "Es posible que el cabezal y el rack del hotend se muevan. Mantenga las manos alejadas de la cámara."
@@ -252,20 +252,20 @@ msgid "Based on the diagram below, rearrange the filaments on the printer for op
 msgstr "Según el diagrama a continuación, reorganice los filamentos en la impresora para obtener resultados óptimos y ahorrar aproximadamente %s."
 
 msgid "Summary:"
-msgstr ""
+msgstr "Resumen:"
 
 msgid "AMS on Filament Inlet A"
-msgstr ""
+msgstr "AMS en la entrada de filamento A"
 
 msgid "AMS on Filament Inlet B"
-msgstr ""
+msgstr "AMS en la entrada de filamento B"
 
 #, c-format, boost-format
 msgid "The No.%d slicing filament is matched to '%s'. Assigning it to '%s' can save printing time."
-msgstr ""
+msgstr "%d El filamento de corte n.° coincide con '%s'. Asignarlo a '%s' puede ahorrar tiempo de la impresión."
 
 msgid "*Tips: If you have moved the spool position on the machine, please close this page and re‑match the filament."
-msgstr ""
+msgstr "*Consejo: Si ha movido la posición de la bobina en la máquina, cierre esta página y vuelva a colocar el filamento."
 
 msgid "Summary:"
 msgstr ""
@@ -352,14 +352,21 @@ msgstr "Cancelar"
 msgid "Jump to the upgrade page"
 msgstr "Ir a la página de actualización"
 
+msgid "Refreshing"
+msgstr "Recargando"
+
+msgid "Hotend status abnormal, unavailable at present. Please upgrade the firmware and try again."
+msgstr ""
+
 msgid "SN"
 msgstr "SN"
 
 msgid "Version"
 msgstr "Versión"
 
-msgid "Used Time"
-msgstr "Tiempo de uso"
+#, c-format, boost-format
+msgid "Used Time: %s"
+msgstr ""
 
 msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
 msgstr "Las boquillas dinámicas están asignadas a la placa actual. Seleccionar hotend no está soportado."
@@ -944,6 +951,9 @@ msgstr "Cuadrado"
 msgid "Hexagon"
 msgstr "Hexágono"
 
+msgid "Middle of geometry"
+msgstr ""
+
 msgid "Snap global parameters"
 msgstr "Ajustar parámetros globales"
 
@@ -991,7 +1001,7 @@ msgid "Snap"
 msgstr "Quebrar"
 
 msgid "Thread"
-msgstr ""
+msgstr "Hilo"
 
 msgid "Tolerance"
 msgstr "Tolerancia"
@@ -2913,7 +2923,7 @@ msgid "Heating mode is suitable for printing %s materials and circulates filters
 msgstr "El modo de calefacción es adecuado para imprimir materiales %s y circula filtros de aire de la cámara."
 
 msgid "Strong Cooling"
-msgstr ""
+msgstr "Refrigeración fuerte"
 
 msgid "Fan"
 msgstr "Ventilador"
@@ -3963,6 +3973,13 @@ msgstr ""
 "Por ejemplo, la temperatura de la cama puede ser demasiado alta.\n"
 "\n"
 "El valor se restablecerá a 0."
+
+msgid ""
+"Interlocking beam width can't be zero when beam interlocking is enabled.\n"
+"Reset to 0.01 mm."
+msgstr ""
+"El ancho del elemento de enclavamiento no puede ser cero cuando el enclavamiento del elemento está habilitado.\n"
+"Restablecer a 0,01 mm."
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support Layer Height is on.\n"
@@ -6497,6 +6514,9 @@ msgstr "Cómo utilizar el modo solo LAN"
 msgid "Don't show this dialog again"
 msgstr "No volver a mostrar este cuadro de diálogo"
 
+msgid "Please refer to Wiki before use->"
+msgstr "Consulte la Wiki antes de usar->"
+
 msgid "3D Mouse disconnected."
 msgstr "Ratón 3D desconectado."
 
@@ -6824,9 +6844,6 @@ msgstr "TPU de alto flujo"
 
 msgid "No wiki link available for this printer."
 msgstr "No hay ningún enlace wiki disponible para esta impresora."
-
-msgid "Refreshing"
-msgstr "Recargando"
 
 msgid "Unavailable while heating maintenance function is on."
 msgstr "No disponible mientras la función de mantenimiento de calefacción está activada."
@@ -8032,10 +8049,10 @@ msgid "Show the warning dialog again when importing non-Bambu 3MF files"
 msgstr "Vuelva a mostrar el cuadro de diálogo de advertencia al importar archivos 3MF que no sean de Bambu"
 
 msgid "Clear my choice for disabling recommendation for support material parameters."
-msgstr ""
+msgstr "Borrar mi elección para deshabilitar la recomendación de parámetros del material del soporte."
 
 msgid "Clear my choice for disabling recommendation for support material parameters"
-msgstr ""
+msgstr "Borrar mi elección para deshabilitar la recomendación de parámetros del material del soporte"
 
 msgid "3D Settings"
 msgstr "Configuración 3D"
@@ -8635,7 +8652,7 @@ msgid "Nozzles and filaments of the same type share the same PA profile"
 msgstr "Las boquillas y los filamentos del mismo tipo comparten el mismo perfil PA"
 
 msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
-msgstr ""
+msgstr "Si el filamento/boquilla del extrusor principal no ha cambiado, se reutilizará el último valor de calibración. El extrusor auxiliar utilizará el valor predeterminado del sistema."
 
 msgid "send completed"
 msgstr "envío completo"
@@ -8696,17 +8713,17 @@ msgstr "Esto comprueba la planitud de la cama térmica. La nivelación hace que 
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Este proceso determina los valores de flujo dinámico para mejorar la calidad general de impresión."
 
-msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value.\n"
+msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr ""
 
-msgid "On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value.\n"
+msgid "On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
 msgstr ""
 
 msgid "Off: Prioritize using the value from your manual flow calibration."
-msgstr ""
+msgstr "Desactivado: Priorice el uso del valor de su calibración del flujo manual."
 
 msgid "Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
-msgstr ""
+msgstr "Antes de cada impresión, se realizará la calibración del extrusor principal. El extrusor auxiliar utilizará el valor predeterminado del sistema."
 
 msgid "Preparing print job"
 msgstr "Preparando el trabajo de impresión"
@@ -8721,7 +8738,7 @@ msgid "The name length exceeds the limit."
 msgstr "La longitud del nombre supera el límite."
 
 msgid "Right Nozzle(Aux)"
-msgstr ""
+msgstr "Boquilla derecha (Aux)"
 
 #, c-format, boost-format
 msgid "Cost %dg filament and %d changes more than optimal grouping."
@@ -8907,9 +8924,6 @@ msgstr "El firmware actual admite un máximo de 16 materiales. Puede reducir la 
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr "Por favor, verifique si el diámetro de la boquilla y la tasa de flujo requeridos coinciden con la pantalla actual."
 
-msgid "Please refer to Wiki before use->"
-msgstr "Consulte la Wiki antes de usar->"
-
 msgid "How to install"
 msgstr "Cómo instalar"
 
@@ -8974,19 +8988,19 @@ msgid "View all Daily tips"
 msgstr "Ver todos los Consejos diarios"
 
 msgid "Availabale Objects"
-msgstr ""
+msgstr "Objetos disponibles"
 
 msgid "Main Material"
-msgstr ""
+msgstr "Material principal"
 
 msgid "Support Material"
-msgstr ""
+msgstr "Material de soporte"
 
 msgid "Recommended Parameters"
-msgstr ""
+msgstr "Parámetros recomendados"
 
 msgid "Compatible model and support filaments detected. It is recommended to use the suggested filaments for printing the support interfaces of these objects, along with the recommended parameters."
-msgstr ""
+msgstr "Se han detectado filamentos compatibles y de soporte. Se recomienda utilizar los filamentos sugeridos para imprimir las interfaces de soporte de estos objetos, junto con los parámetros recomendados."
 
 msgid "Don't remind me again"
 msgstr "No me lo vuelvas a recordar"
@@ -9125,19 +9139,19 @@ msgid "Click to reset all settings to the last saved preset."
 msgstr "Haga clic aquí para restablecer todos los ajustes al último ajuste preestablecido guardado."
 
 msgid "Support interface speed"
-msgstr ""
+msgstr "Velocidad de interfaz compatible"
 
 msgid "When using PLA to support TPU, We recommend the following settings:"
-msgstr ""
+msgstr "Cuando se utiliza PLA para soportar TPU, recomendamos la siguiente configuración:"
 
 msgid "When using soluble material for the support interface, We recommend the following settings:"
-msgstr ""
+msgstr "Al utilizar material soluble para la interfaz del soporte, recomendamos la siguiente configuración:"
 
 msgid "When using support material for the support interface, We recommend the following settings:"
-msgstr ""
+msgstr "Al utilizar material de soporte para la interfaz del soporte, recomendamos la siguiente configuración:"
 
 msgid "Do you want to apply these settings?"
-msgstr ""
+msgstr "¿Desea aplicar esta configuración?"
 
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Se requiere una torre de purga para el cambio de boquilla. Puede haber imperfecciones en el modelo sin la torre de purga. ¿Está seguro de que desea desactivar la torre de purga?"
@@ -9408,17 +9422,14 @@ msgstr "La velocidad volumétrica máxima para embestir, donde -1 significa usar
 msgid "Filament scarf seam settings"
 msgstr "Ajustes de costura de cicatriz de filamento"
 
-msgid "Cooling for specific layer"
-msgstr "Ventilación para la capa específica"
-
-msgid "Special cooling settings"
-msgstr "Ajustes de refrigeración especiales"
-
-msgid "set addition fan speed before fist x layer"
-msgstr "establece la velocidad del ventilador de adición antes de la primera capa x"
-
 msgid "Part cooling fan"
 msgstr "Ventilador de refrigeración de piezas"
+
+msgid "Close fan"
+msgstr ""
+
+msgid "set fan speed before first x layer"
+msgstr ""
 
 msgid "Min fan speed threshold"
 msgstr "Umbral de velocidad mínima del ventilador"
@@ -9434,6 +9445,12 @@ msgstr "La velocidad del ventilador de la pieza será máxima cuando el tiempo d
 
 msgid "Auxiliary part cooling fan"
 msgstr "Ventilador de la parte auxiliar"
+
+msgid "First layers fan"
+msgstr ""
+
+msgid "set additional fan speed before first x layer"
+msgstr ""
 
 msgid "Exhaust fan"
 msgstr "Ventilador de escape"
@@ -10025,7 +10042,7 @@ msgid "OK"
 msgstr ""
 
 msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
-msgstr ""
+msgstr "El extrusor del tipo Bowden no admite boquillas de 0,2 mm de diámetro. Solo podemos proceder con la impresión de un solo cabezal."
 
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 msgstr "Studio volvería a calcular los volúmenes de lavado cada vez que los filamentos cambiaran de color o cambiaran los filamentos. Puedes desactivar el cálculo automático en Bambu Studio > Preferencias"
@@ -11596,6 +11613,12 @@ msgstr "Velocidad del ventilador para el voladizo"
 msgid "Force part cooling fan to be at this speed when printing bridge or overhang wall which has large overhang degree. Forcing cooling for overhang and bridge can get better quality for these part"
 msgstr "Forzar el ventilador de refrigeración de la pieza a esta velocidad cuando se imprimen puentes o paredes salientes que tienen un gran grado de saliente. Forzar la refrigeración de salientes y puentes puede mejorar la calidad de estas piezas."
 
+msgid "Ironing fan speed"
+msgstr "Velocidad del ventilador de la plancha"
+
+msgid "This part cooling fan speed is applied when ironing. Setting this parameter to a lower than regular speed reduces possible nozzle clogging due to the low volumetric flow rate, making the interface smoother. Set to -1 to disable it."
+msgstr "Esta velocidad del ventilador de refrigeración se aplica durante el planchado. Ajustar este parámetro a una velocidad inferior a la normal reduce la posible obstrucción de la boquilla debido al bajo caudal volumétrico, lo que facilita el deslizamiento. Desactívelo estableciendo el valor en -1."
+
 msgid "Pre start fan time"
 msgstr "Tiempo previo al arranque del ventilador"
 
@@ -11876,11 +11899,20 @@ msgstr "Velocidad del extractor de aire una vez finalizada la impresión"
 msgid "For the first"
 msgstr "Por primera vez"
 
-msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
-msgstr "Configure un ventilador de capa especial para ciertas primeras capas. El ventilador de capa de la primera capa solía estar cerrado para lograr una mejor adhesión a la placa de construcción y se usaba para la función de enfriamiento automático"
+msgid "Set special auxiliary cooling fan for the first certain layers."
+msgstr ""
 
 msgid "layers"
 msgstr "capas"
+
+msgid "Full fan speed at layer"
+msgstr "Velocidad máxima del ventilador en la capa"
+
+msgid "Auxiliary fan speed will be ramped up linearly from layer \"For the first\" to maximum at layer \"Full fan speed at layer\". \"Full fan speed at layer\" will be ignored if lower than \"For the first\", in which case the fan will be running at maximum allowed speed at layer \"For the first\" + 1."
+msgstr ""
+
+msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
+msgstr "Configure un ventilador de capa especial para ciertas primeras capas. El ventilador de capa de la primera capa solía estar cerrado para lograr una mejor adhesión a la placa de construcción y se usaba para la función de enfriamiento automático"
 
 msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
 msgstr "Velocidad especial del ventilador auxiliar de enfriamiento, efectiva solo para las primeras x capas"
@@ -12283,6 +12315,12 @@ msgstr "Categoría de adhesividad"
 msgid "Filament category"
 msgstr "Categoría de filamento"
 
+msgid "Metal stickiness"
+msgstr ""
+
+msgid "Indicates how strongly the filament tends to stick to the metal nozzle and leave residue. \"None\" means untested or custom filament, behaves the same as Low. Low: e.g. PLA - retraction can be safely skipped in infill areas. Medium: moderate stickiness - use with caution. High: e.g. PETG - retraction should not be skipped to avoid oozing artifacts on outer walls."
+msgstr ""
+
 msgid "Density"
 msgstr "Densidad"
 
@@ -12353,10 +12391,10 @@ msgid "The filament is printable in extruder"
 msgstr "El filamento es imprimible en extrusor"
 
 msgid "Filament-extruder compatibility"
-msgstr ""
+msgstr "Compatibilidad filamento-extrusor"
 
 msgid "A single 32-bit int encoding the compatibility level of a filament across all extruders (up to 10). Every 3 bits represent one extruder (bits [3*i, 3*i+2] for extruder i). 0: printable, 1: error, 2: critical warning, 3: warning, 4-7: reserved"
-msgstr ""
+msgstr "Un único entero de 32 bits que codifica el nivel de compatibilidad de un filamento con todos los extrusores (hasta 10). Cada 3 bits representan un extrusor (bits [3*i, 3*i+2] para el extrusor i). 0: imprimible, 1: error, 2: advertencia crítica, 3: advertencia, 4-7: reservado"
 
 msgid "Filament change"
 msgstr "Cambio de filamento"
@@ -12410,10 +12448,10 @@ msgid "°C"
 msgstr "°C"
 
 msgid "Enable tower interface features"
-msgstr ""
+msgstr "Habilitar las funciones de la interfaz de la torre"
 
 msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
-msgstr ""
+msgstr "Cuando esté habilitada, utilice ajustes específicos de la temperatura, preextrusión y purga para las capas de interfaz de la torre de cebado (donde se unen diferentes materiales), para mejorar la calidad del cambio de herramienta multimaterial."
 
 msgid "Softening temperature"
 msgstr "Temperatura de ablandamiento"
@@ -12607,9 +12645,6 @@ msgstr "Temperatura de la boquilla de la capa inicial"
 msgid "Nozzle temperature to print initial layer when using this filament"
 msgstr "Temperatura de la boquilla para imprimir la capa inicial cuando se utiliza este filamento"
 
-msgid "Full fan speed at layer"
-msgstr "Velocidad máxima del ventilador en la capa"
-
 msgid "Randomly jitter while printing the wall, so that the surface has a rough look. This setting controls the fuzzy position"
 msgstr "Agitar aleatoriamente mientras se imprime la pared, de modo que la superficie tenga un aspecto rugoso. Esta configuración controla la posición difusa."
 
@@ -12630,6 +12665,86 @@ msgstr "Distancia al punto de superficie irregular"
 
 msgid "The average distance between the random points introduced on each line segment"
 msgstr "La distancia promedio entre los puntos aleatorios introducidos en cada segmento de línea."
+
+msgid "Apply fuzzy skin to first layer"
+msgstr "Aplicar piel rugosa a la primera capa"
+
+msgid "Whether to apply fuzzy skin on the first layer."
+msgstr "Si se aplica textura rugosa en la primera capa."
+
+msgid "Fuzzy skin noise type"
+msgstr "Tipo de ruido de la textura rugosa"
+
+msgid ""
+"Noise type to use for fuzzy skin generation:\n"
+"Classic: Classic uniform random noise.\n"
+"Perlin: Perlin noise, which gives a more consistent texture.\n"
+"Billow: Similar to perlin noise, but clumpier.\n"
+"Ridged Multifractal: Ridged noise with sharp, jagged features. Creates marble-like textures.\n"
+"Voronoi: Divides the surface into voronoi cells, and displaces each one by a random amount. Creates a patchwork texture."
+msgstr ""
+"Tipo de ruido para la generación de textura rugosa:\n"
+"Clásico: Ruido aleatorio uniforme clásico.\n"
+"Perlin: Ruido Perlin, que proporciona una textura más uniforme y consistente.\n"
+"Billow: Similar al ruido Perlin, pero con formas más agrupadas.\n"
+"Multifractal con crestas: Ruido con crestas y rasgos afilados e irregulares. Crea texturas tipo mármol.\n"
+"Voronoi: Divide la superficie en celdas de Voronoi y desplaza cada una de forma aleatoria. Crea una textura tipo mosaico."
+
+msgid "Classic"
+msgstr "Clásico"
+
+msgid "Perlin"
+msgstr ""
+
+msgid "Billow"
+msgstr ""
+
+msgid "Ridged Multifractal"
+msgstr "Multifractal con crestas"
+
+msgid "Voronoi"
+msgstr ""
+
+msgid "Fuzzy skin feature size"
+msgstr "Tamaño de detalle de la textura rugosa"
+
+msgid "The base size of the coherent noise features, in mm. Higher values will result in larger features."
+msgstr "Tamaño base de los detalles del ruido coherente, en mm. Cuanto mayor sea el valor, más grandes serán los detalles."
+
+msgid "Fuzzy skin noise octaves"
+msgstr "Número de octavas del ruido de la textura rugosa"
+
+msgid "The number of octaves of coherent noise to use. Higher values increase the detail of the noise, but also increase computation time."
+msgstr "El número de octavas de ruido coherente a utilizar. Valores más altos aumentan el detalle del ruido, pero también el tiempo de cálculo."
+
+msgid "Fuzzy skin noise persistence"
+msgstr "Persistencia del ruido de la textura rugosa"
+
+msgid "The decay rate for higher octaves of the coherent noise. Lower values will result in smoother noise."
+msgstr "La tasa de decaimiento para las octavas superiores del ruido coherente. Los valores más bajos darán como resultado un ruido más suave."
+
+msgid "Fuzzy skin generator mode"
+msgstr "Modo generador de piel rugosa"
+
+msgid ""
+"Displacement: Pattern is formed by shifting the nozzle sideways from the original path.\n"
+"Extrusion: Pattern is formed by varying the amount of extruded plastic (nozzle path stays straight).\n"
+"Combined: Displacement + Extrusion. Similar look to Displacement but fills gaps between perimeters.\n"
+"Note: Extrusion and Combined only work when fuzzy skin thickness is not greater than the printed line width."
+msgstr ""
+"Desplazamiento: El patrón se forma desplazando la boquilla lateralmente desde la trayectoria original.\n"
+"Extrusión: El patrón se forma variando la cantidad de plástico extruido (la trayectoria de la boquilla permanece recta).\n"
+"Combinado: Desplazamiento + Extrusión. Aspecto similar al desplazamiento, pero rellena huecos entre perímetros.\n"
+"Nota: La extrusión y el combinado solo funcionan cuando el grosor de la piel difusa no es mayor que el ancho de la línea impresa."
+
+msgid "Displacement"
+msgstr "Desplazamiento"
+
+msgid "Extrusion"
+msgstr "Extrusión"
+
+msgid "Combined"
+msgstr "Conjunto"
 
 msgid "Filter out tiny gaps"
 msgstr "Filtra los pequeños huecos"
@@ -13156,8 +13271,8 @@ msgstr "Los puntos inicial y final que van desde la zona de corte hasta el cubo 
 msgid "Reduce infill retraction"
 msgstr "Reducir la retracción del relleno"
 
-msgid "Don't retract when the travel is in infill area absolutely. That means the oozing can't been seen. This can reduce times of retraction for complex model and save printing time, but make slicing and G-code generating slower"
-msgstr "No retraer filamento cuando el cabezal esta en un área del relleno. Eso significa que no se vera la supuración (reducir oozing). Esto puede reducir los tiempos de retracción para modelos complejos y ahorrar tiempo de impresión, pero hace que la laminación y la generación del gcode sean más lentas."
+msgid "Controls whether retraction is skipped when traveling within the infill area. \"Auto\" enables this optimization for filaments with low metal stickiness (e.g. PLA) and disables it for medium/high metal stickiness filaments (e.g. PETG) to avoid oozing artifacts. \"Enabled\" always skips retraction in infill areas regardless of filament type. \"Disabled\" always retracts normally."
+msgstr ""
 
 msgid "Filename format"
 msgstr "Formato de los archivos"
@@ -14053,9 +14168,6 @@ msgstr "El contorno del objeto crecerá o se reducirá en el plano XY según el 
 msgid "Classic wall generator produces walls with constant extrusion width and for very thin areas is used gap-fill. Arachne engine produces walls with variable extrusion width"
 msgstr "El generador de paredes clásico produce paredes con un ancho de extrusión constante y para áreas muy delgadas, se utiliza el relleno de huecos. El generador Arachne produce paredes con ancho de extrusión variable."
 
-msgid "Classic"
-msgstr "Clásico"
-
 msgid "Arachne"
 msgstr "Aracne"
 
@@ -14597,10 +14709,10 @@ msgstr ""
 "- Diferentes marcas y familias de filamentos (Marca = Bambu, Familia = Basic, Matte)\n"
 
 msgid "- Right Nozzle (Aux) does not support automatic flow calibration."
-msgstr ""
+msgstr "- La boquilla derecha (auxiliar) no admite la calibración automática del flujo."
 
 msgid "- Left Nozzle (Aux) does not support automatic flow calibration."
-msgstr ""
+msgstr "- La boquilla izquierda (auxiliar) no admite la calibración automática del flujo."
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- Nota: El número del Hotend está vinculado al soporte. Cuando el Hotend se traslada a un soporte nuevo, su número se actualizará automáticamente.\n"
@@ -15573,7 +15685,7 @@ msgstr "La cantidad de extrusores de impresora y la impresora seleccionada para 
 
 #, c-format, boost-format
 msgid "The type of %sextruder is bowden which does not support automatic Flow Dynamics calibration."
-msgstr ""
+msgstr "El tipo de %sextrusor es bowden, que no admite la calibración automática de la dinámica de flujo."
 
 #, c-format, boost-format
 msgid "The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."
@@ -16878,6 +16990,21 @@ msgid ""
 msgstr ""
 "Fiabilidad a la primera\n"
 "Menos supervisión, resultados más predecibles. Ejemplo: una pequeña granja que procesa piezas de PETG evita sorpresas de \"fallo a la hora 6\" y mantiene los lotes según lo previsto."
+
+#~ msgid "Used Time"
+#~ msgstr "Tiempo de uso"
+
+#~ msgid "Cooling for specific layer"
+#~ msgstr "Ventilación para la capa específica"
+
+#~ msgid "Special cooling settings"
+#~ msgstr "Ajustes de refrigeración especiales"
+
+#~ msgid "set addition fan speed before fist x layer"
+#~ msgstr "establece la velocidad del ventilador de adición antes de la primera capa x"
+
+#~ msgid "Don't retract when the travel is in infill area absolutely. That means the oozing can't been seen. This can reduce times of retraction for complex model and save printing time, but make slicing and G-code generating slower"
+#~ msgstr "No retraer filamento cuando el cabezal esta en un área del relleno. Eso significa que no se vera la supuración (reducir oozing). Esto puede reducir los tiempos de retracción para modelos complejos y ahorrar tiempo de impresión, pero hace que la laminación y la generación del gcode sean más lentas."
 
 #~ msgid ""
 #~ "The software does not support using different diameter of nozzles for one print.\n"

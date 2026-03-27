@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-20 11:52+0800\n"
+"POT-Creation-Date: 2026-03-27 09:56+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -346,13 +346,20 @@ msgstr "Отмена"
 msgid "Jump to the upgrade page"
 msgstr ""
 
+msgid "Refreshing"
+msgstr ""
+
+msgid "Hotend status abnormal, unavailable at present. Please upgrade the firmware and try again."
+msgstr ""
+
 msgid "SN"
 msgstr "Серийный №"
 
 msgid "Version"
 msgstr "Версия"
 
-msgid "Used Time"
+#, c-format, boost-format
+msgid "Used Time: %s"
 msgstr ""
 
 msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
@@ -948,6 +955,9 @@ msgstr "Квадрат"
 
 msgid "Hexagon"
 msgstr "Шестиугольник"
+
+msgid "Middle of geometry"
+msgstr ""
 
 msgid "Snap global parameters"
 msgstr "Глобальные параметры привязки"
@@ -4010,6 +4020,11 @@ msgstr ""
 "Значение будет сброшено на 0."
 
 msgid ""
+"Interlocking beam width can't be zero when beam interlocking is enabled.\n"
+"Reset to 0.01 mm."
+msgstr ""
+
+msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support Layer Height is on.\n"
 "Which do you want to keep?\n"
 "YES - Keep Prime Tower\n"
@@ -6577,6 +6592,9 @@ msgstr "Как использовать режим «Только LAN»"
 msgid "Don't show this dialog again"
 msgstr "Больше не показывать"
 
+msgid "Please refer to Wiki before use->"
+msgstr ""
+
 msgid "3D Mouse disconnected."
 msgstr "3D-мышь отключена."
 
@@ -6911,9 +6929,6 @@ msgid "TPU High flow"
 msgstr ""
 
 msgid "No wiki link available for this printer."
-msgstr ""
-
-msgid "Refreshing"
 msgstr ""
 
 msgid "Unavailable while heating maintenance function is on."
@@ -8789,10 +8804,10 @@ msgstr "Этот процесс проверяет ровность поверх
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Этот процесс определяет значение динамического потока для улучшения общего качества печати."
 
-msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value.\n"
+msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr ""
 
-msgid "On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value.\n"
+msgid "On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
 msgstr ""
 
 msgid "Off: Prioritize using the value from your manual flow calibration."
@@ -9000,9 +9015,6 @@ msgid "The current firmware supports a maximum of 16 materials. You can either r
 msgstr ""
 
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
-msgstr ""
-
-msgid "Please refer to Wiki before use->"
 msgstr ""
 
 msgid "How to install"
@@ -9501,17 +9513,14 @@ msgstr "Максимальный объёмный расход при рэмми
 msgid "Filament scarf seam settings"
 msgstr "Настройки клиновидного шва для прутка"
 
-msgid "Cooling for specific layer"
-msgstr "Обдув определённого слоя"
-
-msgid "Special cooling settings"
-msgstr ""
-
-msgid "set addition fan speed before fist x layer"
-msgstr ""
-
 msgid "Part cooling fan"
 msgstr "Вентилятор обдува модели"
+
+msgid "Close fan"
+msgstr ""
+
+msgid "set fan speed before first x layer"
+msgstr ""
 
 msgid "Min fan speed threshold"
 msgstr "Порог мин. скорости вентилятора"
@@ -9527,6 +9536,12 @@ msgstr "Скорость вентилятора для охлаждения де
 
 msgid "Auxiliary part cooling fan"
 msgstr "Вспомогательный вентилятор модели"
+
+msgid "First layers fan"
+msgstr ""
+
+msgid "set additional fan speed before first x layer"
+msgstr ""
 
 msgid "Exhaust fan"
 msgstr "Вытяжной вентилятор"
@@ -11711,6 +11726,12 @@ msgstr "Скорость вентилятора на нависаниях"
 msgid "Force part cooling fan to be at this speed when printing bridge or overhang wall which has large overhang degree. Forcing cooling for overhang and bridge can get better quality for these part"
 msgstr "Заставляет вентилятор обдува модели работать на этой скорости при печати мостов или нависающих периметров, имеющих большую степень свеса. Принудительное охлаждение позволяет повысить качество печати этих частей."
 
+msgid "Ironing fan speed"
+msgstr ""
+
+msgid "This part cooling fan speed is applied when ironing. Setting this parameter to a lower than regular speed reduces possible nozzle clogging due to the low volumetric flow rate, making the interface smoother. Set to -1 to disable it."
+msgstr ""
+
 msgid "Pre start fan time"
 msgstr "Смещение времени запуска вентилятора"
 
@@ -11978,11 +11999,20 @@ msgstr "Скорость вытяжного вентилятора после з
 msgid "For the first"
 msgstr ""
 
-msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
+msgid "Set special auxiliary cooling fan for the first certain layers."
 msgstr ""
 
 msgid "layers"
 msgstr "слой(-я)"
+
+msgid "Full fan speed at layer"
+msgstr "Полная скорость вентилятора на слое"
+
+msgid "Auxiliary fan speed will be ramped up linearly from layer \"For the first\" to maximum at layer \"Full fan speed at layer\". \"Full fan speed at layer\" will be ignored if lower than \"For the first\", in which case the fan will be running at maximum allowed speed at layer \"For the first\" + 1."
+msgstr ""
+
+msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
+msgstr ""
 
 msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
 msgstr ""
@@ -12404,6 +12434,12 @@ msgstr "Категория адгезии"
 msgid "Filament category"
 msgstr "Категория прутка"
 
+msgid "Metal stickiness"
+msgstr ""
+
+msgid "Indicates how strongly the filament tends to stick to the metal nozzle and leave residue. \"None\" means untested or custom filament, behaves the same as Low. Low: e.g. PLA - retraction can be safely skipped in infill areas. Medium: moderate stickiness - use with caution. High: e.g. PETG - retraction should not be skipped to avoid oozing artifacts on outer walls."
+msgstr ""
+
 msgid "Density"
 msgstr "Плотность"
 
@@ -12737,9 +12773,6 @@ msgstr "Температура сопла на первом слое"
 msgid "Nozzle temperature to print initial layer when using this filament"
 msgstr "Температура сопла для печати первого слоя при использовании данной пластиковой нити."
 
-msgid "Full fan speed at layer"
-msgstr "Полная скорость вентилятора на слое"
-
 msgid "Randomly jitter while printing the wall, so that the surface has a rough look. This setting controls the fuzzy position"
 msgstr "Случайное дрожание сопла при печати внешнего периметра для создания эффекта шероховатой поверхности. Эта настройка определяет положение нечёткой оболочки."
 
@@ -12760,6 +12793,76 @@ msgstr "Расстояние между точками нечёткой обол
 
 msgid "The average distance between the random points introduced on each line segment"
 msgstr "Среднее расстояние между случайными точками, которые вносятся в каждый сегмент линии периметра. Уменьшение расстояния между точками нечёткой оболочки, увеличит число случайно смещённых точек на стенке периметра, т.е. увеличит их плотность."
+
+msgid "Apply fuzzy skin to first layer"
+msgstr ""
+
+msgid "Whether to apply fuzzy skin on the first layer."
+msgstr ""
+
+msgid "Fuzzy skin noise type"
+msgstr ""
+
+msgid ""
+"Noise type to use for fuzzy skin generation:\n"
+"Classic: Classic uniform random noise.\n"
+"Perlin: Perlin noise, which gives a more consistent texture.\n"
+"Billow: Similar to perlin noise, but clumpier.\n"
+"Ridged Multifractal: Ridged noise with sharp, jagged features. Creates marble-like textures.\n"
+"Voronoi: Divides the surface into voronoi cells, and displaces each one by a random amount. Creates a patchwork texture."
+msgstr ""
+
+msgid "Classic"
+msgstr "Классический"
+
+msgid "Perlin"
+msgstr ""
+
+msgid "Billow"
+msgstr ""
+
+msgid "Ridged Multifractal"
+msgstr ""
+
+msgid "Voronoi"
+msgstr ""
+
+msgid "Fuzzy skin feature size"
+msgstr ""
+
+msgid "The base size of the coherent noise features, in mm. Higher values will result in larger features."
+msgstr ""
+
+msgid "Fuzzy skin noise octaves"
+msgstr ""
+
+msgid "The number of octaves of coherent noise to use. Higher values increase the detail of the noise, but also increase computation time."
+msgstr ""
+
+msgid "Fuzzy skin noise persistence"
+msgstr ""
+
+msgid "The decay rate for higher octaves of the coherent noise. Lower values will result in smoother noise."
+msgstr ""
+
+msgid "Fuzzy skin generator mode"
+msgstr ""
+
+msgid ""
+"Displacement: Pattern is formed by shifting the nozzle sideways from the original path.\n"
+"Extrusion: Pattern is formed by varying the amount of extruded plastic (nozzle path stays straight).\n"
+"Combined: Displacement + Extrusion. Similar look to Displacement but fills gaps between perimeters.\n"
+"Note: Extrusion and Combined only work when fuzzy skin thickness is not greater than the printed line width."
+msgstr ""
+
+msgid "Displacement"
+msgstr ""
+
+msgid "Extrusion"
+msgstr ""
+
+msgid "Combined"
+msgstr ""
 
 msgid "Filter out tiny gaps"
 msgstr "Игнорировать небольшие щели"
@@ -13297,8 +13400,8 @@ msgstr "Начальная и конечная точки от зоны обре
 msgid "Reduce infill retraction"
 msgstr "Уменьшать откат при заполнении"
 
-msgid "Don't retract when the travel is in infill area absolutely. That means the oozing can't been seen. This can reduce times of retraction for complex model and save printing time, but make slicing and G-code generating slower"
-msgstr "Отключает откат, когда перемещения полностью совершаются в области заполнения (и, таким образом, любые подтёки скорее всего будут не заметны). Это поможет снизить количество откатов при печати сложной модели и сэкономить время печати, но увеличит время нарезки и генерации G-кода."
+msgid "Controls whether retraction is skipped when traveling within the infill area. \"Auto\" enables this optimization for filaments with low metal stickiness (e.g. PLA) and disables it for medium/high metal stickiness filaments (e.g. PETG) to avoid oozing artifacts. \"Enabled\" always skips retraction in infill areas regardless of filament type. \"Disabled\" always retracts normally."
+msgstr ""
 
 msgid "Filename format"
 msgstr "Формат имени файла"
@@ -14221,9 +14324,6 @@ msgstr ""
 "Движок классического генератора периметров создаёт их с постоянной шириной экструзии, а для очень тонких участков используется параметр «Заполнять щели».\n"
 "\n"
 "Движок Arachne же создаёт периметры с переменной шириной экструзии, что позволяет печатать без щелей, лучше пропечатывать мелкие элементы (при условии, что у вас правильно откалиброван LA/PA). Этот параметр также влияет на концентрическое заполнение."
-
-msgid "Classic"
-msgstr "Классический"
 
 msgid "Arachne"
 msgstr "Arachne"
@@ -17054,6 +17154,12 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#~ msgid "Cooling for specific layer"
+#~ msgstr "Обдув определённого слоя"
+
+#~ msgid "Don't retract when the travel is in infill area absolutely. That means the oozing can't been seen. This can reduce times of retraction for complex model and save printing time, but make slicing and G-code generating slower"
+#~ msgstr "Отключает откат, когда перемещения полностью совершаются в области заполнения (и, таким образом, любые подтёки скорее всего будут не заметны). Это поможет снизить количество откатов при печати сложной модели и сэкономить время печати, но увеличит время нарезки и генерации G-кода."
 
 #~ msgid "Ext"
 #~ msgstr "Внеш."
