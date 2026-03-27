@@ -1127,7 +1127,11 @@ void PerimeterGenerator::process_classic()
                     last_box.offset(SCALED_EPSILON);
 
                     // BBS: get the Polygons upper the polygon this layer
-                    Polygons upper_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->upper_slices, last_box);
+                    Polygons upper_polygons_series_clipped;
+                    if (this->object_config->interface_shells && this->upper_slices_same_region != nullptr)
+                        upper_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(to_expolygons(this->upper_slices_same_region->surfaces), last_box);
+                    else
+                        upper_polygons_series_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->upper_slices, last_box);
                     upper_polygons_series_clipped = offset(upper_polygons_series_clipped, min_width_top_surface);
 
                     //set the clip to a virtual "second perimeter"
@@ -1569,8 +1573,12 @@ void PerimeterGenerator::process_arachne()
                 infill_bbox.offset(EPSILON);
 
                 Polygons upper_polygons_clipped;
-                if (this->upper_slices)
-                    upper_polygons_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->upper_slices, infill_bbox);
+                if (this->upper_slices) {
+                    if (this->object_config->interface_shells && this->upper_slices_same_region != nullptr)
+                        upper_polygons_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(to_expolygons(this->upper_slices_same_region->surfaces), infill_bbox);
+                    else
+                        upper_polygons_clipped = ClipperUtils::clip_clipper_polygons_with_subject_bbox(*this->upper_slices, infill_bbox);
+                }
                 top_expolys_by_one_wall = diff_ex(infill_contour_by_one_wall, upper_polygons_clipped);
 
                 Polygons lower_polygons_clipped;

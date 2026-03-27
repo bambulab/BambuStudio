@@ -1233,8 +1233,13 @@ bool PrintObject::invalidate_state_by_config_options(
             }
 #endif
         } else if (
-               opt_key == "interface_shells"
-            || opt_key == "fill_multiline"
+               opt_key == "interface_shells") {
+            // interface_shells affects both perimeter generation (one-wall-top uses same-region
+            // upper slices) and infill preparation (surface type detection at material boundaries).
+            steps.emplace_back(posPerimeters);
+            steps.emplace_back(posPrepareInfill);
+        } else if (
+               opt_key == "fill_multiline"
             || opt_key == "infill_combination"
             || opt_key == "bottom_shell_thickness"
             || opt_key == "top_shell_thickness"
@@ -1575,6 +1580,27 @@ void PrintObject::detect_surfaces_type(std::vector<std::vector<SurfaceCollection
                         Polygons top_polygons = to_polygons(std::move(top));
                         top.clear();
                         surfaces_append(top, diff_ex(top_polygons, bottom), stTop);
+                    }
+
+                    if (interface_shells && detect_top && upper_layer && ! top.empty()) {
+                        ExPolygons covered_by_upper = interface_shells ?
+                            intersection_ex(layerm->slices.surfaces, upper_layer->m_regions[region_id]->slices.surfaces, ApplySafetyOffset::Yes) :
+                            intersection_ex(layerm->slices.surfaces, upper_layer->lslices, ApplySafetyOffset::Yes);
+                        ExPolygons top_expolygons = union_ex(top);
+                        Polygons   filled_top_holes;
+                        for (const ExPolygon &expolygon : top_expolygons) {
+                            for (const Polygon &hole : expolygon.holes) {
+                                Polygons   hole_polygon{ hole };
+                                ExPolygons hole_expolygons = to_expolygons(hole_polygon);
+                                if (! intersection_ex(hole_expolygons, covered_by_upper, ApplySafetyOffset::Yes).empty())
+                                    filled_top_holes.push_back(hole);
+                            }
+                        }
+                        if (! filled_top_holes.empty()) {
+                            top_expolygons = union_ex(top_expolygons, to_expolygons(filled_top_holes));
+                            top.clear();
+                            surfaces_append(top, std::move(top_expolygons), stTop);
+                        }
                     }
 
         #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
