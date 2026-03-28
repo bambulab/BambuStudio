@@ -3268,7 +3268,12 @@ void StatusPanel::update_ams(MachineObject *obj)
 {
     // update obj in sub dlg
     if (m_ams_setting_dlg && m_ams_setting_dlg->IsShown()) { m_ams_setting_dlg->UpdateByObj(obj); }
-    if (m_filament_setting_dlg) { m_filament_setting_dlg->obj = obj; }
+    if (m_filament_setting_dlg) {
+        m_filament_setting_dlg->obj = obj;
+        if (m_filament_setting_dlg->IsShown()) {
+            m_filament_setting_dlg->TryRefreshPAProfiles();
+        }
+    }
 
     if (obj && obj->GetCalib()->IsVersionExpired() && obj->is_security_control_ready()) {
         obj->GetCalib()->SyncCalibVersion();
