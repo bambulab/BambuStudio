@@ -110,6 +110,7 @@ public:
                wxString k = wxEmptyString, wxString n = wxEmptyString);
 
     void post_select_event(int index);
+    void TryRefreshPAProfiles();
     void set_color(wxColour color);
     void set_empty_color(wxColour color);
     void set_colors(std::vector<wxColour> colors);
@@ -190,6 +191,7 @@ protected:
     int                 m_filament_selection;
 
     int m_pa_cali_select_id = 0;
+    bool m_pa_data_pending{false};
 
 #ifdef __APPLE__
     wxComboBox *m_comboBox_filament;
