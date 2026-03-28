@@ -1284,6 +1284,9 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
     wxString out;
 
     const ConfigOptionDef* opt = config.def()->get(opt_key);
+    if (!opt) {
+        return _L("N/A");
+    }
     bool is_nullable = opt->nullable;
 
     switch (opt->type) {
@@ -1318,12 +1321,12 @@ static wxString get_string_value(std::string opt_key, const DynamicPrintConfig& 
     case coBools: {
         if (is_nullable) {
             auto values = config.opt<ConfigOptionBoolsNullable>(opt_key);
-            if (opt_idx < values->size())
+            if (values && opt_idx < values->size())
                 return values->get_at(opt_idx) ? "true" : "false";
         }
         else {
             auto values = config.opt<ConfigOptionBools>(opt_key);
-            if (opt_idx < values->size())
+            if (values && opt_idx < values->size())
                 return values->get_at(opt_idx) ? "true" : "false";
         }
         return _L("Undef");

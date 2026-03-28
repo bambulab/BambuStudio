@@ -40,6 +40,8 @@ protected:
 	TextInput* m_tiStartPA;
 	TextInput* m_tiEndPA;
 	TextInput* m_tiPAStep;
+	TextInput* m_tiBMAccels;
+	TextInput* m_tiBMSpeeds;
 	CheckBox* m_cbPrintNum;
 	Button* m_btnStart;
 

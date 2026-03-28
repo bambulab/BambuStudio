@@ -6078,12 +6078,10 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
     if (dlg.ShowModal() == wxID_CANCEL)
         return false;
 
-    if (dlg.save_preset()) {
+    if (dlg.save_preset())
         handle_save_action();
-    }
-    else if (dlg.transfer_changes()) {
+    else if (dlg.transfer_changes())
         handle_transfer_action();
-    }
 
     return true;
 }
