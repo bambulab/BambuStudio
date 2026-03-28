@@ -583,9 +583,11 @@ private:
     void update_options_layout();
 
     // save and restore from config
-    void load_option_vals(MachineObject* obj);
+    void load_option_vals(MachineObject* obj);            // read from config, call once on open/switch machine
+    void update_option_dynamic_state(MachineObject* obj); // update dynamic state (timelapse, tooltips), call in timer
     void save_option_vals();
     void save_option_vals(MachineObject *obj);
+    void check_tpu_aero_flow_cali(MachineObject* obj);
 
     // material items
     void clear_material_infos();

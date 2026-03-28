@@ -2444,6 +2444,7 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
     if (!config) return;
     if (!obj) return;
 
+    // Read saved values from config — only called once on open / switch machine
     for (auto item : m_checkbox_list) {
         PrintOption       *opt = item.second;
         const std::string &val = config->get(obj->printer_type, item.first);
@@ -2455,6 +2456,14 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
             opt->setValue("on");
         }
     }
+
+    update_option_dynamic_state(obj);
+}
+
+void SelectMachineDialog::update_option_dynamic_state(MachineObject *obj)
+{
+    if (m_is_in_sending_mode) { return;}
+    if (!obj) return;
 
     /*STUDIO-9197*/
     wxString error_messgae;
@@ -2476,13 +2485,6 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
     bool options_line_ignore = false;
     if(wxGetApp().app_config){
         options_line_ignore = wxGetApp().app_config->get("disable_auto_flow_cali_tips") == "true";
-    }
-
-    if (obj->is_support_pa_mode && m_checkbox_list["flow_cali"]->IsShown()) {
-        std::string flow_cali_value = m_checkbox_list["flow_cali"]->getValue();
-        if (flow_cali_value == "off") { m_pa_value_panel->Show(); }
-    } else {
-        m_pa_value_panel->Hide();
     }
 
     if (m_checkbox_list["flow_cali"]->IsShown() && has_bowden_extuder(obj)) {
@@ -2507,6 +2509,12 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
         m_checkbox_list["flow_cali"]->update_tooltip(_L("This process determines the dynamic flow values to improve overall print quality.\n*Automatic mode: Skip if the filament was calibrated recently."));
         m_options_line_panel->Hide();
     }
+
+    bool show_pa = obj->is_support_pa_mode &&
+                   m_checkbox_list["flow_cali"]->IsShown() &&
+                   m_checkbox_list["flow_cali"]->getValue() == "off";
+    m_pa_value_panel->Show(show_pa);
+
 }
 
 void SelectMachineDialog::save_option_vals()
@@ -2524,6 +2532,42 @@ void SelectMachineDialog::save_option_vals(MachineObject *obj) {
     if (!obj) return;
     for (auto item : m_checkbox_list) {
         config->set(obj->printer_type, item.first, item.second->getValue());
+    }
+}
+
+void SelectMachineDialog::check_tpu_aero_flow_cali(MachineObject* obj)
+{
+    if (!obj) return;
+    if (!m_checkbox_list["flow_cali"]->IsShown()) return;
+    if (m_ams_mapping_result.empty()) return;
+
+    auto is_tpu_or_aero = [](const std::string &fila_type) {
+        return fila_type.find("TPU") != std::string::npos || fila_type.find("Aero") != std::string::npos || fila_type.find("AERO") != std::string::npos;
+    };
+
+    bool all_tpu_or_aero = true;
+    bool has_mapped = false;
+    for (const auto& fila : m_ams_mapping_result) {
+        if (fila.tray_id < 0) continue;
+        auto tray_opt = obj->get_tray(fila.ams_id, fila.slot_id);
+        if (!tray_opt.has_value()) continue;
+        has_mapped = true;
+        if (!is_tpu_or_aero(tray_opt->get_filament_type())) {
+            all_tpu_or_aero = false;
+            break;
+        }
+    }
+
+    if (has_mapped && all_tpu_or_aero) {
+        m_checkbox_list["flow_cali"]->setValue("off");
+
+        // Immediately update pa_panel visibility — same as on_flow_pa_caliation_option_changed
+        if (obj->is_support_pa_mode) {
+            m_pa_value_panel->Show();
+            Layout();
+        } else {
+            m_pa_value_panel->Hide();
+        }
     }
 }
 
@@ -2870,6 +2914,11 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
     }
 
     update_filament_change_count();
+
+    // Re-check flow calibration default after manual mapping change
+    DeviceManager* dev_mgr = wxGetApp().getDeviceManager();
+    MachineObject* obj = dev_mgr ? dev_mgr->get_my_machine(m_printer_last_select) : nullptr;
+    if (obj) { check_tpu_aero_flow_cali(obj); }
 }
 
 void SelectMachineDialog::on_print_job_cancel(wxCommandEvent &evt)
@@ -3167,7 +3216,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
     update_ams_backup(obj_);
     update_material_item_pos(obj_);
 
-    load_option_vals(obj_);
+    update_option_dynamic_state(obj_);
     update_show_status(obj_);
     update_print_status_msg();
     //update_scroll_area_size();/*STUDIO-12867 the page maybe blank in some platform. FIXME*/
@@ -3496,6 +3545,15 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
     if (m_ams_mapping_result.empty()) {
         do_ams_mapping(obj_, true);
         update_filament_change_count();
+        check_tpu_aero_flow_cali(obj_);
+
+        // Disable nozzle offset calibration for by-object printing
+        if (m_checkbox_list["nozzle_offset_cali"]->IsShown()) {
+            auto curr_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+            if (curr_plate && curr_plate->get_print_seq() == PrintSequence::ByObject) {
+                m_checkbox_list["nozzle_offset_cali"]->setValue("off");
+            }
+        }
     }
 
     /* multi color external change assist*/
