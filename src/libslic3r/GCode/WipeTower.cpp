@@ -3854,9 +3854,10 @@ WipeTower::ToolChangeResult WipeTower::finish_block_solid(const WipeTowerBlock &
             if (stop_pos.x() < printer_bbx.min[0]) stop_pos.x() = printer_bbx.min[0];
             if (stop_pos.x() > printer_bbx.max[0]) stop_pos.x() = printer_bbx.max[0];
             initial_pos = stop_pos;
-            if (m_filpar[m_current_tool].filament_tower_interface_print_temp != m_filpar[m_current_tool].nozzle_temperature)
+            if (m_filpar[m_current_tool].filament_tower_interface_print_temp != m_filpar[m_current_tool].nozzle_temperature) {
                 writer.append(format_line_M109(m_filpar[m_current_tool].filament_tower_interface_print_temp, m_filament_map[this->m_current_tool] - 1));
-                writer.retract(-m_filpar[m_current_tool].filament_tower_interface_pre_extrusion_length - 2.f, 100.f);
+            }
+            writer.retract(-m_filpar[m_current_tool].filament_tower_interface_pre_extrusion_length - 2.f, 100.f);
         }
         writer.set_initial_position(initial_pos, m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
 

@@ -2051,8 +2051,8 @@ void PartPlate::set_pos_and_size(Vec3d& origin, int width, int depth, int height
 		clear();
 	}
 
-    if (m_print)
-        m_print->set_plate_origin(origin);
+	if (m_print)
+		m_print->set_plate_origin(origin);
 
 	m_origin = origin;
 	m_width = width;

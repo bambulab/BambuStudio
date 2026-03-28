@@ -1937,10 +1937,10 @@ void PointCtrl::BUILD()
     const wxSize field_size(4 * m_em_unit, -1);
     Slic3r::Vec2d default_pt;
     if(m_opt.type == coPoints)
-	    default_pt = m_opt.get_default_value<ConfigOptionPoints>()->values.at(0);
+        default_pt = m_opt.get_default_value<ConfigOptionPoints>()->values.at(0);
     else
         default_pt = m_opt.get_default_value<ConfigOptionPoint>()->value;
-	double val = default_pt(0);
+    double val = default_pt(0);
 	wxString X = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
 	val = default_pt(1);
 	wxString Y = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
@@ -2060,10 +2060,10 @@ void PointCtrl::set_value(const boost::any& value, bool change_event)
             ConfigOptionPoints* pts = boost::any_cast<ConfigOptionPoints*>(value);
             pt = pts->values.at(0);
         }
-    }
-    else
+    } else {
         pt = *ptf;
-	set_value(pt, change_event);
+    }
+    set_value(pt, change_event);
 }
 
 boost::any& PointCtrl::get_value()

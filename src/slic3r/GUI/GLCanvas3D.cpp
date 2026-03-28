@@ -1956,11 +1956,12 @@ void GLCanvas3D::update_instance_printable_state_for_object(const size_t obj_idx
         ModelInstance* instance = model_object->instances[inst_idx];
 
         for (GLVolume* volume : m_volumes.volumes) {
-            if ((volume->object_idx() == (int)obj_idx) && (volume->instance_idx() == inst_idx))
+            if ((volume->object_idx() == (int)obj_idx) && (volume->instance_idx() == inst_idx)) {
                 volume->printable = instance->printable;
                 if (!volume->printable) {
                     volume->render_color = GLVolume::UNPRINTABLE_COLOR;
                 }
+            }
         }
     }
 }
@@ -2650,8 +2651,8 @@ void GLCanvas3D::render(bool only_init)
         if (tooltip.empty())
             tooltip = m_layers_editing.get_tooltip(*this);
 
-	    if (tooltip.empty())
-	        tooltip = m_gizmos.get_tooltip();
+        if (tooltip.empty())
+            tooltip = m_gizmos.get_tooltip();
 
         if (tooltip.empty()) {
             const auto& p_main_toolbar = get_main_toolbar();
@@ -8185,7 +8186,7 @@ void GLCanvas3D::_render_overlays()
     if (m_layers_editing.last_object_id >= 0 && m_layers_editing.object_max_z() > 0.0f)
         m_layers_editing.render_overlay(*this);
 
-	auto curr_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
+    auto curr_plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
     auto curr_print_seq = curr_plate->get_real_print_seq();
     bool sequential_print = (curr_print_seq == PrintSequence::ByObject);
     std::vector<const ModelInstance*> sorted_instances;

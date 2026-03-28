@@ -992,8 +992,8 @@ void ConfigOptionsGroup::refresh()
 
 boost::any ConfigOptionsGroup::config_value(const std::string& opt_key, int opt_index, bool deserialize) {
 
-    if (opt_key == "bed_type")
-        return boost::any((int)BedType::btPC);
+	if (opt_key == "bed_type")
+		return boost::any((int)BedType::btPC);
 
 	if (deserialize) {
 		// Want to edit a vector value(currently only multi - strings) in a single edit box.

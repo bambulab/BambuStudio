@@ -2528,7 +2528,7 @@ void TreeSupport::draw_circles()
                         for (size_t i = 0; i <= bottom_gap_layers && i <= obj_layer_nr_next; i++)
                         {
                             const Layer *below_layer      = m_object->get_layer(obj_layer_nr_next - i);
-                            ExPolygons bottom_interface = std::move(intersection_ex(base_areas, below_layer->lslices));
+                            ExPolygons bottom_interface = intersection_ex(base_areas, below_layer->lslices);
                             floor_areas.insert(floor_areas.end(), bottom_interface.begin(), bottom_interface.end());
                         }
                     }
@@ -2540,7 +2540,7 @@ void TreeSupport::draw_circles()
                 }
                 if (bottom_gap_layers > 0 && m_ts_data->layer_heights[layer_nr].obj_layer_nr > bottom_gap_layers) {
                     const Layer* below_layer = m_object->get_layer(m_ts_data->layer_heights[layer_nr].obj_layer_nr - bottom_gap_layers);
-                    ExPolygons bottom_gap_area = std::move(intersection_ex(floor_areas, below_layer->lslices));
+                    ExPolygons bottom_gap_area = intersection_ex(floor_areas, below_layer->lslices);
                     if (!bottom_gap_area.empty()) {
                         floor_areas = std::move(diff_ex(floor_areas, bottom_gap_area));
                     }
@@ -2931,7 +2931,7 @@ void TreeSupport::drop_nodes()
 
         m_object->print()->set_status(60 + int(10 * (1 - float(layer_nr) / contact_nodes.size())), _u8L("Generating support"));// (boost::format(_u8L("Support: propagate branches at layer %d")) % layer_nr).str());
 
-        Polygons layer_contours = std::move(m_ts_data->get_contours_with_holes(obj_layer_nr));
+        Polygons layer_contours = m_ts_data->get_contours_with_holes(obj_layer_nr);
         //std::unordered_map<Line, bool, LineHash>& mst_line_x_layer_contour_cache = m_mst_line_x_layer_contour_caches[layer_nr];
         tbb::concurrent_unordered_map<Line, bool, LineHash> mst_line_x_layer_contour_cache;
         auto is_line_cut_by_contour = [&mst_line_x_layer_contour_cache,&layer_contours](Point a, Point b)
@@ -4228,7 +4228,7 @@ const ExPolygons& TreeSupportData::calculate_collision(const RadiusLayerPair& ke
 {
     assert(key.layer_nr < m_layer_outlines.size());
 
-    ExPolygons collision_areas = std::move(offset_ex(m_layer_outlines[key.layer_nr], scale_(key.radius+m_xy_distance)));
+    ExPolygons collision_areas = offset_ex(m_layer_outlines[key.layer_nr], scale_(key.radius+m_xy_distance));
     collision_areas = expolygons_simplify(collision_areas, scale_(m_radius_sample_resolution));
     // collision_areas.emplace_back(m_machine_border);
     const auto ret = m_collision_cache.insert({ key, std::move(collision_areas) });
