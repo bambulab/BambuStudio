@@ -5652,6 +5652,13 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
     //     show_status(PrintDialogStatus::PrintStatusFilamentWarningRemainNotEnough, {warning_msg});
     // }
 
+    std::set<int> cross_extruder_filament_ids;
+    if (!CheckWarningFilamentCrossExtruder(obj_, cross_extruder_filament_ids)) {
+        wxString warning_msg = _L("Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which "
+                                  "may affect print quality. Enabling Flow Dynamics Calibration is recommended.");
+        show_status(PrintDialogStatus::PrintStatusFilamentCrossExtruderWarning, { warning_msg });
+    }
+
     return true;
 };
 
@@ -5813,6 +5820,30 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
     }
 
     return filaments_not_enough.empty();
+}
+
+bool SelectMachineDialog::CheckWarningFilamentCrossExtruder(MachineObject* obj_, std::set<int>& cross_extruder_filament_ids)
+{
+    cross_extruder_filament_ids.clear();
+
+    if (!obj_ || m_print_type != PrintFromType::FROM_NORMAL) return true;
+    if (obj_->GetExtderSystem()->GetTotalExtderCount() != 2) return true;
+
+    for (const auto& fila : m_ams_mapping_result) {
+        std::set<int> used_extruder_ids;
+        const auto& nozzle_map = get_mapped_nozzles(fila.id);
+        for (const auto& [pos_id, nozzle] : nozzle_map) {
+            if (!nozzle.IsEmpty()) {
+                used_extruder_ids.insert(nozzle.GetExtruderId());
+            }
+        }
+
+        if (used_extruder_ids.size() >= 2) {
+            cross_extruder_filament_ids.insert(fila.id);
+        }
+    }
+
+    return cross_extruder_filament_ids.empty();
 }
 
 ShowType SelectMachineDialog::get_filament_mapping_show_type(MachineObject* obj_, int fila_logic_id) const

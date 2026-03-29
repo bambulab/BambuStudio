@@ -480,6 +480,8 @@ public:
     void CheckWarningRackStatus(MachineObject* obj_);
 
     bool CheckErrorWarningFilamentMapping(MachineObject* obj_);//return true if no errors
+    bool CheckWarningFilamentRemain(MachineObject* obj_); // return true if no errors
+    bool CheckWarningFilamentCrossExtruder(MachineObject* obj_, std::set<int>& cross_extruder_filament_ids); // return true if no warning
 
     void update_best_pos_dialog(wxCommandEvent &evt);
     void update_ams_check(MachineObject* obj);
