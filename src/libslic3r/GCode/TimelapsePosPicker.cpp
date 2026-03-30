@@ -2,6 +2,8 @@
 #include "TimelapsePosPicker.hpp"
 #include "Layer.hpp"
 
+#include <set>
+
 constexpr int FILTER_THRESHOLD = 5;
 constexpr int MAX_CANDIDATE_SIZE = 5;
 
@@ -15,8 +17,14 @@ namespace Slic3r {
         m_nozzle_height_to_rod = print_->config().extruder_clearance_height_to_rod;
         m_nozzle_clearance_radius = print_->config().extruder_clearance_max_radius;
         if (print_->config().nozzle_diameter.size() > 1) {
-            m_extruder_height_gap = std::abs(print_->config().extruder_printable_height.values[0] - print_->config().extruder_printable_height.values[1]);
             m_liftable_extruder_id = print_->config().extruder_printable_height.values[0] < print_->config().extruder_printable_height.values[1] ? 0 : 1;
+
+            auto used_filaments = print_->extruders();
+            std::set<size_t> used_physical_extruders;
+            for (auto fid : used_filaments)
+                used_physical_extruders.insert(print_->get_extruder_id(fid));
+            if (used_physical_extruders.size() > 1)
+                m_extruder_height_gap = std::abs(print_->config().extruder_printable_height.values[0] - print_->config().extruder_printable_height.values[1]);
         }
         m_print_seq = print_->config().print_sequence.value;
         m_based_on_all_layer = print_->config().timelapse_type == TimelapseType::tlSmooth;
