@@ -448,7 +448,6 @@ GUI::FilamentMapBtnPanel::FilamentMapBtnPanel(wxWindow *parent, const wxString &
     m_hover = false;
 
     const int horizontal_margin = FromDIP(12);
-    const int panel_width       = FromDIP(160);
 
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -467,6 +466,10 @@ GUI::FilamentMapBtnPanel::FilamentMapBtnPanel(wxWindow *parent, const wxString &
     label_sizer->Add(m_btn, 0, wxALIGN_CENTER | wxEXPAND | wxLEFT, FromDIP(1));
     label_sizer->Add(m_label, 0, wxALIGN_CENTER | wxEXPAND| wxALL, FromDIP(3));
     label_sizer->AddStretchSpacer();
+
+    auto label_width = label_sizer->GetMinSize().GetWidth();
+    auto pwidth = label_width + FromDIP(24) * 2;
+    const int panel_width = std::max(FromDIP(160), pwidth);
 
     m_disable_tip = new Label(this, _L("(Sync with printer)"));
 
@@ -491,6 +494,7 @@ GUI::FilamentMapBtnPanel::FilamentMapBtnPanel(wxWindow *parent, const wxString &
     sizer->AddSpacer(FromDIP(10));
 
     SetSizer(sizer);
+    SetMinSize(wxSize(panel_width, -1));
     Layout();
     Fit();
 
@@ -699,9 +703,10 @@ FilamentMapAutoPanel::FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mod
             if (i > 0) {
                 sizer->AddSpacer(spacer_width);
             }
-            sizer->Add(m_mode_panels[i], 1, wxEXPAND | wxFIXED_MINSIZE, 0);
-            m_mode_panels[i]->SetMinSize(wxSize(FromDIP(160), max_height));
-            m_mode_panels[i]->SetMaxSize(wxSize(FromDIP(160), max_height));
+            auto* panel = m_mode_panels[i];
+            sizer->Add(panel, 1, wxEXPAND | wxFIXED_MINSIZE, 0);
+            panel->SetMinSize(wxSize(panel->GetMinSize().GetWidth(), max_height));
+            panel->SetMaxSize(wxSize(panel->GetMaxSize().GetWidth(), max_height));
         }
         sizer->AddStretchSpacer();
     }
@@ -714,6 +719,7 @@ FilamentMapAutoPanel::FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mod
 
     GUI::wxGetApp().UpdateDarkUIWin(this);
 }
+
 void FilamentMapAutoPanel::Hide()
 {
     for (auto panel : m_mode_panels) {
