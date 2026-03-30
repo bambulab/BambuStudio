@@ -201,5 +201,8 @@
     "fuzzy_skin_point_distance": "0.3",
     "fuzzy_skin_first_layer": "0",
     "fuzzy_skin_noise_type": "classic",
-    "fuzzy_skin_mode": "displacement"
+    "fuzzy_skin_mode": "displacement",
+    "fuzzy_skin_scale": "1.0",
+    "fuzzy_skin_octaves": "4",
+    "fuzzy_skin_persistence": "0.5"
 }
