@@ -1894,8 +1894,10 @@ int CLI::run(int argc, char **argv)
                     }
                     filament_count = current_filaments_name.size();
                     converted_filaments_system_name = current_filaments_system_name;
-                    for (int f_index = 0; f_index < filament_count; f_index++)
+                    for (int f_index = 0; f_index < filament_count; f_index++) {
                         convert_filament_preset_name(current_printer_system_name, converted_filaments_system_name[f_index]);
+                        used_filament_set.insert(f_index+1);
+                    }
                     upward_compatible_printers = config.option<ConfigOptionStrings>("upward_compatible_machine", true)->values;
                     current_print_compatible_printers  = config.option<ConfigOptionStrings>("print_compatible_printers", true)->values;
                     current_different_settings = config.option<ConfigOptionStrings>("different_settings_to_system", true)->values;
