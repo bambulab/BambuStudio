@@ -535,6 +535,28 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     //    is_msg_dlg_already_exist = false;
     //}
 
+    // Fuzzy skin Extrusion/Combined modes require Arachne wall generator
+    if (config->opt_enum<FuzzySkinType>("fuzzy_skin") != FuzzySkinType::Disabled_fuzzy &&
+        config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Classic &&
+        (config->opt_enum<FuzzySkinMode>("fuzzy_skin_mode") == FuzzySkinMode::Extrusion ||
+         config->opt_enum<FuzzySkinMode>("fuzzy_skin_mode") == FuzzySkinMode::Combined))
+    {
+        const wxString msg_text = _(L("Fuzzy skin [Extrusion] and [Combined] modes require the Arachne wall generator.\n\n"
+                                      "Do you want to change these settings automatically?\n"
+                                      "Yes - Enable Arachne wall generator\n"
+                                      "No - Keep current wall generator and set fuzzy skin to [Displacement] mode"));
+        MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxYES_NO);
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist    = true;
+        if (dialog.ShowModal() == wxID_YES) {
+            new_conf.set_key_value("wall_generator", new ConfigOptionEnum<PerimeterGeneratorType>(PerimeterGeneratorType::Arachne));
+        } else {
+            new_conf.set_key_value("fuzzy_skin_mode", new ConfigOptionEnum<FuzzySkinMode>(FuzzySkinMode::Displacement));
+        }
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
+
     // BBS
     int filament_cnt = wxGetApp().preset_bundle->filament_presets.size();
 #if 0
@@ -944,6 +966,11 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     bool has_fuzzy_skin = (config->opt_enum<FuzzySkinType>("fuzzy_skin") != FuzzySkinType::Disabled_fuzzy);
     for (auto el : { "fuzzy_skin_thickness", "fuzzy_skin_point_distance", "fuzzy_skin_first_layer", "fuzzy_skin_noise_type", "fuzzy_skin_mode" })
         toggle_line(el, has_fuzzy_skin);
+
+    NoiseType fuzzy_skin_noise_type = config->opt_enum<NoiseType>("fuzzy_skin_noise_type");
+    toggle_line("fuzzy_skin_scale", fuzzy_skin_noise_type != NoiseType::Classic && has_fuzzy_skin);
+    toggle_line("fuzzy_skin_octaves", fuzzy_skin_noise_type != NoiseType::Classic && fuzzy_skin_noise_type != NoiseType::Voronoi && has_fuzzy_skin);
+    toggle_line("fuzzy_skin_persistence", (fuzzy_skin_noise_type == NoiseType::Perlin || fuzzy_skin_noise_type == NoiseType::Billow) && has_fuzzy_skin);
 
     bool have_arachne = config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne;
     for (auto el : { "wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle",

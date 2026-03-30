@@ -1714,7 +1714,7 @@ void ColourPicker::BUILD()
     // create the clear button
     m_clear_button = new wxButton(panel, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(25, picker_size.GetHeight()), wxBORDER_NONE);
     update_clear_button_icon();
-    
+
     bool has_color = clr.IsOk() && clr != wxTransparentColour;
     m_clear_button->Show(has_color);
 
@@ -1843,7 +1843,7 @@ void ColourPicker::msw_rescale()
         // recalculate the size of the color picker and clear button
         wxSize picker_size = size;
         picker_size.SetWidth(size.GetWidth() - 30);
-    
+
         if (parent_is_custom_ctrl) {
             m_color_picker->SetSize(picker_size);
             m_clear_button->SetSize(wxSize(25, picker_size.GetHeight()));
@@ -1856,7 +1856,7 @@ void ColourPicker::msw_rescale()
         if (sizer) { sizer->Layout(); }
         window->Refresh();
     }
-    
+
 
     if (m_color_picker->GetColour() == wxTransparentColour)
         set_undef_value(m_color_picker);
@@ -2198,7 +2198,7 @@ t_field MultiVariantTextCtrl::create_text_ctrl(int opt_index, wxWindow *parent)
     auto text_ctrl = TextCtrl::Create<TextCtrl>(parent_to_use, opt_copy, opt_id_with_index);
     text_ctrl->m_opt_idx = opt_index;
 
-    text_ctrl->m_on_change = [this, opt_id_with_index](const t_config_option_key& key, 
+    text_ctrl->m_on_change = [this, opt_id_with_index](const t_config_option_key& key,
                                                          const boost::any& value) {
         if (m_on_change && !m_disable_change_event) {
             m_on_change(opt_id_with_index, value);
@@ -2319,7 +2319,7 @@ void MultiVariantTextCtrl::refresh_text_ctrls_layout(wxWindow *parent)
         m_text_ctrls.push_back(VariantTextCtrl(
             std::move(text_ctrl), index, label_text));
     }
-    
+
     parent_to_use->Layout();
     set_value(boost::any(), false);
 

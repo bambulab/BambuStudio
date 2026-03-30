@@ -3067,10 +3067,10 @@ void PrintConfigDef::init_fff_params()
     def->enum_values.push_back("ridgedmulti");
     def->enum_values.push_back("voronoi");
     def->enum_labels.push_back(L("Classic"));
-    def->enum_labels.push_back(L("Perlin"));
-    def->enum_labels.push_back(L("Billow"));
-    def->enum_labels.push_back(L("Ridged Multifractal"));
-    def->enum_labels.push_back(L("Voronoi"));
+    def->enum_labels.push_back("Perlin");
+    def->enum_labels.push_back("Billow");
+    def->enum_labels.push_back("Ridged Multifractal");
+    def->enum_labels.push_back("Voronoi");
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<NoiseType>(NoiseType::Classic));
 
