@@ -1261,15 +1261,16 @@ void PrintObject::slice_volumes()
                             }
 	                    }
 	                } else {
-                        float max_growth = std::max(xy_hole_scaled, xy_contour_scaled);
-                        float min_growth = std::min(xy_hole_scaled, xy_contour_scaled);
+                        float max_growth = std::max(-xy_hole_scaled, xy_contour_scaled);
+                        float min_growth = std::min(-xy_hole_scaled, xy_contour_scaled);
+                        // for hole, positive xy_hole means increase hole and shrink expolygon
                         ExPolygons merged_poly_for_holes_growing;
                         if (max_growth > 0) {
                             //BBS: merge polygons because region can cut "holes".
                             //Then, cut them to give them again later to their region
                             merged_poly_for_holes_growing = layer->merged(float(SCALED_EPSILON));
                             merged_poly_for_holes_growing = _shrink_contour_holes(std::max(0.f, xy_contour_scaled),
-                                                                                  std::max(0.f, xy_hole_scaled),
+                                                                                  std::min(0.f, xy_hole_scaled),// negetative offset expand expolygons
                                                                                   union_ex(merged_poly_for_holes_growing));
 
                             // BBS: clipping regions, priority is given to the first regions.
@@ -1302,7 +1303,7 @@ void PrintObject::slice_volumes()
                             }
                             if (min_growth < 0.0f)
                                 trimming = _shrink_contour_holes(std::min(0.f, xy_contour_scaled),
-                                                                 std::min(0.f, xy_hole_scaled),
+                                                                 std::max(0.f, xy_hole_scaled),//positive xy_hole means shrink
                                                                  trimming);
                             //BBS: trim surfaces
                             for (size_t region_id = 0; region_id < layer->regions().size(); ++region_id) {
