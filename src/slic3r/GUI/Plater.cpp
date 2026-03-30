@@ -18935,11 +18935,18 @@ void Plater::record_slice_preset(std::string action)
 
         if (p->background_process.fff_print()) {
             const DynamicPrintConfig& full_config = p->background_process.fff_print()->full_print_config();
-            json values = json::array();
+            json values = json::object();
             if (full_config.has("different_settings_to_system")) {
                 std::vector<std::string> different_values = full_config.option<ConfigOptionStrings>("different_settings_to_system")->values;
                 for (auto& item : different_values) {
-                    values.push_back(item);
+                    if(item.empty()) continue;
+
+                    std::vector<std::string> keys;
+                    boost::split(keys, item, boost::is_any_of(";"));
+                    for (auto &key : keys) {
+                        const ConfigOption *opt = full_config.option(key);
+                        if (opt) { values[key] = opt->serialize(); }
+                    }
                 }
             }
             j["different_settings_to_system"] = values;
