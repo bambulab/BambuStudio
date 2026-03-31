@@ -635,6 +635,8 @@ public:
     int command_hms_resume(const std::string& error_str, const std::string& job_id);
     int command_hms_ignore(const std::string& error_str, const std::string& job_id);
     int command_hms_stop(const std::string &error_str, const std::string &job_id);
+    int command_purification_disable();
+    int command_dont_remind_next_time(json& mqtt_guard_json);
     /* buzzer*/
     int command_stop_buzzer();
 
