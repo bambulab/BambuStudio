@@ -181,6 +181,16 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         evt.Skip();
         });
 
+    m_smart_nozzle_blob_mode_switch->Bind(wxCUSTOMEVT_MULTISWITCH_SELECTION, [this](wxCommandEvent& evt) {
+        if (!obj) { evt.Skip(); return; }
+        int sel = m_smart_nozzle_blob_mode_switch->GetSelection();
+        // UI: 0=Auto, 1=On, 2=Off → Protocol: 0=off, 1=on, 2=auto
+        int mode_map[] = {2, 1, 0};
+        obj->GetPrintOptions()->command_smart_nozzle_blob_detect_mode(mode_map[sel]);
+        update_smart_nozzle_blob_mode_desc(sel);
+        evt.Skip();
+    });
+
     m_cb_fod_check->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
         if (obj) {
             obj->GetPrintOptions()->command_xcam_control_fod_check(m_cb_fod_check->GetValue());
@@ -666,16 +676,32 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         line6->Hide();
     }
 
-    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Nozzle_Blob_Detection)->is_support_detect) {
+    // Smart 三档模式优先，与原有 Nozzle_Blob_Detection 互斥
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Smart_Nozzle_Blob_Detection)->is_support_detect) {
+        text_smart_nozzle_blob->Show();
+        m_smart_nozzle_blob_mode_switch->Show();
+        text_smart_nozzle_blob_mode_desc->Show();
+
+        text_nozzle_blob->Hide();
+        m_cb_nozzle_blob->Hide();
+        text_nozzle_blob_caption->Hide();
+    }
+    else if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Nozzle_Blob_Detection)->is_support_detect) {
         text_nozzle_blob->Show();
         m_cb_nozzle_blob->Show();
         text_nozzle_blob_caption->Show();
-       // line7->Show();
+
+        text_smart_nozzle_blob->Hide();
+        m_smart_nozzle_blob_mode_switch->Hide();
+        text_smart_nozzle_blob_mode_desc->Hide();
     }
     else {
         text_nozzle_blob->Hide();
         m_cb_nozzle_blob->Hide();
         text_nozzle_blob_caption->Hide();
+        text_smart_nozzle_blob->Hide();
+        m_smart_nozzle_blob_mode_switch->Hide();
+        text_smart_nozzle_blob_mode_desc->Hide();
         line7->Hide();
     }
 
@@ -722,7 +748,17 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     m_cb_auto_recovery->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Auto_Recovery_Detection)->current_detect_value);
     m_cb_sup_sound->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Allow_Prompt_Sound_Detection)->current_detect_value);
     m_cb_filament_tangle->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Filament_Tangle_Detection)->current_detect_value);
-    m_cb_nozzle_blob->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Nozzle_Blob_Detection)->current_detect_value);
+    // Smart nozzle blob mode vs original nozzle blob
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Smart_Nozzle_Blob_Detection)->is_support_detect) {
+        int mode = obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Smart_Nozzle_Blob_Detection)->current_detect_value;
+        // Protocol: 0=off, 1=on, 2=auto → UI: 0=Auto, 1=On, 2=Off
+        int ui_map[] = {2, 1, 0};  // off→2, on→1, auto→0
+        int ui_sel = (mode >= 0 && mode <= 2) ? ui_map[mode] : 0;
+        m_smart_nozzle_blob_mode_switch->SetSelection(ui_sel);
+        update_smart_nozzle_blob_mode_desc(ui_sel);
+    } else {
+        m_cb_nozzle_blob->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Nozzle_Blob_Detection)->current_detect_value);
+    }
     m_cb_fod_check->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::FOD_Check_Detection)->current_detect_value);
     m_cb_displacement_detection->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Displacement_Detection)->current_detect_value);
     m_cb_plate_type->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Type_Detection)->current_detect_value);
@@ -1381,6 +1417,34 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     text_nozzle_blob_caption->Hide();
     line7->Hide();
 
+    // Smart Nozzle Blob Detection — 三档裹头检测选择器
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    text_smart_nozzle_blob = new Label(parent, _L("Nozzle Clumping Detection"));
+    text_smart_nozzle_blob->SetFont(Label::Body_14);
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(text_smart_nozzle_blob, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxString smart_nozzle_blob_caption_text = _L("Checks if the nozzle is clumping by filament or other foreign objects.");
+    text_smart_nozzle_blob_mode_desc = new Label(parent, smart_nozzle_blob_caption_text);
+    text_smart_nozzle_blob_mode_desc->SetFont(Label::Body_12);
+    text_smart_nozzle_blob_mode_desc->Wrap(FromDIP(400));
+    text_smart_nozzle_blob_mode_desc->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    line_sizer->Add(FromDIP(30), 0, 0, 0);
+    line_sizer->Add(text_smart_nozzle_blob_mode_desc, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
+    sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+
+    m_smart_nozzle_blob_mode_switch = new MultiSwitchButton(parent);
+    m_smart_nozzle_blob_mode_switch->SetOptions({_L("Auto"), _L("On"), _L("Off")});
+    m_smart_nozzle_blob_mode_switch->SetSelection(0);
+    sizer->Add(m_smart_nozzle_blob_mode_switch, 0, wxLEFT | wxTOP, FromDIP(30));
+    sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
+
+    text_smart_nozzle_blob->Hide();
+    m_smart_nozzle_blob_mode_switch->Hide();
+    text_smart_nozzle_blob_mode_desc->Hide();
+
     //non_visual_airprinting_detection
     line_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_cb_non_visual_airprinting_detection = new CheckBox(parent);
@@ -1442,6 +1506,27 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     airprinting_detection_level_list->Connect(wxEVT_COMBOBOX, wxCommandEventHandler(PrintOptionsDialog::set_airprinting_detection_sensitivity), NULL, this);
 
     return sizer;
+}
+
+void PrintOptionsDialog::update_smart_nozzle_blob_mode_desc(int selection)
+{
+    wxString desc;
+    switch (selection) {
+    case 0: // Auto
+        desc = _L("Automatically enables or disables nozzle clumping detection based on filament type: off for easy-to-string filaments, on for regular filaments.");
+        break;
+    case 1: // On
+        desc = _L("Checks if the nozzle is clumping by filament or other foreign objects. Not recommended for easy-to-string filaments to avoid false alarms.");
+        break;
+    case 2: // Off
+        desc = _L("Disables nozzle clumping detection. Recommended for easy-to-string filaments to avoid false alarms.");
+        break;
+    default:
+        desc = _L("Checks if the nozzle is clumping by filament or other foreign objects.");
+        break;
+    }
+    text_smart_nozzle_blob_mode_desc->SetLabel(desc);
+    text_smart_nozzle_blob_mode_desc->Wrap(FromDIP(400));
 }
 
 wxString PrintOptionsDialog::sensitivity_level_to_label_string(enum AiMonitorSensitivityLevel level) {
