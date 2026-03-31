@@ -14,7 +14,6 @@
 #include "libslic3r/Model.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
 
-
 #include <GL/glew.h>
 
 namespace Slic3r::GUI {
@@ -1008,6 +1007,7 @@ void GLGizmoMmuSegmentation::update_model_object()
         if (! mv->is_model_part())
             continue;
         ++idx;
+
         updated |= mv->mmu_segmentation_facets.set(*m_triangle_selectors[idx].get());
     }
 
@@ -1039,6 +1039,8 @@ void GLGizmoMmuSegmentation::init_model_triangle_selectors()
             continue;
 
         int extruder_idx = (mv->extruder_id() > 0) ? mv->extruder_id() - 1 : 0;
+        if (extruder_idx >= (int)m_extruders_colors.size())
+            extruder_idx = 0;
         std::vector<std::array<float, 4>> ebt_colors;
         ebt_colors.push_back(m_extruders_colors[size_t(extruder_idx)]);
         ebt_colors.insert(ebt_colors.end(), m_extruders_colors.begin(), m_extruders_colors.end());
@@ -1061,6 +1063,8 @@ void GLGizmoMmuSegmentation::update_triangle_selectors_colors()
         TriangleSelectorPatch* selector = dynamic_cast<TriangleSelectorPatch*>(m_triangle_selectors[i].get());
         int extruder_idx = m_volumes_extruder_idxs[i];
         int extruder_color_idx = std::max(0, extruder_idx - 1);
+        if (extruder_color_idx >= (int)m_extruders_colors.size())
+            extruder_color_idx = 0;
         std::vector<std::array<float, 4>> ebt_colors;
         ebt_colors.push_back(m_extruders_colors[extruder_color_idx]);
         ebt_colors.insert(ebt_colors.end(), m_extruders_colors.begin(), m_extruders_colors.end());
@@ -1123,7 +1127,9 @@ void GLGizmoMmuSegmentation::on_set_state()
         clear_parent_paint_outline_volumes();
 
         ModelObject* mo = m_c->selection_info()->model_object();
-        if (mo) Slic3r::save_object_mesh(*mo);
+        if (mo) {
+            Slic3r::save_object_mesh(*mo);
+        }
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_FORCE_UPDATE));
         if (m_current_tool == ImGui::GapFillIcon) {//exit gap fill
             m_current_tool = ImGui::CircleButtonIcon;

@@ -9,6 +9,11 @@
 #include "Preset.hpp"
 #include "PresetBundle.hpp"
 #include "MultiNozzleUtils.hpp"
+#include "filament_mixer.h"
+#include "Utils.hpp"
+
+#include <set>
+#include <fstream>
 
 // #define SLIC3R_DEBUG
 
@@ -114,19 +119,22 @@ bool check_filament_printable_after_group(const std::vector<unsigned int> &used_
 unsigned int LayerTools::wall_filament(const PrintRegion &region) const
 {
 	assert(region.config().wall_filament.value > 0);
-	return ((this->extruder_override == 0) ? region.config().wall_filament.value : this->extruder_override) - 1;
+	unsigned int result = ((this->extruder_override == 0) ? region.config().wall_filament.value : this->extruder_override) - 1;
+	return resolve_mixed(result);
 }
 
 unsigned int LayerTools::sparse_infill_filament(const PrintRegion &region) const
 {
 	assert(region.config().sparse_infill_filament.value > 0);
-	return ((this->extruder_override == 0) ? region.config().sparse_infill_filament.value : this->extruder_override) - 1;
+	unsigned int result = ((this->extruder_override == 0) ? region.config().sparse_infill_filament.value : this->extruder_override) - 1;
+	return resolve_mixed(result);
 }
 
 unsigned int LayerTools::solid_infill_filament(const PrintRegion &region) const
 {
 	assert(region.config().solid_infill_filament.value > 0);
-	return ((this->extruder_override == 0) ? region.config().solid_infill_filament.value : this->extruder_override) - 1;
+	unsigned int result = ((this->extruder_override == 0) ? region.config().solid_infill_filament.value : this->extruder_override) - 1;
+	return resolve_mixed(result);
 }
 
 // Returns a zero based extruder this eec should be printed with, according to PrintRegion config or extruder_override if overriden.
@@ -177,7 +185,8 @@ unsigned int LayerTools::extruder(const ExtrusionEntityCollection &extrusions, c
             extruder = region.config().wall_filament.value;
     }else
         extruder = this->extruder_override;
-	return (extruder == 0) ? 0 : extruder - 1;
+	unsigned int result = (extruder == 0) ? 0 : extruder - 1;
+	return resolve_mixed(result);
 }
 
 static double calc_max_layer_height(const PrintConfig &config, double max_object_layer_height)
@@ -379,7 +388,9 @@ void ToolOrdering::sort_and_build_data(const Print& print, unsigned int first_ex
     // if first extruder is -1, we can decide the first layer tool order before doing reorder function
     // so we shouldn't reorder first layer in reorder function
     bool reorder_first_layer = (first_extruder != (unsigned int)(-1));
+    this->resolve_mixed_filaments(print.config());
     reorder_extruders_for_minimum_flush_volume(reorder_first_layer);
+    this->enforce_mixed_component_order();
     m_sorted = true;
 
     double max_layer_height = 0.;
@@ -409,7 +420,9 @@ void ToolOrdering::sort_and_build_data(const PrintObject& object , unsigned int 
     // so we shouldn't reorder first layer in reorder function
     //bool reorder_first_layer = (first_extruder != (unsigned int)(-1));
     bool reorder_first_layer = false; // when by object , the first layer of each object should use the best order, regard less of the filament change for better bed contect
+    this->resolve_mixed_filaments(object.print()->config());
     reorder_extruders_for_minimum_flush_volume(reorder_first_layer);
+    this->enforce_mixed_component_order();
     m_sorted = true;
 
     double max_layer_height = calc_max_layer_height(object.print()->config(), object.config().layer_height);
@@ -1920,7 +1933,187 @@ std::vector<std::vector<unsigned int>> ToolOrdering::execute_filament_ordering(
     return filament_sequences;
 }
 
+void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
+{
+    const auto &is_mixed = config.filament_is_mixed.values;
+    const auto &comp_strs = config.filament_mixed_components.values;
+    const auto &ratio_strs = config.filament_mixed_sublayer_ratios.values;
 
+    if (!has_any_mixed_filament(is_mixed))
+        return;
+
+    struct SlotInfo {
+        std::vector<unsigned int> components; // 1-based
+        std::vector<double>       ratios;
+        std::vector<long long>    accum;     // deficit accumulator (integer, unit: 1e-6 mm)
+    };
+    std::vector<SlotInfo> slots(is_mixed.size());
+    for (size_t i = 0; i < is_mixed.size(); ++i) {
+        if (!is_mixed[i])
+            continue;
+        slots[i].components = parse_mixed_components(i < comp_strs.size() ? comp_strs[i] : "");
+        if (slots[i].components.size() < 2) {
+            slots[i].components.clear();
+            continue;
+        }
+        for (unsigned int cid : slots[i].components) {
+            unsigned int idx0 = cid - 1;
+            if (idx0 >= is_mixed.size() || (idx0 < is_mixed.size() && is_mixed[idx0])) {
+                slots[i].components.clear();
+                break;
+            }
+        }
+        if (slots[i].components.empty())
+            continue;
+        slots[i].ratios = parse_mixed_ratios(
+            i < ratio_strs.size() ? ratio_strs[i] : "", slots[i].components.size());
+        slots[i].accum.assign(slots[i].components.size(), 0LL);
+    }
+
+    const bool sublayer_enabled = config.enable_mixed_color_sublayer.value;
+
+    // Parse gradient settings per slot
+    const auto &gradient_flags = config.filament_mixed_gradient.values;
+    const auto &gradient_range_strs = config.filament_mixed_gradient_range.values;
+    struct GradientInfo { double start = 0.10; double end_val = 0.90; };
+    std::vector<bool> is_gradient(is_mixed.size(), false);
+    std::vector<GradientInfo> gradient_info(is_mixed.size());
+    for (size_t i = 0; i < is_mixed.size(); ++i) {
+        if (!is_mixed[i] || slots[i].components.size() != 2)
+            continue;
+        if (i >= gradient_flags.size() || !gradient_flags[i])
+            continue;
+        is_gradient[i] = true;
+        if (i < gradient_range_strs.size() && !gradient_range_strs[i].empty()) {
+            float v0 = 0, v1 = 0;
+            if (std::sscanf(gradient_range_strs[i].c_str(), "%f,%f", &v0, &v1) == 2 &&
+                v0 > 0 && v0 < 1.0 && v1 > 0 && v1 < 1.0) {
+                gradient_info[i].start   = v0;
+                gradient_info[i].end_val = v1;
+            }
+        }
+    }
+
+    // Pass 1: count how many layers each gradient slot appears in
+    std::map<unsigned int, size_t> gradient_total_layers;
+    for (size_t i = 0; i < is_mixed.size(); ++i)
+        if (is_gradient[i]) gradient_total_layers[(unsigned int)i] = 0;
+    if (!gradient_total_layers.empty()) {
+        for (const auto &lt : m_layer_tools)
+            for (unsigned int ext : lt.extruders)
+                if (gradient_total_layers.count(ext))
+                    gradient_total_layers[ext]++;
+    }
+    std::map<unsigned int, size_t> gradient_current_idx;
+    for (auto &[slot, count] : gradient_total_layers)
+        gradient_current_idx[slot] = 0;
+
+    // Pass 2: resolve per layer
+    coordf_t prev_print_z = 0.;
+    for (LayerTools &lt : m_layer_tools) {
+        std::vector<unsigned int> new_extruders;
+        for (unsigned int ext : lt.extruders) {
+            if (ext >= slots.size() || slots[ext].components.empty()) {
+                new_extruders.push_back(ext);
+                continue;
+            }
+            auto &s = slots[ext];
+
+            if (sublayer_enabled) {
+                double lh = lt.print_z - prev_print_z;
+                if (lh <= 0) lh = 0.2;
+                size_t n = s.components.size();
+
+                std::vector<double> sub_heights;
+                if (is_gradient[ext] && n == 2 && gradient_total_layers.count(ext) && gradient_total_layers[ext] > 0) {
+                    size_t N   = gradient_total_layers[ext];
+                    size_t idx = gradient_current_idx[ext]++;
+                    double t   = (2.0 * idx + 1.0) / (2.0 * N);
+                    double r1  = gradient_info[ext].start + (gradient_info[ext].end_val - gradient_info[ext].start) * t;
+                    double r2  = 1.0 - r1;
+                    sub_heights.push_back(r1 * lh);
+                    sub_heights.push_back(r2 * lh);
+                } else {
+                    for (double r : s.ratios)
+                        sub_heights.push_back(r * lh);
+                }
+
+                LayerTools::MixedSubLayerGroup grp;
+                grp.mixed_slot_0based = ext;
+                for (size_t k = 0; k < s.components.size(); ++k) {
+                    unsigned int comp_0based = s.components[k] - 1;
+                    grp.components_0based.push_back(comp_0based);
+                    new_extruders.push_back(comp_0based);
+                }
+                grp.sub_heights = sub_heights;
+
+                lt.mixed_sub_layer_groups.push_back(std::move(grp));
+            } else {
+                // Deficit Round-Robin: pick one component per layer.
+                // Weight by layer height so volume ratios stay accurate
+                // even with adaptive layer heights.
+                double lh = lt.print_z - prev_print_z;
+                if (lh <= 0) lh = 0.2;
+                long long lh_i = std::llround(lh * 1e6);
+                for (size_t k = 0; k < s.ratios.size(); ++k)
+                    s.accum[k] += std::llround(s.ratios[k] * lh_i);
+                size_t sel = 0;
+                for (size_t k = 1; k < s.accum.size(); ++k)
+                    if (s.accum[k] > s.accum[sel])
+                        sel = k;
+                s.accum[sel] -= lh_i;
+                unsigned int resolved = s.components[sel] - 1;
+                lt.mixed_filament_resolution[ext] = resolved;
+                new_extruders.push_back(resolved);
+            }
+        }
+        lt.extruders = new_extruders;
+        sort_remove_duplicates(lt.extruders);
+        prev_print_z = lt.print_z;
+    }
+}
+
+void ToolOrdering::enforce_mixed_component_order()
+{
+    for (LayerTools &lt : m_layer_tools) {
+        if (lt.mixed_sub_layer_groups.empty())
+            continue;
+        auto extruders_before = lt.extruders;
+        // For each sublayer group, ensure the components appear in order within lt.extruders.
+        // After sort_remove_duplicates, the extruders are sorted; we re-arrange so that
+        // components of each group appear consecutively in their declared order.
+        std::vector<unsigned int> ordered;
+        std::set<unsigned int> placed;
+        for (unsigned int ext : lt.extruders) {
+            if (placed.count(ext))
+                continue;
+            bool is_component = false;
+            for (const auto &grp : lt.mixed_sub_layer_groups) {
+                for (unsigned int c : grp.components_0based) {
+                    if (c == ext) {
+                        is_component = true;
+                        break;
+                    }
+                }
+                if (is_component) {
+                    for (unsigned int c : grp.components_0based) {
+                        if (!placed.count(c) &&
+                            std::find(lt.extruders.begin(), lt.extruders.end(), c) != lt.extruders.end()) {
+                            ordered.push_back(c);
+                            placed.insert(c);
+                        }
+                    }
+                    break;
+                }
+            }
+            if (!is_component && !placed.count(ext)) {
+                ordered.push_back(ext);
+                placed.insert(ext);
+            }
+        }
+        lt.extruders = ordered;
+    }
+}
 
 void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first_layer)
 {

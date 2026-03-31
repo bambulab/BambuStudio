@@ -4,6 +4,7 @@
 #include "GCode.hpp"
 #include "GCode/ToolOrdering.hpp"
 #include "MultiNozzleUtils.hpp"
+#include "filament_mixer.h"
 
 namespace Slic3r {
 
@@ -19,9 +20,13 @@ std::vector<std::vector<unsigned int>> ByObjectPrintData::collect_filament_data(
         // 构造临时的tool ordering（不排序，只用于收集filament)
         temp_tool_ordering = ToolOrdering(*obj,(unsigned int)(-1));
 
-        // 收集每层的filament
+        // 收集每层的filament，展开混色槽位为物理组分
+        const auto &is_mixed = print->config().filament_is_mixed.values;
+        const auto &comp_strs = print->config().filament_mixed_components.values;
         for(size_t idx = 0; idx < temp_tool_ordering.layer_tools().size(); ++idx){
-            const auto& layer_filament = temp_tool_ordering.layer_tools()[idx].extruders;
+            auto layer_filament = temp_tool_ordering.layer_tools()[idx].extruders;
+            if (has_any_mixed_filament(is_mixed))
+                layer_filament = expand_mixed_filaments(layer_filament, is_mixed, comp_strs);
             all_filaments.emplace_back(layer_filament);
         }
     }

@@ -284,6 +284,9 @@ public:
     void            set_num_filaments(unsigned int n, std::string new_col = "");
     void         update_num_filaments(unsigned int to_del_flament_id);
 
+    bool is_mixed_filament(size_t idx) const;
+    std::vector<size_t> physical_filament_config_indices() const;
+
     void         get_ams_cobox_infos(AMSComboInfo &combox_info,bool skip_ext = false);
     unsigned int sync_ams_list(std::vector<std::pair<DynamicPrintConfig *, std::string>> &unknowns,
                                bool                                                       use_map,
