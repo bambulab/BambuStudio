@@ -6,6 +6,7 @@
 #include "wx/notifmsg.h"
 #include "wx/settings.h"
 #include "wx/webview.h"
+#include <atomic>
 
 #if wxUSE_WEBVIEW_IE
 #include "wx/msw/webview_ie.h"
@@ -110,7 +111,7 @@ private:
 
     //First Load
     bool bFirstComplete{false};
-    bool m_destroy{false};
+    std::atomic_bool m_destroy{false};
     boost::thread* m_load_task{ nullptr };
 
     // User Config

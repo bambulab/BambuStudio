@@ -1180,42 +1180,29 @@ int GuideFrame::LoadProfileData()
         boost::filesystem::path               myPath(targetPath);
         boost::filesystem::directory_iterator endIter;
         for (boost::filesystem::directory_iterator iter(myPath); iter != endIter; iter++) {
-            if (boost::filesystem::is_directory(*iter)) {
-                // cout << "is dir" << endl;
-                // cout << iter->path().string() << endl;
-            } else {
-                // cout << "is a file" << endl;
-                // cout << iter->path().string() << endl;
+            if (boost::filesystem::is_directory(*iter)) continue;
 
-                wxString strVendor    = from_u8(iter->path().string()).BeforeLast('.');
-                strVendor             = strVendor.AfterLast('\\');
-                strVendor             = strVendor.AfterLast('/');
-                wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
+            wxString strVendor    = from_u8(iter->path().string()).BeforeLast('.');
+            strVendor             = strVendor.AfterLast('\\');
+            strVendor             = strVendor.AfterLast('/');
+            wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
 
-                if (w2s(strVendor) == PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json") == 0) LoadProfileFamily(w2s(strVendor), iter->path().string());
-            }
-            if (m_destroy)
-                return 0;
+            if (w2s(strVendor) == PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json") == 0) LoadProfileFamily(w2s(strVendor), iter->path().string());
+            if (m_destroy) return 0;
         }
 
         // string                                others_targetPath = rsrc_vendor_dir.string();
         boost::filesystem::directory_iterator others_endIter;
         for (boost::filesystem::directory_iterator iter(rsrc_vendor_dir); iter != others_endIter; iter++) {
-            if (boost::filesystem::is_directory(*iter)) {
-                // cout << "is dir" << endl;
-                // cout << iter->path().string() << endl;
-            } else {
-                // cout << "is a file" << endl;
-                // cout << iter->path().string() << endl;
-                wxString strVendor    = from_u8(iter->path().string()).BeforeLast('.');
-                strVendor             = strVendor.AfterLast('\\');
-                strVendor             = strVendor.AfterLast('/');
-                wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
+            if (boost::filesystem::is_directory(*iter)) continue;
 
-                if (w2s(strVendor) != PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json") == 0) LoadProfileFamily(w2s(strVendor), iter->path().string());
-            }
-            if (m_destroy)
-                return 0;
+            wxString strVendor    = from_u8(iter->path().string()).BeforeLast('.');
+            strVendor             = strVendor.AfterLast('\\');
+            strVendor             = strVendor.AfterLast('/');
+            wxString strExtension = from_u8(iter->path().string()).AfterLast('.').Lower();
+
+            if (w2s(strVendor) != PresetBundle::BBL_BUNDLE && strExtension.CmpNoCase("json") == 0) LoadProfileFamily(w2s(strVendor), iter->path().string());
+            if (m_destroy) return 0;
         }
 
         //sync to web
@@ -1351,6 +1338,8 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(",  got %1% machine models") % nsize;
 
         for (int n = 0; n < nsize; n++) {
+            if(m_destroy) return 0;
+
             json OneModel = pmodels.at(n);
 
             OneModel["model"] = OneModel["name"];
@@ -1392,6 +1381,7 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
         std::mutex mutex;
         tbb::parallel_for(tbb::blocked_range<int>(0, nsize), [this, &pmachine, &vendor_dir, &mutex](const tbb::blocked_range<int> &range) {
             for (auto i = range.begin(); i != range.end(); ++i) {
+                if(m_destroy) return;
                 json OneMachine = pmachine.at(i);
 
                 std::string s1 = OneMachine["name"];
@@ -1460,6 +1450,7 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
 #if PARALLEL_READ
         tbb::parallel_for(tbb::blocked_range<int>(0, nsize), [this, &tFilaList, &pFilament, &vendor_dir, &mutex](const tbb::blocked_range<int> &range) {
             for (auto i = range.begin(); i != range.end(); ++i) {
+                if(m_destroy) return;
                 json OneFF = pFilament.at(i);
 
                 std::string s1 = OneFF["name"];
@@ -1586,6 +1577,7 @@ int GuideFrame::LoadProfileFamily(std::string strVendor, std::string strFilePath
 #if PARALLEL_READ
         tbb::parallel_for(tbb::blocked_range<int>(0, nsize), [this, &pProcess, &vendor_dir, &mutex](const tbb::blocked_range<int> &range) {
             for (auto i = range.begin(); i != range.end(); ++i) {
+                if(m_destroy) return;
                 json OneProcess = pProcess.at(i);
 
                 std::string s2 = OneProcess["sub_path"];
