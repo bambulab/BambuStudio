@@ -6348,6 +6348,25 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
     return filaments_not_enough.empty();
 }
 
+bool SelectMachineDialog::CheckWarningPrintTimeEstimate(MachineObject* obj_, const std::vector<FilamentInfo>& ams_mapping_result)
+{
+    if (!obj_) return true;
+
+    for (const auto& fila : ams_mapping_result) {
+        if (fila.ams_id.empty() || devPrinterUtil::IsVirtualSlot(fila.ams_id))
+            continue;
+
+        if (DevAms* ams = obj_->GetFilaSystem()->GetAmsById(fila.ams_id)) {
+            DevAms::AmsType ams_type = ams->GetAmsType();
+            if (ams_type != DevAms::AmsType::AMS_LITE && ams_type != DevAms::AmsType::AMS_LITE_MIXED) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
 bool SelectMachineDialog::CheckWarningFilamentCrossExtruder(MachineObject* obj_, std::set<int>& cross_extruder_filament_ids)
 {
     cross_extruder_filament_ids.clear();

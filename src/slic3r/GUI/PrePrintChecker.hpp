@@ -163,6 +163,7 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusFilamentCrossExtruderWarning,
     PrintStatusTPUUnsupportCaliOn,
     PrintStatusTPUUnsuggestCali,
+    PrintStatusPrintTimeEstimateWarning,
     PrintStatusFilamentWarningEnd,
 
     PrintStatusWarningEnd,//->end error<-
