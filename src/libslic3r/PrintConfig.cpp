@@ -1706,6 +1706,16 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 1 });
 
+    def = this->add("first_x_layer_part_fan_speed", coInts);
+    def->label = L("Fan speed");
+    def->tooltip = L("Part cooling fan speed for the first few layers. "
+                     "Set to 0 to disable the part cooling fan on the initial layers for better bed adhesion");
+    def->sidetext = "%";
+    def->min = 0;
+    def->max = 100;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionInts { 0 });
+
     def           = this->add("first_x_layer_fan_speed", coFloats);
     def->label    = L("Fan speed");
     def->tooltip  = L("Special auxiliary cooling fan speed, effective only for the first x layers");

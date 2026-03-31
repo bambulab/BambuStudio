@@ -1393,6 +1393,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionInts,               close_additional_fan_first_x_layers))
     ((ConfigOptionInts,               additional_fan_full_speed_layer))
     ((ConfigOptionInts,               close_fan_the_first_x_layers))
+    ((ConfigOptionInts,               first_x_layer_part_fan_speed))
     ((ConfigOptionFloats,             first_x_layer_fan_speed))
     ((ConfigOptionEnum<DraftShield>,  draft_shield))
     ((ConfigOptionFloat,              extruder_clearance_height_to_rod))//BBs
