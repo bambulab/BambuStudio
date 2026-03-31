@@ -118,6 +118,9 @@ public:
     void CtrlRackReadAll(bool gui_check = false) const;
     bool CtrlCanReadAll() const;
 
+    void SetNozzleTargetTemp(int nozzle_pos_id, int temp);
+
+#if 0
     // the upgrade is not supported
     // the GUI interface is removed in STUDIO-14506
     int CtrlRackUpgradeExtruderNozzle() const;

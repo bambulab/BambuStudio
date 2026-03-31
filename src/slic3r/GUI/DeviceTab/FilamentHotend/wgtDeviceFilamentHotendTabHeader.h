@@ -9,6 +9,7 @@ wxDECLARE_EVENT(EVT_DEVICE_FILAMENT_HOTEND_TAB_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_DEVICE_FILAMENT_HOTEND_BATCH_LOAD, wxCommandEvent);
 wxDECLARE_EVENT(EVT_DEVICE_FILAMENT_HOTEND_BATCH_UNLOAD, wxCommandEvent);
 wxDECLARE_EVENT(EVT_DEVICE_FILAMENT_HOTEND_BATCH_QUIT, wxCommandEvent);
+wxDECLARE_EVENT(EVT_DEVICE_HOTEND_READ_ALL, wxCommandEvent);
 
 namespace Slic3r::GUI
 {
@@ -48,6 +49,7 @@ private:
     void OnBtnLoad(wxCommandEvent& evt);
     void OnBtnUnload(wxCommandEvent& evt);
     void OnBtnQuit(wxCommandEvent& evt);
+    void OnBtnReadAll(wxCommandEvent& evt);
 
 private:
     TabType m_selected_tab{ TabFilament };
@@ -62,7 +64,10 @@ private:
     Button* m_btn_fila_quit{ nullptr };
     Button* m_btn_fila_dry{ nullptr };
 
-    // hotend
+    // hotend buttons
+    Button* m_btn_hotend_read_all{ nullptr };
+
+    // hotend tabs
     wxPanel* m_tab_hotend_panel{ nullptr };
     Label* m_label_hotend{ nullptr };
     wxPanel* m_line_hotend{ nullptr };

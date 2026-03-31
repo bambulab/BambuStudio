@@ -12,6 +12,11 @@
 namespace Slic3r
 {
 
+void DevNozzleRack::SetNozzleTargetTemp(int nozzle_pos_id, int temp)
+{
+    m_nozzle_system->GetOwner()->command_set_nozzle_new(nozzle_pos_id, temp);
+}
+
 void DevNozzleRack::CtrlRackPosMove(RackPos new_pos) const
 {
     if (!CheckRackMoveWarningDlg())

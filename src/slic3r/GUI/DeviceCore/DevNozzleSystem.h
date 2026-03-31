@@ -21,6 +21,15 @@ private:
     friend class DevNozzleSystemParser;
 
 public:
+    enum class NozzleTempStatus: int
+    {
+        Idle = 0,
+        Heating = 1,
+        Keeping = 2,
+        Cooling = 3
+    };
+
+
     int             m_nozzle_id = -1;
     NozzleFlowType  m_nozzle_flow = NozzleFlowType::S_FLOW;// 0-common 1-high flow
     NozzleType      m_nozzle_type = NozzleType::ntUndefine;// 0-stainless_steel 1-hardened_steel 5-tungsten_carbide
@@ -96,6 +105,18 @@ public:
     void SetOnRack(bool on_rack) { m_on_rack = on_rack; };
     void SetStatus(int stat) { m_stat = stat; }
 
+    void SetCurrentTemp(int temp) { m_current_temp = temp; }
+    int  GetCurrentTemp() const { return m_current_temp; }
+
+    void SetTargetTemp(int temp) { m_target_temp = temp; }
+    int  GetTargetTemp() const { return m_target_temp; }
+
+    void SetRackNozzleTempStatus(int temp_status);
+    std::optional<NozzleTempStatus> GetSetRackNozzleTempStatus() const { return m_temp_status; }
+
+    void SetFilamentInNozzle(bool has_filament) { m_has_filament = has_filament; }
+    bool HasFilamentInNozzle() const { return m_has_filament; }
+
     // direct bind ams slots. eg. ZMULTI_A
     std::vector<DevAmsSlotId> GetBindAmsSlots() const { return m_bind_ams_slots; };
 
@@ -108,6 +129,14 @@ private:
 
     int m_stat = 0;
     float m_wear;
+
+    /* nozzle temperature */
+    int m_current_temp = -1;
+    int m_target_temp = -1;
+
+    bool m_has_filament = false;
+
+    std::optional<NozzleTempStatus> m_temp_status = std::nullopt;
 
     std::string m_sn;
     std::string m_fila_id;// main material

@@ -41,5 +41,7 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendItem.cpp
     GUI/DeviceTab/FilamentHotend/wgtDeviceHotentPanel.h
     GUI/DeviceTab/FilamentHotend/wgtDeviceHotentPanel.cpp
+    GUI/DeviceTab/FilamentHotend/wgtDeviceHotendItem.h
+    GUI/DeviceTab/FilamentHotend/wgtDeviceHotendItem.cpp
 )
 set(SLIC3R_GUI_SOURCES ${SLIC3R_GUI_SOURCES} PARENT_SCOPE)

@@ -363,6 +363,17 @@ wxString DevNozzle::GetSerialNumber() const
     return GetFirmwareInfo().sn;
 }
 
+void DevNozzle::SetRackNozzleTempStatus(int temp_status)
+{
+    switch (temp_status) {
+    case 0: m_temp_status = DevNozzle::NozzleTempStatus::Idle; break;
+    case 1: m_temp_status = DevNozzle::NozzleTempStatus::Heating; break;
+    case 2: m_temp_status = DevNozzle::NozzleTempStatus::Keeping; break;
+    case 3: m_temp_status = DevNozzle::NozzleTempStatus::Cooling; break;
+    default: m_temp_status = DevNozzle::NozzleTempStatus::Idle; break;
+    }
+}
+
 DevNozzleSystem::DevNozzleSystem(MachineObject* owner)
     : m_owner(owner), m_nozzle_rack(std::make_shared<DevNozzleRack> (this))
 {
@@ -849,6 +860,21 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
             if (njon.contains("stat"))/*maybe not contains*/
             {
                 nozzle_obj.SetStatus(njon["stat"].get<int>());
+
+                if (system->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A || system->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B)
+                {
+                    nozzle_obj.SetRackNozzleTempStatus(DevUtil::get_flag_bits(njon["stat"].get<int>(), 3, 2));
+                    nozzle_obj.SetFilamentInNozzle(DevUtil::get_flag_bits(njon["stat"].get<int>(), 5, 1));
+                }
+            }
+
+            if (njon.contains("temp"))/*maybe not contains*/
+            {
+                int current_temp = DevUtil::get_flag_bits(njon["temp"].get<int>(), 0, 16);
+                nozzle_obj.SetCurrentTemp(current_temp);
+
+                int target_temp = DevUtil::get_flag_bits(njon["temp"].get<int>(), 16, 16);
+                nozzle_obj.SetTargetTemp(target_temp);
             }
 
             DevJsonValParser::ParseVal(njon, "fila_id", nozzle_obj.m_fila_id);

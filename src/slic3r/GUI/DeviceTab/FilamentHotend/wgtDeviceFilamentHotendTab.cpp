@@ -77,6 +77,7 @@ void wgtDeviceFilamentHotendTab::CreateGui()
     m_tab_header->Bind(EVT_DEVICE_FILAMENT_HOTEND_BATCH_LOAD, &wgtDeviceFilamentHotendTab::OnHeaderBatchLoad, this);
     m_tab_header->Bind(EVT_DEVICE_FILAMENT_HOTEND_BATCH_UNLOAD, &wgtDeviceFilamentHotendTab::OnHeaderBatchUnload, this);
     m_tab_header->Bind(EVT_DEVICE_FILAMENT_HOTEND_BATCH_QUIT, &wgtDeviceFilamentHotendTab::OnHeaderBatchQuit, this);
+    m_tab_header->Bind(EVT_DEVICE_HOTEND_READ_ALL, &wgtDeviceFilamentHotendTab::OnHeaderHotendReadAll, this);
 
     if (m_filament_panel && m_filament_panel->GetAmsFilamentsWidget()) {
         m_filament_panel->GetAmsFilamentsWidget()->Bind(EVT_DEVICE_FILAMENT_HOTEND_SELECTION_CHANGED, &wgtDeviceFilamentHotendTab::OnSelectionChanged, this);
@@ -162,6 +163,14 @@ void wgtDeviceFilamentHotendTab::OnHeaderBatchQuit(wxCommandEvent& evt)
     m_filament_panel->GetAmsFilamentsWidget()->SetEnableSelection(false);
     m_tab_header->QuitBatchMode();
     m_load_tips->Hide();
+    evt.Skip();
+}
+
+void wgtDeviceFilamentHotendTab::OnHeaderHotendReadAll(wxCommandEvent &evt)
+{
+    if (m_hotend_panel) {
+        m_hotend_panel->ReadAll();
+    }
     evt.Skip();
 }
 

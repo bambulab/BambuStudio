@@ -12,6 +12,7 @@ wxDEFINE_EVENT(EVT_DEVICE_FILAMENT_HOTEND_TAB_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DEVICE_FILAMENT_HOTEND_BATCH_LOAD, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DEVICE_FILAMENT_HOTEND_BATCH_UNLOAD, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DEVICE_FILAMENT_HOTEND_BATCH_QUIT, wxCommandEvent);
+wxDEFINE_EVENT(EVT_DEVICE_HOTEND_READ_ALL, wxCommandEvent);
 
 namespace Slic3r::GUI
 {
@@ -53,7 +54,8 @@ void wgtDeviceFilamentHotendTabHeader::SetSelectedTab(TabType tab)
     m_btn_fila_load->Show(filament_active);
     m_btn_fila_unload->Show(filament_active);
     m_btn_fila_dry->Show(filament_active);
-    
+    m_btn_hotend_read_all->Show(!filament_active);
+
     Refresh();
     Layout();
 }
@@ -141,6 +143,13 @@ void wgtDeviceFilamentHotendTabHeader::OnBtnQuit(wxCommandEvent&)
     GetEventHandler()->ProcessEvent(evt);
 }
 
+void wgtDeviceFilamentHotendTabHeader::OnBtnReadAll(wxCommandEvent&)
+{
+    wxCommandEvent evt(EVT_DEVICE_HOTEND_READ_ALL, GetId());
+    evt.SetEventObject(this);
+    GetEventHandler()->ProcessEvent(evt);
+}
+
 void wgtDeviceFilamentHotendTabHeader::CreateGui()
 {
     SetBackgroundColour(*wxWHITE);
@@ -182,8 +191,9 @@ void wgtDeviceFilamentHotendTabHeader::CreateGui()
     m_btn_fila_unload = new Button(this, _L("Unload"));
     m_btn_fila_quit = new Button(this, _L("Abort"));
     m_btn_fila_dry = new Button(this, _L("Dry"));
+    m_btn_hotend_read_all = new Button(this, _L("Read All"));
     Button* btn_fila_debug = new Button(this, _L("开发提示"));
-    for (auto* btn : {m_btn_fila_load, m_btn_fila_unload, m_btn_fila_dry, m_btn_fila_quit, btn_fila_debug}) {
+    for (auto* btn : {m_btn_fila_load, m_btn_fila_unload, m_btn_fila_dry, m_btn_fila_quit, m_btn_hotend_read_all, btn_fila_debug}) {
         btn->SetFont(Label::Body_13);
         btn->SetBackgroundColor(StateColor::createButtonStyleGray());
         btn->SetBackgroundColour(*wxWHITE);
@@ -192,11 +202,13 @@ void wgtDeviceFilamentHotendTabHeader::CreateGui()
     m_btn_fila_quit->SetBackgroundColor(*wxGREEN);
     m_btn_fila_quit->SetBackgroundColour(*wxGREEN);
     m_btn_fila_quit->Hide();
+    m_btn_hotend_read_all->Hide();
 
     root->Add(m_btn_fila_load, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(6));
     root->Add(m_btn_fila_unload, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(6));
     root->Add(m_btn_fila_quit, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(6));
     root->Add(m_btn_fila_dry, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(6));
+    root->Add(m_btn_hotend_read_all, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(6));
 
 #if !BBL_RELEASE_TO_PUBLIC
     root->Add(btn_fila_debug, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
@@ -221,6 +233,7 @@ void wgtDeviceFilamentHotendTabHeader::CreateGui()
     m_btn_fila_load->Bind(wxEVT_BUTTON, &wgtDeviceFilamentHotendTabHeader::OnBtnLoad, this);
     m_btn_fila_unload->Bind(wxEVT_BUTTON, &wgtDeviceFilamentHotendTabHeader::OnBtnUnload, this);
     m_btn_fila_quit->Bind(wxEVT_BUTTON, &wgtDeviceFilamentHotendTabHeader::OnBtnQuit, this);
+    m_btn_hotend_read_all->Bind(wxEVT_BUTTON, &wgtDeviceFilamentHotendTabHeader::OnBtnReadAll, this);
 }
 
 } // namespace Slic3r::GUI

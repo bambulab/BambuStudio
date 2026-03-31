@@ -56,6 +56,7 @@ private:
     void OnHeaderBatchLoad(wxCommandEvent &evt);
     void OnHeaderBatchUnload(wxCommandEvent &evt);
     void OnHeaderBatchQuit(wxCommandEvent &evt);
+    void OnHeaderHotendReadAll(wxCommandEvent &evt);
 
     // batch
     void OnSelectionChanged(wxCommandEvent &evt);
