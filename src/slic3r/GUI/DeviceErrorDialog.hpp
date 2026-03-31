@@ -50,6 +50,7 @@ public:
         OK_JUMP_RACK = 49,
         ABORT = 51,
         DISABLE_PURIFICATION = 54,
+        DONT_REMIND_NEXT_TIME = 57,
 
         // old error code to pseudo action
         DBL_CHECK_CANCEL = 10000,

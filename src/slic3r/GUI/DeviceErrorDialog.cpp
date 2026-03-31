@@ -207,6 +207,7 @@ void DeviceErrorDialog::init_button_list()
     init_button(OK_JUMP_RACK, "OK");
     init_button(ABORT, _L("Abort"));
     init_button(DISABLE_PURIFICATION, _L("Disable Purification for This Print"));
+    init_button(DONT_REMIND_NEXT_TIME, _L("Don't Remind Me"));
 
     init_button(DBL_CHECK_CANCEL, _L("Cancel"));
     init_button(DBL_CHECK_DONE, _L("Done"));
@@ -644,6 +645,14 @@ void DeviceErrorDialog::on_button_click(ActionButton btn_id)
     case DeviceErrorDialog::DISABLE_PURIFICATION:
     {
         m_obj->command_purification_disable();
+        break;
+    }
+
+    case DeviceErrorDialog::DONT_REMIND_NEXT_TIME:
+    {
+        if(!m_action_json.is_null()){
+            m_obj->command_dont_remind_next_time(m_action_json);
+        }
         break;
     }
 
