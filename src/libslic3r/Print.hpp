@@ -885,6 +885,7 @@ public:
     const PrintConfig&          config() const { return m_config; }
     const PrintObjectConfig&    default_object_config() const { return m_default_object_config; }
     const PrintRegionConfig&    default_region_config() const { return m_default_region_config; }
+    
     ConstPrintObjectPtrsAdaptor objects() const { return ConstPrintObjectPtrsAdaptor(&m_objects); }
     const PrintObject*          get_object(size_t idx) const { return m_objects[idx]; }
     PrintObject*                get_object(size_t idx) { return const_cast<PrintObject*>(m_objects[idx]); }
@@ -1148,6 +1149,7 @@ private:
     PrintRegionPtrs                         m_print_regions;
     //BBS.
     bool m_isBBLPrinter = false;
+    
     // Ordered collections of extrusion paths to build skirt loops and brim.
     ExtrusionEntityCollection               m_skirt;
     // BBS: collecting extrusion paths to build brim by objs
