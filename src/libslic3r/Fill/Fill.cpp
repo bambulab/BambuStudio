@@ -853,6 +853,12 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
 		params.use_arachne = false;
 		params.layer_height = layerm.layer()->height;
 
+		// Pass pattern-specific parameters so that anchoring lines match the actual infill.
+		if (surface_fill.params.pattern == ip2DLattice) {
+			params.lattice_angle_1 = surface_fill.params.lattice_angle_1;
+			params.lattice_angle_2 = surface_fill.params.lattice_angle_2;
+		}
+
 		for (ExPolygon& expoly : surface_fill.expolygons) {
 			// Spacing is modified by the filler to indicate adjustments. Reset it for each expolygon.
 			f->spacing = surface_fill.params.spacing;
