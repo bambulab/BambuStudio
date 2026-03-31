@@ -1169,6 +1169,7 @@ public:
     void on_render_fallback_timer(wxTimerEvent& evt);
     void on_set_color_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);
+    void on_mouse_capture_lost(wxMouseCaptureLostEvent&) { mouse_up_cleanup(); }
     void on_gesture(wxGestureEvent& evt);
     void on_paint(wxPaintEvent& evt);
     void on_kill_focus(wxFocusEvent &evt);
