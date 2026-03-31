@@ -3942,6 +3942,7 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_MOTION, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_ENTER_WINDOW, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_LEAVE_WINDOW, &GLCanvas3D::on_mouse, this);
+        m_canvas->Bind(wxEVT_MOUSE_CAPTURE_LOST, &GLCanvas3D::on_mouse_capture_lost, this);
         m_canvas->Bind(wxEVT_LEFT_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_MIDDLE_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
@@ -3984,6 +3985,7 @@ void GLCanvas3D::unbind_event_handlers()
         m_canvas->Unbind(wxEVT_MOTION, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_ENTER_WINDOW, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_LEAVE_WINDOW, &GLCanvas3D::on_mouse, this);
+        m_canvas->Unbind(wxEVT_MOUSE_CAPTURE_LOST, &GLCanvas3D::on_mouse_capture_lost, this);
         m_canvas->Unbind(wxEVT_LEFT_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_MIDDLE_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
@@ -5275,6 +5277,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else if (evt.Leaving()) {
         // to remove hover on objects when the mouse goes out of this canvas
         m_mouse.position = Vec2d(-1.0, -1.0);
+        // Allow pan and rotate mouse drag actions to continue outside of current window bounds.
+        if ((m_mouse.rotating || m_mouse.panning) && !m_canvas->HasCapture())
+            m_canvas->CaptureMouse();
         m_dirty = true;
     }
     else if (evt.LeftDClick()) {
