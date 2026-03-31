@@ -159,16 +159,6 @@ void AppConfig::set_defaults()
 #endif // _WIN32
     }
 
-    if (get("use_perspective_camera").empty())
-        set_bool("use_perspective_camera", true);
-
-    if (get("use_free_camera").empty())
-        set_bool("use_free_camera", false);
-
-#ifdef SUPPORT_REVERSE_MOUSE_ZOOM
-    if (get("reverse_mouse_wheel_zoom").empty())
-        set_bool("reverse_mouse_wheel_zoom", false);
-#endif
     if (get("enable_append_color_by_sync_ams").empty())
         set_bool("enable_append_color_by_sync_ams", true);
     if (get("enable_merge_color_by_sync_ams").empty())
@@ -181,8 +171,6 @@ void AppConfig::set_defaults()
     if (get("export_sources_full_pathnames").empty())
         set_bool("export_sources_full_pathnames", false);
 
-    if (get("zoom_to_mouse").empty())
-        set_bool("zoom_to_mouse", false);
     if (get("show_shells_in_preview").empty())
         set_bool("show_shells_in_preview", true);
     if (get("enable_text_styles").empty())
@@ -215,6 +203,48 @@ void AppConfig::set_defaults()
         set("3d_middle_tooltip_offset_y", "0.0");
     if (get("cancel_glmultidraw").empty())
         set_bool("cancel_glmultidraw", false);
+        
+    // 3D camera view options
+
+    if (get("use_perspective_camera").empty())
+        set_bool("use_perspective_camera", true);
+    if (get("use_free_camera").empty())
+        set_bool("use_free_camera", false);
+    if (get("zoom_to_mouse").empty())
+        set_bool("zoom_to_mouse", false);
+    if (get("reverse_mouse_wheel_zoom").empty())
+        set_bool("reverse_mouse_wheel_zoom", false);
+    // Rotation speed adjustment ratio
+    if (get("view_rotate_speed_factor").empty())
+        set("view_rotate_speed_factor", "0.8");
+    // Which mouse button is used to rotate 3D view:  left|mid|right|aux1|aux2
+    if (get("view_rotate_mb").empty())
+        set("view_rotate_mb", "left");
+    // Which mouse button is used to pan 3D view:  any|left|mid|right|aux1|aux2
+    // Value is exclusive with "view_rotate_mb" (should not be set to same button).
+    // "any" legacy setting means either right and/or mid btns, whichever aren't used for rotation.
+    if (get("view_pan_mb").empty())
+        set("view_pan_mb", "any");
+    // Which camera rotation type is used when no modifiers are pressed: plate|center|selection|cursor|target
+    // \sa Camera::RotationFocusType
+    if (get("view_rotate_mode_nomod").empty())
+        set("view_rotate_mode_nomod", "plate");
+    // Which camera rotation type is used when CTRL (Win/Linux) or CMD (Mac) is pressed.
+    if (get("view_rotate_mode_ctrl").empty())
+        set("view_rotate_mode_ctrl", "center");
+    // Which camera rotation type is used when ALT/OPT is pressed.
+    if (get("view_rotate_mode_alt").empty())
+        set("view_rotate_mode_alt", "selection");
+
+    // Remove legacy camera control options
+    erase("app", "keyboard_supported");
+    erase("app", "mouse_supported");
+    erase("app", "rotate_view");
+    erase("app", "move_view");
+    erase("app", "zoom_view");
+    erase("app", "precise_control");
+    erase("app", "mouse_wheel");
+
 //#ifdef SUPPORT_SHOW_HINTS
     if (get("show_hints").empty())
         set_bool("show_hints", false);
@@ -368,40 +398,13 @@ void AppConfig::set_defaults()
         set_bool("sync_user_preset", false);
     }
 
-    if (get("keyboard_supported").empty()) {
-        set("keyboard_supported", std::string("none/alt/control/shift"));
-    }
-
-    if (get("mouse_supported").empty()) {
-        set("mouse_supported", "mouse left/mouse middle/mouse right");
-    }
-
     if (get("privacy_version").empty()) {
         set("privacy_version", "00.00.00.00");
-    }
-
-    if (get("rotate_view").empty()) {
-        set("rotate_view", "none/mouse left");
-    }
-
-    if (get("move_view").empty()) {
-        set("move_view", "none/mouse left");
-    }
-
-    if (get("zoom_view").empty()) {
-        set("zoom_view", "none/mouse left");
-    }
-
-    if (get("precise_control").empty()) {
-        set("precise_control", "none/mouse left");
     }
 
     if (get("download_path").empty()) {
         set("download_path", "");
     }
-
-    if (get("mouse_wheel").empty()) {
-        set("mouse_wheel", "0"); }
 
     // helio options
     if (get("helio_enable").empty()) {

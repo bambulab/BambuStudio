@@ -25,6 +25,7 @@ namespace Slic3r { namespace GUI { class AssemblyStepsUtils; } }
 
 #include <float.h>
 
+#include <wx/mousestate.h>
 #include <wx/timer.h>
 
 class wxSizeEvent;
@@ -544,14 +545,32 @@ class GLCanvas3D
     };
 
 
+    enum class CameraRotationMode : unsigned char
+    {
+        Default,            // situation dependent
+        CameraTarget,       // rotate around current camera target
+        SelectedPlate,      // rotate around center of currently selected plate
+        ViewCenter,         // around center point of current canvas
+        Cursor,             // around cursor position
+        SelectionOrCursor,  // around currently selected object(s) or cursor position if no selection
+    };
+
     // Stored cached app config options pertaining to camera movement, to avoid expensive lookups during active user interactions.
     struct CameraManipulationConf
     {
         bool init{ false };
         bool free_camera{ false };
         bool zoom_to_mouse{ false };
+        bool reverse_zoom{ false };
+        wxMouseButton rot_button{ wxMouseButton::wxMOUSE_BTN_LEFT };
+        wxMouseButton pan_button{ wxMouseButton::wxMOUSE_BTN_ANY };
+        CameraRotationMode rot_mode_nomod{ CameraRotationMode::SelectedPlate };
+        CameraRotationMode rot_mode_ctrl{ CameraRotationMode::ViewCenter };
+        CameraRotationMode rot_mode_alt{ CameraRotationMode::SelectionOrCursor };
+        float rot_speed_factor{ 0.8f };
 
         void update_from_app_config();
+        static CameraRotationMode camera_rot_mode_config_to_enum(const std::string& name);
     };
 
     // Cached runtime camera manipulation control configuration based on user button/modifier preferences.
@@ -753,9 +772,7 @@ private:
     using FrameCallback = std::function<void()>;
     std::vector<FrameCallback> m_frame_callback_list;
 
-#if ENABLE_SHOW_CAMERA_TARGET
     mutable GLModel m_camera_target_mark;
-#endif // ENABLE_SHOW_CAMERA_TARGET
 
 public:
     OrientSettings& get_orient_settings()
@@ -1401,9 +1418,7 @@ private:
     float _show_assembly_tooltip_information(float caption_max, float x, float y) const;
     void _render_assemble_control();
     void _render_assemble_info() const;
-#if ENABLE_SHOW_CAMERA_TARGET
-    void _render_camera_target() const;
-#endif // ENABLE_SHOW_CAMERA_TARGET
+    void _render_camera_target(const Vec3d& target) const;
     void _render_sla_slices();
     void _render_selection_sidebar_hints() const;
     //BBS: GUI refactor: adjust main toolbar position
