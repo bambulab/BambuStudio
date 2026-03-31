@@ -21561,6 +21561,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
                 }
             }
         }
+        p->view3D->reload_scene(true);
     }
 
     SimpleEvent event(EVT_GLCANVAS_PLATE_SELECT);
@@ -21949,6 +21950,8 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
                     p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, false);
                 }
             }
+
+            p->view3D->reload_scene(true);
         }
     }
     else if ((action == 1)&&(!right_click))

@@ -1960,7 +1960,7 @@ bool PartPlate::check_high_shrinkage_filament(const DynamicPrintConfig &config, 
             continue;
 
         auto fil_preset = filament_config_idx < filament_presets.size() ? wxGetApp().preset_bundle->filaments.find_preset(filament_presets[filament_config_idx]) : nullptr;
-        std::string filament_name = fil_preset != nullptr ? fil_preset->display_name() : "";
+        std::string filament_name = fil_preset != nullptr ? fil_preset->label(false) : "";
         std::string filament_id;
 
         if (filament_ids && filament_config_idx < filament_ids->values.size())
