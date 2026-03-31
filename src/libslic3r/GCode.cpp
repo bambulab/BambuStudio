@@ -2413,11 +2413,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // Emit machine envelope limits for the Marlin firmware.
     this->print_machine_envelope(file, print, initial_extruder_id);
 
-    // Disable fan.
-    if (m_config.auxiliary_fan.value  && print.config().close_fan_the_first_x_layers.get_at(initial_extruder_id)) {
-        file.write(m_writer.set_fan(0));
-        //BBS: disable additional fan
-        file.write(m_writer.set_additional_fan(0));
+    // Set initial fan speed for the first layers.
+    if (print.config().close_fan_the_first_x_layers.get_at(initial_extruder_id)) {
+        int part_fan_init = print.config().first_x_layer_part_fan_speed.get_at(initial_extruder_id);
+        file.write(m_writer.set_fan(part_fan_init));
+        if (m_config.auxiliary_fan.value)
+            file.write(m_writer.set_additional_fan(0));
     }
 
     // Let the start-up script prime the 1st printing tool.

@@ -431,10 +431,11 @@ std::string GCodeEditor::write_layer_gcode(
             //}
             overhang_fan_speed   = EXTRUDER_CONFIG(overhang_fan_speed);
             if (int(layer_id) >= close_fan_the_first_x_layers && int(layer_id) + 1 < full_fan_speed_layer) {
-                // Ramp up the fan speed from close_fan_the_first_x_layers to full_fan_speed_layer.
+                // Ramp up the fan speed from first_x_layer_part_fan_speed to the layer-time-based speed.
                 float factor = float(int(layer_id + 1) - close_fan_the_first_x_layers) / float(full_fan_speed_layer - close_fan_the_first_x_layers);
-                fan_speed_new    = std::clamp(int(float(fan_speed_new) * factor + 0.5f), 0, 255);
-                overhang_fan_speed = std::clamp(int(float(overhang_fan_speed) * factor + 0.5f), 0, 255);
+                int first_part_fan = EXTRUDER_CONFIG(first_x_layer_part_fan_speed);
+                fan_speed_new    = std::clamp(int(float(first_part_fan) * (1.0f - factor) + float(fan_speed_new) * factor + 0.5f), 0, 255);
+                overhang_fan_speed = std::clamp(int(float(first_part_fan) * (1.0f - factor) + float(overhang_fan_speed) * factor + 0.5f), 0, 255);
             }
 
             overhang_fan_control= overhang_fan_speed > fan_speed_new;
@@ -445,7 +446,7 @@ std::string GCodeEditor::write_layer_gcode(
             overhang_fan_speed   = 0;
             ironing_fan_control  = false;
             ironing_fan_speed    = 0;
-            fan_speed_new      = 0;
+            fan_speed_new      = EXTRUDER_CONFIG(first_x_layer_part_fan_speed);
         }
 
         // BBS: Independent control for additional fan
