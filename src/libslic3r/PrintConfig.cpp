@@ -710,26 +710,6 @@ std::vector<std::string> save_extruder_nozzle_stats_to_string(const std::vector<
     return extruder_nozzle_count_str;
 }
 
-std::vector<std::string> save_extruder_full_stats_to_string(const std::vector<std::vector<std::pair<std::string, std::string>>>& extruder_full_stats)
-{
-    std::vector<std::string> extruder_full_stats_str;
-    for (size_t idx = 0; idx < extruder_full_stats.size(); ++idx) {
-        std::ostringstream oss;
-        const auto& stats_list = extruder_full_stats[idx];
-        for (auto it = stats_list.begin(); it != stats_list.end(); ++it) {
-            if (it->first == "0.0") {
-                oss << "#";
-            } else {
-                oss << it->first << "#" << it->second;
-            }
-            if (std::next(it) != stats_list.end()) {
-                oss << ",";
-            }
-        }
-        extruder_full_stats_str.emplace_back(oss.str());
-    }
-    return extruder_full_stats_str;
-}
 
 static void assign_printer_technology_to_unknown(t_optiondef_map &options, PrinterTechnology printer_technology)
 {
@@ -4506,9 +4486,6 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("extruder_nozzle_stats", coStrings);
     def->set_default_value(new ConfigOptionStrings { });
-
-    def = this->add("extruder_full_stats", coStrings);
-    def->set_default_value(new ConfigOptionStrings{});
 
     def = this->add("enable_filament_dynamic_map", coBool);
     def->label = "Enable filament dynamic map";

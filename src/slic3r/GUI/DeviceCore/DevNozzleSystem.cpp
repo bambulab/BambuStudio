@@ -51,18 +51,6 @@ NozzleFlowType DevNozzle::ToNozzleFlowType(const std::string& type)
         return NozzleFlowType::NONE_FLOWTYPE;
 }
 
-NozzleVolumeType DevNozzle::ToNozzleVolumeType(const std::string &type)
-{
-    if(type == "Standard")
-        return NozzleVolumeType::nvtStandard;
-    else if(type == "High Flow")
-        return NozzleVolumeType::nvtHighFlow;
-    else if(type == "TPU High Flow")
-        return NozzleVolumeType::nvtTPUHighFlow;
-    else
-        return NozzleVolumeType::nvtStandard;
-}
-
 std::string DevNozzle::ToNozzleFlowString(const NozzleFlowType& type)
 {
     switch (type) {
