@@ -1231,7 +1231,7 @@ void AMSMaterialsSetting::update_pa_profile_items()
         NozzleFlowType   nozzle_flow_type   = obj->GetExtderSystem()->GetNozzleFlowType(extruder_id);
         float            nozzle_diameter    = obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
 
-        if (rack->IsSupported() && extruder_id == MAIN_EXTRUDER_ID) {
+        if (rack->IsSupported() && (extruder_id == MAIN_EXTRUDER_ID || switcher->IsInstalled())) {
             if (int sel = m_comboBox_nozzle_type->GetSelection(); sel != wxNOT_FOUND) {
                 auto sel_pair = (std::pair<NozzleDiameterType, NozzleFlowType>*)m_comboBox_nozzle_type->GetClientData(sel);
                 auto nozzle_diameter_type = sel_pair->first;
