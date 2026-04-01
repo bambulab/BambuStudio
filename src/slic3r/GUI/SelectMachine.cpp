@@ -581,7 +581,29 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     auto option_timelapse = new PrintOption(m_options_other, _L("Timelapse"), wxEmptyString, ops_no_auto, "timelapse");
 
-        auto option_auto_bed_level = new PrintOption(
+    // timelapse storage location folder button (shown only when is_support_internal_timelapse)
+    m_timelapse_folder_btn = new ScalableButton(m_options_other, wxID_ANY, "folder-closed", wxEmptyString,
+        wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+    m_timelapse_folder_btn->SetBackgroundColour(*wxWHITE);
+    m_timelapse_folder_btn->SetToolTip(_L("Select timelapse storage location"));
+    m_timelapse_folder_btn->Hide();
+    m_timelapse_folder_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+        show_timelapse_folder_popup();
+    });
+    m_timelapse_folder_btn->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent& e) {
+        // hover: only switch if popup is not open (popup open = active state)
+        if (!m_timelapse_storage_popup || !m_timelapse_storage_popup->IsShown())
+            m_timelapse_folder_btn->SetBitmap(create_scaled_bitmap("folder-closed-hover", m_timelapse_folder_btn, 16));
+        e.Skip();
+    });
+    m_timelapse_folder_btn->Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent& e) {
+        // restore normal (popup open state is handled separately)
+        if (!m_timelapse_storage_popup || !m_timelapse_storage_popup->IsShown())
+            update_timelapse_folder_btn_icon();
+        e.Skip();
+    });
+
+    auto option_auto_bed_level = new PrintOption(
         m_options_other, _L("Auto Bed Leveling"),
         _L("This checks the flatness of heatbed. Leveling makes extruded height uniform.\n*Automatic mode: Run a leveling check(about 10 seconds). Skip if surface is fine."),
         ops_auto, "bed_leveling");
@@ -635,6 +657,9 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_pa_value_panel->SetSizer(m_pa_value_panel_sizer);
     m_pa_value_panel->Hide();
+
+    // insert folder button into timelapse PrintOption's own sizer (after title, before tips)
+    option_timelapse->insert_extra_widget(m_timelapse_folder_btn);
 
     auto options_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -1828,6 +1853,9 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         msg = msg_text;
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
+    } else if (status == PrintDialogStatus::PrintStatusTimelapseStorageLow) {
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(true);
     } else if (status == PrintStatusToolHeadCoolingFanWarning) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
@@ -2257,7 +2285,16 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     }
     else
     {
-        this->on_send_print();
+        // if machine supports internal timelapse and timelapse is on, check storage first
+        if (obj_->is_support_internal_timelapse &&
+            m_checkbox_list["timelapse"]->IsShown() &&
+            m_checkbox_list["timelapse"]->getValue() == "on" &&
+            !m_timelapse_storage.empty())
+        {
+            start_timelapse_storage_check(obj_);
+        } else {
+            this->on_send_print();
+        }
     }
 }
 
@@ -2366,6 +2403,16 @@ void SelectMachineDialog::update_option_opts(MachineObject *obj)
 
     /*timelapse*/
     m_checkbox_list["timelapse"]->Show();
+    if (obj->is_support_internal_timelapse) {
+        m_timelapse_folder_btn->Show();
+        if (m_timelapse_storage.empty()) {
+            m_timelapse_storage = "internal";
+        }
+        update_timelapse_folder_btn_icon();
+    } else {
+        m_timelapse_folder_btn->Hide();
+        m_timelapse_storage.clear();
+    }
 
     /*bed_leveling*/
     if (obj->is_support_bed_leveling == 2) {
@@ -2434,6 +2481,286 @@ bool SelectMachineDialog::is_enable_external_change_assist(std::vector<FilamentI
         v_ams_map[info.ams_id]++;
     }
     return (v_ams_map[VIRTUAL_AMS_MAIN_ID_STR] > 1) || (v_ams_map[VIRTUAL_AMS_DEPUTY_ID_STR] > 1);
+}
+
+void SelectMachineDialog::update_timelapse_folder_btn_icon()
+{
+    if (!m_timelapse_folder_btn) return;
+    // always restore to normal (grey) — active state is managed by popup open/close
+    m_timelapse_folder_btn->SetBitmap(create_scaled_bitmap("folder-closed", m_timelapse_folder_btn, 16));
+    m_timelapse_folder_btn->Refresh();
+}
+
+void SelectMachineDialog::show_timelapse_folder_popup()
+{
+    if (m_timelapse_storage_popup && m_timelapse_storage_popup->IsShown()) {
+        m_timelapse_storage_popup->Dismiss();
+        return;
+    }
+
+    // build popup with border + horizontal layout
+    m_timelapse_storage_popup = new wxPopupTransientWindow(this, wxBORDER_SIMPLE);
+    m_timelapse_storage_popup->SetBackgroundColour(*wxWHITE);
+
+    auto* panel = new wxPanel(m_timelapse_storage_popup, wxID_ANY);
+    panel->SetBackgroundColour(*wxWHITE);
+
+    // horizontal layout: [ Internal]  [External]
+    auto* sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    auto make_item = [&](const wxString& label, const std::string& val) {
+        auto* radio = new wxRadioButton(panel, wxID_ANY, label, wxDefaultPosition, wxDefaultSize,
+            val == "internal" ? wxRB_GROUP : 0);
+        radio->SetValue(m_timelapse_storage == val);
+        radio->SetFont(Label::Body_14);
+        radio->SetForegroundColour(wxColour(0x5C, 0x5C, 0x5C));
+        sizer->Add(radio, 0, wxALIGN_CENTER_VERTICAL);
+
+        radio->Bind(wxEVT_RADIOBUTTON, [this, val](wxCommandEvent&) {
+            m_timelapse_storage = val;
+            update_timelapse_folder_btn_icon();
+            if (m_timelapse_storage_popup) m_timelapse_storage_popup->Dismiss();
+            DeviceManager* dev = wxGetApp().getDeviceManager();
+            MachineObject* obj = dev ? dev->get_selected_machine() : nullptr;
+            if (obj) check_timelapse_storage_warning(obj);
+        });
+    };
+
+    make_item(_L("Internal"), "internal");
+    sizer->AddSpacer(FromDIP(16));
+    make_item(_L("External"), "external");
+
+    panel->SetSizer(sizer);
+    panel->Fit();
+
+    auto* outer = new wxBoxSizer(wxVERTICAL);
+    outer->Add(panel, 0, wxALL, FromDIP(10));
+    m_timelapse_storage_popup->SetSizer(outer);
+    m_timelapse_storage_popup->Fit();
+
+    // restore normal icon when popup is dismissed
+    m_timelapse_storage_popup->Bind(wxEVT_SHOW, [this](wxShowEvent& e) {
+        if (!e.IsShown())
+            update_timelapse_folder_btn_icon();
+        e.Skip();
+    });
+
+    wxPoint pos = m_timelapse_folder_btn->ClientToScreen(wxPoint(0, m_timelapse_folder_btn->GetSize().GetHeight()));
+    m_timelapse_storage_popup->Position(pos, wxSize(0, 0));
+
+    // switch to active icon before showing popup
+    m_timelapse_folder_btn->SetBitmap(create_scaled_bitmap("folder-closed-active", m_timelapse_folder_btn, 16));
+    m_timelapse_folder_btn->Refresh();
+
+    m_timelapse_storage_popup->Popup();
+}
+
+void SelectMachineDialog::check_timelapse_storage_warning(MachineObject* obj)
+{
+    if (!obj || !obj->is_support_internal_timelapse) return;
+    if (!m_checkbox_list["timelapse"]->IsShown()) return;
+    if (m_checkbox_list["timelapse"]->getValue() != "on") return;
+    if (m_timelapse_storage.empty()) return;
+
+    if (obj->is_timelapse_storage_low(m_timelapse_storage)) {
+        wxString storage_name = (m_timelapse_storage == "internal") ? _L("Internal") : _L("External");
+        wxString msg = wxString::Format(
+            _L("%s space less than 10MB. Timelapse may not save properly. You can turn it off or"),
+            storage_name);
+        // show_status sets button state; then directly add with link callback
+        show_status(PrintDialogStatus::PrintStatusTimelapseStorageLow);
+        m_pre_print_checker.add_with_link(
+            PrintDialogStatus::PrintStatusTimelapseStorageLow,
+            msg,
+            _L("Clean up files"),
+            [this]() { navigate_to_timelapse_page(); },
+            prePrintInfoStyle::Default
+        );
+    }
+}
+
+void SelectMachineDialog::start_timelapse_storage_check(MachineObject* obj)
+{
+    if (!obj) { on_send_print(); return; }
+
+    // get total layer count from slice result
+    m_timelapse_total_layer = 0;
+    if (m_print_type == PrintFromType::FROM_NORMAL) {
+        PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
+        if (plate && plate->get_slice_result()) {
+            const auto& modes = plate->get_slice_result()->print_statistics.modes;
+            if (!modes.empty())
+                m_timelapse_total_layer = (int)modes[0].layers_times.size();
+        }
+    }
+
+    obj->timelapse_storage_check_done = false;
+    obj->timelapse_storage_check_result = -1;
+    obj->command_ipcam_check_timelapse_storage(m_timelapse_storage, m_timelapse_total_layer);
+
+    // start polling timer
+    m_timelapse_check_elapsed_ms = 0;
+    if (!m_timelapse_check_timer) {
+        m_timelapse_check_timer = new wxTimer(this);
+        Bind(wxEVT_TIMER, &SelectMachineDialog::on_timelapse_storage_check_timer, this, m_timelapse_check_timer->GetId());
+    }
+    m_timelapse_check_timer->Start(m_timelapse_check_interval_ms);
+}
+
+void SelectMachineDialog::on_timelapse_storage_check_timer(wxTimerEvent& /*event*/)
+{
+    m_timelapse_check_elapsed_ms += m_timelapse_check_interval_ms;
+
+    DeviceManager* dev = wxGetApp().getDeviceManager();
+    MachineObject* obj = dev ? dev->get_selected_machine() : nullptr;
+
+    bool timed_out = m_timelapse_check_elapsed_ms >= m_timelapse_check_timeout_ms;
+    bool done = obj && obj->timelapse_storage_check_done.load();
+
+    if (done || timed_out) {
+        m_timelapse_check_timer->Stop();
+        if (timed_out && !done) {
+            BOOST_LOG_TRIVIAL(warning) << "timelapse storage check timed out, proceeding with print";
+            on_send_print();
+            return;
+        }
+        on_timelapse_storage_check_result();
+    }
+}
+
+void SelectMachineDialog::on_timelapse_storage_check_result()
+{
+    DeviceManager* dev = wxGetApp().getDeviceManager();
+    MachineObject* obj = dev ? dev->get_selected_machine() : nullptr;
+    if (!obj) { on_send_print(); return; }
+
+    // query failed → ignore, proceed with print
+    if (obj->timelapse_storage_check_result != 0) {
+        BOOST_LOG_TRIVIAL(info) << "timelapse storage check failed (result=" << obj->timelapse_storage_check_result << "), proceeding";
+        on_send_print();
+        return;
+    }
+
+    // space is enough → proceed
+    if (obj->timelapse_storage_is_enough) {
+        on_send_print();
+        return;
+    }
+
+    // space not enough → show dialog
+    show_timelapse_storage_dialog(obj);
+}
+
+void SelectMachineDialog::show_timelapse_storage_dialog(MachineObject* obj)
+{
+    bool is_internal     = (m_timelapse_storage == "internal");
+    bool has_video_files = obj->timelapse_storage_file_count >= 0;
+    // internal:               2 buttons (Confirm & Print, Cancel Timelapse)
+    // external + has files:   3 buttons (Confirm & Print, Cancel Timelapse, Clean Up)
+    // external + no files:    1 button  (Cancel Timelapse only)
+    bool show_confirm_btn = is_internal || has_video_files;
+    bool show_cleanup_btn = !is_internal && has_video_files;
+
+    wxString body_text;
+    if (is_internal)
+        body_text = _L("Low internal storage. This timelapse will overwrite the oldest video files.");
+    else if (has_video_files)
+        body_text = _L("Low external storage. This timelapse will overwrite the oldest video files.");
+    else
+        body_text = _L("Insufficient external storage for time-lapse photography. Connect to computer to delete files, or use a larger memory card.");
+
+    wxDialog dlg(this, wxID_ANY, _L("Storage Space Not Enough"),
+        wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE);
+    dlg.SetBackgroundColour(*wxWHITE);
+
+    auto* main_sizer = new wxBoxSizer(wxVERTICAL);
+
+    // warning icon + text row
+    auto* msg_sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto* warn_bmp  = new wxStaticBitmap(&dlg, wxID_ANY,
+        create_scaled_bitmap("obj_warning", &dlg, 16), wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)));
+    auto* msg_label = new Label(&dlg, body_text);
+    msg_label->SetFont(Label::Body_14);
+    msg_label->SetForegroundColour(wxColour(0x33, 0x33, 0x33));
+    msg_label->Wrap(FromDIP(340));
+    msg_sizer->Add(warn_bmp, 0, wxALIGN_TOP | wxRIGHT, FromDIP(6));
+    msg_sizer->Add(msg_label, 1, wxEXPAND);
+    main_sizer->Add(msg_sizer, 0, wxALL | wxEXPAND, FromDIP(20));
+
+    auto* btn_sizer = new wxBoxSizer(wxVERTICAL);
+
+    // use int id to distinguish choices: wxID_OK=confirm, wxID_NO=cancel_tl, wxID_CANCEL=cleanup
+    if (show_confirm_btn) {
+        auto* btn_confirm = new Button(&dlg, _L("Confirm & Print"));
+        StateColor confirm_bg(std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+        btn_confirm->SetBackgroundColor(confirm_bg);
+        btn_confirm->SetTextColor(StateColor(std::pair<wxColour, int>(*wxWHITE, StateColor::Normal)));
+        btn_confirm->Bind(wxEVT_BUTTON, [&dlg](wxCommandEvent&) { dlg.EndModal(wxID_OK); });
+        btn_sizer->Add(btn_confirm, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
+    }
+
+    auto* btn_cancel_tl = new Button(&dlg, _L("Cancel Timelapse & Print"));
+    if (!show_confirm_btn) {
+        StateColor cancel_bg(std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+        btn_cancel_tl->SetBackgroundColor(cancel_bg);
+        btn_cancel_tl->SetTextColor(StateColor(std::pair<wxColour, int>(*wxWHITE, StateColor::Normal)));
+    }
+    btn_cancel_tl->Bind(wxEVT_BUTTON, [&dlg](wxCommandEvent&) { dlg.EndModal(wxID_NO); });
+    btn_sizer->Add(btn_cancel_tl, 0, wxEXPAND | (show_cleanup_btn ? wxBOTTOM : 0), FromDIP(8));
+
+    const int ID_CLEANUP = wxID_HIGHEST + 1; // distinct from wxID_CANCEL (X button)
+
+    if (show_cleanup_btn) {
+        auto* btn_cleanup = new Button(&dlg, _L("Clean Up"));
+        btn_cleanup->Bind(wxEVT_BUTTON, [&dlg, ID_CLEANUP](wxCommandEvent&) { dlg.EndModal(ID_CLEANUP); });
+        btn_sizer->Add(btn_cleanup, 0, wxEXPAND);
+    }
+
+    main_sizer->Add(btn_sizer, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, FromDIP(20));
+    dlg.SetSizer(main_sizer);
+    dlg.Fit();
+    dlg.CenterOnParent();
+
+    // ShowModal returns after dialog closes — handle action outside modal stack
+    // wxID_CANCEL is returned when user clicks X (close button) — do nothing in that case
+    int result = dlg.ShowModal();
+
+    if (result == wxID_OK) {
+        // Confirm & Print
+        obj->command_ipcam_delete_oldest_timelapse(m_timelapse_storage, m_timelapse_total_layer);
+        on_send_print();
+    } else if (result == wxID_NO) {
+        // Cancel Timelapse & Print
+        m_checkbox_list["timelapse"]->setValue("off");
+        on_send_print();
+    } else if (result == ID_CLEANUP) {
+        // Clean Up: close SelectMachineDialog and navigate
+        navigate_to_timelapse_page();
+    }
+    // wxID_CANCEL (X button): do nothing, user dismissed the dialog
+}
+
+void SelectMachineDialog::navigate_to_timelapse_page()
+{
+    // EndModal closes the dialog; schedule navigation after the dialog is fully destroyed
+    wxGetApp().CallAfter([]() {
+        auto* main_frame = wxGetApp().mainframe;
+        if (!main_frame) return;
+
+        // use existing jump_to_monitor to switch to Monitor tab
+        main_frame->jump_to_monitor();
+
+        // then switch to Storage (Media) tab inside Monitor
+        auto* monitor = dynamic_cast<MonitorPanel*>(main_frame->m_monitor);
+        if (monitor) {
+            auto* tabpanel = monitor->get_tabpanel();
+            if (tabpanel) {
+                tabpanel->SetSelection(MonitorPanel::PT_MEDIA);
+            }
+        }
+    });
+
+    this->EndModal(wxID_CANCEL);
 }
 
 void SelectMachineDialog::load_option_vals(MachineObject *obj)
@@ -2753,6 +3080,10 @@ void SelectMachineDialog::on_send_print()
     bool timelapse_option = m_checkbox_list["timelapse"]->IsShown()?true:false;
     if (timelapse_option) {
         timelapse_option = m_checkbox_list["timelapse"]->getValue() == "on";
+    }
+
+    if (timelapse_option && obj_->is_support_internal_timelapse && !m_timelapse_storage.empty()) {
+        m_print_job->task_timelapse_use_internal = (m_timelapse_storage == "internal");
     }
 
     m_print_job->set_print_config(
@@ -3687,6 +4018,7 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
     if (!check_sdcard_for_timelpase(obj_) && has_timelapse_warning()) {
         show_status(PrintDialogStatus::PrintStatusTimelapseWarning);
     }
+    check_timelapse_storage_warning(obj_);
 
     /*STUDIO-10970 check the k value and flow cali option*/
     if (m_checkbox_list["flow_cali"]->IsShown() && m_checkbox_list["flow_cali"]->getValue() == "auto") {
@@ -6417,6 +6749,18 @@ bool SelectMachineDialog::is_used_filament(int fila_logic_id) const
 
      update_tooltip(tips);
  }
+
+void PrintOption::insert_extra_widget(wxWindow* widget)
+{
+    // insert after title (index 0), before tips (index 1)
+    // sizer layout: [title][tips][stretch][item]
+    // after insert:  [title][widget][tips][stretch][item]
+    wxSizer* sizer = GetSizer();
+    if (!sizer || !widget) return;
+    widget->Reparent(this);
+    sizer->Insert(1, widget, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(4));
+    Layout();
+}
 
 void PrintOption::OnPaint(wxPaintEvent &event)
  {

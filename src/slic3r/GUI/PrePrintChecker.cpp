@@ -175,6 +175,23 @@ void PrePrintChecker::add(PrintDialogStatus state, wxString msg, wxString tip, c
     }
 }
 
+void PrePrintChecker::add_with_link(PrintDialogStatus state, wxString msg, wxString link_label, std::function<void()> callback, prePrintInfoStyle style)
+{
+    prePrintInfo info;
+    info.level = is_error(state) ? prePrintInfoLevel::Error :
+                 is_warning(state) ? prePrintInfoLevel::Warning : prePrintInfoLevel::Normal;
+    info.type  = (is_error_printer(state) || is_warning_printer(state)) ? prePrintInfoType::Printer : prePrintInfoType::Filament;
+    info.msg   = msg;
+    info.link_label    = link_label;
+    info.link_callback = callback;
+    info.m_style = style;
+
+    auto& list = (info.type == prePrintInfoType::Printer) ? printerList : filamentList;
+    if (std::find(list.begin(), list.end(), info) == list.end()) {
+        list.push_back(info);
+    }
+}
+
 PrinterMsgPanel::PrinterMsgPanel(wxWindow *parent, SelectMachineDialog* select_dialog)
     : wxPanel(parent), m_select_dialog(select_dialog)
 {
@@ -231,12 +248,25 @@ bool PrinterMsgPanel::UpdateInfos(const std::vector<prePrintInfo>& infos)
             label->SetFont(::Label::Body_13);
             label->SetForegroundColour(_GetLabelColour(info));
 
-            if (info.wiki_url.empty())
+            if (!info.link_callback && info.wiki_url.empty())
             {
+                // plain text, no link
                 label->SetLabel(info.msg);
+            }
+            else if (info.link_callback)
+            {
+                // internal callback link (e.g. "Clean up files" → navigate to device page)
+                wxString link_text = info.link_label.empty() ? _L("Clean up files") : info.link_label;
+                label->SetLabel(info.msg + " " + link_text);
+                label->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
+                label->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
+                label->Bind(wxEVT_LEFT_DOWN, [info](wxMouseEvent& event) {
+                    if (info.link_callback) info.link_callback();
+                });
             }
             else
             {
+                // external wiki url
                 label->SetLabel(info.msg + " " + _L("Please refer to Wiki before use->"));
                 label->Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
                 label->Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });

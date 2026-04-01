@@ -2058,6 +2058,32 @@ int MachineObject::command_ipcam_resolution_set(std::string resolution)
 }
 
 
+bool MachineObject::is_timelapse_storage_low(const std::string& storage) const
+{
+    return m_storage && m_storage->is_timelapse_storage_low(storage);
+}
+
+int MachineObject::command_ipcam_check_timelapse_storage(const std::string& storage, int total_layer)
+{
+    json j;
+    j["camera"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["camera"]["command"] = "ipcam_get_media_info";
+    j["camera"]["sub_command"] = "is_timelapse_storage_enough";
+    j["camera"]["storage"] = storage;
+    j["camera"]["total_layer"] = total_layer;
+    return this->publish_json(j);
+}
+
+int MachineObject::command_ipcam_delete_oldest_timelapse(const std::string& storage, int total_layer)
+{
+    json j;
+    j["camera"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["camera"]["command"] = "ipcam_delete_oldest_timelapse";
+    j["camera"]["storage"] = storage;
+    j["camera"]["total_layer"] = total_layer;
+    return this->publish_json(j);
+}
+
 int MachineObject::command_ack_proceed(json& proceed) {
     if (proceed["command"].empty()) return -1;
 
@@ -3511,6 +3537,17 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             {
                                 this->camera_resolution = j["camera"]["resolution"].get<std::string>();
                                 BOOST_LOG_TRIVIAL(info) << "ack of resolution = " << camera_resolution;
+                            }
+                        } else if (j["camera"]["command"].get<std::string>() == "ipcam_get_media_info") {
+                            if (j["camera"].contains("sub_command") &&
+                                j["camera"]["sub_command"].get<std::string>() == "is_timelapse_storage_enough") {
+                                timelapse_storage_check_result = j["camera"]["result"].get<int>();
+                                timelapse_storage_is_enough = j["camera"].value("is_enough", true);
+                                timelapse_storage_file_count = j["camera"].value("file_count", 0);
+                                timelapse_storage_check_done = true;
+                                BOOST_LOG_TRIVIAL(info) << "timelapse storage check: result=" << timelapse_storage_check_result
+                                    << " is_enough=" << timelapse_storage_is_enough
+                                    << " file_count=" << timelapse_storage_file_count;
                             }
                         }
                     }

@@ -222,6 +222,7 @@ public:
     void        update_tooltip(const wxString &tips);// icon tips
     void        update_title_display();
     void        update_tooltip_options_area(const wxString& opt_tips);// options area tips
+    void        insert_extra_widget(wxWindow* widget); // insert after title, before tips
 
     void  msw_rescale();
 
@@ -305,6 +306,13 @@ private:
     bool                                m_is_rename_mode{ false };
     bool                                m_check_flag {false};
     bool                                m_ext_change_assist{ false };
+    // timelapse internal storage selection
+    std::string                         m_timelapse_storage{ "internal" };  // "internal" or "external"
+    wxTimer*                            m_timelapse_check_timer { nullptr };
+    int                                 m_timelapse_check_timeout_ms { 5000 };
+    int                                 m_timelapse_check_elapsed_ms { 0 };
+    int                                 m_timelapse_check_interval_ms { 100 };
+    int                                 m_timelapse_total_layer { 0 };
     PrintPageMode                       m_print_page_mode{PrintPageMode::PrintPageModePrepare};
     std::string                         m_print_error_msg;
     std::string                         m_print_error_extra;
@@ -355,6 +363,9 @@ protected:
     Label*                              m_pa_value_message{nullptr};
     SwitchButton*                       m_pa_value_switch{nullptr};
     ScalableButton*                     m_pa_value_tips{nullptr};
+    // timelapse storage location UI
+    ScalableButton*                     m_timelapse_folder_btn { nullptr };
+    wxPopupTransientWindow*             m_timelapse_storage_popup { nullptr };
     wxBoxSizer*                         m_basicl_sizer{ nullptr };
     wxBoxSizer*                         rename_sizer_v{ nullptr };
     wxBoxSizer*                         rename_sizer_h{ nullptr };
@@ -527,6 +538,15 @@ public:
     bool is_blocking_printing(MachineObject* obj_);
     bool is_nozzle_hrc_matched(const NozzleType& nozzle_type, const std::string& filament_id) const;
     bool check_sdcard_for_timelpase(MachineObject* obj);
+    // timelapse internal storage methods
+    void update_timelapse_folder_btn_icon();
+    void show_timelapse_folder_popup();
+    void check_timelapse_storage_warning(MachineObject* obj);
+    void start_timelapse_storage_check(MachineObject* obj);
+    void on_timelapse_storage_check_timer(wxTimerEvent& event);
+    void on_timelapse_storage_check_result();
+    void show_timelapse_storage_dialog(MachineObject* obj);
+    void navigate_to_timelapse_page();
     bool is_timeout();
     int  update_print_required_data(Slic3r::DynamicPrintConfig config, Slic3r::Model model, Slic3r::PlateDataPtrs plate_data_list, std::string file_name, std::string file_path);
     void set_print_type(PrintFromType type) {m_print_type = type;};
@@ -549,7 +569,7 @@ public:
 
 private:
     void EnableEditing(bool enable);
-    
+
     // printing
     bool is_at_suggested_pos(MachineObject* obj_, int fila_logic_id) const;
     std::map<int, DevFilaSwitch::SwitchPos> get_filament_suggest_pos(MachineObject* obj_) const;
@@ -614,7 +634,7 @@ private:
     bool is_enable_external_change_assist(std::vector<FilamentInfo>& ams_mapping_result);
 
 
-    
+
     void refresh_save_time(MachineObject *obj);
 
     bool has_bowden_extuder(MachineObject *obj);
