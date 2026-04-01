@@ -476,8 +476,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/DesktopIntegrationDialog.hpp
     GUI/DragCanvas.cpp
     GUI/DragCanvas.hpp
-    GUI/ExtruderPanel.cpp
-    GUI/ExtruderPanel.hpp
     GUI/PublishDialog.cpp
     GUI/PublishDialog.hpp
     GUI/RecenterDialog.cpp

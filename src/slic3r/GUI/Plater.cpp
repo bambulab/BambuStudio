@@ -736,70 +736,6 @@ struct Sidebar::priv
 #endif
 };
 
-void Sidebar::priv::update_right_extruder_group_color()
-{
-    if (!right_extruder) return;
-
-    PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
-    int extruder_count = preset_bundle.get_printer_extruder_count();
-
-    auto update_color = [&](const wxColour& color) {
-        for (wxWindow* child : right_extruder->GetChildren()) {
-            if (child) {
-                child->SetForegroundColour(color);
-            }
-        }
-
-        StateColor combo_text_color(std::pair<wxColour, int>(color, StateColor::Normal));
-        if (right_extruder->combo_diameter) {
-            right_extruder->combo_diameter->SetLabelColor(combo_text_color);
-        }
-        if (right_extruder->combo_flow) {
-            right_extruder->combo_flow->SetLabelColor(combo_text_color);
-        }
-
-        right_extruder->Refresh();
-        right_extruder->Update();
-    };
-
-    if (extruder_count < 2) {
-        update_color(*wxBLACK);
-
-        if (plater->sidebar().m_extruder_warning_dialog) {
-            plater->sidebar().m_extruder_warning_dialog->on_hide();
-        }
-        return;
-    }
-
-    wxString right_diameter = right_extruder->combo_diameter->GetValue();
-    auto extruders = preset_bundle.printers.get_edited_preset().config.option<ConfigOptionEnumsGeneric>("extruder_type")->values;
-
-    wxColour clr;
-    bool show_warning = false;
-    if (right_diameter.Contains("0.2") && extruders.size() >= 2 && ExtruderType(extruders[1]) == ExtruderType::etBowden) {
-        clr = wxColour(200, 200, 200);
-        show_warning = true;
-    } else {
-        StateColor default_text_color(std::pair<wxColour, int>(*wxBLACK, StateColor::Normal));
-        clr = default_text_color.colorForStates(StateColor::Normal);
-        if (plater->sidebar().m_extruder_warning_dialog) {
-            plater->sidebar().m_extruder_warning_dialog->on_hide();
-        }
-    }
-
-    update_color(clr);
-
-    if (show_warning) {
-        MainFrame* mainframe = wxGetApp().mainframe;
-        if (mainframe && mainframe->m_tabpanel) {
-            int current_tab = mainframe->m_tabpanel->GetSelection();
-            if (current_tab == MainFrame::tp3DEditor) {
-                plater->sidebar().pop_extruder_warning_dialog();
-            }
-        }
-    }
-}
-
 void Sidebar::priv::layout_printer(bool isBBL, bool isDual)
 {
     isDual = isDual && isBBL;  // It indicates a multi-extruder layout.
@@ -3565,9 +3501,8 @@ void Sidebar::update_presets(Preset::Type preset_type)
                 update_extruder_variant(*p->single_extruder, 0);
                 //if (!p->is_switching_diameter)
                     update_extruder_diameter(*p->single_extruder);
-                p->image_printer_bed->SetBitmap(create_scaled_bitmap(image_path, this, 48));
+                 update_bed_thumbnail(image_path);
             }
-            // p->update_right_extruder_group_color();
         }
 
         if (GUI::wxGetApp().plater())
@@ -4355,25 +4290,6 @@ void Sidebar::set_extruder_nozzle_count(int extruder_id, int nozzle_count)
     else if (extruder_id == 1) {
         p->right_extruder->SetCount(nozzle_count);
     }
-}
-
-void Sidebar::set_extruder_title_with_type(const int extruder_id, const int extruder_type)
-{
-    if (extruder_id == 0) {
-        p->left_extruder->SetTitleWithType(extruder_type);
-    } else if (extruder_id == 1) {
-        p->right_extruder->SetTitleWithType(extruder_type);
-    }
-}
-
-std::unordered_map<std::string, wxString> Sidebar::get_extruder_suffix()
-{
-    std::unordered_map<std::string, wxString> res;
-    if (p->left_extruder) res["left_extruder"] = p->left_extruder->GetSuffixStr();
-    if (p->right_extruder) res["right_extruder"] = p->right_extruder->GetSuffixStr();
-    if (p->single_extruder) res["single_extruder"] = p->single_extruder->GetSuffixStr();
-
-    return res;
 }
 
 void Sidebar::reset_fila_switch()

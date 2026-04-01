@@ -141,51 +141,10 @@ public:
 
     void set_nozzle_data_flag(NozzleDataFlag flag){ data_flag = flag; }
     void set_force_keep_flag(bool flag) { force_keep_stat = flag; }
-    bool get_force_keep_flag() const { return force_keep_stat; }
-
 private:
     bool force_keep_stat{ false };
     std::vector<std::map<NozzleVolumeType,int>> extruder_nozzle_counts;
     NozzleDataFlag data_flag{ ndfNone };
-};
-
-struct ExtruderFullStat
-{
-public:
-    ExtruderFullStat() = default;
-    ExtruderFullStat(const std::vector<std::vector<std::pair<std::string, std::string>>> &stats) : extruder_nozzle_stats(stats) {}
-    const std::vector<std::vector<std::pair<std::string, std::string>>> &get_raw_stat() const { return extruder_nozzle_stats; }
-    void set_raw_stat(const std::vector<std::vector<std::pair<std::string, std::string>>> &data) { extruder_nozzle_stats = data; }
-    int get_extruder_count() const { return extruder_nozzle_stats.size(); }
-    int get_extruder_nozzle_count(size_t extruder_id) const
-    {
-        if (extruder_id >= extruder_nozzle_stats.size()) return 0;
-        return extruder_nozzle_stats[extruder_id].size();
-    }
-    const std::vector<std::pair<std::string, std::string>> get_extruder_stats(size_t extruder_id) const
-    {
-        if (extruder_id >= extruder_nozzle_stats.size()) return {};
-        return extruder_nozzle_stats[extruder_id];
-    }
-    void resize(size_t extruder_count) { extruder_nozzle_stats.resize(extruder_count); }
-    void set_extruder_stats(size_t extruder_id, const std::vector<std::pair<std::string, std::string>> &stats)
-    {
-        if (extruder_id >= extruder_nozzle_stats.size()) extruder_nozzle_stats.resize(extruder_id + 1);
-        extruder_nozzle_stats[extruder_id] = stats;
-    }
-    void clear_extruder(size_t extruder_id)
-    {
-        if (extruder_id < extruder_nozzle_stats.size()) extruder_nozzle_stats[extruder_id].clear();
-    }
-    void clear() { extruder_nozzle_stats.clear(); }
-    bool empty() const { return extruder_nozzle_stats.empty(); }
-
-    // save every extruder's full stats
-    // outer vector: extruder index
-    // inner vector: nozzle index
-    // pair: <diameter, volume>
-private:
-    std::vector<std::vector<std::pair<std::string, std::string>>> extruder_nozzle_stats;
 };
 
 // Bundle of Print + Filament + Printer presets.
@@ -331,7 +290,6 @@ public:
 
     std::vector<std::map<int, int>> extruder_ams_counts;
     ExtruderNozzleStat extruder_nozzle_stat;
-    ExtruderFullStat   extruder_full_stat;
     // Calibrate
     Preset const * calibrate_printer = nullptr;
     std::set<Preset const *> calibrate_filaments;
@@ -457,9 +415,6 @@ public:
     std::pair<PresetsConfigSubstitutions, std::string> load_system_models_from_json(ForwardCompatibilitySubstitutionRule compatibility_rule);
     std::pair<PresetsConfigSubstitutions, std::string> load_system_filaments_json(ForwardCompatibilitySubstitutionRule compatibility_rule);
     VendorProfile                                      get_custom_vendor_models() const;
-
-    void update_extruder_full_stats_from_config();
-    void generate_extruder_full_stats_from_nozzle_stats();
 
     //BBS: add BBL as default
     static const char *BBL_BUNDLE;
