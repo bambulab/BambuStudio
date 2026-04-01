@@ -49,6 +49,51 @@
         "2.8",
         "5.6"
     ],
+    "filament_overhang_1_4_speed": [
+        "0",
+        "0",
+        "0"
+    ],
+    "filament_overhang_2_4_speed": [
+        "50",
+        "50",
+        "30"
+    ],
+    "filament_overhang_3_4_speed": [
+        "30",
+        "30",
+        "30"
+    ],
+    "filament_overhang_4_4_speed": [
+        "10",
+        "10",
+        "30"
+    ],
+    "filament_overhang_totally_speed": [
+        "10",
+        "10",
+        "30"
+    ],
+    "filament_pre_cooling_temperature": [
+        "195",
+        "195",
+        "195"
+    ],
+    "filament_pre_cooling_temperature_nc": [
+        "0",
+        "0",
+        "0"
+    ],
+    "filament_ramming_travel_time": [
+        "20",
+        "20",
+        "20"
+    ],
+    "filament_ramming_travel_time_nc": [
+        "0",
+        "0",
+        "0"
+    ],
     "filament_ramming_volumetric_speed": [
         "0.7",
         "0.7",
