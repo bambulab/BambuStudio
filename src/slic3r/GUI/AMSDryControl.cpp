@@ -442,6 +442,11 @@ wxBoxSizer* AMSDryCtrWin::create_normal_state_panel(wxPanel* parent)
         }
     });
 
+    m_temperature_input->Bind(wxEVT_TEXT, [this](wxCommandEvent&) {
+        m_next_button->Disable();
+        m_start_button->Disable();
+    });
+
     m_temperature_input->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     m_temperature_input->SetForegroundColour(StateColor::darkModeColorFor(*wxBLACK));
 
@@ -462,6 +467,11 @@ wxBoxSizer* AMSDryCtrWin::create_normal_state_panel(wxPanel* parent)
         } else if (keycode == WXK_BACK || keycode == WXK_DELETE || keycode == WXK_LEFT || keycode == WXK_RIGHT) {
             event.Skip();
         }
+    });
+
+    m_time_input->Bind(wxEVT_TEXT, [this](wxCommandEvent&) {
+        m_next_button->Disable();
+        m_start_button->Disable();
     });
 
     m_time_input->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
@@ -762,8 +772,20 @@ void AMSDryCtrWin::start_sending_drying_command()
 
     int tray_index;
     tray_index = m_trays_combo->GetSelection();
+    if (m_tray_ids.empty() || tray_index < 0 || tray_index >= m_tray_ids.size()) {
+        BOOST_LOG_TRIVIAL(warning) << "AMSDryCtrWin::start_sending_drying_command: Invalid tray_index " << tray_index
+                                   << ", m_tray_ids.size=" << m_tray_ids.size();
+        return;
+    }
+
+    int cooling_temp = 50;
+    std::optional<DevFilamentDryingPreset> preset = DevUtilBackend::GetFilamentDryingPreset(m_tray_ids[tray_index].filament_id);
+    if (preset.has_value()) {
+        cooling_temp = static_cast<int>(preset.value().filament_dev_drying_softening_temperature);
+    }
+
     fila_system->CtrlAmsStartDryingHour(std::stoi(m_ams_info.m_ams_id), m_tray_ids[tray_index].filament_type,
-        temperature, time, m_rotate_spool_toggle->GetValue(), 20, false);
+        temperature, time, m_rotate_spool_toggle->GetValue(), cooling_temp, false);
 
     m_dry_setting.m_filament_names[m_ams_info.m_ams_id] = m_tray_ids[tray_index].filament_name;
     m_dry_setting.m_filament_type[m_ams_info.m_ams_id] = m_tray_ids[tray_index].filament_type;

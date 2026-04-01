@@ -29,9 +29,9 @@ void uiAmsPercentHumidityDryPopup::Create()
 {
     // create images
     idle_img = ScalableBitmap(this, "ams_drying", 16);
-    drying_img = ScalableBitmap(this, "ams_is_drying", 16);
+    drying_img = ScalableBitmap(this, "dev_ams_dry_ctr_heating_icon", 16);
 
-    // background 
+    // background
     SetBackgroundColour(*wxWHITE);
 
     // create title sizer
