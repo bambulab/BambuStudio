@@ -2177,7 +2177,7 @@ static void apply_hardcode_recommendations(
     wxString msg_header;
     wxString support_material_name = wxString::Format("%s(%d)", wxString::FromUTF8(first_rec.support_material), first_rec.recommended_filament_index + 1);
 
-    if (first_rec.support_material == "PLA") {
+    if (first_rec.support_material == "PLA" && has_filaments({"TPU", "TPU-AMS"})) {
         msg_header = _L("When using PLA to support TPU, We recommend the following settings:");
     } else if (first_rec.support_material == "soluble material") {
         msg_header = _L("When using soluble material for the support interface, We recommend the following settings:");
