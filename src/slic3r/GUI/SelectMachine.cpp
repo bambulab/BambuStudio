@@ -23,6 +23,7 @@
 #include "DeviceCore/DevNozzleSystem.h"
 #include "DeviceCore/DevExtensionTool.h"
 #include "DeviceCore/DevExtruderSystem.h"
+#include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevFilaBlackList.h"
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevFilaSwitch.h"
@@ -447,7 +448,8 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_filament_panel_left_sizer = new wxBoxSizer(wxVERTICAL);
     auto left_recommend_title_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto left_recommend_title1 = new Label(m_filament_left_panel, _L("Left Nozzle"));
+    std::string sm_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    auto left_recommend_title1 = new Label(m_filament_left_panel, _L(DevPrinterConfigUtil::get_toolhead_display_name(sm_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
     left_recommend_title1->SetFont(::Label::Head_13);
     left_recommend_title1->SetBackgroundColour(wxColour("#F8F8F8"));
     left_recommend_title_sizer->Add(left_recommend_title1, 0, wxALIGN_CENTER, 0);
@@ -466,7 +468,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_filament_panel_right_sizer = new wxBoxSizer(wxVERTICAL);
     auto right_recommend_title_sizer = new wxBoxSizer(wxHORIZONTAL);
-    m_filament_right_title = new Label(m_filament_right_panel, _L("Right Nozzle"));
+    m_filament_right_title = new Label(m_filament_right_panel, _L(DevPrinterConfigUtil::get_toolhead_display_name(sm_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
     m_filament_right_title->SetFont(::Label::Head_13);
     m_filament_right_title->SetBackgroundColour(wxColour("#F8F8F8"));
     right_recommend_title_sizer->Add(m_filament_right_title, 0, wxALIGN_CENTER, 0);
@@ -3538,11 +3540,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         change_materialitem_tip(true);
     }
 
-    if (obj_->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->IsBowdenExtuder()) {
-        m_filament_right_title->SetLabel(_L("Right Nozzle(Aux)"));
-    } else {
-        m_filament_right_title->SetLabel(_L("Right Nozzle"));
-    }
+    m_filament_right_title->SetLabel(_L(DevPrinterConfigUtil::get_toolhead_display_name(obj_->printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
 
     update_ams_backup(obj_);
     update_material_item_pos(obj_);
@@ -3757,11 +3755,8 @@ static wxString _check_kval_not_default(const MachineObject* obj, const std::vec
 static wxString _get_nozzle_name(int total_ext_count, int ext_id)
 {
     if (total_ext_count == 2) {
-        if (ext_id == MAIN_EXTRUDER_ID) {
-            return _L("right nozzle");
-        } else {
-            return _L("left nozzle");
-        }
+        std::string pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+        return _L(DevPrinterConfigUtil::get_toolhead_display_name(pt, ext_id, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
     }
 
     return _L("nozzle");
@@ -3783,14 +3778,8 @@ static wxString _get_ext_loc_str(const std::unordered_set<int>& extruders, int t
         else if (extruders.size() == 1)
         {
             auto iter = extruders.begin();
-            if (*iter == MAIN_EXTRUDER_ID)
-            {
-                return _L("right extruder");
-            }
-            else
-            {
-                return _L("left extruder");
-            }
+            std::string pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+            return _L(DevPrinterConfigUtil::get_toolhead_display_name(pt, *iter, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase));
         }
     }
 
@@ -4264,7 +4253,10 @@ void SelectMachineDialog::set_default()
     m_current_project_name = wxString::FromUTF8(file_name);
 
     // filament area title
-    m_filament_right_title->SetLabel(_L("Right Nozzle"));
+    {
+        std::string sm_init_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+        m_filament_right_title->SetLabel(_L(DevPrinterConfigUtil::get_toolhead_display_name(sm_init_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
+    }
 
     //unsupported character filter
     m_current_project_name = from_u8(filter_characters(m_current_project_name.ToUTF8().data(), "<>[]:/\\|?*\""));

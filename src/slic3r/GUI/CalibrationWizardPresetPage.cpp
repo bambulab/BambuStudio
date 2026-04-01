@@ -13,6 +13,7 @@
 #include "DeviceCore/DevStorage.h"
 #include "DeviceCore/DevNozzleSystem.h"
 #include "DeviceCore/DevNozzleRack.h"
+#include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevUpgrade.h"
 
 #include "DeviceCore/DevManager.h"
@@ -625,7 +626,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
                     }
                 }
 
-                wxString name = extruder.GetExtId() == MAIN_EXTRUDER_ID ? _L("right") : _L("left");
+                wxString name = _L(DevPrinterConfigUtil::get_toolhead_display_name(curr_obj->printer_type, extruder.GetExtId(), ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase, true));
                 wxString msg = wxString::Format(_L("Printer %s nozzle information has not been set. Please configure it before proceeding with the calibration."), name);
                 MessageDialog msg_dlg(nullptr, msg, wxEmptyString, wxICON_WARNING | wxOK);
                 msg_dlg.ShowModal();
@@ -695,7 +696,8 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
         //nozzle_volume_sizer->AddSpacer(FromDIP(10));
 
         wxBoxSizer *      type_sizer  = new wxBoxSizer(wxHORIZONTAL);
-        m_left_nozzle_volume_type_sizer  = new wxStaticBoxSizer(wxVERTICAL, m_multi_nozzle_info_panel, _L("Left Nozzle"));
+        std::string cwp_pt = curr_obj ? curr_obj->printer_type : wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+        m_left_nozzle_volume_type_sizer  = new wxStaticBoxSizer(wxVERTICAL, m_multi_nozzle_info_panel, _L(DevPrinterConfigUtil::get_toolhead_display_name(cwp_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
         {
             //wxBoxSizer *nozzle_diameter_sizer = new wxBoxSizer(wxHORIZONTAL);
             auto        nozzle_diameter_text  = new Label(m_multi_nozzle_info_panel, _L("Nozzle Diameter"));
@@ -729,7 +731,7 @@ void CalibrationPresetPage::create_selection_panel(wxWindow* parent)
             //m_left_nozzle_volume_type_sizer->Add(nozzle_volume_sizer);
         }
 
-        m_right_nozzle_volume_type_sizer = new wxStaticBoxSizer(wxVERTICAL, m_multi_nozzle_info_panel, _L("Right Nozzle"));
+        m_right_nozzle_volume_type_sizer = new wxStaticBoxSizer(wxVERTICAL, m_multi_nozzle_info_panel, _L(DevPrinterConfigUtil::get_toolhead_display_name(cwp_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
         {
             //wxBoxSizer *nozzle_diameter_sizer = new wxBoxSizer(wxHORIZONTAL);
             auto        nozzle_diameter_text  = new Label(m_multi_nozzle_info_panel, _L("Nozzle Diameter"));
@@ -1165,16 +1167,17 @@ void CalibrationPresetPage::create_multi_extruder_filament_list_panel(wxWindow *
         m_deputy_sizer->Add(m_deputy_ams_items_panel, 0, wxEXPAND | wxALL, 10);
     }
 
+    std::string cwp_pt = curr_obj ? curr_obj->printer_type : wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
     m_multi_exturder_ams_sizer = new wxBoxSizer(wxHORIZONTAL);
     if (m_main_extruder_on_left) {
-        m_main_sizer->GetStaticBox()->SetLabel(_L("Left Nozzle"));
-        m_deputy_sizer->GetStaticBox()->SetLabel(_L("Right Nozzle"));
+        m_main_sizer->GetStaticBox()->SetLabel(_L(DevPrinterConfigUtil::get_toolhead_display_name(cwp_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
+        m_deputy_sizer->GetStaticBox()->SetLabel(_L(DevPrinterConfigUtil::get_toolhead_display_name(cwp_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
         m_multi_exturder_ams_sizer->Add(m_main_filament_cali_panel, 0, wxALL | wxALIGN_BOTTOM, 10);
         m_multi_exturder_ams_sizer->Add(m_deputy_filament_cali_panel, 0, wxALL | wxALIGN_BOTTOM, 10);
     }
     else {
-        m_main_sizer->GetStaticBox()->SetLabel(_L("Right Nozzle"));
-        m_deputy_sizer->GetStaticBox()->SetLabel(_L("Left Nozzle"));
+        m_main_sizer->GetStaticBox()->SetLabel(_L(DevPrinterConfigUtil::get_toolhead_display_name(cwp_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
+        m_deputy_sizer->GetStaticBox()->SetLabel(_L(DevPrinterConfigUtil::get_toolhead_display_name(cwp_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
         m_multi_exturder_ams_sizer->Add(m_deputy_filament_cali_panel, 0, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
         m_multi_exturder_ams_sizer->Add(m_main_filament_cali_panel, 0, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
     }
@@ -2023,7 +2026,10 @@ void CalibrationPresetPage::show_status(CaliPresetPageStatus status)
         Enable_Send_Button(false);
     }
     else if (status == CaliPresetPageStatus::CaliPresetStatusDifferentNozzleDiameters) {
-        wxString msg_text = _L("Calibration only supports cases where the left and right nozzle diameters are identical.");
+        std::string cwp_msg_pt = curr_obj ? curr_obj->printer_type : wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+        wxString msg_text = wxString::Format(_L("Calibration only supports cases where the %s and %s diameters are identical."),
+            _L(DevPrinterConfigUtil::get_toolhead_display_name(cwp_msg_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase)),
+            _L(DevPrinterConfigUtil::get_toolhead_display_name(cwp_msg_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase)));
         update_print_status_msg(msg_text, true);
         Enable_Send_Button(false);
     }
@@ -2268,12 +2274,13 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
             }
         }
 
+        std::string cwp_swap_pt = obj->printer_type;
         if (!obj->is_main_extruder_on_left() && m_main_extruder_on_left) {
             m_multi_exturder_ams_sizer->Detach(m_main_filament_cali_panel);
             m_multi_exturder_ams_sizer->Detach(m_deputy_filament_cali_panel);
 
-            m_main_sizer->GetStaticBox()->SetLabel(_L("Right Nozzle"));
-            m_deputy_sizer->GetStaticBox()->SetLabel(_L("Left Nozzle"));
+            m_main_sizer->GetStaticBox()->SetLabel(_L(DevPrinterConfigUtil::get_toolhead_display_name(cwp_swap_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
+            m_deputy_sizer->GetStaticBox()->SetLabel(_L(DevPrinterConfigUtil::get_toolhead_display_name(cwp_swap_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
             m_multi_exturder_ams_sizer->Add(m_deputy_filament_cali_panel, 0, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
             m_multi_exturder_ams_sizer->Add(m_main_filament_cali_panel, 0, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
 
@@ -2283,8 +2290,8 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
             m_multi_exturder_ams_sizer->Detach(m_main_filament_cali_panel);
             m_multi_exturder_ams_sizer->Detach(m_deputy_filament_cali_panel);
 
-            m_main_sizer->GetStaticBox()->SetLabel(_L("Left Nozzle"));
-            m_deputy_sizer->GetStaticBox()->SetLabel(_L("Right Nozzle"));
+            m_main_sizer->GetStaticBox()->SetLabel(_L(DevPrinterConfigUtil::get_toolhead_display_name(cwp_swap_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
+            m_deputy_sizer->GetStaticBox()->SetLabel(_L(DevPrinterConfigUtil::get_toolhead_display_name(cwp_swap_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
             m_multi_exturder_ams_sizer->Add(m_main_filament_cali_panel, 0, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
             m_multi_exturder_ams_sizer->Add(m_deputy_filament_cali_panel, 0, wxEXPAND | wxALL | wxALIGN_BOTTOM, 10);
 

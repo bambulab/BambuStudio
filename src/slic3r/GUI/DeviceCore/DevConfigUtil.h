@@ -11,6 +11,8 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <algorithm>
+#include <cctype>
 
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/fstream.hpp>
@@ -22,6 +24,20 @@
 
 namespace Slic3r
 {
+
+/// Toolhead component type (extruder / nozzle / hotend)
+enum class ToolHeadComponent {
+    Extruder,
+    Nozzle,
+    Hotend
+};
+
+/// Name case style for toolhead display names
+enum class ToolHeadNameCase {
+    TitleCase    = 0,  // [0] "Main Extruder"  — panel titles, section headers
+    SentenceCase = 1,  // [1] "Main extruder"  — static box labels
+    LowerCase    = 2   // [2] "main extruder"  — inline text, sentence concatenation
+};
 
 class dePrinterConfigFactory
 {
@@ -74,6 +90,14 @@ public:
 
     /*extruder*/
     static bool get_printer_can_set_nozzle(std::string type_str) { return get_value_from_config<bool>(type_str, "enable_set_nozzle_info"); }// can set nozzle from studio
+
+    /*toolhead display names (extruder / nozzle / hotend)*/
+    static std::string get_toolhead_display_name(
+        const std::string& type_str,
+        int ext_id,
+        ToolHeadComponent component,
+        ToolHeadNameCase name_case = ToolHeadNameCase::TitleCase,
+        bool short_name = false);
 
     /*print job*/
     static bool support_print_check_firmware_for_tpu_left(std::string type_str){ return get_value_from_config<bool>(type_str, "print", "support_print_check_firmware_for_tpu_left"); }

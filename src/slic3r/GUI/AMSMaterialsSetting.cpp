@@ -13,6 +13,7 @@
 
 
 #include "DeviceCore/DevConfig.h"
+#include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevExtruderSystem.h"
 #include "DeviceCore/DevFilaBlackList.h"
 #include "DeviceCore/DevFilaSystem.h"
@@ -1343,7 +1344,11 @@ void AMSMaterialsSetting::update_nozzle_combo(MachineObject* obj){
         auto font = m_title_pa_profile->GetFont();
         font.SetUnderlined(true);
         m_title_pa_profile->SetFont(font);
-        m_title_pa_profile->SetToolTip(_L("Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."));
+        {
+            std::string ams_mat_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+            wxString ams_ext_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(ams_mat_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase));
+            m_title_pa_profile->SetToolTip(wxString::Format(_L("Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."), ams_ext_name));
+        }
     } else{
         m_title_nozzle_type->Hide();
         m_comboBox_nozzle_type->Hide();

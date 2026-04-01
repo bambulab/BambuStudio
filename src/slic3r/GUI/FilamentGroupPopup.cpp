@@ -5,6 +5,7 @@
 #include "I18N.hpp"
 #include "PartPlate.hpp"
 #include "FilamentMapDialog.hpp"
+#include "DeviceCore/DevConfigUtil.h"
 
 #include <algorithm>
 
@@ -98,10 +99,14 @@ void FilamentGroupPopup::RecreateUIElements()
     const wxString AutoForQualityLabel = _L("Quality Mode");
     const wxString ManualLabel       = _L("Custom Mode");
 
-    const wxString AutoForFlushDetail = _L("Generates filament grouping for the left and right nozzles based on the most filament-saving principles to minimize waste");
-    const wxString AutoForMatchDetail = _L("Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment");
-    const wxString AutoForQualityDetail = _L("Generates filament grouping for the left and right nozzles based on quality optimization principles");
-    const wxString ManualDetail       = _L("Manually assign filament to the left or right nozzle");
+    std::string pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    wxString main_nozzle_lower   = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
+    wxString deputy_nozzle_lower = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
+
+    const wxString AutoForFlushDetail = wxString::Format(_L("Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"), deputy_nozzle_lower, main_nozzle_lower);
+    const wxString AutoForMatchDetail = wxString::Format(_L("Generates filament grouping for the %s and %s based on the printer's actual filament status, reducing the need for manual filament adjustment"), deputy_nozzle_lower, main_nozzle_lower);
+    const wxString AutoForQualityDetail = wxString::Format(_L("Generates filament grouping for the %s and %s based on quality optimization principles"), deputy_nozzle_lower, main_nozzle_lower);
+    const wxString ManualDetail       = wxString::Format(_L("Manually assign filament to the %s or %s"), deputy_nozzle_lower, main_nozzle_lower);
 
     const wxString AutoForFlushDesp = ""; //_L("(Post-slicing arrangement)");
     const wxString ManualDesp       = "";
