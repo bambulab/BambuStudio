@@ -228,6 +228,7 @@ struct PrintParams {
     bool            task_vibration_cali;    /* vibration calibration of task */
     bool            task_layer_inspect;     /* first layer inspection of task */
     bool            task_record_timelapse;  /* record timelapse of task */
+    bool            task_timelapse_use_internal { false }; /* use internal storage for timelapse, cfg bit[2] */
     bool            task_use_ams;
     std::string     task_bed_type;
     std::string     extra_options;

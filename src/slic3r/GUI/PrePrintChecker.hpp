@@ -44,14 +44,17 @@ struct prePrintInfo
     wxString msg;
     wxString tips;
     wxString wiki_url;
+    wxString link_label;                          // optional: clickable text appended after msg
+    std::function<void()> link_callback;          // optional: internal action for link_label click
     int index;
 
 public:
     bool operator==(const prePrintInfo& other) const {
         return level == other.level && type == other.type &&
                msg == other.msg && tips == other.tips &&
-               wiki_url == other.wiki_url && index == other.index &&
-               m_style == other.m_style;
+               wiki_url == other.wiki_url && link_label == other.link_label &&
+               index == other.index && m_style == other.m_style;
+        // link_callback excluded: std::function is not comparable
     }
 
     bool operator<(const prePrintInfo& other) const {
@@ -65,6 +68,8 @@ public:
             return tips < other.tips;
         if (wiki_url != other.wiki_url)
             return wiki_url < other.wiki_url;
+        if (link_label != other.link_label)
+            return link_label < other.link_label;
         if (index != other.index)
             return index < other.index;
         return m_style < other.m_style;
@@ -136,6 +141,7 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusPrinterWarningBegin,
     PrintStatusTimelapseNoSdcard,
     PrintStatusTimelapseWarning,
+    PrintStatusTimelapseStorageLow,
     PrintStatusMixAmsAndVtSlotWarning,
     PrintStatusToolHeadCoolingFanWarning,
     PrintStatusHasUnreliableNozzleWarning,
@@ -186,6 +192,7 @@ public:
     void clear();
     /*auto merge*/
     void add(PrintDialogStatus state, wxString msg, wxString tip, const wxString& wiki_url, prePrintInfoStyle style);
+    void add_with_link(PrintDialogStatus state, wxString msg, wxString link_label, std::function<void()> callback, prePrintInfoStyle style);
     static ::std::string get_print_status_info(PrintDialogStatus status);
 
 	wxString get_pre_state_msg(PrintDialogStatus status);

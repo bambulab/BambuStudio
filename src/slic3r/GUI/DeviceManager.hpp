@@ -544,7 +544,11 @@ public:
     bool is_support_fila_change_abort{false};
     bool is_support_ext_change_assist_old{false}; //for a and p
 
-
+    // timelapse storage check result (temp state from MQTT response)
+    std::atomic<bool> timelapse_storage_check_done { false };
+    int timelapse_storage_check_result { -1 };
+    bool timelapse_storage_is_enough { true };
+    int timelapse_storage_file_count { 0 };
 
     // fun2
     bool is_support_print_with_emmc{false};
@@ -611,6 +615,7 @@ public:
 
     /* quick check*/
     bool canEnableTimelapse(wxString& error_message) const;
+    bool is_timelapse_storage_low(const std::string& storage) const;
 
     /* command commands */
     int command_get_version(bool with_retry = true);
@@ -692,6 +697,8 @@ public:
     int command_ipcam_record(bool on_off);
     int command_ipcam_timelapse(bool on_off);
     int command_ipcam_resolution_set(std::string resolution);
+    int command_ipcam_check_timelapse_storage(const std::string& storage, int total_layer);
+    int command_ipcam_delete_oldest_timelapse(const std::string& storage, int total_layer);
 
     /* common apis */
     inline bool is_local() { return !get_dev_ip().empty(); }
