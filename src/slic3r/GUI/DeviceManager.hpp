@@ -430,7 +430,7 @@ public:
     CalibSendStatus     calib_send_status{CalibSendStatus::IDLE};
 
     std::vector<int> stage_list_info;
-    int stage_curr = 0;
+    int stage_curr = -1;
     int stage_remaining_seconds = -1;
     int m_push_count = 0;
     int m_full_msg_count = 0; /*the full message count, there are full or diff messages from network*/
