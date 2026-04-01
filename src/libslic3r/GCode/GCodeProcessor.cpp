@@ -6547,6 +6547,7 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
                 m632_line += " W\n";
                 buffer.emplace_back(std::move(m632_line));
             }
+            buffer.emplace_back("M400\n");
             std::string M104_line = "M104";
             if (handle_hotend_as_extruder) {
                 M104_line += (" I" + std::to_string(target_filament == -1 ? next_filament_idx : target_filament));
