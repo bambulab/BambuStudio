@@ -68,9 +68,6 @@
     "filament_retraction_speed": [
         "20"
     ],
-    "filament_support_printable": [
-        "2"
-    ],
     "filament_wipe": [
         "1"
     ],
