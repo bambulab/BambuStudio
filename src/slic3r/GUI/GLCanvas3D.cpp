@@ -41,6 +41,7 @@
 #include "format.hpp"
 #include "DailyTips.hpp"
 #include "FilamentMapDialog.hpp"
+#include "DeviceCore/DevConfigUtil.h"
 #include "../Utils/CpuMemory.hpp"
 #include "../Utils/HelioDragon.hpp"
 #if ENABLE_RETINA_GL
@@ -1793,7 +1794,10 @@ static std::pair<bool, bool> construct_extruder_unprintable_error(ObjectFilament
     if (object_result.filaments.empty())
         return {false,false};
 
-    const std::vector<std::string> nozzle_name_list = { _u8L("left nozzle"), _u8L("right nozzle") };
+    std::string gc_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    std::string gc_dep_nz = DevPrinterConfigUtil::get_toolhead_display_name(gc_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase);
+    std::string gc_main_nz = DevPrinterConfigUtil::get_toolhead_display_name(gc_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase);
+    const std::vector<std::string> nozzle_name_list = { _u8L(gc_dep_nz.c_str()), _u8L(gc_main_nz.c_str()) };
 
     std::vector<ObjectFilamentInfo> left_unprintable_objects;
     std::vector<ObjectFilamentInfo> right_unprintable_objects;
@@ -1863,14 +1867,17 @@ static std::pair<bool, bool> construct_extruder_unprintable_error(ObjectFilament
         tips[idx] += model_prefix;
 
         tips[idx] += (boost::format(_u8L(" Please check and adjust the part's position or size to fit the printable range:\n"))).str();
-        if (idx == 0)
-            tips[idx] += (boost::format(_u8L("Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"))
+        if (idx == 0) {
+            std::string dep_nz_sc = DevPrinterConfigUtil::get_toolhead_display_name(gc_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase);
+            tips[idx] += (boost::format(_u8L(dep_nz_sc.c_str()) + std::string(": X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"))
                          % format_number(left_x_min) % format_number(left_x_max) % format_number(left_y_min)
                          % format_number(left_y_max) % format_number(left_z_min) % format_number(left_z_max)).str();
-        else
-            tips[idx] += (boost::format(_u8L("Right nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"))
+        } else {
+            std::string main_nz_sc = DevPrinterConfigUtil::get_toolhead_display_name(gc_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase);
+            tips[idx] += (boost::format(_u8L(main_nz_sc.c_str()) + std::string(": X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"))
                          %format_number(right_x_min) %format_number(right_x_max) %format_number(right_y_min)
                          %format_number(right_y_max) %format_number(right_z_min) %format_number(right_z_max)).str();
+        }
         output_text = tips[idx];
     }
 
@@ -11279,7 +11286,10 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         SLICING_HEIGHT_OUTSIDE,
         ASSEMBLY_WARNNING
     };
-    const std::vector<std::string> extruder_name_list= {_u8L("left nozzle"), _u8L("right nozzle")};  // in ui, we treat extruder as nozzle
+    std::string gc2_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    std::string gc2_dep = DevPrinterConfigUtil::get_toolhead_display_name(gc2_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase);
+    std::string gc2_main = DevPrinterConfigUtil::get_toolhead_display_name(gc2_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase);
+    const std::vector<std::string> extruder_name_list= {_u8L(gc2_dep.c_str()), _u8L(gc2_main.c_str())};  // in ui, we treat extruder as nozzle
     std::string text;
     ErrorType error = ErrorType::PLATER_WARNING;
     const ModelObject* conflictObj=nullptr;

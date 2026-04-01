@@ -13,6 +13,7 @@
 #include "../GUI/DeviceCore/DevExtruderSystem.h"
 #include "../GUI/DeviceCore/DevManager.h"
 #include "../GUI/DeviceCore/DevStorage.h"
+#include "../GUI/DeviceCore/DevConfigUtil.h"
 #include "libslic3r/FlushVolCalc.hpp"
 #include "BBLUtil.hpp"
 #include "../GUI/Plater.hpp"
@@ -1728,7 +1729,9 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
 
     for (const auto &cali_info : cali_infos.calib_datas) {
         wxString name = "";
-        if (is_multi_extruder) { name = cali_info.extruder_id == MAIN_EXTRUDER_ID ? _L("right") + " ": _L("left") + " "; }
+        if (is_multi_extruder) {
+            name = _L(DevPrinterConfigUtil::get_toolhead_display_name(obj->printer_type, cali_info.extruder_id, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase, true)) + " ";
+        }
 
         float cali_diameter = cali_info.nozzle_diameter;
         int   extruder_id   = cali_info.extruder_id;
@@ -1794,7 +1797,9 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
 
     for (const auto &cali_info : cali_infos) {
         wxString name = "";
-        if (is_multi_extruder) { name = cali_info.extruder_id == MAIN_EXTRUDER_ID ? _L("right") + " " : _L("left") + " "; }
+        if (is_multi_extruder) {
+            name = _L(DevPrinterConfigUtil::get_toolhead_display_name(obj->printer_type, cali_info.extruder_id, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase, true)) + " ";
+        }
 
         if (cali_info.params.mode == CalibMode::Calib_Auto_PA_Line && !is_support_auto_pa_cali(cali_info.filament_prest->filament_id)) {
             error_message = _L("TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration.");
@@ -1874,10 +1879,7 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject* obj, co
     float nozzle_diameter = nozzle_diameter_config->values[0];
 
     bool  is_multi_extruder = obj->is_multi_extruders();
-    wxString name = _L("left");
-    if (cali_info.extruder_id == 0) {
-        name = _L("right");
-    }
+    wxString name = _L(DevPrinterConfigUtil::get_toolhead_display_name(obj->printer_type, cali_info.extruder_id, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase, true));
 
     float  diameter = obj->GetExtderSystem()->GetNozzleDiameter(cali_info.extruder_id);
     NozzleFlowType nozzle_flow_type = obj->GetExtderSystem()->GetNozzleFlowType(cali_info.extruder_id);

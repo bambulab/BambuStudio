@@ -6,6 +6,7 @@
 #include "MsgDialog.hpp"
 
 #include "DeviceCore/DevConfig.h"
+#include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevExtruderSystem.h"
 #include "DeviceCore/DevNozzleSystem.h"
 #include "DeviceCore/DevPrintOptions.h"
@@ -1579,7 +1580,8 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     multi_line->SetBackgroundColour(wxColour("#A6A9AA"));
 
     /*left*/
-    auto leftTitle = new Label(multiple_panel, _L("Left Nozzle"));
+    std::string pod_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    auto leftTitle = new Label(multiple_panel, _L(DevPrinterConfigUtil::get_toolhead_display_name(pod_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
     leftTitle->SetFont(::Label::Head_14);
     leftTitle->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#2C2C2E")));
 
@@ -1613,7 +1615,7 @@ PrinterPartsDialog::PrinterPartsDialog(wxWindow* parent)
     multiple_left_line_sizer->Add(multiple_left_nozzle_flow_checkbox, 0, wxALIGN_CENTER, 0);
 
     /*right*/
-    auto rightTitle = new Label(multiple_panel, _L("Right Nozzle"));
+    auto rightTitle = new Label(multiple_panel, _L(DevPrinterConfigUtil::get_toolhead_display_name(pod_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
     rightTitle->SetFont(::Label::Head_14);
     rightTitle->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#2C2C2E")));
 

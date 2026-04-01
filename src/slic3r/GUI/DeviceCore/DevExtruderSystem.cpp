@@ -1,6 +1,7 @@
 #include <nlohmann/json.hpp>
 #include "DevExtruderSystem.h"
 #include "DevNozzleSystem.h"
+#include "DevConfigUtil.h"
 
 // TODO: remove this include
 #include "slic3r/GUI/DeviceManager.hpp"
@@ -39,14 +40,9 @@ namespace Slic3r
     {
         if (system->GetTotalExtderCount() == 2)
         {
-            if (m_ext_id == MAIN_EXTRUDER_ID)
-            {
-                return _L("right");
-            }
-            else
-            {
-                return _L("left");
-            }
+            return _L(DevPrinterConfigUtil::get_toolhead_display_name(
+                system->Owner()->printer_type, m_ext_id,
+                ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase, true));  // "right" / "main"
         }
 
         return wxEmptyString;
@@ -56,14 +52,10 @@ namespace Slic3r
     {
         if (system->GetTotalExtderCount() == 2)
         {
-            if (m_ext_id == MAIN_EXTRUDER_ID)
-            {
-                return _L("right extruder");
-            }
-            else
-            {
-                return _L("left extruder");
-            }
+            std::string name = DevPrinterConfigUtil::get_toolhead_display_name(
+                system->Owner()->printer_type, m_ext_id,
+                ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase);
+            return _L(name);  // "right extruder" / "main extruder"
         }
 
         return _L("extruder");

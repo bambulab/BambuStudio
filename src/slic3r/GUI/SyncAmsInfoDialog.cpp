@@ -10,6 +10,7 @@
 #include "PartPlate.hpp"
 #include "I18N.hpp"
 #include "MainFrame.hpp"
+#include "DeviceCore/DevConfigUtil.h"
 #include "Widgets/Button.hpp"
 #include "Widgets/TextInput.hpp"
 #include "Notebook.hpp"
@@ -771,7 +772,8 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
 
     m_filament_panel_left_sizer     = new wxBoxSizer(wxVERTICAL);
     auto left_recommend_title_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto left_recommend_title1      = new Label(m_filament_left_panel, _L("Left Extruder"));
+    std::string sai_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    auto left_recommend_title1      = new Label(m_filament_left_panel, _L(DevPrinterConfigUtil::get_toolhead_display_name(sai_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase)));
     left_recommend_title1->SetFont(::Label::Head_13);
     left_recommend_title1->SetBackgroundColour(wxColour("#F8F8F8"));
     auto left_recommend_title2 = new Label(m_filament_left_panel, _L("(Recommended filament)"));
@@ -796,7 +798,7 @@ SyncAmsInfoDialog::SyncAmsInfoDialog(wxWindow *parent, SyncInfo &info) :
 
     m_filament_panel_right_sizer     = new wxBoxSizer(wxVERTICAL);
     auto right_recommend_title_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto right_recommend_title1      = new Label(m_filament_right_panel, _L("Right Extruder"));
+    auto right_recommend_title1      = new Label(m_filament_right_panel, _L(DevPrinterConfigUtil::get_toolhead_display_name(sai_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase)));
     right_recommend_title1->SetFont(::Label::Head_13);
     right_recommend_title1->SetBackgroundColour(wxColour("#F8F8F8"));
 
@@ -1523,11 +1525,12 @@ bool SyncAmsInfoDialog::is_nozzle_type_match(DevExtderSystem data, wxString &err
 
             if (target_machine_nozzle_id < flow_type_of_machine.size()) {
                 if (flow_type_of_machine[target_machine_nozzle_id] != used_extruders_flow[it->first]) {
+                    std::string sai_nz_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
                     wxString pos;
                     if (target_machine_nozzle_id == DEPUTY_EXTRUDER_ID) {
-                        pos = _L("left nozzle");
+                        pos = _L(DevPrinterConfigUtil::get_toolhead_display_name(sai_nz_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
                     } else if ((target_machine_nozzle_id == MAIN_EXTRUDER_ID)) {
-                        pos = _L("right nozzle");
+                        pos = _L(DevPrinterConfigUtil::get_toolhead_display_name(sai_nz_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
                     }
 
                     error_message = wxString::Format(_L("The nozzle flow setting of %s(%s) doesn't match with the slicing file(%s). "

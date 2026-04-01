@@ -3,6 +3,7 @@
 #include "DevFilaBlackList.h"
 #include "DevFilaSystem.h"
 #include "DevManager.h"
+#include "DevConfigUtil.h"
 
 #include "libslic3r/Utils.hpp"
 
@@ -338,7 +339,8 @@ void check_filaments_printable(const DevFilaBlacklist::CheckFilamentInfo &check_
     PresetBundle                   *preset_bundle = GUI::wxGetApp().preset_bundle;
     std::optional<FilamentBaseInfo> filament_info = preset_bundle->get_filament_by_filament_id(check_info.fila_id, printer_preset->name);
     if (filament_info.has_value()) {
-        wxString     extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
+        int bl_ext_id = (extruder_idx == 0) ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
+        wxString     extruder_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(obj->printer_type, bl_ext_id, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase, true));
         std::string  fila_name = check_info.fila_name.empty() ? check_info.fila_type : check_info.fila_name;
         if (!(filament_info->filament_printable >> extruder_idx & 1)) {
             DevFilaBlacklist::CheckResultItem item;

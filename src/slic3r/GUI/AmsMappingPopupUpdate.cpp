@@ -8,6 +8,7 @@
  *********************************************************************/
 #include "AmsMappingPopup.hpp"
 #include "I18N.hpp"
+#include "DeviceCore/DevConfigUtil.h"
 
 #include "libslic3r/Utils.hpp"
 #include "slic3r/Utils/WxFontUtils.hpp"
@@ -452,10 +453,14 @@ void AmsMapingPopup::update_title(MachineObject* obj)
     if (nozzle_nums > 1) {
         m_split_line_panel->Show();
         if (m_show_type == ShowType::LEFT) {
-            m_title_text->SetLabelText(_L("Please select the filament installed on the left nozzle."));
+            wxString nozzle_name = obj ? _L(DevPrinterConfigUtil::get_toolhead_display_name(
+                obj->printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase)) : _L("left nozzle");
+            m_title_text->SetLabelText(wxString::Format(_L("Please select the filament installed on the %s."), nozzle_name));
             return;
         } else if (m_show_type == ShowType::RIGHT) {
-            m_title_text->SetLabelText(_L("Please select the filament installed on the right nozzle."));
+            wxString nozzle_name = obj ? _L(DevPrinterConfigUtil::get_toolhead_display_name(
+                obj->printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase)) : _L("right nozzle");
+            m_title_text->SetLabelText(wxString::Format(_L("Please select the filament installed on the %s."), nozzle_name));
             return;
         } else if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
             m_title_text->SetLabelText(_L("Please select the filament."));

@@ -7,6 +7,7 @@
 #include "format.hpp"
 #include "MsgDialog.hpp"
 #include "slic3r/Utils/CalibUtils.hpp"
+#include "DeviceCore/DevConfigUtil.h"
 
 #include "DeviceCore/DevExtruderSystem.h"
 #include "DeviceCore/DevManager.h"
@@ -141,7 +142,10 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
     m_extruder_switch_btn->SetBackgroundColour(wxColour(0, 174, 66));
     m_extruder_switch_btn->SetMinSize(wxSize(FromDIP(120), FromDIP(24)));
     m_extruder_switch_btn->SetMaxSize(wxSize(FromDIP(120), FromDIP(24)));
-    m_extruder_switch_btn->SetLabels(_L("Left Nozzle"), _L("Right Nozzle"));
+    std::string chd_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    m_extruder_switch_btn->SetLabels(
+        _L(DevPrinterConfigUtil::get_toolhead_display_name(chd_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)),
+        _L(DevPrinterConfigUtil::get_toolhead_display_name(chd_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
     m_extruder_switch_btn->Bind(wxEVT_TOGGLEBUTTON, &HistoryWindow::on_switch_extruder, this);
     m_extruder_switch_btn->SetValue(false);
     scroll_sizer->Add(m_extruder_switch_btn, 0, wxCENTER | wxALL, FromDIP(10));
@@ -366,7 +370,11 @@ void HistoryWindow::sync_history_data() {
         auto font = nozzle_name->GetFont();
         font.SetUnderlined(true);
         nozzle_name->SetFont(font);
-        nozzle_name->SetToolTip(_L("Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."));
+        {
+            std::string chd_tt_pt = curr_obj ? curr_obj->printer_type : wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+            wxString chd_ext_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(chd_tt_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase));
+            nozzle_name->SetToolTip(wxString::Format(_L("Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."), chd_ext_name));
+        }
         gbSizer->Add(nozzle_name, {0, column_idx++}, {1, 1}, wxBOTTOM, FromDIP(15));
     }
 

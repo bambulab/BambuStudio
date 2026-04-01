@@ -26,6 +26,7 @@
 
 #include "I18N.hpp"
 #include "GUI_App.hpp"
+#include "DeviceCore/DevConfigUtil.h"
 #include "libslic3r/filament_mixer.h"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
@@ -1588,8 +1589,10 @@ bool PartPlate::check_filament_printable(const DynamicPrintConfig &config, wxStr
             std::string fil_name = fil_preset->alias;
 
             if (extruder_idx >= 0 && !(filament_printable_status >> extruder_idx & 1)) {
-                wxString extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
-                error_message          = wxString::Format(_L("The %s nozzle can not print %s."), extruder_name, fil_name); // todo：显示耗材名字更好，因为部分TPU可以左头打印
+                std::string pp_pt         = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+                int         pp_ext_id     = (extruder_idx == 0) ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
+                wxString    extruder_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(pp_pt, pp_ext_id, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase, true));
+                error_message          = wxString::Format(_L("The %s nozzle can not print %s."), extruder_name, fil_name);
                 return false;
             }
 

@@ -6,6 +6,7 @@
 #include "slic3r/Utils/WxFontUtils.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
+#include "DeviceCore/DevConfigUtil.h"
 #include "GUI_Preview.hpp"
 #include "MainFrame.hpp"
 #include "format.hpp"
@@ -786,9 +787,12 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      m_right_extra_slot->SetMinSize(wxSize(FromDIP(48), FromDIP(60)));
      m_right_extra_slot->SetMaxSize(wxSize(FromDIP(48), FromDIP(60)));
 
+     std::string amp_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
      m_single_tip_text = _L("Please select from the following filaments");
-     m_left_tip_text = _L("Select filament that installed to the left nozzle");
-     m_right_tip_text = _L("Select filament that installed to the right nozzle");
+     m_left_tip_text = wxString::Format(_L("Select filament that installed to the %s"),
+         _L(DevPrinterConfigUtil::get_toolhead_display_name(amp_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase)));
+     m_right_tip_text = wxString::Format(_L("Select filament that installed to the %s"),
+         _L(DevPrinterConfigUtil::get_toolhead_display_name(amp_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase)));
 
      m_left_tips = new Label(m_left_first_text_panel);
      m_left_tips->SetForegroundColour(StateColor::darkModeColorFor("0x262E30"));

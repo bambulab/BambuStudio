@@ -84,6 +84,18 @@
 		"printer_is_enclosed": true,
 		"enable_set_nozzle_info": false,
 		"support_safety_options": false,
-		"filament_load_image": ["filament_load_o1c_series_ext0", "filament_load_o1c_series_ext1"]
+		"filament_load_image": ["filament_load_o1c_series_ext0", "filament_load_o1c_series_ext1"],
+		"tool_head_display_names": {
+			"0": {
+				"extruder": ["Right Extruder", "Right extruder", "right extruder"],
+				"nozzle":   ["Right Nozzle",   "Right nozzle",   "right nozzle"],
+				"hotend":   ["Right Hotend",   "Right hotend",   "right hotend"]
+			},
+			"1": {
+				"extruder": ["Left Extruder", "Left extruder", "left extruder"],
+				"nozzle":   ["Left Nozzle",   "Left nozzle",   "left nozzle"],
+				"hotend":   ["Left Hotend",   "Left hotend",   "left hotend"]
+			}
+		}
 	}
 }

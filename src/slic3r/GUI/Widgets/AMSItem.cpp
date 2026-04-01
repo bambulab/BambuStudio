@@ -10,6 +10,7 @@
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevConfig.h"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
+#include "../DeviceCore/DevConfigUtil.h"
 
 #include <wx/simplebook.h>
 #include <wx/dcgraph.h>
@@ -4094,14 +4095,20 @@ void FeedDirectionDialog::OnRadioClicked(wxCommandEvent& evt)
             m_extruderImage->update(DevExtruderState::FILLED_LOAD, DevExtruderState::EMPTY_LOAD);
             m_extruderImage->setExtruderUsed("left");
             m_load_extruder_id = 1;
-            SetTitle(wxString::Format(_L("Load %s to ") + _L("left extruder"), m_filament_id));
+            {
+                std::string ai_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+                SetTitle(wxString::Format(_L("Load %s to ") + _L(DevPrinterConfigUtil::get_toolhead_display_name(ai_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase)), m_filament_id));
+            }
         }
         else if (clicked == m_rightRadio)
         {
             m_extruderImage->update(DevExtruderState::EMPTY_LOAD, DevExtruderState::FILLED_LOAD);
             m_extruderImage->setExtruderUsed("right");
             m_load_extruder_id = 0;
-            SetTitle(wxString::Format(_L("Load %s to ") + _CTX(L_CONTEXT("right extruder", "FilamentTrack"), "FilamentTrack"), m_filament_id));
+            {
+                std::string ai_pt2 = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+                SetTitle(wxString::Format(_L("Load %s to ") + _L(DevPrinterConfigUtil::get_toolhead_display_name(ai_pt2, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase)), m_filament_id));
+            }
         }
     }
     m_leftRadio->Refresh();

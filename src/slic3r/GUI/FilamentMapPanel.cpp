@@ -1,6 +1,7 @@
 #include "FilamentMapPanel.hpp"
 #include "Widgets/MultiNozzleSync.hpp"
 #include "GUI_App.hpp"
+#include "DeviceCore/DevConfigUtil.h"
 #include <boost/log/trivial.hpp>
 #include <cassert>
 #include <wx/dcbuffer.h>
@@ -262,8 +263,9 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
 
     auto drag_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_left_panel  = new DragDropPanel(this, _L("Left Extruder"), false);
-    m_right_panel = new SeparatedDragDropPanel(this, _L("Right Extruder"), false);
+    std::string pt_fmp = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    m_left_panel  = new DragDropPanel(this, _L(DevPrinterConfigUtil::get_toolhead_display_name(pt_fmp, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase)), false);
+    m_right_panel = new SeparatedDragDropPanel(this, _L(DevPrinterConfigUtil::get_toolhead_display_name(pt_fmp, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase)), false);
     m_switch_btn  = new ScalableButton(this, wxID_ANY, "switch_filament_maps");
 
     UpdateNozzleVolumeType();
@@ -375,18 +377,22 @@ void FilamentMapManualPanel::UpdateNozzleCountDisplay()
 {
     auto preset_bundle = wxGetApp().preset_bundle;
 
+    std::string fmp_up_pt = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+    wxString dep_ext_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(fmp_up_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase));
+    wxString main_ext_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(fmp_up_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase));
+
     int left_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(0);
-    wxString left_title = wxString::Format(_L("Left Extruder(%d)"), left_count);
+    wxString left_title = wxString::Format(dep_ext_name + "(%d)", left_count);
     m_left_panel->UpdateLabel(left_title);
 
     if (m_right_panel->IsUseSeparation()) {
         int standard_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1, NozzleVolumeType::nvtStandard);
         int highflow_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1, NozzleVolumeType::nvtHighFlow);
-        wxString right_title = wxString::Format(_L("Right Extruder(Std: %d, HF: %d)"), standard_count, highflow_count);
+        wxString right_title = wxString::Format(main_ext_name + "(Std: %d, HF: %d)", standard_count, highflow_count);
         m_right_panel->UpdateLabel(right_title);
     } else {
         int right_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1);
-        wxString right_title = wxString::Format(_L("Right Extruder(%d)"), right_count);
+        wxString right_title = wxString::Format(main_ext_name + "(%d)", right_count);
         m_right_panel->UpdateLabel(right_title);
     }
 }
@@ -625,11 +631,15 @@ void GUI::FilamentMapBtnPanel::Show()
 
 FilamentMapAutoPanel::FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mode, bool machine_synced, const std::vector<FilamentMapMode>& available_modes) : wxPanel(parent)
 {
-    const wxString AutoForFlushDetail = _L("Generates filament grouping for the left and right nozzles based on the most filament-saving principles to minimize waste");
+    std::string pt_auto = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    wxString main_nz_auto   = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt_auto, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
+    wxString deputy_nz_auto = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt_auto, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
 
-    const wxString AutoForMatchDetail = _L("Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment");
+    const wxString AutoForFlushDetail = wxString::Format(_L("Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"), deputy_nz_auto, main_nz_auto);
 
-    const wxString AutoForQualityDetail = _L("Generates filament grouping for the left and right nozzles based on the quality of prints, prioritizing print quality over filament saving");
+    const wxString AutoForMatchDetail = wxString::Format(_L("Generates filament grouping for the %s and %s based on the printer's actual filament status, reducing the need for manual filament adjustment"), deputy_nz_auto, main_nz_auto);
+
+    const wxString AutoForQualityDetail = wxString::Format(_L("Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"), deputy_nz_auto, main_nz_auto);
 
     m_machine_synced = machine_synced;
     m_available_modes = available_modes;
@@ -805,7 +815,10 @@ FilamentMapSavingPanel::FilamentMapSavingPanel(wxWindow *parent) : wxPanel(paren
     saving_sizer->Add(icon_btn, 0, wxALIGN_CENTER);
     saving_sizer->AddSpacer(FromDIP(16));
 
-    auto desc_label = new Label(this, _L("Generates filament grouping for the left and right nozzles based on the most filament-saving principles to minimize waste"));
+    std::string pt_saving = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    wxString main_nz_saving   = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt_saving, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
+    wxString deputy_nz_saving = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt_saving, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
+    auto desc_label = new Label(this, wxString::Format(_L("Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"), deputy_nz_saving, main_nz_saving));
     desc_label->SetFont(Label::Body_12);
     desc_label->SetForegroundColour(wxColour("#6B6B6B"));
     saving_sizer->Add(desc_label, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(50));

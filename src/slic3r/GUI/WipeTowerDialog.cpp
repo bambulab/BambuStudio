@@ -8,6 +8,7 @@
 #include "GUI_App.hpp"
 #include "libslic3r/Config.hpp"
 #include "MainFrame.hpp"
+#include "DeviceCore/DevConfigUtil.h"
 
 
 using namespace Slic3r;
@@ -187,8 +188,11 @@ wxString WipingDialog::BuildTextObjStr(bool multi_language)
         volume_range_panel = wxString::Format(_L("Suggestion: Flushing Volume in range [%d, %d]"), 0, 700);
         multiplier_range_panel = wxString::Format(_L("The multiplier should be in range [%.2f, %.2f]."), 0, 3);
         calc_btn_panel = _L("Re-calculate");
-        extruder_label_0 = _L("Left extruder");
-        extruder_label_1 = _L("Right extruder");
+        {
+            std::string pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+            extruder_label_0 = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::SentenceCase));
+            extruder_label_1 = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::SentenceCase));
+        }
         multiplier_label = _L("Multiplier");
         ok_btn_label = _L("OK");
         cancel_btn_label = _L("Cancel");
@@ -198,8 +202,11 @@ wxString WipingDialog::BuildTextObjStr(bool multi_language)
         volume_range_panel = wxString::Format("Suggestion: Flushing Volume in range [%d, %d]", 0, 700);
         multiplier_range_panel = wxString::Format("The multiplier should be in range [%.2f, %.2f].", 0, 3);
         calc_btn_panel = "Re-calculate";
-        extruder_label_0 = "Left extruder";
-        extruder_label_1 = "Right extruder";
+        {
+            std::string pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+            extruder_label_0 = DevPrinterConfigUtil::get_toolhead_display_name(pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::SentenceCase);
+            extruder_label_1 = DevPrinterConfigUtil::get_toolhead_display_name(pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::SentenceCase);
+        }
         multiplier_label = "Multiplier";
         ok_btn_label = "OK";
         cancel_btn_label = "Cancel";

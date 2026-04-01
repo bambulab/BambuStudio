@@ -13,6 +13,7 @@
 #include "libslic3r/PresetBundle.hpp"
 #include "format.hpp"
 #include "GUI_App.hpp"
+#include "DeviceCore/DevConfigUtil.h"
 #include "Plater.hpp"
 #include "Tab.hpp"
 #include "ExtraRenderers.hpp"
@@ -925,7 +926,8 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
         wxBoxSizer *top_title_oldv = new wxBoxSizer(wxVERTICAL);
         wxBoxSizer *top_title_oldv_h = new wxBoxSizer(wxHORIZONTAL);
 
-        static_oldv_title = new wxStaticText(m_panel_oldv, wxID_ANY, params ? _L("Left nozzle") + ": " + get_nozzle_volume_type_name(params->nozzle) : _L("Preset(Old)"), wxDefaultPosition, wxDefaultSize, 0);
+        std::string ucd_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+        static_oldv_title = new wxStaticText(m_panel_oldv, wxID_ANY, params ? _L(DevPrinterConfigUtil::get_toolhead_display_name(ucd_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase)) + ": " + get_nozzle_volume_type_name(params->nozzle) : _L("Preset(Old)"), wxDefaultPosition, wxDefaultSize, 0);
         static_oldv_title->SetFont(::Label::Body_13);
         static_oldv_title->Wrap(-1);
         static_oldv_title->SetForegroundColour(params && params->left_to_right ? wxGetApp().get_label_clr_modified() : *wxWHITE);
@@ -944,7 +946,7 @@ void UnsavedChangesDialog::build(Preset::Type type, PresetCollection *dependent_
         wxBoxSizer *top_title_newv = new wxBoxSizer(wxVERTICAL);
         wxBoxSizer *top_title_newv_h = new wxBoxSizer(wxHORIZONTAL);
 
-        static_newv_title = new wxStaticText(m_panel_newv, wxID_ANY, params ? _L("Right nozzle") + ": " + get_nozzle_volume_type_name(params->nozzle) : _L("Modified Value(New)"),
+        static_newv_title = new wxStaticText(m_panel_newv, wxID_ANY, params ? _L(DevPrinterConfigUtil::get_toolhead_display_name(ucd_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase)) + ": " + get_nozzle_volume_type_name(params->nozzle) : _L("Modified Value(New)"),
                                              wxDefaultPosition, wxDefaultSize, 0);
         static_newv_title->SetFont(::Label::Body_13);
         static_newv_title->Wrap(-1);

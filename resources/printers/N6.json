@@ -95,6 +95,18 @@
 		"printer_is_enclosed": true,
 		"enable_set_nozzle_info": false,
 		"support_safety_options": true,
-		"filament_load_image": ["filament_load_n6_series_ext0","filament_load_n6_series_ext1"]
+		"filament_load_image": ["filament_load_n6_series_ext0","filament_load_n6_series_ext1"],
+		"tool_head_display_names": {
+			"0": {
+				"extruder": ["Auxiliary Extruder", "Auxiliary extruder", "auxiliary extruder"],
+				"nozzle":   ["Auxiliary Nozzle",   "Auxiliary nozzle",   "auxiliary nozzle"],
+				"hotend":   ["Auxiliary Hotend",   "Auxiliary hotend",   "auxiliary hotend"]
+			},
+			"1": {
+				"extruder": ["Main Extruder", "Main extruder", "main extruder"],
+				"nozzle":   ["Main Nozzle",   "Main nozzle",   "main nozzle"],
+				"hotend":   ["Main Hotend",   "Main hotend",   "main hotend"]
+			}
+		}
 	}
 }

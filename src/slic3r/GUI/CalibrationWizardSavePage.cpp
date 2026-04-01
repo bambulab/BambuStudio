@@ -4,6 +4,7 @@
 #include "MsgDialog.hpp"
 #include "DeviceCore/DevNozzleRack.h"
 #include "DeviceCore/DevManager.h"
+#include "DeviceCore/DevConfigUtil.h"
 #include "DeviceManager.hpp"
 
 namespace Slic3r { namespace GUI {
@@ -511,8 +512,9 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
     m_multi_extruder_grid_panel->SetSizer(grid_sizer, true);
     m_multi_extruder_grid_panel->Bind(wxEVT_LEFT_DOWN, [this](auto &e) { SetFocusIgnoringChildren(); });
 
-    wxStaticBoxSizer *left_sizer  = new wxStaticBoxSizer(wxVERTICAL, m_multi_extruder_grid_panel, _L("Left extruder"));
-    wxStaticBoxSizer *right_sizer = new wxStaticBoxSizer(wxVERTICAL, m_multi_extruder_grid_panel, _L("Right extruder"));
+    std::string cwsp_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    wxStaticBoxSizer *left_sizer  = new wxStaticBoxSizer(wxVERTICAL, m_multi_extruder_grid_panel, _L(DevPrinterConfigUtil::get_toolhead_display_name(cwsp_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::SentenceCase)));
+    wxStaticBoxSizer *right_sizer = new wxStaticBoxSizer(wxVERTICAL, m_multi_extruder_grid_panel, _L(DevPrinterConfigUtil::get_toolhead_display_name(cwsp_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::SentenceCase)));
     grid_sizer->Add(left_sizer);
     grid_sizer->AddSpacer(COLUMN_GAP);
     grid_sizer->Add(right_sizer);

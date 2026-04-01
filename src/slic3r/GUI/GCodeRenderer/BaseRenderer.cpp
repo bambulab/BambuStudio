@@ -6,6 +6,7 @@
 #include "slic3r/GUI/FilamentGroupPopup.hpp"
 #include "slic3r/GUI/GLToolbar.hpp"
 #include "slic3r/GUI/DeviceCore/DevUtilBackend.h"
+#include "../DeviceCore/DevConfigUtil.h"
 #include "libslic3r/Print.hpp"
 #include "../Utils/HelioDragon.hpp"
 #include <imgui/imgui_internal.h>
@@ -2808,10 +2809,12 @@ namespace Slic3r
                         ImDrawList *child_begin_draw_list = ImGui::GetWindowDrawList();
                         ImVec2      cursor_pos            = ImGui::GetCursorScreenPos();
                         child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + line_height), IM_COL32(0, 0, 0, 20));
+                        std::string br_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
                         ImGui::BeginChild("#LeftAMS", ImVec2(half_width, ams_item_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
                         {
-                            imgui.text(_u8L("Left nozzle"));
-                            ImGui::Dummy({ window_padding, window_padding });
+                            std::string br_dep_nz = DevPrinterConfigUtil::get_toolhead_display_name(br_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase);
+                            imgui.text(_u8L(br_dep_nz.c_str()));
+                            ImGui::Dummy({window_padding, window_padding});
                             int index = 1;
                             for (const auto &extruder_filament : m_left_extruder_filament) {
                                 imgui.filament_group(get_filament_display_type(extruder_filament), extruder_filament.hex_color.c_str(), extruder_filament.filament_id,
@@ -2826,8 +2829,9 @@ namespace Slic3r
                         child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + line_height), IM_COL32(0, 0, 0, 20));
                         ImGui::BeginChild("#RightAMS", ImVec2(half_width, ams_item_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
                         {
-                            imgui.text(_u8L("Right nozzle"));
-                            ImGui::Dummy({ window_padding, window_padding });
+                            std::string br_main_nz = DevPrinterConfigUtil::get_toolhead_display_name(br_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase);
+                            imgui.text(_u8L(br_main_nz.c_str()));
+                            ImGui::Dummy({window_padding, window_padding});
                             int index = 1;
                             for (const auto &extruder_filament : m_right_extruder_filament) {
                                 imgui.filament_group(get_filament_display_type(extruder_filament), extruder_filament.hex_color.c_str(), extruder_filament.filament_id,

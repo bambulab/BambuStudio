@@ -2,6 +2,7 @@
 //#include "slic3r/Utils/Serial.hpp"
 #include "Tab.hpp"
 #include "PresetHints.hpp"
+#include "DeviceCore/DevConfigUtil.h"
 #include "libslic3r/Config.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Utils.hpp"
@@ -784,8 +785,12 @@ Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::str
 wxString Tab::translate_category(const wxString& title, Preset::Type preset_type)
 {
     if (preset_type == Preset::TYPE_PRINTER && title.Contains("Extruder ")) {
-        if (title == "Extruder 1") return _("Left Extruder");
-        if (title == "Extruder 2") return _("Right Extruder");
+        if (title == "Extruder 1" || title == "Extruder 2") {
+            std::string tab_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+            // Extruder 1 = DEPUTY (physical left), Extruder 2 = MAIN (physical right)
+            int ext_id = (title == "Extruder 1") ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
+            return _L(DevPrinterConfigUtil::get_toolhead_display_name(tab_pt, ext_id, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase));
+        }
         return _("Extruder") + title.SubString(8, title.Last());
     }
     return _(title);
@@ -7826,9 +7831,12 @@ void Tab::sync_excluder()
         return;
     }
 
-    wxString title  = active_index == 0 ? _L("Modify paramters of right nozzle") : _L("Modify paramters of left nozzle");
-    wxString header = active_index == 0 ? _L("Do you want to modify the following parameters of the right nozzle to that of the left nozzle?") :
-                                          _L("Do you want to modify the following parameters of the left nozzle to that of the right nozzle?");
+    std::string pt = m_preset_bundle->printers.get_edited_preset().get_printer_type(m_preset_bundle);
+    std::string active_nozzle_name = DevPrinterConfigUtil::get_toolhead_display_name(pt, active_index, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase);
+    std::string other_nozzle_name  = DevPrinterConfigUtil::get_toolhead_display_name(pt, 1 - active_index, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase);
+    wxString title  = wxString::Format(_L("Modify paramters of %s"), _L(active_nozzle_name));
+    wxString header = wxString::Format(_L("Do you want to modify the following parameters of the %s to that of the %s?"),
+                                       _L(active_nozzle_name), _L(other_nozzle_name));
     UnsavedChangesDialog dlg(title, header, &config_origin, from_index, dest_index, active_index == 0, active_nozzle);
     dlg.ShowModal();
     if (dlg.transfer_changes()) {

@@ -2,11 +2,31 @@
 
 #include <wx/dir.h>
 #include <boost/filesystem/operations.hpp>
+#include "../I18N.hpp"
 
 using namespace nlohmann;
 
 namespace Slic3r
 {
+
+// Translation markers for xgettext extraction.
+// These strings are configured in printers/*.json (tool_head_display_names)
+// and passed to _L() at runtime. xgettext cannot scan dynamic strings,
+// so we mark them here with L() for extraction into .pot file.
+// This block is never executed at runtime.
+static void _toolhead_translation_markers()
+{
+    // Dynamic toolhead display names from JSON config — xgettext cannot scan these
+    L("Main Extruder");     L("Main extruder");     L("main extruder");
+    L("Auxiliary Extruder"); L("Auxiliary extruder"); L("auxiliary extruder");
+    L("Main Nozzle");       L("Main nozzle");       L("main nozzle");
+    L("Auxiliary Nozzle");   L("Auxiliary nozzle");   L("auxiliary nozzle");
+    L("Main Hotend");       L("Main hotend");       L("main hotend");
+    L("Auxiliary Hotend");   L("Auxiliary hotend");   L("auxiliary hotend");
+    // standalone position words (short_name=true runtime results)
+    L("main");              L("auxiliary");
+    L("Main");              L("Auxiliary");
+}
 
 std::string DevPrinterConfigUtil::m_resource_file_path = "";
 
@@ -312,6 +332,60 @@ std::map<std::string, std::vector<std::string>> DevPrinterConfigUtil::get_all_su
     }
 
     return subseries;
+}
+
+std::string DevPrinterConfigUtil::get_toolhead_display_name(
+    const std::string& type_str,
+    int ext_id,
+    ToolHeadComponent component,
+    ToolHeadNameCase name_case,
+    bool short_name)
+{
+    static const std::map<ToolHeadComponent, std::string> comp_keys = {
+        { ToolHeadComponent::Extruder, "extruder" },
+        { ToolHeadComponent::Nozzle,   "nozzle" },
+        { ToolHeadComponent::Hotend,   "hotend" }
+    };
+
+    int case_index = static_cast<int>(name_case);  // 0, 1, 2
+
+    // Try to read from printer config json
+    auto names_json = get_value_from_config<json>(type_str, "tool_head_display_names");
+    std::string role_key = std::to_string(ext_id);  // "0" or "1"
+    const std::string& comp_key = comp_keys.at(component);
+
+    std::string result;
+
+    if (!names_json.is_null()
+        && names_json.contains(role_key)
+        && names_json[role_key].contains(comp_key))
+    {
+        auto& arr = names_json[role_key][comp_key];
+        if (arr.is_array() && case_index < static_cast<int>(arr.size())) {
+            result = arr[case_index].get<std::string>();
+        }
+    }
+
+    // Fallback: all dual-extruder printers should have tool_head_display_names configured.
+    // This is a safety net only — return a generic name.
+    if (result.empty()) {
+        static const std::map<ToolHeadComponent, std::string> fallback_names = {
+            { ToolHeadComponent::Extruder, "Extruder" },
+            { ToolHeadComponent::Nozzle,   "Nozzle" },
+            { ToolHeadComponent::Hotend,   "Hotend" }
+        };
+        result = fallback_names.at(component);
+    }
+
+    // short_name: return only the role prefix (e.g. "Main" from "Main Nozzle")
+    if (short_name) {
+        auto sp = result.find(' ');
+        if (sp != std::string::npos) {
+            result = result.substr(0, sp);
+        }
+    }
+
+    return result;
 }
 
 };
