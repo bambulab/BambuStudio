@@ -563,6 +563,38 @@ wxBoxSizer* AMSDryCtrWin::create_cannot_dry_panel(wxPanel* parent)
     
     abnormal_sizer->Add(m_cannot_dry_description_label, 0, wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
+    // Unload button shown only when ConsumableAtAmsOutlet reason is active
+    m_unload_button = create_button(
+        parent,
+        _L("Unload"),
+        AMS_CONTROL_BRAND_COLOUR,       // Background color - light gray
+        AMS_CONTROL_BRAND_COLOUR,       // Border color - gray
+        *wxWHITE                   // Text color - white
+    );
+
+    m_unload_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent& event) {
+        auto fila_system = get_fila_system();
+        if (!fila_system) {
+            BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::unload_button: Invalid FilaSystem Pointer";
+            return;
+        }
+
+        MachineObject* obj = fila_system->GetOwner();
+        if (!obj) {
+            BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::unload_button: Invalid MachineObject Pointer";
+            return;
+        }
+
+        obj->command_ams_change_filament(false, m_ams_info.m_ams_id, "255");
+
+        m_unload_button->Disable();
+        m_unload_button_restore_deadline.reset();
+        m_unload_button_restore_deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    });
+
+    m_unload_button->Show(false);
+    abnormal_sizer->Add(m_unload_button, 0, wxALL, FromDIP(5));
+
     return abnormal_sizer;
 }
 
@@ -838,6 +870,18 @@ void AMSDryCtrWin::restore_stop_button_if_deadline_passed()
     }
 }
 
+void AMSDryCtrWin::restore_unload_button_if_deadline_passed()
+{
+    if (m_unload_button_restore_deadline.has_value()) {
+        if (std::chrono::steady_clock::now() >= m_unload_button_restore_deadline.value()) {
+            if (m_unload_button) {
+                m_unload_button->Enable();
+            }
+            m_unload_button_restore_deadline.reset();
+        }
+    }
+}
+
 void AMSDryCtrWin::update_button_size(Button* button)
 {
     if (!button) return;
@@ -893,6 +937,12 @@ void AMSDryCtrWin::OnClose(wxCloseEvent& event)
         m_stop_button->Refresh();
     }
     m_stop_button_restore_deadline.reset();
+
+    // Clean up unload button state
+    if (m_unload_button) {
+        m_unload_button->Enable();
+    }
+    m_unload_button_restore_deadline.reset();
 
     event.Skip();
 }
@@ -1010,6 +1060,12 @@ void AMSDryCtrWin::msw_rescale()
         update_button_size(m_back_button);
         m_back_button->Layout();
         m_back_button->Refresh();
+    }
+    if (m_unload_button) {
+        m_unload_button->Rescale();
+        update_button_size(m_unload_button);
+        m_unload_button->Layout();
+        m_unload_button->Refresh();
     }
 
     if (m_guide_page) {m_guide_page->Layout();}
@@ -1285,6 +1341,10 @@ wxString get_cannot_reason_text(DevAms::CannotDryReason reason)
         cannot_reason_text = "*" + _L("Insufficient power") + "\n";
         cannot_reason_text += _L("  Please plug in the power and then use the drying function.") + "\n";
         break;
+    case DevAms::CannotDryReason::FilamentAtAmsOutletManualUnload:
+        cannot_reason_text = "*" + _L("Filament in AMS outlet") + "\n";
+        cannot_reason_text += _L("  The high drying temperature may cause AMS blockage. Please unload the filament manually before proceeding.") + "\n";
+        break;
     default:
         cannot_reason_text = "*" + _L("System is busy") + "\n";
         cannot_reason_text += _L("  Initiating other drying processes, please wait a few seconds...") + "\n";
@@ -1303,6 +1363,8 @@ wxString organize_cannot_reasons_text(std::vector<DevAms::CannotDryReason>& reas
         cannot_reasons_text += get_cannot_reason_text(DevAms::CannotDryReason::AmsBusy);
     } else if (std::find(reasons.begin(), reasons.end(), DevAms::CannotDryReason::ConsumableAtAmsOutlet) != reasons.end()) {
         cannot_reasons_text += get_cannot_reason_text(DevAms::CannotDryReason::ConsumableAtAmsOutlet);
+    } else if (std::find(reasons.begin(), reasons.end(), DevAms::CannotDryReason::FilamentAtAmsOutletManualUnload) != reasons.end()) {
+        cannot_reasons_text += get_cannot_reason_text(DevAms::CannotDryReason::FilamentAtAmsOutletManualUnload);
     }
 
     if (std::find(reasons.begin(), reasons.end(), DevAms::CannotDryReason::InsufficientPower) != reasons.end()) {
@@ -1338,6 +1400,7 @@ int AMSDryCtrWin::update_state(DevAms* dev_ams)
         (cannot_reasons.size() == 1 && cannot_reasons[0] == DevAms::CannotDryReason::DryingInProgress)) {
         m_normal_state_sizer->Show(true);
         m_cannot_dry_sizer->Show(false);
+        m_unload_button->Show(false);
         update_normal_state(dev_ams);
     } else if (cannot_reasons.size() > 0) {
         m_normal_state_sizer->Show(false);
@@ -1345,9 +1408,15 @@ int AMSDryCtrWin::update_state(DevAms* dev_ams)
 
         m_cannot_dry_description_label->SetLabel(organize_cannot_reasons_text(cannot_reasons));
         m_cannot_dry_description_label->Wrap(FromDIP(300));
+
+        // Show unload button when ConsumableAtAmsOutlet reason is present
+        bool has_consumable_at_outlet = std::find(cannot_reasons.begin(), cannot_reasons.end(),
+            DevAms::CannotDryReason::ConsumableAtAmsOutlet) != cannot_reasons.end();
+        m_unload_button->Show(has_consumable_at_outlet);
     }
 
     restore_stop_button_if_deadline_passed();
+    restore_unload_button_if_deadline_passed();
 
     return 1;
 }

@@ -152,7 +152,8 @@ public:
         NotSupportedIn2dMode = 5,
         DryingInProgress = 6,
         Upgrading = 7,
-        InsufficientPowerNeedPluginPower = 8
+        InsufficientPowerNeedPluginPower = 8,
+        FilamentAtAmsOutletManualUnload = 10,
     };
 
     struct DrySettings

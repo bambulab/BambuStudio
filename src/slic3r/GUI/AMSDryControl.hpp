@@ -132,6 +132,7 @@ private:
     Button* m_next_button{nullptr};
     Button* m_stop_button{nullptr};
     Button* m_back_button{nullptr};
+    Button* m_unload_button{nullptr};
 
     // guide page description
     Label* m_guide_title_label{nullptr};
@@ -144,6 +145,7 @@ private:
     wxTimer* m_progress_timer;
 
     std::optional<std::chrono::steady_clock::time_point> m_stop_button_restore_deadline;
+    std::optional<std::chrono::steady_clock::time_point> m_unload_button_restore_deadline;
 
     Label* m_progress_title;
     int m_progress_value;
@@ -234,6 +236,7 @@ private:
     std::shared_ptr<DevFilaSystem> get_fila_system() const;
     void start_sending_drying_command();
     void restore_stop_button_if_deadline_passed();
+    void restore_unload_button_if_deadline_passed();
     void update_button_size(Button* button);
 
     bool is_dry_status_changed(DevAms* dev_ams);
