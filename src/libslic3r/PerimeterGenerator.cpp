@@ -276,6 +276,11 @@ static bool is_enable_overhang_speed(const PerimeterGenerator& perimeter_generat
         perimeter_generator.config->enable_overhang_speed.get_at(config_idx);
 }
 
+static bool fuzzy_skin_allows_overhang_slowdown(const PerimeterGenerator &pg)
+{
+    const FuzzySkinType fs = pg.config->fuzzy_skin.value;
+    return fs == FuzzySkinType::Disabled_fuzzy || (fs == FuzzySkinType::None && pg.perimeter_regions->empty());
+}
 
 static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perimeter_generator, const PerimeterGeneratorLoops &loops, ThickPolylines &thin_walls)
 {
@@ -356,7 +361,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
 
             remain_polines = diff_pl_2({to_polyline(polygon)}, lower_polygons_series_clipped);
 
-            bool detect_overhang_speed = is_enable_overhang_speed(perimeter_generator) && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None;
+            bool detect_overhang_speed = is_enable_overhang_speed(perimeter_generator) && fuzzy_skin_allows_overhang_slowdown(perimeter_generator);
 
             if (!detect_overhang_speed) {
                 if (!inside_polines.empty())
@@ -695,7 +700,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
                     clip_paths.back().emplace_back(p.x(), p.y(), 0);
             }
 
-            if (is_enable_overhang_speed(perimeter_generator) && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None) {
+            if (is_enable_overhang_speed(perimeter_generator) && fuzzy_skin_allows_overhang_slowdown(perimeter_generator)) {
                 bool is_external = extrusion->inset_idx == 0;
                 Flow flow = is_external ? perimeter_generator.ext_perimeter_flow : perimeter_generator.perimeter_flow;
                 ExtrusionRole role = is_external ? ExtrusionRole::erExternalPerimeter : ExtrusionRole::erPerimeter;
@@ -757,7 +762,7 @@ static ExtrusionEntityCollection traverse_extrusions(const PerimeterGenerator& p
 
                 chain_and_reorder_extrusion_paths(paths, &start_point);
 
-                if (is_enable_overhang_speed(perimeter_generator) && perimeter_generator.config->fuzzy_skin == FuzzySkinType::None) {
+                if (is_enable_overhang_speed(perimeter_generator) && fuzzy_skin_allows_overhang_slowdown(perimeter_generator)) {
                     // BBS: filter the speed
                     smooth_overhang_level(paths);
                 }
