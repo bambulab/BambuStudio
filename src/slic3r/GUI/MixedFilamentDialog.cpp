@@ -2,12 +2,14 @@
 
 #include <algorithm>
 #include <cmath>
+#include <set>
 #include <wx/image.h>
 #include <wx/sizer.h>
 #include <wx/dcclient.h>
 #include <wx/dcbuffer.h>
 #include <wx/scrolwin.h>
 #include <wx/wrapsizer.h>
+#include <wx/tokenzr.h>
 
 #include "libslic3r/Utils.hpp"
 #include "I18N.hpp"
@@ -99,7 +101,8 @@ MixedFilamentDialog::MixedFilamentDialog(wxWindow* parent,
 
 void MixedFilamentDialog::on_dpi_changed(const wxRect&)
 {
-    SetSize(FromDIP(439), FromDIP(580));
+    int h = (num_components() >= 3) ? FromDIP(680) : FromDIP(580);
+    SetSize(FromDIP(439), h);
     Refresh();
 }
 
@@ -171,10 +174,22 @@ void MixedFilamentDialog::build_ui()
     main_sizer->Add(top_sizer, 0, wxEXPAND);
 
     main_sizer->Add(create_recommendation_grid(), 1, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(25));
+
+    // Warning panel: red bordered box with exclamation icon + text
+    m_warning_sizer = new wxBoxSizer(wxVERTICAL);
+    m_warning_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(48)));
+    m_warning_panel->SetMinSize(wxSize(-1, FromDIP(48)));
+    m_warning_panel->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    m_warning_panel->Bind(wxEVT_PAINT, &MixedFilamentDialog::paint_warning_panel, this);
+    m_warning_sizer->Add(m_warning_panel, 0, wxEXPAND);
+    main_sizer->Add(m_warning_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(25));
+    m_warning_panel->Hide();
+
     main_sizer->Add(create_button_panel(), 0, wxALIGN_RIGHT | wxALL, FromDIP(20));
 
     SetSizer(main_sizer);
 
+    rebuild_all_combos();
     update_component_count_ui();
     update_preview();
     update_ok_button_state();
@@ -286,6 +301,7 @@ wxBoxSizer* MixedFilamentDialog::create_material_selection()
     m_material_rows_sizer = new wxBoxSizer(wxVERTICAL);
 
     m_combo_filaments.clear();
+    m_combo_to_physical.clear();
     for (size_t i = 0; i < m_result.components.size(); ++i) {
         auto* row = new wxBoxSizer(wxHORIZONTAL);
         wxString lbl_text = wxString::Format(_L("Filament %zu"), i + 1);
@@ -296,19 +312,17 @@ wxBoxSizer* MixedFilamentDialog::create_material_selection()
         auto* combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
                                    wxSize(FromDIP(166), FromDIP(24)), 0, nullptr, wxCB_READONLY);
         combo->SetKeepDropArrow(true);
-        for (size_t j = 0; j < m_physical_names.size(); ++j)
-            combo->Append(wxString::FromUTF8(m_physical_names[j]), make_swatch_bitmap(j));
-        unsigned int cur = m_result.components[i];
-        if (cur >= 1 && cur <= m_physical_names.size())
-            combo->SetSelection(cur - 1);
         combo->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { on_filament_changed(); });
         row->Add(combo, 1, wxALIGN_CENTER_VERTICAL);
 
         m_combo_filaments.push_back(combo);
+        m_combo_to_physical.push_back({});
         m_material_rows_sizer->Add(row, 0, wxEXPAND | wxTOP, FromDIP(9));
     }
 
     sizer->Add(m_material_rows_sizer, 0, wxEXPAND);
+
+    auto* btn_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_btn_add_material = new Button(this, _L("+ Add Material"));
     m_btn_add_material->SetBackgroundColor(wxColour("#F8F8F8"));
@@ -316,8 +330,21 @@ wxBoxSizer* MixedFilamentDialog::create_material_selection()
     m_btn_add_material->SetTextColor(wxColour("#262E30"));
     m_btn_add_material->SetMinSize(wxSize(-1, FromDIP(23)));
     m_btn_add_material->SetCursor(wxCursor(wxCURSOR_HAND));
+    m_btn_add_material->EnableTooltipEvenDisabled();
     m_btn_add_material->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { on_add_material(); });
-    sizer->Add(m_btn_add_material, 0, wxEXPAND | wxTOP, FromDIP(9));
+    btn_sizer->Add(m_btn_add_material, 1, wxRIGHT, FromDIP(6));
+
+    m_btn_remove_material = new Button(this, _L("- Delete Material"));
+    m_btn_remove_material->SetBackgroundColor(wxColour("#F8F8F8"));
+    m_btn_remove_material->SetBorderColor(wxColour("#EEEEEE"));
+    m_btn_remove_material->SetTextColor(wxColour("#262E30"));
+    m_btn_remove_material->SetMinSize(wxSize(-1, FromDIP(23)));
+    m_btn_remove_material->SetCursor(wxCursor(wxCURSOR_HAND));
+    m_btn_remove_material->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { on_remove_material(); });
+    m_btn_remove_material->Hide();
+    btn_sizer->Add(m_btn_remove_material, 1, 0, 0);
+
+    sizer->Add(btn_sizer, 0, wxEXPAND | wxTOP, FromDIP(9));
 
     return sizer;
 }
@@ -689,40 +716,52 @@ wxBoxSizer* MixedFilamentDialog::create_button_panel()
     return sizer;
 }
 
-void MixedFilamentDialog::update_type_constraints()
+void MixedFilamentDialog::rebuild_all_combos()
 {
-    if (m_physical_types.empty() || m_combo_filaments.size() < 2) return;
+    m_combo_to_physical.resize(m_combo_filaments.size());
 
-    std::string first_type;
-    bool mismatch = false;
     for (size_t i = 0; i < m_combo_filaments.size(); ++i) {
-        int sel = m_combo_filaments[i]->GetSelection();
-        if (sel < 0 || sel >= (int)m_physical_types.size()) continue;
-        if (first_type.empty()) {
-            first_type = m_physical_types[sel];
-        } else if (m_physical_types[sel] != first_type) {
-            mismatch = true;
-            break;
+        std::set<unsigned int> others_selected;
+        std::set<std::string>  others_types;
+        for (size_t k = 0; k < m_result.components.size(); ++k) {
+            if (k == i) continue;
+            unsigned int phys = m_result.components[k];
+            others_selected.insert(phys);
+            if (phys >= 1 && phys <= m_physical_types.size())
+                others_types.insert(m_physical_types[phys - 1]);
         }
-    }
 
-    if (mismatch) {
-        wxMessageDialog dlg(this,
-            _L("Mixing different filament types (e.g. PLA + ABS) may cause print quality issues. Continue?"),
-            _L("Filament Type Mismatch"),
-            wxYES_NO | wxICON_WARNING);
-        if (dlg.ShowModal() != wxID_YES) {
-            for (size_t i = 0; i < m_combo_filaments.size() && i < m_result.components.size(); ++i) {
-                unsigned int prev = m_result.components[i];
-                if (prev >= 1 && prev <= m_physical_names.size())
-                    m_combo_filaments[i]->SetSelection(prev - 1);
+        auto* combo = m_combo_filaments[i];
+        combo->Clear();
+        m_combo_to_physical[i].clear();
+
+        int restore_sel = -1;
+        unsigned int cur_phys = (i < m_result.components.size()) ? m_result.components[i] : 0;
+
+        for (size_t j = 0; j < m_physical_names.size(); ++j) {
+            unsigned int phys_1based = (unsigned int)(j + 1);
+
+            if (others_selected.count(phys_1based))
+                continue;
+
+            int style = 0;
+            if (!others_types.empty() && !m_physical_types.empty()) {
+                std::string this_type = (j < m_physical_types.size()) ? m_physical_types[j] : "PLA";
+                if (others_types.find(this_type) == others_types.end())
+                    style = DD_ITEM_STYLE_DIMMED;
             }
-            return;
+
+            int idx = combo->Append(wxString::FromUTF8(m_physical_names[j]), make_swatch_bitmap(j), style);
+            m_combo_to_physical[i].push_back(phys_1based);
+
+            if (phys_1based == cur_phys)
+                restore_sel = idx;
         }
-        for (size_t i = 0; i < m_combo_filaments.size() && i < m_result.components.size(); ++i) {
-            int sel = m_combo_filaments[i]->GetSelection();
-            if (sel >= 0) m_result.components[i] = (unsigned int)(sel + 1);
-        }
+
+        if (restore_sel >= 0)
+            combo->SetSelection(restore_sel);
+        else if (combo->GetCount() > 0)
+            combo->SetSelection(0);
     }
 }
 
@@ -730,14 +769,13 @@ void MixedFilamentDialog::update_type_constraints()
 
 void MixedFilamentDialog::on_filament_changed()
 {
-    update_type_constraints();
-
     for (size_t i = 0; i < m_combo_filaments.size() && i < m_result.components.size(); ++i) {
         int sel = m_combo_filaments[i]->GetSelection();
-        if (sel >= 0)
-            m_result.components[i] = (unsigned int)(sel + 1);
+        if (sel >= 0 && i < m_combo_to_physical.size() && sel < (int)m_combo_to_physical[i].size())
+            m_result.components[i] = m_combo_to_physical[i][sel];
     }
 
+    rebuild_all_combos();
     update_gradient_direction_items();
     update_preview();
     update_ok_button_state();
@@ -801,12 +839,17 @@ void MixedFilamentDialog::on_add_material()
     size_t n = num_components();
     if (n >= (size_t)MAX_COMPONENTS) return;
 
-    unsigned int new_comp = 1;
-    if (m_physical_colors.size() > n)
-        new_comp = (unsigned int)(n + 1);
+    unsigned int new_comp = 0;
+    for (size_t j = 0; j < m_physical_names.size(); ++j) {
+        unsigned int candidate = (unsigned int)(j + 1);
+        bool used = false;
+        for (auto c : m_result.components)
+            if (c == candidate) { used = true; break; }
+        if (!used) { new_comp = candidate; break; }
+    }
+    if (new_comp == 0) return;
     m_result.components.push_back(new_comp);
 
-    // Redistribute ratios equally
     int each = 100 / (int)(n + 1);
     m_result.ratios.clear();
     int assigned = 0;
@@ -816,14 +859,12 @@ void MixedFilamentDialog::on_add_material()
     }
     m_result.ratios.push_back(100 - assigned);
 
-    // Initialize triangle weights
     if (m_result.components.size() == 3) {
         m_tri_wx = m_result.ratios[0] / 100.0;
         m_tri_wy = m_result.ratios[1] / 100.0;
         m_tri_wz = m_result.ratios[2] / 100.0;
     }
 
-    // Add new combo row
     auto* row = new wxBoxSizer(wxHORIZONTAL);
     wxString lbl_text = wxString::Format(_L("Filament %zu"), n + 1);
     auto* lbl = new wxStaticText(this, wxID_ANY, lbl_text);
@@ -833,16 +874,14 @@ void MixedFilamentDialog::on_add_material()
     auto* combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
                                wxSize(FromDIP(166), FromDIP(24)), 0, nullptr, wxCB_READONLY);
     combo->SetKeepDropArrow(true);
-    for (size_t j = 0; j < m_physical_names.size(); ++j)
-        combo->Append(wxString::FromUTF8(m_physical_names[j]), make_swatch_bitmap(j));
-    if (new_comp >= 1 && new_comp <= m_physical_names.size())
-        combo->SetSelection(new_comp - 1);
     combo->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { on_filament_changed(); });
     row->Add(combo, 1, wxALIGN_CENTER_VERTICAL);
 
     m_combo_filaments.push_back(combo);
+    m_combo_to_physical.push_back({});
     m_material_rows_sizer->Add(row, 0, wxEXPAND | wxTOP, FromDIP(9));
 
+    rebuild_all_combos();
     update_component_count_ui();
     update_preview();
     update_ok_button_state();
@@ -851,29 +890,42 @@ void MixedFilamentDialog::on_add_material()
     Refresh();
 }
 
-void MixedFilamentDialog::on_recommendation_clicked(unsigned int comp_a, unsigned int comp_b)
+void MixedFilamentDialog::on_remove_material()
 {
-    // Reset to 2-component with these selections
-    while (m_result.components.size() > 2) {
-        m_result.components.pop_back();
-        m_result.ratios.pop_back();
-        if (!m_combo_filaments.empty() && m_combo_filaments.size() > 2)
-            m_combo_filaments.pop_back();
-    }
+    if (num_components() <= 2)
+        return;
 
-    m_result.components = {comp_a, comp_b};
+    m_result.components.resize(2);
     m_result.ratios = {50, 50};
-
-    if (m_combo_filaments.size() >= 2) {
-        if (comp_a >= 1 && comp_a <= m_physical_names.size())
-            m_combo_filaments[0]->SetSelection(comp_a - 1);
-        if (comp_b >= 1 && comp_b <= m_physical_names.size())
-            m_combo_filaments[1]->SetSelection(comp_b - 1);
-    }
+    m_tri_wx = 0.5;
+    m_tri_wy = 0.5;
+    m_tri_wz = 0.0;
 
     if (m_label_ratio_a) m_label_ratio_a->SetLabel(wxT("50%"));
     if (m_label_ratio_b) m_label_ratio_b->SetLabel(wxT("50%"));
 
+    if (m_material_rows_sizer && m_material_rows_sizer->GetItemCount() > 2) {
+        auto* sizer_item = m_material_rows_sizer->GetItem(m_material_rows_sizer->GetItemCount() - 1);
+        if (sizer_item && sizer_item->GetSizer())
+            sizer_item->GetSizer()->Clear(true);
+        m_material_rows_sizer->Remove(m_material_rows_sizer->GetItemCount() - 1);
+    }
+
+    if (m_combo_filaments.size() > 2)
+        m_combo_filaments.pop_back();
+    if (m_combo_to_physical.size() > 2)
+        m_combo_to_physical.pop_back();
+
+    rebuild_all_combos();
+    update_component_count_ui();
+    update_preview();
+    update_ok_button_state();
+    Layout();
+    Refresh();
+}
+
+void MixedFilamentDialog::on_recommendation_clicked(unsigned int comp_a, unsigned int comp_b)
+{
     while (m_material_rows_sizer->GetItemCount() > 2) {
         auto* sizer_item = m_material_rows_sizer->GetItem(m_material_rows_sizer->GetItemCount() - 1);
         if (sizer_item && sizer_item->GetSizer())
@@ -881,6 +933,18 @@ void MixedFilamentDialog::on_recommendation_clicked(unsigned int comp_a, unsigne
         m_material_rows_sizer->Remove(m_material_rows_sizer->GetItemCount() - 1);
     }
 
+    while (m_combo_filaments.size() > 2)
+        m_combo_filaments.pop_back();
+    while (m_combo_to_physical.size() > 2)
+        m_combo_to_physical.pop_back();
+
+    m_result.components = {comp_a, comp_b};
+    m_result.ratios = {50, 50};
+
+    if (m_label_ratio_a) m_label_ratio_a->SetLabel(wxT("50%"));
+    if (m_label_ratio_b) m_label_ratio_b->SetLabel(wxT("50%"));
+
+    rebuild_all_combos();
     update_component_count_ui();
     update_preview();
     update_ok_button_state();
@@ -896,22 +960,100 @@ void MixedFilamentDialog::update_preview()
     if (m_triangle_panel)  m_triangle_panel->Refresh();
 }
 
+void MixedFilamentDialog::paint_warning_panel(wxPaintEvent&)
+{
+    wxBufferedPaintDC dc(m_warning_panel);
+    wxSize sz = m_warning_panel->GetClientSize();
+
+    dc.SetBrush(*wxWHITE_BRUSH);
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    dc.DrawRectangle(0, 0, sz.GetWidth(), sz.GetHeight());
+
+    dc.SetBrush(wxBrush(wxColour(255, 245, 245)));
+    dc.SetPen(wxPen(wxColour("#E84C4C"), 1));
+    dc.DrawRoundedRectangle(0, 0, sz.GetWidth(), sz.GetHeight(), FromDIP(4));
+
+    int x = FromDIP(10);
+    int cy = sz.GetHeight() / 2;
+
+    int icon_r = FromDIP(7);
+    dc.SetBrush(wxBrush(wxColour("#E84C4C")));
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    dc.DrawCircle(x + icon_r, cy, icon_r);
+    dc.SetFont(::Label::Body_10);
+    dc.SetTextForeground(*wxWHITE);
+    wxSize ex = dc.GetTextExtent(wxT("!"));
+    dc.DrawText(wxT("!"), x + icon_r - ex.GetWidth() / 2, cy - ex.GetHeight() / 2);
+    x += icon_r * 2 + FromDIP(6);
+
+    dc.SetFont(::Label::Body_12);
+    dc.SetTextForeground(wxColour("#E84C4C"));
+    wxString msg = _L("Non-identical filament types cannot be mixed. Please select the same type.");
+    int avail_w = sz.GetWidth() - x - FromDIP(10);
+    wxSize ts = dc.GetTextExtent(msg);
+    if (ts.GetWidth() <= avail_w) {
+        dc.DrawText(msg, x, cy - ts.GetHeight() / 2);
+    } else {
+        wxArrayString lines;
+        wxString cur_line;
+        wxArrayString words;
+        wxStringTokenizer tkz(msg, wxT(" "), wxTOKEN_RET_EMPTY_ALL);
+        while (tkz.HasMoreTokens()) words.Add(tkz.GetNextToken());
+        if (words.empty()) words.Add(msg);
+        for (size_t w = 0; w < words.size(); ++w) {
+            wxString test = cur_line.empty() ? words[w] : cur_line + wxT(" ") + words[w];
+            if (dc.GetTextExtent(test).GetWidth() > avail_w && !cur_line.empty()) {
+                lines.Add(cur_line);
+                cur_line = words[w];
+            } else {
+                cur_line = test;
+            }
+        }
+        if (!cur_line.empty()) lines.Add(cur_line);
+        if (lines.empty()) lines.Add(msg);
+        int line_h = dc.GetTextExtent(wxT("Mg")).GetHeight();
+        int total_h = (int)lines.size() * line_h;
+        int y0 = (sz.GetHeight() - total_h) / 2;
+        for (size_t l = 0; l < lines.size(); ++l)
+            dc.DrawText(lines[l], x, y0 + (int)l * line_h);
+    }
+}
+
 void MixedFilamentDialog::update_ok_button_state()
 {
     if (!m_btn_ok) return;
 
-    // Check for duplicate components
-    bool has_dup = false;
-    for (size_t i = 0; i < m_result.components.size() && !has_dup; ++i)
-        for (size_t j = i + 1; j < m_result.components.size() && !has_dup; ++j)
-            if (m_result.components[i] == m_result.components[j])
-                has_dup = true;
+    bool has_type_mismatch = false;
+    if (!m_physical_types.empty() && m_result.components.size() >= 2) {
+        std::string first_type;
+        for (size_t i = 0; i < m_result.components.size(); ++i) {
+            unsigned int phys = m_result.components[i];
+            if (phys < 1 || phys > m_physical_types.size()) continue;
+            const std::string& t = m_physical_types[phys - 1];
+            if (first_type.empty())
+                first_type = t;
+            else if (t != first_type) {
+                has_type_mismatch = true;
+                break;
+            }
+        }
+    }
 
-    m_btn_ok->Enable(!has_dup);
-    if (has_dup)
-        m_btn_ok->SetToolTip(_L("Components cannot use the same filament"));
-    else
+    m_btn_ok->Enable(!has_type_mismatch);
+    if (has_type_mismatch) {
+        m_btn_ok->SetBackgroundColor(wxColour("#CECECE"));
+        m_btn_ok->SetBorderColor(wxColour("#CECECE"));
+        m_btn_ok->SetToolTip(_L("Cannot mix different filament types"));
+    } else {
+        m_btn_ok->SetBackgroundColor(wxColour("#00AE42"));
+        m_btn_ok->SetBorderColor(wxColour("#00AE42"));
         m_btn_ok->SetToolTip(wxEmptyString);
+    }
+
+    if (m_warning_panel) {
+        m_warning_panel->Show(has_type_mismatch);
+        Layout();
+    }
 }
 
 void MixedFilamentDialog::update_gradient_direction_items()
@@ -1013,9 +1155,23 @@ void MixedFilamentDialog::update_component_count_ui()
         } else {
             m_btn_add_material->SetTextColor(wxColour("#CECECE"));
             m_btn_add_material->SetBorderColor(wxColour("#EEEEEE"));
-            m_btn_add_material->SetToolTip(_L("Maximum number of components reached"));
+            m_btn_add_material->SetToolTip(is_three ? _L("Maximum 3 materials for mixing") : _L("Maximum number of components reached"));
         }
     }
+
+    if (m_btn_remove_material) {
+        m_btn_remove_material->Show(is_three);
+        m_btn_remove_material->Enable(is_three);
+        m_btn_remove_material->SetToolTip(is_three ? _L("Remove the third material") : wxString());
+    }
+
+    int new_h = is_three ? FromDIP(680) : FromDIP(580);
+    wxRect old_rect = GetRect();
+    wxPoint center(old_rect.x + old_rect.width / 2, old_rect.y + old_rect.height / 2);
+    int new_w = FromDIP(439);
+    SetSize(new_w, new_h);
+    SetPosition(wxPoint(center.x - new_w / 2, center.y - new_h / 2));
+    Layout();
 }
 
 } // namespace GUI

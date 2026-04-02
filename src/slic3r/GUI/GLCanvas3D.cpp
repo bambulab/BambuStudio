@@ -9541,6 +9541,8 @@ void GLCanvas3D::_render_paint_toolbar() const
     bool disabled = !wxGetApp().plater()->can_fillcolor();
     unsigned char rgb[3];
 
+    auto gradient_info = wxGetApp().plater()->get_filament_gradient_info();
+
     for (int i = 0; i < extruder_num; i++) {
         if (i > 0)
             ImGui::SameLine();
@@ -9553,6 +9555,15 @@ void GLCanvas3D::_render_paint_toolbar() const
         if (ImGui::Button(("##filament_button" + std::to_string(i)).c_str(), button_size)) {
             if (!ImGui::IsMouseHoveringRect(left_arrow_button.Min, left_arrow_button.Max) && !ImGui::IsMouseHoveringRect(right_arrow_button.Min, right_arrow_button.Max))
                 wxPostEvent(m_canvas, IntEvent(EVT_GLTOOLBAR_FILLCOLOR, i + 1));
+        }
+        if (i < (int)gradient_info.size() && gradient_info[i].is_gradient) {
+            ImVec2 r_min = ImGui::GetItemRectMin();
+            ImVec2 r_max = ImGui::GetItemRectMax();
+            auto& gf = gradient_info[i].color_from;
+            auto& gt = gradient_info[i].color_to;
+            ImU32 col_from = IM_COL32(uint8_t(gf[0]*255.f), uint8_t(gf[1]*255.f), uint8_t(gf[2]*255.f), 255);
+            ImU32 col_to   = IM_COL32(uint8_t(gt[0]*255.f), uint8_t(gt[1]*255.f), uint8_t(gt[2]*255.f), 255);
+            draw_list->AddRectFilledMultiColor(r_min, r_max, col_from, col_to, col_to, col_from);
         }
         if (ImGui::IsItemHovered() && i < 9) {
             if (!ImGui::IsMouseHoveringRect(left_arrow_button.Min, left_arrow_button.Max) && !ImGui::IsMouseHoveringRect(right_arrow_button.Min, right_arrow_button.Max)) {

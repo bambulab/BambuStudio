@@ -591,6 +591,14 @@ public:
     std::vector<std::string> get_extruder_colors_from_plater_config(const GCodeProcessorResult* const result = nullptr) const;
     std::vector<std::string> get_filament_colors_render_info() const;
     std::vector<std::string> get_filament_color_render_type() const;
+
+    struct FilamentGradientInfo {
+        bool is_gradient = false;
+        std::array<float, 4> color_from = {0.5f, 0.5f, 0.5f, 1.0f};
+        std::array<float, 4> color_to   = {0.5f, 0.5f, 0.5f, 1.0f};
+    };
+    std::vector<FilamentGradientInfo> get_filament_gradient_info() const;
+
     std::vector<std::string> get_colors_for_color_print(const GCodeProcessorResult* const result = nullptr) const;
     bool is_color_size_equal() const;
 

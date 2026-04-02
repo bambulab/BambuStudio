@@ -336,6 +336,7 @@ void DropDown::render(wxDC &dc)
     for (int i = 0; i < items.size(); ++i) {
         auto &item = items[i];
         int states2 = states;
+        bool is_dimmed = (item.style & DD_ITEM_STYLE_DIMMED) != 0;
         if ((item.style & DD_ITEM_STYLE_DISABLED) != 0)
             states2 &= ~StateColor::Enabled;
         // Skip by group
@@ -403,7 +404,7 @@ void DropDown::render(wxDC &dc)
             }
             pt.y += (rcContent.height - textSize.y) / 2;
             dc.SetFont(GetFont());
-            dc.SetTextForeground(text_color.colorForStates(states2));
+            dc.SetTextForeground(is_dimmed ? wxColour(0xCE, 0xCE, 0xCE) : text_color.colorForStates(states2));
             dc.DrawText(text, pt);
             if (group.IsEmpty() && !item.group.IsEmpty()) {
                 auto szBmp = arrow_bitmap.GetBmpSize();

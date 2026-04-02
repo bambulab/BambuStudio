@@ -4978,6 +4978,32 @@ void Sidebar::update_mixed_filament_list()
 
             bool is_broken = broken_set.count(cfg_idx) > 0;
 
+            // Recalculate mixed color based on current physical colors
+            if (!is_broken && !comp_ids.empty() && comp_ids.size() == comp_ratios.size()) {
+                int ratio_sum = 0;
+                for (int r : comp_ratios) ratio_sum += r;
+                if (ratio_sum <= 0) ratio_sum = 100;
+
+                double mr = 0, mg = 0, mb = 0;
+                for (size_t j = 0; j < comp_ids.size(); ++j) {
+                    double w = (double)comp_ratios[j] / ratio_sum;
+                    std::string cs = (comp_ids[j] >= 1 && comp_ids[j] <= physical_colors.size())
+                        ? physical_colors[comp_ids[j] - 1] : "#808080";
+                    wxColour c(cs);
+                    mr += c.Red() * w; mg += c.Green() * w; mb += c.Blue() * w;
+                }
+                std::string new_mixed_color = wxColour((unsigned char)mr, (unsigned char)mg, (unsigned char)mb).GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+                
+                if (colours_opt && cfg_idx < colours_opt->values.size() && colours_opt->values[cfg_idx] != new_mixed_color) {
+                    colours_opt->values[cfg_idx] = new_mixed_color;
+                    
+                    auto* multi_colour_opt = project_config.option<ConfigOptionStrings>("filament_multi_colour");
+                    if (multi_colour_opt && cfg_idx < multi_colour_opt->values.size()) {
+                        multi_colour_opt->values[cfg_idx] = new_mixed_color;
+                    }
+                }
+            }
+
             bool is_gradient = false;
             int  gradient_direction = 0;
             if (grad_opt && cfg_idx < grad_opt->values.size())
@@ -5097,6 +5123,10 @@ void Sidebar::update_mixed_filament_list()
             content_panel->SetCursor(wxCursor(wxCURSOR_HAND));
             size_t panel_idx = i;
             content_panel->Bind(wxEVT_LEFT_UP, [this, panel_idx](wxMouseEvent&) { edit_mixed_filament(panel_idx); });
+            for (auto* child : content_panel->GetChildren()) {
+                child->SetCursor(wxCursor(wxCURSOR_HAND));
+                child->Bind(wxEVT_LEFT_UP, [this, panel_idx](wxMouseEvent&) { edit_mixed_filament(panel_idx); });
+            }
 
             combo_and_btn_sizer->Add(content_panel, 1, wxALL | wxEXPAND, FromDIP(2))->SetMinSize({-1, FromDIP(30)});
 
@@ -20337,7 +20367,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
             update_scheduled = true; // update should be scheduled (for update 3DScene) #2738
 
             if (update_filament_colors_in_full_config()) {
-                p->sidebar->obj_list()->update_filament_colors();
+                p->sidebar->update_mixed_filament_list();
                 dynamic_filament_list.update();
                 continue;
             }
@@ -20594,6 +20624,57 @@ bool Plater::is_color_size_equal() const
     return false;
 }
 
+namespace {
+struct MixedGradientSlot {
+    bool        is_gradient = false;
+    std::string color_from;
+    std::string color_to;
+};
+
+std::vector<MixedGradientSlot> parse_mixed_gradient_slots(const Slic3r::DynamicPrintConfig& config, size_t slot_count)
+{
+    std::vector<MixedGradientSlot> result(slot_count);
+    const auto* is_mixed   = config.option<ConfigOptionBools>("filament_is_mixed");
+    const auto* mixed_grad = config.option<ConfigOptionBools>("filament_mixed_gradient");
+    const auto* mixed_comp = config.option<ConfigOptionStrings>("filament_mixed_components");
+    const auto* grad_range = config.option<ConfigOptionStrings>("filament_mixed_gradient_range");
+    const auto* fil_colour = config.option<ConfigOptionStrings>("filament_colour");
+    if (!is_mixed || !mixed_grad || !mixed_comp || !fil_colour) return result;
+
+    for (size_t i = 0; i < slot_count && i < is_mixed->values.size(); ++i) {
+        if (!is_mixed->values[i]) continue;
+        if (i >= mixed_grad->values.size() || !mixed_grad->values[i]) continue;
+        if (i >= mixed_comp->values.size()) continue;
+
+        std::vector<unsigned int> comp_ids;
+        std::istringstream iss(mixed_comp->values[i]);
+        std::string tok;
+        while (std::getline(iss, tok, ',')) {
+            unsigned int v = 0;
+            if (std::sscanf(tok.c_str(), "%u", &v) == 1)
+                comp_ids.push_back(v);
+        }
+        if (comp_ids.size() != 2) continue;
+
+        int direction = 0;
+        if (grad_range && i < grad_range->values.size()) {
+            float v0 = 0, v1 = 0;
+            if (std::sscanf(grad_range->values[i].c_str(), "%f,%f", &v0, &v1) == 2)
+                direction = (v0 > v1) ? 0 : 1;
+        }
+
+        unsigned int from_id = (direction == 0) ? comp_ids[0] : comp_ids[1];
+        unsigned int to_id   = (direction == 0) ? comp_ids[1] : comp_ids[0];
+        result[i].is_gradient = true;
+        result[i].color_from = (from_id >= 1 && from_id <= fil_colour->values.size())
+            ? fil_colour->values[from_id - 1] : "#D9D9D9";
+        result[i].color_to = (to_id >= 1 && to_id <= fil_colour->values.size())
+            ? fil_colour->values[to_id - 1] : "#D9D9D9";
+    }
+    return result;
+}
+} // anonymous namespace
+
 std::vector<std::string> Plater::get_filament_colors_render_info() const
 {
     const Slic3r::DynamicPrintConfig* config = &wxGetApp().preset_bundle->project_config;
@@ -20601,6 +20682,13 @@ std::vector<std::string> Plater::get_filament_colors_render_info() const
     if (!config->has("filament_multi_colour")) return color_packs;
 
     color_packs = (config->option<ConfigOptionStrings>("filament_multi_colour"))->values;
+
+    auto slots = parse_mixed_gradient_slots(*config, color_packs.size());
+    for (size_t i = 0; i < color_packs.size(); ++i) {
+        if (slots[i].is_gradient)
+            color_packs[i] = slots[i].color_from + " " + slots[i].color_to;
+    }
+
     return color_packs;
 }
 
@@ -20611,7 +20699,35 @@ std::vector<std::string> Plater::get_filament_color_render_type() const
     if (!config->has("filament_colour_type")) return ctype;
 
     ctype = (config->option<ConfigOptionStrings>("filament_colour_type"))->values;
+
+    auto slots = parse_mixed_gradient_slots(*config, ctype.size());
+    while (ctype.size() < slots.size()) ctype.push_back("1");
+    for (size_t i = 0; i < ctype.size() && i < slots.size(); ++i) {
+        if (slots[i].is_gradient)
+            ctype[i] = "0";
+    }
+
     return ctype;
+}
+
+std::vector<Plater::FilamentGradientInfo> Plater::get_filament_gradient_info() const
+{
+    const Slic3r::DynamicPrintConfig* config = &wxGetApp().preset_bundle->project_config;
+    size_t n = get_extruder_colors_from_plater_config().size();
+    std::vector<FilamentGradientInfo> info(n);
+
+    auto slots = parse_mixed_gradient_slots(*config, n);
+    unsigned char rgba[4] = {};
+    for (size_t i = 0; i < n; ++i) {
+        if (!slots[i].is_gradient) continue;
+        info[i].is_gradient = true;
+        Slic3r::GUI::BitmapCache::parse_color4(slots[i].color_from, rgba);
+        info[i].color_from = {rgba[0] / 255.f, rgba[1] / 255.f, rgba[2] / 255.f, rgba[3] / 255.f};
+        Slic3r::GUI::BitmapCache::parse_color4(slots[i].color_to, rgba);
+        info[i].color_to = {rgba[0] / 255.f, rgba[1] / 255.f, rgba[2] / 255.f, rgba[3] / 255.f};
+    }
+
+    return info;
 }
 
 /* Get vector of colors used for rendering of a Preview scene in "Color print" mode
