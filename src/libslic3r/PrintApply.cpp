@@ -1,8 +1,10 @@
 #include "ClipperUtils.hpp"
 #include "Model.hpp"
 #include "Print.hpp"
+#include "filament_mixer.h"
 
 #include <cfloat>
+#include <memory>
 
 #include <boost/log/trivial.hpp>
 
@@ -1125,6 +1127,13 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 
     std::unordered_set <unsigned int> used_filament_set(used_filaments.begin(), used_filaments.end());
 
+    auto* is_mixed_opt = new_full_config.option<ConfigOptionBools>("filament_is_mixed");
+    auto* comp_strs_opt = new_full_config.option<ConfigOptionStrings>("filament_mixed_components");
+    if (is_mixed_opt && comp_strs_opt && has_any_mixed_filament(is_mixed_opt->values)) {
+        auto expanded = expand_mixed_filaments(used_filaments, is_mixed_opt->values, comp_strs_opt->values);
+        used_filament_set.insert(expanded.begin(), expanded.end());
+    }
+
     //new_full_config.normalize_fdm(used_filaments);
     new_full_config.normalize_fdm_1();
     DynamicConfig changed_keys_ori_values;
@@ -1364,8 +1373,29 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                         break;
                     }
                 }
-                if (same_map)
+                if (same_map) {
                     print_diff_set.erase("filament_map");
+
+                    const auto& retract_keys = print_config_def.extruder_retract_keys();
+                    const std::string filament_prefix = "filament_";
+                    std::vector<int> old_f_map_indices(old_filament_map.size(), 0);
+                    for (size_t i = 0; i < old_filament_map.size(); i++)
+                        old_f_map_indices[i] = old_filament_map[i] - 1;
+
+                    for (const auto& rk : retract_keys) {
+                        if (print_diff_set.find(rk) == print_diff_set.end())
+                            continue;
+                        const ConfigOption* opt_old   = m_config.option(rk);
+                        const ConfigOption* opt_new_m = new_full_config.option(rk);
+                        const ConfigOption* opt_new_f = new_full_config.option(filament_prefix + rk);
+                        if (opt_old && opt_new_m && opt_new_f) {
+                            std::unique_ptr<ConfigOption> opt_recomputed(opt_new_m->clone());
+                            opt_recomputed->apply_override(opt_new_f, old_f_map_indices);
+                            if (*opt_old == *opt_recomputed)
+                                print_diff_set.erase(rk);
+                        }
+                    }
+                }
             }
         }
         if (print_diff_set.size() != print_diff.size())

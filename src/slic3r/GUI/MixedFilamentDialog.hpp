@@ -57,12 +57,14 @@ private:
     void on_gradient_toggled();
     void on_gradient_direction_changed();
     void on_add_material();
+    void on_remove_material();
     void on_recommendation_clicked(unsigned int comp_a, unsigned int comp_b);
     void update_preview();
     void update_ok_button_state();
     void update_gradient_direction_items();
     void update_component_count_ui();
-    void update_type_constraints();
+    void rebuild_all_combos();
+    void paint_warning_panel(wxPaintEvent& evt);
 
     wxBitmap make_swatch_bitmap(size_t idx);
 
@@ -78,6 +80,9 @@ private:
     std::vector<std::string>    m_physical_names;
     std::vector<std::string>    m_physical_types;
 
+    // Combo item index -> 1-based physical filament index (per combo)
+    std::vector<std::vector<unsigned int>> m_combo_to_physical;
+
     // UI controls
     wxPanel*                    m_preview_canvas{nullptr};
     wxPanel*                    m_summary_panel{nullptr};
@@ -91,8 +96,11 @@ private:
     ComboBox*                   m_combo_gradient_dir{nullptr};
     wxBoxSizer*                 m_gradient_sizer{nullptr};
     Button*                     m_btn_add_material{nullptr};
+    Button*                     m_btn_remove_material{nullptr};
     Button*                     m_btn_ok{nullptr};
     Button*                     m_btn_cancel{nullptr};
+    wxBoxSizer*                 m_warning_sizer{nullptr};
+    wxPanel*                    m_warning_panel{nullptr};
 
     wxBoxSizer*                 m_ratio_sizer{nullptr};
     wxBoxSizer*                 m_triangle_sizer{nullptr};

@@ -27,6 +27,7 @@
 #include <cassert>
 #include <limits>
 #include <algorithm>
+#include <numeric>
 #include <unordered_map>
 #include <cstdlib>
 #include <iostream>
@@ -2046,6 +2047,22 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
                     new_extruders.push_back(comp_0based);
                 }
                 grp.sub_heights = sub_heights;
+
+                if (grp.components_0based.size() > 1) {
+                    std::vector<size_t> idx(grp.components_0based.size());
+                    std::iota(idx.begin(), idx.end(), 0);
+                    std::sort(idx.begin(), idx.end(), [&](size_t a, size_t b) {
+                        return grp.components_0based[a] < grp.components_0based[b];
+                    });
+                    std::vector<unsigned int> sorted_comps;
+                    std::vector<double> sorted_heights;
+                    for (size_t i : idx) {
+                        sorted_comps.push_back(grp.components_0based[i]);
+                        sorted_heights.push_back(grp.sub_heights[i]);
+                    }
+                    grp.components_0based = std::move(sorted_comps);
+                    grp.sub_heights = std::move(sorted_heights);
+                }
 
                 lt.mixed_sub_layer_groups.push_back(std::move(grp));
             } else {
