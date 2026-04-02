@@ -55,7 +55,6 @@ static std::vector<std::string> s_project_options {
     "filament_nozzle_map",
     "extruder_nozzle_stats",
     "prime_volume_mode",
-    "extruder_full_stats",
     "enable_filament_dynamic_map",
     "filament_is_mixed",
     "filament_mixed_components",
