@@ -2158,7 +2158,8 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
         return;
     }
     if (obj_->is_lan_mode_printer()) {
-        if (obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::NO_SDCARD) {
+        if (obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::NO_SDCARD
+            && !obj_->is_support_print_with_emmc) {
             error_message = _L("Storage needs to be inserted before printing via LAN.");
             return;
         }
@@ -2272,7 +2273,8 @@ void CalibUtils::send_to_print(const std::vector<CalibInfo> &calib_infos, wxStri
         return;
     }
     if (obj_->is_lan_mode_printer()) {
-        if (obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::NO_SDCARD) {
+        if (obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::NO_SDCARD
+            && !obj_->is_support_print_with_emmc) {
             error_message = _L("Storage needs to be inserted before printing via LAN.");
             return;
         }
