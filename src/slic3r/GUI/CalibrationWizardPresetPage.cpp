@@ -1887,7 +1887,8 @@ void CalibrationPresetPage::update_show_status()
 
     // check sdcard when if lan mode printer
     if (obj_->is_lan_mode_printer()) {
-        if (obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::NO_SDCARD) {
+        if (obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::NO_SDCARD
+            && !obj_->is_support_print_with_emmc) {
             show_status(CaliPresetPageStatus::CaliPresetStatusLanModeNoSdcard);
             return;
         } else if (obj_->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::HAS_SDCARD_ABNORMAL ||
