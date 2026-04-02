@@ -50,10 +50,19 @@ protected:
 
 private:
     void create_player();
+    void updateIdleLayer();
+    void updateWatermarkLayer();
+    void removeIdleLayer();
+
     void * m_player = nullptr;
     wxMediaState m_state = wxMEDIASTATE_STOPPED;
     int          m_error  = 0;
     wxSize       m_video_size{16, 9};
+
+    wxString m_idle_image;
+    wxString m_watermark_text;
+    void *   m_idle_layer = nullptr;      // CALayer* for idle image
+    void *   m_watermark_layer = nullptr;  // CATextLayer* for watermark
 };
 
 #else
