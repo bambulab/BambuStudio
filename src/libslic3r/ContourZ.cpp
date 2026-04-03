@@ -2,6 +2,7 @@
 #include "ExtrusionEntity.hpp"
 #include "ExtrusionEntityCollection.hpp"
 #include "Layer.hpp"
+#include "Line.hpp"
 #include "Point.hpp"
 #include "libslic3r.h"
 #include <cfloat>
@@ -91,9 +92,9 @@ static bool contour_extrusion_path(LayerRegion *region, const sla::IndexedMesh &
 		Vec2d p2d(unscale_((it+1)->x()), unscale_((it+1)->y()));
 		Linef line(p1d, p2d);
 
-		double length_mm = line.length();
+		double length_mm = (line.b - line.a).norm();
 		int num_segments = int(std::ceil(length_mm / resolution_mm));
-		Vec2d delta = line.vector();
+		Vec2d delta = (line.b - line.a);
 
 		for (int i = 0; i < num_segments+1; i++) {
 			Vec2d p = p1d + delta*i/num_segments;
@@ -151,9 +152,9 @@ static bool contour_extrusion_path(LayerRegion *region, const sla::IndexedMesh &
 			Vec3d new_point = {p.x(), p.y(), d};
 
 			if (contoured_points.size() > 2) {
-				double dist = Linef3::distance_to_infinite_squared(
-					contoured_points[contoured_points.size() - 2],
-					contoured_points[contoured_points.size() - 1],
+				double dist = line_alg::distance_to_infinite_squared(
+					Linef3(contoured_points[contoured_points.size() - 2],
+					       contoured_points[contoured_points.size() - 1]),
 					new_point);
 				if (dist < EPSILON) {
 					contoured_points[contoured_points.size() - 1] = new_point;

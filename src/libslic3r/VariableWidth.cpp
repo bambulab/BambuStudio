@@ -65,8 +65,8 @@ ExtrusionMultiPath thick_polyline_to_multi_path(const ThickPolyline& thick_polyl
         const double w        = fmax(line.a_width, line.b_width);
         const Flow   new_flow = (role == erOverhangPerimeter && flow.bridge()) ? flow : flow.with_width(unscale<float>(w) + flow.height() * float(1. - 0.25 * PI));
         if (path.polyline.points.empty()) {
-            path.polyline.append(line.a);
-            path.polyline.append(line.b);
+            path.polyline.append(Point3(line.a.x(), line.a.y(), 0));
+            path.polyline.append(Point3(line.b.x(), line.b.y(), 0));
             // Convert from spacing to extrusion width based on the extrusion model
             // of a square extrusion ended with semi circles.
             #ifdef SLIC3R_DEBUG
@@ -81,7 +81,7 @@ ExtrusionMultiPath thick_polyline_to_multi_path(const ThickPolyline& thick_polyl
             if (thickness_delta <= merge_tolerance) {
                 // the width difference between this line and the current flow
                 // (of the previous line) width is within the accepted tolerance
-                path.polyline.append(line.b);
+                path.polyline.append(Point3(line.b.x(), line.b.y(), 0));
             } else {
                 // we need to initialize a new line
                 multi_path.paths.emplace_back(std::move(path));
@@ -128,9 +128,9 @@ static ExtrusionPaths thick_polyline_to_extrusion_paths_2(const ThickPolyline& t
                 for (int idx = start_index; idx < i; idx++) {
                     length += lines[idx].length();
                     sum += lines[idx].length() * 0.5 * (lines[idx].a_width + lines[idx].b_width);
-                    path.polyline.append(lines[idx].a);
+                    path.polyline.append(Point3(lines[idx].a.x(), lines[idx].a.y(), 0));
                 }
-                path.polyline.append(lines[i].a);
+                path.polyline.append(Point3(lines[i].a.x(), lines[i].a.y(), 0));
                 if (length > SCALED_EPSILON) {
                     double w = sum / length;
                     Flow new_flow = flow.with_width(unscale<float>(w) + flow.height() * float(1. - 0.25 * PI));
@@ -195,9 +195,9 @@ static ExtrusionPaths thick_polyline_to_extrusion_paths_2(const ThickPolyline& t
         for (int idx = start_index; idx < final_size; idx++) {
             length += lines[idx].length();
             sum += lines[idx].length() * (lines[idx].a_width + lines[idx].b_width) * 0.5;
-            path.polyline.append(lines[idx].a);
+            path.polyline.append(Point3(lines[idx].a.x(), lines[idx].a.y(), 0));
         }
-        path.polyline.append(lines[final_size - 1].b);
+        path.polyline.append(Point3(lines[final_size - 1].b.x(), lines[final_size - 1].b.y(), 0));
         if (length > SCALED_EPSILON) {
             double w = sum / length;
             Flow new_flow = flow.with_width(unscale<float>(w) + flow.height() * float(1. - 0.25 * PI));

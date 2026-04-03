@@ -435,7 +435,7 @@ static ExtrusionEntityCollection traverse_loops(const PerimeterGenerator &perime
         } else {
             ExtrusionPath path(role);
             //BBS.
-            path.polyline = polygon.split_at_first_point();
+            path.polyline = Polyline3(polygon.split_at_first_point());
             path.overhang_degree = 0;
             path.curve_degree = 0;
             path.mm3_per_mm = extrusion_mm3_per_mm;

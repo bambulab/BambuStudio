@@ -4884,9 +4884,9 @@ void GCode::set_origin(const Vec2d &pointf)
 {
     // if origin increases (goes towards right), last_pos decreases because it goes towards left
     const Point3 translate(
-        scale_(m_origin(0) - pointf(0)),
-        scale_(m_origin(1) - pointf(1)),
-        0
+        coord_t(scale_(m_origin(0) - pointf(0))),
+        coord_t(scale_(m_origin(1) - pointf(1))),
+        coord_t(0)
     );
     m_last_pos += translate;
     m_wipe.path.translate(translate.to_point());
@@ -6313,7 +6313,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 path_length += line_length;
 
                 if (path.z_contoured) {
-                    Vec2d dest2d = this->point_to_gcode(line.b.to_point());
+                    Vec2d dest2d = this->point_to_gcode(Point(line.b.x(), line.b.y()));
                     coordf_t z_diff = unscale_(line.b.z());
 
                     double extrusion_ratio = 1;
@@ -6334,7 +6334,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
                 } else if (sloped == nullptr) {
                     gcode += m_writer.extrude_to_xy(
-                        this->point_to_gcode(line.b.to_point()),
+                        this->point_to_gcode(Point(line.b.x(), line.b.y())),
                         e_per_mm * line_length,
                         comment);
                 } else {
@@ -6343,7 +6343,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                     auto [z_ratio, e_ratio, slope_speed] = sloped->interpolate(path_length / total_length);
                     //FIX: cooling need to apply correctly
                     //gcode += m_writer.set_speed(slope_speed * 60, "", comment);
-                    Vec2d dest2d = this->point_to_gcode(line.b.to_point());
+                    Vec2d dest2d = this->point_to_gcode(Point(line.b.x(), line.b.y()));
                     Vec3d dest3d(dest2d(0), dest2d(1), get_sloped_z(z_ratio));
                     //BBS: todo, should use small e at start to get good seam
                     double slope_e = dE * e_ratio;
@@ -7226,7 +7226,7 @@ void GCode::ObjectByExtruder::Island::Region::append(const Type type, const Extr
         for (auto* ee : eec->entities)
             perimeters_or_infills->emplace_back(ee);
     } else
-        perimeters_or_infills->emplace_back(const_cast<ExtrusionEntityCollection*>(eec));
+        perimeters_or_infills->push_back(const_cast<ExtrusionEntityCollection*>(eec));
 
     if (copies_extruder != nullptr) {
         // Don't reallocate overrides if not needed.

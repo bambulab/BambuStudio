@@ -1181,7 +1181,7 @@ namespace SupportMaterialInternal {
                         // This is a complete loop.
                         // Add the outer contour first.
                         Polygon poly;
-                        poly.points = ep.polyline.points;
+                        poly.points = to_points(ep.polyline.points);
                         poly.points.pop_back();
                         if (poly.area() < 0)
                             poly.reverse();
@@ -1192,7 +1192,7 @@ namespace SupportMaterialInternal {
                     }
                 } else if (ep.size() >= 2) {
                     // Offset the polyline.
-                    polygons_append(out, offset(ep.polyline, exp, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+                    polygons_append(out, offset(ep.polyline.to_polyline(), exp, SUPPORT_SURFACES_OFFSET_PARAMETERS));
                 }
             }
     }

@@ -3491,7 +3491,7 @@ static void to_json(json& j, const Polyline& poly_line) {
 }
 
 static void to_json(json& j, const ExtrusionPath& extrusion_path) {
-    j[JSON_EXTRUSION_POLYLINE] = extrusion_path.polyline;
+    j[JSON_EXTRUSION_POLYLINE] = extrusion_path.polyline.to_polyline();
     j[JSON_EXTRUSION_OVERHANG_DEGREE] = extrusion_path.overhang_degree;
     j[JSON_EXTRUSION_CURVE_DEGREE] = extrusion_path.curve_degree;
     j[JSON_EXTRUSION_MM3_PER_MM] = extrusion_path.mm3_per_mm;

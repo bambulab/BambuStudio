@@ -1854,7 +1854,8 @@ void TreeSupport::generate_toolpaths()
 
                         if (area_group.need_cooling) 
                         {
-                            std::function<void(ExtrusionEntityCollection *)> setOverhangDegreeImpl = [&](ExtrusionEntityCollection *entity) {
+                            std::function<void(ExtrusionEntityCollection *)> setOverhangDegreeImpl;
+                        setOverhangDegreeImpl = [&setOverhangDegreeImpl](ExtrusionEntityCollection *entity) {
                                 for (auto entityPtr : entity->entities) {
                                     if (ExtrusionEntityCollection *collection = dynamic_cast<ExtrusionEntityCollection *>(entityPtr)) {
                                         setOverhangDegreeImpl(collection);

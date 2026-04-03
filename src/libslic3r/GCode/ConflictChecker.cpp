@@ -142,21 +142,23 @@ LineWithIDs LinesBucketQueue::getCurLines() const
     return lines;
 }
 
+static void getExtrusionPathImpl(const ExtrusionEntityCollection *entity, ExtrusionPaths &paths)
+{
+    for (auto entityPtr : entity->entities) {
+        if (const ExtrusionEntityCollection *collection = dynamic_cast<ExtrusionEntityCollection *>(entityPtr)) {
+            getExtrusionPathImpl(collection, paths);
+        } else if (const ExtrusionPath *path = dynamic_cast<ExtrusionPath *>(entityPtr)) {
+            paths.push_back(*path);
+        } else if (const ExtrusionMultiPath *multipath = dynamic_cast<ExtrusionMultiPath *>(entityPtr)) {
+            for (const ExtrusionPath &path : multipath->paths) { paths.push_back(path); }
+        } else if (const ExtrusionLoop *loop = dynamic_cast<ExtrusionLoop *>(entityPtr)) {
+            for (const ExtrusionPath &path : loop->paths) { paths.push_back(path); }
+        }
+    }
+}
+
 void getExtrusionPathsFromEntity(const ExtrusionEntityCollection *entity, ExtrusionPaths &paths)
 {
-    std::function<void(const ExtrusionEntityCollection *, ExtrusionPaths &)> getExtrusionPathImpl = [&](const ExtrusionEntityCollection *entity, ExtrusionPaths &paths) {
-        for (auto entityPtr : entity->entities) {
-            if (const ExtrusionEntityCollection *collection = dynamic_cast<ExtrusionEntityCollection *>(entityPtr)) {
-                getExtrusionPathImpl(collection, paths);
-            } else if (const ExtrusionPath *path = dynamic_cast<ExtrusionPath *>(entityPtr)) {
-                paths.push_back(*path);
-            } else if (const ExtrusionMultiPath *multipath = dynamic_cast<ExtrusionMultiPath *>(entityPtr)) {
-                for (const ExtrusionPath &path : multipath->paths) { paths.push_back(path); }
-            } else if (const ExtrusionLoop *loop = dynamic_cast<ExtrusionLoop *>(entityPtr)) {
-                for (const ExtrusionPath &path : loop->paths) { paths.push_back(path); }
-            }
-        }
-    };
     getExtrusionPathImpl(entity, paths);
 }
 

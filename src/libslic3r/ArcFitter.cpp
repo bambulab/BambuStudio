@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <cassert>
+#include <type_traits>
 
 namespace Slic3r {
 
@@ -118,7 +119,16 @@ static void do_arc_fitting_and_simplify_tmpl(POINTS &points, std::vector<PathFit
     //for arc part, only need to keep start and end point
     if (result.size() == 1 && result[0].path_type == EMovePathType::Linear_move) {
         //BBS: all are straight segment, directly use DP simplify
-        points = MultiPoint::_douglas_peucker(points, tolerance);
+        if constexpr (std::is_same_v<POINTS, Points3>) {
+            Points pts2d;
+            pts2d.reserve(points.size());
+            for (auto& p : points) pts2d.push_back(p.to_point());
+            pts2d = MultiPoint::_douglas_peucker(pts2d, tolerance);
+            points.clear();
+            for (auto& p : pts2d) points.emplace_back(p.x(), p.y(), 0);
+        } else {
+            points = MultiPoint::_douglas_peucker(points, tolerance);
+        }
         result[0].end_point_index = points.size() - 1;
         return;
     } else {
@@ -140,7 +150,16 @@ static void do_arc_fitting_and_simplify_tmpl(POINTS &points, std::vector<PathFit
             straight_or_arc_part.reserve(end_index - start_index + 1);
             for (size_t j = start_index; j <= end_index; j++)
                 straight_or_arc_part.push_back(points[j]);
-            straight_or_arc_part = MultiPoint::_douglas_peucker(straight_or_arc_part, tolerance);
+            if constexpr (std::is_same_v<POINTS, Points3>) {
+                Points pts2d;
+                pts2d.reserve(straight_or_arc_part.size());
+                for (auto& p : straight_or_arc_part) pts2d.push_back(p.to_point());
+                pts2d = MultiPoint::_douglas_peucker(pts2d, tolerance);
+                straight_or_arc_part.clear();
+                for (auto& p : pts2d) straight_or_arc_part.emplace_back(p.x(), p.y(), 0);
+            } else {
+                straight_or_arc_part = MultiPoint::_douglas_peucker(straight_or_arc_part, tolerance);
+            }
             //BBS: how many point has been reduced
             reduce_count[i] = end_index - start_index + 1 - straight_or_arc_part.size();
             //BBS: save the simplified result

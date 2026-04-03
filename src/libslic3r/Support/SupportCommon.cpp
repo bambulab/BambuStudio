@@ -755,7 +755,7 @@ void tree_supports_generate_paths(
         }
         if (eec) {
             std::reverse(eec->entities.begin(), eec->entities.end());
-            dst.emplace_back(eec.release());
+            dst.push_back(eec.release());
         }
     }
 }
@@ -805,7 +805,7 @@ void fill_expolygons_with_sheath_generate_paths(
         // Fill in the rest.
         fill_expolygons_generate_paths(out, offset_ex(expoly, float(-0.4 * spacing)), filler, fill_params, density, role, flow);
         if (no_sort && ! eec->empty())
-            dst.emplace_back(eec.release());
+            dst.push_back(eec.release());
     }
 }
 
@@ -1230,7 +1230,7 @@ static void modulate_extrusion_by_overlapping_layers(
         for (ExtrusionEntity *ee : extrusions_in_out) {
             ExtrusionPath *path = dynamic_cast<ExtrusionPath*>(ee);
             assert(path != nullptr);
-            polylines.emplace_back(Polyline(std::move(path->polyline)));
+            polylines.emplace_back(path->polyline.to_polyline());
             path_ends.emplace_back(std::pair<Point, Point>(polylines.back().points.front(), polylines.back().points.back()));
             delete path;
         }
