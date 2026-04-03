@@ -283,7 +283,7 @@ protected:
     std::vector<std::string> m_cache_options;
 
 
-	bool				m_page_switch_running = false;
+    bool				m_page_switch_running = false;
 	bool				m_page_switch_planned = false;
 
     bool				m_is_timelapse_wipe_tower_already_prompted = false;
@@ -622,8 +622,12 @@ private:
 	ogStaticText*	m_fff_print_host_upload_description_line {nullptr};
 	ogStaticText*	m_sla_print_host_upload_description_line {nullptr};
 
-    std::vector<PageShp>			m_pages_fff;
-    std::vector<PageShp>			m_pages_sla;
+    std::vector<PageShp> m_pages_fff;
+    std::vector<PageShp> m_pages_sla;
+    std::vector<int> 	 m_extruder_type;
+    std::string          m_base_preset_name;
+    std::string 		 m_base_preset_model;
+    std::string          m_last_base_preset_name;
 
 public:
 	ScalableButton*	m_reset_to_filament_color = nullptr;
@@ -634,9 +638,6 @@ public:
 	size_t		m_sys_extruders_count;
 	size_t		m_cache_extruder_count = 0;
 	std::vector<std::string> m_extruder_variant_list;
-	std::vector<int> m_extruder_type;
-	std::string m_base_preset_name;
-	std::string m_base_preset_model;
 
     PrinterTechnology               m_printer_technology = ptFFF;
 
@@ -669,6 +670,13 @@ public:
 	wxSizer*	create_bed_shape_widget(wxWindow* parent);
 	void		cache_extruder_cnt();
 	bool		apply_extruder_cnt_from_cache();
+	
+	// when switching printers, should we keep/transfer or discard user modified parameters?
+	// the old logic is a bit complex and it is too risky to touch it
+	// just add a patch here to handle some discarded case:
+	//     for printers with the same number of extuders and used the same nozzle configurations, keep it
+	// Maybe we can simplify this logic and move them into one place
+	bool should_keep_config() const;
 };
 
 class TabSLAMaterial : public Tab
