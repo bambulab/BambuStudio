@@ -69,10 +69,38 @@ namespace GUI {
 static const std::vector<std::string> plate_keys = { "curr_bed_type", "first_layer_print_sequence", "first_layer_sequence_choice", "other_layers_print_sequence", "other_layers_sequence_choice", "print_sequence", "spiral_mode"};
 
 static std::pair<std::string, std::string> extruder_variant_keys[]{
-    {}, {"print_extruder_id", "print_extruder_variant"},     // Preset::TYPE_PRINT
-    {}, {"", "filament_extruder_variant"},                   // Preset::TYPE_FILAMENT filament don't use id anymore
-    {}, {"printer_extruder_id", "printer_extruder_variant"}, // Preset::TYPE_PRINTER
+    {},                                                  // invalid
+    {"print_extruder_id", "print_extruder_variant"},     // Preset::TYPE_PRINT
+    {},                                                  // invalid
+    {"", "filament_extruder_variant"},                   // Preset::TYPE_FILAMENT filament don't use id anymore
+    {},                                                  // invalid
+    {"printer_extruder_id", "printer_extruder_variant"}, // Preset::TYPE_PRINTER
 };
+
+size_t extruders_count(const Preset *printer)
+{
+    if (!printer) return 0;
+
+    auto *nozzle_diameter = dynamic_cast<const ConfigOptionFloatsNullable *>(printer->config.option("nozzle_diameter"));
+    if (!nozzle_diameter) return 0;
+
+    return nozzle_diameter->values.size();
+}
+
+// default or last used nozzle volume types will be used when switching to printer_name
+// restore last used if possible
+// ';' segmented if multiple, such as "High Flow;Standard"
+std::string default_nozzle_volume_types(const PresetBundle *preset_bundle, const Preset *printer)
+{
+    if (!printer) return {};
+    auto *base_printer = preset_bundle->printers.get_preset_base(*printer);
+    if (!base_printer) base_printer = printer;
+
+    auto nozzle_volume_type = wxGetApp().app_config->get_nozzle_volume_types_from_config(base_printer->name);
+    if (!nozzle_volume_type.empty()) return nozzle_volume_type;
+
+    return printer->config.option<ConfigOptionEnumsGeneric>("default_nozzle_volume_type")->serialize();
+}
 
 void Tab::Highlighter::set_timer_owner(wxEvtHandler* owner, int timerid/* = wxID_ANY*/)
 {
@@ -2821,7 +2849,9 @@ void Tab::apply_config_from_cache()
                 }
                 old_variants = new_variants;
             }
-            if (*old_variants == *new_variants) {
+            auto *printer_tab = static_cast<TabPrinter *>(wxGetApp().get_tab(Preset::Type::TYPE_PRINTER));
+            assert(printer_tab);
+            if ((*old_variants == *new_variants) || (printer_tab && printer_tab->should_keep_config())) {
                 m_cache_options.insert(m_cache_options.end(), variant_options.begin(), variant_options.end());
             } else {
                 auto msg = _L("Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters.");
@@ -5596,6 +5626,7 @@ void TabPrinter::on_preset_loaded()
 
     if (base_name != m_base_preset_name) {
         bool use_default_nozzle_volume_type = true;
+        m_last_base_preset_name = m_base_preset_name;
         m_base_preset_name = base_name;
         std::string prev_nozzle_volume_type = wxGetApp().app_config->get_nozzle_volume_types_from_config(base_name);
         if (!prev_nozzle_volume_type.empty()) {
@@ -6556,7 +6587,6 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
         if (!no_transfer) {
             Preset::Type type = presets->type();
             Tab * tab = wxGetApp().get_tab(type);
-            auto& options_list = tab->m_options_list;
             auto &cache_options = tab->m_cache_options;
             auto &cache_config = tab->m_cache_config;
             auto &edited_config = presets->get_edited_preset().config;
@@ -7431,6 +7461,17 @@ bool TabPrinter::apply_extruder_cnt_from_cache()
         return true;
     }
     return false;
+}
+
+bool TabPrinter::should_keep_config() const {
+    const auto *old_printer = m_preset_bundle->printers.find_preset(m_last_base_preset_name);
+    const auto &cur_printer     = m_preset_bundle->printers.get_selected_preset();
+
+    if (extruders_count(old_printer) != extruders_count(&cur_printer)) return false;
+
+    auto old_nozzle = default_nozzle_volume_types(m_preset_bundle, old_printer);
+    auto new_nozzle = default_nozzle_volume_types(m_preset_bundle, &cur_printer);
+    return old_nozzle == new_nozzle;
 }
 
 bool Tab::validate_custom_gcodes()
