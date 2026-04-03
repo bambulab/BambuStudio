@@ -1253,6 +1253,13 @@ FilamentGroupContext build_filament_group_context(
     auto extruder_ams_counts = get_extruder_ams_count(extruder_ams_count_str);
     std::vector<int> group_size = calc_max_group_size(extruder_ams_counts, ignore_ext_filament);
 
+    // When filament switcher is connected, disable AMS capacity limit for grouping
+    if (print_config.has_filament_switcher) {
+        int total_filaments = (int)filament_nums;
+        for (auto& s : group_size)
+            s = std::max(s, total_filaments);
+    }
+
     std::vector<bool> prefer_non_model_filament(extruder_nums);
     for (size_t idx = 0; idx < extruder_nums; ++idx)
         prefer_non_model_filament[idx] = (print_config.extruder_type.values[idx] == ExtruderType::etBowden);
