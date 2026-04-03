@@ -4,6 +4,7 @@
 #include "libslic3r.h"
 #include "BoundingBox.hpp"
 #include "Flow.hpp"
+#include "SLA/IndexedMesh.hpp"
 #include "SurfaceCollection.hpp"
 #include "ExtrusionEntityCollection.hpp"
 #include "RegionExpansion.hpp"
@@ -194,6 +195,7 @@ public:
         for (const LayerRegion *layerm : m_regions) if (layerm->slices.any_bottom_contains(item)) return true;
         return false;
     }
+    void                    make_contour_z(const sla::IndexedMesh &mesh);
     void                    make_perimeters();
     //BBS
     void                    calculate_perimeter_continuity(std::vector<LoopNode> &prev_nodes);

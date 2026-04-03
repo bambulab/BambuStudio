@@ -126,6 +126,9 @@ public:
     // In scaled coordinates. Bounding box of the 2D projection of the object.
     BoundingBox bounding_box;
 
+    // ZAA: don't alternate fill direction between layers
+    bool        dont_alternate_fill_direction { false };
+
     // Octree builds on mesh for usage in the adaptive cubic infill
     FillAdaptive::Octree* adapt_fill_octree = nullptr;
 
@@ -172,6 +175,7 @@ public:
         bounding_box          = f->bounding_box;
         adapt_fill_octree     = f->adapt_fill_octree;
         no_overlap_expolygons = f->no_overlap_expolygons;
+        dont_alternate_fill_direction = f->dont_alternate_fill_direction;
     };
 
 protected:

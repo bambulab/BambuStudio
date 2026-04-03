@@ -18,7 +18,12 @@ class BoundingBox;
 class BoundingBoxf;
 class Line;
 class MultiPoint;
+class MultiPoint3;
 class Point;
+class Point3;
+class Polyline;
+class Polyline3;
+class Line3;
 using Vector = Point;
 
 // Base template for eigen derived vectors
@@ -51,11 +56,16 @@ using Vec4d   = Eigen::Matrix<double,   4, 1, Eigen::DontAlign>;
 using Points         = std::vector<Point>;
 using PointPtrs      = std::vector<Point*>;
 using PointConstPtrs = std::vector<const Point*>;
-using Points3        = std::vector<Vec3crd>;
+using Points3        = std::vector<Point3>;
 using Pointfs        = std::vector<Vec2d>;
 using Vec2ds         = std::vector<Vec2d>;
 using Pointf3s       = std::vector<Vec3d>;
 using VecOfPoints    = std::vector<Points>;
+
+Polyline to_polyline(const Points &points);
+Polyline3 to_polyline(const Points3 &points);
+
+Points to_points(const Points3 &points);
 
 using Matrix2f       = Eigen::Matrix<float,  2, 2, Eigen::DontAlign>;
 using Matrix2d       = Eigen::Matrix<double, 2, 2, Eigen::DontAlign>;
@@ -180,8 +190,12 @@ public:
     Point(const Point &rhs) { *this = rhs; }
 	explicit Point(const Vec2d& rhs) : Vec2crd(coord_t(lrint(rhs.x())), coord_t(lrint(rhs.y()))) {}
 	// This constructor allows you to construct Point from Eigen expressions
-    template<typename OtherDerived>
-    Point(const Eigen::MatrixBase<OtherDerived> &other) : Vec2crd(other) {}
+    // template<typename OtherDerived>
+    // Point(const Eigen::MatrixBase<OtherDerived> &other) : Vec2crd(other) {}
+    template<typename T,
+         std::enable_if_t<
+             std::is_convertible_v<T, Eigen::Matrix<coord_t, 2, 1, Eigen::DontAlign>>, int> = 0>
+    Point(const T &other2) : Vec2crd(other2) {}
     static Point new_scale(coordf_t x, coordf_t y) { return Point(coord_t(scale_(x)), coord_t(scale_(y))); }
     static Point new_scale(const Vec2d &v) { return Point(coord_t(scale_(v.x())), coord_t(scale_(v.y()))); }
     static Point new_scale(const Vec2f &v) { return Point(coord_t(scale_(v.x())), coord_t(scale_(v.y()))); }
@@ -255,6 +269,102 @@ inline bool operator<(const Point &l, const Point &r)
 inline Point operator* (const Point& l, const double& r)
 {
     return { coord_t(l.x() * r), coord_t(l.y() * r) };
+}
+
+class Point3 : public Vec3crd {
+public:
+    Point3() : Vec3crd(0, 0, 0) {}
+    Point3(int32_t x, int32_t y, int32_t z = 0) : Vec3crd(coord_t(x), coord_t(y), coord_t(z)) {}
+    // Point3(int64_t x, int64_t y, int64_t z = 0) : Vec3crd(coord_t(x), coord_t(y), coord_t(z)) {}
+    Point3(double x, double y, double z = 0.0) : Vec3crd(coord_t(lrint(x)), coord_t(lrint(y)), coord_t(lrint(z))) {}
+    Point3(const Point3 &rhs) { *this = rhs; }
+    explicit Point3(const Point &rhs, coord_t z) : Vec3crd(rhs.x(), rhs.y(),z) {}
+    // explicit Point3(const Vec3d& rhs) : Vec3crd(coord_t(lrint(rhs.x())), coord_t(lrint(rhs.y())), coord_t(lrint(rhs.z()))) {}
+    Point3(const Vec3crd &vec3crd) : Vec3crd(vec3crd) {}
+	// This constructor allows you to construct Point from Eigen expressions
+    // template<typename OtherDerived>
+    // Point3(const Eigen::MatrixBase<OtherDerived> &other) : Vec3crd(other) {}
+
+    static Point3 new_scale(coordf_t x, coordf_t y, coordf_t z) { return Point3(coord_t(scale_(x)), coord_t(scale_(y)), coord_t(scale_(z))); }
+    static Point3 new_scale(const Vec3d &v) { return Point3(coord_t(scale_(v.x())), coord_t(scale_(v.y())), coord_t(scale_(v.z()))); }
+    static Point3 new_scale(const Vec3f &v) { return Point3(coord_t(scale_(v.x())), coord_t(scale_(v.y())), coord_t(scale_(v.z()))); }
+
+    // This method allows you to assign Eigen expressions to MyVectorType
+    template<typename OtherDerived>
+    Point3& operator=(const Eigen::MatrixBase<OtherDerived> &other)
+    {
+        this->Vec3crd::operator=(other);
+        return *this;
+    }
+
+    Point3& operator+=(const Point3& rhs) { this->x() += rhs.x(); this->y() += rhs.y(); this->z() += rhs.z(); return *this; }
+    Point3& operator-=(const Point3& rhs) { this->x() -= rhs.x(); this->y() -= rhs.y(); this->z() -= rhs.z(); return *this; }
+	Point3& operator*=(const double &rhs) { this->x() = coord_t(this->x() * rhs); this->y() = coord_t(this->y() * rhs); this->z() = coord_t(this->z() * rhs); return *this; }
+    Point3 operator*(const double &rhs) { return Point3(this->x() * rhs, this->y() * rhs, this->z() * rhs); }
+    bool   both_comp(const Point3 &rhs, const std::string& op) {
+        if (op == ">")
+            return this->x() > rhs.x() && this->y() > rhs.y();
+        else if (op == "<")
+            return this->x() < rhs.x() && this->y() < rhs.y();
+        return false;
+    }
+    bool any_comp(const Point3 &rhs, const std::string &op)
+    {
+        if (op == ">")
+            return this->x() > rhs.x() || this->y() > rhs.y();
+        else if (op == "<")
+            return this->x() < rhs.x() || this->y() < rhs.y();
+        return false;
+    }
+    bool any_comp(const coord_t val, const std::string &op)
+    {
+        if (op == ">")
+            return this->x() > val || this->y() > val;
+        else if (op == "<")
+            return this->x() < val || this->y() < val;
+        return false;
+    }
+
+    void   rotate(double angle) { this->rotate(std::cos(angle), std::sin(angle)); }
+    void   rotate(double cos_a, double sin_a) {
+        double cur_x = (double)this->x();
+        double cur_y = (double)this->y();
+        this->x() = (coord_t)round(cos_a * cur_x - sin_a * cur_y);
+        this->y() = (coord_t)round(cos_a * cur_y + sin_a * cur_x);
+    }
+
+    void   rotate(double angle, const Point3 &center);
+    Point3  rotated(double angle) const { Point3 res(*this); res.rotate(angle); return res; }
+    Point3  rotated(double cos_a, double sin_a) const { Point3 res(*this); res.rotate(cos_a, sin_a); return res; }
+    Point3  rotated(double angle, const Point3 &center) const { Point3 res(*this); res.rotate(angle, center); return res; }
+    Point3  rotate_90_degree_ccw() const { return Point3(-this->y(), this->x(), this->z()); }
+    int    nearest_point_index(const Points &points) const;
+    // int    nearest_point_index(const PointConstPtrs &points) const;
+    // int    nearest_point_index(const PointPtrs &points) const;
+    bool   nearest_point(const Points &points, Point3* point) const;
+    double ccw(const Point3 &p1, const Point3 &p2) const;
+    double ccw(const Line3 &line) const;
+    double ccw_angle(const Point3 &p1, const Point3 &p2) const;
+    Point3  projection_onto(const MultiPoint3 &poly) const;
+    Point3  projection_onto(const Line3 &line) const;
+    bool   is_in_lines(const Points &pts) const;
+
+    Point to_point() const {
+        return Point(this->x(), this->y());
+    }
+};
+
+inline void append_points(Points &dst, const Points3 &src) {
+    std::transform(src.begin(), src.end(),
+        std::back_inserter(dst),
+        [](const Point3 &pt) {
+            return pt.to_point();
+        });
+}
+
+inline Point3 operator* (const Point3& l, const double& r)
+{
+    return { coord_t(l.x() * r), coord_t(l.y() * r), coord_t(l.z() * r) };
 }
 
 inline std::ostream &operator<<(std::ostream &os, const Point &pt)

@@ -1,5 +1,7 @@
 #include "Exception.hpp"
 #include "Print.hpp"
+#include "Polygon.hpp"
+#include "Polyline.hpp"
 #include "BoundingBox.hpp"
 #include "Brim.hpp"
 #include "ClipperUtils.hpp"
@@ -1963,6 +1965,20 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
             }
         }
 
+        // Z-Contouring
+        for (PrintObject *obj : m_objects) {
+            bool need_contouring = need_slicing_objects.count(obj) != 0 && obj->config().zaa_enabled;
+            // need_contouring = false;
+            if (need_contouring) {
+                obj->contour_z();
+            } else {
+                if (obj->set_started(posContouring))
+                    obj->set_done(posContouring);
+            }
+
+        }
+
+
         if (slice_time) {
             start_time = (long long)Slic3r::Utils::get_current_milliseconds_time_utc();
         }
@@ -2010,6 +2026,8 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
                     obj->set_done(posInfill);
                 if (obj->set_started(posIroning))
                     obj->set_done(posIroning);
+                if (obj->set_started(posContouring))
+                    obj->set_done(posContouring);
                 if (obj->set_started(posSupportMaterial))
                     obj->set_done(posSupportMaterial);
                 if (obj->set_started(posDetectOverhangsForLift))
@@ -2034,6 +2052,16 @@ void Print::process(std::unordered_map<std::string, long long>* slice_time, bool
         }
     }
 
+    // // Z-Contouring
+    // for (PrintObject *obj : m_objects) {
+    //     bool need_contouring = need_slicing_objects.count(obj) != 0 && obj->config().zaa_enabled;
+    //     if (need_contouring) {
+    //         // if (obj->set_started(posContouring))
+    //         //     obj->set_done(posContouring);
+    //         // return;
+    //         obj->contour_z();
+    //     }
+    // }
 
 
     if (this->set_started(psWipeTower)) {
@@ -2426,7 +2454,7 @@ void Print::_make_skirt()
                 flow.width(),
 				(float)initial_layer_print_height  // this will be overridden at G-code export time
             )));
-        eloop.paths.back().polyline = loop.split_at_first_point();
+        eloop.paths.back().polyline = Polyline3(loop.split_at_first_point());
         m_skirt.append(eloop);
         if (Print::min_skirt_length > 0) {
             // The skirt length is limited. Sum the total amount of filament length extruded, in mm.
@@ -2479,7 +2507,7 @@ void Print::_make_skirt()
                     flow.width(),
                     (float)initial_layer_print_height  // this will be overridden at G-code export time
                 )));
-            eloop.paths.back().polyline = loop.split_at_first_point();
+            eloop.paths.back().polyline = Polyline3(loop.split_at_first_point());
             object->m_skirt.append(std::move(eloop));
         }
     }
@@ -3741,7 +3769,10 @@ static void from_json(const json& j, Polyline& poly_line) {
 }
 
 static void from_json(const json& j, ExtrusionPath& extrusion_path) {
-    extrusion_path.polyline               =    j[JSON_EXTRUSION_POLYLINE];
+    Polyline polyline;
+    from_json(j[JSON_EXTRUSION_POLYLINE], polyline);
+
+    extrusion_path.polyline               =    Polyline3(polyline);
     extrusion_path.overhang_degree        =    j[JSON_EXTRUSION_OVERHANG_DEGREE];
     extrusion_path.curve_degree           =    j[JSON_EXTRUSION_CURVE_DEGREE];
     extrusion_path.mm3_per_mm             =    j[JSON_EXTRUSION_MM3_PER_MM];
@@ -4570,7 +4601,7 @@ ExtrusionLayers FakeWipeTower::getTrueExtrusionLayersFromWipeTower() const
             ++pre;
         }
     }
-    Point trans = {scale_(pos.x()), scale_(pos.y())};
+    Point3 trans = {scale_(pos.x()), scale_(pos.y())};
     for (auto it = outer_wall.begin(); it != outer_wall.end(); ++it) {
         int            index = std::distance(outer_wall.begin(), it);
         ExtrusionLayer el;
@@ -4578,7 +4609,7 @@ ExtrusionLayers FakeWipeTower::getTrueExtrusionLayersFromWipeTower() const
         paths.reserve(it->second.size());
         for (auto &polyline : it->second) {
             ExtrusionPath path(ExtrusionRole::erWipeTower, 0.0, 0.0, layer_heights[index]);
-            path.polyline = polyline;
+            path.polyline = Polyline3(polyline);
             for (auto &p : path.polyline.points) p += trans;
             paths.push_back(path);
         }

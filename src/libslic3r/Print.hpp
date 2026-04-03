@@ -99,7 +99,7 @@ enum PrintStep {
 
 enum PrintObjectStep {
     posSlice, posPerimeters, posPrepareInfill,
-    posInfill, posIroning, posSupportMaterial,
+    posInfill, posIroning, posContouring, posSupportMaterial,
     // BBS
     posDetectOverhangsForLift,
     posSimplifyWall, posSimplifyInfill, posSimplifySupportPath,
@@ -547,6 +547,7 @@ private:
     void prepare_infill();
     void infill();
     void ironing();
+    void contour_z();
     void generate_support_material();
     void simplify_extrusion_path();
 
@@ -677,14 +678,14 @@ struct FakeWipeTower
         std::vector<ExtrusionPaths> paths;
         for (float h = 0.f; h < height; h += layer_height) {
             ExtrusionPath path(ExtrusionRole::erWipeTower, 0.0, 0.0, layer_height);
-            path.polyline = {minCorner, {maxCorner.x(), minCorner.y()}, maxCorner, {minCorner.x(), maxCorner.y()}, minCorner};
+            path.polyline = {Point3(minCorner, 0), {maxCorner.x(), minCorner.y()}, Point3(maxCorner, 0), {minCorner.x(), maxCorner.y()}, Point3(minCorner, 0)};
             paths.push_back({path});
 
             if (h == 0.f) { // add brim
                 ExtrusionPath fakeBrim(ExtrusionRole::erBrim, 0.0, 0.0, layer_height);
                 Point         wtbminCorner = {minCorner - Point{bd, bd}};
                 Point         wtbmaxCorner = {maxCorner + Point{bd, bd}};
-                fakeBrim.polyline          = {wtbminCorner, {wtbmaxCorner.x(), wtbminCorner.y()}, wtbmaxCorner, {wtbminCorner.x(), wtbmaxCorner.y()}, wtbminCorner};
+                fakeBrim.polyline          = {Point3(wtbminCorner, 0), {wtbmaxCorner.x(), wtbminCorner.y()}, Point3(wtbmaxCorner, 0), {wtbminCorner.x(), wtbmaxCorner.y()}, Point3(wtbminCorner, 0)};
                 paths.back().push_back(fakeBrim);
             }
         }

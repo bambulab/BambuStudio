@@ -888,6 +888,10 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat,               support_object_first_layer_gap))
     ((ConfigOptionFloat,               xy_hole_compensation))
     ((ConfigOptionFloat,               xy_contour_compensation))
+    // Z Anti-Aliasing (aka Z Contouring)
+    ((ConfigOptionBool, zaa_enabled))
+    ((ConfigOptionBool, zaa_dont_alternate_fill_direction))
+    ((ConfigOptionFloat, zaa_min_z))
     //BBS auto hole contour compensation
     ((ConfigOptionBool,               enable_circle_compensation))
     ((ConfigOptionFloat,              circle_compensation_manual_offset))
@@ -988,6 +992,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, ironing_spacing))
     ((ConfigOptionFloat, ironing_inset))
     ((ConfigOptionFloat, ironing_direction))
+    ((ConfigOptionFloat, ironing_expansion))
     ((ConfigOptionFloat, ironing_speed))
     // Detect bridging perimeters
     ((ConfigOptionBool, detect_overhang_wall))
@@ -1048,6 +1053,10 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                  seam_slope_steps))
     ((ConfigOptionBool,                 seam_slope_inner_walls))
     ((ConfigOptionBool,                 embedding_wall_into_infill))
+
+    // Z Anti-Aliasing (aka Z Contouring)
+    ((ConfigOptionBool, zaa_region_disable))
+    ((ConfigOptionFloat, zaa_minimize_perimeter_height))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(

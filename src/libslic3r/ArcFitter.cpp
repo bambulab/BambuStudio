@@ -1,4 +1,5 @@
 #include "ArcFitter.hpp"
+#include "Point.hpp"
 #include "Polyline.hpp"
 
 #include <cmath>
@@ -6,7 +7,8 @@
 
 namespace Slic3r {
 
-void ArcFitter::do_arc_fitting(const Points& points, std::vector<PathFittingData>& result, double tolerance)
+template <typename POINTS>
+static void do_arc_fitting_tmpl(const POINTS& points, std::vector<PathFittingData>& result, double tolerance)
 {
 #ifdef DEBUG_ARC_FITTING
     static int irun = 0;
@@ -39,7 +41,7 @@ void ArcFitter::do_arc_fitting(const Points& points, std::vector<PathFittingData
     size_t back_index = 0;
     ArcSegment last_arc;
     bool can_fit = false;
-    Points current_segment;
+    POINTS current_segment;
     current_segment.reserve(points.size());
     ArcSegment target_arc;
     for (size_t i = 0; i < points.size(); i++) {
@@ -49,7 +51,7 @@ void ArcFitter::do_arc_fitting(const Points& points, std::vector<PathFittingData
         if (back_index - front_index < 2)
             continue;
 
-        can_fit = ArcSegment::try_create_arc(current_segment, target_arc, Polyline(current_segment).length(),
+        can_fit = ArcSegment::try_create_arc(current_segment, target_arc, to_polyline(current_segment).length(),
                                              DEFAULT_SCALED_MAX_RADIUS,
                                              tolerance,
                                              DEFAULT_ARC_LENGTH_PERCENT_TOLERANCE);
@@ -57,20 +59,20 @@ void ArcFitter::do_arc_fitting(const Points& points, std::vector<PathFittingData
             //BBS: can be fit as arc, then save arc data temperarily
             last_arc = target_arc;
             if (back_index == points.size() - 1) {
-                result.emplace_back(std::move(PathFittingData{ front_index,
+                result.emplace_back(PathFittingData{ front_index,
                                    back_index,
                                    last_arc.direction == ArcDirection::Arc_Dir_CCW ? EMovePathType::Arc_move_ccw : EMovePathType::Arc_move_cw,
-                                   last_arc }));
+                                   last_arc });
                 front_index = back_index;
             }
         } else {
             if (back_index - front_index > 2) {
                 //BBS: althought current point_stack can't be fit as arc,
                 //but previous must can be fit if removing the top in stack, so save last arc
-                result.emplace_back(std::move(PathFittingData{ front_index,
+                result.emplace_back(PathFittingData{ front_index,
                                    back_index - 1,
                                    last_arc.direction == ArcDirection::Arc_Dir_CCW ? EMovePathType::Arc_move_ccw : EMovePathType::Arc_move_cw,
-                                   last_arc }));
+                                   last_arc });
             } else {
                 //BBS: save the first segment as line move when 3 point-line can't be fit as arc move
                 if (result.empty() || result.back().path_type != EMovePathType::Linear_move)
@@ -94,8 +96,18 @@ void ArcFitter::do_arc_fitting(const Points& points, std::vector<PathFittingData
     result.shrink_to_fit();
 }
 
-void ArcFitter::do_arc_fitting_and_simplify(Points& points, std::vector<PathFittingData>& result, double tolerance)
+void ArcFitter::do_arc_fitting(const Points &points, std::vector<PathFittingData>& result, double tolerance)
 {
+    do_arc_fitting_tmpl(points, result, tolerance);
+}
+
+void ArcFitter::do_arc_fitting(const Points3 &points, std::vector<PathFittingData>& result, double tolerance)
+{
+    do_arc_fitting_tmpl(points, result, tolerance);
+}
+
+template <typename POINTS>
+static void do_arc_fitting_and_simplify_tmpl(POINTS &points, std::vector<PathFittingData>& result, double tolerance) {
     //BBS: 1 do arc fit first
     if (abs(tolerance) > SCALED_EPSILON)
         ArcFitter::do_arc_fitting(points, result, tolerance);
@@ -111,7 +123,7 @@ void ArcFitter::do_arc_fitting_and_simplify(Points& points, std::vector<PathFitt
         return;
     } else {
         //BBS: has both arc part and straight part, we should spilit the straight part out and do DP simplify
-        Points simplified_points;
+        POINTS simplified_points;
         simplified_points.reserve(points.size());
         simplified_points.push_back(points[0]);
         std::vector<size_t> reduce_count(result.size(), 0);
@@ -124,7 +136,7 @@ void ArcFitter::do_arc_fitting_and_simplify(Points& points, std::vector<PathFitt
             //For arc part, theoretically, we only need to keep the start and end point, and
             //delete all other point. But when considering wipe operation, we must keep the original
             //point data and shouldn't reduce too much by only saving start and end point.
-            Points straight_or_arc_part;
+            POINTS straight_or_arc_part;
             straight_or_arc_part.reserve(end_index - start_index + 1);
             for (size_t j = start_index; j <= end_index; j++)
                 straight_or_arc_part.push_back(points[j]);
@@ -148,6 +160,16 @@ void ArcFitter::do_arc_fitting_and_simplify(Points& points, std::vector<PathFitt
                 result[j + 1].start_point_index = result[j].end_point_index;
         }
     }
+}
+
+void ArcFitter::do_arc_fitting_and_simplify(Points& points, std::vector<PathFittingData>& result, double tolerance)
+{
+    do_arc_fitting_and_simplify_tmpl(points, result, tolerance);
+}
+
+void ArcFitter::do_arc_fitting_and_simplify(Points3& points, std::vector<PathFittingData>& result, double tolerance)
+{
+    do_arc_fitting_and_simplify_tmpl(points, result, tolerance);
 }
 
 }

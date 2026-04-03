@@ -5,8 +5,10 @@
 
 #include "libslic3r.h"
 #include "ExPolygon.hpp"
+#include "Polyline.hpp"
 #include "Polygon.hpp"
 #include "Surface.hpp"
+#include <boost/iterator/transform_iterator.hpp>
 
 #ifdef SLIC3R_USE_CLIPPER2
 
@@ -532,6 +534,8 @@ Slic3r::Polylines  intersection_pl(const Slic3r::Polyline &subject, const Slic3r
 Slic3r::Polylines  intersection_pl(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip);
 Slic3r::Polylines  intersection_pl(const Slic3r::Polylines &subject, const Slic3r::ExPolygons &clip);
 Slic3r::Polylines  intersection_pl(const Slic3r::Polygons &subject, const Slic3r::Polygons &clip);
+Slic3r::Polylines3 intersection_pl(const Slic3r::Polylines3 &subject, const Slic3r::Polygon &clip);
+Slic3r::Polylines3 intersection_pl(const Slic3r::Polylines3 &subject, const Slic3r::ExPolygon &clip);
 
 inline Slic3r::Lines intersection_ln(const Slic3r::Lines &subject, const Slic3r::Polygons &clip)
 {

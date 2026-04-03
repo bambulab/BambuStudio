@@ -1,6 +1,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include <memory>
+#include <cmath>
+#include <cstddef>
 
 #include "../ClipperUtils.hpp"
 #include "../Geometry.hpp"
@@ -8,6 +10,12 @@
 #include "../Print.hpp"
 #include "../PrintConfig.hpp"
 #include "../Surface.hpp"
+#include "../ExtrusionEntity.hpp"
+#include "../Geometry/ConvexHull.hpp"
+#include "../MultiPoint.hpp"
+#include "../Point.hpp"
+#include "../Polyline.hpp"
+#include "../libslic3r.h"
 
 #include "FillBase.hpp"
 #include "FillRectilinear.hpp"
@@ -608,6 +616,7 @@ void Layer::make_fills(FillAdaptive::Octree* adaptive_fill_octree, FillAdaptive:
         f->set_bounding_box(bbox);
         f->layer_id = this->id() - this->object()->get_layer(0)->id(); // We need to subtract raft layers.
         f->z 		= this->print_z;
+		f->dont_alternate_fill_direction = this->object()->config().zaa_dont_alternate_fill_direction;
         f->angle 	= surface_fill.params.angle;
         f->adapt_fill_octree = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
         if (surface_fill.params.pattern == ipZigZag) {
@@ -814,6 +823,7 @@ Polylines Layer::generate_sparse_infill_polylines_for_anchoring(FillAdaptive::Oc
 		f->set_bounding_box(bbox);
 		f->layer_id = this->id() - this->object()->get_layer(0)->id(); // We need to subtract raft layers.
 		f->z = this->print_z;
+		f->dont_alternate_fill_direction = this->object()->config().zaa_dont_alternate_fill_direction;
 		f->angle = surface_fill.params.angle;
 		f->adapt_fill_octree = (surface_fill.params.pattern == ipSupportCubic) ? support_fill_octree : adaptive_fill_octree;
 
@@ -886,6 +896,7 @@ void Layer::make_ironing()
 		double 		speed;
 		double 		angle;
 		double 		inset;
+		double      expansion;
 
 		bool operator<(const IroningParams &rhs) const {
 			if (this->extruder < rhs.extruder)
@@ -966,6 +977,7 @@ void Layer::make_ironing()
 				ironing_params.just_infill 	= false;
 				ironing_params.line_spacing = config.ironing_spacing;
 				ironing_params.inset 		= config.ironing_inset;
+				ironing_params.expansion    = (this->object()->config().zaa_enabled.value && config.ironing_expansion.value > 0) ? config.ironing_expansion.value : 0.0;
 				ironing_params.height 		= default_layer_height * 0.01 * config.ironing_flow;
 				ironing_params.speed 		= config.ironing_speed;
 				ironing_params.angle 		= (int(config.ironing_direction.value+layerm->region().config().infill_direction.value)%180) * M_PI / 180.;
@@ -985,6 +997,7 @@ void Layer::make_ironing()
     f->layer_id = this->id();
     f->z        = this->print_z;
     f->overlap  = 0;
+	f->dont_alternate_fill_direction = this->object()->config().zaa_dont_alternate_fill_direction;
 	for (size_t i = 0; i < by_extruder.size();) {
 		// Find span of regions equivalent to the ironing operation.
 		IroningParams &ironing_params = by_extruder[i];
@@ -997,6 +1010,7 @@ void Layer::make_ironing()
             f->layer_id = this->id();
             f->z        = this->print_z;
             f->overlap  = 0;
+			f->dont_alternate_fill_direction = this->object()->config().zaa_dont_alternate_fill_direction;
 		}
 
 		size_t j = i;
@@ -1057,8 +1071,27 @@ void Layer::make_ironing()
 			}
 			// Trim the top surfaces with half the nozzle diameter.
 			//BBS: ironing inset
-            double ironing_areas_offset = ironing_params.inset == 0 ? float(scale_(0.5 * nozzle_dmr)) : scale_(ironing_params.inset);
-			ironing_areas = intersection_ex(polys, offset(this->lslices, - ironing_areas_offset));
+			if (ironing_params.inset >= 0) {
+				double ironing_areas_offset = ironing_params.inset == 0 ? float(scale_(0.5 * nozzle_dmr)) : scale_(ironing_params.inset);
+				ironing_areas = intersection_ex(polys, offset(this->lslices, - ironing_areas_offset));
+			} else {
+				double ironing_areas_offset = scale_(0);
+				ironing_areas = intersection_ex(polys, offset(this->lslices, - ironing_areas_offset));
+				ironing_areas = offset_ex(ironing_areas, scale_(-ironing_params.inset));
+			}
+
+			// ironing expansion
+			Layer *prev_layer = this->lower_layer;
+			if (prev_layer != nullptr && ironing_params.expansion > 0) {
+				double ironing_areas_offset = ironing_params.inset == 0 ? float(scale_(0.5 * nozzle_dmr)) : scale_(ironing_params.inset);
+				double expansion_mm = ironing_params.expansion;
+
+				ExPolygons ironing_areas_expanded = offset_ex(ironing_areas, scale_(expansion_mm));
+
+				Polygons expansion_area = diff(offset_ex(prev_layer->lslices, -ironing_areas_offset), offset_ex(this->lslices, -ironing_areas_offset));
+				ExPolygons expanded_area = intersection_ex(ironing_areas_expanded, expansion_area);
+				ironing_areas = union_ex(ironing_areas, expanded_area);
+			}
 		}
 
         // Create the filler object.

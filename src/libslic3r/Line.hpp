@@ -217,6 +217,7 @@ public:
 
     double  length() const { return (this->a - this->b).cast<double>().norm(); }
     Vec3crd vector() const { return this->b - this->a; }
+    Vec3crd midpoint() const { return (this->a + this->b) / 2; }
 
     Vec3crd a;
     Vec3crd b;

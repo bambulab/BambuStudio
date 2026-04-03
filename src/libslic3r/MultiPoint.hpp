@@ -113,6 +113,11 @@ class MultiPoint3
 public:
     Points3 points;
 
+    MultiPoint3() {}
+    MultiPoint3(const Points3 &pts) : points(pts) {}
+    MultiPoint3(Points3 &&pts) : points(std::move(pts)) {}
+    MultiPoint3(std::initializer_list<Point3> list) : points(list) {}
+
     void append(const Vec3crd& point) { this->points.push_back(point); }
 
     void translate(double x, double y);

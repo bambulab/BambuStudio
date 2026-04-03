@@ -228,6 +228,25 @@ Polylines PolyTreeToPolylines(ClipperLib::PolyTree &&polytree)
     return out;
 }
 
+// Polylines3 PolyTreeToPolylines3(ClipperLib::PolyTree &&polytree)
+// {
+//     struct Inner {
+//         static void AddPolyNodeToPaths(ClipperLib::PolyNode &polynode, Polylines3 &out)
+//         {
+//             if (! polynode.Contour.empty())
+//                 out.emplace_back(std::move(polynode.Contour));
+//             for (ClipperLib::PolyNode *child : polynode.Childs)
+//                 AddPolyNodeToPaths(*child, out);
+//         }
+//     };
+
+//     Polylines3 out;
+//     out.reserve(polytree.Total());
+//     Inner::AddPolyNodeToPaths(polytree, out);
+//     return out;
+// }
+
+
 #if 0
 // Global test.
 bool has_duplicate_points(const ClipperLib::PolyTree &polytree)
@@ -388,7 +407,7 @@ static TResult shrink_paths(PathsProvider &&paths, float offset, ClipperLib::Joi
         ClipperLib::Clipper clipper;
         clipper.AddPaths(raw, ClipperLib::ptSubject, true);
         ClipperLib::IntRect r = clipper.GetBounds();
-        clipper.AddPath({ { r.left - 10, r.bottom + 10 }, { r.right + 10, r.bottom + 10 }, { r.right + 10, r.top - 10 }, { r.left - 10, r.top - 10 } }, ClipperLib::ptSubject, true);
+        clipper.AddPath(ClipperLib::Path{ { r.left - 10, r.bottom + 10 }, { r.right + 10, r.bottom + 10 }, { r.right + 10, r.top - 10 }, { r.left - 10, r.top - 10 } }, ClipperLib::ptSubject, true);
         clipper.ReverseSolution(true);
         clipper.Execute(ClipperLib::ctUnion, out, ClipperLib::pftNegative, ClipperLib::pftNegative);
         remove_outermost_polygon(out);
@@ -419,6 +438,19 @@ Slic3r::Polygons offset(const Slic3r::Polyline &polyline, const float delta, Cli
     { assert(delta > 0); return to_polygons(clipper_union<ClipperLib::Paths>(raw_offset_polyline(ClipperUtils::SinglePathProvider(polyline.points), delta, joinType, miterLimit, end_type))); }
 Slic3r::Polygons offset(const Slic3r::Polylines &polylines, const float delta, ClipperLib::JoinType joinType, double miterLimit, ClipperLib::EndType end_type)
     { assert(delta > 0); return to_polygons(clipper_union<ClipperLib::Paths>(raw_offset_polyline(ClipperUtils::PolylinesProvider(polylines), delta, joinType, miterLimit, end_type))); }
+
+Slic3r::Polygons offset(const Slic3r::Polyline3 &polyline, const float delta, ClipperLib::JoinType joinType, double miterLimit, ClipperLib::EndType end_type)
+{
+    assert(delta > 0);
+    return to_polygons(
+        clipper_union<ClipperLib::Paths>(
+            raw_offset_polyline(
+                ClipperUtils::SinglePathProvider(polyline.to_polyline().points),
+                delta,
+                joinType,
+                miterLimit,
+                end_type)));
+}
 
 Polygons contour_to_polygons(const Polygon &polygon, const float line_width, ClipperLib::JoinType join_type, double miter_limit)
     {
@@ -848,10 +880,23 @@ Polylines _clipper_pl_open(ClipperLib::ClipType clipType, PathsProvider1 &&subje
     return PolyTreeToPolylines(std::move(retval));
 }
 
+// template<typename PathsProvider1, typename PathsProvider2>
+// Polylines3 _clipper_pl_open3(ClipperLib::ClipType clipType, PathsProvider1 &&subject, PathsProvider2 &&clip)
+// {
+//     ClipperLib::Clipper clipper;
+//     clipper.AddPaths(std::forward<PathsProvider1>(subject), ClipperLib::ptSubject, false);
+//     clipper.AddPaths(std::forward<PathsProvider2>(clip), ClipperLib::ptClip, true);
+//     ClipperLib::PolyTree retval;
+//     clipper.Execute(clipType, retval, ClipperLib::pftNonZero, ClipperLib::pftNonZero);
+//     return PolyTreeToPolylines3(std::move(retval));
+// }
+
+
 // If the split_at_first_point() call above happens to split the polygon inside the clipping area
 // we would get two consecutive polylines instead of a single one, so we go through them in order
 // to recombine continuous polylines.
-static void _clipper_pl_recombine(Polylines &polylines)
+template <typename POLYLINE>
+static void _clipper_pl_recombine(POLYLINE &polylines)
 {
     for (size_t i = 0; i < polylines.size(); ++i) {
         for (size_t j = i+1; j < polylines.size(); ++j) {
@@ -886,6 +931,7 @@ static void _clipper_pl_recombine(Polylines &polylines)
     }
 }
 
+
 template<typename PathProvider1, typename PathProvider2>
 Polylines _clipper_pl_closed(ClipperLib::ClipType clipType, PathProvider1 &&subject, PathProvider2 &&clip)
 {
@@ -906,6 +952,26 @@ Polylines _clipper_pl_closed(ClipperLib::ClipType clipType, PathProvider1 &&subj
     return retval;
 }
 
+template<typename PathProvider1, typename PathProvider2>
+Polylines3 _clipper_pl_closed3(ClipperLib::ClipType clipType, PathProvider1 &&subject, PathProvider2 &&clip)
+{
+    // Transform input polygons into open paths.
+    ClipperLib::Paths paths;
+    paths.reserve(subject.size());
+    for (const Points &poly : subject) {
+        // Emplace polygon, duplicate the 1st point.
+        paths.push_back({});
+        ClipperLib::Path &path = paths.back();
+        path.reserve(poly.size() + 1);
+        path = poly;
+        path.emplace_back(poly.front());
+    }
+    // perform clipping
+    Polylines3 retval = _clipper_pl_open3(clipType, paths, std::forward<PathProvider2>(clip));
+    _clipper_pl_recombine(retval);
+    return retval;
+}
+
 Slic3r::Polylines diff_pl(const Slic3r::Polyline& subject, const Slic3r::Polygons& clip)
     { return _clipper_pl_open(ClipperLib::ctDifference, ClipperUtils::SinglePathProvider(subject.points), ClipperUtils::PolygonsProvider(clip)); }
 Slic3r::Polylines diff_pl(const Slic3r::Polylines &subject, const Slic3r::Polygons &clip)
@@ -922,10 +988,14 @@ Slic3r::Polylines diff_pl(const Slic3r::Polygons &subject, const Slic3r::Polygon
     { return _clipper_pl_closed(ClipperLib::ctDifference, ClipperUtils::PolygonsProvider(subject), ClipperUtils::PolygonsProvider(clip)); }
 Slic3r::Polylines intersection_pl(const Slic3r::Polylines &subject, const Slic3r::Polygon &clip)
     { return _clipper_pl_open(ClipperLib::ctIntersection, ClipperUtils::PolylinesProvider(subject), ClipperUtils::SinglePathProvider(clip.points)); }
+// Slic3r::Polylines3 intersection_pl(const Slic3r::Polylines3 &subject, const Slic3r::Polygon &clip)
+//     { return _clipper_pl_open3(ClipperLib::ctIntersection, ClipperUtils::Polylines3Provider(subject), ClipperUtils::SinglePathProvider(clip.points)); }
 Slic3r::Polylines intersection_pl(const Slic3r::Polyline &subject, const Slic3r::ExPolygon &clip)
     { return _clipper_pl_open(ClipperLib::ctIntersection, ClipperUtils::SinglePathProvider(subject.points), ClipperUtils::ExPolygonProvider(clip)); }
 Slic3r::Polylines intersection_pl(const Slic3r::Polylines &subject, const Slic3r::ExPolygon &clip)
     { return _clipper_pl_open(ClipperLib::ctIntersection, ClipperUtils::PolylinesProvider(subject), ClipperUtils::ExPolygonProvider(clip)); }
+// Slic3r::Polylines3 intersection_pl(const Slic3r::Polylines3 &subject, const Slic3r::ExPolygon &clip)
+//     { return _clipper_pl_open3(ClipperLib::ctIntersection, ClipperUtils::Polylines3Provider(subject), ClipperUtils::ExPolygonProvider(clip)); }
 Slic3r::Polylines intersection_pl(const Slic3r::Polyline &subject, const Slic3r::Polygons &clip)
     { return _clipper_pl_open(ClipperLib::ctIntersection, ClipperUtils::SinglePathProvider(subject.points), ClipperUtils::PolygonsProvider(clip)); }
 Slic3r::Polylines intersection_pl(const Slic3r::Polyline &subject, const Slic3r::ExPolygons &clip)
@@ -1106,9 +1176,9 @@ ClipperLib::Paths fix_after_inner_offset(
 		ClipperLib::IntRect r = clipper.GetBounds();
 		r.left -= 10; r.top -= 10; r.right += 10; r.bottom += 10;
 		if (filltype == ClipperLib::pftPositive)
-			clipper.AddPath({ ClipperLib::IntPoint(r.left, r.bottom), ClipperLib::IntPoint(r.left, r.top), ClipperLib::IntPoint(r.right, r.top), ClipperLib::IntPoint(r.right, r.bottom) }, ClipperLib::ptSubject, true);
+			clipper.AddPath(ClipperLib::Path{ ClipperLib::IntPoint(r.left, r.bottom), ClipperLib::IntPoint(r.left, r.top), ClipperLib::IntPoint(r.right, r.top), ClipperLib::IntPoint(r.right, r.bottom) }, ClipperLib::ptSubject, true);
 		else
-			clipper.AddPath({ ClipperLib::IntPoint(r.left, r.bottom), ClipperLib::IntPoint(r.right, r.bottom), ClipperLib::IntPoint(r.right, r.top), ClipperLib::IntPoint(r.left, r.top) }, ClipperLib::ptSubject, true);
+			clipper.AddPath(ClipperLib::Path{ ClipperLib::IntPoint(r.left, r.bottom), ClipperLib::IntPoint(r.right, r.bottom), ClipperLib::IntPoint(r.right, r.top), ClipperLib::IntPoint(r.left, r.top) }, ClipperLib::ptSubject, true);
 		clipper.ReverseSolution(reverse_result);
 		clipper.Execute(ClipperLib::ctUnion, solution, filltype, filltype);
 		if (! solution.empty())
