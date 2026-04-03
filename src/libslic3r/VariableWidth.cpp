@@ -16,11 +16,11 @@ ExtrusionMultiPath thick_polyline_to_multi_path(const ThickPolyline& thick_polyl
         if (line_len < SCALED_EPSILON) {
             // The line is so tiny that we don't care about its width when we connect it to another line.
             if (!path.empty())
-                path.polyline.points.back() = line.b; // If the variable path is non-empty, connect this tiny line to it.
+                path.polyline.points.back() = Point3(line.b.x(), line.b.y(), 0); // If the variable path is non-empty, connect this tiny line to it.
             else if (i + 1 < (int)lines.size()) // If there is at least one following line, connect this tiny line to it.
                 lines[i + 1].a = line.a;
             else if (!multi_path.paths.empty())
-                multi_path.paths.back().polyline.points.back() = line.b; // Connect this tiny line to the last finished path.
+                multi_path.paths.back().polyline.points.back() = Point3(line.b.x(), line.b.y(), 0); // Connect this tiny line to the last finished path.
 
             // If any of the above isn't satisfied, then remove this tiny line.
             continue;

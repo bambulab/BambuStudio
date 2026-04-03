@@ -1357,7 +1357,7 @@ static void modulate_extrusion_by_overlapping_layers(
             // Consume the fragment's polyline, remove it from the input fragments, so it will be ignored the next time.
             path->polyline.append(std::move(frag_polyline));
             frag_polyline.points.clear();
-            pt_current = path->polyline.points.back();
+            pt_current = path->polyline.points.back().to_point();
             if (pt_current == pt_end) {
                 // End of the path.
                 break;
