@@ -69,6 +69,7 @@ using namespace nlohmann;
 #include "libslic3r/Orient.hpp"
 #include "libslic3r/PNGReadWrite.hpp"
 #include "libslic3r/ObjColorUtils.hpp"
+#include "libslic3r/filament_mixer.h"
 
 #include "BambuStudio.hpp"
 //BBS: add exception handler for win32
@@ -128,6 +129,7 @@ std::map<int, std::string> cli_errors = {
     {CLI_OBJECT_ORIENT_FAILED, "An error occurred when auto-orienting object(s)."},
     {CLI_MODIFIED_PARAMS_TO_PRINTER, "You cannot change the Printable Area, Printable Height, and Exclude Area in Printer Settings."},
     {CLI_FILE_VERSION_NOT_SUPPORTED, "Unsupported 3MF version. Please make sure the 3MF file was created with the official version of Bambu Studio, not a beta version."},
+    {CLI_3MF_FEATURE_NOT_SUPPORTED, "Unsupported features were found in this 3MF file. These features are still in an experimental stage. Please wait until MakerWorld supports them before uploading."},
     {CLI_NO_SUITABLE_OBJECTS, "One of the plate is empty or has no object fully inside it. Please check that the 3mf contains no empty plate in Bambu Studio before uploading."},
     {CLI_VALIDATE_ERROR, "There are some incorrect slicing parameters in the 3mf. Please verify the slicing of all plates in Bambu Studio before uploading."},
     {CLI_OBJECTS_PARTLY_INSIDE, "Some objects are located over the boundary of the heated bed."},
@@ -1815,6 +1817,13 @@ int CLI::run(int argc, char **argv)
                                 record_exit_reson(outfile_dir, CLI_POSTPROCESS_NOT_SUPPORTED, 0, cli_errors[CLI_POSTPROCESS_NOT_SUPPORTED], sliced_info);
                                 flush_and_exit(CLI_POSTPROCESS_NOT_SUPPORTED);
                             }
+                        }
+
+                        ConfigOptionBools* filament_is_mixed = config.option<ConfigOptionBools>("filament_is_mixed");
+                        if (filament_is_mixed && has_any_mixed_filament(filament_is_mixed->values)) {
+                            BOOST_LOG_TRIVIAL(error) << "normative_check: mixed filament is not supported";
+                            record_exit_reson(outfile_dir, CLI_3MF_FEATURE_NOT_SUPPORTED, 0, cli_errors[CLI_3MF_FEATURE_NOT_SUPPORTED], sliced_info);
+                            flush_and_exit(CLI_3MF_FEATURE_NOT_SUPPORTED);
                         }
                     }
 

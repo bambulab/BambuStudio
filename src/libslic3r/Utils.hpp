@@ -44,6 +44,7 @@
 #define CLI_OBJECT_ORIENT_FAILED       -22
 #define CLI_MODIFIED_PARAMS_TO_PRINTER -23
 #define CLI_FILE_VERSION_NOT_SUPPORTED -24
+#define CLI_3MF_FEATURE_NOT_SUPPORTED  -25
 
 
 #define CLI_NO_SUITABLE_OBJECTS     -50
@@ -837,7 +838,7 @@ inline std::string get_bbl_finish_time_dhm(float time_in_secs, bool use_12h_form
     time_t   finish_time    = current_time + static_cast<time_t>(time_in_secs);
     std::tm  finish_tm      = *std::localtime(&finish_time);  // Copy to avoid overwrite
     int      finish_hour    = finish_tm.tm_hour;
-    int      finish_minute  = finish_tm.tm_min;  
+    int      finish_minute  = finish_tm.tm_min;
     int      finish_day     = finish_tm.tm_yday;
     int      finish_year    = finish_tm.tm_year + 1900;
 
@@ -857,7 +858,7 @@ inline std::string get_bbl_finish_time_dhm(float time_in_secs, bool use_12h_form
     } else {
         diff_day = finish_day - current_day;
     }
-    
+
     std::string finish_time_str{};
     //using 24 hour clock format
     if (current_tm == nullptr)
