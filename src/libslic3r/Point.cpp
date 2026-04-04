@@ -3,9 +3,30 @@
 #include "MultiPoint.hpp"
 #include "Int128.hpp"
 #include "BoundingBox.hpp"
+#include "Polyline.hpp"
 #include <algorithm>
 
 namespace Slic3r {
+
+Polyline to_polyline(const Points &points) {
+    Polyline pl;
+    pl.points = points;
+    return pl;
+}
+
+Polyline3 to_polyline(const Points3 &points) {
+    Polyline3 pl;
+    pl.points = points;
+    return pl;
+}
+
+Points to_points(const Points3 &points) {
+    Points out;
+    out.reserve(points.size());
+    for (const Point3 &p : points)
+        out.emplace_back(p.x(), p.y());
+    return out;
+}
 
 std::vector<Vec3f> transform(const std::vector<Vec3f>& points, const Transform3f& t)
 {
