@@ -1,0 +1,129 @@
+name: Build ZAA Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_linux:
+        description: 'Build Linux AppImage'
+        required: true
+        default: true
+        type: boolean
+      build_windows:
+        description: 'Build Windows Portable'
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  linux-appimage:
+    name: Linux AppImage
+    if: ${{ inputs.build_linux }}
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Free disk space
+        run: |
+          sudo docker rmi $(docker image ls -aq) || true
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc || true
+          sudo apt-get autoremove -y || true
+
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake libgl1-mesa-dev libgtk-3-dev libxkbcommon-dev libunwind-dev libfuse2
+
+      - name: Install build dependencies
+        run: sudo ./BuildLinux.sh -ur
+
+      - name: Fix permissions
+        run: sudo chown $USER -R ./
+
+      - name: Cache deps
+        id: cache_deps
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/deps/build/destdir
+          key: linux-deps-${{ hashFiles('deps/CMakeLists.txt') }}
+
+      - name: Build deps
+        if: steps.cache_deps.outputs.cache-hit != 'true'
+        run: ./BuildLinux.sh -dsr
+
+      - name: Build BambuStudio + AppImage
+        run: ./BuildLinux.sh -isr
+
+      - name: Upload AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: BambuStudio-ZAA_Linux_AppImage
+          path: './build/BambuStudio_ubu64.AppImage'
+
+      - name: Upload to Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./build/BambuStudio_ubu64.AppImage
+          tag_name: ${{ github.ref_name }}
+
+  windows-portable:
+    name: Windows Portable
+    if: ${{ inputs.build_windows }}
+    runs-on: windows-2022
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup CMake
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: 3.31.6
+
+      - name: Install Strawberry Perl
+        run: choco install strawberryperl -y
+
+      - name: Cache deps
+        id: cache_deps
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/deps/build/BambuStudio_dep
+          key: win-deps-${{ hashFiles('deps/CMakeLists.txt') }}
+
+      - name: Build deps
+        if: steps.cache_deps.outputs.cache-hit != 'true'
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat" -arch=amd64
+          cd deps
+          mkdir build
+          cd build
+          cmake ../ -G "Visual Studio 17 2022" -A x64 -DDESTDIR="./BambuStudio_dep" -DCMAKE_BUILD_TYPE=Release -DDEP_DEBUG=OFF
+          msbuild /m ALL_BUILD.vcxproj /p:Configuration=Release /v:minimal
+          msbuild /m ALL_BUILD.vcxproj /p:Configuration=Release /v:minimal
+          msbuild /m ALL_BUILD.vcxproj /p:Configuration=Release /v:minimal
+
+      - name: Build BambuStudio
+        shell: cmd
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat" -arch=amd64
+          mkdir build
+          cd build
+          cmake .. -G "Visual Studio 17 2022" -A x64 -DBBL_RELEASE_TO_PUBLIC=1 -DCMAKE_PREFIX_PATH="%GITHUB_WORKSPACE%/deps/build/BambuStudio_dep/usr/local" -DCMAKE_INSTALL_PREFIX="../install_dir" -DCMAKE_BUILD_TYPE=Release -DWIN10SDK_PATH="C:/Program Files (x86)/Windows Kits/10/Include/10.0.22000.0"
+          cmake --build . --target install --config Release -- /m
+
+      - name: Create Portable ZIP
+        run: 7z a -tzip BambuStudio-ZAA_Windows_portable.zip ./install_dir/*
+
+      - name: Upload Portable ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: BambuStudio-ZAA_Windows_Portable
+          path: BambuStudio-ZAA_Windows_portable.zip
+
+      - name: Upload to Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: BambuStudio-ZAA_Windows_portable.zip
+          tag_name: ${{ github.ref_name }}
