@@ -87,7 +87,7 @@ jobs:
 
       - name: Install tools
         run: |
-          brew install automake texinfo
+          brew install automake texinfo nasm
           brew unlink cmake || true
           brew tap-new $USER/old-cmake
           brew extract --version=3.31.0 cmake $USER/old-cmake
@@ -142,7 +142,7 @@ jobs:
 
       - name: Install tools
         run: |
-          brew install automake texinfo
+          brew install automake texinfo nasm
           brew unlink cmake || true
           brew tap-new $USER/old-cmake
           brew extract --version=3.31.0 cmake $USER/old-cmake
