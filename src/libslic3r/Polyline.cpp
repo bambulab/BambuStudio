@@ -820,22 +820,24 @@ void Polyline3::simplify(double tolerance)
 
 void Polyline3::simplify_by_fitting_arc(double tolerance)
 {
-    // Convert to 2D polyline, fit arcs, then apply result
-    Points pts2d;
-    pts2d.reserve(this->points.size());
-    for (const auto &pt : this->points)
-        pts2d.push_back(pt.to_point());
-    ArcFitter::do_arc_fitting_and_simplify(pts2d, this->fitting_result, tolerance);
-    // Rebuild Points3 from simplified 2D points preserving Z
-    if (pts2d.size() != this->points.size()) {
+    //BBS: delegate to 2D Polyline for arc fitting to avoid Points3 conversion issues
+    Polyline pl2d = this->to_polyline();
+    pl2d.simplify_by_fitting_arc(tolerance);
+    // Apply the simplified result back
+    this->fitting_result = pl2d.fitting_result;
+    if (pl2d.points.size() != this->points.size()) {
         Points3 new_pts;
-        new_pts.reserve(pts2d.size());
+        new_pts.reserve(pl2d.points.size());
+        // Map simplified 2D points back to original 3D points by index tracking
+        // Douglas-Peucker preserves a subset of original points in order
         size_t orig_idx = 0;
-        for (const auto &pt2d : pts2d) {
-            while (orig_idx < this->points.size() && this->points[orig_idx].to_point() != pt2d)
+        for (size_t i = 0; i < pl2d.points.size(); ++i) {
+            const Point &pt2d = pl2d.points[i];
+            while (orig_idx < this->points.size() &&
+                   (this->points[orig_idx].x() != pt2d.x() || this->points[orig_idx].y() != pt2d.y()))
                 ++orig_idx;
             if (orig_idx < this->points.size())
-                new_pts.push_back(this->points[orig_idx]);
+                new_pts.push_back(this->points[orig_idx++]);
             else
                 new_pts.emplace_back(Point3(pt2d, 0));
         }
