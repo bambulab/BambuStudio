@@ -3489,7 +3489,7 @@ void PrintConfigDef::init_fff_params()
     def->min      = -100;
     def->max      = 100;
     def->mode     = comAdvanced;
-    def->set_default_value(new ConfigOptionFloat(0));
+    def->set_default_value(new ConfigOptionFloat(0.1));
 
     def = this->add("ironing_speed", coFloat);
     def->label = L("Ironing speed");
