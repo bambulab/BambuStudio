@@ -78,6 +78,11 @@ jobs:
     runs-on: macos-13
 
     steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/local/share/powershell /usr/local/.ghcup || true
+          sudo rm -rf /usr/local/share/chromium /usr/local/lib/node_modules || true
+
       - uses: actions/checkout@v4
 
       - name: Install tools
@@ -97,13 +102,18 @@ jobs:
           path: ${{ github.workspace }}/deps/build/destdir
           key: mac-x86-deps-${{ hashFiles('deps/CMakeLists.txt') }}
 
-      - name: Build deps + app
+      - name: Build deps
+        if: steps.cache_deps.outputs.cache-hit != 'true'
+        run: ./BuildMac.sh -d -x -a x86_64 -t 10.15 -1
+
+      - name: Build app
         run: ./BuildMac.sh -s -x -a x86_64 -t 10.15 -1
 
       - name: Pack macOS app
         run: |
-          cd build
-          zip -r ../BambuStudio-ZAA_Mac_x86_64.zip BambuStudio.app
+          cd build/x86_64
+          zip -r ../../BambuStudio-ZAA_Mac_x86_64.zip BambuStudio.app || \
+          (cd .. && zip -r ../BambuStudio-ZAA_Mac_x86_64.zip BambuStudio.app)
 
       - name: Upload macOS ZIP
         uses: actions/upload-artifact@v4
@@ -124,6 +134,10 @@ jobs:
     runs-on: macos-15
 
     steps:
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/local/share/powershell /usr/local/.ghcup || true
+
       - uses: actions/checkout@v4
 
       - name: Install tools
@@ -143,13 +157,18 @@ jobs:
           path: ${{ github.workspace }}/deps/build/destdir
           key: mac-arm-deps-${{ hashFiles('deps/CMakeLists.txt') }}
 
-      - name: Build deps + app
+      - name: Build deps
+        if: steps.cache_deps.outputs.cache-hit != 'true'
+        run: ./BuildMac.sh -d -x -a universal -t 10.15 -1
+
+      - name: Build app
         run: ./BuildMac.sh -s -x -a universal -t 10.15 -1
 
       - name: Pack macOS app
         run: |
-          cd build
-          zip -r ../BambuStudio-ZAA_Mac_universal.zip BambuStudio.app
+          cd build/universal
+          zip -r ../../BambuStudio-ZAA_Mac_universal.zip BambuStudio.app || \
+          (cd .. && zip -r ../BambuStudio-ZAA_Mac_universal.zip BambuStudio.app)
 
       - name: Upload macOS ZIP
         uses: actions/upload-artifact@v4
