@@ -13,6 +13,11 @@ on:
         required: true
         default: true
         type: boolean
+      build_mac:
+        description: 'Build macOS'
+        required: true
+        default: true
+        type: boolean
 
 jobs:
   linux-appimage:
@@ -65,6 +70,98 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: ./build/BambuStudio_ubu64.AppImage
+          tag_name: ${{ github.ref_name }}
+
+  mac-x86:
+    name: macOS x86_64
+    if: ${{ inputs.build_mac }}
+    runs-on: macos-13
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: |
+          brew install automake texinfo
+          brew unlink cmake || true
+          brew tap-new $USER/old-cmake
+          brew extract --version=3.31.0 cmake $USER/old-cmake
+          brew install $USER/old-cmake/cmake@3.31.0
+          brew link --overwrite cmake@3.31.0
+          brew pin cmake@3.31.0
+
+      - name: Cache deps
+        id: cache_deps
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/deps/build/destdir
+          key: mac-x86-deps-${{ hashFiles('deps/CMakeLists.txt') }}
+
+      - name: Build deps + app
+        run: ./BuildMac.sh -s -x -a x86_64 -t 10.15 -1
+
+      - name: Pack macOS app
+        run: |
+          cd build
+          zip -r ../BambuStudio-ZAA_Mac_x86_64.zip BambuStudio.app
+
+      - name: Upload macOS ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: BambuStudio-ZAA_Mac_x86_64
+          path: BambuStudio-ZAA_Mac_x86_64.zip
+
+      - name: Upload to Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: BambuStudio-ZAA_Mac_x86_64.zip
+          tag_name: ${{ github.ref_name }}
+
+  mac-arm:
+    name: macOS ARM (Universal)
+    if: ${{ inputs.build_mac }}
+    runs-on: macos-15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: |
+          brew install automake texinfo
+          brew unlink cmake || true
+          brew tap-new $USER/old-cmake
+          brew extract --version=3.31.0 cmake $USER/old-cmake
+          brew install $USER/old-cmake/cmake@3.31.0
+          brew link --overwrite cmake@3.31.0
+          brew pin cmake@3.31.0
+
+      - name: Cache deps
+        id: cache_deps
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/deps/build/destdir
+          key: mac-arm-deps-${{ hashFiles('deps/CMakeLists.txt') }}
+
+      - name: Build deps + app
+        run: ./BuildMac.sh -s -x -a universal -t 10.15 -1
+
+      - name: Pack macOS app
+        run: |
+          cd build
+          zip -r ../BambuStudio-ZAA_Mac_universal.zip BambuStudio.app
+
+      - name: Upload macOS ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: BambuStudio-ZAA_Mac_universal
+          path: BambuStudio-ZAA_Mac_universal.zip
+
+      - name: Upload to Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: BambuStudio-ZAA_Mac_universal.zip
           tag_name: ${{ github.ref_name }}
 
   windows-portable:
