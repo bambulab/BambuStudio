@@ -47,17 +47,11 @@ void ExtrusionPath::simplify_by_fitting_arc(double tolerance)
     if (this->z_contoured) {
         return;
     }
-    // Work on a 2D Polyline copy to ensure identical behavior to original BambuStudio.
-    // Polyline3 arc fitting can produce incorrect results due to Point3/Point conversion issues.
+    // Convert to 2D Polyline, run simplify+arc fitting on it, then replace
+    // our Polyline3 entirely. This guarantees identical behavior to upstream.
     Polyline pl2d = this->polyline.to_polyline();
     pl2d.simplify_by_fitting_arc(tolerance);
-    // Write back: rebuild Polyline3 from simplified 2D points
-    this->polyline.fitting_result = pl2d.fitting_result;
-    Points3 new_pts;
-    new_pts.reserve(pl2d.points.size());
-    for (const auto &pt : pl2d.points)
-        new_pts.emplace_back(pt.x(), pt.y(), 0);
-    this->polyline.points = std::move(new_pts);
+    this->polyline = Polyline3(pl2d);
 }
 
 double ExtrusionPath::length() const

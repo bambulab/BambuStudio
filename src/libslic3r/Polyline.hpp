@@ -322,12 +322,12 @@ public:
     explicit Polyline3(Points3 &&points) : MultiPoint3(std::move(points)) {
         fitting_result.clear();
     }
-    // Construct a Polyline3 from a 2D Polyline (z=0 for all points)
+    // Construct a Polyline3 from a 2D Polyline (z=0 for all points), preserving fitting_result
     explicit Polyline3(const Polyline &polyline) {
         points.reserve(polyline.points.size());
         for (const Point &pt : polyline.points)
             points.emplace_back(pt.x(), pt.y(), 0);
-        fitting_result.clear();
+        fitting_result = polyline.fitting_result;
     }
     // Construct a Polyline3 from two 2D Points (z=0)
     explicit Polyline3(const Point &p1, const Point &p2) {
