@@ -218,6 +218,7 @@ SupportRecommendDialog::SupportRecommendDialog(wxWindow* parent, const wxString&
 
 void SupportRecommendDialog::create_ui()
 {
+    constexpr int margin = 30;
     this->SetDoubleBuffered(true);
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
@@ -230,7 +231,7 @@ void SupportRecommendDialog::create_ui()
     m_tip_text->Wrap(scroll_width);
     m_tip_text->SetFont(::Label::Body_14);
     m_tip_text->SetBackgroundColour(*wxWHITE);
-    m_main_sizer->Add(m_tip_text, 0, wxALL | wxEXPAND, 30);
+    m_main_sizer->Add(m_tip_text, 0, wxALL | wxEXPAND, margin);
 
     // filament area
     m_scroll_panel = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxVSCROLL);
@@ -239,7 +240,7 @@ void SupportRecommendDialog::create_ui()
     m_scroll_sizer = new wxBoxSizer(wxVERTICAL);
     m_scroll_panel->SetSizer(m_scroll_sizer);
 
-    m_main_sizer->Add(m_scroll_panel, 1, wxLEFT | wxRIGHT, 30);
+    m_main_sizer->Add(m_scroll_panel, 1, wxLEFT | wxRIGHT, margin);
 
     // btns
     wxBoxSizer* btnSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -268,7 +269,7 @@ void SupportRecommendDialog::create_ui()
     btnSizer->AddStretchSpacer();
     btnSizer->Add(m_cancel_btn, 0, wxRIGHT, 10);
     btnSizer->Add(m_apply_btn);
-    m_main_sizer->Add(btnSizer, 0, wxALL | wxEXPAND, 15);
+    m_main_sizer->Add(btnSizer, 0, wxALL | wxEXPAND, margin);
 
     SetMinSize(wxSize(FromDIP(720), FromDIP(350)));
     SetBackgroundColour(*wxWHITE);
