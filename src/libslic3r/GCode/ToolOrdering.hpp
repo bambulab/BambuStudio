@@ -218,6 +218,16 @@ public:
         unsigned int              mixed_slot_0based;
         std::vector<unsigned int> components_0based;
         std::vector<double>       sub_heights;       // per-component, sum ≈ layer_height
+        bool                      is_gradient = false;
+        int                       gradient_first_sorted_idx = 0; // index of "first" config component after sorting
+
+        struct ObjectGradient {
+            size_t total_layers;
+            size_t current_idx;
+            double gradient_start;
+            double gradient_end;
+        };
+        std::map<const PrintObject*, ObjectGradient> per_object_gradient;
     };
     std::vector<MixedSubLayerGroup> mixed_sub_layer_groups;
 
@@ -385,6 +395,10 @@ private:
     // All extruders, which extrude some material over m_layer_tools.
     std::vector<unsigned int>  m_all_printing_extruders;
     const PrintConfig*         m_print_config_ptr = nullptr;
+
+    // Per-object gradient tracking: slot(0-based) -> PrintObject* -> list of layer indices
+    // where that object uses the slot. Populated by collect_extruders, consumed by resolve_mixed_filaments.
+    std::map<unsigned int, std::map<const PrintObject*, std::vector<size_t>>> m_gradient_object_layers;
     const PrintObject*         m_print_object_ptr = nullptr;
     Print*                     m_print;
     bool                       m_sorted = false;
