@@ -97,6 +97,7 @@ protected:
     CheckBox* m_cb_purify_air_at_print_end;
     CheckBox *m_cb_non_visual_airprinting_detection;
     CheckBox* m_cb_fod_check;
+    CheckBox* m_cb_displacement_detection;
     Label* text_first_layer;
     Label* text_ai_detections;
     Label* text_ai_detections_caption;
@@ -144,6 +145,8 @@ protected:
     Label* text_open_door_caption;
     Label* text_fod_check;
     Label* text_fod_check_caption;
+    Label* text_displacement_detection;
+    Label* text_displacement_detection_caption;
     Label* text_purify_air;
     Label* text_purify_air_context;
     StaticLine* line1;

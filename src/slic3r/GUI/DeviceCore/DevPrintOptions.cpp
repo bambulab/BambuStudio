@@ -75,6 +75,7 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
                     }
 
                     opts->m_fod_check_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 21);
+                    opts->m_displacement_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 22);
 
                     opts->m_buildplate_type_detection.is_support_detect     = true;
                     if (time(nullptr) - opts->m_buildplate_align_detection.detect_hold_start > HOLD_TIME_3SEC)
@@ -277,6 +278,7 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
         opts->m_buildplate_align_detection.is_support_detect = DevUtil::get_flag_bits_no_border(fun2, 2) == 1;
         opts->m_purify_air_at_print_end.is_support_detect    = DevUtil::get_flag_bits_no_border(fun2, 4);
         opts->m_fod_check_detection.is_support_detect        = DevUtil::get_flag_bits_no_border(fun2, 13);
+        opts->m_displacement_detection.is_support_detect     = DevUtil::get_flag_bits_no_border(fun2, 14);
     }
 }
 
@@ -300,7 +302,8 @@ DevPrintOptions::DevPrintOptions(MachineObject *obj) : m_obj(obj)
                         {PrintOptionEnum::First_Layer_Detection, &m_first_layer_detection},
                         {PrintOptionEnum::Purify_Air_At_Print_End, &m_purify_air_at_print_end},
                         {PrintOptionEnum::Snapshot_Detection, &m_snapshot_detection},
-                        {PrintOptionEnum::FOD_Check_Detection, &m_fod_check_detection}
+                        {PrintOptionEnum::FOD_Check_Detection, &m_fod_check_detection},
+                        {PrintOptionEnum::Displacement_Detection, &m_displacement_detection}
     };
 };
 
@@ -541,6 +544,13 @@ int DevPrintOptions::command_xcam_control_fod_check(bool on_off)
     m_fod_check_detection.current_detect_value = on_off;
     m_fod_check_detection.detect_hold_start    = time(nullptr);
     return command_xcam_control("fod_check", on_off, m_obj);
+}
+
+int DevPrintOptions::command_xcam_control_displacement_detection(bool on_off)
+{
+    m_displacement_detection.current_detect_value = on_off;
+    m_displacement_detection.detect_hold_start    = time(nullptr);
+    return command_xcam_control("model_collapse_check", on_off, m_obj);
 }
 
 } // namespace Slic3r
