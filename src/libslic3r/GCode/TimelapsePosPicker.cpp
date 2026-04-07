@@ -2,8 +2,6 @@
 #include "TimelapsePosPicker.hpp"
 #include "Layer.hpp"
 
-#include <set>
-
 constexpr int FILTER_THRESHOLD = 5;
 constexpr int MAX_CANDIDATE_SIZE = 5;
 
@@ -17,11 +15,8 @@ namespace Slic3r {
         m_nozzle_height_to_rod = print_->config().extruder_clearance_height_to_rod;
         m_nozzle_clearance_radius = print_->config().extruder_clearance_max_radius;
         if (print_->config().nozzle_diameter.size() > 1) {
+            m_extruder_height_gap = std::abs(print_->config().extruder_printable_height.values[0] - print_->config().extruder_printable_height.values[1]);
             m_liftable_extruder_id = print_->config().extruder_printable_height.values[0] < print_->config().extruder_printable_height.values[1] ? 0 : 1;
-
-            auto nozzle_group = print_->get_nozzle_group_result();
-            if (nozzle_group && nozzle_group->get_used_extruders().size() > 1)
-                m_extruder_height_gap = std::abs(print_->config().extruder_printable_height.values[0] - print_->config().extruder_printable_height.values[1]);
         }
         m_print_seq = print_->config().print_sequence.value;
         m_based_on_all_layer = print_->config().timelapse_type == TimelapseType::tlSmooth;
@@ -493,8 +488,7 @@ namespace Slic3r {
     {
         float height_gap = 0;
         if (ctx.curr_extruder_id != ctx.picture_extruder_id) {
-            if (m_liftable_extruder_id.has_value() && ctx.picture_extruder_id != *m_liftable_extruder_id
-                && m_extruder_height_gap.has_value())
+            if (m_liftable_extruder_id.has_value() && ctx.picture_extruder_id != m_liftable_extruder_id && m_extruder_height_gap.has_value())
                 height_gap = -*m_extruder_height_gap;
         }
 
@@ -568,7 +562,12 @@ namespace Slic3r {
         if (by_object)
             return DefaultTimelapsePos;
 
-        if (m_extruder_height_gap.has_value() && ctx.curr_layer->print_z <= *m_extruder_height_gap)
+        float height_gap = 0;
+        if (ctx.curr_extruder_id != ctx.picture_extruder_id) {
+            if (m_liftable_extruder_id.has_value() && ctx.picture_extruder_id != m_liftable_extruder_id && m_extruder_height_gap.has_value())
+                height_gap = *m_extruder_height_gap;
+        }
+        if (ctx.curr_layer->print_z < height_gap)
             return DefaultTimelapsePos;
         if (m_all_layer_pos)
             return *m_all_layer_pos;
