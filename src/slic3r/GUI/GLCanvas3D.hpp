@@ -995,7 +995,6 @@ public:
     static std::vector<IsolatedVolumeInfo> s_isolated_volumes;
     static bool                            s_isolated_notification_shown;
     static int                             s_assemble_ratio;
-    static bool                            s_current_show_assemble_view;
     static bool                            s_far_from_origin_notification_shown;
     static BoundingBoxf3                   s_bvh_primary_bounds;
     static double                          s_expand_bvh_box_dist;

@@ -1695,8 +1695,14 @@ void* GLGizmosManager::ensure_icon_loaded(MENU_ICON_NAME icon)
         case IC_VIEW_OK:                    path = "/images/view_ok.svg"; w = h = 64; break;
         case IC_VIEW_RIGHT:                 path = "/images/view_right.svg"; w = h = 64; break;
         case IC_VIEW_ISO:                   path = "/images/view_iso.svg"; w = h = 64; break;
-        case IC_VIEW_CLOSE:                 path = "/images/view_close.svg"; w = h = 64; break;
         case IC_VIEW_HELP:                  path = "/images/view_help.svg"; w = h = 64; break;
+        case IC_VIEW_BOTTOM_DARK:           path = "/images/view_bottom_dark.svg"; w = h = 64; break;
+        case IC_VIEW_TOP_DARK:              path = "/images/view_top_dark.svg"; w = h = 64; break;
+        case IC_VIEW_FRONT_DARK:            path = "/images/view_front_dark.svg"; w = h = 64; break;
+        case IC_VIEW_REAR_DARK:             path = "/images/view_rear_dark.svg"; w = h = 64; break;
+        case IC_VIEW_LEFT_DARK:             path = "/images/view_left_dark.svg"; w = h = 64; break;
+        case IC_VIEW_RIGHT_DARK:            path = "/images/view_right_dark.svg"; w = h = 64; break;
+        case IC_VIEW_ISO_DARK:              path = "/images/view_iso_dark.svg"; w = h = 64; break;
         case IC_TEXT_B:                     path = "/images/text_B.svg"; w = h = 20; break;
         case IC_TEXT_B_DARK:                path = "/images/text_B_dark.svg"; w = h = 20; break;
         case IC_TEXT_T:                     path = "/images/text_T.svg"; w = h = 20; break;

@@ -142,7 +142,6 @@ bool                                        GLCanvas3D::s_enable_bvh = true;
 std::vector<GLCanvas3D::IsolatedVolumeInfo> GLCanvas3D::s_isolated_volumes;
 bool                                        GLCanvas3D::s_isolated_notification_shown = false;
 int                                         GLCanvas3D::s_assemble_ratio = 0;
-bool                                        GLCanvas3D::s_current_show_assemble_view         = true;
 bool                                        GLCanvas3D::s_far_from_origin_notification_shown = false;
 BoundingBoxf3                               GLCanvas3D::s_bvh_primary_bounds;
 double                                      GLCanvas3D::s_expand_bvh_box_dist = 50.0;
@@ -8026,9 +8025,8 @@ void GLCanvas3D::_render_bvh_primary_bounds()
     if (GUI::wxGetApp().app_config->get("enable_assemble_view_preview") == "Close") {
         return;
     }
-#if !BBL_RELEASE_TO_PUBLIC
-    if (!wxGetApp().app_config->get_bool("show_assembly_bvh_bounds")) return;
-#endif
+    if (!wxGetApp().app_config->get_bool("show_assembly_bvh_bounds"))
+        return;
     if (!s_bvh_primary_bounds.defined)return;
 
 
@@ -9010,16 +9008,12 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
             notify_mgr->close_notification_of_type(NotificationType::BBLAssemblyFarFromOrigin);
         }
     };
-    static std::string s_last_enable_assemble_view_preview;
     const std::string  current_enable_assemble_view_preview = GUI::wxGetApp().app_config->get("enable_assemble_view_preview");
-    if (current_enable_assemble_view_preview != s_last_enable_assemble_view_preview) {
-        if (current_enable_assemble_view_preview == "Open") { s_current_show_assemble_view = true; }
-        s_last_enable_assemble_view_preview = current_enable_assemble_view_preview;
-    }
-    if (current_enable_assemble_view_preview == "Close" || m_volumes.volumes.size() < 2 || !s_current_show_assemble_view) {
+    if (current_enable_assemble_view_preview == "Close" || m_volumes.volumes.size() < 2) {
         close_assembly_notifications();
         return;
     }
+    static ECanvasType last_canvas_type = ECanvasType::CanvasView3D;
     if (m_canvas_type == ECanvasType::CanvasView3D || m_canvas_type == ECanvasType::CanvasAssembleView) {
         if (!s_isolated_volumes.empty() && !s_isolated_notification_shown) {
             _show_isolated_volumes_notification();
@@ -9034,22 +9028,30 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
         if (!s_far_from_origin_notification_shown) {
             _check_assembly_far_from_origin();
         }
+        if (last_canvas_type == ECanvasType::CanvasView3D && m_canvas_type == ECanvasType::CanvasAssembleView) {//enter CanvasAssembleView
+            _show_isolated_volumes_notification();
+            _check_assembly_far_from_origin();
+        }
+        last_canvas_type = m_canvas_type;
     }
 
     if (m_canvas_type != ECanvasType::CanvasView3D) {
         return;
     }
-#if !BBL_RELEASE_TO_PUBLIC
     if (s_enable_bvh != GUI::wxGetApp().app_config->get_bool("enable_bvh")) {
         s_enable_bvh = GUI::wxGetApp().app_config->get_bool("enable_bvh");
         wxGetApp().plater()->get_partplate_list().reset_thumbnail_assembly_view_data();
     }
-#endif
     _update_assembly_view_thumbnail();
     bool auto_mode_should_close = GUI::wxGetApp().app_config->get("enable_assemble_view_preview") == "Auto" && s_assemble_ratio < 70;
     if (auto_mode_should_close) {
-        close_assembly_notifications();
+        if (m_canvas_type != ECanvasType::CanvasAssembleView) {
+            close_assembly_notifications();
+        }
         return;
+    }
+    if (!s_enable_bvh) {//should show thumbnail and not return
+        close_assembly_notifications();
     }
     if (m_gizmos.is_running() || m_assembly_view_thumbnail.m_items.empty()) {
         return;
@@ -9067,8 +9069,6 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
     const int choose_btn_pos_y = 118;
     const int btn_size  = 20;
     const int choose_btn_size = 24;
-    const int close_btn_pos_x = window_width - btn_size - 7;
-    const int close_btn_pos_y = 7;
     const int help_btn_pos_x = window_width - btn_size - 7;
     const int help_btn_pos_y = btn_pos_y;
     //get_assembly_view_button_info
@@ -9091,16 +9091,14 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
     const float max_window_x = (float)std::max(5, cnv_size.get_width() - window_width - 5);
     const float window_pos_x = std::max(5.0f, std::min(btn_info.x, max_window_x));
     imgui.set_next_window_pos((int)window_pos_x, (int)window_pos_y, ImGuiCond_Always, 0, 0);
-#ifdef __WINDOWS__
     imgui.set_next_window_size(window_width, window_height, ImGuiCond_Always);
-#endif
 
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, m_is_dark ? ImVec4(57 / 255.0f, 60 / 255.0f, 60 / 255.0f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.0f, 0.0f, 0.0f, 77.0f / 255.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
 
-    imgui.begin(_L("RenderAssemblyViewThumb"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove |
+    imgui.begin(std::string("RenderAssemblyViewThumb"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoMove |
                                       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse); //
 
     // Render thumbnails from m_assembly_view_thumbnail.m_items
@@ -9108,49 +9106,45 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
     auto item     = item_iso;
     bool image_hovered = false;
     bool choose_button_hovered = false;
-    bool close_button_hovered = false;
     if (item && item->texture_id) {
         ImVec2 size     = ImVec2(thumb_width, thumb_height);
         ImVec2 uv0      = ImVec2(0.0f, 1.0f);
         ImVec2 uv1      = ImVec2(1.0f, 0.0f);
         ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-        ImU32  bg_col   = IM_COL32(212, 212, 212, 212);
+        ImU32  bg_col   = m_is_dark ? IM_COL32(68, 68, 70, 255) : IM_COL32(212, 212, 212, 212);
 
         // Center the image in the window
         ImGui::SetCursorPos(ImVec2(thumb_pos_x, thumb_pos_y));
         ImVec2 image_pos = ImGui::GetCursorScreenPos();
         ImRect choose_button_rect(image_pos + ImVec2(float(btn_pos_x - thumb_pos_x), float(choose_btn_pos_y - thumb_pos_y)),
                                   image_pos + ImVec2(float(btn_pos_x - thumb_pos_x + choose_btn_size), float(choose_btn_pos_y - thumb_pos_y + choose_btn_size)));
-        ImRect close_button_rect(image_pos + ImVec2(float(close_btn_pos_x - thumb_pos_x), float(close_btn_pos_y - thumb_pos_y)),
-                                 image_pos + ImVec2(float(close_btn_pos_x - thumb_pos_x + btn_size), float(close_btn_pos_y - thumb_pos_y + btn_size)));
         ImRect help_button_rect(image_pos + ImVec2(float(help_btn_pos_x - thumb_pos_x), float(help_btn_pos_y - thumb_pos_y)),
                                 image_pos + ImVec2(float(help_btn_pos_x - thumb_pos_x + btn_size), float(help_btn_pos_y - thumb_pos_y + btn_size)));
         ImGui::GetWindowDrawList()->AddRectFilled(image_pos, ImVec2(image_pos.x + size.x, image_pos.y + size.y), bg_col);
         ImGui::Image(item->texture_id, size, uv0, uv1, tint_col);
         ImGui::SetCursorPos(ImVec2(thumb_pos_x, thumb_pos_y));
         if (ImGui::InvisibleButton("assembly_view_thumbnail_click", size)) {
-            if (!choose_button_rect.Contains(ImGui::GetIO().MousePos) && !close_button_rect.Contains(ImGui::GetIO().MousePos) && !help_button_rect.Contains(ImGui::GetIO().MousePos)) {
+            if (!choose_button_rect.Contains(ImGui::GetIO().MousePos) && !help_button_rect.Contains(ImGui::GetIO().MousePos)) {
                 open_assembly_view();
             }
         }
-        image_hovered = ImGui::IsItemHovered() && !choose_button_rect.Contains(ImGui::GetIO().MousePos) && !close_button_rect.Contains(ImGui::GetIO().MousePos) && !help_button_rect.Contains(ImGui::GetIO().MousePos);
+        image_hovered = ImGui::IsItemHovered() && !choose_button_rect.Contains(ImGui::GetIO().MousePos) && !help_button_rect.Contains(ImGui::GetIO().MousePos);
         ImGui::SetItemAllowOverlap();
     }
 
     // Render view menu button at bottom left.
-    GLGizmosManager::MENU_ICON_NAME selected_view_icon = GLGizmosManager::MENU_ICON_NAME::IC_VIEW_ISO;
+    GLGizmosManager::MENU_ICON_NAME selected_view_icon = m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_VIEW_ISO_DARK : GLGizmosManager::MENU_ICON_NAME::IC_VIEW_ISO;
     switch (m_assembly_view_preview_angle) {
-    case Camera::ViewAngleType::Top:    selected_view_icon = GLGizmosManager::MENU_ICON_NAME::IC_VIEW_TOP; break;
-    case Camera::ViewAngleType::Bottom: selected_view_icon = GLGizmosManager::MENU_ICON_NAME::IC_VIEW_BOTTOM; break;
-    case Camera::ViewAngleType::Front:  selected_view_icon = GLGizmosManager::MENU_ICON_NAME::IC_VIEW_FRONT; break;
-    case Camera::ViewAngleType::Rear:   selected_view_icon = GLGizmosManager::MENU_ICON_NAME::IC_VIEW_REAR; break;
-    case Camera::ViewAngleType::Left:   selected_view_icon = GLGizmosManager::MENU_ICON_NAME::IC_VIEW_LEFT; break;
-    case Camera::ViewAngleType::Right:  selected_view_icon = GLGizmosManager::MENU_ICON_NAME::IC_VIEW_RIGHT; break;
+    case Camera::ViewAngleType::Top:    selected_view_icon = m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_VIEW_TOP_DARK    : GLGizmosManager::MENU_ICON_NAME::IC_VIEW_TOP; break;
+    case Camera::ViewAngleType::Bottom: selected_view_icon = m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_VIEW_BOTTOM_DARK : GLGizmosManager::MENU_ICON_NAME::IC_VIEW_BOTTOM; break;
+    case Camera::ViewAngleType::Front:  selected_view_icon = m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_VIEW_FRONT_DARK  : GLGizmosManager::MENU_ICON_NAME::IC_VIEW_FRONT; break;
+    case Camera::ViewAngleType::Rear:   selected_view_icon = m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_VIEW_REAR_DARK   : GLGizmosManager::MENU_ICON_NAME::IC_VIEW_REAR; break;
+    case Camera::ViewAngleType::Left:   selected_view_icon = m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_VIEW_LEFT_DARK   : GLGizmosManager::MENU_ICON_NAME::IC_VIEW_LEFT; break;
+    case Camera::ViewAngleType::Right:  selected_view_icon = m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_VIEW_RIGHT_DARK  : GLGizmosManager::MENU_ICON_NAME::IC_VIEW_RIGHT; break;
     case Camera::ViewAngleType::Iso:
-    default:                            selected_view_icon = GLGizmosManager::MENU_ICON_NAME::IC_VIEW_ISO; break;
+    default:                            selected_view_icon = m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_VIEW_ISO_DARK    : GLGizmosManager::MENU_ICON_NAME::IC_VIEW_ISO; break;
     }
     ImTextureID normal_id = m_gizmos.get_icon_texture_id(selected_view_icon);
-    ImTextureID close_id  = m_gizmos.get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_VIEW_CLOSE);
     ImTextureID help_id   = m_gizmos.get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_VIEW_HELP);
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
@@ -9161,7 +9155,7 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
     ImGui::SetCursorPos(ImVec2(btn_pos_x, choose_btn_pos_y));
     ImVec2 choose_button_pos = ImGui::GetCursorScreenPos();
     ImGui::GetWindowDrawList()->AddRectFilled(choose_button_pos, ImVec2(choose_button_pos.x + choose_icon_size.x, choose_button_pos.y + choose_icon_size.y),
-                                              IM_COL32(0, 0, 0, 26), 4.0f);
+                                              m_is_dark ? IM_COL32(68, 68, 70, 255) : IM_COL32(0, 0, 0, 26), 4.0f);
     ImGui::GetWindowDrawList()->AddImage(normal_id, ImVec2(choose_button_pos.x + choose_icon_margin, choose_button_pos.y + choose_icon_margin),
                                          ImVec2(choose_button_pos.x + choose_btn_size - choose_icon_margin, choose_button_pos.y + choose_btn_size - choose_icon_margin));
     if (ImGui::InvisibleButton("assembly_view_preview_menu_button", choose_icon_size)) {
@@ -9169,16 +9163,7 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
     }
     choose_button_hovered = ImGui::IsItemHovered();
     ImGui::SetItemAllowOverlap();
-    ImGui::SetCursorPos(ImVec2(close_btn_pos_x, close_btn_pos_y));
-    if (ImGui::ImageButton3(close_id, close_id, button_icon_size, ImVec2(0, 0), ImVec2(1, 1), -1, ImVec4(0, 0, 0, 0), ImVec4(1, 1, 1, 1), ImVec2(0, 0))) {
-        m_show_assembly_view_preview_menu = false;
-        s_current_show_assemble_view      = false;
 
-        set_as_dirty();
-        request_extra_frame();
-    }
-    close_button_hovered = ImGui::IsItemHovered();
-    ImGui::SetItemAllowOverlap();
     bool help_button_hovered = false;
     ImGui::SetCursorPos(ImVec2(help_btn_pos_x, help_btn_pos_y));
     if (ImGui::ImageButton3(help_id, help_id, button_icon_size, ImVec2(0, 0), ImVec2(1, 1), -1, ImVec4(0, 0, 0, 0), ImVec4(1, 1, 1, 1), ImVec2(0, 0))) {
@@ -9191,7 +9176,7 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
     }
     help_button_hovered = ImGui::IsItemHovered();
     if (choose_button_hovered) {
-        auto temp_tooltip = _L("Change assemble view preview");
+        auto temp_tooltip = _L("Change camera perspective");
         auto width        = ImGui::CalcTextSize(temp_tooltip.c_str()).x + imgui.scaled(2.0f);
         imgui.tooltip(temp_tooltip, width);
     }
@@ -9200,14 +9185,16 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
         auto width        = ImGui::CalcTextSize(temp_tooltip.c_str()).x + imgui.scaled(2.0f);
         imgui.tooltip(temp_tooltip, width);
     }
+#if !BBL_RELEASE_TO_PUBLIC
     else if (image_hovered) {
         if (!s_isolated_volumes.empty()) {
-            auto temp_tooltip = "\n" + _L("Note:Only the main assembly body is shown here.unassembled objects are hidden.");
-            temp_tooltip += "\n" + (boost::format(_u8L("Current assembly rate: %1%%%")) % s_assemble_ratio).str();
+            auto temp_tooltip = (boost::format(_u8L("Current assembly rate: %1%%%")) % s_assemble_ratio).str();
             auto width = ImGui::CalcTextSize(temp_tooltip.c_str()).x + imgui.scaled(2.0f);
             imgui.tooltip(temp_tooltip, width);
         }
     }
+#endif
+
     if (image_hovered)
         set_cursor(Hand);
     else if (m_cursor_type == Hand)
@@ -9234,13 +9221,13 @@ void GLCanvas3D::_render_assembly_view_preview_menu(float anchor_x, float anchor
     };
 
     const PreviewMenuItem items[] = {
-        { Camera::ViewAngleType::Top,    GLGizmosManager::MENU_ICON_NAME::IC_VIEW_TOP,    _utf8(_CTX(L_CONTEXT("Top", "Camera"), "Camera")) },
-        { Camera::ViewAngleType::Bottom, GLGizmosManager::MENU_ICON_NAME::IC_VIEW_BOTTOM, _utf8(_CTX(L_CONTEXT("Bottom", "Camera"), "Camera")) },
-        { Camera::ViewAngleType::Front,  GLGizmosManager::MENU_ICON_NAME::IC_VIEW_FRONT,  _utf8(_CTX(L_CONTEXT("Front", "Camera"), "Camera")) },
-        { Camera::ViewAngleType::Rear,   GLGizmosManager::MENU_ICON_NAME::IC_VIEW_REAR,   _utf8(_CTX(L_CONTEXT("Back", "Camera"), "Camera")) },
-        { Camera::ViewAngleType::Left,   GLGizmosManager::MENU_ICON_NAME::IC_VIEW_LEFT,   _utf8(_CTX(L_CONTEXT("Left", "Camera"), "Camera")) },
-        { Camera::ViewAngleType::Right,  GLGizmosManager::MENU_ICON_NAME::IC_VIEW_RIGHT,  _utf8(_CTX(L_CONTEXT("Right", "Camera"), "Camera")) },
-        { Camera::ViewAngleType::Iso,    GLGizmosManager::MENU_ICON_NAME::IC_VIEW_ISO,    _utf8(_CTX(L_CONTEXT("Isometric", "Camera"), "Camera")) },
+        { Camera::ViewAngleType::Top,    m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_VIEW_TOP_DARK    : GLGizmosManager::MENU_ICON_NAME::IC_VIEW_TOP,    _utf8(_CTX(L_CONTEXT("Top", "Camera"), "Camera")) },
+        { Camera::ViewAngleType::Bottom, m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_VIEW_BOTTOM_DARK : GLGizmosManager::MENU_ICON_NAME::IC_VIEW_BOTTOM, _utf8(_CTX(L_CONTEXT("Bottom", "Camera"), "Camera")) },
+        { Camera::ViewAngleType::Front,  m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_VIEW_FRONT_DARK  : GLGizmosManager::MENU_ICON_NAME::IC_VIEW_FRONT,  _utf8(_CTX(L_CONTEXT("Front", "Camera"), "Camera")) },
+        { Camera::ViewAngleType::Rear,   m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_VIEW_REAR_DARK   : GLGizmosManager::MENU_ICON_NAME::IC_VIEW_REAR,   _utf8(_CTX(L_CONTEXT("Back", "Camera"), "Camera")) },
+        { Camera::ViewAngleType::Left,   m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_VIEW_LEFT_DARK   : GLGizmosManager::MENU_ICON_NAME::IC_VIEW_LEFT,   _utf8(_CTX(L_CONTEXT("Left", "Camera"), "Camera")) },
+        { Camera::ViewAngleType::Right,  m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_VIEW_RIGHT_DARK  : GLGizmosManager::MENU_ICON_NAME::IC_VIEW_RIGHT,  _utf8(_CTX(L_CONTEXT("Right", "Camera"), "Camera")) },
+        { Camera::ViewAngleType::Iso,    m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_VIEW_ISO_DARK    : GLGizmosManager::MENU_ICON_NAME::IC_VIEW_ISO,    _utf8(_CTX(L_CONTEXT("Isometric", "Camera"), "Camera")) },
     };
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
@@ -9258,17 +9245,16 @@ void GLCanvas3D::_render_assembly_view_preview_menu(float anchor_x, float anchor
     menu_pos_x = std::max(5.0f, menu_pos_x);
 
     imgui.set_next_window_pos(menu_pos_x, menu_pos_y, ImGuiCond_Always, 0, 0);
-#ifdef __WINDOWS__
     imgui.set_next_window_size(menu_width, menu_height, ImGuiCond_Always);
-#endif
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, m_is_dark ? ImVec4(45 / 255.0f, 45 / 255.0f, 49 / 255.0f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.0f, 0.0f, 0.0f, 77.0f / 255.0f));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(38.0f / 255.0f, 46.0f / 255.0f, 48.0f / 255.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_Text, m_is_dark ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImVec4(38.0f / 255.0f, 46.0f / 255.0f, 48.0f / 255.0f, 1.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 12.0f));
 
-    imgui.begin(_L("AssemblyViewPreviewMenu"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove |
+    imgui.begin(std::string("AssemblyViewPreviewMenu"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove |
                                               ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse);
 
     ImTextureID ok_id = m_gizmos.get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_VIEW_OK);
@@ -9288,10 +9274,11 @@ void GLCanvas3D::_render_assembly_view_preview_menu(float anchor_x, float anchor
         }
         bool hovered = ImGui::IsItemHovered();
         if (hovered || selected) {
-            ImU32 bg = hovered ? IM_COL32(240, 240, 240, 255) : IM_COL32(248, 248, 248, 255);
+            ImU32 bg = m_is_dark ? (hovered ? IM_COL32(55, 55, 59, 255) : IM_COL32(10, 10, 10, 255))
+                                  : (hovered ? IM_COL32(240, 240, 240, 255) : IM_COL32(248, 248, 248, 255));
             ImGui::GetWindowDrawList()->AddRectFilled(row_pos, ImVec2(row_pos.x + menu_width - 24.0f, row_pos.y + row_height), bg, 4.0f);
         }
-        ImGui::SetCursorScreenPos(ImVec2(row_pos.x - 4.0f, row_pos.y + 2.0f));
+        ImGui::SetCursorScreenPos(ImVec2(row_pos.x + 2.0f, row_pos.y + 2.0f));
         if (selected)
             ImGui::Image(ok_id, icon_size);
         else
@@ -11612,7 +11599,7 @@ void GLCanvas3D::_show_isolated_volumes_notification()
         names += iv.vol->name;
         ++count;
     }
-    std::string info_text = _u8L("Assembly view: isolated objects detected") + ": " + names + "\n"
+    std::string info_text = _u8L("Overview:isolated objects detected") + ": " + names + "\n"
                           + _u8L("Click to move them closer to the main body.");
 
 
@@ -11658,6 +11645,8 @@ bool GLCanvas3D::_reset_assembly_to_origin(wxEvtHandler*)
     if (!plater) return false;
     Model& model = plater->model();
 
+    plater->take_snapshot("reset all volumes to assembly origin", UndoRedo::SnapshotType::GizmoAction);
+
     for (ModelObject* obj : model.objects) {
         for (ModelInstance* inst : obj->instances) {
             Geometry::Transformation trafo = inst->get_assemble_transformation();
@@ -11680,6 +11669,8 @@ bool GLCanvas3D::_move_isolated_volumes_closer(wxEvtHandler*)
 
     const Vec3d  box_center  = s_bvh_primary_bounds.center();
     const double target_dist = 30.0;
+
+    plater->take_snapshot("Move isolated volumes", UndoRedo::SnapshotType::GizmoAction);
 
     for (const auto& iv : s_isolated_volumes) {
         if (!iv.vol || iv.obj_idx < 0 || iv.obj_idx >= (int) model.objects.size()) continue;
@@ -11896,6 +11887,9 @@ void GLCanvas3D::_filter_assembly_thumbnail_candidates_by_bvh(const std::vector<
 
     const tinybvh::BVH::BVHNode& root = volume_bvh.bvhNode[0];
     if (root.isLeaf()) {
+        BoundingBoxf3 root_bounds = _bvh_node_bounds(volume_bvh, 0);
+        s_bvh_primary_bounds  = root_bounds;
+        s_bvh_expanded_bounds = _expand_bounds(root_bounds, s_expand_bvh_box_dist);
         return;
     }
 
