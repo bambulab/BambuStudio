@@ -968,6 +968,7 @@ public:
 
     void set_nozzle_group_result(const std::shared_ptr<MultiNozzleUtils::NozzleGroupResultBase> result) { m_nozzle_group_result = result; }
     const std::shared_ptr<MultiNozzleUtils::NozzleGroupResultBase> get_nozzle_group_result() { return m_nozzle_group_result; }
+    std::shared_ptr<const MultiNozzleUtils::NozzleGroupResultBase> get_nozzle_group_result() const { return m_nozzle_group_result; }
     std::shared_ptr<MultiNozzleUtils::LayeredNozzleGroupResult> get_layered_nozzle_group_result()
     {
         return std::dynamic_pointer_cast<MultiNozzleUtils::LayeredNozzleGroupResult>(m_nozzle_group_result);
