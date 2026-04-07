@@ -512,9 +512,12 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfi
 
     refresh_setup(config, is_bbl_machine, model, origin);
 
+    m_writer.set_first_layer(true);
+    m_writer.reset_last_acceleration();
+
     gcode << move_to(Vec2d(m_starting_point.x(), m_starting_point.y()), m_writer, "Move to start XY position");
     gcode << m_writer.travel_to_z(height_first_layer(), "Move to start Z position");
-    gcode << m_writer.set_pressure_advance(m_params.start, m_is_bbl_bowden);
+    gcode << m_writer.set_pressure_advance(m_is_bbl_bowden ? 0.4 : m_params.start, m_is_bbl_bowden);
 
     const DrawBoxOptArgs default_box_opt_args(wall_count(), height_first_layer(), line_width_first_layer(), speed_adjust(speed_first_layer()));
 
@@ -547,6 +550,8 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfi
             gcode = std::stringstream(); // reset for next layer contents
             gcode << "; start pressure advance pattern for layer\n";
 
+            m_writer.reset_last_acceleration();
+            m_writer.set_first_layer(false);
             gcode << m_writer.travel_to_z(layer_height, "Move to layer height");
             gcode << m_writer.reset_e();
         }
@@ -565,6 +570,9 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfi
                                      m_draw_digit_mode, line_width(), number_e_per_mm, speed_first_layer(), m_writer);
             }
         }
+
+        if (i == 0)
+            gcode << m_writer.set_pressure_advance(m_params.start, m_is_bbl_bowden);
 
         double to_x        = m_starting_point.x() + pattern_shift();
         double to_y        = m_starting_point.y();
@@ -689,6 +697,31 @@ void CalibPressureAdvancePattern::_refresh_writer(bool is_bbl_machine, const Mod
     const unsigned int filament_id = model_extruder_id > 0 ? model_extruder_id - 1 : 0;
     m_writer.set_extruders({filament_id});
     m_writer.set_extruder(filament_id, 0);
+
+    std::vector<unsigned int> travel_accelerations;
+    for (auto value : print_config.travel_acceleration.values) {
+        travel_accelerations.emplace_back((unsigned int) floor(value + 0.5));
+    }
+    std::vector<unsigned int> short_travel_accelerations;
+    for (auto value : print_config.travel_short_distance_acceleration.values) {
+        short_travel_accelerations.emplace_back((unsigned int) floor(value + 0.5));
+    }
+    std::vector<unsigned int> first_layer_travel_accelerations;
+    for (auto value : print_config.initial_layer_travel_acceleration.values) {
+        first_layer_travel_accelerations.emplace_back((unsigned int) floor(value + 0.5));
+    }
+    m_writer.set_travel_acceleration(travel_accelerations);
+    m_writer.set_travel_short_acceleration(short_travel_accelerations);
+    m_writer.set_first_layer_travel_acceleration(first_layer_travel_accelerations);
+
+    const int nozzle_idx = m_params.extruder_id;
+    if (nozzle_idx >= 0 && nozzle_idx < (int) print_config.default_acceleration.size() && nozzle_idx < (int) print_config.outer_wall_acceleration.size()) {
+        const double default_acc = print_config.default_acceleration.get_at(nozzle_idx);
+        const double outer_acc   = print_config.outer_wall_acceleration.get_at(nozzle_idx);
+        if (default_acc > 0 && outer_acc > 0) {
+            m_writer.set_acceleration((unsigned int) floor(outer_acc + 0.5));
+        }
+    }
 }
 
 double CalibPressureAdvancePattern::object_size_x() const
