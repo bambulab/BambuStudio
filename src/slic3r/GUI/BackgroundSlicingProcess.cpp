@@ -639,11 +639,12 @@ void BackgroundSlicingProcess::stop_internal()
 			BOOST_LOG_TRIVIAL(error) << "BackgroundSlicingProcess::stop_internal() timed out. "
 			                         << "Force-canceling (generation " << m_task_generation << " -> " << m_task_generation + 1 << ").";
 			++m_task_generation;
+			m_orphaned_threads.push_back(std::move(m_thread));
 			m_print->state_mutex().lock();
-			m_state = STATE_IDLE;
+			m_state = STATE_INITIAL;
 			m_print->restart();
 			m_print->set_cancel_callback([](){});
-			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", exit (force-canceled)" << std::endl;
+			BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", exit (force-canceled, thread orphaned)" << std::endl;
 			return;
 		}
 		// Lock it back to be in a consistent state.

@@ -7,56 +7,7 @@
 
 #include <boost/log/trivial.hpp>
 
-#ifdef _WIN32
-#include <windows.h>
-#include <thread>
-#include <atomic>
-#include <chrono>
-#endif
-
 namespace Slic3r::Geometry {
-
-#ifdef _WIN32
-namespace {
-
-// Runs fn() in a dedicated OS thread that can be forcefully killed via TerminateThread
-// if throw_on_cancel throws. This makes boost::polygon::construct_voronoi interruptible.
-// Memory allocated by fn() will leak on cancel — acceptable for bounded voronoi data.
-void run_cancelable(const std::function<void()> &fn, const std::function<void()> &throw_on_cancel) {
-    std::atomic<bool> done{false};
-    std::exception_ptr worker_ex;
-
-    std::thread worker([&]() {
-        try {
-            fn();
-        } catch (...) {
-            worker_ex = std::current_exception();
-        }
-        done.store(true, std::memory_order_release);
-    });
-
-    while (!done.load(std::memory_order_acquire)) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        if (done.load(std::memory_order_acquire))
-            break;
-        try {
-            throw_on_cancel();
-        } catch (...) {
-            TerminateThread(worker.native_handle(), 1);
-            worker.detach();
-            BOOST_LOG_TRIVIAL(warning) << "Voronoi computation thread killed due to cancel request";
-            throw;
-        }
-    }
-
-    worker.join();
-
-    if (worker_ex)
-        std::rethrow_exception(worker_ex);
-}
-
-} // anonymous namespace
-#endif // _WIN32
 
 using PolygonsSegmentIndexConstIt = std::vector<Arachne::PolygonsSegmentIndex>::const_iterator;
 using LinesIt                     = Lines::iterator;
@@ -75,13 +26,7 @@ typename boost::polygon::enable_if<
 VoronoiDiagram::construct_voronoi(const SegmentIterator segment_begin, const SegmentIterator segment_end, const bool try_to_repair_if_needed,
                                   const std::function<void()> &throw_on_cancel) {
     throw_on_cancel();
-#ifdef _WIN32
-    run_cancelable([&]() {
-        boost::polygon::construct_voronoi(segment_begin, segment_end, &m_voronoi_diagram);
-    }, throw_on_cancel);
-#else
     boost::polygon::construct_voronoi(segment_begin, segment_end, &m_voronoi_diagram);
-#endif
     throw_on_cancel();
     if (try_to_repair_if_needed) {
         if (m_issue_type = detect_known_issues(*this, segment_begin, segment_end); m_issue_type != IssueType::NO_ISSUE_DETECTED) {
@@ -355,13 +300,7 @@ VoronoiDiagram::try_to_repair_degenerated_voronoi_diagram_by_rotation(const Segm
 
     throw_on_cancel();
     VoronoiDiagram::voronoi_diagram_type voronoi_diagram_rotated;
-#ifdef _WIN32
-    run_cancelable([&]() {
-        boost::polygon::construct_voronoi(segments_rotated.begin(), segments_rotated.end(), &voronoi_diagram_rotated);
-    }, throw_on_cancel);
-#else
     boost::polygon::construct_voronoi(segments_rotated.begin(), segments_rotated.end(), &voronoi_diagram_rotated);
-#endif
     throw_on_cancel();
 
     this->copy_to_local(voronoi_diagram_rotated);
