@@ -112,7 +112,7 @@
       "action": "prohibition",
       "calib_mode": "auto_pa",
       "model_id": ["O1D", "O1E"],
-      "description": "Auto dynamic flow calibration is not supported for TPU filament."
+      "description": "Auto dynamic flow calibration is not supported for TPU filament.",
       "action": "warning",
       "model_id":["N6"],
       "description": "How to feed TPU filament on X2D.",

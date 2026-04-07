@@ -100,6 +100,8 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
     DevFilaBlacklist::load_filaments_blacklist_config();
     if (DevFilaBlacklist::filaments_blacklist.contains("blacklist"))
     {
+        int item_count = DevFilaBlacklist::filaments_blacklist["blacklist"].size();
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": filaments_blacklist item count=" << item_count;
         for (auto filament_item : DevFilaBlacklist::filaments_blacklist["blacklist"])
         {
             std::string action = filament_item.contains("action") ? filament_item["action"].get<std::string>() : "";
