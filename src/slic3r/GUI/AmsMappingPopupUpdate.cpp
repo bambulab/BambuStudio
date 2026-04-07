@@ -241,7 +241,7 @@ void AmsMapingPopup::update_mapping_items(MachineObject* obj, const std::vector<
     const auto& ams_list = obj->GetFilaSystem()->GetAmsList();
     for (auto ams_iter = ams_list.begin(); ams_iter != ams_list.end(); ams_iter++) {
         const auto& extruder_set = ams_iter->second->GetBindedExtruderSet();
-        if (extruder_set.size() < 0) {
+        if (extruder_set.size() <= 0) {
             continue;
         }
 

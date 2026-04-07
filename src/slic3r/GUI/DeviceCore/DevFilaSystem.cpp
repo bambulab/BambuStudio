@@ -571,7 +571,9 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
             } else if (bind_switch_in == 1) {
                 binded_switcher_pos = DevFilaSwitch::SwitchPos::POS_IN_A;
             }
-        } else {
+        } else if (extuder_id == 0xE){
+            binded_extruder_set = {};
+        } else{
             binded_extruder_set = { extuder_id };
         }
     } else {
