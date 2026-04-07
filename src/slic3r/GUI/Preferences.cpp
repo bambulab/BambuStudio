@@ -1352,9 +1352,9 @@ wxWindow* PreferencesDialog::create_general_page()
                                                                  _L("When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."), 50,
                                                                  "enable_record_gcodeviewer_option_item");
 
-    std::vector<wxString> assemble_view_preview_options = { _L("Auto"), _L("Always show"), _L("Always hide") };
-    auto enable_assemble_view_preview_settings = create_item_combobox(_L("Identify and display overview"), page,
-        _L("Identify and display overview"), "enable_assemble_view_preview",
+    std::vector<wxString> assemble_view_preview_options = { _L("Auto"), _L("Open"), _L("Close") };
+    auto enable_assemble_view_preview_settings = create_item_combobox(_L("Display overview"), page,
+        _L("Display overview"), "enable_assemble_view_preview",
         assemble_view_preview_options, { "Auto", "Open", "Close" },
         [](int idx) {
             wxGetApp().app_config->set("enable_assemble_view_preview", idx == 0 ? "Auto" : idx == 1 ? "Open" : "Close");
