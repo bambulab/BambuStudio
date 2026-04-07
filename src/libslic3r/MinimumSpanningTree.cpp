@@ -63,7 +63,11 @@ auto MinimumSpanningTree::prim(std::vector<Point> vertices) const -> AdjacencyGr
         using MapValue = std::pair<const Point*, coordf_t>;
         const auto closest = std::min_element(smallest_distance.begin(), smallest_distance.end(),
                                               [](const MapValue& a, const MapValue& b) {
-                                                  return a.second < b.second;
+                                                  if (a.second != b.second)
+                                                      return a.second < b.second;
+                                                  if (a.first->x() != b.first->x())
+                                                      return a.first->x() < b.first->x();
+                                                  return a.first->y() < b.first->y();
                                               });
 
         //Add this point to the graph and remove it from the candidates.
@@ -116,7 +120,7 @@ std::vector<Point> MinimumSpanningTree::leaves() const
     std::vector<Point> result;
     for (std::pair<Point, std::vector<Edge>> node : adjacency_graph)
     {
-        if (node.second.size() <= 1) //Leaves are nodes that have only one adjacent edge, or just the one node if the tree contains one node.
+        if (node.second.size() <= 1)
         {
             result.push_back(node.first);
         }

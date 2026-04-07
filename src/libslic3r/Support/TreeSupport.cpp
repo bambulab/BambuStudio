@@ -3040,8 +3040,12 @@ void TreeSupport::drop_nodes()
             std::vector<Point> points_to_buildplate;
             for (const std::pair<const Point, SupportNode*>& entry : group)
             {
-                points_to_buildplate.emplace_back(entry.first); //Just the position of the node.
+                points_to_buildplate.emplace_back(entry.first);
             }
+            std::sort(points_to_buildplate.begin(), points_to_buildplate.end(),
+                      [](const Point& a, const Point& b) {
+                          return a.x() != b.x() ? a.x() < b.x() : a.y() < b.y();
+                      });
             spanning_trees.emplace_back(points_to_buildplate);
         }
         profiler.stage_add(STAGE_MinimumSpanningTree);
@@ -3066,16 +3070,23 @@ void TreeSupport::drop_nodes()
         {
             auto& nodes_this_part = nodes_per_part[group_index];
             const MinimumSpanningTree& mst = spanning_trees[group_index];
+            std::vector<std::pair<Point, SupportNode*>> nodes_vec;
+            nodes_vec.reserve(nodes_this_part.size());
+            for (const auto& kv : nodes_this_part)
+                nodes_vec.emplace_back(kv.first, kv.second);
+            std::sort(nodes_vec.begin(), nodes_vec.end(),
+                      [](const std::pair<Point, SupportNode*>& a, const std::pair<Point, SupportNode*>& b) {
+                          return a.first.x() != b.first.x() ? a.first.x() < b.first.x() : a.first.y() < b.first.y();
+                      });
             //In the first pass, merge all nodes that are close together.
-            std::vector<std::pair<const Point, SupportNode*>> nodes_vec(nodes_this_part.begin(), nodes_this_part.end());
-            tbb::parallel_for_each(nodes_vec.begin(), nodes_vec.end(), [&](const std::pair<const Point, SupportNode*>& entry) {
+            for (const std::pair<Point, SupportNode*>& entry : nodes_vec) {
                 SupportNode* p_node = entry.second;
                 SupportNode& node = *p_node;
                 if (!p_node->valid)
                 {
-                    return; //Delete this node (don't create a new node for it on the next layer).
+                    continue;
                 }
-                if (node.fading) return;
+                if (node.fading) continue;
                 const std::vector<Point>& neighbours = mst.adjacent_nodes(node.position);
                 if (node.type == ePolygon) {
                     // Remove all circle neighbours that are completely inside the polygon and merge them into this node.
@@ -3100,12 +3111,10 @@ void TreeSupport::drop_nodes()
                                         next_node->max_move_dist = 0;
                                         next_node->overhang      = std::move(tmp[0]);
                                         next_node->origin_area   = next_node->overhang.area();
-                                        m_ts_data->m_mutex.lock();
                                         contact_nodes[layer_nr_next].emplace_back(next_node);
                                         p_node->valid = false;
                                         neighbour_node->valid = false;
-                                        m_ts_data->m_mutex.unlock();
-                                        return;
+                                        goto first_pass_next;
                                     }
                                 }
                             }
@@ -3155,11 +3164,9 @@ void TreeSupport::drop_nodes()
                     SupportNode* next_node = m_ts_data->create_node(next_position, node_parent->distance_to_top + 1, obj_layer_nr_next, node_parent->support_roof_layers_below - 1, to_buildplate, node_parent,
                         print_z_next, height_next);
                     get_max_move_dist(next_node);
-                    m_ts_data->m_mutex.lock();
                     contact_nodes[layer_nr_next].push_back(next_node);
                     neighbour->valid = false;
                     p_node->valid = false;
-                    m_ts_data->m_mutex.unlock();
                 }
                 else if (neighbours.size() > 1) //Don't merge leaf nodes because we would then incur movement greater than the maximum move distance.
                 {
@@ -3173,22 +3180,20 @@ void TreeSupport::drop_nodes()
                             // only allow bigger node to merge smaller nodes. See STUDIO-6326
                             if(node.radius < neighbour_node->radius) continue;
 
-                            m_ts_data->m_mutex.lock();
                             if (p_node->valid)
-                            {  // since we are processing all nodes in parallel, p_node may have been deleted by another thread. In this case, we should not delete neighbour_node.
+                            {
                                 node.merged_neighbours.push_front(neighbour_node);
                                 node.merged_neighbours.insert(node.merged_neighbours.end(), neighbour_node->merged_neighbours.begin(), neighbour_node->merged_neighbours.end());
                                 neighbour_node->valid = false;
                             }
-                            m_ts_data->m_mutex.unlock();
                         }
                     }
                 }
+first_pass_next:;
             }
-            );
 
             //In the second pass, move all middle nodes.
-            tbb::parallel_for_each(nodes_vec.begin(), nodes_vec.end(), [&](const std::pair<const Point, SupportNode*>& entry) {
+            tbb::parallel_for_each(nodes_vec.begin(), nodes_vec.end(), [&](const std::pair<Point, SupportNode*>& entry) {
 
                 SupportNode* p_node = entry.second;
                 const SupportNode& node = *p_node;
@@ -3432,6 +3437,13 @@ void TreeSupport::drop_nodes()
                 m_ts_data->m_mutex.unlock();
             }
             );
+
+            // Sort contact_nodes for deterministic processing in the next layer
+            std::sort(contact_nodes[layer_nr_next].begin(), contact_nodes[layer_nr_next].end(),
+                      [](const SupportNode* a, const SupportNode* b) {
+                          if (a->position.x() != b->position.x()) return a->position.x() < b->position.x();
+                          return a->position.y() < b->position.y();
+                      });
         }
 
         if (layer_nr_next == 0 && support_on_buildplate_only && !contact_nodes[layer_nr_next].empty()) {
