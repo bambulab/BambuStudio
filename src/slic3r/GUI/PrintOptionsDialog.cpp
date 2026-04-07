@@ -181,6 +181,20 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         evt.Skip();
         });
 
+    m_cb_fod_check->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
+        if (obj) {
+            obj->GetPrintOptions()->command_xcam_control_fod_check(m_cb_fod_check->GetValue());
+        }
+        evt.Skip();
+    });
+
+    m_cb_displacement_detection->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
+        if (obj) {
+            obj->GetPrintOptions()->command_xcam_control_displacement_detection(m_cb_displacement_detection->GetValue());
+        }
+        evt.Skip();
+    });
+
     m_cb_open_door->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& evt) {
         if (m_cb_open_door->GetValue()) {
             if (obj) { obj->command_set_door_open_check(MachineObject::DOOR_OPEN_CHECK_ENABLE_WARNING); }
@@ -435,7 +449,9 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Spaghetti_Detection)->is_support_detect ||
         obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::PurgeChutePileup_Detection)->is_support_detect ||
         obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::NozzleClumping_Detection)->is_support_detect ||
-        obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AirPrinting_Detection)->is_support_detect) {
+        obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::AirPrinting_Detection)->is_support_detect ||
+        obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::FOD_Check_Detection)->is_support_detect ||
+        obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Displacement_Detection)->is_support_detect) {
         ai_refine_panel->Show();
         text_ai_detections->Show();
         text_ai_detections_caption->Show();
@@ -663,6 +679,28 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
         line7->Hide();
     }
 
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::FOD_Check_Detection)->is_support_detect) {
+        text_fod_check->Show();
+        m_cb_fod_check->Show();
+        text_fod_check_caption->Show();
+    }
+    else {
+        text_fod_check->Hide();
+        m_cb_fod_check->Hide();
+        text_fod_check_caption->Hide();
+    }
+
+    if (obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Displacement_Detection)->is_support_detect) {
+        text_displacement_detection->Show();
+        m_cb_displacement_detection->Show();
+        text_displacement_detection_caption->Show();
+    }
+    else {
+        text_displacement_detection->Hide();
+        m_cb_displacement_detection->Hide();
+        text_displacement_detection_caption->Hide();
+    }
+
     if (obj_->is_support_air_print_detection && (DevPrinterConfigUtil::air_print_detection_position(obj->printer_type) == "print_option"))
     {
         m_cb_non_visual_airprinting_detection->Show();
@@ -685,6 +723,8 @@ void PrintOptionsDialog::update_options(MachineObject* obj_)
     m_cb_sup_sound->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Allow_Prompt_Sound_Detection)->current_detect_value);
     m_cb_filament_tangle->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Filament_Tangle_Detection)->current_detect_value);
     m_cb_nozzle_blob->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Nozzle_Blob_Detection)->current_detect_value);
+    m_cb_fod_check->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::FOD_Check_Detection)->current_detect_value);
+    m_cb_displacement_detection->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Displacement_Detection)->current_detect_value);
     m_cb_plate_type->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Type_Detection)->current_detect_value);
     m_cb_plate_align->SetValue(obj_->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Align_Detection)->current_detect_value);
     m_cb_non_visual_airprinting_detection->SetValue(obj_->ams_air_print_status);
@@ -1061,6 +1101,48 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     line_sizer->Add(airprinting_detection_level_list, 0, wxEXPAND | wxALL, FromDIP(5));
     ai_refine_sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
     airprinting_bottom_space = ai_refine_sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
+
+    //FOD check detection
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_cb_fod_check = new CheckBox(ai_refine_panel);
+    text_fod_check = new Label(ai_refine_panel, _L("Foreign Object Detection"));
+    text_fod_check->SetFont(Label::Body_14);
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(m_cb_fod_check, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+    line_sizer->Add(text_fod_check, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+    ai_refine_sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxString fod_check_caption_text = _L("Checks for any objects on the build plate at the start of a print to avoid collisions.");
+    text_fod_check_caption = new Label(ai_refine_panel, fod_check_caption_text);
+    text_fod_check_caption->SetFont(Label::Body_12);
+    text_fod_check_caption->Wrap(FromDIP(400));
+    text_fod_check_caption->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    line_sizer->Add(FromDIP(30), 0, 0, 0);
+    line_sizer->Add(text_fod_check_caption, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    ai_refine_sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+    ai_refine_sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
+
+    //Printed Part Displacement Detection
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_cb_displacement_detection = new CheckBox(ai_refine_panel);
+    text_displacement_detection = new Label(ai_refine_panel, _L("Printed Part Displacement Detection"));
+    text_displacement_detection->SetFont(Label::Body_14);
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(m_cb_displacement_detection, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+    line_sizer->Add(text_displacement_detection, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(2));
+    ai_refine_sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+
+    line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxString displacement_detection_caption_text = _L("Monitors the printed part during printing and alerts immediately if it shifts or collapses.");
+    text_displacement_detection_caption = new Label(ai_refine_panel, displacement_detection_caption_text);
+    text_displacement_detection_caption->SetFont(Label::Body_12);
+    text_displacement_detection_caption->Wrap(FromDIP(400));
+    text_displacement_detection_caption->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
+    line_sizer->Add(FromDIP(30), 0, 0, 0);
+    line_sizer->Add(text_displacement_detection_caption, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
+    ai_refine_sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
+    ai_refine_sizer->Add(0, 0, 0, wxTOP, FromDIP(12));
 
     ai_refine_panel->SetSizer(ai_refine_sizer);
     sizer->Add(ai_refine_panel, 0, wxEXPAND | wxRIGHT, FromDIP(18));
