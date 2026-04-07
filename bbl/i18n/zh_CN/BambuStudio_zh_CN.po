@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-27 09:56+0800\n"
+"POT-Creation-Date: 2026-04-07 20:42+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -32,17 +32,71 @@ msgstr "该材料与当前机器设置不兼容，将使用随机的材料预设
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "未知的材料型号，将使用随机的材料预设。"
 
-msgid "right"
-msgstr "右"
+msgid "Main Extruder"
+msgstr "主挤出机"
 
-msgid "left"
-msgstr "左"
+msgid "Main extruder"
+msgstr "主挤出机"
 
-msgid "right extruder"
-msgstr "右侧挤出机"
+msgid "main extruder"
+msgstr "主挤出机"
 
-msgid "left extruder"
-msgstr "左挤出机"
+msgid "Auxiliary Extruder"
+msgstr "辅助挤出机"
+
+msgid "Auxiliary extruder"
+msgstr "辅助挤出机"
+
+msgid "auxiliary extruder"
+msgstr "辅助挤出机"
+
+msgid "Main Nozzle"
+msgstr "主喷嘴"
+
+msgid "Main nozzle"
+msgstr "主喷嘴"
+
+msgid "main nozzle"
+msgstr "主喷嘴"
+
+msgid "Auxiliary Nozzle"
+msgstr "辅助喷嘴"
+
+msgid "Auxiliary nozzle"
+msgstr "辅助喷嘴"
+
+msgid "auxiliary nozzle"
+msgstr "辅助喷嘴"
+
+msgid "Main Hotend"
+msgstr "主热端"
+
+msgid "Main hotend"
+msgstr "主热端"
+
+msgid "main hotend"
+msgstr "主热端"
+
+msgid "Auxiliary Hotend"
+msgstr "辅助热端"
+
+msgid "Auxiliary hotend"
+msgstr "辅助热端"
+
+msgid "auxiliary hotend"
+msgstr "辅助热端"
+
+msgid "main"
+msgstr "主"
+
+msgid "auxiliary"
+msgstr "辅助"
+
+msgid "Main"
+msgstr "主"
+
+msgid "Auxiliary"
+msgstr "辅助"
 
 msgid "extruder"
 msgstr "挤出机"
@@ -121,7 +175,7 @@ msgstr "%s 不支持在 %s 挤出机打印。"
 
 #, c-format, boost-format
 msgid "There may be critical print quality issues when printing '%s' with %s Bowden extruder. Use with caution!"
-msgstr ""
+msgstr "%s’ 耗材在%s远程挤出机打印时，可能会出现严重打印质量问题。使用时请小心！"
 
 #, c-format, boost-format
 msgid "There may be critical print quality issues when printing '%s' with %s extruder. Use with caution!"
@@ -2825,10 +2879,6 @@ msgstr "确定"
 msgid "Load %s to "
 msgstr "%s  进料至："
 
-msgctxt "FilamentTrack"
-msgid "right extruder"
-msgstr "右挤出机"
-
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "在打印过程中改变风扇速度可能会影响打印质量，请谨慎选择。"
 
@@ -3352,8 +3402,9 @@ msgstr "请输入有效的数值（K的范围为%.1f~%.1f）"
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "请输入有效的数值（K的范围为%.1f~%.1f，N的范围为%.1f~%.1f）"
 
-msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
-msgstr "注意：右挤出机上的热端编号与刀架绑定。当热端移动至新刀架时，其编号会自动更新。"
+#, c-format, boost-format
+msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
+msgstr "注意：%s上的热端编号与刀架绑定。当热端移动至新刀架时，其编号会自动更新。"
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -3466,11 +3517,9 @@ msgstr "AMS舱内材料"
 msgid "Please select from the following filaments"
 msgstr "请从以下耗材中选择"
 
-msgid "Select filament that installed to the left nozzle"
-msgstr "请选择安装到左喷嘴的耗材丝"
-
-msgid "Select filament that installed to the right nozzle"
-msgstr "请选择安装到右喷嘴的耗材丝"
+#, c-format, boost-format
+msgid "Select filament that installed to the %s"
+msgstr "请选择安装到%s的耗材丝"
 
 msgid "Left AMS"
 msgstr "左侧AMS"
@@ -3582,11 +3631,15 @@ msgstr ""
 msgid "WET"
 msgstr ""
 
-msgid "Please select the filament installed on the left nozzle."
-msgstr "请选择安装在左喷嘴上的耗材丝。"
+msgid "left nozzle"
+msgstr "左喷嘴"
 
-msgid "Please select the filament installed on the right nozzle."
-msgstr "请选择安装在右喷嘴上的耗材丝。"
+#, c-format, boost-format
+msgid "Please select the filament installed on the %s."
+msgstr "请选择安装在%s上的耗材丝。"
+
+msgid "right nozzle"
+msgstr "右喷嘴"
 
 msgid "Please select the filament."
 msgstr "请选择耗材"
@@ -3934,6 +3987,21 @@ msgid ""
 "Interlocking beam width can't be zero when beam interlocking is enabled.\n"
 "Reset to 0.01 mm."
 msgstr ""
+"启用梁互锁时，互锁梁宽度不能为零。\n"
+"重置为 0.01 毫米。"
+
+msgid ""
+"Fuzzy skin [Extrusion] and [Combined] modes require the Arachne wall generator.\n"
+"\n"
+"Do you want to change these settings automatically?\n"
+"Yes - Enable Arachne wall generator\n"
+"No - Keep current wall generator and set fuzzy skin to [Displacement] mode"
+msgstr ""
+"绒毛表面的[挤出]和[组合]模式都需要启用Arachne墙体生成器。\n"
+"\n"
+"是否自动更改这些设置？\n"
+"是 - 启用Arachne墙体生成器\n"
+"否 - 禁用Arachne墙体生成器并将绒毛表面设置为[位移]模式"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support Layer Height is on.\n"
@@ -4207,8 +4275,41 @@ msgstr "裹头检测位置校准"
 msgid "Purifying the chamber air"
 msgstr "腔体空气净化中"
 
+msgid "Measuring Rotary Attachment"
+msgstr "旋转轴测量中"
+
+msgid "The toolhead moves above the purge chute"
+msgstr "工具头移动到废料滑梯上方"
+
+msgid "Cooling down the nozzle"
+msgstr "等待喷嘴降温"
+
+msgid "The toolhead moves to the center of the heatbed"
+msgstr "工具头移动到热床中心"
+
+msgid "Active Arc Fitting"
+msgstr "动态圆弧拟合"
+
+msgid "Hotend Type Detection"
+msgstr "热端类型检测"
+
+msgid "Build plate alignment detection"
+msgstr "打印板偏移检测"
+
+msgid "Heatbed surface foreign object detection"
+msgstr "热床表面异物检测"
+
+msgid "Heatbed underside foreign object detection"
+msgstr "热床底部异物检测"
+
+msgid "Pre-extrusion before printing"
+msgstr "打印前预挤出"
+
 msgid "Preparing AMS"
 msgstr "AMS准备中"
+
+msgid "Timing belt artifacts compensation"
+msgstr ""
 
 msgid "Timelapse is not supported on this printer."
 msgstr "此打印机不支持延时摄影"
@@ -4313,6 +4414,9 @@ msgstr "退出"
 
 msgid "Disable Purification for This Print"
 msgstr "关闭本次空气净化"
+
+msgid "Don't Remind Me"
+msgstr "不再提醒"
 
 msgid "Done"
 msgstr "完成"
@@ -4590,12 +4694,6 @@ msgstr "耗材分组"
 msgid "Why this grouping"
 msgstr "为什么这样分组"
 
-msgid "Left nozzle"
-msgstr "左喷嘴"
-
-msgid "Right nozzle"
-msgstr "右喷嘴"
-
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "请按上述分组结果到打印机放置耗材"
 
@@ -4771,12 +4869,6 @@ msgstr ""
 msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
 msgstr ""
 
-msgid "left nozzle"
-msgstr "左喷嘴"
-
-msgid "right nozzle"
-msgstr "右喷嘴"
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "一些模型的位置或者尺寸超出了%s的可打印范围。"
@@ -4787,14 +4879,6 @@ msgstr "模型%s的位置或者尺寸超出了%s的可打印范围"
 
 msgid " Please check and adjust the part's position or size to fit the printable range:\n"
 msgstr " 请检查并调整零件的位置或尺寸以适应打印范围\n"
-
-#, boost-format
-msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
-msgstr "左喷嘴：X:%1%-%2%，Y:%3%-%4%，Z:%5%-%6%\n"
-
-#, boost-format
-msgid "Right nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
-msgstr "右喷嘴：X:%1%-%2%，Y:%3%-%4%，Z:%5%-%6%"
 
 msgid "Mirror Object"
 msgstr "镜像物体"
@@ -4886,11 +4970,50 @@ msgstr "点击展开"
 msgid "Click to Collapse"
 msgstr "点击折叠"
 
-msgid "Assembly View"
-msgstr "装配体视图"
+msgid "Overview"
+msgstr "整体视图"
 
 msgid "Select Plate"
 msgstr "选择盘"
+
+msgid "RenderAssemblyViewThumb"
+msgstr "装配视图预览"
+
+msgid "Change assemble view preview"
+msgstr "更改装配视图预览"
+
+msgid "Go to Wiki"
+msgstr "查看Wiki"
+
+msgid "Note:Only the main assembly body is shown here.unassembled objects are hidden."
+msgstr "注意：此处仅显示主装配体。未组装的物体已隐藏。"
+
+#, boost-format
+msgid "Current assembly rate: %1%%%"
+msgstr "当前装配率： %1%%%"
+
+msgctxt "Camera"
+msgid "Top"
+msgstr "顶部"
+
+msgctxt "Camera"
+msgid "Bottom"
+msgstr "底部"
+
+msgctxt "Camera"
+msgid "Front"
+msgstr "前面"
+
+msgctxt "Camera"
+msgid "Back"
+msgstr "背面"
+
+msgctxt "Camera"
+msgid "Isometric"
+msgstr "等轴测"
+
+msgid "AssemblyViewPreviewMenu"
+msgstr "整体视图预览菜单"
 
 msgid "Assembly Return"
 msgstr "退出装配体视图"
@@ -4930,6 +5053,21 @@ msgstr "体积："
 
 msgid "Size:"
 msgstr "尺寸："
+
+msgid "Assembly view: isolated objects detected"
+msgstr ""
+
+msgid "Click to move them closer to the main body."
+msgstr "点击即可将它们移近主体。"
+
+msgid "Move closer"
+msgstr "移近"
+
+msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"
+msgstr "主装配边界框距离世界原点太远。是否重置装配关系并移至原点？"
+
+msgid "Reset to origin"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Conflicts of gcode paths have been found at layer %d. Please separate the conflicted objects farther (%s <-> %s)."
@@ -5258,10 +5396,6 @@ msgstr "左视图"
 
 msgid "Right View"
 msgstr "右视图"
-
-msgctxt "Camera"
-msgid "Isometric"
-msgstr "等轴测"
 
 msgid "Isometric View"
 msgstr "等轴测视图"
@@ -6760,12 +6894,6 @@ msgstr "如需修改喷嘴信息，请去打印机操作。"
 msgid "View wiki"
 msgstr ""
 
-msgid "Left Nozzle"
-msgstr "左喷嘴"
-
-msgid "Right Nozzle"
-msgstr "右喷嘴"
-
 msgid "Brass"
 msgstr "黄铜"
 
@@ -6865,6 +6993,10 @@ msgstr "请更换喷嘴类型或重新分配耗材，然后重试。"
 msgid "Risk of nozzle clumping detected with the current high-temperature filament (%s). We recommend enabling clumping detection (via probing). This feature uses a quick probing sequence to check for nozzle buildup during the print and utilizes the prime tower to absorb oozing before resuming."
 msgstr "当前盘使用高温材料（%s）打印，存在裹头风险，建议开启裹头触碰检测功能（通过探针），打印过程中，该功能会快速检测喷嘴积料，并启用小型擦料塔吸收溢料后继续打印。"
 
+#, c-format, boost-format
+msgid "High-shrinkage filament(s) detected: %s. These materials may cause dimensional deviation after cooling. If your model requires precise fitting or assembly, please refer to the Wiki guide for shrinkage testing."
+msgstr "检测到高收缩率耗材：%s。这些材料在冷却后可能会导致尺寸偏差。如果您的模型需要精确的配合或装配，请参阅 Wiki 指南进行收缩率测试。"
+
 #, boost-format
 msgid " plate %1%: "
 msgstr " 盘 %1%: "
@@ -6917,14 +7049,25 @@ msgstr "AMS（单槽）"
 msgid "Not installed"
 msgstr "未安装"
 
-msgid "4-slot AMS"
-msgstr "4槽AMS"
+msgid ""
+"The software does not support using different diameter of nozzles for one print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
+msgstr ""
+"软件暂不支持使用两种不同直径的喷嘴同时打印。\n"
+"由于您设置的左右喷嘴直径不一致，我们只能采用单头打印。\n"
+"请确认使用哪个喷嘴打印当前项目。"
 
-msgid "1-slot AMS"
-msgstr "单槽AMS"
+msgid "Switch diameter"
+msgstr "设置喷嘴直径"
 
-msgid "Remove this AMS"
-msgstr "移除此AMS"
+#, c-format, boost-format
+msgid "Left nozzle: %smm"
+msgstr "左喷嘴：%smm"
+
+#, c-format, boost-format
+msgid "Right nozzle: %smm"
+msgstr "右喷嘴：%smm"
 
 msgid "Sync printer information"
 msgstr "同步打印机信息"
@@ -6969,6 +7112,12 @@ msgstr "同步信息"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "同步喷嘴信息和AMS编号"
 
+msgid "Left Nozzle"
+msgstr "左喷嘴"
+
+msgid "Right Nozzle"
+msgstr "右喷嘴"
+
 msgid "Project Filaments"
 msgstr "项目耗材列表"
 
@@ -6989,6 +7138,21 @@ msgstr "从AMS同步材料列表"
 
 msgid "Set filaments to use"
 msgstr "配置可选择的材料"
+
+msgid "Add Mixed Filament"
+msgstr ""
+
+msgid "Mixed Filament"
+msgstr ""
+
+msgid "Add mixed filament"
+msgstr ""
+
+msgid "Remove last mixed filament"
+msgstr ""
+
+msgid "Deleted material was used in mixed filaments. Please re-edit the affected mixed filaments."
+msgstr ""
 
 msgid "Search plate, object and part."
 msgstr "搜索盘、模型和零件。"
@@ -7012,6 +7176,15 @@ msgstr ""
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "耗材类型和颜色信息已同步，但不包括槽位信息。"
+
+msgid "Deleted material was used in mixed filaments. Please re-edit affected entries before use."
+msgstr ""
+
+msgid "Mixed filament has broken component references"
+msgstr ""
+
+msgid "Edit / Delete"
+msgstr ""
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -8011,6 +8184,21 @@ msgstr "记住上次使用的颜色方案"
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr "启用后，将在下次启动Studio后切片自动应用上次切片时使用的颜色方案（如走线类型、速度）。"
 
+msgid "Always show"
+msgstr "始终显示"
+
+msgid "Always hide"
+msgstr "始终隐藏"
+
+msgid "Identify and display overview"
+msgstr "识别并显示整体视图"
+
+msgid "Show assembly BVH primary bounds"
+msgstr "显示装配体BVH的主要边界"
+
+msgid "Display the BVH primary bounding box wireframe in assembly view."
+msgstr "在装配视图中显示 BVH 主边界框线框。"
+
 msgid "Improve rendering performance by lod"
 msgstr "通过lod提高渲染性能"
 
@@ -8548,6 +8736,9 @@ msgstr "切片文件中的材料分组不是最优结果。"
 msgid "To ensure print quality, the drying temperature will be lowered during printing."
 msgstr "为保证打印质量，打印过程中会适当降低烘干温度。"
 
+msgid "Select timelapse storage location"
+msgstr ""
+
 msgid ""
 "This checks the flatness of heatbed. Leveling makes extruded height uniform.\n"
 "*Automatic mode: Run a leveling check(about 10 seconds). Skip if surface is fine."
@@ -8635,6 +8826,37 @@ msgstr "检测热床的平整度。调平可以使挤出的高度更均匀。"
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "此过程确定动态流量校准的最佳系数，从而提升打印质量。"
 
+msgid "Internal"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
+msgstr ""
+
+msgid "Clean up files"
+msgstr ""
+
+msgid "Low internal storage. This timelapse will overwrite the oldest video files."
+msgstr ""
+
+msgid "Low external storage. This timelapse will overwrite the oldest video files."
+msgstr ""
+
+msgid "Insufficient external storage for time-lapse photography. Connect to computer to delete files, or use a larger memory card."
+msgstr ""
+
+msgid "Storage Space Not Enough"
+msgstr ""
+
+msgid "Confirm & Print"
+msgstr ""
+
+msgid "Cancel Timelapse & Print"
+msgstr ""
+
+msgid "Clean Up"
+msgstr ""
+
 msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr ""
 
@@ -8658,9 +8880,6 @@ msgstr "因打印任务已成功发送，此次取消操作未能中止本次任
 
 msgid "The name length exceeds the limit."
 msgstr "名称长度超过限制。"
-
-msgid "Right Nozzle(Aux)"
-msgstr "右喷嘴（辅助）"
 
 #, c-format, boost-format
 msgid "Cost %dg filament and %d changes more than optimal grouping."
@@ -8762,6 +8981,9 @@ msgstr "您当前的固件版本无法启动此打印作业。请更新至最新
 msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr "当前材料（%s）的硬度高于 %s（%s）的硬度，可能导致喷嘴磨损，进而造成材料泄漏和流动不稳定。使用时请务必小心。"
 
+msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
+msgstr ""
+
 msgid "Cool"
 msgstr ""
 
@@ -8861,11 +9083,13 @@ msgstr "发送到打印机存储"
 msgid "Try to connect"
 msgstr "尝试连接"
 
-msgid "Internal Storage"
-msgstr "内置存储"
+msgctxt "sendtoprint"
+msgid "Cache"
+msgstr "缓存模型"
 
-msgid "External Storage"
-msgstr "外置存储"
+msgctxt "sendtoprint"
+msgid "External"
+msgstr "外部存储"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "上传文件超时，请检查固件版本是否支持。"
@@ -9062,13 +9286,13 @@ msgid "Support interface speed"
 msgstr "支撑面"
 
 msgid "When using PLA to support TPU, We recommend the following settings:"
-msgstr ""
+msgstr "当使用PLA作为支撑材料支撑TPU时，我们推荐配置以下参数："
 
 msgid "When using soluble material for the support interface, We recommend the following settings:"
-msgstr ""
+msgstr "当使用可溶性材料作为支撑接触面时，我们推荐配置以下参数："
 
 msgid "When using support material for the support interface, We recommend the following settings:"
-msgstr ""
+msgstr "当使用支撑材料作为支撑接触面时，我们推荐配置以下参数："
 
 msgid "Do you want to apply these settings?"
 msgstr ""
@@ -9340,11 +9564,23 @@ msgstr "材料斜拼接缝参数"
 msgid "Part cooling fan"
 msgstr "部件冷却风扇"
 
-msgid "Close fan"
+msgid "Initial layer fan"
 msgstr ""
 
-msgid "set fan speed before first x layer"
+msgid "Set the part cooling fan speed for the first few layers. Set to 0 to keep the fan off for better bed adhesion"
 msgstr ""
+
+msgid "Linear ramp up to"
+msgstr ""
+
+msgid "Fan speed will linearly increase from the initial layer speed to the layer-time-based speed over the specified number of layers"
+msgstr ""
+
+msgid "At"
+msgstr ""
+
+msgid "layers"
+msgstr "层"
 
 msgid "Min fan speed threshold"
 msgstr "最小风扇速度阈值"
@@ -9361,10 +9597,19 @@ msgstr "当预计的层打印时间比设置值要短时，部件冷却风扇转
 msgid "Auxiliary part cooling fan"
 msgstr "辅助部件冷却风扇"
 
-msgid "First layers fan"
+msgid "Set the auxiliary fan speed for the first few layers"
 msgstr ""
 
-msgid "set additional fan speed before first x layer"
+msgid "Linear ramp up"
+msgstr ""
+
+msgid "Auxiliary fan speed will linearly increase from the initial layer speed to the target speed over the specified number of layers"
+msgstr ""
+
+msgid "At layer"
+msgstr ""
+
+msgid "ramp up to"
 msgstr ""
 
 msgid "Exhaust fan"
@@ -9513,17 +9758,13 @@ msgstr "没有需要拷贝的参数修改。"
 msgid "Copy paramters"
 msgstr "拷贝参数"
 
-msgid "Modify paramters of right nozzle"
-msgstr "修改右喷嘴下的参数"
+#, c-format, boost-format
+msgid "Modify paramters of %s"
+msgstr ""
 
-msgid "Modify paramters of left nozzle"
-msgstr "修改左喷嘴下的参数"
-
-msgid "Do you want to modify the following parameters of the right nozzle to that of the left nozzle?"
-msgstr "是否要将右喷嘴下的参数修改为与左喷嘴相同的值？"
-
-msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
-msgstr "是否要将左喷嘴下的参数修改为与右喷嘴相同的值？"
+#, c-format, boost-format
+msgid "Do you want to modify the following parameters of the %s to that of the %s?"
+msgstr "是否要将%s下的参数修改为与%s相同的值？"
 
 msgid "No available nozzles for current preset"
 msgstr "当前预设无可用喷嘴"
@@ -9848,14 +10089,8 @@ msgstr "覆盖"
 msgid "Reset all filament mapping"
 msgstr "重置所有耗材映射"
 
-msgid "Left Extruder"
-msgstr "左挤出机"
-
 msgid "(Recommended filament)"
 msgstr "(推荐的材料)"
-
-msgid "Right Extruder"
-msgstr "右挤出机"
 
 msgid "Advanced Options"
 msgstr "高级选项"
@@ -9971,12 +10206,6 @@ msgstr "乘数的取值范围是[%.2f, %.2f]"
 
 msgid "Re-calculate"
 msgstr "重新计算"
-
-msgid "Left extruder"
-msgstr "左挤出机"
-
-msgid "Right extruder"
-msgstr "右挤出机"
 
 msgid "Multiplier"
 msgstr "乘数"
@@ -11033,6 +11262,12 @@ msgstr "z方向速度平滑"
 msgid "Exporting G-code"
 msgstr "正在导出G-code"
 
+msgid "left"
+msgstr "左"
+
+msgid "right"
+msgstr "右"
+
 msgid "Grouping error: filament"
 msgstr "分组错误：耗材"
 
@@ -11810,9 +12045,6 @@ msgstr "在最初的"
 msgid "Set special auxiliary cooling fan for the first certain layers."
 msgstr ""
 
-msgid "layers"
-msgstr "层"
-
 msgid "Full fan speed at layer"
 msgstr "满速风扇在"
 
@@ -11821,6 +12053,9 @@ msgstr ""
 
 msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
 msgstr "为前几层设置专用冷却风扇。首层的部件冷却风扇通常关闭，以获得更好的打印平台附着力，同时用于自动冷却功能"
+
+msgid "Part cooling fan speed for the first few layers. Set to 0 to disable the part cooling fan on the initial layers for better bed adhesion"
+msgstr ""
 
 msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
 msgstr "该值仅用于辅助散热风扇，在前x层生效。"
@@ -12227,10 +12462,10 @@ msgid "Filament category"
 msgstr "材料类别"
 
 msgid "Metal stickiness"
-msgstr ""
+msgstr "对金属粘性"
 
 msgid "Indicates how strongly the filament tends to stick to the metal nozzle and leave residue. \"None\" means untested or custom filament, behaves the same as Low. Low: e.g. PLA - retraction can be safely skipped in infill areas. Medium: moderate stickiness - use with caution. High: e.g. PETG - retraction should not be skipped to avoid oozing artifacts on outer walls."
-msgstr ""
+msgstr "指示了耗材有多容易粘在金属喷嘴上并留下残留物。“无”表示未经测试或自定义耗材，表现与“低”相同。低：例如 PLA - 在填充区域可以安全地跳过回抽。中：粘性适中 - 谨慎使用。高：例如 PETG - 不应跳过回抽，以避免在外壁出现漏料痕迹。"
 
 msgid "Density"
 msgstr "密度"
@@ -12294,6 +12529,36 @@ msgstr "支撑材料"
 
 msgid "Support material is commonly used to print support and support interface"
 msgstr "支撑材料通常用于打印支撑体和支撑接触面"
+
+msgid "Is mixed filament"
+msgstr ""
+
+msgid "Whether this filament slot is a mixed filament composed of multiple physical filaments"
+msgstr ""
+
+msgid "Mixed filament components"
+msgstr ""
+
+msgid "Comma-separated 1-based indices of component filaments, e.g. \"1,3\""
+msgstr ""
+
+msgid "Mixed filament sublayer ratios"
+msgstr ""
+
+msgid "Comma-separated ratio values summing to 1.0, e.g. \"0.7,0.3\""
+msgstr ""
+
+msgid "Mixed filament gradient"
+msgstr ""
+
+msgid "Enable Z-direction gradient mode for mixed filament sub-layers. When enabled, the sub-layer ratios vary linearly across layers."
+msgstr ""
+
+msgid "Mixed filament gradient range"
+msgstr ""
+
+msgid "Start and end ratios for the first component in gradient mode. Comma-separated pair, e.g. \"0.10,0.90\" means 10% to 90%."
+msgstr ""
 
 msgid "Filament printable"
 msgstr "主体耗材可打印性"
@@ -12603,18 +12868,6 @@ msgstr ""
 
 msgid "Classic"
 msgstr "经典"
-
-msgid "Perlin"
-msgstr ""
-
-msgid "Billow"
-msgstr ""
-
-msgid "Ridged Multifractal"
-msgstr ""
-
-msgid "Voronoi"
-msgstr ""
 
 msgid "Fuzzy skin feature size"
 msgstr "绒毛表面特征尺寸"
@@ -13183,7 +13436,7 @@ msgid "Reduce infill retraction"
 msgstr "减小填充回抽"
 
 msgid "Controls whether retraction is skipped when traveling within the infill area. \"Auto\" enables this optimization for filaments with low metal stickiness (e.g. PLA) and disables it for medium/high metal stickiness filaments (e.g. PETG) to avoid oozing artifacts. \"Enabled\" always skips retraction in infill areas regardless of filament type. \"Disabled\" always retracts normally."
-msgstr ""
+msgstr "控制在填充区域内移动时是否跳过回抽。“自动”会为金属粘性较低的耗材（例如 PLA）启用此优化，并为金属粘性中/高的耗材（例如 PETG）禁用此优化，以避免漏料。“启用”始终在填充区域跳过回抽，无论耗材类型。“禁用”始终正常回抽。"
 
 msgid "Filename format"
 msgstr "文件名格式"
@@ -13901,6 +14154,12 @@ msgstr "擦拭距离"
 
 msgid "Describe how long the nozzle will move along the last path when retracting"
 msgstr "表示回抽时擦拭的移动距离。"
+
+msgid "Mixed color sublayer"
+msgstr ""
+
+msgid "Enable mixed color sublayer splitting. When enabled, layers containing mixed color filaments will be split into sub-layers to achieve color mixing effects."
+msgstr ""
 
 msgid "The wiping tower can be used to clean up the residue on the nozzle and stabilize the chamber pressure inside the nozzle, in order to avoid appearance defects when printing objects."
 msgstr "擦料塔可以用来清理喷嘴上的残留料和让喷嘴内部的腔压达到稳定状态，以避免打印物体时出现外观瑕疵。"
@@ -14685,8 +14944,9 @@ msgstr "同步AMS和喷嘴信息"
 msgid "Connecting to printer"
 msgstr "正在连接打印机"
 
-msgid "Calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "只支持左右喷嘴直径相同的情况下发起校准。"
+#, c-format, boost-format
+msgid "Calibration only supports cases where the %s and %s diameters are identical."
+msgstr "只支持%s/%s喷嘴直径相同的情况下发起校准。"
 
 msgid "From k Value"
 msgstr "起始k值"
@@ -16167,17 +16427,21 @@ msgstr "质量模式"
 msgid "Custom Mode"
 msgstr "自定义模式"
 
-msgid "Generates filament grouping for the left and right nozzles based on the most filament-saving principles to minimize waste"
-msgstr "根据最节省耗材的原则，生成左右喷嘴的耗材分组方案，帮助减少耗材浪费"
+#, c-format, boost-format
+msgid "Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"
+msgstr "根据最节省耗材的原则，生成%s/%s喷嘴的耗材分组方案，帮助减少耗材浪费"
 
-msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
-msgstr "根据打印机实际耗材状态，生成左右喷嘴的耗材分组方案，帮助减少对实际耗材的手动调整操作"
+#, c-format, boost-format
+msgid "Generates filament grouping for the %s and %s based on the printer's actual filament status, reducing the need for manual filament adjustment"
+msgstr "根据打印机实际耗材状态，生成%s/%s喷嘴的耗材分组方案，帮助减少对实际耗材的手动调整操作"
 
-msgid "Generates filament grouping for the left and right nozzles based on quality optimization principles"
-msgstr "基于最优打印质量的原则，自动生成左右喷嘴的耗材分组方案"
+#, c-format, boost-format
+msgid "Generates filament grouping for the %s and %s based on quality optimization principles"
+msgstr ""
 
-msgid "Manually assign filament to the left or right nozzle"
-msgstr "根据您的个人意愿，切片前手动设置耗材的左右分组"
+#, c-format, boost-format
+msgid "Manually assign filament to the %s or %s"
+msgstr ""
 
 msgid "Global settings"
 msgstr "全局设置"
@@ -16205,19 +16469,8 @@ msgid " to set nozzle count"
 msgstr "设置喷嘴数量"
 
 #, c-format, boost-format
-msgid "Left Extruder(%d)"
-msgstr "左挤出机(%d)"
-
-#, c-format, boost-format
-msgid "Right Extruder(Std: %d, HF: %d)"
-msgstr "右挤出机(标准: %d，高流量: %d)"
-
-#, c-format, boost-format
-msgid "Right Extruder(%d)"
-msgstr "右挤出机(%d)"
-
-msgid "Generates filament grouping for the left and right nozzles based on the quality of prints, prioritizing print quality over filament saving"
-msgstr "基于打印质量最佳的原则下，自动生成节省耗材的分组方案"
+msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
+msgstr "基于打印质量最佳的原则下，为 %s/%s 自动生成节省耗材的分组方案耗材"
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "当前盘的耗材分组方式由切片按钮处的下拉选项决定。"
@@ -16438,6 +16691,9 @@ msgstr "  固件更新正在进行中，请稍候……"
 
 msgid "  Please plug in the power and then use the drying function."
 msgstr "  请插上电源后使用烘干功能。"
+
+msgid "  The high drying temperature may cause AMS blockage. Please unload the filament manually before proceeding."
+msgstr ""
 
 msgid "System is busy"
 msgstr "系统正忙"
@@ -16887,6 +17143,117 @@ msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
 
+#~ msgid "right extruder"
+#~ msgstr "右侧挤出机"
+
+#~ msgid "left extruder"
+#~ msgstr "左挤出机"
+
+#~ msgctxt "FilamentTrack"
+#~ msgid "right extruder"
+#~ msgstr "右挤出机"
+
+#~ msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
+#~ msgstr "注意：右挤出机上的热端编号与刀架绑定。当热端移动至新刀架时，其编号会自动更新。"
+
+#~ msgid "Select filament that installed to the left nozzle"
+#~ msgstr "请选择安装到左喷嘴的耗材丝"
+
+#~ msgid "Select filament that installed to the right nozzle"
+#~ msgstr "请选择安装到右喷嘴的耗材丝"
+
+#~ msgid "Please select the filament installed on the left nozzle."
+#~ msgstr "请选择安装在左喷嘴上的耗材丝。"
+
+#~ msgid "Please select the filament installed on the right nozzle."
+#~ msgstr "请选择安装在右喷嘴上的耗材丝。"
+
+#~ msgid "Left nozzle"
+#~ msgstr "左喷嘴"
+
+#~ msgid "Right nozzle"
+#~ msgstr "右喷嘴"
+
+#, boost-format
+#~ msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
+#~ msgstr "左喷嘴：X:%1%-%2%，Y:%3%-%4%，Z:%5%-%6%\n"
+
+#, boost-format
+#~ msgid "Right nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
+#~ msgstr "右喷嘴：X:%1%-%2%，Y:%3%-%4%，Z:%5%-%6%"
+
+#~ msgid "Assembly View"
+#~ msgstr "装配体视图"
+
+#~ msgid "4-slot AMS"
+#~ msgstr "4槽AMS"
+
+#~ msgid "1-slot AMS"
+#~ msgstr "单槽AMS"
+
+#~ msgid "Remove this AMS"
+#~ msgstr "移除此AMS"
+
+#~ msgid "Right Nozzle(Aux)"
+#~ msgstr "右喷嘴（辅助）"
+
+#~ msgid "Internal Storage"
+#~ msgstr "内置存储"
+
+#~ msgid "External Storage"
+#~ msgstr "外置存储"
+
+#~ msgid "Modify paramters of right nozzle"
+#~ msgstr "修改右喷嘴下的参数"
+
+#~ msgid "Modify paramters of left nozzle"
+#~ msgstr "修改左喷嘴下的参数"
+
+#~ msgid "Do you want to modify the following parameters of the right nozzle to that of the left nozzle?"
+#~ msgstr "是否要将右喷嘴下的参数修改为与左喷嘴相同的值？"
+
+#~ msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
+#~ msgstr "是否要将左喷嘴下的参数修改为与右喷嘴相同的值？"
+
+#~ msgid "Left Extruder"
+#~ msgstr "左挤出机"
+
+#~ msgid "Right Extruder"
+#~ msgstr "右挤出机"
+
+#~ msgid "Left extruder"
+#~ msgstr "左挤出机"
+
+#~ msgid "Right extruder"
+#~ msgstr "右挤出机"
+
+#~ msgid "Calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "只支持左右喷嘴直径相同的情况下发起校准。"
+
+#~ msgid "Generates filament grouping for the left and right nozzles based on the most filament-saving principles to minimize waste"
+#~ msgstr "根据最节省耗材的原则，生成左右喷嘴的耗材分组方案，帮助减少耗材浪费"
+
+#~ msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
+#~ msgstr "根据打印机实际耗材状态，生成左右喷嘴的耗材分组方案，帮助减少对实际耗材的手动调整操作"
+
+#~ msgid "Manually assign filament to the left or right nozzle"
+#~ msgstr "根据您的个人意愿，切片前手动设置耗材的左右分组"
+
+#, c-format, boost-format
+#~ msgid "Left Extruder(%d)"
+#~ msgstr "左挤出机(%d)"
+
+#, c-format, boost-format
+#~ msgid "Right Extruder(Std: %d, HF: %d)"
+#~ msgstr "右挤出机(标准: %d，高流量: %d)"
+
+#, c-format, boost-format
+#~ msgid "Right Extruder(%d)"
+#~ msgstr "右挤出机(%d)"
+
+#~ msgid "Generates filament grouping for the left and right nozzles based on the quality of prints, prioritizing print quality over filament saving"
+#~ msgstr "基于打印质量最佳的原则下，自动生成节省耗材的分组方案"
+
 #~ msgid "Used Time"
 #~ msgstr "使用时间"
 
@@ -16918,26 +17285,6 @@ msgstr ""
 #, c-format, boost-format
 #~ msgid "Remove %s in %s . Insert into AMS on Filament Inlet A."
 #~ msgstr "请将 %s 、 %s 槽位的耗材取出，放入连接进料口A的AMS里。"
-
-#~ msgid ""
-#~ "The software does not support using different diameter of nozzles for one print.\n"
-#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-#~ "Please confirm which nozzle you would like to use for this project."
-#~ msgstr ""
-#~ "软件暂不支持使用两种不同直径的喷嘴同时打印。\n"
-#~ "由于您设置的左右喷嘴直径不一致，我们只能采用单头打印。\n"
-#~ "请确认使用哪个喷嘴打印当前项目。"
-
-#~ msgid "Switch diameter"
-#~ msgstr "设置喷嘴直径"
-
-#, c-format, boost-format
-#~ msgid "Left nozzle: %smm"
-#~ msgstr "左喷嘴：%smm"
-
-#, c-format, boost-format
-#~ msgid "Right nozzle: %smm"
-#~ msgstr "右喷嘴：%smm"
 
 #~ msgid ""
 #~ "Tips:\n"
@@ -22272,9 +22619,6 @@ msgstr ""
 
 #~ msgid "No errors"
 #~ msgstr "无错误"
-
-#~ msgid "Auxiliary"
-#~ msgstr "附件"
 
 #~ msgid "Eject drive"
 #~ msgstr "弹出设备"

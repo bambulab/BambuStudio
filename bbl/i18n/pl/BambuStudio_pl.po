@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-27 09:56+0800\n"
+"POT-Creation-Date: 2026-04-07 20:42+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -28,17 +28,71 @@ msgstr "Filament może być niezgodny z bieżącymi ustawieniami urządzenia. U�
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Model filamentu jest nieznany. Losowy profil filamentu zostanie użyty"
 
-msgid "right"
-msgstr "prawo"
+msgid "Main Extruder"
+msgstr ""
 
-msgid "left"
-msgstr "lewo"
+msgid "Main extruder"
+msgstr ""
 
-msgid "right extruder"
-msgstr "prawy ekstruder"
+msgid "main extruder"
+msgstr ""
 
-msgid "left extruder"
-msgstr "lewy ekstruder"
+msgid "Auxiliary Extruder"
+msgstr ""
+
+msgid "Auxiliary extruder"
+msgstr ""
+
+msgid "auxiliary extruder"
+msgstr ""
+
+msgid "Main Nozzle"
+msgstr ""
+
+msgid "Main nozzle"
+msgstr ""
+
+msgid "main nozzle"
+msgstr ""
+
+msgid "Auxiliary Nozzle"
+msgstr ""
+
+msgid "Auxiliary nozzle"
+msgstr ""
+
+msgid "auxiliary nozzle"
+msgstr ""
+
+msgid "Main Hotend"
+msgstr ""
+
+msgid "Main hotend"
+msgstr ""
+
+msgid "main hotend"
+msgstr ""
+
+msgid "Auxiliary Hotend"
+msgstr ""
+
+msgid "Auxiliary hotend"
+msgstr ""
+
+msgid "auxiliary hotend"
+msgstr ""
+
+msgid "main"
+msgstr ""
+
+msgid "auxiliary"
+msgstr ""
+
+msgid "Main"
+msgstr ""
+
+msgid "Auxiliary"
+msgstr "Auxiliary"
 
 msgid "extruder"
 msgstr "ekstruder"
@@ -340,7 +394,7 @@ msgid "Refreshing"
 msgstr "Odświeżanie"
 
 msgid "Hotend status abnormal, unavailable at present. Please upgrade the firmware and try again."
-msgstr ""
+msgstr "Stan hotendu jest nieprawidłowy i obecnie nie jest dostępny. Proszę zaktualizować firmware i spróbować ponownie."
 
 msgid "SN"
 msgstr "SN"
@@ -350,7 +404,7 @@ msgstr "Wersja"
 
 #, c-format, boost-format
 msgid "Used Time: %s"
-msgstr ""
+msgstr "Czas użycia: %s"
 
 msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
 msgstr ""
@@ -936,7 +990,7 @@ msgid "Hexagon"
 msgstr "Sześciokąt"
 
 msgid "Middle of geometry"
-msgstr ""
+msgstr "Środek geometrii"
 
 msgid "Snap global parameters"
 msgstr "Dopasuj globalne parametry"
@@ -2841,10 +2895,6 @@ msgstr "Potwierdź"
 msgid "Load %s to "
 msgstr "Załaduj %s do "
 
-msgctxt "FilamentTrack"
-msgid "right extruder"
-msgstr ""
-
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "Zmiana prędkości wentylatora podczas drukowania może mieć wpływ na jakość wydruku. Wybierz z rozwagą."
 
@@ -3372,8 +3422,9 @@ msgstr "Proszę podać prawidłową wartość (K w zakresie %.1f~%.1f)"
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Proszę podać prawidłową wartość (K w zakresie %.1f~%.1f, N w %.1f~%.1f)"
 
-msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
-msgstr "Uwaga: Numer hotendu w prawym ekstruderze jest powiązany z jego uchwytem. Gdy hotend zostanie przeniesiony na inny uchwyt, jego numer zostanie zaktualizowany automatycznie."
+#, c-format, boost-format
+msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
+msgstr ""
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -3486,11 +3537,9 @@ msgstr "Gniazda AMS"
 msgid "Please select from the following filaments"
 msgstr "Wybierz spośród następujących filamentów"
 
-msgid "Select filament that installed to the left nozzle"
-msgstr "Wybierz filament załadowany do lewej dyszy."
-
-msgid "Select filament that installed to the right nozzle"
-msgstr "Wybierz filament załadowany do prawej dyszy."
+#, c-format, boost-format
+msgid "Select filament that installed to the %s"
+msgstr ""
 
 msgid "Left AMS"
 msgstr "Lewy AMS"
@@ -3602,11 +3651,15 @@ msgstr "SUCHY"
 msgid "WET"
 msgstr "MOKRY"
 
-msgid "Please select the filament installed on the left nozzle."
-msgstr "Proszę wybrać filament zainstalowany w lewej dyszy."
+msgid "left nozzle"
+msgstr "lewej dyszy"
 
-msgid "Please select the filament installed on the right nozzle."
-msgstr "Proszę wybrać filament zainstalowany w prawej dyszy."
+#, c-format, boost-format
+msgid "Please select the filament installed on the %s."
+msgstr ""
+
+msgid "right nozzle"
+msgstr "prawej dyszy"
 
 msgid "Please select the filament."
 msgstr ""
@@ -3970,6 +4023,14 @@ msgid ""
 msgstr "Gdy zazębianie jest włączone, szerokość zazębiania nie może wynosić 0. Przywrócono 0.01 mm"
 
 msgid ""
+"Fuzzy skin [Extrusion] and [Combined] modes require the Arachne wall generator.\n"
+"\n"
+"Do you want to change these settings automatically?\n"
+"Yes - Enable Arachne wall generator\n"
+"No - Keep current wall generator and set fuzzy skin to [Displacement] mode"
+msgstr ""
+
+msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support Layer Height is on.\n"
 "Which do you want to keep?\n"
 "YES - Keep Prime Tower\n"
@@ -4243,8 +4304,41 @@ msgstr "Kalibracja pozycji wykrywania zalepiania dyszy"
 msgid "Purifying the chamber air"
 msgstr "Oczyszczanie powietrza w komorze"
 
+msgid "Measuring Rotary Attachment"
+msgstr ""
+
+msgid "The toolhead moves above the purge chute"
+msgstr ""
+
+msgid "Cooling down the nozzle"
+msgstr ""
+
+msgid "The toolhead moves to the center of the heatbed"
+msgstr ""
+
+msgid "Active Arc Fitting"
+msgstr ""
+
+msgid "Hotend Type Detection"
+msgstr ""
+
+msgid "Build plate alignment detection"
+msgstr ""
+
+msgid "Heatbed surface foreign object detection"
+msgstr ""
+
+msgid "Heatbed underside foreign object detection"
+msgstr ""
+
+msgid "Pre-extrusion before printing"
+msgstr ""
+
 msgid "Preparing AMS"
 msgstr "Przygotowanie AMS"
+
+msgid "Timing belt artifacts compensation"
+msgstr "Kompensacja artefaktów pasa napędowego"
 
 msgid "Timelapse is not supported on this printer."
 msgstr "Funkcja timelapse nie jest obsługiwana przez tę drukarkę."
@@ -4349,6 +4443,9 @@ msgstr "Przerwij"
 
 msgid "Disable Purification for This Print"
 msgstr "Wyłącz oczyszczanie dla tego wydruku"
+
+msgid "Don't Remind Me"
+msgstr ""
 
 msgid "Done"
 msgstr "Gotowe"
@@ -4626,12 +4723,6 @@ msgstr "Grupowanie filamentów"
 msgid "Why this grouping"
 msgstr "Dlaczego tak jest zgrupowane"
 
-msgid "Left nozzle"
-msgstr "Lewa dysza"
-
-msgid "Right nozzle"
-msgstr "Prawa dysza"
-
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "Umieść filamenty w drukarce zgodnie z wynikiem grupowania."
 
@@ -4809,12 +4900,6 @@ msgstr "Następujące obiekty są zbyt daleko (odległość >= %1% cali) od pocz
 msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
 msgstr "Następujące obiekty są zbyt daleko (odległość >= %1% mm) od początku układu współrzędnych:\n"
 
-msgid "left nozzle"
-msgstr "lewej dyszy"
-
-msgid "right nozzle"
-msgstr "prawej dyszy"
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "Pozycja lub rozmiar niektórych modeli przekracza obszar druku %s."
@@ -4825,14 +4910,6 @@ msgstr "Pozycja lub rozmiar modelu %s przekracza obszar druku %s."
 
 msgid " Please check and adjust the part's position or size to fit the printable range:\n"
 msgstr " Sprawdź i dostosuj położenie lub rozmiar części, aby dopasować ją do obszaru druku:\n"
-
-#, boost-format
-msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
-msgstr "Lewa dysza: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
-
-#, boost-format
-msgid "Right nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
-msgstr "Prawa dysza: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
 
 msgid "Mirror Object"
 msgstr "Odbij obiekt"
@@ -4923,11 +5000,50 @@ msgstr "Kliknij, aby rozwinąć"
 msgid "Click to Collapse"
 msgstr "Kliknij, aby zwinąć"
 
-msgid "Assembly View"
-msgstr "Widok montażu"
+msgid "Overview"
+msgstr ""
 
 msgid "Select Plate"
 msgstr "Wybierz płytę"
+
+msgid "RenderAssemblyViewThumb"
+msgstr ""
+
+msgid "Change assemble view preview"
+msgstr ""
+
+msgid "Go to Wiki"
+msgstr ""
+
+msgid "Note:Only the main assembly body is shown here.unassembled objects are hidden."
+msgstr ""
+
+#, boost-format
+msgid "Current assembly rate: %1%%%"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Top"
+msgstr "Góra"
+
+msgctxt "Camera"
+msgid "Bottom"
+msgstr "Dół"
+
+msgctxt "Camera"
+msgid "Front"
+msgstr "Przód"
+
+msgctxt "Camera"
+msgid "Back"
+msgstr "Tył"
+
+msgctxt "Camera"
+msgid "Isometric"
+msgstr "Izometryczny"
+
+msgid "AssemblyViewPreviewMenu"
+msgstr ""
 
 msgid "Assembly Return"
 msgstr "Wróć do montażu"
@@ -4967,6 +5083,21 @@ msgstr "Objętość:"
 
 msgid "Size:"
 msgstr "Rozmiar:"
+
+msgid "Assembly view: isolated objects detected"
+msgstr ""
+
+msgid "Click to move them closer to the main body."
+msgstr ""
+
+msgid "Move closer"
+msgstr ""
+
+msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"
+msgstr ""
+
+msgid "Reset to origin"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Conflicts of gcode paths have been found at layer %d. Please separate the conflicted objects farther (%s <-> %s)."
@@ -5295,10 +5426,6 @@ msgstr "Widok z lewej"
 
 msgid "Right View"
 msgstr "Widok z prawej"
-
-msgctxt "Camera"
-msgid "Isometric"
-msgstr "Izometryczny"
 
 msgid "Isometric View"
 msgstr "Widok izometryczny"
@@ -6822,12 +6949,6 @@ msgstr "Proszę zmienić ustawienia dyszy na drukarce."
 msgid "View wiki"
 msgstr "Wyświetl Wiki"
 
-msgid "Left Nozzle"
-msgstr "Lewa dysza"
-
-msgid "Right Nozzle"
-msgstr "Prawa dysza"
-
 msgid "Brass"
 msgstr "Mosiądz"
 
@@ -6927,6 +7048,10 @@ msgstr "Proszę zmienić typ dyszy lub ponownie przypisać filamenty i spróbowa
 msgid "Risk of nozzle clumping detected with the current high-temperature filament (%s). We recommend enabling clumping detection (via probing). This feature uses a quick probing sequence to check for nozzle buildup during the print and utilizes the prime tower to absorb oozing before resuming."
 msgstr ""
 
+#, c-format, boost-format
+msgid "High-shrinkage filament(s) detected: %s. These materials may cause dimensional deviation after cooling. If your model requires precise fitting or assembly, please refer to the Wiki guide for shrinkage testing."
+msgstr "Wykryto filament(y) o wysokim skurczu: %s. Materiały te mogą powodować odchylenia wymiarowe po ostygnięciu. Jeśli Twój model wymaga precyzyjnego dopasowania lub montażu, zapoznaj się z przewodnikiem w Wiki dotyczącym testowania skurczu."
+
 #, boost-format
 msgid " plate %1%: "
 msgstr " płyta %1%: "
@@ -6979,14 +7104,25 @@ msgstr "AMS(1 gniazdo)"
 msgid "Not installed"
 msgstr "Nie zainstalowano"
 
-msgid "4-slot AMS"
-msgstr "AMS z 4 gniazdami"
+msgid ""
+"The software does not support using different diameter of nozzles for one print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
+msgstr ""
+"Oprogramowanie nie obsługuje używania dysz o różnych średnicach do jednego wydruku. \n"
+"Jeśli dysze po lewej i prawej stronie różnią się, możemy kontynuować drukowanie tylko jedną głowicą. \n"
+"Proszę potwierdzić, którą dyszę chcesz wybrać do tego projektu."
 
-msgid "1-slot AMS"
-msgstr "AMS z 1 gniazdem"
+msgid "Switch diameter"
+msgstr "Zmiana średnicy"
 
-msgid "Remove this AMS"
-msgstr "Usuń ten AMS"
+#, c-format, boost-format
+msgid "Left nozzle: %smm"
+msgstr "Lewa dysza: %s mm"
+
+#, c-format, boost-format
+msgid "Right nozzle: %smm"
+msgstr "Prawa dysza: %s mm"
 
 msgid "Sync printer information"
 msgstr "Synchronizacja informacji o drukarce"
@@ -7033,6 +7169,12 @@ msgstr "Synchronizacja informacji"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Synchronizacja informacji o dyszach i liczbie AMS"
 
+msgid "Left Nozzle"
+msgstr "Lewa dysza"
+
+msgid "Right Nozzle"
+msgstr "Prawa dysza"
+
 msgid "Project Filaments"
 msgstr "Filamenty projektu"
 
@@ -7053,6 +7195,21 @@ msgstr "Synchronizuj listę filamentów z AMS"
 
 msgid "Set filaments to use"
 msgstr "Ustaw filamenty do użycia"
+
+msgid "Add Mixed Filament"
+msgstr ""
+
+msgid "Mixed Filament"
+msgstr ""
+
+msgid "Add mixed filament"
+msgstr ""
+
+msgid "Remove last mixed filament"
+msgstr ""
+
+msgid "Deleted material was used in mixed filaments. Please re-edit the affected mixed filaments."
+msgstr ""
 
 msgid "Search plate, object and part."
 msgstr "Wyszukaj płytę, obiekt i część."
@@ -7076,6 +7233,15 @@ msgstr ""
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "Informacje o typie i kolorze filamentu zostały zsynchronizowane, ale brak informacji o gnieździe."
+
+msgid "Deleted material was used in mixed filaments. Please re-edit affected entries before use."
+msgstr ""
+
+msgid "Mixed filament has broken component references"
+msgstr ""
+
+msgid "Edit / Delete"
+msgstr ""
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -8080,6 +8246,21 @@ msgstr "Zapamiętaj ostatnio używany schemat kolorów"
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr "Po włączeniu ostatnio używany schemat kolorów (np. typ linii, prędkość) zostanie automatycznie zastosowany przy następnym uruchomieniu."
 
+msgid "Always show"
+msgstr ""
+
+msgid "Always hide"
+msgstr ""
+
+msgid "Identify and display overview"
+msgstr ""
+
+msgid "Show assembly BVH primary bounds"
+msgstr ""
+
+msgid "Display the BVH primary bounding box wireframe in assembly view."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr "Poprawa wydajności renderowania przy pomocy LOD"
 
@@ -8617,6 +8798,9 @@ msgstr "Twoja metoda grupowania filamentów w pliku cięcia nie jest optymalna."
 msgid "To ensure print quality, the drying temperature will be lowered during printing."
 msgstr "Aby zapewnić jakość wydruku, podczas drukowania temperatura suszenia zostanie obniżona."
 
+msgid "Select timelapse storage location"
+msgstr ""
+
 msgid ""
 "This checks the flatness of heatbed. Leveling makes extruded height uniform.\n"
 "*Automatic mode: Run a leveling check(about 10 seconds). Skip if surface is fine."
@@ -8706,11 +8890,42 @@ msgstr "Sprawdza to płaskość stołu grzewczego. Poziomowanie sprawia, że wys
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Ten proces określa dynamiczne wartości przepływu w celu poprawy ogólnej jakości druku."
 
-msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
+msgid "Internal"
 msgstr ""
 
-msgid "On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
+#, c-format, boost-format
+msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
 msgstr ""
+
+msgid "Clean up files"
+msgstr ""
+
+msgid "Low internal storage. This timelapse will overwrite the oldest video files."
+msgstr ""
+
+msgid "Low external storage. This timelapse will overwrite the oldest video files."
+msgstr ""
+
+msgid "Insufficient external storage for time-lapse photography. Connect to computer to delete files, or use a larger memory card."
+msgstr ""
+
+msgid "Storage Space Not Enough"
+msgstr ""
+
+msgid "Confirm & Print"
+msgstr ""
+
+msgid "Cancel Timelapse & Print"
+msgstr ""
+
+msgid "Clean Up"
+msgstr ""
+
+msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
+msgstr "Automatycznie: Jeśli filament/dysza głównego ekstrudera nie uległy zmianie, zostanie użyta ostatnia wartość kalibracji. Ekstruder pomocniczy użyje domyślnej wartości systemowej."
+
+msgid "On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
+msgstr "Włączone: Przed rozpoczęciem każdego wydruku zostanie przeprowadzona kalibracja głównego ekstrudera. Ekstruder pomocniczy będzie korzystał z domyślnej wartości systemowej."
 
 msgid "Off: Prioritize using the value from your manual flow calibration."
 msgstr "Wyłączone: Priorytetowo użyj wartości uzyskanej podczas ręcznej kalibracji przepływu."
@@ -8729,9 +8944,6 @@ msgstr "Zadanie druku zostało pomyślnie wysłane. Anulowanie zadania nie spowo
 
 msgid "The name length exceeds the limit."
 msgstr "Długość nazwy przekracza limit."
-
-msgid "Right Nozzle(Aux)"
-msgstr "Prawa dysza (Aux)"
 
 #, c-format, boost-format
 msgid "Cost %dg filament and %d changes more than optimal grouping."
@@ -8833,6 +9045,9 @@ msgstr "Twoja aktualna wersja firmware nie może rozpocząć tego zadania druku.
 msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr "Twardość obecnego materiału (%s) przekracza twardość %s (%s). Może to spowodować zużycie dyszy, co prowadzi do wycieku materiału i niestabilnego przepływu. Podczas korzystania z tego materiału należy zachować ostrożność."
 
+msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
+msgstr ""
+
 msgid "Cool"
 msgstr ""
 
@@ -8932,11 +9147,13 @@ msgstr "Wyślij do pamięci drukarki"
 msgid "Try to connect"
 msgstr "Spróbuj się połączyć"
 
-msgid "Internal Storage"
-msgstr "Pamięć wewnętrzna"
+msgctxt "sendtoprint"
+msgid "Cache"
+msgstr ""
 
-msgid "External Storage"
-msgstr "Pamięć zewnętrzna"
+msgctxt "sendtoprint"
+msgid "External"
+msgstr "Zewnętrzny"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Przekroczono limit czasu przesyłania pliku: Sprawdź, czy wersja firmware to obsługuje."
@@ -9421,11 +9638,23 @@ msgstr "Ustawienia szwu scarf dla filamentu"
 msgid "Part cooling fan"
 msgstr "Wentylator chłodzący wydruk"
 
-msgid "Close fan"
+msgid "Initial layer fan"
 msgstr ""
 
-msgid "set fan speed before first x layer"
+msgid "Set the part cooling fan speed for the first few layers. Set to 0 to keep the fan off for better bed adhesion"
 msgstr ""
+
+msgid "Linear ramp up to"
+msgstr ""
+
+msgid "Fan speed will linearly increase from the initial layer speed to the layer-time-based speed over the specified number of layers"
+msgstr ""
+
+msgid "At"
+msgstr ""
+
+msgid "layers"
+msgstr "warstwy"
 
 msgid "Min fan speed threshold"
 msgstr "Minimalny próg prędkości wentylatora"
@@ -9442,10 +9671,19 @@ msgstr "Wentylator chłodzący część będzie działał z maksymalną prędko�
 msgid "Auxiliary part cooling fan"
 msgstr "Dodatkowy wentylator chłodzący wydruk"
 
-msgid "First layers fan"
+msgid "Set the auxiliary fan speed for the first few layers"
 msgstr ""
 
-msgid "set additional fan speed before first x layer"
+msgid "Linear ramp up"
+msgstr ""
+
+msgid "Auxiliary fan speed will linearly increase from the initial layer speed to the target speed over the specified number of layers"
+msgstr ""
+
+msgid "At layer"
+msgstr ""
+
+msgid "ramp up to"
 msgstr ""
 
 msgid "Exhaust fan"
@@ -9598,17 +9836,13 @@ msgstr "Brak niezbędnych zmian do skopiowania."
 msgid "Copy paramters"
 msgstr "Skopiuj parametr"
 
-msgid "Modify paramters of right nozzle"
-msgstr "Zmodyfikuj parametry prawej dyszy"
+#, c-format, boost-format
+msgid "Modify paramters of %s"
+msgstr ""
 
-msgid "Modify paramters of left nozzle"
-msgstr "Zmodyfikuj parametry lewej dyszy"
-
-msgid "Do you want to modify the following parameters of the right nozzle to that of the left nozzle?"
-msgstr "Czy chcesz zmodyfikować następujące parametry prawej dyszy aby były zgodne z parametrami dyszy lewej?"
-
-msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
-msgstr "Czy chcesz zmodyfikować następujące parametry lewej dyszy aby były zgodne z parametrami dyszy prawej?"
+#, c-format, boost-format
+msgid "Do you want to modify the following parameters of the %s to that of the %s?"
+msgstr ""
 
 msgid "No available nozzles for current preset"
 msgstr "Brak dostępnych dysz dla aktualnego profilu"
@@ -9935,14 +10169,8 @@ msgstr "Nadpisywanie"
 msgid "Reset all filament mapping"
 msgstr "Zresetuj wszystkie mapowania filamentu"
 
-msgid "Left Extruder"
-msgstr "Lewy ekstruder"
-
 msgid "(Recommended filament)"
 msgstr "(Zalecany filament)"
-
-msgid "Right Extruder"
-msgstr "Prawy ekstruder"
 
 msgid "Advanced Options"
 msgstr "Opcje zaawansowane"
@@ -10058,12 +10286,6 @@ msgstr "Mnożnik powinien być w zakresie od [%.2f, %.2f]."
 
 msgid "Re-calculate"
 msgstr "Przelicz"
-
-msgid "Left extruder"
-msgstr "Lewy ekstruder"
-
-msgid "Right extruder"
-msgstr "Prawy ekstruder"
 
 msgid "Multiplier"
 msgstr "Mnożnik"
@@ -11123,6 +11345,12 @@ msgstr "Wygładzanie prędkości w kierunku Z"
 msgid "Exporting G-code"
 msgstr "Eksportowanie G-code"
 
+msgid "left"
+msgstr "lewo"
+
+msgid "right"
+msgstr "prawo"
+
 msgid "Grouping error: filament"
 msgstr "Błąd grupowania: filament"
 
@@ -11896,22 +12124,22 @@ msgid "Speed of exhuast fan after printing completes"
 msgstr "Prędkość wentylatora wyciągowego po zakończeniu drukowania"
 
 msgid "For the first"
-msgstr "Dla pierwszego"
+msgstr "Dla pierwszych"
 
 msgid "Set special auxiliary cooling fan for the first certain layers."
-msgstr ""
-
-msgid "layers"
-msgstr "warstwy"
+msgstr "Ustaw specjalny dodatkowy wentylator chłodzący dla określonych pierwszych warstw."
 
 msgid "Full fan speed at layer"
 msgstr "Pełna prędkość wentylatora na warstwie"
 
 msgid "Auxiliary fan speed will be ramped up linearly from layer \"For the first\" to maximum at layer \"Full fan speed at layer\". \"Full fan speed at layer\" will be ignored if lower than \"For the first\", in which case the fan will be running at maximum allowed speed at layer \"For the first\" + 1."
-msgstr ""
+msgstr "Prędkość wentylatora pomocniczego będzie zwiększana liniowo od warstwy \"Dla pierwszych\" do maksymalnej prędkości na warstwie \"Pełna prędkość wentylatora na warstwie\". Wartość \"Pełna prędkość wentylatora na warstwie\" zostanie zignorowana, jeśli będzie niższa niż ustawiona w \"Dla pierwszych\". W takim przypadku wentylator będzie pracował z maksymalną dozwoloną prędkością na warstwie \"Dla pierwszych\" + 1."
 
 msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
 msgstr "Ustaw specjalny tryb pracy wentylatora chłodzącego wydruk dla kilku pierwszych warstw. Wentylator chłodzący wydruk dla pierwszej warstwy jest wyłączony, aby uzyskać lepszą przyczepność do płyty roboczej, a później sterowany jest automatycznie."
+
+msgid "Part cooling fan speed for the first few layers. Set to 0 to disable the part cooling fan on the initial layers for better bed adhesion"
+msgstr ""
 
 msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
 msgstr "Prędkość pomocniczego wentylatora chłodzącego, stosowana jedynie dla pierwszych X warstw."
@@ -12315,10 +12543,10 @@ msgid "Filament category"
 msgstr "Kategoria filamentu"
 
 msgid "Metal stickiness"
-msgstr ""
+msgstr "Przywieranie do metalu"
 
 msgid "Indicates how strongly the filament tends to stick to the metal nozzle and leave residue. \"None\" means untested or custom filament, behaves the same as Low. Low: e.g. PLA - retraction can be safely skipped in infill areas. Medium: moderate stickiness - use with caution. High: e.g. PETG - retraction should not be skipped to avoid oozing artifacts on outer walls."
-msgstr ""
+msgstr "Określa, jak mocno filament przywiera do metalowej dyszy i pozostawia resztki. \"Brak\" oznacza filament niestandardowy lub nieprzetestowany i zachowuje się jak \"Niskie\". Niskie: np. PLA – retrakcję można pominąć w wypełnieniach. Średnie: umiarkowana przyczepność – używać ostrożnie. Wysokie: np. PETG – retrakcja nie powinna być pomijana, aby uniknąć wycieków na ścianach zewnętrznych."
 
 msgid "Density"
 msgstr "Gęstość"
@@ -12382,6 +12610,36 @@ msgstr "Materiał podporowy"
 
 msgid "Support material is commonly used to print support and support interface"
 msgstr "Materiał podporowy jest powszechnie używany do drukowania podpór i warstw łączących podpory z modelem"
+
+msgid "Is mixed filament"
+msgstr ""
+
+msgid "Whether this filament slot is a mixed filament composed of multiple physical filaments"
+msgstr ""
+
+msgid "Mixed filament components"
+msgstr ""
+
+msgid "Comma-separated 1-based indices of component filaments, e.g. \"1,3\""
+msgstr ""
+
+msgid "Mixed filament sublayer ratios"
+msgstr ""
+
+msgid "Comma-separated ratio values summing to 1.0, e.g. \"0.7,0.3\""
+msgstr ""
+
+msgid "Mixed filament gradient"
+msgstr ""
+
+msgid "Enable Z-direction gradient mode for mixed filament sub-layers. When enabled, the sub-layer ratios vary linearly across layers."
+msgstr ""
+
+msgid "Mixed filament gradient range"
+msgstr ""
+
+msgid "Start and end ratios for the first component in gradient mode. Comma-separated pair, e.g. \"0.10,0.90\" means 10% to 90%."
+msgstr ""
 
 msgid "Filament printable"
 msgstr "Filament do druku"
@@ -12697,18 +12955,6 @@ msgstr ""
 
 msgid "Classic"
 msgstr "Klasyczny"
-
-msgid "Perlin"
-msgstr ""
-
-msgid "Billow"
-msgstr ""
-
-msgid "Ridged Multifractal"
-msgstr ""
-
-msgid "Voronoi"
-msgstr ""
 
 msgid "Fuzzy skin feature size"
 msgstr "Rozmiar cech szumu skóry fuzzy"
@@ -13277,7 +13523,7 @@ msgid "Reduce infill retraction"
 msgstr "Zmniejszenie retrakcji wypełnienia"
 
 msgid "Controls whether retraction is skipped when traveling within the infill area. \"Auto\" enables this optimization for filaments with low metal stickiness (e.g. PLA) and disables it for medium/high metal stickiness filaments (e.g. PETG) to avoid oozing artifacts. \"Enabled\" always skips retraction in infill areas regardless of filament type. \"Disabled\" always retracts normally."
-msgstr ""
+msgstr "Kontroluje, czy retrakcja jest pomijana podczas przemieszczania się w obszarze wypełnienia. \"Auto\" włącza tę optymalizację dla filamentów o niskim przywieraniu do metalu (np. PLA) i wyłącza ją dla filamentów o średnim/wysokim przywieraniu (np. PETG), aby zapobiec niepożądanym śladom wycieków z dyszy. \"Włączone\" zawsze pomija retrakcję w obszarach wypełnienia niezależnie od rodzaju filamentu. \"Wyłączone\" zawsze wykonuje normalną retrakcję."
 
 msgid "Filename format"
 msgstr "Format nazwy pliku"
@@ -13998,6 +14244,12 @@ msgstr "Odległość czyszczenia"
 
 msgid "Describe how long the nozzle will move along the last path when retracting"
 msgstr "Opisuje, jak długo dysza będzie przemieszczać się wzdłuż ostatniej ścieżki podczas retrakcji"
+
+msgid "Mixed color sublayer"
+msgstr ""
+
+msgid "Enable mixed color sublayer splitting. When enabled, layers containing mixed color filaments will be split into sub-layers to achieve color mixing effects."
+msgstr ""
 
 msgid "The wiping tower can be used to clean up the residue on the nozzle and stabilize the chamber pressure inside the nozzle, in order to avoid appearance defects when printing objects."
 msgstr "Wieża czyszcząca może być używana do oczyszczenia resztek na dyszy i stabilizacji ciśnienia komory wewnątrz dyszy, aby uniknąć wad wyglądu podczas drukowania obiektów."
@@ -14786,8 +15038,9 @@ msgstr "Synchronizuj informacje AMS i dyszy."
 msgid "Connecting to printer"
 msgstr "Łączenie z drukarką"
 
-msgid "Calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "Kalibracja obsługuje wyłącznie przypadki gdy średnice lewej i prawej dyszy są identyczne."
+#, c-format, boost-format
+msgid "Calibration only supports cases where the %s and %s diameters are identical."
+msgstr ""
 
 msgid "From k Value"
 msgstr "Od wartości k"
@@ -16281,17 +16534,21 @@ msgstr "Tryb jakości"
 msgid "Custom Mode"
 msgstr "Tryb niestandardowy"
 
-msgid "Generates filament grouping for the left and right nozzles based on the most filament-saving principles to minimize waste"
-msgstr "Generuje grupy filamentów dla prawej i lewej dyszy na podstawie zasad oszczędzania materiału, w celu minimalizacji odpadów."
+#, c-format, boost-format
+msgid "Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"
+msgstr ""
 
-msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
-msgstr "Generuje grupy filamentów dla prawej i lewej dyszy na podstawie aktualnego statusu filamentów, redukując potrzebę ręcznego dostrajania materiału."
+#, c-format, boost-format
+msgid "Generates filament grouping for the %s and %s based on the printer's actual filament status, reducing the need for manual filament adjustment"
+msgstr ""
 
-msgid "Generates filament grouping for the left and right nozzles based on quality optimization principles"
-msgstr "Generuje grupy filamentów dla lewej i prawej dyszy na podstawie zasady optymalizacji jakości"
+#, c-format, boost-format
+msgid "Generates filament grouping for the %s and %s based on quality optimization principles"
+msgstr ""
 
-msgid "Manually assign filament to the left or right nozzle"
-msgstr "Ręcznie przypisz filament do lewej lub prawej dyszy"
+#, c-format, boost-format
+msgid "Manually assign filament to the %s or %s"
+msgstr ""
 
 msgid "Global settings"
 msgstr "Ustawienia globalne"
@@ -16319,19 +16576,8 @@ msgid " to set nozzle count"
 msgstr " aby ustawić liczbę dysz"
 
 #, c-format, boost-format
-msgid "Left Extruder(%d)"
-msgstr "Lewy ekstruder (%d)"
-
-#, c-format, boost-format
-msgid "Right Extruder(Std: %d, HF: %d)"
-msgstr "Prawy ekstruder (Std: %d, HF: %d)"
-
-#, c-format, boost-format
-msgid "Right Extruder(%d)"
-msgstr "Prawy ekstruder (%d)"
-
-msgid "Generates filament grouping for the left and right nozzles based on the quality of prints, prioritizing print quality over filament saving"
-msgstr "Generuje grupy filamentów dla lewej i prawej dyszy na podstawie jakości wydruku, koncentrując się na jakości wydruków zamiast na oszczędzaniu filamentu."
+msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
+msgstr ""
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "Metoda grupowania materiału dla obecnej płyty jest zależna od opcji w menu, wyświetlanym po najechaniu na przycisk Potnij aktualną płytę."
@@ -16552,6 +16798,9 @@ msgstr "  Trwa aktualizacja firmware, proszę czekać..."
 
 msgid "  Please plug in the power and then use the drying function."
 msgstr "  Podłącz zasilanie, a następnie użyj funkcji suszenia."
+
+msgid "  The high drying temperature may cause AMS blockage. Please unload the filament manually before proceeding."
+msgstr ""
 
 msgid "System is busy"
 msgstr "System jest zajęty"
@@ -17001,6 +17250,120 @@ msgstr ""
 "Niezawodność od pierwszego razu\n"
 "Mniej nadzoru, bardziej przewidywalne wyniki. Przykład: mała farma drukarek 3D produkująca części z PETG unika niespodzianek typu „awaria po 6 godzinach” i utrzymuje harmonogram partii."
 
+#~ msgid "right extruder"
+#~ msgstr "prawy ekstruder"
+
+#~ msgid "left extruder"
+#~ msgstr "lewy ekstruder"
+
+#~ msgctxt "FilamentTrack"
+#~ msgid "right extruder"
+#~ msgstr "prawy ekstruder"
+
+#~ msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
+#~ msgstr "Uwaga: Numer hotendu w prawym ekstruderze jest powiązany z jego uchwytem. Gdy hotend zostanie przeniesiony na inny uchwyt, jego numer zostanie zaktualizowany automatycznie."
+
+#~ msgid "Select filament that installed to the left nozzle"
+#~ msgstr "Wybierz filament załadowany do lewej dyszy."
+
+#~ msgid "Select filament that installed to the right nozzle"
+#~ msgstr "Wybierz filament załadowany do prawej dyszy."
+
+#~ msgid "Please select the filament installed on the left nozzle."
+#~ msgstr "Proszę wybrać filament zainstalowany w lewej dyszy."
+
+#~ msgid "Please select the filament installed on the right nozzle."
+#~ msgstr "Proszę wybrać filament zainstalowany w prawej dyszy."
+
+#~ msgid "Left nozzle"
+#~ msgstr "Lewa dysza"
+
+#~ msgid "Right nozzle"
+#~ msgstr "Prawa dysza"
+
+#, boost-format
+#~ msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
+#~ msgstr "Lewa dysza: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
+
+#, boost-format
+#~ msgid "Right nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
+#~ msgstr "Prawa dysza: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
+
+#~ msgid "Assembly View"
+#~ msgstr "Widok montażu"
+
+#~ msgid "4-slot AMS"
+#~ msgstr "AMS z 4 gniazdami"
+
+#~ msgid "1-slot AMS"
+#~ msgstr "AMS z 1 gniazdem"
+
+#~ msgid "Remove this AMS"
+#~ msgstr "Usuń ten AMS"
+
+#~ msgid "Right Nozzle(Aux)"
+#~ msgstr "Prawa dysza (Aux)"
+
+#~ msgid "Internal Storage"
+#~ msgstr "Pamięć wewnętrzna"
+
+#~ msgid "External Storage"
+#~ msgstr "Pamięć zewnętrzna"
+
+#~ msgid "Modify paramters of right nozzle"
+#~ msgstr "Zmodyfikuj parametry prawej dyszy"
+
+#~ msgid "Modify paramters of left nozzle"
+#~ msgstr "Zmodyfikuj parametry lewej dyszy"
+
+#~ msgid "Do you want to modify the following parameters of the right nozzle to that of the left nozzle?"
+#~ msgstr "Czy chcesz zmodyfikować następujące parametry prawej dyszy aby były zgodne z parametrami dyszy lewej?"
+
+#~ msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
+#~ msgstr "Czy chcesz zmodyfikować następujące parametry lewej dyszy aby były zgodne z parametrami dyszy prawej?"
+
+#~ msgid "Left Extruder"
+#~ msgstr "Lewy ekstruder"
+
+#~ msgid "Right Extruder"
+#~ msgstr "Prawy ekstruder"
+
+#~ msgid "Left extruder"
+#~ msgstr "Lewy ekstruder"
+
+#~ msgid "Right extruder"
+#~ msgstr "Prawy ekstruder"
+
+#~ msgid "Calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "Kalibracja obsługuje wyłącznie przypadki gdy średnice lewej i prawej dyszy są identyczne."
+
+#~ msgid "Generates filament grouping for the left and right nozzles based on the most filament-saving principles to minimize waste"
+#~ msgstr "Generuje grupy filamentów dla prawej i lewej dyszy na podstawie zasad oszczędzania materiału, w celu minimalizacji odpadów."
+
+#~ msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
+#~ msgstr "Generuje grupy filamentów dla prawej i lewej dyszy na podstawie aktualnego statusu filamentów, redukując potrzebę ręcznego dostrajania materiału."
+
+#~ msgid "Generates filament grouping for the left and right nozzles based on quality optimization principles"
+#~ msgstr "Generuje grupy filamentów dla lewej i prawej dyszy na podstawie zasady optymalizacji jakości"
+
+#~ msgid "Manually assign filament to the left or right nozzle"
+#~ msgstr "Ręcznie przypisz filament do lewej lub prawej dyszy"
+
+#, c-format, boost-format
+#~ msgid "Left Extruder(%d)"
+#~ msgstr "Lewy ekstruder (%d)"
+
+#, c-format, boost-format
+#~ msgid "Right Extruder(Std: %d, HF: %d)"
+#~ msgstr "Prawy ekstruder (Std: %d, HF: %d)"
+
+#, c-format, boost-format
+#~ msgid "Right Extruder(%d)"
+#~ msgstr "Prawy ekstruder (%d)"
+
+#~ msgid "Generates filament grouping for the left and right nozzles based on the quality of prints, prioritizing print quality over filament saving"
+#~ msgstr "Generuje grupy filamentów dla lewej i prawej dyszy na podstawie jakości wydruku, koncentrując się na jakości wydruków zamiast na oszczędzaniu filamentu."
+
 #~ msgid "Used Time"
 #~ msgstr "Czas użycia"
 
@@ -17015,26 +17378,6 @@ msgstr ""
 
 #~ msgid "Don't retract when the travel is in infill area absolutely. That means the oozing can't been seen. This can reduce times of retraction for complex model and save printing time, but make slicing and G-code generating slower"
 #~ msgstr "Nie wykonuj retrakcji, gdy ruch odbywa się całkowicie w obszarze wypełnienia. Oznacza to, że wyciek nie będzie widoczny. Może to zmniejszyć liczbę retrakcji dla skomplikowanego modelu i zaoszczędzić czas druku, ale spowolnić cięcie i generowanie G-code"
-
-#~ msgid ""
-#~ "The software does not support using different diameter of nozzles for one print.\n"
-#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-#~ "Please confirm which nozzle you would like to use for this project."
-#~ msgstr ""
-#~ "Oprogramowanie nie obsługuje używania dysz o różnych średnicach do jednego wydruku. \n"
-#~ "Jeśli dysze po lewej i prawej stronie różnią się, możemy kontynuować drukowanie tylko jedną głowicą. \n"
-#~ "Proszę potwierdzić, którą dyszę chcesz wybrać do tego projektu."
-
-#~ msgid "Switch diameter"
-#~ msgstr "Zmiana średnicy"
-
-#, c-format, boost-format
-#~ msgid "Left nozzle: %smm"
-#~ msgstr "Lewa dysza: %s mm"
-
-#, c-format, boost-format
-#~ msgid "Right nozzle: %smm"
-#~ msgstr "Prawa dysza: %s mm"
 
 #~ msgid ""
 #~ "Tips:\n"
@@ -18677,9 +19020,6 @@ msgstr ""
 
 #~ msgid "Aux Cooling"
 #~ msgstr "Chłodzenie pomocnicze"
-
-#~ msgid "Auxiliary"
-#~ msgstr "Auxiliary"
 
 #~ msgid "Avoid crossing wall when travel"
 #~ msgstr "Omijaj ściany podczas ruchu jałowego"

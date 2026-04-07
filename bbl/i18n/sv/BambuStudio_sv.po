@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-27 09:56+0800\n"
+"POT-Creation-Date: 2026-04-07 20:42+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -25,17 +25,71 @@ msgstr "Filamentet kanske inte är kompatibelt med maskinens aktuella inställni
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Filament typen är okänd. En slumpmässig filament inställning kommer att användas."
 
-msgid "right"
-msgstr "höger"
+msgid "Main Extruder"
+msgstr "Huvud extruder"
 
-msgid "left"
-msgstr "vänster"
+msgid "Main extruder"
+msgstr "Huvud extruder"
 
-msgid "right extruder"
-msgstr "höger extruder"
+msgid "main extruder"
+msgstr "huvud extruder"
 
-msgid "left extruder"
-msgstr "vänster extruder"
+msgid "Auxiliary Extruder"
+msgstr "Extra Extruder"
+
+msgid "Auxiliary extruder"
+msgstr "Extra extruder"
+
+msgid "auxiliary extruder"
+msgstr "extra extruder"
+
+msgid "Main Nozzle"
+msgstr "Huvud Nozzle"
+
+msgid "Main nozzle"
+msgstr "Huvud nozzle"
+
+msgid "main nozzle"
+msgstr "huvud nozzle"
+
+msgid "Auxiliary Nozzle"
+msgstr "Extra Nozzle"
+
+msgid "Auxiliary nozzle"
+msgstr "Extra nozzle"
+
+msgid "auxiliary nozzle"
+msgstr "extra nozzle"
+
+msgid "Main Hotend"
+msgstr "Huvud Hotend"
+
+msgid "Main hotend"
+msgstr "Huvud hotend"
+
+msgid "main hotend"
+msgstr "huvud hotend"
+
+msgid "Auxiliary Hotend"
+msgstr "Extra Hotend"
+
+msgid "Auxiliary hotend"
+msgstr "Extra hotend"
+
+msgid "auxiliary hotend"
+msgstr "extra hotend"
+
+msgid "main"
+msgstr "huvud"
+
+msgid "auxiliary"
+msgstr "extra"
+
+msgid "Main"
+msgstr "Huvud"
+
+msgid "Auxiliary"
+msgstr "Extra"
 
 msgid "extruder"
 msgstr ""
@@ -353,7 +407,7 @@ msgid "Refreshing"
 msgstr "Laddar om"
 
 msgid "Hotend status abnormal, unavailable at present. Please upgrade the firmware and try again."
-msgstr ""
+msgstr "Hotend status onormal, ej tillgänglig för närvarande. Uppgradera firmware och försök igen."
 
 msgid "SN"
 msgstr "SN"
@@ -363,7 +417,7 @@ msgstr "Version"
 
 #, c-format, boost-format
 msgid "Used Time: %s"
-msgstr ""
+msgstr "Använd tid: %s"
 
 msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
 msgstr "Dynamiska nozzles är tilldelade på den aktuella plattan. Val av hotend stöds inte."
@@ -949,7 +1003,7 @@ msgid "Hexagon"
 msgstr "Hexagon"
 
 msgid "Middle of geometry"
-msgstr ""
+msgstr "Mitten av geometrin"
 
 msgid "Snap global parameters"
 msgstr "Fäst globala parametrar"
@@ -2849,10 +2903,6 @@ msgstr "Bekräfta"
 msgid "Load %s to "
 msgstr "Ladda %s till "
 
-msgctxt "FilamentTrack"
-msgid "right extruder"
-msgstr ""
-
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "Att ändra fläkthastigheten under utskrift kan påverka utskriftskvaliteten, välj noggrant."
 
@@ -3380,8 +3430,9 @@ msgstr "Ange ett giltigt värde (K i %.1f~%.1f)"
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Ange ett giltigt värde (K i %.1f~%.1f, N i %.1f~%.1f)"
 
-msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
-msgstr "Obs: Hotend numret på höger extruder är kopplat till hållaren. När hotend flyttas till en ny hållare uppdateras dess nummer automatiskt."
+#, c-format, boost-format
+msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
+msgstr "Obs: Hotend numret på %s är kopplat till hållaren. När hotend flyttas till en ny hållare uppdateras dess nummer automatiskt."
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -3494,11 +3545,9 @@ msgstr "AMS Fack"
 msgid "Please select from the following filaments"
 msgstr "Vänligen välj bland följande filament"
 
-msgid "Select filament that installed to the left nozzle"
-msgstr "Välj filament som installeras till vänster nozzle"
-
-msgid "Select filament that installed to the right nozzle"
-msgstr "Välj filament som installeras till höger nozzle"
+#, c-format, boost-format
+msgid "Select filament that installed to the %s"
+msgstr "Välj filament som installerats till %s"
 
 msgid "Left AMS"
 msgstr "Vänster AMS"
@@ -3610,11 +3659,15 @@ msgstr "TORR"
 msgid "WET"
 msgstr "FUKTIG"
 
-msgid "Please select the filament installed on the left nozzle."
-msgstr "Välj det filament som är installerat på vänster nozzle."
+msgid "left nozzle"
+msgstr "vänster nozzle"
 
-msgid "Please select the filament installed on the right nozzle."
-msgstr "Välj det filament som är installerat på höger nozzle."
+#, c-format, boost-format
+msgid "Please select the filament installed on the %s."
+msgstr "Välj det filament som är installerat på %s."
+
+msgid "right nozzle"
+msgstr "höger nozzle"
 
 msgid "Please select the filament."
 msgstr "Välj filament."
@@ -3979,6 +4032,19 @@ msgstr ""
 "Återställ till 0,01 mm."
 
 msgid ""
+"Fuzzy skin [Extrusion] and [Combined] modes require the Arachne wall generator.\n"
+"\n"
+"Do you want to change these settings automatically?\n"
+"Yes - Enable Arachne wall generator\n"
+"No - Keep current wall generator and set fuzzy skin to [Displacement] mode"
+msgstr ""
+"Fuzzy skin [Extrudering] och [Kombinerad] kräver Arachne vägg generatorn.\n"
+"\n"
+"Vill du ändra dessa inställningar automatiskt?\n"
+"Ja - Aktivera Arachne vägg generatorn\n"
+"Nej - Behåll aktuell vägg generator och ställ in fuzzy skin på läget [Förskjutning]"
+
+msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support Layer Height is on.\n"
 "Which do you want to keep?\n"
 "YES - Keep Prime Tower\n"
@@ -4252,8 +4318,41 @@ msgstr "Kalibrering av detekterings positionen för nozzle klumpar"
 msgid "Purifying the chamber air"
 msgstr "Rening av kammarluften"
 
+msgid "Measuring Rotary Attachment"
+msgstr "Mätning roterande tillbehör"
+
+msgid "The toolhead moves above the purge chute"
+msgstr "Verktygshuvudet rör sig ovanför rensnings rännan"
+
+msgid "Cooling down the nozzle"
+msgstr "Kyler ner nozzle"
+
+msgid "The toolhead moves to the center of the heatbed"
+msgstr "Verktygshuvudet flyttas till mitten av värmebädden"
+
+msgid "Active Arc Fitting"
+msgstr "Aktivt båge passform"
+
+msgid "Hotend Type Detection"
+msgstr "Detektering av hotend typ"
+
+msgid "Build plate alignment detection"
+msgstr "Positions detektering för byggplattans justering"
+
+msgid "Heatbed surface foreign object detection"
+msgstr "Detektering av främmande föremål på värmebädden"
+
+msgid "Heatbed underside foreign object detection"
+msgstr "Detektering av främmande föremål under värmebädden"
+
+msgid "Pre-extrusion before printing"
+msgstr "Extrudering före utskrift"
+
 msgid "Preparing AMS"
 msgstr "Förbereder AMS"
+
+msgid "Timing belt artifacts compensation"
+msgstr "Kompensation för kamrems artefakter"
 
 msgid "Timelapse is not supported on this printer."
 msgstr "Timelapse stöds inte på den här printern."
@@ -4358,6 +4457,9 @@ msgstr "Avbryt"
 
 msgid "Disable Purification for This Print"
 msgstr "Inaktivera rening för denna utskrift"
+
+msgid "Don't Remind Me"
+msgstr "Påminn mig inte"
 
 msgid "Done"
 msgstr "Klar"
@@ -4635,12 +4737,6 @@ msgstr "Filament gruppering"
 msgid "Why this grouping"
 msgstr "Varför denna gruppering"
 
-msgid "Left nozzle"
-msgstr "Vänster nozzle"
-
-msgid "Right nozzle"
-msgstr "Höger nozzle"
-
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "Placera filamenten i printern baserat på grupperings resultatet."
 
@@ -4818,12 +4914,6 @@ msgstr "Följande objekt har för långt ( avstånd > = %1% tum) från originale
 msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
 msgstr "Följande objekt är för långt (avstånd >=%1%mm) från originalet av världens koordinatsystem:\n"
 
-msgid "left nozzle"
-msgstr "vänster nozzle"
-
-msgid "right nozzle"
-msgstr "höger nozzle"
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "Positionen eller storleken på vissa modeller överskrider %s's utskrivbara område."
@@ -4834,14 +4924,6 @@ msgstr "Positionen eller storleken på modellen %s överskrider %s's utskrivbara
 
 msgid " Please check and adjust the part's position or size to fit the printable range:\n"
 msgstr " Kontrollera och justera delens position eller storlek så att den passar det utskrivbara området:\n"
-
-#, boost-format
-msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
-msgstr "Vänster nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
-
-#, boost-format
-msgid "Right nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
-msgstr "Höger nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
 
 msgid "Mirror Object"
 msgstr "Spegelvänd objektet"
@@ -4932,11 +5014,50 @@ msgstr "Klicka för att förlänga"
 msgid "Click to Collapse"
 msgstr "Klicka för att kollapsa"
 
-msgid "Assembly View"
-msgstr "Monterings vy"
+msgid "Overview"
+msgstr "Översikt"
 
 msgid "Select Plate"
 msgstr "Välj Byggplatta"
+
+msgid "RenderAssemblyViewThumb"
+msgstr "RenderingMonteringVisaMiniatyr"
+
+msgid "Change assemble view preview"
+msgstr "Ändra förhandsgranskning av monterings vy"
+
+msgid "Go to Wiki"
+msgstr "Gå till Wiki"
+
+msgid "Note:Only the main assembly body is shown here.unassembled objects are hidden."
+msgstr "Obs: Endast huvuddelen av monteringen visas här. Omonterade objekt är dolda."
+
+#, boost-format
+msgid "Current assembly rate: %1%%%"
+msgstr "Nuvarande monterings hastighet: %1%%%"
+
+msgctxt "Camera"
+msgid "Top"
+msgstr "Topplager"
+
+msgctxt "Camera"
+msgid "Bottom"
+msgstr "Botten"
+
+msgctxt "Camera"
+msgid "Front"
+msgstr "Framifrån"
+
+msgctxt "Camera"
+msgid "Back"
+msgstr "Tillbaka"
+
+msgctxt "Camera"
+msgid "Isometric"
+msgstr "Isometrisk"
+
+msgid "AssemblyViewPreviewMenu"
+msgstr "MonteringsVyFörhandsvisningsMeny"
 
 msgid "Assembly Return"
 msgstr "Monterings retur"
@@ -4976,6 +5097,21 @@ msgstr "Volym:"
 
 msgid "Size:"
 msgstr "Storlek:"
+
+msgid "Assembly view: isolated objects detected"
+msgstr "Monterings vy: isolerade objekt upptäckta"
+
+msgid "Click to move them closer to the main body."
+msgstr "Klicka för att flytta dem närmare huvuddelen."
+
+msgid "Move closer"
+msgstr "Flytta närmare"
+
+msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"
+msgstr "Huvudmonteringens avgränsnings ruta är för långt från nollpunkt. Återställ monterings relationer och flytta till nollpunkt?"
+
+msgid "Reset to origin"
+msgstr "Återställ till ursprung"
 
 #, c-format, boost-format
 msgid "Conflicts of gcode paths have been found at layer %d. Please separate the conflicted objects farther (%s <-> %s)."
@@ -5304,10 +5440,6 @@ msgstr "Vy Vänster"
 
 msgid "Right View"
 msgstr "Vy Höger"
-
-msgctxt "Camera"
-msgid "Isometric"
-msgstr "Isometrisk"
 
 msgid "Isometric View"
 msgstr "Isometrisk vy"
@@ -6824,12 +6956,6 @@ msgstr "Ändra inställningarna för nozzle på printern."
 msgid "View wiki"
 msgstr "Visa wiki"
 
-msgid "Left Nozzle"
-msgstr "Vänster nozzle"
-
-msgid "Right Nozzle"
-msgstr "Höger nozzle"
-
 msgid "Brass"
 msgstr "Mässing"
 
@@ -6929,6 +7055,10 @@ msgstr "Ändra nozzle typ eller tilldela filamenten på nytt och försök igen."
 msgid "Risk of nozzle clumping detected with the current high-temperature filament (%s). We recommend enabling clumping detection (via probing). This feature uses a quick probing sequence to check for nozzle buildup during the print and utilizes the prime tower to absorb oozing before resuming."
 msgstr "Risk för klumpbildning i nozzle upptäckt med det aktuella högtemperatur filamentet (%s). Vi rekommenderar att du aktiverar klumpbildnings detektering (via probning). Den här funktionen använder en snabb probningssekvens för att kontrollera om det finns nozzle avlagringar under utskriften och använder prime tornet för att absorbera läckage innan utskriften återupptas."
 
+#, c-format, boost-format
+msgid "High-shrinkage filament(s) detected: %s. These materials may cause dimensional deviation after cooling. If your model requires precise fitting or assembly, please refer to the Wiki guide for shrinkage testing."
+msgstr "Detekterat filament med hög krympning: %s. Dessa material kan orsaka dimensionsavvikelser efter kylning. Om din modell kräver exakt passform eller montering, se Wiki-guiden för krympningstestning."
+
 #, boost-format
 msgid " plate %1%: "
 msgstr " platta %1%: "
@@ -6981,14 +7111,25 @@ msgstr "AMS(1 fack)"
 msgid "Not installed"
 msgstr "Inte installerad"
 
-msgid "4-slot AMS"
-msgstr "4-fack AMS"
+msgid ""
+"The software does not support using different diameter of nozzles for one print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
+msgstr ""
+"Programvaran stöder inte användning av olika diameter på nozzle för en utskrift.\n"
+"Om vänster och höger nozzle är inkonsekventa kan vi bara fortsätta utskriften med en nozzle.\n"
+"Bekräfta vilken nozzle du vill använda för detta projekt."
 
-msgid "1-slot AMS"
-msgstr "1-fack AMS"
+msgid "Switch diameter"
+msgstr "Byt diameter"
 
-msgid "Remove this AMS"
-msgstr "Ta bort denna AMS"
+#, c-format, boost-format
+msgid "Left nozzle: %smm"
+msgstr "Vänster nozzle: %smm"
+
+#, c-format, boost-format
+msgid "Right nozzle: %smm"
+msgstr "Höger nozzle: %smm"
 
 msgid "Sync printer information"
 msgstr "Synkronisera printer information"
@@ -7035,6 +7176,12 @@ msgstr "Synkroniserings information"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Synkronisera nozzle information och antalet AMS"
 
+msgid "Left Nozzle"
+msgstr "Vänster nozzle"
+
+msgid "Right Nozzle"
+msgstr "Höger nozzle"
+
 msgid "Project Filaments"
 msgstr "Projekt Filament"
 
@@ -7056,6 +7203,21 @@ msgstr "Synkronisera filament listan från AMS"
 msgid "Set filaments to use"
 msgstr "Ställ in filament som ska användas"
 
+msgid "Add Mixed Filament"
+msgstr "Lägg till blandat filament"
+
+msgid "Mixed Filament"
+msgstr "Blandat filament"
+
+msgid "Add mixed filament"
+msgstr "Lägg till blandat filament"
+
+msgid "Remove last mixed filament"
+msgstr "Ta bort det sista blandade filamentet"
+
+msgid "Deleted material was used in mixed filaments. Please re-edit the affected mixed filaments."
+msgstr "Raderat material användes i blandade filament. Vänligen redigera om de berörda blandade filamenten."
+
 msgid "Search plate, object and part."
 msgstr "Sök platta, objekt och del."
 
@@ -7076,6 +7238,15 @@ msgstr "Det finns några okända eller okompatibla filament som mappats till gen
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "Filamenttyp och färginformation har synkroniserats, men fack information ingår inte."
+
+msgid "Deleted material was used in mixed filaments. Please re-edit affected entries before use."
+msgstr "Raderat material användes i blandade filament. Vänligen redigera berörda poster innan användning."
+
+msgid "Mixed filament has broken component references"
+msgstr "Blandat filament har trasiga komponent referenser"
+
+msgid "Edit / Delete"
+msgstr "Redigera / Ta bort"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -8080,6 +8251,21 @@ msgstr "Kom ihåg det senast använda färgschemat"
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr "När aktiverad, kommer den senast använda färgschemat (t.ex., linjetyp, hastighet) att tillämpas automatiskt vid nästa start."
 
+msgid "Always show"
+msgstr "Visa alltid"
+
+msgid "Always hide"
+msgstr "Dölj alltid"
+
+msgid "Identify and display overview"
+msgstr "Identifiera och visa översikt"
+
+msgid "Show assembly BVH primary bounds"
+msgstr "Visa BVH primär gränser för montering"
+
+msgid "Display the BVH primary bounding box wireframe in assembly view."
+msgstr "Visa BVH primära avgränsnings ram i sammanställnings vyn."
+
 msgid "Improve rendering performance by lod"
 msgstr "Förbättra renderingsprestandan med lod"
 
@@ -8617,6 +8803,9 @@ msgstr "Din metod för gruppering av filament i berednings filen är inte optima
 msgid "To ensure print quality, the drying temperature will be lowered during printing."
 msgstr "För att säkerställa utskriftskvalitet sänks torktiden under utskriften."
 
+msgid "Select timelapse storage location"
+msgstr "Välj lagringsplats för timelapse"
+
 msgid ""
 "This checks the flatness of heatbed. Leveling makes extruded height uniform.\n"
 "*Automatic mode: Run a leveling check(about 10 seconds). Skip if surface is fine."
@@ -8706,11 +8895,42 @@ msgstr "Detta kontrollerar värmebäddens planhet. Utjämning gör den extrudera
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Den här processen bestämmer de dynamiska flödesvärdena för att förbättra den övergripande utskriftskvaliteten."
 
+msgid "Internal"
+msgstr "Intern"
+
+#, c-format, boost-format
+msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
+msgstr "%s utrymme mindre än 10MB. Tidsgräns kan inte spara ordentligt. Du kan stänga av det eller"
+
+msgid "Clean up files"
+msgstr "Rensa filer"
+
+msgid "Low internal storage. This timelapse will overwrite the oldest video files."
+msgstr "Lågt internt lagringsutrymme. Denna timelapse kommer att skriva över de äldsta videofilerna."
+
+msgid "Low external storage. This timelapse will overwrite the oldest video files."
+msgstr "Lågt externt lagringsutrymme. Denna timelapse kommer att skriva över de äldsta videofilerna."
+
+msgid "Insufficient external storage for time-lapse photography. Connect to computer to delete files, or use a larger memory card."
+msgstr "Otillräcklig extern lagring för timelapse fotografering. Anslut till datorn för att ta bort filer, eller använd ett större minneskort."
+
+msgid "Storage Space Not Enough"
+msgstr "Lagringsutrymme otillräckligt"
+
+msgid "Confirm & Print"
+msgstr "Bekräfta & skriv ut"
+
+msgid "Cancel Timelapse & Print"
+msgstr "Avbryt Timelapse och utskrift"
+
+msgid "Clean Up"
+msgstr "Rensa"
+
 msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
-msgstr ""
+msgstr "Auto: Om inte filament/nozzle i huvud extrudern har ändrats kommer det sista kalibreringsvärdet att återanvändas. Extra extrudern kommer att använda systemets standardvärde."
 
 msgid "On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
-msgstr ""
+msgstr "På: Innan varje utskrift startar, kommer kalibrering att utföras för huvud extrudern. Extra extrudern kommer att använda systemets standardvärde."
 
 msgid "Off: Prioritize using the value from your manual flow calibration."
 msgstr "Av: Prioritera med hjälp av värdet från din manuella flödes kalibrering."
@@ -8729,9 +8949,6 @@ msgstr "Eftersom utskriftsjobbet har skickats framgångsrikt kommer avbrytandet 
 
 msgid "The name length exceeds the limit."
 msgstr "Namnlängden överskrider gränsen."
-
-msgid "Right Nozzle(Aux)"
-msgstr "Höger nozzle (Aux)"
 
 #, c-format, boost-format
 msgid "Cost %dg filament and %d changes more than optimal grouping."
@@ -8833,6 +9050,9 @@ msgstr "Din nuvarande firmwareversion kan inte starta den här utskriften. Uppda
 msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr "Hårdheten hos aktuellt material (%s) överskrider hårdheten hos %s(%s). Det kan orsaka nozzle slitage, vilket leder till material läckage och instabila flöde. Var försiktig när du använder den."
 
+msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
+msgstr "Vissa filament kan växla mellan extruders under utskrift. Manuell K-värdes kalibrering kan inte appliceras under hela utskriften, vilket kan påverka utskrifts kvaliteten. Aktivering av Kalibrering av flödesdynamik rekommenderas."
+
 msgid "Cool"
 msgstr ""
 
@@ -8932,11 +9152,13 @@ msgstr "Skicka till printerns lagring"
 msgid "Try to connect"
 msgstr "Försök att ansluta"
 
-msgid "Internal Storage"
-msgstr "Intern lagring"
+msgctxt "sendtoprint"
+msgid "Cache"
+msgstr ""
 
-msgid "External Storage"
-msgstr "Extern lagring"
+msgctxt "sendtoprint"
+msgid "External"
+msgstr "Extern"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Timeout för uppladdning av fil: kontrollera om firmwareversionen stöder det."
@@ -9418,11 +9640,23 @@ msgstr "Filament scarf seam inställning"
 msgid "Part cooling fan"
 msgstr "Del kylningsfläkten"
 
-msgid "Close fan"
-msgstr ""
+msgid "Initial layer fan"
+msgstr "Fläkt för första lagret"
 
-msgid "set fan speed before first x layer"
-msgstr ""
+msgid "Set the part cooling fan speed for the first few layers. Set to 0 to keep the fan off for better bed adhesion"
+msgstr "Ställ in fläkthastigheten för de första lagren. Ställ in den på 0 för att hålla fläkten avstängd för bättre vidhäftning i bädden"
+
+msgid "Linear ramp up to"
+msgstr "Linjär upprampning till"
+
+msgid "Fan speed will linearly increase from the initial layer speed to the layer-time-based speed over the specified number of layers"
+msgstr "Fläkthastighet kommer linjärt öka från den initiala lager hastigheten till den lager-tid-baserade hastigheten över det angivna antalet lager"
+
+msgid "At"
+msgstr "Vid"
+
+msgid "layers"
+msgstr "lager"
 
 msgid "Min fan speed threshold"
 msgstr "Min fläkt hastighets gräns"
@@ -9439,11 +9673,20 @@ msgstr "Del kylfläktens hastighet kommer att vara max när den beräknade lagri
 msgid "Auxiliary part cooling fan"
 msgstr "Extra del kylnings fläkt"
 
-msgid "First layers fan"
-msgstr ""
+msgid "Set the auxiliary fan speed for the first few layers"
+msgstr "Ställ in extra fläktens hastighet för de första lagren"
 
-msgid "set additional fan speed before first x layer"
-msgstr ""
+msgid "Linear ramp up"
+msgstr "Linjär upprampning"
+
+msgid "Auxiliary fan speed will linearly increase from the initial layer speed to the target speed over the specified number of layers"
+msgstr "Extra fläktens hastighet ökar linjärt från den initiala lager hastigheten till målhastigheten över det angivna antalet lager"
+
+msgid "At layer"
+msgstr "Vid lager"
+
+msgid "ramp up to"
+msgstr "rampa upp till"
 
 msgid "Exhaust fan"
 msgstr "Utsugs fläkt"
@@ -9593,17 +9836,13 @@ msgstr "Inga ändringar behöver kopieras."
 msgid "Copy paramters"
 msgstr "Kopiera parametrar"
 
-msgid "Modify paramters of right nozzle"
-msgstr "Modifiera parametrar för höger nozzle"
+#, c-format, boost-format
+msgid "Modify paramters of %s"
+msgstr "Ändra parametrar för %s"
 
-msgid "Modify paramters of left nozzle"
-msgstr "Modifiera parametrar för vänster nozzle"
-
-msgid "Do you want to modify the following parameters of the right nozzle to that of the left nozzle?"
-msgstr "Vill du ändra följande parametrar för höger nozzle till den för det vänster nozzle?"
-
-msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
-msgstr "Vill du ändra följande parametrar för vänster nozzle till den för det höger nozzle?"
+#, c-format, boost-format
+msgid "Do you want to modify the following parameters of the %s to that of the %s?"
+msgstr "Vill du ändra följande parametrar för %s till %s?"
 
 msgid "No available nozzles for current preset"
 msgstr "Inga tillgängliga nozzle för aktuell inställning"
@@ -9930,14 +10169,8 @@ msgstr "Skriver över"
 msgid "Reset all filament mapping"
 msgstr "Återställ all filament mappning"
 
-msgid "Left Extruder"
-msgstr "Vänster Extruder"
-
 msgid "(Recommended filament)"
 msgstr "(Rekommenderat filament)"
-
-msgid "Right Extruder"
-msgstr "Höger extruder"
 
 msgid "Advanced Options"
 msgstr "Avancerade alternativ"
@@ -10053,12 +10286,6 @@ msgstr "Multiplikatorn ska ligga inom intervallet [%.2f, %.2f]."
 
 msgid "Re-calculate"
 msgstr "Utför beräkningen igen"
-
-msgid "Left extruder"
-msgstr "Vänster extruder"
-
-msgid "Right extruder"
-msgstr "Höger extruder"
 
 msgid "Multiplier"
 msgstr "Multiplikator"
@@ -11118,6 +11345,12 @@ msgstr "Utjämning av hastighet i z-riktning"
 msgid "Exporting G-code"
 msgstr "Exporterar G-kod"
 
+msgid "left"
+msgstr "vänster"
+
+msgid "right"
+msgstr "höger"
+
 msgid "Grouping error: filament"
 msgstr "Grupperings fel: filament"
 
@@ -11893,19 +12126,19 @@ msgid "For the first"
 msgstr "För det första"
 
 msgid "Set special auxiliary cooling fan for the first certain layers."
-msgstr ""
-
-msgid "layers"
-msgstr "lager"
+msgstr "Ställ in en speciell extra kylfläkt för de första utvalda lagren."
 
 msgid "Full fan speed at layer"
 msgstr "Full fläkthastighet vid lager"
 
 msgid "Auxiliary fan speed will be ramped up linearly from layer \"For the first\" to maximum at layer \"Full fan speed at layer\". \"Full fan speed at layer\" will be ignored if lower than \"For the first\", in which case the fan will be running at maximum allowed speed at layer \"For the first\" + 1."
-msgstr ""
+msgstr "Extra fläktens hastighet kommer att ökas linjärt från lager \"För den första\" till maximalt vid lager \"Full fläkthastighet vid lager\". \"Full fläkthastighet vid lager\" kommer att ignoreras om det är lägre än \"För den första\", i vilket fall fläkten kommer att köras med maximal tillåten hastighet vid lager \"För den första\" + 1."
 
 msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
 msgstr "Ställ in speciell kylfläkt för de första lagren. Del kylfläkt av det första lagret som brukade stängas för att få bättre vidhäftning och används för automatisk kylning funktion"
+
+msgid "Part cooling fan speed for the first few layers. Set to 0 to disable the part cooling fan on the initial layers for better bed adhesion"
+msgstr "Del kylfläkt för de första lagren. Sätt till 0 för att inaktivera delkyl fläkten på de initiala lagren för bättre vidhäftning"
 
 msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
 msgstr "Speciell extra kylfläkt som är effektiv endast för de första x lagren"
@@ -12309,10 +12542,10 @@ msgid "Filament category"
 msgstr "Filament kategori"
 
 msgid "Metal stickiness"
-msgstr ""
+msgstr "Metallisk vidhäftning"
 
 msgid "Indicates how strongly the filament tends to stick to the metal nozzle and leave residue. \"None\" means untested or custom filament, behaves the same as Low. Low: e.g. PLA - retraction can be safely skipped in infill areas. Medium: moderate stickiness - use with caution. High: e.g. PETG - retraction should not be skipped to avoid oozing artifacts on outer walls."
-msgstr ""
+msgstr "Indikerar hur starkt filamentet tenderar att fastna på metall nozzle och lämna rester. \"Ingen\" betyder otestat eller special anpassat filament, beter sig på samma sätt som Låg. Låg: t.ex. PLA - retraktion kan säkert hoppas över i utfyllnadsområden. Medium: måttlig vidhäftning - använd med försiktighet. Hög: t.ex. PETG - retraktion bör inte hoppas över för att undvika att artefakter läcker ut på ytterväggarna."
 
 msgid "Density"
 msgstr "Densitet"
@@ -12376,6 +12609,36 @@ msgstr "Support material"
 
 msgid "Support material is commonly used to print support and support interface"
 msgstr "Support material används ofta för att skriva ut support och stödja gränssnittet"
+
+msgid "Is mixed filament"
+msgstr "Är blandat filament"
+
+msgid "Whether this filament slot is a mixed filament composed of multiple physical filaments"
+msgstr "Om denna filament plats är ett blandat filament bestående av flera fysiska filament"
+
+msgid "Mixed filament components"
+msgstr "Blandade filament komponenter"
+
+msgid "Comma-separated 1-based indices of component filaments, e.g. \"1,3\""
+msgstr "Komma separerade 1-baserade index av komponent filament, t.ex. \"1,3\""
+
+msgid "Mixed filament sublayer ratios"
+msgstr "Blandade filament underlager förhållanden"
+
+msgid "Comma-separated ratio values summing to 1.0, e.g. \"0.7,0.3\""
+msgstr "Komma separerade kvotvärden summerar till 1,0, t.ex. \"0,7,0,3\""
+
+msgid "Mixed filament gradient"
+msgstr "Blandad filament gradient"
+
+msgid "Enable Z-direction gradient mode for mixed filament sub-layers. When enabled, the sub-layer ratios vary linearly across layers."
+msgstr "Aktivera Z-riktnings gradient läge för blandade filament underlager. När det är aktiverat varierar underlager förhållandena linjärt över lagren."
+
+msgid "Mixed filament gradient range"
+msgstr "Blandat filament gradient område"
+
+msgid "Start and end ratios for the first component in gradient mode. Comma-separated pair, e.g. \"0.10,0.90\" means 10% to 90%."
+msgstr "Start- och slutförhållanden för den första komponenten i gradient läge. Komma avgränsade par, t.ex. \"0,10,0,90\" betyder 10 % till 90 %."
 
 msgid "Filament printable"
 msgstr "Utskrivbart filament"
@@ -12685,18 +12948,6 @@ msgstr ""
 
 msgid "Classic"
 msgstr "Klassisk"
-
-msgid "Perlin"
-msgstr ""
-
-msgid "Billow"
-msgstr ""
-
-msgid "Ridged Multifractal"
-msgstr ""
-
-msgid "Voronoi"
-msgstr ""
 
 msgid "Fuzzy skin feature size"
 msgstr "Storleken på fuzzy skin funktioner"
@@ -13265,7 +13516,7 @@ msgid "Reduce infill retraction"
 msgstr "Minska ifyllnads retraktionen"
 
 msgid "Controls whether retraction is skipped when traveling within the infill area. \"Auto\" enables this optimization for filaments with low metal stickiness (e.g. PLA) and disables it for medium/high metal stickiness filaments (e.g. PETG) to avoid oozing artifacts. \"Enabled\" always skips retraction in infill areas regardless of filament type. \"Disabled\" always retracts normally."
-msgstr ""
+msgstr "Kontrollera om retraktion hoppas över vid förflyttning inom utfyllnadsområdet. \"Auto\" aktiverar denna optimering för filament med låg metall vidhäftning (t.ex. PLA) och inaktiverar den för filament med medelhög/hög metall vidhäftning (t.ex. PETG) för att undvika läckande artefakter. \"Aktiverad\" hoppar alltid över retraktion i utfyllnadsområden oavsett filamenttyp. \"Inaktiverad\" retraktar alltid normalt."
 
 msgid "Filename format"
 msgstr "Filnamns format"
@@ -13984,6 +14235,12 @@ msgstr "Avskrapnings avstånd"
 
 msgid "Describe how long the nozzle will move along the last path when retracting"
 msgstr "Beskriv hur länge nozzel kommer att röra sig längs den sista banan när det dras tillbaka"
+
+msgid "Mixed color sublayer"
+msgstr "Blandade färg lager"
+
+msgid "Enable mixed color sublayer splitting. When enabled, layers containing mixed color filaments will be split into sub-layers to achieve color mixing effects."
+msgstr "Aktivera blandade färg lager delning. När aktiverad, kommer lager som innehåller blandad färg trådar delas upp i underlager för att uppnå färgblandning effekter."
 
 msgid "The wiping tower can be used to clean up the residue on the nozzle and stabilize the chamber pressure inside the nozzle, in order to avoid appearance defects when printing objects."
 msgstr "Avstryknings tornet kan användas för att avlägsna rester på munstycket och stabilisera kammartrycket inuti munstycket för att undvika utseendefel vid utskrift av objekt."
@@ -14776,8 +15033,9 @@ msgstr "Synkronisera AMS och nozzle information"
 msgid "Connecting to printer"
 msgstr "Ansluter till skrivaren"
 
-msgid "Calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "Kalibrering stöder endast fall där vänster och höger nozzle diameter är identiska."
+#, c-format, boost-format
+msgid "Calibration only supports cases where the %s and %s diameters are identical."
+msgstr "Kalibrering stöder endast fall där %s och %s är identiska."
 
 msgid "From k Value"
 msgstr "Från k Värde"
@@ -16267,17 +16525,21 @@ msgstr "Kvalitetsläge"
 msgid "Custom Mode"
 msgstr "Anpassat läge"
 
-msgid "Generates filament grouping for the left and right nozzles based on the most filament-saving principles to minimize waste"
-msgstr "Skapar filament gruppering för vänster och höger nozzle baserat på de mest filament besparande principerna för att minimera spill"
+#, c-format, boost-format
+msgid "Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"
+msgstr "Genererar filament gruppering för %s och %s baserat på de mest filament besparande principerna för att minimera avfall"
 
-msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
-msgstr "Skapar filament gruppering för vänster och höger nozzle baserat på printerns faktiska filament status, vilket minskar behovet av manuell filament justering"
+#, c-format, boost-format
+msgid "Generates filament grouping for the %s and %s based on the printer's actual filament status, reducing the need for manual filament adjustment"
+msgstr "Genererar filament gruppering för %s och %s baserat på printerns faktiska filament status, vilket minskar behovet av manuell filament justering"
 
-msgid "Generates filament grouping for the left and right nozzles based on quality optimization principles"
-msgstr "Skapar filament gruppering för vänster och höger nozzle baserat på kvalitets optimerings principer"
+#, c-format, boost-format
+msgid "Generates filament grouping for the %s and %s based on quality optimization principles"
+msgstr "Genererar filament gruppering för %s och %s baserat på principer för kvalitets optimering"
 
-msgid "Manually assign filament to the left or right nozzle"
-msgstr "Tilldela filament manuellt till vänster eller höger nozzle"
+#, c-format, boost-format
+msgid "Manually assign filament to the %s or %s"
+msgstr "Tilldela filament manuellt till %s eller %s"
 
 msgid "Global settings"
 msgstr "Globala inställningar"
@@ -16305,19 +16567,8 @@ msgid " to set nozzle count"
 msgstr " för att ange antal nozzle"
 
 #, c-format, boost-format
-msgid "Left Extruder(%d)"
-msgstr "Vänster Extruder(%d)"
-
-#, c-format, boost-format
-msgid "Right Extruder(Std: %d, HF: %d)"
-msgstr "Höger Extruder(Std: %d, HF: %d)"
-
-#, c-format, boost-format
-msgid "Right Extruder(%d)"
-msgstr "Höger Extruder(%d)"
-
-msgid "Generates filament grouping for the left and right nozzles based on the quality of prints, prioritizing print quality over filament saving"
-msgstr "Skapar filament gruppering för vänster och höger nozzle baserat på utskrifts kvalitet, med prioritet på utskrifts kvalitet framför filament besparing"
+msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
+msgstr "Genererar filament gruppering för %s och %s baserat på utskrifternas kvalitet, med prioritet för utskriftskvalitet framför filament besparing"
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "Grupperings metoden för filament för plattan bestäms av rullgardins alternativet vid beredning plattan knappen."
@@ -16538,6 +16789,9 @@ msgstr "  Firmware uppdatering pågår, vänta..."
 
 msgid "  Please plug in the power and then use the drying function."
 msgstr "  Anslut strömmen och använd sedan torkfunktionen."
+
+msgid "  The high drying temperature may cause AMS blockage. Please unload the filament manually before proceeding."
+msgstr "  Den höga tork temperaturen kan orsaka blockering av AMS. Ta ut filamentet manuellt innan du fortsätter."
 
 msgid "System is busy"
 msgstr "Systemet är upptaget"
@@ -16987,6 +17241,120 @@ msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
 
+#~ msgid "right extruder"
+#~ msgstr "höger extruder"
+
+#~ msgid "left extruder"
+#~ msgstr "vänster extruder"
+
+#~ msgctxt "FilamentTrack"
+#~ msgid "right extruder"
+#~ msgstr "höger extruder"
+
+#~ msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
+#~ msgstr "Obs: Hotend numret på höger extruder är kopplat till hållaren. När hotend flyttas till en ny hållare uppdateras dess nummer automatiskt."
+
+#~ msgid "Select filament that installed to the left nozzle"
+#~ msgstr "Välj filament som installeras till vänster nozzle"
+
+#~ msgid "Select filament that installed to the right nozzle"
+#~ msgstr "Välj filament som installeras till höger nozzle"
+
+#~ msgid "Please select the filament installed on the left nozzle."
+#~ msgstr "Välj det filament som är installerat på vänster nozzle."
+
+#~ msgid "Please select the filament installed on the right nozzle."
+#~ msgstr "Välj det filament som är installerat på höger nozzle."
+
+#~ msgid "Left nozzle"
+#~ msgstr "Vänster nozzle"
+
+#~ msgid "Right nozzle"
+#~ msgstr "Höger nozzle"
+
+#, boost-format
+#~ msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
+#~ msgstr "Vänster nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
+
+#, boost-format
+#~ msgid "Right nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
+#~ msgstr "Höger nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
+
+#~ msgid "Assembly View"
+#~ msgstr "Monterings vy"
+
+#~ msgid "4-slot AMS"
+#~ msgstr "4-fack AMS"
+
+#~ msgid "1-slot AMS"
+#~ msgstr "1-fack AMS"
+
+#~ msgid "Remove this AMS"
+#~ msgstr "Ta bort denna AMS"
+
+#~ msgid "Right Nozzle(Aux)"
+#~ msgstr "Höger nozzle (Aux)"
+
+#~ msgid "Internal Storage"
+#~ msgstr "Intern lagring"
+
+#~ msgid "External Storage"
+#~ msgstr "Extern lagring"
+
+#~ msgid "Modify paramters of right nozzle"
+#~ msgstr "Modifiera parametrar för höger nozzle"
+
+#~ msgid "Modify paramters of left nozzle"
+#~ msgstr "Modifiera parametrar för vänster nozzle"
+
+#~ msgid "Do you want to modify the following parameters of the right nozzle to that of the left nozzle?"
+#~ msgstr "Vill du ändra följande parametrar för höger nozzle till den för det vänster nozzle?"
+
+#~ msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
+#~ msgstr "Vill du ändra följande parametrar för vänster nozzle till den för det höger nozzle?"
+
+#~ msgid "Left Extruder"
+#~ msgstr "Vänster Extruder"
+
+#~ msgid "Right Extruder"
+#~ msgstr "Höger extruder"
+
+#~ msgid "Left extruder"
+#~ msgstr "Vänster extruder"
+
+#~ msgid "Right extruder"
+#~ msgstr "Höger extruder"
+
+#~ msgid "Calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "Kalibrering stöder endast fall där vänster och höger nozzle diameter är identiska."
+
+#~ msgid "Generates filament grouping for the left and right nozzles based on the most filament-saving principles to minimize waste"
+#~ msgstr "Skapar filament gruppering för vänster och höger nozzle baserat på de mest filament besparande principerna för att minimera spill"
+
+#~ msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
+#~ msgstr "Skapar filament gruppering för vänster och höger nozzle baserat på printerns faktiska filament status, vilket minskar behovet av manuell filament justering"
+
+#~ msgid "Generates filament grouping for the left and right nozzles based on quality optimization principles"
+#~ msgstr "Skapar filament gruppering för vänster och höger nozzle baserat på kvalitets optimerings principer"
+
+#~ msgid "Manually assign filament to the left or right nozzle"
+#~ msgstr "Tilldela filament manuellt till vänster eller höger nozzle"
+
+#, c-format, boost-format
+#~ msgid "Left Extruder(%d)"
+#~ msgstr "Vänster Extruder(%d)"
+
+#, c-format, boost-format
+#~ msgid "Right Extruder(Std: %d, HF: %d)"
+#~ msgstr "Höger Extruder(Std: %d, HF: %d)"
+
+#, c-format, boost-format
+#~ msgid "Right Extruder(%d)"
+#~ msgstr "Höger Extruder(%d)"
+
+#~ msgid "Generates filament grouping for the left and right nozzles based on the quality of prints, prioritizing print quality over filament saving"
+#~ msgstr "Skapar filament gruppering för vänster och höger nozzle baserat på utskrifts kvalitet, med prioritet på utskrifts kvalitet framför filament besparing"
+
 #~ msgid "Used Time"
 #~ msgstr "Använd tid"
 
@@ -17001,26 +17369,6 @@ msgstr ""
 
 #~ msgid "Don't retract when the travel is in infill area absolutely. That means the oozing can't been seen. This can reduce times of retraction for complex model and save printing time, but make slicing and G-code generating slower"
 #~ msgstr "Dra inte tillbaka när förflyttningen är helt i ett utfyllnadsområde. Det betyder att läckage av filament inte kan ses. Detta kan minska tiderna för indragning för komplexa modeller och spara utskriftstid, men gör beredning och generering av G-kod långsammare."
-
-#~ msgid ""
-#~ "The software does not support using different diameter of nozzles for one print.\n"
-#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-#~ "Please confirm which nozzle you would like to use for this project."
-#~ msgstr ""
-#~ "Programvaran stöder inte användning av olika diameter på nozzle för en utskrift.\n"
-#~ "Om vänster och höger nozzle är inkonsekventa kan vi bara fortsätta utskriften med en nozzle.\n"
-#~ "Bekräfta vilken nozzle du vill använda för detta projekt."
-
-#~ msgid "Switch diameter"
-#~ msgstr "Byt diameter"
-
-#, c-format, boost-format
-#~ msgid "Left nozzle: %smm"
-#~ msgstr "Vänster nozzle: %smm"
-
-#, c-format, boost-format
-#~ msgid "Right nozzle: %smm"
-#~ msgstr "Höger nozzle: %smm"
 
 #~ msgid ""
 #~ "Tips:\n"
@@ -18835,9 +19183,6 @@ msgstr ""
 
 #~ msgid "Aux Cooling"
 #~ msgstr "Extra Kylning"
-
-#~ msgid "Auxiliary"
-#~ msgstr "Auxiliary"
 
 #~ msgid "Avoid crossing wall when travel"
 #~ msgstr "Undvik väggar vid förflyttning"

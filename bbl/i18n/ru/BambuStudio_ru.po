@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-27 09:56+0800\n"
+"POT-Creation-Date: 2026-04-07 20:42+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -34,18 +34,70 @@ msgstr "Материал несовместим с текущими настро
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Неизвестный тип материала. Будет использован случайный профиль прутка."
 
-# import obj
-msgid "right"
-msgstr "Справа"
-
-# import obj
-msgid "left"
-msgstr "Слева"
-
-msgid "right extruder"
+msgid "Main Extruder"
 msgstr ""
 
-msgid "left extruder"
+msgid "Main extruder"
+msgstr ""
+
+msgid "main extruder"
+msgstr ""
+
+msgid "Auxiliary Extruder"
+msgstr ""
+
+msgid "Auxiliary extruder"
+msgstr ""
+
+msgid "auxiliary extruder"
+msgstr ""
+
+msgid "Main Nozzle"
+msgstr ""
+
+msgid "Main nozzle"
+msgstr ""
+
+msgid "main nozzle"
+msgstr ""
+
+msgid "Auxiliary Nozzle"
+msgstr ""
+
+msgid "Auxiliary nozzle"
+msgstr ""
+
+msgid "auxiliary nozzle"
+msgstr ""
+
+msgid "Main Hotend"
+msgstr ""
+
+msgid "Main hotend"
+msgstr ""
+
+msgid "main hotend"
+msgstr ""
+
+msgid "Auxiliary Hotend"
+msgstr ""
+
+msgid "Auxiliary hotend"
+msgstr ""
+
+msgid "auxiliary hotend"
+msgstr ""
+
+msgid "main"
+msgstr ""
+
+msgid "auxiliary"
+msgstr ""
+
+msgid "Main"
+msgstr ""
+
+msgid "Auxiliary"
 msgstr ""
 
 msgid "extruder"
@@ -2887,10 +2939,6 @@ msgstr "Подтвердить"
 msgid "Load %s to "
 msgstr ""
 
-msgctxt "FilamentTrack"
-msgid "right extruder"
-msgstr ""
-
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "Изменение скорости вращения вентилятора во время печати может повлиять на качество печати, поэтому тщательно подбирайте параметры."
 
@@ -3427,7 +3475,8 @@ msgstr "Пожалуйста, введите допустимое значени
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Пожалуйста, введите допустимое значение (K в диапазоне %.1f~%.1f, N в диапазоне %.1f~%.1f)"
 
-msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
+#, c-format, boost-format
+msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
 msgstr ""
 
 # ?????
@@ -3548,11 +3597,9 @@ msgstr "Слоты АСПП"
 msgid "Please select from the following filaments"
 msgstr "Пожалуйста, выберите один из прутков"
 
-msgid "Select filament that installed to the left nozzle"
-msgstr "Выберите пруток для левого сопла"
-
-msgid "Select filament that installed to the right nozzle"
-msgstr "Выберите пруток для правого сопла"
+#, c-format, boost-format
+msgid "Select filament that installed to the %s"
+msgstr ""
 
 msgid "Left AMS"
 msgstr "Левая АСПП"
@@ -3666,11 +3713,15 @@ msgstr "СУХОЙ"
 msgid "WET"
 msgstr "ВЛАЖНЫЙ"
 
-msgid "Please select the filament installed on the left nozzle."
+msgid "left nozzle"
+msgstr "левого сопла"
+
+#, c-format, boost-format
+msgid "Please select the filament installed on the %s."
 msgstr ""
 
-msgid "Please select the filament installed on the right nozzle."
-msgstr ""
+msgid "right nozzle"
+msgstr "правого сопла"
 
 msgid "Please select the filament."
 msgstr ""
@@ -4025,6 +4076,14 @@ msgid ""
 msgstr ""
 
 msgid ""
+"Fuzzy skin [Extrusion] and [Combined] modes require the Arachne wall generator.\n"
+"\n"
+"Do you want to change these settings automatically?\n"
+"Yes - Enable Arachne wall generator\n"
+"No - Keep current wall generator and set fuzzy skin to [Displacement] mode"
+msgstr ""
+
+msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support Layer Height is on.\n"
 "Which do you want to keep?\n"
 "YES - Keep Prime Tower\n"
@@ -4298,7 +4357,40 @@ msgstr ""
 msgid "Purifying the chamber air"
 msgstr ""
 
+msgid "Measuring Rotary Attachment"
+msgstr ""
+
+msgid "The toolhead moves above the purge chute"
+msgstr ""
+
+msgid "Cooling down the nozzle"
+msgstr ""
+
+msgid "The toolhead moves to the center of the heatbed"
+msgstr ""
+
+msgid "Active Arc Fitting"
+msgstr ""
+
+msgid "Hotend Type Detection"
+msgstr ""
+
+msgid "Build plate alignment detection"
+msgstr ""
+
+msgid "Heatbed surface foreign object detection"
+msgstr ""
+
+msgid "Heatbed underside foreign object detection"
+msgstr ""
+
+msgid "Pre-extrusion before printing"
+msgstr ""
+
 msgid "Preparing AMS"
+msgstr ""
+
+msgid "Timing belt artifacts compensation"
 msgstr ""
 
 msgid "Timelapse is not supported on this printer."
@@ -4406,6 +4498,9 @@ msgid "Abort"
 msgstr ""
 
 msgid "Disable Purification for This Print"
+msgstr ""
+
+msgid "Don't Remind Me"
 msgstr ""
 
 msgid "Done"
@@ -4694,12 +4789,6 @@ msgstr "Группировка материала"
 msgid "Why this grouping"
 msgstr "Почему она такая?"
 
-msgid "Left nozzle"
-msgstr "Левое сопло"
-
-msgid "Right nozzle"
-msgstr "Правое сопло"
-
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "Разместите материал в принтере в соответствии с результатом группировки."
 
@@ -4878,12 +4967,6 @@ msgstr ""
 msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
 msgstr ""
 
-msgid "left nozzle"
-msgstr "левого сопла"
-
-msgid "right nozzle"
-msgstr "правого сопла"
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "Расположение некоторых моделей или их размер выходит за область печати %s."
@@ -4894,14 +4977,6 @@ msgstr "Расположение модели %s или её размер вых
 
 msgid " Please check and adjust the part's position or size to fit the printable range:\n"
 msgstr " Отрегулируйте расположение модели на столе или её размер, чтобы она поместилась в область печати:\n"
-
-#, boost-format
-msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
-msgstr "Левое сопло: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
-
-#, boost-format
-msgid "Right nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
-msgstr "Правое сопло: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
 
 msgid "Mirror Object"
 msgstr "Отразить модель"
@@ -4992,11 +5067,50 @@ msgstr ""
 msgid "Click to Collapse"
 msgstr ""
 
-msgid "Assembly View"
-msgstr "Сборочный вид"
+msgid "Overview"
+msgstr ""
 
 msgid "Select Plate"
 msgstr "Выбор печатной пластины"
+
+msgid "RenderAssemblyViewThumb"
+msgstr ""
+
+msgid "Change assemble view preview"
+msgstr ""
+
+msgid "Go to Wiki"
+msgstr ""
+
+msgid "Note:Only the main assembly body is shown here.unassembled objects are hidden."
+msgstr ""
+
+#, boost-format
+msgid "Current assembly rate: %1%%%"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Top"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Bottom"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Front"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Back"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric"
+msgstr ""
+
+msgid "AssemblyViewPreviewMenu"
+msgstr ""
 
 msgid "Assembly Return"
 msgstr "Выйти из сборки"
@@ -5038,6 +5152,21 @@ msgstr "Объём:"
 
 msgid "Size:"
 msgstr "Размер:"
+
+msgid "Assembly view: isolated objects detected"
+msgstr ""
+
+msgid "Click to move them closer to the main body."
+msgstr ""
+
+msgid "Move closer"
+msgstr ""
+
+msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"
+msgstr ""
+
+msgid "Reset to origin"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Conflicts of gcode paths have been found at layer %d. Please separate the conflicted objects farther (%s <-> %s)."
@@ -5371,10 +5500,6 @@ msgstr "Вид слева"
 
 msgid "Right View"
 msgstr "Вид справа"
-
-msgctxt "Camera"
-msgid "Isometric"
-msgstr ""
 
 msgid "Isometric View"
 msgstr ""
@@ -6913,12 +7038,6 @@ msgstr "Пожалуйста, измените настройки сопла п�
 msgid "View wiki"
 msgstr "Открыть вики-сайт"
 
-msgid "Left Nozzle"
-msgstr "Левое сопло"
-
-msgid "Right Nozzle"
-msgstr "Правое сопло"
-
 msgid "Brass"
 msgstr "Латунь"
 
@@ -7018,6 +7137,10 @@ msgstr ""
 msgid "Risk of nozzle clumping detected with the current high-temperature filament (%s). We recommend enabling clumping detection (via probing). This feature uses a quick probing sequence to check for nozzle buildup during the print and utilizes the prime tower to absorb oozing before resuming."
 msgstr ""
 
+#, c-format, boost-format
+msgid "High-shrinkage filament(s) detected: %s. These materials may cause dimensional deviation after cooling. If your model requires precise fitting or assembly, please refer to the Wiki guide for shrinkage testing."
+msgstr ""
+
 #, boost-format
 msgid " plate %1%: "
 msgstr " печатной пластины %1%: "
@@ -7071,14 +7194,24 @@ msgstr "АСПП (1-х слотовая)"
 msgid "Not installed"
 msgstr "Не задано"
 
-msgid "4-slot AMS"
+msgid ""
+"The software does not support using different diameter of nozzles for one print.\n"
+"If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
+"Please confirm which nozzle you would like to use for this project."
 msgstr ""
+"Программа пока не поддерживает одновременную печать с использованием двух сопел разного диаметра.\n"
+"Так как диаметры сопел не совпадают, выберите диаметр сопла, который вы хотите использовать для этого проекта."
 
-msgid "1-slot AMS"
-msgstr ""
+msgid "Switch diameter"
+msgstr "Выбор диаметра сопла"
 
-msgid "Remove this AMS"
-msgstr ""
+#, c-format, boost-format
+msgid "Left nozzle: %smm"
+msgstr "Левое сопло: %s мм"
+
+#, c-format, boost-format
+msgid "Right nozzle: %smm"
+msgstr "Правое сопло: %s мм"
 
 # ???22 Синхронизировать инф. с принтером, Синхронизировать информацию с принтером
 msgid "Sync printer information"
@@ -7125,6 +7258,12 @@ msgstr ""
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Синхронизировать информацию о соплах и количестве АСПП"
 
+msgid "Left Nozzle"
+msgstr "Левое сопло"
+
+msgid "Right Nozzle"
+msgstr "Правое сопло"
+
 msgid "Project Filaments"
 msgstr "Материалы проекта"
 
@@ -7146,6 +7285,21 @@ msgstr "Синхронизировать перечень материалов �
 
 msgid "Set filaments to use"
 msgstr "Выбор пластиковой нити"
+
+msgid "Add Mixed Filament"
+msgstr ""
+
+msgid "Mixed Filament"
+msgstr ""
+
+msgid "Add mixed filament"
+msgstr ""
+
+msgid "Remove last mixed filament"
+msgstr ""
+
+msgid "Deleted material was used in mixed filaments. Please re-edit the affected mixed filaments."
+msgstr ""
 
 msgid "Search plate, object and part."
 msgstr "Поиск печатной пластины, модели или части модели."
@@ -7170,6 +7324,15 @@ msgstr ""
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "Информация о типе и цвете материала была синхронизирована, но информация о слоте не была включена."
+
+msgid "Deleted material was used in mixed filaments. Please re-edit affected entries before use."
+msgstr ""
+
+msgid "Mixed filament has broken component references"
+msgstr ""
+
+msgid "Edit / Delete"
+msgstr ""
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -8167,6 +8330,21 @@ msgstr ""
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr ""
 
+msgid "Always show"
+msgstr ""
+
+msgid "Always hide"
+msgstr ""
+
+msgid "Identify and display overview"
+msgstr ""
+
+msgid "Show assembly BVH primary bounds"
+msgstr ""
+
+msgid "Display the BVH primary bounding box wireframe in assembly view."
+msgstr ""
+
 msgid "Improve rendering performance by lod"
 msgstr "Повысить производительность рендеринга с помощью LOD"
 
@@ -8709,6 +8887,9 @@ msgstr "Ваш метод группировки материалов не яв�
 msgid "To ensure print quality, the drying temperature will be lowered during printing."
 msgstr ""
 
+msgid "Select timelapse storage location"
+msgstr ""
+
 # ???55
 msgid ""
 "This checks the flatness of heatbed. Leveling makes extruded height uniform.\n"
@@ -8804,6 +8985,37 @@ msgstr "Этот процесс проверяет ровность поверх
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Этот процесс определяет значение динамического потока для улучшения общего качества печати."
 
+msgid "Internal"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
+msgstr ""
+
+msgid "Clean up files"
+msgstr ""
+
+msgid "Low internal storage. This timelapse will overwrite the oldest video files."
+msgstr ""
+
+msgid "Low external storage. This timelapse will overwrite the oldest video files."
+msgstr ""
+
+msgid "Insufficient external storage for time-lapse photography. Connect to computer to delete files, or use a larger memory card."
+msgstr ""
+
+msgid "Storage Space Not Enough"
+msgstr ""
+
+msgid "Confirm & Print"
+msgstr ""
+
+msgid "Cancel Timelapse & Print"
+msgstr ""
+
+msgid "Clean Up"
+msgstr ""
+
 msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr ""
 
@@ -8827,9 +9039,6 @@ msgstr "Так как задание на печать было успешно �
 
 msgid "The name length exceeds the limit."
 msgstr "Слишком длинное имя."
-
-msgid "Right Nozzle(Aux)"
-msgstr ""
 
 # ????? При использовании оптимальной группировки можно сэкономить %d г материала и сократить число смен материала на %d.
 #, c-format, boost-format
@@ -8928,6 +9137,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+msgstr ""
+
+msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr ""
 
 msgid "Cool"
@@ -9033,10 +9245,12 @@ msgstr "Отправить на накопитель принтера"
 msgid "Try to connect"
 msgstr ""
 
-msgid "Internal Storage"
+msgctxt "sendtoprint"
+msgid "Cache"
 msgstr ""
 
-msgid "External Storage"
+msgctxt "sendtoprint"
+msgid "External"
 msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
@@ -9516,11 +9730,23 @@ msgstr "Настройки клиновидного шва для прутка"
 msgid "Part cooling fan"
 msgstr "Вентилятор обдува модели"
 
-msgid "Close fan"
+msgid "Initial layer fan"
 msgstr ""
 
-msgid "set fan speed before first x layer"
+msgid "Set the part cooling fan speed for the first few layers. Set to 0 to keep the fan off for better bed adhesion"
 msgstr ""
+
+msgid "Linear ramp up to"
+msgstr ""
+
+msgid "Fan speed will linearly increase from the initial layer speed to the layer-time-based speed over the specified number of layers"
+msgstr ""
+
+msgid "At"
+msgstr ""
+
+msgid "layers"
+msgstr "слой(-я)"
 
 msgid "Min fan speed threshold"
 msgstr "Порог мин. скорости вентилятора"
@@ -9537,10 +9763,19 @@ msgstr "Скорость вентилятора для охлаждения де
 msgid "Auxiliary part cooling fan"
 msgstr "Вспомогательный вентилятор модели"
 
-msgid "First layers fan"
+msgid "Set the auxiliary fan speed for the first few layers"
 msgstr ""
 
-msgid "set additional fan speed before first x layer"
+msgid "Linear ramp up"
+msgstr ""
+
+msgid "Auxiliary fan speed will linearly increase from the initial layer speed to the target speed over the specified number of layers"
+msgstr ""
+
+msgid "At layer"
+msgstr ""
+
+msgid "ramp up to"
 msgstr ""
 
 msgid "Exhaust fan"
@@ -9697,20 +9932,13 @@ msgstr "Отсутствуют изменения для копирования.
 msgid "Copy paramters"
 msgstr "Копирование параметров"
 
-# ??? Изменение параметров правого экструдера
-msgid "Modify paramters of right nozzle"
-msgstr "Изменение параметров правого сопла"
+#, c-format, boost-format
+msgid "Modify paramters of %s"
+msgstr ""
 
-# ??? Изменение параметров левого экструдера
-msgid "Modify paramters of left nozzle"
-msgstr "Изменение параметров левого сопла"
-
-# ??? Скопировать изменённые параметры с левого экструдера на правый?
-msgid "Do you want to modify the following parameters of the right nozzle to that of the left nozzle?"
-msgstr "Хотите перенести следующие изменённые параметры левого сопла на правое?"
-
-msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
-msgstr "Хотите перенести следующие изменённые параметры правого сопла на левое?"
+#, c-format, boost-format
+msgid "Do you want to modify the following parameters of the %s to that of the %s?"
+msgstr ""
 
 msgid "No available nozzles for current preset"
 msgstr ""
@@ -10053,14 +10281,8 @@ msgstr "Перезапись"
 msgid "Reset all filament mapping"
 msgstr "Сброс всех сопоставленных материалов"
 
-msgid "Left Extruder"
-msgstr "Левый экструдер"
-
 msgid "(Recommended filament)"
 msgstr "(рекомендуемый материал)"
-
-msgid "Right Extruder"
-msgstr "Правый экструдер"
 
 msgid "Advanced Options"
 msgstr "Дополнительные параметры"
@@ -10187,12 +10409,6 @@ msgstr "Множитель должен находиться в диапазон
 
 msgid "Re-calculate"
 msgstr "Пересчитать"
-
-msgid "Left extruder"
-msgstr "Левый экструдер"
-
-msgid "Right extruder"
-msgstr "Правый экструдер"
 
 msgid "Multiplier"
 msgstr "Множитель"
@@ -11235,6 +11451,14 @@ msgstr "Сглаживание скорости по оси Z"
 msgid "Exporting G-code"
 msgstr "Экспорт в G-код"
 
+# import obj
+msgid "left"
+msgstr "Слева"
+
+# import obj
+msgid "right"
+msgstr "Справа"
+
 msgid "Grouping error: filament"
 msgstr ""
 
@@ -12002,9 +12226,6 @@ msgstr ""
 msgid "Set special auxiliary cooling fan for the first certain layers."
 msgstr ""
 
-msgid "layers"
-msgstr "слой(-я)"
-
 msgid "Full fan speed at layer"
 msgstr "Полная скорость вентилятора на слое"
 
@@ -12012,6 +12233,9 @@ msgid "Auxiliary fan speed will be ramped up linearly from layer \"For the first
 msgstr ""
 
 msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
+msgstr ""
+
+msgid "Part cooling fan speed for the first few layers. Set to 0 to disable the part cooling fan on the initial layers for better bed adhesion"
 msgstr ""
 
 msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
@@ -12508,6 +12732,36 @@ msgstr "Поддержка"
 msgid "Support material is commonly used to print support and support interface"
 msgstr "«Материал для поддержки» обычно используется для печати поддержки и связующего слоя поддержки."
 
+msgid "Is mixed filament"
+msgstr ""
+
+msgid "Whether this filament slot is a mixed filament composed of multiple physical filaments"
+msgstr ""
+
+msgid "Mixed filament components"
+msgstr ""
+
+msgid "Comma-separated 1-based indices of component filaments, e.g. \"1,3\""
+msgstr ""
+
+msgid "Mixed filament sublayer ratios"
+msgstr ""
+
+msgid "Comma-separated ratio values summing to 1.0, e.g. \"0.7,0.3\""
+msgstr ""
+
+msgid "Mixed filament gradient"
+msgstr ""
+
+msgid "Enable Z-direction gradient mode for mixed filament sub-layers. When enabled, the sub-layer ratios vary linearly across layers."
+msgstr ""
+
+msgid "Mixed filament gradient range"
+msgstr ""
+
+msgid "Start and end ratios for the first component in gradient mode. Comma-separated pair, e.g. \"0.10,0.90\" means 10% to 90%."
+msgstr ""
+
 msgid "Filament printable"
 msgstr ""
 
@@ -12814,18 +13068,6 @@ msgstr ""
 
 msgid "Classic"
 msgstr "Классический"
-
-msgid "Perlin"
-msgstr ""
-
-msgid "Billow"
-msgstr ""
-
-msgid "Ridged Multifractal"
-msgstr ""
-
-msgid "Voronoi"
-msgstr ""
 
 msgid "Fuzzy skin feature size"
 msgstr ""
@@ -14138,6 +14380,12 @@ msgstr "Расстояние очистки"
 msgid "Describe how long the nozzle will move along the last path when retracting"
 msgstr "Задаёт расстояние перемещения, добавленное после печати последнего участка пути при совершении отката."
 
+msgid "Mixed color sublayer"
+msgstr ""
+
+msgid "Enable mixed color sublayer splitting. When enabled, layers containing mixed color filaments will be split into sub-layers to achieve color mixing effects."
+msgstr ""
+
 msgid "The wiping tower can be used to clean up the residue on the nozzle and stabilize the chamber pressure inside the nozzle, in order to avoid appearance defects when printing objects."
 msgstr "Этот параметр включает печать черновой башни - специальной структуры, которая используется для очистки сопла от остатков материала и стабилизации давления внутри сопла при смене экструдера, чтобы избежать дефектов на поверхности печатаемой модели. В основном она используется для многоцветной и мультиматериальной печати в многоинструментальных принтерах."
 
@@ -14951,8 +15199,9 @@ msgstr "Синхронизация информации о соплах и АС�
 msgid "Connecting to printer"
 msgstr "Подключение к принтеру"
 
-msgid "Calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "Калибровка работает только при одинаковых диаметрах левого и правого сопел."
+#, c-format, boost-format
+msgid "Calibration only supports cases where the %s and %s diameters are identical."
+msgstr ""
 
 msgid "From k Value"
 msgstr "Начальный коэф. K"
@@ -16455,19 +16704,21 @@ msgstr ""
 msgid "Custom Mode"
 msgstr "Пользовательский режим"
 
-# ??? Группировка материала для левого и правого сопел будет осуществляться с акцентом на экономию материала и минимизацию отходов.
-msgid "Generates filament grouping for the left and right nozzles based on the most filament-saving principles to minimize waste"
-msgstr "Группирует материалы для левого и правого сопел, исходя из принципа экономии материала и минимизации отходов."
-
-# ??? Группировка материала для левых и правых сопел будет осуществляться исходя из имеющихся в принтере материалов, уменьшая необходимость в дополнительной манипуляции с ними.
-msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
-msgstr "Группирует материалы для левого и правого сопел, исходя из имеющихся в принтере материалов, уменьшая необходимость в их ручной настройке."
-
-msgid "Generates filament grouping for the left and right nozzles based on quality optimization principles"
+#, c-format, boost-format
+msgid "Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"
 msgstr ""
 
-msgid "Manually assign filament to the left or right nozzle"
-msgstr "Ручная группировка материала для левого или правого сопла."
+#, c-format, boost-format
+msgid "Generates filament grouping for the %s and %s based on the printer's actual filament status, reducing the need for manual filament adjustment"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Generates filament grouping for the %s and %s based on quality optimization principles"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Manually assign filament to the %s or %s"
+msgstr ""
 
 msgid "Global settings"
 msgstr "Общие настройки"
@@ -16497,18 +16748,7 @@ msgid " to set nozzle count"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Left Extruder(%d)"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Right Extruder(Std: %d, HF: %d)"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Right Extruder(%d)"
-msgstr ""
-
-msgid "Generates filament grouping for the left and right nozzles based on the quality of prints, prioritizing print quality over filament saving"
+msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
 msgstr ""
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
@@ -16729,6 +16969,9 @@ msgid "  Firmware update in progress, please wait..."
 msgstr ""
 
 msgid "  Please plug in the power and then use the drying function."
+msgstr ""
+
+msgid "  The high drying temperature may cause AMS blockage. Please unload the filament manually before proceeding."
 msgstr ""
 
 msgid "System is busy"
@@ -17155,6 +17398,70 @@ msgid ""
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
 
+#~ msgid "Select filament that installed to the left nozzle"
+#~ msgstr "Выберите пруток для левого сопла"
+
+#~ msgid "Select filament that installed to the right nozzle"
+#~ msgstr "Выберите пруток для правого сопла"
+
+#~ msgid "Left nozzle"
+#~ msgstr "Левое сопло"
+
+#~ msgid "Right nozzle"
+#~ msgstr "Правое сопло"
+
+#, boost-format
+#~ msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
+#~ msgstr "Левое сопло: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
+
+#, boost-format
+#~ msgid "Right nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
+#~ msgstr "Правое сопло: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
+
+#~ msgid "Assembly View"
+#~ msgstr "Сборочный вид"
+
+# ??? Изменение параметров правого экструдера
+#~ msgid "Modify paramters of right nozzle"
+#~ msgstr "Изменение параметров правого сопла"
+
+# ??? Изменение параметров левого экструдера
+#~ msgid "Modify paramters of left nozzle"
+#~ msgstr "Изменение параметров левого сопла"
+
+# ??? Скопировать изменённые параметры с левого экструдера на правый?
+#~ msgid "Do you want to modify the following parameters of the right nozzle to that of the left nozzle?"
+#~ msgstr "Хотите перенести следующие изменённые параметры левого сопла на правое?"
+
+#~ msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
+#~ msgstr "Хотите перенести следующие изменённые параметры правого сопла на левое?"
+
+#~ msgid "Left Extruder"
+#~ msgstr "Левый экструдер"
+
+#~ msgid "Right Extruder"
+#~ msgstr "Правый экструдер"
+
+#~ msgid "Left extruder"
+#~ msgstr "Левый экструдер"
+
+#~ msgid "Right extruder"
+#~ msgstr "Правый экструдер"
+
+#~ msgid "Calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "Калибровка работает только при одинаковых диаметрах левого и правого сопел."
+
+# ??? Группировка материала для левого и правого сопел будет осуществляться с акцентом на экономию материала и минимизацию отходов.
+#~ msgid "Generates filament grouping for the left and right nozzles based on the most filament-saving principles to minimize waste"
+#~ msgstr "Группирует материалы для левого и правого сопел, исходя из принципа экономии материала и минимизации отходов."
+
+# ??? Группировка материала для левых и правых сопел будет осуществляться исходя из имеющихся в принтере материалов, уменьшая необходимость в дополнительной манипуляции с ними.
+#~ msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
+#~ msgstr "Группирует материалы для левого и правого сопел, исходя из имеющихся в принтере материалов, уменьшая необходимость в их ручной настройке."
+
+#~ msgid "Manually assign filament to the left or right nozzle"
+#~ msgstr "Ручная группировка материала для левого или правого сопла."
+
 #~ msgid "Cooling for specific layer"
 #~ msgstr "Обдув определённого слоя"
 
@@ -17163,25 +17470,6 @@ msgstr ""
 
 #~ msgid "Ext"
 #~ msgstr "Внеш."
-
-#~ msgid ""
-#~ "The software does not support using different diameter of nozzles for one print.\n"
-#~ "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
-#~ "Please confirm which nozzle you would like to use for this project."
-#~ msgstr ""
-#~ "Программа пока не поддерживает одновременную печать с использованием двух сопел разного диаметра.\n"
-#~ "Так как диаметры сопел не совпадают, выберите диаметр сопла, который вы хотите использовать для этого проекта."
-
-#~ msgid "Switch diameter"
-#~ msgstr "Выбор диаметра сопла"
-
-#, c-format, boost-format
-#~ msgid "Left nozzle: %smm"
-#~ msgstr "Левое сопло: %s мм"
-
-#, c-format, boost-format
-#~ msgid "Right nozzle: %smm"
-#~ msgstr "Правое сопло: %s мм"
 
 #~ msgid ""
 #~ "When using support material for the support interface, We recommend the following settings:\n"
