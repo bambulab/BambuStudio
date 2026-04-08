@@ -18,6 +18,11 @@ on:
         required: true
         default: true
         type: boolean
+      release_tag:
+        description: 'Upload to this release tag (leer = kein Upload)'
+        required: false
+        default: 'zaa-v2.5.0'
+        type: string
 
 jobs:
   linux-appimage:
@@ -66,11 +71,11 @@ jobs:
           path: './build/BambuStudio_ubu64.AppImage'
 
       - name: Upload to Release
-        if: github.ref_type == 'tag'
+        if: inputs.release_tag != ''
         uses: softprops/action-gh-release@v2
         with:
           files: ./build/BambuStudio_ubu64.AppImage
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ inputs.release_tag }}
 
   mac-x86:
     name: macOS x86_64
@@ -123,11 +128,11 @@ jobs:
           path: BambuStudio-ZAA_Mac_x86_64.zip
 
       - name: Upload to Release
-        if: github.ref_type == 'tag'
+        if: inputs.release_tag != ''
         uses: softprops/action-gh-release@v2
         with:
           files: BambuStudio-ZAA_Mac_x86_64.zip
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ inputs.release_tag }}
 
   mac-arm:
     name: macOS ARM (Universal)
@@ -179,11 +184,11 @@ jobs:
           path: BambuStudio-ZAA_Mac_universal.zip
 
       - name: Upload to Release
-        if: github.ref_type == 'tag'
+        if: inputs.release_tag != ''
         uses: softprops/action-gh-release@v2
         with:
           files: BambuStudio-ZAA_Mac_universal.zip
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ inputs.release_tag }}
 
   windows-portable:
     name: Windows Portable
@@ -240,8 +245,8 @@ jobs:
           path: BambuStudio-ZAA_Windows_portable.zip
 
       - name: Upload to Release
-        if: github.ref_type == 'tag'
+        if: inputs.release_tag != ''
         uses: softprops/action-gh-release@v2
         with:
           files: BambuStudio-ZAA_Windows_portable.zip
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ inputs.release_tag }}
