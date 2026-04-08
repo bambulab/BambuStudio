@@ -241,8 +241,6 @@ wxString Slic3r::get_stage_string(int stage)
         return _L("Pre-extrusion before printing");
     case 77:
         return _L("Preparing AMS");
-    case 78:
-        return  _L("Timing belt artifacts compensation");
     default:
         BOOST_LOG_TRIVIAL(info) << "stage = " << stage;
     }
