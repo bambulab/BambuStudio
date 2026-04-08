@@ -415,38 +415,24 @@ void wgtDeviceNozzleRackHotendUpdate::updateNozzleImage(const DevNozzle& nozzle)
     }
     findNozzleImage = false;
     int index = -1;
-    auto diameterStr = nozzle.GetNozzleDiameterStr();
-    if (diameterStr == "0.2 mm")
-    {
-        index = 0;
+    switch (nozzle.GetNozzleDiameterType()) {
+        case NOZZLE_DIAMETER_0_2: index = 0; break;
+        case NOZZLE_DIAMETER_0_4: index = 1; break;
+        case NOZZLE_DIAMETER_0_6: index = 2; break;
+        case NOZZLE_DIAMETER_0_8: index = 3; break;
+        default:                  index = -1; break;
     }
-    else if (diameterStr == "0.4 mm")
+    NozzleType nozzleType = nozzle.GetNozzleType();
+    if (nozzleType == ntHardenedSteel || nozzleType == ntStainlessSteel)
     {
-        index = 1;
-    }
-    else if (diameterStr == "0.6 mm")
-    {
-        index = 2;
-    }
-    else if (diameterStr == "0.8 mm")
-    {
-        index = 3;
-    }
-    else
-    {
-        index = -1;
-    }
-    if (wxString("Hardened Steel") == nozzle.GetNozzleTypeStr() || wxString("Stainless Steel") == nozzle.GetNozzleTypeStr())
-    {
-        if (wxString("High Flow") == nozzle.GetNozzleFlowTypeStr() && index >= 1)
-        {   
+        if (nozzle.GetNozzleFlowType() == H_FLOW && index >= 1)
+        {
             m_nozzle_image = nozzle_hh[index - 1][0];
             m_icon_bitmap->SetBitmap(m_nozzle_image->bmp());
             m_scaled_nozzle_image = nozzle_hh[index - 1][1];
             findNozzleImage = true;
         }
-
-        if (wxString("Standard") == nozzle.GetNozzleFlowTypeStr() && index >= 0)
+        else if (nozzle.GetNozzleFlowType() == S_FLOW && index >= 0)
         {
             m_nozzle_image = nozzle_hs[index][0];
             m_icon_bitmap->SetBitmap(m_nozzle_image->bmp());
