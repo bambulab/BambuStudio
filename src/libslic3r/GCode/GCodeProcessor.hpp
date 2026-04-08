@@ -761,6 +761,7 @@ namespace Slic3r {
             bool handle_hotend_as_extruder { false };
             bool has_filament_switcher{ false };
             std::vector<int> extruder_max_nozzle_count { 1 };
+            std::vector<ExtruderType> extruder_types;
 
             TimeProcessContext(
                 const UsedFilaments& used_filaments_,
@@ -778,7 +779,8 @@ namespace Slic3r {
                 const bool handle_hotend_as_extruder_,
                 const bool has_filament_switcher_,
                 const std::vector<int>& extruder_max_nozzle_count_,
-                const std::vector<double>& filament_cooling_before_tower_
+                const std::vector<double>& filament_cooling_before_tower_,
+                const std::vector<ExtruderType>& extruder_types_
             ) :
                 used_filaments(used_filaments_),
                 filament_lists(filament_lists_),
@@ -795,7 +797,8 @@ namespace Slic3r {
                 has_filament_switcher(has_filament_switcher_),
                 inject_time_threshold(inject_time_threshold_),
                 extruder_max_nozzle_count(extruder_max_nozzle_count_),
-                filament_cooling_before_tower(filament_cooling_before_tower_)
+                filament_cooling_before_tower(filament_cooling_before_tower_),
+                extruder_types(extruder_types_)
             {
             }
 
@@ -900,7 +903,8 @@ namespace Slic3r {
                 const std::vector<int>& extruder_max_nozzle_count_,
                 const std::vector<double>& filament_cooling_before_tower_,
                 unsigned int machine_start_gcode_end_id_,
-                unsigned int machine_end_gcode_start_id_
+                unsigned int machine_end_gcode_start_id_,
+                const std::vector<ExtruderType>& extruder_types_
             ) :
                 moves(moves_),
                 filament_types(filament_types_),
@@ -919,7 +923,8 @@ namespace Slic3r {
                 extruder_max_nozzle_count(extruder_max_nozzle_count_),
                 filament_cooling_before_tower(filament_cooling_before_tower_),
                 machine_start_gcode_end_id(machine_start_gcode_end_id_),
-                machine_end_gcode_start_id(machine_end_gcode_start_id_)
+                machine_end_gcode_start_id(machine_end_gcode_start_id_),
+                extruder_types(extruder_types_)
             {
             }
 
@@ -943,6 +948,7 @@ namespace Slic3r {
             const std::vector<double>& filament_cooling_before_tower;
             const unsigned int machine_start_gcode_end_id;
             const unsigned int machine_end_gcode_start_id;
+            const std::vector<ExtruderType>& extruder_types;
 
             void inject_cooling_heating_command(
                 TimeProcessor::InsertedLinesMap& inserted_operation_lines,

@@ -59,10 +59,10 @@
     "fan_direction": "both",
     "group_algo_with_time": "1",
     "hotend_heating_rate": [
-        "1.2",
-        "1.2",
-        "1.2",
-        "1.2"
+        "1.5",
+        "1.5",
+        "1.5",
+        "1.5"
     ],
     "machine_max_acceleration_e": [
         "30000",

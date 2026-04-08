@@ -1177,7 +1177,8 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             context.extruder_max_nozzle_count,
             context.filament_cooling_before_tower,
             machine_start_gcode_end_line_id,
-            machine_end_gcode_start_line_id
+            machine_end_gcode_start_line_id,
+            context.extruder_types
         );
 
         pre_cooling_injector->build_extruder_free_blocks(filament_blocks, extruder_blocks);
@@ -2694,7 +2695,8 @@ void GCodeProcessor::finalize(bool post_process)
             m_handle_hotend_as_extruder,
             m_has_filament_switcher,
             m_extruder_max_nozzle_count,
-            m_filament_cooling_before_tower
+            m_filament_cooling_before_tower,
+            m_result.extruder_types
         );
         m_time_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends, context);
     }
@@ -6366,6 +6368,11 @@ void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimePro
             return (int)(temp);
         };
 
+    // Temporary workaround for X2D: when extruder types are mixed (e.g. DirectDrive + Bowden),
+    // limit pre-heating target to avoid overshooting on the slower-responding extruder.
+    bool has_mixed_extruder_types = extruder_types.size() > 1 &&
+        std::adjacent_find(extruder_types.begin(), extruder_types.end(), std::not_equal_to<>()) != extruder_types.end();
+
     std::map<int, std::vector<ExtruderFreeBlock>> per_extruder_free_blocks;
 
     for (auto& block : m_extruder_free_blocks)
@@ -6380,8 +6387,8 @@ void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimePro
             bool apply_pre_heating = is_end ? false : true;
             float curr_temp = get_nozzle_temp(iter->last_filament_id,false,true,false);
             float target_temp       = get_nozzle_temp(iter->next_filament_id, false, false, !iter->ignore_cooling_before_tower);
-            // When filament switcher is connected, limit pre-heating target to print_temp - 40
-            if (has_filament_switcher && apply_pre_heating) {
+            // X2D temporary workaround: only apply temp offset when extruder types are mixed
+            if (has_filament_switcher && has_mixed_extruder_types && apply_pre_heating) {
                 constexpr float switcher_temp_offset = 20.f;
                 float print_temp = get_nozzle_temp(iter->next_filament_id, false, false, false);
                 target_temp = std::min(target_temp, print_temp - switcher_temp_offset);
@@ -6576,10 +6583,12 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
             inserted_operation_lines[gcode_id].emplace_back(line, type);
     };
 
+    constexpr float room_temperature = 25.f;
+
     if (apply_cooling_when_partial_free) {
         float max_cooling_temp = std::min(curr_temp, std::min(get_partial_free_cooling_thres(block.last_filament_id), partial_free_time_gap * ext_cooling_rate));
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": partial cooling for %1% %2%") % max_cooling_temp % curr_temp;
-        curr_temp -= max_cooling_temp; // set the temperature after doing cooling when post-extruding
+        curr_temp = std::max(room_temperature, curr_temp - max_cooling_temp); // set the temperature after doing cooling when post-extruding
         add_M104_lines(block.partial_free_lower_id,curr_temp, block.last_filament_id, false, block.next_filament_id, block.next_nozzle_id, TimeProcessor::InsertLineType::PreCooling,"Multi extruder pre cooling in post extrusion");
     }
 
@@ -6587,7 +6596,8 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         // only perform cooling
         if (target_temp >= curr_temp)
             return;
-        add_M104_lines(block.free_lower_gcode_id,target_temp, block.last_filament_id, false, block.next_filament_id, block.next_nozzle_id, TimeProcessor::InsertLineType::PreCooling,"Multi extruder pre cooling");
+        int clamped_target = std::max((int)room_temperature, (int)target_temp);
+        add_M104_lines(block.free_lower_gcode_id,clamped_target, block.last_filament_id, false, block.next_filament_id, block.next_nozzle_id, TimeProcessor::InsertLineType::PreCooling,"Multi extruder pre cooling");
         return;
     }
     if (!pre_cooling && pre_heating) {
@@ -6607,7 +6617,7 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         return;
         }
     // perform cooling first and then perform heating
-    float mid_temp = std::max(0.f, (curr_temp * ext_heating_rate + target_temp * ext_cooling_rate - complete_free_time_gap * ext_cooling_rate * ext_heating_rate) / (ext_cooling_rate + ext_heating_rate));
+    float mid_temp = std::max(room_temperature, (curr_temp * ext_heating_rate + target_temp * ext_cooling_rate - complete_free_time_gap * ext_cooling_rate * ext_heating_rate) / (ext_cooling_rate + ext_heating_rate));
     float heating_temp = target_temp - mid_temp;
     float heating_start_time = move_iter_upper->time[valid_machine_id] - heating_temp / ext_heating_rate;
     auto heating_move_iter = std::upper_bound(move_iter_lower, move_iter_upper + 1, heating_start_time, [valid_machine_id = this->valid_machine_id](float time, const GCodeProcessorResult::MoveVertex& a) {return time < a.time[valid_machine_id]; });
@@ -6621,7 +6631,8 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
     int real_delta_temp = std::min((int)(real_cooling_time * ext_cooling_rate), (int)curr_temp);
     if (real_delta_temp == 0)
         return;
-    add_M104_lines(block.free_lower_gcode_id,curr_temp - real_delta_temp, block.last_filament_id, false, block.next_filament_id,block.next_nozzle_id, TimeProcessor::InsertLineType::PreCooling,"Multi extruder pre cooling");
+    int cooling_temp = std::max((int)room_temperature, (int)curr_temp - real_delta_temp);
+    add_M104_lines(block.free_lower_gcode_id,cooling_temp, block.last_filament_id, false, block.next_filament_id,block.next_nozzle_id, TimeProcessor::InsertLineType::PreCooling,"Multi extruder pre cooling");
     add_M104_lines(heating_move_iter->gcode_id,target_temp, block.next_filament_id, true, block.next_filament_id, block.next_nozzle_id, TimeProcessor::InsertLineType::PreHeating,"Multi extruder pre heating");
 }
 
