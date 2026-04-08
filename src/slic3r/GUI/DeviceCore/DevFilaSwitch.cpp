@@ -23,7 +23,10 @@ void DevFilaSwitch::Reset()
 
 bool DevFilaSwitch::IsReady() const
 {
-    if (!m_is_installed) { return false; }
+    if (!m_is_installed) {
+        BOOST_LOG_TRIVIAL(debug) << "[FilaSwitch] IsReady: not installed";
+        return false;
+    }
 
     const auto& ams_list = m_owner->GetFilaSystem()->GetAmsList();
     for (const auto& ams_item : ams_list) {

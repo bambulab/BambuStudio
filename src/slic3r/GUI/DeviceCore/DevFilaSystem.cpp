@@ -597,6 +597,13 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
     };
 
     /*set ams type flag*/
+    if (curr_ams->m_binded_switcher_pos != binded_switcher_pos || curr_ams->m_binded_extruder_set != binded_extruder_set) {
+        BOOST_LOG_TRIVIAL(info) << "[FilaSystem] AMS bind changed: ams_id=" << ams_id
+            << ", extruder_set " << curr_ams->m_binded_extruder_set.size() << " -> " << binded_extruder_set.size()
+            << ", switcher_pos "
+            << (curr_ams->m_binded_switcher_pos.has_value() ? std::to_string((int)curr_ams->m_binded_switcher_pos.value()) : "nullopt")
+            << " -> "
+            << (binded_switcher_pos.has_value() ? std::to_string((int)binded_switcher_pos.value()) : "nullopt");}
     curr_ams->SetAmsType(type_id);
 
     curr_ams->m_binded_switcher_pos = binded_switcher_pos;
