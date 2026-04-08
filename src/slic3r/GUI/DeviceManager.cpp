@@ -7,6 +7,7 @@
 #include "GuiColor.hpp"
 
 #include "GUI_App.hpp"
+#include "MainFrame.hpp"
 #include "MsgDialog.hpp"
 #include "DeviceErrorDialog.hpp"
 #include "Plater.hpp"
@@ -3618,7 +3619,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
 void MachineObject::set_ctt_dlg( wxString text){
     if (!m_set_ctt_dlg) {
         m_set_ctt_dlg = true;
-        auto print_error_dlg = new GUI::SecondaryCheckDialog(nullptr, wxID_ANY, _L("Warning"), GUI::SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
+        auto print_error_dlg = new GUI::SecondaryCheckDialog(GUI::wxGetApp().mainframe, wxID_ANY, _L("Warning"), GUI::SecondaryCheckDialog::ButtonStyle::ONLY_CONFIRM);
         print_error_dlg->update_text(text);
         print_error_dlg->Bind(wxEVT_SHOW, [this](auto& e) {
             if (!e.IsShown()) {
