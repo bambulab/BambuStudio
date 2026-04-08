@@ -142,10 +142,12 @@ bool                                        GLCanvas3D::s_enable_bvh = true;
 std::vector<GLCanvas3D::IsolatedVolumeInfo> GLCanvas3D::s_isolated_volumes;
 bool                                        GLCanvas3D::s_isolated_notification_shown = false;
 int                                         GLCanvas3D::s_assemble_ratio = 0;
+int                                         GLCanvas3D::s_assemble_volume_ratio = 0;
 bool                                        GLCanvas3D::s_far_from_origin_notification_shown = false;
 BoundingBoxf3                               GLCanvas3D::s_bvh_primary_bounds;
 double                                      GLCanvas3D::s_expand_bvh_box_dist = 50.0;
 BoundingBoxf3                               GLCanvas3D::s_bvh_expanded_bounds;
+BoundingBoxf3                               GLCanvas3D::s_first_primary_bounds;
 
 #ifdef __WXGTK3__
 // wxGTK3 seems to simulate OSX behavior in regard to HiDPI scaling support.
@@ -7494,10 +7496,14 @@ bool GLCanvas3D::_update_assembly_view_thumbnail()
         s_assemble_ratio = m_volumes.volumes.empty() ? 0 : 100 - (int)(s_isolated_volumes.size() * 100 / m_volumes.volumes.size());
 
         const auto thumbnail_render_end = std::chrono::steady_clock::now();
-        BOOST_LOG_TRIVIAL(info) << boost::format("assembly thumbnail timing: s_assemble_ratio=%1%, total=%2%ms, render_thumbnail=%3%ms, generate_texture=%4%ms") %
-                                       s_assemble_ratio % std::chrono::duration_cast<std::chrono::milliseconds>(thumbnail_render_end - thumbnail_render_begin).count() %
-                                       std::chrono::duration_cast<std::chrono::milliseconds>(render_thumbnail_end - render_thumbnail_begin).count() %
-                                       std::chrono::duration_cast<std::chrono::milliseconds>(generate_texture_end - generate_texture_begin).count();
+        BOOST_LOG_TRIVIAL(info) << (boost::format(
+            "assembly thumbnail timing: s_assemble_ratio=%1%, s_assemble_volume_ratio=%2%, total=%3%ms, render_thumbnail=%4%ms, generate_texture=%5%ms")
+            % s_assemble_ratio
+            % s_assemble_volume_ratio
+            % std::chrono::duration_cast<std::chrono::milliseconds>(thumbnail_render_end - thumbnail_render_begin).count()
+            % std::chrono::duration_cast<std::chrono::milliseconds>(render_thumbnail_end - render_thumbnail_begin).count()
+            % std::chrono::duration_cast<std::chrono::milliseconds>(generate_texture_end - generate_texture_begin).count()).str();
+
         return result;
     }
     return false;
@@ -8039,8 +8045,15 @@ void GLCanvas3D::_render_bvh_primary_bounds()
     m_selection.render_bounding_box(s_bvh_primary_bounds, primary_color, scale_factor);
 
     if (s_bvh_expanded_bounds.defined) {
-        float expanded_color[3] = { 0.9f, 0.6f, 0.1f };
+        float expanded_color[3] = { 1.0f, 0.0f, 0.0f };
         m_selection.render_bounding_box(s_bvh_expanded_bounds, expanded_color, scale_factor);
+    }
+    if (s_first_primary_bounds.defined) {
+        float first_primary_color[3] = { 0.0f, 0.0f, 1.0f };
+        m_selection.render_bounding_box(s_first_primary_bounds, first_primary_color, scale_factor);
+        /*if ((s_first_primary_bounds.min - s_bvh_primary_bounds.min).norm() < 0.1f && (s_first_primary_bounds.max - s_bvh_primary_bounds.max).norm() < 0.1f) {
+            std::cout << "";//for debug
+        }*/
     }
 }
 
@@ -9034,7 +9047,9 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
         }
         last_canvas_type = m_canvas_type;
     }
-
+    if (m_canvas_type == ECanvasType::CanvasAssembleView && !s_bvh_primary_bounds.defined) {
+        close_assembly_notifications();
+    }
     if (m_canvas_type != ECanvasType::CanvasView3D) {
         return;
     }
@@ -9043,7 +9058,7 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
         wxGetApp().plater()->get_partplate_list().reset_thumbnail_assembly_view_data();
     }
     _update_assembly_view_thumbnail();
-    bool auto_mode_should_close = GUI::wxGetApp().app_config->get("enable_assemble_view_preview") == "Auto" && s_assemble_ratio < 70;
+    bool auto_mode_should_close = GUI::wxGetApp().app_config->get("enable_assemble_view_preview") == "Auto" && s_assemble_ratio < 80;
     if (auto_mode_should_close) {
         if (m_canvas_type != ECanvasType::CanvasAssembleView) {
             close_assembly_notifications();
@@ -9188,7 +9203,7 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
 #if !BBL_RELEASE_TO_PUBLIC
     else if (image_hovered) {
         if (!s_isolated_volumes.empty()) {
-            auto temp_tooltip = (boost::format(_u8L("Current assembly rate: %1%%%")) % s_assemble_ratio).str();
+            auto temp_tooltip = (boost::format(_u8L("Current assembly rate: %1%%%, volume rate: %2%%%")) % s_assemble_ratio % s_assemble_volume_ratio).str();
             auto width = ImGui::CalcTextSize(temp_tooltip.c_str()).x + imgui.scaled(2.0f);
             imgui.tooltip(temp_tooltip, width);
         }
@@ -11606,7 +11621,7 @@ void GLCanvas3D::_show_isolated_volumes_notification()
 
     NotificationManager* notify_mgr = plater->get_notification_manager();
     notify_mgr->push_notification(NotificationType::BBLIsolatedVolumeInfo,
-                                  NotificationManager::NotificationLevel::WarningNotificationLevel,
+                                  NotificationManager::NotificationLevel::ImportantNotificationLevel,
                                   info_text, _u8L("Move closer"), &GLCanvas3D::_move_isolated_volumes_closer);
 }
 
@@ -11632,7 +11647,7 @@ void GLCanvas3D::_check_assembly_far_from_origin()
     if (is_far) {
         std::string info_text = _u8L("The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?");
         notify_mgr->push_notification(NotificationType::BBLAssemblyFarFromOrigin,
-                                      NotificationManager::NotificationLevel::WarningNotificationLevel,
+                                      NotificationManager::NotificationLevel::ImportantNotificationLevel,
                                       info_text, _u8L("Reset to origin"), &GLCanvas3D::_reset_assembly_to_origin);
     } else {
         notify_mgr->close_notification_of_type(NotificationType::BBLAssemblyFarFromOrigin);
@@ -11654,7 +11669,7 @@ bool GLCanvas3D::_reset_assembly_to_origin(wxEvtHandler*)
             inst->set_assemble_transformation(trafo);
         }
     }
-
+    s_bvh_primary_bounds.reset();
     s_far_from_origin_notification_shown = false;
     plater->get_partplate_list().reset_thumbnail_assembly_view_data();
     plater->update();
@@ -11733,13 +11748,6 @@ static void _collect_bvh_subtree_prims(const tinybvh::BVH& bvh, uint32_t node_id
     _collect_bvh_subtree_prims(bvh, node.leftFirst + 1, prim_indices);
 }
 
-static uint32_t _bvh_node_prim_count(const tinybvh::BVH& bvh, uint32_t node_idx)
-{
-    const tinybvh::BVH::BVHNode& n = bvh.bvhNode[node_idx];
-    if (n.isLeaf()) return n.triCount;
-    return _bvh_node_prim_count(bvh, n.leftFirst) + _bvh_node_prim_count(bvh, n.leftFirst + 1);
-}
-
 static BoundingBoxf3 _bvh_node_bounds(const tinybvh::BVH& bvh, uint32_t node_idx)
 {
     const tinybvh::BVH::BVHNode& n = bvh.bvhNode[node_idx];
@@ -11757,6 +11765,26 @@ static BoundingBoxf3 _expand_bounds(const BoundingBoxf3& box, double dist)
     expanded.max += Vec3d(dist, dist, dist);
     expanded.defined = true;
     return expanded;
+}
+
+static uint32_t _find_largest_leaf_node_by_volume(const tinybvh::BVH& bvh, uint32_t node_idx, double& max_volume)
+{
+    const tinybvh::BVH::BVHNode& node = bvh.bvhNode[node_idx];
+    if (node.isLeaf()) {
+        const double node_volume = _bvh_node_bounds(bvh, node_idx).volume();
+        if (node_volume > max_volume) {
+            max_volume = node_volume;
+            return node_idx;
+        }
+        return uint32_t(-1);
+    }
+
+    uint32_t best_idx = _find_largest_leaf_node_by_volume(bvh, node.leftFirst, max_volume);
+    const uint32_t right_best_idx = _find_largest_leaf_node_by_volume(bvh, node.leftFirst + 1, max_volume);
+    if (right_best_idx != uint32_t(-1)) {
+        best_idx = right_best_idx;
+    }
+    return best_idx;
 }
 
 static void _check_and_exclude_bvh_node(const tinybvh::BVH&               bvh,
@@ -11885,23 +11913,17 @@ void GLCanvas3D::_filter_assembly_thumbnail_candidates_by_bvh(const std::vector<
     };
     dump_bvh_node(dump_bvh_node, 0, "", true, true);
 
-    const tinybvh::BVH::BVHNode& root = volume_bvh.bvhNode[0];
-    if (root.isLeaf()) {
-        BoundingBoxf3 root_bounds = _bvh_node_bounds(volume_bvh, 0);
-        s_bvh_primary_bounds  = root_bounds;
-        s_bvh_expanded_bounds = _expand_bounds(root_bounds, s_expand_bvh_box_dist);
+    double max_leaf_volume = -1.0;
+    const uint32_t primary_idx = _find_largest_leaf_node_by_volume(volume_bvh, 0, max_leaf_volume);
+    if (primary_idx == uint32_t(-1)) {
         return;
     }
-
-    const uint32_t left_idx  = root.leftFirst;
-    const uint32_t right_idx = root.leftFirst + 1;
-    const uint32_t left_cnt  = _bvh_node_prim_count(volume_bvh, left_idx);
-    const uint32_t right_cnt = _bvh_node_prim_count(volume_bvh, right_idx);
-    const uint32_t primary_idx   = left_cnt >= right_cnt ? left_idx : right_idx;
     BoundingBoxf3 primary_bounds = _bvh_node_bounds(volume_bvh, primary_idx);
+    s_first_primary_bounds = primary_bounds;
+
     const double        threshold_dist = 100.0;
 
-    BOOST_LOG_TRIVIAL(info) << boost::format("assembly thumbnail BVH primary node=%1% prim_count=%2%") % primary_idx % std::max(left_cnt, right_cnt);
+    BOOST_LOG_TRIVIAL(info) << boost::format("assembly thumbnail BVH primary leaf=%1% volume=%2%") % primary_idx % max_leaf_volume;
 
     s_isolated_volumes.clear();
     s_isolated_notification_shown = false;
@@ -11910,8 +11932,7 @@ void GLCanvas3D::_filter_assembly_thumbnail_candidates_by_bvh(const std::vector<
     s_bvh_primary_bounds = primary_bounds;
     s_bvh_expanded_bounds = _expand_bounds(primary_bounds, s_expand_bvh_box_dist);
 
-    const uint32_t non_primary_idx = (primary_idx == left_idx) ? right_idx : left_idx;
-    _check_and_exclude_bvh_node(volume_bvh, non_primary_idx, primary_idx, s_bvh_expanded_bounds, threshold_dist,
+    _check_and_exclude_bvh_node(volume_bvh, 0, primary_idx, s_bvh_expanded_bounds, threshold_dist,
                                 assemble_candidate_volumes, assemble_candidate_boxes, include_candidate_volumes);
 
     for (int i = (int) s_isolated_volumes.size() - 1; i >= 0; --i) {
@@ -11920,6 +11941,15 @@ void GLCanvas3D::_filter_assembly_thumbnail_candidates_by_bvh(const std::vector<
             s_isolated_volumes.erase(s_isolated_volumes.begin() + i);
         }
     }
+
+    const double primary_bounds_volume = s_bvh_primary_bounds.volume();
+    double total_volume = primary_bounds_volume;
+    for (const IsolatedVolumeInfo& isolated_volume : s_isolated_volumes) {
+        if (isolated_volume.world_box_assembly.defined) {
+            total_volume += isolated_volume.world_box_assembly.volume();
+        }
+    }
+    s_assemble_volume_ratio = int(primary_bounds_volume * 100.0 / total_volume + 0.01);
 }
 
 static long long s_last_bvh_filter_ms = 0;
