@@ -3,6 +3,7 @@
 #include "EdgeGrid.hpp"
 #include "Layer.hpp"
 #include "Print.hpp"
+#include "TriangleMeshSlicer.hpp"
 #include "Geometry/VoronoiVisualUtils.hpp"
 #include "Geometry/VoronoiUtils.hpp"
 #include "MutablePolygon.hpp"
@@ -2139,11 +2140,67 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
     }); // end of parallel_for
     BOOST_LOG_TRIVIAL(debug) << "MM segmentation - slices preparation in parallel - end";
 
+    // Fill back negative volume holes so that painted lines from the original mesh
+    // can correctly match all contour edges during MMU segmentation.
+    // After segmentation, results will be clipped back to the actual geometry (with holes).
+    std::vector<ExPolygons> input_expolygons_filled;
+    bool has_negative_volumes = false;
+    {
+        for (const ModelVolume *mv : print_object.model_object()->volumes)
+            if (mv->is_negative_volume()) {
+                has_negative_volumes = true;
+                break;
+            }
+
+        if (has_negative_volumes) {
+            std::vector<float> zs(num_layers);
+            for (size_t i = 0; i < num_layers; ++i)
+                zs[i] = float(layers[i]->slice_z);
+
+            std::vector<ExPolygons> neg_slices(num_layers);
+            for (const ModelVolume *mv : print_object.model_object()->volumes) {
+                if (!mv->is_negative_volume())
+                    continue;
+                MeshSlicingParamsEx params;
+                params.trafo = print_object.trafo_centered() * mv->get_matrix();
+                auto vol_slices = slice_mesh_ex(mv->mesh().its, zs, params, throw_on_cancel_callback);
+                assert(vol_slices.size() == num_layers);
+                for (size_t i = 0; i < num_layers; ++i)
+                    append(neg_slices[i], vol_slices[i]);
+            }
+            throw_on_cancel_callback();
+
+            input_expolygons_filled.resize(num_layers);
+            tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers),
+                [&input_expolygons, &neg_slices, &input_expolygons_filled, &throw_on_cancel_callback](const tbb::blocked_range<size_t> &range) {
+                    for (size_t i = range.begin(); i < range.end(); ++i) {
+                        throw_on_cancel_callback();
+                        if (neg_slices[i].empty()) {
+                            input_expolygons_filled[i] = input_expolygons[i];
+                        } else {
+                            ExPolygons merged;
+                            append(merged, offset_ex(input_expolygons[i], 10.f * float(SCALED_EPSILON)));
+                            append(merged, neg_slices[i]);
+                            merged = union_ex(merged);
+                            remove_small_and_small_holes(merged, Slic3r::sqr(scale_(0.1f)));
+                            input_expolygons_filled[i] = remove_duplicates(
+                                expolygons_simplify(offset_ex(merged, -10.f * float(SCALED_EPSILON)), 5 * SCALED_EPSILON),
+                                scaled<coord_t>(0.01), PI / 6);
+                        }
+                    }
+                });
+            BOOST_LOG_TRIVIAL(debug) << "MM segmentation - negative volumes filled for painting";
+        }
+    }
+    throw_on_cancel_callback();
+
+    const std::vector<ExPolygons> &input_for_edge_grid = has_negative_volumes ? input_expolygons_filled : input_expolygons;
+
     std::vector<BoundingBox> layer_bboxes(num_layers);
     for (size_t layer_idx = 0; layer_idx < num_layers; ++layer_idx) {
         throw_on_cancel_callback();
         layer_bboxes[layer_idx] = get_extents(layers[layer_idx]->regions());
-        layer_bboxes[layer_idx].merge(get_extents(input_expolygons[layer_idx]));
+        layer_bboxes[layer_idx].merge(get_extents(input_for_edge_grid[layer_idx]));
     }
 
     for (size_t layer_idx = 0; layer_idx < num_layers; ++layer_idx) {
@@ -2157,13 +2214,13 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
         // Projected triangles may slightly exceed the input polygons.
         bbox.offset(30 * SCALED_EPSILON);
         edge_grids[layer_idx].set_bbox(bbox);
-        edge_grids[layer_idx].create(input_expolygons[layer_idx], coord_t(scale_(10.)));
+        edge_grids[layer_idx].create(input_for_edge_grid[layer_idx], coord_t(scale_(10.)));
     }
 
     BOOST_LOG_TRIVIAL(debug) << "MM segmentation - projection of painted triangles - begin";
     for (const ModelVolume *mv : print_object.model_object()->volumes) {
 #ifndef MM_SEGMENTATION_DEBUG_PAINT_LINE
-        tbb::parallel_for(tbb::blocked_range<size_t>(1, num_extruders + 1), [&mv, &print_object, &layers, &edge_grids, &painted_lines, &painted_lines_mutex, &input_expolygons, &throw_on_cancel_callback](const tbb::blocked_range<size_t> &range) {
+        tbb::parallel_for(tbb::blocked_range<size_t>(1, num_extruders + 1), [&mv, &print_object, &layers, &edge_grids, &painted_lines, &painted_lines_mutex, &input_for_edge_grid, &throw_on_cancel_callback](const tbb::blocked_range<size_t> &range) {
             for (size_t extruder_idx = range.begin(); extruder_idx < range.end(); ++extruder_idx) {
 #else
             for (size_t extruder_idx = 1; extruder_idx < num_extruders + 1; ++extruder_idx) {
@@ -2175,7 +2232,7 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
 
                 const Transform3f tr = print_object.trafo().cast<float>() * mv->get_matrix().cast<float>();
 #ifndef MM_SEGMENTATION_DEBUG_PAINT_LINE
-                tbb::parallel_for(tbb::blocked_range<size_t>(0, custom_facets.indices.size()), [&tr, &custom_facets, &print_object, &layers, &edge_grids, &input_expolygons, &painted_lines, &painted_lines_mutex, &extruder_idx](const tbb::blocked_range<size_t> &range) {
+                tbb::parallel_for(tbb::blocked_range<size_t>(0, custom_facets.indices.size()), [&tr, &custom_facets, &print_object, &layers, &edge_grids, &input_for_edge_grid, &painted_lines, &painted_lines_mutex, &extruder_idx](const tbb::blocked_range<size_t> &range) {
                     for (size_t facet_idx = range.begin(); facet_idx < range.end(); ++facet_idx) {
 #else
                     for (size_t facet_idx = 0; facet_idx < custom_facets.indices.size(); ++facet_idx) {
@@ -2206,7 +2263,7 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
                         for (auto layer_it = first_layer; layer_it != (last_layer + 1); ++layer_it) {
                             const Layer *layer     = *layer_it;
                             size_t       layer_idx = layer_it - layers.begin();
-                            if (input_expolygons[layer_idx].empty() || is_less(layer->slice_z, facet[0].z()) || is_less(facet[2].z(), layer->slice_z))
+                            if (input_for_edge_grid[layer_idx].empty() || is_less(layer->slice_z, facet[0].z()) || is_less(facet[2].z(), layer->slice_z))
                                 continue;
 
                             // https://kandepet.com/3d-printing-slicing-3d-objects/
@@ -2267,31 +2324,31 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
                              << std::count_if(painted_lines.begin(), painted_lines.end(), [](const std::vector<PaintedLine> &pl) { return !pl.empty(); });
 
     BOOST_LOG_TRIVIAL(debug) << "MM segmentation - layers segmentation in parallel - begin";
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers), [&edge_grids, &input_expolygons, &painted_lines, &segmented_regions, &num_extruders, &throw_on_cancel_callback](const tbb::blocked_range<size_t> &range) {
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers), [&edge_grids, &input_for_edge_grid, &painted_lines, &segmented_regions, &num_extruders, &throw_on_cancel_callback](const tbb::blocked_range<size_t> &range) {
         for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
             throw_on_cancel_callback();
             if (!painted_lines[layer_idx].empty()) {
 #ifdef MM_SEGMENTATION_DEBUG_PAINTED_LINES
-                export_painted_lines_to_svg(debug_out_path("0-mm-painted-lines-%d-%d.svg", layer_idx, iRun), {painted_lines[layer_idx]}, input_expolygons[layer_idx]);
+                export_painted_lines_to_svg(debug_out_path("0-mm-painted-lines-%d-%d.svg", layer_idx, iRun), {painted_lines[layer_idx]}, input_for_edge_grid[layer_idx]);
 #endif // MM_SEGMENTATION_DEBUG_PAINTED_LINES
 
                 std::vector<std::vector<PaintedLine>> post_processed_painted_lines = post_process_painted_lines(edge_grids[layer_idx].contours(), std::move(painted_lines[layer_idx]));
 
 #ifdef MM_SEGMENTATION_DEBUG_PAINTED_LINES
-                export_painted_lines_to_svg(debug_out_path("1-mm-painted-lines-post-processed-%d-%d.svg", layer_idx, iRun), post_processed_painted_lines, input_expolygons[layer_idx]);
+                export_painted_lines_to_svg(debug_out_path("1-mm-painted-lines-post-processed-%d-%d.svg", layer_idx, iRun), post_processed_painted_lines, input_for_edge_grid[layer_idx]);
 #endif // MM_SEGMENTATION_DEBUG_PAINTED_LINES
 
                 std::vector<ColoredLines> color_poly = colorize_contours(edge_grids[layer_idx].contours(), post_processed_painted_lines);
 
 #ifdef MM_SEGMENTATION_DEBUG_COLORIZED_POLYGONS
-                export_colorized_polygons_to_svg(debug_out_path("2-mm-colorized_polygons-%d-%d.svg", layer_idx, iRun), color_poly, input_expolygons[layer_idx]);
+                export_colorized_polygons_to_svg(debug_out_path("2-mm-colorized_polygons-%d-%d.svg", layer_idx, iRun), color_poly, input_for_edge_grid[layer_idx]);
 #endif // MM_SEGMENTATION_DEBUG_COLORIZED_POLYGONS
 
                 assert(!color_poly.empty());
                 assert(!color_poly.front().empty());
                 if (has_layer_only_one_color(color_poly)) {
                     // If the whole layer is painted using the same color, it is not needed to construct a Voronoi diagram for the segmentation of this layer.
-                    segmented_regions[layer_idx][size_t(color_poly.front().front().color)] = input_expolygons[layer_idx];
+                    segmented_regions[layer_idx][size_t(color_poly.front().front().color)] = input_for_edge_grid[layer_idx];
                 } else {
                     MMU_Graph graph = build_graph(layer_idx, color_poly, throw_on_cancel_callback);
                     remove_multiple_edges_in_vertices(graph, color_poly);
@@ -2301,13 +2358,29 @@ std::vector<std::vector<ExPolygons>> multi_material_segmentation_by_painting(con
                 }
 
 #ifdef MM_SEGMENTATION_DEBUG_REGIONS
-                export_regions_to_svg(debug_out_path("3-mm-regions-sides-%d-%d.svg", layer_idx, iRun), segmented_regions[layer_idx], input_expolygons[layer_idx]);
+                export_regions_to_svg(debug_out_path("3-mm-regions-sides-%d-%d.svg", layer_idx, iRun), segmented_regions[layer_idx], input_for_edge_grid[layer_idx]);
 #endif // MM_SEGMENTATION_DEBUG_REGIONS
             }
         }
     }); // end of parallel_for
     BOOST_LOG_TRIVIAL(debug) << "MM segmentation - layers segmentation in parallel - end";
     throw_on_cancel_callback();
+
+    // Clip segmented regions back to the actual geometry (with negative volume holes).
+    // The segmentation was performed on filled geometry, so we need to subtract the holes.
+    if (has_negative_volumes) {
+        tbb::parallel_for(tbb::blocked_range<size_t>(0, num_layers),
+            [&segmented_regions, &input_expolygons, &throw_on_cancel_callback](const tbb::blocked_range<size_t> &range) {
+                for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++layer_idx) {
+                    throw_on_cancel_callback();
+                    for (ExPolygons &region : segmented_regions[layer_idx])
+                        if (!region.empty())
+                            region = intersection_ex(region, input_expolygons[layer_idx]);
+                }
+            });
+        BOOST_LOG_TRIVIAL(debug) << "MM segmentation - clipped back to actual geometry";
+        throw_on_cancel_callback();
+    }
 
     auto interlocking_beam = print_object.config().interlocking_beam;
     if (auto max_width = print_object.config().mmu_segmented_region_max_width, interlocking_depth = print_object.config().mmu_segmented_region_interlocking_depth;
