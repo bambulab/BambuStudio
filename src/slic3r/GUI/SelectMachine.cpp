@@ -6312,7 +6312,7 @@ std::optional<float> SelectMachineDialog::get_filament_change_gap_time(MachineOb
         return std::nullopt;;
     }
 
-    if (!m_plater || !obj_->GetFilaSwitch()->IsInstalled()) {
+    if (!m_plater || !obj_ || !obj_->GetFilaSwitch() || !obj_->GetFilaSwitch()->IsInstalled()) {
         return std::nullopt;
     }
 
