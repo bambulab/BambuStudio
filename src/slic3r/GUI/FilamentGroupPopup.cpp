@@ -587,6 +587,7 @@ void FilamentGroupPopup::OnSmartFilamentToggle(wxCommandEvent &event)
     auto &config           = wxGetApp().preset_bundle->project_config;
     auto *dynamic_filament = dynamic_cast<ConfigOptionBool *>(config.option("enable_filament_dynamic_map"));
     if (dynamic_filament) { dynamic_filament->value = m_smart_filament_switch->GetValue(); }
+    plater_ref->update();
     event.Skip();
 }
 
