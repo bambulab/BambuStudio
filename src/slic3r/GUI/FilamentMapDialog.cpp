@@ -3,6 +3,7 @@
 #include "Widgets/Button.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
+#include "Plater.hpp"
 #include "CapsuleButton.hpp"
 #include "MsgDialog.hpp"
 #include "PartPlate.hpp"
@@ -63,6 +64,7 @@ private:
     void on_smart_filament_checkbox(wxCommandEvent &event)
     {
         enable_filament_dynamic_map()->value = m_smart_filament_checkbox->GetValue();
+        wxGetApp().plater()->update();
         event.Skip();
     }
 
