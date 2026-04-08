@@ -75,7 +75,7 @@ jobs:
   mac-x86:
     name: macOS x86_64
     if: ${{ inputs.build_mac }}
-    runs-on: macos-13
+    runs-on: macos-15-intel
 
     steps:
       - name: Free disk space
