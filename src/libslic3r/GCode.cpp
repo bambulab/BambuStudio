@@ -6297,10 +6297,18 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     double path_length = 0.;
     {
         std::string comment = GCodeWriter::full_gcode_comment ? description : "";
+        //BBS: Recompute arc fitting from clean 2D polyline to avoid Polyline3 fitting_result issues
+        std::vector<PathFittingData> fresh_fitting_result;
+        Polyline arc_polyline;
+        if (m_config.enable_arc_fitting && !m_config.spiral_mode && sloped == nullptr && !path.z_contoured) {
+            arc_polyline = path.polyline.to_polyline();
+            arc_polyline.simplify_by_fitting_arc(scaled(m_config.resolution.value));
+            fresh_fitting_result = arc_polyline.fitting_result;
+        }
+
         //BBS: use G1 if not enable arc fitting or has no arc fitting result or in spiral_mode mode
         //Attention: G2 and G3 is not supported in spiral_mode mode
-        if (!m_config.enable_arc_fitting ||
-            path.polyline.fitting_result.empty() ||
+        if (fresh_fitting_result.empty() ||
             m_config.spiral_mode ||
             sloped != nullptr ||
             path.z_contoured) {
@@ -6351,15 +6359,16 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                 }
             }
         } else {
-            // BBS: start to generate gcode from arc fitting data which includes line and arc
-            const std::vector<PathFittingData>& fitting_result = path.polyline.fitting_result;
+            // BBS: start to generate gcode from fresh arc fitting data (recomputed in 2D)
+            const std::vector<PathFittingData>& fitting_result = fresh_fitting_result;
+            const Points& arc_points = arc_polyline.points;
             for (size_t fitting_index = 0; fitting_index < fitting_result.size(); fitting_index++) {
                 switch (fitting_result[fitting_index].path_type) {
                 case EMovePathType::Linear_move: {
                     size_t start_index = fitting_result[fitting_index].start_point_index;
                     size_t end_index = fitting_result[fitting_index].end_point_index;
                     for (size_t point_index = start_index + 1; point_index < end_index + 1; point_index++) {
-                        const Line line = Line(path.polyline.points[point_index - 1].to_point(), path.polyline.points[point_index].to_point());
+                        const Line line = Line(arc_points[point_index - 1], arc_points[point_index]);
                         const double line_length = line.length() * SCALING_FACTOR;
                         // BBS: extursion cmd should E0 on cmd line
                         if (line_length < EPSILON)
