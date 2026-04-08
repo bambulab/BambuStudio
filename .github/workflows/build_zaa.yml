@@ -111,9 +111,10 @@ jobs:
 
       - name: Pack macOS app
         run: |
-          cd build/x86_64
-          zip -r ../../BambuStudio-ZAA_Mac_x86_64.zip BambuStudio.app || \
-          (cd .. && zip -r ../BambuStudio-ZAA_Mac_x86_64.zip BambuStudio.app)
+          APP=$(find build -name "BambuStudio.app" -type d | head -1)
+          echo "Found app at: $APP"
+          cd "$(dirname "$APP")"
+          zip -r "$GITHUB_WORKSPACE/BambuStudio-ZAA_Mac_x86_64.zip" BambuStudio.app
 
       - name: Upload macOS ZIP
         uses: actions/upload-artifact@v4
@@ -166,9 +167,10 @@ jobs:
 
       - name: Pack macOS app
         run: |
-          cd build/universal
-          zip -r ../../BambuStudio-ZAA_Mac_universal.zip BambuStudio.app || \
-          (cd .. && zip -r ../BambuStudio-ZAA_Mac_universal.zip BambuStudio.app)
+          APP=$(find build -name "BambuStudio.app" -type d | head -1)
+          echo "Found app at: $APP"
+          cd "$(dirname "$APP")"
+          zip -r "$GITHUB_WORKSPACE/BambuStudio-ZAA_Mac_universal.zip" BambuStudio.app
 
       - name: Upload macOS ZIP
         uses: actions/upload-artifact@v4
