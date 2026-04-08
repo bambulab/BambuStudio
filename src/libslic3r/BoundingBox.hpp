@@ -145,6 +145,7 @@ public:
     BoundingBox3Base<PointClass> inflated(coordf_t delta) const throw() { BoundingBox3Base<PointClass> out(*this); out.offset(delta); return out; }
     PointClass center() const;
     coordf_t max_size() const;
+    double volume() const { const PointClass s = size(); return double(s(0)) * double(s(1)) * double(s(2)); }
 
     bool contains(const PointClass &point) const {
         return BoundingBoxBase<PointClass>::contains(point) && point(2) >= this->min(2) && point(2) <= this->max(2);

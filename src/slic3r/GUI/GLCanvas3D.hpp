@@ -995,10 +995,12 @@ public:
     static std::vector<IsolatedVolumeInfo> s_isolated_volumes;
     static bool                            s_isolated_notification_shown;
     static int                             s_assemble_ratio;
+    static int                             s_assemble_volume_ratio;
     static bool                            s_far_from_origin_notification_shown;
     static BoundingBoxf3                   s_bvh_primary_bounds;
     static double                          s_expand_bvh_box_dist;
     static BoundingBoxf3                   s_bvh_expanded_bounds;
+    static BoundingBoxf3                   s_first_primary_bounds;
     // printable_only == false -> render also non printable volumes as grayed
     // parts_only == false -> render also sla support and pad
     void render_thumbnail(ThumbnailData& thumbnail_data, unsigned int w, unsigned int h, const ThumbnailsParams& thumbnail_params,
