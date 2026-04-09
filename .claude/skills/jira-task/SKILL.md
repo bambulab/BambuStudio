@@ -203,6 +203,75 @@ Once the user approves the plan, execute it:
 1. Make the code changes described in the plan
 2. After implementation, briefly summarize what was done
 
+## Step 7: Commit and Push to Gerrit
+
+After the user accepts the implementation (explicitly or implicitly), create a commit and push it to Gerrit for code review.
+
+### Commit message format
+
+Follow the project's existing commit message convention. The message has two lines separated by a blank line:
+
+```
+{TYPE}: {description}
+
+JIRA: {JIRA_KEY}
+```
+
+Where `{TYPE}` is derived from the ticket type:
+- Bug → `FIX`
+- Story/Feature → `ENH`
+- Task → `ENH` (or `FIX` if the task is a fix)
+- Refactor → `REFACTOR`
+
+The `JIRA: {JIRA_KEY}` line MUST be on its own line after the description, separated by a blank line.
+
+Examples:
+```
+FIX: show error dialog when gcode.3mf export fails due to locked file
+
+JIRA: STUDIO-17233
+Co-Authored-By: Claude Opus 4 <noreply@anthropic.com>
+```
+
+```
+ENH: add multi-nozzle support for X2D
+
+JIRA: STUDIO-15807
+Co-Authored-By: Claude Opus 4 <noreply@anthropic.com>
+```
+
+Always include the `Co-Authored-By: Claude Opus 4 <noreply@anthropic.com>` line after `JIRA: {JIRA_KEY}`.
+
+### Commit steps
+
+1. Stage only the files you modified (do NOT use `git add -A` or `git add .`)
+2. Create the commit. The Gerrit commit-msg hook will automatically add a `Change-Id` trailer.
+3. Verify the commit was created successfully with `git log -1`
+
+### Push to Gerrit
+
+Push the commit to Gerrit for review:
+
+```bash
+git push origin HEAD:refs/for/master
+```
+
+If the current branch is not `master`, push to the appropriate target branch:
+
+```bash
+git push origin HEAD:refs/for/{target_branch}
+```
+
+After pushing, report the Gerrit review URL to the user (it is printed in the push output).
+
+### Error handling for push
+
+| Error | Action |
+|---|---|
+| `no new changes` | The change already exists in Gerrit — inform the user |
+| `permission denied` | Ask user to check SSH keys / Gerrit access |
+| `hook` errors | The commit-msg hook may have failed — check if Change-Id was added |
+
 ## Error Handling
 
 | Error | Likely Cause | Action |
