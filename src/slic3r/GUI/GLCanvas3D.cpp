@@ -5569,11 +5569,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             // Detection of doubleclick on text to open emboss edit window
     auto type = m_gizmos.get_current_type();
-    if (evt.LeftDClick() && !m_hover_volume_idxs.empty() &&
-        (type == GLGizmosManager::EType::Undefined ||
-            type == GLGizmosManager::EType::Text ||
-            type == GLGizmosManager::EType::Svg
-        )) {
+    if (evt.LeftDClick() && !m_hover_volume_idxs.empty()) {
+        bool for_text_or_svg =  type == GLGizmosManager::EType::Undefined || type == GLGizmosManager::EType::Text || type == GLGizmosManager::EType::Svg;
+        if (m_canvas_type == ECanvasType::CanvasAssembleView) {
+            for_text_or_svg = false;
+        }
         for (int hover_volume_id : m_hover_volume_idxs) {
             const GLVolume &hover_gl_volume = *m_volumes.volumes[hover_volume_id];
             int             object_idx      = hover_gl_volume.object_idx();
@@ -5585,7 +5585,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 continue;
             const ModelVolume *hover_volume = hover_object->volumes[hover_volume_idx];
 
-            if (hover_volume->is_text()) {
+            if (for_text_or_svg && hover_volume->is_text()) {
                 m_selection.add_volumes(Selection::EMode::Volume, {(unsigned) hover_volume_id});
                 if (type == GLGizmosManager::EType::Text)
                     m_gizmos.open_gizmo(GLGizmosManager::EType::Text); // close text
@@ -5600,7 +5600,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 wxGetApp().obj_list()->update_selections();
                 return;
             }*/
-            else if(hover_volume->emboss_shape.has_value()){
+            else if (for_text_or_svg && hover_volume->emboss_shape.has_value()) {
                 m_selection.add_volumes(Selection::EMode::Volume, {(unsigned) hover_volume_id});
                 wxGetApp().obj_list()->update_selections();
                 if (m_main_toolbar) {
@@ -5610,6 +5610,42 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     }
                 }
                 return;
+            }
+        }
+
+        if (m_hover_volume_idxs.size() == 1 ) {
+            const int hover_volume_id = get_first_hover_volume_idx();
+            if (hover_volume_id >= 0 && static_cast<size_t>(hover_volume_id) < m_volumes.volumes.size()) {
+                const GLVolume &hover_gl_volume = *m_volumes.volumes[hover_volume_id];
+                const int       object_idx      = hover_gl_volume.object_idx();
+                if (object_idx >= 0 && static_cast<size_t>(object_idx) < m_model->objects.size()) {
+                    const ModelObject *hover_object     = m_model->objects[object_idx];
+                    const int          hover_volume_idx = hover_gl_volume.volume_idx();
+                    if (hover_volume_idx >= 0 && static_cast<size_t>(hover_volume_idx) < hover_object->volumes.size()) {
+                        int model_part_count = 0;
+                        for (const ModelVolume *volume : hover_object->volumes) {
+                            if (m_canvas_type == ECanvasType::CanvasAssembleView && volume->is_model_part()) {
+                                ++model_part_count;
+                            } else {
+                                ++model_part_count;
+                            }
+                        }
+                        if (!(model_part_count == 1 && m_selection.is_single_full_object())) {
+                            m_selection.add_volumes(Selection::EMode::Volume, {(unsigned) hover_volume_id});
+                            if (model_part_count >= 2) {
+                                m_selection.unlock_volume_selection_mode();
+                                m_selection.set_volume_selection_mode(Selection::Volume);
+                                if (m_canvas_type == ECanvasType::CanvasAssembleView) { m_selection.lock_volume_selection_mode(); }
+                            }
+
+                            m_gizmos.refresh_on_off_state();
+                            m_gizmos.update_data();
+                            post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
+                            m_dirty = true;
+                            return;
+                        }
+                    }
+                }
             }
         }
     }
