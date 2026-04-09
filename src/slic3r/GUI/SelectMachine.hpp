@@ -72,8 +72,8 @@ enum PrintPageMode {
 class Material
 {
 public:
-    int           id;
-    MaterialItem *item;
+    int             id;
+    MaterialItem    *item;
 };
 
 
@@ -644,6 +644,7 @@ private:
 
     // get mapping nozzle display string for rack
     wxString get_mapped_nozzle_str(int fila_id);
+    wxString get_nozzle_dia_and_type(const std::string& ams_id, const std::string& slot_id);
 
     // get mapping nozzle for all
     std::map<int, DevNozzle> get_mapped_nozzles(int fila_id) const;

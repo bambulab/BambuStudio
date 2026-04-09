@@ -7,6 +7,7 @@
  * \date   February 2026
  *********************************************************************/
 #include "AmsMappingPopup.hpp"
+#include "AmsMappingHotend.hpp"
 #include "I18N.hpp"
 #include "DeviceCore/DevConfigUtil.h"
 
@@ -34,6 +35,9 @@
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevFilaSwitch.h"
 #include "DeviceCore/DevMappingNozzle.h"
+#include "DeviceCore/DevNozzleRack.h"
+#include "DeviceCore/DevNozzleSystem.h"
+#include "DeviceCore/DevExtruderSystem.h"
 
 #include "DeviceTab/wgtDeviceNozzleSelect.h"
 #include "DeviceTab/wgtMsgPanel.h"
@@ -77,6 +81,16 @@ void AmsMapingPopup::update(MachineObject* obj,
     m_amsmapping_container_list.clear();
     m_amsmapping_container_sizer_list.clear();
     m_mapping_item_list.clear();
+
+    // Destroy hotend items (N1X) - they are not inside MappingContainers
+    for (auto* item : m_mapping_item_hotend_list) {
+        if (item) { item->Destroy(); }
+    }
+    m_mapping_item_hotend_list.clear();
+
+    // Clear basket sizers (child windows already destroyed above, sizer items auto-detached)
+    m_sizer_ams_basket_left->Clear(false);
+    m_sizer_ams_basket_right->Clear(false);
 
     /*title*/
     update_title(obj);
@@ -235,6 +249,36 @@ static std::optional<TrayData> sGetTrayData(MachineObject* obj,
 
 void AmsMapingPopup::update_mapping_items(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result, bool use_dynamic_switch)
 {
+    // N1X hotend rack: use MappingItemHotend instead of MappingItem
+    auto rack_type = obj->GetNozzleRack()->GetRackType();
+    bool is_n1x = (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B);
+    if (is_n1x) {
+        const auto& ams_list = obj->GetFilaSystem()->GetAmsList();
+        // For N1X, there is one ZMULTI AMS with all hotend slots
+        for (auto ams_iter = ams_list.begin(); ams_iter != ams_list.end(); ams_iter++) {
+            auto ams_type = ams_iter->second->GetAmsType();
+            if (ams_type != DevAmsType::ZMULTI_A && ams_type != DevAmsType::ZMULTI_B) {
+                continue;
+            }
+
+            DevAms* ams_group = ams_iter->second;
+            std::vector<TrayData> tray_datas;
+            for (auto tray_iter = ams_group->GetTrays().cbegin(); tray_iter != ams_group->GetTrays().cend(); tray_iter++) {
+                const auto& td_opt = sGetTrayData(obj, ams_group, tray_iter->second, ams_group->GetAmsId());
+                if (td_opt.has_value()) {
+                    tray_datas.push_back(td_opt.value());
+                }
+            }
+
+            auto* sizer_hotend = new wxBoxSizer(wxVERTICAL);
+            add_ams_mapping_hotend(obj, tray_datas, m_right_marea_panel, sizer_hotend);
+            m_sizer_ams_basket_right->Add(sizer_hotend, 0, wxEXPAND | wxTOP, FromDIP(5));
+        }
+
+        update_items_check_state(ams_mapping_result);
+        return;
+    }
+
     std::list<MappingContainer*>   left_one_slot_containers;
     std::list<MappingContainer*>   right_one_slot_containers;
     std::vector<MappingContainer*> left_four_slots_containers;
@@ -573,6 +617,23 @@ void AmsMapingPopup::update_items_check_state(const std::vector<FilamentInfo>& a
         for (auto mapping_item : m_mapping_item_list) {
             update_item_check_state(mapping_item);
         }
+
+        // N1X hotend items
+        for (auto hotend_item : m_mapping_item_hotend_list) {
+            if (hotend_item) {
+                for (const auto& mapping_res : ams_mapping_result) {
+                    if (mapping_res.id == this->m_current_filament_id) {
+                        if (mapping_res.ams_id == std::to_string(hotend_item->m_ams_id) &&
+                            mapping_res.slot_id == std::to_string(hotend_item->m_slot_id)) {
+                            hotend_item->set_checked(true);
+                        } else {
+                            hotend_item->set_checked(false);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -724,6 +785,291 @@ void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)
     }
 
     item->set_tray_index("Ext");
+}
+
+
+// Helper: build AMS sub-panel (MappingContainer + MappingItems) for a hotend slot
+static wxPanel* sCreateSubAmsPanel(wxWindow* parent,
+                                    wxWindow* send_win,
+                                    const std::vector<TrayData>& sub_trays,
+                                    const wxString& ams_name,
+                                    bool remain_detect,
+                                    int filament_id,
+                                    std::vector<MappingItem*>& out_items)
+{
+    out_items.clear();
+
+    auto* panel = new wxPanel(parent, wxID_ANY);
+    panel->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+
+    auto* panel_sizer = new wxBoxSizer(wxVERTICAL);
+    auto* container   = new MappingContainer(panel, ams_name, (int)sub_trays.size());
+    auto* row_sizer   = new wxBoxSizer(wxHORIZONTAL);
+    container->SetSizer(row_sizer);
+    row_sizer->Add(0, 0, 0, wxLEFT, panel->FromDIP(6));
+
+    for (size_t i = 0; i < sub_trays.size(); i++) {
+        const auto& td = sub_trays[i];
+
+        auto* item = new MappingItem(container);
+        item->send_win = send_win;
+        item->m_ams_id  = td.ams_id;
+        item->m_slot_id = td.slot_id;
+        item->set_tray_index(wxGetApp().transition_tridid(td.id));
+
+        int item_w = panel->FromDIP(48);
+        int item_h = panel->FromDIP(60);
+        item->SetSize(wxSize(item_w, item_h));
+        item->SetMinSize(wxSize(item_w, item_h));
+        item->SetMaxSize(wxSize(item_w, item_h));
+
+        bool can_pick = (td.type == NORMAL);
+        wxColour col = can_pick ? td.colour : wxColour(0xEE, 0xEE, 0xEE);
+        wxString name;
+        if (td.type == THIRD)     name = "?";
+        else if (td.type == EMPTY) name = "-";
+        else                       name = td.name;
+
+        item->set_data(wxEmptyString, col, name, remain_detect, td, !can_pick);
+        row_sizer->Add(0, 0, 0, wxRIGHT, panel->FromDIP(6));
+        row_sizer->Add(item, 0, wxTOP, panel->FromDIP(1));
+        out_items.push_back(item);
+    }
+
+    container->Layout();
+    panel_sizer->Add(container, 0, wxEXPAND | wxALL, panel->FromDIP(4));
+    panel->SetSizer(panel_sizer);
+    panel->Layout();
+    panel->Fit();
+    return panel;
+}
+
+void AmsMapingPopup::add_ams_mapping_hotend(MachineObject* obj,
+                                             std::vector<TrayData> tray_data,
+                                             wxWindow* container,
+                                             wxBoxSizer* sizer)
+{
+    // Strategy: pre-create ALL sub-AMS panels hidden, then Show/Hide on click.
+    // This is far more reliable than dynamically inserting sizer items.
+    //
+    // Layout in sizer:
+    //   Row 0 (5 slots)   ← hotend items
+    //   SubPanel 0        ← pre-created, hidden by default
+    //   Row 1 (5 slots)
+    //   SubPanel 1
+    //   ...
+
+    static const int COLS = 5;
+    int gap = container->FromDIP(4);
+
+    // Map: hotend_item → its sub-panel (nullptr if no sub-AMS)
+    struct RowInfo {
+        wxBoxSizer* row_sizer    = nullptr;
+        wxPanel*    sub_panel    = nullptr;  // pre-created, hidden
+        std::vector<MappingItem*> sub_items;
+    };
+
+    std::vector<RowInfo> rows;
+    RowInfo cur_row;
+    int col_in_row = 0;
+
+    // Helper to finalize current row and create its sub-panel placeholder
+    auto finish_row = [&]() {
+        if (!cur_row.row_sizer) return;
+        rows.push_back(cur_row);
+        cur_row = RowInfo{};
+    };
+
+    for (size_t i = 0; i < tray_data.size(); i++) {
+        if (col_in_row == 0) {
+            cur_row.row_sizer = new wxBoxSizer(wxHORIZONTAL);
+        }
+
+        auto* hotend_item = new MappingItemHotend(container);
+        hotend_item->send_win = send_win;
+
+        wxString index_str = wxString::Format("%d", (int)(i + 1));
+        hotend_item->set_tray_index(index_str);
+
+        // State detection
+        HotendSlotState slot_state = HotendSlotState::Normal;
+        bool can_pick = true;
+
+        if (tray_data[i].ams_type == DevAmsType::EXT_SPOOL) {
+            if (tray_data[i].type == NORMAL && !is_match_material(tray_data[i].filament_type)) {
+                slot_state = HotendSlotState::Unmatch; can_pick = false;
+            } else if (tray_data[i].type == EMPTY) {
+                slot_state = HotendSlotState::AllEmpty; can_pick = false;
+            }
+        } else if (tray_data[i].type == EMPTY) {
+            bool has_nozzle = false;
+            if (obj->GetNozzleRack()->IsSupported()) {
+                auto tray_opt = obj->get_tray(std::to_string(tray_data[i].ams_id),
+                                               std::to_string(tray_data[i].slot_id));
+                if (tray_opt.has_value()) {
+                    auto np = tray_opt->get_nozzle_pos_id(obj);
+                    if (np.has_value()) {
+                        int rid = np.value(); if (rid >= 16) rid -= 16;
+                        has_nozzle = obj->GetNozzleRack()->GetRackNozzles().count(rid) > 0;
+                    }
+                }
+            }
+            slot_state = has_nozzle ? HotendSlotState::NozzleEmpty : HotendSlotState::AllEmpty;
+            can_pick = false;
+        } else if (tray_data[i].type == NORMAL && !is_match_material(tray_data[i].filament_type)) {
+            slot_state = HotendSlotState::Unmatch; can_pick = false;
+        }
+
+        wxColour display_color = (can_pick || tray_data[i].type == THIRD)
+            ? (tray_data[i].type == NORMAL ? tray_data[i].colour : wxColour(0xCE, 0xCE, 0xCE))
+            : wxColour(0xEE, 0xEE, 0xEE);
+
+        wxString display_name;
+        if (tray_data[i].type == THIRD)     display_name = "?";
+        else if (tray_data[i].type == EMPTY) display_name = "-";
+        else                                 display_name = tray_data[i].name;
+
+        hotend_item->set_data(index_str, display_color, display_name, tray_data[i], !can_pick);
+        hotend_item->set_slot_state(slot_state);
+
+        if (tray_data[i].ams_type == DevAmsType::EXT_SPOOL)
+            hotend_item->set_ext_mode(true, false);
+
+        // Nozzle info
+        if (obj->GetNozzleRack()->IsSupported()) {
+            auto tray_opt = obj->get_tray(std::to_string(tray_data[i].ams_id),
+                                           std::to_string(tray_data[i].slot_id));
+            if (tray_opt.has_value()) {
+                auto np = tray_opt->get_nozzle_pos_id(obj);
+                if (np.has_value()) {
+                    int rid = np.value(); if (rid >= 16) rid -= 16;
+                    auto it = obj->GetNozzleRack()->GetRackNozzles().find(rid);
+                    if (it != obj->GetNozzleRack()->GetRackNozzles().end()) {
+                        hotend_item->set_nozzle_info(
+                            wxString::Format("%.1f mm", it->second.GetNozzleDiameter()),
+                            wxString::FromUTF8(DevNozzle::ToNozzleVolumeShortString(
+                                DevNozzle::ToNozzleVolumeType(it->second.GetNozzleFlowType()))));
+                    }
+                }
+            }
+        }
+
+        // G1: detect real sub-AMS
+        if (tray_data[i].ams_type != DevAmsType::EXT_SPOOL && obj->GetNozzleRack()->IsSupported()) {
+            auto tray_opt = obj->get_tray(std::to_string(tray_data[i].ams_id),
+                                           std::to_string(tray_data[i].slot_id));
+            if (tray_opt.has_value()) {
+                auto np = tray_opt->get_nozzle_pos_id(obj);
+                if (np.has_value()) {
+                    for (const auto& [aid, aptr] : obj->GetFilaSystem()->GetAmsList()) {
+                        auto at = aptr->GetAmsType();
+                        if (at == DevAmsType::ZMULTI_A || at == DevAmsType::ZMULTI_B) continue;
+                        if (!aptr->GetBindedExtruderSet().count(np.value())) continue;
+                        std::vector<TrayData> sub;
+                        for (auto ti = aptr->GetTrays().cbegin(); ti != aptr->GetTrays().cend(); ti++) {
+                            auto td_opt = sGetTrayData(obj, aptr, ti->second, aid);
+                            if (td_opt.has_value()) sub.push_back(td_opt.value());
+                        }
+                        if (!sub.empty())
+                            hotend_item->set_sub_ams(sub, aptr->GetDisplayName(),
+                                                      obj->GetFilaSystem()->IsDetectRemainEnabled());
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (tray_data[i].ams_type == DevAmsType::EXT_SPOOL && hotend_item->has_sub_ams())
+            hotend_item->set_ext_mode(true, true);
+
+        // Build sub-panel for this slot if it has sub-AMS (hidden by default)
+        wxPanel* sub_panel = nullptr;
+        std::vector<MappingItem*> sub_items;
+        if (hotend_item->has_sub_ams()) {
+            sub_panel = sCreateSubAmsPanel(
+                container, send_win,
+                hotend_item->get_sub_tray_data(),
+                hotend_item->get_sub_ams_name(),
+                hotend_item->get_remain_detect(),
+                m_current_filament_id,
+                sub_items);
+            sub_panel->Hide();
+
+            // Bind click events for sub-items
+            for (auto* item : sub_items) {
+                item->Bind(wxEVT_LEFT_DOWN, [this, item, sub_panel](wxMouseEvent& e) {
+                    item->send_event(m_current_filament_id);
+                    sub_panel->Hide();
+                    // collapse all
+                    for (auto* other : m_mapping_item_hotend_list)
+                        other->set_expanded(false);
+                    this->Layout();
+                    this->Fit();
+                    this->Refresh();
+                    Dismiss();
+                });
+            }
+        }
+
+        // Track sub-panel with row
+        // We store sub-panel pointer on hotend_item via set_sub_panel_ref (new approach)
+        hotend_item->set_sub_panel_ref(sub_panel);
+
+        // Click handler for hotend_item
+        if (sub_panel) {
+            hotend_item->Bind(wxEVT_LEFT_DOWN, [this, hotend_item, sub_panel](wxMouseEvent& e) {
+                e.Skip(false);
+                bool expanding = !hotend_item->is_expanded();
+
+                // Hide all other sub-panels and clear expanded state
+                for (auto* other : m_mapping_item_hotend_list) {
+                    if (other->get_sub_panel_ref() && other != hotend_item) {
+                        other->get_sub_panel_ref()->Hide();
+                        other->set_expanded(false);
+                    }
+                }
+
+                // Toggle this one
+                hotend_item->set_expanded(expanding);
+                sub_panel->Show(expanding);
+
+                this->Layout();
+                this->Fit();
+                this->Refresh();
+            });
+        } else {
+            hotend_item->Bind(wxEVT_LEFT_DOWN, [this, can_pick, hotend_item](wxMouseEvent& e) {
+                if (!can_pick) return;
+                hotend_item->send_event(m_current_filament_id);
+                Dismiss();
+            });
+        }
+
+        // Add to row sizer
+        if (col_in_row > 0) cur_row.row_sizer->Add(0, 0, 0, wxLEFT, gap);
+        cur_row.row_sizer->Add(hotend_item, 0, 0);
+        if (sub_panel) cur_row.sub_panel = sub_panel;
+        m_mapping_item_hotend_list.push_back(hotend_item);
+
+        col_in_row++;
+        if (col_in_row >= COLS) {
+            finish_row();
+            col_in_row = 0;
+        }
+    }
+    // Finalize last (possibly incomplete) row
+    if (col_in_row > 0) finish_row();
+
+    // Build final sizer: row0, sub_panel0, row1, sub_panel1, ...
+    for (auto& row : rows) {
+        sizer->Add(row.row_sizer, 0, wxBOTTOM, gap);
+        if (row.sub_panel) {
+            sizer->Add(row.sub_panel, 0, wxEXPAND | wxBOTTOM, gap);
+        }
+    }
+
+    container->Layout();
+    container->Fit();
 }
 
 } // namespace Slic3r::GUI

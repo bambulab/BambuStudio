@@ -1,4 +1,5 @@
 #include "SelectMachine.hpp"
+#include "AmsMappingHotend.hpp"
 #include "I18N.hpp"
 
 #include "libslic3r/Utils.hpp"
@@ -87,6 +88,11 @@ wxDEFINE_EVENT(EVT_CLEAR_IPADDRESS, wxCommandEvent);
 
 static wxString task_canceled_text = _L("Task canceled");
 static int s_nozzle_mapping_last_request_time = 0;
+
+// Nozzle ID conversion constants
+// hotend rack uses internal IDs starting from 16 (16, 17, 18, 19...)
+// Need to convert to 0-based rack nozzle IDs (0, 1, 2, 3...) for lookup
+constexpr int HOTEND_RACK_INTERNAL_ID_OFFSET = 16;
 
 std::string get_nozzle_volume_type_cloud_string(NozzleVolumeType nozzle_volume_type)
 {
@@ -1202,12 +1208,15 @@ void SelectMachineDialog::sync_ams_mapping_result(const std::vector<FilamentInfo
             wxColour ams_col = wxColour(0xCE, 0xCE, 0xCE);
             it->second->item->set_ams_info(ams_col, ams_id);
             it->second->item->set_nozzle_info(get_mapped_nozzle_str(it->first));
+            it->second->item->set_ams_filament_type(wxEmptyString);
+            it->second->item->set_nozzle_dia_and_type(wxEmptyString);
         }
         return;
     }
 
     auto total_ext_count = std::optional<int>();
-    if (auto obj_ = get_current_machine()) {
+    auto obj_ = get_current_machine();
+    if (obj_) {
         total_ext_count = obj_->GetExtderSystem()->GetTotalExtderCount();
     };
 
@@ -1245,6 +1254,20 @@ void SelectMachineDialog::sync_ams_mapping_result(const std::vector<FilamentInfo
                 }
                 m->set_ams_info(ams_col, ams_id,f->ctype, cols);
                 m->set_nozzle_info(get_mapped_nozzle_str(id));
+
+
+                // Set mapped tray's filament type name (e.g. "PLA", "ABS-CF")
+                wxString ams_filament_type;
+                if (obj_ && f->tray_id >= 0) {
+                    auto tray_opt = obj_->get_tray(f->ams_id, f->slot_id);
+                    if (tray_opt.has_value()) { ams_filament_type = tray_opt->get_display_filament_type(); }
+                }
+                m->set_ams_filament_type(ams_filament_type);
+
+                // Set nozzle spec for N1x (e.g. "0.4 HF")
+                wxString nozzle_dia_and_type;
+                if (obj_ && f->tray_id >= 0) { nozzle_dia_and_type = get_nozzle_dia_and_type(f->ams_id, f->slot_id); }
+                m->set_nozzle_dia_and_type(nozzle_dia_and_type);
                 break;
             }
             iter++;
@@ -3492,6 +3515,18 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
                 break;
             }
         }
+        // Also search in hotend  mapping items
+        for (auto hotend_item : m_mapping_popup.m_mapping_item_hotend_list) {
+            if (hotend_item->m_tray_data.id == evt.GetInt()) {
+                ctype = hotend_item->m_tray_data.ctype;
+                material_cols = hotend_item->m_tray_data.material_cols;
+                for (auto col : hotend_item->m_tray_data.material_cols) {
+                    wxString color = wxString::Format("#%02X%02X%02X%02X", col.Red(), col.Green(), col.Blue(), col.Alpha());
+                    tray_cols.push_back(color.ToStdString());
+                }
+                break;
+            }
+        }
 
 
         for (auto i = 0; i < m_ams_mapping_result.size(); i++) {
@@ -3521,6 +3556,24 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
                 auto ams_colour = wxColour(wxAtoi(selection_data_arr[0]), wxAtoi(selection_data_arr[1]), wxAtoi(selection_data_arr[2]), wxAtoi(selection_data_arr[3]));
                 m->set_ams_info(ams_colour, selection_data_arr[4], ctype, material_cols);
                 m->set_nozzle_info(get_mapped_nozzle_str(item->id));
+
+                // Update hotend info
+                auto obj_ = get_current_machine();
+                if (obj_) {
+                    std::string ams_id = selection_data_arr[6].ToStdString();
+                    std::string slot_id = selection_data_arr[7].ToStdString();
+
+                    // Set mapped tray's filament type
+                    wxString ams_filament_type;
+                    auto tray_opt = obj_->get_tray(ams_id, slot_id);
+                    if (tray_opt.has_value()) {
+                        ams_filament_type = tray_opt->get_display_filament_type();
+                    }
+                    m->set_ams_filament_type(ams_filament_type);
+
+                    wxString nozzle_dia_and_type = get_nozzle_dia_and_type(ams_id, slot_id);
+                    m->set_nozzle_dia_and_type(nozzle_dia_and_type);
+                }
             }
             iter++;
         }
@@ -4649,7 +4702,7 @@ std::vector<pPresetFilaInfo> sCollectPresetFilamentInfo()
                     pPresetFilaInfo fila_info;
                     fila_info.filament_id = preset->filament_id;
                     fila_info.setting_id = preset->setting_id;
-                    fila_info.filament_type = preset->config.get_filament_type(fila_info.filament_display_type);;
+                    fila_info.filament_type = preset->config.get_filament_type(fila_info.filament_display_type);
                     auto vendor_opt = dynamic_cast<ConfigOptionStrings*>(preset->config.option("filament_vendor"));
                     if (vendor_opt && (vendor_opt->values.size() > 0)) {
                         fila_info.filament_vendor = vendor_opt->values[0];
@@ -4758,9 +4811,20 @@ void SelectMachineDialog::reset_and_sync_ams_list()
 
     auto dev = wxGetApp().getDeviceManager()->get_selected_machine();
     bool has_switcher = dev && dev->GetFilaSwitch()->IsInstalled();
+    auto rack_type = dev ? dev->GetNozzleRack()->GetRackType() : DevNozzleRack::None;
+    bool is_hotend_rack = (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B);
 
     auto filament_color_render_info = wxGetApp().plater()->get_filament_colors_render_info();
     auto filament_color_type_info   = wxGetApp().plater()->get_filament_color_render_type();
+
+    auto create_material_item = [&](wxWindow *parent, wxColour colour_rgb,
+                                     const wxString& display_type, std::string filament_id) -> MaterialItem* {
+        if (is_hotend_rack){
+            return new MaterialItemHotend(parent, colour_rgb, display_type, filament_id);
+        } else {
+            return new MaterialItem(parent, colour_rgb, display_type, filament_id);
+        }
+    };
 
     for (auto i = 0; i < used_filaments.size(); i++) {
         auto          used_filament = used_filaments[i] - 1;
@@ -4784,16 +4848,16 @@ void SelectMachineDialog::reset_and_sync_ams_list()
         MaterialItem* item = nullptr;
         if (extruder_nums == 2 && !has_switcher) {
             if (m_filaments_map[used_filament] == 1) {
-                item = new MaterialItem(m_filament_left_panel, colour_rgb, preset_filament.filament_display_type, preset_filament.filament_id);
+                item = create_material_item(m_filament_left_panel, colour_rgb, preset_filament.filament_display_type, preset_filament.filament_id);
                 m_sizer_ams_mapping_left->Add(item, 0, wxALL, FromDIP(5));
                 left_sizer_count++;
             } else if (m_filaments_map[used_filament] == 2) {
-                item = new MaterialItem(m_filament_right_panel, colour_rgb, preset_filament.filament_display_type, preset_filament.filament_id);
+                item = create_material_item(m_filament_right_panel, colour_rgb, preset_filament.filament_display_type, preset_filament.filament_id);
                 m_sizer_ams_mapping_right->Add(item, 0, wxALL, FromDIP(5));
                 right_sizer_count++;
             }
         } else {
-            item = new MaterialItem(m_filament_panel, colour_rgb, preset_filament.filament_display_type, preset_filament.filament_id);
+            item = create_material_item(m_filament_panel, colour_rgb, preset_filament.filament_display_type, preset_filament.filament_id);
             m_sizer_ams_mapping->Add(item, 0, wxALL, FromDIP(5));
             sizer_count++;
         }
@@ -6064,6 +6128,36 @@ wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
 }
 
 
+wxString SelectMachineDialog::get_nozzle_dia_and_type(const std::string &ams_id, const std::string &slot_id)
+{
+    auto obj_ = get_current_machine();
+    if (!obj_) return wxEmptyString;
+
+    auto tray_opt = obj_->get_tray(ams_id, slot_id);
+    if (!tray_opt.has_value()) return wxEmptyString;
+
+    auto nozzle_pos_opt = tray_opt->get_nozzle_pos_id(obj_);
+    if (!nozzle_pos_opt.has_value()) return wxEmptyString;
+
+    int rack_nozzle_id = nozzle_pos_opt.value();
+    if (rack_nozzle_id >= HOTEND_RACK_INTERNAL_ID_OFFSET) {
+        rack_nozzle_id -= HOTEND_RACK_INTERNAL_ID_OFFSET;
+    }
+
+    if (!obj_->GetNozzleRack()->IsSupported()) return wxEmptyString;
+
+    const auto &rack_nozzles = obj_->GetNozzleRack()->GetRackNozzles();
+    auto it = rack_nozzles.find(rack_nozzle_id);
+    if (it == rack_nozzles.end()) return wxEmptyString;
+
+    auto nozzle_type = wxString::FromUTF8(
+        DevNozzle::ToNozzleVolumeShortString(
+            DevNozzle::ToNozzleVolumeType(it->second.GetNozzleFlowType())
+        )
+    );
+    return wxString::Format("%.1f %s", it->second.GetNozzleDiameter(), nozzle_type);
+}
+
 bool SelectMachineDialog::CheckErrorDynamicSwitchNozzle(MachineObject* obj_)
 {
     if (!obj_) {
@@ -6901,7 +6995,7 @@ std::optional<float> SelectMachineDialog::get_filament_change_gap_time(MachineOb
 {
     // return 1000;
     if (m_print_type != FROM_NORMAL) {
-        return std::nullopt;;
+        return std::nullopt;
     }
 
     if (!m_plater || !obj_ || !obj_->GetFilaSwitch() || !obj_->GetFilaSwitch()->IsInstalled()) {
@@ -6952,12 +7046,12 @@ std::optional<float> SelectMachineDialog::get_filament_change_gap_time(MachineOb
     const auto& full_config = wxGetApp().preset_bundle->full_config();
     const auto& load_time_opt = full_config.option<ConfigOptionFloat>("machine_load_filament_time");
     if (load_time_opt) {
-        params.standard_load_time = load_time_opt->value;;
+        params.standard_load_time = load_time_opt->value;
     }
 
     const auto& unload_time_opt = full_config.option<ConfigOptionFloat>("machine_unload_filament_time");
     if (unload_time_opt) {
-        params.standard_unload_time = unload_time_opt->value;;
+        params.standard_unload_time = unload_time_opt->value;
     }
     params.selector_load_time = params.standard_load_time * 0.5;
     params.selector_unload_time = params.standard_unload_time * 0.5;

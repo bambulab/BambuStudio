@@ -551,7 +551,7 @@ void MaterialItem::doRender(wxDC& dc)
         int text_area_width = std::max(FromDIP(8), size.x - text_area_left - FromDIP(2));
         int text_area_height = std::max(FromDIP(8), size.y - up);
         WxFontUtils::get_suitable_font_size(text_area_height, text_area_width, wrapped_nozzle_str, dc, ::Label::Body_8.GetPointSize(), ::Label::Body_12.GetPointSize());
-        
+
         const auto& text_size = dc.GetTextExtent(wrapped_nozzle_str);
         int text_x = (size.x + bitmap_l + m_rack_nozzle_bitmap.GetBmpWidth() - text_size.x) / 2;
         int text_y = up + (size.y - up - text_size.y) / 2;
@@ -2680,5 +2680,7 @@ void Slic3r::GUI::DevIconLabel::Rescale()
     m_icon->SetBitmap(create_scaled_bitmap(m_icon_str.ToStdString(), this, 20));
     Refresh();
 }
+
+// MaterialItemNew implementation
 
 }} // namespace Slic3r::GUI

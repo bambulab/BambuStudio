@@ -43,7 +43,7 @@ public:
         None = -1,
         RackType_AB = 0,
         RackType_A = 1, // DevAmsType::ZMULTI_A
-        RackType_B = 2, // DevAmsType::ZMULTI_B
+        RackType_B = 2, // DevAmsType::ZMULTI_B 
     };
 
     enum RackPos : int

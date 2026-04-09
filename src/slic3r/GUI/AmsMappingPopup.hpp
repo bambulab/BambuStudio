@@ -98,7 +98,7 @@ protected:
 
 public:
     MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname, std::string filament_id);
-    ~MaterialItem();
+    virtual ~MaterialItem();
 
     void allow_paint_dropdown(bool flag);
 
@@ -113,6 +113,8 @@ public:
     virtual void reset_valid_info();
 
     void set_nozzle_info(const wxString& mapped_nozzle_str);
+    virtual void set_ams_filament_type(const wxString &) {}; // only for n1x
+    virtual void set_nozzle_dia_and_type(const wxString & dia_type_info){};
 
     void disable();
     void enable();
@@ -123,10 +125,10 @@ public:
     bool is_selected() const { return m_selected;}
     bool is_warning() const { return m_warning;}
 
-    void msw_rescale();
+    virtual void msw_rescale();
 
 protected:
-    void messure_size();
+    virtual void messure_size();
 
 public:
     std::string m_filament_id;
@@ -135,7 +137,7 @@ public:
     int         m_material_ctype = 0;
     std::vector<wxColour> m_material_cols;
     wxString    m_material_name;
-    wxString    m_mapped_nozzle_str;
+    wxString    m_mapped_nozzle_str;//nozzle pos id (0,1,2)
 
     //info
     wxColour m_ams_coloul;
@@ -167,6 +169,13 @@ public:
     void match(bool mat);
     virtual void doRender(wxDC &dc);
 };
+
+
+
+
+
+
+
 
 class MaterialSyncItem : public MaterialItem
 {
@@ -267,6 +276,8 @@ private:
     wxStaticBitmap* m_icon{ nullptr };
 };
 
+class MappingItemHotend; // forward declaration for N1X hotend mapping items
+
 class AmsMapingPopup : public PopupWindow
 {
     bool m_use_in_sync_dialog = false;
@@ -287,6 +298,7 @@ public:
     std::vector<wxBoxSizer*> m_amsmapping_container_sizer_list;
     std::vector<MappingContainer*> m_amsmapping_container_list;
     std::vector<MappingItem*> m_mapping_item_list;
+    std::vector<MappingItemHotend*> m_mapping_item_hotend_list;
 
     bool        m_has_unmatch_filament {false};
     int         m_current_filament_id;
@@ -340,6 +352,7 @@ public:
     void         update_items_check_state(const std::vector<FilamentInfo>& ams_mapping_result);
     void         update_ams_data_multi_machines();
     void         add_ams_mapping(std::vector<TrayData> tray_data, bool remain_detect_flag, wxWindow *container, wxBoxSizer *sizer);
+    void         add_ams_mapping_hotend(MachineObject* obj, std::vector<TrayData> tray_data, wxWindow *container, wxBoxSizer *sizer);
     void         add_ext_ams_mapping(TrayData tray_data, MappingItem *item);
     void         set_current_filament_id(int id) { m_current_filament_id = id; };
     int          get_current_filament_id(){return m_current_filament_id;};
