@@ -2,6 +2,7 @@
 
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Widgets/Label.hpp"
+#include "slic3r/GUI/Widgets/StateColor.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 
 #include <wx/sizer.h>
@@ -27,7 +28,7 @@ wgtMsgPanelItem::wgtMsgPanelItem(wxWindow* parent,
 
 void wgtMsgPanelItem::CreateGui()
 {
-    SetBackgroundColour(*wxWHITE);
+    SetBackgroundColour(StateColor::darkModeColorFor(wxColour(*wxWHITE)));
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -42,7 +43,7 @@ void wgtMsgPanelItem::CreateGui()
 
     m_text_label = new ::Label(this, m_text);
     m_text_label->SetFont(::Label::Body_13);
-    m_text_label->SetBackgroundColour(*wxWHITE);
+    m_text_label->SetBackgroundColour(StateColor::darkModeColorFor(wxColour(*wxWHITE)));
     m_text_label->SetForegroundColour(m_colour);
     if (!m_wiki_url.IsEmpty()) {
         m_text_label->Wrap(m_max_width - FromDIP(20)); // Wrap text to fit within a reasonable width
@@ -109,7 +110,7 @@ wgtMsgPanel::wgtMsgPanel(wxWindow* parent)
 
 void wgtMsgPanel::CreateGui()
 {
-    SetBackgroundColour(*wxWHITE);
+    SetBackgroundColour(StateColor::darkModeColorFor(wxColour(*wxWHITE)));
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -131,9 +132,8 @@ void wgtMsgPanel::AddMessage(const wxString& text,
     if (!m_list_sizer) return;
 
     auto* label = new ::Label(this, wxString::Format("%d. ", GetMessageCount() + 1));
-    label->SetBackgroundColour(*wxWHITE);
     label->SetFont(::Label::Body_14);
-    label->SetBackgroundColour(*wxWHITE);
+    label->SetBackgroundColour(StateColor::darkModeColorFor(wxColour(*wxWHITE)));
     label->SetForegroundColour(colour);
 
     auto* item = new wgtMsgPanelItem(this, colour, text, GetSize().GetWidth(), wiki_url);
