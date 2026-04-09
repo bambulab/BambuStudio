@@ -42,6 +42,7 @@ private:
 
     void CreateBmps();
     void RecreateUIElements();
+    void UpdateNozzleLabels();
     void Init(const std::vector<FilamentMapMode>& available_modes);
     void UpdateButtonStatus(int hover_idx = -1);
     void DrawRoundedCorner(int radius);
