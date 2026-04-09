@@ -1423,7 +1423,7 @@ int MachineObject::command_dont_remind_next_time(json& mqtt_guard_json)
         mqtt_guard_json["err_index"].empty()) return -1;
 
     json j;
-    j["print"]["command"] = "back_to_center";
+    j["print"]["command"] = mqtt_guard_json["command"].get<std::string>();
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
 
     try {
