@@ -22,5 +22,13 @@
     "min_layer_height": [
         "0.04",
         "0.04"
+    ],
+    "upward_compatible_machine": [
+        "Bambu Lab A1 0.2 nozzle",
+        "Bambu Lab P2S 0.2 nozzle",
+        "Bambu Lab H2S 0.2 nozzle",
+        "Bambu Lab H2D 0.2 nozzle",
+        "Bambu Lab H2D Pro 0.2 nozzle",
+        "Bambu Lab H2C 0.2 nozzle"
     ]
 }
