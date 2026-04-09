@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-07 20:42+0800\n"
+"POT-Creation-Date: 2026-04-09 11:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4357,9 +4357,6 @@ msgstr "Pré-extrusão antes da impressão"
 msgid "Preparing AMS"
 msgstr "Preparando-se para"
 
-msgid "Timing belt artifacts compensation"
-msgstr "Compensação de artefatos da correia de distribuição"
-
 msgid "Timelapse is not supported on this printer."
 msgstr "O timelapse não é suportado nesta impressora."
 
@@ -5026,21 +5023,15 @@ msgstr "Visão Geral"
 msgid "Select Plate"
 msgstr "Selecione a placa"
 
-msgid "RenderAssemblyViewThumb"
+msgid "Change camera perspective"
 msgstr ""
-
-msgid "Change assemble view preview"
-msgstr "Alterar pré-visualização da montagem"
 
 msgid "Go to Wiki"
 msgstr "Ir para Wiki"
 
-msgid "Note:Only the main assembly body is shown here.unassembled objects are hidden."
-msgstr "Observação: Apenas o corpo principal da montagem é mostrado aqui. Objetos não montados estão ocultos."
-
 #, boost-format
-msgid "Current assembly rate: %1%%%"
-msgstr "Taxa de montagem atual: %1%%%"
+msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
+msgstr ""
 
 msgctxt "Camera"
 msgid "Top"
@@ -5061,9 +5052,6 @@ msgstr "Atrás"
 msgctxt "Camera"
 msgid "Isometric"
 msgstr "Isométrico"
-
-msgid "AssemblyViewPreviewMenu"
-msgstr "Menu de visualização da montagem"
 
 msgid "Assembly Return"
 msgstr "Retorno da montagem"
@@ -5104,8 +5092,8 @@ msgstr "Volume:"
 msgid "Size:"
 msgstr "Tamanho:"
 
-msgid "Assembly view: isolated objects detected"
-msgstr "Visualização da montagem: objetos isolados detectados"
+msgid "Overview:isolated objects detected"
+msgstr ""
 
 msgid "Click to move them closer to the main body."
 msgstr "Clique para movê-los para mais perto do corpo principal."
@@ -6884,6 +6872,12 @@ msgstr "Detecção de Objeto Estranho"
 msgid "Checks for any objects on the build plate at the start of a print to avoid collisions."
 msgstr "Verifica se há objetos sobre a mesa de impressão no início da impressão para evitar colisões."
 
+msgid "Printed Part Displacement Detection"
+msgstr ""
+
+msgid "Monitors the printed part during printing and alerts immediately if it shifts or collapses."
+msgstr ""
+
 msgid "Ensures the build plate type and placement are correct."
 msgstr "Garante que o tipo e o posicionamento da mesa de construção estejam corretos."
 
@@ -8259,14 +8253,8 @@ msgstr "Lembrar o esquema de cores usado por último"
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr "Quando habilitado, o último esquema de cores usado (por exemplo, Tipo de Linha, Velocidade) será aplicado automaticamente na próxima inicialização."
 
-msgid "Always show"
-msgstr "Sempre mostrar"
-
-msgid "Always hide"
-msgstr "Sempre ocultar"
-
-msgid "Identify and display overview"
-msgstr "Identificar e exibir visão geral"
+msgid "Display overview"
+msgstr ""
 
 msgid "Show assembly BVH primary bounds"
 msgstr "Mostrar limites primários da BVH da montagem"
@@ -17245,6 +17233,34 @@ msgid ""
 msgstr ""
 "Confiabilidade na Primeira Tentativa\n"
 "Menos supervisão, saída mais previsível. Exemplo: uma pequena fazenda produzindo peças de PETG evita surpresas de \"falha na hora 6\" e mantém os lotes no cronograma."
+
+#~ msgid "Timing belt artifacts compensation"
+#~ msgstr "Compensação de artefatos da correia de distribuição"
+
+#~ msgid "Change assemble view preview"
+#~ msgstr "Alterar pré-visualização da montagem"
+
+#~ msgid "Note:Only the main assembly body is shown here.unassembled objects are hidden."
+#~ msgstr "Observação: Apenas o corpo principal da montagem é mostrado aqui. Objetos não montados estão ocultos."
+
+#, boost-format
+#~ msgid "Current assembly rate: %1%%%"
+#~ msgstr "Taxa de montagem atual: %1%%%"
+
+#~ msgid "AssemblyViewPreviewMenu"
+#~ msgstr "Menu de visualização da montagem"
+
+#~ msgid "Assembly view: isolated objects detected"
+#~ msgstr "Visualização da montagem: objetos isolados detectados"
+
+#~ msgid "Always show"
+#~ msgstr "Sempre mostrar"
+
+#~ msgid "Always hide"
+#~ msgstr "Sempre ocultar"
+
+#~ msgid "Identify and display overview"
+#~ msgstr "Identificar e exibir visão geral"
 
 #~ msgid "right extruder"
 #~ msgstr "Extrusora DIREITA"

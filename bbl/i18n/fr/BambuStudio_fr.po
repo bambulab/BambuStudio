@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-07 20:42+0800\n"
+"POT-Creation-Date: 2026-04-09 11:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4340,9 +4340,6 @@ msgstr ""
 msgid "Preparing AMS"
 msgstr "Préparation de l'AMS"
 
-msgid "Timing belt artifacts compensation"
-msgstr "Compensation des artefacts de courroie"
-
 msgid "Timelapse is not supported on this printer."
 msgstr "La fonction Timelapse n'est pas prise en charge par cette imprimante."
 
@@ -5007,20 +5004,14 @@ msgstr ""
 msgid "Select Plate"
 msgstr "Sélectionner la plaque"
 
-msgid "RenderAssemblyViewThumb"
-msgstr ""
-
-msgid "Change assemble view preview"
+msgid "Change camera perspective"
 msgstr ""
 
 msgid "Go to Wiki"
 msgstr ""
 
-msgid "Note:Only the main assembly body is shown here.unassembled objects are hidden."
-msgstr ""
-
 #, boost-format
-msgid "Current assembly rate: %1%%%"
+msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
 msgstr ""
 
 msgctxt "Camera"
@@ -5042,9 +5033,6 @@ msgstr "Arrière"
 msgctxt "Camera"
 msgid "Isometric"
 msgstr "Isométrique"
-
-msgid "AssemblyViewPreviewMenu"
-msgstr ""
 
 msgid "Assembly Return"
 msgstr "Retour d'assemblage"
@@ -5085,7 +5073,7 @@ msgstr "Le volume:"
 msgid "Size:"
 msgstr "Taille:"
 
-msgid "Assembly view: isolated objects detected"
+msgid "Overview:isolated objects detected"
 msgstr ""
 
 msgid "Click to move them closer to the main body."
@@ -6863,6 +6851,12 @@ msgstr "Détection d’Objet Étranger"
 msgid "Checks for any objects on the build plate at the start of a print to avoid collisions."
 msgstr "Vérifie la présence d'objets sur le plateau d'impression au début de chaque impression afin d'éviter les collisions."
 
+msgid "Printed Part Displacement Detection"
+msgstr ""
+
+msgid "Monitors the printed part during printing and alerts immediately if it shifts or collapses."
+msgstr ""
+
 msgid "Ensures the build plate type and placement are correct."
 msgstr "S'assure que le type et le positionnement du plateau d'impression sont corrects."
 
@@ -8232,13 +8226,7 @@ msgstr "Se souvenir du dernier Mode d'Affichage utilisé"
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr "Une fois activé, le dernier Mode d'Affichage utilisé (par exemple, Type de ligne, Vitesse) sera automatiquement appliqué au prochain démarrage."
 
-msgid "Always show"
-msgstr ""
-
-msgid "Always hide"
-msgstr ""
-
-msgid "Identify and display overview"
+msgid "Display overview"
 msgstr ""
 
 msgid "Show assembly BVH primary bounds"
@@ -17219,6 +17207,9 @@ msgid ""
 msgstr ""
 "Fiabilité Garantie du Premier Coup\n"
 "Moins de surveillance, une production plus prévisible. Exemple : une petite exploitation agricole produisant des pièces en PETG évite les mauvaises surprises \"panne au bout de 6 h\" et respecte les délais de production."
+
+#~ msgid "Timing belt artifacts compensation"
+#~ msgstr "Compensation des artefacts de courroie"
 
 #~ msgid "right extruder"
 #~ msgstr "extrudeur droit"

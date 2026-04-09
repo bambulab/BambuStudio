@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-07 20:42+0800\n"
+"POT-Creation-Date: 2026-04-09 11:33+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -4351,9 +4351,6 @@ msgstr "Extrudering före utskrift"
 msgid "Preparing AMS"
 msgstr "Förbereder AMS"
 
-msgid "Timing belt artifacts compensation"
-msgstr "Kompensation för kamrems artefakter"
-
 msgid "Timelapse is not supported on this printer."
 msgstr "Timelapse stöds inte på den här printern."
 
@@ -5020,21 +5017,15 @@ msgstr "Översikt"
 msgid "Select Plate"
 msgstr "Välj Byggplatta"
 
-msgid "RenderAssemblyViewThumb"
-msgstr "RenderingMonteringVisaMiniatyr"
-
-msgid "Change assemble view preview"
-msgstr "Ändra förhandsgranskning av monterings vy"
+msgid "Change camera perspective"
+msgstr ""
 
 msgid "Go to Wiki"
 msgstr "Gå till Wiki"
 
-msgid "Note:Only the main assembly body is shown here.unassembled objects are hidden."
-msgstr "Obs: Endast huvuddelen av monteringen visas här. Omonterade objekt är dolda."
-
 #, boost-format
-msgid "Current assembly rate: %1%%%"
-msgstr "Nuvarande monterings hastighet: %1%%%"
+msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
+msgstr ""
 
 msgctxt "Camera"
 msgid "Top"
@@ -5055,9 +5046,6 @@ msgstr "Tillbaka"
 msgctxt "Camera"
 msgid "Isometric"
 msgstr "Isometrisk"
-
-msgid "AssemblyViewPreviewMenu"
-msgstr "MonteringsVyFörhandsvisningsMeny"
 
 msgid "Assembly Return"
 msgstr "Monterings retur"
@@ -5098,8 +5086,8 @@ msgstr "Volym:"
 msgid "Size:"
 msgstr "Storlek:"
 
-msgid "Assembly view: isolated objects detected"
-msgstr "Monterings vy: isolerade objekt upptäckta"
+msgid "Overview:isolated objects detected"
+msgstr ""
 
 msgid "Click to move them closer to the main body."
 msgstr "Klicka för att flytta dem närmare huvuddelen."
@@ -6878,6 +6866,12 @@ msgstr "Detektion av främmande föremål"
 msgid "Checks for any objects on the build plate at the start of a print to avoid collisions."
 msgstr "Kontrollerar om det finns några föremål på byggplattan i början av en utskrift för att undvika kollisioner."
 
+msgid "Printed Part Displacement Detection"
+msgstr ""
+
+msgid "Monitors the printed part during printing and alerts immediately if it shifts or collapses."
+msgstr ""
+
 msgid "Ensures the build plate type and placement are correct."
 msgstr "Säkerställer att byggplattans typ och att placering är korrekt."
 
@@ -8251,14 +8245,8 @@ msgstr "Kom ihåg det senast använda färgschemat"
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr "När aktiverad, kommer den senast använda färgschemat (t.ex., linjetyp, hastighet) att tillämpas automatiskt vid nästa start."
 
-msgid "Always show"
-msgstr "Visa alltid"
-
-msgid "Always hide"
-msgstr "Dölj alltid"
-
-msgid "Identify and display overview"
-msgstr "Identifiera och visa översikt"
+msgid "Display overview"
+msgstr ""
 
 msgid "Show assembly BVH primary bounds"
 msgstr "Visa BVH primär gränser för montering"
@@ -17240,6 +17228,37 @@ msgid ""
 msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
+
+#~ msgid "Timing belt artifacts compensation"
+#~ msgstr "Kompensation för kamrems artefakter"
+
+#~ msgid "RenderAssemblyViewThumb"
+#~ msgstr "RenderingMonteringVisaMiniatyr"
+
+#~ msgid "Change assemble view preview"
+#~ msgstr "Ändra förhandsgranskning av monterings vy"
+
+#~ msgid "Note:Only the main assembly body is shown here.unassembled objects are hidden."
+#~ msgstr "Obs: Endast huvuddelen av monteringen visas här. Omonterade objekt är dolda."
+
+#, boost-format
+#~ msgid "Current assembly rate: %1%%%"
+#~ msgstr "Nuvarande monterings hastighet: %1%%%"
+
+#~ msgid "AssemblyViewPreviewMenu"
+#~ msgstr "MonteringsVyFörhandsvisningsMeny"
+
+#~ msgid "Assembly view: isolated objects detected"
+#~ msgstr "Monterings vy: isolerade objekt upptäckta"
+
+#~ msgid "Always show"
+#~ msgstr "Visa alltid"
+
+#~ msgid "Always hide"
+#~ msgstr "Dölj alltid"
+
+#~ msgid "Identify and display overview"
+#~ msgstr "Identifiera och visa översikt"
 
 #~ msgid "right extruder"
 #~ msgstr "höger extruder"

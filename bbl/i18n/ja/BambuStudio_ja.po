@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-07 20:42+0800\n"
+"POT-Creation-Date: 2026-04-09 11:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4335,9 +4335,6 @@ msgstr "造形前の予備押出し"
 msgid "Preparing AMS"
 msgstr "AMSを準備中"
 
-msgid "Timing belt artifacts compensation"
-msgstr "タイミングベルトによるアーティファクト補正"
-
 msgid "Timelapse is not supported on this printer."
 msgstr "このプリンタではタイムラプスはサポートされていません。"
 
@@ -5003,21 +5000,15 @@ msgstr "概要"
 msgid "Select Plate"
 msgstr "プレートを選択"
 
-msgid "RenderAssemblyViewThumb"
-msgstr "アセンブリビューサムネイル生成"
-
-msgid "Change assemble view preview"
-msgstr "アセンブリ表示プレビューを変更"
+msgid "Change camera perspective"
+msgstr ""
 
 msgid "Go to Wiki"
 msgstr "Wikiへ移動"
 
-msgid "Note:Only the main assembly body is shown here.unassembled objects are hidden."
-msgstr "注：ここではメインのアセンブリ本体のみ表示され、未組立のオブジェクトは非表示になります。"
-
 #, boost-format
-msgid "Current assembly rate: %1%%%"
-msgstr "現在の組み立て率：%1%%%"
+msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
+msgstr ""
 
 msgctxt "Camera"
 msgid "Top"
@@ -5038,9 +5029,6 @@ msgstr "背面"
 msgctxt "Camera"
 msgid "Isometric"
 msgstr "アイソメトリック図"
-
-msgid "AssemblyViewPreviewMenu"
-msgstr "アセンブリビュープレビューメニュー"
 
 msgid "Assembly Return"
 msgstr "戻る"
@@ -5081,8 +5069,8 @@ msgstr "ボリューム"
 msgid "Size:"
 msgstr "サイズ:"
 
-msgid "Assembly view: isolated objects detected"
-msgstr "アセンブリビュー：孤立したオブジェクトが検出されました"
+msgid "Overview:isolated objects detected"
+msgstr ""
 
 msgid "Click to move them closer to the main body."
 msgstr "クリックしてメイン本体の近くに移動します。"
@@ -6839,6 +6827,12 @@ msgstr "異物検出"
 msgid "Checks for any objects on the build plate at the start of a print to avoid collisions."
 msgstr "造形開始時にビルドプレート上の異物を検知し、衝突を防ぎます。"
 
+msgid "Printed Part Displacement Detection"
+msgstr ""
+
+msgid "Monitors the printed part during printing and alerts immediately if it shifts or collapses."
+msgstr ""
+
 msgid "Ensures the build plate type and placement are correct."
 msgstr "ビルドプレートの種類と位置が正しいことを確認します。"
 
@@ -8205,14 +8199,8 @@ msgstr "最後に使用したカラースキームを記憶する"
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr "有効にすると、前回使用したカラースキーム（例：ラインタイプ、速度）が次回起動時に自動で適用されます。"
 
-msgid "Always show"
-msgstr "常に表示"
-
-msgid "Always hide"
-msgstr "常に非表示"
-
-msgid "Identify and display overview"
-msgstr "識別して概要を表示"
+msgid "Display overview"
+msgstr ""
 
 msgid "Show assembly BVH primary bounds"
 msgstr "アセンブリのBVH主要バウンディングを表示"
@@ -17198,6 +17186,37 @@ msgid ""
 msgstr ""
 "一発成功の信頼性\n"
 "見守りの手間を減らし、より予測可能な造形を実現。例：PETG 部品を小規模ファームで運用する場合でも、「6時間目で失敗」といった不意打ちを避け、バッチを計画どおりに進められます。"
+
+#~ msgid "Timing belt artifacts compensation"
+#~ msgstr "タイミングベルトによるアーティファクト補正"
+
+#~ msgid "RenderAssemblyViewThumb"
+#~ msgstr "アセンブリビューサムネイル生成"
+
+#~ msgid "Change assemble view preview"
+#~ msgstr "アセンブリ表示プレビューを変更"
+
+#~ msgid "Note:Only the main assembly body is shown here.unassembled objects are hidden."
+#~ msgstr "注：ここではメインのアセンブリ本体のみ表示され、未組立のオブジェクトは非表示になります。"
+
+#, boost-format
+#~ msgid "Current assembly rate: %1%%%"
+#~ msgstr "現在の組み立て率：%1%%%"
+
+#~ msgid "AssemblyViewPreviewMenu"
+#~ msgstr "アセンブリビュープレビューメニュー"
+
+#~ msgid "Assembly view: isolated objects detected"
+#~ msgstr "アセンブリビュー：孤立したオブジェクトが検出されました"
+
+#~ msgid "Always show"
+#~ msgstr "常に表示"
+
+#~ msgid "Always hide"
+#~ msgstr "常に非表示"
+
+#~ msgid "Identify and display overview"
+#~ msgstr "識別して概要を表示"
 
 #~ msgid "right extruder"
 #~ msgstr "右押出機"

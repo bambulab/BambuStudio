@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-07 20:42+0800\n"
+"POT-Creation-Date: 2026-04-09 11:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -4316,9 +4316,6 @@ msgstr ""
 msgid "Preparing AMS"
 msgstr ""
 
-msgid "Timing belt artifacts compensation"
-msgstr ""
-
 msgid "Timelapse is not supported on this printer."
 msgstr "Таймлапс не підтримується цим принтером."
 
@@ -4983,20 +4980,14 @@ msgstr ""
 msgid "Select Plate"
 msgstr "Вибір столу"
 
-msgid "RenderAssemblyViewThumb"
-msgstr ""
-
-msgid "Change assemble view preview"
+msgid "Change camera perspective"
 msgstr ""
 
 msgid "Go to Wiki"
 msgstr ""
 
-msgid "Note:Only the main assembly body is shown here.unassembled objects are hidden."
-msgstr ""
-
 #, boost-format
-msgid "Current assembly rate: %1%%%"
+msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
 msgstr ""
 
 msgctxt "Camera"
@@ -5017,9 +5008,6 @@ msgstr ""
 
 msgctxt "Camera"
 msgid "Isometric"
-msgstr ""
-
-msgid "AssemblyViewPreviewMenu"
 msgstr ""
 
 msgid "Assembly Return"
@@ -5061,7 +5049,7 @@ msgstr "Об'єм:"
 msgid "Size:"
 msgstr "Розмір:"
 
-msgid "Assembly view: isolated objects detected"
+msgid "Overview:isolated objects detected"
 msgstr ""
 
 msgid "Click to move them closer to the main body."
@@ -6831,6 +6819,12 @@ msgstr ""
 msgid "Checks for any objects on the build plate at the start of a print to avoid collisions."
 msgstr ""
 
+msgid "Printed Part Displacement Detection"
+msgstr ""
+
+msgid "Monitors the printed part during printing and alerts immediately if it shifts or collapses."
+msgstr ""
+
 msgid "Ensures the build plate type and placement are correct."
 msgstr ""
 
@@ -8156,13 +8150,7 @@ msgstr ""
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr ""
 
-msgid "Always show"
-msgstr ""
-
-msgid "Always hide"
-msgstr ""
-
-msgid "Identify and display overview"
+msgid "Display overview"
 msgstr ""
 
 msgid "Show assembly BVH primary bounds"

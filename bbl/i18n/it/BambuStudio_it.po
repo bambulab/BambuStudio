@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-07 20:42+0800\n"
+"POT-Creation-Date: 2026-04-09 11:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -29,70 +29,70 @@ msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Modello filamento sconosciuto. Verrà utilizzato un preset filamento casuale."
 
 msgid "Main Extruder"
-msgstr ""
+msgstr "Estrusore Principale"
 
 msgid "Main extruder"
-msgstr ""
+msgstr "Estrusore principale"
 
 msgid "main extruder"
-msgstr ""
+msgstr "estrusore principale"
 
 msgid "Auxiliary Extruder"
-msgstr ""
+msgstr "Estrusore Ausiliario"
 
 msgid "Auxiliary extruder"
-msgstr ""
+msgstr "Estrusore ausiliario"
 
 msgid "auxiliary extruder"
-msgstr ""
+msgstr "estrusore ausiliario"
 
 msgid "Main Nozzle"
-msgstr ""
+msgstr "Nozzle Principale"
 
 msgid "Main nozzle"
-msgstr ""
+msgstr "Nozzle principale"
 
 msgid "main nozzle"
-msgstr ""
+msgstr "nozzle principale"
 
 msgid "Auxiliary Nozzle"
-msgstr ""
+msgstr "Nozzle Ausiliario"
 
 msgid "Auxiliary nozzle"
-msgstr ""
+msgstr "Nozzle ausiliario"
 
 msgid "auxiliary nozzle"
-msgstr ""
+msgstr "nozzle ausiliario"
 
 msgid "Main Hotend"
-msgstr ""
+msgstr "Hotend Principale"
 
 msgid "Main hotend"
-msgstr ""
+msgstr "Hotend principale"
 
 msgid "main hotend"
-msgstr ""
+msgstr "hotend principale"
 
 msgid "Auxiliary Hotend"
-msgstr ""
+msgstr "Hotend Ausiliario"
 
 msgid "Auxiliary hotend"
-msgstr ""
+msgstr "Hotend ausiliario"
 
 msgid "auxiliary hotend"
-msgstr ""
+msgstr "hotend ausiliario"
 
 msgid "main"
-msgstr ""
+msgstr "principale"
 
 msgid "auxiliary"
-msgstr ""
+msgstr "ausiliario"
 
 msgid "Main"
-msgstr ""
+msgstr "Principale"
 
 msgid "Auxiliary"
-msgstr "Auxiliary"
+msgstr "Ausiliario"
 
 msgid "extruder"
 msgstr "estrusore"
@@ -3440,7 +3440,7 @@ msgstr "Inserisci un valore valido (K in %.1f ~%.1f, N in %.1f ~%.1f)"
 
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
-msgstr ""
+msgstr "Nota: Il numero del hotend su %s è collegato al supporto. Quando un hotend viene spostato su un nuovo supporto, il suo numero verrà aggiornato automaticamente."
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -3555,7 +3555,7 @@ msgstr "Seleziona tra i seguenti filamenti"
 
 #, c-format, boost-format
 msgid "Select filament that installed to the %s"
-msgstr ""
+msgstr "Seleziona il filamento installato su %s"
 
 msgid "Left AMS"
 msgstr "AMS sinistro"
@@ -3672,7 +3672,7 @@ msgstr "Nozzle Sinistro"
 
 #, c-format, boost-format
 msgid "Please select the filament installed on the %s."
-msgstr ""
+msgstr "Seleziona il filamento installato su %s."
 
 msgid "right nozzle"
 msgstr "Nozzle destro"
@@ -4046,6 +4046,11 @@ msgid ""
 "Yes - Enable Arachne wall generator\n"
 "No - Keep current wall generator and set fuzzy skin to [Displacement] mode"
 msgstr ""
+"Le modalità [Extrusion] e [Combined] di Fuzzy skin richiedono il generatore di pareti Arachne.\n"
+"\n"
+"Vuoi modificare queste impostazioni automaticamente?\n"
+"Sì - Abilita il generatore di pareti Arachne\n"
+"No - Mantieni il generatore di pareti corrente e imposta Fuzzy skin sulla modalità [Displacement]"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support Layer Height is on.\n"
@@ -4322,40 +4327,37 @@ msgid "Purifying the chamber air"
 msgstr "Purificazione aria camera"
 
 msgid "Measuring Rotary Attachment"
-msgstr ""
+msgstr "Misurazione Modulo Rotante"
 
 msgid "The toolhead moves above the purge chute"
-msgstr ""
+msgstr "La testa di stampa si sposta sopra lo scivolo di spurgo"
 
 msgid "Cooling down the nozzle"
-msgstr ""
+msgstr "Raffreddamento del nozzle"
 
 msgid "The toolhead moves to the center of the heatbed"
-msgstr ""
+msgstr "La testa di stampa si sposta al centro del piano"
 
 msgid "Active Arc Fitting"
-msgstr ""
+msgstr "Ottimizza Archi"
 
 msgid "Hotend Type Detection"
-msgstr ""
+msgstr "Rilevamento Tipo Hotend"
 
 msgid "Build plate alignment detection"
-msgstr ""
+msgstr "Rilevamento allineamento piatto"
 
 msgid "Heatbed surface foreign object detection"
-msgstr ""
+msgstr "Rilevamento oggetti estranei sulla superficie del piano"
 
 msgid "Heatbed underside foreign object detection"
-msgstr ""
+msgstr "Rilevamento oggetti estranei sul lato inferiore del piano"
 
 msgid "Pre-extrusion before printing"
-msgstr ""
+msgstr "Pre-estrusione prima della stampa"
 
 msgid "Preparing AMS"
 msgstr "Preparazione AMS"
-
-msgid "Timing belt artifacts compensation"
-msgstr "Compensazione artefatti cinghia"
 
 msgid "Timelapse is not supported on this printer."
 msgstr "Timelapse non supportato su questa stampante."
@@ -4462,7 +4464,7 @@ msgid "Disable Purification for This Print"
 msgstr "Disabilita Purificazione per questa stampa"
 
 msgid "Don't Remind Me"
-msgstr ""
+msgstr "Non Ricordarmelo"
 
 msgid "Done"
 msgstr "Fine"
@@ -5016,25 +5018,19 @@ msgid "Click to Collapse"
 msgstr "Clicca per Chiudere"
 
 msgid "Overview"
-msgstr ""
+msgstr "Panoramica"
 
 msgid "Select Plate"
 msgstr "Seleziona piatto"
 
-msgid "RenderAssemblyViewThumb"
-msgstr ""
-
-msgid "Change assemble view preview"
-msgstr ""
+msgid "Change camera perspective"
+msgstr "Cambia prospettiva telecamera"
 
 msgid "Go to Wiki"
-msgstr ""
-
-msgid "Note:Only the main assembly body is shown here.unassembled objects are hidden."
-msgstr ""
+msgstr "Vai alla Wiki"
 
 #, boost-format
-msgid "Current assembly rate: %1%%%"
+msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
 msgstr ""
 
 msgctxt "Camera"
@@ -5056,9 +5052,6 @@ msgstr "Posteriore"
 msgctxt "Camera"
 msgid "Isometric"
 msgstr "Isometrica"
-
-msgid "AssemblyViewPreviewMenu"
-msgstr ""
 
 msgid "Assembly Return"
 msgstr "Ritorna al montaggio"
@@ -5099,20 +5092,20 @@ msgstr "Volume:"
 msgid "Size:"
 msgstr "Dimensioni:"
 
-msgid "Assembly view: isolated objects detected"
-msgstr ""
+msgid "Overview:isolated objects detected"
+msgstr "Panoramica: oggetti isolati rilevati"
 
 msgid "Click to move them closer to the main body."
-msgstr ""
+msgstr "Clicca per avvicinarli al corpo principale."
 
 msgid "Move closer"
-msgstr ""
+msgstr "Avvicina"
 
 msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"
 msgstr ""
 
 msgid "Reset to origin"
-msgstr ""
+msgstr "Ripristina origine"
 
 #, c-format, boost-format
 msgid "Conflicts of gcode paths have been found at layer %d. Please separate the conflicted objects farther (%s <-> %s)."
@@ -6873,6 +6866,12 @@ msgstr "Rilevamento Oggetti Estranei"
 msgid "Checks for any objects on the build plate at the start of a print to avoid collisions."
 msgstr "Controlla la presenza di oggetti sul piatto all’inizio della stampa per evitare collisioni."
 
+msgid "Printed Part Displacement Detection"
+msgstr "Rileva Spostamento Pezzo Stampato"
+
+msgid "Monitors the printed part during printing and alerts immediately if it shifts or collapses."
+msgstr "Monitora il pezzo stampato durante la stampa e avvisa immediatamente  in caso di spostamento o caduta."
+
 msgid "Ensures the build plate type and placement are correct."
 msgstr "Garantisce che il tipo e il posizionamento del piatto di stampa siano corretti."
 
@@ -7111,12 +7110,12 @@ msgid ""
 "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
 "Please confirm which nozzle you would like to use for this project."
 msgstr ""
-"Il software non supporta l’uso di nozzle con diametri diversi per una singola stampa.\n"
-"Se i nozzle sinistro e destro non sono coerenti, è possibile procedere solo con la stampa a testa singola.\n"
+"Il software non supporta l'utilizzo di nozzle di diametro diverso per una singola stampa.\n"
+"Se i nozzle sinistro e destro sono diversi, è possibile procedere solo con la stampa a testa singola.\n"
 "Conferma quale nozzle desideri utilizzare per questo progetto."
 
 msgid "Switch diameter"
-msgstr "Cambio diametro"
+msgstr "Cambia diametro"
 
 #, c-format, boost-format
 msgid "Left nozzle: %smm"
@@ -8248,13 +8247,7 @@ msgstr "Ricorda l'ultima combinazione di colori utilizzata"
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr "Una volta attivata, l’ultima combinazione di colori utilizzata (es. Tipo di linea, Velocità) verrà applicata automaticamente al prossimo avvio."
 
-msgid "Always show"
-msgstr ""
-
-msgid "Always hide"
-msgstr ""
-
-msgid "Identify and display overview"
+msgid "Display overview"
 msgstr ""
 
 msgid "Show assembly BVH primary bounds"
@@ -17235,6 +17228,9 @@ msgid ""
 msgstr ""
 "Affidabilità al Primo Tentativo\n"
 "Meno supervisione, risultati più prevedibili. Ad esempio: una piccola produzione che stampa parti in PETG evita sorprese tipo \"fallimento alla sesta ora\" e mantiene i lotti nei tempi previsti."
+
+#~ msgid "Timing belt artifacts compensation"
+#~ msgstr "Compensazione artefatti cinghia"
 
 #~ msgid "right extruder"
 #~ msgstr "estrusore destro"

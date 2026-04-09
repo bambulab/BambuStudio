@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-07 20:42+0800\n"
+"POT-Creation-Date: 2026-04-09 11:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4333,9 +4333,6 @@ msgstr ""
 msgid "Preparing AMS"
 msgstr "AMS előkészítése"
 
-msgid "Timing belt artifacts compensation"
-msgstr "Szíjhibák kompenzálása"
-
 msgid "Timelapse is not supported on this printer."
 msgstr "A timelapse funkció nem támogatott ezen a nyomtatón."
 
@@ -5002,20 +4999,14 @@ msgstr ""
 msgid "Select Plate"
 msgstr "Tálca kiválasztása"
 
-msgid "RenderAssemblyViewThumb"
-msgstr ""
-
-msgid "Change assemble view preview"
+msgid "Change camera perspective"
 msgstr ""
 
 msgid "Go to Wiki"
 msgstr ""
 
-msgid "Note:Only the main assembly body is shown here.unassembled objects are hidden."
-msgstr ""
-
 #, boost-format
-msgid "Current assembly rate: %1%%%"
+msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
 msgstr ""
 
 msgctxt "Camera"
@@ -5037,9 +5028,6 @@ msgstr "Hátul"
 msgctxt "Camera"
 msgid "Isometric"
 msgstr "Izometrikus"
-
-msgid "AssemblyViewPreviewMenu"
-msgstr ""
 
 msgid "Assembly Return"
 msgstr "Vissza az összeszereléshez"
@@ -5080,7 +5068,7 @@ msgstr "Térfogat:"
 msgid "Size:"
 msgstr "Méret:"
 
-msgid "Assembly view: isolated objects detected"
+msgid "Overview:isolated objects detected"
 msgstr ""
 
 msgid "Click to move them closer to the main body."
@@ -6860,6 +6848,12 @@ msgstr "Idegen tárgy észlelése"
 msgid "Checks for any objects on the build plate at the start of a print to avoid collisions."
 msgstr "A nyomtatás kezdetén ellenőrzi, hogy nincsenek-e tárgyak a nyomtatótálcán az ütközések elkerülése érdekében."
 
+msgid "Printed Part Displacement Detection"
+msgstr ""
+
+msgid "Monitors the printed part during printing and alerts immediately if it shifts or collapses."
+msgstr ""
+
 msgid "Ensures the build plate type and placement are correct."
 msgstr "Biztosítja, hogy a tálca típusa és elhelyezése megfelelő legyen."
 
@@ -8232,13 +8226,7 @@ msgstr "Emlékezzen az utoljára használt színsémára"
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr "Ha engedélyezve van, a legutóbb használt színséma (pl. vonaltípus, sebesség) kerül automatikusan alkalmazásra a következő indításkor."
 
-msgid "Always show"
-msgstr ""
-
-msgid "Always hide"
-msgstr ""
-
-msgid "Identify and display overview"
+msgid "Display overview"
 msgstr ""
 
 msgid "Show assembly BVH primary bounds"
@@ -17213,6 +17201,9 @@ msgid ""
 msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
+
+#~ msgid "Timing belt artifacts compensation"
+#~ msgstr "Szíjhibák kompenzálása"
 
 #~ msgid "right extruder"
 #~ msgstr "jobb extruder"

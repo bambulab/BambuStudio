@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-07 20:42+0800\n"
+"POT-Creation-Date: 2026-04-09 11:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4328,9 +4328,6 @@ msgstr ""
 msgid "Preparing AMS"
 msgstr "준비 중"
 
-msgid "Timing belt artifacts compensation"
-msgstr "타이밍 벨트 아티팩트 보정"
-
 msgid "Timelapse is not supported on this printer."
 msgstr "이 프린터에서는 타임랩스가 지원되지 않습니다."
 
@@ -4997,20 +4994,14 @@ msgstr ""
 msgid "Select Plate"
 msgstr "빌드 플레이트 선택"
 
-msgid "RenderAssemblyViewThumb"
-msgstr ""
-
-msgid "Change assemble view preview"
+msgid "Change camera perspective"
 msgstr ""
 
 msgid "Go to Wiki"
 msgstr ""
 
-msgid "Note:Only the main assembly body is shown here.unassembled objects are hidden."
-msgstr ""
-
 #, boost-format
-msgid "Current assembly rate: %1%%%"
+msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
 msgstr ""
 
 msgctxt "Camera"
@@ -5032,9 +5023,6 @@ msgstr ""
 msgctxt "Camera"
 msgid "Isometric"
 msgstr "아이소메트릭"
-
-msgid "AssemblyViewPreviewMenu"
-msgstr ""
 
 msgid "Assembly Return"
 msgstr "이전으로 돌아가기"
@@ -5075,7 +5063,7 @@ msgstr "체적:"
 msgid "Size:"
 msgstr "크기:"
 
-msgid "Assembly view: isolated objects detected"
+msgid "Overview:isolated objects detected"
 msgstr ""
 
 msgid "Click to move them closer to the main body."
@@ -6848,6 +6836,12 @@ msgstr "이물질 감지"
 msgid "Checks for any objects on the build plate at the start of a print to avoid collisions."
 msgstr "출력 시작 시 빌드 플레이트에 물체가 있는지 확인하여 충돌을 방지합니다."
 
+msgid "Printed Part Displacement Detection"
+msgstr ""
+
+msgid "Monitors the printed part during printing and alerts immediately if it shifts or collapses."
+msgstr ""
+
 msgid "Ensures the build plate type and placement are correct."
 msgstr "빌드 플레이트의 유형과 배치가 올바른지 확인하세요."
 
@@ -8223,13 +8217,7 @@ msgstr "마지막으로 사용한 색상 구성 기억하기"
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr "활성화하면 마지막으로 사용한 색상 구성(예: Line Type, 속도)이 다음 시작 시 자동으로 적용됩니다."
 
-msgid "Always show"
-msgstr ""
-
-msgid "Always hide"
-msgstr ""
-
-msgid "Identify and display overview"
+msgid "Display overview"
 msgstr ""
 
 msgid "Show assembly BVH primary bounds"
@@ -17204,6 +17192,9 @@ msgid ""
 msgstr ""
 "첫 시도 성공 신뢰성\n"
 "관리 부담 감소, 예측 가능한 생산량 증가. 예: PETG 부품을 생산하는 소규모 농장은 '6시간 후 실패'와 같은 예상치 못한 문제 발생을 방지하고 생산 일정을 준수할 수 있습니다."
+
+#~ msgid "Timing belt artifacts compensation"
+#~ msgstr "타이밍 벨트 아티팩트 보정"
 
 #~ msgid "right extruder"
 #~ msgstr "오른쪽 압출기"

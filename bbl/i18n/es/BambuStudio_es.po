@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-07 20:42+0800\n"
+"POT-Creation-Date: 2026-04-09 11:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4354,9 +4354,6 @@ msgstr "Preextrusión antes de la impresión"
 msgid "Preparing AMS"
 msgstr "Preparación de AMS"
 
-msgid "Timing belt artifacts compensation"
-msgstr "Compensación de los artefactos de la correa de distribución"
-
 msgid "Timelapse is not supported on this printer."
 msgstr "Esta impresora no admite Timelapse."
 
@@ -5023,21 +5020,15 @@ msgstr "Resumen"
 msgid "Select Plate"
 msgstr "Seleccione la placa"
 
-msgid "RenderAssemblyViewThumb"
-msgstr "Renderizar miniatura de vista de ensamblaje"
-
-msgid "Change assemble view preview"
-msgstr "Cambiar a vista previa de ensamblaje"
+msgid "Change camera perspective"
+msgstr ""
 
 msgid "Go to Wiki"
 msgstr "Ir a la wiki"
 
-msgid "Note:Only the main assembly body is shown here.unassembled objects are hidden."
-msgstr "Nota: Aquí solo se muestra el cuerpo principal del conjunto. Los objetos sin ensamblar están ocultos."
-
 #, boost-format
-msgid "Current assembly rate: %1%%%"
-msgstr "Tasa de ensamblaje actual: %1%%%"
+msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
+msgstr ""
 
 msgctxt "Camera"
 msgid "Top"
@@ -5058,9 +5049,6 @@ msgstr "Volver"
 msgctxt "Camera"
 msgid "Isometric"
 msgstr "Isométrico"
-
-msgid "AssemblyViewPreviewMenu"
-msgstr "Menu de la vista previa del ensamblaje"
 
 msgid "Assembly Return"
 msgstr "Volver a montar"
@@ -5101,8 +5089,8 @@ msgstr "Volumen:"
 msgid "Size:"
 msgstr "Tamaño:"
 
-msgid "Assembly view: isolated objects detected"
-msgstr "Vista del ensamblaje: se han detectado objetos aislados"
+msgid "Overview:isolated objects detected"
+msgstr ""
 
 msgid "Click to move them closer to the main body."
 msgstr "Haga clic para acercarlos al cuerpo principal."
@@ -6881,6 +6869,12 @@ msgstr "Detección de objetos extraños"
 msgid "Checks for any objects on the build plate at the start of a print to avoid collisions."
 msgstr "Comprueba si hay objetos en la placa de construcción al comenzar una impresión para evitar colisiones."
 
+msgid "Printed Part Displacement Detection"
+msgstr ""
+
+msgid "Monitors the printed part during printing and alerts immediately if it shifts or collapses."
+msgstr ""
+
 msgid "Ensures the build plate type and placement are correct."
 msgstr "Garantice que el tipo y la colocación de la placa de construcción sean correctos."
 
@@ -8258,14 +8252,8 @@ msgstr "Recordar el último esquema de colores utilizado"
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr "Cuando está habilitado, el último esquema de color utilizado (por ejemplo, Tipo de línea, Velocidad) se aplicará automáticamente en el próximo inicio."
 
-msgid "Always show"
-msgstr "Mostrar siempre"
-
-msgid "Always hide"
-msgstr "Ocultar siempre"
-
-msgid "Identify and display overview"
-msgstr "Identificar y mostrar la descripción general"
+msgid "Display overview"
+msgstr ""
 
 msgid "Show assembly BVH primary bounds"
 msgstr "Mostrar los límites primarios del ensamblaje BVH"
@@ -8922,16 +8910,16 @@ msgid "Insufficient external storage for time-lapse photography. Connect to comp
 msgstr "El almacenamiento externo es insuficiente para la fotografía timelapse. Conéctelo al ordenador para borrar archivos o utilice una tarjeta de memoria de mayor capacidad."
 
 msgid "Storage Space Not Enough"
-msgstr ""
+msgstr "Espacio de almacenamiento insuficiente"
 
 msgid "Confirm & Print"
-msgstr ""
+msgstr "Confirmar e imprimir"
 
 msgid "Cancel Timelapse & Print"
-msgstr ""
+msgstr "Cancelar el timelapse e imprimir"
 
 msgid "Clean Up"
-msgstr ""
+msgstr "Limpiar"
 
 msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr "Automático: Si el filamento/boquilla del extrusor principal no ha cambiado, se reutilizará el último valor de calibración. El extrusor auxiliar utilizará el valor predeterminado del sistema."
@@ -9058,7 +9046,7 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It
 msgstr "La dureza del material actual (%s) supera la dureza de %s (%s). Esto podría causar desgaste en la boquilla, lo que provocaría fugas de material y un flujo inestable. Tenga cuidado al usarlo."
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
-msgstr ""
+msgstr "Es posible que algunos filamentos cambien de extrusor durante la impresión. La calibración manual del valor K no se puede aplicar durante toda la impresión, lo que puede afectar la calidad de impresión. Se recomienda activar la calibración de dinámica de flujo."
 
 msgid "Cool"
 msgstr "Genial"
@@ -9161,7 +9149,7 @@ msgstr "Intente conectarse"
 
 msgctxt "sendtoprint"
 msgid "Cache"
-msgstr ""
+msgstr "Caché"
 
 msgctxt "sendtoprint"
 msgid "External"
@@ -9648,19 +9636,19 @@ msgid "Part cooling fan"
 msgstr "Ventilador de refrigeración de piezas"
 
 msgid "Initial layer fan"
-msgstr ""
+msgstr "Ventilador de la capa inicial"
 
 msgid "Set the part cooling fan speed for the first few layers. Set to 0 to keep the fan off for better bed adhesion"
-msgstr ""
+msgstr "Ajuste la velocidad del ventilador de enfriamiento de la pieza para las primeras capas. Ajústela a 0 para mantener el ventilador apagado y lograr una mejor adherencia a la cama"
 
 msgid "Linear ramp up to"
-msgstr ""
+msgstr "Incremento lineal hasta"
 
 msgid "Fan speed will linearly increase from the initial layer speed to the layer-time-based speed over the specified number of layers"
-msgstr ""
+msgstr "La velocidad del ventilador aumentará linealmente desde la velocidad de capa inicial hasta la velocidad basada en el tiempo de capa durante el número de capas especificado"
 
 msgid "At"
-msgstr ""
+msgstr "En"
 
 msgid "layers"
 msgstr "capas"
@@ -9681,19 +9669,19 @@ msgid "Auxiliary part cooling fan"
 msgstr "Ventilador de la parte auxiliar"
 
 msgid "Set the auxiliary fan speed for the first few layers"
-msgstr ""
+msgstr "Ajuste la velocidad del ventilador auxiliar para las primeras capas"
 
 msgid "Linear ramp up"
-msgstr ""
+msgstr "Incremento lineal"
 
 msgid "Auxiliary fan speed will linearly increase from the initial layer speed to the target speed over the specified number of layers"
-msgstr ""
+msgstr "La velocidad del ventilador auxiliar aumentará linealmente desde la velocidad de la capa inicial hasta el objetivo de velocidad a lo largo del número de capas especificado"
 
 msgid "At layer"
-msgstr ""
+msgstr "En la capa"
 
 msgid "ramp up to"
-msgstr ""
+msgstr "incrementar hasta"
 
 msgid "Exhaust fan"
 msgstr "Ventilador de escape"
@@ -9845,11 +9833,11 @@ msgstr "Copiar parámetros"
 
 #, c-format, boost-format
 msgid "Modify paramters of %s"
-msgstr ""
+msgstr "Modificar parámetros de %s"
 
 #, c-format, boost-format
 msgid "Do you want to modify the following parameters of the %s to that of the %s?"
-msgstr ""
+msgstr "¿Desea modificar los siguientes parámetros de %s para que coincidan con los de %s?"
 
 msgid "No available nozzles for current preset"
 msgstr "No hay boquillas disponibles para el ajuste preestablecido actual"
@@ -12145,7 +12133,7 @@ msgid "Set special cooling fan for the first certain layers.The part cooling fan
 msgstr "Configure un ventilador de capa especial para ciertas primeras capas. El ventilador de capa de la primera capa solía estar cerrado para lograr una mejor adhesión a la placa de construcción y se usaba para la función de enfriamiento automático"
 
 msgid "Part cooling fan speed for the first few layers. Set to 0 to disable the part cooling fan on the initial layers for better bed adhesion"
-msgstr ""
+msgstr "Velocidad del ventilador de enfriamiento de la pieza para las primeras capas. Establézcalo en 0 para desactivar el ventilador de enfriamiento de la pieza en las capas iniciales y así mejorar la adherencia a la cama"
 
 msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
 msgstr "Velocidad especial del ventilador auxiliar de enfriamiento, efectiva solo para las primeras x capas"
@@ -12618,19 +12606,19 @@ msgid "Support material is commonly used to print support and support interface"
 msgstr "El material de soporte se utiliza habitualmente para imprimir el soporte y interficies de soporte"
 
 msgid "Is mixed filament"
-msgstr ""
+msgstr "Este filamento es mixto"
 
 msgid "Whether this filament slot is a mixed filament composed of multiple physical filaments"
-msgstr ""
+msgstr "Si esta ranura de filamento es un filamento mixto compuesto por múltiples filamentos físicos"
 
 msgid "Mixed filament components"
-msgstr ""
+msgstr "Componentes de filamento mixto"
 
 msgid "Comma-separated 1-based indices of component filaments, e.g. \"1,3\""
-msgstr ""
+msgstr "Índices de filamentos componentes separados por comas, basados en 1, por ejemplo, \"1,3\""
 
 msgid "Mixed filament sublayer ratios"
-msgstr ""
+msgstr "Proporciones por subcapa del filamento mixto"
 
 msgid "Comma-separated ratio values summing to 1.0, e.g. \"0.7,0.3\""
 msgstr "Valores de razón separados por comas que suman 1,0, por ejemplo \"0,7,0,3\""
@@ -17244,6 +17232,37 @@ msgid ""
 msgstr ""
 "Fiabilidad a la primera\n"
 "Menos supervisión, resultados más predecibles. Ejemplo: una pequeña granja que procesa piezas de PETG evita sorpresas de \"fallo a la hora 6\" y mantiene los lotes según lo previsto."
+
+#~ msgid "Timing belt artifacts compensation"
+#~ msgstr "Compensación de los artefactos de la correa de distribución"
+
+#~ msgid "RenderAssemblyViewThumb"
+#~ msgstr "Renderizar miniatura de vista de ensamblaje"
+
+#~ msgid "Change assemble view preview"
+#~ msgstr "Cambiar a vista previa de ensamblaje"
+
+#~ msgid "Note:Only the main assembly body is shown here.unassembled objects are hidden."
+#~ msgstr "Nota: Aquí solo se muestra el cuerpo principal del conjunto. Los objetos sin ensamblar están ocultos."
+
+#, boost-format
+#~ msgid "Current assembly rate: %1%%%"
+#~ msgstr "Tasa de ensamblaje actual: %1%%%"
+
+#~ msgid "AssemblyViewPreviewMenu"
+#~ msgstr "Menu de la vista previa del ensamblaje"
+
+#~ msgid "Assembly view: isolated objects detected"
+#~ msgstr "Vista del ensamblaje: se han detectado objetos aislados"
+
+#~ msgid "Always show"
+#~ msgstr "Mostrar siempre"
+
+#~ msgid "Always hide"
+#~ msgstr "Ocultar siempre"
+
+#~ msgid "Identify and display overview"
+#~ msgstr "Identificar y mostrar la descripción general"
 
 #~ msgid "right extruder"
 #~ msgstr "extrusor derecho"

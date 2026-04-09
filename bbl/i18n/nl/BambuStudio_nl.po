@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-07 20:42+0800\n"
+"POT-Creation-Date: 2026-04-09 11:33+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4338,9 +4338,6 @@ msgstr "Voorextrusie voor het printen"
 msgid "Preparing AMS"
 msgstr "Voorbereiden AMS"
 
-msgid "Timing belt artifacts compensation"
-msgstr "Compensatie voor timingriem artefacten"
-
 msgid "Timelapse is not supported on this printer."
 msgstr "Timelapse wordt niet ondersteund op deze printer."
 
@@ -5007,21 +5004,15 @@ msgstr "Overzicht"
 msgid "Select Plate"
 msgstr "Printbed selecteren"
 
-msgid "RenderAssemblyViewThumb"
-msgstr ""
-
-msgid "Change assemble view preview"
+msgid "Change camera perspective"
 msgstr ""
 
 msgid "Go to Wiki"
 msgstr "Ga naar Wiki"
 
-msgid "Note:Only the main assembly body is shown here.unassembled objects are hidden."
-msgstr "Let op: alleen het hoofdgedeelte van de assemblage wordt hier weergegeven. Niet-geassembleerde onderdelen zijn verborgen."
-
 #, boost-format
-msgid "Current assembly rate: %1%%%"
-msgstr "Huidige assemblagepercentage: %1%%%"
+msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
+msgstr ""
 
 msgctxt "Camera"
 msgid "Top"
@@ -5042,9 +5033,6 @@ msgstr "Achterzijde"
 msgctxt "Camera"
 msgid "Isometric"
 msgstr "Isometrisch"
-
-msgid "AssemblyViewPreviewMenu"
-msgstr ""
 
 msgid "Assembly Return"
 msgstr "Montage terug"
@@ -5085,8 +5073,8 @@ msgstr "Volume:"
 msgid "Size:"
 msgstr "Maat:"
 
-msgid "Assembly view: isolated objects detected"
-msgstr "Assemblageweergave: geïsoleerde objecten gedetecteerd"
+msgid "Overview:isolated objects detected"
+msgstr ""
 
 msgid "Click to move them closer to the main body."
 msgstr "Klik om ze dichter naar het hoofdgedeelte te verplaatsen."
@@ -6865,6 +6853,12 @@ msgstr "Detectie van vreemde objecten"
 msgid "Checks for any objects on the build plate at the start of a print to avoid collisions."
 msgstr "Controleert aan het begin van een printopdracht of er objecten op de bouwplaat aanwezig zijn om botsingen te voorkomen."
 
+msgid "Printed Part Displacement Detection"
+msgstr ""
+
+msgid "Monitors the printed part during printing and alerts immediately if it shifts or collapses."
+msgstr ""
+
 msgid "Ensures the build plate type and placement are correct."
 msgstr "Zorgt ervoor dat het type en de plaatsing van het bouwoppervlak correct zijn."
 
@@ -8227,13 +8221,7 @@ msgstr "Laat laatste gebruikte kleurenschema onthouden"
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr "Wanneer ingeschakeld, wordt het laatst gebruikte kleurenschema (bijv. Lijntype, Snelheid) automatisch toegepast bij de volgende opstart."
 
-msgid "Always show"
-msgstr ""
-
-msgid "Always hide"
-msgstr ""
-
-msgid "Identify and display overview"
+msgid "Display overview"
 msgstr ""
 
 msgid "Show assembly BVH primary bounds"
@@ -17210,6 +17198,19 @@ msgid ""
 msgstr ""
 "Betrouwbaarheid in één keer goed\n"
 "Minder toezicht, voorspelbaardere output. Voorbeeld: een kleine boerderij die PETG-onderdelen produceert, voorkomt verrassingen zoals 'falen na 6 uur' en houdt batches op schema."
+
+#~ msgid "Timing belt artifacts compensation"
+#~ msgstr "Compensatie voor timingriem artefacten"
+
+#~ msgid "Note:Only the main assembly body is shown here.unassembled objects are hidden."
+#~ msgstr "Let op: alleen het hoofdgedeelte van de assemblage wordt hier weergegeven. Niet-geassembleerde onderdelen zijn verborgen."
+
+#, boost-format
+#~ msgid "Current assembly rate: %1%%%"
+#~ msgstr "Huidige assemblagepercentage: %1%%%"
+
+#~ msgid "Assembly view: isolated objects detected"
+#~ msgstr "Assemblageweergave: geïsoleerde objecten gedetecteerd"
 
 #~ msgid "right extruder"
 #~ msgstr "rechter extruder"
