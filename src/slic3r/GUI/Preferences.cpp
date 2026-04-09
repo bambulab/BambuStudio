@@ -1040,7 +1040,7 @@ wxBoxSizer *PreferencesDialog::create_item_button(wxString title, wxString title
     temp_button->SetMinSize(PreferenceBtnSize);
     temp_button->SetSize(wxSize(FromDIP(58), FromDIP(22)));
     temp_button->SetCornerRadius(FromDIP(12));
-    temp_button->SetToolTip(tooltip);
+    if(!tooltip.empty()) temp_button->SetToolTip(tooltip);
 
 
     temp_button->Bind(wxEVT_BUTTON, [this, onclick](auto &e) { onclick(); });
@@ -1326,13 +1326,13 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_step_mesh_setting = create_item_checkbox(_L("Show the step mesh parameter setting dialog."), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), 50, "enable_step_mesh_setting");
     auto item_beta_version_update = create_item_checkbox(_L("Support beta version update."), page, _L("With this option enabled, you can receive beta version updates."), 50, "enable_beta_version_update");
     auto item_mix_print_high_low_temperature = create_item_checkbox(_L("Remove the restriction on mixed printing of high and low temperature filaments."), page, _L("With this option enabled, you can print materials with a large temperature difference together."), 50, "enable_high_low_temp_mixed_printing");
-    auto item_restore_hide_pop_ups = create_item_button(_L("Clear my choice for synchronizing printer preset after loading the file."), _L("Clear"), page, _L("Clear my choice for synchronizing printer preset after loading the file."), []() {
+    auto item_restore_hide_pop_ups = create_item_button(_L("Clear my choice for synchronizing printer preset after loading the file."), _L("Clear"), page, {}, []() {
         wxGetApp().app_config->erase("app", "sync_after_load_file_show_flag");
     });
-    auto  item_restore_hide_3mf_info = create_item_button(_L("Clear my choice for Load 3mf dialog settings."), _L("Clear"), page, _L("Show the warning dialog again when importing non-Bambu 3MF files"),[]() {
+    auto  item_restore_hide_3mf_info = create_item_button(_L("Clear my choice for Load 3mf dialog settings."), _L("Clear"), page, {}, []() {
         wxGetApp().app_config->erase("app", "skip_non_bambu_3mf_warning");
     });
-    auto  item_restore_support_recommend_dlg = create_item_button(_L("Clear my choice for disabling recommendation for support material parameters."), _L("Clear"), page, _L("Clear my choice for disabling recommendation for support material parameters"),[]() {
+    auto  item_restore_support_recommend_dlg = create_item_button(_L("Clear my choice for disabling recommendation for support material parameters."), _L("Clear"), page, {}, []() {
         wxGetApp().app_config->set("show_support_recommend_dialog", "true");
     });
     auto _3d_settings    = create_item_title(_L("3D Settings"), page, _L("3D Settings"));
@@ -1431,7 +1431,7 @@ wxWindow* PreferencesDialog::create_general_page()
         if (value.ToLong(&max))
             wxGetApp().mainframe->set_max_recent_count(max);
     });
-    auto item_save_choise = create_item_button(_L("Clear my choice on the unsaved projects."), _L("Clear"), page, _L("Clear my choice on the unsaved projects."), []() {
+    auto item_save_choise = create_item_button(_L("Clear my choice on the unsaved projects."), _L("Clear"), page, {}, []() {
         wxGetApp().app_config->set("save_project_choise", "");
     });
     // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
