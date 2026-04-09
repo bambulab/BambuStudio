@@ -1363,7 +1363,7 @@ wxWindow* PreferencesDialog::create_general_page()
             } else if (wxGetApp().app_config->get("enable_assemble_view_preview") == "Open") {
                 wxGetApp().app_config->set_bool("enable_bvh", false);
             }
-        },FromDIP(200), FromDIP(120));
+        },FromDIP(150), FromDIP(120));
 #if !BBL_RELEASE_TO_PUBLIC
     auto  show_assembly_bvh_bounds_settings = create_item_checkbox(_L("Show assembly BVH primary bounds"), page,
                                                         _L("Display the BVH primary bounding box wireframe in assembly view."), 50,

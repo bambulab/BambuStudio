@@ -2549,7 +2549,8 @@ void NotificationManager::render_notifications(GLCanvas3D &canvas, float overlay
             if (notification->get_type() != NotificationType::AssemblyInfo
                 && notification->get_type() != NotificationType::AssemblyWarning
                 && notification->get_type() != NotificationType::BBLIsolatedVolumeInfo
-                && notification->get_type() != NotificationType::BBLAssemblyFarFromOrigin) {
+                && notification->get_type() != NotificationType::BBLAssemblyFarFromOrigin
+                && notification->get_type() != NotificationType::BBLIntersectsVolumeInfo) {
                 continue;
             }
         }

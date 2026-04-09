@@ -140,7 +140,10 @@ namespace GUI {
 
 bool                                        GLCanvas3D::s_enable_bvh = true;
 std::vector<GLCanvas3D::IsolatedVolumeInfo> GLCanvas3D::s_isolated_volumes;
+std::vector<GLCanvas3D::IsolatedVolumeInfo> GLCanvas3D::s_intersects_volumes_in_assembly;
+int                                         GLCanvas3D::s_assemble_candidate_volumes_size;
 bool                                        GLCanvas3D::s_isolated_notification_shown = false;
+bool                                        GLCanvas3D::s_intersects_notification_shown = false;
 int                                         GLCanvas3D::s_assemble_ratio = 0;
 int                                         GLCanvas3D::s_assemble_volume_ratio = 0;
 bool                                        GLCanvas3D::s_far_from_origin_notification_shown = false;
@@ -7529,7 +7532,7 @@ bool GLCanvas3D::_update_assembly_view_thumbnail()
             }
         }
 
-        s_assemble_ratio = m_volumes.volumes.empty() ? 0 : 100 - (int)(s_isolated_volumes.size() * 100 / m_volumes.volumes.size());
+        s_assemble_ratio = s_assemble_candidate_volumes_size == 0 ? 0 : 100 - (int) (s_isolated_volumes.size() * 100 / s_assemble_candidate_volumes_size);
 
         const auto thumbnail_render_end = std::chrono::steady_clock::now();
         BOOST_LOG_TRIVIAL(info) << (boost::format(
@@ -9055,6 +9058,7 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
         if (notify_mgr) {
             notify_mgr->close_notification_of_type(NotificationType::BBLIsolatedVolumeInfo);
             notify_mgr->close_notification_of_type(NotificationType::BBLAssemblyFarFromOrigin);
+            notify_mgr->close_notification_of_type(NotificationType::BBLIntersectsVolumeInfo);
         }
     };
     const std::string  current_enable_assemble_view_preview = GUI::wxGetApp().app_config->get("enable_assemble_view_preview");
@@ -9074,11 +9078,22 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
             }
         }
 
+        if (!s_intersects_volumes_in_assembly.empty() && !s_intersects_notification_shown) {
+            _show_intersects_volumes_notification();
+            s_intersects_notification_shown = true;
+        } else if (s_intersects_volumes_in_assembly.empty()) {
+            auto *notify_mgr = wxGetApp().plater() ? wxGetApp().plater()->get_notification_manager() : nullptr;
+            if (notify_mgr) {
+                notify_mgr->close_notification_of_type(NotificationType::BBLIntersectsVolumeInfo);
+            }
+        }
+
         if (!s_far_from_origin_notification_shown) {
             _check_assembly_far_from_origin();
         }
         if (last_canvas_type == ECanvasType::CanvasView3D && m_canvas_type == ECanvasType::CanvasAssembleView) {//enter CanvasAssembleView
             _show_isolated_volumes_notification();
+            _show_intersects_volumes_notification();
             _check_assembly_far_from_origin();
         }
         last_canvas_type = m_canvas_type;
@@ -9104,23 +9119,24 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
     if (!s_enable_bvh) {//should show thumbnail and not return
         close_assembly_notifications();
     }
-    if (m_gizmos.is_running() || m_assembly_view_thumbnail.m_items.empty()) {
+    if (m_gizmos.is_running() || m_assembly_view_thumbnail.m_items.empty() || s_assemble_candidate_volumes_size < 2) {
         return;
     }
 
     //UI setting
-    const int window_width  = 148;
-    const int window_height = 148;
-    const int thumb_width   = 140;
-    const int thumb_height  = 140;
-    const int thumb_pos_x = 4;
-    const int thumb_pos_y = 4;
-    const int btn_pos_x = 7;
-    const int btn_pos_y = 122;
-    const int choose_btn_pos_y = 118;
-    const int btn_size  = 20;
-    const int choose_btn_size = 24;
-    const int help_btn_pos_x = window_width - btn_size - 7;
+    const float sc = get_scale();
+    const int window_width  = int(148 * sc);
+    const int window_height = int(148 * sc);
+    const int thumb_width   = int(140 * sc);
+    const int thumb_height  = int(140 * sc);
+    const int thumb_pos_x = int(4 * sc);
+    const int thumb_pos_y = int(4 * sc);
+    const int btn_pos_x = int(7 * sc);
+    const int btn_pos_y = int(122 * sc);
+    const int choose_btn_pos_y = int(118 * sc);
+    const int btn_size  = int(20 * sc);
+    const int choose_btn_size = int(24 * sc);
+    const int help_btn_pos_x = window_width - btn_size - int(7 * sc);
     const int help_btn_pos_y = btn_pos_y;
     //get_assembly_view_button_info
     auto btn_info = get_assembly_view_button_info();
@@ -9138,7 +9154,7 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
         }
     };
 
-    const float window_pos_y = btn_info.y + btn_info.height + 10.0f;
+    const float window_pos_y = btn_info.y + btn_info.height + 10.0f * sc;
     const float max_window_x = (float)std::max(5, cnv_size.get_width() - window_width - 5);
     const float window_pos_x = std::max(5.0f, std::min(btn_info.x, max_window_x));
     imgui.set_next_window_pos((int)window_pos_x, (int)window_pos_y, ImGuiCond_Always, 0, 0);
@@ -9147,7 +9163,7 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
     ImGui::PushStyleColor(ImGuiCol_WindowBg, m_is_dark ? ImVec4(57 / 255.0f, 60 / 255.0f, 60 / 255.0f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.0f, 0.0f, 0.0f, 77.0f / 255.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f * sc);
 
     imgui.begin(std::string("RenderAssemblyViewThumb"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoMove |
                                       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse); //
@@ -9158,14 +9174,14 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
     bool image_hovered = false;
     bool choose_button_hovered = false;
     if (item && item->texture_id) {
-        ImVec2 size     = ImVec2(thumb_width, thumb_height);
+        ImVec2 size     = ImVec2((float)thumb_width, (float)thumb_height);
         ImVec2 uv0      = ImVec2(0.0f, 1.0f);
         ImVec2 uv1      = ImVec2(1.0f, 0.0f);
         ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
         ImU32  bg_col   = m_is_dark ? IM_COL32(68, 68, 70, 255) : IM_COL32(212, 212, 212, 212);
 
         // Center the image in the window
-        ImGui::SetCursorPos(ImVec2(thumb_pos_x, thumb_pos_y));
+        ImGui::SetCursorPos(ImVec2((float)thumb_pos_x, (float)thumb_pos_y));
         ImVec2 image_pos = ImGui::GetCursorScreenPos();
         ImRect choose_button_rect(image_pos + ImVec2(float(btn_pos_x - thumb_pos_x), float(choose_btn_pos_y - thumb_pos_y)),
                                   image_pos + ImVec2(float(btn_pos_x - thumb_pos_x + choose_btn_size), float(choose_btn_pos_y - thumb_pos_y + choose_btn_size)));
@@ -9173,7 +9189,7 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
                                 image_pos + ImVec2(float(help_btn_pos_x - thumb_pos_x + btn_size), float(help_btn_pos_y - thumb_pos_y + btn_size)));
         ImGui::GetWindowDrawList()->AddRectFilled(image_pos, ImVec2(image_pos.x + size.x, image_pos.y + size.y), bg_col);
         ImGui::Image(item->texture_id, size, uv0, uv1, tint_col);
-        ImGui::SetCursorPos(ImVec2(thumb_pos_x, thumb_pos_y));
+        ImGui::SetCursorPos(ImVec2((float)thumb_pos_x, (float)thumb_pos_y));
         if (ImGui::InvisibleButton("assembly_view_thumbnail_click", size)) {
             if (!choose_button_rect.Contains(ImGui::GetIO().MousePos) && !help_button_rect.Contains(ImGui::GetIO().MousePos)) {
                 open_assembly_view();
@@ -9200,13 +9216,13 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
 
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, 0});
-    ImVec2 button_icon_size = ImVec2(btn_size, btn_size);
-    ImVec2 choose_icon_size   = ImVec2(choose_btn_size, choose_btn_size);
-    int    choose_icon_margin = 2;
-    ImGui::SetCursorPos(ImVec2(btn_pos_x, choose_btn_pos_y));
+    ImVec2 button_icon_size = ImVec2((float)btn_size, (float)btn_size);
+    ImVec2 choose_icon_size   = ImVec2((float)choose_btn_size, (float)choose_btn_size);
+    int    choose_icon_margin = int(2 * sc);
+    ImGui::SetCursorPos(ImVec2((float)btn_pos_x, (float)choose_btn_pos_y));
     ImVec2 choose_button_pos = ImGui::GetCursorScreenPos();
     ImGui::GetWindowDrawList()->AddRectFilled(choose_button_pos, ImVec2(choose_button_pos.x + choose_icon_size.x, choose_button_pos.y + choose_icon_size.y),
-                                              m_is_dark ? IM_COL32(68, 68, 70, 255) : IM_COL32(0, 0, 0, 26), 4.0f);
+                                              m_is_dark ? IM_COL32(68, 68, 70, 255) : IM_COL32(0, 0, 0, 26), 4.0f * sc);
     ImGui::GetWindowDrawList()->AddImage(normal_id, ImVec2(choose_button_pos.x + choose_icon_margin, choose_button_pos.y + choose_icon_margin),
                                          ImVec2(choose_button_pos.x + choose_btn_size - choose_icon_margin, choose_button_pos.y + choose_btn_size - choose_icon_margin));
     if (ImGui::InvisibleButton("assembly_view_preview_menu_button", choose_icon_size)) {
@@ -9283,16 +9299,29 @@ void GLCanvas3D::_render_assembly_view_preview_menu(float anchor_x, float anchor
 
     ImGuiWrapper& imgui = *wxGetApp().imgui();
     Size          cnv_size = get_canvas_size();
-    const float   menu_width = 168.0f;
-    const float   row_height = 28.0f;
-    const float   row_spacing = 2.0f;
-    const float   menu_height = 40.0f + row_height * 7.0f + row_spacing * 6.0f;
+    const float   sc = get_scale();
+    const float   row_height = 28.0f * sc;
+    const float   row_spacing = 2.0f * sc;
+    const float   win_padding = 12.0f * sc;
+    const ImVec2  icon_size(20.0f * sc, 20.0f * sc);
+    const float   icon_gap = 6.0f * sc;
+    const float   row_pad_x = 2.0f * sc;
+    const float   row_inset = 24.0f * sc;
+    const float   text_right_margin = 8.0f * sc;
+
+    float max_text_width = 0.0f;
+    for (const PreviewMenuItem& item : items)
+        max_text_width = std::max(max_text_width, ImGui::CalcTextSize(item.label.c_str()).x);
+
+    const float   dynamic_width = row_pad_x + icon_size.x + icon_gap + icon_size.x + icon_gap + max_text_width + text_right_margin + row_inset;
+    const float   menu_width = std::max(168.0f * sc, dynamic_width);
+    const float   menu_height = win_padding * 2.0f + row_height * 7.0f + row_spacing * 6.0f + sc * 12;
     float         menu_pos_x = anchor_x + anchor_width - menu_width;
-    float         menu_pos_y = anchor_y + anchor_height + 6.0f;
+    float         menu_pos_y = anchor_y + anchor_height + 6.0f * sc;
     if (menu_pos_x + menu_width > cnv_size.get_width() - 5.0f)
         menu_pos_x = cnv_size.get_width() - menu_width - 5.0f;
     if (menu_pos_y + menu_height > cnv_size.get_height() - 5.0f)
-        menu_pos_y = std::max(5.0f, anchor_y - menu_height - 6.0f);
+        menu_pos_y = std::max(5.0f, anchor_y - menu_height - 6.0f * sc);
     menu_pos_x = std::max(5.0f, menu_pos_x);
 
     imgui.set_next_window_pos(menu_pos_x, menu_pos_y, ImGuiCond_Always, 0, 0);
@@ -9302,19 +9331,19 @@ void GLCanvas3D::_render_assembly_view_preview_menu(float anchor_x, float anchor
     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.0f, 0.0f, 0.0f, 77.0f / 255.0f));
     ImGui::PushStyleColor(ImGuiCol_Text, m_is_dark ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImVec4(38.0f / 255.0f, 46.0f / 255.0f, 48.0f / 255.0f, 1.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 12.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f * sc);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(win_padding, win_padding));
 
     imgui.begin(std::string("AssemblyViewPreviewMenu"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove |
                                               ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse);
 
     ImTextureID ok_id = m_gizmos.get_icon_texture_id(GLGizmosManager::MENU_ICON_NAME::IC_VIEW_OK);
-    const ImVec2 icon_size(20.0f, 20.0f);
     for (const PreviewMenuItem& item : items) {
         const bool selected = item.angle == m_assembly_view_preview_angle;
         ImGui::PushID((int)item.angle);
         ImVec2 row_pos = ImGui::GetCursorScreenPos();
-        if (ImGui::InvisibleButton("##assembly_view_preview_item", ImVec2(menu_width - 24.0f, row_height))) {
+        const float row_content_w = menu_width - row_inset;
+        if (ImGui::InvisibleButton("##assembly_view_preview_item", ImVec2(row_content_w, row_height))) {
             if (m_assembly_view_preview_angle != item.angle) {
                 m_assembly_view_preview_angle     = item.angle;
                 m_show_assembly_view_preview_menu = false;
@@ -9327,21 +9356,21 @@ void GLCanvas3D::_render_assembly_view_preview_menu(float anchor_x, float anchor
         if (hovered || selected) {
             ImU32 bg = m_is_dark ? (hovered ? IM_COL32(55, 55, 59, 255) : IM_COL32(10, 10, 10, 255))
                                   : (hovered ? IM_COL32(240, 240, 240, 255) : IM_COL32(248, 248, 248, 255));
-            ImGui::GetWindowDrawList()->AddRectFilled(row_pos, ImVec2(row_pos.x + menu_width - 24.0f, row_pos.y + row_height), bg, 4.0f);
+            ImGui::GetWindowDrawList()->AddRectFilled(row_pos, ImVec2(row_pos.x + row_content_w, row_pos.y + row_height), bg, 4.0f * sc);
         }
-        ImGui::SetCursorScreenPos(ImVec2(row_pos.x + 2.0f, row_pos.y + 2.0f));
+        ImGui::SetCursorScreenPos(ImVec2(row_pos.x + row_pad_x, row_pos.y + (row_height - icon_size.y) * 0.5f));
         if (selected)
             ImGui::Image(ok_id, icon_size);
         else
             ImGui::Dummy(icon_size);
-        ImGui::SameLine(0.0f, 6.0f);
+        ImGui::SameLine(0.0f, icon_gap);
         ImGui::Image(m_gizmos.get_icon_texture_id(item.icon), icon_size);
-        ImGui::SameLine(0.0f, 6.0f);
+        ImGui::SameLine(0.0f, icon_gap);
         {
             const char *label_begin = item.label.c_str();
             const char *label_end   = label_begin + item.label.size();
             const ImVec2 text_pos   = ImGui::GetCursorScreenPos();
-            const float  text_max_x = row_pos.x + menu_width - 24.0f - 8.0f;
+            const float  text_max_x = row_pos.x + row_content_w - text_right_margin;
             const ImVec2 text_size  = ImGui::CalcTextSize(label_begin, label_end);
             const ImVec2 text_box_size(std::max(0.0f, text_max_x - text_pos.x), icon_size.y);
             const bool   is_truncated = text_size.x > text_box_size.x;
@@ -11650,7 +11679,7 @@ void GLCanvas3D::_show_isolated_volumes_notification()
         names += iv.vol->name;
         ++count;
     }
-    std::string info_text = _u8L("Overview:isolated objects detected") + ": " + names + "\n"
+    std::string info_text = _u8L("Overview") + ": " + _u8L("Isolated objects detected") + ": " + names + "\n"
                           + _u8L("Click to move them closer to the main body.");
 
 
@@ -11659,6 +11688,35 @@ void GLCanvas3D::_show_isolated_volumes_notification()
     notify_mgr->push_notification(NotificationType::BBLIsolatedVolumeInfo,
                                   NotificationManager::NotificationLevel::ImportantNotificationLevel,
                                   info_text, _u8L("Move closer"), &GLCanvas3D::_move_isolated_volumes_closer);
+}
+
+void GLCanvas3D::_show_intersects_volumes_notification()
+{
+    if (s_intersects_volumes_in_assembly.empty())
+        return;
+
+    auto* plater = wxGetApp().plater();
+    if (!plater)
+        return;
+
+    std::string names;
+    int count = 0;
+    for (const auto& iv : s_intersects_volumes_in_assembly) {
+        if (count >= 2 || names.size() > 70) {
+            names += "...";
+            break;
+        }
+        if (!names.empty()) names += ", ";
+        names += iv.vol->name;
+        ++count;
+    }
+    std::string info_text = (boost::format(_u8L("Overview") + ": " +
+                                           _u8L("Since it is unassembled, %1% extends beyond the main body, so the thumbnail can't be rendered.")) % names).str();
+
+    NotificationManager* notify_mgr = plater->get_notification_manager();
+    notify_mgr->push_notification(NotificationType::BBLIntersectsVolumeInfo,
+                                  NotificationManager::NotificationLevel::ImportantNotificationLevel,
+                                  info_text);
 }
 
 void GLCanvas3D::_check_assembly_far_from_origin()
@@ -11767,6 +11825,8 @@ bool GLCanvas3D::_move_isolated_volumes_closer(wxEvtHandler*)
 
     s_isolated_volumes.clear();
     s_isolated_notification_shown = false;
+    s_intersects_volumes_in_assembly.clear();
+    s_intersects_notification_shown = false;
     plater->get_partplate_list().reset_thumbnail_assembly_view_data();
     plater->update();
     return false;
@@ -11963,6 +12023,7 @@ void GLCanvas3D::_filter_assembly_thumbnail_candidates_by_bvh(const std::vector<
 
     s_isolated_volumes.clear();
     s_isolated_notification_shown = false;
+    s_intersects_notification_shown = false;
     s_far_from_origin_notification_shown = false;
     s_isolated_volumes.reserve(assemble_candidate_volumes.size());
     s_bvh_primary_bounds = primary_bounds;
@@ -11971,13 +12032,20 @@ void GLCanvas3D::_filter_assembly_thumbnail_candidates_by_bvh(const std::vector<
     _check_and_exclude_bvh_node(volume_bvh, 0, primary_idx, s_bvh_expanded_bounds, threshold_dist,
                                 assemble_candidate_volumes, assemble_candidate_boxes, include_candidate_volumes);
 
+    s_intersects_volumes_in_assembly.clear();
     for (int i = (int) s_isolated_volumes.size() - 1; i >= 0; --i) {
-        if (s_bvh_expanded_bounds.contains(s_isolated_volumes[i].world_box_assembly) || s_bvh_expanded_bounds.intersects(s_isolated_volumes[i].world_box_assembly)) {
+        auto is_intersects = s_bvh_expanded_bounds.intersects(s_isolated_volumes[i].world_box_assembly);
+        if (is_intersects){
+            s_intersects_volumes_in_assembly.emplace_back(s_isolated_volumes[i]);
+        }
+        if (s_bvh_expanded_bounds.contains(s_isolated_volumes[i].world_box_assembly) || is_intersects) {
             BOOST_LOG_TRIVIAL(info) << boost::format("assembly BVH: removing false-positive isolated vol obj_idx=%1% (inside expanded bounds)") % s_isolated_volumes[i].obj_idx;
             s_isolated_volumes.erase(s_isolated_volumes.begin() + i);
         }
     }
-
+    if (!s_isolated_volumes.empty()) {
+        s_intersects_volumes_in_assembly.clear();
+    }
     const double primary_bounds_volume = s_bvh_primary_bounds.volume();
     double total_volume = primary_bounds_volume;
     for (const IsolatedVolumeInfo& isolated_volume : s_isolated_volumes) {
@@ -12087,6 +12155,7 @@ void GLCanvas3D::_render_assembly_thumbnail_internal(ThumbnailData& thumbnail_da
         _filter_assembly_thumbnail_candidates_by_bvh(assemble_candidate_volumes, assemble_candidate_boxes, skip_single_volume_bvh, extra_thumb_data.rebuild_bvh, include_candidate_volumes);
         s_last_bvh_filter_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - bvh_t0).count();
 
+        s_assemble_candidate_volumes_size = assemble_candidate_volumes.size();
         for (size_t i = 0; i < assemble_candidate_volumes.size(); ++i) {
             if (include_candidate_volumes[i]) {
                 visible_volumes.emplace_back(assemble_candidate_volumes[i]);
