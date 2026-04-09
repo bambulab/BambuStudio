@@ -2,7 +2,7 @@
  * \file   AmsMappingPopupUpdate.cpp
  * \brief  do update for AmsMappingPopup
  * \note   moved from AmsMappingPopup.cpp to here to reduce the code size of AmsMappingPopup.cpp
- * 
+ *
  * \author xin.zhang
  * \date   February 2026
  *********************************************************************/
@@ -181,7 +181,7 @@ void AmsMapingPopup::update(MachineObject* obj,
 
 static std::optional<TrayData> sGetTrayData(DevAmsTray* tray,
                                             const std::string& ams_id_str)
-{   
+{
     int ams_id = 0;
     int tray_id = 0;
     try {
@@ -587,7 +587,7 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data,
                     if (!can_pick_the_item) {
                         item_tooltip_msg = _L("External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it.");
                     }
-                } else if (m_show_type != ShowType::RIGHT) {
+                } else if (m_show_type != ShowType::RIGHT && !m_use_in_sync_dialog) {
                     can_pick_the_item = false;
                 }
             }

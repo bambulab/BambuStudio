@@ -2653,9 +2653,11 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
             MachineObject *obj_        = dev_manager->get_selected_machine();
             const auto &   full_config = wxGetApp().preset_bundle->full_config();
             size_t         nozzle_nums = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
+            bool           is_selector = false;
             if (nozzle_nums > 1) {
                 if (has_selector(obj_)) {//选料器
                     m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT_DYNAMIC);
+                    is_selector = true;
                 } else {
                     m_mapping_popup.set_show_type(ShowType::LEFT_AND_RIGHT);
                 }
@@ -2686,7 +2688,7 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
                     m_mapping_popup.set_reset_callback(reset_call_back);
                     m_mapping_popup.set_tag_texture(materials[extruder]);
                     m_mapping_popup.set_send_win(this);
-                    m_mapping_popup.update(obj_, m_ams_mapping_result, false, std::nullopt);
+                    m_mapping_popup.update(obj_, m_ams_mapping_result, is_selector, std::nullopt);
                     m_mapping_popup.Popup();
                 }
             }
