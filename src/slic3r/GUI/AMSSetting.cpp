@@ -56,7 +56,7 @@ void AMSSetting::create()
     m_checkbox_Insert_material_auto_read->Bind(wxEVT_TOGGLEBUTTON, &AMSSetting::on_insert_material_read, this);
     m_sizer_Insert_material->Add(m_checkbox_Insert_material_auto_read, 0, wxALIGN_CENTER_VERTICAL);
 
-    m_sizer_Insert_material->Add(0, 0, 0, wxLEFT, 12);
+    m_sizer_Insert_material->Add(0, 0, 0, wxLEFT, FromDIP(12));
 
     m_title_Insert_material_auto_read = new wxStaticText(m_panel_Insert_material, wxID_ANY, _L("Insertion update"),
                                                          wxDefaultPosition, wxDefaultSize, 0);
@@ -68,7 +68,7 @@ void AMSSetting::create()
 
     wxBoxSizer *m_sizer_Insert_material_tip = new wxBoxSizer(wxHORIZONTAL);
     m_sizer_Insert_material_tip_inline      = new wxBoxSizer(wxVERTICAL);
-    m_sizer_Insert_material_tip->Add(0, 0, 0, wxLEFT, 10);
+    m_sizer_Insert_material_tip->Add(0, 0, 0, wxLEFT, FromDIP(30));
 
     // tip line1
     m_tip_Insert_material_line1 = new Label(m_panel_Insert_material,
@@ -106,7 +106,7 @@ void AMSSetting::create()
     m_sizer_Insert_material_tip->Add(m_sizer_Insert_material_tip_inline, 1, wxALIGN_CENTER, 0);
 
     m_sizer_main_Insert_material->Add(m_sizer_Insert_material, 0, wxEXPAND | wxTOP, FromDIP(4));
-    m_sizer_main_Insert_material->Add(m_sizer_Insert_material_tip, 0, wxEXPAND | wxLEFT | wxTOP, FromDIP(10));
+    m_sizer_main_Insert_material->Add(m_sizer_Insert_material_tip, 0, wxEXPAND | wxTOP, FromDIP(4));
     m_panel_Insert_material->SetSizer(m_sizer_main_Insert_material);
 
     // checkbox area 2
@@ -114,7 +114,7 @@ void AMSSetting::create()
     m_checkbox_starting_auto_read = new ::CheckBox(m_panel_body);
     m_checkbox_starting_auto_read->Bind(wxEVT_TOGGLEBUTTON, &AMSSetting::on_starting_read, this);
     m_sizer_starting->Add(m_checkbox_starting_auto_read, 0, wxALIGN_CENTER_VERTICAL);
-    m_sizer_starting->Add(0, 0, 0, wxLEFT, 12);
+    m_sizer_starting->Add(0, 0, 0, wxLEFT, FromDIP(12));
     m_title_starting_auto_read = new wxStaticText(m_panel_body, wxID_ANY, _L("Power on update"), wxDefaultPosition,wxDefaultSize, 0);
     m_title_starting_auto_read->SetFont(::Label::Head_13);
     m_title_starting_auto_read->SetForegroundColour(AMS_SETTING_GREY800);
@@ -122,7 +122,7 @@ void AMSSetting::create()
     m_sizer_starting->Add(m_title_starting_auto_read, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT, 0);
 
     wxBoxSizer *m_sizer_starting_tip = new wxBoxSizer(wxHORIZONTAL);
-    m_sizer_starting_tip->Add(0, 0, 0, wxLEFT, 10);
+    m_sizer_starting_tip->Add(0, 0, 0, wxLEFT, FromDIP(30));
 
     // tip line
     m_sizer_starting_tip_inline = new wxBoxSizer(wxVERTICAL);
@@ -151,7 +151,7 @@ void AMSSetting::create()
     m_checkbox_remain = new ::CheckBox(m_panel_body);
     m_checkbox_remain->Bind(wxEVT_TOGGLEBUTTON, &AMSSetting::on_remain, this);
     m_sizer_remain->Add(m_checkbox_remain, 0, wxALIGN_CENTER_VERTICAL);
-    m_sizer_remain->Add(0, 0, 0, wxLEFT, 12);
+    m_sizer_remain->Add(0, 0, 0, wxLEFT, FromDIP(12));
     m_title_remain = new wxStaticText(m_panel_body, wxID_ANY, _L("Update remaining capacity"), wxDefaultPosition, wxDefaultSize, 0);
     m_title_remain->SetFont(::Label::Head_13);
     m_title_remain->SetForegroundColour(AMS_SETTING_GREY800);
@@ -161,7 +161,7 @@ void AMSSetting::create()
 
 
     wxBoxSizer* m_sizer_remain_tip = new wxBoxSizer(wxHORIZONTAL);
-    m_sizer_remain_tip->Add(0, 0, 0, wxLEFT, 10);
+    m_sizer_remain_tip->Add(0, 0, 0, wxLEFT, FromDIP(30));
 
     // tip line
     m_sizer_remain_inline = new wxBoxSizer(wxVERTICAL);
@@ -179,7 +179,7 @@ void AMSSetting::create()
     m_checkbox_switch_filament = new ::CheckBox(m_panel_body);
     m_checkbox_switch_filament->Bind(wxEVT_TOGGLEBUTTON, &AMSSetting::on_switch_filament, this);
     m_sizer_switch_filament->Add(m_checkbox_switch_filament, 0, wxALIGN_CENTER_VERTICAL);
-    m_sizer_switch_filament->Add(0, 0, 0, wxLEFT, 12);
+    m_sizer_switch_filament->Add(0, 0, 0, wxLEFT, FromDIP(12));
     m_title_switch_filament = new wxStaticText(m_panel_body, wxID_ANY, _L("AMS filament backup"), wxDefaultPosition, wxDefaultSize, 0);
     m_title_switch_filament->SetFont(::Label::Head_13);
     m_title_switch_filament->SetForegroundColour(AMS_SETTING_GREY800);
@@ -189,7 +189,7 @@ void AMSSetting::create()
 
 
     wxBoxSizer* m_sizer_switch_filament_tip = new wxBoxSizer(wxHORIZONTAL);
-    m_sizer_switch_filament_tip->Add(0, 0, 0, wxLEFT, 10);
+    m_sizer_switch_filament_tip->Add(0, 0, 0, wxLEFT, FromDIP(30));
 
     // tip line
     m_sizer_switch_filament_inline = new wxBoxSizer(wxVERTICAL);
@@ -211,7 +211,7 @@ void AMSSetting::create()
     m_checkbox_air_print = new ::CheckBox(m_panel_body);
     m_checkbox_air_print->Bind(wxEVT_TOGGLEBUTTON, &AMSSetting::on_air_print_detect, this);
     m_sizer_air_print->Add(m_checkbox_air_print, 0, wxTOP, 1);
-    m_sizer_air_print->Add(0, 0, 0, wxLEFT, 12);
+    m_sizer_air_print->Add(0, 0, 0, wxLEFT, FromDIP(12));
     m_title_air_print = new wxStaticText(m_panel_body, wxID_ANY, _L("Air Printing Detection"), wxDefaultPosition, wxDefaultSize, 0);
     m_title_air_print->SetFont(::Label::Head_13);
     m_title_air_print->SetForegroundColour(AMS_SETTING_GREY800);
@@ -219,7 +219,7 @@ void AMSSetting::create()
     m_sizer_air_print->Add(m_title_air_print, 1, wxEXPAND, 0);
 
     wxBoxSizer* m_sizer_air_print_tip = new wxBoxSizer(wxHORIZONTAL);
-    m_sizer_air_print_tip->Add(0, 0, 0, wxLEFT, 10);
+    m_sizer_air_print_tip->Add(0, 0, 0, wxLEFT, FromDIP(30));
 
     // tip line
     auto m_sizer_air_print_inline = new wxBoxSizer(wxVERTICAL);
@@ -253,7 +253,7 @@ void AMSSetting::create()
     m_sizer_remain_block = new wxBoxSizer(wxVERTICAL);
     m_sizer_remain_block->Add(m_sizer_remain, 0, wxEXPAND | wxTOP, FromDIP(8));
     m_sizer_remain_block->Add(0, 0, 0, wxTOP, 8);
-    m_sizer_remain_block->Add(m_sizer_remain_tip, 0, wxLEFT, 18);
+    m_sizer_remain_block->Add(m_sizer_remain_tip, 0, wxEXPAND, 0);
     m_sizer_remain_block->Add(0, 0, 0, wxTOP, 15);
 
     m_sizerl_body->AddSpacer(FromDIP(12));
