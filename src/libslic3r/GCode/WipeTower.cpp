@@ -619,7 +619,7 @@ Polygon generate_rectange_polygon(const Vec2f &wt_box_min ,const Vec2f & wt_box_
 class WipeTowerWriter
 {
 public:
-	WipeTowerWriter(float layer_height, float line_width, GCodeFlavor flavor, const std::vector<WipeTower::FilamentParameters>& filament_parameters) :
+	WipeTowerWriter(float layer_height, float line_width, GCodeFlavor flavor, const std::vector<WipeTower::FilamentParameters>& filament_parameters, bool enable_arc_fitting) :
 		m_current_pos(std::numeric_limits<float>::max(), std::numeric_limits<float>::max()),
 		m_current_z(0.f),
 		m_current_feedrate(0.f),
@@ -631,6 +631,7 @@ public:
         m_default_analyzer_line_width(line_width),
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_gcode_flavor(flavor),
+        m_enable_arc_fitting(enable_arc_fitting),
         m_filpar(filament_parameters)
         {
             // adds tag for analyzer:
@@ -1007,7 +1008,12 @@ public:
     {
         Polyline    pl = to_polyline(wall_polygon);
         pl.simplify(WT_SIMPLIFY_TOLERANCE_SCALED);
-        pl.simplify_by_fitting_arc(SCALED_WIPE_TOWER_RESOLUTION);
+        if (m_enable_arc_fitting) {
+            pl.simplify_by_fitting_arc(SCALED_WIPE_TOWER_RESOLUTION);
+        } else {
+            pl.simplify(SCALED_WIPE_TOWER_RESOLUTION);
+            pl.reset_to_linear_move();
+        }
 
         auto get_closet_idx = [this](std::vector<Segment> &corners) -> int {
             Vec2f anchor{this->m_current_pos.x(), this->m_current_pos.y()};
@@ -1035,6 +1041,9 @@ public:
                 segments.back().arcsegment = pl.fitting_result[i].arc_data;
             }
         }
+
+        if (segments.empty())
+            return (*this);
 
         int index_of_closest = get_closet_idx(segments);
         int i                = index_of_closest;
@@ -1252,7 +1261,14 @@ public:
             }
             return closestIndex;
         };
-        for (auto &pl : pls) pl.simplify_by_fitting_arc(SCALED_WIPE_TOWER_RESOLUTION);
+        if (m_enable_arc_fitting) {
+            for (auto &pl : pls) pl.simplify_by_fitting_arc(SCALED_WIPE_TOWER_RESOLUTION);
+        } else {
+            for (auto &pl : pls) {
+                pl.simplify(SCALED_WIPE_TOWER_RESOLUTION);
+                pl.reset_to_linear_move();
+            }
+        }
 
         std::vector<Segment> segments;
         for (const auto &pl : pls) {
@@ -1268,9 +1284,11 @@ public:
                     segments.back().is_arc = true;
                     segments.back().arcsegment = pl.fitting_result[i].arc_data;
                 }
-
             }
         }
+        if (segments.empty())
+            return;
+
         int index_of_closest = get_closet_idx(segments);
         int i = index_of_closest;
         travel(segments[i].start); // travel to the closest points
@@ -1437,6 +1455,7 @@ private:
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
     float         m_used_filament_length = 0.f;
     GCodeFlavor   m_gcode_flavor;
+    bool          m_enable_arc_fitting = true;
     const std::vector<WipeTower::FilamentParameters>& m_filpar;
 
 	std::string   set_format_X(float x)
@@ -1738,7 +1757,8 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_printable_height(config.extruder_printable_height.values),
     m_flat_ironing(config.prime_tower_flat_ironing.value),
     m_enable_tower_interface_features(config.enable_tower_interface_features.value),
-    m_physical_extruder_map(config.physical_extruder_map.values)
+    m_physical_extruder_map(config.physical_extruder_map.values),
+    m_enable_arc_fitting(config.enable_arc_fitting.value)
 {
     m_contact_speed                  = 20 * 60.f;
     m_filaments_change_length.first = config.filament_change_length.values;
@@ -2038,7 +2058,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change(size_t tool, bool extrude_per
         (tool != (unsigned int)(-1) ? wipe_depth + m_depth_traversed - m_perimeter_width
                                     : m_wipe_tower_depth - m_perimeter_width));
 
-	WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
+	WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar, m_enable_arc_fitting);
 	writer.set_extrusion_flow(m_extrusion_flow)
 		.set_z(m_z_pos)
 		.set_initial_tool(m_current_tool)
@@ -2199,7 +2219,7 @@ WipeTower::NozzleChangeResult WipeTower::nozzle_change(int old_filament_id, int 
         nozzle_change_speed *= 0.25;
     }
 
-    WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
+    WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar, m_enable_arc_fitting);
     writer.set_extrusion_flow(m_extrusion_flow)
         .set_z(m_z_pos)
         .set_initial_tool(m_current_tool)
@@ -2660,7 +2680,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer(bool extrude_perimeter, bool
 
     size_t old_tool = m_current_tool;
 
-	WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
+	WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar, m_enable_arc_fitting);
 	writer.set_extrusion_flow(m_extrusion_flow)
 		.set_z(m_z_pos)
 		.set_initial_tool(m_current_tool)
@@ -3242,7 +3262,7 @@ WipeTower::ToolChangeResult WipeTower::tool_change_new(size_t new_tool, bool sol
     m_cur_block = block;
     box_coordinates cleaning_box(Vec2f(m_perimeter_width, block->cur_depth), m_wipe_tower_width - 2 * m_perimeter_width, wipe_depth-nozzle_change_depth);
 
-    WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
+    WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar, m_enable_arc_fitting);
     writer.set_extrusion_flow(m_extrusion_flow)
         .set_z(m_z_pos)
         .set_initial_tool(m_current_tool)
@@ -3364,7 +3384,7 @@ WipeTower::NozzleChangeResult WipeTower::ramming(int old_filament_id, int new_fi
     };
 
     float nz_extrusion_flow = nozzle_change_extrusion_flow(m_layer_height);
-    WipeTowerWriter writer(m_layer_height, m_nozzle_change_perimeter_width, m_gcode_flavor, m_filpar);
+    WipeTowerWriter writer(m_layer_height, m_nozzle_change_perimeter_width, m_gcode_flavor, m_filpar, m_enable_arc_fitting);
     writer.set_extrusion_flow(nz_extrusion_flow)
         .set_z(m_z_pos)
         .set_initial_tool(m_current_tool)
@@ -3519,7 +3539,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
     assert(!this->layer_finished());
     m_current_layer_finished = true;
 
-    WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
+    WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar, m_enable_arc_fitting);
     writer.set_extrusion_flow(m_extrusion_flow)
         .set_z(m_z_pos)
         .set_initial_tool(m_current_tool)
@@ -3712,7 +3732,7 @@ WipeTower::ToolChangeResult WipeTower::finish_layer_new(bool extrude_perimeter, 
 
 WipeTower::ToolChangeResult WipeTower::finish_block(const WipeTowerBlock &block, int filament_id, bool extrude_fill)
 {
-    WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
+    WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar, m_enable_arc_fitting);
     writer.set_extrusion_flow(m_extrusion_flow)
         .set_z(m_z_pos)
         .set_initial_tool(filament_id)
@@ -3828,7 +3848,7 @@ WipeTower::ToolChangeResult WipeTower::finish_block_solid(const WipeTowerBlock &
         e_flow = extrusion_flow(0.2);
     }
 
-    WipeTowerWriter writer(layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
+    WipeTowerWriter writer(layer_height, m_perimeter_width, m_gcode_flavor, m_filpar, m_enable_arc_fitting);
     writer.set_extrusion_flow(e_flow)
         .set_z(m_z_pos)
         .set_initial_tool(filament_id)
@@ -4919,7 +4939,7 @@ WipeTower::ToolChangeResult WipeTower::only_generate_out_wall(bool is_new_mode)
 {
     size_t old_tool = m_current_tool;
 
-    WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar);
+    WipeTowerWriter writer(m_layer_height, m_perimeter_width, m_gcode_flavor, m_filpar, m_enable_arc_fitting);
     writer.set_extrusion_flow(m_extrusion_flow)
         .set_z(m_z_pos)
         .set_initial_tool(m_current_tool)
