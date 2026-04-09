@@ -579,7 +579,6 @@ void MachineInfoPanel::msw_rescale()
     m_button_upgrade_firmware->SetMinSize(wxSize(FromDIP(-1), FromDIP(24)));
     m_button_upgrade_firmware->SetMaxSize(wxSize(FromDIP(-1), FromDIP(24)));
     m_button_upgrade_firmware->SetCornerRadius(FromDIP(12));
-    m_ahb_panel->msw_rescale();
     for (auto &amspanel : m_amspanel_list) {
         if (amspanel) amspanel->msw_rescale();
     }

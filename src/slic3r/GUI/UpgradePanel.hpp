@@ -89,7 +89,6 @@ protected:
     wxStaticText *  m_staticText_beta_version;
     wxStaticLine *  m_staticline;
     wxStaticBitmap *m_ams_img;
-    AmsPanel*       m_ahb_panel;
     wxStaticLine*   m_staticline2;
     ExtraAmsPanel*  m_extra_ams_panel;
     wxStaticBitmap* m_extra_ams_img;
