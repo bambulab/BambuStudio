@@ -292,7 +292,10 @@ void OtherLayersSeqPanel::append_layer(const LayerSeqInfo* layer_info)
         end_layer_input->set_layer_number(MAX_LAYER_VALUE);
     }
 
-    const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+    std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+    size_t num_physical = wxGetApp().plater()->physical_filament_config_indices().size();
+    if (extruder_colours.size() > num_physical)
+        extruder_colours.resize(num_physical);
     std::vector<int> order(extruder_colours.size());
     for (int i = 0; i < order.size(); i++) {
         order[i] = i + 1;
@@ -448,7 +451,10 @@ PlateSettingsDialog::PlateSettingsDialog(wxWindow* parent, const wxString& title
     top_sizer->Add(first_layer_txt, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxTOP | wxBOTTOM, FromDIP(5));
     top_sizer->Add(m_first_layer_print_seq_choice, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxTOP | wxBOTTOM, FromDIP(5));
 
-    const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+    std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+    size_t num_physical = wxGetApp().plater()->physical_filament_config_indices().size();
+    if (extruder_colours.size() > num_physical)
+        extruder_colours.resize(num_physical);
     std::vector<int> order(extruder_colours.size());
     for (int i = 0; i < order.size(); i++) {
         order[i] = i + 1;
@@ -565,7 +571,10 @@ void PlateSettingsDialog::sync_first_layer_print_seq(int selection, const std::v
 {
     if (m_first_layer_print_seq_choice != nullptr) {
         if (selection == 1) {
-            const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+            std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+            size_t num_physical = wxGetApp().plater()->physical_filament_config_indices().size();
+            if (extruder_colours.size() > num_physical)
+                extruder_colours.resize(num_physical);
             m_drag_canvas->set_shape_list(extruder_colours, seq);
         }
         m_first_layer_print_seq_choice->SetSelection(selection);

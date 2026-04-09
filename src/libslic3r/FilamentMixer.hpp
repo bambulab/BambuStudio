@@ -1,5 +1,5 @@
-#ifndef SLIC3R_FILAMENT_MIXER_H
-#define SLIC3R_FILAMENT_MIXER_H
+#ifndef SLIC3R_FILAMENT_MIXER_HPP
+#define SLIC3R_FILAMENT_MIXER_HPP
 
 #include <string>
 #include <vector>
@@ -53,6 +53,25 @@ std::vector<unsigned int> expand_mixed_filaments(
     const std::vector<unsigned char> &is_mixed,
     const std::vector<std::string>  &comp_strs);
 
+// Remap mixed filament component references after a physical filament is deleted.
+// del_1based: the 1-based index of the deleted physical filament.
+// For each mixed slot:
+//   - if component == del_1based -> replace with 0 (sentinel for deleted/unselected)
+//   - if component > del_1based -> decrement by 1
+void remap_mixed_components_on_delete(
+    const std::vector<unsigned char> &is_mixed,
+    std::vector<std::string>         &comp_strs,
+    unsigned int                      del_1based);
+
+// Check which mixed filament slots have type-mismatched components.
+// filament_types: type strings for physical filaments (0-based, size == num_physical).
+// Component IDs in comp_strs are 1-based; the function converts to 0-based to look up types.
+// Returns 0-based config indices of mixed slots with mismatched component types.
+std::vector<size_t> check_mixed_filament_type_consistency(
+    const std::vector<unsigned char> &is_mixed,
+    const std::vector<std::string>   &comp_strs,
+    const std::vector<std::string>   &filament_types);
+
 } // namespace Slic3r
 
-#endif
+#endif // SLIC3R_FILAMENT_MIXER_HPP

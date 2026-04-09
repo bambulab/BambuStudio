@@ -758,6 +758,12 @@ void MixedFilamentDialog::rebuild_all_combos()
         int restore_sel = -1;
         unsigned int cur_phys = (i < m_result.components.size()) ? m_result.components[i] : 0;
 
+        if (cur_phys == 0) {
+            combo->Append(_L("-- Select --"));
+            m_combo_to_physical[i].push_back(0);
+            restore_sel = 0;
+        }
+
         for (size_t j = 0; j < m_physical_names.size(); ++j) {
             unsigned int phys_1based = (unsigned int)(j + 1);
 
@@ -1059,8 +1065,18 @@ void MixedFilamentDialog::update_ok_button_state()
         }
     }
 
-    m_btn_ok->Enable(!has_type_mismatch);
-    if (has_type_mismatch) {
+    bool has_unselected = false;
+    for (unsigned int c : m_result.components) {
+        if (c == 0) { has_unselected = true; break; }
+    }
+
+    bool can_confirm = !has_type_mismatch && !has_unselected;
+    m_btn_ok->Enable(can_confirm);
+    if (has_unselected) {
+        m_btn_ok->SetBackgroundColor(wxColour("#CECECE"));
+        m_btn_ok->SetBorderColor(wxColour("#CECECE"));
+        m_btn_ok->SetToolTip(_L("Please select a filament for all components"));
+    } else if (has_type_mismatch) {
         m_btn_ok->SetBackgroundColor(wxColour("#CECECE"));
         m_btn_ok->SetBorderColor(wxColour("#CECECE"));
         m_btn_ok->SetToolTip(_L("Cannot mix different filament types"));

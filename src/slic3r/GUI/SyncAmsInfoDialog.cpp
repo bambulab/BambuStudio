@@ -2568,6 +2568,8 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
     m_materialList.clear();
     m_filaments.clear();
 
+    auto* is_mixed_opt = preset_bundle->project_config.option<ConfigOptionBools>("filament_is_mixed");
+
     bool use_double_extruder = get_is_double_extruder();
     if (use_double_extruder) {
         const auto &project_config = preset_bundle->project_config;
@@ -2584,6 +2586,8 @@ void SyncAmsInfoDialog::reset_and_sync_ams_list()
 
         auto colour_rgb = wxColour((int) rgb[0], (int) rgb[1], (int) rgb[2], (int) rgb[3]);
         if (extruder >= materials.size() || extruder < 0 || extruder >= display_materials.size())
+            continue;
+        if (is_mixed_opt && extruder < (int) is_mixed_opt->values.size() && is_mixed_opt->values[extruder])
             continue;
 
         if (contronal_index % SYNC_FLEX_GRID_COL == 0) {
@@ -2789,6 +2793,8 @@ void SyncAmsInfoDialog::generate_override_fix_ams_list()
     m_fix_materialList.clear();
     m_fix_filaments.clear();
 
+    auto* is_mixed_opt = preset_bundle->project_config.option<ConfigOptionBools>("filament_is_mixed");
+
     bool use_double_extruder = get_is_double_extruder();
     if (use_double_extruder) {
         const auto &project_config = preset_bundle->project_config;
@@ -2805,6 +2811,8 @@ void SyncAmsInfoDialog::generate_override_fix_ams_list()
 
         auto colour_rgb = wxColour((int) rgb[0], (int) rgb[1], (int) rgb[2], (int) rgb[3]);
         if (extruder >= extruders.size() || extruder < 0 || extruder >= m_ams_combo_info.ams_filament_colors.size())
+            continue;
+        if (is_mixed_opt && extruder < (int) is_mixed_opt->values.size() && is_mixed_opt->values[extruder])
             continue;
 
         if (contronal_index % SYNC_FLEX_GRID_COL == 0) {

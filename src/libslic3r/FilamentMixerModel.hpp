@@ -6,7 +6,7 @@
  * This library does not include Mixbox source code, binaries, or data files.
  *
  * Usage:
- *   #include "filament_mixer_model.h"
+ *   #include "FilamentMixerModel.hpp"
  *
  *   unsigned char r, g, b;
  *   filament_mixer::lerp(0, 33, 133,  252, 211, 0,  0.5f, &r, &g, &b);
@@ -37,8 +37,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef FILAMENT_MIXER_H
-#define FILAMENT_MIXER_H
+#ifndef FILAMENT_MIXER_MODEL_HPP
+#define FILAMENT_MIXER_MODEL_HPP
 
 #include <algorithm>
 #include <cmath>
@@ -816,4 +816,4 @@ inline RGB lerp(unsigned char r1, unsigned char g1, unsigned char b1,
 
 } // namespace filament_mixer
 
-#endif // FILAMENT_MIXER_H
+#endif // FILAMENT_MIXER_MODEL_HPP
