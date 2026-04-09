@@ -631,12 +631,12 @@ void SendToPrinterDialog::update_storage_list(const std::vector<std::string> &st
 
         if (storages[i] == "emmc")
         {
-            storage_text->SetLabel(_CTX_utf8(L_CONTEXT("Cache", "sendtoprint"), "sendtoprint"));
+            storage_text->SetLabel(wxString::FromUTF8(_CTX_utf8(L_CONTEXT("Cache", "sendtoprint"), "sendtoprint")));
             storage_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#000000")));
         }
         else
         {
-            storage_text->SetLabel(_CTX_utf8(L_CONTEXT("External", "sendtoprint"), "sendtoprint"));
+            storage_text->SetLabel(wxString::FromUTF8(_CTX_utf8(L_CONTEXT("External", "sendtoprint"), "sendtoprint")));
             storage_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#000000")));
         }
 
@@ -644,7 +644,7 @@ void SendToPrinterDialog::update_storage_list(const std::vector<std::string> &st
         //radiobox->SetLabel(storages[i]);
         if (storages[i] != "emmc" && m_if_has_sdcard == false)
         {
-            storage_text->SetLabel(_CTX_utf8(L_CONTEXT("External", "sendtoprint"), "sendtoprint"));
+            storage_text->SetLabel(wxString::FromUTF8(_CTX_utf8(L_CONTEXT("External", "sendtoprint"), "sendtoprint")));
             radiobox->Disable();
             storage_text->SetForegroundColour(StateColor::darkModeColorFor(wxColour("#CECECE")));
         }
