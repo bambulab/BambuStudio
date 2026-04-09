@@ -41,6 +41,12 @@
         "0",
         "0"
     ],
+    "filament_retraction_length": [
+        "0.4",
+        "0.4",
+        "3",
+        "3"
+    ],
     "filament_wipe": [
         "1",
         "1",
@@ -61,12 +67,6 @@
     ],
     "first_x_layer_fan_speed": [
         "40"
-    ],
-    "filament_retraction_length": [
-        "0.4",
-        "0.4",
-        "nil",
-        "nil"
     ],
     "include": [
         "fdm_filament_template_direct_bowden"
@@ -89,6 +89,9 @@
         "4",
         "4"
     ],
+    "slow_down_layer_time": [
+        "6"
+    ],
     "slow_down_min_speed": [
         "20",
         "20",
@@ -100,9 +103,6 @@
     ],
     "supertack_plate_temp_initial_layer": [
         "35"
-    ],
-    "slow_down_layer_time": [
-        "6"
     ],
     "compatible_printers": [
         "Bambu Lab X2D 0.4 nozzle"

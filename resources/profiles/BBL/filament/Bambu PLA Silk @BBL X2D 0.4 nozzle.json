@@ -44,6 +44,12 @@
         "0",
         "0"
     ],
+    "filament_retraction_length": [
+        "0.4",
+        "0.4",
+        "3",
+        "3"
+    ],
     "filament_wipe": [
         "1",
         "1",
@@ -64,12 +70,6 @@
     ],
     "first_x_layer_fan_speed": [
         "40"
-    ],
-    "filament_retraction_length": [
-        "0.4",
-        "0.4",
-        "nil",
-        "nil"
     ],
     "include": [
         "fdm_filament_template_direct_bowden"

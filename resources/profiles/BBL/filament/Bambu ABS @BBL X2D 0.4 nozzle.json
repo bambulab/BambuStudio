@@ -30,7 +30,7 @@
         "16",
         "25",
         "16",
-        "16"
+        "18"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -43,6 +43,12 @@
         "10",
         "10",
         "10"
+    ],
+    "filament_retraction_length": [
+        "0.4",
+        "0.4",
+        "nil",
+        "nil"
     ],
     "filament_wipe": [
         "1",
@@ -61,12 +67,6 @@
         "Spiral Lift",
         "Spiral Lift",
         "Spiral Lift"
-    ],
-    "filament_retraction_length": [
-        "0.4",
-        "0.4",
-        "nil",
-        "nil"
     ],
     "include": [
         "fdm_filament_template_direct_bowden"

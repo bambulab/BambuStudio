@@ -27,7 +27,7 @@
         "21",
         "40",
         "21",
-        "21"
+        "30"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -44,8 +44,8 @@
     "filament_retraction_length": [
         "0.4",
         "0.4",
-        "nil",
-        "nil"
+        "3",
+        "3"
     ],
     "filament_wipe": [
         "1",
