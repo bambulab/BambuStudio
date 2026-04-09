@@ -17,6 +17,10 @@
     "fan_max_speed": [
         "40"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "0.97",
         "0.97"
@@ -25,14 +29,6 @@
         "12",
         "12"
     ],
-    "filament_ramming_volumetric_speed": [
-        "4.5",
-        "4.5"
-    ],
-    "filament_retraction_length": [
-        "0.4",
-        "0.4"
-    ],
     "filament_pre_cooling_temperature": [
         "200",
         "200"
@@ -40,6 +36,14 @@
     "filament_ramming_travel_time": [
         "20",
         "20"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "4.5",
+        "4.5"
+    ],
+    "filament_retraction_length": [
+        "0.4",
+        "0.4"
     ],
     "include": [
         "fdm_filament_template_direct_dual"

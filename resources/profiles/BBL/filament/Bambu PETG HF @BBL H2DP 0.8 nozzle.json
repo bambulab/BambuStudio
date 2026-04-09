@@ -11,13 +11,24 @@
     "fan_min_speed": [
         "20"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_max_volumetric_speed": [
         "30",
         "40"
     ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
     "filament_retraction_length": [
         "0.4",
         "0.4"
+    ],
+    "filament_tower_ironing_area": [
+        "8"
     ],
     "filament_wipe": [
         "1",
@@ -34,13 +45,6 @@
     "filament_z_hop_types": [
         "Spiral Lift",
         "Spiral Lift"
-    ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
-    ],
-    "filament_tower_ironing_area": [
-        "8"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
@@ -59,18 +63,18 @@
     "pre_start_fan_time": [
         "2"
     ],
-    "supertack_plate_temp": [
-        "60"
-    ],
-    "supertack_plate_temp_initial_layer": [
-        "60"
-    ],
     "slow_down_layer_time": [
         "10"
     ],
     "slow_down_min_speed": [
         "20",
         "20"
+    ],
+    "supertack_plate_temp": [
+        "60"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "60"
     ],
     "compatible_printers": [
         "Bambu Lab H2D Pro 0.8 nozzle"

@@ -14,17 +14,21 @@
     "counter_coef_3": [
         "-0.01"
     ],
-    "counter_limit_min": [
-        "-0.05"
-    ],
     "counter_limit_max": [
         "0.05"
+    ],
+    "counter_limit_min": [
+        "-0.05"
     ],
     "eng_plate_temp": [
         "55"
     ],
     "eng_plate_temp_initial_layer": [
         "55"
+    ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
     ],
     "filament_flow_ratio": [
         "0.98",
@@ -33,6 +37,10 @@
     "filament_max_volumetric_speed": [
         "12",
         "12"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
     ],
     "filament_retraction_length": [
         "0.4",
@@ -49,10 +57,6 @@
     "filament_z_hop_types": [
         "Spiral Lift",
         "Spiral Lift"
-    ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
     ],
     "hole_coef_2": [
         "-0.0081"

@@ -17,9 +17,17 @@
     "counter_limit_max": [
         "0.1"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_max_volumetric_speed": [
         "20",
         "30"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
     ],
     "filament_retraction_length": [
         "0.4",
@@ -37,21 +45,17 @@
         "Spiral Lift",
         "Spiral Lift"
     ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
-    ],
     "hole_coef_2": [
         "-0.006"
     ],
     "hole_coef_3": [
         "0.25"
     ],
-    "hole_limit_min": [
-        "-0.088"
-    ],
     "hole_limit_max": [
         "0.14"
+    ],
+    "hole_limit_min": [
+        "-0.088"
     ],
     "include": [
         "fdm_filament_template_direct_dual"

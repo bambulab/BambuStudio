@@ -23,6 +23,10 @@
     "fan_min_speed": [
         "10"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "1",
         "1"
@@ -31,10 +35,6 @@
         "10.5",
         "10.5"
     ],
-    "filament_ramming_volumetric_speed": [
-        "2.625",
-        "2.625"
-    ],
     "filament_pre_cooling_temperature": [
         "200",
         "200"
@@ -42,6 +42,10 @@
     "filament_ramming_travel_time": [
         "20",
         "20"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "2.625",
+        "2.625"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
