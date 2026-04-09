@@ -894,15 +894,22 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
 
             nozzle_obj.m_bind_ams_slots.clear();
             if (DevUtil::get_hex_bits(njon["id"].get<int>(), 1) == 1) {
+                nozzle_obj.SetOnRack(true);
+                DevNozzleSystemParser::sGetDefaultBindAmsSlot(system, nozzle_obj);
+                if (njon.contains("bind_ams")) {
+                    nozzle_obj.m_bind_ams = njon["bind_ams"].get<std::vector<int>>();
+                }
+
+#if 0
                 if (njon.contains("bind_ams_slot")) {
                     DevAmsSlotId ams_slot_id;
-                    ams_slot_id.second = DevUtil::get_flag_bits(nozzle_json["state"].get<int>(), 0, 8);
-                    ams_slot_id.first = DevUtil::get_flag_bits(nozzle_json["state"].get<int>(), 8, 8);
+                    ams_slot_id.second = DevUtil::get_flag_bits(njon["bind_ams_slot"].get<int>(), 0, 8);
+                    ams_slot_id.first = DevUtil::get_flag_bits(njon["bind_ams_slot"].get<int>(), 8, 8);
                     nozzle_obj.m_bind_ams_slots = { ams_slot_id };
                 } else {
-                    nozzle_obj.SetOnRack(true);
                     DevNozzleSystemParser::sGetDefaultBindAmsSlot(system, nozzle_obj);
                 }
+#endif
 
                 system->m_nozzle_rack->AddRackNozzle(nozzle_obj);
             } else {

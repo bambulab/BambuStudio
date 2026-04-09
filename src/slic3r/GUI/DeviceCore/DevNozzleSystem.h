@@ -143,6 +143,7 @@ private:
     std::string m_filament_clr;// main color
 
     std::vector<DevAmsSlotId> m_bind_ams_slots;
+    std::vector<int>          m_bind_ams;
 
     std::weak_ptr<DevNozzleRack> m_nozzle_rack; // weak pointer to the nozzle rack
     int m_nozzle_print_time = 0;
