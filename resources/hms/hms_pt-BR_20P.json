@@ -1,6 +1,6 @@
 {
     "result": 0,
-    "t": 1773300591,
+    "t": 1775726082,
     "ver": 202511162200,
     "data": {
         "device_hms": {
@@ -317,10 +317,6 @@
                 {
                     "ecode": "0500060000020071",
                     "intro": ""
-                },
-                {
-                    "ecode": "0300910000010008",
-                    "intro": "O controle do aquecedor da câmara está anormal. A ventilação do aquecedor da câmara esquerda provavelmente está bloqueada, ativando a proteção contra superaquecimento."
                 },
                 {
                     "ecode": "0500040000030057",
@@ -827,6 +823,174 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "0500010000030015",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700860000020009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300400000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0702550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1802550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0706550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0707550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1806550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1804550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0704550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1803550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0705550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1800550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1801550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0701550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1807550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0703550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1805550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0704500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1807500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1806500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0707500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0703500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1801500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0706500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1802500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0701500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1803500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0702500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1804500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0705500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1805500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1800500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700870000020009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700750000010008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700740000020007",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700750000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700740000020006",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700740000010001",
+                    "intro": "O interruptor de trilha de filamento está offline. Verifique se há cabos desconectados ou conectores soltos."
+                },
+                {
+                    "ecode": "0700870000020003",
+                    "intro": "O filamento está bloqueado na entrada do comutador da trilha do filamento."
+                },
+                {
                     "ecode": "0C00010000020019",
                     "intro": ""
                 },
@@ -1008,7 +1172,7 @@
                 },
                 {
                     "ecode": "0300260000010002",
-                    "intro": "A sensibilidade do sensor de força de extrusão da extrusora esquerda é baixa; o sensor de força pode não estar instalado corretamente."
+                    "intro": ""
                 },
                 {
                     "ecode": "0582050000010010",
@@ -4203,6 +4367,14 @@
                     "intro": "O motor auxiliar do slot 1 do AMS-HT A deslizou. Retire o filamento, corte a parte desgastada e tente novamente."
                 },
                 {
+                    "ecode": "1802230000020014",
+                    "intro": "O odômetro de filamento AMS-HT C slot 4 não tem sinal, o que pode ser devido ao mau contato no conector do odômetro ou a uma falha no odômetro."
+                },
+                {
+                    "ecode": "1801220000020013",
+                    "intro": "O motor da unidade de alimentação do slot 3 do AMS-HT B não tem sinal, o que pode ser devido ao mau contato no conector do motor ou a uma falha do motor."
+                },
+                {
                     "ecode": "0300010000010002",
                     "intro": "A temperatura da mesa aquecida é anormal; o aquecedor pode ter um circuito aberto ou o interruptor térmico pode estar aberto."
                 },
@@ -4427,6 +4599,10 @@
                     "intro": "A temperatura do aquecedor da câmara 1 está anormal. O sensor pode ter um circuito aberto."
                 },
                 {
+                    "ecode": "0300910000010008",
+                    "intro": ""
+                },
+                {
                     "ecode": "030091000001000A",
                     "intro": "A temperatura do aquecedor da câmara 1 está anormal. A placa AC pode estar quebrada."
                 },
@@ -4453,6 +4629,10 @@
                 {
                     "ecode": "0300920000010007",
                     "intro": "A temperatura do aquecedor da câmara 2 está anormal. O sensor pode ter um circuito aberto."
+                },
+                {
+                    "ecode": "0300920000010008",
+                    "intro": ""
                 },
                 {
                     "ecode": "030092000001000A",
@@ -5936,7 +6116,7 @@
                 },
                 {
                     "ecode": "0300260000010001",
-                    "intro": "A frequência do sensor de força de extrusão da extrusora esquerda é muito baixa. O sensor pode estar instalado muito longe ou pode estar solto."
+                    "intro": ""
                 },
                 {
                     "ecode": "0700930000010001",
@@ -6108,7 +6288,7 @@
                 },
                 {
                     "ecode": "0300250000010001",
-                    "intro": "A frequência do sensor de força de extrusão da extrusora direita é muito baixa. O bocal pode não estar instalado ou o dissipador de calor do bocal pode estar muito longe do sensor."
+                    "intro": ""
                 },
                 {
                     "ecode": "0701810000010003",
@@ -6352,7 +6532,7 @@
                 },
                 {
                     "ecode": "0300260000010004",
-                    "intro": "O sinal do sensor de força de extrusão da extrusora esquerda é anormal. O sensor pode estar danificado ou a comunicação MC-TH pode estar anormal."
+                    "intro": ""
                 },
                 {
                     "ecode": "0702940000010001",
@@ -6496,7 +6676,7 @@
                 },
                 {
                     "ecode": "03001E0000010009",
-                    "intro": "O controle de temperatura do bico esquerdo da extrusora está anormal; a extremidade quente pode não estar instalada. Se você quiser aquecer o hot end sem que ele seja instalado, ative o modo de manutenção na página de configurações."
+                    "intro": ""
                 },
                 {
                     "ecode": "0700810000010003",
@@ -6764,7 +6944,7 @@
                 },
                 {
                     "ecode": "0300250000010007",
-                    "intro": "A frequência do sensor de força de extrusão da extrusora correta é muito alta. O sensor pode estar danificado ou o dissipador de calor do bocal pode estar muito próximo do sensor."
+                    "intro": ""
                 },
                 {
                     "ecode": "0C00040000010013",
@@ -6896,7 +7076,7 @@
                 },
                 {
                     "ecode": "0300260000010007",
-                    "intro": "A frequência do sensor de força de extrusão da extrusora esquerda é muito alta. O sensor pode estar instalado muito próximo ou pode estar solto."
+                    "intro": ""
                 },
                 {
                     "ecode": "0702900000010002",
@@ -6940,7 +7120,7 @@
                 },
                 {
                     "ecode": "0300250000010004",
-                    "intro": "O sinal do sensor de força de extrusão da extrusora direita é anormal. O sensor pode estar danificado ou a comunicação MC-TH pode estar anormal."
+                    "intro": ""
                 },
                 {
                     "ecode": "0702010000020007",
@@ -6984,7 +7164,7 @@
                 },
                 {
                     "ecode": "0300020000010009",
-                    "intro": "O controle correto da temperatura do bico da extrusora é anormal; a extremidade quente pode não estar instalada. Se você quiser aquecer o hot end sem que ele seja instalado, ative o modo de manutenção na página de configurações."
+                    "intro": ""
                 },
                 {
                     "ecode": "0300020000010007",
@@ -9156,7 +9336,7 @@
                 },
                 {
                     "ecode": "0300260000010003",
-                    "intro": "Não é possível ler os dados do sensor de força esquerdo da extrusora; pode haver uma interrupção na comunicação ou danos no sensor."
+                    "intro": ""
                 },
                 {
                     "ecode": "1805010000020002",
@@ -9332,7 +9512,7 @@
                 },
                 {
                     "ecode": "0300250000010003",
-                    "intro": "Não é possível ler os dados do sensor de força da extrusora correto; pode haver uma interrupção na comunicação ou danos no sensor."
+                    "intro": ""
                 },
                 {
                     "ecode": "1800010000020006",
@@ -10025,14 +10205,6 @@
                 {
                     "ecode": "1804210000020004",
                     "intro": "O filamento AMS-HT E Slot 2 pode estar quebrado na cabeça da ferramenta."
-                },
-                {
-                    "ecode": "1802230000020014",
-                    "intro": "O odômetro de filamento AMS-HT C slot 4 não tem sinal, o que pode ser devido ao mau contato no conector do odômetro ou a uma falha no odômetro."
-                },
-                {
-                    "ecode": "1801220000020013",
-                    "intro": "O motor da unidade de alimentação do slot 3 do AMS-HT B não tem sinal, o que pode ser devido ao mau contato no conector do motor ou a uma falha do motor."
                 },
                 {
                     "ecode": "1804210000020014",
@@ -13196,7 +13368,7 @@
                 },
                 {
                     "ecode": "0300250000010002",
-                    "intro": "A sensibilidade do sensor de força de extrusão correto da extrusora é baixa; o bocal pode não estar instalado corretamente."
+                    "intro": ""
                 },
                 {
                     "ecode": "1806800000010001",
@@ -17844,7 +18016,7 @@
                 },
                 {
                     "ecode": "030025000001000C",
-                    "intro": "Foi detectado um salto anômalo nos dados do sensor de força de extrusão do extrusor direito, possivelmente causado por mau contato do sensor ou sensor com defeito."
+                    "intro": ""
                 },
                 {
                     "ecode": "0300910000010007",
@@ -17852,263 +18024,263 @@
                 },
                 {
                     "ecode": "030026000001000C",
-                    "intro": "Foi detectado um salto anômalo nos dados do sensor de força de extrusão do extrusor esquerdo, possivelmente causado por mau contato do sensor ou sensor com defeito."
+                    "intro": ""
                 },
                 {
                     "ecode": "1801220000020025",
-                    "intro": "A resistência de alimentação do slot 3 do AMS-HT B está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0702230000020025",
-                    "intro": "A resistência de alimentação do slot 4 do AMS C está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0701220000020025",
-                    "intro": "A resistência de alimentação do slot 3 do AMS B está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0705220000020025",
-                    "intro": "A resistência de alimentação do slot 3 do AMS F está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0706230000020025",
-                    "intro": "A resistência de alimentação do slot 4 do AMS G está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1804210000020025",
-                    "intro": "A resistência de alimentação do slot 2 do AMS-HT E está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1805200000020025",
-                    "intro": "A resistência de alimentação do slot 1 do AMS-HT F está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1800210000020025",
-                    "intro": "A resistência de alimentação do slot 2 do AMS-HT A está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0704220000020025",
-                    "intro": "A resistência de alimentação do slot 3 do AMS E está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1800220000020025",
-                    "intro": "A resistência de alimentação do slot 3 do AMS-HT A está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0705210000020025",
-                    "intro": "A resistência de alimentação do slot 2 do AMS F está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1806210000020025",
-                    "intro": "A resistência de alimentação do slot 2 do AMS-HT G está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0701200000020025",
-                    "intro": "A resistência de alimentação do slot 1 do AMS B está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1804220000020025",
-                    "intro": "A resistência de alimentação do slot 3 do AMS-HT E está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0703230000020025",
-                    "intro": "A resistência de alimentação do slot 4 do AMS D está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0702220000020025",
-                    "intro": "A resistência de alimentação do slot 3 do AMS C está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1807230000020025",
-                    "intro": "A resistência de alimentação do slot 4 do AMS-HT H está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1802220000020025",
-                    "intro": "A resistência de alimentação do slot 3 do AMS-HT C está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1802210000020025",
-                    "intro": "A resistência de alimentação do slot 2 do AMS-HT C está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1803200000020025",
-                    "intro": "A resistência de alimentação do slot 1 do AMS-HT D está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1800200000020025",
-                    "intro": "A resistência de alimentação do slot 1 do AMS-HT A está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1802200000020025",
-                    "intro": "A resistência de alimentação do slot 1 do AMS-HT C está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1804200000020025",
-                    "intro": "A resistência de alimentação do slot 1 do AMS-HT E está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1800230000020025",
-                    "intro": "A resistência de alimentação do slot 4 do AMS-HT A está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1807210000020025",
-                    "intro": "A resistência de alimentação do slot 2 do AMS-HT H está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0707210000020025",
-                    "intro": "A resistência de alimentação do slot 2 do AMS H está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0705200000020025",
-                    "intro": "A resistência de alimentação do slot 1 do AMS F está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0707230000020025",
-                    "intro": "A resistência de alimentação do slot 4 do AMS H está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0700220000020025",
-                    "intro": "A resistência de alimentação do slot 3 do AMS A está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1805210000020025",
-                    "intro": "A resistência de alimentação do slot 2 do AMS-HT F está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1806200000020025",
-                    "intro": "A resistência de alimentação do slot 1 do AMS-HT G está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0703210000020025",
-                    "intro": "A resistência de alimentação do slot 2 do AMS D está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1807220000020025",
-                    "intro": "A resistência de alimentação do slot 3 do AMS-HT H está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0700210000020025",
-                    "intro": "A resistência de alimentação do slot 2 do AMS A está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0706200000020025",
-                    "intro": "A resistência de alimentação do slot 1 do AMS G está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0700230000020025",
-                    "intro": "A resistência de alimentação do slot 4 do AMS A está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1803230000020025",
-                    "intro": "A resistência de alimentação do slot 4 do AMS-HT D está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0701210000020025",
-                    "intro": "A resistência de alimentação do slot 2 do AMS B está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1802230000020025",
-                    "intro": "A resistência de alimentação do slot 4 do AMS-HT C está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1806220000020025",
-                    "intro": "A resistência de alimentação do slot 3 do AMS-HT G está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0703200000020025",
-                    "intro": "A resistência de alimentação do slot 1 do AMS D está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1801200000020025",
-                    "intro": "A resistência de alimentação do slot 1 do AMS-HT B está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1806230000020025",
-                    "intro": "A resistência de alimentação do slot 4 do AMS-HT G está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0701230000020025",
-                    "intro": "A resistência de alimentação do slot 4 do AMS B está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0707200000020025",
-                    "intro": "A resistência de alimentação do slot 1 do AMS H está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0702210000020025",
-                    "intro": "A resistência de alimentação do slot 2 do AMS C está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0700200000020025",
-                    "intro": "A resistência de alimentação do slot 1 do AMS A está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0706210000020025",
-                    "intro": "A resistência de alimentação do slot 2 do AMS G está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0707220000020025",
-                    "intro": "A resistência de alimentação do slot 3 do AMS H está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1805220000020025",
-                    "intro": "A resistência de alimentação do slot 3 do AMS-HT F está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1805230000020025",
-                    "intro": "A resistência de alimentação do slot 4 do AMS-HT F está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0703220000020025",
-                    "intro": "A resistência de alimentação do slot 3 do AMS D está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1803220000020025",
-                    "intro": "A resistência de alimentação do slot 3 do AMS-HT D está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0704230000020025",
-                    "intro": "A resistência de alimentação do slot 4 do AMS E está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1801210000020025",
-                    "intro": "A resistência de alimentação do slot 2 do AMS-HT B está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0704200000020025",
-                    "intro": "A resistência de alimentação do slot 1 do AMS E está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0706220000020025",
-                    "intro": "A resistência de alimentação do slot 3 do AMS G está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1807200000020025",
-                    "intro": "A resistência de alimentação do slot 1 do AMS-HT H está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1804230000020025",
-                    "intro": "A resistência de alimentação do slot 4 do AMS-HT E está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0704210000020025",
-                    "intro": "A resistência de alimentação do slot 2 do AMS E está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente dobrado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0705230000020025",
-                    "intro": "A resistência de alimentação do slot 4 do AMS F está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0702200000020025",
-                    "intro": "A resistência de alimentação do slot 1 do AMS C está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1803210000020025",
-                    "intro": "A resistência de alimentação do slot 2 do AMS-HT D está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1801230000020025",
-                    "intro": "A resistência de alimentação do slot 4 do AMS-HT B está muito alta. Reduza a resistência de alimentação, diminua a resistência à rotação do carretel e evite que o tubo do filamento fique muito longo e excessivamente curvado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1805930000020003",
@@ -18785,7 +18957,7 @@
                 },
                 {
                     "ecode": "03008022",
-                    "intro": "O leito térmico pode ficar obstruído enquanto se move para baixo. Limpe todos os objetos embaixo da cama térmica e verifique se há resistência ou obstrução durante o movimento."
+                    "intro": ""
                 },
                 {
                     "ecode": "03004014",
@@ -18880,8 +19052,16 @@
                     "intro": "Coloque um tapete de corte StrongGrip na base de proteção de corte."
                 },
                 {
+                    "ecode": "05004046",
+                    "intro": "A impressão foi interrompida porque o arquivo 3MF é inválido. Verifique se o modelo de impressora correto foi selecionado durante o fatiamento ou atualize o Studio e fatie o arquivo novamente."
+                },
+                {
                     "ecode": "0502C014",
                     "intro": "A estimativa de filamento restante do AMS é habilitada por padrão e não pode ser desabilitada."
+                },
+                {
+                    "ecode": "05004047",
+                    "intro": "A impressão foi interrompida porque a quantidade ou o modelo do hotend disponível não corresponde ao arquivo fatiado. Verifique o modelo e a quantidade do hotend antes de reiniciar o trabalho de impressão."
                 },
                 {
                     "ecode": "18FFC00A",
@@ -19528,6 +19708,38 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "18068026",
+                    "intro": "A configuração do AMS falhou. Consulte o assistente para obter detalhes."
+                },
+                {
+                    "ecode": "18058026",
+                    "intro": "A configuração do AMS falhou. Consulte o assistente para obter detalhes."
+                },
+                {
+                    "ecode": "18048026",
+                    "intro": "A configuração do AMS falhou. Consulte o assistente para obter detalhes."
+                },
+                {
+                    "ecode": "18008026",
+                    "intro": "A configuração do AMS falhou. Consulte o assistente para obter detalhes."
+                },
+                {
+                    "ecode": "18078026",
+                    "intro": "A configuração do AMS falhou. Consulte o assistente para obter detalhes."
+                },
+                {
+                    "ecode": "18028026",
+                    "intro": "A configuração do AMS falhou. Consulte o assistente para obter detalhes."
+                },
+                {
+                    "ecode": "18018026",
+                    "intro": "A configuração do AMS falhou. Consulte o assistente para obter detalhes."
+                },
+                {
+                    "ecode": "18038026",
+                    "intro": "A configuração do AMS falhou. Consulte o assistente para obter detalhes."
+                },
+                {
                     "ecode": "0300806F",
                     "intro": ""
                 },
@@ -19546,6 +19758,190 @@
                 {
                     "ecode": "0502C033",
                     "intro": ""
+                },
+                {
+                    "ecode": "03004039",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18008013",
+                    "intro": "Tempo limite de purga do filamento atingido: verifique se o filamento está preso ou se a extrusora está entupida. Após a solução de problemas, clique no botão “Tentar novamente”."
+                },
+                {
+                    "ecode": "18068027",
+                    "intro": "Falha na troca do canal de trilha do filamento. Causas possíveis incluem encravamento do filamento ou dano ao componente."
+                },
+                {
+                    "ecode": "18058013",
+                    "intro": "Tempo limite de purga do filamento atingido: verifique se o filamento está preso ou se a extrusora está entupida. Após a solução de problemas, clique no botão “Tentar novamente”."
+                },
+                {
+                    "ecode": "18028013",
+                    "intro": "Tempo limite de purga do filamento atingido: verifique se o filamento está preso ou se a extrusora está entupida. Após a solução de problemas, clique no botão “Tentar novamente”."
+                },
+                {
+                    "ecode": "18018013",
+                    "intro": "Tempo limite de purga do filamento atingido: verifique se o filamento está preso ou se a extrusora está entupida. Após a solução de problemas, clique no botão “Tentar novamente”."
+                },
+                {
+                    "ecode": "18048013",
+                    "intro": "Tempo limite de purga do filamento atingido: verifique se o filamento está preso ou se a extrusora está entupida. Após a solução de problemas, clique no botão “Tentar novamente”."
+                },
+                {
+                    "ecode": "18068013",
+                    "intro": "Tempo limite de purga do filamento atingido: verifique se o filamento está preso ou se a extrusora está entupida. Após a solução de problemas, clique no botão “Tentar novamente”."
+                },
+                {
+                    "ecode": "18048027",
+                    "intro": "Falha na troca do canal de trilha do filamento. Causas possíveis incluem encravamento do filamento ou dano ao componente."
+                },
+                {
+                    "ecode": "18078013",
+                    "intro": "Tempo limite de purga do filamento atingido: verifique se o filamento está preso ou se a extrusora está entupida. Após a solução de problemas, clique no botão “Tentar novamente”."
+                },
+                {
+                    "ecode": "18058027",
+                    "intro": "Falha na troca do canal de trilha do filamento. Causas possíveis incluem encravamento do filamento ou dano ao componente."
+                },
+                {
+                    "ecode": "18008027",
+                    "intro": "Falha na troca do canal de trilha do filamento. Causas possíveis incluem encravamento do filamento ou dano ao componente."
+                },
+                {
+                    "ecode": "18038027",
+                    "intro": "Falha na troca do canal de trilha do filamento. Causas possíveis incluem encravamento do filamento ou dano ao componente."
+                },
+                {
+                    "ecode": "18018027",
+                    "intro": "Falha na troca do canal de trilha do filamento. Causas possíveis incluem encravamento do filamento ou dano ao componente."
+                },
+                {
+                    "ecode": "18038013",
+                    "intro": "Tempo limite de purga do filamento atingido: verifique se o filamento está preso ou se a extrusora está entupida. Após a solução de problemas, clique no botão “Tentar novamente”."
+                },
+                {
+                    "ecode": "18078027",
+                    "intro": "Falha na troca do canal de trilha do filamento. Causas possíveis incluem encravamento do filamento ou dano ao componente."
+                },
+                {
+                    "ecode": "18028027",
+                    "intro": "Falha na troca do canal de trilha do filamento. Causas possíveis incluem encravamento do filamento ou dano ao componente."
+                },
+                {
+                    "ecode": "0502C034",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05028036",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05028037",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05024035",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1806C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0706C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0705C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1804C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0704C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1801C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500C080",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1803C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1805C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1807C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1802C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0707C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0702C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1800C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0701C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0703C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1806C069",
+                    "intro": "Ocorreu um erro durante a secagem do AMS-HT G. Acesse o Assistente para obter mais detalhes."
+                },
+                {
+                    "ecode": "1801C069",
+                    "intro": "Ocorreu um erro durante a secagem do AMS-HT B. Acesse o Assistente para obter mais detalhes."
+                },
+                {
+                    "ecode": "1800C069",
+                    "intro": "Ocorreu um erro durante a secagem do AMS-HT A. Acesse o Assistente para obter mais detalhes."
+                },
+                {
+                    "ecode": "1807C069",
+                    "intro": "Ocorreu um erro durante a secagem do AMS-HT H. Acesse o Assistente para obter mais detalhes."
+                },
+                {
+                    "ecode": "1805C069",
+                    "intro": "Ocorreu um erro durante a secagem do AMS-HT F. Acesse o Assistente para obter mais detalhes."
+                },
+                {
+                    "ecode": "1804C069",
+                    "intro": "Ocorreu um erro durante a secagem do AMS-HT E. Acesse o Assistente para obter mais detalhes."
+                },
+                {
+                    "ecode": "1802C069",
+                    "intro": "Ocorreu um erro durante a secagem do AMS-HT C. Acesse o Assistente para obter mais detalhes."
+                },
+                {
+                    "ecode": "1803C069",
+                    "intro": "Ocorreu um erro durante a secagem do AMS-HT D. Acesse o Assistente para obter mais detalhes."
                 },
                 {
                     "ecode": "03004000",
@@ -19617,7 +20013,7 @@
                 },
                 {
                     "ecode": "03008008",
-                    "intro": "Mau funcionamento da temperatura do bico."
+                    "intro": ""
                 },
                 {
                     "ecode": "03008009",
@@ -21677,7 +22073,7 @@
                 },
                 {
                     "ecode": "07FF800D",
-                    "intro": "Falha ao alimentar o material da extrusora correta até o cabeçote da ferramenta. Consulte o assistente para solucionar problemas. Remova o filamento, resolva qualquer anormalidade e clique em tentar novamente para continuar."
+                    "intro": ""
                 },
                 {
                     "ecode": "05008087",

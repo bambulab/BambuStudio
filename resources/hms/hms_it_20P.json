@@ -1,6 +1,6 @@
 {
     "result": 0,
-    "t": 1773300591,
+    "t": 1775726082,
     "ver": 202511162200,
     "data": {
         "device_hms": {
@@ -317,10 +317,6 @@
                 {
                     "ecode": "0500060000020071",
                     "intro": ""
-                },
-                {
-                    "ecode": "0300910000010008",
-                    "intro": "Il controllo del termistore della camera è anomalo. Probabilmente la ventola del termistore della camera sinistra è bloccata, attivando la protezione da surriscaldamento."
                 },
                 {
                     "ecode": "0500040000030057",
@@ -827,6 +823,174 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "0500010000030015",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700860000020009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300400000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0702550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1802550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0706550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0707550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1806550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1804550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0704550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1803550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0705550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1800550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1801550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0701550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1807550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0703550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1805550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0704500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1807500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1806500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0707500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0703500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1801500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0706500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1802500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0701500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1803500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0702500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1804500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0705500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1805500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1800500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700870000020009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700750000010008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700740000020007",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700750000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700740000020006",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700740000010001",
+                    "intro": "Il Filament Track Switch è offline. Verifica che i cavi siano collegati e i connettori ben inseriti."
+                },
+                {
+                    "ecode": "0700870000020003",
+                    "intro": "Filamento bloccato all'ingresso del filament track switch."
+                },
+                {
                     "ecode": "0C00010000020019",
                     "intro": ""
                 },
@@ -1008,7 +1172,7 @@
                 },
                 {
                     "ecode": "0300260000010002",
-                    "intro": "La sensibilità del sensore di forza di estrusione dell'estrusore sinistro è bassa; il sensore di forza potrebbe non essere installato correttamente."
+                    "intro": ""
                 },
                 {
                     "ecode": "0582050000010010",
@@ -4203,6 +4367,14 @@
                     "intro": "Lo stato del filamento dello slot 1 di AMS-HT A è anomalo, il che potrebbe essere dovuto a una rottura del filamento all'interno dell'AMS."
                 },
                 {
+                    "ecode": "1802230000020014",
+                    "intro": "L'odometro del filamento dello slot 4 di AMS-HT C non ha segnale, il che potrebbe essere dovuto a un cattivo contatto nel connettore dell'odometro o a un guasto dell'odometro."
+                },
+                {
+                    "ecode": "1801220000020013",
+                    "intro": "Il motore dell'unità di alimentazione dello slot 3 di AMS-HT B non ha segnale, il che potrebbe essere dovuto a un cattivo contatto nel connettore del motore o a un guasto del motore."
+                },
+                {
                     "ecode": "0300010000010002",
                     "intro": "La temperatura del piano è anomala; il riscaldatore o l'interruttore potrebbe avere un circuito aperto."
                 },
@@ -4427,6 +4599,10 @@
                     "intro": "La temperatura del riscaldatore della camera 1 è anomala. Il sensore potrebbe avere un circuito aperto."
                 },
                 {
+                    "ecode": "0300910000010008",
+                    "intro": ""
+                },
+                {
                     "ecode": "030091000001000A",
                     "intro": "La temperatura del riscaldatore della camera 1 è anomala. La scheda AC potrebbe essere guasta."
                 },
@@ -4453,6 +4629,10 @@
                 {
                     "ecode": "0300920000010007",
                     "intro": "La temperatura del riscaldatore della camera 2 è anomala. Il sensore potrebbe avere un circuito aperto."
+                },
+                {
+                    "ecode": "0300920000010008",
+                    "intro": ""
                 },
                 {
                     "ecode": "030092000001000A",
@@ -5936,7 +6116,7 @@
                 },
                 {
                     "ecode": "0300260000010001",
-                    "intro": "La frequenza del sensore di forza di estrusione dell'estrusore sinistro è troppo bassa. Il sensore potrebbe essere installato troppo lontano oppure potrebbe essere allentato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0700930000010001",
@@ -6108,7 +6288,7 @@
                 },
                 {
                     "ecode": "0300250000010001",
-                    "intro": "La frequenza del sensore di forza di estrusione dell'estrusore destro è troppo bassa. Il Nozzle potrebbe non essere installato, oppure il dissipatore di calore del Nozzle potrebbe essere troppo distante dal sensore."
+                    "intro": ""
                 },
                 {
                     "ecode": "0701810000010003",
@@ -6352,7 +6532,7 @@
                 },
                 {
                     "ecode": "0300260000010004",
-                    "intro": "Il segnale del sensore di forza estrusione dell'estrusore sinistro è anomalo. Il sensore potrebbe essere danneggiato o la comunicazione MC-TH potrebbe essere anomala."
+                    "intro": ""
                 },
                 {
                     "ecode": "0702940000010001",
@@ -6496,7 +6676,7 @@
                 },
                 {
                     "ecode": "03001E0000010009",
-                    "intro": "Il controllo della temperatura del nozzle sinistro è anomalo; l'hotend potrebbe non essere installato. Se si desidera riscaldare l'hotend senza che sia installato, attivare la Modalità Manutenzione nella pagina delle impostazioni."
+                    "intro": ""
                 },
                 {
                     "ecode": "0700810000010003",
@@ -6764,7 +6944,7 @@
                 },
                 {
                     "ecode": "0300250000010007",
-                    "intro": "La frequenza del sensore di forza di estrusione dell'estrusore destro è troppo alta. Il sensore potrebbe essere danneggiato, oppure il dissipatore di calore del Nozzle potrebbe essere troppo vicino al sensore."
+                    "intro": ""
                 },
                 {
                     "ecode": "0C00040000010013",
@@ -6896,7 +7076,7 @@
                 },
                 {
                     "ecode": "0300260000010007",
-                    "intro": "La frequenza del sensore di forza di estrusione dell'estrusore sinistro è troppo alta. Il sensore potrebbe essere installato troppo vicino oppure potrebbe essere allentato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0702900000010002",
@@ -6940,7 +7120,7 @@
                 },
                 {
                     "ecode": "0300250000010004",
-                    "intro": "Il segnale del sensore di forza estrusione dell'estrusore destro è anomalo. Il sensore potrebbe essere danneggiato o la comunicazione MC-TH potrebbe essere anomala."
+                    "intro": ""
                 },
                 {
                     "ecode": "0702010000020007",
@@ -6984,7 +7164,7 @@
                 },
                 {
                     "ecode": "0300020000010009",
-                    "intro": "Il controllo della temperatura del nozzle destro è anomalo. L'hotend potrebbe non essere installato. Per riscaldare il gruppo riscaldante senza hotend, attivare la Modalità Manutenzione nelle impostazioni."
+                    "intro": ""
                 },
                 {
                     "ecode": "0300020000010007",
@@ -9156,7 +9336,7 @@
                 },
                 {
                     "ecode": "0300260000010003",
-                    "intro": "Impossibile leggere i dati dal sensore pressione dell'estrusore sinistro; potrebbe esserci un'interruzione della comunicazione o un danno al sensore."
+                    "intro": ""
                 },
                 {
                     "ecode": "1805010000020002",
@@ -9332,7 +9512,7 @@
                 },
                 {
                     "ecode": "0300250000010003",
-                    "intro": "Impossibile leggere i dati dal sensore di pressione destro; Potrebbe esserci un'interruzione della comunicazione o un danno al sensore."
+                    "intro": ""
                 },
                 {
                     "ecode": "1800010000020006",
@@ -10025,14 +10205,6 @@
                 {
                     "ecode": "1804210000020004",
                     "intro": "AMS-HT E Slot 2 il filamento potrebbe essere rotto nella testa di stampa."
-                },
-                {
-                    "ecode": "1802230000020014",
-                    "intro": "L'odometro del filamento dello slot 4 di AMS-HT C non ha segnale, il che potrebbe essere dovuto a un cattivo contatto nel connettore dell'odometro o a un guasto dell'odometro."
-                },
-                {
-                    "ecode": "1801220000020013",
-                    "intro": "Il motore dell'unità di alimentazione dello slot 3 di AMS-HT B non ha segnale, il che potrebbe essere dovuto a un cattivo contatto nel connettore del motore o a un guasto del motore."
                 },
                 {
                     "ecode": "1804210000020014",
@@ -13196,7 +13368,7 @@
                 },
                 {
                     "ecode": "0300250000010002",
-                    "intro": "La sensibilità del sensore di pressione dell'estrusore destro è bassa; il nozzle potrebbe non essere installato correttamente."
+                    "intro": ""
                 },
                 {
                     "ecode": "1806800000010001",
@@ -17844,7 +18016,7 @@
                 },
                 {
                     "ecode": "030025000001000C",
-                    "intro": "È stato rilevato un salto anomalo nei dati del sensore di pressione estrusore destro, probabilmente causato da un contatto difettoso del sensore o da un sensore difettoso."
+                    "intro": ""
                 },
                 {
                     "ecode": "0300910000010007",
@@ -17852,263 +18024,263 @@
                 },
                 {
                     "ecode": "030026000001000C",
-                    "intro": "È stato rilevato un salto anomalo nei dati del sensore di pressione estrusore sinistro, probabilmente causato da un contatto difettoso del sensore o da un sensore difettoso."
+                    "intro": ""
                 },
                 {
                     "ecode": "1801220000020025",
-                    "intro": "La resistenza di alimentazione dello slot 3 di AMS-HT B è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0702230000020025",
-                    "intro": "La resistenza di alimentazione dello slot 4 di AMS C è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0701220000020025",
-                    "intro": "La resistenza di alimentazione dello slot 3 di AMS B è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0705220000020025",
-                    "intro": "La resistenza di alimentazione dello slot 3 di AMS F è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0706230000020025",
-                    "intro": "La resistenza di alimentazione dello slot 4 di AMS G è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1804210000020025",
-                    "intro": "La resistenza di alimentazione dello slot 2 di AMS-HT E è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1805200000020025",
-                    "intro": "La resistenza di alimentazione dello slot 1 di AMS-HT F è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1800210000020025",
-                    "intro": "La resistenza di alimentazione dello slot 2 di AMS-HT A è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0704220000020025",
-                    "intro": "La resistenza di alimentazione dello slot 3 di AMS E è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1800220000020025",
-                    "intro": "La resistenza di alimentazione dello slot 3 di AMS-HT A è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0705210000020025",
-                    "intro": "La resistenza di alimentazione dello slot 2 di AMS F è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1806210000020025",
-                    "intro": "La resistenza di alimentazione dello slot 2 di AMS-HT G è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0701200000020025",
-                    "intro": "La resistenza di alimentazione dello slot 1 di AMS B è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1804220000020025",
-                    "intro": "La resistenza di alimentazione dello slot 3 di AMS-HT E è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0703230000020025",
-                    "intro": "La resistenza di alimentazione dello slot 4 di AMS D è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0702220000020025",
-                    "intro": "La resistenza di alimentazione dello slot 3 di AMS C è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1807230000020025",
-                    "intro": "La resistenza di alimentazione dello slot 4 di AMS-HT H è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1802220000020025",
-                    "intro": "La resistenza di alimentazione dello slot 3 di AMS-HT C è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1802210000020025",
-                    "intro": "La resistenza di alimentazione dello slot 2 di AMS-HT C è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1803200000020025",
-                    "intro": "La resistenza di alimentazione dello slot 1 di AMS-HT D è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1800200000020025",
-                    "intro": "La resistenza di alimentazione dello slot 1 di AMS-HT è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1802200000020025",
-                    "intro": "La resistenza di alimentazione dello slot 1 di AMS-HT C è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1804200000020025",
-                    "intro": "La resistenza di alimentazione dello slot 1 di AMS-HT E è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1800230000020025",
-                    "intro": "La resistenza di alimentazione dello slot 4 di AMS-HT A è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1807210000020025",
-                    "intro": "La resistenza di alimentazione dello slot 2 di AMS-HT H è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0707210000020025",
-                    "intro": "La resistenza di alimentazione dello slot 2 di AMS H è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0705200000020025",
-                    "intro": "La resistenza di alimentazione dello slot 1 di AMS F è troppo elevata. Riduci la resistenza all'ingresso, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0707230000020025",
-                    "intro": "La resistenza di alimentazione dello slot 4 di AMS H è troppo elevata. Riduci la resistenza all'ingresso, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0700220000020025",
-                    "intro": "La resistenza di alimentazione dello slot 3 di AMS A è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1805210000020025",
-                    "intro": "La resistenza di alimentazione dello slot 2 di AMS-HT F è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1806200000020025",
-                    "intro": "La resistenza di alimentazione dello slot 1 di AMS-HT G è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0703210000020025",
-                    "intro": "La resistenza di alimentazione dello slot 2 di AMS D è troppo elevata. Riduci la resistenza all'ingresso, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1807220000020025",
-                    "intro": "La resistenza di alimentazione dello slot 3 di AMS-HT H è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0700210000020025",
-                    "intro": "La resistenza di alimentazione dello slot 2 di AMS A è troppo elevata. Riduci la resistenza all'ingresso, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0706200000020025",
-                    "intro": "La resistenza di alimentazione dello slot 1 di AMS G è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0700230000020025",
-                    "intro": "La resistenza di alimentazione dello slot 4 di AMS A è troppo elevata. Riduci la resistenza all'ingresso, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1803230000020025",
-                    "intro": "La resistenza di alimentazione dello slot 4 di AMS-HT D è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0701210000020025",
-                    "intro": "La resistenza di alimentazione dello slot 2 di AMS B è troppo elevata. Riduci la resistenza all'ingresso, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1802230000020025",
-                    "intro": "La resistenza di alimentazione dello slot 4 di AMS-HT C è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1806220000020025",
-                    "intro": "La resistenza di alimentazione dello slot 3 di AMS-HT G è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0703200000020025",
-                    "intro": "La resistenza di alimentazione dello slot 1 di AMS D è troppo elevata. Riduci la resistenza all'ingresso, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1801200000020025",
-                    "intro": "La resistenza di alimentazione dello slot 1 di AMS-HT B è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1806230000020025",
-                    "intro": "La resistenza di alimentazione dello slot 4 di AMS-HT G è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0701230000020025",
-                    "intro": "La resistenza di alimentazione dello slot 4 di AMS B è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0707200000020025",
-                    "intro": "La resistenza di alimentazione dello slot 1 di AMS H è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0702210000020025",
-                    "intro": "La resistenza di alimentazione dello slot 2 di AMS C è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0700200000020025",
-                    "intro": "La resistenza di alimentazione dello slot 1 di AMS A è troppo elevata. Riduci la resistenza all'ingresso, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0706210000020025",
-                    "intro": "La resistenza di alimentazione dello slot 2 di AMS G è troppo elevata. Riduci la resistenza all'ingresso, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0707220000020025",
-                    "intro": "La resistenza di alimentazione dello slot 3 di AMS H è troppo elevata. Riduci la resistenza all'ingresso, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1805220000020025",
-                    "intro": "La resistenza di alimentazione dello slot 3 di AMS-HT F è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1805230000020025",
-                    "intro": "La resistenza di alimentazione dello slot 4 di AMS-HT F è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0703220000020025",
-                    "intro": "La resistenza di alimentazione dello slot 3 di AMS D è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1803220000020025",
-                    "intro": "La resistenza di alimentazione dello slot 3 di AMS-HT D è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0704230000020025",
-                    "intro": "La resistenza di alimentazione dello slot 4 di AMS E è troppo elevata. Riduci la resistenza all'ingresso, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1801210000020025",
-                    "intro": "La resistenza di alimentazione dello slot 2 di AMS-HT B è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0704200000020025",
-                    "intro": "La resistenza di alimentazione dello slot 1 di AMS E è troppo elevata. Riduci la resistenza all'ingresso, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0706220000020025",
-                    "intro": "La resistenza di alimentazione dello slot 3 di AMS G è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1807200000020025",
-                    "intro": "La resistenza di alimentazione dello slot 1 di AMS-HT H è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1804230000020025",
-                    "intro": "La resistenza di alimentazione dello slot 4 di AMS-HT E è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0704210000020025",
-                    "intro": "La resistenza di alimentazione dello slot 2 di AMS E è troppo elevata. Riduci la resistenza all'ingresso, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0705230000020025",
-                    "intro": "La resistenza di alimentazione dello slot 4 di AMS F è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "0702200000020025",
-                    "intro": "La resistenza di alimentazione dello slot 1 di AMS C è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1803210000020025",
-                    "intro": "La resistenza di alimentazione dello slot 2 di AMS-HT D è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1801230000020025",
-                    "intro": "La resistenza di alimentazione dello slot 4 di AMS-HT B è troppo elevata. Riduci la resistenza di alimentazione, diminuisci la resistenza alla rotazione della bobina ed evita che il tubo del filamento sia troppo lungo o eccessivamente piegato."
+                    "intro": ""
                 },
                 {
                     "ecode": "1805930000020003",
@@ -18785,7 +18957,7 @@
                 },
                 {
                     "ecode": "03008022",
-                    "intro": "Il piano potrebbe essere ostruito durante lo spostamento verso il basso. Rimuovi tutti gli oggetti sotto il piano e verifica l'eventuale resistenza o inceppamento durante il suo movimento."
+                    "intro": ""
                 },
                 {
                     "ecode": "03004014",
@@ -18880,8 +19052,16 @@
                     "intro": "Posiziona un tappetino da taglio StrongGrip sulla base di protezione da taglio."
                 },
                 {
+                    "ecode": "05004046",
+                    "intro": "Stampa interrotta perché il file 3MF non è valido. Verifica che sia stato selezionato il modello di stampante corretto durante l'elaborazione oppure aggiorna Studio e rieseguire l'elaborazione del file."
+                },
+                {
                     "ecode": "0502C014",
                     "intro": "Stima filamento residuo AMS attivata di default e non è disattivabile."
+                },
+                {
+                    "ecode": "05004047",
+                    "intro": "La stampa si è interrotta perché il numero di hotend o il modello disponibili non corrispondono al file elaborato. Controlla il modello e il numero di hotend prima di riavviare la stampa."
                 },
                 {
                     "ecode": "18FFC00A",
@@ -19528,6 +19708,38 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "18068026",
+                    "intro": "Configurazione AMS non riuscita. Controlla l'assistente per ulteriori dettagli."
+                },
+                {
+                    "ecode": "18058026",
+                    "intro": "Configurazione AMS non riuscita. Controlla l'assistente per ulteriori dettagli."
+                },
+                {
+                    "ecode": "18048026",
+                    "intro": "Configurazione AMS non riuscita. Controlla l'assistente per ulteriori dettagli."
+                },
+                {
+                    "ecode": "18008026",
+                    "intro": "Configurazione AMS non riuscita. Controlla l'assistente per ulteriori dettagli."
+                },
+                {
+                    "ecode": "18078026",
+                    "intro": "Configurazione AMS non riuscita. Controlla l'assistente per ulteriori dettagli."
+                },
+                {
+                    "ecode": "18028026",
+                    "intro": "Configurazione AMS non riuscita. Controlla l'assistente per ulteriori dettagli."
+                },
+                {
+                    "ecode": "18018026",
+                    "intro": "Configurazione AMS non riuscita. Controlla l'assistente per ulteriori dettagli."
+                },
+                {
+                    "ecode": "18038026",
+                    "intro": "Configurazione AMS non riuscita. Controlla l'assistente per ulteriori dettagli."
+                },
+                {
                     "ecode": "0300806F",
                     "intro": ""
                 },
@@ -19546,6 +19758,190 @@
                 {
                     "ecode": "0502C033",
                     "intro": ""
+                },
+                {
+                    "ecode": "03004039",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18008013",
+                    "intro": "Timeout spurgo vecchio filamento: controlla se il filamento è bloccato o l'estrusore ha cloggato."
+                },
+                {
+                    "ecode": "18068027",
+                    "intro": "Cambio canale filament track switch fallito. Potrebbe essere dovuto a inceppamento del filamento o danni al componente."
+                },
+                {
+                    "ecode": "18058013",
+                    "intro": "Timeout spurgo vecchio filamento: controlla se il filamento è bloccato o l'estrusore ha cloggato."
+                },
+                {
+                    "ecode": "18028013",
+                    "intro": "Timeout spurgo vecchio filamento: controlla se il filamento è bloccato o l'estrusore ha cloggato."
+                },
+                {
+                    "ecode": "18018013",
+                    "intro": "Timeout spurgo vecchio filamento: controlla se il filamento è bloccato o l'estrusore ha cloggato."
+                },
+                {
+                    "ecode": "18048013",
+                    "intro": "Timeout spurgo vecchio filamento: controlla se il filamento è bloccato o l'estrusore ha cloggato."
+                },
+                {
+                    "ecode": "18068013",
+                    "intro": "Timeout spurgo vecchio filamento: controlla se il filamento è bloccato o l'estrusore ha cloggato."
+                },
+                {
+                    "ecode": "18048027",
+                    "intro": "Cambio canale filament track switch fallito. Potrebbe essere dovuto a inceppamento del filamento o danni al componente."
+                },
+                {
+                    "ecode": "18078013",
+                    "intro": "Timeout spurgo vecchio filamento: controlla se il filamento è bloccato o l'estrusore ha cloggato."
+                },
+                {
+                    "ecode": "18058027",
+                    "intro": "Cambio canale filament track switch fallito. Potrebbe essere dovuto a inceppamento del filamento o danni al componente."
+                },
+                {
+                    "ecode": "18008027",
+                    "intro": "Cambio canale filament track switch fallito. Potrebbe essere dovuto a inceppamento del filamento o danni al componente."
+                },
+                {
+                    "ecode": "18038027",
+                    "intro": "Cambio canale filament track switch fallito. Potrebbe essere dovuto a inceppamento del filamento o danni al componente."
+                },
+                {
+                    "ecode": "18018027",
+                    "intro": "Cambio canale filament track switch fallito. Potrebbe essere dovuto a inceppamento del filamento o danni al componente."
+                },
+                {
+                    "ecode": "18038013",
+                    "intro": "Timeout spurgo vecchio filamento: controlla se il filamento è bloccato o l'estrusore ha cloggato."
+                },
+                {
+                    "ecode": "18078027",
+                    "intro": "Cambio canale filament track switch fallito. Potrebbe essere dovuto a inceppamento del filamento o danni al componente."
+                },
+                {
+                    "ecode": "18028027",
+                    "intro": "Cambio canale filament track switch fallito. Potrebbe essere dovuto a inceppamento del filamento o danni al componente."
+                },
+                {
+                    "ecode": "0502C034",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05028036",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05028037",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05024035",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1806C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0706C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0705C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1804C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0704C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1801C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500C080",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1803C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1805C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1807C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1802C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0707C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0702C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1800C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0701C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0703C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1806C069",
+                    "intro": "AMS-HT G Si è verificato un errore durante l'asciugatura. Consulta l'Assistente per maggiori dettagli."
+                },
+                {
+                    "ecode": "1801C069",
+                    "intro": "AMS-HT B Si è verificato un errore durante l'asciugatura. Consulta l'Assistente per maggiori dettagli."
+                },
+                {
+                    "ecode": "1800C069",
+                    "intro": "AMS-HT A Si è verificato un errore durante l'asciugatura. Consulta l'Assistente per maggiori dettagli."
+                },
+                {
+                    "ecode": "1807C069",
+                    "intro": "AMS-HT H Si è verificato un errore durante l'asciugatura. Consulta l'Assistente per maggiori dettagli."
+                },
+                {
+                    "ecode": "1805C069",
+                    "intro": "AMS-HT F Si è verificato un errore durante l'asciugatura. Consulta l'Assistente per maggiori dettagli."
+                },
+                {
+                    "ecode": "1804C069",
+                    "intro": "AMS-HT E Si è verificato un errore durante l'asciugatura. Consulta l'Assistente per maggiori dettagli."
+                },
+                {
+                    "ecode": "1802C069",
+                    "intro": "AMS-HT C Si è verificato un errore durante l'asciugatura. Consulta l'Assistente per maggiori dettagli."
+                },
+                {
+                    "ecode": "1803C069",
+                    "intro": "AMS-HT D Si è verificato un errore durante l'asciugatura. Consulta l'Assistente per maggiori dettagli."
                 },
                 {
                     "ecode": "03004000",
@@ -19617,7 +20013,7 @@
                 },
                 {
                     "ecode": "03008008",
-                    "intro": "Stampa interrotta per un problema di temperatura del nozzle"
+                    "intro": ""
                 },
                 {
                     "ecode": "03008009",
@@ -21677,7 +22073,7 @@
                 },
                 {
                     "ecode": "07FF800D",
-                    "intro": "Non è stato possibile alimentare il materiale dall'estrusore destro alla testa di stampa. Rivolgiti all'assistente per la risoluzione dei problemi. Rimuovi il filamento, risolvi eventuali anomalie, quindi clicca su Riprova per continuare."
+                    "intro": ""
                 },
                 {
                     "ecode": "05008087",

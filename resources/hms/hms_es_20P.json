@@ -1,6 +1,6 @@
 {
     "result": 0,
-    "t": 1773300591,
+    "t": 1775726082,
     "ver": 202511162200,
     "data": {
         "device_hms": {
@@ -317,10 +317,6 @@
                 {
                     "ecode": "0500060000020071",
                     "intro": ""
-                },
-                {
-                    "ecode": "0300910000010008",
-                    "intro": "El control del heater de la cámara presenta una anomalía. Es probable que la ventilación izquierda del heater de la cámara esté bloqueada, lo que activa su protección contra sobrecalentamiento."
                 },
                 {
                     "ecode": "0500040000030057",
@@ -827,6 +823,174 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "0500010000030015",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700860000020009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0300400000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0702550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1802550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0706550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0707550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1806550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1804550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0704550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1803550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0705550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1800550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1801550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0701550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1807550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0703550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1805550000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0704500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1807500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1806500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0707500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0703500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1801500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0706500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1802500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0701500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1803500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0702500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1804500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0705500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1805500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1800500000020002",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700870000020009",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700750000010008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700740000020007",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700750000010005",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700740000020006",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700740000010001",
+                    "intro": "El interruptor de pista de filamento está desconectado. Compruebe si hay cables desconectados o conectores sueltos."
+                },
+                {
+                    "ecode": "0700870000020003",
+                    "intro": "El filamento está bloqueado en la entrada del conmutador de la ruta del filamento."
+                },
+                {
                     "ecode": "0C00010000020019",
                     "intro": ""
                 },
@@ -1008,7 +1172,7 @@
                 },
                 {
                     "ecode": "0300260000010002",
-                    "intro": "La sensibilidad del sensor de fuerza de extrusión del extrusor izquierdo es baja; es posible que el sensor de fuerza no esté instalado correctamente."
+                    "intro": ""
                 },
                 {
                     "ecode": "0582050000010010",
@@ -4203,6 +4367,14 @@
                     "intro": "El motor de asistencia de la ranura 1 del AMS-HT A se ha resbalado. Retire el filamento, corte la parte desgastada y vuelva a intentarlo."
                 },
                 {
+                    "ecode": "1802230000020014",
+                    "intro": "El odómetro de filamento de la ranura 4 del AMS-HT C no tiene señal, lo que puede deberse a un mal contacto en el conector del odómetro o a un fallo del odómetro."
+                },
+                {
+                    "ecode": "1801220000020013",
+                    "intro": "El motor de la unidad alimentadora de la ranura 3 del AMS-HT B no tiene señal, lo que puede deberse a un mal contacto en el conector del motor o a un fallo del motor."
+                },
+                {
                     "ecode": "0300010000010002",
                     "intro": "La temperatura de la cama caliente es anormal; el calentador puede tener un circuito abierto, o el interruptor térmico puede estar abierto"
                 },
@@ -4427,6 +4599,10 @@
                     "intro": "La temperatura del calentador de la cámara 1 no es normal. El sensor puede tener un circuito abierto."
                 },
                 {
+                    "ecode": "0300910000010008",
+                    "intro": ""
+                },
+                {
                     "ecode": "030091000001000A",
                     "intro": "La temperatura del calentador de cámara 1 es anormal. La placa de aire acondicionado puede estar rota."
                 },
@@ -4453,6 +4629,10 @@
                 {
                     "ecode": "0300920000010007",
                     "intro": "La temperatura del calentador de la cámara 2 no es normal. El sensor puede tener un circuito abierto."
+                },
+                {
+                    "ecode": "0300920000010008",
+                    "intro": ""
                 },
                 {
                     "ecode": "030092000001000A",
@@ -5936,7 +6116,7 @@
                 },
                 {
                     "ecode": "0300260000010001",
-                    "intro": "La frecuencia del sensor de fuerza de extrusión del extrusor izquierdo es demasiado baja. Es posible que el sensor esté instalado demasiado lejos o que esté suelto."
+                    "intro": ""
                 },
                 {
                     "ecode": "0700930000010001",
@@ -6108,7 +6288,7 @@
                 },
                 {
                     "ecode": "0300250000010001",
-                    "intro": "La frecuencia del sensor de fuerza de extrusión del extrusor correcto es demasiado baja. Es posible que la boquilla no esté instalada o que el disipador de calor de la boquilla esté demasiado lejos del sensor."
+                    "intro": ""
                 },
                 {
                     "ecode": "0701810000010003",
@@ -6352,7 +6532,7 @@
                 },
                 {
                     "ecode": "0300260000010004",
-                    "intro": "La señal del sensor de fuerza de extrusión del extrusor izquierdo es anormal. El sensor puede estar dañado o la comunicación MC-TH puede ser anormal."
+                    "intro": ""
                 },
                 {
                     "ecode": "0702940000010001",
@@ -6496,7 +6676,7 @@
                 },
                 {
                     "ecode": "03001E0000010009",
-                    "intro": "El control de temperatura de la boquilla izquierda del extrusor es anormal; es posible que el extremo caliente no esté instalado. Si desea calentar el extremo caliente sin instalarlo, active el modo de mantenimiento en la página de configuración."
+                    "intro": ""
                 },
                 {
                     "ecode": "0700810000010003",
@@ -6764,7 +6944,7 @@
                 },
                 {
                     "ecode": "0300250000010007",
-                    "intro": "La frecuencia del sensor de fuerza de extrusión del extrusor correcto es demasiado alta. El sensor puede estar dañado o el disipador de calor de la boquilla puede estar demasiado cerca del sensor."
+                    "intro": ""
                 },
                 {
                     "ecode": "0C00040000010013",
@@ -6896,7 +7076,7 @@
                 },
                 {
                     "ecode": "0300260000010007",
-                    "intro": "La frecuencia del sensor de fuerza de extrusión del extrusor izquierdo es demasiado alta. Es posible que el sensor esté instalado demasiado cerca o que esté suelto."
+                    "intro": ""
                 },
                 {
                     "ecode": "0702900000010002",
@@ -6940,7 +7120,7 @@
                 },
                 {
                     "ecode": "0300250000010004",
-                    "intro": "La señal del sensor de fuerza de extrusión del extrusor derecho es anormal. El sensor puede estar dañado o la comunicación MC-TH puede ser anormal."
+                    "intro": ""
                 },
                 {
                     "ecode": "0702010000020007",
@@ -6984,7 +7164,7 @@
                 },
                 {
                     "ecode": "0300020000010009",
-                    "intro": "El control de temperatura de la boquilla derecha del extrusor es anormal; es posible que el extremo caliente no esté instalado. Si desea calentar el extremo caliente sin instalarlo, active el modo de mantenimiento en la página de configuración."
+                    "intro": ""
                 },
                 {
                     "ecode": "0300020000010007",
@@ -9156,7 +9336,7 @@
                 },
                 {
                     "ecode": "0300260000010003",
-                    "intro": "No se pueden leer los datos del sensor de fuerza del extrusor izquierdo; es posible que haya una interrupción en la comunicación o un daño en el sensor."
+                    "intro": ""
                 },
                 {
                     "ecode": "1805010000020002",
@@ -9332,7 +9512,7 @@
                 },
                 {
                     "ecode": "0300250000010003",
-                    "intro": "No se pueden leer los datos del sensor de fuerza del extrusor derecho; puede haber una interrupción de la comunicación o daños en el sensor."
+                    "intro": ""
                 },
                 {
                     "ecode": "1800010000020006",
@@ -10025,14 +10205,6 @@
                 {
                     "ecode": "1804210000020004",
                     "intro": "Es posible que el filamento de la ranura 2 del AMS-HT E esté roto en el cabezal."
-                },
-                {
-                    "ecode": "1802230000020014",
-                    "intro": "El odómetro de filamento de la ranura 4 del AMS-HT C no tiene señal, lo que puede deberse a un mal contacto en el conector del odómetro o a un fallo del odómetro."
-                },
-                {
-                    "ecode": "1801220000020013",
-                    "intro": "El motor de la unidad alimentadora de la ranura 3 del AMS-HT B no tiene señal, lo que puede deberse a un mal contacto en el conector del motor o a un fallo del motor."
                 },
                 {
                     "ecode": "1804210000020014",
@@ -13196,7 +13368,7 @@
                 },
                 {
                     "ecode": "0300250000010002",
-                    "intro": "La sensibilidad del sensor de fuerza de extrusión del extrusor derecho es baja; es posible que la boquilla no esté instalada correctamente."
+                    "intro": ""
                 },
                 {
                     "ecode": "1806800000010001",
@@ -17844,7 +18016,7 @@
                 },
                 {
                     "ecode": "030025000001000C",
-                    "intro": "Se ha detectado un salto anómalo en los datos del extruder extrusion force sensor derecho, posiblemente causado por un mal contacto del sensor o un sensor defectuoso."
+                    "intro": ""
                 },
                 {
                     "ecode": "0300910000010007",
@@ -17852,263 +18024,263 @@
                 },
                 {
                     "ecode": "030026000001000C",
-                    "intro": "Se ha detectado un salto anómalo en los datos del extruder extrusion force sensor izquierdo, posiblemente causado por un mal contacto del sensor o un sensor defectuoso."
+                    "intro": ""
                 },
                 {
                     "ecode": "1801220000020025",
-                    "intro": "La resistencia de alimentación de la ranura 3 del AMS-HT B es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0702230000020025",
-                    "intro": "La resistencia de alimentación de la ranura 4 del AMS C es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0701220000020025",
-                    "intro": "La resistencia de alimentación de la ranura 3 del AMS B es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0705220000020025",
-                    "intro": "La resistencia de alimentación de la ranura 3 del AMS F es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0706230000020025",
-                    "intro": "La resistencia de alimentación de la ranura 4 del AMS G es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1804210000020025",
-                    "intro": "La resistencia de alimentación de la ranura 2 del AMS-HT E es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1805200000020025",
-                    "intro": "La resistencia de alimentación de la ranura 1 del AMS-HT F es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1800210000020025",
-                    "intro": "La resistencia de alimentación de la ranura 2 del AMS-HT A es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0704220000020025",
-                    "intro": "La resistencia de alimentación de la ranura 3 del AMS E es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1800220000020025",
-                    "intro": "La resistencia de alimentación de la ranura 3 del AMS-HT A es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0705210000020025",
-                    "intro": "La resistencia de alimentación de la ranura 2 del AMS F es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1806210000020025",
-                    "intro": "La resistencia de alimentación de la ranura 2 del AMS-HT G es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0701200000020025",
-                    "intro": "La resistencia de alimentación de la ranura 1 del AMS B es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1804220000020025",
-                    "intro": "La resistencia de alimentación de la ranura 3 de la AMS-HT E es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0703230000020025",
-                    "intro": "La resistencia de alimentación de la ranura 4 del AMS D es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0702220000020025",
-                    "intro": "La resistencia de alimentación de la ranura 3 del AMS C es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1807230000020025",
-                    "intro": "La resistencia de alimentación de la ranura 4 del AMS-HT H es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1802220000020025",
-                    "intro": "La resistencia de alimentación de la ranura 3 del AMS-HT C es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1802210000020025",
-                    "intro": "La resistencia de alimentación de la ranura 2 del AMS-HT C es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1803200000020025",
-                    "intro": "La resistencia de alimentación de la ranura 1 del AMS-HT D es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1800200000020025",
-                    "intro": "La resistencia de alimentación de la ranura 1 del AMS-HT A es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1802200000020025",
-                    "intro": "La resistencia de alimentación de la ranura 1 del AMS-HT C es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1804200000020025",
-                    "intro": "La resistencia de alimentación de la ranura 1 del AMS-HT E es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1800230000020025",
-                    "intro": "La resistencia de alimentación de la ranura 4 del AMS-HT A es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1807210000020025",
-                    "intro": "La resistencia de alimentación de la ranura 2 del AMS-HT H es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0707210000020025",
-                    "intro": "La resistencia de alimentación de la ranura 2 del AMS H es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0705200000020025",
-                    "intro": "La resistencia de alimentación de la ranura 1 del AMS F es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0707230000020025",
-                    "intro": "La resistencia de alimentación de la ranura 4 del AMS H es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0700220000020025",
-                    "intro": "La resistencia de alimentación de la ranura 3 del AMS A es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1805210000020025",
-                    "intro": "La resistencia de alimentación de la ranura 2 del AMS-HT F es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1806200000020025",
-                    "intro": "La resistencia de alimentación de la ranura 1 del AMS-HT G es demasiado alta. Reduzca la resistencia de alimentación, disminuya la resistencia a la rotación de la bobina y evite que el tubo de filamento sea demasiado largo y excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0703210000020025",
-                    "intro": "La resistencia de alimentación de la ranura 2 del AMS D es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1807220000020025",
-                    "intro": "La resistencia de alimentación de la ranura 3 del AMS-HT H es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0700210000020025",
-                    "intro": "La resistencia de alimentación de la ranura 2 del AMS A es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0706200000020025",
-                    "intro": "La resistencia de alimentación de la ranura 1 del AMS G es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0700230000020025",
-                    "intro": "La resistencia de alimentación de la ranura 4 del AMS A es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1803230000020025",
-                    "intro": "La resistencia de alimentación de la ranura 4 del AMS-HT D es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0701210000020025",
-                    "intro": "La resistencia de alimentación de la ranura 2 del AMS B es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1802230000020025",
-                    "intro": "La resistencia de alimentación de la ranura 4 del AMS-HT C es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1806220000020025",
-                    "intro": "La resistencia de alimentación de la ranura 3 del AMS-HT G es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0703200000020025",
-                    "intro": "La resistencia de alimentación de la ranura 1 del AMS D es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1801200000020025",
-                    "intro": "La resistencia de alimentación de la ranura 1 del AMS-HT B es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1806230000020025",
-                    "intro": "La resistencia de alimentación de la ranura 4 del AMS-HT G es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0701230000020025",
-                    "intro": "La resistencia de alimentación de la ranura 4 del AMS B es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0707200000020025",
-                    "intro": "La resistencia de alimentación de la ranura 1 del AMS H es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0702210000020025",
-                    "intro": "La resistencia de alimentación de la ranura 2 del AMS C es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0700200000020025",
-                    "intro": "La resistencia de alimentación de la ranura 1 del AMS A es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0706210000020025",
-                    "intro": "La resistencia de alimentación de la ranura 2 del AMS G es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0707220000020025",
-                    "intro": "La resistencia de alimentación de la ranura 3 del AMS H es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1805220000020025",
-                    "intro": "La resistencia de alimentación de la ranura 3 del AMS-HT F es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1805230000020025",
-                    "intro": "La resistencia de alimentación de la ranura 4 del AMS-HT F es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0703220000020025",
-                    "intro": "La resistencia de alimentación de la ranura 3 del AMS D es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1803220000020025",
-                    "intro": "La resistencia de alimentación de la ranura 3 del AMS-HT D es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0704230000020025",
-                    "intro": "La resistencia de alimentación de la ranura 4 de la AMS E es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1801210000020025",
-                    "intro": "La resistencia de alimentación de la ranura 2 del AMS-HT B es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0704200000020025",
-                    "intro": "La resistencia de alimentación de la ranura 1 del AMS E es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0706220000020025",
-                    "intro": "La resistencia de alimentación de la ranura 3 del AMS G es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1807200000020025",
-                    "intro": "La resistencia de alimentación de la ranura 1 del AMS-HT H es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1804230000020025",
-                    "intro": "La resistencia de alimentación de la ranura 4 del AMS-HT E es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0704210000020025",
-                    "intro": "La resistencia de alimentación de la ranura 2 del AMS E es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0705230000020025",
-                    "intro": "La resistencia de alimentación de la ranura 4 del AMS F es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "0702200000020025",
-                    "intro": "La resistencia de alimentación de la ranura 1 del AMS C es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1803210000020025",
-                    "intro": "La resistencia de alimentación de la ranura 2 del AMS-HT D es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1801230000020025",
-                    "intro": "La resistencia de alimentación de la ranura 4 del AMS-HT B es demasiado alta. Reduzca la resistencia de alimentación y la resistencia de rotación de la bobina, y evite que el tubo de filamento sea demasiado largo y esté excesivamente doblado."
+                    "intro": ""
                 },
                 {
                     "ecode": "1805930000020003",
@@ -18785,7 +18957,7 @@
                 },
                 {
                     "ecode": "03008022",
-                    "intro": "La cama térmica puede obstruirse mientras se mueve hacia abajo. Elimine cualquier objeto que se encuentre debajo de la cama térmica y compruebe si hay resistencia o atascos durante su movimiento."
+                    "intro": ""
                 },
                 {
                     "ecode": "03004014",
@@ -18880,8 +19052,16 @@
                     "intro": "Por favor, coloque una alfombrilla de corte StrongGrip sobre la base de protección de corte."
                 },
                 {
+                    "ecode": "05004046",
+                    "intro": "La impresión se detuvo porque el archivo 3MF no es válido. Verifique que se haya seleccionado el modelo de impresora correcto al cortar, o actualice Studio y vuelva a cortar el archivo."
+                },
+                {
                     "ecode": "0502C014",
                     "intro": "La estimación de filamento restante de AMS está habilitada de forma predeterminada y no se puede deshabilitar."
+                },
+                {
+                    "ecode": "05004047",
+                    "intro": "La impresión se detuvo porque la cantidad o el modelo de hotend disponible no coincide con el archivo cortado. Verifique el modelo y la cantidad de hotend antes de reiniciar la impresión."
                 },
                 {
                     "ecode": "18FFC00A",
@@ -19528,6 +19708,38 @@
                     "intro": ""
                 },
                 {
+                    "ecode": "18068026",
+                    "intro": "Error en la configuración de AMS. Consulte el asistente para obtener más información."
+                },
+                {
+                    "ecode": "18058026",
+                    "intro": "Error en la configuración de AMS. Consulte el asistente para obtener más información."
+                },
+                {
+                    "ecode": "18048026",
+                    "intro": "Error en la configuración de AMS. Consulte el asistente para obtener más información."
+                },
+                {
+                    "ecode": "18008026",
+                    "intro": "Error en la configuración de AMS. Consulte el asistente para obtener más información."
+                },
+                {
+                    "ecode": "18078026",
+                    "intro": "Error en la configuración de AMS. Consulte el asistente para obtener más información."
+                },
+                {
+                    "ecode": "18028026",
+                    "intro": "Error en la configuración de AMS. Consulte el asistente para obtener más información."
+                },
+                {
+                    "ecode": "18018026",
+                    "intro": "Error en la configuración de AMS. Consulte el asistente para obtener más información."
+                },
+                {
+                    "ecode": "18038026",
+                    "intro": "Error en la configuración de AMS. Consulte el asistente para obtener más información."
+                },
+                {
                     "ecode": "0300806F",
                     "intro": ""
                 },
@@ -19546,6 +19758,190 @@
                 {
                     "ecode": "0502C033",
                     "intro": ""
+                },
+                {
+                    "ecode": "03004039",
+                    "intro": ""
+                },
+                {
+                    "ecode": "18008013",
+                    "intro": "Tiempo de espera para purgar filamento viejo: Compruebe si el filamento está atascado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "18068027",
+                    "intro": "Error al cambiar el canal de seguimiento del filamento. Las posibles causas incluyen atascos del filamento o daños en el componente."
+                },
+                {
+                    "ecode": "18058013",
+                    "intro": "Tiempo de espera para purgar filamento viejo: Compruebe si el filamento está atascado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "18028013",
+                    "intro": "Tiempo de espera para purgar filamento viejo: Compruebe si el filamento está atascado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "18018013",
+                    "intro": "Tiempo de espera para purgar filamento viejo: Compruebe si el filamento está atascado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "18048013",
+                    "intro": "Tiempo de espera para purgar filamento viejo: Compruebe si el filamento está atascado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "18068013",
+                    "intro": "Tiempo de espera para purgar filamento viejo: Compruebe si el filamento está atascado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "18048027",
+                    "intro": "Error al cambiar el canal de seguimiento del filamento. Las posibles causas incluyen atascos del filamento o daños en el componente."
+                },
+                {
+                    "ecode": "18078013",
+                    "intro": "Tiempo de espera para purgar filamento viejo: Compruebe si el filamento está atascado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "18058027",
+                    "intro": "Error al cambiar el canal de seguimiento del filamento. Las posibles causas incluyen atascos del filamento o daños en el componente."
+                },
+                {
+                    "ecode": "18008027",
+                    "intro": "Error al cambiar el canal de seguimiento del filamento. Las posibles causas incluyen atascos del filamento o daños en el componente."
+                },
+                {
+                    "ecode": "18038027",
+                    "intro": "Error al cambiar el canal de seguimiento del filamento. Las posibles causas incluyen atascos del filamento o daños en el componente."
+                },
+                {
+                    "ecode": "18018027",
+                    "intro": "Error al cambiar el canal de seguimiento del filamento. Las posibles causas incluyen atascos del filamento o daños en el componente."
+                },
+                {
+                    "ecode": "18038013",
+                    "intro": "Tiempo de espera para purgar filamento viejo: Compruebe si el filamento está atascado o si el extrusor está obstruido."
+                },
+                {
+                    "ecode": "18078027",
+                    "intro": "Error al cambiar el canal de seguimiento del filamento. Las posibles causas incluyen atascos del filamento o daños en el componente."
+                },
+                {
+                    "ecode": "18028027",
+                    "intro": "Error al cambiar el canal de seguimiento del filamento. Las posibles causas incluyen atascos del filamento o daños en el componente."
+                },
+                {
+                    "ecode": "0502C034",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05028036",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05028037",
+                    "intro": ""
+                },
+                {
+                    "ecode": "05024035",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1806C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0706C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0705C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0700C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1804C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0704C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1801C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0500C080",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1803C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1805C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1807C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1802C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0707C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0702C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1800C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0701C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "0703C008",
+                    "intro": ""
+                },
+                {
+                    "ecode": "1806C069",
+                    "intro": "Se produjo un error durante el secado del AMS-HT G. Dirígete al Asistente para obtener más información."
+                },
+                {
+                    "ecode": "1801C069",
+                    "intro": "Se produjo un error durante el secado del AMS-HT B. Dirígete al Asistente para obtener más información."
+                },
+                {
+                    "ecode": "1800C069",
+                    "intro": "Se produjo un error durante el secado del AMS-HT A. Dirígete al Asistente para obtener más información."
+                },
+                {
+                    "ecode": "1807C069",
+                    "intro": "Se produjo un error durante el secado con AMS-HT H. Dirígete al Asistente para obtener más información."
+                },
+                {
+                    "ecode": "1805C069",
+                    "intro": "Se produjo un error durante el secado del AMS-HT F. Dirígete al Asistente para obtener más información."
+                },
+                {
+                    "ecode": "1804C069",
+                    "intro": "Se produjo un error durante el secado del AMS-HT E. Dirígete al Asistente para obtener más información."
+                },
+                {
+                    "ecode": "1802C069",
+                    "intro": "Se produjo un error durante el secado del AMS-HT C. Para obtener más información, dirígete a Assistant."
+                },
+                {
+                    "ecode": "1803C069",
+                    "intro": "Se produjo un error durante el secado del AMS-HT D. Dirígete al Asistente para obtener más información."
                 },
                 {
                     "ecode": "03004000",
@@ -19617,7 +20013,7 @@
                 },
                 {
                     "ecode": "03008008",
-                    "intro": "Fallo de la temperatura de la boquilla."
+                    "intro": ""
                 },
                 {
                     "ecode": "03008009",
@@ -21677,7 +22073,7 @@
                 },
                 {
                     "ecode": "07FF800D",
-                    "intro": "No se pudo introducir material desde el extrusor derecho hasta el cabezal de la herramienta. Consulte el asistente para solucionar el problema. Retire el filamento, solucione las anomalías y, a continuación, haga clic en Reintentar para continuar."
+                    "intro": ""
                 },
                 {
                     "ecode": "05008087",
