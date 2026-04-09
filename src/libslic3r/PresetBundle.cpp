@@ -2,6 +2,7 @@
 
 #include "PresetBundle.hpp"
 #include "Semver.hpp"
+#include "FilamentMixer.hpp"
 #include "nlohmann/json.hpp"
 #include "libslic3r.h"
 #include "I18N.hpp"
@@ -2379,10 +2380,21 @@ void PresetBundle::update_num_filaments(unsigned int to_del_flament_id)
     erase_or_resize(filament_color_type->values);
     erase_or_resize(ams_multi_color_filment);
 
-    if (auto* opt = project_config.option<ConfigOptionBools>("filament_is_mixed"))
-        erase_or_resize(opt->values);
-    if (auto* opt = project_config.option<ConfigOptionStrings>("filament_mixed_components"))
-        erase_or_resize(opt->values);
+    {
+        auto* is_mixed_opt = project_config.option<ConfigOptionBools>("filament_is_mixed");
+        auto* comp_opt     = project_config.option<ConfigOptionStrings>("filament_mixed_components");
+        if (is_mixed_opt && comp_opt) {
+            bool del_is_physical = (to_del_flament_id >= is_mixed_opt->values.size()
+                                    || !is_mixed_opt->values[to_del_flament_id]);
+            if (del_is_physical)
+                remap_mixed_components_on_delete(is_mixed_opt->values, comp_opt->values,
+                                                 to_del_flament_id + 1);
+        }
+        if (is_mixed_opt)
+            erase_or_resize(is_mixed_opt->values);
+        if (comp_opt)
+            erase_or_resize(comp_opt->values);
+    }
     if (auto* opt = project_config.option<ConfigOptionStrings>("filament_mixed_sublayer_ratios"))
         erase_or_resize(opt->values);
     if (auto* opt = project_config.option<ConfigOptionBools>("filament_mixed_gradient"))

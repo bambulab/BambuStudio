@@ -2,7 +2,7 @@
 #include "ClipperUtils.hpp"
 #include "Config.hpp"
 #include "I18N.hpp"
-#include "filament_mixer.h"
+#include "FilamentMixer.hpp"
 
 #include <set>
 #include <boost/algorithm/string/case_conv.hpp>

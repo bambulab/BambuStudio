@@ -61,7 +61,7 @@
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/PrintConfig.hpp"
-#include "libslic3r/filament_mixer.h"
+#include "libslic3r/FilamentMixer.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "MixedFilamentDialog.hpp"
 #include "libslic3r/Utils.hpp"
@@ -3059,7 +3059,7 @@ Sidebar::Sidebar(Plater *parent)
         p->m_panel_mixed_warning->SetBackgroundColour(wxColour("#FDE8E8"));
         auto* warn_sizer = new wxBoxSizer(wxHORIZONTAL);
         p->m_text_mixed_warning = new wxStaticText(p->m_panel_mixed_warning, wxID_ANY,
-            _L("Deleted material was used in mixed filaments. Please re-edit the affected mixed filaments."));
+            _L("Mixed filament has invalid or mismatched components. Please re-edit affected entries."));
         p->m_text_mixed_warning->SetForegroundColour(wxColour("#D32F2F"));
         p->m_text_mixed_warning->SetFont(::Label::Body_12);
         p->m_text_mixed_warning->Wrap(FromDIP(360));
@@ -5003,6 +5003,29 @@ void Sidebar::update_mixed_filament_list()
         broken_slots = check_mixed_filament_integrity(is_mixed_opt->values, components_opt->values, num_physical);
     std::set<size_t> broken_set(broken_slots.begin(), broken_slots.end());
 
+    // Type consistency check
+    if (is_mixed_opt && components_opt) {
+        std::vector<std::string> physical_types;
+        auto& preset_bundle = *wxGetApp().preset_bundle;
+        for (size_t i = 0; i < num_physical; ++i) {
+            std::string ft;
+            if (i < preset_bundle.filament_presets.size()) {
+                auto* preset = preset_bundle.filaments.find_preset(preset_bundle.filament_presets[i]);
+                if (preset) {
+                    std::string display_type;
+                    ft = preset->config.get_filament_type(display_type);
+                }
+            }
+            if (ft.empty()) ft = "PLA";
+            physical_types.push_back(ft);
+        }
+        auto type_mismatch_slots = check_mixed_filament_type_consistency(
+            is_mixed_opt->values, components_opt->values, physical_types);
+        for (size_t s : type_mismatch_slots)
+            broken_set.insert(s);
+        broken_slots.insert(broken_slots.end(), type_mismatch_slots.begin(), type_mismatch_slots.end());
+    }
+
     p->m_btn_add_mixed_filament->Show(can_mix && !has_mixed);
     p->m_panel_mixed_title->Show(has_mixed);
     p->m_mixed_scroll_area->Show(has_mixed);
@@ -5010,12 +5033,12 @@ void Sidebar::update_mixed_filament_list()
     p->m_panel_mixed_warning->Show(false);
 
     // Show/dismiss 3D canvas notification for broken mixed filaments
-    if (has_mixed && !broken_slots.empty()) {
+    if (has_mixed && !broken_set.empty()) {
         auto* notify = wxGetApp().plater()->get_notification_manager();
         if (notify)
             notify->push_notification(NotificationType::BBLMixedFilamentBroken,
                 NotificationManager::NotificationLevel::ErrorNotificationLevel,
-                _u8L("Deleted material was used in mixed filaments. Please re-edit affected entries before use."));
+                _u8L("Mixed filament has invalid or mismatched components. Please re-edit affected entries."));
     } else {
         auto* notify = wxGetApp().plater()->get_notification_manager();
         if (notify)
@@ -5398,6 +5421,12 @@ void Sidebar::update_mixed_filament_list()
         plater->canvas3D()->set_as_dirty();
         plater->get_view3D_canvas3D()->reload_scene(false);
     }
+
+    if (p->m_mixed_filament_broken) {
+        auto* mf = wxGetApp().mainframe;
+        if (mf)
+            mf->update_slice_print_status(MainFrame::eEventObjectUpdate, false);
+    }
 }
 
 bool Sidebar::has_broken_mixed_filament() const
@@ -5412,6 +5441,28 @@ bool Sidebar::has_broken_mixed_filament() const
 
     size_t num_physical = p->combos_filament.size();
     auto broken_slots = check_mixed_filament_integrity(is_mixed_opt->values, comp_strs_opt->values, num_physical);
+
+    // Type consistency check
+    {
+        std::vector<std::string> physical_types;
+        auto& preset_bundle = *wxGetApp().preset_bundle;
+        for (size_t i = 0; i < num_physical; ++i) {
+            std::string ft;
+            if (i < preset_bundle.filament_presets.size()) {
+                auto* preset = preset_bundle.filaments.find_preset(preset_bundle.filament_presets[i]);
+                if (preset) {
+                    std::string display_type;
+                    ft = preset->config.get_filament_type(display_type);
+                }
+            }
+            if (ft.empty()) ft = "PLA";
+            physical_types.push_back(ft);
+        }
+        auto type_mismatch_slots = check_mixed_filament_type_consistency(
+            is_mixed_opt->values, comp_strs_opt->values, physical_types);
+        broken_slots.insert(broken_slots.end(), type_mismatch_slots.begin(), type_mismatch_slots.end());
+    }
+
     if (broken_slots.empty()) return false;
 
     std::set<size_t> broken_1based;
@@ -20603,6 +20654,7 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         }
         if (opt_key == "filament_type") {
             update_filament_colors_in_full_config();
+            p->sidebar->update_mixed_filament_list();
             continue;
         }
         if (opt_key == "material_colour") {

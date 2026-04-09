@@ -1,4 +1,4 @@
-#include "filament_mixer.h"
+#include "FilamentMixer.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -6,7 +6,7 @@
 #include <sstream>
 #include <numeric>
 
-#include "filament_mixer_model.h"
+#include "FilamentMixerModel.hpp"
 
 namespace Slic3r {
 namespace {
@@ -115,7 +115,7 @@ std::vector<unsigned int> parse_mixed_components(const std::string &str)
     while (std::getline(ss, token, ',')) {
         try {
             int val = std::stoi(token);
-            if (val >= 1)
+            if (val >= 0)
                 components.push_back(static_cast<unsigned int>(val));
         } catch (...) {}
     }
@@ -201,6 +201,61 @@ std::vector<unsigned int> expand_mixed_filaments(
     }
     std::sort(result.begin(), result.end());
     result.erase(std::unique(result.begin(), result.end()), result.end());
+    return result;
+}
+
+void remap_mixed_components_on_delete(
+    const std::vector<unsigned char> &is_mixed,
+    std::vector<std::string>         &comp_strs,
+    unsigned int                      del_1based)
+{
+    for (size_t i = 0; i < is_mixed.size(); ++i) {
+        if (!is_mixed[i]) continue;
+        if (i >= comp_strs.size() || comp_strs[i].empty()) continue;
+
+        auto comps = parse_mixed_components(comp_strs[i]);
+        std::ostringstream ss;
+        for (size_t j = 0; j < comps.size(); ++j) {
+            if (j > 0) ss << ',';
+            if (comps[j] == del_1based)
+                ss << 0;
+            else if (comps[j] > del_1based)
+                ss << (comps[j] - 1);
+            else
+                ss << comps[j];
+        }
+        comp_strs[i] = ss.str();
+    }
+}
+
+std::vector<size_t> check_mixed_filament_type_consistency(
+    const std::vector<unsigned char> &is_mixed,
+    const std::vector<std::string>   &comp_strs,
+    const std::vector<std::string>   &filament_types)
+{
+    std::vector<size_t> result;
+    for (size_t i = 0; i < is_mixed.size(); ++i) {
+        if (!is_mixed[i]) continue;
+        if (i >= comp_strs.size() || comp_strs[i].empty()) continue;
+        auto comps = parse_mixed_components(comp_strs[i]);
+        if (comps.size() < 2) continue;
+
+        std::string ref_type;
+        bool mismatch = false;
+        for (unsigned int c : comps) {
+            if (c == 0) continue; // sentinel for deleted component
+            size_t idx = static_cast<size_t>(c) - 1; // 1-based -> 0-based
+            if (idx >= filament_types.size()) continue;
+            if (ref_type.empty())
+                ref_type = filament_types[idx];
+            else if (filament_types[idx] != ref_type) {
+                mismatch = true;
+                break;
+            }
+        }
+        if (mismatch)
+            result.push_back(i);
+    }
     return result;
 }
 

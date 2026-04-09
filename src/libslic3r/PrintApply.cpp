@@ -1,7 +1,7 @@
 #include "ClipperUtils.hpp"
 #include "Model.hpp"
 #include "Print.hpp"
-#include "filament_mixer.h"
+#include "FilamentMixer.hpp"
 
 #include <cfloat>
 #include <memory>

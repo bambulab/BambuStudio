@@ -27,7 +27,7 @@
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "DeviceCore/DevConfigUtil.h"
-#include "libslic3r/filament_mixer.h"
+#include "libslic3r/FilamentMixer.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "BackgroundSlicingProcess.hpp"

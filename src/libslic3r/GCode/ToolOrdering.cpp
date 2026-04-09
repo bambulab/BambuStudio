@@ -9,7 +9,7 @@
 #include "Preset.hpp"
 #include "PresetBundle.hpp"
 #include "MultiNozzleUtils.hpp"
-#include "filament_mixer.h"
+#include "FilamentMixer.hpp"
 #include "Utils.hpp"
 
 #include <set>

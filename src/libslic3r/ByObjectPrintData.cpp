@@ -4,7 +4,7 @@
 #include "GCode.hpp"
 #include "GCode/ToolOrdering.hpp"
 #include "MultiNozzleUtils.hpp"
-#include "filament_mixer.h"
+#include "FilamentMixer.hpp"
 
 namespace Slic3r {
 
