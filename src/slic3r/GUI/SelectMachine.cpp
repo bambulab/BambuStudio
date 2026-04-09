@@ -449,10 +449,10 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_filament_panel_left_sizer = new wxBoxSizer(wxVERTICAL);
     auto left_recommend_title_sizer = new wxBoxSizer(wxHORIZONTAL);
     std::string sm_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
-    auto left_recommend_title1 = new Label(m_filament_left_panel, _L(DevPrinterConfigUtil::get_toolhead_display_name(sm_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
-    left_recommend_title1->SetFont(::Label::Head_13);
-    left_recommend_title1->SetBackgroundColour(wxColour("#F8F8F8"));
-    left_recommend_title_sizer->Add(left_recommend_title1, 0, wxALIGN_CENTER, 0);
+    m_filament_left_title = new Label(m_filament_left_panel, _L(DevPrinterConfigUtil::get_toolhead_display_name(sm_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
+    m_filament_left_title->SetFont(::Label::Head_13);
+    m_filament_left_title->SetBackgroundColour(wxColour("#F8F8F8"));
+    left_recommend_title_sizer->Add(m_filament_left_title, 0, wxALIGN_CENTER, 0);
 
     m_sizer_ams_mapping_left = new wxGridSizer(0, 5, FromDIP(7), FromDIP(7));
     m_filament_panel_left_sizer->Add(left_recommend_title_sizer, 0, wxLEFT|wxRIGHT|wxTOP, FromDIP(10));
@@ -2500,37 +2500,54 @@ void SelectMachineDialog::show_timelapse_folder_popup()
         return;
     }
 
-    // build popup with border + horizontal layout
-    m_timelapse_storage_popup = new wxPopupTransientWindow(this, wxBORDER_SIMPLE);
-    m_timelapse_storage_popup->SetBackgroundColour(*wxWHITE);
+    // build popup with rounded corners + light border
+    m_timelapse_storage_popup = new PopupWindow(this, wxBORDER_NONE);
+    m_timelapse_storage_popup->SetBackgroundColour(wxColour(0xF0, 0xF0, 0xF0));
+    m_timelapse_storage_popup->Bind(wxEVT_PAINT, [this](wxPaintEvent&) {
+        wxPaintDC dc(m_timelapse_storage_popup);
+        auto size = m_timelapse_storage_popup->GetSize();
+        dc.SetPen(wxPen(wxColour(0xCE, 0xCE, 0xCE)));
+        dc.SetBrush(wxBrush(wxColour(0xF0, 0xF0, 0xF0)));
+        dc.DrawRoundedRectangle(0, 0, size.x, size.y, FromDIP(8));
+    });
 
     auto* panel = new wxPanel(m_timelapse_storage_popup, wxID_ANY);
-    panel->SetBackgroundColour(*wxWHITE);
+    panel->SetBackgroundColour(wxColour(0xF0, 0xF0, 0xF0));
 
     // horizontal layout: [ Internal]  [External]
     auto* sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    auto make_item = [&](const wxString& label, const std::string& val) {
+    DeviceManager* dev_popup = wxGetApp().getDeviceManager();
+    MachineObject* obj_popup = dev_popup ? dev_popup->get_selected_machine() : nullptr;
+    bool has_sdcard = obj_popup && obj_popup->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::HAS_SDCARD_NORMAL;
+    // if external was previously selected but sdcard is now absent, fall back to internal
+    if (!has_sdcard && m_timelapse_storage == "external")
+        m_timelapse_storage = "internal";
+
+    auto make_item = [&](const wxString& label, const std::string& val, bool enabled) {
         auto* radio = new wxRadioButton(panel, wxID_ANY, label, wxDefaultPosition, wxDefaultSize,
             val == "internal" ? wxRB_GROUP : 0);
         radio->SetValue(m_timelapse_storage == val);
         radio->SetFont(Label::Body_14);
-        radio->SetForegroundColour(wxColour(0x5C, 0x5C, 0x5C));
+        radio->Enable(enabled);
+        radio->SetForegroundColour(enabled ? wxColour(0x5C, 0x5C, 0x5C) : wxColour(0xAC, 0xAC, 0xAC));
         sizer->Add(radio, 0, wxALIGN_CENTER_VERTICAL);
 
-        radio->Bind(wxEVT_RADIOBUTTON, [this, val](wxCommandEvent&) {
-            m_timelapse_storage = val;
-            update_timelapse_folder_btn_icon();
-            if (m_timelapse_storage_popup) m_timelapse_storage_popup->Dismiss();
-            DeviceManager* dev = wxGetApp().getDeviceManager();
-            MachineObject* obj = dev ? dev->get_selected_machine() : nullptr;
-            if (obj) check_timelapse_storage_warning(obj);
-        });
+        if (enabled) {
+            radio->Bind(wxEVT_RADIOBUTTON, [this, val](wxCommandEvent&) {
+                m_timelapse_storage = val;
+                update_timelapse_folder_btn_icon();
+                if (m_timelapse_storage_popup) m_timelapse_storage_popup->Dismiss();
+                DeviceManager* dev = wxGetApp().getDeviceManager();
+                MachineObject* obj = dev ? dev->get_selected_machine() : nullptr;
+                if (obj) check_timelapse_storage_warning(obj);
+            });
+        }
     };
 
-    make_item(_L("Internal"), "internal");
+    make_item(_L("Internal"), "internal", true);
     sizer->AddSpacer(FromDIP(16));
-    make_item(_L("External"), "external");
+    make_item(_L("External"), "external", has_sdcard);
 
     panel->SetSizer(sizer);
     panel->Fit();
@@ -3540,6 +3557,7 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         change_materialitem_tip(true);
     }
 
+    m_filament_left_title->SetLabel(_L(DevPrinterConfigUtil::get_toolhead_display_name(obj_->printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
     m_filament_right_title->SetLabel(_L(DevPrinterConfigUtil::get_toolhead_display_name(obj_->printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
 
     update_ams_backup(obj_);
@@ -4255,6 +4273,7 @@ void SelectMachineDialog::set_default()
     // filament area title
     {
         std::string sm_init_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+        m_filament_left_title->SetLabel(_L(DevPrinterConfigUtil::get_toolhead_display_name(sm_init_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
         m_filament_right_title->SetLabel(_L(DevPrinterConfigUtil::get_toolhead_display_name(sm_init_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
     }
 
@@ -7465,11 +7484,14 @@ void NozzleStatePanel::UpdateGui()
     slicing_title->SetFont(Label::Body_12);
     slicing_vbox->Add(slicing_title, 0, wxALIGN_LEFT | wxTOP | wxBOTTOM, FromDIP(3));
 
+    wxString deputy_short = _L(DevPrinterConfigUtil::get_toolhead_display_name(m_printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true));
+    wxString main_short   = _L(DevPrinterConfigUtil::get_toolhead_display_name(m_printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true));
+
     std::unordered_map<NozzleDef, Label*> m_slcing_nozzle_labels_l;
     auto slicing_l_nozzles = m_slicing_nozzles[DEPUTY_EXTRUDER_ID];
     for (auto item : slicing_l_nozzles)         {
         slicing_vbox->AddSpacer(FromDIP(3));
-        auto label = s_create_hcontent(this, _L("Left"), item.first, item.second);
+        auto label = s_create_hcontent(this, deputy_short, item.first, item.second);
         slicing_vbox->Add(label, 0, wxALIGN_LEFT);
         m_slcing_nozzle_labels_l[item.first] = label;
     }
@@ -7479,7 +7501,7 @@ void NozzleStatePanel::UpdateGui()
     auto slicing_r_nozzles = m_slicing_nozzles[MAIN_EXTRUDER_ID];
     for (auto item : slicing_r_nozzles) {
         slicing_vbox->AddSpacer(FromDIP(3));
-        auto label = s_create_hcontent(this, _L("Right"), item.first, item.second);
+        auto label = s_create_hcontent(this, main_short, item.first, item.second);
         slicing_vbox->Add(label, 0, wxALIGN_LEFT);
         m_installed_nozzle_labels_r[item.first] = label;
     }
@@ -7497,14 +7519,14 @@ void NozzleStatePanel::UpdateGui()
     auto installed_l_nozzles = m_installed_nozzles[DEPUTY_EXTRUDER_ID];
     for (auto item : installed_l_nozzles) {
         installed_vbox->AddSpacer(FromDIP(3));
-        installed_vbox->Add(s_create_hcontent(this, _L("Left"), item.first, item.second), wxALIGN_LEFT);
+        installed_vbox->Add(s_create_hcontent(this, deputy_short, item.first, item.second), wxALIGN_LEFT);
     }
 
     auto installed_r_nozzles = m_installed_nozzles[MAIN_EXTRUDER_ID];
     for (auto item : installed_r_nozzles) {
 
         slicing_vbox->AddSpacer(FromDIP(3));
-        installed_vbox->Add(s_create_hcontent(this, _L("Right"), item.first, item.second), wxALIGN_LEFT);
+        installed_vbox->Add(s_create_hcontent(this, main_short, item.first, item.second), wxALIGN_LEFT);
     }
 
     wxPanel* separator = new wxPanel(this);
@@ -7524,6 +7546,7 @@ void NozzleStatePanel::UpdateGui()
 void NozzleStatePanel::UpdateInfoBy(Plater* plater, MachineObject* obj)
 {
     if (plater && obj) {
+        m_printer_type = obj->printer_type;
         auto ext_sys    = obj->GetExtderSystem();
         auto nozzle_sys = obj->GetNozzleSystem();
         auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(plater);

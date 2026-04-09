@@ -1,5 +1,6 @@
 #include "MultiNozzleSync.hpp"
 #include "../GUI_App.hpp"
+#include "../DeviceCore/DevConfigUtil.h"
 #include "../DeviceCore/DevManager.h"
 #include "libslic3r/PresetBundle.hpp"
 #include <wx/sizer.h>
@@ -583,8 +584,9 @@ wxString NozzleListTable::BuildTextObjStr()
 {
     wxString nozzle_selection = _L("Nozzle Selection");
     wxString nozzle_list = _L("Available Nozzles");
-    wxString Left = _L("Left");
-    wxString Right = _L("Right");
+    std::string pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    wxString Left = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true));
+    wxString Right = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true));
     wxString highflow = _L(get_nozzle_volume_type_string(nvtHighFlow));
     wxString standard = _L(get_nozzle_volume_type_string(nvtStandard));
 

@@ -936,9 +936,13 @@ void CalibrationPresetPage::init_selection_values()
 
 
 void CalibrationPresetPage::init_filament_list_tips(){
+    std::string pt = curr_obj ? curr_obj->printer_type :
+        wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    wxString main_nozzle_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase));
+    wxString deputy_nozzle_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase));
     m_tips_map["base"] = std::make_pair(true, _L("Tips for calibration material: \n- Materials that can share same hot bed temperature\n- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)\n"));
-    m_tips_map["bowden_right"] = std::make_pair(false, _L("- Right Nozzle (Aux) does not support automatic flow calibration."));
-    m_tips_map["bowden_left"] = std::make_pair(false, _L("- Left Nozzle (Aux) does not support automatic flow calibration."));
+    m_tips_map["bowden_right"] = std::make_pair(false, wxString::Format("- %s " + _L("(Aux) does not support automatic flow calibration."), main_nozzle_name));
+    m_tips_map["bowden_left"] = std::make_pair(false, wxString::Format("- %s " + _L("(Aux) does not support automatic flow calibration."), deputy_nozzle_name));
     m_tips_map["rack"] = std::make_pair(false, _L("- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"));
 }
 
@@ -2276,6 +2280,23 @@ void CalibrationPresetPage::init_with_machine(MachineObject* obj)
         }
 
         std::string cwp_swap_pt = obj->printer_type;
+        // Refresh Nozzle Info box labels with connected printer type
+        if (m_left_nozzle_volume_type_sizer) {
+            m_left_nozzle_volume_type_sizer->GetStaticBox()->SetLabel(
+                _L(DevPrinterConfigUtil::get_toolhead_display_name(cwp_swap_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
+        }
+        if (m_right_nozzle_volume_type_sizer) {
+            m_right_nozzle_volume_type_sizer->GetStaticBox()->SetLabel(
+                _L(DevPrinterConfigUtil::get_toolhead_display_name(cwp_swap_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
+        }
+        // Refresh Filament For Calibration box labels unconditionally
+        if (obj->is_main_extruder_on_left()) {
+            m_main_sizer->GetStaticBox()->SetLabel(_L(DevPrinterConfigUtil::get_toolhead_display_name(cwp_swap_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
+            m_deputy_sizer->GetStaticBox()->SetLabel(_L(DevPrinterConfigUtil::get_toolhead_display_name(cwp_swap_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
+        } else {
+            m_main_sizer->GetStaticBox()->SetLabel(_L(DevPrinterConfigUtil::get_toolhead_display_name(cwp_swap_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
+            m_deputy_sizer->GetStaticBox()->SetLabel(_L(DevPrinterConfigUtil::get_toolhead_display_name(cwp_swap_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
+        }
         if (!obj->is_main_extruder_on_left() && m_main_extruder_on_left) {
             m_multi_exturder_ams_sizer->Detach(m_main_filament_cali_panel);
             m_multi_exturder_ams_sizer->Detach(m_deputy_filament_cali_panel);

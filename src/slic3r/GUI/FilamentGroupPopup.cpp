@@ -278,6 +278,37 @@ void FilamentGroupPopup::RecreateUIElements()
     Bind(wxEVT_LEAVE_WINDOW, &FilamentGroupPopup::OnLeaveWindow, this);
 }
 
+void FilamentGroupPopup::UpdateNozzleLabels()
+{
+    if (detail_infos.empty())
+        return;
+
+    std::string pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    wxString main_nozzle_lower   = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
+    wxString deputy_nozzle_lower = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
+
+    for (size_t idx = 0; idx < m_all_modes.size() && idx < detail_infos.size(); ++idx) {
+        wxString detail;
+        switch (m_all_modes[idx]) {
+            case fmmAutoForFlush:
+                detail = wxString::Format(_L("Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"), deputy_nozzle_lower, main_nozzle_lower);
+                break;
+            case fmmAutoForMatch:
+                detail = wxString::Format(_L("Generates filament grouping for the %s and %s based on the printer's actual filament status, reducing the need for manual filament adjustment"), deputy_nozzle_lower, main_nozzle_lower);
+                break;
+            case fmmAutoForQuality:
+                detail = wxString::Format(_L("Generates filament grouping for the %s and %s based on quality optimization principles"), deputy_nozzle_lower, main_nozzle_lower);
+                break;
+            case fmmManual:
+                detail = wxString::Format(_L("Manually assign filament to the %s or %s"), deputy_nozzle_lower, main_nozzle_lower);
+                break;
+            default: continue;
+        }
+        detail_infos[idx]->SetLabel(detail);
+        detail_infos[idx]->Wrap(FromDIP(320));
+    }
+}
+
 FilamentGroupPopup::FilamentGroupPopup(wxWindow *parent, const std::vector<FilamentMapMode>& available_modes) : PopupWindow(parent, wxBORDER_NONE | wxPU_CONTAINS_CONTROLS)
 {
     CreateBmps();
@@ -386,6 +417,7 @@ void FilamentGroupPopup::Init(const std::vector<FilamentMapMode>& available_mode
 void FilamentGroupPopup::tryPopup(Plater* plater,PartPlate* partplate,bool slice_all)
 {
     if (should_pop_up()) {
+        UpdateNozzleLabels();
         bool connect_status = plater->get_machine_sync_status();
         this->partplate_ref = partplate;
         this->plater_ref = plater;

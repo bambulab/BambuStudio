@@ -229,6 +229,15 @@ void SwitchBoard::updateState(wxString target)
     Refresh();
 }
 
+void SwitchBoard::SetLabels(const wxString &left, const wxString &right)
+{
+    if (leftLabel == left && rightLabel == right)
+        return;
+    leftLabel  = left;
+    rightLabel = right;
+    Refresh();
+}
+
 void SwitchBoard::paintEvent(wxPaintEvent &evt)
 {
     wxPaintDC dc(this);

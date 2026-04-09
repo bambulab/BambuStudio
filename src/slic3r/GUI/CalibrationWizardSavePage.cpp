@@ -571,7 +571,8 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
             int extruder_id = info.extruder_id;
 
             if (extruder_id == MAIN_EXTRUDER_ID) {
-                default_name += "Right Nozzle";
+                default_name += DevPrinterConfigUtil::get_toolhead_display_name(
+                    m_obj->printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase);
                 if (has_rack) {
                     default_name += "_";
                     if (info.nozzle_pos_id == 0) {
@@ -583,7 +584,8 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
                     }
                 }
             } else if (extruder_id == DEPUTY_EXTRUDER_ID){
-                default_name += "Left Nozzle";
+                default_name += DevPrinterConfigUtil::get_toolhead_display_name(
+                    m_obj->printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase);
             }
         }
 

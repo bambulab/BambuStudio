@@ -2052,6 +2052,9 @@ void AmsReplaceMaterialDialog::update_machine_obj(MachineObject* obj)
         m_obj = obj;
         if (obj->GetExtderSystem()->GetTotalExtderCount() > 1 && !obj->GetFilaSwitch()->IsReady())
         {
+            m_nozzle_btn_panel->SetLabels(
+                _L(DevPrinterConfigUtil::get_toolhead_display_name(obj->printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true)),
+                _L(DevPrinterConfigUtil::get_toolhead_display_name(obj->printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true)));
             m_nozzle_btn_panel->updateState("right");
             m_nozzle_btn_panel->Show();
         }

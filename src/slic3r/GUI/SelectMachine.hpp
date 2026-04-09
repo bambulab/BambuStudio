@@ -365,7 +365,7 @@ protected:
     ScalableButton*                     m_pa_value_tips{nullptr};
     // timelapse storage location UI
     ScalableButton*                     m_timelapse_folder_btn { nullptr };
-    wxPopupTransientWindow*             m_timelapse_storage_popup { nullptr };
+    PopupWindow*                        m_timelapse_storage_popup { nullptr };
     wxBoxSizer*                         m_basicl_sizer{ nullptr };
     wxBoxSizer*                         rename_sizer_v{ nullptr };
     wxBoxSizer*                         rename_sizer_h{ nullptr };
@@ -440,6 +440,7 @@ protected:
 
     wxBoxSizer*                         m_filament_panel_sizer;
     wxBoxSizer*                         m_filament_panel_left_sizer;
+    Label*                              m_filament_left_title{nullptr};
     Label*                              m_filament_right_title;
     wxBoxSizer*                         m_filament_panel_right_sizer;
     wxBoxSizer*                         m_sizer_filament_2extruder;
@@ -693,6 +694,7 @@ private:
 private:
     ExtruderNozzleInfos m_slicing_nozzles;
     ExtruderNozzleInfos m_installed_nozzles;
+    std::string         m_printer_type;
 
     wxSizer* m_sizer;
 
