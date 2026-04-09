@@ -481,6 +481,7 @@ private:
     unsigned int              m_max_accels;
     bool                      m_accel_to_decel_enable;
     float                     m_accel_to_decel_factor;
+    bool                      m_enable_arc_fitting = true;
     std::vector<double>       m_hotend_heating_rate;
     std::vector<double>       m_hotend_cooling_rate;
     Polygons                  m_shared_print_bed;
