@@ -426,6 +426,10 @@ void CalibrationWizard::cache_preset_info(MachineObject *obj, float nozzle_dia, 
 
     if(!std::isnan(flow_ratio))
         obj->GetCalib()->SetStashFlowRatio(flow_ratio);
+    else {
+        BOOST_LOG_TRIVIAL(warning) << "cache_preset_info: flow_ratio is NaN, stash NOT updated"
+                                   << ", stash remains = " << obj->GetCalib()->GetStashFlowRatio();
+    }
 
     back_preset_info(obj, false);
 }
@@ -440,6 +444,10 @@ void CalibrationWizard::recover_preset_info(MachineObject *obj)
             obj->GetCalib()->SetStashFlowRatio(back_info.cache_flow_ratio);
             obj->GetCalib()->SetSelectedCalibPreset(back_info.selected_presets);
             obj->GetCalib()->SetFlowRatioCalibType(back_info.cache_flow_rate_calibration_type);
+            BOOST_LOG_TRIVIAL(info) << "recover_preset_info: restored from cache"
+                                    << ", cache_flow_ratio = " << back_info.cache_flow_ratio
+                                    << ", selected_presets_count = " << back_info.selected_presets.size()
+                                    << ", cali_finished = " << back_info.cali_finished;
         }
     }
 }
@@ -1640,6 +1648,10 @@ void FlowRateWizard::cache_coarse_info(MachineObject *obj)
 
     if(!std::isnan(flow_ratio))
         obj->GetCalib()->SetStashFlowRatio(flow_ratio);
+    else {
+        BOOST_LOG_TRIVIAL(warning) << "cache_coarse_info: flow_ratio is NaN, stash NOT updated"
+                                   << ", stash remains = " << obj->GetCalib()->GetStashFlowRatio();
+    }
 
     back_preset_info(obj, false);
 }

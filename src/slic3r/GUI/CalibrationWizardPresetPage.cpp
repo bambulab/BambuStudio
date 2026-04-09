@@ -2838,7 +2838,12 @@ void CalibrationPresetPage::get_cali_stage(CaliPresetStage& stage, float& value)
             if (flow_ratio_opt) {
                 m_cali_stage_panel->set_flow_ratio_value(flow_ratio_opt->get_at(0));
                 value = flow_ratio_opt->get_at(0);
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " set flow ratio value:" << value;
+            } else {
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " selected filament preset has no flow ratio option";
             }
+        } else {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " no filament selected, can't set flow ratio value";
         }
     }
 }

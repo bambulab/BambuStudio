@@ -1754,11 +1754,17 @@ bool CalibrationFlowCoarseSavePage::Show(bool show) {
         if (curr_obj) {
             auto selected_cali_preset=curr_obj->GetCalib()->GetSelectedCalibPreset();
 
+            BOOST_LOG_TRIVIAL(info) << "CoarseSavePage::Show()"
+                                    << ", selected_cali_preset.size = " << selected_cali_preset.size()
+                                    << ", stash_flow_ratio = " << curr_obj->GetCalib()->GetStashFlowRatio();
+
             assert(selected_cali_preset.size() <= 1);
             if (!selected_cali_preset.empty()) {
                 wxString default_name = get_default_name(wxString::FromUTF8(selected_cali_preset[0].name), CalibMode::Calib_Flow_Rate);
                 set_default_options(default_name);
                 set_curr_flow_ratio(curr_obj->GetCalib()->GetStashFlowRatio());
+            } else {
+                BOOST_LOG_TRIVIAL(warning) << "CoarseSavePage::Show(): selected_cali_preset is EMPTY, flow ratio may be invalid";
             }
         }
         else {
@@ -1932,11 +1938,18 @@ bool CalibrationFlowFineSavePage::Show(bool show) {
     if (show) {
         if (curr_obj) {
             auto selected_cali_preset = curr_obj->GetCalib()->GetSelectedCalibPreset();
+
+            BOOST_LOG_TRIVIAL(info) << "FineSavePage::Show"
+                                    << ", selected_cali_preset.size = " << selected_cali_preset.size()
+                                    << ", stash_flow_ratio = " << curr_obj->GetCalib()->GetStashFlowRatio();
+
             assert(selected_cali_preset.size() <= 1);
             if (!selected_cali_preset.empty()) {
                 wxString default_name = get_default_name(selected_cali_preset[0].name, CalibMode::Calib_Flow_Rate);
                 set_default_options(default_name);
                 set_curr_flow_ratio(curr_obj->GetCalib()->GetStashFlowRatio());
+            } else {
+                BOOST_LOG_TRIVIAL(warning) << "FineSavePage::Show: selected_cali_preset is EMPTY, flow ratio may be invalid";
             }
         }
         else {
