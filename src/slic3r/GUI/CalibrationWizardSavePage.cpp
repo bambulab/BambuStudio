@@ -55,36 +55,6 @@ static wxString get_default_name(wxString filament_name, CalibMode mode){
     return filament_name;
 }
 
-static wxString get_tray_name_by_tray_id(int tray_id)
-{
-    wxString tray_name;
-
-    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
-    if (!dev) return tray_name;
-
-    MachineObject *obj = dev->get_selected_machine();
-    if (!obj) return tray_name;
-
-    auto tray_ams_slot_map = obj->GetFilaSystem()->GetTrayIndexMap();
-
-    if (tray_id == VIRTUAL_TRAY_MAIN_ID || tray_id == VIRTUAL_TRAY_DEPUTY_ID) {
-        tray_name = "Ext";
-    } else if (tray_ams_slot_map.find(tray_id) != tray_ams_slot_map.end()) {
-        int  ams_id = tray_ams_slot_map[tray_id].first;
-        int slot_id = tray_ams_slot_map[tray_id].second;
-
-        if (ams_id >= 128 && ams_id < 153) {
-            char prefix = 'A' + ams_id - 128;
-            tray_name   = std::string(1, prefix);
-        } else {
-            char prefix = 'A' + ams_id;
-            char suffix = '0' + 1 + slot_id;
-            tray_name = std::string(1, prefix) + std::string(1, suffix);
-        }
-    }
-    return tray_name;
-}
-
 CalibrationCommonSavePage::CalibrationCommonSavePage(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
     : CalibrationWizardPage(parent, id, pos, size, style)
 {
@@ -296,7 +266,7 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
         wxBoxSizer* column_data_sizer = new wxBoxSizer(wxVERTICAL);
         auto tray_title = new Label(m_grid_panel, "");
         tray_title->SetFont(Label::Head_14);
-        wxString tray_name = get_tray_name_by_tray_id(item.tray_id);
+        wxString tray_name = m_obj->GetFilaSystem()->GetTrayNameByTrayId(item.tray_id);
         tray_title->SetLabel(tray_name);
 
         auto k_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_SAVE_INPUT_SIZE, item.tray_id, GridTextInputType::K, MAIN_EXTRUDER_ID);
@@ -633,7 +603,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
             m_is_all_failed = false;
         }
 
-        wxString tray_name = get_tray_name_by_tray_id(item.tray_id);
+        wxString tray_name = m_obj->GetFilaSystem()->GetTrayNameByTrayId(item.tray_id);
         wxButton *tray_title = new wxButton(m_multi_extruder_grid_panel, wxID_ANY, {}, wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)), wxBU_EXACTFIT | wxBU_AUTODRAW | wxBORDER_NONE);
         tray_title->SetBackgroundColour(*wxWHITE);
         tray_title->SetBitmap(*get_extruder_color_icon(full_filament_ams_list[item.tray_id].opt_string("filament_colour", 0u), tray_name.ToStdString(), FromDIP(20), FromDIP(20)));
@@ -1395,7 +1365,7 @@ void CalibrationFlowX1SavePage::create_page(wxWindow* parent)
     m_top_sizer->Add(m_action_panel, 0, wxEXPAND, 0);
 }
 
-void CalibrationFlowX1SavePage::sync_cali_result(const std::vector<FlowRatioCalibResult>& cali_result)
+void CalibrationFlowX1SavePage::sync_cali_result(MachineObject* obj, const std::vector<FlowRatioCalibResult>& cali_result)
 {
     m_save_results.clear();
     m_grid_panel->DestroyChildren();
@@ -1430,7 +1400,7 @@ void CalibrationFlowX1SavePage::sync_cali_result(const std::vector<FlowRatioCali
         wxBoxSizer* column_data_sizer = new wxBoxSizer(wxVERTICAL);
         auto tray_title = new Label(m_grid_panel, "");
         tray_title->SetFont(Label::Head_14);
-        wxString tray_name = get_tray_name_by_tray_id(item.tray_id);
+        wxString tray_name = obj->GetFilaSystem()->GetTrayNameByTrayId(item.tray_id);
         tray_title->SetLabel(tray_name);
 
         auto flow_ratio_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_SAVE_INPUT_SIZE, item.tray_id, GridTextInputType::FlowRatio, MAIN_EXTRUDER_ID);
@@ -1568,7 +1538,7 @@ bool CalibrationFlowX1SavePage::get_result(std::vector<std::pair<wxString, float
 bool CalibrationFlowX1SavePage::Show(bool show) {
     if (show) {
         if (curr_obj) {
-            sync_cali_result(curr_obj->GetCalib()->GetFlowRatioResult());
+            sync_cali_result(curr_obj, curr_obj->GetCalib()->GetFlowRatioResult());
         }
     }
     return wxPanel::Show(show);
