@@ -18,12 +18,17 @@
         "4000",
         "4000"
     ],
-    "enable_tower_interface_features": "1",
     "gap_infill_speed": [
         "50",
         "250",
         "50",
         "50"
+    ],
+    "initial_layer_infill_speed": [
+        "55",
+        "105",
+        "55",
+        "55"
     ],
     "initial_layer_speed": [
         "35",
@@ -43,12 +48,6 @@
         "150",
         "150"
     ],
-    "initial_layer_infill_speed": [
-        "55",
-        "105",
-        "55",
-        "55"
-    ],
     "outer_wall_speed": [
         "200",
         "200",
@@ -61,8 +60,8 @@
         "15",
         "15"
     ],
-    "prime_tower_width": "60",
     "prime_tower_brim_width": "-1",
+    "prime_tower_width": "60",
     "print_extruder_variant": [
         "Direct Drive Standard",
         "Direct Drive High Flow",

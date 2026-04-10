@@ -6,20 +6,19 @@
     "setting_id": "GP221",
     "instantiation": "true",
     "description": "High quality profile for 0.16mm layer height, prioritizing print quality and strength.",
+    "bridge_flow": "1.5",
     "bridge_speed": [
         "25",
         "25",
         "25",
         "25"
     ],
-    "bridge_flow": "1.5",
     "default_acceleration": [
         "4000",
         "4000",
         "1000",
         "1000"
     ],
-    "enable_tower_interface_features": "1",
     "initial_layer_speed": [
         "50",
         "50",
@@ -38,17 +37,17 @@
         "100",
         "100"
     ],
-    "outer_wall_speed": [
-        "60",
-        "60",
-        "50",
-        "50"
-    ],
     "outer_wall_acceleration": [
         "2000",
         "2000",
         "1000",
         "1000"
+    ],
+    "outer_wall_speed": [
+        "60",
+        "60",
+        "50",
+        "50"
     ],
     "overhang_2_4_speed": [
         "40",
@@ -62,8 +61,8 @@
         "20",
         "20"
     ],
-    "prime_tower_width": "60",
     "prime_tower_brim_width": "-1",
+    "prime_tower_width": "60",
     "print_extruder_variant": [
         "Direct Drive Standard",
         "Direct Drive High Flow",
