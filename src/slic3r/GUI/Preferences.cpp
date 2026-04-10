@@ -1332,7 +1332,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto  item_restore_hide_3mf_info = create_item_button(_L("Clear my choice for Load 3mf dialog settings."), _L("Clear"), page, {}, []() {
         wxGetApp().app_config->erase("app", "skip_non_bambu_3mf_warning");
     });
-    auto  item_restore_support_recommend_dlg = create_item_button(_L("Clear my choice for disabling recommendation for support material parameters."), _L("Clear"), page, {}, []() {
+    auto  item_restore_support_recommend_dlg = create_item_button(_L("Clear my choice for disabling support parameter recommendation."), _L("Clear"), page, {}, []() {
         wxGetApp().app_config->set("show_support_recommend_dialog", "true");
     });
     auto _3d_settings    = create_item_title(_L("3D Settings"), page, _L("3D Settings"));

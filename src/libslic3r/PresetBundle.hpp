@@ -89,8 +89,6 @@ struct FilamentCombinationParams
     // 山苍: 使用 variant 支持多种类型: double, bool, string, int, vector<double>
     using ParamValue = std::variant<double, bool, std::string, int, std::vector<double>>;
     std::map<std::string, ParamValue> params;  // 通用参数存储
-    bool use_same_filament_for_support_base{false}; // 特殊标记：支撑基座使用相同材料
-
     bool hasRecommendedParams() const {
         return !params.empty();
     }
@@ -223,8 +221,6 @@ public:
     void load_support_recommended_params();
     // Get support recommended params by (support_material, model_material)
     std::optional<SupportRecommendedParams> get_support_recommended_params(const std::string& support_material, const std::string& model_material) const;
-    // Get all support recommended params for a given model material (for finding matching support filaments)
-    std::vector<const SupportRecommendedParams*> get_support_params_for_model_material(const std::string& model_material, const std::string& model_material_type) const;
 
     //BBS: project embedded preset logic
     PresetsConfigSubstitutions load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule);
@@ -314,8 +310,6 @@ public:
 
     // Support recommended params: key = "support_material|model_material"
     std::map<std::string, SupportRecommendedParams> support_recommended_params_map;
-    // Index for looking up by model material: key = "model_material|model_material_type"
-    std::map<std::string, std::vector<const SupportRecommendedParams*>> model_material_index;
 
     bool                        has_defauls_only() const
         { return prints.has_defaults_only() && filaments.has_defaults_only() && printers.has_defaults_only(); }

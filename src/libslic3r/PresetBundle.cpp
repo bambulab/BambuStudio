@@ -5528,7 +5528,6 @@ void PresetBundle::set_default_suppressed(bool default_suppressed)
 void PresetBundle::load_support_recommended_params()
 {
     support_recommended_params_map.clear();
-    model_material_index.clear();
     boost::filesystem::path json_path = (boost::filesystem::path(resources_dir()) / "profiles" / "BBL" / "filament" / "support_recommended_params.json").make_preferred();
 
     if (!boost::filesystem::exists(json_path)) {
@@ -5595,31 +5594,27 @@ void PresetBundle::load_support_recommended_params()
                         const std::string &key = it.key();
                         const auto &value = it.value();
 
-                        if (key == "use_same_filament_for_support_base" && value.is_boolean()) {
-                            rec_params.params.use_same_filament_for_support_base = value.get<bool>();
-                        } else {
-                            if (value.is_number_float() || value.is_number_integer()) {
-                                rec_params.params.params[key] = value.get<double>();
-                            } else if (value.is_boolean()) {
-                                rec_params.params.params[key] = value.get<bool>();
-                            } else if (value.is_string()) {
-                                rec_params.params.params[key] = value.get<std::string>();
-                            } else if (value.is_array()) {
-                                std::vector<double> vec;
-                                for (const auto& elem : value) {
-                                    if (elem.is_number()) {
-                                        vec.push_back(elem.get<double>());
-                                    } else if (elem.is_string()) {
-                                        try {
-                                            vec.push_back(std::stod(elem.get<std::string>()));
-                                        } catch (...) {
-                                            BOOST_LOG_TRIVIAL(warning) << "Failed to parse array element as double for " << key;
-                                        }
+                        if (value.is_number_float() || value.is_number_integer()) {
+                            rec_params.params.params[key] = value.get<double>();
+                        } else if (value.is_boolean()) {
+                            rec_params.params.params[key] = value.get<bool>();
+                        } else if (value.is_string()) {
+                            rec_params.params.params[key] = value.get<std::string>();
+                        } else if (value.is_array()) {
+                            std::vector<double> vec;
+                            for (const auto& elem : value) {
+                                if (elem.is_number()) {
+                                    vec.push_back(elem.get<double>());
+                                } else if (elem.is_string()) {
+                                    try {
+                                        vec.push_back(std::stod(elem.get<std::string>()));
+                                    } catch (...) {
+                                        BOOST_LOG_TRIVIAL(warning) << "Failed to parse array element as double for " << key;
                                     }
                                 }
-                                if (!vec.empty()) {
-                                    rec_params.params.params[key] = vec;
-                                }
+                            }
+                            if (!vec.empty()) {
+                                rec_params.params.params[key] = vec;
                             }
                         }
                     }
@@ -5631,20 +5626,6 @@ void PresetBundle::load_support_recommended_params()
                     support_recommended_params_map[map_key] = rec_params;
                 }
             }
-        }
-
-        // Build model_material_index for fast lookup by model material
-        for (auto& [key, params] : support_recommended_params_map) {
-            std::string index_key = params.model_material + "|" + params.model_material_type;
-            model_material_index[index_key].push_back(&params);
-        }
-
-        // Sort each index entry by priority (descending)
-        for (auto& [key, params_list] : model_material_index) {
-            std::sort(params_list.begin(), params_list.end(),
-                [](const SupportRecommendedParams* a, const SupportRecommendedParams* b) {
-                    return a->priority > b->priority;
-                });
         }
 
         BOOST_LOG_TRIVIAL(info) << "Loaded " << support_recommended_params_map.size() << " support recommended params from JSON";
@@ -5662,16 +5643,6 @@ std::optional<SupportRecommendedParams> PresetBundle::get_support_recommended_pa
         return it->second;
     }
     return std::nullopt;
-}
-
-std::vector<const SupportRecommendedParams*> PresetBundle::get_support_params_for_model_material(const std::string& model_material, const std::string& model_material_type) const
-{
-    std::string key = model_material + "|" + model_material_type;
-    auto it = model_material_index.find(key);
-    if (it != model_material_index.end()) {
-        return it->second;
-    }
-    return {};
 }
 
 } // namespace Slic3r
