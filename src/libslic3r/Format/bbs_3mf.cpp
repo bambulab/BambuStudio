@@ -340,6 +340,7 @@ static constexpr const char* OUTSIDE_ATTR = "outside";
 static constexpr const char* SUPPORT_USED_ATTR = "support_used";
 static constexpr const char* LABEL_OBJECT_ENABLED_ATTR = "label_object_enabled";
 static constexpr const char* ENABLE_FILAMENT_DYNAMIC_MAP_ATTR = "enable_filament_dynamic_map";
+static constexpr const char* HAS_FILAMENT_SWITCHER_ATTR = "has_filament_switcher";
 static constexpr const char* SKIPPED_ATTR = "skipped";
 
 static constexpr const char* OBJECT_TYPE = "object";
@@ -4629,6 +4630,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     m_curr_plater->config.set_key_value("enable_filament_dynamic_map", new ConfigOptionBool(enable_filament_dynamic_map));
                 }
             }
+            else if (key == HAS_FILAMENT_SWITCHER_ATTR)
+            {
+                if (m_curr_plater) {
+                    bool has_filament_switcher = false;
+                    std::istringstream(value) >> std::boolalpha >> has_filament_switcher;
+                    m_curr_plater->config.set_key_value("has_filament_switcher", new ConfigOptionBool(has_filament_switcher));
+                }
+            }
             else if (key == PRINTER_MODEL_ID_ATTR)
             {
                 if (m_curr_plater)
@@ -8403,6 +8412,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << ENABLE_FILAMENT_DYNAMIC_MAP_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << plate_data->nozzle_group_result->is_support_dynamic_nozzle_map() << "\"/>\n";
                 else
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << ENABLE_FILAMENT_DYNAMIC_MAP_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << false << "\"/>\n";
+                {
+                    bool has_filament_switcher = config.has("has_filament_switcher") ? config.opt_bool("has_filament_switcher") : false;
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << HAS_FILAMENT_SWITCHER_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << has_filament_switcher << "\"/>\n";
+                }
                 std::vector<int> filament_maps = plate_data->filament_maps;
                 if (filament_maps.empty())
                     filament_maps = config.option<ConfigOptionInts>("filament_map")->values;
