@@ -3395,6 +3395,10 @@ void Sidebar::update_all_preset_comboboxes()
         p->combo_printer_bed->Disable();
     }
 
+    // Update plate tab's bed type combobox to match current printer's supported bed types
+    if (auto *tab = dynamic_cast<TabPrintPlate *>(wxGetApp().plate_tab))
+        tab->update_bed_type_list();
+
     // Update the print choosers to only contain the compatible presets, update the dirty flags.
     //BBS
 

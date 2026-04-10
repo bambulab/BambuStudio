@@ -3783,6 +3783,9 @@ void TabPrintModel::activate_selected_page(std::function<void()> throw_if_cancel
                 f->set_value(boost::any(), false);
         }
     }
+
+    if (m_type == Preset::TYPE_PLATE)
+        static_cast<TabPrintPlate *>(this)->update_bed_type_list();
 }
 
 void TabPrintModel::on_value_change(const std::string& opt_id, const boost::any& value)
@@ -3969,6 +3972,42 @@ void TabPrintPlate::reset_model_config()
     }
     update_model_config();
     wxGetApp().mainframe->on_config_changed(m_config);
+}
+
+void TabPrintPlate::update_bed_type_list()
+{
+    if (!m_active_page) return;
+    Field *field = m_active_page->get_field("curr_bed_type");
+    if (!field) return;
+    auto *combo = dynamic_cast<ComboBox *>(field->getWindow());
+    if (!combo) return;
+
+    const auto *pm = wxGetApp().plater()->get_curr_printer_model();
+    const ConfigOptionDef *bed_type_def = print_config_def.get("curr_bed_type");
+    if (!bed_type_def) return;
+
+    // Remember current enum value before re-populating
+    int cur_enum_val = -1;
+    int cur_sel = combo->GetSelection();
+    auto &opt = const_cast<ConfigOptionDef &>(field->m_opt);
+    if (cur_sel >= 0 && cur_sel < (int) opt.enum_values.size())
+        cur_enum_val = opt.enum_keys_map->at(opt.enum_values[cur_sel]);
+
+    combo->Clear();
+    opt.enum_values.clear();
+    opt.enum_labels.clear();
+    int new_sel = 0;
+    for (size_t i = 0; i < bed_type_def->enum_labels.size(); i++) {
+        const auto &label = bed_type_def->enum_labels[i];
+        if (pm && std::find(pm->not_support_bed_types.begin(), pm->not_support_bed_types.end(), label) != pm->not_support_bed_types.end())
+            continue;
+        combo->Append(_L(label));
+        opt.enum_values.push_back(bed_type_def->enum_values[i]);
+        opt.enum_labels.push_back(label);
+        if (cur_enum_val >= 0 && opt.enum_keys_map->at(bed_type_def->enum_values[i]) == cur_enum_val)
+            new_sel = (int) opt.enum_values.size() - 1;
+    }
+    combo->SetSelection(new_sel);
 }
 
 void TabPrintPlate::on_value_change(const std::string& opt_key, const boost::any& value)
