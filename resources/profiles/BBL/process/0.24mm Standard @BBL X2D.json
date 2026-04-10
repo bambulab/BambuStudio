@@ -11,7 +11,6 @@
         "1000",
         "1000"
     ],
-    "enable_tower_interface_features": "1",
     "initial_layer_speed": [
         "50",
         "50",
@@ -30,8 +29,8 @@
         "50",
         "50"
     ],
-    "prime_tower_width": "60",
     "prime_tower_brim_width": "-1",
+    "prime_tower_width": "60",
     "print_extruder_variant": [
         "Direct Drive Standard",
         "Direct Drive High Flow",

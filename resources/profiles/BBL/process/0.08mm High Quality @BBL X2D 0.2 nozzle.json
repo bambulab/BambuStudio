@@ -6,37 +6,36 @@
     "setting_id": "GP216",
     "instantiation": "true",
     "description": "High quality profile for 0.2mm nozzle, prioritizing print quality.",
+    "bridge_flow": "1.5",
     "bridge_speed": [
         "25",
         "25",
         "25",
         "25"
     ],
-    "bridge_flow": "1.5",
     "default_acceleration": [
         "4000",
         "8000",
         "4000",
         "4000"
     ],
-    "enable_tower_interface_features": "1",
     "initial_layer_speed": [
         "40",
         "40",
         "20",
         "20"
     ],
-    "outer_wall_speed": [
-        "60",
-        "120",
-        "50",
-        "50"
-    ],
     "outer_wall_acceleration": [
         "2000",
         "5000",
         "5000",
         "5000"
+    ],
+    "outer_wall_speed": [
+        "60",
+        "120",
+        "50",
+        "50"
     ],
     "overhang_2_4_speed": [
         "40",
@@ -50,8 +49,8 @@
         "20",
         "20"
     ],
-    "prime_tower_width": "60",
     "prime_tower_brim_width": "-1",
+    "prime_tower_width": "60",
     "print_extruder_variant": [
         "Direct Drive Standard",
         "Direct Drive High Flow",
