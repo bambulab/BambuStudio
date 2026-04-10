@@ -147,6 +147,7 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusHasUnreliableNozzleWarning,
     PrintStatusRackNozzleNumUnmeetWarning,
     PrintStatusRackNozzleMappingWarning,
+    PrintStatusFilaSwitcherSlicingNotMatch,
     PrintStatusNozzleHRCMismatch,
     PrintStatusPrinterWarningEnd,
 

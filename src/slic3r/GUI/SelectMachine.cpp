@@ -4454,7 +4454,7 @@ void SelectMachineDialog::on_material_item_clicked(MaterialItem* item,
             m_mapping_popup.set_tag_texture(preset_fila_infos[used_filament_idx].filament_type);
             m_mapping_popup.set_send_win(this);//fix bug:fisrt click is not valid
             m_mapping_popup.set_show_type(get_filament_mapping_show_type(obj_, used_filament_idx));
-            m_mapping_popup.update(obj_, m_ams_mapping_result, use_dynamic_switch(), m_print_type);
+            m_mapping_popup.update(obj_, m_ams_mapping_result, use_dynamic_nozzle_map(), m_print_type);
             m_mapping_popup.Popup();
         }
     }
@@ -5525,7 +5525,7 @@ void SelectMachineDialog::on_flow_pa_caliation_option_changed(wxCommandEvent& ev
     DeviceManager* dev_ = Slic3r::GUI::wxGetApp().getDeviceManager();
     MachineObject* obj_ = dev_ ? dev_->get_my_machine(m_printer_last_select) : nullptr;
     if (obj_ && m_plater && obj_->GetNozzleSystem()->GetNozzleRack()->IsSupported()) {
-        if (use_dynamic_switch()) {
+        if (use_dynamic_nozzle_map()) {
             return;
         }
 
@@ -5578,7 +5578,7 @@ void SelectMachineDialog::on_pa_value_switch_changed(wxCommandEvent &event)
         return;
     }
 
-    if (use_dynamic_switch()) {
+    if (use_dynamic_nozzle_map()) {
         return;
     }
 
@@ -5650,7 +5650,7 @@ std::map<int, DevNozzle> SelectMachineDialog::get_mapped_nozzles(int fila_id) co
         return nozzle_map;
     }
 
-    if (!obj_->GetNozzleRack()->IsSupported() && !use_dynamic_switch()) {
+    if (!obj_->GetNozzleRack()->IsSupported() && !use_dynamic_nozzle_map()) {
         if (total_ext_count == 1) {
             nozzle_map[MAIN_EXTRUDER_ID] = obj_->GetNozzleSystem()->GetNozzleByPosId(MAIN_EXTRUDER_ID);
         } else if (total_ext_count == 2) {
@@ -5704,7 +5704,7 @@ wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
         return wxEmptyString;
     }
 
-    if (use_dynamic_switch() && !obj_->GetFilaSwitch()->IsInstalled()) {
+    if (use_dynamic_nozzle_map() && !obj_->GetFilaSwitch()->IsInstalled()) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the obj not have fila switch";
         return "?";// the nozzle mapping is not supported if fila switch is not installed
     }
@@ -5738,7 +5738,17 @@ bool SelectMachineDialog::CheckErrorDynamicSwitchNozzle(MachineObject* obj_)
         return false;
     }
 
-    if (!use_dynamic_switch()) {
+    //if (obj_->GetFilaSwitch()->IsInstalled() && !obj_->GetFilaSwitch()->IsReady()) {
+    //    show_status(PrintDialogStatus::PrintStatusFilaSwitcherError, { _L("The Filament Track Switch has not been setup. Please setup it first.") });
+    //    return false;
+    //}
+
+    if (obj_->is_support_check_track_switch_match_slice_printer && slicing_with_fila_switch() != obj_->GetFilaSwitch()->IsInstalled()) {
+        show_status(PrintDialogStatus::PrintStatusFilaSwitcherSlicingNotMatch,
+                    { _L("The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues.") });
+    }
+
+    if (!use_dynamic_nozzle_map()) {
         return true; // no need to check if support dynamic nozzle map
     }
 
@@ -5769,7 +5779,7 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResultV1(MachineObject* obj
         return true;// no need to check if not support nozzle rack
     }
 
-    if (!use_dynamic_switch()) {
+    if (!use_dynamic_nozzle_map()) {
         return true;
     }
 
@@ -5844,7 +5854,7 @@ bool SelectMachineDialog::CheckErrorSyncNozzleMappingResultV0(MachineObject* obj
         return true;// there are no slicing data when print from sdcard
     }
 
-    if (use_dynamic_switch()) {
+    if (use_dynamic_nozzle_map()) {
         return true; // use V1 nozzle mapping
     }
 
@@ -6309,7 +6319,28 @@ void SelectMachineDialog::clear_nozzle_mapping()
     }
 }
 
-bool SelectMachineDialog::use_dynamic_switch() const
+bool SelectMachineDialog::slicing_with_fila_switch() const
+{
+    if (use_dynamic_nozzle_map()) {
+        return true;
+    }
+
+    if (m_print_type == FROM_NORMAL) {
+        auto has_filament_switcher = wxGetApp().preset_bundle->full_config().option<ConfigOptionBool>("has_filament_switcher");
+        if (has_filament_switcher) {
+            return has_filament_switcher->value;
+        }
+    } else if (m_print_type == FROM_SDCARD_VIEW) {
+        auto has_filament_switcher = m_required_data_config.option<ConfigOptionBool>("has_filament_switcher");
+        if (has_filament_switcher) {
+            return has_filament_switcher->value;
+        }
+    }
+
+    return false;
+}
+
+bool SelectMachineDialog::use_dynamic_nozzle_map() const
 {
     if (m_print_type == FROM_NORMAL) {
         auto nozzle_group_res = DevUtilBackend::GetNozzleGroupResult(m_plater);

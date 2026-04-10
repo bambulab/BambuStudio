@@ -4288,6 +4288,8 @@ void MachineObject::parse_new_info(json print)
         is_support_pa_mode = (get_flag_bits_no_border(fun2, 3) == 1);
         is_support_update_remain_hide_display = (get_flag_bits_no_border(fun2, 6) == 1);
         is_support_remote_dry = (get_flag_bits_no_border(fun2, 5) == 1);
+        is_support_active_arc_fitting = (get_flag_bits_no_border(fun2, 8) == 1);
+        is_support_check_track_switch_match_slice_printer = (get_flag_bits_no_border(fun2, 19) == 1);
 
         if (DevPrinterConfigUtil::support_print_check_firmware_for_tpu_left(printer_type)) {
             m_firmware_support_print_tpu_left = DevUtil::get_flag_bits_no_border(fun2, 7) == 1;
