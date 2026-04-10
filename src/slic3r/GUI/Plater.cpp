@@ -170,6 +170,7 @@
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevDefs.h"
+#include "DeviceCore/DevConfigUtil.h"
 #include "ImageMessageDialog.hpp"
 
 #include "HelioReleaseNote.hpp"
@@ -529,6 +530,13 @@ public:
     }
     wxString GetSuffixStr() const { return m_title_type->IsShown() ? m_title_type->GetLabel() : ""; }
 
+    void SetTitle(const wxString &title)
+    {
+        m_label->SetLabel(title);
+        Layout();
+        Fit();
+    }
+
 private:
     wxStaticText   *m_label;
     wxBitmapButton *m_hover_btn;
@@ -584,6 +592,7 @@ struct ExtruderGroup : StaticGroup
     void     SetEditEnabled(bool enable);
     void     SetCount(int count);
     void     SetTitleWithType(const int type);
+    void     SetTitle(const wxString &title);
     wxString GetSuffixStr();
     void     SetOnHoverClick(std::function<void()> on_click);
     int      GetIndex() const { return m_index; }
@@ -1658,6 +1667,13 @@ void ExtruderGroup::SetTitleWithType(const int type)
     }
 }
 
+void ExtruderGroup::SetTitle(const wxString &title)
+{
+    if (hover_label) {
+        hover_label->SetTitle(title);
+    }
+}
+
 wxString ExtruderGroup::GetSuffixStr()
 {
     if (hover_label) {
@@ -1801,13 +1817,16 @@ bool Sidebar::priv::switch_diameter(bool single)
         auto diameter_left = left_extruder->combo_diameter->GetValue();
         auto diameter_right = right_extruder->combo_diameter->GetValue();
         if (diameter_left != diameter_right) {
+            std::string sd_printer_type = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+            auto sd_left_name  = _L(DevPrinterConfigUtil::get_toolhead_display_name(sd_printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase));
+            auto sd_right_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(sd_printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase));
             MessageDialog dlg(this->plater,
                               _L("The software does not support using different diameter of nozzles for one print.\n"
                                  "If the left and right nozzles are inconsistent, we can only proceed with single-head printing.\n"
                                  "Please confirm which nozzle you would like to use for this project."),
                               _L("Switch diameter"), wxYES_NO | wxNO_DEFAULT);
-            dlg.SetButtonLabel(wxID_YES, wxString::Format(_L("Left nozzle: %smm"), diameter_left));
-            dlg.SetButtonLabel(wxID_NO, wxString::Format(_L("Right nozzle: %smm"), diameter_right));
+            dlg.SetButtonLabel(wxID_YES, wxString::Format("%s: %smm", sd_left_name, diameter_left));
+            dlg.SetButtonLabel(wxID_NO, wxString::Format("%s: %smm", sd_right_name, diameter_right));
             int result = dlg.ShowModal();
             if (result == wxID_YES)
                 diameter = diameter_left;
@@ -3476,6 +3495,17 @@ void Sidebar::update_presets(Preset::Type preset_type)
         bool isBBL = printer_preset.is_bbl_vendor_preset(wxGetApp().preset_bundle);
         bool is_dual_extruder = extruder_variants->size() == 2;
         p->layout_printer(isBBL, is_dual_extruder);
+
+        // Update nozzle titles from printer config (e.g. "Main Nozzle" / "Auxiliary Nozzle" for N6)
+        // UI left = DEPUTY_EXTRUDER_ID(1), UI right = MAIN_EXTRUDER_ID(0)
+        if (is_dual_extruder) {
+            std::string printer_type = printer_preset.get_printer_type(wxGetApp().preset_bundle);
+            auto left_title  = DevPrinterConfigUtil::get_toolhead_display_name(printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase);
+            auto right_title = DevPrinterConfigUtil::get_toolhead_display_name(printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase);
+            p->left_extruder->SetTitle(_L(left_title));
+            p->right_extruder->SetTitle(_L(right_title));
+        }
+
         auto extruders_def = printer_preset.config.def()->get("extruder_type");
         auto extruders = printer_preset.config.option<ConfigOptionEnumsGeneric>("extruder_type");
         auto nozzle_volumes_def = wxGetApp().preset_bundle->project_config.def()->get("nozzle_volume_type");
