@@ -5,6 +5,18 @@
     "from": "system",
     "setting_id": "GFSG50_12",
     "instantiation": "true",
+    "counter_coef_2": [
+        "0.0022"
+    ],
+    "counter_coef_3": [
+        "-0.0178"
+    ],
+    "counter_limit_max": [
+        "0.036"
+    ],
+    "counter_limit_min": [
+        "-0.0178"
+    ],
     "fan_cooling_layer_time": [
         "30"
     ],
@@ -32,6 +44,18 @@
     ],
     "first_x_layer_fan_speed": [
         "0"
+    ],
+    "hole_coef_2": [
+        "-0.0014"
+    ],
+    "hole_coef_3": [
+        "0.11"
+    ],
+    "hole_limit_max": [
+        "0.11"
+    ],
+    "hole_limit_min": [
+        "0.075"
     ],
     "include": [
         "fdm_filament_template_direct_dual"

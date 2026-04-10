@@ -8,11 +8,26 @@
     "additional_cooling_fan_speed": [
         "75"
     ],
+    "counter_coef_2": [
+        "0.0036"
+    ],
+    "counter_coef_3": [
+        "-0.0218"
+    ],
+    "counter_limit_max": [
+        "0.0682"
+    ],
+    "counter_limit_min": [
+        "-0.0218"
+    ],
     "eng_plate_temp": [
         "55"
     ],
     "eng_plate_temp_initial_layer": [
         "55"
+    ],
+    "filament_change_length": [
+        "4"
     ],
     "filament_cooling_before_tower": [
         "10",
@@ -26,15 +41,15 @@
         "1",
         "1"
     ],
+    "filament_pre_cooling_temperature_nc": [
+        "200",
+        "200"
+    ],
     "filament_prime_volume": [
         "30"
     ],
     "filament_prime_volume_nc": [
         "30"
-    ],
-    "filament_pre_cooling_temperature_nc": [
-        "200",
-        "200"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -48,14 +63,23 @@
         "18",
         "18"
     ],
-    "filament_change_length": [
-        "4"
-    ],
     "first_x_layer_fan_speed": [
         "0"
     ],
     "filament_change_length_nc": [
         "4"
+    ],
+    "hole_coef_2": [
+        "-0.0037"
+    ],
+    "hole_coef_3": [
+        "0.1261"
+    ],
+    "hole_limit_max": [
+        "0.1261"
+    ],
+    "hole_limit_min": [
+        "0.0336"
     ],
     "include": [
         "fdm_filament_template_direct_dual"

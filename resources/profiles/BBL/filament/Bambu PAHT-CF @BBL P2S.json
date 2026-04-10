@@ -11,6 +11,18 @@
     "chamber_temperatures": [
         "60"
     ],
+    "counter_coef_2": [
+        "0.002"
+    ],
+    "counter_coef_3": [
+        "-0.055"
+    ],
+    "counter_limit_max": [
+        "-0.005"
+    ],
+    "counter_limit_min": [
+        "-0.055"
+    ],
     "filament_cooling_before_tower": [
         "10",
         "10"
@@ -26,6 +38,18 @@
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "hole_coef_2": [
+        "0.0009"
+    ],
+    "hole_coef_3": [
+        "0.1686"
+    ],
+    "hole_limit_max": [
+        "0.19"
+    ],
+    "hole_limit_min": [
+        "0.1686"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
