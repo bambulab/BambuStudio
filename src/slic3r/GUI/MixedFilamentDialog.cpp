@@ -91,6 +91,15 @@ MixedFilamentDialog::MixedFilamentDialog(wxWindow* parent,
         m_result.components = {1, (physical_colors.size() >= 2) ? 2u : 1u};
         m_result.ratios     = {50, 50};
     }
+    if (m_result.ratios.size() >= 3) {
+        int sum = 0;
+        for (int r : m_result.ratios) sum += r;
+        if (sum > 0) {
+            m_tri_wx = (double)m_result.ratios[0] / sum;
+            m_tri_wy = (double)m_result.ratios[1] / sum;
+            m_tri_wz = (double)m_result.ratios[2] / sum;
+        }
+    }
     build_ui();
     wxGetApp().UpdateDlgDarkUI(this);
 
@@ -885,10 +894,14 @@ void MixedFilamentDialog::on_add_material()
     }
     m_result.ratios.push_back(100 - assigned);
 
-    if (m_result.components.size() == 3) {
-        m_tri_wx = m_result.ratios[0] / 100.0;
-        m_tri_wy = m_result.ratios[1] / 100.0;
-        m_tri_wz = m_result.ratios[2] / 100.0;
+    if (m_result.ratios.size() >= 3) {
+        int sum = 0;
+        for (int r : m_result.ratios) sum += r;
+        if (sum > 0) {
+            m_tri_wx = (double)m_result.ratios[0] / sum;
+            m_tri_wy = (double)m_result.ratios[1] / sum;
+            m_tri_wz = (double)m_result.ratios[2] / sum;
+        }
     }
 
     auto* row = new wxBoxSizer(wxHORIZONTAL);
