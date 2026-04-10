@@ -1,6 +1,6 @@
 {
     "description": "Recommended support parameters for specific material combinations. support_material_type/model_material_type can be 'name' or 'type'",
-    "version": "2.0",
+    "version": "3.0",
     "combinations": [
         {
             "model_material": "PLA",
@@ -20,7 +20,6 @@
                 "support_interface_spacing": 0.0,
                 "tree_support_branch_diameter": 3.0,
                 "tree_support_branch_diameter_angle": 7.0,
-                "use_same_filament_for_support_base": false,
                 "support_interface_speed": [50.0, 50.0, 50.0, 50.0]
             }
         },
@@ -42,7 +41,6 @@
                 "support_interface_spacing": 0.0,
                 "tree_support_branch_diameter": 3.0,
                 "tree_support_branch_diameter_angle": 7.0,
-                "use_same_filament_for_support_base": false,
                 "support_interface_speed": [50.0, 50.0, 50.0, 50.0]
             }
         },
@@ -59,8 +57,7 @@
                 "support_top_z_distance": 0.0,
                 "support_interface_pattern": "rectilinear_interlaced",
                 "support_interface_spacing": 0.0,
-                "support_object_xy_distance": 0.0,
-                "use_same_filament_for_support_base": true
+                "support_object_xy_distance": 0.0
             }
         },
         {
@@ -81,7 +78,6 @@
                 "support_interface_spacing": 0.0,
                 "tree_support_branch_diameter": 3.0,
                 "tree_support_branch_diameter_angle": 7.0,
-                "use_same_filament_for_support_base": false,
                 "support_interface_speed": [50.0, 50.0, 50.0, 50.0]
             }
         },
@@ -103,7 +99,6 @@
                 "support_interface_spacing": 0.0,
                 "tree_support_branch_diameter": 3.0,
                 "tree_support_branch_diameter_angle": 7.0,
-                "use_same_filament_for_support_base": false,
                 "support_interface_speed": [50.0, 50.0, 50.0, 50.0]
             }
         },
@@ -119,8 +114,7 @@
                 "support_on_build_plate_only": false,
                 "support_top_z_distance": 0.0,
                 "support_interface_pattern": "rectilinear_interlaced",
-                "support_interface_spacing": 0.0,
-                "use_same_filament_for_support_base": false
+                "support_interface_spacing": 0.0
             }
         },
         {
@@ -136,8 +130,7 @@
                 "support_on_build_plate_only": false,
                 "support_top_z_distance": 0.0,
                 "support_interface_pattern": "rectilinear_interlaced",
-                "support_interface_spacing": 0.0,
-                "use_same_filament_for_support_base": false
+                "support_interface_spacing": 0.0
             }
         },
         {
@@ -153,8 +146,7 @@
                 "support_top_z_distance": 0.0,
                 "support_interface_pattern": "rectilinear_interlaced",
                 "support_interface_spacing": 0.0,
-                "support_object_xy_distance": 0.0,
-                "use_same_filament_for_support_base": true
+                "support_object_xy_distance": 0.0
             }
         }
     ]

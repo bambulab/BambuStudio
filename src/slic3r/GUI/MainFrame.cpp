@@ -74,8 +74,6 @@
 #endif // _WIN32
 #include <slic3r/GUI/CreatePresetsDialog.hpp>
 
-#include "slic3r/GUI/SupportRecommendDialog.hpp"
-
 
 namespace Slic3r {
 namespace GUI {
@@ -1867,9 +1865,6 @@ wxBoxSizer* MainFrame::create_side_tools()
 
     m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
-            // check if the support material is used if there is one
-            Tab *tab = wxGetApp().get_tab(Preset::Type::TYPE_PRINT);
-            tab->on_value_change("support_interface_filament", m_slice_select == eSliceAll ? -2 : -1);
             if (m_plater->is_background_process_update_scheduled())
                 m_plater->update(false, true);
 
