@@ -16638,12 +16638,100 @@ void Plater::import_model_id(wxString download_info)
                     }
                 })
                 .on_complete([&cont, &download_ok, tmp_path, target_path](std::string body, unsigned /* http_status */) {
-                        fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
-                        file.write(body.c_str(), body.size());
-                        file.close();
-                        fs::rename(tmp_path, target_path);
-                        cont = false;
-                        download_ok = true;
+                        try {
+                            // Verify downloaded data is not empty
+                            if (body.empty()) {
+                                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Downloaded file is empty";
+                                cont = false;
+                                download_ok = false;
+                                return;
+                            }
+
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Writing downloaded data to temp file: " << PathSanitizer::sanitize(tmp_path);
+
+                            // Write to temporary file
+                            fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
+                            if (!file.is_open()) {
+                                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Failed to open temp file: " << PathSanitizer::sanitize(tmp_path);
+                                cont = false;
+                                download_ok = false;
+                                return;
+                            }
+
+                            file.write(body.c_str(), body.size());
+                            if (!file) {
+                                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Failed to write temp file: " << PathSanitizer::sanitize(tmp_path);
+                                file.close();
+                                cont = false;
+                                download_ok = false;
+                                return;
+                            }
+                            file.close();
+
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Temp file written successfully, size: " << body.size() << " bytes";
+
+                            // Verify target directory exists
+                            auto target_dir = target_path.parent_path();
+                            if (!fs::exists(target_dir)) {
+                                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Target directory does not exist: " << PathSanitizer::sanitize(target_dir);
+                                try {
+                                    fs::create_directories(target_dir);
+                                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Created target directory: " << PathSanitizer::sanitize(target_dir);
+                                }
+                                catch (const std::exception& e) {
+                                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Failed to create target directory: " << e.what();
+                                    if (fs::exists(tmp_path)) {
+                                        try { fs::remove(tmp_path); } catch (...) {}
+                                    }
+                                    cont = false;
+                                    download_ok = false;
+                                    return;
+                                }
+                            }
+
+                            // Remove existing target file if it exists (to avoid cross-platform rename issues)
+                            if (fs::exists(target_path)) {
+                                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Target file already exists, will be overwritten: " << PathSanitizer::sanitize(target_path);
+                                try {
+                                    fs::remove(target_path);
+                                } catch (const std::exception& e) {
+                                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Failed to remove existing target file: " << e.what();
+                                    if (fs::exists(tmp_path)) {
+                                        try { fs::remove(tmp_path); } catch (...) {}
+                                    }
+                                    cont = false;
+                                    download_ok = false;
+                                    return;
+                                }
+                            }
+
+                            // Atomic rename operation
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Renaming temp file to target: " << PathSanitizer::sanitize(tmp_path) << " -> " << PathSanitizer::sanitize(target_path);
+                            fs::rename(tmp_path, target_path);
+                            
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " File renamed successfully: " << PathSanitizer::sanitize(target_path);
+                            cont = false;
+                            download_ok = true;
+                        }
+                        catch (const std::exception& e) {
+                            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Exception during file operations: " << e.what();
+                            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Temp path: " << PathSanitizer::sanitize(tmp_path);
+                            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Target path: " << PathSanitizer::sanitize(target_path);
+                            
+                            // Clean up temp file
+                            try {
+                                if (fs::exists(tmp_path)) {
+                                    fs::remove(tmp_path);
+                                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Cleaned up temp file: " << PathSanitizer::sanitize(tmp_path);
+                                }
+                            }
+                            catch (const std::exception& cleanup_error) {
+                                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Failed to clean up temp file: " << cleanup_error.what();
+                            }
+                            
+                            cont = false;
+                            download_ok = false;
+                        }
                 }).perform_sync();
 
                 // for break while
