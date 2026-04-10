@@ -2833,6 +2833,8 @@ void SelectMachineDialog::update_option_dynamic_state(MachineObject *obj)
         options_line_ignore = wxGetApp().app_config->get("disable_auto_flow_cali_tips") == "true";
     }
 
+    bool old_options_line_shown = m_options_line_panel->IsShown();
+
     if (m_checkbox_list["flow_cali"]->IsShown() && has_bowden_extuder(obj)) {
         m_checkbox_list["flow_cali"]->update_tooltip(
             _L("Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value.") + "\n" +
@@ -2859,8 +2861,14 @@ void SelectMachineDialog::update_option_dynamic_state(MachineObject *obj)
     bool show_pa = obj->is_support_pa_mode &&
                    m_checkbox_list["flow_cali"]->IsShown() &&
                    m_checkbox_list["flow_cali"]->getValue() == "off";
+    bool old_pa_shown = m_pa_value_panel->IsShown();
     m_pa_value_panel->Show(show_pa);
 
+    if (m_options_line_panel->IsShown() != old_options_line_shown ||
+        m_pa_value_panel->IsShown() != old_pa_shown) {
+        m_options_other->Layout();
+        m_options_other->Fit();
+    }
 }
 
 void SelectMachineDialog::save_option_vals()
@@ -6975,18 +6983,18 @@ void PrintOptionItem::on_left_down(wxMouseEvent& evt)
         return;
     }
 
-    auto pos = ClientToScreen(evt.GetPosition());
-    auto rect = ClientToScreen(wxPoint(0, 0));
-    auto select_size = GetSize().x / m_ops.size();
+    // Use client coordinates directly to avoid DPI/multi-monitor coordinate issues
+    auto local_x = evt.GetPosition().x;
+    auto select_size = GetSize().x / (int) m_ops.size();
 
     int i = 0;
     m_old_selected_key = selected_key;
     for (const auto& entry : m_ops)
     {
-        auto left_edge = rect.x + i * select_size;
-        auto right_edge = rect.x + (i + 1) * select_size;
+        auto left_edge = i * select_size;
+        auto right_edge = (i + 1) * select_size;
 
-        if (pos.x > left_edge && pos.x < right_edge)
+        if (local_x >= left_edge && local_x < right_edge)
         {
             selected_key = entry.key;
         }
@@ -6996,13 +7004,13 @@ void PrintOptionItem::on_left_down(wxMouseEvent& evt)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", new select key= " << selected_key;
     if (selected_key.empty()) /* make some log if not find*/
     {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", pos.x=" << pos.x << ", rect.x=" << rect.x;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", local_x=" << local_x << ", width=" << GetSize().x;
 
         int i = 0;
         for (const auto& entry : m_ops)
         {
-            auto left_edge = rect.x + i * select_size;
-            auto right_edge = rect.x + (i + 1) * select_size;
+            auto left_edge = i * select_size;
+            auto right_edge = (i + 1) * select_size;
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ", i= " << i
                                     << ", entry.key= " << entry.key
                                     << ", left_edge= " << left_edge
