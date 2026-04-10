@@ -647,6 +647,7 @@ void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)
         }
 
         item->Bind(wxEVT_LEFT_DOWN, [this, tray_data, item](wxMouseEvent& e) {
+            if (!item->GetParent() || !item->GetParent()->IsEnabled()) return;
             if (m_ext_mapping_filatype_check && !is_match_material(tray_data.filament_type)) return;
             item->send_event(m_current_filament_id);
             Dismiss();
@@ -658,6 +659,7 @@ void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)
     if (tray_data.type == EMPTY) {
         item->set_data(m_tag_material, wxColour(0xCE, 0xCE, 0xCE), "-", false, tray_data);
         item->Bind(wxEVT_LEFT_DOWN, [this, tray_data, item](wxMouseEvent& e) {
+            if (!item->GetParent() || !item->GetParent()->IsEnabled()) return;
             item->send_event(m_current_filament_id);
             Dismiss();
         });
@@ -668,6 +670,7 @@ void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)
         item->set_data(m_tag_material, tray_data.colour, "?", false, tray_data);
         //item->set_data(wxColour(0xCE, 0xCE, 0xCE), "?", tray_data);
         item->Bind(wxEVT_LEFT_DOWN, [this, tray_data, item](wxMouseEvent& e) {
+            if (!item->GetParent() || !item->GetParent()->IsEnabled()) return;
             item->send_event(m_current_filament_id);
             Dismiss();
         });
