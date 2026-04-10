@@ -588,7 +588,8 @@ private:
     void clear_nozzle_mapping();
 
     // dynamic nozzle switch
-    bool use_dynamic_switch() const;
+    bool slicing_with_fila_switch() const;
+    bool use_dynamic_nozzle_map() const;
 
     /* update ams backup*/
     void update_ams_backup(MachineObject* obj_);
