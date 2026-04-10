@@ -4103,10 +4103,8 @@ void Sidebar::delete_filament(size_t filament_id, int replace_filament_id) {
 
     wxGetApp().preset_bundle->update_num_filaments(filament_id);
 
-    if (!is_mixed) {
-        wxGetApp().plater()->get_partplate_list().on_filament_deleted(filament_count, filament_id);
-    }
     size_t total_after_delete = wxGetApp().preset_bundle->filament_presets.size();
+    wxGetApp().plater()->get_partplate_list().on_filament_deleted(total_after_delete, filament_id);
     wxGetApp().plater()->on_filaments_delete(total_after_delete, filament_id, replace_filament_id > (int)filament_id ? (replace_filament_id - 1) : replace_filament_id, is_mixed_snapshot);
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
@@ -4116,6 +4114,42 @@ void Sidebar::delete_filament(size_t filament_id, int replace_filament_id) {
 
 void Sidebar::change_filament(size_t from_id, size_t to_id)
 {
+    if (from_id == size_t(-2))
+        from_id = p->m_menu_filament_id;
+    if (from_id == size_t(-1))
+        from_id = p->combos_filament.size() - 1;
+
+    if (from_id == to_id)
+        return;
+
+    auto& pb = *wxGetApp().preset_bundle;
+    bool from_is_physical = !pb.is_mixed_filament(from_id);
+    bool to_is_mixed = pb.is_mixed_filament(to_id);
+
+    if (from_is_physical && to_is_mixed) {
+        auto* comp_opt = pb.project_config.option<ConfigOptionStrings>("filament_mixed_components");
+        if (comp_opt && to_id < comp_opt->values.size()) {
+            auto comps = Slic3r::parse_mixed_components(comp_opt->values[to_id]);
+            unsigned int from_1based = (unsigned int)from_id + 1;
+            bool target_uses_source = false;
+            for (unsigned int c : comps) {
+                if (c == from_1based) {
+                    target_uses_source = true;
+                    break;
+                }
+            }
+            if (target_uses_source) {
+                int ret = wxMessageBox(
+                    _L("The target mixed filament uses this physical filament as a component. "
+                       "Merging will remove this physical filament and may invalidate the mixed filament. Continue?"),
+                    _L("Warning"),
+                    wxOK | wxCANCEL | wxICON_WARNING);
+                if (ret != wxOK)
+                    return;
+            }
+        }
+    }
+
     delete_filament(from_id, int(to_id));
 }
 
@@ -5365,13 +5399,52 @@ void Sidebar::update_mixed_filament_list()
 
             auto* menu_btn = new ScalableButton(p->m_panel_mixed_content, wxID_ANY,
                 is_broken ? "obj_warning" : "menu_filament");
-            menu_btn->SetToolTip(is_broken ? _L("Mixed filament has broken component references") : _L("Edit / Delete"));
-            menu_btn->Bind(wxEVT_BUTTON, [this, panel_idx](wxCommandEvent&) {
+            menu_btn->SetToolTip(is_broken ? _L("Mixed filament has broken component references") : _L("Edit / Delete / Merge"));
+            menu_btn->Bind(wxEVT_BUTTON, [this, panel_idx, cfg_idx](wxCommandEvent&) {
                 wxMenu menu;
-                menu.Append(wxID_ANY, _L("Delete"));
+
+                auto* edit_item = menu.Append(wxID_ANY, _L("Edit"));
+                menu.Bind(wxEVT_MENU, [this, panel_idx](wxCommandEvent&) {
+                    edit_mixed_filament(panel_idx);
+                }, edit_item->GetId());
+
+                auto* del_item = menu.Append(wxID_ANY, _L("Delete"));
                 menu.Bind(wxEVT_MENU, [this, panel_idx](wxCommandEvent&) {
                     delete_mixed_filament_at(panel_idx);
-                });
+                }, del_item->GetId());
+
+                wxMenu* sub_menu = new wxMenu();
+                std::vector<wxBitmap*> icons = get_extruder_color_icons(true);
+                int filaments_cnt = icons.size();
+                for (int j = 0; j < filaments_cnt; ++j) {
+                    if ((size_t)j == cfg_idx)
+                        continue;
+
+                    wxString item_name;
+                    bool is_target_mixed = wxGetApp().preset_bundle->is_mixed_filament(j);
+                    if (is_target_mixed) {
+                        item_name = wxString::Format(_L("Filament %d"), j + 1);
+                    } else {
+                        auto preset = wxGetApp().preset_bundle->filaments.find_preset(
+                            wxGetApp().preset_bundle->filament_presets[j]);
+                        item_name = preset ? from_u8(preset->label(false))
+                                           : wxString::Format(_L("Filament %d"), j + 1);
+                    }
+
+                    auto* mi = new wxMenuItem(sub_menu, wxID_ANY, item_name);
+#ifndef __linux__
+                    mi->SetBitmap(*icons[j]);
+#endif
+                    sub_menu->Append(mi);
+                    sub_menu->Bind(wxEVT_MENU, [this, cfg_idx, j](wxCommandEvent&) {
+                        change_filament(cfg_idx, j);
+                    }, mi->GetId());
+                }
+                if (filaments_cnt > 1)
+                    menu.AppendSubMenu(sub_menu, _L("Merge with"));
+                else
+                    delete sub_menu;
+
                 PopupMenu(&menu);
             });
             combo_and_btn_sizer->Add(menu_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(4));
@@ -5618,6 +5691,12 @@ void Sidebar::add_mixed_filament()
         auto& presets = wxGetApp().preset_bundle->filament_presets;
         if (result.components[0] >= 1 && result.components[0] <= num_physical && presets.size() > new_idx)
             presets[new_idx] = presets[result.components[0] - 1];
+
+        size_t filament_count = wxGetApp().preset_bundle->filament_presets.size();
+        wxGetApp().plater()->get_partplate_list().on_filament_added(filament_count);
+        wxGetApp().plater()->on_filament_count_change(filament_count);
+        wxGetApp().get_tab(Preset::TYPE_PRINT)->update();
+        wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
 
         update_mixed_filament_list();
     }
