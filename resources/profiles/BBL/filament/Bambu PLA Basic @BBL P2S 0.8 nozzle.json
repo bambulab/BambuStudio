@@ -5,6 +5,18 @@
     "from": "system",
     "setting_id": "GFSA00_16",
     "instantiation": "true",
+    "counter_coef_2": [
+        "0.0025"
+    ],
+    "counter_coef_3": [
+        "0.014"
+    ],
+    "counter_limit_max": [
+        "0.076"
+    ],
+    "counter_limit_min": [
+        "0.014"
+    ],
     "eng_plate_temp": [
         "55"
     ],
@@ -49,6 +61,18 @@
     ],
     "first_x_layer_fan_speed": [
         "40"
+    ],
+    "hole_coef_2": [
+        "-0.0028"
+    ],
+    "hole_coef_3": [
+        "0.12"
+    ],
+    "hole_limit_max": [
+        "0.12"
+    ],
+    "hole_limit_min": [
+        "0.05"
     ],
     "include": [
         "fdm_filament_template_direct_dual"

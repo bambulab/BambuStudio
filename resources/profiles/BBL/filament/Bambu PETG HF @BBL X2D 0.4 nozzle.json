@@ -5,11 +5,29 @@
     "from": "system",
     "setting_id": "GFSG02_12",
     "instantiation": "true",
+    "counter_coef_2": [
+        "0.0058"
+    ],
+    "counter_coef_3": [
+        "0.0107"
+    ],
+    "counter_limit_max": [
+        "0.15"
+    ],
+    "counter_limit_min": [
+        "0.01"
+    ],
     "fan_cooling_layer_time": [
         "20"
     ],
+    "fan_max_speed": [
+        "60"
+    ],
     "fan_min_speed": [
         "30"
+    ],
+    "filament_extruder_compatibility": [
+        "24"
     ],
     "filament_cooling_before_tower": [
         "10",
@@ -17,8 +35,8 @@
         "10",
         "10"
     ],
-    "filament_extruder_compatibility": [
-        "24"
+    "filament_tower_ironing_area": [
+        "8"
     ],
     "filament_flow_ratio": [
         "0.95",
@@ -44,8 +62,11 @@
         "10",
         "10"
     ],
-    "filament_tower_ironing_area": [
-        "8"
+    "filament_retraction_length": [
+        "0.4",
+        "0.4",
+        "nil",
+        "nil"
     ],
     "filament_wipe": [
         "1",
@@ -68,14 +89,17 @@
     "first_x_layer_fan_speed": [
         "40"
     ],
-    "filament_retraction_length": [
-        "0.4",
-        "0.4",
-        "nil",
-        "nil"
+    "hole_coef_2": [
+        "-0.0042"
     ],
-    "fan_max_speed": [
-        "60"
+    "hole_coef_3": [
+        "0.2006"
+    ],
+    "hole_limit_max": [
+        "0.2"
+    ],
+    "hole_limit_min": [
+        "0.09"
     ],
     "include": [
         "fdm_filament_template_direct_bowden"

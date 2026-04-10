@@ -11,6 +11,18 @@
     "chamber_temperatures": [
         "65"
     ],
+    "counter_coef_2": [
+        "0.0094"
+    ],
+    "counter_coef_3": [
+        "-0.0092"
+    ],
+    "counter_limit_max": [
+        "0.2258"
+    ],
+    "counter_limit_min": [
+        "-0.0092"
+    ],
     "fan_min_speed": [
         "25"
     ],
@@ -45,6 +57,18 @@
     "filament_z_hop_types": [
         "Spiral Lift",
         "Spiral Lift"
+    ],
+    "hole_coef_2": [
+        "0.0013"
+    ],
+    "hole_coef_3": [
+        "0.1261"
+    ],
+    "hole_limit_max": [
+        "0.1586"
+    ],
+    "hole_limit_min": [
+        "0.1261"
     ],
     "include": [
         "fdm_filament_template_direct_dual"

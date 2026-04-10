@@ -8,6 +8,18 @@
     "chamber_temperatures": [
         "60"
     ],
+    "counter_coef_2": [
+        "0.0081"
+    ],
+    "counter_coef_3": [
+        "0.0183"
+    ],
+    "counter_limit_max": [
+        "0.2208"
+    ],
+    "counter_limit_min": [
+        "0.0183"
+    ],
     "fan_max_speed": [
         "55"
     ],
@@ -61,6 +73,18 @@
         "Spiral Lift",
         "Spiral Lift",
         "Spiral Lift"
+    ],
+    "hole_coef_2": [
+        "0.0009"
+    ],
+    "hole_coef_3": [
+        "0.0725"
+    ],
+    "hole_limit_max": [
+        "0.095"
+    ],
+    "hole_limit_min": [
+        "0.0725"
     ],
     "include": [
         "fdm_filament_template_direct_bowden"

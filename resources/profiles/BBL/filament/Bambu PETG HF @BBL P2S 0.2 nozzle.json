@@ -8,6 +8,18 @@
     "additional_cooling_fan_speed": [
         "40"
     ],
+    "counter_coef_2": [
+        "0.0058"
+    ],
+    "counter_coef_3": [
+        "0.0107"
+    ],
+    "counter_limit_max": [
+        "0.15"
+    ],
+    "counter_limit_min": [
+        "0.01"
+    ],
     "fan_cooling_layer_time": [
         "20"
     ],
@@ -20,6 +32,9 @@
     "filament_cooling_before_tower": [
         "10",
         "10"
+    ],
+    "filament_tower_ironing_area": [
+        "8"
     ],
     "filament_flush_volumetric_speed": [
         "3",
@@ -41,9 +56,6 @@
         "0.8",
         "0.8"
     ],
-    "filament_tower_ironing_area": [
-        "8"
-    ],
     "filament_wipe": [
         "1",
         "1"
@@ -58,6 +70,18 @@
     ],
     "first_x_layer_fan_speed": [
         "0"
+    ],
+    "hole_coef_2": [
+        "-0.0042"
+    ],
+    "hole_coef_3": [
+        "0.2006"
+    ],
+    "hole_limit_max": [
+        "0.2"
+    ],
+    "hole_limit_min": [
+        "0.09"
     ],
     "include": [
         "fdm_filament_template_direct_dual"

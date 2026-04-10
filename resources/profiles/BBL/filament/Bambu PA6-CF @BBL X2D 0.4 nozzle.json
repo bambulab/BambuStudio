@@ -8,14 +8,32 @@
     "chamber_temperatures": [
         "60"
     ],
+    "counter_coef_2": [
+        "-0.0016"
+    ],
+    "counter_coef_3": [
+        "0.0031"
+    ],
+    "counter_limit_max": [
+        "0.0031"
+    ],
+    "counter_limit_min": [
+        "-0.038"
+    ],
+    "fan_max_speed": [
+        "40"
+    ],
+    "fan_min_speed": [
+        "20"
+    ],
+    "filament_extruder_compatibility": [
+        "16"
+    ],
     "filament_cooling_before_tower": [
         "10",
         "10",
         "10",
         "10"
-    ],
-    "filament_extruder_compatibility": [
-        "16"
     ],
     "filament_flow_ratio": [
         "0.96",
@@ -35,12 +53,6 @@
         "0",
         "0"
     ],
-    "fan_max_speed": [
-        "40"
-    ],
-    "fan_min_speed": [
-        "20"
-    ],
     "filament_retraction_length": [
         "1",
         "1",
@@ -58,6 +70,18 @@
         "1",
         "1",
         "1"
+    ],
+    "hole_coef_2": [
+        "-0.0051"
+    ],
+    "hole_coef_3": [
+        "0.2194"
+    ],
+    "hole_limit_max": [
+        "0.2194"
+    ],
+    "hole_limit_min": [
+        "0.092"
     ],
     "include": [
         "fdm_filament_template_direct_bowden"

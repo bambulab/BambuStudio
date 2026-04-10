@@ -9,13 +9,19 @@
         "60"
     ],
     "counter_coef_2": [
-        "0.00565"
+        "-0.0016"
     ],
     "counter_coef_3": [
-        "-0.0202"
+        "0.0031"
     ],
     "counter_limit_max": [
-        "0.03"
+        "0.0031"
+    ],
+    "counter_limit_min": [
+        "-0.038"
+    ],
+    "filament_change_length": [
+        "4"
     ],
     "filament_cooling_before_tower": [
         "10",
@@ -29,15 +35,15 @@
         "8",
         "8"
     ],
+    "filament_pre_cooling_temperature_nc": [
+        "235",
+        "235"
+    ],
     "filament_prime_volume": [
         "30"
     ],
     "filament_prime_volume_nc": [
         "30"
-    ],
-    "filament_pre_cooling_temperature_nc": [
-        "235",
-        "235"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -47,14 +53,23 @@
         "1",
         "1"
     ],
-    "filament_change_length": [
-        "4"
-    ],
     "first_x_layer_fan_speed": [
         "0"
     ],
     "filament_change_length_nc": [
         "4"
+    ],
+    "hole_coef_2": [
+        "-0.0051"
+    ],
+    "hole_coef_3": [
+        "0.2194"
+    ],
+    "hole_limit_max": [
+        "0.2194"
+    ],
+    "hole_limit_min": [
+        "0.092"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
