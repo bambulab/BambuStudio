@@ -876,7 +876,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                             flush_temps[idx] = m_print_config->nozzle_temperature_range_high.get_at(idx);
                         filament_cooling_before_tower[idx] = m_print_config->filament_cooling_before_tower.get_at(fi);
                     }
-                    if (tcr.is_contact) std::fill(filament_cooling_before_tower.begin(), filament_cooling_before_tower.end(), 0);
+                    if (tcr.is_contact || gcodegen.m_layer_index == 0) std::fill(filament_cooling_before_tower.begin(), filament_cooling_before_tower.end(), 0);
                     config.set_key_value("flush_volumetric_speeds", new ConfigOptionFloats(flush_v_speed));
                     config.set_key_value("flush_temperatures", new ConfigOptionInts(flush_temps));
                     config.set_key_value("filament_cooling_before_tower", new ConfigOptionFloats(filament_cooling_before_tower));
