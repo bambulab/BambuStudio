@@ -17068,11 +17068,26 @@ void Plater::_calib_pa_pattern(const Calib_Params &params)
     wxGetApp().get_tab(Preset::TYPE_PRINT)->update_dirty();
     wxGetApp().get_tab(Preset::TYPE_PRINT)->reload_config();
 
-    const DynamicPrintConfig    full_config    = wxGetApp().preset_bundle->full_config();
+    DynamicPrintConfig          full_config    = wxGetApp().preset_bundle->full_config();
     PresetBundle *              preset_bundle  = wxGetApp().preset_bundle;
     const bool                  is_bbl_machine = preset_bundle->printers.get_edited_preset().has_lidar(preset_bundle);
     const Vec3d                 plate_origin   = get_partplate_list().get_current_plate_origin();
+
+    if (params.has_bowden_extruder) {
+        auto *opt = full_config.option<ConfigOptionInts>("filament_map");
+        if (opt && !opt->values.empty())
+            opt->values[0] = params.extruder_id + 1;
+    }
+
     CalibPressureAdvancePattern pa_pattern(params, full_config, is_bbl_machine, model(), plate_origin);
+
+    if (is_bbl_machine) {
+        auto *extruder_types = full_config.option<ConfigOptionEnumsGeneric>("extruder_type");
+        if (extruder_types && params.extruder_id >= 0 && params.extruder_id < (int) extruder_types->values.size() &&
+            (ExtruderType) extruder_types->values[params.extruder_id] == ExtruderType::etBowden) {
+            pa_pattern.set_bbl_bowden_mode();
+        }
+    }
 
     // scale cube to suit test
     GizmoObjectManipulation &giz_obj_manip = p->view3D->get_canvas3d()->get_gizmos_manager().get_object_manipulation();
@@ -20079,13 +20094,67 @@ void Plater::reslice()
     // softfever: regenerate CalibPressureAdvancePattern custom G-code to apply changes
     if (model().calib_pa_pattern) {
         PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+        DynamicPrintConfig calib_config = preset_bundle->full_config();
+
+        auto *fff_print_ptr = p->background_process.fff_print();
+        if (fff_print_ptr) {
+            const auto &calib = fff_print_ptr->calib_params();
+            if (calib.has_bowden_extruder) {
+                auto *opt = calib_config.option<ConfigOptionInts>("filament_map");
+                if (opt && !opt->values.empty())
+                    opt->values[0] = calib.extruder_id + 1;
+            }
+        }
 
         model().calib_pa_pattern->generate_custom_gcodes(
-            wxGetApp().preset_bundle->full_config(),
+            calib_config,
             preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(preset_bundle),
             model(),
             get_partplate_list().get_current_plate_origin()
         );
+    }
+
+    // Warn (non-blocking) if the user has MANUALLY assigned the calibration
+    // filament to the wrong extruder on a machine with a Bowden extruder.
+    // Always clear the previous mismatch warning first; it will be re-pushed
+    // only if the mismatch still exists, so correcting the assignment makes
+    // the warning disappear automatically on the next reslice.
+    get_notification_manager()->close_notification_of_type(NotificationType::BBLCalibExtruderMismatch);
+    {
+        auto *fff_print = p->background_process.fff_print();
+        if (fff_print) {
+            const auto &calib = fff_print->calib_params();
+            if (calib.has_bowden_extruder) {
+                auto       *curr_plate     = get_partplate_list().get_curr_plate();
+                const auto &project_config = wxGetApp().preset_bundle->project_config;
+                auto        map_mode       = curr_plate ? curr_plate->get_real_filament_map_mode(project_config)
+                                                        : FilamentMapMode::fmmAutoForFlush;
+
+                if (map_mode == FilamentMapMode::fmmManual) {
+                    auto fmap = curr_plate->get_real_filament_maps(project_config);
+                    if (!fmap.empty()) {
+                        int actual_ext   = fmap[0] - 1;
+                        int expected_ext = calib.extruder_id;
+                        if (actual_ext != expected_ext) {
+                            DynamicPrintConfig full_cfg      = wxGetApp().preset_bundle->full_config();
+                            auto              *extruder_types = full_cfg.option<ConfigOptionEnumsGeneric>("extruder_type");
+                            std::string        expected_name  = "DDE";
+                            if (extruder_types && expected_ext >= 0 && expected_ext < (int) extruder_types->values.size() &&
+                                (ExtruderType) extruder_types->values[expected_ext] == ExtruderType::etBowden)
+                                expected_name = "Bowden";
+                            std::string msg = (boost::format(_u8L(
+                                "The calibration filament is currently assigned to a different extruder than the one "
+                                "selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. "
+                                "You can change the assignment in the filament grouping settings.")) % expected_name).str();
+                            get_notification_manager()->push_notification(
+                                NotificationType::BBLCalibExtruderMismatch,
+                                NotificationManager::NotificationLevel::WarningNotificationLevel,
+                                msg);
+                        }
+                    }
+                }
+            }
+        }
     }
 
 

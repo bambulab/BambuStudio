@@ -1248,6 +1248,25 @@ FilamentGroupContext build_filament_group_context(
     std::vector<std::set<int>> ext_unprintable_filaments(2);
     collect_unprintable_limits(physical_unprintables, geometric_unprintables, ext_unprintable_filaments);
 
+    // PA calibration on machines with a Bowden extruder: force the calibration
+    // filament onto the user-selected extruder by marking it as unprintable on
+    // every other extruder.  Skipped for non-Bowden machines and manual mode.
+    {
+        const auto &calib = print->calib_params();
+        if (calib.has_bowden_extruder && calib.extruder_id >= 0 && calib.extruder_id < (int) ext_unprintable_filaments.size()) {
+            bool is_manual = (print_config.filament_map_mode.value == FilamentMapMode::fmmManual);
+            if (!is_manual) {
+                auto used_filaments_tmp = collect_sorted_used_filaments(layer_filaments);
+                for (int ext = 0; ext < (int) ext_unprintable_filaments.size(); ++ext) {
+                    if (ext == calib.extruder_id)
+                        continue;
+                    for (auto f : used_filaments_tmp)
+                        ext_unprintable_filaments[ext].insert(f);
+                }
+            }
+        }
+    }
+
     // 生成机器信息
     bool ignore_ext_filament = false;
     std::vector<std::string> extruder_ams_count_str = print_config.extruder_ams_count.values;

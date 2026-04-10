@@ -41,23 +41,32 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
 {
     wxBoxSizer* v_sizer = new wxBoxSizer(wxVERTICAL);
     SetSizer(v_sizer);
-	wxBoxSizer* choice_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    // BBS: get from printer preset
-    //wxString m_rbExtruderTypeChoices[] = { _L("DDE"), _L("Bowden") };
-	//int m_rbExtruderTypeNChoices = sizeof(m_rbExtruderTypeChoices) / sizeof(wxString);
-	//m_rbExtruderType = new wxRadioBox(this, wxID_ANY, _L("Extruder type"), wxDefaultPosition, wxDefaultSize, m_rbExtruderTypeNChoices, m_rbExtruderTypeChoices, 2, wxRA_SPECIFY_COLS);
-	//m_rbExtruderType->SetSelection(0);
-	//choice_sizer->Add(m_rbExtruderType, 0, wxALL, 5);
-	//choice_sizer->Add(FromDIP(5), 0, 0, wxEXPAND, 5);
+    Preset &printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
+    auto *extruder_types = printer_preset.config.option<ConfigOptionEnumsGeneric>("extruder_type");
+    if (extruder_types) {
+        for (int i = 0; i < (int) extruder_types->values.size(); ++i) {
+            if ((ExtruderType) extruder_types->values[i] == ExtruderType::etBowden) {
+                m_hasBowdenExtruder = true;
+                m_bowdenExtruderId  = i;
+                break;
+            }
+        }
+    }
+
+    if (m_hasBowdenExtruder) {
+        wxString rbExtruderTypeChoices[] = { _L("Direct Drive"), _L("Bowden") };
+        int rbExtruderTypeNChoices = sizeof(rbExtruderTypeChoices) / sizeof(wxString);
+        m_rbExtruderType = new wxRadioBox(this, wxID_ANY, _L("Extruder type"), wxDefaultPosition, wxDefaultSize, rbExtruderTypeNChoices, rbExtruderTypeChoices, 2, wxRA_SPECIFY_COLS);
+        m_rbExtruderType->SetSelection(0);
+        v_sizer->Add(m_rbExtruderType, 0, wxLEFT | wxRIGHT | wxTOP, 5);
+    }
 
 	wxString m_rbMethodChoices[] = { _L("PA Tower"), _L("PA Line"), _L("PA Pattern") };
 	int m_rbMethodNChoices = sizeof(m_rbMethodChoices) / sizeof(wxString);
-	m_rbMethod = new wxRadioBox(this, wxID_ANY, _L("Method"), wxDefaultPosition, wxDefaultSize, m_rbMethodNChoices, m_rbMethodChoices, 2, wxRA_SPECIFY_COLS);
+	m_rbMethod = new wxRadioBox(this, wxID_ANY, _L("Method"), wxDefaultPosition, wxDefaultSize, m_rbMethodNChoices, m_rbMethodChoices, 3, wxRA_SPECIFY_COLS);
 	m_rbMethod->SetSelection(0);
-	choice_sizer->Add(m_rbMethod, 0, wxALL, 5);
-
-	v_sizer->Add(choice_sizer);
+	v_sizer->Add(m_rbMethod, 0, wxLEFT | wxRIGHT | wxTOP, 5);
 
     // Settings
     //
@@ -86,7 +95,7 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     auto end_PA_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto end_pa_text = new wxStaticText(this, wxID_ANY, end_pa_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
     m_tiEndPA = new TextInput(this, "", "", "", wxDefaultPosition, ti_size, wxTE_CENTRE | wxTE_PROCESS_ENTER);
-    m_tiStartPA->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    m_tiEndPA->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     end_PA_sizer->Add(end_pa_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
     end_PA_sizer->Add(m_tiEndPA, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
     settings_sizer->Add(end_PA_sizer);
@@ -95,7 +104,7 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     auto PA_step_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto PA_step_text = new wxStaticText(this, wxID_ANY, PA_step_str, wxDefaultPosition, st_size, wxALIGN_LEFT);
     m_tiPAStep = new TextInput(this, "", "", "", wxDefaultPosition, ti_size, wxTE_CENTRE | wxTE_PROCESS_ENTER);
-    m_tiStartPA->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    m_tiPAStep->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     PA_step_sizer->Add(PA_step_text, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
     PA_step_sizer->Add(m_tiPAStep, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
     settings_sizer->Add(PA_step_sizer);
@@ -123,22 +132,11 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
     PA_Calibration_Dlg::reset_params();
 
     // Connect Events
-    //m_rbExtruderType->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_extruder_type_changed), NULL, this);
+    if (m_rbExtruderType)
+        m_rbExtruderType->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_extruder_type_changed), NULL, this);
     m_rbMethod->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_method_changed), NULL, this);
     this->Connect(wxEVT_SHOW, wxShowEventHandler(PA_Calibration_Dlg::on_show));
     //wxGetApp().UpdateDlgDarkUI(this);
-
-    Preset &printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
-    int extruder_type  = printer_preset.config.opt_enum("extruder_type", 0);
-    if (extruder_type == ExtruderType::etBowden) {
-        m_tiEndPA->GetTextCtrl()->SetValue(wxString::FromDouble(1.0));
-        m_tiStartPA->GetTextCtrl()->SetValue(wxString::FromDouble(0.0));
-        m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.02));
-    } else {
-        m_tiEndPA->GetTextCtrl()->SetValue(wxString::FromDouble(0.1));
-        m_tiStartPA->GetTextCtrl()->SetValue(wxString::FromDouble(0.0));
-        m_tiPAStep->GetTextCtrl()->SetValue(wxString::FromDouble(0.002));
-    }
 
     Layout();
     Fit();
@@ -146,15 +144,16 @@ PA_Calibration_Dlg::PA_Calibration_Dlg(wxWindow* parent, wxWindowID id, Plater* 
 
 PA_Calibration_Dlg::~PA_Calibration_Dlg() {
     // Disconnect Events
-    //m_rbExtruderType->Disconnect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_extruder_type_changed), NULL, this);
+    if (m_rbExtruderType)
+        m_rbExtruderType->Disconnect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_extruder_type_changed), NULL, this);
     m_rbMethod->Disconnect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(PA_Calibration_Dlg::on_method_changed), NULL, this);
     m_btnStart->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(PA_Calibration_Dlg::on_start), NULL, this);
 }
 
 void PA_Calibration_Dlg::reset_params() {
-    Preset &printer_preset = wxGetApp().preset_bundle->printers.get_edited_preset();
-    int     extruder_type  = printer_preset.config.opt_enum("extruder_type", 0);
-    bool isDDE =extruder_type == 0 ? true : false;
+    bool isDDE = true;
+    if (m_rbExtruderType && m_rbExtruderType->GetSelection() == 1)
+        isDDE = false;
     int method = m_rbMethod->GetSelection();
 
     m_tiStartPA->GetTextCtrl()->SetValue(wxString::FromDouble(0.0));
@@ -215,6 +214,12 @@ void PA_Calibration_Dlg::on_start(wxCommandEvent& event) {
     }
 
     m_params.print_numbers = m_cbPrintNum->GetValue();
+
+    m_params.has_bowden_extruder = m_hasBowdenExtruder;
+    if (m_hasBowdenExtruder && m_rbExtruderType && m_rbExtruderType->GetSelection() == 1 && m_bowdenExtruderId >= 0)
+        m_params.extruder_id = m_bowdenExtruderId;
+    else
+        m_params.extruder_id = 0;
 
     m_plater->calib_pa(m_params);
     EndModal(wxID_OK);

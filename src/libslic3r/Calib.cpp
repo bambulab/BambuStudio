@@ -686,8 +686,15 @@ void CalibPressureAdvancePattern::_refresh_starting_point(const Model &model)
 
 void CalibPressureAdvancePattern::_refresh_writer(bool is_bbl_machine, const Model &model, const Vec3d &origin)
 {
+    // Build a full config with all defaults first, then override with m_config.
+    // A bare PrintConfig() has empty vectors for many options (filament_volume_map,
+    // filament_self_index, etc.), which causes crashes in GCodeWriter if those
+    // keys are absent from m_config.
+    DynamicPrintConfig full_defaults = DynamicPrintConfig::full_print_config();
+    full_defaults.apply(m_config, true);
+
     PrintConfig print_config;
-    print_config.apply(m_config, true);
+    print_config.apply(full_defaults, true);
 
     m_writer.apply_print_config(print_config);
     m_writer.set_xy_offset(origin(0), origin(1));
