@@ -170,6 +170,7 @@ enum class NotificationType
     BBLAssemblyFarFromOrigin,
     BBLIntersectsVolumeInfo,
 	BBLArcFittingInfo,
+    BBLCalibExtruderMismatch,
     NotificationTypeCount
 
 };

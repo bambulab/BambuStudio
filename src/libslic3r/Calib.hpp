@@ -37,6 +37,7 @@ struct Calib_Params
 {
     Calib_Params() : mode(CalibMode::Calib_None){}
     int extruder_id = 0;
+    bool has_bowden_extruder = false;
     double start, end, step;
     bool print_numbers = false;
     CalibMode mode;
