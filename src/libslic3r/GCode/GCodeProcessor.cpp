@@ -933,13 +933,14 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         extruder_id = nozzle_info ? nozzle_info->extruder_id : -1;
         return true;
     };
-    auto handle_toolchange_wipe_line = [&](const std::string &line, bool& is_contact) -> bool {
-        std::regex  re(R"(CT(\d))");
+    auto handle_toolchange_wipe_line = [&](const std::string &line, bool& is_contact, bool& is_first_layer) -> bool {
+        std::regex  re(R"(CT(\d)(?:\s+FL(\d))?)");
         std::smatch match;
 
         if (!std::regex_search(line, match, re)) return false;
 
         is_contact    = std::stoi(match[1]);
+        is_first_layer = match[2].matched ? std::stoi(match[2]) != 0 : false;
         return true;
     };
 
@@ -1061,8 +1062,11 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                 temp_construct_block.reset();
             } else if (GCodeReader::GCodeLine::cmd_start_with(gcode_line, (std::string(";") + reserved_tag(ETags::CP_TOOLCHANGE_WIPE)).c_str())) {
                 bool is_contact = false;
-                handle_toolchange_wipe_line(gcode_line, is_contact);
-                if (!extruder_blocks.empty()) { extruder_blocks.back().ignore_cooling_before_tower = is_contact; }
+                bool is_first_layer = false;
+                handle_toolchange_wipe_line(gcode_line, is_contact, is_first_layer);
+                if (!extruder_blocks.empty()) {
+                    extruder_blocks.back().ignore_cooling_before_tower = is_contact || is_first_layer;
+                }
             }
             else if (GCodeReader::GCodeLine::cmd_start_with(gcode_line, (std::string(";") + reserved_tag(ETags::Layer_Change)).c_str())) {
                 ++current_layer_id;

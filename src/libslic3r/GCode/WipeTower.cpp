@@ -3958,7 +3958,7 @@ WipeTower::ToolChangeResult WipeTower::finish_block_solid(const WipeTowerBlock &
 void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinates &cleaning_box, float wipe_length,bool solid_tool_toolchange)
 {
     writer.set_extrusion_flow(m_extrusion_flow * (is_first_layer() ? m_first_layer_flow_ratio : 1.f))
-          .append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::CP_TOOLCHANGE_WIPE) + " CT" + std::to_string(solid_tool_toolchange) + "\n");
+          .append(";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::CP_TOOLCHANGE_WIPE) + " CT" + std::to_string(solid_tool_toolchange) + " FL" + std::to_string(is_first_layer()) + "\n");
     if (!m_nozzle_change_result.gcode.empty())
         writer.change_analyzer_line_width(m_perimeter_width);
 
@@ -4025,7 +4025,7 @@ void WipeTower::toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinat
         return total_time-beg_time;
     };
 
-    bool should_heating = m_filpar[m_current_tool].filament_cooling_before_tower > EPSILON && !solid_tool_toolchange;
+    bool should_heating = m_filpar[m_current_tool].filament_cooling_before_tower > EPSILON && !solid_tool_toolchange && !is_first_layer();
     auto add_M104_by_requirement = [&writer, &should_heating, this]() {
         if (m_filpar[m_current_tool].filament_cooling_before_tower < EPSILON) return;
         if (!should_heating) return;
