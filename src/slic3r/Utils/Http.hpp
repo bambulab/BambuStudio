@@ -104,6 +104,18 @@ public:
 	// Sets a maximum size of the data that can be received.
 	// A value of zero sets the default limit, which is is 5MB.
 	Http& size_limit(size_t sizeLimit);
+	// Enable automatic retry on transient transport failures and retryable HTTP statuses.
+	//
+	//   retry_count           - number of extra attempts after the first (so 3 = up to 4 total requests)
+	//   initial_backoff_ms    - first backoff delay, doubles each subsequent retry (capped at 30s)
+	//
+	// Retryable: DNS failure, connect failure, TLS handshake failure (critical on Windows
+	// with Schannel), timeouts, partial reads, 5xx except 501, 408 Request Timeout, 425
+	// Too Early. Never retried: 4xx client errors (including 429), user cancellation,
+	// size-limit aborts, malformed URLs, auth failures. Use this in preference to
+	// per-callsite retry loops — the retry happens inside the same io_thread without
+	// stacking additional std::thread creations per attempt.
+	Http& retries(int retry_count, long initial_backoff_ms = 1000);
 	// Sets a HTTP header field.
 	Http& header(std::string name, const std::string &value);
 	// Removes a header field.

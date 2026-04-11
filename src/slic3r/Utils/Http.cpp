@@ -7,6 +7,9 @@
 #include <mutex>
 #include <sstream>
 #include <exception>
+#include <atomic>
+#include <array>
+#include <chrono>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem.hpp>
@@ -136,6 +139,40 @@ struct CurlGlobalInit
     static std::unique_ptr<CurlGlobalInit> instance;
     std::string message;
 
+    // Process-global curl_share object. Lets every curl_easy handle pool its DNS
+    // cache, TLS session tickets, and connection cache, so successive Helio polls
+    // against the same host avoid re-resolving DNS, re-doing a full TLS handshake,
+    // and (where HTTP/2 is available) reuse the existing TCP connection. Crucial
+    // for the optimization-wait polling loop which can fire ~60 requests in 2 min.
+    CURLSH *share = nullptr;
+
+    // One mutex per curl_lock_data enum value (curl serializes access to the shared
+    // caches via the lock/unlock callbacks). CURL_LOCK_DATA_LAST is the sentinel so
+    // sizing by it gives one slot per valid data type.
+    std::array<std::mutex, CURL_LOCK_DATA_LAST> share_mutexes;
+
+    // Number of currently-running http_perform() invocations. Incremented by
+    // Http::perform() before spawning the io_thread, decremented at the top of
+    // http_perform's epilogue. The destructor spin-waits for this to reach zero
+    // so detached io_threads don't race the process shutdown that runs
+    // curl_global_cleanup.
+    std::atomic<int> active_io_threads{0};
+
+    static void share_lock(CURL * /*handle*/, curl_lock_data data, curl_lock_access /*access*/, void *userptr)
+    {
+        auto *self = static_cast<CurlGlobalInit*>(userptr);
+        if (static_cast<size_t>(data) < self->share_mutexes.size()) {
+            self->share_mutexes[data].lock();
+        }
+    }
+    static void share_unlock(CURL * /*handle*/, curl_lock_data data, void *userptr)
+    {
+        auto *self = static_cast<CurlGlobalInit*>(userptr);
+        if (static_cast<size_t>(data) < self->share_mutexes.size()) {
+            self->share_mutexes[data].unlock();
+        }
+    }
+
 	CurlGlobalInit()
     {
 #ifdef OPENSSL_CERT_OVERRIDE // defined if SLIC3R_STATIC=ON
@@ -182,13 +219,76 @@ struct CurlGlobalInit
         if (CURLcode ec = ::curl_global_init(CURL_GLOBAL_DEFAULT)) {
             message += "CURL initialization failed. See the log for additional details.";
             BOOST_LOG_TRIVIAL(error) << ::curl_easy_strerror(ec);
+            return;
+        }
+
+        share = ::curl_share_init();
+        if (share != nullptr) {
+            ::curl_share_setopt(share, CURLSHOPT_LOCKFUNC,   share_lock);
+            ::curl_share_setopt(share, CURLSHOPT_UNLOCKFUNC, share_unlock);
+            ::curl_share_setopt(share, CURLSHOPT_USERDATA,   this);
+            ::curl_share_setopt(share, CURLSHOPT_SHARE,      CURL_LOCK_DATA_DNS);
+            ::curl_share_setopt(share, CURLSHOPT_SHARE,      CURL_LOCK_DATA_SSL_SESSION);
+#ifdef CURL_LOCK_DATA_CONNECT
+            // Share the connection cache so handles can pull from the same pool of
+            // live TCP connections. Added in libcurl 7.57.0.
+            ::curl_share_setopt(share, CURLSHOPT_SHARE,      CURL_LOCK_DATA_CONNECT);
+#endif
         }
     }
 
-	~CurlGlobalInit() { ::curl_global_cleanup(); }
+	~CurlGlobalInit()
+    {
+        // Wait for any in-flight io_threads to finish before tearing down libcurl and
+        // the share handle — detached threads would otherwise crash or use-after-free
+        // during global destruction. Bounded by a hard deadline so we never hang the
+        // application on exit even if a thread is genuinely stuck.
+        using namespace std::chrono;
+        const auto deadline = steady_clock::now() + seconds(5);
+        while (active_io_threads.load(std::memory_order_acquire) > 0 &&
+               steady_clock::now() < deadline) {
+            std::this_thread::sleep_for(milliseconds(20));
+        }
+        if (int still_active = active_io_threads.load(std::memory_order_acquire); still_active > 0) {
+            BOOST_LOG_TRIVIAL(warning) << "CurlGlobalInit: shutting down with "
+                                       << still_active << " io_threads still active";
+        }
+
+        if (share != nullptr) {
+            ::curl_share_cleanup(share);
+            share = nullptr;
+        }
+        ::curl_global_cleanup();
+    }
 };
 
 std::unique_ptr<CurlGlobalInit> CurlGlobalInit::instance;
+
+// File-local helper to expose the process-global share handle to priv::priv without
+// leaking a curl-specific type through Http.hpp. Safe to call before CurlGlobalInit
+// has been constructed: returns nullptr and the caller skips CURLOPT_SHARE.
+static CURLSH * curl_global_share_handle()
+{
+    if (CurlGlobalInit::instance) {
+        return CurlGlobalInit::instance->share;
+    }
+    return nullptr;
+}
+
+// File-local helpers for the in-flight io_thread counter used by CurlGlobalInit's
+// destructor to wait for detached threads before tearing down libcurl.
+static void curl_global_io_thread_inc()
+{
+    if (CurlGlobalInit::instance) {
+        CurlGlobalInit::instance->active_io_threads.fetch_add(1, std::memory_order_acq_rel);
+    }
+}
+static void curl_global_io_thread_dec()
+{
+    if (CurlGlobalInit::instance) {
+        CurlGlobalInit::instance->active_io_threads.fetch_sub(1, std::memory_order_acq_rel);
+    }
+}
 
 std::map<std::string, std::string> extra_headers;
 std::mutex g_mutex;
@@ -197,7 +297,11 @@ struct Http::priv
 {
 	enum {
 		DEFAULT_TIMEOUT_CONNECT = 10,
-        DEFAULT_TIMEOUT_MAX = 0,
+        // Overall request timeout in seconds. Previously 0 ("no limit"), which meant a
+        // stuck half-open TCP socket could hang for the OS retransmit budget (~minutes
+        // on Windows) before failing. 120s matches the longest legitimate Helio call
+        // (gcode upload) with a bit of headroom.
+        DEFAULT_TIMEOUT_MAX = 120,
 		DEFAULT_SIZE_LIMIT = 1024 * 1024 * 1024,
 	};
 
@@ -215,7 +319,14 @@ struct Http::priv
 	std::string error_buffer;    // Used for CURLOPT_ERRORBUFFER
     std::string headers;
 	size_t limit;
-	bool cancel;
+	// Must be atomic: Http::cancel() may be called from any thread (typically the UI
+	// thread) while the xfer callback runs on the io_thread that owns this priv.
+	std::atomic<bool> cancel;
+
+	// Retry configuration. 0 (the default) means a single attempt — legacy behavior.
+	// See http_perform() for the classification of retryable failures.
+	int  max_retries            = 0;
+	long retry_initial_backoff_ms = 1000;
 
 	std::thread io_thread;
 	Http::CompleteFn completefn;
@@ -232,6 +343,7 @@ struct Http::priv
 	static int xfercb(void *userp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow);
 	static int xfercb_legacy(void *userp, double dltotal, double dlnow, double ultotal, double ulnow);
 	static size_t form_file_read_cb(char *buffer, size_t size, size_t nitems, void *userp);
+	static int    form_file_seek_cb(void *userp, curl_off_t offset, int origin);
     static size_t headers_cb(char *buffer, size_t size, size_t nitems, void *userp);
 
 	void set_timeout_connect(long timeout);
@@ -250,11 +362,29 @@ struct Http::priv
 	void http_perform();
 };
 
-// add a dummy log callback
-static int log_trace(CURL* handle, curl_infotype type,
-	char* data, size_t size,
-	void* userp)
+// Curl debug callback. By default this is a no-op — curl internally skips most of the
+// expensive formatting when the callback is present but returns 0, so there is no cost.
+// When the environment variable BAMBU_CURL_VERBOSE is set, we route text-class events
+// into the boost log so that user-submitted log bundles can be used to diagnose TLS
+// handshake failures, proxy rejections, and DNS issues that otherwise leave no trace.
+// Data-class events (CURLINFO_*_DATA_*, CURLINFO_*_HEADER_OUT) are skipped so we don't
+// leak request bodies or auth tokens into the log.
+static int log_trace(CURL * /*handle*/, curl_infotype type,
+	char *data, size_t size,
+	void * /*userp*/)
 {
+	static const bool verbose_enabled = (std::getenv("BAMBU_CURL_VERBOSE") != nullptr);
+	if (!verbose_enabled) return 0;
+
+	// Only log text-class events to avoid leaking secrets in headers/bodies.
+	if (type != CURLINFO_TEXT) return 0;
+
+	std::string line(data, size);
+	// Strip the trailing newline curl typically appends.
+	while (!line.empty() && (line.back() == '\n' || line.back() == '\r')) line.pop_back();
+	if (!line.empty()) {
+		BOOST_LOG_TRIVIAL(debug) << "curl: " << line;
+	}
 	return 0;
 }
 
@@ -311,6 +441,26 @@ Http::priv::priv(const std::string &url)
 	// across threads. Harmless on Windows.
 	::curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
 
+	// Enable TCP keepalive so idle connections crossing a NAT/firewall/VPN don't get
+	// silently evicted and leave us blocked waiting on a stale socket. On Windows
+	// especially, split-tunnel VPNs and corporate firewalls drop idle flows fast.
+	::curl_easy_setopt(curl, CURLOPT_TCP_KEEPALIVE, 1L);
+	::curl_easy_setopt(curl, CURLOPT_TCP_KEEPIDLE,  30L);
+	::curl_easy_setopt(curl, CURLOPT_TCP_KEEPINTVL, 15L);
+
+	// Prefer HTTP/2 over TLS when the server advertises it (ALPN-negotiated). Falls
+	// back to HTTP/1.1 transparently. HTTP/2's single-connection-per-origin behavior
+	// combined with the curl_share (see CurlGlobalInit) means repeated polls reuse
+	// the same TCP+TLS connection and amortize the handshake cost.
+	::curl_easy_setopt(curl, CURLOPT_HTTP_VERSION, (long)CURL_HTTP_VERSION_2TLS);
+
+	// Larger recv/send buffers improve throughput on large gcode uploads and reduce
+	// syscall overhead on fast networks. libcurl caps BUFFERSIZE at 512 KiB internally.
+	::curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, 262144L);
+#ifdef CURLOPT_UPLOAD_BUFFERSIZE
+	::curl_easy_setopt(curl, CURLOPT_UPLOAD_BUFFERSIZE, 262144L);
+#endif
+
 #ifdef _WIN32
 	// Apply Windows system proxy settings. libcurl does not consult WinInet/IE proxy
 	// configuration on its own, so corporate networks that require a proxy for the
@@ -319,9 +469,23 @@ Http::priv::priv(const std::string &url)
 		const std::string sys_proxy = detect_windows_system_proxy(url);
 		if (!sys_proxy.empty()) {
 			::curl_easy_setopt(curl, CURLOPT_PROXY, sys_proxy.c_str());
+			// Corporate Windows proxies almost always require NTLM/Negotiate/Kerberos.
+			// CURLAUTH_ANY lets libcurl pick whatever the proxy demands; passing an
+			// empty user:password triggers SSPI so the logged-in user's Windows
+			// credentials are used automatically — same as the browser.
+			::curl_easy_setopt(curl, CURLOPT_PROXYAUTH, (long)CURLAUTH_ANY);
+			::curl_easy_setopt(curl, CURLOPT_PROXYUSERPWD, ":");
 		}
 	}
 #endif
+
+	// Attach the process-global curl_share so DNS resolutions and TLS session tickets
+	// are pooled across every Http instance. Each Helio optimization wait makes ~60
+	// polls against the same host; without sharing, each poll is a full TLS handshake
+	// and DNS round-trip. With sharing, polls 2..60 resume the TLS session in 1-RTT.
+	if (CURLSH *share = curl_global_share_handle()) {
+		::curl_easy_setopt(curl, CURLOPT_SHARE, share);
+	}
 }
 
 Http::priv::~priv()
@@ -372,7 +536,9 @@ size_t Http::priv::writecb(void *data, size_t size, size_t nmemb, void *userp)
 int Http::priv::xfercb(void *userp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
 {
 	auto self = static_cast<priv*>(userp);
-	bool cb_cancel = false;
+	// Snapshot the external cancel flag early so a race doesn't give the progressfn a
+	// stale view of whether it still needs to compute.
+	bool cb_cancel = self->cancel.load(std::memory_order_acquire);
 
 	if (self->progressfn) {
 		double speed;
@@ -383,9 +549,11 @@ int Http::priv::xfercb(void *userp, curl_off_t dltotal, curl_off_t dlnow, curl_o
 		self->progressfn(progress, cb_cancel);
 	}
 
-	if (cb_cancel) { self->cancel = true; }
+	if (cb_cancel) { self->cancel.store(true, std::memory_order_release); }
 
-	return self->cancel;
+	// Returning non-zero from CURLOPT_XFERINFOFUNCTION aborts the transfer with
+	// CURLE_ABORTED_BY_CALLBACK.
+	return self->cancel.load(std::memory_order_acquire) ? 1 : 0;
 }
 
 int Http::priv::xfercb_legacy(void *userp, double dltotal, double dlnow, double ultotal, double ulnow)
@@ -407,6 +575,35 @@ size_t Http::priv::form_file_read_cb(char *buffer, size_t size, size_t nitems, v
 	}
 
 	return CURL_READFUNC_ABORT;
+}
+
+// Seek callback paired with form_file_read_cb. Required for any retry or follow-redirect
+// path that re-issues the same PUT — without it, curl cannot rewind the upload stream
+// and the second attempt would send an empty body. Returns CURL_SEEKFUNC_OK on success,
+// CURL_SEEKFUNC_CANTSEEK to tell curl the stream is not rewindable (which would force it
+// to bail with CURLE_SEND_FAIL_REWIND on the retry).
+int Http::priv::form_file_seek_cb(void *userp, curl_off_t offset, int origin)
+{
+	try {
+		auto fstream = static_cast<fs::ifstream *>(userp);
+		if (!fstream) { return CURL_SEEKFUNC_FAIL; }
+
+		std::ios_base::seekdir dir = std::ios_base::beg;
+		switch (origin) {
+			case SEEK_SET: dir = std::ios_base::beg; break;
+			case SEEK_CUR: dir = std::ios_base::cur; break;
+			case SEEK_END: dir = std::ios_base::end; break;
+			default: return CURL_SEEKFUNC_FAIL;
+		}
+
+		// Clear any EOF/fail bits before seeking — after a full read, the stream is
+		// in eof()==true and subsequent read() calls return 0 bytes until state clears.
+		fstream->clear();
+		fstream->seekg(static_cast<std::streamoff>(offset), dir);
+		return fstream->good() ? CURL_SEEKFUNC_OK : CURL_SEEKFUNC_CANTSEEK;
+	} catch (const std::exception &) {
+		return CURL_SEEKFUNC_FAIL;
+	}
 }
 
 size_t Http::priv::headers_cb(char *buffer, size_t size, size_t nitems, void *userp)
@@ -508,6 +705,11 @@ void Http::priv::set_put_body(const fs::path &path)
 		::curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
 		::curl_easy_setopt(curl, CURLOPT_READDATA, static_cast<void*>(&putFile));
 		::curl_easy_setopt(curl, CURLOPT_INFILESIZE, filesize);
+		// Seek callback so the retry loop (see http_perform) can rewind the file
+		// between attempts. Without this, a retried PUT would send a zero-byte body
+		// because the ifstream is left at EOF after the first pass.
+		::curl_easy_setopt(curl, CURLOPT_SEEKFUNCTION, form_file_seek_cb);
+		::curl_easy_setopt(curl, CURLOPT_SEEKDATA, static_cast<void*>(&putFile));
 	}
 }
 
@@ -572,14 +774,103 @@ void Http::priv::http_perform()
 		::curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE_LARGE, postfields.size());
 	}
 
-	CURLcode res = ::curl_easy_perform(curl);
+	// Classification helpers for the retry loop. The broad rule: retry anything that
+	// could plausibly succeed on a second attempt against the same URL with the same
+	// inputs, and never retry anything where re-issuing is either pointless or unsafe.
+	auto is_retryable_curl_error = [](CURLcode code) -> bool {
+		switch (code) {
+			// User-driven or programmatic cancellation — never retry.
+			case CURLE_ABORTED_BY_CALLBACK:
+			// Size-limit abort from the write callback — never retry.
+			case CURLE_WRITE_ERROR:
+			// Programmer error — retry will not help.
+			case CURLE_UNSUPPORTED_PROTOCOL:
+			case CURLE_FAILED_INIT:
+			case CURLE_URL_MALFORMAT:
+			case CURLE_NOT_BUILT_IN:
+			case CURLE_FUNCTION_NOT_FOUND:
+			case CURLE_BAD_FUNCTION_ARGUMENT:
+			case CURLE_UNKNOWN_OPTION:
+			// Auth failures — credentials are not going to repair themselves.
+			case CURLE_LOGIN_DENIED:
+			case CURLE_AUTH_ERROR:
+			case CURLE_REMOTE_ACCESS_DENIED:
+			// We handle HTTP status-code errors separately via the response code branch.
+			case CURLE_HTTP_RETURNED_ERROR:
+				return false;
+			// Everything else — DNS failures, connect refusals, TLS handshake failures
+			// (critical on Windows with Schannel), timeouts, partial reads — is retried.
+			default:
+				return true;
+		}
+	};
+	auto is_retryable_http_status = [](long status) -> bool {
+		if (status == 408 || status == 425) return true;              // Request Timeout / Too Early
+		if (status >= 500 && status <= 599 && status != 501) return true; // 5xx except Not Implemented
+		return false;
+	};
+
+	const int total_attempts = std::max(1, max_retries + 1);
+	CURLcode res             = CURLE_OK;
+	long     http_status     = 0;
+
+	for (int attempt = 0; attempt < total_attempts; ++attempt) {
+		if (attempt > 0) {
+			// Exponential backoff with a 30s ceiling per attempt. The cap matters for
+			// callers that bumped retry count high — without it, 6 retries at 1s base
+			// would wait 63 seconds on the final backoff alone.
+			long delay_ms = retry_initial_backoff_ms * (1L << (attempt - 1));
+			if (delay_ms > 30000) delay_ms = 30000;
+
+			// Sleep in short chunks so Http::cancel() can abort a long backoff. Without
+			// this, a user who clicks Cancel during a retry backoff would wait up to
+			// 30s before anything happened.
+			const long chunk_ms   = 200;
+			long       remaining  = delay_ms;
+			while (remaining > 0 && !cancel.load(std::memory_order_acquire)) {
+				const long this_chunk = remaining > chunk_ms ? chunk_ms : remaining;
+				std::this_thread::sleep_for(std::chrono::milliseconds(this_chunk));
+				remaining -= this_chunk;
+			}
+			if (cancel.load(std::memory_order_acquire)) {
+				res = CURLE_ABORTED_BY_CALLBACK;
+				break;
+			}
+
+			// Reset per-attempt state. curl itself reuses the handle happily, but we
+			// need to clear the buffers we own so the second attempt doesn't append
+			// to a partially-filled buffer from the first.
+			buffer.clear();
+			headers.clear();
+			if (!error_buffer.empty()) {
+				std::fill(error_buffer.begin(), error_buffer.end(), '\0');
+			}
+
+			BOOST_LOG_TRIVIAL(info) << "Http: retrying after transient failure, attempt "
+			                        << (attempt + 1) << "/" << total_attempts;
+		}
+
+		res         = ::curl_easy_perform(curl);
+		http_status = 0;
+
+		if (res == CURLE_OK) {
+			::curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_status);
+			if (http_status >= 200 && http_status < 300) break;       // success
+			if (!is_retryable_http_status(http_status)) break;        // permanent HTTP error
+		} else {
+			if (!is_retryable_curl_error(res)) break;                 // permanent transport error
+		}
+		// Otherwise fall through to the next iteration of the retry loop.
+	}
+
+	// Final dispatch to user callbacks. This runs exactly once per http_perform call.
 	if (res != CURLE_OK) {
 		if (res == CURLE_ABORTED_BY_CALLBACK) {
-			if (cancel) {
+			if (cancel.load(std::memory_order_acquire)) {
 				// The abort comes from the request being cancelled programatically
 				Progress dummyprogress(0, 0, 0, 0);
-				bool cancel = true;
-				if (progressfn) { progressfn(dummyprogress, cancel); }
+				bool cancel_flag = true;
+				if (progressfn) { progressfn(dummyprogress, cancel_flag); }
 			} else {
 				// The abort comes from the CURLOPT_READFUNCTION callback, which means reading file failed
 				if (errorfn) { errorfn(std::move(buffer), "Error reading file for file upload", 0); }
@@ -591,9 +882,6 @@ void Http::priv::http_perform()
 			if (errorfn) { errorfn(std::move(buffer), curl_error(res), 0); }
 		};
 	} else {
-		long http_status = 0;
-		::curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_status);
-
 		//BBS check success http status code
 		if (http_status >= 200 && http_status < 300) {
 			if (completefn) { completefn(std::move(buffer), http_status); }
@@ -649,6 +937,15 @@ Http& Http::timeout_max(long timeout)
 Http& Http::size_limit(size_t sizeLimit)
 {
 	if (p) { p->limit = sizeLimit; }
+	return *this;
+}
+
+Http& Http::retries(int retry_count, long initial_backoff_ms)
+{
+	if (p) {
+		p->max_retries             = (retry_count < 0) ? 0 : retry_count;
+		p->retry_initial_backoff_ms = (initial_backoff_ms < 0) ? 0 : initial_backoff_ms;
+	}
 	return *this;
 }
 
@@ -823,8 +1120,19 @@ Http::Ptr Http::perform()
 	auto self = std::make_shared<Http>(std::move(*this));
 
 	if (self->p) {
+		// Increment the in-flight counter *before* spawning the thread so
+		// CurlGlobalInit's destructor can never observe a moment where the thread
+		// exists but the counter hasn't been bumped yet. The wrapper lambda
+		// guarantees the matching decrement even if http_perform throws.
+		curl_global_io_thread_inc();
 		auto io_thread = std::thread([self](){
-				self->p->http_perform();
+				try {
+					self->p->http_perform();
+				} catch (...) {
+					curl_global_io_thread_dec();
+					throw;
+				}
+				curl_global_io_thread_dec();
 			});
 		self->p->io_thread = std::move(io_thread);
 	}
@@ -834,12 +1142,28 @@ Http::Ptr Http::perform()
 
 void Http::perform_sync()
 {
-	if (p) { p->http_perform(); }
+	if (p) {
+		// Synchronous execution runs on the caller's thread, so no detached thread
+		// to track — but we still wrap the counter for consistency and so that a
+		// shutdown initiated from another thread while a sync request is in flight
+		// waits for it to finish.
+		curl_global_io_thread_inc();
+		try {
+			p->http_perform();
+		} catch (...) {
+			curl_global_io_thread_dec();
+			throw;
+		}
+		curl_global_io_thread_dec();
+	}
 }
 
 void Http::cancel()
 {
-	if (p) { p->cancel = true; }
+	// May be called from any thread (typically the UI thread). The xfer callback
+	// running on the io_thread reads this and aborts curl_easy_perform by returning
+	// non-zero from CURLOPT_XFERINFOFUNCTION.
+	if (p) { p->cancel.store(true, std::memory_order_release); }
 }
 
 Http Http::get(std::string url)

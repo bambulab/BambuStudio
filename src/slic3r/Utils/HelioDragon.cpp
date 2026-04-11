@@ -135,6 +135,7 @@ void HelioQuery::request_remaining_optimizations(const std::string & helio_api_u
 
     http.timeout_connect(20)
         .timeout_max(100)
+        .retries(2)
         .on_complete([url_copy, key_copy, func](std::string body, unsigned status) {
         try {
             nlohmann::json parsed_obj = nlohmann::json::parse(body);
@@ -422,6 +423,7 @@ void HelioQuery::request_print_priority_options(
     auto response_headers = std::make_shared<std::string>();
     http.timeout_connect(10)
         .timeout_max(30)
+        .retries(2)
         .on_header_callback([response_headers](std::string headers) {
             *response_headers += headers;
         })
@@ -547,23 +549,14 @@ void HelioQuery::request_pat_token(std::function<void(std::string)> func)
         url_copy = "https://api.helioadditive.com/rest/auth/anonymous_token/bambustudio";
     }
 
-    // Retry transport-level failures with exponential backoff. HTTP 429 is a permanent
-    // "out of quota" signal and must not be retried — propagate "not_enough" immediately.
-    // Everything else (timeouts, TLS handshake failures, DNS failures, 5xx) is treated
-    // as transient.
-    request_pat_token_attempt(url_copy, std::move(func), 1);
-}
-
-// Recursive attempt helper for request_pat_token. Kept as a free function rather than a
-// self-capturing lambda to avoid the strong-reference cycle that std::function self-capture
-// would otherwise create (lambda holds shared_ptr to itself → leak).
-void HelioQuery::request_pat_token_attempt(std::string url_copy, std::function<void(std::string)> func, int attempt_num)
-{
-    constexpr int kMaxAttempts = 4;
-
+    // Retry transient transport failures (TLS handshake wobble on Windows/Schannel,
+    // DNS hiccups, timeouts, 5xx) via the centralized Http retry loop. HTTP 429
+    // "not enough quota" is not retryable — it's classified as a 4xx by the retry
+    // logic and propagated to on_error, where we translate it to "not_enough".
     auto http = Http::get(url_copy);
     http.timeout_connect(20)
         .timeout_max(100)
+        .retries(3)
         .on_complete([func](std::string body, unsigned status) {
             if (status == 200) {
                 try {
@@ -586,21 +579,11 @@ void HelioQuery::request_pat_token_attempt(std::string url_copy, std::function<v
                 func("error");
             }
         })
-        .on_error([url_copy, func, attempt_num](std::string body, std::string error, unsigned status) {
-            BOOST_LOG_TRIVIAL(error) << "Helio request_pat_token error (attempt " << attempt_num
-                                     << "): " << error << ", status: " << status;
+        .on_error([func](std::string body, std::string error, unsigned status) {
+            BOOST_LOG_TRIVIAL(error) << "Helio request_pat_token error: "
+                                     << error << ", status: " << status;
             if (status == 429) {
                 func("not_enough");
-                return;
-            }
-            if (attempt_num < kMaxAttempts) {
-                // Exponential backoff: 1s, 2s, 4s. Run on a detached thread so we
-                // don't block the curl io thread we're currently on.
-                const int delay_ms = 1000 * (1 << (attempt_num - 1));
-                std::thread([url_copy, func, attempt_num, delay_ms]() {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
-                    HelioQuery::request_pat_token_attempt(url_copy, func, attempt_num + 1);
-                }).detach();
             } else {
                 func("error");
             }
@@ -636,6 +619,10 @@ void HelioQuery::optimization_feedback(const std::string helio_api_url, const st
 
     http.timeout_connect(20)
         .timeout_max(100)
+        // One retry only — feedback is a POST and the server has no idempotency key,
+        // so a retry on a 5xx could create a duplicate feedback record. Transport
+        // errors (the Windows failure mode) are safe because nothing reached the server.
+        .retries(1)
         .on_complete([=](std::string body, unsigned status) {
             BOOST_LOG_TRIVIAL(info) << "optimization_feedback response: " << body << ", status: " << status;
         })
@@ -672,6 +659,9 @@ HelioQuery::PresignedURLResult HelioQuery::create_presigned_url(const std::strin
 
     http.timeout_connect(20)
         .timeout_max(100)
+        // create_presigned_url returns an S3 upload URL. Duplicate URLs from a retry
+        // are harmless — the unused one just expires — so two retries for resilience.
+        .retries(2)
         .on_header_callback([&res](std::string header_line) {
             std::string lower_line;
             for (unsigned char c : header_line) {
@@ -728,6 +718,10 @@ HelioQuery::UploadFileResult HelioQuery::upload_file_to_presigned_url(const std:
     }
 
     http.set_put_body(file_path)
+        // S3 PUT against a presigned URL is idempotent: the second PUT just overwrites
+        // the first. Two retries gives us resilience for the upload step without
+        // creating duplicate server-side state.
+        .retries(2)
         .on_header_callback([&res](std::string header_line) {
             std::string lower_line;
             for (unsigned char c : header_line) {
@@ -772,6 +766,11 @@ HelioQuery::PollResult HelioQuery::poll_gcode_status(const std::string& helio_ap
         .set_post_body(poll_body)
         .timeout_connect(10)
         .timeout_max(30)
+        // Two quiet retries here so a single transient network blip (e.g. a Schannel
+        // revocation-check hiccup or a dropped idle connection on Windows) doesn't
+        // surface as a poll failure to the outer polling loop, which would otherwise
+        // count it toward the consecutive-failure short-circuit budget.
+        .retries(2, 500)
         .on_complete([&result](std::string poll_body, unsigned poll_status) {
             try {
                 json poll_obj = json::parse(poll_body);
@@ -1439,6 +1438,7 @@ std::string HelioQuery::create_optimization_default_get(const std::string helio_
     std::string response_headers;
     http.timeout_connect(20)
         .timeout_max(100)
+        .retries(2)
         .on_header_callback([&response_headers](std::string headers) {
             response_headers += headers;
         })
@@ -1548,6 +1548,8 @@ void HelioQuery::stop_simulation(const std::string helio_api_url, const std::str
 
     http.timeout_connect(20)
         .timeout_max(100)
+        // stop is idempotent — issuing it twice is harmless.
+        .retries(1)
         .on_header_callback([](std::string header_line) {
             std::string lower_line;
             for (unsigned char c : header_line) {
@@ -1595,6 +1597,7 @@ HelioQuery::CheckSimulationProgressResult HelioQuery::check_simulation_progress(
 
     http.timeout_connect(20)
         .timeout_max(100)
+        .retries(2)
         .on_header_callback([&res](std::string header_line) {
             std::string lower_line;
             for (unsigned char c : header_line) {
@@ -1823,6 +1826,8 @@ void HelioQuery::stop_optimization(const std::string helio_api_url, const std::s
 
     http.timeout_connect(20)
         .timeout_max(100)
+        // stop is idempotent — issuing it twice is harmless.
+        .retries(1)
         .on_header_callback([](std::string header_line) {
             std::string lower_line;
             for (unsigned char c : header_line) {
@@ -1870,6 +1875,7 @@ Slic3r::HelioQuery::CheckOptimizationResult HelioQuery::check_optimization_progr
 
     http.timeout_connect(20)
         .timeout_max(100)
+        .retries(2)
         .on_header_callback([&res](std::string header_line) {
             std::string lower_line;
             for (unsigned char c : header_line) {
@@ -2539,6 +2545,7 @@ HelioQuery::GetRecentRunsResult HelioQuery::get_recent_runs(const std::string& h
 
     http.timeout_connect(20)
         .timeout_max(100)
+        .retries(2)
         .on_complete([&temp_optimizations, &temp_simulations, &success, &error_msg, &status_code](std::string body, unsigned status) {
             status_code = status;
 
