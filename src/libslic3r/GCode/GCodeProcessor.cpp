@@ -1182,7 +1182,8 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             context.filament_cooling_before_tower,
             machine_start_gcode_end_line_id,
             machine_end_gcode_start_line_id,
-            context.extruder_types
+            context.extruder_types,
+            context.nozzle_diameter
         );
 
         pre_cooling_injector->build_extruder_free_blocks(filament_blocks, extruder_blocks);
@@ -1923,6 +1924,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     for (size_t idx = 0; idx < filament_count; ++idx)
         m_filament_types[idx] = config.filament_type.get_at(idx);
 
+    m_nozzle_diameter = config.nozzle_diameter.values;
     m_hotend_cooling_rate = config.hotend_cooling_rate.values;
     m_hotend_heating_rate = config.hotend_heating_rate.values;
     m_filament_pre_cooling_temp = config.filament_pre_cooling_temperature.values;
@@ -2039,6 +2041,11 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         m_filament_types.resize(filament_type->size());
         for (size_t idx = 0; idx < filament_type->size(); ++idx)
             m_filament_types[idx] = filament_type->get_at(idx);
+    }
+
+    const ConfigOptionFloatsNullable* nozzle_diameter = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    if (nozzle_diameter != nullptr) {
+        m_nozzle_diameter = nozzle_diameter->values;
     }
 
     const ConfigOptionFloatsNullable* hotend_cooling_rate = config.option<ConfigOptionFloatsNullable>("hotend_cooling_rate");
@@ -2476,6 +2483,7 @@ void GCodeProcessor::reset()
 
     m_physical_extruder_map.clear();
     m_filament_nozzle_temp.clear();
+    m_nozzle_diameter.clear();
     m_enable_pre_heating = false;
     m_has_filament_switcher = false;
     m_hotend_cooling_rate = m_hotend_heating_rate = { 2.f };
@@ -2701,7 +2709,8 @@ void GCodeProcessor::finalize(bool post_process)
             m_has_filament_switcher,
             m_extruder_max_nozzle_count,
             m_filament_cooling_before_tower,
-            m_result.extruder_types
+            m_result.extruder_types,
+            m_nozzle_diameter
         );
         m_time_processor.post_process(m_result.filename, m_result.moves, m_result.lines_ends, context);
     }
@@ -6389,6 +6398,9 @@ void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimePro
     // limit pre-heating target to avoid overshooting on the slower-responding extruder.
     bool has_mixed_extruder_types = extruder_types.size() > 1 &&
         std::adjacent_find(extruder_types.begin(), extruder_types.end(), std::not_equal_to<>()) != extruder_types.end();
+    // Temporary workaround for X2D: Use the first nozzle diameter to determine the temp offset: 40 for large nozzles (0.6/0.8), 20 for others
+    float first_nozzle_dia = nozzle_diameter.empty() ? 0.4 : nozzle_diameter.front();
+    float switcher_temp_offset = (first_nozzle_dia >= 0.6 - EPSILON) ? 40.f : 20.f;
 
     std::map<int, std::vector<ExtruderFreeBlock>> per_extruder_free_blocks;
 
@@ -6406,7 +6418,6 @@ void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimePro
             float target_temp       = get_nozzle_temp(iter->next_filament_id, false, false, !iter->ignore_cooling_before_tower);
             // X2D temporary workaround: only apply temp offset when extruder types are mixed
             if (has_filament_switcher && has_mixed_extruder_types && apply_pre_heating) {
-                constexpr float switcher_temp_offset = 20.f;
                 float print_temp = get_nozzle_temp(iter->next_filament_id, false, false, false);
                 target_temp = std::min(target_temp, print_temp - switcher_temp_offset);
             }
