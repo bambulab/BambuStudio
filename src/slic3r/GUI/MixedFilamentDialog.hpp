@@ -79,6 +79,7 @@ private:
     std::vector<std::string>    m_physical_colors;
     std::vector<std::string>    m_physical_names;
     std::vector<std::string>    m_physical_types;
+    wxString                    m_type_mismatch_msg;
 
     // Combo item index -> 1-based physical filament index (per combo)
     std::vector<std::vector<unsigned int>> m_combo_to_physical;

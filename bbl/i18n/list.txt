@@ -286,3 +286,5 @@ src/slic3r/GUI/UxProgramTermsDialog.cpp
 src/slic3r/GUI/UxProgramTermsDialog.hpp
 src/slic3r/GUI/HelioHistoryDialog.hpp
 src/slic3r/GUI/HelioHistoryDialog.cpp
+src/slic3r/GUI/MixedFilamentDialog.cpp
+src/slic3r/GUI/MixedFilamentDialog.hpp

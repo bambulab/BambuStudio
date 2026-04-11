@@ -3316,6 +3316,14 @@ void ObjectList::merge_volumes()
 
 void ObjectList::layers_editing()
 {
+    const auto& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+    if (print_config.opt_bool("enable_mixed_color_sublayer")) {
+        MessageDialog dlg(nullptr,
+            _L("Using variable layer height together with mixed color sublayer may result in poor color mixing quality."),
+            _L("Warning"), wxICON_WARNING | wxOK);
+        dlg.ShowModal();
+    }
+
     const Selection& selection = scene_selection();
     const int obj_idx = selection.get_object_idx();
     wxDataViewItem item = obj_idx >= 0 && GetSelectedItemsCount() > 1 && selection.is_single_full_object() ?
