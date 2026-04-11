@@ -149,18 +149,12 @@ FilamentGroupContext build_filament_group_context(Print                         
                                                   const std::vector<std::set<int>>                &physical_unprintables,
                                                   const std::vector<std::set<int>>                &geometric_unprintables,
                                                   const std::map<int, std::set<NozzleVolumeType>> &unprintable_volumes,
-                                                  FilamentMapMode                                  mode);
+                                                  FilamentMapMode                                  mode,
+                                                  const std::unordered_map<int, int>              &nozzle_status = {});
 
 std::function<bool(int, std::vector<int> &)> create_custom_seq_function(const PrintConfig               &print_config,
                                                                         bool                             include_first_layer,
                                                                         const std::vector<unsigned int> &first_layer_filaments = {});
-
-FilamentGroupContext build_filament_group_context(Print                                           *print,
-                                                  const std::vector<std::vector<unsigned int>>    &layer_filaments,
-                                                  const std::vector<std::set<int>>                &physical_unprintables,
-                                                  const std::vector<std::set<int>>                &geometric_unprintables,
-                                                  const std::map<int, std::set<NozzleVolumeType>> &unprintable_volumes,
-                                                  const std::unordered_map<int, int>              &nozzle_status = {});
 } // namespace GroupReorder
 
 class LayerTools
