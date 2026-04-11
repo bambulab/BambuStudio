@@ -931,8 +931,7 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     {
         std::string printer_model = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
         bool is_tower_interface_supported = (printer_model.find("H2C") != std::string::npos ||
-                                             printer_model.find("H2D") != std::string::npos ||
-                                             printer_model.find("X2D") != std::string::npos);
+                                             printer_model.find("H2D") != std::string::npos);
         toggle_line("enable_tower_interface_features", have_prime_tower && is_tower_interface_supported);
     }
 
