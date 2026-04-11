@@ -1225,6 +1225,7 @@ FilamentGroupContext build_filament_group_context(
     const std::vector<std::set<int>>& physical_unprintables,
     const std::vector<std::set<int>>& geometric_unprintables,
     const std::map<int, std::set<NozzleVolumeType>>& unprintable_volumes,
+    FilamentMapMode mode,
     const std::unordered_map<int, int>& nozzle_status)
 {
     using namespace MultiNozzleUtils;
@@ -1272,7 +1273,7 @@ FilamentGroupContext build_filament_group_context(
     std::vector<std::string> filament_ids = print_config.filament_ids.values;
     std::vector<FilamentUsageType> filament_usage_types = print->get_filament_usage_type();
 
-    FGMode fg_mode = print_config.filament_map_mode.value == FilamentMapMode::fmmAutoForMatch ? FGMode::MatchMode: FGMode::FlushMode;
+    FGMode fg_mode = mode == FilamentMapMode::fmmAutoForMatch ? FGMode::MatchMode: FGMode::FlushMode;
     context.model_info.flush_matrix = std::move(nozzle_flush_mtx);
     context.model_info.unprintable_filaments = ext_unprintable_filaments;
     context.model_info.layer_filaments = layer_filaments;
@@ -1304,7 +1305,7 @@ FilamentGroupContext build_filament_group_context(
     context.group_info.mode = fg_mode;
     context.group_info.ignore_ext_filament = ignore_ext_filament;
 
-    if(print_config.filament_map_mode == FilamentMapMode::fmmManual)
+    if(mode == FilamentMapMode::fmmManual)
         context.group_info.filament_volume_map = print_config.filament_volume_map.values;
     else    // hrybid flow means no special request
         context.group_info.filament_volume_map = std::vector<int>(filament_nums,(int)(NozzleVolumeType::nvtHybrid));
@@ -1729,7 +1730,7 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
 
     if(has_multiple_extruder || has_multiple_nozzle){
         auto context = build_filament_group_context(
-            print,layer_filaments,physical_unprintables,geometric_unprintables, unprintable_volumes, nozzle_status);
+            print,layer_filaments,physical_unprintables,geometric_unprintables, unprintable_volumes, mode, nozzle_status);
 
         if (has_multiple_nozzle) {
             if(mode == FilamentMapMode::fmmManual){
@@ -1797,46 +1798,6 @@ void ToolOrdering::calculate_and_store_statistics(const PrintConfig             
 
     auto curr_flush_info = calc_filament_change_info_by_toolorder(print_config, grouping_result, nozzle_flush_mtx, filament_sequences);
 
-    std::map<int,int> aa;
-    for (auto b : filament_sequences) {
-        int c = b.size();
-        aa[c]++;
-    }
-
-    // 将统计信息输出到可执行文件所在目录的 filament_stats.txt 文件
-    {
-        try {
-            // 获取可执行文件所在目录
-            boost::filesystem::path exe_path = boost::dll::program_location();
-            boost::filesystem::path stats_file = exe_path.parent_path() / "filament_stats_ori.txt";
-
-            // 获取当前时间戳
-            auto now = std::chrono::system_clock::now();
-            auto time_t_now = std::chrono::system_clock::to_time_t(now);
-            auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
-
-            std::ostringstream timestamp;
-            timestamp << std::put_time(std::localtime(&time_t_now), "%Y-%m-%d %H:%M:%S");
-            timestamp << "." << std::setfill('0') << std::setw(3) << ms.count();
-
-            // 以追加模式打开文件
-            std::ofstream ofs(stats_file.string(), std::ios::app);
-            if (ofs.is_open()) {
-                ofs << "[" << timestamp.str() << "] "
-                    << "filament_flush_weight=" << curr_flush_info.filament_flush_weight << " "
-                    << "filament_change_count=" << curr_flush_info.filament_change_count
-                    << std::endl;
-                ofs.close();
-                BOOST_LOG_TRIVIAL(info) << "Filament stats written to: " << stats_file.string();
-            } else {
-                BOOST_LOG_TRIVIAL(error) << "Failed to open stats file: " << stats_file.string();
-            }
-        } catch (const std::exception& e) {
-            BOOST_LOG_TRIVIAL(error) << "Error writing filament stats: " << e.what();
-        }
-        //throw std::runtime_error("Filament stats collected, stopping slice.");
-    }
-
     if (extruder_num <= 1) {
         m_stats_by_single_extruder = curr_flush_info;
     } else {
@@ -1871,7 +1832,7 @@ void ToolOrdering::calculate_and_store_statistics(const PrintConfig             
             // 如果支持选料器
             if (m_print->is_dynamic_group_reorder()) {
                 auto grouping_context = GroupReorder::build_filament_group_context(m_print, layer_data.layer_filaments, layer_data.physical_unprintables,
-                                                                                   layer_data.geometric_unprintables, layer_data.filament_unprintable_volumes);
+                                                                                   layer_data.geometric_unprintables, layer_data.filament_unprintable_volumes, FilamentMapMode::fmmAutoForFlush);
 
                 auto dynamic_plan_res = plan_filament_mapping_and_order_by_combo_ranges(m_print, grouping_context, ordering_context, FilamentMapMode::fmmAutoForFlush,
                                                                                 layer_data.physical_unprintables, layer_data.geometric_unprintables, layer_data.filament_unprintable_volumes);
@@ -2382,7 +2343,8 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
             layer_data.layer_filaments,
             layer_data.physical_unprintables,
             layer_data.geometric_unprintables,
-            layer_data.filament_unprintable_volumes
+            layer_data.filament_unprintable_volumes,
+            m_print->config().filament_map_mode.value
         );
 
         // TODO(山苍)：逐件打印后面要考虑喷嘴状态

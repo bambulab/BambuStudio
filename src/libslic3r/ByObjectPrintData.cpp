@@ -109,7 +109,8 @@ ByObjectPrintData ByObjectPrintData::build(Print* print)
             all_filaments,
             physical_unprintables,
             geometric_unprintables,
-            filament_unprintable_volumes
+            filament_unprintable_volumes,
+            print->config().filament_map_mode.value
         );
 
         auto result = MultiNozzleUtils::LayeredNozzleGroupResult::create(
