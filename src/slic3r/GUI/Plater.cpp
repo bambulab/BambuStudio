@@ -11760,10 +11760,14 @@ void Plater::priv::on_action_slice_plate(SimpleEvent&)
         if (agent && curr_plate){
             auto mode_val  = (int) curr_plate->get_real_filament_map_mode(config);
             auto mode_name = ConfigOptionEnum<FilamentMapMode>::get_enum_names().at(mode_val);
+            auto& project_config = wxGetApp().preset_bundle->project_config;
             json j;
             j["mode"] = mode_name;
             j["is_connected"] = q->get_machine_sync_status();
             j["slice_type"]   = "single_plate";
+            j["printer"] = config.opt_string("printer_model");
+            j["has_switcher"] = sidebar->is_fila_switch_ready();
+            j["dynamic_map"] = project_config.opt_bool("enable_filament_dynamic_map");
             agent->track_event("slice_group_mode", j.dump());
         }
 
@@ -13843,10 +13847,14 @@ void Plater::priv::on_action_slice_all(SimpleEvent&)
         if (!agent || !curr_plate) return;
         auto mode_val  = (int) curr_plate->get_real_filament_map_mode(config);
         auto mode_name = ConfigOptionEnum<FilamentMapMode>::get_enum_names().at(mode_val);
+        auto& project_config = wxGetApp().preset_bundle->project_config;
         json j;
         j["mode"] = mode_name;
         j["is_connected"] = q->get_machine_sync_status();
         j["slice_type"]   = "all_plate";
+        j["printer"] = config.opt_string("printer_model");
+        j["has_filament_switcher"] = sidebar->is_fila_switch_ready();
+        j["dynamic_map"] = project_config.opt_bool("enable_filament_dynamic_map");
         agent->track_event("slice_group_mode", j.dump());
     }
 }
