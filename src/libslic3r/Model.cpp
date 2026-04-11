@@ -530,7 +530,7 @@ void Model::set_assembly_pos(ModelObject *model_object)
     if (cur_assemble_scene_box.defined) {
         auto offset = cur_assemble_scene_box.center();
         auto mo_box = model_object->bounding_box_in_assembly_view();
-        offset[0] += ((cur_assemble_scene_box.size()[0] / 2.0f + mo_box.size()[0] / 2.0f) * 1.2);
+        offset[0] += ((cur_assemble_scene_box.size()[0] / 2.0f + mo_box.size()[0] / 2.0f) + 10);//fix space:10mm
         offset[2] = cur_assemble_scene_box.min[2] + mo_box.size()[2];
         model_object->instances[0]->set_assemble_offset(offset);
         offset[1] += cur_assemble_scene_box.center().y() - model_object->bounding_box_in_assembly_view().center().y();
@@ -1904,7 +1904,7 @@ indexed_triangle_set ModelObject::get_connector_mesh(CutConnectorAttributes conn
 
     if (connector_attributes.type == CutConnectorType::Snap)
         connector_mesh = its_make_snap(1.0, 1.0, para.snap_space_proportion, para.snap_bulge_proportion);
-    
+
 // --- OUR THREAD PREVIEW ---
     else if (connector_attributes.type == CutConnectorType::Thread) {
         // Generates the standard 1x1x1 unit mesh and lets OpenGL handle the scaling
