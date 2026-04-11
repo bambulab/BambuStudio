@@ -763,6 +763,7 @@ namespace Slic3r {
             bool has_filament_switcher{ false };
             std::vector<int> extruder_max_nozzle_count { 1 };
             std::vector<ExtruderType> extruder_types;
+            std::vector<double> nozzle_diameter;
 
             TimeProcessContext(
                 const UsedFilaments& used_filaments_,
@@ -781,7 +782,8 @@ namespace Slic3r {
                 const bool has_filament_switcher_,
                 const std::vector<int>& extruder_max_nozzle_count_,
                 const std::vector<double>& filament_cooling_before_tower_,
-                const std::vector<ExtruderType>& extruder_types_
+                const std::vector<ExtruderType>& extruder_types_,
+                const std::vector<double>& nozzle_diameter_
             ) :
                 used_filaments(used_filaments_),
                 filament_lists(filament_lists_),
@@ -799,7 +801,8 @@ namespace Slic3r {
                 inject_time_threshold(inject_time_threshold_),
                 extruder_max_nozzle_count(extruder_max_nozzle_count_),
                 filament_cooling_before_tower(filament_cooling_before_tower_),
-                extruder_types(extruder_types_)
+                extruder_types(extruder_types_),
+                nozzle_diameter(nozzle_diameter_)
             {
             }
 
@@ -905,7 +908,8 @@ namespace Slic3r {
                 const std::vector<double>& filament_cooling_before_tower_,
                 unsigned int machine_start_gcode_end_id_,
                 unsigned int machine_end_gcode_start_id_,
-                const std::vector<ExtruderType>& extruder_types_
+                const std::vector<ExtruderType>& extruder_types_,
+                const std::vector<double>& nozzle_diameter_
             ) :
                 moves(moves_),
                 filament_types(filament_types_),
@@ -925,7 +929,8 @@ namespace Slic3r {
                 filament_cooling_before_tower(filament_cooling_before_tower_),
                 machine_start_gcode_end_id(machine_start_gcode_end_id_),
                 machine_end_gcode_start_id(machine_end_gcode_start_id_),
-                extruder_types(extruder_types_)
+                extruder_types(extruder_types_),
+                nozzle_diameter(nozzle_diameter_)
             {
             }
 
@@ -950,6 +955,7 @@ namespace Slic3r {
             const unsigned int machine_start_gcode_end_id;
             const unsigned int machine_end_gcode_start_id;
             const std::vector<ExtruderType>& extruder_types;
+            const std::vector<double>& nozzle_diameter;
 
             void inject_cooling_heating_command(
                 TimeProcessor::InsertedLinesMap& inserted_operation_lines,
@@ -1119,6 +1125,7 @@ namespace Slic3r {
         std::vector<Extruder> m_filament_lists;
         std::vector<int> m_filament_nozzle_temp;
         std::vector<std::string> m_filament_types;
+        std::vector<double> m_nozzle_diameter;
         std::vector<double> m_hotend_cooling_rate{ 2.f };
         std::vector<double> m_hotend_heating_rate{ 2.f };
         std::vector<int> m_filament_pre_cooling_temp{ 0 };
