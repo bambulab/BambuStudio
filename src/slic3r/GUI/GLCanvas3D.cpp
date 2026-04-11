@@ -8082,7 +8082,25 @@ void GLCanvas3D::_render_bvh_primary_bounds()
     }
     if (!wxGetApp().app_config->get_bool("show_assembly_bvh_bounds"))
         return;
-    if (!s_bvh_primary_bounds.defined)return;
+#if !BBL_RELEASE_TO_PUBLIC
+    if (m_canvas_type == CanvasAssembleView) {
+        constexpr double assembly_vol_expand_mm = 3.0;
+        float            cyan_color[3]          = { 0.0f, 1.0f, 1.0f };
+        for (GLVolume *vol : m_volumes.volumes) {
+            if (vol->is_wipe_tower)
+                continue;
+            const BoundingBoxf3 &bb = vol->transformed_bounding_box();
+            if (!bb.defined)
+                continue;
+            BoundingBoxf3 expanded = bb;
+            expanded.min -= Vec3d(assembly_vol_expand_mm, assembly_vol_expand_mm, assembly_vol_expand_mm);
+            expanded.max += Vec3d(assembly_vol_expand_mm, assembly_vol_expand_mm, assembly_vol_expand_mm);
+            expanded.defined = true;
+            m_selection.render_bounding_box(expanded, cyan_color, 1.0);
+        }
+    }
+#endif
+    if (!s_bvh_primary_bounds.defined || s_assemble_candidate_volumes_size == 0) return;
 
 
 #if ENABLE_RETINA_GL
@@ -11893,6 +11911,43 @@ static uint32_t _find_largest_leaf_node_by_volume(const tinybvh::BVH& bvh, uint3
     return best_idx;
 }
 
+// Check if any leaf in subtree A overlaps any leaf in subtree B (cross-subtree test).
+static bool _bvh_cross_intersect(const tinybvh::BVH& bvh, uint32_t idx_a, uint32_t idx_b)
+{
+    if (!_bvh_node_bounds(bvh, idx_a).intersects(_bvh_node_bounds(bvh, idx_b)))
+        return false;
+    const tinybvh::BVH::BVHNode& a = bvh.bvhNode[idx_a];
+    const tinybvh::BVH::BVHNode& b = bvh.bvhNode[idx_b];
+    if (a.isLeaf() && b.isLeaf())
+        return true;
+    if (a.isLeaf())
+        return _bvh_cross_intersect(bvh, idx_a, b.leftFirst) ||
+               _bvh_cross_intersect(bvh, idx_a, b.leftFirst + 1);
+    return _bvh_cross_intersect(bvh, a.leftFirst, idx_b) ||
+           _bvh_cross_intersect(bvh, a.leftFirst + 1, idx_b);
+}
+
+// Check if any two distinct leaves within this subtree have overlapping bounds.
+static bool _bvh_has_self_intersection(const tinybvh::BVH& bvh, uint32_t root_idx)
+{
+    std::vector<uint32_t> stack;
+    stack.push_back(root_idx);
+    while (!stack.empty()) {
+        const uint32_t cur = stack.back();
+        stack.pop_back();
+        const tinybvh::BVH::BVHNode& node = bvh.bvhNode[cur];
+        if (node.isLeaf())
+            continue;
+        const uint32_t left  = node.leftFirst;
+        const uint32_t right = node.leftFirst + 1;
+        if (_bvh_cross_intersect(bvh, left, right))
+            return true;
+        stack.push_back(left);
+        stack.push_back(right);
+    }
+    return false;
+}
+
 static void _check_and_exclude_bvh_node(const tinybvh::BVH&               bvh,
                                          uint32_t                           node_idx,
                                          uint32_t                           primary_idx,
@@ -11971,9 +12026,15 @@ void GLCanvas3D::_filter_assembly_thumbnail_candidates_by_bvh(const std::vector<
         return;
     }
 
+    constexpr double bvh_expand_dist = 3.0;
+    std::vector<BoundingBoxf3> expanded_boxes;
+    expanded_boxes.reserve(assemble_candidate_boxes.size());
+    for (const BoundingBoxf3& box : assemble_candidate_boxes)
+        expanded_boxes.emplace_back(_expand_bounds(box, bvh_expand_dist));
+
     std::vector<tinybvh::bvhvec4> volume_aabbs;
-    volume_aabbs.reserve(assemble_candidate_boxes.size() * 2);
-    for (const BoundingBoxf3& box : assemble_candidate_boxes) {
+    volume_aabbs.reserve(expanded_boxes.size() * 2);
+    for (const BoundingBoxf3& box : expanded_boxes) {
         volume_aabbs.emplace_back((float)box.min.x(), (float)box.min.y(), (float)box.min.z(), 0.0f);
         volume_aabbs.emplace_back((float)box.max.x(), (float)box.max.y(), (float)box.max.z(), 0.0f);
     }
@@ -12018,6 +12079,22 @@ void GLCanvas3D::_filter_assembly_thumbnail_candidates_by_bvh(const std::vector<
         self(self, node.leftFirst + 1, child_prefix, true, false);
     };
     dump_bvh_node(dump_bvh_node, 0, "", true, true);
+
+    bool has_intersection = false;
+    if (assemble_candidate_volumes.size() == 2) {
+        has_intersection = expanded_boxes[0].intersects(expanded_boxes[1]);
+    } else {
+        has_intersection = _bvh_has_self_intersection(volume_bvh, 0);
+    }
+    if (!has_intersection) {
+        BOOST_LOG_TRIVIAL(info) << "assembly thumbnail BVH: no leaf pairs intersect, skipping (ratio=0)";
+        s_assemble_candidate_volumes_size = 0;
+        s_assemble_ratio        = 0;
+        s_assemble_volume_ratio = 0;
+        s_isolated_volumes.clear();
+        s_intersects_volumes_in_assembly.clear();
+        return;
+    }
 
     double max_leaf_volume = -1.0;
     const uint32_t primary_idx = _find_largest_leaf_node_by_volume(volume_bvh, 0, max_leaf_volume);
@@ -12159,13 +12236,12 @@ void GLCanvas3D::_render_assembly_thumbnail_internal(ThumbnailData& thumbnail_da
             assemble_candidate_volumes.emplace_back(vol);
             assemble_candidate_boxes.emplace_back(vol->transformed_bounding_box());
         }
-
+        s_assemble_candidate_volumes_size = assemble_candidate_volumes.size();
         std::vector<bool> include_candidate_volumes(assemble_candidate_volumes.size(), true);
         const auto bvh_t0 = std::chrono::steady_clock::now();
         _filter_assembly_thumbnail_candidates_by_bvh(assemble_candidate_volumes, assemble_candidate_boxes, skip_single_volume_bvh, extra_thumb_data.rebuild_bvh, include_candidate_volumes);
         s_last_bvh_filter_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - bvh_t0).count();
 
-        s_assemble_candidate_volumes_size = assemble_candidate_volumes.size();
         for (size_t i = 0; i < assemble_candidate_volumes.size(); ++i) {
             if (include_candidate_volumes[i]) {
                 visible_volumes.emplace_back(assemble_candidate_volumes[i]);
