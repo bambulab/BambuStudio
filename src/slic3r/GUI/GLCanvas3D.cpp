@@ -9062,7 +9062,7 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
         }
     };
     const std::string  current_enable_assemble_view_preview = GUI::wxGetApp().app_config->get("enable_assemble_view_preview");
-    if (current_enable_assemble_view_preview == "Close" || m_volumes.volumes.size() < 2) {
+    if (current_enable_assemble_view_preview == "Close" || m_volumes.volumes.size() < 2 || m_layers_editing.is_enabled()) {
         close_assembly_notifications();
         return;
     }
