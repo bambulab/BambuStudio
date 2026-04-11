@@ -19,9 +19,115 @@
 #include <openssl/x509.h>
 #endif
 
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#include <winhttp.h>
+#endif
+
 namespace fs = boost::filesystem;
 
 namespace Slic3r {
+
+#ifdef _WIN32
+// Query Windows system proxy configuration for a given URL. Returns empty if no proxy
+// should be used, or a string like "http://proxy.corp:8080" otherwise. Handles both
+// static proxy config and WPAD/PAC auto-configuration.
+//
+// Why this exists: libcurl does not consult Windows' IE/WinInet proxy settings. In
+// corporate environments where the browser obeys WPAD/PAC and the registry, curl
+// requests otherwise go direct and get dropped by the perimeter firewall without ever
+// reaching the upstream server.
+static std::string detect_windows_system_proxy(const std::string &url)
+{
+    std::string result;
+
+    WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ie_cfg = {};
+    if (!::WinHttpGetIEProxyConfigForCurrentUser(&ie_cfg)) {
+        return result;
+    }
+
+    auto wide_to_utf8 = [](LPCWSTR wstr) -> std::string {
+        if (!wstr) return std::string();
+        int len = ::WideCharToMultiByte(CP_UTF8, 0, wstr, -1, nullptr, 0, nullptr, nullptr);
+        if (len <= 1) return std::string(); // len includes the null terminator
+        std::string out(static_cast<size_t>(len), '\0');
+        ::WideCharToMultiByte(CP_UTF8, 0, wstr, -1, &out[0], len, nullptr, nullptr);
+        out.resize(static_cast<size_t>(len - 1)); // drop the trailing null from content
+        return out;
+    };
+
+    // Helper: pick the HTTPS proxy out of a possibly-multi-protocol proxy string.
+    // IE proxy strings can be either "host:port" (applies to all) or
+    // "http=host:port;https=host:port;ftp=host:port".
+    auto pick_proxy = [&url](const std::string &proxies) -> std::string {
+        if (proxies.empty()) return std::string();
+        if (proxies.find('=') == std::string::npos) {
+            return proxies;
+        }
+        const bool want_https = (url.rfind("https://", 0) == 0);
+        const std::string key = want_https ? "https=" : "http=";
+        size_t pos = proxies.find(key);
+        if (pos == std::string::npos) return std::string();
+        pos += key.size();
+        size_t end = proxies.find(';', pos);
+        return proxies.substr(pos, end == std::string::npos ? std::string::npos : end - pos);
+    };
+
+    // Case 1: auto-detect (WPAD) or explicit PAC URL — resolve to a concrete proxy.
+    if (ie_cfg.fAutoDetect || ie_cfg.lpszAutoConfigUrl) {
+        HINTERNET session = ::WinHttpOpen(L"BambuStudio/Helio-proxy-detect",
+                                          WINHTTP_ACCESS_TYPE_NO_PROXY,
+                                          WINHTTP_NO_PROXY_NAME,
+                                          WINHTTP_NO_PROXY_BYPASS,
+                                          0);
+        if (session) {
+            WINHTTP_AUTOPROXY_OPTIONS opts = {};
+            if (ie_cfg.fAutoDetect) {
+                opts.dwFlags            = WINHTTP_AUTOPROXY_AUTO_DETECT;
+                opts.dwAutoDetectFlags  = WINHTTP_AUTO_DETECT_TYPE_DHCP | WINHTTP_AUTO_DETECT_TYPE_DNS_A;
+            }
+            if (ie_cfg.lpszAutoConfigUrl) {
+                opts.dwFlags           |= WINHTTP_AUTOPROXY_CONFIG_URL;
+                opts.lpszAutoConfigUrl  = ie_cfg.lpszAutoConfigUrl;
+            }
+            opts.fAutoLogonIfChallenged = TRUE;
+
+            std::wstring wurl(url.begin(), url.end());
+            WINHTTP_PROXY_INFO proxy_info = {};
+            if (::WinHttpGetProxyForUrl(session, wurl.c_str(), &opts, &proxy_info)) {
+                if (proxy_info.dwAccessType == WINHTTP_ACCESS_TYPE_NAMED_PROXY && proxy_info.lpszProxy) {
+                    std::string resolved = wide_to_utf8(proxy_info.lpszProxy);
+                    // WinHttp can return multiple proxies separated by ';' or whitespace; take the first.
+                    size_t sep = resolved.find_first_of("; \t");
+                    if (sep != std::string::npos) resolved = resolved.substr(0, sep);
+                    if (!resolved.empty()) result = resolved;
+                }
+                if (proxy_info.lpszProxy)        ::GlobalFree(proxy_info.lpszProxy);
+                if (proxy_info.lpszProxyBypass)  ::GlobalFree(proxy_info.lpszProxyBypass);
+            }
+            ::WinHttpCloseHandle(session);
+        }
+    }
+
+    // Case 2: static proxy configured in IE/WinInet.
+    if (result.empty() && ie_cfg.lpszProxy) {
+        std::string proxies = wide_to_utf8(ie_cfg.lpszProxy);
+        result = pick_proxy(proxies);
+    }
+
+    if (ie_cfg.lpszProxy)         ::GlobalFree(ie_cfg.lpszProxy);
+    if (ie_cfg.lpszProxyBypass)   ::GlobalFree(ie_cfg.lpszProxyBypass);
+    if (ie_cfg.lpszAutoConfigUrl) ::GlobalFree(ie_cfg.lpszAutoConfigUrl);
+
+    return result;
+}
+#endif // _WIN32
 
 // Private
 
@@ -174,11 +280,48 @@ Http::priv::priv(const std::string &url)
 	::curl_easy_setopt(curl, CURLOPT_URL, url.c_str());   // curl makes a copy internally
 	::curl_easy_setopt(curl, CURLOPT_USERAGENT, SLIC3R_APP_NAME "/" SLIC3R_VERSION);
 	::curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, &error_buffer.front());
-	::curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA);
-#ifdef __WINDOWS__
-	::curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_MAX_TLSv1_2);
+
+	// SSL options: CURLOPT_SSL_OPTIONS is a bitmask that *replaces* on each setopt call,
+	// so everything must be combined in a single call.
+	//  - CURLSSLOPT_NATIVE_CA: use the OS native CA store (Schannel on Windows, Keychain on
+	//    macOS) rather than bundling our own.
+	//  - CURLSSLOPT_REVOKE_BEST_EFFORT (Windows only, libcurl >= 7.70.0): Schannel does
+	//    *strict* CRL/OCSP revocation by default, which silently fails TLS handshakes when
+	//    revocation endpoints are temporarily unreachable (flaky Wi-Fi, corporate proxies,
+	//    slow CA responders). The browser's Schannel usage is soft-fail, so the browser
+	//    works while our requests disappear before hitting the wire. Best-effort matches
+	//    browser behavior.
+	long ssl_options = CURLSSLOPT_NATIVE_CA;
+#if defined(_WIN32) && defined(CURLSSLOPT_REVOKE_BEST_EFFORT)
+	ssl_options |= CURLSSLOPT_REVOKE_BEST_EFFORT;
 #endif
-	::curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+	::curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, ssl_options);
+
+	// Require at least TLS 1.2 on all platforms, but do not cap the maximum.
+	// Previously this was CURL_SSLVERSION_MAX_TLSv1_2 on Windows, which blocked TLS 1.3
+	// and caused downgrade failures against servers/proxies that expect 1.3.
+	::curl_easy_setopt(curl, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
+
+	// Let the resolver pick IPv4 or IPv6 (Happy Eyeballs). Forcing IPv4 means we cannot
+	// fall back when a host's v4 path is flaky on a given network.
+	::curl_easy_setopt(curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_WHATEVER);
+
+	// Required when running libcurl from multiple threads: without this, on POSIX the
+	// async DNS resolver installs a SIGALRM handler and uses siglongjmp, which is unsafe
+	// across threads. Harmless on Windows.
+	::curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+
+#ifdef _WIN32
+	// Apply Windows system proxy settings. libcurl does not consult WinInet/IE proxy
+	// configuration on its own, so corporate networks that require a proxy for the
+	// browser will drop direct requests from the app without ever reaching the target.
+	{
+		const std::string sys_proxy = detect_windows_system_proxy(url);
+		if (!sys_proxy.empty()) {
+			::curl_easy_setopt(curl, CURLOPT_PROXY, sys_proxy.c_str());
+		}
+	}
+#endif
 }
 
 Http::priv::~priv()

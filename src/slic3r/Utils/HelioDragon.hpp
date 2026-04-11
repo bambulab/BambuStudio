@@ -288,6 +288,7 @@ public:
     static void request_support_machine(const std::string helio_api_url, const std::string helio_api_key, int page, int retries_left = 3);
     static void request_support_material(const std::string helio_api_url, const std::string helio_api_key, int page, int retries_left = 3);
     static void request_pat_token(std::function<void(std::string)> func);
+    static void request_pat_token_attempt(std::string url_copy, std::function<void(std::string)> func, int attempt_num);
     static void optimization_feedback(const std::string helio_api_url, const std::string helio_api_key, std::string optimization_id, float rating, std::string comment);
     static PresignedURLResult create_presigned_url(const std::string helio_api_url, const std::string helio_api_key);
     static UploadFileResult   upload_file_to_presigned_url(const std::string file_path_string, const std::string upload_url);
