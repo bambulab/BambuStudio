@@ -619,6 +619,31 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 #endif
 
+    {
+        static bool s_mixed_sublayer_warned = false;
+        bool sublayer_on = config->opt_bool("enable_mixed_color_sublayer");
+        if (sublayer_on && !s_mixed_sublayer_warned) {
+            bool has_variable_layer = false;
+            for (const auto* obj : wxGetApp().model().objects) {
+                if (obj->layer_height_profile.get().size() > 4) {
+                    has_variable_layer = true;
+                    break;
+                }
+            }
+            if (has_variable_layer) {
+                MessageDialog dialog(m_msg_dlg_parent,
+                    _L("Using variable layer height together with mixed color sublayer may result in poor color mixing quality."),
+                    "", wxICON_WARNING | wxOK);
+                is_msg_dlg_already_exist = true;
+                dialog.ShowModal();
+                is_msg_dlg_already_exist = false;
+                s_mixed_sublayer_warned = true;
+            }
+        }
+        if (!sublayer_on)
+            s_mixed_sublayer_warned = false;
+    }
+
     // Check "enable_support" and "overhangs" relations only on global settings level
     if (is_global_config && config->opt_bool("enable_support")) {
         // Ask only once.
@@ -687,17 +712,23 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     // BBS
-    static const char* keys[] = { "support_filament", "support_interface_filament"};
-    for (int i = 0; i < sizeof(keys) / sizeof(keys[0]); i++) {
-        std::string key = std::string(keys[i]);
+    static const char* filament_slot_keys[] = { "support_filament", "support_interface_filament",
+        "wall_filament", "sparse_infill_filament", "solid_infill_filament"};
+    for (int i = 0; i < sizeof(filament_slot_keys) / sizeof(filament_slot_keys[0]); i++) {
+        std::string key = std::string(filament_slot_keys[i]);
         auto* opt = dynamic_cast<ConfigOptionInt*>(config->option(key, false));
         if (opt != nullptr) {
-            if (opt->getInt() > filament_cnt) {
+            int val = opt->getInt();
+            bool out_of_range = val > filament_cnt;
+            bool is_mixed = (val > 0 && val <= filament_cnt &&
+                             wxGetApp().preset_bundle->is_mixed_filament(val - 1));
+            if (out_of_range || is_mixed) {
                 DynamicPrintConfig new_conf = *config;
-                const DynamicPrintConfig *conf_temp = wxGetApp().plater()->config();
                 int new_value = 0;
-                if (conf_temp != nullptr && conf_temp->has(key)) {
-                    new_value = conf_temp->opt_int(key);
+                if (out_of_range) {
+                    const DynamicPrintConfig *conf_temp = wxGetApp().plater()->config();
+                    if (conf_temp != nullptr && conf_temp->has(key))
+                        new_value = conf_temp->opt_int(key);
                 }
                 new_conf.set_key_value(key, new ConfigOptionInt(new_value));
                 apply(config, &new_conf);

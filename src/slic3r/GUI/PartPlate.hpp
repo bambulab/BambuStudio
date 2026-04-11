@@ -347,6 +347,7 @@ public:
     bool check_tpu_nozzle_has_multiple_filaments(const DynamicPrintConfig &config, std::string &error_msg);
     bool check_high_temp_need_wrapping_detection(const DynamicPrintConfig &config, std::string &warning_text) const;
     bool check_high_shrinkage_filament(const DynamicPrintConfig &config, std::string &warning_text) const;
+    bool check_single_extruder_mixed_filament_risk(const DynamicPrintConfig &config, std::string &warning_text) const;
 
     /* instance related operations*/
     //judge whether instance is bound in plate or not

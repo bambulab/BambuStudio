@@ -1331,6 +1331,7 @@ static std::optional<NozzleOption> deserialize_nozzle_option(const std::string& 
 static struct DynamicFilamentList : DynamicList
 {
     std::vector<std::pair<wxString, wxBitmap *>> items;
+    std::vector<int> slot_map; // combo index -> actual filament slot (1-based), slot_map[0]=0 for "Default"
 
     void apply_on(Choice *c) override
     {
@@ -1343,52 +1344,57 @@ static struct DynamicFilamentList : DynamicList
         if (!cb) {
             return;
         }
-        wxString old_selection = cb->GetStringSelection();
-        int old_index  = cb->GetSelection();
+        int old_index = cb->GetSelection();
+        int old_slot  = (old_index >= 0 && old_index < (int)slot_map.size()) ? slot_map[old_index] : -1;
         cb->Clear();
         cb->Append(_L("Default"));
         for (auto i : items) {
             cb->Append(i.first, i.second ? *i.second : wxNullBitmap);
         }
 
-        if (old_index >= 0 && (unsigned int) old_index < cb->GetCount()) {
-            cb->SetSelection(old_index);
-            return;
-        }
-
-        int new_index = cb->FindString(old_selection);
-        if (old_index == cb->GetCount()) {
-            cb->SetSelection(old_index - 1);
-        } else if (new_index != wxNOT_FOUND) {
-            cb->SetSelection(new_index);
-        } else {
-            cb->SetSelection(0);
-        }
+        int restored = index_of(wxString::Format("%d", old_slot));
+        cb->SetSelection(restored >= 0 ? restored : 0);
     }
     wxString get_value(int index) override
     {
+        if (index >= 0 && index < (int)slot_map.size()) {
+            wxString str;
+            str << slot_map[index];
+            return str;
+        }
         wxString str;
-        str << index;
+        str << 0;
         return str;
     }
     int index_of(wxString value) override
     {
         long n = 0;
-        return (value.ToLong(&n) && n <= items.size()) ? int(n) : -1;
+        if (!value.ToLong(&n))
+            return -1;
+        for (int i = 0; i < (int)slot_map.size(); ++i) {
+            if (slot_map[i] == (int)n)
+                return i;
+        }
+        return 0;
     }
     void update(bool force = false)
     {
         items.clear();
+        slot_map.clear();
+        slot_map.push_back(0); // index 0 = "Default"
         if (!force && m_choices.empty())
             return;
         auto icons = get_extruder_color_icons(true);
         auto presets = wxGetApp().preset_bundle->filament_presets;
-        for (int i = 0; i < presets.size(); ++i) {
+        for (int i = 0; i < (int)presets.size(); ++i) {
+            if (wxGetApp().preset_bundle->is_mixed_filament(i))
+                continue;
             wxString str;
             std::string type;
             wxGetApp().preset_bundle->filaments.find_preset(presets[i])->get_filament_type(type);
             str << type;
             items.push_back({str, icons[i]});
+            slot_map.push_back(i + 1); // 1-based filament slot
         }
         DynamicList::update();
     }
@@ -5398,7 +5404,7 @@ void Sidebar::update_mixed_filament_list()
             combo_and_btn_sizer->Add(content_panel, 1, wxALL | wxEXPAND, FromDIP(2))->SetMinSize({-1, FromDIP(30)});
 
             auto* menu_btn = new ScalableButton(p->m_panel_mixed_content, wxID_ANY,
-                is_broken ? "obj_warning" : "menu_filament");
+                is_broken ? "error" : "menu_filament");
             menu_btn->SetToolTip(is_broken ? _L("Mixed filament has broken component references") : _L("Edit / Delete / Merge"));
             menu_btn->Bind(wxEVT_BUTTON, [this, panel_idx, cfg_idx](wxCommandEvent&) {
                 wxMenu menu;
@@ -5584,7 +5590,7 @@ void Sidebar::collect_physical_filament_info(std::vector<std::string>& color_str
 
     for (size_t i = 0; i < num_physical; ++i) {
         auto* combo = p->combos_filament[i];
-        names.push_back(combo ? combo->GetValue().ToStdString() : "Filament " + std::to_string(i + 1));
+        names.push_back(combo ? into_u8(combo->GetValue()) : "Filament " + std::to_string(i + 1));
     }
 
     auto& preset_bundle = *wxGetApp().preset_bundle;
@@ -15481,6 +15487,15 @@ bool Plater::priv::can_layers_editing() const
 
 void Plater::priv::on_action_layersediting(SimpleEvent&)
 {
+    if (!view3D->is_layers_editing_enabled()) {
+        const auto& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+        if (print_config.opt_bool("enable_mixed_color_sublayer")) {
+            MessageDialog dlg(q,
+                _L("Using variable layer height together with mixed color sublayer may result in poor color mixing quality."),
+                _L("Warning"), wxICON_WARNING | wxOK);
+            dlg.ShowModal();
+        }
+    }
     view3D->enable_layers_editing(!view3D->is_layers_editing_enabled());
     notification_manager->set_move_from_overlay(view3D->is_layers_editing_enabled());
 }

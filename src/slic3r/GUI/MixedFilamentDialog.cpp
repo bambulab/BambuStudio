@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <map>
 #include <set>
 #include <wx/image.h>
 #include <wx/sizer.h>
@@ -1025,9 +1026,11 @@ void MixedFilamentDialog::paint_warning_panel(wxPaintEvent&)
     dc.DrawText(wxT("!"), x + icon_r - ex.GetWidth() / 2, cy - ex.GetHeight() / 2);
     x += icon_r * 2 + FromDIP(6);
 
+    if (m_type_mismatch_msg.empty()) return;
+
     dc.SetFont(::Label::Body_12);
     dc.SetTextForeground(wxColour("#E84C4C"));
-    wxString msg = _L("Non-identical filament types cannot be mixed. Please select the same type.");
+    wxString msg = m_type_mismatch_msg;
     int avail_w = sz.GetWidth() - x - FromDIP(10);
     wxSize ts = dc.GetTextExtent(msg);
     if (ts.GetWidth() <= avail_w) {
@@ -1064,17 +1067,26 @@ void MixedFilamentDialog::update_ok_button_state()
 
     bool has_type_mismatch = false;
     if (!m_physical_types.empty() && m_result.components.size() >= 2) {
-        std::string first_type;
+        std::map<std::string, std::vector<unsigned int>> type_groups;
         for (size_t i = 0; i < m_result.components.size(); ++i) {
             unsigned int phys = m_result.components[i];
             if (phys < 1 || phys > m_physical_types.size()) continue;
-            const std::string& t = m_physical_types[phys - 1];
-            if (first_type.empty())
-                first_type = t;
-            else if (t != first_type) {
-                has_type_mismatch = true;
-                break;
+            type_groups[m_physical_types[phys - 1]].push_back(phys);
+        }
+        has_type_mismatch = type_groups.size() > 1;
+        if (has_type_mismatch) {
+            wxString parts;
+            for (auto it = type_groups.begin(); it != type_groups.end(); ++it) {
+                if (!parts.empty())
+                    parts += _L(" and ");
+                wxString slots;
+                for (size_t j = 0; j < it->second.size(); ++j) {
+                    if (!slots.empty()) slots += ", ";
+                    slots += std::to_string(it->second[j]);
+                }
+                parts += wxString::Format(_L("Slot %s (%s)"), slots, wxString::FromUTF8(it->first));
             }
+            m_type_mismatch_msg = parts + " " + _L("cannot be mixed. Please select the same filament type.");
         }
     }
 

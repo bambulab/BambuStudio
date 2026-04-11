@@ -2492,8 +2492,9 @@ bool NotificationManager::push_notification_data(std::unique_ptr<NotificationMan
         notification->set_delete_callback(delete_self);
     }
 	bool retval = false;
+    const bool ui_ready = m_initialized && wxGetApp().initialized();
 	if (this->activate_existing(notification.get())) {
-		if (m_initialized) { // ignore update action - it cant be initialized if canvas and imgui context is not ready
+		if (ui_ready) { // ignore update action until both notification manager and GUI/ImGui are ready
 			if (notification->get_type() == NotificationType::SlicingWarning) {
 				m_pop_notifications.back()->append(notification->get_data().ori_text);
 			} else {
@@ -2505,10 +2506,10 @@ bool NotificationManager::push_notification_data(std::unique_ptr<NotificationMan
 
 		retval = true;
 	}
-	if (!m_initialized)
+	if (!ui_ready)
 		return retval;
-	GLCanvas3D& canvas = *wxGetApp().plater()->get_current_canvas3D();
-	canvas.schedule_extra_frame(0);
+	if (auto* canvas = wxGetApp().plater()->get_current_canvas3D())
+		canvas->schedule_extra_frame(0);
 	return retval;
 }
 

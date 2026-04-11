@@ -164,6 +164,7 @@ enum class NotificationType
 	BBLTpuNozzleHasMultiFilament,
     BBLHighTempNeedWrappingDetection,
     BBLHighShrinkageFilament,
+    BBLSingleExtruderMixedFilamentRisk,
     AssemblyWarning,
     AssemblyInfo,
     BBLIsolatedVolumeInfo,
