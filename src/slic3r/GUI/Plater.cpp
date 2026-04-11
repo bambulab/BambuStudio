@@ -5504,6 +5504,10 @@ void Sidebar::update_mixed_filament_list()
         if (mf)
             mf->update_slice_print_status(MainFrame::eEventObjectUpdate, false);
     }
+
+    if (auto *tab = dynamic_cast<TabPrintPlate *>(wxGetApp().plate_tab))
+        tab->update_mixed_filament_seq_state();
+
 }
 
 bool Sidebar::has_broken_mixed_filament() const

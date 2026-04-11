@@ -8,6 +8,7 @@
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
+#include "libslic3r/FilamentMixer.hpp"
 #include <unordered_set>
 #include <set>
 
@@ -3533,8 +3534,10 @@ void TabPrintModel::activate_selected_page(std::function<void()> throw_if_cancel
         }
     }
 
-    if (m_type == Preset::TYPE_PLATE)
+    if (m_type == Preset::TYPE_PLATE) {
         static_cast<TabPrintPlate *>(this)->update_bed_type_list();
+        static_cast<TabPrintPlate *>(this)->update_mixed_filament_seq_state();
+    }
 }
 
 void TabPrintModel::on_value_change(const std::string& opt_id, const boost::any& value)
@@ -3757,6 +3760,17 @@ void TabPrintPlate::update_bed_type_list()
             new_sel = (int) opt.enum_values.size() - 1;
     }
     combo->SetSelection(new_sel);
+}
+
+void TabPrintPlate::update_mixed_filament_seq_state()
+{
+    if (!m_active_page) return;
+    auto &proj_cfg = m_preset_bundle->project_config;
+    auto *opt       = proj_cfg.option<ConfigOptionBools>("filament_is_mixed");
+    bool  has_mixed = opt && has_any_mixed_filament(opt->values);
+
+    toggle_option("first_layer_sequence_choice", !has_mixed);
+    toggle_option("other_layers_sequence_choice", !has_mixed);
 }
 
 void TabPrintPlate::on_value_change(const std::string& opt_key, const boost::any& value)
