@@ -148,6 +148,66 @@
                 "support_interface_spacing": 0.0,
                 "support_object_xy_distance": 0.0
             }
+        },
+        {
+            "model_material": "Bambu PA6-GF",
+            "model_material_type": "name",
+            "support_material_list": ["ABS"],
+            "support_material_type": "type",
+            "priority": 2,
+            "recommended_params": {
+                "support_top_z_distance": 0.0,
+                "support_interface_pattern": "rectilinear_interlaced",
+                "support_interface_spacing": 0.0
+            }
+        },
+        {
+            "model_material": "Bambu PET-CF",
+            "model_material_type": "name",
+            "support_material_list": ["ASA"],
+            "support_material_type": "type",
+            "priority": 2,
+            "recommended_params": {
+                "support_top_z_distance": 0.0,
+                "support_interface_pattern": "rectilinear_interlaced",
+                "support_interface_spacing": 0.0
+            }
+        },
+        {
+            "model_material": "Bambu PPA-CF",
+            "model_material_type": "name",
+            "support_material_list": ["ASA"],
+            "support_material_type": "type",
+            "priority": 2,
+            "recommended_params": {
+                "support_top_z_distance": 0.0,
+                "support_interface_pattern": "rectilinear_interlaced",
+                "support_interface_spacing": 0.0
+            }
+        },
+        {
+            "model_material": "Bambu PAHT-CF",
+            "model_material_type": "name",
+            "support_material_list": ["ASA"],
+            "support_material_type": "type",
+            "priority": 2,
+            "recommended_params": {
+                "support_top_z_distance": 0.0,
+                "support_interface_pattern": "rectilinear_interlaced",
+                "support_interface_spacing": 0.0
+            }
+        },
+        {
+            "model_material": "Bambu PA6-CF",
+            "model_material_type": "name",
+            "support_material_list": ["ASA"],
+            "support_material_type": "type",
+            "priority": 2,
+            "recommended_params": {
+                "support_top_z_distance": 0.0,
+                "support_interface_pattern": "rectilinear_interlaced",
+                "support_interface_spacing": 0.0
+            }
         }
     ]
 }
