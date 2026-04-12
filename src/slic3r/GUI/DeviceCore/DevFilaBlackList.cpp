@@ -201,9 +201,11 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             }
 
             // check filament switch
-            bool has_filament_switch = DevJsonValParser::GetVal<bool>(filament_item, "has_filament_switch", false);
-            if (check_info.has_filament_switch != has_filament_switch) {
-                continue;
+            if (filament_item.contains("has_filament_switch")) {
+                bool has_filament_switch = DevJsonValParser::GetVal<bool>(filament_item, "has_filament_switch", false);
+                if (check_info.has_filament_switch != has_filament_switch) {
+                    continue;
+                }
             }
 
             // check loc
