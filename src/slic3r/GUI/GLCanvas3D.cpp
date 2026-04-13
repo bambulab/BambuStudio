@@ -140,7 +140,6 @@ namespace GUI {
 
 bool                                        GLCanvas3D::s_enable_bvh = true;
 std::vector<GLCanvas3D::IsolatedVolumeInfo> GLCanvas3D::s_isolated_volumes;
-std::vector<GLCanvas3D::IsolatedVolumeInfo> GLCanvas3D::s_intersects_volumes_in_assembly;
 int                                         GLCanvas3D::s_assemble_candidate_volumes_size;
 bool                                        GLCanvas3D::s_isolated_notification_shown = false;
 bool                                        GLCanvas3D::s_intersects_notification_shown = false;
@@ -9106,22 +9105,11 @@ void GLCanvas3D::_render_assembly_view_thumbnail_toolbar()
             }
         }
 
-        if (!s_intersects_volumes_in_assembly.empty() && !s_intersects_notification_shown) {
-            _show_intersects_volumes_notification();
-            s_intersects_notification_shown = true;
-        } else if (s_intersects_volumes_in_assembly.empty()) {
-            auto *notify_mgr = wxGetApp().plater() ? wxGetApp().plater()->get_notification_manager() : nullptr;
-            if (notify_mgr) {
-                notify_mgr->close_notification_of_type(NotificationType::BBLIntersectsVolumeInfo);
-            }
-        }
-
         if (!s_far_from_origin_notification_shown) {
             _check_assembly_far_from_origin();
         }
         if (last_canvas_type == ECanvasType::CanvasView3D && m_canvas_type == ECanvasType::CanvasAssembleView) {//enter CanvasAssembleView
             _show_isolated_volumes_notification();
-            _show_intersects_volumes_notification();
             _check_assembly_far_from_origin();
         }
         last_canvas_type = m_canvas_type;
@@ -11718,35 +11706,6 @@ void GLCanvas3D::_show_isolated_volumes_notification()
                                   info_text, _u8L("Move closer"), &GLCanvas3D::_move_isolated_volumes_closer);
 }
 
-void GLCanvas3D::_show_intersects_volumes_notification()
-{
-    if (s_intersects_volumes_in_assembly.empty())
-        return;
-
-    auto* plater = wxGetApp().plater();
-    if (!plater)
-        return;
-
-    std::string names;
-    int count = 0;
-    for (const auto& iv : s_intersects_volumes_in_assembly) {
-        if (count >= 2 || names.size() > 70) {
-            names += "...";
-            break;
-        }
-        if (!names.empty()) names += ", ";
-        names += iv.vol->name;
-        ++count;
-    }
-    std::string info_text = (boost::format(_u8L("Overview") + ": " +
-                                           _u8L("Since it is unassembled, %1% extends beyond the main body, so the thumbnail can't be rendered.")) % names).str();
-
-    NotificationManager* notify_mgr = plater->get_notification_manager();
-    notify_mgr->push_notification(NotificationType::BBLIntersectsVolumeInfo,
-                                  NotificationManager::NotificationLevel::ImportantNotificationLevel,
-                                  info_text);
-}
-
 void GLCanvas3D::_check_assembly_far_from_origin()
 {
     auto *plater = wxGetApp().plater();
@@ -11853,7 +11812,6 @@ bool GLCanvas3D::_move_isolated_volumes_closer(wxEvtHandler*)
 
     s_isolated_volumes.clear();
     s_isolated_notification_shown = false;
-    s_intersects_volumes_in_assembly.clear();
     s_intersects_notification_shown = false;
     plater->get_partplate_list().reset_thumbnail_assembly_view_data();
     plater->update();
@@ -11891,20 +11849,24 @@ static BoundingBoxf3 _expand_bounds(const BoundingBoxf3& box, double dist)
     return expanded;
 }
 
-static uint32_t _find_largest_leaf_node_by_volume(const tinybvh::BVH& bvh, uint32_t node_idx, double& max_volume)
+static uint32_t _find_largest_leaf_node_by_volume(const tinybvh::BVH& bvh, uint32_t node_idx, uint32_t depth,
+                                        double& max_volume, uint32_t& max_depth)
 {
     const tinybvh::BVH::BVHNode& node = bvh.bvhNode[node_idx];
     if (node.isLeaf()) {
         const double node_volume = _bvh_node_bounds(bvh, node_idx).volume();
-        if (node_volume > max_volume) {
+        constexpr double eps = 1e-6;
+        if (node_volume > max_volume + eps ||
+            (node_volume > max_volume - eps && depth > max_depth)) {
             max_volume = node_volume;
+            max_depth  = depth;
             return node_idx;
         }
         return uint32_t(-1);
     }
 
-    uint32_t best_idx = _find_largest_leaf_node_by_volume(bvh, node.leftFirst, max_volume);
-    const uint32_t right_best_idx = _find_largest_leaf_node_by_volume(bvh, node.leftFirst + 1, max_volume);
+    uint32_t best_idx = _find_largest_leaf_node_by_volume(bvh, node.leftFirst, depth + 1, max_volume, max_depth);
+    const uint32_t right_best_idx = _find_largest_leaf_node_by_volume(bvh, node.leftFirst + 1, depth + 1, max_volume, max_depth);
     if (right_best_idx != uint32_t(-1)) {
         best_idx = right_best_idx;
     }
@@ -11927,8 +11889,9 @@ static bool _bvh_cross_intersect(const tinybvh::BVH& bvh, uint32_t idx_a, uint32
            _bvh_cross_intersect(bvh, a.leftFirst + 1, idx_b);
 }
 
-// Check if any two distinct leaves within this subtree have overlapping bounds.
-static bool _bvh_has_self_intersection(const tinybvh::BVH& bvh, uint32_t root_idx)
+// Check if any two distinct primitives within this subtree have overlapping bounds.
+static bool _bvh_has_self_intersection(const tinybvh::BVH& bvh, uint32_t root_idx,
+                                       const std::vector<BoundingBoxf3>& prim_boxes)
 {
     std::vector<uint32_t> stack;
     stack.push_back(root_idx);
@@ -11936,8 +11899,21 @@ static bool _bvh_has_self_intersection(const tinybvh::BVH& bvh, uint32_t root_id
         const uint32_t cur = stack.back();
         stack.pop_back();
         const tinybvh::BVH::BVHNode& node = bvh.bvhNode[cur];
-        if (node.isLeaf())
+        if (node.isLeaf()) {
+            if (node.triCount <= 1)
+                continue;
+            for (uint32_t i = 0; i < node.triCount; ++i) {
+                const uint32_t pi = bvh.primIdx[node.leftFirst + i];
+                if (pi >= prim_boxes.size()) continue;
+                for (uint32_t j = i + 1; j < node.triCount; ++j) {
+                    const uint32_t pj = bvh.primIdx[node.leftFirst + j];
+                    if (pj >= prim_boxes.size()) continue;
+                    if (prim_boxes[pi].intersects(prim_boxes[pj]))
+                        return true;
+                }
+            }
             continue;
+        }
         const uint32_t left  = node.leftFirst;
         const uint32_t right = node.leftFirst + 1;
         if (_bvh_cross_intersect(bvh, left, right))
@@ -11970,9 +11946,11 @@ static void _check_and_exclude_bvh_node(const tinybvh::BVH&               bvh,
         if (intersects) {
             GLCanvas3D::s_bvh_primary_bounds.merge(bounds);
             primary_bounds = _expand_bounds(GLCanvas3D::s_bvh_primary_bounds, GLCanvas3D::s_expand_bvh_box_dist);
+#if !BBL_RELEASE_TO_PUBLIC
             BOOST_LOG_TRIVIAL(info) << boost::format("assembly thumbnail BVH merge leaf=%1% dist=%2% => primary expanded to min(%3%,%4%,%5%) max(%6%,%7%,%8%)") % node_idx %
                                            dist % primary_bounds.min.x() % primary_bounds.min.y() % primary_bounds.min.z() % primary_bounds.max.x() % primary_bounds.max.y() %
                                            primary_bounds.max.z();
+#endif
             return;
         }
 
@@ -11987,8 +11965,9 @@ static void _check_and_exclude_bvh_node(const tinybvh::BVH&               bvh,
                     names += candidate_volumes[pi]->name;
                 }
             }
+#if !BBL_RELEASE_TO_PUBLIC
             BOOST_LOG_TRIVIAL(info) << boost::format("assembly thumbnail BVH exclude leaf=%1% name=[%2%] dist=%3%") % node_idx % names % dist;
-
+#endif
             for (uint32_t pi : prim_indices) {
                 if (pi < include_flags.size()) include_flags[pi] = false;
                 if (pi < candidate_volumes.size()) {
@@ -12015,6 +11994,101 @@ static void _check_and_exclude_bvh_node(const tinybvh::BVH&               bvh,
     _check_and_exclude_bvh_node(bvh, node.leftFirst,     primary_idx, primary_bounds, threshold_dist, candidate_volumes, candidate_boxes, include_flags);
     _check_and_exclude_bvh_node(bvh, node.leftFirst + 1, primary_idx, primary_bounds, threshold_dist, candidate_volumes, candidate_boxes, include_flags);
 }
+constexpr double c_bvh_expand_dist = 3.0;
+static void _reclaim_isolated_volumes_by_bvh(
+    const std::vector<GLVolume*>&                    candidate_volumes,
+    const std::vector<BoundingBoxf3>&                candidate_boxes,
+    std::vector<bool>&                               include_flags,
+    const std::unordered_map<int, std::vector<size_t>>& obj_to_candidates,
+    int&                                             out_iterations)
+{
+    constexpr int    max_reclaim_iters  = 3;
+    constexpr uint32_t PRIMARY_PRIM = 0;
+    out_iterations = 0;
+
+    for (int iter = 0; iter < max_reclaim_iters; ++iter) {
+        ++out_iterations;
+        const size_t iso_count = GLCanvas3D::s_isolated_volumes.size();
+
+        // Build AABB array: [0] = primary bounds, [1..iso_count] = isolated volumes
+        std::vector<tinybvh::bvhvec4> iso_aabbs;
+        iso_aabbs.reserve((1 + iso_count) * 2);
+
+        {
+            const BoundingBoxf3 pb = _expand_bounds(GLCanvas3D::s_bvh_primary_bounds, c_bvh_expand_dist);
+            iso_aabbs.emplace_back((float) pb.min.x(), (float) pb.min.y(), (float) pb.min.z(), 0.0f);
+            iso_aabbs.emplace_back((float) pb.max.x(), (float) pb.max.y(), (float) pb.max.z(), 0.0f);
+        }
+        for (const auto& iv : GLCanvas3D::s_isolated_volumes) {
+            const BoundingBoxf3 eb = _expand_bounds(iv.world_box_assembly, c_bvh_expand_dist);
+            iso_aabbs.emplace_back((float) eb.min.x(), (float) eb.min.y(), (float) eb.min.z(), 0.0f);
+            iso_aabbs.emplace_back((float) eb.max.x(), (float) eb.max.y(), (float) eb.max.z(), 0.0f);
+        }
+
+        tinybvh::BVH iso_bvh;
+        iso_bvh.BuildAABB(iso_aabbs.data(), (uint32_t) (1 + iso_count));
+
+        GLCanvas3D::s_bvh_expanded_bounds = _expand_bounds(GLCanvas3D::s_bvh_primary_bounds, GLCanvas3D::s_expand_bvh_box_dist);
+        std::vector<bool> reclaimed(iso_count, false);
+        bool              reclaimed_any = false;
+
+        auto reclaim_dfs = [&](auto&& self, uint32_t node_idx) -> void {
+            const auto& node = iso_bvh.bvhNode[node_idx];
+            BoundingBoxf3 node_box = _bvh_node_bounds(iso_bvh, node_idx);
+            if (!node_box.intersects(GLCanvas3D::s_bvh_expanded_bounds))
+                return;
+
+            if (node.isLeaf()) {
+                for (uint32_t i = 0; i < node.triCount; ++i) {
+                    const uint32_t raw_pi = iso_bvh.primIdx[node.leftFirst + i];
+                    if (raw_pi == PRIMARY_PRIM)
+                        continue;
+                    const uint32_t pi = raw_pi - 1; // map back to s_isolated_volumes index
+                    if (pi >= iso_count || reclaimed[pi])
+                        continue;
+                    if (!GLCanvas3D::s_bvh_expanded_bounds.intersects(GLCanvas3D::s_isolated_volumes[pi].world_box_assembly))
+                        continue;
+
+                    reclaimed[pi]  = true;
+                    reclaimed_any  = true;
+                    const int oid  = GLCanvas3D::s_isolated_volumes[pi].obj_idx;
+                    auto map_it    = obj_to_candidates.find(oid);
+                    if (map_it != obj_to_candidates.end()) {
+                        for (size_t j : map_it->second) {
+                            include_flags[j] = true;
+                            GLCanvas3D::s_bvh_primary_bounds.merge(candidate_boxes[j]);
+                        }
+                    }
+                    GLCanvas3D::s_bvh_expanded_bounds = _expand_bounds(GLCanvas3D::s_bvh_primary_bounds, GLCanvas3D::s_expand_bvh_box_dist);
+#if !BBL_RELEASE_TO_PUBLIC
+                    BOOST_LOG_TRIVIAL(info) << boost::format("assembly BVH: reclaimed isolated vol obj_idx=%1% name=%2% (bvh pass %3%)")
+                        % oid % GLCanvas3D::s_isolated_volumes[pi].vol->name % iter;
+#endif
+                }
+                return;
+            }
+            self(self, node.leftFirst);
+            self(self, node.leftFirst + 1);
+        };
+        reclaim_dfs(reclaim_dfs, 0);
+
+        if (!reclaimed_any)
+            break;
+
+        std::vector<GLCanvas3D::IsolatedVolumeInfo> remaining;
+        remaining.reserve(iso_count);
+        for (size_t i = 0; i < iso_count; ++i) {
+            if (!reclaimed[i])
+                remaining.push_back(std::move(GLCanvas3D::s_isolated_volumes[i]));
+        }
+        GLCanvas3D::s_isolated_volumes = std::move(remaining);
+
+        if (GLCanvas3D::s_isolated_volumes.empty())
+            break;
+    }
+    GLCanvas3D::s_bvh_expanded_bounds = _expand_bounds(GLCanvas3D::s_bvh_primary_bounds, GLCanvas3D::s_expand_bvh_box_dist);
+}
+
 
 void GLCanvas3D::_filter_assembly_thumbnail_candidates_by_bvh(const std::vector<GLVolume*>& assemble_candidate_volumes,
     const std::vector<BoundingBoxf3>&  assemble_candidate_boxes,
@@ -12026,11 +12100,10 @@ void GLCanvas3D::_filter_assembly_thumbnail_candidates_by_bvh(const std::vector<
         return;
     }
 
-    constexpr double bvh_expand_dist = 3.0;
     std::vector<BoundingBoxf3> expanded_boxes;
     expanded_boxes.reserve(assemble_candidate_boxes.size());
     for (const BoundingBoxf3& box : assemble_candidate_boxes)
-        expanded_boxes.emplace_back(_expand_bounds(box, bvh_expand_dist));
+        expanded_boxes.emplace_back(_expand_bounds(box, c_bvh_expand_dist));
 
     std::vector<tinybvh::bvhvec4> volume_aabbs;
     volume_aabbs.reserve(expanded_boxes.size() * 2);
@@ -12080,24 +12153,19 @@ void GLCanvas3D::_filter_assembly_thumbnail_candidates_by_bvh(const std::vector<
     };
     dump_bvh_node(dump_bvh_node, 0, "", true, true);
 
-    bool has_intersection = false;
-    if (assemble_candidate_volumes.size() == 2) {
-        has_intersection = expanded_boxes[0].intersects(expanded_boxes[1]);
-    } else {
-        has_intersection = _bvh_has_self_intersection(volume_bvh, 0);
-    }
+    const bool has_intersection = _bvh_has_self_intersection(volume_bvh, 0, expanded_boxes);
     if (!has_intersection) {
         BOOST_LOG_TRIVIAL(info) << "assembly thumbnail BVH: no leaf pairs intersect, skipping (ratio=0)";
         s_assemble_candidate_volumes_size = 0;
         s_assemble_ratio        = 0;
         s_assemble_volume_ratio = 0;
         s_isolated_volumes.clear();
-        s_intersects_volumes_in_assembly.clear();
         return;
     }
 
     double max_leaf_volume = -1.0;
-    const uint32_t primary_idx = _find_largest_leaf_node_by_volume(volume_bvh, 0, max_leaf_volume);
+    uint32_t max_leaf_depth = 0;
+    const uint32_t primary_idx = _find_largest_leaf_node_by_volume(volume_bvh, 0, 0, max_leaf_volume, max_leaf_depth);
     if (primary_idx == uint32_t(-1)) {
         return;
     }
@@ -12119,19 +12187,27 @@ void GLCanvas3D::_filter_assembly_thumbnail_candidates_by_bvh(const std::vector<
     _check_and_exclude_bvh_node(volume_bvh, 0, primary_idx, s_bvh_expanded_bounds, threshold_dist,
                                 assemble_candidate_volumes, assemble_candidate_boxes, include_candidate_volumes);
 
-    s_intersects_volumes_in_assembly.clear();
+    if (!s_isolated_volumes.empty()) {
+        std::unordered_map<int, std::vector<size_t>> obj_to_candidates;
+        obj_to_candidates.reserve(assemble_candidate_volumes.size());
+        for (size_t j = 0; j < assemble_candidate_volumes.size(); ++j)
+            obj_to_candidates[assemble_candidate_volumes[j]->object_idx()].push_back(j);
+
+        int reclaim_iters = 0;
+        const auto reclaim_t0 = std::chrono::steady_clock::now();
+        _reclaim_isolated_volumes_by_bvh(assemble_candidate_volumes, assemble_candidate_boxes,
+                                         include_candidate_volumes, obj_to_candidates, reclaim_iters);
+        const auto reclaim_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - reclaim_t0).count();
+        BOOST_LOG_TRIVIAL(info) << boost::format("assembly BVH: reclaim_isolated_by_bvh done in %1%ms, iterations=%2%, remaining_isolated=%3%")
+            % reclaim_ms % reclaim_iters % s_isolated_volumes.size();
+    }
+
     for (int i = (int) s_isolated_volumes.size() - 1; i >= 0; --i) {
         auto is_intersects = s_bvh_expanded_bounds.intersects(s_isolated_volumes[i].world_box_assembly);
-        if (is_intersects){
-            s_intersects_volumes_in_assembly.emplace_back(s_isolated_volumes[i]);
-        }
         if (s_bvh_expanded_bounds.contains(s_isolated_volumes[i].world_box_assembly) || is_intersects) {
             BOOST_LOG_TRIVIAL(info) << boost::format("assembly BVH: removing false-positive isolated vol obj_idx=%1% (inside expanded bounds)") % s_isolated_volumes[i].obj_idx;
             s_isolated_volumes.erase(s_isolated_volumes.begin() + i);
         }
-    }
-    if (!s_isolated_volumes.empty()) {
-        s_intersects_volumes_in_assembly.clear();
     }
     const double primary_bounds_volume = s_bvh_primary_bounds.volume();
     double total_volume = primary_bounds_volume;

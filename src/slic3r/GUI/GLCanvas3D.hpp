@@ -994,7 +994,6 @@ public:
     };
     static bool                            s_enable_bvh;
     static std::vector<IsolatedVolumeInfo> s_isolated_volumes;
-    static std::vector<IsolatedVolumeInfo> s_intersects_volumes_in_assembly;
     static int                             s_assemble_candidate_volumes_size;
     static bool                            s_isolated_notification_shown;
     static bool                            s_intersects_notification_shown;
@@ -1418,7 +1417,6 @@ private:
         bool                               ban_light              = false,
         const ExtraThumbData&              extra_thumb_data       = ExtraThumbData());
     void _show_isolated_volumes_notification();
-    void _show_intersects_volumes_notification();
     static bool _move_isolated_volumes_closer(wxEvtHandler*);
     void _check_assembly_far_from_origin();
     static bool _reset_assembly_to_origin(wxEvtHandler*);
