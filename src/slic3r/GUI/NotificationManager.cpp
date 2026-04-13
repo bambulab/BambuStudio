@@ -595,6 +595,9 @@ void NotificationManager::PopNotification::init()
 	if (is_finished())
 		return;
 
+	if (!ImGui::GetCurrentContext() || ImGui::GetIO().DisplaySize.x <= 0.0f || ImGui::GetIO().DisplaySize.y <= 0.0f)
+		return;
+
 	count_spaces();
 	count_lines();
 
