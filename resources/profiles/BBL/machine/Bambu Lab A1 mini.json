@@ -8,7 +8,6 @@
     "default_bed_type": "Textured PEI Plate",
     "image_bed_type": "mini",
     "not_support_bed_type": "Cool Plate;Engineering Plate",
-    "support_side_panel_fan": "false",
     "family": "BBL-3DP",
     "machine_tech": "FFF",
     "model_id": "N1",

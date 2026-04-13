@@ -74,7 +74,6 @@
 #define BBL_JSON_KEY_DEFAULT_MATERIALS          "default_materials"
 #define BBL_JSON_KEY_NOT_SUPPORT_BED_TYPE       "not_support_bed_type"
 #define BBL_JSON_KEY_MODEL_ID                   "model_id"
-#define BBL_JSON_KEY_SUPPORT_SIDE_PANEL_FAN     "support_side_panel_fan"
 
 //BBL: json path
 
@@ -140,7 +139,6 @@ public:
         std::string                 middle_texture_rect;
         std::string                 right_icon_offset_bed;
         std::string                 hotend_model;
-        std::string                 support_side_panel_fan{ "true" };
         PrinterVariant*       variant(const std::string &name) {
             for (auto &v : this->variants)
                 if (v.name == name)

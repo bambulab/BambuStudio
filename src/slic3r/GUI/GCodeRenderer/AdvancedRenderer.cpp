@@ -38,11 +38,6 @@ namespace
             rt.x() = 8.0f;
             break;
         }
-        case Slic3r::GUI::gcode::EViewType::AdditionalFanSpeed:
-        {
-            rt.x() = 12.0f;
-            break;
-        }
         case Slic3r::GUI::gcode::EViewType::Temperature:
         {
             rt.x() = 9.0f;
@@ -100,10 +95,6 @@ namespace
         case Slic3r::GUI::gcode::EViewType::FanSpeed:
         {
             return t_move.fan_speed;
-        }
-        case Slic3r::GUI::gcode::EViewType::AdditionalFanSpeed:
-        {
-            return t_move.additional_fan_speed;
         }
         case Slic3r::GUI::gcode::EViewType::Temperature:
         {
@@ -334,8 +325,6 @@ namespace Slic3r
                 case EViewType::Height:
                 case EViewType::Width:
                 case EViewType::Feedrate:
-                case EViewType::FanSpeed:
-                case EViewType::AdditionalFanSpeed:
                 case EViewType::Temperature:
                 case EViewType::LayerTime:
                 case EViewType::VolumetricRate:
@@ -1215,7 +1204,6 @@ namespace Slic3r
                 case EViewType::Width:
                 case EViewType::Feedrate:
                 case EViewType::FanSpeed:
-                case EViewType::AdditionalFanSpeed:
                 case EViewType::Temperature:
                 case EViewType::LayerTime:
                 case EViewType::VolumetricRate:
@@ -1469,8 +1457,6 @@ namespace Slic3r
                     return m_p_extrusions->ranges.feedrate;
                 case Slic3r::GUI::gcode::EViewType::FanSpeed:
                     return m_p_extrusions->ranges.fan_speed;
-                case Slic3r::GUI::gcode::EViewType::AdditionalFanSpeed:
-                    return m_p_extrusions->ranges.additional_fan_speed;
                 case Slic3r::GUI::gcode::EViewType::Temperature:
                     return m_p_extrusions->ranges.temperature;
                 case Slic3r::GUI::gcode::EViewType::LayerTime:

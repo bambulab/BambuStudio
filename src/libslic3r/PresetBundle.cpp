@@ -5039,8 +5039,6 @@ VendorProfile::PrinterModel PresetBundle::load_vendor_configs_from_json(const st
                 } else {
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(": invalid not_support_bed_types %1% for Vendor") % not_support_bed_type_field;
                 }
-            } else if (boost::iequals(it.key(), BBL_JSON_KEY_SUPPORT_SIDE_PANEL_FAN)) {
-                model.support_side_panel_fan = it.value();
             }
         }
     } catch (nlohmann::detail::parse_error &err) {
