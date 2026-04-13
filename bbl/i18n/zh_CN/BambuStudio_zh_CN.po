@@ -16444,7 +16444,7 @@ msgid "Convenience Mode"
 msgstr "便捷模式"
 
 msgid "Quality Mode"
-msgstr "质量指南"
+msgstr "质量模式"
 
 msgid "Custom Mode"
 msgstr "自定义模式"
