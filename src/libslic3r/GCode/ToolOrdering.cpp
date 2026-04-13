@@ -1957,6 +1957,24 @@ std::vector<std::vector<unsigned int>> ToolOrdering::execute_filament_ordering(
     return filament_sequences;
 }
 
+static double snap_to_simple_fraction(double r, int max_denom = 10)
+{
+    double best_r = r;
+    double best_err = 1.0;
+    for (int q = 1; q <= max_denom; ++q) {
+        int p = (int)std::round(r * q);
+        if (p < 0) p = 0;
+        if (p > q) p = q;
+        double candidate = (double)p / q;
+        double err = std::abs(candidate - r);
+        if (err < best_err) {
+            best_err = err;
+            best_r = candidate;
+        }
+    }
+    return best_r;
+}
+
 void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
 {
     const auto &is_mixed = config.filament_is_mixed.values;
@@ -1965,6 +1983,8 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
 
     if (!has_any_mixed_filament(is_mixed))
         return;
+
+    const bool sublayer_enabled = config.enable_mixed_color_sublayer.value;
 
     struct SlotInfo {
         std::vector<unsigned int> components; // 1-based
@@ -1991,10 +2011,16 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
             continue;
         slots[i].ratios = parse_mixed_ratios(
             i < ratio_strs.size() ? ratio_strs[i] : "", slots[i].components.size());
+        if (!sublayer_enabled) {
+            for (double &r : slots[i].ratios)
+                r = snap_to_simple_fraction(r);
+            double sum = 0;
+            for (double r : slots[i].ratios) sum += r;
+            if (sum > 0)
+                for (double &r : slots[i].ratios) r /= sum;
+        }
         slots[i].accum.assign(slots[i].components.size(), 0LL);
     }
-
-    const bool sublayer_enabled = config.enable_mixed_color_sublayer.value;
 
     // Parse gradient settings per slot
     const auto &gradient_flags = config.filament_mixed_gradient.values;

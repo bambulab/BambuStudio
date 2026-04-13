@@ -4171,6 +4171,7 @@ void Sidebar::edit_filament()
 void Sidebar::add_custom_filament(wxColour new_col) {
     if (is_new_project_in_gcode3mf()) { return; }
     if (p->combos_filament.size() >= size_t(EnforcerBlockerType::ExtruderMax)) return;
+    if (wxGetApp().preset_bundle->filament_presets.size() >= size_t(EnforcerBlockerType::ExtruderMax)) return;
 
     size_t      total          = wxGetApp().preset_bundle->filament_presets.size();
     size_t      insert_pos     = p->combos_filament.size();
@@ -5071,10 +5072,13 @@ void Sidebar::update_mixed_filament_list()
         broken_slots.insert(broken_slots.end(), type_mismatch_slots.begin(), type_mismatch_slots.end());
     }
 
-    p->m_btn_add_mixed_filament->Show(can_mix && !has_mixed);
+    bool at_limit = (wxGetApp().preset_bundle->filament_presets.size() >= size_t(EnforcerBlockerType::ExtruderMax));
+    p->m_btn_add_mixed_filament->Show(can_mix && !has_mixed && !at_limit);
     p->m_panel_mixed_title->Show(has_mixed);
     p->m_mixed_scroll_area->Show(has_mixed);
     p->m_panel_mixed_content->Show(has_mixed);
+    if (p->m_btn_mixed_add)
+        p->m_btn_mixed_add->Enable(!at_limit);
     p->m_panel_mixed_warning->Show(false);
 
     // Show/dismiss 3D canvas notification for broken mixed filaments
@@ -5616,6 +5620,7 @@ void Sidebar::add_mixed_filament()
 
     size_t num_physical = p->combos_filament.size();
     if (num_physical < 2) return;
+    if (wxGetApp().preset_bundle->filament_presets.size() >= size_t(EnforcerBlockerType::ExtruderMax)) return;
 
     std::vector<std::string> color_strs, names, types;
     collect_physical_filament_info(color_strs, names, types);

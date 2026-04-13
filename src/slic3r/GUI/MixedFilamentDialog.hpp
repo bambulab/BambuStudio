@@ -12,6 +12,8 @@
 
 class Button;
 class ComboBox;
+class wxScrolledWindow;
+class wxWrapSizer;
 
 namespace Slic3r {
 namespace GUI {
@@ -59,11 +61,13 @@ private:
     void on_add_material();
     void on_remove_material();
     void on_recommendation_clicked(unsigned int comp_a, unsigned int comp_b);
+    void on_recommendation_clicked_triple(unsigned int a, unsigned int b, unsigned int c);
     void update_preview();
     void update_ok_button_state();
     void update_gradient_direction_items();
     void update_component_count_ui();
     void rebuild_all_combos();
+    void rebuild_recommendation_items();
     void paint_warning_panel(wxPaintEvent& evt);
 
     wxBitmap make_swatch_bitmap(size_t idx);
@@ -106,6 +110,9 @@ private:
     wxBoxSizer*                 m_ratio_sizer{nullptr};
     wxBoxSizer*                 m_triangle_sizer{nullptr};
     wxBoxSizer*                 m_right_sizer{nullptr};
+
+    wxScrolledWindow*           m_recommendation_scroll{nullptr};
+    wxWrapSizer*                m_recommendation_grid{nullptr};
 
     // Cached preview bitmaps (loaded once at construction)
     wxBitmap                    m_preview_bmp_two;
