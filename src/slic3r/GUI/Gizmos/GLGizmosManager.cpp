@@ -1158,7 +1158,7 @@ bool GLGizmosManager::on_char(wxKeyEvent& evt)
         }
     }
 
-    if (!processed && !evt.HasModifiers())
+    if (!processed && !evt.HasModifiers() && !evt.ShiftDown())//single key shortcut
     {
         if (handle_shortcut(keyCode))
             processed = true;
