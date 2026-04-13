@@ -8,7 +8,6 @@
     ],
     "printer_variant": "0.4",
     "auxiliary_fan": "1",
-    "fan_direction": "undefine",
     "best_object_pos": "0.5x0.5",
     "default_filament_profile": [],
     "default_print_profile": "0.16mm Optimal @BBL X1C",
@@ -25,7 +24,6 @@
     "enable_long_retraction_when_cut": "0",
     "enable_pre_heating": "0",
     "extruder_height_gap": "0",
-    "group_algo_with_time": "0",
     "extruder_offset": [
         "0x0"
     ],
