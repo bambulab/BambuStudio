@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-09 11:33+0800\n"
+"POT-Creation-Date: 2026-04-13 10:22+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -46,6 +46,24 @@ msgstr "Extrusor auxiliar"
 msgid "auxiliary extruder"
 msgstr "extrusor auxiliar"
 
+msgid "Left Extruder"
+msgstr "Extrusor izquierdo"
+
+msgid "Left extruder"
+msgstr "Extrusor izquierdo"
+
+msgid "left extruder"
+msgstr "extrusor izquierdo"
+
+msgid "Right Extruder"
+msgstr "Extrusor derecho"
+
+msgid "Right extruder"
+msgstr "Extrusor derecha"
+
+msgid "right extruder"
+msgstr "extrusor derecho"
+
 msgid "Main Nozzle"
 msgstr "Boquilla Principal"
 
@@ -63,6 +81,24 @@ msgstr "Boquilla auxiliar"
 
 msgid "auxiliary nozzle"
 msgstr "boquilla auxiliar"
+
+msgid "Left Nozzle"
+msgstr "Boquilla izquierda"
+
+msgid "Left nozzle"
+msgstr "Boquilla izquierda"
+
+msgid "left nozzle"
+msgstr "Boquilla izquierda"
+
+msgid "Right Nozzle"
+msgstr "Boquilla derecha"
+
+msgid "Right nozzle"
+msgstr "Boquilla derecha"
+
+msgid "right nozzle"
+msgstr "Boquilla derecha"
 
 msgid "Main Hotend"
 msgstr "Hotend Principal"
@@ -82,6 +118,24 @@ msgstr "Hotend Auxiliar"
 msgid "auxiliary hotend"
 msgstr "hotend auxiliar"
 
+msgid "Left Hotend"
+msgstr ""
+
+msgid "Left hotend"
+msgstr ""
+
+msgid "left hotend"
+msgstr ""
+
+msgid "Right Hotend"
+msgstr ""
+
+msgid "Right hotend"
+msgstr ""
+
+msgid "right hotend"
+msgstr ""
+
 msgid "main"
 msgstr "principal"
 
@@ -93,6 +147,18 @@ msgstr "Principal"
 
 msgid "Auxiliary"
 msgstr "Auxiliar"
+
+msgid "left"
+msgstr "izquierda"
+
+msgid "right"
+msgstr "derecha"
+
+msgid "Left"
+msgstr "Izquierda"
+
+msgid "Right"
+msgstr "Derecha"
 
 msgid "extruder"
 msgstr "extrusor"
@@ -2891,14 +2957,6 @@ msgstr "Se desconoce el tipo de filamento que se requiere para realizar esta acc
 msgid "/"
 msgstr "/"
 
-msgctxt "FilamentTrack"
-msgid "Left"
-msgstr ""
-
-msgctxt "FilamentTrack"
-msgid "Right"
-msgstr ""
-
 msgid "Confirm"
 msgstr "Confirmar"
 
@@ -2989,6 +3047,10 @@ msgstr "Derecha(Filtro)"
 msgctxt "air_duct"
 msgid "Left(Aux)"
 msgstr "Izq (Aux)"
+
+msgctxt "air_duct"
+msgid "Left(Heating)"
+msgstr ""
 
 msgctxt "air_duct"
 msgid "Chamber"
@@ -3625,12 +3687,6 @@ msgstr "Impresión con filamento en una bobina externa"
 msgid "Auto Refill"
 msgstr "Auto Refill"
 
-msgid "Left"
-msgstr "Izquierda"
-
-msgid "Right"
-msgstr "Derecha"
-
 msgid "When the current material run out, the printer will continue to print in the following order."
 msgstr "Cuando se acabe el material actual, la impresora seguirá imprimiendo los materiales en el orden siguiente."
 
@@ -3662,15 +3718,9 @@ msgstr "SECO"
 msgid "WET"
 msgstr "MOJADO"
 
-msgid "left nozzle"
-msgstr "Boquilla izquierda"
-
 #, c-format, boost-format
 msgid "Please select the filament installed on the %s."
 msgstr "Por favor, seleccione el archivo instalado en el %s."
-
-msgid "right nozzle"
-msgstr "Boquilla derecha"
 
 msgid "Please select the filament."
 msgstr "Por favor, seleccione el filamento."
@@ -5089,7 +5139,7 @@ msgstr "Volumen:"
 msgid "Size:"
 msgstr "Tamaño:"
 
-msgid "Overview:isolated objects detected"
+msgid "Isolated objects detected"
 msgstr ""
 
 msgid "Click to move them closer to the main body."
@@ -5097,6 +5147,10 @@ msgstr "Haga clic para acercarlos al cuerpo principal."
 
 msgid "Move closer"
 msgstr "Acérquese"
+
+#, boost-format
+msgid "Since it is unassembled, %1% extends beyond the main body, so the thumbnail can't be rendered."
+msgstr ""
 
 msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"
 msgstr "El cuadro delimitador del ensamblaje principal está demasiado lejos del origen del mundo. ¿Restablecer las relaciones del ensamblaje y moverlo al origen?"
@@ -7120,14 +7174,6 @@ msgstr ""
 msgid "Switch diameter"
 msgstr "Diámetro del interruptor"
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr "Boquilla izquierda: %smm"
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr "Boquilla derecha: %smm"
-
 msgid "Sync printer information"
 msgstr "Sincronizar información de la impresora"
 
@@ -7173,12 +7219,6 @@ msgstr "Sincronizar información"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Sincronizar la información de la boquilla y el número de AMS"
 
-msgid "Left Nozzle"
-msgstr "Boquilla izquierda"
-
-msgid "Right Nozzle"
-msgstr "Boquilla derecha"
-
 msgid "Project Filaments"
 msgstr "Filamentos del proyecto"
 
@@ -7212,11 +7252,14 @@ msgstr "Agregar filamento mixto"
 msgid "Remove last mixed filament"
 msgstr "Eliminar el último filamento mixto"
 
-msgid "Deleted material was used in mixed filaments. Please re-edit the affected mixed filaments."
-msgstr "El material eliminado se ha utilizado en filamentos mixtos. Por favor, vuelva a editar los filamentos mixtos afectados."
+msgid "Mixed filament has invalid or mismatched components. Please re-edit affected entries."
+msgstr ""
 
 msgid "Search plate, object and part."
 msgstr "Buscar placa, objeto y pieza."
+
+msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
+msgstr ""
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -7238,14 +7281,11 @@ msgstr ""
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "La información sobre el tipo y el color del filamento se ha sincronizado, pero no se incluye la información sobre las ranuras."
 
-msgid "Deleted material was used in mixed filaments. Please re-edit affected entries before use."
-msgstr "El material eliminado se ha utilizado en filamentos mixtos. Por favor, edite las entradas afectadas antes de usarlas."
-
 msgid "Mixed filament has broken component references"
 msgstr "El filamento mixto tiene referencias de componentes rotos"
 
-msgid "Edit / Delete"
-msgstr "Editar / Eliminar"
+msgid "Edit / Delete / Merge"
+msgstr ""
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -7885,6 +7925,14 @@ msgstr "Los siguientes caracteres no están permitidos por un sistema de archivo
 msgid "Save Sliced file as:"
 msgstr "Guardar el archivo rebanado como:"
 
+msgid ""
+"Failed to export the sliced file.\n"
+"Please check whether the file is occupied by another program or if there is enough disk space."
+msgstr ""
+
+msgid "Export sliced file"
+msgstr "Export Sliced File"
+
 #, c-format, boost-format
 msgid "The file %s has been sent to the printer's storage space and can be viewed on the printer."
 msgstr "El archivo %s se envió al almacenamiento de la impresora y se puede ver en la impresora."
@@ -7916,6 +7964,10 @@ msgstr "Motivo: %1% \"\" y otra parte no tienen intersección."
 
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Partes negativas detectadas. ¿Desea realizar una booleana de malla antes de exportar?"
+
+#, c-format, boost-format
+msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
+msgstr ""
 
 msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr "No se recomienda utilizar filamentos de PVA con boquillas de 0,2 mm."
@@ -8210,14 +8262,8 @@ msgstr "Desactive mi elección para sincronizar los ajustes preestablecidos de l
 msgid "Clear my choice for Load 3mf dialog settings."
 msgstr "Borrar mi elección para la configuración del cuadro de diálogo Cargar 3mf."
 
-msgid "Show the warning dialog again when importing non-Bambu 3MF files"
-msgstr "Vuelva a mostrar el cuadro de diálogo de advertencia al importar archivos 3MF que no sean de Bambu"
-
-msgid "Clear my choice for disabling recommendation for support material parameters."
-msgstr "Borrar mi elección para deshabilitar la recomendación de parámetros del material del soporte."
-
-msgid "Clear my choice for disabling recommendation for support material parameters"
-msgstr "Borrar mi elección para deshabilitar la recomendación de parámetros del material del soporte"
+msgid "Clear my choice for disabling support parameter recommendation."
+msgstr ""
 
 msgid "3D Settings"
 msgstr "Configuración 3D"
@@ -8603,6 +8649,9 @@ msgstr "Jarrón en espiral"
 
 msgid "First layer filament sequence"
 msgstr "Secuencia de filamentos de la primera capa"
+
+msgid "The filament list contains mixed filaments. Custom filament sequence will not take effect."
+msgstr ""
 
 msgid "Same as Global Bed Type"
 msgstr "Igual que el tipo de cama global"
@@ -9013,6 +9062,9 @@ msgstr "El %s diámetro (%.1fmm) de la impresora actual no coincide con el de la
 msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
 msgstr "El diámetro actual de la boquilla (%.1fmm) no coincide con el de la lima de corte (%.1fmm). Asegúrese de que la boquilla instalada coincida con los ajustes de la impresora y, a continuación, configure el ajuste preestablecido de la impresora correspondiente al cortar."
 
+msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
+msgstr ""
+
 msgid "This print requires a Filament Track Switch. Please install it first."
 msgstr "Esta impresión requiere un Interruptor de Seguimiento de Filamento. Por favor, instálelo primero."
 
@@ -9197,24 +9249,6 @@ msgstr "Rebanado correcto."
 msgid "View all Daily tips"
 msgstr "Ver todos los Consejos diarios"
 
-msgid "Availabale Objects"
-msgstr "Objetos disponibles"
-
-msgid "Main Material"
-msgstr "Material principal"
-
-msgid "Support Material"
-msgstr "Material de soporte"
-
-msgid "Recommended Parameters"
-msgstr "Parámetros recomendados"
-
-msgid "Compatible model and support filaments detected. It is recommended to use the suggested filaments for printing the support interfaces of these objects, along with the recommended parameters."
-msgstr "Se han detectado filamentos compatibles y de soporte. Se recomienda utilizar los filamentos sugeridos para imprimir las interfaces de soporte de estos objetos, junto con los parámetros recomendados."
-
-msgid "Don't remind me again"
-msgstr "No me lo vuelvas a recordar"
-
 msgid "Failed to create socket"
 msgstr "No se pudo crear el socket"
 
@@ -9351,18 +9385,6 @@ msgstr "Haga clic aquí para restablecer todos los ajustes al último ajuste pre
 msgid "Support interface speed"
 msgstr "Velocidad de interfaz compatible"
 
-msgid "When using PLA to support TPU, We recommend the following settings:"
-msgstr "Cuando se utiliza PLA para soportar TPU, recomendamos la siguiente configuración:"
-
-msgid "When using soluble material for the support interface, We recommend the following settings:"
-msgstr "Al utilizar material soluble para la interfaz del soporte, recomendamos la siguiente configuración:"
-
-msgid "When using support material for the support interface, We recommend the following settings:"
-msgstr "Al utilizar material de soporte para la interfaz del soporte, recomendamos la siguiente configuración:"
-
-msgid "Do you want to apply these settings?"
-msgstr "¿Desea aplicar esta configuración?"
-
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Se requiere una torre de purga para el cambio de boquilla. Puede haber imperfecciones en el modelo sin la torre de purga. ¿Está seguro de que desea desactivar la torre de purga?"
 
@@ -9417,6 +9439,22 @@ msgstr ""
 "¿Cambiar esta configuración automáticamente? \n"
 "Sí- Cambia esta configuración automáticamente.\n"
 "No- No cambies la configuración por mí."
+
+#, c-format, boost-format
+msgid "When using %s to support %s, We recommend the following settings:"
+msgstr ""
+
+msgid "When using PLA to support TPU, We recommend the following settings:"
+msgstr "Cuando se utiliza PLA para soportar TPU, recomendamos la siguiente configuración:"
+
+msgid "When using soluble material for the support interface, We recommend the following settings:"
+msgstr "Al utilizar material soluble para la interfaz del soporte, recomendamos la siguiente configuración:"
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr "Al utilizar material de soporte para la interfaz del soporte, recomendamos la siguiente configuración:"
+
+msgid "Do you want to apply these settings?"
+msgstr "¿Desea aplicar esta configuración?"
 
 msgid ""
 "Layer height is too small.\n"
@@ -11339,12 +11377,6 @@ msgstr "Suavizar la velocidad en la dirección z"
 
 msgid "Exporting G-code"
 msgstr "Exportando código G"
-
-msgid "left"
-msgstr "izquierda"
-
-msgid "right"
-msgstr "derecha"
 
 msgid "Grouping error: filament"
 msgstr "Error de agrupación: filamento"
@@ -14953,11 +14985,8 @@ msgstr ""
 "- Materiales que pueden compartir la misma temperatura de la cama caliente\n"
 "- Diferentes marcas y familias de filamentos (Marca = Bambu, Familia = Basic, Matte)\n"
 
-msgid "- Right Nozzle (Aux) does not support automatic flow calibration."
-msgstr "- La boquilla derecha (auxiliar) no admite la calibración automática del flujo."
-
-msgid "- Left Nozzle (Aux) does not support automatic flow calibration."
-msgstr "- La boquilla izquierda (auxiliar) no admite la calibración automática del flujo."
+msgid "(Aux) does not support automatic flow calibration."
+msgstr ""
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- Nota: El número del Hotend está vinculado al soporte. Cuando el Hotend se traslada a un soporte nuevo, su número se actualizará automáticamente.\n"
@@ -15099,6 +15128,9 @@ msgstr "Se debe seleccionar la boquilla."
 
 msgid "PA Calibration"
 msgstr "Calibración PA"
+
+msgid "Extruder type"
+msgstr ""
 
 msgid "PA Tower"
 msgstr "Torre PA"
@@ -16504,6 +16536,9 @@ msgstr "Agrupación de filamentos"
 msgid "Fila Saving"
 msgstr "Ahorrar filamento"
 
+msgid "Don't remind me again"
+msgstr "No me lo vuelvas a recordar"
+
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "No aparecerá ninguna otra ventana emergente. Puedes actualizarla en «Preferencias»"
 
@@ -17233,6 +17268,61 @@ msgstr ""
 "Fiabilidad a la primera\n"
 "Menos supervisión, resultados más predecibles. Ejemplo: una pequeña granja que procesa piezas de PETG evita sorpresas de \"fallo a la hora 6\" y mantiene los lotes según lo previsto."
 
+#~ msgctxt "FilamentTrack"
+#~ msgid "Left"
+#~ msgstr "Izquierda"
+
+#~ msgctxt "FilamentTrack"
+#~ msgid "Right"
+#~ msgstr "Derecha"
+
+#, c-format, boost-format
+#~ msgid "Left nozzle: %smm"
+#~ msgstr "Boquilla izquierda: %smm"
+
+#, c-format, boost-format
+#~ msgid "Right nozzle: %smm"
+#~ msgstr "Boquilla derecha: %smm"
+
+#~ msgid "Deleted material was used in mixed filaments. Please re-edit the affected mixed filaments."
+#~ msgstr "El material eliminado se ha utilizado en filamentos mixtos. Por favor, vuelva a editar los filamentos mixtos afectados."
+
+#~ msgid "Deleted material was used in mixed filaments. Please re-edit affected entries before use."
+#~ msgstr "El material eliminado se ha utilizado en filamentos mixtos. Por favor, edite las entradas afectadas antes de usarlas."
+
+#~ msgid "Edit / Delete"
+#~ msgstr "Editar / Eliminar"
+
+#~ msgid "Show the warning dialog again when importing non-Bambu 3MF files"
+#~ msgstr "Vuelva a mostrar el cuadro de diálogo de advertencia al importar archivos 3MF que no sean de Bambu"
+
+#~ msgid "Clear my choice for disabling recommendation for support material parameters."
+#~ msgstr "Borrar mi elección para deshabilitar la recomendación de parámetros del material del soporte."
+
+#~ msgid "Clear my choice for disabling recommendation for support material parameters"
+#~ msgstr "Borrar mi elección para deshabilitar la recomendación de parámetros del material del soporte"
+
+#~ msgid "Availabale Objects"
+#~ msgstr "Objetos disponibles"
+
+#~ msgid "Main Material"
+#~ msgstr "Material principal"
+
+#~ msgid "Support Material"
+#~ msgstr "Material de soporte"
+
+#~ msgid "Recommended Parameters"
+#~ msgstr "Parámetros recomendados"
+
+#~ msgid "Compatible model and support filaments detected. It is recommended to use the suggested filaments for printing the support interfaces of these objects, along with the recommended parameters."
+#~ msgstr "Se han detectado filamentos compatibles y de soporte. Se recomienda utilizar los filamentos sugeridos para imprimir las interfaces de soporte de estos objetos, junto con los parámetros recomendados."
+
+#~ msgid "- Right Nozzle (Aux) does not support automatic flow calibration."
+#~ msgstr "- La boquilla derecha (auxiliar) no admite la calibración automática del flujo."
+
+#~ msgid "- Left Nozzle (Aux) does not support automatic flow calibration."
+#~ msgstr "- La boquilla izquierda (auxiliar) no admite la calibración automática del flujo."
+
 #~ msgid "Timing belt artifacts compensation"
 #~ msgstr "Compensación de los artefactos de la correa de distribución"
 
@@ -17264,12 +17354,6 @@ msgstr ""
 #~ msgid "Identify and display overview"
 #~ msgstr "Identificar y mostrar la descripción general"
 
-#~ msgid "right extruder"
-#~ msgstr "extrusor derecho"
-
-#~ msgid "left extruder"
-#~ msgstr "extrusor izquierdo"
-
 #~ msgctxt "FilamentTrack"
 #~ msgid "right extruder"
 #~ msgstr "extrusor derecho"
@@ -17288,12 +17372,6 @@ msgstr ""
 
 #~ msgid "Please select the filament installed on the right nozzle."
 #~ msgstr "Seleccione el filamento instalado en la boquilla derecha."
-
-#~ msgid "Left nozzle"
-#~ msgstr "Boquilla izquierda"
-
-#~ msgid "Right nozzle"
-#~ msgstr "Boquilla derecha"
 
 #, boost-format
 #~ msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
@@ -17335,18 +17413,6 @@ msgstr ""
 
 #~ msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
 #~ msgstr "¿Desea modificar los siguientes parámetros de la tobera izquierda por los de la tobera derecha?"
-
-#~ msgid "Left Extruder"
-#~ msgstr "Extrusor izquierdo"
-
-#~ msgid "Right Extruder"
-#~ msgstr "Extrusor derecho"
-
-#~ msgid "Left extruder"
-#~ msgstr "Extrusor izquierdo"
-
-#~ msgid "Right extruder"
-#~ msgstr "Extrusor derecha"
 
 #~ msgid "Ridged Multifractal"
 #~ msgstr "Multifractal con crestas"
@@ -19481,9 +19547,6 @@ msgstr ""
 
 #~ msgid "Export settings to a file."
 #~ msgstr "Exporta los ajustes a un archivo."
-
-#~ msgid "Export sliced file"
-#~ msgstr "Exportar archivo rebanado"
 
 #~ msgid "Export slicing data"
 #~ msgstr "Exportar datos de slicing"

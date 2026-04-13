@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-09 11:33+0800\n"
+"POT-Creation-Date: 2026-04-13 10:22+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -43,6 +43,24 @@ msgstr "Extra extruder"
 msgid "auxiliary extruder"
 msgstr "extra extruder"
 
+msgid "Left Extruder"
+msgstr "Vänster Extruder"
+
+msgid "Left extruder"
+msgstr "Vänster extruder"
+
+msgid "left extruder"
+msgstr "vänster extruder"
+
+msgid "Right Extruder"
+msgstr "Höger extruder"
+
+msgid "Right extruder"
+msgstr "Höger extruder"
+
+msgid "right extruder"
+msgstr "höger extruder"
+
 msgid "Main Nozzle"
 msgstr "Huvud Nozzle"
 
@@ -60,6 +78,24 @@ msgstr "Extra nozzle"
 
 msgid "auxiliary nozzle"
 msgstr "extra nozzle"
+
+msgid "Left Nozzle"
+msgstr "Vänster nozzle"
+
+msgid "Left nozzle"
+msgstr "Vänster nozzle"
+
+msgid "left nozzle"
+msgstr "vänster nozzle"
+
+msgid "Right Nozzle"
+msgstr "Höger nozzle"
+
+msgid "Right nozzle"
+msgstr "Höger nozzle"
+
+msgid "right nozzle"
+msgstr "höger nozzle"
 
 msgid "Main Hotend"
 msgstr "Huvud Hotend"
@@ -79,6 +115,24 @@ msgstr "Extra hotend"
 msgid "auxiliary hotend"
 msgstr "extra hotend"
 
+msgid "Left Hotend"
+msgstr ""
+
+msgid "Left hotend"
+msgstr ""
+
+msgid "left hotend"
+msgstr ""
+
+msgid "Right Hotend"
+msgstr ""
+
+msgid "Right hotend"
+msgstr ""
+
+msgid "right hotend"
+msgstr ""
+
 msgid "main"
 msgstr "huvud"
 
@@ -90,6 +144,18 @@ msgstr "Huvud"
 
 msgid "Auxiliary"
 msgstr "Extra"
+
+msgid "left"
+msgstr "vänster"
+
+msgid "right"
+msgstr "höger"
+
+msgid "Left"
+msgstr "Vänster"
+
+msgid "Right"
+msgstr "Höger"
 
 msgid "extruder"
 msgstr ""
@@ -2888,14 +2954,6 @@ msgstr "Filament typ är okänd vilket krävs för att utföra denna åtgärd. S
 msgid "/"
 msgstr "/"
 
-msgctxt "FilamentTrack"
-msgid "Left"
-msgstr ""
-
-msgctxt "FilamentTrack"
-msgid "Right"
-msgstr ""
-
 msgid "Confirm"
 msgstr "Bekräfta"
 
@@ -2986,6 +3044,10 @@ msgstr "Höger(Filter)"
 msgctxt "air_duct"
 msgid "Left(Aux)"
 msgstr "Vänster(Aux)"
+
+msgctxt "air_duct"
+msgid "Left(Heating)"
+msgstr ""
 
 msgctxt "air_duct"
 msgid "Chamber"
@@ -3622,12 +3684,6 @@ msgstr "Skriv ut med filament på en extern spole"
 msgid "Auto Refill"
 msgstr "Auto Refill"
 
-msgid "Left"
-msgstr "Vänster"
-
-msgid "Right"
-msgstr "Höger"
-
 msgid "When the current material run out, the printer will continue to print in the following order."
 msgstr "När det aktuella materialet tar slut, fortsätter printern att skriva ut material i följande ordning."
 
@@ -3659,15 +3715,9 @@ msgstr "TORR"
 msgid "WET"
 msgstr "FUKTIG"
 
-msgid "left nozzle"
-msgstr "vänster nozzle"
-
 #, c-format, boost-format
 msgid "Please select the filament installed on the %s."
 msgstr "Välj det filament som är installerat på %s."
-
-msgid "right nozzle"
-msgstr "höger nozzle"
 
 msgid "Please select the filament."
 msgstr "Välj filament."
@@ -5086,7 +5136,7 @@ msgstr "Volym:"
 msgid "Size:"
 msgstr "Storlek:"
 
-msgid "Overview:isolated objects detected"
+msgid "Isolated objects detected"
 msgstr ""
 
 msgid "Click to move them closer to the main body."
@@ -5094,6 +5144,10 @@ msgstr "Klicka för att flytta dem närmare huvuddelen."
 
 msgid "Move closer"
 msgstr "Flytta närmare"
+
+#, boost-format
+msgid "Since it is unassembled, %1% extends beyond the main body, so the thumbnail can't be rendered."
+msgstr ""
 
 msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"
 msgstr "Huvudmonteringens avgränsnings ruta är för långt från nollpunkt. Återställ monterings relationer och flytta till nollpunkt?"
@@ -7117,14 +7171,6 @@ msgstr ""
 msgid "Switch diameter"
 msgstr "Byt diameter"
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr "Vänster nozzle: %smm"
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr "Höger nozzle: %smm"
-
 msgid "Sync printer information"
 msgstr "Synkronisera printer information"
 
@@ -7170,12 +7216,6 @@ msgstr "Synkroniserings information"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Synkronisera nozzle information och antalet AMS"
 
-msgid "Left Nozzle"
-msgstr "Vänster nozzle"
-
-msgid "Right Nozzle"
-msgstr "Höger nozzle"
-
 msgid "Project Filaments"
 msgstr "Projekt Filament"
 
@@ -7209,11 +7249,14 @@ msgstr "Lägg till blandat filament"
 msgid "Remove last mixed filament"
 msgstr "Ta bort det sista blandade filamentet"
 
-msgid "Deleted material was used in mixed filaments. Please re-edit the affected mixed filaments."
-msgstr "Raderat material användes i blandade filament. Vänligen redigera om de berörda blandade filamenten."
+msgid "Mixed filament has invalid or mismatched components. Please re-edit affected entries."
+msgstr ""
 
 msgid "Search plate, object and part."
 msgstr "Sök platta, objekt och del."
+
+msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
+msgstr ""
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -7233,14 +7276,11 @@ msgstr "Det finns några okända eller okompatibla filament som mappats till gen
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "Filamenttyp och färginformation har synkroniserats, men fack information ingår inte."
 
-msgid "Deleted material was used in mixed filaments. Please re-edit affected entries before use."
-msgstr "Raderat material användes i blandade filament. Vänligen redigera berörda poster innan användning."
-
 msgid "Mixed filament has broken component references"
 msgstr "Blandat filament har trasiga komponent referenser"
 
-msgid "Edit / Delete"
-msgstr "Redigera / Ta bort"
+msgid "Edit / Delete / Merge"
+msgstr ""
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -7880,6 +7920,14 @@ msgstr "Följande tecken är inte tillåtna i ett FAT-fil system:"
 msgid "Save Sliced file as:"
 msgstr "Spara beredningen som:"
 
+msgid ""
+"Failed to export the sliced file.\n"
+"Please check whether the file is occupied by another program or if there is enough disk space."
+msgstr ""
+
+msgid "Export sliced file"
+msgstr "Export Sliced File"
+
 #, c-format, boost-format
 msgid "The file %s has been sent to the printer's storage space and can be viewed on the printer."
 msgstr "Filen %s har skickats till skrivarens lagringsutrymme och kan visas på skrivaren."
@@ -7911,6 +7959,10 @@ msgstr "Orsak: \"%1%\" och en annan del har ingen korsning."
 
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Negativa delar upptäckta. Vill du utföra boolean av mesh före export?"
+
+#, c-format, boost-format
+msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
+msgstr ""
 
 msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr "Det är inte rekommenderat att använda PVA-filament med 0.2 mm nozzle."
@@ -8203,14 +8255,8 @@ msgstr "Rensa mitt val för synkronisering av printerns inställning efter laddn
 msgid "Clear my choice for Load 3mf dialog settings."
 msgstr "Rensa mitt val för Inställningar för dialogrutan Ladda 3mf."
 
-msgid "Show the warning dialog again when importing non-Bambu 3MF files"
-msgstr "Visa varningsdialogrutan igen när du importerar icke Bambu 3MF-filer"
-
-msgid "Clear my choice for disabling recommendation for support material parameters."
-msgstr "Rensa mitt val för att inaktivera rekommendation för stöd material parametrar."
-
-msgid "Clear my choice for disabling recommendation for support material parameters"
-msgstr "Rensa mitt val för att inaktivera rekommendation för stöd material parametrar"
+msgid "Clear my choice for disabling support parameter recommendation."
+msgstr ""
 
 msgid "3D Settings"
 msgstr "3D inställningar"
@@ -8596,6 +8642,9 @@ msgstr "Spiral vas"
 
 msgid "First layer filament sequence"
 msgstr "Första lagrets filament sekvens"
+
+msgid "The filament list contains mixed filaments. Custom filament sequence will not take effect."
+msgstr ""
 
 msgid "Same as Global Bed Type"
 msgstr "Samma som Global Bed Type"
@@ -9006,6 +9055,9 @@ msgstr "%s diametern(%.1fmm) på den aktuella printern stämmer inte överens me
 msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
 msgstr "Det aktuella nozzle diametern (%.1fmm) stämmer inte överens med berednings filen (%.1fmm). Vänligen kontrollera att nozzle stämmer överens med inställningarna i printern och ställ sedan in motsvarande printer inställningar när du bereder."
 
+msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
+msgstr ""
+
 msgid "This print requires a Filament Track Switch. Please install it first."
 msgstr "Denna utskrift kräver en filament spårbytare. Vänligen installera den först."
 
@@ -9190,24 +9242,6 @@ msgstr "Beredning ok."
 msgid "View all Daily tips"
 msgstr "Visa alla dagliga tips"
 
-msgid "Availabale Objects"
-msgstr "Tillgängliga objekt"
-
-msgid "Main Material"
-msgstr "Huvud material"
-
-msgid "Support Material"
-msgstr "Stöd material"
-
-msgid "Recommended Parameters"
-msgstr "Rekommenderade parametrar"
-
-msgid "Compatible model and support filaments detected. It is recommended to use the suggested filaments for printing the support interfaces of these objects, along with the recommended parameters."
-msgstr "Kompatibla modell- och stöd filament upptäckta. Det rekommenderas att använda de föreslagna filamenten för att skriva ut stöd gräns snitten för dessa objekt, tillsammans med de rekommenderade parametrarna."
-
-msgid "Don't remind me again"
-msgstr "Påminn mig inte igen"
-
 msgid "Failed to create socket"
 msgstr "Det gick inte att skapa uttaget"
 
@@ -9344,18 +9378,6 @@ msgstr "Klicka för att återställa alla inställningar till den senast sparade
 msgid "Support interface speed"
 msgstr "Stöd gräns snittets hastighet"
 
-msgid "When using PLA to support TPU, We recommend the following settings:"
-msgstr "När du använder PLA som stödmaterial för TPU, rekommenderar vi följande inställningar:"
-
-msgid "When using soluble material for the support interface, We recommend the following settings:"
-msgstr "När du använder lösligt material för stöd gräns snittet, rekommenderar vi följande inställningar:"
-
-msgid "When using support material for the support interface, We recommend the following settings:"
-msgstr "När du använder stödmaterial för stöd gräns snittet rekommenderar vi följande inställningar:"
-
-msgid "Do you want to apply these settings?"
-msgstr "Vill du använda dessa inställningar?"
-
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Prime tower krävs för nozzle byte. Det kan bli brister på modellen utan prime tower. Är du säker på att du vill inaktivera prime tower?"
 
@@ -9410,6 +9432,22 @@ msgstr ""
 "Ändra dessa inställningar automatiskt?\n"
 "Ja -  Ändra dessa inställningar automatiskt\n"
 "Nej - Ändra inte dessa inställningar åt mig"
+
+#, c-format, boost-format
+msgid "When using %s to support %s, We recommend the following settings:"
+msgstr ""
+
+msgid "When using PLA to support TPU, We recommend the following settings:"
+msgstr "När du använder PLA som stödmaterial för TPU, rekommenderar vi följande inställningar:"
+
+msgid "When using soluble material for the support interface, We recommend the following settings:"
+msgstr "När du använder lösligt material för stöd gräns snittet, rekommenderar vi följande inställningar:"
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr "När du använder stödmaterial för stöd gräns snittet rekommenderar vi följande inställningar:"
+
+msgid "Do you want to apply these settings?"
+msgstr "Vill du använda dessa inställningar?"
 
 msgid ""
 "Layer height is too small.\n"
@@ -11332,12 +11370,6 @@ msgstr "Utjämning av hastighet i z-riktning"
 
 msgid "Exporting G-code"
 msgstr "Exporterar G-kod"
-
-msgid "left"
-msgstr "vänster"
-
-msgid "right"
-msgstr "höger"
 
 msgid "Grouping error: filament"
 msgstr "Grupperings fel: filament"
@@ -14949,11 +14981,8 @@ msgstr ""
 "- Material som kan ha samma temperatur på den varma bädden\n"
 "- Olika filament märke och familjer (Märke = Bambu, Familj = Basic, Matte)\n"
 
-msgid "- Right Nozzle (Aux) does not support automatic flow calibration."
-msgstr "- Höger nozzle (Aux) stöder inte automatisk flödes kalibrering."
-
-msgid "- Left Nozzle (Aux) does not support automatic flow calibration."
-msgstr "- Vänster nozzle (Aux) stöder inte automatisk flödes kalibrering."
+msgid "(Aux) does not support automatic flow calibration."
+msgstr ""
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- Obs: Hotend numret är kopplat till hållaren. När hotend flyttas till en ny hållare uppdateras dess nummer automatiskt.\n"
@@ -15095,6 +15124,9 @@ msgstr "Nozzle måste väljas."
 
 msgid "PA Calibration"
 msgstr "PA kalibrering"
+
+msgid "Extruder type"
+msgstr ""
 
 msgid "PA Tower"
 msgstr "PA torn"
@@ -16498,6 +16530,9 @@ msgstr "Filament gruppering"
 msgid "Fila Saving"
 msgstr "Filament besparing"
 
+msgid "Don't remind me again"
+msgstr "Påminn mig inte igen"
+
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "Inget ytterligare popup-fönster kommer att visas. Du kan uppdatera detta i \"Inställningar\""
 
@@ -17229,6 +17264,61 @@ msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
 
+#~ msgctxt "FilamentTrack"
+#~ msgid "Left"
+#~ msgstr "Vänster"
+
+#~ msgctxt "FilamentTrack"
+#~ msgid "Right"
+#~ msgstr "Höger"
+
+#, c-format, boost-format
+#~ msgid "Left nozzle: %smm"
+#~ msgstr "Vänster nozzle: %smm"
+
+#, c-format, boost-format
+#~ msgid "Right nozzle: %smm"
+#~ msgstr "Höger nozzle: %smm"
+
+#~ msgid "Deleted material was used in mixed filaments. Please re-edit the affected mixed filaments."
+#~ msgstr "Raderat material användes i blandade filament. Vänligen redigera om de berörda blandade filamenten."
+
+#~ msgid "Deleted material was used in mixed filaments. Please re-edit affected entries before use."
+#~ msgstr "Raderat material användes i blandade filament. Vänligen redigera berörda poster innan användning."
+
+#~ msgid "Edit / Delete"
+#~ msgstr "Redigera / Ta bort"
+
+#~ msgid "Show the warning dialog again when importing non-Bambu 3MF files"
+#~ msgstr "Visa varningsdialogrutan igen när du importerar icke Bambu 3MF-filer"
+
+#~ msgid "Clear my choice for disabling recommendation for support material parameters."
+#~ msgstr "Rensa mitt val för att inaktivera rekommendation för stöd material parametrar."
+
+#~ msgid "Clear my choice for disabling recommendation for support material parameters"
+#~ msgstr "Rensa mitt val för att inaktivera rekommendation för stöd material parametrar"
+
+#~ msgid "Availabale Objects"
+#~ msgstr "Tillgängliga objekt"
+
+#~ msgid "Main Material"
+#~ msgstr "Huvud material"
+
+#~ msgid "Support Material"
+#~ msgstr "Stöd material"
+
+#~ msgid "Recommended Parameters"
+#~ msgstr "Rekommenderade parametrar"
+
+#~ msgid "Compatible model and support filaments detected. It is recommended to use the suggested filaments for printing the support interfaces of these objects, along with the recommended parameters."
+#~ msgstr "Kompatibla modell- och stöd filament upptäckta. Det rekommenderas att använda de föreslagna filamenten för att skriva ut stöd gräns snitten för dessa objekt, tillsammans med de rekommenderade parametrarna."
+
+#~ msgid "- Right Nozzle (Aux) does not support automatic flow calibration."
+#~ msgstr "- Höger nozzle (Aux) stöder inte automatisk flödes kalibrering."
+
+#~ msgid "- Left Nozzle (Aux) does not support automatic flow calibration."
+#~ msgstr "- Vänster nozzle (Aux) stöder inte automatisk flödes kalibrering."
+
 #~ msgid "Timing belt artifacts compensation"
 #~ msgstr "Kompensation för kamrems artefakter"
 
@@ -17260,12 +17350,6 @@ msgstr ""
 #~ msgid "Identify and display overview"
 #~ msgstr "Identifiera och visa översikt"
 
-#~ msgid "right extruder"
-#~ msgstr "höger extruder"
-
-#~ msgid "left extruder"
-#~ msgstr "vänster extruder"
-
 #~ msgctxt "FilamentTrack"
 #~ msgid "right extruder"
 #~ msgstr "höger extruder"
@@ -17284,12 +17368,6 @@ msgstr ""
 
 #~ msgid "Please select the filament installed on the right nozzle."
 #~ msgstr "Välj det filament som är installerat på höger nozzle."
-
-#~ msgid "Left nozzle"
-#~ msgstr "Vänster nozzle"
-
-#~ msgid "Right nozzle"
-#~ msgstr "Höger nozzle"
 
 #, boost-format
 #~ msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
@@ -17331,18 +17409,6 @@ msgstr ""
 
 #~ msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
 #~ msgstr "Vill du ändra följande parametrar för vänster nozzle till den för det höger nozzle?"
-
-#~ msgid "Left Extruder"
-#~ msgstr "Vänster Extruder"
-
-#~ msgid "Right Extruder"
-#~ msgstr "Höger extruder"
-
-#~ msgid "Left extruder"
-#~ msgstr "Vänster extruder"
-
-#~ msgid "Right extruder"
-#~ msgstr "Höger extruder"
 
 #~ msgid "Calibration only supports cases where the left and right nozzle diameters are identical."
 #~ msgstr "Kalibrering stöder endast fall där vänster och höger nozzle diameter är identiska."
@@ -19572,9 +19638,6 @@ msgstr ""
 
 #~ msgid "Export settings to a file."
 #~ msgstr "Exportera inställningar till en fil."
-
-#~ msgid "Export sliced file"
-#~ msgstr "Exportera beredd fil"
 
 #~ msgid "Export slicing data"
 #~ msgstr "Exportera beredningsdata"

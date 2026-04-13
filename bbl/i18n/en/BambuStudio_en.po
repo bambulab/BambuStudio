@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-09 11:33+0800\n"
+"POT-Creation-Date: 2026-04-13 10:22+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -43,6 +43,24 @@ msgstr ""
 msgid "auxiliary extruder"
 msgstr ""
 
+msgid "Left Extruder"
+msgstr ""
+
+msgid "Left extruder"
+msgstr ""
+
+msgid "left extruder"
+msgstr ""
+
+msgid "Right Extruder"
+msgstr ""
+
+msgid "Right extruder"
+msgstr ""
+
+msgid "right extruder"
+msgstr ""
+
 msgid "Main Nozzle"
 msgstr ""
 
@@ -59,6 +77,24 @@ msgid "Auxiliary nozzle"
 msgstr ""
 
 msgid "auxiliary nozzle"
+msgstr ""
+
+msgid "Left Nozzle"
+msgstr ""
+
+msgid "Left nozzle"
+msgstr ""
+
+msgid "left nozzle"
+msgstr ""
+
+msgid "Right Nozzle"
+msgstr ""
+
+msgid "Right nozzle"
+msgstr ""
+
+msgid "right nozzle"
 msgstr ""
 
 msgid "Main Hotend"
@@ -79,6 +115,24 @@ msgstr ""
 msgid "auxiliary hotend"
 msgstr ""
 
+msgid "Left Hotend"
+msgstr ""
+
+msgid "Left hotend"
+msgstr ""
+
+msgid "left hotend"
+msgstr ""
+
+msgid "Right Hotend"
+msgstr ""
+
+msgid "Right hotend"
+msgstr ""
+
+msgid "right hotend"
+msgstr ""
+
 msgid "main"
 msgstr ""
 
@@ -90,6 +144,18 @@ msgstr ""
 
 msgid "Auxiliary"
 msgstr "Auxiliary"
+
+msgid "left"
+msgstr ""
+
+msgid "right"
+msgstr ""
+
+msgid "Left"
+msgstr "Left"
+
+msgid "Right"
+msgstr "Right"
 
 msgid "extruder"
 msgstr ""
@@ -2858,14 +2924,6 @@ msgstr ""
 msgid "/"
 msgstr "/"
 
-msgctxt "FilamentTrack"
-msgid "Left"
-msgstr ""
-
-msgctxt "FilamentTrack"
-msgid "Right"
-msgstr ""
-
 msgid "Confirm"
 msgstr "Confirm"
 
@@ -2955,6 +3013,10 @@ msgstr ""
 
 msgctxt "air_duct"
 msgid "Left(Aux)"
+msgstr ""
+
+msgctxt "air_duct"
+msgid "Left(Heating)"
 msgstr ""
 
 msgctxt "air_duct"
@@ -3581,12 +3643,6 @@ msgstr "Print with filaments mounted on the back of the chassis"
 msgid "Auto Refill"
 msgstr "Auto Refill"
 
-msgid "Left"
-msgstr "Left"
-
-msgid "Right"
-msgstr "Right"
-
 msgid "When the current material run out, the printer will continue to print in the following order."
 msgstr "When the current material runs out, the printer will continue to print materials in the following order."
 
@@ -3616,14 +3672,8 @@ msgstr "DRY"
 msgid "WET"
 msgstr "WET"
 
-msgid "left nozzle"
-msgstr ""
-
 #, c-format, boost-format
 msgid "Please select the filament installed on the %s."
-msgstr ""
-
-msgid "right nozzle"
 msgstr ""
 
 msgid "Please select the filament."
@@ -5028,13 +5078,17 @@ msgstr "Volume:"
 msgid "Size:"
 msgstr "Size:"
 
-msgid "Overview:isolated objects detected"
+msgid "Isolated objects detected"
 msgstr ""
 
 msgid "Click to move them closer to the main body."
 msgstr ""
 
 msgid "Move closer"
+msgstr ""
+
+#, boost-format
+msgid "Since it is unassembled, %1% extends beyond the main body, so the thumbnail can't be rendered."
 msgstr ""
 
 msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"
@@ -7039,14 +7093,6 @@ msgstr ""
 msgid "Switch diameter"
 msgstr ""
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr ""
-
 msgid "Sync printer information"
 msgstr ""
 
@@ -7090,12 +7136,6 @@ msgstr ""
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr ""
 
-msgid "Left Nozzle"
-msgstr ""
-
-msgid "Right Nozzle"
-msgstr ""
-
 msgid "Project Filaments"
 msgstr ""
 
@@ -7129,11 +7169,14 @@ msgstr ""
 msgid "Remove last mixed filament"
 msgstr ""
 
-msgid "Deleted material was used in mixed filaments. Please re-edit the affected mixed filaments."
+msgid "Mixed filament has invalid or mismatched components. Please re-edit affected entries."
 msgstr ""
 
 msgid "Search plate, object and part."
 msgstr "Search plate, object and part."
+
+msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
+msgstr ""
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -7153,13 +7196,10 @@ msgstr ""
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr ""
 
-msgid "Deleted material was used in mixed filaments. Please re-edit affected entries before use."
-msgstr ""
-
 msgid "Mixed filament has broken component references"
 msgstr ""
 
-msgid "Edit / Delete"
+msgid "Edit / Delete / Merge"
 msgstr ""
 
 #, boost-format
@@ -7771,6 +7811,14 @@ msgstr "The following characters are not allowed by a FAT file system:"
 msgid "Save Sliced file as:"
 msgstr "Save Sliced file as:"
 
+msgid ""
+"Failed to export the sliced file.\n"
+"Please check whether the file is occupied by another program or if there is enough disk space."
+msgstr ""
+
+msgid "Export sliced file"
+msgstr "Export Sliced File"
+
 #, c-format, boost-format
 msgid "The file %s has been sent to the printer's storage space and can be viewed on the printer."
 msgstr "The file %s has been sent to the printer's storage space and can be viewed on the printer."
@@ -7802,6 +7850,10 @@ msgstr "Reason: \"%1%\" and another part have no intersection."
 
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Negative parts detected. Would you like to perform mesh boolean before exporting?"
+
+#, c-format, boost-format
+msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
+msgstr ""
 
 msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr ""
@@ -8075,13 +8127,7 @@ msgstr ""
 msgid "Clear my choice for Load 3mf dialog settings."
 msgstr ""
 
-msgid "Show the warning dialog again when importing non-Bambu 3MF files"
-msgstr ""
-
-msgid "Clear my choice for disabling recommendation for support material parameters."
-msgstr ""
-
-msgid "Clear my choice for disabling recommendation for support material parameters"
+msgid "Clear my choice for disabling support parameter recommendation."
 msgstr ""
 
 msgid "3D Settings"
@@ -8468,6 +8514,9 @@ msgstr "Spiral vase"
 
 msgid "First layer filament sequence"
 msgstr "First layer filament sequence"
+
+msgid "The filament list contains mixed filaments. Custom filament sequence will not take effect."
+msgstr ""
 
 msgid "Same as Global Bed Type"
 msgstr "Same as Global Plate Type"
@@ -8864,6 +8913,9 @@ msgstr ""
 msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
 msgstr ""
 
+msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
+msgstr ""
+
 msgid "This print requires a Filament Track Switch. Please install it first."
 msgstr ""
 
@@ -9048,24 +9100,6 @@ msgstr "Slice ok."
 msgid "View all Daily tips"
 msgstr "View all Daily tips"
 
-msgid "Availabale Objects"
-msgstr ""
-
-msgid "Main Material"
-msgstr ""
-
-msgid "Support Material"
-msgstr ""
-
-msgid "Recommended Parameters"
-msgstr ""
-
-msgid "Compatible model and support filaments detected. It is recommended to use the suggested filaments for printing the support interfaces of these objects, along with the recommended parameters."
-msgstr ""
-
-msgid "Don't remind me again"
-msgstr ""
-
 msgid "Failed to create socket"
 msgstr "Failed to create socket"
 
@@ -9199,18 +9233,6 @@ msgstr "Click to reset all settings to the last saved preset."
 msgid "Support interface speed"
 msgstr ""
 
-msgid "When using PLA to support TPU, We recommend the following settings:"
-msgstr ""
-
-msgid "When using soluble material for the support interface, We recommend the following settings:"
-msgstr ""
-
-msgid "When using support material for the support interface, We recommend the following settings:"
-msgstr ""
-
-msgid "Do you want to apply these settings?"
-msgstr ""
-
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr ""
 
@@ -9257,6 +9279,22 @@ msgstr ""
 "Change these settings automatically? \n"
 "Yes - Change these settings automatically.\n"
 "No  - Do not change these settings for me."
+
+#, c-format, boost-format
+msgid "When using %s to support %s, We recommend the following settings:"
+msgstr ""
+
+msgid "When using PLA to support TPU, We recommend the following settings:"
+msgstr ""
+
+msgid "When using soluble material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "Do you want to apply these settings?"
+msgstr ""
 
 msgid ""
 "Layer height is too small.\n"
@@ -11149,12 +11187,6 @@ msgstr ""
 
 msgid "Exporting G-code"
 msgstr "Exporting G-code"
-
-msgid "left"
-msgstr ""
-
-msgid "right"
-msgstr ""
 
 msgid "Grouping error: filament"
 msgstr ""
@@ -14717,10 +14749,7 @@ msgid ""
 "- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)\n"
 msgstr ""
 
-msgid "- Right Nozzle (Aux) does not support automatic flow calibration."
-msgstr ""
-
-msgid "- Left Nozzle (Aux) does not support automatic flow calibration."
+msgid "(Aux) does not support automatic flow calibration."
 msgstr ""
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
@@ -14855,6 +14884,9 @@ msgstr ""
 
 msgid "PA Calibration"
 msgstr "PA Calibration"
+
+msgid "Extruder type"
+msgstr ""
 
 msgid "PA Tower"
 msgstr "PA Tower"
@@ -16236,6 +16268,9 @@ msgid "Filament grouping"
 msgstr ""
 
 msgid "Fila Saving"
+msgstr ""
+
+msgid "Don't remind me again"
 msgstr ""
 
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
@@ -18374,9 +18409,6 @@ msgstr ""
 
 #~ msgid "Export settings to a file."
 #~ msgstr "This exports settings to a file."
-
-#~ msgid "Export sliced file"
-#~ msgstr "Export Sliced File"
 
 #~ msgid "Export slicing data"
 #~ msgstr "Export slicing data"

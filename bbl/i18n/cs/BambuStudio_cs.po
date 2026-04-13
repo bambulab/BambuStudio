@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-09 11:33+0800\n"
+"POT-Creation-Date: 2026-04-13 10:22+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz> \n"
 "Language-Team: \n"
@@ -51,6 +51,24 @@ msgstr ""
 msgid "auxiliary extruder"
 msgstr ""
 
+msgid "Left Extruder"
+msgstr "Levý extruder"
+
+msgid "Left extruder"
+msgstr "Levý extruder"
+
+msgid "left extruder"
+msgstr "levý extruder"
+
+msgid "Right Extruder"
+msgstr "Pravý extruder"
+
+msgid "Right extruder"
+msgstr "Pravý extruder"
+
+msgid "right extruder"
+msgstr "Pravý extrudér"
+
 msgid "Main Nozzle"
 msgstr ""
 
@@ -68,6 +86,24 @@ msgstr ""
 
 msgid "auxiliary nozzle"
 msgstr ""
+
+msgid "Left Nozzle"
+msgstr "Levá tryska"
+
+msgid "Left nozzle"
+msgstr "Levá tryska"
+
+msgid "left nozzle"
+msgstr "levá tryska"
+
+msgid "Right Nozzle"
+msgstr "Pravá tryska"
+
+msgid "Right nozzle"
+msgstr "Pravá tryska"
+
+msgid "right nozzle"
+msgstr "Pravá tryska"
 
 msgid "Main Hotend"
 msgstr ""
@@ -87,6 +123,24 @@ msgstr ""
 msgid "auxiliary hotend"
 msgstr ""
 
+msgid "Left Hotend"
+msgstr ""
+
+msgid "Left hotend"
+msgstr ""
+
+msgid "left hotend"
+msgstr ""
+
+msgid "Right Hotend"
+msgstr ""
+
+msgid "Right hotend"
+msgstr ""
+
+msgid "right hotend"
+msgstr ""
+
 msgid "main"
 msgstr ""
 
@@ -98,6 +152,18 @@ msgstr ""
 
 msgid "Auxiliary"
 msgstr ""
+
+msgid "left"
+msgstr "vlevo"
+
+msgid "right"
+msgstr "Pravý"
+
+msgid "Left"
+msgstr "Vlevo"
+
+msgid "Right"
+msgstr "Vpravo"
 
 msgid "extruder"
 msgstr "extruder"
@@ -3361,14 +3427,6 @@ msgstr "Typ filamentu není známý, což je vyžadováno pro provedení této a
 msgid "/"
 msgstr ""
 
-msgctxt "FilamentTrack"
-msgid "Left"
-msgstr ""
-
-msgctxt "FilamentTrack"
-msgid "Right"
-msgstr ""
-
 msgid "Confirm"
 msgstr "Potvrdit"
 
@@ -3459,6 +3517,10 @@ msgstr "Pravá (Filtr)"
 msgctxt "air_duct"
 msgid "Left(Aux)"
 msgstr "Levá (Aux)"
+
+msgctxt "air_duct"
+msgid "Left(Heating)"
+msgstr ""
 
 msgctxt "air_duct"
 msgid "Chamber"
@@ -4128,12 +4190,6 @@ msgstr "Tisk s filamenty umístěnými na zadní straně šasi"
 msgid "Auto Refill"
 msgstr "Automatické doplnění"
 
-msgid "Left"
-msgstr "Vlevo"
-
-msgid "Right"
-msgstr "Vpravo"
-
 msgid "When the current material run out, the printer will continue to print in the following order."
 msgstr "Když současný materiál dojde, tiskárna bude pokračovat v tisku v následujícím pořadí."
 
@@ -4165,15 +4221,9 @@ msgstr "SUCHÉ"
 msgid "WET"
 msgstr "VLHKÝ"
 
-msgid "left nozzle"
-msgstr "levá tryska"
-
 #, c-format, boost-format
 msgid "Please select the filament installed on the %s."
 msgstr ""
-
-msgid "right nozzle"
-msgstr "Pravá tryska"
 
 msgid "Please select the filament."
 msgstr ""
@@ -5585,13 +5635,17 @@ msgstr "Objem:"
 msgid "Size:"
 msgstr "Velikost:"
 
-msgid "Overview:isolated objects detected"
+msgid "Isolated objects detected"
 msgstr ""
 
 msgid "Click to move them closer to the main body."
 msgstr ""
 
 msgid "Move closer"
+msgstr ""
+
+#, boost-format
+msgid "Since it is unassembled, %1% extends beyond the main body, so the thumbnail can't be rendered."
 msgstr ""
 
 msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"
@@ -7610,14 +7664,6 @@ msgstr ""
 msgid "Switch diameter"
 msgstr "Přepnout průměr"
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr "Levá tryska: %smm"
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr "Pravá tryska: %smm"
-
 msgid "Sync printer information"
 msgstr "Synchronizovat informace o tiskárně"
 
@@ -7661,12 +7707,6 @@ msgstr "Informace o synchronizaci"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Synchronizovat informace o trysce a počet AMS"
 
-msgid "Left Nozzle"
-msgstr "Levá tryska"
-
-msgid "Right Nozzle"
-msgstr "Pravá tryska"
-
 msgid "Project Filaments"
 msgstr "Filamenty projektu"
 
@@ -7700,11 +7740,14 @@ msgstr ""
 msgid "Remove last mixed filament"
 msgstr ""
 
-msgid "Deleted material was used in mixed filaments. Please re-edit the affected mixed filaments."
+msgid "Mixed filament has invalid or mismatched components. Please re-edit affected entries."
 msgstr ""
 
 msgid "Search plate, object and part."
 msgstr "Hledat podložku, objekt a část."
+
+msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
+msgstr ""
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -7726,13 +7769,10 @@ msgstr ""
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "Informace o typu a barvě filamentu byly synchronizovány, ale informace o slotu nejsou zahrnuty."
 
-msgid "Deleted material was used in mixed filaments. Please re-edit affected entries before use."
-msgstr ""
-
 msgid "Mixed filament has broken component references"
 msgstr ""
 
-msgid "Edit / Delete"
+msgid "Edit / Delete / Merge"
 msgstr ""
 
 #, boost-format
@@ -8348,6 +8388,14 @@ msgstr "Následující znaky nejsou povoleny souborovým systémem FAT:"
 msgid "Save Sliced file as:"
 msgstr "Uložit vyřezaný soubor jako:"
 
+msgid ""
+"Failed to export the sliced file.\n"
+"Please check whether the file is occupied by another program or if there is enough disk space."
+msgstr ""
+
+msgid "Export sliced file"
+msgstr ""
+
 #, c-format, boost-format
 msgid "The file %s has been sent to the printer's storage space and can be viewed on the printer."
 msgstr "Soubor %s byl odeslán do úložiště tiskárny a lze jej zobrazit na tiskárně."
@@ -8379,6 +8427,10 @@ msgstr "Důvod: \"%1%\" a jiná část nemají průnik."
 
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Byly zjištěny negativní části. Chcete před exportem provést booleovskou operaci se sítí?"
+
+#, c-format, boost-format
+msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
+msgstr ""
 
 msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr "Nedoporučuje se používat PVA filamenty s tryskou 0,2 mm."
@@ -8664,13 +8716,7 @@ msgstr "Vymazat mou volbu pro synchronizaci přednastavení tiskárny po načten
 msgid "Clear my choice for Load 3mf dialog settings."
 msgstr "Vymazat mou volbu pro nastavení dialogu Načíst 3mf."
 
-msgid "Show the warning dialog again when importing non-Bambu 3MF files"
-msgstr "Zobrazit varovné okno znovu při importu ne-Bambu souborů 3mf"
-
-msgid "Clear my choice for disabling recommendation for support material parameters."
-msgstr ""
-
-msgid "Clear my choice for disabling recommendation for support material parameters"
+msgid "Clear my choice for disabling support parameter recommendation."
 msgstr ""
 
 msgid "3D Settings"
@@ -9057,6 +9103,9 @@ msgstr "Spirálová váza"
 
 msgid "First layer filament sequence"
 msgstr "Sekvence filamentů pro první vrstvu"
+
+msgid "The filament list contains mixed filaments. Custom filament sequence will not take effect."
+msgstr ""
 
 msgid "Same as Global Bed Type"
 msgstr "Stejné jako globální typ podložky"
@@ -9465,6 +9514,9 @@ msgstr "Průměr %s (%.1f mm) aktuální tiskárny neodpovídá souboru řezu (%
 msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
 msgstr "Aktuální průměr trysky (%.1fmm) neodpovídá souboru řezu (%.1fmm). Ujistěte se, že instalovaná tryska odpovídá nastavení v tiskárně, a při řezání zvolte odpovídající přednastavení tiskárny."
 
+msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
+msgstr ""
+
 msgid "This print requires a Filament Track Switch. Please install it first."
 msgstr ""
 
@@ -9649,24 +9701,6 @@ msgstr "Řezání proběhlo v pořádku."
 msgid "View all Daily tips"
 msgstr "Zobrazit všechny denní tipy"
 
-msgid "Availabale Objects"
-msgstr ""
-
-msgid "Main Material"
-msgstr ""
-
-msgid "Support Material"
-msgstr ""
-
-msgid "Recommended Parameters"
-msgstr ""
-
-msgid "Compatible model and support filaments detected. It is recommended to use the suggested filaments for printing the support interfaces of these objects, along with the recommended parameters."
-msgstr ""
-
-msgid "Don't remind me again"
-msgstr "Už mi to nepřipomínat"
-
 msgid "Failed to create socket"
 msgstr "Nepodařilo se vytvořit socket."
 
@@ -9801,18 +9835,6 @@ msgstr "Klikněte pro obnovení všech nastavení na poslední uložené předna
 msgid "Support interface speed"
 msgstr ""
 
-msgid "When using PLA to support TPU, We recommend the following settings:"
-msgstr ""
-
-msgid "When using soluble material for the support interface, We recommend the following settings:"
-msgstr ""
-
-msgid "When using support material for the support interface, We recommend the following settings:"
-msgstr ""
-
-msgid "Do you want to apply these settings?"
-msgstr ""
-
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Věž pro oddělení trysky je vyžadována pro výměnu trysky. Bez věže pro oddělení trysky mohou být na modelu vady. Opravdu chcete zakázat věž pro oddělení trysky?"
 
@@ -9861,6 +9883,22 @@ msgstr ""
 "Změnit tato nastavení automaticky? \n"
 "Ano – změnit tato nastavení automaticky\n"
 "Ne – neměnit tato nastavení za mě"
+
+#, c-format, boost-format
+msgid "When using %s to support %s, We recommend the following settings:"
+msgstr ""
+
+msgid "When using PLA to support TPU, We recommend the following settings:"
+msgstr ""
+
+msgid "When using soluble material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "Do you want to apply these settings?"
+msgstr ""
 
 msgid ""
 "Layer height is too small.\n"
@@ -11766,12 +11804,6 @@ msgstr "Vyhlazení rychlosti ve směru Z"
 
 msgid "Exporting G-code"
 msgstr "Export G-kódu"
-
-msgid "left"
-msgstr "vlevo"
-
-msgid "right"
-msgstr "Pravý"
 
 msgid "Grouping error: filament"
 msgstr "Chyba seskupení: filament"
@@ -15374,10 +15406,7 @@ msgstr ""
 "- Materiály, které mohou sdílet stejnou teplotu vyhřívané podložky\n"
 "- Různá značka a řada filamentů (značka = Bambu, řada = Basic, Matte)\n"
 
-msgid "- Right Nozzle (Aux) does not support automatic flow calibration."
-msgstr ""
-
-msgid "- Left Nozzle (Aux) does not support automatic flow calibration."
+msgid "(Aux) does not support automatic flow calibration."
 msgstr ""
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
@@ -15518,6 +15547,9 @@ msgstr "Tryska musí být vybrána."
 
 msgid "PA Calibration"
 msgstr "PA kalibrace"
+
+msgid "Extruder type"
+msgstr ""
 
 msgid "PA Tower"
 msgstr "PA věž"
@@ -16924,6 +16956,9 @@ msgstr "Seskupení filamentů"
 msgid "Fila Saving"
 msgstr ""
 
+msgid "Don't remind me again"
+msgstr "Už mi to nepřipomínat"
+
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "Žádné další vyskakovací okno se nezobrazí. Můžete jej znovu otevřít v 'Předvolby'"
 
@@ -17631,11 +17666,16 @@ msgid ""
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
 
-#~ msgid "right extruder"
-#~ msgstr "Pravý extrudér"
+#, c-format, boost-format
+#~ msgid "Left nozzle: %smm"
+#~ msgstr "Levá tryska: %smm"
 
-#~ msgid "left extruder"
-#~ msgstr "levý extruder"
+#, c-format, boost-format
+#~ msgid "Right nozzle: %smm"
+#~ msgstr "Pravá tryska: %smm"
+
+#~ msgid "Show the warning dialog again when importing non-Bambu 3MF files"
+#~ msgstr "Zobrazit varovné okno znovu při importu ne-Bambu souborů 3mf"
 
 #~ msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
 #~ msgstr "Poznámka: Číslo hotendu na pravém extruderu je přiřazeno k držáku. Když je hotend přesunut do nového držáku, jeho číslo se automaticky aktualizuje."
@@ -17651,12 +17691,6 @@ msgstr ""
 
 #~ msgid "Please select the filament installed on the right nozzle."
 #~ msgstr "Vyberte prosím filament nainstalovaný v pravé trysce."
-
-#~ msgid "Left nozzle"
-#~ msgstr "Levá tryska"
-
-#~ msgid "Right nozzle"
-#~ msgstr "Pravá tryska"
 
 #, boost-format
 #~ msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
@@ -17686,18 +17720,6 @@ msgstr ""
 
 #~ msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
 #~ msgstr "Chcete upravit následující parametry levé trysky podle pravé trysky?"
-
-#~ msgid "Left Extruder"
-#~ msgstr "Levý extruder"
-
-#~ msgid "Right Extruder"
-#~ msgstr "Pravý extruder"
-
-#~ msgid "Left extruder"
-#~ msgstr "Levý extruder"
-
-#~ msgid "Right extruder"
-#~ msgstr "Pravý extruder"
 
 #~ msgid "Calibration only supports cases where the left and right nozzle diameters are identical."
 #~ msgstr "Kalibrace podporuje pouze případy, kdy jsou průměry levé a pravé trysky totožné."

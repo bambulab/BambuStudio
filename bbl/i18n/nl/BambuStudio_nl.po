@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-09 11:33+0800\n"
+"POT-Creation-Date: 2026-04-13 10:22+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -46,6 +46,24 @@ msgstr "Hulp-extruder"
 msgid "auxiliary extruder"
 msgstr "hulp-extruder"
 
+msgid "Left Extruder"
+msgstr "Linker extruder"
+
+msgid "Left extruder"
+msgstr "Linker extruder"
+
+msgid "left extruder"
+msgstr "linker extruder"
+
+msgid "Right Extruder"
+msgstr "Rechter extruder"
+
+msgid "Right extruder"
+msgstr "Rechter extruder"
+
+msgid "right extruder"
+msgstr "rechter extruder"
+
 msgid "Main Nozzle"
 msgstr "Hoofd nozzle"
 
@@ -63,6 +81,24 @@ msgstr "Hulp nozzle"
 
 msgid "auxiliary nozzle"
 msgstr "hulp nozzle"
+
+msgid "Left Nozzle"
+msgstr "Linker nozzle"
+
+msgid "Left nozzle"
+msgstr "Linker nozzle"
+
+msgid "left nozzle"
+msgstr "linker nozzle"
+
+msgid "Right Nozzle"
+msgstr "Rechter nozzle"
+
+msgid "Right nozzle"
+msgstr "Rechter nozzle"
+
+msgid "right nozzle"
+msgstr "rechter nozzle"
 
 msgid "Main Hotend"
 msgstr "Hoofd hotend"
@@ -82,6 +118,24 @@ msgstr "Hulp hotend"
 msgid "auxiliary hotend"
 msgstr "hulp hotend"
 
+msgid "Left Hotend"
+msgstr ""
+
+msgid "Left hotend"
+msgstr ""
+
+msgid "left hotend"
+msgstr ""
+
+msgid "Right Hotend"
+msgstr ""
+
+msgid "Right hotend"
+msgstr ""
+
+msgid "right hotend"
+msgstr ""
+
 msgid "main"
 msgstr "hoofd"
 
@@ -93,6 +147,18 @@ msgstr "Hoofd"
 
 msgid "Auxiliary"
 msgstr "Hulp"
+
+msgid "left"
+msgstr "links"
+
+msgid "right"
+msgstr "rechts"
+
+msgid "Left"
+msgstr "Links"
+
+msgid "Right"
+msgstr "Rechts"
 
 msgid "extruder"
 msgstr ""
@@ -2875,14 +2941,6 @@ msgstr "Het type filament is onbekend wat nodig is om deze actie uit te voeren. 
 msgid "/"
 msgstr "/"
 
-msgctxt "FilamentTrack"
-msgid "Left"
-msgstr ""
-
-msgctxt "FilamentTrack"
-msgid "Right"
-msgstr ""
-
 msgid "Confirm"
 msgstr "Bevestigen"
 
@@ -2973,6 +3031,10 @@ msgstr "Rechts(filter)"
 msgctxt "air_duct"
 msgid "Left(Aux)"
 msgstr "Links (Aux)"
+
+msgctxt "air_duct"
+msgid "Left(Heating)"
+msgstr ""
 
 msgctxt "air_duct"
 msgid "Chamber"
@@ -3609,12 +3671,6 @@ msgstr "Print met filamenten die op de achterkant van het chassis zijn gemonteer
 msgid "Auto Refill"
 msgstr "Auto Refill"
 
-msgid "Left"
-msgstr "Links"
-
-msgid "Right"
-msgstr "Rechts"
-
 msgid "When the current material run out, the printer will continue to print in the following order."
 msgstr "Als het huidige materiaal op is, gaat de printer verder met afdrukken in de volgende volgorde."
 
@@ -3646,15 +3702,9 @@ msgstr "DROOG"
 msgid "WET"
 msgstr "NAT"
 
-msgid "left nozzle"
-msgstr "linker nozzle"
-
 #, c-format, boost-format
 msgid "Please select the filament installed on the %s."
 msgstr "Selecteer het filament dat op de %s is geïnstalleerd."
-
-msgid "right nozzle"
-msgstr "rechter nozzle"
 
 msgid "Please select the filament."
 msgstr ""
@@ -5073,7 +5123,7 @@ msgstr "Volume:"
 msgid "Size:"
 msgstr "Maat:"
 
-msgid "Overview:isolated objects detected"
+msgid "Isolated objects detected"
 msgstr ""
 
 msgid "Click to move them closer to the main body."
@@ -5081,6 +5131,10 @@ msgstr "Klik om ze dichter naar het hoofdgedeelte te verplaatsen."
 
 msgid "Move closer"
 msgstr "Dichterbij verplaatsen"
+
+#, boost-format
+msgid "Since it is unassembled, %1% extends beyond the main body, so the thumbnail can't be rendered."
+msgstr ""
 
 msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"
 msgstr "De hoofd-assemblage-begrenzingsbox is te ver verwijderd van de wereld-oorsprong. Assemblagerelaties opnieuw instellen en naar oorsprong verplaatsen?"
@@ -7104,14 +7158,6 @@ msgstr ""
 msgid "Switch diameter"
 msgstr "Wissel van diameter"
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr "Linker nozzle: %smm"
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr "Rechter nozzle: %smm"
-
 msgid "Sync printer information"
 msgstr "Printergegevens synchroniseren"
 
@@ -7157,12 +7203,6 @@ msgstr "Synchronisatie-info"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Synchroniseer nozzle-informatie en het aantal AMS"
 
-msgid "Left Nozzle"
-msgstr "Linker nozzle"
-
-msgid "Right Nozzle"
-msgstr "Rechter nozzle"
-
 msgid "Project Filaments"
 msgstr "Projectfilamenten"
 
@@ -7185,22 +7225,25 @@ msgid "Set filaments to use"
 msgstr "Stel filamenten in om te gebruiken"
 
 msgid "Add Mixed Filament"
-msgstr ""
+msgstr "Voeg gemengd filament toe"
 
 msgid "Mixed Filament"
-msgstr ""
+msgstr "Gemengd filament"
 
 msgid "Add mixed filament"
-msgstr ""
+msgstr "Voeg gemengd filament toe"
 
 msgid "Remove last mixed filament"
-msgstr ""
+msgstr "Verwijder laatste gemengde filament"
 
-msgid "Deleted material was used in mixed filaments. Please re-edit the affected mixed filaments."
+msgid "Mixed filament has invalid or mismatched components. Please re-edit affected entries."
 msgstr ""
 
 msgid "Search plate, object and part."
 msgstr "Zoek plaat, object en onderdeel."
+
+msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
+msgstr ""
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -7222,13 +7265,10 @@ msgstr ""
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "De informatie over het type draad en de kleur is gesynchroniseerd, maar er is geen informatie over de sleuf."
 
-msgid "Deleted material was used in mixed filaments. Please re-edit affected entries before use."
-msgstr ""
-
 msgid "Mixed filament has broken component references"
-msgstr ""
+msgstr "Mixed filament heeft gebroken componentreferenties"
 
-msgid "Edit / Delete"
+msgid "Edit / Delete / Merge"
 msgstr ""
 
 #, boost-format
@@ -7869,6 +7909,14 @@ msgstr "De volgende tekens zijn niet toegestaan in een FAT-bestandssysteem:"
 msgid "Save Sliced file as:"
 msgstr "Bewaar het geslicede bestand als:"
 
+msgid ""
+"Failed to export the sliced file.\n"
+"Please check whether the file is occupied by another program or if there is enough disk space."
+msgstr ""
+
+msgid "Export sliced file"
+msgstr "Export Sliced File"
+
 #, c-format, boost-format
 msgid "The file %s has been sent to the printer's storage space and can be viewed on the printer."
 msgstr "Het bestand %s is naar de opslagruimte van de printer gestuurd en kan op de printer worden bekeken."
@@ -7900,6 +7948,10 @@ msgstr "Reden: \"%1%\" en een ander deel hebben geen snijpunt."
 
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Negatieve delen gedetecteerd. Wil je mesh booleaans uitvoeren voordat je exporteert?"
+
+#, c-format, boost-format
+msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
+msgstr ""
 
 msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr "Het wordt niet aanbevolen om PVA-filamenten met nozzles van 0,2 mm te gebruiken."
@@ -8179,14 +8231,8 @@ msgstr "Wis mijn keuze voor het synchroniseren van printervoorinstellingen na he
 msgid "Clear my choice for Load 3mf dialog settings."
 msgstr "Wis mijn keuze voor de dialooginstellingen van Laad 3mf."
 
-msgid "Show the warning dialog again when importing non-Bambu 3MF files"
-msgstr "Toon de waarschuwingsdialoog opnieuw bij het importeren van niet-Bambu 3MF-bestanden"
-
-msgid "Clear my choice for disabling recommendation for support material parameters."
-msgstr "Wis mijn keuze voor het uitschakelen van de aanbeveling voor support-materiaal parameters wissen."
-
-msgid "Clear my choice for disabling recommendation for support material parameters"
-msgstr "Wis mijn keuze voor het uitschakelen van de aanbeveling voor support-materiaal parameters"
+msgid "Clear my choice for disabling support parameter recommendation."
+msgstr ""
 
 msgid "3D Settings"
 msgstr "3D-instellingen"
@@ -8225,10 +8271,10 @@ msgid "Display overview"
 msgstr ""
 
 msgid "Show assembly BVH primary bounds"
-msgstr ""
+msgstr "Toon assemblage BVH primaire grenzen"
 
 msgid "Display the BVH primary bounding box wireframe in assembly view."
-msgstr ""
+msgstr "Weergeef de BVH primaire begrenzingsbox wireframe in de assemblage weergave."
 
 msgid "Improve rendering performance by lod"
 msgstr "Verbeter de renderprestaties met LOD"
@@ -8573,6 +8619,9 @@ msgstr "Spiraalvaas"
 msgid "First layer filament sequence"
 msgstr "Eerste laag filamentvolgorde"
 
+msgid "The filament list contains mixed filaments. Custom filament sequence will not take effect."
+msgstr ""
+
 msgid "Same as Global Bed Type"
 msgstr "Hetzelfde als Global Bed Type"
 
@@ -8768,7 +8817,7 @@ msgid "To ensure print quality, the drying temperature will be lowered during pr
 msgstr "Om de printkwaliteit te waarborgen, wordt de droogtemperatuur tijdens het printen verlaagd."
 
 msgid "Select timelapse storage location"
-msgstr ""
+msgstr "Selecteer opslaglocatie voor timelapse"
 
 msgid ""
 "This checks the flatness of heatbed. Leveling makes extruded height uniform.\n"
@@ -8860,35 +8909,35 @@ msgid "This process determines the dynamic flow values to improve overall print 
 msgstr "Dit proces bepaalt de dynamische stroomwaarden om de algehele afdrukkwaliteit te verbeteren."
 
 msgid "Internal"
-msgstr ""
+msgstr "Intern"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
-msgstr ""
+msgstr "%s opslagruimte is minder dan 10MB. De timelapse kan mogelijk niet correct worden opgeslagen. Je kunt deze uitschakelen of"
 
 msgid "Clean up files"
-msgstr ""
+msgstr "Bestanden opschonen"
 
 msgid "Low internal storage. This timelapse will overwrite the oldest video files."
-msgstr ""
+msgstr "Lage interne opslag. Deze timelapse overschrijft de oudste videobestanden."
 
 msgid "Low external storage. This timelapse will overwrite the oldest video files."
-msgstr ""
+msgstr "Weinig externe opslag. Deze timelapse overschrijft de oudste videobestanden."
 
 msgid "Insufficient external storage for time-lapse photography. Connect to computer to delete files, or use a larger memory card."
-msgstr ""
+msgstr "Onvoldoende externe opslag voor timelapse fotografie. Maak verbinding met de computer om bestanden te verwijderen, of gebruik een grotere geheugenkaart."
 
 msgid "Storage Space Not Enough"
-msgstr ""
+msgstr "Onvoldoende opslagruimte"
 
 msgid "Confirm & Print"
-msgstr ""
+msgstr "Bevestigen & print"
 
 msgid "Cancel Timelapse & Print"
-msgstr ""
+msgstr "Annuleer timelapse & print"
 
 msgid "Clean Up"
-msgstr ""
+msgstr "Opschonen"
 
 msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
 msgstr "Auto: Als het filament/de nozzle van de hoofd-extruder niet is veranderd, wordt de laatste kalibratiewaarde opnieuw gebruikt. De hulp-extruder zal de standaard systeemwaarde gebruiken."
@@ -8982,6 +9031,9 @@ msgstr "De %s diameter (%.1f mm) van de huidige printer komt niet overeen met he
 msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
 msgstr "De huidige nozzle diameter (%.1fmm) komt niet overeen met het snijbestand (%.1fmm). Controleer of de geïnstalleerde nozzle overeenkomt met de instellingen in de printer en stel vervolgens de corresponderende voorinstelling van de printer in tijdens het slicen."
 
+msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
+msgstr ""
+
 msgid "This print requires a Filament Track Switch. Please install it first."
 msgstr ""
 
@@ -9015,7 +9067,7 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It
 msgstr "De hardheid van het huidige materiaal (%s) overschrijdt de hardheid van %s (%s). Dit kan nozzle-slijtage veroorzaken, wat leidt tot materiaallekkage en een onstabiele materiaaltoevoer. Gebruik het met voorzichtigheid."
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
-msgstr ""
+msgstr "Sommige filamenten kunnen tijdens het printen wisselen tussen extruders. Handmatige K-waarde kalibratie kan niet gedurende de gehele print worden toegepast, wat de printkwaliteit kan beïnvloeden. Het inschakelen van Kalibratie van de doorvoerdynamica wordt aanbevolen."
 
 msgid "Cool"
 msgstr "Koel"
@@ -9166,24 +9218,6 @@ msgstr "Slice gelukt"
 msgid "View all Daily tips"
 msgstr "Bekijk alle dagelijkse tips"
 
-msgid "Availabale Objects"
-msgstr "Beschikbare objecten"
-
-msgid "Main Material"
-msgstr "Hoofdmateriaal"
-
-msgid "Support Material"
-msgstr "Support materiaal"
-
-msgid "Recommended Parameters"
-msgstr "Aanbevolen parameters"
-
-msgid "Compatible model and support filaments detected. It is recommended to use the suggested filaments for printing the support interfaces of these objects, along with the recommended parameters."
-msgstr "Compatibel model en ondersteunde filamenten gedetecteerd. Het wordt aanbevolen om de voorgestelde filamenten te gebruiken voor het printen van de support-interfaces van deze objecten, samen met de aanbevolen parameters."
-
-msgid "Don't remind me again"
-msgstr "Herinner me er niet meer aan"
-
 msgid "Failed to create socket"
 msgstr "Kon socket niet aanmaken"
 
@@ -9320,18 +9354,6 @@ msgstr "Klik om alle instellingen terug te zetten naar de laatst opgeslagen voor
 msgid "Support interface speed"
 msgstr "Support-interface snelheid"
 
-msgid "When using PLA to support TPU, We recommend the following settings:"
-msgstr "Bij gebruik van PLA ter ondersteuning van TPU raden we de volgende instellingen aan:"
-
-msgid "When using soluble material for the support interface, We recommend the following settings:"
-msgstr "Wanneer oplosbaar materiaal wordt gebruikt voor de support-interface, raden we de volgende instellingen aan:"
-
-msgid "When using support material for the support interface, We recommend the following settings:"
-msgstr "Wanneer u support-materiaal gebruikt voor de support-interface, raden we de volgende instellingen aan:"
-
-msgid "Do you want to apply these settings?"
-msgstr "Wilt u deze instellingen toepassen?"
-
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Prime tower is vereist voor het wisselen van de nozzle. Er kunnen fouten in het model zitten zonder prime tower. Weet je zeker dat je prime tower wilt uitschakelen?"
 
@@ -9385,6 +9407,22 @@ msgstr ""
 "Deze instellingen automatisch wijzigen?\n"
 "Ja - deze instellingen automatisch wijzigen\n"
 "Nee - deze instellingen niet voor mij wijzigen"
+
+#, c-format, boost-format
+msgid "When using %s to support %s, We recommend the following settings:"
+msgstr ""
+
+msgid "When using PLA to support TPU, We recommend the following settings:"
+msgstr "Bij gebruik van PLA ter ondersteuning van TPU raden we de volgende instellingen aan:"
+
+msgid "When using soluble material for the support interface, We recommend the following settings:"
+msgstr "Wanneer oplosbaar materiaal wordt gebruikt voor de support-interface, raden we de volgende instellingen aan:"
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr "Wanneer u support-materiaal gebruikt voor de support-interface, raden we de volgende instellingen aan:"
+
+msgid "Do you want to apply these settings?"
+msgstr "Wilt u deze instellingen toepassen?"
 
 msgid ""
 "Layer height is too small.\n"
@@ -9604,19 +9642,19 @@ msgid "Part cooling fan"
 msgstr "Prinkop ventilator"
 
 msgid "Initial layer fan"
-msgstr ""
+msgstr "Eerste laag"
 
 msgid "Set the part cooling fan speed for the first few layers. Set to 0 to keep the fan off for better bed adhesion"
-msgstr ""
+msgstr "Stel de ventilatorsnelheid van het onderdeel voor de eerste paar lagen in. Stel in op 0 om de ventilator uit te schakelen voor een betere hechting aan het bed"
 
 msgid "Linear ramp up to"
-msgstr ""
+msgstr "Lineaire oploop naar"
 
 msgid "Fan speed will linearly increase from the initial layer speed to the layer-time-based speed over the specified number of layers"
-msgstr ""
+msgstr "Ventilatorsnelheid neemt lineair toe vanaf de beginsnelheid van de laag tot de op tijd gebaseerde laagsnelheid over het opgegeven aantal lagen"
 
 msgid "At"
-msgstr ""
+msgstr "Bij"
 
 msgid "layers"
 msgstr "Lagen"
@@ -9637,19 +9675,19 @@ msgid "Auxiliary part cooling fan"
 msgstr "Extra koel ventilator"
 
 msgid "Set the auxiliary fan speed for the first few layers"
-msgstr ""
+msgstr "Stel de snelheid van de hulpventilator voor de eerste paar lagen in"
 
 msgid "Linear ramp up"
-msgstr ""
+msgstr "Lineaire oploop naar"
 
 msgid "Auxiliary fan speed will linearly increase from the initial layer speed to the target speed over the specified number of layers"
 msgstr ""
 
 msgid "At layer"
-msgstr ""
+msgstr "Op laag"
 
 msgid "ramp up to"
-msgstr ""
+msgstr "opvoeren naar"
 
 msgid "Exhaust fan"
 msgstr "Uitlaatventilator"
@@ -9801,11 +9839,11 @@ msgstr "Paramters kopiëren"
 
 #, c-format, boost-format
 msgid "Modify paramters of %s"
-msgstr ""
+msgstr "Parameters van %s wijzigen"
 
 #, c-format, boost-format
 msgid "Do you want to modify the following parameters of the %s to that of the %s?"
-msgstr ""
+msgstr "Wilt u de volgende parameters van de %s wijzigen in die van de %s?"
 
 msgid "No available nozzles for current preset"
 msgstr "Geen beschikbare nozzles voor de huidige preset"
@@ -11306,12 +11344,6 @@ msgstr "Snelheid in z-richting afvlakken"
 msgid "Exporting G-code"
 msgstr "G-code exporteren"
 
-msgid "left"
-msgstr "links"
-
-msgid "right"
-msgstr "rechts"
-
 msgid "Grouping error: filament"
 msgstr "Groeperingsfout: filament"
 
@@ -12099,7 +12131,7 @@ msgid "Set special cooling fan for the first certain layers.The part cooling fan
 msgstr "Stel een speciale koelventilator in voor de eerste lagen. De koelventilator van de eerste laag wordt gesloten om een betere hechting van de printplaat te krijgen en wordt gebruikt voor de automatische koelfunctie"
 
 msgid "Part cooling fan speed for the first few layers. Set to 0 to disable the part cooling fan on the initial layers for better bed adhesion"
-msgstr ""
+msgstr "Snelheid van de onderdeelkoelventilator voor de eerste paar lagen. Stel in op 0 om de ventilator op de eerste lagen uit te schakelen voor betere hechting aan het bed"
 
 msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
 msgstr "Speciale extra koelventilatorsnelheid, alleen effectief voor de eerste x lagen."
@@ -12574,34 +12606,34 @@ msgid "Support material is commonly used to print support and support interface"
 msgstr "Support materiaal wordt vaak gebruikt om support en support interfaces af te drukken."
 
 msgid "Is mixed filament"
-msgstr ""
+msgstr "Is gemengd filament"
 
 msgid "Whether this filament slot is a mixed filament composed of multiple physical filaments"
-msgstr ""
+msgstr "Of dit filament slot een gemengd filament is dat bestaat uit meerdere fysieke filamenten"
 
 msgid "Mixed filament components"
-msgstr ""
+msgstr "Gemengde filamentcomponenten"
 
 msgid "Comma-separated 1-based indices of component filaments, e.g. \"1,3\""
-msgstr ""
+msgstr "Door komma's gescheiden indexen van componentfilamenten, beginnend bij 1, bijvoorbeeld \"1,3\""
 
 msgid "Mixed filament sublayer ratios"
-msgstr ""
+msgstr "Gemengde filament-sublaagverhoudingen"
 
 msgid "Comma-separated ratio values summing to 1.0, e.g. \"0.7,0.3\""
-msgstr ""
+msgstr "Door-lopende verhoudingswaarden die optellen tot 1.0, bijv. \"0.7,0.3\""
 
 msgid "Mixed filament gradient"
-msgstr ""
+msgstr "Gemengde filamentgradiënt"
 
 msgid "Enable Z-direction gradient mode for mixed filament sub-layers. When enabled, the sub-layer ratios vary linearly across layers."
-msgstr ""
+msgstr "Schakel de Z-richting gradiëntmodus in voor gemengde filament sublagen. Indien ingeschakeld, variëren de sublaagverhoudingen lineair over de lagen."
 
 msgid "Mixed filament gradient range"
-msgstr ""
+msgstr "Gemengde filamentgradiëntbereik"
 
 msgid "Start and end ratios for the first component in gradient mode. Comma-separated pair, e.g. \"0.10,0.90\" means 10% to 90%."
-msgstr ""
+msgstr "Start- en eindverhoudingen voor de eerste component in gradiëntmodus. Door komma's gescheiden paar, bijvoorbeeld \"0,10,0,90\" betekent 10% tot 90%."
 
 msgid "Filament printable"
 msgstr "Printbaar filament"
@@ -14199,10 +14231,10 @@ msgid "Describe how long the nozzle will move along the last path when retractin
 msgstr "Beschrijf hoe lang de nozzle over het laatste traject beweegt bij het intrekken"
 
 msgid "Mixed color sublayer"
-msgstr ""
+msgstr "Sublaag met gemengde kleur"
 
 msgid "Enable mixed color sublayer splitting. When enabled, layers containing mixed color filaments will be split into sub-layers to achieve color mixing effects."
-msgstr ""
+msgstr "Schakel het splitsen van sublagen voor gemengde kleuren in. Wanneer ingeschakeld, worden lagen die gemengde kleurfilamenten bevatten, gesplitst in sublagen om kleurmengingseffecten te bereiken."
 
 msgid "The wiping tower can be used to clean up the residue on the nozzle and stabilize the chamber pressure inside the nozzle, in order to avoid appearance defects when printing objects."
 msgstr "De afveegtoren kan worden gebruikt om de resten op de nozzle op te ruimen en de kamerdruk in de nozzle te stabiliseren, om defecten bij het afdrukken van voorwerpen te voorkomen."
@@ -14919,11 +14951,8 @@ msgstr ""
 "- Materialen die dezelfde warmbedtemperatuur kunnen delen\n"
 "- Verschillende filamentmerken en -families (Merk = Bambu, Familie = Basis, Mat)\n"
 
-msgid "- Right Nozzle (Aux) does not support automatic flow calibration."
-msgstr "- De rechter sproeier (Aux) ondersteunt geen automatische stroomkalibratie."
-
-msgid "- Left Nozzle (Aux) does not support automatic flow calibration."
-msgstr "- De linker sproeier (Aux) ondersteunt geen automatische stroomkalibratie."
+msgid "(Aux) does not support automatic flow calibration."
+msgstr ""
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- Opmerking: Het nummer van de hot-end is gekoppeld aan de houder. Wanneer de hot-end naar een nieuwe houder wordt verplaatst, wordt het nummer automatisch bijgewerkt.\n"
@@ -14991,7 +15020,7 @@ msgstr "Verbinding maken met printer"
 
 #, c-format, boost-format
 msgid "Calibration only supports cases where the %s and %s diameters are identical."
-msgstr ""
+msgstr "Kalibratie ondersteunt alleen gevallen waarbij de %s en %s diameters identiek zijn."
 
 msgid "From k Value"
 msgstr "Van k Waarde"
@@ -15063,6 +15092,9 @@ msgstr "De nozzle moet worden geselecteerd."
 
 msgid "PA Calibration"
 msgstr "PA-kalibratie"
+
+msgid "Extruder type"
+msgstr ""
 
 msgid "PA Tower"
 msgstr "PA-toren"
@@ -16468,6 +16500,9 @@ msgstr "Draadgroepering"
 msgid "Fila Saving"
 msgstr "Filament besparing"
 
+msgid "Don't remind me again"
+msgstr "Herinner me er niet meer aan"
+
 msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
 msgstr "Er verschijnt geen pop-up meer. U kunt dit bijwerken in 'Voorkeuren'"
 
@@ -16485,19 +16520,19 @@ msgstr "Aangepaste modus"
 
 #, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"
-msgstr ""
+msgstr "Genereert filamentgroepering voor de %s en %s op basis van de meest filamentbesparende principes om verspilling te minimaliseren"
 
 #, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on the printer's actual filament status, reducing the need for manual filament adjustment"
-msgstr ""
+msgstr "Genereert filamentgroepering voor de %s en %s op basis van de actuele filamentstatus van de printer, waardoor de noodzaak voor handmatige filamentaanpassing afneemt"
 
 #, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on quality optimization principles"
-msgstr ""
+msgstr "Genereert filamentgroepering voor de %s en %s op basis van kwaliteitsoptimalisatieprincipes"
 
 #, c-format, boost-format
 msgid "Manually assign filament to the %s or %s"
-msgstr ""
+msgstr "Wijs handmatig filament toe aan de %s of %s"
 
 msgid "Global settings"
 msgstr "Algemene Instellingen"
@@ -16526,7 +16561,7 @@ msgstr " om het aantal nozzles in te stellen"
 
 #, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
-msgstr ""
+msgstr "Genereert filamentgroepering voor de %s en %s op basis van de printkwaliteit, waarbij printkwaliteit boven filamentbesparing gaat"
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "De filamentgroeperingsmethode voor de huidige plaat wordt bepaald door de vervolgkeuzemogelijkheid bij de knop voor het snijden van de plaat."
@@ -16749,7 +16784,7 @@ msgid "  Please plug in the power and then use the drying function."
 msgstr "  Steek de stekker in het stopcontact en gebruik daarna de droogfunctie."
 
 msgid "  The high drying temperature may cause AMS blockage. Please unload the filament manually before proceeding."
-msgstr ""
+msgstr "  De hoge droogtemperatuur kan verstopping van het AMS veroorzaken. Laad het filament alstublieft handmatig uit voordat je verdergaat."
 
 msgid "System is busy"
 msgstr "Systeem is bezet"
@@ -17199,6 +17234,52 @@ msgstr ""
 "Betrouwbaarheid in één keer goed\n"
 "Minder toezicht, voorspelbaardere output. Voorbeeld: een kleine boerderij die PETG-onderdelen produceert, voorkomt verrassingen zoals 'falen na 6 uur' en houdt batches op schema."
 
+#~ msgctxt "FilamentTrack"
+#~ msgid "Left"
+#~ msgstr "Links"
+
+#~ msgctxt "FilamentTrack"
+#~ msgid "Right"
+#~ msgstr "Rechts"
+
+#, c-format, boost-format
+#~ msgid "Left nozzle: %smm"
+#~ msgstr "Linker nozzle: %smm"
+
+#, c-format, boost-format
+#~ msgid "Right nozzle: %smm"
+#~ msgstr "Rechter nozzle: %smm"
+
+#~ msgid "Show the warning dialog again when importing non-Bambu 3MF files"
+#~ msgstr "Toon de waarschuwingsdialoog opnieuw bij het importeren van niet-Bambu 3MF-bestanden"
+
+#~ msgid "Clear my choice for disabling recommendation for support material parameters."
+#~ msgstr "Wis mijn keuze voor het uitschakelen van de aanbeveling voor support-materiaal parameters wissen."
+
+#~ msgid "Clear my choice for disabling recommendation for support material parameters"
+#~ msgstr "Wis mijn keuze voor het uitschakelen van de aanbeveling voor support-materiaal parameters"
+
+#~ msgid "Availabale Objects"
+#~ msgstr "Beschikbare objecten"
+
+#~ msgid "Main Material"
+#~ msgstr "Hoofdmateriaal"
+
+#~ msgid "Support Material"
+#~ msgstr "Support materiaal"
+
+#~ msgid "Recommended Parameters"
+#~ msgstr "Aanbevolen parameters"
+
+#~ msgid "Compatible model and support filaments detected. It is recommended to use the suggested filaments for printing the support interfaces of these objects, along with the recommended parameters."
+#~ msgstr "Compatibel model en ondersteunde filamenten gedetecteerd. Het wordt aanbevolen om de voorgestelde filamenten te gebruiken voor het printen van de support-interfaces van deze objecten, samen met de aanbevolen parameters."
+
+#~ msgid "- Right Nozzle (Aux) does not support automatic flow calibration."
+#~ msgstr "- De rechter sproeier (Aux) ondersteunt geen automatische stroomkalibratie."
+
+#~ msgid "- Left Nozzle (Aux) does not support automatic flow calibration."
+#~ msgstr "- De linker sproeier (Aux) ondersteunt geen automatische stroomkalibratie."
+
 #~ msgid "Timing belt artifacts compensation"
 #~ msgstr "Compensatie voor timingriem artefacten"
 
@@ -17211,12 +17292,6 @@ msgstr ""
 
 #~ msgid "Assembly view: isolated objects detected"
 #~ msgstr "Assemblageweergave: geïsoleerde objecten gedetecteerd"
-
-#~ msgid "right extruder"
-#~ msgstr "rechter extruder"
-
-#~ msgid "left extruder"
-#~ msgstr "linker extruder"
 
 #~ msgctxt "FilamentTrack"
 #~ msgid "right extruder"
@@ -17236,12 +17311,6 @@ msgstr ""
 
 #~ msgid "Please select the filament installed on the right nozzle."
 #~ msgstr "Selecteer het filament dat op de rechter nozzle is geïnstalleerd."
-
-#~ msgid "Left nozzle"
-#~ msgstr "Linker nozzle"
-
-#~ msgid "Right nozzle"
-#~ msgstr "Rechter nozzle"
 
 #, boost-format
 #~ msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
@@ -17280,18 +17349,6 @@ msgstr ""
 
 #~ msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
 #~ msgstr "Wilt u de volgende parameters van de linker sproeier wijzigen in die van de rechter sproeier?"
-
-#~ msgid "Left Extruder"
-#~ msgstr "Linker extruder"
-
-#~ msgid "Right Extruder"
-#~ msgstr "Rechter extruder"
-
-#~ msgid "Left extruder"
-#~ msgstr "Linker extruder"
-
-#~ msgid "Right extruder"
-#~ msgstr "Rechter extruder"
 
 #~ msgid "Calibration only supports cases where the left and right nozzle diameters are identical."
 #~ msgstr "De kalibratie ondersteunt alleen gevallen waarbij de linker- en rechter nozzle diameter identiek zijn."
@@ -19465,9 +19522,6 @@ msgstr ""
 
 #~ msgid "Export settings to a file."
 #~ msgstr "Exporteer instellingen naar een bestand"
-
-#~ msgid "Export sliced file"
-#~ msgstr "Exporteer het \"sliced\" bestand"
 
 #~ msgid "Export slicing data"
 #~ msgstr "Exporteer slicinggegevens"
