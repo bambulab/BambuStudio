@@ -4609,7 +4609,8 @@ void TabFilament::toggle_options()
 
         std::string printer_model = m_preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
         bool is_tower_interface_supported = (printer_model.find("H2C") != std::string::npos ||
-                                             printer_model.find("H2D") != std::string::npos);
+                                             printer_model.find("H2D") != std::string::npos ||
+                                             printer_model.find("X2D") != std::string::npos);
         for (auto el : {"filament_tower_interface_pre_extrusion_dist", "filament_tower_interface_pre_extrusion_length",
                         "filament_tower_interface_purge_volume", "filament_tower_interface_print_temp"})
             toggle_line(el, is_tower_interface_supported);
