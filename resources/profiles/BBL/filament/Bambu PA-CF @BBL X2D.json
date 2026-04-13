@@ -44,10 +44,10 @@
         "0",
         "0"
     ],
-    "full_fan_speed_layer": [
-        "2"
+    "filament_tower_interface_print_temp": [
+        "290"
     ],
-    "additional_fan_full_speed_layer": [
+    "full_fan_speed_layer": [
         "2"
     ],
     "include": [

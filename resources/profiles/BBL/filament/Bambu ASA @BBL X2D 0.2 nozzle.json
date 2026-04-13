@@ -20,14 +20,14 @@
     "counter_limit_min": [
         "-0.0092"
     ],
-    "filament_extruder_compatibility": [
-        "24"
-    ],
     "filament_cooling_before_tower": [
         "10",
         "10",
         "10",
         "10"
+    ],
+    "filament_extruder_compatibility": [
+        "24"
     ],
     "filament_flow_ratio": [
         "0.95",
@@ -58,6 +58,9 @@
         "10",
         "10",
         "10"
+    ],
+    "filament_tower_interface_print_temp": [
+        "270"
     ],
     "filament_wipe": [
         "1",

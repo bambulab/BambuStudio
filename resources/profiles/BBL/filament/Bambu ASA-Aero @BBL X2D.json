@@ -41,6 +41,9 @@
         "1.5",
         "1.5"
     ],
+    "filament_tower_interface_print_temp": [
+        "270"
+    ],
     "filament_wipe_distance": [
         "5",
         "5",

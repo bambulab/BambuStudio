@@ -47,6 +47,9 @@
         "nil",
         "nil"
     ],
+    "filament_tower_interface_print_temp": [
+        "245"
+    ],
     "filament_wipe": [
         "1",
         "nil",

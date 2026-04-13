@@ -42,6 +42,15 @@
         "0",
         "0"
     ],
+    "filament_retraction_length": [
+        "0.4",
+        "0.4",
+        "nil",
+        "nil"
+    ],
+    "filament_tower_interface_print_temp": [
+        "220"
+    ],
     "filament_wipe": [
         "1",
         "1",
@@ -59,12 +68,6 @@
         "Spiral Lift",
         "Spiral Lift",
         "Spiral Lift"
-    ],
-    "filament_retraction_length": [
-        "0.4",
-        "0.4",
-        "nil",
-        "nil"
     ],
     "include": [
         "fdm_filament_template_direct_bowden"

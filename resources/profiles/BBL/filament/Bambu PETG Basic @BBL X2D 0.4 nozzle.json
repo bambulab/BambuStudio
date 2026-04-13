@@ -5,6 +5,12 @@
     "from": "system",
     "setting_id": "GFSG00_12",
     "instantiation": "true",
+    "fan_max_speed": [
+        "60"
+    ],
+    "fan_min_speed": [
+        "30"
+    ],
     "filament_cooling_before_tower": [
         "10",
         "10",
@@ -38,29 +44,17 @@
         "10",
         "10"
     ],
-    "filament_tower_ironing_area": [
-        "8"
-    ],
-    "first_x_layer_fan_speed": [
-        "40"
-    ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0",
-        "0",
-        "0"
-    ],
     "filament_retraction_length": [
         "0.4",
         "0.4",
         "nil",
         "nil"
     ],
-    "filament_z_hop_types": [
-        "Spiral Lift",
-        "Spiral Lift",
-        "Spiral Lift",
-        "Spiral Lift"
+    "filament_tower_interface_print_temp": [
+        "250"
+    ],
+    "filament_tower_ironing_area": [
+        "8"
     ],
     "filament_wipe": [
         "1",
@@ -74,11 +68,14 @@
         "1",
         "1"
     ],
-    "fan_max_speed": [
-        "60"
+    "filament_z_hop_types": [
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift",
+        "Spiral Lift"
     ],
-    "fan_min_speed": [
-        "30"
+    "first_x_layer_fan_speed": [
+        "40"
     ],
     "include": [
         "fdm_filament_template_direct_bowden"

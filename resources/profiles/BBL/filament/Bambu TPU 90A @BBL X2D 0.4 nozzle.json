@@ -47,6 +47,9 @@
         "nil",
         "nil"
     ],
+    "filament_tower_interface_print_temp": [
+        "225"
+    ],
     "filament_z_hop_types": [
         "Spiral Lift",
         "Spiral Lift",
