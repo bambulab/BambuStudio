@@ -16688,7 +16688,7 @@ void Plater::import_model_id(wxString download_info)
         target_path /= fs::path(filename.wc_str());
 
         fs::path tmp_path = target_path;
-        tmp_path += format(".%1%", ".download");
+        tmp_path += ".download";
 
         auto filesize = 0;
         bool size_limit = false;
