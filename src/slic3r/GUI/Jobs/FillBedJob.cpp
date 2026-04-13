@@ -78,7 +78,7 @@ void FillBedJob::prepare()
                 }
                 else
                 {
-                    if (on_current_plate)
+                    if (plate_bb.contains(ap_bb))
                     {
                         ap.bed_idx = 0;
                         ap.itemid = m_unselected.size();
@@ -207,7 +207,7 @@ void FillBedJob::prepare()
                 newInst->set_transformation(mi_orig_trafo);
                 newInst->apply_arrange_result(p.translation.cast<double>(), p.rotation);
             }
-            //m_plater->sidebar().obj_list()->paste_objects_into_list({m_plater->model().objects.size()-1});
+            m_plater->model().set_assembly_pos(newObj);
         };
         m_selected.emplace_back(ap);
     }

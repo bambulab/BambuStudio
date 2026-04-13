@@ -530,15 +530,28 @@ ModelObject* Model::add_object(const ModelObject &other)
 void Model::set_assembly_pos(ModelObject *model_object)
 {
     if (!model_object) {return;}
-    auto cur_assemble_scene_box = bounding_box_in_assembly_view();
+    if (this->objects.size() == 0) { return; }
+    auto set_assembly_mo_offset = [](ModelObject *model_object, Vec3d& offset, const BoundingBoxf3 &mo_box) {
+        for (size_t i = 0; i < model_object->instances.size(); i++) {
+            auto inst = model_object->instances[i];
+            if (i >= 1) {//along y axis
+                offset[1] += (mo_box.size()[1] + 10);
+            }
+            inst->set_assemble_offset(offset);
+        }
+    };
+    auto mo_box = model_object->bounding_box_in_assembly_view();
+    if (this->objects.size() == 1) {
+        Vec3d offset(0, 0, mo_box.size()[2]/2.f);
+        set_assembly_mo_offset(model_object, offset, mo_box);
+        return;
+    }
+    auto cur_assemble_scene_box = this->bounding_box_in_assembly_view(model_object);
     if (cur_assemble_scene_box.defined) {
         auto offset = cur_assemble_scene_box.center();
-        auto mo_box = model_object->bounding_box_in_assembly_view();
         offset[0] += ((cur_assemble_scene_box.size()[0] / 2.0f + mo_box.size()[0] / 2.0f) + 10);//fix space:10mm
-        offset[2] = cur_assemble_scene_box.min[2] + mo_box.size()[2];
-        model_object->instances[0]->set_assemble_offset(offset);
-        offset[1] += cur_assemble_scene_box.center().y() - model_object->bounding_box_in_assembly_view().center().y();
-        model_object->instances[0]->set_assemble_offset(offset);
+        offset[2] = mo_box.size()[2] / 2.f;//on the ground
+        set_assembly_mo_offset(model_object, offset, mo_box);
     }
 }
 
@@ -693,10 +706,15 @@ BoundingBoxf3 Model::bounding_box() const
     return bb;
 }
 
-BoundingBoxf3 Model::bounding_box_in_assembly_view() const {
+BoundingBoxf3 Model::bounding_box_in_assembly_view(ModelObject *model_object) const
+{
     BoundingBoxf3 bb;
-    for (ModelObject *o : this->objects)
+    for (ModelObject *o : this->objects) {
+        if (model_object && model_object == o) {
+            continue;
+        }
         bb.merge(o->bounding_box_in_assembly_view());
+    }
     return bb;
 }
 
