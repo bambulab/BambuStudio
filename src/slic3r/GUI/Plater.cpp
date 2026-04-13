@@ -16581,10 +16581,6 @@ void Plater::import_model_id(wxString download_info)
 {
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << __LINE__ << " start downloading";
 
-    // === DIAGNOSTIC: Log raw input ===
-    BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] raw download_info length=" << download_info.length();
-    BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] raw download_info UTF8=" << download_info.ToUTF8().data();
-
     wxString download_origin_url = download_info;
     wxString download_url;
     wxString filename;
@@ -16596,31 +16592,17 @@ void Plater::import_model_id(wxString download_info)
         if (namePos != wxString::npos) {
             download_url = download_info.Mid(0, namePos);
             filename = download_info.Mid(namePos + separator.Length());
-            // === DIAGNOSTIC: Log parsed URL and filename ===
-            BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] parsed download_url=" << download_url.ToUTF8().data();
-            BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] parsed filename=" << filename.ToUTF8().data();
-            BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] filename bytes:";
-            {
-                const auto utf8 = filename.ToUTF8();
-                std::string hex;
-                for (size_t i = 0; i < strlen(utf8.data()); ++i) {
-                    char buf[8];
-                    snprintf(buf, sizeof(buf), "%02X ", (unsigned char)utf8.data()[i]);
-                    hex += buf;
-                }
-                BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG]   hex=" << hex;
-            }
+
         }
         else {
             fs::path download_path = fs::path(download_origin_url.wx_str());
             download_url = download_origin_url;
             filename = download_path.filename().string();
-            BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] no &name= separator, filename from URL=" << filename.ToUTF8().data();
         }
 
     }
     catch (const std::exception& error){
-        BOOST_LOG_TRIVIAL(error) << "[import_model_id][DIAG] parse exception: " << error.what();
+        BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << error.what();
     }
 
     bool download_ok = false;
@@ -16670,27 +16652,6 @@ void Plater::import_model_id(wxString download_info)
 
 
         target_path = fs::path(wxGetApp().app_config->get("download_path"));
-        // === DIAGNOSTIC: Log download directory ===
-        BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] download_path config=" << wxGetApp().app_config->get("download_path");
-        BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] target_path.string()=" << target_path.string();
-        BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] target_path exists=" << (fs::exists(target_path) ? "YES" : "NO");
-        if (fs::exists(target_path)) {
-            BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] target_path is_directory=" << (fs::is_directory(target_path) ? "YES" : "NO");
-            // Check write permission by testing a temp file
-            try {
-                auto test_file = target_path / ".bambu_write_test";
-                boost::nowide::ofstream test_ofs(test_file.string());
-                if (test_ofs.is_open()) {
-                    test_ofs.close();
-                    fs::remove(test_file);
-                    BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] directory writable=YES";
-                } else {
-                    BOOST_LOG_TRIVIAL(error) << "[import_model_id][DIAG] directory writable=NO (cannot create test file)";
-                }
-            } catch (const std::exception& e) {
-                BOOST_LOG_TRIVIAL(error) << "[import_model_id][DIAG] directory write test exception: " << e.what();
-            }
-        }
 
         try
         {
@@ -16750,68 +16711,8 @@ void Plater::import_model_id(wxString download_info)
         fs::path tmp_path = target_path;
         tmp_path += ".download";
 
-        // === DIAGNOSTIC: Log full constructed paths ===
-        BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] final target_path.string()=" << target_path.string();
-        BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] tmp_path.string()=" << tmp_path.string();
-        {
-            // Log raw bytes of tmp_path to detect encoding issues
-            std::string tmp_str = tmp_path.string();
-            std::string hex;
-            for (size_t i = 0; i < tmp_str.size(); ++i) {
-                char buf[8];
-                snprintf(buf, sizeof(buf), "%02X ", (unsigned char)tmp_str[i]);
-                hex += buf;
-            }
-            BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] tmp_path hex bytes=" << hex;
-            BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] tmp_path length=" << tmp_str.size() << " chars";
-        }
-        // Check if parent directory of tmp_path exists
-        BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] tmp_path.parent_path()=" << tmp_path.parent_path().string();
-        BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] tmp_path parent exists=" << (fs::exists(tmp_path.parent_path()) ? "YES" : "NO");
-
-        // Pre-test: try opening the tmp file right here on the main download thread
-        {
-            BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] Pre-test: attempting to open tmp_path with nowide::ofstream...";
-            boost::nowide::ofstream test_file(tmp_path.string(), std::ios::out | std::ios::binary | std::ios::trunc);
-            if (test_file.is_open()) {
-                BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] Pre-test: nowide::ofstream OPEN SUCCESS";
-                test_file.close();
-                try { fs::remove(tmp_path); } catch (...) {}
-            } else {
-                BOOST_LOG_TRIVIAL(error) << "[import_model_id][DIAG] Pre-test: nowide::ofstream OPEN FAILED, errno=" << errno << " (" << strerror(errno) << ")";
-            }
-
-            // Also try with std::ofstream for comparison
-            BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] Pre-test: attempting to open tmp_path with std::ofstream...";
-            std::ofstream test_file2(tmp_path.string(), std::ios::out | std::ios::binary | std::ios::trunc);
-            if (test_file2.is_open()) {
-                BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] Pre-test: std::ofstream OPEN SUCCESS";
-                test_file2.close();
-                try { fs::remove(tmp_path); } catch (...) {}
-            } else {
-                BOOST_LOG_TRIVIAL(error) << "[import_model_id][DIAG] Pre-test: std::ofstream OPEN FAILED, errno=" << errno << " (" << strerror(errno) << ")";
-            }
-
-#ifdef __APPLE__
-            // macOS: also try with fopen directly
-            BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] Pre-test: attempting fopen() with tmp_path.string()...";
-            FILE* fp = fopen(tmp_path.string().c_str(), "wb");
-            if (fp) {
-                BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] Pre-test: fopen() SUCCESS";
-                fclose(fp);
-                try { fs::remove(tmp_path); } catch (...) {}
-            } else {
-                BOOST_LOG_TRIVIAL(error) << "[import_model_id][DIAG] Pre-test: fopen() FAILED, errno=" << errno << " (" << strerror(errno) << ")";
-            }
-
-            // Try with NSString path (wstring -> UTF8)
-            BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] Pre-test: tmp_path.wstring() size=" << tmp_path.wstring().size();
-#endif
-        }
-
         auto filesize = 0;
         bool size_limit = false;
-        BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] download_url=" << download_url.ToUTF8().data();
         auto http = Http::get(download_url.ToStdString());
 
         while (cont && retry_count < max_retries) {
@@ -16852,75 +16753,23 @@ void Plater::import_model_id(wxString download_info)
                         cont = false;
                     }
                 })
-                .on_complete([&cont, &download_ok, tmp_path, target_path](std::string body, unsigned http_status) {
+                .on_complete([&cont, &download_ok, tmp_path, target_path](std::string body, unsigned /* http_status */) {
                         try {
-                            BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG][on_complete] entered, http_status=" << http_status << " body.size()=" << body.size();
-                            BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG][on_complete] tmp_path.string()=" << tmp_path.string();
-                            BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG][on_complete] target_path.string()=" << target_path.string();
-
                             // Verify downloaded data is not empty
                             if (body.empty()) {
-                                BOOST_LOG_TRIVIAL(error) << "[import_model_id][DIAG][on_complete] Downloaded file is empty!";
+                                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Downloaded file is empty";
                                 cont = false;
                                 download_ok = false;
                                 return;
                             }
 
-                            // Check if first bytes look like a valid 3mf (ZIP magic: PK\x03\x04)
-                            if (body.size() >= 4) {
-                                BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG][on_complete] first 4 bytes: "
-                                    << std::hex << (int)(unsigned char)body[0] << " "
-                                    << (int)(unsigned char)body[1] << " "
-                                    << (int)(unsigned char)body[2] << " "
-                                    << (int)(unsigned char)body[3] << std::dec;
-                            }
-
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Writing downloaded data to temp file: " << PathSanitizer::sanitize(tmp_path);
-
-                            // === DIAGNOSTIC: Log path encoding details before file open ===
-                            {
-                                std::string path_str = tmp_path.string();
-                                std::string hex;
-                                for (size_t i = 0; i < path_str.size(); ++i) {
-                                    char buf[8];
-                                    snprintf(buf, sizeof(buf), "%02X ", (unsigned char)path_str[i]);
-                                    hex += buf;
-                                }
-                                BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG][on_complete] tmp_path string hex=" << hex;
-                                BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG][on_complete] parent exists=" << (fs::exists(tmp_path.parent_path()) ? "YES" : "NO");
-                            }
 
                             // Write to temporary file
                             // Use nowide for proper Unicode path handling (Chinese filenames on macOS)
-                            BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG][on_complete] opening nowide::ofstream...";
                             boost::nowide::ofstream file(tmp_path.string(), std::ios::out | std::ios::binary | std::ios::trunc);
                             if (!file.is_open()) {
-                                int err = errno;
                                 BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Failed to open temp file: " << PathSanitizer::sanitize(tmp_path);
-                                BOOST_LOG_TRIVIAL(error) << "[import_model_id][DIAG][on_complete] nowide::ofstream FAILED, errno=" << err << " (" << strerror(err) << ")";
-
-                                // Fallback: try std::ofstream
-                                BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG][on_complete] fallback: trying std::ofstream...";
-                                std::ofstream fallback_file(tmp_path.string(), std::ios::out | std::ios::binary | std::ios::trunc);
-                                if (fallback_file.is_open()) {
-                                    BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG][on_complete] fallback std::ofstream SUCCEEDED — nowide is the problem";
-                                    fallback_file.close();
-                                    try { fs::remove(tmp_path); } catch (...) {}
-                                } else {
-                                    BOOST_LOG_TRIVIAL(error) << "[import_model_id][DIAG][on_complete] fallback std::ofstream also FAILED, errno=" << errno << " (" << strerror(errno) << ")";
-                                }
-
-#ifdef __APPLE__
-                                // macOS: try fopen
-                                FILE* fp = fopen(tmp_path.string().c_str(), "wb");
-                                if (fp) {
-                                    BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG][on_complete] fopen() SUCCEEDED — ofstream is the problem";
-                                    fclose(fp);
-                                    try { fs::remove(tmp_path); } catch (...) {}
-                                } else {
-                                    BOOST_LOG_TRIVIAL(error) << "[import_model_id][DIAG][on_complete] fopen() also FAILED, errno=" << errno << " (" << strerror(errno) << ")";
-                                }
-#endif
                                 cont = false;
                                 download_ok = false;
                                 return;
@@ -16975,24 +16824,9 @@ void Plater::import_model_id(wxString download_info)
 
                             // Atomic rename operation (use nowide for Unicode path support)
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Renaming temp file to target: " << PathSanitizer::sanitize(tmp_path) << " -> " << PathSanitizer::sanitize(target_path);
-                            BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG][on_complete] tmp_path exists before rename=" << (fs::exists(tmp_path) ? "YES" : "NO");
-                            if (fs::exists(tmp_path)) {
-                                BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG][on_complete] tmp_path file_size=" << fs::file_size(tmp_path);
-                            }
-                            int rename_rc = boost::nowide::rename(tmp_path.string().c_str(), target_path.string().c_str());
-                            if (rename_rc != 0) {
-                                int err = errno;
-                                BOOST_LOG_TRIVIAL(error) << "[import_model_id][DIAG][on_complete] rename FAILED, rc=" << rename_rc << " errno=" << err << " (" << strerror(err) << ")";
-                                cont = false;
-                                download_ok = false;
-                                return;
-                            }
+                            boost::nowide::rename(tmp_path.string().c_str(), target_path.string().c_str());
                             
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " File renamed successfully: " << PathSanitizer::sanitize(target_path);
-                            BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG][on_complete] target_path exists after rename=" << (fs::exists(target_path) ? "YES" : "NO");
-                            if (fs::exists(target_path)) {
-                                BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG][on_complete] target_path file_size=" << fs::file_size(target_path);
-                            }
                             download_ok = true;   // Set before cont=false so main thread sees download_ok when it exits the while loop
                             cont = false;
                         }
@@ -17046,18 +16880,9 @@ void Plater::import_model_id(wxString download_info)
 
     if (download_ok) {
         BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << PathSanitizer::sanitize(target_path);
-        // === DIAGNOSTIC: Log load_project input ===
-        BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] download_ok=true, about to load_project";
-        BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] target_path.string()=" << target_path.string();
-        BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] target_path exists=" << (fs::exists(target_path) ? "YES" : "NO");
-        if (fs::exists(target_path)) {
-            BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] target_path file_size=" << fs::file_size(target_path);
-        }
         /* load project — use wxString::FromUTF8 for consistent Unicode handling across platforms */
         wxString wx_target_path = wxString::FromUTF8(target_path.string());
-        BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] wx_target_path=" << wx_target_path.ToUTF8().data();
         auto result = this->load_project(wx_target_path);
-        BOOST_LOG_TRIVIAL(info) << "[import_model_id][DIAG] load_project result=" << result;
         statistics_burial_data_form_mw();
         if (result == (int)wxID_CANCEL) {
             return;
