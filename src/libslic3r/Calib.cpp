@@ -721,8 +721,8 @@ void CalibPressureAdvancePattern::_refresh_writer(bool is_bbl_machine, const Mod
     m_writer.set_travel_short_acceleration(short_travel_accelerations);
     m_writer.set_first_layer_travel_acceleration(first_layer_travel_accelerations);
 
-    const int nozzle_idx = m_params.extruder_id;
-    if (nozzle_idx >= 0 && nozzle_idx < (int) print_config.default_acceleration.size() && nozzle_idx < (int) print_config.outer_wall_acceleration.size()) {
+    const size_t nozzle_idx = get_process_config_idx(print_config, filament_id);
+    if (nozzle_idx < print_config.default_acceleration.size() && nozzle_idx < print_config.outer_wall_acceleration.size()) {
         const double default_acc = print_config.default_acceleration.get_at(nozzle_idx);
         const double outer_acc   = print_config.outer_wall_acceleration.get_at(nozzle_idx);
         if (default_acc > 0 && outer_acc > 0) {
