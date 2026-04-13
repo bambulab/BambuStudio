@@ -7456,8 +7456,11 @@ std::vector<wxString> Tab::generate_extruder_options()
         return options;
     }
 
+    std::string pt = m_preset_bundle->printers.get_edited_preset().get_printer_type(m_preset_bundle);
     for (int i = 0; i < extruder_nums; ++i) {
-        wxString         extruder_name = (i == 0) ? _L("Left") : _L("Right");
+        int ext_id = (i == 0) ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
+        wxString extruder_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(
+            pt, ext_id, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase, true));
         NozzleVolumeType volume_type = NozzleVolumeType(nozzle_volumes->values[i]);
 
         if (volume_type == NozzleVolumeType::nvtHybrid) {
