@@ -120,6 +120,11 @@ std::vector<FilamentMapMode> resolve_available_auto_modes(Print* print_obj, cons
             supported_modes.push_back(fmmAutoForQuality);
     }
 
+    // remove match mode when filament swither is ready
+    if (wxGetApp().sidebar().is_fila_switch_ready()) {
+        supported_modes.erase(std::remove(supported_modes.begin(), supported_modes.end(), fmmAutoForMatch), supported_modes.end());
+    }
+
     std::vector<FilamentMapMode> requested_auto = normalize_auto_modes(requested_modes);
     if (requested_auto.empty())
         requested_auto = get_default_auto_modes();
@@ -292,7 +297,11 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
 
     SetMinSize(wxSize(FromDIP(580), -1));
 
+    std::vector<FilamentMapMode> modes_to_use = normalize_auto_modes(available_modes);
+    if (modes_to_use.empty()) modes_to_use = get_default_auto_modes();
+
     m_fila_switch_ready = wxGetApp().sidebar().is_fila_switch_ready();
+    bool only_saving_mode = m_fila_switch_ready && (std::find(modes_to_use.cbegin(), modes_to_use.cend(), FilamentMapMode::fmmAutoForQuality) == modes_to_use.cend());
 
     if (is_auto_filament_map_mode(mode))
         m_page_type = PageType::ptAuto;
@@ -306,7 +315,7 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
 
     wxBoxSizer *mode_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    wxString auto_btn_label = m_fila_switch_ready ? _L("Fila Saving") : _L("Auto");
+    wxString auto_btn_label = only_saving_mode ? _L("Fila Saving") : _L("Auto");
     m_auto_btn   = new CapsuleButton(this, PageType::ptAuto, auto_btn_label, false);
     m_manual_btn = new CapsuleButton(this, PageType::ptManual, _L("Custom"), false);
     if (show_default)
@@ -326,19 +335,15 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
 
     auto            panel_sizer       = new wxBoxSizer(wxHORIZONTAL);
 
-    std::vector<FilamentMapMode> modes_to_use = normalize_auto_modes(available_modes);
-    if (modes_to_use.empty())
-        modes_to_use = get_default_auto_modes();
-
     FilamentMapMode default_auto_mode = is_auto_filament_map_mode(mode) ? mode : fmmAutoForFlush;
     if (!machine_synced && default_auto_mode == fmmAutoForMatch)
         default_auto_mode = fmmAutoForFlush;
     if (std::find(modes_to_use.begin(), modes_to_use.end(), default_auto_mode) == modes_to_use.end())
         default_auto_mode = modes_to_use.front();
 
-    m_manual_map_panel                = new FilamentMapManualPanel(this, m_filament_color, m_filament_type, filaments, filament_map, filament_volume_map);
-    m_auto_map_panel                          = new FilamentMapAutoPanel(this, default_auto_mode, machine_synced, modes_to_use);
-    m_saving_panel                            = m_fila_switch_ready ? new FilamentMapSavingPanel(this) : nullptr;
+    m_manual_map_panel = new FilamentMapManualPanel(this, m_filament_color, m_filament_type, filaments, filament_map, filament_volume_map);
+    m_auto_map_panel   = new FilamentMapAutoPanel(this, default_auto_mode, machine_synced, modes_to_use);
+    m_saving_panel = only_saving_mode ? new FilamentMapSavingPanel(this) : nullptr;
     if (show_default)
         m_default_map_panel = new FilamentMapDefaultPanel(this);
     else

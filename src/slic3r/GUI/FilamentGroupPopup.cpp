@@ -428,13 +428,6 @@ void FilamentGroupPopup::tryPopup(Plater* plater,PartPlate* partplate,bool slice
         Print* print_obj = partplate ? partplate->fff_print() : nullptr;
         std::vector<FilamentMapMode> new_available_modes = resolve_available_auto_modes(print_obj, requested_modes, connect_status);
 
-        if (wxGetApp().sidebar().is_fila_switch_ready()) {
-            new_available_modes.erase(
-                std::remove(new_available_modes.begin(), new_available_modes.end(), fmmAutoForMatch),
-                new_available_modes.end()
-            );
-        }
-
         new_available_modes.push_back(fmmManual);
 
         // Check if available modes changed
