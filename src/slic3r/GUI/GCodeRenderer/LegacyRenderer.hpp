@@ -163,7 +163,6 @@ namespace Slic3r {
                     float width{ 0.0f };
                     float feedrate{ 0.0f };
                     float fan_speed{ 0.0f };
-                    float additional_fan_speed{ 0.0f };
                     float temperature{ 0.0f };
                     // helio
                     float thermal_index_min{ 0.0f };

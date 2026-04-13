@@ -27,8 +27,6 @@ namespace
             return _u8L("Speed");
         else if (view_type == Slic3r::GUI::gcode::EViewType::FanSpeed)
             return _u8L("Fan Speed");
-        else if (view_type == Slic3r::GUI::gcode::EViewType::AdditionalFanSpeed)
-            return _u8L("AUX Fan Speed");
         else if (view_type == Slic3r::GUI::gcode::EViewType::Temperature)
             return _u8L("Temperature");
         else if (view_type == Slic3r::GUI::gcode::EViewType::VolumetricRate)
@@ -1211,7 +1209,6 @@ namespace Slic3r
                                 m_p_extrusions->ranges.width.update_from(round_to_bin(curr.width));
                             }// prevent the start code extrude extreme height/width and make the range deviate from the normal range
                             m_p_extrusions->ranges.fan_speed.update_from(curr.fan_speed);
-                            m_p_extrusions->ranges.additional_fan_speed.update_from(curr.additional_fan_speed);
                             m_p_extrusions->ranges.temperature.update_from(curr.temperature);
                             if (curr.extrusion_role != erCustom || is_extrusion_role_visible(ExtrusionRole::erCustom))
                                 m_p_extrusions->ranges.volumetric_rate.update_from(round_to_bin(curr.volumetric_rate()));
@@ -1690,31 +1687,25 @@ namespace Slic3r
                     const_cast<GCodeProcessorResult*>(m_gcode_result)->update_imgui_flag = false;
                 }
                 push_combo_style();
-
-                auto       *preset_bundle             = wxGetApp().preset_bundle;
-                const bool  is_bbl_vendor_preset      = preset_bundle != nullptr && preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(preset_bundle);
-                const auto *printer_model             = wxGetApp().plater()->get_curr_printer_model();
-                const bool  hide_additional_fan_speed = !is_bbl_vendor_preset || (printer_model != nullptr && printer_model->support_side_panel_fan == "false");
-                if (hide_additional_fan_speed && view_type_items[m_view_type_sel] == EViewType::AdditionalFanSpeed) {
-                    for (int i = 0; i < view_type_items.size(); ++i) {
-                        if (view_type_items[i] == EViewType::FeatureType) {
-                            apply_view_type_selection(i, EViewType::FeatureType);
-                            break;
-                        }
-                    }
-                }
                 ImGuiComboFlags flags = 0;
                 const char* view_type_value = view_type_image_names[m_view_type_sel].option_name.c_str();
                 if (ImGui::BBLBeginCombo("", view_type_value, flags)) {
                     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
                     for (int i = 0; i < view_type_image_names.size(); i++) {
                         const bool is_selected = (m_view_type_sel == i);
-                        if (hide_additional_fan_speed && view_type_items[i] == EViewType::AdditionalFanSpeed) {
-                            continue;
-                        }
                         if (ImGui::BBLSelectable_LeftImage(view_type_image_names[i].option_name.c_str(), is_selected, view_type_image_names[i].texture_id)) {
                             m_fold = false;
-                            apply_view_type_selection(i, view_type_items[i]);
+                            m_view_type_sel = i;
+                            if (!is_helio_option()) {
+                                m_last_non_helio_option_item = i;
+                                record_gcodeviewer_option_item();
+                            }
+                            set_view_type(view_type_items[m_view_type_sel]);
+                            reset_visible(view_type_items[m_view_type_sel]);
+                            // update buffers' render paths
+                            refresh_render_paths();
+                            update_moves_slider();
+                            wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
                         }
                         if (is_selected) {
                             ImGui::SetItemDefaultFocus();
@@ -1870,7 +1861,6 @@ namespace Slic3r
                 case EViewType::Width: { imgui.title(_u8L("Line Width (mm)")); break; }
                 case EViewType::Feedrate: { imgui.title(_u8L("Speed (mm/s)")); break; }
                 case EViewType::FanSpeed: { imgui.title(_u8L("Fan Speed (%)")); break; }
-                case EViewType::AdditionalFanSpeed: { imgui.title(_u8L("AUX  Fan Speed (%)")); break; }
                 case EViewType::Temperature: { imgui.title(_u8L("Temperature (°C)")); break; }
                 case EViewType::VolumetricRate: { imgui.title(_u8L("Volumetric flow rate (mm³/s)")); break; }
                 case EViewType::LayerTime: { imgui.title(_u8L("Layer Time")); break; }
@@ -2016,7 +2006,6 @@ namespace Slic3r
                     break;
                 }
                 case EViewType::FanSpeed: { append_range(m_p_extrusions->ranges.fan_speed, 0); break; }
-                case EViewType::AdditionalFanSpeed: { append_range(m_p_extrusions->ranges.additional_fan_speed, 0); break; }
                 case EViewType::Temperature: { append_range(m_p_extrusions->ranges.temperature, 0); break; }
                 case EViewType::LayerTime: { append_range(m_p_extrusions->ranges.layer_duration, 1); break; }
                 case EViewType::VolumetricRate: { append_range(m_p_extrusions->ranges.volumetric_rate, 2); break; }
@@ -2174,8 +2163,8 @@ namespace Slic3r
                     break;
                 }
                 // helio
-                case EViewType::ThermalIndexMin:
-                case EViewType::ThermalIndexMax:
+                case EViewType::ThermalIndexMin: 
+                case EViewType::ThermalIndexMax: 
                 case EViewType::ThermalIndexMean: {
                     if (m_view_type == EViewType::ThermalIndexMin)
                         append_range(m_p_extrusions->ranges.thermal_index_min, 0);
@@ -2183,13 +2172,13 @@ namespace Slic3r
                         append_range(m_p_extrusions->ranges.thermal_index_max, 0);
                     else
                         append_range(m_p_extrusions->ranges.thermal_index_mean, 0);
-
+                    
                     // Add "View Summary" link only if simulation/optimization result is available
                     if (wxGetApp().plater()->has_helio_simulation_result()) {
                         ImGui::Spacing();
                         ImGui::Dummy({ window_padding, window_padding });
                         ImGui::SameLine();
-
+                        
                         // Render as hyperlink with green color and underline
                         std::string label = _u8L("View Summary");
                         ImColor HyperColor = ImColor(0, 174, 66, 255).Value;
@@ -2959,20 +2948,6 @@ namespace Slic3r
                 wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
             }
 
-            void BaseRenderer::apply_view_type_selection(int view_type_sel, EViewType type)
-            {
-                m_view_type_sel = view_type_sel;
-                if (!is_helio_option()) {
-                    m_last_non_helio_option_item = view_type_sel;
-                    record_gcodeviewer_option_item();
-                }
-                set_view_type(type);
-                reset_visible(type);
-                refresh_render_paths();
-                update_moves_slider();
-                wxGetApp().plater()->get_current_canvas3D()->set_as_dirty();
-            }
-
             void BaseRenderer::do_set_view_type(EViewType type)
             {
                 m_view_type = type;
@@ -3130,7 +3105,6 @@ namespace Slic3r
                 view_type_items.push_back(EViewType::VolumetricRate);
                 view_type_items.push_back(EViewType::LayerTime);
                 view_type_items.push_back(EViewType::FanSpeed);
-                view_type_items.push_back(EViewType::AdditionalFanSpeed);
                 view_type_items.push_back(EViewType::Temperature);
                 for (int i = 0; i < view_type_items.size(); i++) {
                     if (view_type_items[i] == EViewType::FilamentId) {
@@ -3599,7 +3573,6 @@ namespace Slic3r
                 std::string flow = ImGui::ColorMarkerStart + _u8L("Flow: ") + ImGui::ColorMarkerEnd;
                 std::string layer_time = ImGui::ColorMarkerStart + _u8L("Layer Time: ") + ImGui::ColorMarkerEnd;
                 std::string fanspeed = ImGui::ColorMarkerStart + _u8L("Fan Speed: ") + ImGui::ColorMarkerEnd;
-                std::string additional_fanspeed = ImGui::ColorMarkerStart + _u8L("AUX Fan Speed: ") + ImGui::ColorMarkerEnd;
                 std::string temperature = ImGui::ColorMarkerStart + _u8L("Temperature: ") + ImGui::ColorMarkerEnd;
                 std::string    thermal_index = ImGui::ColorMarkerStart + _u8L("Thermal Index") + ImGui::ColorMarkerEnd;
                 // helio
@@ -3674,13 +3647,6 @@ namespace Slic3r
                     case EViewType::FanSpeed: {
                         ImGui::SameLine(window_padding + item_size + item_spacing);
                         sprintf(buf, "%s%.0f", fanspeed.c_str(), m_curr_move.fan_speed);
-                        ImGui::PushItemWidth(item_size);
-                        imgui.text(buf);
-                        break;
-                    }
-                    case EViewType::AdditionalFanSpeed: {
-                        ImGui::SameLine(window_padding + item_size + item_spacing);
-                        sprintf(buf, "%s%.0f", additional_fanspeed.c_str(), m_curr_move.additional_fan_speed);
                         ImGui::PushItemWidth(item_size);
                         imgui.text(buf);
                         break;
