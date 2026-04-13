@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-13 10:22+0800\n"
+"POT-Creation-Date: 2026-04-13 14:45+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -195,6 +195,9 @@ msgstr "ABS/ASA/PETG HF在右擠出機列印時，僅能作為支撐材料使用
 
 msgid "How to feed TPU filament."
 msgstr "TPU進料方式。"
+
+msgid "How to feed TPU filament on X2D."
+msgstr ""
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr "使用非拓竹耗材可能會存在列印質量問題。"
@@ -2638,6 +2641,9 @@ msgstr "目標物件僅包含一個零件，無法被拆分。"
 
 msgid "Assembly"
 msgstr "組合體"
+
+msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
+msgstr ""
 
 msgid "Cut Connectors information"
 msgstr "切割連線件資訊"
@@ -7033,6 +7039,9 @@ msgstr ""
 msgid "High-shrinkage filament(s) detected: %s. These materials may cause dimensional deviation after cooling. If your model requires precise fitting or assembly, please refer to the Wiki guide for shrinkage testing."
 msgstr ""
 
+msgid "Printing mixed-color filament on a single-extruder printer requires frequent filament changes and flushing, which may significantly increase waste and the risk of nozzle / waste-chute clogging."
+msgstr ""
+
 #, boost-format
 msgid " plate %1%: "
 msgstr " 盤 %1%: "
@@ -8157,9 +8166,6 @@ msgstr "清除載入檔案後同步印表機預設的設定。"
 
 msgid "Clear my choice for Load 3mf dialog settings."
 msgstr "清除 “載入 3mf” 對話方塊設定。"
-
-msgid "Clear my choice for disabling support parameter recommendation."
-msgstr ""
 
 msgid "3D Settings"
 msgstr "3D設定"
@@ -16832,6 +16838,61 @@ msgstr "列印結果：LIKELY_FAIL"
 msgid "Print Outcome: "
 msgstr "列印結果： "
 
+msgid "Edit Mixed Filament"
+msgstr ""
+
+msgid "Effect Preview"
+msgstr ""
+
+msgid "Select Mixed Materials"
+msgstr ""
+
+msgid "+ Add Material"
+msgstr ""
+
+msgid "- Delete Material"
+msgstr ""
+
+msgid "Ratio"
+msgstr "比例"
+
+msgid "Gradient Effect"
+msgstr ""
+
+msgid "Mixing Recommendations"
+msgstr ""
+
+msgid "-- Select --"
+msgstr ""
+
+msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
+msgstr ""
+
+msgid "Mixed Color Sublayer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Slot %s (%s)"
+msgstr ""
+
+msgid "cannot be mixed. Please select the same filament type."
+msgstr ""
+
+msgid "Please select a filament for all components"
+msgstr ""
+
+msgid "Cannot mix different filament types"
+msgstr ""
+
+msgid "Maximum 3 materials for mixing"
+msgstr ""
+
+msgid "Maximum number of components reached"
+msgstr ""
+
+msgid "Remove the third material"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -23012,9 +23073,6 @@ msgstr ""
 
 #~ msgid "Explosion"
 #~ msgstr "爆炸圖"
-
-#~ msgid "Ratio"
-#~ msgstr "比例"
 
 #~ msgid "Show daily tip on startup"
 #~ msgstr "啟動時顯示每日小貼士"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-13 10:22+0800\n"
+"POT-Creation-Date: 2026-04-13 14:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -190,6 +190,9 @@ msgstr "Cuando se utiliza ABS/ASA/PETG HF en el extrusor derecho, solo se puede 
 
 msgid "How to feed TPU filament."
 msgstr "Cómo alimentar el filamento de TPU."
+
+msgid "How to feed TPU filament on X2D."
+msgstr ""
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr "El uso de filamento que no sea de Bambu puede presentar problemas de calidad de impresión."
@@ -2665,6 +2668,9 @@ msgstr "El objeto de destino sólo contiene una parte y no se puede dividir."
 
 msgid "Assembly"
 msgstr "Montaje"
+
+msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
+msgstr ""
 
 msgid "Cut Connectors information"
 msgstr "Información sobre conectores cortados"
@@ -7110,6 +7116,9 @@ msgstr "Se ha detectado riesgo de acumulación en la boquilla con el filamento d
 msgid "High-shrinkage filament(s) detected: %s. These materials may cause dimensional deviation after cooling. If your model requires precise fitting or assembly, please refer to the Wiki guide for shrinkage testing."
 msgstr "Filamentos de alta contracción detectados: %s. Estos materiales pueden provocar desviaciones dimensionales tras el enfriamiento. Si su modelo requiere un ajuste o ensamblaje preciso, consulte la guía Wiki para pruebas de contracción."
 
+msgid "Printing mixed-color filament on a single-extruder printer requires frequent filament changes and flushing, which may significantly increase waste and the risk of nozzle / waste-chute clogging."
+msgstr ""
+
 #, boost-format
 msgid " plate %1%: "
 msgstr " placa %1%:"
@@ -8261,9 +8270,6 @@ msgstr "Desactive mi elección para sincronizar los ajustes preestablecidos de l
 
 msgid "Clear my choice for Load 3mf dialog settings."
 msgstr "Borrar mi elección para la configuración del cuadro de diálogo Cargar 3mf."
-
-msgid "Clear my choice for disabling support parameter recommendation."
-msgstr ""
 
 msgid "3D Settings"
 msgstr "Configuración 3D"
@@ -16981,6 +16987,61 @@ msgstr "Resultado de la impresión: LIKELY_FAIL"
 
 msgid "Print Outcome: "
 msgstr "Resultado de la impresión: "
+
+msgid "Edit Mixed Filament"
+msgstr ""
+
+msgid "Effect Preview"
+msgstr ""
+
+msgid "Select Mixed Materials"
+msgstr ""
+
+msgid "+ Add Material"
+msgstr ""
+
+msgid "- Delete Material"
+msgstr ""
+
+msgid "Ratio"
+msgstr ""
+
+msgid "Gradient Effect"
+msgstr ""
+
+msgid "Mixing Recommendations"
+msgstr ""
+
+msgid "-- Select --"
+msgstr ""
+
+msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
+msgstr ""
+
+msgid "Mixed Color Sublayer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Slot %s (%s)"
+msgstr ""
+
+msgid "cannot be mixed. Please select the same filament type."
+msgstr ""
+
+msgid "Please select a filament for all components"
+msgstr ""
+
+msgid "Cannot mix different filament types"
+msgstr ""
+
+msgid "Maximum 3 materials for mixing"
+msgstr ""
+
+msgid "Maximum number of components reached"
+msgstr ""
+
+msgid "Remove the third material"
+msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
