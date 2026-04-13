@@ -207,8 +207,7 @@ namespace Slic3r {
             float width{ 0.0f }; // mm
             float height{ 0.0f }; // mm
             float mm3_per_mm{ 0.0f };
-            float fan_speed{ 0.0f }; // percentage (part cooling fan, M106 / M106 P1)
-            float additional_fan_speed{ 0.0f }; // percentage (auxiliary/side fan, M106 P2)
+            float fan_speed{ 0.0f }; // percentage
             float temperature{ 0.0f }; // Celsius degrees
             float layer_duration{ 0.0f }; // s (layer id before finalize)
             float thermal_index_min{0.0f};
@@ -1152,8 +1151,7 @@ namespace Slic3r {
         float m_forced_width; // mm
         float m_forced_height; // mm
         float m_mm3_per_mm;
-        float m_fan_speed; // percentage (part cooling fan)
-        float m_additional_fan_speed; // percentage (auxiliary/side fan, M106 P2)
+        float m_fan_speed; // percentage
         ExtrusionRole m_extrusion_role;
         std::vector<int> m_filament_maps;
         std::vector<unsigned char> m_last_filament_id;
