@@ -4644,9 +4644,25 @@ GCode::LayerResult GCode::process_layer(
     {
         auto& filament_info = get_filament_by_id(extruder_id);
         if (print.config().print_sequence == PrintSequence::ByLayer && m_enable_label_object && print.config().support_object_skip_flush.value) {
-            std::vector<size_t> filament_instances_id;
-            for (InstanceToPrint &instance : filament_to_print_instances[extruder_id]) filament_instances_id.emplace_back(instance.label_object_id);
-            m_filament_instances_code = _encode_label_ids_to_base64(filament_instances_id);
+            std::set<size_t> all_label_ids;
+            auto direct_it = filament_to_print_instances.find(extruder_id);
+            if (direct_it != filament_to_print_instances.end())
+                for (const InstanceToPrint &inst : direct_it->second)
+                    all_label_ids.insert(inst.label_object_id);
+            for (const auto &grp : layer_tools.mixed_sub_layer_groups)
+                for (unsigned int comp : grp.components_0based)
+                    if (comp == extruder_id) {
+                        auto mit = filament_to_print_instances.find(grp.mixed_slot_0based);
+                        if (mit != filament_to_print_instances.end())
+                            for (const InstanceToPrint &inst : mit->second)
+                                all_label_ids.insert(inst.label_object_id);
+                        break;
+                    }
+            if (!all_label_ids.empty())
+                m_filament_instances_code = _encode_label_ids_to_base64(
+                    std::vector<size_t>(all_label_ids.begin(), all_label_ids.end()));
+            else
+                m_filament_instances_code.clear();
         }
 
         if (has_wipe_tower) {

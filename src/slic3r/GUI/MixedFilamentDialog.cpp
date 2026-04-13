@@ -687,39 +687,124 @@ wxBoxSizer* MixedFilamentDialog::create_recommendation_grid()
 
     outer->Add(title_sizer, 0, wxEXPAND | wxBOTTOM, FromDIP(4));
 
-    auto* scroll = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(116)));
-    scroll->SetScrollRate(0, 5);
-    scroll->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#F8F8F8")));
+    m_recommendation_scroll = new wxScrolledWindow(this, wxID_ANY, wxDefaultPosition, wxSize(-1, FromDIP(116)));
+    m_recommendation_scroll->SetScrollRate(0, 5);
+    m_recommendation_scroll->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#F8F8F8")));
 
-    auto* grid = new wxWrapSizer(wxHORIZONTAL, wxWRAPSIZER_DEFAULT_FLAGS);
+    m_recommendation_grid = new wxWrapSizer(wxHORIZONTAL, wxWRAPSIZER_DEFAULT_FLAGS);
+    m_recommendation_scroll->SetSizer(m_recommendation_grid);
+
+    rebuild_recommendation_items();
+
+    outer->Add(m_recommendation_scroll, 1, wxEXPAND | wxTOP, FromDIP(4));
+    return outer;
+}
+
+void MixedFilamentDialog::rebuild_recommendation_items()
+{
+    if (!m_recommendation_scroll || !m_recommendation_grid)
+        return;
+
+    static constexpr int MAX_RECOMMENDATIONS = 100;
+
+    m_recommendation_scroll->Freeze();
+    m_recommendation_grid->Clear(true);
 
     size_t n = m_physical_colors.size();
+    int count = 0;
+
+    // Group physical filaments by type (only same-type combos are recommended)
+    std::map<std::string, std::vector<size_t>> type_groups;
     for (size_t i = 0; i < n; ++i) {
-        for (size_t j = i + 1; j < n; ++j) {
-            auto* item = new wxPanel(scroll, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)));
-            wxColour ca(m_physical_colors[i]);
-            wxColour cb(m_physical_colors[j]);
-            wxColour mixed = blend_colors(ca, cb, 0.5);
-            item->SetBackgroundColour(mixed);
-            item->SetCursor(wxCursor(wxCURSOR_HAND));
+        std::string t = (i < m_physical_types.size()) ? m_physical_types[i] : "PLA";
+        // Skip support filaments (type ends with "-S")
+        if (t.size() >= 2 && t.compare(t.size() - 2, 2, "-S") == 0)
+            continue;
+        type_groups[t].push_back(i);
+    }
 
-            unsigned int comp_a = (unsigned int)(i + 1);
-            unsigned int comp_b = (unsigned int)(j + 1);
-            item->Bind(wxEVT_LEFT_UP, [this, comp_a, comp_b](wxMouseEvent&) {
-                on_recommendation_clicked(comp_a, comp_b);
-            });
-            item->SetToolTip(wxString::Format(wxT("%s + %s"),
-                wxString::FromUTF8(m_physical_names[i]), wxString::FromUTF8(m_physical_names[j])));
+    if (num_components() >= 3) {
+        // Three-color: C(g,3) x 3 variants per same-type group
+        for (auto& [type, indices] : type_groups) {
+            if (count >= MAX_RECOMMENDATIONS) break;
+            size_t g = indices.size();
+            for (size_t ai = 0; ai < g && count < MAX_RECOMMENDATIONS; ++ai) {
+                for (size_t bi = ai + 1; bi < g && count < MAX_RECOMMENDATIONS; ++bi) {
+                    for (size_t ci = bi + 1; ci < g && count < MAX_RECOMMENDATIONS; ++ci) {
+                        size_t idx[3] = {indices[ai], indices[bi], indices[ci]};
+                        // 3 variants: each filament takes the 50% role in turn
+                        for (int dominant = 0; dominant < 3 && count < MAX_RECOMMENDATIONS; ++dominant) {
+                            size_t i0 = idx[(dominant + 1) % 3]; // 25%
+                            size_t i1 = idx[(dominant + 2) % 3]; // 25%
+                            size_t i2 = idx[dominant];           // 50%
 
-            grid->Add(item, 0, wxRIGHT | wxBOTTOM, FromDIP(6));
+                            wxColour ca(m_physical_colors[i0]);
+                            wxColour cb(m_physical_colors[i1]);
+                            wxColour cc(m_physical_colors[i2]);
+                            wxColour mixed = blend_n_colors({ca, cb, cc}, {0.25, 0.25, 0.50});
+
+                            auto* item = new wxPanel(m_recommendation_scroll, wxID_ANY,
+                                                     wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)));
+                            item->SetBackgroundColour(mixed);
+                            item->SetCursor(wxCursor(wxCURSOR_HAND));
+
+                            unsigned int ca_1 = (unsigned int)(i0 + 1);
+                            unsigned int cb_1 = (unsigned int)(i1 + 1);
+                            unsigned int cc_1 = (unsigned int)(i2 + 1);
+                            item->Bind(wxEVT_LEFT_UP, [this, ca_1, cb_1, cc_1](wxMouseEvent&) {
+                                on_recommendation_clicked_triple(ca_1, cb_1, cc_1);
+                            });
+                            item->SetToolTip(wxString::Format(wxT("%s + %s + %s"),
+                                wxString::FromUTF8(m_physical_names[i0]),
+                                wxString::FromUTF8(m_physical_names[i1]),
+                                wxString::FromUTF8(m_physical_names[i2])));
+
+                            m_recommendation_grid->Add(item, 0, wxRIGHT | wxBOTTOM, FromDIP(6));
+                            ++count;
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        // Two-color: C(g,2) per same-type group
+        for (auto& [type, indices] : type_groups) {
+            if (count >= MAX_RECOMMENDATIONS) break;
+            size_t g = indices.size();
+            for (size_t ai = 0; ai < g && count < MAX_RECOMMENDATIONS; ++ai) {
+                for (size_t bi = ai + 1; bi < g && count < MAX_RECOMMENDATIONS; ++bi) {
+                    size_t i = indices[ai];
+                    size_t j = indices[bi];
+
+                    wxColour ca(m_physical_colors[i]);
+                    wxColour cb(m_physical_colors[j]);
+                    wxColour mixed = blend_colors(ca, cb, 0.5);
+
+                    auto* item = new wxPanel(m_recommendation_scroll, wxID_ANY,
+                                             wxDefaultPosition, wxSize(FromDIP(20), FromDIP(20)));
+                    item->SetBackgroundColour(mixed);
+                    item->SetCursor(wxCursor(wxCURSOR_HAND));
+
+                    unsigned int comp_a = (unsigned int)(i + 1);
+                    unsigned int comp_b = (unsigned int)(j + 1);
+                    item->Bind(wxEVT_LEFT_UP, [this, comp_a, comp_b](wxMouseEvent&) {
+                        on_recommendation_clicked(comp_a, comp_b);
+                    });
+                    item->SetToolTip(wxString::Format(wxT("%s + %s"),
+                        wxString::FromUTF8(m_physical_names[i]),
+                        wxString::FromUTF8(m_physical_names[j])));
+
+                    m_recommendation_grid->Add(item, 0, wxRIGHT | wxBOTTOM, FromDIP(6));
+                    ++count;
+                }
+            }
         }
     }
 
-    scroll->SetSizer(grid);
-    scroll->SetScrollbars(0, FromDIP(20), 0, 1);
-
-    outer->Add(scroll, 1, wxEXPAND | wxTOP, FromDIP(4));
-    return outer;
+    m_recommendation_scroll->SetScrollbars(0, FromDIP(20), 0, 1);
+    m_recommendation_scroll->FitInside();
+    m_recommendation_scroll->Layout();
+    m_recommendation_scroll->Thaw();
 }
 
 wxBoxSizer* MixedFilamentDialog::create_button_panel()
@@ -925,6 +1010,7 @@ void MixedFilamentDialog::on_add_material()
     update_component_count_ui();
     update_preview();
     update_ok_button_state();
+    rebuild_recommendation_items();
 
     Layout();
     Refresh();
@@ -960,6 +1046,7 @@ void MixedFilamentDialog::on_remove_material()
     update_component_count_ui();
     update_preview();
     update_ok_button_state();
+    rebuild_recommendation_items();
     Layout();
     Refresh();
 }
@@ -983,6 +1070,56 @@ void MixedFilamentDialog::on_recommendation_clicked(unsigned int comp_a, unsigne
 
     if (m_label_ratio_a) m_label_ratio_a->SetLabel(wxT("50%"));
     if (m_label_ratio_b) m_label_ratio_b->SetLabel(wxT("50%"));
+
+    rebuild_all_combos();
+    update_component_count_ui();
+    update_preview();
+    update_ok_button_state();
+    Layout();
+    Refresh();
+}
+
+void MixedFilamentDialog::on_recommendation_clicked_triple(unsigned int a, unsigned int b, unsigned int c)
+{
+    // Ensure we have exactly 3 combo rows
+    if (num_components() < 3) {
+        // Need to add a 3rd combo row
+        while (m_combo_filaments.size() < 3) {
+            size_t idx = m_combo_filaments.size();
+            auto* row = new wxBoxSizer(wxHORIZONTAL);
+            wxString lbl_text = wxString::Format(_L("Filament %d"), (int)(idx + 1));
+            auto* lbl = new wxStaticText(this, wxID_ANY, lbl_text);
+            lbl->SetFont(::Label::Body_12);
+            row->Add(lbl, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
+
+            auto* combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
+                                       wxSize(FromDIP(166), FromDIP(24)), 0, nullptr, wxCB_READONLY);
+            combo->SetKeepDropArrow(true);
+            combo->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent&) { on_filament_changed(); });
+            row->Add(combo, 1, wxALIGN_CENTER_VERTICAL);
+
+            m_combo_filaments.push_back(combo);
+            m_combo_to_physical.push_back({});
+            m_material_rows_sizer->Add(row, 0, wxEXPAND | wxTOP, FromDIP(9));
+        }
+    } else if (num_components() > 3) {
+        while (m_material_rows_sizer->GetItemCount() > 3) {
+            auto* sizer_item = m_material_rows_sizer->GetItem(m_material_rows_sizer->GetItemCount() - 1);
+            if (sizer_item && sizer_item->GetSizer())
+                sizer_item->GetSizer()->Clear(true);
+            m_material_rows_sizer->Remove(m_material_rows_sizer->GetItemCount() - 1);
+        }
+        while (m_combo_filaments.size() > 3)
+            m_combo_filaments.pop_back();
+        while (m_combo_to_physical.size() > 3)
+            m_combo_to_physical.pop_back();
+    }
+
+    m_result.components = {a, b, c};
+    m_result.ratios = {25, 25, 50};
+    m_tri_wx = 0.25;
+    m_tri_wy = 0.25;
+    m_tri_wz = 0.50;
 
     rebuild_all_combos();
     update_component_count_ui();
