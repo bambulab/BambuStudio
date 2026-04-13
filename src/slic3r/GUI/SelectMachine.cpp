@@ -1671,7 +1671,7 @@ bool SelectMachineDialog::check_sdcard_for_timelpase(MachineObject* obj)
     // must set to a status if return true
     if (m_checkbox_list["timelapse"]->IsShown() && m_checkbox_list["timelapse"]->getValue() == "on")
     {
-        if (obj->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::NO_SDCARD && !obj->m_has_timelapse_kit) {
+        if (obj->GetStorage()->get_sdcard_state() == DevStorage::SdcardState::NO_SDCARD && !obj->m_has_timelapse_kit && !obj->is_support_internal_timelapse) {
             show_status(PrintDialogStatus::PrintStatusTimelapseNoSdcard);
             return true;
         }
