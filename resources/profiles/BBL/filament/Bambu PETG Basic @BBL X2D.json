@@ -50,6 +50,9 @@
         "nil",
         "nil"
     ],
+    "filament_tower_interface_print_temp": [
+        "250"
+    ],
     "filament_tower_ironing_area": [
         "8"
     ],

@@ -26,14 +26,14 @@
     "fan_min_speed": [
         "20"
     ],
-    "filament_extruder_compatibility": [
-        "16"
-    ],
     "filament_cooling_before_tower": [
         "10",
         "10",
         "10",
         "10"
+    ],
+    "filament_extruder_compatibility": [
+        "16"
     ],
     "filament_flow_ratio": [
         "0.96",
@@ -58,6 +58,9 @@
         "1",
         "nil",
         "nil"
+    ],
+    "filament_tower_interface_print_temp": [
+        "275"
     ],
     "filament_wipe": [
         "1",

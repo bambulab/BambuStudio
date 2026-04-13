@@ -5,6 +5,12 @@
     "from": "system",
     "setting_id": "GFSG00_13",
     "instantiation": "true",
+    "fan_max_speed": [
+        "60"
+    ],
+    "fan_min_speed": [
+        "30"
+    ],
     "filament_cooling_before_tower": [
         "10",
         "10",
@@ -62,6 +68,9 @@
         "50",
         "50"
     ],
+    "filament_tower_interface_print_temp": [
+        "250"
+    ],
     "filament_tower_ironing_area": [
         "8"
     ],
@@ -85,12 +94,6 @@
     ],
     "first_x_layer_fan_speed": [
         "40"
-    ],
-    "fan_max_speed": [
-        "60"
-    ],
-    "fan_min_speed": [
-        "30"
     ],
     "include": [
         "fdm_filament_template_direct_bowden"

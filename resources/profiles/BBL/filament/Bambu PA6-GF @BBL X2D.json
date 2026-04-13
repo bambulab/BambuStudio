@@ -38,6 +38,9 @@
         "nil",
         "nil"
     ],
+    "filament_tower_interface_print_temp": [
+        "265"
+    ],
     "include": [
         "fdm_filament_template_direct_bowden"
     ],

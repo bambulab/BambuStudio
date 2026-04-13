@@ -53,6 +53,9 @@
         "10",
         "10"
     ],
+    "filament_tower_interface_print_temp": [
+        "230"
+    ],
     "first_x_layer_fan_speed": [
         "40"
     ],

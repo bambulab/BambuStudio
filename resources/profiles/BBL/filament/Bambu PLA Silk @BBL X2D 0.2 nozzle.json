@@ -23,9 +23,6 @@
     "eng_plate_temp_initial_layer": [
         "55"
     ],
-    "filament_extruder_compatibility": [
-        "16"
-    ],
     "filament_cooling_before_tower": [
         "10",
         "10",
@@ -37,6 +34,9 @@
         "nil",
         "50",
         "50"
+    ],
+    "filament_extruder_compatibility": [
+        "16"
     ],
     "filament_flow_ratio": [
         "0.98",
@@ -73,6 +73,9 @@
         "nil",
         "50",
         "50"
+    ],
+    "filament_tower_interface_print_temp": [
+        "230"
     ],
     "filament_wipe": [
         "1",

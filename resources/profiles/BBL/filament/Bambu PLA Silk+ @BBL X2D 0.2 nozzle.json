@@ -62,6 +62,9 @@
         "50",
         "50"
     ],
+    "filament_tower_interface_print_temp": [
+        "230"
+    ],
     "filament_wipe": [
         "1",
         "nil",
@@ -104,6 +107,9 @@
         "4",
         "4"
     ],
+    "slow_down_layer_time": [
+        "6"
+    ],
     "slow_down_min_speed": [
         "20",
         "20",
@@ -115,9 +121,6 @@
     ],
     "supertack_plate_temp_initial_layer": [
         "35"
-    ],
-    "slow_down_layer_time": [
-        "6"
     ],
     "compatible_printers": [
         "Bambu Lab X2D 0.2 nozzle"
