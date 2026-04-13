@@ -1469,7 +1469,13 @@ void CalibrationFlowX1SavePage::sync_cali_result(const std::vector<FlowRatioCali
             auto flow_ratio_str = wxString::Format("%.3f", item.flow_ratio);
             flow_ratio_value->GetTextCtrl()->SetValue(flow_ratio_str);
             for (auto& info : curr_obj->GetCalib()->GetSelectedCalibPreset()) {
-                if (item.tray_id == info.tray_id) {
+                /* upgrade single extruder printer tray_id from 254 to 255 */
+                int item_tray_id = item.tray_id;
+                if (!curr_obj->is_multi_extruders() && item_tray_id == VIRTUAL_TRAY_DEPUTY_ID) {
+                    item_tray_id = VIRTUAL_TRAY_MAIN_ID;
+                }
+
+                if (item_tray_id == info.tray_id) {
                     save_name_input->GetTextCtrl()->SetValue(get_default_name(info.name, CalibMode::Calib_Flow_Rate) + "_" + tray_name);
                     break;
                 }
