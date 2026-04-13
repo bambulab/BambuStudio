@@ -6331,6 +6331,13 @@ bool SelectMachineDialog::slicing_with_fila_switch() const
             return has_filament_switcher->value;
         }
     } else if (m_print_type == FROM_SDCARD_VIEW) {
+        if (m_required_data_plate_data_list.size() > m_print_plate_idx) {
+            auto has_filament_switcher = m_required_data_plate_data_list[m_print_plate_idx]->config.option<ConfigOptionBool>("has_filament_switcher");
+            if (has_filament_switcher) {
+                return has_filament_switcher->value;
+            }
+        }
+
         auto has_filament_switcher = m_required_data_config.option<ConfigOptionBool>("has_filament_switcher");
         if (has_filament_switcher) {
             return has_filament_switcher->value;
@@ -6348,6 +6355,13 @@ bool SelectMachineDialog::use_dynamic_nozzle_map() const
             return true;
         }
     } else if (m_print_type == FROM_SDCARD_VIEW) {
+        if (m_required_data_plate_data_list.size() > m_print_plate_idx) {
+            auto dynamic_nozzle_map = m_required_data_plate_data_list[m_print_plate_idx]->config.option<ConfigOptionBool>("enable_filament_dynamic_map");
+            if (dynamic_nozzle_map) {
+                return dynamic_nozzle_map->value;
+            }
+        }
+
         auto dynamic_nozzle_map = m_required_data_config.option<ConfigOptionBool>("enable_filament_dynamic_map");
         if (dynamic_nozzle_map) {
             return dynamic_nozzle_map->value;
