@@ -254,6 +254,7 @@ void AmsMapingPopup::update_mapping_items(MachineObject* obj, const std::vector<
     bool is_n1x = (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B);
     if (is_n1x) {
         const auto& ams_list = obj->GetFilaSystem()->GetAmsList();
+        bool        has_zmulti_ams = false;
         // For N1X, there is one ZMULTI AMS with all hotend slots
         for (auto ams_iter = ams_list.begin(); ams_iter != ams_list.end(); ams_iter++) {
             auto ams_type = ams_iter->second->GetAmsType();
@@ -261,6 +262,7 @@ void AmsMapingPopup::update_mapping_items(MachineObject* obj, const std::vector<
                 continue;
             }
 
+            has_zmulti_ams = true;
             DevAms* ams_group = ams_iter->second;
             std::vector<TrayData> tray_datas;
             for (auto tray_iter = ams_group->GetTrays().cbegin(); tray_iter != ams_group->GetTrays().cend(); tray_iter++) {
@@ -273,6 +275,27 @@ void AmsMapingPopup::update_mapping_items(MachineObject* obj, const std::vector<
             auto* sizer_hotend = new wxBoxSizer(wxVERTICAL);
             add_ams_mapping_hotend(obj, tray_datas, m_right_marea_panel, sizer_hotend);
             m_sizer_ams_basket_right->Add(sizer_hotend, 0, wxEXPAND | wxTOP, FromDIP(5));
+        }
+
+        //without AMS case : show virtual trays as hotend items
+        if (!has_zmulti_ams) {
+            const auto& vir_list = obj->GetFilaSystem()->GetVirtualTrays();
+            if (!vir_list.empty()) {
+                std::vector<TrayData> tray_datas;
+                for (auto iter = vir_list.rbegin(); iter != vir_list.rend(); iter++) {
+                    DevAmsTray tray_data = iter->second;
+                    const auto& td_opt = sGetTrayData(obj, nullptr, &tray_data, tray_data.id);
+                    if (td_opt.has_value()) {
+                        tray_datas.push_back(td_opt.value());
+                    }
+                }
+
+                if (!tray_datas.empty()) {
+                    auto* sizer_hotend = new wxBoxSizer(wxVERTICAL);
+                    add_ams_mapping_hotend(obj, tray_datas, m_right_marea_panel, sizer_hotend);
+                    m_sizer_ams_basket_right->Add(sizer_hotend, 0, wxEXPAND | wxTOP, FromDIP(5));
+                }
+            }
         }
 
         update_items_check_state(ams_mapping_result);
