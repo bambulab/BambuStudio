@@ -1,6 +1,7 @@
 #include "FilamentMapDialog.hpp"
 #include "FilamentMapPanel.hpp"
 #include "Widgets/Button.hpp"
+#include "Widgets/LinkLabel.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "Plater.hpp"
@@ -42,9 +43,15 @@ public:
         auto *label = new Label(this, _L("Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"));
         label->SetFont(Label::Body_12);
 
+        auto *wiki_link = new LinkLabel(this, _L("Learn more"), "https://e.bambulab.com/t?c=rYwNe4U869Qa9kW1");
+        wiki_link->getLabel()->SetFont(Label::Body_12);
+        wiki_link->SeLinkLabelFColour(wxColour("#00AE42"));
+        wiki_link->SeLinkLabelBColour(*wxWHITE);
+
         auto *smart_sizer = new wxBoxSizer(wxHORIZONTAL);
         smart_sizer->Add(m_smart_filament_checkbox, 0, wxALIGN_CENTER_VERTICAL);
-        smart_sizer->Add(label, 0, wxLEFT | wxALIGN_CENTER, FromDIP(3));
+        smart_sizer->Add(label, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(3));
+        smart_sizer->Add(wiki_link, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
         main_sizer->Add(smart_sizer, 0, wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(15));
 
