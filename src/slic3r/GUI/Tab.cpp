@@ -5461,16 +5461,18 @@ void TabPrinter::on_preset_loaded()
             }
         }
 
-        // only reset nozzle count when printer model is changed
-        if (base_model != m_base_preset_model) {
-            wxGetApp().plater()->sidebar().reset_fila_switch();
-
-            // disable dynamic filament by default, enable when a supported machine is connected
+        // disable dynamic filament by default, enable when a supported machine is connected
+        {
             auto* dynamic_filament = wxGetApp().preset_bundle->project_config.option<ConfigOptionBool>("enable_filament_dynamic_map");
             if(dynamic_filament) dynamic_filament->value = false;
 
             auto* has_switcher = wxGetApp().preset_bundle->project_config.option<ConfigOptionBool>("has_filament_switcher");
             if(has_switcher) has_switcher->value = false;
+        }
+
+        // only reset nozzle count when printer model is changed
+        if (base_model != m_base_preset_model) {
+            wxGetApp().plater()->sidebar().reset_fila_switch();
 
             auto extruder_max_nozzle_count = current_printer.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
             auto nozzle_volume_type = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
