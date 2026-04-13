@@ -294,6 +294,7 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
 
             // Warning in description
             L("How to feed TPU filament.");
+            L("How to feed TPU filament on X2D.");
             L("Using non-bambu filament may have printing quality issues.");
             L("Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer.");
             L("Damp PVA will become flexible and get stuck inside AMS,please take care to dry it before use.");
