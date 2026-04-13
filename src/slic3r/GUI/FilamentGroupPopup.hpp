@@ -50,11 +50,6 @@ private:
     FilamentMapMode GetFilamentMapMode() const;
     void SetFilamentMapMode(const FilamentMapMode mode);
 
-    // smart filament
-    void MakeSmartFilamentSection(wxSizer *top_sizer, int horizontal_margin, int vertical_padding);
-    void UpdateSmartFilamentSection();
-    void OnSmartFilamentToggle(wxCommandEvent &event);
-
 private:
     std::vector<FilamentMapMode> m_all_modes;
     std::vector<FilamentMapMode> m_available_modes;
@@ -86,11 +81,6 @@ private:
 
     wxStaticText *wiki_link;
     wxStaticText *video_link;
-
-    // Smart filament assign section
-    StaticBox    *m_smart_filament_panel{nullptr};
-    wxSizerItem  *m_smart_filament_spacer{nullptr};
-    SwitchButton *m_smart_filament_switch{nullptr};
 
     PartPlate* partplate_ref{ nullptr };
     Plater* plater_ref{ nullptr };
