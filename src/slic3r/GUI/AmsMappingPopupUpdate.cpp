@@ -577,18 +577,32 @@ void AmsMapingPopup::add_ams_mapping(std::vector<TrayData> tray_data,
         bool can_pick_the_item = true;
         std::optional<wxString> item_tooltip_msg;
         // check filament area
-        if (can_pick_the_item) {
-            auto parent = container->GetParent();
-            if (parent == m_left_marea_panel) {
-                can_pick_the_item = (m_show_type == ShowType::LEFT);
-            } else if (parent == m_right_marea_panel) {
+        if (m_use_in_sync_dialog) {
+            if (can_pick_the_item) {
                 if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
                     can_pick_the_item = !devPrinterUtil::IsVirtualSlot(m_mapping_item->m_ams_id);
                     if (!can_pick_the_item) {
-                        item_tooltip_msg = _L("External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it.");
+                        item_tooltip_msg = _L(
+                            "External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it.");
                     }
-                } else if (m_show_type != ShowType::RIGHT && !m_use_in_sync_dialog) {
-                    can_pick_the_item = false;
+                }
+            }
+        }
+        else {
+            if (can_pick_the_item) {
+                auto parent = container->GetParent();
+                if (parent == m_left_marea_panel) {
+                    can_pick_the_item = (m_show_type == ShowType::LEFT);
+                } else if (parent == m_right_marea_panel) {
+                    if (m_show_type == ShowType::LEFT_AND_RIGHT_DYNAMIC) {
+                        can_pick_the_item = !devPrinterUtil::IsVirtualSlot(m_mapping_item->m_ams_id);
+                        if (!can_pick_the_item) {
+                            item_tooltip_msg = _L(
+                                "External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it.");
+                        }
+                    } else if (m_show_type != ShowType::RIGHT) {
+                        can_pick_the_item = false;
+                    }
                 }
             }
         }
