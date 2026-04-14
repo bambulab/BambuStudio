@@ -4500,6 +4500,11 @@ void SelectMachineDialog::reset_and_sync_ams_list()
         bmcache.parse_color4(colour, rgb);
         auto colour_rgb = wxColour((int) rgb[0], (int) rgb[1], (int) rgb[2], (int) rgb[3]);
 
+        // skip mixed/blended filaments whose filament_map is unset (0)
+        if ((extruder_nums >= 2) && (used_filament < (int)m_filaments_map.size()) && m_filaments_map[used_filament] == 0) {
+            continue;
+        }
+
         // create material item
         MaterialItem* item = nullptr;
         auto dev = wxGetApp().getDeviceManager()->get_selected_machine();
@@ -4520,6 +4525,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
             sizer_count++;
         }
 
+        if (!item) { continue; }
         item->SetToolTip(_L("Upper half area:  Original\nLower half area:  Filament in AMS\nAnd you can click it to modify"));
 
         if (!selected_any && used_filament == m_current_filament_id && item->m_enable) {
