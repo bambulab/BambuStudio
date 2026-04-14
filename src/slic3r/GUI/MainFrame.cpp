@@ -1894,7 +1894,7 @@ wxBoxSizer* MainFrame::create_side_tools()
                 std::string printer_model = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
                 std::unordered_set<std::string> printer_models = {"Bambu Lab H2D", "Bambu Lab H2D Pro", "Bambu Lab H2C"};
                 int extruder_count = wxGetApp().preset_bundle->get_printer_extruder_count();
-                if (extruder_count > 1 && !printer_models.count(printer_model)) {
+                if (extruder_count > 1 && printer_models.count(printer_model)) {
                     if (wxGetApp().app_config->get("play_slicing_video") == "true") {
                         MessageDialog dlg(this, _L("This is your first time slicing with the dual extruder machine.\nWould you like to watch a quick tutorial video?"), _L("First Guide"), wxYES_NO);
                         auto  res = dlg.ShowModal();
