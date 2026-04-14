@@ -778,8 +778,10 @@ void DevNozzleSystemParser::ParseV1_0(const nlohmann::json& nozzletype_json,
 
 
 
-void DevNozzleSystemParser::sGetDefaultBindAmsSlot(DevNozzleSystem* system, DevNozzle& nozzle_obj)
+void DevNozzleSystemParser::sTraverseBindAmsSlot(DevNozzleSystem* system, DevNozzle& nozzle_obj)
 {
+    nozzle_obj.m_bind_ams_slots.clear();
+
     const auto& fila_sys = system->GetOwner()->GetFilaSystem();
     const auto& ams_list = fila_sys->GetAmsList();
     const auto& vt_list = fila_sys->GetVirtualTrays();
@@ -789,21 +791,30 @@ void DevNozzleSystemParser::sGetDefaultBindAmsSlot(DevNozzleSystem* system, DevN
         // DO NOTHING
     } else if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) {
         nozzle_obj.m_bind_ams_slots.clear();
+
+        // using the external ams
+        if (!nozzle_obj.m_bind_ams.empty()) {
+            if (nozzle_obj.m_slot_now.has_value() && fila_sys->GetAmsTray(std::to_string(nozzle_obj.m_slot_now->first), std::to_string(nozzle_obj.m_slot_now->second))) {
+                nozzle_obj.m_bind_ams_slots = { nozzle_obj.m_slot_now.value() };
+            }
+        };
+
+        // using the external slot
+        if (nozzle_obj.m_bind_ams_slots.empty() && nozzle_obj.m_slot_now.has_value()) {
+            if (fila_sys->GetVirtualTray(nozzle_obj.m_slot_now->first).has_value()) {
+                nozzle_obj.m_bind_ams_slots = { nozzle_obj.m_slot_now.value() }; 
+            }
+        }
+
+        // using the rack ams slot
         for (const auto& ams_item : ams_list) {
             if (ams_item.second->GetSlotCount() == rack->GetTotalRackNozzleCount()) {
                 DevAmsSlotId ams_slot_id;
                 ams_slot_id.first = ams_item.second->GetAmdIdInt();
                 ams_slot_id.second = nozzle_obj.GetNozzlePosId() - 16;
-                nozzle_obj.m_bind_ams_slots = { ams_slot_id };
-            }
-        }
-
-        if (nozzle_obj.m_bind_ams_slots.empty()) {
-            DevAmsSlotId ams_slot_id;
-            ams_slot_id.first = 255 - (nozzle_obj.GetNozzlePosId() - 16);
-            ams_slot_id.second = 0;
-            if (fila_sys->GetVirtualTray(ams_slot_id.first).has_value()) {
-                nozzle_obj.m_bind_ams_slots = { ams_slot_id };
+                if (auto ams_tray = fila_sys->GetAmsTray(std::to_string(ams_slot_id.first), std::to_string(ams_slot_id.second)); ams_tray && ams_tray->is_exists) {
+                    nozzle_obj.m_bind_ams_slots = { ams_slot_id };
+                }
             }
         }
     }
@@ -857,14 +868,26 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
             nozzle_obj.m_nozzle_id = DevUtil::get_hex_bits(njon["id"].get<int>(), 0);
             nozzle_obj.m_diameter = njon["diameter"].get<float>();
             s_parse_nozzle_type(njon["type"].get<std::string>(), nozzle_obj);
+
+            DevJsonValParser::ParseVal(njon, "fila_id", nozzle_obj.m_fila_id);
+            DevJsonValParser::ParseVal(njon, "wear", nozzle_obj.m_wear);
+
             if (njon.contains("stat"))/*maybe not contains*/
             {
                 nozzle_obj.SetStatus(njon["stat"].get<int>());
-
-                if (system->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A || system->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B)
-                {
+                if (system->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A || system->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B) {
                     nozzle_obj.SetRackNozzleTempStatus(DevUtil::get_flag_bits(njon["stat"].get<int>(), 3, 2));
-                    nozzle_obj.SetFilamentInNozzle(DevUtil::get_flag_bits(njon["stat"].get<int>(), 5, 1));
+                }
+
+                // traverse the has filament
+                if (system->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A || system->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B) {
+                    nozzle_obj.m_has_filament_in_nozzle = DevUtil::get_flag_bits(njon["stat"].get<int>(), 5, 1);
+                } else if (system->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_AB) {
+                    nozzle_obj.m_has_filament_in_nozzle = !nozzle_obj.m_fila_id.empty() || !nozzle_obj.m_filament_clr.empty();
+                } else if (auto ext = system->GetOwner()->GetExtderSystem()->GetExtderById(nozzle_obj.m_nozzle_id); ext) {
+                    nozzle_obj.m_has_filament_in_nozzle = ext->HasFilamentInExt();
+                } else {
+                    nozzle_obj.m_has_filament_in_nozzle = false;
                 }
             }
 
@@ -877,8 +900,6 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
                 nozzle_obj.SetTargetTemp(target_temp);
             }
 
-            DevJsonValParser::ParseVal(njon, "fila_id", nozzle_obj.m_fila_id);
-            DevJsonValParser::ParseVal(njon, "wear", nozzle_obj.m_wear);
             if (njon.contains("p_t"))/*maybe not contains*/
             {
                 nozzle_obj.m_nozzle_print_time = njon["p_t"].get<int>();
@@ -891,26 +912,28 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
             {
                 nozzle_obj.m_sn = njon["sn"].get<std::string>();
             }
+            if (njon.contains("snow")) {
+                if (DevUtil::get_flag_bits(njon["bind_ams_slot"].get<int>(), 8, 8) == 0xff) {
+                    DevAmsSlotId slot_now;
+                    slot_now.second = DevUtil::get_flag_bits(njon["bind_ams_slot"].get<int>(), 0, 8);
+                    slot_now.first = DevUtil::get_flag_bits(njon["bind_ams_slot"].get<int>(), 8, 8);
+                    nozzle_obj.m_slot_now = slot_now;
+                } else {
+                    nozzle_obj.m_slot_now.reset();
+                }
+            }
+            if (njon.contains("bind_ams")) {
+                nozzle_obj.m_bind_ams = njon["bind_ams"].get<std::vector<int>>();
+            }
 
-            nozzle_obj.m_bind_ams_slots.clear();
             if (DevUtil::get_hex_bits(njon["id"].get<int>(), 1) == 1) {
                 nozzle_obj.SetOnRack(true);
-                DevNozzleSystemParser::sGetDefaultBindAmsSlot(system, nozzle_obj);
-                if (njon.contains("bind_ams")) {
-                    nozzle_obj.m_bind_ams = njon["bind_ams"].get<std::vector<int>>();
-                }
+            }
 
-#if 0
-                if (njon.contains("bind_ams_slot")) {
-                    DevAmsSlotId ams_slot_id;
-                    ams_slot_id.second = DevUtil::get_flag_bits(njon["bind_ams_slot"].get<int>(), 0, 8);
-                    ams_slot_id.first = DevUtil::get_flag_bits(njon["bind_ams_slot"].get<int>(), 8, 8);
-                    nozzle_obj.m_bind_ams_slots = { ams_slot_id };
-                } else {
-                    DevNozzleSystemParser::sGetDefaultBindAmsSlot(system, nozzle_obj);
-                }
-#endif
+            // traverse bind ams slot after parse
+            DevNozzleSystemParser::sTraverseBindAmsSlot(system, nozzle_obj);
 
+            if (nozzle_obj.IsOnRack()) {
                 system->m_nozzle_rack->AddRackNozzle(nozzle_obj);
             } else {
                 system->m_ext_nozzles[nozzle_obj.m_nozzle_id] = nozzle_obj;
@@ -933,7 +956,7 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
             nozzle_obj.SetOnRack(true);
             nozzle_obj.m_is_exist = false;
             nozzle_obj.m_nozzle_id = rack_nozzle_pos - 0x10;
-            DevNozzleSystemParser::sGetDefaultBindAmsSlot(system, nozzle_obj);
+            DevNozzleSystemParser::sTraverseBindAmsSlot(system, nozzle_obj);
             system->m_nozzle_rack->AddRackNozzle(nozzle_obj);
         }
     }

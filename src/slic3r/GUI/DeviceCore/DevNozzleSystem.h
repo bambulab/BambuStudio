@@ -114,8 +114,7 @@ public:
     void SetRackNozzleTempStatus(int temp_status);
     std::optional<NozzleTempStatus> GetSetRackNozzleTempStatus() const { return m_temp_status; }
 
-    void SetFilamentInNozzle(bool has_filament) { m_has_filament = has_filament; }
-    bool HasFilamentInNozzle() const { return m_has_filament; }
+    bool HasFilamentInNozzle() const { return m_has_filament_in_nozzle; }
 
     // direct bind ams slots. eg. ZMULTI_A
     std::vector<DevAmsSlotId> GetBindAmsSlots() const { return m_bind_ams_slots; };
@@ -134,7 +133,7 @@ private:
     int m_current_temp = -1;
     int m_target_temp = -1;
 
-    bool m_has_filament = false;
+    bool m_has_filament_in_nozzle = false;
 
     std::optional<NozzleTempStatus> m_temp_status = std::nullopt;
 
@@ -144,6 +143,7 @@ private:
 
     std::vector<DevAmsSlotId> m_bind_ams_slots;
     std::vector<int>          m_bind_ams;
+    std::optional<DevAmsSlotId> m_slot_now;
 
     std::weak_ptr<DevNozzleRack> m_nozzle_rack; // weak pointer to the nozzle rack
     int m_nozzle_print_time = 0;
@@ -240,6 +240,6 @@ public:
     static void  ParseV2_0(const json& device_json, DevNozzleSystem* system);
 
 private:
-    static void sGetDefaultBindAmsSlot(DevNozzleSystem* system, DevNozzle& nozzle_obj);
+    static void sTraverseBindAmsSlot(DevNozzleSystem* system, DevNozzle& nozzle_obj);
 };
 };
