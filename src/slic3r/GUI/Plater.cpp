@@ -18,7 +18,6 @@
 #include <boost/log/trivial.hpp>
 #include <boost/nowide/convert.hpp>
 #include <boost/nowide/cstdio.hpp>
-#include <boost/nowide/fstream.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -16656,7 +16655,7 @@ void Plater::import_model_id(wxString download_info)
         try
         {
             vecFiles.clear();
-            wxString extension = fs::path(filename.ToUTF8().data()).extension().c_str();
+            wxString extension = fs::path(filename.wx_str()).extension().c_str();
 
 
             //check file suffix
@@ -16686,7 +16685,7 @@ void Plater::import_model_id(wxString download_info)
 
         //update filename
         if (is_already_exist && vecFiles.size() >= 1) {
-            wxString extension = fs::path(filename.ToUTF8().data()).extension().c_str();
+            wxString extension = fs::path(filename.wx_str()).extension().c_str();
             wxString name = filename.substr(0, filename.length() - extension.length());
             filename = wxString::Format("%s(%d)%s", name, vecFiles.size() + 1, extension).ToStdString();
         }
@@ -16706,7 +16705,7 @@ void Plater::import_model_id(wxString download_info)
         }
 
         //target_path /= (boost::format("%1%_%2%.3mf") % filename % unique).str();
-        target_path /= fs::path(filename.ToUTF8().data());
+        target_path /= fs::path(filename.wc_str());
 
         fs::path tmp_path = target_path;
         tmp_path += ".download";
@@ -16766,8 +16765,7 @@ void Plater::import_model_id(wxString download_info)
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Writing downloaded data to temp file: " << PathSanitizer::sanitize(tmp_path);
 
                             // Write to temporary file
-                            // Use nowide for proper Unicode path handling (Chinese filenames on macOS)
-                            boost::nowide::ofstream file(tmp_path.string(), std::ios::out | std::ios::binary | std::ios::trunc);
+                            fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
                             if (!file.is_open()) {
                                 BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Failed to open temp file: " << PathSanitizer::sanitize(tmp_path);
                                 cont = false;
@@ -16822,13 +16820,13 @@ void Plater::import_model_id(wxString download_info)
                                 }
                             }
 
-                            // Atomic rename operation (use nowide for Unicode path support)
+                            // Atomic rename operation
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Renaming temp file to target: " << PathSanitizer::sanitize(tmp_path) << " -> " << PathSanitizer::sanitize(target_path);
-                            boost::nowide::rename(tmp_path.string().c_str(), target_path.string().c_str());
+                            fs::rename(tmp_path, target_path);
                             
                             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " File renamed successfully: " << PathSanitizer::sanitize(target_path);
-                            download_ok = true;   // Set before cont=false so main thread sees download_ok when it exits the while loop
                             cont = false;
+                            download_ok = true;
                         }
                         catch (const std::exception& e) {
                             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " Exception during file operations: " << e.what();
@@ -16880,9 +16878,8 @@ void Plater::import_model_id(wxString download_info)
 
     if (download_ok) {
         BOOST_LOG_TRIVIAL(trace) << "import_model_id: target_path = " << PathSanitizer::sanitize(target_path);
-        /* load project — use wxString::FromUTF8 for consistent Unicode handling across platforms */
-        wxString wx_target_path = wxString::FromUTF8(target_path.string());
-        auto result = this->load_project(wx_target_path);
+        /* load project */
+        auto result = this->load_project(target_path.wstring());
         statistics_burial_data_form_mw();
         if (result == (int)wxID_CANCEL) {
             return;
@@ -16896,7 +16893,7 @@ void Plater::import_model_id(wxString download_info)
         }
 
         // show save new project
-        p->set_project_filename(wx_target_path);
+        p->set_project_filename(target_path.wstring());
         p->notification_manager->push_import_finished_notification(target_path.string(), target_path.parent_path().string(), false);
     }
     else {
