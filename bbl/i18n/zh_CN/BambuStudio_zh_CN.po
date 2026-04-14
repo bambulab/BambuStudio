@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-13 20:19+0800\n"
+"POT-Creation-Date: 2026-04-14 15:45+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -5107,10 +5107,6 @@ msgstr "点击即可将它们移近主体。"
 msgid "Move closer"
 msgstr "移近"
 
-#, boost-format
-msgid "Since it is unassembled, %1% extends beyond the main body, so the thumbnail can't be rendered."
-msgstr "因其未被组装， %1% 超出了主体，因此无法渲染到缩略图。"
-
 msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"
 msgstr "主装配边界框距离世界原点太远。是否重置装配关系并移至原点？"
 
@@ -9370,7 +9366,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "When using %s to support %s, We recommend the following settings:"
-msgstr ""
+msgstr "当使用%s作为支撑料%s时，我们推荐配置以下参数："
 
 msgid "When using PLA to support TPU, We recommend the following settings:"
 msgstr "当使用PLA作为支撑材料支撑TPU时，我们推荐配置以下参数："
@@ -12655,7 +12651,7 @@ msgid "Enable tower interface features"
 msgstr "启用料塔接触层优化"
 
 msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
-msgstr "启用后，对料塔界面层（不同材料交汇处）使用专用的温度、预挤出和清洗设置，以提高多材料工具更换质量。"
+msgstr "启用后，对料塔界面层（不同材料交汇处）使用专用的温度、预挤出和冲刷设置，以提高多材料工具更换质量。"
 
 msgid "Softening temperature"
 msgstr "软化温度"
@@ -17228,6 +17224,10 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#, boost-format
+#~ msgid "Since it is unassembled, %1% extends beyond the main body, so the thumbnail can't be rendered."
+#~ msgstr "因其未被组装， %1% 超出了主体，因此无法渲染到缩略图。"
 
 #~ msgctxt "FilamentTrack"
 #~ msgid "Left"

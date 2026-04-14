@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-13 20:19+0800\n"
+"POT-Creation-Date: 2026-04-14 15:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5132,10 +5132,6 @@ msgstr "클릭하면 본체에 더 가깝게 이동됩니다."
 
 msgid "Move closer"
 msgstr "가까이 이동"
-
-#, boost-format
-msgid "Since it is unassembled, %1% extends beyond the main body, so the thumbnail can't be rendered."
-msgstr ""
 
 msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"
 msgstr "메인 어셈블리 경계 상자가 월드 원점에서 너무 멀리 떨어져 있습니다. 어셈블리 관계를 재설정하고 원점으로 이동하시겠습니까?"

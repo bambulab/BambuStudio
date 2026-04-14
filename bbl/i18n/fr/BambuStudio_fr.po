@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-13 20:19+0800\n"
+"POT-Creation-Date: 2026-04-14 15:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5142,10 +5142,6 @@ msgstr "Cliquer pour les rapprocher du corps principal."
 
 msgid "Move closer"
 msgstr "Rapprocher"
-
-#, boost-format
-msgid "Since it is unassembled, %1% extends beyond the main body, so the thumbnail can't be rendered."
-msgstr ""
 
 msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"
 msgstr "La boîte englobante de l’assemblage principal est trop éloignée de l’origine globale. Réinitialiser les relations d’assemblage et replacer l’ensemble à l’origine ?"

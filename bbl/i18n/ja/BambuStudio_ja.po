@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-13 20:19+0800\n"
+"POT-Creation-Date: 2026-04-14 15:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -119,22 +119,22 @@ msgid "auxiliary hotend"
 msgstr "補助ホットエンド"
 
 msgid "Left Hotend"
-msgstr ""
+msgstr "左ホットエンド"
 
 msgid "Left hotend"
-msgstr ""
+msgstr "左ホットエンド"
 
 msgid "left hotend"
-msgstr ""
+msgstr "左ホットエンド"
 
 msgid "Right Hotend"
-msgstr ""
+msgstr "右ホットエンド"
 
 msgid "Right hotend"
-msgstr ""
+msgstr "右ホットエンド"
 
 msgid "right hotend"
-msgstr ""
+msgstr "右ホットエンド"
 
 msgid "main"
 msgstr "メイン"
@@ -3049,7 +3049,7 @@ msgstr "左（補助）"
 
 msgctxt "air_duct"
 msgid "Left(Heating)"
-msgstr ""
+msgstr "左（加熱）"
 
 msgctxt "air_duct"
 msgid "Chamber"
@@ -5057,14 +5057,14 @@ msgid "Select Plate"
 msgstr "プレートを選択"
 
 msgid "Change camera perspective"
-msgstr ""
+msgstr "カメラ視点を変更"
 
 msgid "Go to Wiki"
 msgstr "Wikiへ移動"
 
 #, boost-format
 msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
-msgstr ""
+msgstr "現在の組立率：%1%%%、体積率：%2%%%"
 
 msgctxt "Camera"
 msgid "Top"
@@ -5126,17 +5126,13 @@ msgid "Size:"
 msgstr "サイズ:"
 
 msgid "Isolated objects detected"
-msgstr ""
+msgstr "孤立したオブジェクトが検出されました"
 
 msgid "Click to move them closer to the main body."
 msgstr "クリックしてメイン本体の近くに移動します。"
 
 msgid "Move closer"
 msgstr "近くに移動"
-
-#, boost-format
-msgid "Since it is unassembled, %1% extends beyond the main body, so the thumbnail can't be rendered."
-msgstr ""
 
 msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"
 msgstr "メインアセンブリのバウンディングボックスが原点から離れすぎています。アセンブリ関係をリセットして原点へ移動しますか？"
@@ -6888,10 +6884,10 @@ msgid "Checks for any objects on the build plate at the start of a print to avoi
 msgstr "造形開始時にビルドプレート上の異物を検知し、衝突を防ぎます。"
 
 msgid "Printed Part Displacement Detection"
-msgstr ""
+msgstr "造形物ズレ検出"
 
 msgid "Monitors the printed part during printing and alerts immediately if it shifts or collapses."
-msgstr ""
+msgstr "造形中に造形物を監視し、ズレや倒れを検出した場合はすぐに通知します。"
 
 msgid "Ensures the build plate type and placement are correct."
 msgstr "ビルドプレートの種類と位置が正しいことを確認します。"
@@ -7220,13 +7216,13 @@ msgid "Remove last mixed filament"
 msgstr "最後に追加した混合フィラメントを削除"
 
 msgid "Mixed filament has invalid or mismatched components. Please re-edit affected entries."
-msgstr ""
+msgstr "混合フィラメントの構成要素に不正または不一致があります。該当項目を再編集してください。"
 
 msgid "Search plate, object and part."
 msgstr "プレート、オブジェクト、パーツを検索"
 
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
-msgstr ""
+msgstr "対象の混合フィラメントは、この物理フィラメントを構成要素として使用しています。マージを行うと、この物理フィラメントは削除され、混合フィラメントが無効になる可能性があります。続行しますか？"
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -7252,7 +7248,7 @@ msgid "Mixed filament has broken component references"
 msgstr "混合フィラメントの構成要素の参照が無効になっています"
 
 msgid "Edit / Delete / Merge"
-msgstr ""
+msgstr "編集 / 削除 / マージ"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -7887,9 +7883,11 @@ msgid ""
 "Failed to export the sliced file.\n"
 "Please check whether the file is occupied by another program or if there is enough disk space."
 msgstr ""
+"スライス済みファイルのエクスポートに失敗しました。\n"
+"他のプログラムでファイルが使用されていないか、またはディスク容量が十分かをご確認ください。"
 
 msgid "Export sliced file"
-msgstr "Export Sliced File"
+msgstr "スライス済みファイルをエクスポート"
 
 #, c-format, boost-format
 msgid "The file %s has been sent to the printer's storage space and can be viewed on the printer."
@@ -7925,7 +7923,7 @@ msgstr "負のパーツが検出されました。エクスポート前にメッ
 
 #, c-format, boost-format
 msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
-msgstr ""
+msgstr "キャリブレーション用フィラメントが、PAキャリブレーションダイアログで選択されている押出機（%s）とは異なる押出機に割り当てられています。これにより、正しいキャリブレーション結果が得られない可能性があります。フィラメント割り当て設定で変更できます。"
 
 msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr "0.2mmノズルでのPVAフィラメントの使用は推奨されません。"
@@ -8252,7 +8250,7 @@ msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be
 msgstr "有効にすると、前回使用したカラースキーム（例：ラインタイプ、速度）が次回起動時に自動で適用されます。"
 
 msgid "Display overview"
-msgstr ""
+msgstr "概要を表示"
 
 msgid "Show assembly BVH primary bounds"
 msgstr "アセンブリのBVH主要バウンディングを表示"
@@ -8604,7 +8602,7 @@ msgid "First layer filament sequence"
 msgstr "1層目のフィラメント順序"
 
 msgid "The filament list contains mixed filaments. Custom filament sequence will not take effect."
-msgstr ""
+msgstr "フィラメントリストに混合フィラメントが含まれています。カスタムフィラメント順序は適用されません。"
 
 msgid "Same as Global Bed Type"
 msgstr "全般設定の「ベッドタイプ」と同様"
@@ -9014,7 +9012,7 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "現在のノズル径（%.1fmm）とスライスファイル（%.1fmm）が一致していません。取り付けられているノズルがプリンタの設定と一致していることを確認し、スライス時に対応するプリンタのプリセットを設定してください。"
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
-msgstr ""
+msgstr "プリンターに取り付けられているフィラメント経路切替器が、スライスファイルと一致していません。造形品質への影響を防ぐため、再スライスしてください。"
 
 msgid "This print requires a Filament Track Switch. Please install it first."
 msgstr "この造形にはフィラメント経路切替器が必要です。先に取り付けてください。"
@@ -9404,7 +9402,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "When using %s to support %s, We recommend the following settings:"
-msgstr ""
+msgstr "%s をサポート材として%s に使用する場合は、以下の設定を推奨します："
 
 msgid "When using PLA to support TPU, We recommend the following settings:"
 msgstr "TPU のサポートに PLA を使用する場合は、以下の設定を推奨します："
@@ -14954,7 +14952,7 @@ msgstr ""
 "- 異なるフィラメントのブランドや種類（ブランド = Bambu、種類 = Basic、Matte など）\n"
 
 msgid "(Aux) does not support automatic flow calibration."
-msgstr ""
+msgstr "（補助押出機）は自動フローキャリブレーションに対応していません。"
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "-　補足：ホットエンドの番号はホルダーに紐付けられています。ホットエンドを別のホルダーに移動すると、自動的に番号が更新されます。\n"
@@ -15096,7 +15094,7 @@ msgid "PA Calibration"
 msgstr "PAキャリブレーション"
 
 msgid "Extruder type"
-msgstr ""
+msgstr "押出機タイプ"
 
 msgid "PA Tower"
 msgstr "PAタワー"

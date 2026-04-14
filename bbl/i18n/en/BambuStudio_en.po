@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-13 20:19+0800\n"
+"POT-Creation-Date: 2026-04-14 15:45+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -5091,10 +5091,6 @@ msgid "Click to move them closer to the main body."
 msgstr ""
 
 msgid "Move closer"
-msgstr ""
-
-#, boost-format
-msgid "Since it is unassembled, %1% extends beyond the main body, so the thumbnail can't be rendered."
 msgstr ""
 
 msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"

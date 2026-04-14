@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-13 20:19+0800\n"
+"POT-Creation-Date: 2026-04-14 15:45+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -44,7 +44,7 @@ msgid "auxiliary extruder"
 msgstr "extra extruder"
 
 msgid "Left Extruder"
-msgstr "Vänster Extruder"
+msgstr "Vänster extruder"
 
 msgid "Left extruder"
 msgstr "Vänster extruder"
@@ -116,22 +116,22 @@ msgid "auxiliary hotend"
 msgstr "extra hotend"
 
 msgid "Left Hotend"
-msgstr ""
+msgstr "Vänster Hotend"
 
 msgid "Left hotend"
-msgstr ""
+msgstr "Vänster hotend"
 
 msgid "left hotend"
-msgstr ""
+msgstr "vänster hotend"
 
 msgid "Right Hotend"
-msgstr ""
+msgstr "Höger Hotend"
 
 msgid "Right hotend"
-msgstr ""
+msgstr "Höger hotend"
 
 msgid "right hotend"
-msgstr ""
+msgstr "höger hotend"
 
 msgid "main"
 msgstr "huvud"
@@ -3053,7 +3053,7 @@ msgstr "Vänster(Aux)"
 
 msgctxt "air_duct"
 msgid "Left(Heating)"
-msgstr ""
+msgstr "Vänster(Värmer)"
 
 msgctxt "air_duct"
 msgid "Chamber"
@@ -5074,14 +5074,14 @@ msgid "Select Plate"
 msgstr "Välj Byggplatta"
 
 msgid "Change camera perspective"
-msgstr ""
+msgstr "Ändra kameraperspektiv"
 
 msgid "Go to Wiki"
 msgstr "Gå till Wiki"
 
 #, boost-format
 msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
-msgstr ""
+msgstr "Nuvarande monterings hastighet: %1%%%, volym hastighet: %2%%%"
 
 msgctxt "Camera"
 msgid "Top"
@@ -5143,17 +5143,13 @@ msgid "Size:"
 msgstr "Storlek:"
 
 msgid "Isolated objects detected"
-msgstr ""
+msgstr "Isolerade objekt upptäckta"
 
 msgid "Click to move them closer to the main body."
 msgstr "Klicka för att flytta dem närmare huvuddelen."
 
 msgid "Move closer"
 msgstr "Flytta närmare"
-
-#, boost-format
-msgid "Since it is unassembled, %1% extends beyond the main body, so the thumbnail can't be rendered."
-msgstr ""
 
 msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"
 msgstr "Huvudmonteringens avgränsnings ruta är för långt från nollpunkt. Återställ monterings relationer och flytta till nollpunkt?"
@@ -6927,10 +6923,10 @@ msgid "Checks for any objects on the build plate at the start of a print to avoi
 msgstr "Kontrollerar om det finns några föremål på byggplattan i början av en utskrift för att undvika kollisioner."
 
 msgid "Printed Part Displacement Detection"
-msgstr ""
+msgstr "Detektion av förflyttning av utskriven del"
 
 msgid "Monitors the printed part during printing and alerts immediately if it shifts or collapses."
-msgstr ""
+msgstr "Övervakar den utskrivna delen under utskrift och varnar omedelbart om den förskjuts eller kollapsar."
 
 msgid "Ensures the build plate type and placement are correct."
 msgstr "Säkerställer att byggplattans typ och att placering är korrekt."
@@ -7259,13 +7255,13 @@ msgid "Remove last mixed filament"
 msgstr "Ta bort det sista blandade filamentet"
 
 msgid "Mixed filament has invalid or mismatched components. Please re-edit affected entries."
-msgstr ""
+msgstr "Blandat filament har ogiltiga eller felaktiga komponenter. Redigera berörda poster igen."
 
 msgid "Search plate, object and part."
 msgstr "Sök platta, objekt och del."
 
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
-msgstr ""
+msgstr "Målet med blandat filament använder detta fysiska filament som en komponent. Sammanslagning kommer att ta bort detta fysiska filament och kan ogiltigförklara den blandade filamenten. Vill du fortsätta?"
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -7289,7 +7285,7 @@ msgid "Mixed filament has broken component references"
 msgstr "Blandat filament har trasiga komponent referenser"
 
 msgid "Edit / Delete / Merge"
-msgstr ""
+msgstr "Redigera / Ta bort / Sammanfoga"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -7933,9 +7929,11 @@ msgid ""
 "Failed to export the sliced file.\n"
 "Please check whether the file is occupied by another program or if there is enough disk space."
 msgstr ""
+"Kunde inte exportera den beredda filen.\n"
+"Kontrollera om filen används av ett annat program eller om det finns tillräckligt med diskutrymme."
 
 msgid "Export sliced file"
-msgstr "Export Sliced File"
+msgstr "Exportera den beredda filen"
 
 #, c-format, boost-format
 msgid "The file %s has been sent to the printer's storage space and can be viewed on the printer."
@@ -7971,7 +7969,7 @@ msgstr "Negativa delar upptäckta. Vill du utföra boolean av mesh före export?
 
 #, c-format, boost-format
 msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
-msgstr ""
+msgstr "Kalibrerings filamentet är för närvarande tilldelat en annan extruder än den som valts i PA kalibrerings dialogrutan (%s). Detta kan leda till felaktiga kalibrerings resultat. Du kan ändra tilldelningen i inställningarna för filament gruppering."
 
 msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr "Det är inte rekommenderat att använda PVA-filament med 0.2 mm nozzle."
@@ -8298,7 +8296,7 @@ msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be
 msgstr "När aktiverad, kommer den senast använda färgschemat (t.ex., linjetyp, hastighet) att tillämpas automatiskt vid nästa start."
 
 msgid "Display overview"
-msgstr ""
+msgstr "Visa översikt"
 
 msgid "Show assembly BVH primary bounds"
 msgstr "Visa BVH primär gränser för montering"
@@ -8650,7 +8648,7 @@ msgid "First layer filament sequence"
 msgstr "Första lagrets filament sekvens"
 
 msgid "The filament list contains mixed filaments. Custom filament sequence will not take effect."
-msgstr ""
+msgstr "Filament listan innehåller blandade filament. Anpassad filament sekvens kommer inte att gälla."
 
 msgid "Same as Global Bed Type"
 msgstr "Samma som Global Bed Type"
@@ -9062,7 +9060,7 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "Det aktuella nozzle diametern (%.1fmm) stämmer inte överens med berednings filen (%.1fmm). Vänligen kontrollera att nozzle stämmer överens med inställningarna i printern och ställ sedan in motsvarande printer inställningar när du bereder."
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
-msgstr ""
+msgstr "Filament spårbytaren som är installerad på printern matchar inte berednings filen. Bered om för att undvika problem med utskrifts kvaliteten."
 
 msgid "This print requires a Filament Track Switch. Please install it first."
 msgstr "Denna utskrift kräver en filament spårbytare. Vänligen installera den först."
@@ -9441,7 +9439,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "When using %s to support %s, We recommend the following settings:"
-msgstr ""
+msgstr "När du använder %s som support %srekommenderar vi följande inställningar:"
 
 msgid "When using PLA to support TPU, We recommend the following settings:"
 msgstr "När du använder PLA som stödmaterial för TPU, rekommenderar vi följande inställningar:"
@@ -14988,7 +14986,7 @@ msgstr ""
 "- Olika filament märke och familjer (Märke = Bambu, Familj = Basic, Matte)\n"
 
 msgid "(Aux) does not support automatic flow calibration."
-msgstr ""
+msgstr "(Aux) stöder inte automatisk flödes kalibrering."
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- Obs: Hotend numret är kopplat till hållaren. När hotend flyttas till en ny hållare uppdateras dess nummer automatiskt.\n"

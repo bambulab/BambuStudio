@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-13 20:19+0800\n"
+"POT-Creation-Date: 2026-04-14 15:45+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -56,7 +56,7 @@ msgid "left extruder"
 msgstr "estrusore sinistro"
 
 msgid "Right Extruder"
-msgstr "Estrusore destro"
+msgstr "Estrusore Destro"
 
 msgid "Right extruder"
 msgstr "Estrusore destro"
@@ -119,22 +119,22 @@ msgid "auxiliary hotend"
 msgstr "hotend ausiliario"
 
 msgid "Left Hotend"
-msgstr ""
+msgstr "Hotend Sinistro"
 
 msgid "Left hotend"
-msgstr ""
+msgstr "Hotend sinistro"
 
 msgid "left hotend"
-msgstr ""
+msgstr "hotend sinistro"
 
 msgid "Right Hotend"
-msgstr ""
+msgstr "Hotend Destro"
 
 msgid "Right hotend"
-msgstr ""
+msgstr "Hotend destro"
 
 msgid "right hotend"
-msgstr ""
+msgstr "hotend destro"
 
 msgid "main"
 msgstr "principale"
@@ -3056,7 +3056,7 @@ msgstr "Sinistra(Aux)"
 
 msgctxt "air_duct"
 msgid "Left(Heating)"
-msgstr ""
+msgstr "Sinistro(Riscaldamento)"
 
 msgctxt "air_duct"
 msgid "Chamber"
@@ -5149,17 +5149,13 @@ msgid "Size:"
 msgstr "Dimensioni:"
 
 msgid "Isolated objects detected"
-msgstr ""
+msgstr "Rilevati oggetti isolati"
 
 msgid "Click to move them closer to the main body."
 msgstr "Clicca per avvicinarli al corpo principale."
 
 msgid "Move closer"
 msgstr "Avvicina"
-
-#, boost-format
-msgid "Since it is unassembled, %1% extends beyond the main body, so the thumbnail can't be rendered."
-msgstr ""
 
 msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"
 msgstr "Il bounding box dell'assieme principale è troppo lontano dall'origine. Reimpostare le relazioni dell'assieme e spostare all'origine?"
@@ -7259,13 +7255,13 @@ msgid "Remove last mixed filament"
 msgstr "Rimuovi ultimo filamento misto"
 
 msgid "Mixed filament has invalid or mismatched components. Please re-edit affected entries."
-msgstr ""
+msgstr "Il filamento misto ha parti non valide o non corrispondenti. Modifica le voci interessate."
 
 msgid "Search plate, object and part."
 msgstr "Cerca piatto, oggetto e parte."
 
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
-msgstr ""
+msgstr "Il filamento misto di destinazione utilizza questo filamento fisico come parte. L’unione rimuoverà questo filamento fisico e potrebbe invalidare il filamento misto. Continuare?"
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -7291,7 +7287,7 @@ msgid "Mixed filament has broken component references"
 msgstr "Il filamento misto presenta riferimenti ai componenti interrotti"
 
 msgid "Edit / Delete / Merge"
-msgstr ""
+msgstr "Modifica / Elimina / Unisci"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -7935,9 +7931,11 @@ msgid ""
 "Failed to export the sliced file.\n"
 "Please check whether the file is occupied by another program or if there is enough disk space."
 msgstr ""
+"Impossibile esportare il file elaborato.\n"
+"Verifica se il file è occupato da un altro programma o se lo spazio su disco è sufficiente."
 
 msgid "Export sliced file"
-msgstr "Export Sliced File"
+msgstr "Esporta file elaborato"
 
 #, c-format, boost-format
 msgid "The file %s has been sent to the printer's storage space and can be viewed on the printer."
@@ -7973,7 +7971,7 @@ msgstr "Rilevate parti negative. Vuoi eseguire una mesh booleana prima dell'espo
 
 #, c-format, boost-format
 msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
-msgstr ""
+msgstr "Il filamento di calibrazione è assegnato a un estrusore diverso da quello selezionato nella finestra di dialogo Calibrazione PA (%s). Ciò può portare a risultati di calibrazione errati. Puoi modificare l’assegnazione nelle impostazioni di raggruppamento del filamento."
 
 msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr "Sconsigliato l'uso di filamenti PVA con nozzle da 0.2 mm."
@@ -8652,7 +8650,7 @@ msgid "First layer filament sequence"
 msgstr "Sequenza filamento primo layer"
 
 msgid "The filament list contains mixed filaments. Custom filament sequence will not take effect."
-msgstr ""
+msgstr "La lista di filamenti contiene filamenti misti. La sequenza personalizzata dei filamenti non avrà effetto."
 
 msgid "Same as Global Bed Type"
 msgstr "Uguale al tipo di piano globale"
@@ -9062,7 +9060,7 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "Il diametro del nozzle attuale (%.1f mm) non corrisponde a quello del file di slicing (%.1f mm). Assicurati che il nozzle installato corrisponda alle impostazioni della stampante, quindi imposta il preset della stampante corrispondente durante lo slicing."
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
-msgstr ""
+msgstr "Il Filament Track Switch installato sulla stampante non corrisponde al file elaborato. Esegui nuovamente l'elaborazione per evitare problemi di qualità di stampa."
 
 msgid "This print requires a Filament Track Switch. Please install it first."
 msgstr "Questa stampa richiede un Filament Track Switch. Installalo prima di procedere."
@@ -9439,7 +9437,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "When using %s to support %s, We recommend the following settings:"
-msgstr ""
+msgstr "Quando si utilizza %s per supporti %s, consigliamo i seguenti settaggi:"
 
 msgid "When using PLA to support TPU, We recommend the following settings:"
 msgstr "Quando si utilizza PLA per supportare il TPU, consigliamo le seguenti impostazioni:"
@@ -14992,7 +14990,7 @@ msgstr ""
 "- Differenti marche e famiglie di filamenti (Marca = Bambu, Famiglia = Basic, Opaco)\n"
 
 msgid "(Aux) does not support automatic flow calibration."
-msgstr ""
+msgstr "(Aux) non supporta la calibrazione automatica del flusso."
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- Nota: il numero dell'Hotend è legato al supporto. Quando l'Hotend viene spostato su un nuovo supporto, il suo numero si aggiornerà automaticamente.\n"
@@ -15136,7 +15134,7 @@ msgid "PA Calibration"
 msgstr "Calibrazione PA"
 
 msgid "Extruder type"
-msgstr ""
+msgstr "Tipo estrusore"
 
 msgid "PA Tower"
 msgstr "Tower PA"
