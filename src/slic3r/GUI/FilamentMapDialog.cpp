@@ -461,7 +461,7 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                       *parent,
 FilamentMapMode FilamentMapDialog::get_mode()
 {
     if (m_page_type == PageType::ptAuto) {
-        if (m_fila_switch_ready)
+        if (m_saving_panel)
             return fmmAutoForFlush;
         return m_auto_map_panel->GetMode();
     }
