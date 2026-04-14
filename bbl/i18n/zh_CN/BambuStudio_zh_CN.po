@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-14 18:15+0800\n"
+"POT-Creation-Date: 2026-04-14 19:58+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -9366,7 +9366,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "When using %s to support %s, We recommend the following settings:"
-msgstr "当使用%s作为支撑料%s时，我们推荐配置以下参数："
+msgstr "当使用%s作为支撑料支撑%s时，我们推荐配置以下参数："
 
 msgid "When using PLA to support TPU, We recommend the following settings:"
 msgstr "当使用PLA作为支撑材料支撑TPU时，我们推荐配置以下参数："
