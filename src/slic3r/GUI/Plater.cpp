@@ -5486,7 +5486,9 @@ void Sidebar::update_mixed_filament_list()
     plater->update_filament_colors_in_full_config();
     obj_list()->update_filament_colors();
 
-    // Check if any broken mixed filament is used by objects on current plate
+    // Check if any broken mixed filament is used by objects on current plate.
+    // Scan raw extruder assignments (object / volume / height-range / painting)
+    // instead of get_extruders() which expands mixed slots and loses their IDs.
     p->m_mixed_filament_broken = false;
     if (!broken_slots.empty()) {
         std::set<size_t> broken_1based;
@@ -5494,12 +5496,39 @@ void Sidebar::update_mixed_filament_list()
 
         auto* curr_plate = plater->get_partplate_list().get_curr_plate();
         if (curr_plate) {
-            auto plate_extruders = curr_plate->get_extruders(false);
-            for (int ext : plate_extruders) {
-                if (broken_1based.count((size_t)ext)) {
+            for (auto& obj : plater->model().objects) {
+                if (!curr_plate->contain_instance_totally(obj, 0))
+                    continue;
+                // Check object-level extruder
+                int obj_ext = obj->config.has("extruder") ? obj->config.extruder() : 1;
+                if (broken_1based.count((size_t)obj_ext)) {
                     p->m_mixed_filament_broken = true;
                     break;
                 }
+                bool found = false;
+                for (auto* vol : obj->volumes) {
+                    // Check volume-level extruder
+                    int vol_ext = vol->config.has("extruder") ? vol->config.extruder() : obj_ext;
+                    if (broken_1based.count((size_t)vol_ext)) { found = true; break; }
+                    // Check color painting data (mmu segmentation facets)
+                    if (vol->is_model_part() && !vol->mmu_segmentation_facets.empty()) {
+                        for (size_t broken_slot : broken_1based) {
+                            if (vol->mmu_segmentation_facets.has_facets(*vol, EnforcerBlockerType(broken_slot)))
+                                { found = true; break; }
+                        }
+                        if (found) break;
+                    }
+                }
+                if (found) { p->m_mixed_filament_broken = true; break; }
+                // Check height range modifier extruder overrides
+                for (auto& [range, cfg] : obj->layer_config_ranges) {
+                    if (cfg.has("extruder")) {
+                        int layer_ext = cfg.option("extruder")->getInt();
+                        if (layer_ext > 0 && broken_1based.count((size_t)layer_ext))
+                            { found = true; break; }
+                    }
+                }
+                if (found) { p->m_mixed_filament_broken = true; break; }
             }
         }
     }
@@ -5567,13 +5596,30 @@ bool Sidebar::has_broken_mixed_filament() const
     for (auto& entry : plater->model().objects) {
         if (!curr_plate->contain_instance_totally(entry, 0))
             continue;
+        // Check object-level extruder
         int obj_ext = entry->config.has("extruder") ? entry->config.extruder() : 1;
         if (broken_1based.count((size_t)obj_ext))
             return true;
         for (auto* vol : entry->volumes) {
+            // Check volume-level extruder
             int vol_ext = vol->config.has("extruder") ? vol->config.extruder() : obj_ext;
             if (broken_1based.count((size_t)vol_ext))
                 return true;
+            // Check color painting data (mmu segmentation facets)
+            if (vol->is_model_part() && !vol->mmu_segmentation_facets.empty()) {
+                for (size_t broken_slot : broken_1based) {
+                    if (vol->mmu_segmentation_facets.has_facets(*vol, EnforcerBlockerType(broken_slot)))
+                        return true;
+                }
+            }
+        }
+        // Check height range modifier extruder overrides
+        for (auto& [range, cfg] : entry->layer_config_ranges) {
+            if (cfg.has("extruder")) {
+                int layer_ext = cfg.option("extruder")->getInt();
+                if (layer_ext > 0 && broken_1based.count((size_t)layer_ext))
+                    return true;
+            }
         }
     }
 
