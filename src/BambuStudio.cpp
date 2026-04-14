@@ -4226,7 +4226,8 @@ int CLI::run(int argc, char **argv)
                 %(plate_index+1) %start.x() % start.y() % start.z() %end.x() % end.y() % end.z();
     };
 
-    auto translate_models = [translate_old, shrink_to_new_bed, old_printable_width, old_printable_depth, old_printable_height, current_printable_width, current_printable_depth, current_printable_height, shared_center_x, shared_center_y, shared_printable_width, shared_printable_depth, current_exclude_area, &plate_obj_size_infos] (Slic3r::GUI::PartPlateList& plate_list, DynamicPrintConfig& print_config) {
+    auto translate_models = [machine_switch, is_bbl_3mf, translate_old, shrink_to_new_bed, old_printable_width, old_printable_depth, old_printable_height, current_printable_width, current_printable_depth, current_printable_height,
+        shared_center_x, shared_center_y, shared_printable_width, shared_printable_depth, current_exclude_area, &plate_obj_size_infos] (Slic3r::GUI::PartPlateList& plate_list, DynamicPrintConfig& print_config) {
         //BBS: translate old 3mf to correct positions
         if (translate_old) {
             //translate the objects
@@ -4243,8 +4244,8 @@ int CLI::run(int argc, char **argv)
             plate_list.reset_size(old_printable_width, old_printable_depth, old_printable_height, true, true);
         }
 
-        //always do it
-        //if (shrink_to_new_bed > 0)
+        //machine switch case
+        if (is_bbl_3mf && machine_switch)
         {
             int plate_count = plate_list.get_plate_count();
             ConfigOptionFloats *wipe_x_option = nullptr, *wipe_y_option = nullptr;
