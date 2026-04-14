@@ -2733,8 +2733,8 @@ namespace Slic3r
                 auto stats_by_extruder = wxGetApp().plater()->get_partplate_list().get_current_fff_print().statistics_by_extruder();
                 float delta_weight_to_single_ext = stats_by_extruder.stats_by_single_extruder.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_curr.filament_flush_weight;
                 float delta_weight_to_best = stats_by_extruder.stats_by_multi_extruder_curr.filament_flush_weight - stats_by_extruder.stats_by_multi_extruder_best.filament_flush_weight;
-                int   delta_change_to_single_ext = stats_by_extruder.stats_by_single_extruder.filament_change_count - stats_by_extruder.stats_by_multi_extruder_curr.filament_change_count;
-                int   delta_change_to_best = stats_by_extruder.stats_by_multi_extruder_curr.filament_change_count - stats_by_extruder.stats_by_multi_extruder_best.filament_change_count;
+                int   delta_change_to_single_ext = stats_by_extruder.stats_by_single_extruder.flush_filament_change_count - stats_by_extruder.stats_by_multi_extruder_curr.flush_filament_change_count;
+                int   delta_change_to_best = stats_by_extruder.stats_by_multi_extruder_curr.flush_filament_change_count - stats_by_extruder.stats_by_multi_extruder_best.flush_filament_change_count;
                 bool any_less_to_single_ext = delta_weight_to_single_ext > EPSILON || delta_change_to_single_ext > 0;
                 bool any_more_to_best = delta_weight_to_best > EPSILON || delta_change_to_best > 0;
                 bool all_less_to_single_ext = delta_weight_to_single_ext > EPSILON && delta_change_to_single_ext > 0;
