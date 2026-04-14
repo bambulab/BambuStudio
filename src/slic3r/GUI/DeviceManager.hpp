@@ -82,10 +82,12 @@ class DevExtensionTool;
 class DevExtderSystem;
 class DevFan;
 class DevFilaSystem;
+class DevFilaSwitch;
 class DevPrintOptions;
 class DevHMS;
 class DevInfo;
 class DevLamp;
+class DevNozzleMappingCtrl;
 class DevNozzleSystem;
 class DevNozzleRack;
 class DeviceManager;
@@ -114,7 +116,7 @@ private:
     std::vector<std::tuple<std::string, uint64_t, uint64_t>> message_delay;
 
     // the latest nozzle mapping
-    DevNozzleMappingResult m_auto_nozzle_mapping;
+    std::shared_ptr<DevNozzleMappingCtrl> m_nozzle_mapping_ptr;;
 
     /*parts*/
     std::shared_ptr<DevAxis>    m_axis;
@@ -124,6 +126,7 @@ private:
     DevExtderSystem*  m_extder_system;
     DevNozzleSystem*  m_nozzle_system;
     std::shared_ptr<DevFilaSystem> m_fila_system;
+    std::shared_ptr<DevFilaSwitch> m_fila_switch;
     DevFan*           m_fan;
     DevBed *          m_bed;
     DevStorage*       m_storage;
@@ -303,17 +306,14 @@ public:
     /*extruder*/
     bool is_main_extruder_on_left() const { return false;  } // only means the extruder is on the left hand when extruder id is 0
     bool is_multi_extruders() const;
-    int  get_extruder_id_by_ams_id(const std::string& ams_id);
 
     /* nozzle */
     DevNozzle get_nozzle_by_id_code(int id_code) const;
     DevNozzle get_nozzle_by_sn(const std::string& sn) const;
 
     // auto nozzle mapping
-    DevNozzleMappingResult get_nozzle_mapping_result() const { return m_auto_nozzle_mapping; }
-    void set_manual_nozzle_mapping(int fila_id, int nozzle_pos_id) { m_auto_nozzle_mapping.SetManualNozzleMapping(this, fila_id, nozzle_pos_id); };// nozzle_pos_id is O\0x10\0x20\0x30...
-    void clear_auto_nozzle_mapping() { m_auto_nozzle_mapping.Clear(); }
-    int ctrl_get_auto_nozzle_mapping(Slic3r::GUI::Plater* plater, const std::vector<FilamentInfo>& ams_mapping, int flow_cali_opt, int pa_value);
+    std::shared_ptr<DevNozzleMappingCtrl> get_nozzle_mapping_result() const { return m_nozzle_mapping_ptr;; }
+    void clear_auto_nozzle_mapping();
 
     /* ams settings*/
     std::optional<bool> IsDetectOnInsertEnabled() const;
@@ -351,6 +351,7 @@ public:
     std::shared_ptr<DevNozzleRack> GetNozzleRack() const;;
 
     std::shared_ptr<DevFilaSystem>   GetFilaSystem() const { return m_fila_system;}
+    std::shared_ptr<DevFilaSwitch>   GetFilaSwitch() const { return m_fila_switch;}
     bool             HasAms() const;
 
     std::shared_ptr<DevAxis>    GetAxis() const { return m_axis; }
@@ -381,6 +382,9 @@ public:
     DevFirmwareVersionInfo cutting_module_version_info;
     DevFirmwareVersionInfo extinguish_version_info;
     DevFirmwareVersionInfo rotary_version_info;
+    DevFirmwareVersionInfo exhaustfan_version_info;
+    DevFirmwareVersionInfo amshub_version_info;
+    DevFirmwareVersionInfo filatrack_version_info;
     std::map<std::string, DevFirmwareVersionInfo> module_vers;
     std::vector<FirmwareInfo> firmware_list;
 
@@ -426,7 +430,7 @@ public:
     CalibSendStatus     calib_send_status{CalibSendStatus::IDLE};
 
     std::vector<int> stage_list_info;
-    int stage_curr = 0;
+    int stage_curr = -1;
     int stage_remaining_seconds = -1;
     int m_push_count = 0;
     int m_full_msg_count = 0; /*the full message count, there are full or diff messages from network*/
@@ -538,12 +542,21 @@ public:
     bool is_support_partskip{false};
     bool is_support_refresh_nozzle{false};
     bool is_support_fila_change_abort{false};
+    bool is_support_ext_change_assist_old{false}; //for a and p
 
+    // timelapse storage check result (temp state from MQTT response)
+    std::atomic<bool> timelapse_storage_check_done { false };
+    int timelapse_storage_check_result { -1 };
+    bool timelapse_storage_is_enough { true };
+    int timelapse_storage_file_count { 0 };
 
     // fun2
     bool is_support_print_with_emmc{false};
     bool is_support_pa_mode{false};
     bool is_support_remote_dry = false;
+    bool is_support_active_arc_fitting{false};
+    bool is_support_liveview_preview{false};
+    bool is_support_check_track_switch_match_slice_printer{ false };
 
     bool installed_upgrade_kit{false};
     int  bed_temperature_limit = -1;
@@ -603,6 +616,7 @@ public:
 
     /* quick check*/
     bool canEnableTimelapse(wxString& error_message) const;
+    bool is_timelapse_storage_low(const std::string& storage) const;
 
     /* command commands */
     int command_get_version(bool with_retry = true);
@@ -627,6 +641,8 @@ public:
     int command_hms_resume(const std::string& error_str, const std::string& job_id);
     int command_hms_ignore(const std::string& error_str, const std::string& job_id);
     int command_hms_stop(const std::string &error_str, const std::string &job_id);
+    int command_purification_disable();
+    int command_dont_remind_next_time(json& mqtt_guard_json);
     /* buzzer*/
     int command_stop_buzzer();
 
@@ -640,7 +656,7 @@ public:
     int check_resume_condition();
     // ams controls
     //int command_ams_switch(int tray_index, int old_temp = 210, int new_temp = 210);
-    int command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp = 210, int new_temp = 210);
+    int command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp = 210, int new_temp = 210, std::optional<int> extruder_id = std::nullopt);
     int command_ams_user_settings(bool start_read_opt, bool tray_read_opt, bool remain_flag = false);
     int command_ams_switch_filament(bool switch_filament);
     int command_ams_air_print_detect(bool air_print_detect);
@@ -682,6 +698,8 @@ public:
     int command_ipcam_record(bool on_off);
     int command_ipcam_timelapse(bool on_off);
     int command_ipcam_resolution_set(std::string resolution);
+    int command_ipcam_check_timelapse_storage(const std::string& storage, int total_layer);
+    int command_ipcam_delete_oldest_timelapse(const std::string& storage, int total_layer);
 
     /* common apis */
     inline bool is_local() { return !get_dev_ip().empty(); }

@@ -6,13 +6,20 @@
     "setting_id": "GP222",
     "instantiation": "true",
     "description": "Standard profile for 0.16mm layer height, prioritizing speed.",
-    "bottom_surface_pattern": "monotonicline",
+    "bridge_flow": "1.5",
+    "bridge_speed": [
+        "25",
+        "25",
+        "25",
+        "25"
+    ],
     "default_acceleration": [
         "10000",
         "8000",
         "1000",
         "1000"
     ],
+    "enable_tower_interface_features": "1",
     "gap_infill_speed": [
         "50",
         "250",
@@ -34,26 +41,20 @@
     "outer_wall_speed": [
         "200",
         "200",
-        "100",
-        "100"
-    ],
-    "overhang_1_4_speed": [
-        "60",
-        "60",
-        "0",
-        "60"
-    ],
-    "overhang_2_4_speed": [
-        "30",
-        "50",
         "50",
         "50"
     ],
-    "overhang_3_4_speed": [
-        "10",
-        "30",
-        "30",
-        "30"
+    "overhang_2_4_speed": [
+        "40",
+        "40",
+        "40",
+        "40"
+    ],
+    "overhang_4_4_speed": [
+        "20",
+        "20",
+        "20",
+        "20"
     ],
     "prime_tower_brim_width": "-1",
     "prime_tower_width": "60",
@@ -69,18 +70,17 @@
         "100",
         "100"
     ],
-    "travel_speed": [
-        "1000",
-        "1000",
-        "1000",
-        "1000"
-    ],
-    "top_surface_pattern": "monotonic",
     "top_surface_speed": [
         "150",
         "200",
         "200",
         "200"
+    ],
+    "travel_speed": [
+        "1000",
+        "1000",
+        "1000",
+        "1000"
     ],
     "compatible_printers": [
         "Bambu Lab X2D 0.4 nozzle"

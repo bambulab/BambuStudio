@@ -10,6 +10,8 @@
 
 #include "libslic3r/PrintConfig.hpp"
 #include "Field.hpp"
+#include <wx/string.h>
+#include <set>
 
 namespace Slic3r {
 
@@ -96,6 +98,21 @@ public:
 private:
     bool get_temperature_range(DynamicPrintConfig *config, int &range_low, int &range_high);
 };
+
+// 根据支撑材料和主体材料，构建推荐配置到 DynamicPrintConfig
+// 返回是否有推荐参数
+bool build_support_recommended_config(const std::string& support_material, const std::string& model_material, DynamicPrintConfig& out_config);
+
+// 根据用户已选择的支撑料和模型主体料，查询是否有推荐参数
+// support_filament_index: 用户选择的支撑料索引 (0-based)
+// model_material_type: 模型主体料类型 (如 "PLA")
+// model_material_name: 模型主体料名称 (如 "Bambu PLA Basic")
+// 返回 true 表示找到推荐参数，out_config 包含推荐配置
+bool query_support_recommended_params_for_combination(
+    int support_filament_index,
+    const std::string& model_material_type,
+    const std::string& model_material_name,
+    DynamicPrintConfig& out_config);
 
 } // GUI
 } // Slic3r

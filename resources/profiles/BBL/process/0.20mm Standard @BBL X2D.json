@@ -8,11 +8,10 @@
     "description": "It has a general layer height, and results in general layer lines and printing quality. It is suitable for most general printing cases.",
     "bridge_speed": [
         "50",
-        "300",
+        "50",
         "50",
         "200"
     ],
-    "bottom_surface_pattern": "monotonicline",
     "default_acceleration": [
         "10000",
         "10000",
@@ -21,16 +20,11 @@
     ],
     "enable_overhang_speed": [
         "1",
-        "0",
+        "1",
         "1",
         "0"
     ],
-    "gap_infill_speed": [
-        "50",
-        "300",
-        "200",
-        "200"
-    ],
+    "enable_tower_interface_features": "1",
     "initial_layer_speed": [
         "50",
         "50",
@@ -39,13 +33,13 @@
     ],
     "inner_wall_speed": [
         "300",
-        "500",
+        "600",
         "200",
         "200"
     ],
     "internal_solid_infill_speed": [
         "250",
-        "500",
+        "600",
         "200",
         "200"
     ],
@@ -58,27 +52,16 @@
     "outer_wall_speed": [
         "200",
         "500",
-        "200",
-        "200"
-    ],
-    "overhang_1_4_speed": [
-        "0",
-        "60",
-        "0",
-        "60"
-    ],
-    "overhang_2_4_speed": [
         "50",
-        "30",
-        "50",
-        "30"
+        "50"
     ],
     "overhang_3_4_speed": [
         "30",
-        "10",
+        "20",
         "30",
-        "10"
+        "20"
     ],
+    "prime_tower_brim_width": "-1",
     "print_extruder_variant": [
         "Direct Drive Standard",
         "Direct Drive High Flow",
@@ -87,7 +70,7 @@
     ],
     "sparse_infill_speed": [
         "270",
-        "500",
+        "600",
         "200",
         "200"
     ],
@@ -97,19 +80,12 @@
         "1000",
         "1000"
     ],
-    "top_surface_speed": [
-        "200",
-        "500",
-        "200",
-        "200"
-    ],
     "travel_speed": [
         "1000",
         "1000",
         "1000",
         "1000"
     ],
-    "top_surface_pattern": "monotonic",
     "compatible_printers": [
         "Bambu Lab X2D 0.4 nozzle"
     ]

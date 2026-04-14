@@ -5,19 +5,13 @@
     "from": "system",
     "setting_id": "GP228",
     "instantiation": "true",
-    "bottom_surface_pattern": "monotonicline",
     "default_acceleration": [
         "10000",
         "8000",
         "1000",
         "1000"
     ],
-    "gap_infill_speed": [
-        "50",
-        "250",
-        "250",
-        "250"
-    ],
+    "enable_tower_interface_features": "1",
     "initial_layer_speed": [
         "50",
         "50",
@@ -33,8 +27,8 @@
     "outer_wall_speed": [
         "200",
         "200",
-        "100",
-        "100"
+        "50",
+        "50"
     ],
     "prime_tower_brim_width": "-1",
     "prime_tower_width": "60",
@@ -56,7 +50,6 @@
         "1000",
         "1000"
     ],
-    "top_surface_pattern": "monotonic",
     "compatible_printers": [
         "Bambu Lab X2D 0.4 nozzle"
     ]

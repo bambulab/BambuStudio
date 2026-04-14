@@ -8,7 +8,6 @@
     ],
     "printer_variant": "0.4",
     "auxiliary_fan": "1",
-    "apply_top_surface_compensation": "0",
     "fan_direction": "undefine",
     "best_object_pos": "0.5x0.5",
     "default_filament_profile": [],
@@ -26,6 +25,7 @@
     "enable_long_retraction_when_cut": "0",
     "enable_pre_heating": "0",
     "extruder_height_gap": "0",
+    "group_algo_with_time": "0",
     "extruder_offset": [
         "0x0"
     ],
@@ -111,6 +111,7 @@
     "nozzle_flush_dataset": [
         "0"
     ],
+    "print_in_clockwise": "0",
     "printable_height": "250",
     "printer_settings_id": "",
     "printer_structure": "corexy",

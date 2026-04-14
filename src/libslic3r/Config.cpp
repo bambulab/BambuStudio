@@ -763,6 +763,14 @@ ConfigSubstitutions ConfigBase::load_string_map(std::map<std::string, std::strin
             // ignore
         }
     }
+    if (this->has("close_fan_the_first_x_layers") && !this->has("close_additional_fan_first_x_layers")) {
+        auto *src = this->option("close_fan_the_first_x_layers");
+        if (src) {
+            auto *dst = this->option("close_additional_fan_first_x_layers", true);
+            if (dst)
+                dst->set(src);
+        }
+    }
     return std::move(substitutions_ctxt.substitutions);
 }
 
@@ -907,6 +915,15 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                 std::string value_str;
 
                 if (it.value().is_string()) {
+                    if (opt_key == "reduce_infill_retraction")
+                    {
+                        // Legacy bool: false(0) -> Disabled, true(1) bypass
+                        // New profiles that don't set this will get the default "Auto"
+                        if (it.value() == "0" || it.value() == "false") {
+                            // should disable
+                            different_settings_append.push_back("reduce_infill_retraction_mode");
+                        }
+                    }
                     //bool test1 = (it.key() == std::string("end_gcode"));
                     this->set_deserialize(opt_key, it.value(), substitution_context);
                     //some logic for special values
@@ -987,7 +1004,37 @@ int ConfigBase::load_from_json(const std::string &file, ConfigSubstitutionContex
                 }
             }
         }
+
+        // Migrate: when opening old 3MF that has close_fan_the_first_x_layers but not
+        // close_additional_fan_first_x_layers, copy the value to the new key as well.
+        if (this->has("close_fan_the_first_x_layers") && !this->has("close_additional_fan_first_x_layers")) {
+            auto *src = this->option("close_fan_the_first_x_layers");
+            if (src) {
+                auto *dst = this->option("close_additional_fan_first_x_layers", true);
+                if (dst)
+                    dst->set(src);
+            }
+            if (this->has("different_settings_to_system")) {
+                auto *diff_opt = this->option<ConfigOptionStrings>("different_settings_to_system");
+                if (diff_opt) {
+                    for (auto &diff_str : diff_opt->values) {
+                        if (diff_str.find("close_fan_the_first_x_layers") != std::string::npos &&
+                            diff_str.find("close_additional_fan_first_x_layers") == std::string::npos) {
+                            diff_str += ";close_additional_fan_first_x_layers";
+                        }
+                    }
+                }
+            }
+        }
+
         if (!different_settings_append.empty()) {
+            auto it = std::find(different_settings_append.begin(), different_settings_append.end(), "reduce_infill_retraction_mode");
+            if (it != different_settings_append.end()){
+                //should disable
+                ConfigOptionEnum<ReduceInfillRetractionMode> *opt = this->option<ConfigOptionEnum<ReduceInfillRetractionMode>>("reduce_infill_retraction_mode", true);
+                opt->value                                        = ReduceInfillRetractionMode::rirDisabled;
+            }
+
             if (!new_support_style.empty()) {
                 ConfigOptionEnum<SupportMaterialStyle>* opt = this->option<ConfigOptionEnum<SupportMaterialStyle>>("support_style", true);
                 opt->value = smsTreeHybrid;

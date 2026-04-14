@@ -24,7 +24,13 @@
 
 #include <chrono>
 #include <deque>
+#include <functional>
 #include <set>
+#include <memory>
+#include <vector>
+#include <cstddef>
+#include <string>
+#include <atomic>
 
 class Button;
 class Label;
@@ -32,6 +38,7 @@ class Label;
 namespace Slic3r {
 
 class MachineObject;
+class FileTransferObject;
 
 namespace GUI {
 
@@ -52,6 +59,11 @@ public:
 
     void jump_to_play();
 
+    void RequestFileSystemUrl(std::function<void(std::string url)> cb, bool lan_mode=true);
+
+    using ImageResultCb = std::function<void(int ec, int resp_ec, std::string json, std::vector<std::byte> data)>;
+    void SetDeviceImageUrl(std::string url);
+
 protected:
     void onStateChanged(wxMediaEvent & event);
 
@@ -65,6 +77,8 @@ protected:
 
 private:
     void load();
+
+    void start_device_image_flow();
 
     void on_show_hide(wxShowEvent & evt);
 
@@ -93,6 +107,7 @@ private:
     std::string m_dev_ver;
     std::string m_tutk_state;
     bool m_camera_exists = false;
+    bool m_support_liveview_preview = false;
     bool m_lan_mode = false;
     int m_remote_proto = 0;
     bool m_device_busy = false;
@@ -116,9 +131,15 @@ private:
     int           m_print_idle = 0;
     int           m_load_duration = 0;
 
+    std::shared_ptr<int> m_image_token = std::make_shared<int>(0);
+    std::chrono::steady_clock::time_point m_image_last_success_time;
+    std::string m_image_last_machine;
+
     ::Button *m_button_play;
     ::Label * m_label_stat;
     ::Label * m_label_status;
+
+    std::shared_ptr<FileTransferObject> m_image_transfer;
 };
 
 }}

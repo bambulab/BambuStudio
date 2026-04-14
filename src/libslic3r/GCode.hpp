@@ -387,10 +387,11 @@ private:
 
     //BBS
     void check_placeholder_parser_failed();
-    size_t cur_extruder_index() const;
-    size_t cur_config_index() const;
     size_t get_extruder_id(unsigned int filament_id) const;
     void set_extrude_acceleration(bool is_first_layer);
+    size_t get_filament_config_index(int filament_id) const;
+    size_t get_nozzle_config_index(int filament_id) const;
+    void   update_placeholder_parser_with_variant_params();
 
     void            set_last_pos(const Point &pos) { m_last_pos = pos; m_last_pos_defined = true; }
     void            set_last_scarf_seam_flag(bool flag) { m_last_scarf_seam_flag = flag; }
@@ -513,9 +514,10 @@ private:
     TimelapsePosPicker                  m_timelapse_pos_picker;
     bool                                m_enable_loop_clipping;
     // If enabled, the G-code generator will put following comments at the ends
-    // of the G-code lines: _EXTRUDE_SET_SPEED, _WIPE, _OVERHANG_FAN_START, _OVERHANG_FAN_END
+    // of the G-code lines: _EXTRUDE_SET_SPEED, _WIPE, _OVERHANG_FAN_START, _OVERHANG_FAN_END, _IRONING_FAN_START, _IRONING_FAN_END
     // Those comments are received and consumed (removed from the G-code) by the CoolingBuffer.pm Perl module.
     bool                                m_enable_cooling_markers;
+    bool                                m_is_ironing_fan_on{false};
     // Markers for the Pressure Equalizer to recognize the extrusion type.
     // The Pressure Equalizer removes the markers from the final G-code.
     bool                                m_enable_extrusion_role_markers;
@@ -587,9 +589,14 @@ private:
     Print* m_curr_print = nullptr;
     unsigned int m_toolchange_count;
     coordf_t m_nominal_z;
+    double   m_sub_layer_flow_ratio = 0.0;
+    double   m_sub_layer_height     = 0.0;
     bool m_need_change_layer_lift_z = false;
     int m_start_gcode_filament = -1;
     std::string m_filament_instances_code;
+
+    size_t m_cur_layer_idx{0};
+    const PrintObject *m_cur_print_object{nullptr}; // If print by layer is nullptr, if print by object is current print object
 
     std::set<unsigned int>                  m_initial_layer_extruders;
     std::vector<std::vector<unsigned int>>  m_sorted_layer_filaments;
@@ -597,7 +604,9 @@ private:
     int get_bed_temperature(const int extruder_id, const bool is_first_layer, const BedType bed_type) const;
     int get_highest_bed_temperature(const bool is_first_layer,const Print &print) const;
 
-    double      calc_max_volumetric_speed(const double layer_height, const double line_width, const std::string co_str);
+    void update_layer_related_config(int layer_id);
+
+    double calc_max_volumetric_speed(const double layer_height, const double line_width, const std::string co_str);
     std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1, bool set_holes_and_compensation_speed = false, bool is_first_slope = false);
     ExtrusionPaths set_speed_transition(std::vector<ExtrusionPaths> &paths);
     void split_and_mapping_speed(double other_path_v, double final_v, ExtrusionPaths &this_path, double max_smooth_length, ExtrusionPaths &interpolated_paths, bool split_from_left = true);

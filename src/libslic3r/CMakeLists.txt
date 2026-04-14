@@ -46,6 +46,8 @@ set(lisbslic3r_sources
     BoundingBox.hpp
     BridgeDetector.cpp
     BridgeDetector.hpp
+    ByObjectPrintData.hpp
+    ByObjectPrintData.cpp
     FaceDetector.cpp
     FaceDetector.hpp
     Brim.cpp
@@ -473,6 +475,9 @@ set(lisbslic3r_sources
     Interlocking/VoxelUtils.cpp
     MultiNozzleUtils.hpp
     MultiNozzleUtils.cpp
+    FilamentMixer.hpp
+    FilamentMixer.cpp
+    FilamentMixerModel.hpp
 )
 
 if (APPLE)
@@ -578,6 +583,7 @@ set(OCCT_LIBS
 
 
 target_link_libraries(libslic3r
+    noise::noise
     libnest2d
     admesh
     cereal

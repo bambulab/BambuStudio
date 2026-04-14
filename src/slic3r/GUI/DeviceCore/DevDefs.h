@@ -51,6 +51,36 @@ enum AmsStatusMain
     AMS_STATUS_MAIN_UNKNOWN = 0xFF,
 };
 
+enum DevAmsType : int
+{
+    EXT_SPOOL = 0,      // EXT
+    AMS = 1,            // AMS1
+    AMS_LITE = 2,       // AMS-Lite
+    N3F = 3,            // N3F, AMS 2PRO
+    N3S = 4,            // N3S, AMS HT
+};
+
+enum DevFilamentStep
+{
+    STEP_IDLE = 0x00,
+    STEP_PAUSE = 0x01,
+    STEP_HEAT_NOZZLE = 0x02,
+    STEP_CUT_FILAMENT = 0x03,
+    STEP_PULL_CURR_FILAMENT = 0x04,
+    STEP_PUSH_NEW_FILAMENT = 0x05,
+    STEP_GRAB_NEW_FILAMENT = 0x06,
+    STEP_PURGE_OLD_FILAMENT = 0x07,
+    STEP_CHECK_POSITION = 0x08,
+    STEP_SWITCH_EXTRUDER = 0x09,
+    STEP_SWITCH_HOTEND = 0x0A,
+    STEP_AMS_FILA_COOLING = 0x0B,
+    STEP_PUSH_SWITCHER_FILA = 0x0C,
+    STEP_PULL_SWITCHER_FILA = 0x0D,
+    STEP_SWITCHER_SWITCH = 0x0E,
+    STEP_CONFIRM_EXTRUDED = 0x08,
+    STEP_COUNT,
+};
+
 // Slots and Tray
 #define VIRTUAL_TRAY_MAIN_ID    255
 #define VIRTUAL_TRAY_DEPUTY_ID  254
@@ -70,6 +100,9 @@ enum AmsStatusMain
 #define LOGIC_UNIQUE_EXTRUDER_ID  0
 #define LOGIC_L_EXTRUDER_ID       0
 #define LOGIC_R_EXTRUDER_ID       1
+
+// <ams_id, slot_id>
+using DevAmsSlotId = std::pair<int, int>;
 
 /* Nozzle*/
 enum NozzleFlowType : int
@@ -110,56 +143,6 @@ enum class DevFirmwareUpgradeState : int
     UpgradingFinished = 3
 };
 
-struct DevNozzleMappingResult
-{
-    friend class MachineObject;
-public:
-    void Clear();
-
-    bool HasResult() const { return !m_result.empty();}
-    std::string GetResultStr() const { return m_result; }
-
-    // mqtt error info
-    std::string GetMqttReason() const { return m_mqtt_reason; }
-
-    // command error info
-    int GetErrno() const { return m_errno; }
-    std::string GetDetailMsg() const { return m_detail_msg; }
-
-    // nozzle mapping
-    std::unordered_map<int, int> GetNozzleMapping() const { return m_nozzle_mapping; }
-    nlohmann::json GetNozzleMappingJson() const { return m_nozzle_mapping_json; }
-    void SetManualNozzleMapping(Slic3r::MachineObject* obj, int fila_id, int nozzle_pos_id);
-    int  GetMappedNozzlePosIdByFilaId(Slic3r::MachineObject* obj, int fila_id) const;// return -1 if not mapped
-
-    // flush weight
-    float  GetFlushWeightBase() const { return m_flush_weight_base;}
-    float  GetFlushWeightCurrent() const { return m_flush_weight_current; }
-
-public:
-    void ParseAutoNozzleMapping(Slic3r::MachineObject* obj, const nlohmann::json& print_jj);
-
-private:
-    float  GetFlushWeight(Slic3r::MachineObject* obj) const;
-
-private:
-    std::string m_sequence_id;
-
-    std::string m_result;
-    std::string m_mqtt_reason;
-    std::string m_type; // auto or manual
-
-    int         m_errno;
-    std::string m_detail_msg;
-    nlohmann::json m_detail_json;
-
-    nlohmann::json m_nozzle_mapping_json;
-    std::unordered_map<int, int> m_nozzle_mapping; // key: fila_id, value: nozzle_id (from 0x10), the tar_id is no extruder
-
-    float m_flush_weight_base = -1;// the base weight for flush
-    float m_flush_weight_current = -1;// the weight current
-};
-
 class devPrinterUtil
 {
 public:
@@ -170,6 +153,15 @@ public:
     static bool IsVirtualSlot(int ams_id) { return (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID);}
     static bool IsVirtualSlot(const std::string& ams_id) { return (ams_id == VIRTUAL_AMS_MAIN_ID_STR || ams_id == VIRTUAL_AMS_DEPUTY_ID_STR); }
 };
+
+namespace GUI
+{
+enum PrintFromType
+{
+    FROM_NORMAL,
+    FROM_SDCARD_VIEW,
+};
+}
 
 };// namespace Slic3r
 

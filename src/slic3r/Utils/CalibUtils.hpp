@@ -60,7 +60,7 @@ public:
     static bool get_flow_ratio_calib_results(std::vector<FlowRatioCalibResult> &flow_ratio_calib_results);
     static bool calib_flowrate(int pass, const CalibInfo &calib_info, wxString &error_message);
 
-    static void calib_pa_pattern(const CalibInfo &calib_info, Model &model);
+    static void calib_pa_pattern(const MachineObject *obj, const CalibInfo &calib_info, Model &model, DynamicPrintConfig &full_config);
 
     static void set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &calib_info, DynamicPrintConfig &full_config, Model &model);
 
@@ -73,6 +73,15 @@ public:
 
     //help function
     static bool is_support_auto_pa_cali(std::string filament_id);
+
+    // Get all supported nozzle diameters for a given printer model
+    static std::vector<std::string> get_supported_nozzle_diameters_by_model(const std::string &printer_model);
+
+    // Get all supported NozzleVolumeTypes for a given printer model and nozzle diameter
+    static std::vector<NozzleVolumeType> get_supported_nozzle_volume_types_by_model_and_nozzle(const std::string &printer_model, const std::string &nozzle_diameter);
+
+    // key:supported volume type; value: volume type supported diameter
+    static std::map<NozzleVolumeType, std::set<NozzleDiameterType>> get_supported_nozzle_volume_and_diameters(const MachineObject *obj);
 
     static int get_selected_calib_idx(const std::vector<PACalibResult> &pa_calib_values, int cali_idx);
     static bool get_pa_k_n_value_by_cali_idx(const MachineObject* obj, int cali_idx, float& out_k, float& out_n);
@@ -92,6 +101,8 @@ private:
     static void send_to_print(const CalibInfo &calib_info, wxString& error_message, int flow_ratio_mode = 0); // 0: none  1: coarse  2: fine
     static void send_to_print(const std::vector<CalibInfo> &calib_infos, wxString &error_message, int flow_ratio_mode = 0); // 0: none  1: coarse  2: fine
 };
+
+extern std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj);
 
 extern void get_tray_ams_and_slot_id(MachineObject* obj, int in_tray_id, int &ams_id, int &slot_id, int &tray_id);
 

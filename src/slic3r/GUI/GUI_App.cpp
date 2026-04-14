@@ -2497,14 +2497,21 @@ void GUI_App::init_app_config()
 #endif
             //BBS create folder if not exists
             boost::filesystem::path data_dir_path(data_dir);
+            boost::filesystem::path log_dir_path = data_dir_path / "log";
             if (!boost::filesystem::exists(data_dir_path))
-                boost::filesystem::create_directory(data_dir_path);
+                boost::filesystem::create_directories(data_dir_path);
+            if (!boost::filesystem::exists(log_dir_path))
+                boost::filesystem::create_directories(log_dir_path);
             set_data_dir(data_dir);
 #if defined(__WINDOWS__)
             // Change current dirtory of application
-            _chdir(encode_path((data_dir + "/log").c_str()).c_str());
+            if (_chdir(encode_path((data_dir + "/log").c_str()).c_str()) != 0) {
+                printf("%s, warning: chdir to log folder failed: %s\n", __FUNCTION__, (data_dir + "/log").c_str());
+            }
 #else
-            chdir(encode_path((data_dir + "/log").c_str()).c_str());
+            if (chdir(encode_path((data_dir + "/log").c_str()).c_str()) != 0) {
+                printf("%s, warning: chdir to log folder failed: %s\n", __FUNCTION__, (data_dir + "/log").c_str());
+            }
 #endif
     } else {
         m_datadir_redefined = true;
@@ -2838,10 +2845,10 @@ bool GUI_App::on_init_inner()
     g_object_set (gtk_settings_get_default (), "gtk-menu-images", TRUE, NULL);
 #endif
 
-#ifdef WIN32
+//#ifdef WIN32
     //BBS set crash log folder
     //CBaseException::set_log_folder(data_dir());
-#endif
+// #endif
 
     wxGetApp().Bind(wxEVT_QUERY_END_SESSION, [this](auto & e) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< "received wxEVT_QUERY_END_SESSION";
@@ -4315,11 +4322,16 @@ void GUI_App::load_gcode(wxWindow* parent, wxString& input_file) const
         input_file = dialog.GetPath();
 }
 
-wxString GUI_App::transition_tridid(int trid_id) const
+wxString GUI_App::transition_tridid(int trid_id, std::optional<int> total_extruder_count) const
 {
-    if (trid_id == VIRTUAL_TRAY_MAIN_ID || trid_id == VIRTUAL_TRAY_DEPUTY_ID)
-    {
-        assert(0);
+    if (trid_id == VIRTUAL_TRAY_MAIN_ID || trid_id == VIRTUAL_TRAY_DEPUTY_ID) {
+        if (total_extruder_count.value_or(-1) == 2) {
+            if (trid_id == VIRTUAL_TRAY_MAIN_ID) {
+                return wxString("Ext-R");
+            } else {
+                return wxString("Ext-L");
+            }
+        }
         return wxString("Ext");
     }
 
@@ -6697,6 +6709,7 @@ void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_
         // so we put it into an inner scope
         PreferencesDialog dlg(mainframe, open_on_tab, highlight_option);
         dlg.ShowModal();
+
         // BBS
         //app_layout_changed = dlg.settings_layout_changed();
 #if ENABLE_GCODE_LINES_ID_IN_H_SLIDER
@@ -6721,6 +6734,15 @@ void GUI_App::open_preferences(size_t open_on_tab, const std::string& highlight_
                 associate_files(L"gcode");
         }
 #endif // _WIN32
+
+        // Refresh the recent projects list if time format changed
+        if (dlg.use_12h_time_format_changed() && mainframe && mainframe->m_webview) {
+            CallAfter([mainframe = this->mainframe]() {
+                if (mainframe && mainframe->m_webview) {
+                    mainframe->m_webview->SendRecentList(-1);
+                }
+            });
+        }
     }
 
     // BBS

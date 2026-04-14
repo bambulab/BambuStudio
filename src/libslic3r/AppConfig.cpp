@@ -193,6 +193,12 @@ void AppConfig::set_defaults()
         set_bool("use_last_fold_state_gcodeview_option_panel", true);
     if (get("enable_lod").empty())
         set_bool("enable_lod", true);
+    if (get("enable_assemble_view_preview").empty())
+        set("enable_assemble_view_preview", "Auto");
+    if (get("enable_bvh").empty())
+        set_bool("enable_bvh", true);
+    if (get("show_assembly_bvh_bounds").empty())
+        set_bool("show_assembly_bvh_bounds", false);
     if (get("gamma_correct_in_import_obj").empty())
         set_bool("gamma_correct_in_import_obj", false);
     if (get("enable_opengl_multi_instance").empty())
@@ -276,6 +282,9 @@ void AppConfig::set_defaults()
 
     if (get("internal_developer_mode").empty())
         set_bool("internal_developer_mode", false);
+
+    if (get("disable_auto_flow_cali_tips").empty())
+        set_bool("disable_auto_flow_cali_tips", false);
 
     // BBS
     if (get("preset_folder").empty())
@@ -469,11 +478,17 @@ void AppConfig::set_defaults()
     if (get("play_slicing_video").empty()) {
         set_bool("play_slicing_video", true);
     }
+    if (get("show_fila_switch_tips").empty()) {
+        set_bool("show_fila_switch_tips", true);
+    }
     if (get("play_tpu_printing_video").empty()) {
         set_bool("play_tpu_printing_video", true);
     }
     if (get("show_wrapping_detect_dialog").empty()) {
         set_bool("show_wrapping_detect_dialog", true);
+    }
+    if (get("show_support_recommend_dialog").empty()) {
+        set_bool("show_support_recommend_dialog", true);
     }
     if (get("ignore_module_cert").empty()) {
         set_bool("ignore_module_cert", false);
@@ -485,6 +500,10 @@ void AppConfig::set_defaults()
 
     if (get("prompt_for_brittle_filaments").empty()){
         set_bool("prompt_for_brittle_filaments", true);
+    }
+
+    if (get("use_12h_time_format").empty()) {
+        set_bool("use_12h_time_format", false);
     }
 
     // Remove legacy window positions/sizes
@@ -850,9 +869,16 @@ void AppConfig::save()
             j[category.first] = j_filaments;
             continue;
         } else if (category.first == "presets") {
+            auto is_filament_preset_key = [](const std::string& key) -> bool {
+                if (key == "filament") return true;
+                if (key.size() > 9 && key.substr(0, 9) == "filament_") {
+                    return std::all_of(key.begin() + 9, key.end(), ::isdigit);
+                }
+                return false;
+            };
             json j_filament_array;
             for(const auto& kvp : category.second) {
-                if (boost::starts_with(kvp.first, "filament") && kvp.first != "filament_colors" && kvp.first != "filament_multi_colors" && kvp.first != "filament_color_types") {
+                if (is_filament_preset_key(kvp.first)) {
                     j_filament_array.push_back(kvp.second);
                 } else {
                     j[category.first][kvp.first] = kvp.second;

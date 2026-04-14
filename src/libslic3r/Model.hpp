@@ -775,6 +775,7 @@ public:
     indexed_triangle_set get_facets(const ModelVolume& mv, EnforcerBlockerType type) const;
     // BBS
     void get_facets(const ModelVolume& mv, std::vector<indexed_triangle_set>& facets_per_type) const;
+    void                 shift_states_above(const ModelVolume &mv, EnforcerBlockerType threshold, int delta);
     void                 set_enforcer_block_type_limit(const ModelVolume  &mv,
                                                        EnforcerBlockerType max_type,
                                                        EnforcerBlockerType to_delete_filament = EnforcerBlockerType::NONE,
@@ -1000,7 +1001,8 @@ public:
     // BBS
     std::vector<int>    get_extruders() const;
     void                update_extruder_count(size_t extruder_count);
-    void                update_extruder_count_when_delete_filament(size_t extruder_count, size_t filament_id, int replace_filament_id = -1);
+    void                update_extruder_count_when_delete_filament(size_t extruder_count, size_t filament_id, int replace_filament_id = -1,
+                                                                   const std::vector<unsigned char> &filament_is_mixed = {});
 
     // Split this volume, append the result to the object owning this volume.
     // Return the number of volumes created from this one.
@@ -1670,9 +1672,9 @@ public:
                                 int                        plate_id             = 0,
                                 ObjImportColorFn           objFn                = nullptr);
     // BBS
-    static bool obj_import_color_deal(const std::vector<unsigned char>& filament_ids, const unsigned char& first_extruder_id, Model* model, std::function<bool(int)> deal_vertex_callback, std::function<int(int, int, int)> get_filament_id_callback = nullptr);
-    static bool obj_import_vertex_color_deal(const std::vector<unsigned char>& vertex_filament_ids, const unsigned char& first_extruder_id, ModelVolume* volumePtr, std::function<int(int, int, int)> get_filament_id_callback = nullptr);
-    static bool obj_import_face_color_deal(const std::vector<unsigned char> &face_filament_ids, const unsigned char &first_extruder_id, ModelVolume *volumePtr, std::function<int(int, int, int)> get_filament_id_callback = nullptr);
+    static bool obj_import_color_deal(const std::vector<unsigned char>& filament_ids, std::optional<unsigned char> first_extruder_id, Model* model, std::function<bool(int)> deal_vertex_callback, std::function<int(int, int, int)> get_filament_id_callback = nullptr);
+    static bool obj_import_vertex_color_deal(const std::vector<unsigned char>& vertex_filament_ids, std::optional<unsigned char> first_extruder_id, ModelVolume* volumePtr, std::function<int(int, int, int)> get_filament_id_callback = nullptr);
+    static bool obj_import_face_color_deal(const std::vector<unsigned char> &face_filament_ids, std::optional<unsigned char> first_extruder_id, ModelVolume *volumePtr, std::function<int(int, int, int)> get_filament_id_callback = nullptr);
     static double findMaxSpeed(const ModelObject* object);
     static double getThermalLength(const ModelVolume* modelVolumePtr);
     static double getThermalLength(const std::vector<ModelVolume*> modelVolumePtrs);
@@ -1685,7 +1687,7 @@ public:
     static Model read_from_archive(
         const std::string& input_file,
         DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, En3mfType& out_file_type,
-        LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, std::vector<Preset*>* project_presets = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr, BBLProject* project = nullptr, std::unordered_map<int, std::vector<std::string>>* color_group_map = nullptr, VolumeColorInfoMap* volume_color_data = nullptr);
+        LoadStrategy options = LoadStrategy::AddDefaultInstances, PlateDataPtrs* plate_data = nullptr, std::vector<Preset*>* project_presets = nullptr, Semver* file_version = nullptr, Import3mfProgressFn proFn = nullptr, BBLProject* project = nullptr, std::map<int, std::vector<std::string>>* color_group_map = nullptr, VolumeColorInfoMap* volume_color_data = nullptr);
 
     // Add a new ModelObject to this Model, generate a new ID for this ModelObject.
     ModelObject* add_object();

@@ -14,7 +14,6 @@
 #include "libslic3r/Model.hpp"
 #include "slic3r/Utils/UndoRedo.hpp"
 
-
 #include <GL/glew.h>
 
 namespace Slic3r::GUI {
@@ -94,6 +93,14 @@ void GLGizmoMmuSegmentation::init_extruders_data()
     size_t n_extruder_colors = std::min((size_t) EnforcerBlockerType::ExtruderMax, m_extruders_colors.size());
     if (n_extruder_colors == 2 || m_selected_extruder_idx >= n_extruder_colors) {
         m_selected_extruder_idx = n_extruder_colors - 1;
+    }
+
+    auto plater_grad = wxGetApp().plater()->get_filament_gradient_info();
+    m_gradient_info.resize(m_extruders_colors.size());
+    for (size_t i = 0; i < m_gradient_info.size() && i < plater_grad.size(); ++i) {
+        m_gradient_info[i].is_gradient = plater_grad[i].is_gradient;
+        m_gradient_info[i].color_from  = plater_grad[i].color_from;
+        m_gradient_info[i].color_to    = plater_grad[i].color_to;
     }
 }
 
@@ -401,7 +408,8 @@ std::string GLGizmoMmuSegmentation::get_icon_filename(bool is_dark_mode) const
 static void render_extruders_combo(const std::string                       &label,
                                    const std::vector<std::string>          &extruders,
                                    const std::vector<std::array<float, 4>> &extruders_colors,
-                                   size_t                                  &selection_idx)
+                                   size_t                                  &selection_idx,
+                                   const std::vector<GLGizmoMmuSegmentation::GradientInfo> &gradient_info = {})
 {
     assert(!extruders_colors.empty());
     assert(extruders_colors.size() == extruders_colors.size());
@@ -410,8 +418,19 @@ static void render_extruders_combo(const std::string                       &labe
         return IM_COL32(uint8_t(color[0] * 255.f), uint8_t(color[1] * 255.f), uint8_t(color[2] * 255.f), uint8_t(color[3] * 255.f));
     };
 
+    auto draw_swatch = [&](ImVec2 p_min, ImVec2 p_max, size_t idx) {
+        ImDrawList* dl = ImGui::GetWindowDrawList();
+        if (idx < gradient_info.size() && gradient_info[idx].is_gradient) {
+            ImU32 col_from = convert_to_imu32(gradient_info[idx].color_from);
+            ImU32 col_to   = convert_to_imu32(gradient_info[idx].color_to);
+            dl->AddRectFilledMultiColor(p_min, p_max, col_from, col_to, col_to, col_from);
+        } else {
+            dl->AddRectFilled(p_min, p_max, convert_to_imu32(extruders_colors[idx]));
+        }
+        dl->AddRect(p_min, p_max, IM_COL32_BLACK);
+    };
+
     size_t selection_out = selection_idx;
-    // It is necessary to use BeginGroup(). Otherwise, when using SameLine() is called, then other items will be drawn inside the combobox.
     ImGui::BeginGroup();
     ImVec2 combo_pos = ImGui::GetCursorScreenPos();
     if (ImGui::BeginCombo(label.c_str(), "")) {
@@ -425,8 +444,7 @@ static void render_extruders_combo(const std::string                       &labe
             ImGui::SameLine();
             ImGuiStyle &style  = ImGui::GetStyle();
             float       height = ImGui::GetTextLineHeight();
-            ImGui::GetWindowDrawList()->AddRectFilled(start_position, ImVec2(start_position.x + height + height / 2, start_position.y + height), convert_to_imu32(extruders_colors[extruder_idx]));
-            ImGui::GetWindowDrawList()->AddRect(start_position, ImVec2(start_position.x + height + height / 2, start_position.y + height), IM_COL32_BLACK);
+            draw_swatch(start_position, ImVec2(start_position.x + height + height / 2, start_position.y + height), extruder_idx);
 
             ImGui::SetCursorScreenPos(ImVec2(start_position.x + height + height / 2 + style.FramePadding.x, start_position.y));
             ImGui::Text("%s", extruders[extruder_idx].c_str());
@@ -443,8 +461,7 @@ static void render_extruders_combo(const std::string                       &labe
     ImVec2 p      = ImGui::GetCursorScreenPos();
     float  height = ImGui::GetTextLineHeight();
 
-    ImGui::GetWindowDrawList()->AddRectFilled(p, ImVec2(p.x + height + height / 2, p.y + height), convert_to_imu32(extruders_colors[selection_idx]));
-    ImGui::GetWindowDrawList()->AddRect(p, ImVec2(p.x + height + height / 2, p.y + height), IM_COL32_BLACK);
+    draw_swatch(p, ImVec2(p.x + height + height / 2, p.y + height), selection_idx);
 
     ImGui::SetCursorScreenPos(ImVec2(p.x + height + height / 2 + style.FramePadding.x, p.y));
     ImGui::Text("%s", extruders[selection_out].c_str());
@@ -647,6 +664,16 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
             ImGui::PopStyleVar(2);
             ImGui::PopStyleColor(1);
         #endif
+        if (extruder_idx < (int)m_gradient_info.size() && m_gradient_info[extruder_idx].is_gradient) {
+            auto to_imu32 = [](const std::array<float, 4> &c) -> ImU32 {
+                return IM_COL32(uint8_t(c[0]*255.f), uint8_t(c[1]*255.f), uint8_t(c[2]*255.f), uint8_t(c[3]*255.f));
+            };
+            ImVec2 r_min = ImGui::GetItemRectMin();
+            ImVec2 r_max = ImGui::GetItemRectMax();
+            ImU32 col_from = to_imu32(m_gradient_info[extruder_idx].color_from);
+            ImU32 col_to   = to_imu32(m_gradient_info[extruder_idx].color_to);
+            ImGui::GetWindowDrawList()->AddRectFilledMultiColor(r_min, r_max, col_from, col_to, col_to, col_from);
+        }
         color_button_high = ImGui::GetCursorPos().y - color_button - 2.0;
         if (color_picked) { m_selected_extruder_idx = extruder_idx; }
 
@@ -1008,6 +1035,7 @@ void GLGizmoMmuSegmentation::update_model_object()
         if (! mv->is_model_part())
             continue;
         ++idx;
+
         updated |= mv->mmu_segmentation_facets.set(*m_triangle_selectors[idx].get());
     }
 
@@ -1039,6 +1067,8 @@ void GLGizmoMmuSegmentation::init_model_triangle_selectors()
             continue;
 
         int extruder_idx = (mv->extruder_id() > 0) ? mv->extruder_id() - 1 : 0;
+        if (extruder_idx >= (int)m_extruders_colors.size())
+            extruder_idx = 0;
         std::vector<std::array<float, 4>> ebt_colors;
         ebt_colors.push_back(m_extruders_colors[size_t(extruder_idx)]);
         ebt_colors.insert(ebt_colors.end(), m_extruders_colors.begin(), m_extruders_colors.end());
@@ -1061,6 +1091,8 @@ void GLGizmoMmuSegmentation::update_triangle_selectors_colors()
         TriangleSelectorPatch* selector = dynamic_cast<TriangleSelectorPatch*>(m_triangle_selectors[i].get());
         int extruder_idx = m_volumes_extruder_idxs[i];
         int extruder_color_idx = std::max(0, extruder_idx - 1);
+        if (extruder_color_idx >= (int)m_extruders_colors.size())
+            extruder_color_idx = 0;
         std::vector<std::array<float, 4>> ebt_colors;
         ebt_colors.push_back(m_extruders_colors[extruder_color_idx]);
         ebt_colors.insert(ebt_colors.end(), m_extruders_colors.begin(), m_extruders_colors.end());
@@ -1123,7 +1155,9 @@ void GLGizmoMmuSegmentation::on_set_state()
         clear_parent_paint_outline_volumes();
 
         ModelObject* mo = m_c->selection_info()->model_object();
-        if (mo) Slic3r::save_object_mesh(*mo);
+        if (mo) {
+            Slic3r::save_object_mesh(*mo);
+        }
         m_parent.post_event(SimpleEvent(EVT_GLCANVAS_FORCE_UPDATE));
         if (m_current_tool == ImGui::GapFillIcon) {//exit gap fill
             m_current_tool = ImGui::CircleButtonIcon;

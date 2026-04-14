@@ -1,7 +1,6 @@
 #ifndef slic3r_FilamentMapDialog_hpp_
 #define slic3r_FilamentMapDialog_hpp_
 
-#include "FilamentMapPanel.hpp"
 #include <vector>
 #include "CapsuleButton.hpp"
 #include "Widgets/CheckBox.hpp"
@@ -10,11 +9,17 @@ class Button;
 
 namespace Slic3r {
 class DynamicPrintConfig;
+class Print;
 
 namespace GUI {
 class DragDropPanel;
 class Plater;
 class PartPlate;
+class FilamentMapManualPanel;
+class FilamentMapAutoPanel;
+class FilamentMapDefaultPanel;
+class FilamentMapSavingPanel;
+class SmartFilamentPanel;
 
 /**
  * @brief Try to pop up the filament map dialog before slicing.
@@ -28,6 +33,7 @@ class PartPlate;
  * @return whether continue slicing
 */
 bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* partplate_ref, bool force_pop_up = false);
+std::vector<FilamentMapMode> resolve_available_auto_modes(Print* print_obj, const std::vector<FilamentMapMode>& requested_modes, bool machine_synced);
 
 
 class FilamentMapDialog : public wxDialog
@@ -47,7 +53,8 @@ public:
         const FilamentMapMode mode,
         bool machine_synced,
         bool show_default=true,
-        bool with_checkbox = false
+        bool with_checkbox = false,
+        const std::vector<FilamentMapMode>& available_modes = {}
     );
 
     FilamentMapMode get_mode();
@@ -66,10 +73,13 @@ public:
     int ShowModal();
     void set_modal_btn_labels(const wxString& left_label, const wxString& right_label);
 private:
+    void make_smart_filament_section(wxBoxSizer *sizer);
+
     void on_ok(wxCommandEvent &event);
     void on_cancle(wxCommandEvent &event);
     void on_switch_mode(wxCommandEvent &event);
     void on_checkbox(wxCommandEvent &event);
+    void on_smart_filament_checkbox(wxCommandEvent &event);
 
     void update_panel_status(PageType page);
 
@@ -77,16 +87,19 @@ private:
     FilamentMapManualPanel* m_manual_map_panel;
     FilamentMapAutoPanel* m_auto_map_panel;
     FilamentMapDefaultPanel* m_default_map_panel;
+    FilamentMapSavingPanel* m_saving_panel;
 
     CapsuleButton* m_auto_btn;
     CapsuleButton* m_manual_btn;
     CapsuleButton* m_default_btn;
 
-    Button* m_ok_btn;
-    Button* m_cancel_btn;
-    CheckBox* m_checkbox;
+    Button   *m_ok_btn{};
+    Button   *m_cancel_btn{};
+    CheckBox *m_checkbox{};
+    SmartFilamentPanel *smart_filament{};
 
     PageType m_page_type;
+    bool     m_fila_switch_ready{false};
 
 private:
     std::vector<int> m_filament_map;

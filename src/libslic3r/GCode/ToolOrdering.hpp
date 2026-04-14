@@ -5,6 +5,7 @@
 
 #include "../libslic3r.h"
 
+#include <map>
 #include <utility>
 
 #include <boost/container/small_vector.hpp>
@@ -106,19 +107,19 @@ private:
 struct FilamentChangeStats
 {
     int filament_flush_weight{0};
+    int flush_filament_change_count {0};
     int filament_change_count{0};
-    int extruder_change_count{0};
 
     void clear(){
         filament_flush_weight = 0;
         filament_change_count = 0;
-        extruder_change_count = 0;
+        flush_filament_change_count = 0;
     }
 
     FilamentChangeStats& operator+=(const FilamentChangeStats& other) {
         this->filament_flush_weight += other.filament_flush_weight;
         this->filament_change_count += other.filament_change_count;
-        this->extruder_change_count += other.extruder_change_count;
+        this->flush_filament_change_count += other.flush_filament_change_count;
         return *this;
     }
 
@@ -126,12 +127,35 @@ struct FilamentChangeStats
         FilamentChangeStats ret;
         ret.filament_flush_weight = this->filament_flush_weight + other.filament_flush_weight;
         ret.filament_change_count = this->filament_change_count + other.filament_change_count;
-        ret.extruder_change_count = this->extruder_change_count + other.extruder_change_count;
+        ret.flush_filament_change_count = this->flush_filament_change_count + other.flush_filament_change_count;
         return ret;
     }
 
 };
 
+
+namespace GroupReorder
+{
+using FlushMatrix = std::vector<std::vector<float>>;
+
+std::vector<MultiNozzleUtils::NozzleInfo>      build_default_nozzle_list(const PrintConfig &config, size_t extruder_nums);
+std::vector<MultiNozzleUtils::NozzleGroupInfo> build_nozzle_groups(const PrintConfig &config, size_t extruder_nums);
+
+// 分组相关的函数
+std::vector<FlushMatrix> prepare_flush_matrices(const PrintConfig &print_config);
+
+FilamentGroupContext build_filament_group_context(Print                                           *print,
+                                                  const std::vector<std::vector<unsigned int>>    &layer_filaments,
+                                                  const std::vector<std::set<int>>                &physical_unprintables,
+                                                  const std::vector<std::set<int>>                &geometric_unprintables,
+                                                  const std::map<int, std::set<NozzleVolumeType>> &unprintable_volumes,
+                                                  FilamentMapMode                                  mode,
+                                                  const std::unordered_map<int, int>              &nozzle_status = {});
+
+std::function<bool(int, std::vector<int> &)> create_custom_seq_function(const PrintConfig               &print_config,
+                                                                        bool                             include_first_layer,
+                                                                        const std::vector<unsigned int> &first_layer_filaments = {});
+} // namespace GroupReorder
 
 class LayerTools
 {
@@ -174,6 +198,43 @@ public:
     coordf_t 					wipe_tower_layer_height = 0.;
     // Custom G-code (color change, extruder switch, pause) to be performed before this layer starts to print.
     const CustomGCode::Item    *custom_gcode = nullptr;
+
+    // 0-based mixed filament slot → 0-based resolved physical filament for this layer.
+    // Populated by ToolOrdering::resolve_mixed_filaments(). Empty when no mixed filaments.
+    std::map<unsigned int, unsigned int> mixed_filament_resolution;
+
+    unsigned int resolve_mixed(unsigned int filament_0based) const {
+        auto it = mixed_filament_resolution.find(filament_0based);
+        return (it != mixed_filament_resolution.end()) ? it->second : filament_0based;
+    }
+
+    struct MixedSubLayerGroup {
+        unsigned int              mixed_slot_0based;
+        std::vector<unsigned int> components_0based;
+        std::vector<double>       sub_heights;       // per-component, sum ≈ layer_height
+        bool                      is_gradient = false;
+        int                       gradient_first_sorted_idx = 0; // index of "first" config component after sorting
+
+        struct ObjectGradient {
+            size_t total_layers;
+            size_t current_idx;
+            double gradient_start;
+            double gradient_end;
+        };
+        std::map<const PrintObject*, ObjectGradient> per_object_gradient;
+    };
+    std::vector<MixedSubLayerGroup> mixed_sub_layer_groups;
+
+    const MixedSubLayerGroup* mixed_group_by_slot(unsigned int slot_id) const {
+        for (const auto &g : mixed_sub_layer_groups)
+            if (g.mixed_slot_0based == slot_id)
+                return &g;
+        return nullptr;
+    }
+
+    bool is_mixed_slot(unsigned int slot_id) const {
+        return mixed_group_by_slot(slot_id) != nullptr;
+    }
 
     WipingExtrusions& wiping_extrusions() {
         m_wiping_extrusions.set_layer_tools_ptr(this);
@@ -241,25 +302,62 @@ public:
     std::vector<LayerTools>::const_iterator end()   const { return m_layer_tools.end(); }
     bool 				empty()       const { return m_layer_tools.empty(); }
     std::vector<LayerTools>& layer_tools() { return m_layer_tools; }
+    const std::vector<LayerTools>          &layer_tools() const { return m_layer_tools; }
     bool 				has_wipe_tower() const { return ! m_layer_tools.empty() && m_first_printing_extruder != (unsigned int)-1 && m_layer_tools.front().has_wipe_tower; }
 
-    int                 get_most_used_extruder() const { return most_used_extruder; }
+    int                 get_most_used_extruder() const { return m_most_used_extruder; }
+    const MultiNozzleUtils::LayeredNozzleGroupResult &get_layered_nozzle_group_result() const { return m_nozzle_group_result; }
     /*
     * called in single extruder mode, the value in map are all 0
     * called in dual extruder mode, the value in map will be 0 or 1
     * 0 based group id
     */
 
-    static MultiNozzleUtils::MultiNozzleGroupResult get_recommended_filament_maps(Print                                           *print,
+    static MultiNozzleUtils::LayeredNozzleGroupResult get_recommended_filament_maps(Print                                           *print,
                                                                                   const std::vector<std::vector<unsigned int>>    &layer_filaments,
                                                                                   const FilamentMapMode                            mode,
                                                                                   const std::vector<std::set<int>>                &physical_unprintables,
                                                                                   const std::vector<std::set<int>>                &geometric_unprintables,
-                                                                                  const std::map<int, std::set<NozzleVolumeType>> &unprintable_volumes);
+                                                                                  const std::map<int, std::set<NozzleVolumeType>> &unprintable_volumes,
+                                                                                  const std::unordered_map<int, int>& nozzle_status = {});
+
+    struct LayerData{
+        std::vector<std::vector<unsigned int>> layer_filaments;
+        std::vector<unsigned int> used_filaments;
+        std::vector<std::set<int>> physical_unprintables;
+        std::vector<std::set<int>> geometric_unprintables;
+        std::map<int, std::set<NozzleVolumeType>> filament_unprintable_volumes;
+    };
+
+    struct OrderingContext{
+        std::vector<unsigned int> filament_lists;
+        std::function<bool(int,std::vector<int>&)> get_custom_seq;
+        bool support_multi_nozzle;
+        bool support_dynamic_map;
+    };
+
+    LayerData collect_layer_and_unprintable_data();
+    OrderingContext prepare_ordering_context(const PrintConfig& print_config, bool reorder_first_layer);
+
+    std::vector<std::vector<unsigned int>> execute_filament_ordering(
+        const PrintConfig* print_config,
+        const MultiNozzleUtils::LayeredNozzleGroupResult& grouping_result,
+        const LayerData& layer_data,
+        const OrderingContext& ordering_contex,
+        const std::vector<FlushMatrix>& nozzle_flush_mtx
+    );
+
+    void calculate_and_store_statistics(
+        const PrintConfig& print_config,
+        const MultiNozzleUtils::LayeredNozzleGroupResult& grouping_result,
+        const LayerData& layer_data,
+        const OrderingContext& ordering_context,
+        const std::vector<FlushMatrix>& nozzle_flush_mtx,
+        const std::vector<std::vector<unsigned int>>& filament_sequences);
+
 
     // should be called after doing reorder
-    FilamentChangeStats get_filament_change_stats(FilamentChangeMode mode);
-    void                cal_most_used_extruder(const PrintConfig &config);
+    FilamentChangeStats get_filament_change_stats(FilamentChangeMode mode) const;
     float               cal_max_additional_fan(const PrintConfig &config);
     bool                cal_non_support_filaments(const PrintConfig &config,
                                                   unsigned int &     first_non_support_filament,
@@ -269,12 +367,15 @@ public:
     bool                has_non_support_filament(const PrintConfig &config);
 
 private:
+    void                calc_most_used_extruder(const PrintConfig &config);
     void				initialize_layers(std::vector<coordf_t> &zs);
     void 				collect_extruders(const PrintObject &object, const std::vector<std::pair<double, unsigned int>> &per_layer_extruder_switches);
     void 				fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z, coordf_t max_layer_height);
     void                mark_skirt_layers(const PrintConfig &config, coordf_t max_layer_height);
     void 				collect_extruder_statistics(bool prime_multi_material);
     void                reorder_extruders_for_minimum_flush_volume(bool reorder_first_layer);
+    void                resolve_mixed_filaments(const PrintConfig &config);
+    void                enforce_mixed_component_order();
 
     // BBS
     std::vector<unsigned int> generate_first_layer_tool_order(const Print& print);
@@ -288,6 +389,10 @@ private:
     // All extruders, which extrude some material over m_layer_tools.
     std::vector<unsigned int>  m_all_printing_extruders;
     const PrintConfig*         m_print_config_ptr = nullptr;
+
+    // Per-object gradient tracking: slot(0-based) -> PrintObject* -> list of layer indices
+    // where that object uses the slot. Populated by collect_extruders, consumed by resolve_mixed_filaments.
+    std::map<unsigned int, std::map<const PrintObject*, std::vector<size_t>>> m_gradient_object_layers;
     const PrintObject*         m_print_object_ptr = nullptr;
     Print*                     m_print;
     bool                       m_sorted = false;
@@ -295,8 +400,9 @@ private:
     FilamentChangeStats        m_stats_by_single_extruder;
     FilamentChangeStats        m_stats_by_multi_extruder_curr;
     FilamentChangeStats        m_stats_by_multi_extruder_best;
+    MultiNozzleUtils::LayeredNozzleGroupResult m_nozzle_group_result;
 
-    int                        most_used_extruder;
+    int               m_most_used_extruder;
 };
 
 } // namespace SLic3r

@@ -132,6 +132,7 @@ private:
     Button* m_next_button{nullptr};
     Button* m_stop_button{nullptr};
     Button* m_back_button{nullptr};
+    Button* m_unload_button{nullptr};
 
     // guide page description
     Label* m_guide_title_label{nullptr};
@@ -144,6 +145,7 @@ private:
     wxTimer* m_progress_timer;
 
     std::optional<std::chrono::steady_clock::time_point> m_stop_button_restore_deadline;
+    std::optional<std::chrono::steady_clock::time_point> m_unload_button_restore_deadline;
 
     Label* m_progress_title;
     int m_progress_value;
@@ -169,7 +171,7 @@ private:
     std::weak_ptr<DevFilaSystem> m_fila_system;
     struct {
         std::string m_ams_id;
-        DevAms::AmsType m_model = DevAms::AmsType::DUMMY;
+        DevAmsType m_model = DevAmsType::EXT_SPOOL;
         DevAms::DryStatus m_dry_status = DevAms::DryStatus::Off;
         DevAms::DrySubStatus m_dry_sub_status = DevAms::DrySubStatus::Off;
         int m_humidity_percent;
@@ -220,7 +222,7 @@ private:
     wxScrolledWindow* create_preview_scrolled_window(wxWindow* parent);
 
     bool check_values_changed(DevAms* dev_ams);
-    int update_image(DevAms::AmsType type, DevAms::DryStatus status, DevAms::DrySubStatus sub_status, int humidity_percent);
+    int update_image(DevAmsType type, DevAms::DryStatus status, DevAms::DrySubStatus sub_status, int humidity_percent);
     void update_img_description(DevAms::DryStatus status, DevAms::DrySubStatus sub_status);
     void update_normal_description(DevAms* dev_ams);
     int update_state(DevAms* dev_ams);
@@ -234,6 +236,7 @@ private:
     std::shared_ptr<DevFilaSystem> get_fila_system() const;
     void start_sending_drying_command();
     void restore_stop_button_if_deadline_passed();
+    void restore_unload_button_if_deadline_passed();
     void update_button_size(Button* button);
 
     bool is_dry_status_changed(DevAms* dev_ams);

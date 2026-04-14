@@ -31,11 +31,11 @@ protected:
 	virtual void on_method_changed(wxCommandEvent& event);
 
 protected:
-	bool m_bDDE;
+	bool m_hasBowdenExtruder{false};
+	int  m_bowdenExtruderId{-1};
 	Calib_Params m_params;
 
-
-	wxRadioBox* m_rbExtruderType;
+	wxRadioBox* m_rbExtruderType{nullptr};
 	wxRadioBox* m_rbMethod;
 	TextInput* m_tiStartPA;
 	TextInput* m_tiEndPA;

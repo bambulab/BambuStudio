@@ -27,8 +27,6 @@
 #include "UnsavedChangesDialog.hpp"
 #include "Widgets/SideButton.hpp"
 #include "Widgets/SideMenuPopup.hpp"
-#include "FilamentGroupPopup.hpp"
-
 
 // BBS
 #include "BBLTopbar.hpp"
@@ -52,6 +50,7 @@ class PrintHostQueueDialog;
 class Plater;
 class MainFrame;
 class ParamsDialog;
+class FilamentGroupPopup;
 
 enum QuickSlice
 {

@@ -8,6 +8,18 @@
     "chamber_temperatures": [
         "60"
     ],
+    "counter_coef_2": [
+        "-0.0004"
+    ],
+    "counter_coef_3": [
+        "-0.0156"
+    ],
+    "counter_limit_min": [
+        "-0.025"
+    ],
+    "counter_limit_max": [
+        "-0.015"
+    ],
     "eng_plate_temp": [
         "100"
     ],
@@ -35,6 +47,18 @@
     ],
     "filament_change_length": [
         "4"
+    ],
+    "hole_coef_2": [
+        "-0.0003"
+    ],
+    "hole_coef_3": [
+        "0.1741"
+    ],
+    "hole_limit_min": [
+        "0.167"
+    ],
+    "hole_limit_max": [
+        "0.174"
     ],
     "include": [
         "fdm_filament_template_direct_dual"

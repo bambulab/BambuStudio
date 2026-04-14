@@ -20,6 +20,7 @@
 #include "MultiNozzleUtils.hpp"
 
 #include "libslic3r.h"
+#include "ByObjectPrintData.hpp"
 
 #include <Eigen/Geometry>
 
@@ -884,6 +885,7 @@ public:
     const PrintConfig&          config() const { return m_config; }
     const PrintObjectConfig&    default_object_config() const { return m_default_object_config; }
     const PrintRegionConfig&    default_region_config() const { return m_default_region_config; }
+    
     ConstPrintObjectPtrsAdaptor objects() const { return ConstPrintObjectPtrsAdaptor(&m_objects); }
     const PrintObject*          get_object(size_t idx) const { return m_objects[idx]; }
     PrintObject*                get_object(size_t idx) { return const_cast<PrintObject*>(m_objects[idx]); }
@@ -924,8 +926,19 @@ public:
     bool                        has_wipe_tower() const;
     const WipeTowerData&        wipe_tower_data(size_t filaments_cnt = 0) const;
     const ToolOrdering& 		tool_ordering() const { return m_tool_ordering; }
+    
+    // Sequential print support.
+    bool                        is_sequential_print() const {
+        return config().print_sequence == PrintSequence::ByObject && m_objects.size() > 1;
+    }
+
+    // 判断是否会出现耗材动态映射
+    bool  is_dynamic_group_reorder() const;
+
+    const std::optional<ByObjectPrintData>& sequential_print_data() const { return m_sequential_print_data; }
 
     void update_filament_maps_to_config(std::vector<int> f_maps, std::vector<int> f_volume_maps = std::vector<int>{}, std::vector<int> f_nozzle_maps = std::vector<int>{});
+    void update_to_config_by_nozzle_group_result(const MultiNozzleUtils::NozzleGroupResultBase& result);
     void apply_config_for_render(const DynamicConfig &config);
 
     // 1 based group ids
@@ -934,10 +947,15 @@ public:
     std::vector<int> get_filament_volume_maps() const;
     std::vector<int> get_filament_nozzle_maps() const;
     bool get_full_filament_extruder_variants(const size_t filament_id, std::vector<std::string>& variants) const;
+    std::vector<FilamentMapMode> get_available_filament_map_modes() const;
+
+    std::vector<FilamentUsageType> get_filament_usage_type() const;
     // get the group label of filament
     size_t get_extruder_id(unsigned int filament_id) const;
-    // get the config idx for filament
-    size_t get_config_idx_for_filament(unsigned int filament_id) const;
+
+    // 根据map,volume map获取config idx，在导出gcode前调用
+    size_t get_filament_config_idx(unsigned int filament_id) const;
+    size_t get_process_config_idx(unsigned int filament_id) const;
 
     const std::vector<std::vector<DynamicPrintConfig>>& get_extruder_filament_info() const { return m_extruder_filament_info; }
     void set_extruder_filament_info(const std::vector<std::vector<DynamicPrintConfig>>& filament_info) { m_extruder_filament_info = filament_info; }
@@ -948,8 +966,12 @@ public:
     void set_filament_print_time(const std::unordered_map<int, std::unordered_map<int,double>>& filament_print_time) { m_filament_print_time = filament_print_time; }
     std::unordered_map<int,std::unordered_map<int,double>> get_filament_print_time() const { return m_filament_print_time; }
 
-    void set_nozzle_group_result(const std::optional<MultiNozzleUtils::MultiNozzleGroupResult>& result) { m_nozzle_group_result = result; }
-    const std::optional<MultiNozzleUtils::MultiNozzleGroupResult>& get_nozzle_group_result() { return m_nozzle_group_result; }
+    void set_nozzle_group_result(const std::shared_ptr<MultiNozzleUtils::NozzleGroupResultBase> result) { m_nozzle_group_result = result; }
+    const std::shared_ptr<MultiNozzleUtils::NozzleGroupResultBase> get_nozzle_group_result() { return m_nozzle_group_result; }
+    std::shared_ptr<MultiNozzleUtils::LayeredNozzleGroupResult> get_layered_nozzle_group_result()
+    {
+        return std::dynamic_pointer_cast<MultiNozzleUtils::LayeredNozzleGroupResult>(m_nozzle_group_result);
+    }
 
     void set_slice_used_filaments(const std::vector<unsigned int> &first_layer_used_filaments, const std::vector<unsigned int> &used_filaments){
         m_slice_used_filaments_first_layer = first_layer_used_filaments;
@@ -1044,7 +1066,64 @@ public:
         return std::all_of(this->objects().begin(), this->objects().end(), [&](PrintObject* obj) { return obj->height() < scale_(this->config().nozzle_height.value); });
     }
 
+    // 切片后访问参数idx，通过上下文生成的index缓存访问
+    int get_filament_config_indx(int filament_id, int layer_id);
+    int get_nozzle_config_index(int filament_id, int layer_id);
+
 protected:
+    struct FilamentIndexKey
+    {
+        int              filament_id;
+        ExtruderType     extruder;
+        NozzleVolumeType nozzle_volume_type;
+
+        bool operator==(const FilamentIndexKey &other) const
+        {
+            return filament_id == other.filament_id && extruder == other.extruder && nozzle_volume_type == other.nozzle_volume_type;
+        }
+    };
+
+    struct PrintIndexKey
+    {
+        int              filament_id;
+        int              extruder_id;
+        ExtruderType     extruder;
+        NozzleVolumeType nozzle_volume_type;
+
+        bool operator==(const PrintIndexKey &other) const
+        {
+            return filament_id == other.filament_id && extruder_id == other.extruder_id && extruder == other.extruder && nozzle_volume_type == other.nozzle_volume_type;
+        }
+    };
+
+
+
+    struct FilamentIndexKeyHash
+    {
+        std::size_t operator()(const FilamentIndexKey &k) const
+        {
+            size_t h1 = std::hash<int>{}(k.filament_id);
+            size_t h2 = std::hash<int>{}(static_cast<int>(k.extruder));
+            size_t h3 = std::hash<int>{}(static_cast<int>(k.nozzle_volume_type));
+            return h1 ^ (h2 << 8) ^ (h3 << 12);
+        }
+    };
+    struct PrintIndexKeyHash
+    {
+        std::size_t operator()(const PrintIndexKey &k) const
+        {
+            size_t h1 = std::hash<int>{}(k.filament_id);
+            size_t h2 = std::hash<int>{}(k.extruder_id);
+            size_t h3 = std::hash<int>{}(static_cast<int>(k.extruder));
+            size_t h4 = std::hash<int>{}(static_cast<int>(k.nozzle_volume_type));
+            return h1 ^ (h2 << 8) ^ (h3 << 12) ^ (h4 << 16);
+        }
+    };
+    using FilamentIndexMap = std::unordered_map<FilamentIndexKey, int, FilamentIndexKeyHash>;
+    using PrintIndexMap = std::unordered_map<PrintIndexKey, int, PrintIndexKeyHash>;
+    int get_config_index(int filament_id, int layer_id, const std::vector<std::string> &variant_list, const std::vector<int>& self_index_list, FilamentIndexMap &index_map);
+    int get_config_index(int filament_id, int layer_id, const std::vector<std::string> &variant_list, const std::vector<int>& self_index_list, PrintIndexMap &index_map);
+
     // Invalidates the step, and its depending steps in Print.
     bool                invalidate_step(PrintStep step);
 
@@ -1058,6 +1137,7 @@ private:
     void                _make_skirt();
     void                _make_wipe_tower();
     void                finalize_first_layer_convex_hull();
+    void                update_filament_self_index_cache();
 
     // Islands of objects and their supports extruded at the 1st layer.
     Polygons            first_layer_islands() const;
@@ -1069,6 +1149,7 @@ private:
     PrintRegionPtrs                         m_print_regions;
     //BBS.
     bool m_isBBLPrinter = false;
+    
     // Ordered collections of extrusion paths to build skirt loops and brim.
     ExtrusionEntityCollection               m_skirt;
     // BBS: collecting extrusion paths to build brim by objs
@@ -1087,13 +1168,22 @@ private:
     // Following section will be consumed by the GCodeGenerator.
     ToolOrdering 							m_tool_ordering;
     WipeTowerData                           m_wipe_tower_data {m_tool_ordering};
+    
+    std::optional<ByObjectPrintData>        m_sequential_print_data;
 
     // Estimated print time, filament consumed.
     PrintStatistics                         m_print_statistics;
     bool                                    m_support_used {false};
     StatisticsByExtruderCount               m_statistics_by_extruder_count;
 
-    std::optional<MultiNozzleUtils::MultiNozzleGroupResult> m_nozzle_group_result;
+    std::shared_ptr<MultiNozzleUtils::NozzleGroupResultBase> m_nozzle_group_result;
+
+    // Used to cache filament parameter information
+    FilamentIndexMap m_filament_index_map;
+    // Used to cache printer and process parameter information
+    PrintIndexMap m_nozzle_index_map;
+    // save the config value of "filament_self_index"
+    std::vector<int> m_filament_self_index;
 
     std::vector<unsigned int> m_slice_used_filaments;
     std::vector<unsigned int> m_slice_used_filaments_first_layer;

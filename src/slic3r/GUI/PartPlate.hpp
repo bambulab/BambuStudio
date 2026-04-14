@@ -241,6 +241,9 @@ public:
     FilamentMapMode get_filament_map_mode() const;
     void set_filament_map_mode(const FilamentMapMode& mode);
 
+    // Check if the printer has different extruder types
+    static bool has_different_extruder_types();
+
     // get filament map, 0 based filament ids, 1 based extruder ids
     std::vector<int> get_filament_maps() const;
     void set_filament_maps(const std::vector<int>& f_maps);
@@ -342,6 +345,9 @@ public:
     bool check_compatible_of_nozzle_and_filament(const DynamicPrintConfig & config, const std::vector<std::string>& filament_presets, std::string& error_msg);
     bool check_flow_compatible_of_nozzle_and_filament(const DynamicPrintConfig & config, const std::vector<std::string>& filament_presets, std::string& error_msg);
     bool check_tpu_nozzle_has_multiple_filaments(const DynamicPrintConfig &config, std::string &error_msg);
+    bool check_high_temp_need_wrapping_detection(const DynamicPrintConfig &config, std::string &warning_text) const;
+    bool check_high_shrinkage_filament(const DynamicPrintConfig &config, std::string &warning_text) const;
+    bool check_single_extruder_mixed_filament_risk(const DynamicPrintConfig &config, std::string &warning_text) const;
 
     /* instance related operations*/
     //judge whether instance is bound in plate or not
@@ -640,6 +646,7 @@ class PartPlateList : public ObjectBase
 
     int m_filament_count = 1;
 
+    ThumbnailData m_thumbnail_assembly_view_data;
     void init();
     //compute the origin for printable plate with index i
     Vec3d compute_origin(int index, int column_count);
@@ -814,6 +821,9 @@ public:
     int get_curr_plate_index() const { return m_current_plate; }
     PartPlate* get_curr_plate() { return m_plate_list[m_current_plate]; }
     const PartPlate *get_curr_plate() const { return m_plate_list[m_current_plate]; }
+    ThumbnailData &get_thumbnail_assembly_view_data() { return m_thumbnail_assembly_view_data; }
+    const ThumbnailData &get_thumbnail_assembly_view_data() const { return m_thumbnail_assembly_view_data; }
+    void reset_thumbnail_assembly_view_data() { m_thumbnail_assembly_view_data.reset(); }
 
     std::vector<PartPlate*>& get_plate_list() { return m_plate_list; };
 

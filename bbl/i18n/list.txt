@@ -52,6 +52,8 @@ src/slic3r/GUI/DeviceCore/DevUtil.h
 src/slic3r/GUI/DeviceCore/DevUtil.cpp
 src/slic3r/GUI/DeviceTab/uiAmsHumidityPopup.h
 src/slic3r/GUI/DeviceTab/uiAmsHumidityPopup.cpp
+src/slic3r/GUI/DeviceTab/uiAMSBestPositionPopup.hpp
+src/slic3r/GUI/DeviceTab/uiAMSBestPositionPopup.cpp
 src/slic3r/GUI/DeviceTab/uiDeviceUpdateVersion.h
 src/slic3r/GUI/DeviceTab/uiDeviceUpdateVersion.cpp
 src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRack.h
@@ -60,6 +62,7 @@ src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRackUpdate.h
 src/slic3r/GUI/DeviceTab/wgtDeviceNozzleRackUpdate.cpp
 src/slic3r/GUI/DeviceTab/wgtDeviceNozzleSelect.h
 src/slic3r/GUI/DeviceTab/wgtDeviceNozzleSelect.cpp
+src/slic3r/GUI/DeviceTab/wgtMsgPanel.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFdmSupports.cpp
 src/slic3r/GUI/Gizmos/GLGizmoFlatten.cpp
 src/slic3r/GUI/Gizmos/GLGizmoMmuSegmentation.cpp
@@ -100,6 +103,8 @@ src/slic3r/GUI/HintNotification.cpp
 src/slic3r/GUI/IMSlider.cpp
 src/slic3r/GUI/Widgets/SideTools.cpp
 src/slic3r/GUI/Widgets/AMSControl.cpp
+src/slic3r/GUI/Widgets/AMSItem.hpp
+src/slic3r/GUI/Widgets/AMSItem.cpp
 src/slic3r/GUI/Widgets/FanControl.cpp
 src/slic3r/GUI/Widgets/FilamentLoad.cpp
 src/slic3r/GUI/Widgets/TempInput.cpp
@@ -122,6 +127,7 @@ src/slic3r/GUI/AboutDialog.cpp
 src/slic3r/GUI/AMSMaterialsSetting.cpp
 src/slic3r/GUI/ExtrusionCalibration.cpp
 src/slic3r/GUI/AMSMappingPopup.cpp
+src/slic3r/GUI/AMSMappingPopupUpdate.cpp
 src/slic3r/GUI/AMSSetting.cpp
 src/slic3r/GUI/BBLTopbar.cpp
 src/slic3r/GUI/DownloadProgressDialog.cpp
@@ -195,6 +201,7 @@ src/slic3r/GUI/WipeTowerDialog.cpp
 src/slic3r/GUI/wxExtensions.cpp
 src/slic3r/GUI/WebUserLoginDialog.cpp
 src/slic3r/GUI/WebGuideDialog.cpp
+src/slic3r/GUI/WebViewDialog.cpp
 src/slic3r/GUI/KBShortcutsDialog.hpp
 src/slic3r/GUI/KBShortcutsDialog.cpp
 src/slic3r/GUI/ReleaseNote.cpp
@@ -279,3 +286,5 @@ src/slic3r/GUI/UxProgramTermsDialog.cpp
 src/slic3r/GUI/UxProgramTermsDialog.hpp
 src/slic3r/GUI/HelioHistoryDialog.hpp
 src/slic3r/GUI/HelioHistoryDialog.cpp
+src/slic3r/GUI/MixedFilamentDialog.cpp
+src/slic3r/GUI/MixedFilamentDialog.hpp

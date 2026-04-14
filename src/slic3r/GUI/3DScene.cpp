@@ -927,6 +927,7 @@ void GLVolume::render(const GUI::Camera &camera, const std::vector<std::array<fl
                         int extruder_id = mv->extruder_id();
                         //to make black not too hard too see
                         if (extruder_id <= 0) { extruder_id = 1; }
+                        if (extruder_id > (int)cp_colors.size()) { extruder_id = 1; }
                         std::array<float, 4> new_color = adjust_color_for_rendering(cp_colors[extruder_id - 1]);
                         shader->set_uniform("uniform_color", new_color);
                     }
@@ -1174,6 +1175,7 @@ void GLVolume::simple_render(const std::shared_ptr<GLShaderProgram>& shader, Mod
                     int extruder_id = model_volume->extruder_id();
                     if (extruder_id <= 0) { extruder_id = 1; }
                     //to make black not too hard too see
+                    if (extruder_id > (int)extruder_colors.size()) { extruder_id = 1; }
                     std::array<float, 4> new_color = adjust_color_for_rendering(extruder_colors[extruder_id - 1]);
                     if (ban_light) {
                         new_color[3] = (255 - (extruder_id - 1))/255.0f;
@@ -1498,9 +1500,9 @@ int GLVolumeCollection::load_wipe_tower_preview(
     std::vector<int> plate_extruders = ppl.get_plate(plate_idx)->get_extruders(true);
     TriangleMesh wipe_tower_shell = make_cube(width, depth, height);
     for (int extruder_id : plate_extruders) {
-        if (extruder_id <= extruder_colors.size())
+        if (extruder_id > 0 && extruder_id <= (int)extruder_colors.size())
             colors.push_back(extruder_colors[extruder_id - 1]);
-        else
+        else if (!extruder_colors.empty())
             colors.push_back(extruder_colors[0]);
     }
 
@@ -1544,9 +1546,10 @@ int GLVolumeCollection::load_real_wipe_tower_preview(
     std::vector<int>                  plate_extruders  = ppl.get_plate(plate_idx)->get_extruders(true);
     std::vector<std::array<float, 4>>              colors;
     if (!plate_extruders.empty()) {
-        if (plate_extruders.front() <= extruder_colors.size())
-            colors.push_back(extruder_colors[plate_extruders.front() - 1]);
-        else
+        int front_id = plate_extruders.front();
+        if (front_id > 0 && front_id <= (int)extruder_colors.size())
+            colors.push_back(extruder_colors[front_id - 1]);
+        else if (!extruder_colors.empty())
             colors.push_back(extruder_colors[0]);
     }
     if (colors.empty()) return int(this->volumes.size() - 1);
@@ -2103,7 +2106,7 @@ bool GLVolumeCollection::check_outside_state(const BuildVolume &build_volume, Mo
     {
         const auto& project_config = Slic3r::GUI::wxGetApp().preset_bundle->project_config;
         object_results->mode = curr_plate->get_real_filament_map_mode(project_config);
-        if (object_results->mode < FilamentMapMode::fmmManual)
+        if (is_auto_filament_map_mode(object_results->mode))
         {
             std::vector<int> conflict_filament_vector;
             for (int index = 0; index < extruder_count; index++ )

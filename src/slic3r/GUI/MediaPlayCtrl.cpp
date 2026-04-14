@@ -9,6 +9,7 @@
 #include "DownloadProgressDialog.hpp"
 
 #include "slic3r/Utils/BBLUtil.hpp"
+#include "slic3r/Utils/FileTransferObject.hpp"
 
 #include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
@@ -137,6 +138,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const w
 
     m_lan_user = "bblp";
     m_lan_passwd = "bblp";
+    m_image_transfer = std::make_shared<FileTransferObject>();
 }
 
 MediaPlayCtrl::~MediaPlayCtrl()
@@ -158,6 +160,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     std::string machine = obj ? obj->get_dev_id() : "";
     if (obj) {
         m_camera_exists  = obj->has_ipcam;
+        m_support_liveview_preview = obj->is_support_liveview_preview;
         m_dev_ver        = obj->get_ota_version();
         m_lan_mode       = obj->is_lan_mode_printer();
         m_lan_proto      = obj->liveview_local;
@@ -168,6 +171,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_tutk_state     = obj->tutk_state;
     } else {
         m_camera_exists = false;
+        m_support_liveview_preview = false;
         m_lan_mode = false;
         m_lan_proto = MachineObject::LVL_None;
         m_lan_ip.clear();
@@ -211,6 +215,7 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     m_disable_lan = false;
     m_failed_retry = 0;
     m_last_failed_codes.clear();
+    m_image_last_machine.clear();
     m_last_user_play = wxDateTime::Now();
     std::string stream_url;
     if (get_stream_url(&stream_url)) {
@@ -224,6 +229,8 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(2);
     else
         SetStatus("", false);
+
+    start_device_image_flow();
 }
 
 wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t length = -1)
@@ -501,6 +508,10 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
 
     m_url.clear();
     ++m_failed_retry;
+
+    // Set idle image after video stops
+    m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/live_stream_default.png"));
+
     bool local = tunnel == "local" || tunnel == "rtsp" ||
                  tunnel == "rtsps";
     if (m_failed_code < 0 && last_state != wxMEDIASTATE_PLAYING && local && (m_failed_retry > 1 || m_user_triggered)) {
@@ -681,6 +692,186 @@ void MediaPlayCtrl::jump_to_play()
     TogglePlay();
 }
 
+void MediaPlayCtrl::RequestFileSystemUrl(std::function<void(std::string url)> cb, bool lan_mode)
+{
+    if (!cb) return;
+
+    if (lan_mode && !m_lan_ip.empty() && !m_lan_passwd.empty()) {
+        std::string url = "bambu:///local/" + m_lan_ip + "?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
+        cb(url);
+        return;
+    }
+
+    NetworkAgent *agent = wxGetApp().getAgent();
+    std::string  agent_version = agent ? agent->get_version() : "";
+
+    if (!agent || !m_remote_proto) {
+        BOOST_LOG_TRIVIAL(info) << "RequestFileSystemUrl: agent not available or remote protocol not supported" << lan_mode << " " << m_remote_proto;
+        cb("");
+        return;
+    }
+
+    std::string protocols[] = {"", "\"tutk\"", "\"agora\"", "\"tutk\",\"agora\""};
+    agent->get_camera_url(m_machine + "|" + m_dev_ver + "|" + protocols[m_remote_proto],
+            [this, v = agent_version, dv = m_dev_ver, cb = std::move(cb)](std::string url) mutable {
+        if (boost::algorithm::starts_with(url, "bambu:///")) {
+            url += "&device=" + into_u8(m_machine);
+            url += "&net_ver=" + v;
+            url += "&dev_ver=" + dv;
+            url += "&refresh_url=" + boost::lexical_cast<std::string>(&refresh_agora_url);
+            url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
+            url += "&cli_ver=" + std::string(SLIC3R_VERSION);
+        }
+
+        CallAfter([cb = std::move(cb), url = std::move(url)]() mutable { cb(std::move(url)); });
+    });
+}
+
+void MediaPlayCtrl::start_device_image_flow()
+{
+    if (!m_support_liveview_preview) {
+        m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/live_stream_default.png"));
+        BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: skipped, liveview preview not supported";
+        return;
+    }
+
+    // if liveview is playing, do not request the image
+    if (m_last_state == wxMEDIASTATE_PLAYING) {
+        BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: skipped, liveview is playing";
+        return;
+    }
+
+    // If we already have a valid cached image for this machine fetched within 30s, skip
+    auto now = std::chrono::steady_clock::now();
+    if (!m_machine.empty() && m_image_last_machine == m_machine
+        && m_image_last_success_time.time_since_epoch().count() > 0
+        && std::chrono::duration_cast<std::chrono::seconds>(now - m_image_last_success_time).count() < 30) {
+        BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: skipped, using cached image (fetched "
+            << std::chrono::duration_cast<std::chrono::seconds>(now - m_image_last_success_time).count() << "s ago)";
+        return;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: begin requesting device image";
+
+    // Only reset to default image if we don't have a cached preview for this machine
+    if (m_image_last_machine != m_machine) {
+        m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/live_stream_default.png"));
+    }
+
+    // Reset transfer object completely to avoid stale state after CancelAll
+    if (m_image_transfer) {
+        m_image_transfer->CancelAll();
+    }
+    m_image_transfer = std::make_shared<FileTransferObject>();
+
+    if (!IsEnabled()) {
+        m_image_token = std::make_shared<int>(0);
+        return;
+    }
+
+    m_image_token = std::make_shared<int>(0);
+    auto image_token = std::weak_ptr<int>(m_image_token);
+    std::string request_machine = m_machine;
+
+    enum class DownloadMode {
+        DOWNLOAD_MODE_LOCAL,
+        DOWNLOAD_MODE_REMOTE
+    };
+
+    auto mode_to_string = [](DownloadMode mode) -> const char* {
+        return mode == DownloadMode::DOWNLOAD_MODE_LOCAL ? "LAN" : "Remote";
+    };
+
+    // Helper: Process downloaded image data
+    auto process_image_data = [this, request_machine, mode_to_string](const std::vector<std::byte> &data, DownloadMode mode) -> bool {
+        if (data.empty()) {
+            BOOST_LOG_TRIVIAL(warning) << "DeviceImageFlow: received empty data (" << mode_to_string(mode) << ")";
+            return false;
+        }
+
+        wxMemoryInputStream stream(data.data(), data.size());
+        wxImage image(stream, wxBITMAP_TYPE_ANY);
+
+        if (!image.IsOk()) {
+            BOOST_LOG_TRIVIAL(warning) << "DeviceImageFlow: failed to parse image data (" << mode_to_string(mode) << ")";
+            return false;
+        }
+
+        std::string mode_str = mode_to_string(mode);
+        // Generate watermark text at image fetch time, not at paint time
+        time_t fetch_time = time(nullptr);
+        std::tm *local_tm = std::localtime(&fetch_time);
+        char time_buf[32];
+        strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", local_tm);
+        wxString watermark = _L("Printer Preview") + wxString::Format("  %s", time_buf);
+        CallAfter([this, img = std::move(image), request_machine, mode_str, watermark]() {
+            if (request_machine != m_machine) {
+                BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: machine changed, skip display";
+                return;
+            }
+            if (m_media_ctrl) {
+                m_media_ctrl->SetIdleImage(img, watermark);
+                m_image_last_success_time = std::chrono::steady_clock::now();
+                m_image_last_machine = m_machine;
+                BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: successfully received and displayed device image (" << mode_str << ")";
+            }
+        });
+        return true;
+    };
+
+    auto download_image = [this, image_token, request_machine, process_image_data, mode_to_string](DownloadMode mode, std::function<void()> on_failure = nullptr) {
+        bool lan_mode = (mode == DownloadMode::DOWNLOAD_MODE_LOCAL);
+        RequestFileSystemUrl([this, image_token, request_machine, mode, process_image_data, on_failure, mode_to_string](std::string url) {
+            if (image_token.expired() || url.empty()) return;
+
+            if (request_machine != m_machine) {
+                BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: machine changed during URL request, skip";
+                return;
+            }
+
+            SetDeviceImageUrl(url);
+
+            m_image_transfer->DownloadMemFile("mem:/26", "", [this, image_token, mode, process_image_data, on_failure, mode_to_string]
+                (int ec, int resp_ec, std::string json, std::vector<std::byte> data) {
+                if (image_token.expired()) return;
+
+                if (ec != 0) {
+                    BOOST_LOG_TRIVIAL(warning) << "DeviceImageFlow: download failed (" << mode_to_string(mode) << "), error code: " << ec;
+                    if (on_failure) {
+                        CallAfter([on_failure, image_token]() {
+                            if (!image_token.expired())
+                                on_failure();
+                        });
+                    }
+                    return;
+                }
+
+                process_image_data(data, mode);
+            });
+        }, lan_mode);
+    };
+
+    // Try LAN mode first, fallback to remote mode if failed
+    download_image(DownloadMode::DOWNLOAD_MODE_LOCAL, [this, download_image, image_token]() {
+        if (image_token.expired()) {
+            BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: token expired, download cancelled";
+            return;
+        }
+        if (!m_remote_proto) {
+            BOOST_LOG_TRIVIAL(info) << "DeviceImageFlow: no remote protocol, giving up";
+            return;
+        }
+        BOOST_LOG_TRIVIAL(warning) << "DeviceImageFlow: LAN failed, trying remote mode";
+        download_image(DownloadMode::DOWNLOAD_MODE_REMOTE);
+    });
+}
+
+void MediaPlayCtrl::SetDeviceImageUrl(std::string url)
+{
+    if (!m_image_transfer) m_image_transfer = std::make_shared<FileTransferObject>();
+    m_image_transfer->SetTunnelUrl(std::move(url));
+}
+
 void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
 {
     auto last_state = m_last_state;
@@ -758,7 +949,23 @@ void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
         int state2 = m_last_state >= MEDIASTATE_IDLE ? m_last_state - MEDIASTATE_IDLE :
                                                        m_last_state + MEDIASTATE_BUFFERING - MEDIASTATE_IDLE;
         msg += wxString::Format(" [%d:%d]", state2, m_failed_code);
-        msg += wxDateTime::Now().Format(_T(" <%m-%d %H:%M>"));
+
+        time_t now = time(nullptr);
+        std::tm *local_tm = std::localtime(&now);
+        if (local_tm == nullptr)
+        {
+            msg += wxDateTime::Now().Format(_T(" <%m-%d %H:%M>"));
+        }
+        else
+        {
+            bool use_12h_format = wxGetApp().app_config->get("use_12h_time_format") == "true";
+            std::string time_str = Slic3r::format_time_hm(local_tm, use_12h_format);
+
+            msg += wxString::Format(_T(" <%02d-%02d %s>"),
+                                local_tm->tm_mon + 1,
+                                local_tm->tm_mday,
+                                time_str);
+        }
     }
     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl::SetStatus: " << msg.ToUTF8().data() << " tutk_state: " << m_tutk_state;
 #ifdef __WXMSW__
@@ -819,7 +1026,12 @@ void MediaPlayCtrl::on_show_hide(wxShowEvent &evt)
     m_failed_retry = 0;
     if (m_next_retry.IsValid()) // Try open 2 seconds later, to avoid quick play/stop
         m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(2);
-    IsShownOnScreen() ? Play() : Stop();
+    if (IsShownOnScreen()) {
+        Play();
+        start_device_image_flow();
+    } else {
+        Stop();
+    }
 }
 
 void MediaPlayCtrl::media_proc()

@@ -2707,6 +2707,8 @@ void GLGizmoText::draw_font_list()
                     del_index = idx;
                     MessageDialog(wxGetApp().plater(), GUI::format_wxstr(_L("Font \"%1%\" can't be selected."), wx_face_name));
                 } else {
+                    update_default_boldness();
+                    update_default_italic();
                     ImGui::CloseCurrentPopup();
                 }
             }

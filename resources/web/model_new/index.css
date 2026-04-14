@@ -150,6 +150,14 @@ hr {
   height: 28px;
   margin-right: 12px;
 }
+.attachment .attachment-thumb {
+  width: 48px;
+  height: 48px;
+  margin-right: 12px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
 
 .profileName {
   font-size: 16px;

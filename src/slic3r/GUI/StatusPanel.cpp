@@ -29,6 +29,7 @@
 #include "DeviceCore/DevCtrl.h"
 #include "DeviceCore/DevFan.h"
 #include "DeviceCore/DevFilaSystem.h"
+#include "DeviceCore/DevFilaSwitch.h"
 #include "DeviceCore/DevLamp.h"
 #include "DeviceCore/DevNozzleSystem.h"
 #include "DeviceCore/DevStorage.h"
@@ -36,6 +37,7 @@
 #include "DeviceCore/DevStatus.h"
 
 #include "DeviceCore/DevConfig.h"
+#include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevInfo.h"
 #include "DeviceCore/DevManager.h"
 #include "DeviceCore/DevPrintTaskInfo.h"
@@ -992,6 +994,8 @@ static wxString get_bbl_time_dhms(float time_in_secs)
 
 void PrintingTaskPanel::paint(wxPaintEvent &)
 {
+    if (!m_bitmap_thumbnail)
+        return;
     wxPaintDC dc(m_bitmap_thumbnail);
     if (wxGetApp().dark_mode()) {
         if (m_brightness_value > 0 && m_brightness_value < SHOW_BACKGROUND_BITMAP_PIXEL_THRESHOLD) {
@@ -1001,7 +1005,8 @@ void PrintingTaskPanel::paint(wxPaintEvent &)
             dc.SetTextForeground(*wxWHITE);
     } else
         dc.SetTextForeground(*wxBLACK);
-    if (m_thumbnail_bmp_display.IsOk()) { dc.DrawBitmap(m_thumbnail_bmp_display, wxPoint(0, 0)); }
+    wxBitmap bmp = m_thumbnail_bmp_display;
+    if (bmp.IsOk()) { dc.DrawBitmap(bmp, wxPoint(0, 0)); }
     dc.SetFont(Label::Body_12);
 
     if (m_plate_index >= 0) {
@@ -1260,8 +1265,9 @@ void PrintingTaskPanel::update_left_time(int mc_left_time)
     wxString    left_time_text = NA_STR;
 
     try {
-        left_time  = get_bbl_time_dhms(mc_left_time);
-        right_time = get_bbl_finish_time_dhm(mc_left_time);
+        bool use_12h_format = wxGetApp().app_config->get("use_12h_time_format") == "true";
+        left_time  = get_bbl_monitor_time_dhm(mc_left_time);
+        right_time = get_bbl_finish_time_dhm(mc_left_time, use_12h_format);
     } catch (...) {
         ;
     }
@@ -2121,8 +2127,6 @@ wxBoxSizer *StatusBasePanel::create_filament_group(wxWindow *parent)
 
     m_filament_step = new FilamentLoad(m_filament_load_box, wxID_ANY);
     m_filament_step->SetDoubleBuffered(true);
-    m_filament_step->set_min_size(wxSize(wxSize(FromDIP(300), FromDIP(215))));
-    m_filament_step->set_max_size(wxSize(wxSize(FromDIP(300), FromDIP(215))));
     m_filament_step->SetBackgroundColour(*wxWHITE);
 
     m_filament_load_img = new wxStaticBitmap(m_filament_load_box, wxID_ANY, wxNullBitmap);
@@ -2154,7 +2158,7 @@ wxBoxSizer *StatusBasePanel::create_filament_group(wxWindow *parent)
         if (obj) { obj->command_ams_control("resume"); }
     });
 
-    m_fila_change_abort = new Button(m_filament_load_box, _L("Abort"));
+    m_fila_change_abort = new Button(m_filament_load_box, _L("Stop"));
     m_fila_change_abort->SetFont(Label::Body_13);
     m_fila_change_abort->SetBorderColor(btn_bd_white);
     m_fila_change_abort->SetTextColor(btn_text_white);
@@ -2195,34 +2199,21 @@ void StatusBasePanel::expand_filament_loading(wxMouseEvent &e)
 
     if (obj) {
         static int load_img_size = 215;
-        if (obj->is_series_n()) {
-            m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_n_series", this, load_img_size));
-        } else if (obj->is_series_x()) {
-            m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_x_series", this, load_img_size));
-        } else if (obj->is_series_p()) {
-            m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_p_series", this, load_img_size));
-        } else if (obj->is_series_o()) {
-            const auto &ext_system = obj->GetExtderSystem();
-            if (ext_system->GetTotalExtderCount() == 2) {
-                int cur_extder_id = ext_system->GetCurrentExtderId();
-                if (cur_extder_id == MAIN_EXTRUDER_ID) {
-                    if (obj->GetNozzleSystem()->GetNozzleRack()->IsSupported())
-                      m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o1c_series_right", this, load_img_size));
-                    else
-                      m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o_series_right", this, load_img_size));
-                } else if (cur_extder_id == DEPUTY_EXTRUDER_ID) {
-                    if (obj->GetNozzleSystem()->GetNozzleRack()->IsSupported())
-                      m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o1c_series_left", this, load_img_size));
-                    else
-                      m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o_series_left", this, load_img_size));
-                }
-            }
+        const auto &ext_system    = obj->GetExtderSystem();
+        int cur_ext_id = (ext_system && ext_system->GetTotalExtderCount() > 1) ? ext_system->GetCurrentExtderId() : 0;
+        bool has_nozzle_rack = obj->GetNozzleSystem()->GetNozzleRack()->IsSupported();
+        std::string img_name = DevPrinterConfigUtil::get_filament_load_img(obj->printer_type, cur_ext_id, has_nozzle_rack);
 
-            else {
-                m_filament_load_img->SetBitmap(create_scaled_bitmap("filament_load_o_series", this, load_img_size));
+        if (!img_name.empty()) {
+            try {
+                m_filament_load_img->SetBitmap(create_scaled_bitmap(img_name, this, load_img_size));
+            } catch (const std::exception& e) {
+                BOOST_LOG_TRIVIAL(error) << "Failed to load filament image: error";
+            } catch (...) {
+                BOOST_LOG_TRIVIAL(error) << "Failed to load filament image: unknown error";
             }
         }
-        m_fila_change_abort->Show(obj->is_support_fila_change_abort);
+        m_fila_change_abort->Show(obj->is_support_fila_change_abort || DevPrinterConfigUtil::support_ams_fila_change_abort(obj->printer_type));
     }
 
     m_filament_load_box->Show(tag_show);
@@ -2270,7 +2261,7 @@ void StatusBasePanel::show_filament_load_group(bool show)
         if (!show && m_filament_load_box->IsShown()) { m_filament_load_box->Show(false); }
 
         auto cur_ext = obj->GetExtderSystem()->GetCurrentExtder();
-        m_filament_step->SetupSteps(cur_ext ? cur_ext->HasFilamentInExt() : false);
+        m_filament_step->SetupSteps(obj, cur_ext ? cur_ext->HasFilamentInExt() : false);
 
         Layout();
         Fit();
@@ -2905,6 +2896,7 @@ void StatusPanel::update(MachineObject *obj)
     update_camera_state(obj);
 
     // m_machine_ctrl_panel->Thaw();
+    Layout();
 }
 
 void StatusPanel::show_recenter_dialog()
@@ -3169,6 +3161,9 @@ void StatusPanel::update_misc_ctrl(MachineObject *obj)
         m_extruder_book->SetSelection(m_nozzle_num);
 
         /*style*/
+        m_nozzle_btn_panel->SetLabels(
+            _L(DevPrinterConfigUtil::get_toolhead_display_name(obj->printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true)),
+            _L(DevPrinterConfigUtil::get_toolhead_display_name(obj->printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true)));
         m_nozzle_btn_panel->Show();
         m_extruderImage[select_index]->setExtruderCount(m_nozzle_num);
 
@@ -3282,16 +3277,13 @@ void StatusPanel::update_ams(MachineObject *obj)
         CalibUtils::emit_get_PA_calib_infos(cali_info);
     }
 
-    bool is_support_virtual_tray    = obj->ams_support_virtual_tray;
-    bool is_support_filament_backup = obj->is_support_filament_backup;
-
     if (obj && obj->is_security_control_ready()) { obj->check_ams_filament_valid(); }
 
-    AMSModel ams_mode = AMSModel::GENERIC_AMS;
+    DevAmsType ams_mode = DevAmsType::AMS;
     if ((obj->is_enable_np || obj->is_enable_ams_np) && obj->GetFilaSystem()->GetAmsList().size() > 0) {
-        ams_mode = AMSModel(obj->GetFilaSystem()->GetAmsList().begin()->second->GetAmsType());
+        ams_mode = obj->GetFilaSystem()->GetAmsList().begin()->second->GetAmsType();
     } else if (obj->get_printer_ams_type() == "f1") {
-        ams_mode = AMSModel::AMS_LITE; // STUDIO-14066
+        ams_mode = DevAmsType::AMS_LITE; // STUDIO-14066
     }
 
     if (!obj || !obj->is_connected()) {
@@ -3303,7 +3295,7 @@ void StatusPanel::update_ams(MachineObject *obj)
         last_ams_version      = -1;
         BOOST_LOG_TRIVIAL(trace) << "machine object" << BBLCrossTalk::Crosstalk_DevName(obj->get_dev_name()) << " was disconnected, set show_ams_group is false";
 
-        m_ams_control->SetAmsModel(AMSModel::EXT_AMS, ams_mode);
+        m_ams_control->SetAmsModel(DevAmsType::EXT_SPOOL, ams_mode);
         show_ams_group(false);
         show_filament_load_group(false);
         m_ams_control->show_auto_refill(false);
@@ -3320,7 +3312,6 @@ void StatusPanel::update_ams(MachineObject *obj)
         }
     }
 
-    // if (is_support_virtual_tray) m_ams_control->update_vams_kn_value(obj->vt_slot[0], obj);
     if (m_filament_setting_dlg) m_filament_setting_dlg->update();
 
     std::vector<AMSinfo> ams_info;
@@ -3338,7 +3329,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     for (auto slot : obj->vt_slot) {
         AMSinfo info;
         info.parse_ext_info(obj, slot);
-        if (ams_mode == AMSModel::AMS_LITE) info.ext_type = AMSModelOriginType::LITE_EXT;
+        if (ams_mode == DevAmsType::AMS_LITE) info.ext_type = AMSModelOriginType::LITE_EXT;
         ext_info.push_back(info);
     }
 
@@ -3353,63 +3344,29 @@ void StatusPanel::update_ams(MachineObject *obj)
     last_reading_bits     = obj->tray_reading_bits;
     last_ams_version      = obj->ams_version;
 
-    std::string curr_ams_id = m_ams_control->GetCurentAms();
-    std::string curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
-    bool        is_vt_tray  = false;
-    if (obj->GetExtderSystem()->GetCurrentAmsId() == std::to_string(VIRTUAL_TRAY_MAIN_ID)) is_vt_tray = true;
-
-    // set segment 1, 2
-    // if (!obj->is_enable_np) {
-    //    if (obj->m_tray_now == std::to_string(255) || obj->m_tray_now == std::to_string(254)) {
-    //        m_ams_control->SetAmsStep(obj->m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id, obj->m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id,
-    //        AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-    //    } else {
-    //        /*if (obj->m_tray_now != "255" && obj->is_filament_at_extruder() && !obj->m_tray_id.empty()) {
-    //            m_ams_control->SetAmsStep(obj->m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id, obj->m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id,
-    //                                      AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
-    //        } else if (obj->m_tray_now != "255") {
-    //            m_ams_control->SetAmsStep(obj->m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id, obj->m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id,
-    //                                      AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP1);
-    //        } else {
-    //            m_ams_control->SetAmsStep(obj->m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id, obj->m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id,
-    //                                      AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
-    //        }*/
-    //        if () {
-
-    //        }
-    //    }
-
-    //    m_ams_control->SetExtruder(obj->is_filament_at_extruder(), obj->m_extder_data.extders[MAIN_NOZZLE_ID].snow.ams_id, obj->m_extder_data.extders[MAIN_NOZZLE_ID].snow.slot_id);
-    //} else {
     /*right*/
-    if (obj->GetExtderSystem()->GetTotalExtderCount() > 0) {
-        auto ext = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID);
+    if (auto ext = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID); ext.has_value()) {
         if (ext->HasFilamentInExt()) {
-            if (ext->GetSlotNow().ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || ext->GetSlotNow().ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
-                m_ams_control->SetAmsStep(ext->GetSlotNow().ams_id, "0", AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
-            } else {
-                m_ams_control->SetAmsStep(ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD,
-                                          AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
-            }
+            m_ams_control->SetAmsStep(ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id, MAIN_EXTRUDER_ID,
+                                      AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
         } else {
-            m_ams_control->SetAmsStep(ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+            m_ams_control->SetAmsStep(ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id, MAIN_EXTRUDER_ID,
+                                      AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
         }
+
         m_ams_control->SetExtruder(ext->HasFilamentInExt(), MAIN_EXTRUDER_ID, ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id);
     }
 
     /*left*/
-    if (obj->GetExtderSystem()->GetTotalExtderCount() > 1) {
-        auto ext = obj->GetExtderSystem()->GetExtderById(DEPUTY_EXTRUDER_ID);
+    if(auto ext = obj->GetExtderSystem()->GetExtderById(DEPUTY_EXTRUDER_ID); ext.has_value()){
         if (ext->HasFilamentInExt()) {
-            if (ext->GetSlotNow().ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || ext->GetSlotNow().ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
-                m_ams_control->SetAmsStep(ext->GetSlotNow().ams_id, "0", AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
-            } else {
-                m_ams_control->SetAmsStep(ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD,
-                                          AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
-            }
+            m_ams_control->SetAmsStep(ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id, DEPUTY_EXTRUDER_ID,
+                                      AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
         } else {
-            m_ams_control->SetAmsStep(ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+            m_ams_control->SetAmsStep(ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id, DEPUTY_EXTRUDER_ID,
+                                      AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
         }
+
         m_ams_control->SetExtruder(ext->HasFilamentInExt(), DEPUTY_EXTRUDER_ID, ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id);
     }
 
@@ -3442,6 +3399,8 @@ void StatusPanel::update_ams(MachineObject *obj)
         } catch (...) {}
     }
 
+    const std::string& curr_ams_id = m_ams_control->GetCurentAms();
+    const std::string& curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
     update_ams_control_state(curr_ams_id, curr_can_id);
 }
 
@@ -3497,8 +3456,27 @@ void sGetSwitchInfo(MachineObject* obj,
         return;
     }
 
+    if (obj->GetFilaSwitch()->IsInstalled()) {
+        if (devPrinterUtil::IsVirtualSlot(ams_id)) {
+            const auto& err_info = _L("\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch.");
+            load_error_info = err_info;
+            unload_error_info = err_info;
+            return;
+        }
+
+        if (!obj->GetFilaSwitch()->IsReady()) {
+            const auto& err_info = _L("The Filament Track Switch has not been setup. Please setup on printer.");
+            load_error_info = err_info;
+            unload_error_info = err_info;
+            return;
+        }
+    }
+
     for (auto ext : obj->GetExtderSystem()->GetExtruders()) {
-        if (ext.GetSlotNow().ams_id == ams_id && ext.GetSlotNow().slot_id == slot_id) {
+        if (obj->GetFilaSwitch()->IsInstalled()) {
+            continue;
+        }
+        if (ext.GetSlotNow().ams_id == ams_id && ext.GetSlotNow().slot_id == slot_id && ext.HasFilamentInExt()) {
             load_error_info = _L("Current slot has alread been loaded");
         }
     }
@@ -3506,17 +3484,21 @@ void sGetSwitchInfo(MachineObject* obj,
         load_error_info = _L("The selected slot is empty.");
     }
 
-    auto extder = obj->GetExtderSystem()->GetExtderById(obj->GetFilaSystem()->GetExtruderIdByAmsId(ams_id));
-    if (!extder) {
-        unload_error_info = _L("No extruder found for the selected slot.");
-    }
-
-    if (!devPrinterUtil::IsVirtualSlot(ams_id)) {
-        if (!extder->HasFilamentInExt() ||
-            extder->GetSlotNow().ams_id != ams_id ||
-            extder->GetSlotNow().slot_id != slot_id) {
-            unload_error_info = _L("The selected slot is not loaded in the extruder.");
-        };
+    auto ams_item = obj->GetFilaSystem()->GetAmsById(ams_id);
+    if (ams_item) {
+        if (auto extder_id_opt = ams_item->GetCurrentExtruderId(); extder_id_opt.has_value()) {
+            auto extder = obj->GetExtderSystem()->GetExtderById(extder_id_opt.value());
+            if (extder && !extder->HasFilamentInExt() ||
+                (extder->GetSlotNow().ams_id != ams_id || extder->GetSlotNow().slot_id != slot_id)) {
+                unload_error_info = _L("The selected slot is not loaded in the extruder.");
+            };
+        } else {
+            if (obj->GetFilaSwitch()->IsInstalled()) {
+                unload_error_info = _L("The selected slot is not loaded in the extruder.");
+            } else {
+                unload_error_info = _L("No extruder found for the selected slot.");
+            }
+        }
     }
 };
 
@@ -3724,7 +3706,7 @@ void StatusPanel::update_subtask(MachineObject *obj)
             if (obj->gcode_file_prepare_percent >= 0 && obj->gcode_file_prepare_percent <= 100 && show_percent)
                 prepare_text += wxString::Format("(%d%%)", obj->gcode_file_prepare_percent);
 
-            m_project_task_panel->update_stage_value_with_machine(prepare_text, 0, obj);
+            m_project_task_panel->update_stage_value_with_machine(obj->get_curr_stage().IsEmpty()? prepare_text : obj->get_curr_stage(), 0, obj);
             m_project_task_panel->update_progress_percent(NA_STR, wxEmptyString);
             m_project_task_panel->update_left_time(NA_STR);
             m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
@@ -3896,7 +3878,6 @@ void StatusPanel::update_sdcard_subtask(MachineObject *obj)
     if (!m_load_sdcard_thumbnail) {
         update_calib_bitmap();
         if (m_current_print_mode != PrintingTaskType::CALIBRATION) {
-            m_project_task_panel->get_bitmap_thumbnail()->SetBitmap(m_thumbnail_sdcard.bmp());
             m_project_task_panel->set_thumbnail_img(m_thumbnail_sdcard.bmp(), m_thumbnail_sdcard.name());
         }
         task_thumbnail_state    = ThumbnailState::SDCARD_THUMBNAIL;
@@ -4216,11 +4197,64 @@ void StatusPanel::update_load_with_temp()
     }
 }
 
+wxString StatusPanel::getTrayName(const std::string amsID, const std::string slotID)
+{
+    if (!amsID.empty() && !slotID.empty())
+    {
+        std::shared_ptr<DevFilaSystem> filaSys = obj->GetFilaSystem();
+        if (filaSys != nullptr)
+        {
+            DevAms* ams = filaSys->GetAmsById(amsID);
+            if (ams != nullptr)
+            {
+               int tray_id = ams->GetTrayId(atoi(slotID.c_str()));
+               return wxGetApp().transition_tridid(tray_id);
+            }
+        }
+    }
+    return wxString();
+}
+
 void StatusPanel::on_ams_load_curr()
 {
     if (obj) {
         std::string curr_ams_id = m_ams_control->GetCurentAms();
         std::string curr_can_id = m_ams_control->GetCurrentCan(curr_ams_id);
+
+        std::optional<int> extruder_id = std::nullopt;
+        if (obj->GetFilaSwitch() && obj->GetFilaSwitch()->IsInstalled()) {
+            if (!obj->GetFilaSwitch()->IsReady()) {
+                MessageDialog msg_dlg(nullptr, _L("The Filament Track Switch has not been setup. Please setup on printer."), wxEmptyString, wxICON_WARNING | wxOK);
+                msg_dlg.ShowModal();
+                return;
+            }
+
+            std::vector<std::pair<std::string, std::string>> extruderSlots(2, {"", ""});
+            if (auto ext = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID); ext.has_value())
+            {
+                if (ext->HasFilamentInExt())
+                {
+                    extruderSlots[MAIN_EXTRUDER_ID] = {ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id};
+                }
+            }
+            if (auto ext = obj->GetExtderSystem()->GetExtderById(DEPUTY_EXTRUDER_ID); ext.has_value())
+            {
+                if (ext->HasFilamentInExt())
+                {
+                    extruderSlots[DEPUTY_EXTRUDER_ID] = {ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id};
+                }
+            }
+
+            FeedDirectionDialog dialog(nullptr, 2);
+            dialog.SetExtruderMapping(obj, curr_ams_id, curr_can_id, extruderSlots);
+            auto rtn = dialog.ShowModal();
+
+            if (rtn != wxID_OK)
+            {
+                return;
+            }
+            extruder_id = dialog.GetExtruderID();
+        }
 
         update_load_with_temp();
         // virtual tray
@@ -4245,10 +4279,10 @@ void StatusPanel::on_ams_load_curr()
 
             if (obj->is_enable_np || obj->is_enable_ams_np) {
                 try {
-                    if (!curr_ams_id.empty() && !curr_can_id.empty()) { obj->command_ams_change_filament(true, curr_ams_id, "0", old_temp, new_temp); }
+                    if (!curr_ams_id.empty() && !curr_can_id.empty()) { obj->command_ams_change_filament(true, curr_ams_id, "0", old_temp, new_temp, extruder_id); }
                 } catch (...) {}
             } else {
-                obj->command_ams_change_filament(true, "254", "0", old_temp, new_temp);
+                obj->command_ams_change_filament(true, "254", "0", old_temp, new_temp, extruder_id);
             }
         }
 
@@ -4283,10 +4317,10 @@ void StatusPanel::on_ams_load_curr()
 
         if (obj->is_enable_np) {
             try {
-                if (!curr_ams_id.empty() && !curr_can_id.empty()) { obj->command_ams_change_filament(true, curr_ams_id, curr_can_id, old_temp, new_temp); }
+                if (!curr_ams_id.empty() && !curr_can_id.empty()) { obj->command_ams_change_filament(true, curr_ams_id, curr_can_id, old_temp, new_temp, extruder_id); }
             } catch (...) {}
         } else {
-            obj->command_ams_change_filament(true, curr_ams_id, curr_can_id, old_temp, new_temp);
+            obj->command_ams_change_filament(true, curr_ams_id, curr_can_id, old_temp, new_temp, extruder_id);
         }
     }
 }
@@ -4303,35 +4337,29 @@ void StatusPanel::on_ams_switch(SimpleEvent &event)
 {
     if (obj) {
         /*right*/
-        if (obj->GetExtderSystem()->GetTotalExtderCount() > 0) {
-            auto ext = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID);
+        if (auto ext = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID); ext.has_value()) {
             if (ext->HasFilamentInExt()) {
-                if (ext->GetSlotNow().ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || ext->GetSlotNow().ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
-                    m_ams_control->SetAmsStep(ext->GetSlotNow().ams_id, "0", AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
-                } else {
-                    m_ams_control->SetAmsStep(ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD,
-                                              AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
-                }
+                m_ams_control->SetAmsStep(ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id, MAIN_EXTRUDER_ID,
+                                          AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
             } else {
-                m_ams_control->SetAmsStep(ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+                m_ams_control->SetAmsStep(ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id, MAIN_EXTRUDER_ID,
+                                          AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
             }
+
             m_ams_control->SetExtruder(ext->HasFilamentInExt(), MAIN_EXTRUDER_ID, ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id);
         }
 
         /*left*/
-        if (obj->GetExtderSystem()->GetTotalExtderCount() > 1) {
-            auto ext = obj->GetExtderSystem()->GetExtruders()[DEPUTY_EXTRUDER_ID];
-            if (ext.HasFilamentInExt()) {
-                if (ext.GetSlotNow().ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || ext.GetSlotNow().ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
-                    m_ams_control->SetAmsStep(ext.GetSlotNow().ams_id, "0", AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP3);
-                } else {
-                    m_ams_control->SetAmsStep(ext.GetSlotNow().ams_id, ext.GetSlotNow().slot_id, AMSPassRoadType::AMS_ROAD_TYPE_LOAD,
-                                              AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
-                }
+        if (auto ext = obj->GetExtderSystem()->GetExtderById(DEPUTY_EXTRUDER_ID); ext.has_value()) {
+            if (ext->HasFilamentInExt()) {
+                m_ams_control->SetAmsStep(ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id, DEPUTY_EXTRUDER_ID,
+                                          AMSPassRoadType::AMS_ROAD_TYPE_LOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_COMBO_LOAD_STEP2);
             } else {
-                m_ams_control->SetAmsStep(ext.GetSlotNow().ams_id, ext.GetSlotNow().slot_id, AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
+                m_ams_control->SetAmsStep(ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id, DEPUTY_EXTRUDER_ID,
+                                          AMSPassRoadType::AMS_ROAD_TYPE_UNLOAD, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
             }
-            m_ams_control->SetExtruder(ext.HasFilamentInExt(), DEPUTY_EXTRUDER_ID, ext.GetSlotNow().ams_id, ext.GetSlotNow().slot_id);
+
+            m_ams_control->SetExtruder(ext->HasFilamentInExt(), DEPUTY_EXTRUDER_ID, ext->GetSlotNow().ams_id, ext->GetSlotNow().slot_id);
         }
     }
 }
@@ -4392,15 +4420,14 @@ void StatusPanel::on_filament_extrusion_cali(wxCommandEvent &event)
         int tray_id_int = 0;
 
         // set ams_filament id is is bbl filament
-        if (ams_id.compare(std::to_string(VIRTUAL_TRAY_MAIN_ID)) == 0) {
-            tray_id_int                           = VIRTUAL_TRAY_MAIN_ID;
+        if (devPrinterUtil::IsVirtualSlot(ams_id)) {
+            // tray_id_int                           = VIRTUAL_TRAY_MAIN_ID;
             m_extrusion_cali_dlg->ams_filament_id = "";
         } else {
             ams_id_int  = atoi(ams_id.c_str());
             tray_id_int = atoi(tray_id.c_str());
 
-            auto tray = obj->GetFilaSystem()->GetAmsTray(ams_id, tray_id);
-            if (tray) {
+            if (auto tray = obj->GetFilaSystem()->GetAmsTray(ams_id, tray_id)) {
                 if (DevFilaSystem::IsBBL_Filament(tray->tag_uid))
                     m_extrusion_cali_dlg->ams_filament_id = tray->setting_id;
                 else
@@ -4409,8 +4436,8 @@ void StatusPanel::on_filament_extrusion_cali(wxCommandEvent &event)
         }
 
         try {
-            m_extrusion_cali_dlg->ams_id  = ams_id_int;
-            m_extrusion_cali_dlg->tray_id = tray_id_int;
+            m_extrusion_cali_dlg->m_ams_id  = ams_id_int;
+            m_extrusion_cali_dlg->m_slot_id = tray_id_int;
             m_extrusion_cali_dlg->SetPosition(m_staticText_control->GetScreenPosition());
             m_extrusion_cali_dlg->Popup();
         } catch (...) {
@@ -4567,15 +4594,16 @@ void StatusPanel::on_ams_refresh_rfid(wxCommandEvent &event)
 
         if (obj->is_enable_np || obj->is_enable_ams_np) {
             use_new_command = true;
-            if (it->second->GetExtruderId() < obj->GetExtderSystem()->GetTotalExtderSize()) {
-                has_filament_at_extruder = obj->GetExtderSystem()->HasFilamentInExt(it->second->GetExtruderId());
+            auto current_extruder_id = it->second->GetCurrentExtruderId();
+            if (current_extruder_id.has_value()) {
+                has_filament_at_extruder = obj->GetExtderSystem()->HasFilamentInExt(current_extruder_id.value());
             }
         } else {
             has_filament_at_extruder = obj->is_filament_at_extruder();
         }
 
         if (has_filament_at_extruder) {
-            MessageDialog msg_dlg(nullptr, _L("Cannot read filament info: the filament is loaded to the tool head,please unload the filament and try again."), wxEmptyString,
+            MessageDialog msg_dlg(nullptr, _L("Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."), wxEmptyString,
                                   wxICON_WARNING | wxYES);
             msg_dlg.ShowModal();
             return;
@@ -4628,9 +4656,9 @@ void StatusPanel::on_ams_selected(wxCommandEvent &event)
 void StatusPanel::on_ams_guide(wxCommandEvent &event)
 {
     wxString ams_wiki_url;
-    if (m_ams_control && m_ams_control->m_is_none_ams_mode == AMSModel::GENERIC_AMS) {
+    if (m_ams_control && m_ams_control->m_is_none_ams_mode == DevAmsType::AMS) {
         ams_wiki_url = "https://wiki.bambulab.com/en/software/bambu-studio/use-ams-on-bambu-studio";
-    } else if (m_ams_control && m_ams_control->m_is_none_ams_mode == AMSModel::AMS_LITE) {
+    } else if (m_ams_control && m_ams_control->m_is_none_ams_mode == DevAmsType::AMS_LITE) {
         ams_wiki_url = "https://wiki.bambulab.com/en/ams-lite";
     } else {
         ams_wiki_url = "https://wiki.bambulab.com/en/software/bambu-studio/use-ams-on-bambu-studio";
@@ -4866,6 +4894,12 @@ void StatusPanel::on_nozzle_selected(wxCommandEvent &event)
         /*Enable switch head while printing is paused STUDIO-9789*/
         if ((obj->is_in_printing() && !obj->is_in_printing_pause()) || obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) {
             MessageDialog dlg(nullptr, _L("The printer is busy on other print job"), _L("Error"), wxICON_WARNING | wxOK);
+            dlg.ShowModal();
+            return;
+        }
+
+        if (!obj->GetInfo()->IsFdmMode()) {
+            MessageDialog dlg(nullptr, _L("Cannot switch extruder when the printer is not at FDM mode"), _L("Warning"), wxICON_WARNING | wxOK);
             dlg.ShowModal();
             return;
         }
@@ -5229,88 +5263,88 @@ void StatusPanel::update_filament_loading_panel(MachineObject *obj)
         if (busy_for_vt_loading) {
             // wait to heat hotend
             if (ams_status_sub == 0x02) {
-                m_filament_step->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, FilamentStepType::STEP_TYPE_VT_LOAD);
+                m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_HEAT_NOZZLE, FilamentStepType::STEP_TYPE_VT_LOAD);
             } else if (ams_status_sub == 0x05) {
-                m_filament_step->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_VT_LOAD);
+                m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_VT_LOAD);
             } else if (ams_status_sub == 0x06) {
-                m_filament_step->SetFilamentStep(FilamentStep::STEP_CONFIRM_EXTRUDED, FilamentStepType::STEP_TYPE_VT_LOAD);
+                m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_CONFIRM_EXTRUDED, FilamentStepType::STEP_TYPE_VT_LOAD);
             } else if (ams_status_sub == 0x07) {
-                m_filament_step->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_VT_LOAD);
+                m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_VT_LOAD);
             } else {
-                m_filament_step->SetFilamentStep(FilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_VT_LOAD);
+                m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_VT_LOAD);
                 ams_loading_state = false;
             }
         } else {
             // wait to heat hotend
             if (ams_status_sub == 0x02) {
                 if (!obj->is_target_slot_unload()) {
-                    m_filament_step->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, FilamentStepType::STEP_TYPE_LOAD);
+                    m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_HEAT_NOZZLE, FilamentStepType::STEP_TYPE_LOAD);
                 } else {
-                    m_filament_step->SetFilamentStep(FilamentStep::STEP_HEAT_NOZZLE, FilamentStepType::STEP_TYPE_UNLOAD);
+                    m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_HEAT_NOZZLE, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
             } else if (ams_status_sub == 0x03) {
                 if (!obj->is_target_slot_unload()) {
-                    m_filament_step->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                    m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_CUT_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
                 } else {
-                    m_filament_step->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
+                    m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_CUT_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
             } else if (ams_status_sub == 0x04) {
                 if (!obj->is_target_slot_unload()) {
-                    m_filament_step->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                    m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_PULL_CURR_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
                 } else {
-                    m_filament_step->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
+                    m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_PULL_CURR_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
             } else if (ams_status_sub == 0x05) {
                 if (!obj->is_target_slot_unload()) {
                     if (m_is_load_with_temp) {
-                        m_filament_step->SetFilamentStep(FilamentStep::STEP_CUT_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                        m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_CUT_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
                     } else {
-                        m_filament_step->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                        m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
                     }
 
                 } else {
-                    m_filament_step->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
+                    m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
             } else if (ams_status_sub == 0x06) {
                 if (!obj->is_target_slot_unload()) {
-                    m_filament_step->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                    m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
                 } else {
-                    m_filament_step->SetFilamentStep(FilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
+                    m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_PUSH_NEW_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
             } else if (ams_status_sub == 0x07) {
                 if (!obj->is_target_slot_unload()) {
                     if (m_is_load_with_temp) {
-                        m_filament_step->SetFilamentStep(FilamentStep::STEP_PULL_CURR_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                        m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_PULL_CURR_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
                     } else {
-                        m_filament_step->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
+                        m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_LOAD);
                     }
                 } else {
-                    m_filament_step->SetFilamentStep(FilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
+                    m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_PURGE_OLD_FILAMENT, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
             } else if (ams_status_sub == 0x08) {
                 if (!obj->is_target_slot_unload()) {
-                    m_filament_step->SetFilamentStep(FilamentStep::STEP_CHECK_POSITION, FilamentStepType::STEP_TYPE_LOAD);
+                    m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_CHECK_POSITION, FilamentStepType::STEP_TYPE_LOAD);
                 } else {
-                    m_filament_step->SetFilamentStep(FilamentStep::STEP_CHECK_POSITION, FilamentStepType::STEP_TYPE_UNLOAD);
+                    m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_CHECK_POSITION, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
             } else if (ams_status_sub == 0x09) {
                 // just wait
             } else if (ams_status_sub == 0x0B) {
                 if (!obj->is_target_slot_unload()) {
-                    m_filament_step->SetFilamentStep(FilamentStep::STEP_CHECK_POSITION, FilamentStepType::STEP_TYPE_LOAD);
+                    m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_CHECK_POSITION, FilamentStepType::STEP_TYPE_LOAD);
                 } else {
-                    m_filament_step->SetFilamentStep(FilamentStep::STEP_CHECK_POSITION, FilamentStepType::STEP_TYPE_UNLOAD);
+                    m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_CHECK_POSITION, FilamentStepType::STEP_TYPE_UNLOAD);
                 }
             } else {
-                m_filament_step->SetFilamentStep(FilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_UNLOAD);
+                m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_UNLOAD);
                 ams_loading_state = false;
             }
         }
     } else if (obj->ams_status_main == AMS_STATUS_MAIN_ASSIST) {
-        m_filament_step->SetFilamentStep(FilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_LOAD);
+        m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_LOAD);
         ams_loading_state = false;
     } else {
-        m_filament_step->SetFilamentStep(FilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_LOAD);
+        m_filament_step->SetFilamentStep(obj, DevFilamentStep::STEP_IDLE, FilamentStepType::STEP_TYPE_LOAD);
         ams_loading_state = false;
     }
 

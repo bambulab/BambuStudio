@@ -51,7 +51,8 @@
 			"support_user_preset": false,
 			"bed_temperature_limit": 110,
 			"nozzle_max_temperature": 320,
-			"support_ams_ext_mix_print": true
+			"support_ams_ext_mix_print": true,
+			"support_ams_filament_change_abort": true
 		},
 		"fan": {
 			"-1": {
@@ -75,7 +76,8 @@
 		"printer_is_enclosed": true,
 		"enable_set_nozzle_info": false,
 		"support_safety_options": false,
-		"support_disable_cali_flow_type": true
+		"support_disable_cali_flow_type": true,
+		"filament_load_image": ["filament_load_x_series_ext0"]
 	},
 	"01.05.06.06": {
 		"rv2166": "00.00.21.20"

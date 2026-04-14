@@ -113,7 +113,7 @@ PrintBase::ApplyStatus PrintObject::set_instances(PrintInstances &&instances)
     	[](const PrintInstance& lhs, const PrintInstance& rhs) { return lhs.model_instance == rhs.model_instance && lhs.shift == rhs.shift; });
     if (! equal) {
         status = PrintBase::APPLY_STATUS_CHANGED;
-        if (m_print->invalidate_steps({ psSkirtBrim, psGCodeExport }) ||
+        if (m_print->invalidate_steps({psWipeTower,psSkirtBrim, psGCodeExport}) ||
             (! equal_length && m_print->invalidate_step(psWipeTower)))
             status = PrintBase::APPLY_STATUS_INVALIDATED;
         m_instances = std::move(instances);
@@ -1253,6 +1253,7 @@ bool PrintObject::invalidate_state_by_config_options(
         } else if (
                opt_key == "top_surface_pattern"
             || opt_key == "top_surface_density"
+            || opt_key == "monotonic_travel_into_wall"
             || opt_key == "bottom_surface_pattern"
             || opt_key == "bottom_surface_density"
             || opt_key == "internal_solid_infill_pattern"
@@ -1297,6 +1298,12 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "fuzzy_skin"
             || opt_key == "fuzzy_skin_thickness"
             || opt_key == "fuzzy_skin_point_distance"
+            || opt_key == "fuzzy_skin_first_layer"
+            || opt_key == "fuzzy_skin_noise_type"
+            || opt_key == "fuzzy_skin_scale"
+            || opt_key == "fuzzy_skin_octaves"
+            || opt_key == "fuzzy_skin_persistence"
+            || opt_key == "fuzzy_skin_mode"
             || opt_key == "detect_overhang_wall"
             //BBS
             || opt_key == "enable_overhang_speed"
@@ -2141,10 +2148,11 @@ void PrintObject::discover_shell_for_perimeters()
                     ExPolygons old_internal = to_expolygons(lower_layerm->fill_surfaces.filter_by_type(stInternal));
                     ExPolygons old_internal_void = to_expolygons(lower_layerm->fill_surfaces.filter_by_type(stInternalVoid));
                     ExPolygons old_internal_solid = to_expolygons(lower_layerm->fill_surfaces.filter_by_type(stInternalSolid));
+                    ExPolygons bottom_area        = to_expolygons(lower_layerm->fill_surfaces.filter_by_type(stBottom));
 
                     lower_layerm->fill_surfaces.remove_types({ stInternal,stInternalVoid,stInternalSolid });
 
-                    ExPolygons new_internal_solid = union_ex(old_internal_solid, new_perimeter_solid);
+                    ExPolygons new_internal_solid = diff_ex(union_ex(old_internal_solid, new_perimeter_solid), bottom_area);
                     ExPolygons new_internal = diff_ex(old_internal, new_perimeter_solid);
                     ExPolygons new_internal_void = diff_ex(old_internal_void, new_perimeter_solid);
                     lower_layerm->fill_surfaces.append(new_internal, stInternal);

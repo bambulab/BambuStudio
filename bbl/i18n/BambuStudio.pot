@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-05 19:18+0800\n"
+"POT-Creation-Date: 2026-04-14 18:15+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -33,16 +33,136 @@ msgstr ""
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr ""
 
-msgid "right"
+msgid "Main Extruder"
 msgstr ""
 
-msgid "left"
+msgid "Main extruder"
+msgstr ""
+
+msgid "main extruder"
+msgstr ""
+
+msgid "Auxiliary Extruder"
+msgstr ""
+
+msgid "Auxiliary extruder"
+msgstr ""
+
+msgid "auxiliary extruder"
+msgstr ""
+
+msgid "Left Extruder"
+msgstr ""
+
+msgid "Left extruder"
+msgstr ""
+
+msgid "left extruder"
+msgstr ""
+
+msgid "Right Extruder"
+msgstr ""
+
+msgid "Right extruder"
 msgstr ""
 
 msgid "right extruder"
 msgstr ""
 
-msgid "left extruder"
+msgid "Main Nozzle"
+msgstr ""
+
+msgid "Main nozzle"
+msgstr ""
+
+msgid "main nozzle"
+msgstr ""
+
+msgid "Auxiliary Nozzle"
+msgstr ""
+
+msgid "Auxiliary nozzle"
+msgstr ""
+
+msgid "auxiliary nozzle"
+msgstr ""
+
+msgid "Left Nozzle"
+msgstr ""
+
+msgid "Left nozzle"
+msgstr ""
+
+msgid "left nozzle"
+msgstr ""
+
+msgid "Right Nozzle"
+msgstr ""
+
+msgid "Right nozzle"
+msgstr ""
+
+msgid "right nozzle"
+msgstr ""
+
+msgid "Main Hotend"
+msgstr ""
+
+msgid "Main hotend"
+msgstr ""
+
+msgid "main hotend"
+msgstr ""
+
+msgid "Auxiliary Hotend"
+msgstr ""
+
+msgid "Auxiliary hotend"
+msgstr ""
+
+msgid "auxiliary hotend"
+msgstr ""
+
+msgid "Left Hotend"
+msgstr ""
+
+msgid "Left hotend"
+msgstr ""
+
+msgid "left hotend"
+msgstr ""
+
+msgid "Right Hotend"
+msgstr ""
+
+msgid "Right hotend"
+msgstr ""
+
+msgid "right hotend"
+msgstr ""
+
+msgid "main"
+msgstr ""
+
+msgid "auxiliary"
+msgstr ""
+
+msgid "Main"
+msgstr ""
+
+msgid "Auxiliary"
+msgstr ""
+
+msgid "left"
+msgstr ""
+
+msgid "right"
+msgstr ""
+
+msgid "Left"
+msgstr ""
+
+msgid "Right"
 msgstr ""
 
 msgid "extruder"
@@ -67,10 +187,16 @@ msgstr ""
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr ""
 
-msgid "Dynamic flow calibration is not supported for TPU 85A filament."
+msgid "Bambu TPU 85A is not supported for printing with 0.4 mm Standard or High Flow nozzles."
+msgstr ""
+
+msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
 msgstr ""
 
 msgid "How to feed TPU filament."
+msgstr ""
+
+msgid "How to feed TPU filament on X2D."
 msgstr ""
 
 msgid "Using non-bambu filament may have printing quality issues."
@@ -110,7 +236,27 @@ msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow noz
 msgstr ""
 
 #, possible-c-format, possible-boost-format
+msgid "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
 msgid "%s is not supported by %s extruder."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "There may be critical print quality issues when printing '%s' with %s Bowden extruder. Use with caution!"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "There may be critical print quality issues when printing '%s' with %s extruder. Use with caution!"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "There may be print quality issues when printing '%s' with %s Bowden extruder. Use with caution."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
 msgstr ""
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
@@ -195,6 +341,66 @@ msgstr ""
 msgid "%d ℃"
 msgstr ""
 
+msgid "Filament Inlet A"
+msgstr ""
+
+msgid "Filament Inlet B"
+msgstr ""
+
+msgid "Filament Track Switch"
+msgstr ""
+
+msgid "Suggested rearrangement"
+msgstr ""
+
+msgid "How to save time?→"
+msgstr ""
+
+msgid "Filament Status:"
+msgstr ""
+
+msgid "Position adjustment required"
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "OK"
+msgstr ""
+
+msgid "Unused"
+msgstr ""
+
+msgid "Refresh"
+msgstr ""
+
+msgid "Close"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
+msgstr ""
+
+msgid "Summary:"
+msgstr ""
+
+msgid "AMS on Filament Inlet A"
+msgstr ""
+
+msgid "AMS on Filament Inlet B"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "The No.%d slicing filament is matched to '%s'. Assigning it to '%s' can save printing time."
+msgstr ""
+
+msgid "*Tips: If you have moved the spool position on the machine, please close this page and re‑match the filament."
+msgstr ""
+
+msgid "Summary: This is currently the most suitable position for placement."
+msgstr ""
+
+msgid "?"
+msgstr ""
+
 msgid "Model:"
 msgstr ""
 
@@ -258,10 +464,23 @@ msgstr ""
 msgid "Jump to the upgrade page"
 msgstr ""
 
+msgid "Refreshing"
+msgstr ""
+
+msgid "Hotend status abnormal, unavailable at present. Please upgrade the firmware and try again."
+msgstr ""
+
 msgid "SN"
 msgstr ""
 
 msgid "Version"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Used Time: %s"
+msgstr ""
+
+msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
 msgstr ""
 
 msgid "Hotend Rack"
@@ -271,6 +490,9 @@ msgid "ToolHead"
 msgstr ""
 
 msgid "Nozzle information needs to be read"
+msgstr ""
+
+msgid "Note:"
 msgstr ""
 
 msgid "Supports Painting"
@@ -839,6 +1061,9 @@ msgstr ""
 msgid "Hexagon"
 msgstr ""
 
+msgid "Middle of geometry"
+msgstr ""
+
 msgid "Snap global parameters"
 msgstr ""
 
@@ -881,6 +1106,9 @@ msgid "Dowel"
 msgstr ""
 
 msgid "Snap"
+msgstr ""
+
+msgid "Thread"
 msgstr ""
 
 msgid "Tolerance"
@@ -2014,6 +2242,18 @@ msgstr ""
 msgid "Change type"
 msgstr ""
 
+msgid "Negative Part"
+msgstr ""
+
+msgid "Support Blocker"
+msgstr ""
+
+msgid "Support Enforcer"
+msgstr ""
+
+msgid "Change part type"
+msgstr ""
+
 msgid "Set as an individual object"
 msgstr ""
 
@@ -2141,7 +2381,10 @@ msgstr ""
 msgid "Add Primitive"
 msgstr ""
 
-msgid "Show Labels"
+msgid "Show Labels by Layer"
+msgstr ""
+
+msgid "Show Labels by Object"
 msgstr ""
 
 msgid "To objects"
@@ -2279,6 +2522,9 @@ msgstr ""
 msgid "Edit Plate Name"
 msgstr ""
 
+msgid "Show Labels"
+msgstr ""
+
 msgid "Name"
 msgstr ""
 
@@ -2388,6 +2634,9 @@ msgstr ""
 msgid "Assembly"
 msgstr ""
 
+msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
+msgstr ""
+
 msgid "Cut Connectors information"
 msgstr ""
 
@@ -2428,15 +2677,6 @@ msgid "If the first selected item is an object, the second one should also be an
 msgstr ""
 
 msgid "If the first selected item is a part, the second one should be part of the same object."
-msgstr ""
-
-msgid "Negative Part"
-msgstr ""
-
-msgid "Support Blocker"
-msgstr ""
-
-msgid "Support Enforcer"
 msgstr ""
 
 msgid "Type:"
@@ -2676,10 +2916,23 @@ msgstr ""
 msgid "Unload"
 msgstr ""
 
+msgid "AMS has not been initialized. Please initialize it before use."
+msgstr ""
+
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr ""
 
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
+msgstr ""
+
+msgid "/"
+msgstr ""
+
+msgid "Confirm"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Load %s to "
 msgstr ""
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
@@ -2748,6 +3001,12 @@ msgstr ""
 msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
 msgstr ""
 
+msgid "Strong Cooling"
+msgstr ""
+
+msgid "Fan"
+msgstr ""
+
 msgctxt "air_duct"
 msgid "Right(Aux)"
 msgstr ""
@@ -2758,6 +3017,10 @@ msgstr ""
 
 msgctxt "air_duct"
 msgid "Left(Aux)"
+msgstr ""
+
+msgctxt "air_duct"
+msgid "Left(Heating)"
 msgstr ""
 
 msgctxt "air_duct"
@@ -2782,9 +3045,6 @@ msgstr ""
 msgid "Heat"
 msgstr ""
 
-msgid "Fan"
-msgstr ""
-
 msgid "Idling..."
 msgstr ""
 
@@ -2804,6 +3064,24 @@ msgid "Grab new filament"
 msgstr ""
 
 msgid "Purge old filament"
+msgstr ""
+
+msgid "Switch"
+msgstr ""
+
+msgid "hotend"
+msgstr ""
+
+msgid "Wait for AMS cooling"
+msgstr ""
+
+msgid "Switch current filament at Filament Track Switch"
+msgstr ""
+
+msgid "Pull back current filament at Filament Track Switch"
+msgstr ""
+
+msgid "Switch track at Filament Track Switch"
 msgstr ""
 
 msgid "Confirm extruded"
@@ -3119,12 +3397,6 @@ msgstr ""
 msgid "AMS Materials Setting"
 msgstr ""
 
-msgid "Confirm"
-msgstr ""
-
-msgid "Close"
-msgstr ""
-
 msgid "Colour"
 msgstr ""
 
@@ -3184,7 +3456,8 @@ msgstr ""
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr ""
 
-msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
+#, possible-c-format, possible-boost-format
+msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
 msgstr ""
 
 msgid ""
@@ -3287,10 +3560,8 @@ msgstr ""
 msgid "Please select from the following filaments"
 msgstr ""
 
-msgid "Select filament that installed to the left nozzle"
-msgstr ""
-
-msgid "Select filament that installed to the right nozzle"
+#, possible-c-format, possible-boost-format
+msgid "Select filament that installed to the %s"
 msgstr ""
 
 msgid "Left AMS"
@@ -3303,27 +3574,6 @@ msgid "Reset current filament mapping"
 msgstr ""
 
 msgid "Right AMS"
-msgstr ""
-
-msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
-msgstr ""
-
-msgid "Please select the filament installed on the left nozzle."
-msgstr ""
-
-msgid "Please select the filament installed on the right nozzle."
-msgstr ""
-
-msgid "Nozzle"
-msgstr ""
-
-msgid "Ext"
-msgstr ""
-
-msgid "Select Filament && Hotends"
-msgstr ""
-
-msgid "Select Filament"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -3387,12 +3637,6 @@ msgstr ""
 msgid "Auto Refill"
 msgstr ""
 
-msgid "Left"
-msgstr ""
-
-msgid "Right"
-msgstr ""
-
 msgid "When the current material run out, the printer will continue to print in the following order."
 msgstr ""
 
@@ -3420,6 +3664,28 @@ msgid "DRY"
 msgstr ""
 
 msgid "WET"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Please select the filament installed on the %s."
+msgstr ""
+
+msgid "Please select the filament."
+msgstr ""
+
+msgid "Nozzle"
+msgstr ""
+
+msgid "To learn about the filaments matching rules."
+msgstr ""
+
+msgid "External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it."
+msgstr ""
+
+msgid "Select Filament && Hotends"
+msgstr ""
+
+msgid "Select Filament"
 msgstr ""
 
 msgid "AMS Settings"
@@ -3723,6 +3989,19 @@ msgid ""
 msgstr ""
 
 msgid ""
+"Interlocking beam width can't be zero when beam interlocking is enabled.\n"
+"Reset to 0.01 mm."
+msgstr ""
+
+msgid ""
+"Fuzzy skin [Extrusion] and [Combined] modes require the Arachne wall generator.\n"
+"\n"
+"Do you want to change these settings automatically?\n"
+"Yes - Enable Arachne wall generator\n"
+"No - Keep current wall generator and set fuzzy skin to [Displacement] mode"
+msgstr ""
+
+msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support Layer Height is on.\n"
 "Which do you want to keep?\n"
 "YES - Keep Prime Tower\n"
@@ -3974,6 +4253,36 @@ msgstr ""
 msgid "Purifying the chamber air"
 msgstr ""
 
+msgid "Measuring Rotary Attachment"
+msgstr ""
+
+msgid "The toolhead moves above the purge chute"
+msgstr ""
+
+msgid "Cooling down the nozzle"
+msgstr ""
+
+msgid "The toolhead moves to the center of the heatbed"
+msgstr ""
+
+msgid "Active Arc Fitting"
+msgstr ""
+
+msgid "Hotend Type Detection"
+msgstr ""
+
+msgid "Build plate alignment detection"
+msgstr ""
+
+msgid "Heatbed surface foreign object detection"
+msgstr ""
+
+msgid "Heatbed underside foreign object detection"
+msgstr ""
+
+msgid "Pre-extrusion before printing"
+msgstr ""
+
 msgid "Preparing AMS"
 msgstr ""
 
@@ -4048,6 +4357,9 @@ msgstr ""
 msgid "No Reminder Next Time"
 msgstr ""
 
+msgid "Recheck"
+msgstr ""
+
 msgid "Ignore. Don't Remind Next Time"
 msgstr ""
 
@@ -4073,6 +4385,12 @@ msgid "Proceed"
 msgstr ""
 
 msgid "Abort"
+msgstr ""
+
+msgid "Disable Purification for This Print"
+msgstr ""
+
+msgid "Don't Remind Me"
 msgstr ""
 
 msgid "Done"
@@ -4258,6 +4576,9 @@ msgstr ""
 msgid "Volumetric flow rate (mm³/s)"
 msgstr ""
 
+msgid "Nozzles"
+msgstr ""
+
 msgid "Travel"
 msgstr ""
 
@@ -4343,12 +4664,6 @@ msgid "Filament Grouping"
 msgstr ""
 
 msgid "Why this grouping"
-msgstr ""
-
-msgid "Left nozzle"
-msgstr ""
-
-msgid "Right nozzle"
 msgstr ""
 
 msgid "Please place filaments on the printer based on grouping result."
@@ -4524,12 +4839,6 @@ msgstr ""
 msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
 msgstr ""
 
-msgid "left nozzle"
-msgstr ""
-
-msgid "right nozzle"
-msgstr ""
-
 #, possible-c-format, possible-boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr ""
@@ -4539,14 +4848,6 @@ msgid "The position or size of the model %s exceeds the %s's printable range."
 msgstr ""
 
 msgid " Please check and adjust the part's position or size to fit the printable range:\n"
-msgstr ""
-
-#, possible-boost-format
-msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
-msgstr ""
-
-#, possible-boost-format
-msgid "Right nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
 msgstr ""
 
 msgid "Mirror Object"
@@ -4638,10 +4939,40 @@ msgstr ""
 msgid "Click to Collapse"
 msgstr ""
 
-msgid "Assembly View"
+msgid "Overview"
 msgstr ""
 
 msgid "Select Plate"
+msgstr ""
+
+msgid "Change camera perspective"
+msgstr ""
+
+msgid "Go to Wiki"
+msgstr ""
+
+#, possible-boost-format
+msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Top"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Bottom"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Front"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Back"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric"
 msgstr ""
 
 msgid "Assembly Return"
@@ -4681,6 +5012,21 @@ msgid "Volume:"
 msgstr ""
 
 msgid "Size:"
+msgstr ""
+
+msgid "Isolated objects detected"
+msgstr ""
+
+msgid "Click to move them closer to the main body."
+msgstr ""
+
+msgid "Move closer"
+msgstr ""
+
+msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"
+msgstr ""
+
+msgid "Reset to origin"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -4741,6 +5087,9 @@ msgid "Click Wiki for help."
 msgstr ""
 
 msgid "Jump to: Prime tower"
+msgstr ""
+
+msgid "Enable Clumping Detection"
 msgstr ""
 
 msgid "Click here to regroup"
@@ -4998,10 +5347,6 @@ msgstr ""
 msgid "Right View"
 msgstr ""
 
-msgctxt "Camera"
-msgid "Isometric"
-msgstr ""
-
 msgid "Isometric View"
 msgstr ""
 
@@ -5164,7 +5509,10 @@ msgstr ""
 msgid "Reset to default window layout"
 msgstr ""
 
-msgid "Show object labels in 3D scene"
+msgid "Show Labels of printing by layer in 3D scene"
+msgstr ""
+
+msgid "Show Labels of printing by object in 3D scene"
 msgstr ""
 
 msgid "Show &Overhang"
@@ -5448,6 +5796,9 @@ msgstr ""
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr ""
 
+msgid "Printer Preview"
+msgstr ""
+
 msgid "Playing..."
 msgstr ""
 
@@ -5503,9 +5854,6 @@ msgid "Select"
 msgstr ""
 
 msgid "Batch manage files."
-msgstr ""
-
-msgid "Refresh"
 msgstr ""
 
 msgid "Reload file list from printer."
@@ -5586,7 +5934,7 @@ msgstr ""
 msgid "Downloading %d%%..."
 msgstr ""
 
-msgid "Air Condition"
+msgid "Air Management"
 msgstr ""
 
 msgid "Reconnecting the printer, the operation cannot be completed immediately, please try again later."
@@ -5861,16 +6209,22 @@ msgstr ""
 msgid "Current extruder is busy changing filament"
 msgstr ""
 
+msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
+msgstr ""
+
+msgid "The Filament Track Switch has not been setup. Please setup on printer."
+msgstr ""
+
 msgid "Current slot has alread been loaded"
 msgstr ""
 
 msgid "The selected slot is empty."
 msgstr ""
 
-msgid "No extruder found for the selected slot."
+msgid "The selected slot is not loaded in the extruder."
 msgstr ""
 
-msgid "The selected slot is not loaded in the extruder."
+msgid "No extruder found for the selected slot."
 msgstr ""
 
 msgid "Printer 2D mode does not support 3D calibration"
@@ -5922,7 +6276,7 @@ msgstr ""
 msgid "Please select an AMS slot before calibration"
 msgstr ""
 
-msgid "Cannot read filament info: the filament is loaded to the tool head,please unload the filament and try again."
+msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
 msgstr ""
 
 msgid "This only takes effect during printing"
@@ -5947,6 +6301,9 @@ msgid "Still turn it Off"
 msgstr ""
 
 msgid "Can't start this without storage."
+msgstr ""
+
+msgid "Cannot switch extruder when the printer is not at FDM mode"
 msgstr ""
 
 msgid "Rate the Print Profile"
@@ -6162,6 +6519,9 @@ msgstr ""
 msgid "Don't show this dialog again"
 msgstr ""
 
+msgid "Please refer to Wiki before use->"
+msgstr ""
+
 msgid "3D Mouse disconnected."
 msgstr ""
 
@@ -6253,6 +6613,9 @@ msgid "Jump to"
 msgstr ""
 
 msgid "Error:"
+msgstr ""
+
+msgid "Open link for more info"
 msgstr ""
 
 msgid "Warning:"
@@ -6383,6 +6746,18 @@ msgstr ""
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
 msgstr ""
 
+msgid "Foreign Object Detection"
+msgstr ""
+
+msgid "Checks for any objects on the build plate at the start of a print to avoid collisions."
+msgstr ""
+
+msgid "Printed Part Displacement Detection"
+msgstr ""
+
+msgid "Monitors the printed part during printing and alerts immediately if it shifts or collapses."
+msgstr ""
+
 msgid "Ensures the build plate type and placement are correct."
 msgstr ""
 
@@ -6461,12 +6836,6 @@ msgstr ""
 msgid "View wiki"
 msgstr ""
 
-msgid "Left Nozzle"
-msgstr ""
-
-msgid "Right Nozzle"
-msgstr ""
-
 msgid "Brass"
 msgstr ""
 
@@ -6477,9 +6846,6 @@ msgid "TPU High flow"
 msgstr ""
 
 msgid "No wiki link available for this printer."
-msgstr ""
-
-msgid "Refreshing"
 msgstr ""
 
 msgid "Unavailable while heating maintenance function is on."
@@ -6565,6 +6931,17 @@ msgstr ""
 msgid "Please change the nozzle type or reassign the filaments and try again."
 msgstr ""
 
+#, possible-c-format, possible-boost-format
+msgid "Risk of nozzle clumping detected with the current high-temperature filament (%s). We recommend enabling clumping detection (via probing). This feature uses a quick probing sequence to check for nozzle buildup during the print and utilizes the prime tower to absorb oozing before resuming."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "High-shrinkage filament(s) detected: %s. These materials may cause dimensional deviation after cooling. If your model requires precise fitting or assembly, please refer to the Wiki guide for shrinkage testing."
+msgstr ""
+
+msgid "Printing mixed-color filament on a single-extruder printer requires frequent filament changes and flushing, which may significantly increase waste and the risk of nozzle / waste-chute clogging."
+msgstr ""
+
 #, possible-boost-format
 msgid " plate %1%: "
 msgstr ""
@@ -6596,6 +6973,15 @@ msgstr ""
 msgid "Filament changes"
 msgstr ""
 
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
+msgstr ""
+
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
+msgstr ""
+
+msgid "Learn more"
+msgstr ""
+
 msgid "Set the number of AMS installed on the nozzle."
 msgstr ""
 
@@ -6617,26 +7003,32 @@ msgstr ""
 msgid "Switch diameter"
 msgstr ""
 
-#, possible-c-format, possible-boost-format
-msgid "Left nozzle: %smm"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Right nozzle: %smm"
-msgstr ""
-
 msgid "Sync printer information"
 msgstr ""
 
-msgid ""
-"The currently selected machine preset is inconsistent with the connected printer type.\n"
-"Are you sure to continue syncing?"
+msgid "Do you want to sync the preset printer with the connected printer, "
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Current connected printer (Device page): %s (%s)"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Current printer preset (Prepare page): %s"
+msgstr ""
+
+msgid "Sync now"
 msgstr ""
 
 msgid "There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."
 msgstr ""
 
 msgid "Sync extruder infomation"
+msgstr ""
+
+msgid ""
+"Tips:\n"
+"Curve planning enhancement support detected on your printer. The software has automatically disabled arc fitting to ensure this feature functions correctly."
 msgstr ""
 
 msgid "Click to edit preset"
@@ -6675,7 +7067,25 @@ msgstr ""
 msgid "Set filaments to use"
 msgstr ""
 
+msgid "Add Mixed Filament"
+msgstr ""
+
+msgid "Mixed Filament"
+msgstr ""
+
+msgid "Add mixed filament"
+msgstr ""
+
+msgid "Remove last mixed filament"
+msgstr ""
+
+msgid "Mixed filament has invalid or mismatched components. Please re-edit affected entries."
+msgstr ""
+
 msgid "Search plate, object and part."
+msgstr ""
+
+msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -6694,6 +7104,12 @@ msgid ""
 msgstr ""
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
+msgstr ""
+
+msgid "Mixed filament has broken component references"
+msgstr ""
+
+msgid "Edit / Delete / Merge"
 msgstr ""
 
 #, possible-boost-format
@@ -6941,17 +7357,14 @@ msgstr ""
 msgid " (unsupported)"
 msgstr ""
 
-msgid "Multicolour simulation currently supports only a single filament material.\n"
+msgid "Multicolour simulation currently supports only a single filament material."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "You have selected multiple materials: %s"
 msgstr ""
 
-msgid ""
-"\n"
-"\n"
-"Note: Unsupported materials will use the selected reference material for simulation."
+msgid "Note: Unsupported materials will use the selected reference material for simulation."
 msgstr ""
 
 msgid "True multi-material support will be added in a future update."
@@ -6990,7 +7403,7 @@ msgstr ""
 msgid "⚠ Unsupported Materials Detected"
 msgstr ""
 
-msgid "Some of your selected materials are not directly supported by Helio:\n"
+msgid "Some of your selected materials are not directly supported by Helio:"
 msgstr ""
 
 msgid "Option 1: Proceed with a reference material"
@@ -7003,6 +7416,21 @@ msgid "Note: Using a reference material may result in approximate or erroneous r
 msgstr ""
 
 msgid "Change your filament selection to use a supported material, then try again."
+msgstr ""
+
+msgid "Option 3: Refresh supported materials list"
+msgstr ""
+
+msgid "Re-download the supported printers and materials list from Helio, then re-check compatibility."
+msgstr ""
+
+msgid "Refresh & Retry"
+msgstr ""
+
+msgid "Syncing Data"
+msgstr ""
+
+msgid "Refreshing printer and material data..."
 msgstr ""
 
 msgid "A Helio simulation or optimization task is in progress."
@@ -7022,6 +7450,56 @@ msgid ""
 msgstr ""
 
 msgid "Helio Printer Match Confirmation"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"Your printer '%s' is not officially supported by Helio.\n"
+"Select a reference printer:"
+msgstr ""
+
+msgid "Unsupported Printer"
+msgstr ""
+
+msgid "The current printer preset cannot be sliced using Helio."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"Helio found a potential material match using token-based matching:\n"
+"\n"
+"Your material: %s\n"
+"Matched material: %s\n"
+"\n"
+"Do you want to use this match, or would you prefer to rename your material profile?"
+msgstr ""
+
+msgid "Helio Material Match Confirmation"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid ""
+"Helio does not support materials %s.\n"
+"\n"
+"Please choose an officially supported material. "
+msgstr ""
+
+msgid "View supported materials"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Helio does not support materials %s"
+msgstr ""
+
+msgid ""
+"Warning: Infill combination is currently unsupported by Helio.\n"
+"\n"
+"Proceeding with this setting enabled may return erroneous results.\n"
+"\n"
+"Do you want to continue anyway?"
+msgstr ""
+
+msgid "Helio Warning"
 msgstr ""
 
 msgid "Unsupported Printer Detected"
@@ -7050,46 +7528,6 @@ msgid "Change your printer selection to use a supported printer, then try again.
 msgstr ""
 
 msgid "See supported printers"
-msgstr ""
-
-msgid "The current printer preset cannot be sliced using Helio."
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid ""
-"Helio found a potential material match using token-based matching:\n"
-"\n"
-"Your material: %s\n"
-"Matched material: %s\n"
-"\n"
-"Do you want to use this match, or would you prefer to rename your material profile?"
-msgstr ""
-
-msgid "Helio Material Match Confirmation"
-msgstr ""
-
-msgid "Unsupported Material Detected"
-msgstr ""
-
-msgid "⚠ Unsupported Material Detected"
-msgstr ""
-
-msgid "Choose a Reference Material"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Helio does not support materials %s"
-msgstr ""
-
-msgid ""
-"Warning: Infill combination is currently unsupported by Helio.\n"
-"\n"
-"Proceeding with this setting enabled may return erroneous results.\n"
-"\n"
-"Do you want to continue anyway?"
-msgstr ""
-
-msgid "Helio Warning"
 msgstr ""
 
 msgid "Click the Optimize/Enhance button to start your first optimization."
@@ -7139,9 +7577,6 @@ msgid ""
 "The nozzle type and AMS quantity information has not been synced from the connected printer.\n"
 "After syncing, software can optimize printing time and filament usage when slicing.\n"
 "Would you like to sync now ?"
-msgstr ""
-
-msgid "Sync now"
 msgstr ""
 
 msgid "You can keep the modified presets to the new project or discard them"
@@ -7270,6 +7705,14 @@ msgstr ""
 msgid "Save Sliced file as:"
 msgstr ""
 
+msgid ""
+"Failed to export the sliced file.\n"
+"Please check whether the file is occupied by another program or if there is enough disk space."
+msgstr ""
+
+msgid "Export sliced file"
+msgstr ""
+
 #, possible-c-format, possible-boost-format
 msgid "The file %s has been sent to the printer's storage space and can be viewed on the printer."
 msgstr ""
@@ -7302,15 +7745,14 @@ msgstr ""
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr ""
 
+#, possible-c-format, possible-boost-format
+msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
+msgstr ""
+
 msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr ""
 
 msgid "Are you sure to use them? \n"
-msgstr ""
-
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
 msgstr ""
 
 msgid "Send G-code"
@@ -7323,6 +7765,17 @@ msgid "Custom supports and color painting were removed before repairing."
 msgstr ""
 
 msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
+msgstr ""
+
+msgid ""
+"Print By Object: \n"
+"Suggest to use auto-arrange to avoid collisions when printing."
+msgstr ""
+
+msgid "Auto arrange"
+msgstr ""
+
+msgid "Detail view wiki->"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -7501,6 +7954,12 @@ msgstr ""
 msgid "Units"
 msgstr ""
 
+msgid "Use 12-hour time format"
+msgstr ""
+
+msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
+msgstr ""
+
 msgid "Keep only one Bambu Studio instance"
 msgstr ""
 
@@ -7564,9 +8023,6 @@ msgstr ""
 msgid "Clear my choice for Load 3mf dialog settings."
 msgstr ""
 
-msgid "Show the warning dialog again when importing non-Bambu 3MF files"
-msgstr ""
-
 msgid "3D Settings"
 msgstr ""
 
@@ -7598,6 +8054,15 @@ msgid "Remember last used color scheme"
 msgstr ""
 
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
+msgstr ""
+
+msgid "Display overview"
+msgstr ""
+
+msgid "Show assembly BVH primary bounds"
+msgstr ""
+
+msgid "Display the BVH primary bounding box wireframe in assembly view."
 msgstr ""
 
 msgid "Improve rendering performance by lod"
@@ -7856,10 +8321,10 @@ msgstr ""
 msgid "My Printer"
 msgstr ""
 
-msgid "Left filaments"
+msgid "AMS filaments"
 msgstr ""
 
-msgid "AMS filaments"
+msgid "Left filaments"
 msgstr ""
 
 msgid "Right filaments"
@@ -7941,6 +8406,9 @@ msgid "Spiral vase"
 msgstr ""
 
 msgid "First layer filament sequence"
+msgstr ""
+
+msgid "The filament list contains mixed filaments. Custom filament sequence will not take effect."
 msgstr ""
 
 msgid "Same as Global Bed Type"
@@ -8133,6 +8601,9 @@ msgstr ""
 msgid "To ensure print quality, the drying temperature will be lowered during printing."
 msgstr ""
 
+msgid "Select timelapse storage location"
+msgstr ""
+
 msgid ""
 "This checks the flatness of heatbed. Leveling makes extruded height uniform.\n"
 "*Automatic mode: Run a leveling check(about 10 seconds). Skip if surface is fine."
@@ -8154,10 +8625,17 @@ msgstr ""
 msgid "Nozzles and filaments of the same type share the same PA profile"
 msgstr ""
 
+msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
+msgstr ""
+
 msgid "send completed"
 msgstr ""
 
 msgid "Error code"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Recommended filament arrangement saves %s->"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -8205,6 +8683,49 @@ msgid "This checks the flatness of heatbed. Leveling makes extruded height unifo
 msgstr ""
 
 msgid "This process determines the dynamic flow values to improve overall print quality."
+msgstr ""
+
+msgid "Internal"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
+msgstr ""
+
+msgid "Clean up files"
+msgstr ""
+
+msgid "Low internal storage. This timelapse will overwrite the oldest video files."
+msgstr ""
+
+msgid "Low external storage. This timelapse will overwrite the oldest video files."
+msgstr ""
+
+msgid "Insufficient external storage for time-lapse photography. Connect to computer to delete files, or use a larger memory card."
+msgstr ""
+
+msgid "Storage Space Not Enough"
+msgstr ""
+
+msgid "Confirm & Print"
+msgstr ""
+
+msgid "Cancel Timelapse & Print"
+msgstr ""
+
+msgid "Clean Up"
+msgstr ""
+
+msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
+msgstr ""
+
+msgid "On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
+msgstr ""
+
+msgid "Off: Prioritize using the value from your manual flow calibration."
+msgstr ""
+
+msgid "Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
 msgstr ""
 
 msgid "Preparing print job"
@@ -8283,6 +8804,15 @@ msgstr ""
 msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
 msgstr ""
 
+msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
+msgstr ""
+
+msgid "This print requires a Filament Track Switch. Please install it first."
+msgstr ""
+
+msgid "The Filament Track Switch has not been setup. Please setup it first."
+msgstr ""
+
 #, possible-c-format, possible-boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
 msgstr ""
@@ -8307,6 +8837,9 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+msgstr ""
+
+msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr ""
 
 msgid "Cool"
@@ -8378,7 +8911,7 @@ msgstr ""
 msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
 msgstr ""
 
-msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
+msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
 msgstr ""
 
 msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
@@ -8391,9 +8924,6 @@ msgid "The current firmware supports a maximum of 16 materials. You can either r
 msgstr ""
 
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
-msgstr ""
-
-msgid "Please refer to Wiki before use->"
 msgstr ""
 
 msgid "How to install"
@@ -8411,10 +8941,12 @@ msgstr ""
 msgid "Try to connect"
 msgstr ""
 
-msgid "Internal Storage"
+msgctxt "sendtoprint"
+msgid "Cache"
 msgstr ""
 
-msgid "External Storage"
+msgctxt "sendtoprint"
+msgid "External"
 msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
@@ -8587,6 +9119,9 @@ msgstr ""
 msgid "Click to reset all settings to the last saved preset."
 msgstr ""
 
+msgid "Support interface speed"
+msgstr ""
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr ""
 
@@ -8631,15 +9166,20 @@ msgid ""
 "No  - Do not change these settings for me"
 msgstr ""
 
-msgid ""
-"When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+#, possible-c-format, possible-boost-format
+msgid "When using %s to support %s, We recommend the following settings:"
 msgstr ""
 
-msgid ""
-"When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
+msgid "When using PLA to support TPU, We recommend the following settings:"
+msgstr ""
+
+msgid "When using soluble material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "Do you want to apply these settings?"
 msgstr ""
 
 msgid ""
@@ -8848,16 +9388,25 @@ msgstr ""
 msgid "Filament scarf seam settings"
 msgstr ""
 
-msgid "Cooling for specific layer"
-msgstr ""
-
-msgid "Special cooling settings"
-msgstr ""
-
-msgid "set addition fan speed before fist x layer"
-msgstr ""
-
 msgid "Part cooling fan"
+msgstr ""
+
+msgid "Initial layer fan"
+msgstr ""
+
+msgid "Set the part cooling fan speed for the first few layers. Set to 0 to keep the fan off for better bed adhesion"
+msgstr ""
+
+msgid "Linear ramp up to"
+msgstr ""
+
+msgid "Fan speed will linearly increase from the initial layer speed to the layer-time-based speed over the specified number of layers"
+msgstr ""
+
+msgid "At"
+msgstr ""
+
+msgid "layers"
 msgstr ""
 
 msgid "Min fan speed threshold"
@@ -8873,6 +9422,21 @@ msgid "Part cooling fan speed will be max when the estimated layer time is short
 msgstr ""
 
 msgid "Auxiliary part cooling fan"
+msgstr ""
+
+msgid "Set the auxiliary fan speed for the first few layers"
+msgstr ""
+
+msgid "Linear ramp up"
+msgstr ""
+
+msgid "Auxiliary fan speed will linearly increase from the initial layer speed to the target speed over the specified number of layers"
+msgstr ""
+
+msgid "At layer"
+msgstr ""
+
+msgid "ramp up to"
 msgstr ""
 
 msgid "Exhaust fan"
@@ -9018,16 +9582,12 @@ msgstr ""
 msgid "Copy paramters"
 msgstr ""
 
-msgid "Modify paramters of right nozzle"
+#, possible-c-format, possible-boost-format
+msgid "Modify paramters of %s"
 msgstr ""
 
-msgid "Modify paramters of left nozzle"
-msgstr ""
-
-msgid "Do you want to modify the following parameters of the right nozzle to that of the left nozzle?"
-msgstr ""
-
-msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
+#, possible-c-format, possible-boost-format
+msgid "Do you want to modify the following parameters of the %s to that of the %s?"
 msgstr ""
 
 msgid "No available nozzles for current preset"
@@ -9343,13 +9903,7 @@ msgstr ""
 msgid "Reset all filament mapping"
 msgstr ""
 
-msgid "Left Extruder"
-msgstr ""
-
 msgid "(Recommended filament)"
-msgstr ""
-
-msgid "Right Extruder"
 msgstr ""
 
 msgid "Advanced Options"
@@ -9443,6 +9997,9 @@ msgctxt "FinishSyncAms"
 msgid "OK"
 msgstr ""
 
+msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
+msgstr ""
+
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 msgstr ""
 
@@ -9458,12 +10015,6 @@ msgid "The multiplier should be in range [%.2f, %.2f]."
 msgstr ""
 
 msgid "Re-calculate"
-msgstr ""
-
-msgid "Left extruder"
-msgstr ""
-
-msgid "Right extruder"
 msgstr ""
 
 msgid "Multiplier"
@@ -9488,6 +10039,55 @@ msgid "The configuration package is changed to the previous Config Guide"
 msgstr ""
 
 msgid "Configuration package changed"
+msgstr ""
+
+msgctxt "WebView"
+msgid "Back"
+msgstr ""
+
+msgid "Open in browser"
+msgstr ""
+
+msgid "View Source"
+msgstr ""
+
+msgid "View Text"
+msgstr ""
+
+msgid "Handle Navigation"
+msgstr ""
+
+msgid "Handle New Windows"
+msgstr ""
+
+msgid "Edit Mode"
+msgstr ""
+
+msgid "Run Script"
+msgstr ""
+
+msgid "Add user script"
+msgstr ""
+
+msgid "Set custom user agent"
+msgstr ""
+
+msgid "Clear Selection"
+msgstr ""
+
+msgid "Delete Selection"
+msgstr ""
+
+msgid "Custom Scheme Example"
+msgstr ""
+
+msgid "Memory File System Example"
+msgstr ""
+
+msgid "Enable Context Menu"
+msgstr ""
+
+msgid "Enable Dev Tools"
 msgstr ""
 
 msgid "Toolbar"
@@ -9608,6 +10208,9 @@ msgid "Camera view - Right"
 msgstr ""
 
 msgid "Camera view - Isometric"
+msgstr ""
+
+msgid "Shift+E"
 msgstr ""
 
 msgid "Select all objects"
@@ -9928,9 +10531,7 @@ msgstr ""
 msgid "You're nearly there! Now that Helio is activated, your first optimization run for faster, more reliable printing takes only minutes! (Now referred to as 'Enhance' or 'Enhancement')"
 msgstr ""
 
-msgid ""
-"Add an object to the build plate, select a material and printer that Helio supports, then slice.\n"
-"\n"
+msgid "Add an object to the build plate, select a material and printer that Helio supports, then slice."
 msgstr ""
 
 msgid "Supported printers and materials"
@@ -9960,6 +10561,14 @@ msgid "View and download recent optimizations and simulations"
 msgstr ""
 
 msgid "Terms of Use"
+msgstr ""
+
+msgid "Experimental: Enable multi-material support"
+msgstr ""
+
+msgid ""
+"When enabled, Helio uses the V3 API with per-slot material mapping for true multi-material prints.\n"
+"When disabled, the original V2 single-material API is used."
 msgstr ""
 
 msgid "Activation Successful"
@@ -10020,6 +10629,9 @@ msgid "Manage Account"
 msgstr ""
 
 msgid "Environment Settings"
+msgstr ""
+
+msgid "Optional. Uses the chamber temperature from Filament settings when available; you can override it here."
 msgstr ""
 
 msgid "Uses the chamber temperature from Filament settings when available; otherwise estimates it from the build plate temperature."
@@ -10241,6 +10853,9 @@ msgstr ""
 msgid "Heat is building up in small layers faster than it can dissipate. This may cause sagging or loss of detail in fine features."
 msgstr ""
 
+msgid "Ready to print — see suggestions"
+msgstr ""
+
 msgid "Ready to print"
 msgstr ""
 
@@ -10272,9 +10887,6 @@ msgid "Quick fixes (beginner):"
 msgstr ""
 
 msgid "Expert"
-msgstr ""
-
-msgid "Learn more"
 msgstr ""
 
 msgid "Helio Flowchart"
@@ -10830,7 +11442,7 @@ msgstr ""
 msgid "Avoid crossing wall"
 msgstr ""
 
-msgid "Detour and avoid traveling across wall which may cause blob on surface"
+msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
 msgstr ""
 
 msgid "Smoothing wall speed along Z(experimental)"
@@ -10930,6 +11542,12 @@ msgid "Fan speed for overhang"
 msgstr ""
 
 msgid "Force part cooling fan to be at this speed when printing bridge or overhang wall which has large overhang degree. Forcing cooling for overhang and bridge can get better quality for these part"
+msgstr ""
+
+msgid "Ironing fan speed"
+msgstr ""
+
+msgid "This part cooling fan speed is applied when ironing. Setting this parameter to a lower than regular speed reduces possible nozzle clogging due to the low volumetric flow rate, making the interface smoother. Set to -1 to disable it."
 msgstr ""
 
 msgid "Pre start fan time"
@@ -11196,10 +11814,19 @@ msgstr ""
 msgid "For the first"
 msgstr ""
 
+msgid "Set special auxiliary cooling fan for the first certain layers."
+msgstr ""
+
+msgid "Full fan speed at layer"
+msgstr ""
+
+msgid "Auxiliary fan speed will be ramped up linearly from layer \"For the first\" to maximum at layer \"Full fan speed at layer\". \"Full fan speed at layer\" will be ignored if lower than \"For the first\", in which case the fan will be running at maximum allowed speed at layer \"For the first\" + 1."
+msgstr ""
+
 msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
 msgstr ""
 
-msgid "layers"
+msgid "Part cooling fan speed for the first few layers. Set to 0 to disable the part cooling fan on the initial layers for better bed adhesion"
 msgstr ""
 
 msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
@@ -11305,6 +11932,12 @@ msgid "Top surface density"
 msgstr ""
 
 msgid "Density of top surface infill, 100% means a fully solid filled top layer.Lower values create a textured top surface, at 0%, only the walls are created on the top layer.Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion."
+msgstr ""
+
+msgid "Monotonic line travel extend"
+msgstr ""
+
+msgid "Enable this option to extend the travel distance between lines, improving the adhesion between the monotonic line infill and the walls.(percent to line width)"
 msgstr ""
 
 msgid "Bottom surface pattern"
@@ -11596,6 +12229,12 @@ msgstr ""
 msgid "Filament category"
 msgstr ""
 
+msgid "Metal stickiness"
+msgstr ""
+
+msgid "Indicates how strongly the filament tends to stick to the metal nozzle and leave residue. \"None\" means untested or custom filament, behaves the same as Low. Low: e.g. PLA - retraction can be safely skipped in infill areas. Medium: moderate stickiness - use with caution. High: e.g. PETG - retraction should not be skipped to avoid oozing artifacts on outer walls."
+msgstr ""
+
 msgid "Density"
 msgstr ""
 
@@ -11659,10 +12298,46 @@ msgstr ""
 msgid "Support material is commonly used to print support and support interface"
 msgstr ""
 
+msgid "Is mixed filament"
+msgstr ""
+
+msgid "Whether this filament slot is a mixed filament composed of multiple physical filaments"
+msgstr ""
+
+msgid "Mixed filament components"
+msgstr ""
+
+msgid "Comma-separated 1-based indices of component filaments, e.g. \"1,3\""
+msgstr ""
+
+msgid "Mixed filament sublayer ratios"
+msgstr ""
+
+msgid "Comma-separated ratio values summing to 1.0, e.g. \"0.7,0.3\""
+msgstr ""
+
+msgid "Mixed filament gradient"
+msgstr ""
+
+msgid "Enable Z-direction gradient mode for mixed filament sub-layers. When enabled, the sub-layer ratios vary linearly across layers."
+msgstr ""
+
+msgid "Mixed filament gradient range"
+msgstr ""
+
+msgid "Start and end ratios for the first component in gradient mode. Comma-separated pair, e.g. \"0.10,0.90\" means 10% to 90%."
+msgstr ""
+
 msgid "Filament printable"
 msgstr ""
 
 msgid "The filament is printable in extruder"
+msgstr ""
+
+msgid "Filament-extruder compatibility"
+msgstr ""
+
+msgid "A single 32-bit int encoding the compatibility level of a filament across all extruders (up to 10). Every 3 bits represent one extruder (bits [3*i, 3*i+2] for extruder i). 0: printable, 1: error, 2: critical warning, 3: warning, 4-7: reserved"
 msgstr ""
 
 msgid "Filament change"
@@ -11714,6 +12389,12 @@ msgid "Print temperature for prime tower interface layer (where different materi
 msgstr ""
 
 msgid "°C"
+msgstr ""
+
+msgid "Enable tower interface features"
+msgstr ""
+
+msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
 msgstr ""
 
 msgid "Softening temperature"
@@ -11909,9 +12590,6 @@ msgstr ""
 msgid "Nozzle temperature to print initial layer when using this filament"
 msgstr ""
 
-msgid "Full fan speed at layer"
-msgstr ""
-
 msgid "Randomly jitter while printing the wall, so that the surface has a rough look. This setting controls the fuzzy position"
 msgstr ""
 
@@ -11931,6 +12609,64 @@ msgid "Fuzzy skin point distance"
 msgstr ""
 
 msgid "The average distance between the random points introduced on each line segment"
+msgstr ""
+
+msgid "Apply fuzzy skin to first layer"
+msgstr ""
+
+msgid "Whether to apply fuzzy skin on the first layer."
+msgstr ""
+
+msgid "Fuzzy skin noise type"
+msgstr ""
+
+msgid ""
+"Noise type to use for fuzzy skin generation:\n"
+"Classic: Classic uniform random noise.\n"
+"Perlin: Perlin noise, which gives a more consistent texture.\n"
+"Billow: Similar to perlin noise, but clumpier.\n"
+"Ridged Multifractal: Ridged noise with sharp, jagged features. Creates marble-like textures.\n"
+"Voronoi: Divides the surface into voronoi cells, and displaces each one by a random amount. Creates a patchwork texture."
+msgstr ""
+
+msgid "Classic"
+msgstr ""
+
+msgid "Fuzzy skin feature size"
+msgstr ""
+
+msgid "The base size of the coherent noise features, in mm. Higher values will result in larger features."
+msgstr ""
+
+msgid "Fuzzy skin noise octaves"
+msgstr ""
+
+msgid "The number of octaves of coherent noise to use. Higher values increase the detail of the noise, but also increase computation time."
+msgstr ""
+
+msgid "Fuzzy skin noise persistence"
+msgstr ""
+
+msgid "The decay rate for higher octaves of the coherent noise. Lower values will result in smoother noise."
+msgstr ""
+
+msgid "Fuzzy skin generator mode"
+msgstr ""
+
+msgid ""
+"Displacement: Pattern is formed by shifting the nozzle sideways from the original path.\n"
+"Extrusion: Pattern is formed by varying the amount of extruded plastic (nozzle path stays straight).\n"
+"Combined: Displacement + Extrusion. Similar look to Displacement but fills gaps between perimeters.\n"
+"Note: Extrusion and Combined only work when fuzzy skin thickness is not greater than the printed line width."
+msgstr ""
+
+msgid "Displacement"
+msgstr ""
+
+msgid "Extrusion"
+msgstr ""
+
+msgid "Combined"
 msgstr ""
 
 msgid "Filter out tiny gaps"
@@ -11970,6 +12706,12 @@ msgid "Scan first layer"
 msgstr ""
 
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
+msgstr ""
+
+msgid "Print loops in clockwise"
+msgstr ""
+
+msgid "Print in clockwise when enabled, or counterclockwise when not enabled, not work for spiral vase mode"
 msgstr ""
 
 msgid "Enable clumping detection"
@@ -12039,12 +12781,6 @@ msgid "Support control chamber temperature"
 msgstr ""
 
 msgid "This option is enabled if machine support controlling chamber temperature"
-msgstr ""
-
-msgid "Apply top surface compensation"
-msgstr ""
-
-msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
 msgstr ""
 
 msgid "Air filtration enhancement"
@@ -12458,7 +13194,7 @@ msgstr ""
 msgid "Reduce infill retraction"
 msgstr ""
 
-msgid "Don't retract when the travel is in infill area absolutely. That means the oozing can't been seen. This can reduce times of retraction for complex model and save printing time, but make slicing and G-code generating slower"
+msgid "Controls whether retraction is skipped when traveling within the infill area. \"Auto\" enables this optimization for filaments with low metal stickiness (e.g. PLA) and disables it for medium/high metal stickiness filaments (e.g. PETG) to avoid oozing artifacts. \"Enabled\" always skips retraction in infill areas regardless of filament type. \"Disabled\" always retracts normally."
 msgstr ""
 
 msgid "Filename format"
@@ -13172,6 +13908,12 @@ msgstr ""
 msgid "Describe how long the nozzle will move along the last path when retracting"
 msgstr ""
 
+msgid "Mixed color sublayer"
+msgstr ""
+
+msgid "Enable mixed color sublayer splitting. When enabled, layers containing mixed color filaments will be split into sub-layers to achieve color mixing effects."
+msgstr ""
+
 msgid "The wiping tower can be used to clean up the residue on the nozzle and stabilize the chamber pressure inside the nozzle, in order to avoid appearance defects when printing objects."
 msgstr ""
 
@@ -13347,9 +14089,6 @@ msgid "Contour of object will be grown or shrunk in XY plane by the configured v
 msgstr ""
 
 msgid "Classic wall generator produces walls with constant extrusion width and for very thin areas is used gap-fill. Arachne engine produces walls with variable extrusion width"
-msgstr ""
-
-msgid "Classic"
 msgstr ""
 
 msgid "Arachne"
@@ -13858,6 +14597,9 @@ msgid ""
 "- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)\n"
 msgstr ""
 
+msgid "(Aux) does not support automatic flow calibration."
+msgstr ""
+
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr ""
 
@@ -13913,7 +14655,8 @@ msgstr ""
 msgid "Connecting to printer"
 msgstr ""
 
-msgid "Calibration only supports cases where the left and right nozzle diameters are identical."
+#, possible-c-format, possible-boost-format
+msgid "Calibration only supports cases where the %s and %s diameters are identical."
 msgstr ""
 
 msgid "From k Value"
@@ -13985,6 +14728,9 @@ msgid "The nozzle must be selected."
 msgstr ""
 
 msgid "PA Calibration"
+msgstr ""
+
+msgid "Extruder type"
 msgstr ""
 
 msgid "PA Tower"
@@ -14763,7 +15509,14 @@ msgstr ""
 msgid "The start, end or step is not valid value."
 msgstr ""
 
+msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
+msgstr ""
+
 msgid "The number of printer extruders and the printer selected for calibration does not match."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "The type of %sextruder is bowden which does not support automatic Flow Dynamics calibration."
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -15088,6 +15841,9 @@ msgstr ""
 msgid "Failed to parse response"
 msgstr ""
 
+msgid "Failed to create GCodeV3"
+msgstr ""
+
 msgid "Helio simulation task failed"
 msgstr ""
 
@@ -15311,7 +16067,13 @@ msgstr ""
 msgid "%d %s Preset will be deleted."
 msgstr ""
 
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
+msgstr ""
+
 msgid "Filament grouping"
+msgstr ""
+
+msgid "Fila Saving"
 msgstr ""
 
 msgid "Don't remind me again"
@@ -15326,16 +16088,26 @@ msgstr ""
 msgid "Convenience Mode"
 msgstr ""
 
+msgid "Quality Mode"
+msgstr ""
+
 msgid "Custom Mode"
 msgstr ""
 
-msgid "Generates filament grouping for the left and right nozzles based on the most filament-saving principles to minimize waste"
+#, possible-c-format, possible-boost-format
+msgid "Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"
 msgstr ""
 
-msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
+#, possible-c-format, possible-boost-format
+msgid "Generates filament grouping for the %s and %s based on the printer's actual filament status, reducing the need for manual filament adjustment"
 msgstr ""
 
-msgid "Manually assign filament to the left or right nozzle"
+#, possible-c-format, possible-boost-format
+msgid "Generates filament grouping for the %s and %s based on quality optimization principles"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Manually assign filament to the %s or %s"
 msgstr ""
 
 msgid "Global settings"
@@ -15364,15 +16136,7 @@ msgid " to set nozzle count"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Left Extruder(%d)"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Right Extruder(Std: %d, HF: %d)"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Right Extruder(%d)"
+msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
 msgstr ""
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
@@ -15595,6 +16359,9 @@ msgstr ""
 msgid "  Please plug in the power and then use the drying function."
 msgstr ""
 
+msgid "  The high drying temperature may cause AMS blockage. Please unload the filament manually before proceeding."
+msgstr ""
+
 msgid "System is busy"
 msgstr ""
 
@@ -15745,6 +16512,61 @@ msgid "Print Outcome: LIKELY_FAIL"
 msgstr ""
 
 msgid "Print Outcome: "
+msgstr ""
+
+msgid "Edit Mixed Filament"
+msgstr ""
+
+msgid "Effect Preview"
+msgstr ""
+
+msgid "Select Mixed Materials"
+msgstr ""
+
+msgid "+ Add Material"
+msgstr ""
+
+msgid "- Delete Material"
+msgstr ""
+
+msgid "Ratio"
+msgstr ""
+
+msgid "Gradient Effect"
+msgstr ""
+
+msgid "Mixing Recommendations"
+msgstr ""
+
+msgid "-- Select --"
+msgstr ""
+
+msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
+msgstr ""
+
+msgid "Mixed Color Sublayer"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "Slot %s (%s)"
+msgstr ""
+
+msgid "cannot be mixed. Please select the same filament type."
+msgstr ""
+
+msgid "Please select a filament for all components"
+msgstr ""
+
+msgid "Cannot mix different filament types"
+msgstr ""
+
+msgid "Maximum 3 materials for mixing"
+msgstr ""
+
+msgid "Maximum number of components reached"
+msgstr ""
+
+msgid "Remove the third material"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]

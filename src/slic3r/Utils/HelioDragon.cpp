@@ -1998,24 +1998,7 @@ void HelioBackgroundProcess::create_simulation_step(HelioQuery::CreateGCodeResul
         wxQueueEvent(GUI::wxGetApp().plater(), evt);
 
         const std::string gcode_id = create_gcode_res.id;
-        HelioQuery::CreateSimulationResult create_simulation_res;
-
-        const int max_create_retries = 3;
-        for (int retry = 0; retry < max_create_retries && !was_canceled(); ++retry) {
-            if (retry > 0) {
-                BOOST_LOG_TRIVIAL(warning) << "Helio: retrying create_simulation (attempt " << (retry + 1) << "/" << max_create_retries << ")";
-                boost::this_thread::sleep_for(boost::chrono::seconds(2 * retry)); // 2s, 4s backoff
-
-                Slic3r::PrintBase::SlicingStatus retry_status = Slic3r::PrintBase::SlicingStatus(15,
-                    (boost::format(_u8L("Helio: Retrying... (attempt %1%/%2%)")) % (retry + 1) % max_create_retries).str());
-                retry_status.is_helio = true;
-                Slic3r::SlicingStatusEvent* retry_evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, retry_status);
-                wxQueueEvent(GUI::wxGetApp().plater(), retry_evt);
-            }
-            create_simulation_res = HelioQuery::create_simulation(helio_api_url, helio_api_key, gcode_id, simulation_input_data);
-            if (create_simulation_res.success) break;
-        }
-
+        HelioQuery::CreateSimulationResult create_simulation_res = HelioQuery::create_simulation(helio_api_url, helio_api_key, gcode_id, simulation_input_data);
         current_simulation_result = create_simulation_res;
         current_optimization_result.reset();
         // Clear previous stored result since we're starting a new simulation
@@ -2157,24 +2140,7 @@ void HelioBackgroundProcess::create_optimization_step(HelioQuery::CreateGCodeRes
         wxQueueEvent(GUI::wxGetApp().plater(), evt);
 
         const std::string gcode_id = create_gcode_res.id;
-        HelioQuery::CreateOptimizationResult create_optimization_res;
-
-        const int max_create_retries = 3;
-        for (int retry = 0; retry < max_create_retries && !was_canceled(); ++retry) {
-            if (retry > 0) {
-                BOOST_LOG_TRIVIAL(warning) << "Helio: retrying create_optimization (attempt " << (retry + 1) << "/" << max_create_retries << ")";
-                boost::this_thread::sleep_for(boost::chrono::seconds(2 * retry)); // 2s, 4s backoff
-
-                Slic3r::PrintBase::SlicingStatus retry_status = Slic3r::PrintBase::SlicingStatus(15,
-                    (boost::format(_u8L("Helio: Retrying... (attempt %1%/%2%)")) % (retry + 1) % max_create_retries).str());
-                retry_status.is_helio = true;
-                Slic3r::SlicingStatusEvent* retry_evt = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, retry_status);
-                wxQueueEvent(GUI::wxGetApp().plater(), retry_evt);
-            }
-            create_optimization_res = HelioQuery::create_optimization(helio_api_url, helio_api_key, gcode_id, optimization_input_data);
-            if (create_optimization_res.success) break;
-        }
-
+        HelioQuery::CreateOptimizationResult create_optimization_res = HelioQuery::create_optimization(helio_api_url, helio_api_key, gcode_id, optimization_input_data);
         current_optimization_result = create_optimization_res;
         current_simulation_result.reset();
         // Clear previous stored result since we're starting a new optimization
@@ -2393,23 +2359,20 @@ void HelioBackgroundProcess::save_downloaded_gcode_and_load_preview(std::string 
 void HelioBackgroundProcess::load_helio_file_to_viwer(std::string file_path, std::string tmp_path, HelioQuery::RatingData rating_data)
 {
     const Vec3d origin = GUI::wxGetApp().plater()->get_partplate_list().get_current_plate_origin();
+    auto old_result = GUI::wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_gcode_result();
+    // auto old_group_result = GUI::wxGetApp().plater()->get_partplate_list().get_curr_plate()->get_gcode_result()->nozzle_group_result;
     m_gcode_processor.set_xy_offset(origin(0), origin(1));
-
-    // Preserve nozzle grouping context from original slicing for multi-nozzle printers (H2C)
-    if (m_gcode_result && m_gcode_result->nozzle_group_result.has_value())
-        m_gcode_processor.initialize_from_context(m_gcode_result->nozzle_group_result.value());
-
-    m_gcode_processor.process_file(file_path);
-
-    // Carry over fields that GCodeProcessor cannot reconstruct from gcode parsing
-    if (m_gcode_result) {
-        m_gcode_processor.result().nozzle_group_result = m_gcode_result->nozzle_group_result;
-        m_gcode_processor.result().used_filaments = m_gcode_result->used_filaments;
-        m_gcode_processor.result().filament_change_sequence = m_gcode_result->filament_change_sequence;
+    if (old_result && old_result->nozzle_group_result) {
+        m_gcode_processor.initialize_from_context(old_result->nozzle_group_result);
     }
+    m_gcode_processor.process_file(file_path);
 
     auto res       = &m_gcode_processor.result();
     m_gcode_result = res;
+    m_gcode_result->nozzle_group_result = old_result->nozzle_group_result;
+    m_gcode_result->used_filaments = old_result->used_filaments;
+    m_gcode_result->filament_change_sequence = old_result->filament_change_sequence;
+    m_gcode_result->nozzle_change_sequence = old_result->nozzle_change_sequence;
 
     set_state(STATE_FINISHED);
 

@@ -86,6 +86,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/ErrorMsgStaticText.hpp
     GUI/Widgets/MultiNozzleSync.hpp
     GUI/Widgets/MultiNozzleSync.cpp
+    GUI/MixedFilamentDialog.cpp
+    GUI/MixedFilamentDialog.hpp
     GUI/AboutDialog.cpp
     GUI/AboutDialog.hpp
     GUI/NetworkTestDialog.cpp
@@ -501,6 +503,7 @@ set(SLIC3R_GUI_SOURCES
     GUI/SendToPrinter.cpp
     GUI/AmsMappingPopup.hpp
     GUI/AmsMappingPopup.cpp
+    GUI/AmsMappingPopupUpdate.cpp
     GUI/ReleaseNote.hpp
     GUI/ReleaseNote.cpp
     GUI/HelioReleaseNote.hpp
@@ -628,8 +631,11 @@ set(SLIC3R_GUI_SOURCES
     Utils/HelioDragon.hpp
     Utils/FileTransferUtils.cpp
     Utils/FileTransferUtils.hpp
+    Utils/FileTransferObject.cpp
+    Utils/FileTransferObject.hpp
     Utils/CertificateVerify.hpp
     Utils/CertificateVerify.cpp
+    Utils/FrameBuffer.hpp
 )
 
 add_subdirectory(GUI/DeviceCore)

@@ -3,6 +3,9 @@
 #include "Widgets/Label.hpp"
 #include "MsgDialog.hpp"
 #include "DeviceCore/DevNozzleRack.h"
+#include "DeviceCore/DevManager.h"
+#include "DeviceCore/DevConfigUtil.h"
+#include "DeviceManager.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -55,19 +58,28 @@ static wxString get_default_name(wxString filament_name, CalibMode mode){
 static wxString get_tray_name_by_tray_id(int tray_id)
 {
     wxString tray_name;
+
+    DeviceManager *dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return tray_name;
+
+    MachineObject *obj = dev->get_selected_machine();
+    if (!obj) return tray_name;
+
+    auto tray_ams_slot_map = obj->GetFilaSystem()->GetTrayIndexMap();
+
     if (tray_id == VIRTUAL_TRAY_MAIN_ID || tray_id == VIRTUAL_TRAY_DEPUTY_ID) {
         tray_name = "Ext";
-    }
-    else {
-        int  ams_id = tray_id / 4;
-        int slot_id = tray_id % 4;
-        if (ams_id >= 0 && ams_id < 26) {
+    } else if (tray_ams_slot_map.find(tray_id) != tray_ams_slot_map.end()) {
+        int  ams_id = tray_ams_slot_map[tray_id].first;
+        int slot_id = tray_ams_slot_map[tray_id].second;
+
+        if (ams_id >= 128 && ams_id < 153) {
+            char prefix = 'A' + ams_id - 128;
+            tray_name   = std::string(1, prefix);
+        } else {
             char prefix = 'A' + ams_id;
             char suffix = '0' + 1 + slot_id;
             tray_name = std::string(1, prefix) + std::string(1, suffix);
-        } else if (ams_id >= 128 && ams_id < 153) {
-            char prefix = 'A' + ams_id - 128;
-            tray_name   = std::string(1, prefix);
         }
     }
     return tray_name;
@@ -89,35 +101,47 @@ enum class GridTextInputType {
 class GridTextInput : public TextInput
 {
 public:
-    GridTextInput(wxWindow* parent, wxString text, wxString label, wxSize size, int col_idx, GridTextInputType type);
+    GridTextInput(wxWindow* parent, wxString text, wxString label, wxSize size, int col_idx, GridTextInputType type, int extruder_id);
     int get_col_idx() { return m_col_idx; }
     void set_col_idx(int idx) { m_col_idx = idx; }
+
+    int get_extruder_id() { return m_extruder_id; }
+    void set_extruder_id(int id) { m_extruder_id = id; }
+
     GridTextInputType get_type() { return m_type; }
     void set_type(GridTextInputType type) { m_type = type; }
 private:
     int m_col_idx;
+    int m_extruder_id{-1};
     GridTextInputType m_type;
 };
 
-GridTextInput::GridTextInput(wxWindow* parent, wxString text, wxString label, wxSize size, int col_idx, GridTextInputType type)
+GridTextInput::GridTextInput(wxWindow* parent, wxString text, wxString label, wxSize size, int col_idx, GridTextInputType type, int extruder_id)
     : TextInput(parent, text, label, "", wxDefaultPosition, size, wxTE_PROCESS_ENTER)
     , m_col_idx(col_idx)
+    , m_extruder_id(extruder_id)
     , m_type(type)
 {
 }
 
 class GridComboBox : public ComboBox {
 public:
-    GridComboBox(wxWindow* parent, wxSize size, int col_idx);
+    GridComboBox(wxWindow* parent, wxSize size, int col_idx, int extruder_id);
     int get_col_idx() { return m_col_idx; }
     void set_col_idx(int idx) { m_col_idx = idx; }
+
+    int get_extruder_id() { return m_extruder_id; }
+    void set_extruder_id(int id) { m_extruder_id = id; }
+
 private:
     int m_col_idx;
+    int m_extruder_id{-1};
 };
 
-GridComboBox::GridComboBox(wxWindow* parent, wxSize size, int col_idx)
+GridComboBox::GridComboBox(wxWindow* parent, wxSize size, int col_idx, int extruder_id)
     : ComboBox(parent, wxID_ANY, "", wxDefaultPosition, size, 0, nullptr)
     , m_col_idx(col_idx)
+    , m_extruder_id(extruder_id)
 {
 
 }
@@ -221,7 +245,7 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
     m_calib_results.clear();
     for (auto& item : cali_result) {
         if (item.confidence == 0)
-            m_calib_results[item.tray_id] = item;
+            m_calib_results.push_back(item);
     }
     m_grid_panel->DestroyChildren();
     auto grid_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -275,14 +299,14 @@ void CaliPASaveAutoPanel::sync_cali_result(const std::vector<PACalibResult>& cal
         wxString tray_name = get_tray_name_by_tray_id(item.tray_id);
         tray_title->SetLabel(tray_name);
 
-        auto k_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_SAVE_INPUT_SIZE, item.tray_id, GridTextInputType::K);
-        auto n_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_SAVE_INPUT_SIZE, item.tray_id, GridTextInputType::N);
+        auto k_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_SAVE_INPUT_SIZE, item.tray_id, GridTextInputType::K, MAIN_EXTRUDER_ID);
+        auto n_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_SAVE_INPUT_SIZE, item.tray_id, GridTextInputType::N, MAIN_EXTRUDER_ID);
         k_value->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
         n_value->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
         auto k_value_failed = new Label(m_grid_panel, _L("Failed"));
         auto n_value_failed = new Label(m_grid_panel, _L("Failed"));
 
-        auto comboBox_tray_name = new GridComboBox(m_grid_panel, CALIBRATION_SAVE_INPUT_SIZE, item.tray_id);
+        auto comboBox_tray_name = new GridComboBox(m_grid_panel, CALIBRATION_SAVE_INPUT_SIZE, item.tray_id, MAIN_EXTRUDER_ID);
         auto tray_name_failed = new Label(m_grid_panel, " - ");
         wxArrayString selections;
         static std::vector<PACalibResult> filtered_results;
@@ -389,17 +413,24 @@ void CaliPASaveAutoPanel::save_to_result_from_widgets(wxWindow* window, bool* ou
         return;
 
     //operate
+    auto find_result = [this](int tray_id, int extruder_id) -> PACalibResult* {
+        auto it = std::find_if(m_calib_results.begin(), m_calib_results.end(), [tray_id, extruder_id](const PACalibResult& r) {
+                return r.tray_id == tray_id && r.extruder_id == extruder_id;
+            });
+        return it != m_calib_results.end() ? &(*it) : nullptr;
+    };
     auto input = dynamic_cast<GridTextInput*>(window);
     if (input && input->IsShown()) {
-        int tray_id = input->get_col_idx();
+        int tray_id     = input->get_col_idx();
+        int extruder_id = input->get_extruder_id();
         if (input->get_type() == GridTextInputType::K) {
             float k = 0.0f;
             if (!CalibUtils::validate_input_k_value(input->GetTextCtrl()->GetValue(), &k)) {
                 *out_msg = wxString::Format(_L("Please input a valid value (K in %.1f~%.1f)"), MIN_PA_K_VALUE, MAX_PA_K_VALUE);
                 *out_is_valid = false;
             }
-            else
-                m_calib_results[tray_id].k_value = k;
+            else if (auto* result = find_result(tray_id, extruder_id))
+                result->k_value = k;
         }
         else if (input->get_type() == GridTextInputType::N) {
         }
@@ -407,7 +438,8 @@ void CaliPASaveAutoPanel::save_to_result_from_widgets(wxWindow* window, bool* ou
 
     auto comboBox = dynamic_cast<GridComboBox*>(window);
     if (comboBox && comboBox->IsShown()) {
-        int tray_id = comboBox->get_col_idx();
+        int      tray_id     = comboBox->get_col_idx();
+        int      extruder_id = comboBox->get_extruder_id();
         wxString name = comboBox->GetTextCtrl()->GetValue().ToStdString();
         if (name.IsEmpty()) {
             *out_msg = _L("Please enter the name you want to save to printer.");
@@ -417,7 +449,9 @@ void CaliPASaveAutoPanel::save_to_result_from_widgets(wxWindow* window, bool* ou
             *out_msg = _L("The name cannot exceed 40 characters.");
             *out_is_valid = false;
         }
-        m_calib_results[tray_id].name = into_u8(name);
+
+        if (auto* result = find_result(tray_id, extruder_id))
+            result->name = into_u8(name);
     }
 
     auto childern = window->GetChildren();
@@ -434,56 +468,11 @@ bool CaliPASaveAutoPanel::get_result(std::vector<PACalibResult>& out_result) {
         save_to_result_from_widgets(m_multi_extruder_grid_panel, &is_valid, &err_msg);
     else
         save_to_result_from_widgets(m_grid_panel, &is_valid, &err_msg);
+
     if (is_valid) {
-        /*
-        std::vector<PACalibResult> to_save_result;
-        for (auto &result : m_calib_results) {
-            auto iter = std::find_if(to_save_result.begin(), to_save_result.end(), [this, &result](const PACalibResult &item) {
-                bool has_same_name = (item.name == result.second.name && item.filament_id == result.second.filament_id);
-                if (m_obj && m_obj->is_multi_extruders()) {
-                    has_same_name &= (item.extruder_id == result.second.extruder_id && item.nozzle_volume_type == result.second.nozzle_volume_type);
-                }
-                return has_same_name;
-            });
-
-            if (iter != to_save_result.end()) {
-                MessageDialog msg_dlg(nullptr, _L("Only one of the results with the same name will be saved. Are you sure you want to override the other results?"),
-                                      wxEmptyString, wxICON_WARNING | wxYES_NO);
-                if (msg_dlg.ShowModal() != wxID_YES) {
-                    return false;
-                } else {
-                    break;
-                }
-            }
-        }
-
-        for (auto &result : m_history_results) {
-            auto iter = std::find_if(m_history_results.begin(), m_history_results.end(), [this, &result](const PACalibResult &item) {
-                bool has_same_name = (item.name == result.name && item.filament_id == result.filament_id);
-                if (m_obj && m_obj->is_multi_extruders()) {
-                    has_same_name &= (item.extruder_id == result.extruder_id && item.nozzle_volume_type == result.nozzle_volume_type);
-                }
-                return has_same_name;
-            });
-
-            if (iter != m_history_results.end()) {
-                 MessageDialog msg_dlg(nullptr,
-                                      wxString::Format(_L("There is already a historical calibration result with the same name: %s. Are you sure you want to override the historical result?"),
-                                                       result.name),
-                                      wxEmptyString, wxICON_WARNING | wxYES_NO);
-                if (msg_dlg.ShowModal() != wxID_YES) {
-                    return false;
-                }
-            }
-        }
-        */
-
-        for (auto& result : m_calib_results) {
-            out_result.push_back(result.second);
-        }
+        out_result = m_calib_results;
         return true;
-    }
-    else {
+    } else {
         MessageDialog msg_dlg(nullptr, err_msg, wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return false;
@@ -494,7 +483,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
 {
     if (!m_obj || !m_obj->GetNozzleSystem()) return;
 
-    std::map<int, DynamicPrintConfig> old_full_filament_ams_list = wxGetApp().sidebar().build_filament_ams_list(m_obj);
+    std::map<int, DynamicPrintConfig> old_full_filament_ams_list = build_filament_ams_list(m_obj);
     std::map<int, DynamicPrintConfig> full_filament_ams_list;
     for (auto ams_item : old_full_filament_ams_list) {
         int key = ams_item.first & 0x0FFFF;
@@ -510,11 +499,9 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
     m_calib_results.clear();
     for (auto &item : cali_result) {
         if (item.confidence == 0) {
-            int tray_id = 4 * item.ams_id + item.slot_id;
-            if (item.ams_id == VIRTUAL_TRAY_MAIN_ID || item.ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
-                tray_id = item.ams_id;
-            }
-            m_calib_results[tray_id] = item;
+            PACalibResult result = item;
+            result.tray_id = m_obj->GetFilaSystem()->GetTrayIdByAmsSlotId(item.ams_id, item.slot_id);
+            m_calib_results.push_back(result);
         }
     }
     m_multi_extruder_grid_panel->DestroyChildren();
@@ -525,8 +512,9 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
     m_multi_extruder_grid_panel->SetSizer(grid_sizer, true);
     m_multi_extruder_grid_panel->Bind(wxEVT_LEFT_DOWN, [this](auto &e) { SetFocusIgnoringChildren(); });
 
-    wxStaticBoxSizer *left_sizer  = new wxStaticBoxSizer(wxVERTICAL, m_multi_extruder_grid_panel, _L("Left extruder"));
-    wxStaticBoxSizer *right_sizer = new wxStaticBoxSizer(wxVERTICAL, m_multi_extruder_grid_panel, _L("Right extruder"));
+    std::string cwsp_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    wxStaticBoxSizer *left_sizer  = new wxStaticBoxSizer(wxVERTICAL, m_multi_extruder_grid_panel, _L(DevPrinterConfigUtil::get_toolhead_display_name(cwsp_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::SentenceCase)));
+    wxStaticBoxSizer *right_sizer = new wxStaticBoxSizer(wxVERTICAL, m_multi_extruder_grid_panel, _L(DevPrinterConfigUtil::get_toolhead_display_name(cwsp_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::SentenceCase)));
     grid_sizer->Add(left_sizer);
     grid_sizer->AddSpacer(COLUMN_GAP);
     grid_sizer->Add(right_sizer);
@@ -572,26 +560,19 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
             right_grid_sizer->Add(nozzle_title, 1, wxALIGN_CENTER);
         }
     }
-
-    std::vector<std::pair<int, std::string>> preset_names;
+    // key: extruder_id tray_id
+    std::vector<std::pair<std::pair<int, int>, std::string>> preset_names;
     int i = 1;
     std::unordered_set<std::string> set;
     for (auto &info : m_obj->GetCalib()->GetSelectedCalibPreset()) {
         std::string default_name;
         // extruder _id
         {
-            int extruder_id = 0;
-            if (info.tray_id == VIRTUAL_TRAY_MAIN_ID) {
-                extruder_id = 0;
-            } else if (info.tray_id == VIRTUAL_TRAY_DEPUTY_ID) {
-                extruder_id = 1;
-            } else {
-                int ams_id  = info.tray_id / 4;
-                extruder_id = m_obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
-            }
+            int extruder_id = info.extruder_id;
 
             if (extruder_id == MAIN_EXTRUDER_ID) {
-                default_name += "Right Nozzle";
+                default_name += DevPrinterConfigUtil::get_toolhead_display_name(
+                    m_obj->printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase);
                 if (has_rack) {
                     default_name += "_";
                     if (info.nozzle_pos_id == 0) {
@@ -603,7 +584,8 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
                     }
                 }
             } else if (extruder_id == DEPUTY_EXTRUDER_ID){
-                default_name += "Left Nozzle";
+                default_name += DevPrinterConfigUtil::get_toolhead_display_name(
+                    m_obj->printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase);
             }
         }
 
@@ -623,7 +605,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
             }
         }
 
-        preset_names.push_back({info.tray_id, default_name});
+        preset_names.push_back({{info.extruder_id, info.tray_id}, default_name});
     }
 
     bool left_first_add_item = true;
@@ -631,16 +613,16 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
     std::vector<PACalibResult> sorted_cali_result   = cali_result;
     if (m_obj && m_obj->GetCalib()->IsSupportNewAutoCali()) {
         for (auto &res : sorted_cali_result) {
-            if (res.ams_id == VIRTUAL_TRAY_MAIN_ID || res.ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
-                res.tray_id = res.ams_id;
-            } else {
-                res.tray_id = res.ams_id * 4 + res.slot_id;
-            }
+            res.tray_id = m_obj->GetFilaSystem()->GetTrayIdByAmsSlotId(res.ams_id, res.slot_id);
         }
     }
 
     std::sort(sorted_cali_result.begin(), sorted_cali_result.end(), [](const PACalibResult &left, const PACalibResult &right) {
-        return left.tray_id < right.tray_id;
+        if (left.extruder_id == right.extruder_id) {
+            return left.tray_id < right.tray_id;
+        } else {
+            return left.extruder_id > right.extruder_id;
+        }
     });
     for (auto &item : sorted_cali_result) {
         bool result_failed = false;
@@ -657,8 +639,8 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
         tray_title->SetBitmap(*get_extruder_color_icon(full_filament_ams_list[item.tray_id].opt_string("filament_colour", 0u), tray_name.ToStdString(), FromDIP(20), FromDIP(20)));
         tray_title->SetToolTip("");
 
-        auto k_value = new GridTextInput(m_multi_extruder_grid_panel, "", "", CALIBRATION_SAVE_NUMBER_INPUT_SIZE, item.tray_id, GridTextInputType::K);
-        auto n_value = new GridTextInput(m_multi_extruder_grid_panel, "", "", CALIBRATION_SAVE_NUMBER_INPUT_SIZE, item.tray_id, GridTextInputType::N);
+        auto k_value = new GridTextInput(m_multi_extruder_grid_panel, "", "", CALIBRATION_SAVE_NUMBER_INPUT_SIZE, item.tray_id, GridTextInputType::K, item.extruder_id);
+        auto n_value = new GridTextInput(m_multi_extruder_grid_panel, "", "", CALIBRATION_SAVE_NUMBER_INPUT_SIZE, item.tray_id, GridTextInputType::N, item.extruder_id);
         k_value->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
         n_value->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
         auto k_value_failed = new Label(m_multi_extruder_grid_panel, _L("Failed"));
@@ -669,7 +651,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
         nozzle_id_value->Wrap(-1);
         auto nozzle_id_failed = new Label(m_multi_extruder_grid_panel, _L("Failed"));
 
-        auto                              comboBox_tray_name = new GridComboBox(m_multi_extruder_grid_panel, CALIBRATION_SAVE_INPUT_SIZE, item.tray_id);
+        auto                              comboBox_tray_name = new GridComboBox(m_multi_extruder_grid_panel, CALIBRATION_SAVE_INPUT_SIZE, item.tray_id, item.extruder_id);
         auto                              tray_name_failed   = new Label(m_multi_extruder_grid_panel, " - ");
         wxArrayString                     selections;
         static std::vector<PACalibResult> filtered_results;
@@ -744,7 +726,11 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
             }
 
             for (auto &name : preset_names) {
-                if (item.tray_id == name.first) { comboBox_tray_name->SetValue(from_u8(name.second)); }
+                int extruder_id = name.first.first;
+                int tray_id     = name.first.second;
+                if (item.tray_id == tray_id && item.extruder_id == extruder_id) {
+                    comboBox_tray_name->SetValue(from_u8(name.second));
+                }
             }
 
             comboBox_tray_name->Bind(wxEVT_COMBOBOX, [this, comboBox_tray_name, k_value, n_value](auto &e) {
@@ -954,14 +940,15 @@ bool CaliPASaveManualPanel::get_result(PACalibResult& out_result) {
         auto selected_cali_preset = m_obj->GetCalib()->GetSelectedCalibPreset();
         assert(selected_cali_preset.size() <= 1);
         if (!selected_cali_preset.empty()) {
-            out_result.tray_id = selected_cali_preset[0].tray_id;
-            out_result.nozzle_diameter = selected_cali_preset[0].nozzle_diameter;
-            out_result.filament_id = selected_cali_preset[0].filament_id;
-            out_result.setting_id = selected_cali_preset[0].setting_id;
-            out_result.extruder_id = selected_cali_preset[0].extruder_id;
-            out_result.nozzle_pos_id = selected_cali_preset[0].nozzle_pos_id;
-            out_result.nozzle_sn = selected_cali_preset[0].nozzle_sn;
-            out_result.nozzle_volume_type    = selected_cali_preset[0].nozzle_volume_type;
+            auto item       = selected_cali_preset[0];
+            out_result.tray_id              = item.tray_id;
+            out_result.nozzle_diameter      = item.nozzle_diameter;
+            out_result.filament_id          = item.filament_id;
+            out_result.setting_id           = item.setting_id;
+            out_result.extruder_id          = item.extruder_id;
+            out_result.nozzle_pos_id        = item.nozzle_pos_id;
+            out_result.nozzle_sn            = item.nozzle_sn;
+            out_result.nozzle_volume_type   = item.nozzle_volume_type;
         }
         else {
             BOOST_LOG_TRIVIAL(trace) << "CaliPASaveManual: obj->selected_cali_preset is empty";
@@ -987,31 +974,13 @@ bool CaliPASaveManualPanel::Show(bool show) {
                     CaliPresetInfo info = selected_cali_preset[0];
                     // extruder _id
                     {
-                        int extruder_id = 0;
-                        if (info.tray_id == VIRTUAL_TRAY_MAIN_ID) {
-                            extruder_id = 0;
-                        } else if (info.tray_id == VIRTUAL_TRAY_DEPUTY_ID) {
-                            extruder_id = 1;
-                        } else {
-                            int ams_id  = info.tray_id / 4;
-                            extruder_id = m_obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
-                        }
-
-                        if (extruder_id == 0) {
-                            recommend_name += "Right";
-                        } else if (extruder_id == 1) {
-                            recommend_name += "Left";
-                        }
+                        recommend_name += info.extruder_id == MAIN_EXTRUDER_ID ? "Right" : "Left";
                     }
 
                     // nozzle_volume_type
                     {
                         recommend_name += "_";
-                        if (info.nozzle_volume_type == NozzleVolumeType::nvtStandard) {
-                            recommend_name += "SF";
-                        } else if (info.nozzle_volume_type == NozzleVolumeType::nvtHighFlow) {
-                            recommend_name += "HF";
-                        }
+                        recommend_name += DevNozzle::ToNozzleVolumeShortString(info.nozzle_volume_type);
                     }
 
                     default_name = recommend_name + "_" + default_name;
@@ -1464,11 +1433,11 @@ void CalibrationFlowX1SavePage::sync_cali_result(const std::vector<FlowRatioCali
         wxString tray_name = get_tray_name_by_tray_id(item.tray_id);
         tray_title->SetLabel(tray_name);
 
-        auto flow_ratio_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_SAVE_INPUT_SIZE, item.tray_id, GridTextInputType::FlowRatio);
+        auto flow_ratio_value = new GridTextInput(m_grid_panel, "", "", CALIBRATION_SAVE_INPUT_SIZE, item.tray_id, GridTextInputType::FlowRatio, MAIN_EXTRUDER_ID);
         flow_ratio_value->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
         auto flow_ratio_value_failed = new Label(m_grid_panel, _L("Failed"));
 
-        auto save_name_input = new GridTextInput(m_grid_panel, "", "", { CALIBRATION_TEXT_MAX_LENGTH, FromDIP(24) }, item.tray_id, GridTextInputType::Name);
+        auto save_name_input = new GridTextInput(m_grid_panel, "", "", { CALIBRATION_TEXT_MAX_LENGTH, FromDIP(24) }, item.tray_id, GridTextInputType::Name, MAIN_EXTRUDER_ID);
         auto save_name_input_failed = new Label(m_grid_panel, " - ");
 
         column_data_sizer->Add(tray_title, 0, wxALIGN_CENTER | wxBOTTOM, ROW_GAP);
@@ -1500,7 +1469,13 @@ void CalibrationFlowX1SavePage::sync_cali_result(const std::vector<FlowRatioCali
             auto flow_ratio_str = wxString::Format("%.3f", item.flow_ratio);
             flow_ratio_value->GetTextCtrl()->SetValue(flow_ratio_str);
             for (auto& info : curr_obj->GetCalib()->GetSelectedCalibPreset()) {
-                if (item.tray_id == info.tray_id) {
+                /* upgrade single extruder printer tray_id from 254 to 255 */
+                int item_tray_id = item.tray_id;
+                if (!curr_obj->is_multi_extruders() && item_tray_id == VIRTUAL_TRAY_DEPUTY_ID) {
+                    item_tray_id = VIRTUAL_TRAY_MAIN_ID;
+                }
+
+                if (item_tray_id == info.tray_id) {
                     save_name_input->GetTextCtrl()->SetValue(get_default_name(info.name, CalibMode::Calib_Flow_Rate) + "_" + tray_name);
                     break;
                 }
@@ -1785,11 +1760,17 @@ bool CalibrationFlowCoarseSavePage::Show(bool show) {
         if (curr_obj) {
             auto selected_cali_preset=curr_obj->GetCalib()->GetSelectedCalibPreset();
 
+            BOOST_LOG_TRIVIAL(info) << "CoarseSavePage::Show()"
+                                    << ", selected_cali_preset.size = " << selected_cali_preset.size()
+                                    << ", stash_flow_ratio = " << curr_obj->GetCalib()->GetStashFlowRatio();
+
             assert(selected_cali_preset.size() <= 1);
             if (!selected_cali_preset.empty()) {
                 wxString default_name = get_default_name(wxString::FromUTF8(selected_cali_preset[0].name), CalibMode::Calib_Flow_Rate);
                 set_default_options(default_name);
                 set_curr_flow_ratio(curr_obj->GetCalib()->GetStashFlowRatio());
+            } else {
+                BOOST_LOG_TRIVIAL(warning) << "CoarseSavePage::Show(): selected_cali_preset is EMPTY, flow ratio may be invalid";
             }
         }
         else {
@@ -1963,11 +1944,18 @@ bool CalibrationFlowFineSavePage::Show(bool show) {
     if (show) {
         if (curr_obj) {
             auto selected_cali_preset = curr_obj->GetCalib()->GetSelectedCalibPreset();
+
+            BOOST_LOG_TRIVIAL(info) << "FineSavePage::Show"
+                                    << ", selected_cali_preset.size = " << selected_cali_preset.size()
+                                    << ", stash_flow_ratio = " << curr_obj->GetCalib()->GetStashFlowRatio();
+
             assert(selected_cali_preset.size() <= 1);
             if (!selected_cali_preset.empty()) {
                 wxString default_name = get_default_name(selected_cali_preset[0].name, CalibMode::Calib_Flow_Rate);
                 set_default_options(default_name);
                 set_curr_flow_ratio(curr_obj->GetCalib()->GetStashFlowRatio());
+            } else {
+                BOOST_LOG_TRIVIAL(warning) << "FineSavePage::Show: selected_cali_preset is EMPTY, flow ratio may be invalid";
             }
         }
         else {

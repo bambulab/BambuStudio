@@ -17,6 +17,7 @@
 #include <vector>
 #include <deque>
 #include <unordered_set>
+#include <functional>
 
 namespace Slic3r {
 namespace GUI {
@@ -157,11 +158,20 @@ enum class NotificationType
     BBLSliceMultiExtruderHeightOutside,
 	BBLBedFilamentIncompatible,
     BBLMixUsePLAAndPETG,
+    BBLMixedFilamentBroken,
     BBLMultiFilaNoWipeTower,
 	BBLNozzleFilamentIncompatible,
 	BBLTpuNozzleHasMultiFilament,
+    BBLHighTempNeedWrappingDetection,
+    BBLHighShrinkageFilament,
+    BBLSingleExtruderMixedFilamentRisk,
     AssemblyWarning,
     AssemblyInfo,
+    BBLIsolatedVolumeInfo,
+    BBLAssemblyFarFromOrigin,
+    BBLIntersectsVolumeInfo,
+	BBLArcFittingInfo,
+    BBLCalibExtruderMismatch,
     NotificationTypeCount
 
 };
@@ -311,6 +321,7 @@ public:
 	// finds and closes all notifications of given type
 	void close_notification_of_type(const NotificationType type);
     void remove_notification_of_type(const NotificationType type);
+    bool has_notification_of_type(const NotificationType type);
     void clear_all();
 	// Hides warnings in G-code preview. Should be called from plater only when 3d view/ preview is changed
     void set_canvas_type(GLCanvas3D::ECanvasType t_canvas_type);
@@ -347,7 +358,7 @@ public:
 		const std::string hypertext = "", std::function<bool(wxEvtHandler*)> callback = std::function<bool(wxEvtHandler*)>());
     void bbl_close_objectsinfo_notification();
 
-    void bbl_show_seqprintinfo_notification(const std::string &text);
+    void bbl_show_seqprintinfo_notification(const std::string &text, const std::string &link_text = "", std::function<bool(wxEvtHandler*)> callback = nullptr, const std::string &second_link_text = "", std::function<bool(wxEvtHandler*)> second_callback = nullptr,bool has_error = false);
     void bbl_close_seqprintinfo_notification();
 
 	//BBS--EmptyLayer
@@ -395,6 +406,9 @@ private:
 		int                      sub_msg_id {-1};
 		std::string        ori_text;
         bool                use_warn_color { false };
+        //second_hypertext and second_callback
+        std::string second_hypertext;
+        std::function<bool(wxEvtHandler *)> second_callback;
 	};
 
 	// Cache of IDs to identify and reuse ImGUI windows.
@@ -436,7 +450,7 @@ private:
 		// close will dissapear notification on next render
         virtual void close();
 		// data from newer notification of same type
-		void                   update(const NotificationData& n);
+        void                   update(const NotificationData& n,bool change_level = false);
 		void                   append(const std::string& append_str);
 		bool                   is_finished() const { return m_state == EState::ClosePending || m_state == EState::Finished; }
         void                   reinit() { m_state = EState::Unknown; }
@@ -482,7 +496,7 @@ private:
 		virtual void render_hypertext(ImGuiWrapper& imgui,
 			                          const float text_x, const float text_y,
 		                              const std::string text,
-		                              bool more = false);
+		                              bool more = false,bool use_second_callback = false);
 		virtual void bbl_render_block_notif_text(ImGuiWrapper& imgui,
 			const float win_size_x, const float win_size_y,
 			const float win_pos_x, const float win_pos_y);
@@ -499,6 +513,7 @@ private:
 		// Hypertext action, returns true if notification should close.
 		// Action is stored in NotificationData::callback as std::function<bool(wxEvtHandler*)>
 		virtual bool on_text_click();
+        virtual bool on_second_text_click();
 
 		// Part of init(), counts horizontal spacing like left indentation
 		virtual void count_spaces();
@@ -564,6 +579,7 @@ private:
 		std::string      m_hypertext;
 		// Aditional text after hypertext - currently not used
 		std::string      m_text2;
+        std::string      m_second_hypertext;
 		// mark for render operation
 		size_t           pos_start = string::npos;
 		size_t	         pos_end = string::npos;

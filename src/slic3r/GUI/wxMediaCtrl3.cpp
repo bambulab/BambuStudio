@@ -4,6 +4,7 @@
 #include "libslic3r/Utils.hpp"
 #include <boost/log/trivial.hpp>
 #include <wx/dcclient.h>
+#include <wx/dcgraph.h>
 #ifdef __WIN32__
 #include <versionhelpers.h>
 #include <wx/msw/registry.h>
@@ -28,16 +29,22 @@ wxMediaCtrl3::wxMediaCtrl3(wxWindow *parent)
     : wxWindow(parent, wxID_ANY)
     , BambuLib(StaticBambuLib::get(this))
     , m_thread([this] { PlayThread(); })
+    , m_frame_buffer(9)
 {
     SetBackgroundColour("#000001ff");
+    m_render_timer.SetOwner(this);
+    Bind(wxEVT_TIMER, &wxMediaCtrl3::OnRenderTimer, this);
 }
 
 wxMediaCtrl3::~wxMediaCtrl3()
 {
     {
+        std::unique_lock<std::mutex> lk(m_ui_mutex);
+        m_frame = wxImage(m_idle_image);
+    }
+    {
         std::unique_lock<std::mutex> lk(m_mutex);
         m_url.reset(new wxURI);
-        m_frame = wxImage(m_idle_image);
         m_cond.notify_all();
     }
     m_thread.join();
@@ -66,22 +73,40 @@ void wxMediaCtrl3::Play()
 
 void wxMediaCtrl3::Stop()
 {
+    {
+        std::unique_lock<std::mutex> lk(m_ui_mutex);
+        m_frame = wxImage(m_idle_image);
+    }
     std::unique_lock<std::mutex> lk(m_mutex);
     m_url.reset();
-    m_frame = wxImage(m_idle_image);
     NotifyStopped();
     m_cond.notify_all();
     Refresh();
 }
 
-void wxMediaCtrl3::SetIdleImage(wxString const &image)
+void wxMediaCtrl3::SetIdleImage(wxString const &image, wxString const &watermark_text)
 {
-    if (m_idle_image == image)
+    if (m_idle_image == image && m_watermark_text == watermark_text)
         return;
     m_idle_image = image;
+    m_watermark_text = watermark_text;
     if (m_url == nullptr) {
-        std::unique_lock<std::mutex> lk(m_mutex);
+        std::unique_lock<std::mutex> lk(m_ui_mutex);
         m_frame = wxImage(m_idle_image);
+        assert(m_frame.IsOk());
+        Refresh();
+    }
+}
+
+void wxMediaCtrl3::SetIdleImage(const wxImage &image, wxString const &watermark_text)
+{
+    if (!image.IsOk())
+        return;
+    m_idle_image.clear();
+    m_watermark_text = watermark_text;
+    if (m_url == nullptr) {
+        std::unique_lock<std::mutex> lk(m_ui_mutex);
+        m_frame = image;
         assert(m_frame.IsOk());
         Refresh();
     }
@@ -124,12 +149,22 @@ void wxMediaCtrl3::paintEvent(wxPaintEvent &evt)
     auto      size = GetSize();
     if (size.x <= 0 || size.y <= 0)
         return;
-    std::unique_lock<std::mutex> lk(m_mutex);
-    if (!m_frame.IsOk())
-        return;
-    auto size2 = m_frame.GetSize();
-    if (size2.x != m_frame_size.x && size2.y == m_frame_size.y)
-        size2.x = m_frame_size.x;
+    PlayFrame current_frame;
+    {
+        std::unique_lock<std::mutex> lk(m_ui_mutex);
+        if (!m_frame.IsOk()) {
+            return;
+        }
+        current_frame = m_frame;
+    }
+    wxSize frame_size;
+    {
+        std::unique_lock<std::mutex> lk(m_mutex);
+        frame_size = m_frame_size;
+    }
+    auto size2 = current_frame.GetSize();
+    if (size2.x != frame_size.x && size2.y == frame_size.y)
+        size2.x = frame_size.x;
     auto size3 = (size - size2) / 2;
     if (size2.x != size.x && size2.y != size.y) {
         double scale = 1.;
@@ -143,7 +178,44 @@ void wxMediaCtrl3::paintEvent(wxPaintEvent &evt)
         dc.SetUserScale(scale, scale);
         size3 = (size3 - size2) / 2;
     }
-    dc.DrawBitmap(m_frame, size3.x, size3.y);
+    dc.DrawBitmap(current_frame, size3.x, size3.y);
+
+    // Draw watermark overlay when showing device preview image
+    if (!m_watermark_text.empty() && m_url == nullptr) {
+        // Reset user scale for watermark (draw at 1:1)
+        dc.SetUserScale(1.0, 1.0);
+
+        wxString watermark_text = m_watermark_text;
+
+        // Setup font
+        wxFont font = dc.GetFont();
+        font.SetPointSize(10);
+        font.SetWeight(wxFONTWEIGHT_BOLD);
+        dc.SetFont(font);
+        wxSize text_size = dc.GetTextExtent(watermark_text);
+
+        // Calculate watermark rectangle with padding
+        int pad_h = FromDIP(12);
+        int pad_v = FromDIP(8);
+        int wm_w = text_size.GetWidth() + 2 * pad_h;
+        int wm_h = text_size.GetHeight() + 2 * pad_v;
+        int wm_x = (size.GetWidth() - wm_w) / 2;
+        int wm_y = size.GetHeight() - wm_h - FromDIP(10);
+        int radius = 8;
+
+        // Use wxGCDC for alpha-blended rounded rectangle
+        wxGCDC gcdc(dc);
+        gcdc.SetBrush(wxBrush(wxColour(51, 51, 51, 160)));
+        gcdc.SetPen(*wxTRANSPARENT_PEN);
+        gcdc.DrawRoundedRectangle(wm_x, wm_y, wm_w, wm_h, radius);
+
+        // Draw text centered in the rectangle
+        gcdc.SetTextForeground(wxColour(220, 220, 220));
+        gcdc.SetFont(font);
+        int tx = wm_x + (wm_w - text_size.GetWidth()) / 2;
+        int ty = wm_y + (wm_h - text_size.GetHeight()) / 2;
+        gcdc.DrawText(watermark_text, tx, ty);
+    }
 }
 
 void wxMediaCtrl3::DoSetSize(int x, int y, int width, int height, int sizeFlags)
@@ -189,6 +261,7 @@ void wxMediaCtrl3::PlayThread()
 {
     using namespace std::chrono_literals;
     std::shared_ptr<wxURI> url;
+    const int decode_warn_thres = 33;
     std::unique_lock<std::mutex> lk(m_mutex);
 
     //frame count
@@ -241,13 +314,20 @@ void wxMediaCtrl3::PlayThread()
         if (error == 0)
             error = Bambu_GetStreamInfo(tunnel, 0, &info);
         AVVideoDecoder decoder;
-        int minFrameDuration = 0;
         if (error == 0) {
             decoder.open(info);
             m_video_size = { info.format.video.width, info.format.video.height };
             adjust_frame_size(m_frame_size, m_video_size, GetSize());
-            minFrameDuration = 800 / info.format.video.frame_rate; // 80%
             NotifyStopped();
+            size_t buffer_cap = (size_t) (m_buffer_time * info.format.video.frame_rate / 1000);
+            if (buffer_cap == 0) {
+                buffer_cap = 1;
+            }
+            m_frame_buffer.set_capacity(buffer_cap);
+            m_get_frame_exit.store(false);
+            m_get_frame_thread = std::thread(&wxMediaCtrl3::GetFrameThread, this, info.format.video.frame_rate);
+            m_need_refresh.store(false);
+            m_render_timer.Start(1000 / (info.format.video.frame_rate + 5));
         }
         Bambu_Sample sample;
         while (error == 0) {
@@ -255,7 +335,7 @@ void wxMediaCtrl3::PlayThread()
             error = Bambu_ReadSample(tunnel, &sample);
             lk.lock();
             while (error == int(Bambu_would_block)) {
-                m_cond.wait_for(lk, 100ms);
+                m_cond.wait_for(lk, 10ms);
                 if (m_url != url) {
                     error = 1;
                     break;
@@ -267,14 +347,22 @@ void wxMediaCtrl3::PlayThread()
             if (error == 0) {
                 auto frame_size = m_frame_size;
                 lk.unlock();
+                PlayFrame bm;
+                auto start_decode = std::chrono::steady_clock::now();
                 decoder.decode(sample);
+                auto end_decode = std::chrono::steady_clock::now();
 #ifdef _WIN32
-                wxBitmap bm;
                 decoder.toWxBitmap(bm, frame_size);
 #else
-                wxImage bm;
                 decoder.toWxImage(bm, frame_size);
 #endif
+                auto end_convert = std::chrono::steady_clock::now();
+                int elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_convert - start_decode).count();
+                if (elapsed_ms > decode_warn_thres) {
+                    BOOST_LOG_TRIVIAL(warning) << "wxMediaCtrl3: decode + convert too long, decode: "
+                                               << std::chrono::duration_cast<std::chrono::milliseconds>(end_decode - start_decode).count()
+                                               << " convert: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_convert - end_decode).count();
+                }
                 lk.lock();
                 if (m_url != url) {
                     error = 1;
@@ -282,10 +370,8 @@ void wxMediaCtrl3::PlayThread()
                 }
                 if (bm.IsOk()) {
                     auto now = std::chrono::system_clock::now();
-
                     frameCount++;
                     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastSecondTime).count();
-
                     if (elapsedTime >= 10000) {
                         int fps = static_cast<int>(frameCount * 1000 / elapsedTime); // 100 is from frameCount * 1000 / elapsedTime * 10 , becasue  calculate the average rate over 10s
                         BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl3:Decode Real Rate: " << fps << " FPS";
@@ -293,31 +379,15 @@ void wxMediaCtrl3::PlayThread()
                         lastSecondTime = now;
                     }
 
-                    if (m_last_PTS && (sample.decode_time - m_last_PTS) < 30000000ULL) { // 3s
-                        auto next_PTS_expected = m_last_PTS_expected + std::chrono::milliseconds((sample.decode_time - m_last_PTS) / 10000ULL);
-                        // The frame is late, catch up a little
-                        auto next_PTS_practical = m_last_PTS_practical + std::chrono::milliseconds(minFrameDuration);
-                        auto next_PTS = std::max(next_PTS_expected, next_PTS_practical);
-                        if(now < next_PTS)
-                            std::this_thread::sleep_until(next_PTS);
-                        else
-                            next_PTS = now;
-                        //auto text = wxString::Format(L"wxMediaCtrl3 pts diff %ld\n", std::chrono::duration_cast<std::chrono::milliseconds>(next_PTS - next_PTS_expected).count());
-                        //OutputDebugString(text);
-                        m_last_PTS = sample.decode_time;
-                        m_last_PTS_expected = next_PTS_expected;
-                        m_last_PTS_practical = next_PTS;
-                    } else {
-                        // Resync
-                        m_last_PTS           = sample.decode_time;
-                        m_last_PTS_expected  = now;
-                        m_last_PTS_practical = now;
-                    }
-                    m_frame = bm;
+                    m_frame_buffer.enqueue(bm);
                 }
-                CallAfter([this] { Refresh(); });
             }
         }
+        if (m_get_frame_thread.joinable()) {
+            m_get_frame_exit.store(true);
+            m_get_frame_thread.join();
+        }
+        m_frame_buffer.reset();
         if (tunnel) {
             lk.unlock();
             Bambu_Close(tunnel);
@@ -325,6 +395,7 @@ void wxMediaCtrl3::PlayThread()
             tunnel = nullptr;
             lk.lock();
         }
+        m_render_timer.Stop();
         if (m_url == url)
             m_error = error;
         m_frame_size = wxDefaultSize;
@@ -340,4 +411,54 @@ void wxMediaCtrl3::NotifyStopped()
     event.SetId(GetId());
     event.SetEventObject(this);
     wxPostEvent(this, event);
+}
+
+void wxMediaCtrl3::GetFrameThread(int frame_rate)
+{
+    PlayFrame temp_frame;
+    long long frame_count = 0;
+    bool pop_success = false;
+    std::chrono::system_clock::time_point first_frame_time;
+    while (m_get_frame_exit.load() == false) {
+        if (m_frame_buffer.try_dequeue(temp_frame) == true) {
+            if (!temp_frame.IsOk()) {
+                continue;
+            }
+            {
+                std::unique_lock<std::mutex> lk(m_ui_mutex);
+                m_frame = temp_frame;
+                m_need_refresh.store(true);
+            }
+            if (pop_success == false) {
+                first_frame_time = std::chrono::system_clock::now();
+                pop_success = true;
+                frame_count = 0;
+            }
+            ++frame_count;
+            long long  pts_gap = (frame_count * 1000) / frame_rate;
+            auto wake_up_time = first_frame_time + std::chrono::milliseconds(pts_gap);
+            std::this_thread::sleep_until(wake_up_time);
+        } else {
+            if (pop_success == true) {
+                BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl3:decode too slow or unsteady network, bitmap buffer running out...";
+                pop_success = false;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(2));
+        }
+    }
+    {
+        std::unique_lock<std::mutex> lk(m_ui_mutex);
+        m_frame = wxImage(m_idle_image);
+        m_need_refresh.store(true);
+        CallAfter([this] { Refresh(false); });
+    }
+}
+
+void wxMediaCtrl3::OnRenderTimer(wxTimerEvent &evt)
+{
+    if (m_need_refresh.load() == true) {
+        Refresh(false);
+        Update();
+        m_need_refresh.store(false);
+    }
 }

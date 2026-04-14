@@ -22,11 +22,17 @@ IMToolbarItem::~IMToolbarItem()
 
 bool IMToolbarItem::generate_texture()
 {
+    if (image_data.empty() || image_width == 0 || image_height == 0)
+        return false;
+
     GLint last_texture;
-    unsigned m_image_texture{ 0 };
+    unsigned m_image_texture = texture_id != 0 ? (unsigned)(intptr_t)texture_id : 0;
     unsigned char* pixels = (unsigned char*)(&image_data[0]);
 
     glsafe(::glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
+    if (m_image_texture > 0) {
+        glsafe(::glDeleteTextures(1, &m_image_texture));
+    }
     glsafe(::glGenTextures(1, &m_image_texture));
     glsafe(::glBindTexture(GL_TEXTURE_2D, m_image_texture));
     glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));

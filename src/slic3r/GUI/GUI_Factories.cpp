@@ -104,7 +104,7 @@ std::map<std::string, std::vector<SimpleSettingData>>  SettingsFactory::PART_CAT
     { L("Strength"), {{"wall_loops", "",1},{"top_shell_layers", "",1},{"top_shell_thickness", "",1},
                     {"bottom_shell_layers", "",1}, {"bottom_shell_thickness", "",1}, {"sparse_infill_density", "",1},
                     {"sparse_infill_pattern", "",1},{"sparse_infill_anchor", "",1},{"sparse_infill_anchor_max", "",1}, {"sparse_infill_lattice_angle_1", "",1},{"sparse_infill_lattice_angle_2", "",1},
-                    {"top_surface_pattern", "",1},{"top_surface_density", "",1},
+                    {"top_surface_pattern", "",1},{"top_surface_density", "",1},{"monotonic_travel_into_wall", "",1},
                     {"bottom_surface_pattern", "",1}, {"bottom_surface_density", "",1}, {"internal_solid_infill_pattern", "",1},
                     {"infill_combination", "",1}, {"infill_wall_overlap", "",1}, {"infill_direction", "",1}, {"bridge_angle", "",1},{"minimum_sparse_infill_area", "",1}
                     }},
@@ -948,7 +948,7 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
             item_name << " (" + _L("current") + ")";
         }
 
-        if (icon_idx >= 0 && icon_idx < icons.size()) {
+        if (icon_idx >= 0 && icon_idx < (int)icons.size()) {
             append_menu_item(
                 extruder_selection_menu, wxID_ANY, item_name, "", [i](wxCommandEvent &) { obj_list()->set_extruder_for_selected_items(i); }, *icons[icon_idx], menu,
                 [is_active_extruder]() { return !is_active_extruder; }, m_parent);
@@ -1211,9 +1211,12 @@ void MenuFactory::create_default_menu()
 
     m_default_menu.AppendSeparator();
 
-    append_menu_check_item(&m_default_menu, wxID_ANY, _L("Show Labels"), "",
-        [](wxCommandEvent&) { plater()->show_view3D_labels(!plater()->are_view3D_labels_shown()); plater()->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, &m_default_menu,
-        []() { return plater()->is_view3D_shown(); }, [this]() { return plater()->are_view3D_labels_shown(); }, m_parent);
+    append_menu_check_item(&m_default_menu, wxID_ANY, _L("Show Labels by Layer"), "",
+        [](wxCommandEvent&) { plater()->show_view3D_layer_labels(!plater()->are_view3D_layer_labels_shown()); plater()->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, &m_default_menu,
+        []() { return plater()->is_view3D_shown(); }, [this]() { return plater()->are_view3D_layer_labels_shown(); }, m_parent);
+    append_menu_check_item(&m_default_menu, wxID_ANY, _L("Show Labels by Object"), "",
+        [](wxCommandEvent&) { plater()->show_view3D_object_labels(!plater()->are_view3D_object_labels_shown()); plater()->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, &m_default_menu,
+        []() { return plater()->is_view3D_shown(); }, [this]() { return plater()->are_view3D_object_labels_shown(); }, m_parent);
 }
 
 void MenuFactory::create_common_object_menu(wxMenu* menu)
@@ -2310,7 +2313,7 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu)
     }
 
     std::vector<wxBitmap*> icons = get_extruder_color_icons(true);
-    if (icons.size() < filaments_cnt) {
+    if ((int)icons.size() < filaments_cnt) {
         BOOST_LOG_TRIVIAL(warning) << boost::format("Warning: icons size %1%, filaments_cnt=%2%")%icons.size()%filaments_cnt;
         if (icons.size() <= 1)
             return;
@@ -2361,8 +2364,10 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu)
             item_name << " (" + _L("current") + ")";
         }
 
+        int icon_idx = i == 0 ? -1 : i - 1;
         append_menu_item(extruder_selection_menu, wxID_ANY, item_name, "",
-            [i](wxCommandEvent&) { obj_list()->set_extruder_for_selected_items(i); }, i == 0 ? wxNullBitmap : *icons[i - 1], menu,
+            [i](wxCommandEvent&) { obj_list()->set_extruder_for_selected_items(i); },
+            (icon_idx >= 0 && icon_idx < (int)icons.size()) ? *icons[icon_idx] : wxNullBitmap, menu,
             [is_active_extruder]() { return !is_active_extruder; }, m_parent);
     }
     menu->Append(wxID_ANY, name, extruder_selection_menu, _L("Change Filament"));

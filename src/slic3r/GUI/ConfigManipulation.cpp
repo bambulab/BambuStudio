@@ -8,6 +8,8 @@
 #include "MsgDialog.hpp"
 
 #include <wx/msgdlg.h>
+#include <variant>
+#include <boost/log/trivial.hpp>
 
 namespace Slic3r {
 namespace GUI {
@@ -388,6 +390,19 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         is_msg_dlg_already_exist = false;
     }
 
+    // Interlocking beam width must be > 0 when beam interlocking is enabled (zero causes divide-by-zero in backend).
+    if (config->opt_bool("interlocking_beam") && config->opt_float("interlocking_beam_width") <= 0.)
+    {
+        const wxString msg_text = _(L("Interlocking beam width can't be zero when beam interlocking is enabled.\nReset to 0.01 mm."));
+        MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxOK);
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist = true;
+        dialog.ShowModal();
+        new_conf.set_key_value("interlocking_beam_width", new ConfigOptionFloat(0.01));
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
+
     if (config->option<ConfigOptionBool>("enable_wrapping_detection")->value) {
         std::string printer_type = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
         if (!DevPrinterConfigUtil::support_wrapping_detection(printer_type)) {
@@ -520,6 +535,28 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     //    is_msg_dlg_already_exist = false;
     //}
 
+    // Fuzzy skin Extrusion/Combined modes require Arachne wall generator
+    if (config->opt_enum<FuzzySkinType>("fuzzy_skin") != FuzzySkinType::Disabled_fuzzy &&
+        config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Classic &&
+        (config->opt_enum<FuzzySkinMode>("fuzzy_skin_mode") == FuzzySkinMode::Extrusion ||
+         config->opt_enum<FuzzySkinMode>("fuzzy_skin_mode") == FuzzySkinMode::Combined))
+    {
+        const wxString msg_text = _(L("Fuzzy skin [Extrusion] and [Combined] modes require the Arachne wall generator.\n\n"
+                                      "Do you want to change these settings automatically?\n"
+                                      "Yes - Enable Arachne wall generator\n"
+                                      "No - Keep current wall generator and set fuzzy skin to [Displacement] mode"));
+        MessageDialog      dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxYES_NO);
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist    = true;
+        if (dialog.ShowModal() == wxID_YES) {
+            new_conf.set_key_value("wall_generator", new ConfigOptionEnum<PerimeterGeneratorType>(PerimeterGeneratorType::Arachne));
+        } else {
+            new_conf.set_key_value("fuzzy_skin_mode", new ConfigOptionEnum<FuzzySkinMode>(FuzzySkinMode::Displacement));
+        }
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
+
     // BBS
     int filament_cnt = wxGetApp().preset_bundle->filament_presets.size();
 #if 0
@@ -581,6 +618,31 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         }
     }
 #endif
+
+    {
+        static bool s_mixed_sublayer_warned = false;
+        bool sublayer_on = config->opt_bool("enable_mixed_color_sublayer");
+        if (sublayer_on && !s_mixed_sublayer_warned) {
+            bool has_variable_layer = false;
+            for (const auto* obj : wxGetApp().model().objects) {
+                if (obj->layer_height_profile.get().size() > 4) {
+                    has_variable_layer = true;
+                    break;
+                }
+            }
+            if (has_variable_layer) {
+                MessageDialog dialog(m_msg_dlg_parent,
+                    _L("Using variable layer height together with mixed color sublayer may result in poor color mixing quality."),
+                    "", wxICON_WARNING | wxOK);
+                is_msg_dlg_already_exist = true;
+                dialog.ShowModal();
+                is_msg_dlg_already_exist = false;
+                s_mixed_sublayer_warned = true;
+            }
+        }
+        if (!sublayer_on)
+            s_mixed_sublayer_warned = false;
+    }
 
     // Check "enable_support" and "overhangs" relations only on global settings level
     if (is_global_config && config->opt_bool("enable_support")) {
@@ -650,17 +712,23 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     // BBS
-    static const char* keys[] = { "support_filament", "support_interface_filament"};
-    for (int i = 0; i < sizeof(keys) / sizeof(keys[0]); i++) {
-        std::string key = std::string(keys[i]);
+    static const char* filament_slot_keys[] = { "support_filament", "support_interface_filament",
+        "wall_filament", "sparse_infill_filament", "solid_infill_filament"};
+    for (int i = 0; i < sizeof(filament_slot_keys) / sizeof(filament_slot_keys[0]); i++) {
+        std::string key = std::string(filament_slot_keys[i]);
         auto* opt = dynamic_cast<ConfigOptionInt*>(config->option(key, false));
         if (opt != nullptr) {
-            if (opt->getInt() > filament_cnt) {
+            int val = opt->getInt();
+            bool out_of_range = val > filament_cnt;
+            bool is_mixed = (val > 0 && val <= filament_cnt &&
+                             wxGetApp().preset_bundle->is_mixed_filament(val - 1));
+            if (out_of_range || is_mixed) {
                 DynamicPrintConfig new_conf = *config;
-                const DynamicPrintConfig *conf_temp = wxGetApp().plater()->config();
                 int new_value = 0;
-                if (conf_temp != nullptr && conf_temp->has(key)) {
-                    new_value = conf_temp->opt_int(key);
+                if (out_of_range) {
+                    const DynamicPrintConfig *conf_temp = wxGetApp().plater()->config();
+                    if (conf_temp != nullptr && conf_temp->has(key))
+                        new_value = conf_temp->opt_int(key);
                 }
                 new_conf.set_key_value(key, new ConfigOptionInt(new_value));
                 apply(config, &new_conf);
@@ -891,6 +959,14 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
          {"prime_tower_width", "prime_tower_brim_width", "prime_tower_skip_points", "prime_tower_rib_wall", "prime_tower_infill_gap", "prime_tower_enable_framework", "prime_tower_max_speed"})
         toggle_line(el, have_prime_tower);
 
+    {
+        std::string printer_model = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
+        bool is_tower_interface_supported = (printer_model.find("H2C") != std::string::npos ||
+                                             printer_model.find("H2D") != std::string::npos ||
+                                             printer_model.find("X2D") != std::string::npos);
+        toggle_line("enable_tower_interface_features", have_prime_tower && is_tower_interface_supported);
+    }
+
     bool have_rib_wall = config->opt_bool("prime_tower_rib_wall")&&have_prime_tower;
     for (auto el : {"prime_tower_extra_rib_length", "prime_tower_rib_width", "prime_tower_fillet_wall"})
         toggle_line(el, have_rib_wall);
@@ -900,8 +976,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
 
     bool have_avoid_crossing_perimeters = config->opt_bool("reduce_crossing_wall");
     toggle_line("max_travel_detour_distance", have_avoid_crossing_perimeters);
-    toggle_line("avoid_crossing_wall_includes_support", have_avoid_crossing_perimeters);    
-    
+    toggle_line("avoid_crossing_wall_includes_support", have_avoid_crossing_perimeters);
+
     bool has_overhang_speed = config->opt_bool_nullable("enable_overhang_speed", variant_index);
     for (auto el : { "overhang_1_4_speed", "overhang_2_4_speed", "overhang_3_4_speed", "overhang_4_4_speed"})
         toggle_line(el, has_overhang_speed, variant_index);
@@ -919,8 +995,13 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     toggle_line("support_interface_not_for_body",config->opt_int("support_interface_filament")&&!config->opt_int("support_filament"));
 
     bool has_fuzzy_skin = (config->opt_enum<FuzzySkinType>("fuzzy_skin") != FuzzySkinType::Disabled_fuzzy);
-    for (auto el : { "fuzzy_skin_thickness", "fuzzy_skin_point_distance"})
+    for (auto el : { "fuzzy_skin_thickness", "fuzzy_skin_point_distance", "fuzzy_skin_first_layer", "fuzzy_skin_noise_type", "fuzzy_skin_mode" })
         toggle_line(el, has_fuzzy_skin);
+
+    NoiseType fuzzy_skin_noise_type = config->opt_enum<NoiseType>("fuzzy_skin_noise_type");
+    toggle_line("fuzzy_skin_scale", fuzzy_skin_noise_type != NoiseType::Classic && has_fuzzy_skin);
+    toggle_line("fuzzy_skin_octaves", fuzzy_skin_noise_type != NoiseType::Classic && fuzzy_skin_noise_type != NoiseType::Voronoi && has_fuzzy_skin);
+    toggle_line("fuzzy_skin_persistence", (fuzzy_skin_noise_type == NoiseType::Perlin || fuzzy_skin_noise_type == NoiseType::Billow) && has_fuzzy_skin);
 
     bool have_arachne = config->opt_enum<PerimeterGeneratorType>("wall_generator") == PerimeterGeneratorType::Arachne;
     for (auto el : { "wall_transition_length", "wall_transition_filter_deviation", "wall_transition_angle",
@@ -1078,6 +1159,120 @@ bool ConfigManipulation::get_temperature_range(DynamicPrintConfig *config, int &
     return range_low_exist && range_high_exist;
 }
 
+// 根据用户已选择的支撑料和模型主体料，查询是否有推荐参数
+bool query_support_recommended_params_for_combination(int support_filament_index, const std::string& model_material_type, const std::string& model_material_name, DynamicPrintConfig& out_config)
+{
+    auto &filament_presets = Slic3r::GUI::wxGetApp().preset_bundle->filament_presets;
+    auto &filaments        = Slic3r::GUI::wxGetApp().preset_bundle->filaments;
+
+    if (support_filament_index < 0 || support_filament_index >= static_cast<int>(filament_presets.size()))
+        return false;
+
+    Slic3r::Preset* support_preset = filaments.find_preset(filament_presets[support_filament_index]);
+    if (!support_preset) return false;
+
+    std::string support_type = support_preset->config.option<Slic3r::ConfigOptionStrings>("filament_type")->values[0];
+    std::string support_name = support_preset->alias;
+
+    // 按优先级尝试多种 key 组合查询推荐参数
+    // support_recommended_params_map 的 key 格式为 "support_material|model_material"
+    // 其中 support_material 可能是 name 或 type，model_material 也可能是 name 或 type
+    // model_material_name 或 model_material_type 可能为空（当盘内模型不满足同名/同类型条件时）
+    struct QueryPair { std::string support_key; std::string model_key; };
+    std::vector<QueryPair> queries;
+
+    if (!model_material_name.empty()) {
+        queries.push_back({support_name, model_material_name});  // name + name（最精确）
+        queries.push_back({support_type, model_material_name});  // type + name
+    }
+    if (!model_material_type.empty()) {
+        queries.push_back({support_name, model_material_type});  // name + type
+        queries.push_back({support_type, model_material_type});  // type + type（最宽泛）
+    }
+
+    for (const auto& q : queries) {
+        if (build_support_recommended_config(q.support_key, q.model_key, out_config)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// 根据支撑材料和主体材料，构建推荐配置到 DynamicPrintConfig
+bool build_support_recommended_config(const std::string& support_material, const std::string& model_material, DynamicPrintConfig& out_config)
+{
+    auto rec_params_opt = Slic3r::GUI::wxGetApp().preset_bundle->get_support_recommended_params(support_material, model_material);
+    if (!rec_params_opt.has_value() || !rec_params_opt->params.hasRecommendedParams()) {
+        return false;
+    }
+
+    const auto& rec_params = rec_params_opt.value();
+
+    // Iterate all recommended params and set to config
+    for (const auto &[key, value] : rec_params.params.params) {
+        // Copy key to local variable for lambda capture (required for some compilers)
+        const std::string param_key = key;
+
+        auto opt_def_it = print_config_def.options.find(param_key);
+        if (opt_def_it == print_config_def.options.end()) {
+            BOOST_LOG_TRIVIAL(warning) << "Unknown config option in support recommended params: " << param_key;
+            continue;
+        }
+
+        const ConfigOptionDef &opt_def = opt_def_it->second;
+
+        std::visit([&](auto &&val) {
+            using T = std::decay_t<decltype(val)>;
+
+            if constexpr (std::is_same_v<T, double>) {
+                if (opt_def.type == coFloat || opt_def.type == coFloatOrPercent) {
+                    out_config.set_key_value(param_key, new ConfigOptionFloat(val));
+                } else if (opt_def.type == coPercent) {
+                    out_config.set_key_value(param_key, new ConfigOptionPercent(val));
+                } else if (opt_def.type == coInt) {
+                    out_config.set_key_value(param_key, new ConfigOptionInt(static_cast<int>(val)));
+                }
+            } else if constexpr (std::is_same_v<T, bool>) {
+                if (opt_def.type == coBool) {
+                    out_config.set_key_value(param_key, new ConfigOptionBool(val));
+                }
+            } else if constexpr (std::is_same_v<T, std::string>) {
+                if (opt_def.type == coString) {
+                    out_config.set_key_value(param_key, new ConfigOptionString(val));
+                } else if (opt_def.type == coEnum) {
+                    ConfigOption *opt = opt_def.create_default_option();
+                    if (opt && opt->deserialize(val)) {
+                        out_config.set_key_value(param_key, opt);
+                    } else {
+                        delete opt;
+                        BOOST_LOG_TRIVIAL(warning) << "Failed to deserialize enum value for " << param_key << ": " << val;
+                    }
+                }
+            } else if constexpr (std::is_same_v<T, int>) {
+                if (opt_def.type == coInt) {
+                    out_config.set_key_value(param_key, new ConfigOptionInt(val));
+                } else if (opt_def.type == coFloat) {
+                    out_config.set_key_value(param_key, new ConfigOptionFloat(static_cast<double>(val)));
+                }
+            } else if constexpr (std::is_same_v<T, std::vector<double>>) {
+                if (opt_def.type == coFloats) {
+                    out_config.set_key_value(param_key, new ConfigOptionFloats(val));
+                } else if (opt_def.type == coFloatsOrPercents) {
+                    std::vector<FloatOrPercent> fop_vec;
+                    for (double v : val) {
+                        fop_vec.push_back(FloatOrPercent{v, false});
+                    }
+                    out_config.set_key_value(param_key, new ConfigOptionFloatsOrPercents(fop_vec));
+                } else if (opt_def.type == coPercents) {
+                    out_config.set_key_value(param_key, new ConfigOptionPercents(val));
+                }
+            }
+        }, value);
+    }
+
+    return true;
+}
 
 } // GUI
 } // Slic3r

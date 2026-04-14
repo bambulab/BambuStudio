@@ -6,6 +6,7 @@
 #include <boost/log/trivial.hpp>
 #include <wx/dcgraph.h>
 #include "CalibUtils.hpp"
+#include "DeviceCore/DevFilaSystem.h"
 
 namespace Slic3r { namespace GUI {
 
@@ -468,9 +469,7 @@ void ExtrusionCalibration::on_click_cali(wxCommandEvent& event)
                             nozzle_temp = nozzle_temp_opt->get_at(0);
                             max_volumetric_speed = speed_opt->get_at(0);
                             if (bed_temp >= 0 && nozzle_temp >= 0 && max_volumetric_speed >= 0) {
-                                int curr_tray_id = ams_id * 4 + tray_id;
-                                if (tray_id == VIRTUAL_TRAY_MAIN_ID)
-                                    curr_tray_id = tray_id;
+                                int curr_tray_id = obj->GetFilaSystem()->GetTrayIdByAmsSlotId(m_ams_id, m_slot_id);
                                 obj->command_start_extrusion_cali(curr_tray_id, nozzle_temp, bed_temp, max_volumetric_speed, it->setting_id);
                                 return;
                             }
@@ -519,21 +518,16 @@ bool ExtrusionCalibration::check_k_n_validation(wxString k_text, wxString n_text
 {
     if (k_text.IsEmpty() || n_text.IsEmpty())
         return false;
-    double k = 0.0;
-    try {
-        k_text.ToDouble(&k);
-    }
-    catch (...) {
-        ;
-    }
 
+    double k = 0.0;
     double n = 0.0;
     try {
+        k_text.ToDouble(&k);
         n_text.ToDouble(&n);
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Convert k/n value failed, k_text: " << k_text << ", n_text: " << n_text;
     }
-    catch (...) {
-        ;
-    }
+
     if (k <= MIN_PA_K_VALUE || k >= MAX_PA_K_VALUE)
         return false;
     if (n < 0.6 || n > 2.0)
@@ -554,19 +548,12 @@ void ExtrusionCalibration::on_click_save(wxCommandEvent &event)
     }
 
     double k = 0.0;
-    try {
-        k_text.ToDouble(&k);
-    }
-    catch (...) {
-        ;
-    }
-
     double n = 0.0;
     try {
+        k_text.ToDouble(&k);
         n_text.ToDouble(&n);
-    }
-    catch (...) {
-        ;
+    } catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Convert k/n value failed, k_text: " << k_text << ", n_text: " << n_text;
     }
 
     // set values
@@ -596,9 +583,7 @@ void ExtrusionCalibration::on_click_save(wxCommandEvent &event)
     }
 
     // send command
-    int curr_tray_id = ams_id * 4 + tray_id;
-    if (tray_id == VIRTUAL_TRAY_MAIN_ID)
-        curr_tray_id = tray_id;
+    int curr_tray_id = obj->GetFilaSystem()->GetTrayIdByAmsSlotId(m_ams_id, m_slot_id);
     obj->command_extrusion_cali_set(curr_tray_id, setting_id, name, k, n, bed_temp, nozzle_temp, max_volumetric_speed);
     Close();
 }

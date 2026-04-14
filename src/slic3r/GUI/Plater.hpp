@@ -27,6 +27,7 @@
 #include "libslic3r/Calib.hpp"
 #include "libslic3r/FlushVolCalc.hpp"
 
+
 #define FILAMENT_SYSTEM_COLORS_NUM      16
 
 class wxButton;
@@ -84,6 +85,7 @@ class PlaterPresetComboBox;
 class PartPlateList;
 class SyncNozzleAndAmsDialog;
 class FinishSyncAmsDialog;
+class ExtruderWarningDialog;
 class Bed3D;
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
@@ -138,6 +140,7 @@ class Sidebar : public wxPanel
     bool                                    m_last_slice_state = false;
     SyncNozzleAndAmsDialog*                 m_sna_dialog{nullptr};
     FinishSyncAmsDialog*                    m_fna_dialog{nullptr};
+    ExtruderWarningDialog*                  m_extruder_warning_dialog{nullptr};
     std::vector<BedType>                    m_cur_combox_bed_types;
     std::string                             m_cur_image_bed_type;
     int                                     m_last_combo_bedtype_count{0};
@@ -205,6 +208,7 @@ public:
     void get_big_btn_sync_pos_size(wxPoint &pt, wxSize &size);
     void get_small_btn_sync_pos_size(wxPoint &pt, wxSize &size);
     void set_extruder_nozzle_count(int extruder_id, int nozzle_count);
+    void reset_fila_switch();
     void enable_nozzle_count_edit(bool enable);
     void enable_purge_mode_btn(bool enable);
 
@@ -236,6 +240,7 @@ public:
     void                    update_mode();
     bool                    is_collapsed();
     void                    collapse(bool collapse);
+    bool                    is_fila_switch_ready();
     void                    update_searcher();
     void                    update_ui_from_settings();
 	bool                    show_object_list(bool show) const;
@@ -256,6 +261,14 @@ public:
     std::vector<PlaterPresetComboBox*>&   combos_filament();
     void                                 clear_combos_filament_badge();
     void                                 udpate_combos_filament_badge();
+
+    // Mixed Filament sidebar
+    void add_mixed_filament();
+    void edit_mixed_filament(size_t idx);
+    void delete_mixed_filament_at(size_t idx);
+    void recalc_filament_scroll_sizes();
+    void update_mixed_filament_list();
+    bool has_broken_mixed_filament() const;
     Search::OptionsSearcher&        get_searcher();
     std::string&                    get_search_line();
     void                            set_is_gcode_file(bool flag);
@@ -268,7 +281,11 @@ public:
     void set_need_auto_sync_after_connect_printer(bool need_auto_sync) { m_need_auto_sync_after_connect_printer = need_auto_sync; }
 
 private:
+    void  collect_physical_filament_info(std::vector<std::string>& colors,
+                                         std::vector<std::string>& names,
+                                         std::vector<std::string>& types);
     void  auto_calc_flushing_volumes_internal(const int filament_id, const int extruder_id);
+    void  update_bed_thumbnail(std::string path);
 
 private:
     struct priv;
@@ -321,6 +338,11 @@ public:
     SLAPrint& sla_print();
     BackgroundSlicingProcess &background_process();
 
+    // Helper: returns config indices where filament_is_mixed == true
+    std::vector<size_t> mixed_filament_config_indices() const;
+    // Helper: returns config indices where filament_is_mixed == false
+    std::vector<size_t> physical_filament_config_indices() const;
+
     void reset_flags_when_new_or_close_project();
     int new_project(bool skip_confirm = false, bool silent = false, const wxString &project_name = wxString());
     // BBS: save & backup
@@ -370,6 +392,7 @@ public:
     void set_using_exported_file(bool exported_file) {
         m_exported_file = exported_file;
     }
+    bool is_loading_project() const { return m_loading_project; }
     bool is_empty_project();
     bool is_multi_extruder_ams_empty();
     // BBS
@@ -420,8 +443,10 @@ public:
     bool is_preview_loaded() const;
     bool is_view3D_shown() const;
 
-    bool are_view3D_labels_shown() const;
-    void show_view3D_labels(bool show);
+    bool are_view3D_layer_labels_shown() const;
+    void show_view3D_layer_labels(bool show);
+    bool are_view3D_object_labels_shown() const;
+    void show_view3D_object_labels(bool show);
 
     bool is_view3D_overhang_shown() const;
     void show_view3D_overhang(bool show);
@@ -548,7 +573,7 @@ public:
 
     bool on_filament_change(size_t filament_idx);
     void on_filament_count_change(size_t extruders_count);
-    void on_filaments_delete(size_t extruders_count, size_t filament_id, int replace_filament_id = -1);
+    void on_filaments_delete(size_t extruders_count, size_t filament_id, int replace_filament_id = -1, const std::vector<unsigned char>& is_mixed_before_delete = {});
     std::vector<std::array<float, 4>> get_extruders_colors();
     // BBS
     void on_bed_type_change(BedType bed_type,bool is_gcode_file = false);
@@ -564,6 +589,14 @@ public:
     std::vector<std::string> get_extruder_colors_from_plater_config(const GCodeProcessorResult* const result = nullptr) const;
     std::vector<std::string> get_filament_colors_render_info() const;
     std::vector<std::string> get_filament_color_render_type() const;
+
+    struct FilamentGradientInfo {
+        bool is_gradient = false;
+        std::array<float, 4> color_from = {0.5f, 0.5f, 0.5f, 1.0f};
+        std::array<float, 4> color_to   = {0.5f, 0.5f, 0.5f, 1.0f};
+    };
+    std::vector<FilamentGradientInfo> get_filament_gradient_info() const;
+
     std::vector<std::string> get_colors_for_color_print(const GCodeProcessorResult* const result = nullptr) const;
     bool is_color_size_equal() const;
 
@@ -586,6 +619,7 @@ public:
     bool check_printer_initialized(MachineObject *obj, bool only_warning = false,bool popup_warning = true);
     bool is_same_printer_for_connected_and_selected(bool popup_warning = true);
     bool is_printer_configed_by_BBL();
+    bool is_preset_configed_by_BBL(const Preset& preset);
     // BBS
     //void show_action_buttons(const bool is_ready_to_slice) const;
 
@@ -652,6 +686,9 @@ public:
     void align_selection_z_max();
     void align_selection_z_min();
     void align_selection_z_center();
+
+    // Show print sequence info notification
+    void show_seqprintinfo_notification(bool has_error = false);
     void search(bool plater_is_active, Preset::Type  type, wxWindow *tag, TextInput *etag, wxWindow *stag);
     void mirror(Axis axis);
     void split_object();

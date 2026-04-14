@@ -221,6 +221,7 @@ static constexpr const char *LAYER_FILAMENT_LIST_TAG       = "layer_filament_lis
 static constexpr const char *FILAMENT_NOZZLE_GROUP_ID_TAG    = "group_id";
 static constexpr const char *FILAMENT_NOZZLE_DIAMETER_TAG    = "nozzle_diameter";
 static constexpr const char *FILAMENT_NOZZLE_VOLUME_TYPE_TAG = "volume_type";
+static constexpr const char *NOZZLE_TAG                      = "nozzle";
 
 
 static constexpr const char* CONFIG_TAG = "config";
@@ -338,6 +339,8 @@ static constexpr const char* TIMELAPSE_TYPE_ATTR = "timelapse_type";
 static constexpr const char* OUTSIDE_ATTR = "outside";
 static constexpr const char* SUPPORT_USED_ATTR = "support_used";
 static constexpr const char* LABEL_OBJECT_ENABLED_ATTR = "label_object_enabled";
+static constexpr const char* ENABLE_FILAMENT_DYNAMIC_MAP_ATTR = "enable_filament_dynamic_map";
+static constexpr const char* HAS_FILAMENT_SWITCHER_ATTR = "has_filament_switcher";
 static constexpr const char* SKIPPED_ATTR = "skipped";
 
 static constexpr const char* OBJECT_TYPE = "object";
@@ -508,6 +511,40 @@ void add_vector(std::stringstream &stream, const std::vector<T> &values)
     }
 }
 
+std::vector<int> parse_int_list(const std::string& value)
+{
+    std::vector<int> out;
+    if (value.empty())
+        return out;
+
+    std::vector<std::string> tokens;
+    boost::split(tokens, value, boost::is_any_of(" ,"), boost::token_compress_on);
+    out.reserve(tokens.size());
+    for (const auto& t : tokens) {
+        if (t.empty())
+            continue;
+        try {
+            out.emplace_back(boost::lexical_cast<int>(t));
+        } catch (...) {
+        }
+    }
+
+    std::sort(out.begin(), out.end());
+    out.erase(std::unique(out.begin(), out.end()), out.end());
+    return out;
+}
+
+std::string join_int_list_comma(const std::vector<int>& values)
+{
+    std::stringstream stream;
+    for (size_t i = 0; i < values.size(); ++i) {
+        stream << values[i];
+        if (i + 1 < values.size())
+            stream << ",";
+    }
+    return stream.str();
+}
+
 Slic3r::Vec3f get_vec3_from_string(const std::string &pos_str)
 {
     Slic3r::Vec3f pos(0, 0, 0);
@@ -647,11 +684,24 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         info.used_m = used_filament_m;
 
         if (result && result->nozzle_group_result) {
-            auto nozzle_for_filament = result->nozzle_group_result->get_nozzle_for_filament(it->first);
-            if (nozzle_for_filament) {
-                info.nozzle_diameter = string_to_double_decimal_point(nozzle_for_filament->diameter.c_str());
-                info.group_id = nozzle_for_filament->group_id;
-                info.nozzle_volume_type = get_nozzle_volume_type_string(nozzle_for_filament->volume_type);
+            auto nozzles_for_filament = result->nozzle_group_result->get_nozzles_for_filament(it->first);
+            if (!nozzles_for_filament.empty()) {
+                info.group_id.reserve(nozzles_for_filament.size());
+                std::set<double> diameters;
+                std::set<NozzleVolumeType> volume_types;
+                for (const auto& nozzle : nozzles_for_filament) {
+                    info.group_id.emplace_back(nozzle.group_id);
+                    diameters.insert(string_to_double_decimal_point(nozzle.diameter.c_str()));
+                    volume_types.insert(nozzle.volume_type);
+                }
+                std::sort(info.group_id.begin(), info.group_id.end());
+                info.group_id.erase(std::unique(info.group_id.begin(), info.group_id.end()), info.group_id.end());
+                if (!diameters.empty())
+                    info.nozzle_diameter = *diameters.begin();
+                if (volume_types.size() > 1)
+                    info.nozzle_volume_type = get_nozzle_volume_type_string(nvtHybrid);
+                else if (!volume_types.empty())
+                    info.nozzle_volume_type = get_nozzle_volume_type_string(*volume_types.begin());
             }
         }
 
@@ -662,6 +712,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         slice_filaments_info.push_back(info);
     }
+
+    auto layered_group_result = std::dynamic_pointer_cast<MultiNozzleUtils::LayeredNozzleGroupResult>(result->nozzle_group_result);
+    if (layered_group_result)
+        nozzle_group_result = *layered_group_result;
 
     /* only for test
     GCodeProcessorResult::SliceWarning sw;
@@ -915,7 +969,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             std::string obj_curr_characters;
             float object_unit_factor;
             int object_current_color_group{-1};
-            std::unordered_map<int, std::vector<std::string>> object_group_id_to_color;
+            std::map<int, std::vector<std::string>> object_group_id_to_color;
             bool is_bbl_3mf { false };
 
             ObjectImporter(_BBS_3MF_Importer *importer, std::string file_path, std::string obj_path)
@@ -1116,7 +1170,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         CurrentInstance m_curr_instance;
 
         int m_current_color_group{-1};
-        std::unordered_map<int, std::vector<std::string>> m_group_id_to_color;
+        std::map<int, std::vector<std::string>> m_group_id_to_color;
 
         // Store the color data for each volume(volume object id->VolumeColorInfo).
         // Note: This mapping is populated in _generate_volumes_new.
@@ -1135,7 +1189,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         unsigned int version() const { return m_version; }
 
         // Get the color group mapping information (color group ID -> color string) after parsing a standard 3MF file.
-        const std::unordered_map<int, std::vector<std::string>>& get_color_group_map() const { return m_group_id_to_color; }
+        const std::map<int, std::vector<std::string>>& get_color_group_map() const { return m_group_id_to_color; }
 
         // Get volume color data
         const std::unordered_map<int, VolumeColorInfo>& get_volume_color_data() const { return m_volume_color_data; }
@@ -1262,6 +1316,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
         bool _handle_start_config_warning(const char** attributes, unsigned int num_attributes);
         bool _handle_end_config_warning();
+
+        bool _handle_start_config_nozzle(const char** attributes, unsigned int num_attributes);
+        bool _handle_end_config_nozzle();
 
         //BBS: add plater config parse functions
         bool _handle_start_config_plater(const char** attributes, unsigned int num_attributes);
@@ -1592,8 +1649,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate->is_label_object_enabled = it->second->is_label_object_enabled;
             plate->skipped_objects = it->second->skipped_objects;
             plate->slice_filaments_info = it->second->slice_filaments_info;
+            plate->nozzles_info = it->second->nozzles_info;
             plate->printer_model_id = it->second->printer_model_id;
             plate->nozzle_diameters = it->second->nozzle_diameters;
+            plate->nozzle_volume_types = it->second->nozzle_volume_types;
             plate->warnings = it->second->warnings;
             plate->thumbnail_file = it->second->thumbnail_file;
             plate->filament_maps = it->second->filament_maps;
@@ -1608,6 +1667,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate->pattern_bbox_file = it->second->pattern_bbox_file.empty();
             plate->config = it->second->config;
             plate->filament_change_sequence = it->second->filament_change_sequence;
+            plate->nozzle_change_sequence = it->second->nozzle_change_sequence;
+            plate->optimal_assignment = it->second->optimal_assignment;
 
             if (!plate->thumbnail_file.empty())
                 _extract_from_archive(archive, plate->thumbnail_file, [&pixels = plate_data_list[it->first - 1]->plate_thumbnail.pixels](auto &archive, auto const &stat) -> bool {
@@ -2277,6 +2338,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->is_support_used = it->second->is_support_used;
             plate_data_list[it->first-1]->is_label_object_enabled = it->second->is_label_object_enabled;
             plate_data_list[it->first-1]->slice_filaments_info = it->second->slice_filaments_info;
+            plate_data_list[it->first-1]->nozzles_info  = it->second->nozzles_info;
             plate_data_list[it->first-1]->skipped_objects = it->second->skipped_objects;
             plate_data_list[it->first-1]->warnings = it->second->warnings;
             plate_data_list[it->first-1]->thumbnail_file = (m_load_restore || it->second->thumbnail_file.empty()) ? it->second->thumbnail_file : m_backup_path + "/" + it->second->thumbnail_file;
@@ -2288,6 +2350,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             plate_data_list[it->first-1]->config = it->second->config;
             plate_data_list[it->first-1]->filament_maps = it->second->filament_maps;
             plate_data_list[it->first-1]->filament_change_sequence = it->second->filament_change_sequence;
+            plate_data_list[it->first-1]->nozzle_change_sequence = it->second->nozzle_change_sequence;
+            plate_data_list[it->first-1]->optimal_assignment = it->second->optimal_assignment;
+            plate_data_list[it->first-1]->nozzle_volume_types = it->second->nozzle_volume_types;
+            plate_data_list[it->first-1]->nozzle_diameters = it->second->nozzle_diameters;
 
             current_plate_data = plate_data_list[it->first - 1];
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__
@@ -3236,12 +3302,29 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 int plate_idx = elem.first;
                 auto plater_data = elem.second;
                 std::string key = "plate_" + std::to_string(plate_idx);
-                auto plate_seq = j[key]["sequence"];
-                std::vector<unsigned int> sequence;
-                for (auto& item : plate_seq) {
-                    sequence.push_back(item.get<unsigned int>() - 1); // data stored in file is 1 based, change to 0 based when loading
+                std::string filament_key = "filament_sequence";
+                if (!j[key].contains(filament_key))
+                    filament_key = "sequence";
+                auto filament_seq = j[key][filament_key];
+                auto nozzle_seq = j[key]["nozzle_sequence"];
+                auto optimal_assignment_j = j[key].find("optimal_assignment");
+                std::vector<unsigned int> filament_sequence;
+                std::vector<unsigned int> nozzle_sequence;
+                std::vector<int> optimal_assignment;
+                for (auto &item : filament_seq) {
+                    filament_sequence.push_back(item.get<unsigned int>() - 1); // data stored in file is 1 based, change to 0 based when loading
                 }
-                plater_data->filament_change_sequence = sequence;
+                for (auto &item : nozzle_seq) {
+                    nozzle_sequence.push_back(item.get<unsigned int>());
+                }
+                if (optimal_assignment_j != j[key].end()) {
+                    for (auto &item : *optimal_assignment_j) {
+                        optimal_assignment.emplace_back(item.get<int>());
+                    }
+                }
+                plater_data->filament_change_sequence = filament_sequence;
+                plater_data->nozzle_change_sequence   = nozzle_sequence;
+                if (!optimal_assignment.empty()) plater_data->optimal_assignment = optimal_assignment;
             }
         }
         catch (const std::exception& e) {
@@ -3455,6 +3538,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             res = _handle_start_config_filament(attributes, num_attributes);
         else if (::strcmp(SLICE_WARNING_TAG, name) == 0)
             res = _handle_start_config_warning(attributes, num_attributes);
+        else if (::strcmp(NOZZLE_TAG, name) == 0)
+            res = _handle_start_config_nozzle(attributes, num_attributes);
         else if (::strcmp(ASSEMBLE_TAG, name) == 0)
             res = _handle_start_assemble(attributes, num_attributes);
         else if (::strcmp(ASSEMBLE_ITEM_TAG, name) == 0)
@@ -3492,6 +3577,8 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             res = _handle_end_config_plater();
         else if (::strcmp(FILAMENT_TAG, name) == 0)
             res = _handle_end_config_filament();
+        else if (::strcmp(NOZZLE_TAG, name) == 0)
+            res = _handle_end_config_nozzle();
         else if (::strcmp(INSTANCE_TAG, name) == 0)
             res = _handle_end_config_plater_instance();
         else if (::strcmp(ASSEMBLE_TAG, name) == 0)
@@ -4535,10 +4622,31 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 if (m_curr_plater)
                     std::istringstream(value) >> std::boolalpha >> m_curr_plater->is_label_object_enabled;
             }
+            else if (key == ENABLE_FILAMENT_DYNAMIC_MAP_ATTR)
+            {
+                if (m_curr_plater) {
+                    bool enable_filament_dynamic_map = false;
+                    std::istringstream(value) >> std::boolalpha >> enable_filament_dynamic_map;
+                    m_curr_plater->config.set_key_value("enable_filament_dynamic_map", new ConfigOptionBool(enable_filament_dynamic_map));
+                }
+            }
+            else if (key == HAS_FILAMENT_SWITCHER_ATTR)
+            {
+                if (m_curr_plater) {
+                    bool has_filament_switcher = false;
+                    std::istringstream(value) >> std::boolalpha >> has_filament_switcher;
+                    m_curr_plater->config.set_key_value("has_filament_switcher", new ConfigOptionBool(has_filament_switcher));
+                }
+            }
             else if (key == PRINTER_MODEL_ID_ATTR)
             {
                 if (m_curr_plater)
                     m_curr_plater->printer_model_id = value;
+            }
+            else if (key == NOZZLE_VOLUME_TYPE_ATTR)
+            {
+                if (m_curr_plater)
+                    m_curr_plater->nozzle_volume_types = value;
             }
             else if (key == NOZZLE_DIAMETERS_ATTR)
             {
@@ -4575,8 +4683,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             filament_info.used_m = atof(used_m.c_str());
             filament_info.used_g = atof(used_g.c_str());
             filament_info.filament_id = filament_id;
-            if (!group_id.empty())
-                filament_info.group_id = atoi(group_id.c_str());
+            filament_info.group_id = parse_int_list(group_id);
             filament_info.nozzle_diameter = atof(nozzle_diameter.c_str());
             filament_info.nozzle_volume_type = volume_type;
             m_curr_plater->slice_filaments_info.push_back(filament_info);
@@ -4609,6 +4716,39 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
     }
 
     bool _BBS_3MF_Importer::_handle_end_config_warning()
+    {
+        // do nothing
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_start_config_nozzle(const char** attributes, unsigned int num_attributes)
+    {
+        if (m_curr_plater) {
+            // id="0" extruder_id="1" nozzle_diameter="0.4" volume_type="nvtNormal"
+            std::string id = bbs_get_attribute_value_string(attributes, num_attributes, "id");
+            std::string extruder_id = bbs_get_attribute_value_string(attributes, num_attributes, "extruder_id");
+            std::string nozzle_diameter= bbs_get_attribute_value_string(attributes, num_attributes, "nozzle_diameter");
+            std::string volume_type = bbs_get_attribute_value_string(attributes, num_attributes, "volume_type");
+
+            auto volume_type_str_to_enum = ConfigOptionEnum<NozzleVolumeType>::get_enum_values();
+
+            MultiNozzleUtils::NozzleInfo nozzle_info;
+            nozzle_info.group_id = atoi(id.c_str());
+            nozzle_info.extruder_id = atoi(extruder_id.c_str()) - 1;
+            nozzle_info.diameter = nozzle_diameter;
+
+            if(volume_type_str_to_enum.count(volume_type))
+                nozzle_info.volume_type = NozzleVolumeType(volume_type_str_to_enum.at(volume_type));
+            else{
+                nozzle_info.volume_type = NozzleVolumeType::nvtStandard;
+            }
+
+            m_curr_plater->nozzles_info.push_back(nozzle_info);
+        }
+        return true;
+    }
+
+    bool _BBS_3MF_Importer::_handle_end_config_nozzle()
     {
         // do nothing
         return true;
@@ -4731,7 +4871,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         ObjectMetadata::VolumeMetadata &volume = object->second.volumes[m_curr_config.volume_id];
         TextInfo text_info;
         text_info.m_text      = xml_unescape(bbs_get_attribute_value_string(attributes, num_attributes, TEXT_ATTR));
-        text_info.m_font_name = bbs_get_attribute_value_string(attributes, num_attributes, FONT_NAME_ATTR);
+        text_info.m_font_name = xml_unescape(bbs_get_attribute_value_string(attributes, num_attributes, FONT_NAME_ATTR));
         text_info.text_configuration.style.prop.face_name = text_info.m_font_name;
         text_info.m_font_version = bbs_get_attribute_value_string(attributes, num_attributes, FONT_VERSION_ATTR);
         text_info.text_configuration.style.name = bbs_get_attribute_value_string(attributes, num_attributes, STYLE_NAME_ATTR);
@@ -7753,7 +7893,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         stream << "      <" << TEXT_INFO_TAG << " ";
 
         stream << TEXT_ATTR << "=\"" << xml_escape(text_info.m_text) << "\" ";
-        stream << FONT_NAME_ATTR << "=\"" << text_info.m_font_name << "\" ";
+        stream << FONT_NAME_ATTR << "=\"" << xml_escape(text_info.m_font_name) << "\" ";
         stream << FONT_VERSION_ATTR << "=\"" << text_info.m_font_version << "\" ";
         stream << STYLE_NAME_ATTR << "=\"" << xml_escape_double_quotes_attribute_value(text_info.text_configuration.style.name) << "\" ";
         stream << BOLDNESS_ATTR << "=\"" << text_info.text_configuration.style.prop.boldness.value_or(0) << "\" ";
@@ -8268,7 +8408,14 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << OUTSIDE_ATTR      << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->toolpath_outside << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << SUPPORT_USED_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->is_support_used << "\"/>\n";
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << LABEL_OBJECT_ENABLED_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha<< plate_data->is_label_object_enabled << "\"/>\n";
-
+                if (plate_data && plate_data->nozzle_group_result)
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << ENABLE_FILAMENT_DYNAMIC_MAP_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << plate_data->nozzle_group_result->is_support_dynamic_nozzle_map() << "\"/>\n";
+                else
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << ENABLE_FILAMENT_DYNAMIC_MAP_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << false << "\"/>\n";
+                {
+                    bool has_filament_switcher = config.has("has_filament_switcher") ? config.opt_bool("has_filament_switcher") : false;
+                    stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << HAS_FILAMENT_SWITCHER_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << has_filament_switcher << "\"/>\n";
+                }
                 std::vector<int> filament_maps = plate_data->filament_maps;
                 if (filament_maps.empty())
                     filament_maps = config.option<ConfigOptionInts>("filament_map")->values;
@@ -8320,21 +8467,32 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
 
                 for (auto it = plate_data->slice_filaments_info.begin(); it != plate_data->slice_filaments_info.end(); it++)
                 {
+                    std::string group_id_value = join_int_list_comma(it->group_id);
                     stream << "    <" << FILAMENT_TAG << " " << FILAMENT_ID_TAG << "=\"" << std::to_string(it->id + 1) << "\" "
-                        << FILAMENT_TRAY_INFO_ID_TAG << "=\"" << it->filament_id << "\" "
-                        << FILAMENT_TYPE_TAG << "=\"" << it->type << "\" "
-                        << FILAMENT_COLOR_TAG << "=\"" << it->color << "\" "
-                        << FILAMENT_USED_M_TAG << "=\"" << it->used_m << "\" "
-                        << FILAMENT_USED_G_TAG << "=\"" << it->used_g << "\" "
-                        << FILAMENT_USED_FOR_OBJECT << "=\"" << it->used_for_object << "\" "
-                        << FILAMENT_USED_FOR_SUPPORT << "=\"" << it->used_for_support << "\" "
-                        << FILAMENT_NOZZLE_GROUP_ID_TAG << "=\"" << it->group_id << "\" "
-                        << FILAMENT_NOZZLE_DIAMETER_TAG << "=\"" << it->nozzle_diameter << "\" "
-                        << FILAMENT_NOZZLE_VOLUME_TYPE_TAG << "=\"" << it->nozzle_volume_type << "\"/>\n";
+                           << FILAMENT_TRAY_INFO_ID_TAG <<"=\""<< it->filament_id <<"\" "
+                           << FILAMENT_TYPE_TAG << "=\"" << it->type << "\" "
+                           << FILAMENT_COLOR_TAG << "=\"" << it->color << "\" "
+                           << FILAMENT_USED_M_TAG << "=\"" << it->used_m << "\" "
+                           << FILAMENT_USED_G_TAG << "=\"" << it->used_g << "\" "
+                           << FILAMENT_NOZZLE_GROUP_ID_TAG << "=\"" << group_id_value << "\" "
+                           << FILAMENT_NOZZLE_DIAMETER_TAG << "=\"" << it->nozzle_diameter << "\" "
+                           << FILAMENT_NOZZLE_VOLUME_TYPE_TAG << "=\"" << it->nozzle_volume_type << "\" "
+                           << FILAMENT_USED_FOR_OBJECT << "=\"" << it->used_for_object << "\" "
+                           << FILAMENT_USED_FOR_SUPPORT << "=\"" << it->used_for_support << "\"/>\n";
                 }
 
                 for (auto it = plate_data->warnings.begin(); it != plate_data->warnings.end(); it++) {
                     stream << "    <" << SLICE_WARNING_TAG << " msg=\"" << it->msg << "\" level=\"" << std::to_string(it->level) << "\" error_code =\"" << it->error_code << "\"  />\n";
+                }
+
+                if (plate_data->nozzle_group_result) {
+                    // 获取使用的所有逻辑喷嘴
+                    auto used_nozzle_list = plate_data->nozzle_group_result->get_used_nozzles_in_extruder();
+                    if(!used_nozzle_list.empty()){
+                        for(auto& used_nozzle: used_nozzle_list){
+                            stream <<"    <"<< NOZZLE_TAG <<" "<< used_nozzle.serialize() << "/>\n";
+                        }
+                    }
                 }
 
                 if (!plate_data->layer_filaments.empty()) {
@@ -8568,7 +8726,18 @@ bool _BBS_3MF_Exporter::_add_filament_sequence_file_to_archive(mz_zip_archive& a
         std::string plate_idx = "plate_"+std::to_string(idx+1);
         std::vector<unsigned int> sequence = plate_data->filament_change_sequence;
         std::transform(sequence.begin(), sequence.end(), sequence.begin(), [](unsigned int v) { return v + 1; }); // to 1 based idx
-        j[plate_idx]["sequence"] = sequence;
+       
+        bool enable_dynamic_map = plate_data->nozzle_group_result && plate_data->nozzle_group_result->is_support_dynamic_nozzle_map();
+        std::string seq_key;
+        if(enable_dynamic_map)
+            seq_key= "filament_sequence";
+        else
+            seq_key = "sequence";
+        j[plate_idx][seq_key] = sequence;
+        j[plate_idx]["nozzle_sequence"] = plate_data->nozzle_change_sequence;
+
+        std::vector<int> optimal_assignment = plate_data->optimal_assignment;
+        j[plate_idx]["optimal_assignment"] = optimal_assignment;
     }
 
     if(j.empty())
@@ -8961,7 +9130,7 @@ private:
 //BBS: add plate data list related logic
 bool load_bbs_3mf(const char* path, DynamicPrintConfig* config, ConfigSubstitutionContext* config_substitutions, Model* model, PlateDataPtrs* plate_data_list, std::vector<Preset*>* project_presets,
                     bool* is_bbl_3mf, Semver* file_version, Import3mfProgressFn proFn, LoadStrategy strategy, BBLProject *project, int plate_id,
-                    std::unordered_map<int, std::vector<std::string>>* color_group_map, VolumeColorInfoMap* volume_color_data)
+                    std::map<int, std::vector<std::string>>* color_group_map, VolumeColorInfoMap* volume_color_data)
 {
     if (path == nullptr || config == nullptr || model == nullptr)
         return false;
