@@ -30,6 +30,7 @@
 #include <slic3r/Utils/Http.hpp>
 #include <libslic3r/miniz_extension.hpp>
 #include <libslic3r/Utils.hpp>
+#include <tbb/parallel_for.h>
 #include "CreatePresetsDialog.hpp"
 
 #define PARALLEL_READ 1

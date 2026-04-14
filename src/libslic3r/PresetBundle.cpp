@@ -28,6 +28,7 @@
 #include <boost/log/trivial.hpp>
 #include <miniz/miniz.h>
 #include <mutex>
+#include <tbb/parallel_for.h>
 
 #define PARALLEL_LOAD_PRESET 1
 
