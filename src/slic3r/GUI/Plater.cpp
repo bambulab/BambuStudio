@@ -5520,6 +5520,14 @@ bool Sidebar::has_broken_mixed_filament() const
 {
     auto* plater = dynamic_cast<Plater*>(GetParent());
     if (!plater) return false;
+    return has_broken_mixed_filament(plater->get_partplate_list().get_curr_plate());
+}
+
+bool Sidebar::has_broken_mixed_filament(const PartPlate* plate) const
+{
+    if (!plate) return false;
+    auto* plater = dynamic_cast<Plater*>(GetParent());
+    if (!plater) return false;
 
     auto& project_config = wxGetApp().preset_bundle->project_config;
     auto* is_mixed_opt = project_config.option<ConfigOptionBools>("filament_is_mixed");
@@ -5555,13 +5563,10 @@ bool Sidebar::has_broken_mixed_filament() const
     std::set<size_t> broken_1based;
     for (size_t s : broken_slots) broken_1based.insert(s + 1);
 
-    // Scan model objects on current plate for raw extruder assignments
+    // Scan model objects on the given plate for raw extruder assignments
     // (don't use get_extruders() which expands mixed slots)
-    auto* curr_plate = plater->get_partplate_list().get_curr_plate();
-    if (!curr_plate) return false;
-
     for (auto& entry : plater->model().objects) {
-        if (!curr_plate->contain_instance_totally(entry, 0))
+        if (!plate->contain_instance_totally(entry, 0))
             continue;
         // Check object-level extruder
         int obj_ext = entry->config.has("extruder") ? entry->config.extruder() : 1;
@@ -10849,9 +10854,11 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             if (current_plate->is_slice_result_valid() && this->model.objects.empty() && !current_has_print_instances)
                 only_has_gcode_need_preview = true;
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": from set_current_panel, no_slice %1%, export_in_progress %2%, model_fits %3%, m_is_slicing %4%")%no_slice%export_in_progress%model_fits%m_is_slicing;
+            bool mixed_broken = sidebar->has_broken_mixed_filament();
 
-            if (!no_slice && !this->model.objects.empty() && !export_in_progress && model_fits && current_has_print_instances)
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": from set_current_panel, no_slice %1%, export_in_progress %2%, model_fits %3%, m_is_slicing %4%, mixed_broken %5%")%no_slice%export_in_progress%model_fits%m_is_slicing%mixed_broken;
+
+            if (!no_slice && !this->model.objects.empty() && !export_in_progress && model_fits && current_has_print_instances && !mixed_broken)
             {
                 //if already running in background, not relice here
                 //BBS: add more judge for slicing
@@ -20308,6 +20315,11 @@ void Plater::reslice()
     {
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": process_completed_with_error, return directly");
         reset_gcode_toolpaths();
+        return;
+    }
+
+    if (sidebar().has_broken_mixed_filament()) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": broken mixed filament detected, refuse to slice";
         return;
     }
 

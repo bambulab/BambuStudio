@@ -269,6 +269,7 @@ public:
     void recalc_filament_scroll_sizes();
     void update_mixed_filament_list();
     bool has_broken_mixed_filament() const;
+    bool has_broken_mixed_filament(const PartPlate* plate) const;
     Search::OptionsSearcher&        get_searcher();
     std::string&                    get_search_line();
     void                            set_is_gcode_file(bool flag);
