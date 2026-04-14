@@ -4226,7 +4226,7 @@ int CLI::run(int argc, char **argv)
                 %(plate_index+1) %start.x() % start.y() % start.z() %end.x() % end.y() % end.z();
     };
 
-    auto translate_models = [translate_old, shrink_to_new_bed, old_printable_width, old_printable_depth, old_printable_height, current_printable_width, current_printable_depth, current_printable_height, shared_center_x, shared_center_y, current_exclude_area, &plate_obj_size_infos] (Slic3r::GUI::PartPlateList& plate_list, DynamicPrintConfig& print_config) {
+    auto translate_models = [translate_old, shrink_to_new_bed, old_printable_width, old_printable_depth, old_printable_height, current_printable_width, current_printable_depth, current_printable_height, shared_center_x, shared_center_y, shared_printable_width, shared_printable_depth, current_exclude_area, &plate_obj_size_infos] (Slic3r::GUI::PartPlateList& plate_list, DynamicPrintConfig& print_config) {
         //BBS: translate old 3mf to correct positions
         if (translate_old) {
             //translate the objects
@@ -4243,7 +4243,8 @@ int CLI::run(int argc, char **argv)
             plate_list.reset_size(old_printable_width, old_printable_depth, old_printable_height, true, true);
         }
 
-        if (shrink_to_new_bed > 0)
+        //always do it
+        //if (shrink_to_new_bed > 0)
         {
             int plate_count = plate_list.get_plate_count();
             ConfigOptionFloats *wipe_x_option = nullptr, *wipe_y_option = nullptr;
@@ -4278,7 +4279,7 @@ int CLI::run(int argc, char **argv)
                     BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed 1, plate %1%, cur_origin: {%2%, %3%}, new_origin: {%4%, %5%}, cur_center {%6%, %7%} new_center {%8%, %9%}")
                         %(index+1) %cur_origin(0) %cur_origin(1) %new_origin(0) %new_origin(1)  %cur_center(0) %cur_center(1) %new_center(0) %new_center(1);
                 }
-                else {
+                else if (shrink_to_new_bed == 2) {
                     //center the object
                     Vec3d new_center_offset { ((double)current_printable_width + exclude_width)/2, ((double)current_printable_depth + exclude_depth)/2, 0};
                     BoundingBoxf3& bbox = plate_obj_size_infos[index].obj_bbox;
@@ -4309,6 +4310,48 @@ int CLI::run(int argc, char **argv)
                     BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed 2, plate %1%, new_origin: {%2%, %3%}, new_center: {%4%, %5%}, obj bbox(including wipe tower) min {%6%, %7%} max {%8%, %9%}")
                         %(index+1) %new_origin(0) %new_origin(1)  %new_center(0) %new_center(1) %bbox.min(0) %bbox.min(1)  %bbox.max(0) %bbox.max(1);
                 }
+                else {
+                    // shrink_to_new_bed == 0: same bed size, objects don't move.
+                    // But if the target printer has a shared (dual-head common) printable area,
+                    // the wipe tower may have been placed in a single-nozzle-only zone from the
+                    // source printer.  When the wipe tower + all objects fit inside the shared
+                    // area we shift only the wipe tower position into the shared area center;
+                    // otherwise we leave everything as-is (both offsets stay zero).
+                    if (shared_center_x != 0 && shared_printable_width > 0 && shared_printable_depth > 0
+                        && plate_obj_size_infos[index].has_wipe_tower) {
+                        // shared area bounds in plate-relative coords
+                        double shared_min_x = shared_center_x - shared_printable_width  / 2.0;
+                        double shared_min_y = shared_center_y - shared_printable_depth / 2.0;
+                        double shared_max_x = shared_center_x + shared_printable_width  / 2.0;
+                        double shared_max_y = shared_center_y + shared_printable_depth / 2.0;
+
+                        // convert obj_bbox (world coords) to plate-relative
+                        BoundingBoxf3& bbox = plate_obj_size_infos[index].obj_bbox;
+                        Vec3d bbox_size = bbox.size();
+                        bool fits_in_shared = (bbox_size.x() <= shared_printable_width &&
+                                               bbox_size.y() <= shared_printable_depth);
+
+                        BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed 0, plate %1%: bbox size {%2%, %3%}, shared area {min: %4%, %5%, max: %6%, %7%}, fits=%8%")
+                            %(index+1) %bbox_size.x() %bbox_size.y() %shared_min_x %shared_min_y %shared_max_x %shared_max_y %(int)fits_in_shared;
+                        if (fits_in_shared) {
+                            // shift all objects and wipe tower together so the whole bbox
+                            // is centered on the shared printable area
+                            Vec3d shared_center_world = new_origin + Vec3d(shared_center_x, shared_center_y, 0);
+                            offset = shared_center_world - bbox.center();
+                            offset(2) = 0;
+                            // cur_origin == new_origin when shrink_to_new_bed == 0
+                            BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed 0, plate %1%: bbox fits shared area, shifting all by {%2%, %3%}")
+                                %(index+1) %offset(0) %offset(1);
+                        } else {
+                            offset = Vec3d(0, 0, 0);
+                            BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed 0, plate %1%: bbox does not fit shared area, offsets stay zero")%(index+1);
+                        }
+                    }
+                    else {
+                        offset = Vec3d(0, 0, 0);
+                    }
+                    wipe_offset = offset;
+                }
                 offset(2) = 0.f;
                 BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed %1%, plate %2% translate offset: {%3%, %4%} wipe_offset {%5%, %6%}") %shrink_to_new_bed %(index+1) %offset[0] %offset[1] %wipe_offset[0]  %wipe_offset[1];
                 cur_plate->translate_all_instance(offset);
@@ -4326,7 +4369,8 @@ int CLI::run(int argc, char **argv)
 
             }
             BOOST_LOG_TRIVIAL(info) << boost::format("shrink_to_new_bed, shrink all the models to current bed size,{%1%, %2%, %3%}")%current_printable_width %current_printable_depth %current_printable_height;
-            plate_list.reset_size(current_printable_width, current_printable_depth, current_printable_height, true, true);
+            if (shrink_to_new_bed > 0)
+                plate_list.reset_size(current_printable_width, current_printable_depth, current_printable_height, true, true);
         }
     };
     if (plate_data_src.size() > 0)
