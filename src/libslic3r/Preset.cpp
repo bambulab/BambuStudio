@@ -1067,7 +1067,9 @@ static std::vector<std::string> s_Preset_print_options {
     "elefant_foot_compensation", "xy_contour_compensation", "xy_hole_compensation", "resolution", "enable_prime_tower", "prime_tower_enable_framework",
     "prime_tower_width", "prime_tower_brim_width", "prime_tower_skip_points","prime_tower_max_speed","enable_tower_interface_features",
     "prime_tower_rib_wall","prime_tower_extra_rib_length","prime_tower_rib_width","prime_tower_fillet_wall","prime_tower_infill_gap","prime_tower_lift_speed","prime_tower_lift_height",
-    "prime_tower_flat_ironing","enable_circle_compensation", "circle_compensation_manual_offset", "apply_scarf_seam_on_circles",
+    "prime_tower_acceleration","prime_tower_line_width","prime_tower_ramming_line_width","prime_tower_wipe_speed","prime_tower_wipe_distance",
+    "prime_tower_flat_ironing","prime_tower_line_ironing","prime_tower_ironing_speed",
+    "enable_circle_compensation", "circle_compensation_manual_offset", "apply_scarf_seam_on_circles",
     "wipe_tower_no_sparse_layers", "compatible_printers", "compatible_printers_condition", "inherits",
     "flush_into_infill", "flush_into_objects", "flush_into_support","process_notes", "enable_mixed_color_sublayer",
     // BBS
@@ -1098,7 +1100,7 @@ static std::vector<std::string> s_Preset_print_options {
 static std::vector<std::string> s_Preset_filament_options {/*"filament_colour", */ "default_filament_colour", "required_nozzle_HRC", "filament_diameter", "volumetric_speed_coefficients", "filament_type",
                                                           "filament_soluble", "filament_is_support", "filament_printable", "filament_extruder_compatibility", "filament_scarf_seam_type", "filament_scarf_height",
                                                           "filament_scarf_gap", "filament_scarf_length",
-    "filament_max_volumetric_speed", "impact_strength_z", "filament_ramming_volumetric_speed","filament_ramming_volumetric_speed_nc", "filament_adaptive_volumetric_speed",
+    "filament_max_volumetric_speed", "impact_strength_z", "filament_ramming_volumetric_speed", "filament_ramming_volumetric_speed_nc", "filament_adaptive_volumetric_speed", "filament_prime_tower_speed_factor_curve", "filament_prime_tower_feedrate_factor",
     "filament_flow_ratio", "filament_density", "filament_adhesiveness_category", "filament_metal_stickiness", "filament_cost", "filament_minimal_purge_on_wipe_tower",
     "nozzle_temperature", "nozzle_temperature_initial_layer",
     // BBS
@@ -1126,7 +1128,7 @@ static std::vector<std::string> s_Preset_filament_options {/*"filament_colour", 
     "enable_pressure_advance", "pressure_advance", "chamber_temperatures","filament_notes",
     "filament_long_retractions_when_cut","filament_retraction_distances_when_cut","filament_shrink", "filament_velocity_adaptation_factor",
     //BBS filament change length while the extruder color
-    "filament_change_length","filament_change_length_nc","filament_prime_volume","filament_prime_volume_nc","filament_flush_volumetric_speed","filament_flush_temp","filament_flush_temp_fast",
+    "filament_change_length","filament_change_length_nc","filament_idle_travel_cooling_enabled","filament_prime_volume","filament_prime_volume_nc","filament_flush_volumetric_speed","filament_flush_temp","filament_flush_temp_fast",
     "long_retractions_when_ec", "retraction_distances_when_ec",
     "filament_enable_overhang_speed",
     "filament_bridge_speed",

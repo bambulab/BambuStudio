@@ -162,6 +162,9 @@
     "filament_max_volumetric_speed": [
         "0"
     ],
+    "filament_prime_tower_feedrate_factor": [
+        "1"
+    ],
     "filament_metal_stickiness": [
         "None"
     ],

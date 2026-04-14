@@ -97,6 +97,8 @@
     "prime_tower_lift_height": "-1",
     "prime_tower_max_speed": "90",
     "prime_tower_flat_ironing": "0",
+    "prime_tower_line_ironing": "1",
+    "prime_tower_ironing_speed": "10",
     "raft_layers": "0",
     "reduce_crossing_wall": "0",
     "reduce_infill_retraction_mode": "Auto",

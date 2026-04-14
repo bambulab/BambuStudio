@@ -61,7 +61,11 @@ public:
 		Vec2f origin_start_pos;  // not rotated
 
         std::vector<Vec2f> wipe_path;
-        bool is_extruder_change;
+        bool is_extruder_change{false};
+        bool zero_flush_idle_cooling{false};
+        bool heater_off_only{false};
+        float precool_target_temp{0};
+        int precool_filament_id{-1};
     };
 
 	struct ToolChangeResult
@@ -341,10 +345,13 @@ public:
         std::pair<std::vector<float>, std::vector<float>> precool_t_first_layer;
         std::pair<int,int>    precool_target_temp;
         float filament_cooling_before_tower = 0.f;
+        bool  idle_travel_cooling_enabled = true;
         float flat_iron_area;
         float filament_tower_interface_print_temp;
         float filament_tower_interface_pre_extrusion_dist = 0;
         float filament_tower_interface_pre_extrusion_length = 0;
+        std::vector<double> speed_factor_curve;
+        float prime_tower_feedrate_factor = 1.f;
         float filament_petg_pre_extrusion_offset_dist = 0;
     };
 
@@ -402,6 +409,8 @@ public:
     void calc_block_infill_gap();
     ToolChangeResult   tool_change_new(size_t new_tool, bool solid_change = false, bool solid_nozzlechange=false);
     NozzleChangeResult ramming(int old_filament_id, int new_filament_id, bool solid_change = false, bool extruder_change = true); // extruder_chang means nozzle_change
+    NozzleChangeResult heater_off_nozzle_change(int old_filament_id, int new_filament_id);
+    NozzleChangeResult idle_travel_cooling(int old_filament_id, int new_filament_id);
     ToolChangeResult   finish_layer_new(bool extrude_perimeter = true, bool extrude_fill = true, bool extrude_fill_wall = true);
     ToolChangeResult   finish_block(const WipeTowerBlock &block, int filament_id, bool extrude_fill = true);
     ToolChangeResult   finish_block_solid(const WipeTowerBlock &block, int filament_id, bool extrude_fill = true, WipeTowerLayerType layer_type = WipeTowerLayerType::Normal);
@@ -532,8 +541,21 @@ private:
     std::map<float,Polylines> m_outer_wall;
     std::vector<double>        m_printable_height;
     bool is_first_layer() const { return size_t(m_layer_info - m_plan.begin()) == m_first_layer_idx; }
+    float calc_tower_feedrate(int filament_id, float extrusion_flow) const {
+        if (is_first_layer())
+            return std::min(m_first_layer_speed * 60.f, m_max_speed);
+        if (m_handle_hotend_as_extruder) {
+            float feedrate = 60.0f * m_filpar[filament_id].max_e_speed / extrusion_flow;
+            feedrate *= m_filpar[filament_id].prime_tower_feedrate_factor;
+            return std::min(feedrate, m_machine_max_speed);
+        }
+        return std::min(60.0f * m_filpar[filament_id].max_e_speed / extrusion_flow, m_max_speed);
+    }
     bool                       is_valid_last_layer(int tool, int layer_id, double layer_z) const;
     bool                       m_flat_ironing=false;
+    bool                       m_line_ironing = true;
+    float                      m_ironing_speed = 10.f * 60.f;
+    float                      m_machine_max_speed = 500.f * 60.f;
     bool                       m_contact_ironing = false;
     bool                       m_has_filament_switcher = false;
     float                      m_contact_speed   = 20 * 60.f;

@@ -2929,6 +2929,12 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionFloats{10});
 
+    def          = this->add("filament_idle_travel_cooling_enabled", coBools);
+    def->label   = L("Idle travel cooling");
+    def->tooltip = L("When filament change length is zero, perform idle travel cooling to help the nozzle cool down. Disabling this will turn off the heater directly without idle travel, which saves print time but may cause stringing for some materials.");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionBools{true});
+
     def          = this->add("filament_is_support", coBools);
     def->label   = L("Support material");
     def->tooltip = L("Support material is commonly used to print support and support interface");
@@ -2959,6 +2965,25 @@ void PrintConfigDef::init_fff_params()
                      "When enabled, the sub-layer ratios vary linearly across layers.");
     def->mode    = comDevelop;
     def->set_default_value(new ConfigOptionBools{false});
+
+    def          = this->add("filament_prime_tower_speed_factor_curve", coStrings);
+    def->label   = L("Prime tower speed factor curve");
+    def->tooltip = L("Controls the speed factor ramp when priming on the wipe tower after a tool change. "
+                     "Enter comma-separated multipliers of the target speed, one per wipe line. "
+                     "For example: \"0.33,0.375,0.458,0.875,0.875\" means the 1st line runs at 33%, "
+                     "the 2nd at 37.5%, and so on. If fewer than 5 values are given, the last value "
+                     "is reused for remaining lines. Each value is clamped to 0.01 ~ 5.0. "
+                     "Leave empty to use the built-in default curve (0.33, 0.375, 0.458, 0.875, 0.875).");
+    def->mode    = comDevelop;
+    def->set_default_value(new ConfigOptionStrings{""});
+
+    def          = this->add("filament_prime_tower_feedrate_factor", coFloats);
+    def->label   = L("Prime tower feedrate factor");
+    def->tooltip = L("Feedrate scaling factor for prime/wipe tower extrusion when hotends are handled as extruders. "
+                     "It does not affect all tower travel moves. 1.0 means no change; values below 1.0 slow down, above 1.0 speed up.");
+    def->mode    = comDevelop;
+    def->min     = 0.01;
+    def->set_default_value(new ConfigOptionFloats{1.f});
 
     def          = this->add("filament_mixed_gradient_range", coStrings);
     def->label   = L("Mixed filament gradient range");
@@ -6446,6 +6471,50 @@ void PrintConfigDef::init_fff_params()
     def->min      = 10;
     def->set_default_value(new ConfigOptionFloat(90.));
 
+    def           = this->add("prime_tower_acceleration", coFloat);
+    def->label    = L("Acceleration");
+    def->tooltip  = L("The acceleration used for prime tower extrusions. Does not affect the first layer. 0 means using the global default acceleration.");
+    def->sidetext = L("mm/s²");
+    def->mode     = comDevelop;
+    def->min      = 0;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
+    def           = this->add("prime_tower_line_width", coFloat);
+    def->label    = L("Line width");
+    def->tooltip  = L("Line width for prime tower normal wiping paths. 0 means auto-calculated from nozzle diameter.");
+    def->sidetext = L("mm");
+    def->mode     = comDevelop;
+    def->min      = 0;
+    def->max      = 5;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
+    def           = this->add("prime_tower_ramming_line_width", coFloat);
+    def->label    = L("Ramming line width");
+    def->tooltip  = L("Line width for prime tower nozzle-change (ramming) paths. 0 means using the default mapping table.");
+    def->sidetext = L("mm");
+    def->mode     = comDevelop;
+    def->min      = 0;
+    def->max      = 5;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
+    def           = this->add("prime_tower_wipe_speed", coFloat);
+    def->label    = L("Wipe speed");
+    def->tooltip  = L("The speed of wipe movement before printing on the prime tower during tool change. 0 means using prime tower max speed.");
+    def->sidetext = L("mm/s");
+    def->mode     = comDevelop;
+    def->min      = 0;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
+    def           = this->add("prime_tower_wipe_distance", coFloat);
+    def->label    = L("Wipe distance");
+    def->tooltip  = L("The wipe path distance during tool change. 0 means using the filament-level wipe distance.");
+    def->sidetext = L("mm");
+    def->mode     = comDevelop;
+    def->min      = 0;
+    def->set_default_value(new ConfigOptionFloat(0.));
+
+
+
     def           = this->add("prime_tower_lift_speed", coFloat);
     def->set_default_value(new ConfigOptionFloat(90.));
 
@@ -6487,9 +6556,26 @@ void PrintConfigDef::init_fff_params()
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(true));
 
-    def      = this->add("prime_tower_flat_ironing", coBool);
-    def->mode = comAdvanced;
+    def          = this->add("prime_tower_flat_ironing", coBool);
+    def->label   = L("Flat ironing");
+    def->tooltip = L("Enable flat ironing for prime tower to smooth the top surface after wiping");
+    def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
+
+    def          = this->add("prime_tower_line_ironing", coBool);
+    def->label   = L("Line ironing");
+    def->tooltip = L("Enable line ironing for prime tower wipe paths");
+    def->mode    = comAdvanced;
+    def->set_default_value(new ConfigOptionBool(true));
+
+    def           = this->add("prime_tower_ironing_speed", coFloat);
+    def->label    = L("Ironing speed");
+    def->tooltip  = L("Speed of prime tower ironing movements");
+    def->sidetext = L("mm/s");
+    def->mode     = comAdvanced;
+    def->min      = 1;
+    def->max      = 100;
+    def->set_default_value(new ConfigOptionFloat(10.));
 
     def          = this->add("prime_tower_rib_wall", coBool);
     def->label   = L("Rib wall");

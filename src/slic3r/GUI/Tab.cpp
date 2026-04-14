@@ -3519,6 +3519,14 @@ void TabPrint::build()
         optgroup->append_single_option_line("prime_tower_extra_rib_length","parameter/prime-tower#rib-wall");
         optgroup->append_single_option_line("prime_tower_rib_width","parameter/prime-tower#rib-wall");
         optgroup->append_single_option_line("prime_tower_fillet_wall","parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_acceleration","parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_line_width","parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_ramming_line_width","parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_wipe_speed","parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_wipe_distance","parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_flat_ironing", "parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_line_ironing", "parameter/prime-tower");
+        optgroup->append_single_option_line("prime_tower_ironing_speed", "parameter/prime-tower");
         optgroup->append_single_option_line("enable_tower_interface_features", "parameter/prime-tower");
         optgroup->append_single_option_line("wipe_tower_no_sparse_layers", "parameter/prime-tower");
 
@@ -4761,6 +4769,8 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("filament_pre_cooling_temperature_nc",0));
         optgroup->append_line(line);
 
+        optgroup->append_single_option_line("filament_idle_travel_cooling_enabled");
+
         line = { L("Recommended nozzle temperature"), L("Recommended nozzle temperature range of this filament. 0 means no set") };
         line.append_option(optgroup->get_option("nozzle_temperature_range_low"));
         line.append_option(optgroup->get_option("nozzle_temperature_range_high"));
@@ -4846,6 +4856,8 @@ void TabFilament::build()
         line.append_option(optgroup->get_option("filament_ramming_volumetric_speed", 0));
         line.append_option(optgroup->get_option("filament_ramming_volumetric_speed_nc", 0));
         optgroup->append_line(line);
+        optgroup->append_single_option_line("filament_prime_tower_speed_factor_curve", "", 0);
+        optgroup->append_single_option_line("filament_prime_tower_feedrate_factor", "", 0);
 
         // BBS
         optgroup = page->new_optgroup(L("Filament scarf seam settings"), L"param_volumetric_speed");
@@ -5138,6 +5150,9 @@ void TabFilament::toggle_options()
         for (auto el : {"filament_tower_interface_pre_extrusion_dist", "filament_tower_interface_pre_extrusion_length",
                         "filament_tower_interface_purge_volume", "filament_tower_interface_print_temp"})
             toggle_line(el, is_tower_interface_supported);
+
+        bool handle_hotend_as_extruder = m_preset_bundle->printers.get_edited_preset().config.opt_bool("handle_hotend_as_extruder");
+        toggle_line("filament_idle_travel_cooling_enabled", handle_hotend_as_extruder);
     }
 
     if (m_active_page && m_active_page->title() == "Multi Filament") {

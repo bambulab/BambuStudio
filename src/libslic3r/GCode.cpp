@@ -446,7 +446,10 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         double wipe_speed = gcodegen.config().role_base_wipe_speed && cur_speed > EPSILON ? cur_speed / 60 :
             gcodegen.writer().config.travel_speed.get_at(get_process_config_idx(gcodegen.writer().config, gcodegen.writer().filament()->id())) * gcodegen.config().wipe_speed.value / 100;
 
-        if (toolchange) { wipe_speed = gcodegen.m_print->config().prime_tower_max_speed.value; }
+        if (toolchange) {
+            double tc_wipe_speed = gcodegen.m_print->config().prime_tower_wipe_speed.value;
+            wipe_speed = (tc_wipe_speed > 0) ? tc_wipe_speed : gcodegen.m_print->config().prime_tower_max_speed.value;
+        }
 
         // get the retraction length
         double length = toolchange
@@ -461,6 +464,11 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 for the time needed to consume retraction_length at retraction_speed?  */
             // BBS
             double wipe_dist = scale_(gcodegen.config().wipe_distance.get_at(gcodegen.writer().filament()->id()));
+            if (toolchange) {
+                double tc_wipe_dist = gcodegen.m_print->config().prime_tower_wipe_distance.value;
+                if (tc_wipe_dist > 0)
+                    wipe_dist = scale_(tc_wipe_dist);
+            }
 
             /*  Take the stored wipe path and replace first point with the current actual position
                 (they might be different, for example, in case of loop clipping).  */
@@ -842,8 +850,16 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             auto_lift_type = LiftType::SpiralLift;
 
         // BBS: should be placed before toolchange parsing
-        std::string toolchange_retract_str = gcodegen.retract(tcr.is_tool_change && !is_nozzle_change, false, auto_lift_type, true);
+        bool full_retract_before_nozzle_change = tcr.is_tool_change && (!is_nozzle_change || tcr.nozzle_change_result.zero_flush_idle_cooling || tcr.nozzle_change_result.heater_off_only);
+        std::string toolchange_retract_str = gcodegen.retract(full_retract_before_nozzle_change, false, auto_lift_type, true);
         check_add_eol(toolchange_retract_str);
+
+        if (tcr.nozzle_change_result.heater_off_only) {
+            int nozzle_id = group_result->get_nozzle_id(tcr.nozzle_change_result.precool_filament_id, m_layer_idx);
+            char buf[128];
+            snprintf(buf, sizeof(buf), "M104 I%d S0 N0\n", nozzle_id);
+            toolchange_retract_str += buf;
+        }
 
         //BBS: if needed, write the gcode_label_objects_end then priming tower, if the retract, didn't did it.
         std::string object_end_label_temp;
@@ -858,49 +874,57 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         // add nozzle change gcode into change filament gcode
         std::string nozzle_change_gcode_trans;
         if (is_nozzle_change) {
-            // move to start_pos before nozzle change
-            auto nc_start_pos = wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.start_pos) + plate_origin_2d);
+            if (tcr.nozzle_change_result.zero_flush_idle_cooling || tcr.nozzle_change_result.heater_off_only)
+                nozzle_change_gcode_trans += "M106 S255\n";
+            if (!tcr.nozzle_change_result.heater_off_only) {
+                // move to start_pos before nozzle change
+                auto nc_start_pos = wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.start_pos) + plate_origin_2d);
 
-            // BBS: wipe_tower_no_sparse_layers compaction optimization (gated on m_sparse_layers_skipped).
-            // With sparse layers skipped the wipe tower is compacted far below the object.
-            // travel_to() normally lifts the nozzle up to the object layer height (max_layer_z)
-            // to clear the object during travel. That lift is required when we arrive from the
-            // model (nozzle still parked up at object height, e.g. the right/non-finish-first
-            // nozzle), but it is pure waste when we are already parked down on the compacted
-            // tower (e.g. right after the tower wall printed before this toolchange): it forces
-            // a full-height Z bounce (compacted z -> max_layer_z -> compacted z) just to reach a
-            // ramming start that already sits on the tower.
-            // Detect that case (tower compacted AND nozzle already down on it) and travel at the
-            // compacted z directly, which also makes the re-descend below unnecessary.
-            double cur_z = gcodegen.writer().get_position().z();
-            bool compact_intower_nc_travel = m_sparse_layers_skipped
-                && z >= 0. && (tcr.print_z - z) > EPSILON   // tower compacted below the object
-                && (tcr.print_z - cur_z) > EPSILON;         // nozzle already down on the tower, not up on the model
+                // BBS: wipe_tower_no_sparse_layers compaction optimization (gated on m_sparse_layers_skipped).
+                // With sparse layers skipped the wipe tower is compacted far below the object.
+                // travel_to() normally lifts the nozzle up to the object layer height (max_layer_z)
+                // to clear the object during travel. That lift is required when we arrive from the
+                // model (nozzle still parked up at object height, e.g. the right/non-finish-first
+                // nozzle), but it is pure waste when we are already parked down on the compacted
+                // tower (e.g. right after the tower wall printed before this toolchange): it forces
+                // a full-height Z bounce (compacted z -> max_layer_z -> compacted z) just to reach a
+                // ramming start that already sits on the tower.
+                // Detect that case (tower compacted AND nozzle already down on it) and travel at the
+                // compacted z directly, which also makes the re-descend below unnecessary.
+                double cur_z = gcodegen.writer().get_position().z();
+                bool compact_intower_nc_travel = m_sparse_layers_skipped
+                    && z >= 0. && (tcr.print_z - z) > EPSILON   // tower compacted below the object
+                    && (tcr.print_z - cur_z) > EPSILON;         // nozzle already down on the tower, not up on the model
 
-            std::string start_pos_str;
-            start_pos_str = gcodegen.travel_to(nc_start_pos, erMixed, "Move to nozzle change start pos",
-                compact_intower_nc_travel ? z : DBL_MAX);
-            check_add_eol(start_pos_str);
-            nozzle_change_gcode_trans += start_pos_str;
-            // travel_to above may lift the nozzle up to max_layer_z to clear the object.
-            // The nozzle-change wipe that follows (transform_gcode below) carries no explicit
-            // Z, so it would extrude at the object-layer height and float above the compacted
-            // wipe tower. Re-descend to the compacted wipe tower z before those extrusions run.
-            // Skipped when the travel above already stayed at the compacted z.
-            if (!compact_intower_nc_travel
-                && m_sparse_layers_skipped
-                && z >= 0. && (tcr.print_z - z) > EPSILON) {
-                std::string nc_z_descend = gcodegen.writer().travel_to_z(z, "Descend to compacted wipe tower z (no sparse layers)");
-                check_add_eol(nc_z_descend);
-                nozzle_change_gcode_trans += nc_z_descend;
+                std::string start_pos_str;
+                start_pos_str = gcodegen.travel_to(nc_start_pos, erMixed, "Move to nozzle change start pos",
+                    compact_intower_nc_travel ? z : DBL_MAX);
+                check_add_eol(start_pos_str);
+                nozzle_change_gcode_trans += start_pos_str;
+                // travel_to above may lift the nozzle up to max_layer_z to clear the object.
+                // The nozzle-change wipe that follows (transform_gcode below) carries no explicit
+                // Z, so it would extrude at the object-layer height and float above the compacted
+                // wipe tower. Re-descend to the compacted wipe tower z before those extrusions run.
+                // Skipped when the travel above already stayed at the compacted z.
+                if (!compact_intower_nc_travel
+                    && m_sparse_layers_skipped
+                    && z >= 0. && (tcr.print_z - z) > EPSILON) {
+                    std::string nc_z_descend = gcodegen.writer().travel_to_z(z, "Descend to compacted wipe tower z (no sparse layers)");
+                    check_add_eol(nc_z_descend);
+                    nozzle_change_gcode_trans += nc_z_descend;
+                }
+                if (!tcr.nozzle_change_result.zero_flush_idle_cooling)
+                    nozzle_change_gcode_trans += gcodegen.unretract();
             }
-            nozzle_change_gcode_trans += gcodegen.unretract();
             nozzle_change_gcode_trans += transform_gcode(tcr.nozzle_change_result.gcode, tcr.nozzle_change_result.start_pos, wipe_tower_offset, wipe_tower_rotation);
-            gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.end_pos) + plate_origin_2d));
-            gcodegen.m_wipe.reset_path();
-            for (const Vec2f& wipe_pt : tcr.nozzle_change_result.wipe_path)
-                gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt) + plate_origin_2d));
-            nozzle_change_gcode_trans += gcodegen.retract(tcr.is_tool_change, false, auto_lift_type, true);
+            if (!tcr.nozzle_change_result.heater_off_only) {
+                gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(tcr.nozzle_change_result.end_pos) + plate_origin_2d));
+                gcodegen.m_wipe.reset_path();
+                for (const Vec2f& wipe_pt : tcr.nozzle_change_result.wipe_path)
+                    gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt) + plate_origin_2d));
+                if (!tcr.nozzle_change_result.zero_flush_idle_cooling)
+                    nozzle_change_gcode_trans += gcodegen.retract(tcr.is_tool_change, false, auto_lift_type, true);
+            }
             end_filament_gcode_str = nozzle_change_gcode_trans + end_filament_gcode_str;
         }
 
