@@ -2,6 +2,6 @@
 # Source: https://github.com/bambulab/libnoise 
 
 bambustudio_add_cmake_project(libnoise
-    URL https://github.com/bambulab/libnoise/archive/refs/heads/master.zip
-    URL_HASH SHA256=819b20c8cd14592e53ad718f66e761cdd0292c5b92a265bd5ec89622b253f674
+    URL https://github.com/bambulab/libnoise/archive/refs/tags/v1.0.0.zip
+    URL_HASH SHA256=7aae3433e4c841a1b15ddf40dc995b3d32efb154b92b6796888002e275bff859
 )
