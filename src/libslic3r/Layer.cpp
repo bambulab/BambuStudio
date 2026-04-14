@@ -192,7 +192,8 @@ bool Layer::has_compatible_layer_regions(const PrintRegionConfig &config, const 
            && config.seam_slope_conditional == other_config.seam_slope_conditional
            && config.seam_slope_entire_loop == other_config.seam_slope_entire_loop
            && config.seam_slope_steps == other_config.seam_slope_steps
-           && config.seam_slope_inner_walls == other_config.seam_slope_inner_walls;
+           && config.seam_slope_inner_walls == other_config.seam_slope_inner_walls
+           && (this->id() != 0 || config.initial_layer_flow_ratio == other_config.initial_layer_flow_ratio);
 }
 
 // Here the perimeters are created cummulatively for all layer regions sharing the same parameters influencing the perimeters.
