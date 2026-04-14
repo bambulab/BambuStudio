@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-14 15:45+0800\n"
+"POT-Creation-Date: 2026-04-14 18:15+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -7191,13 +7191,13 @@ msgid "Remove last mixed filament"
 msgstr "删除最后一个混色耗材"
 
 msgid "Mixed filament has invalid or mismatched components. Please re-edit affected entries."
-msgstr "混色耗材的组分无效或不匹配，请重新编辑受影响的混色耗材。"
+msgstr "不支持不同类型的耗材进行混色打印，请到软件左侧的耗材列表处理带！的混色耗材。"
 
 msgid "Search plate, object and part."
 msgstr "搜索盘、模型和零件。"
 
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
-msgstr "目标混色耗材将该物理耗材作为组分。合并操作会移除该物理耗材，可能导致混色耗材失效。是否继续？"
+msgstr "该物理耗材已被混色耗材引用。合并后该物理耗材将被移除，可能导致相关混色耗材失效。是否继续？"
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
