@@ -2,6 +2,7 @@
 #include <iostream>
 #include <ctime>
 #include <algorithm>
+#include <map>
 
 #include "opencv2/opencv.hpp"
 #include "libslic3r/Color.hpp"
