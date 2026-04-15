@@ -85,9 +85,13 @@ namespace Slic3r
         const std::vector<unsigned int>& used_filaments,
         const std::vector<FilamentGroupUtils::FilamentInfo>& used_filament_info,
         const std::vector<std::vector<MachineFilamentInfo>>& machine_filament_info_,
+        const bool has_filament_switcher,
         const double color_threshold)
     {
         using namespace FlushPredict;
+
+        if (has_filament_switcher)
+            return filament_to_nozzles.size() ? filament_to_nozzles.front() : std::vector<int>();
 
         const int fail_cost = 9999;
 
@@ -977,11 +981,7 @@ namespace Slic3r
         catch (const FilamentGroupException& e) {
         }
 
-        auto merged_map = try_merge_filaments();
-        rebuild_context(merged_map);
-
-        std::vector<int> filament_map = calc_filament_group_for_flush(cost);
-        return seperate_merged_filaments(filament_map, merged_map);
+        return calc_filament_group_for_flush(cost);
     }
 
     std::vector<int> FilamentGroup::calc_filament_group_for_match(int* cost)
@@ -1197,7 +1197,7 @@ namespace Slic3r
             used_filament_info.emplace_back(ctx.model_info.filament_info[f]);
         }
 
-        ret = select_best_group_for_ams(memoryed_maps, ctx.nozzle_info.nozzle_list, used_filaments, used_filament_info, ctx.machine_info.machine_filament_info);
+        ret = select_best_group_for_ams(memoryed_maps, ctx.nozzle_info.nozzle_list, used_filaments, used_filament_info, ctx.machine_info.machine_filament_info, ctx.group_info.has_filament_switcher);
         return ret;
     }
 
@@ -1547,7 +1547,7 @@ namespace Slic3r
         std::vector<FilamentGroupUtils::FilamentInfo> used_filament_info;
         for (auto f : used_filaments) { used_filament_info.emplace_back(m_context.model_info.filament_info[f]); }
 
-        auto ret = select_best_group_for_ams(filament_to_nozzles, m_context.nozzle_info.nozzle_list, used_filaments, used_filament_info, m_context.machine_info.machine_filament_info);
+        auto ret = select_best_group_for_ams(filament_to_nozzles, m_context.nozzle_info.nozzle_list, used_filaments, used_filament_info, m_context.machine_info.machine_filament_info, m_context.group_info.has_filament_switcher);
 
         return ret;
     }

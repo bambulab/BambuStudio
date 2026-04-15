@@ -1323,6 +1323,7 @@ FilamentGroupContext build_filament_group_context(
     context.group_info.strategy = FGStrategy::BestCost;
     context.group_info.mode = fg_mode;
     context.group_info.ignore_ext_filament = ignore_ext_filament;
+    context.group_info.has_filament_switcher = print_config.has_filament_switcher.value;
 
     if(mode == FilamentMapMode::fmmManual)
         context.group_info.filament_volume_map = print_config.filament_volume_map.values;
@@ -2391,6 +2392,9 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
             layer_data.filament_unprintable_volumes,
             m_print->config().filament_map_mode.value
         );
+
+        // 时间预估器中存储的材料在不同挤出机的打印时间是全局的，不适用于当前分区间的分组方法
+        grouping_context.speed_info.group_with_time = false;
 
         // TODO(山苍)：逐件打印后面要考虑喷嘴状态
         auto dynamic_plan_res = plan_filament_mapping_and_order_by_combo_ranges(m_print,
