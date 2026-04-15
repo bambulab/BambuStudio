@@ -2,6 +2,7 @@
 
 #include <wx/panel.h>
 #include <wx/hyperlink.h>
+#include <wx/sizer.h>
 
 #include <string>
 
