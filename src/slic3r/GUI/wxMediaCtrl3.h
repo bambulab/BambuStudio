@@ -10,6 +10,7 @@
 
 #include "wx/uri.h"
 #include "wx/mediactrl.h"
+#include "wx/timer.h"
 #include "../Utils/FrameBuffer.hpp"
 
 wxDECLARE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
