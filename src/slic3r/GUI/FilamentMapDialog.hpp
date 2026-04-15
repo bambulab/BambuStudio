@@ -4,6 +4,7 @@
 #include <vector>
 #include "CapsuleButton.hpp"
 #include "Widgets/CheckBox.hpp"
+#include "libslic3r/PrintConfig.hpp"
 
 class Button;
 
