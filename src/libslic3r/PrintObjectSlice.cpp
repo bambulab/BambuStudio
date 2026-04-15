@@ -1145,7 +1145,7 @@ void PrintObject::slice_volumes()
     // Is any ModelVolume MMU painted?
     if (const auto& volumes = this->model_object()->volumes;
         m_print->config().filament_diameter.size() > 1 && // BBS
-        std::find_if(volumes.begin(), volumes.end(), [](const ModelVolume* v) { return !v->mmu_segmentation_facets.empty(); }) != volumes.end()) {
+        std::find_if(volumes.begin(), volumes.end(), [](const ModelVolume *v) { return v->is_model_part() && !v->mmu_segmentation_facets.empty(); }) != volumes.end()) {
 
         // If XY Size compensation is also enabled, notify the user that XY Size compensation
         // would not be used because the object is multi-material painted.
