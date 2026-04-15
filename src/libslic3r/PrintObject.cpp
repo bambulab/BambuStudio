@@ -3262,6 +3262,17 @@ bool PrintObject::update_layer_height_profile(const ModelObject &model_object, c
             std::abs(layer_height_profile[layer_height_profile.size() - 2] - slicing_parameters.object_print_z_max + slicing_parameters.object_print_z_min) > 1e-3))
         layer_height_profile.clear();
 
+    // Verify that all layer height values are within the allowed range for the current nozzle.
+    if (!layer_height_profile.empty()) {
+        for (size_t i = 1; i < layer_height_profile.size(); i += 2) {
+            if (layer_height_profile[i] < slicing_parameters.min_layer_height - EPSILON ||
+                layer_height_profile[i] > slicing_parameters.max_layer_height + EPSILON) {
+              layer_height_profile.clear();
+                break;
+            }
+        }
+    }
+
     bool not_match_flag = !slicing_parameters.has_raft(); // if there is raft layer_height_profile[1] could also be adaptive
     not_match_flag &= !layer_height_profile.empty() && (layer_height_profile[1] != slicing_parameters.first_object_layer_height);
     if (layer_height_profile.empty() || not_match_flag) {
