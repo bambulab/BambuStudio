@@ -9,6 +9,7 @@
 #include "DownloadProgressDialog.hpp"
 
 #include "slic3r/Utils/BBLUtil.hpp"
+#include "slic3r/Utils/FileTransferObject.hpp"
 
 #include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
@@ -137,6 +138,7 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const w
 
     m_lan_user = "bblp";
     m_lan_passwd = "bblp";
+    m_image_transfer = std::make_shared<FileTransferObject>();
 }
 
 MediaPlayCtrl::~MediaPlayCtrl()
@@ -227,6 +229,8 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(2);
     else
         SetStatus("", false);
+
+    start_device_image_flow();
 }
 
 wxString hide_id_middle_string(wxString const &str, size_t offset = 0, size_t length = -1)
@@ -504,6 +508,10 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
 
     m_url.clear();
     ++m_failed_retry;
+
+    // Set idle image after video stops
+    m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/live_stream_default.png"));
+
     bool local = tunnel == "local" || tunnel == "rtsp" ||
                  tunnel == "rtsps";
     if (m_failed_code < 0 && last_state != wxMEDIASTATE_PLAYING && local && (m_failed_retry > 1 || m_user_triggered)) {
@@ -1018,7 +1026,12 @@ void MediaPlayCtrl::on_show_hide(wxShowEvent &evt)
     m_failed_retry = 0;
     if (m_next_retry.IsValid()) // Try open 2 seconds later, to avoid quick play/stop
         m_next_retry = wxDateTime::Now() + wxTimeSpan::Seconds(2);
-    IsShownOnScreen() ? Play() : Stop();
+    if (IsShownOnScreen()) {
+        Play();
+        start_device_image_flow();
+    } else {
+        Stop();
+    }
 }
 
 void MediaPlayCtrl::media_proc()

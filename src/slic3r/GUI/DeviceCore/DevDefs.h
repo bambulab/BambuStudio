@@ -101,6 +101,9 @@ enum DevFilamentStep
 #define LOGIC_L_EXTRUDER_ID       0
 #define LOGIC_R_EXTRUDER_ID       1
 
+// <ams_id, slot_id>
+using DevAmsSlotId = std::pair<int, int>;
+
 /* Nozzle*/
 enum NozzleFlowType : int
 {

@@ -2057,14 +2057,17 @@ bool PresetCollection::load_user_preset(std::string name, std::map<std::string, 
             }
         }
     } catch (const std::runtime_error &err) {
-        errors_cummulative += err.what();
+        std::string msg = name + ": " + err.what();
+        errors_cummulative += msg;
         errors_cummulative += "\n";
     }
 
     unlock();
 
-    if (! errors_cummulative.empty())
+    if (!errors_cummulative.empty()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" finished, load user preset %1% , type %2%, errors_cummulative %3%")%name %Preset::get_type_string(m_type) %errors_cummulative;
         throw Slic3r::RuntimeError(errors_cummulative);
+    }
 
     BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" finished, load user preset %1% , type %2%, errors_cummulative %3%")%name %Preset::get_type_string(m_type) %errors_cummulative;
     return (need_update)?false:true;
@@ -3438,6 +3441,22 @@ const Preset *PrinterPresetCollection::find_custom_preset_by_model_and_variant(c
     });
 
     return it != cend() ? &*it : nullptr;
+}
+
+std::vector<const Preset*> PrinterPresetCollection::find_all_presets_by_model(const std::string &model_id, bool system_only) const
+{
+    std::vector<const Preset*> result;
+    if (model_id.empty()) { return result; }
+
+    for (auto it = cbegin(); it != cend(); ++it) {
+        if (system_only && !it->is_system)
+            continue;
+        if (it->config.opt_string("printer_model") == model_id) {
+            result.push_back(&(*it));
+        }
+    }
+
+    return result;
 }
 
 bool  PrinterPresetCollection::only_default_printers() const

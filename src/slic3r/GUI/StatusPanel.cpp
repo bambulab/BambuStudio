@@ -2213,7 +2213,7 @@ void StatusBasePanel::expand_filament_loading(wxMouseEvent &e)
                 BOOST_LOG_TRIVIAL(error) << "Failed to load filament image: unknown error";
             }
         }
-        m_fila_change_abort->Show(obj->is_support_fila_change_abort);
+        m_fila_change_abort->Show(obj->is_support_fila_change_abort || DevPrinterConfigUtil::support_ams_fila_change_abort(obj->printer_type));
     }
 
     m_filament_load_box->Show(tag_show);

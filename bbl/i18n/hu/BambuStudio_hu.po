@@ -2540,6 +2540,9 @@ msgstr "Feltölti az asztalon lévő maradék helyet a kiválasztott tárgy más
 msgid "Edit Plate Name"
 msgstr "Tálca nevének szerkesztése"
 
+msgid "Show Labels"
+msgstr "Címkék megjelenítése"
+
 msgid "Name"
 msgstr "Név"
 
@@ -5932,7 +5935,7 @@ msgid "The live streaming feature relies on Bambu Studio to run,and the stream w
 msgstr "Az élő közvetítési funkció a Bambu Studio alkalmazásban fut, és a stream az alkalmazás bezárását követően meg fog szakadni."
 
 msgid "Printer Preview"
-msgstr ""
+msgstr "Nyomtató előnézet"
 
 msgid "Playing..."
 msgstr "Lejátszás..."
@@ -6449,7 +6452,7 @@ msgid "Can't start this without storage."
 msgstr "Nem indítható el tárhely nélkül."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
-msgstr ""
+msgstr "Nem lehet extrudert váltani, ha a nyomtató nem FDM-módban van"
 
 msgid "Rate the Print Profile"
 msgstr "Értékeld a nyomtatási profilt"
@@ -7131,10 +7134,10 @@ msgid "Filament changes"
 msgstr "Filamentcserék"
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr ""
+msgstr "Filamentváltó észlelve. Mostantól mindegyik AMS filamentjét használhatod mindkét extruderrel. A szeletelő automatikusan elvégzi a kiosztást a legoptimálisabb nyomtatáshoz. "
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr ""
+msgstr "Filamentváltó észlelve, de nincs kalibrálva, így jelenleg nem használható. Kérjük, kalibráld a nyomtatón, majd szinkronizáld a használat előtt. "
 
 msgid "Learn more"
 msgstr "Tudj meg többet"
@@ -7960,13 +7963,6 @@ msgstr "Nem ajánlott a PVA filament használata 0,2 mm-es fúvókával."
 
 msgid "Are you sure to use them? \n"
 msgstr "Biztos, hogy használod? \n"
-
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-"Nyomtatás tárgyanként: \n"
-"Javasoljuk, hogy használd az automatikus elrendezést az ütközések elkerülése érdekében."
 
 msgid "Send G-code"
 msgstr "G-kód küldése"
@@ -10490,6 +10486,9 @@ msgstr "Kameranézet - Jobb"
 msgid "Camera view - Isometric"
 msgstr "Kameranézet - Izometrikus"
 
+msgid "Shift+E"
+msgstr ""
+
 msgid "Select all objects"
 msgstr "Összes objektum kijelölése"
 
@@ -11742,7 +11741,7 @@ msgid "Avoid crossing wall"
 msgstr "Kerülje a falak keresztezését"
 
 msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
-msgstr ""
+msgstr "Kikerülés és falak keresztezésének elkerülése, ami felszíni hibákat okozhat (amikor a távolság nagyobb a „Mozgás távolságának küszöbértéke“ értéknél)"
 
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Falnyomtatás sebességének simítása (kísérleti)"
@@ -11861,12 +11860,14 @@ msgstr "mp"
 msgid "Cooling overhang threshold"
 msgstr "Túlnyúlás hűtésének küszöbértéke"
 
+#, c-format
 msgid "Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Kényszeríti a hűtőventilátort, hogy egy adott fordulatszámot használjon, ha a túlnyúlás mértéke meghaladja ezt az értéket. Százalékban van kifejezve, ami azt jelzi, hogy a nyomtatott vonal hány százaléka maradhat az alsóbb rétegek alátámasztása nélkül. A 0%%-os érték bekapcsolja a hűtést a külső fal teljes szélességén, függetlenül a túlnyúlás mértékétől."
 
 msgid "Overhang threshold for participating cooling"
 msgstr "Túlnyúlás hűtésének küszöbértéke"
 
+#, c-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Eldönti, hogy melyik túlnyúló rész vesz részt a hűtésben a sebesség csökkentése érdekében. Értéke az alátámasztás nélküli vonal szélessége százalékban kifejezve. A 100%% azt jelenti, hogy a hűtést az összes külső falra kényszeríti, függetlenül attól, hogy mennyi a túlnyúlás mértéke."
 
@@ -12264,6 +12265,7 @@ msgstr "Az alsó felület kitöltésének mintája, kivéve az áthidalásokat"
 msgid "Bottom surface density"
 msgstr "Alsó felület sűrűsége"
 
+#, c-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
 msgstr "Az alsó felület kitöltési sűrűsége. A 100%% teljesen szilárd, kitöltött alsó réteget jelent. Alacsonyabb értékek texturált alsó felületet hoznak létre. Esztétikai vagy funkcionális célokra szolgál, nem problémák, például túlzott extrudálás javítására. FIGYELEM: az érték csökkentése negatívan befolyásolhatja az asztalra tapadást."
 
@@ -12755,6 +12757,7 @@ msgstr "A ritkás kitöltési minta szöge, amely a vonal kezdő vagy fő irány
 msgid "Sparse infill density"
 msgstr "Kitöltés sűrűsége"
 
+#, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr "A belső ritkás kitöltés sűrűsége. A 100%%-os érték azt jelenti, hogy az objektum tömör lesz"
 
@@ -17492,18 +17495,8 @@ msgstr ""
 #~ "A fogyóeszközök cserélője nem lett kalibrálva.\n"
 #~ "Kérjük, használat előtt kalibráld a nyomtatón."
 
-#~ msgid "Ext"
-#~ msgstr "Kül"
-
-#~ msgid "Load filament to"
-#~ msgstr "Filament betöltése ide:"
-
-#~ msgid ""
-#~ "Tips:\n"
-#~ "Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
-#~ msgstr ""
-#~ "Tippek:\n"
-#~ "A nyomtatód támogatja az ívillesztést, ezért a szeletelő ívillesztési funkcióját letiltottuk a problémák elkerülése érdekében."
+#~ msgid "Show object labels in 3D scene"
+#~ msgstr "Objektumcímkék megjelenítése a 3D-térben"
 
 #~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
 #~ msgstr "Elkerüli a falak keresztezését, ezáltal csökkentve az esetleges hibákat a felületen"
@@ -17511,21 +17504,8 @@ msgstr ""
 #~ msgid "Filament grouping is automatically optimized based on filament-saving principles"
 #~ msgstr "A filament csoportosítása automatikusan optimalizált a filamentmegtakarítás figyelembevételével"
 
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-#~ msgstr ""
-#~ "Ha támaszanyagot használsz az érintkező felületekhez, akkor a következő beállításokat javasoljuk:\n"
-#~ "0 felső Z-távolság, 0 érintkező réteg térköz, váltottsoros vonal mintázat és kikapcsolt független támasz rétegmagasság"
-
-#~ msgid ""
-#~ "When using soluble material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "Ha oldható anyagot használsz támaszanyagként, akkor a következő beállításokat javasoljuk:\n"
-#~ "0 felső Z-távolság, 0 érintkező réteg térköz, 0 támasz/objektum XY-távolság, váltottsoros vonal mintázat és kikapcsolt\n"
-#~ "független támasz rétegmagasság. Használd az oldható anyagot mind az érintkezőfelülethez, mind a támasz alapjához"
+#~ msgid "Load filament to"
+#~ msgstr "Filament betöltése ide:"
 
 #~ msgid "Dynamic flow calibration is not supported for TPU 85A filament."
 #~ msgstr "A dinamikus anyagáramlás kalibráció nem támogatott TPU 85A filamenttel."
@@ -19160,9 +19140,6 @@ msgstr ""
 
 #~ msgid "Auto Bed Type"
 #~ msgstr "Auto asztaltípus"
-
-#~ msgid "Auto arrange"
-#~ msgstr "Automatikus elrendezés"
 
 #~ msgid "Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the project."
 #~ msgstr "Automatikusan beállítja a kijelölt objektumok vagy az összes objektum tájolását. Ha vannak kijelölt objektumok, akkor csak a kijelölteket, ellenkező esetben az aktuális projektben lévő összes objektumot orientálja."

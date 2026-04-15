@@ -358,7 +358,7 @@ public:
     virtual void set(const ConfigOption* rhs, size_t start, size_t len) = 0;
     virtual void set_with_restore(const ConfigOptionVectorBase* rhs, std::vector<int>& restore_index, int stride) = 0;
     virtual void set_with_restore_2(const std::string key, const ConfigOptionVectorBase* rhs, std::vector<int>& restore_index, int start, int len, bool skip_error = false) = 0;
-    virtual void set_only_diff(const ConfigOptionVectorBase* rhs, std::vector<int>& diff_index, int stride) = 0;
+    virtual void set_only_diff(const std::string key, const ConfigOptionVectorBase* rhs, std::vector<int>& diff_index, int stride) = 0;
     virtual void set_to_index(const ConfigOptionVectorBase* rhs, std::vector<int>& dest_index, int stride) = 0;
     virtual void set_with_nil(const ConfigOptionVectorBase* rhs, const ConfigOptionVectorBase* inherits, int stride) = 0;
     virtual void set_with_default(const ConfigOptionVectorBase* inherits) = 0;
@@ -570,14 +570,16 @@ public:
     //set a item related with extruder variants when loading user config, only set the different value of some extruder
     //rhs: item from user config
     //diff_index: which index in this vector need to be set
-    virtual void set_only_diff(const ConfigOptionVectorBase* rhs, std::vector<int>& diff_index, int stride) override
+    virtual void set_only_diff(const std::string key, const ConfigOptionVectorBase* rhs, std::vector<int>& diff_index, int stride) override
     {
         if (rhs->type() == this->type()) {
             // Assign the first value of the rhs vector.
             auto other = static_cast<const ConfigOptionVector<T>*>(rhs);
 
-            if (this->values.size() != (diff_index.size()*stride))
-                throw ConfigurationError("ConfigOptionVector::set_only_diff(): Assigning from an vector with invalid diff_index size");
+            if (this->values.size() != (diff_index.size() * stride)) {
+                std::string error_message = "ConfigOptionVector::set_only_diff(): Assigning from an vector with invalid diff_index size: key=" + key;
+                throw ConfigurationError(error_message);
+            }
 
             for (size_t i = 0; i < diff_index.size(); i++) {
                 if (diff_index[i] != -1) {
@@ -588,9 +590,10 @@ public:
                     }
                 }
             }
+        } else {
+            std::string error_message = "ConfigOptionVector::set_only_diff(): Assigning an incompatible type: key=" + key;
+            throw ConfigurationError(error_message);
         }
-        else
-            throw ConfigurationError("ConfigOptionVector::set_only_diff(): Assigning an incompatible type");
     }
 
     //set a item related with extruder variants when apply static config with dynamic config

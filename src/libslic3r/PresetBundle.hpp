@@ -259,6 +259,8 @@ public:
 
     std::vector<std::vector<DynamicPrintConfig>> get_extruder_filament_info() const;
 
+    std::vector<NozzleVolumeType> get_printer_nozzle_volume_list();
+
     std::set<std::string> get_printer_names_by_printer_type_and_nozzle(const std::string &printer_type, std::string nozzle_diameter_str, bool system_only = true);
     bool                  check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(const std::string &printer_type,
                                                                                                std::string &      nozzle_diameter_str,

@@ -414,6 +414,12 @@
     "slow_down_for_layer_cooling": [
         "1"
     ],
+    "cooling_slowdown_logic": [
+        "uniform_cooling"
+    ],
+    "cooling_perimeter_transition_distance": [
+        "10"
+    ],
     "slow_down_layer_time": [
         "8"
     ],

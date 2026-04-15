@@ -387,22 +387,6 @@ msgstr "Det %d beredda filament matchas med '%s'. Att tilldela det till '%s' kan
 msgid "*Tips: If you have moved the spool position on the machine, please close this page and re‑match the filament."
 msgstr "*Tips: Om du har flyttat spol positionen på maskinen, vänligen stäng denna sida och matcha filamentet."
 
-msgid "Summary:"
-msgstr ""
-
-msgid "AMS on Filament Inlet A"
-msgstr ""
-
-msgid "AMS on Filament Inlet B"
-msgstr ""
-
-#, c-format, boost-format
-msgid "The No.%d slicing filament is matched to '%s'. Assigning it to '%s' can save printing time."
-msgstr ""
-
-msgid "*Tips: If you have moved the spool position on the machine, please close this page and re‑match the filament."
-msgstr ""
-
 msgid "Summary: This is currently the most suitable position for placement."
 msgstr "Sammanfattning: Detta är för närvarande den mest lämpliga positionen för placering."
 
@@ -2552,6 +2536,9 @@ msgstr "Fyll det återstående området av byggytan med kopior av det valda obje
 
 msgid "Edit Plate Name"
 msgstr "Redigera plattans namn"
+
+msgid "Show Labels"
+msgstr "Visa Etiketter"
 
 msgid "Name"
 msgstr "Namn"
@@ -5945,7 +5932,7 @@ msgid "The live streaming feature relies on Bambu Studio to run,and the stream w
 msgstr "Livestreaming funktionen är beroende av Bambu Studio för att köras, och streamen avslutas en stund efter att appen stängts."
 
 msgid "Printer Preview"
-msgstr ""
+msgstr "Förhandsgranskning av printer"
 
 msgid "Playing..."
 msgstr "Spelar..."
@@ -6462,7 +6449,7 @@ msgid "Can't start this without storage."
 msgstr "Kan inte starta detta utan lagring."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
-msgstr ""
+msgstr "Kan inte byta extruder när printern inte är i FDM läge"
 
 msgid "Rate the Print Profile"
 msgstr "Betygsätt utskriftsprofil"
@@ -7144,10 +7131,10 @@ msgid "Filament changes"
 msgstr "Filament byten"
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr ""
+msgstr "Filament växlare upptäckt. Alla AMS filament är nu tillgängliga för båda extrudrarna. Beredningen kommer att tilldela automatiskt för optimal utskrift. "
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr ""
+msgstr "En filament växlare har upptäckts men är inte kalibrerad och är därför för närvarande otillgänglig. Kalibrera den på printern och synkronisera innan användning. "
 
 msgid "Learn more"
 msgstr "Läs mer"
@@ -7976,13 +7963,6 @@ msgstr "Det är inte rekommenderat att använda PVA-filament med 0.2 mm nozzle."
 
 msgid "Are you sure to use them? \n"
 msgstr "Är du säker på att du ska använda dem? \n"
-
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-"Skriv ut per Objekt:\n"
-"Rekommenderar att auto-placering för att undvika kollisioner under utskrift."
 
 msgid "Send G-code"
 msgstr "Skicka G-kod"
@@ -10510,6 +10490,9 @@ msgstr "Kamera vy - Höger"
 msgid "Camera view - Isometric"
 msgstr "Kamera vy - Isometrisk"
 
+msgid "Shift+E"
+msgstr ""
+
 msgid "Select all objects"
 msgstr "Välj alla objekt"
 
@@ -11762,7 +11745,7 @@ msgid "Avoid crossing wall"
 msgstr "Undvik att korsa väggar"
 
 msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
-msgstr ""
+msgstr "Undvik förflyttning över väggar vilket kan orsaka fläckar på ytan (när förflyttnings avståndet är större än gränsvärdet för förflyttnings kedja)"
 
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Utjämning vägg hastighet längs Z(experimentell)"
@@ -11881,12 +11864,14 @@ msgstr "s"
 msgid "Cooling overhang threshold"
 msgstr "Överhängs kylningens tröskel"
 
+#, c-format
 msgid "Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Tvinga kylfläkten att vara en specifik hastighet när överhängs graden av objektets del överstiger detta värde. Detta uttrycks som en procentsats som anger hur mycket bredden på linjen utan stöd från det nedre lagret. 0%% betyder tvinga kylning för all yttervägg oavsett överhängs grad."
 
 msgid "Overhang threshold for participating cooling"
 msgstr "Gränsvärde för överhäng vid deltagande kylning"
 
+#, c-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Bestäm vilken överhängsdel som ansluter till kylfunktionen för att sänka hastigheten. Detta uttrycks som en procentsats som anger hur bred linjen är utan support från ett lägre skikt. 100%% innebär tvingande kylning för hela ytterväggen oavsett graden av överhäng."
 
@@ -12284,6 +12269,7 @@ msgstr "Linjemönster för bottenytans fyllning, inte bridge fyllning"
 msgid "Bottom surface density"
 msgstr "Botten ytans densitet"
 
+#, c-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
 msgstr "Densiteten av botten ytans utfyllnad, 100%% innebär en helt solid fyllt topp skikt. Lägre värden skapar en strukturerad bottenyta, avsedd för estetiska eller funktionella ändamål, inte för att åtgärda problem som över extrudering. VIKTIGT: Att sänka detta värde kan påverka vidhäftningen på bädden."
 
@@ -12775,6 +12761,7 @@ msgstr "Detta är vinkeln för sparsam ifyllnads mönster, som styr start- eller
 msgid "Sparse infill density"
 msgstr "Sparsam ifyllnads densitet"
 
+#, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr "Densiteten av ifyllnad. 100%% betyder att objektet blir solid rakt igenom"
 
@@ -17553,15 +17540,8 @@ msgstr ""
 #~ "Förbruknings bytaren har inte kalibrerats. \n"
 #~ "Kalibrera den på printern innan användning."
 
-#~ msgid "Load filament to"
-#~ msgstr "Ladda filament till"
-
-#~ msgid ""
-#~ "Tips:\n"
-#~ "Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
-#~ msgstr ""
-#~ "Tips:\n"
-#~ "Din printer stöder båg anpassning, så utskärarens båg anpassningsfunktion har inaktiverats för att undvika konflikt."
+#~ msgid "Show object labels in 3D scene"
+#~ msgstr "Visa objekt etiketter i 3D-scenen"
 
 #~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
 #~ msgstr "Ta en omväg och undvik att färdas över väggar för att undvika risken att skapa klumpar på ytorna."
@@ -17569,21 +17549,8 @@ msgstr ""
 #~ msgid "Filament grouping is automatically optimized based on filament-saving principles"
 #~ msgstr "Filament grupperingen optimeras automatiskt baserat på filament besparande principer"
 
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-#~ msgstr ""
-#~ "När du använder support material för support gränssnittet rekommenderar vi följande inställningar:\n"
-#~ "0 topp z avstånd, 0 gränssnitts avstånd, sammanflätad rätlinjärt mönster och inaktivera oberoende support lagerhöjd"
-
-#~ msgid ""
-#~ "When using soluble material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "Vid användning av lösligt material för support gränssnittet rekommenderar vi följande inställningar:\n"
-#~ "0 topp z avstånd, 0 gränssnitts avstånd, 0 stöd/objekt xy avstånd, sammanflätad rätlinjärt mönster, inaktivera \n"
-#~ "oberoende support lagerhöjd och använd lösliga material för både support gränssnitt och support bas"
+#~ msgid "Load filament to"
+#~ msgstr "Ladda filament till"
 
 #~ msgid "Dynamic flow calibration is not supported for TPU 85A filament."
 #~ msgstr "Dynamisk flödeskalibrering stöds inte för TPU 85A filament."
@@ -19315,9 +19282,6 @@ msgstr ""
 
 #~ msgid "Auto Bed Type"
 #~ msgstr "Auto typ av byggplatta"
-
-#~ msgid "Auto arrange"
-#~ msgstr "Auto arrangera"
 
 #~ msgid "Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the project."
 #~ msgstr "Auto placera valda objekt eller alla objekt. Om det finns valda objekt så placeras endast dem. Alternativt så placeras alla objekt i projektet."

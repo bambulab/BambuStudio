@@ -1,22 +1,18 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-14 19:58+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz> \n"
 "Language-Team: \n"
-"Language: cs_CZ\n"
+"Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n>=2 && n<=4 ? 1 : 2);\n"
-"X-Generator: Poedit 3.3.1\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.8\n"
+"X-Poedit-SourceCharset: CP1250\n"
 
 msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
 msgstr "Filament nemusí být kompatibilní se současným nastavením stroje. Budou použita obecná přednastavení filamentu."
@@ -900,121 +896,15 @@ msgstr "Část"
 msgid "Object"
 msgstr "objekt"
 
-#, c-format, boost-format
-msgid "Layer: %s"
-msgstr "Vrstva: %s"
-
-#, c-format, boost-format
-msgid "Layer: %d/%d"
-msgstr "Vrstva: %d/%d"
-
-#, c-format, boost-format
-msgid "(%d)"
-msgstr ""
-
-msgid "Auto homing"
-msgstr ""
-
-msgid "Are you sure you want to trigger auto homing?"
-msgstr ""
-
-msgid "Homing"
-msgstr ""
-
-msgid "Please heat the nozzle to above 170 degree before loading or unloading filament."
-msgstr ""
-
-msgid "Right extruder hotend not detected. Cannot set nozzle temperature."
-msgstr ""
-
-msgid "Chamber temperature cannot be changed in cooling mode while printing."
-msgstr ""
-
-msgid "If the chamber temperature exceeds 40℃, the system will automatically switch to heating mode. Please confirm whether to switch."
-msgstr ""
-
-msgid "Please select an AMS slot before calibration"
-msgstr "Před kalibrací vyberte slot AMS"
-
-msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr ""
-
-msgid "This only takes effect during printing"
-msgstr "Toto se projeví pouze během tisku"
-
-msgid "Silent"
-msgstr "Tichý"
-
-msgid "Sport"
-msgstr "Sport"
-
-msgid "Ludicrous"
-msgstr "Směšné"
-
-msgid "Turning off the lights during the task will cause the failure of AI monitoring, like spaghetti detection. Please choose carefully."
-msgstr ""
-
-msgid "Keep it On"
-msgstr ""
-
-msgid "Still turn it Off"
-msgstr ""
-
-msgid "Can't start this without storage."
-msgstr ""
-
-msgid "Cannot switch extruder when the printer is not at FDM mode"
-msgstr ""
-
-msgid "Rate the Print Profile"
-msgstr ""
-
-msgid "Comment"
-msgstr ""
-
-msgid "Rate this print"
-msgstr ""
-
-msgid "Add Photo"
-msgstr ""
-
-msgid "Delete Photo"
-msgstr ""
-
-msgid "Submit"
-msgstr ""
-
-msgid "Please click on the star first."
-msgstr ""
-
-msgid "InFo"
-msgstr ""
-
-msgid "Get oss config failed."
-msgstr ""
-
-msgid "Upload Pictures"
-msgstr ""
-
-msgid "Number of images successfully uploaded"
-msgstr ""
-
-msgid " upload failed"
-msgstr ""
-
-msgid " upload config parse failed\n"
-msgstr ""
-
-msgid " No corresponding storage bucket\n"
-msgstr ""
-
-msgid " can not be opened\n"
-msgstr ""
+msgid "Drag to move the cut plane"
+msgstr "Přetažením posuňte řeznou rovinu"
 
 msgid ""
-"The following issues occurred during the process of uploading images. Do you want to ignore them?\n"
-"\n"
+"Drag to move the cut plane\n"
+"Right-click a part to assign it to the other side"
 msgstr ""
+"Přetažením posuňte řeznou rovinu\n"
+"Pravým tlačítkem myši přiřaďte díl na opačnou stranu"
 
 msgid "Left click"
 msgstr "Levý klik"
@@ -1184,8 +1074,8 @@ msgstr "Mezera"
 msgid "Confirm connectors"
 msgstr "Potvrďte konektory"
 
-msgid "Support interface"
-msgstr "Kontaktní vrstva podpěr"
+msgid "Invalid connectors detected"
+msgstr "Byly zjištěny neplatné konektory."
 
 msgid "connector is out of cut contour"
 msgstr "Konektor je mimo řeznou konturu"
@@ -1202,110 +1092,12 @@ msgstr "konektory jsou mimo objekt"
 msgid "Some connectors are overlapped"
 msgstr "Některé konektory se překrývají."
 
-msgid "file too large"
-msgstr "soubor je příliš velký"
-
-msgid "unsupported method"
-msgstr "nepodporovaná metoda"
-
-msgid "unsupported encryption"
-msgstr "nepodporované šifrování"
-
-msgid "unsupported feature"
-msgstr "nepodporovaná funkce"
-
-msgid "failed finding central directory"
-msgstr "selhalo nalezení kořenového adresáře"
-
-msgid "not a ZIP archive"
-msgstr "není ZIP archiv"
-
-msgid "invalid header or corrupted"
-msgstr "neplatné záhlaví nebo poškozené"
-
-msgid "unsupported multidisk"
-msgstr "nepodporovaný multidisk"
-
-msgid "decompression failed"
-msgstr "dekomprese se nezdařila"
-
-msgid "compression failed"
-msgstr "komprese se nezdařila"
-
-msgid "unexpected decompressed size"
-msgstr "neočekávaná dekomprimovaná velikost"
-
-msgid "CRC check failed"
-msgstr "Kontrola CRC se nezdařila"
-
-msgid "unsupported central directory size"
-msgstr "nepodporovaná velikost centrálního adresáře"
-
-msgid "allocation failed"
-msgstr "alokace selhala"
-
-msgid "file open failed"
-msgstr "otevření souboru selhalo"
-
-msgid "file create failed"
-msgstr "vytvoření souboru selhalo"
-
-msgid "file write failed"
-msgstr "zápis souboru se nezdařil"
-
-msgid "file read failed"
-msgstr "čtení souboru se nezdařilo"
-
-msgid "file close failed"
-msgstr "zavření souboru selhalo"
-
-msgid "file seek failed"
-msgstr "hledání souboru selhalo"
-
-msgid "file stat failed"
-msgstr "statistika souboru selhala"
-
-msgid "invalid parameter"
-msgstr "neplatný parametr"
-
-msgid "invalid filename"
-msgstr "neplatný název souboru"
-
-msgid "buffer too small"
-msgstr "buffer je příliš malý"
-
-msgid "internal error"
-msgstr "interní chyba"
-
-msgid "file not found"
-msgstr "soubor nenalezen"
-
-msgid "archive too large"
-msgstr "archiv je příliš velký"
-
-msgid "validation failed"
-msgstr "validace selhala"
-
-msgid "write callback failed"
-msgstr "zpětný zápis se nezdařil"
-
-#, boost-format
-msgid "%1% is too close to exclusion area, there may be collisions when printing."
-msgstr "%1% je příliš blízko oblasti vyloučení, při tisku může docházet ke kolizím."
-
-#, boost-format
-msgid "%1% is too close to others, and collisions may be caused."
-msgstr "%1% je příliš blízko ostatním a může dojít ke kolizím."
-
-#, boost-format
-msgid "%1% is too tall, and collisions will be caused."
-msgstr "%1% je příliš vysoké a budou způsobeny kolize."
-
-msgid " is too close to exclusion area, there may be collisions when printing."
-msgstr " je příliš blízko oblasti vyloučení, při tisku může docházet ke kolizím."
-
-msgid " is too close to clumping detection area, there may be collisions when printing."
+msgid ""
+"Invalid state. \n"
+"No one part is selected to keep after cut"
 msgstr ""
+"Neplatný stav. \n"
+"Není vybrána žádná část, která má po řezu zůstat."
 
 msgid "Plug"
 msgstr "Zástrčka"
@@ -1379,8 +1171,8 @@ msgstr "Operace se již ruší. Prosím vyčkejte několik sekund."
 msgid "Face recognition"
 msgstr "Rozpoznávání plochy"
 
-msgid "Threshold angle"
-msgstr "Hraniční úhel"
+msgid "Perform Recognition"
+msgstr "Proveď rozpoznání"
 
 msgid "Vertex"
 msgstr "Vrchol"
@@ -2842,288 +2634,14 @@ msgstr "Smazat záporný objem z objektu, který je součástí řezu"
 msgid "To save cut correspondence you can delete all connectors from all related objects."
 msgstr "Pro uložení odpovídajícího řezu můžete odstranit všechny konektory ze všech příslušných objektů."
 
-msgid "Skipping objects."
-msgstr ""
-
-msgid "Continue"
-msgstr ""
-
-msgid "Null Color"
-msgstr ""
-
-msgid "Multiple Color"
-msgstr ""
-
-msgid "Official Filament"
-msgstr ""
-
-msgid "More Colors"
-msgstr ""
-
-msgid "Please set nozzle count"
-msgstr ""
-
-msgid "Error: Can not set both nozzle count to zero."
-msgstr ""
-
-#, c-format, boost-format
-msgid "Error: Nozzle count can not exceed %d."
-msgstr ""
-
-msgid "Nozzle Selection"
-msgstr ""
-
-msgid "Available Nozzles"
-msgstr ""
-
-msgid "Sync Nozzle status"
-msgstr ""
-
-msgid "Caution: Mixing nozzle diameters in one print is not supported. If the selected size is only on one extruder, single-extruder printing will be enforced."
-msgstr ""
-
-#, c-format, boost-format
-msgid "Refresh %d/%d..."
-msgstr ""
-
-msgid "Unknown nozzle detected. Refresh to update info (unrefreshed nozzles will be excluded during slicing). Verify nozzle diameter & flow rate against displayed values."
-msgstr ""
-
-msgid "Unknown nozzle detected. Refresh to update (unrefreshed nozzles will be skipped in slicing)."
-msgstr ""
-
-msgid "Please confirm whether the required nozzle diameter and flow rate match the currently displayed values."
-msgstr ""
-
-msgid "Your printer has different nozzles installed. Please select a nozzle for this print."
-msgstr ""
-
-msgid "Purge Mode Settings"
-msgstr ""
-
-msgid "Standard Mode"
-msgstr ""
-
-msgid "Performs full priming for the best print quality. Requires more material and time."
-msgstr ""
-
-msgid "Prime Saving"
-msgstr ""
-
-msgid "Reduces prime waste and prints faster. May cause slight color mixing or small surface defects."
-msgstr ""
-
-msgid "Learn more about prime mode"
-msgstr ""
-
-msgid "AMS Dryness Control"
-msgstr ""
-
-msgid "Filament Drying Settings"
-msgstr ""
-
-msgid "Start"
-msgstr ""
-
-msgid "Unable to dry temporarily due to ..."
-msgstr ""
-
-msgid "Drying Error"
-msgstr ""
-
-msgid "Please check the Assistant for troubleshooting"
-msgstr ""
-
-msgid "Please remove and store the filament (as shown)."
-msgstr ""
-
-msgid "The AMS can rotate the filament which is properly stored, providing better drying results."
-msgstr ""
-
-msgid "Rotate spool when drying"
-msgstr ""
-
-msgctxt "amsdrying"
-msgid "Back"
-msgstr ""
-
-msgid "Drying-Heating"
-msgstr ""
-
-msgid "Drying-Dehumidifying"
-msgstr ""
-
-msgid " maximum drying temperature is "
-msgstr ""
-
-msgid " minimum drying temperature is "
-msgstr ""
-
-msgid "This filament may not be completely dried."
-msgstr ""
-
-msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature."
-msgstr ""
-
-msgid "The temperature shall not exceed the filament's heat distortion temperature"
-msgstr ""
-
-msgid "Minimum time value cannot be less than 1."
-msgstr ""
-
-msgid "Maximum time value cannot be greater than 24."
-msgstr ""
-
-msgid "Insufficient power"
-msgstr ""
-
-msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting."
-msgstr ""
-
-msgid "AMS is busy"
-msgstr ""
-
-msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait."
-msgstr ""
-
-msgid "Filament in AMS outlet"
-msgstr ""
-
-msgid "  The high drying temperature may cause AMS blockage, please unload first."
-msgstr ""
-
-msgid "Initiating AMS drying"
-msgstr ""
-
-msgid "Not supported in 2D mode"
-msgstr ""
-
-msgid "Task in progress"
-msgstr ""
-
-msgid "  The AMS might be in use during Task."
-msgstr ""
-
-msgid "  Firmware update in progress, please wait..."
-msgstr ""
-
-msgid "  Please plug in the power and then use the drying function."
-msgstr ""
-
-msgid "System is busy"
-msgstr ""
-
-msgid "  Initiating other drying processes, please wait a few seconds..."
-msgstr ""
-
-msgid "For better drying results, remove the filament and allow it to rotate."
-msgstr ""
-
-msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
-msgstr ""
-
-msgid "Alternatively, you can dry the filament without removing it."
-msgstr ""
-
-msgid "Unknown filaments will be treated as PLA."
-msgstr ""
-
-msgid "Please store the filament marked with an exclamation mark."
-msgstr ""
-
-msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
-msgstr ""
-
-msgid "Starting: Checking adapter connection"
-msgstr ""
-
-msgid "Starting: Checking filament status"
-msgstr ""
-
-msgid "Starting: Checking drying presets"
-msgstr ""
-
-msgid "Starting: Checking filament location"
-msgstr ""
-
-msgid "Starting: Checking air intake"
-msgstr ""
-
-msgid "Starting: Checking air vent"
-msgstr ""
-
-msgid "Terms of Bambu Lab User Experience Improvement Program"
-msgstr ""
-
-msgid "Recent Helio Runs"
-msgstr ""
-
-msgid "Showing recent completed optimizations and simulations"
-msgstr ""
-
-msgid "Loading recent runs..."
-msgstr ""
-
-msgid "No Recent Runs Found"
-msgstr ""
-
-msgid "No completed simulations or optimizations found"
-msgstr ""
-
-#, c-format, boost-format
-msgid "OPTIMIZATIONS (%d)"
-msgstr ""
-
-#, c-format, boost-format
-msgid "SIMULATIONS (%d)"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d layers"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Quality: %s | Consistency: %s"
-msgstr ""
-
-msgid "Download GCode"
-msgstr ""
-
-msgid "View Results"
-msgstr ""
-
-msgid "GCode URL is not available"
-msgstr ""
-
-msgid "Download Error"
-msgstr ""
-
-msgid "Save GCode File"
-msgstr ""
-
-#, c-format, boost-format
 msgid ""
-"GCode file downloaded successfully!\n"
+"This action will break a cut correspondence.\n"
+"After that model consistency can't be guaranteed .\n"
 "\n"
 "To manipulate solid parts or negative volumes you have to invalidate cut information first."
 msgstr ""
-
-msgid "Download Complete"
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"Failed to open file for writing:\n"
-"%s"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Error saving file: %s"
-msgstr ""
-
-#, c-format, boost-format
-msgid ""
-"Failed to download GCode file.\n"
+"Tato akce přeruší odpovídající řez.\n"
+"Poté nelze zaručit konzistenci modelu.\n"
 "\n"
 "Chcete-li upravit pevné části nebo záporné objemy, musíte nejprve zneplatnit informace o řezu."
 
@@ -3601,41 +3119,6 @@ msgstr "Maximální teplota nesmí být překročena "
 msgid "The minmum temperature should not be less than "
 msgstr "Minimální teplota by neměla být nižší než "
 
-msgid "Optimization Details"
-msgstr ""
-
-msgid "Simulation Details"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d seconds ago"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d minutes ago"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d hours ago"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%d days ago"
-msgstr ""
-
-msgid "Print Outcome: WILL_PRINT"
-msgstr ""
-
-msgid "Print Outcome: MAY_PRINT"
-msgstr ""
-
-msgid "Print Outcome: LIKELY_FAIL"
-msgstr ""
-
-msgid "Print Outcome: "
-msgstr ""
-
-#: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-arrange on these objects."

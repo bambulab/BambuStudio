@@ -382,6 +382,10 @@ void MaterialItem::doRender(wxDC& dc)
         dc.SetPen(wxPen(wxColour(0x00, 0xAE, 0x42), FromDIP(2)));
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
         dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(1), size.y - FromDIP(1), 5);
+    } else if (m_warning) {
+        dc.SetPen(wxPen(wxColour(0xFF, 0x6F, 0x00), FromDIP(2)));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawRoundedRectangle(FromDIP(1), FromDIP(1), size.x - FromDIP(1), size.y - FromDIP(1), 5);
     }
     //#endif
 
@@ -2141,15 +2145,17 @@ void  AmsReplaceMaterialDialog::update_to_nozzle(int nozzle_id)
                 const auto& trayid_group = DevExtder::GetBackupStatus(filam);
                 for (const auto& elem : trayid_group)
                 {
-                    DevAmsTray* cur_tray = id2tray[elem.first];
-                    if (cur_tray)
+                    if (elem.second)
                     {
-                        auto tray_name = wxGetApp().transition_tridid(elem.first).ToStdString();
-                        auto it = std::find(m_tray_used.begin(), m_tray_used.end(), tray_name);
-                        if (it != m_tray_used.end())
+                        DevAmsTray* cur_tray = id2tray[elem.first];
+                        if (cur_tray)
                         {
-                            is_in_tray = true;
-                        }
+                            auto tray_name = wxGetApp().transition_tridid(elem.first).ToStdString();
+                            auto it = std::find(m_tray_used.begin(), m_tray_used.end(), tray_name);
+                            if (it != m_tray_used.end())
+                            {
+                                is_in_tray = true;
+                            }
 
                             group_info[tray_name] = DevAmsTray::decode_color(cur_tray->color);
                             group_material = cur_tray->get_display_filament_type();

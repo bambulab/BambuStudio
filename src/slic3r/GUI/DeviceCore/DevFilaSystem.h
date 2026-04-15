@@ -99,8 +99,12 @@ public:
     std::string get_display_filament_type() const;
     std::string get_filament_type();
 
+    std::optional<int> get_filament_remain_weight() const;
+
     // static
     static wxColour decode_color(const std::string& color);
+
+    static double get_fila_remain_tolerance() { return 0.05; } //+- 5%
 
     std::optional<DevFilamentDryingPreset> get_ams_drying_preset() const;
 };

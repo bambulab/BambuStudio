@@ -5268,8 +5268,21 @@ void GCodeProcessor::process_M104(const GCodeReader::GCodeLine& line)
 {
     int filament_id = get_filament_id();
     float new_temp;
-    if (line.has_value('S', new_temp))
-        m_extruder_temps[filament_id] = new_temp;
+    float   phy_extruder_id_temp;
+    if (line.has_value('T', phy_extruder_id_temp)) {
+        int  phy_extruder_id_temp_int = std::round(phy_extruder_id_temp);
+        auto it_temp                  = std::find(m_physical_extruder_map.begin(), m_physical_extruder_map.end(), phy_extruder_id_temp_int);
+        if (line.has_value('S', new_temp) && it_temp != m_physical_extruder_map.end()) {
+            size_t extruder_index = std::distance(m_physical_extruder_map.begin(), it_temp);
+            for (size_t ii = 0; ii < m_filament_maps.size(); ii++) {
+                auto it_temp_2 = std::find(m_filament_maps.begin(), m_filament_maps.end(), extruder_index);
+                size_t filament_index = std::distance(m_filament_maps.begin(), it_temp_2);
+                if (filament_index > 0 && filament_index < m_extruder_temps.size()) m_extruder_temps[filament_index] = new_temp;
+            }
+        }
+    } else {
+        if (line.has_value('S', new_temp)) m_extruder_temps[filament_id] = new_temp;
+    }
 }
 
 void GCodeProcessor::process_VM104(const GCodeReader::GCodeLine& line)
@@ -5662,9 +5675,19 @@ void GCodeProcessor::process_M702(const GCodeReader::GCodeLine& line)
 
 void GCodeProcessor::process_SYNC(const GCodeReader::GCodeLine& line)
 {
-    float time = 0;
-    if (line.has_value('T', time) ) {
-        simulate_st_synchronize(time,erFlush);
+    float time          = 0;
+    float time_role     = 0;
+    int   time_role_int = 0;
+    if (line.has_value('R', time_role)) {
+        time_role_int = static_cast<int>(std::round(time_role));
+    } else {
+        time_role_int = 1; //To be compatible with older G-code, the absence of 'R' is interpreted as a flush command.
+    }
+    if (line.has_value('T', time)) {
+        if (time_role_int == 1) // this is flush time
+            simulate_st_synchronize(time, erFlush);
+        else // this is none typed time (prepare time)
+            simulate_st_synchronize(time, erNone);
     }
 }
 

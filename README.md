@@ -50,3 +50,4 @@ The GNU Affero General Public License, version 3 ensures that if you use any par
 
 The bambu networking plugin is based on non-free libraries. It is optional to the Bambu Studio and provides extended networking functionalities for users.
 By default, after installing Bambu Studio without the networking plugin, you can initiate printing through the SD card after slicing is completed.
+

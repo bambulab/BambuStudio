@@ -341,10 +341,10 @@ msgid "%d ℃"
 msgstr ""
 
 msgid "Filament Inlet A"
-msgstr "耗材变轨器In-A"
+msgstr "进料口 A"
 
 msgid "Filament Inlet B"
-msgstr "耗材变轨器In-B"
+msgstr "进料口 B"
 
 msgid "Filament Track Switch"
 msgstr "耗材变轨器"
@@ -1364,7 +1364,7 @@ msgid "Remove selection"
 msgstr "移除绘制"
 
 msgid "Recommend"
-msgstr "推荐"
+msgstr ""
 
 msgid "Old version"
 msgstr "旧版本"
@@ -1429,7 +1429,7 @@ msgid "The current style has been modified but not saved. Do you want to save it
 msgstr "当前样式已被修改但未保存。您想要保存吗？"
 
 msgid "Save current style"
-msgstr "保存当前样式"
+msgstr ""
 
 msgid "Add new style"
 msgstr "添加新样式"
@@ -1438,7 +1438,7 @@ msgid "Only valid font can be added to style"
 msgstr "有效字体才能添加到样式中"
 
 msgid "Add style to my list"
-msgstr "添加样式到我的列表"
+msgstr ""
 
 msgid "Remove style"
 msgstr "删除样式"
@@ -1616,7 +1616,7 @@ msgstr "对齐"
 
 #. TRN - Input label. Be short as possible
 msgid "Text gap"
-msgstr "文本间距"
+msgstr ""
 
 #. TRN - Input label. Be short as possible
 msgid "Line gap"
@@ -2081,7 +2081,7 @@ msgid "Ongoing uploads"
 msgstr "正在进行的上传"
 
 msgid "Install presets failed"
-msgstr "安装预设失败"
+msgstr ""
 
 msgid "Select a G-code file:"
 msgstr "选择一个G-code文件："
@@ -2259,13 +2259,13 @@ msgid "Negative Part"
 msgstr "负零件"
 
 msgid "Support Blocker"
-msgstr "支撑去除器"
+msgstr "支撑屏蔽"
 
 msgid "Support Enforcer"
-msgstr "支撑添加器"
+msgstr "支撑生成器"
 
 msgid "Change part type"
-msgstr "更换零件类型"
+msgstr "选择零件类型"
 
 msgid "Set as an individual object"
 msgstr "设置为独立对象"
@@ -2534,6 +2534,9 @@ msgstr "用选定对象的副本填充床的剩余区域"
 
 msgid "Edit Plate Name"
 msgstr "编辑盘名"
+
+msgid "Show Labels"
+msgstr "显示标签"
 
 msgid "Name"
 msgstr "名称"
@@ -3036,7 +3039,7 @@ msgid "Chamber"
 msgstr "机箱"
 
 msgid "Hotend"
-msgstr "热端"
+msgstr ""
 
 msgid "Parts"
 msgstr "部件"
@@ -3081,13 +3084,13 @@ msgid "hotend"
 msgstr "热端"
 
 msgid "Wait for AMS cooling"
-msgstr "等待AMS冷却"
+msgstr "等待 AMS 冷却"
 
 msgid "Switch current filament at Filament Track Switch"
 msgstr "切换选料器的当前耗材"
 
 msgid "Pull back current filament at Filament Track Switch"
-msgstr "退选料器的当前耗材"
+msgstr "退选料器处当前使用料"
 
 msgid "Switch track at Filament Track Switch"
 msgstr "选料器开关切换"
@@ -3698,7 +3701,7 @@ msgid "Please select the filament installed on the %s."
 msgstr "请选择安装在%s上的耗材丝。"
 
 msgid "Please select the filament."
-msgstr "请选择耗材"
+msgstr "请选择耗材。"
 
 msgid "Nozzle"
 msgstr "喷嘴"
@@ -3713,7 +3716,7 @@ msgid "Select Filament && Hotends"
 msgstr "选择材料预设和喷头"
 
 msgid "Select Filament"
-msgstr "选择耗材"
+msgstr ""
 
 msgid "AMS Settings"
 msgstr "AMS 设置"
@@ -4254,7 +4257,7 @@ msgid "Nozzle offset calibration"
 msgstr "喷嘴偏移校准"
 
 msgid "high temperature auto bed levelling"
-msgstr "高温热床校准"
+msgstr "高温热床调平"
 
 msgid "Auto Check: Quick Release Lever"
 msgstr "自动检测：快拆锁扣"
@@ -6314,10 +6317,10 @@ msgid "Current extruder is busy changing filament"
 msgstr "当前挤出机正在换料"
 
 msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr "使用耗材变轨器时，不支持对外挂料盘进行“进料”或“退料”操作。"
+msgstr "使用线材轨道开关时，不支持对外部线轴执行“加载”或“卸载”操作。"
 
 msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr "耗材变轨器尚未初始化。请在打印机上完成初始化。"
+msgstr "耗材变轨器尚未设置。请在打印机上进行设置。"
 
 msgid "Current slot has alread been loaded"
 msgstr "当前槽位已加载"
@@ -6408,7 +6411,7 @@ msgid "Can't start this without storage."
 msgstr "没有外部存储就无法启动"
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
-msgstr ""
+msgstr "当前打印机不在3D打印模式，无法切换挤出机"
 
 msgid "Rate the Print Profile"
 msgstr "评价打印配置文件"
@@ -6858,7 +6861,7 @@ msgid "Foreign Object Detection"
 msgstr "异物检测"
 
 msgid "Checks for any objects on the build plate at the start of a print to avoid collisions."
-msgstr "在打印开始时检查打印板上的任何物体，以避免碰撞。"
+msgstr "打印开始时，检测打印板上是否有异物，避免打印过程中出现碰撞。"
 
 msgid "Printed Part Displacement Detection"
 msgstr "打印件位移检测"
@@ -7016,7 +7019,7 @@ msgstr "%s喷嘴不可以打印%s"
 
 #, boost-format
 msgid "Mixing %1% with %2% in printing is not recommended.\n"
-msgstr "不建议在打印过程中混合使用 %1% 和 %2%。\n"
+msgstr ""
 
 msgid " nozzle"
 msgstr "喷嘴"
@@ -7082,10 +7085,10 @@ msgid "Filament changes"
 msgstr "材料切换"
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr "检测到你已安装耗材变轨器，所有AMS中材料均能在左右头自由使用，切片过程中直接按照最优结果左右分配。"
+msgstr "检测到你已安装耗材变轨器，所有AMS中材料均能在左右头自由使用，切片过程中直接按照最优结果左右分配。 "
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr "检测到你安装的耗材变轨器未标定，暂时无法使用，请先去打印机标定后再同步使用。"
+msgstr "检测到你安装的耗材变轨器未标定，暂时无法使用，请先去打印机标定后再同步使用。 "
 
 msgid "Learn more"
 msgstr "更多信息查看Wiki"
@@ -7476,17 +7479,17 @@ msgid "⚠ Multiple Filament Materials Detected"
 msgstr "⚠ 检测到多种耗材材料"
 
 msgid " (unsupported)"
-msgstr " （不支持）"
+msgstr " (不受支持)"
 
 msgid "Multicolour simulation currently supports only a single filament material."
-msgstr ""
+msgstr "多色仿真目前仅支持单一耗材材料。"
 
 #, c-format, boost-format
 msgid "You have selected multiple materials: %s"
 msgstr "你已选择多种材料：%s"
 
 msgid "Note: Unsupported materials will use the selected reference material for simulation."
-msgstr ""
+msgstr "注意：不支持的材料将使用所选参考材料进行仿真。"
 
 msgid "True multi-material support will be added in a future update."
 msgstr "真正的多材料支持将在后续更新中加入。"
@@ -7525,7 +7528,7 @@ msgid "⚠ Unsupported Materials Detected"
 msgstr "⚠ 检测到不支持的材料"
 
 msgid "Some of your selected materials are not directly supported by Helio:"
-msgstr ""
+msgstr "你选择的部分材料未被 Helio 直接支持："
 
 msgid "Option 1: Proceed with a reference material"
 msgstr "选项 1：继续使用参考材料"
@@ -7910,13 +7913,6 @@ msgstr "不建议使用0.2毫米喷嘴来打印PVA材料"
 msgid "Are you sure to use them? \n"
 msgstr "您确定要使用它吗？ \n"
 
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-"逐件打印：\n"
-"建议使用自动摆盘避免打印时发生碰撞。"
-
 msgid "Send G-code"
 msgstr "发送 G 代码"
 
@@ -8127,10 +8123,10 @@ msgid "Units"
 msgstr "单位"
 
 msgid "Use 12-hour time format"
-msgstr "使用12小时制时间格式"
+msgstr "使用 12 小时制时间格式"
 
 msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr "以12小时制(AM/PM)显示时间，而不是24小时制"
+msgstr "以 12 小时制（上午/下午）而非 24 小时制显示时间"
 
 msgid "Keep only one Bambu Studio instance"
 msgstr "只保留一个Bambu Studio实例"
@@ -8818,7 +8814,7 @@ msgstr "错误代码"
 
 #, c-format, boost-format
 msgid "Recommended filament arrangement saves %s->"
-msgstr "推荐的耗材摆放可以节约 %s ->"
+msgstr "如果按照推荐摆料可省 %s->"
 
 #, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
@@ -8994,10 +8990,10 @@ msgid "The Filament Track Switch installed on the printer does not match the sli
 msgstr "打印机上安装的耗材导轨开关与切片文件不匹配。请重新切片以避免打印质量问题。"
 
 msgid "This print requires a Filament Track Switch. Please install it first."
-msgstr "此打印件需要耗材变轨器。请先安装。"
+msgstr "此打印件需要耗材变轨器。请先安装它。"
 
 msgid "The Filament Track Switch has not been setup. Please setup it first."
-msgstr "耗材变轨器尚未初始化。请先初始化。"
+msgstr "选料器尚未初始化，请先进行初始化。"
 
 #, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
@@ -10430,6 +10426,9 @@ msgstr ""
 msgid "Camera view - Isometric"
 msgstr "摄像机视角 - 等轴测"
 
+msgid "Shift+E"
+msgstr ""
+
 msgid "Select all objects"
 msgstr "选择所有对象"
 
@@ -10751,7 +10750,7 @@ msgid "You're nearly there! Now that Helio is activated, your first optimization
 msgstr "就快完成了！现在 Helio 已激活，你的首次优化只需几分钟即可获得更快、更可靠的打印！（现称为“Enhance/增强”或“Enhancement/增强效果”）"
 
 msgid "Add an object to the build plate, select a material and printer that Helio supports, then slice."
-msgstr ""
+msgstr "将对象添加到打印板上，选择 Helio 支持的材料与打印机，然后进行切片。"
 
 msgid "Supported printers and materials"
 msgstr "支持的打印机与材料"
@@ -11679,7 +11678,7 @@ msgid "Avoid crossing wall"
 msgstr "避免跨越外墙"
 
 msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
-msgstr ""
+msgstr "空驶时绕过外墙以避免在模型外观面产生半点（对距离大于空驶距离阈值的空驶）"
 
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "平滑z方向外墙速度（实验）"
@@ -11798,12 +11797,14 @@ msgstr "秒"
 msgid "Cooling overhang threshold"
 msgstr "冷却悬空阈值"
 
+#, c-format
 msgid "Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "当打印件的悬空程度超过此值时，强制冷却风扇达到特定速度。用百分比表示，表明没有下层支撑的线的宽度是多少。0%%意味着无论悬垂程度如何，都要对所有外壁强制冷却。"
 
 msgid "Overhang threshold for participating cooling"
 msgstr "参与冷却降速的悬垂阈值"
 
+#, c-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "决定多少阈值的悬垂参与冷却降速.用百分比表示超出线宽的范围。"
 
@@ -12201,6 +12202,7 @@ msgstr "除了桥接外的底面填充的走线图案"
 msgid "Bottom surface density"
 msgstr "底面密度"
 
+#, c-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
 msgstr "底面的填充密度，100%%表示底面为完全实心填充。较低数值会产生纹理化的底面，旨在满足美观或功能需求，而非用于修复诸如过度挤出等问题。警告：降低此值可能会负面影响打印平台附着性。"
 
@@ -12695,6 +12697,7 @@ msgstr "稀疏填充图案的角度，决定走线的开始或整体方向。"
 msgid "Sparse infill density"
 msgstr "稀疏填充密度"
 
+#, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr "稀疏填充密度, 100%% 意味着完全实心。"
 
@@ -15862,11 +15865,7 @@ msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics 
 msgstr "TPU 90A/TPU 85A硬度过低，不支持自动流量校准。"
 
 msgid "The number of printer extruders and the printer selected for calibration does not match."
-msgstr "打印机喷嘴数量与所选择的校准项不匹配。"
-
-#, c-format, boost-format
-msgid "The type of %sextruder is bowden which does not support automatic Flow Dynamics calibration."
-msgstr "%s挤出机是远程挤出机，不支持动态流量校准。"
+msgstr ""
 
 #, c-format, boost-format
 msgid "The type of %sextruder is bowden which does not support automatic Flow Dynamics calibration."
@@ -16732,7 +16731,7 @@ msgid "For better drying results, remove the filament and allow it to rotate."
 msgstr "拔出耗材并旋转烘干会有更好的效果。"
 
 msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
-msgstr "AMS会自动滚动已存储的耗材槽以增强烘干效果。"
+msgstr "AMS会自动旋转耗材收起的槽位，会有更好的烘干效果。"
 
 msgid "Alternatively, you can dry the filament without removing it."
 msgstr "或者，您可以在不取出耗材的情况下进行干燥。"
@@ -17463,66 +17462,14 @@ msgstr ""
 #~ "耗材更换器尚未校准。 \n"
 #~ "请在使用前在打印机上进行校准。"
 
-#, c-format, boost-format
-#~ msgid "Remove the filaments from %s. Insert into AMS on Filament Inlet B."
-#~ msgstr "请将 %s 槽位的耗材取出，放入连接进料口B的AMS里。"
-
-#, c-format, boost-format
-#~ msgid "Remove the filaments from %s. Insert into AMS on Filament Inlet A."
-#~ msgstr "请将 %s 槽位的耗材取出，放入连接进料口A的AMS里。"
-
-#~ msgid "filaments"
-#~ msgstr "耗材"
-
-#~ msgid "filament"
-#~ msgstr "耗材"
-
-#, c-format, boost-format
-#~ msgid "Remove the filaments from %s . Insert into AMS on Filament Inlet A."
-#~ msgstr "请将 %s 槽位的耗材取出，放入连接进料口A的AMS里。"
-
-#~ msgid ""
-#~ "Tips:\n"
-#~ "Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
-#~ msgstr ""
-#~ "提示：\n"
-#~ "检测到您的打印机支持圆弧拟合功能，若软件切片时已经启用圆弧拟合，会导致打印机该功能无法生效，软件已为你自动关闭该功能。"
-
-#~ msgid "Ext"
-#~ msgstr "外挂槽"
-
-#~ msgid "Load filament to"
-#~ msgstr "进料至"
-
-#~ msgid "A filament switcher is installed and ready. All materials in the AMS can now be freely used by both the left and right extruders, and will be automatically allocated to the optimal extruder during slicing. "
-#~ msgstr "选料器已安装就绪。AMS 中的所有材料现均可供左右挤出机自由调用，并在切片时自动分配至最佳挤出机。"
-
-#~ msgid "Parameters"
-#~ msgstr "参数"
-
-#~ msgid "A compatible support filament combination is detected. We recommend using this filament for support interface with the recommended parameters."
-#~ msgstr "检测到兼容的支撑耗材组合。我们建议使用该耗材作为支撑接触面，并搭配推荐参数进行打印。"
-
-#~ msgid "Recommended combinations:"
-#~ msgstr "推荐组合"
+#~ msgid "Show object labels in 3D scene"
+#~ msgstr "在3D场景中显示对象名称"
 
 #~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
 #~ msgstr "空驶时绕过外墙以避免在模型外观面产生斑点"
 
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-#~ msgstr ""
-#~ "当支撑接触面使用支撑材料时，我们推荐以下设置：\n"
-#~ "0顶部z距离，0接触面间距，交叠直线图案，并且禁用支撑独立层高"
-
-#~ msgid ""
-#~ "When using soluble material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "当支撑接触面使用可溶性材料时，我们推荐以下设置：\n"
-#~ "0顶部z距离，0接触面间距，0支撑/模型XY距离，交叠直线图案，禁用支撑独立层高，并将可溶性材料同时用于支撑接触面和支撑主体"
+#~ msgid "Filament grouping is automatically optimized based on filament-saving principles"
+#~ msgstr "耗材分组根据节省耗材原则自动优化"
 
 #~ msgid "Dynamic flow calibration is not supported for TPU 85A filament."
 #~ msgstr "TPU 85A耗材不支持动态流量校准。"
@@ -22100,9 +22047,6 @@ msgstr ""
 
 #~ msgid "Printer Selection"
 #~ msgstr "打印机选择"
-
-#~ msgid "Auto arrange"
-#~ msgstr "自动摆盘"
 
 #~ msgid "Spiral mode"
 #~ msgstr "旋转模式"

@@ -631,8 +631,11 @@ set(SLIC3R_GUI_SOURCES
     Utils/HelioDragon.hpp
     Utils/FileTransferUtils.cpp
     Utils/FileTransferUtils.hpp
+    Utils/FileTransferObject.cpp
+    Utils/FileTransferObject.hpp
     Utils/CertificateVerify.hpp
     Utils/CertificateVerify.cpp
+    Utils/FrameBuffer.hpp
 )
 
 add_subdirectory(GUI/DeviceCore)

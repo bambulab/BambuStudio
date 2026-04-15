@@ -2401,8 +2401,11 @@ msgstr "Kesim bilgisini geçersiz kıl"
 msgid "Add Primitive"
 msgstr "Şekil Ekle"
 
-msgid "Show Labels"
-msgstr "Etiketleri Göster"
+msgid "Show Labels by Layer"
+msgstr ""
+
+msgid "Show Labels by Object"
+msgstr ""
 
 msgid "To objects"
 msgstr "Nesnelere"
@@ -2538,6 +2541,9 @@ msgstr "Yatağın kalan alanını seçilen nesnenin kopyalarıyla doldurun"
 
 msgid "Edit Plate Name"
 msgstr "Plaka Adını Düzenle"
+
+msgid "Show Labels"
+msgstr "Etiketleri Göster"
 
 msgid "Name"
 msgstr "İsim"
@@ -5616,8 +5622,11 @@ msgstr "Pencere Düzenini Sıfırla"
 msgid "Reset to default window layout"
 msgstr "Varsayılan pencere düzenine sıfırla"
 
-msgid "Show object labels in 3D scene"
-msgstr "3B sahnede nesne etiketlerini göster"
+msgid "Show Labels of printing by layer in 3D scene"
+msgstr ""
+
+msgid "Show Labels of printing by object in 3D scene"
+msgstr ""
 
 msgid "Show &Overhang"
 msgstr "Çıkıntıyı Göster"
@@ -7919,13 +7928,6 @@ msgstr "PVA filamentlerinin 0,2 mm nozullarla kullanılması tavsiye edilmez."
 msgid "Are you sure to use them? \n"
 msgstr "Bunları kullanacağından emin misin? \n"
 
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-"Nesneye Göre Yazdır:\n"
-"Yazdırma sırasında çarpışmaları önlemek için otomatik düzenlemeyi kullanmanızı önerin."
-
 msgid "Send G-code"
 msgstr "G-kodu gönder"
 
@@ -7937,6 +7939,19 @@ msgstr "Tamir edilmeden önce özel destekler ve renkli boyalar kaldırıldı."
 
 msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
 msgstr "Özel destekler, dikiş_yüzeyleri ve renk boyamaları onarım öncesinde kaldırıldı, model adı:"
+
+msgid ""
+"Print By Object: \n"
+"Suggest to use auto-arrange to avoid collisions when printing."
+msgstr ""
+"Nesneye Göre Yazdır:\n"
+"Yazdırma sırasında çarpışmaları önlemek için otomatik düzenlemeyi kullanmanızı önerin."
+
+msgid "Auto arrange"
+msgstr ""
+
+msgid "Detail view wiki->"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -10424,6 +10439,9 @@ msgstr "Kamera görüntüsü - Sağ"
 msgid "Camera view - Isometric"
 msgstr "Kamera görünümü - İzometrik"
 
+msgid "Shift+E"
+msgstr ""
+
 msgid "Select all objects"
 msgstr "Tüm nesneleri seç"
 
@@ -11777,12 +11795,14 @@ msgstr "s"
 msgid "Cooling overhang threshold"
 msgstr "Çıkıntı soğutması"
 
+#, c-format
 msgid "Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Yazdırılan parçanın çıkıntı derecesi bu değeri aştığında soğutma fanını belirli bir hıza zorlar. Alt katmandan destek almadan çizginin ne kadar genişlediğini gösteren yüzde olarak ifade edilir. 0, çıkıntı derecesi ne kadar olursa olsun tüm dış duvar için soğutmayı zorlamak anlamına gelir"
 
 msgid "Overhang threshold for participating cooling"
 msgstr "Soğutma katkısı için sarkma eşik değeri"
 
+#, c-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Hızı yavaşlatmak için hangi çıkıntı kısmının soğutma fonksiyonuna katılacağına karar verin. alt katmandan destek almadan hattın ne kadar genişlediğini gösteren yüzde olarak ifade edilir. 100, ne kadar çıkıntı derecesi olursa olsun tüm dış duvar için soğutmayı zorlamak anlamına gelir"
 
@@ -12166,6 +12186,7 @@ msgstr "Köprü dolgusu değil, alt yüzey dolgusunun çizgi deseni"
 msgid "Bottom surface density"
 msgstr ""
 
+#, c-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
 msgstr ""
 
@@ -12657,6 +12678,7 @@ msgstr "Hattın başlangıcını veya ana yönünü kontrol eden seyrek dolgu de
 msgid "Sparse infill density"
 msgstr "Dolgu yoğunluğu"
 
+#, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr "İç boş dolgu yoğunluğu, 100 yüz katıdır, yani tamamen doludur"
 
@@ -17257,22 +17279,6 @@ msgstr ""
 
 #~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
 #~ msgstr "Dolambaçlı yoldan gidin ve yüzeyde lekeye neden olabilecek duvar boyunca ilerlemekten kaçının"
-
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-#~ msgstr ""
-#~ "Destek arayüzü için destek malzemesi kullanırken, aşağıdaki ayarları öneririz:\n"
-#~ "0 üst z mesafesi, 0 arayüz aralığı, geçmeli doğrusal desen ve bağımsız destek katmanı yüksekliğini devre dışı bırakma"
-
-#~ msgid ""
-#~ "When using soluble material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "Destek arayüzü için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
-#~ "0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, geçmeli doğrusal desen, \n"
-#~ "bağımsız destek katmanı yüksekliğini devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
 
 #~ msgid "Air Condition"
 #~ msgstr "Klima"

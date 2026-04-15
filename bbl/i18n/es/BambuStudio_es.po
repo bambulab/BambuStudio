@@ -390,22 +390,6 @@ msgstr "%d El filamento de corte n.° coincide con '%s'. Asignarlo a '%s' puede 
 msgid "*Tips: If you have moved the spool position on the machine, please close this page and re‑match the filament."
 msgstr "*Consejo: Si ha movido la posición de la bobina en la máquina, cierre esta página y vuelva a colocar el filamento."
 
-msgid "Summary:"
-msgstr ""
-
-msgid "AMS on Filament Inlet A"
-msgstr ""
-
-msgid "AMS on Filament Inlet B"
-msgstr ""
-
-#, c-format, boost-format
-msgid "The No.%d slicing filament is matched to '%s'. Assigning it to '%s' can save printing time."
-msgstr ""
-
-msgid "*Tips: If you have moved the spool position on the machine, please close this page and re‑match the filament."
-msgstr ""
-
 msgid "Summary: This is currently the most suitable position for placement."
 msgstr "Resumen: Actualmente, este es el puesto más adecuado para la colocación."
 
@@ -2555,6 +2539,9 @@ msgstr "Rellenar el área restante de la cama con copias del objeto seleccionado
 
 msgid "Edit Plate Name"
 msgstr "Editar nombre de placa"
+
+msgid "Show Labels"
+msgstr "Mostrar etiquetas"
 
 msgid "Name"
 msgstr "Nombre"
@@ -5948,7 +5935,7 @@ msgid "The live streaming feature relies on Bambu Studio to run,and the stream w
 msgstr "La función de transmisión en vivo depende de Bambu Studio para funcionar, y la transmisión finalizará algún tiempo después de cerrar la aplicación."
 
 msgid "Printer Preview"
-msgstr ""
+msgstr "Vista previa de la impresora"
 
 msgid "Playing..."
 msgstr "Reproduciendo..."
@@ -6465,7 +6452,7 @@ msgid "Can't start this without storage."
 msgstr "No se puede iniciar sin almacenamiento."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
-msgstr ""
+msgstr "No se puede cambiar el extrusor cuando la impresora no está en modo FDM"
 
 msgid "Rate the Print Profile"
 msgstr "Valora un perfil de impresión"
@@ -7147,10 +7134,10 @@ msgid "Filament changes"
 msgstr "Cambios de filamento"
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr ""
+msgstr "Se ha detectado el selector de filamentos. Todos los filamentos AMS están disponibles para ambos extrusores. El cortador se asignará automáticamente para una impresión óptima. "
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr ""
+msgstr "Se ha detectado un conmutador de filamento, pero no está calibrado y, por lo tanto, no está disponible. Por favor, calibre el conmutador en la impresora y sincronícelo antes de usarla. "
 
 msgid "Learn more"
 msgstr "Conocer más"
@@ -7981,13 +7968,6 @@ msgstr "No se recomienda utilizar filamentos de PVA con boquillas de 0,2 mm."
 
 msgid "Are you sure to use them? \n"
 msgstr "¿Está seguro de usarlo? \n"
-
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-"Imprimir por objeto: \n"
-"Sugiere utilizar el auto-posicionamiento para evitar colisiones al imprimir."
 
 msgid "Send G-code"
 msgstr "Enviar código G"
@@ -10517,6 +10497,9 @@ msgstr "Vista de la cámara - Derecha"
 msgid "Camera view - Isometric"
 msgstr "Vista de la cámara - Isométrica"
 
+msgid "Shift+E"
+msgstr ""
+
 msgid "Select all objects"
 msgstr "Seleccionar todos los objetos"
 
@@ -11769,7 +11752,7 @@ msgid "Avoid crossing wall"
 msgstr "Evite cruzar las paredes"
 
 msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
-msgstr ""
+msgstr "Desvíe y evite viajar a través de la pared, lo que puede causar una protuberancia en la superficie (cuando la longitud del recorrido es mayor que el umbral de distancia de viaje)"
 
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Suavizar la velocidad de la pared a lo largo de Z (experimental)"
@@ -11888,12 +11871,14 @@ msgstr "s"
 msgid "Cooling overhang threshold"
 msgstr "Umbral del voladizo de refrigeración"
 
+#, c-format
 msgid "Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Fuerza al ventilador de refrigeración a una velocidad específica cuando el grado de voladizo de la pieza impresa excede este valor. Expresado como porcentaje, indica la anchura de la línea sin soporte de la capa inferior. 0%% significa forzar la refrigeración de toda la pared exterior sin importar el grado de voladizo."
 
 msgid "Overhang threshold for participating cooling"
 msgstr "Ángulo máximo para la refrigeración participante"
 
+#, c-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Decide qué parte saliente se une a la función de refrigeración para reducir la velocidad. Esto se expresa como un porcentaje que indica el ancho de la línea sin el apoyo de una capa inferior. El 100%% significa forzar el enfriamiento de toda la pared exterior sin importar el grado de voladizo."
 
@@ -12291,6 +12276,7 @@ msgstr "Patrón de líneas del relleno de la superficie inferior, no del relleno
 msgid "Bottom surface density"
 msgstr "Densidad de la superficie inferior"
 
+#, c-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
 msgstr "Densidad del relleno de la superficie inferior, 100%% significa una capa superior completamente sólida y rellena. Los valores más bajos crean una superficie inferior texturizada. Destinado a fines estéticos o funcionales, no para solucionar problemas como la sobreextrusión. ADVERTENCIA: Reducir este valor puede afectar negativamente la adhesión de la cama."
 
@@ -12782,6 +12768,7 @@ msgstr "Ángulo para el patrón de relleno disperso, que controla el inicio o la
 msgid "Sparse infill density"
 msgstr "Densidad de relleno"
 
+#, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr "Densidad del relleno interno disperso, el 100%% significa sólido en todo el territorio"
 
@@ -17560,15 +17547,8 @@ msgstr ""
 #~ "El cambiador de consumibles no ha sido calibrado.\n"
 #~ "Por favor, calibre en la impresora antes de usarlo."
 
-#~ msgid "Load filament to"
-#~ msgstr "Cargar filamento hasta"
-
-#~ msgid ""
-#~ "Tips:\n"
-#~ "Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
-#~ msgstr ""
-#~ "Consejos:\n"
-#~ "Su impresora admite ajuste de arco, por lo que la función de ajuste de arco del slicer se ha desactivado para evitar conflictos."
+#~ msgid "Show object labels in 3D scene"
+#~ msgstr "Mostrar etiquetas de objetos en una escena 3D"
 
 #~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
 #~ msgstr "Desvíese y evite atravesar paredes para evitar la posibilidad de crear manchas en las superficies"
@@ -17576,21 +17556,8 @@ msgstr ""
 #~ msgid "Filament grouping is automatically optimized based on filament-saving principles"
 #~ msgstr "La agrupación de filamentos se optimiza automáticamente según principios de ahorro de filamento"
 
-#~ msgid ""
-#~ "When using support material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-#~ msgstr ""
-#~ "Al utilizar material de soporte para la interfaz de soporte, recomendamos la siguiente configuración:\n"
-#~ "0 distancia z superior, 0 espaciado de interfaz, patrón rectilíneo entrelazado y altura de capa de soporte independiente desactivada"
-
-#~ msgid ""
-#~ "When using soluble material for the support interface, We recommend the following settings:\n"
-#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-#~ "independent support layer height and use soluble materials for both support interface and support base"
-#~ msgstr ""
-#~ "Al usar material soluble para la interfaz de soporte, recomendamos la siguiente configuración:\n"
-#~ "0 distancia z superior, 0 espaciado de interfaz, 0 distancia xy soporte/objeto, patrón rectilíneo entrelazado, deshabilitar \n"
-#~ "altura de capa de soporte independiente y usar materiales solubles tanto para la interfaz de soporte como para la base de soporte"
+#~ msgid "Load filament to"
+#~ msgstr "Cargar filamento hasta"
 
 #~ msgid "Dynamic flow calibration is not supported for TPU 85A filament."
 #~ msgstr "La calibración dinámica del flujo no es compatible con el filamento TPU 85A."
@@ -19224,9 +19191,6 @@ msgstr ""
 
 #~ msgid "Auto Bed Type"
 #~ msgstr "Tipo de cama Auto"
-
-#~ msgid "Auto arrange"
-#~ msgstr "Auto posicionamiento"
 
 #~ msgid "Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the project."
 #~ msgstr "Orienta automáticamente los objetos seleccionados o todos los objetos.Si hay objetos seleccionados, sólo orienta los seleccionados.En caso contrario, orienta todos los objetos del proyecto."

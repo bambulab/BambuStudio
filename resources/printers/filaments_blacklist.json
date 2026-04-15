@@ -70,7 +70,7 @@
       "nozzle_diameters": [0.4],
       "model_id": ["O1D", "O1E"],
       "action": "prohibition",
-      "description": "Dynamic flow calibration is not supported for TPU 85A filament."
+      "description": "Bambu TPU 85A is not supported for printing with 0.4 mm Standard or High Flow nozzles."
     },
     {
       "types": ["TPU"],

@@ -413,7 +413,7 @@ void AppConfig::set_defaults()
     }
 
     if (get("sync_system_preset").empty()) {
-        set_bool("sync_system_preset", false); // close this for kol
+        set_bool("sync_system_preset", true);
     }
 
     if (get("backup_switch").empty() || get("version") < "01.06.00.00") {

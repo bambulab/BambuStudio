@@ -829,6 +829,7 @@ public:
 
     const Preset*   find_system_preset_by_model_and_variant(const std::string &model_id, const std::string &variant) const;
     const Preset*   find_custom_preset_by_model_and_variant(const std::string &model_id, const std::string &variant) const;
+    std::vector<const Preset*> find_all_presets_by_model(const std::string &model_id, bool system_only = true) const;
 
     bool            only_default_printers() const;
 private:

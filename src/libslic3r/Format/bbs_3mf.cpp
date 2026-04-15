@@ -4871,7 +4871,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         ObjectMetadata::VolumeMetadata &volume = object->second.volumes[m_curr_config.volume_id];
         TextInfo text_info;
         text_info.m_text      = xml_unescape(bbs_get_attribute_value_string(attributes, num_attributes, TEXT_ATTR));
-        text_info.m_font_name = bbs_get_attribute_value_string(attributes, num_attributes, FONT_NAME_ATTR);
+        text_info.m_font_name = xml_unescape(bbs_get_attribute_value_string(attributes, num_attributes, FONT_NAME_ATTR));
         text_info.text_configuration.style.prop.face_name = text_info.m_font_name;
         text_info.m_font_version = bbs_get_attribute_value_string(attributes, num_attributes, FONT_VERSION_ATTR);
         text_info.text_configuration.style.name = bbs_get_attribute_value_string(attributes, num_attributes, STYLE_NAME_ATTR);
@@ -7893,7 +7893,7 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
         stream << "      <" << TEXT_INFO_TAG << " ";
 
         stream << TEXT_ATTR << "=\"" << xml_escape(text_info.m_text) << "\" ";
-        stream << FONT_NAME_ATTR << "=\"" << text_info.m_font_name << "\" ";
+        stream << FONT_NAME_ATTR << "=\"" << xml_escape(text_info.m_font_name) << "\" ";
         stream << FONT_VERSION_ATTR << "=\"" << text_info.m_font_version << "\" ";
         stream << STYLE_NAME_ATTR << "=\"" << xml_escape_double_quotes_attribute_value(text_info.text_configuration.style.name) << "\" ";
         stream << BOLDNESS_ATTR << "=\"" << text_info.text_configuration.style.prop.boldness.value_or(0) << "\" ";

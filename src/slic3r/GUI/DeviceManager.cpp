@@ -1582,6 +1582,8 @@ int MachineObject::command_ams_user_settings(bool start_read_opt, bool tray_read
     j["print"]["tray_read_option"]      = tray_read_opt;
     j["print"]["calibrate_remain_flag"] = remain_flag;
 
+    BOOST_LOG_TRIVIAL(info) << "Ams User Settings: startup_read_option=" << start_read_opt << ", tray_read_option=" << tray_read_opt
+                            << ", calibrate_remain_flag=" << remain_flag;
     m_fila_system->GetAmsSystemSetting().SetDetectOnInsertEnabled(tray_read_opt);
     m_fila_system->GetAmsSystemSetting().SetDetectOnPowerupEnabled(start_read_opt);
     m_fila_system->GetAmsSystemSetting().SetDetectRemainEnabled(remain_flag);
@@ -2653,6 +2655,11 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             ver_info.firmware_flag= (*it)["flag"].get<int>();
 
                         store_version_info(ver_info);
+
+                        BOOST_LOG_TRIVIAL(info) << "get_version :product_name=" << ver_info.product_name
+                                                << ",sw_ver=" << ver_info.sw_ver
+                                                << ",sw_new_ver="<<ver_info.sw_new_ver;
+
                         if (ver_info.name == "ota") {
                             NetworkAgent* agent = GUI::wxGetApp().getAgent();
                             if (agent) {

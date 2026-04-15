@@ -2412,20 +2412,10 @@ void MainFrame::update_slice_print_status(SlicePrintEventType event, bool can_sl
     m_slice_enable = enable_slice;
     m_print_enable = enable_print;
 
-    /*for helio*/
+    /*for healio*/
     if (expand_program_holder) {
-        bool helio_enable = m_print_enable;
-        if (!helio_enable) {
-            // For non-BBL printers, the print button may be disabled due to
-            // missing print_host config, but Helio only needs valid slice results
-            bool is_bbl = wxGetApp().preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(wxGetApp().preset_bundle);
-            if (!is_bbl) {
-                PartPlate *curr_plate = m_plater->get_partplate_list().get_curr_plate();
-                helio_enable = curr_plate && curr_plate->is_slice_result_valid();
-            }
-        }
-        expand_program_holder->updateExpandButtonBitmap(expand_helio_id, helio_enable ? "helio_icon" : "helio_icon_disable");
-        expand_program_holder->EnableExpandButton(expand_helio_id, helio_enable);
+        expand_program_holder->updateExpandButtonBitmap(expand_helio_id, m_print_enable?"helio_icon":"helio_icon_disable");
+        expand_program_holder->EnableExpandButton(expand_helio_id, m_print_enable);
     }
 
 

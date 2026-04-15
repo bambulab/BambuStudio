@@ -115,6 +115,9 @@ public:
     void on_selected();
     void on_warning();
 
+    bool is_selected() const { return m_selected;}
+    bool is_warning() const { return m_warning;}
+
     void msw_rescale();
 
 protected:

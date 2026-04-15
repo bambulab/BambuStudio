@@ -76,6 +76,7 @@ class MonitorPanel : public wxPanel
 {
 private:
     static bool is_hms_list_equal(const std::map<std::string, DevHMSItem> &map1, const std::map<std::string, DevHMSItem> &map2);
+
     Tabbook*		m_tabpanel{ nullptr };
     wxSizer*        m_main_sizer{ nullptr };
 

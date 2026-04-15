@@ -51,6 +51,7 @@
 			"support_lidar_calibration": false,
 			"support_nozzle_offset_calibration": false,
 			"support_high_tempbed_calibration": true,
+			"support_clump_position_calibration": true,
 			"support_ai_monitoring": true,
 			"support_first_layer_inspect": false,
 			"support_save_remote_print_file_to_storage": true,
@@ -61,6 +62,7 @@
 			"support_extrusion_cali": false,
 			"support_user_preset": false,
 			"support_ams_ext_mix_print": true,
+			"support_ams_filament_change_abort": true,
 			"support_user_first_setup_tpu_check": true,
 			"support_user_first_setup_tpu_check_url": "https://e.bambulab.com/t?c=L45sIEpzy1Wz0tsV"
 		},

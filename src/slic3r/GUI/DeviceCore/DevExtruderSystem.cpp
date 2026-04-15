@@ -9,6 +9,7 @@
 #include "slic3r/GUI/Plater.hpp"
 
 #include "DevUtil.h"
+#include "DevFilaSystem.h"
 
 using namespace nlohmann;
 
@@ -200,6 +201,24 @@ namespace Slic3r
         }
 
         return false;
+    }
+
+    std::vector<DevAmsSlotId> DevExtderSystem::GetBackupAmsSlotInGroup(const DevAmsSlotId& ams_slot_id)
+    {
+        std::map<int, DevAmsSlotId> tray_map = Owner()->GetFilaSystem()->GetTrayIndexMap();
+
+        std::vector<DevAmsSlotId> backup_group;
+        for (const auto& extruder : m_extders) {
+            for (int fila_backup : extruder.GetFilamBackup()) {
+                for (auto [tray_id,  is_valid] : DevExtder::GetBackupStatus(fila_backup)) {
+                    if (is_valid && tray_map.find(tray_id) != tray_map.end() && tray_map[tray_id] != ams_slot_id) {
+                        backup_group.emplace_back(tray_map[tray_id]);
+                    }
+                }
+            }
+        }
+
+        return backup_group;
     }
 
     void ExtderSystemParser::ParseV1_0(const nlohmann::json& print_json, DevExtderSystem* system)

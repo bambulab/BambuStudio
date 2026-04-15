@@ -85,39 +85,39 @@ FilamentItemPanel::FilamentItemPanel(wxWindow* parent, const wxString& text, con
     SetBackgroundColour(wxColour("#F7F7F7")); // Light gray background
     SetMinSize(wxSize(FromDIP(64), FromDIP(106))); // Width: 64, Height: 106
     SetSize(wxSize(FromDIP(64), FromDIP(106)));    // Fixed size
-    
+
     // Create sizer for vertical layout
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-    
+
     // Top section with text - moved to be closer to center
     wxBoxSizer* top_sizer = new wxBoxSizer(wxVERTICAL);
     top_sizer->AddStretchSpacer(5);
-    
+
     m_text_label = new Label(this, text);
     m_text_label->SetForegroundColour(StateColor::darkModeColorFor(wxColour(*wxBLACK)));
     m_text_label->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#F7F7F7")));
     m_text_label->SetFont(Label::Body_12);
     m_text_label->Wrap(FromDIP(40));
     top_sizer->Add(m_text_label, 0, wxALIGN_CENTER_HORIZONTAL);
-    
+
     top_sizer->AddStretchSpacer(1); // Increased bottom spacer to push text down
     sizer->Add(top_sizer, 1, wxEXPAND);
-    
+
     // Bottom section with icon - vertically centered in bottom half
     wxBoxSizer* bottom_sizer = new wxBoxSizer(wxVERTICAL);
     bottom_sizer->AddStretchSpacer(1);
-    
+
     m_icon_bitmap = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);
     m_icon_bitmap->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#F7F7F7")));
     m_icon_bitmap->SetMinSize(wxSize(FromDIP(24), FromDIP(24)));
     m_icon_bitmap->SetMaxSize(wxSize(FromDIP(24), FromDIP(24)));
     bottom_sizer->Add(m_icon_bitmap, 0, wxALIGN_CENTER_HORIZONTAL);
-    
+
     bottom_sizer->AddStretchSpacer(1);
     sizer->Add(bottom_sizer, 1, wxEXPAND);
-    
+
     SetSizer(sizer);
-    
+
     // Bind events
     Bind(wxEVT_PAINT, &FilamentItemPanel::OnPaint, this);
     Bind(wxEVT_SIZE, &FilamentItemPanel::OnSize, this);
@@ -168,12 +168,12 @@ void FilamentItemPanel::OnPaint(wxPaintEvent& event)
     // bool is_dark_mode = wxGetApp().dark_mode();
     wxColour backgroundColor = StateColor::darkModeColorFor(wxColour("#F7F7F7"));
     wxColour borderColor = StateColor::darkModeColorFor(wxColour("#DBDBDB"));
-    
+
     // Draw white background rectangle with rounded corners inside the thick vertical lines
     dc.SetBrush(wxBrush(backgroundColor));
     dc.SetPen(wxPen(backgroundColor));
     dc.DrawRectangle(FromDIP(6), FromDIP(12), size.GetWidth() - FromDIP(12), size.GetHeight() - 2 * FromDIP(12));
-    
+
     // Draw much thicker vertical rounded rectangles on left and right (3 times thicker)
     dc.SetBrush(wxBrush(wxColour(borderColor)));
     dc.SetPen(wxPen(wxColour(borderColor)));
@@ -216,7 +216,7 @@ AMSFilamentPanel::AMSFilamentPanel(wxWindow* parent, const wxString& ams_name, w
 
     main_sizer->Add(m_filament_container, 1, wxEXPAND | wxALL, 0);
     main_sizer->Add(m_ams_name_label, 0, wxALIGN_LEFT | wxALL, FromDIP(5));
-    
+
     SetSizer(main_sizer);
     wxGetApp().UpdateDarkUI(this);
 }
@@ -331,7 +331,7 @@ wxBoxSizer* AMSDryCtrWin::create_description_item(wxPanel* parent, const wxStrin
     item_sizer->Add(titleLabel, 0, wxALIGN_CENTER | wxALL, FromDIP(2));
     item_sizer->Add(dataLabel, 0, wxALIGN_CENTER | wxALL, FromDIP(2));
     item_sizer->AddStretchSpacer();
-    
+
     return item_sizer;
 }
 
@@ -357,7 +357,7 @@ wxBoxSizer* AMSDryCtrWin::create_status_descriptions_section(wxPanel* parent)
 
     desc_sizer->Add(m_time_descrition_container, 1, wxEXPAND, 0);
     // m_time_descrition_container->Show(false);
-    
+
     return desc_sizer;
 }
 
@@ -370,7 +370,7 @@ wxBoxSizer* AMSDryCtrWin::create_left_panel(wxPanel* parent)
 
     wxBoxSizer* descriptions_section = create_status_descriptions_section(parent);
     left_sizer->Add(descriptions_section, 0, wxEXPAND | wxALL, FromDIP(20));
-    
+
     return left_sizer;
 }
 
@@ -378,7 +378,7 @@ Button* AMSDryCtrWin::create_button(wxPanel* parent, const wxString& title,
     const wxColour& background_color, const wxColour& border_color, const wxColour& text_color)
 {
     Button* button = new Button(parent, title);
-    
+
     // Create state colors for background
     StateColor bg_color(
         std::pair<wxColour, int>(AMS_CONTROL_DISABLE_COLOUR, StateColor::Disabled),
@@ -386,13 +386,13 @@ Button* AMSDryCtrWin::create_button(wxPanel* parent, const wxString& title,
         std::pair<wxColour, int>(background_color.ChangeLightness(120), StateColor::Hovered),
         std::pair<wxColour, int>(background_color, StateColor::Normal)
     );
-    
+
     // Create state colors for border
     StateColor bd_color(
         std::pair<wxColour, int>(AMS_CONTROL_WHITE_COLOUR, StateColor::Disabled),
         std::pair<wxColour, int>(border_color, StateColor::Enabled)
     );
-    
+
     button->SetBackgroundColor(bg_color);
     button->SetBorderColor(bd_color);
     button->SetTextColor(text_color);
@@ -404,7 +404,7 @@ Button* AMSDryCtrWin::create_button(wxPanel* parent, const wxString& title,
     int padding_height = FromDIP(2);
     wxSize final_size(best_size.GetWidth() + padding_width, best_size.GetHeight() + padding_height);
     button->SetMinSize(final_size);
-    
+
     return button;
 }
 
@@ -560,7 +560,7 @@ wxBoxSizer* AMSDryCtrWin::create_cannot_dry_panel(wxPanel* parent)
     m_cannot_dry_description_label->SetForegroundColour(*wxBLACK);
     m_cannot_dry_description_label->SetFont(Label::Body_14);
     m_cannot_dry_description_label->Wrap(FromDIP(250)); // Wrap text to fit within panel
-    
+
     abnormal_sizer->Add(m_cannot_dry_description_label, 0, wxALIGN_CENTER_VERTICAL, FromDIP(10));
 
     // Unload button shown only when ConsumableAtAmsOutlet reason is active
@@ -638,11 +638,11 @@ wxBoxSizer* AMSDryCtrWin::create_main_content_section(wxPanel* parent)
     wxBoxSizer* left_panel = create_left_panel(parent);
     content_sizer->Add(left_panel, 2, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     left_panel->SetMinSize(wxSize(FromDIP(250), -1));
-    
+
     wxBoxSizer* right_panel = create_right_panel(parent);
     content_sizer->Add(right_panel, 1, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
     right_panel->SetMinSize(wxSize(FromDIP(250), -1));
-    
+
     return content_sizer;
 }
 
@@ -670,27 +670,27 @@ wxBoxSizer* AMSDryCtrWin::create_guide_info_filament(wxPanel* parent)
 wxBoxSizer* AMSDryCtrWin::create_guide_info_section(wxPanel* parent)
 {
     wxBoxSizer* info_section = new wxBoxSizer(wxVERTICAL);
-    
+
     // Part 1: Title
     m_guide_title_label = new Label(parent, _L("Please remove and store the filament (as shown)."));
     m_guide_title_label->SetForegroundColour(*wxBLACK);
     m_guide_title_label->SetFont(Label::Head_18);
     info_section->Add(m_guide_title_label, 0, wxEXPAND | wxALL, FromDIP(5));
-    
+
     // Part 2: Description
     m_guide_description_label = new Label(parent, _L("The AMS can rotate the filament which is properly stored, providing better drying results."));
     m_guide_description_label->SetForegroundColour(*wxBLACK);
     m_guide_description_label->SetFont(Label::Body_14);
     m_guide_description_label->Wrap(FromDIP(300)); // Wrap text to fit within panel
     info_section->Add(m_guide_description_label, 0, wxEXPAND | wxALL, FromDIP(5));
-    
+
     // Part 3: filament panel
     wxBoxSizer* fila_section = create_guide_info_filament(parent);
     info_section->Add(fila_section, 0, wxEXPAND | wxALL, FromDIP(5));
-    
+
     // Part 4: Circular toggle with description
     wxBoxSizer* toggle_section = new wxBoxSizer(wxHORIZONTAL);
-    
+
     m_rotate_spool_toggle = new wxCheckBox(parent, wxID_ANY, "");
     m_rotate_spool_toggle->SetValue(false);
 
@@ -706,7 +706,7 @@ wxBoxSizer* AMSDryCtrWin::create_guide_info_section(wxPanel* parent)
     toggle_description->SetForegroundColour(*wxBLACK);
     toggle_description->SetFont(Label::Body_12);
     toggle_section->Add(toggle_description, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND, 0);
-    
+
     info_section->Add(toggle_section, 0, wxEXPAND | wxALL, FromDIP(5));
 
     return info_section;
@@ -724,7 +724,7 @@ wxBoxSizer* AMSDryCtrWin::create_guide_right_section(wxPanel* parent)
     wxBoxSizer* image_container = new wxBoxSizer(wxHORIZONTAL);
     image_container->AddStretchSpacer(1);
     image_container->Add(m_image_placeholder, 0, wxALL, FromDIP(5));
-    
+
     right_section->Add(image_container, 0, wxEXPAND | wxALL, FromDIP(5));
 
     wxBoxSizer* buttons_container = new wxBoxSizer(wxHORIZONTAL);
@@ -796,7 +796,7 @@ void AMSDryCtrWin::start_sending_drying_command()
     }
 
     long temperature, time;
-    if (!m_temperature_input->GetValue().ToLong(&temperature) || 
+    if (!m_temperature_input->GetValue().ToLong(&temperature) ||
         !m_time_input->GetValue().ToLong(&time)) {
         BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::start_sending_drying_command: Failed to convert temperature or time";
         return;
@@ -961,10 +961,10 @@ wxBoxSizer* AMSDryCtrWin::create_progress_page_sizer(wxPanel* parent)
     m_progress_gauge = new ProgressBar(parent, wxID_ANY, 100, wxDefaultPosition, wxSize(FromDIP(300), FromDIP(8)));
     m_progress_gauge->SetValue(0);
     m_progress_gauge->SetHeight(FromDIP(8));
-    
+
     progress_sizer->Add(m_progress_gauge, 0, wxALIGN_CENTER | wxALL, FromDIP(10));
     progress_sizer->Add(0, 0, 1, wxEXPAND, 0);
-    
+
     return progress_sizer;
 }
 
@@ -1261,7 +1261,7 @@ void AMSDryCtrWin::update_normal_state(DevAms* dev_ams)
         m_temperature_input->SetEditable(false);
         m_time_input->SetEditable(false);
         m_stop_button->Show(true);
-        m_dry_error_sizer->Show(false);      
+        m_dry_error_sizer->Show(false);
     }
 
     if (m_temperature_input->GetValue().IsEmpty() || m_time_input->GetValue().IsEmpty()) {
@@ -1492,10 +1492,10 @@ void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
 
     // Get the temperature input value
     long input_temp = 0;
-    bool valid_temp = !m_temperature_input->GetValue().IsEmpty() && 
+    bool valid_temp = !m_temperature_input->GetValue().IsEmpty() &&
                       m_temperature_input->GetValue().ToLong(&input_temp);
     bool can_start = true;
-    
+
     int slot_count = 0, empty_count = 0;
     for (auto& tray_pair : dev_ams->GetTrays()) {
         if (!tray_pair.second) {
@@ -1623,6 +1623,11 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
     };
 
     if (ams_changed || m_tray_ids.empty() || m_trays_combo->GetCount() == 0) {
+        // Disable start button during rebuild
+        if (m_start_button) {
+            m_start_button->Disable();
+        }
+
         rebuilt_filament_list = rebuild_filament_list();
     }
 

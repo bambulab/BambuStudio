@@ -2960,7 +2960,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
                 m_wipe_tower->set_rib_offset(print.get_rib_offset());
                 // BBS
                 // file.write(m_writer.travel_to_z(initial_layer_print_height + m_config.z_offset.value, "Move to the first layer height"));
-                file.write(m_writer.travel_to_z(initial_layer_print_height, "Move to the first layer height"));
+                file.write(m_writer.travel_to_z(std::max(initial_layer_print_height + m_writer.config.z_hop.get_at(initial_extruder_id),0.4), "Move to the first layer height"));
 #if 0
             if (print.config().single_extruder_multi_material_priming) {
                 file.write(m_wipe_tower->prime(*this));
@@ -6128,7 +6128,7 @@ std::vector<ExtrusionPaths> GCode::merge_same_speed_paths(const ExtrusionPaths &
 
     for(size_t path_idx=0; path_idx<paths.size(); ++path_idx){
         ExtrusionPath path = paths[path_idx];
-        path.smooth_speed = get_path_speed(path);
+        path.smooth_speed  = get_path_speed(path);
 
         if(path.role() == erOverhangPerimeter){
             if (path_collection.has_value()) {
@@ -6876,7 +6876,7 @@ std::string GCode::travel_to(const Point &point, ExtrusionRole role, std::string
         bool use_short_travel_accel = false;
         if (!this->on_first_layer()) {
             // Check if short travel acceleration is enabled (value > 0)
-            unsigned int extruder_id = m_writer.filament()->id();
+            unsigned int extruder_id = m_writer.filament()->extruder_id();
             auto& short_accel = m_writer.get_travel_short_acceleration();
             if (extruder_id < short_accel.size() && short_accel[extruder_id] > 0) {
                 // Use short travel acceleration for external perimeters with short travel distance

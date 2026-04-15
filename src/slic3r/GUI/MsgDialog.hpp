@@ -161,6 +161,15 @@ public:
                   const wxString &forward_str = "",
                   const wxString &link_text   = "",
                   std::function<void(const wxString &)> link_callback = nullptr);
+    MessageDialog(wxWindow                             *parent,
+                  const wxString                       &message,
+                  const wxString                       &caption,
+                  long                                  style,
+                  const wxString                       &forward_str,
+                  const wxString                       &link_text,
+                  std::function<void(const wxString &)> link_callback,
+                  bool                                  is_marked_msg);
+
 	MessageDialog(MessageDialog&&) = delete;
 	MessageDialog(const MessageDialog&) = delete;
 	MessageDialog &operator=(MessageDialog&&) = delete;

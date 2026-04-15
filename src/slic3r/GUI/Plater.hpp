@@ -209,8 +209,6 @@ public:
     void get_small_btn_sync_pos_size(wxPoint &pt, wxSize &size);
     void set_extruder_nozzle_count(int extruder_id, int nozzle_count);
     void reset_fila_switch();
-    void set_extruder_title_with_type(const int extruder_id, const int extruder_type);
-    std::unordered_map<std::string, wxString> get_extruder_suffix();
     void enable_nozzle_count_edit(bool enable);
     void enable_purge_mode_btn(bool enable);
 
@@ -239,7 +237,6 @@ public:
     void                    deal_btn_sync();
     void                    pop_sync_nozzle_and_ams_dialog();
     void                    pop_finsish_sync_ams_dialog();
-    void                    pop_extruder_warning_dialog();
     void                    update_mode();
     bool                    is_collapsed();
     void                    collapse(bool collapse);

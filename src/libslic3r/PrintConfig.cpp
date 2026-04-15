@@ -8885,24 +8885,31 @@ void DynamicPrintConfig::update_diff_values_to_child_config(DynamicPrintConfig& 
     for (auto& opt : keys) {
         if ((opt == extruder_id_name) || (opt == extruder_variant_name))
             continue;
-        ConfigOption *opt_src = this->option(opt);
-        const ConfigOption *opt_target = new_config.option(opt);
-        if (opt_src && opt_target && (*opt_src != *opt_target)) {
-            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" change key %1% from base_value %2% to child's value %3%")
-                    %opt %(opt_src->serialize()) %(opt_target->serialize());
-            if (opt_target->is_scalar()
-                || ((key_set1.find(opt) == key_set1.end()) && (key_set2.empty() || (key_set2.find(opt) == key_set2.end())))) {
-                //nothing to do, keep the original one
-                opt_src->set(opt_target);
+
+        try {
+            ConfigOption *opt_src = this->option(opt);
+            const ConfigOption *opt_target = new_config.option(opt);
+            if (opt_src && opt_target && (*opt_src != *opt_target)) {
+                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" change key %1% from base_value %2% to child's value %3%")
+                        %opt %(opt_src->serialize()) %(opt_target->serialize());
+                if (opt_target->is_scalar()
+                    || ((key_set1.find(opt) == key_set1.end()) && (key_set2.empty() || (key_set2.find(opt) == key_set2.end())))) {
+                    //nothing to do, keep the original one
+                    opt_src->set(opt_target);
+                }
+                else {
+                    ConfigOptionVectorBase* opt_vec_src = static_cast<ConfigOptionVectorBase*>(opt_src);
+                    const ConfigOptionVectorBase* opt_vec_dest = static_cast<const ConfigOptionVectorBase*>(opt_target);
+                    int stride = 1;
+                    if (key_set2.find(opt) != key_set2.end())
+                        stride = 2;
+                    opt_vec_src->set_only_diff(opt, opt_vec_dest, variant_index, stride);
+                }
             }
-            else {
-                ConfigOptionVectorBase* opt_vec_src = static_cast<ConfigOptionVectorBase*>(opt_src);
-                const ConfigOptionVectorBase* opt_vec_dest = static_cast<const ConfigOptionVectorBase*>(opt_target);
-                int stride = 1;
-                if (key_set2.find(opt) != key_set2.end())
-                    stride = 2;
-                opt_vec_src->set_only_diff(opt_vec_dest, variant_index, stride);
-            }
+        } catch (const std::runtime_error &e) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__
+                                     << boost::format(", Line %1%: exception when update_diff_values_to_child_config for key %2%, error: %3%") % __LINE__ % opt % e.what();
+            throw;
         }
     }
     return;

@@ -24,6 +24,7 @@
 
 #include <chrono>
 #include <deque>
+#include <functional>
 #include <set>
 #include <memory>
 #include <vector>
@@ -37,6 +38,7 @@ class Label;
 namespace Slic3r {
 
 class MachineObject;
+class FileTransferObject;
 
 namespace GUI {
 
@@ -75,6 +77,8 @@ protected:
 
 private:
     void load();
+
+    void start_device_image_flow();
 
     void on_show_hide(wxShowEvent & evt);
 
@@ -134,6 +138,8 @@ private:
     ::Button *m_button_play;
     ::Label * m_label_stat;
     ::Label * m_label_status;
+
+    std::shared_ptr<FileTransferObject> m_image_transfer;
 };
 
 }}

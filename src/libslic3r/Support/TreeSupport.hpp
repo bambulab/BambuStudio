@@ -53,6 +53,7 @@ struct SupportNode
     SupportNode()
         : distance_to_top(0)
         , position(Point(0, 0))
+        , orig_pos(Point(0, 0))
         , obj_layer_nr(0)
         , support_roof_layers_below(0)
         , to_buildplate(true)
@@ -66,6 +67,7 @@ struct SupportNode
         coordf_t     print_z_, coordf_t height_, coordf_t dist_mm_to_top_ = 0, coordf_t radius_ = 0)
         : distance_to_top(distance_to_top)
         , position(position)
+        , orig_pos(position)
         , obj_layer_nr(obj_layer_nr)
         , support_roof_layers_below(support_roof_layers_below)
         , to_buildplate(to_buildplate)
@@ -79,6 +81,7 @@ struct SupportNode
             parents.push_back(parent);
             type = parent->type;
             overhang = parent->overhang;
+            orig_pos = parent->orig_pos;
             if (dist_mm_to_top == 0)
                 dist_mm_to_top = parent->dist_mm_to_top + parent->height;
             if (radius == 0 && parent->radius>0)
@@ -116,6 +119,7 @@ struct SupportNode
      */
     Point          position;
     Point          movement; // movement towards neighbor center or outline
+    Point          orig_pos;
     mutable double radius          = 0.0;
     mutable double max_move_dist   = 0.0;
     TreeNodeType   type            = eCircle;
@@ -128,6 +132,7 @@ struct SupportNode
     double         overhang_degree = 0.0;  // overhang degree for cooling just like perimeter
     ExPolygon      overhang; // when type==ePolygon, set this value to get original overhang area
     coordf_t       origin_area;
+    coordf_t       target_radius = -1.;
 
     /*!
      * \brief The direction of the skin lines above the tip of the branch.
@@ -437,7 +442,7 @@ private:
     size_t          m_highest_overhang_layer = 0;
     std::vector<std::vector<MinimumSpanningTree>> m_spanning_trees;
     std::vector< std::unordered_map<Line, bool, LineHash>> m_mst_line_x_layer_contour_caches;
-    float    DO_NOT_MOVER_UNDER_MM = 0.0;
+    float    DO_NOT_MOVER_UNDER_MM = 2.0;
     coordf_t base_radius                        = 0.0;
     const coordf_t MAX_BRANCH_RADIUS = 10.0;
     const coordf_t MIN_BRANCH_RADIUS = 0.4;
