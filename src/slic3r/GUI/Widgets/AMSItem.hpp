@@ -914,7 +914,7 @@ private:
 class FeedDirectionDialog : public wxDialog
 {
 public:
-    FeedDirectionDialog(wxWindow* parent, const int extruderNum);
+    FeedDirectionDialog(wxWindow* parent, const int extruderNum, const std::string& printer_type = "");
 
     std::optional<int> GetExtruderID();
 
@@ -927,6 +927,7 @@ private:
     static wxString calcTrayName(MachineObject* obj, const std::string& amsID, const std::string& slotID);
 
     int m_extruder_num{};
+    std::string m_printer_type;
     wxString m_filament_id{};
     wxRadioButton* m_radioHelper{nullptr};
     wxRadioButton* m_leftRadio{nullptr};

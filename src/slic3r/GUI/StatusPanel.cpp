@@ -4245,7 +4245,7 @@ void StatusPanel::on_ams_load_curr()
                 }
             }
 
-            FeedDirectionDialog dialog(nullptr, 2);
+            FeedDirectionDialog dialog(nullptr, 2, obj->printer_type);
             dialog.SetExtruderMapping(obj, curr_ams_id, curr_can_id, extruderSlots);
             auto rtn = dialog.ShowModal();
 

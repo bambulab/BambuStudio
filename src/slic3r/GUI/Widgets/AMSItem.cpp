@@ -4016,9 +4016,11 @@ void DevExtruderImage::doRender(wxDC &dc)
 
 
 FeedDirectionDialog::FeedDirectionDialog(wxWindow* parent,
-                                        const int extruderNum)
+                                        const int extruderNum,
+                                        const std::string& printer_type)
     : wxDialog(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize),
-    m_extruder_num(extruderNum)
+    m_extruder_num(extruderNum),
+    m_printer_type(printer_type)
 {
     SetBackgroundColour(wxColour("#FFFFFF"));
     SetMaxSize(wxSize(FromDIP(360), FromDIP(207)));
@@ -4030,11 +4032,10 @@ FeedDirectionDialog::FeedDirectionDialog(wxWindow* parent,
     wxGridSizer* topSizer = new wxGridSizer (1, 3, FromDIP(5), 0);
 
     m_radioHelper = new wxRadioButton(this, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
-    std::string ai_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
     m_leftRadio = new wxRadioButton(this, wxID_ANY,
-        _L(DevPrinterConfigUtil::get_toolhead_display_name(ai_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true)));
+        _L(DevPrinterConfigUtil::get_toolhead_display_name(m_printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true)));
     m_rightRadio = new wxRadioButton(this, wxID_ANY,
-        _L(DevPrinterConfigUtil::get_toolhead_display_name(ai_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true)));
+        _L(DevPrinterConfigUtil::get_toolhead_display_name(m_printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true)));
     m_radioHelper->Show(false);
     m_radioHelper->SetCanFocus(false);
 
@@ -4099,8 +4100,7 @@ void FeedDirectionDialog::OnRadioClicked(wxCommandEvent& evt)
             m_extruderImage->setExtruderUsed("left");
             m_load_extruder_id = 1;
             {
-                std::string ai_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
-                SetTitle(wxString::Format(_L("Load %s to ") + _L(DevPrinterConfigUtil::get_toolhead_display_name(ai_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase)), m_filament_id));
+                SetTitle(wxString::Format(_L("Load %s to ") + _L(DevPrinterConfigUtil::get_toolhead_display_name(m_printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase)), m_filament_id));
             }
         }
         else if (clicked == m_rightRadio)
@@ -4109,8 +4109,7 @@ void FeedDirectionDialog::OnRadioClicked(wxCommandEvent& evt)
             m_extruderImage->setExtruderUsed("right");
             m_load_extruder_id = 0;
             {
-                std::string ai_pt2 = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
-                SetTitle(wxString::Format(_L("Load %s to ") + _L(DevPrinterConfigUtil::get_toolhead_display_name(ai_pt2, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase)), m_filament_id));
+                SetTitle(wxString::Format(_L("Load %s to ") + _L(DevPrinterConfigUtil::get_toolhead_display_name(m_printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase)), m_filament_id));
             }
         }
     }
