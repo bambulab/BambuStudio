@@ -20363,15 +20363,37 @@ void Plater::reslice()
     // softfever: regenerate CalibPressureAdvancePattern custom G-code to apply changes
     if (model().calib_pa_pattern) {
         PresetBundle* preset_bundle = wxGetApp().preset_bundle;
-        DynamicPrintConfig calib_config = preset_bundle->full_config();
 
+        std::optional<std::vector<int>> override_filament_maps;
         auto *fff_print_ptr = p->background_process.fff_print();
         if (fff_print_ptr) {
             const auto &calib = fff_print_ptr->calib_params();
             if (calib.has_bowden_extruder) {
-                auto *opt = calib_config.option<ConfigOptionInts>("filament_map");
-                if (opt && !opt->values.empty())
-                    opt->values[0] = calib.extruder_id + 1;
+                std::vector<int> fmap;
+                if (auto *opt = preset_bundle->project_config.option<ConfigOptionInts>("filament_map"))
+                    fmap = opt->values;
+                if (fmap.empty())
+                    fmap.resize(1, 1);
+                std::fill(fmap.begin(), fmap.end(), calib.extruder_id + 1);
+                override_filament_maps = std::move(fmap);
+            }
+        }
+
+        DynamicPrintConfig calib_config = preset_bundle->full_config(true, override_filament_maps);
+
+        {
+            auto *filament_map_opt = calib_config.option<ConfigOptionInts>("filament_map");
+            if (filament_map_opt && !filament_map_opt->values.empty()) {
+                std::vector<int> filament_map_indices(filament_map_opt->values.size(), 0);
+                for (size_t i = 0; i < filament_map_opt->values.size(); ++i)
+                    filament_map_indices[i] = filament_map_opt->values[i] - 1;
+                const std::string filament_prefix = "filament_";
+                for (const auto &key : print_config_def.extruder_retract_keys()) {
+                    ConfigOption *machine_opt  = calib_config.option(key);
+                    ConfigOption *filament_opt = calib_config.option(filament_prefix + key);
+                    if (machine_opt && filament_opt && machine_opt->is_vector() && filament_opt->is_vector())
+                        machine_opt->apply_override(filament_opt, filament_map_indices);
+                }
             }
         }
 
