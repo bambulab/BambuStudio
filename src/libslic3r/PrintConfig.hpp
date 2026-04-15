@@ -37,6 +37,12 @@ enum GCodeFlavor : unsigned char {
     gcfSmoothie, gcfNoExtrusion
 };
 
+enum FilamentUsageType {
+    SupportOnly,
+    ModelOnly,
+    Hybrid
+};
+
 enum class FuzzySkinType {
     None,
     External,
@@ -552,8 +558,13 @@ public:
 
     void                normalize_fdm();
     void                normalize_fdm_1();
-    //return the changed param set
-    t_config_option_keys normalize_fdm_2(int num_objects, int used_filaments = 0);
+    
+    // Normalize FDM config based on print conditions (single/multi filament, print sequence, etc.)
+    // Returns the list of config keys that were changed.
+    // @param ori_values: Optional external storage for backup/restore of config values.
+    //                    - Before modifying a value, saves the original to ori_values (if provided)
+    //                    - Before applying a value, checks ori_values for previously saved state to restore
+    t_config_option_keys normalize_fdm_2(int num_objects, int used_filaments = 0, DynamicConfig *ori_values = nullptr);
 
     size_t              get_parameter_size(const std::string& param_name, size_t extruder_nums);
     void                set_num_extruders(unsigned int num_extruders);
@@ -1132,6 +1143,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionStrings,             filament_vendor))
     ((ConfigOptionBools,               filament_is_support))
     ((ConfigOptionInts,                filament_printable))
+    ((ConfigOptionInts,                filament_extruder_compatibility))
     ((ConfigOptionEnumsGeneric,        filament_scarf_seam_type))
     ((ConfigOptionFloatsOrPercents,    filament_scarf_height))
     ((ConfigOptionFloatsOrPercents,    filament_scarf_gap))
@@ -1244,6 +1256,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionStrings,             extruder_ams_count))
     ((ConfigOptionStrings,             extruder_nozzle_stats))
     ((ConfigOptionBool,                enable_filament_dynamic_map))
+    ((ConfigOptionBool,                has_filament_switcher))
     ((ConfigOptionEnum<PrimeVolumeMode>,prime_volume_mode))
     ((ConfigOptionInts,                printer_extruder_id))
     ((ConfigOptionInt,                 master_extruder_id))

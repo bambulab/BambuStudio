@@ -505,6 +505,9 @@ public:
 
 	bool has_model_config() const { return !m_object_configs.empty(); }
 
+	// 获取对象配置映射，用于支撑参数推荐等场景
+	const std::map<ObjectBase *, ModelConfig *>& get_object_configs() const { return m_object_configs; }
+
 	void update_model_config();
 
 	virtual void reset_model_config();
@@ -631,6 +634,7 @@ public:
 	size_t		m_sys_extruders_count;
 	size_t		m_cache_extruder_count = 0;
 	std::vector<std::string> m_extruder_variant_list;
+	std::vector<int> m_extruder_type;
 	std::string m_base_preset_name;
 	std::string m_base_preset_model;
 

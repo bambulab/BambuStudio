@@ -8,6 +8,8 @@
 #include <memory>
 #include <unordered_map>
 #include <optional>
+#include <variant>
+#include <map>
 #include <boost/filesystem/path.hpp>
 
 #define DEFAULT_USER_FOLDER_NAME "default"
@@ -62,6 +64,59 @@ struct FilamentBaseInfo
     bool is_system{ true };
     int  filament_printable = 3;
     std::string setting_id = "";
+
+    // extruder_id is 0-based (0 = first extruder)
+    int get_extruder_compatibility(int extruder_id) const {
+        constexpr int bits_per_extruder  = 3;
+        constexpr int extruder_mask      = (1 << bits_per_extruder) - 1; // 0x7
+        constexpr int max_extruder_count = 32 / bits_per_extruder;       // 10
+
+        if (extruder_id < 0 || extruder_id >= max_extruder_count)
+            return 0;
+        return (m_filament_extruder_compatibility >> (bits_per_extruder * extruder_id)) & extruder_mask;
+    }
+
+    void set_filament_extruder_compatibility(int value) { m_filament_extruder_compatibility = value; }
+    int  get_filament_extruder_compatibility() const     { return m_filament_extruder_compatibility; }
+
+private:
+    int  m_filament_extruder_compatibility = 0;
+};
+
+// Recommended parameters for support filament combination
+struct FilamentCombinationParams
+{
+    // 山苍: 使用 variant 支持多种类型: double, bool, string, int, vector<double>
+    using ParamValue = std::variant<double, bool, std::string, int, std::vector<double>>;
+    std::map<std::string, ParamValue> params;  // 通用参数存储
+    bool use_same_filament_for_support_base{false}; // 特殊标记：支撑基座使用相同材料
+
+    bool hasRecommendedParams() const {
+        return !params.empty();
+    }
+
+    // 辅助函数：获取参数值
+    template<typename T>
+    std::optional<T> get(const std::string& key) const {
+        auto it = params.find(key);
+        if (it != params.end()) {
+            if (auto* val = std::get_if<T>(&it->second)) {
+                return *val;
+            }
+        }
+        return std::nullopt;
+    }
+};
+
+// 支撑推荐参数：通过 (support_material, model_material) 查询
+struct SupportRecommendedParams
+{
+    std::string model_material;                     // 主体料（类型或名称）
+    std::string model_material_type;                // "name" 或 "type"
+    std::vector<std::string> support_material_list; // 支撑料列表（类型或名称）
+    std::string support_material_type;              // "name" 或 "type"
+    int priority{0};                                // 优先级，数字越大优先级越高
+    FilamentCombinationParams params;               // 推荐参数
 };
 
 class PresetBundle;
@@ -205,6 +260,13 @@ public:
 
     std::optional<FilamentBaseInfo> get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name = std::string(), bool only_system = false) const;
 
+    // Load support recommended params from JSON file
+    void load_support_recommended_params();
+    // Get support recommended params by (support_material, model_material)
+    std::optional<SupportRecommendedParams> get_support_recommended_params(const std::string& support_material, const std::string& model_material) const;
+    // Get all support recommended params for a given model material (for finding matching support filaments)
+    std::vector<const SupportRecommendedParams*> get_support_params_for_model_material(const std::string& model_material, const std::string& model_material_type) const;
+
     //BBS: project embedded preset logic
     PresetsConfigSubstitutions load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule);
     std::vector<Preset*> get_current_project_embedded_presets();
@@ -288,6 +350,11 @@ public:
         std::vector<std::string> printers;
     };
     ObsoletePresets             obsolete_presets;
+
+    // Support recommended params: key = "support_material|model_material"
+    std::map<std::string, SupportRecommendedParams> support_recommended_params_map;
+    // Index for looking up by model material: key = "model_material|model_material_type"
+    std::map<std::string, std::vector<const SupportRecommendedParams*>> model_material_index;
 
     bool                        has_defauls_only() const
         { return prints.has_defaults_only() && filaments.has_defaults_only() && printers.has_defaults_only(); }

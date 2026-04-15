@@ -861,18 +861,26 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 config.set_key_value("travel_point_2_y", new ConfigOptionFloat(float(travel_point_2.y())));
                 config.set_key_value("travel_point_3_x", new ConfigOptionFloat(float(travel_point_3.x())));
                 config.set_key_value("travel_point_3_y", new ConfigOptionFloat(float(travel_point_3.y())));
-                auto flush_v_speed = m_print_config->filament_flush_volumetric_speed.values;
-                auto flush_temps = m_print_config->filament_flush_temp.values;
-                for (size_t idx = 0; idx < flush_v_speed.size(); ++idx) {
-                    if (flush_v_speed[idx] == 0)
-                        flush_v_speed[idx] = m_print_config->filament_max_volumetric_speed.get_at(idx);
+                {
+                    size_t num_filaments = m_print_config->filament_type.values.size();
+                    std::vector<double> flush_v_speed(num_filaments);
+                    std::vector<int>    flush_temps(num_filaments);
+                    std::vector<double> filament_cooling_before_tower(num_filaments);
+                    for (size_t idx = 0; idx < num_filaments; ++idx) {
+                        size_t fi = gcodegen.get_filament_config_index(idx);
+                        flush_v_speed[idx] = m_print_config->filament_flush_volumetric_speed.get_at(fi);
+                        if (flush_v_speed[idx] == 0)
+                            flush_v_speed[idx] = m_print_config->filament_max_volumetric_speed.get_at(fi);
+                        flush_temps[idx] = m_print_config->filament_flush_temp.get_at(fi);
+                        if (flush_temps[idx] == 0)
+                            flush_temps[idx] = m_print_config->nozzle_temperature_range_high.get_at(idx);
+                        filament_cooling_before_tower[idx] = m_print_config->filament_cooling_before_tower.get_at(fi);
+                    }
+                    if (tcr.is_contact) std::fill(filament_cooling_before_tower.begin(), filament_cooling_before_tower.end(), 0);
+                    config.set_key_value("flush_volumetric_speeds", new ConfigOptionFloats(flush_v_speed));
+                    config.set_key_value("flush_temperatures", new ConfigOptionInts(flush_temps));
+                    config.set_key_value("filament_cooling_before_tower", new ConfigOptionFloats(filament_cooling_before_tower));
                 }
-                for (size_t idx = 0; idx < flush_temps.size(); ++idx) {
-                    if (flush_temps[idx] == 0)
-                        flush_temps[idx] = m_print_config->nozzle_temperature_range_high.get_at(idx);
-                }
-                config.set_key_value("flush_volumetric_speeds", new ConfigOptionFloats(flush_v_speed));
-                config.set_key_value("flush_temperatures", new ConfigOptionInts(flush_temps));
                 config.set_key_value("flush_length", new ConfigOptionFloat(purge_length));
                 config.set_key_value("wipe_avoid_perimeter", new ConfigOptionBool(is_used_travel_avoid_perimeter));
                 config.set_key_value("wipe_avoid_pos_x", new ConfigOptionFloat(wipe_avoid_pos_x));
@@ -888,9 +896,6 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                     config.set_key_value("filament_tower_interface_purge_volume", new ConfigOptionFloat(0));
                     config.set_key_value("filament_tower_interface_print_temp", new ConfigOptionInt(-1));
                 }
-                std::vector<double> filament_cooling_before_tower = m_print_config->filament_cooling_before_tower.values;
-                if (tcr.is_contact) std::fill(filament_cooling_before_tower.begin(), filament_cooling_before_tower.end(), 0);
-                config.set_key_value("filament_cooling_before_tower", new ConfigOptionFloats(filament_cooling_before_tower));
 
                 Vec2f stop_pos; // point for nozzle heating
                 {
@@ -1019,10 +1024,13 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         // std::string toolchange_unretract_str = gcodegen.unretract(); check_add_eol(toolchange_unretract_str);
         gcodegen.placeholder_parser().set("current_extruder", new_filament_id);
         gcodegen.placeholder_parser().set("current_hotend", NOZZLE_ID_FOR_GCODE(group_result,current_nozzle_id));
-        gcodegen.placeholder_parser().set("retraction_distance_when_cut", gcodegen.m_config.retraction_distances_when_cut.get_at(new_filament_id));
-        gcodegen.placeholder_parser().set("long_retraction_when_cut", gcodegen.m_config.long_retractions_when_cut.get_at(new_filament_id));
-        gcodegen.placeholder_parser().set("retraction_distance_when_ec", gcodegen.m_config.retraction_distances_when_ec.get_at(new_filament_id));
-        gcodegen.placeholder_parser().set("long_retraction_when_ec", gcodegen.m_config.long_retractions_when_ec.get_at(new_filament_id));
+        {
+            size_t fi = gcodegen.get_filament_config_index(new_filament_id);
+            gcodegen.placeholder_parser().set("retraction_distance_when_cut", gcodegen.m_config.retraction_distances_when_cut.get_at(fi));
+            gcodegen.placeholder_parser().set("long_retraction_when_cut", gcodegen.m_config.long_retractions_when_cut.get_at(fi));
+            gcodegen.placeholder_parser().set("retraction_distance_when_ec", gcodegen.m_config.retraction_distances_when_ec.get_at(fi));
+            gcodegen.placeholder_parser().set("long_retraction_when_ec", gcodegen.m_config.long_retractions_when_ec.get_at(fi));
+        }
 
         // Process the start filament gcode.
         std::string start_filament_gcode_str;
@@ -2450,31 +2458,22 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_placeholder_parser.set("current_extruder", initial_extruder_id);
     m_placeholder_parser.set("current_hotend", NOZZLE_ID_FOR_GCODE(group_result,group_result->get_first_nozzle_for_filament(initial_extruder_id)->group_id));
 
-    //set the key for compatibilty
-    m_placeholder_parser.set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(initial_extruder_id));
-    m_placeholder_parser.set("long_retraction_when_cut", m_config.long_retractions_when_cut.get_at(initial_extruder_id));
-    m_placeholder_parser.set("retraction_distance_when_ec", m_config.retraction_distances_when_ec.get_at(initial_extruder_id));
-    m_placeholder_parser.set("long_retraction_when_ec", m_config.long_retractions_when_ec.get_at(initial_extruder_id));
+    //set the key for compatibilty, scalar values for the initial extruder (variant-aware)
+    {
+        size_t fi = get_filament_config_index(initial_extruder_id);
+        m_placeholder_parser.set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(fi));
+        m_placeholder_parser.set("long_retraction_when_cut", m_config.long_retractions_when_cut.get_at(fi));
+        m_placeholder_parser.set("retraction_distance_when_ec", m_config.retraction_distances_when_ec.get_at(fi));
+        m_placeholder_parser.set("long_retraction_when_ec", m_config.long_retractions_when_ec.get_at(fi));
+    }
 
-    m_placeholder_parser.set("retraction_distances_when_cut", new ConfigOptionFloatsNullable(m_config.retraction_distances_when_cut));
+    // retraction_distances_when_cut (array), flush_volumetric_speeds, flush_temperatures
+    // are set by update_placeholder_parser_with_variant_params() with variant-aware remapping.
     m_placeholder_parser.set("long_retractions_when_cut",new ConfigOptionBoolsNullable(m_config.long_retractions_when_cut));
     m_placeholder_parser.set("retraction_distances_when_ec", new ConfigOptionFloatsNullable(m_config.retraction_distances_when_ec));
     m_placeholder_parser.set("long_retractions_when_ec",new ConfigOptionBoolsNullable(m_config.long_retractions_when_ec));
 
     m_placeholder_parser.set("max_additional_fan", max_additional_fan);
-
-    auto flush_v_speed = m_config.filament_flush_volumetric_speed.values;
-    auto flush_temps = m_config.filament_flush_temp.values;
-    for (size_t idx = 0; idx < flush_v_speed.size(); ++idx) {
-        if (flush_v_speed[idx] == 0)
-            flush_v_speed[idx] = m_config.filament_max_volumetric_speed.get_at(idx);
-    }
-    for (size_t idx = 0; idx < flush_temps.size(); ++idx) {
-        if (flush_temps[idx] == 0)
-            flush_temps[idx] = m_config.nozzle_temperature_range_high.get_at(idx);
-    }
-    m_placeholder_parser.set("flush_volumetric_speeds", new ConfigOptionFloats(flush_v_speed));
-    m_placeholder_parser.set("flush_temperatures", new ConfigOptionInts(flush_temps));
     //Set variable for total layer count so it can be used in custom gcode.
     m_placeholder_parser.set("total_layer_count", m_layer_count);
     // Useful for sequential prints.
@@ -2698,6 +2697,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     }
 
 
+    // Sync variant-mapped params into placeholder_parser before processing start gcode
+    update_placeholder_parser_with_variant_params();
+
     std::string machine_start_gcode = this->placeholder_parser_process("machine_start_gcode", print.config().machine_start_gcode.value, initial_extruder_id);
     if (print.config().gcode_flavor != gcfKlipper) {
         // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
@@ -2822,6 +2824,14 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         }
 
         CalibPressureAdvanceLine pa_test(this);
+        if (this->is_BBL_Printer()) {
+            int filament_id = m_writer.filament() ? m_writer.filament()->id() : 0;
+            int ext_id = m_config.filament_map.get_at(filament_id) - 1;
+            if (ext_id >= 0 && ext_id < (int) m_config.extruder_type.values.size() &&
+                (ExtruderType) m_config.extruder_type.values[ext_id] == ExtruderType::etBowden) {
+                pa_test.set_bbl_bowden_mode();
+            }
+        }
         double                 filament_max_volumetric_speed = m_config.option<ConfigOptionFloatsNullable>("filament_max_volumetric_speed")->get_at(initial_extruder_id);
         Flow                   pattern_line                  = Flow(pa_test.line_width(), 0.2, m_config.nozzle_diameter.get_at(0));
         auto                   fast_speed = std::min(print.default_region_config().outer_wall_speed.get_at(get_nozzle_config_index(m_writer.filament()->id())), filament_max_volumetric_speed / pattern_line.mm3_per_mm());
@@ -4085,6 +4095,7 @@ GCode::LayerResult GCode::process_layer(
     // BBS: don't use lazy_raise when enable spiral vase
     gcode += this->change_layer(print_z);  // this will increase m_layer_index
     update_layer_related_config(m_layer_index);
+    update_placeholder_parser_with_variant_params();
     m_layer = &layer;
     m_object_layer_over_raft = false;
     if (! print.config().layer_change_gcode.value.empty()) {
@@ -6880,6 +6891,69 @@ void GCode::update_layer_related_config(int layer_id){
 
 }
 
+void GCode::update_placeholder_parser_with_variant_params()
+{
+    if (!m_print)
+        return;
+
+    size_t num_filaments = m_config.filament_type.values.size();
+    if (num_filaments == 0)
+        return;
+
+    // Helpers: remap config arrays from variant index space to filament_id index space.
+    // After remapping, gcode templates can use param[filament_id] directly.
+    auto remap_floats_by_filament = [&](const ConfigOptionFloatsNullable &src) {
+        std::vector<double> dst(num_filaments);
+        for (size_t i = 0; i < num_filaments; ++i)
+            dst[i] = src.get_at(get_filament_config_index(i));
+        return dst;
+    };
+    auto remap_ints_by_filament = [&](const ConfigOptionIntsNullable &src) {
+        std::vector<int> dst(num_filaments);
+        for (size_t i = 0; i < num_filaments; ++i)
+            dst[i] = src.get_at(get_filament_config_index(i));
+        return dst;
+    };
+    auto remap_floats_by_nozzle = [&](const ConfigOptionFloatsNullable &src) {
+        std::vector<double> dst(num_filaments);
+        for (size_t i = 0; i < num_filaments; ++i)
+            dst[i] = src.get_at(get_nozzle_config_index(i));
+        return dst;
+    };
+
+    // --- filament_options_with_variant: gcode indexes by filament_id ---
+    m_placeholder_parser.set("filament_max_volumetric_speed",       new ConfigOptionFloats(remap_floats_by_filament(m_config.filament_max_volumetric_speed)));
+    m_placeholder_parser.set("filament_pre_cooling_temperature",    new ConfigOptionInts(remap_ints_by_filament(m_config.filament_pre_cooling_temperature)));
+    m_placeholder_parser.set("filament_pre_cooling_temperature_nc", new ConfigOptionInts(remap_ints_by_filament(m_config.filament_pre_cooling_temperature_nc)));
+    m_placeholder_parser.set("filament_cooling_before_tower",       new ConfigOptionFloats(remap_floats_by_filament(m_config.filament_cooling_before_tower)));
+    m_placeholder_parser.set("nozzle_temperature_initial_layer",    new ConfigOptionInts(remap_ints_by_filament(m_config.nozzle_temperature_initial_layer)));
+    m_placeholder_parser.set("nozzle_temperature",                  new ConfigOptionInts(remap_ints_by_filament(m_config.nozzle_temperature)));
+    // first_layer_temperature is a legacy alias of nozzle_temperature_initial_layer
+    m_placeholder_parser.set("first_layer_temperature",             new ConfigOptionInts(remap_ints_by_filament(m_config.nozzle_temperature_initial_layer)));
+
+    // --- printer_options_with_variant_1: in m_config these are already merged as filament-indexed ---
+    m_placeholder_parser.set("retraction_distances_when_cut",       new ConfigOptionFloats(remap_floats_by_filament(m_config.retraction_distances_when_cut)));
+    // hotend_cooling_rate / hotend_heating_rate: gcode uses [filament_map[x]-1] (extruder_id), no remap needed
+
+    // --- filament_map: per-layer dynamic, sync from m_config to placeholder_parser ---
+    m_placeholder_parser.set("filament_map", new ConfigOptionInts(m_config.filament_map));
+
+    // --- flush_volumetric_speeds / flush_temperatures: derived with fallback ---
+    {
+        auto flush_v_speed  = remap_floats_by_filament(m_config.filament_flush_volumetric_speed);
+        auto filament_max_v = remap_floats_by_filament(m_config.filament_max_volumetric_speed);
+        auto flush_temps    = remap_ints_by_filament(m_config.filament_flush_temp);
+        for (size_t i = 0; i < num_filaments; ++i) {
+            if (flush_v_speed[i] == 0)
+                flush_v_speed[i] = filament_max_v[i];
+            if (flush_temps[i] == 0)
+                flush_temps[i] = m_config.nozzle_temperature_range_high.get_at(i);
+        }
+        m_placeholder_parser.set("flush_volumetric_speeds", new ConfigOptionFloats(flush_v_speed));
+        m_placeholder_parser.set("flush_temperatures",      new ConfigOptionInts(flush_temps));
+    }
+}
+
 
 std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bool by_object)
 {
@@ -6894,10 +6968,13 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     if (!m_writer.multiple_extruders) {
         m_placeholder_parser.set("current_extruder", new_filament_id);
         m_placeholder_parser.set("current_hotend", NOZZLE_ID_FOR_GCODE(group_result,new_nozzle_id));
-        m_placeholder_parser.set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(new_filament_id));
-        m_placeholder_parser.set("long_retraction_when_cut", m_config.long_retractions_when_cut.get_at(new_filament_id));
-        m_placeholder_parser.set("retraction_distance_when_ec", m_config.retraction_distances_when_ec.get_at(new_filament_id));
-        m_placeholder_parser.set("long_retraction_when_ec", m_config.long_retractions_when_ec.get_at(new_filament_id));
+        {
+            size_t fi = get_filament_config_index(new_filament_id);
+            m_placeholder_parser.set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(fi));
+            m_placeholder_parser.set("long_retraction_when_cut", m_config.long_retractions_when_cut.get_at(fi));
+            m_placeholder_parser.set("retraction_distance_when_ec", m_config.retraction_distances_when_ec.get_at(fi));
+            m_placeholder_parser.set("long_retraction_when_ec", m_config.long_retractions_when_ec.get_at(fi));
+        }
 
         std::string gcode;
         // Append the filament start G-code.
@@ -7088,22 +7165,26 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     dyn_config.set_key_value("is_prime_tower_interface", new ConfigOptionBool(false));
     dyn_config.set_key_value("filament_tower_interface_purge_volume", new ConfigOptionFloat(0));
     dyn_config.set_key_value("filament_tower_interface_print_temp", new ConfigOptionFloat(-1));
-    std::vector<double> filament_cooling_before_tower = m_config.filament_cooling_before_tower.values;
-    std::fill(filament_cooling_before_tower.begin(), filament_cooling_before_tower.end(), 0);
-    dyn_config.set_key_value("filament_cooling_before_tower", new ConfigOptionFloats(filament_cooling_before_tower));
-
-    auto flush_v_speed = m_print->config().filament_flush_volumetric_speed.values;
-    auto flush_temps =m_print->config().filament_flush_temp.values;
-    for (size_t idx = 0; idx < flush_v_speed.size(); ++idx) {
-        if (flush_v_speed[idx] == 0)
-            flush_v_speed[idx] = m_print->config().filament_max_volumetric_speed.get_at(idx);
+    {
+        size_t num_filaments = m_config.filament_type.values.size();
+        std::vector<double> flush_v_speed(num_filaments);
+        std::vector<int>    flush_temps(num_filaments);
+        std::vector<double> filament_cooling_before_tower(num_filaments);
+        for (size_t idx = 0; idx < num_filaments; ++idx) {
+            size_t fi = get_filament_config_index(idx);
+            flush_v_speed[idx] = m_print->config().filament_flush_volumetric_speed.get_at(fi);
+            if (flush_v_speed[idx] == 0)
+                flush_v_speed[idx] = m_print->config().filament_max_volumetric_speed.get_at(fi);
+            flush_temps[idx] = m_print->config().filament_flush_temp.get_at(fi);
+            if (flush_temps[idx] == 0)
+                flush_temps[idx] = m_print->config().nozzle_temperature_range_high.get_at(idx);
+            filament_cooling_before_tower[idx] = m_config.filament_cooling_before_tower.get_at(fi);
+        }
+        std::fill(filament_cooling_before_tower.begin(), filament_cooling_before_tower.end(), 0);
+        dyn_config.set_key_value("filament_cooling_before_tower", new ConfigOptionFloats(filament_cooling_before_tower));
+        dyn_config.set_key_value("flush_volumetric_speeds", new ConfigOptionFloats(flush_v_speed));
+        dyn_config.set_key_value("flush_temperatures", new ConfigOptionInts(flush_temps));
     }
-    for (size_t idx = 0; idx < flush_temps.size(); ++idx) {
-        if (flush_temps[idx] == 0)
-            flush_temps[idx] = m_print->config().nozzle_temperature_range_high.get_at(idx);
-    }
-    dyn_config.set_key_value("flush_volumetric_speeds", new ConfigOptionFloats(flush_v_speed));
-    dyn_config.set_key_value("flush_temperatures", new ConfigOptionInts(flush_temps));
     dyn_config.set_key_value("flush_length", new ConfigOptionFloat(wipe_length));
 
     int flush_count = std::min(g_max_flush_count, (int)std::round(wipe_volume / g_purge_volume_one_time));
@@ -7177,11 +7258,13 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     m_placeholder_parser.set("current_extruder", new_filament_id);
     m_placeholder_parser.set("current_hotend", new_nozzle_id);
 
-    m_placeholder_parser.set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(new_filament_id));
-    m_placeholder_parser.set("long_retraction_when_cut", m_config.long_retractions_when_cut.get_at(new_filament_id));
-    m_placeholder_parser.set("retraction_distance_when_ec", m_config.retraction_distances_when_ec.get_at(new_filament_id));
-    m_placeholder_parser.set("long_retraction_when_ec", m_config.long_retractions_when_ec.get_at(new_filament_id));
-
+    {
+        size_t fi = get_filament_config_index(new_filament_id);
+        m_placeholder_parser.set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(fi));
+        m_placeholder_parser.set("long_retraction_when_cut", m_config.long_retractions_when_cut.get_at(fi));
+        m_placeholder_parser.set("retraction_distance_when_ec", m_config.retraction_distances_when_ec.get_at(fi));
+        m_placeholder_parser.set("long_retraction_when_ec", m_config.long_retractions_when_ec.get_at(fi));
+    }
 
     // Append the filament start G-code.
     const std::string &filament_start_gcode = m_config.filament_start_gcode.get_at(new_filament_id);

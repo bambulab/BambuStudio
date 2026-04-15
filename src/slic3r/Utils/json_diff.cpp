@@ -16,6 +16,8 @@
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/fstream.hpp>
 
+#include "slic3r/Utils/BBLUtil.hpp"
+
 using namespace std;
 using json = nlohmann::json;
 
@@ -106,7 +108,7 @@ bool json_diff::load_compatible_settings(std::string const &type, std::string co
                 diff2all_base_reset(full_message);
             }
 
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": "<< type << " " << version << ", merged " << versions.dump(1);
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": "<< type << " " << version << ", merged " << Slic3r::BBLCrossTalk::Crosstalk_JsonLog(versions);
             return true;
         } else {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << type << " " << version << ", failed open file";

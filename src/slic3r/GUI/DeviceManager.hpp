@@ -382,6 +382,8 @@ public:
     DevFirmwareVersionInfo cutting_module_version_info;
     DevFirmwareVersionInfo extinguish_version_info;
     DevFirmwareVersionInfo rotary_version_info;
+    DevFirmwareVersionInfo exhaustfan_version_info;
+    DevFirmwareVersionInfo amshub_version_info;
     std::map<std::string, DevFirmwareVersionInfo> module_vers;
     std::vector<FirmwareInfo> firmware_list;
 

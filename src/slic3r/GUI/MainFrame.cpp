@@ -74,6 +74,8 @@
 #endif // _WIN32
 #include <slic3r/GUI/CreatePresetsDialog.hpp>
 
+#include "slic3r/GUI/SupportRecommendDialog.hpp"
+
 
 namespace Slic3r {
 namespace GUI {
@@ -1152,6 +1154,36 @@ void MainFrame::init_tabpanel()
     m_settings_dialog.set_tabpanel(m_tabpanel);
 
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent& e) {
+        //if (bool test = false) {
+        //    SupportRecommendDialog* dialog = new SupportRecommendDialog(nullptr, _L("Notice"));;
+
+        //    wxArrayString params;
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+        //    params.Add(wxString::FromUTF8("支撑独立层高：关闭"));
+
+        //    std::vector<wxString> objects;
+        //    for (int i = 0; i < 10; i++) {
+        //        objects.push_back("ABCABCABCABC");
+        //    }
+
+        //    std::vector<std::tuple<int, wxColour, wxString>> mainMat;
+        //    mainMat.push_back(std::make_tuple(2, *wxRED, "Bambu PLA Basic"));
+        //    mainMat.push_back(std::make_tuple(5, *wxBLUE, "Bambu PLA Basic"));
+        //    mainMat.push_back(std::make_tuple(3, *wxGREEN, "Bambu PLA Basic"));
+        //    mainMat.push_back(std::make_tuple(1, *wxWHITE, "Bambu PLA Basic"));
+
+        //    dialog->AddSupportComboCard(objects, mainMat, std::make_tuple(1, *wxWHITE, "Bambu PLA Basic"), params);
+        //    dialog->AddSupportComboCard(objects, mainMat, std::make_tuple(1, *wxWHITE, "Bambu PLA Basic"), params);
+        //    dialog->ShowModal();
+        //}
+
         int old_sel = e.GetOldSelection();
         int new_sel = e.GetSelection();
         if (old_sel != wxNOT_FOUND &&
@@ -1835,6 +1867,12 @@ wxBoxSizer* MainFrame::create_side_tools()
 
     m_slice_btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event)
         {
+            // check if the support material is used if there is one
+            Tab *tab = wxGetApp().get_tab(Preset::Type::TYPE_PRINT);
+            tab->on_value_change("support_interface_filament", m_slice_select == eSliceAll ? -2 : -1);
+            if (m_plater->is_background_process_update_scheduled())
+                m_plater->update(false, true);
+
             m_plater->reset_check_status();
             if (!m_plater->check_ams_status(m_slice_select == eSliceAll))
                 return;
@@ -1853,7 +1891,11 @@ wxBoxSizer* MainFrame::create_side_tools()
                 slice = try_pop_up_before_slice(m_slice_select == eSliceAll, m_plater, curr_plate, false);
             #endif
 
-            if (slice) {
+            bool model_fits     = false;
+            bool validate_error = false;
+            m_plater->validate_current_plate(model_fits, validate_error);
+
+            if (slice && model_fits && !validate_error) {
                 std::string printer_model = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
                 int extruder_count = wxGetApp().preset_bundle->get_printer_extruder_count();
                 if (extruder_count > 1) {

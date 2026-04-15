@@ -38,28 +38,6 @@ static NozzleVolumeType convert_to_nozzle_type(const std::string &str)
         return NozzleVolumeType::nvtStandard;
 }
 
-int tray_to_ams(int tray_id)
-{
-    if (tray_id >= 0 && tray_id < 16) {
-        return tray_id / 4;
-    } else if (tray_id == VIRTUAL_TRAY_MAIN_ID || tray_id == VIRTUAL_TRAY_DEPUTY_ID) {
-        return tray_id;
-    } else {
-        return -1;
-    }
-}
-
-int tray_to_slot(int tray_id)
-{
-    if (tray_id >= 0 && tray_id < 16) {
-        return tray_id % 4;
-    } else if (tray_id == VIRTUAL_TRAY_MAIN_ID || tray_id == VIRTUAL_TRAY_DEPUTY_ID) {
-        return 0;
-    } else {
-        return -1;
-    }
-}
-
 static float get_number_flexible(const json& j, const std::string& key, float def = 0.0f)
 {
     if (!j.contains(key)) return def;
@@ -173,8 +151,9 @@ void calib_fail_message(MachineObject* obj, std::string cali_mode, std::string r
 void DevCalib::ExtrusionCalibSetParse(const json & jj){
     int tray_id = jj.value("tray_id", -1);
 
-    int ams_id = tray_to_ams(tray_id);
-    int slot_id = tray_to_slot(tray_id);
+    auto tray_ams_slot_map = GetOwner()->GetFilaSystem()->GetTrayIndexMap();
+    int ams_id  = tray_ams_slot_map.find(tray_id) != tray_ams_slot_map.end() ? tray_ams_slot_map[tray_id].first : -1;
+    int slot_id = tray_ams_slot_map.find(tray_id) != tray_ams_slot_map.end() ? tray_ams_slot_map[tray_id].second : -1;
 
     if(tray_id == VIRTUAL_TRAY_MAIN_ID) {
         GetOwner()->vt_slot[MAIN_EXTRUDER_ID].k = jj.value("k_value", GetOwner()->vt_slot[MAIN_EXTRUDER_ID].k);
@@ -195,8 +174,13 @@ void DevCalib::ExtrusionCalibSetParse(const json & jj){
 void DevCalib::ExtrusionCalibSelectParse(const json &jj){
     try{
         int tray_id = jj.value("tray_id", -1);
-        int ams_id = jj.value("ams_id", tray_to_ams(tray_id));
-        int slot_id = jj.value("slot_id", tray_to_slot(tray_id));
+
+        auto tray_ams_slot_map = GetOwner()->GetFilaSystem()->GetTrayIndexMap();
+        int default_ams_id = tray_ams_slot_map.find(tray_id) != tray_ams_slot_map.end() ? tray_ams_slot_map[tray_id].first : -1;
+        int default_slot_id = tray_ams_slot_map.find(tray_id) != tray_ams_slot_map.end() ? tray_ams_slot_map[tray_id].second : -1;
+
+        int ams_id = jj.value("ams_id", default_ams_id);
+        int slot_id = jj.value("slot_id", default_slot_id);
 
         BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_sel: illegal ams_id = " << ams_id << "slot_id = " << slot_id;
 

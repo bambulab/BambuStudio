@@ -83,6 +83,7 @@
 		"has_cali_line": true,
 		"printer_is_enclosed": true,
 		"enable_set_nozzle_info": false,
-		"support_safety_options": false
+		"support_safety_options": false,
+		"filament_load_image": ["filament_load_o1c_series_ext0", "filament_load_o1c_series_ext1"]
 	}
 }

@@ -10,6 +10,8 @@
 
 #include "libslic3r/PrintConfig.hpp"
 #include "Field.hpp"
+#include <wx/string.h>
+#include <set>
 
 namespace Slic3r {
 
@@ -96,6 +98,28 @@ public:
 private:
     bool get_temperature_range(DynamicPrintConfig *config, int &range_low, int &range_high);
 };
+
+// 支撑耗材组合匹配结果
+struct SupportFilamentRecommendation
+{
+    bool has_combination{false};        // 是否找到匹配的耗材组合
+    int  matched_filament_index{-1};    // 匹配的支撑耗材索引 (0-based)
+
+    std::string support_material;       // 支撑材料（用于查询推荐参数，可能是类型或名称）
+    std::string model_material;         // 主体材料（用于查询推荐参数，可能是类型或名称）
+
+    std::string support_material_name;  // 支撑材料名称（用于显示，如 "Bambu PLA Basic"）
+    std::string model_material_name;    // 主体材料名称（用于显示，如 "Bambu TPU 95A"）
+
+    std::set<int> used_extruders;       // 对象使用的所有 extruder ID（1-based）
+};
+
+// 为单个对象查找匹配的耗材组合（支持同类材料的多色模型）
+SupportFilamentRecommendation has_filament_combination_for_object(const ModelObject* obj);
+
+// 根据支撑材料和主体材料，构建推荐配置到 DynamicPrintConfig
+// 返回是否有推荐参数
+bool build_support_recommended_config(const std::string& support_material, const std::string& model_material, int support_filament_index, DynamicPrintConfig& out_config, bool& out_use_same_for_base);
 
 } // GUI
 } // Slic3r

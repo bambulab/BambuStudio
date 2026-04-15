@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-12 12:08+0800\n"
+"POT-Creation-Date: 2026-03-31 16:30+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -70,6 +70,9 @@ msgstr ""
 msgid "Bambu TPU 85A is not supported for printing with 0.4 mm Standard or High Flow nozzles."
 msgstr ""
 
+msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+msgstr ""
+
 msgid "How to feed TPU filament."
 msgstr ""
 
@@ -110,7 +113,27 @@ msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow noz
 msgstr ""
 
 #, possible-c-format, possible-boost-format
+msgid "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
 msgid "%s is not supported by %s extruder."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "There may be critical print quality issues when printing '%s' with %s Bowden extruder. Use with caution!"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "There may be critical print quality issues when printing '%s' with %s extruder. Use with caution!"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "There may be print quality issues when printing '%s' with %s Bowden extruder. Use with caution."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
 msgstr ""
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
@@ -233,27 +256,26 @@ msgstr ""
 msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
 msgstr ""
 
+msgid "Summary:"
+msgstr ""
+
+msgid "AMS on Filament Inlet A"
+msgstr ""
+
+msgid "AMS on Filament Inlet B"
+msgstr ""
+
+#, possible-c-format, possible-boost-format
+msgid "The No.%d slicing filament is matched to '%s'. Assigning it to '%s' can save printing time."
+msgstr ""
+
+msgid "*Tips: If you have moved the spool position on the machine, please close this page and re‑match the filament."
+msgstr ""
+
 msgid "Summary: This is currently the most suitable position for placement."
 msgstr ""
 
 msgid "?"
-msgstr ""
-
-msgid "Summary: "
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Remove %s in %s . Insert into AMS on Filament Inlet B."
-msgstr ""
-
-msgid "filaments"
-msgstr ""
-
-msgid "filament"
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "Remove %s in %s . Insert into AMS on Filament Inlet A."
 msgstr ""
 
 msgid "Model:"
@@ -2223,10 +2245,7 @@ msgstr ""
 msgid "Add Primitive"
 msgstr ""
 
-msgid "Show Labels by Layer"
-msgstr ""
-
-msgid "Show Labels by Object"
+msgid "Show Labels"
 msgstr ""
 
 msgid "To objects"
@@ -2362,9 +2381,6 @@ msgid "Fill the remaining area of bed with copies of the selected object"
 msgstr ""
 
 msgid "Edit Plate Name"
-msgstr ""
-
-msgid "Show Labels"
 msgstr ""
 
 msgid "Name"
@@ -2764,9 +2780,6 @@ msgstr ""
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
 msgstr ""
 
-msgid "Ext"
-msgstr ""
-
 msgid "/"
 msgstr ""
 
@@ -2855,6 +2868,12 @@ msgstr ""
 msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
 msgstr ""
 
+msgid "Strong Cooling"
+msgstr ""
+
+msgid "Fan"
+msgstr ""
+
 msgctxt "air_duct"
 msgid "Right(Aux)"
 msgstr ""
@@ -2887,9 +2906,6 @@ msgid "MC Board"
 msgstr ""
 
 msgid "Heat"
-msgstr ""
-
-msgid "Fan"
 msgstr ""
 
 msgid "Idling..."
@@ -5298,10 +5314,7 @@ msgstr ""
 msgid "Reset to default window layout"
 msgstr ""
 
-msgid "Show Labels of printing by layer in 3D scene"
-msgstr ""
-
-msgid "Show Labels of printing by object in 3D scene"
+msgid "Show object labels in 3D scene"
 msgstr ""
 
 msgid "Show &Overhang"
@@ -6815,7 +6828,7 @@ msgstr ""
 
 msgid ""
 "Tips:\n"
-"Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
+"Curve planning enhancement support detected on your printer. The software has automatically disabled arc fitting to ensure this feature functions correctly."
 msgstr ""
 
 msgid "Click to edit preset"
@@ -7481,6 +7494,11 @@ msgstr ""
 msgid "Are you sure to use them? \n"
 msgstr ""
 
+msgid ""
+"Print By Object: \n"
+"Suggest to use auto-arrange to avoid collisions when printing."
+msgstr ""
+
 msgid "Send G-code"
 msgstr ""
 
@@ -7491,17 +7509,6 @@ msgid "Custom supports and color painting were removed before repairing."
 msgstr ""
 
 msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
-msgstr ""
-
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-
-msgid "Auto arrange"
-msgstr ""
-
-msgid "Detail view wiki->"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -7750,6 +7757,12 @@ msgid "Clear my choice for Load 3mf dialog settings."
 msgstr ""
 
 msgid "Show the warning dialog again when importing non-Bambu 3MF files"
+msgstr ""
+
+msgid "Clear my choice for disabling recommendation for support material parameters."
+msgstr ""
+
+msgid "Clear my choice for disabling recommendation for support material parameters"
 msgstr ""
 
 msgid "3D Settings"
@@ -8339,6 +8352,9 @@ msgstr ""
 msgid "Nozzles and filaments of the same type share the same PA profile"
 msgstr ""
 
+msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
+msgstr ""
+
 msgid "send completed"
 msgstr ""
 
@@ -8396,6 +8412,18 @@ msgstr ""
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr ""
 
+msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value.\n"
+msgstr ""
+
+msgid "On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value.\n"
+msgstr ""
+
+msgid "Off: Prioritize using the value from your manual flow calibration."
+msgstr ""
+
+msgid "Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr ""
 
@@ -8406,6 +8434,9 @@ msgid "As the print job has been successfully sent, the cancellation will not br
 msgstr ""
 
 msgid "The name length exceeds the limit."
+msgstr ""
+
+msgid "Right Nozzle(Aux)"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
@@ -8654,6 +8685,24 @@ msgstr ""
 msgid "View all Daily tips"
 msgstr ""
 
+msgid "Availabale Objects"
+msgstr ""
+
+msgid "Main Material"
+msgstr ""
+
+msgid "Support Material"
+msgstr ""
+
+msgid "Recommended Parameters"
+msgstr ""
+
+msgid "Compatible model and support filaments detected. It is recommended to use the suggested filaments for printing the support interfaces of these objects, along with the recommended parameters."
+msgstr ""
+
+msgid "Don't remind me again"
+msgstr ""
+
 msgid "Failed to create socket"
 msgstr ""
 
@@ -8782,6 +8831,21 @@ msgstr ""
 msgid "Click to reset all settings to the last saved preset."
 msgstr ""
 
+msgid "Support interface speed"
+msgstr ""
+
+msgid "When using PLA to support TPU, We recommend the following settings:"
+msgstr ""
+
+msgid "When using soluble material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "Do you want to apply these settings?"
+msgstr ""
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr ""
 
@@ -8824,17 +8888,6 @@ msgid ""
 "Change these settings automatically? \n"
 "Yes - Change these settings automatically\n"
 "No  - Do not change these settings for me"
-msgstr ""
-
-msgid ""
-"When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-msgstr ""
-
-msgid ""
-"When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
 msgstr ""
 
 msgid ""
@@ -9638,6 +9691,9 @@ msgctxt "FinishSyncAms"
 msgid "OK"
 msgstr ""
 
+msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
+msgstr ""
+
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 msgstr ""
 
@@ -9803,9 +9859,6 @@ msgid "Camera view - Right"
 msgstr ""
 
 msgid "Camera view - Isometric"
-msgstr ""
-
-msgid "Shift+E"
 msgstr ""
 
 msgid "Select all objects"
@@ -11137,14 +11190,12 @@ msgstr ""
 msgid "Cooling overhang threshold"
 msgstr ""
 
-#, possible-c-format
 msgid "Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr ""
 
 msgid "Overhang threshold for participating cooling"
 msgstr ""
 
-#, possible-c-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr ""
 
@@ -11515,7 +11566,6 @@ msgstr ""
 msgid "Bottom surface density"
 msgstr ""
 
-#, possible-c-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
 msgstr ""
 
@@ -11864,6 +11914,12 @@ msgstr ""
 msgid "The filament is printable in extruder"
 msgstr ""
 
+msgid "Filament-extruder compatibility"
+msgstr ""
+
+msgid "A single 32-bit int encoding the compatibility level of a filament across all extruders (up to 10). Every 3 bits represent one extruder (bits [3*i, 3*i+2] for extruder i). 0: printable, 1: error, 2: critical warning, 3: warning, 4-7: reserved"
+msgstr ""
+
 msgid "Filament change"
 msgstr ""
 
@@ -11915,6 +11971,12 @@ msgstr ""
 msgid "°C"
 msgstr ""
 
+msgid "Enable tower interface features"
+msgstr ""
+
+msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
+msgstr ""
+
 msgid "Softening temperature"
 msgstr ""
 
@@ -11957,7 +12019,6 @@ msgstr ""
 msgid "Sparse infill density"
 msgstr ""
 
-#, possible-c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr ""
 
@@ -12169,6 +12230,12 @@ msgid "Scan first layer"
 msgstr ""
 
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
+msgstr ""
+
+msgid "Print loops in clockwise"
+msgstr ""
+
+msgid "Print in clockwise when enabled, or counterclockwise when not enabled, not work for spiral vase mode"
 msgstr ""
 
 msgid "Enable clumping detection"
@@ -14051,6 +14118,12 @@ msgid ""
 "- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)\n"
 msgstr ""
 
+msgid "- Right Nozzle (Aux) does not support automatic flow calibration."
+msgstr ""
+
+msgid "- Left Nozzle (Aux) does not support automatic flow calibration."
+msgstr ""
+
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr ""
 
@@ -14963,6 +15036,10 @@ msgid "The number of printer extruders and the printer selected for calibration 
 msgstr ""
 
 #, possible-c-format, possible-boost-format
+msgid "The type of %sextruder is bowden which does not support automatic Flow Dynamics calibration."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
 msgid "The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."
 msgstr ""
 
@@ -15511,9 +15588,6 @@ msgid "Filament grouping"
 msgstr ""
 
 msgid "Fila Saving"
-msgstr ""
-
-msgid "Don't remind me again"
 msgstr ""
 
 msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"

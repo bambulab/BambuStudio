@@ -284,7 +284,8 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             L("When using %s on the right extruder, it can only be used as support material.")
             L("The current filament doesn't support the TPU high-flow nozzle and can't be used.");
             L("Auto dynamic flow calibration is not supported for TPU filament.");
-            L("Dynamic flow calibration is not supported for TPU 85A filament.");
+            L("Bambu TPU 85A is not supported for printing with 0.4 mm Standard or High Flow nozzles.");
+            L("When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material.");
 
             // Warning in description
             L("How to feed TPU filament.");
@@ -296,6 +297,8 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
             L("PPA-CF is brittle and could break in bended PTFE tube above Toolhead.");
             L("PLA Glow may wear the AMS first stage feeder. Use an external spool instead.");
             L("Default settings may affect print quality. Adjust as needed for best results.");
+            L("Using non-bambu filament may have printing quality issues.");
+            L("When using %s on the right extruder, it can only be used as support material.");
             L("%s has a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution.");
             L("%s filaments are hard and brittle and could break in AMS, and there is also a risk of nozzle clogging when using 0.4mm high-flow nozzles. Use with caution.");
             L("%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow nozzles. Use with caution.");
@@ -334,13 +337,54 @@ void check_filaments_printable(const DevFilaBlacklist::CheckFilamentInfo &check_
 
     PresetBundle                   *preset_bundle = GUI::wxGetApp().preset_bundle;
     std::optional<FilamentBaseInfo> filament_info = preset_bundle->get_filament_by_filament_id(check_info.fila_id, printer_preset->name);
-    if (filament_info.has_value() && !(filament_info->filament_printable >> extruder_idx & 1)) {
-        DevFilaBlacklist::CheckResultItem item;
-        wxString                          extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
-        std::string                       fila_name     = check_info.fila_name.empty() ? check_info.fila_type : check_info.fila_name;
-        item.action                                     = "prohibition";
-        item.info_msg                                   = wxString::Format(_L("%s is not supported by %s extruder."), fila_name, extruder_name);
-        result.action_items[item.action].push_back(item);
+    if (filament_info.has_value()) {
+        wxString     extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
+        std::string  fila_name = check_info.fila_name.empty() ? check_info.fila_type : check_info.fila_name;
+        if (!(filament_info->filament_printable >> extruder_idx & 1)) {
+            DevFilaBlacklist::CheckResultItem item;
+            item.action = "prohibition";
+            item.info_msg = wxString::Format(_L("%s is not supported by %s extruder."), fila_name, extruder_name);
+            result.action_items[item.action].push_back(item);
+            return;
+        }
+
+        // Check if the extruder is bowden
+        bool is_bowden_extruder = false;
+        auto exrtuder_type_opt = dynamic_cast<const ConfigOptionEnumsGeneric*>(printer_preset->config.option("extruder_type"));
+        if (exrtuder_type_opt && exrtuder_type_opt->values.size() > extruder_idx) {
+            ExtruderType extruder_type = (ExtruderType)exrtuder_type_opt->values[extruder_idx];
+            is_bowden_extruder == (extruder_type == ExtruderType::etBowden);
+        }
+
+        // Compatibility levels: 0 = printable, 1 = error, 2 = critical warning, 3 = warning (4-7 reserved)
+        int compatibale_val = filament_info->get_extruder_compatibility(extruder_idx);
+        if (compatibale_val == 0) {
+        } else if (compatibale_val == 1) {
+            DevFilaBlacklist::CheckResultItem item;
+            item.action = "prohibition";
+            item.info_msg = wxString::Format(_L("%s is not supported by %s extruder."), fila_name, extruder_name);
+            result.action_items[item.action].push_back(item);
+        } else if (compatibale_val == 2) {
+            DevFilaBlacklist::CheckResultItem item;
+            item.action = "warning";
+            if (is_bowden_extruder) {
+                item.info_msg = wxString::Format(_L("There may be critical print quality issues when printing '%s' with %s Bowden extruder. Use with caution!"), fila_name, extruder_name);
+            } else {
+                item.info_msg = wxString::Format(_L("There may be critical print quality issues when printing '%s' with %s extruder. Use with caution!"), fila_name, extruder_name);
+            }
+
+            result.action_items[item.action].push_back(item);
+        } else if (compatibale_val == 3) {
+            DevFilaBlacklist::CheckResultItem item;
+            item.action = "warning";
+            if (is_bowden_extruder) {
+                item.info_msg = wxString::Format(_L("There may be print quality issues when printing '%s' with %s Bowden extruder. Use with caution."), fila_name, extruder_name);
+            } else {
+                item.info_msg = wxString::Format(_L("There may be print quality issues when printing '%s' with %s extruder. Use with caution."), fila_name, extruder_name);
+            }
+
+            result.action_items[item.action].push_back(item);
+        }
     }
 };
 

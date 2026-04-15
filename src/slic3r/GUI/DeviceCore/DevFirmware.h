@@ -43,6 +43,8 @@ public:
     bool isRotary() const { return product_name.Contains("Rotary"); }// Rotary Attachment
     bool isExtinguishSystem() const { return product_name.Contains("Extinguishing System"); }// Auto Fire Extinguishing System
     bool isWTM() const { return name.find("wtm") != string::npos; } // nozzle
+    bool isExhaustFan() const { return product_name.Contains("Exhaust Fan"); }
+    bool isHmshub() const { return product_name.find("Filament") != string::npos; }
 };
 
 

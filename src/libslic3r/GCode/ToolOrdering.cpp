@@ -76,15 +76,14 @@ bool LayerTools::is_extruder_order(unsigned int a, unsigned int b) const
     return false;
 }
 
-bool check_filament_printable_after_group(const std::vector<unsigned int> &used_filaments, const std::vector<int> &filament_maps, std::unordered_map<int, std::vector<std::string>>& filament_variants, const PrintConfig *print_config)
+bool check_filament_printable_after_group(const std::vector<unsigned int> &used_filaments, const std::vector<int> &filament_maps, std::unordered_map<int, std::vector<std::string>>& filament_variants, std::vector<FilamentUsageType>& used_type,const PrintConfig *print_config)
 {
     // TODO(shancang): Generic filament of XP printers
     auto diameters = print_config->nozzle_diameter;
     std::unordered_map<std::string, int> nozzle_fils;
     for (unsigned int filament_id : used_filaments) {
-        std::string filament_type = print_config->filament_type.get_at(filament_id);
-        int printable_status = print_config->filament_printable.get_at(filament_id);
         int extruder_idx = filament_maps[filament_id];
+        int printable_status = print_config->filament_printable.get_at(filament_id);
         if (!(printable_status >> extruder_idx & 1)) {
             std::string extruder_name = extruder_idx == 0 ? _L("left") : _L("right");
             std::string error_msg     = _L("Grouping error: filament") + std::to_string(filament_id + 1) + _L(" can not be placed in the ") + extruder_name + _L(" nozzle");
@@ -1214,7 +1213,7 @@ FilamentGroupContext build_filament_group_context(
     std::vector<std::string> filament_colours = print_config.filament_colour.values;
     std::vector<unsigned char> filament_is_support = print_config.filament_is_support.values;
     std::vector<std::string> filament_ids = print_config.filament_ids.values;
-    std::vector<FilamentUsageType> filament_usage_types(filament_types.size(),FilamentUsageType::ModelOnly);
+    std::vector<FilamentUsageType> filament_usage_types = print->get_filament_usage_type();
 
     FGMode fg_mode = print_config.filament_map_mode.value == FilamentMapMode::fmmAutoForMatch ? FGMode::MatchMode: FGMode::FlushMode;
     context.model_info.flush_matrix = std::move(nozzle_flush_mtx);
@@ -1850,7 +1849,7 @@ ToolOrdering::LayerData ToolOrdering::collect_layer_and_unprintable_data()
     LayerData data;
 
     // 收集层信息
-    for(auto& lt : m_layer_tools){
+    for (auto& lt : m_layer_tools) {
         data.layer_filaments.emplace_back(lt.extruders);
     }
 

@@ -24,9 +24,9 @@ Description:Fan
 **************************************************/
 #define SIZE_OF_FAN_OPERATE wxSize(154, 28)
 
-#define DRAW_TEXT_COLOUR wxColour(0x898989)
-#define DRAW_HEAD_TEXT_COLOUR wxColour(0x262e30)
-#define DRAW_OPERATE_LINE_COLOUR wxColour(0xDEDEDE)
+#define DRAW_TEXT_COLOUR wxColour("#898989")
+#define DRAW_HEAD_TEXT_COLOUR wxColour("#262e30")
+#define DRAW_OPERATE_LINE_COLOUR wxColour("#DEDEDE")
 
 enum FanControlType
 {
@@ -242,6 +242,7 @@ private:
 
 private:
     void  init_names(MachineObject* obj);
+    wxString get_fan_mode_name(int mode_id) const;
     wxString get_fan_func_name(int mode, int submode, AIR_FUN func) const;
 
     void  CreateDuct();

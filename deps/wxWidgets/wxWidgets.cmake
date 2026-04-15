@@ -48,6 +48,7 @@ bambustudio_add_cmake_project(wxWidgets
         -DwxUSE_XTEST=OFF
         -DwxUSE_STC=OFF
         -DwxUSE_AUI=ON
+        -DwxUSE_EXCEPTIONS=OFF
         -DwxUSE_LIBPNG=sys
         -DwxUSE_ZLIB=sys
         -DwxUSE_LIBJPEG=sys

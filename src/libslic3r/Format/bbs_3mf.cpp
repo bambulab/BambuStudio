@@ -8724,8 +8724,7 @@ bool _BBS_3MF_Exporter::_add_filament_sequence_file_to_archive(mz_zip_archive& a
         j[plate_idx]["nozzle_sequence"] = plate_data->nozzle_change_sequence;
 
         std::vector<int> optimal_assignment = plate_data->optimal_assignment;
-        if (enable_dynamic_map)
-            j[plate_idx]["optimal_assignment"] = optimal_assignment;
+        j[plate_idx]["optimal_assignment"] = optimal_assignment;
     }
 
     if(j.empty())

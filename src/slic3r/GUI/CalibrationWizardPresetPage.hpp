@@ -297,6 +297,7 @@ protected:
     bool is_blocking_printing();
     bool need_check_sdcard(MachineObject* obj);
 
+    void disable_bowden_extuder_auto_dyn_cali(wxWindow* cali_panel);
     std::vector<std::pair<wxString, int>> make_nozzles_info(const DevNozzle& r_nozzle, const std::map<int, DevNozzle>& nozzle_map, const NozzleDiameterType& nozzle_diameter, const std::vector<NozzleFlowType>& nozzle_flows);
 
     std::map<std::string, std::pair<bool, wxString>> m_tips_map;

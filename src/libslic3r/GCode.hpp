@@ -391,6 +391,7 @@ private:
     void set_extrude_acceleration(bool is_first_layer);
     size_t get_filament_config_index(int filament_id) const;
     size_t get_nozzle_config_index(int filament_id) const;
+    void   update_placeholder_parser_with_variant_params();
 
     void            set_last_pos(const Point &pos) { m_last_pos = pos; m_last_pos_defined = true; }
     void            set_last_scarf_seam_flag(bool flag) { m_last_scarf_seam_flag = flag; }

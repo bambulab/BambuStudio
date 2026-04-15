@@ -560,6 +560,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/MultiTaskModel.cpp
     GUI/SendMultiMachinePage.hpp
     GUI/SendMultiMachinePage.cpp
+    GUI/SupportRecommendDialog.hpp
+    GUI/SupportRecommendDialog.cpp
     GUI/TaskManager.cpp
     GUI/TaskManager.hpp
     GUI/RenderEnums.hpp

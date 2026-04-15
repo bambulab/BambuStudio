@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-12 12:08+0800\n"
+"POT-Creation-Date: 2026-03-31 16:30+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -65,6 +65,9 @@ msgstr "Die automatische dynamische Flusskalibrierung wird für TPU-Filament nic
 msgid "Bambu TPU 85A is not supported for printing with 0.4 mm Standard or High Flow nozzles."
 msgstr "Bambu TPU 85A wird für den Druck mit 0,4 mm Standard- oder High-Flow-Düsen nicht unterstützt."
 
+msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+msgstr "Bei Verwendung von ABS/ASA/PETG HF mit dem rechten Extruder kann es nur als Stützmaterial verwendet werden."
+
 msgid "How to feed TPU filament."
 msgstr "So laden Sie TPU-Filament."
 
@@ -105,8 +108,28 @@ msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow noz
 msgstr "%s kann bei der Verwendung von 0,4, 0,6, 0,8mm High-Flow-Düsen zu Verstopfungen führen. Mit Vorsicht verwenden."
 
 #, c-format, boost-format
+msgid "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "%s wird nicht vom %s Extruder unterstützt."
+
+#, c-format, boost-format
+msgid "There may be critical print quality issues when printing '%s' with %s Bowden extruder. Use with caution!"
+msgstr ""
+
+#, c-format, boost-format
+msgid "There may be critical print quality issues when printing '%s' with %s extruder. Use with caution!"
+msgstr ""
+
+#, c-format, boost-format
+msgid "There may be print quality issues when printing '%s' with %s Bowden extruder. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
+msgstr ""
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr "Der Werkzeugkopf und das Hotend-Magazin können sich bewegen. Bitte halten Sie Ihre Hände von der Kammer fern."
@@ -228,28 +251,27 @@ msgstr "Schließen"
 msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
 msgstr ""
 
+msgid "Summary:"
+msgstr ""
+
+msgid "AMS on Filament Inlet A"
+msgstr ""
+
+msgid "AMS on Filament Inlet B"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The No.%d slicing filament is matched to '%s'. Assigning it to '%s' can save printing time."
+msgstr ""
+
+msgid "*Tips: If you have moved the spool position on the machine, please close this page and re‑match the filament."
+msgstr ""
+
 msgid "Summary: This is currently the most suitable position for placement."
 msgstr ""
 
 msgid "?"
 msgstr "?"
-
-msgid "Summary: "
-msgstr ""
-
-#, c-format, boost-format
-msgid "Remove %s in %s . Insert into AMS on Filament Inlet B."
-msgstr ""
-
-msgid "filaments"
-msgstr ""
-
-msgid "filament"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Remove %s in %s . Insert into AMS on Filament Inlet A."
-msgstr ""
 
 msgid "Model:"
 msgstr "Modell:"
@@ -2241,11 +2263,8 @@ msgstr "Schnittinformationen ungültig machen"
 msgid "Add Primitive"
 msgstr "Primitiv hinzufügen"
 
-msgid "Show Labels by Layer"
-msgstr ""
-
-msgid "Show Labels by Object"
-msgstr ""
+msgid "Show Labels"
+msgstr "Etiketten anzeigen"
 
 msgid "To objects"
 msgstr "Zu Objekten"
@@ -2381,9 +2400,6 @@ msgstr "Füllen des verbleibenden Bettbereich mit Kopien des ausgewählten Objek
 
 msgid "Edit Plate Name"
 msgstr "Plattenname bearbeiten"
-
-msgid "Show Labels"
-msgstr "Etiketten anzeigen"
 
 msgid "Name"
 msgstr "Name"
@@ -2786,19 +2802,16 @@ msgstr "Wählen Sie einen AMS-Slot und drücken Sie dann die Taste \"Laden\" ode
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
 msgstr "Filamenttyp ist unbekannt, der für diese Aktion erforderlich ist. Bitte geben Sie die Informationen zum Zielfilament ein."
 
-msgid "Ext"
-msgstr ""
-
 msgid "/"
 msgstr "/"
 
 msgctxt "FilamentTrack"
 msgid "Left"
-msgstr "Links"
+msgstr ""
 
 msgctxt "FilamentTrack"
 msgid "Right"
-msgstr "Rechts"
+msgstr ""
 
 msgid "Confirm"
 msgstr "Bestätigen"
@@ -2809,7 +2822,7 @@ msgstr ""
 
 msgctxt "FilamentTrack"
 msgid "right extruder"
-msgstr "rechter Extruder"
+msgstr ""
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "Eine Änderung der Lüftergeschwindigkeit während des Druckvorgangs kann die Druckqualität beeinträchtigen. Wählen Sie daher die Geschwindigkeit sorgfältig aus."
@@ -2877,6 +2890,12 @@ msgstr "Der Kühlmodus eignet sich für den Druck von %s Materialien."
 msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
 msgstr "Der Heizmodus eignet sich zum Drucken von %s Materialien und zirkuliert die Kammerluft und filtert sie."
 
+msgid "Strong Cooling"
+msgstr ""
+
+msgid "Fan"
+msgstr "Lüfter"
+
 msgctxt "air_duct"
 msgid "Right(Aux)"
 msgstr "Rechts(Aux)"
@@ -2909,10 +2928,7 @@ msgid "MC Board"
 msgstr "MC-Board"
 
 msgid "Heat"
-msgstr "Heizung"
-
-msgid "Fan"
-msgstr "Lüfter"
+msgstr "Hitze"
 
 msgid "Idling..."
 msgstr "Leerlauf..."
@@ -5421,11 +5437,8 @@ msgstr "Fensterlayout zurücksetzen"
 msgid "Reset to default window layout"
 msgstr "Auf Standardfensterlayout zurücksetzen"
 
-msgid "Show Labels of printing by layer in 3D scene"
-msgstr ""
-
-msgid "Show Labels of printing by object in 3D scene"
-msgstr ""
+msgid "Show object labels in 3D scene"
+msgstr "Objektbeschriftungen in der 3D-Szene anzeigen"
 
 msgid "Show &Overhang"
 msgstr "Zeige Überhang"
@@ -5719,7 +5732,7 @@ msgid "The live streaming feature relies on Bambu Studio to run,and the stream w
 msgstr "Die Live-Streaming-Funktion basiert auf Bambu Studio, und der Stream endet einige Zeit nach dem Schließen der App."
 
 msgid "Printer Preview"
-msgstr "Druckervorschau"
+msgstr ""
 
 msgid "Playing..."
 msgstr "Laufend..."
@@ -6236,7 +6249,7 @@ msgid "Can't start this without storage."
 msgstr "Ohne Speicher kann dies nicht gestartet werden."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
-msgstr "Der Extruder kann nicht gewechselt werden, wenn sich der Drucker nicht im FDM-Modus befindet."
+msgstr ""
 
 msgid "Rate the Print Profile"
 msgstr "Druckprofil bewerten"
@@ -6910,10 +6923,10 @@ msgid "Filament changes"
 msgstr "Filamentwechsel"
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr "Filamentweiche erkannt. Alle AMS-Filamente sind nun für beide Extruder verfügbar. Der Slicer weist diese für einen optimalen Druck automatisch zu. "
+msgstr ""
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr "Eine Filamentweiche wurde erkannt, ist jedoch nicht kalibriert und daher aktuell nicht verfügbar. Bitte kalibrieren Sie sie am Drucker und synchronisieren Sie vor der Verwendung. "
+msgstr ""
 
 msgid "Learn more"
 msgstr "Mehr erfahren"
@@ -6975,10 +6988,8 @@ msgstr "Extruderinformationen synchronisieren"
 
 msgid ""
 "Tips:\n"
-"Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
+"Curve planning enhancement support detected on your printer. The software has automatically disabled arc fitting to ensure this feature functions correctly."
 msgstr ""
-"Tipps:\n"
-"Ihr Drucker unterstützt Arc-Fitting, daher wurde die Arc-Fitting-Funktion des Slicers deaktiviert, um Konflikte zu vermeiden."
 
 msgid "Click to edit preset"
 msgstr "Klicken Sie hier, um das Profil zu bearbeiten"
@@ -7684,6 +7695,13 @@ msgstr "Es wird nicht empfohlen, PVA-Filamente mit 0,2mm Düsen zu verwenden."
 msgid "Are you sure to use them? \n"
 msgstr "Sind Sie sicher, dass Sie diese verwenden möchten? \n"
 
+msgid ""
+"Print By Object: \n"
+"Suggest to use auto-arrange to avoid collisions when printing."
+msgstr ""
+"Nach Objekt drucken: \n"
+"Es wird vorgeschlagen, die automatische Anordnung zu verwenden, um Kollisionen beim Drucken zu vermeiden."
+
 msgid "Send G-code"
 msgstr "Sende G-code"
 
@@ -7695,19 +7713,6 @@ msgstr "Benutzerdefinierte Stützstrukturen und Farbgebungen wurden vor der Repa
 
 msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
 msgstr "Benutzerdefinierte Stützen, Nahtflächen und Einfärbungen wurden entfernt, bevor der Modellname repariert wurde:"
-
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-"Nach Objekt drucken: \n"
-"Es wird vorgeschlagen, die automatische Anordnung zu verwenden, um Kollisionen beim Drucken zu vermeiden."
-
-msgid "Auto arrange"
-msgstr "Automatische Anordnung"
-
-msgid "Detail view wiki->"
-msgstr ""
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -7964,6 +7969,12 @@ msgstr "Meine Auswahl für die Dialog-Einstellungen „3mf laden“ löschen."
 
 msgid "Show the warning dialog again when importing non-Bambu 3MF files"
 msgstr "Warnungsdialog beim Importieren von Nicht-Bambu-3MF-Dateien erneut anzeigen"
+
+msgid "Clear my choice for disabling recommendation for support material parameters."
+msgstr ""
+
+msgid "Clear my choice for disabling recommendation for support material parameters"
+msgstr ""
 
 msgid "3D Settings"
 msgstr "3D-Einstellungen"
@@ -8562,6 +8573,9 @@ msgstr ""
 msgid "Nozzles and filaments of the same type share the same PA profile"
 msgstr "Düsen und Filamente desselben Typs haben dasselbe PA-Profil"
 
+msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
+msgstr ""
+
 msgid "send completed"
 msgstr "Senden abgeschlossen"
 
@@ -8621,6 +8635,18 @@ msgstr "Hiermit wird die Ebenheit des Heizbetts überprüft. Durch die Nivellier
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Dieser Prozess bestimmt die dynamischen Flusswerte, um die Gesamtdruckqualität zu verbessern."
 
+msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value.\n"
+msgstr ""
+
+msgid "On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value.\n"
+msgstr ""
+
+msgid "Off: Prioritize using the value from your manual flow calibration."
+msgstr ""
+
+msgid "Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "Druckauftrag vorbereiten"
 
@@ -8632,6 +8658,9 @@ msgstr "Da der Druckauftrag erfolgreich gesendet wurde, wird er durch die Abbrec
 
 msgid "The name length exceeds the limit."
 msgstr "Die Namenslänge überschreitet das Limit."
+
+msgid "Right Nozzle(Aux)"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Cost %dg filament and %d changes more than optimal grouping."
@@ -8883,6 +8912,24 @@ msgstr "Slice ok."
 msgid "View all Daily tips"
 msgstr "Alle täglichen Tipps anzeigen"
 
+msgid "Availabale Objects"
+msgstr ""
+
+msgid "Main Material"
+msgstr ""
+
+msgid "Support Material"
+msgstr ""
+
+msgid "Recommended Parameters"
+msgstr ""
+
+msgid "Compatible model and support filaments detected. It is recommended to use the suggested filaments for printing the support interfaces of these objects, along with the recommended parameters."
+msgstr ""
+
+msgid "Don't remind me again"
+msgstr "Nicht mehr erinnern"
+
 msgid "Failed to create socket"
 msgstr "Socket konnte nicht erstellt werden"
 
@@ -9016,6 +9063,21 @@ msgstr "Klicken Sie hier, um mehr zu erfahren"
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Klicken Sie hier, um alle Einstellungen auf die zuletzt gespeicherten Parameter zurückzusetzen."
 
+msgid "Support interface speed"
+msgstr ""
+
+msgid "When using PLA to support TPU, We recommend the following settings:"
+msgstr ""
+
+msgid "When using soluble material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "Do you want to apply these settings?"
+msgstr ""
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Der Reinigungsturm ist für den Düsenwechsel erforderlich. Ohne Reinigungsturm können Fehler im Modell auftreten. Möchten Sie den Reinigungsturm wirklich deaktivieren?"
 
@@ -9070,22 +9132,6 @@ msgstr ""
 "Diese Einstellungen automatisch ändern?\n"
 "Ja - Diese Einstellungen automatisch ändern.\n"
 "Nein - Diese Einstellungen für mich nicht ändern."
-
-msgid ""
-"When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-msgstr ""
-"Wenn Sie Stützmaterial für die Stützschnittstelle verwenden, empfehlen wir die folgenden Einstellungen:\n"
-"0 oberer Z-Abstand, 0 Schnittstellenabstand, verflochtenes geradliniges Muster und Deaktivierung der unabhängigen Stützschichthöhe"
-
-msgid ""
-"When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"Bei Verwendung von löslichem Material für die Stützschnittstelle empfehlen wir die folgenden Einstellungen:\n"
-"0 oberer Z-Abstand, 0 Schnittstellenabstand, 0 XY-Abstand zwischen Stütze und Objekt, verflochtenes geradliniges Muster, \n"
-"unabhängige Stützschichthöhe deaktivieren und lösliches Material sowohl für die Stützschnittstelle als auch für die Stützbasis verwenden"
 
 msgid ""
 "Layer height is too small.\n"
@@ -9915,6 +9961,9 @@ msgctxt "FinishSyncAms"
 msgid "OK"
 msgstr ""
 
+msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
+msgstr ""
+
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 msgstr "Studio berechnet Ihre Spülmengen jedes Mal neu, wenn sich die Filamentfarbe oder die Filamente ändern. Sie können die automatische Berechnung in Bambu Studio > Einstellungen deaktivieren."
 
@@ -10081,9 +10130,6 @@ msgstr "Kameraansicht – Rechts"
 
 msgid "Camera view - Isometric"
 msgstr "Kameraansicht – Isometrisch"
-
-msgid "Shift+E"
-msgstr ""
 
 msgid "Select all objects"
 msgstr "Alle Objekte auswählen"
@@ -11321,7 +11367,7 @@ msgid "Avoid crossing wall"
 msgstr "Vermeiden von Wandüberquerungen"
 
 msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
-msgstr "Umweg fahren und Bewegungen über Wände vermeiden, was zu Materialansammlungen (Blobs) auf der Oberfläche führen kann (wenn die Bewegungslänge größer als der Schwellenwert für die Bewegungsdistanz ist)."
+msgstr ""
 
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Geschwindigkeit der Wandglättung entlang Z (experimentell)"
@@ -11434,14 +11480,12 @@ msgstr "s"
 msgid "Cooling overhang threshold"
 msgstr "Schwellenwert für die Kühlung von Überhängen"
 
-#, c-format
 msgid "Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Erzwingt eine bestimmte Lüftergeschwindigkeit, wenn der Winkel des Überhangs des gedruckten Teils diesen Wert überschreitet. Dies wird als Prozentsatz ausgedrückt, der angibt, wie groß die Breite der Linie ohne Unterstützung durch die untere Schicht ist. 0%% bedeutet, dass die Kühlung für die gesamte Außenwand erzwungen wird, unabhängig vom Winkel des Überhangs."
 
 msgid "Overhang threshold for participating cooling"
 msgstr "Überhangschwelle für teilnehmende Kühlung"
 
-#, c-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Entscheidet, welcher Überhangteil die Kühlfunktion übernimmt, um die Geschwindigkeit zu verlangsamen. Dies wird als Prozentsatz ausgedrückt, der die Breite der Linie ohne Unterstützung durch eine untere Schicht angibt. 100%% bedeutet, dass die Kühlung für alle Außenwände erzwungen wird, unabhängig vom Überhanggrad."
 
@@ -11830,7 +11874,6 @@ msgstr "Linienmuster der Bodenfüllung. Brückenfüllung nicht eingeschlossen"
 msgid "Bottom surface density"
 msgstr "Dichte der untersten Schicht"
 
-#, c-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
 msgstr "Dichte der Füllung der untersten Schicht. 100%% bedeutet eine vollständig gefüllte Schicht. Niedrigere Werte erzeugen eine texturierte Bodenfläche. Gedacht für ästhetische oder funktionale Zwecke, nicht zur Behebung von Problemen wie Überextrusion. WARNUNG: Das Verringern dieses Wertes kann die Druckbetthaftung negativ beeinflussen."
 
@@ -12181,6 +12224,12 @@ msgstr "Filament druckbar"
 msgid "The filament is printable in extruder"
 msgstr "Das Filament ist im Extruder druckbar."
 
+msgid "Filament-extruder compatibility"
+msgstr ""
+
+msgid "A single 32-bit int encoding the compatibility level of a filament across all extruders (up to 10). Every 3 bits represent one extruder (bits [3*i, 3*i+2] for extruder i). 0: printable, 1: error, 2: critical warning, 3: warning, 4-7: reserved"
+msgstr ""
+
 msgid "Filament change"
 msgstr "Filamentwechsel"
 
@@ -12232,6 +12281,12 @@ msgstr "Drucktemperatur für die Schnittstellenschicht des Reinigungsturms (wo v
 msgid "°C"
 msgstr "°C"
 
+msgid "Enable tower interface features"
+msgstr ""
+
+msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
+msgstr ""
+
 msgid "Softening temperature"
 msgstr "Erweichungstemperatur"
 
@@ -12274,7 +12329,6 @@ msgstr "Dies ist der Winkel für die innere Füllung, der die Start- oder Hauptr
 msgid "Sparse infill density"
 msgstr "Fülldichte"
 
-#, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr "Dichte der inneren Füllung. 100%% bedeuten eine solide Füllung"
 
@@ -12487,6 +12541,12 @@ msgstr "Erste Schicht scannen"
 
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "Aktivieren Sie diese Option, damit die Kamera des Druckers die Qualität der ersten Schicht überprüft."
+
+msgid "Print loops in clockwise"
+msgstr ""
+
+msgid "Print in clockwise when enabled, or counterclockwise when not enabled, not work for spiral vase mode"
+msgstr ""
 
 msgid "Enable clumping detection"
 msgstr "Klumpenerkennung aktivieren"
@@ -14408,6 +14468,12 @@ msgstr ""
 "- Materialien, die dieselbe Heizbetttemperatur haben können\n"
 "- Verschiedene Filamentmarken und -familien (Marke = Bambu, Familie = Basic, Matte)\n"
 
+msgid "- Right Nozzle (Aux) does not support automatic flow calibration."
+msgstr ""
+
+msgid "- Left Nozzle (Aux) does not support automatic flow calibration."
+msgstr ""
+
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "Hinweis: Die Nummer des Hotends ist an den Halter gebunden. Wenn das Hotend in einen neuen Halter eingesetzt wird, wird seine Nummer automatisch aktualisiert.\n"
 
@@ -15372,6 +15438,10 @@ msgid "The number of printer extruders and the printer selected for calibration 
 msgstr "Die Anzahl der Druckerextruder und der für die Kalibrierung ausgewählte Drucker stimmen nicht überein."
 
 #, c-format, boost-format
+msgid "The type of %sextruder is bowden which does not support automatic Flow Dynamics calibration."
+msgstr ""
+
+#, c-format, boost-format
 msgid "The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."
 msgstr "Der Düsendurchmesser des Extruders %s beträgt 0,2 mm, wodurch die automatische Kalibrierung der Flussdynamik nicht unterstützt wird."
 
@@ -15935,9 +16005,6 @@ msgstr "Filamentgruppierung"
 
 msgid "Fila Saving"
 msgstr "Filament-Einsparung"
-
-msgid "Don't remind me again"
-msgstr "Nicht mehr erinnern"
 
 msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
 msgstr ""
@@ -16684,8 +16751,15 @@ msgstr ""
 #~ "Der Verbrauchsmaterialwechsler wurde nicht kalibriert. \n"
 #~ "Bitte kalibrieren Sie ihn vor der Verwendung am Drucker."
 
-#~ msgid "Show object labels in 3D scene"
-#~ msgstr "Objektbeschriftungen in der 3D-Szene anzeigen"
+#~ msgid "Load filament to"
+#~ msgstr "Filament laden zu"
+
+#~ msgid ""
+#~ "Tips:\n"
+#~ "Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
+#~ msgstr ""
+#~ "Tipps:\n"
+#~ "Ihr Drucker unterstützt Arc-Fitting, daher wurde die Arc-Fitting-Funktion des Slicers deaktiviert, um Konflikte zu vermeiden."
 
 #~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
 #~ msgstr "Fährt einen Umweg um zu vermeiden über Wände zu fahren, was Blobs auf Oberflächen bilden kann."
@@ -16693,8 +16767,21 @@ msgstr ""
 #~ msgid "Filament grouping is automatically optimized based on filament-saving principles"
 #~ msgstr "Die Filamentgruppierung wird automatisch basierend auf filamentsparenden Prinzipien optimiert"
 
-#~ msgid "Load filament to"
-#~ msgstr "Filament laden zu"
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+#~ msgstr ""
+#~ "Wenn Sie Stützmaterial für die Stützschnittstelle verwenden, empfehlen wir die folgenden Einstellungen:\n"
+#~ "0 oberer Z-Abstand, 0 Schnittstellenabstand, verflochtenes geradliniges Muster und Deaktivierung der unabhängigen Stützschichthöhe"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "Bei Verwendung von löslichem Material für die Stützschnittstelle empfehlen wir die folgenden Einstellungen:\n"
+#~ "0 oberer Z-Abstand, 0 Schnittstellenabstand, 0 XY-Abstand zwischen Stütze und Objekt, verflochtenes geradliniges Muster, \n"
+#~ "unabhängige Stützschichthöhe deaktivieren und lösliches Material sowohl für die Stützschnittstelle als auch für die Stützbasis verwenden"
 
 #~ msgid "Dynamic flow calibration is not supported for TPU 85A filament."
 #~ msgstr "Die dynamische Flusskalibrierung wird für TPU 85A Filament nicht unterstützt."
@@ -16919,9 +17006,6 @@ msgstr ""
 
 #~ msgid "Learn more about purge mode"
 #~ msgstr "Erfahren Sie mehr über den Spülmodus"
-
-#~ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
-#~ msgstr "Bei Verwendung von ABS/ASA/PETG HF mit dem rechten Extruder kann es nur als Stützmaterial verwendet werden."
 
 #~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 #~ msgstr "CF/GF-Filamente sind hart und spröde, sodass sie leicht brechen oder in einem AMS stecken bleiben können. Bitte mit Vorsicht verwenden."
@@ -18359,6 +18443,9 @@ msgstr ""
 
 #~ msgid "Auto Bed Type"
 #~ msgstr "Automatischer Betttyp"
+
+#~ msgid "Auto arrange"
+#~ msgstr "Automatische Anordnung"
 
 #~ msgid "Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the project."
 #~ msgstr "Wenn es ausgewählte Objekte gibt, werden nur die ausgewählten Objekte ausgerichtet, ansonsten werden alle Objekte im Projekt ausgerichtet."

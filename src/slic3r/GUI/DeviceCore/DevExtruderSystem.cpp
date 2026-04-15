@@ -5,6 +5,7 @@
 // TODO: remove this include
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/I18N.hpp"
+#include "slic3r/GUI/Plater.hpp"
 
 #include "DevUtil.h"
 
@@ -101,13 +102,28 @@ namespace Slic3r
 
         for (int j = 16; j <= 23; j++)/* single ams is from 128*/
         {
-            if (fila_back_group & (1 << j))
-            {
+            if (fila_back_group & (1 << j)) {
                 trayid_group[128 + j - 16] = true;
             }
         }
 
         return trayid_group;
+    }
+
+    bool  DevExtder::IsBowdenExtuder() const
+    {
+        Preset * preset = GUI::get_printer_preset(system->Owner());
+
+        if (!preset) return false;
+
+        auto exrtuder_type_opt = dynamic_cast<const ConfigOptionEnumsGeneric *>(preset->config.option("extruder_type"));
+
+        if (!exrtuder_type_opt) return false;
+
+        // reverse the order of preset extuder id to match the real extruder id
+        ExtruderType extruder_type = (ExtruderType)exrtuder_type_opt->values[exrtuder_type_opt->values.size() - 1 - GetExtId()];
+
+        return extruder_type == ExtruderType::etBowden;
     }
 
     DevExtderSystem::DevExtderSystem(MachineObject* obj)

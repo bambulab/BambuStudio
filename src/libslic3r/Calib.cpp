@@ -457,7 +457,7 @@ std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double star
     gcode << writer.extrude_to_xy(Vec2d(prime_x, y_pos), e_per_mm * m_space_y * num * 1.2);
 
     for (int i = 0; i < num; ++i) {
-        gcode << writer.set_pressure_advance(start_pa + i * step_pa);
+        gcode << writer.set_pressure_advance(start_pa + i * step_pa, m_is_bbl_bowden);
         gcode << move_to(Vec2d(start_x, y_pos + i * m_space_y), writer);
         gcode << writer.set_speed(slow);
         gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short, y_pos + i * m_space_y), e_per_mm * m_length_short);
@@ -466,7 +466,7 @@ std::string CalibPressureAdvanceLine::print_pa_lines(double start_x, double star
         gcode << writer.set_speed(slow);
         gcode << writer.extrude_to_xy(Vec2d(start_x + m_length_short + m_length_long + m_length_short, y_pos + i * m_space_y), e_per_mm * m_length_short);
     }
-    gcode << writer.set_pressure_advance(0.0);
+    gcode << writer.set_pressure_advance(m_is_bbl_bowden ? 0.4 : 0.0, m_is_bbl_bowden);
 
     if (m_draw_numbers) {
         // Orca: skip drawing indicator lines
@@ -514,7 +514,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfi
 
     gcode << move_to(Vec2d(m_starting_point.x(), m_starting_point.y()), m_writer, "Move to start XY position");
     gcode << m_writer.travel_to_z(height_first_layer(), "Move to start Z position");
-    gcode << m_writer.set_pressure_advance(m_params.start);
+    gcode << m_writer.set_pressure_advance(m_params.start, m_is_bbl_bowden);
 
     const DrawBoxOptArgs default_box_opt_args(wall_count(), height_first_layer(), line_width_first_layer(), speed_adjust(speed_first_layer()));
 
@@ -553,7 +553,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfi
 
         // line numbering
         if (i == 1) {
-            gcode << m_writer.set_pressure_advance(m_params.start);
+            gcode << m_writer.set_pressure_advance(m_is_bbl_bowden ? 0.4 : m_params.start, m_is_bbl_bowden);
 
             double number_e_per_mm = e_per_mm(line_width(), height_layer(), m_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0),
                                               m_config.option<ConfigOptionFloats>("filament_diameter")->get_at(0),
@@ -587,7 +587,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfi
 
         for (int j = 0; j < num_patterns; ++j) {
             // increment pressure advance
-            gcode << m_writer.set_pressure_advance(m_params.start + (j * m_params.step));
+            gcode << m_writer.set_pressure_advance(m_params.start + (j * m_params.step), m_is_bbl_bowden);
 
             for (int k = 0; k < wall_count(); ++k) {
                 to_x += std::cos(to_radians(m_corner_angle) / 2) * side_length;
@@ -631,7 +631,7 @@ void CalibPressureAdvancePattern::generate_custom_gcodes(const DynamicPrintConfi
         }
     }
 
-    gcode << m_writer.set_pressure_advance(m_params.start);
+    gcode << m_writer.set_pressure_advance(m_is_bbl_bowden ? 0.4 : m_params.start, m_is_bbl_bowden);
     gcode << "; end pressure advance pattern for layer\n";
 
     CustomGCode::Item item;
@@ -685,9 +685,10 @@ void CalibPressureAdvancePattern::_refresh_writer(bool is_bbl_machine, const Mod
     m_writer.set_xy_offset(origin(0), origin(1));
     //m_writer.set_is_bbl_machine(is_bbl_machine);
 
-    const unsigned int extruder_id = model.objects.front()->volumes.front()->extruder_id();
-    m_writer.set_extruders({extruder_id});
-    m_writer.set_extruder(extruder_id,0);
+    const int model_extruder_id = model.objects.front()->volumes.front()->extruder_id();
+    const unsigned int filament_id = model_extruder_id > 0 ? model_extruder_id - 1 : 0;
+    m_writer.set_extruders({filament_id});
+    m_writer.set_extruder(filament_id, 0);
 }
 
 double CalibPressureAdvancePattern::object_size_x() const

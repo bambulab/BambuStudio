@@ -188,6 +188,7 @@ src/slic3r/GUI/PrePrintChecker.cpp
 src/slic3r/GUI/SendSystemInfoDialog.cpp
 src/slic3r/GUI/SendToPrinter.cpp
 src/slic3r/GUI/SlicingProgressNotification.cpp
+src/slic3r/GUI/SupportRecommendDialog.cpp
 src/slic3r/GUI/BindDialog.cpp
 src/slic3r/GUI/Tab.cpp
 src/slic3r/GUI/Tab.hpp

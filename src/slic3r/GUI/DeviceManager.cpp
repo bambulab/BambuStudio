@@ -875,8 +875,10 @@ void MachineObject::clear_version_info()
     cutting_module_version_info = DevFirmwareVersionInfo();
     extinguish_version_info = DevFirmwareVersionInfo();
     rotary_version_info = DevFirmwareVersionInfo();
+    amshub_version_info = DevFirmwareVersionInfo();
     module_vers.clear();
     m_nozzle_system->ClearFirmwareInfoWTM();
+    extinguish_version_info = DevFirmwareVersionInfo();
 }
 
 void MachineObject::store_version_info(const DevFirmwareVersionInfo& info)
@@ -893,6 +895,10 @@ void MachineObject::store_version_info(const DevFirmwareVersionInfo& info)
         rotary_version_info = info;
     }else if (info.isWTM()) {
         m_nozzle_system->AddFirmwareInfoWTM(info);
+    }else if (info.isExhaustFan()){
+        exhaustfan_version_info = info;
+    }else if (info.isHmshub()){
+        amshub_version_info = info;
     }
 
     module_vers.emplace(info.name, info);

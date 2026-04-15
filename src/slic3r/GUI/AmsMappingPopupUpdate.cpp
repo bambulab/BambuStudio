@@ -668,7 +668,7 @@ void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)
         });
     }
 
-    item->set_tray_index(_L("Ext"));
+    item->set_tray_index("Ext");
 }
 
 } // namespace Slic3r::GUI

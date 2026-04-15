@@ -89,6 +89,7 @@
 		"has_cali_line": true,
 		"printer_is_enclosed": true,
 		"enable_set_nozzle_info": false,
-		"support_safety_options": true
+		"support_safety_options": true,
+		"filament_load_image":["filament_load_p_series_ext0"]
 	}
 }

@@ -1169,6 +1169,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             valid_machine_id,
             context.inject_time_threshold,
             context.handle_hotend_as_extruder,
+            context.has_filament_switcher,
             context.pre_cooling_temp,
             context.cooling_rate,
             context.heating_rate,
@@ -1921,6 +1922,7 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_hotend_heating_rate = config.hotend_heating_rate.values;
     m_filament_pre_cooling_temp = config.filament_pre_cooling_temperature.values;
     m_enable_pre_heating = config.enable_pre_heating;
+    m_has_filament_switcher = config.has_filament_switcher;
     m_physical_extruder_map = config.physical_extruder_map.values;
     m_extruder_max_nozzle_count = config.extruder_max_nozzle_count.values;
     m_filament_cooling_before_tower = config.filament_cooling_before_tower.values;
@@ -2057,6 +2059,11 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     const ConfigOptionBool* handle_hotend_as_extruder = config.option<ConfigOptionBool>("handle_hotend_as_extruder");
     if (handle_hotend_as_extruder != nullptr) {
         m_handle_hotend_as_extruder = handle_hotend_as_extruder->value;
+    }
+
+    const ConfigOptionBool* has_filament_switcher = config.option<ConfigOptionBool>("has_filament_switcher");
+    if (has_filament_switcher != nullptr) {
+        m_has_filament_switcher = has_filament_switcher->value;
     }
 
     const ConfigOptionIntsNullable* extruder_max_nozzle_count = config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
@@ -2464,6 +2471,7 @@ void GCodeProcessor::reset()
     m_physical_extruder_map.clear();
     m_filament_nozzle_temp.clear();
     m_enable_pre_heating = false;
+    m_has_filament_switcher = false;
     m_hotend_cooling_rate = m_hotend_heating_rate = { 2.f };
 
     m_thermal_index    = ThermalIndex(0.0, 0.0, 0.0);
@@ -2668,7 +2676,7 @@ void GCodeProcessor::finalize(bool post_process)
     m_width_compare.output();
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
     if (post_process){
-        constexpr float inject_time_threshold = 30.f;
+        constexpr float inject_time_threshold = 0.f;
         MultiNozzleUtils::LayeredNozzleGroupResult result = *std::dynamic_pointer_cast<MultiNozzleUtils::LayeredNozzleGroupResult>(m_nozzle_group_result);
         TimeProcessContext context(
             m_used_filaments,
@@ -2684,6 +2692,7 @@ void GCodeProcessor::finalize(bool post_process)
             inject_time_threshold,
             m_enable_pre_heating,
             m_handle_hotend_as_extruder,
+            m_has_filament_switcher,
             m_extruder_max_nozzle_count,
             m_filament_cooling_before_tower
         );
@@ -6371,6 +6380,12 @@ void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimePro
             bool apply_pre_heating = is_end ? false : true;
             float curr_temp = get_nozzle_temp(iter->last_filament_id,false,true,false);
             float target_temp       = get_nozzle_temp(iter->next_filament_id, false, false, !iter->ignore_cooling_before_tower);
+            // When filament switcher is connected, limit pre-heating target to print_temp - 40
+            if (has_filament_switcher && apply_pre_heating) {
+                constexpr float switcher_temp_offset = 20.f;
+                float print_temp = get_nozzle_temp(iter->next_filament_id, false, false, false);
+                target_temp = std::min(target_temp, print_temp - switcher_temp_offset);
+            }
             inject_cooling_heating_command(inserted_operation_lines, *iter, curr_temp, target_temp, apply_pre_cooling, apply_pre_heating);
         }
     }
@@ -6522,14 +6537,15 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         auto format_line_M104 = [&](int target_temp, int target_filament, bool skippable, int next_filament_idx,  int next_nozzle_id,const std::string& comment = std::string())->std::vector<std::string> {
             std::vector<std::string> buffer;
             int target_extruder = get_valid_extruder_id(next_filament_idx, target_filament);
-            skippable &= (extruder_max_nozzle_count[target_extruder] > 1);
             if (skippable) {
-                if (this->nozzle_group_result.is_support_dynamic_nozzle_map()) {
-                    buffer.emplace_back("M632 S " + std::to_string(next_filament_idx) + " H" + std::to_string(next_nozzle_id) + " N R\n");
-                }
-                else {
-                    buffer.emplace_back("M632 S " + std::to_string(next_filament_idx) + " N R\n");
-                }
+                const bool support_dynamic_nozzle_map = this->nozzle_group_result.is_support_dynamic_nozzle_map();
+                std::string m632_line = "M632 S" + std::to_string(next_filament_idx);
+                if (support_dynamic_nozzle_map)
+                    m632_line += " H" + std::to_string(next_nozzle_id);
+                if (extruder_max_nozzle_count[target_extruder] > 1)
+                    m632_line += " N R";
+                m632_line += " W\n";
+                buffer.emplace_back(std::move(m632_line));
             }
             std::string M104_line = "M104";
             if (handle_hotend_as_extruder) {

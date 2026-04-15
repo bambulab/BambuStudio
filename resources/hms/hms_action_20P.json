@@ -1,8 +1,976 @@
 {
     "result": 0,
-    "t": 1765885141,
+    "t": 1773300007,
     "ver": 202511162200,
     "data": [
+        {
+            "ecode": "07028028",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07018026",
+            "image": "",
+            "actions": [
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18058028",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07008029",
+            "image": "",
+            "actions": [
+                4
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07018028",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07018027",
+            "image": "",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07038028",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07038027",
+            "image": "",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18008028",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07038029",
+            "image": "",
+            "actions": [
+                4
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07008027",
+            "image": "",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18038028",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18048028",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "0502C033",
+            "image": "",
+            "actions": [
+                41,
+                57
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18018028",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07008026",
+            "image": "",
+            "actions": [
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07038026",
+            "image": "",
+            "actions": [
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "0703802A",
+            "image": "",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "0701802A",
+            "image": "",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "0700802A",
+            "image": "",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18028028",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07028027",
+            "image": "",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18068028",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "0702802A",
+            "image": "",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07018029",
+            "image": "",
+            "actions": [
+                4
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18078028",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07028029",
+            "image": "",
+            "actions": [
+                4
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07008028",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07028026",
+            "image": "",
+            "actions": [
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "03008070",
+            "image": "",
+            "actions": [
+                6,
+                39
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07018021",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07FE8021",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18058021",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18068021",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18018021",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18048021",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07028021",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18038021",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18078021",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07038021",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07008021",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18028021",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18008021",
+            "image": "",
+            "actions": [
+                34,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "0502C032",
+            "image": "",
+            "actions": [
+                41,
+                37
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "03008019",
+            "image": "",
+            "actions": [
+                4
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18058011",
+            "image": "6090fe0d745802dea8d86ff4d6363e17.png",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18FF8011",
+            "image": "19fa8da537a249254ded75b8ec456bae.png",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07028011",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07FE8011",
+            "image": "f0b895a033302c5c63417e536ae75885.png",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07018011",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18008011",
+            "image": "6090fe0d745802dea8d86ff4d6363e17.png",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18028011",
+            "image": "6090fe0d745802dea8d86ff4d6363e17.png",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18068011",
+            "image": "6090fe0d745802dea8d86ff4d6363e17.png",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18FE8011",
+            "image": "f0b895a033302c5c63417e536ae75885.png",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18038011",
+            "image": "6090fe0d745802dea8d86ff4d6363e17.png",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18078011",
+            "image": "6090fe0d745802dea8d86ff4d6363e17.png",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18048011",
+            "image": "6090fe0d745802dea8d86ff4d6363e17.png",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07FF8011",
+            "image": "19fa8da537a249254ded75b8ec456bae.png",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "03008003",
+            "image": "278fea69c51afd33a450643e21462345.png",
+            "actions": [
+                1,
+                3,
+                5
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07038011",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "07008011",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18018011",
+            "image": "6090fe0d745802dea8d86ff4d6363e17.png",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "03004031",
+            "image": "",
+            "actions": [
+                56
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "03004035",
+            "image": "",
+            "actions": [
+                56
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "03004036",
+            "image": "",
+            "actions": [
+                56
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "03004037",
+            "image": "",
+            "actions": [
+                56
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "03004030",
+            "image": "",
+            "actions": [
+                56
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "03004038",
+            "image": "",
+            "actions": [
+                56
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "03004032",
+            "image": "",
+            "actions": [
+                56
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "03004033",
+            "image": "",
+            "actions": [
+                56
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "0500809B",
+            "image": "af663ae2a9ebdbb35ef2d37b4b0d944e.png",
+            "actions": [
+                27,
+                28
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "05008081",
+            "image": "",
+            "actions": [
+                25,
+                28
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "05FF8081",
+            "image": "",
+            "actions": [
+                25,
+                28
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "05FE8081",
+            "image": "",
+            "actions": [
+                25,
+                28
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "0C00803F",
+            "image": "093b3ff8fc83d36c23d13ca797acb7f0.png",
+            "actions": [
+                6,
+                4
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "0C008043",
+            "image": "093b3ff8fc83d36c23d13ca797acb7f0.png",
+            "actions": [
+                6,
+                4
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "0502802B",
+            "image": "",
+            "actions": [
+                41,
+                37
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "05024029",
+            "image": "",
+            "actions": [
+                11
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "0502802A",
+            "image": "",
+            "actions": [
+                41,
+                37
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "1805700000020007",
+            "image": "6090fe0d745802dea8d86ff4d6363e17.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "0701220000020001",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "1802700000020007",
+            "image": "6090fe0d745802dea8d86ff4d6363e17.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "0703220000020001",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "0700200000020001",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "0702700000020007",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "0702220000020001",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "0700700000020007",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "0702200000020001",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "18008010",
+            "image": "36a5ba8da7edd10b38499ffca9789c97.png",
+            "actions": [
+                6,
+                9
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "0702230000020001",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "0702210000020001",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "18FF8003",
+            "image": "b8f4e5da021db26affe3b900d74b396e.png",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "0701200000020001",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "0703230000020001",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "0703210000020001",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "0701230000020001",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "0700230000020001",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "0700210000020001",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "1800700000020007",
+            "image": "6090fe0d745802dea8d86ff4d6363e17.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "1803700000020007",
+            "image": "6090fe0d745802dea8d86ff4d6363e17.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "0701700000020007",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "1804700000020007",
+            "image": "6090fe0d745802dea8d86ff4d6363e17.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "0700220000020001",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "18018010",
+            "image": "36a5ba8da7edd10b38499ffca9789c97.png",
+            "actions": [
+                6,
+                9
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "0703200000020001",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "1806700000020007",
+            "image": "6090fe0d745802dea8d86ff4d6363e17.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "0701210000020001",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "1807700000020007",
+            "image": "6090fe0d745802dea8d86ff4d6363e17.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "1801700000020007",
+            "image": "6090fe0d745802dea8d86ff4d6363e17.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "0703700000020007",
+            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
+            "actions": [],
+            "device": "20P"
+        },
+        {
+            "ecode": "0500809A",
+            "image": "",
+            "actions": [
+                4,
+                27
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "05008099",
+            "image": "",
+            "actions": [
+                1,
+                3,
+                5
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "03008051",
+            "image": "",
+            "actions": [
+                22
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18FE8007",
+            "image": "3e892923ff61d04acbf474ab869cb4d6.png",
+            "actions": [
+                7,
+                8
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "18FF8007",
+            "image": "1481a6daf2b8a332096dd8ca6d104695.png",
+            "actions": [
+                7,
+                8
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "03008063",
+            "image": "dd12e05870cb95f55851ecbd9f9cb84d.png",
+            "actions": [
+                4
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "03008062",
+            "image": "c9268af880b9cec29359f7055a90dfb1.png",
+            "actions": [
+                4
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "05008084",
+            "image": "28b0885244c0fa3595143b4dd9354483.png",
+            "actions": [
+                28,
+                27
+            ],
+            "device": "20P"
+        },
+        {
+            "ecode": "05008072",
+            "image": "28b0885244c0fa3595143b4dd9354483.png",
+            "actions": [
+                28,
+                27
+            ],
+            "device": "20P"
+        },
         {
             "ecode": "03008041",
             "image": "",
@@ -27,15 +995,6 @@
                 28,
                 27,
                 6
-            ],
-            "device": "20P"
-        },
-        {
-            "ecode": "18008010",
-            "image": "f87557495f2f2163a44bde8f4ddd9b8c.png",
-            "actions": [
-                6,
-                9
             ],
             "device": "20P"
         },
@@ -75,29 +1034,11 @@
             "device": "20P"
         },
         {
-            "ecode": "07028011",
-            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
-            "actions": [
-                4,
-                6
-            ],
-            "device": "20P"
-        },
-        {
             "ecode": "07018010",
             "image": "36a5ba8da7edd10b38499ffca9789c97.png",
             "actions": [
                 6,
                 9
-            ],
-            "device": "20P"
-        },
-        {
-            "ecode": "07FE8011",
-            "image": "f0b895a033302c5c63417e536ae75885.png",
-            "actions": [
-                4,
-                6
             ],
             "device": "20P"
         },
@@ -133,15 +1074,6 @@
             "actions": [
                 27,
                 28
-            ],
-            "device": "20P"
-        },
-        {
-            "ecode": "07038011",
-            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
-            "actions": [
-                4,
-                6
             ],
             "device": "20P"
         },
@@ -220,15 +1152,6 @@
             "image": "92a68998a7b1209132dc91f01df14501.png",
             "actions": [
                 9
-            ],
-            "device": "20P"
-        },
-        {
-            "ecode": "07018011",
-            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
-            "actions": [
-                4,
-                6
             ],
             "device": "20P"
         },
@@ -327,47 +1250,10 @@
             "device": "20P"
         },
         {
-            "ecode": "07FF8011",
-            "image": "19fa8da537a249254ded75b8ec456bae.png",
-            "actions": [
-                4,
-                6
-            ],
-            "device": "20P"
-        },
-        {
-            "ecode": "03008003",
-            "image": "278fea69c51afd33a450643e21462345.png",
-            "actions": [
-                1,
-                3,
-                5
-            ],
-            "device": "20P"
-        },
-        {
             "ecode": "07FEC006",
             "image": "92a68998a7b1209132dc91f01df14501.png",
             "actions": [
                 9
-            ],
-            "device": "20P"
-        },
-        {
-            "ecode": "18018010",
-            "image": "f87557495f2f2163a44bde8f4ddd9b8c.png",
-            "actions": [
-                6,
-                9
-            ],
-            "device": "20P"
-        },
-        {
-            "ecode": "07008011",
-            "image": "cfbd7c18d8c0cede93b6eaa40ca825f0.png",
-            "actions": [
-                4,
-                6
             ],
             "device": "20P"
         },
@@ -423,47 +1309,11 @@
             "device": "20P"
         },
         {
-            "ecode": "05008081",
-            "image": "",
-            "actions": [
-                25,
-                24
-            ],
-            "device": "20P"
-        },
-        {
-            "ecode": "05FF8081",
-            "image": "",
-            "actions": [
-                25,
-                24
-            ],
-            "device": "20P"
-        },
-        {
-            "ecode": "05FE8081",
-            "image": "",
-            "actions": [
-                25,
-                24
-            ],
-            "device": "20P"
-        },
-        {
             "ecode": "18FF8004",
             "image": "",
             "actions": [
                 9,
                 6
-            ],
-            "device": "20P"
-        },
-        {
-            "ecode": "05008072",
-            "image": "",
-            "actions": [
-                28,
-                27
             ],
             "device": "20P"
         },
@@ -716,15 +1566,6 @@
             "device": "20P"
         },
         {
-            "ecode": "0C00803F",
-            "image": "",
-            "actions": [
-                6,
-                4
-            ],
-            "device": "20P"
-        },
-        {
             "ecode": "18FE8012",
             "image": "",
             "actions": [
@@ -780,15 +1621,6 @@
             "actions": [
                 28,
                 27
-            ],
-            "device": "20P"
-        },
-        {
-            "ecode": "18008011",
-            "image": "",
-            "actions": [
-                4,
-                6
             ],
             "device": "20P"
         },
@@ -906,15 +1738,6 @@
         },
         {
             "ecode": "0C008018",
-            "image": "",
-            "actions": [
-                4,
-                6
-            ],
-            "device": "20P"
-        },
-        {
-            "ecode": "18018011",
             "image": "",
             "actions": [
                 4,
@@ -1070,15 +1893,6 @@
             "actions": [
                 6,
                 4
-            ],
-            "device": "20P"
-        },
-        {
-            "ecode": "18FF8003",
-            "image": "",
-            "actions": [
-                9,
-                6
             ],
             "device": "20P"
         },
@@ -1360,15 +2174,6 @@
             "device": "20P"
         },
         {
-            "ecode": "0C008043",
-            "image": "",
-            "actions": [
-                6,
-                4
-            ],
-            "device": "20P"
-        },
-        {
             "ecode": "0C004021",
             "image": "",
             "actions": [
@@ -1507,10 +2312,80 @@
             "device": "20P"
         },
         {
-            "ecode": "03008019",
+            "ecode": "07FEC030",
             "image": "",
             "actions": [
-                4
+                9,
+                6
+            ],
+            "device": "default"
+        },
+        {
+            "ecode": "07FFC030",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "default"
+        },
+        {
+            "ecode": "0300806F",
+            "image": "",
+            "actions": [
+                6,
+                39
+            ],
+            "device": "default"
+        },
+        {
+            "ecode": "0500040000030057",
+            "image": "",
+            "actions": [
+                54
+            ],
+            "device": "default"
+        },
+        {
+            "ecode": "0502C031",
+            "image": "",
+            "actions": [
+                41,
+                37
+            ],
+            "device": "default"
+        },
+        {
+            "ecode": "0300806E",
+            "image": "",
+            "actions": [
+                6,
+                39
+            ],
+            "device": "default"
+        },
+        {
+            "ecode": "05004095",
+            "image": "",
+            "actions": [
+                56
+            ],
+            "device": "default"
+        },
+        {
+            "ecode": "05008057",
+            "image": "",
+            "actions": [
+                5,
+                27
+            ],
+            "device": "default"
+        },
+        {
+            "ecode": "0502C028",
+            "image": "",
+            "actions": [
+                11
             ],
             "device": "default"
         },
@@ -1572,14 +2447,6 @@
             "device": "default"
         },
         {
-            "ecode": "05004015",
-            "image": "",
-            "actions": [
-                14
-            ],
-            "device": "default"
-        },
-        {
             "ecode": "05004007",
             "image": "",
             "actions": [
@@ -1608,14 +2475,6 @@
             "image": "",
             "actions": [
                 11
-            ],
-            "device": "default"
-        },
-        {
-            "ecode": "0500402E",
-            "image": "",
-            "actions": [
-                14
             ],
             "device": "default"
         },
@@ -1666,14 +2525,6 @@
             "actions": [
                 2,
                 6
-            ],
-            "device": "default"
-        },
-        {
-            "ecode": "0500402F",
-            "image": "",
-            "actions": [
-                14
             ],
             "device": "default"
         },

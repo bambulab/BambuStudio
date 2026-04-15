@@ -319,12 +319,12 @@ void AMSExtText::doRender(wxDC& dc)
 
     dc.SetPen(wxPen(StateColor::darkModeColorFor(AMS_CONTROL_GRAY800), 2, wxPENSTYLE_SOLID));
     dc.SetTextForeground(StateColor::darkModeColorFor(AMS_CONTROL_GRAY800));
-    dc.SetFont(Label::Body_13);
+    dc.SetFont(Label::Body_10);
     WxFontUtils::get_suitable_font_size(0.7 * size.GetHeight(), dc);
 
-    auto    tsize = dc.GetMultiLineTextExtent(_L("Ext"));
+    auto    tsize = dc.GetMultiLineTextExtent("Ext");
     wxPoint pot(FromDIP((size.x - tsize.x) / 2), FromDIP((size.y - tsize.y) / 2));
-    dc.DrawText(_L("Ext"), pot);
+    dc.DrawText("Ext", pot);
 }
 
 

@@ -937,55 +937,42 @@ bool CalibUtils::calib_flowrate(int pass, const CalibInfo &calib_info, wxString 
     return true;
 }
 
-void CalibUtils::calib_pa_pattern(const MachineObject *obj, const CalibInfo &calib_info, Model& model)
+void CalibUtils::calib_pa_pattern(const MachineObject *obj, const CalibInfo &calib_info, Model& model, DynamicPrintConfig& full_config)
 {
     if (obj == nullptr)
         return;
 
-    DynamicPrintConfig& print_config    = calib_info.print_prest->config;
-    DynamicPrintConfig& filament_config = calib_info.filament_prest->config;
-    DynamicPrintConfig& printer_config  = calib_info.printer_prest->config;
-
-    DynamicPrintConfig full_config;
-    full_config.apply(FullPrintConfig::defaults());
-    full_config.apply(print_config);
-    full_config.apply(filament_config);
-    full_config.apply(printer_config);
-
-    float nozzle_diameter = printer_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0);
+    float nozzle_diameter = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0);
 
     for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) {
-        print_config.set_key_value(opt.first, new ConfigOptionFloat(opt.second));
+        full_config.set_key_value(opt.first, new ConfigOptionFloat(opt.second));
     }
     for (const auto opt : SuggestedConfigCalibPAPattern().floats_pairs) {
-        print_config.set_key_value(opt.first, new ConfigOptionFloatsNullable(opt.second));
+        full_config.set_key_value(opt.first, new ConfigOptionFloatsNullable(opt.second));
     }
 
-    int logic_extruder_id = DevExtder::to_logical_extruder_id(obj->GetExtderSystem()->GetTotalExtderCount(),   calib_info.extruder_id);
-    int index = get_index_for_extruder_parameter(print_config, "outer_wall_speed", logic_extruder_id, calib_info.extruder_type, calib_info.nozzle_volume_type);
-    float wall_speed = CalibPressureAdvance::find_optimal_PA_speed(full_config, print_config.get_abs_value("line_width"), print_config.get_abs_value("layer_height"), logic_extruder_id , 0);
-    ConfigOptionFloatsNullable *wall_speed_speed_opt = print_config.option<ConfigOptionFloatsNullable>("outer_wall_speed");
+    int logic_extruder_id = DevExtder::to_logical_extruder_id(obj->GetExtderSystem()->GetTotalExtderCount(), calib_info.extruder_id);
+    int index = get_index_for_extruder_parameter(full_config, "outer_wall_speed", logic_extruder_id, calib_info.extruder_type, calib_info.nozzle_volume_type);
+    float wall_speed = CalibPressureAdvance::find_optimal_PA_speed(full_config, full_config.get_abs_value("line_width"), full_config.get_abs_value("layer_height"), logic_extruder_id, 0);
+    ConfigOptionFloatsNullable *wall_speed_speed_opt = full_config.option<ConfigOptionFloatsNullable>("outer_wall_speed");
     wall_speed_speed_opt->values[index]              = wall_speed;
 
     for (const auto opt : SuggestedConfigCalibPAPattern().nozzle_ratio_pairs) {
-        print_config.set_key_value(opt.first, new ConfigOptionFloat(nozzle_diameter * opt.second / 100));
+        full_config.set_key_value(opt.first, new ConfigOptionFloat(nozzle_diameter * opt.second / 100));
     }
 
     for (const auto opt : SuggestedConfigCalibPAPattern().int_pairs) {
-        print_config.set_key_value(opt.first, new ConfigOptionInt(opt.second));
+        full_config.set_key_value(opt.first, new ConfigOptionInt(opt.second));
     }
 
-    print_config.set_key_value(SuggestedConfigCalibPAPattern().brim_pair.first,
+    full_config.set_key_value(SuggestedConfigCalibPAPattern().brim_pair.first,
         new ConfigOptionEnum<BrimType>(SuggestedConfigCalibPAPattern().brim_pair.second));
-
-    //DynamicPrintConfig full_config;
-    full_config.apply(FullPrintConfig::defaults());
-    full_config.apply(print_config);
-    full_config.apply(filament_config);
-    full_config.apply(printer_config);
 
     Vec3d plate_origin(0, 0, 0);
     CalibPressureAdvancePattern pa_pattern(calib_info.params, full_config, true, model, plate_origin);
+
+    if (calib_info.extruder_type == ExtruderType::etBowden)
+        pa_pattern.set_bbl_bowden_mode();
 
     Pointfs bedfs         = full_config.opt<ConfigOptionPoints>("printable_area")->values;
     double  current_width = bedfs[2].x() - bedfs[0].x();
@@ -1280,9 +1267,6 @@ bool CalibUtils::calib_generic_PA(const CalibInfo &calib_info, wxString &error_m
 
     read_model_from_file(input_file, model);
 
-    if (params.mode == CalibMode::Calib_PA_Pattern)
-        calib_pa_pattern(obj_, calib_info, model);
-
     DynamicPrintConfig print_config    = calib_info.print_prest->config;
     DynamicPrintConfig filament_config = calib_info.filament_prest->config;
     DynamicPrintConfig printer_config  = calib_info.printer_prest->config;
@@ -1299,6 +1283,9 @@ bool CalibUtils::calib_generic_PA(const CalibInfo &calib_info, wxString &error_m
     full_config.set_key_value("enable_wrapping_detection", new ConfigOptionBool(false));
 
     init_multi_extruder_params_for_cali(full_config, calib_info);
+
+    if (params.mode == CalibMode::Calib_PA_Pattern)
+        calib_pa_pattern(obj_, calib_info, model, full_config);
 
     if (!process_and_store_3mf(&model, full_config, params, error_message))
         return false;
@@ -1724,6 +1711,10 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
             return false;
         }
 
+        if (cali_info.extruder_type == ExtruderType::etBowden) {
+            error_message = wxString::Format(_L("The type of %sextruder is bowden which does not support automatic Flow Dynamics calibration."), name);
+            return false;
+        }
 
         if (is_approx(double(cali_info.nozzle_diameter), 0.2) && !obj->is_series_x()) {
             error_message = wxString::Format(_L("The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."), name);
@@ -1784,6 +1775,10 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
             return false;
         }
 
+        if (cali_info.extruder_type == ExtruderType::etBowden) {
+            error_message = wxString::Format(_L("The type of %sextruder is bowden which does not support automatic Flow Dynamics calibration."), name);
+            return false;
+        }
 
         if (is_approx(double(cali_info.nozzle_diameter), 0.2) && !obj->is_series_x()) {
             error_message = wxString::Format(_L("The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."), name);

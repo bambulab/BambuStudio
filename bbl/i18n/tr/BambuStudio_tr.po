@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-12 12:08+0800\n"
+"POT-Creation-Date: 2026-03-31 16:30+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -65,6 +65,9 @@ msgstr ""
 msgid "Bambu TPU 85A is not supported for printing with 0.4 mm Standard or High Flow nozzles."
 msgstr ""
 
+msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+msgstr ""
+
 msgid "How to feed TPU filament."
 msgstr ""
 
@@ -105,8 +108,28 @@ msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow noz
 msgstr ""
 
 #, c-format, boost-format
+msgid "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "%s, %s ekstrüder tarafından desteklenmiyor."
+
+#, c-format, boost-format
+msgid "There may be critical print quality issues when printing '%s' with %s Bowden extruder. Use with caution!"
+msgstr ""
+
+#, c-format, boost-format
+msgid "There may be critical print quality issues when printing '%s' with %s extruder. Use with caution!"
+msgstr ""
+
+#, c-format, boost-format
+msgid "There may be print quality issues when printing '%s' with %s Bowden extruder. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
+msgstr ""
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr ""
@@ -228,28 +251,27 @@ msgstr "Kapat"
 msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
 msgstr ""
 
+msgid "Summary:"
+msgstr ""
+
+msgid "AMS on Filament Inlet A"
+msgstr ""
+
+msgid "AMS on Filament Inlet B"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The No.%d slicing filament is matched to '%s'. Assigning it to '%s' can save printing time."
+msgstr ""
+
+msgid "*Tips: If you have moved the spool position on the machine, please close this page and re‑match the filament."
+msgstr ""
+
 msgid "Summary: This is currently the most suitable position for placement."
 msgstr ""
 
 msgid "?"
 msgstr "?"
-
-msgid "Summary: "
-msgstr ""
-
-#, c-format, boost-format
-msgid "Remove %s in %s . Insert into AMS on Filament Inlet B."
-msgstr ""
-
-msgid "filaments"
-msgstr ""
-
-msgid "filament"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Remove %s in %s . Insert into AMS on Filament Inlet A."
-msgstr ""
 
 msgid "Model:"
 msgstr "Model:"
@@ -2243,11 +2265,8 @@ msgstr "Kesim bilgisini geçersiz kıl"
 msgid "Add Primitive"
 msgstr "Şekil Ekle"
 
-msgid "Show Labels by Layer"
-msgstr ""
-
-msgid "Show Labels by Object"
-msgstr ""
+msgid "Show Labels"
+msgstr "Etiketleri Göster"
 
 msgid "To objects"
 msgstr "Nesnelere"
@@ -2383,9 +2402,6 @@ msgstr "Yatağın kalan alanını seçilen nesnenin kopyalarıyla doldurun"
 
 msgid "Edit Plate Name"
 msgstr "Plaka Adını Düzenle"
-
-msgid "Show Labels"
-msgstr "Etiketleri Göster"
 
 msgid "Name"
 msgstr "İsim"
@@ -2788,9 +2804,6 @@ msgstr "Bir AMS yuvası seçin ve ardından filamentleri otomatik olarak yüklem
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
 msgstr "Bu eylemi gerçekleştirmek için gerekli olan filament tipi bilinmiyor. Lütfen hedef filamentin bilgilerini ayarlayın."
 
-msgid "Ext"
-msgstr "Harici"
-
 msgid "/"
 msgstr "/"
 
@@ -2879,6 +2892,12 @@ msgstr ""
 msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
 msgstr ""
 
+msgid "Strong Cooling"
+msgstr ""
+
+msgid "Fan"
+msgstr "Fan"
+
 msgctxt "air_duct"
 msgid "Right(Aux)"
 msgstr "Sağ(Yardımcı)"
@@ -2912,9 +2931,6 @@ msgstr "MC Kartı"
 
 msgid "Heat"
 msgstr "Isı"
-
-msgid "Fan"
-msgstr "Fan"
 
 msgid "Idling..."
 msgstr "Boşta..."
@@ -5411,11 +5427,8 @@ msgstr "Pencere Düzenini Sıfırla"
 msgid "Reset to default window layout"
 msgstr "Varsayılan pencere düzenine sıfırla"
 
-msgid "Show Labels of printing by layer in 3D scene"
-msgstr ""
-
-msgid "Show Labels of printing by object in 3D scene"
-msgstr ""
+msgid "Show object labels in 3D scene"
+msgstr "3B sahnede nesne etiketlerini göster"
 
 msgid "Show &Overhang"
 msgstr "Çıkıntıyı Göster"
@@ -6961,7 +6974,7 @@ msgstr "Ekstrüder bilgilerini senkronize edin"
 
 msgid ""
 "Tips:\n"
-"Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
+"Curve planning enhancement support detected on your printer. The software has automatically disabled arc fitting to ensure this feature functions correctly."
 msgstr ""
 
 msgid "Click to edit preset"
@@ -7654,6 +7667,13 @@ msgstr "PVA filamentlerinin 0,2 mm nozullarla kullanılması tavsiye edilmez."
 msgid "Are you sure to use them? \n"
 msgstr "Bunları kullanacağından emin misin? \n"
 
+msgid ""
+"Print By Object: \n"
+"Suggest to use auto-arrange to avoid collisions when printing."
+msgstr ""
+"Nesneye Göre Yazdır:\n"
+"Yazdırma sırasında çarpışmaları önlemek için otomatik düzenlemeyi kullanmanızı önerin."
+
 msgid "Send G-code"
 msgstr "G-kodu gönder"
 
@@ -7665,19 +7685,6 @@ msgstr "Tamir edilmeden önce özel destekler ve renkli boyalar kaldırıldı."
 
 msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
 msgstr "Özel destekler, dikiş_yüzeyleri ve renk boyamaları onarım öncesinde kaldırıldı, model adı:"
-
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-"Nesneye Göre Yazdır:\n"
-"Yazdırma sırasında çarpışmaları önlemek için otomatik düzenlemeyi kullanmanızı önerin."
-
-msgid "Auto arrange"
-msgstr ""
-
-msgid "Detail view wiki->"
-msgstr ""
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -7934,6 +7941,12 @@ msgstr "3mf Yükle pencere ayarlarındaki seçimimi kaldır."
 
 msgid "Show the warning dialog again when importing non-Bambu 3MF files"
 msgstr "Bambu olmayan 3MF dosyalarını içe aktarırken uyarı penceresini tekrar göster"
+
+msgid "Clear my choice for disabling recommendation for support material parameters."
+msgstr ""
+
+msgid "Clear my choice for disabling recommendation for support material parameters"
+msgstr ""
 
 msgid "3D Settings"
 msgstr "3D Ayarları"
@@ -8528,6 +8541,9 @@ msgstr ""
 msgid "Nozzles and filaments of the same type share the same PA profile"
 msgstr ""
 
+msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
+msgstr ""
+
 msgid "send completed"
 msgstr "gönderme tamamlandı"
 
@@ -8585,6 +8601,18 @@ msgstr "Bu, ısı yatağının düzlüğünü kontrol eder. Tesviye, ekstrüzyon
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Bu işlem, genel baskı kalitesini iyileştirmek için dinamik akış değerlerini belirler."
 
+msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value.\n"
+msgstr ""
+
+msgid "On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value.\n"
+msgstr ""
+
+msgid "Off: Prioritize using the value from your manual flow calibration."
+msgstr ""
+
+msgid "Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "Yazdırma için hazırlanıyor"
 
@@ -8596,6 +8624,9 @@ msgstr "Yazdırma işi başarıyla gönderildiğinden, iptal işlemi yazdırma i
 
 msgid "The name length exceeds the limit."
 msgstr "Ad uzunluğu sınırı aşıyor."
+
+msgid "Right Nozzle(Aux)"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Cost %dg filament and %d changes more than optimal grouping."
@@ -8843,6 +8874,24 @@ msgstr "Dilimleme tamam."
 msgid "View all Daily tips"
 msgstr "Tüm Günlük ipuçlarını görüntüleyin"
 
+msgid "Availabale Objects"
+msgstr ""
+
+msgid "Main Material"
+msgstr ""
+
+msgid "Support Material"
+msgstr ""
+
+msgid "Recommended Parameters"
+msgstr ""
+
+msgid "Compatible model and support filaments detected. It is recommended to use the suggested filaments for printing the support interfaces of these objects, along with the recommended parameters."
+msgstr ""
+
+msgid "Don't remind me again"
+msgstr "Bir daha anımsatma"
+
 msgid "Failed to create socket"
 msgstr "Soket oluşturulamadı"
 
@@ -8971,6 +9020,21 @@ msgstr ""
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Tüm ayarları en son kaydedilen ön ayara sıfırlamak için tıklayın."
 
+msgid "Support interface speed"
+msgstr ""
+
+msgid "When using PLA to support TPU, We recommend the following settings:"
+msgstr ""
+
+msgid "When using soluble material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "Do you want to apply these settings?"
+msgstr ""
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr ""
 
@@ -9025,22 +9089,6 @@ msgstr ""
 "Bu ayarlar otomatik olarak değiştirilsin mi?\n"
 "Evet - Bu ayarları otomatik olarak değiştir\n"
 "Hayır - Bu ayarları benim için değiştirme"
-
-msgid ""
-"When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-msgstr ""
-"Destek arayüzü için destek malzemesi kullanırken, aşağıdaki ayarları öneririz:\n"
-"0 üst z mesafesi, 0 arayüz aralığı, geçmeli doğrusal desen ve bağımsız destek katmanı yüksekliğini devre dışı bırakma"
-
-msgid ""
-"When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"Destek arayüzü için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
-"0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, geçmeli doğrusal desen, \n"
-"bağımsız destek katmanı yüksekliğini devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
 
 msgid ""
 "Layer height is too small.\n"
@@ -9872,6 +9920,9 @@ msgctxt "FinishSyncAms"
 msgid "OK"
 msgstr "TAMAM"
 
+msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
+msgstr ""
+
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 msgstr "Studio, filament rengi veya filament değiştiğinde her zaman  temizleme hacimlerinizi yeniden hesaplar. Otomatik hesaplamayı Bambu Studio > Tercihler bölümünde devre dışı bırakabilirsiniz"
 
@@ -10038,9 +10089,6 @@ msgstr "Kamera görüntüsü - Sağ"
 
 msgid "Camera view - Isometric"
 msgstr "Kamera görünümü - İzometrik"
-
-msgid "Shift+E"
-msgstr ""
 
 msgid "Select all objects"
 msgstr "Tüm nesneleri seç"
@@ -11375,14 +11423,12 @@ msgstr "s"
 msgid "Cooling overhang threshold"
 msgstr "Çıkıntı soğutması"
 
-#, c-format
 msgid "Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Yazdırılan parçanın çıkıntı derecesi bu değeri aştığında soğutma fanını belirli bir hıza zorlar. Alt katmandan destek almadan çizginin ne kadar genişlediğini gösteren yüzde olarak ifade edilir. 0, çıkıntı derecesi ne kadar olursa olsun tüm dış duvar için soğutmayı zorlamak anlamına gelir"
 
 msgid "Overhang threshold for participating cooling"
 msgstr "Soğutma katkısı için sarkma eşik değeri"
 
-#, c-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Hızı yavaşlatmak için hangi çıkıntı kısmının soğutma fonksiyonuna katılacağına karar verin. alt katmandan destek almadan hattın ne kadar genişlediğini gösteren yüzde olarak ifade edilir. 100, ne kadar çıkıntı derecesi olursa olsun tüm dış duvar için soğutmayı zorlamak anlamına gelir"
 
@@ -11757,7 +11803,6 @@ msgstr "Köprü dolgusu değil, alt yüzey dolgusunun çizgi deseni"
 msgid "Bottom surface density"
 msgstr ""
 
-#, c-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
 msgstr ""
 
@@ -12108,6 +12153,12 @@ msgstr "Filamentle basılabilir"
 msgid "The filament is printable in extruder"
 msgstr "Filament ekstrüderde basılabilir"
 
+msgid "Filament-extruder compatibility"
+msgstr ""
+
+msgid "A single 32-bit int encoding the compatibility level of a filament across all extruders (up to 10). Every 3 bits represent one extruder (bits [3*i, 3*i+2] for extruder i). 0: printable, 1: error, 2: critical warning, 3: warning, 4-7: reserved"
+msgstr ""
+
 msgid "Filament change"
 msgstr ""
 
@@ -12159,6 +12210,12 @@ msgstr ""
 msgid "°C"
 msgstr ""
 
+msgid "Enable tower interface features"
+msgstr ""
+
+msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
+msgstr ""
+
 msgid "Softening temperature"
 msgstr "Yumuşama sıcaklığı"
 
@@ -12201,7 +12258,6 @@ msgstr "Hattın başlangıcını veya ana yönünü kontrol eden seyrek dolgu de
 msgid "Sparse infill density"
 msgstr "Dolgu yoğunluğu"
 
-#, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr "İç boş dolgu yoğunluğu, 100 yüz katıdır, yani tamamen doludur"
 
@@ -12414,6 +12470,12 @@ msgstr "İlk katmanı tara"
 
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "Yazıcıdaki kameranın ilk katmanın kalitesini kontrol etmesini sağlamak için bunu etkinleştirin"
+
+msgid "Print loops in clockwise"
+msgstr ""
+
+msgid "Print in clockwise when enabled, or counterclockwise when not enabled, not work for spiral vase mode"
+msgstr ""
 
 msgid "Enable clumping detection"
 msgstr "Topaklanma algılamayı etkinleştir"
@@ -14330,6 +14392,12 @@ msgid ""
 "- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)\n"
 msgstr ""
 
+msgid "- Right Nozzle (Aux) does not support automatic flow calibration."
+msgstr ""
+
+msgid "- Left Nozzle (Aux) does not support automatic flow calibration."
+msgstr ""
+
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr ""
 
@@ -15298,6 +15366,10 @@ msgid "The number of printer extruders and the printer selected for calibration 
 msgstr "Yazıcı ekstrüderlerinin sayısı ve kalibrasyon için seçilen yazıcı eşleşmiyor."
 
 #, c-format, boost-format
+msgid "The type of %sextruder is bowden which does not support automatic Flow Dynamics calibration."
+msgstr ""
+
+#, c-format, boost-format
 msgid "The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."
 msgstr "%sEkstrüderin nozul çapı 0,2 mm'dir ve otomatik Akış Dinamiği kalibrasyonunu desteklemez."
 
@@ -15861,9 +15933,6 @@ msgstr "Filament gruplama"
 
 msgid "Fila Saving"
 msgstr ""
-
-msgid "Don't remind me again"
-msgstr "Bir daha anımsatma"
 
 msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
 msgstr ""
@@ -16579,11 +16648,27 @@ msgid ""
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
 
-#~ msgid "Show object labels in 3D scene"
-#~ msgstr "3B sahnede nesne etiketlerini göster"
+#~ msgid "Ext"
+#~ msgstr "Harici"
 
 #~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
 #~ msgstr "Dolambaçlı yoldan gidin ve yüzeyde lekeye neden olabilecek duvar boyunca ilerlemekten kaçının"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+#~ msgstr ""
+#~ "Destek arayüzü için destek malzemesi kullanırken, aşağıdaki ayarları öneririz:\n"
+#~ "0 üst z mesafesi, 0 arayüz aralığı, geçmeli doğrusal desen ve bağımsız destek katmanı yüksekliğini devre dışı bırakma"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "Destek arayüzü için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
+#~ "0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, geçmeli doğrusal desen, \n"
+#~ "bağımsız destek katmanı yüksekliğini devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
 
 #~ msgid "Air Condition"
 #~ msgstr "Klima"

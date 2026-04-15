@@ -33,9 +33,6 @@
         "195",
         "195"
     ],
-    "filament_printable": [
-        "2"
-    ],
     "filament_ramming_travel_time": [
         "20",
         "20"
@@ -51,9 +48,6 @@
     "filament_retraction_speed": [
         "10",
         "10"
-    ],
-    "filament_support_printable": [
-        "2"
     ],
     "filament_z_hop_types": [
         "Spiral Lift",

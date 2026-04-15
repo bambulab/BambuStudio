@@ -62,7 +62,8 @@
 		"printer_is_enclosed": false,
 		"enable_set_nozzle_info": false,
 		"support_safety_options": false,
-		"air_print_detection_position": "ams_setting"
+		"air_print_detection_position": "ams_setting",
+		"filament_load_image": ["filament_load_a_series_ext0"]
 	},
 	"01.01.50.01": {
 		"print": {

@@ -298,7 +298,9 @@ DevPrintOptions::DevPrintOptions(MachineObject *obj) : m_obj(obj)
                         {PrintOptionEnum::Purify_Air_At_Print_End, &m_purify_air_at_print_end},
                         {PrintOptionEnum::Snapshot_Detection, &m_snapshot_detection}
     };
-}
+};
+
+
 
 void DevPrintOptions::SetPrintingSpeedLevel(DevPrintingSpeedLevel speed_level)
 {

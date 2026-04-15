@@ -932,9 +932,7 @@ public:
     }
 
     // 判断是否会出现耗材动态映射
-    bool  is_dynamic_group_reorder() const{
-        return config().enable_filament_dynamic_map && config().filament_map_mode == FilamentMapMode::fmmAutoForFlush && config().nozzle_diameter.size()>1;
-    }
+    bool  is_dynamic_group_reorder() const;
 
     const std::optional<ByObjectPrintData>& sequential_print_data() const { return m_sequential_print_data; }
 
@@ -949,6 +947,8 @@ public:
     std::vector<int> get_filament_nozzle_maps() const;
     bool get_full_filament_extruder_variants(const size_t filament_id, std::vector<std::string>& variants) const;
     std::vector<FilamentMapMode> get_available_filament_map_modes() const;
+
+    std::vector<FilamentUsageType> get_filament_usage_type() const;
     // get the group label of filament
     size_t get_extruder_id(unsigned int filament_id) const;
 

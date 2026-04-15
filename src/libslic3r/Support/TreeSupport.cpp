@@ -2488,7 +2488,6 @@ void TreeSupport::draw_circles()
                         append(base_areas, area);
                         max_layers_above_base = std::max(max_layers_above_base, node.dist_mm_to_top);
                     }
-
                 }
 
                 //m_object->print()->set_status(65, (boost::format( _u8L("Support: generate polygons at layer %d")) % layer_nr).str());
@@ -3521,6 +3520,7 @@ void TreeSupport::smooth_nodes()
     for (int layer_nr = 0; layer_nr< contact_nodes.size(); layer_nr++) {
         std::vector<SupportNode *> &curr_layer_nodes = contact_nodes[layer_nr];
         if (curr_layer_nodes.empty()) continue;
+        if (curr_layer_nodes.front()->print_z < DO_NOT_MOVER_UNDER_MM) continue;
         for (SupportNode *node : curr_layer_nodes) {
             if (!node->is_processed) {
                 std::vector<Point> pts;

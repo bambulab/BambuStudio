@@ -352,7 +352,6 @@ public:
     std::vector<int> m_filament_categories;
     const MultiNozzleUtils::LayeredNozzleGroupResult *m_multi_nozzle_group_result{nullptr};
 
-
     enum class WipeTowerLayerType : unsigned char { Normal, Contact, Solid, Contact_UP};// Contact layer should be solid and reduce feed
 
 	struct WipeTowerBlock

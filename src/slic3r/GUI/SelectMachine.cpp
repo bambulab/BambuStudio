@@ -310,7 +310,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_saveTimeText->SetForegroundColour(wxColour("#FF6F00"));
     m_saveTimeText->SetFont(Label::Body_13);
     m_saveTimeText->Hide();
-
+    
     m_saveTimeText->Bind(wxEVT_LEFT_UP, &SelectMachineDialog::on_reselect_dialog_btn_clicked, this);
     m_saveTimeText->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent&) {
         m_saveTimeText->SetCursor(wxCURSOR_HAND);
@@ -466,10 +466,10 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     m_filament_panel_right_sizer = new wxBoxSizer(wxVERTICAL);
     auto right_recommend_title_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto right_recommend_title1 = new Label(m_filament_right_panel, _L("Right Nozzle"));
-    right_recommend_title1->SetFont(::Label::Head_13);
-    right_recommend_title1->SetBackgroundColour(wxColour("#F8F8F8"));
-    right_recommend_title_sizer->Add(right_recommend_title1, 0, wxALIGN_CENTER, 0);
+    m_filament_right_title = new Label(m_filament_right_panel, _L("Right Nozzle"));
+    m_filament_right_title->SetFont(::Label::Head_13);
+    m_filament_right_title->SetBackgroundColour(wxColour("#F8F8F8"));
+    right_recommend_title_sizer->Add(m_filament_right_title, 0, wxALIGN_CENTER, 0);
 
     m_sizer_ams_mapping_right = new wxGridSizer(0, 5, FromDIP(7), FromDIP(7));
     m_filament_panel_right_sizer->Add(right_recommend_title_sizer, 0, wxLEFT|wxRIGHT|wxTOP, FromDIP(10));
@@ -644,14 +644,56 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_sizer_options->Add(option_flow_dynamics_cali, 0, wxEXPAND);
     m_sizer_options->Add(option_nozzle_offset_cali_cali, 0, wxEXPAND);
 
-    m_checkbox_list_order.push_back(option_timelapse);
-    m_checkbox_list_order.push_back(option_auto_bed_level);
-    m_checkbox_list_order.push_back(option_flow_dynamics_cali);
-    m_checkbox_list_order.push_back(option_nozzle_offset_cali_cali);
+    m_options_line_panel = new wxPanel(m_options_other, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    m_options_line_panel->SetBackgroundColour(*wxWHITE);
+
+    wxSizer* m_options_line_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxSizer* m_options_line_right_sizer = new wxBoxSizer(wxVERTICAL);
+    m_options_line_bmp = new wxStaticBitmap(m_options_line_panel, wxID_ANY, create_scaled_bitmap("warning", m_options_line_panel, 25), wxDefaultPosition, wxSize(FromDIP(25), FromDIP(25)), 0);
+    m_options_line_label = new Label(m_options_line_panel, _L("If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."));
+    m_options_line_label->SetBackgroundColour(*wxWHITE);
+    m_options_line_label->SetForegroundColour(wxColour(255, 111, 0));
+    m_options_line_label->SetFont(Label::Body_14);
+    m_options_line_label->Wrap(FromDIP(630));
+
+    m_options_line_close = new Label(m_options_line_panel, _L("Don't show again"));
+    m_options_line_close->SetBackgroundColour(*wxWHITE);
+    m_options_line_close->SetForegroundColour(wxColour(0, 177, 66));
+    m_options_line_close->SetFont(Label::Body_14);
+    wxFont font = m_options_line_close->GetFont();
+    font.SetUnderlined(true);
+    m_options_line_close->SetFont(font);
+    m_options_line_close->Bind(wxEVT_LEFT_DOWN, [this](auto &e) {
+        if(wxGetApp().app_config){
+            wxGetApp().app_config->set("disable_auto_flow_cali_tips", "true");
+        }
+        m_options_line_panel->Hide();
+        m_options_other->Layout();
+        m_options_other->Fit();
+    });
+
+    m_options_line_right_sizer->Add(m_options_line_label, 0, wxEXPAND, 0);
+    m_options_line_right_sizer->Add(m_options_line_close, 0, wxEXPAND, 0);
+
+    m_options_line_sizer->Add(m_options_line_bmp, 0,   wxTOP, 0);
+    m_options_line_sizer->Add(0, 0, 0, wxLEFT, FromDIP(2));
+    m_options_line_sizer->Add(m_options_line_right_sizer, 0,   wxEXPAND, 0);
+
+    m_options_line_panel->Hide();
+    m_options_line_panel->SetSizer(m_options_line_sizer);
+    m_options_line_panel->Layout();
+    m_options_line_panel->Fit();
 
     options_sizer->Add(m_sizer_options, 0, wxEXPAND, 0);
     options_sizer->Add(0, 0, 1, wxTOP, FromDIP(8));
     options_sizer->Add(m_pa_value_panel);
+    options_sizer->Add(0, 0, 1, wxTOP, FromDIP(12));
+    options_sizer->Add(m_options_line_panel, 0, wxEXPAND, 0);
+
+    m_checkbox_list_order.push_back(option_timelapse);
+    m_checkbox_list_order.push_back(option_auto_bed_level);
+    m_checkbox_list_order.push_back(option_flow_dynamics_cali);
+    m_checkbox_list_order.push_back(option_nozzle_offset_cali_cali);
 
     m_options_other->SetSizer(options_sizer);
     m_options_other->Layout();
@@ -1482,8 +1524,14 @@ void SelectMachineDialog::refresh_save_time(MachineObject *obj)
         }
 
         m_stext_time->SetLabel(print_time);
+    } else {
+        wxString   print_time;
+        PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
+        if (plate) {
+            print_time = wxString::Format("%s", short_time(get_time_dhms(plate->get_slice_result()->print_statistics.modes[0].time)));
+            m_stext_time->SetLabel(print_time);
+        }
     }
-
 
     // update the tips of suggest pos dispaly
     bool is_all_at_suggest_pos = true;
@@ -1525,13 +1573,13 @@ bool SelectMachineDialog::is_selected_ams_drying(MachineObject* obj)
 
     // If a UI material is selected, only when that material is mapped to an AMS
     // and that AMS is currently drying.
-    for (const auto &kv : m_materialList) {
-        Material *mat = kv.second;
+    for (const auto& kv : m_materialList) {
+        Material* mat = kv.second;
         if (!mat || !mat->item) continue;
         if (!mat->item->m_selected) continue;
 
         // find mapping entry for this material id
-        for (const FilamentInfo &f : m_ams_mapping_result) {
+        for (const FilamentInfo& f : m_ams_mapping_result) {
             if (f.id != mat->id) continue;
 
             if (f.ams_id.empty()) return false;
@@ -1543,6 +1591,25 @@ bool SelectMachineDialog::is_selected_ams_drying(MachineObject* obj)
         }
 
         return false;
+    }
+
+    return false;
+}
+
+bool SelectMachineDialog::has_bowden_extuder(MachineObject* obj)
+{
+    if (!obj) return false;
+
+    Preset* preset = get_printer_preset(obj);
+
+    if (!preset) return false;
+
+    auto exrtuder_type_opt = dynamic_cast<const ConfigOptionEnumsGeneric*>(preset->config.option("extruder_type"));
+
+    for (int i = 0; i < exrtuder_type_opt->values.size(); i++) {
+        ExtruderType extruder_type = (ExtruderType)exrtuder_type_opt->values[i];
+        if (extruder_type == ExtruderType::etBowden)
+            return true;
     }
 
     return false;
@@ -2418,6 +2485,28 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
         m_pa_value_panel->Hide();
     }
 
+    if (m_checkbox_list["flow_cali"]->IsShown() && has_bowden_extuder(obj)) {
+        m_checkbox_list["flow_cali"]->update_tooltip(
+            _L("Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value.\n") +
+            _L("On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value.\n") +
+            _L("Off: Prioritize using the value from your manual flow calibration."));
+
+        if (m_checkbox_list["flow_cali"]->getValue() == "auto") {
+            m_options_line_label->SetLabel(_L("If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder "
+                                              "will use the system default value."));
+            m_options_line_label->Wrap(FromDIP(630));
+            m_options_line_panel->Show(!options_line_ignore);
+        } else if (m_checkbox_list["flow_cali"]->getValue() == "on") {
+            m_options_line_label->SetLabel(_L("Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."));
+            m_options_line_label->Wrap(FromDIP(630));
+            m_options_line_panel->Show(!options_line_ignore);
+        } else {
+            m_options_line_panel->Hide();
+        }
+    } else {
+        m_checkbox_list["flow_cali"]->update_tooltip(_L("This process determines the dynamic flow values to improve overall print quality.\n*Automatic mode: Skip if the filament was calibrated recently."));
+        m_options_line_panel->Hide();
+    }
 }
 
 void SelectMachineDialog::save_option_vals()
@@ -3067,6 +3156,12 @@ void SelectMachineDialog::on_timer(wxTimerEvent &event)
         change_materialitem_tip(false); /*mapping to both ams and ext, is supported while total_extder_count is 2*/
     } else {
         change_materialitem_tip(true);
+    }
+
+    if (obj_->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->IsBowdenExtuder()) {
+        m_filament_right_title->SetLabel(_L("Right Nozzle(Aux)"));
+    } else {
+        m_filament_right_title->SetLabel(_L("Right Nozzle"));
     }
 
     update_ams_backup(obj_);
@@ -3727,6 +3822,7 @@ void SelectMachineDialog::on_dpi_changed(const wxRect &suggested_rect)
 
     m_mapping_popup.msw_rescale();
 
+    m_options_line_bmp->SetBitmap(create_scaled_bitmap("warning", m_options_line_panel, 25));
 
     m_statictext_ams_msg->Rescale();
     m_text_printer_msg->Rescale();
@@ -3777,6 +3873,8 @@ void SelectMachineDialog::set_default()
     }
     m_current_project_name = wxString::FromUTF8(file_name);
 
+    // filament area title
+    m_filament_right_title->SetLabel(_L("Right Nozzle"));
 
     //unsupported character filter
     m_current_project_name = from_u8(filter_characters(m_current_project_name.ToUTF8().data(), "<>[]:/\\|?*\""));
@@ -4372,22 +4470,22 @@ wxString SelectMachineDialog::FormatTime(float totalSeconds)
 {
     totalSeconds = std::abs(totalSeconds);
     int secs = static_cast<int>(std::round(totalSeconds));
-
+    
     int hours = secs / 3600;
     int remaining = secs % 3600;
     int minutes = remaining / 60;
     int seconds = remaining % 60;
 
     wxString timeStr;
-    if (hours > 0)
+    if (hours > 0) 
     {
         timeStr = wxString::Format("%dm%ds", hours * 60 + minutes, seconds);
-    }
-    else if (minutes > 0)
+    } 
+    else if (minutes > 0) 
     {
         timeStr = wxString::Format("%dm%ds", minutes, seconds);
-    }
-    else
+    } 
+    else 
     {
         timeStr = wxString::Format("%ds", seconds);
     }
@@ -5549,13 +5647,6 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
         }
     };
 
-    for (const auto &iter : extruder_ams_ext_status) {
-        if (iter.second.has_ams && iter.second.has_vt_slot) {
-            show_status(PrintDialogStatus::PrintStatusMixAmsAndVtSlotWarning);
-            break;
-        }
-    }
-
     // if (!CheckWarningFilamentRemain(obj_)) {
     //     wxString warning_msg = wxString::Format(_L("The filament in the AMS may be insufficient for this print. Please refill or replace it."));
     //     show_status(PrintDialogStatus::PrintStatusFilamentWarningRemainNotEnough, {warning_msg});
@@ -5797,8 +5888,8 @@ bool SelectMachineDialog::use_dynamic_switch() const
 
 
 /**
- * @brief
- * @param obj_
+ * @brief 
+ * @param obj_ 
  * @return the estimated time gap, optional.
  */
 std::optional<float> SelectMachineDialog::get_filament_change_gap_time(MachineObject* obj_) const

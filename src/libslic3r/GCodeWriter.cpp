@@ -270,7 +270,7 @@ std::string GCodeWriter::set_acceleration_impl(unsigned int acceleration)
     return gcode.str();
 }
 
-std::string GCodeWriter::set_pressure_advance(double pa) const
+std::string GCodeWriter::set_pressure_advance(double pa, bool is_bbl_bowden) const
 {
     std::ostringstream gcode;
     if (pa < 0) return gcode.str();
@@ -282,6 +282,8 @@ std::string GCodeWriter::set_pressure_advance(double pa) const
             gcode << "SET_PRESSURE_ADVANCE ADVANCE=" << std::setprecision(4) << pa << "; Override pressure advance value\n";
         else if (this->config.gcode_flavor == gcfRepRapFirmware)
             gcode << ("M572 D0 S") << std::setprecision(4) << pa << "; Override pressure advance value\n";
+        else if (is_bbl_bowden)
+            gcode << "M400\n M901 P0.75 K" << std::setprecision(4) << pa << "; Override pressure advance value\n";
         else
             gcode << "M400\n M900 K" << std::setprecision(4) << pa << "; Override pressure advance value\n";
     }

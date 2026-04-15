@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-12 12:08+0800\n"
+"POT-Creation-Date: 2026-03-31 16:30+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -65,6 +65,9 @@ msgstr "Az automatikus dinamikus anyagáramlás kalibráció nem támogatott a T
 msgid "Bambu TPU 85A is not supported for printing with 0.4 mm Standard or High Flow nozzles."
 msgstr "A Bambu TPU 85A használata nem támogatott 0,4 mm-es normál vagy nagy áramlású fúvókákkal való nyomtatáshoz."
 
+msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+msgstr "Az ABS/ASA/PETG HF csak támaszanyagként használható a jobb oldali extruderben."
+
 msgid "How to feed TPU filament."
 msgstr "TPU filament betöltése."
 
@@ -105,8 +108,28 @@ msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow noz
 msgstr "A(z) %s filamentet 0,4 mm-es, 0,6 mm-es vagy 0,8 mm-es nagy áramlású fúvókával használva fennáll a fúvóka eltömődésének veszélye."
 
 #, c-format, boost-format
+msgid "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "%s-t nem támogatja a(z) %s extruder."
+
+#, c-format, boost-format
+msgid "There may be critical print quality issues when printing '%s' with %s Bowden extruder. Use with caution!"
+msgstr ""
+
+#, c-format, boost-format
+msgid "There may be critical print quality issues when printing '%s' with %s extruder. Use with caution!"
+msgstr ""
+
+#, c-format, boost-format
+msgid "There may be print quality issues when printing '%s' with %s Bowden extruder. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
+msgstr ""
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr "Előfordulhat, hogy a szerszámfej és a hotendtartó megmozdul. Kérjük, ne nyúlj a kamrába."
@@ -228,28 +251,27 @@ msgstr "Bezárás"
 msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
 msgstr ""
 
+msgid "Summary:"
+msgstr ""
+
+msgid "AMS on Filament Inlet A"
+msgstr ""
+
+msgid "AMS on Filament Inlet B"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The No.%d slicing filament is matched to '%s'. Assigning it to '%s' can save printing time."
+msgstr ""
+
+msgid "*Tips: If you have moved the spool position on the machine, please close this page and re‑match the filament."
+msgstr ""
+
 msgid "Summary: This is currently the most suitable position for placement."
 msgstr ""
 
 msgid "?"
 msgstr "?"
-
-msgid "Summary: "
-msgstr ""
-
-#, c-format, boost-format
-msgid "Remove %s in %s . Insert into AMS on Filament Inlet B."
-msgstr ""
-
-msgid "filaments"
-msgstr ""
-
-msgid "filament"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Remove %s in %s . Insert into AMS on Filament Inlet A."
-msgstr ""
 
 msgid "Model:"
 msgstr "Modell:"
@@ -2241,11 +2263,8 @@ msgstr "Vágás visszavonása"
 msgid "Add Primitive"
 msgstr "Primitív hozzáadása"
 
-msgid "Show Labels by Layer"
-msgstr ""
-
-msgid "Show Labels by Object"
-msgstr ""
+msgid "Show Labels"
+msgstr "Címkék megjelenítése"
 
 msgid "To objects"
 msgstr "Objektumokra"
@@ -2381,9 +2400,6 @@ msgstr "Feltölti az asztalon lévő maradék helyet a kiválasztott tárgy más
 
 msgid "Edit Plate Name"
 msgstr "Tálca nevének szerkesztése"
-
-msgid "Show Labels"
-msgstr "Címkék megjelenítése"
 
 msgid "Name"
 msgstr "Név"
@@ -2786,19 +2802,16 @@ msgstr "Válassz ki egy AMS-helyet, majd nyomd meg a „Betöltés” vagy a „
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
 msgstr "A művelet végrehajtásához szükséges filament típusa ismeretlen. Kérjük, állítsd be a filament adatait."
 
-msgid "Ext"
-msgstr "Kül"
-
 msgid "/"
 msgstr "/"
 
 msgctxt "FilamentTrack"
 msgid "Left"
-msgstr "Bal"
+msgstr ""
 
 msgctxt "FilamentTrack"
 msgid "Right"
-msgstr "Jobb"
+msgstr ""
 
 msgid "Confirm"
 msgstr "Megerősítés"
@@ -2809,7 +2822,7 @@ msgstr ""
 
 msgctxt "FilamentTrack"
 msgid "right extruder"
-msgstr "jobb extruder"
+msgstr ""
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "A ventilátor sebességének nyomtatás közbeni megváltoztatása befolyásolhatja a nyomtatás minőségét. Kérjük, körültekintően válaszd meg."
@@ -2877,6 +2890,12 @@ msgstr "A hűtési mód alkalmas %s anyagok nyomtatására."
 msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
 msgstr "A fűtési mód alkalmas %s anyagok nyomtatására, és keringteti a kamra levegőjét."
 
+msgid "Strong Cooling"
+msgstr ""
+
+msgid "Fan"
+msgstr "Ventilátor"
+
 msgctxt "air_duct"
 msgid "Right(Aux)"
 msgstr "Jobb(Aux)"
@@ -2910,9 +2929,6 @@ msgstr "MC-panel"
 
 msgid "Heat"
 msgstr "Fűtés"
-
-msgid "Fan"
-msgstr "Ventilátor"
 
 msgid "Idling..."
 msgstr "Tétlen..."
@@ -5419,11 +5435,8 @@ msgstr "Ablakelrendezés visszaállítása"
 msgid "Reset to default window layout"
 msgstr "Alapértelmezett ablakelrendezés visszaállítása"
 
-msgid "Show Labels of printing by layer in 3D scene"
-msgstr ""
-
-msgid "Show Labels of printing by object in 3D scene"
-msgstr ""
+msgid "Show object labels in 3D scene"
+msgstr "Objektumcímkék megjelenítése a 3D-térben"
 
 msgid "Show &Overhang"
 msgstr "Túlnyúlás megjelenítése"
@@ -5717,7 +5730,7 @@ msgid "The live streaming feature relies on Bambu Studio to run,and the stream w
 msgstr "Az élő közvetítési funkció a Bambu Studio alkalmazásban fut, és a stream az alkalmazás bezárását követően meg fog szakadni."
 
 msgid "Printer Preview"
-msgstr "Nyomtató előnézet"
+msgstr ""
 
 msgid "Playing..."
 msgstr "Lejátszás..."
@@ -6234,7 +6247,7 @@ msgid "Can't start this without storage."
 msgstr "Nem indítható el tárhely nélkül."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
-msgstr "Nem lehet extrudert váltani, ha a nyomtató nem FDM-módban van"
+msgstr ""
 
 msgid "Rate the Print Profile"
 msgstr "Értékeld a nyomtatási profilt"
@@ -6906,10 +6919,10 @@ msgid "Filament changes"
 msgstr "Filamentcserék"
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr "Filamentváltó észlelve. Mostantól mindegyik AMS filamentjét használhatod mindkét extruderrel. A szeletelő automatikusan elvégzi a kiosztást a legoptimálisabb nyomtatáshoz. "
+msgstr ""
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr "Filamentváltó észlelve, de nincs kalibrálva, így jelenleg nem használható. Kérjük, kalibráld a nyomtatón, majd szinkronizáld a használat előtt. "
+msgstr ""
 
 msgid "Learn more"
 msgstr "Tudj meg többet"
@@ -6971,10 +6984,8 @@ msgstr "Extruderinformációk szinkronizálása"
 
 msgid ""
 "Tips:\n"
-"Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
+"Curve planning enhancement support detected on your printer. The software has automatically disabled arc fitting to ensure this feature functions correctly."
 msgstr ""
-"Tippek:\n"
-"A nyomtatód támogatja az ívillesztést, ezért a szeletelő ívillesztési funkcióját letiltottuk a problémák elkerülése érdekében."
 
 msgid "Click to edit preset"
 msgstr "Kattints a beállítás szerkesztéséhez"
@@ -7678,6 +7689,13 @@ msgstr "Nem ajánlott a PVA filament használata 0,2 mm-es fúvókával."
 msgid "Are you sure to use them? \n"
 msgstr "Biztos, hogy használod? \n"
 
+msgid ""
+"Print By Object: \n"
+"Suggest to use auto-arrange to avoid collisions when printing."
+msgstr ""
+"Nyomtatás tárgyanként: \n"
+"Javasoljuk, hogy használd az automatikus elrendezést az ütközések elkerülése érdekében."
+
 msgid "Send G-code"
 msgstr "G-kód küldése"
 
@@ -7689,19 +7707,6 @@ msgstr "Az egyedi támaszok és a színfestés eltávolításra került a javít
 
 msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
 msgstr "A javítás előtt eltávolítottuk az egyéni támaszokat, a varratokat és a festett színeket, modell neve:"
-
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-"Nyomtatás tárgyanként: \n"
-"Javasoljuk, hogy használd az automatikus elrendezést az ütközések elkerülése érdekében."
-
-msgid "Auto arrange"
-msgstr "Automatikus elrendezés"
-
-msgid "Detail view wiki->"
-msgstr ""
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -7958,6 +7963,12 @@ msgstr "Törölje a választásomat a 3mf betöltése párbeszédpanelen."
 
 msgid "Show the warning dialog again when importing non-Bambu 3MF files"
 msgstr "A figyelmeztető párbeszédpanel újbóli megjelenítése nem Bambu 3MF fájlok importálásakor"
+
+msgid "Clear my choice for disabling recommendation for support material parameters."
+msgstr ""
+
+msgid "Clear my choice for disabling recommendation for support material parameters"
+msgstr ""
 
 msgid "3D Settings"
 msgstr "3D-beállítások"
@@ -8556,6 +8567,9 @@ msgstr ""
 msgid "Nozzles and filaments of the same type share the same PA profile"
 msgstr "Az azonos típusú fúvókák és filamentek ugyanazt a PA profilt használják"
 
+msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
+msgstr ""
+
 msgid "send completed"
 msgstr "küldés befejezve"
 
@@ -8615,6 +8629,18 @@ msgstr "Ellenőrzi az asztal szintjét. A szintezés egyenletessé teszi az extr
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Megkeresi a legjobb értéket a dinamikus anyagáramláshoz, hogy javítsa a nyomtatás minőségét."
 
+msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value.\n"
+msgstr ""
+
+msgid "On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value.\n"
+msgstr ""
+
+msgid "Off: Prioritize using the value from your manual flow calibration."
+msgstr ""
+
+msgid "Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "Nyomtatási feladat előkészítése"
 
@@ -8626,6 +8652,9 @@ msgstr "Mivel a nyomtatási feladat sikeresen elküldésre került, a törlés n
 
 msgid "The name length exceeds the limit."
 msgstr "A név túl hosszú."
+
+msgid "Right Nozzle(Aux)"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Cost %dg filament and %d changes more than optimal grouping."
@@ -8877,6 +8906,24 @@ msgstr "Szeletelés kész."
 msgid "View all Daily tips"
 msgstr "Napi tippek megtekintése"
 
+msgid "Availabale Objects"
+msgstr ""
+
+msgid "Main Material"
+msgstr ""
+
+msgid "Support Material"
+msgstr ""
+
+msgid "Recommended Parameters"
+msgstr ""
+
+msgid "Compatible model and support filaments detected. It is recommended to use the suggested filaments for printing the support interfaces of these objects, along with the recommended parameters."
+msgstr ""
+
+msgid "Don't remind me again"
+msgstr "Ne emlékeztessen újra"
+
 msgid "Failed to create socket"
 msgstr "Socket létrehozása sikertelen"
 
@@ -9010,6 +9057,21 @@ msgstr "Kattints a további információért"
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Kattints az összes beállítás utolsó mentett változatának visszaállításához."
 
+msgid "Support interface speed"
+msgstr ""
+
+msgid "When using PLA to support TPU, We recommend the following settings:"
+msgstr ""
+
+msgid "When using soluble material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "Do you want to apply these settings?"
+msgstr ""
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "A fúvókacsere miatt szükség van a törlőtoronyra. Nélküle előfordulhatnak hibák a nyomtatott tárgyon. Biztos, hogy kikapcsolod a törlőtornyot?"
 
@@ -9062,22 +9124,6 @@ msgstr ""
 "Automatikusan megváltoztatod ezeket a beállításokat?\n"
 "Igen - Módosítsa ezeket a beállításokat\n"
 "Nem  - Ne változtassa meg a beállításokat"
-
-msgid ""
-"When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-msgstr ""
-"Ha támaszanyagot használsz az érintkező felületekhez, akkor a következő beállításokat javasoljuk:\n"
-"0 felső Z-távolság, 0 érintkező réteg térköz, váltottsoros vonal mintázat és kikapcsolt független támasz rétegmagasság"
-
-msgid ""
-"When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"Ha oldható anyagot használsz támaszanyagként, akkor a következő beállításokat javasoljuk:\n"
-"0 felső Z-távolság, 0 érintkező réteg térköz, 0 támasz/objektum XY-távolság, váltottsoros vonal mintázat és kikapcsolt\n"
-"független támasz rétegmagasság. Használd az oldható anyagot mind az érintkezőfelülethez, mind a támasz alapjához"
 
 msgid ""
 "Layer height is too small.\n"
@@ -9907,6 +9953,9 @@ msgctxt "FinishSyncAms"
 msgid "OK"
 msgstr ""
 
+msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
+msgstr ""
+
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 msgstr "A Studio újraszámítja az öblítési mennyiségeket minden szín- vagy filamentcserekor. Az automatikus újraszámítást letilthatod a beállításokban."
 
@@ -10073,9 +10122,6 @@ msgstr "Kameranézet - Jobb"
 
 msgid "Camera view - Isometric"
 msgstr "Kameranézet - Izometrikus"
-
-msgid "Shift+E"
-msgstr ""
 
 msgid "Select all objects"
 msgstr "Összes objektum kijelölése"
@@ -11313,7 +11359,7 @@ msgid "Avoid crossing wall"
 msgstr "Kerülje a falak keresztezését"
 
 msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
-msgstr "Kikerülés és falak keresztezésének elkerülése, ami felszíni hibákat okozhat (amikor a távolság nagyobb a „Mozgás távolságának küszöbértéke“ értéknél)"
+msgstr ""
 
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Falnyomtatás sebességének simítása (kísérleti)"
@@ -11426,14 +11472,12 @@ msgstr "mp"
 msgid "Cooling overhang threshold"
 msgstr "Túlnyúlás hűtésének küszöbértéke"
 
-#, c-format
 msgid "Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Kényszeríti a hűtőventilátort, hogy egy adott fordulatszámot használjon, ha a túlnyúlás mértéke meghaladja ezt az értéket. Százalékban van kifejezve, ami azt jelzi, hogy a nyomtatott vonal hány százaléka maradhat az alsóbb rétegek alátámasztása nélkül. A 0%%-os érték bekapcsolja a hűtést a külső fal teljes szélességén, függetlenül a túlnyúlás mértékétől."
 
 msgid "Overhang threshold for participating cooling"
 msgstr "Túlnyúlás hűtésének küszöbértéke"
 
-#, c-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "Eldönti, hogy melyik túlnyúló rész vesz részt a hűtésben a sebesség csökkentése érdekében. Értéke az alátámasztás nélküli vonal szélessége százalékban kifejezve. A 100%% azt jelenti, hogy a hűtést az összes külső falra kényszeríti, függetlenül attól, hogy mennyi a túlnyúlás mértéke."
 
@@ -11822,7 +11866,6 @@ msgstr "Az alsó felület kitöltésének mintája, kivéve az áthidalásokat"
 msgid "Bottom surface density"
 msgstr "Alsó felület sűrűsége"
 
-#, c-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
 msgstr "Az alsó felület kitöltési sűrűsége. A 100%% teljesen szilárd, kitöltött alsó réteget jelent. Alacsonyabb értékek texturált alsó felületet hoznak létre. Esztétikai vagy funkcionális célokra szolgál, nem problémák, például túlzott extrudálás javítására. FIGYELEM: az érték csökkentése negatívan befolyásolhatja az asztalra tapadást."
 
@@ -12173,6 +12216,12 @@ msgstr "Nyomtatható filament"
 msgid "The filament is printable in extruder"
 msgstr "A filament nyomtatható az extruderrel"
 
+msgid "Filament-extruder compatibility"
+msgstr ""
+
+msgid "A single 32-bit int encoding the compatibility level of a filament across all extruders (up to 10). Every 3 bits represent one extruder (bits [3*i, 3*i+2] for extruder i). 0: printable, 1: error, 2: critical warning, 3: warning, 4-7: reserved"
+msgstr ""
+
 msgid "Filament change"
 msgstr "Filamentcsere"
 
@@ -12224,6 +12273,12 @@ msgstr "Nyomtatási hőmérséklet a törlőtorony érintkező rétegéhez (ahol
 msgid "°C"
 msgstr "°C"
 
+msgid "Enable tower interface features"
+msgstr ""
+
+msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
+msgstr ""
+
 msgid "Softening temperature"
 msgstr "Lágyulási hőmérséklet"
 
@@ -12266,7 +12321,6 @@ msgstr "A ritkás kitöltési minta szöge, amely a vonal kezdő vagy fő irány
 msgid "Sparse infill density"
 msgstr "Kitöltés sűrűsége"
 
-#, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr "A belső ritkás kitöltés sűrűsége. A 100%%-os érték azt jelenti, hogy az objektum tömör lesz"
 
@@ -12479,6 +12533,12 @@ msgstr "Az első réteg szkennelése"
 
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "Engedélyezd ezt az opciót, hogy a nyomtató kamerája ellenőrizze a kezdőréteg minőségét."
+
+msgid "Print loops in clockwise"
+msgstr ""
+
+msgid "Print in clockwise when enabled, or counterclockwise when not enabled, not work for spiral vase mode"
+msgstr ""
 
 msgid "Enable clumping detection"
 msgstr "Filament fúvókára való tapadásának észlelése"
@@ -14400,6 +14460,12 @@ msgstr ""
 "- Anyagok megegyező asztalhőmérséklettel\n"
 "- Különböző márkájú és típusú filamentek (Márka = Bambu, Típus = Basic, Matte stb.)\n"
 
+msgid "- Right Nozzle (Aux) does not support automatic flow calibration."
+msgstr ""
+
+msgid "- Left Nozzle (Aux) does not support automatic flow calibration."
+msgstr ""
+
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- Megjegyzés: A hotend száma a tartóhoz van rendelve. Amikor a hotendet áthelyezed egy új tartóra, a száma automatikusan frissül.\n"
 
@@ -15366,6 +15432,10 @@ msgid "The number of printer extruders and the printer selected for calibration 
 msgstr "A nyomtató extrudereinek száma és a kalibráláshoz kiválasztott nyomtató nem egyezik."
 
 #, c-format, boost-format
+msgid "The type of %sextruder is bowden which does not support automatic Flow Dynamics calibration."
+msgstr ""
+
+#, c-format, boost-format
 msgid "The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."
 msgstr "A(z) %s extruder fúvókaátmérője 0,2 mm, ami nem teszi lehetővé az automatikus áramlásdinamikai kalibrációt."
 
@@ -15929,9 +15999,6 @@ msgstr "Filamentcsoportosítás"
 
 msgid "Fila Saving"
 msgstr "Filamentmegtakarítás"
-
-msgid "Don't remind me again"
-msgstr "Ne emlékeztessen újra"
 
 msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
 msgstr ""
@@ -16679,8 +16746,18 @@ msgstr ""
 #~ "A fogyóeszközök cserélője nem lett kalibrálva.\n"
 #~ "Kérjük, használat előtt kalibráld a nyomtatón."
 
-#~ msgid "Show object labels in 3D scene"
-#~ msgstr "Objektumcímkék megjelenítése a 3D-térben"
+#~ msgid "Ext"
+#~ msgstr "Kül"
+
+#~ msgid "Load filament to"
+#~ msgstr "Filament betöltése ide:"
+
+#~ msgid ""
+#~ "Tips:\n"
+#~ "Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
+#~ msgstr ""
+#~ "Tippek:\n"
+#~ "A nyomtatód támogatja az ívillesztést, ezért a szeletelő ívillesztési funkcióját letiltottuk a problémák elkerülése érdekében."
 
 #~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
 #~ msgstr "Elkerüli a falak keresztezését, ezáltal csökkentve az esetleges hibákat a felületen"
@@ -16688,8 +16765,21 @@ msgstr ""
 #~ msgid "Filament grouping is automatically optimized based on filament-saving principles"
 #~ msgstr "A filament csoportosítása automatikusan optimalizált a filamentmegtakarítás figyelembevételével"
 
-#~ msgid "Load filament to"
-#~ msgstr "Filament betöltése ide:"
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+#~ msgstr ""
+#~ "Ha támaszanyagot használsz az érintkező felületekhez, akkor a következő beállításokat javasoljuk:\n"
+#~ "0 felső Z-távolság, 0 érintkező réteg térköz, váltottsoros vonal mintázat és kikapcsolt független támasz rétegmagasság"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "Ha oldható anyagot használsz támaszanyagként, akkor a következő beállításokat javasoljuk:\n"
+#~ "0 felső Z-távolság, 0 érintkező réteg térköz, 0 támasz/objektum XY-távolság, váltottsoros vonal mintázat és kikapcsolt\n"
+#~ "független támasz rétegmagasság. Használd az oldható anyagot mind az érintkezőfelülethez, mind a támasz alapjához"
 
 #~ msgid "Dynamic flow calibration is not supported for TPU 85A filament."
 #~ msgstr "A dinamikus anyagáramlás kalibráció nem támogatott TPU 85A filamenttel."
@@ -16915,9 +17005,6 @@ msgstr ""
 
 #~ msgid "Learn more about purge mode"
 #~ msgstr "Tudj meg többet az átöblítési módról"
-
-#~ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
-#~ msgstr "Az ABS/ASA/PETG HF csak támaszanyagként használható a jobb oldali extruderben."
 
 #~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 #~ msgstr "A CF/GF filament rideg és törékeny, ezért könnyen eltörhet vagy elakadhat az AMS-ben; kérjük, légy körültekintő a használatakor."
@@ -18336,6 +18423,9 @@ msgstr ""
 
 #~ msgid "Auto Bed Type"
 #~ msgstr "Auto asztaltípus"
+
+#~ msgid "Auto arrange"
+#~ msgstr "Automatikus elrendezés"
 
 #~ msgid "Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the project."
 #~ msgstr "Automatikusan beállítja a kijelölt objektumok vagy az összes objektum tájolását. Ha vannak kijelölt objektumok, akkor csak a kijelölteket, ellenkező esetben az aktuális projektben lévő összes objektumot orientálja."

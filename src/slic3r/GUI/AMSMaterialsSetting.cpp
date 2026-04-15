@@ -532,39 +532,26 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
         // set k / n value
         if (!obj->GetCalib()->IsVersionInited() && obj->get_printer_series() == PrinterSeries::SERIES_P1P) {
             // set extrusion cali ratio
-            int cali_tray_id = ams_id * 4 + slot_id;
+            int cali_tray_id = obj->GetFilaSystem()->GetTrayIdByAmsSlotId(ams_id, slot_id); //ams_id * 4 + slot_id;
 
             double k = 0.0;
-            try {
-                k_text.ToDouble(&k);
-            }
-            catch (...) {
-
-            }
-
             double n = 0.0;
             try {
+                k_text.ToDouble(&k);
                 n_text.ToDouble(&n);
+            } catch (...) {
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Convert k/n value failed, k_text: " << k_text << ", n_text: " << n_text;
             }
-            catch (...) {
 
-            }
             obj->command_extrusion_cali_set(cali_tray_id, "", "", k, n);
         }
         else {
             PACalibIndexInfo select_index_info;
-            int tray_id = ams_id * 4 + slot_id;
-            if (is_virtual_tray()) {
-                tray_id = ams_id;
-                if (!obj->is_enable_np) {
-                    tray_id = VIRTUAL_TRAY_DEPUTY_ID;
-                }
-            }
-            select_index_info.tray_id = tray_id;
-            select_index_info.ams_id = ams_id;
-            select_index_info.slot_id = slot_id;
+            select_index_info.tray_id         = obj->GetFilaSystem()->GetTrayIdByAmsSlotId(ams_id, slot_id);
+            select_index_info.ams_id          = ams_id;
+            select_index_info.slot_id         = slot_id;
             select_index_info.nozzle_diameter = obj->GetExtderSystem()->GetNozzleDiameter(0);
-            select_index_info.cali_idx = -1;
+            select_index_info.cali_idx        = -1;
             select_index_info.filament_id     = selected_ams_id;
             CalibUtils::select_PA_calib_result(select_index_info);
         }
@@ -731,31 +718,23 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
         return;
     }
 
+    double k = 0.0;
+    double n = 0.0;
+    try {
+        k_text.ToDouble(&k);
+        n_text.ToDouble(&n);
+    }
+    catch (...) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Convert k/n value failed, k_text: " << k_text << ", n_text: " << n_text;
+    }
+
     // set k / n value
     if (is_virtual_tray()) {
-        double k = 0.0;
-        try {
-            k_text.ToDouble(&k);
-        }
-        catch (...) {
-            ;
-        }
-        double n = 0.0;
-        try {
-            n_text.ToDouble(&n);
-        }
-        catch (...) {
-            ;
-        }
-
-        auto vt_tray = ams_id;
-        if (!obj->is_enable_np) {
-            vt_tray = VIRTUAL_TRAY_DEPUTY_ID;
-        }
+        auto vt_tray_id = obj->GetFilaSystem()->GetTrayIdByAmsSlotId(ams_id, 0);
 
         if (obj->GetCalib()->IsVersionInited()) {
             PACalibIndexInfo select_index_info;
-            select_index_info.tray_id = vt_tray;
+            select_index_info.tray_id = vt_tray_id;
             select_index_info.ams_id = ams_id;
             select_index_info.slot_id = 0;
             select_index_info.nozzle_diameter = obj->GetExtderSystem()->GetNozzleDiameter(0);
@@ -773,27 +752,11 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
             CalibUtils::select_PA_calib_result(select_index_info);
         }
         else {
-            obj->command_extrusion_cali_set(vt_tray, "", "", k, n);
+            obj->command_extrusion_cali_set(vt_tray_id, "", "", k, n);
         }
     }
     else {
-        int cali_tray_id = ams_id * 4 + slot_id;
-        double k = 0.0;
-        try {
-            k_text.ToDouble(&k);
-        }
-        catch (...) {
-            ;
-        }
-
-        double n = 0.0;
-        try {
-            n_text.ToDouble(&n);
-        }
-        catch (...) {
-            ;
-        }
-
+        int cali_tray_id = obj->GetFilaSystem()->GetTrayIdByAmsSlotId(ams_id, slot_id); //ams_id * 4 + slot_id;
         if (obj->GetCalib()->IsVersionInited()) {
             PACalibIndexInfo select_index_info;
             select_index_info.tray_id = cali_tray_id;

@@ -1416,7 +1416,7 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, int extruder_
     } else if (ams->get_can_count() == 1) {
         for (auto it : pair_id){
             if (it.first == ams_id){
-                length = left ? 218 : 110;
+                length = left ? 218 : 125;
                 in_pair = true;
                 break;
             }

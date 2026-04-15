@@ -277,6 +277,9 @@ void AppConfig::set_defaults()
     if (get("internal_developer_mode").empty())
         set_bool("internal_developer_mode", false);
 
+    if (get("disable_auto_flow_cali_tips").empty())
+        set_bool("disable_auto_flow_cali_tips", false);
+
     // BBS
     if (get("preset_folder").empty())
         set("preset_folder", "");
@@ -404,7 +407,7 @@ void AppConfig::set_defaults()
     }
 
     if (get("sync_system_preset").empty()) {
-        set_bool("sync_system_preset", true);
+        set_bool("sync_system_preset", false); // close this for kol
     }
 
     if (get("backup_switch").empty() || get("version") < "01.06.00.00") {
@@ -477,6 +480,9 @@ void AppConfig::set_defaults()
     }
     if (get("show_wrapping_detect_dialog").empty()) {
         set_bool("show_wrapping_detect_dialog", true);
+    }
+    if (get("show_support_recommend_dialog").empty()) {
+        set_bool("show_support_recommend_dialog", true);
     }
     if (get("ignore_module_cert").empty()) {
         set_bool("ignore_module_cert", false);

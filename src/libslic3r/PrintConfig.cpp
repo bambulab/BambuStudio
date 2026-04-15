@@ -2429,6 +2429,17 @@ void PrintConfigDef::init_fff_params()
     def->mode    = comDevelop;
     def->set_default_value(new ConfigOptionInts{3});
 
+    // A single 32-bit int encodes the compatibility level of a filament across all extruders (up to 10).
+    // Every 3 bits represent one extruder: bits [3*i, 3*i+2] -> extruder i
+    // Compatibility levels: 0 = printable, 1 = error, 2 = critical warning, 3 = warning (4-7 reserved)
+    def          = this->add("filament_extruder_compatibility", coInts);
+    def->label   = L("Filament-extruder compatibility");
+    def->tooltip = L("A single 32-bit int encoding the compatibility level of a filament across all extruders (up to 10). "
+                     "Every 3 bits represent one extruder (bits [3*i, 3*i+2] for extruder i). "
+                     "0: printable, 1: error, 2: critical warning, 3: warning, 4-7: reserved");
+    def->mode    = comDevelop;
+    def->set_default_value(new ConfigOptionInts{0});
+
     // BBS
     def = this->add("filament_prime_volume", coFloats);
     def->label = L("Filament change");
@@ -4268,6 +4279,11 @@ void PrintConfigDef::init_fff_params()
     def = this->add("enable_filament_dynamic_map", coBool);
     def->label = "Enable filament dynamic map";
     def->tooltip = "Support filament map to different nozzle";
+    def->set_default_value(new ConfigOptionBool{ false });
+
+    def = this->add("has_filament_switcher", coBool);
+    def->label = "Has filament switcher";
+    def->tooltip = "Whether a filament switcher is connected to the printer";
     def->set_default_value(new ConfigOptionBool{ false });
 
     def = this->add("prime_volume_mode", coEnum);
@@ -7038,7 +7054,7 @@ void DynamicPrintConfig::normalize_fdm_1()
     return;
 }
 
-t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int num_objects, int used_filaments)
+t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int num_objects, int used_filaments, DynamicConfig *ori_values)
 {
     t_config_option_keys changed_keys;
     ConfigOptionBool* ept_opt = this->option<ConfigOptionBool>("enable_prime_tower");
@@ -7055,10 +7071,18 @@ t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int num_objects, int us
 
         if (!is_smooth_timelapse && !enable_wrapping && (used_filaments == 1 || (ps_opt->value == PrintSequence::ByObject && num_objects > 1))) {
             if (ept_opt->value) {
+                if (ori_values)
+                    ori_values->set_key_value("enable_prime_tower", ept_opt->clone());
                 ept_opt->value = false;
                 changed_keys.push_back("enable_prime_tower");
             }
             //ept_opt->value = false;
+        }
+        else {
+            if (ori_values && ori_values->has("enable_prime_tower")) {
+                ept_opt->value = ori_values->opt_bool("enable_prime_tower");
+                changed_keys.push_back("enable_prime_tower");
+            }
         }
 
         if (ept_opt->value) {

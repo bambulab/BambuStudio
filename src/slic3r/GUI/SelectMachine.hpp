@@ -345,6 +345,10 @@ protected:
     MaterialHash                        m_materialList;
     Plater *                            m_plater{nullptr};
     wxPanel *                           m_options_other {nullptr};
+    wxPanel *                           m_options_line_panel {nullptr};
+    wxStaticBitmap*                     m_options_line_bmp{nullptr};
+    Label*                              m_options_line_label{nullptr};
+    Label*                              m_options_line_close{nullptr};
     wxGridSizer*                        m_sizer_options{nullptr};
     wxBoxSizer*                         m_sizer_thumbnail{ nullptr };
     wxPanel*                            m_pa_value_panel{nullptr};
@@ -425,6 +429,7 @@ protected:
 
     wxBoxSizer*                         m_filament_panel_sizer;
     wxBoxSizer*                         m_filament_panel_left_sizer;
+    Label*                              m_filament_right_title;
     wxBoxSizer*                         m_filament_panel_right_sizer;
     wxBoxSizer*                         m_sizer_filament_2extruder;
 
@@ -604,7 +609,11 @@ private:
     // enbale or disable external change assist
     bool is_enable_external_change_assist(std::vector<FilamentInfo>& ams_mapping_result);
 
+
+    
     void refresh_save_time(MachineObject *obj);
+
+    bool has_bowden_extuder(MachineObject *obj);
 };
 
 class PrinterInfoBox : public StaticBox

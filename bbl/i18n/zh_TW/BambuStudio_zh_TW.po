@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-12 12:08+0800\n"
+"POT-Creation-Date: 2026-03-31 16:30+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -70,6 +70,9 @@ msgstr "TPU線材不支援自動動態流量校準。"
 msgid "Bambu TPU 85A is not supported for printing with 0.4 mm Standard or High Flow nozzles."
 msgstr ""
 
+msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+msgstr "ABS/ASA/PETG HF在右擠出機列印時，僅能作為支撐材料使用。"
+
 msgid "How to feed TPU filament."
 msgstr "TPU進料方式。"
 
@@ -110,8 +113,28 @@ msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow noz
 msgstr "%s在使用 0.4，0.6，0.8mm 高流量噴嘴時會有堵頭風險，請謹慎使用。"
 
 #, c-format, boost-format
+msgid "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "%s 不支援在 %s 擠出機列印。"
+
+#, c-format, boost-format
+msgid "There may be critical print quality issues when printing '%s' with %s Bowden extruder. Use with caution!"
+msgstr ""
+
+#, c-format, boost-format
+msgid "There may be critical print quality issues when printing '%s' with %s extruder. Use with caution!"
+msgstr ""
+
+#, c-format, boost-format
+msgid "There may be print quality issues when printing '%s' with %s Bowden extruder. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
+msgstr ""
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr "工具頭和熱端架可能會運動，請勿將手伸入機箱。"
@@ -233,28 +256,27 @@ msgstr "關閉"
 msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
 msgstr ""
 
+msgid "Summary:"
+msgstr ""
+
+msgid "AMS on Filament Inlet A"
+msgstr ""
+
+msgid "AMS on Filament Inlet B"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The No.%d slicing filament is matched to '%s'. Assigning it to '%s' can save printing time."
+msgstr ""
+
+msgid "*Tips: If you have moved the spool position on the machine, please close this page and re‑match the filament."
+msgstr ""
+
 msgid "Summary: This is currently the most suitable position for placement."
 msgstr ""
 
 msgid "?"
 msgstr "?"
-
-msgid "Summary: "
-msgstr ""
-
-#, c-format, boost-format
-msgid "Remove %s in %s . Insert into AMS on Filament Inlet B."
-msgstr ""
-
-msgid "filaments"
-msgstr ""
-
-msgid "filament"
-msgstr "絲"
-
-#, c-format, boost-format
-msgid "Remove %s in %s . Insert into AMS on Filament Inlet A."
-msgstr ""
 
 msgid "Model:"
 msgstr "型號："
@@ -2237,11 +2259,8 @@ msgstr "解除切割關係"
 msgid "Add Primitive"
 msgstr "新增標準模型"
 
-msgid "Show Labels by Layer"
-msgstr ""
-
-msgid "Show Labels by Object"
-msgstr ""
+msgid "Show Labels"
+msgstr "顯示標籤"
 
 msgid "To objects"
 msgstr "拆分到物件"
@@ -2377,9 +2396,6 @@ msgstr "用選定物件的副本填充床的剩餘區域"
 
 msgid "Edit Plate Name"
 msgstr "編輯盤名"
-
-msgid "Show Labels"
-msgstr "顯示標籤"
 
 msgid "Name"
 msgstr "名稱"
@@ -2776,9 +2792,6 @@ msgstr "選擇1個AMS槽位，然後點選進料/退料按鈕以自動進料/退
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
 msgstr "執行此操作的耗材型別未知。請設定槽位資訊。"
 
-msgid "Ext"
-msgstr ""
-
 msgid "/"
 msgstr ""
 
@@ -2867,6 +2880,12 @@ msgstr "冷卻模式適合列印%s材質，同時能夠過濾腔內空氣"
 msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
 msgstr "腔溫保持模式適合列印%s材質，在機箱內部迴圈過濾腔內空氣。"
 
+msgid "Strong Cooling"
+msgstr ""
+
+msgid "Fan"
+msgstr "風扇"
+
 msgctxt "air_duct"
 msgid "Right(Aux)"
 msgstr "右（輔助）"
@@ -2900,9 +2919,6 @@ msgstr ""
 
 msgid "Heat"
 msgstr "加熱"
-
-msgid "Fan"
-msgstr "風扇"
 
 msgid "Idling..."
 msgstr "空閒中"
@@ -5389,11 +5405,8 @@ msgstr "重置視窗布局"
 msgid "Reset to default window layout"
 msgstr "重置為預設視窗布局"
 
-msgid "Show Labels of printing by layer in 3D scene"
-msgstr ""
-
-msgid "Show Labels of printing by object in 3D scene"
-msgstr ""
+msgid "Show object labels in 3D scene"
+msgstr "在3D場景中顯示物件名稱"
 
 msgid "Show &Overhang"
 msgstr "顯示懸空高亮"
@@ -6923,7 +6936,7 @@ msgstr "同步擠出機資訊"
 
 msgid ""
 "Tips:\n"
-"Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
+"Curve planning enhancement support detected on your printer. The software has automatically disabled arc fitting to ensure this feature functions correctly."
 msgstr ""
 
 msgid "Click to edit preset"
@@ -7626,6 +7639,13 @@ msgstr "不建議使用0.2毫米噴嘴來列印PVA材料"
 msgid "Are you sure to use them? \n"
 msgstr "您確定要使用它嗎？ \n"
 
+msgid ""
+"Print By Object: \n"
+"Suggest to use auto-arrange to avoid collisions when printing."
+msgstr ""
+"逐件列印：\n"
+"建議使用自動擺盤避免列印時發生碰撞。"
+
 msgid "Send G-code"
 msgstr "傳送 G 程式碼"
 
@@ -7637,19 +7657,6 @@ msgstr "自定義的支撐和塗色在模型修復之前將被清除。"
 
 msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
 msgstr "在修復之前，刪除了支援、接縫和塗色資訊,模型名字:"
-
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-"逐件列印：\n"
-"建議使用自動擺盤避免列印時發生碰撞。"
-
-msgid "Auto arrange"
-msgstr "自動擺盤"
-
-msgid "Detail view wiki->"
-msgstr ""
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -7906,6 +7913,12 @@ msgstr "清除 “載入 3mf” 對話方塊設定。"
 
 msgid "Show the warning dialog again when importing non-Bambu 3MF files"
 msgstr "匯入非 Bambu 3MF 檔案時再次顯示警告對話方塊"
+
+msgid "Clear my choice for disabling recommendation for support material parameters."
+msgstr ""
+
+msgid "Clear my choice for disabling recommendation for support material parameters"
+msgstr ""
 
 msgid "3D Settings"
 msgstr "3D設定"
@@ -8504,6 +8517,9 @@ msgstr ""
 msgid "Nozzles and filaments of the same type share the same PA profile"
 msgstr "同型別噴嘴與耗材共用PA配置檔案"
 
+msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
+msgstr ""
+
 msgid "send completed"
 msgstr "傳送完成"
 
@@ -8561,6 +8577,18 @@ msgstr "檢測熱床的平整度。調平可以使擠出的高度更均勻。"
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "此過程確定動態流量校準的最佳係數，從而提升列印質量。"
 
+msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value.\n"
+msgstr ""
+
+msgid "On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value.\n"
+msgstr ""
+
+msgid "Off: Prioritize using the value from your manual flow calibration."
+msgstr ""
+
+msgid "Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
+msgstr ""
+
 msgid "Preparing print job"
 msgstr "正在準備列印任務"
 
@@ -8572,6 +8600,9 @@ msgstr "因列印任務已成功傳送，此次取消操作未能中止本次任
 
 msgid "The name length exceeds the limit."
 msgstr "名稱長度超過限制。"
+
+msgid "Right Nozzle(Aux)"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Cost %dg filament and %d changes more than optimal grouping."
@@ -8823,6 +8854,24 @@ msgstr "切片完成"
 msgid "View all Daily tips"
 msgstr "檢視所有每日貼士"
 
+msgid "Availabale Objects"
+msgstr ""
+
+msgid "Main Material"
+msgstr ""
+
+msgid "Support Material"
+msgstr ""
+
+msgid "Recommended Parameters"
+msgstr ""
+
+msgid "Compatible model and support filaments detected. It is recommended to use the suggested filaments for printing the support interfaces of these objects, along with the recommended parameters."
+msgstr ""
+
+msgid "Don't remind me again"
+msgstr "不再提醒"
+
 msgid "Failed to create socket"
 msgstr "建立socket失敗"
 
@@ -8954,6 +9003,21 @@ msgstr "點選瞭解更多"
 msgid "Click to reset all settings to the last saved preset."
 msgstr "點選以將所有設定還原到最後一次儲存的版本。"
 
+msgid "Support interface speed"
+msgstr ""
+
+msgid "When using PLA to support TPU, We recommend the following settings:"
+msgstr ""
+
+msgid "When using soluble material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "Do you want to apply these settings?"
+msgstr ""
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "切換噴嘴需要擦料塔，否則列印件上可能會有瑕疵。您確定要關閉擦料塔嗎？"
 
@@ -9006,21 +9070,6 @@ msgstr ""
 "自動調整這些設定？\n"
 "是 - 自動調整這些設定\n"
 "否 - 不用為我調整這些設定"
-
-msgid ""
-"When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-msgstr ""
-"當支撐接觸面使用支撐材料時，我們推薦以下設定：\n"
-"0頂部z距離，0接觸面間距，交疊直線圖案，並且禁用支撐獨立層高"
-
-msgid ""
-"When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"當支撐接觸面使用可溶性材料時，我們推薦以下設定：\n"
-"0頂部z距離，0接觸面間距，0支撐/模型XY距離，交疊直線圖案，禁用支撐獨立層高，並將可溶性材料同時用於支撐接觸面和支撐主體"
 
 msgid ""
 "Layer height is too small.\n"
@@ -9845,6 +9894,9 @@ msgctxt "FinishSyncAms"
 msgid "OK"
 msgstr "確認"
 
+msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
+msgstr ""
+
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 msgstr "Studio 將會在每一次更換耗材或顏色時重新計算您的沖刷體積，您可以在Bambu Studio > 偏好設定 中關閉自動計算"
 
@@ -10011,9 +10063,6 @@ msgstr ""
 
 msgid "Camera view - Isometric"
 msgstr "攝像機視角 - 等軸測"
-
-msgid "Shift+E"
-msgstr ""
 
 msgid "Select all objects"
 msgstr "選擇所有物件"
@@ -11361,14 +11410,12 @@ msgstr "秒"
 msgid "Cooling overhang threshold"
 msgstr "冷卻懸空閾值"
 
-#, c-format
 msgid "Force cooling fan to be specific speed when overhang degree of printed part exceeds this value. Expressed as percentage which indicides how much width of the line without support from lower layer. 0% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "當列印件的懸空程度超過此值時，強制冷卻風扇達到特定速度。用百分比表示，表明沒有下層支撐的線的寬度是多少。0%%意味著無論懸垂程度如何，都要對所有外壁強制冷卻。"
 
 msgid "Overhang threshold for participating cooling"
 msgstr "參與冷卻降速的懸垂閾值"
 
-#, c-format
 msgid "Decide which overhang part join the cooling function to slow down the speed.Expressed as percentage which indicides how much width of the line without support from lower layer. 100% means forcing cooling for all outer wall no matter how much overhang degree"
 msgstr "決定多少閾值的懸垂參與冷卻降速.用百分比表示超出線寬的範圍。"
 
@@ -11757,7 +11804,6 @@ msgstr "除了橋接外的底面填充的走線圖案"
 msgid "Bottom surface density"
 msgstr "底面密度"
 
-#, c-format
 msgid "Density of bottom surface infill, 100% means a fully solid filled top layer.Lower values create a textured bottom surface, Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion.WARNING: Lowering this value may negatively affect bed adhesion."
 msgstr "底面的填充密度，100%%表示底面為完全實心填充。較低數值會產生紋理化的底面，旨在滿足美觀或功能需求，而非用於修復諸如過度擠出等問題。警告：降低此值可能會負面影響列印平臺附著性。"
 
@@ -12111,6 +12157,12 @@ msgstr "主體耗材可列印性"
 msgid "The filament is printable in extruder"
 msgstr ""
 
+msgid "Filament-extruder compatibility"
+msgstr ""
+
+msgid "A single 32-bit int encoding the compatibility level of a filament across all extruders (up to 10). Every 3 bits represent one extruder (bits [3*i, 3*i+2] for extruder i). 0: printable, 1: error, 2: critical warning, 3: warning, 4-7: reserved"
+msgstr ""
+
 msgid "Filament change"
 msgstr "耗材絲更換"
 
@@ -12162,6 +12214,12 @@ msgstr "料塔接觸層（不同材料交界處）的列印溫度。如果設定
 msgid "°C"
 msgstr "°C"
 
+msgid "Enable tower interface features"
+msgstr ""
+
+msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
+msgstr ""
+
 msgid "Softening temperature"
 msgstr "軟化溫度"
 
@@ -12204,7 +12262,6 @@ msgstr "稀疏填充圖案的角度，決定走線的開始或整體方向。"
 msgid "Sparse infill density"
 msgstr "稀疏填充密度"
 
-#, c-format
 msgid "Density of internal sparse infill, 100% means solid throughout"
 msgstr "稀疏填充密度, 100%% 意味著完全實心。"
 
@@ -12417,6 +12474,12 @@ msgstr "首層掃描"
 
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "開啟這個設定將開啟印表機上的攝像頭用於檢查首層列印質量。"
+
+msgid "Print loops in clockwise"
+msgstr ""
+
+msgid "Print in clockwise when enabled, or counterclockwise when not enabled, not work for spiral vase mode"
+msgstr ""
 
 msgid "Enable clumping detection"
 msgstr "開啟觸碰裹頭檢測"
@@ -14336,6 +14399,12 @@ msgstr ""
 "- 可共享相同熱床溫度的材料\n"
 "- 不同耗材品牌和系列（品牌 = Bambu，系列 = Basic，啞光）\n"
 
+msgid "- Right Nozzle (Aux) does not support automatic flow calibration."
+msgstr ""
+
+msgid "- Left Nozzle (Aux) does not support automatic flow calibration."
+msgstr ""
+
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- 注意：熱端編號與刀架繫結。當熱端移動到新到架時，其編號將自動更新。\n"
 
@@ -15294,6 +15363,10 @@ msgid "The number of printer extruders and the printer selected for calibration 
 msgstr ""
 
 #, c-format, boost-format
+msgid "The type of %sextruder is bowden which does not support automatic Flow Dynamics calibration."
+msgstr ""
+
+#, c-format, boost-format
 msgid "The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."
 msgstr "%s 擠出機的噴嘴直徑為0.2毫米，不支援自動流量校準。"
 
@@ -15850,9 +15923,6 @@ msgstr "耗材分組"
 
 msgid "Fila Saving"
 msgstr ""
-
-msgid "Don't remind me again"
-msgstr "不再提醒"
 
 msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
 msgstr ""
@@ -16592,11 +16662,23 @@ msgstr ""
 "一次成功的可靠性\n"
 "更少盯機，更可預測的產出。例如：小型列印農場列印 PETG 零件可降低意外失敗的機率，讓批次按計劃推進。"
 
-#~ msgid "Show object labels in 3D scene"
-#~ msgstr "在3D場景中顯示物件名稱"
-
 #~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
 #~ msgstr "空駛時繞過外牆以避免在模型外觀面產生斑點"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+#~ msgstr ""
+#~ "當支撐接觸面使用支撐材料時，我們推薦以下設定：\n"
+#~ "0頂部z距離，0接觸面間距，交疊直線圖案，並且禁用支撐獨立層高"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "當支撐接觸面使用可溶性材料時，我們推薦以下設定：\n"
+#~ "0頂部z距離，0接觸面間距，0支撐/模型XY距離，交疊直線圖案，禁用支撐獨立層高，並將可溶性材料同時用於支撐接觸面和支撐主體"
 
 #~ msgid "Dynamic flow calibration is not supported for TPU 85A filament."
 #~ msgstr "TPU 85A耗材不支援動態流量校準。"
@@ -16918,9 +17000,6 @@ msgstr ""
 
 #~ msgid "Learn more about purge mode"
 #~ msgstr "瞭解更多衝刷模式資訊"
-
-#~ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
-#~ msgstr "ABS/ASA/PETG HF在右擠出機列印時，僅能作為支撐材料使用。"
 
 #~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 #~ msgstr "CF/GF耗材絲又硬又脆，在AMS中很容易斷裂或卡住，請謹慎使用。"
@@ -21190,6 +21269,9 @@ msgstr ""
 #~ msgid "Printer Selection"
 #~ msgstr "印表機選擇"
 
+#~ msgid "Auto arrange"
+#~ msgstr "自動擺盤"
+
 #~ msgid "Spiral mode"
 #~ msgstr "旋轉模式"
 
@@ -22733,6 +22815,9 @@ msgstr ""
 
 #~ msgid "%s Family"
 #~ msgstr "%s 系列"
+
+#~ msgid "filament"
+#~ msgstr "絲"
 
 #~ msgid "SLA material"
 #~ msgstr "SLA 材料"

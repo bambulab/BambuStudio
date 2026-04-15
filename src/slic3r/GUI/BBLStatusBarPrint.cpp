@@ -35,8 +35,8 @@ BBLStatusBarPrint::BBLStatusBarPrint(wxWindow *parent, int id)
 
     m_status_text = new wxStaticText(top_panel, wxID_ANY, wxEmptyString);
     m_status_text->SetForegroundColour(wxColour(107, 107, 107));
-    m_status_text->SetMaxSize(wxSize(m_self->FromDIP(400), m_self->FromDIP(26)));
-    m_status_text->SetMinSize(wxSize(m_self->FromDIP(400), m_self->FromDIP(26)));
+    m_status_text->SetMaxSize(wxSize(m_self->FromDIP(440), m_self->FromDIP(26)));
+    m_status_text->SetMinSize(wxSize(m_self->FromDIP(440), m_self->FromDIP(26)));
     m_status_text->SetFont(::Label::Body_13);
 
     StateColor btn_bt_white(std::pair<wxColour, int>(wxColour(0x90, 0x90, 0x90), StateColor::Disabled),
@@ -192,8 +192,8 @@ void BBLStatusBarPrint::show_error_info(wxString msg, int code, wxString descrip
 
     top_panel->SetMinSize(wxSize(m_self->FromDIP(550), m_self->FromDIP(32)));
     top_panel->SetMaxSize(wxSize(m_self->FromDIP(550), m_self->FromDIP(32)));
-    m_status_text->SetMaxSize(wxSize(m_self->FromDIP(400), m_self->FromDIP(32)));
-    m_status_text->SetMinSize(wxSize(m_self->FromDIP(400), m_self->FromDIP(32)));
+    m_status_text->SetMaxSize(wxSize(m_self->FromDIP(440), m_self->FromDIP(32)));
+    m_status_text->SetMinSize(wxSize(m_self->FromDIP(440), m_self->FromDIP(32)));
 
     m_cancelbutton->Show();
     m_self->Layout();
@@ -387,8 +387,8 @@ void BBLStatusBarPrint::reset()
 
     top_panel->SetMinSize(wxSize(m_self->FromDIP(550), m_self->FromDIP(26)));
     top_panel->SetMaxSize(wxSize(m_self->FromDIP(550), m_self->FromDIP(26)));
-    m_status_text->SetMaxSize(wxSize(m_self->FromDIP(400), m_self->FromDIP(26)));
-    m_status_text->SetMinSize(wxSize(m_self->FromDIP(400), m_self->FromDIP(26)));
+    m_status_text->SetMaxSize(wxSize(m_self->FromDIP(440), m_self->FromDIP(26)));
+    m_status_text->SetMinSize(wxSize(m_self->FromDIP(440), m_self->FromDIP(26)));
 
     set_status_text("");
     set_progress(0);
