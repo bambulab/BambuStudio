@@ -913,10 +913,10 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
                 nozzle_obj.m_sn = njon["sn"].get<std::string>();
             }
             if (njon.contains("snow")) {
-                if (DevUtil::get_flag_bits(njon["bind_ams_slot"].get<int>(), 8, 8) == 0xff) {
+                if (DevUtil::get_flag_bits(njon["snow"].get<int>(), 8, 8) == 0xff) {
                     DevAmsSlotId slot_now;
-                    slot_now.second = DevUtil::get_flag_bits(njon["bind_ams_slot"].get<int>(), 0, 8);
-                    slot_now.first = DevUtil::get_flag_bits(njon["bind_ams_slot"].get<int>(), 8, 8);
+                    slot_now.second = DevUtil::get_flag_bits(njon["snow"].get<int>(), 0, 8);
+                    slot_now.first = DevUtil::get_flag_bits(njon["snow"].get<int>(), 8, 8);
                     nozzle_obj.m_slot_now = slot_now;
                 } else {
                     nozzle_obj.m_slot_now.reset();

@@ -119,6 +119,9 @@ public:
     // direct bind ams slots. eg. ZMULTI_A
     std::vector<DevAmsSlotId> GetBindAmsSlots() const { return m_bind_ams_slots; };
 
+    // external ams ids bound to this nozzle (from device push "bind_ams")
+    std::vector<int> GetBindAms() const { return m_bind_ams; };
+
 private:
     int  GetTotalExtruderCount() const;
 

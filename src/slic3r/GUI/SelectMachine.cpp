@@ -6113,9 +6113,19 @@ wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
         auto mapped_info = get_mapped_filament_info(fila_id);
         if (mapped_info.has_value()) {
             auto tray_opt = obj_->get_tray(std::to_string(mapped_info->get_ams_id()), std::to_string(mapped_info->get_slot_id()));
-            if (tray_opt.has_value()&& tray_opt->get_nozzle_pos_id(obj_).has_value()) {
+            if (tray_opt.has_value() && tray_opt->get_nozzle_pos_id(obj_).has_value()) {
                 int nozzle_pos_id = tray_opt->get_nozzle_pos_id(obj_).value();
                 return wxString::Format("%d", nozzle_pos_id - 16);
+            }
+
+            // Fallback for external AMS (N3S/N3F): find nozzle via bind_ams
+            int mapped_ams_id = mapped_info->get_ams_id();
+            for (const auto& [nid, nozzle] : obj_->GetNozzleRack()->GetRackNozzles()) {
+                for (int bind_id : nozzle.GetBindAms()) {
+                    if (bind_id == mapped_ams_id) {
+                        return wxString::Format("%d", nid);
+                    }
+                }
             }
         }
 
@@ -6137,9 +6147,25 @@ wxString SelectMachineDialog::get_nozzle_dia_and_type(const std::string &ams_id,
     if (!tray_opt.has_value()) return wxEmptyString;
 
     auto nozzle_pos_opt = tray_opt->get_nozzle_pos_id(obj_);
-    if (!nozzle_pos_opt.has_value()) return wxEmptyString;
-
-    int rack_nozzle_id = nozzle_pos_opt.value();
+    int rack_nozzle_id = -1;
+    if (nozzle_pos_opt.has_value()) {
+        rack_nozzle_id = nozzle_pos_opt.value();
+    } else {
+        // Fallback for external AMS (N3S/N3F): find nozzle via bind_ams
+        int ams_id_int = 0;
+        try { ams_id_int = std::stoi(ams_id); } catch (...) { return wxEmptyString; }
+        auto find_nozzle_by_bind_ams = [&]() -> int {
+            for (const auto& [nid, nozzle] : obj_->GetNozzleRack()->GetRackNozzles()) {
+                for (int bind_id : nozzle.GetBindAms()) {
+                    if (bind_id == ams_id_int)
+                        return nid + HOTEND_RACK_INTERNAL_ID_OFFSET;
+                }
+            }
+            return -1;
+        };
+        rack_nozzle_id = find_nozzle_by_bind_ams();
+        if (rack_nozzle_id < 0) return wxEmptyString;
+    }
     if (rack_nozzle_id >= HOTEND_RACK_INTERNAL_ID_OFFSET) {
         rack_nozzle_id -= HOTEND_RACK_INTERNAL_ID_OFFSET;
     }

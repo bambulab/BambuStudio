@@ -998,12 +998,41 @@ void AmsMapingPopup::add_ams_mapping_hotend(MachineObject* obj,
                                                       obj->GetFilaSystem()->IsDetectRemainEnabled());
                         break;
                     }
+
+                    // G1 fallback: if BindedExtruderSet didn't match, try nozzle's bind_ams
+                    if (!hotend_item->has_sub_ams()) {
+                        auto nozzle_opt = obj->GetNozzleSystem()->GetNozzleOptByPosId(np.value());
+                        if (nozzle_opt.has_value()) {
+                            for (int bind_ams_id : nozzle_opt->GetBindAms()) {
+                                std::string bind_ams_id_str = std::to_string(bind_ams_id);
+                                auto ams_it = obj->GetFilaSystem()->GetAmsList().find(bind_ams_id_str);
+                                if (ams_it == obj->GetFilaSystem()->GetAmsList().end()) continue;
+                                auto at = ams_it->second->GetAmsType();
+                                if (at != DevAmsType::N3S && at != DevAmsType::N3F) continue;
+                                std::vector<TrayData> sub;
+                                for (auto ti = ams_it->second->GetTrays().cbegin(); ti != ams_it->second->GetTrays().cend(); ti++) {
+                                    auto td_opt = sGetTrayData(obj, ams_it->second, ti->second, bind_ams_id_str);
+                                    if (td_opt.has_value()) sub.push_back(td_opt.value());
+                                }
+                                if (!sub.empty()) {
+                                    hotend_item->set_sub_ams(sub, ams_it->second->GetDisplayName(),
+                                                              obj->GetFilaSystem()->IsDetectRemainEnabled());
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
 
         if (tray_data[i].ams_type == DevAmsType::EXT_SPOOL && hotend_item->has_sub_ams())
             hotend_item->set_ext_mode(true, true);
+
+        // Slot with sub-AMS should not appear greyed out even if ZMULTI tray is empty
+        if (hotend_item->has_sub_ams() && !can_pick) {
+            hotend_item->set_slot_state(HotendSlotState::Normal);
+        }
 
         // Build sub-panel for this slot if it has sub-AMS (hidden by default)
         wxPanel* sub_panel = nullptr;
