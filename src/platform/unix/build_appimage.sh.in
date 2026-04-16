@@ -12,7 +12,24 @@ sed '0,/AI\x02/{s|AI\x02|\x00\x00\x00|}' -i  ../appimagetool.AppImage
 fi
 
 sed -i -e 's#/usr#././#g' bin/@SLIC3R_APP_CMD@
-mv @SLIC3R_APP_CMD@ AppRun
+
+cat <<'EOF' > AppRun
+#!/bin/sh
+
+DIR="$(dirname "$0")"
+
+# Prevent Snap-hosted shells/IDEs from injecting incompatible runtime paths.
+unset GTK_PATH
+unset GTK_EXE_PREFIX
+unset GIO_MODULE_DIR
+unset GSETTINGS_SCHEMA_DIR
+unset GDK_PIXBUF_MODULE_FILE
+unset LD_PRELOAD
+
+export LD_LIBRARY_PATH="$DIR/bin"
+
+exec "$DIR/bin/@SLIC3R_APP_CMD@" "$@"
+EOF
 chmod +x AppRun
 
 # Remove bundled glibc libraries to avoid symbol mismatches at runtime
