@@ -1,25 +1,18 @@
-#ifndef slic3r_FilamentMapDialog_hpp_
-#define slic3r_FilamentMapDialog_hpp_
+#pragma once
 
 #include <vector>
 #include "CapsuleButton.hpp"
-#include "Widgets/CheckBox.hpp"
-#include "libslic3r/PrintConfig.hpp"
 
 class Button;
 
 namespace Slic3r {
-class DynamicPrintConfig;
 class Print;
+}
 
-namespace GUI {
-class DragDropPanel;
+namespace Slic3r::GUI {
 class Plater;
 class PartPlate;
-class FilamentMapManualPanel;
-class FilamentMapAutoPanel;
-class FilamentMapDefaultPanel;
-class FilamentMapSavingPanel;
+class FilamentMapPanel;
 class SmartFilamentPanel;
 
 /**
@@ -34,16 +27,12 @@ class SmartFilamentPanel;
  * @return whether continue slicing
 */
 bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* partplate_ref, bool force_pop_up = false);
-std::vector<FilamentMapMode> resolve_available_auto_modes(Print* print_obj, const std::vector<FilamentMapMode>& requested_modes, bool machine_synced);
-
+std::vector<FilamentMapMode> resolve_available_auto_modes(Print *print_obj, const std::vector<FilamentMapMode> &requested_modes, bool machine_synced);
 
 class FilamentMapDialog : public wxDialog
 {
-    enum PageType {
-        ptAuto,
-        ptManual,
-        ptDefault
-    };
+    enum PageType { ptAuto, ptManual };
+
 public:
     FilamentMapDialog(wxWindow *parent,
         const std::vector<std::string>& filament_color,
@@ -71,44 +60,43 @@ public:
         return {};
     }
 
-    int ShowModal();
-    void set_modal_btn_labels(const wxString& left_label, const wxString& right_label);
+    int ShowModal() override;
+
 private:
-    void make_smart_filament_section(wxBoxSizer *sizer);
+    void make_header(wxBoxSizer *sizer, bool only_saving_mode);
+    void make_body(wxBoxSizer                         *sizer,
+                   bool                                only_saving_mode,
+                   const std::vector<FilamentMapMode> &modes_to_use,
+                   const std::vector<int>             &filaments,
+                   const FilamentMapMode               mode,
+                   bool                                machine_synced);
+    void make_footer(wxBoxSizer *sizer, const FilamentMapMode mode);
 
     void on_ok(wxCommandEvent &event);
     void on_cancle(wxCommandEvent &event);
     void on_switch_mode(wxCommandEvent &event);
-    void on_checkbox(wxCommandEvent &event);
     void on_smart_filament_checkbox(wxCommandEvent &event);
 
     void update_panel_status(PageType page);
 
  private:
-    FilamentMapManualPanel* m_manual_map_panel;
-    FilamentMapAutoPanel* m_auto_map_panel;
-    FilamentMapDefaultPanel* m_default_map_panel;
-    FilamentMapSavingPanel* m_saving_panel;
+     FilamentMapPanel   *m_auto_panel{};
+     FilamentMapPanel   *m_manual_panel{};
+     SmartFilamentPanel *smart_filament{};
 
-    CapsuleButton* m_auto_btn;
-    CapsuleButton* m_manual_btn;
-    CapsuleButton* m_default_btn;
+     CapsuleButton *m_auto_btn;
+     CapsuleButton *m_manual_btn;
 
-    Button   *m_ok_btn{};
-    Button   *m_cancel_btn{};
-    CheckBox *m_checkbox{};
-    SmartFilamentPanel *smart_filament{};
+     Button *m_ok_btn{};
+     Button *m_cancel_btn{};
 
-    PageType m_page_type;
-    bool     m_fila_switch_ready{false};
+     PageType m_page_type;
+     bool     m_fila_switch_ready{false};
 
-private:
-    std::vector<int> m_filament_map;
-    std::vector<int> m_filament_volume_map;
-    std::vector<std::string> m_filament_color;
-    std::vector<std::string> m_filament_type;
+     std::vector<int>         m_filament_map;
+     std::vector<int>         m_filament_volume_map;
+     std::vector<std::string> m_filament_color;
+     std::vector<std::string> m_filament_type;
 };
 
-}} // namespace Slic3r::GUI
-
-#endif /* slic3r_FilamentMapDialog_hpp_ */
+} // namespace Slic3r::GUI
