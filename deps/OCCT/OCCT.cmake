@@ -15,6 +15,7 @@ bambustudio_add_cmake_project(OCCT
     #DEPENDS dep_Boost
     #DEPENDS dep_FREETYPE
     CMAKE_ARGS
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5
         -DBUILD_LIBRARY_TYPE=${library_build_type}
         -DUSE_TK=OFF
         -DUSE_TBB=OFF

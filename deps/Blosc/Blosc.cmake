@@ -23,6 +23,7 @@ bambustudio_add_cmake_project(Blosc
     # Patching upstream does not work this way with git version 2.28 installed on mac worker
     # PATCH_COMMAND  ${GIT_EXECUTABLE} apply --ignore-space-change --whitespace=fix ${CMAKE_CURRENT_LIST_DIR}/blosc-mods.patch
     CMAKE_ARGS
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
         -DBUILD_SHARED=${_build_shared} 
         -DBUILD_STATIC=${_build_static}

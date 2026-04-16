@@ -15,6 +15,14 @@ sed -i -e 's#/usr#././#g' bin/@SLIC3R_APP_CMD@
 mv @SLIC3R_APP_CMD@ AppRun
 chmod +x AppRun
 
+# Remove bundled glibc libraries to avoid symbol mismatches at runtime
+# Let the AppImage use system glibc instead
+rm -f usr/lib/x86_64-linux-gnu/libpthread.so.0
+rm -f usr/lib/x86_64-linux-gnu/libc.so.6
+rm -f usr/lib/x86_64-linux-gnu/libm.so.6
+rm -f usr/lib/x86_64-linux-gnu/libdl.so.2
+rm -f usr/lib64/ld-linux-x86-64.so.* 2>/dev/null || true
+
 cp resources/images/@SLIC3R_APP_KEY@_192px.png @SLIC3R_APP_KEY@.png
 for PNG_SIZE in 32 128 192; do
     mkdir -p usr/share/icons/hicolor/${PNG_SIZE}x${PNG_SIZE}/apps

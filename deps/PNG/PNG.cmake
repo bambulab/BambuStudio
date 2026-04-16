@@ -14,6 +14,7 @@ if(APPLE AND IS_CROSS_COMPILE)
         PATCH_COMMAND       ${GIT_EXECUTABLE} checkout -f -- . && git clean -df &&
                             ${GIT_EXECUTABLE} apply --whitespace=fix ${CMAKE_CURRENT_LIST_DIR}/macos-arm64.patch ${CMAKE_CURRENT_LIST_DIR}/0002-clang19-macos.patch
         CMAKE_ARGS
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5
             -DPNG_SHARED=OFF
             -DPNG_STATIC=ON
             -DPNG_PREFIX=prusaslicer_
@@ -34,6 +35,7 @@ set(_patch_step "")
         DEPENDS ${ZLIB_PKG}
         "${_patch_step}"
         CMAKE_ARGS
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5
             -DPNG_SHARED=OFF
             -DPNG_STATIC=ON
             -DPNG_PREFIX=prusaslicer_
