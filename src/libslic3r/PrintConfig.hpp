@@ -384,6 +384,9 @@ inline bool is_auto_filament_map_mode(FilamentMapMode mode) {
     return mode == fmmAutoForFlush || mode == fmmAutoForMatch || mode == fmmAutoForQuality;
 }
 
+enum CounterboreHoleBridgingOption {
+    chbNone, chbBridges, chbFilled
+};
 extern std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type);
 
 // 最基础的参数idx查找方法，遍历varint list寻找对应的idx
@@ -511,6 +514,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PerimeterGeneratorType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(TopOneWallType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ReduceInfillRetractionMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FilamentMetalStickiness)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(CounterboreHoleBridgingOption)
 #undef CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS
 
 // Defines each and every confiuration option of Slic3r, including the properties of the GUI dialogs.
@@ -1024,6 +1028,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, bottom_shell_thickness))
     ((ConfigOptionFloat, bridge_angle))
     ((ConfigOptionFloat, bridge_flow))
+    ((ConfigOptionEnum<CounterboreHoleBridgingOption>, counterbore_hole_bridging))
     ((ConfigOptionFloatsNullable, overhang_totally_speed))
     ((ConfigOptionFloatsNullable, bridge_speed))
     ((ConfigOptionEnum<EnsureVerticalThicknessLevel>, ensure_vertical_shell_thickness))
