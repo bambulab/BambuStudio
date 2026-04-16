@@ -30,22 +30,22 @@ msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Model filamentu je neznámý. Bude použito náhodné přednastavení filamentu."
 
 msgid "Main Extruder"
-msgstr ""
+msgstr "Hlavní Extruder"
 
 msgid "Main extruder"
-msgstr ""
+msgstr "Hlavní extruder"
 
 msgid "main extruder"
-msgstr ""
+msgstr "hlavní extruder"
 
 msgid "Auxiliary Extruder"
-msgstr ""
+msgstr "Pomocný Extruder"
 
 msgid "Auxiliary extruder"
-msgstr ""
+msgstr "Pomocný extruder"
 
 msgid "auxiliary extruder"
-msgstr ""
+msgstr "pomocný extruder"
 
 msgid "Left Extruder"
 msgstr "Levý extruder"
@@ -66,22 +66,22 @@ msgid "right extruder"
 msgstr "Pravý extrudér"
 
 msgid "Main Nozzle"
-msgstr ""
+msgstr "Hlavní Tryska"
 
 msgid "Main nozzle"
-msgstr ""
+msgstr "Hlavní tryska"
 
 msgid "main nozzle"
-msgstr ""
+msgstr "hlavní tryska"
 
 msgid "Auxiliary Nozzle"
-msgstr ""
+msgstr "Pomocná Tryska"
 
 msgid "Auxiliary nozzle"
-msgstr ""
+msgstr "Pomocná tryska"
 
 msgid "auxiliary nozzle"
-msgstr ""
+msgstr "pomocná tryska"
 
 msgid "Left Nozzle"
 msgstr "Levá tryska"
@@ -102,52 +102,52 @@ msgid "right nozzle"
 msgstr "Pravá tryska"
 
 msgid "Main Hotend"
-msgstr ""
+msgstr "Hlavní Hotend"
 
 msgid "Main hotend"
-msgstr ""
+msgstr "Hlavní hotend"
 
 msgid "main hotend"
-msgstr ""
+msgstr "hlavní hotend"
 
 msgid "Auxiliary Hotend"
-msgstr ""
+msgstr "Pomocný Hotend"
 
 msgid "Auxiliary hotend"
-msgstr ""
+msgstr "Pomocný hotend"
 
 msgid "auxiliary hotend"
-msgstr ""
+msgstr "Pomocný hotend"
 
 msgid "Left Hotend"
-msgstr ""
+msgstr "Levý Hotend"
 
 msgid "Left hotend"
-msgstr ""
+msgstr "Levý hotend"
 
 msgid "left hotend"
-msgstr ""
+msgstr "levý hotend"
 
 msgid "Right Hotend"
-msgstr ""
+msgstr "Pravý Hotend"
 
 msgid "Right hotend"
-msgstr ""
+msgstr "Pravý hotend"
 
 msgid "right hotend"
-msgstr ""
+msgstr "pravý hotend"
 
 msgid "main"
-msgstr ""
+msgstr "hlavní"
 
 msgid "auxiliary"
-msgstr ""
+msgstr "pomocný"
 
 msgid "Main"
-msgstr ""
+msgstr "Hlavní"
 
 msgid "Auxiliary"
-msgstr ""
+msgstr "Pomocný"
 
 msgid "left"
 msgstr "vlevo"
@@ -184,16 +184,16 @@ msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr "Automatická dynamická kalibrace průtoku není podporována pro TPU filament."
 
 msgid "Bambu TPU 85A is not supported for printing with 0.4 mm Standard or High Flow nozzles."
-msgstr ""
+msgstr "Bambu TPU 85A není podporován pro tisk se standardními nebo vysokoprůtokovými tryskami o průměru 0,4 mm."
 
 msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
-msgstr ""
+msgstr "Při použití ABS/ASA/PETG HF na pravém extruderu jej lze použít pouze jako nosný materiál."
 
 msgid "How to feed TPU filament."
 msgstr "Jak podávat TPU filament."
 
 msgid "How to feed TPU filament on X2D."
-msgstr ""
+msgstr "Jak podávat TPU filament na X2D."
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr "Použití jiného než bambu filament může mít za následek sníženou kvalitu tisku."
@@ -233,7 +233,7 @@ msgstr "%s představuje riziko ucpání trysky při použití 0,4, 0,6 a 0,8mm h
 
 #, c-format, boost-format
 msgid "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue."
-msgstr ""
+msgstr "%s se nemusí načíst nebo vyjmout kvůli přepínači dráhy filamentu. Pokud chcete pokračovat."
 
 #, c-format, boost-format
 msgid "%s is not supported by %s extruder."
@@ -241,19 +241,19 @@ msgstr "%s není podporován extruderem %s."
 
 #, c-format, boost-format
 msgid "There may be critical print quality issues when printing '%s' with %s Bowden extruder. Use with caution!"
-msgstr ""
+msgstr "Při tisku '%s' s bowdenovým extruderem %s se mohou vyskytnout kritické problémy s kvalitou tisku. Používejte opatrně!"
 
 #, c-format, boost-format
 msgid "There may be critical print quality issues when printing '%s' with %s extruder. Use with caution!"
-msgstr ""
+msgstr "Při tisku '%s' s extruderem %s se mohou vyskytnout kritické problémy s kvalitou tisku. Používejte opatrně!"
 
 #, c-format, boost-format
 msgid "There may be print quality issues when printing '%s' with %s Bowden extruder. Use with caution."
-msgstr ""
+msgstr "Při tisku '%s' s bowdenovým extruderem %s se mohou vyskytnout problémy s kvalitou tisku. Používejte opatrně."
 
 #, c-format, boost-format
 msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
-msgstr ""
+msgstr "Při tisku '%s' s extruderem %s se mohou vyskytnout problémy s kvalitou tisku. Používejte opatrně."
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr "Stojan tiskové hlavy a hotendu se může pohybovat. Držte ruce mimo komoru."
@@ -292,7 +292,7 @@ msgid "Unknown"
 msgstr "Neznámé"
 
 msgid "Hybrid"
-msgstr ""
+msgstr "Hybridní"
 
 msgid "Hardened Steel"
 msgstr "Kalená ocel"
@@ -335,35 +335,35 @@ msgstr "Nečinný"
 
 #, c-format, boost-format
 msgid "%d ℃"
-msgstr ""
+msgstr "%d ℃"
 
 msgid "Filament Inlet A"
-msgstr ""
+msgstr "Vstup filamentu A"
 
 msgid "Filament Inlet B"
-msgstr ""
+msgstr "Vstup filamentu B"
 
 msgid "Filament Track Switch"
-msgstr ""
+msgstr "Přepínač stopy filamentu"
 
 msgid "Suggested rearrangement"
-msgstr ""
+msgstr "Navrhované přeskupení"
 
 msgid "How to save time?→"
-msgstr ""
+msgstr "Jak ušetřit čas? →"
 
 msgid "Filament Status:"
-msgstr ""
+msgstr "Filament Status:"
 
 msgid "Position adjustment required"
-msgstr ""
+msgstr "Nutné nastavení polohy"
 
 msgctxt "FilamentTrack"
 msgid "OK"
-msgstr ""
+msgstr "Ok"
 
 msgid "Unused"
-msgstr ""
+msgstr "Nepoužitý"
 
 msgid "Refresh"
 msgstr "Obnovit"
@@ -373,29 +373,29 @@ msgstr "Zavřít"
 
 #, c-format, boost-format
 msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
-msgstr ""
+msgstr "Na základě níže uvedeného diagramu uspořádejte filamenty v tiskárně pro dosažení optimálních výsledků a ušetřete přibližně %s."
 
 msgid "Summary:"
-msgstr ""
+msgstr "Shrnutí:"
 
 msgid "AMS on Filament Inlet A"
-msgstr ""
+msgstr "AMS na vstupu filamentu A"
 
 msgid "AMS on Filament Inlet B"
-msgstr ""
+msgstr "AMS na vstupu filamentu B"
 
 #, c-format, boost-format
 msgid "The No.%d slicing filament is matched to '%s'. Assigning it to '%s' can save printing time."
-msgstr ""
+msgstr "Řezací filament č. %d je spárován s '%s'. Jeho přiřazení k '%s' může ušetřit čas tisku."
 
 msgid "*Tips: If you have moved the spool position on the machine, please close this page and re‑match the filament."
-msgstr ""
+msgstr "*Tipy: Pokud jste změnili polohu cívky na stroji, zavřete tuto stránku a znovu přiřaďte filament."
 
 msgid "Summary: This is currently the most suitable position for placement."
-msgstr ""
+msgstr "Shrnutí: Toto je v současné době nejvhodnější pozice pro umístění."
 
 msgid "?"
-msgstr ""
+msgstr "?"
 
 msgid "Model:"
 msgstr "Model:"
@@ -464,7 +464,7 @@ msgid "Refreshing"
 msgstr "Obnovuji"
 
 msgid "Hotend status abnormal, unavailable at present. Please upgrade the firmware and try again."
-msgstr ""
+msgstr "Stav hotendu je abnormální, momentálně není k dispozici. Aktualizujte prosím firmware a zkuste to znovu."
 
 msgid "SN"
 msgstr "SN"
@@ -474,10 +474,10 @@ msgstr "Verze"
 
 #, c-format, boost-format
 msgid "Used Time: %s"
-msgstr ""
+msgstr "Použitý čas: %s"
 
 msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
-msgstr ""
+msgstr "Dynamické trysky jsou alokovány na aktuálním plechu. Výběr hotendu není podporován."
 
 msgid "Hotend Rack"
 msgstr "Stojan na hotend"
@@ -489,7 +489,7 @@ msgid "Nozzle information needs to be read"
 msgstr "Informace o trysce je nutné načíst"
 
 msgid "Note:"
-msgstr ""
+msgstr "Poznámka:"
 
 msgid "Supports Painting"
 msgstr "Malování podpor"
@@ -1060,7 +1060,7 @@ msgid "Hexagon"
 msgstr "Hexagon"
 
 msgid "Middle of geometry"
-msgstr ""
+msgstr "Střed geometrie"
 
 msgid "Snap global parameters"
 msgstr "Přichytit globální parametry"
@@ -1109,7 +1109,7 @@ msgid "Snap"
 msgstr "Přichytit"
 
 msgid "Thread"
-msgstr ""
+msgstr "Vlákno"
 
 msgid "Tolerance"
 msgstr "Tolerance"
@@ -1368,10 +1368,10 @@ msgid "Remove selection"
 msgstr "Odstranit výběr"
 
 msgid "Recommend"
-msgstr ""
+msgstr "Doporučit"
 
 msgid "Old version"
-msgstr ""
+msgstr "Stará verze"
 
 msgid "First font"
 msgstr "První písmo"
@@ -1467,7 +1467,7 @@ msgid "Can't delete temporary style \"%1%\"."
 msgstr "Nelze smazat dočasný styl „%1%“."
 
 msgid "Operation"
-msgstr ""
+msgstr "Operace"
 
 msgid "Click to change text into object part."
 msgstr "Klikněte pro změnu textu na část objektu."
@@ -2250,7 +2250,7 @@ msgid "ksr FDMTest"
 msgstr "ksr FDMTest"
 
 msgid "SVG"
-msgstr ""
+msgstr "SVG"
 
 msgid "Height range Modifier"
 msgstr "Modifikátor rozsahu výšky"
@@ -2271,7 +2271,7 @@ msgid "Support Enforcer"
 msgstr "Vynucovač podpory"
 
 msgid "Change part type"
-msgstr ""
+msgstr "Změnit typ součásti"
 
 msgid "Set as an individual object"
 msgstr "Nastavit jako samostatný objekt"
@@ -2401,10 +2401,10 @@ msgid "Add Primitive"
 msgstr "Přidat primitivní objekt"
 
 msgid "Show Labels by Layer"
-msgstr ""
+msgstr "Zobrazit popisky podle vrstvy"
 
 msgid "Show Labels by Object"
-msgstr ""
+msgstr "Zobrazit popisky podle objektu"
 
 msgid "To objects"
 msgstr "Na objekty"
@@ -2658,7 +2658,7 @@ msgid "Assembly"
 msgstr "Sestava"
 
 msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
-msgstr ""
+msgstr "Použití proměnné výšky vrstvy spolu se smíšenou barevnou podvrstvou může vést ke špatné kvalitě míchání barev."
 
 msgid "Cut Connectors information"
 msgstr "Informace o ořezových konektorech"
@@ -2769,7 +2769,7 @@ msgid "Outside"
 msgstr "Venkovní"
 
 msgid " "
-msgstr ""
+msgstr " "
 
 msgid "Layer height"
 msgstr "Výška vrstvy"
@@ -2940,7 +2940,7 @@ msgid "Unload"
 msgstr "Vyjmout"
 
 msgid "AMS has not been initialized. Please initialize it before use."
-msgstr ""
+msgstr "AMS nebyl inicializován. Před použitím jej prosím inicializujte."
 
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Vyberte slot AMS a poté stiskněte tlačítko „Načíst“ nebo „Vysunout“ pro automatické načtení nebo vysunutí filamentů."
@@ -2949,14 +2949,14 @@ msgid "Filament type is unknown which is required to perform this action. Please
 msgstr "Typ filamentu není známý, což je vyžadováno pro provedení této akce. Nastavte prosím informace cílového filamentu."
 
 msgid "/"
-msgstr ""
+msgstr "/"
 
 msgid "Confirm"
 msgstr "Potvrdit"
 
 #, c-format, boost-format
 msgid "Load %s to "
-msgstr ""
+msgstr "Načíst %s do"
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "Změna rychlosti ventilátoru během tisku může ovlivnit kvalitu tisku, zvolte prosím pečlivě."
@@ -2968,7 +2968,7 @@ msgid "Off"
 msgstr "Vypnuto"
 
 msgid "Filter"
-msgstr ""
+msgstr "Filtr"
 
 msgid "Enabling filtration redirects the right fan to filter gas, which may reduce cooling performance."
 msgstr "Povolení filtrace nasměruje pravý ventilátor k filtrování plynu, což může snížit výkon chlazení."
@@ -3025,7 +3025,7 @@ msgid "Heating mode is suitable for printing %s materials and circulates filters
 msgstr "Režim vyhřívání je vhodný pro tisk materiálů %s a zajišťuje cirkulaci a filtraci vzduchu v komoře."
 
 msgid "Strong Cooling"
-msgstr ""
+msgstr "Silné chlazení"
 
 msgid "Fan"
 msgstr "Ventilátor"
@@ -3044,14 +3044,14 @@ msgstr "Levá (Aux)"
 
 msgctxt "air_duct"
 msgid "Left(Heating)"
-msgstr ""
+msgstr "Levé (topení)"
 
 msgctxt "air_duct"
 msgid "Chamber"
 msgstr "Komora"
 
 msgid "Hotend"
-msgstr ""
+msgstr "Hotend"
 
 msgid "Parts"
 msgstr "Části"
@@ -3090,22 +3090,22 @@ msgid "Purge old filament"
 msgstr "Pročištění starého filamentu"
 
 msgid "Switch"
-msgstr ""
+msgstr "Přepínač"
 
 msgid "hotend"
-msgstr ""
+msgstr "hotend"
 
 msgid "Wait for AMS cooling"
-msgstr ""
+msgstr "Počkejte na ochlazení AMS"
 
 msgid "Switch current filament at Filament Track Switch"
-msgstr ""
+msgstr "Přepněte aktuální filament na přepínači Filament Track Switch"
 
 msgid "Pull back current filament at Filament Track Switch"
-msgstr ""
+msgstr "Zatáhněte zpět za aktuální filament na přepínači dráhy filamentu"
 
 msgid "Switch track at Filament Track Switch"
-msgstr ""
+msgstr "Přepněte stopu u Filament Track Switch"
 
 msgid "Confirm extruded"
 msgstr "Potvrďte extruzi"
@@ -3208,7 +3208,7 @@ msgid "Text mesh ie empty."
 msgstr "Textová síť je prázdná."
 
 msgid "Text"
-msgstr ""
+msgstr "Text"
 
 msgid "Error! Unable to create thread!"
 msgstr "Chyba! Nelze vytvořit vlákno!"
@@ -3489,7 +3489,7 @@ msgstr "Zadejte platnou hodnotu (K v %.1f~%.1f, N v %.1f~%.1f)"
 
 #, c-format, boost-format
 msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
-msgstr ""
+msgstr "Poznámka: Číslo hotendu na %s je vázáno na držitele. Když je hotend přesunut do nového držitele, jeho číslo se automaticky aktualizuje."
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -3604,7 +3604,7 @@ msgstr "Vyberte prosím z následujících filamentů"
 
 #, c-format, boost-format
 msgid "Select filament that installed to the %s"
-msgstr ""
+msgstr "Vyberte filament, který byl nainstalován do %s"
 
 msgid "Left AMS"
 msgstr "Levé AMS"
@@ -3712,19 +3712,19 @@ msgstr "VLHKÝ"
 
 #, c-format, boost-format
 msgid "Please select the filament installed on the %s."
-msgstr ""
+msgstr "Vyberte prosím filament nainstalovaný na %s."
 
 msgid "Please select the filament."
-msgstr ""
+msgstr "Vyberte prosím filament."
 
 msgid "Nozzle"
 msgstr "tryska"
 
 msgid "To learn about the filaments matching rules."
-msgstr ""
+msgstr "Seznámit se s pravidly pro párování vláken."
 
 msgid "External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it."
-msgstr ""
+msgstr "Externí cívky nejsou podporovány, protože byl nainstalován přepínač Filament Track Switch. Pokud chcete používat externí cívku, odinstalujte ji."
 
 msgid "Select Filament && Hotends"
 msgstr "Vyberte filament a hotendy"
@@ -4073,6 +4073,8 @@ msgid ""
 "Interlocking beam width can't be zero when beam interlocking is enabled.\n"
 "Reset to 0.01 mm."
 msgstr ""
+"Šířka propleteného paprsku nemůže být nulová, pokud je povoleno propletení paprsku.\n"
+"Obnovit na 0,01 mm."
 
 msgid ""
 "Fuzzy skin [Extrusion] and [Combined] modes require the Arachne wall generator.\n"
@@ -4081,6 +4083,11 @@ msgid ""
 "Yes - Enable Arachne wall generator\n"
 "No - Keep current wall generator and set fuzzy skin to [Displacement] mode"
 msgstr ""
+"Režimy Fuzzy skin [Vysunutí] a [Kombinované] vyžadují generátor stěn Arachne.\n"
+"\n"
+"Chcete tato nastavení automaticky změnit?\n"
+"Ano - Povolit generátor stěn Arachne\n"
+"Ne - Zachovat aktuální generátor stěn a nastavit Fuzzy skin na režim [Posunutí]"
 
 msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support Layer Height is on.\n"
@@ -4177,13 +4184,13 @@ msgid "M400 pause"
 msgstr "Pauza M400"
 
 msgid "Paused (filament ran out)"
-msgstr ""
+msgstr "Pozastaveno (došel filament)"
 
 msgid "Heating nozzle"
-msgstr ""
+msgstr "Topná tryska"
 
 msgid "Calibrating dynamic flow"
-msgstr ""
+msgstr "Kalibrace dynamického toku"
 
 msgid "Scanning bed surface"
 msgstr "Skenování povrchu podložky"
@@ -4207,28 +4214,28 @@ msgid "Checking extruder temperature"
 msgstr "Kontroluje se teplota extruderu"
 
 msgid "Paused by the user"
-msgstr ""
+msgstr "Pozastaveno uživatelem"
 
 msgid "Pause (front cover fall off)"
-msgstr ""
+msgstr "Pauza (odpadnutí přední obálky)"
 
 msgid "Calibrating the micro lidar"
 msgstr "Kalibruje se mikro lidar"
 
 msgid "Calibrating flow ratio"
-msgstr ""
+msgstr "Kalibrace poměru průtoku"
 
 msgid "Pause (nozzle temperature malfunction)"
-msgstr ""
+msgstr "Pauza (porucha teploty trysky)"
 
 msgid "Pause (heatbed temperature malfunction)"
-msgstr ""
+msgstr "Pauza (porucha teploty vyhřívané podložky)"
 
 msgid "Filament unloading"
 msgstr "Vysouvání filamentu"
 
 msgid "Pause (step loss)"
-msgstr ""
+msgstr "Pauza (ztráta kroku)"
 
 msgid "Filament loading"
 msgstr "Načítání filamentu"
@@ -4237,43 +4244,43 @@ msgid "Motor noise cancellation"
 msgstr "Potlačení hluku motoru"
 
 msgid "Pause (AMS offline)"
-msgstr ""
+msgstr "Pozastavení (AMS offline)"
 
 msgid "Pause (low speed of the heatbreak fan)"
-msgstr ""
+msgstr "Pauza (nízká rychlost ventilátoru s tepelnou přepážkou)"
 
 msgid "Pause (chamber temperature control problem)"
-msgstr ""
+msgstr "Pauza (problém s regulací teploty v komoře)"
 
 msgid "Cooling chamber"
 msgstr "Chladicí komora"
 
 msgid "Pause (Gcode inserted by user)"
-msgstr ""
+msgstr "Pauza (Gkód vložený uživatelem)"
 
 msgid "Motor noise showoff"
 msgstr "Ukázka hluku motoru"
 
 msgid "Pause (nozzle clumping)"
-msgstr ""
+msgstr "Pauza (shlukování trysek)"
 
 msgid "Pause (cutter error)"
-msgstr ""
+msgstr "Pauza (chyba řezačky)"
 
 msgid "Pause (first layer error)"
-msgstr ""
+msgstr "Pauza (chyba první vrstvy)"
 
 msgid "Pause (nozzle clog)"
-msgstr ""
+msgstr "Pauza (ucpaná tryska)"
 
 msgid "Measuring motion percision"
-msgstr ""
+msgstr "Měření přesnosti pohybu"
 
 msgid "Enhancing motion percision"
-msgstr ""
+msgstr "Zvýšení přesnosti pohybu"
 
 msgid "Measure motion accuracy"
-msgstr ""
+msgstr "Měření přesnosti pohybu"
 
 msgid "Nozzle offset calibration"
 msgstr "Kalibrace offsetu trysky"
@@ -4294,10 +4301,10 @@ msgid "Auto Check: Platform"
 msgstr "Automatická kontrola: Platforma"
 
 msgid "Confirming BirdsEye Camera location"
-msgstr ""
+msgstr "Potvrzování polohy kamery BirdsEye"
 
 msgid "Calibrating BirdsEye Camera"
-msgstr ""
+msgstr "Kalibrace kamery BirdsEye"
 
 msgid "Auto bed leveling -phase 1"
 msgstr "Automatická nivelace podložky – fáze 1"
@@ -4315,19 +4322,19 @@ msgid "Printing calibration lines"
 msgstr "Tisk kalibračních linií"
 
 msgid "Auto Check: Material"
-msgstr ""
+msgstr "Automatická kontrola: Materiál"
 
 msgid "Live View Camera Calibration"
-msgstr ""
+msgstr "Kalibrace kamery s živým náhledem"
 
 msgid "Waiting for heatbed to reach target temperature"
-msgstr ""
+msgstr "Čekání na dosažení cílové teploty vyhřívané podložky"
 
 msgid "Auto Check: Material Position"
-msgstr ""
+msgstr "Automatická kontrola: Poloha materiálu"
 
 msgid "Cutting Module Offset Calibration"
-msgstr ""
+msgstr "Kalibrace ofsetu řezacího modulu"
 
 msgid "Measuring Surface"
 msgstr "Měření povrchu"
@@ -4357,34 +4364,34 @@ msgid "Purifying the chamber air"
 msgstr "Čištění vzduchu v komoře"
 
 msgid "Measuring Rotary Attachment"
-msgstr ""
+msgstr "Měření rotačního příslušenství"
 
 msgid "The toolhead moves above the purge chute"
-msgstr ""
+msgstr "Nástrojová hlava se pohybuje nad proplachovacím žlabem"
 
 msgid "Cooling down the nozzle"
-msgstr ""
+msgstr "Ochlazení trysky"
 
 msgid "The toolhead moves to the center of the heatbed"
-msgstr ""
+msgstr "Nástrojová hlava se pohybuje do středu vyhřívané podložky"
 
 msgid "Active Arc Fitting"
-msgstr ""
+msgstr "Aktivní oblouková montáž"
 
 msgid "Hotend Type Detection"
-msgstr ""
+msgstr "Detekce typu hotendu"
 
 msgid "Build plate alignment detection"
-msgstr ""
+msgstr "Detekce zarovnání desky"
 
 msgid "Heatbed surface foreign object detection"
-msgstr ""
+msgstr "Detekce cizích předmětů na povrchu vyhřívané podložky"
 
 msgid "Heatbed underside foreign object detection"
-msgstr ""
+msgstr "Detekce cizích předmětů na spodní straně vyhřívané podložky"
 
 msgid "Pre-extrusion before printing"
-msgstr ""
+msgstr "Předběžná extruze před tiskem"
 
 msgid "Preparing AMS"
 msgstr "Příprava AMS"
@@ -4461,7 +4468,7 @@ msgid "No Reminder Next Time"
 msgstr "Příště nepřipomínat"
 
 msgid "Recheck"
-msgstr ""
+msgstr "Znovu zkontrolovat"
 
 msgid "Ignore. Don't Remind Next Time"
 msgstr "Ignorovat. Nepřipomínat příště"
@@ -4491,10 +4498,10 @@ msgid "Abort"
 msgstr "Přerušit"
 
 msgid "Disable Purification for This Print"
-msgstr ""
+msgstr "Zakázat čištění pro tento tisk"
 
 msgid "Don't Remind Me"
-msgstr ""
+msgstr "Nepřipomínej mi"
 
 msgid "Done"
 msgstr "Hotovo"
@@ -4559,26 +4566,26 @@ msgid "Clear color"
 msgstr "Vymazat barvu"
 
 msgid "L"
-msgstr ""
+msgstr "L"
 
 msgid "R"
-msgstr ""
+msgstr "R"
 
 #, c-format, boost-format
 msgid "%s %s:"
-msgstr ""
+msgstr "%s %s:"
 
 msgid "Std"
-msgstr ""
+msgstr "Std"
 
 msgid "HF"
-msgstr ""
+msgstr "HF"
 
 msgid "L:"
-msgstr ""
+msgstr "L:"
 
 msgid "R:"
-msgstr ""
+msgstr "R:"
 
 msgid "Loading G-codes"
 msgstr "Načítání G-kódů"
@@ -4683,7 +4690,7 @@ msgid "Volumetric flow rate (mm³/s)"
 msgstr "Objemová rychlost toku (mm³/s)"
 
 msgid "Nozzles"
-msgstr ""
+msgstr "Trysky"
 
 msgid "Travel"
 msgstr "Pohyb"
@@ -4722,7 +4729,7 @@ msgid "Filament change times"
 msgstr "Časy výměny filamentu"
 
 msgid "View Summary"
-msgstr ""
+msgstr "Zobrazit souhrn"
 
 msgid "Color change"
 msgstr "Změna barvy"
@@ -4836,10 +4843,10 @@ msgid "Thermal Index"
 msgstr "Termální index"
 
 msgid "Min: "
-msgstr ""
+msgstr "Min:"
 
 msgid "Max: "
-msgstr ""
+msgstr "Max:"
 
 msgid "Mean: "
 msgstr "Průměr: "
@@ -5050,36 +5057,36 @@ msgid "Click to Collapse"
 msgstr "Klikněte pro sbalení"
 
 msgid "Overview"
-msgstr ""
+msgstr "Přehled"
 
 msgid "Select Plate"
 msgstr "Vyberte podložku"
 
 msgid "Change camera perspective"
-msgstr ""
+msgstr "Změna perspektivy kamery"
 
 msgid "Go to Wiki"
-msgstr ""
+msgstr "Jdi na Wiki"
 
 #, boost-format
 msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
-msgstr ""
+msgstr "Aktuální míra montáže: %1%%%, objemová míra: %2%%%"
 
 msgctxt "Camera"
 msgid "Top"
-msgstr ""
+msgstr "Nahoru"
 
 msgctxt "Camera"
 msgid "Bottom"
-msgstr ""
+msgstr "Dolu"
 
 msgctxt "Camera"
 msgid "Front"
-msgstr ""
+msgstr "Dopředu"
 
 msgctxt "Camera"
 msgid "Back"
-msgstr ""
+msgstr "Dozadu"
 
 msgctxt "Camera"
 msgid "Isometric"
@@ -5125,19 +5132,19 @@ msgid "Size:"
 msgstr "Velikost:"
 
 msgid "Isolated objects detected"
-msgstr ""
+msgstr "Detekovány izolované objekty"
 
 msgid "Click to move them closer to the main body."
-msgstr ""
+msgstr "Kliknutím je přesunete blíže k hlavnímu tělu."
 
 msgid "Move closer"
-msgstr ""
+msgstr "Přiblížit se"
 
 msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"
-msgstr ""
+msgstr "Hlavní ohraničující rámeček sestavy je příliš daleko od světového počátku. Obnovit vazby sestavy a přesunout se do počátku?"
 
 msgid "Reset to origin"
-msgstr ""
+msgstr "Obnovit na původ"
 
 #, c-format, boost-format
 msgid "Conflicts of gcode paths have been found at layer %d. Please separate the conflicted objects farther (%s <-> %s)."
@@ -5200,7 +5207,7 @@ msgid "Jump to: Prime tower"
 msgstr "Přejít na: věž pro oddělení trysky"
 
 msgid "Enable Clumping Detection"
-msgstr ""
+msgstr "Povolit detekci shlukování"
 
 msgid "Click here to regroup"
 msgstr "Klikněte zde pro znovuseskupení"
@@ -5334,7 +5341,7 @@ msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "před vytvořením nového modelu bude aplikace uzavřena. Chcete pokračovat?"
 
 msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
-msgstr ""
+msgstr "Získejte rychlejší, spolehlivější a nedeformované tisky s Helio Additive."
 
 msgid "Slice plate"
 msgstr "Řezat podložku"
@@ -5626,10 +5633,10 @@ msgid "Reset to default window layout"
 msgstr "Obnovit výchozí rozložení okna"
 
 msgid "Show Labels of printing by layer in 3D scene"
-msgstr ""
+msgstr "Zobrazit popisky tisku podle vrstev ve 3D scéně"
 
 msgid "Show Labels of printing by object in 3D scene"
-msgstr ""
+msgstr "Zobrazit popisky tisku podle objektu ve 3D scéně"
 
 msgid "Show &Overhang"
 msgstr "Zobrazit &převis"
@@ -5923,7 +5930,7 @@ msgid "The live streaming feature relies on Bambu Studio to run,and the stream w
 msgstr "Funkce živého streamování vyžaduje spuštěné Bambu Studio a přenos bude ukončen krátce po uzavření aplikace."
 
 msgid "Printer Preview"
-msgstr ""
+msgstr "Náhled tisku"
 
 msgid "Playing..."
 msgstr "Přehrávání..."
@@ -6063,7 +6070,7 @@ msgid "Downloading %d%%..."
 msgstr "Stahování %d%%..."
 
 msgid "Air Management"
-msgstr ""
+msgstr "Řízení ovzduší"
 
 msgid "Reconnecting the printer, the operation cannot be completed immediately, please try again later."
 msgstr "Probíhá opětovné připojení tiskárny, operaci nelze provést ihned, zkuste to prosím znovu později."
@@ -6273,15 +6280,15 @@ msgstr "%dden%dh%dmin%ds"
 
 #, c-format, boost-format
 msgid "%dh%dmin%ds"
-msgstr ""
+msgstr "%dh%dmin%ds"
 
 #, c-format, boost-format
 msgid "%dmin%ds"
-msgstr ""
+msgstr "%dmin%ds"
 
 #, c-format, boost-format
 msgid "%ds"
-msgstr ""
+msgstr "%ds"
 
 msgid "Finished"
 msgstr "Dokončeno"
@@ -6308,7 +6315,7 @@ msgid "Safety Options"
 msgstr "Možnosti zabezpečení"
 
 msgid "Hotends"
-msgstr ""
+msgstr "Hotends"
 
 msgid "100%"
 msgstr "100%"
@@ -6344,10 +6351,10 @@ msgid "Current extruder is busy changing filament"
 msgstr "Aktuální extruder právě provádí výměnu filamentu."
 
 msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
-msgstr ""
+msgstr "Funkce "Načíst" nebo "Vyjmout" není podporována pro externí cívku při použití přepínače dráhy filamentu."
 
 msgid "The Filament Track Switch has not been setup. Please setup on printer."
-msgstr ""
+msgstr "Přepínač dráhy filamentu nebyl nastaven. Proveďte nastavení na tiskárně."
 
 msgid "Current slot has alread been loaded"
 msgstr "Aktuální slot již byl načten."
@@ -6384,7 +6391,7 @@ msgstr "Vrstva: %d/%d"
 
 #, c-format, boost-format
 msgid "(%d)"
-msgstr ""
+msgstr "(%d)"
 
 msgid "Auto homing"
 msgstr "Automatické navedení do výchozí polohy"
@@ -6411,7 +6418,7 @@ msgid "Please select an AMS slot before calibration"
 msgstr "Před kalibrací zvolte slot AMS"
 
 msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
-msgstr ""
+msgstr "Nelze přečíst informace o filamentu: filament je vložen do nástroje, vyjměte filament a zkuste to znovu."
 
 msgid "This only takes effect during printing"
 msgstr "Toto platí pouze během tisku."
@@ -6438,7 +6445,7 @@ msgid "Can't start this without storage."
 msgstr "Nelze spustit bez úložiště."
 
 msgid "Cannot switch extruder when the printer is not at FDM mode"
-msgstr ""
+msgstr "Nelze přepnout extruder, pokud tiskárna není v režimu FDM."
 
 msgid "Rate the Print Profile"
 msgstr "Ohodnoťte tiskový profil"
@@ -6579,7 +6586,7 @@ msgstr "Stav"
 
 msgctxt "Firmware"
 msgid "Update"
-msgstr ""
+msgstr "Aktualizovat"
 
 msgid "Assistant(HMS)"
 msgstr "Asistent (HMS)"
@@ -6760,7 +6767,7 @@ msgid "Error:"
 msgstr "Chyba:"
 
 msgid "Open link for more info"
-msgstr ""
+msgstr "Otevřít odkaz pro více informací"
 
 msgid "Warning:"
 msgstr "Varování:"
@@ -6893,16 +6900,16 @@ msgid "Detects air printing caused by nozzle clogging or filament grinding."
 msgstr "Detekuje tisk do vzduchu způsobený ucpáním trysky nebo broušením filamentu."
 
 msgid "Foreign Object Detection"
-msgstr ""
+msgstr "Detekce cizích objektů"
 
 msgid "Checks for any objects on the build plate at the start of a print to avoid collisions."
-msgstr ""
+msgstr "Na začátku tisku kontroluje přítomnost objektů na tiskové podložce, aby se zabránilo kolizím."
 
 msgid "Printed Part Displacement Detection"
-msgstr ""
+msgstr "Detekce posunu tištěného dílu"
 
 msgid "Monitors the printed part during printing and alerts immediately if it shifts or collapses."
-msgstr ""
+msgstr "Během tisku sleduje tištěný díl a okamžitě upozorní, pokud dojde k jeho posunu nebo zhroucení."
 
 msgid "Ensures the build plate type and placement are correct."
 msgstr "Zajistěte, že typ a umístění tiskové podložky jsou správné."
@@ -7079,14 +7086,14 @@ msgstr "Změňte typ trysky nebo znovu přiřaďte filamenty a zkuste to znovu."
 
 #, c-format, boost-format
 msgid "Risk of nozzle clumping detected with the current high-temperature filament (%s). We recommend enabling clumping detection (via probing). This feature uses a quick probing sequence to check for nozzle buildup during the print and utilizes the prime tower to absorb oozing before resuming."
-msgstr ""
+msgstr "Bylo zjištěno riziko shlukování materiálu na trysce u aktuálního vysokoteplotního filamentu (%s). Doporučujeme zapnout detekci shlukování (pomocí sondování). Tato funkce používá rychlou sekvenci sondování ke kontrole usazenin na trysce během tisku a využívá čisticí věž (prime tower) k zachycení vytékajícího materiálu před pokračováním."
 
 #, c-format, boost-format
 msgid "High-shrinkage filament(s) detected: %s. These materials may cause dimensional deviation after cooling. If your model requires precise fitting or assembly, please refer to the Wiki guide for shrinkage testing."
-msgstr ""
+msgstr "Byly zjištěny filamenty s vysokým smrštěním: %s. Tyto materiály mohou po ochlazení způsobit rozměrové odchylky. Pokud váš model vyžaduje přesné lícování nebo montáž, podívejte se prosím do Wiki průvodce testováním smrštění."
 
 msgid "Printing mixed-color filament on a single-extruder printer requires frequent filament changes and flushing, which may significantly increase waste and the risk of nozzle / waste-chute clogging."
-msgstr ""
+msgstr "Tisk vícebarevného filamentu na tiskárně s jedním extruderem vyžaduje časté výměny filamentu a proplachování, což může výrazně zvýšit odpad a riziko ucpání trysky nebo odpadního kanálu."
 
 #, boost-format
 msgid " plate %1%: "
@@ -7120,10 +7127,10 @@ msgid "Filament changes"
 msgstr "Výměny filamentu"
 
 msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
-msgstr ""
+msgstr "Detekován přepínač filamentů. Všechny filamenty AMS jsou nyní dostupné pro oba extrudery. Slicer je automaticky přiřadí pro optimální tisk."
 
 msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
-msgstr ""
+msgstr "Byl detekován přepínač filamentů, ale není kalibrován a proto není aktuálně dostupný. Před použitím jej prosím kalibrujte na tiskárně a synchronizujte."
 
 msgid "Learn more"
 msgstr "Zjistit více"
@@ -7156,15 +7163,15 @@ msgid "Sync printer information"
 msgstr "Synchronizovat informace o tiskárně"
 
 msgid "Do you want to sync the preset printer with the connected printer, "
-msgstr ""
+msgstr "Chcete synchronizovat přednastavenou tiskárnu s připojenou tiskárnou, "
 
 #, c-format, boost-format
 msgid "Current connected printer (Device page): %s (%s)"
-msgstr ""
+msgstr "Aktuálně připojená tiskárna (stránka Zařízení): %s (%s)"
 
 #, c-format, boost-format
 msgid "Current printer preset (Prepare page): %s"
-msgstr ""
+msgstr "Aktuální přednastavení tiskárny (stránka Příprava): %s"
 
 msgid "Sync now"
 msgstr "Synchronizovat nyní"
@@ -7179,7 +7186,8 @@ msgid ""
 "Tips:\n"
 "Curve planning enhancement support detected on your printer. The software has automatically disabled arc fitting to ensure this feature functions correctly."
 msgstr ""
-
+"Tipy:\n"
+"Na vaší tiskárně byla zjištěna podpora vylepšeného plánování křivek. Software automaticky vypnul aproximaci oblouků, aby tato funkce fungovala správně."
 msgid "Click to edit preset"
 msgstr "Klikněte pro úpravu přednastavení"
 
@@ -7217,25 +7225,22 @@ msgid "Set filaments to use"
 msgstr "Nastavit filamenty k použití"
 
 msgid "Add Mixed Filament"
-msgstr ""
+msgstr "Přidat smíšený filament"
 
 msgid "Mixed Filament"
-msgstr ""
+msgstr "Smíšený filament"
 
 msgid "Add mixed filament"
-msgstr ""
+msgstr "Přidat smíšený filament"
 
 msgid "Remove last mixed filament"
-msgstr ""
+msgstr "Odebrat poslední smíšený filament"
 
 msgid "Mixed filament has invalid or mismatched components. Please re-edit affected entries."
-msgstr ""
-
-msgid "Search plate, object and part."
-msgstr "Hledat podložku, objekt a část."
+msgstr "Smíšený filament obsahuje neplatné nebo nesouladné komponenty. Upravte prosím dotčené položky."
 
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
-msgstr ""
+msgstr "Cílový smíšený filament používá tento fyzický filament jako komponentu. Sloučení odstraní tento fyzický filament a může zneplatnit smíšený filament. Pokračovat?"
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -7258,10 +7263,10 @@ msgid "Filament type and color information have been synchronized, but slot info
 msgstr "Informace o typu a barvě filamentu byly synchronizovány, ale informace o slotu nejsou zahrnuty."
 
 msgid "Mixed filament has broken component references"
-msgstr ""
+msgstr "Smíšený filament má neplatné odkazy na komponenty"
 
 msgid "Edit / Delete / Merge"
-msgstr ""
+msgstr "Upravit / Smazat / Sloučit"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -7279,6 +7284,8 @@ msgid ""
 "It seems that you have projects that were not closed properly. Would you like to restore your last unsaved project?\n"
 "If you have a currently opened project and click \"Restore\", the current project will be closed."
 msgstr ""
+"Zdá se, že máte projekty, které nebyly správně uzavřeny. Chcete obnovit poslední neuložený projekt?\n"
+"Pokud máte aktuálně otevřený projekt a kliknete na „Obnovit“, současný projekt bude uzavřen."
 
 msgid "Restore"
 msgstr "Obnovit"
@@ -7296,7 +7303,7 @@ msgid "Enabling traditional timelapse photography may cause surface imperfection
 msgstr "Povolení tradičního časosběrného fotografování může způsobit povrchové nedokonalosti. Doporučuje se přepnout do režimu plynulého pohybu."
 
 msgid "\n"
-msgstr ""
+msgstr "\n"
 
 msgid "(Path to modify: 'Process'-'Others'-'Special Mode'-'Timelapsed')"
 msgstr "(Cesta k úpravě: 'Proces' - 'Ostatní' - 'Speciální režim' - 'Časový průběh')"
@@ -7500,96 +7507,92 @@ msgid "Slicing Canceled"
 msgstr "Řezání zrušeno"
 
 msgid "Great! Now click the Helio button to start optimization."
-msgstr ""
-
-#, c-format, boost-format
-msgid "Slicing Plate %d"
-msgstr "Řezání podložky %d"
+msgstr "Skvělé! Nyní klikněte na tlačítko Helio pro spuštění optimalizace."
 
 msgid "Multiple Filament Materials Detected"
-msgstr ""
+msgstr "Zjištěno více materiálů filamentů"
 
 msgid "⚠ Multiple Filament Materials Detected"
-msgstr ""
+msgstr "⚠ Zjištěno více materiálů filamentů"
 
 msgid " (unsupported)"
-msgstr ""
+msgstr " (nepodporováno)"
 
 msgid "Multicolour simulation currently supports only a single filament material."
-msgstr ""
+msgstr "Simulace více barev aktuálně podporuje pouze jeden typ filamentu."
 
 #, c-format, boost-format
 msgid "You have selected multiple materials: %s"
-msgstr ""
+msgstr "Vybrali jste více materiálů: %s"
 
 msgid "Note: Unsupported materials will use the selected reference material for simulation."
-msgstr ""
+msgstr "Poznámka: Nepodporované materiály použijí pro simulaci vybraný referenční materiál."
 
 msgid "True multi-material support will be added in a future update."
-msgstr ""
+msgstr "Plná podpora více materiálů bude přidána v budoucí aktualizaci."
 
 msgid "Option 1: Proceed using a single filament type"
-msgstr ""
+msgstr "Možnost 1: Pokračovat s jedním typem filamentu"
 
 msgid "Select which filament to use for simulation:"
-msgstr ""
+msgstr "Vyberte, který filament použít pro simulaci:"
 
 msgid "⚠ This is not recommended. Filament formulations vary significantly between manufacturers and materials. Helio cannot guarantee reliable results in this configuration."
-msgstr ""
+msgstr "⚠ Toto se nedoporučuje. Složení filamentů se výrazně liší mezi výrobci a materiály. Helio nemůže v této konfiguraci zaručit spolehlivé výsledky."
 
 msgid "Proceed Anyway"
-msgstr ""
+msgstr "Přesto pokračovat"
 
 msgid "Option 2: Go back and change filament selection"
-msgstr ""
+msgstr "Možnost 2: Vraťte se a změňte výběr filamentu"
 
 msgid "✓ Recommended"
-msgstr ""
+msgstr "✓ Doporučeno"
 
 msgid "Change your filament selection to use the same type for all colours, then try again."
-msgstr ""
+msgstr "Změňte výběr filamentů tak, aby byl použit stejný typ pro všechny barvy, a zkuste to znovu."
 
 msgid "See supported materials"
-msgstr ""
+msgstr "Zobrazit podporované materiály"
 
 msgid "Go Back"
-msgstr ""
+msgstr "Zpět"
 
 msgid "Unsupported Materials Detected"
-msgstr ""
+msgstr "Zjištěny nepodporované materiály"
 
 msgid "⚠ Unsupported Materials Detected"
-msgstr ""
+msgstr "⚠ Zjištěny nepodporované materiály"
 
 msgid "Some of your selected materials are not directly supported by Helio:"
-msgstr ""
+msgstr "Některé z vybraných materiálů nejsou Helio přímo podporovány:"
 
 msgid "Option 1: Proceed with a reference material"
-msgstr ""
+msgstr "Možnost 1: Pokračovat s referenčním materiálem"
 
 msgid "Select a similar material type to use for simulation:"
-msgstr ""
+msgstr "Vyberte podobný typ materiálu pro simulaci:"
 
 msgid "Note: Using a reference material may result in approximate or erroneous results."
-msgstr ""
+msgstr "Poznámka: Použití referenčního materiálu může vést k přibližným nebo nepřesným výsledkům."
 
 msgid "Change your filament selection to use a supported material, then try again."
-msgstr ""
+msgstr "Změňte výběr filamentu na podporovaný materiál a zkuste to znovu."
 
 msgid "Option 3: Refresh supported materials list"
-msgstr ""
+msgstr "Možnost 3: Obnovit seznam podporovaných materiálů"
 
 msgid "Re-download the supported printers and materials list from Helio, then re-check compatibility."
-msgstr ""
+msgstr "Znovu stáhněte seznam podporovaných tiskáren a materiálů z Helio a poté znovu zkontrolujte kompatibilitu."
 
 msgid "Refresh & Retry"
-msgstr ""
+msgstr "Obnovit a zkusit znovu"
 
 msgid "Syncing Data"
-msgstr ""
+msgstr "Synchronizace dat"
 
 msgid "Refreshing printer and material data..."
-msgstr ""
+msgstr "Obnovování dat tiskáren a materiálů..."
 
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Probíhá simulace nebo optimalizace Helio."
@@ -7606,18 +7609,26 @@ msgid ""
 "\n"
 "Do you want to use this match, or would you prefer to rename your printer profile?"
 msgstr ""
+"Helio našlo možné přiřazení tiskárny pomocí tokenového porovnávání:\n"
+"\n"
+"Vaše tiskárna: %s\n"
+"Přiřazená tiskárna: %s\n"
+"\n"
+"Chcete použít toto přiřazení, nebo raději přejmenovat profil tiskárny?"
 
 msgid "Helio Printer Match Confirmation"
-msgstr ""
+msgstr "Potvrzení shody tiskárny Helio"
 
 #, c-format, boost-format
 msgid ""
 "Your printer '%s' is not officially supported by Helio.\n"
 "Select a reference printer:"
 msgstr ""
+"Vaše tiskárna „%s“ není oficiálně podporována Helio.\n"
+"Vyberte referenční tiskárnu:"
 
 msgid "Unsupported Printer"
-msgstr ""
+msgstr "Nepodporovaná tiskárna"
 
 msgid "The current printer preset cannot be sliced using Helio."
 msgstr "Aktuální přednastavení tiskárny nelze řezat pomocí Helio."
@@ -7631,9 +7642,15 @@ msgid ""
 "\n"
 "Do you want to use this match, or would you prefer to rename your material profile?"
 msgstr ""
+"Helio našlo možné přiřazení materiálu pomocí tokenového porovnávání:\n"
+"\n"
+"Váš materiál: %s\n"
+"Přiřazený materiál: %s\n"
+"\n"
+"Chcete použít toto přiřazení, nebo raději přejmenovat profil materiálu?"
 
 msgid "Helio Material Match Confirmation"
-msgstr ""
+msgstr "Potvrzení kompatibility materiálu Helio"
 
 #, c-format, boost-format
 msgid ""
@@ -7641,9 +7658,12 @@ msgid ""
 "\n"
 "Please choose an officially supported material. "
 msgstr ""
+"Helio nepodporuje materiály %s.\n"
+"\n"
+"Zvolte prosím oficiálně podporovaný materiál."
 
 msgid "View supported materials"
-msgstr ""
+msgstr "Zobrazit podporované materiály"
 
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
@@ -7656,40 +7676,45 @@ msgid ""
 "\n"
 "Do you want to continue anyway?"
 msgstr ""
+"Upozornění: Kombinace výplně není v současnosti Helio podporována.\n"
+"\n"
+"Pokračování s tímto nastavením může vést k nepřesným výsledkům.\n"
+"\n"
+"Chcete přesto pokračovat?"
 
 msgid "Helio Warning"
-msgstr ""
+msgstr "Upozornění Helio"
 
 msgid "Unsupported Printer Detected"
-msgstr ""
+msgstr "Zjištěna nepodporovaná tiskárna"
 
 msgid "⚠ Unsupported Printer Detected"
-msgstr ""
+msgstr "⚠ Zjištěna nepodporovaná tiskárna"
 
 #, c-format, boost-format
 msgid "You're using %s which is not officially supported by Helio."
-msgstr ""
+msgstr "Používáte %s, která není oficiálně podporována Helio."
 
 msgid "Option 1: Proceed with a reference printer"
-msgstr ""
+msgstr "Možnost 1: Pokračovat s referenční tiskárnou"
 
 msgid "Select a similar printer to use for simulation:"
-msgstr ""
+msgstr "Vyberte podobnou tiskárnu pro simulaci:"
 
 msgid "Note: Using a reference printer may result in approximate or erroneous results."
-msgstr ""
+msgstr "Poznámka: Použití referenční tiskárny může vést k přibližným nebo nepřesným výsledkům."
 
 msgid "Option 2: Go back and change printer selection"
-msgstr ""
+msgstr "Možnost 2: Vraťte se a změňte výběr tiskárny"
 
 msgid "Change your printer selection to use a supported printer, then try again."
-msgstr ""
+msgstr "Změňte výběr tiskárny na podporovanou a zkuste to znovu."
 
 msgid "See supported printers"
-msgstr ""
+msgstr "Zobrazit podporované tiskárny"
 
 msgid "Click the Optimize/Enhance button to start your first optimization."
-msgstr ""
+msgstr "Klikněte na tlačítko Optimalizovat/Enhance pro spuštění první optimalizace."
 
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
@@ -7880,9 +7905,11 @@ msgid ""
 "Failed to export the sliced file.\n"
 "Please check whether the file is occupied by another program or if there is enough disk space."
 msgstr ""
+"Nepodařilo se exportovat naslicovaný soubor.\n"
+"Zkontrolujte prosím, zda není soubor používán jiným programem nebo zda je dostatek místa na disku."
 
 msgid "Export sliced file"
-msgstr ""
+msgstr "Exportovat naslicovaný soubor"
 
 #, c-format, boost-format
 msgid "The file %s has been sent to the printer's storage space and can be viewed on the printer."
@@ -7918,7 +7945,7 @@ msgstr "Byly zjištěny negativní části. Chcete před exportem provést boole
 
 #, c-format, boost-format
 msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
-msgstr ""
+msgstr "Kalibrační filament je aktuálně přiřazen k jinému extruderu než k tomu, který je vybrán v dialogu kalibrace PA (%s). To může vést k nesprávným výsledkům kalibrace. Přiřazení můžete změnit v nastavení seskupení filamentů."
 
 msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr "Nedoporučuje se používat PVA filamenty s tryskou 0,2 mm."
@@ -7946,10 +7973,10 @@ msgstr ""
 "Doporučujeme použít automatické uspořádání, abyste předešli kolizím při tisku."
 
 msgid "Auto arrange"
-msgstr ""
+msgstr "Automaticky uspořádat"
 
 msgid "Detail view wiki->"
-msgstr ""
+msgstr "Detailní zobrazení wiki ->"
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -8136,10 +8163,10 @@ msgid "Units"
 msgstr "Jednotky"
 
 msgid "Use 12-hour time format"
-msgstr ""
+msgstr "Používat 12hodinový formát času"
 
 msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
-msgstr ""
+msgstr "Zobrazovat čas ve 12hodinovém formátu s AM/PM místo 24hodinového formátu"
 
 msgid "Keep only one Bambu Studio instance"
 msgstr "Ponechat pouze jednu instanci Bambu Studio"
@@ -8238,13 +8265,13 @@ msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be
 msgstr "Pokud je tato možnost povolena, naposledy použité barevné schéma (např. typ čáry, rychlost) bude automaticky použito při dalším spuštění."
 
 msgid "Display overview"
-msgstr ""
+msgstr "Zobrazit přehled"
 
 msgid "Show assembly BVH primary bounds"
-msgstr ""
+msgstr "Zobrazit primární hranice BVH sestavy"
 
 msgid "Display the BVH primary bounding box wireframe in assembly view."
-msgstr ""
+msgstr "Zobrazí drátový model primárního ohraničujícího boxu BVH v pohledu sestavy."
 
 msgid "Improve rendering performance by lod"
 msgstr "Zlepšete výkon vykreslování pomocí lod"
@@ -8382,11 +8409,11 @@ msgid "User Experience"
 msgstr "Uživatelská zkušenost"
 
 msgid "Join the User Experience Improvement Program."
-msgstr ""
+msgstr "Zapojte se do programu zlepšování uživatelské zkušenosti."
 
 msgctxt "Preferences"
 msgid "Learn more"
-msgstr ""
+msgstr "Zjistit více"
 
 msgid "Auto-fill previously logged-in accounts."
 msgstr "Automatické vyplnění dříve přihlášených účtů."
@@ -8524,7 +8551,7 @@ msgid "Project-inside presets"
 msgstr "Přednastavení uvnitř projektu"
 
 msgid "System"
-msgstr ""
+msgstr "Systém"
 
 msgid "Unsupported presets"
 msgstr "Nepodporovaná přednastavení"
@@ -8590,7 +8617,7 @@ msgid "First layer filament sequence"
 msgstr "Sekvence filamentů pro první vrstvu"
 
 msgid "The filament list contains mixed filaments. Custom filament sequence will not take effect."
-msgstr ""
+msgstr "Seznam filamentů obsahuje smíšené typy. Vlastní pořadí filamentů se nepoužije."
 
 msgid "Same as Global Bed Type"
 msgstr "Stejné jako globální typ podložky"
@@ -8763,7 +8790,7 @@ msgid "Bamabu Textured PEI Plate"
 msgstr "Bamabu strukturovaná PEI podložka"
 
 msgid "Bambu Cool Plate SuperTack"
-msgstr ""
+msgstr "Bambu Cool Plate SuperTack"
 
 msgid "Send print job"
 msgstr "Odeslat tiskovou úlohu"
@@ -8787,7 +8814,7 @@ msgid "To ensure print quality, the drying temperature will be lowered during pr
 msgstr "Pro zajištění kvality tisku bude během tisku snížena teplota sušení."
 
 msgid "Select timelapse storage location"
-msgstr ""
+msgstr "Vyberte umístění pro ukládání časosběru"
 
 msgid ""
 "This checks the flatness of heatbed. Leveling makes extruded height uniform.\n"
@@ -8817,17 +8844,17 @@ msgid "Nozzles and filaments of the same type share the same PA profile"
 msgstr "Trysky a filamenty stejného typu využívají stejný PA profil"
 
 msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
-msgstr ""
+msgstr "Pokud se filament/tryska hlavního extruderu nezměnily, použije se poslední kalibrační hodnota. Pomocný extruder použije výchozí systémovou hodnotu."
 
 msgid "send completed"
-msgstr "odesílání dokončeno"
+msgstr "Odeslání dokončeno"
 
 msgid "Error code"
 msgstr "Chybový kód"
 
 #, c-format, boost-format
 msgid "Recommended filament arrangement saves %s->"
-msgstr ""
+msgstr "Doporučené uspořádání filamentu ušetří %s->"
 
 #, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
@@ -8877,47 +8904,47 @@ msgid "This process determines the dynamic flow values to improve overall print 
 msgstr "Tento proces určuje dynamické hodnoty toku pro zlepšení celkové kvality tisku."
 
 msgid "Internal"
-msgstr ""
+msgstr "Interní"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
-msgstr ""
+msgstr "%s má méně než 10 MB volného místa. Časosběr se nemusí správně uložit. Můžete jej vypnout nebo"
 
 msgid "Clean up files"
-msgstr ""
+msgstr "Vyčistit soubory"
 
 msgid "Low internal storage. This timelapse will overwrite the oldest video files."
-msgstr ""
+msgstr "Nedostatek interního úložiště. Tento časosběr přepíše nejstarší video soubory."
 
 msgid "Low external storage. This timelapse will overwrite the oldest video files."
-msgstr ""
+msgstr "Nedostatek externího úložiště. Tento časosběr přepíše nejstarší video soubory."
 
 msgid "Insufficient external storage for time-lapse photography. Connect to computer to delete files, or use a larger memory card."
-msgstr ""
+msgstr "Nedostatek externího úložiště pro časosběrné fotografování. Připojte k počítači a smažte soubory, nebo použijte větší paměťovou kartu."
 
 msgid "Storage Space Not Enough"
-msgstr ""
+msgstr "Nedostatek úložného prostoru"
 
 msgid "Confirm & Print"
-msgstr ""
+msgstr "Potvrdit a tisknout"
 
 msgid "Cancel Timelapse & Print"
-msgstr ""
+msgstr "Zrušit časosběr a tisknout"
 
 msgid "Clean Up"
-msgstr ""
+msgstr "Vyčistit"
 
 msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
-msgstr ""
+msgstr "Auto: Pokud se filament/tryska hlavního extruderu nezměnily, použije se poslední kalibrační hodnota. Pomocný extruder použije výchozí systémovou hodnotu."
 
 msgid "On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
-msgstr ""
+msgstr "Zapnuto: Před každým spuštěním tisku proběhne kalibrace hlavního extruderu. Pomocný extruder použije výchozí systémovou hodnotu."
 
 msgid "Off: Prioritize using the value from your manual flow calibration."
-msgstr ""
+msgstr "Vypnuto: Upřednostní se hodnota z vaší ruční kalibrace průtoku."
 
 msgid "Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
-msgstr ""
+msgstr "Před každým spuštěním tisku proběhne kalibrace hlavního extruderu. Pomocný extruder použije výchozí systémovou hodnotu."
 
 msgid "Preparing print job"
 msgstr "Příprava tiskové úlohy"
@@ -9000,13 +9027,13 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "Aktuální průměr trysky (%.1fmm) neodpovídá souboru řezu (%.1fmm). Ujistěte se, že instalovaná tryska odpovídá nastavení v tiskárně, a při řezání zvolte odpovídající přednastavení tiskárny."
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
-msgstr ""
+msgstr "Přepínač Filament Track nainstalovaný v tiskárně neodpovídá souboru ze sliceru. Pro zamezení problémů s kvalitou tisku jej prosím znovu naslicujte."
 
 msgid "This print requires a Filament Track Switch. Please install it first."
-msgstr ""
+msgstr "Tento tisk vyžaduje přepínač Filament Track. Nejprve jej prosím nainstalujte."
 
 msgid "The Filament Track Switch has not been setup. Please setup it first."
-msgstr ""
+msgstr "Přepínač Filament Track není nastaven. Nejprve jej prosím nastavte."
 
 #, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
@@ -9032,22 +9059,22 @@ msgstr "Vaše aktuální verze firmwaru nemůže spustit tuto tiskovou úlohu. P
 
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
-msgstr ""
+msgstr "Tvrdost aktuálního materiálu (%s) překračuje tvrdost %s (%s). Může to způsobit opotřebení trysky, což vede k úniku materiálu a nestabilnímu toku. Při použití buďte opatrní."
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
-msgstr ""
+msgstr "Některé filamenty se mohou během tisku přepínat mezi extrudery. Ruční kalibraci K-hodnoty nelze použít po celou dobu tisku, což může ovlivnit kvalitu tisku. Doporučuje se zapnout kalibraci dynamiky toku."
 
 msgid "Cool"
-msgstr ""
+msgstr "Chladná"
 
 msgid "Engineering"
-msgstr ""
+msgstr "Technická"
 
 msgid "High Temp"
-msgstr ""
+msgstr "Vysoká teplota"
 
 msgid "Cool(Supertack)"
-msgstr ""
+msgstr "Chladná (SuperTack)"
 
 msgid "Click here if you can't connect to the printer"
 msgstr "Klikněte zde, pokud se nemůžete připojit k tiskárně"
@@ -9107,7 +9134,7 @@ msgid "You have selected both external and AMS filaments for an extruder. You wi
 msgstr "Zvolil(a) jste externí i AMS filamenty pro jeden extruder. Během tisku bude nutné ručně přepnout externí filament."
 
 msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
-msgstr ""
+msgstr "TPU 90A/TPU 85A jsou příliš měkké. Doporučuje se provést ruční kalibraci průtoku na stránce „Kalibrace“. Pokud je „Dynamická kalibrace průtoku“ nastavena na auto/zapnuto, systém použije předchozí kalibrační hodnotu a přeskočí proces kalibrace průtoku."
 
 msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
 msgstr "Nastavte dynamickou kalibraci toku na 'VYPNUTO', abyste mohli zadat vlastní hodnotu dynamického toku."
@@ -9138,11 +9165,11 @@ msgstr "Zkuste se připojit"
 
 msgctxt "sendtoprint"
 msgid "Cache"
-msgstr ""
+msgstr "Paměť"
 
 msgctxt "sendtoprint"
 msgid "External"
-msgstr ""
+msgstr "Externí"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Časový limit pro nahrání souboru vypršel. Zkontrolujte, zda to verze firmwaru podporuje."
@@ -9369,21 +9396,24 @@ msgstr ""
 "Ano – změnit tato nastavení automaticky\n"
 "Ne – neměnit tato nastavení za mě"
 
+
 #, c-format, boost-format
 msgid "When using %s to support %s, We recommend the following settings:"
-msgstr ""
+msgstr "Při použití %s jako podpory pro %s doporučujeme následující nastavení:"
 
 msgid "When using PLA to support TPU, We recommend the following settings:"
-msgstr ""
+msgstr "Při použití PLA jako podpory pro TPU doporučujeme následující nastavení:"
 
 msgid "When using soluble material for the support interface, We recommend the following settings:"
-msgstr ""
+msgstr "Při použití rozpustného materiálu pro rozhraní podpor doporučujeme následující nastavení:"
 
 msgid "When using support material for the support interface, We recommend the following settings:"
-msgstr ""
+msgstr "Při použití podpůrného materiálu pro rozhraní podpor doporučujeme následující nastavení:"
 
 msgid "Do you want to apply these settings?"
-msgstr ""
+msgstr "Chcete tato nastavení použít?"
+
+
 
 msgid ""
 "Layer height is too small.\n"
@@ -9599,19 +9629,19 @@ msgid "Part cooling fan"
 msgstr "Ventilátor chlazení části"
 
 msgid "Initial layer fan"
-msgstr ""
+msgstr "Ventilátor první vrstvy"
 
 msgid "Set the part cooling fan speed for the first few layers. Set to 0 to keep the fan off for better bed adhesion"
-msgstr ""
+msgstr "Nastavte rychlost ventilátoru chlazení dílu pro prvních několik vrstev. Nastavte na 0 pro vypnutí ventilátoru a lepší přilnavost k podložce"
 
 msgid "Linear ramp up to"
-msgstr ""
+msgstr "Lineární náběh na"
 
 msgid "Fan speed will linearly increase from the initial layer speed to the layer-time-based speed over the specified number of layers"
-msgstr ""
+msgstr "Rychlost ventilátoru se bude lineárně zvyšovat z počáteční rychlosti vrstvy na rychlost podle času vrstvy během zadaného počtu vrstev"
 
 msgid "At"
-msgstr ""
+msgstr "Při"
 
 msgid "layers"
 msgstr "vrstvy"
@@ -9632,19 +9662,19 @@ msgid "Auxiliary part cooling fan"
 msgstr "Pomocný ventilátor chlazení dílu"
 
 msgid "Set the auxiliary fan speed for the first few layers"
-msgstr ""
+msgstr "Nastavte rychlost pomocného ventilátoru pro prvních několik vrstev"
 
 msgid "Linear ramp up"
-msgstr ""
+msgstr "Lineární náběh"
 
 msgid "Auxiliary fan speed will linearly increase from the initial layer speed to the target speed over the specified number of layers"
-msgstr ""
+msgstr "Rychlost pomocného ventilátoru se bude lineárně zvyšovat z počáteční rychlosti na cílovou během zadaného počtu vrstev"
 
 msgid "At layer"
-msgstr ""
+msgstr "Ve vrstvě"
 
 msgid "ramp up to"
-msgstr ""
+msgstr "zvýšit na"
 
 msgid "Exhaust fan"
 msgstr "Výfukový ventilátor"
@@ -9786,21 +9816,18 @@ msgstr "Nastavit"
 
 #, c-format, boost-format
 msgid "%s: %s"
-msgstr ""
-
-msgid "No modifications need to be copied."
-msgstr "Není třeba kopírovat žádné úpravy."
+msgstr "%s: %s"
 
 msgid "Copy paramters"
 msgstr "Kopírovat parametry"
 
 #, c-format, boost-format
 msgid "Modify paramters of %s"
-msgstr ""
+msgstr "Upravit parametry %s"
 
 #, c-format, boost-format
 msgid "Do you want to modify the following parameters of the %s to that of the %s?"
-msgstr ""
+msgstr "Chcete upravit následující parametry %s podle %s?"
 
 msgid "No available nozzles for current preset"
 msgstr "Pro aktuální přednastavení nejsou k dispozici žádné trysky"
@@ -10076,7 +10103,7 @@ msgstr "Barva byla vybrána. Můžete zvolit OK pro pokračování nebo ji uprav
 
 msgctxt "ObjImport"
 msgid "Original"
-msgstr ""
+msgstr "Originál"
 
 msgid "After mapping"
 msgstr "Po mapování"
@@ -10097,7 +10124,7 @@ msgid "Reset mapped extruders."
 msgstr "Obnovit namapované extrudery."
 
 msgid "—> "
-msgstr ""
+msgstr "—>"
 
 msgid ""
 "Synchronizing AMS filaments will discard your modified but unsaved filament presets.\n"
@@ -10108,7 +10135,7 @@ msgstr ""
 
 msgctxt "Sync_AMS"
 msgid "Original"
-msgstr ""
+msgstr "Originál"
 
 msgid "After overwriting"
 msgstr "Po přepsání"
@@ -10225,11 +10252,10 @@ msgstr "Barva a typ filament byly úspěšně synchronizovány z tiskárny."
 
 msgctxt "FinishSyncAms"
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
-msgstr ""
-
+msgstr "Extruder typu Bowden nepodporuje trysku o průměru 0,2 mm. Lze pokračovat pouze s tiskem jednou hlavou."
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 msgstr "Studio znovu vypočítá vaše objemy proplachu pokaždé, když dojde ke změně barvy nebo filamentu. Automatický výpočet můžete vypnout v Bambu Studio > Předvolby."
 
@@ -10273,52 +10299,52 @@ msgstr "Konfigurační balíček byl změněn"
 
 msgctxt "WebView"
 msgid "Back"
-msgstr ""
+msgstr "Zpět"
 
 msgid "Open in browser"
-msgstr ""
+msgstr "Otevřít v prohlížeči"
 
 msgid "View Source"
-msgstr ""
+msgstr "Zobrazit zdroj"
 
 msgid "View Text"
-msgstr ""
+msgstr "Zobrazit text"
 
 msgid "Handle Navigation"
-msgstr ""
+msgstr "Zpracování navigace"
 
 msgid "Handle New Windows"
-msgstr ""
+msgstr "Zpracování nových oken"
 
 msgid "Edit Mode"
-msgstr ""
+msgstr "Režim úprav"
 
 msgid "Run Script"
-msgstr ""
+msgstr "Spustit skript"
 
 msgid "Add user script"
-msgstr ""
+msgstr "Přidat uživatelský skript"
 
 msgid "Set custom user agent"
-msgstr ""
+msgstr "Nastavit vlastní user agent"
 
 msgid "Clear Selection"
-msgstr ""
+msgstr "Zrušit výběr"
 
 msgid "Delete Selection"
-msgstr ""
+msgstr "Odstranit výběr"
 
 msgid "Custom Scheme Example"
-msgstr ""
+msgstr "Příklad vlastního schématu"
 
 msgid "Memory File System Example"
-msgstr ""
+msgstr "Příklad paměťového souborového systému"
 
 msgid "Enable Context Menu"
-msgstr ""
+msgstr "Povolit kontextovou nabídku"
 
 msgid "Enable Dev Tools"
-msgstr ""
+msgstr "Povolit vývojářské nástroje"
 
 msgid "Toolbar"
 msgstr "Panel nástrojů"
@@ -10441,7 +10467,7 @@ msgid "Camera view - Isometric"
 msgstr "Pohled kamery – izometrický"
 
 msgid "Shift+E"
-msgstr ""
+msgstr "Shift+E"
 
 msgid "Select all objects"
 msgstr "Vyberte všechny objekty"
@@ -10624,153 +10650,146 @@ msgid "reconnect"
 msgstr "Znovu připojit"
 
 msgid "Welcome to Helio Additive"
-msgstr ""
+msgstr "Vítejte v Helio Additive"
 
 msgid "Know Your Print Will Work — Before You Hit Print"
-msgstr ""
+msgstr "Mějte jistotu, že tisk bude fungovat — ještě před jeho spuštěním"
 
 msgid "Physics-based analysis and optimization that makes prints faster, stronger, and far more reliable."
-msgstr ""
+msgstr "Fyzikálně založená analýza a optimalizace, která činí tisk rychlejší, pevnější a výrazně spolehlivější."
 
 msgid "Unlock a world of faster, more reliable printing with Helio's state of the art physics based 3d printing simulation technology."
-msgstr ""
+msgstr "Odemkněte svět rychlejšího a spolehlivějšího tisku díky špičkové fyzikální simulační technologii 3D tisku od Helio."
 
 msgid "Fewer Failed Prints"
-msgstr ""
+msgstr "Méně neúspěšných tisků"
 
 msgid "Catch issues before printing and improve first-try success."
-msgstr ""
+msgstr "Odhalte problémy před tiskem a zvyšte úspěšnost na první pokus."
 
 msgid "Faster Prints, Better Quality"
-msgstr ""
+msgstr "Rychlejší tisk, lepší kvalita"
 
 msgid "Automatically tune speed and extrusion without manual tweaking."
-msgstr ""
+msgstr "Automaticky nastaví rychlost a extruzi bez ručního ladění."
 
 msgid "Enable Helio Additive"
-msgstr ""
+msgstr "Povolit Helio Additive"
 
 msgid "Uninstall"
-msgstr ""
+msgstr "Odinstalovat"
 
 msgid "After slicing, click the Helio button to analyze your print."
-msgstr ""
+msgstr "Po slicování klikněte na tlačítko Helio pro analýzu tisku."
 
 msgid "Helio Additive does not change your printer's firmware."
-msgstr ""
+msgstr "Helio Additive nemění firmware vaší tiskárny."
 
 msgid "Designed to help prints succeed — even if you're new to 3D printing."
-msgstr ""
+msgstr "Navrženo tak, aby pomáhalo uspět s tiskem — i pokud s 3D tiskem teprve začínáte."
 
 msgid "Are you sure you want to uninstall Helio Additive? This will disable all Helio features."
-msgstr ""
+msgstr "Opravdu chcete odinstalovat Helio Additive? Tím se deaktivují všechny funkce Helio."
 
 msgid "Uninstall Helio Additive"
-msgstr ""
+msgstr "Odinstalovat Helio Additive"
 
 msgid "Legal & Activation Terms"
-msgstr ""
-
-msgid "Got it"
-msgstr "Rozumím"
-
-msgid "Failed to get Helio PAT, Click Refresh to obtain it again."
-msgstr "Nepodařilo se získat Helio PAT. Klikněte na Obnovit pro nové získání."
-
-msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
-msgstr "Nepodařilo se získat PAT. Bylo dosaženo množstevního limitu, další již nelze získat. Klikněte na tlačítko Obnovit pro opětovné získání PAT."
+msgstr "Právní a aktivační podmínky"
 
 msgid "You are activating Helio Additive's advanced simulation services."
-msgstr ""
+msgstr "Aktivujete pokročilé simulační služby Helio Additive."
 
 msgid "Software Service Terms && Conditions"
-msgstr ""
+msgstr "Podmínky používání softwarových služeb"
 
 msgid "^"
-msgstr ""
+msgstr "^"
 
 msgid "Helio Additive"
-msgstr ""
+msgstr "Helio Additive"
 
 msgid "Helio Additive Privacy Agreement"
-msgstr ""
+msgstr "Zásady ochrany osobních údajů Helio Additive"
 
 msgid "Helio Additive User Agreement"
-msgstr ""
+msgstr "Uživatelská smlouva Helio Additive"
 
 msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on "
-msgstr ""
+msgstr "Není-li uvedeno jinak, Bambu Lab poskytuje podporu pouze pro oficiálně dodávané funkce softwaru. Funkce vyhodnocení a optimalizace slicování založené na "
 
 msgid "'s cloud service in this software will be developed, operated, provided, and maintained by "
-msgstr ""
+msgstr " cloudové službě v tomto softwaru budou vyvíjeny, provozovány, poskytovány a udržovány společností "
 
 msgid ". Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit "
-msgstr ""
+msgstr ". Helio Additive odpovídá za účinnost a dostupnost této služby. Funkce optimalizace může upravovat výchozí tiskové příkazy, což může představovat riziko poškození tiskárny. Tyto funkce shromažďují nezbytné uživatelské informace a data pro zajištění funkcí služby. Může se jednat o předplatné a platby. Navštivte prosím "
 
 msgid " and refer to the "
-msgstr ""
+msgstr " a přečtěte si "
 
 msgid " and "
-msgstr ""
+msgstr " a "
 
 msgid " for detailed information."
-msgstr ""
+msgstr " pro podrobné informace."
 
 msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on "
-msgstr ""
+msgstr "Zároveň berete na vědomí, že tento produkt je poskytován „tak, jak je“ na základě služeb "
 
 msgid "'s services, and Bambu Lab makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu Lab or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu Lab cannot guarantee that the service will be available at all times, and Bambu Lab reserves the right to terminate the service based on relevant circumstances. You agree not to use this product and its related updates to engage in the following activities:"
-msgstr ""
+msgstr " a Bambu Lab neposkytuje žádné výslovné ani implicitní záruky a nemůže ovlivnit výsledky služby. V maximálním rozsahu povoleném platnými právními předpisy Bambu Lab ani jeho poskytovatelé/licenční partneři neposkytují žádná ujištění ani záruky, včetně mimo jiné záruk prodejnosti, uspokojivé kvality, vhodnosti pro konkrétní účel, přesnosti, důvěrnosti a neporušování práv třetích stran. Vzhledem k povaze síťových služeb nemůže Bambu Lab zaručit nepřetržitou dostupnost služby a vyhrazuje si právo službu ukončit podle okolností. Souhlasíte, že tento produkt ani jeho aktualizace nebudete používat k následujícím činnostem:"
 
 msgid "1. Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu Lab;"
-msgstr ""
+msgstr "1. Kopírování nebo používání jakékoli části tohoto produktu mimo autorizovaný rozsah Helio Additive a Bambu Lab;"
 
 msgid "2. Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product;"
-msgstr ""
+msgstr "2. Pokus o narušení, obejití, změnu, zneplatnění nebo obcházení jakéhokoli systému správy digitálních práv souvisejícího s tímto produktem nebo jeho součástí;"
 
 msgid "3. Using this software and services for any improper or illegal activities."
-msgstr ""
+msgstr "3. Používání tohoto softwaru a služeb k jakýmkoli nevhodným nebo nelegálním činnostem."
 
 msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
-msgstr ""
+msgstr "Potvrzením zapnutí této funkce stvrzujete, že jste si výše uvedené podmínky přečetli a souhlasíte s nimi."
 
 msgid "Special Note && Privacy Policy"
-msgstr ""
+msgstr "Zvláštní upozornění a zásady ochrany osobních údajů"
 
 msgid "This service is provided and hosted by a third party, Helio Additive. All data collection and processing activities are solely managed by Helio Additive, and Bambu Lab assumes no responsibility in this regard. By clicking \"Agree and Proceed\", you agree to Helio Additive's privacy policy."
-msgstr ""
+msgstr "Tato služba je poskytována a hostována třetí stranou, Helio Additive. Veškeré shromažďování a zpracování dat spravuje výhradně Helio Additive a Bambu Lab za něj nenese odpovědnost. Kliknutím na „Souhlasit a pokračovat“ souhlasíte se zásadami ochrany osobních údajů Helio Additive."
 
 msgid ""
 "I have read and agree to the terms\n"
 "and policies."
 msgstr ""
+"Přečetl(a) jsem si a souhlasím s podmínkami\n"
+"a zásadami."
 
 msgid "Agree and Proceed"
-msgstr ""
+msgstr "Souhlasit a pokračovat"
 
 msgid "Activation Successful!"
-msgstr ""
+msgstr "Aktivace byla úspěšná!"
 
 msgid "Helio Additive is now active. You have unlocked free optimizations!"
-msgstr ""
+msgstr "Helio Additive je nyní aktivní. Odemkli jste bezplatné optimalizace!"
 
 msgid "Applies only when first activated"
-msgstr ""
+msgstr "Platí pouze při první aktivaci"
 
 msgid "Run Your First Optimization"
-msgstr ""
+msgstr "Spusťte svou první optimalizaci"
 
 msgid "You're nearly there! Now that Helio is activated, your first optimization run for faster, more reliable printing takes only minutes! (Now referred to as 'Enhance' or 'Enhancement')"
-msgstr ""
+msgstr "Jste téměř hotovi! Nyní, když je Helio aktivní, vaše první optimalizace pro rychlejší a spolehlivější tisk zabere jen pár minut! (Nyní označováno jako „Enhance“ nebo „Enhancement“)"
 
 msgid "Add an object to the build plate, select a material and printer that Helio supports, then slice."
-msgstr ""
+msgstr "Přidejte objekt na tiskovou podložku, vyberte materiál a tiskárnu podporovanou Helio a poté spusťte slicování."
 
 msgid "Supported printers and materials"
-msgstr ""
+msgstr "Podporované tiskárny a materiály"
 
 msgid "Copy PAT"
-msgstr ""
+msgstr "Kopírovat PAT"
 
 msgid ""
 "Personal Access Token (PAT)\n"
@@ -10782,47 +10801,54 @@ msgid ""
 "• Use the Helio API directly\n"
 "• Provide to support when troubleshooting"
 msgstr ""
-
-msgid "Copy successful!"
-msgstr "Kopírování bylo úspěšné!"
+"Personal Access Token (PAT)\n"
+"\n"
+"Bezpečný přístupový token ověřující vaši identitu u služeb Helio. Automaticky jej používá BambuStudio pro optimalizace a simulace.\n"
+"\n"
+"Můžete jej potřebovat zkopírovat pro:\n"
+"• Integraci Helio s jinými slicery nebo nástroji\n"
+"• Přímé použití Helio API\n"
+"• Poskytnutí podpoře při řešení problémů"
 
 msgid "History"
-msgstr ""
+msgstr "Historie"
 
 msgid "View and download recent optimizations and simulations"
-msgstr ""
+msgstr "Zobrazit a stáhnout nedávné optimalizace a simulace"
 
 msgid "Terms of Use"
-msgstr ""
+msgstr "Podmínky použití"
 
 msgid "Experimental: Enable multi-material support"
-msgstr ""
+msgstr "Experimentální: Povolit podporu více materiálů"
 
 msgid ""
 "When enabled, Helio uses the V3 API with per-slot material mapping for true multi-material prints.\n"
 "When disabled, the original V2 single-material API is used."
 msgstr ""
+"Při zapnutí Helio používá API V3 s mapováním materiálů po slotech pro skutečný vícemateriálový tisk.\n"
+"Při vypnutí se používá původní API V2 pro jeden materiál."
 
 msgid "Activation Successful"
-msgstr ""
+msgstr "Aktivace byla úspěšná"
 
 msgid "Assess"
-msgstr ""
+msgstr "Vyhodnotit"
 
 msgid "Formerly referred to as 'Simulate' or 'Simulation'"
-msgstr ""
+msgstr "Dříve označováno jako „Simulate“ nebo „Simulation“"
 
 msgid "See where it will fail"
-msgstr ""
+msgstr "Zjistit, kde selže"
 
 msgid "Enhance"
-msgstr ""
+msgstr "Vylepšit"
 
 msgid "Formerly referred to as 'Optimize' or 'Optimization'"
-msgstr ""
+msgstr "Dříve označováno jako „Optimize“ nebo „Optimization“"
 
 msgid "Auto-fix with new speeds"
-msgstr ""
+msgstr "Automatická oprava s novými rychlostmi"
 
 msgid "Environment Temperature"
 msgstr "Teplota prostředí"
@@ -10831,61 +10857,52 @@ msgid "Chamber Temperature"
 msgstr "Teplota komory"
 
 msgid "Refers to the environment temperature of the print (i.e. A-series - room temperature). Changing chamber temperature when running an assessment/simulation allows you to play around with different temperature scenarios."
-msgstr ""
+msgstr "Označuje teplotu prostředí tisku (např. u řady A – pokojová teplota). Změna teploty komory při vyhodnocení/simulaci umožňuje testovat různé teplotní scénáře."
 
 msgid "Optional. More accurate temperatures ensures better results."
-msgstr ""
-
-msgid "Helio's advanced feature for power users: available post purchase on its official website."
-msgstr "Pokročilá funkce Helio pro pokročilé uživatele: k dispozici po zakoupení na oficiálních webových stránkách."
+msgstr "Volitelné. Přesnější teploty zajistí lepší výsledky."
 
 msgid "Account Status"
-msgstr ""
+msgstr "Stav účtu"
 
 msgid "Subscription:"
-msgstr ""
+msgstr "Předplatné:"
 
 msgid "Loading subscription status..."
-msgstr ""
+msgstr "Načítání stavu předplatného..."
 
 msgid "Monthly quota:"
-msgstr ""
+msgstr "Měsíční limit:"
 
 msgid "Add-ons:"
-msgstr ""
+msgstr "Doplňky:"
 
 msgid "Plans / Upgrades"
-msgstr ""
+msgstr "Plány / upgrady"
 
 msgid "Manage Account"
-msgstr ""
+msgstr "Spravovat účet"
 
 msgid "Environment Settings"
-msgstr ""
+msgstr "Nastavení prostředí"
 
 msgid "Optional. Uses the chamber temperature from Filament settings when available; you can override it here."
-msgstr ""
+msgstr "Volitelné. Používá teplotu komory z nastavení filamentu, pokud je k dispozici; zde ji můžete přepsat."
 
 msgid "Uses the chamber temperature from Filament settings when available; otherwise estimates it from the build plate temperature."
-msgstr ""
+msgstr "Používá teplotu komory z nastavení filamentu, pokud je k dispozici; jinak ji odhaduje z teploty tiskové podložky."
 
 msgid "Optimization Settings"
-msgstr ""
+msgstr "Nastavení optimalizace"
 
 msgid "Now referred to as 'Enhance' or 'Enhancement'"
-msgstr ""
-
-msgid "Helio default (recommended)"
-msgstr "Výchozí Helio (doporučeno)"
-
-msgid "Slicer default"
-msgstr "Výchozí nastavení řezače"
+msgstr "Nyní označováno jako „Enhance“ nebo „Enhancement“"
 
 msgid "Limits"
-msgstr ""
+msgstr "Limity"
 
 msgid "Set your own speed and flow rate limits - or rely on Helio's custom limit settings. With unsupported materials you need to supply your own data or rely on the slicer's built in data."
-msgstr ""
+msgstr "Nastavte vlastní limity rychlosti a průtoku, nebo se spolehněte na vlastní limity Helio. U nepodporovaných materiálů musíte zadat vlastní data nebo se spolehnout na vestavěná data sliceru."
 
 msgid "Min Velocity"
 msgstr "Minimální rychlost"
@@ -10906,55 +10923,55 @@ msgid "Click for more details"
 msgstr "Klikněte pro více podrobností"
 
 msgid "Enhancement will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Optimize' or 'Optimization')"
-msgstr ""
+msgstr "Vylepšení bude trvat jen několik minut v závislosti na velikosti objektu. (Na pozadí probíhá náročný výpočet) (Dříve označováno jako „Optimize“ nebo „Optimization“)"
 
 msgid "Assessment will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Simulate' or 'Simulation')"
-msgstr ""
+msgstr "Vyhodnocení bude trvat jen několik minut v závislosti na velikosti objektu. (Na pozadí probíhá náročný výpočet) (Dříve označováno jako „Simulate“ nebo „Simulation“)"
 
 msgid "Start Free Trial"
-msgstr ""
+msgstr "Spustit bezplatnou zkušební verzi"
 
 msgid "Activate your free trial to unlock premium enhancements"
-msgstr ""
+msgstr "Aktivujte bezplatnou zkušební verzi pro odemknutí prémiových vylepšení"
 
 msgid "Go to our storefront to purchase more enhancements"
-msgstr ""
+msgstr "Přejděte do našeho obchodu pro nákup dalších vylepšení"
 
 msgid "Free Trial"
-msgstr ""
+msgstr "Zkušební verze"
 
 msgid "Free Trial Expired"
-msgstr ""
+msgstr "Zkušební verze vypršela"
 
 msgid "Your free trial has ended. Explore our plans to continue using premium features."
-msgstr ""
+msgstr "Vaše zkušební verze skončila. Prohlédněte si naše plány pro pokračování v používání prémiových funkcí."
 
 msgid "Start your free trial to unlock premium enhancements and faster, warp-free prints!"
-msgstr ""
+msgstr "Spusťte zkušební verzi a odemkněte prémiová vylepšení a rychlejší tisk bez deformací!"
 
 msgid "Unlimited*"
-msgstr ""
+msgstr "Neomezeně*"
 
 msgid "*Fair usage terms apply - click to learn more"
-msgstr ""
+msgstr "*Platí podmínky férového používání – klikněte pro více informací"
 
 msgid "Restrict Helio's fixes to only certain layers, or keep them for all layers - the choice is yours! (Layer 1 attached to the bed is typically skipped.)"
-msgstr ""
+msgstr "Omezte úpravy Helio pouze na určité vrstvy, nebo je použijte na všechny – volba je na vás! (Vrstva 1 přilnutá k podložce se obvykle přeskočí.)"
 
 msgid "Print Priority"
-msgstr ""
+msgstr "Priorita tisku"
 
 msgid "Loading print priority options..."
-msgstr ""
+msgstr "Načítání možností priority tisku..."
 
 msgid "Fetching material-specific options from Helio API..."
-msgstr ""
+msgstr "Načítání možností specifických pro materiál z Helio API..."
 
 msgid "Preserve Surface Finish"
-msgstr ""
+msgstr "Zachovat povrchovou úpravu"
 
 msgid "Speed & Strength"
-msgstr ""
+msgstr "Rychlost a pevnost"
 
 msgid ""
 "Speed & Strength: Optimizes outer walls for improved performance.\n"
@@ -10962,35 +10979,38 @@ msgid ""
 "\n"
 "Note: Using fallback options - couldn't fetch material-specific settings from API."
 msgstr ""
+"Rychlost a pevnost: Optimalizuje vnější stěny pro lepší výkon.\n"
+"Zachovat povrchovou úpravu: Zachovává původní rychlosti stěn pro zachování vzhledu.\n"
+"\n"
+"Poznámka: Používají se náhradní možnosti – nepodařilo se načíst nastavení specifická pro materiál z API."
 
 msgid "No print priority options available for this material"
-msgstr ""
+msgstr "Pro tento materiál nejsou dostupné možnosti priority tisku"
 
 msgid "This material does not support print priority optimization."
-msgstr ""
+msgstr "Tento materiál nepodporuje optimalizaci priority tisku."
 
 msgid "Optimizes outer walls for improved performance."
-msgstr ""
+msgstr "Optimalizuje vnější stěny pro lepší výkon."
 
 msgid "Maintains original wall speeds to preserve visual finish."
-msgstr ""
+msgstr "Zachovává původní rychlosti stěn pro zachování vzhledu."
 
 msgid "Enhance Surface Gloss"
-msgstr ""
+msgstr "Zlepšit lesk povrchu"
 
 msgid "Optimizes for enhanced surface gloss."
-msgstr ""
+msgstr "Optimalizuje pro vyšší lesk povrchu."
 
 msgid ""
 "Failed to load print priority options from Helio API.\n"
 "Using standard optimization method instead (same as before print priority feature)."
 msgstr ""
-
-msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
-msgstr "Nepodařilo se získat Helio PAT. Počet vydaných PAT dosáhl horního limitu. Věnujte pozornost informacím na oficiálních stránkách Helio. Jakmile bude dostupný, klikněte na Obnovit pro opětovné získání."
+"Nepodařilo se načíst možnosti priority tisku z Helio API.\n"
+"Místo toho se použije standardní metoda optimalizace (stejná jako před zavedením funkce priority tisku)."
 
 msgid "HELIO ADDITIVE"
-msgstr ""
+msgstr "HELIO ADDITIVE"
 
 msgid "Print Time Improvement"
 msgstr "Zlepšení doby tisku"
@@ -11002,139 +11022,133 @@ msgid "Consistency Improvement"
 msgstr "Zlepšení konzistence"
 
 msgid "Estimate of improvement in print time before and after enhancement"
-msgstr ""
+msgstr "Odhad zlepšení doby tisku před a po optimalizaci"
 
 msgid "Level of Strength & Warping improvement for this part after enhancement - average for the part"
-msgstr ""
+msgstr "Úroveň zlepšení pevnosti a deformací tohoto dílu po optimalizaci – průměr pro celý díl"
 
 msgid "Level of Strength & Warping improvement for this part after enhancement - change in overall consistency"
-msgstr ""
-
-msgid "Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next."
-msgstr "Váš G-kód byl vylepšen pro co nejlepší tisk. Pro další zlepšení tisku si prosím prohlédněte naši wiki s tipy a triky, co dělat dále."
+msgstr "Úroveň zlepšení pevnosti a deformací tohoto dílu po optimalizaci – změna celkové konzistence"
 
 msgid "Rate the enhancement based on your expectations. 5 stars means awesome! 1 star means it didn't add much value for you."
-msgstr ""
+msgstr "Ohodnoťte vylepšení podle vašich očekávání. 5 hvězdiček znamená skvělé! 1 hvězdička znamená, že vám to nepřineslo velkou hodnotu."
 
 msgid "Save the enhanced gcode locally"
-msgstr ""
+msgstr "Uložit vylepšený G-kód lokálně"
 
 msgid "Print Plate"
-msgstr ""
+msgstr "Tisknout podložku"
 
 msgid "Print the enhanced part immediately"
-msgstr ""
+msgstr "Okamžitě vytisknout vylepšený díl"
 
 msgid "View Details"
-msgstr ""
+msgstr "Zobrazit detaily"
 
 msgid "Verify Print Success Results"
-msgstr ""
+msgstr "Ověřit výsledky úspěšnosti tisku"
 
 msgid "Simulates the thermal process to confirm your part will print without failure."
-msgstr ""
+msgstr "Simuluje tepelný proces pro potvrzení, že se díl vytiskne bez selhání."
 
 msgid "Now referred to as 'Assess' or 'Assessment'"
-msgstr ""
+msgstr "Nyní označováno jako „Assess“ nebo „Assessment“"
 
 msgid "Time saved: "
-msgstr ""
+msgstr "Ušetřený čas: "
 
 msgid "From "
-msgstr ""
+msgstr "Z "
 
 msgid "Expected Outcome:"
-msgstr ""
+msgstr "Očekávaný výsledek:"
 
 msgid "Analysis:"
-msgstr ""
+msgstr "Analýza:"
 
 msgid "Additional observations:"
-msgstr ""
+msgstr "Další pozorování:"
 
 msgid "Fix suggestions"
-msgstr ""
+msgstr "Návrhy řešení"
 
 msgid "With Enhance Speed & Quality:"
-msgstr ""
+msgstr "S funkcí Enhance Speed & Quality:"
 
 msgid "This is the time that can be saved if you run the Helio Additive Enhance feature. Click the Enhance Speed and Quality button to proceed."
-msgstr ""
+msgstr "Toto je čas, který lze ušetřit při použití funkce Helio Additive Enhance. Pokračujte kliknutím na tlačítko Enhance Speed & Quality."
 
 msgid "Enhance Speed & Quality"
-msgstr ""
+msgstr "Zlepšit rychlost a kvalitu"
 
 msgid "Applies Helio's optimized speed/flow/fan strategy."
-msgstr ""
+msgstr "Použije optimalizovanou strategii rychlosti/průtoku/ventilátoru od Helio."
 
 msgid "✅ Will Print"
-msgstr ""
+msgstr "✅ Vytiskne se"
 
 msgid "⚠️ May Print with Issues"
-msgstr ""
+msgstr "⚠️ Může se vytisknout s problémy"
 
 msgid "❌ Likely to Fail"
-msgstr ""
+msgstr "❌ Pravděpodobně selže"
 
 msgid "Thermal conditions are balanced. The part is printing within safe temperature limits."
-msgstr ""
+msgstr "Tepelné podmínky jsou vyvážené. Díl se tiskne v bezpečných teplotních mezích."
 
 msgid "Material is cooling too rapidly before the next layer is applied. This can cause weak layer bonding, warping, or cracking."
-msgstr ""
+msgstr "Materiál se ochlazuje příliš rychle před nanesením další vrstvy. To může způsobit slabé spojení vrstev, deformace nebo praskání."
 
 msgid "Heat is building up in small layers faster than it can dissipate. This may cause sagging or loss of detail in fine features."
-msgstr ""
+msgstr "Teplo se v malých vrstvách hromadí rychleji, než se stihne odvést. To může způsobit prověšování nebo ztrátu detailů u jemných prvků."
 
 msgid "Ready to print — see suggestions"
-msgstr ""
+msgstr "Připraveno k tisku — viz doporučení"
 
 msgid "Ready to print"
-msgstr ""
+msgstr "Připraveno k tisku"
 
 msgid "Too cold overall — see suggestions"
-msgstr ""
+msgstr "Celkově příliš studené — viz doporučení"
 
 msgid "Too hot overall — see suggestions"
-msgstr ""
+msgstr "Celkově příliš horké — viz doporučení"
 
 msgid "Your part is ready to print! Thermal conditions are within safe limits."
-msgstr ""
+msgstr "Váš díl je připraven k tisku! Tepelné podmínky jsou v bezpečných mezích."
 
 msgid "Too cold (overall)"
-msgstr ""
+msgstr "Příliš studené (celkově)"
 
 msgid "The part cools too fast between layers on average. Some layers may behave differently—see observations."
-msgstr ""
+msgstr "Díl se mezi vrstvami v průměru ochlazuje příliš rychle. Některé vrstvy se mohou chovat odlišně – viz pozorování."
 
 msgid "Too hot (overall)"
-msgstr ""
+msgstr "Příliš horké (celkově)"
 
 msgid "The part stays too warm between layers on average. Some layers may behave differently—see observations."
-msgstr ""
+msgstr "Díl zůstává mezi vrstvami v průměru příliš teplý. Některé vrstvy se mohou chovat odlišně – viz pozorování."
 
 msgid "Suggestions"
-msgstr ""
+msgstr "Doporučení"
 
 msgid "Quick fixes (beginner):"
-msgstr ""
+msgstr "Rychlá řešení (začátečník):"
 
 msgid "Expert"
-msgstr ""
+msgstr "Pokročilé"
 
 msgid "Helio Flowchart"
-msgstr ""
+msgstr "Vývojový diagram Helio"
 
 msgid "Fixing cold prints"
-msgstr ""
-
-msgid "Air Pump"
-msgstr "Vzduchové čerpadlo"
+msgstr "Řešení studených tisků"
 
 msgid "Laser 10W"
-msgstr ""
+msgstr "Laser 10 W"
 
 msgid "Laser 40W"
-msgstr ""
+msgstr "Laser 40 W"
 
 msgid "Cutting Module"
 msgstr "Řezací modul"
@@ -11256,7 +11270,7 @@ msgid "Maybe parts of the object at these height are too thin, or the object has
 msgstr "Možná jsou části objektu v této výšce příliš tenké, nebo má objekt chybnou síť."
 
 msgid "Flush volumes matrix do not match to the correct size!"
-msgstr ""
+msgstr "Matice objemů proplachu nemá správnou velikost!"
 
 msgid "No object can be printed. Maybe too small"
 msgstr "Nelze tisknout žádný objekt. Možná je příliš malý."
@@ -11677,7 +11691,7 @@ msgid "Avoid crossing wall"
 msgstr "Vyhnout se překročení stěny"
 
 msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
-msgstr ""
+msgstr "Obejde a vyhne se přejezdu přes stěnu, který může způsobit kapky na povrchu (pokud délka přejezdu překročí práh vzdálenosti přejezdu)"
 
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Vyhlazování rychlosti stěn podél osy Z (experimentální)"
@@ -11779,10 +11793,10 @@ msgid "Force part cooling fan to be at this speed when printing bridge or overha
 msgstr "Vynutit, aby ventilátor chlazení dílu běžel touto rychlostí při tisku mostů nebo převislých stěn s velkým úhlem převisu. Vynucení chlazení pro převisy a mosty může zlepšit kvalitu těchto částí."
 
 msgid "Ironing fan speed"
-msgstr ""
+msgstr "Rychlost ventilátoru při žehlení"
 
 msgid "This part cooling fan speed is applied when ironing. Setting this parameter to a lower than regular speed reduces possible nozzle clogging due to the low volumetric flow rate, making the interface smoother. Set to -1 to disable it."
-msgstr ""
+msgstr "Tato rychlost ventilátoru chlazení dílu se používá při žehlení. Nastavení nižší hodnoty než běžné rychlosti snižuje riziko ucpání trysky kvůli nízkému objemovému průtoku a zlepšuje hladkost povrchu. Nastavte na -1 pro vypnutí."
 
 msgid "Pre start fan time"
 msgstr "Doba před spuštěním ventilátoru"
@@ -12067,19 +12081,13 @@ msgid "For the first"
 msgstr "Pro první"
 
 msgid "Set special auxiliary cooling fan for the first certain layers."
-msgstr ""
-
-msgid "Full fan speed at layer"
-msgstr "Plná rychlost ventilátoru při vrstvě"
+msgstr "Nastavte speciální pomocný chladicí ventilátor pro první vrstvy."
 
 msgid "Auxiliary fan speed will be ramped up linearly from layer \"For the first\" to maximum at layer \"Full fan speed at layer\". \"Full fan speed at layer\" will be ignored if lower than \"For the first\", in which case the fan will be running at maximum allowed speed at layer \"For the first\" + 1."
-msgstr ""
-
-msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
-msgstr "Nastavte speciální ventilátor chlazení pro první vrstvy. Ventilátor chlazení dílu u první vrstvy bývá uzavřen pro lepší adhezi k tiskové podložce a používá se pro automatickou funkci chlazení."
+msgstr "Rychlost pomocného ventilátoru se bude lineárně zvyšovat od vrstvy „Pro první“ až na maximum ve vrstvě „Plná rychlost ventilátoru při vrstvě“. Pokud je „Plná rychlost ventilátoru při vrstvě“ nižší než „Pro první“, bude ignorována a ventilátor poběží maximální povolenou rychlostí ve vrstvě „Pro první“ + 1."
 
 msgid "Part cooling fan speed for the first few layers. Set to 0 to disable the part cooling fan on the initial layers for better bed adhesion"
-msgstr ""
+msgstr "Rychlost ventilátoru chlazení dílu pro prvních několik vrstev. Nastavte na 0 pro vypnutí ventilátoru v počátečních vrstvách pro lepší přilnavost k podložce."
 
 msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
 msgstr "Speciální rychlost pomocného ventilátoru pro chlazení, účinná pouze pro první x vrstev."
@@ -12187,10 +12195,10 @@ msgid "Density of top surface infill, 100% means a fully solid filled top layer.
 msgstr "Hustota výplně horního povrchu, 100 % znamená zcela pevně vyplněnou horní vrstvu. Nižší hodnoty vytvářejí strukturovaný horní povrch, při 0 % jsou vytvořeny pouze stěny horní vrstvy. Určeno pro estetické nebo funkční účely, nikoli k odstranění problémů, jako je nadměrná extruze."
 
 msgid "Monotonic line travel extend"
-msgstr ""
+msgstr "Prodloužení přejezdu monotónních linií"
 
 msgid "Enable this option to extend the travel distance between lines, improving the adhesion between the monotonic line infill and the walls.(percent to line width)"
-msgstr ""
+msgstr "Povolte tuto možnost pro prodloužení vzdálenosti přejezdu mezi liniemi, čímž se zlepší přilnavost mezi monotónní liniovou výplní a stěnami (v procentech vůči šířce linie)."
 
 msgid "Bottom surface pattern"
 msgstr "Vzor spodního povrchu"
@@ -12484,10 +12492,10 @@ msgid "Filament category"
 msgstr "Kategorie filamentu"
 
 msgid "Metal stickiness"
-msgstr ""
+msgstr "Přilnavost ke kovu"
 
 msgid "Indicates how strongly the filament tends to stick to the metal nozzle and leave residue. \"None\" means untested or custom filament, behaves the same as Low. Low: e.g. PLA - retraction can be safely skipped in infill areas. Medium: moderate stickiness - use with caution. High: e.g. PETG - retraction should not be skipped to avoid oozing artifacts on outer walls."
-msgstr ""
+msgstr "Udává, jak silně má filament tendenci přilnout ke kovové trysce a zanechávat zbytky. „Žádná“ znamená netestovaný nebo vlastní filament a chová se stejně jako „Nízká“. Nízká: např. PLA – retrakci lze bezpečně vynechat ve výplni. Střední: střední přilnavost – používejte opatrně. Vysoká: např. PETG – retrakce by neměla být vynechána, aby se zabránilo artefaktům vytékání na vnějších stěnách."
 
 msgid "Density"
 msgstr "Hustota"
@@ -12526,7 +12534,7 @@ msgid "This amount can be specified in millimeters or as a percentage of the cur
 msgstr "Tuto hodnotu lze zadat v milimetrech nebo jako procento aktuální výšky vrstvy."
 
 msgid "mm/%"
-msgstr ""
+msgstr "mm/%"
 
 msgid "Scarf slope gap"
 msgstr "Mezera sklonu zkosení"
@@ -12553,34 +12561,34 @@ msgid "Support material is commonly used to print support and support interface"
 msgstr "Podpůrný materiál se běžně používá k tisku podpor a rozhraní podpory."
 
 msgid "Is mixed filament"
-msgstr ""
+msgstr "Je smíšený filament"
 
 msgid "Whether this filament slot is a mixed filament composed of multiple physical filaments"
-msgstr ""
+msgstr "Určuje, zda je tento slot filamentu smíšený filament složený z více fyzických filamentů"
 
 msgid "Mixed filament components"
-msgstr ""
+msgstr "Komponenty smíšeného filamentu"
 
 msgid "Comma-separated 1-based indices of component filaments, e.g. \"1,3\""
-msgstr ""
+msgstr "Čárkami oddělené indexy komponent filamentů (od 1), např. „1,3“"
 
 msgid "Mixed filament sublayer ratios"
-msgstr ""
+msgstr "Poměry podvrstev smíšeného filamentu"
 
 msgid "Comma-separated ratio values summing to 1.0, e.g. \"0.7,0.3\""
-msgstr ""
+msgstr "Čárkami oddělené hodnoty poměrů s výsledným součtem 1,0, např. „0.7,0.3“"
 
 msgid "Mixed filament gradient"
-msgstr ""
+msgstr "Gradient smíšeného filamentu"
 
 msgid "Enable Z-direction gradient mode for mixed filament sub-layers. When enabled, the sub-layer ratios vary linearly across layers."
-msgstr ""
+msgstr "Povolí režim gradientu ve směru Z pro podvrstvy smíšeného filamentu. Při zapnutí se poměry podvrstev lineárně mění napříč vrstvami."
 
 msgid "Mixed filament gradient range"
-msgstr ""
+msgstr "Rozsah gradientu smíšeného filamentu"
 
 msgid "Start and end ratios for the first component in gradient mode. Comma-separated pair, e.g. \"0.10,0.90\" means 10% to 90%."
-msgstr ""
+msgstr "Počáteční a koncové poměry pro první komponentu v režimu gradientu. Dvojice oddělená čárkou, např. „0.10,0.90“ znamená 10 % až 90 %."
 
 msgid "Filament printable"
 msgstr "Filament je tisknutelný"
@@ -12589,10 +12597,10 @@ msgid "The filament is printable in extruder"
 msgstr "Filament je tisknutelný v extruderu."
 
 msgid "Filament-extruder compatibility"
-msgstr ""
+msgstr "Kompatibilita filamentu s extrudery"
 
 msgid "A single 32-bit int encoding the compatibility level of a filament across all extruders (up to 10). Every 3 bits represent one extruder (bits [3*i, 3*i+2] for extruder i). 0: printable, 1: error, 2: critical warning, 3: warning, 4-7: reserved"
-msgstr ""
+msgstr "Jedno 32bitové celé číslo kódující úroveň kompatibility filamentu napříč všemi extrudery (až 10). Každé 3 bity reprezentují jeden extruder (bity [3*i, 3*i+2] pro extruder i). 0: tisknutelné, 1: chyba, 2: kritické varování, 3: varování, 4–7: rezervováno"
 
 msgid "Filament change"
 msgstr "Změna filamentu"
@@ -12646,10 +12654,10 @@ msgid "°C"
 msgstr "°C"
 
 msgid "Enable tower interface features"
-msgstr ""
+msgstr "Povolit funkce rozhraní věže"
 
 msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
-msgstr ""
+msgstr "Při zapnutí se použijí samostatná nastavení teploty, předextruze a proplachu pro vrstvy rozhraní čisticí věže (kde se setkávají různé materiály), což zlepší kvalitu přepínání nástrojů u vícemateriálového tisku."
 
 msgid "Softening temperature"
 msgstr "Teplota měknutí"
@@ -12755,13 +12763,10 @@ msgid "2D Lattice"
 msgstr "2D mřížka"
 
 msgid "Skin infill pattern"
-msgstr ""
-
-msgid "Line pattern for skin"
-msgstr "Vzor linie pro povrch"
+msgstr "Vzor výplně povrchu"
 
 msgid "Skeleton infill pattern"
-msgstr ""
+msgstr "Vzor výplně skeletu"
 
 msgid "Line pattern for skeleton"
 msgstr "Vzor linie pro kostru"
@@ -12866,13 +12871,13 @@ msgid "The average distance between the random points introduced on each line se
 msgstr "Průměrná vzdálenost mezi náhodnými body zavedenými na každém úseku čáry"
 
 msgid "Apply fuzzy skin to first layer"
-msgstr ""
+msgstr "Použít drsný povrch na první vrstvu"
 
 msgid "Whether to apply fuzzy skin on the first layer."
-msgstr ""
+msgstr "Určuje, zda se má drsný povrch použít na první vrstvu."
 
 msgid "Fuzzy skin noise type"
-msgstr ""
+msgstr "Typ šumu drsného povrchu"
 
 msgid ""
 "Noise type to use for fuzzy skin generation:\n"
@@ -12882,30 +12887,33 @@ msgid ""
 "Ridged Multifractal: Ridged noise with sharp, jagged features. Creates marble-like textures.\n"
 "Voronoi: Divides the surface into voronoi cells, and displaces each one by a random amount. Creates a patchwork texture."
 msgstr ""
-
-msgid "Classic"
-msgstr "Klasický"
+"Typ šumu pro generování drsného povrchu:\n"
+"Klasický: Klasický rovnoměrný náhodný šum.\n"
+"Perlin: Perlinův šum, který vytváří konzistentnější texturu.\n"
+"Billow: Podobný Perlinovu šumu, ale hrudkovitější.\n"
+"Ridged Multifractal: Hřebenový šum s ostrými, zubatými prvky. Vytváří mramorový vzhled.\n"
+"Voronoi: Rozděluje povrch na Voronoi buňky a každou posune o náhodnou hodnotu. Vytváří mozaikový vzhled."
 
 msgid "Fuzzy skin feature size"
-msgstr ""
+msgstr "Velikost prvků drsného povrchu"
 
 msgid "The base size of the coherent noise features, in mm. Higher values will result in larger features."
-msgstr ""
+msgstr "Základní velikost prvků koherentního šumu v mm. Vyšší hodnoty povedou k větším prvkům."
 
 msgid "Fuzzy skin noise octaves"
-msgstr ""
+msgstr "Počet oktáv šumu drsného povrchu"
 
 msgid "The number of octaves of coherent noise to use. Higher values increase the detail of the noise, but also increase computation time."
-msgstr ""
+msgstr "Počet oktáv koherentního šumu. Vyšší hodnoty zvyšují detail šumu, ale také prodlužují dobu výpočtu."
 
 msgid "Fuzzy skin noise persistence"
-msgstr ""
+msgstr "Persistenční faktor šumu drsného povrchu"
 
 msgid "The decay rate for higher octaves of the coherent noise. Lower values will result in smoother noise."
-msgstr ""
+msgstr "Míra útlumu vyšších oktáv koherentního šumu. Nižší hodnoty vedou k hladšímu šumu."
 
 msgid "Fuzzy skin generator mode"
-msgstr ""
+msgstr "Režim generování drsného povrchu"
 
 msgid ""
 "Displacement: Pattern is formed by shifting the nozzle sideways from the original path.\n"
@@ -12913,15 +12921,19 @@ msgid ""
 "Combined: Displacement + Extrusion. Similar look to Displacement but fills gaps between perimeters.\n"
 "Note: Extrusion and Combined only work when fuzzy skin thickness is not greater than the printed line width."
 msgstr ""
+"Posun: Vzor vzniká posouváním trysky do stran od původní dráhy.\n"
+"Extruze: Vzor vzniká změnou množství vytlačovaného plastu (dráha trysky zůstává rovná).\n"
+"Kombinovaný: Posun + extruze. Vypadá podobně jako posun, ale vyplňuje mezery mezi perimetry.\n"
+"Poznámka: Režimy Extruze a Kombinovaný fungují pouze tehdy, když tloušťka drsného povrchu není větší než šířka tiskové stopy."
 
 msgid "Displacement"
-msgstr ""
+msgstr "Posun"
 
 msgid "Extrusion"
-msgstr ""
+msgstr "Extruze"
 
 msgid "Combined"
-msgstr ""
+msgstr "Kombinovaný"
 
 msgid "Filter out tiny gaps"
 msgstr "Odstranit malé mezery"
@@ -12963,11 +12975,10 @@ msgid "Enable this to enable the camera on printer to check the quality of first
 msgstr "Povolte tuto možnost pro aktivaci kamery na tiskárně za účelem kontroly kvality první vrstvy."
 
 msgid "Print loops in clockwise"
-msgstr ""
+msgstr "Tisknout smyčky ve směru hodinových ručiček"
 
 msgid "Print in clockwise when enabled, or counterclockwise when not enabled, not work for spiral vase mode"
-msgstr ""
-
+msgstr "Při zapnutí tiskne ve směru hodinových ručiček, při vypnutí proti směru hodinových ručiček. Neplatí pro režim spirálové vázy."
 msgid "Enable clumping detection"
 msgstr "Povolit detekci shlukování"
 
@@ -13449,7 +13460,7 @@ msgid "Reduce infill retraction"
 msgstr "Snížit retrakci výplně"
 
 msgid "Controls whether retraction is skipped when traveling within the infill area. \"Auto\" enables this optimization for filaments with low metal stickiness (e.g. PLA) and disables it for medium/high metal stickiness filaments (e.g. PETG) to avoid oozing artifacts. \"Enabled\" always skips retraction in infill areas regardless of filament type. \"Disabled\" always retracts normally."
-msgstr ""
+msgstr "Určuje, zda se při pohybu uvnitř oblasti výplně vynechá retrakce. „Auto“ zapne tuto optimalizaci pro filamenty s nízkou přilnavostí ke kovu (např. PLA) a vypne ji pro filamenty se střední/vysokou přilnavostí (např. PETG), aby se zabránilo artefaktům vytékání. „Zapnuto“ vždy vynechá retrakci ve výplni bez ohledu na typ filamentu. „Vypnuto“ vždy provádí retrakci standardně."
 
 msgid "Filename format"
 msgstr "Formát názvu souboru"
@@ -13617,7 +13628,7 @@ msgid "Default Nozzle Volume Type"
 msgstr "Výchozí typ objemu trysky"
 
 msgid "Saving"
-msgstr ""
+msgstr "Ukládá"
 
 msgid "length when change hotend"
 msgstr "délka při výměně hotendu"
@@ -14169,10 +14180,10 @@ msgid "Describe how long the nozzle will move along the last path when retractin
 msgstr "Popište, jak dlouho bude tryska pohybovat po poslední dráze během retrakce"
 
 msgid "Mixed color sublayer"
-msgstr ""
+msgstr "Smíšená barevná podvrstva"
 
 msgid "Enable mixed color sublayer splitting. When enabled, layers containing mixed color filaments will be split into sub-layers to achieve color mixing effects."
-msgstr ""
+msgstr "Povolí rozdělení vrstev se smíšenými barvami na podvrstvy. Při zapnutí budou vrstvy obsahující smíšené filamenty rozděleny na podvrstvy pro dosažení efektu míchání barev."
 
 msgid "The wiping tower can be used to clean up the residue on the nozzle and stabilize the chamber pressure inside the nozzle, in order to avoid appearance defects when printing objects."
 msgstr "Čisticí věž lze použít k odstranění zbytků na trysce a ke stabilizaci tlaku v komoře trysky, aby se předešlo vzhledovým vadám při tisku objektů."
@@ -14205,73 +14216,43 @@ msgid "Circle Compensation Speed"
 msgstr "Rychlost kompenzace kruhu"
 
 msgid "circle_compensation_speed"
-msgstr ""
-
-msgid "Counter Coef 1"
-msgstr "Koeficient počítadla 1"
+msgstr "rychlost_kompenzace_kruhů"
 
 msgid "counter_coef_1"
-msgstr ""
-
-msgid "Contour Coef 2"
-msgstr "Koeficient obrysu 2"
+msgstr "koeficient_zápustky_1"
 
 msgid "counter_coef_2"
-msgstr ""
-
-msgid "Contour Coef 3"
-msgstr "Koeficient obrysu 3"
+msgstr "koeficient_obrysu_2"
 
 msgid "counter_coef_3"
-msgstr ""
-
-msgid "Hole Coef 1"
-msgstr "Koeficient díry 1"
+msgstr "koeficient_obrysu_3"
 
 msgid "hole_coef_1"
-msgstr ""
-
-msgid "Hole Coef 2"
-msgstr "Koeficient díry 2"
+msgstr "koeficient_díry_1"
 
 msgid "hole_coef_2"
-msgstr ""
+msgstr "koeficient_díry_2"
 
 msgid "Hole Coef 3"
 msgstr "Koeficient díry 3"
 
 msgid "hole_coef_3"
-msgstr ""
-
-msgid "Contour limit min"
-msgstr "Minimální limit obrysu"
+msgstr "koeficient_díry_3"
 
 msgid "counter_limit_min"
-msgstr ""
-
-msgid "Contour limit max"
-msgstr "Maximální limit obrysu"
+msgstr "min_limit_zápustky"
 
 msgid "counter_limit_max"
-msgstr ""
-
-msgid "Hole limit min"
-msgstr "Minimální limit díry"
+msgstr "max_limit_zápustky"
 
 msgid "hole_limit_min"
-msgstr ""
-
-msgid "Hole limit max"
-msgstr "Maximální limit díry"
+msgstr "min_limit_díry"
 
 msgid "hole_limit_max"
-msgstr ""
-
-msgid "Diameter limit"
-msgstr "Limit průměru"
+msgstr "max_limit_díry"
 
 msgid "diameter_limit"
-msgstr ""
+msgstr "limit_průměru"
 
 msgid "Purging volumes"
 msgstr "Objemy pro pročištění"
@@ -14892,7 +14873,7 @@ msgstr ""
 "- Různá značka a řada filamentů (značka = Bambu, řada = Basic, Matte)\n"
 
 msgid "(Aux) does not support automatic flow calibration."
-msgstr ""
+msgstr "(Aux) nepodporuje automatickou kalibraci průtoku."
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- Poznámka: Číslo hotendu je vázáno na držák. Když je hotend přesunut na nový držák, jeho číslo se automaticky aktualizuje.\n"
@@ -14960,7 +14941,7 @@ msgstr "Připojování k tiskárně"
 
 #, c-format, boost-format
 msgid "Calibration only supports cases where the %s and %s diameters are identical."
-msgstr ""
+msgstr "Kalibrace podporuje pouze případy, kdy jsou průměry %s a %s shodné."
 
 msgid "From k Value"
 msgstr "Z k hodnoty"
@@ -14984,7 +14965,7 @@ msgid "Are you sure to stop printing?"
 msgstr "Opravdu chcete zastavit tisk?"
 
 msgid "0min"
-msgstr ""
+msgstr "0min"
 
 msgid "Flow Dynamics Calibration Result"
 msgstr "Výsledek kalibrace dynamiky toku"
@@ -15868,7 +15849,7 @@ msgstr "Počet extruderů tiskárny a tiskárna vybraná pro kalibraci se neshod
 
 #, c-format, boost-format
 msgid "The type of %sextruder is bowden which does not support automatic Flow Dynamics calibration."
-msgstr ""
+msgstr "Typ %sextruderu je bowden, který nepodporuje automatickou kalibraci dynamiky toku."
 
 #, c-format, boost-format
 msgid "The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."
@@ -16207,7 +16188,7 @@ msgid "Failed to parse response"
 msgstr "Nepodařilo se analyzovat odpověď."
 
 msgid "Failed to create GCodeV3"
-msgstr ""
+msgstr "Nepodařilo se vytvořit GCodeV3"
 
 msgid "Helio simulation task failed"
 msgstr "Úloha simulace Helio selhala."
@@ -16261,7 +16242,7 @@ msgid "Helio: optimization working"
 msgstr "Helio: Optimalizace probíhá."
 
 msgid "Helio: optimization failed"
-msgstr ""
+msgstr "Helio: optimalizace selhala"
 
 msgid "Helio: Optimzaion check failed"
 msgstr "Helio: Kontrola optimalizace selhala."
@@ -16411,35 +16392,21 @@ msgstr "Žádný obsah"
 
 #, c-format, boost-format
 msgid "Printer presets (%d/%d)"
-msgstr ""
+msgstr "Přednastavení tiskárny (%d/%d)"
 
 #, c-format, boost-format
 msgid "Filament presets (%d/%d)"
-msgstr ""
+msgstr "Přednastavení filamentů (%d/%d)"
 
 #, c-format, boost-format
 msgid "Process presets (%d/%d)"
-msgstr ""
-
-#, c-format, boost-format
-msgid "%u Selected"
-msgstr "%u vybráno"
-
-msgid "Please select the preset to be deleted"
-msgstr "Vyberte přednastavení, které chcete odstranit."
-
-#, c-format, boost-format
-msgid "%d %s Preset will be deleted."
-msgstr "%d %s přednastavení bude odstraněno."
+msgstr "Přednastavení procesu (%d/%d)"
 
 msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
-msgstr ""
-
-msgid "Filament grouping"
-msgstr "Seskupení filamentů"
+msgstr "Povolit chytré přiřazení filamentů: Přiřadí jeden filament více tryskám pro maximální úsporu"
 
 msgid "Fila Saving"
-msgstr ""
+msgstr "Úspora filamentu"
 
 msgid "Don't remind me again"
 msgstr "Už mi to nepřipomínat"
@@ -16454,26 +16421,23 @@ msgid "Convenience Mode"
 msgstr "Režim pohodlí"
 
 msgid "Quality Mode"
-msgstr ""
-
-msgid "Custom Mode"
-msgstr "Vlastní režim"
+msgstr "Režim kvality"
 
 #, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"
-msgstr ""
+msgstr "Generuje seskupení filamentů pro %s a %s na základě maximální úspory filamentu s cílem minimalizovat odpad"
 
 #, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on the printer's actual filament status, reducing the need for manual filament adjustment"
-msgstr ""
+msgstr "Generuje seskupení filamentů pro %s a %s na základě aktuálního stavu filamentů v tiskárně, čímž snižuje potřebu ručního nastavování"
 
 #, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on quality optimization principles"
-msgstr ""
+msgstr "Generuje seskupení filamentů pro %s a %s na základě principů optimalizace kvality"
 
 #, c-format, boost-format
 msgid "Manually assign filament to the %s or %s"
-msgstr ""
+msgstr "Ručně přiřadit filament k %s nebo %s"
 
 msgid "Global settings"
 msgstr "Globální nastavení"
@@ -16502,7 +16466,7 @@ msgstr " pro nastavení počtu trysek"
 
 #, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
-msgstr ""
+msgstr "Generuje seskupení filamentů pro %s a %s na základě kvality tisku s prioritou kvality před úsporou filamentu"
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "Metoda seskupování filamentů pro aktuální podložku je určena volbou v rozbalovací nabídce u tlačítka řezání podložky."
@@ -16514,34 +16478,24 @@ msgid "Zoom Out"
 msgstr "Oddálit"
 
 msgid "100 %"
-msgstr ""
-
-msgid "Zoom In"
-msgstr "Přiblížit"
-
-msgid "Load skipping objects information failed. Please try again."
-msgstr "Načtení informací o přeskočených objektech selhalo. Zkuste to prosím znovu."
+msgstr "100 %"
 
 #, c-format, boost-format
 msgid "%d%%"
-msgstr ""
+msgstr "%d %%"
 
 #, c-format, boost-format
 msgid "%d"
-msgstr ""
-
-#, c-format, boost-format
-msgid "/%d Selected"
-msgstr "/%d vybráno"
+msgstr "%d"
 
 msgid "Nothing selected"
-msgstr ""
+msgstr "Nic není vybráno"
 
 msgid "Over 64 objects in single plate"
-msgstr ""
+msgstr "Více než 64 objektů na jedné podložce"
 
 msgid "The current print job cannot be skipped"
-msgstr ""
+msgstr "Aktuální tiskovou úlohu nelze přeskočit"
 
 msgid "Skipping all objects."
 msgstr "Přeskakují se všechny objekty."
@@ -16659,7 +16613,7 @@ msgstr "Otáčejte cívkou při sušení"
 
 msgctxt "amsdrying"
 msgid "Back"
-msgstr ""
+msgstr "Zpět"
 
 msgid "Drying-Heating"
 msgstr "Vysoušení–ohřev"
@@ -16674,82 +16628,79 @@ msgid " minimum drying temperature is "
 msgstr " minimální teplota sušení je "
 
 msgid "This filament may not be completely dried."
-msgstr ""
+msgstr "Tento filament nemusí být zcela vysušený."
 
 msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature."
-msgstr ""
+msgstr "Toto AMS právě tiskne. Pro zajištění kvality tisku nesmí teplota sušení překročit doporučenou teplotu sušení."
 
 msgid "The temperature shall not exceed the filament's heat distortion temperature"
-msgstr ""
+msgstr "Teplota nesmí překročit teplotu tepelné deformace filamentu"
 
 msgid "Minimum time value cannot be less than 1."
-msgstr ""
+msgstr "Minimální hodnota času nesmí být menší než 1."
 
 msgid "Maximum time value cannot be greater than 24."
-msgstr ""
+msgstr "Maximální hodnota času nesmí být větší než 24."
 
 msgid "Insufficient power"
-msgstr ""
+msgstr "Nedostatečný výkon"
 
 msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting."
-msgstr ""
+msgstr "  Probíhá příliš mnoho sušení AMS současně. Připojte prosím napájení nebo zastavte jiné procesy sušení před spuštěním."
 
 msgid "AMS is busy"
-msgstr ""
+msgstr "AMS je zaneprázdněno"
 
 msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait."
-msgstr ""
+msgstr "  AMS provádí kalibraci | čte RFID | načítá/vykládá materiál, počkejte prosím."
 
 msgid "Filament in AMS outlet"
-msgstr ""
-
-msgid "  The high drying temperature may cause AMS blockage, please unload first."
-msgstr "  Vysoká teplota sušení může způsobit ucpání AMS, prosím nejprve ji vysuňte.  Vysoká teplota sušení může způsobit zablokování AMS, nejprve prosím vyložte."
+msgstr "Filament ve výstupu AMS"
 
 msgid "Initiating AMS drying"
-msgstr ""
+msgstr "Spouštění sušení AMS"
 
 msgid "Not supported in 2D mode"
-msgstr ""
+msgstr "Není podporováno ve 2D režimu"
 
 msgid "Task in progress"
-msgstr ""
+msgstr "Probíhá úloha"
 
 msgid "  The AMS might be in use during Task."
-msgstr ""
+msgstr "  AMS může být během úlohy používáno."
 
 msgid "  Firmware update in progress, please wait..."
-msgstr ""
+msgstr "  Probíhá aktualizace firmwaru, počkejte prosím..."
 
 msgid "  Please plug in the power and then use the drying function."
-msgstr ""
+msgstr "  Připojte prosím napájení a poté použijte funkci sušení."
 
 msgid "  The high drying temperature may cause AMS blockage. Please unload the filament manually before proceeding."
-msgstr ""
+msgstr "  Vysoká teplota sušení může způsobit zablokování AMS. Před pokračováním prosím filament ručně vyjměte."
 
 msgid "System is busy"
-msgstr ""
+msgstr "Systém je zaneprázdněn"
 
 msgid "  Initiating other drying processes, please wait a few seconds..."
-msgstr ""
+msgstr "  Spouštění dalších procesů sušení, počkejte prosím několik sekund..."
 
 msgid "For better drying results, remove the filament and allow it to rotate."
-msgstr ""
+msgstr "Pro lepší výsledky sušení vyjměte filament a nechte jej volně otáčet."
 
 msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
-msgstr ""
+msgstr "AMS automaticky otáčí uložené sloty s filamenty pro zlepšení účinnosti sušení."
 
 msgid "Alternatively, you can dry the filament without removing it."
-msgstr ""
+msgstr "Případně můžete filament sušit bez jeho vyjmutí."
 
 msgid "Unknown filaments will be treated as PLA."
-msgstr ""
+msgstr "Neznámé filamenty budou považovány za PLA."
 
 msgid "Please store the filament marked with an exclamation mark."
-msgstr ""
+msgstr "Uložte prosím filament označený vykřičníkem."
 
 msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
-msgstr ""
+msgstr "Filament ponechaný v podavači během sušení může změknout, protože teplota sušení překračuje bod měknutí materiálů jako PLA a TPU."
 
 msgid "Starting: Checking adapter connection"
 msgstr "Spouštění: Kontrola připojení adaptéru"
@@ -16770,53 +16721,53 @@ msgid "Starting: Checking air vent"
 msgstr "Spouštím: Kontrola větracího otvoru"
 
 msgid "Terms of Bambu Lab User Experience Improvement Program"
-msgstr ""
+msgstr "Podmínky programu zlepšování uživatelské zkušenosti Bambu Lab"
 
 msgid "Recent Helio Runs"
-msgstr ""
+msgstr "Nedávné běhy Helio"
 
 msgid "Showing recent completed optimizations and simulations"
-msgstr ""
+msgstr "Zobrazení nedávno dokončených optimalizací a simulací"
 
 msgid "Loading recent runs..."
-msgstr ""
+msgstr "Načítání nedávných běhů..."
 
 msgid "No Recent Runs Found"
-msgstr ""
+msgstr "Nenalezeny žádné nedávné běhy"
 
 msgid "No completed simulations or optimizations found"
-msgstr ""
+msgstr "Nenalezeny žádné dokončené simulace ani optimalizace"
 
 #, c-format, boost-format
 msgid "OPTIMIZATIONS (%d)"
-msgstr ""
+msgstr "OPTIMALIZACE (%d)"
 
 #, c-format, boost-format
 msgid "SIMULATIONS (%d)"
-msgstr ""
+msgstr "SIMULACE (%d)"
 
 #, c-format, boost-format
 msgid "%d layers"
-msgstr ""
+msgstr "%d vrstev"
 
 #, c-format, boost-format
 msgid "Quality: %s | Consistency: %s"
-msgstr ""
+msgstr "Kvalita: %s | Konzistence: %s"
 
 msgid "Download GCode"
-msgstr ""
+msgstr "Stáhnout GCode"
 
 msgid "View Results"
-msgstr ""
+msgstr "Zobrazit výsledky"
 
 msgid "GCode URL is not available"
-msgstr ""
+msgstr "URL GCode není k dispozici"
 
 msgid "Download Error"
-msgstr ""
+msgstr "Chyba stahování"
 
 msgid "Save GCode File"
-msgstr ""
+msgstr "Uložit soubor GCode"
 
 #, c-format, boost-format
 msgid ""
@@ -16824,19 +16775,24 @@ msgid ""
 "\n"
 "Saved to: %s"
 msgstr ""
+"Soubor GCode byl úspěšně stažen!\n"
+"\n"
+"Uloženo do: %s"
 
 msgid "Download Complete"
-msgstr ""
+msgstr "Stahování dokončeno"
 
 #, c-format, boost-format
 msgid ""
 "Failed to open file for writing:\n"
 "%s"
 msgstr ""
+"Nepodařilo se otevřít soubor pro zápis:\n"
+"%s"
 
 #, c-format, boost-format
 msgid "Error saving file: %s"
-msgstr ""
+msgstr "Chyba při ukládání souboru: %s"
 
 #, c-format, boost-format
 msgid ""
@@ -16844,95 +16800,98 @@ msgid ""
 "\n"
 "Error: %s"
 msgstr ""
+"Nepodařilo se stáhnout soubor GCode.\n"
+"\n"
+"Chyba: %s"
 
 msgid "Optimization Details"
-msgstr ""
+msgstr "Detaily optimalizace"
 
 msgid "Simulation Details"
-msgstr ""
+msgstr "Detaily simulace"
 
 #, c-format, boost-format
 msgid "%d seconds ago"
-msgstr ""
+msgstr "před %d sekundami"
 
 #, c-format, boost-format
 msgid "%d minutes ago"
-msgstr ""
+msgstr "před %d minutami"
 
 #, c-format, boost-format
 msgid "%d hours ago"
-msgstr ""
+msgstr "před %d hodinami"
 
 #, c-format, boost-format
 msgid "%d days ago"
-msgstr ""
+msgstr "před %d dny"
 
 msgid "Print Outcome: WILL_PRINT"
-msgstr ""
+msgstr "Výsledek tisku: VYTISKNE SE"
 
 msgid "Print Outcome: MAY_PRINT"
-msgstr ""
+msgstr "Výsledek tisku: MOŽNÉ VYTISKNOUT"
 
 msgid "Print Outcome: LIKELY_FAIL"
-msgstr ""
+msgstr "Výsledek tisku: PRAVDĚPODOBNĚ SELŽE"
 
 msgid "Print Outcome: "
-msgstr ""
+msgstr "Výsledek tisku: "
 
 msgid "Edit Mixed Filament"
-msgstr ""
+msgstr "Upravit smíšený filament"
 
 msgid "Effect Preview"
-msgstr ""
+msgstr "Náhled efektu"
 
 msgid "Select Mixed Materials"
-msgstr ""
+msgstr "Vyberte smíšené materiály"
 
 msgid "+ Add Material"
-msgstr ""
+msgstr "+ Přidat materiál"
 
 msgid "- Delete Material"
-msgstr ""
+msgstr "- Odebrat materiál"
 
 msgid "Ratio"
-msgstr ""
+msgstr "Poměr"
 
 msgid "Gradient Effect"
-msgstr ""
+msgstr "Efekt přechodu"
 
 msgid "Mixing Recommendations"
-msgstr ""
+msgstr "Doporučení pro míchání"
 
 msgid "-- Select --"
-msgstr ""
+msgstr "-- Vyberte --"
 
 msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-msgstr ""
+msgstr "Efekt přechodu vyžaduje zapnutí „Smíšené barevné podvrstvy“. Chcete ji nyní zapnout?"
 
 msgid "Mixed Color Sublayer"
-msgstr ""
+msgstr "Smíšená barevná podvrstva"
 
 #, c-format, boost-format
 msgid "Slot %s (%s)"
-msgstr ""
+msgstr "Slot %s (%s)"
 
 msgid "cannot be mixed. Please select the same filament type."
-msgstr ""
+msgstr "nelze míchat. Vyberte prosím stejný typ filamentu."
 
 msgid "Please select a filament for all components"
-msgstr ""
+msgstr "Vyberte prosím filament pro všechny komponenty"
 
 msgid "Cannot mix different filament types"
-msgstr ""
+msgstr "Nelze míchat různé typy filamentů"
 
 msgid "Maximum 3 materials for mixing"
-msgstr ""
+msgstr "Maximálně 3 materiály pro míchání"
 
 msgid "Maximum number of components reached"
-msgstr ""
+msgstr "Dosažen maximální počet komponent"
 
 msgid "Remove the third material"
-msgstr ""
+msgstr "Odeberte třetí materiál"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -17146,34 +17105,29 @@ msgstr ""
 "Pokud potřebujete tisknout s otevřenými dveřmi tiskárny:\n"
 "Věděli jste, že otevření dveří tiskárny může snížit pravděpodobnost ucpání extruderu/hotendu při tisku filamentu s nižší teplotou při vyšší teplotě v uzavřeném prostoru? Více informací naleznete na Wiki."
 
-#: resources/data/hints.ini: [hint:Avoid warping]
-msgid ""
-"Avoid warping\n"
-"Did you know that when printing materials that are prone to warping such as ABS, appropriately increasing the heatbed temperature can reduce the probability of warping."
-msgstr ""
-"Zabraňte deformaci\n"
-"Věděli jste, že při tisku materiálů, které jsou náchylné k deformaci, například ABS, může vhodné zvýšení teploty podložky snížit pravděpodobnost deformace."
-
-#: resources/data/helio_hints.ini: [hint: Run Nylon & PC (and other advanced
-#: materials) Like a Pro]
+#: resources/data/helio_hints.ini: [hint: Run Nylon & PC (and other advanced materials) Like a Pro]
 msgid ""
 "Run Nylon & PC (and other advanced materials) Like a Pro\n"
 "Printing Nylon 612 or Polycarbonate or other advanced materials? Helio helps you avoid the 'almost worked' failure."
 msgstr ""
+"Tiskněte Nylon & PC (a další pokročilé materiály) jako profesionál\n"
+"Tisknete Nylon 612, polykarbonát nebo jiné pokročilé materiály? Helio vám pomůže vyhnout se selháním typu „málem to vyšlo“."
 
-#: resources/data/helio_hints.ini: [hint: Make Prints up to 30% Faster
-#: (Safely)]
+#: resources/data/helio_hints.ini: [hint: Make Prints up to 30% Faster (Safely)]
 msgid ""
 "Make Prints up to 30% Faster (Safely)\n"
 "Get real throughput, not risky 'speed mode'. A print that normally takes 8 hours might drop to ~5.6 hours."
 msgstr ""
+"Zrychlete tisk až o 30 % (bezpečně)\n"
+"Získejte skutečný výkon, ne riskantní „rychlý režim“. Tisk, který běžně trvá 8 hodin, může klesnout přibližně na 5,6 hodiny."
 
-#: resources/data/helio_hints.ini: [hint: Stop Wasting Precious Design Time on
-#: Tuning]
+#: resources/data/helio_hints.ini: [hint: Stop Wasting Precious Design Time on Tuning]
 msgid ""
 "Stop Wasting Precious Design Time on Tuning\n"
 "Fewer trial prints, faster dial-in. Instead of multiple test prints, detect issues and print first time right."
 msgstr ""
+"Přestaňte ztrácet drahocenný čas laděním\n"
+"Méně zkušebních tisků, rychlejší nastavení. Místo několika testovacích tisků odhalte problémy a tiskněte správně hned napoprvé."
 
 #: resources/data/helio_hints.ini: [hint: Cut Warping on ASA/ABS and other
 #: advanced materials]
@@ -17181,30 +17135,40 @@ msgid ""
 "Cut Warping on ASA/ABS and other advanced materials\n"
 "Warping ruins long jobs. Helio shows where risk is highest before you print, and, with enhance, cuts the risk of warping to almost nil."
 msgstr ""
+"Omezte deformace (warping) u ASA/ABS a dalších pokročilých materiálů\n"
+"Deformace ničí dlouhé tisky. Helio před tiskem ukáže, kde je riziko nejvyšší, a pomocí funkce Enhance jej sníží téměř na nulu."
 
 #: resources/data/helio_hints.ini: [hint: Quality Check Before You Hit Print]
 msgid ""
 "Quality Check Before You Hit Print\n"
 "Think of it like a pre-flight check. Example: if a PC bracket shows low TQI in thin ribs, you'll know to adjust before committing to an overnight run."
 msgstr ""
+"Kontrola kvality před spuštěním tisku\n"
+"Představte si to jako předletovou kontrolu. Příklad: pokud má držák z PC nízké TQI v tenkých žebrech, víte, že je potřeba provést úpravy ještě před spuštěním nočního tisku."
 
 #: resources/data/helio_hints.ini: [hint: Stronger Parts With One Click]
 msgid ""
 "Stronger Parts With One Click\n"
 "Better bonding, fewer brittle failures. Example: for Polycarbonate, results show ~+65% tensile strength after optimization."
 msgstr ""
+"Pevnější díly jedním kliknutím\n"
+"Lepší spojení vrstev, méně křehkých selhání. Příklad: u polykarbonátu výsledky ukazují přibližně o 65 % vyšší pevnost v tahu po optimalizaci."
 
 #: resources/data/helio_hints.ini: [hint: Save Money Every Run]
 msgid ""
 "Save Money Every Run\n"
 "Faster + fewer failures = real savings."
 msgstr ""
+"Ušetřete při každém tisku\n"
+"Rychlejší tisk + méně selhání = skutečná úspora."
 
 #: resources/data/helio_hints.ini: [hint: First-Time-Right Reliability]
 msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+"Spolehlivost napoprvé\n"
+"Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí PETG díly se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
 
 #, c-format, boost-format
 #~ msgid "Left nozzle: %smm"
