@@ -1173,7 +1173,7 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
         {
             int extruder_id = -1;
             auto nozzle_info = context.nozzle_group_result.get_first_nozzle_for_filament(first_filament);
-            
+
             if (context.handle_hotend_as_extruder)
                 extruder_id = nozzle_info ? nozzle_info->group_id : -1;
             else
@@ -5981,9 +5981,11 @@ void GCodeProcessor::process_filament_change(int id, int nozzle_id)
         int old_filament_in_nozzle = m_nozzle_status_recorder.get_filament_in_nozzle(new_nozzle_id_in_extruder);
         int old_filament_in_extruder = m_nozzle_status_recorder.get_filament_in_nozzle(old_nozzle_id_in_extruder);
 
-        bool extruder_change = new_extruder_id != old_extruder_id;
-        bool nozzle_in_extruder_change = new_nozzle_id_in_extruder != old_nozzle_id_in_extruder;
+        const bool nozzle_switch_on_target_extruder = new_nozzle_id_in_extruder != old_nozzle_id_in_extruder;
+        bool nozzle_in_extruder_change = !m_handle_hotend_as_extruder && nozzle_switch_on_target_extruder;
         bool filament_in_nozzle_change = new_filament_id != old_filament_in_nozzle;
+        bool extruder_change =
+            (new_extruder_id != old_extruder_id) || (m_handle_hotend_as_extruder && nozzle_switch_on_target_extruder);
 
         m_result.lock();
         if (extruder_change && old_extruder_id != -1) {
