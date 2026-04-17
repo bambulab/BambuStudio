@@ -1752,6 +1752,10 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
     } else if (status == PrintStatusColorQuantityExceed) {
+        if (params.size() > 0) {
+            msg = wxString::Format(_L("The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."),
+                                   params[0], params[0]);
+        }
         Enable_Refresh_Button(true);
         Enable_Send_Button(false);
     }
@@ -3974,10 +3978,11 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         show_status(PrintDialogStatus::PrintStatusNoSdcard);
         return;
     }
-    if (wxGetApp().preset_bundle->filament_presets.size() > 16 && m_print_type != PrintFromType::FROM_SDCARD_VIEW) {
-        if (!obj_->is_enable_ams_np && !obj_->is_enable_np)
-        {
-            show_status(PrintDialogStatus::PrintStatusColorQuantityExceed);
+    if (m_print_type != PrintFromType::FROM_SDCARD_VIEW) {
+        const int    max_color = obj_->get_max_filament_color_count();
+        const size_t fila_cnt  = wxGetApp().preset_bundle->filament_presets.size();
+        if (max_color > 0 && fila_cnt > (size_t) max_color) {
+            show_status(PrintDialogStatus::PrintStatusColorQuantityExceed, {wxString::Format("%d", max_color)});
             return;
         }
     }

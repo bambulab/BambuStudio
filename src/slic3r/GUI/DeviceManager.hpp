@@ -759,6 +759,11 @@ public:
     /*for more extruder*/
     bool                        is_enable_np{ false };
     bool                        is_enable_ams_np{ false };
+    bool                        is_support_filament_32_colors{ false };
+
+    // Returns the maximum filament color count allowed to be sent to this printer.
+    // Returns 0 when there is no explicit upper bound (legacy behavior for is_enable_np).
+    int get_max_filament_color_count() const;
 
     /*vi slot data*/
     std::vector<DevAmsTray> vt_slot;

@@ -2973,6 +2973,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             is_enable_ams_np =  get_flag_bits(flag3, 9);
                             is_support_fila_change_abort = get_flag_bits(flag3, 13);
                             is_support_ext_change_assist_old = get_flag_bits(flag3, 16);
+                            is_support_filament_32_colors = get_flag_bits(flag3, 17);
                         }
                     }
                     if (!key_field_only) {
@@ -4179,6 +4180,14 @@ bool MachineObject::check_enable_np(const json& print) const
     }
 
     return false;
+}
+
+int MachineObject::get_max_filament_color_count() const
+{
+    if (is_support_filament_32_colors) return 32;
+    if (is_enable_ams_np)              return 20;
+    if (is_enable_np)                  return 16;
+    return 16;
 }
 
 void MachineObject::parse_new_info(json print)
