@@ -122,7 +122,7 @@ CalibrationDialog::CalibrationDialog(Plater *plater)
     wxBoxSizer *cali_right_sizer_h = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *cali_right_sizer_v = new wxBoxSizer(wxVERTICAL);
 
-    auto cali_right_panel = new StaticBox(body_panel, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(182), FromDIP(200)));
+    auto cali_right_panel = new StaticBox(body_panel, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(182), -1));
     cali_right_panel->SetBackgroundColor(BG_COLOR);
     cali_right_panel->SetBorderColor(BG_COLOR);
 
@@ -282,7 +282,7 @@ void CalibrationDialog::update_cali(MachineObject *obj)
             m_calibration_flow->Refresh();
 
             Layout();
-
+            Fit();
         }
         if (is_stage_list_info_changed(obj)) {
             // change items if stage_list_info changed
