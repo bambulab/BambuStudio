@@ -8987,7 +8987,7 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "当前喷嘴直径（%.1fmm）和切片文件（%.1fmm）不一致，无法发起打印。请确保打印机上安装喷嘴直径和机器设置中一致，并在切片时设置对应的喷嘴直径。"
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
-msgstr "打印机上安装的耗材导轨开关与切片文件不匹配。请重新切片以避免打印质量问题。"
+msgstr "打印机上安装的耗材变轨器与切片文件不匹配。请重新切片以避免打印质量问题。"
 
 msgid "This print requires a Filament Track Switch. Please install it first."
 msgstr "此打印件需要耗材变轨器。请先安装它。"
