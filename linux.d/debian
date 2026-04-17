@@ -40,7 +40,7 @@ then
     if [ $ubu_major_version = "22" ] || [ $ubu_major_version = "23" ]
     then
         REQUIRED_DEV_PACKAGES+=(libwebkit2gtk-4.0-dev curl libfuse-dev libssl-dev libcurl4-openssl-dev m4)
-    elif [ $ubu_major_version = "24" ]
+    elif [ "$ubu_major_version" -ge 24 ]
     then
         REQUIRED_DEV_PACKAGES+=(libwebkit2gtk-4.1-dev)
     else
