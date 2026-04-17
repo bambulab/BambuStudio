@@ -4984,6 +4984,17 @@ void Sidebar::recalc_filament_scroll_sizes()
     recalc(p->m_mixed_scroll_area);
 }
 
+static std::string blend_mixed_color(const std::vector<unsigned int> &comp_ids,
+                                     const std::vector<int>          &ratios,
+                                     const std::vector<std::string>  &color_strs)
+{
+    std::vector<std::string> hex_colors;
+    hex_colors.reserve(comp_ids.size());
+    for (unsigned int id : comp_ids)
+        hex_colors.push_back((id >= 1 && id <= color_strs.size()) ? color_strs[id - 1] : "#808080");
+    return Slic3r::blend_color_multi(hex_colors, ratios);
+}
+
 void Sidebar::update_mixed_filament_list()
 {
     auto* plater = dynamic_cast<Plater*>(GetParent());
@@ -5135,19 +5146,7 @@ void Sidebar::update_mixed_filament_list()
 
             // Recalculate mixed color based on current physical colors
             if (!is_broken && !comp_ids.empty() && comp_ids.size() == comp_ratios.size()) {
-                int ratio_sum = 0;
-                for (int r : comp_ratios) ratio_sum += r;
-                if (ratio_sum <= 0) ratio_sum = 100;
-
-                double mr = 0, mg = 0, mb = 0;
-                for (size_t j = 0; j < comp_ids.size(); ++j) {
-                    double w = (double)comp_ratios[j] / ratio_sum;
-                    std::string cs = (comp_ids[j] >= 1 && comp_ids[j] <= physical_colors.size())
-                        ? physical_colors[comp_ids[j] - 1] : "#808080";
-                    wxColour c(cs);
-                    mr += c.Red() * w; mg += c.Green() * w; mb += c.Blue() * w;
-                }
-                std::string new_mixed_color = wxColour((unsigned char)mr, (unsigned char)mg, (unsigned char)mb).GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+                std::string new_mixed_color = blend_mixed_color(comp_ids, comp_ratios, physical_colors);
 
                 if (colours_opt && cfg_idx < colours_opt->values.size() && colours_opt->values[cfg_idx] != new_mixed_color) {
                     colours_opt->values[cfg_idx] = new_mixed_color;
@@ -5654,22 +5653,7 @@ void Sidebar::add_mixed_filament()
         size_t new_idx = total;
 
         // Compute blended color from all components
-        int ratio_sum = 0;
-        for (int r : result.ratios) ratio_sum += r;
-        if (ratio_sum <= 0) ratio_sum = 100;
-
-        std::string mixed_color = "#808080";
-        {
-            double mr = 0, mg = 0, mb = 0;
-            for (size_t i = 0; i < result.components.size(); ++i) {
-                double w = (double)result.ratios[i] / ratio_sum;
-                std::string cs = (result.components[i] >= 1 && result.components[i] <= color_strs.size())
-                    ? color_strs[result.components[i] - 1] : "#808080";
-                wxColour c(cs);
-                mr += c.Red() * w; mg += c.Green() * w; mb += c.Blue() * w;
-            }
-            mixed_color = wxColour((unsigned char)mr, (unsigned char)mg, (unsigned char)mb).GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
-        }
+        std::string mixed_color = blend_mixed_color(result.components, result.ratios, color_strs);
 
         wxGetApp().preset_bundle->set_num_filaments(total + 1, mixed_color);
 
@@ -5691,6 +5675,10 @@ void Sidebar::add_mixed_filament()
         project_config.option<ConfigOptionStrings>("filament_mixed_components")->values[new_idx] = comp_str;
 
         // Serialize ratios as normalized floats: "0.5000,0.5000" or "0.3000,0.3000,0.4000"
+        int ratio_sum = 0;
+        for (int r : result.ratios) ratio_sum += r;
+        if (ratio_sum <= 0) ratio_sum = 100;
+
         std::string ratio_str;
         for (size_t i = 0; i < result.ratios.size(); ++i) {
             if (i > 0) ratio_str += ",";
@@ -5841,16 +5829,7 @@ void Sidebar::edit_mixed_filament(size_t panel_idx)
         }
 
         // Compute blended color
-        double mr = 0, mg = 0, mb = 0;
-        for (size_t i = 0; i < result.components.size(); ++i) {
-            double w = (double)result.ratios[i] / ratio_sum;
-            std::string cs = (result.components[i] >= 1 && result.components[i] <= color_strs.size())
-                ? color_strs[result.components[i] - 1] : "#808080";
-            wxColour c(cs);
-            mr += c.Red() * w; mg += c.Green() * w; mb += c.Blue() * w;
-        }
-        std::string blended = wxColour((unsigned char)mr, (unsigned char)mg, (unsigned char)mb)
-            .GetAsString(wxC2S_HTML_SYNTAX).ToStdString();
+        std::string blended = blend_mixed_color(result.components, result.ratios, color_strs);
         auto* colours_opt = project_config.option<ConfigOptionStrings>("filament_colour");
         if (colours_opt && cfg_idx < colours_opt->values.size())
             colours_opt->values[cfg_idx] = blended;

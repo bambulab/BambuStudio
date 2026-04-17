@@ -122,6 +122,11 @@ private:
     bool   m_dragging{false};
     // Triangle picker drag point (barycentric weights)
     double m_tri_wx{0.333}, m_tri_wy{0.333}, m_tri_wz{0.334};
+
+    // Cached triangle color bitmap (invalidated when colors or size change)
+    wxBitmap m_tri_cache_bmp;
+    wxColour m_tri_cache_c0, m_tri_cache_c1, m_tri_cache_c2;
+    wxSize   m_tri_cache_size;
 };
 
 } // namespace GUI

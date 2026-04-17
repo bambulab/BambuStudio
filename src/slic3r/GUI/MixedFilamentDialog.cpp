@@ -13,6 +13,7 @@
 #include <wx/tokenzr.h>
 
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/FilamentMixer.hpp"
 #include "I18N.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
@@ -30,24 +31,26 @@ static constexpr int MAX_COMPONENTS = 3;
 
 static wxColour blend_colors(const wxColour& a, const wxColour& b, double ratio_a)
 {
-    double rb = 1.0 - ratio_a;
-    return wxColour(
-        (unsigned char)(a.Red()   * ratio_a + b.Red()   * rb),
-        (unsigned char)(a.Green() * ratio_a + b.Green() * rb),
-        (unsigned char)(a.Blue()  * ratio_a + b.Blue()  * rb));
+    unsigned char r, g, bl;
+    Slic3r::filament_mixer_lerp(a.Red(), a.Green(), a.Blue(),
+                                b.Red(), b.Green(), b.Blue(),
+                                static_cast<float>(1.0 - ratio_a),
+                                &r, &g, &bl);
+    return wxColour(r, g, bl);
 }
 
 static wxColour blend_n_colors(const std::vector<wxColour>& cols, const std::vector<double>& weights)
 {
-    double r = 0, g = 0, b = 0;
+    std::vector<std::string> hex_colors;
+    std::vector<int> int_weights;
     for (size_t i = 0; i < cols.size() && i < weights.size(); ++i) {
-        r += cols[i].Red()   * weights[i];
-        g += cols[i].Green() * weights[i];
-        b += cols[i].Blue()  * weights[i];
+        hex_colors.push_back(cols[i].GetAsString(wxC2S_HTML_SYNTAX).ToStdString());
+        // Scale double weights (e.g. 0.5) to int (5000) for blend_color_multi;
+        // only relative magnitude matters.
+        int_weights.push_back(static_cast<int>(std::lround(weights[i] * 10000)));
     }
-    return wxColour((unsigned char)std::clamp(r, 0.0, 255.0),
-                    (unsigned char)std::clamp(g, 0.0, 255.0),
-                    (unsigned char)std::clamp(b, 0.0, 255.0));
+    std::string hex = Slic3r::blend_color_multi(hex_colors, int_weights);
+    return wxColour(hex);
 }
 
 // ---- Constructors ----
@@ -534,46 +537,65 @@ wxBoxSizer* MixedFilamentDialog::create_triangle_picker()
 
         wxColour c0 = comp_colour(0), c1 = comp_colour(1), c2 = comp_colour(2);
 
-        int min_y = (int)std::min({v0.y, v1.y, v2.y});
-        int max_y = (int)std::max({v0.y, v1.y, v2.y});
-        int min_x = (int)std::min({v0.x, v1.x, v2.x});
-        int max_x = (int)std::max({v0.x, v1.x, v2.x});
+        const bool cache_valid = m_tri_cache_bmp.IsOk() &&
+            m_tri_cache_size == sz &&
+            m_tri_cache_c0 == c0 && m_tri_cache_c1 == c1 && m_tri_cache_c2 == c2;
 
-        wxBitmap bmp(sz.GetWidth(), sz.GetHeight(), 24);
-        wxMemoryDC mdc(bmp);
-        mdc.SetBrush(wxBrush(tri_bg));
-        mdc.SetPen(*wxTRANSPARENT_PEN);
-        mdc.DrawRectangle(0, 0, sz.GetWidth(), sz.GetHeight());
+        if (!cache_valid) {
+            int min_y = (int)std::min({v0.y, v1.y, v2.y});
+            int max_y = (int)std::max({v0.y, v1.y, v2.y});
+            int min_x = (int)std::min({v0.x, v1.x, v2.x});
+            int max_x = (int)std::max({v0.x, v1.x, v2.x});
 
-        for (int py = min_y; py <= max_y; ++py) {
-            for (int px = min_x; px <= max_x; ++px) {
-                TriPoint p = {(double)px, (double)py};
-                if (!tri_contains(p, v0, v1, v2)) continue;
-                double w0, w1, w2;
-                tri_barycentric(p, v0, v1, v2, w0, w1, w2);
-                int r = (int)(c0.Red() * w0 + c1.Red() * w1 + c2.Red() * w2);
-                int g = (int)(c0.Green() * w0 + c1.Green() * w1 + c2.Green() * w2);
-                int b = (int)(c0.Blue() * w0 + c1.Blue() * w1 + c2.Blue() * w2);
-                mdc.SetPen(wxPen(wxColour(std::clamp(r, 0, 255), std::clamp(g, 0, 255), std::clamp(b, 0, 255))));
-                mdc.DrawPoint(px, py);
+            m_tri_cache_bmp = wxBitmap(sz.GetWidth(), sz.GetHeight(), 24);
+            wxMemoryDC mdc(m_tri_cache_bmp);
+            mdc.SetBrush(wxBrush(tri_bg));
+            mdc.SetPen(*wxTRANSPARENT_PEN);
+            mdc.DrawRectangle(0, 0, sz.GetWidth(), sz.GetHeight());
+
+            for (int py = min_y; py <= max_y; ++py) {
+                for (int px = min_x; px <= max_x; ++px) {
+                    TriPoint p = {(double)px, (double)py};
+                    if (!tri_contains(p, v0, v1, v2)) continue;
+                    double w0, w1, w2;
+                    tri_barycentric(p, v0, v1, v2, w0, w1, w2);
+                    unsigned char mr, mg, mb;
+                    if (w0 + w1 > 1e-6) {
+                        float t01 = static_cast<float>(w1 / (w0 + w1));
+                        Slic3r::filament_mixer_lerp(c0.Red(), c0.Green(), c0.Blue(),
+                                                    c1.Red(), c1.Green(), c1.Blue(),
+                                                    t01, &mr, &mg, &mb);
+                        float t2 = static_cast<float>(w2);
+                        Slic3r::filament_mixer_lerp(mr, mg, mb,
+                                                    c2.Red(), c2.Green(), c2.Blue(),
+                                                    t2, &mr, &mg, &mb);
+                    } else {
+                        mr = c2.Red(); mg = c2.Green(); mb = c2.Blue();
+                    }
+                    mdc.SetPen(wxPen(wxColour(mr, mg, mb)));
+                    mdc.DrawPoint(px, py);
+                }
             }
+
+            mdc.SetPen(wxPen(StateColor::darkModeColorFor(wxColour("#CECECE")), 1));
+            mdc.SetBrush(*wxTRANSPARENT_BRUSH);
+            wxPoint pts[3] = {{(int)v0.x, (int)v0.y}, {(int)v1.x, (int)v1.y}, {(int)v2.x, (int)v2.y}};
+            mdc.DrawPolygon(3, pts);
+
+            mdc.SelectObject(wxNullBitmap);
+            m_tri_cache_c0 = c0; m_tri_cache_c1 = c1; m_tri_cache_c2 = c2;
+            m_tri_cache_size = sz;
         }
 
-        mdc.SetPen(wxPen(StateColor::darkModeColorFor(wxColour("#CECECE")), 1));
-        mdc.SetBrush(*wxTRANSPARENT_BRUSH);
-        wxPoint pts[3] = {{(int)v0.x, (int)v0.y}, {(int)v1.x, (int)v1.y}, {(int)v2.x, (int)v2.y}};
-        mdc.DrawPolygon(3, pts);
+        dc.DrawBitmap(m_tri_cache_bmp, 0, 0);
 
-        // Drag handle
+        // Drag handle (always redrawn on top of cached bitmap)
         double hx = m_tri_wx * v0.x + m_tri_wy * v1.x + m_tri_wz * v2.x;
         double hy = m_tri_wx * v0.y + m_tri_wy * v1.y + m_tri_wz * v2.y;
         int handle_r = FromDIP(5);
-        mdc.SetBrush(*wxWHITE_BRUSH);
-        mdc.SetPen(wxPen(wxColour("#262E30"), FromDIP(2)));
-        mdc.DrawCircle((int)hx, (int)hy, handle_r);
-
-        mdc.SelectObject(wxNullBitmap);
-        dc.DrawBitmap(bmp, 0, 0);
+        dc.SetBrush(*wxWHITE_BRUSH);
+        dc.SetPen(wxPen(wxColour("#262E30"), FromDIP(2)));
+        dc.DrawCircle((int)hx, (int)hy, handle_r);
 
         dc.SetFont(::Label::Body_10);
         dc.SetTextForeground(StateColor::darkModeColorFor(wxColour("#262E30")));

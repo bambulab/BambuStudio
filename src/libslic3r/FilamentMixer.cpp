@@ -1,6 +1,7 @@
 #include "FilamentMixer.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <cstdio>
 #include <sstream>
@@ -102,6 +103,48 @@ std::string blend_color(const std::string& hex_a, const std::string& hex_b, floa
 
     char buf[8];
     std::snprintf(buf, sizeof(buf), "#%02X%02X%02X", mr, mg, mb);
+    return std::string(buf);
+}
+
+std::string blend_color_multi(const std::vector<std::string> &hex_colors,
+                              const std::vector<int> &weights)
+{
+    if (hex_colors.empty())
+        return "#000000";
+    if (hex_colors.size() == 1) {
+        unsigned char cr = 128, cg = 128, cb = 128;
+        parse_hex(hex_colors.front(), cr, cg, cb);
+        char buf[8];
+        std::snprintf(buf, sizeof(buf), "#%02X%02X%02X", cr, cg, cb);
+        return std::string(buf);
+    }
+
+    assert(hex_colors.size() == weights.size());
+
+    unsigned char r = 128, g = 128, b = 128;
+    int accumulated = 0;
+
+    for (size_t i = 0; i < hex_colors.size() && i < weights.size(); ++i) {
+        if (weights[i] <= 0)
+            continue;
+        unsigned char cr = 128, cg = 128, cb = 128;
+        parse_hex(hex_colors[i], cr, cg, cb);
+        if (accumulated == 0) {
+            r = cr; g = cg; b = cb;
+            accumulated = weights[i];
+        } else {
+            const int new_total = accumulated + weights[i];
+            const float t = static_cast<float>(weights[i]) / static_cast<float>(new_total);
+            filament_mixer_lerp(r, g, b, cr, cg, cb, t, &r, &g, &b);
+            accumulated = new_total;
+        }
+    }
+
+    if (accumulated == 0)
+        return "#000000";
+
+    char buf[8];
+    std::snprintf(buf, sizeof(buf), "#%02X%02X%02X", r, g, b);
     return std::string(buf);
 }
 

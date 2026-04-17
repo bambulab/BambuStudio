@@ -25,6 +25,11 @@ void filament_mixer_lerp_linear_float(float r1, float g1, float b1,
 // Returns "#RRGGBB" string.
 std::string blend_color(const std::string& hex_a, const std::string& hex_b, float ratio_b);
 
+// Blend N hex colors by integer weights using polynomial pigment mixing.
+// Pairwise accumulation via filament_mixer_lerp. Returns "#RRGGBB".
+std::string blend_color_multi(const std::vector<std::string> &hex_colors,
+                              const std::vector<int> &weights);
+
 // Parse comma-separated 1-based component IDs, e.g. "1,3" → {1, 3}.
 std::vector<unsigned int> parse_mixed_components(const std::string &str);
 
