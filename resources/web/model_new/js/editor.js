@@ -413,11 +413,12 @@ function addAccessoryBtnListener() {
 });1
 }
 function setAccessories(id, accessoriesList) {
-  let updateHtml = "";
+  const $container = $(`#${id}`);
+  $container.empty();
   if (accessoriesList.length > 0) {
-    $(`#${id}`).prev().show();
+    $container.prev().show();
   }else {
-    $(`#${id}`).prev().hide();
+    $container.prev().hide();
   }
   for (let i = 0; i < accessoriesList.length; i++) {
     let acc_filepath = accessoriesList[i].filepath;
@@ -428,23 +429,23 @@ function setAccessories(id, accessoriesList) {
       type = getFileType(acc_filepath);
     }
     let iconPath = `img/icon_${type}.svg`;
-    let html = `<div class="attachment" data-index="${i}"><img class="attachment-icon" src="${iconPath}">${decodeURIComponent(accessoriesList[i].filename)}<img class="attachment-delete" src="img/del.svg"></div>`;
-    updateHtml += html;
+    let $attachment = $('<div>').addClass('attachment').attr('data-index', i);
+    $attachment.data('path', acc_filepath || '');
+    $attachment.append($('<img>').addClass('attachment-icon').attr('src', iconPath));
+    $attachment.append(document.createTextNode(decodeURIComponent(accessoriesList[i].filename)));
+    $attachment.append($('<img>').addClass('attachment-delete').attr('src', 'img/del.svg'));
+    $container.append($attachment);
   }
-  $(`#${id}`).html(updateHtml);
-  $(`#${id}`).children('.attachment').each(function(idx) {
-    $(this).data('path', accessoriesList[idx]?.filepath || '');
-  });
-  $(`#${id}`).prev().children('label').text(accessoriesList.length);
-  $(`#${id}`).off('click', '.attachment-delete');
-  $(`#${id}`).on('click', '.attachment-delete', function (event) {
+  $container.prev().children('label').text(accessoriesList.length);
+  $container.off('click', '.attachment-delete');
+  $container.on('click', '.attachment-delete', function (event) {
     event.stopPropagation();
     let index = parseInt($(this).parent().data('index'));
     removeAccessoryAt(index, accessoriesList);
     setAccessories(id, accessoriesList);
   });
-  $(`#${id}`).off('click', '.attachment');
-  $(`#${id}`).on('click', '.attachment', function (event) {
+  $container.off('click', '.attachment');
+  $container.on('click', '.attachment', function (event) {
     if ($(event.target).closest('.attachment-delete').length) return;
     const path = $(this).data('path');
     OnClickOpenFile(event, path);
