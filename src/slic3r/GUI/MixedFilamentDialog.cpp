@@ -22,6 +22,7 @@
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/DropDown.hpp"
 #include "Widgets/Label.hpp"
+#include "libslic3r/FilamentMixer.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -30,24 +31,38 @@ static constexpr int MAX_COMPONENTS = 3;
 
 static wxColour blend_colors(const wxColour& a, const wxColour& b, double ratio_a)
 {
-    double rb = 1.0 - ratio_a;
-    return wxColour(
-        (unsigned char)(a.Red()   * ratio_a + b.Red()   * rb),
-        (unsigned char)(a.Green() * ratio_a + b.Green() * rb),
-        (unsigned char)(a.Blue()  * ratio_a + b.Blue()  * rb));
+    unsigned char r, g, b_out;
+    Slic3r::filament_mixer_lerp(a.Red(), a.Green(), a.Blue(), b.Red(), b.Green(), b.Blue(), 1.0f - static_cast<float>(ratio_a), &r, &g, &b_out);
+    return wxColour(r, g, b_out);
 }
 
 static wxColour blend_n_colors(const std::vector<wxColour>& cols, const std::vector<double>& weights)
 {
-    double r = 0, g = 0, b = 0;
-    for (size_t i = 0; i < cols.size() && i < weights.size(); ++i) {
-        r += cols[i].Red()   * weights[i];
-        g += cols[i].Green() * weights[i];
-        b += cols[i].Blue()  * weights[i];
+    if (cols.empty()) return wxColour(0, 0, 0);
+    if (cols.size() == 1) return cols[0];
+    
+    double total_weight = 0.0;
+    for (double w : weights) total_weight += w;
+    if (total_weight <= 0.0) return cols[0];
+    
+    double accumulated_weight = weights[0] / total_weight;
+    wxColour current_color = cols[0];
+    
+    for (size_t i = 1; i < cols.size() && i < weights.size(); ++i) {
+        double w = weights[i] / total_weight;
+        accumulated_weight += w;
+        if (accumulated_weight > 0) {
+            float t = static_cast<float>(w / accumulated_weight);
+            unsigned char r, g, b_out;
+            Slic3r::filament_mixer_lerp(
+                current_color.Red(), current_color.Green(), current_color.Blue(),
+                cols[i].Red(), cols[i].Green(), cols[i].Blue(),
+                t,
+                &r, &g, &b_out);
+            current_color = wxColour(r, g, b_out);
+        }
     }
-    return wxColour((unsigned char)std::clamp(r, 0.0, 255.0),
-                    (unsigned char)std::clamp(g, 0.0, 255.0),
-                    (unsigned char)std::clamp(b, 0.0, 255.0));
+    return current_color;
 }
 
 // ---- Constructors ----
@@ -551,10 +566,8 @@ wxBoxSizer* MixedFilamentDialog::create_triangle_picker()
                 if (!tri_contains(p, v0, v1, v2)) continue;
                 double w0, w1, w2;
                 tri_barycentric(p, v0, v1, v2, w0, w1, w2);
-                int r = (int)(c0.Red() * w0 + c1.Red() * w1 + c2.Red() * w2);
-                int g = (int)(c0.Green() * w0 + c1.Green() * w1 + c2.Green() * w2);
-                int b = (int)(c0.Blue() * w0 + c1.Blue() * w1 + c2.Blue() * w2);
-                mdc.SetPen(wxPen(wxColour(std::clamp(r, 0, 255), std::clamp(g, 0, 255), std::clamp(b, 0, 255))));
+                wxColour mix_c = blend_n_colors({c0, c1, c2}, {w0, w1, w2});
+                mdc.SetPen(wxPen(mix_c));
                 mdc.DrawPoint(px, py);
             }
         }
