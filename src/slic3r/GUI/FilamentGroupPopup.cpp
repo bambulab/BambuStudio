@@ -1,5 +1,6 @@
 #include "FilamentGroupPopup.hpp"
 #include "GUI_App.hpp"
+#include "libslic3r/AppConfig.hpp"
 #include "MsgDialog.hpp"
 #include "wx/dcgraph.h"
 #include "I18N.hpp"
@@ -243,7 +244,8 @@ void FilamentGroupPopup::RecreateUIElements()
         video_link->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent&)
             {
                 play_dual_extruder_slice_video();
-                wxGetApp().app_config->set("play_slicing_video", "false");
+                const std::string printer_model = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
+                wxGetApp().app_config->set(dual_extruder_first_slice_video_app_config_key(printer_model), "false");
             });
         video_sizer->Add(video_link, 0, wxALIGN_CENTER | wxALL, FromDIP(3));
         button_sizer->Add(video_sizer, 0, wxLEFT, horizontal_margin);

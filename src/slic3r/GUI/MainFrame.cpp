@@ -21,6 +21,7 @@
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/AppConfig.hpp"
 
 #include "Tab.hpp"
 #include "ProgressStatusBar.hpp"
@@ -1954,14 +1955,16 @@ wxBoxSizer* MainFrame::create_side_tools()
                 std::unordered_set<std::string> printer_models = {"Bambu Lab H2D", "Bambu Lab H2D Pro", "Bambu Lab H2C"};
                 int extruder_count = wxGetApp().preset_bundle->get_printer_extruder_count();
                 if (extruder_count > 1 && printer_models.count(printer_model)) {
-                    if (wxGetApp().app_config->get("play_slicing_video") == "true") {
+                    const std::string slice_video_key = dual_extruder_first_slice_video_app_config_key(printer_model);
+                    const std::string slice_video_val = wxGetApp().app_config->get(slice_video_key);
+                    if (slice_video_val.empty() || slice_video_val == "true" || slice_video_val == "1") {
                         MessageDialog dlg(this, _L("This is your first time slicing with the dual extruder machine.\nWould you like to watch a quick tutorial video?"), _L("First Guide"), wxYES_NO);
                         auto  res = dlg.ShowModal();
                         if (res == wxID_YES) {
                             play_dual_extruder_slice_video();
                             slice = false;
                         }
-                        wxGetApp().app_config->set("play_slicing_video", "false");
+                        wxGetApp().app_config->set(slice_video_key, "false");
                     }
 
                     if ((wxGetApp().app_config->get("play_tpu_printing_video") == "true")) {
