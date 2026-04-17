@@ -947,6 +947,7 @@ public:
     void zoom_to_gcode();
     //BBS -1 for current plate
     void zoom_to_plate(int plate_idx = -1);
+    void zoom_to_fit();
     void select_view(const std::string& direction);
     //BBS: add part plate related logic
     void select_plate();

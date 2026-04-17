@@ -250,6 +250,7 @@ void KBShortcutsDialog::fill_shortcuts()
             {ctrl + "5", L("Camera view - Left")},
             {ctrl + "6", L("Camera view - Right")},
             {ctrl + "7", L("Camera view - Isometric")},
+            {       "Z", L("Camera view - Fit to scene or selection")},
             {ctrl + "W", L("Reset Window Layout")},
             {ctrl + "E", L("Show Labels by Layer")},
             {L("Shift+E"), L("Show Labels by Object")},

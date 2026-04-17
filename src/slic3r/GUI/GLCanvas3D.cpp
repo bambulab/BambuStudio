@@ -2339,6 +2339,23 @@ void GLCanvas3D::zoom_to_plate(int plate_idx)
     }
 }
 
+void GLCanvas3D::zoom_to_fit()
+{
+    if (!can_show_3d_navigator())
+        return;
+
+    select_view("plate");
+    if (m_selection.is_empty()) {
+        if (m_canvas_type == ECanvasType::CanvasAssembleView)
+            zoom_to_volumes();
+        else
+            zoom_to_bed();
+    }
+    else {
+        zoom_to_selection();
+    }
+}
+
 void GLCanvas3D::select_view(const std::string& direction)
 {
     get_active_camera().select_view(direction);
@@ -4304,18 +4321,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
             break;
         }
 #endif // ENABLE_RENDER_PICKING_PASS
-        //case 'Z':
-        //case 'z': {
-        //    if (!m_selection.is_empty())
-        //        zoom_to_selection();
-        //    else {
-        //        if (!m_volumes.empty())
-        //            zoom_to_volumes();
-        //        else
-        //            _zoom_to_box(m_gcode_viewer.get_paths_bounding_box());
-        //    }
-        //    break;
-        //}
         default:  { evt.Skip(); break; }
         }
     }
@@ -9544,18 +9549,7 @@ void GLCanvas3D::_render_fit_camera_toolbar()
 
     if (ImGui::ImageButton3(normal_id, hover_id, button_icon_size, ImVec2(0, 0), ImVec2(1, 1),  -1,
                            ImVec4(0, 0, 0, 0), ImVec4(1, 1, 1, 1), ImVec2(10, 0))) {
-        select_view("plate");
-        if (m_selection.is_empty()) {
-            if (m_canvas_type == ECanvasType::CanvasAssembleView) {
-                zoom_to_volumes();
-            }
-            else {
-                zoom_to_bed();
-            }
-        }
-        else {
-            zoom_to_selection();
-        }
+        zoom_to_fit();
     }
     if (ImGui::IsItemHovered()) {
         auto temp_tooltip = _L("Fit camera to scene or selected object.");

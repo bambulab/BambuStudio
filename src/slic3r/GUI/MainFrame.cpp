@@ -717,6 +717,12 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             if (m_plater) { m_plater->add_file(); }
             return;
         }
+
+        if (!evt.HasAnyModifiers() && evt.GetKeyCode() == 'Z') {
+            view_zoom_to_fit();
+            return;
+        }
+
         evt.Skip();
     });
 
@@ -2677,6 +2683,8 @@ static void add_common_view_menu_items(wxMenu* view_menu, MainFrame* mainFrame, 
     append_menu_item(view_menu, wxID_ANY, _CTX(L_CONTEXT("Isometric", "Camera"), "Camera") + " 3", _L("Isometric View") + " 3",
         [mainFrame](wxCommandEvent &) { mainFrame->select_view("iso_3"); }, "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
 #endif
+    append_menu_item(view_menu, wxID_ANY, _L("Fit Camera") + "\t" "Z", _L("Fit camera to scene or selected object."), 
+        [mainFrame](wxCommandEvent &) { mainFrame->view_zoom_to_fit(); }, "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
 }
 
 void MainFrame::init_menubar_as_editor()
@@ -3995,6 +4003,12 @@ void MainFrame::select_view(const std::string& direction)
 {
      if (m_plater)
          m_plater->select_view(direction);
+}
+
+void MainFrame::view_zoom_to_fit() const
+{
+    if (GLCanvas3D *canvas = m_plater ? m_plater->canvas3D() : nullptr)
+        canvas->zoom_to_fit();
 }
 
 // #ys_FIXME_to_delete
