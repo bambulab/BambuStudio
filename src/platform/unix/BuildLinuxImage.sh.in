@@ -72,6 +72,11 @@ echo -n "Creating Appimage for distribution..."
     chmod +x ../build_appimage.sh
     ../build_appimage.sh
     popd
+    if [ ! -f package/"@SLIC3R_APP_KEY@_ubu64.AppImage" ]
+    then
+        echo "AppImage packaging failed: package/@SLIC3R_APP_KEY@_ubu64.AppImage not found" >&2
+        exit 1
+    fi
     mv package/"@SLIC3R_APP_KEY@_ubu64.AppImage" "@SLIC3R_APP_KEY@_ubu64.AppImage"
 #} &> $ROOT/Build.log # Capture all command output
 echo "done"

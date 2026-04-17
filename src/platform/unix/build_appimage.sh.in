@@ -64,10 +64,16 @@ X-AppImage-Version=@SLIC3R_VERSION@
 EOF
 
 
-if [ -f /.dockerenv ] ; then # Only run if inside of a Docker Container
-  ../appimagetool.AppImage --appimage-extract-and-run . $([ ! -z "${container}" ] && echo '--appimage-extract-and-run')
+if [ -f /.dockerenv ] ; then
+  ../appimagetool.AppImage --appimage-extract-and-run .
 else
-  ../appimagetool.AppImage . $([ ! -z "${container}" ] && echo '--appimage-extract-and-run')
+  # Retry without FUSE when AppImage mount support is unavailable on host.
+  ../appimagetool.AppImage . || ../appimagetool.AppImage --appimage-extract-and-run .
+fi
+
+if [ ! -f @SLIC3R_APP_KEY@-x86_64.AppImage ]; then
+  echo "Failed to produce @SLIC3R_APP_KEY@-x86_64.AppImage" >&2
+  exit 1
 fi
 
 mv @SLIC3R_APP_KEY@-x86_64.AppImage ${APP_IMAGE}
