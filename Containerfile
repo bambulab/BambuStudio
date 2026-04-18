@@ -42,7 +42,7 @@ RUN apt-get update && apt-get install  -y \
     libdbus-1-dev \
     libcairo2-dev \
     libgtk-3-dev libwebkit2gtk-4.1-dev \
-    libsoup2.4-dev \
+    libsoup-3.0-dev \
     libgstreamer1.0-dev libgstreamer-plugins-good1.0-dev libgstreamer-plugins-base1.0-dev libgstreamerd-3-dev \
     libosmesa6-dev \
     libssl3 libssl-dev libcurl4-openssl-dev libsecret-1-dev \
