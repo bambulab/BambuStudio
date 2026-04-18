@@ -41,7 +41,7 @@ RUN apt-get update && apt-get install  -y \
     libgtk-3-dev \
     libdbus-1-dev \
     libcairo2-dev \
-    libgtk-3-dev libwebkit2gtk-4.0-dev \
+    libgtk-3-dev libwebkit2gtk-4.1-dev \
     libsoup2.4-dev \
     libgstreamer1.0-dev libgstreamer-plugins-good1.0-dev libgstreamer-plugins-base1.0-dev libgstreamerd-3-dev \
     libosmesa6-dev \
