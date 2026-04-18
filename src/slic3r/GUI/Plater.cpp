@@ -1633,7 +1633,288 @@ public:
 
         extruder->set_ams_count(ams_map[4], ams_map[1]);
     }
+
+    static void UpdateAMSCount(int index, ExtruderPanel *extruder)
+    {
+        std::vector<std::map<int, int>> &ams_counts = wxGetApp().preset_bundle->extruder_ams_counts;
+        ams_counts.resize(2);
+        std::map<int, int>& ams_map = ams_counts[index];
+        if (ams_map.find(4) == ams_map.end()) {
+            ams_map[4] = 0;
+        }
+        if (ams_map.find(1) == ams_map.end()) {
+            ams_map[1] = 0;
+        }
+
+        extruder->set_ams_count(ams_map[4], ams_map[1]);
+    }
 };
+
+void Sidebar::priv::update_extruder_panel()
+{
+    Preset &printer_preset            = wxGetApp().preset_bundle->printers.get_edited_preset();
+    auto    extruder_variants         = printer_preset.config.option<ConfigOptionStrings>("extruder_variant_list");
+    auto    extruder_max_nozzle_count = printer_preset.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    bool    has_multiple_nozzle       = std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int i) { return i > 1; });
+    bool    is_dual_extruder          = extruder_variants->size() == 2;
+
+    auto update_panel = [this](ExtruderPanel *panel, const std::vector<NozzleConfig> &cfg) {
+        if (!panel || cfg.empty()) return;
+        auto selected_diameter = diameter_btns->GetSelectedDiameter();
+        bool has_matching_diameter = false;
+        for (const auto &c : cfg) {
+            if (c.diameter == selected_diameter) {
+                has_matching_diameter = true;
+                break;
+            }
+        }
+        if (cfg.size() == 1) { // single nozzle per extruder
+            wxString diameter_str = cfg[0].diameter;
+            panel->SetDiameter(diameter_str);
+            wxString volume_str = wxString::FromUTF8(DevNozzle::ToNozzleVolumeShortString(cfg[0].volume));
+            panel->SetFlow(volume_str);
+            panel->ShowNozzleNumber(false);
+        } else { // multiple nozzles per extruder
+            auto                                 selected_diameter     = diameter_btns->GetSelectedDiameter();
+            int                                  matching_nozzle_count = 0;
+            std::unordered_set<NozzleVolumeType> volume_types;
+            std::vector<int>                     matching_indices;
+            for (int i = 0; i < cfg.size(); ++i) {
+                auto c = cfg[i];
+                if (c.diameter == selected_diameter) {
+                    matching_nozzle_count++;
+                    volume_types.insert(c.volume);
+                    matching_indices.push_back(i);
+                }
+            }
+
+            panel->SetDiameter(selected_diameter);
+
+            if (volume_types.size() == 1) {
+                wxString volume_str = wxString::FromUTF8(DevNozzle::ToNozzleVolumeShortString(*volume_types.begin()));
+                panel->SetFlow(volume_str);
+            } else if (volume_types.size() > 1) {
+                panel->SetFlow(wxString("Mix"));
+            } else {
+                panel->SetFlow(wxString("--"));
+            }
+            panel->SetNozzleNumber(matching_nozzle_count);
+            panel->SetNozzleIndex(matching_indices);
+        }
+
+        panel->ShowEnable(has_matching_diameter);
+    };
+
+    if (is_dual_extruder) {
+        AMSCountPopupWindow::UpdateAMSCount(0, l_extruder_panel);
+        AMSCountPopupWindow::UpdateAMSCount(1, r_extruder_panel);
+        update_panel(l_extruder_panel, l_ext_cfg);
+        update_panel(r_extruder_panel, r_ext_cfg);
+        l_extruder_panel->UpdateScrollButtons();
+        r_extruder_panel->UpdateScrollButtons();
+    } else {
+        AMSCountPopupWindow::UpdateAMSCount(0, s_extruder_panel);
+        update_panel(s_extruder_panel, s_ext_cfg);
+    }
+}
+
+NozzleVolumeType Sidebar::priv::get_volume_type_from_configs(wxString diameter, const std::vector<NozzleConfig>& configs)
+{
+    if (configs.empty())
+        return NozzleVolumeType::nvtStandard;
+
+    std::set<NozzleVolumeType> volume_types;
+    for (const auto &cfg : configs) {
+        if (!cfg.diameter.IsEmpty() && cfg.diameter == diameter)
+            volume_types.insert(cfg.volume);
+    }
+
+    if (volume_types.size() == 1) {
+        return *volume_types.begin();
+    } else if (volume_types.size() > 1) {
+        return NozzleVolumeType::nvtHybrid;
+    }
+
+    return NozzleVolumeType::nvtStandard;
+}
+
+std::vector<NozzleConfig> Sidebar::priv::collect_nozzle_configs_from_machine(MachineObject *obj, int extruder_idx, int extruder_nozzle_count)
+{
+    if (!obj || !obj->GetNozzleSystem()) { return {}; }
+    auto *nozzle_system = obj->GetNozzleSystem();
+
+    // remove duplicated nozzle, total number of nozzle is no more than the number on the rack
+    // if rack not exist, use the number on the extruder
+    std::vector<const DevNozzle *> nozzles;
+    nozzles.resize(std::max(nozzle_system->GetExtNozzles().size(), nozzle_system->GetRackNozzles().size()));
+
+    // check nozzles on the extruder first
+    for (const auto &[_, nozzle] : nozzle_system->GetExtNozzles()) {
+        if (nozzle.GetLogicExtruderId() != extruder_idx) continue;
+        nozzles[nozzle.GetNozzleId()] = &nozzle;
+    }
+
+    // check nozzle on the rack
+    for (const auto &[_, nozzle] : nozzle_system->GetRackNozzles()) {
+        if (nozzle.GetLogicExtruderId() != extruder_idx) continue;
+
+        if (nozzles[nozzle.GetNozzleId()]) {
+            assert(!nozzle.IsExist() && "this nozzle is on an extruder");
+            BOOST_LOG_TRIVIAL(warning) << "duplicated nozzle discared: " << nozzle.GetNozzleId();
+            continue;
+        }
+        nozzles[nozzle.GetNozzleId()] = &nozzle;
+    }
+
+    std::vector<NozzleConfig> nozzle_configs;
+    nozzle_configs.reserve(extruder_nozzle_count);
+
+    for (const auto *nozzle : nozzles) {
+        if (!nozzle) continue;
+        auto &nozzle_config    = nozzle_configs.emplace_back();
+        nozzle_config.diameter = get_diameter_string(nozzle->GetNozzleDiameter());
+        nozzle_config.volume   = DevNozzle::ToNozzleVolumeType(nozzle->GetNozzleFlowType());
+
+        if (extruder_nozzle_count <= 1) {
+            nozzle_config.status = NozzleStatus::nsNormal;
+        } else {
+            if (nozzle->IsAbnormal()) {
+                nozzle_config.status = NozzleStatus::nsError;
+            } else if (nozzle->IsUnknown()) {
+                nozzle_config.status = NozzleStatus::nsUnknown;
+            } else {
+                nozzle_config.status = NozzleStatus::nsNormal;
+            }
+        }
+    }
+
+    return nozzle_configs;
+}
+
+void Sidebar::priv::open_extruder_settings_dialog(bool is_dual)
+{
+    auto diameter = diameter_btns->GetSelectedDiameter();
+    auto fila_state = is_dual ? dual_panel->GetSeparatorState() : CustomSeparator::State::Hidden;
+    ExtruderSettingsDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), is_dual, diameter, is_dual ? l_ext_cfg : s_ext_cfg, r_ext_cfg, is_dual ? l_extruder_panel : s_extruder_panel, r_extruder_panel, fila_state);
+    if (dlg.ShowModal() == wxID_OK) {
+        wxString selected_diameter = dlg.GetSelectedDiameter();
+
+        if (is_dual) {
+            l_ext_cfg = dlg.GetExtruderConfigs(0);
+            r_ext_cfg = dlg.GetExtruderConfigs(1);
+            update_extruder_full_stats(0, selected_diameter, l_ext_cfg);
+            update_extruder_full_stats(1, selected_diameter, r_ext_cfg);
+        } else {
+            s_ext_cfg = dlg.GetExtruderConfigs(0);
+            update_extruder_full_stats(0, selected_diameter, s_ext_cfg);
+        }
+
+        if (!selected_diameter.IsEmpty() && selected_diameter != diameter) {
+            diameter_btns->SetSelectedDiameter(selected_diameter);
+            is_switching_diameter = true;
+            auto result = switch_diameter(!is_dual);
+            is_switching_diameter = false;
+
+            if (!result) {
+                diameter_btns->SetSelectedDiameter(selected_diameter);
+            }
+        } else {
+            diameter_btns->UpdateButtonStates();
+        }
+
+        auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
+        if (printer_tab) {
+            if (is_dual) {
+                // Set volume type for left extruder (extruder 0)
+                if (!l_ext_cfg.empty()) {
+                    NozzleVolumeType left_type = get_volume_type_from_configs(selected_diameter, l_ext_cfg);
+                    printer_tab->set_extruder_volume_type(0, left_type);
+                    if (plater) {
+                        plater->update_filament_volume_map(0, static_cast<int>(left_type));
+                    }
+                }
+
+                // Set volume type for right extruder (extruder 1)
+                if (!r_ext_cfg.empty()) {
+                    NozzleVolumeType right_type = get_volume_type_from_configs(selected_diameter, r_ext_cfg);
+                    printer_tab->set_extruder_volume_type(1, right_type);
+                    if (plater) {
+                        plater->update_filament_volume_map(1, static_cast<int>(right_type));
+                    }
+                }
+            } else {
+                // Set volume type for single extruder
+                if (!s_ext_cfg.empty()) {
+                    NozzleVolumeType type = get_volume_type_from_configs(selected_diameter, s_ext_cfg);
+                    printer_tab->set_extruder_volume_type(0, type);
+                    if (plater) {
+                        plater->update_filament_volume_map(0, static_cast<int>(type));
+                    }
+                }
+            }
+        }
+
+        if (plater) {
+            plater->update_machine_sync_status();
+        }
+
+        if (!extruder_panel_update_pending) {
+            extruder_panel_update_pending = true;
+            wxGetApp().CallAfter([this]() {
+                update_extruder_panel();
+                extruder_panel_update_pending = false;
+            });
+        }
+    } else {
+        if (is_dual) {
+            AMSCountPopupWindow::SetAMSCount(0, l_extruder_panel->m_ams_n4, l_extruder_panel->m_ams_n1);
+            AMSCountPopupWindow::SetAMSCount(1, r_extruder_panel->m_ams_n4, r_extruder_panel->m_ams_n1);
+        }
+        else {
+            AMSCountPopupWindow::SetAMSCount(0, s_extruder_panel->m_ams_n4, s_extruder_panel->m_ams_n1);
+        }
+    }
+}
+
+void Sidebar::priv::update_extruder_full_stats(int extruder_id, wxString diameter, const std::vector<NozzleConfig>& configs)
+{
+    auto preset_bundle = wxGetApp().preset_bundle;
+    std::map<NozzleVolumeType, int> volume_counts;
+    for (const auto& cfg : configs) {
+        if (!cfg.diameter.IsEmpty() && cfg.diameter == diameter)
+            volume_counts[cfg.volume]++;
+    }
+    auto type = get_volume_type_from_configs(diameter, configs);
+    if (type == nvtHybrid) {
+        preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(extruder_id, nvtStandard, volume_counts[nvtStandard], true);
+        preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(extruder_id, nvtHighFlow, volume_counts[nvtHighFlow], false);
+    }
+    else {
+        preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(extruder_id, type, volume_counts[type], true);
+    }
+
+    std::vector<std::pair<std::string, std::string>> full_stats;
+    for (const auto& cfg : configs) {
+        std::string d = cfg.diameter.ToStdString();
+        std::string v = d.empty() ? "" : DevNozzle::ToNozzleVolumeString(cfg.volume);
+        full_stats.emplace_back(d, v);
+    }
+    preset_bundle->extruder_full_stat.set_extruder_stats(extruder_id, full_stats);
+}
+
+void Sidebar::priv::reset_all_nozzle_status()
+{
+    auto reset_configs = [](std::vector<NozzleConfig> &configs) {
+        for (auto &cfg : configs) {
+            if (cfg.status != NozzleStatus::nsNormal) {
+                cfg.status   = NozzleStatus::nsNormal;
+                cfg.diameter = wxEmptyString;
+            }
+        }
+    };
+    reset_configs(l_ext_cfg);
+    reset_configs(r_ext_cfg);
+}
 
 ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title)
     : StaticGroup(parent, wxID_ANY)
