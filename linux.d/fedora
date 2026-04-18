@@ -44,13 +44,7 @@ REQUIRED_DEV_PACKAGES=(
 if [[ -n "$UPDATE_LIB" ]]
 then
     NEEDED_PKGS=""
-    fedora_version=$(awk -F= '/^VERSION_ID=/ {print $2}' /etc/os-release)
-    if [ $fedora_version == "40" ]
-    then
-        REQUIRED_DEV_PACKAGES+=(webkit2gtk4.1-devel)
-    else
-        REQUIRED_DEV_PACKAGES+=(webkit2gtk4.0-devel)
-    fi
+    REQUIRED_DEV_PACKAGES+=(webkit2gtk4.1-devel)
     for PKG in ${REQUIRED_DEV_PACKAGES[@]}; do
         rpm -q ${PKG} > /dev/null || NEEDED_PKGS+=" ${PKG}"
     done
