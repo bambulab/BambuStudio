@@ -23,20 +23,22 @@
 #include <gtk/gtk.h>
 #define WEBKIT_API
 struct WebKitWebView;
-struct WebKitJavascriptResult;
+struct _JSCValue;
+typedef struct _JSCValue JSCValue;
 extern "C" {
 WEBKIT_API void
-webkit_web_view_run_javascript                       (WebKitWebView             *web_view,
+webkit_web_view_evaluate_javascript                  (WebKitWebView             *web_view,
                                                       const gchar               *script,
+                                                      gssize                     length,
+                                                      const gchar               *world_name,
+                                                      const gchar               *source_uri,
                                                       GCancellable              *cancellable,
                                                       GAsyncReadyCallback       callback,
                                                       gpointer                  user_data);
-WEBKIT_API WebKitJavascriptResult *
-webkit_web_view_run_javascript_finish                (WebKitWebView             *web_view,
+WEBKIT_API JSCValue *
+webkit_web_view_evaluate_javascript_finish           (WebKitWebView             *web_view,
                                                       GAsyncResult              *result,
-						      GError                    **error);
-WEBKIT_API void
-webkit_javascript_result_unref              (WebKitJavascriptResult *js_result);
+                                                      GError                    **error);
 }
 
 static GOnce register_handler_once = G_ONCE_INIT;
@@ -357,15 +359,16 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
         return true;
 #else
         WebKitWebView *wkWebView = (WebKitWebView *) webView->GetNativeBackend();
-        webkit_web_view_run_javascript(
-            wkWebView, javascript.utf8_str(), NULL,
+        webkit_web_view_evaluate_javascript(
+            wkWebView, javascript.utf8_str(), -1, NULL, NULL, NULL,
             [](GObject *wkWebView, GAsyncResult *res, void *) {
-                GError * error = NULL;
-                auto result = webkit_web_view_run_javascript_finish((WebKitWebView*)wkWebView, res, &error);
-                if (!result)
-                    g_error_free (error);
-                else
-                    webkit_javascript_result_unref (result);
+                GError *error = NULL;
+                JSCValue *result = webkit_web_view_evaluate_javascript_finish((WebKitWebView*)wkWebView, res, &error);
+                if (!result) {
+                    if (error) g_error_free(error);
+                } else {
+                    g_object_unref(result);
+                }
         }, NULL);
         return true;
 #endif
