@@ -7,16 +7,16 @@ jira: [STUDIO-14205]
 
 Change-Id: I3f7c7982737b3b52729df856bc0cf69d89d1820d
 ---
- .../include/boost/process/detail/posix/executor.hpp |  3 ++-
- .../include/boost/process/detail/posix/pipe_out.hpp | 13 +++++++++++--
- .../include/boost/process/detail/used_handles.hpp   |  3 +++
- .../boost/process/detail/windows/handles.hpp        | 10 +++++++---
+ libs/process/include/boost/process/detail/posix/executor.hpp  |  3 ++-
+ libs/process/include/boost/process/detail/posix/pipe_out.hpp  | 13 +++++++++++--
+ libs/process/include/boost/process/detail/used_handles.hpp    |  3 +++
+ libs/process/include/boost/process/detail/windows/handles.hpp | 10 +++++++---
  4 files changed, 23 insertions(+), 6 deletions(-)
 
-diff --git a/usr/local/include/boost/process/detail/posix/executor.hpp b/usr/local/include/boost/process/detail/posix/executor.hpp
+diff --git a/libs/process/include/boost/process/detail/posix/executor.hpp b/libs/process/include/boost/process/detail/posix/executor.hpp
 index c4d99906..4d9b47ba 100644
---- a/usr/local/include/boost/process/detail/posix/executor.hpp
-+++ b/usr/local/include/boost/process/detail/posix/executor.hpp
+--- a/libs/process/include/boost/process/detail/posix/executor.hpp
++++ b/libs/process/include/boost/process/detail/posix/executor.hpp
 @@ -328,6 +328,7 @@ public:
      }
      void set_error(const std::error_code &ec, const std::string &msg) {set_error(ec, msg.c_str());};
@@ -41,10 +41,10 @@ index c4d99906..4d9b47ba 100644
              ::close(p.p[0]);
  
              boost::fusion::for_each(seq, call_on_exec_setup(*this));
-diff --git a/usr/local/include/boost/process/detail/posix/pipe_out.hpp b/usr/local/include/boost/process/detail/posix/pipe_out.hpp
+diff --git a/libs/process/include/boost/process/detail/posix/pipe_out.hpp b/libs/process/include/boost/process/detail/posix/pipe_out.hpp
 index d54cca4e..7a711983 100644
---- a/usr/local/include/boost/process/detail/posix/pipe_out.hpp
-+++ b/usr/local/include/boost/process/detail/posix/pipe_out.hpp
+--- a/libs/process/include/boost/process/detail/posix/pipe_out.hpp
++++ b/libs/process/include/boost/process/detail/posix/pipe_out.hpp
 @@ -18,7 +18,7 @@
  namespace boost { namespace process { namespace detail { namespace posix {
  
@@ -86,10 +86,10 @@ index d54cca4e..7a711983 100644
  }
  
  class async_pipe;
-diff --git a/usr/local/include/boost/process/detail/used_handles.hpp b/usr/local/include/boost/process/detail/used_handles.hpp
+diff --git a/libs/process/include/boost/process/detail/used_handles.hpp b/libs/process/include/boost/process/detail/used_handles.hpp
 index 8db226d4..b7dc13d0 100644
---- a/usr/local/include/boost/process/detail/used_handles.hpp
-+++ b/usr/local/include/boost/process/detail/used_handles.hpp
+--- a/libs/process/include/boost/process/detail/used_handles.hpp
++++ b/libs/process/include/boost/process/detail/used_handles.hpp
 @@ -61,6 +61,9 @@ struct foreach_handle_invocator
  template<typename Executor, typename Function>
  void foreach_used_handle(Executor &exec, Function &&func)
@@ -100,10 +100,10 @@ index 8db226d4..b7dc13d0 100644
      boost::fusion::for_each(boost::fusion::filter_if<does_use_handle<boost::mpl::_>>(exec.seq),
                              foreach_handle_invocator<Function>(func));
  }
-diff --git a/usr/local/include/boost/process/detail/windows/handles.hpp b/usr/local/include/boost/process/detail/windows/handles.hpp
+diff --git a/libs/process/include/boost/process/detail/windows/handles.hpp b/libs/process/include/boost/process/detail/windows/handles.hpp
 index 901b339a..da78b1ce 100644
---- a/usr/local/include/boost/process/detail/windows/handles.hpp
-+++ b/usr/local/include/boost/process/detail/windows/handles.hpp
+--- a/libs/process/include/boost/process/detail/windows/handles.hpp
++++ b/libs/process/include/boost/process/detail/windows/handles.hpp
 @@ -141,10 +141,14 @@ struct limit_handles_ : handler_base_ext
                      ::boost::winapi::DWORD_ flags = 0u;
                      if (itr != all_handles.end())
