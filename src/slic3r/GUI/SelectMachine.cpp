@@ -2803,6 +2803,15 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
         }
     }
 
+    if (obj->is_multi_extruders()) {
+        auto used_nozzle_idxes = _get_used_nozzle_idxes();
+        if (used_nozzle_idxes.size() == 1) {
+            m_checkbox_list["nozzle_offset_cali"]->setValue("off");
+        } else if (used_nozzle_idxes.size() >= 2) {
+            m_checkbox_list["nozzle_offset_cali"]->setValue("auto");
+        }
+    }
+
     update_option_dynamic_state(obj);
 }
 
