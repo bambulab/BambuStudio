@@ -137,7 +137,15 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const w
 
     m_button_camera_switch = new Button(this, "", "dev_camera_switch_icon", wxBORDER_NONE);
     m_button_camera_switch->SetCanFocus(false);
-    m_button_camera_switch->Hide();  // Initially hidden, will be shown based on support_liveview_cams
+    {
+        auto parent_bg = StaticBox::GetParentBackgroundColor(this);
+        m_button_camera_switch->SetBackgroundColor(StateColor(
+            std::make_pair(parent_bg, (int) StateColor::Disabled),
+            std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered),
+            std::make_pair(parent_bg, (int) StateColor::Normal)));
+    }
+    m_button_camera_switch->Hide();
+    m_button_camera_switch->Disable();
 
     m_label_status = new Label(this, "");
     m_label_status->SetForegroundColour(wxColour("#323A3C"));
@@ -335,6 +343,8 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
         }
         Layout();
     }
+    bool is_playing = (m_last_state == wxMEDIASTATE_PLAYING || m_last_state == wxMEDIASTATE_PAUSED);
+    m_button_camera_switch->Enable(should_show && is_playing);
     update_camera_switch_tooltip();
 
     // Check camera validity only for machines with camera switching support
@@ -664,6 +674,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
         m_pending_start_liveview_json.clear();
         m_media_ctrl->InvalidateBestSize();
         m_button_play->SetIcon("media_play");
+        m_button_camera_switch->Disable();
         boost::unique_lock lock(m_mutex);
         m_tasks.push_back("<stop>");
         m_cond.notify_all();
@@ -1142,6 +1153,8 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
             m_failed_code = 0;
             m_session_connect_success = true;
             SetStatus(_L("Playing..."), false);
+            if (m_button_camera_switch->IsShown())
+                m_button_camera_switch->Enable();
             m_print_idle = 0;
             auto now = std::chrono::system_clock::now();
             m_load_duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - m_play_timer).count();
