@@ -2554,9 +2554,11 @@ bool ObjectGridTable::OnCellLeftClick(int row, int col, ConfigOptionType &type)
                     //update the right side setting list
                     bool is_object = (grid_row->row_type == row_object);
                     ModelObject* object = m_panel->m_model->objects[grid_row->object_id];
-                    m_panel->m_side_window->Freeze();
-                    m_panel->m_object_settings->ValueChanged(row, is_object, object, grid_row->config, grid_col_2->category, grid_col_2->key);
-                    m_panel->m_side_window->Thaw();
+                    if (m_panel->m_side_window) {
+                        m_panel->m_side_window->Freeze();
+                        m_panel->m_object_settings->ValueChanged(row, is_object, object, grid_row->config, grid_col_2->category, grid_col_2->key);
+                        m_panel->m_side_window->Thaw();
+                    }
                     //m_panel->m_plater->update();
                 }
                 else {
@@ -2575,6 +2577,8 @@ bool ObjectGridTable::OnCellLeftClick(int row, int col, ConfigOptionType &type)
 void ObjectGridTable::OnSelectCell(int row, int col)
 {
     m_selected_cells.clear();
+    if (!m_panel->m_side_window)
+        return;
     m_panel->m_side_window->Freeze();
     if (row == 0 || col == col_filaments) {
         m_panel->m_object_settings->UpdateAndShow(row, false, false, false, nullptr, nullptr, std::string());
@@ -2651,11 +2655,11 @@ void ObjectGridTable::OnCellValueChanged(int row, int col)
         bool is_object = (grid_row->row_type == row_object);
         ModelObject* object = m_panel->m_model->objects[grid_row->object_id];
 
-        m_panel->m_side_window->Freeze();
-
-        m_panel->m_object_settings->ValueChanged(row, is_object, object, grid_row->config, grid_col->category, grid_col->key);
-
-        m_panel->m_side_window->Thaw();
+        if (m_panel->m_side_window) {
+            m_panel->m_side_window->Freeze();
+            m_panel->m_object_settings->ValueChanged(row, is_object, object, grid_row->config, grid_col->category, grid_col->key);
+            m_panel->m_side_window->Thaw();
+        }
         //update volume cell
         /*if (is_object) {
             int next_row = row + 1;
@@ -3171,6 +3175,7 @@ ObjectTablePanel::~ObjectTablePanel()
         delete m_object_grid_table;
         m_object_grid_table = nullptr;
     }*/
+    m_side_window = nullptr;  // null before Clear(true) so pending events hit the guard safely
     if (m_top_sizer)
         m_top_sizer->Clear(true);
     delete m_object_settings;
