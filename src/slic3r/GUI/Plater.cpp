@@ -22549,6 +22549,17 @@ void Plater::open_platesettings_dialog(wxCommandEvent& evt) {
         else
             curr_plate->set_print_seq(PrintSequence::ByDefault);
 
+        PrintSequence actual_seq = curr_plate->get_real_print_seq();
+        if (actual_seq == PrintSequence::ByObject) {
+            const DynamicPrintConfig& print_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
+            if (print_config.opt_int("skirt_height") > 1 && print_config.opt_int("skirt_loops") > 0) {
+                MessageDialog warn_dlg(this,
+                    _(L("While printing by Object, the extruder may collide skirt.\nThus, it is recommended to reset the skirt layer to 1 to avoid that.")),
+                    "", wxICON_WARNING | wxOK);
+                warn_dlg.ShowModal();
+            }
+        }
+
         int spiral_sel = dlg.get_spiral_mode_choice();
         if (spiral_sel == 1) {
             curr_plate->set_spiral_vase_mode(true, false);
