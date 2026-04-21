@@ -556,6 +556,7 @@ public:
     wxColour                     m_road_def_color;
     wxColour                     m_road_color;
     void                         Update(AMSinfo amsinfo, Caninfo info, int canindex, int maxcan);
+    void                         UpdateDeviceInfo(std::weak_ptr<DevFilaSystem> fila_system);
 
     std::vector<ScalableBitmap> ams_humidity_img;
 
@@ -574,6 +575,10 @@ public:
     void paintEvent(wxPaintEvent &evt);
     void render(wxDC &dc);
     void doRender(wxDC &dc);
+
+private:
+    std::weak_ptr<DevFilaSystem> m_fila_system;
+    bool shouldHideExtRoad() const;
 };
 
 
@@ -589,6 +594,7 @@ public:
 
 public:
     void Update(AMSinfo amsinfo);
+    void UpdateDeviceInfo(std::weak_ptr<DevFilaSystem> fila_system);
 
     void OnVamsLoading(bool load, wxColour col = AMS_CONTROL_GRAY500);
     void SetPassRoadColour(wxColour col);
@@ -627,6 +633,9 @@ private:
     bool     m_show_humidity = {false};
     bool     m_vams_loading{false};
     DevAmsType m_ams_model;
+
+    std::weak_ptr<DevFilaSystem> m_fila_system;
+    bool shouldHideExtRoad() const;
 };
 
 
@@ -644,6 +653,7 @@ public:
     // void                         Update(AMSRoadDownPartMode nozzle, AMSRoadShowMode left_mode, AMSRoadShowMode right_mode, int left_len, int right_len);
     void UpdateLeft(int nozzle_num, AMSRoadShowMode mode);
     void UpdateRight(int nozzle_num, AMSRoadShowMode mode);
+    void UpdateDeviceInfo(std::weak_ptr<DevFilaSystem> fila_system);
 
     void OnVamsLoading(bool load, wxColour col = AMS_CONTROL_GRAY500);
     void SetPassRoadColour(bool left, wxColour col);
@@ -674,6 +684,9 @@ private:
     std::map<int, wxColour> m_road_color;
     bool m_vams_loading{false};
     DevAmsType m_ams_model;
+
+    std::weak_ptr<DevFilaSystem> m_fila_system;
+    bool shouldHideExtRoad() const;
 };
 
 /*************************************************
@@ -775,6 +788,7 @@ public:
     ~AmsItem();
 
     void     Update(AMSinfo info);
+    void     UpdateDeviceInfo(std::weak_ptr<DevFilaSystem> fila_system);
     void     create(wxWindow *parent);
     void     AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* sizer);
     void     AddLiteCan(Caninfo caninfo, int canindex, wxGridSizer* sizer);

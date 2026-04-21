@@ -916,6 +916,7 @@ void AMSControl::UpdateAms(const std::string   &series_name,
                            std::vector<AMSinfo> ext_info,
                            DevExtderSystem           data,
                            std::string          dev_id,
+                           MachineObject*       obj,
                            bool                 is_reset,
                            bool                 test)
 {
@@ -1044,6 +1045,15 @@ void AMSControl::UpdateAms(const std::string   &series_name,
     if (road_visibility_changed) {
         m_amswin->Layout();
     }
+
+    /*distribute device info to road components*/
+    std::weak_ptr<DevFilaSystem> fila_sys_weak;
+    if (obj) fila_sys_weak = obj->GetFilaSystem();
+    for (auto& [id, item] : m_ams_item_list) {
+        if (item) item->UpdateDeviceInfo(fila_sys_weak);
+    }
+    if (m_vams_road) m_vams_road->UpdateDeviceInfo(fila_sys_weak);
+    if (m_down_road) m_down_road->UpdateDeviceInfo(fila_sys_weak);
 }
 
 void AMSControl::AddAmsPreview(AMSinfo info, AMSPanelPos pos)

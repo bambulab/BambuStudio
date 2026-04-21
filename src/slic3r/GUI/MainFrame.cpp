@@ -65,6 +65,7 @@
 #include "FilamentMapDialog.hpp"
 
 #include "DeviceCore/DevManager.h"
+#include "slic3r/GUI/DeviceWeb/DeviceWebPage.hpp"
 
 #ifdef _WIN32
 #include <dbt.h>
@@ -1288,6 +1289,9 @@ void MainFrame::init_tabpanel()
             if (agent)
                 agent->track_update_property("select_device_page", std::to_string(++select_device_page_count));
         }
+        else if (panel == m_web_device) {
+            m_web_device->NavigateTo("/filament");
+        }
 #ifndef __APPLE__
         if (sel == tp3DEditor) {
             m_topbar->EnableUndoRedoItems();
@@ -1365,6 +1369,9 @@ void MainFrame::init_tabpanel()
     m_calibration = new CalibrationPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_calibration->SetBackgroundColour(*wxWHITE);
     m_tabpanel->AddPage(m_calibration, _L("Calibration"), std::string("tab_calibration_active"), std::string("tab_calibration_active"), false);
+
+    m_web_device = new DeviceWebPage(m_tabpanel);
+    m_tabpanel->AddPage(m_web_device, _L("Filament Manager"), std::string("tab_filament_active"), std::string("tab_filament_active"), false);
 
     if (m_plater) {
         // load initial config
@@ -2469,6 +2476,8 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     if (m_multi_machine)
         m_multi_machine->msw_rescale();
     m_calibration->msw_rescale();
+    if (m_web_device)
+        m_web_device->msw_rescale();
 
     // BBS
 #if 0
@@ -2528,6 +2537,7 @@ void MainFrame::on_sys_color_changed()
     wxGetApp().plater()->sys_color_changed();
     m_monitor->on_sys_color_changed();
     m_calibration->on_sys_color_changed();
+    if (m_web_device) m_web_device->on_sys_color_changed();
     // update Tabs
     for (auto tab : wxGetApp().tabs_list)
         tab->sys_color_changed();

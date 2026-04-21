@@ -1883,6 +1883,9 @@ msgstr "工艺"
 msgid "Filament"
 msgstr "耗材丝"
 
+msgid "Filament Manager"
+msgstr "耗材管理"
+
 msgid "Machine"
 msgstr "打印机"
 

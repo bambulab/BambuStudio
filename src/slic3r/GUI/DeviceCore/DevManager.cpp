@@ -15,6 +15,8 @@
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
+#include "slic3r/GUI/MainFrame.hpp"
+#include "slic3r/GUI/DeviceWeb/DeviceWebPage.hpp"
 #include "slic3r/Utils/BBLUtil.hpp"
 
 #include "libslic3r/Time.hpp"
@@ -844,6 +846,15 @@ namespace Slic3r
             GUI::wxGetApp().sidebar().update_sync_status(obj_);
             GUI::wxGetApp().sidebar().load_ams_list(obj_);
         };
+
+        // F4.7: keep the filament-manager web page in sync with the
+        // Studio-wide machine selection. Safe to call during early startup /
+        // shutdown: the target pointers may be null and we check every hop.
+        if (GUI::MainFrame* mf = GUI::wxGetApp().mainframe) {
+            if (GUI::DeviceWebPage* web = mf->web_device()) {
+                web->NotifyFilamentMachineChanged();
+            }
+        }
     }
 
     void DeviceManager::reload_printer_settings()

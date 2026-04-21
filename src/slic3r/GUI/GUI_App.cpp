@@ -3,6 +3,7 @@
 #include "GUI_Init.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_Factories.hpp"
+#include "slic3r/GUI/DeviceWeb/DeviceWebPage.hpp"
 #include "slic3r/GUI/UserManager.hpp"
 #include "slic3r/GUI/TaskManager.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
@@ -2749,6 +2750,32 @@ int GUI_App::OnExit()
 
     stop_sync_user_preset();
 
+    if (m_fila_manager_cloud_disp) {
+        delete m_fila_manager_cloud_disp;
+        m_fila_manager_cloud_disp = nullptr;
+    }
+
+    if (m_fila_manager_cloud_sync) {
+        delete m_fila_manager_cloud_sync;
+        m_fila_manager_cloud_sync = nullptr;
+    }
+
+    if (m_fila_manager_cloud_client) {
+        delete m_fila_manager_cloud_client;
+        m_fila_manager_cloud_client = nullptr;
+    }
+
+    if (m_fila_manager_sync) {
+        delete m_fila_manager_sync;
+        m_fila_manager_sync = nullptr;
+    }
+
+    if (m_fila_manager_store) {
+        m_fila_manager_store->save();
+        delete m_fila_manager_store;
+        m_fila_manager_store = nullptr;
+    }
+
     if (m_device_manager) {
         delete m_device_manager;
         m_device_manager = nullptr;
@@ -2768,7 +2795,41 @@ int GUI_App::OnExit()
         m_agent = nullptr;
     }
 
+#if !BBL_RELEASE_TO_PUBLIC
+    m_fila_debug_sink = nullptr;
+#endif
+
     return wxApp::OnExit();
+}
+
+void GUI_App::emit_fila_debug_log(const std::string& category,
+                                  const std::string& level,
+                                  const std::string& title,
+                                  const std::string& summary,
+                                  const nlohmann::json& detail)
+{
+#if !BBL_RELEASE_TO_PUBLIC
+    if (!m_fila_debug_sink)
+        return;
+
+    nlohmann::json payload = {
+        {"category", category},
+        {"level",    level},
+        {"title",    title},
+        {"summary",  summary},
+        {"detail",   detail},
+        {"ts",       static_cast<std::uint64_t>(
+                         std::chrono::duration_cast<std::chrono::milliseconds>(
+                             std::chrono::system_clock::now().time_since_epoch()).count())}
+    };
+    m_fila_debug_sink(payload);
+#else
+    (void)category;
+    (void)level;
+    (void)title;
+    (void)summary;
+    (void)detail;
+#endif
 }
 
 class wxBoostLog : public wxLog
@@ -3210,6 +3271,32 @@ bool GUI_App::on_init_inner()
 
     // Let the libslic3r know the callback, which will translate messages on demand.
     Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
+
+    // Initialize Filament Manager store & sync
+    if (!m_fila_manager_store) {
+        m_fila_manager_store = new wgtFilaManagerStore();
+        m_fila_manager_store->load();
+        BOOST_LOG_TRIVIAL(info) << "Filament Manager store initialized";
+    }
+    if (!m_fila_manager_sync) {
+        m_fila_manager_sync = new wgtFilaManagerSync(m_fila_manager_store);
+        BOOST_LOG_TRIVIAL(info) << "Filament Manager sync initialized";
+    }
+    // Cloud layer — owns HTTP client, high-level sync and the serialization dispatcher.
+    if (!m_fila_manager_cloud_client) {
+        m_fila_manager_cloud_client = new wgtFilaManagerCloudClient();
+        BOOST_LOG_TRIVIAL(info) << "Filament Manager cloud client initialized";
+    }
+    if (!m_fila_manager_cloud_sync) {
+        m_fila_manager_cloud_sync = new wgtFilaManagerCloudSync(m_fila_manager_store,
+                                                                m_fila_manager_cloud_client);
+        BOOST_LOG_TRIVIAL(info) << "Filament Manager cloud sync initialized";
+    }
+    if (!m_fila_manager_cloud_disp) {
+        m_fila_manager_cloud_disp = new wgtFilaManagerCloudDispatcher(m_fila_manager_cloud_sync,
+                                                                     m_fila_manager_cloud_client);
+        BOOST_LOG_TRIVIAL(info) << "Filament Manager cloud dispatcher initialized";
+    }
 
     BOOST_LOG_TRIVIAL(info) << "create the main window";
     mainframe = new MainFrame();
@@ -4438,6 +4525,14 @@ void GUI_App::request_user_logout()
         mainframe->update_side_preset_ui();
 
         GUI::wxGetApp().stop_sync_user_preset();
+
+        // Drop queued cloud ops so they don't fire against a stale user.
+        if (m_fila_manager_cloud_disp) {
+            m_fila_manager_cloud_disp->clear_pending();
+        }
+        if (mainframe && mainframe->web_device()) {
+            mainframe->web_device()->NotifyFilamentSessionState();
+        }
     }
 }
 
@@ -5085,6 +5180,15 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
         mainframe->update_side_preset_ui();
 
         GUI::wxGetApp().mainframe->show_sync_dialog();
+
+        // Trigger filament-manager cloud pull on the dispatcher queue; no-op if
+        // already pulling.  Runs after login so auth token is available.
+        if (m_fila_manager_cloud_disp) {
+            m_fila_manager_cloud_disp->enqueue_pull();
+        }
+        if (mainframe && mainframe->web_device()) {
+            mainframe->web_device()->NotifyFilamentSessionState();
+        }
     }
 }
 

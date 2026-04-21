@@ -640,6 +640,8 @@ set(SLIC3R_GUI_SOURCES
 
 add_subdirectory(GUI/DeviceCore)
 add_subdirectory(GUI/DeviceTab)
+add_subdirectory(GUI/fila_manager)
+add_subdirectory(GUI/DeviceWeb)
 
 if (WIN32)
     list(APPEND SLIC3R_GUI_SOURCES
@@ -683,6 +685,13 @@ if (UNIX AND NOT APPLE)
 endif ()
 
 add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
+
+if (MSVC)
+    target_compile_options(libslic3r_gui PRIVATE /Od /Zi)
+else ()
+    target_compile_options(libslic3r_gui PRIVATE -O0 -g)
+endif ()
+
 target_include_directories(libslic3r_gui PRIVATE Utils)
 
 if (WIN32)

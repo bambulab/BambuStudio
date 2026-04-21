@@ -1,0 +1,70 @@
+/* ===== Filament Module — Pseudo-element & helper styles ===== */
+/* Theme tokens (@theme + light overrides) are in src/styles.css (Tailwind entry) */
+
+/* Cloud sync activity pulse (used by CloudBadge indicator dot) */
+@keyframes fm-pulse {
+  0%   { opacity: 1; transform: scale(1); }
+  50%  { opacity: 0.55; transform: scale(1.25); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Sort icon — arrow character via ::after */
+.fm-sort-icon {
+  display: inline-block;
+  width: 11px;
+  margin-left: 4px;
+  opacity: 0.3;
+}
+.fm-sort-icon::after { content: "\21C5"; font-size: 10px; }
+th.sort-asc .fm-sort-icon::after { content: "\2191"; opacity: 1; }
+th.sort-desc .fm-sort-icon::after { content: "\2193"; opacity: 1; }
+
+/* Form section title left accent bar */
+.fm-section-bar::before {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 16px;
+  border-radius: 10px;
+  background: #50e81d;
+  flex-shrink: 0;
+}
+
+/* Select custom arrow (appearance:none + bg-image) */
+.fm-select-arrow {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='rgba(255,255,255,0.5)' stroke-width='1.2'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+[data-theme="light"] .fm-select-arrow {
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='rgba(0,0,0,0.5)' stroke-width='1.2'/%3E%3C/svg%3E");
+}
+
+/* Native form control colors (select/option/date/textarea) for dark mode */
+.fm-native-form select,
+.fm-native-form textarea,
+.fm-native-form input[type="date"],
+.fm-native-form input[type="color"] {
+  color-scheme: dark;
+}
+.fm-native-form option {
+  background: #2a2a2a;
+  color: #fff;
+}
+[data-theme="light"] .fm-native-form select,
+[data-theme="light"] .fm-native-form textarea,
+[data-theme="light"] .fm-native-form input[type="date"],
+[data-theme="light"] .fm-native-form input[type="color"] {
+  color-scheme: light;
+}
+[data-theme="light"] .fm-native-form option {
+  background: #fff;
+  color: #1a1a1a;
+}
+
+/* AMS light-theme specific overrides */
+[data-theme="light"] .fm-ams-wrap-bg { background: #e8e8e8; }
+[data-theme="light"] .fm-slot-header-bg { background: #e0e0e0; color: #333; }

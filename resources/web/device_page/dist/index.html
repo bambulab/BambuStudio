@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+    
+    <link rel="stylesheet" href="./assets/index.css">
+  </head>
+  <body>
+    <script>
+      // Sync theme from C++ UserAgent BEFORE first paint — eliminates flash
+      if (/\(\s*light\s*\)/i.test(navigator.userAgent)) {
+        document.documentElement.dataset.theme = 'light';
+      }
+    </script>
+    <div id="root"></div>
+      <script src="./assets/index.js"></script>
+  </body>
+</html>

@@ -1997,8 +1997,10 @@ void AMSRoad::doRender(wxDC &dc)
 
     //virtual road
     if (m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_VIRTUAL_TRAY) {
-        dc.SetBrush(wxBrush(m_road_def_color));
-        dc.DrawLine(size.x / 2, -1, size.x / 2, size.y - 1);
+        if (!shouldHideExtRoad()) {
+            dc.SetBrush(wxBrush(m_road_def_color));
+            dc.DrawLine(size.x / 2, -1, size.x / 2, size.y - 1);
+        }
     }
 
     // mode none
@@ -2060,6 +2062,22 @@ void AMSRoad::doRender(wxDC &dc)
 }
 
 void AMSRoad::UpdatePassRoad(int tag_index, AMSPassRoadType type, AMSPassRoadSTEP step) {}
+
+void AMSRoad::UpdateDeviceInfo(std::weak_ptr<DevFilaSystem> fila_system)
+{
+    m_fila_system = fila_system;
+    Refresh();
+}
+
+bool AMSRoad::shouldHideExtRoad() const
+{
+    auto fila_sys = m_fila_system.lock();
+    if (!fila_sys) return false;
+    auto* obj = fila_sys->GetOwner();
+    if (!obj) return false;
+    auto fila_switch = obj->GetFilaSwitch();
+    return fila_switch && fila_switch->IsInstalled() && fila_switch->IsReady();
+}
 
 void AMSRoad::OnPassRoad(std::vector<AMSPassRoadMode> prord_list)
 {
@@ -2241,10 +2259,13 @@ void AMSRoadUpPart::doRender(wxDC& dc)
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 
     if ((m_ams_model == DevAmsType::N3S || m_ams_model == DevAmsType::EXT_SPOOL) && m_amsinfo.cans.size() != 4){
-        dc.DrawLine(((float)size.x / 2), (0), ((float)size.x / 2), (size.y));
-        if (m_load_step == AMSPassRoadSTEP::AMS_ROAD_STEP_2 || m_load_step == AMSPassRoadSTEP::AMS_ROAD_STEP_3){
-            dc.SetPen(wxPen(_get_diff_clr(this, m_amsinfo.cans[m_load_slot_index].material_colour), 4, wxPENSTYLE_SOLID));
-            dc.DrawLine((size.x / 2), (0), (size.x / 2), (size.y));
+        bool hide_ext = (m_ams_model == DevAmsType::EXT_SPOOL) && shouldHideExtRoad();
+        if (!hide_ext) {
+            dc.DrawLine(((float)size.x / 2), (0), ((float)size.x / 2), (size.y));
+            if (m_load_step == AMSPassRoadSTEP::AMS_ROAD_STEP_2 || m_load_step == AMSPassRoadSTEP::AMS_ROAD_STEP_3){
+                dc.SetPen(wxPen(_get_diff_clr(this, m_amsinfo.cans[m_load_slot_index].material_colour), 4, wxPENSTYLE_SOLID));
+                dc.DrawLine((size.x / 2), (0), (size.x / 2), (size.y));
+            }
         }
     }
     else{
@@ -2318,7 +2339,21 @@ void AMSRoadUpPart::msw_rescale() {
     Refresh();
 }
 
+void AMSRoadUpPart::UpdateDeviceInfo(std::weak_ptr<DevFilaSystem> fila_system)
+{
+    m_fila_system = fila_system;
+    Refresh();
+}
 
+bool AMSRoadUpPart::shouldHideExtRoad() const
+{
+    auto fila_sys = m_fila_system.lock();
+    if (!fila_sys) return false;
+    auto* obj = fila_sys->GetOwner();
+    if (!obj) return false;
+    auto fila_switch = obj->GetFilaSwitch();
+    return fila_switch && fila_switch->IsInstalled() && fila_switch->IsReady();
+}
 
 /*************************************************
 Description:AMSRoadDownPart
@@ -2647,6 +2682,22 @@ void AMSRoadDownPart::msw_rescale() {
     Layout();
     Fit();
     Refresh();
+}
+
+void AMSRoadDownPart::UpdateDeviceInfo(std::weak_ptr<DevFilaSystem> fila_system)
+{
+    m_fila_system = fila_system;
+    Refresh();
+}
+
+bool AMSRoadDownPart::shouldHideExtRoad() const
+{
+    auto fila_sys = m_fila_system.lock();
+    if (!fila_sys) return false;
+    auto* obj = fila_sys->GetOwner();
+    if (!obj) return false;
+    auto fila_switch = obj->GetFilaSwitch();
+    return fila_switch && fila_switch->IsInstalled() && fila_switch->IsReady();
 }
 
 /*************************************************
@@ -3479,6 +3530,12 @@ void AmsItem::AddLiteCan(Caninfo caninfo, int canindex, wxGridSizer* sizer)
 
     m_can_lib_list[caninfo.can_id] = m_panel_lib;
     //m_can_road_list[caninfo.can_id] = m_panel_road;
+}
+
+void AmsItem::UpdateDeviceInfo(std::weak_ptr<DevFilaSystem> fila_system)
+{
+    if (m_panel_road)
+        m_panel_road->UpdateDeviceInfo(fila_system);
 }
 
 void AmsItem::Update(AMSinfo info)

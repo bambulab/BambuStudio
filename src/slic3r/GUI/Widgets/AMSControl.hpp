@@ -167,6 +167,7 @@ public:
                    std::vector<AMSinfo> ext_info,
                    DevExtderSystem           data,
                    std::string          dev_id,
+                   MachineObject*       obj      = nullptr,
                    bool                 is_reset = true,
                    bool                 test     = false);
 

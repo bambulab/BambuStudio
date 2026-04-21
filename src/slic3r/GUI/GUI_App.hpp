@@ -1,6 +1,7 @@
 #ifndef slic3r_GUI_App_hpp_
 #define slic3r_GUI_App_hpp_
 
+#include <functional>
 #include <memory>
 #include <string>
 #include "ImGuiWrapper.hpp"
@@ -15,6 +16,11 @@
 #include "slic3r/GUI/WebUserLoginDialog.hpp"
 #include "slic3r/GUI/BindDialog.hpp"
 #include "slic3r/GUI/HMS.hpp"
+#include "slic3r/GUI/fila_manager/wgtFilaManagerStore.h"
+#include "slic3r/GUI/fila_manager/wgtFilaManagerSync.h"
+#include "slic3r/GUI/fila_manager/wgtFilaManagerCloudClient.h"
+#include "slic3r/GUI/fila_manager/wgtFilaManagerCloudSync.h"
+#include "slic3r/GUI/fila_manager/wgtFilaManagerCloudDispatcher.h"
 #include "slic3r/GUI/Jobs/UpgradeNetworkJob.hpp"
 #include "slic3r/GUI/HttpServer.hpp"
 #include "slic3r/GUI/UnsavedChangesDialog.hpp"
@@ -318,6 +324,12 @@ private:
     Slic3r::UserManager* m_user_manager { nullptr };
     Slic3r::TaskManager* m_task_manager { nullptr };
     NetworkAgent* m_agent { nullptr };
+
+    wgtFilaManagerStore*            m_fila_manager_store        { nullptr };
+    wgtFilaManagerSync*             m_fila_manager_sync         { nullptr };
+    wgtFilaManagerCloudClient*      m_fila_manager_cloud_client { nullptr };
+    wgtFilaManagerCloudSync*        m_fila_manager_cloud_sync   { nullptr };
+    wgtFilaManagerCloudDispatcher*  m_fila_manager_cloud_disp   { nullptr };
     std::vector<std::string> need_delete_presets;   // store setting ids of preset
     std::vector<bool> m_create_preset_blocked { false, false, false, false, false, false }; // excceed limit
     bool m_networking_compatible { false };
@@ -343,6 +355,9 @@ private:
     wxString         m_info_dialog_content;
     wxString         m_install_preset_fail_text;
     HttpServer       m_http_server;
+#if !BBL_RELEASE_TO_PUBLIC
+    std::function<void(const nlohmann::json&)> m_fila_debug_sink;
+#endif
 
     boost::thread    m_check_cert_thread;
     TryLoadLastMachine m_load_last_machine;
@@ -369,6 +384,24 @@ public:
     Slic3r::DeviceManager* getDeviceManager() { return m_device_manager; }
     bool                   is_blocking_printing(MachineObject *obj_ = nullptr);
     Slic3r::TaskManager*   getTaskManager() { return m_task_manager; }
+    wgtFilaManagerStore*            fila_manager_store()        { return m_fila_manager_store; }
+    wgtFilaManagerSync*             fila_manager_sync()         { return m_fila_manager_sync; }
+    wgtFilaManagerCloudClient*      fila_manager_cloud_client() { return m_fila_manager_cloud_client; }
+    wgtFilaManagerCloudSync*        fila_manager_cloud_sync()   { return m_fila_manager_cloud_sync; }
+    wgtFilaManagerCloudDispatcher*  fila_manager_cloud_disp()   { return m_fila_manager_cloud_disp; }
+#if !BBL_RELEASE_TO_PUBLIC
+    void set_fila_debug_sink(std::function<void(const nlohmann::json&)> sink)
+    {
+        m_fila_debug_sink = std::move(sink);
+    }
+#else
+    void set_fila_debug_sink(std::function<void(const nlohmann::json&)> /*sink*/) {}
+#endif
+    void emit_fila_debug_log(const std::string& category,
+                             const std::string& level,
+                             const std::string& title,
+                             const std::string& summary,
+                             const nlohmann::json& detail = nlohmann::json::object());
     HMSQuery* get_hms_query() { return hms_query; }
     NetworkAgent* getAgent() { return m_agent; }
     FilamentColorCodeQuery* get_filament_color_code_query();
