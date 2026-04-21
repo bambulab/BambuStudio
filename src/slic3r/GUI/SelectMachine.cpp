@@ -4496,6 +4496,13 @@ void SelectMachineDialog::reset_and_sync_ams_list()
     int left_sizer_count = 0, right_sizer_count = 0, sizer_count = 0;
 
     BitmapCache  bmcache;
+
+    auto dev = wxGetApp().getDeviceManager()->get_selected_machine();
+    bool has_switcher = dev && dev->GetFilaSwitch()->IsInstalled();
+
+    auto filament_color_render_info = wxGetApp().plater()->get_filament_colors_render_info();
+    auto filament_color_type_info   = wxGetApp().plater()->get_filament_color_render_type();
+
     for (auto i = 0; i < used_filaments.size(); i++) {
         auto          used_filament = used_filaments[i] - 1;
         if (used_filament >= preset_filament_vec.size()) {
@@ -4516,8 +4523,6 @@ void SelectMachineDialog::reset_and_sync_ams_list()
 
         // create material item
         MaterialItem* item = nullptr;
-        auto dev = wxGetApp().getDeviceManager()->get_selected_machine();
-        bool has_switcher = dev && dev->GetFilaSwitch()->IsInstalled();
         if (extruder_nums == 2 && !has_switcher) {
             if (m_filaments_map[used_filament] == 1) {
                 item = new MaterialItem(m_filament_left_panel, colour_rgb, preset_filament.filament_display_type, preset_filament.filament_id);
@@ -4535,6 +4540,20 @@ void SelectMachineDialog::reset_and_sync_ams_list()
         }
 
         if (!item) { continue; }
+
+        if (used_filament < filament_color_render_info.size() && used_filament < filament_color_type_info.size()) {
+            auto color_strs = Slic3r::split_string(filament_color_render_info[used_filament], ' ');
+            if (color_strs.size() > 1) {
+                int ctype = (filament_color_type_info[used_filament] == "0") ? 0 : 1;
+                std::vector<wxColour> cols;
+                for (const auto& cs : color_strs) {
+                    wxColour c(cs);
+                    if (c.IsOk()) cols.push_back(c);
+                }
+                if (cols.size() > 1) item->set_material_cols(ctype, cols);
+            }
+        }
+
         item->SetToolTip(_L("Upper half area:  Original\nLower half area:  Filament in AMS\nAnd you can click it to modify"));
 
         if (!selected_any && used_filament == m_current_filament_id && item->m_enable) {
@@ -5016,6 +5035,9 @@ void SelectMachineDialog::set_default_from_sdcard()
     MaterialItem *first_enabled     = nullptr;
     int           first_enabled_id  = -1;
 
+    auto filament_color_render_info2 = wxGetApp().plater()->get_filament_colors_render_info();
+    auto filament_color_type_info2   = wxGetApp().plater()->get_filament_color_render_type();
+
     for (auto i = 0; i < m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info.size(); i++) {
         FilamentInfo fo = m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info[i];
 
@@ -5038,6 +5060,19 @@ void SelectMachineDialog::set_default_from_sdcard()
         }
 
         if (!item) continue;
+
+        if (fo.id < (int)filament_color_render_info2.size() && fo.id < (int)filament_color_type_info2.size()) {
+            auto color_strs = Slic3r::split_string(filament_color_render_info2[fo.id], ' ');
+            if (color_strs.size() > 1) {
+                int ctype = (filament_color_type_info2[fo.id] == "0") ? 0 : 1;
+                std::vector<wxColour> cols;
+                for (const auto& cs : color_strs) {
+                    wxColour c(cs);
+                    if (c.IsOk()) cols.push_back(c);
+                }
+                if (cols.size() > 1) item->set_material_cols(ctype, cols);
+            }
+        }
 
         if (!selected_any && fo.id == m_current_filament_id && item->m_enable) {
             item->on_selected();

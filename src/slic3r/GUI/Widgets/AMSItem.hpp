@@ -67,7 +67,12 @@ enum class AMSRoadShowMode : int {
     AMS_ROAD_MODE_SINGLE,
     AMS_ROAD_MODE_SINGLE_N3S,
     AMS_ROAD_MODE_AMS_LITE,
-    AMS_ROAD_MODE_NONE
+    AMS_ROAD_MODE_ARROW,
+    AMS_ROAD_MODE_NONE,
+    // Variants of DOUBLE that only draw the AMS side when paired with an EXT_SPOOL
+    // (used when fila switch is installed and EXT's down-road should be hidden)
+    AMS_ROAD_MODE_DOUBLE_FAR_ONLY,
+    AMS_ROAD_MODE_DOUBLE_NEAR_ONLY,
 };
 
 enum class AMSPassRoadMode : int {
@@ -778,6 +783,7 @@ public:
     void     PlayRridLoading(wxString canid);
     void     StopRridLoading(wxString canid);
     void     msw_rescale();
+    bool     ShowRoad(bool show);
     void     show_sn_value(bool show);
     void     SetAmsStepExtra(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step);
     void     SetAmsStep(std::string amsid, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP step);

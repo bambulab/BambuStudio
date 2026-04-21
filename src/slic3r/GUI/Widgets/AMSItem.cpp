@@ -2446,7 +2446,7 @@ void AMSRoadDownPart::doRender(wxDC& dc)
     wxPoint left_nozzle_pos = wxPoint(std::ceil((float)size.x / 2 - FromDIP(8)), FromDIP(258));
     wxPoint right_nozzle_pos = wxPoint(std::ceil((float)size.x / 2 + FromDIP(6)), FromDIP(258));
     dc.SetPen(empty_pen);
-    if (m_left_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_NONE || m_right_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_NONE){
+    if (m_nozzle_num < 2 && (m_left_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_NONE || m_right_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_NONE)){
         //switch (m_left_rode_mode) {
         //    default: break;
         //};
@@ -2488,6 +2488,14 @@ void AMSRoadDownPart::doRender(wxDC& dc)
             dc.DrawLine(left_nozzle_pos.x - FromDIP(110), 0, left_nozzle_pos.x - FromDIP(110), (size.y / 2));
             dc.DrawLine(left_nozzle_pos.x - FromDIP(218), 0, left_nozzle_pos.x - FromDIP(218), (size.y / 2));
             break;
+        case AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE_FAR_ONLY:
+            dc.DrawLine(left_nozzle_pos.x - FromDIP(218), (size.y / 2), left_nozzle_pos.x, (size.y / 2));
+            dc.DrawLine(left_nozzle_pos.x - FromDIP(218), 0, left_nozzle_pos.x - FromDIP(218), (size.y / 2));
+            break;
+        case AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE_NEAR_ONLY:
+            dc.DrawLine(left_nozzle_pos.x - FromDIP(110), (size.y / 2), left_nozzle_pos.x, (size.y / 2));
+            dc.DrawLine(left_nozzle_pos.x - FromDIP(110), 0, left_nozzle_pos.x - FromDIP(110), (size.y / 2));
+            break;
         case AMSRoadShowMode::AMS_ROAD_MODE_SINGLE:
             dc.DrawLine(left_nozzle_pos.x - FromDIP(129), (size.y / 2), left_nozzle_pos.x, (size.y / 2));
             dc.DrawLine(left_nozzle_pos.x - FromDIP(129), 0, left_nozzle_pos.x - FromDIP(129), (size.y / 2));
@@ -2514,6 +2522,14 @@ void AMSRoadDownPart::doRender(wxDC& dc)
             dc.DrawLine(right_nozzle_pos.x + FromDIP(110), 0, right_nozzle_pos.x + FromDIP(110), (size.y / 2));
             dc.DrawLine(right_nozzle_pos.x + FromDIP(218), 0, right_nozzle_pos.x + FromDIP(218), (size.y / 2));
             break;
+        case AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE_FAR_ONLY:
+            dc.DrawLine(right_nozzle_pos.x, (size.y / 2), right_nozzle_pos.x + FromDIP(218), (size.y / 2));
+            dc.DrawLine(right_nozzle_pos.x + FromDIP(218), 0, right_nozzle_pos.x + FromDIP(218), (size.y / 2));
+            break;
+        case AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE_NEAR_ONLY:
+            dc.DrawLine(right_nozzle_pos.x, (size.y / 2), right_nozzle_pos.x + FromDIP(110), (size.y / 2));
+            dc.DrawLine(right_nozzle_pos.x + FromDIP(110), 0, right_nozzle_pos.x + FromDIP(110), (size.y / 2));
+            break;
         case AMSRoadShowMode::AMS_ROAD_MODE_SINGLE:
             dc.DrawLine(right_nozzle_pos.x, (size.y / 2), right_nozzle_pos.x + FromDIP(131), (size.y / 2));
             dc.DrawLine(right_nozzle_pos.x + FromDIP(131), 0, right_nozzle_pos.x + FromDIP(131), (size.y / 2));
@@ -2536,8 +2552,12 @@ void AMSRoadDownPart::doRender(wxDC& dc)
         if (m_nozzle_num == 2) {
             /*dc.DrawLine(FromDIP(left_nozzle_pos.x), FromDIP(size.y / 2), FromDIP(left_nozzle_pos.x), FromDIP(size.y));
             dc.DrawLine(FromDIP(right_nozzle_pos.x), FromDIP(size.y / 2), FromDIP(right_nozzle_pos.x), FromDIP(size.y));*/
-            dc.DrawLine((left_nozzle_pos.x), (size.y / 2), (left_nozzle_pos.x), (size.y));
-            dc.DrawLine((right_nozzle_pos.x), (size.y / 2), (right_nozzle_pos.x), (size.y));
+            if (m_left_rode_mode != AMSRoadShowMode::AMS_ROAD_MODE_NONE) {
+                dc.DrawLine((left_nozzle_pos.x), (size.y / 2), (left_nozzle_pos.x), (size.y));
+            }
+            if (m_right_rode_mode != AMSRoadShowMode::AMS_ROAD_MODE_NONE) {
+                dc.DrawLine((right_nozzle_pos.x), (size.y / 2), (right_nozzle_pos.x), (size.y));
+            }
         }
         else {
             if (m_right_rode_mode != AMSRoadShowMode::AMS_ROAD_MODE_NONE && m_left_rode_mode != AMSRoadShowMode::AMS_ROAD_MODE_NONE) {
@@ -3284,6 +3304,16 @@ void AmsItem::create(wxWindow *parent)
     Fit();
     Thaw();
     //Refresh();
+}
+
+bool AmsItem::ShowRoad(bool show)
+{
+    if (!m_panel_road) return false;
+    if (m_panel_road->IsShown() == show) return false;
+    m_panel_road->Show(show);
+    Layout();
+    Refresh();
+    return true;
 }
 
 void AmsItem::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* sizer)

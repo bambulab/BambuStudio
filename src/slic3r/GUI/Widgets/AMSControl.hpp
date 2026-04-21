@@ -186,6 +186,7 @@ public:
     void Reset();
 
     std::tuple<bool, bool> isFilaSwitchReady();
+    bool                   isFilaSwitchInstalled() const;
     void show_switcher_status(bool show);
     void show_noams_mode();
     void show_auto_refill(bool show);
@@ -208,6 +209,11 @@ private:
     void UpdateAmsPreviewSelection();
 
     bool IsInSlotPair(const std::string& ams_id) const;
+
+    // When fila switch is installed and the given AMS item is paired with an EXT_SPOOL
+    // in the same panel, return the DOUBLE variant that only draws the AMS side.
+    // Returns false if no replacement is needed (caller should keep using DOUBLE).
+    bool GetExtPairedDoubleMode(const std::string& ams_id, AMSPanelPos panel_pos, AMSRoadShowMode& out_mode) const;
 };
 
 }} // namespace Slic3r::GUI
