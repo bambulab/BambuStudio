@@ -636,13 +636,10 @@ float calc_filament_change_gap_for_assignment(
     const std::vector<int>&           filament_change_seq,
     const std::vector<int>&           nozzle_change_seq,
     const std::vector<int>&           group_of_filament,
-    const FilamentChangeTimeParams&   time_params)
+    const FilamentChangeTimeParams&   time_params,
+    const std::vector<bool>&          ams_preload_enabled)
 {
     if (logical_filaments.empty() || nozzle_list.empty() || filament_change_seq.empty() || nozzle_change_seq.empty()) return 0.0f;
-
-    // TODO: 当前固件所有退料都退到AMS，不支持退到选料器待机。
-    // 待固件支持后，将此开关置为 true 以启用选料器待机优化。
-    constexpr bool selector_park_enabled = false;
 
     // 参数语义重新映射：
     // 输入参数中 standard = AMS->选料器->挤出机（全程），selector = 选料器->挤出机（短程）
@@ -669,12 +666,18 @@ float calc_filament_change_gap_for_assignment(
         return it != filament_to_group.end() ? it->second : -1;
     };
 
+    const auto is_preload_enabled = [&](int group_id) -> bool {
+        if (group_id < 0 || group_id >= static_cast<int>(ams_preload_enabled.size()))
+            return false;
+        return ams_preload_enabled[group_id];
+    };
+
     // 料的位置状态
     enum class Location { IN_AMS, IN_SELECTOR, IN_EXTRUDER };
     std::unordered_map<int, Location> filament_location;  // filament_id -> 当前位置
     std::unordered_map<int, int>      filament_extruder;  // filament_id -> 所在挤出机（仅IN_EXTRUDER时有效）
     std::unordered_map<int, int>      extruder_filament;  // extruder_id -> 当前装载的料
-    // group_id -> 当前占用了该AMS通道的料集合（IN_SELECTOR或IN_EXTRUDER），用于Step3快速查找需要让路的料
+     // group_id -> 当前占用了该AMS通道的料集合（IN_SELECTOR或IN_EXTRUDER）
     std::unordered_map<int, std::unordered_set<int>> ams_group_occupied;
 
     filament_location.reserve(logical_filaments.size());
@@ -700,6 +703,7 @@ float calc_filament_change_gap_for_assignment(
 
         int E = nozzle_iter->second; // 目标挤出机
 
+        // Step 0: 计算切片预估时间
         // 切片预估时间：模拟切片视角（无选料器意识）
         // 对应参考代码逻辑：nozzle_in_extruder_change || filament_in_nozzle_change 时计进退料
         {
@@ -726,24 +730,10 @@ float calc_filament_change_gap_for_assignment(
                 A = it->second;
         }
 
-        // Step 2: A从E退出（A不为空且A!=B时）
-        if (A != -1 && A != B) {
-            if (!selector_park_enabled || get_group(A) == get_group(B)) {
-                // 当前固件不支持选料器待机，或同AMS需让路：A完整退回AMS
-                actual_time += unload_ext_to_selector + unload_ams_to_selector;
-                filament_location[A] = Location::IN_AMS;
-                ams_group_occupied[get_group(A)].erase(A);
-            } else {
-                // 不同AMS且支持选料器待机：A只退到选料器，仍占用AMS通道
-                actual_time += unload_ext_to_selector;
-                filament_location[A] = Location::IN_SELECTOR;
-            }
-            extruder_filament.erase(E);
-            filament_extruder.erase(A);
-        }
-
-        // Step 3: 若B的AMS通道被其他料X占用（X与B同AMS，且X在选料器或挤出机里），X必须退回AMS让路
         int group_B = get_group(B);
+        int group_A = (A != -1) ? get_group(A) : -1;
+
+        // Step 2: 清理B的AMS通道占用
         auto group_it = ams_group_occupied.find(group_B);
         if (group_it != ams_group_occupied.end()) {
             for (int X : group_it->second) {
@@ -755,7 +745,7 @@ float calc_filament_change_gap_for_assignment(
                     int E2 = filament_extruder[X];
                     extruder_filament.erase(E2);
                     filament_extruder.erase(X);
-                } else { // IN_SELECTOR
+                } else if (loc_X == Location::IN_SELECTOR) {
                     actual_time += unload_ams_to_selector;
                 }
                 filament_location[X] = Location::IN_AMS;
@@ -763,22 +753,69 @@ float calc_filament_change_gap_for_assignment(
             group_it->second.clear();
         }
 
-        // Step 4: B推入E（根据B当前状态）
-        auto loc_it = filament_location.find(B);
-        Location loc_B = (loc_it != filament_location.end()) ? loc_it->second : Location::IN_AMS;
-        if (loc_B == Location::IN_AMS) {
-            actual_time += load_ams_to_selector + load_selector_to_ext;
-        } else if (loc_B == Location::IN_SELECTOR) {
-            // 仅在selector_park_enabled时B才可能处于IN_SELECTOR
-            actual_time += load_selector_to_ext;
+        // Step 3: A从E退出（A仍在挤出机中时）
+        // Step 3.5: 预进料B（与Step 3并行）
+        // 实际耗时 = max(Step 3, Step 3.5)
+        bool step3_executed = false;
+        float step3_time = 0.0f;
+        if (A != -1 && A != B && filament_location[A] == Location::IN_EXTRUDER) {
+            if (is_preload_enabled(group_A) && group_A != group_B) {
+                step3_time = unload_ext_to_selector;
+                filament_location[A] = Location::IN_SELECTOR;
+            } else {
+                step3_time = unload_ext_to_selector + unload_ams_to_selector;
+                filament_location[A] = Location::IN_AMS;
+                ams_group_occupied[group_A].erase(A);
+            }
+            extruder_filament.erase(E);
+            filament_extruder.erase(A);
+            step3_executed = true;
         }
-        // IN_EXTRUDER且E==当前挤出机：B已经在目标挤出机，无需操作
+
+        float step3_5_time = 0.0f;
+        if (step3_executed &&
+            filament_location[B] == Location::IN_AMS &&
+            group_A != group_B &&
+            is_preload_enabled(group_B)) {
+            step3_5_time = load_ams_to_selector;
+            filament_location[B] = Location::IN_SELECTOR;
+            ams_group_occupied[group_B].insert(B);
+        }
+
+        actual_time += std::max(step3_time, step3_5_time);
+
+        // Step 4: B推入E
+        // Step 6: 预进料下一个料C（与Step 4并行）
+        // 实际耗时 = max(Step 4, Step 6)
+        float step4_time = 0.0f;
+        Location loc_B = filament_location[B];
+        if (loc_B == Location::IN_AMS) {
+            step4_time = load_ams_to_selector + load_selector_to_ext;
+        } else if (loc_B == Location::IN_SELECTOR) {
+            step4_time = load_selector_to_ext;
+        }
 
         // Step 5: 更新状态
         extruder_filament[E]  = B;
         filament_location[B]  = Location::IN_EXTRUDER;
         filament_extruder[B]  = E;
         ams_group_occupied[group_B].insert(B);
+
+        float step6_time = 0.0f;
+        if (i + 1 < seq_len) {
+            int C = filament_change_seq[i + 1];
+            int group_C = get_group(C);
+            if (filament_location[C] == Location::IN_AMS &&
+                group_C != group_B &&
+                is_preload_enabled(group_C) &&
+                ams_group_occupied[group_C].empty()) {
+                step6_time = load_ams_to_selector;
+                filament_location[C] = Location::IN_SELECTOR;
+                ams_group_occupied[group_C].insert(C);
+            }
+        }
+
+        actual_time += std::max(step4_time, step6_time);
     }
 
     return actual_time - sliced_time;
