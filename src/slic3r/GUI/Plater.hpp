@@ -695,7 +695,13 @@ public:
     void split_volume();
     void optimize_rotation();
     // find all empty cells on the plate and won't overlap with exclusion areas
-    static std::vector<Vec2f> get_empty_cells(const Vec2f step);
+    // safe_area_2d: 可选的可放置区域包围盒（毫米，世界坐标）。defined() 时优先使用，
+    //               典型由 `get_shrink_bedpts` 收缩后的 m_bedpts 传入，使网格路径与
+    //               NFP 路径在 bed_shrink/brim_skirt_distance 上保持一致；未提供时
+    //               回落到 plate->get_build_volume(true)（旧行为）。
+    // 网格无论使用哪个区域，都会按 step 在区域内居中，把整除剩余的空间均匀分到两端，
+    //               避免边缘对象贴床边导致 brim/skirt 越出。
+    static std::vector<Vec2f> get_empty_cells(const Vec2f step, const BoundingBoxf& safe_area_2d = BoundingBoxf());
 
     //BBS:
     void fill_color(int extruder_id);

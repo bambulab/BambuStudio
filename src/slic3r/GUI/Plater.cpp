@@ -22092,35 +22092,70 @@ void Plater::clone_selection()
     selection.clone(res);
 }
 
-std::vector<Vec2f> Plater::get_empty_cells(const Vec2f step)
+std::vector<Vec2f> Plater::get_empty_cells(const Vec2f step, const BoundingBoxf& safe_area_2d)
 {
     PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-    BoundingBoxf3 build_volume = plate->get_build_volume(true);
-    Vec2d vmin(build_volume.min.x(), build_volume.min.y()), vmax(build_volume.max.x(), build_volume.max.y());
-    BoundingBoxf bbox(vmin, vmax);
+
+    // 优先使用调用方传入的"安全可放置区域"（已按 bed_shrink + brim_skirt_distance/2 收缩），
+    // 与 NFP 路径行为对齐；未提供时回落到原 build_volume(true)（仅含微小 SceneEpsilon）。
+    BoundingBoxf bbox;
+    if (safe_area_2d.defined) {
+        bbox = safe_area_2d;
+    } else {
+        BoundingBoxf3 build_volume = plate->get_build_volume(true);
+        bbox = BoundingBoxf(Vec2d(build_volume.min.x(), build_volume.min.y()),
+                            Vec2d(build_volume.max.x(), build_volume.max.y()));
+    }
+
     std::vector<Vec2f> cells;
-    auto min_x = step(0)/2;// start_point.x() - step(0) * int((start_point.x() - bbox.min.x()) / step(0));
-    auto min_y = step(1)/2;// start_point.y() - step(1) * int((start_point.y() - bbox.min.y()) / step(1));
+    if (step(0) <= 0.f || step(1) <= 0.f)
+        return cells;
+
+    const double width  = bbox.max.x() - bbox.min.x();
+    const double height = bbox.max.y() - bbox.min.y();
+    if (width < step(0) || height < step(1))
+        return cells;
+
+    // STUDIO: 把整除剩余的"边缘余量"对称分摊到两侧，避免最左/最下那一列死贴床边、
+    // 而最右/最上却空一大条的现象。floor 使每行/列至少容下一个完整 cell；上面已经
+    // 提前 return 保证 width >= step(0) && height >= step(1)，所以 cols/rows >= 1。
+    // NOTE: 网格起点改为居中，调用方（如 FillBedJob）的可视化布局会与旧版本不同，
+    //       但仍然完整落在 bbox 内，且左右/上下对称。
+    const int    cols    = int(std::floor(width  / step(0)));
+    const int    rows    = int(std::floor(height / step(1)));
+    const double half_x  = step(0) / 2.0;
+    const double half_y  = step(1) / 2.0;
+    const double pad_x   = (width  - cols * step(0)) / 2.0;
+    const double pad_y   = (height - rows * step(1)) / 2.0;
+    const double start_x = bbox.min.x() + pad_x + half_x;
+    const double start_y = bbox.min.y() + pad_y + half_y;
+
     auto& exclude_box3s = plate->get_exclude_areas();
     std::vector<BoundingBoxf> exclude_boxs;
+    exclude_boxs.reserve(exclude_box3s.size());
     for (auto& box : exclude_box3s) {
-        Vec2d vmin(box.min.x(), box.min.y()), vmax(box.max.x(), box.max.y());
-        exclude_boxs.emplace_back(vmin, vmax);
+        exclude_boxs.emplace_back(Vec2d(box.min.x(), box.min.y()), Vec2d(box.max.x(), box.max.y()));
     }
-    for (float x = min_x + bbox.min.x(); x < bbox.max.x() - step(0) / 2; x += step(0))
-        for (float y = min_y + bbox.min.y(); y < bbox.max.y() - step(1) / 2; y += step(1)) {
+
+    cells.reserve(size_t(cols) * size_t(rows));
+    for (int i = 0; i < cols; ++i) {
+        const double x = start_x + i * step(0);
+        for (int j = 0; j < rows; ++j) {
+            const double y = start_y + j * step(1);
+            BoundingBoxf cell(Vec2d(x - half_x, y - half_y),
+                              Vec2d(x + half_x, y + half_y));
             bool in_exclude = false;
-            BoundingBoxf cell(Vec2d(x - step(0) / 2, y - step(1) / 2), Vec2d(x + step(0) / 2, y + step(1) / 2));
             for (auto& box : exclude_boxs) {
                 if (box.overlap(cell)) {
                     in_exclude = true;
                     break;
                 }
             }
-            if(in_exclude)
+            if (in_exclude)
                 continue;
-            cells.emplace_back(x, y);
+            cells.emplace_back(float(x), float(y));
         }
+    }
     return cells;
 }
 
