@@ -2751,11 +2751,11 @@ void MainFrame::init_menubar_as_editor()
 
 
 #ifndef __APPLE__
-        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\t" + ctrl + _L("Shift+") + "S", _L("Save current project as"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\t" + ctrl + "Shift+" + "S", _L("Save current project as"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, "menu_save", nullptr,
             [this](){return m_plater != nullptr && can_save_as(); }, this);
 #else
-        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\t" + ctrl + _L("Shift+") + "S", _L("Save current project as"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\t" + ctrl + "Shift+" + "S", _L("Save current project as"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, "", nullptr,
             [this](){return m_plater != nullptr && can_save_as(); }, this);
 #endif
@@ -2899,7 +2899,7 @@ void MainFrame::init_menubar_as_editor()
             _L("Deletes the current selection"),[this](wxCommandEvent&) { m_plater->remove_selected(); },
             "menu_remove", nullptr, [this](){return can_delete(); }, this);
         //BBS: delete all
-        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + _L("Shift+") + "D",
+        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + "Shift+" + "D",
             _L("Deletes all objects"),[this](wxCommandEvent&) { m_plater->delete_all_objects_from_model(); },
             "menu_remove", nullptr, [this](){return can_delete_all(); }, this);
         editMenu->AppendSeparator();
@@ -2981,7 +2981,7 @@ void MainFrame::init_menubar_as_editor()
             "", nullptr, [this](){return can_delete(); }, this);
 #endif
         //BBS: delete all
-        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + _L("Shift+") + "D",
+        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + "Shift+" + "D",
             _L("Deletes all objects"),[this, handle_key_event](wxCommandEvent&) {
                 wxKeyEvent e;
                 e.SetEventType(wxEVT_KEY_DOWN);
@@ -3101,7 +3101,7 @@ void MainFrame::init_menubar_as_editor()
         append_menu_check_item(viewMenu, wxID_ANY, _L("Show Labels by Layer") + "\t" + ctrl + "E", _L("Show Labels of printing by layer in 3D scene"),
             [this](wxCommandEvent&) { m_plater->show_view3D_layer_labels(!m_plater->are_view3D_layer_labels_shown()); m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, this,
             [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_layer_labels_shown(); }, this);
-        append_menu_check_item(viewMenu, wxID_ANY, _L("Show Labels by Object") + "\t" + _L("Shift+") + "E", _L("Show Labels of printing by object in 3D scene"),
+        append_menu_check_item(viewMenu, wxID_ANY, _L("Show Labels by Object") + "\t" + ctrl + "Shift+" + "E", _L("Show Labels of printing by object in 3D scene"),
             [this](wxCommandEvent&) { m_plater->show_view3D_object_labels(!m_plater->are_view3D_object_labels_shown()); m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, this,
             [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_object_labels_shown(); }, this);
 
