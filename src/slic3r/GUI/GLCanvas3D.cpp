@@ -278,6 +278,7 @@ void GLCanvas3D::LayersEditing::set_config(const DynamicPrintConfig* config)
     m_slicing_parameters = nullptr;
     m_layers_texture.valid = false;
     m_layer_height_profile.clear();
+    m_profile_dirty = true;
 }
 
 void GLCanvas3D::LayersEditing::select_object(const Model& model, int object_id)
@@ -838,6 +839,7 @@ void GLCanvas3D::LayersEditing::generate_layer_height_texture()
     if (PrintObject::update_layer_height_profile(*m_model_object, *m_slicing_parameters, m_layer_height_profile)) {
         // Initialized to the default value.
         update = true;
+        m_profile_dirty = true;
     }
     // Update if the layer height profile was changed, or when the texture is not valid.
     if (!update && !m_layers_texture.data.empty() && m_layers_texture.cells > 0)
