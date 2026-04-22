@@ -8512,7 +8512,14 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             }
                             is_user_cancel = true;
                             return -1;
-                        }, linear, angle, split_compound);
+                        }, linear, angle, split_compound,
+                        [](const std::vector<std::string>& names) {
+                            wxString msg = _L("The following shells are not closed and may cause issues:") + "\n\n";
+                            for (const auto& name : names) {
+                                msg += wxString::FromUTF8(name) + "\n";
+                            }
+                            Slic3r::GUI::show_info(nullptr, msg, _L("Unclosed Shell Warning"));
+                        });
                 }else {
                     if (boost::algorithm::iends_with(path.string(), ".obj")) {
                         is_xxx = GUI::wxGetApp().app_config->get_bool("gamma_correct_in_import_obj");
@@ -10171,7 +10178,14 @@ bool Plater::priv::replace_volume_with_stl(int object_idx, int volume_idx, const
                         return 1;
                     }
                     return -1;
-                }, linear, angle, split_compound);
+                }, linear, angle, split_compound,
+                [](const std::vector<std::string>& names) {
+                    wxString msg = _L("The following shells are not closed and may cause issues:") + "\n\n";
+                    for (const auto& name : names) {
+                        msg += wxString::FromUTF8(name) + "\n";
+                    }
+                    Slic3r::GUI::show_info(nullptr, msg, _L("Unclosed Shell Warning"));
+                });
         }else {
             new_model = Model::read_from_file(path, nullptr, nullptr, LoadStrategy::AddDefaultInstances | LoadStrategy::LoadModel);
         }

@@ -1657,7 +1657,8 @@ public:
                                 std::function<int(Slic3r::Step&, double&, double&, bool&)>     step_mesh_fn,
                                 double                                                  linear_defletion,
                                 double                                                  angle_defletion,
-                                bool                                                    is_split_compound);
+                                bool                                                    is_split_compound,
+                                std::function<void(const std::vector<std::string>&)>    open_shell_warn_fn = nullptr);
 
     //BBS: add part plate related logic
     // BBS: backup

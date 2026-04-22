@@ -191,7 +191,8 @@ Model Model::read_from_step(const std::string&                                  
                             std::function<int(Slic3r::Step&, double&, double&, bool&)>     step_mesh_fn,
                             double                                                  linear_defletion,
                             double                                                  angle_defletion,
-                            bool                                                   is_split_compound)
+                            bool                                                   is_split_compound,
+                            std::function<void(const std::vector<std::string>&)>    open_shell_warn_fn)
 {
     Model model;
     bool result = false;
@@ -201,6 +202,9 @@ Model Model::read_from_step(const std::string&                                  
     status = step_file.load();
     if(status != Step::Step_Status::LOAD_SUCCESS) {
         goto _finished;
+    }
+    if (open_shell_warn_fn && !step_file.get_unclosed_shells().empty()) {
+        open_shell_warn_fn(step_file.get_unclosed_shells());
     }
     if (step_mesh_fn) {
         if (step_mesh_fn(step_file, linear_defletion, angle_defletion, is_split_compound) == -1) {
