@@ -6505,7 +6505,7 @@ std::optional<float> SelectMachineDialog::get_filament_change_gap_time(MachineOb
     params.selector_unload_time = params.standard_unload_time * 0.5;
 
     int group_count = group_of_filaments.empty() ? 0 : *std::max_element(group_of_filaments.begin(), group_of_filaments.end()) + 1;
-    std::vector<bool> ams_preload_enabled(group_count, true);
+    std::vector<bool> ams_preload_enabled(group_count, obj_->ams_preload_version >= 1);
 
     try {
         return MultiNozzleUtils::calc_filament_change_gap_for_assignment(logic_filaments,

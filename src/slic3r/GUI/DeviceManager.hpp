@@ -557,6 +557,7 @@ public:
     bool is_support_active_arc_fitting{false};
     bool is_support_liveview_preview{false};
     bool is_support_check_track_switch_match_slice_printer{ false };
+    int  ams_preload_version{0};
 
     bool installed_upgrade_kit{false};
     int  bed_temperature_limit = -1;
