@@ -193,6 +193,42 @@ void wgtFilaManagerStore::update_spool(const FilamentSpool& spool)
     m_dirty         = true;
 }
 
+bool wgtFilaManagerStore::apply_patch(const std::string& spool_id, const nlohmann::json& patch)
+{
+    auto it = m_spools.find(spool_id);
+    if (it == m_spools.end()) return false;
+    FilamentSpool& s = it->second;
+
+    // 仅合并用户可编辑字段；不接受 null（表示"未提供"）。系统字段 spool_id /
+    // tag_uid / entry_method / created_at / bound_* / cloud_synced 故意不在此处
+    // 合并，避免前端 patch 清掉它们（见 STUDIO-17964 Problem A）。
+    auto get_if = [&](const char* key, auto& dst) {
+        if (!patch.contains(key)) return;
+        const auto& v = patch.at(key);
+        if (v.is_null()) return;
+        try { v.get_to(dst); } catch (...) {}
+    };
+    get_if("setting_id",      s.setting_id);
+    get_if("brand",           s.brand);
+    get_if("material_type",   s.material_type);
+    get_if("series",          s.series);
+    get_if("color_name",      s.color_name);
+    get_if("color_code",      s.color_code);
+    get_if("diameter",        s.diameter);
+    get_if("initial_weight",  s.initial_weight);
+    get_if("spool_weight",    s.spool_weight);
+    get_if("remain_percent",  s.remain_percent);
+    get_if("status",          s.status);
+    get_if("note",            s.note);
+    get_if("favorite",        s.favorite);
+    get_if("net_weight",      s.net_weight);
+
+    s.updated_at   = now_iso8601();
+    s.cloud_synced = false;
+    m_dirty        = true;
+    return true;
+}
+
 void wgtFilaManagerStore::remove_spool(const std::string& spool_id)
 {
     m_spools.erase(spool_id);

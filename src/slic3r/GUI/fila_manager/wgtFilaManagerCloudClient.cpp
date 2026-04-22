@@ -135,11 +135,18 @@ void wgtFilaManagerCloudClient::update_spool(
     if (!check_login(on_err))
         return;
 
-    // Swagger UpdateFilamentV2Req: `id` lives in the URL path, not the body.
-    // Strip any legacy `id` key before dispatching so the server-side strict
-    // schema validator does not reject the payload.
-    nlohmann::json request_body = body;
-    request_body.erase("id");
+    // Swagger UpdateFilamentV2Req：`id` 为 int64 且 required，路由是
+    // `PUT /my/filament/v2`（id 在 body，不在 path）。这里把字符串形式的本地
+    // spool_id 转成 int64 写回 body；其余字段由 `spool_to_cloud_update_patch`
+    // 过滤过 swagger 白名单，调用方直接传入即可。
+    nlohmann::json request_body = body.is_object() ? body : nlohmann::json::object();
+    try {
+        request_body["id"] = std::stoll(id);
+    } catch (const std::exception&) {
+        // spool_id 不可解析为 int64 时保持字符串形式交给 server，让服务端回
+        // 具体的 400 校验错误（而不是本地吞掉），便于排查。
+        request_body["id"] = id;
+    }
 
     dispatch_agent_request("update_spool",
                            {{"method", "PUT"}, {"spool_id", id}, {"body", request_body}},

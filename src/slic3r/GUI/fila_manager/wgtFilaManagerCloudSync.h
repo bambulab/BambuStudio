@@ -19,7 +19,10 @@ public:
 
     void pull_from_cloud();
     void push_spool_to_cloud(const std::string& spool_id);
-    void push_update_to_cloud(const std::string& spool_id);
+    // Push a selective update. `local_patch` contains only the fields the user
+    // actually changed this time (local schema names). Fields outside the cloud
+    // UpdateFilamentV2 whitelist are dropped silently.
+    void push_update_to_cloud(const std::string& spool_id, const nlohmann::json& local_patch);
     void push_delete_to_cloud(const std::vector<std::string>& spool_ids);
     void fetch_filament_config(std::function<void(const nlohmann::json&)> on_done);
 
@@ -28,6 +31,11 @@ public:
     int last_pull_error_code() const { return m_last_pull_error_code; }
     const std::string& last_pull_error_message() const { return m_last_pull_error_message; }
     static nlohmann::json spool_to_cloud_json(const FilamentSpool& spool);
+    // Translate a local-field patch into a cloud UpdateFilamentV2 body.
+    // Only whitelisted fields are emitted (filamentVendor/filamentType/
+    // settingName/filamentId/color/colorName/totalWeight/trayWeight/netWeight/
+    // totalNetWeight/note). Returns an empty object if nothing maps.
+    static nlohmann::json spool_to_cloud_update_patch(const nlohmann::json& local_patch);
     static FilamentSpool cloud_json_to_spool(const nlohmann::json& j);
 
 private:

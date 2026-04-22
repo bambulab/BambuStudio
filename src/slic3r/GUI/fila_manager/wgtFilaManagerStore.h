@@ -55,6 +55,11 @@ public:
 
     std::string add_spool(const FilamentSpool& spool);
     void update_spool(const FilamentSpool& spool);
+    // Selectively merge user-editable fields from `patch` into the existing
+    // spool without touching system-managed metadata (spool_id / tag_uid /
+    // entry_method / created_at / bound_* / cloud_synced). Returns true if an
+    // existing spool was updated.
+    bool apply_patch(const std::string& spool_id, const nlohmann::json& patch);
     void remove_spool(const std::string& spool_id);
     const FilamentSpool* get_spool(const std::string& spool_id) const;
 

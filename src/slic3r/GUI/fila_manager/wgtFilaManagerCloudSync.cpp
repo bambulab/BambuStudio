@@ -31,6 +31,21 @@ nlohmann::json extract_cloud_list(const nlohmann::json& data)
     return nlohmann::json::array();
 }
 
+// Cloud error callbacks hand us the raw HTTP response body in `err` (see
+// wgtFilaManagerCloudClient: `response_body.empty() ? "network request failed"
+// : response_body`). That body can carry user-scoped or server-internal
+// context, so we only append it to the shipped BambuStudio.log in internal
+// builds; external builds keep just the HTTP return code.
+inline std::string err_body_tail(const std::string& err)
+{
+#if !BBL_RELEASE_TO_PUBLIC
+    return " " + err;
+#else
+    (void)err;
+    return std::string();
+#endif
+}
+
 } // namespace
 
 wgtFilaManagerCloudSync::wgtFilaManagerCloudSync(
@@ -278,7 +293,7 @@ void wgtFilaManagerCloudSync::pull_from_cloud()
                 m_last_pull_succeeded = false;
                 m_last_pull_error_code = code;
                 m_last_pull_error_message = err;
-                BOOST_LOG_TRIVIAL(error) << "[FilaCloudSync] pull_from_cloud failed: " << code << " " << err;
+                BOOST_LOG_TRIVIAL(error) << "[FilaCloudSync] pull_from_cloud failed: " << code << err_body_tail(err);
                 wxGetApp().emit_fila_debug_log("http", "error", "Cloud pull failed",
                                                "list_spools failed during pull_from_cloud",
                                                {{"code", code}, {"error", err}});
@@ -304,25 +319,101 @@ void wgtFilaManagerCloudSync::push_spool_to_cloud(const std::string& spool_id)
         },
         [spool_id](int code, const std::string& err) {
             BOOST_LOG_TRIVIAL(error) << "[FilaCloudSync] push_spool_to_cloud failed ("
-                                     << spool_id << "): " << code << " " << err;
+                                     << spool_id << "): " << code << err_body_tail(err);
         });
 }
 
-void wgtFilaManagerCloudSync::push_update_to_cloud(const std::string& spool_id)
+nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_update_patch(const nlohmann::json& p)
+{
+    // UpdateFilamentV2Req（swagger 权威定义，设计于 design-user.api / design-user-swagger.json）：
+    //   id              int64   required  ← 由 client 负责塞入，本函数不处理
+    //   filamentVendor  string  optional
+    //   filamentType    string  optional
+    //   filamentName    string  optional
+    //   filamentId      string  optional
+    //   isSupport       bool    optional
+    //   color           string  optional
+    //   colorType       int64   optional   0=渐变 / 1=拼色 / 2=单色
+    //   colors          []string optional
+    //   netWeight       int64   optional
+    //   totalNetWeight  int64   optional
+    //   note            string  optional
+    //
+    // 规则：只输出 swagger 白名单字段；本地 patch 里未出现或 null 的字段不发，
+    // 服务端"只更新提供的字段"。系统专属字段（createType / RFID / trayIdName /
+    // rolls 等 Create/AmsSync 专属）严禁出现在 Update body，否则 go-zero 严格
+    // 校验会把请求打回 400（对应到本地 circuit breaker 就是 -29 internal blocking）。
+    nlohmann::json j = nlohmann::json::object();
+    if (!p.is_object()) return j;
+
+    auto take_str = [&](const char* local_key, const char* cloud_key) {
+        if (!p.contains(local_key)) return;
+        const auto& v = p.at(local_key);
+        if (v.is_null()) return;
+        if (v.is_string()) j[cloud_key] = v.get<std::string>();
+    };
+    auto take_int = [&](const char* local_key, const char* cloud_key) {
+        if (!p.contains(local_key)) return;
+        const auto& v = p.at(local_key);
+        if (v.is_null()) return;
+        if (v.is_number())
+            j[cloud_key] = static_cast<int64_t>(v.get<double>() + 0.5);
+    };
+    auto take_bool = [&](const char* local_key, const char* cloud_key) {
+        if (!p.contains(local_key)) return;
+        const auto& v = p.at(local_key);
+        if (v.is_null()) return;
+        if (v.is_boolean()) j[cloud_key] = v.get<bool>();
+    };
+
+    // 本地字段 → swagger 字段（只映射本地有对应概念的那些）：
+    take_str("brand",           "filamentVendor");
+    take_str("material_type",   "filamentType");
+    take_str("filament_name",   "filamentName");    // 本地若未来加上再生效
+    take_str("setting_id",      "filamentId");
+    take_bool("is_support",     "isSupport");       // 同上
+    take_str("color_code",      "color");
+    take_int("color_type",      "colorType");       // 同上
+    // colors[] 目前本地没有拼/渐变色概念，若前端 patch 里主动带 colors 数组就透传。
+    if (p.contains("colors") && p.at("colors").is_array())
+        j["colors"] = p.at("colors");
+    take_int("net_weight",      "netWeight");
+    take_int("total_net_weight","totalNetWeight");
+    take_str("note",            "note");
+
+    // swagger 白名单之外的常见本地字段（series / color_name / initial_weight /
+    // spool_weight / diameter / status / remain_percent / favorite ...）不映射，
+    // 它们只存在于本地 store，不上报给云端 Update 接口。
+
+    return j;
+}
+
+void wgtFilaManagerCloudSync::push_update_to_cloud(const std::string& spool_id,
+                                                   const nlohmann::json& local_patch)
 {
     const FilamentSpool* spool = m_store->get_spool(spool_id);
     if (!spool) return;
 
-    nlohmann::json body = spool_to_cloud_json(*spool);
+    nlohmann::json body = spool_to_cloud_update_patch(local_patch);
 
-    auto fallback_create = [this, body, spool_id]() {
-        m_client->create_spool(body,
+    // 全量 body 仅用于 404 fallback：服务端没记录这条时补一次 create。
+    nlohmann::json create_body = spool_to_cloud_json(*spool);
+
+    if (body.empty()) {
+        // patch 映射后空：本次没有任何云端认识的变化字段，直接标记已同步即可，
+        // 不再发空 PUT（有些服务端会拒 0 字段更新）。
+        BOOST_LOG_TRIVIAL(info) << "[FilaCloudSync] push_update_to_cloud skipped (empty patch): " << spool_id;
+        return;
+    }
+
+    auto fallback_create = [this, create_body, spool_id]() {
+        m_client->create_spool(create_body,
             [spool_id](const nlohmann::json&) {
                 BOOST_LOG_TRIVIAL(info) << "[FilaCloudSync] push_update fallback create ok: " << spool_id;
             },
             [spool_id](int c, const std::string& e) {
                 BOOST_LOG_TRIVIAL(error) << "[FilaCloudSync] push_update fallback create failed ("
-                                         << spool_id << "): " << c << " " << e;
+                                         << spool_id << "): " << c << err_body_tail(e);
             });
     };
 
@@ -336,7 +427,7 @@ void wgtFilaManagerCloudSync::push_update_to_cloud(const std::string& spool_id)
                 fallback_create();
             } else {
                 BOOST_LOG_TRIVIAL(error) << "[FilaCloudSync] push_update_to_cloud failed ("
-                                         << spool_id << "): " << code << " " << err;
+                                         << spool_id << "): " << code << err_body_tail(err);
             }
         });
 }
@@ -374,7 +465,7 @@ void wgtFilaManagerCloudSync::push_delete_to_cloud(const std::vector<std::string
             BOOST_LOG_TRIVIAL(info) << "[FilaCloudSync] push_delete_to_cloud ok";
         },
         [](int code, const std::string& err) {
-            BOOST_LOG_TRIVIAL(error) << "[FilaCloudSync] push_delete_to_cloud failed: " << code << " " << err;
+            BOOST_LOG_TRIVIAL(error) << "[FilaCloudSync] push_delete_to_cloud failed: " << code << err_body_tail(err);
         });
 }
 
@@ -395,7 +486,7 @@ void wgtFilaManagerCloudSync::fetch_filament_config(
             });
         },
         [](int code, const std::string& err) {
-            BOOST_LOG_TRIVIAL(error) << "[FilaCloudSync] fetch_filament_config failed: " << code << " " << err;
+            BOOST_LOG_TRIVIAL(error) << "[FilaCloudSync] fetch_filament_config failed: " << code << err_body_tail(err);
         });
 }
 

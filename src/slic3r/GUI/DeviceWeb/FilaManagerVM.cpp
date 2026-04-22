@@ -2,6 +2,7 @@
 #include "FilaManagerVM.hpp"
 #include "DeviceWebBridge.hpp"
 
+#include <algorithm>
 #include <boost/log/trivial.hpp>
 
 #include "slic3r/GUI/GUI_App.hpp"
@@ -49,6 +50,14 @@ FilaManagerVM::FilaManagerVM()
                 m_bridge->ReportMsg(MakeResp("spool", "list", 0, "", build_spool_list()));
             }
             publish_push_done(id, op);
+            // STUDIO-17956: remember that a new spool was just pushed to the
+            // cloud. The reconciliation pull enqueued below will observe
+            // before==after locally (add_spool is local-first), so its
+            // size-diff estimate of `added` is always 0. Carry the real
+            // delta into publish_pull_done via this hint.
+            if (op == "create") {
+                m_pending_pull_added_hint += 1;
+            }
             if (auto* d = wxGetApp().fila_manager_cloud_disp()) {
                 d->enqueue_pull();
             }
@@ -218,18 +227,28 @@ nlohmann::json FilaManagerVM::HandleSpool(const std::string& action, const nlohm
         return MakeResp("spool", action, 0, "", build_spool_list());
     }
     if (action == "update") {
-        std::string updated_id;
-        if (store) {
-            FilamentSpool s = FilamentSpool::from_json(payload);
-            s.cloud_synced = false;
-            store->update_spool(s);
-            store->save();
-            updated_id = s.spool_id;
-            publish_debug_log("data", "info", "Local spool updated",
-                              "A spool was updated in the local store",
-                              {{"action", "update"}, {"spool_id", updated_id}});
+        // 前端应当只传 {spool_id, 本次变更的字段...}。做 selective merge，
+        // 不再整体覆盖 —— 这样 entry_method / tag_uid / created_at / bound_* /
+        // cloud_synced 等系统字段不会被清空（STUDIO-17964 Problem A）。
+        const std::string updated_id = payload.value("spool_id", "");
+        bool patched = false;
+        if (store && !updated_id.empty()) {
+            patched = store->apply_patch(updated_id, payload);
+            if (patched) {
+                store->save();
+                publish_debug_log("data", "info", "Local spool updated",
+                                  "A spool was updated in the local store (patch)",
+                                  {{"action", "update"},
+                                   {"spool_id", updated_id},
+                                   {"patch_keys", static_cast<int>(payload.is_object() ?
+                                        payload.size() : 0)}});
+            } else {
+                publish_debug_log("data", "warn", "Local spool patch skipped",
+                                  "apply_patch could not find the target spool",
+                                  {{"action", "update"}, {"spool_id", updated_id}});
+            }
         }
-        if (disp && !updated_id.empty()) disp->enqueue_push_update(updated_id);
+        if (disp && patched) disp->enqueue_push_update(updated_id, payload);
         publish_sync_state();
         return MakeResp("spool", action, 0, "", build_spool_list());
     }
@@ -281,7 +300,9 @@ nlohmann::json FilaManagerVM::HandleSpool(const std::string& action, const nlohm
                                   {{"action", "mark_empty"}, {"spool_id", sid}});
             }
         }
-        if (disp && !sid.empty()) disp->enqueue_push_update(sid);
+        // status / remain_percent 都是本地专有字段，不在云端 Update 白名单内：
+        // 传空 patch，dispatcher 会直接把本条标记为 cloud_synced，不发空 PUT。
+        if (disp && !sid.empty()) disp->enqueue_push_update(sid, nlohmann::json::object());
         publish_sync_state();
         return MakeResp("spool", action, 0, "", build_spool_list());
     }
@@ -300,7 +321,8 @@ nlohmann::json FilaManagerVM::HandleSpool(const std::string& action, const nlohm
                                   {{"action", "toggle_favorite"}, {"spool_id", sid}, {"favorite", u.favorite}});
             }
         }
-        if (disp && !sid.empty()) disp->enqueue_push_update(sid);
+        // favorite 仅本地字段，传空 patch；dispatcher 会跳过 PUT。
+        if (disp && !sid.empty()) disp->enqueue_push_update(sid, nlohmann::json::object());
         publish_sync_state();
         return MakeResp("spool", action, 0, "", build_spool_list());
     }
@@ -319,7 +341,8 @@ nlohmann::json FilaManagerVM::HandleSpool(const std::string& action, const nlohm
                                   {{"action", "archive"}, {"spool_id", sid}});
             }
         }
-        if (disp && !sid.empty()) disp->enqueue_push_update(sid);
+        // status 仅本地字段（"archived"），传空 patch；dispatcher 会跳过 PUT。
+        if (disp && !sid.empty()) disp->enqueue_push_update(sid, nlohmann::json::object());
         publish_sync_state();
         return MakeResp("spool", action, 0, "", build_spool_list());
     }
@@ -392,10 +415,42 @@ nlohmann::json FilaManagerVM::HandlePreset(const std::string& action, const nloh
     return MakeResp("preset", action, -1, "unknown action");
 }
 
-nlohmann::json FilaManagerVM::HandleMachine(const std::string& action, const nlohmann::json& /*payload*/)
+nlohmann::json FilaManagerVM::HandleMachine(const std::string& action, const nlohmann::json& payload)
 {
     if (action == "list") {
         return MakeResp("machine", action, 0, "", build_machine_list());
+    }
+    if (action == "request_pushall") {
+        // User pressed the refresh button next to the Printer dropdown in the
+        // "Read from AMS" dialog. Mirror what SelectMachineDialog does when a
+        // printer is picked: ask the device to resend its full state package
+        // (get_version + pushall) so the dialog's AMS tray snapshot converges
+        // on the current tray RFID / weight / remain without having to wait
+        // for the next spontaneous push.
+        //
+        // This is read-only with respect to Studio's globally selected
+        // machine: we do NOT call set_selected_machine here. A separate
+        // ams/list { switch_selected:true } call is responsible for that and
+        // it is only sent when the user actually picks a different printer in
+        // the dropdown.
+        std::string dev_id = payload.value("dev_id", "");
+        auto* mgr = wxGetApp().getDeviceManager();
+        if (!mgr) {
+            return MakeResp("machine", action, -1, "device manager not ready");
+        }
+        MachineObject* obj = nullptr;
+        if (!dev_id.empty()) {
+            obj = mgr->get_my_machine(dev_id);
+        } else if (MachineObject* sel = mgr->get_selected_machine()) {
+            obj = sel;
+            dev_id = sel->get_dev_id();
+        }
+        if (!obj) {
+            return MakeResp("machine", action, -2, "machine not found");
+        }
+        obj->command_get_version();
+        obj->command_request_push_all(/*request_now=*/true);
+        return MakeResp("machine", action, 0, "", {{"dev_id", dev_id}});
     }
     return MakeResp("machine", action, -1, "unknown action");
 }
@@ -403,10 +458,29 @@ nlohmann::json FilaManagerVM::HandleMachine(const std::string& action, const nlo
 nlohmann::json FilaManagerVM::HandleAms(const std::string& action, const nlohmann::json& payload)
 {
     if (action == "list") {
-        std::string dev_id = payload.value("dev_id", "");
-        if (!dev_id.empty()) {
+        // ams/list has two callers:
+        //   1) User picks a different printer in the "Read from AMS"
+        //      dropdown -> frontend sends { dev_id, switch_selected:true }
+        //      and we actually call DeviceManager::set_selected_machine,
+        //      which changes Studio's globally selected machine.
+        //   2) The 1.5s poll while the dialog is open / the mirror of an
+        //      external machine switch / any pure tray-snapshot refresh ->
+        //      frontend omits switch_selected, and we only return the AMS
+        //      snapshot of whatever machine is currently selected without
+        //      touching global state.
+        // Before this split, every poll tick carrying dev_id fell through
+        // to set_selected_machine and flooded the log with "set current
+        // printer" requests.
+        std::string dev_id         = payload.value("dev_id", "");
+        bool        switch_selected = payload.value("switch_selected", false);
+        if (switch_selected && !dev_id.empty()) {
             auto* mgr = wxGetApp().getDeviceManager();
-            if (mgr) mgr->set_selected_machine(dev_id);
+            if (mgr) {
+                MachineObject* cur = mgr->get_selected_machine();
+                if (!cur || cur->get_dev_id() != dev_id) {
+                    mgr->set_selected_machine(dev_id);
+                }
+            }
         }
         return MakeResp("ams", action, 0, "", build_ams_data());
     }
@@ -467,6 +541,21 @@ void FilaManagerVM::publish_sync_state()
 void FilaManagerVM::publish_pull_done(int added, int updated)
 {
     if (!m_bridge) return;
+
+    // STUDIO-17956: dispatcher's size-diff `added` is always 0 for the
+    // reconciliation pull that follows a local add+push_create (add_spool is
+    // local-first, so before_sz == after_sz). Each successful create push
+    // bumps m_pending_pull_added_hint by 1; consume it here so the toast
+    // reports the true "+N added" instead of "+0 added". Shift the delta out
+    // of `updated` too — the same spools count as either freshly-added or
+    // already-up-to-date, not both.
+    if (m_pending_pull_added_hint > 0) {
+        const int hint = m_pending_pull_added_hint;
+        m_pending_pull_added_hint = 0;
+        added   += hint;
+        updated  = std::max(0, updated - hint);
+    }
+
     nlohmann::json body;
     body["added"]   = added;
     body["updated"] = updated;
@@ -594,7 +683,13 @@ nlohmann::json FilaManagerVM::build_machine_list()
             if (!obj) continue;
             std::string name = obj->get_dev_name();
             if (name.empty()) name = id;
-            arr.push_back({{"dev_id", id}, {"dev_name", name}, {"is_online", obj->is_online()}});
+            // is_lan mirrors SelectMachineDialog's "<name>(LAN)" convention so
+            // the web Printer dropdown can label LAN-mode printers the same
+            // way the native Send-to-printer dialog does.
+            arr.push_back({{"dev_id", id},
+                           {"dev_name", name},
+                           {"is_online", obj->is_online()},
+                           {"is_lan", obj->is_lan_mode_printer()}});
         }
         result["machines"] = arr;
 

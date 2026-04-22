@@ -1,0 +1,24 @@
+---
+description: 代码注释默认语言
+alwaysApply: true
+---
+
+# 代码注释默认语言
+
+- 代码里**新增 / 修改的注释默认使用英文**，与 BambuStudio / slic3r / PrusaSlicer 上游代码库保持一致风格。
+- 补充 `commit-msg` 规则里的"代码（变量名、注释、commit message）保持原有语言"：该条仅针对**已有**注释（不要顺手翻译），新写的注释按本规则默认英文。
+- 允许混写中文的例外情况：
+  - 注释直接引用外部中文语境（Jira 标题、用户反馈、中文 UI 文案、commit message 片段）
+  - 已有文件内整体就是中文注释，且新增注释与邻近上下文紧密衔接、翻成英文反而影响可读性
+- 面向用户的字符串（UI 文案、i18n 资源、用户可见日志）按原有 i18n / 日志规范处理，不在本规则范围内。
+- 本规则只约束源码里的注释文字。commit message 语言见 `commit-msg` 规则。
+
+示例：
+
+- 推荐：
+  - `// Fallback option: keep the current value visible when it is not in the preset list.`
+  - `// Only the user-initiated onChange should call set_selected_machine; polling must stay read-only.`
+- 允许：
+  - `// 对齐 STUDIO-17964 "仅更新用户修改字段" 的需求。` （引用中文 Jira 语境）
+- 不推荐：
+  - 在全英文文件里新写 `// 只读轮询：不带 dev_id…`（应写成英文）

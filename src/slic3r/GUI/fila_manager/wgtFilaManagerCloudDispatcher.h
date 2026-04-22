@@ -5,6 +5,7 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include "nlohmann/json.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -49,7 +50,10 @@ public:
     // Push a single spool id (create).
     void enqueue_push_create(const std::string& spool_id);
     // Push a single spool id (update, with 404 fallback to create).
-    void enqueue_push_update(const std::string& spool_id);
+    // `local_patch` carries the fields the user actually edited this time
+    // (local schema names); Cloud only receives whitelisted/changed fields.
+    void enqueue_push_update(const std::string& spool_id,
+                             const nlohmann::json& local_patch);
     // Push a batch delete for multiple spool ids.
     void enqueue_push_delete(const std::vector<std::string>& spool_ids);
 
@@ -71,7 +75,8 @@ private:
 
     void run_pull_op();
     void run_push_create_op(const std::string& spool_id);
-    void run_push_update_op(const std::string& spool_id);
+    void run_push_update_op(const std::string& spool_id,
+                            const nlohmann::json& local_patch);
     void run_push_delete_op(const std::vector<std::string>& spool_ids);
 
     void update_last_synced_now();
@@ -84,6 +89,13 @@ private:
     std::deque<Op> m_queue;
     bool           m_busy     = false;
     bool           m_pulling  = false;
+    // STUDIO-17956: collapse redundant post-push reconciliation pulls. Each
+    // push_done (batch add 5 spools -> 5 push_done callbacks) enqueues a pull
+    // for "cloud is source of truth", but the single-slot dispatcher would
+    // then run pull 5 times. We only need one. This flag is true while a
+    // not-yet-started pull sits in m_queue; additional enqueue_pull() calls
+    // are skipped until run_pull_op() pops it off and clears the flag.
+    bool           m_pending_pull_queued = false;
 
     std::string m_last_synced_at;
     int         m_last_error_code    = 0;

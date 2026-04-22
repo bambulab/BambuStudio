@@ -1,9 +1,22 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Spool, PresetVendor, MachineItem, AmsData, AmsUnit, AmsTray } from './types';
-import { BAMBU_COLORS } from './constants';
+import { BAMBU_COLORS, formatTypeSeries } from './constants';
 import { SpoolSvg } from './SpoolSvg';
 import useStore from '../../store/AppStore';
+
+// Derive the AMS tray's *current* net weight in grams from the MQTT payload.
+// `tray.weight` is the spool's initial net (e.g. "1000"), and `tray.remain`
+// is the AMS-reported remaining percentage. Falls back to the initial net
+// when remain% is missing so brand-new or non-RFID spools still show a
+// sensible value instead of "—".
+function getTrayCurrentNetWeight(tray: AmsTray): number {
+  const init = parseInt(String(tray.weight ?? '0'), 10) || 0;
+  const remain = typeof tray.remain === 'number' ? tray.remain : 0;
+  if (init <= 0) return 0;
+  if (remain <= 0) return init;
+  return Math.round(init * remain / 100);
+}
 
 interface Props {
   open: boolean;
@@ -14,12 +27,20 @@ interface Props {
   onSubmitAdd: (data: Partial<Spool>, quantity: number) => void;
   onSubmitUpdate: (data: Partial<Spool>) => void;
   onFetchMachines: () => Promise<MachineItem[]>;
-  onFetchAmsData: (devId: string) => Promise<AmsData | null>;
+  // Ask the currently-selected (or specified) printer to resend its full
+  // state package. Bound to the refresh button next to the Printer
+  // dropdown. Read-only with respect to the globally selected machine.
+  onRequestPushall: (devId?: string) => Promise<boolean>;
+  // `switchSelected=true` signals a user-initiated machine switch from
+  // this dialog; the C++ side will update Studio's global selected
+  // machine. Poll ticks and read-only snapshot refreshes must omit this
+  // flag so C++ does not repeatedly call set_selected_machine.
+  onFetchAmsData: (devId?: string, switchSelected?: boolean) => Promise<AmsData | null>;
 }
 
 export function AddEditDialog({
   open, editingSpool, prefilledSpool, presets, onClose,
-  onSubmitAdd, onSubmitUpdate, onFetchMachines, onFetchAmsData,
+  onSubmitAdd, onSubmitUpdate, onFetchMachines, onRequestPushall, onFetchAmsData,
 }: Props) {
   const { t } = useTranslation();
   const isEdit = !!editingSpool;
@@ -51,8 +72,15 @@ export function AddEditDialog({
   const [series, setSeries] = useState('');
   const [colorCode, setColorCode] = useState('');
   const [colorName, setColorName] = useState('');
-  const [totalWeight, setTotalWeight] = useState(1000);
-  const [spoolWeight, setSpoolWeight] = useState(250);
+  // STUDIO-17991: align the weight form with the cloud schema
+  // (design-user.api CreateFilamentV2Req: netWeight + totalNetWeight only).
+  // The legacy "Total - Spool = Net" three-column UI leaked spool_weight
+  // even though the cloud never round-trips it, which let pull-push cycles
+  // strip 料盘 and leave the Remain column denominator drifting to
+  // 1250 / 1013 / 995. Keep the form in the cloud's net-weight domain
+  // end to end: 当前净重 ↔ net_weight, 总净重 ↔ initial_weight.
+  const [totalNetWeight, setTotalNetWeight] = useState(1000);
+  const [currentNetWeight, setCurrentNetWeight] = useState(1000);
   const [note, setNote] = useState('');
   const [quantity, setQuantity] = useState(1);
 
@@ -63,7 +91,6 @@ export function AddEditDialog({
   const [selectedSlot, setSelectedSlot] = useState<{ ams_id: string; slot_id: string; tray: AmsTray } | null>(null);
   const [amsLoading, setAmsLoading] = useState(false);
   const [amsError, setAmsError] = useState('');
-  const [amsReadonly, setAmsReadonly] = useState(false);
 
   // Reset form when dialog opens
   useEffect(() => {
@@ -73,7 +100,6 @@ export function AddEditDialog({
     setSelectedSlot(null);
     setSelectedUnit(null);
     setAmsData(null);
-    setAmsReadonly(false);
     setAmsError('');
     if (initSpool) {
       setBrand(initSpool.brand || '');
@@ -81,13 +107,25 @@ export function AddEditDialog({
       setSeries(initSpool.series || '');
       setColorCode(initSpool.color_code || '');
       setColorName(initSpool.color_name || '');
-      setTotalWeight(initSpool.initial_weight || 1000);
-      setSpoolWeight(initSpool.spool_weight || 250);
+      // Transparent migration from the legacy 毛重/料盘/净重 shape:
+      // old rows stored initial_weight as 毛重 with spool_weight > 0,
+      // new rows store initial_weight as the pure 整卷净重 with
+      // spool_weight == 0. Collapsing "initial - spool" yields the
+      // correct 整卷净重 in either case, and on save the row is rewritten
+      // in the normalised shape so the next edit is already clean.
+      const legacySpool = initSpool.spool_weight || 0;
+      const netInit = Math.max(0, (initSpool.initial_weight || 0) - legacySpool);
+      setTotalNetWeight(netInit > 0 ? netInit : 1000);
+      const pct = initSpool.remain_percent || 0;
+      const curNet = (typeof initSpool.net_weight === 'number' && initSpool.net_weight > 0)
+        ? Math.round(initSpool.net_weight)
+        : Math.round(netInit * pct / 100);
+      setCurrentNetWeight(curNet > 0 ? curNet : (netInit > 0 ? netInit : 1000));
       setNote(initSpool.note || '');
     } else {
       setBrand(''); setMaterialType(''); setSeries('');
       setColorCode(''); setColorName('');
-      setTotalWeight(1000); setSpoolWeight(250);
+      setTotalNetWeight(1000); setCurrentNetWeight(1000);
       setNote('');
     }
   }, [open]);
@@ -106,7 +144,11 @@ export function AddEditDialog({
         if (series.length === 0) {
           if (tp.name) set.add(tp.name);
         } else {
-          series.forEach((s) => set.add(`${tp.name} ${s}`.trim()));
+          // formatTypeSeries collapses "ABS" + "ABS" -> "ABS" so the
+          // dropdown never offers "ABS ABS" / "TPU 85A 85A" / etc., which
+          // would otherwise push series="ABS" into the saved Spool on
+          // selection and then display as "ABS ABS" everywhere.
+          series.forEach((s) => set.add(formatTypeSeries(tp.name, s)));
         }
       });
     });
@@ -132,7 +174,11 @@ export function AddEditDialog({
   };
 
   // Current combined value shown in the single combobox.
-  const typeSeriesFull = series ? `${materialType} ${series}`.trim() : materialType;
+  // formatTypeSeries dedupes when series === material_type so legacy rows
+  // stored as (type="ABS", series="ABS") still match the deduped option
+  // "ABS" in the dropdown instead of falling through to a synthetic
+  // "ABS ABS" entry.
+  const typeSeriesFull = formatTypeSeries(materialType, series);
 
   const matchedPresetItem = useMemo(() => {
     for (const vendor of presets) {
@@ -152,10 +198,15 @@ export function AddEditDialog({
     setSeries(sr);
   };
 
-  const netWeight = Math.max(0, totalWeight - spoolWeight);
   // F4.5: validation no longer depends on `series` — the combined type field
   // covers both, and plenty of materials legitimately have no series (e.g. ABS).
-  const isValid = !!(brand && materialType && colorCode && totalWeight > 0);
+  // Weight rule: both values must be positive and 当前 ≤ 总 so the derived
+  // remain_percent never goes negative / > 100.
+  const isValid = !!(
+    brand && materialType && colorCode &&
+    totalNetWeight > 0 && currentNetWeight >= 0 &&
+    currentNetWeight <= totalNetWeight
+  );
 
   // F4.4: whether the currently picked colour is a user-defined one (not in
   // the preset BAMBU_COLORS palette). Used to render a custom-colour preview.
@@ -164,26 +215,60 @@ export function AddEditDialog({
   );
 
   const handleSubmit = () => {
+    // New weight model: initial_weight is now 整卷净重 (= swagger
+    // totalNetWeight) and spool_weight is always persisted as 0 so no
+    // code path can re-introduce 毛重 via cloud round-trips. remain_percent
+    // is recomputed from 当前净重 / 总净重 so the three weight-related
+    // fields (net_weight, initial_weight, remain_percent) are always
+    // consistent on write.
+    const remainPct = totalNetWeight > 0
+      ? Math.min(100, Math.max(0, Math.round(currentNetWeight * 100 / totalNetWeight)))
+      : 0;
     const data: Partial<Spool> = {
       brand, material_type: materialType, series,
       color_code: colorCode, color_name: colorName,
-      initial_weight: totalWeight, spool_weight: spoolWeight,
-      net_weight: netWeight,
+      initial_weight: totalNetWeight,
+      spool_weight: 0,
+      net_weight: currentNetWeight,
+      remain_percent: remainPct,
       note,
       setting_id: matchedPresetItem?.filament_id || initSpool?.setting_id || '',
     };
 
     if (isEdit) {
-      data.spool_id = editingSpool!.spool_id;
-      onSubmitUpdate(data);
+      // STUDIO-17964: 编辑保存时只提交用户此次真正改过的字段。
+      // - 空 patch 提交到 C++ 侧会被安全地忽略（不发空 PUT）。
+      // - 与 initSpool 对齐未变的字段一律跳过；数字字段用 Object.is 比较避免
+      //   NaN / +0 / -0 的歧义；字符串字段用 normalizeStr 把 null/undefined 视为
+      //   空串，避免"本来就没有值"被误报成"改成了空"。
+      const orig = editingSpool!;
+      const normalizeStr = (v: unknown) =>
+        (v === undefined || v === null) ? '' : String(v);
+      const patch: Partial<Spool> = { spool_id: orig.spool_id };
+      (Object.keys(data) as (keyof Spool)[]).forEach((k) => {
+        const nv = (data as any)[k];
+        const ov = (orig as any)[k];
+        let changed: boolean;
+        if (typeof nv === 'string' || typeof ov === 'string') {
+          changed = normalizeStr(nv) !== normalizeStr(ov);
+        } else {
+          changed = !Object.is(nv, ov);
+        }
+        if (changed) (patch as any)[k] = nv;
+      });
+      onSubmitUpdate(patch);
     } else {
       if (mode === 'ams' && selectedSlot) {
-        // F4.8: the spool is imported from a live AMS slot — propagate every
-        // authoritative field the tray gives us (tag_uid / setting_id /
-        // remain / diameter) so the local record matches what the printer
-        // actually has in the slot, not the manual-mode defaults.
+        // The spool is imported from a live AMS slot. Propagate the
+        // authoritative AMS-only fields (tag_uid / setting_id / diameter
+        // / remain / binding) so the local record knows which physical
+        // slot it came from. Weights come from the form state the user
+        // confirmed (already baked into `data` above) but we override
+        // `initial_weight` with the tray's reported 整卷净重 and
+        // `remain_percent` with the authoritative device value so the
+        // record lines up with what the printer reports on MQTT.
         const tray = selectedSlot.tray;
-        const trayNetInit = parseInt(String(tray.weight ?? '0'), 10) || 0; // initial net (g)
+        const trayNetInit = parseInt(String(tray.weight ?? '0'), 10) || 0;
         const remain = typeof tray.remain === 'number' ? tray.remain : 0;
         data.entry_method = 'ams_sync';
         data.tag_uid = tray.tag_uid || '';
@@ -191,11 +276,10 @@ export function AddEditDialog({
         data.bound_ams_id = selectedSlot.ams_id;
         data.bound_dev_id = amsData?.selected_dev_id || '';
         data.remain_percent = remain;
-        // When a remain% is reported, store the *current* net weight (not
-        // the full-spool value), so SpoolTable.getDisplayedRemainWeight
-        // renders the live AMS reading instead of a stale initial value.
-        if (trayNetInit > 0 && remain > 0) {
-          data.net_weight = Math.round(trayNetInit * remain / 100);
+        if (trayNetInit > 0) {
+          // tray.weight is already the spool's 整卷净重 (MQTT `tray_weight`,
+          // see DevFilaSystem::weight); store it verbatim — no料盘 fudge.
+          data.initial_weight = trayNetInit;
         }
         // `tray.diameter` is a string in the MQTT payload; accept both.
         const diaRaw = tray.diameter;
@@ -234,7 +318,13 @@ export function AddEditDialog({
         list.find((m) => globalSelectedDev && m.dev_id === globalSelectedDev) ||
         list.find((m) => m.is_online) ||
         list[0];
-      const data = await onFetchAmsData(defaultDev.dev_id);
+      // If the default machine already matches Studio's globally selected
+      // machine, skip the set and just read that machine's AMS snapshot.
+      // Only when we fall back to "first online / first in the list" do
+      // we ask C++ to switch once so the tray list is not empty. This is
+      // a one-shot soft switch at dialog open, not a recurring trigger.
+      const needSwitch = !globalSelectedDev || defaultDev.dev_id !== globalSelectedDev;
+      const data = await onFetchAmsData(defaultDev.dev_id, needSwitch);
       setAmsData(data);
       if (data && data.ams_units.length > 0) {
         setSelectedUnit(data.ams_units[0].ams_id);
@@ -247,13 +337,23 @@ export function AddEditDialog({
     setAmsLoading(false);
   };
 
-  const handleDeviceChange = useCallback(async (devId: string) => {
+  // switchSelected=true : user picked a different printer in the dropdown.
+  //   This is the only path that should make C++ call
+  //   DeviceManager::set_selected_machine.
+  // switchSelected=false : mirror of an external Studio-wide machine
+  //   switch. C++ has already been switched by OnSelectedMachineChanged,
+  //   so we just reset the local selection state and re-read the latest
+  //   AMS snapshot without asking C++ to switch again.
+  const handleDeviceChange = useCallback(async (
+    devId: string,
+    switchSelected: boolean = true,
+  ) => {
     setSelectedUnit(null);
     setSelectedSlot(null);
     setAmsLoading(true);
     setAmsError('');
     try {
-      const data = await onFetchAmsData(devId);
+      const data = await onFetchAmsData(switchSelected ? devId : undefined, switchSelected);
       setAmsData(data);
       if (data && data.ams_units.length > 0) {
         setSelectedUnit(data.ams_units[0].ams_id);
@@ -266,6 +366,30 @@ export function AddEditDialog({
     setAmsLoading(false);
   }, [onFetchAmsData, t]);
 
+  // Refresh button next to the Printer dropdown. Asks the selected
+  // printer to resend its full state (get_version + pushall) so the AMS
+  // tray snapshot in this dialog converges immediately instead of
+  // waiting for the next spontaneous push from the device. Throttled for
+  // ~2s to avoid hammering the printer on rapid double-clicks; the
+  // button stays disabled while the throttle window is active.
+  const [refreshBusy, setRefreshBusy] = useState(false);
+  const handleRequestPushall = useCallback(async () => {
+    if (refreshBusy) return;
+    const devId = amsData?.selected_dev_id
+      || machines.find((m) => m.is_online)?.dev_id
+      || machines[0]?.dev_id
+      || '';
+    if (!devId) return;
+    setRefreshBusy(true);
+    try {
+      await onRequestPushall(devId);
+    } catch {
+      // non-fatal: the next AMS poll tick will still pick up whatever
+      // the printer eventually pushes back on its own.
+    }
+    window.setTimeout(() => setRefreshBusy(false), 2000);
+  }, [refreshBusy, amsData?.selected_dev_id, machines, onRequestPushall]);
+
   // F4.7: follow Studio-wide machine switches while the dialog is open on
   // the AMS tab. If the user picks a different printer elsewhere in
   // Studio, mirror that selection here instead of staying on whichever
@@ -274,12 +398,25 @@ export function AddEditDialog({
     if (!open || mode !== 'ams' || amsLoading) return;
     if (!globalSelectedDev) return;
     const currentDev = amsData?.selected_dev_id || '';
+    // Skip the mirror while we don't have a known snapshot yet. The
+    // 1.5s poll can momentarily return an empty selected_dev_id when
+    // DeviceManager::get_selected_machine is not ready; without this
+    // guard the mirror would keep firing handleDeviceChange, which
+    // toggles amsLoading and makes the whole AMS pane flicker.
+    if (!currentDev) return;
     if (currentDev === globalSelectedDev) return;
     // Only follow if the new machine is actually in the dropdown list we
     // currently show; otherwise leave the user in their chosen state.
     if (!machines.some((m) => m.dev_id === globalSelectedDev)) return;
-    void handleDeviceChange(globalSelectedDev);
-  }, [open, mode, amsLoading, globalSelectedDev, amsData, machines, handleDeviceChange]);
+    // Mirror-only: the external switch has already called
+    // set_selected_machine on the C++ side, so we just sync the UI and
+    // re-read the AMS snapshot instead of triggering another set.
+    void handleDeviceChange(globalSelectedDev, false);
+    // Depend on the scalar `selected_dev_id` instead of the whole
+    // amsData object — the 1.5s poll creates a new object reference on
+    // every tick even when selected_dev_id doesn't actually change, and
+    // re-running this effect on every tick is what caused the flicker.
+  }, [open, mode, amsLoading, globalSelectedDev, amsData?.selected_dev_id, machines, handleDeviceChange]);
 
   // Live-refresh AMS data while the "Read from AMS" tab is open. Rationale:
   // once the user picks a printer, the C++ side keeps parsing fresh MQTT
@@ -292,6 +429,20 @@ export function AddEditDialog({
   // there is no visible flicker.
   const selectedSlotRef = useRef(selectedSlot);
   selectedSlotRef.current = selectedSlot;
+  // Mirror amsData into a ref so the poll tick can diff the incoming
+  // snapshot against the latest value without having to list amsData in
+  // the effect's dep array (which would reset the interval timer).
+  const amsDataRef = useRef<AmsData | null>(amsData);
+  amsDataRef.current = amsData;
+  // STUDIO-17989: also mirror selectedUnit / amsError so the poll tick
+  // can self-heal the "first snapshot after machine switch was empty"
+  // case without adding selectedUnit / amsError to the effect deps
+  // (which would restart the 1.5s interval on every selection change
+  // and flicker the dialog).
+  const selectedUnitRef = useRef<string | null>(selectedUnit);
+  selectedUnitRef.current = selectedUnit;
+  const amsErrorRef = useRef<string>(amsError);
+  amsErrorRef.current = amsError;
   useEffect(() => {
     if (!open || mode !== 'ams' || amsLoading) return;
     const devId = amsData?.selected_dev_id || '';
@@ -300,16 +451,48 @@ export function AddEditDialog({
     let cancelled = false;
     const tick = async () => {
       try {
-        const data = await onFetchAmsData(devId);
+        // Read-only poll: omit both dev_id and switch_selected so C++
+        // returns the AMS snapshot of the currently selected machine
+        // without calling set_selected_machine. The previous version
+        // passed dev_id here and produced a "set current printer" log
+        // entry on every 1.5s tick.
+        const data = await onFetchAmsData();
         if (cancelled || !data) return;
+
+        // Coalesce identical snapshots. C++ re-builds ams_units from the
+        // latest MachineObject state every poll, so we get a fresh object
+        // reference on every tick even when nothing actually changed.
+        // Pushing that through setAmsData would rerender the dialog and
+        // restart every effect that depends on amsData, which is what
+        // caused the visible flicker of the AMS pane. Only update state
+        // when the serialized payload actually differs.
+        const prev = amsDataRef.current;
+        const same = prev && JSON.stringify(prev) === JSON.stringify(data);
+        if (same) return;
+
         setAmsData(data);
+
+        // STUDIO-17989: self-heal the "switched to an AMS-equipped printer
+        // but the first snapshot landed with empty ams_units" case. In
+        // switchToAms / handleDeviceChange we optimistically set
+        //   amsError = "No AMS detected on this device"
+        //   selectedUnit = null
+        // whenever the initial fetch returns zero units, but the device
+        // MQTT push often arrives one tick later. Once a subsequent poll
+        // actually sees AMS units, drop the stale banner and auto-select
+        // the first unit so the slot list renders without the user
+        // having to click the AMS icon manually.
+        if (data.ams_units.length > 0) {
+          if (amsErrorRef.current) setAmsError('');
+          if (selectedUnitRef.current == null) {
+            setSelectedUnit(data.ams_units[0].ams_id);
+          }
+        }
 
         // Keep the currently highlighted slot pointing at the latest tray
         // object so downstream renderers (form, palette) reflect the new
         // MQTT snapshot. If the tray disappeared (user pulled the spool),
         // clear the selection so stale form values can't be submitted.
-        // Compare the tray payload before calling setState so we don't
-        // force a full re-render on every 1.5 s tick when nothing changed.
         const cur = selectedSlotRef.current;
         if (cur) {
           const unit = data.ams_units.find((u) => u.ams_id === cur.ams_id);
@@ -334,10 +517,45 @@ export function AddEditDialog({
     };
   }, [open, mode, amsLoading, amsData?.selected_dev_id, onFetchAmsData]);
 
+  // Live-refresh the Printer dropdown while the AMS tab is open so
+  // devices that come online / go offline / get (un)bound appear without
+  // the user having to close and reopen the dialog. Runs at a lower rate
+  // than the AMS tray poll because online state changes far less often
+  // than tray RFID / weight / remain. Like the AMS tick this diffs
+  // against the last payload and skips setState when nothing changed,
+  // otherwise every tick would rerender the dialog for no reason.
+  const machinesRef = useRef<MachineItem[]>(machines);
+  machinesRef.current = machines;
+  useEffect(() => {
+    if (!open || mode !== 'ams' || amsLoading) return;
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        const list = await onFetchMachines();
+        if (cancelled || !Array.isArray(list)) return;
+        const prev = machinesRef.current;
+        if (JSON.stringify(prev) === JSON.stringify(list)) return;
+        setMachines(list);
+      } catch {
+        // Poll errors are non-fatal; the next tick will retry.
+      }
+    };
+    const timer = window.setInterval(tick, 3000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [open, mode, amsLoading, onFetchMachines]);
+
   const selectAmsSlot = (unit: AmsUnit, tray: AmsTray) => {
     setSelectedSlot({ ams_id: unit.ams_id, slot_id: tray.slot_id, tray });
-    const hasUid = !!(tray.tag_uid && tray.tag_uid.length > 0);
-    setAmsReadonly(hasUid);
+    // Historically we locked the form down when the tray reported an RFID
+    // tag_uid (BBL original spool) so users could not accidentally change
+    // authoritative fields. Product direction has since changed: the
+    // Add-from-AMS flow must let the user correct every field before
+    // saving (e.g. weigh the spool on a scale to override tray remain).
+    // tag_uid is still captured in handleSubmit, only the read-only UI
+    // gate has been removed.
 
     // F4.8: drive the whole form from the AMS tray. Previous implementation
     // only pushed sub_brands / fila_type / color / weight and left the form
@@ -406,14 +624,15 @@ export function AddEditDialog({
       : rawColor;
     if (sanitizedColor) setColorCode(sanitizedColor);
 
-    // F4.8: `tray.weight` is the spool's *initial net* weight in grams
-    // (MQTT `tray_weight`, e.g. "1000"). Derive the form numbers so that
-    // Total = Spool + Net(tray.weight) and everything downstream is
-    // consistent with the printer's own view of the cartridge.
-    const trayNetWeight = parseInt(String(tray.weight ?? '0'), 10) || 0;
-    const defaultSpoolWeight = 250;
-    setSpoolWeight(defaultSpoolWeight);
-    setTotalWeight(trayNetWeight > 0 ? trayNetWeight + defaultSpoolWeight : 1000);
+    // Seed both weight inputs from the AMS tray report. `tray.weight` is
+    // the spool's original 整卷净重 (MQTT `tray_weight`, always net); the
+    // current net is `tray.weight * tray.remain%` via getTrayCurrentNetWeight.
+    // No more 料盘 bookkeeping on this path — the cloud schema never stored
+    // it anyway.
+    const trayNetInit = parseInt(String(tray.weight ?? '0'), 10) || 0;
+    const currentNet = getTrayCurrentNetWeight(tray);
+    setTotalNetWeight(trayNetInit > 0 ? trayNetInit : 1000);
+    setCurrentNetWeight(currentNet > 0 ? currentNet : (trayNetInit > 0 ? trayNetInit : 1000));
   };
 
   // F4.10: dialog drag support. Users expect to be able to drag the dialog
@@ -506,22 +725,41 @@ export function AddEditDialog({
             {!amsLoading && (
               <div className="flex flex-col gap-[10px] rounded-[8px] border border-fm-border-focus bg-fm-inner p-3">
                 <label className="text-[11px] leading-[16px] text-fm-text-secondary">{t('Printer')}</label>
-                <select
-                  className="w-full min-h-[36px] rounded-[6px] bg-fm-inner2 px-[8px] text-fm-text-strong text-xs outline-none focus:shadow-[0_0_0_1px_var(--color-fm-brand)] fm-select-arrow cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
-                  value={machines.length ? (amsData?.selected_dev_id || machines[0]?.dev_id || '') : ''}
-                  disabled={machines.length === 0}
-                  onChange={(e) => { if (e.target.value) void handleDeviceChange(e.target.value); }}
-                >
-                  {machines.length === 0 ? (
-                    <option value="">{t('No printers — sign in and bind a device')}</option>
-                  ) : (
-                    machines.map((m) => (
-                      <option key={m.dev_id} value={m.dev_id}>
-                        {m.dev_name || m.dev_id}{m.is_online ? ` (${t('Online')})` : ''}
-                      </option>
-                    ))
-                  )}
-                </select>
+                <div className="flex items-center gap-[8px]">
+                  <select
+                    className="flex-1 min-h-[36px] rounded-[6px] bg-fm-inner2 px-[8px] text-fm-text-strong text-xs outline-none focus:shadow-[0_0_0_1px_var(--color-fm-brand)] fm-select-arrow cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                    value={machines.length ? (amsData?.selected_dev_id || machines[0]?.dev_id || '') : ''}
+                    disabled={machines.length === 0}
+                    onChange={(e) => { if (e.target.value) void handleDeviceChange(e.target.value); }}
+                  >
+                    {machines.length === 0 ? (
+                      <option value="">{t('No printers — sign in and bind a device')}</option>
+                    ) : (
+                      machines.map((m) => (
+                        // Label follows SelectMachineDialog's "<dev_name>(LAN)"
+                        // convention; online/offline state is conveyed by the
+                        // AMS snapshot state in the pane below, not by the
+                        // dropdown text.
+                        <option key={m.dev_id} value={m.dev_id}>
+                          {m.dev_name || m.dev_id}{m.is_lan ? '(LAN)' : ''}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                  <button
+                    type="button"
+                    className="shrink-0 w-[32px] h-[32px] rounded-[6px] border border-fm-border-focus bg-fm-inner2 text-fm-text-secondary flex items-center justify-center hover:text-fm-text-strong hover:border-fm-text-secondary disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+                    title={t('Refresh printer status')}
+                    aria-label={t('Refresh printer status')}
+                    disabled={machines.length === 0 || refreshBusy}
+                    onClick={() => { void handleRequestPushall(); }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className={refreshBusy ? 'animate-spin' : ''}>
+                      <path d="M11.5 3.5A5 5 0 1 0 12 8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" fill="none"/>
+                      <path d="M12 2v3h-3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                    </svg>
+                  </button>
+                </div>
                 {machines.length === 0 && (
                   <p className="text-[11px] leading-[16px] text-fm-text-detail m-0">{t('No printer found, please ensure logged in and device bound')}</p>
                 )}
@@ -585,7 +823,16 @@ export function AddEditDialog({
                                 <span className="inline-block size-[12px] rounded-sm shrink-0" style={{ background: tray.color || '#888' }} />
                                 {tray.fila_type || '—'}
                               </div>
-                              <div className="text-[12px] leading-[19px] text-fm-text-secondary">{tray.weight ? `${tray.weight}g` : '—'}</div>
+                              {/* Show the *remaining* net weight in each
+                                  slot card (initial_net * remain%) so the
+                                  user sees the live AMS reading, not the
+                                  spool's brand-new / factory value. */}
+                              <div className="text-[12px] leading-[19px] text-fm-text-secondary">
+                                {(() => {
+                                  const cur = getTrayCurrentNetWeight(tray);
+                                  return cur > 0 ? `${cur}g` : '—';
+                                })()}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -618,7 +865,7 @@ export function AddEditDialog({
               <div className="flex gap-[12px]">
                 <div className="flex flex-col gap-[4px] flex-1 pb-[24px]">
                   <label className="text-[12px] leading-[19px] text-fm-text-secondary"><span className="text-[#ff2b00]">*</span> {t('Brand')}</label>
-                  <select className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)] fm-select-arrow cursor-pointer" value={brand} onChange={(e) => { setBrand(e.target.value); setMaterialType(''); setSeries(''); }} disabled={amsReadonly}>
+                  <select className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)] fm-select-arrow cursor-pointer" value={brand} onChange={(e) => { setBrand(e.target.value); setMaterialType(''); setSeries(''); }}>
                     <option value="">{t('Select Brand')}</option>
                     {mergedVendorNames.map((n) => <option key={n} value={n}>{n}</option>)}
                   </select>
@@ -634,9 +881,17 @@ export function AddEditDialog({
                     className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)] fm-select-arrow cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                     value={typeSeriesFull}
                     onChange={(e) => handleTypeSeriesChange(e.target.value)}
-                    disabled={amsReadonly || !brand}
+                    disabled={!brand}
                   >
                     <option value="">{!brand ? t('Select Brand First') : t('Select Type')}</option>
+                    {/* Edit 场景兜底：本地 spool 的 material_type/series 组合可能来源于
+                        AMS 同步、自定义添加、或更早版本的 presets 数据，不一定出现在当前
+                        brand 的 typeSeriesOptions 里。没有这个 fallback option 时 <select>
+                        找不到匹配项会回落到 placeholder "Select Type"，造成编辑时看上去
+                        "耗材类型未展示"。把当前值单独补一条，保证可回显、可修改。*/}
+                    {typeSeriesFull && !typeSeriesOptions.includes(typeSeriesFull) && (
+                      <option value={typeSeriesFull}>{typeSeriesFull}</option>
+                    )}
                     {typeSeriesOptions.map((n) => <option key={n} value={n}>{n}</option>)}
                   </select>
                 </div>
@@ -648,7 +903,7 @@ export function AddEditDialog({
                   这样用户无需单独"保存"按钮即可确认颜色已入选。 */}
               <div className="flex flex-col gap-[8px]">
                 <label className="text-[12px] leading-[19px] text-fm-text-secondary"><span className="text-[#ff2b00]">*</span> {t('Color')}</label>
-                <div className={`flex flex-wrap gap-[6px] items-center${amsReadonly ? ' opacity-50 pointer-events-none' : ''}`}>
+                <div className="flex flex-wrap gap-[6px] items-center">
                   {/* Custom-color picker: 未选时显示"+"占位；已选自定义色时显示色块 */}
                   <div
                     className={`size-[24px] rounded-[4px] cursor-pointer border relative overflow-hidden flex items-center justify-center text-fm-text-detail text-sm ${
@@ -672,7 +927,7 @@ export function AddEditDialog({
                       key={c}
                       className={`size-[24px] rounded-[4px] cursor-pointer border transition-colors duration-150 hover:border-white/40 ${c.toUpperCase() === colorCode.toUpperCase() ? 'border-fm-brand border-2' : 'border-white/16'}`}
                       style={{ background: c }}
-                      onClick={() => !amsReadonly && setColorCode(c)}
+                      onClick={() => setColorCode(c)}
                     />
                   ))}
                 </div>
@@ -688,28 +943,33 @@ export function AddEditDialog({
                 )}
               </div>
 
-              {/* Weight */}
+              {/* Weight — swagger-aligned two-field model
+                  (design-user.api: netWeight + totalNetWeight). The old
+                  三列 "Total - Spool = Net" UX was dropped because the
+                  cloud never round-trips spool_weight, so it only ever
+                  confused the Remain column. */}
               <div className="flex flex-col gap-[4px]">
                 <label className="text-[12px] leading-[19px] text-fm-text-secondary"><span className="text-[#ff2b00]">*</span> {t('Weight')}</label>
                 <div className="bg-fm-inner rounded-[6px] p-[8px]">
                   <div className="flex gap-[8px] items-center">
                     <div className="flex flex-col gap-[4px] flex-1">
-                      <span className="text-[11px] leading-[16px] text-fm-text-secondary">{t('Total Weight')}</span>
-                      <input className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)]" type="number" placeholder={t('Input Total Weight')} value={totalWeight} onChange={(e) => setTotalWeight(Number(e.target.value) || 0)} disabled={amsReadonly} />
-                    </div>
-                    <div className="shrink-0 w-[7px] h-[54px] flex flex-col justify-end">
-                      <span className="h-[32px] flex items-center justify-center text-[14px] text-fm-text-primary">-</span>
-                    </div>
-                    <div className="flex flex-col gap-[4px] flex-1">
-                      <span className="text-[11px] leading-[16px] text-fm-text-secondary">{t('Spool Weight')}</span>
-                      <input className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)]" type="number" placeholder={t('Input Spool Weight')} value={spoolWeight} onChange={(e) => setSpoolWeight(Number(e.target.value) || 0)} disabled={amsReadonly} />
-                    </div>
-                    <div className="shrink-0 w-[7px] h-[54px] flex flex-col justify-end">
-                      <span className="h-[32px] flex items-center justify-center text-[14px] text-fm-text-primary">=</span>
+                      <span className="text-[11px] leading-[16px] text-fm-text-secondary">{t('Current Net Weight')}</span>
+                      {/* type=number inputs bound to a number state in
+                          React keep showing "0" after the user deletes
+                          the last digit (Number("") -> 0), so the next
+                          keystroke appends "1" and you get "01". Select
+                          all text on focus so typing always replaces the
+                          previous value, matching the usual UX for
+                          quantity-style fields. */}
+                      <input className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)]" type="number" placeholder={t('Input Current Net Weight')} value={currentNetWeight} onFocus={(e) => e.target.select()} onChange={(e) => setCurrentNetWeight(Number(e.target.value) || 0)} />
                     </div>
                     <div className="flex flex-col gap-[4px] flex-1">
-                      <span className="text-[11px] leading-[16px] text-fm-text-secondary">{t('Net Weight')}</span>
-                      <span className="h-[32px] flex items-center text-[14px] font-medium text-fm-text-primary">{netWeight}g</span>
+                      <span className="text-[11px] leading-[16px] text-fm-text-secondary">{t('Total Net Weight')}</span>
+                      {/* Total Net Weight is locked on edit: it is the
+                          spool's factory full-weight and must not drift
+                          after a row exists — only Current Net Weight
+                          tracks consumption over time. */}
+                      <input className={`bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)] ${isEdit ? 'opacity-60 cursor-not-allowed' : ''}`} type="number" placeholder={t('Input Total Net Weight')} value={totalNetWeight} readOnly={isEdit} disabled={isEdit} onFocus={(e) => e.target.select()} onChange={(e) => setTotalNetWeight(Number(e.target.value) || 0)} />
                     </div>
                   </div>
                 </div>

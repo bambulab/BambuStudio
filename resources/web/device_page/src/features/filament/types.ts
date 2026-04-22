@@ -46,6 +46,9 @@ export interface MachineItem {
   dev_id: string;
   dev_name: string;
   is_online: boolean;
+  // True when the printer is in LAN mode. Surfaced so the Printer dropdown
+  // can follow SelectMachineDialog's "<dev_name>(LAN)" display convention.
+  is_lan?: boolean;
 }
 
 // AMS data

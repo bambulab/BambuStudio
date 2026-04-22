@@ -65,9 +65,21 @@ void wgtFilaManagerCloudDispatcher::enqueue_pull()
         BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] enqueue_pull skipped: already pulling";
         return;
     }
+    // STUDIO-17956: a batch add of N spools fires N push_done callbacks,
+    // each of which enqueues a reconciliation pull. Without this check the
+    // dispatcher would run `list_spools` N times in a row (the first pull
+    // already gets all the fresh data, the rest are wasted HTTP calls and
+    // produce duplicate "+0 added, M up-to-date" toasts). Skip when a pull
+    // is already waiting in the queue; run_pull_op() clears the flag when
+    // the pending pull starts.
+    if (m_pending_pull_queued) {
+        BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] enqueue_pull skipped: pull already queued";
+        return;
+    }
     wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher enqueue pull",
                                    "A cloud pull operation was queued",
                                    nlohmann::json::object());
+    m_pending_pull_queued = true;
     m_queue.push_back([this]() { run_pull_op(); });
     schedule_next();
 }
@@ -82,13 +94,19 @@ void wgtFilaManagerCloudDispatcher::enqueue_push_create(const std::string& spool
     schedule_next();
 }
 
-void wgtFilaManagerCloudDispatcher::enqueue_push_update(const std::string& spool_id)
+void wgtFilaManagerCloudDispatcher::enqueue_push_update(const std::string& spool_id,
+                                                        const nlohmann::json& local_patch)
 {
     if (spool_id.empty()) return;
     wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher enqueue push_update",
                                    "An update push operation was queued",
-                                   {{"spool_id", spool_id}});
-    m_queue.push_back([this, spool_id]() { run_push_update_op(spool_id); });
+                                   {{"spool_id", spool_id},
+                                    {"patch_keys", local_patch.is_object() ?
+                                        static_cast<int>(local_patch.size()) : 0}});
+    nlohmann::json patch_copy = local_patch.is_object() ? local_patch : nlohmann::json::object();
+    m_queue.push_back([this, spool_id, patch_copy]() {
+        run_push_update_op(spool_id, patch_copy);
+    });
     schedule_next();
 }
 
@@ -108,6 +126,9 @@ void wgtFilaManagerCloudDispatcher::clear_pending()
     // eventual outcome via observer state.
     const size_t n = m_queue.size();
     m_queue.clear();
+    // Any pending pull we were holding was just dropped; allow future
+    // enqueue_pull() calls to queue a fresh one again.
+    m_pending_pull_queued = false;
     if (n > 0) {
         BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] clear_pending dropped " << n << " op(s)";
     }
@@ -147,6 +168,11 @@ void wgtFilaManagerCloudDispatcher::on_op_done()
 
 void wgtFilaManagerCloudDispatcher::run_pull_op()
 {
+    // Clear the "queue already has a pending pull" guard as soon as we pop
+    // the pull off the queue, so a new enqueue_pull() during this run (e.g.
+    // a later push_done) can schedule the next pull instead of being dropped.
+    m_pending_pull_queued = false;
+
     if (!m_sync) {
         on_op_done();
         return;
@@ -257,7 +283,8 @@ void wgtFilaManagerCloudDispatcher::run_push_create_op(const std::string& spool_
         });
 }
 
-void wgtFilaManagerCloudDispatcher::run_push_update_op(const std::string& spool_id)
+void wgtFilaManagerCloudDispatcher::run_push_update_op(const std::string& spool_id,
+                                                       const nlohmann::json& local_patch)
 {
     if (!m_sync || !is_user_logged_in()) {
         if (m_sync && !is_user_logged_in()) {
@@ -277,7 +304,21 @@ void wgtFilaManagerCloudDispatcher::run_push_update_op(const std::string& spool_
     const FilamentSpool* spool = store->get_spool(spool_id);
     if (!spool || !m_client) { on_op_done(); return; }
 
-    nlohmann::json body = wgtFilaManagerCloudSync::spool_to_cloud_json(*spool);
+    // Update 走 patch 白名单；404 fallback 才用到全量 create body。
+    nlohmann::json body        = wgtFilaManagerCloudSync::spool_to_cloud_update_patch(local_patch);
+    nlohmann::json create_body = wgtFilaManagerCloudSync::spool_to_cloud_json(*spool);
+
+    if (body.empty()) {
+        // patch 里没有任何云端认识的字段（比如用户只改了 favorite 这种仅本地字段）
+        // — 不打扰云端，直接把本条标记已同步即可。
+        BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_update skipped (empty cloud patch) " << spool_id;
+        if (store->mark_synced(spool_id, true)) store->save();
+        update_last_synced_now();
+        if (m_on_push_done) m_on_push_done(spool_id, "update");
+        on_op_done();
+        return;
+    }
+
     m_client->update_spool(spool_id, body,
         [this, spool_id](const nlohmann::json& /*resp*/) {
             wxTheApp->CallAfter([this, spool_id]() {
@@ -294,13 +335,13 @@ void wgtFilaManagerCloudDispatcher::run_push_update_op(const std::string& spool_
                 on_op_done();
             });
         },
-        [this, spool_id, body](int code, const std::string& err) {
+        [this, spool_id, create_body](int code, const std::string& err) {
             if (code == 404) {
                 // Fallback to create for the common "cloud has no record of
                 // this local spool yet" case (e.g. the local row was created
                 // while offline and the first update is effectively a create).
                 BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_update 404, fallback create " << spool_id;
-                m_client->create_spool(body,
+                m_client->create_spool(create_body,
                     [this, spool_id](const nlohmann::json&) {
                         wxTheApp->CallAfter([this, spool_id]() {
                             BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_update fallback create ok " << spool_id;

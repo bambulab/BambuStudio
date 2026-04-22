@@ -12,14 +12,17 @@ function getDisplayedRemainWeight(s: Spool) {
 }
 
 function getDisplayedTotalWeight(s: Spool) {
-  const remain = s.remain_percent || 0;
-  if (typeof s.net_weight === 'number' && s.net_weight > 0 && remain > 0) {
-    return Math.round(s.net_weight * 100 / remain);
-  }
-  if (typeof s.net_weight === 'number' && s.net_weight > 0) {
-    return Math.round(s.net_weight);
-  }
-  return Math.round(s.initial_weight || 0);
+  // STUDIO-17991: show the initial *net* weight (recorded gross weight
+  // minus the empty-spool weight) so the "A g / B g" ratio stays in a
+  // single unit with the left-hand Remain column, which is also net
+  // weight. Using initial_weight directly leaks the gross value — e.g. a
+  // Bambu PLA Basic spool stores 1250 g initial + 250 g empty, producing
+  // a mismatched "1000 g / 1250 g" against the net Remain. Back-deriving
+  // from net_weight / remain_percent was even worse because the device
+  // reports remain_percent as an integer percentage, so small remains
+  // produced drifted denominators like 1013 g / 1250 g.
+  const sw = s.spool_weight || 0;
+  return Math.max(0, Math.round((s.initial_weight || 0) - sw));
 }
 
 /* ===== Grouping ===== */

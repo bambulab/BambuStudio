@@ -166,7 +166,12 @@ void wgtFilaManagerPanel::push_to_web(const std::string& command, const nlohmann
 void wgtFilaManagerPanel::OnWebMsg(wxWebViewEvent& evt)
 {
     try {
-        nlohmann::json j = nlohmann::json::parse(evt.GetString().ToStdString());
+        // ToStdString() uses the current C locale, which on Windows CJK
+        // builds mangles non-ASCII characters (Chinese notes, emoji, etc.)
+        // before the JSON parser sees them. Force UTF-8 to match the
+        // C++->JS direction (SendMsg builds the script via nlohmann dump
+        // and needs the request round-trip to stay in UTF-8).
+        nlohmann::json j = nlohmann::json::parse(evt.GetString().ToUTF8().data());
         std::string type = j.value("type", "");
 
         if (type != "request") {

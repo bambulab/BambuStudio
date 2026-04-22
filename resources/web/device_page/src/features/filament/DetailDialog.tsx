@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Spool } from './types';
 import { SpoolSvg } from './SpoolSvg';
-import { ENTRY_METHOD_LABELS, formatSpoolDisplayName } from './constants';
+import { ENTRY_METHOD_LABELS, formatSpoolDisplayName, formatTypeSeries } from './constants';
 
 interface Props {
   open: boolean;
@@ -49,9 +49,25 @@ export function DetailDialog({ open, spool, filteredSpools, onClose, onEdit, onN
   const hasNext = idx >= 0 && idx < filteredSpools.length - 1;
 
   const nameParts = formatSpoolDisplayName(spool);
-  const tw = spool.initial_weight || 0;
-  const sw = spool.spool_weight || 0;
-  const nw = Math.max(0, tw - sw);
+  // Mirror AddEditDialog.typeSeriesFull: present 类型 + 系列 as a single
+  // combined label (e.g. "PLA Basic") so the detail panel and the edit
+  // form read the same way. formatTypeSeries dedupes when series equals
+  // material_type (historical AMS-sync rows can store material_type="ABS"
+  // AND series="ABS"; without dedup the label rendered as "ABS ABS").
+  const typeSeriesFull = formatTypeSeries(spool.material_type, spool.series);
+  // STUDIO-17991: align the Weight block with AddEditDialog's two-field
+  // swagger model (netWeight / totalNetWeight). Drop 毛重/料盘/净重 三列
+  // — the cloud schema never persisted 料盘 anyway, so exposing it here
+  // only drifted out of sync with the list Remain column.
+  //
+  // Legacy rows stored initial_weight as 毛重 with spool_weight > 0; new
+  // rows store initial_weight as the pure 整卷净重 with spool_weight == 0.
+  // `initial - spool` collapses both shapes to 整卷净重 transparently.
+  const legacySpool = spool.spool_weight || 0;
+  const totalNet = Math.max(0, (spool.initial_weight || 0) - legacySpool);
+  const currentNet = (typeof spool.net_weight === 'number' && spool.net_weight > 0)
+    ? Math.round(spool.net_weight)
+    : Math.round(totalNet * (spool.remain_percent || 0) / 100);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-start justify-center pt-5 z-[1000]" onClick={onClose}>
@@ -121,38 +137,38 @@ export function DetailDialog({ open, spool, filteredSpools, onClose, onEdit, onN
             "Usage Records" tab removed (F3.1): the cloud API does not yet
             expose any usage history, and the local-only tab was always empty. */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
-          {/* 耗材信息 — aligned with figma node 7460:18424:
-                    row 1: 品牌 | 类型    row 2: 系列 | 颜色(swatch) */}
+          {/* 耗材信息 — aligned with AddEditDialog (F4.3): collapse the
+              standalone "Series" field into the combined Material Type
+              so the detail panel reads the same way as the edit form
+              (e.g. "PLA Basic" / "PLA Matte"). Layout: row 1 品牌 | 类型,
+              row 2 颜色. */}
               <div className="fm-section-bar flex items-center gap-[6px] text-sm font-normal text-fm-text-primary mt-4 mb-2 leading-[22px] first:mt-0">{t('Filament Info')}</div>
               <div className="flex gap-3">
                 <DetField label={t('Brand')} value={spool.brand || '—'} />
-                <DetField label={t('Material Type')} value={spool.material_type || '—'} />
+                <DetField
+                  label={t('Material Type')}
+                  value={typeSeriesFull || '—'}
+                />
               </div>
               <div className="flex gap-3">
-                <DetField label={t('Series')} value={spool.series || '—'} />
                 <div className="flex flex-col gap-1 mb-4 flex-1">
                   <label className="text-xs text-fm-text-secondary leading-[19px]">{t('Color')}</label>
                   <div className="h-8 flex items-center">
                     <div className="w-6 h-6 rounded-sm border border-white/[0.16]" style={{ background: spool.color_code || '#888' }} />
                   </div>
                 </div>
+                <div className="flex-1" />
               </div>
 
               <div className="fm-section-bar flex items-center gap-[6px] text-sm font-normal text-fm-text-primary mt-4 mb-2 leading-[22px]">{t('Weight')}</div>
               <div className="flex items-end gap-2 bg-fm-inner rounded-md p-2 opacity-30">
                 <div className="flex flex-col gap-1 flex-1">
-                  <span className="text-[11px] text-fm-text-secondary leading-4">{t('Total Weight')}</span>
-                  <span className="text-sm text-fm-text-strong leading-[22px] font-medium">{tw} g</span>
+                  <span className="text-[11px] text-fm-text-secondary leading-4">{t('Current Net Weight')}</span>
+                  <span className="text-sm text-fm-text-strong leading-[22px] font-medium">{currentNet} g</span>
                 </div>
-                <span className="text-sm text-fm-text-strong leading-8 shrink-0 w-[7px] text-center">−</span>
                 <div className="flex flex-col gap-1 flex-1">
-                  <span className="text-[11px] text-fm-text-secondary leading-4">{t('Spool Weight')}</span>
-                  <span className="text-sm text-fm-text-strong leading-[22px] font-medium">{sw} g</span>
-                </div>
-                <span className="text-sm text-fm-text-strong leading-8 shrink-0 w-[7px] text-center">=</span>
-                <div className="flex flex-col gap-1 flex-1">
-                  <span className="text-[11px] text-fm-text-secondary leading-4">{t('Net Weight')}</span>
-                  <span className="text-sm text-fm-text-strong leading-[22px] font-medium">{nw} g</span>
+                  <span className="text-[11px] text-fm-text-secondary leading-4">{t('Total Net Weight')}</span>
+                  <span className="text-sm text-fm-text-strong leading-[22px] font-medium">{totalNet} g</span>
                 </div>
               </div>
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDeviceBridge } from '../../hooks/Bridge';
 import useStore from '../../store/AppStore';
@@ -78,7 +78,49 @@ export function useFilamentBridge() {
   const setDebugEnabled = useStore((s) => s.filament.setDebugEnabled);
   const appendDebugLog  = useStore((s) => s.filament.appendDebugLog);
 
-  // Listen for C++ push/report events
+  // STUDIO-17956: coalesce per-spool push_done toasts into a single batch
+  // toast. Adding N spools in quick succession used to spam N identical
+  // "Filament synced to cloud." toasts (one per push_done). We now accumulate
+  // the counts and either (a) flush on the trailing pull_done that follows a
+  // batch or (b) fall back to a 1s timeout if no pull_done arrives (e.g.
+  // offline). The per-op history entries are still appended one-by-one so
+  // Sync History keeps its fine-grained audit trail.
+  const pushDoneAggRef = useRef<{
+    timer: ReturnType<typeof setTimeout> | null;
+    counts: { create: number; update: number; delete: number; other: number };
+  }>({ timer: null, counts: { create: 0, update: 0, delete: 0, other: 0 } });
+
+  const flushPushDoneAgg = useCallback(() => {
+    const agg = pushDoneAggRef.current;
+    if (agg.timer) { clearTimeout(agg.timer); agg.timer = null; }
+    const { create, update, delete: del, other } = agg.counts;
+    const total = create + update + del + other;
+    if (total === 0) return;
+    agg.counts = { create: 0, update: 0, delete: 0, other: 0 };
+
+    let text: string;
+    let op = '';
+    if (total === 1) {
+      if (create)      { text = t('Filament synced to cloud.');           op = 'create'; }
+      else if (update) { text = t('Filament change synced to cloud.');    op = 'update'; }
+      else if (del)    { text = t('Filament deletion synced to cloud.');  op = 'delete'; }
+      else               text = t('Filament synced to cloud.');
+    } else if (create > 0 && update === 0 && del === 0 && other === 0) {
+      text = t('Synced {{count}} new filaments to cloud.', { count: create });
+      op = 'create';
+    } else if (update > 0 && create === 0 && del === 0 && other === 0) {
+      text = t('Synced {{count}} filament changes to cloud.', { count: update });
+      op = 'update';
+    } else if (del > 0 && create === 0 && update === 0 && other === 0) {
+      text = t('Synced {{count}} filament deletions to cloud.', { count: del });
+      op = 'delete';
+    } else {
+      // Mixed ops in one batch — rare, but stay informative.
+      text = t('Synced {{count}} filament changes to cloud.', { count: total });
+    }
+    pushToast({ level: 'info', text, op });
+  }, [t, pushToast]);
+
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail;
@@ -107,6 +149,11 @@ export function useFilamentBridge() {
           if (spools) setSpools(spools);
           const st = payload.state as CloudSyncState | undefined;
           if (st) setCloudSync(st);
+          // STUDIO-17956: a pull_done fired by the dispatcher right after a
+          // batch of push_create ops signals "the batch is done". Flush any
+          // accumulated push_done counts now so the user sees the batch
+          // summary immediately rather than waiting on the 1s timeout.
+          flushPushDoneAgg();
           const added = (payload.added as number) || 0;
           const updated = (payload.updated as number) || 0;
           pushToast({
@@ -123,17 +170,20 @@ export function useFilamentBridge() {
             detail: { added, updated },
           });
         } else if (body.action === 'push_done') {
-          // F4.5 / F4.6: surface an explicit success toast for create /
+          // F4.5 / F4.6: surface an explicit success signal for create /
           // update / delete so users know the change reached the cloud.
+          // STUDIO-17956: batch adds fire many push_done callbacks in quick
+          // succession — coalesce their toasts into one. The per-op history
+          // entry below is still appended individually so Sync History keeps
+          // full detail.
           const st = payload.state as CloudSyncState | undefined;
           if (st) setCloudSync(st);
           const op = (payload.op as string) || '';
-          const msg =
-            op === 'create' ? t('Filament synced to cloud.')
-            : op === 'update' ? t('Filament change synced to cloud.')
-            : op === 'delete' ? t('Filament deletion synced to cloud.')
-            : t('Filament synced to cloud.');
-          pushToast({ level: 'info', text: msg, op });
+          const agg = pushDoneAggRef.current;
+          const key = (op === 'create' || op === 'update' || op === 'delete') ? op : 'other';
+          agg.counts[key] += 1;
+          if (agg.timer) clearTimeout(agg.timer);
+          agg.timer = setTimeout(() => flushPushDoneAgg(), 1000);
           const histSummary =
             op === 'create' ? t('Pushed to cloud: added a filament')
             : op === 'update' ? t('Pushed to cloud: updated a filament')
@@ -191,8 +241,14 @@ export function useFilamentBridge() {
       }
     };
     document.addEventListener('cpp:device', handler);
-    return () => document.removeEventListener('cpp:device', handler);
-  }, [setSpools, setCloudSync, setCloudConfig, pushToast, appendCloudSyncHistory, appendDebugLog, setMachines, setAmsData, setSelectedMachineDevId, t]);
+    return () => {
+      document.removeEventListener('cpp:device', handler);
+      // STUDIO-17956: drop any pending batch-push timer so an unmount
+      // mid-batch doesn't fire a toast from a stale closure.
+      const agg = pushDoneAggRef.current;
+      if (agg.timer) { clearTimeout(agg.timer); agg.timer = null; }
+    };
+  }, [setSpools, setCloudSync, setCloudConfig, pushToast, appendCloudSyncHistory, appendDebugLog, setMachines, setAmsData, setSelectedMachineDevId, t, flushPushDoneAgg]);
 
   // ---- Init ----
   const init = useCallback(async () => {
@@ -361,24 +417,56 @@ export function useFilamentBridge() {
       if (typeof payload.selected_dev_id === 'string') {
         setSelectedMachineDevId(payload.selected_dev_id);
       }
+      return payload.machines ?? [];
     }
+    return [] as MachineItem[];
   }, [request, setMachines, setSelectedMachineDevId]);
 
-  const fetchAmsData = useCallback(async (devId?: string) => {
+  // Ask a specific (or the currently selected) printer to resend its full
+  // state package. Used by the refresh button next to the Printer dropdown
+  // in the "Read from AMS" dialog so the operator can force a fresh AMS
+  // tray snapshot without waiting for the next spontaneous push. This is
+  // deliberately read-only with respect to DeviceManager's selected
+  // machine -- changing the selection still goes through ams/list with
+  // switch_selected:true.
+  const requestMachinePushall = useCallback(async (devId?: string) => {
+    const params: Record<string, unknown> = {};
+    if (devId) params.dev_id = devId;
     const res = await request<ReturnType<typeof makeBody>, BridgeResponseBody>(
-      makeBody('ams', 'list', devId ? { dev_id: devId } : {})
+      makeBody('machine', 'request_pushall', params)
+    );
+    return res.ok && res.value.error_code === 0;
+  }, [request]);
+
+  // `switchSelected`: pass true only when the caller represents an
+  // explicit user-initiated machine switch; the C++ side will then call
+  // DeviceManager::set_selected_machine. Poll refreshes, mirror effects
+  // for external switches, and the initial open where the default
+  // machine already matches Studio's global selection must pass false
+  // (or omit it) so we don't flood the log with "set current printer"
+  // requests on every poll tick.
+  const fetchAmsData = useCallback(async (
+    devId?: string,
+    switchSelected: boolean = false,
+  ) => {
+    const params: Record<string, unknown> = {};
+    if (devId) params.dev_id = devId;
+    if (switchSelected) params.switch_selected = true;
+    const res = await request<ReturnType<typeof makeBody>, BridgeResponseBody>(
+      makeBody('ams', 'list', params)
     );
     if (res.ok && res.value.error_code === 0) {
       const data = res.value.payload as unknown as AmsData;
       setAmsData(data);
-      // HandleAms("list", {dev_id}) calls set_selected_machine under the
-      // hood; reflect that in the web store so downstream consumers see the
-      // new selection immediately even if OnSelectedMachineChanged fires
-      // after this RPC returns.
-      if (data && typeof data.selected_dev_id === 'string' && data.selected_dev_id) {
+      // Only mirror the selected dev id into the store when we actually
+      // asked C++ to switch; read-only snapshots must not race with
+      // OnSelectedMachineChanged and clobber a pending update.
+      if (switchSelected && data && typeof data.selected_dev_id === 'string' && data.selected_dev_id) {
         setSelectedMachineDevId(data.selected_dev_id);
       }
+      return data;
     }
+    return null;
   }, [request, setAmsData, setSelectedMachineDevId]);
 
   // ---- Cloud sync ----
@@ -428,6 +516,7 @@ export function useFilamentBridge() {
     archiveSpool,
     fetchPresets,
     fetchMachines,
+    requestMachinePushall,
     fetchAmsData,
     fetchCloudSyncStatus,
     triggerCloudPull,

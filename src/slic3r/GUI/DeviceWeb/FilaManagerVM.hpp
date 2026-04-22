@@ -66,6 +66,17 @@ private:
     // Cached cloud filament config (brands / types) — populated by
     // HandleConfig("fetch") and returned verbatim on subsequent calls.
     nlohmann::json m_cached_cloud_config = nlohmann::json::object();
+
+    // STUDIO-17956: counter of "create" push ops that have succeeded since the
+    // last pull_done, used to correct publish_pull_done's `added`/`updated`.
+    // Dispatcher's size-diff estimate is 0 for post-push reconciliation pulls
+    // because the new spool is already merged into the local store *before*
+    // push_create runs (local-first add). Each create push_done bumps this
+    // counter by 1; the next publish_pull_done consumes and clears it, so the
+    // toast shows "+1 added" instead of the confusing "+0 added".
+    // Only touched on the wx UI thread (dispatcher callbacks are UI-thread
+    // CallAfter), so no locking is needed.
+    int m_pending_pull_added_hint = 0;
 };
 
 }} // namespace Slic3r::GUI

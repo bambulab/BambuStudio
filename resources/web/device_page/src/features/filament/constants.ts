@@ -21,13 +21,24 @@ export const ENTRY_METHOD_LABELS: Record<string, string> = {
 export const PAGE_SIZES = [20, 50, 100] as const;
 export const DEFAULT_PAGE_SIZE = 50;
 
+// 统一的"耗材类型名"显示：material_type + series（相同时去重，避免 "ABS ABS"）。
+// 例：("ABS", "ABS")       -> "ABS"
+//     ("PLA", "Basic")      -> "PLA Basic"
+//     ("PLA", "")           -> "PLA"
+//     ("", "Something")     -> "Something"
+export function formatTypeSeries(materialType?: string, series?: string): string {
+  const t = (materialType || '').trim();
+  const s = (series || '').trim();
+  if (!t) return s;
+  if (!s || s === t) return t;
+  return `${t} ${s}`.trim();
+}
+
 // 统一的耗材显示名：品牌 + 耗材类型名（series 与 material_type 相同时去重）
 // 例：brand="Bambu Lab", material_type="ABS", series="ABS" -> "Bambu Lab ABS"
 //     brand="Bambu Lab", material_type="PLA", series="Basic" -> "Bambu Lab PLA Basic"
 export function formatSpoolDisplayName(s: { brand?: string; material_type?: string; series?: string }): string {
   const brand = (s.brand || '').trim();
-  const mtype = (s.material_type || '').trim();
-  const series = (s.series || '').trim();
-  const typePart = series && series !== mtype ? `${mtype} ${series}`.trim() : mtype;
+  const typePart = formatTypeSeries(s.material_type, s.series);
   return [brand, typePart].filter(Boolean).join(' ');
 }

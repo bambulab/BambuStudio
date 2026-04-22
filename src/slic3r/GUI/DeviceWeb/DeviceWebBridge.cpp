@@ -71,7 +71,11 @@ void DeviceWebBridge::OnWebNav(wxWebViewEvent& e)
     if (!url.StartsWith("app://")) return;
 
     wxURI       uri(url);
-    std::string raw = wxURI::Unescape(uri.GetPath()).ToStdString();
+    // ToStdString() uses the current C locale, which on Windows CJK builds
+    // mangles non-ASCII characters (Chinese notes, emoji, etc.) before the
+    // JSON parser sees them. Force UTF-8 to match the C++->JS direction
+    // (SendMsg uses wxString::FromUTF8).
+    std::string raw = wxURI::Unescape(uri.GetPath()).ToUTF8().data();
 
     nlohmann::json j = nlohmann::json::parse(raw, nullptr, false);
     if (ValidateJson(j)) {
@@ -83,7 +87,11 @@ void DeviceWebBridge::OnWebNav(wxWebViewEvent& e)
 
 void DeviceWebBridge::OnWebMsg(wxWebViewEvent& e)
 {
-    const std::string raw = e.GetString().ToStdString();
+    // ToStdString() uses the current C locale, which on Windows CJK builds
+    // mangles non-ASCII characters (Chinese notes, emoji, etc.) before the
+    // JSON parser sees them. Force UTF-8 to match the C++->JS direction
+    // (SendMsg uses wxString::FromUTF8).
+    const std::string raw = e.GetString().ToUTF8().data();
     nlohmann::json    j   = nlohmann::json::parse(raw, nullptr, false);
     if (ValidateJson(j)) {
         DispatchWebCommand(j["head"], j["body"]);
