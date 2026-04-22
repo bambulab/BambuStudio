@@ -795,7 +795,12 @@ void PrintObject::slice()
     //BBS: add flag to reload scene for shell rendering
     m_print->set_status(5, L("Slicing mesh"), PrintBase::SlicingStatus::RELOAD_SCENE);
     std::vector<coordf_t> layer_height_profile;
-    this->update_layer_height_profile(*this->model_object(), m_slicing_params, layer_height_profile);
+    bool nozzle_range_reset = false;
+    this->update_layer_height_profile(*this->model_object(), m_slicing_params, layer_height_profile, nozzle_range_reset);
+    if (nozzle_range_reset)
+        this->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL,
+            L("The variable layer height profile has been reset because some layer heights "
+              "exceed the allowed range of the current nozzle."));
     m_print->throw_if_canceled();
     m_typed_slices = false;
     this->clear_layers();

@@ -793,7 +793,13 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D & canvas, const 
 void GLCanvas3D::LayersEditing::adjust_layer_height_profile()
 {
     this->update_slicing_parameters();
-    PrintObject::update_layer_height_profile(*m_model_object, *m_slicing_parameters, m_layer_height_profile);
+    bool nozzle_range_reset = false;
+    PrintObject::update_layer_height_profile(*m_model_object, *m_slicing_parameters, m_layer_height_profile, nozzle_range_reset);
+    if (nozzle_range_reset) {
+        wxGetApp().plater()->get_notification_manager()->push_plater_warning_notification(
+            _u8L("The variable layer height profile has been reset because some layer heights "
+                 "exceed the allowed range of the current nozzle."));
+    }
     Slic3r::adjust_layer_height_profile(*m_slicing_parameters, m_layer_height_profile, this->last_z, this->strength, this->band_width, this->last_action);
     m_layers_texture.valid = false;
     m_profile_dirty = true;
@@ -836,10 +842,16 @@ void GLCanvas3D::LayersEditing::generate_layer_height_texture()
     this->update_slicing_parameters();
     // Always try to update the layer height profile.
     bool update = !m_layers_texture.valid;
-    if (PrintObject::update_layer_height_profile(*m_model_object, *m_slicing_parameters, m_layer_height_profile)) {
+    bool nozzle_range_reset = false;
+    if (PrintObject::update_layer_height_profile(*m_model_object, *m_slicing_parameters, m_layer_height_profile, nozzle_range_reset)) {
         // Initialized to the default value.
         update = true;
         m_profile_dirty = true;
+    }
+    if (nozzle_range_reset) {
+        wxGetApp().plater()->get_notification_manager()->push_plater_warning_notification(
+            _u8L("The variable layer height profile has been reset because some layer heights "
+                 "exceed the allowed range of the current nozzle."));
     }
     // Update if the layer height profile was changed, or when the texture is not valid.
     if (!update && !m_layers_texture.data.empty() && m_layers_texture.cells > 0)

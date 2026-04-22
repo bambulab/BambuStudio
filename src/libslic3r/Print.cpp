@@ -1373,7 +1373,10 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             layer_height_profiles.assign(m_objects.size(), std::vector<coordf_t>());
         std::vector<coordf_t>   &profile      = layer_height_profiles[print_object_idx];
         if (profile.empty())
-            PrintObject::update_layer_height_profile(*print_object.model_object(), print_object.slicing_parameters(), profile);
+        {
+            bool nozzle_range_reset = false;
+            PrintObject::update_layer_height_profile(*print_object.model_object(), print_object.slicing_parameters(), profile, nozzle_range_reset);
+        }
         return profile;
     };
 
