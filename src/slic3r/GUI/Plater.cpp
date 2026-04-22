@@ -2154,30 +2154,6 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
             fila_switch_warning_shown = false;
         }
 
-        std::map<std::pair<int, int>, int> ams_cnt_map{
-            {{MAIN_EXTRUDER_ID, 1}, 0},
-            {{DEPUTY_EXTRUDER_ID, 1}, 0},
-            {{MAIN_EXTRUDER_ID, 4}, 0},
-            {{DEPUTY_EXTRUDER_ID, 4}, 0},
-        };
-        for (const auto &ams : obj->GetFilaSystem()->GetAmsList()) {
-            for (auto extruder_id : ams.second->GetBindedExtruderSet()) {
-                if (is_fila_switch_ready()) {
-                    auto switcher_pos = ams.second->GetSwitcherPos();
-                    if (!switcher_pos) { continue; }
-                    auto switcher_id = obj->is_main_extruder_on_left() ? (1 - static_cast<int>(switcher_pos.value())) : static_cast<int>(switcher_pos.value());
-                    if (extruder_id != switcher_id) { continue; }
-                }
-                std::pair<int, int> key = {extruder_id, ams.second->GetAmsType() == DevAmsType::N3S ? 1 : 4};
-                ams_cnt_map[key]++;
-            }
-        }
-        int main_index   = obj->is_main_extruder_on_left() ? 0 : 1;
-        int deputy_index = obj->is_main_extruder_on_left() ? 1 : 0;
-        AMSCountPopupWindow::SetAMSCount(deputy_index, ams_cnt_map[{DEPUTY_EXTRUDER_ID, 4}], ams_cnt_map[{DEPUTY_EXTRUDER_ID, 1}], false);
-        AMSCountPopupWindow::SetAMSCount(main_index, ams_cnt_map[{MAIN_EXTRUDER_ID, 4}], ams_cnt_map[{MAIN_EXTRUDER_ID, 1}], false);
-        AMSCountPopupWindow::UpdateAMSCount(0, left_extruder);
-        AMSCountPopupWindow::UpdateAMSCount(1, right_extruder);
     }
 
     //std::vector<ExtruderInfo> extruder_infos(extruder_nums);
