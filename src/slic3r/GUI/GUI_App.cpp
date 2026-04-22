@@ -1142,13 +1142,7 @@ void GUI_App::post_init()
                 download_url = input_str;
             }
 #endif
-            try
-            {
-                //filter relative directories
-                std::regex pattern("\\.\\.[\\/\\\\]|\\.\\.[\\/\\\\][\\/\\\\]|\\.\\/[\\/\\\\]|\\.[\\/\\\\]");
-                download_url = std::regex_replace(download_url, pattern, "");
-            }
-            catch (...){}
+            download_url = sanitize_download_url(download_url);
 
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", download_url %1%") % PathSanitizer::sanitize(download_url);
 
@@ -4875,6 +4869,15 @@ void GUI_App::request_model_download(wxString url)
     }
 }
 
+std::string GUI_App::sanitize_download_url(const std::string &url)
+{
+    try {
+        std::regex pattern("\\.\\.[\\/\\\\]|\\.\\.[\\/\\\\][\\/\\\\]|\\.\\/[\\/\\\\]|\\.[\\/\\\\]");
+        return std::regex_replace(url, pattern, "");
+    } catch (...) {}
+    return url;
+}
+
 //BBS download project by project id
 void GUI_App::download_project(std::string project_id)
 {
@@ -7141,7 +7144,21 @@ void GUI_App::MacOpenURL(const wxString& url)
             if (!input_str.empty()) download_origin_url = input_str;
         }
 
-        std::string download_file_url = url_decode(download_origin_url);
+        std::string decoded_url = url_decode(download_origin_url);
+        std::string download_file_url;
+#if BBL_RELEASE_TO_PUBLIC
+        if (boost::starts_with(decoded_url, "http://makerworld") || boost::starts_with(decoded_url, "https://makerworld") ||
+            boost::starts_with(decoded_url, "http://public-cdn.bblmw.com") || boost::starts_with(decoded_url, "https://public-cdn.bblmw.com") ||
+            boost::algorithm::contains(decoded_url, "amazonaws.com") || boost::algorithm::contains(decoded_url, "aliyuncs.com")) {
+            download_file_url = decoded_url;
+        } else {
+            MessageDialog msg_dlg(nullptr, _L("This file is not from a trusted site, do you want to open it anyway?"), "", wxAPPLY | wxYES_NO);
+            if (msg_dlg.ShowModal() == wxID_YES) download_file_url = decoded_url;
+        }
+#else
+        download_file_url = decoded_url;
+#endif
+        download_file_url = sanitize_download_url(download_file_url);
 
 #if !BBL_RELEASE_TO_PUBLIC
         BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << download_file_url;

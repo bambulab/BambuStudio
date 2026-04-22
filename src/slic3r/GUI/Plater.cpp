@@ -16794,7 +16794,7 @@ void Plater::import_model_id(wxString download_info)
         size_t namePos = download_info.Find(separator);
         if (namePos != wxString::npos) {
             download_url = download_info.Mid(0, namePos);
-            filename = download_info.Mid(namePos + separator.Length());
+            filename = fs::path(download_info.Mid(namePos + separator.Length()).wc_str()).filename().wstring();
 
         }
         else {
