@@ -4185,9 +4185,9 @@ bool MachineObject::check_enable_np(const json& print) const
 int MachineObject::get_max_filament_color_count() const
 {
     if (is_support_filament_32_colors) return 32;
-    if (is_enable_ams_np)              return 20;
-    if (is_enable_np)                  return 16;
-    return 16;
+    if (is_enable_ams_np && !is_series_x())              return 20;
+    if (!is_series_x() && !is_series_o()) return 16;
+    return 0;
 }
 
 void MachineObject::parse_new_info(json print)
@@ -4516,7 +4516,7 @@ void MachineObject::update_filament_list()
 
         for (auto it = filament_list.begin(); it != filament_list.end(); it++) {
             if (m_filament_list.find(it->first) != m_filament_list.end()) {
-                assert(it->first.size() == 8 && it->first[0] == 'P');
+               // assert(it->first.size() == 8 && it->first[0] == 'P');
 
                 if (it->second.first != m_filament_list[it->first].first) {
                     BOOST_LOG_TRIVIAL(info) << "old min temp is not equal to new min temp and filament id: " << it->first;
