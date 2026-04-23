@@ -81,6 +81,20 @@ namespace Slic3r {
 
 #define NOZZLE_ID_FOR_GCODE(RESULT, ID) RESULT->is_support_dynamic_nozzle_map() ? ID : -1
 
+static std::vector<double> get_nozzle_diameters_by_nozzle_id(const MultiNozzleUtils::NozzleGroupResultBase *group_result)
+{
+    std::vector<double> diameters;
+    if (!group_result)
+        return diameters;
+    for (int id = 0;; ++id) {
+        auto nozzle = group_result->get_nozzle_from_id(id);
+        if (!nozzle)
+            break;
+        diameters.push_back(std::stod(nozzle->diameter));
+    }
+    return diameters;
+}
+
 static const float g_min_purge_volume = 100.f;
 static const float g_purge_volume_one_time = 135.f;
 static const int g_max_flush_count = 4;
@@ -722,6 +736,10 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             const std::string& filament_end_gcode = gcodegen.config().filament_end_gcode.get_at(old_filament_id);
             if (gcodegen.writer().filament() != nullptr && !filament_end_gcode.empty()) {
                 DynamicConfig config;
+                config.set_key_value("current_filament_id", new ConfigOptionInt((int)old_filament_id));
+                config.set_key_value("current_extruder_id", new ConfigOptionInt((int)gcodegen.writer().filament()->extruder_id()));
+                config.set_key_value("current_nozzle_id", new ConfigOptionInt(group_result->get_nozzle_id(old_filament_id, m_layer_idx)));
+                config.set_key_value("nozzle_diameter_at_nozzle_id", new ConfigOptionFloats(get_nozzle_diameters_by_nozzle_id(group_result.get())));
                 config.set_key_value("layer_num", new ConfigOptionInt(gcodegen.m_layer_index));
                 if (!gcodegen.m_filament_instances_code.empty()) {
                     end_filament_gcode_str += ("M624 " + gcodegen.m_filament_instances_code + "\n");
@@ -784,6 +802,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             DynamicConfig config;
             int old_filament_id = gcodegen.writer().filament() ? (int)gcodegen.writer().filament()->id() : -1;
             int old_extruder_id = gcodegen.writer().filament() ? (int)gcodegen.writer().filament()->extruder_id() : -1;
+            int old_nozzle_id = gcodegen.writer().filament() ? group_result->get_nozzle_id(old_filament_id, m_layer_idx) : -1;
             int next_nozzle_id =group_result->get_nozzle_id(new_filament_id, m_layer_idx);
 
             config.set_key_value("previous_extruder", new ConfigOptionInt(old_filament_id));
@@ -832,6 +851,13 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 std::string old_extruder_variant = extruder_variants[old_extruder_id];
                 std::string new_extruder_variant = extruder_variants[new_extruder_id];
 
+                config.set_key_value("current_extruder_id", new ConfigOptionInt(old_extruder_id));
+                config.set_key_value("next_extruder_id", new ConfigOptionInt(new_extruder_id));
+                config.set_key_value("current_nozzle_id", new ConfigOptionInt(old_nozzle_id));
+                config.set_key_value("next_nozzle_id", new ConfigOptionInt(next_nozzle_id));
+                config.set_key_value("current_filament_id", new ConfigOptionInt(old_filament_id));
+                config.set_key_value("next_filament_id", new ConfigOptionInt(new_filament_id));
+                config.set_key_value("nozzle_diameter_at_nozzle_id", new ConfigOptionFloats(get_nozzle_diameters_by_nozzle_id(group_result.get())));
                 config.set_key_value("max_layer_z", new ConfigOptionFloat(gcodegen.m_max_layer_z));
                 config.set_key_value("relative_e_axis", new ConfigOptionBool(full_config.use_relative_e_distances));
                 config.set_key_value("toolchange_count", new ConfigOptionInt((int)gcodegen.m_toolchange_count+1));
@@ -1024,6 +1050,9 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         // std::string toolchange_unretract_str = gcodegen.unretract(); check_add_eol(toolchange_unretract_str);
         gcodegen.placeholder_parser().set("current_extruder", new_filament_id);
         gcodegen.placeholder_parser().set("current_hotend", NOZZLE_ID_FOR_GCODE(group_result,current_nozzle_id));
+        gcodegen.placeholder_parser().set("current_filament_id", new_filament_id);
+        gcodegen.placeholder_parser().set("current_extruder_id", new_extruder_id);
+        gcodegen.placeholder_parser().set("current_nozzle_id", current_nozzle_id);
         {
             size_t fi = gcodegen.get_filament_config_index(new_filament_id);
             gcodegen.placeholder_parser().set("retraction_distance_when_cut", gcodegen.m_config.retraction_distances_when_cut.get_at(fi));
@@ -1039,6 +1068,10 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             // Process the filament_start_gcode for the active filament only.
             DynamicConfig config;
             config.set_key_value("filament_extruder_id", new ConfigOptionInt(new_filament_id));
+            config.set_key_value("current_filament_id", new ConfigOptionInt(new_filament_id));
+            config.set_key_value("current_extruder_id", new ConfigOptionInt(new_extruder_id));
+            config.set_key_value("current_nozzle_id", new ConfigOptionInt(current_nozzle_id));
+            config.set_key_value("nozzle_diameter_at_nozzle_id", new ConfigOptionFloats(get_nozzle_diameters_by_nozzle_id(group_result.get())));
             config.set_key_value("layer_num", new ConfigOptionInt(gcodegen.m_layer_index));
             start_filament_gcode_str = gcodegen.placeholder_parser_process("filament_start_gcode", filament_start_gcode, new_filament_id, &config);
             if (add_change_filament_624) {
@@ -2460,6 +2493,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_placeholder_parser.set("initial_no_support_hotend",NOZZLE_ID_FOR_GCODE( group_result,group_result->get_first_nozzle_for_filament(initial_non_support_extruder_id)->group_id));
     m_placeholder_parser.set("current_extruder", initial_extruder_id);
     m_placeholder_parser.set("current_hotend", NOZZLE_ID_FOR_GCODE(group_result,group_result->get_first_nozzle_for_filament(initial_extruder_id)->group_id));
+    m_placeholder_parser.set("current_filament_id", (int)initial_extruder_id);
+    m_placeholder_parser.set("current_extruder_id", (int)get_extruder_id(initial_extruder_id));
+    m_placeholder_parser.set("current_nozzle_id", group_result->get_first_nozzle_for_filament(initial_extruder_id)->group_id);
+    m_placeholder_parser.set("nozzle_diameter_at_nozzle_id", new ConfigOptionFloats(get_nozzle_diameters_by_nozzle_id(group_result.get())));
 
     //set the key for compatibilty, scalar values for the initial extruder (variant-aware)
     {
@@ -2734,6 +2771,10 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     {
         DynamicConfig config;
         config.set_key_value("filament_extruder_id", new ConfigOptionInt((int)(initial_non_support_extruder_id)));
+        config.set_key_value("current_filament_id", new ConfigOptionInt((int)(initial_non_support_extruder_id)));
+        config.set_key_value("current_extruder_id", new ConfigOptionInt((int)get_extruder_id(initial_non_support_extruder_id)));
+        config.set_key_value("current_nozzle_id", new ConfigOptionInt(group_result->get_first_nozzle_for_filament(initial_non_support_extruder_id)->group_id));
+        config.set_key_value("nozzle_diameter_at_nozzle_id", new ConfigOptionFloats(get_nozzle_diameters_by_nozzle_id(group_result.get())));
         config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
         std::string filament_start_gcode = this->placeholder_parser_process("filament_start_gcode", print.config().filament_start_gcode.values.at(initial_non_support_extruder_id), initial_non_support_extruder_id,&config);
         file.writeln(filament_start_gcode);
@@ -3069,16 +3110,23 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         //config.set_key_value("layer_z",   new ConfigOptionFloat(m_writer.get_position()(2) - m_config.z_offset.value));
         config.set_key_value("layer_z",   new ConfigOptionFloat(m_writer.get_position()(2)));
         config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
+        config.set_key_value("nozzle_diameter_at_nozzle_id", new ConfigOptionFloats(get_nozzle_diameters_by_nozzle_id(group_result.get())));
 
         if (print.config().single_extruder_multi_material) {
             // Process the filament_end_gcode for the active filament only.
             int extruder_id = m_writer.filament()->id();
             config.set_key_value("filament_extruder_id", new ConfigOptionInt(extruder_id));
+            config.set_key_value("current_filament_id", new ConfigOptionInt(extruder_id));
+            config.set_key_value("current_extruder_id", new ConfigOptionInt((int)get_extruder_id(extruder_id)));
+            config.set_key_value("current_nozzle_id", new ConfigOptionInt(group_result->get_nozzle_id(extruder_id, m_layer_index)));
             file.writeln(this->placeholder_parser_process("filament_end_gcode", print.config().filament_end_gcode.get_at(extruder_id), extruder_id, &config));
         } else {
             for (const std::string &end_gcode : print.config().filament_end_gcode.values) {
                 int extruder_id = (unsigned int)(&end_gcode - &print.config().filament_end_gcode.values.front());
                 config.set_key_value("filament_extruder_id", new ConfigOptionInt(extruder_id));
+                config.set_key_value("current_filament_id", new ConfigOptionInt(extruder_id));
+                config.set_key_value("current_extruder_id", new ConfigOptionInt((int)get_extruder_id(extruder_id)));
+                config.set_key_value("current_nozzle_id", new ConfigOptionInt(group_result->get_nozzle_id(extruder_id, m_layer_index)));
                 file.writeln(this->placeholder_parser_process("filament_end_gcode", end_gcode, extruder_id, &config));
             }
         }
@@ -7238,6 +7286,9 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     if (!m_writer.multiple_extruders) {
         m_placeholder_parser.set("current_extruder", new_filament_id);
         m_placeholder_parser.set("current_hotend", NOZZLE_ID_FOR_GCODE(group_result,new_nozzle_id));
+        m_placeholder_parser.set("current_filament_id", (int)new_filament_id);
+        m_placeholder_parser.set("current_extruder_id", (int)get_extruder_id(new_filament_id));
+        m_placeholder_parser.set("current_nozzle_id", new_nozzle_id);
         {
             size_t fi = get_filament_config_index(new_filament_id);
             m_placeholder_parser.set("retraction_distance_when_cut", m_config.retraction_distances_when_cut.get_at(fi));
@@ -7252,6 +7303,10 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
         if (! filament_start_gcode.empty()) {
             // Process the filament_start_gcode for the filament.
             DynamicConfig config;
+            config.set_key_value("current_filament_id", new ConfigOptionInt((int)new_filament_id));
+            config.set_key_value("current_extruder_id", new ConfigOptionInt((int)get_extruder_id(new_filament_id)));
+            config.set_key_value("current_nozzle_id", new ConfigOptionInt(new_nozzle_id));
+            config.set_key_value("nozzle_diameter_at_nozzle_id", new ConfigOptionFloats(get_nozzle_diameters_by_nozzle_id(group_result.get())));
             if (m_layer_index >= 0)
                 config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
             else
@@ -7291,6 +7346,10 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
         const std::string  &filament_end_gcode  = m_config.filament_end_gcode.get_at(old_filament_id);
         if (! filament_end_gcode.empty()) {
             DynamicConfig config;
+            config.set_key_value("current_filament_id", new ConfigOptionInt((int) old_filament_id));
+            config.set_key_value("current_extruder_id", new ConfigOptionInt(m_writer.get_curr_extruder_id()));
+            config.set_key_value("current_nozzle_id", new ConfigOptionInt(group_result->get_nozzle_id(old_filament_id, m_layer_index)));
+            config.set_key_value("nozzle_diameter_at_nozzle_id", new ConfigOptionFloats(get_nozzle_diameters_by_nozzle_id(group_result.get())));
             config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
             if (!m_filament_instances_code.empty()) {
                 gcode += ("M624 " + m_filament_instances_code + "\n");
@@ -7324,6 +7383,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     float filament_area = float((M_PI / 4.f) * pow(m_config.filament_diameter.get_at(new_filament_id), 2));
     //BBS: add handling for filament change in start gcode
     int old_filament_id = -1;
+    int old_nozzle_id = -1;
     int old_extruder_id = -1;
     if (m_writer.filament() != nullptr || m_start_gcode_filament != -1) {
         std::vector<float> flush_matrix(cast<float>(get_flush_volumes_matrix(m_config.flush_volumes_matrix.values, new_extruder_id, m_config.nozzle_diameter.values.size())));
@@ -7334,6 +7394,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
             assert(m_start_gcode_filament < number_of_extruders);
 
         old_filament_id = m_writer.filament() != nullptr ? m_writer.filament()->id() : m_start_gcode_filament;
+        old_nozzle_id = m_writer.filament() != nullptr ? group_result->get_nozzle_id(old_filament_id, m_layer_index) : -1;
         old_extruder_id = m_writer.get_curr_extruder_id();
         old_retract_length = m_config.retraction_length.get_at(old_filament_id);
         old_retract_length_toolchange = m_config.retract_length_toolchange.get_at(old_filament_id);
@@ -7392,6 +7453,13 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     float outer_wall_volumetric_speed = get_outer_wall_volumetric_speed(m_config, *m_print, new_filament_id, get_extruder_id(new_filament_id));
     float         wipe_avoid_pos_x            = 110.f;
     DynamicConfig dyn_config;
+    dyn_config.set_key_value("current_extruder_id", new ConfigOptionInt(old_extruder_id));
+    dyn_config.set_key_value("next_extruder_id", new ConfigOptionInt(new_extruder_id));
+    dyn_config.set_key_value("current_nozzle_id", new ConfigOptionInt(old_nozzle_id));
+    dyn_config.set_key_value("next_nozzle_id", new ConfigOptionInt(new_nozzle_id));
+    dyn_config.set_key_value("current_filament_id", new ConfigOptionInt(old_filament_id));
+    dyn_config.set_key_value("next_filament_id", new ConfigOptionInt((int) new_filament_id));
+    dyn_config.set_key_value("nozzle_diameter_at_nozzle_id", new ConfigOptionFloats(get_nozzle_diameters_by_nozzle_id(group_result.get())));
     dyn_config.set_key_value("outer_wall_volumetric_speed", new ConfigOptionFloat(outer_wall_volumetric_speed));
     dyn_config.set_key_value("previous_extruder", new ConfigOptionInt(old_filament_id));
     dyn_config.set_key_value("next_extruder", new ConfigOptionInt((int)new_filament_id));
@@ -7527,6 +7595,9 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
 
     m_placeholder_parser.set("current_extruder", new_filament_id);
     m_placeholder_parser.set("current_hotend", new_nozzle_id);
+    m_placeholder_parser.set("current_filament_id", (int)new_filament_id);
+    m_placeholder_parser.set("current_extruder_id", new_extruder_id);
+    m_placeholder_parser.set("current_nozzle_id", new_nozzle_id);
 
     {
         size_t fi = get_filament_config_index(new_filament_id);
@@ -7546,6 +7617,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
             config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
         else
             config.set_key_value("layer_num", new ConfigOptionInt(0));
+        config.set_key_value("nozzle_diameter_at_nozzle_id", new ConfigOptionFloats(get_nozzle_diameters_by_nozzle_id(group_result.get())));
 
         gcode += this->placeholder_parser_process("filament_start_gcode", filament_start_gcode, new_filament_id, &config);
         if (add_change_filament_624) {
