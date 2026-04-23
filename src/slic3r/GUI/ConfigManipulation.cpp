@@ -1209,10 +1209,7 @@ bool build_support_recommended_config(const std::string& support_material, const
 
     const auto& rec_params = rec_params_opt.value();
 
-    // Iterate all recommended params and set to config
-    for (const auto &[key, value] : rec_params.params.params) {
-        // Copy key to local variable for lambda capture (required for some compilers)
-        const std::string param_key = key;
+    for (const auto &[param_key, value] : rec_params.params.params) {
 
         auto opt_def_it = print_config_def.options.find(param_key);
         if (opt_def_it == print_config_def.options.end()) {
@@ -1220,55 +1217,35 @@ bool build_support_recommended_config(const std::string& support_material, const
             continue;
         }
 
-        const ConfigOptionDef &opt_def = opt_def_it->second;
+        const ConfigOptionDef& opt_def = opt_def_it->second;
 
-        std::visit([&](auto &&val) {
+        std::string serialized = std::visit([](auto &&val) -> std::string {
             using T = std::decay_t<decltype(val)>;
-
-            if constexpr (std::is_same_v<T, double>) {
-                if (opt_def.type == coFloat || opt_def.type == coFloatOrPercent) {
-                    out_config.set_key_value(param_key, new ConfigOptionFloat(val));
-                } else if (opt_def.type == coPercent) {
-                    out_config.set_key_value(param_key, new ConfigOptionPercent(val));
-                } else if (opt_def.type == coInt) {
-                    out_config.set_key_value(param_key, new ConfigOptionInt(static_cast<int>(val)));
-                }
+            if constexpr (std::is_same_v<T, std::string>) {
+                return val;
             } else if constexpr (std::is_same_v<T, bool>) {
-                if (opt_def.type == coBool) {
-                    out_config.set_key_value(param_key, new ConfigOptionBool(val));
-                }
-            } else if constexpr (std::is_same_v<T, std::string>) {
-                if (opt_def.type == coString) {
-                    out_config.set_key_value(param_key, new ConfigOptionString(val));
-                } else if (opt_def.type == coEnum) {
-                    ConfigOption *opt = opt_def.create_default_option();
-                    if (opt && opt->deserialize(val)) {
-                        out_config.set_key_value(param_key, opt);
-                    } else {
-                        delete opt;
-                        BOOST_LOG_TRIVIAL(warning) << "Failed to deserialize enum value for " << param_key << ": " << val;
-                    }
-                }
-            } else if constexpr (std::is_same_v<T, int>) {
-                if (opt_def.type == coInt) {
-                    out_config.set_key_value(param_key, new ConfigOptionInt(val));
-                } else if (opt_def.type == coFloat) {
-                    out_config.set_key_value(param_key, new ConfigOptionFloat(static_cast<double>(val)));
-                }
+                return val ? "1" : "0";
             } else if constexpr (std::is_same_v<T, std::vector<double>>) {
-                if (opt_def.type == coFloats) {
-                    out_config.set_key_value(param_key, new ConfigOptionFloats(val));
-                } else if (opt_def.type == coFloatsOrPercents) {
-                    std::vector<FloatOrPercent> fop_vec;
-                    for (double v : val) {
-                        fop_vec.push_back(FloatOrPercent{v, false});
-                    }
-                    out_config.set_key_value(param_key, new ConfigOptionFloatsOrPercents(fop_vec));
-                } else if (opt_def.type == coPercents) {
-                    out_config.set_key_value(param_key, new ConfigOptionPercents(val));
+                std::ostringstream ss;
+                for (size_t i = 0; i < val.size(); ++i) {
+                    if (i > 0) ss << ",";
+                    ss << val[i];
                 }
+                return ss.str();
+            } else {
+                std::ostringstream ss;
+                ss << val;
+                return ss.str();
             }
         }, value);
+
+        ConfigOption *opt = opt_def.create_default_option();
+        if (opt && opt->deserialize(serialized)) {
+            out_config.set_key_value(param_key, opt);
+        }else {
+            delete opt;
+            BOOST_LOG_TRIVIAL(warning) << "Failed to deserialize recommended param " << param_key << ": " << serialized;
+        }
     }
 
     return true;
