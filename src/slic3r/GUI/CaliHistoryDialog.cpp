@@ -915,7 +915,7 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
         m_comboBox_nozzle_type   = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
         m_comboBox_nozzle_type->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, &NewCalibrationHistoryDialog::on_select_nozzle_volume, this);
 
-        for (auto [volume_type, diameters] : CalibUtils::get_supported_nozzle_volume_and_diameters(curr_obj)) {
+        for (auto [volume_type, diameters] : CalibUtils::get_supported_nozzle_volume_and_diameters(curr_obj, false)) {
             m_comboBox_nozzle_type->Append(DevNozzle::GetNozzleVolumeTypeStr(volume_type), wxNullBitmap, new int{volume_type});
         }
         m_comboBox_nozzle_type->SetSelection(-1);
@@ -1063,12 +1063,10 @@ void NewCalibrationHistoryDialog::on_select_nozzle_volume(wxCommandEvent &event)
 
     m_comboBox_nozzle_diameter->Clear();
 
-    auto volume_diamters_map = CalibUtils::get_supported_nozzle_volume_and_diameters(curr_obj);
+    auto volume_diamters_map = CalibUtils::get_supported_nozzle_volume_and_diameters(curr_obj, false);
     if (volume_diamters_map.find(volume_type) == volume_diamters_map.end()) return;
 
     for (auto diameter : volume_diamters_map[volume_type]) {
-        if (is_high_volume(volume_type) && diameter == NozzleDiameterType::NOZZLE_DIAMETER_0_2) continue;
-
         m_comboBox_nozzle_diameter->Append(wxString::Format("%1.1f mm", DevNozzle::ToNozzleDiameterFloat(diameter)), wxNullBitmap, new int{diameter});
     }
 

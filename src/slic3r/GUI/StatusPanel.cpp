@@ -3275,6 +3275,8 @@ void StatusPanel::update_ams(MachineObject *obj)
         cali_info.use_extruder_id        = false;
         cali_info.use_nozzle_volume_type = false;
         CalibUtils::emit_get_PA_calib_infos(cali_info);
+
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " calibration: sync calib version for device " << BBLCrossTalk::Crosstalk_DevName(obj->get_dev_name());
     }
 
     if (obj && obj->is_security_control_ready()) { obj->check_ams_filament_valid(); }
