@@ -1345,6 +1345,9 @@ void PrintingTaskPanel::set_thumbnail_img(const wxBitmap &bmp, const std::string
 
     m_thumbnail_bmp_display_name = bmp_name;
     m_thumbnail_bmp_display      = bmp;
+    if (m_bitmap_thumbnail && bmp.IsOk()) {
+        m_bitmap_thumbnail->SetBitmap(bmp);
+    }
     Refresh();
 }
 
