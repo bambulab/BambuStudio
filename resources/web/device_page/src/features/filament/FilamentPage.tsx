@@ -14,10 +14,14 @@ import type { Spool, MachineItem, AmsData } from './types';
 import './filament.css';
 
 type TabMode = 'all' | 'ams';
+// 列表筛选项（label ↔ 本地字段 ↔ 云端字段）：
+//   Brand         brand          filamentVendor
+//   Filament Type material_type  filamentType   （类型大类，PLA / PETG / PA ...）
+//   Material Type series         filamentName   （完整名，PLA Basic / Support For PA/PET）
 type FilterKey = 'brand' | 'material_type' | 'series';
 
 const FILTER_LABEL_KEYS: Record<FilterKey, string> = {
-  brand: 'Brand', material_type: 'Material Type', series: 'Series',
+  brand: 'Brand', material_type: 'Filament Type', series: 'Material Type',
 };
 
 export function FilamentPage() {

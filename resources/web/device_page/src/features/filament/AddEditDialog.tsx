@@ -132,28 +132,39 @@ export function AddEditDialog({
 
   // UX decision (per F4.3 feedback, revised):
   //   收起 Type / Series 两个独立字段，合并为单个「耗材类型」<select>，
-  //   选项直接显示完整名如 "PLA Basic" / "PLA Matte"；只允许从下拉里选，
-  //   不允许手填（用户反馈："耗材类型不允许编辑，参考品牌使用下拉列表"）。
-  //   内部仍拆成 material_type + series 写入 Spool（后端 / 归档 / detail 语义不变）。
+  //   选项直接显示云端 `get_filament_config` 返回的 filamentName 完整名
+  //   （例如 "PLA Basic" / "PETG Translucent" / "PLA-S Support For PLA/PETG"）。
+  //   这样下拉值与云端创建/更新耗材接口的 filamentName 字段语义一致，不再
+  //   依赖本地 preset 的 "type + series[]" 拼接。本地 preset 仅作为云端
+  //   config 尚未拉回来时的 fallback 兜底。
   const typeSeriesOptions = useMemo<string[]>(() => {
     const set = new Set<string>();
-    const vendors = brand ? presets.filter((v) => v.name === brand) : presets;
-    vendors.forEach((v) => {
-      v.types.forEach((tp) => {
-        const series = Array.isArray(tp.series) ? tp.series.filter(Boolean) : [];
-        if (series.length === 0) {
-          if (tp.name) set.add(tp.name);
-        } else {
-          // formatTypeSeries collapses "ABS" + "ABS" -> "ABS" so the
-          // dropdown never offers "ABS ABS" / "TPU 85A 85A" / etc., which
-          // would otherwise push series="ABS" into the saved Spool on
-          // selection and then display as "ABS ABS" everywhere.
-          series.forEach((s) => set.add(formatTypeSeries(tp.name, s)));
-        }
+
+    const settings = cloudConfig?.filamentSettings;
+    if (Array.isArray(settings)) {
+      settings.forEach((it) => {
+        if (!it) return;
+        if (brand && it.filamentVendor !== brand) return;
+        const name = (it.filamentName || '').trim();
+        if (name) set.add(name);
       });
-    });
+    }
+
+    if (set.size === 0) {
+      const vendors = brand ? presets.filter((v) => v.name === brand) : presets;
+      vendors.forEach((v) => {
+        v.types.forEach((tp) => {
+          const series = Array.isArray(tp.series) ? tp.series.filter(Boolean) : [];
+          if (series.length === 0) {
+            if (tp.name) set.add(tp.name);
+          } else {
+            series.forEach((s) => set.add(formatTypeSeries(tp.name, s)));
+          }
+        });
+      });
+    }
     return [...set].sort();
-  }, [brand, presets]);
+  }, [brand, cloudConfig, presets]);
 
   // Split a combined "PLA Basic" string back into (type, series) using the
   // vendor's known types as anchors (longest-first to tolerate types with
@@ -173,29 +184,69 @@ export function AddEditDialog({
     return { type: first, series: s.substring(first.length).trim() };
   };
 
-  // Current combined value shown in the single combobox.
-  // formatTypeSeries dedupes when series === material_type so legacy rows
-  // stored as (type="ABS", series="ABS") still match the deduped option
-  // "ABS" in the dropdown instead of falling through to a synthetic
-  // "ABS ABS" entry.
-  const typeSeriesFull = formatTypeSeries(materialType, series);
+  // Material Type 下拉当前值 = 云端 filamentName（本地 series）。不再做 type+series
+  // 前缀拼接；对于云端 filamentName = "Support For PA/PET" 且 filamentType = "PA"
+  // 这类"series 不含 type 前缀"的情况，拼接会错渲染成 "PA Support For PA/PET"。
+  // series 为空时退回到 material_type（覆盖仅有 type 无 series 的简单场景）。
+  const typeSeriesFull = (series || '').trim() || (materialType || '').trim();
 
+  // 云端 filamentSettings 里和当前 brand + series（filamentName）对上的那条记录，
+  // 用于取权威的 filamentId 作为本地 setting_id（与云端 POST/PUT 的 filamentId 字段
+  // 对齐，也便于下次 pull 回来时 preset 关联一致）。
+  const matchedCloudFilamentId = useMemo(() => {
+    const settings = cloudConfig?.filamentSettings;
+    if (!Array.isArray(settings)) return '';
+    const name = (series || '').trim();
+    if (!name || !brand) return '';
+    const hit = settings.find(
+      (it) => it && it.filamentVendor === brand && (it.filamentName || '').trim() === name,
+    );
+    return (hit?.filamentId || '').trim();
+  }, [cloudConfig, brand, series]);
+
+  // 语义统一：本地 series 直接对齐云端 filamentName 的完整名（如 "PLA Basic"）。
+  // preset 里 items[].series 历史上是短名（"Basic"），因此比对时同时接受
+  // 短名和完整名两种形态，保证新老数据都能匹配到 preset。
   const matchedPresetItem = useMemo(() => {
     for (const vendor of presets) {
       if (vendor.name !== brand) continue;
       for (const tp of vendor.types) {
         if (tp.name !== materialType) continue;
-        const item = tp.items?.find((entry) => (entry.series || '') === (series || ''));
+        const item = tp.items?.find((entry) => {
+          const presetSeries = entry.series || '';
+          return presetSeries === (series || '')
+              || formatTypeSeries(tp.name, presetSeries) === (series || '')
+              || presetSeries === formatTypeSeries(tp.name, series);
+        });
         if (item) return item;
       }
     }
     return null;
   }, [presets, brand, materialType, series]);
 
+  // 下拉切换时：
+  //  - series 直接存下拉选中的完整 filamentName（例如 "PLA Basic"）。这与
+  //    云端 PUT/POST 的 filamentName 字段语义一致，避免本地短名上云后丢类型前缀。
+  //  - material_type 优先从云端 filamentSettings 查该 filamentName 对应的
+  //    filamentType（云端是权威来源，能覆盖形如 "PLA-S Support For PLA/PETG"
+  //    这种本地 anchor 匹配会误切的复杂名称）。云端没命中再退回本地 preset
+  //    的前缀 anchor 匹配。
   const handleTypeSeriesChange = (full: string) => {
-    const { type, series: sr } = splitTypeSeries(full);
+    const name = (full || '').trim();
+    let type = '';
+    const settings = cloudConfig?.filamentSettings;
+    if (Array.isArray(settings)) {
+      const hit = settings.find(
+        (it) => it && it.filamentVendor === brand && (it.filamentName || '').trim() === name,
+      );
+      if (hit) type = (hit.filamentType || '').trim();
+    }
+    if (!type) {
+      const res = splitTypeSeries(name);
+      type = res.type;
+    }
     setMaterialType(type);
-    setSeries(sr);
+    setSeries(name);
   };
 
   // F4.5: validation no longer depends on `series` — the combined type field
@@ -232,7 +283,7 @@ export function AddEditDialog({
       net_weight: currentNetWeight,
       remain_percent: remainPct,
       note,
-      setting_id: matchedPresetItem?.filament_id || initSpool?.setting_id || '',
+      setting_id: matchedCloudFilamentId || matchedPresetItem?.filament_id || initSpool?.setting_id || '',
     };
 
     if (isEdit) {
@@ -613,7 +664,9 @@ export function AddEditDialog({
 
     setBrand(brandName);
     setMaterialType(typeName);
-    setSeries(seriesName);
+    // series 统一存完整 filamentName（含 type 前缀），与云端 filamentName
+    // 语义一致。这里拼接时走 formatTypeSeries 去重，避免 "ABS ABS" / "PLA PLA Basic"。
+    setSeries(formatTypeSeries(typeName, seriesName));
 
     // F4.8: color may arrive as #RRGGBBAA (BBL firmware appends alpha for
     // transparent filaments). Strip alpha so the palette match and the hex

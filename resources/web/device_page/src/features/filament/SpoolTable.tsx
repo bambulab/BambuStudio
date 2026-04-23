@@ -242,7 +242,7 @@ export function SpoolTable({
                       <div className="flex flex-col gap-[2px]">
                         <span className="text-sm text-fm-text-primary leading-[22px]">{nameParts || '—'}</span>
                         <div className="text-xs text-fm-text-secondary opacity-70 leading-[19px]">
-                          {s.diameter || 1.75} mm | {s.color_name || '—'}
+                          {s.diameter || 1.75} mm{s.color_name ? ` | ${s.color_name}` : ''}
                         </div>
                       </div>
                     </div>

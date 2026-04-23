@@ -21,9 +21,14 @@ export const ENTRY_METHOD_LABELS: Record<string, string> = {
 export const PAGE_SIZES = [20, 50, 100] as const;
 export const DEFAULT_PAGE_SIZE = 50;
 
-// 统一的"耗材类型名"显示：material_type + series（相同时去重，避免 "ABS ABS"）。
-// 例：("ABS", "ABS")       -> "ABS"
+// 统一的"耗材类型名"显示：material_type + series。
+// 本地 series 常见为短名（"Basic"/"95A"/"HF"），而云端 filamentName 同步回来的
+// 值是完整名（"PLA Basic"），所以这里同时处理两种形态：短 series 时前缀 type，
+// 完整 series 时识别出 type 前缀避免重复（历史的 "ABS ABS" / "PLA PLA Basic"）。
+// 例：("ABS", "ABS")        -> "ABS"
 //     ("PLA", "Basic")      -> "PLA Basic"
+//     ("PLA", "PLA Basic")  -> "PLA Basic"（series 已含 type 前缀，不重复）
+//     ("TPU", "95A")        -> "TPU 95A"
 //     ("PLA", "")           -> "PLA"
 //     ("", "Something")     -> "Something"
 export function formatTypeSeries(materialType?: string, series?: string): string {
@@ -31,14 +36,20 @@ export function formatTypeSeries(materialType?: string, series?: string): string
   const s = (series || '').trim();
   if (!t) return s;
   if (!s || s === t) return t;
+  if (t && (s === t || s.startsWith(t + ' '))) return s;
   return `${t} ${s}`.trim();
 }
 
-// 统一的耗材显示名：品牌 + 耗材类型名（series 与 material_type 相同时去重）
-// 例：brand="Bambu Lab", material_type="ABS", series="ABS" -> "Bambu Lab ABS"
-//     brand="Bambu Lab", material_type="PLA", series="Basic" -> "Bambu Lab PLA Basic"
+// 统一的耗材显示名：filamentVendor + 空格 + filamentName。
+// 本地 series 字段直接对齐云端 filamentName 语义（完整名如 "PLA Basic" /
+// "PETG HF" / "PLA-S Support For PLA/PETG"），无需再与 material_type 拼接；
+// series 缺失时回退到仅显示 material_type（如 series="" type="ABS"）。
+// 例：brand="Bambu Lab", series="PLA Basic"           -> "Bambu Lab PLA Basic"
+//     brand="Bambu Lab", material_type="ABS"           -> "Bambu Lab ABS"
 export function formatSpoolDisplayName(s: { brand?: string; material_type?: string; series?: string }): string {
   const brand = (s.brand || '').trim();
-  const typePart = formatTypeSeries(s.material_type, s.series);
-  return [brand, typePart].filter(Boolean).join(' ');
+  const series = (s.series || '').trim();
+  const type = (s.material_type || '').trim();
+  const namePart = series || type;
+  return [brand, namePart].filter(Boolean).join(' ');
 }

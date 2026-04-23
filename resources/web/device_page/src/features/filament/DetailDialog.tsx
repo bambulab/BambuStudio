@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Spool } from './types';
 import { SpoolSvg } from './SpoolSvg';
-import { ENTRY_METHOD_LABELS, formatSpoolDisplayName, formatTypeSeries } from './constants';
+import { ENTRY_METHOD_LABELS, formatSpoolDisplayName } from './constants';
 
 interface Props {
   open: boolean;
@@ -49,12 +49,11 @@ export function DetailDialog({ open, spool, filteredSpools, onClose, onEdit, onN
   const hasNext = idx >= 0 && idx < filteredSpools.length - 1;
 
   const nameParts = formatSpoolDisplayName(spool);
-  // Mirror AddEditDialog.typeSeriesFull: present 类型 + 系列 as a single
-  // combined label (e.g. "PLA Basic") so the detail panel and the edit
-  // form read the same way. formatTypeSeries dedupes when series equals
-  // material_type (historical AMS-sync rows can store material_type="ABS"
-  // AND series="ABS"; without dedup the label rendered as "ABS ABS").
-  const typeSeriesFull = formatTypeSeries(spool.material_type, spool.series);
+  // Material Type 字段语义 = 云端 filamentName（本地 series 字段对齐）。
+  // 直接展示 series；series 缺失时退回到 material_type。不再做 type+series
+  // 前缀拼接 —— 历史上那种拼接会把 series="Support For PA/PET" + type="PA"
+  // 渲染成 "PA Support For PA/PET"，和 filamentName 真实值不符。
+  const typeSeriesFull = (spool.series || '').trim() || (spool.material_type || '').trim();
   // STUDIO-17991: align the Weight block with AddEditDialog's two-field
   // swagger model (netWeight / totalNetWeight). Drop 毛重/料盘/净重 三列
   // — the cloud schema never persisted 料盘 anyway, so exposing it here
