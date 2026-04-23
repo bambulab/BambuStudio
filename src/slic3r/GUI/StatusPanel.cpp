@@ -4161,7 +4161,9 @@ void StatusPanel::update_ams(MachineObject *obj)
     } else {
         m_ams_control->SetAmsModel(ams_mode, ams_mode);
         m_filament_step->SetAmsModel(ams_mode, ams_mode);
-        show_ams_group(true);
+        auto rack_type = obj->GetNozzleSystem()->GetNozzleRack()->GetRackType();
+        bool ams_should_show = (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B);
+        show_ams_group(ams_should_show);
         // show_filament_load_group(true);
 
         if (obj->GetFilaSystem()->GetAmsList().empty() || obj->ams_exist_bits == 0) {
