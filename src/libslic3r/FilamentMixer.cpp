@@ -8,6 +8,7 @@
 #include <numeric>
 
 #include "FilamentMixerModel.hpp"
+#include "LocalesUtils.hpp"
 
 namespace Slic3r {
 namespace {
@@ -167,6 +168,7 @@ std::vector<unsigned int> parse_mixed_components(const std::string &str)
 
 std::vector<double> parse_mixed_ratios(const std::string &str, size_t n_components)
 {
+    CNumericLocalesSetter c_locale_setter;
     std::vector<double> ratios;
     if (!str.empty()) {
         std::istringstream ss(str);

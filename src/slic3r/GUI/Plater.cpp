@@ -66,6 +66,7 @@
 #include "libslic3r/Print.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/FilamentMixer.hpp"
+#include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "MixedFilamentDialog.hpp"
 #include "libslic3r/Utils.hpp"
@@ -3003,7 +3004,8 @@ Sidebar::Sidebar(Plater *parent)
             if (!indices.empty())
                 delete_mixed_filament_at(indices.size() - 1);
         });
-        title_sizer->Add(p->m_btn_mixed_del, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(16));
+        title_sizer->Add(p->m_btn_mixed_del, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(12));
+        title_sizer->Add(FromDIP(16), 0, 0, 0, 0);
 
         p->m_panel_mixed_title->SetSizer(title_sizer);
         wrapper_sizer->Add(p->m_panel_mixed_title, 0, wxEXPAND | wxTOP | wxBOTTOM, FromDIP(8));
@@ -5109,6 +5111,7 @@ void Sidebar::update_mixed_filament_list()
                 }
             }
             if (ratios_opt && cfg_idx < ratios_opt->values.size()) {
+                CNumericLocalesSetter c_locale_setter;
                 std::istringstream iss(ratios_opt->values[cfg_idx]);
                 std::string tok;
                 while (std::getline(iss, tok, ',')) {
@@ -5116,6 +5119,15 @@ void Sidebar::update_mixed_filament_list()
                     if (std::sscanf(tok.c_str(), "%f", &v) == 1)
                         comp_ratios.push_back((int)(v * 100 + 0.5f));
                 }
+            }
+            if (!comp_ids.empty() && comp_ratios.size() != comp_ids.size()) {
+                BOOST_LOG_TRIVIAL(warning) << "Mixed filament slot " << cfg_idx
+                    << ": ratio count (" << comp_ratios.size()
+                    << ") != component count (" << comp_ids.size()
+                    << "), resetting to even distribution";
+                int n = (int)comp_ids.size();
+                comp_ratios.assign(n, 100 / n);
+                comp_ratios[0] += 100 - (100 / n) * n;
             }
 
             bool is_broken = broken_set.count(cfg_idx) > 0;
@@ -5139,6 +5151,7 @@ void Sidebar::update_mixed_filament_list()
             if (grad_opt && cfg_idx < grad_opt->values.size())
                 is_gradient = grad_opt->values[cfg_idx];
             if (is_gradient && grad_range_opt && cfg_idx < grad_range_opt->values.size()) {
+                CNumericLocalesSetter c_locale_setter;
                 float v0 = 0, v1 = 0;
                 if (std::sscanf(grad_range_opt->values[cfg_idx].c_str(), "%f,%f", &v0, &v1) == 2)
                     gradient_direction = (v0 > v1) ? 0 : 1;
@@ -5656,11 +5669,14 @@ void Sidebar::add_mixed_filament()
         if (ratio_sum <= 0) ratio_sum = 100;
 
         std::string ratio_str;
-        for (size_t i = 0; i < result.ratios.size(); ++i) {
-            if (i > 0) ratio_str += ",";
-            char buf[32];
-            std::snprintf(buf, sizeof(buf), "%.4f", (float)result.ratios[i] / ratio_sum);
-            ratio_str += buf;
+        {
+            CNumericLocalesSetter c_locale_setter;
+            for (size_t i = 0; i < result.ratios.size(); ++i) {
+                if (i > 0) ratio_str += ",";
+                char buf[32];
+                std::snprintf(buf, sizeof(buf), "%.4f", (float)result.ratios[i] / ratio_sum);
+                ratio_str += buf;
+            }
         }
         project_config.option<ConfigOptionStrings>("filament_mixed_sublayer_ratios")->values[new_idx] = ratio_str;
 
@@ -5730,6 +5746,7 @@ void Sidebar::edit_mixed_filament(size_t panel_idx)
     }
     // Parse existing ratios
     if (ratios_opt && cfg_idx < ratios_opt->values.size()) {
+        CNumericLocalesSetter c_locale_setter;
         const std::string& rs = ratios_opt->values[cfg_idx];
         std::istringstream iss(rs);
         std::string tok;
@@ -5742,6 +5759,14 @@ void Sidebar::edit_mixed_filament(size_t panel_idx)
     if (existing.components.size() < 2) {
         existing.components = {1, 2};
         existing.ratios = {50, 50};
+    } else if (existing.ratios.size() != existing.components.size()) {
+        BOOST_LOG_TRIVIAL(warning) << "Mixed filament edit: ratio count ("
+            << existing.ratios.size() << ") != component count ("
+            << existing.components.size()
+            << "), resetting to even distribution";
+        int n = (int)existing.components.size();
+        existing.ratios.assign(n, 100 / n);
+        existing.ratios[0] += 100 - (100 / n) * n;
     }
 
     // Read gradient settings
@@ -5750,6 +5775,7 @@ void Sidebar::edit_mixed_filament(size_t panel_idx)
         existing.gradient_enabled = grad_opt->values[cfg_idx];
     auto* grad_range_opt = project_config.option<ConfigOptionStrings>("filament_mixed_gradient_range");
     if (existing.gradient_enabled && grad_range_opt && cfg_idx < grad_range_opt->values.size()) {
+        CNumericLocalesSetter c_locale_setter;
         float v0 = 0, v1 = 0;
         if (std::sscanf(grad_range_opt->values[cfg_idx].c_str(), "%f,%f", &v0, &v1) == 2)
             existing.gradient_direction = (v0 > v1) ? 0 : 1;
@@ -5774,11 +5800,14 @@ void Sidebar::edit_mixed_filament(size_t panel_idx)
         if (ratio_sum <= 0) ratio_sum = 100;
 
         std::string ratio_str;
-        for (size_t i = 0; i < result.ratios.size(); ++i) {
-            if (i > 0) ratio_str += ",";
-            char buf[32];
-            std::snprintf(buf, sizeof(buf), "%.4f", (float)result.ratios[i] / ratio_sum);
-            ratio_str += buf;
+        {
+            CNumericLocalesSetter c_locale_setter;
+            for (size_t i = 0; i < result.ratios.size(); ++i) {
+                if (i > 0) ratio_str += ",";
+                char buf[32];
+                std::snprintf(buf, sizeof(buf), "%.4f", (float)result.ratios[i] / ratio_sum);
+                ratio_str += buf;
+            }
         }
         ratios_opt->values[cfg_idx] = ratio_str;
 
@@ -21474,6 +21503,7 @@ std::vector<MixedGradientSlot> parse_mixed_gradient_slots(const Slic3r::DynamicP
 
         int direction = 0;
         if (grad_range && i < grad_range->values.size()) {
+            CNumericLocalesSetter c_locale_setter;
             float v0 = 0, v1 = 0;
             if (std::sscanf(grad_range->values[i].c_str(), "%f,%f", &v0, &v1) == 2)
                 direction = (v0 > v1) ? 0 : 1;
