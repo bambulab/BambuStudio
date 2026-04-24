@@ -1844,6 +1844,7 @@ wxMenu *MenuFactory::filament_action_menu(int active_filament_menu_id) {
 wxMenu* MenuFactory::plate_menu()
 {
     append_menu_item_locked(&m_plate_menu);
+    append_menu_item_plate_visibility(&m_plate_menu);
     append_menu_item_plate_name(&m_plate_menu);
     {
         NetworkAgent* agent = GUI::wxGetApp().getAgent();
@@ -2431,6 +2432,78 @@ void MenuFactory::append_menu_item_locked(wxMenu* menu)
         //evt.Check(check);
         plater()->set_current_canvas_as_dirty();
     }, item->GetId());
+}
+
+void MenuFactory::append_menu_item_plate_visibility(wxMenu* menu)
+{
+    const std::vector<wxString> names = {
+        _L("Show Plate"), _L("Hide Plate"),
+        _L("Show All Plates"), _L("Hide Other Plates")
+    };
+    for (const wxString& name : names) {
+        int item_id;
+        while ((item_id = menu->FindItem(name)) != wxNOT_FOUND)
+            menu->Destroy(item_id);
+    }
+
+    PartPlateList& list = plater()->get_partplate_list();
+    if (list.get_plate_count() <= 1)
+        return;
+
+    PartPlate* plate = list.get_selected_plate();
+    if (!plate) return;
+
+    auto do_refresh = []() {
+        PartPlateList& list = plater()->get_partplate_list();
+        list.update_unselected_plate_trans(list.get_plate_count());
+        plater()->get_view3D_canvas3D()->update_plate_volumes_visibility(list);
+        wxGetApp().obj_list()->reload_all_plates();
+        plater()->update();
+    };
+
+    // Show All
+    auto show_all = append_menu_item(menu, wxID_ANY, _L("Show All Plates"), "",
+        [do_refresh](wxCommandEvent&) {
+            PartPlateList& list = plater()->get_partplate_list();
+            for (int i = 0; i < list.get_plate_count(); i++) {
+                PartPlate* p = list.get_plate(i);
+                if (p && !p->is_visible()) p->set_visible(true);
+            }
+            do_refresh();
+        }, "", nullptr, nullptr, nullptr);
+
+    // Hide Other Plates — disabled if current plate is hidden (would leave 0 visible) or no others are visible
+    int curr_idx = list.get_curr_plate_index();
+    bool curr_is_visible = plate->is_visible();
+    bool any_other_visible = false;
+    for (int i = 0; i < list.get_plate_count(); i++)
+        if (i != curr_idx && list.get_plate(i) && list.get_plate(i)->is_visible())
+            any_other_visible = true;
+    auto hide_others = append_menu_item(menu, wxID_ANY, _L("Hide Other Plates"), "",
+        [do_refresh, curr_idx](wxCommandEvent&) {
+            PartPlateList& list = plater()->get_partplate_list();
+            PartPlate* curr = list.get_plate(curr_idx);
+            if (!curr || !curr->is_visible()) return;
+            for (int i = 0; i < list.get_plate_count(); i++) {
+                PartPlate* p = list.get_plate(i);
+                if (p && i != curr_idx && p->is_visible()) p->set_visible(false);
+            }
+            do_refresh();
+        }, "", nullptr, nullptr, nullptr);
+    if (!any_other_visible || !curr_is_visible) hide_others->Enable(false);
+
+    // Single plate toggle (only if not the last visible)
+    bool is_last_visible = plate->is_visible() && list.get_visible_plate_count() <= 1;
+    if (!is_last_visible) {
+        wxString vis_text = plate->is_visible() ? names[1] : names[0];
+        append_menu_item(menu, wxID_ANY, vis_text, "",
+            [plate, do_refresh](wxCommandEvent&) {
+                PartPlateList& list = plater()->get_partplate_list();
+                if (plate->is_visible() && list.get_visible_plate_count() <= 1) return;
+                plate->set_visible(!plate->is_visible());
+                do_refresh();
+            }, "", nullptr, nullptr, nullptr);
+    }
 }
 
 void MenuFactory::append_menu_item_fill_bed(wxMenu *menu)
