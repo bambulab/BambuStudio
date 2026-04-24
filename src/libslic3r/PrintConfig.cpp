@@ -2597,6 +2597,14 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comSimple;
     def->set_default_value(new ConfigOptionFloats{60.});
 
+    def = this->add("filament_preheat_temperature_delta", coFloats);
+    def->label = L("Preheat temperature delta");
+    def->tooltip = L("Temperature delta applied during pre-heating before tool change.");
+    def->sidetext = "°C";
+    def->mode = comDevelop;
+    def->nullable = true;
+    def->set_default_value(new ConfigOptionFloatsNullable{0});
+
     def = this->add("filament_cooling_before_tower", coFloats);
     def->label  = L("Wipe tower cooling");
     def->tooltip = L("Temperature drop before entering filament tower");
@@ -7069,6 +7077,7 @@ std::set<std::string> filament_options_with_variant = {
     "override_process_overhang_speed",
     "volumetric_speed_coefficients",
     "filament_adaptive_volumetric_speed",
+    "filament_preheat_temperature_delta",
     "filament_cooling_before_tower",
     "slow_down_min_speed"
 };

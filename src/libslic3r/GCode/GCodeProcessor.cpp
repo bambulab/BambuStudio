@@ -1179,7 +1179,12 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             context.heating_rate,
             skippable_blocks,
             context.extruder_max_nozzle_count,
+<<<<<<< HEAD   (d755f1 ci: update build version to 02.06.00.54)
             context.filament_cooling_before_tower,
+=======
+            context.filament_preheat_temperature_delta,
+            context.filament_max_temperature_drop_when_ec,
+>>>>>>> CHANGE (4cbe1d ENH: Add filament_preheat_temperature_delta)
             machine_start_gcode_end_line_id,
             machine_end_gcode_start_line_id,
             context.extruder_types,
@@ -1928,11 +1933,11 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     m_hotend_cooling_rate = config.hotend_cooling_rate.values;
     m_hotend_heating_rate = config.hotend_heating_rate.values;
     m_filament_pre_cooling_temp = config.filament_pre_cooling_temperature.values;
+    m_filament_preheat_temperature_delta = config.filament_preheat_temperature_delta.values;
     m_enable_pre_heating = config.enable_pre_heating;
     m_has_filament_switcher = config.has_filament_switcher;
     m_physical_extruder_map = config.physical_extruder_map.values;
     m_extruder_max_nozzle_count = config.extruder_max_nozzle_count.values;
-    m_filament_cooling_before_tower = config.filament_cooling_before_tower.values;
 
     m_extruder_offsets.resize(filament_count);
     m_extruder_colors.resize(filament_count);
@@ -2063,6 +2068,11 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         m_filament_pre_cooling_temp = filament_pre_cooling_temp->values;
     }
 
+    const ConfigOptionFloatsNullable* filament_preheat_temperature_delta = config.option<ConfigOptionFloatsNullable>("filament_preheat_temperature_delta");
+    if (filament_preheat_temperature_delta != nullptr) {
+        m_filament_preheat_temperature_delta = filament_preheat_temperature_delta->values;
+    }
+
     const ConfigOptionBool* enable_pre_heating = config.option<ConfigOptionBool>("enable_pre_heating");
     if (enable_pre_heating != nullptr) {
         m_enable_pre_heating = enable_pre_heating->value;
@@ -2081,11 +2091,6 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
     const ConfigOptionIntsNullable* extruder_max_nozzle_count = config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
     if(extruder_max_nozzle_count != nullptr){
         m_extruder_max_nozzle_count = extruder_max_nozzle_count->values;
-    }
-
-    const ConfigOptionFloatsNullable* filament_cooling_before_tower = config.option<ConfigOptionFloatsNullable>("filament_cooling_before_tower");
-    if (filament_cooling_before_tower != nullptr) {
-        m_filament_cooling_before_tower = filament_cooling_before_tower->values;
     }
 
     const ConfigOptionInts* physical_extruder_map = config.option<ConfigOptionInts>("physical_extruder_map");
@@ -2708,7 +2713,7 @@ void GCodeProcessor::finalize(bool post_process)
             m_handle_hotend_as_extruder,
             m_has_filament_switcher,
             m_extruder_max_nozzle_count,
-            m_filament_cooling_before_tower,
+            m_filament_preheat_temperature_delta,
             m_result.extruder_types,
             m_nozzle_diameter
         );
@@ -6407,12 +6412,12 @@ int GCodeProcessor::get_machine_config_idx(int filament_idx) const
 void GCodeProcessor::PreCoolingInjector::process_pre_cooling_and_heating(TimeProcessor::InsertedLinesMap& inserted_operation_lines)
 {
     bool is_multiple_nozzle = std::any_of(extruder_max_nozzle_count.begin(), extruder_max_nozzle_count.end(), [](auto& elem) {return elem > 1; });
-    auto get_nozzle_temp = [this, is_multiple_nozzle](int filament_id, bool is_first_layer, bool from_or_to, bool consider_cooling_before_tower) {
+    auto get_nozzle_temp = [this, is_multiple_nozzle](int filament_id, bool is_first_layer, bool from_or_to, bool consider_preheat_temperature_delta) {
         if (filament_id == -1)
             return from_or_to ? 140 : 0; // default temp
         double temp = (is_first_layer ? filament_nozzle_temps_initial_layer[filament_id] : filament_nozzle_temps[filament_id]);
-        if (consider_cooling_before_tower)
-            return (int) (temp - filament_cooling_before_tower[filament_id]);
+        if (consider_preheat_temperature_delta)
+            return (int) (temp - filament_preheat_temperature_delta[filament_id]);
         else
             return (int)(temp);
         };

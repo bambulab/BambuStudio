@@ -1510,6 +1510,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloats,             hole_limit_max))
     ((ConfigOptionFloats,             filament_prime_volume))
     ((ConfigOptionFloats,             filament_prime_volume_nc))
+    ((ConfigOptionFloatsNullable,     filament_preheat_temperature_delta))
     ((ConfigOptionFloatsNullable,     filament_cooling_before_tower))
     ((ConfigOptionFloats,             filament_tower_interface_pre_extrusion_dist))
     ((ConfigOptionFloats,             filament_tower_interface_pre_extrusion_length))
