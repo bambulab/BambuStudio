@@ -61,6 +61,19 @@ namespace Slic3r {
 
 t_config_option_keys deep_diff(const ConfigBase &config_this, const ConfigBase &config_other, bool strict = true);
 
+// Check if `opt` is a variant key like "opt_abc#0" (per-extruder/nozzle-volume option).
+// When it is, return index of '#'
+// When it is not, return 0
+size_t variant_option_hash_pos(const std::string &opt, Preset::Type type)
+{
+    auto n = opt.find('#');
+    if (n == std::string::npos) return 0;
+
+    if (type == Preset::TYPE_FILAMENT && filament_options_with_variant.count(opt.substr(0, n)) == 0) return 0;
+
+    return n;
+}
+
 namespace GUI {
 
 #define DISABLE_UNDO_SYS
@@ -2572,42 +2585,102 @@ void Tab::cache_config_diff(const std::vector<std::string>& selected_options)
     m_cache_config.apply_only(m_presets->get_edited_preset().config, selected_options);
 }
 
+// Variants related options need special handling when transfering to another printer
+// If m_cache_options ends with the variant trailer (title, variants_key) pushed by
+// handle_transfer_action, we'll do our work here, otherwise we dont touch it
+//
+// variant names encodes extruder type (such as direct drive and Bowden) and volume (such as Standard and High Flow)
+// we should try our best to transfer as much options as possible
+// the genral rule is: if variant matches, transfer, when ambugious encounted, dont transfer
+void Tab::remap_variant_cache()
+{
+    const auto &variants_key = extruder_variant_keys[m_type].second;
+    if (m_cache_options.empty() || m_cache_options.back() != variants_key) return;
+
+    m_cache_options.pop_back(); // variants_key
+    auto title = m_cache_options.back();
+    m_cache_options.pop_back();
+
+    auto *old_variants = dynamic_cast<ConfigOptionStrings *>(m_cache_config.option(variants_key));
+    auto *new_variants = dynamic_cast<ConfigOptionStrings *>(m_config->option(variants_key));
+    assert(old_variants && new_variants);
+    if (*old_variants == *new_variants) return;
+
+    const auto &old_vars            = old_variants->values;
+    const auto &new_vars            = new_variants->values;
+    bool        any_variant_dropped = false;
+
+    // pop the master_extruder_id we pushed in handle_transfer_action
+    const int master_extruder_id = dynamic_cast<const ConfigOptionInt *>(m_cache_config.option("master_extruder_id"))->value;
+    m_cache_config.erase("master_extruder_id");
+
+    std::vector<std::string> remapped;
+    remapped.reserve(m_cache_options.size());
+
+    // If two slots share a variant name but hold different values
+    // (e.g. H2C dual-direct-drive's two "Direct Drive Standard" slots),
+    // choose the one on the master extruder
+    auto best_source_idx = [&old_vars, master_extruder_id](size_t si, ConfigOptionVectorBase *cached) {
+        auto cached_values = cached->vserialize();
+        for (size_t i = 0; i < cached_values.size(); ++i) {
+            if (old_vars[i] == old_vars[si] && cached_values[i] != cached_values[si]) {
+                // ambiguous, choose the one on the master_extruder_id, 1 based
+                return master_extruder_id > 1 ? std::max(si, i) : std::min(si, i);
+            }
+        }
+
+        // no ambiguous
+        return si;
+    };
+
+    // copy to all dest slots where variant matches
+    auto copy_options = [&old_vars, &new_vars, &remapped](size_t si, ConfigOptionVectorBase *cached, const std::string &opt) {
+        bool succeed = false;
+        for (size_t di = 0; di < new_vars.size(); ++di) {
+            if (new_vars[di] != old_vars[si]) continue;
+
+            succeed = true;
+            if (di != si) cached->set_at(cached, di, si);
+            remapped.push_back(opt + "#" + std::to_string(di));
+        }
+        return succeed;
+    };
+
+    for (auto &entry : m_cache_options) {
+        auto hash_pos = variant_option_hash_pos(entry, m_type);
+        if (!hash_pos) {
+            remapped.push_back(std::move(entry));
+            continue;
+        }
+
+        size_t si     = size_t(std::stoul(entry.substr(hash_pos + 1)));
+        auto   opt    = entry.substr(0, hash_pos);
+        auto  *cached = dynamic_cast<ConfigOptionVectorBase *>(m_cache_config.option(opt));
+
+        si = best_source_idx(si, cached);
+
+        if (!copy_options(si, cached, opt)) {
+            any_variant_dropped |= true;
+            BOOST_LOG_TRIVIAL(info) << "option variant not matched will not be transfered: " << entry << ", " << old_vars[si];
+        }
+    }
+    m_cache_options = std::move(remapped);
+
+    if (any_variant_dropped) {
+        auto msg = _L("Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters.");
+        MessageDialog(wxGetApp().plater(), msg, from_u8(title), wxOK | wxICON_WARNING).ShowModal();
+    }
+}
+
 void Tab::apply_config_from_cache()
 {
     bool was_applied = false;
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__<<boost::format(": enter");
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": enter");
     // check and apply extruders count for printer preset
-    if (m_type == Preset::TYPE_PRINTER)
-        was_applied = static_cast<TabPrinter*>(this)->apply_extruder_cnt_from_cache();
+    if (m_type == Preset::TYPE_PRINTER) was_applied = static_cast<TabPrinter *>(this)->apply_extruder_cnt_from_cache();
 
     if (!m_cache_config.empty()) {
-        auto variants_key = extruder_variant_keys[m_type].second;
-        if (m_cache_options.back() == variants_key) {
-            m_cache_options.pop_back();
-            ConfigOptionStrings *old_variants = dynamic_cast<ConfigOptionStrings *>(m_cache_config.option(variants_key));
-            ConfigOptionStrings *new_variants = dynamic_cast<ConfigOptionStrings *>(m_config->option(variants_key));
-            std::vector<std::string> variant_options;
-            boost::split(variant_options, m_cache_options.back(), boost::is_any_of(";"));
-            m_cache_options.pop_back();
-            auto title = m_cache_options.back();
-            m_cache_options.pop_back();
-            if (!(*old_variants == *new_variants) && old_variants->size() == 1) {
-                for (auto &opt : variant_options) {
-                    auto copy = dynamic_cast<ConfigOptionVectorBase *>(m_cache_config.option(opt)->clone());
-                    copy->resize(new_variants->size());
-                    m_cache_config.set_key_value(opt, copy);
-                }
-                old_variants = new_variants;
-            }
-            auto *printer_tab = static_cast<TabPrinter *>(wxGetApp().get_tab(Preset::Type::TYPE_PRINTER));
-            assert(printer_tab);
-            if ((*old_variants == *new_variants) || (printer_tab && printer_tab->should_keep_config())) {
-                m_cache_options.insert(m_cache_options.end(), variant_options.begin(), variant_options.end());
-            } else {
-                auto msg = _L("Switching to a printer with different extruder types or numbers will discard or reset changes to extruder or multi-nozzle-related parameters.");
-                MessageDialog(wxGetApp().plater(), msg, from_u8(title), wxOK | wxICON_WARNING).ShowModal();
-            }
-        }
+        remap_variant_cache();
         m_presets->get_edited_preset().config.apply_only(m_cache_config, m_cache_options);
         m_cache_config.clear();
         m_cache_options.clear();
@@ -5431,7 +5504,6 @@ void TabPrinter::on_preset_loaded()
 
     if (base_name != m_base_preset_name) {
         bool use_default_nozzle_volume_type = true;
-        m_last_base_preset_name = m_base_preset_name;
         m_base_preset_name = base_name;
         auto plater_for_nvt = wxGetApp().plater();
         if (plater_for_nvt && plater_for_nvt->is_loading_project()) {
@@ -6405,22 +6477,26 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
             auto &cache_options = tab->m_cache_options;
             auto &cache_config = tab->m_cache_config;
             auto &edited_config = presets->get_edited_preset().config;
-            std::vector<std::string> variant_options;
-            for (auto &opt : cache_options) {
-                if (auto n = opt.find('#'); n != std::string::npos) {
-                    if (type == Preset::TYPE_FILAMENT && filament_options_with_variant.count(opt.substr(0, n)) == 0)
-                        continue;
-                    variant_options.push_back(opt.substr(0, n));
-                    opt.clear();
-                }
+            // variant options like "opt#idx" need special processing
+            // append title in case of warning users we have to discard some mofified options
+            // append extruder_variant_keys[type].second so we know we have some variant options modified
+            bool has_variant_edits = false;
+            for (const auto &opt : cache_options) {
+                auto hash_pos = variant_option_hash_pos(opt, m_type);
+                if (!hash_pos) continue;
+                has_variant_edits = true;
+                // copy all slots/variant
+                cache_config.apply_only(edited_config, {opt.substr(0, hash_pos)});
             }
-            if (!variant_options.empty()) {
-                cache_options.erase(std::remove(cache_options.begin(), cache_options.end(), std::string{}), cache_options.end());
+
+            if (has_variant_edits) {
                 cache_options.push_back(into_u8(dlg.GetTitle()));
-                cache_options.push_back(boost::join(variant_options, ";"));
                 cache_options.push_back(extruder_variant_keys[type].second);
-                variant_options.push_back(extruder_variant_keys[type].second);
-                cache_config.apply_only(edited_config, variant_options);
+                cache_config.apply_only(edited_config, {extruder_variant_keys[type].second});
+                // Stash the source printer's master_extruder_id so remap_variant_cache can
+                // tiebreak ambiguous duplicate variants (e.g. H2C dual-direct-drive) using
+                // the extruder the user had designated as master on the source printer.
+                cache_config.apply_only(m_preset_bundle->printers.get_edited_preset().config, {"master_extruder_id"});
             }
         }
     };
@@ -7276,20 +7352,6 @@ bool TabPrinter::apply_extruder_cnt_from_cache()
         return true;
     }
     return false;
-}
-
-bool TabPrinter::should_keep_config() const {
-    // disable this temporarily for a hot fix due to a bug
-    return false;
-
-    const auto *old_printer = m_preset_bundle->printers.find_preset(m_last_base_preset_name);
-    const auto &cur_printer     = m_preset_bundle->printers.get_selected_preset();
-
-    if (extruders_count(old_printer) != extruders_count(&cur_printer)) return false;
-
-    auto old_nozzle = default_nozzle_volume_types(m_preset_bundle, old_printer);
-    auto new_nozzle = default_nozzle_volume_types(m_preset_bundle, &cur_printer);
-    return old_nozzle == new_nozzle;
 }
 
 bool Tab::validate_custom_gcodes()

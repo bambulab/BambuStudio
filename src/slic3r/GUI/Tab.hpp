@@ -420,6 +420,12 @@ public:
     void			apply_searcher();
 	void			cache_config_diff(const std::vector<std::string>& selected_options);
 	void			apply_config_from_cache();
+
+private:
+    // when transfer modified options to a new printer, we may need do some work here
+    void remap_variant_cache();
+
+public:
     void            show_timelapse_warning_dialog();
 
 	const std::map<wxString, std::string>& get_category_icon_map() { return m_category_icon; }
@@ -628,8 +634,7 @@ private:
     std::vector<PageShp> m_pages_sla;
     std::vector<int> 	 m_extruder_type;
     std::string          m_base_preset_name;
-    std::string 		 m_base_preset_model;
-    std::string          m_last_base_preset_name;
+    std::string          m_base_preset_model;
 
 public:
 	ScalableButton*	m_reset_to_filament_color = nullptr;
@@ -671,14 +676,7 @@ public:
 
 	wxSizer*	create_bed_shape_widget(wxWindow* parent);
 	void		cache_extruder_cnt();
-	bool		apply_extruder_cnt_from_cache();
-	
-	// when switching printers, should we keep/transfer or discard user modified parameters?
-	// the old logic is a bit complex and it is too risky to touch it
-	// just add a patch here to handle some discarded case:
-	//     for printers with the same number of extuders and used the same nozzle configurations, keep it
-	// Maybe we can simplify this logic and move them into one place
-	bool should_keep_config() const;
+    bool        apply_extruder_cnt_from_cache();
 };
 
 class TabSLAMaterial : public Tab
