@@ -22724,11 +22724,11 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
                                 old_filament_volume_maps != new_filament_volume_maps);
 
         if (need_invalidate) {
-            if (need_slice) {
+            wxString filament_printable_error_msg;
+            if (need_slice && curr_plate->check_filament_printable(wxGetApp().preset_bundle->full_config(), filament_printable_error_msg)) {
                 update(false, true);
                 wxPostEvent(this, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE));
-            }
-            else {
+            } else {
                 curr_plate->update_slice_result_valid_state(false);
                 set_plater_dirty(true);
                 update(false, true);
