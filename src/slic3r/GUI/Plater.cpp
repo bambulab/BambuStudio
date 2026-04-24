@@ -20981,6 +20981,14 @@ void Plater::reslice()
         // Slicing never started: roll back only the one-shot skip flag.
         p->background_process.set_skip_post_process_once(false);
         p->update_fff_scene_only_shells();
+        if (p->m_slice_all && (p->m_cur_slice_plate < p->partplate_list.get_plate_count())) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": in slicing all, plate %1% is invalid, skip to next") % p->m_cur_slice_plate;
+            SlicingProcessCompletedEvent evt(EVT_PROCESS_COMPLETED, 0,
+                SlicingProcessCompletedEvent::Finished, nullptr);
+            wxQueueEvent(this, evt.Clone());
+            p->m_is_slicing = true;
+            this->SetDropTarget(nullptr);
+        }
         return;
     }
 
@@ -21213,6 +21221,18 @@ int Plater::start_next_slice()
     // Stop arrange and (or) optimize rotation tasks.
     //this->stop_jobs();
 
+    // Precondition: only called from on_process_completed() during slice-all chain.
+    assert(p->m_slice_all);
+
+    // Skip empty plates: queue a fake completion event so the event chain advances to the next plate.
+    if (!p->partplate_list.get_curr_plate()->has_printable_instances()) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1% is empty, skip") % p->partplate_list.get_curr_plate_index();
+        SlicingProcessCompletedEvent evt(EVT_PROCESS_COMPLETED, 0,
+                SlicingProcessCompletedEvent::Finished, nullptr);
+        wxQueueEvent(this, evt.Clone());
+        return 0;
+    }
+
     //FIXME Don't reslice if export of G-code or sending to OctoPrint is running.
     // bitmask of UpdateBackgroundProcessReturnState
     unsigned int state = this->p->update_background_process(true, false, false);
@@ -21223,7 +21243,11 @@ int Plater::start_next_slice()
     if (!p->partplate_list.get_curr_plate()->can_slice()) {
         p->process_completed_with_error = p->partplate_list.get_curr_plate_index();
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": found invalidated apply in update_background_process.");
-        return -1;
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": plate %1% cannot slice, skip") % p->partplate_list.get_curr_plate_index();
+        SlicingProcessCompletedEvent evt(EVT_PROCESS_COMPLETED, 0,
+                SlicingProcessCompletedEvent::Finished, nullptr);
+        wxQueueEvent(this, evt.Clone());
+        return 0;
     }
 
     // Only restarts if the state is valid.
