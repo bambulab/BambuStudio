@@ -1179,12 +1179,8 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
             context.heating_rate,
             skippable_blocks,
             context.extruder_max_nozzle_count,
-<<<<<<< HEAD   (d755f1 ci: update build version to 02.06.00.54)
-            context.filament_cooling_before_tower,
-=======
             context.filament_preheat_temperature_delta,
             context.filament_max_temperature_drop_when_ec,
->>>>>>> CHANGE (4cbe1d ENH: Add filament_preheat_temperature_delta)
             machine_start_gcode_end_line_id,
             machine_end_gcode_start_line_id,
             context.extruder_types,
