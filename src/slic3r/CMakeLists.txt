@@ -686,11 +686,11 @@ endif ()
 
 add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
 
-if (MSVC)
-    target_compile_options(libslic3r_gui PRIVATE /Od /Zi)
-else ()
-    target_compile_options(libslic3r_gui PRIVATE -O0 -g)
-endif ()
+#if (MSVC)
+#    target_compile_options(libslic3r_gui PRIVATE /Od /Zi)
+#else ()
+#    target_compile_options(libslic3r_gui PRIVATE -O0 -g)
+#endif ()
 
 target_include_directories(libslic3r_gui PRIVATE Utils)
 
