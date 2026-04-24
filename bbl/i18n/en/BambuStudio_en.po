@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-14 19:58+0800\n"
+"POT-Creation-Date: 2026-04-24 10:37+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3166,11 +3166,11 @@ msgstr "Orienting"
 msgid "Filling"
 msgstr "Filling"
 
-msgid "Bed filling canceled."
-msgstr "Bed filling canceled."
-
 msgid "Bed filling done."
 msgstr "Bed filling done."
+
+msgid "Bed filling canceled."
+msgstr "Bed filling canceled."
 
 #. TRN: This is the title of the action appearing in undo/redo stack.
 #. It is same for Text and SVG.
@@ -3834,6 +3834,9 @@ msgstr "Stack overflow"
 
 msgid "Running post-processing scripts"
 msgstr "Running post-processing scripts"
+
+msgid "Updating preview with post-processed G-code"
+msgstr ""
 
 msgid "Successfully executed post-processing script"
 msgstr "Successfully executed post-processing script"
@@ -5290,6 +5293,9 @@ msgstr "Multi-device"
 msgid "Project"
 msgstr "Project"
 
+msgid "Filament Manager"
+msgstr ""
+
 msgid "Yes"
 msgstr "Yes"
 
@@ -5428,6 +5434,9 @@ msgstr "Right View"
 msgid "Isometric View"
 msgstr ""
 
+msgid "Fit Camera"
+msgstr ""
+
 msgid "Start a new window"
 msgstr "Start a new window"
 
@@ -5451,9 +5460,6 @@ msgstr "Save current project to file"
 
 msgid "Save Project as"
 msgstr "Save Project as"
-
-msgid "Shift+"
-msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "Save current project as"
@@ -6564,6 +6570,18 @@ msgstr "%s warning"
 msgid "%s has a warning"
 msgstr "%s has a warning"
 
+msgid "Collapse"
+msgstr "Collapse"
+
+msgid "View details"
+msgstr ""
+
+msgid "Execute"
+msgstr ""
+
+msgid "Do not execute"
+msgstr ""
+
 #, c-format, boost-format
 msgid "%s info"
 msgstr "%s info"
@@ -7236,9 +7254,6 @@ msgstr ""
 msgid "Restore"
 msgstr "Restore"
 
-msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
-msgstr ""
-
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "The current heatbed temperature is relatively high. The nozzle may clog when printing this filament in a closed environment. Please open the front door and/or remove the upper glass."
 
@@ -7317,6 +7332,12 @@ msgstr "Name of components inside step file is not UTF8 format!"
 
 msgid "The name may show garbage characters!"
 msgstr "The name may show garbage characters!"
+
+msgid "The following shells are not closed and may cause issues:"
+msgstr ""
+
+msgid "Unclosed Shell Warning"
+msgstr ""
 
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
@@ -7865,6 +7886,11 @@ msgstr "Reason: \"%1%\" and another part have no intersection."
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 
+msgid ""
+"Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\n"
+"Please verify the file source and script contents before continuing."
+msgstr ""
+
 #, c-format, boost-format
 msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
 msgstr ""
@@ -7925,6 +7951,11 @@ msgstr "Invalid number"
 
 msgid "Plate Settings"
 msgstr "Plate Settings"
+
+msgid ""
+"While printing by Object, the extruder may collide skirt.\n"
+"Thus, it is recommended to reset the skirt layer to 1 to avoid that."
+msgstr ""
 
 msgid "Prime Tower:"
 msgstr ""
@@ -8763,6 +8794,10 @@ msgid "Recommended filament arrangement saves %s->"
 msgstr ""
 
 #, c-format, boost-format
+msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
+msgstr ""
+
+#, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
 msgstr "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
 
@@ -9045,9 +9080,6 @@ msgstr ""
 
 msgid "This printer does not support printing all plates"
 msgstr "This printer does not support printing all plates"
-
-msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
-msgstr ""
 
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr ""
@@ -10356,6 +10388,9 @@ msgid "Camera view - Right"
 msgstr ""
 
 msgid "Camera view - Isometric"
+msgstr ""
+
+msgid "Camera view - Fit to scene or selection"
 msgstr ""
 
 msgid "Shift+E"
@@ -15134,9 +15169,6 @@ msgstr ""
 msgid "Keep original models"
 msgstr ""
 
-msgid "Execute"
-msgstr ""
-
 msgid "Entity Only"
 msgstr "Entity only"
 
@@ -15656,9 +15688,6 @@ msgstr "Edit Preset"
 
 msgid "For more information, please check out Wiki"
 msgstr "For more information, please check out our Wiki"
-
-msgid "Collapse"
-msgstr "Collapse"
 
 msgid "Daily Tips"
 msgstr "Daily Tips"
@@ -16294,12 +16323,6 @@ msgstr ""
 msgid "Fila Saving"
 msgstr ""
 
-msgid "Don't remind me again"
-msgstr ""
-
-msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
-msgstr ""
-
 msgid "Filament-Saving Mode"
 msgstr ""
 
@@ -16355,9 +16378,6 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
-msgstr ""
-
-msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr ""
 
 msgid "Skip Objects"
@@ -17058,6 +17078,9 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#~ msgid "Shift+"
+#~ msgstr "Shift+"
 
 #~ msgid "Assembly View"
 #~ msgstr "Assembly View"

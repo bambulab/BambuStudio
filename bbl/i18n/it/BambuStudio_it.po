@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-14 19:58+0800\n"
+"POT-Creation-Date: 2026-04-24 10:37+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -192,7 +192,7 @@ msgid "How to feed TPU filament."
 msgstr "Come caricare il filamento TPU."
 
 msgid "How to feed TPU filament on X2D."
-msgstr ""
+msgstr "Come inserire il filamento TPU su X2D."
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr "L'uso di filamenti non Bambu può causare problemi di qualità di stampa."
@@ -2657,7 +2657,7 @@ msgid "Assembly"
 msgstr "Assemblaggio"
 
 msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
-msgstr ""
+msgstr "L'uso dell'altezza variabile del layer insieme a sublayer a colori misti può causare una scarsa qualità di miscelazione dei colori."
 
 msgid "Cut Connectors information"
 msgstr "Informazioni sui connettori di taglio"
@@ -3180,11 +3180,11 @@ msgstr "Orientamento"
 msgid "Filling"
 msgstr "Riempimento"
 
-msgid "Bed filling canceled."
-msgstr "Riempimento del piano annullato."
-
 msgid "Bed filling done."
 msgstr "Riempimento del piano completato."
+
+msgid "Bed filling canceled."
+msgstr "Riempimento del piano annullato."
 
 #. TRN: This is the title of the action appearing in undo/redo stack.
 #. It is same for Text and SVG.
@@ -3866,6 +3866,9 @@ msgstr "Stack overflow"
 
 msgid "Running post-processing scripts"
 msgstr "Esecuzione script di post-elaborazione"
+
+msgid "Updating preview with post-processed G-code"
+msgstr "Aggiornamento anteprima con G-code post-elaborato"
 
 msgid "Successfully executed post-processing script"
 msgstr "Script post-elaborazione eseguito con successo"
@@ -5145,7 +5148,7 @@ msgid "Move closer"
 msgstr "Avvicina"
 
 msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"
-msgstr "Il bounding box dell'assieme principale è troppo lontano dall'origine. Reimpostare le relazioni dell'assieme e spostare all'origine?"
+msgstr "Il bounding box dell'assieme principale è troppo lontano dall'origine degli assi. Reimpostare le relazioni dell'assieme e spostare all'origine?"
 
 msgid "Reset to origin"
 msgstr "Ripristina origine"
@@ -5335,6 +5338,9 @@ msgstr "Gestione Dispositivi"
 msgid "Project"
 msgstr "Progetto"
 
+msgid "Filament Manager"
+msgstr ""
+
 msgid "Yes"
 msgstr "Sì"
 
@@ -5477,6 +5483,9 @@ msgstr "Vista destra"
 msgid "Isometric View"
 msgstr "Vista Isometrica"
 
+msgid "Fit Camera"
+msgstr "Adatta Telecamera"
+
 msgid "Start a new window"
 msgstr "Inizia in una nuova finestra"
 
@@ -5500,9 +5509,6 @@ msgstr "Salva progetto corrente su file"
 
 msgid "Save Project as"
 msgstr "Salva Progetto come"
-
-msgid "Shift+"
-msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "Salva Progetto corrente come"
@@ -6617,6 +6623,18 @@ msgstr "attenzione %s"
 msgid "%s has a warning"
 msgstr "%s ha un avviso"
 
+msgid "Collapse"
+msgstr "Comprimi"
+
+msgid "View details"
+msgstr ""
+
+msgid "Execute"
+msgstr "Esegui"
+
+msgid "Do not execute"
+msgstr ""
+
 #, c-format, boost-format
 msgid "%s info"
 msgstr "info %s"
@@ -7097,7 +7115,7 @@ msgid "High-shrinkage filament(s) detected: %s. These materials may cause dimens
 msgstr "Rilevato filamento(i) ad alto ritiro: %s. Questi materiali potrebbero causare deviazioni dimensionali dopo il raffreddamento. Se il tuo modello richiede un montaggio o un accoppiamento preciso, fai riferimento alla guida Wiki per il test di ritiro."
 
 msgid "Printing mixed-color filament on a single-extruder printer requires frequent filament changes and flushing, which may significantly increase waste and the risk of nozzle / waste-chute clogging."
-msgstr ""
+msgstr "La stampa di filamenti multicolore su una stampante a estrusore singolo richiede frequenti cambi di filamento e spurghi, il che può aumentare significativamente gli sprechi e il rischio di intasamento del nozzle / scivolo di spurgo."
 
 #, boost-format
 msgid " plate %1%: "
@@ -7296,9 +7314,6 @@ msgstr ""
 msgid "Restore"
 msgstr "Ripristina"
 
-msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
-msgstr "Nel file 3mf corrente è presente uno script G-code; verifica il contenuto dello script."
-
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "L'attuale temperatura del letto è relativamente alta. Il nozzle potrebbe essere ostruito quando si stampa questo filamento in un involucro chiuso. Si prega di aprire lo sportello anteriore e/o rimuovere il vetro superiore."
 
@@ -7377,6 +7392,12 @@ msgstr "Il nome dei componenti all'interno del file step non è in formato UTF8!
 
 msgid "The name may show garbage characters!"
 msgstr "Il nome potrebbe mostrare caratteri sporchi!"
+
+msgid "The following shells are not closed and may cause issues:"
+msgstr ""
+
+msgid "Unclosed Shell Warning"
+msgstr ""
 
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
@@ -7956,6 +7977,11 @@ msgstr "Motivo: \"%1%\" e un'altra parte non hanno intersezione."
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Rilevate parti negative. Vuoi eseguire una mesh booleana prima dell'esportazione?"
 
+msgid ""
+"Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\n"
+"Please verify the file source and script contents before continuing."
+msgstr ""
+
 #, c-format, boost-format
 msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
 msgstr "Il filamento di calibrazione è assegnato a un estrusore diverso da quello selezionato nella finestra di dialogo Calibrazione PA (%s). Ciò può portare a risultati di calibrazione errati. Puoi modificare l’assegnazione nelle impostazioni di raggruppamento del filamento."
@@ -8016,6 +8042,11 @@ msgstr "Numero non valido"
 
 msgid "Plate Settings"
 msgstr "Impostazioni Piatto"
+
+msgid ""
+"While printing by Object, the extruder may collide skirt.\n"
+"Thus, it is recommended to reset the skirt layer to 1 to avoid that."
+msgstr ""
 
 msgid "Prime Tower:"
 msgstr ""
@@ -8870,6 +8901,10 @@ msgid "Recommended filament arrangement saves %s->"
 msgstr "La disposizione filamento consigliata risparmia %s->"
 
 #, c-format, boost-format
+msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
+msgstr ""
+
+#, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
 msgstr "Il filamento %s non corrisponde al filamento nello slot AMS %s. Aggiorna il firmware della stampante per supportare l'assegnazione degli slot AMS."
 
@@ -9154,9 +9189,6 @@ msgstr "Imposta la calibrazione del flow dinamico su 'OFF' per abilitare un valo
 
 msgid "This printer does not support printing all plates"
 msgstr "Questa stampante non supporta la stampa di piatti multipla"
-
-msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
-msgstr "Il firmware attuale supporta un massimo di 16 materiali. Puoi ridurre il numero di materiali a 16 o meno nella pagina di preparazione oppure provare ad aggiornare il firmware. Se dopo l'aggiornamento hai ancora limitazioni, attendi il supporto nei futuri aggiornamenti del firmware."
 
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr "Verifica se il diametro del nozzle richiesto e il flusso corrispondono all'indicazione attuale."
@@ -10487,6 +10519,9 @@ msgstr "Vista telecamera - Destra"
 
 msgid "Camera view - Isometric"
 msgstr "Vista telecamera - Isometrica"
+
+msgid "Camera view - Fit to scene or selection"
+msgstr "Vista telecamera - Adatta alla scena o alla selezione"
 
 msgid "Shift+E"
 msgstr ""
@@ -15355,9 +15390,6 @@ msgstr "Parti Selezionate"
 msgid "Keep original models"
 msgstr "Mantieni modelli originali"
 
-msgid "Execute"
-msgstr "Esegui"
-
 msgid "Entity Only"
 msgstr "Solo entità"
 
@@ -15879,9 +15911,6 @@ msgstr "Modifica preset"
 
 msgid "For more information, please check out Wiki"
 msgstr "Per ulteriori informazioni, consulta il Wiki"
-
-msgid "Collapse"
-msgstr "Comprimi"
 
 msgid "Daily Tips"
 msgstr "Suggerimenti del giorno"
@@ -16521,12 +16550,6 @@ msgstr "Raggruppamento filamenti"
 msgid "Fila Saving"
 msgstr "Risparmio Fila"
 
-msgid "Don't remind me again"
-msgstr "Non ricordarmelo più"
-
-msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
-msgstr "Non apparirà nessun altro pop-up. Puoi aggiornarlo in 'Preferenze'"
-
 msgid "Filament-Saving Mode"
 msgstr "Modalità risparmio filamento"
 
@@ -16583,9 +16606,6 @@ msgstr " per impostare il numero di Nozzle"
 #, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
 msgstr "Genera il raggruppamento filamento per %s e %s in base alla qualità di stampa, privilegiando la qualità rispetto al risparmio di filamento"
-
-msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
-msgstr "Il metodo di raggruppamento del filamento per il piano attuale è determinato dall'opzione a discesa nel pulsante del piano di slicing."
 
 msgid "Skip Objects"
 msgstr "Salta oggetti"
@@ -16968,59 +16988,59 @@ msgid "Print Outcome: "
 msgstr "Risultato Stampa: "
 
 msgid "Edit Mixed Filament"
-msgstr ""
+msgstr "Modifica Filamento Misto"
 
 msgid "Effect Preview"
-msgstr ""
+msgstr "Effetto Anteprima"
 
 msgid "Select Mixed Materials"
-msgstr ""
+msgstr "Seleziona Materiali Misti"
 
 msgid "+ Add Material"
-msgstr ""
+msgstr "+ Aggiungi Materiale"
 
 msgid "- Delete Material"
-msgstr ""
+msgstr "- Elimina Materiale"
 
 msgid "Ratio"
-msgstr ""
+msgstr "Rapporto"
 
 msgid "Gradient Effect"
-msgstr ""
+msgstr "Effetto Gradiente"
 
 msgid "Mixing Recommendations"
-msgstr ""
+msgstr "Raccomandazioni Miscelazione"
 
 msgid "-- Select --"
-msgstr ""
+msgstr "-- Seleziona --"
 
 msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-msgstr ""
+msgstr "L'effetto sfumato richiede l'abilitazione di 'Sublayer colore misto'. Vuoi abilitarlo?"
 
 msgid "Mixed Color Sublayer"
-msgstr ""
+msgstr "Sublayer Colore Misto"
 
 #, c-format, boost-format
 msgid "Slot %s (%s)"
 msgstr ""
 
 msgid "cannot be mixed. Please select the same filament type."
-msgstr ""
+msgstr "non possono essere miscelati. Seleziona lo stesso tipo di filamento."
 
 msgid "Please select a filament for all components"
-msgstr ""
+msgstr "Seleziona un filamento per tutti i componenti"
 
 msgid "Cannot mix different filament types"
-msgstr ""
+msgstr "Non è possibile mischiare diversi tipi di filamento"
 
 msgid "Maximum 3 materials for mixing"
-msgstr ""
+msgstr "Massimo 3 materiali da mescolare"
 
 msgid "Maximum number of components reached"
-msgstr ""
+msgstr "Numero massimo di componenti raggiunto"
 
 msgid "Remove the third material"
-msgstr ""
+msgstr "Rimuovere il terzo materiale"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -17309,6 +17329,24 @@ msgid ""
 msgstr ""
 "Affidabilità al Primo Tentativo\n"
 "Meno supervisione, risultati più prevedibili. Ad esempio: una piccola produzione che stampa parti in PETG evita sorprese tipo \"fallimento alla sesta ora\" e mantiene i lotti nei tempi previsti."
+
+#~ msgid "Shift+"
+#~ msgstr "Shift+"
+
+#~ msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
+#~ msgstr "Nel file 3mf corrente è presente uno script G-code; verifica il contenuto dello script."
+
+#~ msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
+#~ msgstr "Il firmware attuale supporta un massimo di 16 materiali. Puoi ridurre il numero di materiali a 16 o meno nella pagina di preparazione oppure provare ad aggiornare il firmware. Se dopo l'aggiornamento hai ancora limitazioni, attendi il supporto nei futuri aggiornamenti del firmware."
+
+#~ msgid "Don't remind me again"
+#~ msgstr "Non ricordarmelo più"
+
+#~ msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
+#~ msgstr "Non apparirà nessun altro pop-up. Puoi aggiornarlo in 'Preferenze'"
+
+#~ msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
+#~ msgstr "Il metodo di raggruppamento del filamento per il piano attuale è determinato dall'opzione a discesa nel pulsante del piano di slicing."
 
 #~ msgctxt "FilamentTrack"
 #~ msgid "Left"

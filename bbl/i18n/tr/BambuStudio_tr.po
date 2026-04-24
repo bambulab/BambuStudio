@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-14 19:58+0800\n"
+"POT-Creation-Date: 2026-04-24 10:37+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -3182,11 +3182,11 @@ msgstr "Yönlendiriliyor"
 msgid "Filling"
 msgstr "Dolduruluyor"
 
-msgid "Bed filling canceled."
-msgstr "Yatak dolumu iptal edildi."
-
 msgid "Bed filling done."
 msgstr "Yatak doldurma işlemi tamamlandı."
+
+msgid "Bed filling canceled."
+msgstr "Yatak dolumu iptal edildi."
 
 #. TRN: This is the title of the action appearing in undo/redo stack.
 #. It is same for Text and SVG.
@@ -3863,6 +3863,9 @@ msgstr "Stack overflow"
 
 msgid "Running post-processing scripts"
 msgstr "İşlem sonrası komut dosyalarını çalıştırma"
+
+msgid "Updating preview with post-processed G-code"
+msgstr ""
 
 msgid "Successfully executed post-processing script"
 msgstr "İşlem sonrası komut dosyası başarıyla yürütüldü"
@@ -5325,6 +5328,9 @@ msgstr "Çoklu cihaz"
 msgid "Project"
 msgstr "Proje"
 
+msgid "Filament Manager"
+msgstr ""
+
 msgid "Yes"
 msgstr "Evet"
 
@@ -5463,6 +5469,9 @@ msgstr "Sağdan Görünüm"
 msgid "Isometric View"
 msgstr "İzometrik Görünüm"
 
+msgid "Fit Camera"
+msgstr ""
+
 msgid "Start a new window"
 msgstr "Yeni pencere"
 
@@ -5486,9 +5495,6 @@ msgstr "Mevcut projeyi dosyaya kaydet"
 
 msgid "Save Project as"
 msgstr "Projeyi farklı kaydet"
-
-msgid "Shift+"
-msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "Mevcut projeyi farklı kaydet"
@@ -6603,6 +6609,18 @@ msgstr "%s uyarı"
 msgid "%s has a warning"
 msgstr "%s'de uyarı var"
 
+msgid "Collapse"
+msgstr "Daralt"
+
+msgid "View details"
+msgstr ""
+
+msgid "Execute"
+msgstr "Yürüt"
+
+msgid "Do not execute"
+msgstr ""
+
 #, c-format, boost-format
 msgid "%s info"
 msgstr "%s bilgi"
@@ -7282,9 +7300,6 @@ msgstr ""
 msgid "Restore"
 msgstr "Geri Yükleme"
 
-msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
-msgstr ""
-
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "Mevcut sıcak yatak sıcaklığı oldukça yüksek. Bu filamenti kapalı bir muhafaza içinde bastırırken nozzle tıkanabilir. Lütfen ön kapağı açın ve/veya üst camı çıkarın."
 
@@ -7363,6 +7378,12 @@ msgstr "Adım dosyasındaki bileşenlerin adı UTF8 formatında değil!"
 
 msgid "The name may show garbage characters!"
 msgstr "İsimde çöp karakterler görünebilir!"
+
+msgid "The following shells are not closed and may cause issues:"
+msgstr ""
+
+msgid "Unclosed Shell Warning"
+msgstr ""
 
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
@@ -7918,6 +7939,11 @@ msgstr "Sebep: \"%1%\" ve başka bir parçanın kesişimi yoktur."
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Negatif parçalar tespit edildi. Dışa aktarmadan önce mesh boolean yapmak ister misiniz?"
 
+msgid ""
+"Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\n"
+"Please verify the file source and script contents before continuing."
+msgstr ""
+
 #, c-format, boost-format
 msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
 msgstr ""
@@ -7978,6 +8004,11 @@ msgstr "Geçersiz numara"
 
 msgid "Plate Settings"
 msgstr "Plaka Ayarları"
+
+msgid ""
+"While printing by Object, the extruder may collide skirt.\n"
+"Thus, it is recommended to reset the skirt layer to 1 to avoid that."
+msgstr ""
 
 msgid "Prime Tower:"
 msgstr "Prime Kulesi:"
@@ -8828,6 +8859,10 @@ msgid "Recommended filament arrangement saves %s->"
 msgstr ""
 
 #, c-format, boost-format
+msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
+msgstr ""
+
+#, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
 msgstr "%s filamenti, %s AMS yuvasındaki filamentle eşleşmiyor. AMS yuvası atamasını desteklemek için lütfen yazıcının ürün yazılımını güncelleyin."
 
@@ -9108,9 +9143,6 @@ msgstr "Özel dinamik akış değerini etkinleştirmek için dinamik akış kali
 
 msgid "This printer does not support printing all plates"
 msgstr "Bu yazıcı tüm kalıpların yazdırılmasını desteklemiyor"
-
-msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
-msgstr "Mevcut ürün yazılımı en fazla 16 malzemeyi desteklemektedir. Hazırlık Sayfasında malzeme sayısını 16'ya veya daha azına düşürebilir ya da ürün yazılımını güncellemeyi deneyebilirsiniz. Güncellemeden sonra da kısıtlama devam ederse, lütfen sonraki ürün yazılımı desteğini bekleyin."
 
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr ""
@@ -10438,6 +10470,9 @@ msgstr "Kamera görüntüsü - Sağ"
 
 msgid "Camera view - Isometric"
 msgstr "Kamera görünümü - İzometrik"
+
+msgid "Camera view - Fit to scene or selection"
+msgstr ""
 
 msgid "Shift+E"
 msgstr ""
@@ -15250,9 +15285,6 @@ msgstr "Seçilmiş Parçalar"
 msgid "Keep original models"
 msgstr "Orijinal modellerini muhafaza et"
 
-msgid "Execute"
-msgstr "Yürüt"
-
 msgid "Entity Only"
 msgstr "Sadece Nesne"
 
@@ -15774,9 +15806,6 @@ msgstr "Ön Ayarı Düzenle"
 
 msgid "For more information, please check out Wiki"
 msgstr "Daha fazla bilgi için lütfen Wiki'ye göz atın"
-
-msgid "Collapse"
-msgstr "Daralt"
 
 msgid "Daily Tips"
 msgstr "Günlük İpuçları"
@@ -16420,12 +16449,6 @@ msgstr "Filament gruplama"
 msgid "Fila Saving"
 msgstr ""
 
-msgid "Don't remind me again"
-msgstr "Bir daha anımsatma"
-
-msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
-msgstr "Başka bir açılır pencere görünmeyecektir. 'Tercihler'den yeniden açabilirsiniz"
-
 msgid "Filament-Saving Mode"
 msgstr "Filament Tasarruf Modu"
 
@@ -16482,9 +16505,6 @@ msgstr ""
 #, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
 msgstr ""
-
-msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
-msgstr "Mevcut plaka için filament gruplama yöntemi, dilimleme plakası düğmesindeki açılır seçenek tarafından belirlenir."
 
 msgid "Skip Objects"
 msgstr "Nesneleri Atla"
@@ -17184,6 +17204,21 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#~ msgid "Shift+"
+#~ msgstr "Shift+"
+
+#~ msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
+#~ msgstr "Mevcut ürün yazılımı en fazla 16 malzemeyi desteklemektedir. Hazırlık Sayfasında malzeme sayısını 16'ya veya daha azına düşürebilir ya da ürün yazılımını güncellemeyi deneyebilirsiniz. Güncellemeden sonra da kısıtlama devam ederse, lütfen sonraki ürün yazılımı desteğini bekleyin."
+
+#~ msgid "Don't remind me again"
+#~ msgstr "Bir daha anımsatma"
+
+#~ msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
+#~ msgstr "Başka bir açılır pencere görünmeyecektir. 'Tercihler'den yeniden açabilirsiniz"
+
+#~ msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
+#~ msgstr "Mevcut plaka için filament gruplama yöntemi, dilimleme plakası düğmesindeki açılır seçenek tarafından belirlenir."
 
 #, c-format, boost-format
 #~ msgid "Left nozzle: %smm"

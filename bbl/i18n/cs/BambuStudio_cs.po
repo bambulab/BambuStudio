@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-14 19:58+0800\n"
+"POT-Creation-Date: 2026-04-24 10:37+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz> \n"
 "Language-Team: \n"
@@ -3181,11 +3181,11 @@ msgstr "Orientování"
 msgid "Filling"
 msgstr "Vyplňování"
 
-msgid "Bed filling canceled."
-msgstr "Plnění podložky bylo zrušeno."
-
 msgid "Bed filling done."
 msgstr "Plnění podložky dokončeno."
+
+msgid "Bed filling canceled."
+msgstr "Plnění podložky bylo zrušeno."
 
 #. TRN: This is the title of the action appearing in undo/redo stack.
 #. It is same for Text and SVG.
@@ -3860,6 +3860,9 @@ msgstr "Přetečení zásobníku"
 
 msgid "Running post-processing scripts"
 msgstr "Spouštění post-processing skriptů"
+
+msgid "Updating preview with post-processed G-code"
+msgstr ""
 
 msgid "Successfully executed post-processing script"
 msgstr "Skript pro následné zpracování byl úspěšně proveden."
@@ -5324,6 +5327,9 @@ msgstr "Více zařízení"
 msgid "Project"
 msgstr "Projekt"
 
+msgid "Filament Manager"
+msgstr ""
+
 msgid "Yes"
 msgstr "Ano"
 
@@ -5466,6 +5472,9 @@ msgstr "Pohled zprava"
 msgid "Isometric View"
 msgstr "Izometrický pohled"
 
+msgid "Fit Camera"
+msgstr ""
+
 msgid "Start a new window"
 msgstr "Spustit nové okno"
 
@@ -5489,9 +5498,6 @@ msgstr "Uložit aktuální projekt do souboru"
 
 msgid "Save Project as"
 msgstr "Uložit projekt jako"
-
-msgid "Shift+"
-msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "Uložit aktuální projekt jako"
@@ -6606,6 +6612,18 @@ msgstr "%s varování"
 msgid "%s has a warning"
 msgstr "%s má varování"
 
+msgid "Collapse"
+msgstr "Sbalit"
+
+msgid "View details"
+msgstr ""
+
+msgid "Execute"
+msgstr "Spustit"
+
+msgid "Do not execute"
+msgstr ""
+
 #, c-format, boost-format
 msgid "%s info"
 msgstr "%s info"
@@ -7283,9 +7301,6 @@ msgstr ""
 msgid "Restore"
 msgstr "Obnovit"
 
-msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
-msgstr "V aktuálním souboru 3mf je přítomen skript G-kódu, ověřte prosím obsah skriptu."
-
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "Teplota vyhřívané podložky je aktuálně poměrně vysoká. Při tisku tohoto filamentu v uzavřeném prostoru může dojít k ucpání trysky. Otevřete prosím přední dveře a/nebo odstraňte horní sklo."
 
@@ -7364,6 +7379,12 @@ msgstr "Název komponent uvnitř STEP souboru není ve formátu UTF8!"
 
 msgid "The name may show garbage characters!"
 msgstr "Název může zobrazovat neplatné znaky!"
+
+msgid "The following shells are not closed and may cause issues:"
+msgstr ""
+
+msgid "Unclosed Shell Warning"
+msgstr ""
 
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
@@ -7916,6 +7937,11 @@ msgstr "Důvod: \"%1%\" a jiná část nemají průnik."
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Byly zjištěny negativní části. Chcete před exportem provést booleovskou operaci se sítí?"
 
+msgid ""
+"Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\n"
+"Please verify the file source and script contents before continuing."
+msgstr ""
+
 #, c-format, boost-format
 msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
 msgstr ""
@@ -7976,6 +8002,11 @@ msgstr "Neplatné číslo"
 
 msgid "Plate Settings"
 msgstr "Nastavení podložky"
+
+msgid ""
+"While printing by Object, the extruder may collide skirt.\n"
+"Thus, it is recommended to reset the skirt layer to 1 to avoid that."
+msgstr ""
 
 msgid "Prime Tower:"
 msgstr "Věž pro oddělení trysky:"
@@ -8830,6 +8861,10 @@ msgid "Recommended filament arrangement saves %s->"
 msgstr ""
 
 #, c-format, boost-format
+msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
+msgstr ""
+
+#, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
 msgstr "Filament %s neodpovídá filamentu ve slotu AMS %s. Aktualizujte firmware tiskárny pro podporu přiřazení slotu AMS."
 
@@ -9114,9 +9149,6 @@ msgstr "Nastavte dynamickou kalibraci toku na 'VYPNUTO', abyste mohli zadat vlas
 
 msgid "This printer does not support printing all plates"
 msgstr "Tato tiskárna nepodporuje tisk na všech podložkách."
-
-msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
-msgstr "Aktuální firmware podporuje maximálně 16 materiálů. Počet materiálů můžete na stránce Příprava snížit na 16 nebo méně, nebo zkuste provést aktualizaci firmwaru. Pokud bude omezení přetrvávat i po aktualizaci, vyčkejte prosím na další podporu firmwaru."
 
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr "Zkontrolujte, zda požadovaný průměr trysky a průtok odpovídají aktuálnímu zobrazení."
@@ -10439,6 +10471,9 @@ msgstr "Pohled kamery – pravý"
 
 msgid "Camera view - Isometric"
 msgstr "Pohled kamery – izometrický"
+
+msgid "Camera view - Fit to scene or selection"
+msgstr ""
 
 msgid "Shift+E"
 msgstr ""
@@ -15268,9 +15303,6 @@ msgstr "Vybrané části"
 msgid "Keep original models"
 msgstr "Ponechat původní modely"
 
-msgid "Execute"
-msgstr "Spustit"
-
 msgid "Entity Only"
 msgstr "Pouze entita"
 
@@ -15793,9 +15825,6 @@ msgstr "Upravit přednastavení"
 
 msgid "For more information, please check out Wiki"
 msgstr "Pro více informací navštivte Wiki."
-
-msgid "Collapse"
-msgstr "Sbalit"
 
 msgid "Daily Tips"
 msgstr "Denní tipy"
@@ -16441,12 +16470,6 @@ msgstr "Seskupení filamentů"
 msgid "Fila Saving"
 msgstr ""
 
-msgid "Don't remind me again"
-msgstr "Už mi to nepřipomínat"
-
-msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
-msgstr "Žádné další vyskakovací okno se nezobrazí. Můžete jej znovu otevřít v 'Předvolby'"
-
 msgid "Filament-Saving Mode"
 msgstr "Režim úspory filamentu"
 
@@ -16503,9 +16526,6 @@ msgstr " pro nastavení počtu trysek"
 #, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
 msgstr ""
-
-msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
-msgstr "Metoda seskupování filamentů pro aktuální podložku je určena volbou v rozbalovací nabídce u tlačítka řezání podložky."
 
 msgid "Skip Objects"
 msgstr "Přeskočit objekty"
@@ -17205,6 +17225,24 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#~ msgid "Shift+"
+#~ msgstr "Shift+"
+
+#~ msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
+#~ msgstr "V aktuálním souboru 3mf je přítomen skript G-kódu, ověřte prosím obsah skriptu."
+
+#~ msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
+#~ msgstr "Aktuální firmware podporuje maximálně 16 materiálů. Počet materiálů můžete na stránce Příprava snížit na 16 nebo méně, nebo zkuste provést aktualizaci firmwaru. Pokud bude omezení přetrvávat i po aktualizaci, vyčkejte prosím na další podporu firmwaru."
+
+#~ msgid "Don't remind me again"
+#~ msgstr "Už mi to nepřipomínat"
+
+#~ msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
+#~ msgstr "Žádné další vyskakovací okno se nezobrazí. Můžete jej znovu otevřít v 'Předvolby'"
+
+#~ msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
+#~ msgstr "Metoda seskupování filamentů pro aktuální podložku je určena volbou v rozbalovací nabídce u tlačítka řezání podložky."
 
 #, c-format, boost-format
 #~ msgid "Left nozzle: %smm"

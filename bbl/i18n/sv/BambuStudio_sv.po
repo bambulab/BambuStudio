@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-14 19:58+0800\n"
+"POT-Creation-Date: 2026-04-24 10:37+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -189,7 +189,7 @@ msgid "How to feed TPU filament."
 msgstr "Hur man matar TPU filament."
 
 msgid "How to feed TPU filament on X2D."
-msgstr ""
+msgstr "Hur man matar TPU filament på X2D."
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr "Användning av icke bambu filament kan ha problem med utskriftskvaliteten."
@@ -2654,7 +2654,7 @@ msgid "Assembly"
 msgstr "Montering"
 
 msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
-msgstr ""
+msgstr "Att använda variabel lagerhöjd tillsammans med ett underlager med blandade färger kan resultera i dålig färgblandnings kvalitet."
 
 msgid "Cut Connectors information"
 msgstr "Information om kontakter"
@@ -3177,11 +3177,11 @@ msgstr "Placerar"
 msgid "Filling"
 msgstr "Fyllnad"
 
-msgid "Bed filling canceled."
-msgstr "Byggplattans fyllning avbruten."
-
 msgid "Bed filling done."
 msgstr "Byggplattans fyllning utförd."
+
+msgid "Bed filling canceled."
+msgstr "Byggplattans fyllning avbruten."
 
 #. TRN: This is the title of the action appearing in undo/redo stack.
 #. It is same for Text and SVG.
@@ -3858,6 +3858,9 @@ msgstr "Lagra överflöde"
 
 msgid "Running post-processing scripts"
 msgstr "Kör efterbearbetnings skript"
+
+msgid "Updating preview with post-processed G-code"
+msgstr "Uppdaterar förhandsgranskning med efterbearbetad G kod"
 
 msgid "Successfully executed post-processing script"
 msgstr "Framgångsrikt utfört efterbehandlingsskript"
@@ -5333,6 +5336,9 @@ msgstr "Flera enheter"
 msgid "Project"
 msgstr "Projekt"
 
+msgid "Filament Manager"
+msgstr ""
+
 msgid "Yes"
 msgstr "Ja"
 
@@ -5475,6 +5481,9 @@ msgstr "Vy Höger"
 msgid "Isometric View"
 msgstr "Isometrisk vy"
 
+msgid "Fit Camera"
+msgstr "Anpassa kamera"
+
 msgid "Start a new window"
 msgstr "Starta ett nytt fönster"
 
@@ -5498,9 +5507,6 @@ msgstr "Spara nuvarande projekt till fil"
 
 msgid "Save Project as"
 msgstr "Spara Projekt som"
-
-msgid "Shift+"
-msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "Spara nuvarande projekt som"
@@ -6617,6 +6623,18 @@ msgstr "%s varning"
 msgid "%s has a warning"
 msgstr "%s har en varning"
 
+msgid "Collapse"
+msgstr "Komprimera"
+
+msgid "View details"
+msgstr ""
+
+msgid "Execute"
+msgstr "Utför"
+
+msgid "Do not execute"
+msgstr ""
+
 #, c-format, boost-format
 msgid "%s info"
 msgstr "%s info"
@@ -7097,7 +7115,7 @@ msgid "High-shrinkage filament(s) detected: %s. These materials may cause dimens
 msgstr "Detekterat filament med hög krympning: %s. Dessa material kan orsaka dimensionsavvikelser efter kylning. Om din modell kräver exakt passform eller montering, se Wiki-guiden för krympningstestning."
 
 msgid "Printing mixed-color filament on a single-extruder printer requires frequent filament changes and flushing, which may significantly increase waste and the risk of nozzle / waste-chute clogging."
-msgstr ""
+msgstr "Att skriva ut blandfärgade filament på en printer med en extruder kräver frekventa filament byten och rensning, vilket kan öka spill och risken för igensättning av nozzle/avfallsrännan avsevärt."
 
 #, boost-format
 msgid " plate %1%: "
@@ -7294,9 +7312,6 @@ msgstr ""
 msgid "Restore"
 msgstr "Återställ"
 
-msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
-msgstr "Det finns ett G-kod skript i den aktuella 3mf filen, verifiera innehållet i skriptet."
-
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "The current heatbed temperature is relatively high. The nozzle may clog when printing this filament in a closed environment. Please open the front door and/or remove the upper glass."
 
@@ -7375,6 +7390,12 @@ msgstr "Komponent namnet i step filen är inte UTF8 format!"
 
 msgid "The name may show garbage characters!"
 msgstr "Namnet kan visa skräptecken!"
+
+msgid "The following shells are not closed and may cause issues:"
+msgstr ""
+
+msgid "Unclosed Shell Warning"
+msgstr ""
 
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
@@ -7954,6 +7975,11 @@ msgstr "Orsak: \"%1%\" och en annan del har ingen korsning."
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Negativa delar upptäckta. Vill du utföra boolean av mesh före export?"
 
+msgid ""
+"Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\n"
+"Please verify the file source and script contents before continuing."
+msgstr ""
+
 #, c-format, boost-format
 msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
 msgstr "Kalibrerings filamentet är för närvarande tilldelat en annan extruder än den som valts i PA kalibrerings dialogrutan (%s). Detta kan leda till felaktiga kalibrerings resultat. Du kan ändra tilldelningen i inställningarna för filament gruppering."
@@ -8014,6 +8040,11 @@ msgstr "Ogiltligt nummer"
 
 msgid "Plate Settings"
 msgstr "Inställningar för platta"
+
+msgid ""
+"While printing by Object, the extruder may collide skirt.\n"
+"Thus, it is recommended to reset the skirt layer to 1 to avoid that."
+msgstr ""
 
 msgid "Prime Tower:"
 msgstr ""
@@ -8868,6 +8899,10 @@ msgid "Recommended filament arrangement saves %s->"
 msgstr "Rekommenderat filament arrangemang sparar %s->"
 
 #, c-format, boost-format
+msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
+msgstr ""
+
+#, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
 msgstr "Filamentet %s matchar inte filamentet i AMS-facket %s. Uppdatera skrivarens programvara för att stödja tilldelning av AMS-fack."
 
@@ -9154,9 +9189,6 @@ msgstr "Ställ in dynamiskt flödes kalibrering till \"OFF\" för att aktivera a
 
 msgid "This printer does not support printing all plates"
 msgstr "Den här skrivaren stöder inte utskrift av alla byggplattor"
-
-msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
-msgstr "Nuvarande firmware stöder maximalt 16 material. Du kan antingen minska antalet material till 16 eller färre på Berednings sidan eller prova att uppdatera firmware. Om du fortfarande är begränsad efter uppdateringen, vänta på följande stöd i firmware."
 
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr "Kontrollera om den erforderlig nozzle diameter och flödeshastighet matchar aktuell visning."
@@ -10489,6 +10521,9 @@ msgstr "Kamera vy - Höger"
 
 msgid "Camera view - Isometric"
 msgstr "Kamera vy - Isometrisk"
+
+msgid "Camera view - Fit to scene or selection"
+msgstr "Kamera vy - Anpassa till scen eller markering"
 
 msgid "Shift+E"
 msgstr ""
@@ -15351,9 +15386,6 @@ msgstr "Valda delar"
 msgid "Keep original models"
 msgstr "Behåll original modellerna"
 
-msgid "Execute"
-msgstr "Utför"
-
 msgid "Entity Only"
 msgstr "Endast enhet"
 
@@ -15875,9 +15907,6 @@ msgstr "Redigera inställningar"
 
 msgid "For more information, please check out Wiki"
 msgstr "For more information, please check out our Wiki"
-
-msgid "Collapse"
-msgstr "Komprimera"
 
 msgid "Daily Tips"
 msgstr "Dagliga tips"
@@ -16521,12 +16550,6 @@ msgstr "Filament gruppering"
 msgid "Fila Saving"
 msgstr "Filament besparing"
 
-msgid "Don't remind me again"
-msgstr "Påminn mig inte igen"
-
-msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
-msgstr "Inget ytterligare popup-fönster kommer att visas. Du kan uppdatera detta i \"Inställningar\""
-
 msgid "Filament-Saving Mode"
 msgstr "Filament sparande läge"
 
@@ -16583,9 +16606,6 @@ msgstr " för att ange antal nozzle"
 #, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
 msgstr "Genererar filament gruppering för %s och %s baserat på utskrifternas kvalitet, med prioritet för utskriftskvalitet framför filament besparing"
-
-msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
-msgstr "Grupperings metoden för filament för plattan bestäms av rullgardins alternativet vid beredning plattan knappen."
 
 msgid "Skip Objects"
 msgstr "Hoppa över objekt"
@@ -16968,59 +16988,59 @@ msgid "Print Outcome: "
 msgstr "Utskrifts resultat: "
 
 msgid "Edit Mixed Filament"
-msgstr ""
+msgstr "Redigera blandat filament"
 
 msgid "Effect Preview"
-msgstr ""
+msgstr "Förhandsgranska effekt"
 
 msgid "Select Mixed Materials"
-msgstr ""
+msgstr "Välj blandade material"
 
 msgid "+ Add Material"
-msgstr ""
+msgstr "+ Lägg till material"
 
 msgid "- Delete Material"
-msgstr ""
+msgstr "- Ta bort material"
 
 msgid "Ratio"
-msgstr ""
+msgstr "Förhållande"
 
 msgid "Gradient Effect"
-msgstr ""
+msgstr "Gradient effekt"
 
 msgid "Mixing Recommendations"
-msgstr ""
+msgstr "Blandnings rekommendationer"
 
 msgid "-- Select --"
-msgstr ""
+msgstr "-- Välj --"
 
 msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-msgstr ""
+msgstr "För att kunna använda gradient effekten måste \"Underlager med blandade färger\" vara aktiverat. Vill du aktivera det nu?"
 
 msgid "Mixed Color Sublayer"
-msgstr ""
+msgstr "Blandade färger i underlager"
 
 #, c-format, boost-format
 msgid "Slot %s (%s)"
-msgstr ""
+msgstr "Fack %s (%s)"
 
 msgid "cannot be mixed. Please select the same filament type."
-msgstr ""
+msgstr "kan inte blandas. Välj samma filament typ."
 
 msgid "Please select a filament for all components"
-msgstr ""
+msgstr "Välj ett filament för alla komponenter"
 
 msgid "Cannot mix different filament types"
-msgstr ""
+msgstr "Kan inte blanda olika filament typer"
 
 msgid "Maximum 3 materials for mixing"
-msgstr ""
+msgstr "Max 3 material för blandning"
 
 msgid "Maximum number of components reached"
-msgstr ""
+msgstr "Max antal komponenter uppnått"
 
 msgid "Remove the third material"
-msgstr ""
+msgstr "Ta bort det tredje materialet"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -17309,6 +17329,24 @@ msgid ""
 msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
+
+#~ msgid "Shift+"
+#~ msgstr "Shift+"
+
+#~ msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
+#~ msgstr "Det finns ett G-kod skript i den aktuella 3mf filen, verifiera innehållet i skriptet."
+
+#~ msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
+#~ msgstr "Nuvarande firmware stöder maximalt 16 material. Du kan antingen minska antalet material till 16 eller färre på Berednings sidan eller prova att uppdatera firmware. Om du fortfarande är begränsad efter uppdateringen, vänta på följande stöd i firmware."
+
+#~ msgid "Don't remind me again"
+#~ msgstr "Påminn mig inte igen"
+
+#~ msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
+#~ msgstr "Inget ytterligare popup-fönster kommer att visas. Du kan uppdatera detta i \"Inställningar\""
+
+#~ msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
+#~ msgstr "Grupperings metoden för filament för plattan bestäms av rullgardins alternativet vid beredning plattan knappen."
 
 #~ msgctxt "FilamentTrack"
 #~ msgid "Left"

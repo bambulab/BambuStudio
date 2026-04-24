@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-14 19:58+0800\n"
+"POT-Creation-Date: 2026-04-24 10:37+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -119,22 +119,22 @@ msgid "auxiliary hotend"
 msgstr "segédhotend"
 
 msgid "Left Hotend"
-msgstr ""
+msgstr "Bal hotend"
 
 msgid "Left hotend"
-msgstr ""
+msgstr "Bal hotend"
 
 msgid "left hotend"
-msgstr ""
+msgstr "bal hotend"
 
 msgid "Right Hotend"
-msgstr ""
+msgstr "Jobb hotend"
 
 msgid "Right hotend"
-msgstr ""
+msgstr "Jobb hotend"
 
 msgid "right hotend"
-msgstr ""
+msgstr "jobb hotend"
 
 msgid "main"
 msgstr "fő"
@@ -3043,7 +3043,7 @@ msgstr "Bal(Aux)"
 
 msgctxt "air_duct"
 msgid "Left(Heating)"
-msgstr ""
+msgstr "Bal(fűtés)"
 
 msgctxt "air_duct"
 msgid "Chamber"
@@ -3180,11 +3180,11 @@ msgstr "Orientáció"
 msgid "Filling"
 msgstr "Kitöltés"
 
-msgid "Bed filling canceled."
-msgstr "Asztal feltöltése megszakítva."
-
 msgid "Bed filling done."
 msgstr "Asztal feltöltve."
+
+msgid "Bed filling canceled."
+msgstr "Asztal feltöltése megszakítva."
 
 #. TRN: This is the title of the action appearing in undo/redo stack.
 #. It is same for Text and SVG.
@@ -3861,6 +3861,9 @@ msgstr "Verem túlcsordulás"
 
 msgid "Running post-processing scripts"
 msgstr "Utófeldolgozási szkriptek futtatása"
+
+msgid "Updating preview with post-processed G-code"
+msgstr ""
 
 msgid "Successfully executed post-processing script"
 msgstr "Utófeldolgozási szkriptek sikeresen végrehajtva"
@@ -5064,14 +5067,14 @@ msgid "Select Plate"
 msgstr "Tálca kiválasztása"
 
 msgid "Change camera perspective"
-msgstr ""
+msgstr "Kameraperspektíva módosítása"
 
 msgid "Go to Wiki"
 msgstr "Tovább a Wikihez"
 
 #, boost-format
 msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
-msgstr ""
+msgstr "Jelenlegi összeszerelési sebesség: %1%%%, térfogati sebesség: %2%%%"
 
 msgctxt "Camera"
 msgid "Top"
@@ -5133,7 +5136,7 @@ msgid "Size:"
 msgstr "Méret:"
 
 msgid "Isolated objects detected"
-msgstr ""
+msgstr "Izolált objektumok észlelve"
 
 msgid "Click to move them closer to the main body."
 msgstr "Kattints a fő testhez való közelebb húzásához."
@@ -5336,6 +5339,9 @@ msgstr "Multi-eszköz"
 msgid "Project"
 msgstr "Projekt"
 
+msgid "Filament Manager"
+msgstr ""
+
 msgid "Yes"
 msgstr "Igen"
 
@@ -5478,6 +5484,9 @@ msgstr "Jobb nézet"
 msgid "Isometric View"
 msgstr "Izometrikus nézet"
 
+msgid "Fit Camera"
+msgstr ""
+
 msgid "Start a new window"
 msgstr "Új ablak nyitása"
 
@@ -5501,9 +5510,6 @@ msgstr "Jelenlegi projekt mentése egy fájlba"
 
 msgid "Save Project as"
 msgstr "Projekt mentése másként"
-
-msgid "Shift+"
-msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "Jelenlegi projekt mentése másként"
@@ -6620,6 +6626,18 @@ msgstr "%s figyelmeztetés"
 msgid "%s has a warning"
 msgstr "%s figyelmeztetést tartalmaz"
 
+msgid "Collapse"
+msgstr "Összecsuk"
+
+msgid "View details"
+msgstr ""
+
+msgid "Execute"
+msgstr "Végrehajtás"
+
+msgid "Do not execute"
+msgstr ""
+
 #, c-format, boost-format
 msgid "%s info"
 msgstr "%s infó"
@@ -6913,10 +6931,10 @@ msgid "Checks for any objects on the build plate at the start of a print to avoi
 msgstr "A nyomtatás kezdetén ellenőrzi, hogy nincsenek-e tárgyak a nyomtatótálcán az ütközések elkerülése érdekében."
 
 msgid "Printed Part Displacement Detection"
-msgstr ""
+msgstr "Nyomtatott tárgy elmozdulásának érzékelése"
 
 msgid "Monitors the printed part during printing and alerts immediately if it shifts or collapses."
-msgstr ""
+msgstr "Nyomtatás közben figyeli a nyomtatott tárgyat, és azonnal figyelmeztet, ha az elmozdul vagy összedől."
 
 msgid "Ensures the build plate type and placement are correct."
 msgstr "Biztosítja, hogy a tálca típusa és elhelyezése megfelelő legyen."
@@ -7245,13 +7263,13 @@ msgid "Remove last mixed filament"
 msgstr "Az utolsó vegyes filament eltávolítása"
 
 msgid "Mixed filament has invalid or mismatched components. Please re-edit affected entries."
-msgstr ""
+msgstr "Érvénytelen vegyes filament vagy nem egyező összetevők. Kérjük, módosítsd az érintett elemeket."
 
 msgid "Search plate, object and part."
 msgstr "Tálca, objektum és tárgy keresése."
 
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
-msgstr ""
+msgstr "A megcélzott vegyes filament ezt a fizikai filamentet használja komponensként. Az egyesítés eltávolítja ezt a fizikai filamentet, és érvénytelenítheti a vegyes filamentet. Folytatod?"
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -7277,7 +7295,7 @@ msgid "Mixed filament has broken component references"
 msgstr "A vegyes filament hibás komponenshivatkozásokat tartalmaz"
 
 msgid "Edit / Delete / Merge"
-msgstr ""
+msgstr "Szerkesztés / Törlés / Egyesítés"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -7298,9 +7316,6 @@ msgstr ""
 
 msgid "Restore"
 msgstr "Visszaállítás"
-
-msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
-msgstr "A jelenlegi 3mf fájl tartalmaz G-kód szkriptet, kérjük, ellenőrizd a szkript tartalmát."
 
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "The current heatbed temperature is relatively high. The nozzle may clog when printing this filament in a closed environment. Please open the front door and/or remove the upper glass."
@@ -7380,6 +7395,12 @@ msgstr "A STEP fájlon belüli komponens neve nem UTF-8 formátumban van!"
 
 msgid "The name may show garbage characters!"
 msgstr "A névben helytelen karakterek jelenhetnek meg!"
+
+msgid "The following shells are not closed and may cause issues:"
+msgstr ""
+
+msgid "Unclosed Shell Warning"
+msgstr ""
 
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
@@ -7918,9 +7939,11 @@ msgid ""
 "Failed to export the sliced file.\n"
 "Please check whether the file is occupied by another program or if there is enough disk space."
 msgstr ""
+"Nem sikerült exportálni a szeletelt fájlt.\n"
+"Ellenőrizd, hogy a fájlt nem használja-e egy másik program, vagy van-e elég szabad lemezterület."
 
 msgid "Export sliced file"
-msgstr "Export Sliced File"
+msgstr "Szeletelt fájl exportálása"
 
 #, c-format, boost-format
 msgid "The file %s has been sent to the printer's storage space and can be viewed on the printer."
@@ -7954,9 +7977,14 @@ msgstr "Ok: %1% és egy másik tárgy nem metszik egymást."
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Negatív tárgyakat észleltünk. Exportálás előtt szeretnéd végrehajtani a logikai műveletet a hálón?"
 
+msgid ""
+"Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\n"
+"Please verify the file source and script contents before continuing."
+msgstr ""
+
 #, c-format, boost-format
 msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
-msgstr ""
+msgstr "A kalibrációs filament jelenleg egy másik extruderhez van hozzárendelve, mint amelyiket a PA kalibrációs ablakban kiválasztottál (%s). Ez helytelen kalibrációs eredményekhez vezethet. A hozzárendelést a filament csoportosítási beállításaiban módosíthatod."
 
 msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr "Nem ajánlott a PVA filament használata 0,2 mm-es fúvókával."
@@ -8014,6 +8042,11 @@ msgstr "Érvénytelen szám"
 
 msgid "Plate Settings"
 msgstr "Tálcabeállítások"
+
+msgid ""
+"While printing by Object, the extruder may collide skirt.\n"
+"Thus, it is recommended to reset the skirt layer to 1 to avoid that."
+msgstr ""
 
 msgid "Prime Tower:"
 msgstr "Törlőtorony"
@@ -8276,7 +8309,7 @@ msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be
 msgstr "Ha engedélyezve van, a legutóbb használt színséma (pl. vonaltípus, sebesség) kerül automatikusan alkalmazásra a következő indításkor."
 
 msgid "Display overview"
-msgstr ""
+msgstr "Megjelenítés áttekintése"
 
 msgid "Show assembly BVH primary bounds"
 msgstr "Térfogat hierarchia megjelenítése"
@@ -8628,7 +8661,7 @@ msgid "First layer filament sequence"
 msgstr "Kezdőréteg filament sorrendje"
 
 msgid "The filament list contains mixed filaments. Custom filament sequence will not take effect."
-msgstr ""
+msgstr "A filamentlista vegyes filamenteket tartalmaz. Az egyéni filament-sorrend nem lép érvénybe."
 
 msgid "Same as Global Bed Type"
 msgstr "Ugyanaz, mint a globális tálca típusa"
@@ -8868,6 +8901,10 @@ msgid "Recommended filament arrangement saves %s->"
 msgstr "Az ajánlott filamentelrendezéssel elérhető megtakarítás %s->"
 
 #, c-format, boost-format
+msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
+msgstr ""
+
+#, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
 msgstr "%s filament típusa nem egyezik a(z) %s AMS-férőhelyben találhatóval. Kérjük, frissítsd a nyomtató szoftverét az AMS-kiosztás támogatásához."
 
@@ -9040,7 +9077,7 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "A jelenlegi fúvókaátmérő (%.1f mm) nem egyezik a szeletelt fájlban megadott értékkel (%.1f mm). Kérjük, ellenőrizd, hogy a beszerelt fúvóka megfelel-e a nyomtató beállításainak, majd szeleteléskor használd a megfelelő nyomtatóbeállítást."
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
-msgstr ""
+msgstr "A nyomtatóra szerelt filamentváltó nem egyezik a szeletelt fájlban megadott értékkel. Kérjük, szeleteld újra a fájlt a nyomtatási minőségi problémák elkerülése érdekében."
 
 msgid "This print requires a Filament Track Switch. Please install it first."
 msgstr "Ez a nyomtatás filamentváltót igényel. Kérjük, először telepítsd."
@@ -9154,9 +9191,6 @@ msgstr "Az egyéni dinamikus áramlási értékek engedélyezéséhez állítsd 
 
 msgid "This printer does not support printing all plates"
 msgstr "Ez a nyomtató nem támogatja az összes tálcára való nyomtatást"
-
-msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
-msgstr "A jelenlegi firmware maximum 16 anyagot támogat. Vagy csökkentsd az anyagok számát 16-ra (vagy kevesebbre) az Előkészítés oldalon, vagy próbáld meg frissíteni a firmware-t. Ha a frissítés után sem tudsz több filamentet használni, kérjük várj a következő firmware-verzióra."
 
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr "Kérjük, ellenőrizd, hogy a fúvókaátmérő és áramlási sebesség megegyezik-e a kijelzőn lévővel."
@@ -9417,7 +9451,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "When using %s to support %s, We recommend the following settings:"
-msgstr ""
+msgstr "Amikor %s-t használsz %s támaszanyagaként, a következő beállításokat javasoljuk:"
 
 msgid "When using PLA to support TPU, We recommend the following settings:"
 msgstr "Ha PLA-t használsz TPU-támaszként, a következő beállításokat javasoljuk:"
@@ -10485,6 +10519,9 @@ msgstr "Kameranézet - Jobb"
 
 msgid "Camera view - Isometric"
 msgstr "Kameranézet - Izometrikus"
+
+msgid "Camera view - Fit to scene or selection"
+msgstr ""
 
 msgid "Shift+E"
 msgstr ""
@@ -14966,7 +15003,7 @@ msgstr ""
 "- Különböző márkájú és típusú filamentek (Márka = Bambu, Típus = Basic, Matte stb.)\n"
 
 msgid "(Aux) does not support automatic flow calibration."
-msgstr ""
+msgstr "(Aux) nem támogatja az automatikus áramláskalibrálást."
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- Megjegyzés: A hotend száma a tartóhoz van rendelve. Amikor a hotendet áthelyezed egy új tartóra, a száma automatikusan frissül.\n"
@@ -15110,7 +15147,7 @@ msgid "PA Calibration"
 msgstr "PA kalibrálás"
 
 msgid "Extruder type"
-msgstr ""
+msgstr "Extruder típusa"
 
 msgid "PA Tower"
 msgstr "PA-torony"
@@ -15343,9 +15380,6 @@ msgstr "Kijelölt tárgyak"
 
 msgid "Keep original models"
 msgstr "Eredeti modellek megtartása"
-
-msgid "Execute"
-msgstr "Végrehajtás"
 
 msgid "Entity Only"
 msgstr "Csak objektum"
@@ -15864,9 +15898,6 @@ msgstr "Beállítás módosítása"
 
 msgid "For more information, please check out Wiki"
 msgstr "For more information, please check out our Wiki"
-
-msgid "Collapse"
-msgstr "Összecsuk"
 
 msgid "Daily Tips"
 msgstr "Napi tippek"
@@ -16512,12 +16543,6 @@ msgstr "Filamentcsoportosítás"
 msgid "Fila Saving"
 msgstr "Filamentmegtakarítás"
 
-msgid "Don't remind me again"
-msgstr "Ne emlékeztessen újra"
-
-msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
-msgstr "Nem fog több felugró ablak megjelenni. A 'Beállítások' menüpontban újra megnyithatod."
-
 msgid "Filament-Saving Mode"
 msgstr "Filament-takarékos üzemmód"
 
@@ -16574,9 +16599,6 @@ msgstr " a fúvókaszám beállításához"
 #, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
 msgstr "Filamentcsoportosítást hoz létre ezekhez: %s és %s, a nyomtatási minőséget előnyben részesítve a filamentmegtakarítással szemben"
-
-msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
-msgstr "A tálcához tartozó filamentcsoportosítási módszert a tálca szeletelése gombnál található legördülő opció határozza meg."
 
 msgid "Skip Objects"
 msgstr "Objektumok kihagyása"
@@ -17301,6 +17323,24 @@ msgid ""
 msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
+
+#~ msgid "Shift+"
+#~ msgstr "Shift+"
+
+#~ msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
+#~ msgstr "A jelenlegi 3mf fájl tartalmaz G-kód szkriptet, kérjük, ellenőrizd a szkript tartalmát."
+
+#~ msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
+#~ msgstr "A jelenlegi firmware maximum 16 anyagot támogat. Vagy csökkentsd az anyagok számát 16-ra (vagy kevesebbre) az Előkészítés oldalon, vagy próbáld meg frissíteni a firmware-t. Ha a frissítés után sem tudsz több filamentet használni, kérjük várj a következő firmware-verzióra."
+
+#~ msgid "Don't remind me again"
+#~ msgstr "Ne emlékeztessen újra"
+
+#~ msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
+#~ msgstr "Nem fog több felugró ablak megjelenni. A 'Beállítások' menüpontban újra megnyithatod."
+
+#~ msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
+#~ msgstr "A tálcához tartozó filamentcsoportosítási módszert a tálca szeletelése gombnál található legördülő opció határozza meg."
 
 #~ msgctxt "FilamentTrack"
 #~ msgid "Left"
