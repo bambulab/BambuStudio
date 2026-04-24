@@ -557,7 +557,7 @@ std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &co
                 w0.emit_comment(GCodeWriter::full_gcode_comment, "slope lift Z");
                 slop_move = w0.string();
             }
-            else if (m_to_lift_type == LiftType::NormalLift) {
+            else if (m_to_lift_type == LiftType::NormalLift || (m_to_lift_type == LiftType::SpiralLift &&!this->is_current_position_clear())){
                 slop_move = _travel_to_z(target.z(), "normal lift Z");
             }
         }
