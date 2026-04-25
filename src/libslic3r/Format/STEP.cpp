@@ -191,7 +191,11 @@ static void getNamedSolids(const TopLoc_Location& location,
     Handle(TDataStd_Name) shapeName;
     if (referredLabel.FindAttribute(TDataStd_Name::GetID(), shapeName) ||
         label.FindAttribute(TDataStd_Name::GetID(), shapeName))
-        name = TCollection_AsciiString(shapeName->Get()).ToCString();
+        // Replace non-ASCII (e.g. NBSP from STEP \X\A0 escapes that some CAD apps
+        // emit when users paste a stray space) with a regular space so the name
+        // stays readable AND passes the downstream isUtf8 check, instead of
+        // being rejected and falling back to the parent component name.
+        name = TCollection_AsciiString(shapeName->Get(), ' ').ToCString();
 
     // Fall back to the parent component name when OCCT assigned a shape-type
     // default (e.g. "SOLID") instead of a real user name.
