@@ -50,6 +50,7 @@
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "Gizmos/GLGizmoAlignment.hpp"
 #include "libslic3r/Model.hpp"
+#include "libslic3r/ImportNamingRules.hpp"
 #include "libslic3r/SLA/Hollowing.hpp"
 #include "libslic3r/SLA/SupportPoint.hpp"
 #include "libslic3r/SLA/ReprojectPointsOnMesh.hpp"
@@ -7022,8 +7023,10 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 #ifdef AUTOPLACEMENT_ON_LOAD
     ModelInstancePtrs new_instances;
 #endif /* AUTOPLACEMENT_ON_LOAD */
+    const auto naming_rules = Slic3r::default_import_naming_rules();
     for (ModelObject *model_object : model_objects) {
         auto *object = model.add_object(*model_object);
+        apply_naming_rules_to_objects({object}, naming_rules);
         object->sort_volumes(true);
         std::string object_name = object->name.empty() ? fs::path(object->input_file).filename().string() : object->name;
         obj_idxs.push_back(obj_count++);
