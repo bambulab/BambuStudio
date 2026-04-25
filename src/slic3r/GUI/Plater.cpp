@@ -8641,6 +8641,9 @@ void Plater::priv::reload_from_disk()
         std::set<std::pair<int,int>> used_new_volumes;
         int target_obj_idx = -1;
         std::set<int> refreshed_obj_idxs;
+        // old vol_idxs that had no match (body deleted from STEP) — removed after the loop
+        // so that sort_volumes inside the loop doesn't corrupt subsequent vol_idx values.
+        std::map<int, std::vector<int>> deleted_vol_idxs; // obj_idx → sorted list of vol_idxs
 
         for (auto [obj_idx, vol_idx] : selected_volumes) {
             ModelObject *old_model_object = model.objects[obj_idx];
@@ -8711,13 +8714,15 @@ void Plater::priv::reload_from_disk()
                     }
                 }
 
-                if (new_object_idx < 0 || int(new_model.objects.size()) <= new_object_idx) {
-                    fail_list.push_back(from_u8(has_source ? old_volume->source.input_file : old_volume->name));
+                // No match means this body was deleted from the STEP file.
+                // Mark for silent removal — do NOT add to fail_list.
+                if (!match_found || new_object_idx < 0 || int(new_model.objects.size()) <= new_object_idx) {
+                    deleted_vol_idxs[obj_idx].push_back(vol_idx);
                     continue;
                 }
                 ModelObject *new_model_object = new_model.objects[new_object_idx];
                 if (int(new_model_object->volumes.size()) <= new_volume_idx) {
-                    fail_list.push_back(from_u8(has_source ? old_volume->source.input_file : old_volume->name));
+                    deleted_vol_idxs[obj_idx].push_back(vol_idx);
                     continue;
                 }
 
@@ -8751,8 +8756,8 @@ void Plater::priv::reload_from_disk()
                     new_volume->convert_from_meters();
                 std::swap(old_model_object->volumes[vol_idx], old_model_object->volumes.back());
                 old_model_object->delete_volume(old_model_object->volumes.size() - 1);
-                if (!sinking) old_model_object->ensure_on_bed();
-                old_model_object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
+                // Do NOT call sort_volumes here — it would corrupt subsequent vol_idx values
+                // in this loop. A single sort_volumes call happens after the loop.
 
                 sla::reproject_points_and_holes(old_model_object);
 
@@ -8760,10 +8765,30 @@ void Plater::priv::reload_from_disk()
             }
         }
 
+        // Remove volumes whose bodies were deleted from the STEP file.
+        // Delete in reverse index order so earlier indices stay valid.
+        for (auto& [obj_idx, vol_idxs] : deleted_vol_idxs) {
+            ModelObject *obj = model.objects[obj_idx];
+            std::sort(vol_idxs.begin(), vol_idxs.end(), std::greater<int>());
+            for (int vi : vol_idxs)
+                obj->delete_volume(vi);
+            refreshed_obj_idxs.insert(obj_idx);
+        }
+
+        // Sort and reposition all modified objects now that the loop is done.
+        // (sort_volumes was intentionally omitted from the loop to keep vol_idx values stable.)
+        const bool full_sort = wxGetApp().app_config->get("order_volumes") == "1";
+        for (int oidx : refreshed_obj_idxs) {
+            ModelObject *obj = model.objects[oidx];
+            obj->sort_volumes(full_sort);
+            obj->ensure_on_bed();
+        }
+
         // Add volumes that are new in the reloaded file (no matching old volume).
         if (target_obj_idx >= 0) {
             ModelObject *target_object = model.objects[target_obj_idx];
             const auto naming_rules = default_import_naming_rules();
+            bool added_any = false;
             for (int o = 0; o < (int)new_model.objects.size(); ++o) {
                 for (int v = 0; v < (int)new_model.objects[o]->volumes.size(); ++v) {
                     if (used_new_volumes.count({o, v})) continue;
@@ -8772,11 +8797,14 @@ void Plater::priv::reload_from_disk()
                     added->source.object_idx = o;
                     added->source.volume_idx = v;
                     apply_naming_rules_to_volume(*added, naming_rules);
+                    added_any = true;
                 }
             }
-            target_object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
-            target_object->ensure_on_bed();
-            refreshed_obj_idxs.insert(target_obj_idx);
+            if (added_any) {
+                target_object->sort_volumes(full_sort);
+                target_object->ensure_on_bed();
+                refreshed_obj_idxs.insert(target_obj_idx);
+            }
         }
 
         // Refresh object list entries for all modified objects so names, types,
