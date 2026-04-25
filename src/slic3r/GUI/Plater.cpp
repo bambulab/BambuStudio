@@ -8659,11 +8659,15 @@ void Plater::priv::reload_from_disk()
                 int  new_volume_idx = -1;
                 int  new_object_idx = -1;
                 bool match_found    = false;
-                // take idxs from the matching volume
+                // take idxs from the matching volume — require name match too so that
+                // adding/removing bodies in the source file doesn't shift indices and
+                // silently swap volumes.
                 if (has_source && old_volume->source.object_idx < int(new_model.objects.size())) {
                     const ModelObject *obj = new_model.objects[old_volume->source.object_idx];
                     if (old_volume->source.volume_idx < int(obj->volumes.size())) {
-                        if (obj->volumes[old_volume->source.volume_idx]->source.input_file == old_volume->source.input_file) {
+                        const ModelVolume *candidate = obj->volumes[old_volume->source.volume_idx];
+                        if (candidate->source.input_file == old_volume->source.input_file &&
+                            candidate->name == old_volume->name) {
                             new_volume_idx = old_volume->source.volume_idx;
                             new_object_idx = old_volume->source.object_idx;
                             match_found    = true;
