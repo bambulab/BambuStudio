@@ -8647,6 +8647,11 @@ void Plater::priv::reload_from_disk()
         // old vol_idxs that had no match (body deleted from STEP) — removed after the loop
         // so that sort_volumes inside the loop doesn't corrupt subsequent vol_idx values.
         std::map<int, std::vector<int>> deleted_vol_idxs; // obj_idx → sorted list of vol_idxs
+        // Coordinate shift between new_model (post center_around_origin) and the existing model.
+        // Captured from the first matched volume: old_offset - new_model_offset.
+        // Applied to new bodies so they land in the same coordinate frame as existing volumes.
+        Vec3d coord_shift      = Vec3d::Zero();
+        bool  coord_shift_set  = false;
 
         for (auto [obj_idx, vol_idx] : selected_volumes) {
             ModelObject *old_model_object = model.objects[obj_idx];
@@ -8737,7 +8742,18 @@ void Plater::priv::reload_from_disk()
                     new_volume->name  = new_model_object->name;
                     new_volume->source.input_file = new_model_object->input_file;
                 } else {
-                    new_volume = old_model_object->add_volume(*new_model_object->volumes[new_volume_idx]);
+                    const ModelVolume *new_model_vol = new_model_object->volumes[new_volume_idx];
+                    // Capture coordinate shift from the first matched volume so that new
+                    // bodies added to the STEP can be placed in the existing coordinate frame.
+                    // shift = old_vol_offset - new_model_vol_offset (both measured from their
+                    // respective center_around_origin calls, so the difference is the drift in
+                    // bounding-box center between the initial import and this reload).
+                    if (!coord_shift_set) {
+                        coord_shift     = old_volume->get_transformation().get_offset()
+                                        - new_model_vol->get_transformation().get_offset();
+                        coord_shift_set = true;
+                    }
+                    new_volume = old_model_object->add_volume(*new_model_vol);
                     used_new_volumes.insert({new_object_idx, new_volume_idx});
                 }
 
@@ -8802,6 +8818,9 @@ void Plater::priv::reload_from_disk()
                     added->set_new_unique_id();
                     added->source.object_idx = o;
                     added->source.volume_idx = v;
+                    // Shift into the existing model's coordinate frame.
+                    if (coord_shift_set)
+                        added->set_offset(added->get_transformation().get_offset() + coord_shift);
                     apply_naming_rules_to_volume(*added, naming_rules);
                     added_any = true;
                 }
