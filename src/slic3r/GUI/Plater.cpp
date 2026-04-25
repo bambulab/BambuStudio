@@ -8660,15 +8660,16 @@ void Plater::priv::reload_from_disk()
                 int  new_volume_idx = -1;
                 int  new_object_idx = -1;
                 bool match_found    = false;
-                // take idxs from the matching volume — require name match too so that
-                // adding/removing bodies in the source file doesn't shift indices and
-                // silently swap volumes.
+
+                // Pass 1: source-index + name — handles the common case where nothing changed.
                 if (has_source && old_volume->source.object_idx < int(new_model.objects.size())) {
                     const ModelObject *obj = new_model.objects[old_volume->source.object_idx];
                     if (old_volume->source.volume_idx < int(obj->volumes.size())) {
                         const ModelVolume *candidate = obj->volumes[old_volume->source.volume_idx];
                         if (candidate->source.input_file == old_volume->source.input_file &&
-                            candidate->name == old_volume->name) {
+                            candidate->name == old_volume->name &&
+                            !used_new_volumes.count({(int)old_volume->source.object_idx,
+                                                     (int)old_volume->source.volume_idx})) {
                             new_volume_idx = old_volume->source.volume_idx;
                             new_object_idx = old_volume->source.object_idx;
                             match_found    = true;
@@ -8676,25 +8677,40 @@ void Plater::priv::reload_from_disk()
                     }
                 }
 
+                // Pass 2: name search — handles bodies that moved position but kept their name.
                 if (!match_found && has_name) {
-                    // take idxs from the 1st matching volume
-                    for (size_t o = 0; o < new_model.objects.size(); ++o) {
-                        ModelObject *obj   = new_model.objects[o];
-                        bool         found = false;
+                    for (size_t o = 0; o < new_model.objects.size() && !match_found; ++o) {
+                        ModelObject *obj = new_model.objects[o];
                         for (size_t v = 0; v < obj->volumes.size(); ++v) {
-                            if (obj->volumes[v]->name == old_volume->name) {
+                            if (obj->volumes[v]->name == old_volume->name &&
+                                !used_new_volumes.count({(int)o, (int)v})) {
                                 new_volume_idx = (int) v;
                                 new_object_idx = (int) o;
-                                found          = true;
+                                match_found    = true;
                                 break;
                             }
                         }
-                        if (found) break;
-                        // BBS: step model,object loaded as a volume. GUI_ObfectList.cpp load_modifier()
-                        if (obj->name == old_volume->name) {
-                            new_object_idx = (int) o;
-                            break;
+                        if (!match_found) {
+                            // BBS: step model,object loaded as a volume. GUI_ObfectList.cpp load_modifier()
+                            if (obj->name == old_volume->name) {
+                                new_object_idx = (int) o;
+                                break;
+                            }
                         }
+                    }
+                }
+
+                // Pass 3: source-index only — handles renamed bodies (same position, new name).
+                // Skip if the slot is already claimed by a previous iteration.
+                if (!match_found && has_source &&
+                    old_volume->source.object_idx < int(new_model.objects.size())) {
+                    const ModelObject *obj = new_model.objects[old_volume->source.object_idx];
+                    if (old_volume->source.volume_idx < int(obj->volumes.size()) &&
+                        !used_new_volumes.count({(int)old_volume->source.object_idx,
+                                                 (int)old_volume->source.volume_idx})) {
+                        new_volume_idx = old_volume->source.volume_idx;
+                        new_object_idx = old_volume->source.object_idx;
+                        match_found    = true;
                     }
                 }
 
@@ -8731,8 +8747,9 @@ void Plater::priv::reload_from_disk()
                 new_volume->source.mesh_offset = old_volume->source.mesh_offset;
                 new_volume->set_transformation(old_volume->get_transformation());
 
-                new_volume->source.object_idx = old_volume->source.object_idx;
-                new_volume->source.volume_idx = old_volume->source.volume_idx;
+                // Update source indices to reflect the new model layout so the next reload is correct.
+                new_volume->source.object_idx = new_object_idx >= 0 ? new_object_idx : old_volume->source.object_idx;
+                new_volume->source.volume_idx = new_volume_idx  >= 0 ? new_volume_idx  : old_volume->source.volume_idx;
                 assert(!old_volume->source.is_converted_from_inches || !old_volume->source.is_converted_from_meters);
                 if (old_volume->source.is_converted_from_inches)
                     new_volume->convert_from_imperial_units();
