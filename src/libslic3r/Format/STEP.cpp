@@ -190,12 +190,26 @@ static void getNamedSolids(const TopLoc_Location& location,
     std::string name;
     Handle(TDataStd_Name) shapeName;
     if (referredLabel.FindAttribute(TDataStd_Name::GetID(), shapeName) ||
-        label.FindAttribute(TDataStd_Name::GetID(), shapeName))
-        // Replace non-ASCII (e.g. NBSP from STEP \X\A0 escapes that some CAD apps
-        // emit when users paste a stray space) with a regular space so the name
-        // stays readable AND passes the downstream isUtf8 check, instead of
-        // being rejected and falling back to the parent component name.
-        name = TCollection_AsciiString(shapeName->Get(), ' ').ToCString();
+        label.FindAttribute(TDataStd_Name::GetID(), shapeName)) {
+        // Manually flatten the OCCT extended (UTF-16) string to printable ASCII,
+        // replacing any non-printable / non-ASCII codepoint with a regular space.
+        // OCCT's TCollection_AsciiString conversion preserves raw high bytes which
+        // then fail StepPreProcessor::isUtf8 (a lone 0xA0/0xE9/etc. is invalid as
+        // UTF-8 start), causing the name to fall back to the parent component
+        // name and losing any [tag] the user typed. Normalize here so STEP escapes
+        // like \X\A0 (NBSP) or \X\E9 (é) become a benign space.
+        const TCollection_ExtendedString& ext = shapeName->Get();
+        std::string ascii;
+        ascii.reserve(static_cast<size_t>(ext.Length()));
+        for (Standard_Integer i = 1; i <= ext.Length(); ++i) {
+            Standard_ExtCharacter ch = ext.Value(i);
+            if (ch >= 0x20 && ch < 0x7F)
+                ascii.push_back(static_cast<char>(ch));
+            else
+                ascii.push_back(' ');
+        }
+        name = ascii;
+    }
 
     // Fall back to the parent component name when OCCT assigned a shape-type
     // default (e.g. "SOLID") instead of a real user name.
