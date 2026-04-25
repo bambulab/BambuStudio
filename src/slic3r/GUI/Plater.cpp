@@ -8762,7 +8762,12 @@ void Plater::priv::reload_from_disk()
                 new_volume->set_material_id(old_volume->material_id());
 
                 new_volume->source.mesh_offset = old_volume->source.mesh_offset;
-                new_volume->set_transformation(old_volume->get_transformation());
+                // Use the new STEP position translated into the existing scene's coordinate frame
+                // (via coord_shift). For the first matched volume this yields exactly old_volume's
+                // offset; for subsequent volumes it tracks Fusion's repositioning while preserving
+                // the existing object's plate anchor.
+                if (coord_shift_set)
+                    new_volume->set_offset(new_volume->get_transformation().get_offset() + coord_shift);
 
                 // Update source indices to reflect the new model layout so the next reload is correct.
                 new_volume->source.object_idx = new_object_idx >= 0 ? new_object_idx : old_volume->source.object_idx;
