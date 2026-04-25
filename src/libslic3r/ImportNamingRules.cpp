@@ -64,16 +64,30 @@ ImportNameTags parse_import_name_tags(const std::string&                  name,
 
 void apply_import_name_tags(ModelVolume& volume, const ImportNameTags& tags)
 {
-    if (tags.filament > 0)
-        volume.config.set_key_value("extruder", new ConfigOptionInt(tags.filament));
+    // Always apply filament and type, defaulting to 1 / MODEL_PART when no
+    // recognized tag was found. This is the "user opted into naming rules"
+    // path — see apply_naming_rules_to_volume for the gating logic.
+    int filament = tags.filament > 0 ? tags.filament : 1;
+    volume.config.set_key_value("extruder", new ConfigOptionInt(filament));
 
-    if (tags.volume_type != ModelVolumeType::INVALID)
-        volume.set_type(tags.volume_type);
+    ModelVolumeType type = (tags.volume_type != ModelVolumeType::INVALID)
+                           ? tags.volume_type : ModelVolumeType::MODEL_PART;
+    volume.set_type(type);
 }
 
 void apply_naming_rules_to_volume(ModelVolume&                         volume,
                                   const std::vector<ImportNamingRule>& rules)
 {
+    // Only apply naming rules if the volume name contains at least one bracket
+    // tag, e.g. "Rectangle[f2]" or "text [nego]". This signals that the user
+    // is using the naming-rules system for this body, so removing a [mod] or
+    // [neg] tag should revert the type to PART and removing a [fN] tag should
+    // revert filament to 1. Names with no brackets at all are left alone so
+    // manual filament/type changes the user made in BambuStudio survive reload.
+    static const std::regex bracket_re(R"(\[[^\]]*\])");
+    if (!std::regex_search(volume.name, bracket_re))
+        return;
+
     ImportNameTags tags = parse_import_name_tags(volume.name, rules);
     apply_import_name_tags(volume, tags);
 }
