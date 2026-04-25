@@ -8640,6 +8640,7 @@ void Plater::priv::reload_from_disk()
         // Track which new_model volumes were matched so we can add new ones afterwards.
         std::set<std::pair<int,int>> used_new_volumes;
         int target_obj_idx = -1;
+        std::set<int> refreshed_obj_idxs;
 
         for (auto [obj_idx, vol_idx] : selected_volumes) {
             ModelObject *old_model_object = model.objects[obj_idx];
@@ -8738,8 +8739,7 @@ void Plater::priv::reload_from_disk()
 
                 sla::reproject_points_and_holes(old_model_object);
 
-                // Fix warning icon in object list
-                wxGetApp().obj_list()->update_item_error_icon(obj_idx, vol_idx);
+                refreshed_obj_idxs.insert(obj_idx);
             }
         }
 
@@ -8759,7 +8759,13 @@ void Plater::priv::reload_from_disk()
             }
             target_object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
             target_object->ensure_on_bed();
+            refreshed_obj_idxs.insert(target_obj_idx);
         }
+
+        // Refresh object list entries for all modified objects so names, types,
+        // and filament columns reflect the reloaded volumes.
+        for (int oidx : refreshed_obj_idxs)
+            wxGetApp().obj_list()->add_volumes_to_object_in_list(oidx);
 #else
         // update the selected volumes whose source is the current file
         for (const SelectedVolume& sel_v : selected_volumes) {
