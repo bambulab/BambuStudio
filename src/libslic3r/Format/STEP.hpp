@@ -7,7 +7,6 @@
 #include <boost/filesystem.hpp>
 #include <Message_ProgressIndicator.hxx>
 #include <atomic>
-#include <unordered_map>
 
 namespace fs = boost::filesystem;
 
@@ -119,7 +118,6 @@ private:
     Handle(TDocStd_Document) m_doc;
     Handle(XCAFDoc_ShapeTool) m_shape_tool;
     std::vector<NamedSolid> m_name_solids;
-    std::unordered_map<const void*, std::string> m_solid_name_map;
 };
 
 }; // namespace Slic3r
