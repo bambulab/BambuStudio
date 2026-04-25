@@ -8796,7 +8796,12 @@ void Plater::priv::reload_from_disk()
                 apply_naming_rules_to_volume(*new_volume, default_import_naming_rules());
 
                 new_volume->source.mesh_offset = old_volume->source.mesh_offset;
-                new_volume->set_transformation(old_volume->get_transformation());
+                // Use the new STEP position translated into the existing scene's coordinate frame
+                // (via coord_shift). For the first matched volume this yields exactly old_volume's
+                // offset; for subsequent volumes it tracks Fusion's repositioning while preserving
+                // the existing object's plate anchor.
+                if (coord_shift_set)
+                    new_volume->set_offset(new_volume->get_transformation().get_offset() + coord_shift);
                 {
                     Vec3d off = new_volume->get_transformation().get_offset();
                     BOOST_LOG_TRIVIAL(info) << "[RELOAD_DEBUG] matched volume '" << new_volume->name << "'"
