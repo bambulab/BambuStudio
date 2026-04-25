@@ -8683,7 +8683,9 @@ void Plater::priv::reload_from_disk()
                 }
 
                 // Pass 2: name search — handles bodies that moved position but kept their name.
-                if (!match_found && has_name) {
+                // Run whenever the volume has a name; the outer has_source/has_name gate
+                // already ensured this volume belongs to the file being reloaded.
+                if (!match_found && !old_volume->name.empty()) {
                     for (size_t o = 0; o < new_model.objects.size() && !match_found; ++o) {
                         ModelObject *obj = new_model.objects[o];
                         for (size_t v = 0; v < obj->volumes.size(); ++v) {
