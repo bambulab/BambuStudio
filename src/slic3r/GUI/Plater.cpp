@@ -8618,10 +8618,33 @@ void Plater::priv::reload_from_disk()
             }
 
 
+            BOOST_LOG_TRIVIAL(info) << "[RELOAD_DEBUG] new_model has " << new_model.objects.size() << " object(s)";
+            for (size_t oi = 0; oi < new_model.objects.size(); ++oi) {
+                ModelObject* mo = new_model.objects[oi];
+                BOOST_LOG_TRIVIAL(info) << "[RELOAD_DEBUG]   obj[" << oi << "] name='" << mo->name
+                    << "' input_file='" << mo->input_file << "' volumes=" << mo->volumes.size();
+                for (size_t vi = 0; vi < mo->volumes.size(); ++vi) {
+                    ModelVolume* mv = mo->volumes[vi];
+                    Vec3d off = mv->get_transformation().get_offset();
+                    Vec3d mo_off = mv->source.mesh_offset;
+                    BOOST_LOG_TRIVIAL(info) << "[RELOAD_DEBUG]     vol[" << vi << "] name='" << mv->name
+                        << "' pre_center_offset=(" << off.x() << "," << off.y() << "," << off.z() << ")"
+                        << " mesh_offset=(" << mo_off.x() << "," << mo_off.y() << "," << mo_off.z() << ")";
+                }
+            }
             for (ModelObject* model_object : new_model.objects)
             {
                 model_object->center_around_origin();
                 model_object->ensure_on_bed();
+            }
+            BOOST_LOG_TRIVIAL(info) << "[RELOAD_DEBUG] After center_around_origin:";
+            for (size_t oi = 0; oi < new_model.objects.size(); ++oi) {
+                ModelObject* mo = new_model.objects[oi];
+                for (size_t vi = 0; vi < mo->volumes.size(); ++vi) {
+                    Vec3d off = mo->volumes[vi]->get_transformation().get_offset();
+                    BOOST_LOG_TRIVIAL(info) << "[RELOAD_DEBUG]   obj[" << oi << "] vol[" << vi << "] '" << mo->volumes[vi]->name
+                        << "' post_center_offset=(" << off.x() << "," << off.y() << "," << off.z() << ")";
+                }
             }
 
             if (plate_data.size() > 0)
@@ -8749,9 +8772,14 @@ void Plater::priv::reload_from_disk()
                     // respective center_around_origin calls, so the difference is the drift in
                     // bounding-box center between the initial import and this reload).
                     if (!coord_shift_set) {
-                        coord_shift     = old_volume->get_transformation().get_offset()
-                                        - new_model_vol->get_transformation().get_offset();
+                        Vec3d old_off = old_volume->get_transformation().get_offset();
+                        Vec3d new_off = new_model_vol->get_transformation().get_offset();
+                        coord_shift     = old_off - new_off;
                         coord_shift_set = true;
+                        BOOST_LOG_TRIVIAL(info) << "[RELOAD_DEBUG] coord_shift captured from volume '" << old_volume->name << "'"
+                            << "  old_offset=(" << old_off.x() << "," << old_off.y() << "," << old_off.z() << ")"
+                            << "  new_model_offset=(" << new_off.x() << "," << new_off.y() << "," << new_off.z() << ")"
+                            << "  coord_shift=(" << coord_shift.x() << "," << coord_shift.y() << "," << coord_shift.z() << ")";
                     }
                     new_volume = old_model_object->add_volume(*new_model_vol);
                     used_new_volumes.insert({new_object_idx, new_volume_idx});
@@ -8767,6 +8795,11 @@ void Plater::priv::reload_from_disk()
 
                 new_volume->source.mesh_offset = old_volume->source.mesh_offset;
                 new_volume->set_transformation(old_volume->get_transformation());
+                {
+                    Vec3d off = new_volume->get_transformation().get_offset();
+                    BOOST_LOG_TRIVIAL(info) << "[RELOAD_DEBUG] matched volume '" << new_volume->name << "'"
+                        << "  final_offset=(" << off.x() << "," << off.y() << "," << off.z() << ")";
+                }
 
                 // Update source indices to reflect the new model layout so the next reload is correct.
                 new_volume->source.object_idx = new_object_idx >= 0 ? new_object_idx : old_volume->source.object_idx;
@@ -8819,8 +8852,14 @@ void Plater::priv::reload_from_disk()
                     added->source.object_idx = o;
                     added->source.volume_idx = v;
                     // Shift into the existing model's coordinate frame.
+                    Vec3d pre_shift_off = added->get_transformation().get_offset();
                     if (coord_shift_set)
-                        added->set_offset(added->get_transformation().get_offset() + coord_shift);
+                        added->set_offset(pre_shift_off + coord_shift);
+                    Vec3d post_shift_off = added->get_transformation().get_offset();
+                    BOOST_LOG_TRIVIAL(info) << "[RELOAD_DEBUG] NEW body '" << added->name << "'"
+                        << "  pre_shift=(" << pre_shift_off.x() << "," << pre_shift_off.y() << "," << pre_shift_off.z() << ")"
+                        << "  post_shift=(" << post_shift_off.x() << "," << post_shift_off.y() << "," << post_shift_off.z() << ")"
+                        << "  coord_shift_set=" << coord_shift_set;
                     apply_naming_rules_to_volume(*added, naming_rules);
                     added_any = true;
                 }
