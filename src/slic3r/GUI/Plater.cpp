@@ -8637,6 +8637,10 @@ void Plater::priv::reload_from_disk()
         }
 
 #if ENABLE_RELOAD_FROM_DISK_REWORK
+        // Track which new_model volumes were matched so we can add new ones afterwards.
+        std::set<std::pair<int,int>> used_new_volumes;
+        int target_obj_idx = -1;
+
         for (auto [obj_idx, vol_idx] : selected_volumes) {
             ModelObject *old_model_object = model.objects[obj_idx];
             ModelVolume *old_volume       = old_model_object->volumes[vol_idx];
@@ -8647,6 +8651,8 @@ void Plater::priv::reload_from_disk()
                               boost::algorithm::iequals(fs::path(old_volume->source.input_file).filename().string(), fs::path(path).filename().string());
             bool has_name = !old_volume->name.empty() && boost::algorithm::iequals(old_volume->name, fs::path(path).filename().string());
             if (has_source || has_name) {
+                if (target_obj_idx < 0) target_obj_idx = obj_idx;
+
                 int  new_volume_idx = -1;
                 int  new_object_idx = -1;
                 bool match_found    = false;
@@ -8701,9 +8707,9 @@ void Plater::priv::reload_from_disk()
                     new_volume = old_model_object->add_volume(std::move(mesh));
                     new_volume->name  = new_model_object->name;
                     new_volume->source.input_file = new_model_object->input_file;
-                }else {
+                } else {
                     new_volume = old_model_object->add_volume(*new_model_object->volumes[new_volume_idx]);
-                    // new_volume = old_model_object->volumes.back();
+                    used_new_volumes.insert({new_object_idx, new_volume_idx});
                 }
 
                 new_volume->set_new_unique_id();
@@ -8731,6 +8737,24 @@ void Plater::priv::reload_from_disk()
                 // Fix warning icon in object list
                 wxGetApp().obj_list()->update_item_error_icon(obj_idx, vol_idx);
             }
+        }
+
+        // Add volumes that are new in the reloaded file (no matching old volume).
+        if (target_obj_idx >= 0) {
+            ModelObject *target_object = model.objects[target_obj_idx];
+            const auto naming_rules = default_import_naming_rules();
+            for (int o = 0; o < (int)new_model.objects.size(); ++o) {
+                for (int v = 0; v < (int)new_model.objects[o]->volumes.size(); ++v) {
+                    if (used_new_volumes.count({o, v})) continue;
+                    ModelVolume *added = target_object->add_volume(*new_model.objects[o]->volumes[v]);
+                    added->set_new_unique_id();
+                    added->source.object_idx = o;
+                    added->source.volume_idx = v;
+                    apply_naming_rules_to_volume(*added, naming_rules);
+                }
+            }
+            target_object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
+            target_object->ensure_on_bed();
         }
 #else
         // update the selected volumes whose source is the current file
