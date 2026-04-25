@@ -8714,6 +8714,9 @@ void Plater::priv::reload_from_disk()
                 new_volume->set_type(old_volume->type());
                 new_volume->set_material_id(old_volume->material_id());
 
+                // Re-apply naming rules so tag changes in the reloaded file take effect.
+                apply_naming_rules_to_volume(*new_volume, default_import_naming_rules());
+
                 new_volume->source.mesh_offset = old_volume->source.mesh_offset;
                 new_volume->set_transformation(old_volume->get_transformation());
 
@@ -8787,6 +8790,10 @@ void Plater::priv::reload_from_disk()
                 new_volume->config.apply(old_volume->config);
                 new_volume->set_type(old_volume->type());
                 new_volume->set_material_id(old_volume->material_id());
+
+                // Re-apply naming rules so tag changes in the reloaded file take effect.
+                apply_naming_rules_to_volume(*new_volume, default_import_naming_rules());
+
                 new_volume->set_transformation(old_volume->get_transformation());
                 new_volume->translate(new_volume->get_transformation().get_matrix(true) * (new_volume->source.mesh_offset - old_volume->source.mesh_offset));
                 new_volume->source.object_idx = old_volume->source.object_idx;
