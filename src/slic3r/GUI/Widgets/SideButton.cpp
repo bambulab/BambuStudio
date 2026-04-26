@@ -338,7 +338,9 @@ void SideButton::mouseReleased(wxMouseEvent& event)
 
     if (pressedDown) {
         pressedDown = false;
-        if (wxRect({0, 0}, GetSize()).Contains(event.GetPosition()))
+        // Touch input drift slop — see Button::mouseReleased.
+        constexpr int kReleaseSlop = 15;
+        if (wxRect({0, 0}, GetSize()).Inflate(kReleaseSlop).Contains(event.GetPosition()))
             sendButtonEvent();
     }
 }
