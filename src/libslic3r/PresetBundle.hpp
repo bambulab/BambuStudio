@@ -8,6 +8,8 @@
 #include <memory>
 #include <unordered_map>
 #include <optional>
+#include <variant>
+#include <map>
 #include <boost/filesystem/path.hpp>
 
 #define DEFAULT_USER_FOLDER_NAME "default"
@@ -62,6 +64,57 @@ struct FilamentBaseInfo
     bool is_system{ true };
     int  filament_printable = 3;
     std::string setting_id = "";
+
+    // extruder_id is 0-based (0 = first extruder)
+    int get_extruder_compatibility(int extruder_id) const {
+        constexpr int bits_per_extruder  = 3;
+        constexpr int extruder_mask      = (1 << bits_per_extruder) - 1; // 0x7
+        constexpr int max_extruder_count = 32 / bits_per_extruder;       // 10
+
+        if (extruder_id < 0 || extruder_id >= max_extruder_count)
+            return 0;
+        return (m_filament_extruder_compatibility >> (bits_per_extruder * extruder_id)) & extruder_mask;
+    }
+
+    void set_filament_extruder_compatibility(int value) { m_filament_extruder_compatibility = value; }
+    int  get_filament_extruder_compatibility() const     { return m_filament_extruder_compatibility; }
+
+private:
+    int  m_filament_extruder_compatibility = 0;
+};
+
+// Recommended parameters for support filament combination
+struct FilamentCombinationParams
+{
+    // 山苍: 使用 variant 支持多种类型: double, bool, string, int, vector<double>
+    using ParamValue = std::variant<double, bool, std::string, int, std::vector<double>>;
+    std::map<std::string, ParamValue> params;  // 通用参数存储
+    bool hasRecommendedParams() const {
+        return !params.empty();
+    }
+
+    // 辅助函数：获取参数值
+    template<typename T>
+    std::optional<T> get(const std::string& key) const {
+        auto it = params.find(key);
+        if (it != params.end()) {
+            if (auto* val = std::get_if<T>(&it->second)) {
+                return *val;
+            }
+        }
+        return std::nullopt;
+    }
+};
+
+// 支撑推荐参数：通过 (support_material, model_material) 查询
+struct SupportRecommendedParams
+{
+    std::string model_material;                     // 主体料（类型或名称）
+    std::string model_material_type;                // "name" 或 "type"
+    std::vector<std::string> support_material_list; // 支撑料列表（类型或名称）
+    std::string support_material_type;              // "name" 或 "type"
+    int priority{0};                                // 优先级，数字越大优先级越高
+    FilamentCombinationParams params;               // 推荐参数
 };
 
 class PresetBundle;
@@ -164,6 +217,11 @@ public:
 
     std::optional<FilamentBaseInfo> get_filament_by_filament_id(const std::string& filament_id, const std::string& printer_name = std::string(), bool only_system = false) const;
 
+    // Load support recommended params from JSON file
+    void load_support_recommended_params();
+    // Get support recommended params by (support_material, model_material)
+    std::optional<SupportRecommendedParams> get_support_recommended_params(const std::string& support_material, const std::string& model_material) const;
+
     //BBS: project embedded preset logic
     PresetsConfigSubstitutions load_project_embedded_presets(std::vector<Preset*> project_presets, ForwardCompatibilitySubstitutionRule substitution_rule);
     std::vector<Preset*> get_current_project_embedded_presets();
@@ -181,8 +239,16 @@ public:
     void            set_num_filaments(unsigned int n, std::string new_col = "");
     void         update_num_filaments(unsigned int to_del_flament_id);
 
-    void get_ams_cobox_infos(AMSComboInfo &combox_info);
-    unsigned int sync_ams_list(std::vector<std::pair<DynamicPrintConfig *,std::string>> &unknowns, bool use_map, std::map<int, AMSMapInfo> &maps,bool enable_append, MergeFilamentInfo& merge_info);
+    bool is_mixed_filament(size_t idx) const;
+    std::vector<size_t> physical_filament_config_indices() const;
+
+    void         get_ams_cobox_infos(AMSComboInfo &combox_info,bool skip_ext = false);
+    unsigned int sync_ams_list(std::vector<std::pair<DynamicPrintConfig *, std::string>> &unknowns,
+                               bool                                                       use_map,
+                               std::map<int, AMSMapInfo> &                                maps,
+                               bool                                                       enable_append,
+                               MergeFilamentInfo &                                        merge_info,
+                               bool                                                       skip_ext = false);
     //BBS: check whether this is the only edited filament
     bool is_the_only_edited_filament(unsigned int filament_index);
 
@@ -192,6 +258,8 @@ public:
     void set_calibrate_printer(std::string name);
 
     std::vector<std::vector<DynamicPrintConfig>> get_extruder_filament_info() const;
+
+    std::vector<NozzleVolumeType> get_printer_nozzle_volume_list();
 
     std::set<std::string> get_printer_names_by_printer_type_and_nozzle(const std::string &printer_type, std::string nozzle_diameter_str, bool system_only = true);
     bool                  check_filament_temp_equation_by_printer_type_and_nozzle_for_mas_tray(const std::string &printer_type,
@@ -241,6 +309,9 @@ public:
         std::vector<std::string> printers;
     };
     ObsoletePresets             obsolete_presets;
+
+    // Support recommended params: key = "support_material|model_material"
+    std::map<std::string, SupportRecommendedParams> support_recommended_params_map;
 
     bool                        has_defauls_only() const
         { return prints.has_defaults_only() && filaments.has_defaults_only() && printers.has_defaults_only(); }
@@ -314,7 +385,7 @@ public:
     // update size and content of filament_presets.
     void                        update_multi_material_filament_presets(size_t to_delete_filament_id = size_t(-1));
 
-    void                        on_extruders_count_changed(int extruder_count);
+    void                        on_extruders_count_changed(int extruder_count, bool reset_volume_type = true);
 
     // Update the is_compatible flag of all print and filament presets depending on whether they are marked
     // as compatible with the currently selected printer (and print in case of filament presets).
@@ -361,6 +432,7 @@ private:
     // apply defaults based on enabled printers when no filaments/materials are installed.
     void                        load_installed_filaments(AppConfig &config);
     void                        load_installed_sla_materials(AppConfig &config);
+    void                        quick_fix_for_filaments_due_to_upgrade(AppConfig &config);
 
     // Load print, filament & printer presets from a config. If it is an external config, then the name is extracted from the external path.
     // and the external config is just referenced, not stored into user profile directory.

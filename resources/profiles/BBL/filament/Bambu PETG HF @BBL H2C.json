@@ -5,15 +5,33 @@
     "from": "system",
     "setting_id": "GFSG02_25",
     "instantiation": "true",
+    "counter_coef_2": [
+        "0.0058"
+    ],
+    "counter_coef_3": [
+        "0.0107"
+    ],
+    "counter_limit_max": [
+        "0.15"
+    ],
+    "counter_limit_min": [
+        "0.01"
+    ],
     "fan_cooling_layer_time": [
         "20"
     ],
     "fan_min_speed": [
         "20"
     ],
+    "filament_change_length": [
+        "4"
+    ],
     "filament_cooling_before_tower": [
         "10",
         "10"
+    ],
+    "filament_tower_ironing_area": [
+        "8"
     ],
     "filament_flow_ratio": [
         "0.97",
@@ -23,28 +41,12 @@
         "25",
         "35"
     ],
-    "filament_retraction_length": [
-        "0.4",
-        "0.6"
-    ],
-    "filament_wipe": [
-        "1",
-        "1"
-    ],
-    "filament_wipe_distance": [
-        "1",
-        "1"
-    ],
-    "filament_prime_volume_nc": [
-        "30"
-    ],
-    "filament_z_hop_types": [
-        "Spiral Lift",
-        "Spiral Lift"
-    ],
     "filament_pre_cooling_temperature_nc": [
         "205",
         "205"
+    ],
+    "filament_prime_volume_nc": [
+        "30"
     ],
     "filament_ramming_travel_time": [
         "0",
@@ -58,8 +60,21 @@
         "18",
         "18"
     ],
-    "filament_change_length": [
-        "4"
+    "filament_retraction_length": [
+        "0.4",
+        "0.6"
+    ],
+    "filament_wipe": [
+        "1",
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "1",
+        "1"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift",
+        "Spiral Lift"
     ],
     "first_x_layer_fan_speed": [
         "0"
@@ -67,8 +82,17 @@
     "filament_change_length_nc": [
         "4"
     ],
-    "filament_tower_ironing_area": [
-        "8"
+    "hole_coef_2": [
+        "-0.0042"
+    ],
+    "hole_coef_3": [
+        "0.2006"
+    ],
+    "hole_limit_max": [
+        "0.2"
+    ],
+    "hole_limit_min": [
+        "0.09"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
@@ -87,18 +111,18 @@
     "pre_start_fan_time": [
         "2"
     ],
-    "supertack_plate_temp": [
-        "60"
-    ],
-    "supertack_plate_temp_initial_layer": [
-        "60"
-    ],
     "slow_down_layer_time": [
         "10"
     ],
     "slow_down_min_speed": [
         "20",
         "20"
+    ],
+    "supertack_plate_temp": [
+        "60"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "60"
     ],
     "temperature_vitrification": [
         "55"

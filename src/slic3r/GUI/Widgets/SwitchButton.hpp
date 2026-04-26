@@ -5,6 +5,7 @@
 #include "StateColor.hpp"
 
 #include <wx/tglbtn.h>
+#include <wx/popupwin.h>
 #include "Label.hpp"
 #include "Button.hpp"
 
@@ -54,6 +55,7 @@ public:
     wxString rightLabel;
 
 	void updateState(wxString target);
+    void SetLabels(const wxString &left, const wxString &right);
 
 	bool switch_left{false};
     bool switch_right{false};
@@ -117,6 +119,17 @@ private:
     bool m_isSelected;
 };
 
+class RichTooltipPopup : public wxPopupTransientWindow {
+public:
+    RichTooltipPopup(wxWindow* parent, const wxString& iconName, const wxString& text);
+    void ShowAtPosition(wxWindow* anchor);
+
+private:
+    void OnPaint(wxPaintEvent& event);
+    wxBitmap m_icon;
+    wxString m_text;
+};
+
 class ExpandButton : public wxWindow {
 public:
     ExpandButton(wxWindow* parent,
@@ -124,15 +137,24 @@ public:
         wxWindowID id = wxID_ANY,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize);
+    ~ExpandButton();
     
     void update_bitmap(std::string bmp);
     void msw_rescale();
+    void SetRichTooltip(const wxString& iconName, const wxString& text);
+    void ShowRichTooltip();
+    void HideRichTooltip();
+
 private:
     std::string m_bmp_str;
     wxBitmap m_bmp;
     void OnPaint(wxPaintEvent& event);
     void render(wxDC& dc);
     void doRender(wxDC& dc);
+    
+    wxString m_tooltip_icon;
+    wxString m_tooltip_text;
+    RichTooltipPopup* m_tooltip_popup{nullptr};
 };
 
 class ExpandButtonHolder : public wxPanel {
@@ -150,9 +172,12 @@ public:
     void ShowExpandButton(wxWindowID id, bool show);
     void updateExpandButtonBitmap(wxWindowID id, std::string bitmap);
     void EnableExpandButton(wxWindowID id, bool enb);
+    void SetExpandButtonTooltip(wxWindowID id, const wxString& tooltip);
+    void SetExpandButtonRichTooltip(wxWindowID id, const wxString& iconName, const wxString& text);
 
     void msw_rescale();
 private:
+    ExpandButton* FindExpandButton(wxWindowID id);
     void OnPaint(wxPaintEvent& event);
     void render(wxDC& dc);
     void doRender(wxDC& dc);

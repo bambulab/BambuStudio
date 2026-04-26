@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-28 21:37+0800\n"
+"POT-Creation-Date: 2026-04-14 19:58+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -28,17 +28,137 @@ msgstr "Filament mevcut makine ayarları ile uyumlu olmayabilir. Rastgele bir fi
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Filament modeli bilinmiyor. Rastgele bir filament ön ayarı kullanılacaktır."
 
-msgid "right"
-msgstr "sağ"
+msgid "Main Extruder"
+msgstr ""
 
-msgid "left"
-msgstr "sol"
+msgid "Main extruder"
+msgstr ""
+
+msgid "main extruder"
+msgstr ""
+
+msgid "Auxiliary Extruder"
+msgstr ""
+
+msgid "Auxiliary extruder"
+msgstr ""
+
+msgid "auxiliary extruder"
+msgstr ""
+
+msgid "Left Extruder"
+msgstr "Sol Ekstrüder"
+
+msgid "Left extruder"
+msgstr "Sol ekstrüder"
+
+msgid "left extruder"
+msgstr "sol ekstruder"
+
+msgid "Right Extruder"
+msgstr "Sağ Ekstrüder"
+
+msgid "Right extruder"
+msgstr "Sağ ekstrüder"
 
 msgid "right extruder"
 msgstr "sağ ekstruder"
 
-msgid "left extruder"
-msgstr "sol ekstruder"
+msgid "Main Nozzle"
+msgstr ""
+
+msgid "Main nozzle"
+msgstr ""
+
+msgid "main nozzle"
+msgstr ""
+
+msgid "Auxiliary Nozzle"
+msgstr ""
+
+msgid "Auxiliary nozzle"
+msgstr ""
+
+msgid "auxiliary nozzle"
+msgstr ""
+
+msgid "Left Nozzle"
+msgstr "Sol nozul"
+
+msgid "Left nozzle"
+msgstr "Sol nozul"
+
+msgid "left nozzle"
+msgstr "sol nozul"
+
+msgid "Right Nozzle"
+msgstr "Sağ nozul"
+
+msgid "Right nozzle"
+msgstr "Sağ nozul"
+
+msgid "right nozzle"
+msgstr "rağ nozul"
+
+msgid "Main Hotend"
+msgstr ""
+
+msgid "Main hotend"
+msgstr ""
+
+msgid "main hotend"
+msgstr ""
+
+msgid "Auxiliary Hotend"
+msgstr ""
+
+msgid "Auxiliary hotend"
+msgstr ""
+
+msgid "auxiliary hotend"
+msgstr ""
+
+msgid "Left Hotend"
+msgstr ""
+
+msgid "Left hotend"
+msgstr ""
+
+msgid "left hotend"
+msgstr ""
+
+msgid "Right Hotend"
+msgstr ""
+
+msgid "Right hotend"
+msgstr ""
+
+msgid "right hotend"
+msgstr ""
+
+msgid "main"
+msgstr ""
+
+msgid "auxiliary"
+msgstr ""
+
+msgid "Main"
+msgstr ""
+
+msgid "Auxiliary"
+msgstr ""
+
+msgid "left"
+msgstr "sol"
+
+msgid "right"
+msgstr "sağ"
+
+msgid "Left"
+msgstr "Sol"
+
+msgid "Right"
+msgstr "Sağ"
 
 msgid "extruder"
 msgstr "ekstruder"
@@ -62,10 +182,16 @@ msgstr ""
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr ""
 
-msgid "Dynamic flow calibration is not supported for TPU 85A filament."
+msgid "Bambu TPU 85A is not supported for printing with 0.4 mm Standard or High Flow nozzles."
+msgstr ""
+
+msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
 msgstr ""
 
 msgid "How to feed TPU filament."
+msgstr ""
+
+msgid "How to feed TPU filament on X2D."
 msgstr ""
 
 msgid "Using non-bambu filament may have printing quality issues."
@@ -105,8 +231,28 @@ msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow noz
 msgstr ""
 
 #, c-format, boost-format
+msgid "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue."
+msgstr ""
+
+#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "%s, %s ekstrüder tarafından desteklenmiyor."
+
+#, c-format, boost-format
+msgid "There may be critical print quality issues when printing '%s' with %s Bowden extruder. Use with caution!"
+msgstr ""
+
+#, c-format, boost-format
+msgid "There may be critical print quality issues when printing '%s' with %s extruder. Use with caution!"
+msgstr ""
+
+#, c-format, boost-format
+msgid "There may be print quality issues when printing '%s' with %s Bowden extruder. Use with caution."
+msgstr ""
+
+#, c-format, boost-format
+msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
+msgstr ""
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr ""
@@ -190,6 +336,66 @@ msgstr "Boşta"
 msgid "%d ℃"
 msgstr "%d ℃"
 
+msgid "Filament Inlet A"
+msgstr ""
+
+msgid "Filament Inlet B"
+msgstr ""
+
+msgid "Filament Track Switch"
+msgstr ""
+
+msgid "Suggested rearrangement"
+msgstr ""
+
+msgid "How to save time?→"
+msgstr ""
+
+msgid "Filament Status:"
+msgstr ""
+
+msgid "Position adjustment required"
+msgstr ""
+
+msgctxt "FilamentTrack"
+msgid "OK"
+msgstr ""
+
+msgid "Unused"
+msgstr ""
+
+msgid "Refresh"
+msgstr "Yenile"
+
+msgid "Close"
+msgstr "Kapat"
+
+#, c-format, boost-format
+msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
+msgstr ""
+
+msgid "Summary:"
+msgstr ""
+
+msgid "AMS on Filament Inlet A"
+msgstr ""
+
+msgid "AMS on Filament Inlet B"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The No.%d slicing filament is matched to '%s'. Assigning it to '%s' can save printing time."
+msgstr ""
+
+msgid "*Tips: If you have moved the spool position on the machine, please close this page and re‑match the filament."
+msgstr ""
+
+msgid "Summary: This is currently the most suitable position for placement."
+msgstr ""
+
+msgid "?"
+msgstr "?"
+
 msgid "Model:"
 msgstr "Model:"
 
@@ -253,11 +459,24 @@ msgstr "İptal"
 msgid "Jump to the upgrade page"
 msgstr ""
 
+msgid "Refreshing"
+msgstr "Yenileniyor"
+
+msgid "Hotend status abnormal, unavailable at present. Please upgrade the firmware and try again."
+msgstr ""
+
 msgid "SN"
 msgstr "SN"
 
 msgid "Version"
 msgstr "Sürüm"
+
+#, c-format, boost-format
+msgid "Used Time: %s"
+msgstr ""
+
+msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
+msgstr ""
 
 msgid "Hotend Rack"
 msgstr ""
@@ -266,6 +485,9 @@ msgid "ToolHead"
 msgstr ""
 
 msgid "Nozzle information needs to be read"
+msgstr ""
+
+msgid "Note:"
 msgstr ""
 
 msgid "Supports Painting"
@@ -836,6 +1058,9 @@ msgstr "Kare"
 msgid "Hexagon"
 msgstr "Altıgen"
 
+msgid "Middle of geometry"
+msgstr ""
+
 msgid "Snap global parameters"
 msgstr "Genel parametreleri yakala"
 
@@ -881,6 +1106,9 @@ msgstr "Dübel"
 
 msgid "Snap"
 msgstr "Çıt Çıt"
+
+msgid "Thread"
+msgstr ""
 
 msgid "Tolerance"
 msgstr "Tolerans"
@@ -2034,6 +2262,18 @@ msgstr "Ayar ekle"
 msgid "Change type"
 msgstr "Türü değiştir"
 
+msgid "Negative Part"
+msgstr "Negatif Parça"
+
+msgid "Support Blocker"
+msgstr "Destek Engelleyici"
+
+msgid "Support Enforcer"
+msgstr "Destek Uygulayıcısı"
+
+msgid "Change part type"
+msgstr ""
+
 msgid "Set as an individual object"
 msgstr "Ayrı bir nesne olarak ayarla"
 
@@ -2161,8 +2401,11 @@ msgstr "Kesim bilgisini geçersiz kıl"
 msgid "Add Primitive"
 msgstr "Şekil Ekle"
 
-msgid "Show Labels"
-msgstr "Etiketleri Göster"
+msgid "Show Labels by Layer"
+msgstr ""
+
+msgid "Show Labels by Object"
+msgstr ""
 
 msgid "To objects"
 msgstr "Nesnelere"
@@ -2299,6 +2542,9 @@ msgstr "Yatağın kalan alanını seçilen nesnenin kopyalarıyla doldurun"
 msgid "Edit Plate Name"
 msgstr "Plaka Adını Düzenle"
 
+msgid "Show Labels"
+msgstr "Etiketleri Göster"
+
 msgid "Name"
 msgstr "İsim"
 
@@ -2412,6 +2658,9 @@ msgstr "Hedef nesne yalnızca bir parça içerir ve bölünemez."
 msgid "Assembly"
 msgstr "Birleştir"
 
+msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
+msgstr ""
+
 msgid "Cut Connectors information"
 msgstr "Kesim Konnektörleri bilgileri"
 
@@ -2453,15 +2702,6 @@ msgstr "İlk seçilen öğe bir nesne ise, ikincisi de bir nesne olmalıdır."
 
 msgid "If the first selected item is a part, the second one should be part of the same object."
 msgstr "İlk seçilen öğe bir parçaysa, ikincisi de aynı nesnenin parçası olmalıdır."
-
-msgid "Negative Part"
-msgstr "Negatif Parça"
-
-msgid "Support Blocker"
-msgstr "Destek Engelleyici"
-
-msgid "Support Enforcer"
-msgstr "Destek Uygulayıcısı"
 
 msgid "Type:"
 msgstr "Tip:"
@@ -2700,11 +2940,24 @@ msgstr "Yükle"
 msgid "Unload"
 msgstr "Çıkar"
 
+msgid "AMS has not been initialized. Please initialize it before use."
+msgstr ""
+
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Bir AMS yuvası seçin ve ardından filamentleri otomatik olarak yüklemek veya çıkartmak için \"Yükle\" veya \"Çıkart\" düğmesine basın."
 
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
 msgstr "Bu eylemi gerçekleştirmek için gerekli olan filament tipi bilinmiyor. Lütfen hedef filamentin bilgilerini ayarlayın."
+
+msgid "/"
+msgstr "/"
+
+msgid "Confirm"
+msgstr "Onayla"
+
+#, c-format, boost-format
+msgid "Load %s to "
+msgstr ""
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "Yazdırma sırasında fan hızının değiştirilmesi baskı kalitesini etkileyebilir, lütfen dikkatli seçim yapın."
@@ -2772,6 +3025,12 @@ msgstr ""
 msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
 msgstr ""
 
+msgid "Strong Cooling"
+msgstr ""
+
+msgid "Fan"
+msgstr "Fan"
+
 msgctxt "air_duct"
 msgid "Right(Aux)"
 msgstr "Sağ(Yardımcı)"
@@ -2783,6 +3042,10 @@ msgstr "Sağ(Filtre)"
 msgctxt "air_duct"
 msgid "Left(Aux)"
 msgstr "Sol(Yardımcı)"
+
+msgctxt "air_duct"
+msgid "Left(Heating)"
+msgstr ""
 
 msgctxt "air_duct"
 msgid "Chamber"
@@ -2806,9 +3069,6 @@ msgstr "MC Kartı"
 msgid "Heat"
 msgstr "Isı"
 
-msgid "Fan"
-msgstr "Fan"
-
 msgid "Idling..."
 msgstr "Boşta..."
 
@@ -2829,6 +3089,24 @@ msgstr "Yeni filament alınıyor"
 
 msgid "Purge old filament"
 msgstr "Eski filamenti temizleyin"
+
+msgid "Switch"
+msgstr ""
+
+msgid "hotend"
+msgstr ""
+
+msgid "Wait for AMS cooling"
+msgstr ""
+
+msgid "Switch current filament at Filament Track Switch"
+msgstr ""
+
+msgid "Pull back current filament at Filament Track Switch"
+msgstr ""
+
+msgid "Switch track at Filament Track Switch"
+msgstr ""
 
 msgid "Confirm extruded"
 msgstr "Filamentin ekstrude edildiğini onayla"
@@ -3151,12 +3429,6 @@ msgstr "Yazılımın pek çok kısmı topluluk katkılarından gelmektedir, bu n
 msgid "AMS Materials Setting"
 msgstr "AMS Malzeme Ayarı"
 
-msgid "Confirm"
-msgstr "Onayla"
-
-msgid "Close"
-msgstr "Kapat"
-
 msgid "Colour"
 msgstr "Renk"
 
@@ -3218,7 +3490,8 @@ msgstr "Lütfen geçerli bir değer girin (K %.1f~%.1f içinde)"
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Lütfen geçerli bir değer girin (K %.1f~%.1f içinde, N %.1f~%.1f içinde)"
 
-msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
+#, c-format, boost-format
+msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
 msgstr ""
 
 msgid ""
@@ -3332,11 +3605,9 @@ msgstr "AMS Yuvaları"
 msgid "Please select from the following filaments"
 msgstr "Lütfen aşağıdaki filamentler arasından seçim yapın"
 
-msgid "Select filament that installed to the left nozzle"
-msgstr "Sol nozüle takılan filamenti seçin"
-
-msgid "Select filament that installed to the right nozzle"
-msgstr "Doğru nozüle takılan filamenti seçin"
+#, c-format, boost-format
+msgid "Select filament that installed to the %s"
+msgstr ""
 
 msgid "Left AMS"
 msgstr "Sol AMS"
@@ -3349,27 +3620,6 @@ msgstr "Geçerli filament eşlemesini sıfırla"
 
 msgid "Right AMS"
 msgstr "Sağ AMS"
-
-msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
-msgstr ""
-
-msgid "Please select the filament installed on the left nozzle."
-msgstr ""
-
-msgid "Please select the filament installed on the right nozzle."
-msgstr ""
-
-msgid "Nozzle"
-msgstr "Nozul"
-
-msgid "Ext"
-msgstr "Harici"
-
-msgid "Select Filament && Hotends"
-msgstr ""
-
-msgid "Select Filament"
-msgstr "Filament Seçin"
 
 #, c-format, boost-format
 msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
@@ -3432,12 +3682,6 @@ msgstr "Kasanın arkasına monte edilmiş filamentler ile yazdır"
 msgid "Auto Refill"
 msgstr "Otomatik Doldurma"
 
-msgid "Left"
-msgstr "Sol"
-
-msgid "Right"
-msgstr "Sağ"
-
 msgid "When the current material run out, the printer will continue to print in the following order."
 msgstr "Mevcut malzeme bittiğinde yazıcı aşağıdaki sırayla yazdırmaya devam edecektir."
 
@@ -3468,6 +3712,28 @@ msgstr "KURU"
 
 msgid "WET"
 msgstr "ISLAK"
+
+#, c-format, boost-format
+msgid "Please select the filament installed on the %s."
+msgstr ""
+
+msgid "Please select the filament."
+msgstr ""
+
+msgid "Nozzle"
+msgstr "Nozul"
+
+msgid "To learn about the filaments matching rules."
+msgstr ""
+
+msgid "External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it."
+msgstr ""
+
+msgid "Select Filament && Hotends"
+msgstr ""
+
+msgid "Select Filament"
+msgstr "Filament Seçin"
 
 msgid "AMS Settings"
 msgstr "AMS Ayarları"
@@ -3801,6 +4067,19 @@ msgstr ""
 "Değer 0'a sıfırlanacaktır."
 
 msgid ""
+"Interlocking beam width can't be zero when beam interlocking is enabled.\n"
+"Reset to 0.01 mm."
+msgstr ""
+
+msgid ""
+"Fuzzy skin [Extrusion] and [Combined] modes require the Arachne wall generator.\n"
+"\n"
+"Do you want to change these settings automatically?\n"
+"Yes - Enable Arachne wall generator\n"
+"No - Keep current wall generator and set fuzzy skin to [Displacement] mode"
+msgstr ""
+
+msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support Layer Height is on.\n"
 "Which do you want to keep?\n"
 "YES - Keep Prime Tower\n"
@@ -4074,6 +4353,36 @@ msgstr "Nozul Topaklanma Tespit Konumunun Kalibrasyonu"
 msgid "Purifying the chamber air"
 msgstr ""
 
+msgid "Measuring Rotary Attachment"
+msgstr ""
+
+msgid "The toolhead moves above the purge chute"
+msgstr ""
+
+msgid "Cooling down the nozzle"
+msgstr ""
+
+msgid "The toolhead moves to the center of the heatbed"
+msgstr ""
+
+msgid "Active Arc Fitting"
+msgstr ""
+
+msgid "Hotend Type Detection"
+msgstr ""
+
+msgid "Build plate alignment detection"
+msgstr ""
+
+msgid "Heatbed surface foreign object detection"
+msgstr ""
+
+msgid "Heatbed underside foreign object detection"
+msgstr ""
+
+msgid "Pre-extrusion before printing"
+msgstr ""
+
 msgid "Preparing AMS"
 msgstr ""
 
@@ -4148,6 +4457,9 @@ msgstr "Canlı Görüntüyü Göster"
 msgid "No Reminder Next Time"
 msgstr "Bir dahaki sefere hatırlatma"
 
+msgid "Recheck"
+msgstr ""
+
 msgid "Ignore. Don't Remind Next Time"
 msgstr "Görmezden gel. Bir dahaki sefere hatırlatma"
 
@@ -4173,6 +4485,12 @@ msgid "Proceed"
 msgstr "Devam Et"
 
 msgid "Abort"
+msgstr ""
+
+msgid "Disable Purification for This Print"
+msgstr ""
+
+msgid "Don't Remind Me"
 msgstr ""
 
 msgid "Done"
@@ -4361,6 +4679,9 @@ msgstr "Sıcaklık (°C)"
 msgid "Volumetric flow rate (mm³/s)"
 msgstr "Hacimsel akış hızı (mm³/s)"
 
+msgid "Nozzles"
+msgstr ""
+
 msgid "Travel"
 msgstr "Seyahat"
 
@@ -4396,6 +4717,9 @@ msgstr "Toplam süre"
 
 msgid "Filament change times"
 msgstr "Filament değişim süreleri"
+
+msgid "View Summary"
+msgstr ""
 
 msgid "Color change"
 msgstr "Renk değişimi"
@@ -4444,12 +4768,6 @@ msgstr "Filament Gruplama"
 
 msgid "Why this grouping"
 msgstr "Bu gruplama neden"
-
-msgid "Left nozzle"
-msgstr "Sol nozul"
-
-msgid "Right nozzle"
-msgstr "Sağ nozul"
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "Lütfen filamentleri gruplama sonucuna göre yazıcıya yerleştirin."
@@ -4628,12 +4946,6 @@ msgstr "Aşağıdaki nesneler dünya koordinat sisteminin orijinalinden çok uza
 msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
 msgstr "Aşağıdaki nesneler dünya koordinat sisteminin orijinalinden çok uzakta ( mesafe >= %1% mm ):\n"
 
-msgid "left nozzle"
-msgstr "sol nozul"
-
-msgid "right nozzle"
-msgstr "rağ nozul"
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "Bazı modellerin konumu veya boyutu %s'nin yazdırılabilir aralığını aşıyor."
@@ -4644,14 +4956,6 @@ msgstr "Model %s'nin konumu veya boyutu %s'nin yazdırılabilir aralığını a�
 
 msgid " Please check and adjust the part's position or size to fit the printable range:\n"
 msgstr " Lütfen kontrol edin ve parçanın konumunu veya boyutunu yazdırılabilir aralığa uyacak şekilde ayarlayın:\n"
-
-#, boost-format
-msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
-msgstr "Sol nozul: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
-
-#, boost-format
-msgid "Right nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
-msgstr "Sağ nozul: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
 
 msgid "Mirror Object"
 msgstr "Nesneyi Aynala"
@@ -4742,11 +5046,41 @@ msgstr "Genişletmek için Tıklayın"
 msgid "Click to Collapse"
 msgstr "Daraltmak için Tıklayın"
 
-msgid "Assembly View"
-msgstr "Montaj Görünümü"
+msgid "Overview"
+msgstr ""
 
 msgid "Select Plate"
 msgstr "Plaka Seç"
+
+msgid "Change camera perspective"
+msgstr ""
+
+msgid "Go to Wiki"
+msgstr ""
+
+#, boost-format
+msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Top"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Bottom"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Front"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Back"
+msgstr ""
+
+msgctxt "Camera"
+msgid "Isometric"
+msgstr "İzometrik"
 
 msgid "Assembly Return"
 msgstr "Montaj İptali"
@@ -4786,6 +5120,21 @@ msgstr "Hacim:"
 
 msgid "Size:"
 msgstr "Boyut:"
+
+msgid "Isolated objects detected"
+msgstr ""
+
+msgid "Click to move them closer to the main body."
+msgstr ""
+
+msgid "Move closer"
+msgstr ""
+
+msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"
+msgstr ""
+
+msgid "Reset to origin"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Conflicts of gcode paths have been found at layer %d. Please separate the conflicted objects farther (%s <-> %s)."
@@ -4845,6 +5194,9 @@ msgid "Click Wiki for help."
 msgstr "Yardım için Wiki'ye tıklayın."
 
 msgid "Jump to: Prime tower"
+msgstr ""
+
+msgid "Enable Clumping Detection"
 msgstr ""
 
 msgid "Click here to regroup"
@@ -4982,6 +5334,9 @@ msgstr "Hayır"
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "yeni bir model oluşturulmadan önce kapatılacaktır. Devam etmek istiyor musun?"
 
+msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
+msgstr ""
+
 msgid "Slice plate"
 msgstr "Plakayı dilimle"
 
@@ -5104,10 +5459,6 @@ msgstr "Soldan Görünüm"
 
 msgid "Right View"
 msgstr "Sağdan Görünüm"
-
-msgctxt "Camera"
-msgid "Isometric"
-msgstr "İzometrik"
 
 msgid "Isometric View"
 msgstr "İzometrik Görünüm"
@@ -5271,8 +5622,11 @@ msgstr "Pencere Düzenini Sıfırla"
 msgid "Reset to default window layout"
 msgstr "Varsayılan pencere düzenine sıfırla"
 
-msgid "Show object labels in 3D scene"
-msgstr "3B sahnede nesne etiketlerini göster"
+msgid "Show Labels of printing by layer in 3D scene"
+msgstr ""
+
+msgid "Show Labels of printing by object in 3D scene"
+msgstr ""
 
 msgid "Show &Overhang"
 msgstr "Çıkıntıyı Göster"
@@ -5565,6 +5919,9 @@ msgstr "Bilgi"
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr ""
 
+msgid "Printer Preview"
+msgstr ""
+
 msgid "Playing..."
 msgstr "Oynatılıyor..."
 
@@ -5621,9 +5978,6 @@ msgstr "Seç"
 
 msgid "Batch manage files."
 msgstr "Dosyaları toplu olarak yönet."
-
-msgid "Refresh"
-msgstr "Yenile"
 
 msgid "Reload file list from printer."
 msgstr "Dosya listesini yazıcıdan yeniden yükleyin."
@@ -5705,8 +6059,8 @@ msgstr "İndirme tamamlandı"
 msgid "Downloading %d%%..."
 msgstr "%d%% indiriliyor..."
 
-msgid "Air Condition"
-msgstr "Klima"
+msgid "Air Management"
+msgstr ""
 
 msgid "Reconnecting the printer, the operation cannot be completed immediately, please try again later."
 msgstr "Yazıcı yeniden bağlanıyor, işlem hemen tamamlanamaz, lütfen daha sonra tekrar deneyin."
@@ -5988,16 +6342,22 @@ msgstr "Yazdırma duraklatıldığında, filament yükleme ve boşaltma yalnızc
 msgid "Current extruder is busy changing filament"
 msgstr "Mevcut ekstrüder filament değiştirmekle meşgul"
 
+msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
+msgstr ""
+
+msgid "The Filament Track Switch has not been setup. Please setup on printer."
+msgstr ""
+
 msgid "Current slot has alread been loaded"
 msgstr "Mevcut yuva zaten dolu"
 
 msgid "The selected slot is empty."
 msgstr "Seçilen yuva boş."
 
-msgid "No extruder found for the selected slot."
+msgid "The selected slot is not loaded in the extruder."
 msgstr ""
 
-msgid "The selected slot is not loaded in the extruder."
+msgid "No extruder found for the selected slot."
 msgstr ""
 
 msgid "Printer 2D mode does not support 3D calibration"
@@ -6049,8 +6409,8 @@ msgstr "Hazne sıcaklığı 40°C'yi aşarsa, sistem otomatik olarak ısıtma mo
 msgid "Please select an AMS slot before calibration"
 msgstr "Lütfen kalibrasyondan önce bir AMS yuvası seçin"
 
-msgid "Cannot read filament info: the filament is loaded to the tool head,please unload the filament and try again."
-msgstr "Filament bilgisi okunamıyor: Filament alet kafasına yüklenmiştir, lütfen filamenti çıkartın ve tekrar deneyin."
+msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
+msgstr ""
 
 msgid "This only takes effect during printing"
 msgstr "Bu yalnızca yazdırma sırasında etkili olur"
@@ -6075,6 +6435,9 @@ msgstr ""
 
 msgid "Can't start this without storage."
 msgstr "Depolama olmadan buna başlayamazsınız."
+
+msgid "Cannot switch extruder when the printer is not at FDM mode"
+msgstr ""
 
 msgid "Rate the Print Profile"
 msgstr "Baskı Profiline Puan Verin"
@@ -6297,6 +6660,9 @@ msgstr "Yalnızca LAN modu nasıl kullanılır"
 msgid "Don't show this dialog again"
 msgstr "Bu iletişim kutusunu bir daha gösterme"
 
+msgid "Please refer to Wiki before use->"
+msgstr "Lütfen kullanmadan önce Wiki'ye bakın->"
+
 msgid "3D Mouse disconnected."
 msgstr "3D Fare bağlantısı kesildi."
 
@@ -6389,6 +6755,9 @@ msgstr "Git"
 
 msgid "Error:"
 msgstr "Hata:"
+
+msgid "Open link for more info"
+msgstr ""
 
 msgid "Warning:"
 msgstr "Uyarı:"
@@ -6520,6 +6889,18 @@ msgstr ""
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
 msgstr "Nozul tıkanması veya filament aşınması nedeniyle oluşan hava basıncını tespit eder."
 
+msgid "Foreign Object Detection"
+msgstr ""
+
+msgid "Checks for any objects on the build plate at the start of a print to avoid collisions."
+msgstr ""
+
+msgid "Printed Part Displacement Detection"
+msgstr ""
+
+msgid "Monitors the printed part during printing and alerts immediately if it shifts or collapses."
+msgstr ""
+
 msgid "Ensures the build plate type and placement are correct."
 msgstr ""
 
@@ -6598,12 +6979,6 @@ msgstr "Lütfen yazıcıdaki nozul ayarlarını değiştirin."
 msgid "View wiki"
 msgstr "Daha fazla bilgi için Wiki'yi görüntüleyin"
 
-msgid "Left Nozzle"
-msgstr "Sol nozul"
-
-msgid "Right Nozzle"
-msgstr "Sağ nozul"
-
 msgid "Brass"
 msgstr "Pirinç"
 
@@ -6615,9 +6990,6 @@ msgstr ""
 
 msgid "No wiki link available for this printer."
 msgstr "Bu yazıcı için wiki bağlantısı mevcut değil."
-
-msgid "Refreshing"
-msgstr "Yenileniyor"
 
 msgid "Unavailable while heating maintenance function is on."
 msgstr "Isıtma, bakım işlevi açıkken kullanılamaz."
@@ -6702,6 +7074,17 @@ msgstr ""
 msgid "Please change the nozzle type or reassign the filaments and try again."
 msgstr ""
 
+#, c-format, boost-format
+msgid "Risk of nozzle clumping detected with the current high-temperature filament (%s). We recommend enabling clumping detection (via probing). This feature uses a quick probing sequence to check for nozzle buildup during the print and utilizes the prime tower to absorb oozing before resuming."
+msgstr ""
+
+#, c-format, boost-format
+msgid "High-shrinkage filament(s) detected: %s. These materials may cause dimensional deviation after cooling. If your model requires precise fitting or assembly, please refer to the Wiki guide for shrinkage testing."
+msgstr ""
+
+msgid "Printing mixed-color filament on a single-extruder printer requires frequent filament changes and flushing, which may significantly increase waste and the risk of nozzle / waste-chute clogging."
+msgstr ""
+
 #, boost-format
 msgid " plate %1%: "
 msgstr " plaka %1%: "
@@ -6733,6 +7116,15 @@ msgstr "Tahmini süresi"
 msgid "Filament changes"
 msgstr "Filament değişiklikleri"
 
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
+msgstr ""
+
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
+msgstr ""
+
+msgid "Learn more"
+msgstr "Daha fazla bilgi edin"
+
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "Nozul üzerine takılı AMS sayısını ayarlayın."
 
@@ -6757,29 +7149,33 @@ msgstr ""
 msgid "Switch diameter"
 msgstr "Anahtar çapı"
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr "Sol nozul: %smm"
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr "Sağ nozul: %smm"
-
 msgid "Sync printer information"
 msgstr "Yazıcı bilgilerini senkronize et"
 
-msgid ""
-"The currently selected machine preset is inconsistent with the connected printer type.\n"
-"Are you sure to continue syncing?"
+msgid "Do you want to sync the preset printer with the connected printer, "
 msgstr ""
-"Şu anda seçili olan makine ön ayarı bağlı yazıcı türüyle tutarsız.\n"
-"Senkronizasyona devam etmek istediğinizden emin misiniz?"
+
+#, c-format, boost-format
+msgid "Current connected printer (Device page): %s (%s)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Current printer preset (Prepare page): %s"
+msgstr ""
+
+msgid "Sync now"
+msgstr "Şimdi eşitle"
 
 msgid "There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."
 msgstr "Ayarlanmamış nozul tipleri var. Lütfen senkronize etmeden önce tüm ekstrüderlerin nozul tiplerini ayarlayın."
 
 msgid "Sync extruder infomation"
 msgstr "Ekstrüder bilgilerini senkronize edin"
+
+msgid ""
+"Tips:\n"
+"Curve planning enhancement support detected on your printer. The software has automatically disabled arc fitting to ensure this feature functions correctly."
+msgstr ""
 
 msgid "Click to edit preset"
 msgstr "Ön ayarı düzenlemek için tıklayın"
@@ -6817,8 +7213,26 @@ msgstr "Filament listesini AMS'den senkronize edin"
 msgid "Set filaments to use"
 msgstr "Kullanılacak filamentleri ayarla"
 
+msgid "Add Mixed Filament"
+msgstr ""
+
+msgid "Mixed Filament"
+msgstr ""
+
+msgid "Add mixed filament"
+msgstr ""
+
+msgid "Remove last mixed filament"
+msgstr ""
+
+msgid "Mixed filament has invalid or mismatched components. Please re-edit affected entries."
+msgstr ""
+
 msgid "Search plate, object and part."
 msgstr "Arama plakası, nesne ve parça."
+
+msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
+msgstr ""
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6839,6 +7253,12 @@ msgstr ""
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "Filament tipi ve renk bilgileri senkronize edilmiştir, ancak yuva bilgileri dahil edilmemiştir."
+
+msgid "Mixed filament has broken component references"
+msgstr ""
+
+msgid "Edit / Delete / Merge"
+msgstr ""
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -7081,9 +7501,97 @@ msgstr "Geçersiz veri"
 msgid "Slicing Canceled"
 msgstr "Dilimleme İptal Edildi"
 
+msgid "Great! Now click the Helio button to start optimization."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Slicing Plate %d"
 msgstr "Plaka %d dilimleniyor"
+
+msgid "Multiple Filament Materials Detected"
+msgstr ""
+
+msgid "⚠ Multiple Filament Materials Detected"
+msgstr ""
+
+msgid " (unsupported)"
+msgstr ""
+
+msgid "Multicolour simulation currently supports only a single filament material."
+msgstr ""
+
+#, c-format, boost-format
+msgid "You have selected multiple materials: %s"
+msgstr ""
+
+msgid "Note: Unsupported materials will use the selected reference material for simulation."
+msgstr ""
+
+msgid "True multi-material support will be added in a future update."
+msgstr ""
+
+msgid "Option 1: Proceed using a single filament type"
+msgstr ""
+
+msgid "Select which filament to use for simulation:"
+msgstr ""
+
+msgid "⚠ This is not recommended. Filament formulations vary significantly between manufacturers and materials. Helio cannot guarantee reliable results in this configuration."
+msgstr ""
+
+msgid "Proceed Anyway"
+msgstr ""
+
+msgid "Option 2: Go back and change filament selection"
+msgstr ""
+
+msgid "✓ Recommended"
+msgstr ""
+
+msgid "Change your filament selection to use the same type for all colours, then try again."
+msgstr ""
+
+msgid "See supported materials"
+msgstr ""
+
+msgid "Go Back"
+msgstr ""
+
+msgid "Unsupported Materials Detected"
+msgstr ""
+
+msgid "⚠ Unsupported Materials Detected"
+msgstr ""
+
+msgid "Some of your selected materials are not directly supported by Helio:"
+msgstr ""
+
+msgid "Option 1: Proceed with a reference material"
+msgstr ""
+
+msgid "Select a similar material type to use for simulation:"
+msgstr ""
+
+msgid "Note: Using a reference material may result in approximate or erroneous results."
+msgstr ""
+
+msgid "Change your filament selection to use a supported material, then try again."
+msgstr ""
+
+msgid "Option 3: Refresh supported materials list"
+msgstr ""
+
+msgid "Re-download the supported printers and materials list from Helio, then re-check compatibility."
+msgstr ""
+
+msgid "Refresh & Retry"
+msgstr ""
+
+msgid "Syncing Data"
+msgstr ""
+
+msgid "Refreshing printer and material data..."
+msgstr ""
 
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "Bir Helio simülasyonu veya optimizasyon görevi devam ediyor."
@@ -7091,18 +7599,99 @@ msgstr "Bir Helio simülasyonu veya optimizasyon görevi devam ediyor."
 msgid "Invalid printer preset. Unable to slice with Helio."
 msgstr "Yazıcı ön ayarı geçersiz. Helio ile dilimleme yapılamıyor."
 
+#, c-format, boost-format
+msgid ""
+"Helio found a potential printer match using token-based matching:\n"
+"\n"
+"Your printer: %s\n"
+"Matched printer: %s\n"
+"\n"
+"Do you want to use this match, or would you prefer to rename your printer profile?"
+msgstr ""
+
+msgid "Helio Printer Match Confirmation"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Your printer '%s' is not officially supported by Helio.\n"
+"Select a reference printer:"
+msgstr ""
+
+msgid "Unsupported Printer"
+msgstr ""
+
 msgid "The current printer preset cannot be sliced using Helio."
 msgstr "Mevcut yazıcı ön ayarı Helio kullanılarak dilimlenemez."
 
-msgid "Helio does not support using a number of materials greater than 1."
-msgstr "Helio, 1'den fazla malzeme kullanımını desteklemez."
+#, c-format, boost-format
+msgid ""
+"Helio found a potential material match using token-based matching:\n"
+"\n"
+"Your material: %s\n"
+"Matched material: %s\n"
+"\n"
+"Do you want to use this match, or would you prefer to rename your material profile?"
+msgstr ""
+
+msgid "Helio Material Match Confirmation"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Helio does not support materials %s.\n"
+"\n"
+"Please choose an officially supported material. "
+msgstr ""
+
+msgid "View supported materials"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
 msgstr "Helio, %s malzemelerini desteklemiyor"
 
-msgid "Helio functions do not support the print sequence of \"ByObject\"."
-msgstr "Helio fonksiyonları \"ByObject\" yazdırma sırasını desteklemez."
+msgid ""
+"Warning: Infill combination is currently unsupported by Helio.\n"
+"\n"
+"Proceeding with this setting enabled may return erroneous results.\n"
+"\n"
+"Do you want to continue anyway?"
+msgstr ""
+
+msgid "Helio Warning"
+msgstr ""
+
+msgid "Unsupported Printer Detected"
+msgstr ""
+
+msgid "⚠ Unsupported Printer Detected"
+msgstr ""
+
+#, c-format, boost-format
+msgid "You're using %s which is not officially supported by Helio."
+msgstr ""
+
+msgid "Option 1: Proceed with a reference printer"
+msgstr ""
+
+msgid "Select a similar printer to use for simulation:"
+msgstr ""
+
+msgid "Note: Using a reference printer may result in approximate or erroneous results."
+msgstr ""
+
+msgid "Option 2: Go back and change printer selection"
+msgstr ""
+
+msgid "Change your printer selection to use a supported printer, then try again."
+msgstr ""
+
+msgid "See supported printers"
+msgstr ""
+
+msgid "Click the Optimize/Enhance button to start your first optimization."
+msgstr ""
 
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
@@ -7156,9 +7745,6 @@ msgstr ""
 "Nozul tipi ve AMS miktarı bilgileri bağlı yazıcıdan senkronize edilmemiştir.\n"
 "Senkronizasyondan sonra, yazılım dilimleme sırasında baskı süresini ve filament kullanımını optimize edebilir.\n"
 "Şimdi senkronize etmek ister misiniz?"
-
-msgid "Sync now"
-msgstr "Şimdi eşitle"
 
 msgid "You can keep the modified presets to the new project or discard them"
 msgstr "Değiştirilen ön ayarları yeni projede tutabilir veya silebilirsiniz"
@@ -7292,6 +7878,14 @@ msgstr "FAT dosya sistemi tarafından izin verilmeyen karakterler:"
 msgid "Save Sliced file as:"
 msgstr "Dilimlenmiş dosyayı şu şekilde kaydedin:"
 
+msgid ""
+"Failed to export the sliced file.\n"
+"Please check whether the file is occupied by another program or if there is enough disk space."
+msgstr ""
+
+msgid "Export sliced file"
+msgstr ""
+
 #, c-format, boost-format
 msgid "The file %s has been sent to the printer's storage space and can be viewed on the printer."
 msgstr "%s dosyası yazıcının depolama alanına gönderildi ve yazıcıda görüntülenebiliyor."
@@ -7324,18 +7918,15 @@ msgstr "Sebep: \"%1%\" ve başka bir parçanın kesişimi yoktur."
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Negatif parçalar tespit edildi. Dışa aktarmadan önce mesh boolean yapmak ister misiniz?"
 
+#, c-format, boost-format
+msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
+msgstr ""
+
 msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr "PVA filamentlerinin 0,2 mm nozullarla kullanılması tavsiye edilmez."
 
 msgid "Are you sure to use them? \n"
 msgstr "Bunları kullanacağından emin misin? \n"
-
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-"Nesneye Göre Yazdır:\n"
-"Yazdırma sırasında çarpışmaları önlemek için otomatik düzenlemeyi kullanmanızı önerin."
 
 msgid "Send G-code"
 msgstr "G-kodu gönder"
@@ -7348,6 +7939,19 @@ msgstr "Tamir edilmeden önce özel destekler ve renkli boyalar kaldırıldı."
 
 msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
 msgstr "Özel destekler, dikiş_yüzeyleri ve renk boyamaları onarım öncesinde kaldırıldı, model adı:"
+
+msgid ""
+"Print By Object: \n"
+"Suggest to use auto-arrange to avoid collisions when printing."
+msgstr ""
+"Nesneye Göre Yazdır:\n"
+"Yazdırma sırasında çarpışmaları önlemek için otomatik düzenlemeyi kullanmanızı önerin."
+
+msgid "Auto arrange"
+msgstr ""
+
+msgid "Detail view wiki->"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -7533,6 +8137,12 @@ msgstr "Imperial"
 msgid "Units"
 msgstr "Birimler"
 
+msgid "Use 12-hour time format"
+msgstr ""
+
+msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
+msgstr ""
+
 msgid "Keep only one Bambu Studio instance"
 msgstr "Yalnızca bir Bambu Studio örneği bulundurun"
 
@@ -7596,9 +8206,6 @@ msgstr "Dosyayı yükledikten sonra yazıcı ön ayarını senkronize etmek içi
 msgid "Clear my choice for Load 3mf dialog settings."
 msgstr "3mf Yükle pencere ayarlarındaki seçimimi kaldır."
 
-msgid "Show the warning dialog again when importing non-Bambu 3MF files"
-msgstr "Bambu olmayan 3MF dosyalarını içe aktarırken uyarı penceresini tekrar göster"
-
 msgid "3D Settings"
 msgstr "3D Ayarları"
 
@@ -7631,6 +8238,15 @@ msgstr "Son kullanılan renk şemasını hatırla"
 
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr "Etkinleştirildiğinde, son kullanılan renk şeması (örneğin, Çizgi Türü, Hız) bir sonraki başlatmada otomatik olarak uygulanacaktır."
+
+msgid "Display overview"
+msgstr ""
+
+msgid "Show assembly BVH primary bounds"
+msgstr ""
+
+msgid "Display the BVH primary bounding box wireframe in assembly view."
+msgstr ""
 
 msgid "Improve rendering performance by lod"
 msgstr "Oluşturma performansını lod ile iyileştirin"
@@ -7888,11 +8504,11 @@ msgstr "Uyumsuz ön ayarlar"
 msgid "My Printer"
 msgstr "Yazıcı modelimi bulamıyorum"
 
-msgid "Left filaments"
-msgstr "Sol filamentler"
-
 msgid "AMS filaments"
 msgstr "AMS filamentler"
+
+msgid "Left filaments"
+msgstr "Sol filamentler"
 
 msgid "Right filaments"
 msgstr "Sağ filamentler"
@@ -7974,6 +8590,9 @@ msgstr "Spiral vazo"
 
 msgid "First layer filament sequence"
 msgstr "İlk katman filament yazdırma sırası"
+
+msgid "The filament list contains mixed filaments. Custom filament sequence will not take effect."
+msgstr ""
 
 msgid "Same as Global Bed Type"
 msgstr "Global Yatak Tipi ile aynı"
@@ -8165,6 +8784,9 @@ msgstr "Dilimlenmiş dosyadaki filament gruplama yönteminiz ideal değil."
 msgid "To ensure print quality, the drying temperature will be lowered during printing."
 msgstr ""
 
+msgid "Select timelapse storage location"
+msgstr ""
+
 msgid ""
 "This checks the flatness of heatbed. Leveling makes extruded height uniform.\n"
 "*Automatic mode: Run a leveling check(about 10 seconds). Skip if surface is fine."
@@ -8192,11 +8814,18 @@ msgstr ""
 msgid "Nozzles and filaments of the same type share the same PA profile"
 msgstr ""
 
+msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
+msgstr ""
+
 msgid "send completed"
 msgstr "gönderme tamamlandı"
 
 msgid "Error code"
 msgstr "Hata kodu"
+
+#, c-format, boost-format
+msgid "Recommended filament arrangement saves %s->"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
@@ -8244,6 +8873,49 @@ msgstr "Bu, ısı yatağının düzlüğünü kontrol eder. Tesviye, ekstrüzyon
 
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Bu işlem, genel baskı kalitesini iyileştirmek için dinamik akış değerlerini belirler."
+
+msgid "Internal"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
+msgstr ""
+
+msgid "Clean up files"
+msgstr ""
+
+msgid "Low internal storage. This timelapse will overwrite the oldest video files."
+msgstr ""
+
+msgid "Low external storage. This timelapse will overwrite the oldest video files."
+msgstr ""
+
+msgid "Insufficient external storage for time-lapse photography. Connect to computer to delete files, or use a larger memory card."
+msgstr ""
+
+msgid "Storage Space Not Enough"
+msgstr ""
+
+msgid "Confirm & Print"
+msgstr ""
+
+msgid "Cancel Timelapse & Print"
+msgstr ""
+
+msgid "Clean Up"
+msgstr ""
+
+msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
+msgstr ""
+
+msgid "On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
+msgstr ""
+
+msgid "Off: Prioritize using the value from your manual flow calibration."
+msgstr ""
+
+msgid "Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
+msgstr ""
 
 msgid "Preparing print job"
 msgstr "Yazdırma için hazırlanıyor"
@@ -8321,6 +8993,15 @@ msgstr "Mevcut yazıcının %s çapı (%.1fmm) dilimleme dosyası (%.1fmm) ile e
 msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
 msgstr "Mevcut nozul çapı (%.1fmm) dilimleme dosyası (%.1fmm) ile eşleşmiyor. Lütfen takılı nozülün yazıcıdaki ayarlarla eşleştiğinden emin olun, ardından dilimleme sırasında ilgili yazıcı ön ayarını ayarlayın."
 
+msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
+msgstr ""
+
+msgid "This print requires a Filament Track Switch. Please install it first."
+msgstr ""
+
+msgid "The Filament Track Switch has not been setup. Please setup it first."
+msgstr ""
+
 #, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
 msgstr ""
@@ -8345,6 +9026,9 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
+msgstr ""
+
+msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr ""
 
 msgid "Cool"
@@ -8416,8 +9100,8 @@ msgstr "Zaman atlamalı kayıt için depolama biriminin takılması gerekir."
 msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
 msgstr "Bir ekstrüder için hem harici hem de AMS filamentleri seçtiniz. Baskı sırasında harici filamenti manuel olarak değiştirmeniz gerekecektir."
 
-msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
-msgstr "TPU 90A/TPU 85A çok yumuşaktır ve otomatik Akış Dinamiği kalibrasyonunu desteklemez."
+msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
+msgstr ""
 
 msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
 msgstr "Özel dinamik akış değerini etkinleştirmek için dinamik akış kalibrasyonunu 'KAPALI' olarak ayarlayın."
@@ -8430,9 +9114,6 @@ msgstr "Mevcut ürün yazılımı en fazla 16 malzemeyi desteklemektedir. Hazır
 
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr ""
-
-msgid "Please refer to Wiki before use->"
-msgstr "Lütfen kullanmadan önce Wiki'ye bakın->"
 
 msgid "How to install"
 msgstr ""
@@ -8449,11 +9130,13 @@ msgstr "Yazıcı depolama alanına gönder"
 msgid "Try to connect"
 msgstr "Tekrar bağlan"
 
-msgid "Internal Storage"
-msgstr "Dahili Depolama"
+msgctxt "sendtoprint"
+msgid "Cache"
+msgstr ""
 
-msgid "External Storage"
-msgstr "Harici Depolama"
+msgctxt "sendtoprint"
+msgid "External"
+msgstr ""
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Dosya yükleme zaman aşımı, lütfen ürün yazılımı sürümünün bunu destekleyip desteklemediğini kontrol edin."
@@ -8625,6 +9308,9 @@ msgstr ""
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Tüm ayarları en son kaydedilen ön ayara sıfırlamak için tıklayın."
 
+msgid "Support interface speed"
+msgstr ""
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr ""
 
@@ -8680,21 +9366,21 @@ msgstr ""
 "Evet - Bu ayarları otomatik olarak değiştir\n"
 "Hayır - Bu ayarları benim için değiştirme"
 
-msgid ""
-"When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+#, c-format, boost-format
+msgid "When using %s to support %s, We recommend the following settings:"
 msgstr ""
-"Destek arayüzü için destek malzemesi kullanırken, aşağıdaki ayarları öneririz:\n"
-"0 üst z mesafesi, 0 arayüz aralığı, geçmeli doğrusal desen ve bağımsız destek katmanı yüksekliğini devre dışı bırakma"
 
-msgid ""
-"When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
+msgid "When using PLA to support TPU, We recommend the following settings:"
 msgstr ""
-"Destek arayüzü için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
-"0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, geçmeli doğrusal desen, \n"
-"bağımsız destek katmanı yüksekliğini devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
+
+msgid "When using soluble material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr ""
+
+msgid "Do you want to apply these settings?"
+msgstr ""
 
 msgid ""
 "Layer height is too small.\n"
@@ -8910,17 +9596,26 @@ msgstr "Çarpma için maksimum hacimsel hız, burada -1 maksimum hacimsel hızı
 msgid "Filament scarf seam settings"
 msgstr "Filament atkı eklem dikişi ayarları"
 
-msgid "Cooling for specific layer"
-msgstr "Belirli Katman İçin Soğutma"
-
-msgid "Special cooling settings"
-msgstr "Özel soğutma ayarları"
-
-msgid "set addition fan speed before fist x layer"
-msgstr "ilk x katmanından önce fan hızını ayarla"
-
 msgid "Part cooling fan"
 msgstr "Parça Soğutma Fanı"
+
+msgid "Initial layer fan"
+msgstr ""
+
+msgid "Set the part cooling fan speed for the first few layers. Set to 0 to keep the fan off for better bed adhesion"
+msgstr ""
+
+msgid "Linear ramp up to"
+msgstr ""
+
+msgid "Fan speed will linearly increase from the initial layer speed to the layer-time-based speed over the specified number of layers"
+msgstr ""
+
+msgid "At"
+msgstr ""
+
+msgid "layers"
+msgstr "katmanlar"
 
 msgid "Min fan speed threshold"
 msgstr "Minimum fan hızı"
@@ -8936,6 +9631,21 @@ msgstr "Tahmini katman süresi ayar değerinden kısa olduğunda parça soğutma
 
 msgid "Auxiliary part cooling fan"
 msgstr "Yardımcı Parça Soğutma Fanı"
+
+msgid "Set the auxiliary fan speed for the first few layers"
+msgstr ""
+
+msgid "Linear ramp up"
+msgstr ""
+
+msgid "Auxiliary fan speed will linearly increase from the initial layer speed to the target speed over the specified number of layers"
+msgstr ""
+
+msgid "At layer"
+msgstr ""
+
+msgid "ramp up to"
+msgstr ""
 
 msgid "Exhaust fan"
 msgstr "Egzos Fanı"
@@ -9085,17 +9795,13 @@ msgstr "Hiçbir değişikliğin kopyalanmasına gerek yoktur."
 msgid "Copy paramters"
 msgstr "Parametreleri kopyala"
 
-msgid "Modify paramters of right nozzle"
-msgstr "Sağ nozulun parametrelerini değiştirin"
+#, c-format, boost-format
+msgid "Modify paramters of %s"
+msgstr ""
 
-msgid "Modify paramters of left nozzle"
-msgstr "Sol nozulun parametrelerini değiştirin"
-
-msgid "Do you want to modify the following parameters of the right nozzle to that of the left nozzle?"
-msgstr "Sağ nozulun aşağıdaki parametrelerini sol nozulunkilerle değiştirmek istiyor musunuz?"
-
-msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
-msgstr "Sol nozulun aşağıdaki parametrelerini sağ nozulunkilerle değiştirmek istiyor musunuz?"
+#, c-format, boost-format
+msgid "Do you want to modify the following parameters of the %s to that of the %s?"
+msgstr ""
 
 msgid "No available nozzles for current preset"
 msgstr ""
@@ -9422,14 +10128,8 @@ msgstr "Üzerine Yaz"
 msgid "Reset all filament mapping"
 msgstr "Tüm filament eşlemelerini sıfırlayın"
 
-msgid "Left Extruder"
-msgstr "Sol Ekstrüder"
-
 msgid "(Recommended filament)"
 msgstr "(Önerilen filament)"
-
-msgid "Right Extruder"
-msgstr "Sağ Ekstrüder"
 
 msgid "Advanced Options"
 msgstr "Gelişmiş seçenekler"
@@ -9526,6 +10226,9 @@ msgctxt "FinishSyncAms"
 msgid "OK"
 msgstr "TAMAM"
 
+msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
+msgstr ""
+
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 msgstr "Studio, filament rengi veya filament değiştiğinde her zaman  temizleme hacimlerinizi yeniden hesaplar. Otomatik hesaplamayı Bambu Studio > Tercihler bölümünde devre dışı bırakabilirsiniz"
 
@@ -9542,12 +10245,6 @@ msgstr "Çarpan [%.2f, %.2f] aralığında olmalıdır."
 
 msgid "Re-calculate"
 msgstr "Tekrar Hesaplama"
-
-msgid "Left extruder"
-msgstr "Sol ekstrüder"
-
-msgid "Right extruder"
-msgstr "Sağ ekstrüder"
 
 msgid "Multiplier"
 msgstr "Çarpan"
@@ -9572,6 +10269,55 @@ msgstr "Yapılandırma paketi önceki Config Guide ile değiştirilir"
 
 msgid "Configuration package changed"
 msgstr "Yapılandırma paketi değiştirildi"
+
+msgctxt "WebView"
+msgid "Back"
+msgstr ""
+
+msgid "Open in browser"
+msgstr ""
+
+msgid "View Source"
+msgstr ""
+
+msgid "View Text"
+msgstr ""
+
+msgid "Handle Navigation"
+msgstr ""
+
+msgid "Handle New Windows"
+msgstr ""
+
+msgid "Edit Mode"
+msgstr ""
+
+msgid "Run Script"
+msgstr ""
+
+msgid "Add user script"
+msgstr ""
+
+msgid "Set custom user agent"
+msgstr ""
+
+msgid "Clear Selection"
+msgstr ""
+
+msgid "Delete Selection"
+msgstr ""
+
+msgid "Custom Scheme Example"
+msgstr ""
+
+msgid "Memory File System Example"
+msgstr ""
+
+msgid "Enable Context Menu"
+msgstr ""
+
+msgid "Enable Dev Tools"
+msgstr ""
 
 msgid "Toolbar"
 msgstr "Araç Çubuğu"
@@ -9692,6 +10438,9 @@ msgstr "Kamera görüntüsü - Sağ"
 
 msgid "Camera view - Isometric"
 msgstr "Kamera görünümü - İzometrik"
+
+msgid "Shift+E"
+msgstr ""
 
 msgid "Select all objects"
 msgstr "Tüm nesneleri seç"
@@ -9873,44 +10622,53 @@ msgstr "Gönderilemedi. Tekrar göndermeyi denemek için Yeniden Dene'ye tıklay
 msgid "reconnect"
 msgstr "yeniden bağlan"
 
-msgid "Third-party Extension"
-msgstr "Üçüncü Taraf Uzantısı"
+msgid "Welcome to Helio Additive"
+msgstr ""
 
-msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
-msgstr "Daha güçlü parçalar, daha az bükülme, daha hızlı baskılar - hızlı fizik tabanlı FEM simülasyonu ile desteklenir"
+msgid "Know Your Print Will Work — Before You Hit Print"
+msgstr ""
 
-msgid "Uninstall the Helio Additive extension"
-msgstr "Helio Additive uzantısını kaldırma"
+msgid "Physics-based analysis and optimization that makes prints faster, stronger, and far more reliable."
+msgstr ""
 
-msgid "Use Immediately"
-msgstr "Hemen Kullanın"
+msgid "Unlock a world of faster, more reliable printing with Helio's state of the art physics based 3d printing simulation technology."
+msgstr ""
 
-msgid "Third-Party Extension"
-msgstr "Üçüncü Taraf Uzantısı"
+msgid "Fewer Failed Prints"
+msgstr ""
 
-msgid "HELIO ADDITIVE"
-msgstr "HELIO ADDITIVE"
+msgid "Catch issues before printing and improve first-try success."
+msgstr ""
 
-msgid "Helio Additive third - party software service feature has been successfully enabled!"
-msgstr "Helio Additive üçüncü taraf yazılım hizmeti özelliği başarıyla etkinleştirildi!"
+msgid "Faster Prints, Better Quality"
+msgstr ""
 
-msgid "Helio-PAT"
-msgstr "Helio-PAT"
+msgid "Automatically tune speed and extrusion without manual tweaking."
+msgstr ""
 
-msgid "Copy successful!"
-msgstr "Kopyalama başarılı!"
+msgid "Enable Helio Additive"
+msgstr ""
 
-msgid "Helio Additive"
-msgstr "Helio Additive"
+msgid "Uninstall"
+msgstr ""
 
-msgid "Privacy Policy of Helio Additive"
-msgstr "Helio Additive Gizlilik Politikası"
+msgid "After slicing, click the Helio button to analyze your print."
+msgstr ""
 
-msgid "Terms of Use of Helio Additive"
-msgstr "Helio Additive Kullanım Koşulları"
+msgid "Helio Additive does not change your printer's firmware."
+msgstr ""
 
-msgid "Agree and proceed"
-msgstr "Kabul edin ve devam edin"
+msgid "Designed to help prints succeed — even if you're new to 3D printing."
+msgstr ""
+
+msgid "Are you sure you want to uninstall Helio Additive? This will disable all Helio features."
+msgstr ""
+
+msgid "Uninstall Helio Additive"
+msgstr ""
+
+msgid "Legal & Activation Terms"
+msgstr ""
 
 msgid "Got it"
 msgstr "Git"
@@ -9921,11 +10679,149 @@ msgstr "Helio PAT alınamadı, tekrar almak için Yenile'ye tıklayın."
 msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
 msgstr "PAT elde edilemedi. Miktar sınırına ulaşıldı, bu nedenle elde edilemiyor. PAT'ı yeniden elde etmek için yenile düğmesine tıklayın."
 
-msgid "Simulation"
-msgstr "Simülasyon"
+msgid "You are activating Helio Additive's advanced simulation services."
+msgstr ""
 
-msgid "Optimization"
-msgstr "Optimizasyon"
+msgid "Software Service Terms && Conditions"
+msgstr ""
+
+msgid "^"
+msgstr ""
+
+msgid "Helio Additive"
+msgstr "Helio Additive"
+
+msgid "Helio Additive Privacy Agreement"
+msgstr ""
+
+msgid "Helio Additive User Agreement"
+msgstr ""
+
+msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on "
+msgstr ""
+
+msgid "'s cloud service in this software will be developed, operated, provided, and maintained by "
+msgstr ""
+
+msgid ". Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit "
+msgstr ""
+
+msgid " and refer to the "
+msgstr ""
+
+msgid " and "
+msgstr ""
+
+msgid " for detailed information."
+msgstr ""
+
+msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on "
+msgstr ""
+
+msgid "'s services, and Bambu Lab makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu Lab or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu Lab cannot guarantee that the service will be available at all times, and Bambu Lab reserves the right to terminate the service based on relevant circumstances. You agree not to use this product and its related updates to engage in the following activities:"
+msgstr ""
+
+msgid "1. Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu Lab;"
+msgstr ""
+
+msgid "2. Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product;"
+msgstr ""
+
+msgid "3. Using this software and services for any improper or illegal activities."
+msgstr ""
+
+msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
+msgstr "Bu özelliği etkinleştirmek için onay verdiğinizde, yukarıdaki beyanları onayladığınız ve kabul ettiğiniz anlamına gelir."
+
+msgid "Special Note && Privacy Policy"
+msgstr ""
+
+msgid "This service is provided and hosted by a third party, Helio Additive. All data collection and processing activities are solely managed by Helio Additive, and Bambu Lab assumes no responsibility in this regard. By clicking \"Agree and Proceed\", you agree to Helio Additive's privacy policy."
+msgstr ""
+
+msgid ""
+"I have read and agree to the terms\n"
+"and policies."
+msgstr ""
+
+msgid "Agree and Proceed"
+msgstr ""
+
+msgid "Activation Successful!"
+msgstr ""
+
+msgid "Helio Additive is now active. You have unlocked free optimizations!"
+msgstr ""
+
+msgid "Applies only when first activated"
+msgstr ""
+
+msgid "Run Your First Optimization"
+msgstr ""
+
+msgid "You're nearly there! Now that Helio is activated, your first optimization run for faster, more reliable printing takes only minutes! (Now referred to as 'Enhance' or 'Enhancement')"
+msgstr ""
+
+msgid "Add an object to the build plate, select a material and printer that Helio supports, then slice."
+msgstr ""
+
+msgid "Supported printers and materials"
+msgstr ""
+
+msgid "Copy PAT"
+msgstr ""
+
+msgid ""
+"Personal Access Token (PAT)\n"
+"\n"
+"A secure credential that verifies your identity with Helio services. It's automatically used by BambuStudio for optimizations and simulations.\n"
+"\n"
+"You may need to copy this to:\n"
+"• Integrate Helio with other slicers or tools\n"
+"• Use the Helio API directly\n"
+"• Provide to support when troubleshooting"
+msgstr ""
+
+msgid "Copy successful!"
+msgstr "Kopyalama başarılı!"
+
+msgid "History"
+msgstr ""
+
+msgid "View and download recent optimizations and simulations"
+msgstr ""
+
+msgid "Terms of Use"
+msgstr ""
+
+msgid "Experimental: Enable multi-material support"
+msgstr ""
+
+msgid ""
+"When enabled, Helio uses the V3 API with per-slot material mapping for true multi-material prints.\n"
+"When disabled, the original V2 single-material API is used."
+msgstr ""
+
+msgid "Activation Successful"
+msgstr ""
+
+msgid "Assess"
+msgstr ""
+
+msgid "Formerly referred to as 'Simulate' or 'Simulation'"
+msgstr ""
+
+msgid "See where it will fail"
+msgstr ""
+
+msgid "Enhance"
+msgstr ""
+
+msgid "Formerly referred to as 'Optimize' or 'Optimization'"
+msgstr ""
+
+msgid "Auto-fix with new speeds"
+msgstr ""
 
 msgid "Environment Temperature"
 msgstr "Ortam Sıcaklığı"
@@ -9933,20 +10829,50 @@ msgstr "Ortam Sıcaklığı"
 msgid "Chamber Temperature"
 msgstr "Oda Sıcaklığı"
 
-msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
-msgstr "Not: Yukarıdaki sıcaklığı gerçek koşullara göre ayarlayın. Daha doğru veriler daha kesin analiz sonuçları sağlar."
+msgid "Refers to the environment temperature of the print (i.e. A-series - room temperature). Changing chamber temperature when running an assessment/simulation allows you to play around with different temperature scenarios."
+msgstr ""
+
+msgid "Optional. More accurate temperatures ensures better results."
+msgstr ""
 
 msgid "Helio's advanced feature for power users: available post purchase on its official website."
 msgstr "Helio'nun güçlü kullanıcılar için gelişmiş özelliği: resmi web sitesinde satın alındıktan sonra kullanılabilir."
 
-msgid "Monthly quota remaining: "
-msgstr "Kalan aylık kota: "
+msgid "Account Status"
+msgstr ""
 
-msgid "Add-ons available: "
-msgstr "Eklentiler mevcut: "
+msgid "Subscription:"
+msgstr ""
 
-msgid "Optimise Outer Walls"
-msgstr "Dış Duvarları Optimize Edin"
+msgid "Loading subscription status..."
+msgstr ""
+
+msgid "Monthly quota:"
+msgstr ""
+
+msgid "Add-ons:"
+msgstr ""
+
+msgid "Plans / Upgrades"
+msgstr ""
+
+msgid "Manage Account"
+msgstr ""
+
+msgid "Environment Settings"
+msgstr ""
+
+msgid "Optional. Uses the chamber temperature from Filament settings when available; you can override it here."
+msgstr ""
+
+msgid "Uses the chamber temperature from Filament settings when available; otherwise estimates it from the build plate temperature."
+msgstr ""
+
+msgid "Optimization Settings"
+msgstr ""
+
+msgid "Now referred to as 'Enhance' or 'Enhancement'"
+msgstr ""
 
 msgid "Helio default (recommended)"
 msgstr ""
@@ -9955,6 +10881,9 @@ msgid "Slicer default"
 msgstr ""
 
 msgid "Limits"
+msgstr ""
+
+msgid "Set your own speed and flow rate limits - or rely on Helio's custom limit settings. With unsupported materials you need to supply your own data or rely on the slicer's built in data."
 msgstr ""
 
 msgid "Min Velocity"
@@ -9972,26 +10901,95 @@ msgstr "Maksimum Hacimsel Hız"
 msgid "Last Trace ID: "
 msgstr "Son İz Kimliği: "
 
-msgid "Buy Now / Manage Account"
-msgstr ""
-
 msgid "Click for more details"
 msgstr "Daha fazla bilgi için tıklayın"
 
-msgid "Start Simulation"
-msgstr "Simülasyonu Başlat"
+msgid "Enhancement will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Optimize' or 'Optimization')"
+msgstr ""
 
-msgid "Start Optimization"
-msgstr "Optimizasyonu Başlat"
+msgid "Assessment will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Simulate' or 'Simulation')"
+msgstr ""
 
-msgid "Buy add-ons"
-msgstr "Eklentiler satın alın"
+msgid "Start Free Trial"
+msgstr ""
 
-msgid "Layers to Optimize "
-msgstr "Optimize Edilecek Katmanlar "
+msgid "Activate your free trial to unlock premium enhancements"
+msgstr ""
+
+msgid "Go to our storefront to purchase more enhancements"
+msgstr ""
+
+msgid "Free Trial"
+msgstr ""
+
+msgid "Free Trial Expired"
+msgstr ""
+
+msgid "Your free trial has ended. Explore our plans to continue using premium features."
+msgstr ""
+
+msgid "Start your free trial to unlock premium enhancements and faster, warp-free prints!"
+msgstr ""
+
+msgid "Unlimited*"
+msgstr ""
+
+msgid "*Fair usage terms apply - click to learn more"
+msgstr ""
+
+msgid "Restrict Helio's fixes to only certain layers, or keep them for all layers - the choice is yours! (Layer 1 attached to the bed is typically skipped.)"
+msgstr ""
+
+msgid "Print Priority"
+msgstr ""
+
+msgid "Loading print priority options..."
+msgstr ""
+
+msgid "Fetching material-specific options from Helio API..."
+msgstr ""
+
+msgid "Preserve Surface Finish"
+msgstr ""
+
+msgid "Speed & Strength"
+msgstr ""
+
+msgid ""
+"Speed & Strength: Optimizes outer walls for improved performance.\n"
+"Preserve Surface Finish: Maintains original wall speeds to preserve visual finish.\n"
+"\n"
+"Note: Using fallback options - couldn't fetch material-specific settings from API."
+msgstr ""
+
+msgid "No print priority options available for this material"
+msgstr ""
+
+msgid "This material does not support print priority optimization."
+msgstr ""
+
+msgid "Optimizes outer walls for improved performance."
+msgstr ""
+
+msgid "Maintains original wall speeds to preserve visual finish."
+msgstr ""
+
+msgid "Enhance Surface Gloss"
+msgstr ""
+
+msgid "Optimizes for enhanced surface gloss."
+msgstr ""
+
+msgid ""
+"Failed to load print priority options from Helio API.\n"
+"Using standard optimization method instead (same as before print priority feature)."
+msgstr ""
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
 msgstr "Helio PAT alınamadı. Verilen PAT sayısı üst sınıra ulaştı. Lütfen Helio resmi web sitesindeki bilgilere dikkat edin. Yeniden kullanılabilir olduğunda, Yenile'yi tıklayarak tekrar deneyin."
+
+msgid "HELIO ADDITIVE"
+msgstr "HELIO ADDITIVE"
 
 msgid "Print Time Improvement"
 msgstr "Baskı Süresi İyileştirmesi"
@@ -10002,8 +11000,131 @@ msgstr "Ortalama İyileşme"
 msgid "Consistency Improvement"
 msgstr "Tutarlılık İyileştirmesi"
 
+msgid "Estimate of improvement in print time before and after enhancement"
+msgstr ""
+
+msgid "Level of Strength & Warping improvement for this part after enhancement - average for the part"
+msgstr ""
+
+msgid "Level of Strength & Warping improvement for this part after enhancement - change in overall consistency"
+msgstr ""
+
 msgid "Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next."
 msgstr "Gcode'unuz en iyi baskı kalitesi için iyileştirildi. Baskı kalitesini daha da iyileştirmek için, wiki sayfamızı ziyaret ederek sonraki adımlar hakkında ipuçları ve püf noktaları öğrenebilirsiniz."
+
+msgid "Rate the enhancement based on your expectations. 5 stars means awesome! 1 star means it didn't add much value for you."
+msgstr ""
+
+msgid "Save the enhanced gcode locally"
+msgstr ""
+
+msgid "Print Plate"
+msgstr ""
+
+msgid "Print the enhanced part immediately"
+msgstr ""
+
+msgid "View Details"
+msgstr ""
+
+msgid "Verify Print Success Results"
+msgstr ""
+
+msgid "Simulates the thermal process to confirm your part will print without failure."
+msgstr ""
+
+msgid "Now referred to as 'Assess' or 'Assessment'"
+msgstr ""
+
+msgid "Time saved: "
+msgstr ""
+
+msgid "From "
+msgstr ""
+
+msgid "Expected Outcome:"
+msgstr ""
+
+msgid "Analysis:"
+msgstr ""
+
+msgid "Additional observations:"
+msgstr ""
+
+msgid "Fix suggestions"
+msgstr ""
+
+msgid "With Enhance Speed & Quality:"
+msgstr ""
+
+msgid "This is the time that can be saved if you run the Helio Additive Enhance feature. Click the Enhance Speed and Quality button to proceed."
+msgstr ""
+
+msgid "Enhance Speed & Quality"
+msgstr ""
+
+msgid "Applies Helio's optimized speed/flow/fan strategy."
+msgstr ""
+
+msgid "✅ Will Print"
+msgstr ""
+
+msgid "⚠️ May Print with Issues"
+msgstr ""
+
+msgid "❌ Likely to Fail"
+msgstr ""
+
+msgid "Thermal conditions are balanced. The part is printing within safe temperature limits."
+msgstr ""
+
+msgid "Material is cooling too rapidly before the next layer is applied. This can cause weak layer bonding, warping, or cracking."
+msgstr ""
+
+msgid "Heat is building up in small layers faster than it can dissipate. This may cause sagging or loss of detail in fine features."
+msgstr ""
+
+msgid "Ready to print — see suggestions"
+msgstr ""
+
+msgid "Ready to print"
+msgstr ""
+
+msgid "Too cold overall — see suggestions"
+msgstr ""
+
+msgid "Too hot overall — see suggestions"
+msgstr ""
+
+msgid "Your part is ready to print! Thermal conditions are within safe limits."
+msgstr ""
+
+msgid "Too cold (overall)"
+msgstr ""
+
+msgid "The part cools too fast between layers on average. Some layers may behave differently—see observations."
+msgstr ""
+
+msgid "Too hot (overall)"
+msgstr ""
+
+msgid "The part stays too warm between layers on average. Some layers may behave differently—see observations."
+msgstr ""
+
+msgid "Suggestions"
+msgstr ""
+
+msgid "Quick fixes (beginner):"
+msgstr ""
+
+msgid "Expert"
+msgstr ""
+
+msgid "Helio Flowchart"
+msgstr ""
+
+msgid "Fixing cold prints"
+msgstr ""
 
 msgid "Air Pump"
 msgstr "Hava Pompası"
@@ -10554,8 +11675,8 @@ msgstr "HTTP özeti"
 msgid "Avoid crossing wall"
 msgstr "Duvar geçişinden kaçın"
 
-msgid "Detour and avoid traveling across wall which may cause blob on surface"
-msgstr "Dolambaçlı yoldan gidin ve yüzeyde lekeye neden olabilecek duvar boyunca ilerlemekten kaçının"
+msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
+msgstr ""
 
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Z boyunca duvar hızını yumuşatma (deneysel)"
@@ -10655,6 +11776,12 @@ msgstr "Çıkıntılar için fan hızı"
 
 msgid "Force part cooling fan to be at this speed when printing bridge or overhang wall which has large overhang degree. Forcing cooling for overhang and bridge can get better quality for these part"
 msgstr "Büyük çıkıntı derecesine sahip köprü veya çıkıntı duvarı yazdırırken parça soğutma fanını bu hızda olmaya zorlayın. Çıkıntı ve köprü için soğutmayı zorlamak, bu parçalar için daha iyi kalite elde edebilir"
+
+msgid "Ironing fan speed"
+msgstr ""
+
+msgid "This part cooling fan speed is applied when ironing. Setting this parameter to a lower than regular speed reduces possible nozzle clogging due to the low volumetric flow rate, making the interface smoother. Set to -1 to disable it."
+msgstr ""
 
 msgid "Pre start fan time"
 msgstr "Ön başlatma fan süresi"
@@ -10924,11 +12051,20 @@ msgstr "Baskı tamamlandıktan sonra egzoz fanının hızı"
 msgid "For the first"
 msgstr "İlk olarak"
 
+msgid "Set special auxiliary cooling fan for the first certain layers."
+msgstr ""
+
+msgid "Full fan speed at layer"
+msgstr "Maksimum fan hızı"
+
+msgid "Auxiliary fan speed will be ramped up linearly from layer \"For the first\" to maximum at layer \"Full fan speed at layer\". \"Full fan speed at layer\" will be ignored if lower than \"For the first\", in which case the fan will be running at maximum allowed speed at layer \"For the first\" + 1."
+msgstr ""
+
 msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
 msgstr ""
 
-msgid "layers"
-msgstr "katmanlar"
+msgid "Part cooling fan speed for the first few layers. Set to 0 to disable the part cooling fan on the initial layers for better bed adhesion"
+msgstr ""
 
 msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
 msgstr ""
@@ -11033,6 +12169,12 @@ msgid "Top surface density"
 msgstr ""
 
 msgid "Density of top surface infill, 100% means a fully solid filled top layer.Lower values create a textured top surface, at 0%, only the walls are created on the top layer.Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion."
+msgstr ""
+
+msgid "Monotonic line travel extend"
+msgstr ""
+
+msgid "Enable this option to extend the travel distance between lines, improving the adhesion between the monotonic line infill and the walls.(percent to line width)"
 msgstr ""
 
 msgid "Bottom surface pattern"
@@ -11326,6 +12468,12 @@ msgstr "Yapışkanlık Kategorisi"
 msgid "Filament category"
 msgstr "Filament kategorisi"
 
+msgid "Metal stickiness"
+msgstr ""
+
+msgid "Indicates how strongly the filament tends to stick to the metal nozzle and leave residue. \"None\" means untested or custom filament, behaves the same as Low. Low: e.g. PLA - retraction can be safely skipped in infill areas. Medium: moderate stickiness - use with caution. High: e.g. PETG - retraction should not be skipped to avoid oozing artifacts on outer walls."
+msgstr ""
+
 msgid "Density"
 msgstr "Yoğunluk"
 
@@ -11389,11 +12537,47 @@ msgstr "Destek malzemesi"
 msgid "Support material is commonly used to print support and support interface"
 msgstr "Destek malzemesi yaygın olarak destek ve destek arayüzünü yazdırmak için kullanılır"
 
+msgid "Is mixed filament"
+msgstr ""
+
+msgid "Whether this filament slot is a mixed filament composed of multiple physical filaments"
+msgstr ""
+
+msgid "Mixed filament components"
+msgstr ""
+
+msgid "Comma-separated 1-based indices of component filaments, e.g. \"1,3\""
+msgstr ""
+
+msgid "Mixed filament sublayer ratios"
+msgstr ""
+
+msgid "Comma-separated ratio values summing to 1.0, e.g. \"0.7,0.3\""
+msgstr ""
+
+msgid "Mixed filament gradient"
+msgstr ""
+
+msgid "Enable Z-direction gradient mode for mixed filament sub-layers. When enabled, the sub-layer ratios vary linearly across layers."
+msgstr ""
+
+msgid "Mixed filament gradient range"
+msgstr ""
+
+msgid "Start and end ratios for the first component in gradient mode. Comma-separated pair, e.g. \"0.10,0.90\" means 10% to 90%."
+msgstr ""
+
 msgid "Filament printable"
 msgstr "Filamentle basılabilir"
 
 msgid "The filament is printable in extruder"
 msgstr "Filament ekstrüderde basılabilir"
+
+msgid "Filament-extruder compatibility"
+msgstr ""
+
+msgid "A single 32-bit int encoding the compatibility level of a filament across all extruders (up to 10). Every 3 bits represent one extruder (bits [3*i, 3*i+2] for extruder i). 0: printable, 1: error, 2: critical warning, 3: warning, 4-7: reserved"
+msgstr ""
 
 msgid "Filament change"
 msgstr ""
@@ -11444,6 +12628,12 @@ msgid "Print temperature for prime tower interface layer (where different materi
 msgstr ""
 
 msgid "°C"
+msgstr ""
+
+msgid "Enable tower interface features"
+msgstr ""
+
+msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
 msgstr ""
 
 msgid "Softening temperature"
@@ -11639,9 +12829,6 @@ msgstr "İlk katman nozul sıcaklığı"
 msgid "Nozzle temperature to print initial layer when using this filament"
 msgstr "Bu filamenti kullanırken ilk katmanı yazdırmak için nozul sıcaklığı"
 
-msgid "Full fan speed at layer"
-msgstr "Maksimum fan hızı"
-
 msgid "Randomly jitter while printing the wall, so that the surface has a rough look. This setting controls the fuzzy position"
 msgstr "Duvara baskı yaparken rastgele titreme, böylece yüzeyin pürüzlü bir görünüme sahip olması. Bu ayar bulanık konumu kontrol eder"
 
@@ -11662,6 +12849,64 @@ msgstr "Bulanık kaplama noktası mesafesi"
 
 msgid "The average distance between the random points introduced on each line segment"
 msgstr "Her bir doğru parçasına yerleştirilen rastgele noktalar arasındaki ortalama mesafe"
+
+msgid "Apply fuzzy skin to first layer"
+msgstr ""
+
+msgid "Whether to apply fuzzy skin on the first layer."
+msgstr ""
+
+msgid "Fuzzy skin noise type"
+msgstr ""
+
+msgid ""
+"Noise type to use for fuzzy skin generation:\n"
+"Classic: Classic uniform random noise.\n"
+"Perlin: Perlin noise, which gives a more consistent texture.\n"
+"Billow: Similar to perlin noise, but clumpier.\n"
+"Ridged Multifractal: Ridged noise with sharp, jagged features. Creates marble-like textures.\n"
+"Voronoi: Divides the surface into voronoi cells, and displaces each one by a random amount. Creates a patchwork texture."
+msgstr ""
+
+msgid "Classic"
+msgstr "Klasik"
+
+msgid "Fuzzy skin feature size"
+msgstr ""
+
+msgid "The base size of the coherent noise features, in mm. Higher values will result in larger features."
+msgstr ""
+
+msgid "Fuzzy skin noise octaves"
+msgstr ""
+
+msgid "The number of octaves of coherent noise to use. Higher values increase the detail of the noise, but also increase computation time."
+msgstr ""
+
+msgid "Fuzzy skin noise persistence"
+msgstr ""
+
+msgid "The decay rate for higher octaves of the coherent noise. Lower values will result in smoother noise."
+msgstr ""
+
+msgid "Fuzzy skin generator mode"
+msgstr ""
+
+msgid ""
+"Displacement: Pattern is formed by shifting the nozzle sideways from the original path.\n"
+"Extrusion: Pattern is formed by varying the amount of extruded plastic (nozzle path stays straight).\n"
+"Combined: Displacement + Extrusion. Similar look to Displacement but fills gaps between perimeters.\n"
+"Note: Extrusion and Combined only work when fuzzy skin thickness is not greater than the printed line width."
+msgstr ""
+
+msgid "Displacement"
+msgstr ""
+
+msgid "Extrusion"
+msgstr ""
+
+msgid "Combined"
+msgstr ""
 
 msgid "Filter out tiny gaps"
 msgstr "Küçük boşlukları filtrele"
@@ -11701,6 +12946,12 @@ msgstr "İlk katmanı tara"
 
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "Yazıcıdaki kameranın ilk katmanın kalitesini kontrol etmesini sağlamak için bunu etkinleştirin"
+
+msgid "Print loops in clockwise"
+msgstr ""
+
+msgid "Print in clockwise when enabled, or counterclockwise when not enabled, not work for spiral vase mode"
+msgstr ""
 
 msgid "Enable clumping detection"
 msgstr "Topaklanma algılamayı etkinleştir"
@@ -11770,12 +13021,6 @@ msgstr "Destek kontrol ortam sıcaklığı"
 
 msgid "This option is enabled if machine support controlling chamber temperature"
 msgstr "Bu seçenek, makine oda sıcaklığını kontrol etmeyi destekliyorsa etkinleştirilir"
-
-msgid "Apply top surface compensation"
-msgstr ""
-
-msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
-msgstr ""
 
 msgid "Air filtration enhancement"
 msgstr "Hava filtrasyonunun iyileştirilmesi"
@@ -12188,8 +13433,8 @@ msgstr "Kesici alandan çöp kutusuna kadar olan başlangıç ve bitiş noktalar
 msgid "Reduce infill retraction"
 msgstr "Dolguda geri çekmeyi azalt"
 
-msgid "Don't retract when the travel is in infill area absolutely. That means the oozing can't been seen. This can reduce times of retraction for complex model and save printing time, but make slicing and G-code generating slower"
-msgstr "Dolgu alanında seyahat ederken kesinlikle geri çekme yapma. Bu, sızdırmanın görünmediği anlamına gelir. Bu, karmaşık modeller için geri çekme sayısını azaltabilir ve baskı süresini kısaltabilir, ancak dilimleme ve G-kod oluşturma işlemlerini yavaşlatır"
+msgid "Controls whether retraction is skipped when traveling within the infill area. \"Auto\" enables this optimization for filaments with low metal stickiness (e.g. PLA) and disables it for medium/high metal stickiness filaments (e.g. PETG) to avoid oozing artifacts. \"Enabled\" always skips retraction in infill areas regardless of filament type. \"Disabled\" always retracts normally."
+msgstr ""
 
 msgid "Filename format"
 msgstr "Dosya adı formatı"
@@ -12906,6 +14151,12 @@ msgstr "Temizleme mesafesi"
 msgid "Describe how long the nozzle will move along the last path when retracting"
 msgstr "Nozulun geri çekilirken son yol boyunca ne kadar süre hareket edeceğini tanımlayın"
 
+msgid "Mixed color sublayer"
+msgstr ""
+
+msgid "Enable mixed color sublayer splitting. When enabled, layers containing mixed color filaments will be split into sub-layers to achieve color mixing effects."
+msgstr ""
+
 msgid "The wiping tower can be used to clean up the residue on the nozzle and stabilize the chamber pressure inside the nozzle, in order to avoid appearance defects when printing objects."
 msgstr "Temizleme kulesi, nesneleri yazdırırken görünüm kusurlarını önlemek amacıyla nozul üzerindeki kalıntıları temizlemek ve nozul içindeki oda basıncını dengelemek için kullanılabilir."
 
@@ -13082,9 +14333,6 @@ msgstr "Nesnenin konturu XY düzleminde yapılandırılan değer kadar büyütü
 
 msgid "Classic wall generator produces walls with constant extrusion width and for very thin areas is used gap-fill. Arachne engine produces walls with variable extrusion width"
 msgstr "Klasik duvar oluşturucu sabit ekstrüzyon genişliğine sahip duvarlar üretir ve çok ince alanlar için boşluk doldurma kullanılır. Arachne motoru değişken ekstrüzyon genişliğine sahip duvarlar üretir"
-
-msgid "Classic"
-msgstr "Klasik"
 
 msgid "Arachne"
 msgstr "Arachne"
@@ -13623,6 +14871,9 @@ msgid ""
 "- Different filament brand and family(Brand = Bambu, Family = Basic, Matte)\n"
 msgstr ""
 
+msgid "(Aux) does not support automatic flow calibration."
+msgstr ""
+
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr ""
 
@@ -13689,8 +14940,9 @@ msgstr "AMS ve nozul bilgilerini senkronize edin"
 msgid "Connecting to printer"
 msgstr "Yazıcıya bağlanılıyor"
 
-msgid "Calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "Kalibrasyon yalnızca sol ve sağ nozul çaplarının aynı olduğu durumları destekler."
+#, c-format, boost-format
+msgid "Calibration only supports cases where the %s and %s diameters are identical."
+msgstr ""
 
 msgid "From k Value"
 msgstr "K değerinden"
@@ -13762,6 +15014,9 @@ msgstr "Nozul seçilmelidir."
 
 msgid "PA Calibration"
 msgstr "PA Kalibrasyonu"
+
+msgid "Extruder type"
+msgstr ""
 
 msgid "PA Tower"
 msgstr "PA Kulesi"
@@ -14584,8 +15839,15 @@ msgstr "Yazıcı seçmeniz gerekiyor"
 msgid "The start, end or step is not valid value."
 msgstr "Başlangıç, bitiş veya adım geçerli bir değer değildir."
 
+msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
+msgstr "TPU 90A/TPU 85A çok yumuşaktır ve otomatik Akış Dinamiği kalibrasyonunu desteklemez."
+
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr "Yazıcı ekstrüderlerinin sayısı ve kalibrasyon için seçilen yazıcı eşleşmiyor."
+
+#, c-format, boost-format
+msgid "The type of %sextruder is bowden which does not support automatic Flow Dynamics calibration."
+msgstr ""
 
 #, c-format, boost-format
 msgid "The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."
@@ -14923,6 +16185,9 @@ msgstr "GCodeV2 oluşturulamadı"
 msgid "Failed to parse response"
 msgstr "Yanıt ayrıştırılamadı"
 
+msgid "Failed to create GCodeV3"
+msgstr ""
+
 msgid "Helio simulation task failed"
 msgstr "Helio simülasyon görevi başarısız oldu"
 
@@ -14973,6 +16238,9 @@ msgstr "Helio: optimizasyon başarıyla oluşturuldu"
 
 msgid "Helio: optimization working"
 msgstr "Helio: optimizasyon çalışıyor"
+
+msgid "Helio: optimization failed"
+msgstr ""
 
 msgid "Helio: Optimzaion check failed"
 msgstr "Helio: Optimizasyon kontrolü başarısız oldu"
@@ -15143,8 +16411,14 @@ msgstr "Lütfen silinecek ön ayarı seçin"
 msgid "%d %s Preset will be deleted."
 msgstr "%d %s Önayar silinecektir."
 
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
+msgstr ""
+
 msgid "Filament grouping"
 msgstr "Filament gruplama"
+
+msgid "Fila Saving"
+msgstr ""
 
 msgid "Don't remind me again"
 msgstr "Bir daha anımsatma"
@@ -15158,26 +16432,33 @@ msgstr "Filament Tasarruf Modu"
 msgid "Convenience Mode"
 msgstr "Kolaylık Modu"
 
+msgid "Quality Mode"
+msgstr ""
+
 msgid "Custom Mode"
 msgstr "Özel Kip"
 
-msgid "Generates filament grouping for the left and right nozzles based on the most filament-saving principles to minimize waste"
-msgstr "Atıkları en aza indirmek için sol ve sağ nozullar için en fazla filament tasarrufu ilkelerine dayalı filament gruplaması oluşturur"
+#, c-format, boost-format
+msgid "Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"
+msgstr ""
 
-msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
-msgstr "Yazıcının gerçek filament durumuna göre sol ve sağ nozullar için filament gruplaması oluşturarak manuel filament ayarlama ihtiyacını azaltır"
+#, c-format, boost-format
+msgid "Generates filament grouping for the %s and %s based on the printer's actual filament status, reducing the need for manual filament adjustment"
+msgstr ""
 
-msgid "Manually assign filament to the left or right nozzle"
-msgstr "Filamenti sol veya sağ nozüle manuel olarak atama"
+#, c-format, boost-format
+msgid "Generates filament grouping for the %s and %s based on quality optimization principles"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Manually assign filament to the %s or %s"
+msgstr ""
 
 msgid "Global settings"
 msgstr "Genel Ayarlar"
 
 msgid "Video tutorial"
 msgstr "Öğretici Video"
-
-msgid "Learn more"
-msgstr "Daha fazla bilgi edin"
 
 msgid "(Sync with printer)"
 msgstr "(Yazıcı ile senkronize edin)"
@@ -15199,15 +16480,7 @@ msgid " to set nozzle count"
 msgstr ""
 
 #, c-format, boost-format
-msgid "Left Extruder(%d)"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Right Extruder(Std: %d, HF: %d)"
-msgstr ""
-
-#, c-format, boost-format
-msgid "Right Extruder(%d)"
+msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
 msgstr ""
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
@@ -15430,6 +16703,9 @@ msgstr ""
 msgid "  Please plug in the power and then use the drying function."
 msgstr ""
 
+msgid "  The high drying temperature may cause AMS blockage. Please unload the filament manually before proceeding."
+msgstr ""
+
 msgid "System is busy"
 msgstr ""
 
@@ -15473,6 +16749,168 @@ msgid "Starting: Checking air vent"
 msgstr ""
 
 msgid "Terms of Bambu Lab User Experience Improvement Program"
+msgstr ""
+
+msgid "Recent Helio Runs"
+msgstr ""
+
+msgid "Showing recent completed optimizations and simulations"
+msgstr ""
+
+msgid "Loading recent runs..."
+msgstr ""
+
+msgid "No Recent Runs Found"
+msgstr ""
+
+msgid "No completed simulations or optimizations found"
+msgstr ""
+
+#, c-format, boost-format
+msgid "OPTIMIZATIONS (%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "SIMULATIONS (%d)"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d layers"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Quality: %s | Consistency: %s"
+msgstr ""
+
+msgid "Download GCode"
+msgstr ""
+
+msgid "View Results"
+msgstr ""
+
+msgid "GCode URL is not available"
+msgstr ""
+
+msgid "Download Error"
+msgstr ""
+
+msgid "Save GCode File"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"GCode file downloaded successfully!\n"
+"\n"
+"Saved to: %s"
+msgstr ""
+
+msgid "Download Complete"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Failed to open file for writing:\n"
+"%s"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Error saving file: %s"
+msgstr ""
+
+#, c-format, boost-format
+msgid ""
+"Failed to download GCode file.\n"
+"\n"
+"Error: %s"
+msgstr ""
+
+msgid "Optimization Details"
+msgstr ""
+
+msgid "Simulation Details"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d seconds ago"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d minutes ago"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d hours ago"
+msgstr ""
+
+#, c-format, boost-format
+msgid "%d days ago"
+msgstr ""
+
+msgid "Print Outcome: WILL_PRINT"
+msgstr ""
+
+msgid "Print Outcome: MAY_PRINT"
+msgstr ""
+
+msgid "Print Outcome: LIKELY_FAIL"
+msgstr ""
+
+msgid "Print Outcome: "
+msgstr ""
+
+msgid "Edit Mixed Filament"
+msgstr ""
+
+msgid "Effect Preview"
+msgstr ""
+
+msgid "Select Mixed Materials"
+msgstr ""
+
+msgid "+ Add Material"
+msgstr ""
+
+msgid "- Delete Material"
+msgstr ""
+
+msgid "Ratio"
+msgstr ""
+
+msgid "Gradient Effect"
+msgstr ""
+
+msgid "Mixing Recommendations"
+msgstr ""
+
+msgid "-- Select --"
+msgstr ""
+
+msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
+msgstr ""
+
+msgid "Mixed Color Sublayer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Slot %s (%s)"
+msgstr ""
+
+msgid "cannot be mixed. Please select the same filament type."
+msgstr ""
+
+msgid "Please select a filament for all components"
+msgstr ""
+
+msgid "Cannot mix different filament types"
+msgstr ""
+
+msgid "Maximum 3 materials for mixing"
+msgstr ""
+
+msgid "Maximum number of components reached"
+msgstr ""
+
+msgid "Remove the third material"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
@@ -15695,134 +17133,343 @@ msgstr ""
 "Eğilmeyi önleyin\n"
 "ABS gibi bükülmeye yatkın malzemelere baskı yaparken, ısıtma yatağı sıcaklığının uygun şekilde arttırılmasının bükülme olasılığını azaltabileceğini biliyor muydunuz."
 
-#: resources/data/helio_hints.ini: [hint: Single-Material Only]
+#: resources/data/helio_hints.ini: [hint: Run Nylon & PC (and other advanced
+#: materials) Like a Pro]
 msgid ""
-"Single-Material Only\n"
-"Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
+"Run Nylon & PC (and other advanced materials) Like a Pro\n"
+"Printing Nylon 612 or Polycarbonate or other advanced materials? Helio helps you avoid the 'almost worked' failure."
 msgstr ""
-"Yalnızca Tek Malzeme\n"
-"Helio şu anda iş başına bir malzeme ve bir nozul simüle etmektedir. Çoklu malzeme veya çoklu ekstrüder G kodu, termal sürekliliği bozan uzun duraklamalar ekler, bu nedenle sonuçlar anlamlı olmaz."
 
-#: resources/data/helio_hints.ini: [hint: One Plate per Job]
+#: resources/data/helio_hints.ini: [hint: Make Prints up to 30% Faster
+#: (Safely)]
 msgid ""
-"One Plate per Job\n"
-"Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
+"Make Prints up to 30% Faster (Safely)\n"
+"Get real throughput, not risky 'speed mode'. A print that normally takes 8 hours might drop to ~5.6 hours."
 msgstr ""
-"İş Başına Bir Plaka\n"
-"Tek bir yapım plakası ile G kodunu yükleyin — çok plakalı projeler henüz desteklenmemektedir, bu nedenle yalnızca ilk plaka çalışacaktır."
 
-#: resources/data/helio_hints.ini: [hint: What is the Thermal Quality Index?]
+#: resources/data/helio_hints.ini: [hint: Stop Wasting Precious Design Time on
+#: Tuning]
 msgid ""
-"What is the Thermal Quality Index?\n"
-"The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
+"Stop Wasting Precious Design Time on Tuning\n"
+"Fewer trial prints, faster dial-in. Instead of multiple test prints, detect issues and print first time right."
 msgstr ""
-"Termal Kalite Endeksi nedir?\n"
-"Termal Kalite Endeksi (ölçek –100 ila +100), her bölgenin ne kadar sıcak veya soğuk yazdırıldığını gösterir—yeşil (≈ 0) güçlü, eğrilik içermeyen parçalar için “tam doğru” bölgedir. En iyi sonuçlar için parçanın çoğunu yeşil tutun."
 
-#: resources/data/helio_hints.ini: [hint: Voxel-Level Accuracy]
+#: resources/data/helio_hints.ini: [hint: Cut Warping on ASA/ABS and other
+#: advanced materials]
 msgid ""
-"Voxel-Level Accuracy\n"
-"We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
+"Cut Warping on ASA/ABS and other advanced materials\n"
+"Warping ruins long jobs. Helio shows where risk is highest before you print, and, with enhance, cuts the risk of warping to almost nil."
 msgstr ""
-"Voksel Düzeyinde Doğruluk\n"
-"Her zaman adımında her vokseldeki sıcaklığı tahmin ediyoruz ve standart işler için tahmin genellikle ±5–10 °C aralığındadır. Duraklamalar, özel donanım yazılımı veya olağandışı soğutma bu marjı genişletebilir."
 
-#: resources/data/helio_hints.ini: [hint: Fan & Airflow Model]
+#: resources/data/helio_hints.ini: [hint: Quality Check Before You Hit Print]
 msgid ""
-"Fan & Airflow Model\n"
-"A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
+"Quality Check Before You Hit Print\n"
+"Think of it like a pre-flight check. Example: if a PC bracket shows low TQI in thin ribs, you'll know to adjust before committing to an overnight run."
 msgstr ""
-"Fan ve Hava Akışı Modeli\n"
-"Basitleştirilmiş fan ve oda modeli, soğutma ayarlarının parça sıcaklıklarını nasıl değiştirdiğini yavaş CFD hesaplamaları olmadan gösterir; bu, günlük ayarlamalar için idealdir. Oda girdapları henüz simüle edilmediğinden, çalıştırmalar hızlı kalır."
 
-#: resources/data/helio_hints.ini: [hint: TQI Limits Explained]
+#: resources/data/helio_hints.ini: [hint: Stronger Parts With One Click]
 msgid ""
-"TQI Limits Explained\n"
-"-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
+"Stronger Parts With One Click\n"
+"Better bonding, fewer brittle failures. Example: for Polycarbonate, results show ~+65% tensile strength after optimization."
 msgstr ""
-"TQI Sınırları Açıklaması\n"
-"-100 → çok soğuk: gerilme mukavemeti ideal 0 değerinde basılan parçalara göre ~%50 daha düşüktür (ASTM D638 köpek kemiği testleri). +100 → çok sıcak: katmanlar erimiş halde kalır ve sarkabilir veya çökebilir. En yüksek mukavemet ve doğruluk için bölgeleri 0 değerine yakın tutun."
 
-#: resources/data/helio_hints.ini: [hint: What Drives Runtime?]
+#: resources/data/helio_hints.ini: [hint: Save Money Every Run]
 msgid ""
-"What Drives Runtime?\n"
-"Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
+"Save Money Every Run\n"
+"Faster + fewer failures = real savings."
 msgstr ""
-"Çalışma Süresini Etkileyen Faktörler Nelerdir?\n"
-"Ekstra katmanlar, yoğun dolgu, çok sayıda küçük yay (küçük ağ elemanları) veya çok yavaş baskı hızları, çözücünün daha fazla saniye boyunca adım adım ilerlemesi gerektiğinden simülasyon süresini uzatır. Çok çekirdekli CPU'lar veya CUDA GPU'lar işlemleri hızlandırır."
 
-#: resources/data/helio_hints.ini: [hint: Nozzle Temp Range]
+#: resources/data/helio_hints.ini: [hint: First-Time-Right Reliability]
 msgid ""
-"Nozzle Temp Range\n"
-"Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
+"First-Time-Right Reliability\n"
+"Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
-"Nozul Sıcaklık Aralığı\n"
-"Desteklenen ayar noktaları 190 – 320 °C arasındadır; bu aralığın dışındaki değerler fiziksel gerçekçiliği korumak için sabitlenir."
 
-#: resources/data/helio_hints.ini: [hint: Debugging Flowchart]
-msgid ""
-"Debugging Flowchart\n"
-"Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
-msgstr ""
-"Hata Ayıklama Akış Şeması\n"
-"Sonucun neden yanlış göründüğünden emin değil misiniz? Ayarları, G kodunu ve malzeme sorunlarını dakikalar içinde izlemek için adım adım hata ayıklama akış şemamızı takip edin."
+#, c-format, boost-format
+#~ msgid "Left nozzle: %smm"
+#~ msgstr "Sol nozul: %smm"
 
-#: resources/data/helio_hints.ini: [hint: Why Cooling Varies]
-msgid ""
-"Why Cooling Varies\n"
-"Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
-msgstr ""
-"Soğutma Neden Değişir?\n"
-"Dış duvarlar ve köprüler en hızlı şekilde soğurken, kalın iç kısımlar daha sıcak kalır. Geometri, hava akışı ve takım yolu bu konuda rol oynar ve simülasyon bu farklılıkları görselleştirir."
+#, c-format, boost-format
+#~ msgid "Right nozzle: %smm"
+#~ msgstr "Sağ nozul: %smm"
 
-#: resources/data/helio_hints.ini: [hint: Extrusion Temp Model]
-msgid ""
-"Extrusion Temp Model\n"
-"Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
-msgstr ""
-"Ekstrüzyon Sıcaklığı Modeli\n"
-"Malzeme özellikleri erime eğrisini şekillendirir, ancak yazıcı geometrisi filamentin gerçekte ne kadar ısı kazandığını belirler, bu nedenle model malzemeye özeldir ve yazıcıya göre kalibre edilir."
+#~ msgid "Show the warning dialog again when importing non-Bambu 3MF files"
+#~ msgstr "Bambu olmayan 3MF dosyalarını içe aktarırken uyarı penceresini tekrar göster"
 
-#: resources/data/helio_hints.ini: [hint: Nozzle setting of 190 °C vs 320
-#: °C?]
-msgid ""
-"Nozzle setting of 190 °C vs 320 °C?\n"
-"A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
-msgstr ""
-"190 °C ile 320 °C nozul ayarı?\n"
-"100 °C'lik bir nozul değişikliği, ekstrüzyon sıcaklığı, akış hızı ve biriktirme sonrası soğutma parçanın ısı geçmişini domine ettiği için termal indeksi sadece hafifçe değiştirir."
+#~ msgid "Select filament that installed to the left nozzle"
+#~ msgstr "Sol nozüle takılan filamenti seçin"
 
-#: resources/data/helio_hints.ini: [hint: Bed Temperature influence]
-msgid ""
-"Bed Temperature influence\n"
-"Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
-msgstr ""
-"Yatak Sıcaklığının Etkisi\n"
-"Şu anda sadece ilk katman yatak sıcaklığı modele besleniyor; daha sonraki yatak değişiklikleri henüz kaydedilmiyor."
+#~ msgid "Select filament that installed to the right nozzle"
+#~ msgstr "Doğru nozüle takılan filamenti seçin"
 
-#: resources/data/helio_hints.ini: [hint: Actual Tool-Path]
-msgid ""
-"Actual Tool-Path\n"
-"Yes—your exact G-code path, speeds and fan commands are simulated."
-msgstr ""
-"Gerçek Takım Yolu\n"
-"Evet — tam G kodu yolunuz, hızlarınız ve fan komutlarınız simüle edilir."
+#, boost-format
+#~ msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
+#~ msgstr "Sol nozul: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
 
-#: resources/data/helio_hints.ini: [hint: Mesh Resolution]
-msgid ""
-"Mesh Resolution\n"
-"The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
-msgstr ""
-"Ağ Çözünürlüğü\n"
-"Voksel ızgarası, G kodu satır aralığından daha incedir ve hesaplama gücünü boşa harcamadan katman katman ayrıntıları yakalar."
+#, boost-format
+#~ msgid "Right nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
+#~ msgstr "Sağ nozul: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
 
-#: resources/data/helio_hints.ini: [hint: Shrinkage, Warping & Stress]
-msgid ""
-"Shrinkage, Warping & Stress\n"
-"By controlling the thermal index you can remove the heat-driven causes of warp and stress."
-msgstr ""
-"Büzülme, Çarpılma ve Gerilim\n"
-"Termal indeksi kontrol ederek, ısı kaynaklı çarpılma ve gerilimin nedenlerini ortadan kaldırabilirsiniz."
+#~ msgid "Assembly View"
+#~ msgstr "Montaj Görünümü"
+
+#~ msgid "Internal Storage"
+#~ msgstr "Dahili Depolama"
+
+#~ msgid "External Storage"
+#~ msgstr "Harici Depolama"
+
+#~ msgid "Modify paramters of right nozzle"
+#~ msgstr "Sağ nozulun parametrelerini değiştirin"
+
+#~ msgid "Modify paramters of left nozzle"
+#~ msgstr "Sol nozulun parametrelerini değiştirin"
+
+#~ msgid "Do you want to modify the following parameters of the right nozzle to that of the left nozzle?"
+#~ msgstr "Sağ nozulun aşağıdaki parametrelerini sol nozulunkilerle değiştirmek istiyor musunuz?"
+
+#~ msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
+#~ msgstr "Sol nozulun aşağıdaki parametrelerini sağ nozulunkilerle değiştirmek istiyor musunuz?"
+
+#~ msgid "Calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "Kalibrasyon yalnızca sol ve sağ nozul çaplarının aynı olduğu durumları destekler."
+
+#~ msgid "Generates filament grouping for the left and right nozzles based on the most filament-saving principles to minimize waste"
+#~ msgstr "Atıkları en aza indirmek için sol ve sağ nozullar için en fazla filament tasarrufu ilkelerine dayalı filament gruplaması oluşturur"
+
+#~ msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
+#~ msgstr "Yazıcının gerçek filament durumuna göre sol ve sağ nozullar için filament gruplaması oluşturarak manuel filament ayarlama ihtiyacını azaltır"
+
+#~ msgid "Manually assign filament to the left or right nozzle"
+#~ msgstr "Filamenti sol veya sağ nozüle manuel olarak atama"
+
+#~ msgid "Cooling for specific layer"
+#~ msgstr "Belirli Katman İçin Soğutma"
+
+#~ msgid "Special cooling settings"
+#~ msgstr "Özel soğutma ayarları"
+
+#~ msgid "set addition fan speed before fist x layer"
+#~ msgstr "ilk x katmanından önce fan hızını ayarla"
+
+#~ msgid "Don't retract when the travel is in infill area absolutely. That means the oozing can't been seen. This can reduce times of retraction for complex model and save printing time, but make slicing and G-code generating slower"
+#~ msgstr "Dolgu alanında seyahat ederken kesinlikle geri çekme yapma. Bu, sızdırmanın görünmediği anlamına gelir. Bu, karmaşık modeller için geri çekme sayısını azaltabilir ve baskı süresini kısaltabilir, ancak dilimleme ve G-kod oluşturma işlemlerini yavaşlatır"
+
+#~ msgid "Ext"
+#~ msgstr "Harici"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+#~ msgstr ""
+#~ "Destek arayüzü için destek malzemesi kullanırken, aşağıdaki ayarları öneririz:\n"
+#~ "0 üst z mesafesi, 0 arayüz aralığı, geçmeli doğrusal desen ve bağımsız destek katmanı yüksekliğini devre dışı bırakma"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "Destek arayüzü için çözünebilir malzeme kullanırken, aşağıdaki ayarları öneririz:\n"
+#~ "0 üst z mesafesi, 0 arayüz aralığı, 0 destek/nesne xy mesafesi, geçmeli doğrusal desen, \n"
+#~ "bağımsız destek katmanı yüksekliğini devre dışı bırakın ve hem destek arayüzü hem de destek tabanı için çözünebilir malzemeler kullanın"
+
+#~ msgid "Show object labels in 3D scene"
+#~ msgstr "3B sahnede nesne etiketlerini göster"
+
+#~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
+#~ msgstr "Dolambaçlı yoldan gidin ve yüzeyde lekeye neden olabilecek duvar boyunca ilerlemekten kaçının"
+
+#~ msgid "Air Condition"
+#~ msgstr "Klima"
+
+#~ msgid "Cannot read filament info: the filament is loaded to the tool head,please unload the filament and try again."
+#~ msgstr "Filament bilgisi okunamıyor: Filament alet kafasına yüklenmiştir, lütfen filamenti çıkartın ve tekrar deneyin."
+
+#~ msgid ""
+#~ "The currently selected machine preset is inconsistent with the connected printer type.\n"
+#~ "Are you sure to continue syncing?"
+#~ msgstr ""
+#~ "Şu anda seçili olan makine ön ayarı bağlı yazıcı türüyle tutarsız.\n"
+#~ "Senkronizasyona devam etmek istediğinizden emin misiniz?"
+
+#~ msgid "Helio does not support using a number of materials greater than 1."
+#~ msgstr "Helio, 1'den fazla malzeme kullanımını desteklemez."
+
+#~ msgid "Helio functions do not support the print sequence of \"ByObject\"."
+#~ msgstr "Helio fonksiyonları \"ByObject\" yazdırma sırasını desteklemez."
+
+#~ msgid "Third-party Extension"
+#~ msgstr "Üçüncü Taraf Uzantısı"
+
+#~ msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
+#~ msgstr "Daha güçlü parçalar, daha az bükülme, daha hızlı baskılar - hızlı fizik tabanlı FEM simülasyonu ile desteklenir"
+
+#~ msgid "Uninstall the Helio Additive extension"
+#~ msgstr "Helio Additive uzantısını kaldırma"
+
+#~ msgid "Use Immediately"
+#~ msgstr "Hemen Kullanın"
+
+#~ msgid "Third-Party Extension"
+#~ msgstr "Üçüncü Taraf Uzantısı"
+
+#~ msgid "Helio Additive third - party software service feature has been successfully enabled!"
+#~ msgstr "Helio Additive üçüncü taraf yazılım hizmeti özelliği başarıyla etkinleştirildi!"
+
+#~ msgid "Helio-PAT"
+#~ msgstr "Helio-PAT"
+
+#~ msgid "Privacy Policy of Helio Additive"
+#~ msgstr "Helio Additive Gizlilik Politikası"
+
+#~ msgid "Terms of Use of Helio Additive"
+#~ msgstr "Helio Additive Kullanım Koşulları"
+
+#~ msgid "Agree and proceed"
+#~ msgstr "Kabul edin ve devam edin"
+
+#~ msgid "Simulation"
+#~ msgstr "Simülasyon"
+
+#~ msgid "Optimization"
+#~ msgstr "Optimizasyon"
+
+#~ msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
+#~ msgstr "Not: Yukarıdaki sıcaklığı gerçek koşullara göre ayarlayın. Daha doğru veriler daha kesin analiz sonuçları sağlar."
+
+#~ msgid "Monthly quota remaining: "
+#~ msgstr "Kalan aylık kota: "
+
+#~ msgid "Add-ons available: "
+#~ msgstr "Eklentiler mevcut: "
+
+#~ msgid "Optimise Outer Walls"
+#~ msgstr "Dış Duvarları Optimize Edin"
+
+#~ msgid "Start Simulation"
+#~ msgstr "Simülasyonu Başlat"
+
+#~ msgid "Start Optimization"
+#~ msgstr "Optimizasyonu Başlat"
+
+#~ msgid "Buy add-ons"
+#~ msgstr "Eklentiler satın alın"
+
+#~ msgid "Layers to Optimize "
+#~ msgstr "Optimize Edilecek Katmanlar "
+
+#~ msgid ""
+#~ "Single-Material Only\n"
+#~ "Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
+#~ msgstr ""
+#~ "Yalnızca Tek Malzeme\n"
+#~ "Helio şu anda iş başına bir malzeme ve bir nozul simüle etmektedir. Çoklu malzeme veya çoklu ekstrüder G kodu, termal sürekliliği bozan uzun duraklamalar ekler, bu nedenle sonuçlar anlamlı olmaz."
+
+#~ msgid ""
+#~ "One Plate per Job\n"
+#~ "Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
+#~ msgstr ""
+#~ "İş Başına Bir Plaka\n"
+#~ "Tek bir yapım plakası ile G kodunu yükleyin — çok plakalı projeler henüz desteklenmemektedir, bu nedenle yalnızca ilk plaka çalışacaktır."
+
+#~ msgid ""
+#~ "What is the Thermal Quality Index?\n"
+#~ "The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
+#~ msgstr ""
+#~ "Termal Kalite Endeksi nedir?\n"
+#~ "Termal Kalite Endeksi (ölçek –100 ila +100), her bölgenin ne kadar sıcak veya soğuk yazdırıldığını gösterir—yeşil (≈ 0) güçlü, eğrilik içermeyen parçalar için “tam doğru” bölgedir. En iyi sonuçlar için parçanın çoğunu yeşil tutun."
+
+#~ msgid ""
+#~ "Voxel-Level Accuracy\n"
+#~ "We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
+#~ msgstr ""
+#~ "Voksel Düzeyinde Doğruluk\n"
+#~ "Her zaman adımında her vokseldeki sıcaklığı tahmin ediyoruz ve standart işler için tahmin genellikle ±5–10 °C aralığındadır. Duraklamalar, özel donanım yazılımı veya olağandışı soğutma bu marjı genişletebilir."
+
+#~ msgid ""
+#~ "Fan & Airflow Model\n"
+#~ "A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
+#~ msgstr ""
+#~ "Fan ve Hava Akışı Modeli\n"
+#~ "Basitleştirilmiş fan ve oda modeli, soğutma ayarlarının parça sıcaklıklarını nasıl değiştirdiğini yavaş CFD hesaplamaları olmadan gösterir; bu, günlük ayarlamalar için idealdir. Oda girdapları henüz simüle edilmediğinden, çalıştırmalar hızlı kalır."
+
+#~ msgid ""
+#~ "TQI Limits Explained\n"
+#~ "-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
+#~ msgstr ""
+#~ "TQI Sınırları Açıklaması\n"
+#~ "-100 → çok soğuk: gerilme mukavemeti ideal 0 değerinde basılan parçalara göre ~%50 daha düşüktür (ASTM D638 köpek kemiği testleri). +100 → çok sıcak: katmanlar erimiş halde kalır ve sarkabilir veya çökebilir. En yüksek mukavemet ve doğruluk için bölgeleri 0 değerine yakın tutun."
+
+#~ msgid ""
+#~ "What Drives Runtime?\n"
+#~ "Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
+#~ msgstr ""
+#~ "Çalışma Süresini Etkileyen Faktörler Nelerdir?\n"
+#~ "Ekstra katmanlar, yoğun dolgu, çok sayıda küçük yay (küçük ağ elemanları) veya çok yavaş baskı hızları, çözücünün daha fazla saniye boyunca adım adım ilerlemesi gerektiğinden simülasyon süresini uzatır. Çok çekirdekli CPU'lar veya CUDA GPU'lar işlemleri hızlandırır."
+
+#~ msgid ""
+#~ "Nozzle Temp Range\n"
+#~ "Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
+#~ msgstr ""
+#~ "Nozul Sıcaklık Aralığı\n"
+#~ "Desteklenen ayar noktaları 190 – 320 °C arasındadır; bu aralığın dışındaki değerler fiziksel gerçekçiliği korumak için sabitlenir."
+
+#~ msgid ""
+#~ "Debugging Flowchart\n"
+#~ "Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
+#~ msgstr ""
+#~ "Hata Ayıklama Akış Şeması\n"
+#~ "Sonucun neden yanlış göründüğünden emin değil misiniz? Ayarları, G kodunu ve malzeme sorunlarını dakikalar içinde izlemek için adım adım hata ayıklama akış şemamızı takip edin."
+
+#~ msgid ""
+#~ "Why Cooling Varies\n"
+#~ "Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
+#~ msgstr ""
+#~ "Soğutma Neden Değişir?\n"
+#~ "Dış duvarlar ve köprüler en hızlı şekilde soğurken, kalın iç kısımlar daha sıcak kalır. Geometri, hava akışı ve takım yolu bu konuda rol oynar ve simülasyon bu farklılıkları görselleştirir."
+
+#~ msgid ""
+#~ "Extrusion Temp Model\n"
+#~ "Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
+#~ msgstr ""
+#~ "Ekstrüzyon Sıcaklığı Modeli\n"
+#~ "Malzeme özellikleri erime eğrisini şekillendirir, ancak yazıcı geometrisi filamentin gerçekte ne kadar ısı kazandığını belirler, bu nedenle model malzemeye özeldir ve yazıcıya göre kalibre edilir."
+
+#~ msgid ""
+#~ "Nozzle setting of 190 °C vs 320 °C?\n"
+#~ "A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
+#~ msgstr ""
+#~ "190 °C ile 320 °C nozul ayarı?\n"
+#~ "100 °C'lik bir nozul değişikliği, ekstrüzyon sıcaklığı, akış hızı ve biriktirme sonrası soğutma parçanın ısı geçmişini domine ettiği için termal indeksi sadece hafifçe değiştirir."
+
+#~ msgid ""
+#~ "Bed Temperature influence\n"
+#~ "Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
+#~ msgstr ""
+#~ "Yatak Sıcaklığının Etkisi\n"
+#~ "Şu anda sadece ilk katman yatak sıcaklığı modele besleniyor; daha sonraki yatak değişiklikleri henüz kaydedilmiyor."
+
+#~ msgid ""
+#~ "Actual Tool-Path\n"
+#~ "Yes—your exact G-code path, speeds and fan commands are simulated."
+#~ msgstr ""
+#~ "Gerçek Takım Yolu\n"
+#~ "Evet — tam G kodu yolunuz, hızlarınız ve fan komutlarınız simüle edilir."
+
+#~ msgid ""
+#~ "Mesh Resolution\n"
+#~ "The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
+#~ msgstr ""
+#~ "Ağ Çözünürlüğü\n"
+#~ "Voksel ızgarası, G kodu satır aralığından daha incedir ve hesaplama gücünü boşa harcamadan katman katman ayrıntıları yakalar."
+
+#~ msgid ""
+#~ "Shrinkage, Warping & Stress\n"
+#~ "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
+#~ msgstr ""
+#~ "Büzülme, Çarpılma ve Gerilim\n"
+#~ "Termal indeksi kontrol ederek, ısı kaynaklı çarpılma ve gerilimin nedenlerini ortadan kaldırabilirsiniz."
 
 #~ msgid "Join Customer Experience Improvement Program."
 #~ msgstr "Müşteri Deneyimi İyileştirme Programına katılın."
@@ -16133,9 +17780,6 @@ msgstr ""
 
 #~ msgid "https://www.helioadditive.com/"
 #~ msgstr "https://www.helioadditive.com/"
-
-#~ msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
-#~ msgstr "Bu özelliği etkinleştirmek için onay verdiğinizde, yukarıdaki beyanları onayladığınız ve kabul ettiğiniz anlamına gelir."
 
 #~ msgid "Agree"
 #~ msgstr "Kabul"
@@ -16914,12 +18558,6 @@ msgstr ""
 
 #~ msgid "Set the brim type to \"painted\""
 #~ msgstr "Kenar tipini \"boyalı\" olarak ayarlayın"
-
-#~ msgid "?"
-#~ msgstr "?"
-
-#~ msgid "/"
-#~ msgstr "/"
 
 #~ msgid "AMS not connected"
 #~ msgstr "AMS bağlı değil"

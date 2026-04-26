@@ -7,6 +7,7 @@
 #include "format.hpp"
 #include "MsgDialog.hpp"
 #include "slic3r/Utils/CalibUtils.hpp"
+#include "DeviceCore/DevConfigUtil.h"
 
 #include "DeviceCore/DevExtruderSystem.h"
 #include "DeviceCore/DevManager.h"
@@ -139,9 +140,12 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
 
     m_extruder_switch_btn = new SwitchButton(scroll_window);
     m_extruder_switch_btn->SetBackgroundColour(wxColour(0, 174, 66));
-    m_extruder_switch_btn->SetMinSize(wxSize(FromDIP(120), FromDIP(24)));
-    m_extruder_switch_btn->SetMaxSize(wxSize(FromDIP(120), FromDIP(24)));
-    m_extruder_switch_btn->SetLabels(_L("Left Nozzle"), _L("Right Nozzle"));
+    m_extruder_switch_btn->SetMinSize(wxSize(FromDIP(200), FromDIP(24)));
+    m_extruder_switch_btn->SetMaxSize(wxSize(FromDIP(200), FromDIP(24)));
+    std::string chd_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    m_extruder_switch_btn->SetLabels(
+        _L(DevPrinterConfigUtil::get_toolhead_display_name(chd_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)),
+        _L(DevPrinterConfigUtil::get_toolhead_display_name(chd_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
     m_extruder_switch_btn->Bind(wxEVT_TOGGLEBUTTON, &HistoryWindow::on_switch_extruder, this);
     m_extruder_switch_btn->SetValue(false);
     scroll_sizer->Add(m_extruder_switch_btn, 0, wxCENTER | wxALL, FromDIP(10));
@@ -261,10 +265,14 @@ void HistoryWindow::on_device_connected(MachineObject* obj)
     }
     m_comboBox_nozzle_dia->SetSelection(selection);
 
-    if (obj->is_multi_extruders())
+    if (obj->is_multi_extruders()) {
+        m_extruder_switch_btn->SetLabels(
+            _L(DevPrinterConfigUtil::get_toolhead_display_name(obj->printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)),
+            _L(DevPrinterConfigUtil::get_toolhead_display_name(obj->printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::TitleCase)));
         m_extruder_switch_btn->Show();
-    else
+    } else {
         m_extruder_switch_btn->Hide();
+    }
 
     // trigger on_select nozzle
     wxCommandEvent evt(wxEVT_COMBOBOX);
@@ -366,7 +374,11 @@ void HistoryWindow::sync_history_data() {
         auto font = nozzle_name->GetFont();
         font.SetUnderlined(true);
         nozzle_name->SetFont(font);
-        nozzle_name->SetToolTip(_L("Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."));
+        {
+            std::string chd_tt_pt = curr_obj ? curr_obj->printer_type : wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+            wxString chd_ext_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(chd_tt_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase));
+            nozzle_name->SetToolTip(wxString::Format(_L("Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."), chd_ext_name));
+        }
         gbSizer->Add(nozzle_name, {0, column_idx++}, {1, 1}, wxBOTTOM, FromDIP(15));
     }
 
@@ -595,8 +607,8 @@ EditCalibrationHistoryDialog::EditCalibrationHistoryDialog(wxWindow             
     if (obj && obj->is_multi_extruders()) {
 
         Label   *extruder_name_title = new Label(top_panel, _L("Extruder"));
-        int    extruder_index      = obj->is_main_extruder_on_left() ? result.extruder_id : 1 - result.extruder_id;
-        wxString extruder_name       = extruder_index == 0 ? _L("Left") : _L("Right");
+        wxString extruder_name       = _L(DevPrinterConfigUtil::get_toolhead_display_name(
+            obj->printer_type, result.extruder_id, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true));
         Label   *extruder_name_value   = new Label(top_panel, extruder_name);
         flex_sizer->Add(extruder_name_title);
         flex_sizer->Add(extruder_name_value);
@@ -850,8 +862,10 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
         Label *extruder_name_title = new Label(top_panel, _L("Extruder"));
         m_comboBox_extruder      = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
         wxArrayString extruder_items;
-        extruder_items.push_back(_L("Left"));
-        extruder_items.push_back(_L("Right"));
+        extruder_items.push_back(_L(DevPrinterConfigUtil::get_toolhead_display_name(
+            curr_obj->printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true)));
+        extruder_items.push_back(_L(DevPrinterConfigUtil::get_toolhead_display_name(
+            curr_obj->printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true)));
         m_comboBox_extruder->Set(extruder_items);
         m_comboBox_extruder->SetSelection(-1);
         m_comboBox_extruder->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, &NewCalibrationHistoryDialog::on_select_extruder, this);
@@ -901,12 +915,8 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
         m_comboBox_nozzle_type   = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
         m_comboBox_nozzle_type->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, &NewCalibrationHistoryDialog::on_select_nozzle_volume, this);
 
-        std::vector<NozzleVolumeType> volumes = { nvtStandard, nvtHighFlow, nvtTPUHighFlow};
-        auto volume_set = get_valid_nozzle_volume_type();
-
-        for(const auto & volume_type : volumes) {
-            if(volume_set.find(volume_type) != volume_set.end())
-                m_comboBox_nozzle_type->Append(DevNozzle::GetNozzleVolumeTypeStr(volume_type), wxNullBitmap, new int{volume_type});
+        for (auto [volume_type, diameters] : CalibUtils::get_supported_nozzle_volume_and_diameters(curr_obj)) {
+            m_comboBox_nozzle_type->Append(DevNozzle::GetNozzleVolumeTypeStr(volume_type), wxNullBitmap, new int{volume_type});
         }
         m_comboBox_nozzle_type->SetSelection(-1);
         flex_sizer->Add(nozzle_name_title);
@@ -1052,7 +1062,11 @@ void NewCalibrationHistoryDialog::on_select_nozzle_volume(wxCommandEvent &event)
     NozzleVolumeType volume_type = NozzleVolumeType(*(reinterpret_cast<int *>(m_comboBox_nozzle_type->GetClientData(sel))));
 
     m_comboBox_nozzle_diameter->Clear();
-    for (auto diameter : nozzle_diameter_list) {
+
+    auto volume_diamters_map = CalibUtils::get_supported_nozzle_volume_and_diameters(curr_obj);
+    if (volume_diamters_map.find(volume_type) == volume_diamters_map.end()) return;
+
+    for (auto diameter : volume_diamters_map[volume_type]) {
         if (is_high_volume(volume_type) && diameter == NozzleDiameterType::NOZZLE_DIAMETER_0_2) continue;
 
         m_comboBox_nozzle_diameter->Append(wxString::Format("%1.1f mm", DevNozzle::ToNozzleDiameterFloat(diameter)), wxNullBitmap, new int{diameter});

@@ -44,6 +44,7 @@ namespace Slic3r
 
         static float                ToNozzleDiameterFloat(const NozzleDiameterType& type);
         static NozzleDiameterType   ToNozzleDiameterType(float diameter);
+        static NozzleDiameterType   ToNozzleDiameterType(const std::string& diameter);
         static wxString             ToNozzleDiameterStr(const NozzleDiameterType& type);
 
    public:
@@ -61,6 +62,7 @@ namespace Slic3r
        float          GetNozzleDiameter() const { return m_diameter; }
        float          GetNozzleWear() const { return m_wear; }
 
+       int            GetNozzlePrintTime() const { return m_nozzle_print_time; }
        // display
        wxString GetDisplayId() const;
        wxString GetNozzleDiameterStr() const {  return wxString::Format("%.1f mm", m_diameter);}
@@ -74,7 +76,9 @@ namespace Slic3r
        // location
        bool AtLeftExtruder() const;
        bool AtRightExtruder() const;
+
        int  GetLogicExtruderId() const;// warning: logical extruder id
+       int  GetExtruderId() const;// warning: physical extruder id
 
        /* holder nozzle*/
        bool IsOnRack() const { return m_on_rack; }
@@ -103,6 +107,7 @@ namespace Slic3r
        std::string m_filament_clr;// main color
 
        std::weak_ptr<DevNozzleRack> m_nozzle_rack; // weak pointer to the nozzle rack
+       int m_nozzle_print_time{0};
    };
 
    class DevNozzleSystem
@@ -129,6 +134,7 @@ namespace Slic3r
        bool                            ContainsExtNozzle(int id) const { return m_ext_nozzles.find(id) != m_ext_nozzles.end(); }
        DevNozzle                       GetExtNozzle(int id) const;
        const std::map<int, DevNozzle>& GetExtNozzles() const { return m_ext_nozzles;}
+       int                             GetExtNozzleCount() const { return m_ext_nozzles.size();}
 
        // nozzles on rack
        void  SetSupportNozzleRack(bool supported);

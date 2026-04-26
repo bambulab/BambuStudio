@@ -27,8 +27,6 @@
 #include "UnsavedChangesDialog.hpp"
 #include "Widgets/SideButton.hpp"
 #include "Widgets/SideMenuPopup.hpp"
-#include "FilamentGroupPopup.hpp"
-
 
 // BBS
 #include "BBLTopbar.hpp"
@@ -52,6 +50,7 @@ class PrintHostQueueDialog;
 class Plater;
 class MainFrame;
 class ParamsDialog;
+class FilamentGroupPopup;
 
 enum QuickSlice
 {
@@ -329,6 +328,7 @@ public:
     void        request_select_tab(TabPosition pos);
     int         get_calibration_curr_tab();
     void        select_view(const std::string& direction);
+    void        view_zoom_to_fit() const;
     // Propagate changed configuration from the Tab to the Plater and save changes to the AppConfig
     void        on_config_changed(DynamicPrintConfig* cfg) const ;
     void        set_print_button_to_default(PrintSelectType select_type);
@@ -428,6 +428,8 @@ public:
     void*				m_hDeviceNotify { nullptr };
     uint32_t  			m_ulSHChangeNotifyRegister { 0 };
 	static constexpr int WM_USER_MEDIACHANGED { 0x7FFF }; // WM_USER from 0x0400 to 0x7FFF, picking the last one to not interfere with wxWidgets allocation
+    bool                m_is_in_move_or_resize { false };
+    ULONGLONG           m_last_resize_layout_ms { 0 };
 #endif // _WIN32
 };
 

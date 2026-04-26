@@ -1040,7 +1040,7 @@ wxBoxSizer *PreferencesDialog::create_item_button(wxString title, wxString title
     temp_button->SetMinSize(PreferenceBtnSize);
     temp_button->SetSize(wxSize(FromDIP(58), FromDIP(22)));
     temp_button->SetCornerRadius(FromDIP(12));
-    temp_button->SetToolTip(tooltip);
+    if(!tooltip.empty()) temp_button->SetToolTip(tooltip);
 
 
     temp_button->Bind(wxEVT_BUTTON, [this, onclick](auto &e) { onclick(); });
@@ -1131,6 +1131,7 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
     : DPIDialog(parent, id, _L("Preferences"), pos, size, style)
 {
     SetBackgroundColour(*wxWHITE);
+    m_original_use_12h_time_format = wxGetApp().app_config->get("use_12h_time_format");
     create();
     wxGetApp().UpdateDlgDarkUI(this);
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
@@ -1144,6 +1145,11 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
                 agent->track_event("preferences_changed", j.dump());
             }
         } catch(...) {}
+
+        // Check if time format changed
+        std::string current_use_12h_time_format = wxGetApp().app_config->get("use_12h_time_format");
+        m_use_12h_time_format_changed = (m_original_use_12h_time_format != current_use_12h_time_format);
+
         event.Skip();
         });
 }
@@ -1298,6 +1304,7 @@ wxWindow* PreferencesDialog::create_general_page()
 
     std::vector<wxString> Units         = {_L("Metric") + " (mm, g)", _L("Imperial") + " (in, oz)"};
     auto item_currency = create_item_combobox(_L("Units"), page, _L("Units"), "use_inches", Units,{"0","1"});
+    auto item_12h_time_format = create_item_checkbox(_L("Use 12-hour time format"), page, _L("Display time in 12-hour format with AM/PM instead of 24-hour format"), 50, "use_12h_time_format");
     auto item_single_instance = create_item_checkbox(_L("Keep only one Bambu Studio instance"), page,
 #if __APPLE__
         _L("On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances "
@@ -1319,12 +1326,13 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_step_mesh_setting = create_item_checkbox(_L("Show the step mesh parameter setting dialog."), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), 50, "enable_step_mesh_setting");
     auto item_beta_version_update = create_item_checkbox(_L("Support beta version update."), page, _L("With this option enabled, you can receive beta version updates."), 50, "enable_beta_version_update");
     auto item_mix_print_high_low_temperature = create_item_checkbox(_L("Remove the restriction on mixed printing of high and low temperature filaments."), page, _L("With this option enabled, you can print materials with a large temperature difference together."), 50, "enable_high_low_temp_mixed_printing");
-    auto item_restore_hide_pop_ups = create_item_button(_L("Clear my choice for synchronizing printer preset after loading the file."), _L("Clear"), page, _L("Clear my choice for synchronizing printer preset after loading the file."), []() {
+    auto item_restore_hide_pop_ups = create_item_button(_L("Clear my choice for synchronizing printer preset after loading the file."), _L("Clear"), page, {}, []() {
         wxGetApp().app_config->erase("app", "sync_after_load_file_show_flag");
     });
-    auto  item_restore_hide_3mf_info = create_item_button(_L("Clear my choice for Load 3mf dialog settings."), _L("Clear"), page, _L("Show the warning dialog again when importing non-Bambu 3MF files"),[]() {
+    auto  item_restore_hide_3mf_info = create_item_button(_L("Clear my choice for Load 3mf dialog settings."), _L("Clear"), page, {}, []() {
         wxGetApp().app_config->erase("app", "skip_non_bambu_3mf_warning");
     });
+
     auto _3d_settings    = create_item_title(_L("3D Settings"), page, _L("3D Settings"));
     auto item_mouse_zoom_settings  = create_item_checkbox(_L("Zoom to mouse position"), page,
                                                          _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50,
@@ -1341,6 +1349,24 @@ wxWindow* PreferencesDialog::create_general_page()
     auto  item_enable_record_gcodeviewer_option_item = create_item_checkbox(_L("Remember last used color scheme"), page,
                                                                  _L("When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."), 50,
                                                                  "enable_record_gcodeviewer_option_item");
+
+    std::vector<wxString> assemble_view_preview_options = { _L("Auto"), _L("Open"), _L("Close") };
+    auto enable_assemble_view_preview_settings = create_item_combobox(_L("Display overview"), page,
+        _L("Display overview"), "enable_assemble_view_preview",
+        assemble_view_preview_options, { "Auto", "Open", "Close" },
+        [](int idx) {
+            wxGetApp().app_config->set("enable_assemble_view_preview", idx == 0 ? "Auto" : idx == 1 ? "Open" : "Close");
+            if (wxGetApp().app_config->get("enable_assemble_view_preview") == "Auto") {
+                wxGetApp().app_config->set_bool("enable_bvh", true);
+            } else if (wxGetApp().app_config->get("enable_assemble_view_preview") == "Open") {
+                wxGetApp().app_config->set_bool("enable_bvh", false);
+            }
+        },FromDIP(150), FromDIP(120));
+#if !BBL_RELEASE_TO_PUBLIC
+    auto  show_assembly_bvh_bounds_settings = create_item_checkbox(_L("Show assembly BVH primary bounds"), page,
+                                                        _L("Display the BVH primary bounding box wireframe in assembly view."), 50,
+                                                        "show_assembly_bvh_bounds");
+#endif
     auto  enable_lod_settings       = create_item_checkbox(_L("Improve rendering performance by lod"), page,
                                                          _L("Improved rendering performance under the scene of multiple plates and many models."), 50,
                                                          "enable_lod");
@@ -1403,7 +1429,7 @@ wxWindow* PreferencesDialog::create_general_page()
         if (value.ToLong(&max))
             wxGetApp().mainframe->set_max_recent_count(max);
     });
-    auto item_save_choise = create_item_button(_L("Clear my choice on the unsaved projects."), _L("Clear"), page, _L("Clear my choice on the unsaved projects."), []() {
+    auto item_save_choise = create_item_button(_L("Clear my choice on the unsaved projects."), _L("Clear"), page, {}, []() {
         wxGetApp().app_config->set("save_project_choise", "");
     });
     // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
@@ -1463,6 +1489,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_bed_type_follow_preset, 0, wxTOP, FromDIP(3));
     //sizer_page->Add(item_hints, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_multi_machine, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_12h_time_format, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_step_mesh_setting, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_beta_version_update, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_auto_transfer_when_switch_preset, 0, wxTOP, FromDIP(3));
@@ -1475,6 +1502,10 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_import_single_svg_and_split, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_gamma_correct_in_import_obj, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_enable_record_gcodeviewer_option_item, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(enable_assemble_view_preview_settings, 0, wxTOP, FromDIP(3));
+#if !BBL_RELEASE_TO_PUBLIC
+    sizer_page->Add(show_assembly_bvh_bounds_settings, 0, wxTOP, FromDIP(3));
+#endif
 
     sizer_page->Add(enable_lod_settings, 0, wxTOP, FromDIP(3));
     sizer_page->Add(enable_advanced_gcode_viewer, 0, wxTOP, FromDIP(3));

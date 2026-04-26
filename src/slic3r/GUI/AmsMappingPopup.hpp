@@ -49,6 +49,7 @@ class DevNozzleRack;
 namespace GUI
 {
 class wgtDeviceNozzleRackSelect;
+class wgtMsgPanel;
 };
 };
 
@@ -67,7 +68,8 @@ enum TrayType {
 enum ShowType {
     LEFT,   //  only show left ams and left ext
     RIGHT,  //only show right ams and right ext
-    LEFT_AND_RIGHT  //show left and right ams at the same time
+    LEFT_AND_RIGHT,  //show left and right ams at the same time
+    LEFT_AND_RIGHT_DYNAMIC  //show all left and right at one panel when use_dynamic_switch
 };
 
 struct TrayData
@@ -98,6 +100,7 @@ public:
 
     void allow_paint_dropdown(bool flag);
 
+    void set_ams_text(const wxString& txt);
     void set_ams_info(wxColour col, wxString txt,
                       int ctype = 0, std::vector<wxColour> cols = std::vector<wxColour>(),
                       bool record_back_info = false);
@@ -111,6 +114,9 @@ public:
     void on_normal();
     void on_selected();
     void on_warning();
+
+    bool is_selected() const { return m_selected;}
+    bool is_warning() const { return m_warning;}
 
     void msw_rescale();
 
@@ -190,7 +196,7 @@ public:
 public:
     void update_data(TrayData data);
     void send_event(int fliament_id);
-    void set_data(const wxString& tag_name, wxColour colour, wxString name, bool remain_detect, TrayData data, bool unmatch = false);
+    void set_data(const wxString& tag_name, wxColour colour, wxString name, bool remain_detect, TrayData data, bool unmatch = false, std::optional<wxString> tooltip_opt = std::nullopt);
     void set_checked(bool checked);
     void set_tray_index(wxString t_index) { m_tray_index = t_index; };
 
@@ -257,7 +263,6 @@ private:
 class AmsMapingPopup : public PopupWindow
 {
     bool m_use_in_sync_dialog = false;
-    bool m_ams_remain_detect_flag = false;
     bool m_ext_mapping_filatype_check = true;
     wxStaticText* m_title_text{ nullptr };
 
@@ -296,15 +301,15 @@ public:
     MappingItem* m_left_extra_slot{nullptr};
     MappingItem* m_right_extra_slot{nullptr};
 
-    wxPanel *    m_main_panel{nullptr};
     wxPanel *    m_left_marea_panel{nullptr};
-    wxPanel *    m_right_marea_panel{nullptr};
+    wxPanel*     m_right_marea_panel{ nullptr }; // used as right if both left and right sides shown. used as single panel if only one side shown.
     wxPanel *    m_left_first_text_panel{nullptr};
     wxPanel *    m_right_first_text_panel{nullptr};
-    wxPanel *    m_ams_tips_panel{nullptr};
+    wgtMsgPanel* m_ams_tips_msg_panel{nullptr};
     wxPanel *    m_split_line_panel{nullptr};
     wxBoxSizer * m_left_split_ams_sizer{nullptr};
     wxBoxSizer * m_right_split_ams_sizer{nullptr};
+    wxBoxSizer * m_right_split_ext_sizer{ nullptr };
     Label *      m_left_tips{nullptr};
     Label *      m_right_tips{nullptr};
 
@@ -323,10 +328,8 @@ public:
     void         set_send_win(wxWindow* win) {send_win = win;};
     void         update_materials_list(std::vector<std::string> list);
     void         set_tag_texture(std::string texture);
-    void         update(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result);
-    void         update_title(MachineObject* obj);
-    void         update_rack_select(MachineObject* obj);
-    void         update_amsmappping_tips(bool show);
+    void         update(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result, bool use_dynamic_switch = false, std::optional<PrintFromType> print_type = std::nullopt);
+    void         update_rack_select(MachineObject* obj, bool use_dynamic_switch, std::optional<PrintFromType> print_type);
     void         update_items_check_state(const std::vector<FilamentInfo>& ams_mapping_result);
     void         update_ams_data_multi_machines();
     void         add_ams_mapping(std::vector<TrayData> tray_data, bool remain_detect_flag, wxWindow *container, wxBoxSizer *sizer);
@@ -341,13 +344,18 @@ public:
     void         set_parent_item(MaterialItem* item) {m_parent_item = item;};
     void         set_show_type(ShowType type) { m_show_type = type; };
 
+#ifdef __APPLE__
+    void on_mouse_move(wxMouseEvent &evt);
+    wxPopupWindow * m_tip_popup{nullptr};
+    wxStaticText* m_tip_label{nullptr};
+#endif
+
     using ResetCallback = std::function<void(const std::string&)>;
     void reset_ams_info();
     void set_reset_callback(ResetCallback callback);
     void  show_reset_button();
     void  set_material_index_str(std::string str) { m_material_index = str; }
     const std::string &get_material_index_str() { return m_material_index; }
-    void  set_only_show_ext_spool(bool flag);
 
 public:
     void msw_rescale();
@@ -355,6 +363,11 @@ public:
     void EnableExtMappingFilaTypeCheck(bool to_check = true) { m_ext_mapping_filatype_check = to_check;} ;
 
 private:
+    // update
+    void update_title(MachineObject* obj);
+    void update_ams_tips(MachineObject* obj);
+    void update_mapping_items(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result, bool use_dynamic_switch);
+
     // events
     void OnNozzleMappingSelected(wxCommandEvent& evt);
     void update_flush_waste(MachineObject* obj);
@@ -364,7 +377,6 @@ private:
 
     ResetCallback m_reset_callback{nullptr};
     std::string m_material_index;
-    bool m_only_show_ext_spool{false};
 };
 
 class AmsMapingTipPopup : public PopupWindow

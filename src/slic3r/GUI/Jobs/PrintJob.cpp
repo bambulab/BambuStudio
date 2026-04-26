@@ -262,6 +262,7 @@ void PrintJob::process()
     params.task_vibration_cali  = this->task_vibration_cali;
     params.task_layer_inspect   = this->task_layer_inspect;
     params.task_record_timelapse= this->task_record_timelapse;
+    params.task_timelapse_use_internal = this->task_timelapse_use_internal;
     params.nozzle_mapping       = this->task_nozzle_mapping;
     params.ams_mapping          = this->task_ams_mapping;
     params.ams_mapping2         = this->task_ams_mapping2;

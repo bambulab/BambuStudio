@@ -1,8 +1,13 @@
 #include "FilamentMapPanel.hpp"
 #include "Widgets/MultiNozzleSync.hpp"
 #include "GUI_App.hpp"
+#include "DeviceCore/DevConfigUtil.h"
+#include <boost/log/trivial.hpp>
+#include <cassert>
 #include <wx/dcbuffer.h>
 #include "wx/graphics.h"
+#include <map>
+#include <algorithm>
 
 namespace Slic3r { namespace GUI {
 
@@ -253,12 +258,14 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
 
     m_description = new Label(this, _L("We will slice according to this grouping method:"));
     top_sizer->Add(m_description, 0, wxALIGN_LEFT | wxLEFT, FromDIP(15));
+    m_description->Wrap(FromDIP(520));
     top_sizer->AddSpacer(FromDIP(8));
 
     auto drag_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_left_panel  = new DragDropPanel(this, _L("Left Extruder"), false);
-    m_right_panel = new SeparatedDragDropPanel(this, _L("Right Extruder"), false);
+    std::string pt_fmp = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    m_left_panel  = new DragDropPanel(this, _L(DevPrinterConfigUtil::get_toolhead_display_name(pt_fmp, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase)), false);
+    m_right_panel = new SeparatedDragDropPanel(this, _L(DevPrinterConfigUtil::get_toolhead_display_name(pt_fmp, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase)), false);
     m_switch_btn  = new ScalableButton(this, wxID_ANY, "switch_filament_maps");
 
     UpdateNozzleVolumeType();
@@ -292,12 +299,14 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
     m_tips = new Label(this, _L("Tips: You can drag the filaments to reassign them to different nozzles."));
     m_tips->SetFont(Label::Body_13);
     m_tips->SetForegroundColour(TextNormalGreyColor);
+    m_tips->Wrap(FromDIP(520));
     top_sizer->AddSpacer(FromDIP(20));
     top_sizer->Add(m_tips, 0, wxALIGN_LEFT | wxLEFT, FromDIP(15));
 
     m_errors = new Label(this, "");
     m_errors->SetFont(Label::Body_13);
     m_errors->SetForegroundColour(TextErrorColor);
+    m_errors->Wrap(FromDIP(520));
     top_sizer->AddSpacer(FromDIP(10));
     top_sizer->Add(m_errors, 0, wxALIGN_LEFT | wxLEFT, FromDIP(15));
 
@@ -331,6 +340,7 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
     m_switch_btn->Bind(wxEVT_BUTTON, &FilamentMapManualPanel::OnSwitchFilament, this);
 
     SetSizer(top_sizer);
+    SetMinSize(wxSize(FromDIP(580), -1));
     Layout();
     Fit();
     if (GetParent()) {
@@ -367,18 +377,22 @@ void FilamentMapManualPanel::UpdateNozzleCountDisplay()
 {
     auto preset_bundle = wxGetApp().preset_bundle;
 
+    std::string fmp_up_pt = preset_bundle->printers.get_edited_preset().get_printer_type(preset_bundle);
+    wxString dep_ext_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(fmp_up_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase));
+    wxString main_ext_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(fmp_up_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase));
+
     int left_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(0);
-    wxString left_title = wxString::Format(_L("Left Extruder(%d)"), left_count);
+    wxString left_title = wxString::Format(dep_ext_name + "(%d)", left_count);
     m_left_panel->UpdateLabel(left_title);
 
     if (m_right_panel->IsUseSeparation()) {
         int standard_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1, NozzleVolumeType::nvtStandard);
         int highflow_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1, NozzleVolumeType::nvtHighFlow);
-        wxString right_title = wxString::Format(_L("Right Extruder(Std: %d, HF: %d)"), standard_count, highflow_count);
+        wxString right_title = wxString::Format(main_ext_name + "(Std: %d, HF: %d)", standard_count, highflow_count);
         m_right_panel->UpdateLabel(right_title);
     } else {
         int right_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1);
-        wxString right_title = wxString::Format(_L("Right Extruder(%d)"), right_count);
+        wxString right_title = wxString::Format(main_ext_name + "(%d)", right_count);
         m_right_panel->UpdateLabel(right_title);
     }
 }
@@ -459,27 +473,34 @@ GUI::FilamentMapBtnPanel::FilamentMapBtnPanel(wxWindow *parent, const wxString &
     label_sizer->Add(m_label, 0, wxALIGN_CENTER | wxEXPAND| wxALL, FromDIP(3));
     label_sizer->AddStretchSpacer();
 
+    auto label_width = label_sizer->GetMinSize().GetWidth();
+    auto pwidth = label_width + FromDIP(24) * 2;
+    const int panel_width = std::max(FromDIP(160), pwidth);
+
     m_disable_tip = new Label(this, _L("(Sync with printer)"));
 
-    sizer->AddSpacer(FromDIP(32));
+    sizer->AddSpacer(FromDIP(20));
     sizer->Add(label_sizer, 0, wxALIGN_CENTER | wxEXPAND);
     sizer->Add(m_disable_tip, 0, wxALIGN_CENTER);
     sizer->AddSpacer(FromDIP(3));
 
-    auto detail_sizer = new wxBoxSizer(wxHORIZONTAL);
+    //auto detail_sizer = new wxBoxSizer(wxVERTICAL);
     m_detail          = new Label(this, detail);
     m_detail->SetFont(Label::Body_12);
     m_detail->SetForegroundColour(TextNormalGreyColor);
-    m_detail->Wrap(FromDIP(180));
+    int text_width = panel_width - horizontal_margin * 2;
+    m_detail->SetMaxSize(wxSize(text_width, -1));
+    m_detail->Wrap(text_width);
 
-    detail_sizer->AddStretchSpacer();
-    detail_sizer->Add(m_detail, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, horizontal_margin);
-    detail_sizer->AddStretchSpacer();
+    //detail_sizer->AddStretchSpacer();
+    //detail_sizer->Add(m_detail, 1, wxALIGN_CENTER | wxLEFT | wxRIGHT, horizontal_margin);
+    //detail_sizer->AddStretchSpacer();
 
-    sizer->Add(detail_sizer, 0, wxALIGN_CENTER | wxEXPAND);
+    sizer->Add(m_detail, 1, wxALIGN_CENTER | wxEXPAND);
     sizer->AddSpacer(FromDIP(10));
 
     SetSizer(sizer);
+    SetMinSize(wxSize(panel_width, -1));
     Layout();
     Fit();
 
@@ -608,65 +629,129 @@ void GUI::FilamentMapBtnPanel::Show()
     wxPanel::Show();
 }
 
-FilamentMapAutoPanel::FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mode, bool machine_synced) : wxPanel(parent)
+FilamentMapAutoPanel::FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mode, bool machine_synced, const std::vector<FilamentMapMode>& available_modes) : wxPanel(parent)
 {
-    const wxString AutoForFlushDetail = _L("Generates filament grouping for the left and right nozzles based on the most filament-saving principles to minimize waste");
+    std::string pt_auto = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    wxString main_nz_auto   = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt_auto, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
+    wxString deputy_nz_auto = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt_auto, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
 
-    const wxString AutoForMatchDetail = _L("Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment");
+    const wxString AutoForFlushDetail = wxString::Format(_L("Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"), deputy_nz_auto, main_nz_auto);
 
-    auto                  sizer              = new wxBoxSizer(wxHORIZONTAL);
-    m_flush_panel                            = new FilamentMapBtnPanel(this, _L("Filament-Saving Mode"), AutoForFlushDetail, "flush_mode_panel_icon");
-    m_match_panel                            = new FilamentMapBtnPanel(this, _L("Convenience Mode"), AutoForMatchDetail, "match_mode_panel_icon");
+    const wxString AutoForMatchDetail = wxString::Format(_L("Generates filament grouping for the %s and %s based on the printer's actual filament status, reducing the need for manual filament adjustment"), deputy_nz_auto, main_nz_auto);
 
-    if (!machine_synced) m_match_panel->Enable(false);
+    const wxString AutoForQualityDetail = wxString::Format(_L("Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"), deputy_nz_auto, main_nz_auto);
 
-    sizer->AddStretchSpacer();
-    sizer->Add(m_flush_panel, 1, wxEXPAND);
-    sizer->AddSpacer(FromDIP(12));
-    sizer->Add(m_match_panel, 1, wxEXPAND);
-    sizer->AddStretchSpacer();
-
-    m_flush_panel->Bind(wxEVT_LEFT_DOWN, [this](auto& event) {
-        if (m_flush_panel->IsEnabled()) {
-            this->OnModeSwitch(FilamentMapMode::fmmAutoForFlush);
-        }
-    });
-
-    m_match_panel->Bind(wxEVT_LEFT_DOWN, [this](auto &event) {
-        if (m_match_panel->IsEnabled()) {
-            this->OnModeSwitch(FilamentMapMode::fmmAutoForMatch);
-        }
-    });
-
+    m_machine_synced = machine_synced;
+    m_available_modes = available_modes;
     m_mode = mode;
+
+    // Create mode panels based on available modes
+    auto sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    // Define all possible modes with their labels and details
+    std::map<FilamentMapMode, std::pair<wxString, wxString>> mode_info = {
+        {fmmAutoForFlush, {_L("Filament-Saving Mode"), AutoForFlushDetail}},
+        {fmmAutoForMatch, {_L("Convenience Mode"), AutoForMatchDetail}},
+        {fmmAutoForQuality, {_L("Quality Mode"), AutoForQualityDetail}}
+    };
+
+    // Create panels for available modes
+    for (const auto& available_mode : m_available_modes) {
+        auto it = mode_info.find(available_mode);
+        if (it == mode_info.end()) {
+            assert(false && "invalid auto mode");
+            BOOST_LOG_TRIVIAL(warning) << "invalid auto mode skipped: " << mode;
+            continue;
+        }
+
+        const auto &label  = it->second.first;
+        const auto &detail = it->second.second;
+        const auto &icon   = GetIconForMode(available_mode);
+
+        auto panel = new FilamentMapBtnPanel(this, label, detail, icon);
+
+        // Disable match mode if not machine synced
+        if (available_mode == fmmAutoForMatch && !m_machine_synced) { panel->Enable(false); }
+
+        m_mode_panels.push_back(panel);
+
+        // Bind click event
+        panel->Bind(wxEVT_LEFT_DOWN, [this, available_mode, panel](auto &event) {
+            if (panel->IsEnabled()) { this->OnModeSwitch(available_mode); }
+        });
+    }
+
+    // Calculate width based on number of modes
+    int num_modes = m_mode_panels.size();
+    if (num_modes > 0) {
+        int dialog_width = FromDIP(580);
+        if (GetParent() != nullptr) {
+            int parent_width = GetParent()->GetClientSize().GetWidth();
+            if (parent_width > 0)
+                dialog_width = parent_width;
+        }
+        int spacer_width = FromDIP(20);
+        int side_margin = FromDIP(30);
+        int total_spacer_width = spacer_width * (num_modes - 1);
+        int available_width = dialog_width - total_spacer_width - side_margin * 2;
+        if (available_width <= 0)
+            available_width = dialog_width;
+        int panel_width = available_width / num_modes;
+
+        int max_width = FromDIP(160);
+        panel_width = std::min(panel_width, max_width);
+
+        sizer->AddStretchSpacer();
+
+        int max_height = 0;
+        for (size_t i = 0; i < m_mode_panels.size(); ++i) {
+            int best_h = m_mode_panels[i]->GetBestSize().GetHeight();
+            max_height = std::max(best_h, max_height);
+        }
+
+        for (size_t i = 0; i < m_mode_panels.size(); ++i) {
+            if (i > 0) {
+                sizer->AddSpacer(spacer_width);
+            }
+            auto* panel = m_mode_panels[i];
+            sizer->Add(panel, 1, wxEXPAND | wxFIXED_MINSIZE, 0);
+            panel->SetMinSize(wxSize(panel->GetMinSize().GetWidth(), max_height));
+            panel->SetMaxSize(wxSize(panel->GetMaxSize().GetWidth(), max_height));
+        }
+        sizer->AddStretchSpacer();
+    }
+
     UpdateStatus();
 
+    // Set sizer and fit
     SetSizerAndFit(sizer);
     Layout();
+
     GUI::wxGetApp().UpdateDarkUIWin(this);
 }
+
 void FilamentMapAutoPanel::Hide()
 {
-    m_flush_panel->Hide();
-    m_match_panel->Hide();
+    for (auto panel : m_mode_panels) {
+        panel->Hide();
+    }
     wxPanel::Hide();
 }
 
 void FilamentMapAutoPanel::Show()
 {
-    m_flush_panel->Show();
-    m_match_panel->Show();
+    for (auto panel : m_mode_panels) {
+        panel->Show();
+    }
     wxPanel::Show();
 }
 
 void FilamentMapAutoPanel::UpdateStatus()
 {
-    if (m_mode == fmmAutoForFlush) {
-        m_flush_panel->Select(true);
-        m_match_panel->Select(false);
-    } else {
-        m_flush_panel->Select(false);
-        m_match_panel->Select(true);
+    assert(m_mode_panels.size() == m_available_modes.size());
+    for (size_t i = 0; i < m_mode_panels.size(); ++i) {
+        bool selected = (m_mode == m_available_modes[i]);
+        m_mode_panels[i]->Select(selected);
     }
 }
 
@@ -674,6 +759,18 @@ void FilamentMapAutoPanel::OnModeSwitch(FilamentMapMode mode)
 {
     m_mode = mode;
     UpdateStatus();
+}
+
+std::string FilamentMapAutoPanel::GetIconForMode(FilamentMapMode mode)
+{
+    switch (mode) {
+    case fmmAutoForMatch: return "match_mode_panel_icon";
+    case fmmAutoForFlush: return "flush_mode_panel_icon";
+    case fmmAutoForQuality: return "quality_mode_panel_icon";
+    default:
+        BOOST_LOG_TRIVIAL(warning) << "invalid mode: " << mode;
+        return {};
+    }
 }
 
 FilamentMapDefaultPanel::FilamentMapDefaultPanel(wxWindow *parent) : wxPanel(parent)
@@ -706,4 +803,29 @@ void FilamentMapDefaultPanel::Show()
     wxPanel::Show();
 }
 
-}} // namespace Slic3r::GUI
+FilamentMapSavingPanel::FilamentMapSavingPanel(wxWindow *parent) : wxPanel(parent)
+{
+    SetBackgroundColour(*wxWHITE);
+
+    auto saving_sizer = new wxBoxSizer(wxVERTICAL);
+    saving_sizer->AddSpacer(FromDIP(32));
+
+    auto icon_bitmap = create_scaled_bitmap("search_file", nullptr, 80);
+    auto icon_btn    = new wxStaticBitmap(this, wxID_ANY, icon_bitmap);
+    saving_sizer->Add(icon_btn, 0, wxALIGN_CENTER);
+    saving_sizer->AddSpacer(FromDIP(16));
+
+    std::string pt_saving = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+    wxString main_nz_saving   = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt_saving, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
+    wxString deputy_nz_saving = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt_saving, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
+    auto desc_label = new Label(this, wxString::Format(_L("Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"), deputy_nz_saving, main_nz_saving));
+    desc_label->SetFont(Label::Body_12);
+    desc_label->SetForegroundColour(wxColour("#6B6B6B"));
+    saving_sizer->Add(desc_label, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(50));
+    saving_sizer->AddSpacer(FromDIP(32));
+
+    SetSizer(saving_sizer);
+}
+
+} // namespace GUI
+} // namespace Slic3r

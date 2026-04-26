@@ -253,6 +253,10 @@ public:
 
     void CancelUploadTask(bool send_cancel_req = true);
 
+    static bool isRetryOnError(int error_code) {
+        return error_code == ERROR_TIME_OUT;
+    }
+
 private:
     void BuildGroups();
 

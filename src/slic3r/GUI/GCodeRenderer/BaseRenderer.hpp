@@ -198,7 +198,7 @@ namespace Slic3r {
                 // end helio
             private:
                 void delete_wipe_tower();
-                void render_legend_color_arr_recommen(float window_padding);
+                void render_legend_color_arr_recommen(float window_padding, bool is_show_left_right_result);
 
             protected:
                 bool m_legend_enabled{ true };
@@ -251,7 +251,7 @@ namespace Slic3r {
                 bool m_only_gcode_in_preview{ false };
                 //BBS
                 Shells            m_shells;
-                const DynamicPrintConfig *m_config;//equal glcanvas3d m_config
+                const DynamicPrintConfig *m_config{ nullptr };//equal glcanvas3d m_config
                 GCodeCheckResult  m_gcode_check_result;
                 FilamentPrintableResult filament_printable_reuslt;
                 ConflictResultOpt m_conflict_result;

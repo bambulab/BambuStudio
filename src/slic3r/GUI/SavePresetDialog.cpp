@@ -91,7 +91,7 @@ SavePresetDialog::Item::Item(Preset::Type type, const std::string &suffix, wxBox
             m_parent->m_confirm->Enable();
         else
             m_parent->m_confirm->Disable();
-        });
+    });
     m_input_ctrl->SetMinSize(wxSize(SAVE_PRESET_DIALOG_INPUT_SIZE));
     m_input_ctrl->SetMaxSize(wxSize(SAVE_PRESET_DIALOG_INPUT_SIZE));
 

@@ -2,6 +2,7 @@
 #include "ClipperUtils.hpp"
 #include "Config.hpp"
 #include "I18N.hpp"
+#include "FilamentMixer.hpp"
 
 #include <set>
 #include <boost/algorithm/string/case_conv.hpp>
@@ -96,12 +97,23 @@ size_t get_extruder_index(const GCodeConfig& config, unsigned int filament_id)
     return 0;
 }
 
-size_t get_config_idx_for_filament(const GCodeConfig& config, unsigned int filament_id)
+size_t get_filament_config_idx(const GCodeConfig &config, unsigned int filament_id)
 {
-    if (filament_id < config.filament_map_2.size()) {
-        return config.filament_map_2.get_at(filament_id);
-    }
-    return 0;
+    NozzleVolumeType volume_type           = NozzleVolumeType(config.filament_volume_map.get_at(filament_id));
+    ExtruderType     extruder_type         = ExtruderType(config.extruder_type.get_at(get_extruder_index(config, filament_id)));
+    auto             filament_variant_list = config.filament_extruder_variant.values;
+    auto             filament_self_idx     = config.filament_self_index.values;
+    return get_config_index_base(volume_type, extruder_type, filament_id+1, filament_variant_list, filament_self_idx);
+}
+
+size_t get_process_config_idx(const GCodeConfig& config, unsigned int filament_id)
+{
+    NozzleVolumeType volume_type   = NozzleVolumeType(config.filament_volume_map.get_at(filament_id));
+    int extruder_id = get_extruder_index(config,filament_id);
+    ExtruderType     extruder_type = ExtruderType(config.extruder_type.get_at(extruder_id));
+    auto             print_extruder_id = config.printer_extruder_id.values;
+    auto             variant_list      = config.printer_extruder_variant.values;
+    return get_config_index_base(volume_type, extruder_type, extruder_id + 1, variant_list, print_extruder_id);
 }
 
 static t_config_enum_names enum_names_from_keys_map(const t_config_enum_values &enum_keys_map)
@@ -176,6 +188,22 @@ static t_config_enum_values s_keys_map_FuzzySkinType {
     { "disabled_fuzzy", int(FuzzySkinType::Disabled_fuzzy)}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FuzzySkinType)
+
+static t_config_enum_values s_keys_map_NoiseType {
+    { "classic",     int(NoiseType::Classic) },
+    { "perlin",      int(NoiseType::Perlin) },
+    { "billow",      int(NoiseType::Billow) },
+    { "ridgedmulti", int(NoiseType::RidgedMulti) },
+    { "voronoi",     int(NoiseType::Voronoi) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(NoiseType)
+
+static t_config_enum_values s_keys_map_FuzzySkinMode {
+    { "displacement", int(FuzzySkinMode::Displacement) },
+    { "extrusion",    int(FuzzySkinMode::Extrusion) },
+    { "combined",     int(FuzzySkinMode::Combined) }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FuzzySkinMode)
 
 static t_config_enum_values s_keys_map_InfillPattern {
     { "concentric",         ipConcentric },
@@ -470,7 +498,8 @@ static const t_config_enum_values s_keys_map_FilamentMapMode = {
     { "Auto For Flush", fmmAutoForFlush },
     { "Auto For Match", fmmAutoForMatch },
     { "Manual", fmmManual },
-    { "Nozzle Manual", fmmNozzleManual}
+    { "Nozzle Manual", fmmNozzleManual},
+    { "Auto For Quality", fmmAutoForQuality }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FilamentMapMode)
 
@@ -479,6 +508,21 @@ static const t_config_enum_values s_keys_map_PrimeVolumeMode = {
     { "Saving", pvmSaving}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrimeVolumeMode)
+
+static const t_config_enum_values s_keys_map_ReduceInfillRetractionMode = {
+    { "Disabled", rirDisabled },
+    { "Auto",     rirAuto },
+    { "Enabled",  rirEnabled }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(ReduceInfillRetractionMode)
+
+static const t_config_enum_values s_keys_map_FilamentMetalStickiness = {
+    { "None",   fmsNone },
+    { "Low",    fmsLow },
+    { "Medium", fmsMedium },
+    { "High",   fmsHigh }
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FilamentMetalStickiness)
 
 //BBS
 std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type)
@@ -502,6 +546,20 @@ std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolume
     return variant_string;
 }
 
+int get_config_index_base(NozzleVolumeType volume_type, ExtruderType extruder_type, int variant_id_1based, const std::vector<std::string>& variant_list, const std::vector<int>& variant_ids_1based)
+{
+    assert(variant_list.size() == variant_ids_1based.size());
+    std::string extruder_variant = get_extruder_variant_string(extruder_type, volume_type);
+    for (int index = 0; index < int(variant_list.size()); ++index) {
+        if (extruder_variant == variant_list[index] && variant_ids_1based[index] == variant_id_1based) { return index; }
+    }
+    // BOOST_LOG_TRIVIAL(error) << __FUNCTION__
+    //                          << boost::format(", Line %1%: could not found the parameter corresponding to extruder_and_nozzle_type %2%, variant_id %3%") % __LINE__ %
+    //                                 extruder_variant % variant_id_1based;
+    return 0;
+}
+
+
 std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type)
 {
     if (nozzle_volume_type > nvtMaxNozzleVolumeType) {
@@ -509,6 +567,43 @@ std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type)
         return "";
     }
     return s_keys_names_NozzleVolumeType[nozzle_volume_type];
+}
+
+void sync_nozzle_volume_type_to_extruder_count(DynamicPrintConfig &cfg, bool cli_specified_nozzle_volume_type)
+{
+    auto *nd = cfg.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    if (!nd || nd->values.empty())
+        return;
+    const size_t ec = nd->values.size();
+
+    ConfigOptionEnumsGeneric *nvt = cfg.option<ConfigOptionEnumsGeneric>("nozzle_volume_type", true);
+    if (!nvt)
+        return;
+    if (nvt->values.size() >= ec)
+        return;
+
+    auto *def_opt = dynamic_cast<const ConfigOptionEnumsGeneric *>(cfg.option("default_nozzle_volume_type"));
+
+    if (!cli_specified_nozzle_volume_type) {
+        nvt->values.resize(ec);
+        for (size_t i = 0; i < ec; ++i) {
+            if (def_opt && !def_opt->values.empty())
+                nvt->values[i] = (i < def_opt->values.size()) ? def_opt->values[i] : def_opt->values.back();
+            else
+                nvt->values[i] = int(NozzleVolumeType::nvtStandard);
+        }
+        BOOST_LOG_TRIVIAL(info) << boost::format("sync_nozzle_volume_type_to_extruder_count: nozzle_volume_type from default_nozzle_volume_type, extruders=%1%") % ec;
+        return;
+    }
+
+    while (nvt->values.size() < ec) {
+        const size_t i = nvt->values.size();
+        int           v  = int(NozzleVolumeType::nvtStandard);
+        if (def_opt && !def_opt->values.empty())
+            v = (i < def_opt->values.size()) ? def_opt->values[i] : def_opt->values.back();
+        nvt->values.push_back(v);
+    }
+    BOOST_LOG_TRIVIAL(info) << boost::format("sync_nozzle_volume_type_to_extruder_count: padded CLI nozzle_volume_type to extruder count %1%") % ec;
 }
 
 std::vector<std::map<int, int>> get_extruder_ams_count(const std::vector<std::string>& strs)
@@ -621,6 +716,19 @@ static void assign_printer_technology_to_unknown(t_optiondef_map &options, Print
     for (std::pair<const t_config_option_key, ConfigOptionDef> &kvp : options)
         if (kvp.second.printer_technology == ptUnknown)
             kvp.second.printer_technology = printer_technology;
+}
+
+template<typename OptType, typename ValueType>
+void trim_option_values(OptType *opt, const std::vector<int> &trim_param_indices)
+{
+    std::vector<ValueType> new_values;
+    new_values.reserve(trim_param_indices.size());
+
+    for (int idx : trim_param_indices) {
+        new_values.emplace_back(opt->get_at(idx));
+    }
+
+    opt->values = std::move(new_values);
 }
 
 PrintConfigDef::PrintConfigDef()
@@ -827,7 +935,7 @@ void PrintConfigDef::init_fff_params()
     def = this->add("reduce_crossing_wall", coBool);
     def->label = L("Avoid crossing wall");
     def->category = L("Quality");
-    def->tooltip = L("Detour and avoid traveling across wall which may cause blob on surface");
+    def->tooltip = L("Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)");
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
@@ -1059,6 +1167,17 @@ void PrintConfigDef::init_fff_params()
     def->max = 100;
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInts { 100 });
+
+    def = this->add("ironing_fan_speed", coInts);
+    def->label = L("Ironing fan speed");
+    def->tooltip = L("This part cooling fan speed is applied when ironing. Setting this parameter to a lower than regular speed "
+                     "reduces possible nozzle clogging due to the low volumetric flow rate, making the interface smoother. "
+                     "Set to -1 to disable it.");
+    def->sidetext = "%";
+    def->min = -1;
+    def->max = 100;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInts{ -1 });
 
     def          = this->add("pre_start_fan_time", coFloats);
     def->label   = L("Pre start fan time");
@@ -1560,6 +1679,23 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts{80});
 
+    def = this->add("close_additional_fan_first_x_layers", coInts);
+    def->label = L("For the first");
+    def->tooltip = L("Set special auxiliary cooling fan for the first certain layers.");
+    def->sidetext = L("layers");
+    def->min = 0;
+    def->max = 1000;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionInts { 1 });
+
+    def = this->add("additional_fan_full_speed_layer", coInts);
+    def->label = L("Full fan speed at layer");
+    def->tooltip = L("Auxiliary fan speed will be ramped up linearly from layer \"For the first\" to maximum at layer \"Full fan speed at layer\". \"Full fan speed at layer\" will be ignored if lower than \"For the first\", in which case the fan will be running at maximum allowed speed at layer \"For the first\" + 1.");
+    def->min = 0;
+    def->max = 1000;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionInts { 0 });
+
     def = this->add("close_fan_the_first_x_layers", coInts);
     def->label = L("For the first");
     def->tooltip = L("Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed "
@@ -1569,6 +1705,16 @@ void PrintConfigDef::init_fff_params()
     def->max = 1000;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 1 });
+
+    def = this->add("first_x_layer_part_fan_speed", coInts);
+    def->label = L("Fan speed");
+    def->tooltip = L("Part cooling fan speed for the first few layers. "
+                     "Set to 0 to disable the part cooling fan on the initial layers for better bed adhesion");
+    def->sidetext = "%";
+    def->min = 0;
+    def->max = 100;
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionInts { 0 });
 
     def           = this->add("first_x_layer_fan_speed", coFloats);
     def->label    = L("Fan speed");
@@ -1710,6 +1856,16 @@ void PrintConfigDef::init_fff_params()
     def->max      = 100;
     def->mode     = comAdvanced;
     def->set_default_value(new ConfigOptionPercent(100));
+
+    def          = this->add("monotonic_travel_into_wall", coPercent);
+    def->category = L("Strength");
+    def->label   = L("Monotonic line travel extend");
+    def->tooltip = L("Enable this option to extend the travel distance between lines, improving the adhesion between the monotonic line infill and the walls.(percent to line width)");
+    def->mode    = comDevelop;
+    def->min     = 0;
+    def->max     = 200;
+    def->sidetext = "%";
+    def->set_default_value(new ConfigOptionPercent(0.0));
 
     def = this->add("bottom_surface_pattern", coEnum);
     def->label = L("Bottom surface pattern");
@@ -2233,6 +2389,25 @@ void PrintConfigDef::init_fff_params()
     def->mode     = comDevelop;
     def->set_default_value(new ConfigOptionInts{0});
 
+    def = this->add("filament_metal_stickiness", coEnums);
+    def->label = L("Metal stickiness");
+    def->tooltip = L("Indicates how strongly the filament tends to stick to the metal nozzle and leave residue. "
+                     "\"None\" means untested or custom filament, behaves the same as Low. "
+                     "Low: e.g. PLA - retraction can be safely skipped in infill areas. "
+                     "Medium: moderate stickiness - use with caution. "
+                     "High: e.g. PETG - retraction should not be skipped to avoid oozing artifacts on outer walls.");
+    def->enum_keys_map = &ConfigOptionEnum<FilamentMetalStickiness>::get_enum_values();
+    def->enum_values.push_back("None");
+    def->enum_values.push_back("Low");
+    def->enum_values.push_back("Medium");
+    def->enum_values.push_back("High");
+    def->enum_labels.push_back(L("None"));
+    def->enum_labels.push_back(L("Low"));
+    def->enum_labels.push_back(L("Medium"));
+    def->enum_labels.push_back(L("High"));
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionEnumsGeneric{fmsNone});
+
     def = this->add("filament_density", coFloats);
     def->label = L("Density");
     def->tooltip = L("Filament density. For statistics only");
@@ -2350,6 +2525,38 @@ void PrintConfigDef::init_fff_params()
     def->mode    = comDevelop;
     def->set_default_value(new ConfigOptionBools{false});
 
+    def          = this->add("filament_is_mixed", coBools);
+    def->label   = L("Is mixed filament");
+    def->tooltip = L("Whether this filament slot is a mixed filament composed of multiple physical filaments");
+    def->mode    = comDevelop;
+    def->set_default_value(new ConfigOptionBools{false});
+
+    def          = this->add("filament_mixed_components", coStrings);
+    def->label   = L("Mixed filament components");
+    def->tooltip = L("Comma-separated 1-based indices of component filaments, e.g. \"1,3\"");
+    def->mode    = comDevelop;
+    def->set_default_value(new ConfigOptionStrings{""});
+
+    def          = this->add("filament_mixed_sublayer_ratios", coStrings);
+    def->label   = L("Mixed filament sublayer ratios");
+    def->tooltip = L("Comma-separated ratio values summing to 1.0, e.g. \"0.7,0.3\"");
+    def->mode    = comDevelop;
+    def->set_default_value(new ConfigOptionStrings{""});
+
+    def          = this->add("filament_mixed_gradient", coBools);
+    def->label   = L("Mixed filament gradient");
+    def->tooltip = L("Enable Z-direction gradient mode for mixed filament sub-layers. "
+                     "When enabled, the sub-layer ratios vary linearly across layers.");
+    def->mode    = comDevelop;
+    def->set_default_value(new ConfigOptionBools{false});
+
+    def          = this->add("filament_mixed_gradient_range", coStrings);
+    def->label   = L("Mixed filament gradient range");
+    def->tooltip = L("Start and end ratios for the first component in gradient mode. "
+                     "Comma-separated pair, e.g. \"0.10,0.90\" means 10% to 90%.");
+    def->mode    = comDevelop;
+    def->set_default_value(new ConfigOptionStrings{""});
+
     // defined in bits
     // 0 means cannot support, 1 means support
     // 0 bit: can support in left extruder
@@ -2359,6 +2566,17 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("The filament is printable in extruder");
     def->mode    = comDevelop;
     def->set_default_value(new ConfigOptionInts{3});
+
+    // A single 32-bit int encodes the compatibility level of a filament across all extruders (up to 10).
+    // Every 3 bits represent one extruder: bits [3*i, 3*i+2] -> extruder i
+    // Compatibility levels: 0 = printable, 1 = error, 2 = critical warning, 3 = warning (4-7 reserved)
+    def          = this->add("filament_extruder_compatibility", coInts);
+    def->label   = L("Filament-extruder compatibility");
+    def->tooltip = L("A single 32-bit int encoding the compatibility level of a filament across all extruders (up to 10). "
+                     "Every 3 bits represent one extruder (bits [3*i, 3*i+2] for extruder i). "
+                     "0: printable, 1: error, 2: critical warning, 3: warning, 4-7: reserved");
+    def->mode    = comDevelop;
+    def->set_default_value(new ConfigOptionInts{0});
 
     // BBS
     def = this->add("filament_prime_volume", coFloats);
@@ -2428,6 +2646,9 @@ void PrintConfigDef::init_fff_params()
     def->set_default_value(new ConfigOptionInts{-1});
 
     def = this->add("enable_tower_interface_features", coBool);
+    def->label = L("Enable tower interface features");
+    def->tooltip = L("When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality.");
+    def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
     // BBS
@@ -2841,7 +3062,7 @@ void PrintConfigDef::init_fff_params()
     //               "the fan will be running at maximum allowed speed at layer \"close_fan_the_first_x_layers\" + 1.");
     def->min = 0;
     def->max = 1000;
-    def->mode = comDevelop;
+    def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts { 0 });
 
     def = this->add("fuzzy_skin", coEnum);
@@ -2882,6 +3103,81 @@ void PrintConfigDef::init_fff_params()
     def->max = 5;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionFloat(0.8));
+
+    def = this->add("fuzzy_skin_first_layer", coBool);
+    def->label = L("Apply fuzzy skin to first layer");
+    def->category = L("Others");
+    def->tooltip = L("Whether to apply fuzzy skin on the first layer.");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    def = this->add("fuzzy_skin_noise_type", coEnum);
+    def->label = L("Fuzzy skin noise type");
+    def->category = L("Others");
+    def->tooltip = L("Noise type to use for fuzzy skin generation:\n"
+                     "Classic: Classic uniform random noise.\n"
+                     "Perlin: Perlin noise, which gives a more consistent texture.\n"
+                     "Billow: Similar to perlin noise, but clumpier.\n"
+                     "Ridged Multifractal: Ridged noise with sharp, jagged features. Creates marble-like textures.\n"
+                     "Voronoi: Divides the surface into voronoi cells, and displaces each one by a random amount. Creates a patchwork texture.");
+    def->enum_keys_map = &ConfigOptionEnum<NoiseType>::get_enum_values();
+    def->enum_values.push_back("classic");
+    def->enum_values.push_back("perlin");
+    def->enum_values.push_back("billow");
+    def->enum_values.push_back("ridgedmulti");
+    def->enum_values.push_back("voronoi");
+    def->enum_labels.push_back(L("Classic"));
+    def->enum_labels.push_back("Perlin");
+    def->enum_labels.push_back("Billow");
+    def->enum_labels.push_back("Ridged Multifractal");
+    def->enum_labels.push_back("Voronoi");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionEnum<NoiseType>(NoiseType::Classic));
+
+    def = this->add("fuzzy_skin_scale", coFloat);
+    def->label = L("Fuzzy skin feature size");
+    def->category = L("Others");
+    def->tooltip = L("The base size of the coherent noise features, in mm. Higher values will result in larger features.");
+    def->sidetext = L("mm");
+    def->min = 0.1;
+    def->max = 500;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(1.0));
+
+    def = this->add("fuzzy_skin_octaves", coInt);
+    def->label = L("Fuzzy skin noise octaves");
+    def->category = L("Others");
+    def->tooltip = L("The number of octaves of coherent noise to use. Higher values increase the detail of the noise, but also increase computation time.");
+    def->min = 1;
+    def->max = 10;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionInt(4));
+
+    def = this->add("fuzzy_skin_persistence", coFloat);
+    def->label = L("Fuzzy skin noise persistence");
+    def->category = L("Others");
+    def->tooltip = L("The decay rate for higher octaves of the coherent noise. Lower values will result in smoother noise.");
+    def->min = 0.01;
+    def->max = 1;
+    def->mode = comAdvanced;
+    def->set_default_value(new ConfigOptionFloat(0.5));
+
+    def = this->add("fuzzy_skin_mode", coEnum);
+    def->label = L("Fuzzy skin generator mode");
+    def->category = L("Others");
+    def->tooltip = L("Displacement: Pattern is formed by shifting the nozzle sideways from the original path.\n"
+                     "Extrusion: Pattern is formed by varying the amount of extruded plastic (nozzle path stays straight).\n"
+                     "Combined: Displacement + Extrusion. Similar look to Displacement but fills gaps between perimeters.\n"
+                     "Note: Extrusion and Combined only work when fuzzy skin thickness is not greater than the printed line width.");
+    def->enum_keys_map = &ConfigOptionEnum<FuzzySkinMode>::get_enum_values();
+    def->enum_values.push_back("displacement");
+    def->enum_values.push_back("extrusion");
+    def->enum_values.push_back("combined");
+    def->enum_labels.push_back(L("Displacement"));
+    def->enum_labels.push_back(L("Extrusion"));
+    def->enum_labels.push_back(L("Combined"));
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionEnum<FuzzySkinMode>(FuzzySkinMode::Displacement));
 
     def           = this->add("filter_out_gap_fill", coFloat);
     def->label    = L("Filter out tiny gaps");
@@ -2935,6 +3231,13 @@ void PrintConfigDef::init_fff_params()
     def->label = L("Scan first layer");
     def->tooltip = L("Enable this to enable the camera on printer to check the quality of first layer");
     def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBool(false));
+
+    // BBS
+    def          = this->add("print_in_clockwise", coBool);
+    def->label   = L("Print loops in clockwise");
+    def->tooltip = L("Print in clockwise when enabled, or counterclockwise when not enabled, not work for spiral vase mode");
+    def->mode    = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
     // BBS
@@ -3042,12 +3345,6 @@ void PrintConfigDef::init_fff_params()
     def->mode=comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
     def->readonly=false;
-
-    def = this->add("apply_top_surface_compensation", coBool);
-    def->label  = L("Apply top surface compensation");
-    def->tooltip = L("Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls.");
-    def->mode = comDevelop;
-    def->set_default_value(new ConfigOptionBool(false));
 
     def =this->add("support_air_filtration",coBool);
     def->label=L("Air filtration enhancement");
@@ -3817,13 +4114,24 @@ void PrintConfigDef::init_fff_params()
     // start and end point is from the change_filament_gcode
     def->set_default_value(new ConfigOptionPoints{Vec2d(30, -3), Vec2d(54, 245)});
 
-    def = this->add("reduce_infill_retraction", coBool);
+    // Legacy bool parameter reduce_infill_retraction is for backward compatibility with old versions.
+    // New versions should use reduce_infill_retraction_mode instead.
+    def = this->add("reduce_infill_retraction_mode", coEnum);
     def->label = L("Reduce infill retraction");
-    def->tooltip = L("Don't retract when the travel is in infill area absolutely. That means the oozing can't been seen. "
-                     "This can reduce times of retraction for complex model and save printing time, but make slicing and "
-                     "G-code generating slower");
+    def->tooltip = L("Controls whether retraction is skipped when traveling within the infill area. "
+                     "\"Auto\" enables this optimization for filaments with low metal stickiness (e.g. PLA) "
+                     "and disables it for medium/high metal stickiness filaments (e.g. PETG) to avoid oozing artifacts. "
+                     "\"Enabled\" always skips retraction in infill areas regardless of filament type. "
+                     "\"Disabled\" always retracts normally.");
+    def->enum_keys_map = &ConfigOptionEnum<ReduceInfillRetractionMode>::get_enum_values();
+    def->enum_values.push_back("Disabled");
+    def->enum_values.push_back("Auto");
+    def->enum_values.push_back("Enabled");
+    def->enum_labels.push_back(L("Disabled"));
+    def->enum_labels.push_back(L("Auto"));
+    def->enum_labels.push_back(L("Enabled"));
     def->mode = comAdvanced;
-    def->set_default_value(new ConfigOptionBool(false));
+    def->set_default_value(new ConfigOptionEnum<ReduceInfillRetractionMode>(rirAuto));
 
     def = this->add("ooze_prevention", coBool);
     def->label = L("Enable");
@@ -4188,6 +4496,16 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("extruder_nozzle_stats", coStrings);
     def->set_default_value(new ConfigOptionStrings { });
+
+    def = this->add("enable_filament_dynamic_map", coBool);
+    def->label = "Enable filament dynamic map";
+    def->tooltip = "Support filament map to different nozzle";
+    def->set_default_value(new ConfigOptionBool{ false });
+
+    def = this->add("has_filament_switcher", coBool);
+    def->label = "Has filament switcher";
+    def->tooltip = "Whether a filament switcher is connected to the printer";
+    def->set_default_value(new ConfigOptionBool{ false });
 
     def = this->add("prime_volume_mode", coEnum);
     def->enum_values.push_back("Default");
@@ -5300,6 +5618,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->nullable = true;
     def->set_default_value(new ConfigOptionFloatsNullable { 2. });
+
+    def = this->add("enable_mixed_color_sublayer", coBool);
+    def->label = L("Mixed color sublayer");
+    def->tooltip = L("Enable mixed color sublayer splitting. When enabled, layers containing mixed color "
+                     "filaments will be split into sub-layers to achieve color mixing effects.");
+    def->category = L("Quality");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
 
     def = this->add("enable_prime_tower", coBool);
     def->label = L("Enable");
@@ -6623,7 +6949,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     // Ignore the following obsolete configuration keys:
     static std::set<std::string> ignore = {
         "acceleration", "scale", "rotate", "duplicate", "duplicate_grid",
-        "bed_size",
+        "bed_size", "reduce_infill_retraction",
         "print_center", "g0", "wipe_tower_per_color_wipe"
 #ifndef HAS_PRESSURE_EQUALIZER
         , "max_volumetric_extrusion_rate_slope_positive", "max_volumetric_extrusion_rate_slope_negative"
@@ -6639,7 +6965,8 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "can_switch_nozzle_type", "can_add_auxiliary_fan", "extra_flush_volume", "spaghetti_detector", "adaptive_layer_height",
         "z_hop_type","nozzle_hrc","chamber_temperature","only_one_wall_top","bed_temperature_difference","long_retraction_when_cut",
         "retraction_distance_when_cut",
-        "prime_volume"
+        "prime_volume",
+        "apply_top_surface_compensation"
     };
 
     if (ignore.find(opt_key) != ignore.end()) {
@@ -6956,7 +7283,7 @@ void DynamicPrintConfig::normalize_fdm_1()
     return;
 }
 
-t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int num_objects, int used_filaments)
+t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int num_objects, int used_filaments, DynamicConfig *ori_values)
 {
     t_config_option_keys changed_keys;
     ConfigOptionBool* ept_opt = this->option<ConfigOptionBool>("enable_prime_tower");
@@ -6971,12 +7298,28 @@ t_config_option_keys DynamicPrintConfig::normalize_fdm_2(int num_objects, int us
         ConfigOptionBool *enable_wrapping_opt = this->option<ConfigOptionBool>("enable_wrapping_detection");
         bool enable_wrapping = enable_wrapping_opt != nullptr && enable_wrapping_opt->value;
 
-        if (!is_smooth_timelapse && !enable_wrapping && (used_filaments == 1 || (ps_opt->value == PrintSequence::ByObject && num_objects > 1))) {
+        bool has_mixed_filament = false;
+        {
+            auto *mixed_opt = this->option<ConfigOptionBools>("filament_is_mixed");
+            if (mixed_opt)
+                has_mixed_filament = has_any_mixed_filament(mixed_opt->values);
+        }
+        if (!is_smooth_timelapse && !enable_wrapping
+            && (  (used_filaments == 1 && !has_mixed_filament)
+                || (ps_opt->value == PrintSequence::ByObject && num_objects > 1))) {
             if (ept_opt->value) {
+                if (ori_values)
+                    ori_values->set_key_value("enable_prime_tower", ept_opt->clone());
                 ept_opt->value = false;
                 changed_keys.push_back("enable_prime_tower");
             }
             //ept_opt->value = false;
+        }
+        else {
+            if (ori_values && ori_values->has("enable_prime_tower")) {
+                ept_opt->value = ori_values->opt_bool("enable_prime_tower");
+                changed_keys.push_back("enable_prime_tower");
+            }
         }
 
         if (ept_opt->value) {
@@ -7914,20 +8257,13 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
             NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(extruder_id - 1));
 
             if (nozzle_volume_type == nvtHybrid) {
-                if (extruder_nozzle_volume_count > extruder_count) {
-                    //use the one passed
-                    nozzle_volume_type = filament_nvt;
-                }
-                else {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: nozzle_volume_type is default in unsupported machine.")%__LINE__;
-                    assert(false);
-                }
+                // use the one passed
+                nozzle_volume_type = filament_nvt;
             }
             else if (nozzle_volume_type != filament_nvt) {
-                if (extruder_nozzle_volume_count > extruder_count) {
-                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: nozzle_volume_type is %2%,  not equal to filament_nvt %3%")%__LINE__ %nozzle_volume_type %filament_nvt;
-                    //assert(false);
-                }
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+                                        << boost::format(", Line %1%: nozzle_volume_type is %2%,  not equal to filament_nvt %3%") % __LINE__ % nozzle_volume_type % filament_nvt;
+                // assert(false);
             }
 
             //variant index
@@ -7936,7 +8272,7 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
             if (variant_index[0] < 0) {
                 BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, for filament")
                     % __LINE__ % s_keys_names_ExtruderType[extruder_type] % s_keys_names_NozzleVolumeType[nozzle_volume_type];
-                assert(false);
+                /*assert(false);*/
             }
 
             variant_count = 1;
@@ -7944,7 +8280,11 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
         else {
             if  (extruder_nozzle_volume_count > extruder_count){
                 variant_count = extruder_nozzle_volume_count;
-            }
+            } else
+                for (int e_index = 0; e_index < extruder_count; e_index++) {
+                    NozzleVolumeType nozzle_volume_type = (NozzleVolumeType) (opt_nozzle_volume_type->get_at(e_index));
+                    if (nozzle_volume_type == nvtHybrid) { variant_count = extruder_nozzle_volume_count; }
+                }
             variant_index.resize(variant_count);
 
             int v_index = 0;
@@ -7954,12 +8294,12 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
                 NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(e_index));
 
                 int nvt_count = 1;
-                if  (extruder_nozzle_volume_count > extruder_count) {
+                if (extruder_nozzle_volume_count > extruder_count || nozzle_volume_type == nvtHybrid) {
                     nvt_count = nv_types[e_index].size();
                 }
                 for (int nvt_index = 0; nvt_index < nvt_count; nvt_index++)
                 {
-                    if  (extruder_nozzle_volume_count > extruder_count)
+                    if (extruder_nozzle_volume_count > extruder_count || nozzle_volume_type == nvtHybrid)
                         nozzle_volume_type = nv_types[e_index][nvt_index];
                     //variant index
                     variant_index[v_index] = get_index_for_extruder(e_index+1, id_name, extruder_type, nozzle_volume_type, variant_name);
@@ -8129,7 +8469,7 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
             ExtruderType extruder_type = (ExtruderType)(opt_extruder_type->get_at(filament_maps[f_index] - 1));
             NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(filament_maps[f_index] - 1));
 
-            if ((extruder_nozzle_volume_count > extruder_count)&&(!filament_volume_maps.empty())) {
+            if ((extruder_nozzle_volume_count > extruder_count || nozzle_volume_type == nvtHybrid) && (!filament_volume_maps.empty())) {
                 nozzle_volume_type = (NozzleVolumeType)(filament_volume_maps[f_index]);
             }
 
@@ -8138,7 +8478,7 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
             if (variant_index[f_index] < 0) {
                 BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, filament_index %4%, extruder index %5%")
                     %__LINE__ %s_keys_names_ExtruderType[extruder_type] % s_keys_names_NozzleVolumeType[nozzle_volume_type] % (f_index+1) %filament_maps[f_index];
-                assert(false);
+                /*assert(false);*/
                 //for some updates happens in a invalid state(caused by popup window)
                 //we need to avoid crash
                 variant_index[f_index] = 0;
@@ -8157,8 +8497,14 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: can not find config define")%__LINE__;
             return;
         }
+        bool has_id_key = !id_name.empty() && key_set.count(id_name) > 0;
+        std::vector<int> id_values;
+        if (has_id_key && opt_ids)
+            id_values = opt_ids->values;
         for (auto& key: key_set)
         {
+            if (has_id_key && key == id_name)
+                continue;
             const ConfigOptionDef *optdef  = config_def->get(key);
             if (!optdef) {
                 BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: can not find opt define for %2%")%__LINE__%key;
@@ -8261,9 +8607,150 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
                     break;
             }
         }
+        if (has_id_key && opt_ids) {
+            std::vector<int> new_values;
+            new_values.resize(filament_count);
+            for (int f_index = 0; f_index < filament_count; f_index++) {
+                new_values[f_index] = opt_ids->get_at(variant_index[f_index]);
+            }
+            const_cast<ConfigOptionInts*>(opt_ids)->values = new_values;
+        }
     }
 }
 
+
+void DynamicPrintConfig::update_filament_config_values_for_multiple_extruders(DynamicPrintConfig                                            &printer_config,
+                                                                              const std::unordered_map<int, std::vector<ExtruderNozleInfo>> &filament_extruder_nozzle_infos,
+                                                                              int                                                            extruder_count,
+                                                                              int                                                            extruder_nozzle_volume_count,
+                                                                              std::set<std::string>                                         &key_set,
+                                                                              std::string                                                    id_name,
+                                                                              std::string                                                    variant_name)
+{
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+                            << boost::format(", Line %1%: extruder_count %2%, extruder_nozzle_volume_count %3%") % __LINE__ % extruder_count % extruder_nozzle_volume_count;
+
+    {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: different nozzle volume processing") % __LINE__;
+        std::vector<int> filament_maps  = printer_config.option<ConfigOptionInts>("filament_map")->values;
+        size_t           filament_count = filament_maps.size();
+
+        auto opt_extruder_type      = dynamic_cast<const ConfigOptionEnumsGeneric *>(printer_config.option("extruder_type"));
+        auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric *>(printer_config.option("nozzle_volume_type"));
+
+        auto             opt_filament_volume_maps = dynamic_cast<const ConfigOptionInts *>(printer_config.option("filament_volume_map"));
+        std::vector<int> filament_volume_maps;
+        if (opt_filament_volume_maps) filament_volume_maps = opt_filament_volume_maps->values;
+        auto             opt_ids = id_name.empty() ? nullptr : dynamic_cast<const ConfigOptionInts *>(this->option(id_name));
+        std::vector<int> variant_index;
+        variant_index.resize(filament_count, -1);
+
+        std::vector<int> trim_param_indices;
+        trim_param_indices.reserve(filament_count * 2);
+        for (int f_index = 0; f_index < filament_count; f_index++) {
+            ExtruderType extruder_type = (ExtruderType) (opt_extruder_type->get_at(filament_maps[f_index] - 1));
+            NozzleVolumeType nozzle_volume_type = (NozzleVolumeType) (opt_nozzle_volume_type->get_at(filament_maps[f_index] - 1));
+            auto iter = filament_extruder_nozzle_infos.find(f_index);
+            if (iter != filament_extruder_nozzle_infos.end()) {
+                std::vector<ExtruderNozleInfo> nozzle_infos = iter->second;
+                for (ExtruderNozleInfo nozzle_info : nozzle_infos) {
+                    extruder_type = nozzle_info.extruder_type;
+                    nozzle_volume_type = nozzle_info.nozzle_volume_type;
+                    int param_index = get_index_for_extruder(f_index + 1, id_name, extruder_type, nozzle_volume_type, variant_name);
+                    if (param_index < 0) {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__
+                                                 << boost::format(
+                                                        ", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, filament_index %4%, extruder index %5%") %
+                                                        __LINE__ % s_keys_names_ExtruderType[extruder_type] % s_keys_names_NozzleVolumeType[nozzle_volume_type] % (f_index + 1) %
+                                                        filament_maps[f_index];
+                        assert(false);
+                        // for some updates happens in a invalid state(caused by popup window)
+                        // we need to avoid crash
+                        param_index = 0;
+                        if (opt_ids) {
+                            for (int i = 0; i < opt_ids->values.size(); i++) {
+                                if (opt_ids->values[i] == (f_index + 1)) {
+                                    param_index = i;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    trim_param_indices.push_back(param_index);
+                }
+            } else {
+                // filament not used in slicing
+                if ((extruder_nozzle_volume_count > extruder_count || nozzle_volume_type==nvtHybrid) && (!filament_volume_maps.empty())) {
+                    nozzle_volume_type = (NozzleVolumeType) (filament_volume_maps[f_index]);
+                }
+                int param_index = get_index_for_extruder(f_index + 1, id_name, extruder_type, nozzle_volume_type, variant_name);
+                if (param_index < 0) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__
+                                             << boost::format(", Line %1%: could not found extruder_type %2%, nozzle_volume_type %3%, filament_index %4%, extruder index %5%") %
+                                                    __LINE__ % s_keys_names_ExtruderType[extruder_type] % s_keys_names_NozzleVolumeType[nozzle_volume_type] % (f_index + 1) %
+                                                    filament_maps[f_index];
+                    assert(false);
+                    // for some updates happens in a invalid state(caused by popup window)
+                    // we need to avoid crash
+                    param_index = 0;
+                    if (opt_ids) {
+                        for (int i = 0; i < opt_ids->values.size(); i++) {
+                            if (opt_ids->values[i] == (f_index + 1)) {
+                                param_index = i;
+                                break;
+                            }
+                        }
+                    }
+                }
+                trim_param_indices.push_back(param_index);
+            }
+        }
+
+        const ConfigDef *config_def = this->def();
+        if (!config_def) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", Line %1%: can not find config define") % __LINE__;
+            return;
+        }
+        for (auto &key : key_set) {
+            const ConfigOptionDef *optdef = config_def->get(key);
+            if (!optdef) {
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: can not find opt define for %2%") % __LINE__ % key;
+                continue;
+            }
+            switch (optdef->type) {
+            case coStrings: {
+                trim_option_values<ConfigOptionStrings, std::string>(this->option<ConfigOptionStrings>(key), trim_param_indices);
+                break;
+            }
+            case coInts: {
+                trim_option_values<ConfigOptionInts, int>(this->option<ConfigOptionInts>(key), trim_param_indices);
+                break;
+            }
+            case coFloats: {
+                trim_option_values<ConfigOptionFloats, double>(this->option<ConfigOptionFloats>(key), trim_param_indices);
+                break;
+            }
+            case coPercents: {
+                trim_option_values<ConfigOptionPercents, double>(this->option<ConfigOptionPercents>(key), trim_param_indices);
+                break;
+            }
+            case coFloatsOrPercents: {
+                trim_option_values<ConfigOptionFloatsOrPercents, FloatOrPercent>(this->option<ConfigOptionFloatsOrPercents>(key), trim_param_indices);
+                break;
+            }
+            case coBools: {
+                trim_option_values<ConfigOptionBools, unsigned char>(this->option<ConfigOptionBools>(key), trim_param_indices);
+                break;
+            }
+            case coEnums: {
+                trim_option_values<ConfigOptionEnumsGeneric, int>(this->option<ConfigOptionEnumsGeneric>(key), trim_param_indices);
+                break;
+            }
+            default: BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(", Line %1%: unsupported option type for %2%") % __LINE__ % key; break;
+            }
+        }
+    }
+}
 
 void DynamicPrintConfig::update_non_diff_values_to_base_config(DynamicPrintConfig& new_config, const t_config_option_keys& keys, const std::set<std::string>& different_keys,
     std::string extruder_id_name, std::string extruder_variant_name, std::set<std::string>& key_set1, std::set<std::string>& key_set2)
@@ -8398,24 +8885,31 @@ void DynamicPrintConfig::update_diff_values_to_child_config(DynamicPrintConfig& 
     for (auto& opt : keys) {
         if ((opt == extruder_id_name) || (opt == extruder_variant_name))
             continue;
-        ConfigOption *opt_src = this->option(opt);
-        const ConfigOption *opt_target = new_config.option(opt);
-        if (opt_src && opt_target && (*opt_src != *opt_target)) {
-            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" change key %1% from base_value %2% to child's value %3%")
-                    %opt %(opt_src->serialize()) %(opt_target->serialize());
-            if (opt_target->is_scalar()
-                || ((key_set1.find(opt) == key_set1.end()) && (key_set2.empty() || (key_set2.find(opt) == key_set2.end())))) {
-                //nothing to do, keep the original one
-                opt_src->set(opt_target);
+
+        try {
+            ConfigOption *opt_src = this->option(opt);
+            const ConfigOption *opt_target = new_config.option(opt);
+            if (opt_src && opt_target && (*opt_src != *opt_target)) {
+                BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" change key %1% from base_value %2% to child's value %3%")
+                        %opt %(opt_src->serialize()) %(opt_target->serialize());
+                if (opt_target->is_scalar()
+                    || ((key_set1.find(opt) == key_set1.end()) && (key_set2.empty() || (key_set2.find(opt) == key_set2.end())))) {
+                    //nothing to do, keep the original one
+                    opt_src->set(opt_target);
+                }
+                else {
+                    ConfigOptionVectorBase* opt_vec_src = static_cast<ConfigOptionVectorBase*>(opt_src);
+                    const ConfigOptionVectorBase* opt_vec_dest = static_cast<const ConfigOptionVectorBase*>(opt_target);
+                    int stride = 1;
+                    if (key_set2.find(opt) != key_set2.end())
+                        stride = 2;
+                    opt_vec_src->set_only_diff(opt, opt_vec_dest, variant_index, stride);
+                }
             }
-            else {
-                ConfigOptionVectorBase* opt_vec_src = static_cast<ConfigOptionVectorBase*>(opt_src);
-                const ConfigOptionVectorBase* opt_vec_dest = static_cast<const ConfigOptionVectorBase*>(opt_target);
-                int stride = 1;
-                if (key_set2.find(opt) != key_set2.end())
-                    stride = 2;
-                opt_vec_src->set_only_diff(opt_vec_dest, variant_index, stride);
-            }
+        } catch (const std::runtime_error &e) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__
+                                     << boost::format(", Line %1%: exception when update_diff_values_to_child_config for key %2%, error: %3%") % __LINE__ % opt % e.what();
+            throw;
         }
     }
     return;

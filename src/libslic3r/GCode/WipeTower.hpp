@@ -303,8 +303,6 @@ public:
     std::vector<float> get_used_filament() const { return m_used_filament_length; }
     int get_number_of_toolchanges() const { return m_num_tool_changes; }
 
-	void set_filament_map(const std::vector<int> &filament_map) { m_filament_map = filament_map; }
-
 	void set_has_tpu_filament(bool has_tpu) { m_has_tpu_filament = has_tpu; }
 
     bool has_tpu_filament() const { return m_has_tpu_filament; }
@@ -349,11 +347,10 @@ public:
 
     void set_used_filament_ids(const std::vector<int> &used_filament_ids) { m_used_filament_ids = used_filament_ids; };
     void set_filament_categories(const std::vector<int> & filament_categories) { m_filament_categories = filament_categories;};
-    void set_nozzle_group_result(const MultiNozzleUtils::MultiNozzleGroupResult &multi_nozzle_group_result) { m_multi_nozzle_group_result = &multi_nozzle_group_result; };
+    void set_nozzle_group_result(const MultiNozzleUtils::LayeredNozzleGroupResult &multi_nozzle_group_result) { m_multi_nozzle_group_result = &multi_nozzle_group_result; };
     std::vector<int> m_used_filament_ids;
     std::vector<int> m_filament_categories;
-    const MultiNozzleUtils::MultiNozzleGroupResult *m_multi_nozzle_group_result{nullptr};
-
+    const MultiNozzleUtils::LayeredNozzleGroupResult *m_multi_nozzle_group_result{nullptr};
 
     enum class WipeTowerLayerType : unsigned char { Normal, Contact, Solid, Contact_UP};// Contact layer should be solid and reduce feed
 
@@ -388,7 +385,6 @@ public:
     WipeTowerBlock* get_block_by_category(int filament_adhesiveness_category, bool create);
     void add_depth_to_block(int filament_id, int filament_adhesiveness_category, float depth, bool is_nozzle_change = false);
 	int get_filament_category(int filament_id);
-	bool is_in_same_extruder(int filament_id_1, int filament_id_2);
 	void reset_block_status();
     int get_wall_filament_for_all_layer();
 	// for generate new wipe tower
@@ -407,10 +403,11 @@ public:
     ToolChangeResult   finish_block_solid(const WipeTowerBlock &block, int filament_id, bool extrude_fill = true, WipeTowerLayerType layer_type = WipeTowerLayerType::Normal);
     void toolchange_wipe_new(WipeTowerWriter &writer, const box_coordinates &cleaning_box, float wipe_length,bool solid_toolchange=false);
     Vec2f              get_rib_offset() const { return m_rib_offset; }
-    bool               is_need_ramming(int filament_id_1, int filament_id_2);
-    bool               is_same_extruder(int filament_id_1, int filament_id_2);
-    bool               is_same_nozzle(int filament_id_1, int filament_id_2);
-
+    bool               is_need_ramming(int filament_id_1, int filament_id_2, int layer_id) const;
+    bool               is_same_extruder(int filament_id_1, int filament_id_2, int layer_id) const;
+    bool               is_same_nozzle(int filament_id_1, int filament_id_2, int layer_id) const;
+    int                get_nozzle_id(int filament_id, int layer_id) const;
+    int                get_extruder_id(int filament_id, int layer_id) const;
 
 private:
 	enum wipe_shape // A fill-in direction
@@ -452,7 +449,6 @@ private:
     std::pair<std::vector<double>,std::vector<double>> m_filaments_change_length;//[0]extruder change [1]nozzle change
     size_t       m_cur_layer_id;
     NozzleChangeResult m_nozzle_change_result;
-    std::vector<int>   m_filament_map;
     bool               m_has_tpu_filament{false};
     bool               m_is_multi_extruder{false};
     bool               m_use_gap_wall{false};
@@ -485,6 +481,7 @@ private:
     unsigned int              m_max_accels;
     bool                      m_accel_to_decel_enable;
     float                     m_accel_to_decel_factor;
+    bool                      m_enable_arc_fitting = true;
     std::vector<double>       m_hotend_heating_rate;
     std::vector<double>       m_hotend_cooling_rate;
     Polygons                  m_shared_print_bed;
@@ -528,11 +525,11 @@ private:
     std::map<float,Polylines> m_outer_wall;
     std::vector<double>        m_printable_height;
     bool is_first_layer() const { return size_t(m_layer_info - m_plan.begin()) == m_first_layer_idx; }
-    bool                       is_valid_last_layer(int tool) const;
+    bool                       is_valid_last_layer(int tool, int layer_id, double layer_z) const;
     bool                       m_flat_ironing=false;
     bool                       m_contact_ironing = false;
     float                      m_contact_speed   = 20 * 60.f;
-
+    std::vector<int>           m_physical_extruder_map;
 	// Calculates length of extrusion line to extrude given volume
 	float volume_to_length(float volume, float line_width, float layer_height) const {
 		return std::max(0.f, volume / (layer_height * (line_width - layer_height * (1.f - float(M_PI) / 4.f))));
@@ -601,7 +598,7 @@ private:
     // ot -1 if there is no such toolchange.
     int first_toolchange_to_nonsoluble_nonsupport(
             const std::vector<WipeTowerInfo::ToolChange>& tool_changes) const;
-    WipeTowerInfo::ToolChange set_toolchange(int old_tool, int new_tool, float layer_height, float wipe_volume, float purge_volume);
+    WipeTowerInfo::ToolChange set_toolchange(int old_tool, int new_tool, float layer_height, float wipe_volume, float purge_volume,int layer_id);
 	void toolchange_Unload(
 		WipeTowerWriter &writer,
 		const box_coordinates  &cleaning_box,

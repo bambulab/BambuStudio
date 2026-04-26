@@ -47,7 +47,8 @@
 			"support_chamber_temp_edit": false,
 			"support_extrusion_cali": false,
 			"support_user_preset": false,
-			"support_ams_ext_mix_print": true
+			"support_ams_ext_mix_print": true,
+			"support_ams_filament_change_abort": true
 		},
 		"fan": {
 			"-1": {
@@ -71,7 +72,8 @@
 		"printer_is_enclosed": true,
 		"enable_set_nozzle_info": false,
 		"support_safety_options": false,
-		"support_disable_cali_flow_type": true
+		"support_disable_cali_flow_type": true,
+		"filament_load_image": ["filament_load_x_series_ext0"]
 	},
 	"01.01.01.00": {
 		"print": {

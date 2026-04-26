@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-28 21:37+0800\n"
+"POT-Creation-Date: 2026-04-14 19:58+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -25,17 +25,137 @@ msgstr "Filamentet kanske inte är kompatibelt med maskinens aktuella inställni
 msgid "The filament model is unknown. A random filament preset will be used."
 msgstr "Filament typen är okänd. En slumpmässig filament inställning kommer att användas."
 
-msgid "right"
-msgstr "höger"
+msgid "Main Extruder"
+msgstr "Huvud extruder"
 
-msgid "left"
-msgstr "vänster"
+msgid "Main extruder"
+msgstr "Huvud extruder"
+
+msgid "main extruder"
+msgstr "huvud extruder"
+
+msgid "Auxiliary Extruder"
+msgstr "Extra Extruder"
+
+msgid "Auxiliary extruder"
+msgstr "Extra extruder"
+
+msgid "auxiliary extruder"
+msgstr "extra extruder"
+
+msgid "Left Extruder"
+msgstr "Vänster extruder"
+
+msgid "Left extruder"
+msgstr "Vänster extruder"
+
+msgid "left extruder"
+msgstr "vänster extruder"
+
+msgid "Right Extruder"
+msgstr "Höger extruder"
+
+msgid "Right extruder"
+msgstr "Höger extruder"
 
 msgid "right extruder"
 msgstr "höger extruder"
 
-msgid "left extruder"
-msgstr "vänster extruder"
+msgid "Main Nozzle"
+msgstr "Huvud Nozzle"
+
+msgid "Main nozzle"
+msgstr "Huvud nozzle"
+
+msgid "main nozzle"
+msgstr "huvud nozzle"
+
+msgid "Auxiliary Nozzle"
+msgstr "Extra Nozzle"
+
+msgid "Auxiliary nozzle"
+msgstr "Extra nozzle"
+
+msgid "auxiliary nozzle"
+msgstr "extra nozzle"
+
+msgid "Left Nozzle"
+msgstr "Vänster nozzle"
+
+msgid "Left nozzle"
+msgstr "Vänster nozzle"
+
+msgid "left nozzle"
+msgstr "vänster nozzle"
+
+msgid "Right Nozzle"
+msgstr "Höger nozzle"
+
+msgid "Right nozzle"
+msgstr "Höger nozzle"
+
+msgid "right nozzle"
+msgstr "höger nozzle"
+
+msgid "Main Hotend"
+msgstr "Huvud Hotend"
+
+msgid "Main hotend"
+msgstr "Huvud hotend"
+
+msgid "main hotend"
+msgstr "huvud hotend"
+
+msgid "Auxiliary Hotend"
+msgstr "Extra Hotend"
+
+msgid "Auxiliary hotend"
+msgstr "Extra hotend"
+
+msgid "auxiliary hotend"
+msgstr "extra hotend"
+
+msgid "Left Hotend"
+msgstr "Vänster Hotend"
+
+msgid "Left hotend"
+msgstr "Vänster hotend"
+
+msgid "left hotend"
+msgstr "vänster hotend"
+
+msgid "Right Hotend"
+msgstr "Höger Hotend"
+
+msgid "Right hotend"
+msgstr "Höger hotend"
+
+msgid "right hotend"
+msgstr "höger hotend"
+
+msgid "main"
+msgstr "huvud"
+
+msgid "auxiliary"
+msgstr "extra"
+
+msgid "Main"
+msgstr "Huvud"
+
+msgid "Auxiliary"
+msgstr "Extra"
+
+msgid "left"
+msgstr "vänster"
+
+msgid "right"
+msgstr "höger"
+
+msgid "Left"
+msgstr "Vänster"
+
+msgid "Right"
+msgstr "Höger"
 
 msgid "extruder"
 msgstr ""
@@ -59,11 +179,17 @@ msgstr "Nuvarande filament stöder inte TPU högflödes nozzle och kan inte anv�
 msgid "Auto dynamic flow calibration is not supported for TPU filament."
 msgstr "Automatisk dynamisk flödeskalibrering stöds inte för TPU filament."
 
-msgid "Dynamic flow calibration is not supported for TPU 85A filament."
-msgstr ""
+msgid "Bambu TPU 85A is not supported for printing with 0.4 mm Standard or High Flow nozzles."
+msgstr "Bambu TPU 85A stöds inte för utskrift med 0,4 mm Standard- eller Nozzle för högt flöde."
+
+msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
+msgstr "Vid användning av ABS/ASA/PETG HF på höger extruder kan det endast användas som support material."
 
 msgid "How to feed TPU filament."
 msgstr "Hur man matar TPU filament."
+
+msgid "How to feed TPU filament on X2D."
+msgstr ""
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr "Användning av icke bambu filament kan ha problem med utskriftskvaliteten."
@@ -102,8 +228,28 @@ msgid "%s has a risk of nozzle clogging when using 0.4, 0.6, 0.8mm high-flow noz
 msgstr "%s har en risk för nozzle clogg vid användning av 0.4, 0.6, 0.8mm högflödes nozzle. Använd med försiktighet."
 
 #, c-format, boost-format
+msgid "%s may fail to load or unload due to the Filament Track Switch. If you wish to continue."
+msgstr "%s kan misslyckas med att ladda eller lossa på grund av filament spår bytaren. Om du vill fortsätta."
+
+#, c-format, boost-format
 msgid "%s is not supported by %s extruder."
 msgstr "%s stöds inte av %s extruder."
+
+#, c-format, boost-format
+msgid "There may be critical print quality issues when printing '%s' with %s Bowden extruder. Use with caution!"
+msgstr "Det kan finnas kritiska utskrifts kvalitets problem vid utskrift '%s' med %s Bowden extruder. Använd med försiktighet!"
+
+#, c-format, boost-format
+msgid "There may be critical print quality issues when printing '%s' with %s extruder. Use with caution!"
+msgstr "Det kan finnas kritiska utskrifts kvalitets problem när du skriver ut '%s' med %s extruder. Använd med försiktighet!"
+
+#, c-format, boost-format
+msgid "There may be print quality issues when printing '%s' with %s Bowden extruder. Use with caution."
+msgstr "Det kan finnas problem med utskrifts kvalitet vid utskrift '%s' med %s Bowden extruder. Använd med försiktighet."
+
+#, c-format, boost-format
+msgid "There may be print quality issues when printing '%s' with %s extruder. Use with caution."
+msgstr "Det kan finnas problem med utskrifts kvalitet när du skriver ut '%s' med %s extruder. Använd med försiktighet."
 
 msgid "The toolhead and hotend rack may move. Please keep your hands away from the chamber."
 msgstr "Verktygs huvudet och hotend stället kan röra sig. Håll händerna borta från kammaren."
@@ -187,6 +333,66 @@ msgstr "Inaktiv"
 msgid "%d ℃"
 msgstr "%d °C"
 
+msgid "Filament Inlet A"
+msgstr "Filament inlopp A"
+
+msgid "Filament Inlet B"
+msgstr "Filament inlopp B"
+
+msgid "Filament Track Switch"
+msgstr "Filament spårbytare"
+
+msgid "Suggested rearrangement"
+msgstr "Förslag på omorganisering"
+
+msgid "How to save time?→"
+msgstr "Hur sparar man tid? →"
+
+msgid "Filament Status:"
+msgstr "Filament status:"
+
+msgid "Position adjustment required"
+msgstr "Positions justering krävs"
+
+msgctxt "FilamentTrack"
+msgid "OK"
+msgstr ""
+
+msgid "Unused"
+msgstr "Oanvänd"
+
+msgid "Refresh"
+msgstr "Uppdatera"
+
+msgid "Close"
+msgstr "Stäng"
+
+#, c-format, boost-format
+msgid "Based on the diagram below, rearrange the filaments on the printer for optimal results to save approximately %s."
+msgstr "Baserat på diagrammet nedan, arrangera om filamenten på printern för optimala resultat för att spara cirka %s."
+
+msgid "Summary:"
+msgstr "Sammanfattning:"
+
+msgid "AMS on Filament Inlet A"
+msgstr "AMS på Filament inlopp A"
+
+msgid "AMS on Filament Inlet B"
+msgstr "AMS på Filament inlopp B"
+
+#, c-format, boost-format
+msgid "The No.%d slicing filament is matched to '%s'. Assigning it to '%s' can save printing time."
+msgstr "Det %d beredda filament matchas med '%s'. Att tilldela det till '%s' kan spara utskrifts tid."
+
+msgid "*Tips: If you have moved the spool position on the machine, please close this page and re‑match the filament."
+msgstr "*Tips: Om du har flyttat spol positionen på maskinen, vänligen stäng denna sida och matcha filamentet."
+
+msgid "Summary: This is currently the most suitable position for placement."
+msgstr "Sammanfattning: Detta är för närvarande den mest lämpliga positionen för placering."
+
+msgid "?"
+msgstr " ?"
+
 msgid "Model:"
 msgstr "Modell:"
 
@@ -250,11 +456,24 @@ msgstr "Avbryt"
 msgid "Jump to the upgrade page"
 msgstr "Gå till uppgraderings sidan"
 
+msgid "Refreshing"
+msgstr "Laddar om"
+
+msgid "Hotend status abnormal, unavailable at present. Please upgrade the firmware and try again."
+msgstr "Hotend status onormal, ej tillgänglig för närvarande. Uppgradera firmware och försök igen."
+
 msgid "SN"
 msgstr "SN"
 
 msgid "Version"
 msgstr "Version"
+
+#, c-format, boost-format
+msgid "Used Time: %s"
+msgstr "Använd tid: %s"
+
+msgid "Dynamic nozzles are allocated on the current plate. Picking hotend is not supported."
+msgstr "Dynamiska nozzles är tilldelade på den aktuella plattan. Val av hotend stöds inte."
 
 msgid "Hotend Rack"
 msgstr "Hotend Ställning"
@@ -264,6 +483,9 @@ msgstr "Verktygshuvud"
 
 msgid "Nozzle information needs to be read"
 msgstr "Nozzle information måste läsas"
+
+msgid "Note:"
+msgstr "Notering:"
 
 msgid "Supports Painting"
 msgstr "Färgläggning av Support"
@@ -833,6 +1055,9 @@ msgstr "Kvadrat"
 msgid "Hexagon"
 msgstr "Hexagon"
 
+msgid "Middle of geometry"
+msgstr "Mitten av geometrin"
+
 msgid "Snap global parameters"
 msgstr "Fäst globala parametrar"
 
@@ -878,6 +1103,9 @@ msgstr "Plugg"
 
 msgid "Snap"
 msgstr "Fäst"
+
+msgid "Thread"
+msgstr "Tråd"
 
 msgid "Tolerance"
 msgstr "Tolerans"
@@ -2029,6 +2257,18 @@ msgstr "Lägg till inställningar"
 msgid "Change type"
 msgstr "Ändra typ"
 
+msgid "Negative Part"
+msgstr "Negativ Del"
+
+msgid "Support Blocker"
+msgstr "Support Blockerare"
+
+msgid "Support Enforcer"
+msgstr "Support Förstärkare"
+
+msgid "Change part type"
+msgstr "Ändra typ av del"
+
 msgid "Set as an individual object"
 msgstr "Välj som ett enskilt objekt"
 
@@ -2156,8 +2396,11 @@ msgstr "Ogiltig förklara delnings info"
 msgid "Add Primitive"
 msgstr "Lägg till Primitiv"
 
-msgid "Show Labels"
-msgstr "Visa Etiketter"
+msgid "Show Labels by Layer"
+msgstr "Visa etiketter per lager"
+
+msgid "Show Labels by Object"
+msgstr "Visa etiketter per objekt"
 
 msgid "To objects"
 msgstr "Till objekten"
@@ -2294,6 +2537,9 @@ msgstr "Fyll det återstående området av byggytan med kopior av det valda obje
 msgid "Edit Plate Name"
 msgstr "Redigera plattans namn"
 
+msgid "Show Labels"
+msgstr "Visa Etiketter"
+
 msgid "Name"
 msgstr "Namn"
 
@@ -2407,6 +2653,9 @@ msgstr "Målobjektet innehåller endast en del och kan inte delas."
 msgid "Assembly"
 msgstr "Montering"
 
+msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
+msgstr ""
+
 msgid "Cut Connectors information"
 msgstr "Information om kontakter"
 
@@ -2448,15 +2697,6 @@ msgstr "Om den första valda delen är ett objekt, så bör även den andra vara
 
 msgid "If the first selected item is a part, the second one should be part of the same object."
 msgstr "Om det första valda objektet är en del, bör det andra vara en del av samma objekt."
-
-msgid "Negative Part"
-msgstr "Negativ Del"
-
-msgid "Support Blocker"
-msgstr "Support Blockerare"
-
-msgid "Support Enforcer"
-msgstr "Support Förstärkare"
 
 msgid "Type:"
 msgstr "Typ:"
@@ -2695,11 +2935,24 @@ msgstr "Ladda"
 msgid "Unload"
 msgstr "Mata ut"
 
+msgid "AMS has not been initialized. Please initialize it before use."
+msgstr "AMS har inte initialiserats. Initiera den före användning."
+
 msgid "Choose an AMS slot then press \"Load\" or \"Unload\" button to automatically load or unload filaments."
 msgstr "Välj ett AMS fack och tryck sedan på knappen \"Ladda\" eller \"Mata ut\" för att automatiskt ladda eller mata ut filament."
 
 msgid "Filament type is unknown which is required to perform this action. Please set target filament's informations."
 msgstr "Filament typ är okänd vilket krävs för att utföra denna åtgärd. Ställ in filamentets information."
+
+msgid "/"
+msgstr "/"
+
+msgid "Confirm"
+msgstr "Bekräfta"
+
+#, c-format, boost-format
+msgid "Load %s to "
+msgstr "Ladda %s till "
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "Att ändra fläkthastigheten under utskrift kan påverka utskriftskvaliteten, välj noggrant."
@@ -2767,6 +3020,12 @@ msgstr "Kyl läget är lämpligt för utskrift av %s material."
 msgid "Heating mode is suitable for printing %s materials and circulates filters the chamber air."
 msgstr "Uppvärmningsläget är lämpligt för utskrift av %s material och cirkulerar och filtrerar kammarluften."
 
+msgid "Strong Cooling"
+msgstr "Full kylning"
+
+msgid "Fan"
+msgstr "Fläkt"
+
 msgctxt "air_duct"
 msgid "Right(Aux)"
 msgstr "Höger(Aux)"
@@ -2778,6 +3037,10 @@ msgstr "Höger(Filter)"
 msgctxt "air_duct"
 msgid "Left(Aux)"
 msgstr "Vänster(Aux)"
+
+msgctxt "air_duct"
+msgid "Left(Heating)"
+msgstr "Vänster(Värmer)"
 
 msgctxt "air_duct"
 msgid "Chamber"
@@ -2801,9 +3064,6 @@ msgstr "MC Kort"
 msgid "Heat"
 msgstr "Värme"
 
-msgid "Fan"
-msgstr "Fläkt"
-
 msgid "Idling..."
 msgstr "Tomgång..."
 
@@ -2824,6 +3084,24 @@ msgstr "Ta ett nytt filament"
 
 msgid "Purge old filament"
 msgstr "Rensa gammalt filament"
+
+msgid "Switch"
+msgstr "Byt"
+
+msgid "hotend"
+msgstr ""
+
+msgid "Wait for AMS cooling"
+msgstr "Vänta på att AMS kyls ner"
+
+msgid "Switch current filament at Filament Track Switch"
+msgstr "Byt aktuellt filament vid Filament spårbytare"
+
+msgid "Pull back current filament at Filament Track Switch"
+msgstr "Dra tillbaka aktuellt filament vid Filament spårbytaren"
+
+msgid "Switch track at Filament Track Switch"
+msgstr "Växla spår vid filament spårväxel"
 
 msgid "Confirm extruded"
 msgstr "Bekräfta extruderad"
@@ -3146,12 +3424,6 @@ msgstr "Det finns många delar av programvaran som kommer ifrån bidrag av commu
 msgid "AMS Materials Setting"
 msgstr "AMS Material Inställning"
 
-msgid "Confirm"
-msgstr "Bekräfta"
-
-msgid "Close"
-msgstr "Stäng"
-
 msgid "Colour"
 msgstr "Färg"
 
@@ -3213,8 +3485,9 @@ msgstr "Ange ett giltigt värde (K i %.1f~%.1f)"
 msgid "Please input a valid value (K in %.1f~%.1f, N in %.1f~%.1f)"
 msgstr "Ange ett giltigt värde (K i %.1f~%.1f, N i %.1f~%.1f)"
 
-msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
-msgstr "Obs: Hotend numret på höger extruder är kopplat till hållaren. När hotend flyttas till en ny hållare uppdateras dess nummer automatiskt."
+#, c-format, boost-format
+msgid "Note: The hotend number on the %s is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
+msgstr "Obs: Hotend numret på %s är kopplat till hållaren. När hotend flyttas till en ny hållare uppdateras dess nummer automatiskt."
 
 msgid ""
 "The nozzle flow is not set. Please set the nozzle flow rate before editing the filament.\n"
@@ -3327,11 +3600,9 @@ msgstr "AMS Fack"
 msgid "Please select from the following filaments"
 msgstr "Vänligen välj bland följande filament"
 
-msgid "Select filament that installed to the left nozzle"
-msgstr "Välj filament som installeras till vänster nozzle"
-
-msgid "Select filament that installed to the right nozzle"
-msgstr "Välj filament som installeras till höger nozzle"
+#, c-format, boost-format
+msgid "Select filament that installed to the %s"
+msgstr "Välj filament som installerats till %s"
 
 msgid "Left AMS"
 msgstr "Vänster AMS"
@@ -3344,27 +3615,6 @@ msgstr "Återställ aktuell filament mappning"
 
 msgid "Right AMS"
 msgstr "Höger AMS"
-
-msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
-msgstr "Tips: För att lära dig om reglerna för filament kompatibilitet, se Wiki före användning->"
-
-msgid "Please select the filament installed on the left nozzle."
-msgstr "Välj det filament som är installerat på vänster nozzle."
-
-msgid "Please select the filament installed on the right nozzle."
-msgstr "Välj det filament som är installerat på höger nozzle."
-
-msgid "Nozzle"
-msgstr "Nozzel"
-
-msgid "Ext"
-msgstr ""
-
-msgid "Select Filament && Hotends"
-msgstr "Välj Filament && Hotends"
-
-msgid "Select Filament"
-msgstr "Välj filament"
 
 #, c-format, boost-format
 msgid "Printing with the current nozzle may produce an extra %0.2f g of waste."
@@ -3427,12 +3677,6 @@ msgstr "Skriv ut med filament på en extern spole"
 msgid "Auto Refill"
 msgstr "Auto Refill"
 
-msgid "Left"
-msgstr "Vänster"
-
-msgid "Right"
-msgstr "Höger"
-
 msgid "When the current material run out, the printer will continue to print in the following order."
 msgstr "När det aktuella materialet tar slut, fortsätter printern att skriva ut material i följande ordning."
 
@@ -3463,6 +3707,28 @@ msgstr "TORR"
 
 msgid "WET"
 msgstr "FUKTIG"
+
+#, c-format, boost-format
+msgid "Please select the filament installed on the %s."
+msgstr "Välj det filament som är installerat på %s."
+
+msgid "Please select the filament."
+msgstr "Välj filament."
+
+msgid "Nozzle"
+msgstr "Nozzel"
+
+msgid "To learn about the filaments matching rules."
+msgstr "För att lära dig om reglerna för filament matchning."
+
+msgid "External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it."
+msgstr "Externa spolar stöds inte eftersom Filament spårbytare har installerats. Om du vill använda extern spole, avinstallera den."
+
+msgid "Select Filament && Hotends"
+msgstr "Välj Filament && Hotends"
+
+msgid "Select Filament"
+msgstr "Välj filament"
 
 msgid "AMS Settings"
 msgstr "AMS Inställningar"
@@ -3802,6 +4068,26 @@ msgstr ""
 "Värdet kommer att återställas till 0."
 
 msgid ""
+"Interlocking beam width can't be zero when beam interlocking is enabled.\n"
+"Reset to 0.01 mm."
+msgstr ""
+"Den sammankopplade strål bredden kan inte vara noll när strål sammankoppling är aktiverad.\n"
+"Återställ till 0,01 mm."
+
+msgid ""
+"Fuzzy skin [Extrusion] and [Combined] modes require the Arachne wall generator.\n"
+"\n"
+"Do you want to change these settings automatically?\n"
+"Yes - Enable Arachne wall generator\n"
+"No - Keep current wall generator and set fuzzy skin to [Displacement] mode"
+msgstr ""
+"Fuzzy skin [Extrudering] och [Kombinerad] kräver Arachne vägg generatorn.\n"
+"\n"
+"Vill du ändra dessa inställningar automatiskt?\n"
+"Ja - Aktivera Arachne vägg generatorn\n"
+"Nej - Behåll aktuell vägg generator och ställ in fuzzy skin på läget [Förskjutning]"
+
+msgid ""
 "Prime tower does not work when Adaptive Layer Height or Independent Support Layer Height is on.\n"
 "Which do you want to keep?\n"
 "YES - Keep Prime Tower\n"
@@ -4075,6 +4361,36 @@ msgstr "Kalibrering av detekterings positionen för nozzle klumpar"
 msgid "Purifying the chamber air"
 msgstr "Rening av kammarluften"
 
+msgid "Measuring Rotary Attachment"
+msgstr "Mätning roterande tillbehör"
+
+msgid "The toolhead moves above the purge chute"
+msgstr "Verktygshuvudet rör sig ovanför rensnings rännan"
+
+msgid "Cooling down the nozzle"
+msgstr "Kyler ner nozzle"
+
+msgid "The toolhead moves to the center of the heatbed"
+msgstr "Verktygshuvudet flyttas till mitten av värmebädden"
+
+msgid "Active Arc Fitting"
+msgstr "Aktivt båge passform"
+
+msgid "Hotend Type Detection"
+msgstr "Detektering av hotend typ"
+
+msgid "Build plate alignment detection"
+msgstr "Positions detektering för byggplattans justering"
+
+msgid "Heatbed surface foreign object detection"
+msgstr "Detektering av främmande föremål på värmebädden"
+
+msgid "Heatbed underside foreign object detection"
+msgstr "Detektering av främmande föremål under värmebädden"
+
+msgid "Pre-extrusion before printing"
+msgstr "Extrudering före utskrift"
+
 msgid "Preparing AMS"
 msgstr "Förbereder AMS"
 
@@ -4149,6 +4465,9 @@ msgstr "Visa Liveview"
 msgid "No Reminder Next Time"
 msgstr "Ingen påminnelse nästa gång"
 
+msgid "Recheck"
+msgstr "Kontrollera igen"
+
 msgid "Ignore. Don't Remind Next Time"
 msgstr "Ignorera. Påminn inte nästa gång"
 
@@ -4175,6 +4494,12 @@ msgstr "Fortsätt"
 
 msgid "Abort"
 msgstr "Avbryt"
+
+msgid "Disable Purification for This Print"
+msgstr "Inaktivera rening för denna utskrift"
+
+msgid "Don't Remind Me"
+msgstr "Påminn mig inte"
 
 msgid "Done"
 msgstr "Klar"
@@ -4362,6 +4687,9 @@ msgstr "Temperatur (°C)"
 msgid "Volumetric flow rate (mm³/s)"
 msgstr "Volymetrisk flödeshastighet (mm³/s)"
 
+msgid "Nozzles"
+msgstr ""
+
 msgid "Travel"
 msgstr "Flytta"
 
@@ -4397,6 +4725,9 @@ msgstr "Total tid"
 
 msgid "Filament change times"
 msgstr "Filament bytes tider"
+
+msgid "View Summary"
+msgstr "Visa sammanfattning"
 
 msgid "Color change"
 msgstr "Färg byte"
@@ -4445,12 +4776,6 @@ msgstr "Filament gruppering"
 
 msgid "Why this grouping"
 msgstr "Varför denna gruppering"
-
-msgid "Left nozzle"
-msgstr "Vänster nozzle"
-
-msgid "Right nozzle"
-msgstr "Höger nozzle"
 
 msgid "Please place filaments on the printer based on grouping result."
 msgstr "Placera filamenten i printern baserat på grupperings resultatet."
@@ -4629,12 +4954,6 @@ msgstr "Följande objekt har för långt ( avstånd > = %1% tum) från originale
 msgid "Following objects are too far ( distance >= %1% mm ) from the original of the world coordinate system:\n"
 msgstr "Följande objekt är för långt (avstånd >=%1%mm) från originalet av världens koordinatsystem:\n"
 
-msgid "left nozzle"
-msgstr "vänster nozzle"
-
-msgid "right nozzle"
-msgstr "höger nozzle"
-
 #, c-format, boost-format
 msgid "The position or size of some models exceeds the %s's printable range."
 msgstr "Positionen eller storleken på vissa modeller överskrider %s's utskrivbara område."
@@ -4645,14 +4964,6 @@ msgstr "Positionen eller storleken på modellen %s överskrider %s's utskrivbara
 
 msgid " Please check and adjust the part's position or size to fit the printable range:\n"
 msgstr " Kontrollera och justera delens position eller storlek så att den passar det utskrivbara området:\n"
-
-#, boost-format
-msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
-msgstr "Vänster nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
-
-#, boost-format
-msgid "Right nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
-msgstr "Höger nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
 
 msgid "Mirror Object"
 msgstr "Spegelvänd objektet"
@@ -4743,11 +5054,41 @@ msgstr "Klicka för att förlänga"
 msgid "Click to Collapse"
 msgstr "Klicka för att kollapsa"
 
-msgid "Assembly View"
-msgstr "Monterings vy"
+msgid "Overview"
+msgstr "Översikt"
 
 msgid "Select Plate"
 msgstr "Välj Byggplatta"
+
+msgid "Change camera perspective"
+msgstr "Ändra kameraperspektiv"
+
+msgid "Go to Wiki"
+msgstr "Gå till Wiki"
+
+#, boost-format
+msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
+msgstr "Nuvarande monterings hastighet: %1%%%, volym hastighet: %2%%%"
+
+msgctxt "Camera"
+msgid "Top"
+msgstr "Topplager"
+
+msgctxt "Camera"
+msgid "Bottom"
+msgstr "Botten"
+
+msgctxt "Camera"
+msgid "Front"
+msgstr "Framifrån"
+
+msgctxt "Camera"
+msgid "Back"
+msgstr "Tillbaka"
+
+msgctxt "Camera"
+msgid "Isometric"
+msgstr "Isometrisk"
 
 msgid "Assembly Return"
 msgstr "Monterings retur"
@@ -4787,6 +5128,21 @@ msgstr "Volym:"
 
 msgid "Size:"
 msgstr "Storlek:"
+
+msgid "Isolated objects detected"
+msgstr "Isolerade objekt upptäckta"
+
+msgid "Click to move them closer to the main body."
+msgstr "Klicka för att flytta dem närmare huvuddelen."
+
+msgid "Move closer"
+msgstr "Flytta närmare"
+
+msgid "The main assembly bounding box is too far from the world origin. Reset assembly relationships and move to origin?"
+msgstr "Huvudmonteringens avgränsnings ruta är för långt från nollpunkt. Återställ monterings relationer och flytta till nollpunkt?"
+
+msgid "Reset to origin"
+msgstr "Återställ till ursprung"
 
 #, c-format, boost-format
 msgid "Conflicts of gcode paths have been found at layer %d. Please separate the conflicted objects farther (%s <-> %s)."
@@ -4847,6 +5203,9 @@ msgstr "Klicka på Wiki för hjälp."
 
 msgid "Jump to: Prime tower"
 msgstr "Hoppa till: Prime Tower"
+
+msgid "Enable Clumping Detection"
+msgstr "Aktivera klump detektering"
 
 msgid "Click here to regroup"
 msgstr "Klicka här för att omgruppera"
@@ -4983,6 +5342,9 @@ msgstr "Nej"
 msgid "will be closed before creating a new model. Do you want to continue?"
 msgstr "avslutas innan en ny modell skapas. Vill du fortsätta?"
 
+msgid "Unlock faster, more reliable, warp-free prints with Helio Additive."
+msgstr "Lås upp snabbare, mer pålitliga och warp fria utskrifter med Helio Additive."
+
 msgid "Slice plate"
 msgstr "Bered plattan"
 
@@ -5109,10 +5471,6 @@ msgstr "Vy Vänster"
 
 msgid "Right View"
 msgstr "Vy Höger"
-
-msgctxt "Camera"
-msgid "Isometric"
-msgstr "Isometrisk"
 
 msgid "Isometric View"
 msgstr "Isometrisk vy"
@@ -5276,8 +5634,11 @@ msgstr "Återställ fönster layout"
 msgid "Reset to default window layout"
 msgstr "Återställ till standard fönsterlayout"
 
-msgid "Show object labels in 3D scene"
-msgstr "Visa objekt etiketter i 3D-scenen"
+msgid "Show Labels of printing by layer in 3D scene"
+msgstr "Visa etiketter för utskrift per lager i 3D vy"
+
+msgid "Show Labels of printing by object in 3D scene"
+msgstr "Visa etiketter för utskrift per objekt i 3D vy"
 
 msgid "Show &Overhang"
 msgstr "Visa & Överhäng"
@@ -5570,6 +5931,9 @@ msgstr "information"
 msgid "The live streaming feature relies on Bambu Studio to run,and the stream will end some time after the app is closed."
 msgstr "Livestreaming funktionen är beroende av Bambu Studio för att köras, och streamen avslutas en stund efter att appen stängts."
 
+msgid "Printer Preview"
+msgstr "Förhandsgranskning av printer"
+
 msgid "Playing..."
 msgstr "Spelar..."
 
@@ -5626,9 +5990,6 @@ msgstr "Välj"
 
 msgid "Batch manage files."
 msgstr "Batch hantera filer."
-
-msgid "Refresh"
-msgstr "Uppdatera"
 
 msgid "Reload file list from printer."
 msgstr "Ladda om fil listan från printer."
@@ -5710,8 +6071,8 @@ msgstr "Nedladdning slutförd"
 msgid "Downloading %d%%..."
 msgstr "Laddar ner %d%%..."
 
-msgid "Air Condition"
-msgstr "Luftkonditionering"
+msgid "Air Management"
+msgstr "Luft hantering"
 
 msgid "Reconnecting the printer, the operation cannot be completed immediately, please try again later."
 msgstr "Återansluter printern, operationen kan inte slutföras omedelbart, försök igen senare."
@@ -5993,17 +6354,23 @@ msgstr "När utskriften är pausad stöds endast filament inmatning och utmatnin
 msgid "Current extruder is busy changing filament"
 msgstr "Aktuell extruder är upptagen med att byta filament"
 
+msgid "\"Load\" or \"Unload\" is not supported for external spool while using Filament Track Switch."
+msgstr "\"Ladda\" eller \"Mata ut\" stöds inte för extern spole vid användning av Filament spårbytare."
+
+msgid "The Filament Track Switch has not been setup. Please setup on printer."
+msgstr "Filament spårbytaren har inte konfigurerats. Konfigurera på printern."
+
 msgid "Current slot has alread been loaded"
 msgstr "Aktuellt fack har redan laddats"
 
 msgid "The selected slot is empty."
 msgstr "Det valda facket är tomt."
 
-msgid "No extruder found for the selected slot."
-msgstr "Ingen extruder hittades för den valda platsen."
-
 msgid "The selected slot is not loaded in the extruder."
 msgstr "Det valda facket är inte laddat i extrudern."
+
+msgid "No extruder found for the selected slot."
+msgstr "Ingen extruder hittades för den valda platsen."
 
 msgid "Printer 2D mode does not support 3D calibration"
 msgstr "Printerns 2D läge stöder inte 3D kalibrering"
@@ -6054,8 +6421,8 @@ msgstr "Om kammar temperaturen överstiger 40 °C växlar systemet automatiskt t
 msgid "Please select an AMS slot before calibration"
 msgstr "Välj ett AMS-fack innan kalibrering"
 
-msgid "Cannot read filament info: the filament is loaded to the tool head,please unload the filament and try again."
-msgstr "Kan inte läsa filament information: Filamentet är laddat till verktygshuvudet, ta bort filamentet och försök igen."
+msgid "Cannot read filament info: the filament is loaded to the toolhead, please unload the filament and try again."
+msgstr "Kan inte läsa filament info: filamentet är laddat i verktygshuvudet, mata ut filamentet och försök igen."
 
 msgid "This only takes effect during printing"
 msgstr "Detta gäller endast under utskrift."
@@ -6080,6 +6447,9 @@ msgstr "Stäng av den ändå"
 
 msgid "Can't start this without storage."
 msgstr "Kan inte starta detta utan lagring."
+
+msgid "Cannot switch extruder when the printer is not at FDM mode"
+msgstr "Kan inte byta extruder när printern inte är i FDM läge"
 
 msgid "Rate the Print Profile"
 msgstr "Betygsätt utskriftsprofil"
@@ -6304,6 +6674,9 @@ msgstr "Så här använder du endast LAN läge"
 msgid "Don't show this dialog again"
 msgstr "Visa inte den här dialogen igen"
 
+msgid "Please refer to Wiki before use->"
+msgstr "Se Wiki före användning->"
+
 msgid "3D Mouse disconnected."
 msgstr "3D mus bortkopplad."
 
@@ -6396,6 +6769,9 @@ msgstr "Hoppa till"
 
 msgid "Error:"
 msgstr "Fel:"
+
+msgid "Open link for more info"
+msgstr "Öppna länken för mer information"
 
 msgid "Warning:"
 msgstr "Varning:"
@@ -6527,6 +6903,18 @@ msgstr "Kontrollerar om det finns nozzle klumpar av filament eller andra främma
 msgid "Detects air printing caused by nozzle clogging or filament grinding."
 msgstr "Detekterar utskrift i luften orsakad av nozzle stopp eller filament slirning."
 
+msgid "Foreign Object Detection"
+msgstr "Detektion av främmande föremål"
+
+msgid "Checks for any objects on the build plate at the start of a print to avoid collisions."
+msgstr "Kontrollerar om det finns några föremål på byggplattan i början av en utskrift för att undvika kollisioner."
+
+msgid "Printed Part Displacement Detection"
+msgstr "Detektion av förflyttning av utskriven del"
+
+msgid "Monitors the printed part during printing and alerts immediately if it shifts or collapses."
+msgstr "Övervakar den utskrivna delen under utskrift och varnar omedelbart om den förskjuts eller kollapsar."
+
 msgid "Ensures the build plate type and placement are correct."
 msgstr "Säkerställer att byggplattans typ och att placering är korrekt."
 
@@ -6605,12 +6993,6 @@ msgstr "Ändra inställningarna för nozzle på printern."
 msgid "View wiki"
 msgstr "Visa wiki"
 
-msgid "Left Nozzle"
-msgstr "Vänster nozzle"
-
-msgid "Right Nozzle"
-msgstr "Höger nozzle"
-
 msgid "Brass"
 msgstr "Mässing"
 
@@ -6622,9 +7004,6 @@ msgstr "TPU Hög Flöde"
 
 msgid "No wiki link available for this printer."
 msgstr "Det finns ingen wiki länk för den här printern."
-
-msgid "Refreshing"
-msgstr "Laddar om"
 
 msgid "Unavailable while heating maintenance function is on."
 msgstr "Ej tillgänglig när värme underhålls funktionen är på."
@@ -6709,6 +7088,17 @@ msgstr "Nozzle %s stöder inte automatiskt filament byte.\n"
 msgid "Please change the nozzle type or reassign the filaments and try again."
 msgstr "Ändra nozzle typ eller tilldela filamenten på nytt och försök igen."
 
+#, c-format, boost-format
+msgid "Risk of nozzle clumping detected with the current high-temperature filament (%s). We recommend enabling clumping detection (via probing). This feature uses a quick probing sequence to check for nozzle buildup during the print and utilizes the prime tower to absorb oozing before resuming."
+msgstr "Risk för klumpbildning i nozzle upptäckt med det aktuella högtemperatur filamentet (%s). Vi rekommenderar att du aktiverar klumpbildnings detektering (via probning). Den här funktionen använder en snabb probningssekvens för att kontrollera om det finns nozzle avlagringar under utskriften och använder prime tornet för att absorbera läckage innan utskriften återupptas."
+
+#, c-format, boost-format
+msgid "High-shrinkage filament(s) detected: %s. These materials may cause dimensional deviation after cooling. If your model requires precise fitting or assembly, please refer to the Wiki guide for shrinkage testing."
+msgstr "Detekterat filament med hög krympning: %s. Dessa material kan orsaka dimensionsavvikelser efter kylning. Om din modell kräver exakt passform eller montering, se Wiki-guiden för krympningstestning."
+
+msgid "Printing mixed-color filament on a single-extruder printer requires frequent filament changes and flushing, which may significantly increase waste and the risk of nozzle / waste-chute clogging."
+msgstr ""
+
 #, boost-format
 msgid " plate %1%: "
 msgstr " platta %1%: "
@@ -6740,6 +7130,15 @@ msgstr "Uppskattad tid"
 msgid "Filament changes"
 msgstr "Filament byten"
 
+msgid "Filament switcher detected. All AMS filaments are now available for both extruders. The slicer will auto-assign for optimal printing. "
+msgstr "Filament växlare upptäckt. Alla AMS filament är nu tillgängliga för båda extrudrarna. Beredningen kommer att tilldela automatiskt för optimal utskrift. "
+
+msgid "A filament switcher is detected but not calibrated and thus currently unavailable. Please calibrate it on the printer and synchronize before use. "
+msgstr "En filament växlare har upptäckts men är inte kalibrerad och är därför för närvarande otillgänglig. Kalibrera den på printern och synkronisera innan användning. "
+
+msgid "Learn more"
+msgstr "Läs mer"
+
 msgid "Set the number of AMS installed on the nozzle."
 msgstr "Ställ in antalet AMS som är installerade på nozzlen."
 
@@ -6764,29 +7163,35 @@ msgstr ""
 msgid "Switch diameter"
 msgstr "Byt diameter"
 
-#, c-format, boost-format
-msgid "Left nozzle: %smm"
-msgstr "Vänster nozzle: %smm"
-
-#, c-format, boost-format
-msgid "Right nozzle: %smm"
-msgstr "Höger nozzle: %smm"
-
 msgid "Sync printer information"
 msgstr "Synkronisera printer information"
 
-msgid ""
-"The currently selected machine preset is inconsistent with the connected printer type.\n"
-"Are you sure to continue syncing?"
-msgstr ""
-"Den valda maskin inställningen stämmer inte överens med den anslutna printerns typ.\n"
-"Är du säker på att du vill fortsätta synkroniseringen?"
+msgid "Do you want to sync the preset printer with the connected printer, "
+msgstr "Vill du synkronisera den förinställda printern med den anslutna printern, "
+
+#, c-format, boost-format
+msgid "Current connected printer (Device page): %s (%s)"
+msgstr "Nuvarande ansluten skrivare (Enhetssida): %s (%s)"
+
+#, c-format, boost-format
+msgid "Current printer preset (Prepare page): %s"
+msgstr "Nuvarande printer inställning (Förbered sidan): %s"
+
+msgid "Sync now"
+msgstr "Synkronisera nu"
 
 msgid "There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."
 msgstr "Det finns oinställda nozzle typer. Ställ in nozzle typerna för alla extruders innan du synkroniserar."
 
 msgid "Sync extruder infomation"
 msgstr "Synkronisera extruder information"
+
+msgid ""
+"Tips:\n"
+"Curve planning enhancement support detected on your printer. The software has automatically disabled arc fitting to ensure this feature functions correctly."
+msgstr ""
+"Tips:\n"
+"Kurv planerings förbättring upptäckt på din printer. Programvaran har automatiskt inaktiverat båg anpassning för att säkerställa att denna funktion fungerar korrekt."
 
 msgid "Click to edit preset"
 msgstr "Tryck för att redigera inställningar"
@@ -6824,8 +7229,26 @@ msgstr "Synkronisera filament listan från AMS"
 msgid "Set filaments to use"
 msgstr "Ställ in filament som ska användas"
 
+msgid "Add Mixed Filament"
+msgstr "Lägg till blandat filament"
+
+msgid "Mixed Filament"
+msgstr "Blandat filament"
+
+msgid "Add mixed filament"
+msgstr "Lägg till blandat filament"
+
+msgid "Remove last mixed filament"
+msgstr "Ta bort det sista blandade filamentet"
+
+msgid "Mixed filament has invalid or mismatched components. Please re-edit affected entries."
+msgstr "Blandat filament har ogiltiga eller felaktiga komponenter. Redigera berörda poster igen."
+
 msgid "Search plate, object and part."
 msgstr "Sök platta, objekt och del."
+
+msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
+msgstr "Målet med blandat filament använder detta fysiska filament som en komponent. Sammanslagning kommer att ta bort detta fysiska filament och kan ogiltigförklara den blandade filamenten. Vill du fortsätta?"
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -6844,6 +7267,12 @@ msgstr "Det finns några okända eller okompatibla filament som mappats till gen
 
 msgid "Filament type and color information have been synchronized, but slot information is not included."
 msgstr "Filamenttyp och färginformation har synkroniserats, men fack information ingår inte."
+
+msgid "Mixed filament has broken component references"
+msgstr "Blandat filament har trasiga komponent referenser"
+
+msgid "Edit / Delete / Merge"
+msgstr "Redigera / Ta bort / Sammanfoga"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -7084,9 +7513,97 @@ msgstr "Ogiltlig data"
 msgid "Slicing Canceled"
 msgstr "Beredning avbruten"
 
+msgid "Great! Now click the Helio button to start optimization."
+msgstr "Toppen! Klicka nu på Helio knappen för att starta optimeringen."
+
 #, c-format, boost-format
 msgid "Slicing Plate %d"
 msgstr "Bereder plattan %d"
+
+msgid "Multiple Filament Materials Detected"
+msgstr "Flera filament material detekterade"
+
+msgid "⚠ Multiple Filament Materials Detected"
+msgstr "⚠ Flera filament material detekterade"
+
+msgid " (unsupported)"
+msgstr " (stöds inte)"
+
+msgid "Multicolour simulation currently supports only a single filament material."
+msgstr "Flerfärgs simulering stöder för närvarande endast ett enda filament material."
+
+#, c-format, boost-format
+msgid "You have selected multiple materials: %s"
+msgstr "Du har valt flera material: %s"
+
+msgid "Note: Unsupported materials will use the selected reference material for simulation."
+msgstr "Obs: Material som inte stöds kommer att använda det valda referens materialet för simulering."
+
+msgid "True multi-material support will be added in a future update."
+msgstr "Verkligt stöd för flera material kommer att läggas till i en framtida uppdatering."
+
+msgid "Option 1: Proceed using a single filament type"
+msgstr "Alternativ 1: Fortsätt med en enda filament typ"
+
+msgid "Select which filament to use for simulation:"
+msgstr "Välj vilket filament som ska användas för simuleringen:"
+
+msgid "⚠ This is not recommended. Filament formulations vary significantly between manufacturers and materials. Helio cannot guarantee reliable results in this configuration."
+msgstr "⚠ Detta rekommenderas inte. Filament formuleringar varierar avsevärt mellan tillverkare och material. Helio kan inte garantera tillförlitliga resultat i denna konfiguration."
+
+msgid "Proceed Anyway"
+msgstr "Fortsätt ändå"
+
+msgid "Option 2: Go back and change filament selection"
+msgstr "Alternativ 2: Gå tillbaka och ändra filament valet"
+
+msgid "✓ Recommended"
+msgstr "✓ Rekommenderad"
+
+msgid "Change your filament selection to use the same type for all colours, then try again."
+msgstr "Ändra ditt filament val så att du använder samma typ för alla färger och försök sedan igen."
+
+msgid "See supported materials"
+msgstr "Se material som stöds"
+
+msgid "Go Back"
+msgstr "Gå tillbaka"
+
+msgid "Unsupported Materials Detected"
+msgstr "Material som inte stöds har upptäckts"
+
+msgid "⚠ Unsupported Materials Detected"
+msgstr "⚠ Material som inte stöds har upptäckts"
+
+msgid "Some of your selected materials are not directly supported by Helio:"
+msgstr "Vissa av dina valda material stöds inte direkt av Helio:"
+
+msgid "Option 1: Proceed with a reference material"
+msgstr "Alternativ 1: Fortsätt med ett referens material"
+
+msgid "Select a similar material type to use for simulation:"
+msgstr "Välj en liknande materialtyp att använda för simulering:"
+
+msgid "Note: Using a reference material may result in approximate or erroneous results."
+msgstr "Obs: Användning av referens material kan resultera i ungefärliga eller felaktiga resultat."
+
+msgid "Change your filament selection to use a supported material, then try again."
+msgstr "Ändra ditt filament val för att använda ett material som stöds och försök sedan igen."
+
+msgid "Option 3: Refresh supported materials list"
+msgstr "Alternativ 3: Uppdatera listan över material som stöds"
+
+msgid "Re-download the supported printers and materials list from Helio, then re-check compatibility."
+msgstr "Ladda ner listan över printers och material som stöds från Helio igen och kontrollera sedan kompatibiliteten igen."
+
+msgid "Refresh & Retry"
+msgstr "Uppdatera & försök igen"
+
+msgid "Syncing Data"
+msgstr "Synkroniserar data"
+
+msgid "Refreshing printer and material data..."
+msgstr "Uppdaterar printer och materialdata..."
 
 msgid "A Helio simulation or optimization task is in progress."
 msgstr "En Helio simulering eller optimerings uppgift pågår."
@@ -7094,18 +7611,121 @@ msgstr "En Helio simulering eller optimerings uppgift pågår."
 msgid "Invalid printer preset. Unable to slice with Helio."
 msgstr "Ogiltig printer inställning. Det går inte att bereda med Helio."
 
+#, c-format, boost-format
+msgid ""
+"Helio found a potential printer match using token-based matching:\n"
+"\n"
+"Your printer: %s\n"
+"Matched printer: %s\n"
+"\n"
+"Do you want to use this match, or would you prefer to rename your printer profile?"
+msgstr ""
+"Helio hittade en möjlig printer match med hjälp av token baserad matchning:\n"
+"\n"
+"Din skrivare: %s\n"
+"Matchad skrivare: %s\n"
+"\n"
+"Vill du använda denna matchning, eller föredrar du att byta namn på din printer profil?"
+
+msgid "Helio Printer Match Confirmation"
+msgstr "Bekräftelse av matchning av Helio printer"
+
+#, c-format, boost-format
+msgid ""
+"Your printer '%s' is not officially supported by Helio.\n"
+"Select a reference printer:"
+msgstr ""
+"Din printer '%s' stöds inte av Helio.\n"
+"Välj en referens printer:"
+
+msgid "Unsupported Printer"
+msgstr "Printer som inte stöds"
+
 msgid "The current printer preset cannot be sliced using Helio."
 msgstr "Den aktuella printern kan inte beredas med Helio."
 
-msgid "Helio does not support using a number of materials greater than 1."
-msgstr "Helio stöder inte användning av ett antal material större än 1."
+#, c-format, boost-format
+msgid ""
+"Helio found a potential material match using token-based matching:\n"
+"\n"
+"Your material: %s\n"
+"Matched material: %s\n"
+"\n"
+"Do you want to use this match, or would you prefer to rename your material profile?"
+msgstr ""
+"Helio hittade en möjlig material matchning med hjälp av token baserad matchning:\n"
+"\n"
+"Ditt material: %s\n"
+"Matchat material: %s\n"
+"\n"
+"Vill du använda denna matchning, eller föredrar du att byta namn på din materialprofil?"
+
+msgid "Helio Material Match Confirmation"
+msgstr "Bekräftelse av matchning av Helio material"
+
+#, c-format, boost-format
+msgid ""
+"Helio does not support materials %s.\n"
+"\n"
+"Please choose an officially supported material. "
+msgstr ""
+"Helio stöder inte material %s.\n"
+"\n"
+"Välj ett material som stöds officiellt. "
+
+msgid "View supported materials"
+msgstr "Visa material som stöds"
 
 #, c-format, boost-format
 msgid "Helio does not support materials %s"
 msgstr "Helio stöder inte material %s"
 
-msgid "Helio functions do not support the print sequence of \"ByObject\"."
-msgstr "Helio funktioner stöder inte utskrifts sekvensen av \"Per objekt\"."
+msgid ""
+"Warning: Infill combination is currently unsupported by Helio.\n"
+"\n"
+"Proceeding with this setting enabled may return erroneous results.\n"
+"\n"
+"Do you want to continue anyway?"
+msgstr ""
+"Varning: Ifyllnads kombination stöds för närvarande inte av Helio.\n"
+"\n"
+"Att fortsätta med denna inställning aktiverad kan leda till felaktiga resultat.\n"
+"\n"
+"Vill du fortsätta ändå?"
+
+msgid "Helio Warning"
+msgstr "Helio varning"
+
+msgid "Unsupported Printer Detected"
+msgstr "Printer som inte stöds upptäckt"
+
+msgid "⚠ Unsupported Printer Detected"
+msgstr "⚠ Printer som inte stöds upptäckt"
+
+#, c-format, boost-format
+msgid "You're using %s which is not officially supported by Helio."
+msgstr "Du använder %s som inte officiellt stöds av Helio."
+
+msgid "Option 1: Proceed with a reference printer"
+msgstr "Alternativ 1: Fortsätt med en referens printer"
+
+msgid "Select a similar printer to use for simulation:"
+msgstr "Välj en liknande printer att använda för simulering:"
+
+msgid "Note: Using a reference printer may result in approximate or erroneous results."
+msgstr "Notera: Att använda en referens printer kan resultera i ungefärliga eller felaktiga resultat."
+
+msgid "Option 2: Go back and change printer selection"
+msgstr "Alternativ 2: Gå tillbaka och ändra printer valet"
+
+msgid "Change your printer selection to use a supported printer, then try again."
+msgstr "Ändra ditt printer val för att använda en printer som stöds och försök sedan igen."
+
+msgid "See supported printers"
+msgstr "Se printer som stöds"
+
+msgid "Click the Optimize/Enhance button to start your first optimization."
+msgstr "Klicka på knappen Optimera/Förbättra för att starta din första optimering."
 
 msgid ""
 "No valid Helio-PAT detected. Helio simulation & optimization cannot proceed. \n"
@@ -7159,9 +7779,6 @@ msgstr ""
 "Nozzle typ och AMS mängd information har inte synkroniserats från den anslutna printern.\n"
 "Efter synkronisering kan programvaran optimera utskrifts tiden och filament användningen vid\n"
 "beredning. Vill du synkronisera nu?"
-
-msgid "Sync now"
-msgstr "Synkronisera nu"
 
 msgid "You can keep the modified presets to the new project or discard them"
 msgstr "Du kan behålla de modifierade inställningarna i det nya projektet eller kassera dem"
@@ -7295,6 +7912,16 @@ msgstr "Följande tecken är inte tillåtna i ett FAT-fil system:"
 msgid "Save Sliced file as:"
 msgstr "Spara beredningen som:"
 
+msgid ""
+"Failed to export the sliced file.\n"
+"Please check whether the file is occupied by another program or if there is enough disk space."
+msgstr ""
+"Kunde inte exportera den beredda filen.\n"
+"Kontrollera om filen används av ett annat program eller om det finns tillräckligt med diskutrymme."
+
+msgid "Export sliced file"
+msgstr "Exportera den beredda filen"
+
 #, c-format, boost-format
 msgid "The file %s has been sent to the printer's storage space and can be viewed on the printer."
 msgstr "Filen %s har skickats till skrivarens lagringsutrymme och kan visas på skrivaren."
@@ -7327,18 +7954,15 @@ msgstr "Orsak: \"%1%\" och en annan del har ingen korsning."
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Negativa delar upptäckta. Vill du utföra boolean av mesh före export?"
 
+#, c-format, boost-format
+msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
+msgstr "Kalibrerings filamentet är för närvarande tilldelat en annan extruder än den som valts i PA kalibrerings dialogrutan (%s). Detta kan leda till felaktiga kalibrerings resultat. Du kan ändra tilldelningen i inställningarna för filament gruppering."
+
 msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr "Det är inte rekommenderat att använda PVA-filament med 0.2 mm nozzle."
 
 msgid "Are you sure to use them? \n"
 msgstr "Är du säker på att du ska använda dem? \n"
-
-msgid ""
-"Print By Object: \n"
-"Suggest to use auto-arrange to avoid collisions when printing."
-msgstr ""
-"Skriv ut per Objekt:\n"
-"Rekommenderar att auto-placering för att undvika kollisioner under utskrift."
 
 msgid "Send G-code"
 msgstr "Skicka G-kod"
@@ -7351,6 +7975,19 @@ msgstr "Custom support och färgläggning raderades innan reparation."
 
 msgid "Custom supports,seam_facets and color painting were removed before repairing,model name:"
 msgstr "Anpassade support, söm_ytor och färgmålning togs bort innan modellnamnet reparerades:"
+
+msgid ""
+"Print By Object: \n"
+"Suggest to use auto-arrange to avoid collisions when printing."
+msgstr ""
+"Skriv ut per Objekt:\n"
+"Rekommenderar att auto-placering för att undvika kollisioner under utskrift."
+
+msgid "Auto arrange"
+msgstr "Ordna automatiskt"
+
+msgid "Detail view wiki->"
+msgstr "Detalj vy wiki->"
 
 #, c-format, boost-format
 msgid "Printer not connected. Please go to the device page to connect %s before syncing."
@@ -7536,6 +8173,12 @@ msgstr "Brittisk standard"
 msgid "Units"
 msgstr "Enheter"
 
+msgid "Use 12-hour time format"
+msgstr "Använd 12-timmars tidsformat"
+
+msgid "Display time in 12-hour format with AM/PM instead of 24-hour format"
+msgstr "Visa tid i 12-timmars format med AM/PM istället för 24-timmars format"
+
 msgid "Keep only one Bambu Studio instance"
 msgstr "Behåll endast en Bambu Studio instans"
 
@@ -7599,9 +8242,6 @@ msgstr "Rensa mitt val för synkronisering av printerns inställning efter laddn
 msgid "Clear my choice for Load 3mf dialog settings."
 msgstr "Rensa mitt val för Inställningar för dialogrutan Ladda 3mf."
 
-msgid "Show the warning dialog again when importing non-Bambu 3MF files"
-msgstr "Visa varningsdialogrutan igen när du importerar icke Bambu 3MF-filer"
-
 msgid "3D Settings"
 msgstr "3D inställningar"
 
@@ -7634,6 +8274,15 @@ msgstr "Kom ihåg det senast använda färgschemat"
 
 msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be automatically applied on next startup."
 msgstr "När aktiverad, kommer den senast använda färgschemat (t.ex., linjetyp, hastighet) att tillämpas automatiskt vid nästa start."
+
+msgid "Display overview"
+msgstr "Visa översikt"
+
+msgid "Show assembly BVH primary bounds"
+msgstr "Visa BVH primär gränser för montering"
+
+msgid "Display the BVH primary bounding box wireframe in assembly view."
+msgstr "Visa BVH primära avgränsnings ram i sammanställnings vyn."
 
 msgid "Improve rendering performance by lod"
 msgstr "Förbättra renderingsprestandan med lod"
@@ -7771,11 +8420,11 @@ msgid "User Experience"
 msgstr "Användarupplevelse"
 
 msgid "Join the User Experience Improvement Program."
-msgstr ""
+msgstr "Gå med i programmet för förbättring av användarupplevelsen."
 
 msgctxt "Preferences"
 msgid "Learn more"
-msgstr ""
+msgstr "Läs mer"
 
 msgid "Auto-fill previously logged-in accounts."
 msgstr "Fyll automatiskt i tidigare inloggade konton."
@@ -7891,11 +8540,11 @@ msgstr "Ej giltliga förinställningar"
 msgid "My Printer"
 msgstr "Min printer"
 
-msgid "Left filaments"
-msgstr "Vänster filament"
-
 msgid "AMS filaments"
 msgstr "AMS-filament"
+
+msgid "Left filaments"
+msgstr "Vänster filament"
 
 msgid "Right filaments"
 msgstr "Höger filament"
@@ -7977,6 +8626,9 @@ msgstr "Spiral vas"
 
 msgid "First layer filament sequence"
 msgstr "Första lagrets filament sekvens"
+
+msgid "The filament list contains mixed filaments. Custom filament sequence will not take effect."
+msgstr "Filament listan innehåller blandade filament. Anpassad filament sekvens kommer inte att gälla."
 
 msgid "Same as Global Bed Type"
 msgstr "Samma som Global Bed Type"
@@ -8172,6 +8824,9 @@ msgstr "Din metod för gruppering av filament i berednings filen är inte optima
 msgid "To ensure print quality, the drying temperature will be lowered during printing."
 msgstr "För att säkerställa utskriftskvalitet sänks torktiden under utskriften."
 
+msgid "Select timelapse storage location"
+msgstr "Välj lagringsplats för timelapse"
+
 msgid ""
 "This checks the flatness of heatbed. Leveling makes extruded height uniform.\n"
 "*Automatic mode: Run a leveling check(about 10 seconds). Skip if surface is fine."
@@ -8199,11 +8854,18 @@ msgstr ""
 msgid "Nozzles and filaments of the same type share the same PA profile"
 msgstr "Nozzle och filament av samma typ delar samma PA profil"
 
+msgid "If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
+msgstr "Om filamentet/nozzle på huvud extrudern inte har ändrats kommer det senaste kalibreringsvärdet att återanvändas. Hjälp extrudern kommer att använda systemets standardvärde."
+
 msgid "send completed"
 msgstr "skicka slutförd"
 
 msgid "Error code"
 msgstr "Felkod"
+
+#, c-format, boost-format
+msgid "Recommended filament arrangement saves %s->"
+msgstr "Rekommenderat filament arrangemang sparar %s->"
 
 #, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
@@ -8253,6 +8915,49 @@ msgstr "Detta kontrollerar värmebäddens planhet. Utjämning gör den extrudera
 
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Den här processen bestämmer de dynamiska flödesvärdena för att förbättra den övergripande utskriftskvaliteten."
+
+msgid "Internal"
+msgstr "Intern"
+
+#, c-format, boost-format
+msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
+msgstr "%s utrymme mindre än 10MB. Tidsgräns kan inte spara ordentligt. Du kan stänga av det eller"
+
+msgid "Clean up files"
+msgstr "Rensa filer"
+
+msgid "Low internal storage. This timelapse will overwrite the oldest video files."
+msgstr "Lågt internt lagringsutrymme. Denna timelapse kommer att skriva över de äldsta videofilerna."
+
+msgid "Low external storage. This timelapse will overwrite the oldest video files."
+msgstr "Lågt externt lagringsutrymme. Denna timelapse kommer att skriva över de äldsta videofilerna."
+
+msgid "Insufficient external storage for time-lapse photography. Connect to computer to delete files, or use a larger memory card."
+msgstr "Otillräcklig extern lagring för timelapse fotografering. Anslut till datorn för att ta bort filer, eller använd ett större minneskort."
+
+msgid "Storage Space Not Enough"
+msgstr "Lagringsutrymme otillräckligt"
+
+msgid "Confirm & Print"
+msgstr "Bekräfta & skriv ut"
+
+msgid "Cancel Timelapse & Print"
+msgstr "Avbryt Timelapse och utskrift"
+
+msgid "Clean Up"
+msgstr "Rensa"
+
+msgid "Auto: If the filament/nozzle of the main extruder hasn't changed, the last calibration value will be reused. The auxiliary extruder will use the system default value."
+msgstr "Auto: Om inte filament/nozzle i huvud extrudern har ändrats kommer det sista kalibreringsvärdet att återanvändas. Extra extrudern kommer att använda systemets standardvärde."
+
+msgid "On: Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
+msgstr "På: Innan varje utskrift startar, kommer kalibrering att utföras för huvud extrudern. Extra extrudern kommer att använda systemets standardvärde."
+
+msgid "Off: Prioritize using the value from your manual flow calibration."
+msgstr "Av: Prioritera med hjälp av värdet från din manuella flödes kalibrering."
+
+msgid "Before each print starts, calibration will be performed for the main extruder. The auxiliary extruder will use the system default value."
+msgstr "Innan varje utskrift påbörjas kommer kalibrering att utföras för huvud extrudern. Hjälp extrudern kommer att använda systemets standardvärde."
 
 msgid "Preparing print job"
 msgstr "Förbereder utskriftsjobb"
@@ -8334,6 +9039,15 @@ msgstr "%s diametern(%.1fmm) på den aktuella printern stämmer inte överens me
 msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file (%.1fmm). Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing."
 msgstr "Det aktuella nozzle diametern (%.1fmm) stämmer inte överens med berednings filen (%.1fmm). Vänligen kontrollera att nozzle stämmer överens med inställningarna i printern och ställ sedan in motsvarande printer inställningar när du bereder."
 
+msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
+msgstr "Filament spårbytaren som är installerad på printern matchar inte berednings filen. Bered om för att undvika problem med utskrifts kvaliteten."
+
+msgid "This print requires a Filament Track Switch. Please install it first."
+msgstr "Denna utskrift kräver en filament spårbytare. Vänligen installera den först."
+
+msgid "The Filament Track Switch has not been setup. Please setup it first."
+msgstr "Filament spårbytaren har inte konfigurerats. Vänligen konfigurera den först."
+
 #, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
 msgstr "Misslyckades att skicka automatisk mappning till printern { kod: %d }. Försök att uppdatera printerns information. Om det fortfarande inte hjälper, kan du försöka binda om printern och kontrollera nätverksanslutningen."
@@ -8358,7 +9072,10 @@ msgstr "Din nuvarande firmwareversion kan inte starta den här utskriften. Uppda
 
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
-msgstr ""
+msgstr "Hårdheten hos aktuellt material (%s) överskrider hårdheten hos %s(%s). Det kan orsaka nozzle slitage, vilket leder till material läckage och instabila flöde. Var försiktig när du använder den."
+
+msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
+msgstr "Vissa filament kan växla mellan extruders under utskrift. Manuell K-värdes kalibrering kan inte appliceras under hela utskriften, vilket kan påverka utskrifts kvaliteten. Aktivering av Kalibrering av flödesdynamik rekommenderas."
 
 msgid "Cool"
 msgstr ""
@@ -8429,8 +9146,8 @@ msgstr "Lagring måste sättas in för att spela in timelapse."
 msgid "You have selected both external and AMS filaments for an extruder. You will need to manually switch the external filament during printing."
 msgstr "Du har valt både externa och AMS filament för en extruder. Du måste manuellt byta externt filament under utskrift."
 
-msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
-msgstr "TPU 90A/TPU 85A är för mjuk och stöder inte automatiskt flödes dynamik kalibrering."
+msgid "TPU 90A/TPU 85A are too soft. It is recommended to perform manual flow calibration on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to auto/on, the system will use the previous calibration value and skip the flow calibration process."
+msgstr "TPU 90A/TPU 85A är för mjuka. Det rekommenderas att utföra manuell flödes kalibrering på sidan 'Kalibrering'. Om 'Dynamisk flödes kalibrering' är inställd på auto/på, kommer systemet att använda det tidigare kalibreringsvärdet och hoppa över flödes kalibreringsprocessen."
 
 msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value."
 msgstr "Ställ in dynamiskt flödes kalibrering till \"OFF\" för att aktivera anpassad dynamisk flödes värde."
@@ -8443,9 +9160,6 @@ msgstr "Nuvarande firmware stöder maximalt 16 material. Du kan antingen minska 
 
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr "Kontrollera om den erforderlig nozzle diameter och flödeshastighet matchar aktuell visning."
-
-msgid "Please refer to Wiki before use->"
-msgstr "Se Wiki före användning->"
 
 msgid "How to install"
 msgstr "Så här installerar du"
@@ -8462,11 +9176,13 @@ msgstr "Skicka till printerns lagring"
 msgid "Try to connect"
 msgstr "Försök att ansluta"
 
-msgid "Internal Storage"
-msgstr "Intern lagring"
+msgctxt "sendtoprint"
+msgid "Cache"
+msgstr ""
 
-msgid "External Storage"
-msgstr "Extern lagring"
+msgctxt "sendtoprint"
+msgid "External"
+msgstr "Extern"
 
 msgid "Upload file timeout, please check if the firmware version supports it."
 msgstr "Timeout för uppladdning av fil: kontrollera om firmwareversionen stöder det."
@@ -8643,6 +9359,9 @@ msgstr "Klicka för mer information"
 msgid "Click to reset all settings to the last saved preset."
 msgstr "Klicka för att återställa alla inställningar till den senast sparade förinställningen."
 
+msgid "Support interface speed"
+msgstr "Stöd gräns snittets hastighet"
+
 msgid "Prime tower is required for nozzle changing. There may be flaws on the model without prime tower. Are you sure you want to disable prime tower?"
 msgstr "Prime tower krävs för nozzle byte. Det kan bli brister på modellen utan prime tower. Är du säker på att du vill inaktivera prime tower?"
 
@@ -8698,21 +9417,21 @@ msgstr ""
 "Ja -  Ändra dessa inställningar automatiskt\n"
 "Nej - Ändra inte dessa inställningar åt mig"
 
-msgid ""
-"When using support material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
-msgstr ""
-"När du använder support material för support gränssnittet rekommenderar vi följande inställningar:\n"
-"0 topp z avstånd, 0 gränssnitts avstånd, sammanflätad rätlinjärt mönster och inaktivera oberoende support lagerhöjd"
+#, c-format, boost-format
+msgid "When using %s to support %s, We recommend the following settings:"
+msgstr "När du använder %s som support %srekommenderar vi följande inställningar:"
 
-msgid ""
-"When using soluble material for the support interface, We recommend the following settings:\n"
-"0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
-"independent support layer height and use soluble materials for both support interface and support base"
-msgstr ""
-"Vid användning av lösligt material för support gränssnittet rekommenderar vi följande inställningar:\n"
-"0 topp z avstånd, 0 gränssnitts avstånd, 0 stöd/objekt xy avstånd, sammanflätad rätlinjärt mönster, inaktivera \n"
-"oberoende support lagerhöjd och använd lösliga material för både support gränssnitt och support bas"
+msgid "When using PLA to support TPU, We recommend the following settings:"
+msgstr "När du använder PLA som stödmaterial för TPU, rekommenderar vi följande inställningar:"
+
+msgid "When using soluble material for the support interface, We recommend the following settings:"
+msgstr "När du använder lösligt material för stöd gräns snittet, rekommenderar vi följande inställningar:"
+
+msgid "When using support material for the support interface, We recommend the following settings:"
+msgstr "När du använder stödmaterial för stöd gräns snittet rekommenderar vi följande inställningar:"
+
+msgid "Do you want to apply these settings?"
+msgstr "Vill du använda dessa inställningar?"
 
 msgid ""
 "Layer height is too small.\n"
@@ -8928,17 +9647,26 @@ msgstr "Den maximala volymetriska hastigheten för ramning, där -1 innebär att
 msgid "Filament scarf seam settings"
 msgstr "Filament scarf seam inställning"
 
-msgid "Cooling for specific layer"
-msgstr "Kylning för valda lager"
-
-msgid "Special cooling settings"
-msgstr "Speciella kylinställningar"
-
-msgid "set addition fan speed before fist x layer"
-msgstr "ställ in extra fläkthastighet före x lager"
-
 msgid "Part cooling fan"
 msgstr "Del kylningsfläkten"
+
+msgid "Initial layer fan"
+msgstr "Fläkt för första lagret"
+
+msgid "Set the part cooling fan speed for the first few layers. Set to 0 to keep the fan off for better bed adhesion"
+msgstr "Ställ in fläkthastigheten för de första lagren. Ställ in den på 0 för att hålla fläkten avstängd för bättre vidhäftning i bädden"
+
+msgid "Linear ramp up to"
+msgstr "Linjär upprampning till"
+
+msgid "Fan speed will linearly increase from the initial layer speed to the layer-time-based speed over the specified number of layers"
+msgstr "Fläkthastighet kommer linjärt öka från den initiala lager hastigheten till den lager-tid-baserade hastigheten över det angivna antalet lager"
+
+msgid "At"
+msgstr "Vid"
+
+msgid "layers"
+msgstr "lager"
 
 msgid "Min fan speed threshold"
 msgstr "Min fläkt hastighets gräns"
@@ -8954,6 +9682,21 @@ msgstr "Del kylfläktens hastighet kommer att vara max när den beräknade lagri
 
 msgid "Auxiliary part cooling fan"
 msgstr "Extra del kylnings fläkt"
+
+msgid "Set the auxiliary fan speed for the first few layers"
+msgstr "Ställ in extra fläktens hastighet för de första lagren"
+
+msgid "Linear ramp up"
+msgstr "Linjär upprampning"
+
+msgid "Auxiliary fan speed will linearly increase from the initial layer speed to the target speed over the specified number of layers"
+msgstr "Extra fläktens hastighet ökar linjärt från den initiala lager hastigheten till målhastigheten över det angivna antalet lager"
+
+msgid "At layer"
+msgstr "Vid lager"
+
+msgid "ramp up to"
+msgstr "rampa upp till"
 
 msgid "Exhaust fan"
 msgstr "Utsugs fläkt"
@@ -9103,17 +9846,13 @@ msgstr "Inga ändringar behöver kopieras."
 msgid "Copy paramters"
 msgstr "Kopiera parametrar"
 
-msgid "Modify paramters of right nozzle"
-msgstr "Modifiera parametrar för höger nozzle"
+#, c-format, boost-format
+msgid "Modify paramters of %s"
+msgstr "Ändra parametrar för %s"
 
-msgid "Modify paramters of left nozzle"
-msgstr "Modifiera parametrar för vänster nozzle"
-
-msgid "Do you want to modify the following parameters of the right nozzle to that of the left nozzle?"
-msgstr "Vill du ändra följande parametrar för höger nozzle till den för det vänster nozzle?"
-
-msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
-msgstr "Vill du ändra följande parametrar för vänster nozzle till den för det höger nozzle?"
+#, c-format, boost-format
+msgid "Do you want to modify the following parameters of the %s to that of the %s?"
+msgstr "Vill du ändra följande parametrar för %s till %s?"
 
 msgid "No available nozzles for current preset"
 msgstr "Inga tillgängliga nozzle för aktuell inställning"
@@ -9440,14 +10179,8 @@ msgstr "Skriver över"
 msgid "Reset all filament mapping"
 msgstr "Återställ all filament mappning"
 
-msgid "Left Extruder"
-msgstr "Vänster Extruder"
-
 msgid "(Recommended filament)"
 msgstr "(Rekommenderat filament)"
-
-msgid "Right Extruder"
-msgstr "Höger extruder"
 
 msgid "Advanced Options"
 msgstr "Avancerade alternativ"
@@ -9544,6 +10277,9 @@ msgctxt "FinishSyncAms"
 msgid "OK"
 msgstr ""
 
+msgid "Extruder of Bowden type does not support 0.2 diameter nozzle. We can only proceed with single-head printing."
+msgstr "Extruder av Bowden typ stöder inte nozzle med 0,2 diameter. Vi kan bara fortsätta med utskrift med ett enda huvud."
+
 msgid "Studio would re-calculate your flushing volumes everytime the filaments color changed or filaments changed. You could disable the auto-calculate in Bambu Studio > Preferences"
 msgstr "Studio skulle beräkna dina rensnings volymer varje gång filamentens färg ändrades eller filamenten ändrades. Du kan inaktivera automatisk beräkning i Bambu Studio > Inställningar"
 
@@ -9560,12 +10296,6 @@ msgstr "Multiplikatorn ska ligga inom intervallet [%.2f, %.2f]."
 
 msgid "Re-calculate"
 msgstr "Utför beräkningen igen"
-
-msgid "Left extruder"
-msgstr "Vänster extruder"
-
-msgid "Right extruder"
-msgstr "Höger extruder"
 
 msgid "Multiplier"
 msgstr "Multiplikator"
@@ -9590,6 +10320,55 @@ msgstr "Konfigurations paketet ändras till föregående konfigurations guide"
 
 msgid "Configuration package changed"
 msgstr "Konfigurations paketet är ändrat"
+
+msgctxt "WebView"
+msgid "Back"
+msgstr "Tillbaka"
+
+msgid "Open in browser"
+msgstr "Öppna i webbläsare"
+
+msgid "View Source"
+msgstr "Visa källa"
+
+msgid "View Text"
+msgstr "Visa text"
+
+msgid "Handle Navigation"
+msgstr "Hantera navigering"
+
+msgid "Handle New Windows"
+msgstr "Hantera nytt fönster"
+
+msgid "Edit Mode"
+msgstr "Redigerings läge"
+
+msgid "Run Script"
+msgstr "Kör skript"
+
+msgid "Add user script"
+msgstr "Lägg till användarskript"
+
+msgid "Set custom user agent"
+msgstr "Ange anpassad användar agent"
+
+msgid "Clear Selection"
+msgstr "Rensa val"
+
+msgid "Delete Selection"
+msgstr "Ta bort val"
+
+msgid "Custom Scheme Example"
+msgstr "Exempel på anpassat schema"
+
+msgid "Memory File System Example"
+msgstr "Exempel på minnes filsystem"
+
+msgid "Enable Context Menu"
+msgstr "Aktivera snabbmeny"
+
+msgid "Enable Dev Tools"
+msgstr "Aktivera utvecklar verktyg"
 
 msgid "Toolbar"
 msgstr "Verktygsfält"
@@ -9710,6 +10489,9 @@ msgstr "Kamera vy - Höger"
 
 msgid "Camera view - Isometric"
 msgstr "Kamera vy - Isometrisk"
+
+msgid "Shift+E"
+msgstr ""
 
 msgid "Select all objects"
 msgstr "Välj alla objekt"
@@ -9891,44 +10673,53 @@ msgstr "Det gick inte att skicka. Klicka på Försök igen för att försöka sk
 msgid "reconnect"
 msgstr "återanslut"
 
-msgid "Third-party Extension"
-msgstr "Tredjeparts tillägg"
+msgid "Welcome to Helio Additive"
+msgstr "Välkommen till Helio Additive"
 
-msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
-msgstr "Starkare delar, mindre warp, snabbare utskrifter - drivs av snabb fysikbaserad FEM simulering"
+msgid "Know Your Print Will Work — Before You Hit Print"
+msgstr "Var säker på att din utskrift fungerar — innan du trycker på \"Skriv ut\""
 
-msgid "Uninstall the Helio Additive extension"
-msgstr "Avinstallera tillägget Helio Additive"
+msgid "Physics-based analysis and optimization that makes prints faster, stronger, and far more reliable."
+msgstr "Fysikbaserad analys och optimering som gör utskrifter snabbare, starkare och mycket mer pålitliga."
 
-msgid "Use Immediately"
-msgstr "Använd omedelbart"
+msgid "Unlock a world of faster, more reliable printing with Helio's state of the art physics based 3d printing simulation technology."
+msgstr "Lås upp en värld av snabbare och mer tillförlitliga utskrifter med Helios toppmoderna fysikbaserade 3D utskrifts simuleringsteknik."
 
-msgid "Third-Party Extension"
-msgstr "Tredjeparts tillägg"
+msgid "Fewer Failed Prints"
+msgstr "Färre misslyckade utskrifter"
 
-msgid "HELIO ADDITIVE"
-msgstr ""
+msgid "Catch issues before printing and improve first-try success."
+msgstr "Upptäck problem före utskrift och förbättra resultatet vid första försöket."
 
-msgid "Helio Additive third - party software service feature has been successfully enabled!"
-msgstr "Helio Additive tredje part - programvara har framgångsrikt aktiveras!"
+msgid "Faster Prints, Better Quality"
+msgstr "Snabbare utskrifter, bättre kvalitet"
 
-msgid "Helio-PAT"
-msgstr ""
+msgid "Automatically tune speed and extrusion without manual tweaking."
+msgstr "Justera automatiskt hastighet och extrudering utan manuell justering."
 
-msgid "Copy successful!"
-msgstr "Kopieringen lyckades!"
+msgid "Enable Helio Additive"
+msgstr "Aktivera Helio Additive"
 
-msgid "Helio Additive"
-msgstr "Helio Additiv"
+msgid "Uninstall"
+msgstr "Avinstallera"
 
-msgid "Privacy Policy of Helio Additive"
-msgstr "Integritets policy för Helio Additive"
+msgid "After slicing, click the Helio button to analyze your print."
+msgstr "Efter beredning, klicka på Helio knappen för att analysera din utskrift."
 
-msgid "Terms of Use of Helio Additive"
-msgstr "Villkor för användning av Helio Additive"
+msgid "Helio Additive does not change your printer's firmware."
+msgstr "Helio Additive ändrar inte din printers firmware."
 
-msgid "Agree and proceed"
-msgstr "Godkänn och fortsätt"
+msgid "Designed to help prints succeed — even if you're new to 3D printing."
+msgstr "Designad för att hjälpa till att lyckas med utskrifter — även om du är ny inom 3D print."
+
+msgid "Are you sure you want to uninstall Helio Additive? This will disable all Helio features."
+msgstr "Är du säker på att du vill avinstallera Helio Additive? Detta kommer att inaktivera alla Helio funktioner."
+
+msgid "Uninstall Helio Additive"
+msgstr "Avinstallera Helio Additive"
+
+msgid "Legal & Activation Terms"
+msgstr "Juridiska villkor och aktiverings villkor"
 
 msgid "Got it"
 msgstr "Jag förstår"
@@ -9939,11 +10730,161 @@ msgstr "Det gick inte att hämta Helio PAT, klicka på Uppdatera för att hämta
 msgid "Failed to obtain PAT. The quantity limit has been reached, so it cannot be obtained. Click the refresh button to re-obtain PAT."
 msgstr "Kunde inte hämta PAT. Kvantitets gränsen har uppnåtts, så den kan inte hämtas. Klicka på uppdaterings knappen för att hämta PAT igen."
 
-msgid "Simulation"
-msgstr "Simulering"
+msgid "You are activating Helio Additive's advanced simulation services."
+msgstr "Du aktiverar Helio Additive´s avancerade simuleringstjänster."
 
-msgid "Optimization"
-msgstr "Optimering"
+msgid "Software Service Terms && Conditions"
+msgstr "Villkor för program varutjänster"
+
+msgid "^"
+msgstr ""
+
+msgid "Helio Additive"
+msgstr "Helio Additiv"
+
+msgid "Helio Additive Privacy Agreement"
+msgstr "Helio Additive´s integritetsavtal"
+
+msgid "Helio Additive User Agreement"
+msgstr "Användaravtal för Helio Additive"
+
+msgid "Unless otherwise specified, Bambu Lab only provides support for the software features officially provided. The slicing evaluation and slicing optimization features based on "
+msgstr "Om inget annat anges, ger endast Bambu Lab support för de mjukvarufunktioner som officiellt tillhandahålls. Funktionerna för utvärdering och optimering av beredning baseras på "
+
+msgid "'s cloud service in this software will be developed, operated, provided, and maintained by "
+msgstr "'s molntjänst i denna programvara kommer att utvecklas, drivas, tillhandahållas, och underhållas av "
+
+msgid ". Helio Additive is responsible for the effectiveness and availability of this service. The optimization feature of this service may modify the default print commands, posing a risk of printer damage. These features will collect necessary user information and data to achieve relevant service functions. Subscriptions and payments may be involved. Please visit "
+msgstr ". Helio Additive ansvarar för effektiviteten och tillgängligheten för denna tjänst. Optimeringsfunktionen i denna tjänst kan ändra standard utskriftskommandon, vilket kan innebära risk för skador på printern. Dessa funktioner samlar in nödvändig användarinformation och data för att möjliggöra relevanta tjänstefunktioner. Prenumerationer och betalningar kan förekomma. Vänligen besök "
+
+msgid " and refer to the "
+msgstr " och hänvisa till "
+
+msgid " and "
+msgstr " och "
+
+msgid " for detailed information."
+msgstr " för detaljerad information."
+
+msgid "Meanwhile, you understand that this product is provided to you \"as is\" based on "
+msgstr "Samtidigt förstår du att denna produkt tillhandahålls dig \"i befintligt skick\" baserat på "
+
+msgid "'s services, and Bambu Lab makes no express or implied warranties of any kind, nor can it control the service effects. To the fullest extent permitted by applicable law, Bambu Lab or its licensors/affiliates do not provide any express or implied representations or warranties, including but not limited to warranties regarding merchantability, satisfactory quality, fitness for a particular purpose, accuracy, confidentiality, and non-infringement of third-party rights. Due to the nature of network services, Bambu Lab cannot guarantee that the service will be available at all times, and Bambu Lab reserves the right to terminate the service based on relevant circumstances. You agree not to use this product and its related updates to engage in the following activities:"
+msgstr "s tjänster, och Bambu Lab lämnar inga uttryckliga eller underförstådda garantier av något slag, och kan inte heller kontrollera tjänste effekterna. I den utsträckning som tillämplig lag tillåter, lämnar Bambu Lab eller dess licensgivare/dotterbolag inga uttryckliga eller underförstådda utfästelser eller garantier, inklusive men inte begränsat till garantier om säljbarhet, tillfredsställande kvalitet, lämplighet för ett särskilt ändamål, korrekthet, sekretess och icke kränkning av tredje parts rättigheter. På grund av nätverkstjänsternas natur kan Bambu Lab inte garantera att tjänsten alltid kommer att vara tillgänglig, och Bambu Lab förbehåller sig rätten att avsluta tjänsten baserat på relevanta omständigheter. Du samtycker till att inte använda denna produkt och dess relaterade uppdateringar för att delta i följande aktiviteter:"
+
+msgid "1. Copy or use any part of this product outside the authorized scope of Helio Additive and Bambu Lab;"
+msgstr "1. Kopiera eller använd någon del av denna produkt utanför den auktoriserade omfattningen av Helio Additive och Bambu Lab;"
+
+msgid "2. Attempt to disrupt, bypass, alter, invalidate, or evade any Digital Rights Management system related to and/or an integral part of this product;"
+msgstr "2. Försöka störa, kringgå, ändra, ogiltigförklara eller kringgå något digitalt rättighetshanterings system som är relaterat till och/eller en integrerad del av denna produkt;"
+
+msgid "3. Using this software and services for any improper or illegal activities."
+msgstr "3. Använda denna programvara och tjänster för eventuella olämpliga eller olagliga aktiviteter."
+
+msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
+msgstr "När du bekräftar att aktivera denna funktion innebär det att du har bekräftat och godkänt ovanstående uttalanden."
+
+msgid "Special Note && Privacy Policy"
+msgstr "Särskild anmärkning och integritetspolicy"
+
+msgid "This service is provided and hosted by a third party, Helio Additive. All data collection and processing activities are solely managed by Helio Additive, and Bambu Lab assumes no responsibility in this regard. By clicking \"Agree and Proceed\", you agree to Helio Additive's privacy policy."
+msgstr "Denna tjänst tillhandahålls och hyrs ut av en tredje part, Helio Additive. All datainsamling och alla bearbetningsaktiviteter hanteras enbart av Helio Additive, och Bambu Lab tar inget ansvar i detta avseende. Genom att klicka på \"Godkänn och fortsätt\" godkänner du Helio Additive´s integritetspolicy."
+
+msgid ""
+"I have read and agree to the terms\n"
+"and policies."
+msgstr ""
+"Jag har läst och godkänner villkoren\n"
+"och policys."
+
+msgid "Agree and Proceed"
+msgstr "Godkänn och fortsätt"
+
+msgid "Activation Successful!"
+msgstr "Aktivering lyckades!"
+
+msgid "Helio Additive is now active. You have unlocked free optimizations!"
+msgstr "Helio Additive är nu aktivt. Du har låst upp gratis optimeringar!"
+
+msgid "Applies only when first activated"
+msgstr "Gäller endast vid första aktiveringen"
+
+msgid "Run Your First Optimization"
+msgstr "Kör din första optimering"
+
+msgid "You're nearly there! Now that Helio is activated, your first optimization run for faster, more reliable printing takes only minutes! (Now referred to as 'Enhance' or 'Enhancement')"
+msgstr "Nu när Helio är aktiverad, tar din första optimeringskörning för snabbare och mer tillförlitliga utskrifter bara några minuter! (Nu kallas \"Förbättra\" eller \"Förbättring\")"
+
+msgid "Add an object to the build plate, select a material and printer that Helio supports, then slice."
+msgstr "Lägg till ett objekt till byggplattan, välj ett material och printer som Helio stöder, sedan bered."
+
+msgid "Supported printers and materials"
+msgstr "Printers och material som stöds"
+
+msgid "Copy PAT"
+msgstr "Kopiera PAT"
+
+msgid ""
+"Personal Access Token (PAT)\n"
+"\n"
+"A secure credential that verifies your identity with Helio services. It's automatically used by BambuStudio for optimizations and simulations.\n"
+"\n"
+"You may need to copy this to:\n"
+"• Integrate Helio with other slicers or tools\n"
+"• Use the Helio API directly\n"
+"• Provide to support when troubleshooting"
+msgstr ""
+"Personligt åtkomsttoken (PAT)\n"
+"\n"
+"En säker autentiseringsuppgift som verifierar din identitet hos Helio tjänster. Det används automatiskt av BambuStudio för optimeringar och simuleringar.\n"
+"\n"
+"Du kan behöva kopiera detta för att:\n"
+"• Integrera Helio med andra slicers eller verktyg\n"
+"• Använda Helio API direkt\n"
+"• Ge till support vid felsökning"
+
+msgid "Copy successful!"
+msgstr "Kopieringen lyckades!"
+
+msgid "History"
+msgstr "Historik"
+
+msgid "View and download recent optimizations and simulations"
+msgstr "Visa och ladda ner de senaste optimeringarna och simuleringarna"
+
+msgid "Terms of Use"
+msgstr "Användarvillkor"
+
+msgid "Experimental: Enable multi-material support"
+msgstr "Experimentell: Aktivera stöd för flera material"
+
+msgid ""
+"When enabled, Helio uses the V3 API with per-slot material mapping for true multi-material prints.\n"
+"When disabled, the original V2 single-material API is used."
+msgstr ""
+"När den är aktiverad använder Helio V3 API med per fack material mappning för riktiga multi material utskrifter.\n"
+"När den är inaktiverad används det ursprungliga V2 singel material API: et används."
+
+msgid "Activation Successful"
+msgstr "Aktivering lyckades"
+
+msgid "Assess"
+msgstr "Bedöm"
+
+msgid "Formerly referred to as 'Simulate' or 'Simulation'"
+msgstr "Tidigare kallad 'Simulera' eller 'Simulering'"
+
+msgid "See where it will fail"
+msgstr "Se var det kommer att misslyckas"
+
+msgid "Enhance"
+msgstr "Förbättra"
+
+msgid "Formerly referred to as 'Optimize' or 'Optimization'"
+msgstr "Tidigare kallad 'Optimera' eller 'Optimering'"
+
+msgid "Auto-fix with new speeds"
+msgstr "Automatisk åtgärd med nya hastigheter"
 
 msgid "Environment Temperature"
 msgstr "Omgivnings temperatur"
@@ -9951,20 +10892,50 @@ msgstr "Omgivnings temperatur"
 msgid "Chamber Temperature"
 msgstr "Kammarens temperatur"
 
-msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
-msgstr "Notera: Justera ovanstående temperatur baserat på faktiska förhållanden. Mer exakta data säkerställer mer exakta analysresultat."
+msgid "Refers to the environment temperature of the print (i.e. A-series - room temperature). Changing chamber temperature when running an assessment/simulation allows you to play around with different temperature scenarios."
+msgstr "Refererar till miljötemperaturen för utskriften (dvs. A-serien - rumstemperatur). Att ändra kammarens temperatur vid en bedömning/simulering låter dig experimentera med olika temperatur scenarier."
+
+msgid "Optional. More accurate temperatures ensures better results."
+msgstr "Valfritt. Mer exakta temperaturer säkerställer bättre resultat."
 
 msgid "Helio's advanced feature for power users: available post purchase on its official website."
 msgstr "Helios avancerade funktion för avancerade användare: tillgänglig efter köp på deras officiella webbplats."
 
-msgid "Monthly quota remaining: "
-msgstr "Återstående månads kvot: "
+msgid "Account Status"
+msgstr "Konto status"
 
-msgid "Add-ons available: "
-msgstr "Tillgängliga tillägg: "
+msgid "Subscription:"
+msgstr "Prenumeration:"
 
-msgid "Optimise Outer Walls"
-msgstr "Optimera ytterväggar"
+msgid "Loading subscription status..."
+msgstr "Laddar prenumerations status..."
+
+msgid "Monthly quota:"
+msgstr "Månads kvot:"
+
+msgid "Add-ons:"
+msgstr "Tillägg:"
+
+msgid "Plans / Upgrades"
+msgstr "Planer / Uppgraderingar"
+
+msgid "Manage Account"
+msgstr "Hantera konto"
+
+msgid "Environment Settings"
+msgstr "Miljö inställningar"
+
+msgid "Optional. Uses the chamber temperature from Filament settings when available; you can override it here."
+msgstr "Valfritt. Använder kammarens temperatur från filament inställningarna när det finns tillgängligt; du kan åsidosätta det här."
+
+msgid "Uses the chamber temperature from Filament settings when available; otherwise estimates it from the build plate temperature."
+msgstr "Använder kammarens temperatur från filament inställningarna när den är tillgänglig; uppskattar annars denna från byggplattans temperatur."
+
+msgid "Optimization Settings"
+msgstr "Inställningar för optimering"
+
+msgid "Now referred to as 'Enhance' or 'Enhancement'"
+msgstr "Kallas nu 'Förbättra' eller 'Förbättring'"
 
 msgid "Helio default (recommended)"
 msgstr "Helio standard (rekommenderas)"
@@ -9974,6 +10945,9 @@ msgstr "Standard beredning"
 
 msgid "Limits"
 msgstr "Gränser"
+
+msgid "Set your own speed and flow rate limits - or rely on Helio's custom limit settings. With unsupported materials you need to supply your own data or rely on the slicer's built in data."
+msgstr "Ställ in dina egna gränser för hastighet och flödeshastighet – eller lita på Helios anpassade gränsinställningar. För material som inte stöds måste du tillhandahålla egen data eller använda slicerns inbyggda data."
 
 msgid "Min Velocity"
 msgstr "Min hastighet"
@@ -9990,26 +10964,101 @@ msgstr "Max volymetrisk hastighet"
 msgid "Last Trace ID: "
 msgstr "Senaste spår ID: "
 
-msgid "Buy Now / Manage Account"
-msgstr "Köp nu / Hantera konto"
-
 msgid "Click for more details"
 msgstr "Klicka för mer info"
 
-msgid "Start Simulation"
-msgstr "Starta simulering"
+msgid "Enhancement will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Optimize' or 'Optimization')"
+msgstr "Förbättringen kommer bara att ta några minuter att slutföra, beroende på storleken på din modell. (Mycket beräkning sker i bakgrunden) (Tidigare benämnd som \"Optimera\" eller \"Optimering\")"
 
-msgid "Start Optimization"
-msgstr "Starta optimering"
+msgid "Assessment will only take a few minutes to complete, depending on the size of your object. (A lot of compute is happening in the background) (Formerly referred to as 'Simulate' or 'Simulation')"
+msgstr "Bedömningen tar bara några minuter att slutföra, beroende på storleken på din modell. (Mycket beräkning sker i bakgrunden) (Tidigare benämnd som \"Simulera\" eller \"Simulation\")"
 
-msgid "Buy add-ons"
-msgstr "Köp tillägg"
+msgid "Start Free Trial"
+msgstr "Starta gratis provperiod"
 
-msgid "Layers to Optimize "
-msgstr "Lager att optimera "
+msgid "Activate your free trial to unlock premium enhancements"
+msgstr "Aktivera din kostnadsfria provperiod för att låsa upp premium förbättringar"
+
+msgid "Go to our storefront to purchase more enhancements"
+msgstr "Gå till vår butik för att köpa fler förbättringar"
+
+msgid "Free Trial"
+msgstr "Gratis provperiod"
+
+msgid "Free Trial Expired"
+msgstr "Gratis provperioden har gått ut"
+
+msgid "Your free trial has ended. Explore our plans to continue using premium features."
+msgstr "Din gratis provperiod har avslutats. Utforska våra planer på att fortsätta använda premium funktioner."
+
+msgid "Start your free trial to unlock premium enhancements and faster, warp-free prints!"
+msgstr "Starta din gratis provperiod för att låsa upp premium förbättringar och snabbare, warpfria utskrifter!"
+
+msgid "Unlimited*"
+msgstr "Obegränsad*"
+
+msgid "*Fair usage terms apply - click to learn more"
+msgstr "*Villkor för skälig användning gäller - klicka för att läsa mer"
+
+msgid "Restrict Helio's fixes to only certain layers, or keep them for all layers - the choice is yours! (Layer 1 attached to the bed is typically skipped.)"
+msgstr "Begränsa Helios korrigeringar till endast vissa lager eller låt dem gälla för alla lager – valet är ditt! (Lager 1 som sitter fast på sängen vanligtvis hoppas över.)"
+
+msgid "Print Priority"
+msgstr "Utskrifts prioritet"
+
+msgid "Loading print priority options..."
+msgstr "Laddar utskrifts prioriterings alternativ..."
+
+msgid "Fetching material-specific options from Helio API..."
+msgstr "Hämtar material specifika alternativ från Helio API..."
+
+msgid "Preserve Surface Finish"
+msgstr "Bevara ytfinishen"
+
+msgid "Speed & Strength"
+msgstr "Hastighet & Styrka"
+
+msgid ""
+"Speed & Strength: Optimizes outer walls for improved performance.\n"
+"Preserve Surface Finish: Maintains original wall speeds to preserve visual finish.\n"
+"\n"
+"Note: Using fallback options - couldn't fetch material-specific settings from API."
+msgstr ""
+"Hastighet och styrka: Optimerar ytterväggar för förbättrad prestanda.\n"
+"Bevara ytfinish: Bibehåller ursprungliga vägghastigheter för att bevara den visuella finishen.\n"
+"\n"
+"Obs: Använder reserv alternativ - kunde inte hämta materialspecifika inställningar från API."
+
+msgid "No print priority options available for this material"
+msgstr "Inga alternativ för utskrifts prioritet finns för detta material"
+
+msgid "This material does not support print priority optimization."
+msgstr "Detta material stöder inte optimering av utskrifts prioriteringar."
+
+msgid "Optimizes outer walls for improved performance."
+msgstr "Optimerar ytterväggar för bättre prestanda."
+
+msgid "Maintains original wall speeds to preserve visual finish."
+msgstr "Bibehåller ursprungliga vägghastigheter för att bevara visuell finish."
+
+msgid "Enhance Surface Gloss"
+msgstr "Förbättra ytglansen"
+
+msgid "Optimizes for enhanced surface gloss."
+msgstr "Optimerar för bättre ytglans."
+
+msgid ""
+"Failed to load print priority options from Helio API.\n"
+"Using standard optimization method instead (same as before print priority feature)."
+msgstr ""
+"Misslyckades att ladda utskrifts prioriterings alternativ från Helio API.\n"
+"Använda standardoptimerings metod istället (samma som före utskrifts prioriterings funktion)."
 
 msgid "Failed to obtain Helio PAT. The number of issued PATs has reached the upper limit. Please pay attention to the information on the Helio official website. Click Refresh to get it again once it is available."
 msgstr "Det gick inte att få Helio PAT. Antalet utfärdade PATs har nått den övre gränsen. Var uppmärksam på informationen på Helio officiella hemsida. Klicka Uppdatera för att få den igen när den är tillgänglig."
+
+msgid "HELIO ADDITIVE"
+msgstr ""
 
 msgid "Print Time Improvement"
 msgstr "Förbättring av utskriftstid"
@@ -10020,8 +11069,131 @@ msgstr "Genomsnittlig förbättring"
 msgid "Consistency Improvement"
 msgstr "Förbättring av konsistens"
 
+msgid "Estimate of improvement in print time before and after enhancement"
+msgstr "Uppskattning av förbättring i utskriftstid före och efter förbättringen"
+
+msgid "Level of Strength & Warping improvement for this part after enhancement - average for the part"
+msgstr "Nivå av styrka & warping förbättring för denna del efter förbättring - genomsnitt för delen"
+
+msgid "Level of Strength & Warping improvement for this part after enhancement - change in overall consistency"
+msgstr "Nivå av styrka & warping förbättring för denna del efter förbättring - förändring i övergripande konsistens"
+
 msgid "Your gcode has been improved for the best possible print. To further improve your print please check out our wiki for tips & tricks on what to do next."
 msgstr "Din g-kod har förbättrats för bästa möjliga utskrift. För att ytterligare förbättra din utskrift, vänligen kolla in vår wiki för tips och tricks om vad du ska göra härnäst."
+
+msgid "Rate the enhancement based on your expectations. 5 stars means awesome! 1 star means it didn't add much value for you."
+msgstr "Betygsätt förbättringen baserat på dina förväntningar. 5 stjärnor betyder häftigt! 1 stjärna betyder att det inte tillför mycket värde för dig."
+
+msgid "Save the enhanced gcode locally"
+msgstr "Spara den förbättrade g-koden lokalt"
+
+msgid "Print Plate"
+msgstr "Utskrifts platta"
+
+msgid "Print the enhanced part immediately"
+msgstr "Skriv ut den förbättrade delen omedelbart"
+
+msgid "View Details"
+msgstr "Visa detaljer"
+
+msgid "Verify Print Success Results"
+msgstr "Verifiera utskrifts resultat"
+
+msgid "Simulates the thermal process to confirm your part will print without failure."
+msgstr "Simulerar den termiska processen för att bekräfta att din del skrivs ut utan fel."
+
+msgid "Now referred to as 'Assess' or 'Assessment'"
+msgstr "Nu kallas \"Bedöm\" eller \"Bedömning\""
+
+msgid "Time saved: "
+msgstr "Sparad tid: "
+
+msgid "From "
+msgstr "Från "
+
+msgid "Expected Outcome:"
+msgstr "Förväntat resultat:"
+
+msgid "Analysis:"
+msgstr "Analys:"
+
+msgid "Additional observations:"
+msgstr "Ytterligare observationer:"
+
+msgid "Fix suggestions"
+msgstr "Åtgärda förslag"
+
+msgid "With Enhance Speed & Quality:"
+msgstr "Med förbättrad hastighet och kvalitet:"
+
+msgid "This is the time that can be saved if you run the Helio Additive Enhance feature. Click the Enhance Speed and Quality button to proceed."
+msgstr "Detta är den tid som kan sparas om du kör Helio Additive Enhance funktionen. Klicka på knappen Förbättra hastighet och kvalitet för att fortsätta."
+
+msgid "Enhance Speed & Quality"
+msgstr "Förbättra hastighet och kvalitet"
+
+msgid "Applies Helio's optimized speed/flow/fan strategy."
+msgstr "Tillämpar Helios optimerade hastighet/flöde / fläkt strategi."
+
+msgid "✅ Will Print"
+msgstr "✅ Kommer att skriva ut"
+
+msgid "⚠️ May Print with Issues"
+msgstr "⚠️ Kan skrivas ut med problem"
+
+msgid "❌ Likely to Fail"
+msgstr "❌ Sannolikt att misslyckas"
+
+msgid "Thermal conditions are balanced. The part is printing within safe temperature limits."
+msgstr "Termiska förhållanden är balanserade. Delarna skrivs ut inom säkra temperaturgränser."
+
+msgid "Material is cooling too rapidly before the next layer is applied. This can cause weak layer bonding, warping, or cracking."
+msgstr "Materialet kyls för snabbt innan nästa lager appliceras. Detta kan orsaka svag lagerbindning, warping eller sprickbildning."
+
+msgid "Heat is building up in small layers faster than it can dissipate. This may cause sagging or loss of detail in fine features."
+msgstr "Värmen byggs upp i tunna lager snabbare än den kan avledas. Detta kan orsaka hängande områden eller förlust av detaljer i fina funktioner."
+
+msgid "Ready to print — see suggestions"
+msgstr "Redo att skriva ut — se förslag"
+
+msgid "Ready to print"
+msgstr "Klar för utskrift"
+
+msgid "Too cold overall — see suggestions"
+msgstr "För kallt överlag — se förslag"
+
+msgid "Too hot overall — see suggestions"
+msgstr "För varmt överlag – se förslag"
+
+msgid "Your part is ready to print! Thermal conditions are within safe limits."
+msgstr "Din del är klar att skriva ut! Termiska förhållanden är inom säkra gränser."
+
+msgid "Too cold (overall)"
+msgstr "För kallt (överlag)"
+
+msgid "The part cools too fast between layers on average. Some layers may behave differently—see observations."
+msgstr "Detaljen kyls i genomsnitt för snabbt mellan skikten. Vissa skikt kan bete sig annorlunda – se observationer."
+
+msgid "Too hot (overall)"
+msgstr "För varmt (överlag)"
+
+msgid "The part stays too warm between layers on average. Some layers may behave differently—see observations."
+msgstr "Delen förblir i genomsnitt för varm mellan lagren. Vissa lager kan bete sig annorlunda – se observationer."
+
+msgid "Suggestions"
+msgstr "Förslag"
+
+msgid "Quick fixes (beginner):"
+msgstr "Snabba lösningar (nybörjare):"
+
+msgid "Expert"
+msgstr ""
+
+msgid "Helio Flowchart"
+msgstr "Helio flödesschema"
+
+msgid "Fixing cold prints"
+msgstr "Åtgärdar kalla utskrifter"
 
 msgid "Air Pump"
 msgstr "Luftpump"
@@ -10572,8 +11744,8 @@ msgstr "HTTP sammandrag"
 msgid "Avoid crossing wall"
 msgstr "Undvik att korsa väggar"
 
-msgid "Detour and avoid traveling across wall which may cause blob on surface"
-msgstr "Ta en omväg och undvik att färdas över väggar för att undvika risken att skapa klumpar på ytorna."
+msgid "Detour and avoid traveling across wall which may cause blob on surface (when travel length greater than Travel distance threshold)"
+msgstr "Undvik förflyttning över väggar vilket kan orsaka fläckar på ytan (när förflyttnings avståndet är större än gränsvärdet för förflyttnings kedja)"
 
 msgid "Smoothing wall speed along Z(experimental)"
 msgstr "Utjämning vägg hastighet längs Z(experimentell)"
@@ -10673,6 +11845,12 @@ msgstr "Fläkthastighet för överhäng"
 
 msgid "Force part cooling fan to be at this speed when printing bridge or overhang wall which has large overhang degree. Forcing cooling for overhang and bridge can get better quality for these part"
 msgstr "Tvinga kylfläkten att vara på denna hastighet när du skriver ut bridges eller överhängs väggar som har en stor överhängsgrad. Att tvinga fram kylning för överhäng och bridges kan förbättra kvaliteten för dessa delar."
+
+msgid "Ironing fan speed"
+msgstr "Stryknings fläkt hastighet"
+
+msgid "This part cooling fan speed is applied when ironing. Setting this parameter to a lower than regular speed reduces possible nozzle clogging due to the low volumetric flow rate, making the interface smoother. Set to -1 to disable it."
+msgstr "Hastigheten för denna del kylningsfläkt används vid \"strykning\". Att ställa in denna parameter till en lägre hastighet än normalt minskar möjligheten till igensättning av nozzle på grund av det låga volymetriska flödet, vilket gör gränssnittet mjukare. Ställ in på -1 för att inaktivera den."
 
 msgid "Pre start fan time"
 msgstr "För start fläkt tid"
@@ -10956,11 +12134,20 @@ msgstr "Utsugs fläktens hastighet efter avslutad utskrift"
 msgid "For the first"
 msgstr "För det första"
 
+msgid "Set special auxiliary cooling fan for the first certain layers."
+msgstr "Ställ in en speciell extra kylfläkt för de första utvalda lagren."
+
+msgid "Full fan speed at layer"
+msgstr "Full fläkthastighet vid lager"
+
+msgid "Auxiliary fan speed will be ramped up linearly from layer \"For the first\" to maximum at layer \"Full fan speed at layer\". \"Full fan speed at layer\" will be ignored if lower than \"For the first\", in which case the fan will be running at maximum allowed speed at layer \"For the first\" + 1."
+msgstr "Extra fläktens hastighet kommer att ökas linjärt från lager \"För den första\" till maximalt vid lager \"Full fläkthastighet vid lager\". \"Full fläkthastighet vid lager\" kommer att ignoreras om det är lägre än \"För den första\", i vilket fall fläkten kommer att köras med maximal tillåten hastighet vid lager \"För den första\" + 1."
+
 msgid "Set special cooling fan for the first certain layers.The part cooling fan of the first layer used to be closed to get better build plate adhesion and used for auto cooling function"
 msgstr "Ställ in speciell kylfläkt för de första lagren. Del kylfläkt av det första lagret som brukade stängas för att få bättre vidhäftning och används för automatisk kylning funktion"
 
-msgid "layers"
-msgstr "lager"
+msgid "Part cooling fan speed for the first few layers. Set to 0 to disable the part cooling fan on the initial layers for better bed adhesion"
+msgstr "Del kylfläkt för de första lagren. Sätt till 0 för att inaktivera delkyl fläkten på de initiala lagren för bättre vidhäftning"
 
 msgid "Special auxiliary cooling fan speed, effective only for the first x layers"
 msgstr "Speciell extra kylfläkt som är effektiv endast för de första x lagren"
@@ -11066,6 +12253,12 @@ msgstr "Topp ytans densitet"
 
 msgid "Density of top surface infill, 100% means a fully solid filled top layer.Lower values create a textured top surface, at 0%, only the walls are created on the top layer.Intended for aesthetic or functional purposes, not to fix issues such as over-extrusion."
 msgstr "Densiteten av topp ytans utfyllnad, 100% innebär en helt solid fyllt topp skikt. Lägre värden skapar en strukturerad yta, vid 0 %, bara väggarna skapas på det översta lagret. Avsedd för estetiska eller funktionella ändamål, inte för att åtgärda problem som över extrudering."
+
+msgid "Monotonic line travel extend"
+msgstr "Monoton linjeförlängning"
+
+msgid "Enable this option to extend the travel distance between lines, improving the adhesion between the monotonic line infill and the walls.(percent to line width)"
+msgstr "Aktivera detta alternativ för att förlänga färdavståndet mellan linjer, förbättra vidhäftningen mellan monotont linjeutfyllnad och väggarna.(procent av linjebredd)"
 
 msgid "Bottom surface pattern"
 msgstr "Botten ytans mönster"
@@ -11358,6 +12551,12 @@ msgstr "Kategori för vidhäftningsförmåga"
 msgid "Filament category"
 msgstr "Filament kategori"
 
+msgid "Metal stickiness"
+msgstr "Metallisk vidhäftning"
+
+msgid "Indicates how strongly the filament tends to stick to the metal nozzle and leave residue. \"None\" means untested or custom filament, behaves the same as Low. Low: e.g. PLA - retraction can be safely skipped in infill areas. Medium: moderate stickiness - use with caution. High: e.g. PETG - retraction should not be skipped to avoid oozing artifacts on outer walls."
+msgstr "Indikerar hur starkt filamentet tenderar att fastna på metall nozzle och lämna rester. \"Ingen\" betyder otestat eller special anpassat filament, beter sig på samma sätt som Låg. Låg: t.ex. PLA - retraktion kan säkert hoppas över i utfyllnadsområden. Medium: måttlig vidhäftning - använd med försiktighet. Hög: t.ex. PETG - retraktion bör inte hoppas över för att undvika att artefakter läcker ut på ytterväggarna."
+
 msgid "Density"
 msgstr "Densitet"
 
@@ -11421,11 +12620,47 @@ msgstr "Support material"
 msgid "Support material is commonly used to print support and support interface"
 msgstr "Support material används ofta för att skriva ut support och stödja gränssnittet"
 
+msgid "Is mixed filament"
+msgstr "Är blandat filament"
+
+msgid "Whether this filament slot is a mixed filament composed of multiple physical filaments"
+msgstr "Om denna filament plats är ett blandat filament bestående av flera fysiska filament"
+
+msgid "Mixed filament components"
+msgstr "Blandade filament komponenter"
+
+msgid "Comma-separated 1-based indices of component filaments, e.g. \"1,3\""
+msgstr "Komma separerade 1-baserade index av komponent filament, t.ex. \"1,3\""
+
+msgid "Mixed filament sublayer ratios"
+msgstr "Blandade filament underlager förhållanden"
+
+msgid "Comma-separated ratio values summing to 1.0, e.g. \"0.7,0.3\""
+msgstr "Komma separerade kvotvärden summerar till 1,0, t.ex. \"0,7,0,3\""
+
+msgid "Mixed filament gradient"
+msgstr "Blandad filament gradient"
+
+msgid "Enable Z-direction gradient mode for mixed filament sub-layers. When enabled, the sub-layer ratios vary linearly across layers."
+msgstr "Aktivera Z-riktnings gradient läge för blandade filament underlager. När det är aktiverat varierar underlager förhållandena linjärt över lagren."
+
+msgid "Mixed filament gradient range"
+msgstr "Blandat filament gradient område"
+
+msgid "Start and end ratios for the first component in gradient mode. Comma-separated pair, e.g. \"0.10,0.90\" means 10% to 90%."
+msgstr "Start- och slutförhållanden för den första komponenten i gradient läge. Komma avgränsade par, t.ex. \"0,10,0,90\" betyder 10 % till 90 %."
+
 msgid "Filament printable"
 msgstr "Utskrivbart filament"
 
 msgid "The filament is printable in extruder"
 msgstr "Filamentet är utskrivbart i extruder"
+
+msgid "Filament-extruder compatibility"
+msgstr "Kompatibilitet mellan filament och extruder"
+
+msgid "A single 32-bit int encoding the compatibility level of a filament across all extruders (up to 10). Every 3 bits represent one extruder (bits [3*i, 3*i+2] for extruder i). 0: printable, 1: error, 2: critical warning, 3: warning, 4-7: reserved"
+msgstr "Ett enda 32-bitars heltal som kodar kompatibilitets nivån för ett filament över alla extruders (upp till 10). Var tredje bit representerar en extruder (bitar [3*i, 3*i+2] för extruder i). 0: utskrivbar, 1: fel, 2: kritisk varning, 3: varning, 4-7: reserverad"
 
 msgid "Filament change"
 msgstr "Filament byte"
@@ -11477,6 +12712,12 @@ msgstr "Utskriftstemperatur för prime tower gränssnitts lager (där olika mate
 
 msgid "°C"
 msgstr "° C"
+
+msgid "Enable tower interface features"
+msgstr "Aktivera funktioner för tower gräns snittet"
+
+msgid "When enabled, use dedicated temperature, pre-extrusion and purge settings for prime tower interface layers (where different materials meet), to improve multi-material tool change quality."
+msgstr "När aktiverad, använd dedikerade temperatur-, för extrudering och rensnings inställningar för prime tower gräns skikt (där olika material möts), för att förbättra kvaliteten på verktygsbyten med flera material."
 
 msgid "Softening temperature"
 msgstr "Mjuknings temperatur"
@@ -11671,9 +12912,6 @@ msgstr "Nozzel temperatur för första lager"
 msgid "Nozzle temperature to print initial layer when using this filament"
 msgstr "Nozzel temperatur för första lager med detta filament"
 
-msgid "Full fan speed at layer"
-msgstr "Full fläkthastighet vid lager"
-
 msgid "Randomly jitter while printing the wall, so that the surface has a rough look. This setting controls the fuzzy position"
 msgstr "Inställningen gör att verktygshuvudet skakar slumpmässigt vid utskrift av väggar så att ytan får ett strävt utseende. Denna inställning styr fuzzy position"
 
@@ -11694,6 +12932,74 @@ msgstr "Fuzzy skin punktavstånd"
 
 msgid "The average distance between the random points introduced on each line segment"
 msgstr "Den genomsnittliga distansen mellan de slumpmässiga punkter som införts på varje linjesegment"
+
+msgid "Apply fuzzy skin to first layer"
+msgstr "Applicera fuzzy skin på första lagret"
+
+msgid "Whether to apply fuzzy skin on the first layer."
+msgstr "Om du vill applicera fuzzy skin på första lagret."
+
+msgid "Fuzzy skin noise type"
+msgstr "Fuzzy skin brusnings typ"
+
+msgid ""
+"Noise type to use for fuzzy skin generation:\n"
+"Classic: Classic uniform random noise.\n"
+"Perlin: Perlin noise, which gives a more consistent texture.\n"
+"Billow: Similar to perlin noise, but clumpier.\n"
+"Ridged Multifractal: Ridged noise with sharp, jagged features. Creates marble-like textures.\n"
+"Voronoi: Divides the surface into voronoi cells, and displaces each one by a random amount. Creates a patchwork texture."
+msgstr ""
+"Typ av brus som ska användas för generering av fuzzy skin:\n"
+"Klassiskt: Klassiskt enhetligt slumpmässigt brus.\n"
+"Perlin: Perlin brus, vilket ger en mer konsekvent textur.\n"
+"Billow: Liknar perlin brus, men klumpigare.\n"
+"Ridged Multifractal: Räfflat brus med skarpa, taggiga drag. Skapar marmor liknande texturer.\n"
+"Voronoi: Delar upp ytan i voronoi celler och förskjuter var och en med ett slumpmässigt belopp. Skapar en lapptäcks liknande textur."
+
+msgid "Classic"
+msgstr "Klassisk"
+
+msgid "Fuzzy skin feature size"
+msgstr "Storleken på fuzzy skin funktioner"
+
+msgid "The base size of the coherent noise features, in mm. Higher values will result in larger features."
+msgstr "Basstorleken på de sammanhängande brus egenskaperna, i mm. Högre värden kommer att resultera i större egenskaper."
+
+msgid "Fuzzy skin noise octaves"
+msgstr "Fuzzy skin brus oktaver"
+
+msgid "The number of octaves of coherent noise to use. Higher values increase the detail of the noise, but also increase computation time."
+msgstr "Antalet oktaver av sammanhängande brus som ska användas. Högre värden ökar detalj rikedomen hos bruset, men ökar också beräknings tiden."
+
+msgid "Fuzzy skin noise persistence"
+msgstr "Fuzzy skin brus beständighet"
+
+msgid "The decay rate for higher octaves of the coherent noise. Lower values will result in smoother noise."
+msgstr "Nedgången för högre oktaver av det sammanhängande bruset. Lägre värden kommer att resultera i jämnare brus."
+
+msgid "Fuzzy skin generator mode"
+msgstr "Fuzzy skin genererings läge"
+
+msgid ""
+"Displacement: Pattern is formed by shifting the nozzle sideways from the original path.\n"
+"Extrusion: Pattern is formed by varying the amount of extruded plastic (nozzle path stays straight).\n"
+"Combined: Displacement + Extrusion. Similar look to Displacement but fills gaps between perimeters.\n"
+"Note: Extrusion and Combined only work when fuzzy skin thickness is not greater than the printed line width."
+msgstr ""
+"Förskjutning: Mönstret bildas genom att förskjuta nozzle i sidled från den ursprungliga banan.\n"
+"Extrudering: Mönstret bildas genom att variera mängden extruderad plast (nozzle banan förblir rak).\n"
+"Kombinerat: Förskjutning + Extrudering. Liknar Förskjutning men fyller mellanrum mellan perimetrar.\n"
+"Notering: Extrudering och Kombinerat fungerar endast när \"fuzzy skin\"-tjockleken inte är större än utskrifts linje bredden."
+
+msgid "Displacement"
+msgstr "Förskjutning"
+
+msgid "Extrusion"
+msgstr "Extrudering"
+
+msgid "Combined"
+msgstr "Kombinerad"
 
 msgid "Filter out tiny gaps"
 msgstr "Filtrera bort små luckor"
@@ -11733,6 +13039,12 @@ msgstr "Skanna första lager"
 
 msgid "Enable this to enable the camera on printer to check the quality of first layer"
 msgstr "Aktivera detta för att låta kameran i printern kontrollera kvaliteten på första lager."
+
+msgid "Print loops in clockwise"
+msgstr "Skriv ut slingor medurs"
+
+msgid "Print in clockwise when enabled, or counterclockwise when not enabled, not work for spiral vase mode"
+msgstr "Skriv ut medurs när aktiverat, eller moturs när inte aktiverat, fungerar inte i spiralvas läge"
 
 msgid "Enable clumping detection"
 msgstr "Aktivera klump detektering"
@@ -11802,12 +13114,6 @@ msgstr "Stöd för kontroll av kammarens temperatur"
 
 msgid "This option is enabled if machine support controlling chamber temperature"
 msgstr "Detta alternativ är aktiverat om maskinen stöder kontroll av kammartemperatur"
-
-msgid "Apply top surface compensation"
-msgstr "Tillämpa kompensation på topp ytan"
-
-msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
-msgstr "Aktivera detta alternativ för att förlänga färdavståndet mellan övre ytlinjer, förbättra vidhäftningen mellan den övre ytans utfyllnad och väggarna."
 
 msgid "Air filtration enhancement"
 msgstr "Förbättrad luftfiltrering"
@@ -12220,8 +13526,8 @@ msgstr "Start- och slutpunkterna som är från skär området till överskottsr�
 msgid "Reduce infill retraction"
 msgstr "Minska ifyllnads retraktionen"
 
-msgid "Don't retract when the travel is in infill area absolutely. That means the oozing can't been seen. This can reduce times of retraction for complex model and save printing time, but make slicing and G-code generating slower"
-msgstr "Dra inte tillbaka när förflyttningen är helt i ett utfyllnadsområde. Det betyder att läckage av filament inte kan ses. Detta kan minska tiderna för indragning för komplexa modeller och spara utskriftstid, men gör beredning och generering av G-kod långsammare."
+msgid "Controls whether retraction is skipped when traveling within the infill area. \"Auto\" enables this optimization for filaments with low metal stickiness (e.g. PLA) and disables it for medium/high metal stickiness filaments (e.g. PETG) to avoid oozing artifacts. \"Enabled\" always skips retraction in infill areas regardless of filament type. \"Disabled\" always retracts normally."
+msgstr "Kontrollera om retraktion hoppas över vid förflyttning inom utfyllnadsområdet. \"Auto\" aktiverar denna optimering för filament med låg metall vidhäftning (t.ex. PLA) och inaktiverar den för filament med medelhög/hög metall vidhäftning (t.ex. PETG) för att undvika läckande artefakter. \"Aktiverad\" hoppar alltid över retraktion i utfyllnadsområden oavsett filamenttyp. \"Inaktiverad\" retraktar alltid normalt."
 
 msgid "Filename format"
 msgstr "Filnamns format"
@@ -12941,6 +14247,12 @@ msgstr "Avskrapnings avstånd"
 msgid "Describe how long the nozzle will move along the last path when retracting"
 msgstr "Beskriv hur länge nozzel kommer att röra sig längs den sista banan när det dras tillbaka"
 
+msgid "Mixed color sublayer"
+msgstr "Blandade färg lager"
+
+msgid "Enable mixed color sublayer splitting. When enabled, layers containing mixed color filaments will be split into sub-layers to achieve color mixing effects."
+msgstr "Aktivera blandade färg lager delning. När aktiverad, kommer lager som innehåller blandad färg trådar delas upp i underlager för att uppnå färgblandning effekter."
+
 msgid "The wiping tower can be used to clean up the residue on the nozzle and stabilize the chamber pressure inside the nozzle, in order to avoid appearance defects when printing objects."
 msgstr "Avstryknings tornet kan användas för att avlägsna rester på munstycket och stabilisera kammartrycket inuti munstycket för att undvika utseendefel vid utskrift av objekt."
 
@@ -13117,9 +14429,6 @@ msgstr "Objektets kontur kommer att växa eller krympa i XY planet med det konfi
 
 msgid "Classic wall generator produces walls with constant extrusion width and for very thin areas is used gap-fill. Arachne engine produces walls with variable extrusion width"
 msgstr "Klassisk vägg generator producerar väggar med konstant extruderingsbredd och för mycket tunna områden används gap-fill. Arachne-motor producerar väggar med variabel extruderingsbredd"
-
-msgid "Classic"
-msgstr "Klassisk"
 
 msgid "Arachne"
 msgstr "Arachne"
@@ -13663,6 +14972,9 @@ msgstr ""
 "- Material som kan ha samma temperatur på den varma bädden\n"
 "- Olika filament märke och familjer (Märke = Bambu, Familj = Basic, Matte)\n"
 
+msgid "(Aux) does not support automatic flow calibration."
+msgstr "(Aux) stöder inte automatisk flödes kalibrering."
+
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- Obs: Hotend numret är kopplat till hållaren. När hotend flyttas till en ny hållare uppdateras dess nummer automatiskt.\n"
 
@@ -13729,8 +15041,9 @@ msgstr "Synkronisera AMS och nozzle information"
 msgid "Connecting to printer"
 msgstr "Ansluter till skrivaren"
 
-msgid "Calibration only supports cases where the left and right nozzle diameters are identical."
-msgstr "Kalibrering stöder endast fall där vänster och höger nozzle diameter är identiska."
+#, c-format, boost-format
+msgid "Calibration only supports cases where the %s and %s diameters are identical."
+msgstr "Kalibrering stöder endast fall där %s och %s är identiska."
 
 msgid "From k Value"
 msgstr "Från k Värde"
@@ -13802,6 +15115,9 @@ msgstr "Nozzle måste väljas."
 
 msgid "PA Calibration"
 msgstr "PA kalibrering"
+
+msgid "Extruder type"
+msgstr ""
 
 msgid "PA Tower"
 msgstr "PA torn"
@@ -14624,8 +15940,15 @@ msgstr "Välj printer"
 msgid "The start, end or step is not valid value."
 msgstr "Start, slut eller steg är inte giltigt värde."
 
+msgid "TPU 90A/TPU 85A is too soft and does not support automatic Flow Dynamics calibration."
+msgstr "TPU 90A/TPU 85A är för mjuk och stöder inte automatiskt flödes dynamik kalibrering."
+
 msgid "The number of printer extruders and the printer selected for calibration does not match."
 msgstr "Antalet extruders och den printern som valts för kalibrering stämmer inte överens."
+
+#, c-format, boost-format
+msgid "The type of %sextruder is bowden which does not support automatic Flow Dynamics calibration."
+msgstr "Typen för %sextruder är bowden vilket inte stöder automatisk kalibrering av flödes dynamik."
 
 #, c-format, boost-format
 msgid "The nozzle diameter of %sextruder is 0.2mm which does not support automatic Flow Dynamics calibration."
@@ -14963,6 +16286,9 @@ msgstr "Det gick inte att skapa GCodeV2"
 msgid "Failed to parse response"
 msgstr "Misslyckades med att analysera svaret"
 
+msgid "Failed to create GCodeV3"
+msgstr "Det gick inte att skapa GCodeV3"
+
 msgid "Helio simulation task failed"
 msgstr "Helio simuleringsuppgift misslyckades"
 
@@ -15013,6 +16339,9 @@ msgstr "Helio: optimering har skapats"
 
 msgid "Helio: optimization working"
 msgstr "Helio: optimering pågår"
+
+msgid "Helio: optimization failed"
+msgstr "Helio: optimeringen misslyckades"
 
 msgid "Helio: Optimzaion check failed"
 msgstr "Helio: Optimerings kontrollen misslyckades"
@@ -15183,8 +16512,14 @@ msgstr "Välj den inställning som ska raderas"
 msgid "%d %s Preset will be deleted."
 msgstr "%d %s Inställningen kommer att raderas."
 
+msgid "Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"
+msgstr "Aktivera smart filament tilldelning: Tilldela ett filament till flera nozzles för att maximera besparingar"
+
 msgid "Filament grouping"
 msgstr "Filament gruppering"
+
+msgid "Fila Saving"
+msgstr "Filament besparing"
 
 msgid "Don't remind me again"
 msgstr "Påminn mig inte igen"
@@ -15198,26 +16533,33 @@ msgstr "Filament sparande läge"
 msgid "Convenience Mode"
 msgstr "Bekvämt läge"
 
+msgid "Quality Mode"
+msgstr "Kvalitetsläge"
+
 msgid "Custom Mode"
 msgstr "Anpassat läge"
 
-msgid "Generates filament grouping for the left and right nozzles based on the most filament-saving principles to minimize waste"
-msgstr "Skapar filament gruppering för vänster och höger nozzle baserat på de mest filament besparande principerna för att minimera spill"
+#, c-format, boost-format
+msgid "Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"
+msgstr "Genererar filament gruppering för %s och %s baserat på de mest filament besparande principerna för att minimera avfall"
 
-msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
-msgstr "Skapar filament gruppering för vänster och höger nozzle baserat på printerns faktiska filament status, vilket minskar behovet av manuell filament justering"
+#, c-format, boost-format
+msgid "Generates filament grouping for the %s and %s based on the printer's actual filament status, reducing the need for manual filament adjustment"
+msgstr "Genererar filament gruppering för %s och %s baserat på printerns faktiska filament status, vilket minskar behovet av manuell filament justering"
 
-msgid "Manually assign filament to the left or right nozzle"
-msgstr "Tilldela filament manuellt till vänster eller höger nozzle"
+#, c-format, boost-format
+msgid "Generates filament grouping for the %s and %s based on quality optimization principles"
+msgstr "Genererar filament gruppering för %s och %s baserat på principer för kvalitets optimering"
+
+#, c-format, boost-format
+msgid "Manually assign filament to the %s or %s"
+msgstr "Tilldela filament manuellt till %s eller %s"
 
 msgid "Global settings"
 msgstr "Globala inställningar"
 
 msgid "Video tutorial"
 msgstr "Videohandledning"
-
-msgid "Learn more"
-msgstr "Läs mer"
 
 msgid "(Sync with printer)"
 msgstr "(Synkronisera med printer)"
@@ -15239,16 +16581,8 @@ msgid " to set nozzle count"
 msgstr " för att ange antal nozzle"
 
 #, c-format, boost-format
-msgid "Left Extruder(%d)"
-msgstr "Vänster Extruder(%d)"
-
-#, c-format, boost-format
-msgid "Right Extruder(Std: %d, HF: %d)"
-msgstr "Höger Extruder(Std: %d, HF: %d)"
-
-#, c-format, boost-format
-msgid "Right Extruder(%d)"
-msgstr "Höger Extruder(%d)"
+msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
+msgstr "Genererar filament gruppering för %s och %s baserat på utskrifternas kvalitet, med prioritet för utskriftskvalitet framför filament besparing"
 
 msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr "Grupperings metoden för filament för plattan bestäms av rullgardins alternativet vid beredning plattan knappen."
@@ -15405,7 +16739,7 @@ msgstr "Rotera spolen vid torkning"
 
 msgctxt "amsdrying"
 msgid "Back"
-msgstr ""
+msgstr "Tillbaka"
 
 msgid "Drying-Heating"
 msgstr "Torkning-Uppvärmning"
@@ -15420,79 +16754,82 @@ msgid " minimum drying temperature is "
 msgstr " minsta tork temperatur är "
 
 msgid "This filament may not be completely dried."
-msgstr ""
+msgstr "Detta filament kanske inte är helt torrt."
 
 msgid "This AMS is currently printing. To ensure print quality, the drying temperature cannot exceed the recommended drying temperature."
-msgstr ""
+msgstr "Denna AMS används för närvarande. För att säkerställa utskriftskvalitet kan torktiden inte överstiga den rekommenderade tork temperaturen."
 
 msgid "The temperature shall not exceed the filament's heat distortion temperature"
-msgstr ""
+msgstr "Temperaturen får inte överstiga filamentets värme förvrängnings temperatur"
 
 msgid "Minimum time value cannot be less than 1."
-msgstr ""
+msgstr "Minsta tidsvärde får inte vara mindre än 1."
 
 msgid "Maximum time value cannot be greater than 24."
-msgstr ""
+msgstr "Maximalt tidsvärde får inte vara större än 24."
 
 msgid "Insufficient power"
-msgstr ""
+msgstr "Otillräcklig effekt"
 
 msgid "  Too many AMS drying simultaneously. Please plug in the power or stop other drying processes before starting."
-msgstr ""
+msgstr "  För många AMS torkar samtidigt. Koppla in strömmen eller stoppa andra tork processer innan du startar."
 
 msgid "AMS is busy"
-msgstr ""
+msgstr "AMS är upptagen"
 
 msgid "  AMS is calibrating | reading RFID | loading/unloading material, please wait."
-msgstr ""
+msgstr "  AMS kalibrerar | läser RFID | laddar/lossar material, vänligen vänta."
 
 msgid "Filament in AMS outlet"
-msgstr ""
+msgstr "Filament i AMS utlopp"
 
 msgid "  The high drying temperature may cause AMS blockage, please unload first."
 msgstr "  Den höga torknings temperaturen kan orsaka AMS blockering; vänligen lossa först."
 
 msgid "Initiating AMS drying"
-msgstr ""
+msgstr "Initierar AMS torkning"
 
 msgid "Not supported in 2D mode"
-msgstr ""
+msgstr "Stöds inte i 2D läge"
 
 msgid "Task in progress"
-msgstr ""
+msgstr "Pågående uppgift"
 
 msgid "  The AMS might be in use during Task."
-msgstr ""
+msgstr "  AMS kan vara i bruk under uppgiften."
 
 msgid "  Firmware update in progress, please wait..."
-msgstr ""
+msgstr "  Firmware uppdatering pågår, vänta..."
 
 msgid "  Please plug in the power and then use the drying function."
-msgstr ""
+msgstr "  Anslut strömmen och använd sedan torkfunktionen."
+
+msgid "  The high drying temperature may cause AMS blockage. Please unload the filament manually before proceeding."
+msgstr "  Den höga tork temperaturen kan orsaka blockering av AMS. Ta ut filamentet manuellt innan du fortsätter."
 
 msgid "System is busy"
-msgstr ""
+msgstr "Systemet är upptaget"
 
 msgid "  Initiating other drying processes, please wait a few seconds..."
-msgstr ""
+msgstr "  Initierar andra torkprocesser, vänta några sekunder..."
 
 msgid "For better drying results, remove the filament and allow it to rotate."
-msgstr ""
+msgstr "För bättre torkresultat, ta bort filamentet och låt det rotera."
 
 msgid "The AMS will automatically rotate the stored filament slots to enhance the drying performance."
-msgstr ""
+msgstr "AMS roterar automatiskt de lagrade filament platserna för att förbättra torknings prestandan."
 
 msgid "Alternatively, you can dry the filament without removing it."
-msgstr ""
+msgstr "Alternativt kan du torka filamentet utan att ta bort det."
 
 msgid "Unknown filaments will be treated as PLA."
-msgstr ""
+msgstr "Okända filament kommer att behandlas som PLA."
 
 msgid "Please store the filament marked with an exclamation mark."
-msgstr ""
+msgstr "Lagra filament märkt med ett utropstecken."
 
 msgid "Filament left in the feeder during drying may soften because the drying temperature exceeds the softening point of materials like PLA and TPU."
-msgstr ""
+msgstr "Filament som blir kvar i mataren under torkningen kan mjukna eftersom torktemperaturen överstiger mjuknings punkten för material som PLA och TPU."
 
 msgid "Starting: Checking adapter connection"
 msgstr "Startar: Kontrollerar adapter anslutningen"
@@ -15513,6 +16850,176 @@ msgid "Starting: Checking air vent"
 msgstr "Startar: Kontrollerar luft ventilen"
 
 msgid "Terms of Bambu Lab User Experience Improvement Program"
+msgstr "Villkor för Bambu Labs program för förbättring av användarupplevelsen"
+
+msgid "Recent Helio Runs"
+msgstr "Senaste Helio körningarna"
+
+msgid "Showing recent completed optimizations and simulations"
+msgstr "Visar nyligen genomförda optimeringar och simuleringar"
+
+msgid "Loading recent runs..."
+msgstr "Laddar senaste körningarna..."
+
+msgid "No Recent Runs Found"
+msgstr "Inga nyliga körningar hittades"
+
+msgid "No completed simulations or optimizations found"
+msgstr "Inga slutförda simuleringar eller optimeringar hittades"
+
+#, c-format, boost-format
+msgid "OPTIMIZATIONS (%d)"
+msgstr "OPTIMERINGAR (%d)"
+
+#, c-format, boost-format
+msgid "SIMULATIONS (%d)"
+msgstr "SIMULERINGAR (%d)"
+
+#, c-format, boost-format
+msgid "%d layers"
+msgstr "%d lager"
+
+#, c-format, boost-format
+msgid "Quality: %s | Consistency: %s"
+msgstr "Kvalitet: %s | Konsistens: %s"
+
+msgid "Download GCode"
+msgstr "Ladda ner G-kod"
+
+msgid "View Results"
+msgstr "Visa resultat"
+
+msgid "GCode URL is not available"
+msgstr "G-kod URL är inte tillgänglig"
+
+msgid "Download Error"
+msgstr "Fel vid nerladdning"
+
+msgid "Save GCode File"
+msgstr "Spara G-kod fil"
+
+#, c-format, boost-format
+msgid ""
+"GCode file downloaded successfully!\n"
+"\n"
+"Saved to: %s"
+msgstr ""
+"G-kod filen har laddats ner!\n"
+"\n"
+"Sparad till: %s"
+
+msgid "Download Complete"
+msgstr "Nedladdningen är klar"
+
+#, c-format, boost-format
+msgid ""
+"Failed to open file for writing:\n"
+"%s"
+msgstr ""
+"Misslyckades med att öppna filen för skrivning:\n"
+"%s"
+
+#, c-format, boost-format
+msgid "Error saving file: %s"
+msgstr "Fel vid sparande av fil: %s"
+
+#, c-format, boost-format
+msgid ""
+"Failed to download GCode file.\n"
+"\n"
+"Error: %s"
+msgstr ""
+"Det gick inte att ladda ner G-kod filen.\n"
+"\n"
+"Fel: %s"
+
+msgid "Optimization Details"
+msgstr "Optimerings detaljer"
+
+msgid "Simulation Details"
+msgstr "Simulerings detaljer"
+
+#, c-format, boost-format
+msgid "%d seconds ago"
+msgstr "för %d sekunder sedan"
+
+#, c-format, boost-format
+msgid "%d minutes ago"
+msgstr "%d minuter sedan"
+
+#, c-format, boost-format
+msgid "%d hours ago"
+msgstr "%d timmar sedan"
+
+#, c-format, boost-format
+msgid "%d days ago"
+msgstr "%d dagar sedan"
+
+msgid "Print Outcome: WILL_PRINT"
+msgstr "Utskrifts resultat: WILL_PRINT"
+
+msgid "Print Outcome: MAY_PRINT"
+msgstr "Utskrifts resultat: MAY_PRINT"
+
+msgid "Print Outcome: LIKELY_FAIL"
+msgstr "Utskriftsresultat: LIKELY_FAIL"
+
+msgid "Print Outcome: "
+msgstr "Utskrifts resultat: "
+
+msgid "Edit Mixed Filament"
+msgstr ""
+
+msgid "Effect Preview"
+msgstr ""
+
+msgid "Select Mixed Materials"
+msgstr ""
+
+msgid "+ Add Material"
+msgstr ""
+
+msgid "- Delete Material"
+msgstr ""
+
+msgid "Ratio"
+msgstr ""
+
+msgid "Gradient Effect"
+msgstr ""
+
+msgid "Mixing Recommendations"
+msgstr ""
+
+msgid "-- Select --"
+msgstr ""
+
+msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
+msgstr ""
+
+msgid "Mixed Color Sublayer"
+msgstr ""
+
+#, c-format, boost-format
+msgid "Slot %s (%s)"
+msgstr ""
+
+msgid "cannot be mixed. Please select the same filament type."
+msgstr ""
+
+msgid "Please select a filament for all components"
+msgstr ""
+
+msgid "Cannot mix different filament types"
+msgstr ""
+
+msgid "Maximum 3 materials for mixing"
+msgstr ""
+
+msgid "Maximum number of components reached"
+msgstr ""
+
+msgid "Remove the third material"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
@@ -15735,134 +17242,518 @@ msgstr ""
 "Undvik vridning\n"
 "Visste du att när du skriver ut material som är benägna att vrida, såsom ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten för vridning."
 
-#: resources/data/helio_hints.ini: [hint: Single-Material Only]
+#: resources/data/helio_hints.ini: [hint: Run Nylon & PC (and other advanced
+#: materials) Like a Pro]
 msgid ""
-"Single-Material Only\n"
-"Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
+"Run Nylon & PC (and other advanced materials) Like a Pro\n"
+"Printing Nylon 612 or Polycarbonate or other advanced materials? Helio helps you avoid the 'almost worked' failure."
 msgstr ""
-"Endast ett material\n"
-"Helio simulerar för närvarande ett material och en nozzle per jobb. G kod för flera material eller flera extruder lägger till långa pauser som bryter den termiska kontinuiteten, så resultaten skulle inte vara meningsfulla."
+"Kör Nylon & PC (och andra avancerade material) som ett proffs\n"
+"Skriver du ut Nylon 612, Polykarbonat eller andra avancerade material? Helio hjälper dig att undvika misslyckanden som \"nästan fungerade\"."
 
-#: resources/data/helio_hints.ini: [hint: One Plate per Job]
+#: resources/data/helio_hints.ini: [hint: Make Prints up to 30% Faster
+#: (Safely)]
 msgid ""
-"One Plate per Job\n"
-"Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
+"Make Prints up to 30% Faster (Safely)\n"
+"Get real throughput, not risky 'speed mode'. A print that normally takes 8 hours might drop to ~5.6 hours."
 msgstr ""
-"En platta per jobb\n"
-"Ladda upp G kod med en enda byggplatta – projekt med flera plattor stöds ännu inte, så endast den första plattan skulle köras."
+"Skriv ut upp till 30 % snabbare (säkert)\n"
+"Få verklig genomströmning, inte riskabelt \"snabbläge\". En utskrift som normalt tar 8 timmar kan minska till ~5-6 timmar."
 
-#: resources/data/helio_hints.ini: [hint: What is the Thermal Quality Index?]
+#: resources/data/helio_hints.ini: [hint: Stop Wasting Precious Design Time on
+#: Tuning]
 msgid ""
-"What is the Thermal Quality Index?\n"
-"The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
+"Stop Wasting Precious Design Time on Tuning\n"
+"Fewer trial prints, faster dial-in. Instead of multiple test prints, detect issues and print first time right."
 msgstr ""
-"Vad är termisk kvalitet index?\n"
-"Termisk kvalitet index (skala –100 till +100) visar hur varm eller kall varje region skriver ut – grön (≈ 0) är “precis rätt” zon för stark, varpfria delar. Håll det mesta av delen grön för bästa resultat."
+"Slösa inte bort värdefull designtid på justeringar\n"
+"Färre test utskrifter, snabbare inställning. Upptäck problem och skriv ut rätt från början istället för flera test utskrifter."
 
-#: resources/data/helio_hints.ini: [hint: Voxel-Level Accuracy]
+#: resources/data/helio_hints.ini: [hint: Cut Warping on ASA/ABS and other
+#: advanced materials]
 msgid ""
-"Voxel-Level Accuracy\n"
-"We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
+"Cut Warping on ASA/ABS and other advanced materials\n"
+"Warping ruins long jobs. Helio shows where risk is highest before you print, and, with enhance, cuts the risk of warping to almost nil."
 msgstr ""
-"Noggrannhet på voxel nivå\n"
-"Vi förutspår temperaturen i varje voxel vid varje tids steg, och för standardjobb ligger prognosen vanligtvis inom ±5–10 °C. Pauser, anpassad firmware eller udda kylning kan vidga den marginalen."
+"Minska warping på ASA/ABS och andra avancerade material\n"
+"Warping förstör långa jobb. Helio visar var risken är som högst innan du skriver ut, och med Enhance minskar risken för warping till nästan noll."
 
-#: resources/data/helio_hints.ini: [hint: Fan & Airflow Model]
+#: resources/data/helio_hints.ini: [hint: Quality Check Before You Hit Print]
 msgid ""
-"Fan & Airflow Model\n"
-"A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
+"Quality Check Before You Hit Print\n"
+"Think of it like a pre-flight check. Example: if a PC bracket shows low TQI in thin ribs, you'll know to adjust before committing to an overnight run."
 msgstr ""
-"Fläkt och luftflödes modell\n"
-"En förenklad fläkt och rumsmodell visar hur kylinställningar ändrar deltemperaturer utan långsam CFD matematik – utmärkt för daglig finjustering. Kammar virvlar är ännu inte simulerade så körningarna förblir snabba."
+"Kvalitetskontroll innan du skriver ut\n"
+"Tänk på det som en för kontroll innan en flygning. Exempel: om ett PC fäste visar låg TQI i tunna ribbor, vet du att du måste justera innan du kör en över natten utskrift."
 
-#: resources/data/helio_hints.ini: [hint: TQI Limits Explained]
+#: resources/data/helio_hints.ini: [hint: Stronger Parts With One Click]
 msgid ""
-"TQI Limits Explained\n"
-"-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
+"Stronger Parts With One Click\n"
+"Better bonding, fewer brittle failures. Example: for Polycarbonate, results show ~+65% tensile strength after optimization."
 msgstr ""
-"TQI Gränser Förklarade\n"
-"-100 → för kallt: draghållfasthet är ~50 % lägre än delar utskrivna vid ideala 0 (ASTM D638 dog-bone tester). +100 → för varmt: lager förblir smälta och kan sjunka eller kollapsa. Håll regioner nära 0 för maximal styrka och noggrannhet."
+"Starkare delar med ett klick\n"
+"Bättre bindning, färre sköra fel. Exempel: för polykarbonat visar resultaten cirka ~+65 % draghållfasthet efter optimering."
 
-#: resources/data/helio_hints.ini: [hint: What Drives Runtime?]
+#: resources/data/helio_hints.ini: [hint: Save Money Every Run]
 msgid ""
-"What Drives Runtime?\n"
-"Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
+"Save Money Every Run\n"
+"Faster + fewer failures = real savings."
 msgstr ""
-"Vad styr körtiden?\n"
-"Extra lager, tät utfyllnad, många små bågar (små nät element) eller mycket låga utskriftshastigheter förlänger alla simuleringstider eftersom lösaren måste gå igenom fler sekunder. Multi kärniga CPU: er eller CUDA GPU: er snabbar upp saker och ting."
+"Spara pengar på varje utskrift\n"
+"Snabbare + färre fel = verkliga besparingar."
 
-#: resources/data/helio_hints.ini: [hint: Nozzle Temp Range]
+#: resources/data/helio_hints.ini: [hint: First-Time-Right Reliability]
 msgid ""
-"Nozzle Temp Range\n"
-"Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
+"First-Time-Right Reliability\n"
+"Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
-"Nozzle temperatur område\n"
-"Stödda börvärden är 190–320 °C; allt utanför är låst för att hålla fysiken realistisk."
+"Tillförlitlighet vid första försöket\n"
+"Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
 
-#: resources/data/helio_hints.ini: [hint: Debugging Flowchart]
-msgid ""
-"Debugging Flowchart\n"
-"Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
-msgstr ""
-"Felsöknings flödes schema\n"
-"Är du osäker på varför ett resultat ser fel ut? Följ vårt steg-för-steg-flödes schema för felsökning för att spåra inställningar, G kod och materialproblem på några minuter."
+#~ msgctxt "FilamentTrack"
+#~ msgid "Left"
+#~ msgstr "Vänster"
 
-#: resources/data/helio_hints.ini: [hint: Why Cooling Varies]
-msgid ""
-"Why Cooling Varies\n"
-"Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
-msgstr ""
-"Varför kylningen varierar\n"
-"Ytterväggar och bridges kyls snabbast medan tjocka invändiga delar förblir varmare – geometri, luftflöde och verktygsbana spelar alla en roll, och simuleringen visualiserar dessa skillnader."
+#~ msgctxt "FilamentTrack"
+#~ msgid "Right"
+#~ msgstr "Höger"
 
-#: resources/data/helio_hints.ini: [hint: Extrusion Temp Model]
-msgid ""
-"Extrusion Temp Model\n"
-"Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
-msgstr ""
-"Extruderings temperaturmodell\n"
-"Material egenskaper formar smältkurvan, men printerns geometri avgör hur mycket värme filamentet faktiskt får, så modellen är material specifik och printer kalibrerad."
+#, c-format, boost-format
+#~ msgid "Left nozzle: %smm"
+#~ msgstr "Vänster nozzle: %smm"
 
-#: resources/data/helio_hints.ini: [hint: Nozzle setting of 190 °C vs 320
-#: °C?]
-msgid ""
-"Nozzle setting of 190 °C vs 320 °C?\n"
-"A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
-msgstr ""
-"Nozzle inställning på 190 °C kontra 320 °C?\n"
-"En ändring av nozzle på 100 °C påverkar bara termiska indexet marginellt eftersom extruderings temperatur, flödeshastighet och efteravkylning dominerar delens värmehistorik."
+#, c-format, boost-format
+#~ msgid "Right nozzle: %smm"
+#~ msgstr "Höger nozzle: %smm"
 
-#: resources/data/helio_hints.ini: [hint: Bed Temperature influence]
-msgid ""
-"Bed Temperature influence\n"
-"Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
-msgstr ""
-"Bäddtemperaturens inflytande\n"
-"Endast bäddtemperaturen i det första lagret matar modellen just nu; senare bädd byten registreras ännu inte."
+#~ msgid "Deleted material was used in mixed filaments. Please re-edit the affected mixed filaments."
+#~ msgstr "Raderat material användes i blandade filament. Vänligen redigera om de berörda blandade filamenten."
 
-#: resources/data/helio_hints.ini: [hint: Actual Tool-Path]
-msgid ""
-"Actual Tool-Path\n"
-"Yes—your exact G-code path, speeds and fan commands are simulated."
-msgstr ""
-"Faktisk verktygsbana\n"
-"Ja—din exakta G kods bana, hastigheter och fläkt kommandon simuleras."
+#~ msgid "Deleted material was used in mixed filaments. Please re-edit affected entries before use."
+#~ msgstr "Raderat material användes i blandade filament. Vänligen redigera berörda poster innan användning."
 
-#: resources/data/helio_hints.ini: [hint: Mesh Resolution]
-msgid ""
-"Mesh Resolution\n"
-"The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
-msgstr ""
-"Mesh upplösning\n"
-"Voxel rutnätet är finare än G kodens radavstånd, vilket fångar lager-för-lager-detaljer utan att slösa beräkningsarbete."
+#~ msgid "Edit / Delete"
+#~ msgstr "Redigera / Ta bort"
 
-#: resources/data/helio_hints.ini: [hint: Shrinkage, Warping & Stress]
-msgid ""
-"Shrinkage, Warping & Stress\n"
-"By controlling the thermal index you can remove the heat-driven causes of warp and stress."
-msgstr ""
-"Krympning, Warping & Stress\n"
-"Genom att styra termiska index kan du ta bort de värmedrivna orsakerna till varp och stress."
+#~ msgid "Show the warning dialog again when importing non-Bambu 3MF files"
+#~ msgstr "Visa varningsdialogrutan igen när du importerar icke Bambu 3MF-filer"
+
+#~ msgid "Clear my choice for disabling recommendation for support material parameters."
+#~ msgstr "Rensa mitt val för att inaktivera rekommendation för stöd material parametrar."
+
+#~ msgid "Clear my choice for disabling recommendation for support material parameters"
+#~ msgstr "Rensa mitt val för att inaktivera rekommendation för stöd material parametrar"
+
+#~ msgid "Availabale Objects"
+#~ msgstr "Tillgängliga objekt"
+
+#~ msgid "Main Material"
+#~ msgstr "Huvud material"
+
+#~ msgid "Support Material"
+#~ msgstr "Stöd material"
+
+#~ msgid "Recommended Parameters"
+#~ msgstr "Rekommenderade parametrar"
+
+#~ msgid "Compatible model and support filaments detected. It is recommended to use the suggested filaments for printing the support interfaces of these objects, along with the recommended parameters."
+#~ msgstr "Kompatibla modell- och stöd filament upptäckta. Det rekommenderas att använda de föreslagna filamenten för att skriva ut stöd gräns snitten för dessa objekt, tillsammans med de rekommenderade parametrarna."
+
+#~ msgid "- Right Nozzle (Aux) does not support automatic flow calibration."
+#~ msgstr "- Höger nozzle (Aux) stöder inte automatisk flödes kalibrering."
+
+#~ msgid "- Left Nozzle (Aux) does not support automatic flow calibration."
+#~ msgstr "- Vänster nozzle (Aux) stöder inte automatisk flödes kalibrering."
+
+#~ msgid "Timing belt artifacts compensation"
+#~ msgstr "Kompensation för kamrems artefakter"
+
+#~ msgid "RenderAssemblyViewThumb"
+#~ msgstr "RenderingMonteringVisaMiniatyr"
+
+#~ msgid "Change assemble view preview"
+#~ msgstr "Ändra förhandsgranskning av monterings vy"
+
+#~ msgid "Note:Only the main assembly body is shown here.unassembled objects are hidden."
+#~ msgstr "Obs: Endast huvuddelen av monteringen visas här. Omonterade objekt är dolda."
+
+#, boost-format
+#~ msgid "Current assembly rate: %1%%%"
+#~ msgstr "Nuvarande monterings hastighet: %1%%%"
+
+#~ msgid "AssemblyViewPreviewMenu"
+#~ msgstr "MonteringsVyFörhandsvisningsMeny"
+
+#~ msgid "Assembly view: isolated objects detected"
+#~ msgstr "Monterings vy: isolerade objekt upptäckta"
+
+#~ msgid "Always show"
+#~ msgstr "Visa alltid"
+
+#~ msgid "Always hide"
+#~ msgstr "Dölj alltid"
+
+#~ msgid "Identify and display overview"
+#~ msgstr "Identifiera och visa översikt"
+
+#~ msgctxt "FilamentTrack"
+#~ msgid "right extruder"
+#~ msgstr "höger extruder"
+
+#~ msgid "Note: The hotend number on the right extruder is tied to the holder. When the hotend is moved to a new holder, its number will update automatically."
+#~ msgstr "Obs: Hotend numret på höger extruder är kopplat till hållaren. När hotend flyttas till en ny hållare uppdateras dess nummer automatiskt."
+
+#~ msgid "Select filament that installed to the left nozzle"
+#~ msgstr "Välj filament som installeras till vänster nozzle"
+
+#~ msgid "Select filament that installed to the right nozzle"
+#~ msgstr "Välj filament som installeras till höger nozzle"
+
+#~ msgid "Please select the filament installed on the left nozzle."
+#~ msgstr "Välj det filament som är installerat på vänster nozzle."
+
+#~ msgid "Please select the filament installed on the right nozzle."
+#~ msgstr "Välj det filament som är installerat på höger nozzle."
+
+#, boost-format
+#~ msgid "Left nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
+#~ msgstr "Vänster nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%\n"
+
+#, boost-format
+#~ msgid "Right nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
+#~ msgstr "Höger nozzle: X:%1%-%2%, Y:%3%-%4%, Z:%5%-%6%"
+
+#~ msgid "Assembly View"
+#~ msgstr "Monterings vy"
+
+#~ msgid "4-slot AMS"
+#~ msgstr "4-fack AMS"
+
+#~ msgid "1-slot AMS"
+#~ msgstr "1-fack AMS"
+
+#~ msgid "Remove this AMS"
+#~ msgstr "Ta bort denna AMS"
+
+#~ msgid "Right Nozzle(Aux)"
+#~ msgstr "Höger nozzle (Aux)"
+
+#~ msgid "Internal Storage"
+#~ msgstr "Intern lagring"
+
+#~ msgid "External Storage"
+#~ msgstr "Extern lagring"
+
+#~ msgid "Modify paramters of right nozzle"
+#~ msgstr "Modifiera parametrar för höger nozzle"
+
+#~ msgid "Modify paramters of left nozzle"
+#~ msgstr "Modifiera parametrar för vänster nozzle"
+
+#~ msgid "Do you want to modify the following parameters of the right nozzle to that of the left nozzle?"
+#~ msgstr "Vill du ändra följande parametrar för höger nozzle till den för det vänster nozzle?"
+
+#~ msgid "Do you want to modify the following parameters of the left nozzle to that of the right nozzle?"
+#~ msgstr "Vill du ändra följande parametrar för vänster nozzle till den för det höger nozzle?"
+
+#~ msgid "Calibration only supports cases where the left and right nozzle diameters are identical."
+#~ msgstr "Kalibrering stöder endast fall där vänster och höger nozzle diameter är identiska."
+
+#~ msgid "Generates filament grouping for the left and right nozzles based on the most filament-saving principles to minimize waste"
+#~ msgstr "Skapar filament gruppering för vänster och höger nozzle baserat på de mest filament besparande principerna för att minimera spill"
+
+#~ msgid "Generates filament grouping for the left and right nozzles based on the printer's actual filament status, reducing the need for manual filament adjustment"
+#~ msgstr "Skapar filament gruppering för vänster och höger nozzle baserat på printerns faktiska filament status, vilket minskar behovet av manuell filament justering"
+
+#~ msgid "Generates filament grouping for the left and right nozzles based on quality optimization principles"
+#~ msgstr "Skapar filament gruppering för vänster och höger nozzle baserat på kvalitets optimerings principer"
+
+#~ msgid "Manually assign filament to the left or right nozzle"
+#~ msgstr "Tilldela filament manuellt till vänster eller höger nozzle"
+
+#, c-format, boost-format
+#~ msgid "Left Extruder(%d)"
+#~ msgstr "Vänster Extruder(%d)"
+
+#, c-format, boost-format
+#~ msgid "Right Extruder(Std: %d, HF: %d)"
+#~ msgstr "Höger Extruder(Std: %d, HF: %d)"
+
+#, c-format, boost-format
+#~ msgid "Right Extruder(%d)"
+#~ msgstr "Höger Extruder(%d)"
+
+#~ msgid "Generates filament grouping for the left and right nozzles based on the quality of prints, prioritizing print quality over filament saving"
+#~ msgstr "Skapar filament gruppering för vänster och höger nozzle baserat på utskrifts kvalitet, med prioritet på utskrifts kvalitet framför filament besparing"
+
+#~ msgid "Used Time"
+#~ msgstr "Använd tid"
+
+#~ msgid "Cooling for specific layer"
+#~ msgstr "Kylning för valda lager"
+
+#~ msgid "Special cooling settings"
+#~ msgstr "Speciella kylinställningar"
+
+#~ msgid "set addition fan speed before fist x layer"
+#~ msgstr "ställ in extra fläkthastighet före x lager"
+
+#~ msgid "Don't retract when the travel is in infill area absolutely. That means the oozing can't been seen. This can reduce times of retraction for complex model and save printing time, but make slicing and G-code generating slower"
+#~ msgstr "Dra inte tillbaka när förflyttningen är helt i ett utfyllnadsområde. Det betyder att läckage av filament inte kan ses. Detta kan minska tiderna för indragning för komplexa modeller och spara utskriftstid, men gör beredning och generering av G-kod långsammare."
+
+#~ msgid ""
+#~ "Tips:\n"
+#~ "Your printer supports arc fitting, so the slicer's arc fitting function has been disabled to avoid conflict."
+#~ msgstr ""
+#~ "Tips:\n"
+#~ "Din printer stöder båg anpassning, så utskärarens båg anpassningsfunktion har inaktiverats för att undvika konflikt."
+
+#~ msgid "Unsupported Material Detected"
+#~ msgstr "Material som inte stöds har upptäckts"
+
+#~ msgid "⚠ Unsupported Material Detected"
+#~ msgstr "⚠ Material som inte stöds har upptäckts"
+
+#~ msgid "Choose a Reference Material"
+#~ msgstr "Välj ett referens material"
+
+#~ msgid ""
+#~ "When using support material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, interlaced rectilinear pattern and disable independent support layer height"
+#~ msgstr ""
+#~ "När du använder support material för support gränssnittet rekommenderar vi följande inställningar:\n"
+#~ "0 topp z avstånd, 0 gränssnitts avstånd, sammanflätad rätlinjärt mönster och inaktivera oberoende support lagerhöjd"
+
+#~ msgid ""
+#~ "When using soluble material for the support interface, We recommend the following settings:\n"
+#~ "0 top z distance, 0 interface spacing, 0 support/object xy distance, interlaced rectilinear pattern, disable \n"
+#~ "independent support layer height and use soluble materials for both support interface and support base"
+#~ msgstr ""
+#~ "Vid användning av lösligt material för support gränssnittet rekommenderar vi följande inställningar:\n"
+#~ "0 topp z avstånd, 0 gränssnitts avstånd, 0 stöd/objekt xy avstånd, sammanflätad rätlinjärt mönster, inaktivera \n"
+#~ "oberoende support lagerhöjd och använd lösliga material för både support gränssnitt och support bas"
+
+#~ msgid ""
+#~ "The consumables changer has not been calibrated. \n"
+#~ "Please calibrate it on the printer before using."
+#~ msgstr ""
+#~ "Förbruknings bytaren har inte kalibrerats. \n"
+#~ "Kalibrera den på printern innan användning."
+
+#~ msgid "Show object labels in 3D scene"
+#~ msgstr "Visa objekt etiketter i 3D-scenen"
+
+#~ msgid "Detour and avoid traveling across wall which may cause blob on surface"
+#~ msgstr "Ta en omväg och undvik att färdas över väggar för att undvika risken att skapa klumpar på ytorna."
+
+#~ msgid "Filament grouping is automatically optimized based on filament-saving principles"
+#~ msgstr "Filament grupperingen optimeras automatiskt baserat på filament besparande principer"
+
+#~ msgid "Load filament to"
+#~ msgstr "Ladda filament till"
+
+#~ msgid "Dynamic flow calibration is not supported for TPU 85A filament."
+#~ msgstr "Dynamisk flödeskalibrering stöds inte för TPU 85A filament."
+
+#~ msgid "Tips: To learn about the filaments matching rules, Please refer to Wiki before use->"
+#~ msgstr "Tips: För att lära dig om reglerna för filament kompatibilitet, se Wiki före användning->"
+
+#~ msgid "Air Condition"
+#~ msgstr "Luftkonditionering"
+
+#~ msgid "Cannot read filament info: the filament is loaded to the tool head,please unload the filament and try again."
+#~ msgstr "Kan inte läsa filament information: Filamentet är laddat till verktygshuvudet, ta bort filamentet och försök igen."
+
+#~ msgid ""
+#~ "The currently selected machine preset is inconsistent with the connected printer type.\n"
+#~ "Are you sure to continue syncing?"
+#~ msgstr ""
+#~ "Den valda maskin inställningen stämmer inte överens med den anslutna printerns typ.\n"
+#~ "Är du säker på att du vill fortsätta synkroniseringen?"
+
+#~ msgid "Apply top surface compensation"
+#~ msgstr "Tillämpa kompensation på topp ytan"
+
+#~ msgid "Enable this option to extend the travel distance between top surface lines, improving the adhesion between the top surface infill and the walls."
+#~ msgstr "Aktivera detta alternativ för att förlänga färdavståndet mellan övre ytlinjer, förbättra vidhäftningen mellan den övre ytans utfyllnad och väggarna."
+
+#~ msgid "Helio does not support using a number of materials greater than 1."
+#~ msgstr "Helio stöder inte användning av ett antal material större än 1."
+
+#~ msgid "Helio functions do not support the print sequence of \"ByObject\"."
+#~ msgstr "Helio funktioner stöder inte utskrifts sekvensen av \"Per objekt\"."
+
+#~ msgid "Third-party Extension"
+#~ msgstr "Tredjeparts tillägg"
+
+#~ msgid "Stronger parts, less warping, faster prints - powered by fast physics-based FEM simulation"
+#~ msgstr "Starkare delar, mindre warp, snabbare utskrifter - drivs av snabb fysikbaserad FEM simulering"
+
+#~ msgid "Uninstall the Helio Additive extension"
+#~ msgstr "Avinstallera tillägget Helio Additive"
+
+#~ msgid "Use Immediately"
+#~ msgstr "Använd omedelbart"
+
+#~ msgid "Third-Party Extension"
+#~ msgstr "Tredjeparts tillägg"
+
+#~ msgid "Helio Additive third - party software service feature has been successfully enabled!"
+#~ msgstr "Helio Additive tredje part - programvara har framgångsrikt aktiveras!"
+
+#~ msgid "Privacy Policy of Helio Additive"
+#~ msgstr "Integritets policy för Helio Additive"
+
+#~ msgid "Terms of Use of Helio Additive"
+#~ msgstr "Villkor för användning av Helio Additive"
+
+#~ msgid "Agree and proceed"
+#~ msgstr "Godkänn och fortsätt"
+
+#~ msgid "Simulation"
+#~ msgstr "Simulering"
+
+#~ msgid "Optimization"
+#~ msgstr "Optimering"
+
+#~ msgid "Note: Adjust the above temperature based on actual conditions. More accurate data ensures more precise analysis results."
+#~ msgstr "Notera: Justera ovanstående temperatur baserat på faktiska förhållanden. Mer exakta data säkerställer mer exakta analysresultat."
+
+#~ msgid "Monthly quota remaining: "
+#~ msgstr "Återstående månads kvot: "
+
+#~ msgid "Add-ons available: "
+#~ msgstr "Tillgängliga tillägg: "
+
+#~ msgid "Optimise Outer Walls"
+#~ msgstr "Optimera ytterväggar"
+
+#~ msgid "Buy Now / Manage Account"
+#~ msgstr "Köp nu / Hantera konto"
+
+#~ msgid "Start Simulation"
+#~ msgstr "Starta simulering"
+
+#~ msgid "Start Optimization"
+#~ msgstr "Starta optimering"
+
+#~ msgid "Buy add-ons"
+#~ msgstr "Köp tillägg"
+
+#~ msgid "Layers to Optimize "
+#~ msgstr "Lager att optimera "
+
+#~ msgid ""
+#~ "Single-Material Only\n"
+#~ "Helio currently simulates one material and one nozzle per job. Multi-material or multi-extruder G-code adds long pauses that break thermal continuity, so results wouldn’t be meaningful."
+#~ msgstr ""
+#~ "Endast ett material\n"
+#~ "Helio simulerar för närvarande ett material och en nozzle per jobb. G kod för flera material eller flera extruder lägger till långa pauser som bryter den termiska kontinuiteten, så resultaten skulle inte vara meningsfulla."
+
+#~ msgid ""
+#~ "One Plate per Job\n"
+#~ "Upload G-code with a single build plate—multi-plate projects aren’t yet supported, so only the first plate would run."
+#~ msgstr ""
+#~ "En platta per jobb\n"
+#~ "Ladda upp G kod med en enda byggplatta – projekt med flera plattor stöds ännu inte, så endast den första plattan skulle köras."
+
+#~ msgid ""
+#~ "What is the Thermal Quality Index?\n"
+#~ "The Thermal Quality Index (scale –100 to +100) shows how hot or cold each region prints—green (≈ 0) is the “just right” zone for strong, warp-free parts. Keep most of the part green for best results."
+#~ msgstr ""
+#~ "Vad är termisk kvalitet index?\n"
+#~ "Termisk kvalitet index (skala –100 till +100) visar hur varm eller kall varje region skriver ut – grön (≈ 0) är “precis rätt” zon för stark, varpfria delar. Håll det mesta av delen grön för bästa resultat."
+
+#~ msgid ""
+#~ "Voxel-Level Accuracy\n"
+#~ "We predict temperature in every voxel at every time-step, and for standard jobs the forecast is typically within ±5–10 °C. Pauses, custom firmware or odd cooling can widen that margin."
+#~ msgstr ""
+#~ "Noggrannhet på voxel nivå\n"
+#~ "Vi förutspår temperaturen i varje voxel vid varje tids steg, och för standardjobb ligger prognosen vanligtvis inom ±5–10 °C. Pauser, anpassad firmware eller udda kylning kan vidga den marginalen."
+
+#~ msgid ""
+#~ "Fan & Airflow Model\n"
+#~ "A simplified fan-and-room model shows how cooling settings change part temps without slow CFD maths—great for day-to-day tuning. Chamber vortices aren’t yet simulated so runs stay fast."
+#~ msgstr ""
+#~ "Fläkt och luftflödes modell\n"
+#~ "En förenklad fläkt och rumsmodell visar hur kylinställningar ändrar deltemperaturer utan långsam CFD matematik – utmärkt för daglig finjustering. Kammar virvlar är ännu inte simulerade så körningarna förblir snabba."
+
+#~ msgid ""
+#~ "TQI Limits Explained\n"
+#~ "-100 → too cold: tensile strength is ~50 % lower than parts printed at the ideal 0 (ASTM D638 dog-bone tests). +100 → too hot: layers stay molten and may sag or collapse. Keep regions near 0 for peak strength and accuracy."
+#~ msgstr ""
+#~ "TQI Gränser Förklarade\n"
+#~ "-100 → för kallt: draghållfasthet är ~50 % lägre än delar utskrivna vid ideala 0 (ASTM D638 dog-bone tester). +100 → för varmt: lager förblir smälta och kan sjunka eller kollapsa. Håll regioner nära 0 för maximal styrka och noggrannhet."
+
+#~ msgid ""
+#~ "What Drives Runtime?\n"
+#~ "Extra layers, dense infill, lots of tiny arcs (small mesh elements) or very slow printing speeds all extend simulation time because the solver must step through more seconds. Multi-core CPUs or CUDA GPUs speed things up."
+#~ msgstr ""
+#~ "Vad styr körtiden?\n"
+#~ "Extra lager, tät utfyllnad, många små bågar (små nät element) eller mycket låga utskriftshastigheter förlänger alla simuleringstider eftersom lösaren måste gå igenom fler sekunder. Multi kärniga CPU: er eller CUDA GPU: er snabbar upp saker och ting."
+
+#~ msgid ""
+#~ "Nozzle Temp Range\n"
+#~ "Supported set-points are 190 – 320 °C; anything outside is clamped to keep physics realistic."
+#~ msgstr ""
+#~ "Nozzle temperatur område\n"
+#~ "Stödda börvärden är 190–320 °C; allt utanför är låst för att hålla fysiken realistisk."
+
+#~ msgid ""
+#~ "Debugging Flowchart\n"
+#~ "Not sure why a result looks off? Follow our step-by-step debugging flowchart to trace settings, G-code and material issues in minutes."
+#~ msgstr ""
+#~ "Felsöknings flödes schema\n"
+#~ "Är du osäker på varför ett resultat ser fel ut? Följ vårt steg-för-steg-flödes schema för felsökning för att spåra inställningar, G kod och materialproblem på några minuter."
+
+#~ msgid ""
+#~ "Why Cooling Varies\n"
+#~ "Outer walls and bridges cool fastest while thick interiors stay warmer—geometry, airflow and tool-path all play a part, and the simulation visualises these differences."
+#~ msgstr ""
+#~ "Varför kylningen varierar\n"
+#~ "Ytterväggar och bridges kyls snabbast medan tjocka invändiga delar förblir varmare – geometri, luftflöde och verktygsbana spelar alla en roll, och simuleringen visualiserar dessa skillnader."
+
+#~ msgid ""
+#~ "Extrusion Temp Model\n"
+#~ "Material properties shape the melt curve, but printer geometry decides how much heat the filament actually gains, so the model is material-specific and printer-calibrated."
+#~ msgstr ""
+#~ "Extruderings temperaturmodell\n"
+#~ "Material egenskaper formar smältkurvan, men printerns geometri avgör hur mycket värme filamentet faktiskt får, så modellen är material specifik och printer kalibrerad."
+
+#~ msgid ""
+#~ "Nozzle setting of 190 °C vs 320 °C?\n"
+#~ "A 100 °C nozzle change only nudges the thermal index because extrusion temp, flow rate and post-deposition cooling dominate the part’s heat history."
+#~ msgstr ""
+#~ "Nozzle inställning på 190 °C kontra 320 °C?\n"
+#~ "En ändring av nozzle på 100 °C påverkar bara termiska indexet marginellt eftersom extruderings temperatur, flödeshastighet och efteravkylning dominerar delens värmehistorik."
+
+#~ msgid ""
+#~ "Bed Temperature influence\n"
+#~ "Only the first-layer bed temp feeds the model right now; later bed changes aren’t yet captured."
+#~ msgstr ""
+#~ "Bäddtemperaturens inflytande\n"
+#~ "Endast bäddtemperaturen i det första lagret matar modellen just nu; senare bädd byten registreras ännu inte."
+
+#~ msgid ""
+#~ "Actual Tool-Path\n"
+#~ "Yes—your exact G-code path, speeds and fan commands are simulated."
+#~ msgstr ""
+#~ "Faktisk verktygsbana\n"
+#~ "Ja—din exakta G kods bana, hastigheter och fläkt kommandon simuleras."
+
+#~ msgid ""
+#~ "Mesh Resolution\n"
+#~ "The voxel grid is finer than the G-code line spacing, capturing layer-by-layer detail without wasting compute."
+#~ msgstr ""
+#~ "Mesh upplösning\n"
+#~ "Voxel rutnätet är finare än G kodens radavstånd, vilket fångar lager-för-lager-detaljer utan att slösa beräkningsarbete."
+
+#~ msgid ""
+#~ "Shrinkage, Warping & Stress\n"
+#~ "By controlling the thermal index you can remove the heat-driven causes of warp and stress."
+#~ msgstr ""
+#~ "Krympning, Warping & Stress\n"
+#~ "Genom att styra termiska index kan du ta bort de värmedrivna orsakerna till varp och stress."
 
 #, c-format, boost-format
 #~ msgid "The hardness of current material (%s) exceeds the hardness of %s(%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
@@ -15886,20 +17777,8 @@ msgstr ""
 #~ msgid "Learn more about purge mode"
 #~ msgstr "Läs mer om rensnings läge"
 
-#~ msgid "When using ABS/ASA/PETG HF on the right extruder, it can only be used as support material."
-#~ msgstr "Vid användning av ABS/ASA/PETG HF på höger extruder kan det endast användas som support material."
-
 #~ msgid "CF/GF filaments are hard and brittle, It's easy to break or get stuck in AMS, please use with caution."
 #~ msgstr "CF/GF-trådar är hårda och spröda, så de kan lätt gå sönder eller fastna i en AMS; använd dem med försiktighet."
-
-#~ msgid "4-slot AMS"
-#~ msgstr "4-fack AMS"
-
-#~ msgid "1-slot AMS"
-#~ msgstr "1-fack AMS"
-
-#~ msgid "Remove this AMS"
-#~ msgstr "Ta bort denna AMS"
 
 #~ msgid "There are no nozzles under current diameter. Continuing switching will automatically change diameters of all nozzles"
 #~ msgstr "Det finns inga nozzles under nuvarande diameter. Fortsatt växling kommer automatiskt att ändra diametrar på alla nozzles"
@@ -16281,9 +18160,6 @@ msgstr ""
 
 #~ msgid "3.Using this software and services for any improper or illegal activities."
 #~ msgstr "3.Använda denna programvara och tjänster för eventuella olämpliga eller olagliga aktiviteter."
-
-#~ msgid "When you confirm to enable this feature, it means that you have confirmed and agreed to the above statements."
-#~ msgstr "När du bekräftar att aktivera denna funktion innebär det att du har bekräftat och godkänt ovanstående uttalanden."
 
 #~ msgid "Agree"
 #~ msgstr "Godkänn"
@@ -16991,12 +18867,6 @@ msgstr ""
 #~ msgid "The printer does not support sending to printer SD card."
 #~ msgstr "Printern har inte stöd för att skicka till printerns SD kort."
 
-#~ msgid "?"
-#~ msgstr " ?"
-
-#~ msgid "/"
-#~ msgstr "/"
-
 #~ msgid "AMS not connected"
 #~ msgstr "AMS ej ansluten"
 
@@ -17413,9 +19283,6 @@ msgstr ""
 #~ msgid "Auto Bed Type"
 #~ msgstr "Auto typ av byggplatta"
 
-#~ msgid "Auto arrange"
-#~ msgstr "Auto arrangera"
-
 #~ msgid "Auto orientates selected objects or all objects.If there are selected objects, it just orientates the selected ones.Otherwise, it will orientates all objects in the project."
 #~ msgstr "Auto placera valda objekt eller alla objekt. Om det finns valda objekt så placeras endast dem. Alternativt så placeras alla objekt i projektet."
 
@@ -17424,9 +19291,6 @@ msgstr ""
 
 #~ msgid "Aux Cooling"
 #~ msgstr "Extra Kylning"
-
-#~ msgid "Auxiliary"
-#~ msgstr "Auxiliary"
 
 #~ msgid "Avoid crossing wall when travel"
 #~ msgstr "Undvik väggar vid förflyttning"
@@ -17797,9 +19661,6 @@ msgstr ""
 
 #~ msgid "Export settings to a file."
 #~ msgstr "Exportera inställningar till en fil."
-
-#~ msgid "Export sliced file"
-#~ msgstr "Exportera beredd fil"
 
 #~ msgid "Export slicing data"
 #~ msgstr "Exportera beredningsdata"

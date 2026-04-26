@@ -87,6 +87,7 @@ public:
     bool        could_emmc_print { false };
     bool        task_use_ams { true };
     bool        task_ext_change_assist { false };
+    bool        task_timelapse_use_internal { false };
 
     int         auto_bed_leveling{0};
     int         auto_flow_cali{0};

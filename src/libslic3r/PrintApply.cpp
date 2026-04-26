@@ -1,8 +1,10 @@
 #include "ClipperUtils.hpp"
 #include "Model.hpp"
 #include "Print.hpp"
+#include "FilamentMixer.hpp"
 
 #include <cfloat>
+#include <memory>
 
 #include <boost/log/trivial.hpp>
 
@@ -1122,11 +1124,20 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 
     // BBS
     std::vector <unsigned int> used_filaments = this->extruders(true);
+
     std::unordered_set <unsigned int> used_filament_set(used_filaments.begin(), used_filaments.end());
+
+    auto* is_mixed_opt = new_full_config.option<ConfigOptionBools>("filament_is_mixed");
+    auto* comp_strs_opt = new_full_config.option<ConfigOptionStrings>("filament_mixed_components");
+    if (is_mixed_opt && comp_strs_opt && has_any_mixed_filament(is_mixed_opt->values)) {
+        auto expanded = expand_mixed_filaments(used_filaments, is_mixed_opt->values, comp_strs_opt->values);
+        used_filament_set.insert(expanded.begin(), expanded.end());
+    }
 
     //new_full_config.normalize_fdm(used_filaments);
     new_full_config.normalize_fdm_1();
-    t_config_option_keys changed_keys = new_full_config.normalize_fdm_2(objects().size(), used_filaments.size());
+    DynamicConfig changed_keys_ori_values;
+    t_config_option_keys changed_keys = new_full_config.normalize_fdm_2(objects().size(), used_filaments.size(), &changed_keys_ori_values);
     if (changed_keys.size() > 0) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", got changed_keys, size=%1%")%changed_keys.size();
         for (int i = 0; i < changed_keys.size(); i++)
@@ -1258,8 +1269,32 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             print_variant_index.resize(1, 0);
 
         m_ori_full_print_config = new_full_config;
-        if ((extruder_count > 1) || different_extruder)
-            new_full_config.update_values_to_printer_extruders_for_multiple_filaments(new_full_config, extruder_count, extruder_volume_type_count, filament_options_with_variant,  "filament_self_index", "filament_extruder_variant");
+
+        auto group_result = this->get_nozzle_group_result();
+        std::set<std::string> filament_keys = filament_options_with_variant;
+        filament_keys.insert("filament_self_index");
+        if (group_result && group_result->is_support_dynamic_nozzle_map()) {
+            std::unordered_map<int, std::vector<ExtruderNozleInfo>> filament_extruder_map;
+            auto filament_count = m_config.option<ConfigOptionStrings>("filament_type")->size();
+            auto extruder_type  = m_config.option<ConfigOptionEnumsGeneric>("extruder_type")->values;
+
+            for (int fidx = 0; fidx < filament_count; ++fidx) {
+                auto                        used_nozzles = group_result->get_nozzles_for_filament(fidx);
+                std::set<ExtruderNozleInfo> extruder_nozzle_set;
+                for (auto nozzle : used_nozzles) {
+                    ExtruderNozleInfo tmp;
+                    tmp.extruder_type      = ExtruderType(extruder_type[nozzle.extruder_id]);
+                    tmp.nozzle_volume_type = nozzle.volume_type;
+                    extruder_nozzle_set.insert(tmp);
+                }
+                filament_extruder_map[fidx] = std::vector<ExtruderNozleInfo>(extruder_nozzle_set.begin(), extruder_nozzle_set.end());
+            }
+            new_full_config.update_filament_config_values_for_multiple_extruders(m_ori_full_print_config, filament_extruder_map, extruder_count, extruder_volume_type_count,
+                                                                                 filament_keys, "filament_self_index", "filament_extruder_variant");
+        } else if ((extruder_count > 1) || different_extruder) {
+            new_full_config.update_values_to_printer_extruders_for_multiple_filaments(m_ori_full_print_config, extruder_count, extruder_volume_type_count, filament_keys,
+                                                                                      "filament_self_index", "filament_extruder_variant");
+        }
     }
     else {
         //should not come here, we can not get the result of print_variant, for the values have been updated
@@ -1287,7 +1322,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     if (!print_diff_set.empty() && print_diff_set.find("filament_map_mode") == print_diff_set.end())
     {
         FilamentMapMode map_mode = new_full_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value;
-        if (map_mode < fmmManual) {
+        if (is_auto_filament_map_mode(map_mode)) {
             if (print_diff_set.find("filament_map") != print_diff_set.end()) {
                 print_diff_set.erase("filament_map");
                 //full_config_diff.erase("filament_map");
@@ -1338,8 +1373,29 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
                         break;
                     }
                 }
-                if (same_map)
+                if (same_map) {
                     print_diff_set.erase("filament_map");
+
+                    const auto& retract_keys = print_config_def.extruder_retract_keys();
+                    const std::string filament_prefix = "filament_";
+                    std::vector<int> old_f_map_indices(old_filament_map.size(), 0);
+                    for (size_t i = 0; i < old_filament_map.size(); i++)
+                        old_f_map_indices[i] = old_filament_map[i] - 1;
+
+                    for (const auto& rk : retract_keys) {
+                        if (print_diff_set.find(rk) == print_diff_set.end())
+                            continue;
+                        const ConfigOption* opt_old   = m_config.option(rk);
+                        const ConfigOption* opt_new_m = new_full_config.option(rk);
+                        const ConfigOption* opt_new_f = new_full_config.option(filament_prefix + rk);
+                        if (opt_old && opt_new_m && opt_new_f) {
+                            std::unique_ptr<ConfigOption> opt_recomputed(opt_new_m->clone());
+                            opt_recomputed->apply_override(opt_new_f, old_f_map_indices);
+                            if (*opt_old == *opt_recomputed)
+                                print_diff_set.erase(rk);
+                        }
+                    }
+                }
             }
         }
         if (print_diff_set.size() != print_diff.size())
@@ -1405,6 +1461,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 	    m_default_region_config.apply_only(new_full_config, region_diff, true);
         //m_full_print_config = std::move(new_full_config);
         m_full_print_config = new_full_config;
+        update_filament_self_index_cache();
         if (num_extruders  != m_config.filament_diameter.size()) {
             num_extruders  = m_config.filament_diameter.size();
             num_extruders_changed  = true;
@@ -1740,7 +1797,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
 
     //BBS: check the config again
     int new_used_filaments = this->extruders(true).size();
-    t_config_option_keys new_changed_keys = new_full_config.normalize_fdm_2(objects().size(), new_used_filaments);
+    t_config_option_keys new_changed_keys   = new_full_config.normalize_fdm_2(objects().size(), new_used_filaments, &changed_keys_ori_values);
     if (new_changed_keys.size() > 0) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", got new_changed_keys, size=%1%")%new_changed_keys.size();
         for (int i = 0; i < new_changed_keys.size(); i++)
@@ -1774,6 +1831,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
         // Handle changes to regions config defaults
         m_default_region_config.apply_only(new_full_config, new_changed_keys, true);
         m_full_print_config = std::move(new_full_config);
+        update_filament_self_index_cache();
     }
 
     // All regions now have distinct settings.

@@ -215,7 +215,7 @@ void PresetComboBox::update_selection()
         gtk_entry_set_max_width_chars(GTK_ENTRY(widget), 20);  // Adjust this value as needed
         // Create a PangoLayout for the entry and set ellipsization
         PangoLayout* layout = gtk_entry_get_layout(GTK_ENTRY(widget));
-        if (layout) { 
+        if (layout) {
             pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
         } else {
             g_warning("Unable to get PangoLayout from GtkEntry");
@@ -496,8 +496,15 @@ bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
     bool selected_in_ams      = false;
     bool is_bbl_vendor_preset = m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(m_preset_bundle);
     if (is_bbl_vendor_preset && !m_preset_bundle->filament_ams_list.empty()) {
+        bool fila_switch_ready = wxGetApp().sidebar().is_fila_switch_ready();
         bool dual_extruder   = (m_preset_bundle->filament_ams_list.begin()->first & 0x10000) == 0;
-        set_label_marker(Append(dual_extruder ? _L("Left filaments") : _L("AMS filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+
+        if (fila_switch_ready) {
+            set_label_marker(Append(_L("AMS filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+        } else {
+            set_label_marker(Append(dual_extruder ? _L("Left filaments") : _L("AMS filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+        }
+
         m_first_ams_filament = GetCount();
         auto &filaments      = m_collection->get_presets();
 
@@ -509,8 +516,10 @@ bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
                 icon_width = 32;
         }
 
+        std::set<std::pair<std::string, std::string>> added_filaments;
+
         for (auto &entry : m_preset_bundle->filament_ams_list) {
-            if (dual_extruder && (entry.first & 0x10000)) {
+            if (!fila_switch_ready && dual_extruder && (entry.first & 0x10000)) {
                 dual_extruder = false;
                 set_label_marker(Append(_L("Right filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
             }
@@ -521,6 +530,18 @@ bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  %1% 's filament_id is empty.") % name;
                 continue;
             }
+            if (fila_switch_ready && name == "Ext") {
+                continue;
+            }
+
+            if (fila_switch_ready) {
+                auto filament_pair = std::make_pair(name, filament_id);
+                if (added_filaments.find(filament_pair) != added_filaments.end()) {
+                    continue;
+                }
+                added_filaments.insert(filament_pair);
+            }
+
             auto iter = std::find_if(filaments.begin(), filaments.end(),
                 [&filament_id, this](auto &f) { return f.is_compatible && m_collection->get_preset_base(f) == &f && f.filament_id == filament_id; });
             if (iter == filaments.end()) {
@@ -1580,10 +1601,6 @@ wxString TabPresetComboBox::get_preset_name(const Preset& preset)
 // If an incompatible preset is selected, it is shown as well.
 void TabPresetComboBox::update()
 {
-    Freeze();
-    Clear();
-    invalidate_selection();
-
     const std::deque<Preset>& presets = m_collection->get_presets();
 
     std::map<wxString, std::pair<wxBitmap*, bool>> nonsys_presets;
@@ -1592,6 +1609,7 @@ void TabPresetComboBox::update()
     //BBS:  move system to the end
     std::map<wxString, std::pair<wxBitmap*, bool>>  system_presets;
     std::map<wxString, wxString>                    preset_descriptions;
+    std::vector<wxString> available_presets;
 
     wxString selected = "";
     //BBS:  move system to the end
@@ -1599,11 +1617,11 @@ void TabPresetComboBox::update()
         set_label_marker(Append(separator(L("System presets")), wxNullBitmap));*/
     size_t idx_selected = m_collection->get_selected_idx();
 
+    // unselect printer
     if (m_type == Preset::TYPE_PRINTER && m_preset_bundle->physical_printers.has_selection()) {
         std::string sel_preset_name = m_preset_bundle->physical_printers.get_selected_printer_preset_name();
         Preset* preset = m_collection->find_preset(sel_preset_name);
-        if (!preset)
-            m_preset_bundle->physical_printers.unselect_printer();
+        if (!preset) m_preset_bundle->physical_printers.unselect_printer();
     }
 
     for (size_t i = presets.front().is_visible ? 0 : m_collection->num_default_presets(); i < presets.size(); ++i)
@@ -1619,6 +1637,8 @@ void TabPresetComboBox::update()
         assert(bmp);
 
         const wxString name = get_preset_name(preset);
+        available_presets.push_back(name);
+
         if (preset.is_system)
             preset_descriptions.emplace(name, _L(preset.description));
 
@@ -1654,6 +1674,15 @@ void TabPresetComboBox::update()
 
     if (m_type == Preset::TYPE_FILAMENT)
         add_ams_filaments(into_u8(selected));
+
+    // workaround for updating too many times, which may casue ui flicking
+    if(m_last_presets == available_presets && m_last_select_name == selected) return;
+    m_last_presets = std::move(available_presets);
+    m_last_select_name = selected;
+
+    Freeze();
+    Clear();
+    invalidate_selection();
 
     //BBS: add project embedded preset logic
     if (!project_embedded_presets.empty())
@@ -1802,7 +1831,7 @@ GUI::CalibrateFilamentComboBox::~CalibrateFilamentComboBox()
 {
 }
 
-void GUI::CalibrateFilamentComboBox::load_tray(DynamicPrintConfig &config)
+void GUI::CalibrateFilamentComboBox::load_tray(const DynamicPrintConfig &config)
 {
     m_tray_name = config.opt_string("tray_name", 0u);
     size_t pos = m_tray_name.find("HT-");

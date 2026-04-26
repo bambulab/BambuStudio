@@ -61,8 +61,8 @@ public:
     static bool check_k_validation(wxString k_text);
 
     MachineObject *obj { nullptr };
-    int            ams_id { 0 };        /* 0 ~ 3 */
-    int            tray_id { 0 };       /* 0 ~ 3 | 254 for virtual tray id*/
+    int            m_ams_id { 0 };        /* 0 ~ 3 */
+    int            m_slot_id { 0 };       /* 0 ~ 3 | 254 for virtual tray id*/
 
     std::string    ams_filament_id;
     std::string    m_filament_type;

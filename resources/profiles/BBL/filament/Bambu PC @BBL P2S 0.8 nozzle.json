@@ -8,6 +8,18 @@
     "chamber_temperatures": [
         "60"
     ],
+    "counter_coef_2": [
+        "0.0081"
+    ],
+    "counter_coef_3": [
+        "0.0183"
+    ],
+    "counter_limit_max": [
+        "0.2208"
+    ],
+    "counter_limit_min": [
+        "0.0183"
+    ],
     "eng_plate_temp": [
         "100"
     ],
@@ -17,6 +29,10 @@
     "fan_max_speed": [
         "40"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "0.94",
         "0.94"
@@ -25,19 +41,31 @@
         "18",
         "35"
     ],
-    "filament_retraction_length": [
-        "0.4",
-        "0.4"
-    ],
     "filament_ramming_travel_time": [
         "0",
         "0"
+    ],
+    "filament_retraction_length": [
+        "0.4",
+        "0.4"
     ],
     "hot_plate_temp": [
         "100"
     ],
     "hot_plate_temp_initial_layer": [
         "100"
+    ],
+    "hole_coef_2": [
+        "0.0009"
+    ],
+    "hole_coef_3": [
+        "0.0725"
+    ],
+    "hole_limit_max": [
+        "0.095"
+    ],
+    "hole_limit_min": [
+        "0.0725"
     ],
     "include": [
         "fdm_filament_template_direct_dual"

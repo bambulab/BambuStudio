@@ -148,6 +148,9 @@ NotificationManager::PopNotification::PopNotification(const NotificationData &n,
 	, m_evt_handler         (evt_handler)
 	, m_notification_start  (GLCanvas3D::timestamp_now())
 {
+    if (!n.second_hypertext.empty()) {
+        m_second_hypertext = n.second_hypertext;
+    }
     m_ErrorColor  = ImVec4(0.9, 0.36, 0.36, 1);
     m_WarnColor   = ImVec4(0.99, 0.69, 0.455, 1);
     m_NormalColor = ImVec4(0.03, 0.6, 0.18, 1);
@@ -559,13 +562,28 @@ void NotificationManager::PopNotification::count_lines()
 		m_lines_count++;
 	}
 	// hypertext calculation
-	if (!m_hypertext.empty()) {
-		int prev_end = m_endlines.size() > 1 ? m_endlines[m_endlines.size() - 2] : 0; // m_endlines.size() - 2 because we are fitting hypertext instead of last endline
-		if (ImGui::CalcTextSize((escape_string_cstyle(text.substr(prev_end, last_end - prev_end)) + m_hypertext).c_str()).x > m_window_width - m_window_width_offset) {
-			m_endlines.push_back(last_end);
-			m_lines_count++;
-		}
-	}
+    if (!m_hypertext.empty()) {
+        const float available_width = m_window_width - m_window_width_offset;
+        const float x_offset = m_left_indentation;
+        const float link_spacing = ImGui::CalcTextSize("   ").x;
+        int prev_end = m_endlines.size() > 1 ? m_endlines[m_endlines.size() - 2] : 0; // m_endlines.size() - 2 because we are fitting hypertext instead of last endline
+        std::string last_line = escape_string_cstyle(text.substr(prev_end, last_end - prev_end));
+        float first_hypertext_x = x_offset + ImGui::CalcTextSize((last_line + (last_line.empty() ? "" : " ")).c_str()).x;
+        float first_hypertext_w = ImGui::CalcTextSize(m_hypertext.c_str()).x;
+        if (first_hypertext_x + first_hypertext_w > available_width) {
+            m_endlines.push_back(last_end);
+            m_lines_count++;
+            first_hypertext_x = x_offset;
+        }
+
+        if (!m_second_hypertext.empty()) {
+            float second_hypertext_x = first_hypertext_x + first_hypertext_w + link_spacing;
+            float second_hypertext_w = ImGui::CalcTextSize(m_second_hypertext.c_str()).x;
+            if (second_hypertext_x + second_hypertext_w > available_width) {
+                m_lines_count++;
+            }
+        }
+    }
 
 	// m_text_2 (text after hypertext) is not used for regular notifications right now.
 	// its caluculation is in HintNotification::count_lines()
@@ -575,6 +593,9 @@ void NotificationManager::PopNotification::init()
 {
 	// Do not init closing notification
 	if (is_finished())
+		return;
+
+	if (!ImGui::GetCurrentContext() || ImGui::GetIO().DisplaySize.x <= 0.0f || ImGui::GetIO().DisplaySize.y <= 0.0f)
 		return;
 
 	count_spaces();
@@ -704,14 +725,35 @@ void NotificationManager::PopNotification::render_text(ImGuiWrapper& imgui, cons
 		render_hypertext(imgui, x_offset + ImGui::CalcTextSize((line + " ").c_str()).x, starting_y + shift_y, _u8L("More"), true);
 	}
 	else if (!m_hypertext.empty()) {
-		render_hypertext(imgui, x_offset + ImGui::CalcTextSize((line + (line.empty() ? "" : " ")).c_str()).x, starting_y + (m_endlines.size() - 1) * shift_y, m_hypertext);
-	}
+        float available_width = m_window_width - m_window_width_offset;
+        float first_hypertext_x = x_offset + ImGui::CalcTextSize((line + (line.empty() ? "" : " ")).c_str()).x;
+        float first_hypertext_w = ImGui::CalcTextSize(m_hypertext.c_str()).x;
+        float hypertext_y = starting_y + (m_endlines.size() - 1) * shift_y;
+        if (first_hypertext_x + first_hypertext_w > available_width) {
+           first_hypertext_x = x_offset;
+           hypertext_y += shift_y;
+       }
+       render_hypertext(imgui, first_hypertext_x, hypertext_y, m_hypertext);
+
+       if (!m_second_hypertext.empty()) {
+            float second_hypertext_x = first_hypertext_x + first_hypertext_w + ImGui::CalcTextSize("   ").x;
+            float second_hypertext_w = ImGui::CalcTextSize(m_second_hypertext.c_str()).x;
+            float second_hypertext_y = hypertext_y;
+            if (second_hypertext_x + second_hypertext_w > available_width) {
+                second_hypertext_x = x_offset;
+                second_hypertext_y += shift_y;
+            }
+            render_hypertext(imgui, second_hypertext_x, second_hypertext_y,
+                              m_second_hypertext, false, true);
+        }
+    }
 
 	// text2 (text after hypertext) is not rendered for regular notifications
 	// its rendering is in HintNotification::render_text
 }
 
-void NotificationManager::PopNotification::render_hypertext(ImGuiWrapper& imgui, const float text_x, const float text_y, const std::string text, bool more)
+void NotificationManager::PopNotification::render_hypertext(
+    ImGuiWrapper &imgui, const float text_x, const float text_y, const std::string text, bool more, bool use_second_callback)
 {
 	//invisible button
 	ImVec2 part_size = ImGui::CalcTextSize(text.c_str());
@@ -720,17 +762,26 @@ void NotificationManager::PopNotification::render_hypertext(ImGuiWrapper& imgui,
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(.4f, .4f, .4f, 0.0f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(.5f, .5f, .5f, 0.0f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(.7f, .7f, .7f, 0.0f));
+    ImGui::PushID(use_second_callback ? 1 : 0);
 	if (imgui.button("      ", part_size.x + 6, part_size.y + 10))
 	{
 		if (more)
 		{
 			m_multiline = true;
 			set_next_window_size(imgui);
-		}
-		else if (on_text_click()) {
-			close();
-		}
-	}
+        } else {
+            if (use_second_callback) {
+                if (on_second_text_click()) {
+                    close();
+                }
+            } else {
+                if (on_text_click()) {
+                    close();
+                }
+            }
+        }
+    }
+    ImGui::PopID();
 	ImGui::PopStyleColor(3);
 
 	//hover color
@@ -953,18 +1004,33 @@ void NotificationManager::PopNotification::render_minimize_button(ImGuiWrapper& 
 	ImGui::PopStyleColor(5);
 	m_minimize_b_visible = true;
 }
+
 bool NotificationManager::PopNotification::on_text_click()
 {
 	if(m_data.callback != nullptr)
 		return m_data.callback(m_evt_handler);
 	return false;
 }
-void NotificationManager::PopNotification::update(const NotificationData& n)
+
+bool NotificationManager::PopNotification::on_second_text_click()
+{
+    if (m_data.second_callback != nullptr)
+        return m_data.second_callback(m_evt_handler);
+    return false;
+}
+
+void NotificationManager::PopNotification::update(const NotificationData &n, bool change_level)
 {
 	m_text1          = n.text1;
 	m_hypertext      = n.hypertext;
     m_text2          = n.text2;
+    m_second_hypertext                              = n.second_hypertext;
     const_cast<NotificationData&>(m_data).callback	 = n.callback;
+    const_cast<NotificationData &>(m_data).second_callback = n.second_callback;
+    if (change_level) {
+        const_cast<NotificationData &>(m_data).level          = n.level;
+        const_cast<NotificationData &>(m_data).use_warn_color = n.use_warn_color;
+    }
 	init();
 }
 
@@ -1695,7 +1761,99 @@ void NotificationManager::push_slicing_error_notification(const std::string &tex
 void NotificationManager::push_helio_error_notification(const std::string &text)
 {
     set_all_slicing_errors_gray(false);
-    push_notification_data({NotificationType::HelioSlicingError, NotificationLevel::ErrorNotificationLevel, 0, _u8L("Error:") + "\n" + text, ""}, 0);
+
+    // Extract URLs from the error text to make them clickable,
+    // strip URLs, and deduplicate bare code lines vs description lines.
+    std::string hypertext;
+    std::function<bool(wxEvtHandler*)> callback;
+    std::vector<std::string> urls;
+
+    // Split text into lines
+    std::vector<std::string> lines;
+    size_t start = 0;
+    while (start < text.size()) {
+        size_t nl = text.find('\n', start);
+        if (nl == std::string::npos) {
+            lines.push_back(text.substr(start));
+            break;
+        }
+        lines.push_back(text.substr(start, nl - start));
+        start = nl + 1;
+    }
+
+    // Extract URLs and clean up each line
+    std::vector<std::string> cleaned_lines;
+    for (auto& line : lines) {
+        // Extract first URL found
+        for (const std::string& protocol : {"https://", "http://"}) {
+            size_t url_pos = line.find(protocol);
+            if (url_pos != std::string::npos) {
+                auto url_end = line.find_first_of(" \n\t", url_pos);
+                std::string url = (url_end != std::string::npos) ? line.substr(url_pos, url_end - url_pos) : line.substr(url_pos);
+                if (std::find(urls.begin(), urls.end(), url) == urls.end())
+                    urls.push_back(url);
+
+                // Strip "See: <URL>" or just "<URL>" from line
+                size_t strip_start = url_pos;
+                if (strip_start >= 5 && line.substr(strip_start - 5, 5) == "See: ")
+                    strip_start -= 5;
+                size_t strip_end = (url_end != std::string::npos) ? url_end : line.length();
+                line.erase(strip_start, strip_end - strip_start);
+                // Trim trailing whitespace/period
+                while (!line.empty() && (line.back() == ' ' || line.back() == '.'))
+                    line.pop_back();
+                break;
+            }
+        }
+
+        // Strip "N. " prefix to inspect content
+        std::string content = line;
+        size_t dot_pos = content.find(". ");
+        if (dot_pos != std::string::npos && dot_pos <= 3) {
+            bool is_num = true;
+            for (size_t j = 0; j < dot_pos; ++j)
+                if (!std::isdigit(content[j])) { is_num = false; break; }
+            if (is_num)
+                content = content.substr(dot_pos + 2);
+        }
+
+        // Check if content is a bare enum code (all uppercase + underscores)
+        bool is_bare_code = !content.empty();
+        for (char c : content) {
+            if (!std::isupper(c) && c != '_' && !std::isdigit(c)) {
+                is_bare_code = false;
+                break;
+            }
+        }
+        if (is_bare_code)
+            continue; // Skip bare code lines like "SIZE_TOO_LARGE"
+
+        cleaned_lines.push_back(content);
+    }
+
+    // Reassemble display text with renumbering
+    std::string display_text;
+    for (size_t i = 0; i < cleaned_lines.size(); ++i) {
+        if (i > 0)
+            display_text += "\n";
+        if (i == 0)
+            display_text += cleaned_lines[i]; // Header line (e.g., "Helio: Failed to create GCode")
+        else if (cleaned_lines.size() > 2)
+            display_text += std::to_string(i) + ". " + cleaned_lines[i];
+        else
+            display_text += cleaned_lines[i];
+    }
+
+    if (!urls.empty()) {
+        hypertext = _u8L("Open link for more info");
+        callback = [urls](wxEvtHandler*) {
+            for (const auto& url : urls)
+                wxLaunchDefaultBrowser(url);
+            return false;
+        };
+    }
+
+    push_notification_data({NotificationType::HelioSlicingError, NotificationLevel::ErrorNotificationLevel, 0, _u8L("Error:") + "\n" + display_text, hypertext, callback}, 0);
     set_slicing_progress_hidden();
 }
 
@@ -1934,6 +2092,15 @@ void NotificationManager::remove_notification_of_type(const NotificationType typ
         } else
             ++it;
     }
+}
+
+bool NotificationManager::has_notification_of_type(const NotificationType type) {
+    for (const std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
+        if (notification->get_type() == type) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void NotificationManager::clear_all()
@@ -2328,8 +2495,9 @@ bool NotificationManager::push_notification_data(std::unique_ptr<NotificationMan
         notification->set_delete_callback(delete_self);
     }
 	bool retval = false;
+    const bool ui_ready = m_initialized && wxGetApp().initialized();
 	if (this->activate_existing(notification.get())) {
-		if (m_initialized) { // ignore update action - it cant be initialized if canvas and imgui context is not ready
+		if (ui_ready) { // ignore update action until both notification manager and GUI/ImGui are ready
 			if (notification->get_type() == NotificationType::SlicingWarning) {
 				m_pop_notifications.back()->append(notification->get_data().ori_text);
 			} else {
@@ -2341,10 +2509,10 @@ bool NotificationManager::push_notification_data(std::unique_ptr<NotificationMan
 
 		retval = true;
 	}
-	if (!m_initialized)
+	if (!ui_ready)
 		return retval;
-	GLCanvas3D& canvas = *wxGetApp().plater()->get_current_canvas3D();
-	canvas.schedule_extra_frame(0);
+	if (auto* canvas = wxGetApp().plater()->get_current_canvas3D())
+		canvas->schedule_extra_frame(0);
 	return retval;
 }
 
@@ -2382,7 +2550,11 @@ void NotificationManager::render_notifications(GLCanvas3D &canvas, float overlay
 	int i = 0;
 	for (const auto& notification : m_pop_notifications) {
         if (m_canvas_type == GLCanvas3D::ECanvasType::CanvasAssembleView) {
-            if (notification->get_type() != NotificationType::AssemblyInfo && notification->get_type() != NotificationType::AssemblyWarning) {
+            if (notification->get_type() != NotificationType::AssemblyInfo
+                && notification->get_type() != NotificationType::AssemblyWarning
+                && notification->get_type() != NotificationType::BBLIsolatedVolumeInfo
+                && notification->get_type() != NotificationType::BBLAssemblyFarFromOrigin
+                && notification->get_type() != NotificationType::BBLIntersectsVolumeInfo) {
                 continue;
             }
         }
@@ -2694,14 +2866,21 @@ void NotificationManager::bbl_close_objectsinfo_notification()
         if (notification->get_type() == NotificationType::BBLObjectInfo) { notification->close(); }
 }
 
-void NotificationManager::bbl_show_seqprintinfo_notification(const std::string &text)
+void NotificationManager::bbl_show_seqprintinfo_notification(const std::string &text, const std::string &link_text, std::function<bool(wxEvtHandler*)> callback, const std::string &second_link_text, std::function<bool(wxEvtHandler*)> second_callback,bool has_error)
 {
-    NotificationData data{NotificationType::BBLSeqPrintInfo, NotificationLevel::PrintInfoNotificationLevel, BBL_NOTICE_MAX_INTERVAL, text};
-
+    NotificationData data{NotificationType::BBLSeqPrintInfo,
+                          has_error ? NotificationLevel::WarningNotificationLevel : NotificationLevel::PrintInfoNotificationLevel,
+                          BBL_NOTICE_MAX_INTERVAL,
+                          text,
+                          link_text,
+                          callback}; // WarningNotificationLevel
+    data.second_hypertext = second_link_text;
+    data.second_callback  = second_callback;
+    data.use_warn_color = has_error;
     for (std::unique_ptr<PopNotification> &notification : m_pop_notifications) {
         if (notification->get_type() == NotificationType::BBLSeqPrintInfo) {
             notification->reinit();
-            notification->update(data);
+            notification->update(data,true);
             return;
         }
     }

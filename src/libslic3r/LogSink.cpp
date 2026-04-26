@@ -416,26 +416,25 @@ std::string LogSinkUtil::get_log_filaname_format(const LogEncOptions& enc_opts)
     buf << get_current_pid();
     if (enc_opts.enc_type == LogEncOptions::LOG_ENC_NONE) {
         buf << ".log.%N";
-        return buf.str();
-    }
-
-    // default to us
-    buf << "_enc";
-    if (enc_opts.enc_key_host_env == "cn") {
-        buf << "_cn";
-    } else if (enc_opts.enc_key_host_env == "dc") {
-        buf << "_dc"; // dc means the user doesn't set the region
     } else {
-        // no suffix for "us" region
-    }
+        // default to us
+        buf << "_enc";
+        if (enc_opts.enc_key_host_env == "cn") {
+            buf << "_cn";
+        } else if (enc_opts.enc_key_host_env == "dc") {
+            buf << "_dc"; // dc means the user doesn't set the region
+        } else {
+            // no suffix for "us" region
+        }
 
-    buf << ".log.%N";
+        buf << ".log.%N";
+    }
 
     //BBS log file at C:\\Users\\[yourname]\\AppData\\Roaming\\BambuStudio\\log\\[log_filename].log
-    try{
+    try {
         auto log_folder = boost::filesystem::path(Slic3r::data_dir()) / "log";
         if (!boost::filesystem::exists(log_folder)) {
-            boost::filesystem::create_directory(log_folder);
+            boost::filesystem::create_directories(log_folder);
         }
         auto base_path = (log_folder / buf.str()).make_preferred();
         return base_path.string();

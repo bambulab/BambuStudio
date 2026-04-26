@@ -20,6 +20,10 @@
     "fan_min_speed": [
         "10"
     ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_flow_ratio": [
         "1",
         "1"
@@ -28,16 +32,16 @@
         "10.5",
         "10.5"
     ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
     "filament_retraction_length": [
         "0.8",
         "0.8"
     ],
     "first_x_layer_fan_speed": [
         "40"
-    ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
     ],
     "include": [
         "fdm_filament_template_direct_dual"

@@ -464,7 +464,7 @@ public:
     void            import_model(wxWindow *parent, wxArrayString& input_files) const;
     void            load_gcode(wxWindow* parent, wxString& input_file) const;
 
-    wxString        transition_tridid(int trid_id) const;
+    wxString        transition_tridid(int trid_id, std::optional<int> total_extruder_count = std::nullopt) const;
     void            ShowUserGuide();
     void            ShowDownNetPluginDlg(bool post_login = false);
     void            ShowUserLogin(bool show = true);
@@ -587,7 +587,7 @@ public:
     void            open_preferences(size_t open_on_tab = 0, const std::string& highlight_option = std::string());
 
     void            report_consent_common(bool agree, std::string scene, std::string formID);
-    virtual bool OnExceptionInMainLoop() override;
+    virtual bool OnExceptionInMainLoop();
     // Calls wxLaunchDefaultBrowser if user confirms in dialog.
     bool            open_browser_with_warning_dialog(const wxString& url, int flags = 0);
 #ifdef __APPLE__

@@ -36,6 +36,9 @@
     "full_fan_speed_layer": [
         "0"
     ],
+    "additional_fan_full_speed_layer": [
+        "0"
+    ],
     "enable_pressure_advance": [
         "1"
     ],

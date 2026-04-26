@@ -101,8 +101,7 @@ bool AVVideoDecoder::toWxImage(wxImage &image, wxSize const &size2)
     AVPixelFormat wxFmt = AV_PIX_FMT_RGB24;
     sws_ctx_   = sws_getCachedContext(sws_ctx_,
                                     frame_->width, frame_->height, AVPixelFormat(frame_->format),
-                                    size1.GetWidth(), size1.GetHeight(), wxFmt,
-                                    SWS_GAUSS,
+                                    size1.GetWidth(), size1.GetHeight(), wxFmt, SWS_FAST_BILINEAR,
                                     nullptr, nullptr, nullptr);
     if (sws_ctx_ == nullptr)
         return false;
@@ -142,8 +141,7 @@ bool AVVideoDecoder::toWxBitmap(wxBitmap &bitmap, wxSize const &size2)
     AVPixelFormat wxFmt = AV_PIX_FMT_RGB32;
     sws_ctx_ = sws_getCachedContext(sws_ctx_,
                                     frame_->width, frame_->height, AVPixelFormat(frame_->format),
-                                    size1.GetWidth(), size1.GetHeight(), wxFmt,
-                                    SWS_GAUSS,
+                                    size1.GetWidth(), size1.GetHeight(), wxFmt, SWS_FAST_BILINEAR,
                                     nullptr, nullptr, nullptr);
     if (sws_ctx_ == nullptr)
         return false;

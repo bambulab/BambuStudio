@@ -86,6 +86,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/ErrorMsgStaticText.hpp
     GUI/Widgets/MultiNozzleSync.hpp
     GUI/Widgets/MultiNozzleSync.cpp
+    GUI/MixedFilamentDialog.cpp
+    GUI/MixedFilamentDialog.hpp
     GUI/AboutDialog.cpp
     GUI/AboutDialog.hpp
     GUI/NetworkTestDialog.cpp
@@ -501,10 +503,13 @@ set(SLIC3R_GUI_SOURCES
     GUI/SendToPrinter.cpp
     GUI/AmsMappingPopup.hpp
     GUI/AmsMappingPopup.cpp
+    GUI/AmsMappingPopupUpdate.cpp
     GUI/ReleaseNote.hpp
     GUI/ReleaseNote.cpp
     GUI/HelioReleaseNote.hpp
     GUI/HelioReleaseNote.cpp
+    GUI/HelioHistoryDialog.hpp
+    GUI/HelioHistoryDialog.cpp
     GUI/SingleChoiceDialog.hpp
     GUI/SingleChoiceDialog.cpp
     GUI/CaliHistoryDialog.hpp
@@ -626,8 +631,11 @@ set(SLIC3R_GUI_SOURCES
     Utils/HelioDragon.hpp
     Utils/FileTransferUtils.cpp
     Utils/FileTransferUtils.hpp
+    Utils/FileTransferObject.cpp
+    Utils/FileTransferObject.hpp
     Utils/CertificateVerify.hpp
     Utils/CertificateVerify.cpp
+    Utils/FrameBuffer.hpp
 )
 
 add_subdirectory(GUI/DeviceCore)
@@ -689,7 +697,7 @@ target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW
 #target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi libcurl OpenSSL::SSL OpenSSL::Crypto ${wxWidgets_LIBRARIES} glfw)
 
 if (MSVC)
-    target_link_libraries(libslic3r_gui Setupapi.lib)
+    target_link_libraries(libslic3r_gui Setupapi.lib dwmapi.lib)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     FIND_LIBRARY(WAYLAND_SERVER_LIBRARIES NAMES wayland-server)
     FIND_LIBRARY(WAYLAND_EGL_LIBRARIES    NAMES wayland-egl)

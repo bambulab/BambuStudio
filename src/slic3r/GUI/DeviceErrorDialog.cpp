@@ -195,6 +195,7 @@ void DeviceErrorDialog::init_button_list()
     init_button(FILAMENT_LOAD_RESUME, _L("Filament Loaded, Resume"));
     init_button(JUMP_TO_LIVEVIEW, _L("View Liveview"));
     init_button(NO_REMINDER_NEXT_TIME, _L("No Reminder Next Time"));
+    init_button(REFRESH_NOZZLE, _L("Recheck"));
     init_button(IGNORE_NO_REMINDER_NEXT_TIME, _L("Ignore. Don't Remind Next Time"));
     init_button(IGNORE_RESUME, _L("Ignore this and Resume"));
     init_button(PROBLEM_SOLVED_RESUME, _L("Problem Solved and Resume"));
@@ -205,6 +206,8 @@ void DeviceErrorDialog::init_button_list()
     init_button(PROCEED, _L("Proceed"));
     init_button(OK_JUMP_RACK, "OK");
     init_button(ABORT, _L("Abort"));
+    init_button(DISABLE_PURIFICATION, _L("Disable Purification for This Print"));
+    init_button(DONT_REMIND_NEXT_TIME, _L("Don't Remind Me"));
 
     init_button(DBL_CHECK_CANCEL, _L("Cancel"));
     init_button(DBL_CHECK_DONE, _L("Done"));
@@ -586,6 +589,10 @@ void DeviceErrorDialog::on_button_click(ActionButton btn_id)
         m_obj->command_hms_idle_ignore(std::to_string(m_error_code), 0); /*the type is 0, supported by AP*/
         break;
     }
+    case DeviceErrorDialog::REFRESH_NOZZLE: {
+        m_obj->command_refresh_nozzle();
+        break;
+    }
     case DeviceErrorDialog::IGNORE_NO_REMINDER_NEXT_TIME: {
         m_obj->command_hms_ignore(std::to_string(m_error_code), m_obj->job_id_);
         break;
@@ -634,6 +641,21 @@ void DeviceErrorDialog::on_button_click(ActionButton btn_id)
         m_obj->command_ams_control("abort");
         break;
     }
+
+    case DeviceErrorDialog::DISABLE_PURIFICATION:
+    {
+        m_obj->command_purification_disable();
+        break;
+    }
+
+    case DeviceErrorDialog::DONT_REMIND_NEXT_TIME:
+    {
+        if(!m_action_json.is_null()){
+            m_obj->command_dont_remind_next_time(m_action_json);
+        }
+        break;
+    }
+
     case DeviceErrorDialog::DBL_CHECK_CANCEL: {
         // post EVT_SECONDARY_CHECK_CANCEL
         // no event

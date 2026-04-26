@@ -29,13 +29,6 @@ namespace Slic3r
             std::string to_hex_str(bool include_alpha = false) const;
         };
 
-        enum FilamentUsageType {
-            SupportOnly,
-            ModelOnly,
-            Hybrid
-        };
-
-
         struct FilamentInfo {
             Color color;
             std::string type;
@@ -90,15 +83,13 @@ namespace Slic3r
 
         bool check_printable(const std::vector<std::set<int>>& groups, const std::map<int, int>& unprintable);
 
-        int get_estimate_extruder_change_count(const std::vector<std::vector<unsigned int>>& layer_filaments, const MultiNozzleUtils::MultiNozzleGroupResult& extruder_nozzle_info);
+        int get_estimate_extruder_change_count(const std::vector<std::vector<unsigned int>>& layer_filaments, const MultiNozzleUtils::LayeredNozzleGroupResult& extruder_nozzle_info);
 
-        int get_estimate_nozzle_change_count(const std::vector<std::vector<unsigned int>>& layer_filaments, const MultiNozzleUtils::MultiNozzleGroupResult& extruder_nozzle_info);
+        int get_estimate_nozzle_change_count(const std::vector<std::vector<unsigned int>>& layer_filaments, const MultiNozzleUtils::LayeredNozzleGroupResult& extruder_nozzle_info);
 
-        std::pair<int, int> get_estimate_extruder_filament_change_count(const std::vector<std::vector<unsigned int>>   &layer_filaments, const MultiNozzleUtils::MultiNozzleGroupResult &extruder_nozzle_info);
+        std::pair<int, int> get_estimate_extruder_filament_change_count(const MultiNozzleUtils::LayeredNozzleGroupResult& extruder_nozzle_info);
 
         std::map<int, std::vector<int>> build_extruder_nozzle_list(const std::vector<MultiNozzleUtils::NozzleInfo>& nozzle_list);
-
-        std::vector<FilamentUsageType> build_filament_usage_type_list(const PrintConfig& config, const std::vector<const PrintObject*>& objects);
 
         std::vector<int> update_used_filament_values(const std::vector<int>& old_values, const std::vector<int>& new_values, const std::vector<unsigned int>& used_filaments);
 

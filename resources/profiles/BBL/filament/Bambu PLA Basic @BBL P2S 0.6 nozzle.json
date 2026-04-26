@@ -5,11 +5,27 @@
     "from": "system",
     "setting_id": "GFSA00_26",
     "instantiation": "true",
+    "counter_coef_2": [
+        "0.0025"
+    ],
+    "counter_coef_3": [
+        "0.014"
+    ],
+    "counter_limit_max": [
+        "0.076"
+    ],
+    "counter_limit_min": [
+        "0.014"
+    ],
     "eng_plate_temp": [
         "55"
     ],
     "eng_plate_temp_initial_layer": [
         "55"
+    ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
     ],
     "filament_flow_ratio": [
         "0.98",
@@ -18,6 +34,10 @@
     "filament_max_volumetric_speed": [
         "21",
         "40"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
     ],
     "filament_retraction_distances_when_cut": [
         "10",
@@ -35,12 +55,20 @@
         "1",
         "1"
     ],
-    "filament_ramming_travel_time": [
-        "0",
-        "0"
-    ],
     "first_x_layer_fan_speed": [
         "40"
+    ],
+    "hole_coef_2": [
+        "-0.0028"
+    ],
+    "hole_coef_3": [
+        "0.12"
+    ],
+    "hole_limit_max": [
+        "0.12"
+    ],
+    "hole_limit_min": [
+        "0.05"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
@@ -61,15 +89,15 @@
         "0",
         "0"
     ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
+    ],
     "supertack_plate_temp": [
         "40"
     ],
     "supertack_plate_temp_initial_layer": [
         "40"
-    ],
-    "slow_down_min_speed": [
-        "20",
-        "20"
     ],
     "compatible_printers": [
         "Bambu Lab P2S 0.6 nozzle"
