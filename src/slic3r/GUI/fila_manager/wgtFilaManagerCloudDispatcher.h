@@ -11,6 +11,7 @@ namespace Slic3r { namespace GUI {
 
 class wgtFilaManagerCloudSync;
 class wgtFilaManagerCloudClient;
+struct FilamentSpool;
 
 // Single-slot dispatcher that serializes pull / push calls on top of
 // wgtFilaManagerCloudSync.  All public methods must be called on the UI thread.
@@ -47,8 +48,9 @@ public:
     // Trigger a full pull from cloud.  If already syncing, no-op.
     void enqueue_pull();
 
-    // Push a single spool id (create).
-    void enqueue_push_create(const std::string& spool_id);
+    // Push a single spool create body. Local store is updated only after the
+    // cloud accepts the operation and the follow-up pull reconciles the list.
+    void enqueue_push_create(const FilamentSpool& spool);
     // Push a single spool id (update, with 404 fallback to create).
     // `local_patch` carries the fields the user actually edited this time
     // (local schema names); Cloud only receives whitelisted/changed fields.
@@ -74,7 +76,7 @@ private:
     void on_op_done();      // UI thread, dispatched via CallAfter from callbacks
 
     void run_pull_op();
-    void run_push_create_op(const std::string& spool_id);
+    void run_push_create_op(const FilamentSpool& spool);
     void run_push_update_op(const std::string& spool_id,
                             const nlohmann::json& local_patch);
     void run_push_delete_op(const std::vector<std::string>& spool_ids);

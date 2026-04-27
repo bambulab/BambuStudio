@@ -52,8 +52,8 @@ interface Props {
   prefilledSpool: Partial<Spool> | null; // addSimilar prefill
   presets: PresetVendor[];
   onClose: () => void;
-  onSubmitAdd: (data: Partial<Spool>, quantity: number) => void;
-  onSubmitUpdate: (data: Partial<Spool>) => void;
+  onSubmitAdd: (data: Partial<Spool>, quantity: number) => boolean | Promise<boolean>;
+  onSubmitUpdate: (data: Partial<Spool>) => boolean | Promise<boolean>;
   onFetchMachines: () => Promise<MachineItem[]>;
   // Ask the currently-selected (or specified) printer to resend its full
   // state package. Bound to the refresh button next to the Printer
@@ -316,7 +316,7 @@ export function AddEditDialog({
     ));
   }, []);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // New weight model: initial_weight is now 整卷净重 (= swagger
     // totalNetWeight) and spool_weight is always persisted as 0 so no
     // code path can re-introduce 毛重 via cloud round-trips. remain_percent
@@ -358,7 +358,8 @@ export function AddEditDialog({
         }
         if (changed) (patch as any)[k] = nv;
       });
-      onSubmitUpdate(patch);
+      const ok = await onSubmitUpdate(patch);
+      if (!ok) return;
     } else {
       if (mode === 'ams' && selectedSlot) {
         // The spool is imported from a live AMS slot. Propagate the
@@ -390,7 +391,8 @@ export function AddEditDialog({
       } else {
         data.entry_method = 'manual';
       }
-      onSubmitAdd(data, mode === 'ams' ? 1 : quantity);
+      const ok = await onSubmitAdd(data, mode === 'ams' ? 1 : quantity);
+      if (!ok) return;
     }
     onClose();
   };

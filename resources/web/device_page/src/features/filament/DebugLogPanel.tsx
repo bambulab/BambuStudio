@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { DebugLogEntry, DebugLogFilter } from './types';
 
 const FILTERS: Array<{ id: DebugLogFilter; label: string }> = [
@@ -33,6 +34,7 @@ export function DebugLogPanel({
   onFilterChange: (filter: DebugLogFilter) => void;
   onClear: () => void;
 }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const pageInfo = useMemo(() => {
     if (typeof window === 'undefined') return null;
@@ -124,7 +126,7 @@ export function DebugLogPanel({
     <div className="shrink-0 rounded-xl border border-fm-border bg-fm-sidebar overflow-hidden">
       <div className="flex items-center justify-between gap-4 px-4 py-3 border-b border-fm-border">
         <div className="flex items-center gap-3">
-          <div className="text-sm font-medium text-fm-text-primary">Debug Log</div>
+          <div className="text-sm font-medium text-fm-text-primary">{t('Debug Log')}</div>
           <div className="flex gap-2">
             {FILTERS.map((item) => (
               <button
@@ -136,7 +138,7 @@ export function DebugLogPanel({
                 }`}
                 onClick={() => onFilterChange(item.id)}
               >
-                {item.label}
+                {t(item.label)}
               </button>
             ))}
           </div>
@@ -147,13 +149,13 @@ export function DebugLogPanel({
             className="h-7 px-3 rounded-md border border-fm-border bg-fm-inner2 cursor-pointer text-xs text-fm-text-secondary hover:bg-fm-hover"
             onClick={handleCopyAll}
           >
-            Copy All
+            {t('Copy All')}
           </button>
           <button
             className="h-7 px-3 rounded-md border border-fm-border bg-fm-inner2 cursor-pointer text-xs text-fm-text-secondary hover:bg-fm-hover"
             onClick={onClear}
           >
-            Clear
+            {t('Clear')}
           </button>
         </div>
       </div>

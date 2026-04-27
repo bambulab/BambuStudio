@@ -235,12 +235,12 @@ export function FilamentPage() {
   }, [isLoggedIn]);
 
   const handleSubmitAdd = useCallback(async (data: Partial<Spool>, qty: number) => {
-    if (qty > 1) await batchAddSpool(data, qty);
-    else await addSpool(data);
+    if (qty > 1) return batchAddSpool(data, qty);
+    return addSpool(data);
   }, [addSpool, batchAddSpool]);
 
   const handleSubmitUpdate = useCallback(async (data: Partial<Spool>) => {
-    await updateSpool(data);
+    return updateSpool(data);
   }, [updateSpool]);
 
   // AMS bridge callbacks for dialog

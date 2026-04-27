@@ -26,7 +26,7 @@ export function CloudBadge({ state, onPullClick }: Props) {
 
   const tooltip = (() => {
     if (!logged_in) return t('Not logged in — cloud sync disabled');
-    if (hasError) return t('Filament info sync failed. Check the network connection and try again.');
+    if (hasError) return t('Filament operation failed. This feature currently requires a network connection.');
     if (isTransient) return t('Syncing filament info...');
     if (last_synced_at) {
       try {

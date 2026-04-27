@@ -42,6 +42,25 @@ bool is_user_logged_in()
     return agent && agent->is_user_login();
 }
 
+std::string cloud_spool_id_from_response(const nlohmann::json& resp)
+{
+    auto read_id = [](const nlohmann::json& obj) -> std::string {
+        if (!obj.is_object()) return {};
+        if (!obj.contains("id")) return {};
+        const auto& id = obj["id"];
+        if (id.is_string()) return id.get<std::string>();
+        if (id.is_number_integer()) return std::to_string(id.get<int64_t>());
+        if (id.is_number_unsigned()) return std::to_string(id.get<uint64_t>());
+        return {};
+    };
+
+    if (auto id = read_id(resp); !id.empty()) return id;
+    if (resp.contains("data")) {
+        if (auto id = read_id(resp["data"]); !id.empty()) return id;
+    }
+    return {};
+}
+
 } // namespace
 
 // ---------------------------------------------------------------------------
@@ -84,13 +103,12 @@ void wgtFilaManagerCloudDispatcher::enqueue_pull()
     schedule_next();
 }
 
-void wgtFilaManagerCloudDispatcher::enqueue_push_create(const std::string& spool_id)
+void wgtFilaManagerCloudDispatcher::enqueue_push_create(const FilamentSpool& spool)
 {
-    if (spool_id.empty()) return;
     wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher enqueue push_create",
                                    "A create push operation was queued",
-                                   {{"spool_id", spool_id}});
-    m_queue.push_back([this, spool_id]() { run_push_create_op(spool_id); });
+                                   {{"setting_id", spool.setting_id}});
+    m_queue.push_back([this, spool]() { run_push_create_op(spool); });
     schedule_next();
 }
 
@@ -234,34 +252,37 @@ void wgtFilaManagerCloudDispatcher::run_pull_op()
     wxTheApp->CallAfter(*check);
 }
 
-void wgtFilaManagerCloudDispatcher::run_push_create_op(const std::string& spool_id)
+void wgtFilaManagerCloudDispatcher::run_push_create_op(const FilamentSpool& spool)
 {
     if (!m_sync || !is_user_logged_in()) {
         if (m_sync && !is_user_logged_in()) {
             wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher push_create skipped",
-                                           "User not logged in — local change kept, no cloud HTTP",
-                                           {{"spool_id", spool_id}, {"op", "create"}});
+                                           "User not logged in — no cloud HTTP",
+                                           {{"op", "create"}});
         }
         on_op_done();
         return;
     }
-    BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_create " << spool_id;
+    BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_create";
     wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher push_create started",
                                    "Queued create push started running",
-                                   {{"spool_id", spool_id}});
-    auto* store = wxGetApp().fila_manager_store();
-    if (!store) { on_op_done(); return; }
-    const FilamentSpool* spool = store->get_spool(spool_id);
-    if (!spool || !m_client) { on_op_done(); return; }
+                                   {{"setting_id", spool.setting_id}});
+    if (!m_client) { on_op_done(); return; }
 
-    nlohmann::json body = wgtFilaManagerCloudSync::spool_to_cloud_json(*spool);
+    nlohmann::json body = wgtFilaManagerCloudSync::spool_to_cloud_json(spool);
     m_client->create_spool(body,
-        [this, spool_id](const nlohmann::json& /*resp*/) {
-            wxTheApp->CallAfter([this, spool_id]() {
+        [this, spool](const nlohmann::json& resp) {
+            wxTheApp->CallAfter([this, spool, resp]() {
+                const std::string spool_id = cloud_spool_id_from_response(resp);
                 BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_create ok " << spool_id;
-                if (auto* store = wxGetApp().fila_manager_store()) {
-                    if (store->mark_synced(spool_id, true))
+                if (!spool_id.empty()) {
+                    if (auto* store = wxGetApp().fila_manager_store()) {
+                        FilamentSpool local = spool;
+                        local.spool_id = spool_id;
+                        local.cloud_synced = true;
+                        store->add_spool(local);
                         store->save();
+                    }
                 }
                 update_last_synced_now();
                 wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher push_create finished",
@@ -271,13 +292,13 @@ void wgtFilaManagerCloudDispatcher::run_push_create_op(const std::string& spool_
                 on_op_done();
             });
         },
-        [this, spool_id](int code, const std::string& err) {
-            wxTheApp->CallAfter([this, spool_id, code, err]() {
+        [this](int code, const std::string& err) {
+            wxTheApp->CallAfter([this, code, err]() {
                 record_error(code, err);
                 wxGetApp().emit_fila_debug_log("data", "error", "Dispatcher push_create failed",
                                                "Queued create push failed",
-                                               {{"spool_id", spool_id}, {"code", code}, {"error", err}});
-                if (m_on_push_failed) m_on_push_failed(spool_id, "create", code, err);
+                                               {{"code", code}, {"error", err}});
+                if (m_on_push_failed) m_on_push_failed(std::string(), "create", code, err);
                 on_op_done();
             });
         });
@@ -289,7 +310,7 @@ void wgtFilaManagerCloudDispatcher::run_push_update_op(const std::string& spool_
     if (!m_sync || !is_user_logged_in()) {
         if (m_sync && !is_user_logged_in()) {
             wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher push_update skipped",
-                                           "User not logged in — local change kept, no cloud HTTP",
+                                           "User not logged in — no cloud HTTP",
                                            {{"spool_id", spool_id}, {"op", "update"}});
         }
         on_op_done();
@@ -320,11 +341,14 @@ void wgtFilaManagerCloudDispatcher::run_push_update_op(const std::string& spool_
     }
 
     m_client->update_spool(spool_id, body,
-        [this, spool_id](const nlohmann::json& /*resp*/) {
-            wxTheApp->CallAfter([this, spool_id]() {
+        [this, spool_id, local_patch](const nlohmann::json& /*resp*/) {
+            wxTheApp->CallAfter([this, spool_id, local_patch]() {
                 BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_update ok " << spool_id;
                 if (auto* store = wxGetApp().fila_manager_store()) {
+                    store->apply_patch(spool_id, local_patch);
                     if (store->mark_synced(spool_id, true))
+                        store->save();
+                    else
                         store->save();
                 }
                 update_last_synced_now();
@@ -405,6 +429,11 @@ void wgtFilaManagerCloudDispatcher::run_push_delete_op(const std::vector<std::st
         [this, spool_ids](const nlohmann::json& /*resp*/) {
             wxTheApp->CallAfter([this, spool_ids]() {
                 BOOST_LOG_TRIVIAL(info) << "[CloudDispatcher] push_delete ok";
+                if (auto* store = wxGetApp().fila_manager_store()) {
+                    for (const auto& spool_id : spool_ids)
+                        store->remove_spool(spool_id);
+                    store->save();
+                }
                 update_last_synced_now();
                 wxGetApp().emit_fila_debug_log("data", "info", "Dispatcher push_delete finished",
                                                "Queued delete push completed successfully",

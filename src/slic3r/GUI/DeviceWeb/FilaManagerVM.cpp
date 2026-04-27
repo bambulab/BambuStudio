@@ -14,11 +14,30 @@
 #include "slic3r/GUI/fila_manager/wgtFilaManagerCloudClient.h"
 #include "slic3r/GUI/fila_manager/wgtFilaManagerCloudSync.h"
 #include "slic3r/GUI/fila_manager/wgtFilaManagerCloudDispatcher.h"
+#include "slic3r/Utils/NetworkAgent.hpp"
 #include "libslic3r/PresetBundle.hpp"
 
 #include <wx/app.h>
 
 namespace Slic3r { namespace GUI {
+
+namespace {
+
+bool is_spool_cloud_write_action(const std::string& action)
+{
+    return action == "add"
+        || action == "batch_add"
+        || action == "update"
+        || action == "remove"
+        || action == "batch_remove";
+}
+
+bool can_write_spool_to_cloud(NetworkAgent* agent)
+{
+    return agent && agent->is_user_login() && agent->is_server_connected();
+}
+
+} // namespace
 
 FilaManagerVM::FilaManagerVM()
 {
@@ -51,12 +70,10 @@ FilaManagerVM::FilaManagerVM()
                 m_bridge->ReportMsg(MakeResp("spool", "list", 0, "", build_spool_list()));
             }
             publish_push_done(id, op);
-            // STUDIO-17956: remember that a new spool was just pushed to the
-            // cloud. The reconciliation pull enqueued below will observe
-            // before==after locally (add_spool is local-first), so its
-            // size-diff estimate of `added` is always 0. Carry the real
-            // delta into publish_pull_done via this hint.
-            if (op == "create") {
+            // If create returned an id, the dispatcher has already inserted
+            // the accepted cloud row locally. The follow-up pull will see no
+            // size delta, so carry the create count into publish_pull_done.
+            if (op == "create" && !id.empty()) {
                 m_pending_pull_added_hint += 1;
             }
             if (auto* d = wxGetApp().fila_manager_cloud_disp()) {
@@ -153,9 +170,13 @@ nlohmann::json FilaManagerVM::HandleSpool(const std::string& action, const nlohm
 {
     auto* store = wxGetApp().fila_manager_store();
     auto* disp  = wxGetApp().fila_manager_cloud_disp();
+    auto* agent = wxGetApp().getAgent();
 
     if (action == "list") {
         return MakeResp("spool", action, 0, "", build_spool_list());
+    }
+    if (is_spool_cloud_write_action(action) && (!store || !disp || !can_write_spool_to_cloud(agent))) {
+        return MakeResp("spool", action, -2, "cloud sync requires sign-in and network");
     }
     if (action == "add") {
         // Breadcrumbs: when the UI reports "add didn't take effect / no HTTP
@@ -167,66 +188,37 @@ nlohmann::json FilaManagerVM::HandleSpool(const std::string& action, const nlohm
                           "Begin processing spool/add on C++ side",
                           {{"has_store", store != nullptr}});
 
-        std::string created_id;
-        if (store) {
-            FilamentSpool s;
-            try {
-                s = FilamentSpool::from_json(payload);
-            } catch (const std::exception& e) {
-                publish_debug_log("data", "error", "HandleSpool add: from_json threw",
-                                  "Failed to parse incoming spool payload",
-                                  {{"what", e.what()}, {"payload", payload}});
-                return MakeResp("spool", action, 3, std::string("from_json: ") + e.what());
-            }
-            // Freshly added locally -> not yet acknowledged by cloud.
-            // The dispatcher flips cloud_synced=true after the push succeeds,
-            // and the follow-up auto-pull then rewrites the row from the
-            // cloud snapshot (which is the source of truth).
-            s.cloud_synced = false;
-
-            try {
-                created_id = store->add_spool(s);
-            } catch (const std::exception& e) {
-                publish_debug_log("data", "error", "HandleSpool add: add_spool threw",
-                                  "Failed to insert spool into in-memory store",
-                                  {{"what", e.what()}});
-                return MakeResp("spool", action, 4, std::string("add_spool: ") + e.what());
-            }
-
-            try {
-                store->save();
-            } catch (const std::exception& e) {
-                publish_debug_log("data", "error", "HandleSpool add: save threw",
-                                  "Failed to persist spool store to disk (often non-UTF8 bytes in a legacy row)",
-                                  {{"what", e.what()}, {"new_spool_id", created_id}});
-                // Row is already in memory; we still try to enqueue the
-                // cloud push so the user's intent is not lost.
-            }
-
-            publish_debug_log("data", "info", "Local spool added",
-                              "A new spool was saved to the local store",
-                              {{"action", "add"}, {"spool_id", created_id}});
+        FilamentSpool s;
+        try {
+            s = FilamentSpool::from_json(payload);
+        } catch (const std::exception& e) {
+            publish_debug_log("data", "error", "HandleSpool add: from_json threw",
+                              "Failed to parse incoming spool payload",
+                              {{"what", e.what()}, {"payload", payload}});
+            return MakeResp("spool", action, 3, std::string("from_json: ") + e.what());
         }
-        if (disp && !created_id.empty()) disp->enqueue_push_create(created_id);
+        s.cloud_synced = false;
+
+        publish_debug_log("data", "info", "Spool create queued",
+                          "A new spool create request was queued for cloud",
+                          {{"action", "add"}});
+        if (disp) disp->enqueue_push_create(s);
         publish_sync_state();
         return MakeResp("spool", action, 0, "", build_spool_list());
     }
     if (action == "batch_add") {
-        std::vector<std::string> new_ids;
-        if (store) {
-            int qty = payload.value("quantity", 1);
-            nlohmann::json sd = payload.contains("spool") ? payload["spool"] : nlohmann::json::object();
-            for (int i = 0; i < qty; ++i) {
-                FilamentSpool s = FilamentSpool::from_json(sd);
-                s.cloud_synced = false;
-                new_ids.push_back(store->add_spool(s));
-            }
-            store->save();
-            publish_debug_log("data", "info", "Local spools batch added",
-                              "Multiple spools were saved to the local store",
-                              {{"action", "batch_add"}, {"count", qty}, {"spool_ids", new_ids}});
+        std::vector<FilamentSpool> new_spools;
+        int qty = payload.value("quantity", 1);
+        nlohmann::json sd = payload.contains("spool") ? payload["spool"] : nlohmann::json::object();
+        for (int i = 0; i < qty; ++i) {
+            FilamentSpool s = FilamentSpool::from_json(sd);
+            s.cloud_synced = false;
+            new_spools.push_back(s);
         }
-        if (disp) for (auto& id : new_ids) disp->enqueue_push_create(id);
+        publish_debug_log("data", "info", "Spool batch create queued",
+                          "Multiple spool create requests were queued for cloud",
+                          {{"action", "batch_add"}, {"count", qty}});
+        if (disp) for (auto& spool : new_spools) disp->enqueue_push_create(spool);
         publish_sync_state();
         return MakeResp("spool", action, 0, "", build_spool_list());
     }
@@ -235,13 +227,12 @@ nlohmann::json FilaManagerVM::HandleSpool(const std::string& action, const nlohm
         // 不再整体覆盖 —— 这样 entry_method / tag_uid / created_at / bound_* /
         // cloud_synced 等系统字段不会被清空（STUDIO-17964 Problem A）。
         const std::string updated_id = payload.value("spool_id", "");
-        bool patched = false;
+        bool can_update = false;
         if (store && !updated_id.empty()) {
-            patched = store->apply_patch(updated_id, payload);
-            if (patched) {
-                store->save();
-                publish_debug_log("data", "info", "Local spool updated",
-                                  "A spool was updated in the local store (patch)",
+            can_update = store->get_spool(updated_id) != nullptr;
+            if (can_update) {
+                publish_debug_log("data", "info", "Spool update queued",
+                                  "A spool update request was queued for cloud",
                                   {{"action", "update"},
                                    {"spool_id", updated_id},
                                    {"patch_keys", static_cast<int>(payload.is_object() ?
@@ -252,21 +243,17 @@ nlohmann::json FilaManagerVM::HandleSpool(const std::string& action, const nlohm
                                   {{"action", "update"}, {"spool_id", updated_id}});
             }
         }
-        if (disp && patched) disp->enqueue_push_update(updated_id, payload);
+        if (disp && can_update) disp->enqueue_push_update(updated_id, payload);
         publish_sync_state();
         return MakeResp("spool", action, 0, "", build_spool_list());
     }
     if (action == "remove") {
         std::string sid = payload.value("spool_id", "");
-        if (store && !sid.empty()) {
-            store->remove_spool(sid); store->save();
-            publish_debug_log("data", "info", "Local spool removed",
-                              "A spool was deleted from the local store",
+        if (store && !sid.empty() && store->get_spool(sid)) {
+            publish_debug_log("data", "info", "Spool delete queued",
+                              "A spool delete request was queued for cloud",
                               {{"action", "remove"}, {"spool_id", sid}});
         }
-        // Always try to delete on the cloud. If the row was never pushed
-        // the cloud returns 404 which the dispatcher just logs -- the
-        // subsequent auto-pull brings local and cloud back in sync anyway.
         if (disp && !sid.empty()) disp->enqueue_push_delete({sid});
         publish_sync_state();
         return MakeResp("spool", action, 0, "", build_spool_list());
@@ -277,10 +264,8 @@ nlohmann::json FilaManagerVM::HandleSpool(const std::string& action, const nlohm
             for (auto& sid : payload["spool_ids"]) ids.push_back(sid.get<std::string>());
         }
         if (store) {
-            for (auto& id : ids) store->remove_spool(id);
-            store->save();
-            publish_debug_log("data", "info", "Local spools batch removed",
-                              "Multiple spools were deleted from the local store",
+            publish_debug_log("data", "info", "Spool batch delete queued",
+                              "Multiple spool delete requests were queued for cloud",
                               {{"action", "batch_remove"},
                                {"count", static_cast<int>(ids.size())},
                                {"spool_ids", ids}});
@@ -544,13 +529,9 @@ void FilaManagerVM::publish_pull_done(int added, int updated)
 {
     if (!m_bridge) return;
 
-    // STUDIO-17956: dispatcher's size-diff `added` is always 0 for the
-    // reconciliation pull that follows a local add+push_create (add_spool is
-    // local-first, so before_sz == after_sz). Each successful create push
-    // bumps m_pending_pull_added_hint by 1; consume it here so the toast
-    // reports the true "+N added" instead of "+0 added". Shift the delta out
-    // of `updated` too — the same spools count as either freshly-added or
-    // already-up-to-date, not both.
+    // STUDIO-17956: when create success already inserted the cloud row locally,
+    // the reconciliation pull observes before_sz == after_sz. Consume the
+    // pending create hint so the toast reports "+N added" instead of "+0".
     if (m_pending_pull_added_hint > 0) {
         const int hint = m_pending_pull_added_hint;
         m_pending_pull_added_hint = 0;
@@ -571,12 +552,16 @@ void FilaManagerVM::publish_push_failed(const std::string& spool_id,
                                         int code,
                                         const std::string& message)
 {
+    if (auto* disp = wxGetApp().fila_manager_cloud_disp()) {
+        disp->enqueue_pull();
+    }
     if (!m_bridge) return;
     nlohmann::json body;
     body["spool_id"] = spool_id;
     body["op"]       = op;
     body["code"]     = code;
     body["message"]  = message;
+    body["state"]    = build_sync_state();
     m_bridge->ReportMsg(MakeResp("sync", "push_failed", 0, "", body));
 }
 

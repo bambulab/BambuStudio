@@ -202,7 +202,7 @@ export function useFilamentBridge() {
           const errMsg  = (payload.message as string) || t('unknown error');
           pushToast({
             level: 'error',
-            text: t('Cloud push failed: {{op}} — {{message}}', { op: opLabel, message: errMsg }),
+            text: t('Filament operation failed. This feature currently requires a network connection.'),
             op: opLabel,
             spool_id: payload.spool_id as string,
           });
@@ -313,6 +313,14 @@ export function useFilamentBridge() {
     }
   }, [pushToast, t]);
 
+  const notifyCloudWriteFailed = useCallback((op: 'create' | 'update' | 'delete') => {
+    pushToast({
+      level: 'error',
+      text: t('Filament operation failed. This feature currently requires a network connection.'),
+      op,
+    });
+  }, [pushToast, t]);
+
   const addSpool = useCallback(async (spool: Partial<Spool>) => {
     const res = await request<ReturnType<typeof makeBody>, BridgeResponseBody>(
       makeBody('spool', 'add', spool as Record<string, unknown>)
@@ -321,8 +329,9 @@ export function useFilamentBridge() {
       setSpools(res.value.payload as unknown as Spool[]);
       notifyCloudQueued('create', 1);
     }
+    if (!res.ok || res.value.error_code !== 0) notifyCloudWriteFailed('create');
     return res.ok && res.value.error_code === 0;
-  }, [request, setSpools, notifyCloudQueued]);
+  }, [request, setSpools, notifyCloudQueued, notifyCloudWriteFailed]);
 
   const batchAddSpool = useCallback(async (spool: Partial<Spool>, quantity: number) => {
     const res = await request<ReturnType<typeof makeBody>, BridgeResponseBody>(
@@ -332,8 +341,9 @@ export function useFilamentBridge() {
       setSpools(res.value.payload as unknown as Spool[]);
       notifyCloudQueued('create', quantity);
     }
+    if (!res.ok || res.value.error_code !== 0) notifyCloudWriteFailed('create');
     return res.ok && res.value.error_code === 0;
-  }, [request, setSpools, notifyCloudQueued]);
+  }, [request, setSpools, notifyCloudQueued, notifyCloudWriteFailed]);
 
   const updateSpool = useCallback(async (spool: Partial<Spool>) => {
     const res = await request<ReturnType<typeof makeBody>, BridgeResponseBody>(
@@ -343,8 +353,9 @@ export function useFilamentBridge() {
       setSpools(res.value.payload as unknown as Spool[]);
       notifyCloudQueued('update', 1);
     }
+    if (!res.ok || res.value.error_code !== 0) notifyCloudWriteFailed('update');
     return res.ok && res.value.error_code === 0;
-  }, [request, setSpools, notifyCloudQueued]);
+  }, [request, setSpools, notifyCloudQueued, notifyCloudWriteFailed]);
 
   const removeSpool = useCallback(async (spoolId: string) => {
     const res = await request<ReturnType<typeof makeBody>, BridgeResponseBody>(
@@ -354,8 +365,9 @@ export function useFilamentBridge() {
       setSpools(res.value.payload as unknown as Spool[]);
       notifyCloudQueued('delete', 1);
     }
+    if (!res.ok || res.value.error_code !== 0) notifyCloudWriteFailed('delete');
     return res.ok && res.value.error_code === 0;
-  }, [request, setSpools, notifyCloudQueued]);
+  }, [request, setSpools, notifyCloudQueued, notifyCloudWriteFailed]);
 
   const batchRemoveSpool = useCallback(async (spoolIds: string[]) => {
     const res = await request<ReturnType<typeof makeBody>, BridgeResponseBody>(
@@ -365,8 +377,9 @@ export function useFilamentBridge() {
       setSpools(res.value.payload as unknown as Spool[]);
       notifyCloudQueued('delete', spoolIds.length);
     }
+    if (!res.ok || res.value.error_code !== 0) notifyCloudWriteFailed('delete');
     return res.ok && res.value.error_code === 0;
-  }, [request, setSpools, notifyCloudQueued]);
+  }, [request, setSpools, notifyCloudQueued, notifyCloudWriteFailed]);
 
   const markEmpty = useCallback(async (spoolId: string) => {
     const res = await request<ReturnType<typeof makeBody>, BridgeResponseBody>(
