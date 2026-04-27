@@ -8,38 +8,90 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as I18nDemoRouteImport } from './routes/i18n-demo'
-import { Route as FilamentRouteImport } from './routes/filament'
-import { Route as AppRouteImport } from './routes/app'
-import { Route as AboutRouteImport } from './routes/about'
-import { Route as IndexRouteImport } from './routes/index'
+// Import Routes
 
-const I18nDemoRoute = I18nDemoRouteImport.update({
+import { Route as rootRoute } from './routes/__root'
+import { Route as I18nDemoImport } from './routes/i18n-demo'
+import { Route as FilamentImport } from './routes/filament'
+import { Route as AppImport } from './routes/app'
+import { Route as AboutImport } from './routes/about'
+import { Route as IndexImport } from './routes/index'
+
+// Create/Update Routes
+
+const I18nDemoRoute = I18nDemoImport.update({
   id: '/i18n-demo',
   path: '/i18n-demo',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
-const FilamentRoute = FilamentRouteImport.update({
+
+const FilamentRoute = FilamentImport.update({
   id: '/filament',
   path: '/filament',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
-const AppRoute = AppRouteImport.update({
+
+const AppRoute = AppImport.update({
   id: '/app',
   path: '/app',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
-const AboutRoute = AboutRouteImport.update({
+
+const AboutRoute = AboutImport.update({
   id: '/about',
   path: '/about',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
-const IndexRoute = IndexRouteImport.update({
+
+const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => rootRoute,
 } as any)
+
+// Populate the FileRoutesByPath interface
+
+declare module '@tanstack/react-router' {
+  interface FileRoutesByPath {
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutImport
+      parentRoute: typeof rootRoute
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppImport
+      parentRoute: typeof rootRoute
+    }
+    '/filament': {
+      id: '/filament'
+      path: '/filament'
+      fullPath: '/filament'
+      preLoaderRoute: typeof FilamentImport
+      parentRoute: typeof rootRoute
+    }
+    '/i18n-demo': {
+      id: '/i18n-demo'
+      path: '/i18n-demo'
+      fullPath: '/i18n-demo'
+      preLoaderRoute: typeof I18nDemoImport
+      parentRoute: typeof rootRoute
+    }
+  }
+}
+
+// Create and export the route tree
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -48,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/filament': typeof FilamentRoute
   '/i18n-demo': typeof I18nDemoRoute
 }
+
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
@@ -55,14 +108,16 @@ export interface FileRoutesByTo {
   '/filament': typeof FilamentRoute
   '/i18n-demo': typeof I18nDemoRoute
 }
+
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
+  __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/app': typeof AppRoute
   '/filament': typeof FilamentRoute
   '/i18n-demo': typeof I18nDemoRoute
 }
+
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths: '/' | '/about' | '/app' | '/filament' | '/i18n-demo'
@@ -71,52 +126,13 @@ export interface FileRouteTypes {
   id: '__root__' | '/' | '/about' | '/app' | '/filament' | '/i18n-demo'
   fileRoutesById: FileRoutesById
 }
+
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AppRoute: typeof AppRoute
   FilamentRoute: typeof FilamentRoute
   I18nDemoRoute: typeof I18nDemoRoute
-}
-
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/i18n-demo': {
-      id: '/i18n-demo'
-      path: '/i18n-demo'
-      fullPath: '/i18n-demo'
-      preLoaderRoute: typeof I18nDemoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/filament': {
-      id: '/filament'
-      path: '/filament'
-      fullPath: '/filament'
-      preLoaderRoute: typeof FilamentRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app': {
-      id: '/app'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof AppRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-  }
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -126,6 +142,39 @@ const rootRouteChildren: RootRouteChildren = {
   FilamentRoute: FilamentRoute,
   I18nDemoRoute: I18nDemoRoute,
 }
-export const routeTree = rootRouteImport
+
+export const routeTree = rootRoute
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+/* ROUTE_MANIFEST_START
+{
+  "routes": {
+    "__root__": {
+      "filePath": "__root.tsx",
+      "children": [
+        "/",
+        "/about",
+        "/app",
+        "/filament",
+        "/i18n-demo"
+      ]
+    },
+    "/": {
+      "filePath": "index.tsx"
+    },
+    "/about": {
+      "filePath": "about.tsx"
+    },
+    "/app": {
+      "filePath": "app.tsx"
+    },
+    "/filament": {
+      "filePath": "filament.tsx"
+    },
+    "/i18n-demo": {
+      "filePath": "i18n-demo.tsx"
+    }
+  }
+}
+ROUTE_MANIFEST_END */
