@@ -997,6 +997,12 @@ void Sidebar::priv::show_fila_switch_msg(bool ready)
 
 Sidebar::priv::~priv()
 {
+    // Stop and delete the printer-sync timer to prevent resource leak
+    if (timer_sync_printer) {
+        timer_sync_printer->Stop();
+        delete timer_sync_printer;
+        timer_sync_printer = nullptr;
+    }
     // BBS
     //delete object_manipulation;
     delete object_settings;

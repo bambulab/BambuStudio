@@ -70,10 +70,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/FilamentLoad.hpp
     GUI/Widgets/FanControl.cpp
     GUI/Widgets/FanControl.hpp
-    GUI/Widgets/Scrollbar.cpp
-    GUI/Widgets/Scrollbar.hpp
-    GUI/Widgets/ScrolledWindow.cpp
-    GUI/Widgets/ScrolledWindow.hpp
     GUI/Widgets/StepCtrl.cpp
     GUI/Widgets/StepCtrl.hpp
     GUI/Widgets/ProgressBar.cpp
