@@ -137,6 +137,9 @@ nlohmann::json FilaManagerVM::HandleInit(const std::string& action, const nlohma
     data["theme"]   = dark ? "dark" : "light";
     data["spools"]  = build_spool_list();
     data["presets"] = build_preset_options();
+    // Include current login/sync state so the frontend can render the correct
+    // UI immediately without waiting for a separate fetchCloudSyncStatus() call.
+    data["cloud_sync"] = build_sync_state();
 #if !BBL_RELEASE_TO_PUBLIC
     data["debug_enabled"] = true;
 #else

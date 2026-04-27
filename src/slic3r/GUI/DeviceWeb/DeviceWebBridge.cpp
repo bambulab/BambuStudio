@@ -45,6 +45,14 @@ void DeviceWebBridge::InitBridge()
         }
     )JS";
 
+#if !BBL_RELEASE_TO_PUBLIC
+    // Internal build: signal to the frontend that debug panel should be shown
+    // regardless of whether init() succeeds or the user is logged in.
+    bridge += R"JS(
+        window.__internalBuild = true;
+    )JS";
+#endif
+
     WebView::RunScript(m_web, wxString(bridge));
 }
 
@@ -70,12 +78,12 @@ void DeviceWebBridge::OnWebNav(wxWebViewEvent& e)
     auto url = e.GetURL();
     if (!url.StartsWith("app://")) return;
 
-    wxURI       uri(url);
-    // ToStdString() uses the current C locale, which on Windows CJK builds
-    // mangles non-ASCII characters (Chinese notes, emoji, etc.) before the
-    // JSON parser sees them. Force UTF-8 to match the C++->JS direction
-    // (SendMsg uses wxString::FromUTF8).
-    std::string raw = wxURI::Unescape(uri.GetPath()).ToUTF8().data();
+    // The JS side sends: iframe.src = "app://" + encodeURIComponent(json)
+    // We cannot rely on wxURI::GetPath() because "app://<encoded>" makes
+    // wxURI treat the encoded JSON as the host/authority part (after "//").
+    // Instead, directly strip the "app://" prefix and URL-decode the rest.
+    wxString payload = url.Mid(6); // skip "app://"
+    std::string raw = wxURI::Unescape(payload).ToUTF8().data();
 
     nlohmann::json j = nlohmann::json::parse(raw, nullptr, false);
     if (ValidateJson(j)) {

@@ -36,4 +36,5 @@ compile_commands.json
 .jira/
 .claude/settings.local.json
 **/node_modules/
+.worktrees/
 

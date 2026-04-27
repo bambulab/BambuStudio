@@ -17,19 +17,28 @@ export interface Header {
 interface Packet<T = any> { head: Header; body: T; }
 
 function rawSend(pkt: unknown) {
-    // Edge-WebView2
+    const str = typeof pkt === 'string' ? pkt : JSON.stringify(pkt);
+
+    // Edge-WebView2 (Windows)
     if (typeof (window as any).chrome?.webview?.postMessage === 'function') {
-        (window as any).chrome.webview.postMessage(
-            typeof pkt === 'string' ? pkt : JSON.stringify(pkt)
-        );
+        (window as any).chrome.webview.postMessage(str);
         return;
     }
 
-    // Other browsers: app:// URL fallback
-    const url = 'app://' + encodeURIComponent(
-        typeof pkt === 'string' ? pkt : JSON.stringify(pkt)
-    );
-    fetch(url).catch(() => {});
+    // WKWebView (macOS) — handler registered as "wx" via AddScriptMessageHandler.
+    if (typeof (window as any).webkit?.messageHandlers?.wx?.postMessage === 'function') {
+        (window as any).webkit.messageHandlers.wx.postMessage(str);
+        return;
+    }
+
+    // Fallback: trigger wxEVT_WEBVIEW_NAVIGATING via iframe navigation.
+    // NOTE: fetch('app://...') does NOT trigger navigation events in WKWebView,
+    // so we must use an iframe with src= to trigger decidePolicyForNavigationAction.
+    const frame = document.createElement('iframe');
+    frame.style.display = 'none';
+    frame.src = 'app://' + encodeURIComponent(str);
+    document.body.appendChild(frame);
+    setTimeout(() => { try { document.body.removeChild(frame); } catch {} }, 200);
 }
 
 function rawSendCallback<T>(head: Header, body?: T) {

@@ -263,11 +263,14 @@ export function useFilamentBridge() {
       setSpools(data.spools ?? []);
       setPresets(data.presets ?? { vendors: [] });
       if (data.theme) setTheme(data.theme);
+      // Apply login/sync state from init so page renders correctly immediately
+      // without waiting for a separate fetchCloudSyncStatus() round-trip.
+      if (data.cloud_sync) setCloudSync(data.cloud_sync);
       setDebugEnabled(Boolean(data.debug_enabled));
     } else {
       setError(res.ok ? res.value.message : res.error);
     }
-  }, [request, setSpools, setPresets, setTheme, setLoading, setError, setDebugEnabled]);
+  }, [request, setSpools, setPresets, setTheme, setLoading, setError, setCloudSync, setDebugEnabled]);
 
   // ---- Spool CRUD ----
   const fetchSpools = useCallback(async () => {

@@ -5,6 +5,17 @@ import { BAMBU_COLORS, formatTypeSeries } from './constants';
 import { SpoolSvg } from './SpoolSvg';
 import useStore from '../../store/AppStore';
 
+function normalizeColorCode(value?: string): string {
+  const raw = (value || '').trim();
+  if (!raw) return '';
+  const hex = raw.startsWith('#') ? raw : `#${raw}`;
+  return hex.slice(0, 7).toUpperCase();
+}
+
+function isPresetColor(value: string): boolean {
+  return BAMBU_COLORS.some((c) => c.toUpperCase() === value.toUpperCase());
+}
+
 // Derive the AMS tray's *current* net weight in grams from the MQTT payload.
 // `tray.weight` is the spool's initial net (e.g. "1000"), and `tray.remain`
 // is the AMS-reported remaining percentage. Falls back to the initial net
@@ -71,6 +82,7 @@ export function AddEditDialog({
   const [materialType, setMaterialType] = useState('');
   const [series, setSeries] = useState('');
   const [colorCode, setColorCode] = useState('');
+  const [customColors, setCustomColors] = useState<string[]>([]);
   const [colorName, setColorName] = useState('');
   // STUDIO-17991: align the weight form with the cloud schema
   // (design-user.api CreateFilamentV2Req: netWeight + totalNetWeight only).
@@ -105,7 +117,9 @@ export function AddEditDialog({
       setBrand(initSpool.brand || '');
       setMaterialType(initSpool.material_type || '');
       setSeries(initSpool.series || '');
-      setColorCode(initSpool.color_code || '');
+      const initialColor = normalizeColorCode(initSpool.color_code);
+      setColorCode(initialColor);
+      setCustomColors(initialColor && !isPresetColor(initialColor) ? [initialColor] : []);
       setColorName(initSpool.color_name || '');
       // Transparent migration from the legacy 毛重/料盘/净重 shape:
       // old rows stored initial_weight as 毛重 with spool_weight > 0,
@@ -124,7 +138,7 @@ export function AddEditDialog({
       setNote(initSpool.note || '');
     } else {
       setBrand(''); setMaterialType(''); setSeries('');
-      setColorCode(''); setColorName('');
+      setColorCode(''); setCustomColors([]); setColorName('');
       setTotalNetWeight(1000); setCurrentNetWeight(1000);
       setNote('');
     }
@@ -265,6 +279,17 @@ export function AddEditDialog({
     (c) => c.toUpperCase() === colorCode.toUpperCase(),
   );
 
+  const handleCustomColorChange = useCallback((value: string) => {
+    const nextColor = normalizeColorCode(value);
+    setColorCode(nextColor);
+    if (!nextColor || isPresetColor(nextColor)) return;
+    setCustomColors((prev) => (
+      prev.some((c) => c.toUpperCase() === nextColor.toUpperCase())
+        ? prev
+        : [...prev, nextColor]
+    ));
+  }, []);
+
   const handleSubmit = () => {
     // New weight model: initial_weight is now 整卷净重 (= swagger
     // totalNetWeight) and spool_weight is always persisted as 0 so no
@@ -339,7 +364,7 @@ export function AddEditDialog({
       } else {
         data.entry_method = 'manual';
       }
-      onSubmitAdd(data, quantity);
+      onSubmitAdd(data, mode === 'ams' ? 1 : quantity);
     }
     onClose();
   };
@@ -951,35 +976,37 @@ export function AddEditDialog({
               </div>
 
               {/* Color palette. F4.4 feedback: 自定义颜色需要"可保存 / 能看到已选"。
-                  实现上保留原生 <input type="color"> 作为取色器，但在取完色后把
-                  自定义色显示为一个可视色块（带选中高亮 + hex 标签 + 重新选择），
-                  这样用户无需单独"保存"按钮即可确认颜色已入选。 */}
+                  "+" 始终保留为取色入口；新取的自定义色追加到预设色之后。 */}
               <div className="flex flex-col gap-[8px]">
                 <label className="text-[12px] leading-[19px] text-fm-text-secondary"><span className="text-[#ff2b00]">*</span> {t('Color')}</label>
                 <div className="flex flex-wrap gap-[6px] items-center">
-                  {/* Custom-color picker: 未选时显示"+"占位；已选自定义色时显示色块 */}
+                  {/* Custom-color picker: always keep "+" as the entry point. */}
                   <div
-                    className={`size-[24px] rounded-[4px] cursor-pointer border relative overflow-hidden flex items-center justify-center text-fm-text-detail text-sm ${
-                      isCustomColor ? 'border-fm-brand border-2' : 'border-dashed border-white/40 bg-fm-inner'
-                    }`}
-                    style={isCustomColor ? { background: colorCode } : undefined}
-                    title={isCustomColor ? t('Custom Color') : t('Pick Custom Color')}
+                    className="size-[24px] rounded-[4px] cursor-pointer border border-dashed border-fm-border-focus bg-fm-inner relative overflow-hidden flex items-center justify-center text-fm-text-detail text-sm hover:border-fm-text-secondary"
+                    title={t('Pick Custom Color')}
                   >
-                    {!isCustomColor && (
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="1.2"/></svg>
-                    )}
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="1.2"/></svg>
                     <input
                       className="absolute inset-0 opacity-0 cursor-pointer"
                       type="color"
                       value={colorCode || '#000000'}
-                      onChange={(e) => setColorCode(e.target.value)}
+                      onChange={(e) => handleCustomColorChange(e.target.value)}
                     />
                   </div>
                   {BAMBU_COLORS.map((c) => (
                     <div
                       key={c}
-                      className={`size-[24px] rounded-[4px] cursor-pointer border transition-colors duration-150 hover:border-white/40 ${c.toUpperCase() === colorCode.toUpperCase() ? 'border-fm-brand border-2' : 'border-white/16'}`}
+                      className={`size-[24px] rounded-[4px] cursor-pointer border transition-colors duration-150 hover:border-fm-text-secondary ${c.toUpperCase() === colorCode.toUpperCase() ? 'border-fm-brand border-2' : 'border-fm-border-focus'}`}
                       style={{ background: c }}
+                      onClick={() => setColorCode(c)}
+                    />
+                  ))}
+                  {customColors.map((c) => (
+                    <div
+                      key={`custom-${c}`}
+                      className={`size-[24px] rounded-[4px] cursor-pointer border transition-colors duration-150 hover:border-fm-text-secondary ${c.toUpperCase() === colorCode.toUpperCase() ? 'border-fm-brand border-2' : 'border-fm-border-focus'}`}
+                      style={{ background: c }}
+                      title={t('Custom Color')}
                       onClick={() => setColorCode(c)}
                     />
                   ))}
@@ -1051,7 +1078,7 @@ export function AddEditDialog({
 
         {/* Footer */}
         <div className="flex items-center justify-between h-[60px] px-[16px] shrink-0">
-          {!isEdit && (
+          {!isEdit && mode === 'manual' && (
             <div className="flex items-center gap-[4px] w-[106px]">
               <div className="flex-1 flex items-center gap-[4px] bg-fm-inner2 rounded-[6px] h-[24px] pl-[8px] pr-[4px]">
                 <span className="text-[12px] leading-[19px] text-fm-text-strong flex-1">{quantity}</span>
@@ -1067,7 +1094,7 @@ export function AddEditDialog({
               </div>
             </div>
           )}
-          {isEdit && <div />}
+          {(isEdit || mode !== 'manual') && <div />}
           <div className="flex gap-[12px] items-center">
             <button className="h-[30px] px-[32px] rounded-[8px] cursor-pointer text-[12px] leading-[19px] whitespace-nowrap transition-colors duration-150 bg-fm-input text-fm-text-primary border-none hover:bg-fm-hover" onClick={onClose}>{t('Cancel')}</button>
             <button className="h-[30px] px-[32px] rounded-[8px] border-none cursor-pointer text-[12px] leading-[19px] font-medium whitespace-nowrap transition-colors duration-150 bg-fm-brand text-white hover:bg-fm-brand-hover disabled:opacity-40 disabled:cursor-default" disabled={!isValid} onClick={handleSubmit}>

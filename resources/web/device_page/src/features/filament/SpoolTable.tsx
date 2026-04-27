@@ -58,6 +58,10 @@ function buildPageRange(cur: number, total: number): (number | '...')[] {
   return r;
 }
 
+const paginationButtonBase = 'min-w-6 h-6 flex items-center justify-center rounded-sm border text-xs cursor-pointer px-1 disabled:opacity-30 disabled:cursor-default';
+const paginationButtonIdle = 'border-transparent bg-transparent text-fm-text-secondary hover:bg-fm-hover hover:text-fm-text-strong';
+const paginationButtonActive = 'border-fm-border-focus bg-fm-selected text-fm-text-strong font-medium';
+
 /* ===== Sort header ===== */
 type SortKey = 'brand' | 'remain_percent';
 
@@ -298,7 +302,7 @@ export function SpoolTable({
       {totalRows > pageSize && (
         <div className="flex items-center justify-end gap-1 py-3 shrink-0">
           <button
-            className="min-w-6 h-6 flex items-center justify-center rounded-sm border-none bg-transparent text-fm-text-secondary text-xs cursor-pointer px-1 hover:bg-fm-hover hover:text-fm-text-strong disabled:opacity-30 disabled:cursor-default"
+            className={`${paginationButtonBase} ${paginationButtonIdle}`}
             disabled={safePage <= 1}
             onClick={() => setPage(safePage - 1)}
           >‹</button>
@@ -307,12 +311,12 @@ export function SpoolTable({
               ? <span key={`d${i}`} className="text-fm-text-detail text-xs px-[2px]">…</span>
               : <button
                   key={p}
-                  className={`min-w-6 h-6 flex items-center justify-center rounded-sm border-none bg-transparent text-fm-text-secondary text-xs cursor-pointer px-1 hover:bg-fm-hover hover:text-fm-text-strong disabled:opacity-30 disabled:cursor-default${p === safePage ? ' bg-fm-brand text-white' : ''}`}
+                  className={`${paginationButtonBase} ${p === safePage ? paginationButtonActive : paginationButtonIdle}`}
                   onClick={() => setPage(p)}
                 >{p}</button>
           )}
           <button
-            className="min-w-6 h-6 flex items-center justify-center rounded-sm border-none bg-transparent text-fm-text-secondary text-xs cursor-pointer px-1 hover:bg-fm-hover hover:text-fm-text-strong disabled:opacity-30 disabled:cursor-default"
+            className={`${paginationButtonBase} ${paginationButtonIdle}`}
             disabled={safePage >= pages}
             onClick={() => setPage(safePage + 1)}
           >›</button>

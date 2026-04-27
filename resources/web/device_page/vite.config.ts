@@ -71,5 +71,16 @@ export default defineConfig({
         assetFileNames: 'assets/[name].[ext]'
       }
     },
+    // Use terser instead of esbuild so we can reserve the name "wx".
+    // WKWebView's AddScriptMessageHandler("wx") injects `window.wx` as a
+    // UserMessageHandler instance. If the minifier generates a top-level
+    // variable called "wx", it shadows the global and causes:
+    // "wx is not a function (it is an instance of UserMessageHandler)".
+    minify: 'terser',
+    terserOptions: {
+      mangle: {
+        reserved: ['wx'],
+      },
+    },
   }
 })

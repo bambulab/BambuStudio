@@ -1331,51 +1331,61 @@ int NetworkAgent::get_user_tasks(TaskQueryParams params, std::string* http_body)
 
 int NetworkAgent::get_filament_spools(FilamentQueryParams params, std::string* http_body)
 {
-    int ret = 0;
-    if (network_agent && get_filament_spools_ptr) {
-        ret = get_filament_spools_ptr(network_agent, params, http_body);
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") %network_agent %ret;
+    if (!network_agent || !get_filament_spools_ptr) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unavailable (network_agent="
+            << network_agent << " func_ptr=" << (void*)get_filament_spools_ptr << ")";
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
     }
+    int ret = get_filament_spools_ptr(network_agent, params, http_body);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") %network_agent %ret;
     return ret;
 }
 
 int NetworkAgent::create_filament_spool(std::string request_body, std::string* http_body)
 {
-    int ret = 0;
-    if (network_agent && create_filament_spool_ptr) {
-        ret = create_filament_spool_ptr(network_agent, request_body, http_body);
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") %network_agent %ret;
+    if (!network_agent || !create_filament_spool_ptr) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unavailable (network_agent="
+            << network_agent << " func_ptr=" << (void*)create_filament_spool_ptr << ")";
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
     }
+    int ret = create_filament_spool_ptr(network_agent, request_body, http_body);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") %network_agent %ret;
     return ret;
 }
 
 int NetworkAgent::update_filament_spool(std::string spool_id, std::string request_body, std::string* http_body)
 {
-    int ret = 0;
-    if (network_agent && update_filament_spool_ptr) {
-        ret = update_filament_spool_ptr(network_agent, spool_id, request_body, http_body);
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, spool_id=%3%") %network_agent %ret %spool_id;
+    if (!network_agent || !update_filament_spool_ptr) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unavailable (network_agent="
+            << network_agent << " func_ptr=" << (void*)update_filament_spool_ptr << ")";
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
     }
+    int ret = update_filament_spool_ptr(network_agent, spool_id, request_body, http_body);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, spool_id=%3%") %network_agent %ret %spool_id;
     return ret;
 }
 
 int NetworkAgent::delete_filament_spools(FilamentDeleteParams params, std::string* http_body)
 {
-    int ret = 0;
-    if (network_agent && delete_filament_spools_ptr) {
-        ret = delete_filament_spools_ptr(network_agent, params, http_body);
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") %network_agent %ret;
+    if (!network_agent || !delete_filament_spools_ptr) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unavailable (network_agent="
+            << network_agent << " func_ptr=" << (void*)delete_filament_spools_ptr << ")";
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
     }
+    int ret = delete_filament_spools_ptr(network_agent, params, http_body);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") %network_agent %ret;
     return ret;
 }
 
 int NetworkAgent::get_filament_config(std::string* http_body)
 {
-    int ret = 0;
-    if (network_agent && get_filament_config_ptr) {
-        ret = get_filament_config_ptr(network_agent, http_body);
-        BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") %network_agent %ret;
+    if (!network_agent || !get_filament_config_ptr) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unavailable (network_agent="
+            << network_agent << " func_ptr=" << (void*)get_filament_config_ptr << ")";
+        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
     }
+    int ret = get_filament_config_ptr(network_agent, http_body);
+    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") %network_agent %ret;
     return ret;
 }
 

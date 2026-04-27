@@ -86,6 +86,7 @@ export interface InitData {
   theme: 'dark' | 'light';
   spools: Spool[];
   presets: PresetOptions;
+  cloud_sync?: CloudSyncState;
   debug_enabled?: boolean;
 }
 

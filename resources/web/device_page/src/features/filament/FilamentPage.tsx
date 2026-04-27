@@ -77,6 +77,14 @@ export function FilamentPage() {
     onConfirm: () => void | Promise<unknown>;
   } | null>(null);
 
+  // Internal build: enable debug panel immediately (independent of init() success)
+  const setDebugEnabled = useStore((s) => s.filament.setDebugEnabled);
+  useEffect(() => {
+    if ((window as any).__internalBuild) {
+      setDebugEnabled(true);
+    }
+  }, [setDebugEnabled]);
+
   // Init
   useEffect(() => { init(); }, [init]);
 
