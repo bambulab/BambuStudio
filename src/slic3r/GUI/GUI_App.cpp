@@ -22,6 +22,7 @@
 #include <iterator>
 #include <exception>
 #include <cstdlib>
+#include <chrono>
 #include <regex>
 #include <thread>
 #include <string_view>
@@ -56,6 +57,7 @@
 #include <wx/glcanvas.h>
 
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/Debounce.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/I18N.hpp"
 #include "libslic3r/LogSink.hpp"
@@ -2799,6 +2801,10 @@ int GUI_App::OnExit()
     m_fila_debug_sink = nullptr;
 #endif
 
+    // Flush any config changes that were deferred by the idle-handler debounce.
+    if (app_config && app_config->dirty())
+        app_config->save();
+
     return wxApp::OnExit();
 }
 
@@ -3395,8 +3401,13 @@ bool GUI_App::on_init_inner()
         if (! plater_)
             return;
 
-        if (app_config->dirty())
-            app_config->save();
+        if (app_config->dirty()) {
+            // Debounce: avoid synchronous disk writes on every idle event.
+            // Save at most once per 5 seconds; OnExit() flushes any remaining dirty state.
+            static auto s_last_config_save = std::chrono::steady_clock::time_point{};
+            if (Slic3r::debounce_elapsed(s_last_config_save, std::chrono::seconds(5)))
+                app_config->save();
+        }
 
         // BBS
         //this->obj_manipul()->update_if_dirty();
