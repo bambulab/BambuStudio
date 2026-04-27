@@ -122,11 +122,14 @@ void PrinterFileSystem::SetFileType(FileType type, std::string const &storage)
 {
     if (m_file_type == type && m_file_storage == storage)
         return;
+    bool storage_only_changed = (m_file_type == type && m_file_storage != storage);
     SelectAll(false);
     assert(m_file_list_cache[std::make_pair(m_file_type, m_file_storage)].empty());
     m_file_list.swap(m_file_list_cache[{m_file_type, m_file_storage}]);
     std::swap(m_file_type, type);
     m_file_storage = storage;
+    if (storage_only_changed)
+        m_file_list_cache[{m_file_type, m_file_storage}].clear();
     m_file_list.swap(m_file_list_cache[{m_file_type, m_file_storage}]);
     m_lock_start = m_lock_end = 0;
     BuildGroups();
@@ -994,6 +997,8 @@ void PrinterFileSystem::UpdateFocusThumbnail2(std::shared_ptr<std::vector<File>>
 {
     json req;
     json arr;
+    if (!m_file_storage.empty())
+        req["storage"] = m_file_storage;
     if (type == OldThumbnail) {
         for (auto &file : *files) arr.push_back(file.name);
         req["files"] = arr;

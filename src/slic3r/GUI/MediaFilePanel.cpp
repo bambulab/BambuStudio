@@ -5,6 +5,7 @@
 #include "Plater.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/SwitchButton.hpp"
+#include "Widgets/TabCtrl.hpp"
 #include "Widgets/Label.hpp"
 #include "Printer/PrinterFileSystem.h"
 #include "MsgDialog.hpp"
@@ -36,41 +37,11 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
 
     wxBoxSizer * sizer = new wxBoxSizer(wxVERTICAL);
 
+    // Row 1: [Timelapse | Model]  ...stretch...  [Select All | Refresh | Select]
     wxBoxSizer * top_sizer = new wxBoxSizer(wxHORIZONTAL);
     top_sizer->SetMinSize({-1, 75 * em_unit(this) / 10});
 
-    // Time group
-    auto time_panel = new wxWindow(this, wxID_ANY);
-    time_panel->SetBackgroundColour(0xEEEEEE);
-    m_time_panel = new ::StaticBox(time_panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    m_time_panel->SetCornerRadius(0);
-    m_button_year  = new ::Button(m_time_panel, _L("Year"), "", wxBORDER_NONE);
-    m_button_month = new ::Button(m_time_panel, _L("Month"), "", wxBORDER_NONE);
-    m_button_all = new ::Button(m_time_panel, _L("All Files"), "", wxBORDER_NONE);
-    m_button_year->SetToolTip(_L("Group files by year, recent first."));
-    m_button_month->SetToolTip(_L("Group files by month, recent first."));
-    m_button_all->SetToolTip(_L("Show all files, recent first."));
-    m_button_all->SetFont(Label::Head_14); // sync with m_last_mode
-    for (auto b : {m_button_year, m_button_month, m_button_all}) {
-        b->SetBackgroundColor(StateColor());
-        b->SetTextColor(StateColor(
-            std::make_pair(0x3B4446, (int) StateColor::Checked),
-            std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered),
-            std::make_pair(0xABACAC, (int) StateColor::Normal)
-        ));
-    }
-
-    wxBoxSizer *time_sizer = new wxBoxSizer(wxHORIZONTAL);
-    time_sizer->Add(m_button_year, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24);
-    time_sizer->Add(m_button_month, 0, wxALIGN_CENTER_VERTICAL);
-    time_sizer->Add(m_button_all, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24);
-    m_time_panel->SetSizer(time_sizer);
-    wxBoxSizer *time_sizer2 = new wxBoxSizer(wxHORIZONTAL);
-    time_sizer2->Add(m_time_panel, 1, wxEXPAND);
-    time_panel->SetSizer(time_sizer2);
-    top_sizer->Add(time_panel, 1, wxEXPAND);
-
-    // File type
+    // File type (left side of row 1)
     StateColor background(
         std::make_pair(0xEEEEEE, (int) StateColor::Checked),
         std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered),
@@ -96,9 +67,26 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_video->Hide();
     type_sizer->Add(m_button_model, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 24);
     m_type_panel->SetSizer(type_sizer);
-    top_sizer->Add(m_type_panel, 0, wxALIGN_CENTER_VERTICAL);
+    top_sizer->Add(m_type_panel, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 24);
 
-    // File management
+    m_button_refresh = new ::Button(this, _L("Refresh"), "dev_printer_file_system_refresh", wxBORDER_NONE);
+    m_button_refresh->SetToolTip(_L("Reload file list from printer."));
+    m_button_refresh->SetFont(Label::Body_12);
+    m_button_refresh->SetCornerRadius(12);
+    m_button_refresh->SetPaddingSize({10, 6});
+    m_button_refresh->SetCanFocus(false);
+    m_button_refresh->SetBorderWidth(0);
+    m_button_refresh->SetBackgroundColor(StateColor(
+        std::make_pair(wxColour("#D9D9D9"), (int) StateColor::Pressed),
+        std::make_pair(wxColour("#E8E8E8"), (int) StateColor::Hovered),
+        std::make_pair(wxColour("#EEEEEE"), (int) StateColor::Normal)));
+    m_button_refresh->SetTextColor(StateColor(
+        std::make_pair(wxColour("#ACACAC"), (int) StateColor::Disabled),
+        std::make_pair(wxColour("#3B4446"), (int) StateColor::Normal)));
+    m_button_refresh->Enable(false);
+    top_sizer->Add(m_button_refresh, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 12);
+
+    // File management (right side of row 1)
     m_manage_panel      = new ::StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
     m_manage_panel->SetBackgroundColor(StateColor());
     m_button_delete     = new ::Button(m_manage_panel, _L("Delete"));
@@ -107,10 +95,8 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_download->SetToolTip(_L("Download selected files from printer."));
     m_button_management = new ::Button(m_manage_panel, _L("Select"));
     m_button_management->SetToolTip(_L("Batch manage files."));
-    m_button_refresh = new ::Button(m_manage_panel, _L("Refresh"));
-    m_button_refresh->SetToolTip(_L("Reload file list from printer."));
     m_button_select_all = new ::Button(m_manage_panel, _L("Select All"));
-    for (auto b : {m_button_delete, m_button_download, m_button_refresh, m_button_management, m_button_select_all}) {
+    for (auto b : {m_button_delete, m_button_download, m_button_management, m_button_select_all}) {
         b->SetFont(Label::Body_12);
         b->SetCornerRadius(12);
         b->SetPaddingSize({10, 6});
@@ -122,10 +108,6 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_management->SetBackgroundColorNormal(wxColor("#00AE42"));
     m_button_management->SetTextColorNormal(*wxWHITE);
     m_button_management->Enable(false);
-    m_button_refresh->SetBorderWidth(0);
-    m_button_refresh->SetBackgroundColorNormal(wxColor("#00AE42"));
-    m_button_refresh->SetTextColorNormal(*wxWHITE);
-    m_button_refresh->Enable(false);
     m_button_select_all->SetBorderWidth(0);
     m_button_select_all->SetBackgroundColorNormal(wxColor("#00AE42"));
     m_button_select_all->SetTextColorNormal(*wxWHITE);
@@ -136,12 +118,57 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     manage_sizer->Add(m_button_select_all, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24);
     manage_sizer->Add(m_button_download, 0, wxALIGN_CENTER_VERTICAL)->Show(false);
     manage_sizer->Add(m_button_delete, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24)->Show(false);
-    manage_sizer->Add(m_button_refresh, 0, wxALIGN_CENTER_VERTICAL);
     manage_sizer->Add(m_button_management, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24);
     m_manage_panel->SetSizer(manage_sizer);
     top_sizer->Add(m_manage_panel, 1, wxEXPAND);
 
     sizer->Add(top_sizer, 0, wxEXPAND);
+
+    // Row 2: [External | Internal tabs]  ...stretch...  [Year | Month | All Files]
+    wxBoxSizer *storage_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_storage_tab = new ::TabCtrl(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
+    m_storage_tab->SetBackgroundColor(wxColour("#EEEEEE"));
+    m_storage_tab->SetBorderColor(wxColour("#EEEEEE"));
+    m_storage_tab->SetFont(Label::Body_14);
+    m_storage_tab->SetMinSize({-1, 36 * em_unit(this) / 10});
+    m_storage_tab->AppendItem(_L("External"));
+    m_storage_tab->AppendItem(_L("Internal"));
+    m_storage_tab->SetItemPaddingSize(0, {12, 2});
+    m_storage_tab->SetItemPaddingSize(1, {12, 2});
+    m_storage_tab->SelectItem(0);
+    m_storage_tab->Hide();
+    storage_sizer->Add(m_storage_tab, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 48);
+
+    storage_sizer->AddStretchSpacer(1);
+
+    // Time group (right side of row 2)
+    m_time_panel = new ::StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+    m_time_panel->SetBackgroundColor(StateColor());
+    m_time_panel->SetCornerRadius(0);
+    m_button_year  = new ::Button(m_time_panel, _L("Year"), "", wxBORDER_NONE);
+    m_button_month = new ::Button(m_time_panel, _L("Month"), "", wxBORDER_NONE);
+    m_button_all = new ::Button(m_time_panel, _L("All Files"), "", wxBORDER_NONE);
+    m_button_year->SetToolTip(_L("Group files by year, recent first."));
+    m_button_month->SetToolTip(_L("Group files by month, recent first."));
+    m_button_all->SetToolTip(_L("Show all files, recent first."));
+    m_button_all->SetFont(Label::Head_14); // sync with m_last_mode
+    for (auto b : {m_button_year, m_button_month, m_button_all}) {
+        b->SetBackgroundColor(StateColor());
+        b->SetTextColor(StateColor(
+            std::make_pair(0x3B4446, (int) StateColor::Checked),
+            std::make_pair(*wxLIGHT_GREY, (int) StateColor::Hovered),
+            std::make_pair(0xABACAC, (int) StateColor::Normal)
+        ));
+    }
+    wxBoxSizer *time_sizer = new wxBoxSizer(wxHORIZONTAL);
+    time_sizer->Add(m_button_all, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24);
+    time_sizer->Add(m_button_year, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24);
+    time_sizer->Add(m_button_month, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 24);
+    m_time_panel->SetSizer(time_sizer);
+    storage_sizer->Add(m_time_panel, 0, wxALIGN_CENTER_VERTICAL);
+
+    sizer->Add(storage_sizer, 0, wxEXPAND);
 
     m_image_grid = new ImageGrid(this);
     m_image_grid->Bind(EVT_ITEM_ACTION, [this](wxCommandEvent &e) { doAction(size_t(e.GetExtraLong()), e.GetInt()); });
@@ -164,6 +191,10 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
     m_button_all->Bind(wxEVT_COMMAND_BUTTON_CLICKED, time_button_clicked);
     m_button_all->SetValue(true);
 
+    m_storage_tab->Bind(wxEVT_TAB_SEL_CHANGED, [this](wxCommandEvent &e) {
+        SwitchStorage(e.GetInt() == 0);
+    });
+
     // File type
     auto type_button_clicked = [this](wxEvent &e) {
         Button *buttons[]{m_button_timelapse, m_button_video, m_button_model};
@@ -176,6 +207,7 @@ MediaFilePanel::MediaFilePanel(wxWindow * parent)
         buttons[m_last_type]->SetValue(!buttons[m_last_type]->GetValue());
         if (type == PrinterFileSystem::F_MODEL)
             m_image_grid->SetGroupMode(PrinterFileSystem::G_NONE);
+        updateStorageTabVisibility();
     };
     m_button_timelapse->Bind(wxEVT_COMMAND_BUTTON_CLICKED, type_button_clicked);
     m_button_video->Bind(wxEVT_COMMAND_BUTTON_CLICKED, type_button_clicked);
@@ -239,6 +271,15 @@ void MediaFilePanel::UpdateByObj(MachineObject* obj)
         m_remote_proto = obj->get_file_remote();
         m_model_download_support = obj->file_model_download;
 
+        bool support_internal_storage = obj->is_support_model_internal_storage;
+        bool support_internal_timelapse = obj->is_support_internal_timelapse;
+        if (m_support_internal_storage != support_internal_storage ||
+            m_support_internal_timelapse != support_internal_timelapse) {
+            m_support_internal_storage = support_internal_storage;
+            m_support_internal_timelapse = support_internal_timelapse;
+            updateStorageTabVisibility();
+        }
+
         if (m_sdcard_exist != (obj->GetStorage()->get_sdcard_state() == DevStorage::HAS_SDCARD_NORMAL)) {
             m_sdcard_exist = obj->GetStorage()->get_sdcard_state() == DevStorage::HAS_SDCARD_NORMAL;
             sdcard_state_changed = true;
@@ -252,6 +293,12 @@ void MediaFilePanel::UpdateByObj(MachineObject* obj)
         m_local_proto = 0;
         m_remote_proto = 0;
         m_model_download_support = false;
+
+        if (m_support_internal_storage || m_support_internal_timelapse) {
+            m_support_internal_storage = false;
+            m_support_internal_timelapse = false;
+            updateStorageTabVisibility();
+        }
 
         if (m_sdcard_exist) {
             m_sdcard_exist = false; // reset sdcard state when no object
@@ -421,15 +468,22 @@ void MediaFilePanel::SwitchStorage(bool external)
     if (m_external == external)
         return;
     m_external = external;
-    m_type_panel->Show(external);
-    if (!external) {
-        Button *buttons[]{m_button_timelapse, m_button_video, m_button_model};
-        auto button = buttons[PrinterFileSystem::F_MODEL];
-        wxCommandEvent event(wxEVT_COMMAND_BUTTON_CLICKED, button->GetId());
-        event.SetEventObject(button);
-        wxPostEvent(button, event);
-    }
+    m_storage_tab->SelectItem(external ? 0 : 1);
     m_image_grid->SetFileType(m_last_type, m_external ? "" : "internal");
+}
+
+void MediaFilePanel::updateStorageTabVisibility()
+{
+    bool show_tab = false;
+    if (m_last_type == PrinterFileSystem::F_MODEL)
+        show_tab = m_support_internal_storage;
+    else if (m_last_type == PrinterFileSystem::F_TIMELAPSE)
+        show_tab = m_support_internal_timelapse;
+
+    m_storage_tab->Show(show_tab);
+    if (!show_tab && !m_external)
+        SwitchStorage(true);
+    Layout();
 }
 
 void MediaFilePanel::Rescale()
@@ -440,14 +494,16 @@ void MediaFilePanel::Rescale()
 
     auto top_sizer = GetSizer()->GetItem((size_t) 0)->GetSizer();
     top_sizer->SetMinSize({-1, 75 * em_unit(this) / 10});
-    m_button_year->Rescale();
-    m_button_month->Rescale();
-    m_button_all->Rescale();
-
     m_button_video->Rescale();
     m_button_timelapse->Rescale();
     m_button_model->Rescale();
     m_type_panel->SetMinSize({-1, 48 * em_unit(this) / 10});
+
+    m_storage_tab->Rescale();
+    m_storage_tab->SetMinSize({-1, 36 * em_unit(this) / 10});
+    m_button_year->Rescale();
+    m_button_month->Rescale();
+    m_button_all->Rescale();
 
     m_button_download->Rescale();
     m_button_delete->Rescale();
@@ -468,9 +524,8 @@ void MediaFilePanel::SetSelecting(bool selecting, bool selectall)
     auto fs = m_image_grid->GetFileSystem();
     bool download_support = fs && fs->GetFileType() < PrinterFileSystem::F_MODEL || m_model_download_support;
 
-    m_manage_panel->GetSizer()->Show(m_button_download, selecting && download_support && !selectall);
+    m_manage_panel->GetSizer()->Show(m_button_download, selecting && download_support);
     m_manage_panel->GetSizer()->Show(m_button_delete, selecting);
-    m_manage_panel->GetSizer()->Show(m_button_refresh, !selecting);
     m_manage_panel->GetSizer()->Show(m_button_select_all, !selecting);
     m_manage_panel->Layout();
 }
