@@ -9627,6 +9627,11 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->cli_params = "level";
     def->set_default_value(new ConfigOptionInt(1));
 
+    def = this->add("estimate_mode", coBool);
+    def->label = "Estimate mode";
+    def->tooltip = "When enabled, automatically fill filament presets and extruder state for machine estimation after machine switch";
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("enable_timelapse", coBool);
     def->label = "Enable timeplapse for print";
     def->tooltip = "If enabled, this slicing will be considered using timelapse";

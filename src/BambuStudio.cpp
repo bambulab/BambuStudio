@@ -1329,6 +1329,83 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
     return ret;
 }
 
+// For estimate_mode: given a source filament preset name (e.g. "Bambu PLA Basic @BBL P1S 0.4 nozzle")
+// and the new machine's BBL tag (e.g. "X2D 0.4 nozzle"), construct the target filament preset name
+// (e.g. "Bambu PLA Basic @BBL X2D 0.4 nozzle") and verify it exists in filament_full_dir.
+// Returns the resolved filament preset name, or empty string if not found.
+// Resolution order:
+//   1. Exact name match: "<base> @BBL <new_machine_bbl_tag>"
+//   2. Scan filament_full_dir for any file starting with "<base> @" whose compatible_printers contains new_printer_system_name
+//   3. Fall back to the machine's default_filament_preset
+static std::string estimate_filament_preset_name(
+    const std::string& src_filament_name,
+    const std::string& new_machine_bbl_tag,
+    const std::string& filament_full_dir,
+    const std::string& new_printer_system_name,
+    const std::string& default_filament_preset)
+{
+    // Extract base filament name by stripping "@BBL ..." or "@base" suffix
+    std::string base_name = src_filament_name;
+    auto at_pos = base_name.find(" @");
+    if (at_pos != std::string::npos)
+        base_name = base_name.substr(0, at_pos);
+
+    BOOST_LOG_TRIVIAL(info) << boost::format(
+            "estimate_filament_preset_name: src_filament_name %1%, base %2%, new_machine_bbl_tag %3%, new_printer_system_name %4%, default_filament_preset %5%") % src_filament_name %base_name %new_machine_bbl_tag %new_printer_system_name %default_filament_preset;
+
+    // Lambda: check whether a filament json file's compatible_printers contains new_printer_system_name
+    auto is_compatible_with_printer = [&](const std::string& file_path) -> bool {
+        boost::nowide::ifstream ifs(file_path);
+        if (!ifs.is_open()) return false;
+        try {
+            nlohmann::json j;
+            ifs >> j;
+            if (j.contains("compatible_printers") && j["compatible_printers"].is_array()) {
+                for (const auto& cp : j["compatible_printers"]) {
+                    if (cp.is_string() && cp.get<std::string>() == new_printer_system_name)
+                        return true;
+                }
+            }
+        } catch (...) {}
+        return false;
+    };
+
+    // 1. Try exact name match: "<base> @BBL <new_machine_bbl_tag>", and verify compatible_printers
+    std::string target_name = base_name + " @BBL " + new_machine_bbl_tag;
+    std::string target_path = filament_full_dir + target_name + ".json";
+    if (boost::filesystem::exists(target_path) && is_compatible_with_printer(target_path))
+        return target_name;
+
+    // 2. Scan filament_full_dir for files starting with "<base> @" and check compatible_printers
+    std::string prefix = base_name + " @";
+    try {
+        for (const auto& entry : boost::filesystem::directory_iterator(filament_full_dir)) {
+            if (!boost::filesystem::is_regular_file(entry)) continue;
+            std::string fname = entry.path().stem().string(); // filename without .json
+            if (fname.size() < prefix.size() || fname.compare(0, prefix.size(), prefix) != 0) continue;
+            if (is_compatible_with_printer(entry.path().string())) {
+                BOOST_LOG_TRIVIAL(info) << boost::format(
+                    "estimate_filament_preset_name: '%1%' compatible with '%2%', using it")
+                    % fname % new_printer_system_name;
+                return fname;
+            }
+        }
+    } catch (const boost::filesystem::filesystem_error& e) {
+        BOOST_LOG_TRIVIAL(warning) << boost::format(
+            "estimate_filament_preset_name: error scanning filament_full_dir: %1%") % e.what();
+    }
+
+    // 3. Fallback: use the machine's default filament preset directly
+    if (!default_filament_preset.empty() &&
+        boost::filesystem::exists(filament_full_dir + default_filament_preset + ".json"))
+        return default_filament_preset;
+
+    BOOST_LOG_TRIVIAL(warning) << boost::format(
+        "estimate_filament_preset_name: no match for '%1%' with machine '%2%', skipping")
+        % base_name % new_printer_system_name;
+    return "";
+}
+
 static void load_downward_settings_list_from_config(std::string config_file, std::string printer_name, std::string printer_model, std::vector<std::string>& downward_settings)
 {
     std::map<std::string, std::string> printer_params;
@@ -1567,7 +1644,7 @@ int CLI::run(int argc, char **argv)
     std::vector<plate_obj_size_info_t> plate_obj_size_infos;
     //int arrange_option;
     int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0, current_extruder_count = 1, new_extruder_count = 1, current_printer_variant_count = 1, current_print_variant_count = 1, new_printer_variant_count = 1;
-    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false, has_support = false;
+    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false, has_support = false, estimate_mode = false;
     bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false, current_is_multi_extruder = false, new_is_multi_extruder = false, allow_mix_temp = false, enable_wrapping_detect = false;
     Semver file_version;
     Slic3r::GUI::Camera::ViewAngleType camera_view = Slic3r::GUI::Camera::ViewAngleType::Iso;
@@ -1635,6 +1712,10 @@ int CLI::run(int argc, char **argv)
     ConfigOptionBool* allow_mix_temp_option = m_config.option<ConfigOptionBool>("allow_mix_temp");
     if (allow_mix_temp_option)
         allow_mix_temp = allow_mix_temp_option->value;
+
+    ConfigOptionBool* estimate_mode_option = m_config.option<ConfigOptionBool>("estimate_mode");
+    if (estimate_mode_option)
+        estimate_mode = estimate_mode_option->value;
 
     ConfigOptionInt* camera_view_option = m_config.option<ConfigOptionInt>("camera_view");
     if (camera_view_option)
@@ -2288,6 +2369,44 @@ int CLI::run(int argc, char **argv)
         }
     }
 
+    // estimate_mode: auto-fill load_filaments with resolved paths from filament_full/ for the new machine
+    if (estimate_mode && load_filaments.empty()) {
+        // Derive the new machine's BBL tag and default preset from its default_filament_profile
+        // e.g. "Bambu PLA Basic @BBL X2D 0.4 nozzle" -> tag is "X2D 0.4 nozzle"
+        std::string new_machine_bbl_tag;
+        std::string default_filament_preset;
+        auto default_fp_opt = load_machine_config.option<ConfigOptionStrings>("default_filament_profile");
+        if (default_fp_opt && !default_fp_opt->values.empty()) {
+            default_filament_preset = default_fp_opt->values[0];
+            auto tag_pos = default_filament_preset.find(" @BBL ");
+            if (tag_pos != std::string::npos)
+                new_machine_bbl_tag = default_filament_preset.substr(tag_pos + 6); // skip " @BBL "
+        }
+        if (new_machine_bbl_tag.empty()) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" %1%: estimate_mode: cannot determine BBL machine tag from default_filament_profile") % __LINE__;
+            record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+            flush_and_exit(CLI_INVALID_PARAMS);
+        }
+
+        std::string filament_full_dir = resources_dir() + "/profiles/BBL/filament_full/";
+        auto& filaments_opt = m_config.option<ConfigOptionStrings>("load_filaments", true)->values;
+        for (int index = 0; index < (int)converted_filaments_system_name.size(); index++) {
+            std::string preset_name = estimate_filament_preset_name(
+                converted_filaments_system_name[index], new_machine_bbl_tag, filament_full_dir, new_printer_system_name, default_filament_preset);
+            if (preset_name.empty()) {
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(":%1%, estimate_mode: no filament preset found for slot %2% (%3%), skipping")
+                    % __LINE__ % index % converted_filaments_system_name[index];
+                filaments_opt.push_back(""); // keep slot count aligned
+            } else {
+                filaments_opt.push_back(filament_full_dir + preset_name + ".json");
+                BOOST_LOG_TRIVIAL(info) << boost::format("estimate_mode: slot %1% -> %2%") % index % preset_name;
+            }
+        }
+        // ensure empty slots are filled with the first valid filament preset,
+        // so load_filaments_config/index stay aligned with slot indices
+        use_first_fila_as_default = true;
+    }
+
     //load filaments files
     int load_filament_count = load_filaments.size();
     std::vector<int> load_filaments_index;
@@ -2853,6 +2972,13 @@ int CLI::run(int argc, char **argv)
         record_exit_reson(outfile_dir, CLI_PROCESS_NOT_COMPATIBLE, 0, cli_errors[CLI_PROCESS_NOT_COMPATIBLE], sliced_info);
         flush_and_exit(CLI_PROCESS_NOT_COMPATIBLE);
     }
+
+    if (estimate_mode && (new_printer_name.empty() || current_printer_name.empty() || (new_printer_name == current_printer_name))) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" %1%: estimate_mode requires a machine switch via --load_settings") % __LINE__;
+        record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+        flush_and_exit(CLI_INVALID_PARAMS);
+    }
+
     sliced_info.upward_machines = upward_compatible_printers;
 
     //create project embedded preset if needed
@@ -3847,7 +3973,45 @@ int CLI::run(int argc, char **argv)
         m_extra_config.set_key_value("enable_filament_dynamic_map", new ConfigOptionBool(false));
     if (!m_extra_config.has("has_filament_switcher"))
         m_extra_config.set_key_value("has_filament_switcher", new ConfigOptionBool(false));
+
+    // estimate_mode: auto-fill extruder state and material mapping params after machine switch
+    if (estimate_mode) {
+        // Validate or set filament_map_mode
+        if (m_extra_config.has("filament_map_mode")) {
+            auto opt_fmm = dynamic_cast<const ConfigOptionEnum<FilamentMapMode>*>(m_extra_config.option("filament_map_mode"));
+            if (!opt_fmm || opt_fmm->value != fmmAutoForFlush) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" %1%: estimate_mode requires filament_map_mode to be AutoForFlush if explicitly set") % __LINE__;
+                record_exit_reson(outfile_dir, CLI_INVALID_PARAMS, 0, cli_errors[CLI_INVALID_PARAMS], sliced_info);
+                flush_and_exit(CLI_INVALID_PARAMS);
+            }
+        } else if (new_is_multi_extruder || support_multi_nozzle) {
+            m_extra_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = fmmAutoForFlush;
+        }
+
+        // Multi-extruder machine (X2D / H2D class): fill nozzle_volume_type
+        // extruder_ams_count and extruder_filament_info are filled per-plate in the slicing loop
+        if (new_is_multi_extruder || support_multi_nozzle) {
+            // nozzle_volume_type: all extruders set to standard
+            ConfigOptionEnumsGeneric* opt_nvt = m_extra_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type", true);
+            opt_nvt->values.assign(new_extruder_count, nvtStandard);
+        }
+
+        // Multi-sub-nozzle machine (H2C class): fill extruder_nozzle_count, extruder_nozzle_volume_type
+        // extruder_ams_count and extruder_filament_info are filled per-plate in the slicing loop
+        if (support_multi_nozzle) {
+            // extruder_nozzle_count: set from extruder_max_nozzle_count
+            m_extra_config.option<ConfigOptionInts>("extruder_nozzle_count", true)->values = std::vector<int>(extruder_max_nozzle_count.begin(), extruder_max_nozzle_count.end());
+
+            // extruder_nozzle_volume_type: all sub-nozzles set to standard
+            int total_sub_nozzles = 0;
+            for (int v : extruder_max_nozzle_count)
+                total_sub_nozzles += (v > 0 ? v : 1);
+            m_extra_config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type", true)->values.assign(total_sub_nozzles, nvtStandard);
+        }
+    }
+
     m_print_config.apply(m_extra_config, true);
+
     // Normalizing after importing the 3MFs / AMFs
     m_print_config.normalize_fdm();
 
@@ -6403,7 +6567,8 @@ int CLI::run(int argc, char **argv)
                                 flush_and_exit(CLI_ONLY_ONE_TPU_SUPPORTED);
                             }
 
-                            if (new_extruder_count > 1) {
+                            if (new_is_multi_extruder || support_multi_nozzle) {
+                            //if (new_extruder_count > 1) {
                                 std::vector<std::vector<int>> unprintable_filament_vec;
                                 for (const std::set<int>& filamnt_ids : unprintable_filament_ids) {
                                     unprintable_filament_vec.emplace_back(std::vector<int>(filamnt_ids.begin(), filamnt_ids.end()));
@@ -6673,10 +6838,12 @@ int CLI::run(int argc, char **argv)
                                 const ConfigOptionStrings* filament_type  = dynamic_cast<const ConfigOptionStrings *>(m_print_config.option("filament_type"));
                                 std::vector<std::string> types = filament_type ? filament_type->vserialize() : std::vector<std::string>{"PLA"};
 
+                                int estimate_slots = estimate_mode ? 8 : 4;
+                                std::string estimate_ams_str = estimate_mode ? "1#0|4#2" : "1#0|4#1";
                                 for (int e_index = 0; e_index < new_extruder_count; e_index++)
                                 {
-                                    extruder_ams_count[e_index] = "1#0|4#1";
-                                    for (int color_index = 0; color_index < 4; color_index++)
+                                    extruder_ams_count[e_index] = estimate_ams_str;
+                                    for (int color_index = 0; color_index < estimate_slots; color_index++)
                                     {
                                         DynamicPrintConfig temp_config;
                                         std::vector<std::string> temp_colors(1, "#FFFFFFFF");
