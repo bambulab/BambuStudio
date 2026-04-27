@@ -3075,7 +3075,8 @@ bool GCodeProcessor::get_last_z_from_gcode(const std::string& gcode_str, double&
             if (line_str.size() > 4 && (line_str.find("G0 ") == 0
                                        || line_str.find("G1 ") == 0
                                        || line_str.find("G2 ") == 0
-                                       || line_str.find("G3 ") == 0))
+                                       || line_str.find("G3 ") == 0
+                                       || line_str.find("M9711 ") == 0))
             {
                 auto z_pos = line_str.find(" Z");
                 double temp_z = 0;
