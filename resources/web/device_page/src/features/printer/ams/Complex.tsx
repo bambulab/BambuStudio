@@ -11,7 +11,7 @@ export default function Complex() {
         {
             // 构造多个子控件，并持有引用
             colors.map((color, index) => (
-                <div ref={(e) => { refs.current[index] = e }}></div>
+                <div key={color} ref={(e) => { refs.current[index] = e }}></div>
             ))
 
         }

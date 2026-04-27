@@ -45,7 +45,6 @@ export function ConfirmDialog({
   return (
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1100]"
-      onClick={onCancel}
     >
       <div
         className="w-[360px] bg-fm-sidebar rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.4)] overflow-hidden"

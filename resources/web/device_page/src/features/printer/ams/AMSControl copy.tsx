@@ -1,14 +1,6 @@
 import * as React from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 
-function CloseIcon({ className = 'h-4 w-4' }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden>
-      <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  )
-}
-
 function DialogHeader({ title, onClose }: { title: string; onClose: () => void }) {
   return (
     <div className="absolute left-0 top-0 flex h-[46px] w-full items-center gap-2 rounded-t-lg bg-[#F8F8F8] px-3">

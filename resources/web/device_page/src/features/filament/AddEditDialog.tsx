@@ -29,6 +29,23 @@ function getTrayCurrentNetWeight(tray: AmsTray): number {
   return Math.round(init * remain / 100);
 }
 
+function normalizePresetFilamentName(name: string | undefined, vendor: string, type: string, series: string): string {
+  let value = (name || '').trim().replace(/\s+@.*$/, '');
+  const fallback = formatTypeSeries(type, series);
+  if (!value) return fallback;
+
+  const aliases = [vendor, vendor.replace(/\s+/g, '')];
+  if (vendor === 'Bambu Lab') aliases.push('Bambu');
+  for (const alias of aliases.filter(Boolean)) {
+    if (value === alias) return fallback;
+    if (value.startsWith(`${alias} `)) {
+      value = value.substring(alias.length + 1).trim();
+      break;
+    }
+  }
+  return value || fallback;
+}
+
 interface Props {
   open: boolean;
   editingSpool: Spool | null;        // null = add mode
@@ -101,6 +118,12 @@ export function AddEditDialog({
   const [amsData, setAmsData] = useState<AmsData | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<{ ams_id: string; slot_id: string; tray: AmsTray } | null>(null);
+  const [amsLockedFields, setAmsLockedFields] = useState({
+    brand: false,
+    material: false,
+    color: false,
+    weight: false,
+  });
   const [amsLoading, setAmsLoading] = useState(false);
   const [amsError, setAmsError] = useState('');
 
@@ -111,6 +134,7 @@ export function AddEditDialog({
     setQuantity(1);
     setSelectedSlot(null);
     setSelectedUnit(null);
+    setAmsLockedFields({ brand: false, material: false, color: false, weight: false });
     setAmsData(null);
     setAmsError('');
     if (initSpool) {
@@ -228,7 +252,9 @@ export function AddEditDialog({
         if (tp.name !== materialType) continue;
         const item = tp.items?.find((entry) => {
           const presetSeries = entry.series || '';
+          const presetName = normalizePresetFilamentName(entry.name, vendor.name, tp.name, presetSeries);
           return presetSeries === (series || '')
+              || presetName === (series || '')
               || formatTypeSeries(tp.name, presetSeries) === (series || '')
               || presetSeries === formatTypeSeries(tp.name, series);
         });
@@ -649,6 +675,7 @@ export function AddEditDialog({
     let brandName  = '';
     let typeName   = '';
     let seriesName = '';
+    let filamentName = '';
 
     const settingId = tray.setting_id || '';
     if (settingId) {
@@ -659,6 +686,7 @@ export function AddEditDialog({
             brandName  = vendor.name;
             typeName   = tp.name;
             seriesName = hit.series || '';
+            filamentName = normalizePresetFilamentName(hit.name, vendor.name, tp.name, seriesName);
             break outer;
           }
         }
@@ -689,9 +717,10 @@ export function AddEditDialog({
 
     setBrand(brandName);
     setMaterialType(typeName);
-    // series 统一存完整 filamentName（含 type 前缀），与云端 filamentName
-    // 语义一致。这里拼接时走 formatTypeSeries 去重，避免 "ABS ABS" / "PLA PLA Basic"。
-    setSeries(formatTypeSeries(typeName, seriesName));
+    // Keep series aligned with the full cloud filamentName. When setting_id
+    // resolves to a preset, trust that display name over AMS fila_type aliases
+    // such as Sup.PLA.
+    setSeries(filamentName || formatTypeSeries(typeName, seriesName));
 
     // F4.8: color may arrive as #RRGGBBAA (BBL firmware appends alpha for
     // transparent filaments). Strip alpha so the palette match and the hex
@@ -711,6 +740,12 @@ export function AddEditDialog({
     const currentNet = getTrayCurrentNetWeight(tray);
     setTotalNetWeight(trayNetInit > 0 ? trayNetInit : 1000);
     setCurrentNetWeight(currentNet > 0 ? currentNet : (trayNetInit > 0 ? trayNetInit : 1000));
+    setAmsLockedFields({
+      brand: !!brandName,
+      material: !!typeName || !!filamentName,
+      color: !!sanitizedColor,
+      weight: trayNetInit > 0 || currentNet > 0,
+    });
   };
 
   // F4.10: dialog drag support. Users expect to be able to drag the dialog
@@ -748,9 +783,14 @@ export function AddEditDialog({
 
   const currentUnit = amsData?.ams_units.find((u) => u.ams_id === selectedUnit);
   const slotLabels = ['A1', 'A2', 'A3', 'A4'];
+  const amsFieldLocked = mode === 'ams' && !!selectedSlot;
+  const lockBrand = amsFieldLocked && amsLockedFields.brand;
+  const lockMaterial = amsFieldLocked && amsLockedFields.material;
+  const lockColor = amsFieldLocked && amsLockedFields.color;
+  const lockWeight = amsFieldLocked && amsLockedFields.weight;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-start justify-center pt-10 z-[1000]" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/50 flex items-start justify-center pt-10 z-[1000]">
       <div
         className="w-[644px] max-h-[calc(100vh-80px)] bg-[#242424] [html[data-theme=light]_&]:bg-fm-sidebar rounded-lg shadow-[0px_8px_24px_0px_rgba(0,0,0,0.12)] flex flex-col overflow-hidden fm-native-form"
         style={{ transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)` }}
@@ -943,7 +983,18 @@ export function AddEditDialog({
               <div className="flex gap-[12px]">
                 <div className="flex flex-col gap-[4px] flex-1 pb-[24px]">
                   <label className="text-[12px] leading-[19px] text-fm-text-secondary"><span className="text-[#ff2b00]">*</span> {t('Brand')}</label>
-                  <select className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)] fm-select-arrow cursor-pointer" value={brand} onChange={(e) => { setBrand(e.target.value); setMaterialType(''); setSeries(''); }}>
+                  <select
+                    className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)] fm-select-arrow cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                    value={brand}
+                    disabled={lockBrand}
+                    onChange={(e) => {
+                      setBrand(e.target.value);
+                      if (!lockMaterial) {
+                        setMaterialType('');
+                        setSeries('');
+                      }
+                    }}
+                  >
                     <option value="">{t('Select Brand')}</option>
                     {mergedVendorNames.map((n) => <option key={n} value={n}>{n}</option>)}
                   </select>
@@ -959,7 +1010,7 @@ export function AddEditDialog({
                     className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)] fm-select-arrow cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                     value={typeSeriesFull}
                     onChange={(e) => handleTypeSeriesChange(e.target.value)}
-                    disabled={!brand}
+                    disabled={!brand || lockMaterial}
                   >
                     <option value="">{!brand ? t('Select Brand First') : t('Select Type')}</option>
                     {/* Edit 场景兜底：本地 spool 的 material_type/series 组合可能来源于
@@ -979,7 +1030,7 @@ export function AddEditDialog({
                   "+" 始终保留为取色入口；新取的自定义色追加到预设色之后。 */}
               <div className="flex flex-col gap-[8px]">
                 <label className="text-[12px] leading-[19px] text-fm-text-secondary"><span className="text-[#ff2b00]">*</span> {t('Color')}</label>
-                <div className="flex flex-wrap gap-[6px] items-center">
+                <div className={`flex flex-wrap gap-[6px] items-center ${lockColor ? 'pointer-events-none opacity-60' : ''}`}>
                   {/* Custom-color picker: always keep "+" as the entry point. */}
                   <div
                     className="size-[24px] rounded-[4px] cursor-pointer border border-dashed border-fm-border-focus bg-fm-inner relative overflow-hidden flex items-center justify-center text-fm-text-detail text-sm hover:border-fm-text-secondary"
@@ -990,6 +1041,7 @@ export function AddEditDialog({
                       className="absolute inset-0 opacity-0 cursor-pointer"
                       type="color"
                       value={colorCode || '#000000'}
+                      disabled={lockColor}
                       onChange={(e) => handleCustomColorChange(e.target.value)}
                     />
                   </div>
@@ -1041,7 +1093,7 @@ export function AddEditDialog({
                           all text on focus so typing always replaces the
                           previous value, matching the usual UX for
                           quantity-style fields. */}
-                      <input className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)]" type="number" placeholder={t('Input Current Net Weight')} value={currentNetWeight} onFocus={(e) => e.target.select()} onChange={(e) => setCurrentNetWeight(Number(e.target.value) || 0)} />
+                      <input className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)] disabled:cursor-not-allowed disabled:opacity-60" type="number" placeholder={t('Input Current Net Weight')} value={currentNetWeight} disabled={lockWeight} onFocus={(e) => e.target.select()} onChange={(e) => setCurrentNetWeight(Number(e.target.value) || 0)} />
                     </div>
                     <div className="flex flex-col gap-[4px] flex-1">
                       <span className="text-[11px] leading-[16px] text-fm-text-secondary">{t('Total Net Weight')}</span>
@@ -1049,7 +1101,7 @@ export function AddEditDialog({
                           spool's factory full-weight and must not drift
                           after a row exists — only Current Net Weight
                           tracks consumption over time. */}
-                      <input className={`bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)] ${isEdit ? 'opacity-60 cursor-not-allowed' : ''}`} type="number" placeholder={t('Input Total Net Weight')} value={totalNetWeight} readOnly={isEdit} disabled={isEdit} onFocus={(e) => e.target.select()} onChange={(e) => setTotalNetWeight(Number(e.target.value) || 0)} />
+                      <input className={`bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)] ${isEdit || lockWeight ? 'opacity-60 cursor-not-allowed' : ''}`} type="number" placeholder={t('Input Total Net Weight')} value={totalNetWeight} readOnly={isEdit || lockWeight} disabled={isEdit || lockWeight} onFocus={(e) => e.target.select()} onChange={(e) => setTotalNetWeight(Number(e.target.value) || 0)} />
                     </div>
                   </div>
                 </div>

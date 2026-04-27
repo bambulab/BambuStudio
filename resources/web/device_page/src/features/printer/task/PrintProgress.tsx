@@ -1,11 +1,7 @@
-
-import { useTranslation } from 'react-i18next';
 import Image from "../../../components/Image";
 import ProgressBar from "../../../components/ProgressBar";
 
 export default function PrintProgress() {
-    const [t, useLanguage] = useTranslation();
-
     return (
         <div className="flex flex-row w-full h-full">
             <Image className="h-full aspect-square" src="" alt="progress icon" />

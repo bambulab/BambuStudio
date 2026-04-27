@@ -1,7 +1,8 @@
 import * as Popover from "@radix-ui/react-popover";
+import type { ReactNode } from "react";
 import { useState } from "react";
 
-export default function FilamentPopover({ trigger }) {
+export default function FilamentPopover({ trigger }: { trigger?: ReactNode }) {
     const [open, setOpen] = useState(false);
 
     return (

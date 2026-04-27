@@ -7,8 +7,6 @@ import PrintProgress from '../features/printer/task/PrintProgress'
 import AMSControl from '../features/printer/ams/AMSControl'
 import AxisControl from '../features/printer/motion/Motion'
 // import CardGrid from '../features/Card'
-import Bus from '../features/utils/Bus'
-import FilamentPopover from '../features/utils/FloatWindow'
 import ExtuderDialog from '../features/printer/extruder/ExtuderDialog'
 import MachineSetting from '../features/printer/machine/MachineSetting'
 
@@ -21,7 +19,7 @@ import FilamentDemo from '../features/printer/ams/FilamentDialog'
 import AirConditionDemo from "../features/printer/control/AirControl"
 import AMSPreview from '../features/printer/ams/AMSPreview'
 
-import {XYControl, ZControl} from '../features/printer/motion/Motion'
+import {XYControl} from '../features/printer/motion/Motion'
 
 export const Route = createFileRoute('/')({
   component: RouteComponent,

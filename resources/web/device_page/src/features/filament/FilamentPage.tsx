@@ -50,7 +50,7 @@ export function FilamentPage() {
   const [tab, setTab]         = useState<TabMode>('all');
   const [search, setSearch]   = useState('');
   const [filters, setFilters] = useState<Partial<Record<FilterKey, string>>>({});
-  const [grouped, setGrouped] = useState(false);
+  const [grouped, setGrouped] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const canBatchDelete = selected.size > 0;
   const isLoggedIn = cloudSync.logged_in;
@@ -263,8 +263,11 @@ export function FilamentPage() {
   // state without the user having to trigger anything.
   const handleCloudSyncClick = useCallback(async () => {
     if (!isLoggedIn) return;
-    await triggerCloudPull();
-  }, [isLoggedIn, triggerCloudPull]);
+    await Promise.all([
+      triggerCloudPull(),
+      fetchCloudFilamentConfig({ force: true }),
+    ]);
+  }, [isLoggedIn, triggerCloudPull, fetchCloudFilamentConfig]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-fm-base text-fm-text-primary text-xs leading-[19px] font-['HarmonyOS_Sans_SC',-apple-system,'Segoe_UI',sans-serif] fm-native-form">

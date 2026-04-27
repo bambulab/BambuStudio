@@ -3,6 +3,7 @@
 #include "DeviceWebBridge.hpp"
 
 #include <algorithm>
+#include <vector>
 #include <boost/log/trivial.hpp>
 
 #include "slic3r/GUI/GUI_App.hpp"
@@ -372,15 +373,13 @@ nlohmann::json FilaManagerVM::HandleSync(const std::string& action, const nlohma
     return MakeResp("sync", action, -1, "unknown action");
 }
 
-nlohmann::json FilaManagerVM::HandleConfig(const std::string& action, const nlohmann::json& /*payload*/)
+nlohmann::json FilaManagerVM::HandleConfig(const std::string& action, const nlohmann::json& payload)
 {
     auto* sync = wxGetApp().fila_manager_cloud_sync();
 
     if (action == "fetch") {
-        // If we already have cached config, return immediately (frontend can
-        // always pass force=true via payload to re-fetch; not implemented here
-        // because the backing client has no force flag).
-        if (!m_cached_cloud_config.empty()) {
+        const bool force = payload.value("force", false);
+        if (!force && !m_cached_cloud_config.empty()) {
             publish_debug_log("data", "info", "Cloud config served from cache",
                               "Returning cached filament config to the web page",
                               {{"action", "config.fetch"}, {"cached", true}});
@@ -403,7 +402,7 @@ nlohmann::json FilaManagerVM::HandleConfig(const std::string& action, const nloh
         });
         publish_debug_log("data", "info", "Cloud config fetch requested",
                           "The web page requested filament config from cloud",
-                          {{"action", "config.fetch"}, {"cached", false}});
+                          {{"action", "config.fetch"}, {"cached", false}, {"force", force}});
         return MakeResp("config", action, 0, "pending", nlohmann::json::object());
     }
 
@@ -620,7 +619,7 @@ nlohmann::json FilaManagerVM::build_preset_options()
         return {{"vendors", nlohmann::json::array()}};
 
     std::map<std::string, std::map<std::string, std::set<std::string>>> vendor_type_series;
-    std::map<std::string, std::map<std::string, std::map<std::string, std::string>>> vendor_type_series_ids;
+    std::map<std::string, std::map<std::string, std::vector<nlohmann::json>>> vendor_type_items;
     for (auto it = bundle->filaments.begin(); it != bundle->filaments.end(); ++it) {
         std::string vendor = it->config.get_filament_vendor();
         std::string type   = it->config.get_filament_type();
@@ -637,7 +636,11 @@ nlohmann::json FilaManagerVM::build_preset_options()
         }
         const std::string normalized_series = series.empty() ? "" : series;
         vendor_type_series[vendor][type].insert(normalized_series);
-        vendor_type_series_ids[vendor][type].emplace(normalized_series, it->filament_id);
+        vendor_type_items[vendor][type].push_back({
+            {"series", normalized_series},
+            {"filament_id", it->filament_id},
+            {"name", dname}
+        });
     }
 
     nlohmann::json vendors_arr = nlohmann::json::array();
@@ -649,14 +652,12 @@ nlohmann::json FilaManagerVM::build_preset_options()
             for (auto& s : series_set)
             {
                 if (!s.empty()) series_arr.push_back(s);
-                std::string filament_id;
-                if (auto vendor_it = vendor_type_series_ids.find(vname); vendor_it != vendor_type_series_ids.end()) {
-                    if (auto type_it = vendor_it->second.find(tname); type_it != vendor_it->second.end()) {
-                        if (auto series_it = type_it->second.find(s); series_it != type_it->second.end())
-                            filament_id = series_it->second;
-                    }
+            }
+            if (auto vendor_it = vendor_type_items.find(vname); vendor_it != vendor_type_items.end()) {
+                if (auto type_it = vendor_it->second.find(tname); type_it != vendor_it->second.end()) {
+                    for (const auto& item : type_it->second)
+                        items_arr.push_back(item);
                 }
-                items_arr.push_back({{"series", s}, {"filament_id", filament_id}});
             }
             types_arr.push_back({{"name", tname}, {"series", series_arr}, {"items", items_arr}});
         }

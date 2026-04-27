@@ -69,7 +69,7 @@ export function DetailDialog({ open, spool, filteredSpools, onClose, onEdit, onN
     : Math.round(totalNet * (spool.remain_percent || 0) / 100);
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-start justify-center pt-5 z-[1000]" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/50 flex items-start justify-center pt-5 z-[1000]">
       <div
         className="w-[480px] max-h-[calc(100vh-40px)] bg-fm-sidebar rounded-xl flex flex-col overflow-hidden"
         style={{ transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)` }}
@@ -112,12 +112,6 @@ export function DetailDialog({ open, spool, filteredSpools, onClose, onEdit, onN
         <div className="flex items-center gap-3 px-6">
           <div className="w-10 h-10 shrink-0 relative">
             <SpoolSvg color={spool.color_code} />
-            {spool.cloud_synced && (
-              <div
-                className="absolute top-[1px] left-[34px] w-[6px] h-[6px] rounded-full border border-black/40 z-[1]"
-                style={{ background: '#50e81d' }}
-              />
-            )}
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-1 text-sm font-medium text-fm-text-strong leading-[22px] [&>svg]:text-fm-text-secondary [&>svg]:shrink-0">

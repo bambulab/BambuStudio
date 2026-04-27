@@ -493,9 +493,9 @@ export function useFilamentBridge() {
   }, [request, setCloudSync]);
 
   // ---- Cloud filament config ----
-  const fetchCloudFilamentConfig = useCallback(async () => {
+  const fetchCloudFilamentConfig = useCallback(async (options?: { force?: boolean }) => {
     const res = await request<ReturnType<typeof makeBody>, BridgeResponseBody>(
-      makeBody('config', 'fetch')
+      makeBody('config', 'fetch', options?.force ? { force: true } : undefined)
     );
     // Immediate response carries the cached cfg when available; the async
     // fetch result arrives via a 'config/fetched' report handled by the

@@ -1,4 +1,3 @@
-import React, { useRef } from "react";
 import Image from "../../../components/Image";
 import LinkButton from "./LinkButton";
 import WifiIcon from "../../../components/WifiIcon";

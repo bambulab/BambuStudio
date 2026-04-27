@@ -1,4 +1,3 @@
-import path from 'path'
 import { defineConfig, type Plugin } from 'vite'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
 import react from '@vitejs/plugin-react'
@@ -58,7 +57,7 @@ export default defineConfig({
 
   resolve: {
     alias: {
-      '@locales': path.resolve(__dirname, 'locales'),
+      '@locales': new URL('./locales', import.meta.url).pathname,
     },
   },
 

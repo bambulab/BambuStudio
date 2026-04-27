@@ -1,14 +1,5 @@
 import Image from "../../../components/Image";
 
-
-function MotionDialog() {
-    return (
-        <>
-        </>
-    );
-}
-
-
 export default function MotionControl() {
     return (
         <button type="button">

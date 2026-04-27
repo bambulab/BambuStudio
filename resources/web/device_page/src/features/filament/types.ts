@@ -11,6 +11,9 @@ export interface Spool {
   initial_weight: number;
   net_weight?: number;
   spool_weight: number;
+  unit_price?: number;
+  dry_reminder_days?: number;
+  dry_date?: string;
   remain_percent: number;
   status: string;        // "active" | "empty" | "archived"
   favorite: boolean;
@@ -29,6 +32,7 @@ export interface PresetSeries {
   items?: Array<{
     series: string;
     filament_id: string;
+    name?: string;
   }>;
 }
 

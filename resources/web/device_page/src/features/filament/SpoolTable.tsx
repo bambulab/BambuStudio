@@ -29,7 +29,6 @@ function getDisplayedTotalWeight(s: Spool) {
 interface SpoolGroup {
   key: string;
   count: number;
-  syncedCount: number;
   totalWeight: number;
   spools: Spool[];
 }
@@ -38,9 +37,8 @@ function groupSpools(list: Spool[]): SpoolGroup[] {
   const map: Record<string, SpoolGroup> = {};
   list.forEach((s) => {
     const key = `${formatSpoolDisplayName(s) || '?'}/${s.color_name || s.color_code || '?'}`;
-    if (!map[key]) map[key] = { key, count: 0, syncedCount: 0, totalWeight: 0, spools: [] };
+    if (!map[key]) map[key] = { key, count: 0, totalWeight: 0, spools: [] };
     map[key].count++;
-    if (s.cloud_synced) map[key].syncedCount++;
     map[key].totalWeight += getDisplayedRemainWeight(s);
     map[key].spools.push(s);
   });
@@ -61,6 +59,8 @@ function buildPageRange(cur: number, total: number): (number | '...')[] {
 const paginationButtonBase = 'min-w-6 h-6 flex items-center justify-center rounded-sm border text-xs cursor-pointer px-1 disabled:opacity-30 disabled:cursor-default';
 const paginationButtonIdle = 'border-transparent bg-transparent text-fm-text-secondary hover:bg-fm-hover hover:text-fm-text-strong';
 const paginationButtonActive = 'border-fm-border-focus bg-fm-selected text-fm-text-strong font-medium';
+const tableHeaderCellClass = 'text-left px-6 pt-2 pb-[9px] align-middle text-sm font-normal text-fm-text-strong h-12 sticky top-0 bg-[#141414] [html[data-theme=light]_&]:bg-white z-10 select-none border-b border-fm-border';
+const tableBodyCellClass = 'text-left px-6 pt-2 pb-[9px] border-b border-fm-border align-middle h-[60px]';
 
 /* ===== Sort header ===== */
 type SortKey = 'brand' | 'remain_percent';
@@ -134,18 +134,17 @@ export function SpoolTable({
 
   if (totalCount === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-fm-text-detail gap-4">
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-center text-fm-text-detail gap-4 bg-fm-inner2 rounded-[16px] border border-fm-border">
         <button
           type="button"
-          className="w-12 h-12 rounded-lg border border-fm-border bg-fm-inner2 text-fm-text-detail cursor-pointer transition-colors duration-150 hover:bg-fm-hover hover:text-fm-text-primary"
+          className="relative w-12 h-12 rounded-lg border border-fm-border bg-fm-inner2 text-fm-text-detail cursor-pointer transition-colors duration-150 hover:bg-fm-hover hover:text-fm-text-primary"
           onClick={onEmptyAdd}
           title={t('Add Filament')}
           aria-label={t('Add Filament')}
         >
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" opacity="0.55">
-            <rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" strokeWidth="2" />
-            <path d="M16 24h16M24 16v16" stroke="currentColor" strokeWidth="2" />
-          </svg>
+          <span className="absolute inset-2 rounded border-2 border-current opacity-55" />
+          <span className="absolute left-1/2 top-1/2 h-[2px] w-4 -translate-x-1/2 -translate-y-1/2 rounded-sm bg-current opacity-55" />
+          <span className="absolute left-1/2 top-1/2 h-4 w-[2px] -translate-x-1/2 -translate-y-1/2 rounded-sm bg-current opacity-55" />
         </button>
         <p>{t('No Data')}</p>
       </div>
@@ -154,8 +153,9 @@ export function SpoolTable({
 
   return (
     <>
-      <div className="flex-1 overflow-auto bg-fm-inner rounded-lg px-6 relative">
-        <table className="w-full border-collapse">
+      <div className="flex-1 min-h-0 bg-[#141414] [html[data-theme=light]_&]:bg-white rounded-[16px] border border-fm-border p-3 relative overflow-hidden">
+        <div className="h-full overflow-auto px-3">
+        <table className="w-full border-separate border-spacing-0">
           <colgroup>
             <col style={{ width: 48 }} />
             <col style={{ minWidth: 200 }} />
@@ -164,7 +164,7 @@ export function SpoolTable({
           </colgroup>
           <thead>
             <tr>
-              <th className="text-left p-2 border-b border-[#292929] align-middle text-sm font-medium text-fm-text-primary h-12 sticky top-0 bg-fm-inner z-[2] select-none w-12 text-center">
+              <th className={`${tableHeaderCellClass} !px-4 w-12 text-center`}>
                 <input
                   type="checkbox"
                   className="w-4 h-4 cursor-pointer accent-fm-brand"
@@ -174,7 +174,7 @@ export function SpoolTable({
               </th>
               <ThSort label={t('Filament')} sortKey="brand" current={sortKey} asc={sortAsc} onClick={handleSort} />
               <ThSort label={t('Remain')} sortKey="remain_percent" current={sortKey} asc={sortAsc} onClick={handleSort} />
-              <th className="text-left p-2 border-b border-[#292929] align-middle text-sm font-medium text-fm-text-primary h-12 sticky top-0 bg-fm-inner z-[2] select-none">{t('Operation')}</th>
+              <th className={tableHeaderCellClass}>{t('Operation')}</th>
             </tr>
           </thead>
           <tbody>
@@ -184,26 +184,12 @@ export function SpoolTable({
                 const isCollapsed = !!collapsed[g.key];
                 return (
                   <tr key={`g-${g.key}`} className="cursor-pointer select-none" onClick={() => toggleGroup(g.key)}>
-                    <td colSpan={4} className="bg-white/[0.02] border-b border-fm-border p-2 h-10">
+                    <td colSpan={4} className="bg-fm-inner border-b border-fm-border px-6 pt-2 pb-[9px] h-8">
                       <div className="flex items-center gap-3 text-xs text-fm-text-secondary">
                         <span className={`inline-block w-3 transition-transform duration-150${isCollapsed ? ' -rotate-90' : ''}`}>▾</span>
                         <span>{g.key}</span>
                         <span className="bg-fm-input rounded-[10px] px-2 py-[1px] text-[11px]">{g.count}</span>
                         <span className="text-fm-text-detail">{g.totalWeight} g</span>
-                        {/* F2.1: cloud-sync summary for the group — mirrors the
-                            per-row green dot (figma: 已同步=绿点, 未同步=无). */}
-                        {g.syncedCount > 0 && (
-                          <span
-                            className="inline-flex items-center gap-[4px] text-[11px] text-fm-text-detail"
-                            title={t('Cloud · synced')}
-                          >
-                            <span
-                              className="inline-block w-[6px] h-[6px] rounded-full border border-black/40"
-                              style={{ background: '#50e81d' }}
-                            />
-                            {g.syncedCount}/{g.count}
-                          </span>
-                        )}
                       </div>
                     </td>
                   </tr>
@@ -217,7 +203,7 @@ export function SpoolTable({
               const nameParts = formatSpoolDisplayName(s);
               return (
                 <tr key={s.spool_id} className={`transition-colors duration-100 hover:bg-fm-hover${selected.has(s.spool_id) ? ' bg-fm-selected' : ''}`}>
-                  <td className="text-left p-2 border-b border-[#292929] align-middle w-12 text-center">
+                  <td className={`${tableBodyCellClass} !px-4 w-12 text-center`}>
                     <input
                       type="checkbox"
                       className="w-4 h-4 cursor-pointer accent-fm-brand"
@@ -225,23 +211,10 @@ export function SpoolTable({
                       onChange={() => onToggleSelect(s.spool_id)}
                     />
                   </td>
-                  <td className="text-left p-2 border-b border-[#292929] align-middle">
+                  <td className={tableBodyCellClass}>
                     <div className="flex items-center gap-3">
-                      <div
-                        className="w-10 h-10 shrink-0 relative"
-                        title={s.cloud_synced ? t('Cloud · synced') : t('No sync yet')}
-                      >
+                      <div className="w-10 h-10 shrink-0 relative">
                         <SpoolSvg color={s.color_code} />
-                        {/* F2.1: cloud-sync indicator — only rendered when
-                            `cloud_synced==true`; absence of the dot means
-                            "not synced" (matches figma node 23669:75824). */}
-                        {s.cloud_synced && (
-                          <div
-                            className="absolute top-[1px] left-[34px] w-[6px] h-[6px] rounded-full border border-black/40 z-[1]"
-                            style={{ background: '#50e81d' }}
-                            aria-label={t('Cloud · synced')}
-                          />
-                        )}
                       </div>
                       <div className="flex flex-col gap-[2px]">
                         <span className="text-sm text-fm-text-primary leading-[22px]">{nameParts || '—'}</span>
@@ -251,7 +224,7 @@ export function SpoolTable({
                       </div>
                     </div>
                   </td>
-                  <td className="text-left p-2 border-b border-[#292929] align-middle">
+                  <td className={tableBodyCellClass}>
                     <div className="flex flex-col gap-1">
                       <div className="flex items-baseline gap-[2px] whitespace-nowrap">
                         <span className="text-sm text-fm-text-primary leading-[22px]">{remainWeight} g</span>
@@ -263,7 +236,7 @@ export function SpoolTable({
                       </div>
                     </div>
                   </td>
-                  <td className="text-left p-2 border-b border-[#292929] align-middle">
+                  <td className={tableBodyCellClass}>
                     <div className="flex gap-2 items-center">
                       <button className="w-4 h-4 bg-transparent border-none cursor-pointer text-fm-brand p-0 flex items-center justify-center transition-colors duration-150 hover:text-fm-brand-hover [&>svg]:w-4 [&>svg]:h-4" onClick={() => onDetail(s.spool_id)} title={t('Spool Detail')}>
                         <svg viewBox="0 0 16 16" fill="none">
@@ -296,6 +269,7 @@ export function SpoolTable({
             })}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Pagination */}
@@ -345,7 +319,7 @@ function ThSort({ label, sortKey, current, asc, onClick }: {
 }) {
   const cls = current === sortKey ? (asc ? 'sort-asc' : 'sort-desc') : '';
   return (
-    <th className={`text-left p-2 border-b border-[#292929] align-middle text-sm font-medium text-fm-text-primary h-12 sticky top-0 bg-fm-inner z-[2] select-none cursor-pointer hover:text-fm-text-strong ${cls}`} onClick={() => onClick(sortKey)}>
+    <th className={`${tableHeaderCellClass} cursor-pointer hover:text-fm-text-strong ${cls}`} onClick={() => onClick(sortKey)}>
       {label}<span className="fm-sort-icon" />
     </th>
   );

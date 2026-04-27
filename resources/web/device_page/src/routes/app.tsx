@@ -9,8 +9,6 @@ import DialogExample from '../features/printer/machine/MachineSetting'
 import AMSControl from '../features/printer/ams/AMSControl'
 import AxisControl from '../features/printer/motion/Motion'
 // import CardGrid from '../features/Card'
-import Bus from '../features/utils/Bus'
-import FilamentPopover from '../features/utils/FloatWindow'
 
 export const Route = createFileRoute('/app')({
   component: RouteComponent,

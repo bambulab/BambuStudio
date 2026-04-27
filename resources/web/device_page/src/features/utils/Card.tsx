@@ -1,5 +1,3 @@
-import React from "react";
-
 const Card = ({ className = "" }) => {
   return (
     <div className={`relative w-[58rem] h-[92rem] bg-blue-300 ${className}`}>

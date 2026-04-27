@@ -1,11 +1,3 @@
-import React from "react";
-import Image from "./Image"
-
-interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    icon: React.ReactNode;
-    label: string;
-}
-
 // export default function IconButton({ icon, label, ...props }: IconButtonProps) {
 //     return (
 //         <button
