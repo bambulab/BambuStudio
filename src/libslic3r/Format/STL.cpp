@@ -4,6 +4,8 @@
 
 #include "STL.hpp"
 
+#include <algorithm>
+#include <cctype>
 #include <string>
 
 #ifdef _WIN32
@@ -32,6 +34,15 @@ bool load_stl(const char *path, Model *model, const char *object_name_in, Import
     if (object_name_in == nullptr) {
         const char *last_slash = strrchr(path, DIR_SEPARATOR);
         object_name.assign((last_slash == nullptr) ? path : last_slash + 1);
+        // Strip the .stl/.STL extension so naming-rule tags (e.g. "MyPart [f3] [neg].stl")
+        // display cleanly in the object/volume name and match STEP body-name behavior.
+        if (object_name.size() >= 4) {
+            std::string ext = object_name.substr(object_name.size() - 4);
+            std::transform(ext.begin(), ext.end(), ext.begin(),
+                           [](unsigned char c) { return std::tolower(c); });
+            if (ext == ".stl")
+                object_name.resize(object_name.size() - 4);
+        }
     } else
        object_name.assign(object_name_in);
 
