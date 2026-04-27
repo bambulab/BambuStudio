@@ -20838,7 +20838,7 @@ int Plater::export_config_3mf(int plate_idx, Export3mfProgressFn proFn)
 //BBS
 void Plater::send_calibration_job_finished(wxCommandEvent & evt)
 {
-    p->main_frame->request_select_tab(MainFrame::TabPosition::tpCalibration);
+    p->main_frame->select_tab(p->main_frame->m_calibration);
     auto calibration_panel = p->main_frame->m_calibration;
     if (calibration_panel) {
         auto curr_wizard = static_cast<CalibrationWizard*>(calibration_panel->get_tabpanel()->GetPage(evt.GetInt()));
