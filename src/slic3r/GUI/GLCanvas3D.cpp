@@ -4030,6 +4030,13 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 }
                 return;
             }
+            case 'e':
+            case 'E':
+            case WXK_CONTROL_E: {
+                m_labels.show_object_labels(!m_labels.are_object_labels_shown());
+                m_dirty = true;
+                return;
+            }
             }
         }
         // CTRL is pressed
