@@ -16,10 +16,10 @@
         "0"
     ],
     "filament_preheat_temperature_delta":[
-        "0",
-        "0",
-        "0",
-        "0"
+        "10",
+        "10",
+        "10",
+        "10"
     ],    
     "filament_deretraction_speed": [
         "nil",
