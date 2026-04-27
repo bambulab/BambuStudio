@@ -258,6 +258,11 @@ template<class RawShape> class EdgeCache {
     inline Vertex coords(const ContourCache& cache, double distance) const {
         assert(distance >= .0 && distance <= 1.0);
         if (cache.distances.empty() || cache.emap.empty()) return Vertex{};
+        // Zero-perimeter contour (all edges collapsed to one point):
+        // angleToXaxis() below would be atan2(0,0) = NaN and propagate
+        // into INT32_MIN UB. The only well-defined point on such a
+        // "circumference" is that single point itself.
+        if (cache.full_distance <= 0.0) return cache.emap.front().first();
         if (distance > 1.0) distance = std::fmod(distance, 1.0);
 
         // distance is from 0.0 to 1.0, we scale it up to the full length of
@@ -643,12 +648,40 @@ private:
             return {};
         }
 
+        // Degenerate inner NFP: rotated item's bbox matches the bed
+        // inner rect on one or both axes. Treat point and segment
+        // collapse separately so the result fed to EdgeCache never
+        // has a zero-length edge (which would yield atan2(0,0) -> NaN
+        // -> INT32_MIN UB and the ~21km fly-away placement).
         if (innerNfp.area() == 0) {
-            return {innerNfp};
+            auto innerBB = sl::boundingBox(innerNfp);
+            auto minCorner = innerBB.minCorner();
+            auto maxCorner = innerBB.maxCorner();
+
+            // NFP collapsed to a single point.
+            if (getX(minCorner) == getX(maxCorner) && getY(minCorner) == getY(maxCorner)) {
+                for (const RawShape& nfp : nfps) {
+                    if (sl::isInside(minCorner, nfp)) return {};
+                }
+                return { innerNfp };
+            }
+
+            // NFP collapsed to an axis-aligned segment.
+            Slic3r::Polylines lines = Slic3r::diff_pl(
+                Slic3r::Polylines{ Slic3r::Polyline(minCorner, maxCorner) }, nfps);
+            Shapes NFP;
+            NFP.reserve(lines.size());
+            for (Slic3r::Polyline& line : lines) {
+                if (line.points.size() < 2) continue;
+                if (line.points.front() == line.points.back()) continue;
+                Slic3r::ExPolygon expoly;
+                expoly.contour.points = std::move(line.points);
+                NFP.push_back(std::move(expoly));
+            }
+            return NFP;
         }
 
-        Shapes finalNFP = nfp::subtract({ innerNfp }, nfps);
-        return finalNFP;
+        return nfp::subtract({ innerNfp }, nfps);
     }
 
     Shapes calcnfp(const RawShape &sliding, const Shapes &stationarys, const Box &bed, Lvl<nfp::NfpLevel::CONVEX_ONLY>)
@@ -669,8 +702,31 @@ private:
             return {};
         }
 
+        // See the Item-based overload above for the degeneracy rationale.
         if (innerNfp.area() == 0) {
-            return { innerNfp };
+            auto innerBB = sl::boundingBox(innerNfp);
+            auto minCorner = innerBB.minCorner();
+            auto maxCorner = innerBB.maxCorner();
+
+            if (getX(minCorner) == getX(maxCorner) && getY(minCorner) == getY(maxCorner)) {
+                for (const RawShape& nfp : nfps) {
+                    if (sl::isInside(minCorner, nfp)) return {};
+                }
+                return { innerNfp };
+            }
+
+            Slic3r::Polylines lines = Slic3r::diff_pl(
+                Slic3r::Polylines{ Slic3r::Polyline(minCorner, maxCorner) }, nfps);
+            Shapes NFP;
+            NFP.reserve(lines.size());
+            for (Slic3r::Polyline& line : lines) {
+                if (line.points.size() < 2) continue;
+                if (line.points.front() == line.points.back()) continue;
+                Slic3r::ExPolygon expoly;
+                expoly.contour.points = std::move(line.points);
+                NFP.push_back(std::move(expoly));
+            }
+            return NFP;
         }
 
         return nfp::subtract({innerNfp}, nfps);
