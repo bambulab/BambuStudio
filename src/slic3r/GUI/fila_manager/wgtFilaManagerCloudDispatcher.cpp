@@ -325,8 +325,8 @@ void wgtFilaManagerCloudDispatcher::run_push_update_op(const std::string& spool_
     const FilamentSpool* spool = store->get_spool(spool_id);
     if (!spool || !m_client) { on_op_done(); return; }
 
-    // Update 走 patch 白名单；404 fallback 才用到全量 create body。
-    nlohmann::json body        = wgtFilaManagerCloudSync::spool_to_cloud_update_patch(local_patch);
+    // Update 走 patch 白名单并补齐 update 端必需字段；404 fallback 才用到全量 create body。
+    nlohmann::json body        = wgtFilaManagerCloudSync::spool_to_cloud_update_json(*spool, local_patch);
     nlohmann::json create_body = wgtFilaManagerCloudSync::spool_to_cloud_json(*spool);
 
     if (body.empty()) {

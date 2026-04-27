@@ -4,6 +4,9 @@ import type { Spool, PresetVendor, MachineItem, AmsData, AmsUnit, AmsTray } from
 import { BAMBU_COLORS, formatTypeSeries } from './constants';
 import { SpoolSvg } from './SpoolSvg';
 import useStore from '../../store/AppStore';
+// STUDIO-18114: shared draft -> commit helper for the custom color picker so
+// the OK/Cancel popover and the existing edit-dialog state stay aligned.
+import { commitCustomColorSelection } from './customColorSelection';
 
 function normalizeColorCode(value?: string): string {
   const raw = (value || '').trim();
@@ -168,6 +171,64 @@ export function AddEditDialog({
     }
   }, [open]);
 
+  const findPresetMatchByFilamentId = useCallback((setting: {
+    filamentVendor?: string;
+    filamentType?: string;
+    filamentId?: string;
+  }) => {
+    const vendorName = (setting.filamentVendor || '').trim();
+    const typeName = (setting.filamentType || '').trim();
+    const filamentId = (setting.filamentId || '').trim();
+    if (!filamentId) return null;
+
+    for (const vendor of presets) {
+      if (vendorName && vendor.name !== vendorName) continue;
+      for (const tp of vendor.types) {
+        if (typeName && tp.name !== typeName) continue;
+        const item = tp.items?.find((entry) => entry.setting_id === filamentId || entry.filament_id === filamentId);
+        if (item) return { vendor, type: tp, item };
+      }
+    }
+    return null;
+  }, [presets]);
+
+  const getCloudSettingDisplayName = useCallback((setting: {
+    filamentVendor?: string;
+    filamentType?: string;
+    filamentName?: string;
+    filamentId?: string;
+  }) => {
+    const cloudName = (setting.filamentName || '').trim();
+    const idMatch = findPresetMatchByFilamentId(setting);
+    if (idMatch) {
+      return cloudName;
+    }
+
+    const match = (() => {
+      for (const vendor of presets) {
+        if (setting.filamentVendor && vendor.name !== setting.filamentVendor) continue;
+        for (const tp of vendor.types) {
+          if (setting.filamentType && tp.name !== setting.filamentType) continue;
+          const item = tp.items?.find((entry) => {
+            const presetName = normalizePresetFilamentName(entry.name, vendor.name, tp.name, entry.series || '');
+            return !!cloudName && presetName === cloudName;
+          });
+          if (item) return { vendor, type: tp, item };
+        }
+      }
+      return null;
+    })();
+    if (match) {
+      return normalizePresetFilamentName(
+        match.item.name,
+        match.vendor.name,
+        match.type.name,
+        match.item.series || '',
+      );
+    }
+    return cloudName;
+  }, [findPresetMatchByFilamentId, presets]);
+
   // UX decision (per F4.3 feedback, revised):
   //   收起 Type / Series 两个独立字段，合并为单个「耗材类型」<select>，
   //   选项直接显示云端 `get_filament_config` 返回的 filamentName 完整名
@@ -183,7 +244,7 @@ export function AddEditDialog({
       settings.forEach((it) => {
         if (!it) return;
         if (brand && it.filamentVendor !== brand) return;
-        const name = (it.filamentName || '').trim();
+        const name = getCloudSettingDisplayName(it);
         if (name) set.add(name);
       });
     }
@@ -192,6 +253,13 @@ export function AddEditDialog({
       const vendors = brand ? presets.filter((v) => v.name === brand) : presets;
       vendors.forEach((v) => {
         v.types.forEach((tp) => {
+          if (Array.isArray(tp.items) && tp.items.length > 0) {
+            tp.items.forEach((item) => {
+              const name = (item.name || item.series || '').trim();
+              if (name) set.add(name);
+            });
+            return;
+          }
           const series = Array.isArray(tp.series) ? tp.series.filter(Boolean) : [];
           if (series.length === 0) {
             if (tp.name) set.add(tp.name);
@@ -202,7 +270,7 @@ export function AddEditDialog({
       });
     }
     return [...set].sort();
-  }, [brand, cloudConfig, presets]);
+  }, [brand, cloudConfig, presets, getCloudSettingDisplayName]);
 
   // Split a combined "PLA Basic" string back into (type, series) using the
   // vendor's known types as anchors (longest-first to tolerate types with
@@ -237,10 +305,10 @@ export function AddEditDialog({
     const name = (series || '').trim();
     if (!name || !brand) return '';
     const hit = settings.find(
-      (it) => it && it.filamentVendor === brand && (it.filamentName || '').trim() === name,
+      (it) => it && it.filamentVendor === brand && getCloudSettingDisplayName(it) === name,
     );
     return (hit?.filamentId || '').trim();
-  }, [cloudConfig, brand, series]);
+  }, [cloudConfig, brand, series, getCloudSettingDisplayName]);
 
   // 语义统一：本地 series 直接对齐云端 filamentName 的完整名（如 "PLA Basic"）。
   // preset 里 items[].series 历史上是短名（"Basic"），因此比对时同时接受
@@ -277,9 +345,24 @@ export function AddEditDialog({
     const settings = cloudConfig?.filamentSettings;
     if (Array.isArray(settings)) {
       const hit = settings.find(
-        (it) => it && it.filamentVendor === brand && (it.filamentName || '').trim() === name,
+        (it) => it && it.filamentVendor === brand && getCloudSettingDisplayName(it) === name,
       );
       if (hit) type = (hit.filamentType || '').trim();
+    }
+    if (!type) {
+      outer: for (const vendor of presets) {
+        if (brand && vendor.name !== brand) continue;
+        for (const tp of vendor.types) {
+          const hit = tp.items?.find((item) => {
+            const itemName = (item.name || item.series || '').trim();
+            return itemName === name;
+          });
+          if (hit) {
+            type = tp.name;
+            break outer;
+          }
+        }
+      }
     }
     if (!type) {
       const res = splitTypeSeries(name);
@@ -305,16 +388,60 @@ export function AddEditDialog({
     (c) => c.toUpperCase() === colorCode.toUpperCase(),
   );
 
-  const handleCustomColorChange = useCallback((value: string) => {
-    const nextColor = normalizeColorCode(value);
-    setColorCode(nextColor);
-    if (!nextColor || isPresetColor(nextColor)) return;
-    setCustomColors((prev) => (
-      prev.some((c) => c.toUpperCase() === nextColor.toUpperCase())
-        ? prev
-        : [...prev, nextColor]
-    ));
+  // STUDIO-18114: the custom color picker now uses a draft-then-commit flow.
+  // Previously a hidden <input type="color"> committed every onChange tick,
+  // which the native picker fires while the user is still dragging the hue
+  // slider. That overwrote the form's color_code (and dirtied customColors)
+  // long before the user actually decided on a color, and ESC / clicking
+  // away from the picker still left the half-chosen color applied.
+  // Now the popover holds a local `draftColor`; only OK calls
+  // commitCustomColorSelection() to write it back to the form. Cancel,
+  // ESC, and click-outside discard the draft.
+  const [colorPickerOpen, setColorPickerOpen] = useState(false);
+  const [draftColor, setDraftColor] = useState('#000000');
+  const colorPickerRef = useRef<HTMLDivElement>(null);
+  const nativeColorInputRef = useRef<HTMLInputElement>(null);
+
+  // The trigger button is rendered with `disabled={lockColor}` so a locked
+  // AMS color cannot start a draft session in the first place; we therefore
+  // don't need to re-check lockColor here.
+  const openColorPicker = useCallback(() => {
+    setDraftColor(colorCode || '#000000');
+    setColorPickerOpen(true);
+  }, [colorCode]);
+
+  const cancelCustomColor = useCallback(() => {
+    setColorPickerOpen(false);
   }, []);
+
+  const confirmCustomColor = useCallback(() => {
+    const next = commitCustomColorSelection(draftColor, customColors, BAMBU_COLORS);
+    setColorCode(next.colorCode);
+    setCustomColors(next.customColors);
+    setColorPickerOpen(false);
+  }, [draftColor, customColors]);
+
+  // Esc key and pointer events outside the popover are treated as Cancel
+  // so the picker matches the rest of the dialog's modal behaviour.
+  useEffect(() => {
+    if (!colorPickerOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        cancelCustomColor();
+      }
+    };
+    const onPointerDown = (e: MouseEvent) => {
+      const node = colorPickerRef.current;
+      if (node && !node.contains(e.target as Node)) cancelCustomColor();
+    };
+    window.addEventListener('keydown', onKey, true);
+    window.addEventListener('mousedown', onPointerDown, true);
+    return () => {
+      window.removeEventListener('keydown', onKey, true);
+      window.removeEventListener('mousedown', onPointerDown, true);
+    };
+  }, [colorPickerOpen, cancelCustomColor]);
 
   const handleSubmit = async () => {
     // New weight model: initial_weight is now 整卷净重 (= swagger
@@ -334,7 +461,11 @@ export function AddEditDialog({
       net_weight: currentNetWeight,
       remain_percent: remainPct,
       note,
-      setting_id: matchedCloudFilamentId || matchedPresetItem?.filament_id || initSpool?.setting_id || '',
+      setting_id: matchedCloudFilamentId
+        || matchedPresetItem?.setting_id
+        || matchedPresetItem?.filament_id
+        || initSpool?.setting_id
+        || '',
     };
 
     if (isEdit) {
@@ -683,7 +814,7 @@ export function AddEditDialog({
     if (settingId) {
       outer: for (const vendor of presets) {
         for (const tp of vendor.types) {
-          const hit = tp.items?.find((it) => it.filament_id === settingId);
+          const hit = tp.items?.find((it) => it.setting_id === settingId || it.filament_id === settingId);
           if (hit) {
             brandName  = vendor.name;
             typeName   = tp.name;
@@ -1033,19 +1164,70 @@ export function AddEditDialog({
               <div className="flex flex-col gap-[8px]">
                 <label className="text-[12px] leading-[19px] text-fm-text-secondary"><span className="text-[#ff2b00]">*</span> {t('Color')}</label>
                 <div className={`flex flex-wrap gap-[6px] items-center ${lockColor ? 'pointer-events-none opacity-60' : ''}`}>
-                  {/* Custom-color picker: always keep "+" as the entry point. */}
-                  <div
-                    className="size-[24px] rounded-[4px] cursor-pointer border border-dashed border-fm-border-focus bg-fm-inner relative overflow-hidden flex items-center justify-center text-fm-text-detail text-sm hover:border-fm-text-secondary"
-                    title={t('Pick Custom Color')}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="1.2"/></svg>
-                    <input
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                      type="color"
-                      value={colorCode || '#000000'}
+                  {/* STUDIO-18114: Custom-color picker — click "+" to open a
+                      draft popover; the form's color is only updated after
+                      the user explicitly confirms with OK. */}
+                  <div ref={colorPickerRef} className="relative">
+                    <button
+                      type="button"
+                      className="size-[24px] rounded-[4px] cursor-pointer border border-dashed border-fm-border-focus bg-fm-inner overflow-hidden flex items-center justify-center text-fm-text-detail text-sm hover:border-fm-text-secondary disabled:cursor-not-allowed disabled:opacity-60 p-0"
+                      title={t('Pick Custom Color')}
+                      aria-label={t('Pick Custom Color')}
+                      aria-haspopup="dialog"
+                      aria-expanded={colorPickerOpen}
                       disabled={lockColor}
-                      onChange={(e) => handleCustomColorChange(e.target.value)}
-                    />
+                      onClick={openColorPicker}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="1.2"/></svg>
+                    </button>
+                    {colorPickerOpen && (
+                      <div
+                        role="dialog"
+                        aria-label={t('Pick Custom Color')}
+                        className="absolute left-0 top-[calc(100%+8px)] z-[1100] w-[224px] flex flex-col gap-[12px] rounded-[10px] border border-fm-border bg-fm-base p-[14px] shadow-[0_12px_32px_rgba(0,0,0,0.5)]"
+                      >
+                        <div className="flex items-center gap-[12px]">
+                          <button
+                            type="button"
+                            autoFocus
+                            className="size-[56px] shrink-0 rounded-[8px] border border-fm-border-focus cursor-pointer focus:outline-none focus:ring-2 focus:ring-fm-brand transition-shadow"
+                            style={{ background: draftColor }}
+                            aria-label={t('Pick Custom Color')}
+                            title={t('Pick Custom Color')}
+                            onClick={() => nativeColorInputRef.current?.click()}
+                          />
+                          <div className="flex flex-col gap-[4px] min-w-0 flex-1">
+                            <span className="text-[10px] leading-[12px] text-fm-text-detail uppercase tracking-wider">
+                              {t('Custom Color')}
+                            </span>
+                            <span className="text-[13px] leading-[18px] text-fm-text-strong font-mono tracking-wider">
+                              {(draftColor || '#000000').toUpperCase()}
+                            </span>
+                          </div>
+                        </div>
+                        <input
+                          ref={nativeColorInputRef}
+                          type="color"
+                          value={draftColor || '#000000'}
+                          onChange={(e) => setDraftColor(e.target.value)}
+                          className="sr-only"
+                          tabIndex={-1}
+                          aria-hidden="true"
+                        />
+                        <div className="flex justify-end gap-[8px]">
+                          <button
+                            type="button"
+                            className="h-[28px] px-[14px] rounded-[6px] cursor-pointer text-[12px] leading-[19px] bg-fm-input text-fm-text-primary border-none hover:bg-fm-hover"
+                            onClick={cancelCustomColor}
+                          >{t('Cancel')}</button>
+                          <button
+                            type="button"
+                            className="h-[28px] px-[14px] rounded-[6px] border-none cursor-pointer text-[12px] leading-[19px] font-medium bg-fm-brand text-white hover:bg-fm-brand-hover"
+                            onClick={confirmCustomColor}
+                          >{t('OK')}</button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   {BAMBU_COLORS.map((c) => (
                     <div

@@ -7,10 +7,15 @@
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/Widgets/WebView.hpp"
 #include "slic3r/GUI/DeviceCore/DevManager.h"
+#include "slic3r/GUI/DeviceCore/DevConfigUtil.h"
+#include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceManager.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/PresetBundle.hpp"
+
+#include <iomanip>
+#include <sstream>
 
 namespace Slic3r { namespace GUI {
 
@@ -340,32 +345,80 @@ nlohmann::json wgtFilaManagerPanel::build_preset_options()
     if (!bundle)
         return {{"vendors", nlohmann::json::array()}};
 
-    std::map<std::string, std::map<std::string, std::set<std::string>>> vendor_type_series;
-    for (auto it = bundle->filaments.begin(); it != bundle->filaments.end(); ++it) {
+    MachineObject* obj = nullptr;
+    if (auto* dev_mgr = wxGetApp().getDeviceManager())
+        obj = dev_mgr->get_selected_machine();
+
+    std::set<std::string> printer_names;
+    if (obj && obj->GetExtderSystem()) {
+        std::ostringstream stream;
+        stream << std::fixed << std::setprecision(1) << obj->GetExtderSystem()->GetNozzleDiameter(0);
+        printer_names = bundle->get_printer_names_by_printer_type_and_nozzle(
+            DevPrinterConfigUtil::get_printer_display_name(obj->printer_type),
+            stream.str());
+    }
+
+    auto& filaments = bundle->filaments;
+    std::map<std::string, std::map<std::string, std::vector<nlohmann::json>>> vendor_type_items;
+    std::set<std::string> filament_id_set;
+    for (auto it = filaments.begin(); it != filaments.end(); ++it) {
+        Preset& preset = *it;
+        if (filaments.get_preset_base(*it) != &preset)
+            continue;
+        if (obj && !it->is_system && !obj->is_support_user_preset)
+            continue;
+        if (!printer_names.empty()) {
+            ConfigOption* printer_opt = it->config.option("compatible_printers");
+            ConfigOptionStrings* printer_strs = dynamic_cast<ConfigOptionStrings*>(printer_opt);
+            if (!printer_strs)
+                continue;
+
+            bool compatible_printer = false;
+            for (const auto& printer_str : printer_strs->values) {
+                if (printer_names.find(printer_str) != printer_names.end()) {
+                    compatible_printer = true;
+                    break;
+                }
+            }
+            if (!compatible_printer)
+                continue;
+        }
+
         std::string vendor = it->config.get_filament_vendor();
         std::string type   = it->config.get_filament_type();
         if (vendor.empty()) continue;
         if (type.empty()) type = "Other";
 
-        std::string dname = it->display_name();
-        std::string series;
-        if (dname.size() > type.size() && dname.compare(0, type.size(), type) == 0) {
-            series = dname.substr(type.size());
-            size_t start = series.find_first_not_of(' ');
-            if (start != std::string::npos) series = series.substr(start);
-            else series.clear();
-        }
-        vendor_type_series[vendor][type].insert(series.empty() ? "" : series);
+        const std::string dedupe_key = it->filament_id.empty()
+            ? (vendor + "\n" + type + "\n" + it->name)
+            : it->filament_id;
+        if (!filament_id_set.insert(dedupe_key).second)
+            continue;
+
+        std::string shown_name = filaments.get_preset_alias(*it, true);
+        if (shown_name.empty())
+            shown_name = it->display_name();
+        if (shown_name.empty())
+            continue;
+
+        vendor_type_items[vendor][type].push_back({
+            {"name", shown_name},
+            {"series", shown_name},
+            {"filament_id", it->filament_id},
+            {"setting_id", it->setting_id}
+        });
     }
 
     nlohmann::json vendors_arr = nlohmann::json::array();
-    for (auto& [vname, type_map] : vendor_type_series) {
+    for (auto& [vname, type_map] : vendor_type_items) {
         nlohmann::json types_arr = nlohmann::json::array();
-        for (auto& [tname, series_set] : type_map) {
+        for (auto& [tname, items] : type_map) {
             nlohmann::json series_arr = nlohmann::json::array();
-            for (auto& s : series_set)
-                if (!s.empty()) series_arr.push_back(s);
-            types_arr.push_back({{"name", tname}, {"series", series_arr}});
+            for (auto& item : items) {
+                const std::string name = item.value("name", "");
+                if (!name.empty()) series_arr.push_back(name);
+            }
+            types_arr.push_back({{"name", tname}, {"series", series_arr}, {"items", items}});
         }
         vendors_arr.push_back({{"name", vname}, {"types", types_arr}});
     }

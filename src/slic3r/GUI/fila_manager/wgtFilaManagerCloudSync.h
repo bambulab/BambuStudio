@@ -33,9 +33,12 @@ public:
     static nlohmann::json spool_to_cloud_json(const FilamentSpool& spool);
     // Translate a local-field patch into a cloud UpdateFilamentV2 body.
     // Only whitelisted fields are emitted (filamentVendor/filamentType/
-    // settingName/filamentId/color/colorName/totalWeight/trayWeight/netWeight/
+    // filamentName/filamentId/color/colorType/colors/netWeight/
     // totalNetWeight/note). Returns an empty object if nothing maps.
     static nlohmann::json spool_to_cloud_update_patch(const nlohmann::json& local_patch);
+    // Build the actual UpdateFilamentV2 body for an existing spool. This keeps
+    // update-only required fields out of the create path.
+    static nlohmann::json spool_to_cloud_update_json(const FilamentSpool& spool, const nlohmann::json& local_patch);
     static FilamentSpool cloud_json_to_spool(const nlohmann::json& j);
 
 private:

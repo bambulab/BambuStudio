@@ -188,19 +188,29 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_json(const FilamentSpool&
         j["rolls"]      = 1;
     }
 
-    // Manual add/edit UI computes a material-only net weight (total - spool),
-    // and the cloud API expects that value for the persisted material weight.
+    // Cloud schema (CreateFilamentV2Req): netWeight = 当前净重 (current
+    // material remaining), totalNetWeight = 整卷净重 (the spool's full
+    // net weight when new). After STUDIO-17991 the local store keeps both
+    // in net-weight units with spool_weight==0, so initial_weight is the
+    // pure 整卷净重 and maps verbatim onto totalNetWeight. Legacy rows
+    // still in the 毛重/料盘 shape (spool_weight > 0, initial_weight = 毛重)
+    // collapse "initial - spool" to recover the 整卷净重 the cloud expects.
+    //
+    // STUDIO-18115: previously the manual branch mirrored totalNetWeight
+    // from material_weight, which silently truncated the user-entered
+    // 总净重 to the 当前净重 whenever the two differed (e.g. 当前=200,
+    // 总=1500 was pushed as netWeight=200, totalNetWeight=200 and the
+    // row came back from cloud showing 200/200 instead of 200/1500).
     const float material_weight = s.net_weight > 0.f
         ? s.net_weight
         : ((s.initial_weight > s.spool_weight) ? (s.initial_weight - s.spool_weight) : 0.f);
+    const float total_net_weight = (s.spool_weight > 0.f && s.initial_weight > s.spool_weight)
+        ? (s.initial_weight - s.spool_weight)
+        : s.initial_weight;
     if (material_weight > 0.f)
         j["netWeight"] = static_cast<int64_t>(material_weight + 0.5f);
-    if (create_type == "manual") {
-        if (material_weight > 0.f)
-            j["totalNetWeight"] = static_cast<int64_t>(material_weight + 0.5f);
-    } else if (s.initial_weight > 0.f) {
-        j["totalNetWeight"] = static_cast<int64_t>(s.initial_weight + 0.5f);
-    }
+    if (total_net_weight > 0.f)
+        j["totalNetWeight"] = static_cast<int64_t>(total_net_weight + 0.5f);
 
     if (!s.note.empty())
         j["note"] = s.note;
@@ -369,7 +379,8 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_update_patch(const nlohma
     // 本地字段 → swagger 字段（只映射本地有对应概念的那些）：
     take_str("brand",           "filamentVendor");
     take_str("material_type",   "filamentType");
-    take_str("filament_name",   "filamentName");    // 本地若未来加上再生效
+    take_str("series",          "filamentName");    // UI 的 Material Type 实际对应云端 filamentName
+    take_str("filament_name",   "filamentName");    // 兼容未来显式字段
     take_str("setting_id",      "filamentId");
     take_bool("is_support",     "isSupport");       // 同上
     take_str("color_code",      "color");
@@ -388,13 +399,39 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_update_patch(const nlohma
     return j;
 }
 
+nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_update_json(const FilamentSpool& s,
+                                                                   const nlohmann::json& local_patch)
+{
+    nlohmann::json j = spool_to_cloud_update_patch(local_patch);
+    if (j.empty())
+        return j;
+
+    auto patch_str = [&](const char* key) -> std::string {
+        if (!local_patch.is_object() || !local_patch.contains(key)) return {};
+        const auto& v = local_patch.at(key);
+        return v.is_string() ? v.get<std::string>() : std::string();
+    };
+
+    // Edit requests must include filamentName even when the user only changes
+    // color/weight/note. The visible "Material Type" field is cloud
+    // filamentName, stored locally as `series`; filamentType is hidden.
+    if (!j.contains("filamentName")) {
+        std::string filament_name = patch_str("series");
+        if (filament_name.empty()) filament_name = patch_str("filament_name");
+        if (filament_name.empty()) filament_name = s.series.empty() ? s.material_type : s.series;
+        j["filamentName"] = filament_name;
+    }
+
+    return j;
+}
+
 void wgtFilaManagerCloudSync::push_update_to_cloud(const std::string& spool_id,
                                                    const nlohmann::json& local_patch)
 {
     const FilamentSpool* spool = m_store->get_spool(spool_id);
     if (!spool) return;
 
-    nlohmann::json body = spool_to_cloud_update_patch(local_patch);
+    nlohmann::json body = spool_to_cloud_update_json(*spool, local_patch);
 
     // 全量 body 仅用于 404 fallback：服务端没记录这条时补一次 create。
     nlohmann::json create_body = spool_to_cloud_json(*spool);

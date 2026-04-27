@@ -32,6 +32,7 @@ export interface PresetSeries {
   items?: Array<{
     series: string;
     filament_id: string;
+    setting_id?: string;
     name?: string;
   }>;
 }
