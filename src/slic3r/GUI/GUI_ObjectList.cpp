@@ -3236,9 +3236,28 @@ void ObjectList::merge(bool to_multipart_object)
         new_object->center_around_origin();
         new_object->translate_instances(-new_object->origin_translation);
         new_object->origin_translation = Vec3d::Zero();
-        //BBS init asssmble transformation
+        //BBS init assemble transformation based on non-selected objects' assembly bounding box
         Geometry::Transformation new_object_trsf = new_object->instances[0]->get_transformation();
         new_object->instances[0]->set_assemble_transformation(new_object_trsf);
+        {
+            const std::set<int> selected_set(obj_idxs.begin(), obj_idxs.end());
+            BoundingBoxf3 others_assembly_bb;
+            for (int i = 0; i < (int)m_objects->size(); i++) {
+                if (selected_set.count(i) || (*m_objects)[i] == new_object)
+                    continue;
+                others_assembly_bb.merge((*m_objects)[i]->bounding_box_in_assembly_view());
+            }
+            auto mo_box = new_object->bounding_box_in_assembly_view();
+            if (!others_assembly_bb.defined) {
+                Vec3d offset(0, 0, mo_box.size()[2] / 2.0);
+                new_object->instances[0]->set_assemble_offset(offset);
+            } else {
+                auto offset = others_assembly_bb.center();
+                offset[0] += (others_assembly_bb.size()[0] / 2.0 + mo_box.size()[0] / 2.0 + 10.0);
+                offset[2] = mo_box.size()[2] / 2.0;
+                new_object->instances[0]->set_assemble_offset(offset);
+            }
+        }
         // merge brim ears
         const Transform3d& new_object_inverse_matrix = new_object_trsf.get_matrix().inverse();
         for (auto& p : new_object->brim_points) {
