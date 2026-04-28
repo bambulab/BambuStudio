@@ -39,18 +39,23 @@ namespace Slic3r
         return filament_merge_map;
     }
 
-    static uint64_t fnv_hash_two_ints(const int a, const int b)
+    static uint64_t fnv_hash_nozzle(int volume_type, int is_right_extruder, int loaded_filament = -1)
     {
         constexpr uint64_t FNV_OFFSET_BASIS = 14695981039346656037ULL;
         constexpr uint64_t FNV_PRIME        = 1099511628211ULL;
         constexpr uint64_t SALT_A           = 0xA5A5A5A5A5A5A5A5ULL;
         constexpr uint64_t SALT_B           = 0x5A5A5A5A5A5A5A5AULL;
+        constexpr uint64_t SALT_C           = 0x3C3C3C3C3C3C3C3CULL;
 
         uint64_t h = FNV_OFFSET_BASIS;
-        h ^= static_cast<uint64_t>(a) + SALT_A;
+        h ^= static_cast<uint64_t>(volume_type) + SALT_A;
         h *= FNV_PRIME;
-        h ^= static_cast<uint64_t>(b) + SALT_B;
+        h ^= static_cast<uint64_t>(is_right_extruder) + SALT_B;
         h *= FNV_PRIME;
+        if (loaded_filament >= 0) {
+            h ^= static_cast<uint64_t>(loaded_filament) + SALT_C;
+            h *= FNV_PRIME;
+        }
 
         return h;
     }
@@ -578,10 +583,12 @@ namespace Slic3r
         std::unordered_set<std::vector<uint64_t>, decltype(vector_hash), decltype(vector_equal)> group_set(0, vector_hash, vector_equal);
         std::vector<uint64_t> group_hashs;
 
-        //2.Compute hash value based on nozzle type  left/right extruder + high/standard flow
+        //2.Compute hash value based on nozzle type, extruder side, and loaded filament
         std::vector<size_t> nozzles_hash(m_k);
-        for (auto nozzle : context.nozzle_info.nozzle_list) {
-            nozzles_hash[nozzle.group_id] = fnv_hash_two_ints(nozzle.volume_type, nozzle.group_id > 0);
+        for (const auto &nozzle : context.nozzle_info.nozzle_list) {
+            auto it = context.nozzle_info.nozzle_status.find(nozzle.group_id);
+            int  loaded_filament = (it != context.nozzle_info.nozzle_status.end()) ? it->second : -1;
+            nozzles_hash[nozzle.group_id] = fnv_hash_nozzle(nozzle.volume_type, nozzle.group_id > 0, loaded_filament);
         }
 
         //3.Enumerate group assignments
@@ -648,6 +655,21 @@ namespace Slic3r
             auto group_res = MultiNozzleUtils::LayeredNozzleGroupResult::create(labels, context.nozzle_info.nozzle_list, used_filaments);
             auto change_count = get_estimate_extruder_filament_change_count(*group_res);
             auto flush_volume = calc_cost(used_labels,std::vector<int>(m_k,0),-1);
+
+            //6.1 Add initial flush cost for nozzles that already have a filament loaded
+            for (const auto &[nozzle_id, slot_indices] : nozzles_filaments) {
+                auto it = context.nozzle_info.nozzle_status.find(nozzle_id);
+                if (it == context.nozzle_info.nozzle_status.end() || it->second == -1)
+                    continue;
+
+                int loaded_filament = it->second;
+                int extruder_id     = context.nozzle_info.nozzle_list[nozzle_id].extruder_id;
+                double total_flush  = 0;
+                for (int slot : slot_indices)
+                    total_flush += context.model_info.flush_matrix[extruder_id][loaded_filament][used_filaments[slot]];
+                flush_volume += total_flush / slot_indices.size();
+            }
+
             double time = change_count.first *context.speed_info.extruder_change_time + change_count.second *context.speed_info.filament_change_time;
             double score = evaluate_score(flush_volume, time, true);
 
