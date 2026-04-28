@@ -9,9 +9,19 @@
         margin: 0;
         padding: 0;
         height: 100%;
-        overflow: hidden;
         background-color: #ffffff;
         transition: background-color 0.3s ease;
+      }
+
+      html {
+        overflow: hidden;
+      }
+
+      body {
+        /* Let the user scroll when the webview is too short for the content
+           (e.g. extreme Windows Accessibility text-size settings). */
+        overflow-y: auto;
+        overflow-x: auto;
       }
 
       table {
@@ -175,8 +185,11 @@
 
       function sendLayoutMessage() {
         const table = document.querySelector('table');
-        const tableWidth = table.offsetWidth;  // 表格可见宽度
-        const tableHeight = table.offsetHeight; // 表格可见高度
+        // getBoundingClientRect() reflects CSS `zoom`, so the reported size
+        // matches the visible pixels the webview needs on the C++ side.
+        const rect = table.getBoundingClientRect();
+        const tableWidth = Math.ceil(rect.width);
+        const tableHeight = Math.ceil(rect.height);
 
         const layoutMsg = JSON.stringify({
           msg: 'layout',
