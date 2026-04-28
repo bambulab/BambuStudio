@@ -1101,13 +1101,31 @@ void MainFrame::show_calibration_button(bool show, bool is_BBL)
     topbar()->ShowCalibrationButton(show);
 #endif
     show = is_BBL;
-    auto shown2 = m_tabpanel->FindPage(m_calibration) != wxNOT_FOUND;
+    // STUDIO-18116: locate the Calibration tab by its page pointer instead of relying on
+    // the hardcoded `tpCalibration` enum index. The enum value (6) is calibrated for the
+    // multi_machine-enabled layout (8 pages); when multi_machine is disabled the actual
+    // notebook only has 7 pages and Calibration sits at index 5 while the Filament Manager
+    // tab sits at index 6. Calling RemovePage(tpCalibration=6) in that situation removes
+    // the Filament Manager tab instead, which is exactly the "no Filament Manager tab on
+    // first launch" symptom users hit when no BBL preset is selected yet.
+    int cal_page_id = m_tabpanel->FindPage(m_calibration);
+    auto shown2 = cal_page_id != wxNOT_FOUND;
     if (shown2 == show)
         ;
-    else if (show)
-        m_tabpanel->InsertPage(tpCalibration, m_calibration, _L("Calibration"), std::string("tab_monitor_active"), std::string("tab_monitor_active"), false);
-    else
-        m_tabpanel->RemovePage(tpCalibration);
+    else if (show) {
+        // Insert right before the Filament Manager tab (or append if it isn't there) so
+        // the visual order stays Project / Calibration / Filament Manager regardless of
+        // how many leading plater pages update_layout() has inserted.
+        int fm_page_id = m_web_device ? m_tabpanel->FindPage(m_web_device) : wxNOT_FOUND;
+        size_t insert_at = (fm_page_id != wxNOT_FOUND)
+                               ? static_cast<size_t>(fm_page_id)
+                               : m_tabpanel->GetPageCount();
+        m_tabpanel->InsertPage(insert_at, m_calibration, _L("Calibration"),
+                               std::string("tab_monitor_active"),
+                               std::string("tab_monitor_active"), false);
+    } else {
+        m_tabpanel->RemovePage(static_cast<size_t>(cal_page_id));
+    }
 }
 
 void MainFrame::update_title_colour_after_set_title()
@@ -1159,6 +1177,9 @@ void MainFrame::init_tabpanel()
     m_settings_dialog.set_tabpanel(m_tabpanel);
 
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent& e) {
+        int old_sel = e.GetOldSelection();
+        int new_sel = e.GetSelection();
+
         //if (bool test = false) {
         //    SupportRecommendDialog* dialog = new SupportRecommendDialog(nullptr, _L("Notice"));;
 
@@ -1189,8 +1210,6 @@ void MainFrame::init_tabpanel()
         //    dialog->ShowModal();
         //}
 
-        int old_sel = e.GetOldSelection();
-        int new_sel = e.GetSelection();
         if (old_sel != wxNOT_FOUND &&
             new_sel != old_sel &&
             m_project != nullptr &&
@@ -1290,7 +1309,15 @@ void MainFrame::init_tabpanel()
                 agent->track_update_property("select_device_page", std::to_string(++select_device_page_count));
         }
         else if (panel == m_web_device) {
+#if defined(__WXOSX__)
+            // Defer hash navigation until after the notebook paints (macOS + WKWebView).
+            CallAfter([this]() {
+                if (m_web_device && m_tabpanel && m_tabpanel->GetCurrentPage() == m_web_device)
+                    m_web_device->NavigateTo("/filament");
+            });
+#else
             m_web_device->NavigateTo("/filament");
+#endif
         }
 #ifndef __APPLE__
         if (sel == tp3DEditor) {
@@ -1301,7 +1328,12 @@ void MainFrame::init_tabpanel()
         }
 #endif
 #ifndef __WXGTK__
-        if (panel)
+        // macOS: avoid moving first responder into WKWebView on Filament Manager (STUDIO-18111).
+        if (panel
+#if defined(__WXOSX__)
+            && panel != m_web_device
+#endif
+        )
             panel->SetFocus();
 #endif
         /*switch (sel) {

@@ -4,6 +4,7 @@ import type { Spool, PresetVendor, MachineItem, AmsData, AmsUnit, AmsTray } from
 import { BAMBU_COLORS, formatTypeSeries } from './constants';
 import { SpoolSvg } from './SpoolSvg';
 import useStore from '../../store/AppStore';
+import { buildVendorOptions } from './vendorOptions';
 // STUDIO-18114: shared draft -> commit helper for the custom color picker so
 // the OK/Cancel popover and the existing edit-dialog state stay aligned.
 import { commitCustomColorSelection } from './customColorSelection';
@@ -80,19 +81,15 @@ export function AddEditDialog({
   // Pull cloud-side filament config so the brand dropdown includes vendors
   // the user has configured in the cloud but not yet locally.
   const cloudConfig = useStore((s) => s.filament.cloudConfig);
+  const spools = useStore((s) => s.filament.spools);
   // F4.7: mirror of Studio's global selected machine. Used to default the
   // AMS-tab printer and to follow external changes made via
   // DeviceManager::OnSelectedMachineChanged.
   const globalSelectedDev = useStore((s) => s.filament.selectedMachineDevId);
   const mergedVendorNames = useMemo(() => {
-    const set = new Set<string>();
-    presets.forEach((v) => { if (v.name) set.add(v.name); });
-    const cloudVendors = cloudConfig?.vendors;
-    if (Array.isArray(cloudVendors)) {
-      cloudVendors.forEach((n) => { if (typeof n === 'string' && n) set.add(n); });
-    }
-    return [...set].sort();
-  }, [presets, cloudConfig]);
+    const cloudVendors = Array.isArray(cloudConfig?.vendors) ? cloudConfig.vendors : undefined;
+    return buildVendorOptions(presets, cloudVendors, spools);
+  }, [presets, cloudConfig, spools]);
 
   // Dialog mode
   const [mode, setMode] = useState<'manual' | 'ams'>('manual');
@@ -255,7 +252,7 @@ export function AddEditDialog({
         v.types.forEach((tp) => {
           if (Array.isArray(tp.items) && tp.items.length > 0) {
             tp.items.forEach((item) => {
-              const name = (item.name || item.series || '').trim();
+              const name = normalizePresetFilamentName(item.name, v.name, tp.name, item.series || '');
               if (name) set.add(name);
             });
             return;
@@ -354,7 +351,7 @@ export function AddEditDialog({
         if (brand && vendor.name !== brand) continue;
         for (const tp of vendor.types) {
           const hit = tp.items?.find((item) => {
-            const itemName = (item.name || item.series || '').trim();
+            const itemName = normalizePresetFilamentName(item.name, vendor.name, tp.name, item.series || '');
             return itemName === name;
           });
           if (hit) {
@@ -392,11 +389,11 @@ export function AddEditDialog({
   // Previously a hidden <input type="color"> committed every onChange tick,
   // which the native picker fires while the user is still dragging the hue
   // slider. That overwrote the form's color_code (and dirtied customColors)
-  // long before the user actually decided on a color, and ESC / clicking
-  // away from the picker still left the half-chosen color applied.
+  // long before the user actually decided on a color.
   // Now the popover holds a local `draftColor`; only OK calls
-  // commitCustomColorSelection() to write it back to the form. Cancel,
-  // ESC, and click-outside discard the draft.
+  // commitCustomColorSelection() to write it back to the form. Cancel and
+  // ESC discard the draft. Outside clicks intentionally keep the popover open
+  // so users do not lose a selected custom color by clicking blank space.
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
   const [draftColor, setDraftColor] = useState('#000000');
   const colorPickerRef = useRef<HTMLDivElement>(null);
@@ -421,8 +418,8 @@ export function AddEditDialog({
     setColorPickerOpen(false);
   }, [draftColor, customColors]);
 
-  // Esc key and pointer events outside the popover are treated as Cancel
-  // so the picker matches the rest of the dialog's modal behaviour.
+  // Esc key is treated as Cancel; outside clicks do not dismiss the picker
+  // because that made the chosen color disappear before users could confirm.
   useEffect(() => {
     if (!colorPickerOpen) return;
     const onKey = (e: KeyboardEvent) => {
@@ -431,15 +428,9 @@ export function AddEditDialog({
         cancelCustomColor();
       }
     };
-    const onPointerDown = (e: MouseEvent) => {
-      const node = colorPickerRef.current;
-      if (node && !node.contains(e.target as Node)) cancelCustomColor();
-    };
     window.addEventListener('keydown', onKey, true);
-    window.addEventListener('mousedown', onPointerDown, true);
     return () => {
       window.removeEventListener('keydown', onKey, true);
-      window.removeEventListener('mousedown', onPointerDown, true);
     };
   }, [colorPickerOpen, cancelCustomColor]);
 

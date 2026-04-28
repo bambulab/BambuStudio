@@ -5,6 +5,10 @@
 #include "libslic3r_version.h"
 #include "DeviceWebPage.hpp"
 
+#if defined(__WXOSX__)
+#include "slic3r/Utils/MacDarkMode.hpp"
+#endif
+
 #include <wx/sizer.h>
 #include <wx/toolbar.h>
 #include <wx/textdlg.h>
@@ -84,8 +88,27 @@ void DeviceWebPage::msw_rescale()
 
 void DeviceWebPage::NavigateTo(const std::string& path)
 {
-    if (auto* wv = m_device_webview->GetWebView())
-        wv->RunScript(wxString::Format("window.location.hash = '#%s'", path));
+#if defined(__WXOSX__)
+    // macOS: wxWebView::RunScript can block the UI thread for a long time on WKWebView (STUDIO-18111).
+    // Use async evaluateJavaScript; other platforms keep synchronous RunScript.
+    wxWebView* wv = m_device_webview ? m_device_webview->GetWebView() : nullptr;
+    if (!wv)
+        return;
+    const wxString p      = wxString::FromUTF8(path);
+    const wxString script = wxString::Format(
+        "try{var t='#%s';if(window.location.hash!==t)window.location.hash=t;}catch(e){}", p);
+    void* native = wv->GetNativeBackend();
+    if (native)
+        WKWebView_evaluateJavaScript(native, script, nullptr);
+    else
+        wv->RunScript(script);
+#else
+    if (auto* wv = m_device_webview->GetWebView()) {
+        const wxString p = wxString::FromUTF8(path);
+        wv->RunScript(wxString::Format(
+            "try{var t='#%s';if(window.location.hash!==t)window.location.hash=t;}catch(e){}", p));
+    }
+#endif
 }
 
 void DeviceWebPage::NotifyFilamentSessionState()
