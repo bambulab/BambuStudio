@@ -2,6 +2,7 @@
 
 #include <vector>
 #include "CapsuleButton.hpp"
+#include "libslic3r/PrintConfig.hpp"
 
 class Button;
 
