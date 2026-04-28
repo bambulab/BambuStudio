@@ -847,6 +847,12 @@ void BackgroundSlicingProcess::finalize_gcode()
     if (post_process && !post_process->values.empty() && m_gcode_result) {
         m_print->set_status(97, _utf8(L("Updating preview with post-processed G-code")));
         GCodeProcessor processor;
+        // Apply the plate origin offset so move coordinates in the result are
+        // relative to the correct plate, not always plate 0.  Without this,
+        // slicing any plate other than the first one shifts the preview geometry
+        // by the plate's XY origin, causing the model to appear outside the bed.
+        const Vec3d origin = m_fff_print->get_plate_origin();
+        processor.set_xy_offset(origin(0), origin(1));
         processor.process_file(m_temp_output_path);
         *m_gcode_result = std::move(processor.extract_result());
     }
