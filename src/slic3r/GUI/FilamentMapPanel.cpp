@@ -200,8 +200,8 @@ void FilamentMapManualPanel::SyncPanelHeights()
     auto curr_left = m_left_panel->GetMinSize();
     auto curr_right = m_right_panel->GetMinSize();
 
-    m_left_panel->SetMinSize(wxSize(FromDIP(260), -1));
-    m_right_panel->SetMinSize(wxSize(FromDIP(260), -1));
+    m_left_panel->SetMinSize(wxSize(FromDIP(260), FromDIP(110)));
+    m_right_panel->SetMinSize(wxSize(FromDIP(260), FromDIP(110)));
 
     m_left_panel->Layout();
     m_left_panel->Fit();
@@ -288,8 +288,8 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
             m_right_panel->AddColorBlock(color, type, idx + 1, is_high_flow);
         }
     }
-    m_left_panel->SetMinSize({ FromDIP(260),-1 });
-    m_right_panel->SetMinSize({ FromDIP(260),-1 });
+    m_left_panel->SetMinSize({FromDIP(260), FromDIP(110)});
+    m_right_panel->SetMinSize({FromDIP(260), FromDIP(110)});
 
     drag_sizer->Add(m_left_panel, 1, wxALIGN_CENTER | wxEXPAND);
     drag_sizer->Add(m_switch_btn, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
