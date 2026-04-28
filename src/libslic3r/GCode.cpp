@@ -5412,14 +5412,10 @@ double GCode::get_path_speed(const ExtrusionPath &path)
         bool use_filament_bridge_speed = FILAMENT_CONFIG(override_process_overhang_speed);
         speed = use_filament_bridge_speed ? FILAMENT_CONFIG(filament_bridge_speed) : NOZZLE_CONFIG(bridge_speed);
     }
-    auto _mm3_per_mm = path.mm3_per_mm * double(m_curr_print->calib_mode() == CalibMode::Calib_Flow_Rate ? this->config().print_flow_ratio.value : 1);
-
     // BBS: if not set the speed, then use the filament_max_volumetric_speed directly
     double filament_max_volumetric_speed = FILAMENT_CONFIG(filament_max_volumetric_speed);
     if (speed == 0) {
-        if (_mm3_per_mm > 0)
-            speed = filament_max_volumetric_speed / _mm3_per_mm;
-        else
+        if (path.mm3_per_mm > 0)
             speed = filament_max_volumetric_speed / path.mm3_per_mm;
     }
     if (this->on_first_layer()) {
@@ -5430,7 +5426,6 @@ double GCode::get_path_speed(const ExtrusionPath &path)
 
     if (filament_max_volumetric_speed > 0) {
         double extrude_speed = filament_max_volumetric_speed / path.mm3_per_mm;
-        if (_mm3_per_mm > 0) extrude_speed = filament_max_volumetric_speed / _mm3_per_mm;
 
         // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
         speed = std::min(speed, extrude_speed);
@@ -6540,10 +6535,18 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         filament_max_volumetric_speed = std::min(filament_max_volumetric_speed, fitted_value);
     }
 
+    // In flow rate calibration mode, exclude only print_flow_ratio from the volumetric
+    // speed cap so that speed stays constant across calibration objects, while keeping
+    // other flow corrections (initial_layer_flow_ratio, top_solid_infill_flow_ratio,
+    // m_sub_layer_flow_ratio) effective for speed limiting.
+    bool is_flow_calib = m_curr_print && m_curr_print->calib_mode() == CalibMode::Calib_Flow_Rate;
+    double flow_ratio  = this->config().print_flow_ratio.value;
+    auto _mm3_per_mm_for_speed = (is_flow_calib && flow_ratio > 0) ? _mm3_per_mm / flow_ratio : _mm3_per_mm;
+
     if( speed == 0 )
     {
-        if (_mm3_per_mm>0)
-            speed = filament_max_volumetric_speed / _mm3_per_mm;
+        if (_mm3_per_mm_for_speed > 0)
+            speed = filament_max_volumetric_speed / _mm3_per_mm_for_speed;
         else
             speed = filament_max_volumetric_speed / path.mm3_per_mm;
     }
@@ -6564,9 +6567,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     //    );
     //}
     if (filament_max_volumetric_speed > 0) {
-        double extrude_speed = filament_max_volumetric_speed / path.mm3_per_mm;
-        if (_mm3_per_mm > 0)
-            extrude_speed = filament_max_volumetric_speed / _mm3_per_mm;
+        double extrude_speed = filament_max_volumetric_speed / _mm3_per_mm_for_speed;
 
         // cap speed with max_volumetric_speed anyway (even if user is not using autospeed)
         speed = std::min(speed, extrude_speed);
