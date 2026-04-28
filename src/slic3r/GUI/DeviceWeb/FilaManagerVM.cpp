@@ -607,18 +607,11 @@ nlohmann::json FilaManagerVM::build_preset_options()
     if (!bundle)
         return {{"vendors", nlohmann::json::array()}};
 
-    MachineObject* obj = nullptr;
-    if (auto* dev_mgr = wxGetApp().getDeviceManager())
-        obj = dev_mgr->get_selected_machine();
-
-    std::set<std::string> printer_names;
-    if (obj && obj->GetExtderSystem()) {
-        std::ostringstream stream;
-        stream << std::fixed << std::setprecision(1) << obj->GetExtderSystem()->GetNozzleDiameter(0);
-        printer_names = bundle->get_printer_names_by_printer_type_and_nozzle(
-            DevPrinterConfigUtil::get_printer_display_name(obj->printer_type),
-            stream.str());
-    }
+    // STUDIO-18134: 添加/编辑耗材的品牌/类型下拉应当呈现完整的本地预设清单，
+    // 不能再按当前选中打印机的型号 + 喷嘴口径 + compatible_printers 过滤。
+    // 旧逻辑会让 Mac 上选中某台机器后大量第三方 vendor（HATCHBOX / INLAND /
+    // OVERTURE / Anycubic 等）的 preset 被剔，导致品牌下拉与 Win 表现不一致。
+    // 这里收集的是"用户能选什么品牌/类型"的元数据，不参与切片兼容性判断。
 
     auto& filaments = bundle->filaments;
     std::map<std::string, std::map<std::string, std::vector<nlohmann::json>>> vendor_type_items;
@@ -627,24 +620,6 @@ nlohmann::json FilaManagerVM::build_preset_options()
         Preset& preset = *it;
         if (filaments.get_preset_base(*it) != &preset)
             continue;
-        if (obj && !it->is_system && !obj->is_support_user_preset)
-            continue;
-        if (!printer_names.empty()) {
-            ConfigOption* printer_opt = it->config.option("compatible_printers");
-            ConfigOptionStrings* printer_strs = dynamic_cast<ConfigOptionStrings*>(printer_opt);
-            if (!printer_strs)
-                continue;
-
-            bool compatible_printer = false;
-            for (const auto& printer_str : printer_strs->values) {
-                if (printer_names.find(printer_str) != printer_names.end()) {
-                    compatible_printer = true;
-                    break;
-                }
-            }
-            if (!compatible_printer)
-                continue;
-        }
 
         std::string vendor = it->config.get_filament_vendor();
         std::string type   = it->config.get_filament_type();
@@ -686,6 +661,7 @@ nlohmann::json FilaManagerVM::build_preset_options()
         }
         vendors_arr.push_back({{"name", vname}, {"types", types_arr}});
     }
+
     return {{"vendors", vendors_arr}};
 }
 
