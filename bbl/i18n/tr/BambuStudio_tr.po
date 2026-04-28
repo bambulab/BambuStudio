@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-24 10:37+0800\n"
+"POT-Creation-Date: 2026-04-28 17:39+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -4601,6 +4601,9 @@ msgstr "Katman Genişliği"
 msgid "Fan Speed"
 msgstr "Fan hızı"
 
+msgid "AUX Fan Speed"
+msgstr ""
+
 msgid "Flow"
 msgstr "Akış"
 
@@ -4675,6 +4678,9 @@ msgstr "Hız (mm/s)"
 
 msgid "Fan Speed (%)"
 msgstr "Fan hızı (%)"
+
+msgid "AUX  Fan Speed (%)"
+msgstr ""
 
 msgid "Temperature (°C)"
 msgstr "Sıcaklık (°C)"
@@ -4829,6 +4835,9 @@ msgstr "Katman Süresi: "
 msgid "Fan Speed: "
 msgstr "Fan Hızı: "
 
+msgid "AUX Fan Speed: "
+msgstr ""
+
 msgid "Temperature: "
 msgstr "Sıcaklık: "
 
@@ -4911,6 +4920,9 @@ msgstr "Fare tekerleği:"
 
 msgid "Increase/decrease edit area"
 msgstr "Düzenleme alanını artır/azalt"
+
+msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
+msgstr ""
 
 msgid "Sequence"
 msgstr "Sekans"
@@ -12621,6 +12633,12 @@ msgid "The volume of material required to prime the extruder on the tower, exclu
 msgstr ""
 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
+msgstr ""
+
+msgid "Preheat temperature delta"
+msgstr ""
+
+msgid "Temperature delta applied during pre-heating before tool change."
 msgstr ""
 
 msgid "Wipe tower cooling"

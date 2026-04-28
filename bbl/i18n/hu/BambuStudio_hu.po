@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-24 10:37+0800\n"
+"POT-Creation-Date: 2026-04-28 17:39+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -192,7 +192,7 @@ msgid "How to feed TPU filament."
 msgstr "TPU filament betöltése."
 
 msgid "How to feed TPU filament on X2D."
-msgstr ""
+msgstr "TPU filament betöltése az X2D-be."
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr "Nem Bambu filament használata nyomtatási minőségi problémákat okozhat."
@@ -2657,7 +2657,7 @@ msgid "Assembly"
 msgstr "Összeállítás"
 
 msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
-msgstr ""
+msgstr "A változó rétegmagasság és a színkevert alréteg együttes használata rossz színkeverési minőséget eredményezhet."
 
 msgid "Cut Connectors information"
 msgstr "Összekötési információk kivágása"
@@ -3863,7 +3863,7 @@ msgid "Running post-processing scripts"
 msgstr "Utófeldolgozási szkriptek futtatása"
 
 msgid "Updating preview with post-processed G-code"
-msgstr ""
+msgstr "Előnézet frissítése a feldolgozott G-kóddal"
 
 msgid "Successfully executed post-processing script"
 msgstr "Utófeldolgozási szkriptek sikeresen végrehajtva"
@@ -4612,6 +4612,9 @@ msgstr "Vonalszélesség"
 msgid "Fan Speed"
 msgstr "Ventilátor fordulatszám"
 
+msgid "AUX Fan Speed"
+msgstr ""
+
 msgid "Flow"
 msgstr "Anyagáramlás"
 
@@ -4686,6 +4689,9 @@ msgstr "Sebesség (mm/mp)"
 
 msgid "Fan Speed (%)"
 msgstr "Ventilátor fordulatszám (%)"
+
+msgid "AUX  Fan Speed (%)"
+msgstr ""
 
 msgid "Temperature (°C)"
 msgstr "Hőmérséklet (°C)"
@@ -4840,6 +4846,9 @@ msgstr "Rétegidő: "
 msgid "Fan Speed: "
 msgstr "Ventilátor fordulatszám: "
 
+msgid "AUX Fan Speed: "
+msgstr ""
+
 msgid "Temperature: "
 msgstr "Hőmérséklet: "
 
@@ -4922,6 +4931,9 @@ msgstr "Egérgörgő:"
 
 msgid "Increase/decrease edit area"
 msgstr "Szerkesztési terület növelése/csökkentése"
+
+msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
+msgstr ""
 
 msgid "Sequence"
 msgstr "Sorrend"
@@ -5485,7 +5497,7 @@ msgid "Isometric View"
 msgstr "Izometrikus nézet"
 
 msgid "Fit Camera"
-msgstr ""
+msgstr "Kamera illesztése"
 
 msgid "Start a new window"
 msgstr "Új ablak nyitása"
@@ -7118,7 +7130,7 @@ msgid "High-shrinkage filament(s) detected: %s. These materials may cause dimens
 msgstr "Nagy zsugorodású filament(ek) észlelve: %s. Ezek az anyagok lehűlés után méretbeli eltérést okozhatnak. Ha a modell precíz illesztést vagy összeszerelést igényel, kérjük, tekintsd meg a Wiki-útmutatót a zsugorodás tesztelésével kapcsolatban."
 
 msgid "Printing mixed-color filament on a single-extruder printer requires frequent filament changes and flushing, which may significantly increase waste and the risk of nozzle / waste-chute clogging."
-msgstr ""
+msgstr "A vegyes színű filament nyomtatása egy extruderes nyomtatón gyakori filamentcserét és öblítést igényel, ami jelentősen megnövelheti a keletkező hulladék mennyiségét és a fúvóka / kidobónyílás eltömődésének kockázatát."
 
 #, boost-format
 msgid " plate %1%: "
@@ -10521,7 +10533,7 @@ msgid "Camera view - Isometric"
 msgstr "Kameranézet - Izometrikus"
 
 msgid "Camera view - Fit to scene or selection"
-msgstr ""
+msgstr "Kameranézet – Jelenethez vagy kijelöléshez igazítás"
 
 msgid "Shift+E"
 msgstr ""
@@ -12703,6 +12715,12 @@ msgstr "Az extruder átöblítéséhez szükséges anyagmennyiség, a hotend cse
 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr "Az extruder átöblítéséhez szükséges anyagmennyiség a hotend cseréjekor."
+
+msgid "Preheat temperature delta"
+msgstr ""
+
+msgid "Temperature delta applied during pre-heating before tool change."
+msgstr ""
 
 msgid "Wipe tower cooling"
 msgstr "Törlőtorony hűtés"
@@ -16981,59 +16999,59 @@ msgid "Print Outcome: "
 msgstr "Nyomtatási eredmény: "
 
 msgid "Edit Mixed Filament"
-msgstr ""
+msgstr "Vegyes filament szerkesztése"
 
 msgid "Effect Preview"
-msgstr ""
+msgstr "Effekt előnézet"
 
 msgid "Select Mixed Materials"
-msgstr ""
+msgstr "Vegyes anyagok kiválasztása"
 
 msgid "+ Add Material"
-msgstr ""
+msgstr "+ Anyag hozzáadása"
 
 msgid "- Delete Material"
-msgstr ""
+msgstr "- Anyag törlése"
 
 msgid "Ratio"
-msgstr ""
+msgstr "Arány"
 
 msgid "Gradient Effect"
-msgstr ""
+msgstr "Színátmenet"
 
 msgid "Mixing Recommendations"
-msgstr ""
+msgstr "Keverési javaslatok"
 
 msgid "-- Select --"
-msgstr ""
+msgstr "-- Kiválaszt --"
 
 msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-msgstr ""
+msgstr "A színátmenethez engedélyezni kell a „Vegyes színű alréteg” beállítást. Engedélyezed?"
 
 msgid "Mixed Color Sublayer"
-msgstr ""
+msgstr "Vegyes színű alréteg"
 
 #, c-format, boost-format
 msgid "Slot %s (%s)"
-msgstr ""
+msgstr "Férőhely: %s (%s)"
 
 msgid "cannot be mixed. Please select the same filament type."
-msgstr ""
+msgstr "nem keverhető. Kérjük, válassz azonos típusú filamentet."
 
 msgid "Please select a filament for all components"
-msgstr ""
+msgstr "Kérjük, válassz egy filamentet az összes komponenshez"
 
 msgid "Cannot mix different filament types"
-msgstr ""
+msgstr "A különböző típusú filamenteket nem lehet keverni"
 
 msgid "Maximum 3 materials for mixing"
-msgstr ""
+msgstr "Maximum 3 anyag keverhető"
 
 msgid "Maximum number of components reached"
-msgstr ""
+msgstr "Elérted a komponensek maximális számát"
 
 msgid "Remove the third material"
-msgstr ""
+msgstr "Harmadik anyag eltávolítása"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""

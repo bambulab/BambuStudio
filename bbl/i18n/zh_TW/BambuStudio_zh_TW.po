@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-24 10:37+0800\n"
+"POT-Creation-Date: 2026-04-28 17:39+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4576,6 +4576,9 @@ msgstr "線寬"
 msgid "Fan Speed"
 msgstr "風扇速度"
 
+msgid "AUX Fan Speed"
+msgstr ""
+
 msgid "Flow"
 msgstr "流量"
 
@@ -4650,6 +4653,9 @@ msgstr "速度（mm/s）"
 
 msgid "Fan Speed (%)"
 msgstr "風扇速度（%）"
+
+msgid "AUX  Fan Speed (%)"
+msgstr ""
 
 msgid "Temperature (°C)"
 msgstr "溫度（℃）"
@@ -4804,6 +4810,9 @@ msgstr "層時間: "
 msgid "Fan Speed: "
 msgstr "風扇速度: "
 
+msgid "AUX Fan Speed: "
+msgstr ""
+
 msgid "Temperature: "
 msgstr "溫度: "
 
@@ -4884,6 +4893,9 @@ msgstr "滑鼠滾輪："
 
 msgid "Increase/decrease edit area"
 msgstr "增加/減小編輯區域"
+
+msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
+msgstr ""
 
 msgid "Sequence"
 msgstr "順序"
@@ -12626,6 +12638,12 @@ msgstr "除了換熱端外的擦拭塔上的清理量。"
 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr "換熱端所需的擦料塔上的清理量。"
+
+msgid "Preheat temperature delta"
+msgstr ""
+
+msgid "Temperature delta applied during pre-heating before tool change."
+msgstr ""
 
 msgid "Wipe tower cooling"
 msgstr "擦料塔冷卻"

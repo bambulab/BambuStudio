@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-24 10:37+0800\n"
+"POT-Creation-Date: 2026-04-28 17:39+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -192,7 +192,7 @@ msgid "How to feed TPU filament."
 msgstr "TPU 필라멘트 공급 방법"
 
 msgid "How to feed TPU filament on X2D."
-msgstr ""
+msgstr "X2D에 TPU 필라멘트 공급 방법."
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr "Bambu가 아닌 필라멘트를 사용하면 출력 품질 문제가 발생할 수 있습니다."
@@ -2654,7 +2654,7 @@ msgid "Assembly"
 msgstr "결합"
 
 msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
-msgstr ""
+msgstr "가변 레이어 높이를 혼합 색상 하위 레이어와 함께 사용하면 색상 혼합 품질이 저하될 수 있습니다."
 
 msgid "Cut Connectors information"
 msgstr "컷 커넥터 정보"
@@ -3858,7 +3858,7 @@ msgid "Running post-processing scripts"
 msgstr "포스트 프로세싱 스크립트 실행"
 
 msgid "Updating preview with post-processed G-code"
-msgstr ""
+msgstr "후처리된 G-code로 미리보기 업데이트 중"
 
 msgid "Successfully executed post-processing script"
 msgstr "성공적으로 실행된 후처리 스크립트"
@@ -4607,6 +4607,9 @@ msgstr "라인 폭"
 msgid "Fan Speed"
 msgstr "팬 속도"
 
+msgid "AUX Fan Speed"
+msgstr ""
+
 msgid "Flow"
 msgstr "유량"
 
@@ -4681,6 +4684,9 @@ msgstr "속도 (mm/s)"
 
 msgid "Fan Speed (%)"
 msgstr "팬 속도 (%)"
+
+msgid "AUX  Fan Speed (%)"
+msgstr ""
 
 msgid "Temperature (°C)"
 msgstr "온도 (°C)"
@@ -4835,6 +4841,9 @@ msgstr "레이어 시간: "
 msgid "Fan Speed: "
 msgstr "팬 속도: "
 
+msgid "AUX Fan Speed: "
+msgstr ""
+
 msgid "Temperature: "
 msgstr "온도: "
 
@@ -4917,6 +4926,9 @@ msgstr "마우스 휠:"
 
 msgid "Increase/decrease edit area"
 msgstr "편집 영역 늘리기/줄이기"
+
+msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
+msgstr ""
 
 msgid "Sequence"
 msgstr "순서"
@@ -5480,7 +5492,7 @@ msgid "Isometric View"
 msgstr "아이소메트릭 뷰"
 
 msgid "Fit Camera"
-msgstr ""
+msgstr "카메라 맞춤"
 
 msgid "Start a new window"
 msgstr "새 창 시작"
@@ -7106,7 +7118,7 @@ msgid "High-shrinkage filament(s) detected: %s. These materials may cause dimens
 msgstr "고수축성 필라멘트(%s)가 감지되었습니다. 이 재료는 냉각 후 치수 편차를 유발할 수 있습니다. 모델이 정밀하게 맞거나 조립되어야 하는 경우, 수축 테스트를 위한 Wiki 가이드를 참조하십시오."
 
 msgid "Printing mixed-color filament on a single-extruder printer requires frequent filament changes and flushing, which may significantly increase waste and the risk of nozzle / waste-chute clogging."
-msgstr ""
+msgstr "단일 압출기 프린터에서 혼합색 필라멘트를 출력하려면 빈번한 필라멘트 교체 및 플러싱이 필요하며, 이는 폐기물을 크게 증가시키고 노즐 / 폐기물 슈트 막힘의 위험을 높일 수 있습니다."
 
 #, boost-format
 msgid " plate %1%: "
@@ -10512,7 +10524,7 @@ msgid "Camera view - Isometric"
 msgstr "카메라 뷰 - 아이소메트릭"
 
 msgid "Camera view - Fit to scene or selection"
-msgstr ""
+msgstr "카메라 시점 - 장면 또는 선택 영역에 맞추기"
 
 msgid "Shift+E"
 msgstr ""
@@ -12694,6 +12706,12 @@ msgstr "핫엔드 교체를 제외하고, 타워에서 압출기를 준비하는
 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr "타워에서 핫엔드를 교체하기 위해 압출기를 준비하는 데 필요한 재료 부피."
+
+msgid "Preheat temperature delta"
+msgstr ""
+
+msgid "Temperature delta applied during pre-heating before tool change."
+msgstr ""
 
 msgid "Wipe tower cooling"
 msgstr "와이프 타워 냉각"
@@ -16975,59 +16993,59 @@ msgid "Print Outcome: "
 msgstr "출력 결과: "
 
 msgid "Edit Mixed Filament"
-msgstr ""
+msgstr "혼합 필라멘트 편집"
 
 msgid "Effect Preview"
-msgstr ""
+msgstr "효과 미리보기"
 
 msgid "Select Mixed Materials"
-msgstr ""
+msgstr "혼합 재료 선택"
 
 msgid "+ Add Material"
-msgstr ""
+msgstr "+ 재료 추가"
 
 msgid "- Delete Material"
-msgstr ""
+msgstr "- 재료 삭제"
 
 msgid "Ratio"
-msgstr ""
+msgstr "비율"
 
 msgid "Gradient Effect"
-msgstr ""
+msgstr "그라디언트 효과"
 
 msgid "Mixing Recommendations"
-msgstr ""
+msgstr "권장 혼합"
 
 msgid "-- Select --"
-msgstr ""
+msgstr "-- 선택 --"
 
 msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-msgstr ""
+msgstr "그라디언트 효과를 사용하려면 '혼합 색상 하위 레이어'를 활성화해야 합니다. 지금 활성화하시겠습니까?"
 
 msgid "Mixed Color Sublayer"
-msgstr ""
+msgstr "혼합 색상 하위  레이어"
 
 #, c-format, boost-format
 msgid "Slot %s (%s)"
-msgstr ""
+msgstr "슬롯 %s (%s)"
 
 msgid "cannot be mixed. Please select the same filament type."
-msgstr ""
+msgstr "혼합할 수 없습니다. 동일한 필라멘트 종류를 선택해 주세요."
 
 msgid "Please select a filament for all components"
-msgstr ""
+msgstr "모든 부품에 필라멘트를 선택하세요."
 
 msgid "Cannot mix different filament types"
-msgstr ""
+msgstr "다른 필라멘트 유형을 섞을 수 없습니다."
 
 msgid "Maximum 3 materials for mixing"
-msgstr ""
+msgstr "혼합 가능한 재료는 최대 3가지입니다."
 
 msgid "Maximum number of components reached"
-msgstr ""
+msgstr "최대 구성 요소 수에 도달했습니다."
 
 msgid "Remove the third material"
-msgstr ""
+msgstr "세 번째 재료를 제거하세요"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-24 10:37+0800\n"
+"POT-Creation-Date: 2026-04-28 17:39+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -192,7 +192,7 @@ msgid "How to feed TPU filament."
 msgstr "Comment charger du filament TPU."
 
 msgid "How to feed TPU filament on X2D."
-msgstr ""
+msgstr "Comment charger du filament TPU dans la X2D."
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr "L'utilisation de filaments non Bambu peut entraîner des problèmes de qualité d'impression."
@@ -2657,7 +2657,7 @@ msgid "Assembly"
 msgstr "Assemblé"
 
 msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
-msgstr ""
+msgstr "L'utilisation d'une hauteur de couche variable avec une sous-couche à couleurs mélangées peut entraîner une mauvaise qualité de mélange des couleurs."
 
 msgid "Cut Connectors information"
 msgstr "Informations sur les connecteurs de coupe"
@@ -3857,7 +3857,7 @@ msgid "Running post-processing scripts"
 msgstr "Exécution de scripts de post-traitement"
 
 msgid "Updating preview with post-processed G-code"
-msgstr ""
+msgstr "Mise à jour de l'aperçu avec le G-code post-traité"
 
 msgid "Successfully executed post-processing script"
 msgstr "Script de post-traitement exécuté avec succès"
@@ -4603,6 +4603,9 @@ msgstr "Largeur de ligne"
 msgid "Fan Speed"
 msgstr "Vitesse du ventilateur"
 
+msgid "AUX Fan Speed"
+msgstr ""
+
 msgid "Flow"
 msgstr "Débit"
 
@@ -4677,6 +4680,9 @@ msgstr "Vitesse (mm/s)"
 
 msgid "Fan Speed (%)"
 msgstr "Vitesse Ventilateur (%)"
+
+msgid "AUX  Fan Speed (%)"
+msgstr ""
 
 msgid "Temperature (°C)"
 msgstr "Température (°C)"
@@ -4831,6 +4837,9 @@ msgstr "Temps de Couche: "
 msgid "Fan Speed: "
 msgstr "Vitesse Ventilateur: "
 
+msgid "AUX Fan Speed: "
+msgstr ""
+
 msgid "Temperature: "
 msgstr "Température : "
 
@@ -4911,6 +4920,9 @@ msgstr "Molette de la souris :"
 
 msgid "Increase/decrease edit area"
 msgstr "Augmenter/diminuer la zone d'édition"
+
+msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
+msgstr ""
 
 msgid "Sequence"
 msgstr "Séquence"
@@ -5474,7 +5486,7 @@ msgid "Isometric View"
 msgstr "Vue isométrique"
 
 msgid "Fit Camera"
-msgstr ""
+msgstr "Ajuster Caméra"
 
 msgid "Start a new window"
 msgstr "Démarrer une nouvelle fenêtre"
@@ -7105,7 +7117,7 @@ msgid "High-shrinkage filament(s) detected: %s. These materials may cause dimens
 msgstr "Filament(s) à fort retrait détecté(s) : %s. Ces matériaux peuvent entraîner des écarts dimensionnels après refroidissement. Si votre modèle nécessite un ajustement ou un assemblage précis, veuillez consulter le guide Wiki relatif aux tests de retrait."
 
 msgid "Printing mixed-color filament on a single-extruder printer requires frequent filament changes and flushing, which may significantly increase waste and the risk of nozzle / waste-chute clogging."
-msgstr ""
+msgstr "L'impression de filament multicolore sur une imprimante à extrudeur unique nécessite de fréquents changements de filament et des purges, ce qui peut augmenter considérablement les déchets et le risque de bouchage de la buse / de la goulotte d'évacuation des déchets."
 
 #, boost-format
 msgid " plate %1%: "
@@ -10507,7 +10519,7 @@ msgid "Camera view - Isometric"
 msgstr "Vue caméra - Isométrique"
 
 msgid "Camera view - Fit to scene or selection"
-msgstr ""
+msgstr "Vue caméra - Adapter à la scène ou à la sélection"
 
 msgid "Shift+E"
 msgstr "Maj+E"
@@ -12689,6 +12701,12 @@ msgstr "Le volume de matériau nécessaire pour amorcer l'extrudeur sur la tour,
 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr "Le volume de matériau nécessaire pour amorcer l'extrudeur lors d'un changement de hotend sur la tourelle."
+
+msgid "Preheat temperature delta"
+msgstr ""
+
+msgid "Temperature delta applied during pre-heating before tool change."
+msgstr ""
 
 msgid "Wipe tower cooling"
 msgstr "Refroidissement de la tour de purge"
@@ -16971,59 +16989,59 @@ msgid "Print Outcome: "
 msgstr "Résultat d'Impression : "
 
 msgid "Edit Mixed Filament"
-msgstr ""
+msgstr "Modifier le Mélange de Filaments"
 
 msgid "Effect Preview"
-msgstr ""
+msgstr "Aperçu du Rendu"
 
 msgid "Select Mixed Materials"
-msgstr ""
+msgstr "Sélectionner des Matériaux Mélangés"
 
 msgid "+ Add Material"
-msgstr ""
+msgstr "+ Ajouter Matériau"
 
 msgid "- Delete Material"
-msgstr ""
+msgstr "- Supprimer Matériau"
 
 msgid "Ratio"
 msgstr ""
 
 msgid "Gradient Effect"
-msgstr ""
+msgstr "Effet Dégradé"
 
 msgid "Mixing Recommendations"
-msgstr ""
+msgstr "Recommandations de Mélange"
 
 msgid "-- Select --"
-msgstr ""
+msgstr "-- Sélectionner --"
 
 msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-msgstr ""
+msgstr "L'effet de dégradé nécessite l'activation de l'option « Sous-calque de couleur mixte ». L'activer maintenant ?"
 
 msgid "Mixed Color Sublayer"
-msgstr ""
+msgstr "Sous-couche Couleur Mélangée"
 
 #, c-format, boost-format
 msgid "Slot %s (%s)"
 msgstr ""
 
 msgid "cannot be mixed. Please select the same filament type."
-msgstr ""
+msgstr "ne peut pas être mélangé. Veuillez sélectionner le même type de filament."
 
 msgid "Please select a filament for all components"
-msgstr ""
+msgstr "Veuillez sélectionner un filament pour tous les composants"
 
 msgid "Cannot mix different filament types"
-msgstr ""
+msgstr "Impossible de mélanger différents types de filaments"
 
 msgid "Maximum 3 materials for mixing"
-msgstr ""
+msgstr "Maximum 3 matériaux pour le mélange"
 
 msgid "Maximum number of components reached"
-msgstr ""
+msgstr "Nombre maximum de composants atteint"
 
 msgid "Remove the third material"
-msgstr ""
+msgstr "Supprimer le troisième matériau"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""

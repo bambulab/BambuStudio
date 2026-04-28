@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-24 10:37+0800\n"
+"POT-Creation-Date: 2026-04-28 17:39+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4615,6 +4615,9 @@ msgstr "Largura da linha"
 msgid "Fan Speed"
 msgstr "Velocidade do ventilador"
 
+msgid "AUX Fan Speed"
+msgstr ""
+
 msgid "Flow"
 msgstr "Fluxo"
 
@@ -4689,6 +4692,9 @@ msgstr "Velocidade (mm/s)"
 
 msgid "Fan Speed (%)"
 msgstr "Velocidade do ventilador (%)"
+
+msgid "AUX  Fan Speed (%)"
+msgstr ""
 
 msgid "Temperature (°C)"
 msgstr "Temperatura (°C)"
@@ -4843,6 +4849,9 @@ msgstr "Tempo da camada: "
 msgid "Fan Speed: "
 msgstr "Velocidade do ventilador: "
 
+msgid "AUX Fan Speed: "
+msgstr ""
+
 msgid "Temperature: "
 msgstr "Temperatura: "
 
@@ -4925,6 +4934,9 @@ msgstr "Roda do mouse:"
 
 msgid "Increase/decrease edit area"
 msgstr "Aumentar/diminuir a área de edição"
+
+msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
+msgstr ""
 
 msgid "Sequence"
 msgstr "Sequência"
@@ -12711,6 +12723,12 @@ msgstr "O volume de material necessário para priming do extrusor na torre, excl
 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr "O volume de material necessário para preparar o extrusor para uma troca do hotend na torre."
+
+msgid "Preheat temperature delta"
+msgstr ""
+
+msgid "Temperature delta applied during pre-heating before tool change."
+msgstr ""
 
 msgid "Wipe tower cooling"
 msgstr "Resfriamento da torre de limpeza"

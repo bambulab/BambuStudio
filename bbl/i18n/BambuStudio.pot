@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-24 10:37+0800\n"
+"POT-Creation-Date: 2026-04-28 17:39+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4498,6 +4498,9 @@ msgstr ""
 msgid "Fan Speed"
 msgstr ""
 
+msgid "AUX Fan Speed"
+msgstr ""
+
 msgid "Flow"
 msgstr ""
 
@@ -4571,6 +4574,9 @@ msgid "Speed (mm/s)"
 msgstr ""
 
 msgid "Fan Speed (%)"
+msgstr ""
+
+msgid "AUX  Fan Speed (%)"
 msgstr ""
 
 msgid "Temperature (°C)"
@@ -4726,6 +4732,9 @@ msgstr ""
 msgid "Fan Speed: "
 msgstr ""
 
+msgid "AUX Fan Speed: "
+msgstr ""
+
 msgid "Temperature: "
 msgstr ""
 
@@ -4803,6 +4812,9 @@ msgid "Mouse wheel:"
 msgstr ""
 
 msgid "Increase/decrease edit area"
+msgstr ""
+
+msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
 msgstr ""
 
 msgid "Sequence"
@@ -12382,6 +12394,12 @@ msgid "The volume of material required to prime the extruder on the tower, exclu
 msgstr ""
 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
+msgstr ""
+
+msgid "Preheat temperature delta"
+msgstr ""
+
+msgid "Temperature delta applied during pre-heating before tool change."
 msgstr ""
 
 msgid "Wipe tower cooling"

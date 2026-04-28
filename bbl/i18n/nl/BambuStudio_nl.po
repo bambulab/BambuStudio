@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-24 10:37+0800\n"
+"POT-Creation-Date: 2026-04-28 17:39+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -192,7 +192,7 @@ msgid "How to feed TPU filament."
 msgstr "Hoe TPU-filament te voeden."
 
 msgid "How to feed TPU filament on X2D."
-msgstr ""
+msgstr "Hoe TPU-filament te laden op de X2D."
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr "Het gebruik van niet-bambu filament kan problemen geven met de printkwaliteit."
@@ -2657,7 +2657,7 @@ msgid "Assembly"
 msgstr "Montage"
 
 msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
-msgstr ""
+msgstr "Het gebruik van variabele laaghoogte samen met een gemengde kleursublaag kan leiden tot een slechte kleurmengkwaliteit."
 
 msgid "Cut Connectors information"
 msgstr "Snede connectors informatie"
@@ -3863,7 +3863,7 @@ msgid "Running post-processing scripts"
 msgstr "Het uitvoeren van post-processing scripts"
 
 msgid "Updating preview with post-processed G-code"
-msgstr ""
+msgstr "Voorvertoning bijwerken met nabewerkte G-code"
 
 msgid "Successfully executed post-processing script"
 msgstr "Succesvol uitgevoerd nabewerkingsscript"
@@ -4612,6 +4612,9 @@ msgstr "Lijnbreedte"
 msgid "Fan Speed"
 msgstr "Ventilator snelheid"
 
+msgid "AUX Fan Speed"
+msgstr ""
+
 msgid "Flow"
 msgstr "Flow"
 
@@ -4686,6 +4689,9 @@ msgstr "Snelheid (mm/s)"
 
 msgid "Fan Speed (%)"
 msgstr "Ventilatorsnelheid (%)"
+
+msgid "AUX  Fan Speed (%)"
+msgstr ""
 
 msgid "Temperature (°C)"
 msgstr "Temperatuur (°C)"
@@ -4840,6 +4846,9 @@ msgstr "Laagtijd:"
 msgid "Fan Speed: "
 msgstr "Ventilatorsnelheid: "
 
+msgid "AUX Fan Speed: "
+msgstr ""
+
 msgid "Temperature: "
 msgstr "Temperatuur: "
 
@@ -4922,6 +4931,9 @@ msgstr "Muiswiel:"
 
 msgid "Increase/decrease edit area"
 msgstr "Bewerkingsgebied vergroten/verkleinen"
+
+msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
+msgstr ""
 
 msgid "Sequence"
 msgstr "Reeks"
@@ -5485,7 +5497,7 @@ msgid "Isometric View"
 msgstr "Isometrische weergave"
 
 msgid "Fit Camera"
-msgstr ""
+msgstr "Camera passen"
 
 msgid "Start a new window"
 msgstr "Een nieuw venster openen"
@@ -7118,7 +7130,7 @@ msgid "High-shrinkage filament(s) detected: %s. These materials may cause dimens
 msgstr "Hoge krimpende filament(en) gedetecteerd: %s. Deze materialen kunnen dimensionale afwijkingen vertonen na afkoeling. Als uw model een nauwkeurige passing of assemblage vereist, raadpleeg dan de Wiki-handleiding voor krimp-testen."
 
 msgid "Printing mixed-color filament on a single-extruder printer requires frequent filament changes and flushing, which may significantly increase waste and the risk of nozzle / waste-chute clogging."
-msgstr ""
+msgstr "Het printen van meerkleurig filament op een printer met één extruder vereist frequent wisselen en spoelen van filament, wat de verspilling aanzienlijk kan verhogen en het risico op verstopping van de nozzle / afvoergoot."
 
 #, boost-format
 msgid " plate %1%: "
@@ -12710,6 +12722,12 @@ msgstr "Het volume materiaal dat nodig is om de extruder op de toren te primen, 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr "Het volume materiaal dat nodig is om de extruder te primen voor een hot-end wissel op de toren."
 
+msgid "Preheat temperature delta"
+msgstr ""
+
+msgid "Temperature delta applied during pre-heating before tool change."
+msgstr ""
+
 msgid "Wipe tower cooling"
 msgstr "Afkoeling veegtoren"
 
@@ -16987,59 +17005,59 @@ msgid "Print Outcome: "
 msgstr "Printresultaat: "
 
 msgid "Edit Mixed Filament"
-msgstr ""
+msgstr "Voeg gemengd filament toe"
 
 msgid "Effect Preview"
-msgstr ""
+msgstr "Effectvoorbeeld"
 
 msgid "Select Mixed Materials"
-msgstr ""
+msgstr "Selecteer gemengde materialen"
 
 msgid "+ Add Material"
-msgstr ""
+msgstr "+ Materiaal toevoegen"
 
 msgid "- Delete Material"
-msgstr ""
+msgstr "- Materialen verwijderen"
 
 msgid "Ratio"
-msgstr ""
+msgstr "Verhouding"
 
 msgid "Gradient Effect"
-msgstr ""
+msgstr "Verloop effect"
 
 msgid "Mixing Recommendations"
-msgstr ""
+msgstr "Aanbevelingen voor het mengen"
 
 msgid "-- Select --"
-msgstr ""
+msgstr "-- Selecteer --"
 
 msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-msgstr ""
+msgstr "Voor het verloopeffect moet de optie 'Sublaag gemengde kleuren' zijn ingeschakeld. Wilt u deze nu inschakelen?"
 
 msgid "Mixed Color Sublayer"
-msgstr ""
+msgstr "Sublaag met gemengde kleur"
 
 #, c-format, boost-format
 msgid "Slot %s (%s)"
 msgstr ""
 
 msgid "cannot be mixed. Please select the same filament type."
-msgstr ""
+msgstr "kan niet gemengd worden. Selecteer het type filament."
 
 msgid "Please select a filament for all components"
-msgstr ""
+msgstr "Selecteer een filament voor alle componenten."
 
 msgid "Cannot mix different filament types"
-msgstr ""
+msgstr "Verschillende soorten filamenten kunnen niet door elkaar gebruikt worden."
 
 msgid "Maximum 3 materials for mixing"
-msgstr ""
+msgstr "Maximaal 3 materialen voor menging"
 
 msgid "Maximum number of components reached"
-msgstr ""
+msgstr "Maximaal aantal componenten bereikt"
 
 msgid "Remove the third material"
-msgstr ""
+msgstr "Verwijder het derde materiaal."
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""

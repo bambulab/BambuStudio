@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-24 10:37+0800\n"
+"POT-Creation-Date: 2026-04-28 17:39+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4592,6 +4592,9 @@ msgstr "線幅"
 msgid "Fan Speed"
 msgstr "ファン回転速度"
 
+msgid "AUX Fan Speed"
+msgstr ""
+
 msgid "Flow"
 msgstr "流量"
 
@@ -4666,6 +4669,9 @@ msgstr "速度 (mm/s)"
 
 msgid "Fan Speed (%)"
 msgstr "ファン回転速度 (%)"
+
+msgid "AUX  Fan Speed (%)"
+msgstr ""
 
 msgid "Temperature (°C)"
 msgstr "温度 (°C)"
@@ -4820,6 +4826,9 @@ msgstr "積層時間: "
 msgid "Fan Speed: "
 msgstr "ファン回転速度: "
 
+msgid "AUX Fan Speed: "
+msgstr ""
+
 msgid "Temperature: "
 msgstr "温度: "
 
@@ -4902,6 +4911,9 @@ msgstr "マウスホイール"
 
 msgid "Increase/decrease edit area"
 msgstr "編集領域を拡大/縮小"
+
+msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
+msgstr ""
 
 msgid "Sequence"
 msgstr "順番"
@@ -12664,6 +12676,12 @@ msgstr "ホットエンドの変更を伴わない場合に、プライムタワ
 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr "ホットエンド変更を伴う場合に、プライムタワー上で押出機を初期化するために必要な材料量です。"
+
+msgid "Preheat temperature delta"
+msgstr ""
+
+msgid "Temperature delta applied during pre-heating before tool change."
+msgstr ""
 
 msgid "Wipe tower cooling"
 msgstr "ワイプタワー冷却"

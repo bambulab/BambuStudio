@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-24 10:37+0800\n"
+"POT-Creation-Date: 2026-04-28 17:39+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz> \n"
 "Language-Team: \n"
@@ -4604,6 +4604,9 @@ msgstr "Šířka linie"
 msgid "Fan Speed"
 msgstr "Rychlost ventilátoru"
 
+msgid "AUX Fan Speed"
+msgstr ""
+
 msgid "Flow"
 msgstr "Tok"
 
@@ -4678,6 +4681,9 @@ msgstr "Rychlost (mm/s)"
 
 msgid "Fan Speed (%)"
 msgstr "Rychlost ventilátoru (%)"
+
+msgid "AUX  Fan Speed (%)"
+msgstr ""
 
 msgid "Temperature (°C)"
 msgstr "Teplota (°C)"
@@ -4832,6 +4838,9 @@ msgstr "Čas vrstvy: "
 msgid "Fan Speed: "
 msgstr "Rychlost ventilátoru: "
 
+msgid "AUX Fan Speed: "
+msgstr ""
+
 msgid "Temperature: "
 msgstr "Teplota: "
 
@@ -4914,6 +4923,9 @@ msgstr "Kolečko myši:"
 
 msgid "Increase/decrease edit area"
 msgstr "Zvětšit/zmenšit editační oblast"
+
+msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
+msgstr ""
 
 msgid "Sequence"
 msgstr "Sekvence"
@@ -12637,6 +12649,12 @@ msgstr "Objem materiálu potřebný k předplnění extruderu na věži, bez vý
 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr "Objem materiálu potřebný k předplnění extruderu při výměně hotendu na věži."
+
+msgid "Preheat temperature delta"
+msgstr ""
+
+msgid "Temperature delta applied during pre-heating before tool change."
+msgstr ""
 
 msgid "Wipe tower cooling"
 msgstr "Chlazení stírací věže"
