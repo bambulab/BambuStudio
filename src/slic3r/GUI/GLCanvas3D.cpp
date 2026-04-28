@@ -4214,17 +4214,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case WXK_BACK: { post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break; }
 #endif
         case WXK_ESCAPE: { deselect_all(); break; }
-        // Shift+E to toggle object labels
-        case 'E':
-        case 'e': {
-            if ((evt.GetModifiers() & shiftMask) != 0) {
-                m_labels.show_object_labels(!m_labels.are_object_labels_shown());
-                m_dirty = true;
-                break;
-            }
-            evt.Skip();
-            break;
-        }
         //case WXK_F5: {
         //    if ((wxGetApp().is_editor() && !wxGetApp().plater()->model().objects.empty()) ||
         //        (wxGetApp().is_gcode_viewer() && !wxGetApp().plater()->get_last_loaded_gcode().empty()))
