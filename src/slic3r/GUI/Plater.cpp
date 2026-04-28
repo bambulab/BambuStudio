@@ -10846,10 +10846,6 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
                 if (!this->background_process.running() && !this->m_is_slicing)
                 {
                     this->m_slice_all = false;
-                    auto curr_plate   = this->partplate_list.get_curr_plate();
-                    bool should_slice = try_pop_up_before_slice(false, this->q, curr_plate, false);
-                    if (!should_slice)
-                        return;
                     this->q->reslice();
                 }
                 else {
