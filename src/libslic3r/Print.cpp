@@ -623,15 +623,6 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
 
     bool all_objects_are_short = print.is_all_objects_are_short();
     float obj_distance = all_objects_are_short ? scale_(0.5*MAX_OUTER_NOZZLE_RADIUS-0.1) : scale_(0.5*print.config().extruder_clearance_max_radius.value-0.1);
-    // BBS: Add skirt/brim expansion for sequential print collision detection
-    if (print.is_sequential_print()) {
-        float extra = get_real_skirt_dist(print.config());
-        for (const PrintObject *obj : print.objects()) {
-            float brim_ext = static_cast<float>(obj->config().brim_width.value);
-            extra = std::max(extra, brim_ext);
-        }
-        obj_distance += scale_(extra);
-    }
     {
         // sequential_print_horizontal_clearance_valid
         Polygons convex_hulls_other;

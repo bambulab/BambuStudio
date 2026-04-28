@@ -1815,8 +1815,8 @@ Points get_bed_shape(const DynamicPrintConfig &cfg, bool use_share = true);
 Points get_bed_shape(const PrintConfig &cfg, bool use_share = false);
 Points get_bed_shape(const SLAPrinterConfig &cfg);
 Slic3r::Polygon get_bed_shape_with_excluded_area(const PrintConfig& cfg, bool use_share = false);
-bool has_skirt(const ConfigBase& cfg);
-float get_real_skirt_dist(const ConfigBase& cfg);
+bool has_skirt(const DynamicPrintConfig& cfg);
+float get_real_skirt_dist(const DynamicPrintConfig& cfg);
 
 // ModelConfig is a wrapper around DynamicPrintConfig with an addition of a timestamp.
 // Each change of ModelConfig is tracked by assigning a new timestamp from a global counter.
