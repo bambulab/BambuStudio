@@ -9,6 +9,25 @@ import { buildVendorOptions } from './vendorOptions';
 // the OK/Cancel popover and the existing edit-dialog state stay aligned.
 import { commitCustomColorSelection } from './customColorSelection';
 
+// STUDIO-17959: cap both 当前净重 / 总净重 inputs in the Add/Edit dialog.
+// Bug repro: users could type arbitrarily large numbers (e.g. 99999999999)
+// into either weight field and submit. Backend then clamped/overflowed
+// silently and the row's weight ended up persisted as 0, so the spool
+// looked fully consumed in the manager. There was also no client-side
+// check that currentNetWeight ≤ totalNetWeight (only `isValid` already had
+// that one, but the missing max cap allowed the larger bug).
+// Cap at 999_999_999g (~999 t) — fits in a signed 32-bit int (max
+// 2_147_483_647) so we never overflow the wire format, while staying high
+// enough that no realistic SKU will be rejected by the UI. Anything that
+// would actually need more than this was always a typo; we only need a
+// hard ceiling, not a tight one.
+const MAX_NET_WEIGHT_GRAMS = 999_999_999;
+
+function clampWeight(value: number): number {
+  if (!Number.isFinite(value) || value < 0) return 0;
+  return Math.min(MAX_NET_WEIGHT_GRAMS, Math.round(value));
+}
+
 function normalizeColorCode(value?: string): string {
   const raw = (value || '').trim();
   if (!raw) return '';
@@ -31,6 +50,26 @@ function getTrayCurrentNetWeight(tray: AmsTray): number {
   if (init <= 0) return 0;
   if (remain <= 0) return init;
   return Math.round(init * remain / 100);
+}
+
+// STUDIO-17958: `<input type="number">` controlled by a numeric React state
+// keeps a stale leading "0" once the controlled value has rendered "0".
+// Sequence: user clears the field → Number("")||0 == 0 → React syncs DOM to
+// "0" → next keystroke produces "08" → onChange parses Number("08") == 8 →
+// React's controlled-input sync skips the DOM write because the parsed
+// numeric value already matches → "08" stays visible and subsequent digits
+// append as "080", "0800", etc. Strip the leading zeros from the literal
+// string and write the canonical form back to the DOM input before updating
+// state so the displayed text and React state stay in sync. Preserve a lone
+// "0" and a "0." prefix so mid-typing decimals (e.g. "0.5") still work.
+function sanitizeWeightInput(target: HTMLInputElement): number {
+  const raw = target.value;
+  if (raw.length > 1 && raw.startsWith('0') && !raw.startsWith('0.')) {
+    const stripped = raw.replace(/^0+(?=\d)/, '');
+    if (stripped !== raw) target.value = stripped;
+    return Number(stripped) || 0;
+  }
+  return Number(raw) || 0;
 }
 
 function normalizePresetFilamentName(name: string | undefined, vendor: string, type: string, series: string): string {
@@ -373,9 +412,23 @@ export function AddEditDialog({
   // covers both, and plenty of materials legitimately have no series (e.g. ABS).
   // Weight rule: both values must be positive and 当前 ≤ 总 so the derived
   // remain_percent never goes negative / > 100.
+  // STUDIO-17959: also enforce a max cap on both fields so users can't submit
+  // values that the backend silently clamps to 0.
+  const weightError = (() => {
+    if (totalNetWeight <= 0) return '';
+    if (totalNetWeight > MAX_NET_WEIGHT_GRAMS || currentNetWeight > MAX_NET_WEIGHT_GRAMS) {
+      return t('Weight cannot exceed {{max}}g', { max: MAX_NET_WEIGHT_GRAMS });
+    }
+    if (currentNetWeight > totalNetWeight) {
+      return t('Current Net Weight cannot exceed Total Net Weight');
+    }
+    return '';
+  })();
   const isValid = !!(
     brand && materialType && colorCode &&
     totalNetWeight > 0 && currentNetWeight >= 0 &&
+    totalNetWeight <= MAX_NET_WEIGHT_GRAMS &&
+    currentNetWeight <= MAX_NET_WEIGHT_GRAMS &&
     currentNetWeight <= totalNetWeight
   );
 
@@ -1267,18 +1320,40 @@ export function AddEditDialog({
                           keystroke appends "1" and you get "01". Select
                           all text on focus so typing always replaces the
                           previous value, matching the usual UX for
-                          quantity-style fields. */}
-                      <input className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)] disabled:cursor-not-allowed disabled:opacity-60" type="number" placeholder={t('Input Current Net Weight')} value={currentNetWeight} disabled={lockWeight} onFocus={(e) => e.target.select()} onChange={(e) => setCurrentNetWeight(Number(e.target.value) || 0)} />
+                          quantity-style fields. Pipe through
+                          sanitizeWeightInput first to strip leading-zero
+                          residue from a backspace-clear flow (STUDIO-17958),
+                          then clampWeight to enforce [0, MAX_NET_WEIGHT_GRAMS]
+                          (STUDIO-17959) so a paste of an int32-overflow
+                          value can't slip through to handleSubmit; the
+                          native min/max attributes also stop the browser
+                          spinner from going past the cap.
+                          The trailing "g" span is the unit indicator —
+                          pure decoration so users don't have to guess
+                          whether the field expects grams or kilograms. */}
+                      <div className="flex items-center gap-[6px]">
+                        <input className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none flex-1 min-w-0 focus:shadow-[0_0_0_1px_var(--color-fm-brand)] disabled:cursor-not-allowed disabled:opacity-60" type="number" min={0} max={MAX_NET_WEIGHT_GRAMS} step={1} placeholder={t('Input Current Net Weight')} value={currentNetWeight} disabled={lockWeight} onFocus={(e) => e.target.select()} onChange={(e) => setCurrentNetWeight(clampWeight(sanitizeWeightInput(e.target)))} />
+                        <span className="text-[12px] leading-[19px] text-fm-text-secondary shrink-0">g</span>
+                      </div>
                     </div>
                     <div className="flex flex-col gap-[4px] flex-1">
                       <span className="text-[11px] leading-[16px] text-fm-text-secondary">{t('Total Net Weight')}</span>
                       {/* Total Net Weight is locked on edit: it is the
                           spool's factory full-weight and must not drift
                           after a row exists — only Current Net Weight
-                          tracks consumption over time. */}
-                      <input className={`bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)] ${isEdit || lockWeight ? 'opacity-60 cursor-not-allowed' : ''}`} type="number" placeholder={t('Input Total Net Weight')} value={totalNetWeight} readOnly={isEdit || lockWeight} disabled={isEdit || lockWeight} onFocus={(e) => e.target.select()} onChange={(e) => setTotalNetWeight(Number(e.target.value) || 0)} />
+                          tracks consumption over time. Same trailing "g"
+                          unit indicator as the sibling input. */}
+                      <div className="flex items-center gap-[6px]">
+                        <input className={`bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none flex-1 min-w-0 focus:shadow-[0_0_0_1px_var(--color-fm-brand)] ${isEdit || lockWeight ? 'opacity-60 cursor-not-allowed' : ''}`} type="number" min={0} max={MAX_NET_WEIGHT_GRAMS} step={1} placeholder={t('Input Total Net Weight')} value={totalNetWeight} readOnly={isEdit || lockWeight} disabled={isEdit || lockWeight} onFocus={(e) => e.target.select()} onChange={(e) => setTotalNetWeight(clampWeight(sanitizeWeightInput(e.target)))} />
+                        <span className="text-[12px] leading-[19px] text-fm-text-secondary shrink-0">g</span>
+                      </div>
                     </div>
                   </div>
+                  {weightError && (
+                    <div className="mt-[6px] text-[11px] leading-[16px] text-fm-warning">
+                      {weightError}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

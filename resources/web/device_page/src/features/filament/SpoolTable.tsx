@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Spool } from './types';
 import { SpoolSvg } from './SpoolSvg';
@@ -64,6 +64,18 @@ const tableBodyCellClass = 'text-left px-6 pt-2 pb-[9px] border-b border-fm-bord
 
 /* ===== Sort header ===== */
 type SortKey = 'brand' | 'remain_percent';
+// Sort key + direction live in a single state so toggling stays atomic. The
+// previous design (separate `sortKey` + `sortAsc` plus `setSortAsc(!sortAsc)`)
+// captured both values from the render closure. Under React 19's automatic
+// batching — combined with the parent re-rendering frequently while the user
+// is on a paginated page (selection-sync effect on `filtered`, cloud-pull
+// updates to `spools`) — two clicks on the same header could fire against the
+// same handler closure before a commit, queuing the same `!sortAsc` value
+// twice and silently swallowing one toggle. STUDIO-18126 reported this as
+// "偶现分页下余料控件排序切换不使能". A functional `setSort((prev) => …)` reads
+// the latest committed value for every queued update, so rapid clicks now
+// toggle deterministically.
+type SortState = { key: SortKey | ''; asc: boolean };
 
 interface Props {
   spools: Spool[];
@@ -83,14 +95,14 @@ export function SpoolTable({
   onDetail, onAddSimilar, onEmptyAdd, onDelete,
 }: Props) {
   const { t } = useTranslation();
-  const [sortKey, setSortKey] = useState<SortKey | ''>('');
-  const [sortAsc, setSortAsc] = useState(true);
+  const [sort, setSort] = useState<SortState>({ key: '', asc: true });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
   // Sort
   const sorted = useMemo(() => {
+    const { key: sortKey, asc: sortAsc } = sort;
     if (!sortKey) return spools;
     return [...spools].sort((a, b) => {
       const va = (a as any)[sortKey];
@@ -99,7 +111,7 @@ export function SpoolTable({
       const sa = String(va || ''), sb = String(vb || '');
       return sortAsc ? sa.localeCompare(sb) : sb.localeCompare(sa);
     });
-  }, [spools, sortKey, sortAsc]);
+  }, [spools, sort]);
 
   // Reset page when data changes
   const totalCount = sorted.length;
@@ -123,10 +135,9 @@ export function SpoolTable({
   const safePage = Math.min(page, pages);
   const pageRows = flatRows.slice((safePage - 1) * pageSize, safePage * pageSize);
 
-  const handleSort = (key: SortKey) => {
-    if (sortKey === key) setSortAsc(!sortAsc);
-    else { setSortKey(key); setSortAsc(true); }
-  };
+  const handleSort = useCallback((key: SortKey) => {
+    setSort((prev) => (prev.key === key ? { key, asc: !prev.asc } : { key, asc: true }));
+  }, []);
 
   const toggleGroup = (key: string) => {
     setCollapsed((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -172,8 +183,8 @@ export function SpoolTable({
                   onChange={onSelectAll}
                 />
               </th>
-              <ThSort label={t('Filament')} sortKey="brand" current={sortKey} asc={sortAsc} onClick={handleSort} />
-              <ThSort label={t('Remain')} sortKey="remain_percent" current={sortKey} asc={sortAsc} onClick={handleSort} />
+              <ThSort label={t('Filament')} sortKey="brand" current={sort.key} asc={sort.asc} onClick={handleSort} />
+              <ThSort label={t('Remain')} sortKey="remain_percent" current={sort.key} asc={sort.asc} onClick={handleSort} />
               <th className={tableHeaderCellClass}>{t('Operation')}</th>
             </tr>
           </thead>
@@ -278,7 +289,7 @@ export function SpoolTable({
           <button
             className={`${paginationButtonBase} ${paginationButtonIdle}`}
             disabled={safePage <= 1}
-            onClick={() => setPage(safePage - 1)}
+            onClick={() => setPage((p) => Math.max(1, Math.min(p, pages) - 1))}
           >‹</button>
           {buildPageRange(safePage, pages).map((p, i) =>
             p === '...'
@@ -292,7 +303,7 @@ export function SpoolTable({
           <button
             className={`${paginationButtonBase} ${paginationButtonIdle}`}
             disabled={safePage >= pages}
-            onClick={() => setPage(safePage + 1)}
+            onClick={() => setPage((p) => Math.min(pages, Math.min(p, pages) + 1))}
           >›</button>
           <select
             className="ml-3 bg-fm-inner2 border-none rounded-sm text-fm-text-primary text-xs px-1 py-[2px] cursor-pointer outline-none"
