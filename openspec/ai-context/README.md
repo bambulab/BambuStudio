@@ -20,7 +20,7 @@
 
 使用方式：
 
-1. 在 `/.ai-context/switch.json` 或 `/openspec/ai-context/switch.json` 中将 `deviceDevelopProfile` 从 `false` 改为 `true`，或在环境中设置 `STUDIO_AI_DEVICE_ENTRY=true`
+1. 在 `/openspec/ai-context/switch.json` 中将 `deviceDevelopProfile` 从 `false` 改为 `true`，或在环境中设置 `STUDIO_AI_DEVICE_ENTRY=true`
 2. 各 AI 工具适配层读取上述开关，并在启用时加载 `profiles/device/entry.md`
 
 注意：

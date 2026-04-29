@@ -14,8 +14,8 @@
 
 "非开源代码" = 仅本地开发 / 协作工具链，不会进入上游发布，典型路径：
 
-- `.ai-context/`、`.cursor/`、`.claude/`、`.jira/`
-- `openspec/`、`.specify/`、`.superpowers/`
+- `.cursor/`、`.claude/`、`.jira/`
+- `openspec/`（含 `openspec/ai-context/`）、`.specify/`、`.superpowers/`
 - 其他明确的内部工具或草稿目录
 
 注：上面这些目录都属于 `.cursor/rules/commit-msg.mdc` 「AI 相关目录提交隔离」管辖范围，

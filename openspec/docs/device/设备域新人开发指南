@@ -853,7 +853,7 @@
         </summary>
         <div class="expand">
           <div class="io"><span class="tag in">IN</span>  <span class="val">一条任务描述（口头需求 / Jira 链接 / bug 现象）</span></div>
-          <div class="io"><span class="tag do">DO</span>  <span class="val"><code>AI</code> 校验设备 profile 是否启用——任一成立即生效：<code>.ai-context/switch.json</code>（或 <code>openspec/ai-context/switch.json</code>）中 <code>deviceDevelopProfile: true</code>、环境变量 <code>STUDIO_AI_DEVICE_ENTRY=true/1/on</code>、用户显式要求；启用后按 <code>profiles/device/entry.md</code> 的 load-order 加载设备规则与技能</span></div>
+          <div class="io"><span class="tag do">DO</span>  <span class="val"><code>AI</code> 校验设备 profile 是否启用——任一成立即生效：<code>openspec/ai-context/switch.json</code> 中 <code>deviceDevelopProfile: true</code>、环境变量 <code>STUDIO_AI_DEVICE_ENTRY=true/1/on</code>、用户显式要求；启用后按 <code>profiles/device/entry.md</code> 的 load-order 加载设备规则与技能</span></div>
           <div class="io"><span class="tag out">OUT</span> <span class="val">已装入设备 profile 的对话上下文 + 任务归属的问题域初判</span></div>
           <div class="io"><span class="tag done">DONE</span><span class="val">AI 能引用 <code>openspec/docs/device/</code> 中的规则与技能名称作答，不再泛泛回答</span></div>
         </div>
@@ -1190,8 +1190,8 @@
         </summary>
         <div class="kb-body">
           <p class="kb-desc">改动这些文件 = 改动 AI 的行为。没事别乱动，要动先看对应 README。</p>
-          <div class="tree"><span class="key">.ai-context/</span>                         <span class="comment"># 与 openspec/ai-context/ 互为镜像，二选一即可</span>
-  switch.json                         <span class="comment"># deviceDevelopProfile 开关（也可用 env STUDIO_AI_DEVICE_ENTRY）</span>
+          <div class="tree"><span class="key">openspec/ai-context/</span>               <span class="comment"># 设备 profile 单一来源（也可用 env STUDIO_AI_DEVICE_ENTRY 或显式要求启用）</span>
+  switch.json                         <span class="comment"># deviceDevelopProfile 开关</span>
   profiles/device/
     entry.md                          <span class="comment"># 设备 profile 入口</span>
     load-order.md                     <span class="comment"># 规则与技能加载顺序</span>
@@ -1207,7 +1207,7 @@
             <thead><tr><th>什么时候看这一层</th><th>看哪里</th></tr></thead>
             <tbody>
               <tr><td>搞不清 AI 为什么这么提交 / 这么回答</td><td><code>.cursor/rules/</code></td></tr>
-              <tr><td>profile 没生效 / 技能没被加载</td><td>三选一：<code>.ai-context/switch.json</code>（或 <code>openspec/ai-context/switch.json</code>）<code>deviceDevelopProfile: true</code>、env <code>STUDIO_AI_DEVICE_ENTRY</code>、自然语言显式要求</td></tr>
+              <tr><td>profile 没生效 / 技能没被加载</td><td>三选一：<code>openspec/ai-context/switch.json</code> 中 <code>deviceDevelopProfile: true</code>、env <code>STUDIO_AI_DEVICE_ENTRY</code>、自然语言显式要求</td></tr>
               <tr><td>想知道某个 <code>device-*</code> 技能的完整定义</td><td><code>.cursor/skills/device/&lt;skill&gt;/SKILL.md</code> 的桥接指向 L2 原始文件</td></tr>
             </tbody>
           </table>
@@ -1306,7 +1306,7 @@
         <li>
           <strong>开启设备 profile</strong>：以下三路任一成立即启用——
           <ul>
-            <li>在 <code>.ai-context/switch.json</code> 或 <code>openspec/ai-context/switch.json</code> 中将 <code>"deviceDevelopProfile"</code> 设为 <code>true</code></li>
+            <li>在 <code>openspec/ai-context/switch.json</code> 中将 <code>"deviceDevelopProfile"</code> 设为 <code>true</code></li>
             <li>设置环境变量 <code>STUDIO_AI_DEVICE_ENTRY=true</code>（也接受 <code>1</code> / <code>on</code>，不区分大小写；适合 CI 或临时会话）</li>
             <li>在自然语言中明确要求 AI 进入设备域（如「按设备域处理」「使用设备域 XX 技能」）</li>
           </ul>
