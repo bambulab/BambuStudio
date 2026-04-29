@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <string>
 #include "GCodeWriter.hpp"
 #include "PrintConfig.hpp"
@@ -275,7 +276,18 @@ private:
 
 struct SuggestedConfigCalibPAPattern
 {
-    const std::vector<std::pair<std::string, double>> float_pairs{{"initial_layer_print_height", 0.25}, {"layer_height", 0.2}};
+    static constexpr double nozzle_diameter_0_2 = 0.2;
+    static constexpr double nozzle_compare_epsilon = 1e-6;
+
+    double initial_layer_print_height(double nozzle_diameter) const
+    {
+        return std::abs(nozzle_diameter - nozzle_diameter_0_2) < nozzle_compare_epsilon ? 0.2 : 0.25;
+    }
+
+    std::vector<std::pair<std::string, double>> float_pairs(double nozzle_diameter) const
+    {
+        return {{"initial_layer_print_height", initial_layer_print_height(nozzle_diameter)}, {"layer_height", 0.2}};
+    }
 
     const std::vector<std::pair<std::string, std::vector<double>>> floats_pairs{{"initial_layer_speed", {30}}};
 
