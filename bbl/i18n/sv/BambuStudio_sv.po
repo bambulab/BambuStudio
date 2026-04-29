@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-28 17:39+0800\n"
+"POT-Creation-Date: 2026-04-29 21:05+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -5961,6 +5961,42 @@ msgstr "DLL inläsningsfel"
 msgid "Loading..."
 msgstr "Laddar..."
 
+msgid "Timelapse"
+msgstr "Timelapse"
+
+msgid "Switch to timelapse files."
+msgstr "Växla till timelapse filer."
+
+msgid "Video"
+msgstr "Video"
+
+msgid "Switch to video files."
+msgstr "Växla till video filer."
+
+msgid "Switch to 3mf model files."
+msgstr "Byt till 3mf modell filer."
+
+msgid "Reload file list from printer."
+msgstr "Ladda om fil listan från printer."
+
+msgid "Delete selected files from printer."
+msgstr "Ta bort valda filer från skrivaren."
+
+msgid "Download"
+msgstr "Ladda ner"
+
+msgid "Download selected files from printer."
+msgstr "Ladda ner valda filer från skrivaren."
+
+msgid "Select"
+msgstr "Välj"
+
+msgid "Batch manage files."
+msgstr "Batch hantera filer."
+
+msgid "Internal"
+msgstr "Intern"
+
 msgid "Year"
 msgstr "År"
 
@@ -5978,39 +6014,6 @@ msgstr "Gruppera filer efter månad, senaste först."
 
 msgid "Show all files, recent first."
 msgstr "Visa alla filer, de senaste först."
-
-msgid "Timelapse"
-msgstr "Timelapse"
-
-msgid "Switch to timelapse files."
-msgstr "Växla till timelapse filer."
-
-msgid "Video"
-msgstr "Video"
-
-msgid "Switch to video files."
-msgstr "Växla till video filer."
-
-msgid "Switch to 3mf model files."
-msgstr "Byt till 3mf modell filer."
-
-msgid "Delete selected files from printer."
-msgstr "Ta bort valda filer från skrivaren."
-
-msgid "Download"
-msgstr "Ladda ner"
-
-msgid "Download selected files from printer."
-msgstr "Ladda ner valda filer från skrivaren."
-
-msgid "Select"
-msgstr "Välj"
-
-msgid "Batch manage files."
-msgstr "Batch hantera filer."
-
-msgid "Reload file list from printer."
-msgstr "Ladda om fil listan från printer."
 
 msgid "No printers."
 msgstr "Ingen printer."
@@ -8962,9 +8965,6 @@ msgstr "Detta kontrollerar värmebäddens planhet. Utjämning gör den extrudera
 
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Den här processen bestämmer de dynamiska flödesvärdena för att förbättra den övergripande utskriftskvaliteten."
-
-msgid "Internal"
-msgstr "Intern"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"

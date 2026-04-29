@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-28 17:39+0800\n"
+"POT-Creation-Date: 2026-04-29 21:05+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5933,6 +5933,42 @@ msgstr "DLL読み込みエラー"
 msgid "Loading..."
 msgstr "読込み中"
 
+msgid "Timelapse"
+msgstr "タイムラプス"
+
+msgid "Switch to timelapse files."
+msgstr "タイムラプスに切替え"
+
+msgid "Video"
+msgstr "ビデオ"
+
+msgid "Switch to video files."
+msgstr "ビデオファイルに切替え"
+
+msgid "Switch to 3mf model files."
+msgstr "3mfモデルファイルに切り替える"
+
+msgid "Reload file list from printer."
+msgstr "プリンタからファイルリストを再読み込み"
+
+msgid "Delete selected files from printer."
+msgstr "プリンターから選択したファイルを削除"
+
+msgid "Download"
+msgstr "ダウンロード"
+
+msgid "Download selected files from printer."
+msgstr "プリンターから選択したファイルをダウンロード"
+
+msgid "Select"
+msgstr "選択"
+
+msgid "Batch manage files."
+msgstr "ファイルのバッチ処理"
+
+msgid "Internal"
+msgstr "内部ストレージ"
+
 msgid "Year"
 msgstr "年"
 
@@ -5950,39 +5986,6 @@ msgstr "月でグループ化、新しい順で並べ替え"
 
 msgid "Show all files, recent first."
 msgstr "全てのファイルを表示"
-
-msgid "Timelapse"
-msgstr "タイムラプス"
-
-msgid "Switch to timelapse files."
-msgstr "タイムラプスに切替え"
-
-msgid "Video"
-msgstr "ビデオ"
-
-msgid "Switch to video files."
-msgstr "ビデオファイルに切替え"
-
-msgid "Switch to 3mf model files."
-msgstr "3mfモデルファイルに切り替える"
-
-msgid "Delete selected files from printer."
-msgstr "プリンターから選択したファイルを削除"
-
-msgid "Download"
-msgstr "ダウンロード"
-
-msgid "Download selected files from printer."
-msgstr "プリンターから選択したファイルをダウンロード"
-
-msgid "Select"
-msgstr "選択"
-
-msgid "Batch manage files."
-msgstr "ファイルのバッチ処理"
-
-msgid "Reload file list from printer."
-msgstr "プリンタからファイルリストを再読み込み"
 
 msgid "No printers."
 msgstr "プリンタなし"
@@ -8914,9 +8917,6 @@ msgstr "これはヒートベッドの平坦度を確認します。レベリン
 
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "このプロセスでは、全体的な印刷品質を向上させるための動的流量値を決定します。"
-
-msgid "Internal"
-msgstr "内部ストレージ"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"

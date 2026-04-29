@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-28 17:39+0800\n"
+"POT-Creation-Date: 2026-04-29 21:05+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5964,6 +5964,42 @@ msgstr "DLL betöltési hiba"
 msgid "Loading..."
 msgstr "Betöltés…"
 
+msgid "Timelapse"
+msgstr "Timelapse"
+
+msgid "Switch to timelapse files."
+msgstr "Váltás timelapse fájlokra."
+
+msgid "Video"
+msgstr "Videó"
+
+msgid "Switch to video files."
+msgstr "Váltás a videófájlokra."
+
+msgid "Switch to 3mf model files."
+msgstr "Váltás 3mf modellfájlokra."
+
+msgid "Reload file list from printer."
+msgstr "Fájllista újratöltése a nyomtatóról."
+
+msgid "Delete selected files from printer."
+msgstr "Kijelölt fájlok törlése a nyomtatóról."
+
+msgid "Download"
+msgstr "Letöltés"
+
+msgid "Download selected files from printer."
+msgstr "Kiválasztott fájlok letöltése a nyomtatóról."
+
+msgid "Select"
+msgstr "Kiválasztás"
+
+msgid "Batch manage files."
+msgstr "Fájlok kötegelt kezelése."
+
+msgid "Internal"
+msgstr "Belső"
+
 msgid "Year"
 msgstr "Év"
 
@@ -5981,39 +6017,6 @@ msgstr "Fájlok csoportosítása hónap szerint, elöl a legújabb."
 
 msgid "Show all files, recent first."
 msgstr "Minden fájl megjelenítése, elöl a legújabb."
-
-msgid "Timelapse"
-msgstr "Timelapse"
-
-msgid "Switch to timelapse files."
-msgstr "Váltás timelapse fájlokra."
-
-msgid "Video"
-msgstr "Videó"
-
-msgid "Switch to video files."
-msgstr "Váltás a videófájlokra."
-
-msgid "Switch to 3mf model files."
-msgstr "Váltás 3mf modellfájlokra."
-
-msgid "Delete selected files from printer."
-msgstr "Kijelölt fájlok törlése a nyomtatóról."
-
-msgid "Download"
-msgstr "Letöltés"
-
-msgid "Download selected files from printer."
-msgstr "Kiválasztott fájlok letöltése a nyomtatóról."
-
-msgid "Select"
-msgstr "Kiválasztás"
-
-msgid "Batch manage files."
-msgstr "Fájlok kötegelt kezelése."
-
-msgid "Reload file list from printer."
-msgstr "Fájllista újratöltése a nyomtatóról."
 
 msgid "No printers."
 msgstr "Nincs nyomtató."
@@ -8964,9 +8967,6 @@ msgstr "Ellenőrzi az asztal szintjét. A szintezés egyenletessé teszi az extr
 
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Megkeresi a legjobb értéket a dinamikus anyagáramláshoz, hogy javítsa a nyomtatás minőségét."
-
-msgid "Internal"
-msgstr "Belső"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"

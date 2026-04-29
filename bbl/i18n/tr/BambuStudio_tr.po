@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-28 17:39+0800\n"
+"POT-Creation-Date: 2026-04-29 21:05+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -5949,6 +5949,42 @@ msgstr "DLL yükleme hatası"
 msgid "Loading..."
 msgstr "Yükleniyor..."
 
+msgid "Timelapse"
+msgstr "Timelapse"
+
+msgid "Switch to timelapse files."
+msgstr "Timelapse dosyalarına geç."
+
+msgid "Video"
+msgstr "Video"
+
+msgid "Switch to video files."
+msgstr "Video dosyalarına geç."
+
+msgid "Switch to 3mf model files."
+msgstr "3mf model dosyalarına geçin."
+
+msgid "Reload file list from printer."
+msgstr "Dosya listesini yazıcıdan yeniden yükleyin."
+
+msgid "Delete selected files from printer."
+msgstr "Seçilen dosyaları yazıcıdan silin."
+
+msgid "Download"
+msgstr "İndir"
+
+msgid "Download selected files from printer."
+msgstr "Seçilen dosyaları yazıcıdan indirin."
+
+msgid "Select"
+msgstr "Seç"
+
+msgid "Batch manage files."
+msgstr "Dosyaları toplu olarak yönet."
+
+msgid "Internal"
+msgstr ""
+
 msgid "Year"
 msgstr "Yıl"
 
@@ -5966,39 +6002,6 @@ msgstr "Dosyaları aya göre gruplandırın, en yenisi önce olsun."
 
 msgid "Show all files, recent first."
 msgstr "Tüm dosyaları göster, en yenisi önce."
-
-msgid "Timelapse"
-msgstr "Timelapse"
-
-msgid "Switch to timelapse files."
-msgstr "Timelapse dosyalarına geç."
-
-msgid "Video"
-msgstr "Video"
-
-msgid "Switch to video files."
-msgstr "Video dosyalarına geç."
-
-msgid "Switch to 3mf model files."
-msgstr "3mf model dosyalarına geçin."
-
-msgid "Delete selected files from printer."
-msgstr "Seçilen dosyaları yazıcıdan silin."
-
-msgid "Download"
-msgstr "İndir"
-
-msgid "Download selected files from printer."
-msgstr "Seçilen dosyaları yazıcıdan indirin."
-
-msgid "Select"
-msgstr "Seç"
-
-msgid "Batch manage files."
-msgstr "Dosyaları toplu olarak yönet."
-
-msgid "Reload file list from printer."
-msgstr "Dosya listesini yazıcıdan yeniden yükleyin."
 
 msgid "No printers."
 msgstr "Yazıcı yok."
@@ -8920,9 +8923,6 @@ msgstr "Bu, ısı yatağının düzlüğünü kontrol eder. Tesviye, ekstrüzyon
 
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Bu işlem, genel baskı kalitesini iyileştirmek için dinamik akış değerlerini belirler."
-
-msgid "Internal"
-msgstr ""
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-28 17:39+0800\n"
+"POT-Creation-Date: 2026-04-29 21:05+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -5826,24 +5826,6 @@ msgstr ""
 msgid "Loading..."
 msgstr ""
 
-msgid "Year"
-msgstr ""
-
-msgid "Month"
-msgstr ""
-
-msgid "All Files"
-msgstr ""
-
-msgid "Group files by year, recent first."
-msgstr ""
-
-msgid "Group files by month, recent first."
-msgstr ""
-
-msgid "Show all files, recent first."
-msgstr ""
-
 msgid "Timelapse"
 msgstr ""
 
@@ -5857,6 +5839,9 @@ msgid "Switch to video files."
 msgstr ""
 
 msgid "Switch to 3mf model files."
+msgstr ""
+
+msgid "Reload file list from printer."
 msgstr ""
 
 msgid "Delete selected files from printer."
@@ -5874,7 +5859,25 @@ msgstr ""
 msgid "Batch manage files."
 msgstr ""
 
-msgid "Reload file list from printer."
+msgid "Internal"
+msgstr ""
+
+msgid "Year"
+msgstr ""
+
+msgid "Month"
+msgstr ""
+
+msgid "All Files"
+msgstr ""
+
+msgid "Group files by year, recent first."
+msgstr ""
+
+msgid "Group files by month, recent first."
+msgstr ""
+
+msgid "Show all files, recent first."
 msgstr ""
 
 msgid "No printers."
@@ -8730,9 +8733,6 @@ msgid "This checks the flatness of heatbed. Leveling makes extruded height unifo
 msgstr ""
 
 msgid "This process determines the dynamic flow values to improve overall print quality."
-msgstr ""
-
-msgid "Internal"
 msgstr ""
 
 #, possible-c-format, possible-boost-format

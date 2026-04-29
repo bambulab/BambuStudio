@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-28 17:39+0800\n"
+"POT-Creation-Date: 2026-04-29 21:05+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5963,6 +5963,42 @@ msgstr "Errore caricamento DLL"
 msgid "Loading..."
 msgstr "Caricamento…"
 
+msgid "Timelapse"
+msgstr "TimeLapse"
+
+msgid "Switch to timelapse files."
+msgstr "Passa ai file timelapse."
+
+msgid "Video"
+msgstr "Video"
+
+msgid "Switch to video files."
+msgstr "Passare ai file video."
+
+msgid "Switch to 3mf model files."
+msgstr "Passa ai file modello 3mf."
+
+msgid "Reload file list from printer."
+msgstr "Ricarica l'elenco dei file dalla stampante."
+
+msgid "Delete selected files from printer."
+msgstr "Elimina i file selezionati dalla stampante."
+
+msgid "Download"
+msgstr "Scarica"
+
+msgid "Download selected files from printer."
+msgstr "Scarica i file selezionati dalla stampante."
+
+msgid "Select"
+msgstr "Seleziona"
+
+msgid "Batch manage files."
+msgstr "Gestione batch dei file."
+
+msgid "Internal"
+msgstr "Interna"
+
 msgid "Year"
 msgstr "Anno"
 
@@ -5980,39 +6016,6 @@ msgstr "Raggruppa i file per mese, prima i recenti."
 
 msgid "Show all files, recent first."
 msgstr "Mostra tutti i file, prima i recenti."
-
-msgid "Timelapse"
-msgstr "TimeLapse"
-
-msgid "Switch to timelapse files."
-msgstr "Passa ai file timelapse."
-
-msgid "Video"
-msgstr "Video"
-
-msgid "Switch to video files."
-msgstr "Passare ai file video."
-
-msgid "Switch to 3mf model files."
-msgstr "Passa ai file modello 3mf."
-
-msgid "Delete selected files from printer."
-msgstr "Elimina i file selezionati dalla stampante."
-
-msgid "Download"
-msgstr "Scarica"
-
-msgid "Download selected files from printer."
-msgstr "Scarica i file selezionati dalla stampante."
-
-msgid "Select"
-msgstr "Seleziona"
-
-msgid "Batch manage files."
-msgstr "Gestione batch dei file."
-
-msgid "Reload file list from printer."
-msgstr "Ricarica l'elenco dei file dalla stampante."
 
 msgid "No printers."
 msgstr "Nessuna stampante."
@@ -8962,9 +8965,6 @@ msgstr "Questo controlla la planarità del piano. Il livellamento rende uniforme
 
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Questo processo determina i valori del flusso dinamico per migliorare la qualità complessiva di stampa."
-
-msgid "Internal"
-msgstr "Interna"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"

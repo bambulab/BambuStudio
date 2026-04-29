@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-28 17:39+0800\n"
+"POT-Creation-Date: 2026-04-29 21:05+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -5936,6 +5936,42 @@ msgstr ""
 msgid "Loading..."
 msgstr "Завантаження..."
 
+msgid "Timelapse"
+msgstr "Таймлапс"
+
+msgid "Switch to timelapse files."
+msgstr "Перехід до файлів уповільненої зйомки."
+
+msgid "Video"
+msgstr "Відео"
+
+msgid "Switch to video files."
+msgstr "Перехід до відеофайлів."
+
+msgid "Switch to 3mf model files."
+msgstr "Переключитися на файли моделей 3mf."
+
+msgid "Reload file list from printer."
+msgstr "Перезавантажте список файлів з принтера."
+
+msgid "Delete selected files from printer."
+msgstr "Видалити вибрані файли з принтера."
+
+msgid "Download"
+msgstr "Завантажити"
+
+msgid "Download selected files from printer."
+msgstr "Завантажте вибрані файли з принтера."
+
+msgid "Select"
+msgstr "Вибір"
+
+msgid "Batch manage files."
+msgstr "Пакетне керування файлами."
+
+msgid "Internal"
+msgstr ""
+
 msgid "Year"
 msgstr "Рік"
 
@@ -5953,39 +5989,6 @@ msgstr "Згрупуйте файли по місяцях, спочатку не
 
 msgid "Show all files, recent first."
 msgstr "Показати всі файли спочатку останні."
-
-msgid "Timelapse"
-msgstr "Таймлапс"
-
-msgid "Switch to timelapse files."
-msgstr "Перехід до файлів уповільненої зйомки."
-
-msgid "Video"
-msgstr "Відео"
-
-msgid "Switch to video files."
-msgstr "Перехід до відеофайлів."
-
-msgid "Switch to 3mf model files."
-msgstr "Переключитися на файли моделей 3mf."
-
-msgid "Delete selected files from printer."
-msgstr "Видалити вибрані файли з принтера."
-
-msgid "Download"
-msgstr "Завантажити"
-
-msgid "Download selected files from printer."
-msgstr "Завантажте вибрані файли з принтера."
-
-msgid "Select"
-msgstr "Вибір"
-
-msgid "Batch manage files."
-msgstr "Пакетне керування файлами."
-
-msgid "Reload file list from printer."
-msgstr "Перезавантажте список файлів з принтера."
 
 msgid "No printers."
 msgstr "Ніяких принтерів."
@@ -8887,9 +8890,6 @@ msgid "This checks the flatness of heatbed. Leveling makes extruded height unifo
 msgstr ""
 
 msgid "This process determines the dynamic flow values to improve overall print quality."
-msgstr ""
-
-msgid "Internal"
 msgstr ""
 
 #, c-format, boost-format

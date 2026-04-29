@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-28 17:39+0800\n"
+"POT-Creation-Date: 2026-04-29 21:05+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -5914,6 +5914,42 @@ msgstr ""
 msgid "Loading..."
 msgstr "Loading..."
 
+msgid "Timelapse"
+msgstr "Timelapse"
+
+msgid "Switch to timelapse files."
+msgstr "Switch to timelapse files."
+
+msgid "Video"
+msgstr "Video"
+
+msgid "Switch to video files."
+msgstr "Switch to video files."
+
+msgid "Switch to 3mf model files."
+msgstr "Switch to 3mf model files."
+
+msgid "Reload file list from printer."
+msgstr "Reload file list from printer."
+
+msgid "Delete selected files from printer."
+msgstr "Delete selected files from printer."
+
+msgid "Download"
+msgstr "Download"
+
+msgid "Download selected files from printer."
+msgstr "Download selected files from printer."
+
+msgid "Select"
+msgstr "Select"
+
+msgid "Batch manage files."
+msgstr "Batch manage files."
+
+msgid "Internal"
+msgstr ""
+
 msgid "Year"
 msgstr "Year"
 
@@ -5931,39 +5967,6 @@ msgstr "Group files by month, recent first."
 
 msgid "Show all files, recent first."
 msgstr "Show all files, recent first."
-
-msgid "Timelapse"
-msgstr "Timelapse"
-
-msgid "Switch to timelapse files."
-msgstr "Switch to timelapse files."
-
-msgid "Video"
-msgstr "Video"
-
-msgid "Switch to video files."
-msgstr "Switch to video files."
-
-msgid "Switch to 3mf model files."
-msgstr "Switch to 3mf model files."
-
-msgid "Delete selected files from printer."
-msgstr "Delete selected files from printer."
-
-msgid "Download"
-msgstr "Download"
-
-msgid "Download selected files from printer."
-msgstr "Download selected files from printer."
-
-msgid "Select"
-msgstr "Select"
-
-msgid "Batch manage files."
-msgstr "Batch manage files."
-
-msgid "Reload file list from printer."
-msgstr "Reload file list from printer."
 
 msgid "No printers."
 msgstr "No printers."
@@ -8856,9 +8859,6 @@ msgid "This checks the flatness of heatbed. Leveling makes extruded height unifo
 msgstr ""
 
 msgid "This process determines the dynamic flow values to improve overall print quality."
-msgstr ""
-
-msgid "Internal"
 msgstr ""
 
 #, c-format, boost-format

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-28 17:39+0800\n"
+"POT-Creation-Date: 2026-04-29 21:05+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -6046,6 +6046,42 @@ msgstr ""
 msgid "Loading..."
 msgstr "Загрузка..."
 
+msgid "Timelapse"
+msgstr "Таймлапсы"
+
+msgid "Switch to timelapse files."
+msgstr "Переключиться на файлы таймлапсов."
+
+msgid "Video"
+msgstr "Видео"
+
+msgid "Switch to video files."
+msgstr "Переключиться на видеофайлы."
+
+msgid "Switch to 3mf model files."
+msgstr "Переключиться на файлы моделей в формате 3mf."
+
+msgid "Reload file list from printer."
+msgstr "Перезагрузка списка файлов с принтера."
+
+msgid "Delete selected files from printer."
+msgstr "Удалить выбранные файлы с принтера."
+
+msgid "Download"
+msgstr "Скачать"
+
+msgid "Download selected files from printer."
+msgstr "Скачать выбранные файлы с принтера."
+
+msgid "Select"
+msgstr "Выбрать"
+
+msgid "Batch manage files."
+msgstr "Пакетное управление файлами."
+
+msgid "Internal"
+msgstr ""
+
 msgid "Year"
 msgstr "Год"
 
@@ -6063,39 +6099,6 @@ msgstr "Группировать файлы по месяцам (по убыва
 
 msgid "Show all files, recent first."
 msgstr "Показать все файлы (недавние первые)"
-
-msgid "Timelapse"
-msgstr "Таймлапсы"
-
-msgid "Switch to timelapse files."
-msgstr "Переключиться на файлы таймлапсов."
-
-msgid "Video"
-msgstr "Видео"
-
-msgid "Switch to video files."
-msgstr "Переключиться на видеофайлы."
-
-msgid "Switch to 3mf model files."
-msgstr "Переключиться на файлы моделей в формате 3mf."
-
-msgid "Delete selected files from printer."
-msgstr "Удалить выбранные файлы с принтера."
-
-msgid "Download"
-msgstr "Скачать"
-
-msgid "Download selected files from printer."
-msgstr "Скачать выбранные файлы с принтера."
-
-msgid "Select"
-msgstr "Выбрать"
-
-msgid "Batch manage files."
-msgstr "Пакетное управление файлами."
-
-msgid "Reload file list from printer."
-msgstr "Перезагрузка списка файлов с принтера."
 
 msgid "No printers."
 msgstr "Принтеры отсутствуют."
@@ -9087,9 +9090,6 @@ msgstr "Этот процесс проверяет ровность поверх
 # ?????81
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Этот процесс определяет значение динамического потока для улучшения общего качества печати."
-
-msgid "Internal"
-msgstr ""
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-28 17:39+0800\n"
+"POT-Creation-Date: 2026-04-29 21:05+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -4817,7 +4817,7 @@ msgid "Fan Speed: "
 msgstr "风扇速度: "
 
 msgid "AUX Fan Speed: "
-msgstr "风扇速度: "
+msgstr "辅助风扇速度: "
 
 msgid "Temperature: "
 msgstr "温度: "
@@ -5928,6 +5928,42 @@ msgstr "DLL加载错误"
 msgid "Loading..."
 msgstr "正在加载视频……"
 
+msgid "Timelapse"
+msgstr "延时摄影"
+
+msgid "Switch to timelapse files."
+msgstr "切换到延时摄影文件列表。"
+
+msgid "Video"
+msgstr "录像"
+
+msgid "Switch to video files."
+msgstr "切换到视频文件列表。"
+
+msgid "Switch to 3mf model files."
+msgstr "切换到3MF模型文件。"
+
+msgid "Reload file list from printer."
+msgstr "从打印机重新加载文件列表。"
+
+msgid "Delete selected files from printer."
+msgstr "从打印机中删除选中的文件。"
+
+msgid "Download"
+msgstr "下载"
+
+msgid "Download selected files from printer."
+msgstr "从打印机中下载选择的文件。"
+
+msgid "Select"
+msgstr "选择"
+
+msgid "Batch manage files."
+msgstr "批量管理文件。"
+
+msgid "Internal"
+msgstr "内部"
+
 msgid "Year"
 msgstr "年"
 
@@ -5945,39 +5981,6 @@ msgstr "按月份分组，从最近的开始展示"
 
 msgid "Show all files, recent first."
 msgstr "显示所有文件，从最近的开始展示。"
-
-msgid "Timelapse"
-msgstr "延时摄影"
-
-msgid "Switch to timelapse files."
-msgstr "切换到延时摄影文件列表。"
-
-msgid "Video"
-msgstr "录像"
-
-msgid "Switch to video files."
-msgstr "切换到视频文件列表。"
-
-msgid "Switch to 3mf model files."
-msgstr "切换到3MF模型文件。"
-
-msgid "Delete selected files from printer."
-msgstr "从打印机中删除选中的文件。"
-
-msgid "Download"
-msgstr "下载"
-
-msgid "Download selected files from printer."
-msgstr "从打印机中下载选择的文件。"
-
-msgid "Select"
-msgstr "选择"
-
-msgid "Batch manage files."
-msgstr "批量管理文件。"
-
-msgid "Reload file list from printer."
-msgstr "从打印机重新加载文件列表。"
 
 msgid "No printers."
 msgstr "未选择打印机"
@@ -8911,9 +8914,6 @@ msgstr "检测热床的平整度。调平可以使挤出的高度更均匀。"
 
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "此过程确定动态流量校准的最佳系数，从而提升打印质量。"
-
-msgid "Internal"
-msgstr "内部"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"

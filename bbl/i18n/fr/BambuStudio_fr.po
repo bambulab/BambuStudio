@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-28 17:39+0800\n"
+"POT-Creation-Date: 2026-04-29 21:05+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5953,6 +5953,42 @@ msgstr "Erreur de chargement de la DLL"
 msgid "Loading..."
 msgstr "Chargement..."
 
+msgid "Timelapse"
+msgstr "Timelapse"
+
+msgid "Switch to timelapse files."
+msgstr "Passez aux fichiers timelapse."
+
+msgid "Video"
+msgstr "Vidéo"
+
+msgid "Switch to video files."
+msgstr "Passez aux fichiers vidéo."
+
+msgid "Switch to 3mf model files."
+msgstr "Passez aux fichiers de modèle 3mf."
+
+msgid "Reload file list from printer."
+msgstr "Rechargez la liste des fichiers depuis l'imprimante."
+
+msgid "Delete selected files from printer."
+msgstr "Supprimez les fichiers sélectionnés de l'imprimante."
+
+msgid "Download"
+msgstr "Télécharger"
+
+msgid "Download selected files from printer."
+msgstr "Téléchargez les fichiers sélectionnés depuis l'imprimante."
+
+msgid "Select"
+msgstr "Sélectionner"
+
+msgid "Batch manage files."
+msgstr "Gérer les fichiers par lots."
+
+msgid "Internal"
+msgstr "Interne"
+
 msgid "Year"
 msgstr "Année"
 
@@ -5970,39 +6006,6 @@ msgstr "Regroupez les fichiers par mois, les plus récents en premier."
 
 msgid "Show all files, recent first."
 msgstr "Afficher tous les fichiers, les plus récents en premier."
-
-msgid "Timelapse"
-msgstr "Timelapse"
-
-msgid "Switch to timelapse files."
-msgstr "Passez aux fichiers timelapse."
-
-msgid "Video"
-msgstr "Vidéo"
-
-msgid "Switch to video files."
-msgstr "Passez aux fichiers vidéo."
-
-msgid "Switch to 3mf model files."
-msgstr "Passez aux fichiers de modèle 3mf."
-
-msgid "Delete selected files from printer."
-msgstr "Supprimez les fichiers sélectionnés de l'imprimante."
-
-msgid "Download"
-msgstr "Télécharger"
-
-msgid "Download selected files from printer."
-msgstr "Téléchargez les fichiers sélectionnés depuis l'imprimante."
-
-msgid "Select"
-msgstr "Sélectionner"
-
-msgid "Batch manage files."
-msgstr "Gérer les fichiers par lots."
-
-msgid "Reload file list from printer."
-msgstr "Rechargez la liste des fichiers depuis l'imprimante."
 
 msgid "No printers."
 msgstr "Aucune imprimante."
@@ -8950,9 +8953,6 @@ msgstr "Cette opération permet de vérifier la planéité du plateau. Le nivell
 
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Ce processus permet de déterminer les valeurs de la dynamique de débit afin d'améliorer la qualité globale de l'impression."
-
-msgid "Internal"
-msgstr "Interne"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"

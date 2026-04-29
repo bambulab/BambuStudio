@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-28 17:39+0800\n"
+"POT-Creation-Date: 2026-04-29 21:05+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5970,6 +5970,42 @@ msgstr "Błąd ładowania DLL"
 msgid "Loading..."
 msgstr "Ładowanie..."
 
+msgid "Timelapse"
+msgstr "Timelaps"
+
+msgid "Switch to timelapse files."
+msgstr "Przełącz na pliki timelapse."
+
+msgid "Video"
+msgstr "Wideo"
+
+msgid "Switch to video files."
+msgstr "Przełącz na pliki wideo."
+
+msgid "Switch to 3mf model files."
+msgstr "Przełącz na pliki modeli 3mf."
+
+msgid "Reload file list from printer."
+msgstr "Przeładuj listę plików z drukarki."
+
+msgid "Delete selected files from printer."
+msgstr "Usuń wybrane pliki z drukarki."
+
+msgid "Download"
+msgstr "Pobierz"
+
+msgid "Download selected files from printer."
+msgstr "Pobierz wybrane pliki z drukarki."
+
+msgid "Select"
+msgstr "Zaznacz"
+
+msgid "Batch manage files."
+msgstr "Grupowe zarządzanie plikami."
+
+msgid "Internal"
+msgstr "Wewnętrzna"
+
 msgid "Year"
 msgstr "Rok"
 
@@ -5987,39 +6023,6 @@ msgstr "Grupuj pliki według miesiąca, najpierw najnowsze."
 
 msgid "Show all files, recent first."
 msgstr "Pokaż wszystkie pliki, najpierw najnowsze."
-
-msgid "Timelapse"
-msgstr "Timelaps"
-
-msgid "Switch to timelapse files."
-msgstr "Przełącz na pliki timelapse."
-
-msgid "Video"
-msgstr "Wideo"
-
-msgid "Switch to video files."
-msgstr "Przełącz na pliki wideo."
-
-msgid "Switch to 3mf model files."
-msgstr "Przełącz na pliki modeli 3mf."
-
-msgid "Delete selected files from printer."
-msgstr "Usuń wybrane pliki z drukarki."
-
-msgid "Download"
-msgstr "Pobierz"
-
-msgid "Download selected files from printer."
-msgstr "Pobierz wybrane pliki z drukarki."
-
-msgid "Select"
-msgstr "Zaznacz"
-
-msgid "Batch manage files."
-msgstr "Grupowe zarządzanie plikami."
-
-msgid "Reload file list from printer."
-msgstr "Przeładuj listę plików z drukarki."
 
 msgid "No printers."
 msgstr "Brak drukarek."
@@ -8976,9 +8979,6 @@ msgstr "Sprawdza to płaskość stołu grzewczego. Poziomowanie sprawia, że wys
 
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Ten proces określa dynamiczne wartości przepływu w celu poprawy ogólnej jakości druku."
-
-msgid "Internal"
-msgstr "Wewnętrzna"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
