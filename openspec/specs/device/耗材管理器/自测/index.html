@@ -1,0 +1,970 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>耗材管理器 · 功能自测清单</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg:         #0f1115;
+    --bg-2:       #161a22;
+    --bg-3:       #1d222c;
+    --bd:         #2a2f3a;
+    --tx:         #e6e8ec;
+    --tx-2:       #a8adb8;
+    --tx-3:       #6b7280;
+    --brand:      #2cad00;
+    --brand-soft: rgba(44,173,0,.12);
+    --warn:       #f5a524;
+    --err:        #f43f5e;
+    --info:       #3b82f6;
+    --skip:       #6b7280;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg:         #fafafa;
+      --bg-2:       #ffffff;
+      --bg-3:       #f1f3f5;
+      --bd:         #e4e6eb;
+      --tx:         #1f2328;
+      --tx-2:       #4b5563;
+      --tx-3:       #9ca3af;
+      --brand:      #2cad00;
+      --brand-soft: rgba(44,173,0,.10);
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--tx); }
+  body {
+    font-family: "HarmonyOS Sans SC", -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  /* Top bar */
+  header {
+    position: sticky; top: 0; z-index: 20;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--bd);
+    padding: 14px 22px;
+    display: flex; align-items: center; gap: 16px;
+    backdrop-filter: blur(8px);
+  }
+  header h1 { margin: 0; font-size: 15px; font-weight: 600; flex-shrink: 0; }
+  header .meta { font-size: 12px; color: var(--tx-3); margin-left: 4px; }
+  header .spacer { flex: 1; }
+  header .progress-wrap {
+    display: flex; align-items: center; gap: 10px;
+    min-width: 320px;
+  }
+  header .progress-bar {
+    flex: 1; height: 6px; background: var(--bg-3); border-radius: 3px; overflow: hidden;
+    position: relative;
+  }
+  header .progress-bar .pass-seg { position: absolute; left: 0; top: 0; bottom: 0; background: var(--brand); }
+  header .progress-bar .fail-seg { position: absolute; top: 0; bottom: 0; background: var(--err); }
+  header .progress-bar .skip-seg { position: absolute; top: 0; bottom: 0; background: var(--skip); opacity: .5; }
+  header .progress-text {
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+    color: var(--tx-2);
+    min-width: 180px;
+    text-align: right;
+  }
+  header button {
+    background: var(--bg-3); border: 1px solid var(--bd); color: var(--tx);
+    padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;
+    transition: background .15s;
+  }
+  header button:hover { background: var(--bd); }
+  header button.danger:hover { background: var(--err); color: #fff; border-color: var(--err); }
+
+  /* Layout */
+  main {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 20px;
+    padding: 20px 22px;
+    align-items: start;
+  }
+  aside {
+    position: sticky; top: 76px;
+    max-height: calc(100vh - 96px); overflow: auto;
+    background: var(--bg-2);
+    border: 1px solid var(--bd);
+    border-radius: 10px;
+    padding: 10px 8px;
+  }
+  aside h2 {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .08em;
+    margin: 6px 10px 10px; color: var(--tx-3); font-weight: 600;
+  }
+  aside a {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; padding: 6px 10px; border-radius: 6px;
+    font-size: 12px; color: var(--tx-2); text-decoration: none;
+    transition: background .12s;
+  }
+  aside a:hover { background: var(--bg-3); color: var(--tx); }
+  aside a .tag {
+    font-variant-numeric: tabular-nums;
+    font-size: 11px; color: var(--tx-3);
+  }
+  aside a.done .tag { color: var(--brand); }
+  aside a.has-fail .tag { color: var(--err); }
+
+  section.group {
+    background: var(--bg-2);
+    border: 1px solid var(--bd);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  section.group > summary,
+  section.group > .group-head {
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 12px;
+    background: var(--bg-3);
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+  }
+  section.group > summary::-webkit-details-marker { display: none; }
+  section.group > summary .title {
+    font-size: 13px; font-weight: 600;
+  }
+  section.group > summary .summary {
+    color: var(--tx-3); font-size: 12px; font-weight: 400;
+  }
+  section.group > summary .ratio {
+    margin-left: auto; font-variant-numeric: tabular-nums;
+    font-size: 12px; color: var(--tx-2);
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td {
+    padding: 10px 12px;
+    border-top: 1px solid var(--bd);
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: var(--bg-2);
+    color: var(--tx-3);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    font-weight: 500;
+    border-bottom: 1px solid var(--bd);
+    border-top: 0;
+  }
+  tr.item.done-pass td:first-child { border-left: 3px solid var(--brand); padding-left: 9px; }
+  tr.item.done-fail td:first-child { border-left: 3px solid var(--err);   padding-left: 9px; }
+  tr.item.done-skip td:first-child { border-left: 3px solid var(--skip);  padding-left: 9px; }
+
+  td.id {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    color: var(--tx-2);
+    width: 64px;
+    white-space: nowrap;
+  }
+  td.op { width: 38%; }
+  td.exp { width: 42%; color: var(--tx-2); }
+  td.exp code, td.op code {
+    background: var(--bg-3);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11.5px;
+  }
+  td.ctrl { width: 128px; white-space: nowrap; }
+
+  /* 备注列加宽（从 240 → 420，并允许随屏幕再长）。小屏下 @media 仍然隐藏 */
+  td.note { width: 420px; min-width: 360px; }
+  td.note textarea {
+    width: 100%;
+    min-height: 52px;
+    max-height: 200px;
+    resize: vertical;
+    background: var(--bg-3);
+    border: 1px solid var(--bd);
+    border-radius: 5px;
+    color: var(--tx);
+    padding: 6px 8px;
+    font-size: 12px;
+    font-family: inherit;
+    line-height: 1.45;
+  }
+  td.note textarea:focus { outline: none; border-color: var(--brand); }
+  td.note .note-hint {
+    font-size: 11px;
+    color: var(--tx-3);
+    margin: 4px 2px 0;
+    display: flex; align-items: center; gap: 6px;
+  }
+  td.note .note-hint kbd {
+    background: var(--bg-3);
+    border: 1px solid var(--bd);
+    border-radius: 3px;
+    padding: 0 5px;
+    font-size: 10.5px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--tx-2);
+  }
+
+  /* 缩略图栏 */
+  td.note .thumbs {
+    margin-top: 6px;
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  td.note .thumb {
+    position: relative;
+    width: 72px; height: 54px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--bd);
+    background: var(--bg-3);
+    cursor: zoom-in;
+    flex-shrink: 0;
+  }
+  td.note .thumb img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  td.note .thumb .rm {
+    position: absolute;
+    top: 2px; right: 2px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: rgba(0,0,0,.65);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 10px;
+    line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0;
+    opacity: 0;
+    transition: opacity .12s;
+  }
+  td.note .thumb:hover .rm { opacity: 1; }
+  td.note .thumb .rm:hover { background: var(--err); }
+
+  /* Lightbox 放大预览 */
+  #lightbox {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.85);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 1000;
+    cursor: zoom-out;
+    padding: 40px;
+  }
+  #lightbox.open { display: flex; }
+  #lightbox img {
+    max-width: 100%; max-height: 100%;
+    object-fit: contain;
+    box-shadow: 0 10px 40px rgba(0,0,0,.6);
+  }
+  #lightbox .lb-close {
+    position: absolute;
+    top: 16px; right: 20px;
+    background: rgba(255,255,255,.1);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  #lightbox .lb-close:hover { background: rgba(255,255,255,.2); }
+
+  .btn-group { display: inline-flex; gap: 4px; }
+  .btn-group button {
+    background: var(--bg-3);
+    border: 1px solid var(--bd);
+    color: var(--tx-2);
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .12s;
+    min-width: 28px;
+  }
+  .btn-group button:hover { background: var(--bd); color: var(--tx); }
+  .btn-group button.active.pass { background: var(--brand); color: #fff; border-color: var(--brand); }
+  .btn-group button.active.fail { background: var(--err);   color: #fff; border-color: var(--err); }
+  .btn-group button.active.skip { background: var(--skip);  color: #fff; border-color: var(--skip); }
+
+  .empty-hint { padding: 28px 16px; text-align: center; color: var(--tx-3); font-size: 12px; }
+
+  /* 新用户自测顺序说明（与下方分组展示顺序一致） */
+  .order-hint {
+    margin: 0;
+    padding: 10px 22px 0;
+    font-size: 12px;
+    color: var(--tx-2);
+    line-height: 1.5;
+    border-bottom: 1px solid var(--bd);
+    background: var(--bg-2);
+  }
+  .order-hint code { font-size: 11px; background: var(--bg-3); padding: 1px 5px; border-radius: 3px; }
+
+  footer {
+    padding: 16px 22px 32px;
+    color: var(--tx-3);
+    font-size: 11.5px;
+    text-align: center;
+    border-top: 1px solid var(--bd);
+    margin-top: 20px;
+  }
+
+  @media (max-width: 960px) {
+    main { grid-template-columns: 1fr; }
+    aside { position: relative; top: 0; max-height: none; }
+    td.note { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>耗材管理器 · 功能自测清单</h1>
+  <span class="meta" id="storage-key-hint"></span>
+  <div class="spacer"></div>
+  <div class="progress-wrap">
+    <div class="progress-bar" title="绿=pass 红=fail 灰=skip">
+      <div class="pass-seg" id="seg-pass"></div>
+      <div class="fail-seg" id="seg-fail"></div>
+      <div class="skip-seg" id="seg-skip"></div>
+    </div>
+    <div class="progress-text" id="progress-text">0 / 0</div>
+  </div>
+  <button id="btn-expand">展开全部</button>
+  <button id="btn-collapse">折叠全部</button>
+  <button id="btn-export">导出</button>
+  <button id="btn-import">导入</button>
+  <button id="btn-reset" class="danger">重置</button>
+</header>
+
+<p class="order-hint">
+  <b>推荐自测顺序（新用户旅程）</b>：先 <code>F1</code> 进入页面 → 再 <code>F4</code> 添加至少一条耗材（否则列表/详情多为空态）→ 然后 <code>F2</code> 列表浏览与筛选 → <code>F3</code> 详情 → <code>F5</code> 编辑 → <code>F6</code> 删除 → <code>F7</code> AMS → <code>F8</code> 云端联调 → <code>F9</code> 调试日志 → <code>F10</code> 基础设施。左侧跳转与下方分组已按此顺序排列；保留子项 ID（如 <code>F6.3</code>）不变便于对照历史导出 JSON，下线功能（<code>F1.2 / F1.3 / F1.4 / F2.6 / F6.1 / F6.4 / F6.5 / F6.6</code>）已移除。
+</p>
+
+<main>
+  <aside id="toc"></aside>
+  <div id="groups"></div>
+</main>
+
+<footer>
+  状态本地持久化在浏览器 localStorage；<b>文件路径</b>：
+  <code>openspec/specs/device/软件代码文档/耗材管理器/自测/index.html</code>
+  &nbsp;·&nbsp; 数据 key：<code id="storage-key-foot"></code>
+</footer>
+
+<input type="file" id="import-file" accept=".json" style="display:none" />
+
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="预览图片">
+  <button class="lb-close" type="button">关闭 (Esc)</button>
+  <img alt="" />
+</div>
+
+<script>
+/* ========== 清单数据 ========== */
+const FUNCTIONS = [
+  {
+    id: 'F1', name: '页面入口与导航',
+    summary: 'Tab · 主题跟随 · 退出保活',
+    items: [
+      { id: 'F1.1', op: '启动 Studio，点击 MainFrame 顶级 Tab <b>耗材管理</b>',
+        exp: '进入 <code>FilamentPage</code>，默认 <code>tab=all</code>，搜索框空；当前版本不再提供"统计 / 存档"左导（已下线）' },
+      { id: 'F1.5', op: '关闭 Studio 再打开',
+        exp: '本地列表从 <code>spools.json</code> 正确回灌，不丢数据' },
+    ],
+  },
+
+  {
+    id: 'F4', name: '添加耗材',
+    summary: '手动 · 批量 · AMS 导入 · 添加相似 · 云端品牌合并',
+    items: [
+      { id: 'F4.1', op: '点 <b>Add Filament</b>',
+        exp: '<code>AddEditDialog</code> 打开；表单为空；默认在"手动录入" Tab' },
+      { id: 'F4.2', op: '查看品牌下拉',
+        exp: '同时显示 <b>本地 preset vendors ∪ cloudConfig.vendors</b>（去重）' },
+      { id: 'F4.3', op: '选中不同品牌时，类型 / 系列联动',
+        exp: '选本地 vendor 时 types 有值；选仅云端 vendor 时 types 为空（已知差距，非故障）' },
+      { id: 'F4.4', op: '颜色网格 / 自定义颜色',
+        exp: '能选中；<code>color_code</code> + <code>color_name</code> 正确写入' },
+      { id: 'F4.5', op: '数量 = 1 时提交',
+        exp: '<code>addSpool</code> 单条；登录后 DebugLog <code>data: enqueue_push_create</code>，<code>http: POST /my/filament/v2</code>' },
+      { id: 'F4.6', op: '数量 > 1（批量）提交',
+        exp: '<code>batchAddSpool</code> 一次创建 N 条；N 次 <code>enqueue_push_create</code>；N 次 POST <b>串行</b>' },
+      { id: 'F4.7', op: '切换到 <b>从 AMS 读取</b> Tab · 与 Studio 全局选中机器联动',
+        exp: '切 Tab 后：<br>'+
+             '· 默认机器 = Studio 全局 <code>DeviceManager::get_selected_machine()</code>；<br>'+
+             '· 若全局无选中 / 不在列表，fallback：<code>is_online==true</code> 的第一台，再 fallback 列表首项；<br>'+
+             '· 在弹窗外切换 Studio 全局机器（监听 <code>OnSelectedMachineChanged</code>），弹窗内下拉与 AMS 视图自动跟随；<br>'+
+             '· 在弹窗内用下拉切机器时，同步调 <code>DeviceManager::set_selected_machine</code>，其他地方（Monitor / Sidebar 等）看到同一选择；<br>'+
+             '· 无设备 / 拉取失败 / 无 AMS 时 inline 提示，不留白页（详见 F7）' },
+      { id: 'F4.8', op: '从 AMS 选中料槽导入',
+        exp: '表单按料槽<b>完整预填</b>并保存后 <code>entry_method="ams_sync"</code>：<br>' +
+             '· Brand / Material Type / Series：优先用 <code>tray.setting_id</code> 反查 preset 得到（最权威）；<br>' +
+             '&emsp;无 setting_id 时再按 <code>sub_brands</code> + <code>fila_type</code> 前缀匹配 fallback；<br>' +
+             '· Color：去除 <code>#RRGGBBAA</code> 的 alpha 通道 → 6 位 HEX 与调色板/预览一致；<br>' +
+             '· Weight：<code>Total = tray.weight + 250</code>，<code>Spool = 250</code>，<code>Net = tray.weight</code>；<br>' +
+             '· 保存时附带 <code>tag_uid</code> / <code>setting_id</code> / <code>bound_ams_id</code> / <code>bound_dev_id</code> / <code>remain_percent</code> / <code>diameter</code>；<br>' +
+             '· 当 <code>tray.remain &gt; 0</code> 时，<code>net_weight</code> 覆盖为「初始净重 × remain%」，确保列表显示的剩余重量来自 AMS 实时读数；<br>' +
+             '· 有 <code>tag_uid</code>（含 RFID 信息）的槽位进入只读态，Brand/Type/Color/Weight 不允许手改。<br>' +
+             '<b>实时刷新</b>：在 AMS 页签打开期间，<code>MachineObject::parse_json</code> 每次收到新的 MQTT 推送后，对话框应在 ≤1.5s 内反映出料槽变化（颜色 / 重量 / 剩余 / RFID / 插拔），不需要手动点「刷新」；已选中的料槽若被拔出，选择态自动清空。' },
+      { id: 'F4.9', op: '表格行菜单 <b>添加相似</b>',
+        exp: '<code>AddEditDialog</code> 打开；用原 spool 的品牌 / 类型 / 系列 / 颜色 / 重量预填（价格等本地独有字段已下线）' },
+      { id: 'F4.10', op: '取消 / 关闭弹窗',
+        exp: '不写入本地；无 push 日志' },
+    ],
+  },
+
+  {
+    id: 'F2', name: '列表浏览与筛选',
+    summary: '表格 · Tab · 筛选 · 搜索 · 分组',
+    items: [
+      { id: 'F2.1', op: '表格首次渲染 · 同步圆点',
+        exp: '行样式、图标、颜色正常；空库时显示空态；耗材名列展示「品牌 + 耗材类型名」。<br>' +
+             '「云端同步圆点」语义（对齐 figma <code>23669:75824</code>）：<br>' +
+             '· <b>已同步</b>（<code>cloud_synced == true</code>）→ SpoolSvg 右上角绘制 <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#50e81d;vertical-align:middle;border:1px solid rgba(0,0,0,0.4);"></span> 6px 绿点；hover 显示 tooltip「Cloud · synced」；<br>' +
+             '· <b>未同步</b>（false / undefined）→ <b>不画任何圆点</b>，hover 显示「No sync yet」；<br>' +
+             '· 分组模式下，每个分组表头追加「●  n/total」汇总徽章（n = 该组已同步数）；若全组皆未同步则徽章不出现；<br>' +
+             '· 当前版本不再提供"状态"列与"☆ 收藏"按钮（云端不支持）。' },
+      { id: 'F2.2', op: 'Tab 切换：全部 / AMS',
+        exp: '条目按 <code>entry_method=="ams_sync"</code> 正确过滤；当前版本不再提供"收藏"Tab（云端不支持）' },
+      { id: 'F2.3', op: '筛选：品牌 / 材料 / 系列',
+        exp: '下拉项为当前表格内真实取值的去重集；选中后过滤生效；"All" 可清空；当前版本不再提供"状态"筛选' },
+      { id: 'F2.4', op: '搜索框输入关键字',
+        exp: '匹配 <code>brand</code> / <code>material_type</code> / <code>series</code> / <code>color_name</code>，大小写不敏感' },
+      { id: 'F2.5', op: '分组开关切换',
+        exp: '切 Group 后表格按"品牌 + 耗材类型 + 颜色"聚合；切回平铺' },
+      { id: 'F2.7', op: '搜索 + 筛选 + Tab 组合',
+        exp: '三种条件同时生效不冲突，计数正确' },
+    ],
+  },
+
+  {
+    id: 'F3', name: '详情查看',
+    summary: '弹窗 · 上下条切换 · 编辑跳转',
+    items: [
+      { id: 'F3.1', op: '点击行打开详情',
+        exp: '<code>DetailDialog</code> 弹出；<br>' +
+             '· 不再出现"使用记录" Tab（云端未提供使用记录，已下线）；<br>' +
+             '· 录入类型徽标文案：<br>' +
+             '&emsp;- 手动录入 → 中文「手动录入」/ 英文「Manual Entry」<br>' +
+             '&emsp;- AMS 同步 → 中文「AMS 同步」/ 英文「AMS Sync」<br>' +
+             '&emsp;- RFID → 「RFID」<br>' +
+             '（修复 F3.1：此前显示的 <code>entry_manual</code> 等原始 key 已消除）' },
+      { id: 'F3.2', op: '详情内上一条 / 下一条',
+        exp: '在当前 <code>filtered</code> 列表内切换；首 / 尾正确禁用' },
+      { id: 'F3.3', op: '详情内点击"编辑"',
+        exp: '关闭详情；打开 <code>AddEditDialog</code>，表单预填当前 spool。<br>' +
+             '保存后应成功走 <code>PUT /design-user-service/my/filament/v2/:id</code>（id 在 URL path，<b>不再放请求体</b>），' +
+             '响应 200；<code>debugEnabled</code> 打开时可在 <code>http: update_spool</code> 日志里看到 body 中<b>不包含 id 字段</b>。<br>' +
+             '列表中该条目的"更新时间"应刷新，同步圆点保持绿色。' },
+      { id: 'F3.4', op: '详情关闭',
+        exp: '回到表格；选中集合不变' },
+    ],
+  },
+
+  {
+    id: 'F5', name: '编辑耗材',
+    summary: '详情 → 编辑 · 表单字段修改',
+    items: [
+      { id: 'F5.1', op: '详情 → 编辑',
+        exp: '<code>AddEditDialog</code> 打开；表单预填；"数量"栏隐藏或锁定为 1' },
+      { id: 'F5.2', op: '修改余量 / 备注等字段并保存',
+        exp: '本地即时生效；表格行更新；登录后 <code>data: enqueue_push_update</code>，<code>http: PUT /my/filament/v2/&lt;id&gt;</code>' },
+      { id: 'F5.3', op: '修改品牌 / 类型 / 系列',
+        exp: '保存后联动字段一致，不产生脏数据' },
+      { id: 'F5.4', op: '关闭不保存',
+        exp: '本地无变化' },
+    ],
+  },
+
+  {
+    id: 'F6', name: '删除',
+    summary: '真删（统一语义）· 批量',
+    items: [
+      { id: 'F6.2', op: '单条 <b>删除</b> 图标',
+        exp: '弹确认后 <code>removeSpool</code>：真删（当前版本不再区分存档/真删）；登录后 <code>enqueue_push_delete({id})</code>' },
+      { id: 'F6.3', op: '批量选中 + 批量删除',
+        exp: '弹确认后 <code>batchRemoveSpool(ids)</code> 真删；<code>enqueue_push_delete(ids)</code> 一次入队' },
+    ],
+  },
+
+  {
+    id: 'F7', name: 'AMS 同步',
+    summary: '设备列表 · 料槽 → Store · 匹配策略',
+    items: [
+      { id: 'F7.1', op: '连接一台打印机，打开 AMS Tab（或 AddEdit 的 AMS Tab）',
+        exp: '设备列表能拉到（<code>fetchMachines</code>）' },
+      { id: 'F7.2', op: '选中设备',
+        exp: '料槽数据（4 格 × N AMS）正确显示' },
+      { id: 'F7.3', op: '设备 MQTT 推送 / 手动 <code>sync_ams</code>',
+        exp: '<code>wgtFilaManagerSync</code> 把料槽写入 Store；<code>entry_method=ams_sync</code> 的 spool 出现在 AMS Tab' },
+      { id: 'F7.4', op: '观察匹配逻辑',
+        exp: '优先 <code>tag_uid</code>；否则唯一 <code>setting_id + color</code>；都不中则新建' },
+      { id: 'F7.5', op: '未连接设备',
+        exp: 'AMS Tab 空态；不报错' },
+    ],
+  },
+
+  {
+    id: 'F8', name: '云端同步（联调重点）',
+    summary: '自动 pull · 自动 push · 徽章四态 · 串行化 · 登出清队',
+    items: [
+      { id: 'F8.1', op: '<b>未登录</b>打开耗材页',
+        exp: '徽章"未登录"（灰）；<code>cloudSync.logged_in=false</code>；首次 <code>config.fetch</code> 仍发 <code>GET /filament/config</code>（无 Authorization）' },
+      { id: 'F8.2', op: '未登录下 add / update / remove',
+        exp: '本地生效；<b>无</b> <code>http</code> push 日志；dispatcher / sync 内部吞未登录' },
+      { id: 'F8.3', op: '登录',
+        exp: '<code>data: enqueue_pull</code>；徽章 syncing→idle；<code>http: GET /my/filament/v2</code>；<code>bridge: sync/pull_done</code> 带 added/updated' },
+      { id: 'F8.4', op: '登录后 add 一条',
+        exp: '<code>data: enqueue_push_create</code>；<code>http: POST /my/filament/v2</code>；徽章短暂 syncing' },
+      { id: 'F8.5', op: '登录后连续 add 10 条',
+        exp: '10 次 POST 时间戳<b>不重叠</b>（dispatcher 串行化）；<code>data</code> 里只有一个 busy=true 在飞' },
+      { id: 'F8.6', op: '登录后 pull 进行中立刻 add',
+        exp: 'push 先入队；等 pull finished 后再 started' },
+      { id: 'F8.7', op: '手动点徽章（idle 态）',
+        exp: '触发 <code>triggerCloudPull()</code>；<code>data: enqueue_pull</code>' },
+      { id: 'F8.8', op: '拔网 → 登录态下 add 3 条',
+        exp: '3 条本地生效；3 个 <code>push_failed</code> Report；3 个 error toast；徽章红点 + tooltip' },
+      { id: 'F8.9', op: '恢复网络后点红徽章',
+        exp: '触发 <code>triggerCloudPushAll()</code>；全部成功推送' },
+      { id: 'F8.10', op: '登出 / 未登录态',
+        exp: '徽章回 idle + <code>logged_in=false</code>；<code>data: clear_pending</code>；未 started 的 push 被丢弃；本地 <code>spools.json</code> 不变。<br>' +
+             '未登录时主内容区展示空态：<br>' +
+             '· 主文案「账号未登录，暂无数据」/ 英文「Not signed in — no data available」；<br>' +
+             '· 次文案「请先登录，再查看耗材管理器数据。」；<br>' +
+             '· 工具栏按钮置灰不可交互：Tabs、品牌/类型/系列 Filter、搜索框、<b>Group</b>、<b>同步历史</b>、<b>添加耗材</b>；<br>' +
+             '· CloudBadge 必须呈现<b>明确的离线视觉</b>：<b>虚线边框 + 半透明 + 云图标叠加斜杠</b>，悬浮 tooltip 显示「未登录 — 云端同步不可用 / Not signed in — cloud sync disabled」，点击无任何 HTTP 与状态变化；<br>' +
+             '· 批量删除栏不出现（selected 必须在 logout 时被清空）。' },
+      { id: 'F8.11', op: '登出后再登录同账号',
+        exp: '<code>pull</code> 对已 push 过的条目不重复 create' },
+      { id: 'F8.12', op: '重复触发 <code>config.fetch</code>',
+        exp: '第二次无 http 请求；Response <code>message="cached"</code>' },
+      { id: 'F8.13', op: 'AddEditDialog 品牌下拉',
+        exp: '能看到云端独有 vendor；<b>当前无 ⭐/(cloud) 视觉标识</b>（差距，非故障）' },
+      { id: 'F8.14', op: '主动调 <code>sync.status</code>',
+        exp: 'payload 形状 <code>{logged_in, is_syncing, is_pulling, last_synced_at, last_error:{code,message}}</code>' },
+      { id: 'F8.15', op: '连续触发 &gt; 5 条 error toast',
+        exp: '上限 5 条；最旧的自动裁剪' },
+    ],
+  },
+
+  {
+    id: 'F9', name: '开发版调试日志窗',
+    summary: '底部固定 · 三类过滤 · Clear / Copy / detail',
+    items: [
+      { id: 'F9.1', op: '开发版启动',
+        exp: '<code>debugEnabled=true</code>；页面底部 <code>DebugLogPanel</code> 可见' },
+      { id: 'F9.2', op: 'Release 版启动',
+        exp: '<code>debugEnabled=false</code>；日志窗隐藏' },
+      { id: 'F9.3', op: '切分类 All / Data / C++↔Web / HTTP',
+        exp: '条目过滤正确' },
+      { id: 'F9.4', op: '点 Clear',
+        exp: '列表清空；后续新日志仍能进来' },
+      { id: 'F9.5', op: '点 Copy All',
+        exp: '剪贴板得到完整文本' },
+      { id: 'F9.6', op: '点条目展开 detail',
+        exp: '展开结构化 payload（JSON 格式化）' },
+      { id: 'F9.7', op: '主页滚动',
+        exp: '日志窗<b>贴底不飘</b>；主内容区正确让出空间' },
+    ],
+  },
+
+  {
+    id: 'F10', name: '基础设施',
+    summary: '主题 · DPI · i18n · 退出',
+    items: [
+      { id: 'F10.1', op: '切换 Studio 亮 / 暗主题',
+        exp: '页面颜色随动；无样式破损；<code>data: theme_changed</code> Report' },
+      { id: 'F10.2', op: '跨屏拖动（多 DPI 场景）',
+        exp: '字号、图标、行高按 DPI 缩放' },
+      { id: 'F10.3', op: '中英切换（如 Studio 支持）',
+        exp: '全部可见文本随语言切换，无中英混杂。<br>' +
+             '重点复核：<br>' +
+             '· 工具栏：<code>All / Group / Search Filament / Add Filament / Sync History</code><br>' +
+             '· AddEdit：<code>Parameter / Pick Custom Color / OK / General / Loading...</code><br>' +
+             '· 详情录入类型徽标：<code>Manual Entry / AMS Sync / RFID</code>（中文：手动录入 / AMS 同步 / RFID）。<br>' +
+             '未翻译 key 应为 0（修复 F10.3 前有 8 个英文 key 未配中文）' },
+      { id: 'F10.4', op: '关闭 Studio 退出',
+        exp: '无崩溃；CloudDispatcher / Sync / Client 按序释放' },
+    ],
+  },
+];
+
+/* ========== 状态持久化 ========== */
+const STORAGE_KEY = 'fila-manager-selftest/v1';
+document.getElementById('storage-key-hint').textContent = STORAGE_KEY;
+document.getElementById('storage-key-foot').textContent = STORAGE_KEY;
+
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+  catch { return {}; }
+}
+function saveState(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+let STATE = loadState();
+
+/* ========== 渲染 ========== */
+const groupsEl = document.getElementById('groups');
+const tocEl    = document.getElementById('toc');
+
+function render() {
+  groupsEl.innerHTML = '';
+  tocEl.innerHTML    = '<h2>跳转</h2>';
+
+  for (const g of FUNCTIONS) {
+    // TOC
+    const a = document.createElement('a');
+    a.href = '#' + g.id;
+    a.dataset.gid = g.id;
+    a.innerHTML = `<span>${g.id} · ${g.name}</span><span class="tag" data-tag="${g.id}"></span>`;
+    tocEl.appendChild(a);
+
+    // Group
+    const details = document.createElement('details');
+    details.className = 'group';
+    details.id = g.id;
+    details.open = true;
+    const summary = document.createElement('summary');
+    summary.innerHTML = `
+      <span class="title">${g.id} · ${g.name}</span>
+      <span class="summary">${g.summary}</span>
+      <span class="ratio" data-ratio="${g.id}"></span>
+    `;
+    details.appendChild(summary);
+
+    const table = document.createElement('table');
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th>ID</th><th>操作</th><th>预期</th><th>状态</th><th>备注</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    `;
+    const tb = table.querySelector('tbody');
+
+    for (const it of g.items) {
+      const st = STATE[it.id] || {};
+      const tr = document.createElement('tr');
+      tr.className = 'item';
+      tr.id = 'row-' + it.id;
+      tr.innerHTML = `
+        <td class="id">${it.id}</td>
+        <td class="op">${it.op}</td>
+        <td class="exp">${it.exp}</td>
+        <td class="ctrl">
+          <div class="btn-group" data-id="${it.id}">
+            <button data-v="pass" title="通过">✓</button>
+            <button data-v="fail" title="失败">✕</button>
+            <button data-v="skip" title="跳过">—</button>
+            <button data-v="reset" title="重置">↺</button>
+          </div>
+        </td>
+        <td class="note">
+          <textarea data-note="${it.id}" placeholder="备注 / 现象 / 日志片段（在此框内 Ctrl+V 可粘贴截图）"></textarea>
+          <div class="note-hint">截图支持：聚焦左侧输入框后按 <kbd>Ctrl</kbd>+<kbd>V</kbd> 直接粘贴</div>
+          <div class="thumbs" data-thumbs="${it.id}"></div>
+        </td>
+      `;
+      tb.appendChild(tr);
+    }
+
+    details.appendChild(table);
+    groupsEl.appendChild(details);
+  }
+
+  applyStateToDom();
+  updateProgress();
+}
+
+function applyStateToDom() {
+  for (const g of FUNCTIONS) {
+    for (const it of g.items) {
+      const st = STATE[it.id] || {};
+      const row = document.getElementById('row-' + it.id);
+      if (!row) continue;
+      row.classList.remove('done-pass','done-fail','done-skip');
+      if (st.status === 'pass') row.classList.add('done-pass');
+      else if (st.status === 'fail') row.classList.add('done-fail');
+      else if (st.status === 'skip') row.classList.add('done-skip');
+
+      const btns = row.querySelectorAll(`.btn-group[data-id="${it.id}"] button`);
+      btns.forEach(b => {
+        b.classList.remove('active','pass','fail','skip');
+        if (b.dataset.v === st.status) {
+          b.classList.add('active', st.status);
+        }
+      });
+
+      const ta = row.querySelector(`textarea[data-note="${it.id}"]`);
+      if (ta) ta.value = st.note || '';
+
+      renderThumbs(it.id);
+    }
+  }
+}
+
+function renderThumbs(id) {
+  const box = document.querySelector(`.thumbs[data-thumbs="${id}"]`);
+  if (!box) return;
+  const imgs = ((STATE[id] || {}).images) || [];
+  box.innerHTML = '';
+  imgs.forEach((img, idx) => {
+    const el = document.createElement('div');
+    el.className = 'thumb';
+    el.dataset.idx = idx;
+    el.dataset.id  = id;
+    el.title = `点击放大 · 粘贴于 ${new Date(img.ts || Date.now()).toLocaleString()}`;
+    el.innerHTML = `
+      <img src="${img.src}" alt="" />
+      <button class="rm" type="button" data-action="rm" data-id="${id}" data-idx="${idx}" title="删除">×</button>
+    `;
+    box.appendChild(el);
+  });
+}
+
+function updateProgress() {
+  let total = 0, pass = 0, fail = 0, skip = 0;
+  for (const g of FUNCTIONS) {
+    let gt = 0, gp = 0, gf = 0, gk = 0;
+    for (const it of g.items) {
+      gt++; total++;
+      const s = (STATE[it.id] || {}).status;
+      if (s === 'pass') { gp++; pass++; }
+      else if (s === 'fail') { gf++; fail++; }
+      else if (s === 'skip') { gk++; skip++; }
+    }
+    const rEl = document.querySelector(`[data-ratio="${g.id}"]`);
+    if (rEl) rEl.textContent = `${gp}/${gt}` + (gf ? ` · ${gf} fail` : '') + (gk ? ` · ${gk} skip` : '');
+
+    const tag = document.querySelector(`[data-tag="${g.id}"]`);
+    const tocA = document.querySelector(`aside a[data-gid="${g.id}"]`);
+    if (tag && tocA) {
+      tag.textContent = `${gp}/${gt}`;
+      tocA.classList.toggle('done', gp === gt);
+      tocA.classList.toggle('has-fail', gf > 0);
+    }
+  }
+
+  document.getElementById('progress-text').textContent =
+    `${pass} pass · ${fail} fail · ${skip} skip · ${total - pass - fail - skip} pending  /  ${total}`;
+
+  const passPct = (pass / total) * 100;
+  const failPct = (fail / total) * 100;
+  const skipPct = (skip / total) * 100;
+  document.getElementById('seg-pass').style.width = passPct + '%';
+  document.getElementById('seg-fail').style.left  = passPct + '%';
+  document.getElementById('seg-fail').style.width = failPct + '%';
+  document.getElementById('seg-skip').style.left  = (passPct + failPct) + '%';
+  document.getElementById('seg-skip').style.width = skipPct + '%';
+}
+
+/* ========== 交互 ========== */
+groupsEl.addEventListener('click', (e) => {
+  const btn = e.target.closest('.btn-group button');
+  if (!btn) return;
+  const id = btn.parentElement.dataset.id;
+  const v = btn.dataset.v;
+  if (!STATE[id]) STATE[id] = {};
+  if (v === 'reset') {
+    delete STATE[id];
+  } else {
+    STATE[id] = { ...STATE[id], status: v, ts: Date.now() };
+  }
+  saveState(STATE);
+  applyStateToDom();
+  updateProgress();
+});
+
+groupsEl.addEventListener('input', (e) => {
+  const ta = e.target.closest('textarea[data-note]');
+  if (!ta) return;
+  const id = ta.dataset.note;
+  if (!STATE[id]) STATE[id] = {};
+  STATE[id].note = ta.value;
+  saveState(STATE);
+});
+
+/* ========== 图片粘贴（Ctrl+V）=========
+ * 实现策略：在 textarea 上监听 paste → 抓 clipboardData image → canvas
+ * 压缩到 max 1280px + JPEG 0.82 → base64 存入 STATE[id].images[]，渲染缩略图。
+ * 所有图片连同 STATE 一起存 localStorage，也一起随 "导出" 写到 JSON 里。
+ * 注意 localStorage 单域总容量约 5 MB，粘太多张会写失败，会回滚并弹提示。
+ */
+const MAX_IMG_SIDE = 1280;   // 长边像素上限
+const IMG_QUALITY  = 0.82;   // JPEG 质量
+
+function compressImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        const scale = Math.min(1, MAX_IMG_SIDE / Math.max(width, height));
+        const w = Math.round(width * scale);
+        const h = Math.round(height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        // 有透明通道用 png，否则压 jpeg
+        const mime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        resolve(canvas.toDataURL(mime, IMG_QUALITY));
+      };
+      img.onerror = reject;
+      img.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function addImage(id, file) {
+  let dataUrl;
+  try { dataUrl = await compressImageFile(file); }
+  catch { alert('图片解码失败'); return; }
+
+  if (!STATE[id]) STATE[id] = {};
+  if (!STATE[id].images) STATE[id].images = [];
+  STATE[id].images.push({ src: dataUrl, ts: Date.now() });
+  try {
+    saveState(STATE);
+  } catch (err) {
+    // localStorage 超额：回滚
+    STATE[id].images.pop();
+    if (!STATE[id].images.length) delete STATE[id].images;
+    alert('保存失败：浏览器本地存储已满（~5MB 上限）。\n请删除一些旧图片或导出后重置再继续。');
+    return;
+  }
+  renderThumbs(id);
+}
+
+groupsEl.addEventListener('paste', (e) => {
+  const ta = e.target.closest('textarea[data-note]');
+  if (!ta) return;
+  const items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (const it of items) {
+    if (it.kind === 'file' && it.type.startsWith('image/')) {
+      const file = it.getAsFile();
+      if (!file) continue;
+      e.preventDefault();   // 阻止默认把图转成 base64 粘成文本
+      addImage(ta.dataset.note, file);
+    }
+  }
+});
+
+/* 缩略图点击：× 删除 / 图片本体 放大 */
+groupsEl.addEventListener('click', (e) => {
+  const rm = e.target.closest('button[data-action="rm"]');
+  if (rm) {
+    e.stopPropagation();
+    const id  = rm.dataset.id;
+    const idx = Number(rm.dataset.idx);
+    if (!STATE[id] || !STATE[id].images) return;
+    if (!confirm('删除这张截图？')) return;
+    STATE[id].images.splice(idx, 1);
+    if (!STATE[id].images.length) delete STATE[id].images;
+    saveState(STATE);
+    renderThumbs(id);
+    return;
+  }
+  const thumb = e.target.closest('.thumb');
+  if (thumb) {
+    const img = thumb.querySelector('img');
+    if (img) openLightbox(img.src);
+  }
+});
+
+/* Lightbox */
+const lightbox = document.getElementById('lightbox');
+const lbImg    = lightbox.querySelector('img');
+function openLightbox(src) {
+  lbImg.src = src;
+  lightbox.classList.add('open');
+}
+function closeLightbox() {
+  lightbox.classList.remove('open');
+  lbImg.src = '';
+}
+lightbox.addEventListener('click', (e) => {
+  // 点图片本体不关闭，点背景/关闭按钮关闭
+  if (e.target === lbImg) return;
+  closeLightbox();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
+});
+
+document.getElementById('btn-expand').onclick = () => {
+  document.querySelectorAll('details.group').forEach(d => d.open = true);
+};
+document.getElementById('btn-collapse').onclick = () => {
+  document.querySelectorAll('details.group').forEach(d => d.open = false);
+};
+
+document.getElementById('btn-export').onclick = () => {
+  const blob = new Blob(
+    [JSON.stringify({ key: STORAGE_KEY, exported_at: new Date().toISOString(), state: STATE }, null, 2)],
+    { type: 'application/json' }
+  );
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `fila-selftest-${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+document.getElementById('btn-import').onclick = () => {
+  document.getElementById('import-file').click();
+};
+document.getElementById('import-file').addEventListener('change', (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const obj = JSON.parse(r.result);
+      const incoming = obj && obj.state ? obj.state : obj;
+      if (!incoming || typeof incoming !== 'object') throw new Error('format');
+      if (!confirm('将用导入数据覆盖当前进度，确认吗？')) return;
+      STATE = incoming;
+      saveState(STATE);
+      applyStateToDom();
+      updateProgress();
+    } catch {
+      alert('导入失败：文件格式不正确');
+    }
+  };
+  r.readAsText(f);
+  e.target.value = '';
+});
+
+document.getElementById('btn-reset').onclick = () => {
+  if (!confirm('确认清空所有自测状态和备注？此操作不可撤销。')) return;
+  STATE = {};
+  saveState(STATE);
+  applyStateToDom();
+  updateProgress();
+};
+
+/* ========== init ========== */
+render();
+</script>
+</body>
+</html>
