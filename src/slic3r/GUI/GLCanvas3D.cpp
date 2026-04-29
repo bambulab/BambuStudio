@@ -6411,7 +6411,8 @@ void GLCanvas3D::update_sequential_clearance()
                 float brim_ext = static_cast<float>(obj->config().brim_width.value);
                 extra = std::max(extra, brim_ext);
             }
-            shrink_factor += scale_(extra);
+            shrink_factor += scale_(0.5f * extra);
+            shrink_factor = std::max(shrink_factor, static_cast<float>(scale_(extra)));
         }
 
         double mitter_limit = scale_(0.1);

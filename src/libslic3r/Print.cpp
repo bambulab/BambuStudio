@@ -623,14 +623,17 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
 
     bool all_objects_are_short = print.is_all_objects_are_short();
     float obj_distance = all_objects_are_short ? scale_(0.5*MAX_OUTER_NOZZLE_RADIUS-0.1) : scale_(0.5*print.config().extruder_clearance_max_radius.value-0.1);
-    // BBS: Add skirt/brim expansion for sequential print collision detection
+    // BBS: Add skirt/brim expansion for sequential print collision detection.
+    // Per side: max(0.5*clearance + 0.5*extra, extra), so total required gap
+    // = max(clearance + extra, 2*extra), matching the arrange logic.
     if (print.is_sequential_print()) {
         float extra = get_real_skirt_dist(print.config());
         for (const PrintObject *obj : print.objects()) {
             float brim_ext = static_cast<float>(obj->config().brim_width.value);
             extra = std::max(extra, brim_ext);
         }
-        obj_distance += scale_(extra);
+        obj_distance += scale_(0.5f * extra);
+        obj_distance = std::max(obj_distance, static_cast<float>(scale_(extra)));
     }
     {
         // sequential_print_horizontal_clearance_valid
@@ -2513,9 +2516,10 @@ void Print::_make_skirt()
     if (this->has_infinite_skirt() && n_skirts == 0)
         n_skirts = 1;
 
-    // Initial offset of the brim inner edge from the object (possible with a support & raft).
-    // The skirt will touch the brim if the brim is extruded.
-    auto   distance = float(scale_(m_config.skirt_distance.value) - spacing/2.);
+    // Initial offset so that after the first `distance += scale_(spacing)`,
+    // the 1st skirt centerline lands at skirt_distance + spacing/2 from the hull.
+    // Both operands must be in mm before scale_ to avoid unit mismatch.
+    auto   distance = float(scale_(m_config.skirt_distance.value - spacing / 2.));
     // Draw outlines from outside to inside.
     // Loop while we have less skirts than required or any extruder hasn't reached the min length if any.
     std::vector<coordf_t> extruded_length(extruders.size(), 0.);
@@ -2573,7 +2577,7 @@ void Print::_make_skirt()
     const bool by_object = is_sequential_print();
     const size_t n_object_skirts = by_object ? std::max(size_t(1), size_t(m_config.skirt_loops.value)) : 1;
     const float object_skirt_initial_offset = by_object
-        ? (float(scale_(m_config.skirt_distance.value)) - spacing / 2.f)
+        ? float(scale_(m_config.skirt_distance.value - spacing / 2.f))
         : float(scale_(1.0));
     for (auto obj_cvx_hull : object_convex_hulls) {
         PrintObject* object = obj_cvx_hull.first;
