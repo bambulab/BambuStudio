@@ -346,7 +346,7 @@ public:
     bool check_flow_compatible_of_nozzle_and_filament(const DynamicPrintConfig & config, const std::vector<std::string>& filament_presets, std::string& error_msg);
     bool check_tpu_nozzle_has_multiple_filaments(const DynamicPrintConfig &config, std::string &error_msg);
     bool check_high_temp_need_wrapping_detection(const DynamicPrintConfig &config, std::string &warning_text) const;
-    bool check_high_shrinkage_filament(const DynamicPrintConfig &config, std::string &warning_text) const;
+    bool check_high_shrinkage_filament(const DynamicPrintConfig &config, std::string &filament_names) const;
     bool check_single_extruder_mixed_filament_risk(const DynamicPrintConfig &config, std::string &warning_text) const;
 
     /* instance related operations*/

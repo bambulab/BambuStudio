@@ -1922,9 +1922,9 @@ bool PartPlate::check_high_temp_need_wrapping_detection(const DynamicPrintConfig
     return false;
 }
 
-bool PartPlate::check_high_shrinkage_filament(const DynamicPrintConfig &config, std::string &warning_text) const
+bool PartPlate::check_high_shrinkage_filament(const DynamicPrintConfig &config, std::string &filament_names_text) const
 {
-    warning_text.clear();
+    filament_names_text.clear();
 
     std::vector<int> used_filaments = get_extruders(true); // 1 base
     if (used_filaments.empty()){
@@ -1980,8 +1980,7 @@ bool PartPlate::check_high_shrinkage_filament(const DynamicPrintConfig &config, 
                 filament_names += ", ";
             filament_names += *it;
         }
-        warning_text = GUI::format(_L("High-shrinkage filament(s) detected: %s. These materials may cause dimensional deviation after cooling. If your model requires precise fitting or assembly, please refer to the Wiki guide for shrinkage testing."),
-                                   filament_names);
+        filament_names_text = filament_names;
         return true;
     }
 

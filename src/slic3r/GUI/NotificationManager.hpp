@@ -163,7 +163,7 @@ enum class NotificationType
 	BBLNozzleFilamentIncompatible,
 	BBLTpuNozzleHasMultiFilament,
     BBLHighTempNeedWrappingDetection,
-    BBLHighShrinkageFilament,
+    BBLPrintedWeightOverLimitWarn,
     BBLSingleExtruderMixedFilamentRisk,
     AssemblyWarning,
     AssemblyInfo,
