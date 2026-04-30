@@ -320,6 +320,10 @@ void AppConfig::set_defaults()
         set_bool("enable_high_low_temp_mixed_printing", false);
     }
 
+    if (get("camera_fullscreen_active_monitor_only").empty()){
+        set_bool("camera_fullscreen_active_monitor_only", true);
+    }
+
     if (get("ignore_ext_filament_in_filament_map").empty()){
         set_bool("ignore_ext_filament_in_filament_map", false);
     }
