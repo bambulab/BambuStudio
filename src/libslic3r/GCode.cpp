@@ -3168,14 +3168,22 @@ void GCode::export_layer_filaments(GCodeProcessorResult* result)
         std::optional<unsigned int> prev_nozzle;
         auto group_result = m_print->get_layered_nozzle_group_result();
 
-        for(size_t layer_idx = 0; layer_idx < m_sorted_layer_filaments.size(); ++layer_idx){
-            for(auto fidx : m_sorted_layer_filaments[layer_idx]){
-                int nozzle_idx = group_result->get_nozzle_id(fidx, layer_idx);
-                if(!prev_nozzle || ! prev_filament || prev_nozzle != nozzle_idx || prev_filament != fidx){
-                    result->nozzle_change_sequence.emplace_back(nozzle_idx);
-                    result->filament_change_sequence.emplace_back(fidx);
-                    prev_nozzle = nozzle_idx;
-                    prev_filament = fidx;
+        if (m_sorted_layer_filaments.empty() && m_print->calib_params().mode == CalibMode::Calib_PA_Line) {
+            // PA line calibration writes its own G-code, so it must publish the used filament explicitly.
+            unsigned int fidx = m_writer.filament() ? m_writer.filament()->id() : 0;
+            result->filament_change_sequence.emplace_back(fidx);
+            if (group_result)
+                result->nozzle_change_sequence.emplace_back(group_result->get_nozzle_id(fidx, 0));
+        } else {
+            for(size_t layer_idx = 0; layer_idx < m_sorted_layer_filaments.size(); ++layer_idx){
+                for(auto fidx : m_sorted_layer_filaments[layer_idx]){
+                    int nozzle_idx = group_result->get_nozzle_id(fidx, layer_idx);
+                    if(!prev_nozzle || ! prev_filament || prev_nozzle != nozzle_idx || prev_filament != fidx){
+                        result->nozzle_change_sequence.emplace_back(nozzle_idx);
+                        result->filament_change_sequence.emplace_back(fidx);
+                        prev_nozzle = nozzle_idx;
+                        prev_filament = fidx;
+                    }
                 }
             }
         }
