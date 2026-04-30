@@ -11,19 +11,12 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as I18nDemoImport } from './routes/i18n-demo'
 import { Route as FilamentImport } from './routes/filament'
 import { Route as AppImport } from './routes/app'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
 
 // Create/Update Routes
-
-const I18nDemoRoute = I18nDemoImport.update({
-  id: '/i18n-demo',
-  path: '/i18n-demo',
-  getParentRoute: () => rootRoute,
-} as any)
 
 const FilamentRoute = FilamentImport.update({
   id: '/filament',
@@ -81,13 +74,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FilamentImport
       parentRoute: typeof rootRoute
     }
-    '/i18n-demo': {
-      id: '/i18n-demo'
-      path: '/i18n-demo'
-      fullPath: '/i18n-demo'
-      preLoaderRoute: typeof I18nDemoImport
-      parentRoute: typeof rootRoute
-    }
   }
 }
 
@@ -98,7 +84,6 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/app': typeof AppRoute
   '/filament': typeof FilamentRoute
-  '/i18n-demo': typeof I18nDemoRoute
 }
 
 export interface FileRoutesByTo {
@@ -106,7 +91,6 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/app': typeof AppRoute
   '/filament': typeof FilamentRoute
-  '/i18n-demo': typeof I18nDemoRoute
 }
 
 export interface FileRoutesById {
@@ -115,15 +99,14 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/app': typeof AppRoute
   '/filament': typeof FilamentRoute
-  '/i18n-demo': typeof I18nDemoRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/app' | '/filament' | '/i18n-demo'
+  fullPaths: '/' | '/about' | '/app' | '/filament'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/app' | '/filament' | '/i18n-demo'
-  id: '__root__' | '/' | '/about' | '/app' | '/filament' | '/i18n-demo'
+  to: '/' | '/about' | '/app' | '/filament'
+  id: '__root__' | '/' | '/about' | '/app' | '/filament'
   fileRoutesById: FileRoutesById
 }
 
@@ -132,7 +115,6 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AppRoute: typeof AppRoute
   FilamentRoute: typeof FilamentRoute
-  I18nDemoRoute: typeof I18nDemoRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -140,7 +122,6 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AppRoute: AppRoute,
   FilamentRoute: FilamentRoute,
-  I18nDemoRoute: I18nDemoRoute,
 }
 
 export const routeTree = rootRoute
@@ -156,8 +137,7 @@ export const routeTree = rootRoute
         "/",
         "/about",
         "/app",
-        "/filament",
-        "/i18n-demo"
+        "/filament"
       ]
     },
     "/": {
@@ -171,9 +151,6 @@ export const routeTree = rootRoute
     },
     "/filament": {
       "filePath": "filament.tsx"
-    },
-    "/i18n-demo": {
-      "filePath": "i18n-demo.tsx"
     }
   }
 }
