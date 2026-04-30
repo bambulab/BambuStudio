@@ -9,6 +9,7 @@
 #include <mutex>
 #include <boost/filesystem/path.hpp>
 #include <boost/property_tree/ptree_fwd.hpp>
+#include <vector>
 
 #include "PrintConfig.hpp"
 #include "Semver.hpp"
@@ -100,6 +101,8 @@ extern int get_values_from_json(std::string file_path, std::vector<std::string>&
 extern ConfigFileType guess_config_file_type(const boost::property_tree::ptree &tree);
 
 extern void extend_default_config_length(DynamicPrintConfig &config, const DynamicPrintConfig &inherit_config, const bool set_nil_to_default, const DynamicPrintConfig &defaults);
+
+const std::vector<std::string> &get_filament_orders();
 
 class VendorProfile
 {

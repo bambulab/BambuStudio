@@ -5,6 +5,7 @@
 #include "libslic3r/Preset.hpp"
 #include "I18N.hpp"
 #include <boost/log/trivial.hpp>
+#include <iterator>
 #include <wx/colordlg.h>
 #include <wx/dcgraph.h>
 #include "CalibUtils.hpp"
@@ -1061,34 +1062,18 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
 
     // Sort the filaments
     {
-        static std::unordered_map<wxString, int> sorted_names
-        {   {"Bambu PLA Basic",        0},
-            {"Bambu PLA Matte",        1},
-            {"Bambu PETG HF",          2},
-            {"Bambu ABS",              3},
-            {"Bambu PLA Silk",         4},
-            {"Bambu PLA-CF" ,          5},
-            {"Bambu PLA Galaxy",       6},
-            {"Bambu PLA Metal",        7},
-            {"Bambu PLA Marble",       8},
-            {"Bambu PETG-CF",          9},
-            {"Bambu PETG Translucent", 10},
-            {"Bambu ABS-GF",           11}
-        };
-
         static std::vector<wxString> sorted_vendors { "Bambu Lab", "Generic" };
         static std::vector<wxString> sorted_types { "PLA", "PETG", "ABS", "TPU" };
         auto _filament_sorter = [&query_filament_vendors, &query_filament_types](const wxString& left, const wxString& right) -> bool
         {
-            { // Compare name order
-                const auto& iter1 = sorted_names.find(left);
-                int name_order1 = (iter1 != sorted_names.end()) ? iter1->second : INT_MAX;
-
-                const auto& iter2 = sorted_names.find(right);
-                int name_order2 = (iter2 != sorted_names.end()) ? iter2->second : INT_MAX;
-                if (name_order1 != name_order2)
+            {   // Compare name order
+                const std::vector<std::string>& sorted_names = get_filament_orders();
+                const auto begin = sorted_names.cbegin();
+                const auto& iter1 = std::find(sorted_names.cbegin(), sorted_names.cend(), left);
+                const auto& iter2 = std::find(sorted_names.cbegin(), sorted_names.cend(), right);
+                if (iter1 != iter2)
                 {
-                    return name_order1 < name_order2;
+                    return std::distance(iter1, iter2) > 0;
                 }
             }
             { // Compare vendor
