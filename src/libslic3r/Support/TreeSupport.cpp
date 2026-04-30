@@ -3459,7 +3459,7 @@ first_pass_next:;
                 direction_to_outer     = to_outside - node.position;
                 double dist_to_outer   = unscale_(direction_to_outer.cast<double>().norm());
                 next_node->radius      = (next_node->print_z < DO_NOT_MOVER_UNDER_MM && node.dist_mm_to_top > DO_NOT_MOVER_UNDER_MM) ?
-                                             node.radius + max_move_distance :
+                                             node.radius + support_extrusion_width / 2. :
                                              std ::max(node.radius, std::min(next_node->radius, dist_to_outer));
                 get_max_move_dist(next_node);
                 m_ts_data->m_mutex.lock();
