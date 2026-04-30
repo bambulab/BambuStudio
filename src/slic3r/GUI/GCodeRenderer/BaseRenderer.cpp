@@ -7,10 +7,15 @@
 #include "slic3r/GUI/GLToolbar.hpp"
 #include "slic3r/GUI/DeviceCore/DevUtilBackend.h"
 #include "../DeviceCore/DevConfigUtil.h"
+#include "libslic3r/BuildVolume.hpp"
+#include "libslic3r/ClipperUtils.hpp"
+#include "libslic3r/GCode/BedExcludeChecker.hpp"
+#include "libslic3r/Geometry/ConvexHull.hpp"
 #include "libslic3r/Print.hpp"
 #include "../Utils/HelioDragon.hpp"
 #include <imgui/imgui_internal.h>
 #include <GL/glew.h>
+#include <chrono>
 namespace
 {
     std::string get_view_type_string(Slic3r::GUI::gcode::EViewType view_type)
@@ -297,6 +302,60 @@ namespace Slic3r
             bool BaseRenderer::is_contained_in_bed() const
             {
                 return m_contained_in_bed;
+            }
+
+            void BaseRenderer::update_toolpath_outside_state(const GCodeProcessorResult& gcode_result, const BuildVolume& build_volume,
+                const std::vector<BoundingBoxf3>& exclude_bounding_box, Points&& pts)
+            {
+                //BBS: use convex_hull for toolpath outside check
+                m_contained_in_bed = build_volume.all_paths_inside(gcode_result, m_paths_bounding_box);
+                if (m_contained_in_bed) {
+                    // Runtime-only combined exclude areas for toolpath checks.
+                    // Keep config semantics intact: do not write back to bed_exclude_area.
+                    std::vector<Slic3r::Polygon> combined_exclude_area_for_toolpath_check;
+                    combined_exclude_area_for_toolpath_check.reserve(exclude_bounding_box.size() + 1);
+                    for (const BoundingBoxf3& exclude_bbox : exclude_bounding_box) {
+                        if (exclude_bbox.defined)
+                            combined_exclude_area_for_toolpath_check.emplace_back(exclude_bbox.polygon(true));
+                    }
+                    auto* plater = wxGetApp().plater();
+                    const bool enable_wrapping_detection = plater != nullptr && plater->get_enable_wrapping_detection();
+                    if (enable_wrapping_detection && gcode_result.wrapping_exclude_area.size() > 2) {
+                        Pointfs wrapping_exclude_area_for_toolpath_check = gcode_result.wrapping_exclude_area;
+                        if (plater != nullptr) {
+                            if (PartPlate* curr_plate = plater->get_partplate_list().get_curr_plate(); curr_plate != nullptr) {
+                                // Keep the wrapping area in the same scene coordinates as exclude_bounding_box.
+                                // PartPlate::set_shape() translates exclude areas by the current plate origin.
+                                const Vec3d plate_origin = curr_plate->get_origin();
+                                for (Vec2d& point : wrapping_exclude_area_for_toolpath_check) {
+                                    point(0) += plate_origin(0);
+                                    point(1) += plate_origin(1);
+                                }
+                            }
+                        }
+
+                        Slic3r::Polygon wrapping_exclude_polygon = Slic3r::Polygon::new_scale(wrapping_exclude_area_for_toolpath_check);
+                        if (wrapping_exclude_polygon.is_valid()) {
+                            combined_exclude_area_for_toolpath_check.emplace_back(std::move(wrapping_exclude_polygon));
+                        }
+                    }
+
+                    if (!combined_exclude_area_for_toolpath_check.empty() && !pts.empty()) {
+                        bool maybe_intersects_exclude_area = false;
+                        Slic3r::Polygon convex_hull_2d = Slic3r::Geometry::convex_hull(std::move(pts));
+                        for (const Slic3r::Polygon& exclude_polygon : combined_exclude_area_for_toolpath_check) {
+                            if (!intersection({ exclude_polygon }, { convex_hull_2d }).empty()) {
+                                maybe_intersects_exclude_area = true;
+                                break;
+                            }
+                        }
+                        if (maybe_intersects_exclude_area) {
+                            const bool exact_intersects = toolpath_intersects_bed_exclude_area_2d(gcode_result, combined_exclude_area_for_toolpath_check);
+                            m_contained_in_bed = !exact_intersects;
+                        }
+                    }
+                }
+                (const_cast<GCodeProcessorResult&>(gcode_result)).toolpath_outside = !m_contained_in_bed;
             }
 
             EViewType BaseRenderer::get_view_type() const

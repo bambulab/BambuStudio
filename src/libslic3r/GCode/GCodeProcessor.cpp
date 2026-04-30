@@ -2016,6 +2016,21 @@ void GCodeProcessor::apply_config(const PrintConfig& config)
     if (has_scarf_joint_seam != nullptr)
         m_detect_layer_based_on_tag  = m_detect_layer_based_on_tag  || has_scarf_joint_seam->value;
 
+    m_result.printable_area = config.printable_area.values;
+    m_result.bed_exclude_area = config.bed_exclude_area.values;
+    m_result.wrapping_exclude_area = config.wrapping_exclude_area.values;
+    const ConfigOptionString* print_settings_id = config.option<ConfigOptionString>("print_settings_id");
+    if (print_settings_id != nullptr)
+        m_result.settings_ids.print = print_settings_id->value;
+
+    const ConfigOptionStrings* filament_settings_id = config.option<ConfigOptionStrings>("filament_settings_id");
+    if (filament_settings_id != nullptr)
+        m_result.settings_ids.filament = filament_settings_id->values;
+
+    const ConfigOptionString* printer_settings_id = config.option<ConfigOptionString>("printer_settings_id");
+    if (printer_settings_id != nullptr)
+        m_result.settings_ids.printer = printer_settings_id->value;
+
 }
 
 void GCodeProcessor::apply_config(const DynamicPrintConfig& config)

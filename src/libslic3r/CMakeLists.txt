@@ -197,6 +197,8 @@ set(lisbslic3r_sources
     GCode/AvoidCrossingPerimeters.hpp
     GCode/ConflictChecker.cpp
     GCode/ConflictChecker.hpp
+    GCode/BedExcludeChecker.cpp
+    GCode/BedExcludeChecker.hpp
     GCode/Smoothing.cpp
     GCode/Smoothing.hpp
     GCode/CoolingBuffer.cpp

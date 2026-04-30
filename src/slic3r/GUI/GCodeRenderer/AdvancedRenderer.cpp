@@ -6,8 +6,7 @@
 #include "slic3r/GUI/OpenGLManager.hpp"
 #include "slic3r/GUI/IMSlider.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
-#include "libslic3r/ClipperUtils.hpp"
-#include "libslic3r/Geometry/ConvexHull.hpp"
+#include "slic3r/GUI/Plater.hpp"
 #include <GL/glew.h>
 #include <boost/nowide/cstdio.hpp>
 #include <wx/numformatter.h>
@@ -1004,28 +1003,7 @@ namespace Slic3r
                     % m_paths_bounding_box.min.x() % m_paths_bounding_box.min.y() % m_paths_bounding_box.max.x() % m_paths_bounding_box.max.y();
                 //if (wxGetApp().is_editor())
                 {
-                    //BBS: use convex_hull for toolpath outside check
-                    m_contained_in_bed = build_volume.all_paths_inside(gcode_result, m_paths_bounding_box);
-                    if (m_contained_in_bed) {
-                        //PartPlateList& partplate_list = wxGetApp().plater()->get_partplate_list();
-                        //PartPlate* plate = partplate_list.get_curr_plate();
-                        //const std::vector<BoundingBoxf3>& exclude_bounding_box = plate->get_exclude_areas();
-                        if (exclude_bounding_box.size() > 0)
-                        {
-                            int index;
-                            Slic3r::Polygon convex_hull_2d = Slic3r::Geometry::convex_hull(std::move(pts));
-                            for (index = 0; index < exclude_bounding_box.size(); index++)
-                            {
-                                Slic3r::Polygon p = exclude_bounding_box[index].polygon(true);  // instance convex hull is scaled, so we need to scale here
-                                if (intersection({ p }, { convex_hull_2d }).empty() == false)
-                                {
-                                    m_contained_in_bed = false;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    (const_cast<GCodeProcessorResult&>(gcode_result)).toolpath_outside = !m_contained_in_bed;
+                    update_toolpath_outside_state(gcode_result, build_volume, exclude_bounding_box, std::move(pts));
                 }
 
                 auto extract_move_id = [&biased_seams_ids](size_t id) {
