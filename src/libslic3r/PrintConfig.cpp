@@ -8262,8 +8262,8 @@ std::vector<int> DynamicPrintConfig::update_values_to_printer_extruders(DynamicP
 
         if (extruder_id > 0 && extruder_id <= static_cast<unsigned> (extruder_count)) {
             variant_index.resize(1);
-            ExtruderType extruder_type = (ExtruderType)(opt_extruder_type->get_at(extruder_id - 1));
-            NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(extruder_id - 1));
+            ExtruderType extruder_type = (ExtruderType)(opt_extruder_type->get_at(std::clamp((int)(extruder_id - 1), 0, (int)opt_extruder_type->size() - 1)));
+            NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(std::clamp((int)(extruder_id - 1), 0, (int)opt_nozzle_volume_type->size() - 1)));
 
             if (nozzle_volume_type == nvtHybrid) {
                 // use the one passed
@@ -8456,13 +8456,22 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
     //if (extruder_nozzle_volume_count > 1)
     {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%: different nozzle volume processing")%__LINE__;
-        std::vector<int> filament_maps =  printer_config.option<ConfigOptionInts>("filament_map")->values;
+        auto opt_filament_map = printer_config.option<ConfigOptionInts>("filament_map");
+        if (!opt_filament_map) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ", filament_map option not found in CLI mode, skipping";
+            return;
+        }
+        std::vector<int> filament_maps = opt_filament_map->values;
         size_t filament_count = filament_maps.size();
         //apply process settings
         //auto opt_nozzle_diameters = this->option<ConfigOptionFloats>("nozzle_diameter");
         //int extruder_count = opt_nozzle_diameters->size();
         auto opt_extruder_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(printer_config.option("extruder_type"));
         auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(printer_config.option("nozzle_volume_type"));
+        if (!opt_extruder_type || !opt_nozzle_volume_type) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ", extruder_type or nozzle_volume_type not found, skipping";
+            return;
+        }
 
         auto opt_filament_volume_maps = dynamic_cast<const ConfigOptionInts*>(printer_config.option("filament_volume_map"));
         std::vector<int> filament_volume_maps;
@@ -8475,8 +8484,8 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
 
         for (int f_index = 0; f_index < filament_count; f_index++)
         {
-            ExtruderType extruder_type = (ExtruderType)(opt_extruder_type->get_at(filament_maps[f_index] - 1));
-            NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(filament_maps[f_index] - 1));
+            ExtruderType extruder_type = (ExtruderType)(opt_extruder_type->get_at(std::clamp(filament_maps[f_index] - 1, 0, (int)opt_extruder_type->size() - 1)));
+            NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(std::clamp(filament_maps[f_index] - 1, 0, (int)opt_nozzle_volume_type->size() - 1)));
 
             if ((extruder_nozzle_volume_count > extruder_count || nozzle_volume_type == nvtHybrid) && (!filament_volume_maps.empty())) {
                 nozzle_volume_type = (NozzleVolumeType)(filament_volume_maps[f_index]);
