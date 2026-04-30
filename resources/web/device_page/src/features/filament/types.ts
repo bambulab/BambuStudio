@@ -34,6 +34,11 @@ export interface PresetSeries {
     filament_id: string;
     setting_id?: string;
     name?: string;
+    // STUDIO-18110 / STUDIO-18117: true 表示该 item 来自用户自建 / 云端 pull
+    // 同步过来的 preset（!is_system && !is_default）。下拉选项仍要展示它们，
+    // 但 AMS RFID setting_id 反查路径必须跳过，避免命中后让 series 被
+    // unsanitized user alias 污染。
+    is_user?: boolean;
   }>;
 }
 

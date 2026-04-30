@@ -30,8 +30,19 @@ export function FilamentPage() {
     init, addSpool, batchAddSpool, updateSpool,
     removeSpool, batchRemoveSpool,
     fetchMachines, requestMachinePushall, fetchAmsData,
+    fetchPresets,
     fetchCloudSyncStatus, triggerCloudPull, fetchCloudFilamentConfig,
   } = useFilamentBridge();
+
+  // STUDIO-18110: 进入耗材管理页面时同步刷新所有耗材列表来源——
+  // 本地预设（含用户在'准备页 -> 耗材预设'新建的自建耗材）+ 云端 config（标准品牌/类型字典）。
+  // 仅 force-refresh 云端不够，自建耗材在前端表现是 presets 字段，需要 fetchPresets 才能拿到。
+  const refreshAllFilamentLists = useCallback(async () => {
+    await Promise.all([
+      fetchPresets(),
+      fetchCloudFilamentConfig({ force: true }),
+    ]);
+  }, [fetchPresets, fetchCloudFilamentConfig]);
 
   const spools      = useStore((s) => s.filament.spools);
   const presets     = useStore((s) => s.filament.presets);
@@ -88,23 +99,25 @@ export function FilamentPage() {
   // Init
   useEffect(() => { init(); }, [init]);
 
-  // Kick off cloud status + config at mount; if already logged in (e.g. user
-  // opened Filament tab after signing in), trigger pull so list matches cloud
-  // (C++ also enqueues pull on login — this covers WebView init race / tab
-  // opened after pull completed without bridge attached).
+  // Kick off cloud status + filament list refresh at mount; if already logged
+  // in (e.g. user opened Filament tab after signing in), trigger pull so list
+  // matches cloud (C++ also enqueues pull on login — this covers WebView init
+  // race / tab opened after pull completed without bridge attached).
+  //
+  // STUDIO-18110: 刷新 = 本地 presets + 云端 config（见上方 refreshAllFilamentLists 注释）。
   useEffect(() => {
     let cancelled = false;
     void (async () => {
       await fetchCloudSyncStatus();
       if (cancelled) return;
-      void fetchCloudFilamentConfig();
+      void refreshAllFilamentLists();
       const { cloudSync: st } = useStore.getState().filament;
       if (st.logged_in) {
         await triggerCloudPull();
       }
     })();
     return () => { cancelled = true; };
-  }, [fetchCloudSyncStatus, fetchCloudFilamentConfig, triggerCloudPull]);
+  }, [fetchCloudSyncStatus, refreshAllFilamentLists, triggerCloudPull]);
 
   useEffect(() => {
     if (isLoggedIn) return;

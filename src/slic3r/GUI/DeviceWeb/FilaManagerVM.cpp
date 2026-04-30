@@ -618,7 +618,12 @@ nlohmann::json FilaManagerVM::build_preset_options()
     std::set<std::string> filament_id_set;
     for (auto it = filaments.begin(); it != filaments.end(); ++it) {
         Preset& preset = *it;
-        if (filaments.get_preset_base(*it) != &preset)
+        // STUDIO-18110: 系统 preset 仍按 base 去重（避免 0.4 / 0.6 / 0.8 nozzle variant
+        // 分别成行），但用户自建耗材（!is_system && !is_default）通常 derived from
+        // 某个 system base，会被原 filter 排除，导致添加耗材弹窗的下拉中看不到。
+        // 此处放行 user-defined preset，让自建耗材按其继承的 vendor / type 落入桶中。
+        const bool is_user_defined = !preset.is_system && !preset.is_default;
+        if (!is_user_defined && filaments.get_preset_base(*it) != &preset)
             continue;
 
         std::string vendor = it->config.get_filament_vendor();
@@ -626,9 +631,12 @@ nlohmann::json FilaManagerVM::build_preset_options()
         if (vendor.empty()) continue;
         if (type.empty()) type = "Other";
 
-        const std::string dedupe_key = it->filament_id.empty()
+        // STUDIO-18110: 用户自建耗材可能复用父 system preset 的 filament_id，
+        // 用 filament_id 去重会让自建项被父 base 吞掉。改用 name 作为 dedupe key
+        // 才能稳定保留每个用户自建项。
+        const std::string dedupe_key = is_user_defined
             ? (vendor + "\n" + type + "\n" + it->name)
-            : it->filament_id;
+            : (it->filament_id.empty() ? (vendor + "\n" + type + "\n" + it->name) : it->filament_id);
         if (!filament_id_set.insert(dedupe_key).second)
             continue;
 
@@ -638,12 +646,21 @@ nlohmann::json FilaManagerVM::build_preset_options()
         if (shown_name.empty())
             continue;
 
-        vendor_type_items[vendor][type].push_back({
+        // STUDIO-18110 / STUDIO-18117: user-defined preset 通常派生自 system base，
+        // 共享同一个 filament_id。"添加耗材 -> 从 AMS 读取"路径上，前端用
+        // tray.setting_id 反查 presets 时如果命中了这条 user-defined entry，
+        // setSeries 会被填上不规范的 user alias，再由 cloud sync 兜底成 PUT
+        // filamentName 上传，覆盖云端 spool 的 Material Type，复现 18117。
+        // 加上 is_user 标识，让前端 setting_id 反查路径跳过 user-defined item，
+        // 但下拉选项仍然包含它们（满足 18110 自建耗材可见的目标）。
+        nlohmann::json entry = {
             {"name", shown_name},
             {"series", shown_name},
             {"filament_id", it->filament_id},
             {"setting_id", it->setting_id}
-        });
+        };
+        if (is_user_defined) entry["is_user"] = true;
+        vendor_type_items[vendor][type].push_back(entry);
     }
 
     nlohmann::json vendors_arr = nlohmann::json::array();

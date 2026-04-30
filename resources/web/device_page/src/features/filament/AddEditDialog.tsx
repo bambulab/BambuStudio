@@ -856,9 +856,16 @@ export function AddEditDialog({
 
     const settingId = tray.setting_id || '';
     if (settingId) {
+      // STUDIO-18110 / STUDIO-18117: AMS RFID 上的 setting_id 永远是云端官方
+      // preset id。user-defined / cloud-pull 派生 preset 会和 system base
+      // 共享 filament_id，find() 短路时可能命中错的那条，让 series 被填上
+      // 未经规范化的 user alias，再由 cloud sync PUT body 兜底覆盖云端
+      // spool 的 Material Type（=18117 重现链路）。反查必须跳过 is_user item。
       outer: for (const vendor of presets) {
         for (const tp of vendor.types) {
-          const hit = tp.items?.find((it) => it.setting_id === settingId || it.filament_id === settingId);
+          const hit = tp.items?.find((it) =>
+            !it.is_user && (it.setting_id === settingId || it.filament_id === settingId),
+          );
           if (hit) {
             brandName  = vendor.name;
             typeName   = tp.name;
