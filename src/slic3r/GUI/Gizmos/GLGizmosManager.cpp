@@ -450,6 +450,12 @@ bool GLGizmosManager::handle_shortcut(int key)
     if (it == m_gizmos.end())
         return false;
 
+    // Only allow gizmos that are visible in the current toolbar
+    size_t gizmo_idx = it - m_gizmos.begin();
+    const std::vector<size_t> selectable = get_selectable_idxs();
+    if (std::find(selectable.begin(), selectable.end(), gizmo_idx) == selectable.end())
+        return false;
+
     // allowe open shortcut even when selection is empty
     if (Text == it - m_gizmos.begin()) {
         if (dynamic_cast<GLGizmoText *>(m_gizmos[Text].get())->on_shortcut_key()) {
