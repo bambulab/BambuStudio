@@ -2049,13 +2049,19 @@ void GLCanvas3D::update_plate_volumes_visibility(PartPlateList& plate_list)
     for (GLVolume* vol : m_volumes.volumes) {
         int obj_id  = vol->composite_id.object_id;
         int inst_id = vol->composite_id.instance_id;
-        if (obj_id < 0 || obj_id >= 1000) continue; // skip wipe towers and special volumes
-        bool in_hidden = hidden_instances.count({obj_id, inst_id}) > 0;
+        bool in_hidden;
+        if (vol->is_wipe_tower) {
+            int wt_plate_id = obj_id - 1000;
+            const PartPlate* wt_plate = plate_list.get_plate(wt_plate_id);
+            in_hidden = wt_plate && !wt_plate->is_visible();
+        } else if (obj_id < 0 || obj_id >= 1000) {
+            continue;
+        } else {
+            in_hidden = hidden_instances.count({obj_id, inst_id}) > 0;
+        }
         if (in_hidden)
             vol->is_active = false;
         else if (!vol->is_active) {
-            // Only re-activate if it was hidden by us (not by another system)
-            // Re-activate unconditionally — other systems will correct if needed
             vol->is_active = true;
         }
     }
@@ -3771,6 +3777,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 #endif
     }
     wxGetApp().plater()->get_partplate_list().reset_thumbnail_assembly_view_data(); // reload scene
+    // Re-apply per-plate visibility (newly loaded wipe towers default to active).
+    update_plate_volumes_visibility(wxGetApp().plater()->get_partplate_list());
     // and force this canvas to be redrawn.
     m_dirty = true;
 }
