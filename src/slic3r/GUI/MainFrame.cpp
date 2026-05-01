@@ -8,6 +8,9 @@
 #include <wx/sizer.h>
 #include <wx/menu.h>
 #include <wx/progdlg.h>
+#ifndef __APPLE__
+#include <wx/taskbar.h>
+#endif
 #include <wx/tooltip.h>
 //#include <wx/glcanvas.h>
 #include <wx/filename.h>
@@ -42,6 +45,7 @@
 // BBS
 #include "PartPlate.hpp"
 #include "Preferences.hpp"
+#include "PrintStatusFrame.hpp"
 #include "Widgets/ProgressDialog.hpp"
 #include "BindDialog.hpp"
 #include "../Utils/MacDarkMode.hpp"
@@ -134,6 +138,34 @@ public:
     }
 };*/
 #endif // __APPLE__
+
+// Generic Windows/Linux tray icon used only for close-to-tray.
+#ifndef __APPLE__
+class BambuStudioCloseToTrayIcon : public wxTaskBarIcon
+{
+public:
+    explicit BambuStudioCloseToTrayIcon(MainFrame* frame) : m_frame(frame) {}
+
+    wxMenu* CreatePopupMenu() override
+    {
+        auto* menu = new wxMenu;
+        if (m_frame == nullptr)
+            return menu;
+
+        append_menu_item(menu, wxID_ANY, _L("Show Bambu Studio"), _L("Show Bambu Studio"),
+            [this](wxCommandEvent&) { if (m_frame) m_frame->restore_from_tray(); }, "", this);
+        append_menu_item(menu, wxID_ANY, _L("Show Print Status Window"), _L("Show Print Status Window"),
+            [this](wxCommandEvent&) { if (m_frame) m_frame->show_print_status_frame(); }, "", this);
+        menu->AppendSeparator();
+        append_menu_item(menu, wxID_EXIT, _L("Quit"), _L("Quit"),
+            [this](wxCommandEvent&) { if (m_frame) m_frame->request_app_exit(false); }, "", this);
+        return menu;
+    }
+
+private:
+    MainFrame* m_frame { nullptr };
+};
+#endif
 
 // Load the icon either from the exe, or from the ico file.
 static wxIcon main_frame_icon(GUI_App::EAppMode app_mode)
@@ -460,10 +492,18 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     // declare events
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": mainframe received close_widow event";
+        if (should_close_to_tray(event) && ensure_close_to_tray_icon()) {
+            minimize_to_tray();
+            event.Veto();
+            return;
+        }
+
         if (event.CanVeto() && m_plater->get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode(true)) {
             // prevents to open the save dirty project dialog
             event.Veto();
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< "cancelled by gizmo in editing";
+            if (m_real_shutdown_requested)
+                m_real_shutdown_requested = false;
             return;
         }
 
@@ -483,10 +523,14 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         if (event.CanVeto() && ((result = m_plater->close_with_confirm(check)) == wxID_CANCEL)) {
             event.Veto();
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< "cancelled by close_with_confirm selection";
+            if (m_real_shutdown_requested)
+                m_real_shutdown_requested = false;
             return;
         }
         if (event.CanVeto() && !wxGetApp().check_print_host_queue()) {
             event.Veto();
+            if (m_real_shutdown_requested)
+                m_real_shutdown_requested = false;
             return;
         }
 
@@ -588,12 +632,34 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         MarkdownTip::ExitTip();
 
         m_plater->reset();
+        remove_close_to_tray_icon();
         this->shutdown();
         // propagate event
 
         wxGetApp().remove_mall_system_dialog();
         event.Skip();
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ": mainframe finished process close_widow event";
+    });
+
+    Bind(wxEVT_ICONIZE, [this](wxIconizeEvent& event) {
+        if (!event.IsIconized()) {
+            event.Skip();
+            return;
+        }
+
+        if (m_real_shutdown_requested || IsBeingDeleted() || wxGetApp().app_config == nullptr) {
+            event.Skip();
+            return;
+        }
+
+        if (wxGetApp().app_config->get("print_status_window_enabled") != "true" ||
+            wxGetApp().app_config->get("print_status_window_auto_show_on_minimize") != "true") {
+            event.Skip();
+            return;
+        }
+
+        CallAfter([this]() { show_print_status_frame_safe_on_minimize(); });
+        event.Skip();
     });
 
     //FIXME it seems this method is not called on application start-up, at least not on Windows. Why?
@@ -655,7 +721,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             this->Iconize();
             return;
         }
-        if (evt.CmdDown() && evt.GetKeyCode() == 'Q') { wxPostEvent(this, wxCloseEvent(wxEVT_CLOSE_WINDOW)); return;}
+        if (evt.CmdDown() && evt.GetKeyCode() == 'Q') { request_app_exit(false); return;}
         if (evt.CmdDown() && evt.RawControlDown() && evt.GetKeyCode() == 'F') {
             EnableFullScreenView(true);
             if (IsFullScreen()) {
@@ -747,6 +813,8 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
     wxGetApp().persist_window_geometry(this, true);
     wxGetApp().persist_window_geometry(&m_settings_dialog, true);
 }
+
+MainFrame::~MainFrame() = default;
 
 #ifdef __WIN32__
 // Orca: Fix maximized window overlaps taskbar when taskbar auto hide is enabled (#8085)
@@ -870,6 +938,118 @@ void  MainFrame::show_log_window()
 {
     m_log_window = new wxLogWindow(this, _L("Logging"), true, false);
     m_log_window->Show();
+}
+
+void MainFrame::request_app_exit(bool force)
+{
+    m_real_shutdown_requested = true;
+    if (!Close(force))
+        m_real_shutdown_requested = false;
+}
+
+#ifndef __APPLE__
+bool MainFrame::should_close_to_tray(const wxCloseEvent& event) const
+{
+    return event.CanVeto() &&
+           !m_real_shutdown_requested &&
+           !wxGetApp().is_gcode_viewer() &&
+           IsShown() &&
+           wxGetApp().app_config != nullptr &&
+           wxGetApp().app_config->get("print_status_window_close_to_tray") == "true";
+}
+
+bool MainFrame::ensure_close_to_tray_icon()
+{
+    if (m_close_to_tray_icon)
+        return true;
+
+    auto tray_icon = std::make_unique<BambuStudioCloseToTrayIcon>(this);
+    wxIcon icon = main_frame_icon(wxGetApp().get_app_mode());
+    if (!icon.IsOk())
+        icon = wxIcon(Slic3r::var("BambuStudio.ico"), wxBITMAP_TYPE_ICO);
+    if (!icon.IsOk())
+        return false;
+    if (!tray_icon->SetIcon(icon, "BambuStudio"))
+        return false;
+
+    tray_icon->Bind(wxEVT_TASKBAR_LEFT_DCLICK, [this](wxTaskBarIconEvent&) { restore_from_tray(); });
+    m_close_to_tray_icon = std::move(tray_icon);
+    return true;
+}
+
+void MainFrame::minimize_to_tray()
+{
+    if (wxGetApp().app_config &&
+        wxGetApp().app_config->get("print_status_window_enabled") == "true" &&
+        wxGetApp().app_config->get("print_status_window_auto_show_on_minimize") == "true") {
+        show_print_status_frame(true);
+    }
+
+    if (m_settings_dialog.IsShown())
+        m_settings_dialog.Hide();
+
+    Iconize(false);
+    Show(false);
+}
+
+void MainFrame::restore_from_tray()
+{
+    Show(true);
+    Iconize(false);
+    Raise();
+    remove_close_to_tray_icon();
+}
+
+void MainFrame::remove_close_to_tray_icon()
+{
+    if (!m_close_to_tray_icon)
+        return;
+
+    m_close_to_tray_icon->RemoveIcon();
+    m_close_to_tray_icon.reset();
+}
+#else
+bool MainFrame::should_close_to_tray(const wxCloseEvent& /*event*/) const { return false; }
+bool MainFrame::ensure_close_to_tray_icon() { return false; }
+void MainFrame::minimize_to_tray() {}
+void MainFrame::restore_from_tray() {}
+void MainFrame::remove_close_to_tray_icon() {}
+#endif
+
+void MainFrame::show_print_status_frame(bool respect_enabled)
+{
+    if (respect_enabled && (!wxGetApp().app_config || wxGetApp().app_config->get("print_status_window_enabled") != "true"))
+        return;
+
+    if (!m_print_status_frame)
+        m_print_status_frame = std::make_unique<PrintStatusFrame>(this);
+    m_print_status_frame->show_window();
+}
+
+void MainFrame::show_print_status_frame_safe_on_minimize()
+{
+    if (m_real_shutdown_requested || IsBeingDeleted() || wxGetApp().app_config == nullptr)
+        return;
+
+    if (wxGetApp().app_config->get("print_status_window_enabled") != "true" ||
+        wxGetApp().app_config->get("print_status_window_auto_show_on_minimize") != "true") {
+        return;
+    }
+
+    if (!m_print_status_frame)
+        m_print_status_frame = std::make_unique<PrintStatusFrame>(this);
+
+    if (m_print_status_frame)
+        m_print_status_frame->show_window_safe_on_minimize();
+}
+
+void MainFrame::destroy_print_status_frame()
+{
+    if (!m_print_status_frame)
+        return;
+
+    m_print_status_frame->destroy_for_shutdown();
+    m_print_status_frame.release();
 }
 
 //BBS GUI refactor: remove unused layout new/dlg
@@ -1004,6 +1184,7 @@ void MainFrame::update_layout()
 void MainFrame::shutdown()
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "MainFrame::shutdown enter";
+    m_real_shutdown_requested = true;
     // BBS: backup
     Slic3r::set_backup_callback(nullptr);
 #ifdef _WIN32
@@ -1034,6 +1215,8 @@ void MainFrame::shutdown()
     // Avoid the Paint messages by hiding the main window.
     // Also the application closes much faster without these unnecessary screen refreshes.
     // In addition, there were some crashes due to the Paint events sent to already destructed windows.
+    remove_close_to_tray_icon();
+    destroy_print_status_frame();
     this->Show(false);
 
     if (m_settings_dialog.IsShown())
@@ -2584,6 +2767,9 @@ void MainFrame::on_sys_color_changed()
 
     WebView::RecreateAll();
 
+    if (m_print_status_frame)
+        m_print_status_frame->refresh_from_preferences();
+
     this->Refresh();
 }
 
@@ -2888,10 +3074,10 @@ void MainFrame::init_menubar_as_editor()
 
 #ifndef __APPLE__
         append_menu_item(fileMenu, wxID_EXIT, _L("Quit"), wxString::Format(_L("Quit")),
-            [this](wxCommandEvent&) { Close(false); }, "menu_exit", nullptr);
+            [this](wxCommandEvent&) { request_app_exit(false); }, "menu_exit", nullptr);
 #else
         append_menu_item(fileMenu, wxID_EXIT, _L("Quit"), wxString::Format(_L("Quit")),
-            [this](wxCommandEvent&) { Close(false); }, "", nullptr);
+            [this](wxCommandEvent&) { request_app_exit(false); }, "", nullptr);
 #endif
     }
 
@@ -3139,6 +3325,9 @@ void MainFrame::init_menubar_as_editor()
             [this](wxCommandEvent &) { m_plater->reset_window_layout(); }, "", this,
             [this]() { return (m_tabpanel->GetSelection() == TabPosition::tp3DEditor || m_tabpanel->GetSelection() == TabPosition::tpPreview) && m_plater->is_sidebar_enabled(); },
             this);
+        append_menu_item(
+            viewMenu, wxID_ANY, _L("Show Print Status Window"), _L("Show Print Status Window"),
+            [this](wxCommandEvent &) { show_print_status_frame(); }, "", this);
         viewMenu->AppendSeparator();
         append_menu_check_item(viewMenu, wxID_ANY, _L("Show Labels by Layer") + "\t" + ctrl + "E", _L("Show Labels of printing by layer in 3D scene"),
             [this](wxCommandEvent&) { m_plater->show_view3D_layer_labels(!m_plater->are_view3D_layer_labels_shown()); m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, this,
@@ -3608,7 +3797,7 @@ void MainFrame::init_menubar_as_editor()
     wxMenu* apple_menu = m_menubar->OSXGetAppleMenu();
     if (apple_menu != nullptr) {
         apple_menu->Bind(wxEVT_MENU, [this](wxCommandEvent &) {
-            Close();
+            request_app_exit(false);
         }, wxID_EXIT);
     }
 #endif // __APPLE__
@@ -3685,7 +3874,7 @@ void MainFrame::init_menubar_as_gcodeviewer()
             []() {return true; }, this);
         fileMenu->AppendSeparator();
         append_menu_item(fileMenu, wxID_EXIT, _L("&Quit"), wxString::Format(_L("Quit %s"), SLIC3R_APP_NAME),
-            [this](wxCommandEvent&) { Close(false); });
+            [this](wxCommandEvent&) { request_app_exit(false); });
     }
 
     // View menu
@@ -3712,7 +3901,7 @@ void MainFrame::init_menubar_as_gcodeviewer()
     wxMenu* apple_menu = m_menubar->OSXGetAppleMenu();
     if (apple_menu != nullptr) {
         apple_menu->Bind(wxEVT_MENU, [this](wxCommandEvent&) {
-            Close();
+            request_app_exit(false);
             }, wxID_EXIT);
     }
 #endif // __APPLE__
@@ -4364,6 +4553,8 @@ void MainFrame::update_ui_from_settings()
         m_plater->update_ui_from_settings();
     for (auto tab: wxGetApp().tabs_list)
         tab->update_ui_from_settings();
+    if (m_print_status_frame)
+        m_print_status_frame->refresh_from_preferences();
 }
 
 

@@ -196,6 +196,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/ImageDPIFrame.hpp
     GUI/Preferences.cpp
     GUI/Preferences.hpp
+    GUI/PrintStatusFrame.cpp
+    GUI/PrintStatusFrame.hpp
     GUI/AMSSetting.cpp
     GUI/AMSSetting.hpp
     GUI/AMSDryControl.cpp
