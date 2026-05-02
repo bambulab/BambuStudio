@@ -13,6 +13,7 @@ class wxChoice;
 class wxFlexGridSizer;
 class wxPanel;
 class wxStaticText;
+class Button;
 
 namespace Slic3r {
 
@@ -26,13 +27,14 @@ class ProgressBarPanel;
 class PrintStatusFrame final : public wxFrame
 {
 public:
-    explicit PrintStatusFrame(MainFrame* parent);
+    explicit PrintStatusFrame(MainFrame* parent, std::string initial_dev_id = {}, bool is_primary_window = false);
     ~PrintStatusFrame() override;
 
     void show_window();
     void show_window_safe_on_minimize();
     void refresh_from_preferences();
     void destroy_for_shutdown();
+    const std::string& selected_device_id() const { return m_selected_dev_id; }
 
 private:
     enum class BadgeTone {
@@ -43,8 +45,7 @@ private:
     };
 
     struct Config {
-        bool        enabled           { false };
-        bool        always_on_top     { false };
+        bool        always_on_top     { true };
         bool        remember_position { true };
         std::string theme             { "follow_app" };
         int         opacity           { 100 };
@@ -136,6 +137,7 @@ private:
     wxPanel*                 m_root_panel { nullptr };
     wxPanel*                 m_header_panel { nullptr };
     wxChoice*                m_printer_choice { nullptr };
+    Button*                  m_new_window_button { nullptr };
     wxPanel*                 m_badge_panel { nullptr };
     wxStaticText*            m_badge_label { nullptr };
     wxStaticText*            m_job_label { nullptr };
@@ -164,6 +166,7 @@ private:
     bool                     m_safe_show_pending { false };
     bool                     m_ignore_geometry_events { false };
     bool                     m_updating_printer_choice { false };
+    bool                     m_is_primary_window { false };
 };
 
 }} // namespace Slic3r::GUI

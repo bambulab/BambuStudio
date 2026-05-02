@@ -1453,7 +1453,6 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_auto_stop_liveview = create_item_checkbox(_L("Keep liveview when printing."), page, _L("By default, Liveview will pause after 15 minutes of inactivity on the computer. Check this box to disable this feature during printing."), 50, "auto_stop_liveview");
 
     auto title_print_status_window = create_item_title(_L("Print Status Window"), page, _L("Print Status Window"));
-    auto item_print_status_window_enabled = create_item_checkbox(_L("Enable print status window"), page, _L("Enable the floating print status window feature."), 50, "print_status_window_enabled");
     auto item_print_status_window_auto_show = create_item_checkbox(_L("Auto show on minimize"), page, _L("Automatically show the print status window when the main window is minimized."), 50, "print_status_window_auto_show_on_minimize");
 #ifndef __APPLE__
     auto item_print_status_window_close_to_tray = create_item_checkbox(_L("Minimize to system tray when closing the main window"), page, _L("When enabled, closing the main window with the window close button keeps Bambu Studio running in the system tray."), 50, "print_status_window_close_to_tray");
@@ -1574,7 +1573,6 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_auto_stop_liveview, 0, wxEXPAND, FromDIP(3));
 
     sizer_page->Add(title_print_status_window, 0, wxTOP | wxEXPAND, FromDIP(20));
-    sizer_page->Add(item_print_status_window_enabled, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_print_status_window_auto_show, 0, wxTOP, FromDIP(3));
 #ifndef __APPLE__
     sizer_page->Add(item_print_status_window_close_to_tray, 0, wxTOP, FromDIP(3));

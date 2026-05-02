@@ -317,6 +317,7 @@ private:
     AnimaIcon*      m_stopping_icon;
     ScalableButton* m_button_pause_resume;
     ScalableButton* m_button_abort;
+    Button*         m_button_open_status_window { nullptr };
     Button*         m_button_partskip;
     Button*         m_button_market_scoring;
     Button*         m_button_clean;
@@ -378,6 +379,7 @@ public:
 public:
     ScalableButton* get_abort_button() {return m_button_abort;};
     ScalableButton* get_pause_resume_button() {return m_button_pause_resume;};
+    Button* get_open_status_window_button() { return m_button_open_status_window; };
     Button* get_partskip_button() { return m_button_partskip; };
     Button* get_market_scoring_button() {return m_button_market_scoring;};
     Button * get_market_retry_buttom() { return m_button_market_retry; };
@@ -703,6 +705,7 @@ protected:
 
     void on_market_scoring(wxCommandEvent &event);
     void on_market_retry(wxCommandEvent &event);
+    void on_open_print_status_window(wxCommandEvent& event);
     void on_subtask_partskip(wxCommandEvent &event);
     void on_subtask_pause_resume(wxCommandEvent &event);
     void on_subtask_abort(wxCommandEvent &event);

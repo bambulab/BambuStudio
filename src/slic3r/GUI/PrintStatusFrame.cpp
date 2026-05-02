@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <map>
+#include <utility>
 
 #include <boost/log/trivial.hpp>
 
@@ -24,6 +25,7 @@
 #include "DeviceCore/DevExtruderSystem.h"
 #include "DeviceCore/DevHMS.h"
 #include "DeviceCore/DevManager.h"
+#include "Widgets/Button.hpp"
 #include "libslic3r/AppConfig.hpp"
 #include "libslic3r/Utils.hpp"
 
@@ -199,7 +201,7 @@ void ensure_min_text_width(wxWindow* window, const wxFont& font, const wxString&
 
 } // namespace
 
-PrintStatusFrame::PrintStatusFrame(MainFrame* parent)
+PrintStatusFrame::PrintStatusFrame(MainFrame* parent, std::string initial_dev_id, bool is_primary_window)
     : wxFrame(parent,
               wxID_ANY,
               _L("Print Status Window"),
@@ -207,7 +209,9 @@ PrintStatusFrame::PrintStatusFrame(MainFrame* parent)
               wxDefaultSize,
               (wxDEFAULT_FRAME_STYLE & ~(wxRESIZE_BORDER | wxMAXIMIZE_BOX)) | wxFRAME_TOOL_WINDOW),
       m_mainframe(parent),
-      m_refresh_timer(this)
+      m_refresh_timer(this),
+      m_selected_dev_id(std::move(initial_dev_id)),
+      m_is_primary_window(is_primary_window)
 {
     build_ui();
     Bind(wxEVT_TIMER, &PrintStatusFrame::on_timer, this);
@@ -302,6 +306,16 @@ void PrintStatusFrame::build_ui()
     m_printer_choice = new wxChoice(m_header_panel, wxID_ANY);
     m_printer_choice->SetMinSize(wxSize(FromDIP(220), FromDIP(22)));
     header_sizer->Add(m_printer_choice, 1, wxEXPAND, 0);
+
+    m_new_window_button = new Button(m_header_panel, _L("+"));
+    m_new_window_button->SetMinSize(wxSize(FromDIP(26), FromDIP(26)));
+    m_new_window_button->SetToolTip(_L("Open another print status window"));
+    m_new_window_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](wxCommandEvent& event) {
+        if (m_mainframe)
+            m_mainframe->open_additional_print_status_frame(m_selected_dev_id);
+        event.Skip();
+    });
+    header_sizer->Add(m_new_window_button, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(8));
 
     m_badge_panel = new wxPanel(m_header_panel, wxID_ANY);
     auto* badge_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -423,8 +437,7 @@ PrintStatusFrame::Config PrintStatusFrame::load_config() const
 {
     Config config;
     auto*  app_config = wxGetApp().app_config;
-    config.enabled           = cfg_bool(app_config, "print_status_window_enabled", false);
-    config.always_on_top     = cfg_bool(app_config, "print_status_window_always_on_top", false);
+    config.always_on_top     = cfg_bool(app_config, "print_status_window_always_on_top", true);
     config.remember_position = cfg_bool(app_config, "print_status_window_remember_position", true);
     config.theme             = app_config ? app_config->get("print_status_window_theme") : "follow_app";
     if (config.theme.empty())
@@ -515,6 +528,11 @@ void PrintStatusFrame::apply_theme(const Config& config)
         m_printer_choice->SetForegroundColour(m_palette.text_primary);
         m_printer_choice->SetToolTip(_L("Printer"));
     }
+    if (m_new_window_button) {
+        m_new_window_button->SetBackgroundColorNormal(m_palette.input_background);
+        m_new_window_button->SetBorderColorNormal(m_palette.border);
+        m_new_window_button->SetTextColorNormal(m_palette.text_primary);
+    }
 
     if (m_job_label)
         m_job_label->SetForegroundColour(m_palette.text_primary);
@@ -583,7 +601,7 @@ void PrintStatusFrame::apply_window_flags(const Config& config)
 
 void PrintStatusFrame::apply_geometry(const Config& config)
 {
-    if (!config.remember_position)
+    if (!m_is_primary_window || !config.remember_position)
         return;
 
     if (!config.has_position)
@@ -602,7 +620,7 @@ void PrintStatusFrame::persist_geometry(bool save_immediately)
 {
     const auto config     = load_config();
     auto*      app_config = wxGetApp().app_config;
-    if (app_config == nullptr || !config.remember_position || IsIconized())
+    if (app_config == nullptr || !m_is_primary_window || !config.remember_position || IsIconized())
         return;
 
     const wxPoint position = GetPosition();
@@ -644,6 +662,8 @@ void PrintStatusFrame::sync_printer_selector()
             m_updating_printer_choice = false;
             m_printer_choice_signature = empty_signature;
         }
+        if (m_new_window_button)
+            m_new_window_button->Enable(false);
         return;
     }
 
@@ -683,11 +703,15 @@ void PrintStatusFrame::sync_printer_selector()
         m_printer_choice->Enable(machine_ids.size() > 1);
         m_updating_printer_choice = false;
         m_printer_choice_signature = signature;
+        if (m_new_window_button)
+            m_new_window_button->Enable(machine_ids.size() > 1);
         return;
     }
 
     m_choice_dev_ids = machine_ids;
     m_printer_choice->Enable(machine_ids.size() > 1);
+    if (m_new_window_button)
+        m_new_window_button->Enable(machine_ids.size() > 1);
 
     const auto it = std::find(m_choice_dev_ids.begin(), m_choice_dev_ids.end(), m_selected_dev_id);
     if (it == m_choice_dev_ids.end())
@@ -723,6 +747,10 @@ void PrintStatusFrame::update_header(MachineObject* obj, bool online, const wxSt
 {
     if (m_printer_choice)
         m_printer_choice->SetToolTip(obj != nullptr ? build_machine_name(obj) : _L("No printer available"));
+    if (obj != nullptr)
+        SetTitle(_L("Print Status Window") + " - " + build_machine_name(obj));
+    else
+        SetTitle(_L("Print Status Window"));
     apply_badge_style(build_badge_text(obj, online, warning_text, has_active_print),
                       build_badge_tone(obj, online, warning_text, has_active_print));
 }

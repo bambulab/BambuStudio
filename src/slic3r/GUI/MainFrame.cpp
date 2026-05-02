@@ -652,8 +652,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             return;
         }
 
-        if (wxGetApp().app_config->get("print_status_window_enabled") != "true" ||
-            wxGetApp().app_config->get("print_status_window_auto_show_on_minimize") != "true") {
+        if (wxGetApp().app_config->get("print_status_window_auto_show_on_minimize") != "true") {
             event.Skip();
             return;
         }
@@ -980,9 +979,8 @@ bool MainFrame::ensure_close_to_tray_icon()
 void MainFrame::minimize_to_tray()
 {
     if (wxGetApp().app_config &&
-        wxGetApp().app_config->get("print_status_window_enabled") == "true" &&
         wxGetApp().app_config->get("print_status_window_auto_show_on_minimize") == "true") {
-        show_print_status_frame(true);
+        show_print_status_frame();
     }
 
     if (m_settings_dialog.IsShown())
@@ -1016,14 +1014,110 @@ void MainFrame::restore_from_tray() {}
 void MainFrame::remove_close_to_tray_icon() {}
 #endif
 
-void MainFrame::show_print_status_frame(bool respect_enabled)
+PrintStatusFrame* MainFrame::ensure_primary_print_status_frame()
 {
-    if (respect_enabled && (!wxGetApp().app_config || wxGetApp().app_config->get("print_status_window_enabled") != "true"))
+    if (!m_primary_print_status_frame)
+        m_primary_print_status_frame = std::make_unique<PrintStatusFrame>(this, std::string(), true);
+    return m_primary_print_status_frame.get();
+}
+
+PrintStatusFrame* MainFrame::find_print_status_frame_for_device(const std::string& dev_id) const
+{
+    if (dev_id.empty())
+        return nullptr;
+
+    if (m_primary_print_status_frame && m_primary_print_status_frame->selected_device_id() == dev_id)
+        return m_primary_print_status_frame.get();
+
+    for (const auto& frame : m_secondary_print_status_frames) {
+        if (frame && frame->selected_device_id() == dev_id)
+            return frame.get();
+    }
+
+    return nullptr;
+}
+
+void MainFrame::refresh_print_status_frames()
+{
+    if (m_primary_print_status_frame)
+        m_primary_print_status_frame->refresh_from_preferences();
+
+    for (const auto& frame : m_secondary_print_status_frames) {
+        if (frame)
+            frame->refresh_from_preferences();
+    }
+}
+
+std::string MainFrame::pick_additional_print_status_device(const std::string& preferred_dev_id) const
+{
+    auto* dev = wxGetApp().getDeviceManager();
+    if (dev == nullptr)
+        return preferred_dev_id;
+
+    std::vector<std::string> machine_ids;
+    const auto machines = dev->get_my_machine_list();
+    machine_ids.reserve(machines.size());
+    for (const auto& item : machines) {
+        if (item.second != nullptr)
+            machine_ids.emplace_back(item.first);
+    }
+
+    std::vector<std::string> occupied_ids;
+    occupied_ids.reserve(1 + m_secondary_print_status_frames.size());
+    if (m_primary_print_status_frame && m_primary_print_status_frame->IsShown()) {
+        const auto primary_id = m_primary_print_status_frame->selected_device_id();
+        if (!primary_id.empty())
+            occupied_ids.emplace_back(primary_id);
+    }
+    for (const auto& frame : m_secondary_print_status_frames) {
+        if (!frame || !frame->IsShown())
+            continue;
+        const auto frame_id = frame->selected_device_id();
+        if (!frame_id.empty())
+            occupied_ids.emplace_back(frame_id);
+    }
+
+    for (const auto& machine_id : machine_ids) {
+        if (std::find(occupied_ids.begin(), occupied_ids.end(), machine_id) == occupied_ids.end())
+            return machine_id;
+    }
+
+    if (!preferred_dev_id.empty())
+        return preferred_dev_id;
+
+    if (auto* selected = dev->get_selected_machine())
+        return selected->get_dev_id();
+
+    if (!machine_ids.empty())
+        return machine_ids.front();
+
+    return {};
+}
+
+void MainFrame::place_additional_print_status_frame(PrintStatusFrame* frame) const
+{
+    if (frame == nullptr)
         return;
 
-    if (!m_print_status_frame)
-        m_print_status_frame = std::make_unique<PrintStatusFrame>(this);
-    m_print_status_frame->show_window();
+    wxPoint base_position = GetPosition() + wxPoint(FromDIP(40), FromDIP(80));
+    if (!m_secondary_print_status_frames.empty()) {
+        for (auto it = m_secondary_print_status_frames.rbegin(); it != m_secondary_print_status_frames.rend(); ++it) {
+            if (*it) {
+                base_position = (*it)->GetPosition();
+                break;
+            }
+        }
+    } else if (m_primary_print_status_frame) {
+        base_position = m_primary_print_status_frame->GetPosition();
+    }
+
+    frame->SetPosition(base_position + wxPoint(FromDIP(24), FromDIP(24)));
+}
+
+void MainFrame::show_print_status_frame()
+{
+    if (auto* frame = ensure_primary_print_status_frame())
+        frame->show_window();
 }
 
 void MainFrame::show_print_status_frame_safe_on_minimize()
@@ -1031,25 +1125,63 @@ void MainFrame::show_print_status_frame_safe_on_minimize()
     if (m_real_shutdown_requested || IsBeingDeleted() || wxGetApp().app_config == nullptr)
         return;
 
-    if (wxGetApp().app_config->get("print_status_window_enabled") != "true" ||
-        wxGetApp().app_config->get("print_status_window_auto_show_on_minimize") != "true") {
+    if (wxGetApp().app_config->get("print_status_window_auto_show_on_minimize") != "true") {
         return;
     }
 
-    if (!m_print_status_frame)
-        m_print_status_frame = std::make_unique<PrintStatusFrame>(this);
+    if (auto* frame = ensure_primary_print_status_frame())
+        frame->show_window_safe_on_minimize();
+}
 
-    if (m_print_status_frame)
-        m_print_status_frame->show_window_safe_on_minimize();
+void MainFrame::open_print_status_frame_for_device(const std::string& dev_id)
+{
+    if (dev_id.empty()) {
+        show_print_status_frame();
+        return;
+    }
+
+    if (auto* frame = find_print_status_frame_for_device(dev_id)) {
+        frame->show_window();
+        return;
+    }
+
+    auto frame = std::make_unique<PrintStatusFrame>(this, dev_id, false);
+    auto* raw_frame = frame.get();
+    place_additional_print_status_frame(raw_frame);
+    m_secondary_print_status_frames.emplace_back(std::move(frame));
+    raw_frame->show_window();
+}
+
+void MainFrame::open_additional_print_status_frame(const std::string& preferred_dev_id)
+{
+    const std::string target_dev_id = pick_additional_print_status_device(preferred_dev_id);
+    if (auto* existing_frame = find_print_status_frame_for_device(target_dev_id)) {
+        if (!existing_frame->IsShown()) {
+            existing_frame->show_window();
+            return;
+        }
+    }
+
+    auto frame = std::make_unique<PrintStatusFrame>(this, target_dev_id, false);
+    auto* raw_frame = frame.get();
+    place_additional_print_status_frame(raw_frame);
+    m_secondary_print_status_frames.emplace_back(std::move(frame));
+    raw_frame->show_window();
 }
 
 void MainFrame::destroy_print_status_frame()
 {
-    if (!m_print_status_frame)
-        return;
+    if (m_primary_print_status_frame) {
+        m_primary_print_status_frame->destroy_for_shutdown();
+        m_primary_print_status_frame.release();
+    }
 
-    m_print_status_frame->destroy_for_shutdown();
-    m_print_status_frame.release();
+    for (auto& frame : m_secondary_print_status_frames) {
+        if (frame)
+            frame->destroy_for_shutdown();
+        frame.release();
+    }
+    m_secondary_print_status_frames.clear();
 }
 
 //BBS GUI refactor: remove unused layout new/dlg
@@ -2767,8 +2899,7 @@ void MainFrame::on_sys_color_changed()
 
     WebView::RecreateAll();
 
-    if (m_print_status_frame)
-        m_print_status_frame->refresh_from_preferences();
+    refresh_print_status_frames();
 
     this->Refresh();
 }
@@ -4553,8 +4684,7 @@ void MainFrame::update_ui_from_settings()
         m_plater->update_ui_from_settings();
     for (auto tab: wxGetApp().tabs_list)
         tab->update_ui_from_settings();
-    if (m_print_status_frame)
-        m_print_status_frame->refresh_from_preferences();
+    refresh_print_status_frames();
 }
 
 
