@@ -703,6 +703,10 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             }
             return;}
 #endif
+        if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'R') {
+            wxGetApp().reload_user_presets_from_disk();
+            return;
+        }
         // on_action_slice_plate already switches to the Preview tab via select_view_3D("Preview").
         // Do NOT also SetSelection(tpPreview) here: that posts a second preview-enter event whose
         // do_reslice would run the version-policy guard a second time (double dialog on a blocked version).
@@ -2967,11 +2971,6 @@ void MainFrame::init_menubar_as_editor()
         append_menu_item(fileMenu, wxID_ANY, _L("Save Project") + "\t" + ctrl + "S", _L("Save current project to file"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(); }, "", nullptr,
             [this](){return m_plater != nullptr && can_save(); }, this);
-
-        // Reload user presets from disk
-        append_menu_item(fileMenu, wxID_ANY, _L("Reload Presets") + "\t" + ctrl + "R", _L("Reload user presets from disk"),
-            [](wxCommandEvent&) { wxGetApp().reload_user_presets_from_disk(); }, "", nullptr,
-            []() { return true; }, this);
 #endif
 
 
