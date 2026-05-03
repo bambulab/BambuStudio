@@ -700,6 +700,10 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             }
             return;}
 #endif
+        if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'R') {
+            wxGetApp().reload_user_presets_from_disk();
+            return;
+        }
         if (evt.CmdDown() && evt.GetKeyCode() == 'R') { if (m_slice_enable) { wxGetApp().plater()->update(true, true); wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE)); this->m_tabpanel->SetSelection(tpPreview); } return; }
         if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'G') {
             m_plater->apply_background_progress();
@@ -2862,11 +2866,6 @@ void MainFrame::init_menubar_as_editor()
         append_menu_item(fileMenu, wxID_ANY, _L("Save Project") + "\t" + ctrl + "S", _L("Save current project to file"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(); }, "", nullptr,
             [this](){return m_plater != nullptr && can_save(); }, this);
-
-        // Reload user presets from disk
-        append_menu_item(fileMenu, wxID_ANY, _L("Reload Presets") + "\t" + ctrl + "R", _L("Reload user presets from disk"),
-            [](wxCommandEvent&) { wxGetApp().reload_user_presets_from_disk(); }, "", nullptr,
-            []() { return true; }, this);
 #endif
 
 

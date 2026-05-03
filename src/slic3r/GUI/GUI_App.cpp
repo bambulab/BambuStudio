@@ -24,6 +24,7 @@
 #include <cstdlib>
 #include <chrono>
 #include <regex>
+#include <set>
 #include <thread>
 #include <string_view>
 #include <boost/algorithm/string/predicate.hpp>
@@ -5896,7 +5897,7 @@ void GUI_App::reload_user_presets_from_disk()
         ? m_agent->get_user_id()
         : DEFAULT_USER_FOLDER_NAME;
 
-    // Snapshot existing preset names before reload
+    // Snapshot existing preset names before reload, to count new ones for the toast
     std::set<std::string> old_prints, old_filaments;
     for (const auto& p : preset_bundle->prints)
         if (p.is_user()) old_prints.insert(p.name);
@@ -5905,27 +5906,34 @@ void GUI_App::reload_user_presets_from_disk()
 
     BOOST_LOG_TRIVIAL(info) << "Reloading user presets from disk for user: " << user_id;
     preset_bundle->load_user_presets(user_id, ForwardCompatibilitySubstitutionRule::Enable);
+
+    // Always refresh the side UI. We can't cheaply detect every kind of change
+    // (edit-in-place of an existing preset is invisible to the name-diff below),
+    // and the user has just manually triggered this action, so a refresh is the
+    // expected behavior regardless of what actually changed.
     mainframe->update_side_preset_ui();
 
-    // Find new presets and select the last one found
-    std::string new_print, new_filament;
+    // Count newly added presets for the toast notification
+    int new_prints = 0, new_filaments = 0;
     for (const auto& p : preset_bundle->prints)
         if (p.is_user() && old_prints.find(p.name) == old_prints.end())
-            new_print = p.name;
+            new_prints++;
     for (const auto& p : preset_bundle->filaments)
         if (p.is_user() && old_filaments.find(p.name) == old_filaments.end())
-            new_filament = p.name;
+            new_filaments++;
 
-    if (!new_print.empty()) {
-        BOOST_LOG_TRIVIAL(info) << "New process preset found, selecting: " << new_print;
-        auto tab = get_tab(Preset::TYPE_PRINT);
-        if (tab) tab->select_preset(new_print);
-    }
-    if (!new_filament.empty()) {
-        BOOST_LOG_TRIVIAL(info) << "New filament preset found, selecting: " << new_filament;
-        auto tab = get_tab(Preset::TYPE_FILAMENT);
-        if (tab) tab->select_preset(new_filament);
-    }
+    std::string msg = "Presets reloaded";
+    std::vector<std::string> parts;
+    if (new_prints > 0)
+        parts.push_back(std::to_string(new_prints) + " new process");
+    if (new_filaments > 0)
+        parts.push_back(std::to_string(new_filaments) + " new filament");
+    if (!parts.empty())
+        msg += ": " + boost::algorithm::join(parts, ", ");
+
+    BOOST_LOG_TRIVIAL(info) << msg;
+    if (plater())
+        plater()->get_notification_manager()->push_notification(msg);
 }
 
 //BBS reload when logout
