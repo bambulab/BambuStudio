@@ -129,7 +129,9 @@ void cut_mesh(
     float                            z,
     indexed_triangle_set            *upper,
     indexed_triangle_set            *lower,
-    bool                             triangulate_caps = true);
+    bool                             triangulate_caps = true,
+    std::vector<int>                *upper_src_faces = nullptr,
+    std::vector<int>                *lower_src_faces = nullptr);
 
 // BBS
 void cut_mesh(
