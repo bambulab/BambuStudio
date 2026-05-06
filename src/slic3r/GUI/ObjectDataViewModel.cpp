@@ -997,7 +997,17 @@ wxDataViewItem ObjectDataViewModel::Delete(const wxDataViewItem &item)
             // Delete all sub-items
             int i = (*it)->GetChildCount() - 1;
             while (i >= 0) {
+                int count_before = (*it)->GetChildCount();
                 Delete(wxDataViewItem((*it)->GetNthChild(i)));
+                if ((*it)->GetChildCount() >= count_before) {
+                    // Delete didn't remove the child (itInstanceRoot/itLayerRoot
+                    // only clean their own children but don't self-remove).
+                    // Force-remove it; destructor frees remaining sub-children.
+                    auto* child = (*it)->GetNthChild(i);
+                    (*it)->GetChildren().Remove(child);
+                    ItemDeleted(wxDataViewItem(*it), wxDataViewItem(child));
+                    delete child;
+                }
                 i = (*it)->GetChildCount() - 1;
             }
             m_objects.erase(it);
