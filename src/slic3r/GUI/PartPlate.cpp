@@ -2339,7 +2339,9 @@ bool PartPlate::generate_plate_name_texture()
             m_name_texture.reset();
             m_plate_name_icon.reset();
             calc_vertex_for_plate_name_edit_icon(&m_name_texture, 0, m_plate_name_edit_icon);
-		}
+        } else if (!m_plate_name_edit_icon.is_initialized()) {
+            calc_vertex_for_plate_name_edit_icon(&m_name_texture, 0, m_plate_name_edit_icon);
+        }
 		return false;
 	}
 	// generate m_name_texture texture from m_name with generate_from_text_string
