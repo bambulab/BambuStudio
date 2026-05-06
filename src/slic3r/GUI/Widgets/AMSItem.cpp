@@ -2253,6 +2253,9 @@ void AMSRoadUpPart::render(wxDC& dc)
 
 void AMSRoadUpPart::doRender(wxDC& dc)
 {
+    if (m_load_slot_index < 0 || m_load_slot_index >= (int)m_amsinfo.cans.size())
+        return;
+
     wxSize size = GetSize();
     //dc.SetPen(wxPen(m_road_def_color, 2, wxPENSTYLE_SOLID));
     dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID));
@@ -2314,9 +2317,9 @@ void AMSRoadUpPart::UpdatePassRoad(std::string ams_index, std::string slot_index
         return;
     };
 
-    if (m_amsinfo.cans.size() <= m_load_slot_index || m_load_slot_index < 0) {
-        BOOST_LOG_TRIVIAL(error) << "[Dev][error] up road render error: m_load_slot_index=" << m_load_slot_index;
-        assert(false);
+    if (slot_idx < 0 || slot_idx >= (int)m_amsinfo.cans.size()) {
+        BOOST_LOG_TRIVIAL(error) << "[Dev][error] up road render error: slot_idx=" << slot_idx
+                                 << " cans.size()=" << m_amsinfo.cans.size();
         return;
     }
 
