@@ -8,6 +8,7 @@
 #include <wx/sizer.h>
 #include <wx/menu.h>
 #include <wx/progdlg.h>
+#include <wx/textentry.h>
 #include <wx/tooltip.h>
 //#include <wx/glcanvas.h>
 #include <wx/filename.h>
@@ -96,6 +97,35 @@ wxDEFINE_EVENT(EVT_UPDATE_PRESET_CB, SimpleEvent);
 wxDEFINE_EVENT(EVT_BACKUP_POST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_LOAD_URL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_LOAD_PRINTER_URL, wxCommandEvent);
+
+static bool is_text_entry_focused()
+{
+    for (wxWindow *window = wxWindow::FindFocus(); window != nullptr; window = window->GetParent())
+        if (dynamic_cast<wxTextEntry *>(window) != nullptr)
+            return true;
+
+    return false;
+}
+
+static bool should_skip_fit_camera_shortcut(Plater *plater)
+{
+    if (is_text_entry_focused())
+        return true;
+
+    if (wxGetApp().imgui()->want_text_input())
+        return true;
+
+    if (!plater)
+        return false;
+
+    auto is_gizmo_running = [](GLCanvas3D *canvas) {
+        return canvas && canvas->get_gizmos_manager().is_running();
+    };
+
+    return is_gizmo_running(plater->get_view3D_canvas3D()) ||
+           is_gizmo_running(plater->get_assmeble_canvas3D()) ||
+           is_gizmo_running(plater->get_current_canvas3D());
+}
 
 enum class ERescaleTarget
 {
@@ -721,8 +751,11 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             return;
         }
 
-        if (!evt.HasAnyModifiers() && evt.GetKeyCode() == 'Z') {
-            view_zoom_to_fit();
+        if (!evt.HasAnyModifiers() && (evt.GetKeyCode() == 'Z' || evt.GetKeyCode() == 'z')) {
+            if (!should_skip_fit_camera_shortcut(m_plater))
+                view_zoom_to_fit();
+            else
+                evt.Skip();
             return;
         }
 
