@@ -559,7 +559,12 @@ bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
             const_cast<Preset&>(*iter).is_visible = true;
             auto color = tray.opt_string("filament_colour", 0u);
             auto multi_color = tray.opt<ConfigOptionStrings>("filament_multi_colour")->values;
-            wxBitmap bmp(*get_extruder_color_icon(color, name, icon_width, 16));
+            auto ctype_str   = tray.opt_string("filament_colour_type", 0u);
+            wxBitmap *ams_bmp = (multi_color.size() > 1)
+                ? get_extruder_color_icon(multi_color, ctype_str == "0", name, icon_width, 16)
+                : get_extruder_color_icon(color, name, icon_width, 16);
+            if (!ams_bmp) continue;
+            wxBitmap bmp(*ams_bmp);
             auto text = get_preset_name(*iter);
             int      item_id = Append(text, bmp.ConvertToImage(), &m_first_ams_filament + entry.first);
             SetFlag(GetCount() - 1, (int) FilamentAMSType::FROM_AMS);
