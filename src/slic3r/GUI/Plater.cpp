@@ -8810,7 +8810,7 @@ void Plater::priv::reload_from_disk()
         // Add volumes that are new in the reloaded file (no matching old volume).
         if (target_obj_idx >= 0) {
             ModelObject *target_object = model.objects[target_obj_idx];
-            const auto naming_rules = default_import_naming_rules();
+            const auto naming_rules = Slic3r::default_import_naming_rules();
             bool added_any = false;
             for (int o = 0; o < (int)new_model.objects.size(); ++o) {
                 for (int v = 0; v < (int)new_model.objects[o]->volumes.size(); ++v) {
@@ -8822,7 +8822,7 @@ void Plater::priv::reload_from_disk()
                     // Shift into the existing model's coordinate frame.
                     if (coord_shift_set)
                         added->set_offset(added->get_transformation().get_offset() + coord_shift);
-                    apply_naming_rules_to_volume(*added, naming_rules);
+                    Slic3r::apply_naming_rules_to_volume(*added, naming_rules);
                     added_any = true;
                 }
             }
