@@ -1,6 +1,7 @@
 #ifndef TIMELAPSE_POS_PICKER_HPP
 #define TIMELAPSE_POS_PICKER_HPP
 
+#include <optional>
 #include <vector>
 #include "libslic3r/Point.hpp"
 #include "libslic3r/ExPolygon.hpp"
@@ -22,6 +23,7 @@ namespace Slic3r {
         int picture_extruder_id; // the extruder id to take picture
         int curr_extruder_id;
         std::optional<std::vector<const PrintObject*>> printed_objects; // printed objects, only have value in by object mode
+        std::optional<Point> farthest_point; // plate-relative scaled; when set, pick_pos_internal uses farthest-point loss
     };
 
     // data are stored without plate offset

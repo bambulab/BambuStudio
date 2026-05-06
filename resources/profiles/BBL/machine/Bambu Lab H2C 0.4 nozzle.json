@@ -10,6 +10,7 @@
         "0.4"
     ],
     "printer_model": "Bambu Lab H2C",
+    "farthest_point_timelapse": "1",
     "printer_variant": "0.4",
     "default_filament_profile": [
         "Bambu PLA Basic @BBL H2C"

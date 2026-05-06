@@ -15,6 +15,7 @@
 #include "LocalesUtils.hpp"
 #include "libslic3r/format.hpp"
 #include "MultiNozzleUtils.hpp"
+#include "GCodeReader.hpp"
 
 #include <algorithm>
 #include <cstdlib>
@@ -78,6 +79,38 @@ namespace Slic3r {
 #define L(s) (s)
 #define _(s) Slic3r::I18N::translate(s)
 #define _L(s) Slic3r::I18N::translate(s)
+
+static std::optional<Vec3f> infer_timelapse_final_plate_pos(const std::string &gcode, const Point &safe_pos, float z)
+{
+    Vec3f pos(float(safe_pos.x()), float(safe_pos.y()), z);
+    bool found_m9711 = false;
+    std::string gcode_after_last_m9711;
+
+    GCodeReader reader;
+    reader.parse_buffer(gcode, [&](GCodeReader &, const GCodeReader::GCodeLine &gline) {
+        if (gline.cmd_is("M9711")) {
+            float v;
+            if (gline.has_value('U', v) || gline.has_value('X', v))
+                pos.x() = v;
+            if (gline.has_value('V', v) || gline.has_value('Y', v))
+                pos.y() = v;
+            if (gline.has_value('Z', v))
+                pos.z() = v;
+            found_m9711 = true;
+            gcode_after_last_m9711.clear();
+        } else if (found_m9711) {
+            gcode_after_last_m9711 += gline.raw();
+            gcode_after_last_m9711 += '\n';
+        }
+    });
+
+    if (!found_m9711)
+        return std::nullopt;
+
+    Vec3f parsed_pos = pos;
+    GCodeProcessor::get_last_position_from_gcode(gcode_after_last_m9711, parsed_pos);
+    return parsed_pos;
+}
 
 #define NOZZLE_ID_FOR_GCODE(RESULT, ID) RESULT->is_support_dynamic_nozzle_map() ? ID : -1
 
@@ -694,6 +727,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
         auto new_nozzle_info = group_result->get_nozzle_for_filament(new_filament_id, gcodegen.m_layer_index);
         int new_extruder_id = new_nozzle_info->extruder_id;
+        int old_filament_id_before_toolchange = gcodegen.writer().filament() ? (int)gcodegen.writer().filament()->id() : -1;
+        int old_extruder_id_before_toolchange = old_filament_id_before_toolchange >= 0 ? (int)gcodegen.get_extruder_id(old_filament_id_before_toolchange) : -1;
 
         bool is_nozzle_change = !tcr.nozzle_change_result.gcode.empty() && (gcodegen.config().nozzle_diameter.size() > 1);
         std::string gcode;
@@ -1020,6 +1055,27 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             // We have informed the m_writer about the current extruder_id, we can ignore the generated G-code.
         }
 
+        std::optional<Point> timelapse_final_pos;
+        if (gcodegen.m_farthest_point_timelapse.enabled &&
+            !gcodegen.m_farthest_point_timelapse.farthest_is_photo_head &&
+            !gcodegen.m_farthest_point_timelapse.inserted_this_layer &&
+            old_extruder_id_before_toolchange >= 0 &&
+            gcodegen.m_config.nozzle_diameter.values.size() > 1) {
+            const int photo_extruder_id = gcodegen.m_farthest_point_timelapse.most_used_extruder;
+            const int old_physical_extruder = gcodegen.m_config.physical_extruder_map.get_at(old_extruder_id_before_toolchange);
+            const int new_physical_extruder = gcodegen.m_config.physical_extruder_map.get_at(new_extruder_id);
+            const int photo_physical_extruder = gcodegen.m_config.physical_extruder_map.get_at(photo_extruder_id);
+            if (old_physical_extruder == photo_physical_extruder && new_physical_extruder != photo_physical_extruder) {
+                GCode::TimelapseGCodeResult timelapse_result =
+                    gcodegen.generate_timelapse_gcode(*gcodegen.m_print, tcr.print_z, photo_extruder_id, nullptr, nullptr);
+                if (!timelapse_result.gcode.empty()) {
+                    toolchange_gcode_str += timelapse_result.gcode;
+                    timelapse_final_pos = timelapse_result.final_pos;
+                    gcodegen.m_farthest_point_timelapse.inserted_this_layer = true;
+                }
+            }
+        }
+
         if (need_travel_after_change_filament_gcode) {
             // After a filament change, the travel path leading to the wipe tower:
             // start_point inside the previous printed object,
@@ -1033,10 +1089,15 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 wipe_next_start_point_str = start_pos_str;
             } else {
                 // BBS:change travel_path
-                Vec3f gcode_last_pos;
-                GCodeProcessor::get_last_position_from_gcode(toolchange_gcode_str, gcode_last_pos);
-                Vec2f       gcode_last_pos2d{gcode_last_pos[0], gcode_last_pos[1]};
-                Point       gcode_last_pos2d_object = gcodegen.gcode_to_point(gcode_last_pos2d.cast<double>() + plate_origin_2d.cast<double>());
+                Point gcode_last_pos2d_object;
+                if (timelapse_final_pos) {
+                    gcode_last_pos2d_object = *timelapse_final_pos;
+                } else {
+                    Vec3f gcode_last_pos;
+                    GCodeProcessor::get_last_position_from_gcode(toolchange_gcode_str, gcode_last_pos);
+                    Vec2f gcode_last_pos2d{gcode_last_pos[0], gcode_last_pos[1]};
+                    gcode_last_pos2d_object = gcodegen.gcode_to_point(gcode_last_pos2d.cast<double>() + plate_origin_2d.cast<double>());
+                }
                 Point       start_wipe_pos          = wipe_tower_point_to_object_point(gcodegen, tool_change_start_pos + plate_origin_2d);
                 BoundingBox avoid_bbx, printer_bbx;
                 {
@@ -4111,6 +4172,260 @@ inline std::string get_instance_name(const PrintObject* object, const PrintInsta
     return get_instance_name(object, inst.id);
 }
 
+// Farthest-point timelapse: scan all candidate extrusion paths on the current layer
+// and find the point farthest from camera position (0,0) in global scaled coordinates.
+void GCode::compute_farthest_point(const std::vector<LayerToPrint> &layers, int most_used_extruder,
+                                   const std::map<std::pair<const SupportLayer *, ExtrusionRole>, unsigned int> &support_filaments)
+{
+    m_farthest_point_timelapse.farthest_point = Point(0, 0);
+    m_farthest_point_timelapse.farthest_gcode_pos = Vec2d(0, 0);
+    m_farthest_point_timelapse.farthest_extruder_id = 0;
+    m_farthest_point_timelapse.farthest_is_photo_head = false;
+
+    // Track farthest point for external perimeters and fallback (infill/support) separately
+    int64_t max_dist_sq_ext = -1;
+    Point   farthest_point_ext;
+    int     farthest_extruder_ext = 0;
+
+    int64_t max_dist_sq_fallback = -1;
+    Point   farthest_point_fallback;
+    int     farthest_extruder_fallback = 0;
+
+    // Recursive visitor: call fn(const ExtrusionPath&) for every leaf path
+    auto for_each_path = [](const ExtrusionEntity *entity, const auto &fn, const auto &self) -> void {
+        if (entity->is_collection()) {
+            for (const auto *child : static_cast<const ExtrusionEntityCollection *>(entity)->entities)
+                self(child, fn, self);
+        } else if (entity->is_loop()) {
+            for (const ExtrusionPath &p : static_cast<const ExtrusionLoop *>(entity)->paths)
+                fn(p);
+        } else if (const auto *mp = dynamic_cast<const ExtrusionMultiPath *>(entity)) {
+            for (const ExtrusionPath &p : mp->paths)
+                fn(p);
+        } else {
+            fn(static_cast<const ExtrusionPath &>(*entity));
+        }
+    };
+
+    auto is_ext_perimeter_role = [](ExtrusionRole role) -> bool {
+        return role == erExternalPerimeter;
+    };
+    auto is_fallback_role = [](ExtrusionRole role) -> bool {
+        return role == erInternalInfill || role == erSolidInfill || role == erTopSolidInfill;
+    };
+    auto is_candidate_support_role = [](ExtrusionRole role) -> bool {
+        return role == erSupportMaterial || role == erSupportMaterialInterface || role == erSupportTransition;
+    };
+
+    // Update a (max_dist_sq, point, extruder_id) triple
+    auto update_max = [](int64_t &max_dsq, Point &out_point, int &out_ext,
+                         const Point &p, const Point &shift, int extruder_id) {
+        Point global = p + shift;
+        int64_t dsq = (int64_t)global.x() * global.x() + (int64_t)global.y() * global.y();
+        if (dsq > max_dsq) {
+            max_dsq = dsq;
+            out_point = global;
+            out_ext = extruder_id;
+        }
+    };
+
+    // Collect candidate endpoints from one ExtrusionPath, handling arc fitting
+    auto collect_from_path = [&update_max](int64_t &max_dsq, Point &out_point, int &out_ext,
+                                           const ExtrusionPath &path, const Point &shift, int extruder_id) {
+        const Polyline &poly = path.polyline;
+        if (poly.points.empty()) return;
+
+        if (!poly.fitting_result.empty()) {
+            if (poly.fitting_result.front().start_point_index < poly.points.size())
+                update_max(max_dsq, out_point, out_ext,
+                           poly.points[poly.fitting_result.front().start_point_index], shift, extruder_id);
+
+            for (const PathFittingData &seg : poly.fitting_result) {
+                if (seg.path_type == EMovePathType::Linear_move) {
+                    for (size_t i = seg.start_point_index; i <= seg.end_point_index && i < poly.points.size(); ++i)
+                        update_max(max_dsq, out_point, out_ext, poly.points[i], shift, extruder_id);
+                } else if (seg.path_type == EMovePathType::Arc_move_cw || seg.path_type == EMovePathType::Arc_move_ccw) {
+                    update_max(max_dsq, out_point, out_ext, seg.arc_data.end_point, shift, extruder_id);
+                }
+            }
+        } else {
+            for (const Point &pt : poly.points)
+                update_max(max_dsq, out_point, out_ext, pt, shift, extruder_id);
+        }
+    };
+
+    // Single pass: scan all paths, collecting ext-perimeter and fallback candidates
+    for (const LayerToPrint &ltp : layers) {
+        const PrintObject *print_obj = ltp.object();
+        if (!print_obj) continue;
+
+        for (const PrintInstance &inst : print_obj->instances()) {
+            const Point &shift = inst.shift;
+
+            if (ltp.object_layer) {
+                for (const LayerRegion *region : ltp.object_layer->regions()) {
+                    const PrintRegionConfig &rcfg = region->region().config();
+
+                    for (const ExtrusionEntity *entity : region->perimeters.entities) {
+                        for_each_path(entity, [&](const ExtrusionPath &path) {
+                            if (is_ext_perimeter_role(path.role()))
+                                collect_from_path(max_dist_sq_ext, farthest_point_ext, farthest_extruder_ext,
+                                                  path, shift, (int)get_extruder_id(rcfg.wall_filament.value - 1));
+                        }, for_each_path);
+                    }
+
+                    for (const ExtrusionEntity *entity : region->fills.entities) {
+                        for_each_path(entity, [&](const ExtrusionPath &path) {
+                            if (!is_fallback_role(path.role())) return;
+                            int eid = (path.role() == erInternalInfill)
+                                ? (int)get_extruder_id(rcfg.sparse_infill_filament.value - 1)
+                                : (int)get_extruder_id(rcfg.solid_infill_filament.value - 1);
+                            collect_from_path(max_dist_sq_fallback, farthest_point_fallback, farthest_extruder_fallback,
+                                              path, shift, eid);
+                        }, for_each_path);
+                    }
+                }
+            }
+
+            if (ltp.support_layer) {
+                for (const ExtrusionEntity *entity : ltp.support_layer->support_fills.entities) {
+                    for_each_path(entity, [&](const ExtrusionPath &path) {
+                        if (!is_candidate_support_role(path.role())) return;
+                        auto support_filament = support_filaments.find({ ltp.support_layer, path.role() });
+                        if (support_filament == support_filaments.end()) return;
+                        int eid = (int)get_extruder_id(support_filament->second);
+                        collect_from_path(max_dist_sq_fallback, farthest_point_fallback, farthest_extruder_fallback,
+                                          path, shift, eid);
+                    }, for_each_path);
+                }
+            }
+        }
+    }
+
+    // Prefer external perimeter result; fall back to infill/support
+    int64_t max_dist_sq;
+    if (max_dist_sq_ext > 0) {
+        max_dist_sq = max_dist_sq_ext;
+        m_farthest_point_timelapse.farthest_point = farthest_point_ext;
+        m_farthest_point_timelapse.farthest_extruder_id = farthest_extruder_ext;
+    } else {
+        max_dist_sq = max_dist_sq_fallback;
+        m_farthest_point_timelapse.farthest_point = farthest_point_fallback;
+        m_farthest_point_timelapse.farthest_extruder_id = farthest_extruder_fallback;
+    }
+
+    if (max_dist_sq > 0) {
+        m_farthest_point_timelapse.farthest_gcode_pos = unscale(m_farthest_point_timelapse.farthest_point);
+        // Single nozzle with AMS: all virtual extruders share one physical nozzle,
+        // so the nozzle is always the photo head regardless of which filament is used.
+        bool single_nozzle = (m_config.nozzle_diameter.size() <= 1);
+        m_farthest_point_timelapse.farthest_is_photo_head = single_nozzle || (m_farthest_point_timelapse.farthest_extruder_id == most_used_extruder);
+    }
+}
+
+GCode::TimelapseGCodeResult GCode::generate_timelapse_gcode(const Print &print, coordf_t print_z, int most_used_extruder,
+                                                            const std::set<size_t> *layer_object_label_ids,
+                                                            const std::vector<const PrintObject*> *printed_objects,
+                                                            bool skip_pos_pick)
+{
+    TimelapseGCodeResult result;
+
+    const Extruder *current_filament = m_writer.filament();
+    if (!current_filament)
+        return result;
+
+    PosPickCtx ctx;
+    ctx.curr_pos = { (coord_t)(scale_(m_writer.get_position().x())), (coord_t)(scale_(m_writer.get_position().y())) };
+    ctx.curr_layer = this->layer();
+    ctx.curr_extruder_id = current_filament->extruder_id();
+    ctx.picture_extruder_id = most_used_extruder;
+    if (m_farthest_point_timelapse.enabled) {
+        Vec3d po = print.get_plate_origin();
+        ctx.farthest_point = m_farthest_point_timelapse.farthest_point - Point(scale_(po.x()), scale_(po.y()));
+    }
+    if (m_config.print_sequence == PrintSequence::ByObject && print.objects().size() > 1 && printed_objects)
+        ctx.printed_objects = *printed_objects;
+
+    const Point timelapse_pos = skip_pos_pick ? DefaultTimelapsePos : m_timelapse_pos_picker.pick_pos(ctx);
+    result.safe_pos = timelapse_pos;
+    auto is_clear_to_x0 = m_timelapse_pos_picker.get_is_clear_to_x0(ctx);
+
+    std::string timelapse_gcode;
+    if (!print.config().time_lapse_gcode.value.empty()) {
+        DynamicConfig config;
+        config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
+        config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
+        config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
+        config.set_key_value("most_used_physical_extruder_id", new ConfigOptionInt(m_config.physical_extruder_map.get_at(most_used_extruder)));
+        config.set_key_value("curr_physical_extruder_id", new ConfigOptionInt(m_config.physical_extruder_map.get_at(ctx.curr_extruder_id)));
+        config.set_key_value("timelapse_pos_x", new ConfigOptionInt(timelapse_pos.x()));
+        config.set_key_value("timelapse_pos_y", new ConfigOptionInt(timelapse_pos.y()));
+        config.set_key_value("has_timelapse_safe_pos", new ConfigOptionBool(timelapse_pos != DefaultTimelapsePos));
+        config.set_key_value("timelapse_inline_photo", new ConfigOptionBool(skip_pos_pick));
+        // Expose the effective farthest-point flag to the template so machines (e.g. H2C/X2D) can
+        // fall back to the legacy Z behavior (layer_z + 0.4) when farthest-point timelapse
+        // is not actually active. Matches m_farthest_point_timelapse.enabled which already folds in
+        // the user toggle, smooth/traditional and i3 gating.
+        config.set_key_value("farthest_point_timelapse_enabled", new ConfigOptionBool(m_farthest_point_timelapse.enabled));
+        config.set_key_value("clear_to_x0", new ConfigOptionBool(is_clear_to_x0));
+        timelapse_gcode = this->placeholder_parser_process("timelapse_gcode", print.config().time_lapse_gcode.value, current_filament->id(), &config) + "\n";
+    }
+
+    double z_before_timelapse = m_writer.get_position()(2);
+    m_writer.set_current_position_clear(false);
+
+    double temp_z_after_tool_change;
+    if (GCodeProcessor::get_last_z_from_gcode(timelapse_gcode, temp_z_after_tool_change)) {
+        if (std::abs(temp_z_after_tool_change - z_before_timelapse) > EPSILON) {
+            // Timelapse template changed Z externally (e.g. head wrap detect G0 Z2).
+            // Append raw G1 Z to restore; skip set_position to keep m_lifted intact
+            // so the subsequent layer-change lift logic works normally.
+            char buf[64];
+            snprintf(buf, sizeof(buf), "G1 Z%.3f\n", z_before_timelapse);
+            timelapse_gcode += buf;
+        } else {
+            Vec3d pos = m_writer.get_position();
+            pos(2)    = temp_z_after_tool_change;
+            m_writer.set_position(pos);
+        }
+    }
+
+    if (timelapse_pos != DefaultTimelapsePos) {
+        Vec3f final_plate_pos(float(timelapse_pos.x()), float(timelapse_pos.y()), float(z_before_timelapse));
+        if (std::optional<Vec3f> parsed_pos = infer_timelapse_final_plate_pos(timelapse_gcode, timelapse_pos, float(z_before_timelapse)))
+            final_plate_pos = *parsed_pos;
+
+        const Vec3d plate_origin = print.get_plate_origin();
+        const Vec2d final_gcode_pos(final_plate_pos.x() + plate_origin.x(), final_plate_pos.y() + plate_origin.y());
+        result.final_pos = this->gcode_to_point(final_gcode_pos);
+    }
+
+    // (layer_object_label_ids->size() < 64) this restriction comes from _encode_label_ids_to_base64()
+    if (layer_object_label_ids &&
+        print.is_BBL_Printer() &&
+        (print.num_object_instances() <= g_max_label_object) && // Don't support too many objects on one plate
+        (print.num_object_instances() > 1) &&                 // Don't support skipping single object
+        (!layer_object_label_ids->empty()) &&
+        (print.calib_params().mode == CalibMode::Calib_None)) {
+        std::ostringstream oss;
+        for (auto it = layer_object_label_ids->begin(); it != layer_object_label_ids->end(); ++it) {
+            if (it != layer_object_label_ids->begin()) oss << ",";
+            oss << *it;
+        }
+
+        std::string start_str = std::string("; object ids of layer ") + std::to_string(m_layer_index + 1) + (" start: ") + oss.str() + "\n";
+        start_str += "M624 " + _encode_label_ids_to_base64(std::vector<size_t>(layer_object_label_ids->begin(), layer_object_label_ids->end())) + "\n";
+
+        std::string end_str = std::string("; object ids of this layer") + std::to_string(m_layer_index + 1) + (" end: ") + oss.str() + "\n";
+        end_str   += "M625\n";
+
+        timelapse_gcode = start_str + timelapse_gcode + end_str;
+    }
+
+    result.gcode = std::move(timelapse_gcode);
+    return result;
+}
+
 // In sequential mode, process_layer is called once per each object and its copy,
 // therefore layers will contain a single entry and single_object_instance_idx will point to the copy of the object.
 // In non-sequential mode, process_layer is called per each print_z height with all object and support layers accumulated.
@@ -4226,6 +4541,13 @@ GCode::LayerResult GCode::process_layer(
     bool sequence_by_layer = print_sequence == PrintSequence::ByLayer;
     bool is_i3_printer = printer_structure == PrinterStructure::psI3;
     bool is_multi_extruder = m_config.nozzle_diameter.size() > 1;
+
+    bool farthest_point_timelapse_enabled = m_config.farthest_point_timelapse.value
+        && m_config.timelapse_type.value == TimelapseType::tlTraditional
+        && printer_structure != PrinterStructure::psI3;
+    m_farthest_point_timelapse.enabled = farthest_point_timelapse_enabled;
+    m_farthest_point_timelapse.most_used_extruder = most_used_extruder;
+    m_farthest_point_timelapse.inserted_this_layer = false;
 
     bool need_insert_timelapse_gcode_for_traditional = false;
     if (!m_wipe_tower || !m_wipe_tower->enable_timelapse_print()) {
@@ -4405,6 +4727,7 @@ GCode::LayerResult GCode::process_layer(
 
     // Group extrusions by an extruder, then by an object, an island and a region.
     std::map<unsigned int, std::vector<ObjectByExtruder>> by_extruder;
+    std::map<std::pair<const SupportLayer *, ExtrusionRole>, unsigned int> support_filaments;
     bool is_anything_overridden = const_cast<LayerTools&>(layer_tools).wiping_extrusions().is_anything_overridden();
     for (const LayerToPrint &layer_to_print : layers) {
         if (layer_to_print.support_layer != nullptr) {
@@ -4497,6 +4820,14 @@ GCode::LayerResult GCode::process_layer(
                 // Both the support and the support interface are printed with the same extruder, therefore
                 // the interface may be interleaved with the support base.
                 bool single_extruder = ! has_support || support_extruder == interface_extruder;
+                if (has_support) {
+                    support_filaments[{ &support_layer, erSupportMaterial }] = support_extruder;
+                    support_filaments[{ &support_layer, erSupportTransition }] = support_extruder;
+                }
+                if (has_interface) {
+                    support_filaments[{ &support_layer, erSupportMaterialInterface }] =
+                        single_extruder ? (has_support ? support_extruder : interface_extruder) : interface_extruder;
+                }
                 // Assign an extruder to the base.
                 ObjectByExtruder &obj = object_by_extruder(by_extruder, has_support ? support_extruder : interface_extruder, &layer_to_print - layers.data(), layers.size());
                 obj.support = &support_layer.support_fills;
@@ -4619,6 +4950,9 @@ GCode::LayerResult GCode::process_layer(
         }
     } // for objects
 
+    if (m_farthest_point_timelapse.enabled)
+        compute_farthest_point(layers, most_used_extruder, support_filaments);
+
     std::map<unsigned int, std::vector<InstanceToPrint>> filament_to_print_instances;
     {
         for (unsigned int filament_id : layer_tools.extruders) {
@@ -4678,77 +5012,13 @@ GCode::LayerResult GCode::process_layer(
             layer_object_label_ids.insert(instance.label_object_id);
         }
     }
+    m_farthest_point_timelapse.layer_object_label_ids = layer_object_label_ids;
 
     auto insert_timelapse_gcode = [this, print_z, &print, &most_used_extruder, &layer_object_label_ids,&printed_objects = std::as_const(m_printed_objects)]() -> std::string {
-        PosPickCtx ctx;
-        ctx.curr_pos = { (coord_t)(scale_(m_writer.get_position().x())),(coord_t)(scale_(m_writer.get_position().y())) };
-        ctx.curr_layer = this->layer();
-        ctx.curr_extruder_id = m_writer.filament()->extruder_id();
-        ctx.picture_extruder_id = most_used_extruder;
-        if (m_config.print_sequence == PrintSequence::ByObject && print.objects().size() > 1)
-            ctx.printed_objects = printed_objects;
-
-        auto timelapse_pos=m_timelapse_pos_picker.pick_pos(ctx);
-        auto is_clear_to_x0 = m_timelapse_pos_picker.get_is_clear_to_x0(ctx);
-
-        std::string timepals_gcode;
-        if (!print.config().time_lapse_gcode.value.empty()) {
-            DynamicConfig config;
-            config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
-            config.set_key_value("layer_z", new ConfigOptionFloat(print_z));
-            config.set_key_value("max_layer_z", new ConfigOptionFloat(m_max_layer_z));
-            config.set_key_value("most_used_physical_extruder_id", new ConfigOptionInt(m_config.physical_extruder_map.get_at(most_used_extruder)));
-            config.set_key_value("curr_physical_extruder_id", new ConfigOptionInt(m_config.physical_extruder_map.get_at(ctx.curr_extruder_id)));
-            config.set_key_value("timelapse_pos_x", new ConfigOptionInt(timelapse_pos.x()));
-            config.set_key_value("timelapse_pos_y", new ConfigOptionInt(timelapse_pos.y()));
-            config.set_key_value("has_timelapse_safe_pos", new ConfigOptionBool(timelapse_pos != DefaultTimelapsePos));
-            config.set_key_value("clear_to_x0", new ConfigOptionBool(is_clear_to_x0));
-            timepals_gcode = this->placeholder_parser_process("timelapse_gcode", print.config().time_lapse_gcode.value, m_writer.filament()->id(), &config) + "\n";
-        }
-        double z_before_timelapse = m_writer.get_position()(2);
-        m_writer.set_current_position_clear(false);
-
-        double temp_z_after_tool_change;
-        if (GCodeProcessor::get_last_z_from_gcode(timepals_gcode, temp_z_after_tool_change)) {
-            if (std::abs(temp_z_after_tool_change - z_before_timelapse) > EPSILON) {
-                // Timelapse template changed Z externally (e.g. head wrap detect G0 Z2).
-                // Append raw G1 Z to restore; skip set_position to keep m_lifted intact
-                // so the subsequent layer-change lift logic works normally.
-                char buf[64];
-                snprintf(buf, sizeof(buf), "G1 Z%.3f\n", z_before_timelapse);
-                timepals_gcode += buf;
-            } else {
-                Vec3d pos = m_writer.get_position();
-                pos(2)    = temp_z_after_tool_change;
-                m_writer.set_position(pos);
-            }
-        }
-
-        // (layer_object_label_ids.size() < 64) this restriction comes from _encode_label_ids_to_base64()
-        if (print.is_BBL_Printer() &&
-            (print.num_object_instances() <= g_max_label_object) && // Don't support too many objects on one plate
-            (print.num_object_instances() > 1) &&                 // Don't support skipping single object
-            (layer_object_label_ids.size() > 0) &&
-            (print.calib_params().mode == CalibMode::Calib_None)) {
-            std::ostringstream oss;
-            for (auto it = layer_object_label_ids.begin(); it != layer_object_label_ids.end(); ++it) {
-                if (it != layer_object_label_ids.begin()) oss << ",";
-                oss << *it;
-            }
-
-            std::string start_str = std::string("; object ids of layer ") + std::to_string(m_layer_index + 1) + (" start: ") + oss.str() + "\n";
-            start_str += "M624 " + _encode_label_ids_to_base64(std::vector<size_t>(layer_object_label_ids.begin(), layer_object_label_ids.end())) + "\n";
-
-            std::string end_str = std::string("; object ids of this layer") + std::to_string(m_layer_index + 1) + (" end: ") + oss.str() + "\n";
-            end_str   += "M625\n";
-
-            timepals_gcode = start_str + timepals_gcode + end_str;
-        }
-
-        return timepals_gcode;
+        return generate_timelapse_gcode(print, print_z, most_used_extruder, &layer_object_label_ids, &printed_objects).gcode;
     };
 
-    if (!need_insert_timelapse_gcode_for_traditional) { // Equivalent to the timelapse gcode placed in layer_change_gcode
+    if (!need_insert_timelapse_gcode_for_traditional && !(m_farthest_point_timelapse.enabled && m_farthest_point_timelapse.farthest_is_photo_head)) {
         if (FILAMENT_CONFIG(retract_when_changing_layer)) {
             gcode += this->retract(false, false, auto_lift_type, true);
         }
@@ -4837,14 +5107,20 @@ GCode::LayerResult GCode::process_layer(
                 m_filament_instances_code.clear();
         }
 
+        has_insert_timelapse_gcode |= m_farthest_point_timelapse.inserted_this_layer;
+
         if (has_wipe_tower) {
             if (!m_wipe_tower->is_empty_wipe_tower_gcode(*this, extruder_id, extruder_id == layer_tools.extruders.back())) {
-                if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
+                if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode
+                    && !(m_farthest_point_timelapse.enabled && m_farthest_point_timelapse.farthest_is_photo_head)) {
                     bool should_insert = true;
-                    if (m_config.nozzle_diameter.values.size() == 2){
-                        if (!writer().filament() || get_extruder_id(writer().filament()->id()) != most_used_extruder) {
-                            should_insert = false;
-                        }
+                    if (m_config.nozzle_diameter.values.size() == 2) {
+                        bool curr_is_photo_head = writer().filament() &&
+                            get_extruder_id(writer().filament()->id()) == most_used_extruder;
+                        bool is_case_b = m_farthest_point_timelapse.enabled && !m_farthest_point_timelapse.farthest_is_photo_head;
+                        // Case B: insert only when current head ≠ photo head (firmware uses safe pos)
+                        // Original: insert only when current head = photo head (firmware takes photo in place)
+                        should_insert = is_case_b ? !curr_is_photo_head : curr_is_photo_head;
                     }
 
                     if (should_insert) {
@@ -4867,15 +5143,20 @@ GCode::LayerResult GCode::process_layer(
         } else {
             if (need_insert_timelapse_gcode_for_traditional &&
                 !has_insert_timelapse_gcode &&
+                !(m_farthest_point_timelapse.enabled && m_farthest_point_timelapse.farthest_is_photo_head) &&
                 m_writer.need_toolchange(extruder_id) &&
                 m_config.nozzle_diameter.values.size() == 2 &&
-                writer().filament() &&
-                (get_extruder_id(writer().filament()->id()) == most_used_extruder)) {
-                gcode += this->retract(false, false, auto_lift_type, true);
-                m_writer.add_object_change_labels(gcode);
+                writer().filament()) {
+                bool curr_is_photo_head = get_extruder_id(writer().filament()->id()) == most_used_extruder;
+                bool is_case_b = m_farthest_point_timelapse.enabled && !m_farthest_point_timelapse.farthest_is_photo_head;
+                bool should_insert = is_case_b ? !curr_is_photo_head : curr_is_photo_head;
+                if (should_insert) {
+                    gcode += this->retract(false, false, auto_lift_type, true);
+                    m_writer.add_object_change_labels(gcode);
 
-                gcode += insert_timelapse_gcode();
-                has_insert_timelapse_gcode = true;
+                    gcode += insert_timelapse_gcode();
+                    has_insert_timelapse_gcode = true;
+                }
             }
 
             if (print.config().enable_wrapping_detection && !has_insert_wrapping_detection_gcode) {
@@ -5474,6 +5755,20 @@ GCode::LayerResult GCode::process_layer(
     BOOST_LOG_TRIVIAL(trace) << "Exported layer " << layer.id() << " print_z " << print_z <<
     log_memory_info();
 
+    has_insert_timelapse_gcode |= m_farthest_point_timelapse.inserted_this_layer;
+
+    // Optimization fallback: if inline insertion was expected but missed,
+    // fall through to original layer-end mechanism for multi-extruder,
+    // or insert here for single-extruder (which has no traditional fallback).
+    if (m_farthest_point_timelapse.enabled && m_farthest_point_timelapse.farthest_is_photo_head && !has_insert_timelapse_gcode) {
+        if (FILAMENT_CONFIG(retract_when_changing_layer)) {
+            gcode += this->retract(false, false, auto_lift_type, true);
+        }
+        m_writer.add_object_change_labels(gcode);
+        gcode += insert_timelapse_gcode();
+        has_insert_timelapse_gcode = true;
+    }
+
     if (need_insert_timelapse_gcode_for_traditional && !has_insert_timelapse_gcode) {
         // The traditional model of thin-walled object will have flaws for I3
         if (m_support_traditional_timelapse
@@ -5496,6 +5791,7 @@ GCode::LayerResult GCode::process_layer(
         m_writer.add_object_change_labels(gcode);
 
         gcode += insert_timelapse_gcode();
+        has_insert_timelapse_gcode = true;
     }
 
     result.gcode = std::move(gcode);
@@ -7007,6 +7303,29 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     //if (sloped == nullptr)
     gcode += m_writer.set_speed(F, "", comment);
 
+    auto check_and_insert_timelapse = [this, &gcode](const Point &endpoint_scaled) {
+        if (!m_farthest_point_timelapse.enabled || !m_farthest_point_timelapse.farthest_is_photo_head || m_farthest_point_timelapse.inserted_this_layer)
+            return;
+        // Inline M971 only when current extruder is the photo head; other nozzles
+        // may pass through nearby coordinates but their physical position differs.
+        if (!m_writer.filament() || get_extruder_id(m_writer.filament()->id()) != m_farthest_point_timelapse.most_used_extruder)
+            return;
+        Vec2d endpoint_mm = this->point_to_gcode(endpoint_scaled);
+        if ((endpoint_mm - m_farthest_point_timelapse.farthest_gcode_pos).norm() >= 0.5)
+            return;
+
+        if (!m_print || !m_layer)
+            return;
+
+        TimelapseGCodeResult timelapse_result =
+            generate_timelapse_gcode(*m_print, m_layer->print_z, m_farthest_point_timelapse.most_used_extruder,
+                                      &m_farthest_point_timelapse.layer_object_label_ids, &m_printed_objects, true);
+        if (!timelapse_result.gcode.empty()) {
+            gcode += timelapse_result.gcode;
+            m_farthest_point_timelapse.inserted_this_layer = true;
+        }
+    };
+
     double path_length = 0.;
     {
         std::string comment = GCodeWriter::full_gcode_comment ? description : "";
@@ -7041,6 +7360,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                     double slope_e = dE * e_ratio;
                     gcode += m_writer.extrude_to_xyz(dest3d, slope_e);
                 }
+                check_and_insert_timelapse(line.b);
             }
         } else {
             // BBS: start to generate gcode from arc fitting data which includes line and arc
@@ -7061,6 +7381,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                             this->point_to_gcode(line.b),
                             e_per_mm * line_length,
                             comment, path.is_force_no_extrusion());
+                        check_and_insert_timelapse(line.b);
                     }
                     break;
                 }
@@ -7079,6 +7400,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
                             e_per_mm * arc_length,
                             arc.direction == ArcDirection::Arc_Dir_CCW,
                             comment, path.is_force_no_extrusion());
+                    check_and_insert_timelapse(arc.end_point);
                     break;
                 }
                 default:

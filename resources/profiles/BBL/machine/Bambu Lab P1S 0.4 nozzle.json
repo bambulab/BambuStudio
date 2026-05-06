@@ -9,6 +9,7 @@
         "0.4"
     ],
     "printer_model": "Bambu Lab P1S",
+    "farthest_point_timelapse": "1",
     "printer_variant": "0.4",
     "bed_exclude_area": [
         "0x0",

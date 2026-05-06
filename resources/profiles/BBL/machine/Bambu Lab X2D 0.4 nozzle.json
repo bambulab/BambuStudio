@@ -10,6 +10,7 @@
         "0.4"
     ],
     "printer_model": "Bambu Lab X2D",
+    "farthest_point_timelapse": "1",
     "printer_variant": "0.4",
     "include": [
         "Bambu Lab X2D 0.4 nozzle template change_filament_gcode",

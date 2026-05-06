@@ -361,7 +361,8 @@ namespace Slic3r {
      * @param safe_areas A collection of extended polygons defining the safe areas.
      * @return Point The nearest point within the safe areas or the default timelapse position if no safe areas exist.
      */
-    Point pick_pos_internal(const Point& curr_pos, const ExPolygons& safe_areas, const ExPolygons& path_collision_area, bool detect_path_collision)
+    Point pick_pos_internal(const Point& curr_pos, const ExPolygons& safe_areas, const ExPolygons& path_collision_area, bool detect_path_collision,
+                            const std::optional<Point>& farthest_point = std::nullopt)
     {
         struct CandidatePoint
         {
@@ -381,7 +382,11 @@ namespace Slic3r {
         std::priority_queue<CandidatePoint> max_heap;
 
         constexpr double candidate_point_segment = scale_(5), weight_of_camera=1./3.;
-        auto penaltyFunc = [&weight_of_camera](const Point &curr_post, const Point &CameraPos, const Point &candidatet) -> double {
+        auto penaltyFunc = [&weight_of_camera, &farthest_point](const Point &curr_post, const Point &CameraPos, const Point &candidatet) -> double {
+            if (farthest_point.has_value()) {
+                // Prefer candidate closest to the farthest point (L1 norm)
+                return (farthest_point.value() - candidatet).cwiseAbs().sum();
+            }
             // move distance + Camera occlusion penalty function
             double ret_pen = (curr_post - candidatet).cwiseAbs().sum() - weight_of_camera * (CameraPos - candidatet).cwiseAbs().sum();
             return ret_pen;
@@ -523,7 +528,7 @@ namespace Slic3r {
             path_collision_area = union_ex(layer_slices_without_curr, rod_limit_areas);
         }
 
-        return pick_pos_internal(center_p, safe_area,path_collision_area, by_object);
+        return pick_pos_internal(center_p, safe_area, path_collision_area, by_object, ctx.farthest_point);
     }
 
     /**

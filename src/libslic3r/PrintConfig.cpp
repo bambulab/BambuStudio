@@ -5039,6 +5039,14 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionEnum<TimelapseType>(tlTraditional));
 
+    def = this->add("farthest_point_timelapse", coBool);
+    def->label = L("Farthest point timelapse");
+    def->tooltip = L("When enabled, the timelapse snapshot is taken at the farthest point from camera "
+                     "instead of traveling to the wipe tower or excess chute. "
+                     "Only effective in traditional timelapse mode on non-I3 printers.");
+    def->mode = comSimple;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("standby_temperature_delta", coInt);
     def->label = L("Temperature variation");
     //def->tooltip = L("Temperature difference to be applied when an extruder is not active. "

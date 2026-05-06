@@ -1499,6 +1499,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloatsNullable,     nozzle_volume))
     ((ConfigOptionPoints,             start_end_points))
     ((ConfigOptionEnum<TimelapseType>,    timelapse_type))
+    ((ConfigOptionBool,               farthest_point_timelapse))
     ((ConfigOptionFloat,              default_jerk))
     ((ConfigOptionFloat,              outer_wall_jerk))
     ((ConfigOptionFloat,              inner_wall_jerk))

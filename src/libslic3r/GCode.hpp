@@ -24,6 +24,7 @@
 #include <cfloat>
 #include <memory>
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
 
@@ -495,6 +496,21 @@ private:
     LiftType to_lift_type(ZHopType z_hop_types);
 
     std::string     set_extruder(unsigned int extruder_id, double print_z, bool by_object=false);
+
+    // Farthest-point timelapse: find the extrusion point farthest from camera (0,0)
+    void compute_farthest_point(const std::vector<LayerToPrint> &layers, int most_used_extruder,
+                                const std::map<std::pair<const SupportLayer *, ExtrusionRole>, unsigned int> &support_filaments);
+
+    struct TimelapseGCodeResult {
+        std::string          gcode;
+        Point                safe_pos{DefaultTimelapsePos};
+        std::optional<Point> final_pos;
+    };
+    TimelapseGCodeResult generate_timelapse_gcode(const Print &print, coordf_t print_z, int most_used_extruder,
+                                                  const std::set<size_t> *layer_object_label_ids,
+                                                  const std::vector<const PrintObject*> *printed_objects,
+                                                  bool skip_pos_pick = false);
+
     std::set<ObjectID>              m_objsWithBrim; // indicates the objs with brim
     std::set<ObjectID>              m_objSupportsWithBrim; // indicates the objs' supports with brim
     // Cache for custom seam enforcers/blockers for each layer.
@@ -519,6 +535,28 @@ private:
     AvoidCrossingPerimeters             m_avoid_crossing_perimeters;
     RetractWhenCrossingPerimeters       m_retract_when_crossing_perimeters;
     TimelapsePosPicker                  m_timelapse_pos_picker;
+
+    // Farthest-point timelapse context: pick the farthest point from camera for snapshot
+    struct FarthestPointTimelapseContext {
+        // Whether farthest-point timelapse is active for this layer
+        bool    enabled{false};
+        // The farthest extrusion point from camera (0,0) in global scaled coordinates (includes plate origin + inst.shift)
+        Point   farthest_point;
+        // farthest_point converted to mm (gcode coordinate space, includes plate origin)
+        Vec2d   farthest_gcode_pos{0, 0};
+        // Extruder index (0-based) that prints the farthest point
+        int     farthest_extruder_id{0};
+        // Whether the farthest point is printed by the photo head (most_used_extruder)
+        bool    farthest_is_photo_head{false};
+        // Whether inline timelapse gcode has already been inserted on this layer
+        bool    inserted_this_layer{false};
+        // The extruder used most on this layer, chosen as the photo head
+        int     most_used_extruder{0};
+        // Object labels for the current layer, used when inline timelapse is inserted from extrusion code.
+        std::set<size_t> layer_object_label_ids;
+    };
+    FarthestPointTimelapseContext m_farthest_point_timelapse;
+
     bool                                m_enable_loop_clipping;
     // If enabled, the G-code generator will put following comments at the ends
     // of the G-code lines: _EXTRUDE_SET_SPEED, _WIPE, _OVERHANG_FAN_START, _OVERHANG_FAN_END, _IRONING_FAN_START, _IRONING_FAN_END
