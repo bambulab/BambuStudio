@@ -9872,7 +9872,7 @@ Polygon get_bed_shape_with_excluded_area(const PrintConfig& cfg, bool use_share)
     if (!tmp.empty()) bed_poly = tmp[0];
     return bed_poly;
 }
-bool has_skirt(const DynamicPrintConfig& cfg)
+bool has_skirt(const ConfigBase& cfg)
 {
     auto opt_skirt_height = cfg.option("skirt_height");
     auto opt_skirt_loops = cfg.option("skirt_loops");
@@ -9880,31 +9880,31 @@ bool has_skirt(const DynamicPrintConfig& cfg)
     return (opt_skirt_height && opt_skirt_height->getInt() > 0 && opt_skirt_loops && opt_skirt_loops->getInt() > 0)
         || (opt_draft_shield && opt_draft_shield->getInt() != dsDisabled);
 }
-float get_real_skirt_dist(const DynamicPrintConfig& cfg) {
-    if (!has_skirt(cfg)) return 0.f;
+float get_real_skirt_dist(const ConfigBase& cfg) {
+    if (!has_skirt(cfg))
+        return 0;
 
-    float dist = cfg.opt_float("skirt_distance");
+    auto opt_skirt_loops = cfg.option("skirt_loops");
+    int skirt_loops = opt_skirt_loops ? opt_skirt_loops->getInt() : 0;
+    if (skirt_loops <= 0)
+        return 0;
 
-    int loops = cfg.opt_int("skirt_loops");
-    auto opt_draft_shield = cfg.option("draft_shield");
-    if (opt_draft_shield && opt_draft_shield->getInt() != dsDisabled && loops == 0) {
-        loops = 1;
-    }
+    auto  opt_dist       = cfg.option("skirt_distance");
+    float skirt_distance = opt_dist ? static_cast<float>(opt_dist->getFloat()) : 0;
 
-    float width = cfg.opt_float("initial_layer_line_width");
-    if (width <= 0.f) {
-        width = cfg.opt_float("line_width");
-    }
-    if (width <= 0.f) {
-        auto* nd = cfg.opt<ConfigOptionFloats>("nozzle_diameter");
-        if (nd && !nd->values.empty()) {
-            width = *std::max_element(nd->values.begin(), nd->values.end());
-        } else {
-            width = 0.4f;
-        }
-    }
+    auto  opt_nozzle     = cfg.option("nozzle_diameter");
+    auto  opt_nozzle_f   = dynamic_cast<const ConfigOptionFloats *>(opt_nozzle);
+    float nozzle_dia     = opt_nozzle_f ? static_cast<float>(opt_nozzle_f->get_at(0)) : 0.4f;
+    auto  opt_lw       = cfg.option("initial_layer_line_width");
+    float line_width   = (opt_lw && opt_lw->getFloat() > 0) ? static_cast<float>(opt_lw->getFloat()) : nozzle_dia;
+    auto  opt_lh       = cfg.option("initial_layer_print_height");
+    float layer_height = opt_lh ? static_cast<float>(opt_lh->getFloat()) : 0.2f;
 
-    return dist + loops * width;
+    float spacing = line_width - layer_height * float(1. - 0.25 * M_PI);
+    if (spacing <= 0)
+        spacing = line_width;
+
+    return skirt_distance + skirt_loops * spacing;
 }
 } // namespace Slic3r
 
