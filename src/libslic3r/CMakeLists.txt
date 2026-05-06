@@ -344,6 +344,8 @@ set(lisbslic3r_sources
     Tesselate.hpp
     TriangleMesh.cpp
     TriangleMesh.hpp
+    MeshDiagnostics.hpp
+    MeshDiagnostics.cpp
     TriangleMeshDeal.cpp
     TriangleMeshDeal.hpp
     TriangleMeshSlicer.cpp

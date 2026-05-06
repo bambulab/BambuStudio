@@ -2,6 +2,7 @@
 #include "TriangleMesh.hpp"
 #include "TriangleMeshSlicer.hpp"
 #include "MeshSplitImpl.hpp"
+#include "MeshDiagnostics.hpp"
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
 #include "Geometry/ConvexHull.hpp"
@@ -50,7 +51,12 @@ static void fill_initial_stats(const indexed_triangle_set &its, TriangleMeshStat
 
     const std::vector<Vec3i> face_neighbors = its_face_neighbors(its);
     out.number_of_parts = its_number_of_patches(its, face_neighbors);
-    out.open_edges      = its_num_open_edges(face_neighbors);
+
+    const auto nm_stats       = its_edge_diagnostics(its);
+    assert(nm_stats.open_edges <= INT_MAX && nm_stats.non_manifold_edges <= INT_MAX && nm_stats.non_manifold_vertices <= INT_MAX);
+    out.open_edges            = static_cast<int>(nm_stats.open_edges);
+    out.non_manifold_edges    = static_cast<int>(nm_stats.non_manifold_edges);
+    out.non_manifold_vertices = static_cast<int>(nm_stats.non_manifold_vertices);
 }
 
 TriangleMesh::TriangleMesh(const std::vector<Vec3f> &vertices, const std::vector<Vec3i> &faces) : its { faces, vertices }
@@ -1885,19 +1891,30 @@ bool its_is_splittable(const indexed_triangle_set &its, const std::vector<Vec3i>
     return its_is_splittable<>(ItsNeighborsWrapper{ its, face_neighbors });
 }
 
-size_t its_num_open_edges(const std::vector<Vec3i> &face_neighbors)
-{
-    size_t num_open_edges = 0;
-    for (Vec3i neighbors : face_neighbors)
-        for (int n : neighbors)
-            if (n < 0)
-                ++ num_open_edges;
-    return num_open_edges;
-}
-
 size_t its_num_open_edges(const indexed_triangle_set &its)
 {
-    return its_num_open_edges(its_face_neighbors(its));
+    std::vector<int64_t> edges;
+    edges.reserve(its.indices.size() * 3);
+    for (const auto &face : its.indices) {
+        for (int i = 0; i < 3; ++i) {
+            int v0 = face[i];
+            int v1 = face[(i + 1) % 3];
+            if (v0 > v1) std::swap(v0, v1);
+            edges.push_back((int64_t(v0) << 32) | int64_t(v1));
+        }
+    }
+    std::sort(edges.begin(), edges.end());
+
+    size_t num_open = 0;
+    for (size_t i = 0; i < edges.size(); ) {
+        size_t j = i + 1;
+        while (j < edges.size() && edges[j] == edges[i])
+            ++j;
+        if (j - i == 1)
+            ++num_open;
+        i = j;
+    }
+    return num_open;
 }
 
 void VertexFaceIndex::create(const indexed_triangle_set &its)

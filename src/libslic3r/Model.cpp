@@ -2950,7 +2950,11 @@ void ModelObject::print_info() const
     cout << "number_of_facets = " << mesh.facets_count() << endl;
 
     cout << "manifold = "   << (mesh.stats().manifold() ? "yes" : "no") << endl;
-    if (! mesh.stats().manifold())
+    if (! mesh.stats().manifold()) {
+        cout << "non_manifold_edges = "    << mesh.stats().non_manifold_edges    << endl;
+        cout << "non_manifold_vertices = " << mesh.stats().non_manifold_vertices << endl;
+    }
+    if (mesh.stats().has_open_edges())
         cout << "open_edges = " << mesh.stats().open_edges << endl;
 
     if (mesh.stats().repaired()) {
@@ -3001,7 +3005,9 @@ TriangleMeshStats ModelObject::get_object_stl_stats() const
         const TriangleMeshStats& stats = volume->mesh().stats();
 
         // initialize full_stats (for repaired errors)
-        full_stats.open_edges           += stats.open_edges;
+        full_stats.open_edges              += stats.open_edges;
+        full_stats.non_manifold_edges      += stats.non_manifold_edges;
+        full_stats.non_manifold_vertices   += stats.non_manifold_vertices;
         full_stats.repaired_errors.merge(stats.repaired_errors);
 
         // another used satistics value
