@@ -3285,6 +3285,8 @@ void StatusPanel::update_ams(MachineObject *obj)
         CalibUtils::emit_get_PA_calib_infos(cali_info);
 
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " calibration: sync calib version for device " << BBLCrossTalk::Crosstalk_DevName(obj->get_dev_name());
+    } else if (obj) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " calibration: not sync calib version, IsVersionExpired=" << obj->GetCalib()->IsVersionExpired() << " is_security_control_ready=" << obj->is_security_control_ready();
     }
 
     if (obj && obj->is_security_control_ready()) { obj->check_ams_filament_valid(); }

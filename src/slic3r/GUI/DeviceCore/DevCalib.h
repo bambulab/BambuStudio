@@ -52,7 +52,7 @@ public:
     void ResetFlowRateResult();
 
     int  GetCalibVersion() const {return m_calib_version;}
-    void SyncCalibVersion() { m_last_calib_version = m_calib_version;}
+    void SyncCalibVersion() { if (IsVersionInited()) { m_last_calib_version = m_calib_version; } }
     void ResetCalibVersion() {m_last_calib_version = 0;}
     bool IsVersionExpired() const;
     bool IsVersionInited() const { return m_calib_version > -1;}
