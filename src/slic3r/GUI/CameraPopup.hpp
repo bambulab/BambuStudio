@@ -9,6 +9,7 @@
 #include <wx/image.h>
 #include <wx/sizer.h>
 #include <wx/timer.h>
+#include <chrono>
 #include <wx/gbsizer.h>
 #include <wx/webrequest.h>
 #include <wx/hyperlink.h>
@@ -19,7 +20,7 @@
 namespace Slic3r {
 namespace GUI {
 
-wxDECLARE_EVENT(EVT_VCAMERA_SWITCH, wxMouseEvent);
+wxDECLARE_EVENT(EVT_VCAMERA_SWITCH, wxCommandEvent);
 wxDECLARE_EVENT(EVT_SDCARD_ABSENT_HINT, wxCommandEvent);
 
 class CameraPopup : public PopupWindow
@@ -48,7 +49,7 @@ public:
     void rescale();
 
 protected:
-    void on_switch_recording(wxCommandEvent& event);
+    void on_switch_recording(wxMouseEvent& event);
     void on_set_resolution();
     void sdcard_absent_hint();
 
@@ -88,6 +89,10 @@ private:
     void OnSetFocus(wxFocusEvent &event);
     void OnKillFocus(wxFocusEvent &event);
     void OnLeftUp(wxMouseEvent& event);
+
+    // Debounce guards to prevent double-trigger on macOS
+    std::chrono::steady_clock::time_point m_last_recording_click{};
+    std::chrono::steady_clock::time_point m_last_vcamera_click{};
 
 private:
     wxDECLARE_ABSTRACT_CLASS(CameraPopup);

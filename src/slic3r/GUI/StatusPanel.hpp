@@ -758,7 +758,7 @@ protected:
     void on_thumbnail_enter(wxMouseEvent &event);
     void on_thumbnail_leave(wxMouseEvent &event);
     void refresh_thumbnail_webrequest(wxMouseEvent& event);
-    void on_switch_vcamera(wxMouseEvent &event);
+    void on_switch_vcamera(wxCommandEvent &event);
     void on_camera_enter(wxMouseEvent &event);
     void on_camera_leave(wxMouseEvent& event);
 

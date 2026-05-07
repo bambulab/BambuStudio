@@ -4860,7 +4860,7 @@ void StatusPanel::on_lamp_switch(wxCommandEvent &event)
     }
 }
 
-void StatusPanel::on_switch_vcamera(wxMouseEvent &event)
+void StatusPanel::on_switch_vcamera(wxCommandEvent &event)
 {
     // if (!obj) return;
     // bool value = m_recording_button->get_switch_status();
