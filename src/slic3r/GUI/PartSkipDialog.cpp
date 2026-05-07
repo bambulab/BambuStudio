@@ -718,6 +718,16 @@ void PartSkipDialog::InitDialogUI()
     BOOST_LOG_TRIVIAL(info) << "part skip: load canvas pick image begin.";
     m_canvas->LoadPickImage(pick_img);
     BOOST_LOG_TRIVIAL(info) << "part skip: load canvas pick image end.";
+
+    std::string bg_image_name;
+    if (m_obj && m_obj->is_series_o())
+        bg_image_name = "skippart_bg_o.png";
+    else if (m_obj && m_obj->printer_type == "N1")
+        bg_image_name = "skippart_bg_a1mini.png";
+    else
+        bg_image_name = "skippart_bg_default.png";
+    m_canvas->LoadBackgroundImage(
+        (boost::format("%1%/images/%2%") % Slic3r::resources_dir() % bg_image_name).str());
     ModelSettingHelper helper(slice_info);
 
     if (helper.Parse()) {
