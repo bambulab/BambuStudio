@@ -104,6 +104,8 @@ Model& Model::assign_copy(const Model &rhs)
     this->md_name = rhs.md_name;
     this->md_value = rhs.md_value;
 
+    this->texture_mesh = rhs.texture_mesh;
+
     return *this;
 }
 
@@ -141,6 +143,7 @@ Model& Model::assign_copy(Model &&rhs)
     this->mk_version = rhs.mk_version;
     this->md_name = rhs.md_name;
     this->md_value = rhs.md_value;
+    this->texture_mesh = std::move(rhs.texture_mesh);
     this->backup_path = std::move(rhs.backup_path);
     this->object_backup_id_map = std::move(rhs.object_backup_id_map);
     this->next_object_backup_id = rhs.next_object_backup_id;
@@ -242,6 +245,25 @@ _finished:
     return model;
 }
 
+static void add_textured_mesh_to_model(Model& model, const TexturedMesh& tex_mesh, const std::string& input_file)
+{
+    std::string object_name = boost::filesystem::path(input_file).filename().string();
+
+    indexed_triangle_set its;
+    its.vertices.resize(tex_mesh.vertices.size());
+    for (size_t i = 0; i < tex_mesh.vertices.size(); ++i)
+        its.vertices[i] = Vec3f(tex_mesh.vertices[i][0], tex_mesh.vertices[i][1], tex_mesh.vertices[i][2]);
+    its.indices.resize(tex_mesh.indices.size());
+    for (size_t i = 0; i < tex_mesh.indices.size(); ++i)
+        its.indices[i] = Vec3i(tex_mesh.indices[i][0], tex_mesh.indices[i][1], tex_mesh.indices[i][2]);
+
+    its_merge_vertices(its);
+    its_remove_degenerate_faces(its);
+    its_compactify_vertices(its);
+
+    model.add_object(object_name.c_str(), input_file.c_str(), std::move(TriangleMesh(std::move(its))));
+}
+
 // BBS: add part plate related logic
 // BBS: backup & restore
 // Loading model from a file, it may be a simple geometry file as STL or OBJ, however it may be a project file as well.
@@ -285,39 +307,44 @@ Model Model::read_from_file(const std::string&                                  
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn,256);
     else if (boost::algorithm::iends_with(input_file, ".obj")) {
         ObjInfo                 obj_info;
-        result = load_obj(input_file.c_str(), &model, obj_info, message, nullptr, (is_xxx && *is_xxx) ? true : false);
+        ObjParser::MtlData      mtl_data;
+        result = load_obj(input_file.c_str(), &model, obj_info, message, nullptr, (is_xxx && *is_xxx) ? true : false, &mtl_data);
         if (result){
-            ObjDialogInOut in_out;
-            in_out.model = &model;
-            in_out.lost_material_name = obj_info.lost_material_name;
-            in_out.ml_region          = obj_info.ml_region;
-            in_out.ml_name            = obj_info.ml_name;
-            in_out.ml_id              = obj_info.ml_id;
-            if (obj_info.vertex_colors.size() > 0) {
-                if (objFn) { // 1.result is ok and pop up a dialog
-                    in_out.input_colors      = std::move(obj_info.vertex_colors);
-                    in_out.is_single_color   = false;
-                    in_out.deal_vertex_color = true;
-                    objFn(in_out);
+            if (obj_info.has_uv_png && !obj_info.uvs.empty() && !model.objects.empty()) {
+                auto tex_mesh = std::make_shared<TexturedMesh>();
+                std::string obj_dir = boost::filesystem::path(input_file).parent_path().string();
+                if (obj_to_textured_mesh(obj_info,
+                        model.objects.back()->volumes[0]->mesh().its,
+                        mtl_data, obj_dir, *tex_mesh)) {
+                    model.texture_mesh = tex_mesh;
                 }
-            } else if (obj_info.face_colors.size() > 0 && obj_info.has_uv_png == false) { // mtl file
-                if (objFn) { // 1.result is ok and pop up a dialog
-                    in_out.input_colors      = std::move(obj_info.face_colors);
-                    in_out.mtl_colors        = std::move(obj_info.mtl_colors);
-                    in_out.mtl_color_names   = std::move(obj_info.mtl_color_names);
-                    in_out.first_time_using_makerlab = obj_info.first_time_using_makerlab;
-                    in_out.is_single_color   = obj_info.is_single_mtl;
-                    in_out.usemtls           = obj_info.usemtls;
-                    in_out.deal_vertex_color = false;
-                    objFn(in_out);
+            } else {
+                ObjDialogInOut in_out;
+                in_out.model = &model;
+                in_out.lost_material_name = obj_info.lost_material_name;
+                in_out.ml_region          = obj_info.ml_region;
+                in_out.ml_name            = obj_info.ml_name;
+                in_out.ml_id              = obj_info.ml_id;
+                if (obj_info.vertex_colors.size() > 0) {
+                    if (objFn) {
+                        in_out.input_colors      = std::move(obj_info.vertex_colors);
+                        in_out.is_single_color   = false;
+                        in_out.deal_vertex_color = true;
+                        objFn(in_out);
+                    }
+                } else if (obj_info.face_colors.size() > 0 && obj_info.has_uv_png == false) {
+                    if (objFn) {
+                        in_out.input_colors      = std::move(obj_info.face_colors);
+                        in_out.mtl_colors        = std::move(obj_info.mtl_colors);
+                        in_out.mtl_color_names   = std::move(obj_info.mtl_color_names);
+                        in_out.first_time_using_makerlab = obj_info.first_time_using_makerlab;
+                        in_out.is_single_color   = obj_info.is_single_mtl;
+                        in_out.usemtls           = obj_info.usemtls;
+                        in_out.deal_vertex_color = false;
+                        objFn(in_out);
+                    }
                 }
-            } /*else if (obj_info.has_uv_png && obj_info.uvs.size() > 0) {
-                boost::filesystem::path full_path(input_file);
-                std::string             obj_directory = full_path.parent_path().string();
-                obj_info.obj_dircetory = obj_directory;
-                result = false;
-                message = _L("Importing obj with png function is developing.");
-            }*/
+            }
         }
     }
     //BBS: remove the old .amf.xml files
@@ -325,6 +352,23 @@ Model Model::read_from_file(const std::string&                                  
     else if (boost::algorithm::iends_with(input_file, ".amf"))
         //BBS: is_xxx is used for is_inches when load amf
         result = load_amf(input_file.c_str(), config, config_substitutions, &model, is_xxx);
+    else if (boost::algorithm::iends_with(input_file, ".glb") ||
+             boost::algorithm::iends_with(input_file, ".gltf")) {
+        auto tex_mesh = std::make_shared<TexturedMesh>();
+        result = load_gltf(input_file, *tex_mesh);
+        if (result) {
+            model.texture_mesh = tex_mesh;
+            add_textured_mesh_to_model(model, *tex_mesh, input_file);
+        }
+    }
+    else if (boost::algorithm::iends_with(input_file, ".fbx")) {
+        auto tex_mesh = std::make_shared<TexturedMesh>();
+        result = load_fbx(input_file, *tex_mesh);
+        if (result) {
+            model.texture_mesh = tex_mesh;
+            add_textured_mesh_to_model(model, *tex_mesh, input_file);
+        }
+    }
     else if (boost::algorithm::iends_with(input_file, ".3mf"))
         //BBS: add part plate related logic
         // BBS: backup & restore
@@ -344,7 +388,7 @@ Model Model::read_from_file(const std::string&                                  
     }
 #endif
     else
-        throw Slic3r::RuntimeError(_L("Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."));
+        throw Slic3r::RuntimeError(_L("Unknown file format. Input file must have .stl, .obj, .amf(.xml), .gltf, .glb, .fbx extension."));
 
     if (is_cb_cancel) {
         Model empty_model;
@@ -610,6 +654,7 @@ void Model::clear_objects()
     this->objects.clear();
     object_backup_id_map.clear();
     next_object_backup_id = 1;
+    texture_mesh.reset();
 }
 
 // BBS: backup, reuse objects
@@ -895,6 +940,13 @@ void Model::convert_from_imperial_units(bool only_small_volumes)
                 v->source.is_converted_from_inches = true;
             }
         }
+    if (texture_mesh) {
+        for (auto& v : texture_mesh->vertices) {
+            v[0] *= in_to_mm;
+            v[1] *= in_to_mm;
+            v[2] *= in_to_mm;
+        }
+    }
 }
 
 static constexpr const double volume_threshold_meters = 0.008; // 0.008 = 0.2*0.2*0.2
@@ -922,6 +974,14 @@ void Model::convert_from_meters(bool only_small_volumes)
                 v->source.is_converted_from_meters = true;
             }
         }
+    if (texture_mesh) {
+        const float scale = static_cast<float>(m_to_mm);
+        for (auto& v : texture_mesh->vertices) {
+            v[0] *= scale;
+            v[1] *= scale;
+            v[2] *= scale;
+        }
+    }
 }
 
 static constexpr const double zero_volume = 0.0000000001;
@@ -1092,6 +1152,7 @@ void Model::load_from(Model& model)
     mk_version = model.mk_version;
     md_name = model.md_name;
     md_value = model.md_value;
+    texture_mesh = std::move(model.texture_mesh);
     model.design_info.reset();
     model.model_info.reset();
     model.profile_info.reset();

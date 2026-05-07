@@ -1,0 +1,21 @@
+bambustudio_add_cmake_project(Assimp
+    URL "https://github.com/assimp/assimp/archive/refs/tags/v5.4.3.tar.gz"
+    URL_HASH SHA256=66dfbaee288f2bc43172440a55d0235dfc7bf885dda6435c038e8000e79582cb
+    CMAKE_ARGS
+        -DASSIMP_BUILD_TESTS=OFF
+        -DASSIMP_BUILD_SAMPLES=OFF
+        -DASSIMP_BUILD_ASSIMP_TOOLS=OFF
+        -DASSIMP_INSTALL_PDB=OFF
+        -DASSIMP_NO_EXPORT=ON
+        -DASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT=OFF
+        -DASSIMP_BUILD_GLTF_IMPORTER=ON
+        -DASSIMP_BUILD_OBJ_IMPORTER=ON
+        -DASSIMP_BUILD_FBX_IMPORTER=ON
+        -DASSIMP_BUILD_ZLIB=ON
+        -DASSIMP_WARNINGS_AS_ERRORS=OFF
+        -DBUILD_WITH_STATIC_CRT=OFF
+)
+
+if (MSVC)
+    add_debug_dep(dep_Assimp)
+endif ()

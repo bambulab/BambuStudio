@@ -56,6 +56,8 @@
 #include "libslic3r/Format/AMF.hpp"
 //#include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
+#include "libslic3r/Format/glTF.hpp"
+#include "libslic3r/TexturePainting.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "Gizmos/GLGizmoAlignment.hpp"
 #include "libslic3r/Model.hpp"
@@ -128,6 +130,7 @@
 #include "PresetComboBoxes.hpp"
 #include "MsgDialog.hpp"
 #include "SingleChoiceDialog.hpp"
+#include "TextureImportDialog.hpp"
 #include "ProjectDirtyStateManager.hpp"
 #include "Gizmos/GLGizmoSimplify.hpp" // create suggestion notification
 #include "Gizmos/GLGizmoSVG.hpp" // Drop SVG file
@@ -6445,6 +6448,8 @@ public:
     std::vector<size_t> load_files(const std::vector<fs::path>& input_files, LoadStrategy strategy, bool ask_multi = false);
     std::vector<size_t> load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z = false, bool split_object = false);
 
+    void handle_textured_mesh_import(Slic3r::Model& model, const std::vector<size_t>& obj_idxs);
+
     fs::path get_export_file_path(GUI::FileType file_type);
     wxString get_export_file(GUI::FileType file_type);
 
@@ -8751,7 +8756,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             q->skip_thumbnail_invalid = false;
             return empty_result;
         }
-        if (boost::algorithm::iends_with(path.string(), ".stl") || boost::algorithm::iends_with(path.string(), ".obj")) {
+        if (boost::algorithm::iends_with(path.string(), ".stl") || boost::algorithm::iends_with(path.string(), ".obj") ||
+            boost::algorithm::iends_with(path.string(), ".glb") || boost::algorithm::iends_with(path.string(), ".gltf") ||
+            boost::algorithm::iends_with(path.string(), ".fbx")) {
             import_obj_or_stl = true;
         }
         if (one_by_one) {
@@ -8773,6 +8780,12 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     q->model().set_assembly_pos(q->model().objects[q->model().objects.size() - 1 - i]);
                 }
             }
+
+            if (model.texture_mesh && !model.texture_mesh->vertices.empty()) {
+                this->model.texture_mesh = model.texture_mesh;
+                handle_textured_mesh_import(this->model, loaded_idxs);
+            }
+
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", finished load_model_objects");
             wxString msg = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
             dlg_cont     = dlg.Update(progress_percent, msg);
@@ -9109,6 +9122,115 @@ void Plater::priv::load_auxiliary_files()
     wxLogNull suppress_log;
     std::string auxiliary_path = encode_path(q->model().get_auxiliary_file_temp_path().c_str());
     //wxGetApp().mainframe->m_project->Reload(auxiliary_path);
+}
+
+void Plater::priv::handle_textured_mesh_import(Slic3r::Model& loaded_model, const std::vector<size_t>& obj_idxs)
+{
+    if (!loaded_model.texture_mesh || loaded_model.texture_mesh->vertices.empty()) return;
+
+    BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: opening texture import dialog";
+
+    const std::vector<std::string> filament_color_strs = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+
+    std::vector<std::string> filament_names;
+    {
+        auto& preset_bundle = *wxGetApp().preset_bundle;
+        for (size_t i = 0; i < filament_color_strs.size(); ++i) {
+            std::string name;
+            if (i < preset_bundle.filament_presets.size()) {
+                auto* preset = preset_bundle.filaments.find_preset(preset_bundle.filament_presets[i]);
+                if (preset)
+                    name = preset->label(false);
+            }
+            if (name.empty())
+                name = "Filament " + std::to_string(i + 1);
+            filament_names.push_back(name);
+        }
+    }
+
+    TextureImportDialog dlg(q, *loaded_model.texture_mesh, filament_color_strs, filament_names);
+    if (dlg.ShowModal() != wxID_OK) {
+        BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: user cancelled";
+        loaded_model.texture_mesh.reset();
+        return;
+    }
+
+    auto painted = dlg.get_painted_mesh();
+    auto final_matches = dlg.get_matches();
+
+    if (painted.face_colors.empty() || final_matches.empty()) {
+        BOOST_LOG_TRIVIAL(warning) << "handle_textured_mesh_import: no painting result";
+        loaded_model.texture_mesh.reset();
+        return;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: got " << painted.cluster_colors.size()
+                            << " clusters, skipped=" << dlg.was_skipped();
+
+    // Apply color changes to existing filaments — replicate the sidebar's
+    // PlaterPresetComboBox::sync_colour_config + EVT_FILAMENT_COLOR_CHANGED flow.
+    const auto& changed_colors = dlg.get_changed_existing_colors();
+    if (!changed_colors.empty()) {
+        for (const auto& [idx, hex] : changed_colors) {
+            for (auto* combo : sidebar->combos_filament()) {
+                if (combo && combo->get_filament_idx() == (int)idx) {
+                    combo->sync_colour_config({hex}, false);
+                    wxCommandEvent *evt = new wxCommandEvent(EVT_FILAMENT_COLOR_CHANGED);
+                    evt->SetInt((int)idx);
+                    wxQueueEvent(q, evt);
+                    BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: updated existing filament "
+                                            << idx << " color=" << hex;
+                    break;
+                }
+            }
+        }
+    }
+
+    // Create new filaments that were virtually assigned in the dialog
+    const auto& new_colors = dlg.get_new_filament_colors();
+    for (size_t i = 0; i < new_colors.size(); ++i) {
+        const auto& c = new_colors[i];
+        wxColour new_col((unsigned char)(c[0] * 255.f),
+                         (unsigned char)(c[1] * 255.f),
+                         (unsigned char)(c[2] * 255.f));
+        sidebar->add_custom_filament(new_col);
+        BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: created filament "
+                                << (dlg.get_existing_filament_count() + i) << " color="
+                                << new_col.GetAsString().ToStdString();
+    }
+
+    for (size_t idx : obj_idxs) {
+        if (idx >= this->model.objects.size()) continue;
+        ModelObject* obj = this->model.objects[idx];
+        if (!obj) continue;
+
+        // painted is derived from the whole textured mesh and is meaningful
+        // only against a single MODEL_PART volume. Applying it to every
+        // volume of a multi-part / modifier object would overwrite each
+        // volume with the same painted geometry. Restrict to the first
+        // model_part and warn when the object holds more than one.
+        ModelVolume* target = nullptr;
+        int part_count = 0;
+        for (ModelVolume* vol : obj->volumes) {
+            if (vol && vol->is_model_part()) {
+                ++part_count;
+                if (!target) target = vol;
+            }
+        }
+        if (!target) continue;
+        if (part_count > 1) {
+            BOOST_LOG_TRIVIAL(warning)
+                << "handle_textured_mesh_import: object has " << part_count
+                << " model parts; painting only applied to the first part.";
+        }
+        Slic3r::apply_painted_mesh_to_volume(painted, final_matches, *target);
+        // bbox invalidation is performed inside apply_painted_mesh_to_volume.
+        obj->ensure_on_bed();
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: painting applied to model volumes";
+    loaded_model.texture_mesh.reset();
+    update();
 }
 
 fs::path Plater::priv::get_export_file_path(GUI::FileType file_type)
@@ -18506,7 +18628,7 @@ bool Plater::load_same_type_files(const wxArrayString &filenames) {
     //BBS: remove GCodeViewer as seperate APP logic
 bool Plater::load_files(const wxArrayString& filenames)
 {
-    const std::regex pattern_drop(".*[.](stp|step|stl|oltp|obj|amf|3mf|svg)", std::regex::icase);
+    const std::regex pattern_drop(".*[.](stp|step|stl|oltp|obj|amf|3mf|svg|gltf|glb|fbx)", std::regex::icase);
     const std::regex pattern_gcode_drop(".*[.](gcode|g)", std::regex::icase);
 
     std::vector<fs::path> normal_paths;
