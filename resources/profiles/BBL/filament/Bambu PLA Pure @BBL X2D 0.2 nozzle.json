@@ -20,12 +20,6 @@
         "10",
         "10"
     ],
-    "filament_deretraction_speed": [
-        "nil",
-        "nil",
-        "50",
-        "50"
-    ],
     "filament_flow_ratio": [
         "0.98",
         "0.98",
@@ -50,41 +44,11 @@
         "0",
         "0"
     ],
-    "filament_retract_before_wipe": [
-        "0",
-        "0",
-        "0",
-        "0"
+    "filament_tower_interface_print_temp": [
+        "220"
     ],
-    "filament_retraction_length": [
-        "nil",
-        "nil",
-        "5",
-        "5"
-    ],
-    "filament_retraction_speed": [
-        "nil",
-        "nil",
-        "50",
-        "50"
-    ],
-    "filament_wipe": [
-        "1",
-        "nil",
-        "1",
-        "nil"
-    ],
-    "filament_wipe_distance": [
-        "1",
-        "nil",
-        "1",
-        "nil"
-    ],
-    "filament_z_hop_types": [
-        "Spiral Lift",
-        "nil",
-        "Spiral Lift",
-        "nil"
+    "first_x_layer_fan_speed": [
+        "40"
     ],
     "include": [
         "fdm_filament_template_direct_bowden"
