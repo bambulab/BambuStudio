@@ -2945,7 +2945,7 @@ msgstr "確定"
 
 #, c-format, boost-format
 msgid "Load %s to "
-msgstr "%s  進料至："
+msgstr "將 %s 進料至 "
 
 msgid "Changing fan speed during printing may affect print quality, please choose carefully."
 msgstr "在列印過程中改變風扇速度可能會影響列印質量，請謹慎選擇。"
