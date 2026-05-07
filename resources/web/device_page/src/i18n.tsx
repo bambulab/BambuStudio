@@ -38,6 +38,9 @@ i18n
   .init({
     lng: detectLanguage(),
     fallbackLng: 'en',
+    // Empty translation values must fall back to English instead of rendering
+    // as blank UI labels (STUDIO-18236).
+    returnEmptyString: false,
     debug: false,
     interpolation: {
       escapeValue: false,
