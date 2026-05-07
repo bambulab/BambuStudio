@@ -5987,7 +5987,7 @@ msgid "Batch manage files."
 msgstr "Hromadná správa souborů."
 
 msgid "Internal"
-msgstr ""
+msgstr "Interní"
 
 msgid "Year"
 msgstr "Rok"
@@ -8929,8 +8929,6 @@ msgstr "Probíhá kontrola rovinnosti vyhřívané podložky. Nivelace zajišťu
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Tento proces určuje dynamické hodnoty toku pro zlepšení celkové kvality tisku."
 
-msgid "Internal"
-msgstr "Interní"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
