@@ -366,6 +366,9 @@ public:
 
     bool                has_non_support_filament(const PrintConfig &config);
 
+    const MultiNozzleUtils::NozzleStatusRecorder& get_nozzle_status() const { return m_nozzle_status; }
+    void set_nozzle_status(const MultiNozzleUtils::NozzleStatusRecorder& status) { m_initial_nozzle_status = status; m_nozzle_status = status; }
+
 private:
     void                calc_most_used_extruder(const PrintConfig &config);
     void				initialize_layers(std::vector<coordf_t> &zs);
@@ -401,6 +404,8 @@ private:
     FilamentChangeStats        m_stats_by_multi_extruder_curr;
     FilamentChangeStats        m_stats_by_multi_extruder_best;
     MultiNozzleUtils::LayeredNozzleGroupResult m_nozzle_group_result;
+    MultiNozzleUtils::NozzleStatusRecorder m_initial_nozzle_status;  // 本 object 开始时的喷嘴状态
+    MultiNozzleUtils::NozzleStatusRecorder m_nozzle_status;          // 本 object 结束后的喷嘴状态
 
     int               m_most_used_extruder;
 };

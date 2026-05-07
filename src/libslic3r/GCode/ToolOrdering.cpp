@@ -1590,7 +1590,8 @@ std::vector<FilamentPlanRes> plan_filament_mapping_and_order_by_combo_ranges(
     const FilamentMapMode                              mode,
     const std::vector<std::set<int>>&                  physical_unprintables,
     const std::vector<std::set<int>>&                  geometric_unprintables,
-    const std::map<int, std::set<NozzleVolumeType>>&   unprintable_volumes)
+    const std::map<int, std::set<NozzleVolumeType>>&   unprintable_volumes,
+    MultiNozzleUtils::NozzleStatusRecorder*            io_nozzle_status = nullptr)
 {
     std::vector<FilamentPlanRes> results;
 
@@ -1630,6 +1631,8 @@ std::vector<FilamentPlanRes> plan_filament_mapping_and_order_by_combo_ranges(
 
     // 对每个材料组合的每个连续区间，构建新的 layer_filaments 并调用 get_recommended_filament_maps
     MultiNozzleUtils::NozzleStatusRecorder tool_status;
+    if (io_nozzle_status) tool_status = *io_nozzle_status;
+
     std::vector<int> fil_noz_map(ctx.group_info.total_filament_num, -1);    //全局的材料到喷嘴的映射
     std::unordered_map<int, int> fil_first_nozzle_map;  // 记录每个材料首次使用的喷嘴id (key: 材料id, value: 首次分配的喷嘴id)
     for (auto &[range, combo] : range_filas_map) {
@@ -1692,6 +1695,8 @@ std::vector<FilamentPlanRes> plan_filament_mapping_and_order_by_combo_ranges(
                 noz_id = (used_filaments.count(fil_id) && fil_first_nozzle_map.count(fil_id)) ? fil_first_nozzle_map[fil_id] : 0;
         }
     }
+
+    if (io_nozzle_status) *io_nozzle_status = tool_status;
 
     return results;
 }
@@ -1853,10 +1858,13 @@ void ToolOrdering::calculate_and_store_statistics(const PrintConfig             
             // 如果支持选料器
             if (m_print->is_dynamic_group_reorder()) {
                 auto grouping_context = GroupReorder::build_filament_group_context(m_print, layer_data.layer_filaments, layer_data.physical_unprintables,
-                                                                                   layer_data.geometric_unprintables, layer_data.filament_unprintable_volumes, FilamentMapMode::fmmAutoForFlush);
+                                                                                   layer_data.geometric_unprintables, layer_data.filament_unprintable_volumes, FilamentMapMode::fmmAutoForFlush,
+                                                                                   m_initial_nozzle_status.get_nozzle_filament_map());
 
+                MultiNozzleUtils::NozzleStatusRecorder best_nozzle_status = m_initial_nozzle_status;
                 auto dynamic_plan_res = plan_filament_mapping_and_order_by_combo_ranges(m_print, grouping_context, ordering_context, FilamentMapMode::fmmAutoForFlush,
-                                                                                layer_data.physical_unprintables, layer_data.geometric_unprintables, layer_data.filament_unprintable_volumes);
+                                                                                layer_data.physical_unprintables, layer_data.geometric_unprintables, layer_data.filament_unprintable_volumes,
+                                                                                &best_nozzle_status);
 
                 std::vector<std::vector<int>> nozzle_map_per_layer;
                 for (auto &res : dynamic_plan_res) {
@@ -2429,20 +2437,22 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
             layer_data.physical_unprintables,
             layer_data.geometric_unprintables,
             layer_data.filament_unprintable_volumes,
-            m_print->config().filament_map_mode.value
+            m_print->config().filament_map_mode.value,
+            m_initial_nozzle_status.get_nozzle_filament_map()
         );
 
         // 时间预估器中存储的材料在不同挤出机的打印时间是全局的，不适用于当前分区间的分组方法
         grouping_context.speed_info.group_with_time = false;
 
-        // TODO(山苍)：逐件打印后面要考虑喷嘴状态
+        m_nozzle_status = m_initial_nozzle_status;
         auto dynamic_plan_res = plan_filament_mapping_and_order_by_combo_ranges(m_print,
                                                                        grouping_context,
                                                                        ordering_context,
                                                                        FilamentMapMode::fmmAutoForFlush,
                                                                        layer_data.physical_unprintables,
                                                                        layer_data.geometric_unprintables,
-                                                                       layer_data.filament_unprintable_volumes);
+                                                                       layer_data.filament_unprintable_volumes,
+                                                                       &m_nozzle_status);
          //auto dynamic_plan_res = plan_filament_nozzle_mapping_and_order(grouping_context);
 
 
