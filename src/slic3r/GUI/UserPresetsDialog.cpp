@@ -3,6 +3,8 @@
 #include "GUI.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
+#include "Plater.hpp"
+#include "NotificationManager.hpp"
 
 #include <slic3r/GUI/Widgets/CheckBox.hpp>
 #include <slic3r/GUI/Widgets/TabCtrl.hpp>
@@ -93,8 +95,11 @@ UserPresetsDialog::UserPresetsDialog(wxWindow *parent)
     });
     m_button_delete->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &evt) { delete_checked(); });
     m_button_reload->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &evt) {
-        wxGetApp().reload_user_presets_from_disk();
+        PresetReloadResult result = wxGetApp().reload_user_presets_from_disk();
         reload_presets_ui();
+        if (result.any_change() && wxGetApp().plater())
+            wxGetApp().plater()->get_notification_manager()->push_notification(
+                build_reload_toast_message(result));
     });
     wxSizer *sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
     sizer_bottom->Add(m_check_all, 0, wxALIGN_CENTER | wxLEFT, FromDIP(20));

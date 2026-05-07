@@ -5887,17 +5887,22 @@ void GUI_App::reload_settings()
     }
 }
 
-// Reload user presets from disk without restart
-void GUI_App::reload_user_presets_from_disk()
+// Reload user presets from disk without restart. Returns counts of newly
+// added presets; the caller decides whether/how to notify the user. The
+// side UI is always refreshed because an in-place edit to an existing
+// preset is invisible to our name-diff, and the user just manually
+// triggered this action so a refresh is the expected behavior.
+PresetReloadResult GUI_App::reload_user_presets_from_disk()
 {
+    PresetReloadResult result;
     if (!preset_bundle || !mainframe)
-        return;
+        return result;
 
     std::string user_id = (m_agent && m_agent->is_user_login())
         ? m_agent->get_user_id()
         : DEFAULT_USER_FOLDER_NAME;
 
-    // Snapshot existing preset names before reload, to count new ones for the toast
+    // Snapshot existing user-preset names before reload, to count new ones.
     std::set<std::string> old_prints, old_filaments;
     for (const auto& p : preset_bundle->prints)
         if (p.is_user()) old_prints.insert(p.name);
@@ -5907,33 +5912,35 @@ void GUI_App::reload_user_presets_from_disk()
     BOOST_LOG_TRIVIAL(info) << "Reloading user presets from disk for user: " << user_id;
     preset_bundle->load_user_presets(user_id, ForwardCompatibilitySubstitutionRule::Enable);
 
-    // Always refresh the side UI. We can't cheaply detect every kind of change
-    // (edit-in-place of an existing preset is invisible to the name-diff below),
-    // and the user has just manually triggered this action, so a refresh is the
-    // expected behavior regardless of what actually changed.
+    // Always refresh the side UI (see function comment).
     mainframe->update_side_preset_ui();
 
-    // Count newly added presets for the toast notification
-    int new_prints = 0, new_filaments = 0;
+    // Count newly added presets.
     for (const auto& p : preset_bundle->prints)
         if (p.is_user() && old_prints.find(p.name) == old_prints.end())
-            new_prints++;
+            ++result.new_prints;
     for (const auto& p : preset_bundle->filaments)
         if (p.is_user() && old_filaments.find(p.name) == old_filaments.end())
-            new_filaments++;
+            ++result.new_filaments;
 
+    BOOST_LOG_TRIVIAL(info) << build_reload_toast_message(result);
+    return result;
+}
+
+// Reproduce the toast message logic that used to live inline in
+// reload_user_presets_from_disk(). Exported so each call site can decide
+// whether to push a notification.
+std::string build_reload_toast_message(const PresetReloadResult& r)
+{
     std::string msg = "Presets reloaded";
     std::vector<std::string> parts;
-    if (new_prints > 0)
-        parts.push_back(std::to_string(new_prints) + " new process");
-    if (new_filaments > 0)
-        parts.push_back(std::to_string(new_filaments) + " new filament");
+    if (r.new_prints > 0)
+        parts.push_back(std::to_string(r.new_prints) + " new process");
+    if (r.new_filaments > 0)
+        parts.push_back(std::to_string(r.new_filaments) + " new filament");
     if (!parts.empty())
         msg += ": " + boost::algorithm::join(parts, ", ");
-
-    BOOST_LOG_TRIVIAL(info) << msg;
-    if (plater())
-        plater()->get_notification_manager()->push_notification(msg);
+    return msg;
 }
 
 //BBS reload when logout

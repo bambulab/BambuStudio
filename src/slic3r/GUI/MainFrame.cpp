@@ -701,7 +701,10 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             return;}
 #endif
         if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'R') {
-            wxGetApp().reload_user_presets_from_disk();
+            PresetReloadResult result = wxGetApp().reload_user_presets_from_disk();
+            if (result.any_change() && plater())
+                plater()->get_notification_manager()->push_notification(
+                    build_reload_toast_message(result));
             return;
         }
         if (evt.CmdDown() && evt.GetKeyCode() == 'R') { if (m_slice_enable) { wxGetApp().plater()->update(true, true); wxPostEvent(m_plater, SimpleEvent(EVT_GLTOOLBAR_SLICE_PLATE)); this->m_tabpanel->SetSelection(tpPreview); } return; }
