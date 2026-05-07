@@ -73,22 +73,14 @@ UserPresetsDialog::UserPresetsDialog(wxWindow *parent)
     m_label_check_count->SetForegroundColour("#6B6B6B");
     m_button_reload     = new Button(this, _L("Reload from Disk"));
     m_button_reload->SetToolTip(_L("Reload user presets from disk without restarting Bambu Studio"));
-    // Bambu's Button defaults to takeFocusedAsHovered=true on its background
-    // color: a focused-but-unhovered button renders in the gray Hovered
-    // color, which looks "stuck" after click since Reload doesn't open any
-    // follow-up dialog to steal focus. Rebuild the default background
-    // StateColor with takeFocusedAsHovered turned off so the button stays
-    // white when focused.
-    {
-        StateColor bg(
-            std::make_pair(0xF0F0F1,     (int) StateColor::Disabled),
-            std::make_pair(0x37EE7C,     (int) StateColor::Hovered | StateColor::Checked),
-            std::make_pair(0x00AE42,     (int) StateColor::Checked),
-            std::make_pair(*wxLIGHT_GREY,(int) StateColor::Hovered),
-            std::make_pair(*wxWHITE,     (int) StateColor::Normal));
-        bg.setTakeFocusedAsHovered(false);
-        m_button_reload->SetBackgroundColor(bg);
-    }
+    // Without this, the button retains focus after click (Button::mouseDown
+    // calls SetFocus), which renders in the gray "hovered" state because
+    // the default background StateColor has takeFocusedAsHovered=true. The
+    // reload has no follow-up dialog to steal focus, so the button looks
+    // stuck. SetCanFocus(false) is the standard Bambu pattern for action
+    // buttons that don't need keyboard focus (cf. Plater::btn_sync,
+    // MediaPlayCtrl::m_button_play).
+    m_button_reload->SetCanFocus(false);
     m_button_delete     = new Button(this, _L("Delete"));
     m_button_delete->SetBorderColorNormal(wxColor("#D01B1B"));
     m_button_delete->SetTextColorNormal(wxColor("#D01B1B"));
