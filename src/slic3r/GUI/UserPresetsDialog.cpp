@@ -1,5 +1,6 @@
 
 #include "UserPresetsDialog.hpp"
+#include "GUI.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 
@@ -72,7 +73,7 @@ UserPresetsDialog::UserPresetsDialog(wxWindow *parent)
     m_label_check_count = new Label(this);
     m_label_check_count->SetForegroundColour("#6B6B6B");
     m_button_reload     = new Button(this, _L("Reload from Disk"));
-    m_button_reload->SetToolTip(_L("Reload user presets from disk without restarting Bambu Studio"));
+    m_button_reload->SetToolTip(_L("Reload user presets from disk without restarting") + " [" + GUI::shortkey_ctrl_prefix() + "Shift+R]");
     // Without this, the button retains focus after click (Button::mouseDown
     // calls SetFocus), which renders in the gray "hovered" state because
     // the default background StateColor has takeFocusedAsHovered=true. The
