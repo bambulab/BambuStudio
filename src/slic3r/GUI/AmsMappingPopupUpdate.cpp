@@ -82,9 +82,14 @@ void AmsMapingPopup::update(MachineObject* obj,
     m_amsmapping_container_sizer_list.clear();
     m_mapping_item_list.clear();
 
-    // Destroy hotend items (N1X) - they are not inside MappingContainers
+    // Destroy hotend items - they are not inside MappingContainers
     for (auto* item : m_mapping_item_hotend_list) {
-        if (item) { item->Destroy(); }
+        if (item)
+        {
+            auto *sp = item->get_sub_panel_ref();
+            if (sp) { sp->Destroy(); }
+            item->Destroy();
+        }
     }
     m_mapping_item_hotend_list.clear();
 
@@ -193,6 +198,101 @@ void AmsMapingPopup::update(MachineObject* obj,
     Layout();
     Fit();
     Refresh();
+}
+
+// Slicing nozzle requirement for a specific filament.
+// Used by hotend mapping to mark slots whose physical nozzle (diameter
+// or flow type) differs from what the current filament was sliced with.
+struct ExpectedNozzleSpec
+{
+    float          diameter    = -1.0f;
+    NozzleFlowType flow        = NozzleFlowType::NONE_FLOWTYPE;
+    NozzleType     nozzle_type = NozzleType::ntUndefine;
+    bool           valid       = false;
+};
+
+// Resolve the slicing's expected nozzle for the given filament id by reading
+// the live preset bundle. The translation goes:
+//   filament_id (0-based) --[filament_map]--> 1-based extruder
+//                          --[-1]-->         0-based nozzle index
+//                          --[nozzle_diameter / nozzle_volume_type]--> spec
+// Falls back to using filament_id directly when filament_map is missing
+// (works for simple single-extruder slicing).
+static ExpectedNozzleSpec sResolveExpectedNozzleSpec(int filament_id)
+{
+    ExpectedNozzleSpec spec;
+
+    auto* preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle) return spec;
+
+    const auto& project_config = preset_bundle->project_config;
+    const auto& full_config    = preset_bundle->full_config();
+
+    int extruder_idx = filament_id;
+    const auto* opt_fmap = project_config.option<ConfigOptionInts>("filament_map");
+    if (opt_fmap && filament_id >= 0 && (size_t)filament_id < opt_fmap->size()) {
+        extruder_idx = opt_fmap->get_at(filament_id) - 1;
+    }
+    if (extruder_idx < 0) return spec;
+
+    const auto* opt_dia = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    if (!opt_dia || (size_t)extruder_idx >= opt_dia->size()) return spec;
+    spec.diameter = (float)opt_dia->get_at(extruder_idx);
+    spec.valid    = true;
+
+    const auto* opt_vol = project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    if (opt_vol && (size_t)extruder_idx < opt_vol->size()) {
+        // Hybrid maps to NONE_FLOWTYPE here, which the per-slot check treats as
+        // "any flow accepted".
+        spec.flow = DevNozzle::ToNozzleFlowType((NozzleVolumeType)opt_vol->get_at(extruder_idx));
+    }
+
+    const auto* opt_nt = full_config.option<ConfigOptionEnumsGenericNullable>("nozzle_type");
+    if (opt_nt && (size_t)extruder_idx < opt_nt->size()) {
+        spec.nozzle_type = (NozzleType)opt_nt->get_at(extruder_idx);
+    }
+
+    return spec;
+}
+
+// Compare the physical nozzle of a hotend slot (tray) against the slicing
+// expectation.  Follows the same strictness as O1C's s_enable_item_if_match:
+//   1. Nozzle must exist, not be abnormal, and not be unknown.
+//   2. Nozzle type (material) must match when the slicing spec is defined.
+//   3. Diameter must match.
+//   4. Flow type must match (unless slicing says "any flow").
+// Returns true when compatible, or when the slot's nozzle cannot be resolved
+// (we don't want to false-positive a mismatch for missing data).
+static bool sIsSlotNozzleCompatible(MachineObject* obj,
+                                    const TrayData& td,
+                                    const ExpectedNozzleSpec& spec)
+{
+    if (!spec.valid || !obj) return true;
+
+    auto tray_opt = obj->get_tray(std::to_string(td.ams_id), std::to_string(td.slot_id));
+    if (!tray_opt.has_value()) return true;
+
+    auto np = tray_opt->get_nozzle_pos_id(obj);
+    if (!np.has_value() || np.value() < 0x10) return true;
+
+    auto nz = obj->GetNozzleSystem()->GetNozzleOptByAddrId(np.value() - 0x10);
+    if (!nz.has_value()) return true;
+
+    // Reject empty / abnormal / unknown nozzles
+    if (nz->IsEmpty() || nz->IsAbnormal() || nz->IsUnknown()) return false;
+
+    // Nozzle material type (stainless steel / hardened steel / tungsten carbide …)
+    if (spec.nozzle_type != NozzleType::ntUndefine &&
+        nz->GetNozzleType() != spec.nozzle_type)
+        return false;
+
+    if (!is_approx(nz->GetNozzleDiameter(), spec.diameter)) return false;
+
+    if (spec.flow != NozzleFlowType::NONE_FLOWTYPE &&
+        nz->GetNozzleFlowType() != spec.flow)
+        return false;
+
+    return true;
 }
 
 static std::optional<TrayData> sGetTrayData(MachineObject* obj,
@@ -810,6 +910,14 @@ void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)
     item->set_tray_index("Ext");
 }
 
+// MappingContainer width by slot count, in DIP units (mirrors MappingContainer ctor).
+inline int sub_ams_card_width_dip(int slots)
+{
+    if (slots == 1) return kSubAmsSingleSlotWidthDIP;
+    if (slots == 4) return kSubAmsFourSlotWidthDIP;
+    return slots * 54 + 20;
+}
+} // namespace
 
 // Helper: build AMS sub-panel (MappingContainer + MappingItems) for a hotend slot
 static wxPanel* sCreateSubAmsPanel(wxWindow* parent,
@@ -903,6 +1011,14 @@ void AmsMapingPopup::add_ams_mapping_hotend(MachineObject* obj,
         cur_row = RowInfo{};
     };
 
+    // Slicing requirement for the current filament. Only resolved when the
+    // device exposes a nozzle rack ; other paths keep their legacy
+    // filament-type-only check.
+    ExpectedNozzleSpec expected_nozzle;
+    if (obj->GetNozzleRack()->IsSupported()) {
+        expected_nozzle = sResolveExpectedNozzleSpec(m_current_filament_id);
+    }
+
     for (size_t i = 0; i < tray_data.size(); i++) {
         if (col_in_row == 0) {
             cur_row.row_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -939,8 +1055,15 @@ void AmsMapingPopup::add_ams_mapping_hotend(MachineObject* obj,
             }
             slot_state = has_nozzle ? HotendSlotState::NozzleEmpty : HotendSlotState::AllEmpty;
             can_pick = false;
-        } else if (tray_data[i].type == NORMAL && !is_match_material(tray_data[i].filament_type)) {
-            slot_state = HotendSlotState::Unmatch; can_pick = false;
+        } else if (tray_data[i].type == NORMAL) {
+            // Reject slot when filament type mismatches OR the slot's physical
+            // nozzle does not match the slicing requirement.
+            const bool unmatch = !is_match_material(tray_data[i].filament_type) ||
+                                 !sIsSlotNozzleCompatible(obj, tray_data[i], expected_nozzle);
+            if (unmatch) {
+                slot_state = HotendSlotState::Unmatch;
+                can_pick   = false;
+            }
         }
 
         wxColour display_color = (can_pick || tray_data[i].type == THIRD)
@@ -1113,11 +1236,22 @@ void AmsMapingPopup::add_ams_mapping_hotend(MachineObject* obj,
     if (col_in_row > 0) finish_row();
 
     // Build final sizer: row0, sub_panel0, row1, sub_panel1, ...
+    bool has_any_sub_ams = false;
     for (auto& row : rows) {
         sizer->Add(row.row_sizer, 0, wxBOTTOM, gap);
         if (row.sub_panel) {
             sizer->Add(row.sub_panel, 0, wxEXPAND | wxBOTTOM, gap);
+            has_any_sub_ams = true;
         }
+    }
+
+    // Reserve enough horizontal room for the sub-AMS row capacity even while
+    // every sub-panel is hidden. The popup width is computed once at SHOW
+    // time from m_sizer_main_h->GetMinSize(); without this hint the hidden
+    // sub-panels do not contribute to that min size, and the rightmost cards
+    // get clipped after the user expands a hotend slot.
+    if (has_any_sub_ams) {
+        sizer->SetMinSize(container->FromDIP(sub_ams_row_capacity_dip()), -1);
     }
 
     container->Layout();
