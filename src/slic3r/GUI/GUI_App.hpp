@@ -814,6 +814,7 @@ bool has_filaments(const std::vector<string>& model_filaments);
 static std::vector<wxLanguage> s_supported_languages = {
     wxLANGUAGE_ENGLISH,
     wxLANGUAGE_CHINESE_SIMPLIFIED,
+    wxLANGUAGE_CHINESE_TRADITIONAL,
     wxLANGUAGE_GERMAN,
     wxLANGUAGE_FRENCH,
     wxLANGUAGE_SPANISH,

@@ -1138,6 +1138,21 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     // Set the flag whether to open the filament setting dialog from the device page
     m_comboBox_filament->SetClientData(new int(1));
 
+    // Request PA calibration history if not loaded yet — needed for k-profile dropdown
+    if (obj->GetCalib()->IsVersionInited() && !obj->GetCalib()->IsPAHistoryReady()) {
+        PACalibExtruderInfo cali_info;
+        int ext_id = obj->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(ams_id));
+        if (ext_id > 0) {
+            cali_info.nozzle_diameter = obj->GetExtderSystem()->GetNozzleDiameter(ext_id);
+            cali_info.use_extruder_id = false;
+            cali_info.use_nozzle_volume_type = false;
+            CalibUtils::emit_get_PA_calib_infos(cali_info);
+            m_pa_data_pending = true;
+        }
+    } else {
+        m_pa_data_pending = false;
+    }
+
     update();
     Layout();
     Fit();
@@ -1149,6 +1164,21 @@ void AMSMaterialsSetting::post_select_event(int index) {
     event.SetInt(index);
     event.SetEventObject(m_comboBox_filament);
     wxPostEvent(m_comboBox_filament, event);
+}
+
+void AMSMaterialsSetting::TryRefreshPAProfiles()
+{
+    if (!m_pa_data_pending || !obj) return;
+    if (!obj->GetCalib()->IsPAHistoryReady()) return;
+
+    m_pa_data_pending = false;
+
+    // Re-trigger filament selection to repopulate PA profile dropdown with real data
+    int sel = m_comboBox_filament->GetSelection();
+    if (sel >= 0) {
+        m_comboBox_filament->SetClientData(new int(1));
+        post_select_event(sel);
+    }
 }
 
 void AMSMaterialsSetting::on_select_cali_result(wxCommandEvent &evt)

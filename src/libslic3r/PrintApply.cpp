@@ -1306,7 +1306,8 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
             print_variant_index[e_index] = e_index;
         }
     }
-    std::vector<int> filament_maps =  new_full_config.option<ConfigOptionInts>("filament_map")->values;
+    auto opt_filament_map = new_full_config.option<ConfigOptionInts>("filament_map");
+    std::vector<int> filament_maps = opt_filament_map ? opt_filament_map->values : std::vector<int>{1};
 
     // Find modified keys of the various configs. Resolve overrides extruder retract values by filament profiles.
     DynamicPrintConfig   filament_overrides;
@@ -1407,7 +1408,7 @@ Print::ApplyStatus Print::apply(const Model &model, DynamicPrintConfig new_full_
     auto opt_extruder_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(new_full_config.option("extruder_type"));
     auto opt_filament_volume_maps = dynamic_cast<const ConfigOptionInts*>(new_full_config.option("filament_volume_map"));
     auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(new_full_config.option("nozzle_volume_type"));
-    for (int index = 0; index < filament_maps.size(); index++)
+    for (int index = 0; opt_extruder_type && opt_nozzle_volume_type && index < filament_maps.size(); index++)
     {
         ExtruderType extruder_type = (ExtruderType)(opt_extruder_type->get_at(filament_maps[index] - 1));
         NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(filament_maps[index] - 1));
