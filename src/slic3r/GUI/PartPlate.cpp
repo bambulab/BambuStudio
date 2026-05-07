@@ -4510,22 +4510,27 @@ void PartPlateList::release_icon_textures()
     }
 }
 
-void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx, bool init_pos)
+void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx, bool init_pos, bool keep_existing)
 {
     DynamicConfig &     proj_cfg     = wxGetApp().preset_bundle->project_config;
     ConfigOptionFloats *wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
     ConfigOptionFloats *wipe_tower_y = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
-    wipe_tower_x->values.resize(m_plate_list.size(), wipe_tower_x->values.front());
-    wipe_tower_y->values.resize(m_plate_list.size(), wipe_tower_y->values.front());
+    // Guard against UB when values is empty: front() on an empty vector is undefined.
+    wipe_tower_x->values.resize(m_plate_list.size(), wipe_tower_x->values.empty() ? 0.0 : wipe_tower_x->values.front());
+    wipe_tower_y->values.resize(m_plate_list.size(), wipe_tower_y->values.empty() ? 0.0 : wipe_tower_y->values.front());
 
-    auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
-    // set the default position, the same with print config(left top)
-    float x = WIPE_TOWER_DEFAULT_X_POS;
-    float y = WIPE_TOWER_DEFAULT_Y_POS;
-    if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
-        x = I3_WIPE_TOWER_DEFAULT_X_POS;
-        y = I3_WIPE_TOWER_DEFAULT_Y_POS;
-    }
+    // Resolve initial wipe tower position in one shot so x/y are never read uninitialised.
+    // Each branch in the IIFE must return, guaranteeing both coordinates have a value.
+    auto [x, y] = [&]() -> std::pair<float, float> {
+        if (keep_existing && plate_idx >= 0 && plate_idx < (int)wipe_tower_x->values.size() && plate_idx < (int)wipe_tower_y->values.size())
+            return { (float)wipe_tower_x->values[plate_idx], (float)wipe_tower_y->values[plate_idx] };
+
+        auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
+        if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3)
+            return { I3_WIPE_TOWER_DEFAULT_X_POS, I3_WIPE_TOWER_DEFAULT_Y_POS };
+        // Default position aligns with print config (left top).
+        return { WIPE_TOWER_DEFAULT_X_POS, WIPE_TOWER_DEFAULT_Y_POS };
+    }();
 
     const float margin     = WIPE_TOWER_MARGIN;
     PartPlate* part_plate = get_plate(plate_idx);

@@ -8426,6 +8426,15 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 if (file_wipe_tower_y)
                                     *wipe_tower_y = *file_wipe_tower_y;
 
+                                // Re-clamp restored 3mf wipe tower positions against the current plate;
+                                // values that still fit are kept as-is.
+                                {
+                                    PartPlateList& plate_list = this->partplate_list;
+                                    for (size_t plate_id = 0; plate_id < plate_list.get_plate_list().size(); ++plate_id) {
+                                        plate_list.set_default_wipe_tower_pos_for_plate((int)plate_id, /*init_pos=*/false, /*keep_existing=*/true);
+                                    }
+                                }
+
                                 ConfigOptionStrings* filament_color = proj_cfg.opt<ConfigOptionStrings>("filament_colour");
                                 if (filament_color) {
                                     size_t filament_count = filament_color->size();
