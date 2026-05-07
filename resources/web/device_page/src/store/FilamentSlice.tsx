@@ -3,7 +3,7 @@ import type { RootState } from './AppStore';
 import type {
   Spool, PresetOptions, MachineItem, AmsData,
   CloudSyncState, CloudToast, CloudFilamentConfig,
-  CloudSyncHistoryEntry,
+  CloudSyncHistoryEntry, CloudAutoPushSummary,
   DebugLogEntry, DebugLogFilter,
 } from '../features/filament/types';
 
@@ -33,6 +33,8 @@ export interface FilamentState {
   cloudSync: CloudSyncState;
   cloudConfig: CloudFilamentConfig | null;
   cloudSyncHistory: CloudSyncHistoryEntry[];
+  // STUDIO-18155：最近一次 AMS auto / 手动 push 决策摘要（null = 还没发生过）
+  cloudAutoPushSummary: CloudAutoPushSummary | null;
   toasts: CloudToast[];
   debugEnabled: boolean;
   debugLogs: DebugLogEntry[];
@@ -57,6 +59,7 @@ export interface FilamentActions {
   setCloudConfig: (c: CloudFilamentConfig) => void;
   appendCloudSyncHistory: (entry: Omit<CloudSyncHistoryEntry, 'id'>) => void;
   clearCloudSyncHistory: () => void;
+  setCloudAutoPushSummary: (summary: CloudAutoPushSummary | null) => void;
   pushToast: (t: Omit<CloudToast, 'id'>) => void;
   dismissToast: (id: number) => void;
   setDebugEnabled: (enabled: boolean) => void;
@@ -96,6 +99,7 @@ export const createFilamentSlice: StateCreator<
     cloudSync: { ...DEFAULT_SYNC_STATE },
     cloudConfig: null,
     cloudSyncHistory: [],
+    cloudAutoPushSummary: null,
     toasts: [],
     debugEnabled: false,
     debugLogs: [],
@@ -159,6 +163,10 @@ export const createFilamentSlice: StateCreator<
     clearCloudSyncHistory: () =>
       set((s) => {
         s.filament.cloudSyncHistory = [];
+      }),
+    setCloudAutoPushSummary: (summary) =>
+      set((s) => {
+        s.filament.cloudAutoPushSummary = summary;
       }),
     pushToast: (t) =>
       set((s) => {

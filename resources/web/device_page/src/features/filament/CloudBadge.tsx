@@ -4,6 +4,9 @@ import type { CloudSyncState } from './types';
 interface Props {
   state: CloudSyncState;
   onPullClick: () => void;
+  // STUDIO-18155：附加在 tooltip 末尾的额外信息，常用于显示最近一次
+  // AMS auto-push 决策摘要（pushed / skipped / device_state）。
+  tooltipExtra?: string;
 }
 
 /**
@@ -16,7 +19,7 @@ interface Props {
  * the last push / pull is reporting an error, never as a persistent "you
  * have unsynced local edits" marker.
  */
-export function CloudBadge({ state, onPullClick }: Props) {
+export function CloudBadge({ state, onPullClick, tooltipExtra }: Props) {
   const { t } = useTranslation();
   const { logged_in, is_syncing, is_pulling, last_synced_at, last_error } = state;
 
@@ -24,7 +27,7 @@ export function CloudBadge({ state, onPullClick }: Props) {
   const isTransient = is_syncing || is_pulling;
   const showAlert = logged_in && !isTransient && hasError;
 
-  const tooltip = (() => {
+  const tooltipBase = (() => {
     if (!logged_in) return t('Not logged in — cloud sync disabled');
     if (hasError) return t('Filament operation failed. This feature currently requires a network connection.');
     if (isTransient) return t('Syncing filament info...');
@@ -38,6 +41,10 @@ export function CloudBadge({ state, onPullClick }: Props) {
     }
     return t('Sync filament info');
   })();
+  // 仅登录态附加 auto-push 摘要——未登录时云端节流没有任何意义。
+  const tooltip = (logged_in && tooltipExtra)
+    ? `${tooltipBase}\n\n${tooltipExtra}`
+    : tooltipBase;
 
   const clickable = logged_in && !isTransient;
   const colorClass = !logged_in

@@ -193,6 +193,44 @@ void wgtFilaManagerStore::update_spool(const FilamentSpool& spool)
     m_dirty         = true;
 }
 
+bool wgtFilaManagerStore::update_spool_if_changed(const FilamentSpool& sp)
+{
+    auto it = m_spools.find(sp.spool_id);
+    if (it == m_spools.end()) {
+        // STUDIO-18155 Q5：spool 不在 store 时**不**退化为 add——AMS 同步
+        // 路径不允许新增 spool。竞态/越权调用走这里仅打 warn。
+        BOOST_LOG_TRIVIAL(warning)
+            << "[FilaManager] update_spool_if_changed missing spool_id="
+            << sp.spool_id << " (auto-add disabled by design)";
+        return false;
+    }
+    FilamentSpool& cur = it->second;
+
+    // 仅比较"sync 关心字段"。identity 字段（spool_id / tag_uid / color_code /
+    // setting_id / entry_method / created_at / cloud_synced）和元字段
+    // （brand / material_type / series / color_name / diameter /
+    // initial_weight / spool_weight / total_net_weight / note / favorite）
+    // 由 sync 完全不动，比较时直接忽略输入 sp 的对应字段。
+    const bool changed =
+           cur.net_weight     != sp.net_weight
+        || cur.remain_percent != sp.remain_percent
+        || cur.status         != sp.status
+        || cur.bound_dev_id   != sp.bound_dev_id
+        || cur.bound_ams_id   != sp.bound_ams_id;
+
+    if (!changed) return false;
+
+    // 只覆盖 sync 关心的字段，identity / 元字段强制保留 cur 既有值。
+    cur.net_weight     = sp.net_weight;
+    cur.remain_percent = sp.remain_percent;
+    cur.status         = sp.status;
+    cur.bound_dev_id   = sp.bound_dev_id;
+    cur.bound_ams_id   = sp.bound_ams_id;
+    cur.updated_at     = now_iso8601();
+    m_dirty            = true;
+    return true;
+}
+
 bool wgtFilaManagerStore::apply_patch(const std::string& spool_id, const nlohmann::json& patch)
 {
     auto it = m_spools.find(spool_id);
@@ -261,6 +299,14 @@ const FilamentSpool* wgtFilaManagerStore::find_by_tag_uid(const std::string& tag
             return &spool;
     }
     return nullptr;
+}
+
+std::vector<std::string> wgtFilaManagerStore::all_spool_ids() const
+{
+    std::vector<std::string> ids;
+    ids.reserve(m_spools.size());
+    for (auto& [id, _] : m_spools) ids.push_back(id);
+    return ids;
 }
 
 const FilamentSpool* wgtFilaManagerStore::find_by_setting_and_color(

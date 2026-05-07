@@ -43,6 +43,18 @@ struct FilamentSpool {
 
     nlohmann::json to_json() const;
     static FilamentSpool from_json(const nlohmann::json& j);
+
+    // STUDIO-18155：整卷净重（克）。
+    // 新规约（STUDIO-17991 后）：spool_weight==0 且 initial_weight==整卷净重；
+    // legacy 数据仍以 initial_weight=毛重 + spool_weight=料盘重 形式存在，
+    // 减法兜底回收"整卷净重"。返回 <= 0 表示该 spool **缺整卷净重**，
+    // AMS 自动同步路径会按 design Q7 决策整条冻结。
+    float effective_total_net_weight() const
+    {
+        return (spool_weight > 0.f && initial_weight > spool_weight)
+            ? (initial_weight - spool_weight)
+            : initial_weight;
+    }
 };
 
 class wgtFilaManagerStore {
@@ -55,6 +67,19 @@ public:
 
     std::string add_spool(const FilamentSpool& spool);
     void update_spool(const FilamentSpool& spool);
+    // STUDIO-18155：AMS 自动同步专用入口。仅当"sync 关心字段"
+    //   (net_weight / remain_percent / status / bound_dev_id / bound_ams_id)
+    // 实际发生变化时才写入；返回 true 表示有变化、应入云端 push 列表。
+    //
+    // 为防御 sync 路径污染 identity 字段（设计 Q5 + STUDIO-18117 教训），
+    // 该方法**强制**用 store 既有 spool 的 identity 字段（spool_id / tag_uid /
+    // color_code / setting_id / entry_method / created_at / cloud_synced）
+    // 覆盖输入 sp 中的对应字段，再做比较与写入。即便 sync 误塞 identity，
+    // store 也不会被改写。
+    //
+    // spool_id 在 store 中不存在（极端竞态）→ log warn + 返回 false，
+    // 不退化为 add_spool。
+    bool update_spool_if_changed(const FilamentSpool& sp);
     // Selectively merge user-editable fields from `patch` into the existing
     // spool without touching system-managed metadata (spool_id / tag_uid /
     // entry_method / created_at / bound_* / cloud_synced). Returns true if an
@@ -71,6 +96,10 @@ public:
     const FilamentSpool* find_by_tag_uid(const std::string& tag_uid) const;
     const FilamentSpool* find_by_setting_and_color(
         const std::string& setting_id, const std::string& color) const;
+
+    // STUDIO-18155：返回所有 spool 的 id 拷贝（不暴露内部 map），调用方可
+    // 配合 get_spool 遍历做 push_all_now / 全量同步等批量操作。
+    std::vector<std::string> all_spool_ids() const;
 
     bool is_dirty() const { return m_dirty; }
     void set_dirty()      { m_dirty = true; }

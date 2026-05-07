@@ -133,6 +133,28 @@ export interface CloudSyncHistoryEntry {
   detail?: Record<string, unknown>;
 }
 
+// STUDIO-18155 / openspec 20260506耗材管理器AMS自动同步云端：
+// AMS 自动同步路径完成 / 手动 push_all_now 完成后 C++ 通过
+// `submod=sync, action=auto_push_summary` 报告本次决策摘要。
+//   - trigger='auto'   表示来自 AMS sync 流程（设备 mqtt push 触发）
+//   - trigger='manual' 表示来自 StatsView "推送本地到云端" 按钮
+// 摘要仅在 pushed > 0（auto 模式）或总是（manual 模式）触发，
+// 这样 AMS 全 skipped 时 UI 不会被无意义的 0 推送 toast 打扰。
+export interface CloudAutoPushSummary {
+  trigger: 'auto' | 'manual';
+  // 'busy' / 'idle'（auto 触发时）或 'manual'（手动触发时）。
+  // UI 用它解释"为啥被节流"。
+  device_state: 'busy' | 'idle' | 'manual';
+  pushed: number;
+  skipped_cooldown: number;
+  skipped_no_diff: number;
+  skipped_no_rfid: number;
+  // 仅 manual trigger 携带：跳过的"未填整卷净重 spool"数。
+  skipped_no_total_nw?: number;
+  // Web 层观察到 ReportMsg 时打的本地 ms epoch，用作"最近一次"展示。
+  observed_at: number;
+}
+
 // Toast message surfaced by push_failed reports
 export interface CloudToast {
   id: number;                // monotonically increasing, used as React key

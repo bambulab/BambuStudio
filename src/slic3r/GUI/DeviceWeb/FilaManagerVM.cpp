@@ -85,6 +85,16 @@ FilaManagerVM::FilaManagerVM()
             }
         });
     }
+    // STUDIO-18155: AMS 自动同步 / 手动 push_all_now 完成后 cloud_sync 会回调
+    // 该 observer，由 VM 转发到 Web 前端 `submod=sync, action=auto_push_summary`。
+    // 全 skipped 时 cloud_sync 自己已经决定不发，VM 这里收不到。
+    if (auto* sync = wxGetApp().fila_manager_cloud_sync()) {
+        sync->set_on_auto_push_summary([this](const nlohmann::json& summary) {
+            if (m_bridge) {
+                m_bridge->ReportMsg(MakeResp("sync", "auto_push_summary", 0, "", summary));
+            }
+        });
+    }
 }
 
 FilaManagerVM::~FilaManagerVM()
@@ -99,6 +109,9 @@ FilaManagerVM::~FilaManagerVM()
         disp->set_on_pull_done(nullptr);
         disp->set_on_push_failed(nullptr);
         disp->set_on_push_done(nullptr);
+    }
+    if (auto* sync = wxGetApp().fila_manager_cloud_sync()) {
+        sync->set_on_auto_push_summary(nullptr);
     }
 }
 
@@ -356,6 +369,20 @@ nlohmann::json FilaManagerVM::HandleSync(const std::string& action, const nlohma
                           "The web page requested a cloud pull",
                           {{"action", "pull"}});
         disp->enqueue_pull();
+        return MakeResp("sync", action, 0, "", build_sync_state());
+    }
+
+    // STUDIO-18155：用户在 StatsView 顶部点"推送本地到云端"时走这条入口。
+    // 绕过 throttle，把所有"有 RFID + 有整卷净重"的 spool 全部入 push 队列。
+    // 立即返回 enqueued_count，前端 toast 用；真正的 push 完成 / 失败仍走
+    // dispatcher 现有 push_done / push_failed 链路。
+    if (action == "push_all_now") {
+        auto* cloud = wxGetApp().fila_manager_cloud_sync();
+        if (!cloud) return MakeResp("sync", action, -1, "cloud disabled");
+        publish_debug_log("data", "info", "Manual push_all_now requested",
+                          "The web page requested a manual push of all local spools",
+                          {{"action", "push_all_now"}});
+        cloud->push_all_now();
         return MakeResp("sync", action, 0, "", build_sync_state());
     }
 

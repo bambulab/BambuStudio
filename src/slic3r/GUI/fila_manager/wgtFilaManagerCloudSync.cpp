@@ -1,5 +1,6 @@
 #include "wgtFilaManagerCloudSync.h"
 #include "wgtFilaManagerCloudClient.h"
+#include "wgtFilaManagerCloudDispatcher.h"
 #include "wgtFilaManagerStore.h"
 
 #include "slic3r/Utils/NetworkAgent.hpp"
@@ -7,6 +8,8 @@
 
 #include <wx/app.h>
 #include <boost/log/trivial.hpp>
+#include <chrono>
+#include <cmath>
 #include <set>
 
 namespace Slic3r { namespace GUI {
@@ -504,6 +507,159 @@ void wgtFilaManagerCloudSync::push_delete_to_cloud(const std::vector<std::string
         [](int code, const std::string& err) {
             BOOST_LOG_TRIVIAL(error) << "[FilaCloudSync] push_delete_to_cloud failed: " << code << err_body_tail(err);
         });
+}
+
+// ---------------------------------------------------------------------------
+// STUDIO-18155 / openspec 20260506耗材管理器AMS自动同步云端
+//
+// AMS 同步完成本地写入 → 节流 → 云端 PUT。
+// 详细决策见 design § 1 数据流 / § 2 throttle / § 3 sync 改造。
+// ---------------------------------------------------------------------------
+
+namespace {
+
+// 把 throttle 决策转成统计字段名，方便摘要聚合。
+struct AutoPushTally {
+    int pushed           = 0;
+    int skipped_cooldown = 0;
+    int skipped_no_diff  = 0;
+    int skipped_no_rfid  = 0;
+};
+
+const char* device_state_label(AmsAutoPushThrottle::DeviceState s)
+{
+    return s == AmsAutoPushThrottle::DeviceState::Busy ? "busy" : "idle";
+}
+
+} // namespace
+
+void wgtFilaManagerCloudSync::notify_ams_synced(
+    const std::vector<AmsChangedSpool>&     changed,
+    AmsAutoPushThrottle::DeviceState        device_state)
+{
+    if (changed.empty()) return;
+
+    // STUDIO-18155 follow-up：未登录 / LAN-only 模式下不能进 throttle.record_success，
+    // 否则 cooldown 表会被锁死，等用户后续登录第一波同步会全部 SkipNoDiff，必须等
+    // AMS 余量再次变化才会真正推一次到云端。与 request_user_logout 中
+    // throttle().clear_all() 形成对称防御。
+    NetworkAgent* agent = wxGetApp().getAgent();
+    if (!agent || !agent->is_user_login()) return;
+
+    auto* disp = wxGetApp().fila_manager_cloud_disp();
+    if (!disp) {
+        BOOST_LOG_TRIVIAL(warning)
+            << "[FilaCloudSync] notify_ams_synced: dispatcher unavailable, skip";
+        return;
+    }
+
+    const auto    now = std::chrono::steady_clock::now();
+    AutoPushTally tally;
+
+    for (const auto& item : changed) {
+        const auto decision = m_throttle.evaluate(
+            item.tag_uid, item.net_weight, device_state, now);
+
+        switch (decision) {
+        case AmsAutoPushThrottle::Decision::Push: {
+            // PUT body 只放 net_weight，其余字段留给 spool_to_cloud_update_json
+            // 兜底（filamentName 防 STUDIO-18117 重现）。其余 sync 关心字段
+            // (status / bound_*) 云端 PUT 不接受 → 不放进 patch。
+            nlohmann::json patch = {
+                {"net_weight", static_cast<double>(item.net_weight)}
+            };
+            disp->enqueue_push_update(item.spool_id, patch);
+            // 乐观 record：先记 cooldown 起点。设计权衡：失败时下次 sync 仍
+            // 等 10 min cooldown 才重试，把"网络抽风时无意义请求"的攻击面
+            // 关掉。用户着急可以用"推送本地到云端"按钮绕过 throttle。
+            m_throttle.record_success(item.tag_uid, item.net_weight, now);
+            ++tally.pushed;
+            break;
+        }
+        case AmsAutoPushThrottle::Decision::SkipCooldown:
+            ++tally.skipped_cooldown; break;
+        case AmsAutoPushThrottle::Decision::SkipNoDiff:
+            ++tally.skipped_no_diff;  break;
+        case AmsAutoPushThrottle::Decision::SkipNoRfid:
+            ++tally.skipped_no_rfid;  break;
+        }
+    }
+
+    BOOST_LOG_TRIVIAL(info)
+        << "[FilaCloudSync] auto_push device_state=" << device_state_label(device_state)
+        << " pushed=" << tally.pushed
+        << " skipped_cooldown=" << tally.skipped_cooldown
+        << " skipped_no_diff="  << tally.skipped_no_diff
+        << " skipped_no_rfid="  << tally.skipped_no_rfid;
+
+    // Q4 决策：仅在实际产生 push 时刷前端摘要；全 skipped 不通知
+    if (tally.pushed > 0 && m_on_auto_push_summary) {
+        m_on_auto_push_summary({
+            {"trigger",          "auto"},
+            {"device_state",     device_state_label(device_state)},
+            {"pushed",           tally.pushed},
+            {"skipped_cooldown", tally.skipped_cooldown},
+            {"skipped_no_diff",  tally.skipped_no_diff},
+            {"skipped_no_rfid",  tally.skipped_no_rfid},
+        });
+    }
+}
+
+void wgtFilaManagerCloudSync::push_all_now()
+{
+    auto* disp = wxGetApp().fila_manager_cloud_disp();
+    if (!disp) {
+        BOOST_LOG_TRIVIAL(warning)
+            << "[FilaCloudSync] push_all_now: dispatcher unavailable, skip";
+        return;
+    }
+
+    const auto now      = std::chrono::steady_clock::now();
+    int        enqueued = 0;
+    int        skipped_no_rfid       = 0;
+    int        skipped_no_total_nw   = 0;
+
+    for (const auto& spool_id : m_store->all_spool_ids()) {
+        const FilamentSpool* sp = m_store->get_spool(spool_id);
+        if (!sp) continue;
+
+        if (sp->tag_uid.empty()) {
+            ++skipped_no_rfid;
+            continue;
+        }
+        if (sp->effective_total_net_weight() <= 0.f) {
+            ++skipped_no_total_nw;
+            continue;
+        }
+
+        const int64_t nw = static_cast<int64_t>(std::round(sp->net_weight));
+        nlohmann::json patch = {
+            {"net_weight", static_cast<double>(nw)}
+        };
+        disp->enqueue_push_update(spool_id, patch);
+        // 绕过 throttle.evaluate，但仍 record_success：保持 cooldown 状态
+        // 一致，避免手动按钮触发后下一次 AMS sync 又重复推一遍。
+        m_throttle.record_success(sp->tag_uid, nw, now);
+        ++enqueued;
+    }
+
+    BOOST_LOG_TRIVIAL(info)
+        << "[FilaCloudSync] push_all_now enqueued=" << enqueued
+        << " skipped_no_rfid="     << skipped_no_rfid
+        << " skipped_no_total_nw=" << skipped_no_total_nw;
+
+    // 手动按钮：summary **总是**发送（含 enqueued=0），让 toast 能显示"推送 0 卷"
+    if (m_on_auto_push_summary) {
+        m_on_auto_push_summary({
+            {"trigger",             "manual"},
+            {"device_state",        "manual"},
+            {"pushed",              enqueued},
+            {"skipped_cooldown",    0},
+            {"skipped_no_diff",     0},
+            {"skipped_no_rfid",     skipped_no_rfid},
+            {"skipped_no_total_nw", skipped_no_total_nw},
+        });
+    }
 }
 
 // ---------------------------------------------------------------------------

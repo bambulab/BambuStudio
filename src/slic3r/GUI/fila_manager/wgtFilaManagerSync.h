@@ -23,9 +23,6 @@ public:
 
 private:
     const FilamentSpool* match_tray(const DevAmsTray& tray);
-    FilamentSpool create_spool_from_tray(const DevAmsTray& tray,
-                                          const std::string& dev_id,
-                                          const std::string& ams_id);
 
     wgtFilaManagerStore* m_store;
 };

@@ -11,6 +11,7 @@ import type {
   InitData,
   CloudSyncState,
   CloudFilamentConfig,
+  CloudAutoPushSummary,
   DebugLogEntry,
 } from './types';
 
@@ -75,6 +76,7 @@ export function useFilamentBridge() {
   const setCloudConfig = useStore((s) => s.filament.setCloudConfig);
   const pushToast      = useStore((s) => s.filament.pushToast);
   const appendCloudSyncHistory = useStore((s) => s.filament.appendCloudSyncHistory);
+  const setCloudAutoPushSummary = useStore((s) => s.filament.setCloudAutoPushSummary);
   const setDebugEnabled = useStore((s) => s.filament.setDebugEnabled);
   const appendDebugLog  = useStore((s) => s.filament.appendDebugLog);
 
@@ -214,7 +216,49 @@ export function useFilamentBridge() {
             summary: t('Cloud push failed: {{op}} — {{message}}', { op: opLabel, message: errMsg }),
             detail: { op: opLabel, message: errMsg, spool_id: payload.spool_id as string | undefined },
           });
+        } else if (body.action === 'auto_push_summary') {
+          // STUDIO-18155：AMS 自动同步 / 手动 push_all_now 完成后的决策摘要。
+          // C++ 在 auto 模式下仅当 pushed > 0 才发；manual 模式总是发。
+          const summary: CloudAutoPushSummary = {
+            trigger:       (payload.trigger as 'auto' | 'manual') ?? 'auto',
+            device_state:  (payload.device_state as 'busy' | 'idle' | 'manual') ?? 'idle',
+            pushed:           Number(payload.pushed ?? 0),
+            skipped_cooldown: Number(payload.skipped_cooldown ?? 0),
+            skipped_no_diff:  Number(payload.skipped_no_diff ?? 0),
+            skipped_no_rfid:  Number(payload.skipped_no_rfid ?? 0),
+            skipped_no_total_nw: payload.skipped_no_total_nw != null
+              ? Number(payload.skipped_no_total_nw) : undefined,
+            observed_at: Date.now(),
+          };
+          setCloudAutoPushSummary(summary);
+          // 手动按钮：toast 反馈"已入队 N 卷"。auto 路径不打 toast 避免噪声，
+          // 由 CloudBadge tooltip 静默展示摘要即可。
+          if (summary.trigger === 'manual') {
+            const text = summary.pushed > 0
+              ? t('Pushed {{n}} spools to cloud', { n: summary.pushed })
+              : t('No spools to push (need RFID + total weight).');
+            pushToast({
+              level: summary.pushed > 0 ? 'info' : 'warn',
+              text,
+              op: 'update',
+            });
+          }
+          appendCloudSyncHistory({
+            ts: Date.now(),
+            kind: 'push',
+            op: 'update',
+            status: 'ok',
+            summary: summary.trigger === 'manual'
+              ? t('Manual push: enqueued {{n}} spools', { n: summary.pushed })
+              : t('AMS auto-push: pushed {{p}}, skipped {{s}}',
+                  { p: summary.pushed,
+                    s: summary.skipped_cooldown + summary.skipped_no_diff + summary.skipped_no_rfid }),
+            detail: summary as unknown as Record<string, unknown>,
+          });
         }
+        // 注：AMS auto-push 失败统一走既有 dispatcher push_failed observer
+        // → publish_push_failed → action='push_failed' 分支，不再独立加
+        // auto_push_error 路径，避免失败语义重复。
         return;
       }
 
@@ -248,7 +292,7 @@ export function useFilamentBridge() {
       const agg = pushDoneAggRef.current;
       if (agg.timer) { clearTimeout(agg.timer); agg.timer = null; }
     };
-  }, [setSpools, setCloudSync, setCloudConfig, pushToast, appendCloudSyncHistory, appendDebugLog, setMachines, setAmsData, setSelectedMachineDevId, t, flushPushDoneAgg]);
+  }, [setSpools, setCloudSync, setCloudConfig, pushToast, appendCloudSyncHistory, appendDebugLog, setMachines, setAmsData, setSelectedMachineDevId, setCloudAutoPushSummary, t, flushPushDoneAgg]);
 
   // ---- Init ----
   const init = useCallback(async () => {
@@ -505,6 +549,28 @@ export function useFilamentBridge() {
     return res.ok && res.value.error_code === 0;
   }, [request, setCloudSync]);
 
+  // STUDIO-18155：手动"推送本地到云端"。绕过 throttle，把所有"有 RFID +
+  // 有整卷净重"的 spool 全部入 push 队列。立即返回 sync_state（is_syncing
+  // 标志可能尚未升起，因为入队是同步的、push 本身是异步的）；真正的
+  // 入队结果通过 sync/auto_push_summary ReportMsg 返回，由上面的 handler
+  // 转 toast + history。
+  const pushAllNow = useCallback(async () => {
+    const res = await request<ReturnType<typeof makeBody>, BridgeResponseBody>(
+      makeBody('sync', 'push_all_now')
+    );
+    if (res.ok && res.value.error_code === 0) {
+      setCloudSync(res.value.payload as unknown as CloudSyncState);
+      return true;
+    }
+    pushToast({
+      level: 'error',
+      text: t('Push to cloud failed: {{reason}}',
+              { reason: res.ok ? res.value.message : res.error }),
+      op: 'update',
+    });
+    return false;
+  }, [request, setCloudSync, pushToast, t]);
+
   // ---- Cloud filament config ----
   const fetchCloudFilamentConfig = useCallback(async (options?: { force?: boolean }) => {
     const res = await request<ReturnType<typeof makeBody>, BridgeResponseBody>(
@@ -536,6 +602,7 @@ export function useFilamentBridge() {
     fetchAmsData,
     fetchCloudSyncStatus,
     triggerCloudPull,
+    pushAllNow,
     fetchCloudFilamentConfig,
   };
 }

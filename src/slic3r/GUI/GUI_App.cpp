@@ -2226,6 +2226,8 @@ void GUI_App::init_networking_callbacks()
                     if (sel && sel->get_dev_id() == dev_id) {
                         obj->parse_json("cloud", msg);
                         GUI::wxGetApp().sidebar().load_ams_list(obj);
+                        // STUDIO-18155: AMS 状态变化驱动耗材同步（本地 store + 节流后云端）
+                        if (auto* sync = wxGetApp().fila_manager_sync()) sync->on_device_update(obj);
                     } else {
                         obj->parse_json("cloud", msg, true);
                     }
@@ -2273,6 +2275,8 @@ void GUI_App::init_networking_callbacks()
                     obj->parse_json("lan", msg);
                     if (this->m_device_manager->get_selected_machine() == obj) {
                         GUI::wxGetApp().sidebar().load_ams_list(obj);
+                        // STUDIO-18155: AMS 状态变化驱动耗材同步（本地 store + 节流后云端）
+                        if (auto* sync = wxGetApp().fila_manager_sync()) sync->on_device_update(obj);
                     }
                 }
 
@@ -4540,6 +4544,11 @@ void GUI_App::request_user_logout()
         // Drop queued cloud ops so they don't fire against a stale user.
         if (m_fila_manager_cloud_disp) {
             m_fila_manager_cloud_disp->clear_pending();
+        }
+        // STUDIO-18155: 清 AMS auto-push 节流账本，避免账号 A 的 cooldown
+        // 影响登入账号 B 后第一次 sync 触发 push 的时机。
+        if (m_fila_manager_cloud_sync) {
+            m_fila_manager_cloud_sync->throttle().clear_all();
         }
         if (mainframe && mainframe->web_device()) {
             mainframe->web_device()->NotifyFilamentSessionState();
