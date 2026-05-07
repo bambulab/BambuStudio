@@ -1654,8 +1654,6 @@ void Sidebar::priv::update_extruder_panel()
 {
     Preset &printer_preset            = wxGetApp().preset_bundle->printers.get_edited_preset();
     auto    extruder_variants         = printer_preset.config.option<ConfigOptionStrings>("extruder_variant_list");
-    auto    extruder_max_nozzle_count = printer_preset.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
-    bool    has_multiple_nozzle       = std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int i) { return i > 1; });
     bool    is_dual_extruder          = extruder_variants->size() == 2;
 
     auto update_panel = [this](ExtruderPanel *panel, const std::vector<NozzleConfig> &cfg) {
@@ -1675,16 +1673,15 @@ void Sidebar::priv::update_extruder_panel()
             panel->SetFlow(volume_str);
             panel->ShowNozzleNumber(false);
         } else { // multiple nozzles per extruder
-            auto                                 selected_diameter     = diameter_btns->GetSelectedDiameter();
             int                                  matching_nozzle_count = 0;
             std::unordered_set<NozzleVolumeType> volume_types;
             std::vector<int>                     matching_indices;
             for (int i = 0; i < cfg.size(); ++i) {
-                auto c = cfg[i];
+                const auto &c = cfg[i];
                 if (c.diameter == selected_diameter) {
                     matching_nozzle_count++;
                     volume_types.insert(c.volume);
-                    matching_indices.push_back(i);
+                    matching_indices.push_back(i + 1);
                 }
             }
 
@@ -1748,30 +1745,39 @@ std::vector<NozzleConfig> Sidebar::priv::collect_nozzle_configs_from_machine(Mac
     std::vector<const DevNozzle *> nozzles;
     nozzles.resize(std::max(nozzle_system->GetExtNozzles().size(), nozzle_system->GetRackNozzles().size()));
 
+    // addr_id is more robust
+    auto get_id = [](const DevNozzle &nozzle) {
+        auto addr_id = nozzle.GetAddrId();
+        if (addr_id) return addr_id.value();
+        return nozzle.GetNozzleId();
+    };
+
     // check nozzles on the extruder first
     for (const auto &[_, nozzle] : nozzle_system->GetExtNozzles()) {
         if (nozzle.GetLogicExtruderId() != extruder_idx) continue;
-        nozzles[nozzle.GetNozzleId()] = &nozzle;
+        nozzles[get_id(nozzle)] = &nozzle;
     }
 
     // check nozzle on the rack
     for (const auto &[_, nozzle] : nozzle_system->GetRackNozzles()) {
         if (nozzle.GetLogicExtruderId() != extruder_idx) continue;
 
-        if (nozzles[nozzle.GetNozzleId()]) {
-            assert(!nozzle.IsExist() && "this nozzle is on an extruder");
-            BOOST_LOG_TRIVIAL(warning) << "duplicated nozzle discared: " << nozzle.GetNozzleId();
+        auto id = get_id(nozzle);
+        if (nozzles[id]) {
+            BOOST_LOG_TRIVIAL(warning) << "duplicated nozzle discared: " << id;
             continue;
         }
-        nozzles[nozzle.GetNozzleId()] = &nozzle;
+        nozzles[id] = &nozzle;
     }
 
     std::vector<NozzleConfig> nozzle_configs;
     nozzle_configs.reserve(extruder_nozzle_count);
-
     for (const auto *nozzle : nozzles) {
         if (!nozzle) continue;
-        auto &nozzle_config    = nozzle_configs.emplace_back();
+
+        auto &nozzle_config = nozzle_configs.emplace_back();
+        if (!nozzle->IsExist()) continue;
+
         nozzle_config.diameter = get_diameter_string(nozzle->GetNozzleDiameter());
         nozzle_config.volume   = DevNozzle::ToNozzleVolumeType(nozzle->GetNozzleFlowType());
 

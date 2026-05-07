@@ -142,7 +142,7 @@ struct NozzleConfig
 {
     wxString         diameter;
     NozzleVolumeType volume {nvtStandard};
-    NozzleStatus     status {0}; // normal
+    NozzleStatus     status{2}; // unknow
 
     NozzleConfig()          = default;
     NozzleConfig(const wxString &diameter_, NozzleVolumeType volume_, NozzleStatus status_) : diameter(diameter_), volume(volume_), status(status_) {}
