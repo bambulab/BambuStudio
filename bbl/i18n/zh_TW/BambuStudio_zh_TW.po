@@ -4818,7 +4818,7 @@ msgid "Fan Speed: "
 msgstr "風扇速度: "
 
 msgid "AUX Fan Speed: "
-msgstr "輔助風扇速度："
+msgstr "輔助風扇速度： "
 
 msgid "Temperature: "
 msgstr "溫度: "
