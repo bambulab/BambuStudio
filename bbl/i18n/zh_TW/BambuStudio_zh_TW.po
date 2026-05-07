@@ -11147,7 +11147,7 @@ msgid "Heat is building up in small layers faster than it can dissipate. This ma
 msgstr "小層區域熱量累積速度超過散熱速度，可能導致下垂或細節丟失。"
 
 msgid "Ready to print — see suggestions"
-msgstr "準備列印 — — 檢視建議"
+msgstr "準備列印 — 檢視建議"
 
 msgid "Ready to print"
 msgstr "可以列印"
