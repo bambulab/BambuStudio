@@ -6058,6 +6058,9 @@ std::map<int, DevNozzle> SelectMachineDialog::get_mapped_nozzles(int fila_id) co
     return nozzle_map;
 }
 
+// Internal nozzle indices are 0-based; the UI displays them starting from 1.
+static constexpr int kNozzleDisplayOffset = 1;
+
 // return empty string if not supported
 // return ? if not mapped
 wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
@@ -6115,7 +6118,7 @@ wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
             auto tray_opt = obj_->get_tray(std::to_string(mapped_info->get_ams_id()), std::to_string(mapped_info->get_slot_id()));
             if (tray_opt.has_value() && tray_opt->get_nozzle_pos_id(obj_).has_value()) {
                 int nozzle_pos_id = tray_opt->get_nozzle_pos_id(obj_).value();
-                return wxString::Format("%d", nozzle_pos_id - 16);
+                return wxString::Format("%d", nozzle_pos_id - 16 + kNozzleDisplayOffset);
             }
 
             // Fallback for external AMS (N3S/N3F): find nozzle via bind_ams
@@ -6123,7 +6126,7 @@ wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
             for (const auto& [nid, nozzle] : obj_->GetNozzleRack()->GetRackNozzles()) {
                 for (int bind_id : nozzle.GetBindAms()) {
                     if (bind_id == mapped_ams_id) {
-                        return wxString::Format("%d", nid);
+                        return wxString::Format("%d", nid + kNozzleDisplayOffset);
                     }
                 }
             }

@@ -234,7 +234,7 @@ std::optional<int> DevAmsTray::get_nozzle_pos_id(MachineObject* obj) const
             if (ams_type == DevAmsType::ZMULTI_A || ams_type == DevAmsType::ZMULTI_B) {
                 return std::stoi(this->id) + 16;
             } else if (ams_type == DevAmsType::EXT_SPOOL) {
-                return 256 - std::stoi(this->id) + 16;
+                return 255 - std::stoi(this->id) + 16;
             } else {
                 return std::nullopt;//TODO
             }
