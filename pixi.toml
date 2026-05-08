@@ -33,6 +33,7 @@ cgal-cpp = "*"
 gmp = "*"
 mpfr = "*"
 libopencv = "*"
+occt = "*"
 
 # System libs needed by main BambuStudio configure (Linux)
 dbus = "*"
