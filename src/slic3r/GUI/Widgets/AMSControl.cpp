@@ -381,6 +381,19 @@ std::tuple<bool, bool> AMSControl::isFilaSwitchReady()
     return {false, false};
 }
 
+bool AMSControl::isFilaSwitchInstalled() const
+{
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev) return false;
+    MachineObject* obj = dev->get_selected_machine();
+    if (!obj) return false;
+    std::shared_ptr<Slic3r::DevFilaSwitch> filaSwitch = obj->GetFilaSwitch();
+    if (filaSwitch) {
+        return filaSwitch->IsInstalled();
+    }
+    return false;
+}
+
 void AMSControl::AmsSelectedSwitch(wxCommandEvent& event) {
     std::string ams_id_selected = std::to_string(event.GetInt());
     if (m_current_ams != ams_id_selected){
@@ -903,6 +916,7 @@ void AMSControl::UpdateAms(const std::string   &series_name,
                            std::vector<AMSinfo> ext_info,
                            DevExtderSystem           data,
                            std::string          dev_id,
+                           MachineObject*       obj,
                            bool                 is_reset,
                            bool                 test)
 {
@@ -1018,6 +1032,28 @@ void AMSControl::UpdateAms(const std::string   &series_name,
         this->Refresh(true);
         this->Update();
     }
+
+    /*update ext road visibility when fila switch installed*/
+    bool road_visibility_changed = false;
+    for (auto& [ams_id, ams_item] : m_ams_item_list) {
+        if (!ams_item) continue;
+        const bool should_show_road = !(install && ams_item->get_ams_model() == DevAmsType::EXT_SPOOL);
+        if (ams_item->ShowRoad(should_show_road)) {
+            road_visibility_changed = true;
+        }
+    }
+    if (road_visibility_changed) {
+        m_amswin->Layout();
+    }
+
+    /*distribute device info to road components*/
+    std::weak_ptr<DevFilaSystem> fila_sys_weak;
+    if (obj) fila_sys_weak = obj->GetFilaSystem();
+    for (auto& [id, item] : m_ams_item_list) {
+        if (item) item->UpdateDeviceInfo(fila_sys_weak);
+    }
+    if (m_vams_road) m_vams_road->UpdateDeviceInfo(fila_sys_weak);
+    if (m_down_road) m_down_road->UpdateDeviceInfo(fila_sys_weak);
 }
 
 void AMSControl::AddAmsPreview(AMSinfo info, AMSPanelPos pos)
@@ -1055,29 +1091,32 @@ void AMSControl::createAms(wxSimplebook* parent, int& idx, AMSinfo info, AMSPane
 
 AMSRoadShowMode AMSControl::findFirstMode(AMSPanelPos pos) {
     auto init_mode = AMSRoadShowMode::AMS_ROAD_MODE_NONE;
+    const bool fila_switch_installed = isFilaSwitchInstalled();
 
-    std::string ams_id = "";
     for (const auto& [idx, ams_item] : m_ams_item_list) {
-        if(ams_item->get_panel_pos() == pos){
-            ams_id = idx;
-            break;
+        if (ams_item->get_panel_pos() != pos) continue;
+        if (fila_switch_installed && ams_item->get_ams_model() == DevAmsType::EXT_SPOOL) continue;
+
+        const std::string& ams_id = idx;
+        if (ams_item->get_can_count() == GENERIC_AMS_SLOT_NUM) {
+            if (ams_item->get_ams_model() == DevAmsType::AMS_LITE) return AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE;
+            if (ams_item->get_ams_model() == DevAmsType::EXT_SPOOL && ams_item->get_ext_type() == AMSModelOriginType::LITE_EXT) return AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE;
+            return AMSRoadShowMode::AMS_ROAD_MODE_FOUR;
+        }
+        else {
+            if (IsInSlotPair(ams_id)) {
+                AMSRoadShowMode replaced = AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE;
+                if (GetExtPairedDoubleMode(ams_id, pos, replaced)) {
+                    return replaced;
+                }
+                return AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE;
+            }
+            if (ams_item->get_ams_model() == DevAmsType::EXT_SPOOL && ams_item->get_ext_type() == AMSModelOriginType::LITE_EXT) return AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE;
+            if (ams_item->get_ams_model() == DevAmsType::N3S) return AMSRoadShowMode::AMS_ROAD_MODE_SINGLE_N3S;
+            return AMSRoadShowMode::AMS_ROAD_MODE_SINGLE;
         }
     }
-
-    auto item = m_ams_item_list.find(ams_id);
-    if (ams_id.empty() || item == m_ams_item_list.end()) return init_mode;
-
-    if (item->second->get_can_count() == GENERIC_AMS_SLOT_NUM) {
-        if (item->second->get_ams_model() == DevAmsType::AMS_LITE) return AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE;
-        if (item->second->get_ams_model() == DevAmsType::EXT_SPOOL && item->second->get_ext_type() == AMSModelOriginType::LITE_EXT) return AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE;
-        return AMSRoadShowMode::AMS_ROAD_MODE_FOUR;
-    }
-    else{
-        if (IsInSlotPair(ams_id)) return AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE;
-        if (item->second->get_ams_model() == DevAmsType::EXT_SPOOL && item->second->get_ext_type() == AMSModelOriginType::LITE_EXT) return AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE;
-        if (item->second->get_ams_model() == DevAmsType::N3S) return AMSRoadShowMode::AMS_ROAD_MODE_SINGLE_N3S;
-        return AMSRoadShowMode::AMS_ROAD_MODE_SINGLE;
-    }
+    return init_mode;
 }
 
 void AMSControl::createAmsPanel(wxSimplebook *parent, int &idx, std::vector<AMSinfo> infos, const std::string &series_name, const std::string &printer_type, AMSPanelPos pos, int total_ext_num)
@@ -1302,27 +1341,57 @@ void AMSControl::SwitchAms(std::string ams_id)
         }
 
         const auto& panel_pos = ams_item->get_panel_pos();
-        if (ams_item->get_can_count() == GENERIC_AMS_SLOT_NUM) {
-            if (ams_item->get_ams_model() == DevAmsType::AMS_LITE) {
-                if (panel_pos == AMSPanelPos::LEFT_PANEL) {
-                    m_down_road->UpdateLeft(m_total_ext_count, AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE);
-                } else {
-                    m_down_road->UpdateRight(m_total_ext_count, AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE);
-                }
+        const bool fila_switch_installed = isFilaSwitchInstalled();
+
+        // When fila switch is installed and the clicked preview is an EXT_SPOOL paired
+        // with an AMS in the same book page, both previews share the same down-road view.
+        // Drive the mode computation from the paired AMS item so switching between
+        // the two previews renders identical lines.
+        std::string effective_ams_id = ams_id;
+        AmsItem* effective_item = ams_item;
+        if (fila_switch_installed && ams_item->get_ams_model() == DevAmsType::EXT_SPOOL) {
+            for (const auto& p : pair_id) {
+                const std::string* other = nullptr;
+                if (p.first == ams_id) other = &p.second;
+                else if (p.second == ams_id) other = &p.first;
+                else continue;
+                const auto other_it = m_ams_item_list.find(*other);
+                if (other_it == m_ams_item_list.end() || !other_it->second) continue;
+                if (other_it->second->get_ams_model() == DevAmsType::EXT_SPOOL) continue;
+                effective_ams_id = *other;
+                effective_item = other_it->second;
+                break;
+            }
+        }
+
+        const bool hide_ext_road = fila_switch_installed && effective_item->get_ams_model() == DevAmsType::EXT_SPOOL;
+
+        if (effective_item->get_can_count() == GENERIC_AMS_SLOT_NUM) {
+            AMSRoadShowMode mode;
+            if (effective_item->get_ams_model() == DevAmsType::AMS_LITE) {
+                mode = AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE;
             } else {
-                if (panel_pos == AMSPanelPos::LEFT_PANEL) {
-                    m_down_road->UpdateLeft(m_total_ext_count, AMSRoadShowMode::AMS_ROAD_MODE_FOUR);
-                } else {
-                    m_down_road->UpdateRight(m_total_ext_count, AMSRoadShowMode::AMS_ROAD_MODE_FOUR);
-                }
+                mode = AMSRoadShowMode::AMS_ROAD_MODE_FOUR;
+            }
+            if (hide_ext_road) mode = AMSRoadShowMode::AMS_ROAD_MODE_NONE;
+
+            if (panel_pos == AMSPanelPos::LEFT_PANEL) {
+                m_down_road->UpdateLeft(m_total_ext_count, mode);
+            } else {
+                m_down_road->UpdateRight(m_total_ext_count, mode);
             }
         } else {
             AMSRoadShowMode mode = AMSRoadShowMode::AMS_ROAD_MODE_SINGLE;
-            if (IsInSlotPair(ams_id)) {
+            if (IsInSlotPair(effective_ams_id)) {
                 mode = AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE;
-            } else if(ams_item->get_ams_model() == DevAmsType::N3S){
+                AMSRoadShowMode replaced = AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE;
+                if (GetExtPairedDoubleMode(effective_ams_id, panel_pos, replaced)) {
+                    mode = replaced;
+                }
+            } else if(effective_item->get_ams_model() == DevAmsType::N3S){
                 mode = AMSRoadShowMode::AMS_ROAD_MODE_SINGLE_N3S;
-            } 
+            }
+            if (hide_ext_road) mode = AMSRoadShowMode::AMS_ROAD_MODE_NONE;
 
             if (panel_pos == AMSPanelPos::LEFT_PANEL) {
                 m_down_road->UpdateLeft(m_total_ext_count, mode);
@@ -1629,6 +1698,38 @@ bool AMSControl::IsInSlotPair(const std::string& ams_id) const
         }
     }
 
+    return false;
+}
+
+bool AMSControl::GetExtPairedDoubleMode(const std::string& ams_id, AMSPanelPos panel_pos, AMSRoadShowMode& out_mode) const
+{
+    if (!isFilaSwitchInstalled()) return false;
+
+    for (const auto& p : pair_id) {
+        const std::string* other_id = nullptr;
+        bool ams_is_first = false;
+        if (p.first == ams_id) {
+            other_id = &p.second;
+            ams_is_first = true;
+        } else if (p.second == ams_id) {
+            other_id = &p.first;
+            ams_is_first = false;
+        } else {
+            continue;
+        }
+
+        const auto it = m_ams_item_list.find(*other_id);
+        if (it == m_ams_item_list.end() || !it->second) continue;
+        if (it->second->get_ams_model() != DevAmsType::EXT_SPOOL) continue;
+
+        // Position mapping (see AmsItem length in UpdateAms/OnAmsLoading):
+        //   LEFT_PANEL : pair.first => FAR  (-218), pair.second => NEAR (-110)
+        //   RIGHT_PANEL: pair.first => NEAR (+110), pair.second => FAR  (+218)
+        const bool ams_at_far = (panel_pos == AMSPanelPos::LEFT_PANEL) ? ams_is_first : !ams_is_first;
+        out_mode = ams_at_far ? AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE_FAR_ONLY
+                              : AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE_NEAR_ONLY;
+        return true;
+    }
     return false;
 }
 

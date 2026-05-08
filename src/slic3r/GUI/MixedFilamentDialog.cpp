@@ -2,23 +2,27 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <map>
 #include <set>
 #include <wx/image.h>
 #include <wx/sizer.h>
 #include <wx/dcclient.h>
 #include <wx/dcbuffer.h>
+#include <wx/dcgraph.h>
 #include <wx/scrolwin.h>
 #include <wx/wrapsizer.h>
 #include <wx/tokenzr.h>
 
 #include "libslic3r/Utils.hpp"
+#include "libslic3r/FilamentMixer.hpp"
 #include "I18N.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "Tab.hpp"
 #include "libslic3r/Preset.hpp"
 #include "Widgets/Button.hpp"
+#include "Widgets/CheckBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "Widgets/DropDown.hpp"
 #include "Widgets/Label.hpp"
@@ -30,24 +34,26 @@ static constexpr int MAX_COMPONENTS = 3;
 
 static wxColour blend_colors(const wxColour& a, const wxColour& b, double ratio_a)
 {
-    double rb = 1.0 - ratio_a;
-    return wxColour(
-        (unsigned char)(a.Red()   * ratio_a + b.Red()   * rb),
-        (unsigned char)(a.Green() * ratio_a + b.Green() * rb),
-        (unsigned char)(a.Blue()  * ratio_a + b.Blue()  * rb));
+    unsigned char r, g, bl;
+    Slic3r::filament_mixer_lerp(a.Red(), a.Green(), a.Blue(),
+                                b.Red(), b.Green(), b.Blue(),
+                                static_cast<float>(1.0 - ratio_a),
+                                &r, &g, &bl);
+    return wxColour(r, g, bl);
 }
 
 static wxColour blend_n_colors(const std::vector<wxColour>& cols, const std::vector<double>& weights)
 {
-    double r = 0, g = 0, b = 0;
+    std::vector<std::string> hex_colors;
+    std::vector<int> int_weights;
     for (size_t i = 0; i < cols.size() && i < weights.size(); ++i) {
-        r += cols[i].Red()   * weights[i];
-        g += cols[i].Green() * weights[i];
-        b += cols[i].Blue()  * weights[i];
+        hex_colors.push_back(cols[i].GetAsString(wxC2S_HTML_SYNTAX).ToStdString());
+        // Scale double weights (e.g. 0.5) to int (5000) for blend_color_multi;
+        // only relative magnitude matters.
+        int_weights.push_back(static_cast<int>(std::lround(weights[i] * 10000)));
     }
-    return wxColour((unsigned char)std::clamp(r, 0.0, 255.0),
-                    (unsigned char)std::clamp(g, 0.0, 255.0),
-                    (unsigned char)std::clamp(b, 0.0, 255.0));
+    std::string hex = Slic3r::blend_color_multi(hex_colors, int_weights);
+    return wxColour(hex);
 }
 
 // ---- Constructors ----
@@ -126,6 +132,35 @@ wxColour MixedFilamentDialog::comp_colour(size_t i) const
     return wxColour("#D9D9D9");
 }
 
+static wxBitmap make_alpha_bitmap(int w, int h,
+                                  const std::function<void(wxDC& dc)>& draw_fn)
+{
+    wxBitmap bmp(w, h);
+    wxMemoryDC memdc;
+#ifdef __WXOSX__
+    bmp.UseAlpha();
+    memdc.SelectObject(bmp);
+#else
+    {
+        wxImage img(w, h);
+        img.InitAlpha();
+        memset(img.GetAlpha(), 0, w * h);
+        bmp = wxBitmap(std::move(img));
+    }
+    memdc.SelectObject(bmp);
+#endif
+    {
+#ifdef __WXMSW__
+        wxGCDC dc(memdc);
+#else
+        wxDC& dc = memdc;
+#endif
+        draw_fn(dc);
+    }
+    memdc.SelectObject(wxNullBitmap);
+    return bmp;
+}
+
 wxBitmap MixedFilamentDialog::make_swatch_bitmap(size_t idx)
 {
     int swatch_sz = FromDIP(16);
@@ -134,42 +169,33 @@ wxBitmap MixedFilamentDialog::make_swatch_bitmap(size_t idx)
     int bmp_w = pad_left + swatch_sz + pad_right;
     int bmp_h = swatch_sz;
 
-    wxBitmap bmp(bmp_w, bmp_h);
-    wxMemoryDC dc(bmp);
-
     wxColour col("#D9D9D9");
     if (idx < m_physical_colors.size())
         col = wxColour(m_physical_colors[idx]);
 
-    wxColour swatch_bg = StateColor::darkModeColorFor(*wxWHITE);
-    dc.SetBrush(wxBrush(swatch_bg));
-    dc.SetPen(wxPen(swatch_bg));
-    dc.DrawRectangle(0, 0, bmp_w, bmp_h);
-
-    dc.SetBrush(wxBrush(col));
-    dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.DrawRoundedRectangle(pad_left, 0, swatch_sz, swatch_sz, FromDIP(2));
-
-    if (!wxGetApp().dark_mode() && col.Red() > 224 && col.Green() > 224 && col.Blue() > 224) {
-        dc.SetPen(wxPen(wxColour(130, 130, 128), 1));
-        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    return make_alpha_bitmap(bmp_w, bmp_h, [&](wxDC& dc) {
+        dc.SetBrush(wxBrush(col));
+        dc.SetPen(*wxTRANSPARENT_PEN);
         dc.DrawRoundedRectangle(pad_left, 0, swatch_sz, swatch_sz, FromDIP(2));
-    }
-    if (wxGetApp().dark_mode() && col.Red() < 45 && col.Green() < 45 && col.Blue() < 45) {
-        dc.SetPen(wxPen(wxColour(207, 207, 207), 1));
-        dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(pad_left, 0, swatch_sz, swatch_sz, FromDIP(2));
-    }
 
-    wxString num = wxString::Format(wxT("%zu"), idx + 1);
-    dc.SetFont(::Label::Body_13);
-    wxSize txt_sz = dc.GetTextExtent(num);
-    dc.SetTextForeground(col.GetLuminance() > 0.5 ? wxColour(50, 58, 61) : *wxWHITE);
-    dc.DrawText(num, pad_left + (swatch_sz - txt_sz.GetWidth()) / 2,
-                     (swatch_sz - txt_sz.GetHeight()) / 2);
+        if (!wxGetApp().dark_mode() && col.Red() > 224 && col.Green() > 224 && col.Blue() > 224) {
+            dc.SetPen(wxPen(wxColour(130, 130, 128), 1));
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.DrawRoundedRectangle(pad_left, 0, swatch_sz, swatch_sz, FromDIP(2));
+        }
+        if (wxGetApp().dark_mode() && col.Red() < 45 && col.Green() < 45 && col.Blue() < 45) {
+            dc.SetPen(wxPen(wxColour(207, 207, 207), 1));
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.DrawRoundedRectangle(pad_left, 0, swatch_sz, swatch_sz, FromDIP(2));
+        }
 
-    dc.SelectObject(wxNullBitmap);
-    return bmp;
+        wxString num = wxString::Format(wxT("%zu"), idx + 1);
+        dc.SetFont(::Label::Body_13);
+        wxSize txt_sz = dc.GetTextExtent(num);
+        dc.SetTextForeground(col.GetLuminance() > 0.5 ? wxColour(50, 58, 61) : *wxWHITE);
+        dc.DrawText(num, pad_left + (swatch_sz - txt_sz.GetWidth()) / 2,
+                         (swatch_sz - txt_sz.GetHeight()) / 2);
+    });
 }
 
 // ---- UI Construction ----
@@ -239,17 +265,12 @@ wxBoxSizer* MixedFilamentDialog::create_preview_panel()
         wxBufferedPaintDC dc(m_preview_canvas);
         wxSize sz = m_preview_canvas->GetClientSize();
         size_t n = num_components();
-        if (n == 0) return;
 
-        const wxBitmap& src = (n >= 3) ? m_preview_bmp_three : m_preview_bmp_two;
-        if (src.IsOk()) {
-            wxImage scaled = src.ConvertToImage().Scale(sz.GetWidth(), sz.GetHeight(), wxIMAGE_QUALITY_BILINEAR);
-            dc.DrawBitmap(wxBitmap(scaled), 0, 0, true);
-        } else {
-            dc.SetBrush(wxBrush(StateColor::darkModeColorFor(*wxWHITE)));
-            dc.SetPen(*wxTRANSPARENT_PEN);
-            dc.DrawRectangle(0, 0, sz.GetWidth(), sz.GetHeight());
-        }
+        dc.SetBrush(wxBrush(StateColor::darkModeColorFor(*wxWHITE)));
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.DrawRectangle(0, 0, sz.GetWidth(), sz.GetHeight());
+
+        if (n == 0) return;
 
         std::vector<wxColour> cols;
         std::vector<double>   weights;
@@ -259,10 +280,11 @@ wxBoxSizer* MixedFilamentDialog::create_preview_panel()
         }
 
         wxColour mixed = blend_n_colors(cols, weights);
-        int swatch_sz = FromDIP(16);
+        int swatch_sz = FromDIP(80);
         dc.SetBrush(wxBrush(mixed));
         dc.SetPen(*wxTRANSPARENT_PEN);
-        dc.DrawRoundedRectangle(FromDIP(4), FromDIP(4), swatch_sz, swatch_sz, FromDIP(2));
+        dc.DrawRoundedRectangle((sz.GetWidth() - swatch_sz) / 2, (sz.GetHeight() - swatch_sz) / 2,
+                                swatch_sz, swatch_sz, FromDIP(6));
     });
 
     sizer->Add(m_preview_canvas, 0, wxALIGN_CENTER);
@@ -360,7 +382,7 @@ wxBoxSizer* MixedFilamentDialog::create_material_selection()
     m_btn_add_material->SetBackgroundColor(wxColour("#F8F8F8"));
     m_btn_add_material->SetBorderColor(wxColour("#EEEEEE"));
     m_btn_add_material->SetTextColor(wxColour("#262E30"));
-    m_btn_add_material->SetMinSize(wxSize(-1, FromDIP(23)));
+    m_btn_add_material->SetMinSize(wxSize(-1, FromDIP(24)));
     m_btn_add_material->SetCursor(wxCursor(wxCURSOR_HAND));
     m_btn_add_material->EnableTooltipEvenDisabled();
     m_btn_add_material->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { on_add_material(); });
@@ -370,7 +392,7 @@ wxBoxSizer* MixedFilamentDialog::create_material_selection()
     m_btn_remove_material->SetBackgroundColor(wxColour("#F8F8F8"));
     m_btn_remove_material->SetBorderColor(wxColour("#EEEEEE"));
     m_btn_remove_material->SetTextColor(wxColour("#262E30"));
-    m_btn_remove_material->SetMinSize(wxSize(-1, FromDIP(23)));
+    m_btn_remove_material->SetMinSize(wxSize(-1, FromDIP(24)));
     m_btn_remove_material->SetCursor(wxCursor(wxCURSOR_HAND));
     m_btn_remove_material->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { on_remove_material(); });
     m_btn_remove_material->Hide();
@@ -408,6 +430,8 @@ wxBoxSizer* MixedFilamentDialog::create_ratio_slider()
         }
 
         int div_x = (int)(ratio(1) / 100.0 * sz.GetWidth());
+        dc.SetPen(wxPen(StateColor::darkModeColorFor(wxColour(80, 80, 80)), FromDIP(4)));
+        dc.DrawLine(div_x, 0, div_x, sz.GetHeight());
         dc.SetPen(wxPen(*wxWHITE, FromDIP(2)));
         dc.DrawLine(div_x, 0, div_x, sz.GetHeight());
     });
@@ -534,46 +558,65 @@ wxBoxSizer* MixedFilamentDialog::create_triangle_picker()
 
         wxColour c0 = comp_colour(0), c1 = comp_colour(1), c2 = comp_colour(2);
 
-        int min_y = (int)std::min({v0.y, v1.y, v2.y});
-        int max_y = (int)std::max({v0.y, v1.y, v2.y});
-        int min_x = (int)std::min({v0.x, v1.x, v2.x});
-        int max_x = (int)std::max({v0.x, v1.x, v2.x});
+        const bool cache_valid = m_tri_cache_bmp.IsOk() &&
+            m_tri_cache_size == sz &&
+            m_tri_cache_c0 == c0 && m_tri_cache_c1 == c1 && m_tri_cache_c2 == c2;
 
-        wxBitmap bmp(sz.GetWidth(), sz.GetHeight(), 24);
-        wxMemoryDC mdc(bmp);
-        mdc.SetBrush(wxBrush(tri_bg));
-        mdc.SetPen(*wxTRANSPARENT_PEN);
-        mdc.DrawRectangle(0, 0, sz.GetWidth(), sz.GetHeight());
+        if (!cache_valid) {
+            int min_y = (int)std::min({v0.y, v1.y, v2.y});
+            int max_y = (int)std::max({v0.y, v1.y, v2.y});
+            int min_x = (int)std::min({v0.x, v1.x, v2.x});
+            int max_x = (int)std::max({v0.x, v1.x, v2.x});
 
-        for (int py = min_y; py <= max_y; ++py) {
-            for (int px = min_x; px <= max_x; ++px) {
-                TriPoint p = {(double)px, (double)py};
-                if (!tri_contains(p, v0, v1, v2)) continue;
-                double w0, w1, w2;
-                tri_barycentric(p, v0, v1, v2, w0, w1, w2);
-                int r = (int)(c0.Red() * w0 + c1.Red() * w1 + c2.Red() * w2);
-                int g = (int)(c0.Green() * w0 + c1.Green() * w1 + c2.Green() * w2);
-                int b = (int)(c0.Blue() * w0 + c1.Blue() * w1 + c2.Blue() * w2);
-                mdc.SetPen(wxPen(wxColour(std::clamp(r, 0, 255), std::clamp(g, 0, 255), std::clamp(b, 0, 255))));
-                mdc.DrawPoint(px, py);
+            m_tri_cache_bmp = wxBitmap(sz.GetWidth(), sz.GetHeight(), 24);
+            wxMemoryDC mdc(m_tri_cache_bmp);
+            mdc.SetBrush(wxBrush(tri_bg));
+            mdc.SetPen(*wxTRANSPARENT_PEN);
+            mdc.DrawRectangle(0, 0, sz.GetWidth(), sz.GetHeight());
+
+            for (int py = min_y; py <= max_y; ++py) {
+                for (int px = min_x; px <= max_x; ++px) {
+                    TriPoint p = {(double)px, (double)py};
+                    if (!tri_contains(p, v0, v1, v2)) continue;
+                    double w0, w1, w2;
+                    tri_barycentric(p, v0, v1, v2, w0, w1, w2);
+                    unsigned char mr, mg, mb;
+                    if (w0 + w1 > 1e-6) {
+                        float t01 = static_cast<float>(w1 / (w0 + w1));
+                        Slic3r::filament_mixer_lerp(c0.Red(), c0.Green(), c0.Blue(),
+                                                    c1.Red(), c1.Green(), c1.Blue(),
+                                                    t01, &mr, &mg, &mb);
+                        float t2 = static_cast<float>(w2);
+                        Slic3r::filament_mixer_lerp(mr, mg, mb,
+                                                    c2.Red(), c2.Green(), c2.Blue(),
+                                                    t2, &mr, &mg, &mb);
+                    } else {
+                        mr = c2.Red(); mg = c2.Green(); mb = c2.Blue();
+                    }
+                    mdc.SetPen(wxPen(wxColour(mr, mg, mb)));
+                    mdc.DrawPoint(px, py);
+                }
             }
+
+            mdc.SetPen(wxPen(StateColor::darkModeColorFor(wxColour("#CECECE")), 1));
+            mdc.SetBrush(*wxTRANSPARENT_BRUSH);
+            wxPoint pts[3] = {{(int)v0.x, (int)v0.y}, {(int)v1.x, (int)v1.y}, {(int)v2.x, (int)v2.y}};
+            mdc.DrawPolygon(3, pts);
+
+            mdc.SelectObject(wxNullBitmap);
+            m_tri_cache_c0 = c0; m_tri_cache_c1 = c1; m_tri_cache_c2 = c2;
+            m_tri_cache_size = sz;
         }
 
-        mdc.SetPen(wxPen(StateColor::darkModeColorFor(wxColour("#CECECE")), 1));
-        mdc.SetBrush(*wxTRANSPARENT_BRUSH);
-        wxPoint pts[3] = {{(int)v0.x, (int)v0.y}, {(int)v1.x, (int)v1.y}, {(int)v2.x, (int)v2.y}};
-        mdc.DrawPolygon(3, pts);
+        dc.DrawBitmap(m_tri_cache_bmp, 0, 0);
 
-        // Drag handle
+        // Drag handle (always redrawn on top of cached bitmap)
         double hx = m_tri_wx * v0.x + m_tri_wy * v1.x + m_tri_wz * v2.x;
         double hy = m_tri_wx * v0.y + m_tri_wy * v1.y + m_tri_wz * v2.y;
         int handle_r = FromDIP(5);
-        mdc.SetBrush(*wxWHITE_BRUSH);
-        mdc.SetPen(wxPen(wxColour("#262E30"), FromDIP(2)));
-        mdc.DrawCircle((int)hx, (int)hy, handle_r);
-
-        mdc.SelectObject(wxNullBitmap);
-        dc.DrawBitmap(bmp, 0, 0);
+        dc.SetBrush(*wxWHITE_BRUSH);
+        dc.SetPen(wxPen(wxColour("#262E30"), FromDIP(2)));
+        dc.DrawCircle((int)hx, (int)hy, handle_r);
 
         dc.SetFont(::Label::Body_10);
         dc.SetTextForeground(StateColor::darkModeColorFor(wxColour("#262E30")));
@@ -650,12 +693,14 @@ wxBoxSizer* MixedFilamentDialog::create_gradient_section()
 {
     m_gradient_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_chk_gradient = new wxCheckBox(this, wxID_ANY, _L("Gradient Effect"));
+    m_chk_gradient = new ::CheckBox(this);
     m_chk_gradient->SetValue(m_result.gradient_enabled);
-    m_chk_gradient->SetFont(::Label::Body_13);
-    m_chk_gradient->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent&) { on_gradient_toggled(); });
-
+    m_chk_gradient->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) { e.Skip(); on_gradient_toggled(); });
     m_gradient_sizer->Add(m_chk_gradient, 0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, FromDIP(4));
+
+    m_label_gradient = new wxStaticText(this, wxID_ANY, _L("Gradient Effect"));
+    m_label_gradient->SetFont(::Label::Body_13);
+    m_gradient_sizer->Add(m_label_gradient, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(8));
 
     m_combo_gradient_dir = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
                                         wxSize(FromDIP(152), FromDIP(24)), 0, nullptr, wxCB_READONLY);
@@ -682,7 +727,7 @@ wxBoxSizer* MixedFilamentDialog::create_recommendation_grid()
 
     auto* rec_line = new wxPanel(this, wxID_ANY);
     rec_line->SetMinSize(wxSize(-1, 1));
-    rec_line->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#ACACAC")));
+    rec_line->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#DFDFDF")));
     title_sizer->Add(rec_line, 1, wxALIGN_CENTER_VERTICAL);
 
     outer->Add(title_sizer, 0, wxEXPAND | wxBOTTOM, FromDIP(4));
@@ -692,7 +737,9 @@ wxBoxSizer* MixedFilamentDialog::create_recommendation_grid()
     m_recommendation_scroll->SetBackgroundColour(StateColor::darkModeColorFor(wxColour("#F8F8F8")));
 
     m_recommendation_grid = new wxWrapSizer(wxHORIZONTAL, wxWRAPSIZER_DEFAULT_FLAGS);
-    m_recommendation_scroll->SetSizer(m_recommendation_grid);
+    auto* scroll_inner_sizer = new wxBoxSizer(wxVERTICAL);
+    scroll_inner_sizer->Add(m_recommendation_grid, 1, wxEXPAND | wxLEFT | wxTOP, FromDIP(8));
+    m_recommendation_scroll->SetSizer(scroll_inner_sizer);
 
     rebuild_recommendation_items();
 
@@ -1270,45 +1317,38 @@ void MixedFilamentDialog::update_gradient_direction_items()
         int bmp_w = swatch_sz + gap + arrow_w + gap + swatch_sz;
         int bmp_h = swatch_sz;
 
-        wxBitmap bmp(bmp_w, bmp_h);
-        wxMemoryDC dc(bmp);
-
-        wxColour dir_bg   = StateColor::darkModeColorFor(*wxWHITE);
         wxColour dir_text = StateColor::darkModeColorFor(wxColour("#262E30"));
-        dc.SetBrush(wxBrush(dir_bg));
-        dc.SetPen(wxPen(dir_bg));
-        dc.DrawRectangle(0, 0, bmp_w, bmp_h);
-        dc.SetFont(::Label::Body_13);
 
-        auto draw_swatch = [&](int x, size_t idx) {
-            wxColour col("#D9D9D9");
-            if (idx < m_physical_colors.size())
-                col = wxColour(m_physical_colors[idx]);
-            dc.SetBrush(wxBrush(col));
-            dc.SetPen(*wxTRANSPARENT_PEN);
-            dc.DrawRoundedRectangle(x, 0, swatch_sz, swatch_sz, FromDIP(2));
-            wxString num = wxString::Format(wxT("%zu"), idx + 1);
-            wxSize txt_sz = dc.GetTextExtent(num);
-            dc.SetTextForeground(col.GetLuminance() > 0.5 ? dir_text : *wxWHITE);
-            dc.DrawText(num, x + (swatch_sz - txt_sz.GetWidth()) / 2,
-                             (swatch_sz - txt_sz.GetHeight()) / 2);
-        };
+        return make_alpha_bitmap(bmp_w, bmp_h, [&](wxDC& dc) {
+            dc.SetFont(::Label::Body_13);
 
-        int x = 0;
-        draw_swatch(x, idx_from);
-        x += swatch_sz + gap;
+            auto draw_swatch = [&](int x, size_t idx) {
+                wxColour col("#D9D9D9");
+                if (idx < m_physical_colors.size())
+                    col = wxColour(m_physical_colors[idx]);
+                dc.SetBrush(wxBrush(col));
+                dc.SetPen(*wxTRANSPARENT_PEN);
+                dc.DrawRoundedRectangle(x, 0, swatch_sz, swatch_sz, FromDIP(2));
+                wxString num = wxString::Format(wxT("%zu"), idx + 1);
+                wxSize txt_sz = dc.GetTextExtent(num);
+                dc.SetTextForeground(col.GetLuminance() > 0.5 ? dir_text : *wxWHITE);
+                dc.DrawText(num, x + (swatch_sz - txt_sz.GetWidth()) / 2,
+                                 (swatch_sz - txt_sz.GetHeight()) / 2);
+            };
 
-        dc.SetTextForeground(dir_text);
-        wxString arrow = wxT("\u2192");
-        wxSize arrow_sz = dc.GetTextExtent(arrow);
-        dc.DrawText(arrow, x + (arrow_w - arrow_sz.GetWidth()) / 2,
-                           (bmp_h - arrow_sz.GetHeight()) / 2);
-        x += arrow_w + gap;
+            int x = 0;
+            draw_swatch(x, idx_from);
+            x += swatch_sz + gap;
 
-        draw_swatch(x, idx_to);
+            dc.SetTextForeground(dir_text);
+            wxString arrow = wxT("\u2192");
+            wxSize arrow_sz = dc.GetTextExtent(arrow);
+            dc.DrawText(arrow, x + (arrow_w - arrow_sz.GetWidth()) / 2,
+                               (bmp_h - arrow_sz.GetHeight()) / 2);
+            x += arrow_w + gap;
 
-        dc.SelectObject(wxNullBitmap);
-        return bmp;
+            draw_swatch(x, idx_to);
+        });
     };
 
     size_t idx_a = (comp(0) >= 1) ? comp(0) - 1 : 0;
@@ -1338,6 +1378,7 @@ void MixedFilamentDialog::update_component_count_ui()
     if (m_gradient_sizer) {
         bool show_gradient = is_two;
         m_chk_gradient->Show(show_gradient);
+        if (m_label_gradient) m_label_gradient->Show(show_gradient);
         m_combo_gradient_dir->Show(show_gradient && m_result.gradient_enabled);
     }
     if (is_three) {

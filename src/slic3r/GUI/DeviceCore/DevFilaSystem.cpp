@@ -384,6 +384,30 @@ int DevFilaSystem::GetTrayIdByAmsSlotId(int ams_id, int slot_id)
         return -1;
 }
 
+std::string DevFilaSystem::GetTrayNameByTrayId(int tray_id)
+{
+    std::string tray_name;
+
+    auto tray_ams_slot_map = GetTrayIndexMap();
+
+    if (tray_id == VIRTUAL_TRAY_MAIN_ID || tray_id == VIRTUAL_TRAY_DEPUTY_ID) {
+        tray_name = "Ext";
+    } else if (tray_ams_slot_map.find(tray_id) != tray_ams_slot_map.end()) {
+        int  ams_id = tray_ams_slot_map[tray_id].first;
+        int slot_id = tray_ams_slot_map[tray_id].second;
+
+        if (ams_id >= 128 && ams_id < 153) {
+            char prefix = 'A' + ams_id - 128;
+            tray_name   = std::string(1, prefix);
+        } else {
+            char prefix = 'A' + ams_id;
+            char suffix = '0' + 1 + slot_id;
+            tray_name = std::string(1, prefix) + std::string(1, suffix);
+        }
+    }
+    return tray_name;
+}
+
 int DevFilaSystem::GetExtruderIdByAmsId(const std::string& ams_id) const
 {
     auto it = amsList.find(ams_id);

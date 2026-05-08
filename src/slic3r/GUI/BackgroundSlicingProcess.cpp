@@ -559,6 +559,8 @@ bool BackgroundSlicingProcess::stop()
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< ", enter"<<std::endl;
 	// m_print->state_mutex() shall NOT be held. Unfortunately there is no interface to test for it.
 	std::unique_lock<std::mutex> lck(m_mutex);
+	// Always clear the one-shot post-process skip flag regardless of the return path.
+	struct SkipFlagGuard { bool& f; ~SkipFlagGuard() { f = false; } } skip_flag_guard{ m_skip_post_process_once };
 	if (m_state == STATE_INITIAL) {
 //		m_export_path.clear();
 		return false;
@@ -815,21 +817,63 @@ bool BackgroundSlicingProcess::invalidate_all_steps()
 	return m_step_state.invalidate_all([this](){ this->stop_internal(); });
 }
 
+void BackgroundSlicingProcess::set_skip_post_process_once(bool skip)
+{
+    std::unique_lock<std::mutex> lck(m_mutex);
+    m_skip_post_process_once = skip;
+}
+
 //Call post-processing script for the last step during slicing
 void BackgroundSlicingProcess::finalize_gcode()
 {
+    bool skip = false;
+    {
+        std::unique_lock<std::mutex> lck(m_mutex);
+        skip = m_skip_post_process_once;
+        m_skip_post_process_once = false;
+    }
+    if (skip) {
+        m_print->set_status(100, _utf8(L("Slicing complete")));
+        return;
+    }
+
     m_print->set_status(95, _utf8(L("Running post-processing scripts")));
 
     run_post_process_scripts(m_temp_output_path, false, "File", m_temp_output_path, m_fff_print->full_print_config());
 
     // Re-parse the G-code if post-processing scripts modified it,
-    // so the preview reflects the post-processed toolpath
+    // so the preview reflects the post-processed toolpath.
+    //
+    // IMPORTANT: only update fields that reflect G-code TEXT content (moves,
+    // lines_ends). We must NOT replace the whole result — slicer-computed
+    // state (filament_maps, nozzle_group_result, filament_change_sequence,
+    // required_nozzle_HRC, extruder_colors, nozzle_type, print_statistics,
+    // etc.) is derived from config during slicing and is not reconstructable
+    // from the G-code text alone. Replacing it wholesale breaks the H2C/H2D
+    // send-to-printer nozzle auto-mapping flow (the printer rejects the
+    // resulting get_auto_nozzle_mapping request with result="fail",
+    // errno=1, which the UI surfaces as
+    //   "The printer failed to build the nozzle auto-mapping table
+    //    { code: 1 }. Please refreash nozzle information."
+    // Bug repros on ANY post_process script (even a no-op like `cat`),
+    // because the trigger is the re-parse path, not the script content.
     const auto *post_process = m_fff_print->full_print_config().opt<ConfigOptionStrings>("post_process");
     if (post_process && !post_process->values.empty() && m_gcode_result) {
         m_print->set_status(97, _utf8(L("Updating preview with post-processed G-code")));
         GCodeProcessor processor;
+        // Apply the plate origin offset so move coordinates in the result are
+        // relative to the correct plate, not always plate 0.  Without this,
+        // slicing any plate other than the first one shifts the preview geometry
+        // by the plate's XY origin, causing the model to appear outside the bed.
+        const Vec3d origin = m_fff_print->get_plate_origin();
+        processor.set_xy_offset(origin(0), origin(1));
         processor.process_file(m_temp_output_path);
-        *m_gcode_result = std::move(processor.extract_result());
+        // extract_result() returns GCodeProcessorResult&&. We can't take a local
+        // by value (copy constructor is deleted due to mutable std::mutex member),
+        // so bind as an rvalue reference and move fields out directly.
+        GCodeProcessorResult&& reparsed = processor.extract_result();
+        m_gcode_result->moves      = std::move(reparsed.moves);
+        m_gcode_result->lines_ends = std::move(reparsed.lines_ends);
     }
 
     m_print->set_status(100, _utf8(L("Successfully executed post-processing script")));

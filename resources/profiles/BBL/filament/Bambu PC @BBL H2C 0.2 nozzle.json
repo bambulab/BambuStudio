@@ -74,6 +74,10 @@
     "hole_limit_min": [
         "0.0725"
     ],
+    "filament_preheat_temperature_delta": [
+        "20",
+        "20"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],

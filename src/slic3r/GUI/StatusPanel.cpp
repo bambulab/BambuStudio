@@ -1345,6 +1345,9 @@ void PrintingTaskPanel::set_thumbnail_img(const wxBitmap &bmp, const std::string
 
     m_thumbnail_bmp_display_name = bmp_name;
     m_thumbnail_bmp_display      = bmp;
+    if (m_bitmap_thumbnail && bmp.IsOk()) {
+        m_bitmap_thumbnail->SetBitmap(bmp);
+    }
     Refresh();
 }
 
@@ -3265,7 +3268,12 @@ void StatusPanel::update_ams(MachineObject *obj)
 {
     // update obj in sub dlg
     if (m_ams_setting_dlg && m_ams_setting_dlg->IsShown()) { m_ams_setting_dlg->UpdateByObj(obj); }
-    if (m_filament_setting_dlg) { m_filament_setting_dlg->obj = obj; }
+    if (m_filament_setting_dlg) {
+        m_filament_setting_dlg->obj = obj;
+        if (m_filament_setting_dlg->IsShown()) {
+            m_filament_setting_dlg->TryRefreshPAProfiles();
+        }
+    }
 
     if (obj && obj->GetCalib()->IsVersionExpired() && obj->is_security_control_ready()) {
         obj->GetCalib()->SyncCalibVersion();
@@ -3275,6 +3283,8 @@ void StatusPanel::update_ams(MachineObject *obj)
         cali_info.use_extruder_id        = false;
         cali_info.use_nozzle_volume_type = false;
         CalibUtils::emit_get_PA_calib_infos(cali_info);
+
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " calibration: sync calib version for device " << BBLCrossTalk::Crosstalk_DevName(obj->get_dev_name());
     }
 
     if (obj && obj->is_security_control_ready()) { obj->check_ams_filament_valid(); }
@@ -3334,7 +3344,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     }
 
     // must select a current can
-    m_ams_control->UpdateAms(obj->get_printer_series_str(), obj->printer_type, ams_info, ext_info, *obj->GetExtderSystem(), obj->get_dev_id(), false);
+    m_ams_control->UpdateAms(obj->get_printer_series_str(), obj->printer_type, ams_info, ext_info, *obj->GetExtderSystem(), obj->get_dev_id(), obj, false);
     m_ams_control->UpdateAmsDryControl(obj);
 
     last_tray_exist_bits  = obj->tray_exist_bits;
@@ -4245,7 +4255,7 @@ void StatusPanel::on_ams_load_curr()
                 }
             }
 
-            FeedDirectionDialog dialog(nullptr, 2);
+            FeedDirectionDialog dialog(nullptr, 2, obj->printer_type);
             dialog.SetExtruderMapping(obj, curr_ams_id, curr_can_id, extruderSlots);
             auto rtn = dialog.ShowModal();
 

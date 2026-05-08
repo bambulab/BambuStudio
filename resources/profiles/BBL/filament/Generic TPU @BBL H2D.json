@@ -187,6 +187,11 @@
         "0",
         "0"
     ],
+    "filament_preheat_temperature_delta": [
+        "10",
+        "10",
+        "10"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],

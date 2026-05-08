@@ -126,13 +126,6 @@
       "wiki": "https://e.bambulab.com/t?c=PAxXqQu2zBgvN3ea"
     },
     {
-      "white_names": ["support for PLA", "support for ABS", "support for PETG", "PVA", "ASA", "ABS", "PETG HF", "PETG Basic"],
-      "action": "warning",
-      "model_id":["N6"],
-      "vendor": "third party",
-      "description": "Using non-bambu filament may have printing quality issues."
-    },
-    {
       "type": "TPU",
       "action": "warning",
       "description": "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer.",

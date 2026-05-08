@@ -319,6 +319,17 @@ void Label::SetWindowStyleFlag(long style)
     Refresh();
 }
 
+wxSize Label::DoGetBestClientSize() const
+{
+    wxSize size = wxStaticText::DoGetBestClientSize();
+#ifdef WIN32
+    // GetTextExtentPoint32 can underestimate the width needed by the native
+    // STATIC control to render text. Add a small margin to prevent clipping.
+    if (size.x > 0) size.x += FromDIP(4);
+#endif
+    return size;
+}
+
 void Label::Wrap(int width)
 {
     wxLabelWrapper2 wrapper;

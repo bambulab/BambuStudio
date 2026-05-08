@@ -69,6 +69,7 @@ struct SurfaceFillParams
 	float			sparse_infill_speed = 0;
 	float			top_surface_speed = 0;
 	float			solid_infill_speed = 0;
+    float           initial_layer_flow_ratio    = 1.f;
     float           infill_shift_step          = 0;// param for cross zag
     float           infill_rotate_step         = 0; // param for zig zag to get cross texture
     bool            symmetric_infill_y_axis = false;
@@ -100,6 +101,7 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(flow.nozzle_diameter());
 		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, bridge);
 		RETURN_COMPARE_NON_EQUAL_TYPED(unsigned, extrusion_role);
+		RETURN_COMPARE_NON_EQUAL(initial_layer_flow_ratio);
 		RETURN_COMPARE_NON_EQUAL(sparse_infill_speed);
 		RETURN_COMPARE_NON_EQUAL(top_surface_speed);
 		RETURN_COMPARE_NON_EQUAL(solid_infill_speed);
@@ -128,6 +130,7 @@ struct SurfaceFillParams
 				this->anchor_length_max == rhs.anchor_length_max &&
 				this->flow 				== rhs.flow 			&&
 				this->extrusion_role	== rhs.extrusion_role	&&
+				this->initial_layer_flow_ratio == rhs.initial_layer_flow_ratio &&
 				this->sparse_infill_speed	== rhs.sparse_infill_speed &&
 				this->top_surface_speed		== rhs.top_surface_speed &&
 				this->solid_infill_speed	== rhs.solid_infill_speed &&
@@ -200,6 +203,8 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
 		        FlowRole extrusion_role = surface.is_top() ? frTopSolidInfill : (surface.is_solid() ? frSolidInfill : frInfill);
 		        bool     is_bridge 	    = layer.id() > 0 && surface.is_bridge();
 		        params.extruder 	 = layerm.region().extruder(extrusion_role);
+		        if (layer.id() == 0)
+		            params.initial_layer_flow_ratio = region_config.initial_layer_flow_ratio.value;
 		        params.pattern 		 = region_config.sparse_infill_pattern.value;
 		        params.density       = float(region_config.sparse_infill_density);
 				params.multiline	 = int(region_config.fill_multiline);

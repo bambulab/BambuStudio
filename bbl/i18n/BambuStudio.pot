@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-14 19:58+0800\n"
+"POT-Creation-Date: 2026-04-28 17:39+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3150,10 +3150,10 @@ msgstr ""
 msgid "Filling"
 msgstr ""
 
-msgid "Bed filling canceled."
+msgid "Bed filling done."
 msgstr ""
 
-msgid "Bed filling done."
+msgid "Bed filling canceled."
 msgstr ""
 
 #. TRN: This is the title of the action appearing in undo/redo stack.
@@ -3815,6 +3815,9 @@ msgid "Stack overflow"
 msgstr ""
 
 msgid "Running post-processing scripts"
+msgstr ""
+
+msgid "Updating preview with post-processed G-code"
 msgstr ""
 
 msgid "Successfully executed post-processing script"
@@ -4495,6 +4498,9 @@ msgstr ""
 msgid "Fan Speed"
 msgstr ""
 
+msgid "AUX Fan Speed"
+msgstr ""
+
 msgid "Flow"
 msgstr ""
 
@@ -4568,6 +4574,9 @@ msgid "Speed (mm/s)"
 msgstr ""
 
 msgid "Fan Speed (%)"
+msgstr ""
+
+msgid "AUX  Fan Speed (%)"
 msgstr ""
 
 msgid "Temperature (°C)"
@@ -4723,6 +4732,9 @@ msgstr ""
 msgid "Fan Speed: "
 msgstr ""
 
+msgid "AUX Fan Speed: "
+msgstr ""
+
 msgid "Temperature: "
 msgstr ""
 
@@ -4800,6 +4812,9 @@ msgid "Mouse wheel:"
 msgstr ""
 
 msgid "Increase/decrease edit area"
+msgstr ""
+
+msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
 msgstr ""
 
 msgid "Sequence"
@@ -5212,6 +5227,9 @@ msgstr ""
 msgid "Project"
 msgstr ""
 
+msgid "Filament Manager"
+msgstr ""
+
 msgid "Yes"
 msgstr ""
 
@@ -5350,6 +5368,9 @@ msgstr ""
 msgid "Isometric View"
 msgstr ""
 
+msgid "Fit Camera"
+msgstr ""
+
 msgid "Start a new window"
 msgstr ""
 
@@ -5372,9 +5393,6 @@ msgid "Save current project to file"
 msgstr ""
 
 msgid "Save Project as"
-msgstr ""
-
-msgid "Shift+"
 msgstr ""
 
 msgid "Save current project as"
@@ -6462,6 +6480,18 @@ msgstr ""
 msgid "%s has a warning"
 msgstr ""
 
+msgid "Collapse"
+msgstr ""
+
+msgid "View details"
+msgstr ""
+
+msgid "Execute"
+msgstr ""
+
+msgid "Do not execute"
+msgstr ""
+
 #, possible-c-format, possible-boost-format
 msgid "%s info"
 msgstr ""
@@ -7132,9 +7162,6 @@ msgstr ""
 msgid "Restore"
 msgstr ""
 
-msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
-msgstr ""
-
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr ""
 
@@ -7212,6 +7239,12 @@ msgid "Name of components inside step file is not UTF8 format!"
 msgstr ""
 
 msgid "The name may show garbage characters!"
+msgstr ""
+
+msgid "The following shells are not closed and may cause issues:"
+msgstr ""
+
+msgid "Unclosed Shell Warning"
 msgstr ""
 
 #, possible-boost-format
@@ -7745,6 +7778,11 @@ msgstr ""
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr ""
 
+msgid ""
+"Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\n"
+"Please verify the file source and script contents before continuing."
+msgstr ""
+
 #, possible-c-format, possible-boost-format
 msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
 msgstr ""
@@ -7802,6 +7840,11 @@ msgid "Invalid number"
 msgstr ""
 
 msgid "Plate Settings"
+msgstr ""
+
+msgid ""
+"While printing by Object, the extruder may collide skirt.\n"
+"Thus, it is recommended to reset the skirt layer to 1 to avoid that."
 msgstr ""
 
 msgid "Prime Tower:"
@@ -8639,6 +8682,10 @@ msgid "Recommended filament arrangement saves %s->"
 msgstr ""
 
 #, possible-c-format, possible-boost-format
+msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
+msgstr ""
+
+#, possible-c-format, possible-boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
 msgstr ""
 
@@ -8918,9 +8965,6 @@ msgid "Set dynamic flow calibration to 'OFF' to enable custom dynamic flow value
 msgstr ""
 
 msgid "This printer does not support printing all plates"
-msgstr ""
-
-msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
 msgstr ""
 
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
@@ -10208,6 +10252,9 @@ msgid "Camera view - Right"
 msgstr ""
 
 msgid "Camera view - Isometric"
+msgstr ""
+
+msgid "Camera view - Fit to scene or selection"
 msgstr ""
 
 msgid "Shift+E"
@@ -12347,6 +12394,12 @@ msgid "The volume of material required to prime the extruder on the tower, exclu
 msgstr ""
 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
+msgstr ""
+
+msgid "Preheat temperature delta"
+msgstr ""
+
+msgid "Temperature delta applied during pre-heating before tool change."
 msgstr ""
 
 msgid "Wipe tower cooling"
@@ -14955,9 +15008,6 @@ msgstr ""
 msgid "Keep original models"
 msgstr ""
 
-msgid "Execute"
-msgstr ""
-
 msgid "Entity Only"
 msgstr ""
 
@@ -15450,9 +15500,6 @@ msgid "Edit Preset"
 msgstr ""
 
 msgid "For more information, please check out Wiki"
-msgstr ""
-
-msgid "Collapse"
 msgstr ""
 
 msgid "Daily Tips"
@@ -16076,12 +16123,6 @@ msgstr ""
 msgid "Fila Saving"
 msgstr ""
 
-msgid "Don't remind me again"
-msgstr ""
-
-msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
-msgstr ""
-
 msgid "Filament-Saving Mode"
 msgstr ""
 
@@ -16137,9 +16178,6 @@ msgstr ""
 
 #, possible-c-format, possible-boost-format
 msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
-msgstr ""
-
-msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
 msgstr ""
 
 msgid "Skip Objects"

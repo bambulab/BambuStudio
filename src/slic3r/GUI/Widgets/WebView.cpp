@@ -23,8 +23,28 @@
 #include <gtk/gtk.h>
 #define WEBKIT_API
 struct WebKitWebView;
+#if defined(BBL_WEBKITGTK_4_1)
+struct _JSCValue;
+typedef struct _JSCValue JSCValue;
+#else
 struct WebKitJavascriptResult;
+#endif
 extern "C" {
+#if defined(BBL_WEBKITGTK_4_1)
+WEBKIT_API void
+webkit_web_view_evaluate_javascript                  (WebKitWebView             *web_view,
+                                                      const gchar               *script,
+                                                      gssize                     length,
+                                                      const gchar               *world_name,
+                                                      const gchar               *source_uri,
+                                                      GCancellable              *cancellable,
+                                                      GAsyncReadyCallback       callback,
+                                                      gpointer                  user_data);
+WEBKIT_API JSCValue *
+webkit_web_view_evaluate_javascript_finish           (WebKitWebView             *web_view,
+                                                      GAsyncResult              *result,
+                                                      GError                    **error);
+#else
 WEBKIT_API void
 webkit_web_view_run_javascript                       (WebKitWebView             *web_view,
                                                       const gchar               *script,
@@ -34,9 +54,10 @@ webkit_web_view_run_javascript                       (WebKitWebView             
 WEBKIT_API WebKitJavascriptResult *
 webkit_web_view_run_javascript_finish                (WebKitWebView             *web_view,
                                                       GAsyncResult              *result,
-						      GError                    **error);
+                                                      GError                    **error);
 WEBKIT_API void
-webkit_javascript_result_unref              (WebKitJavascriptResult *js_result);
+webkit_javascript_result_unref                       (WebKitJavascriptResult    *js_result);
+#endif
 }
 
 static GOnce register_handler_once = G_ONCE_INIT;
@@ -357,6 +378,19 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
         return true;
 #else
         WebKitWebView *wkWebView = (WebKitWebView *) webView->GetNativeBackend();
+#if defined(BBL_WEBKITGTK_4_1)
+        webkit_web_view_evaluate_javascript(
+            wkWebView, javascript.utf8_str(), -1, NULL, NULL, NULL,
+            [](GObject *wkWebView, GAsyncResult *res, void *) {
+                GError *error = NULL;
+                JSCValue *result = webkit_web_view_evaluate_javascript_finish((WebKitWebView*)wkWebView, res, &error);
+                if (!result) {
+                    if (error) g_error_free(error);
+                } else {
+                    g_object_unref(result);
+                }
+        }, NULL);
+#else
         webkit_web_view_run_javascript(
             wkWebView, javascript.utf8_str(), NULL,
             [](GObject *wkWebView, GAsyncResult *res, void *) {
@@ -367,6 +401,7 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
                 else
                     webkit_javascript_result_unref (result);
         }, NULL);
+#endif
         return true;
 #endif
     } catch (std::exception &/*e*/) {

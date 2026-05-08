@@ -1752,6 +1752,10 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
     } else if (status == PrintStatusColorQuantityExceed) {
+        if (params.size() > 0) {
+            msg = wxString::Format(_L("The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."),
+                                   params[0], params[0]);
+        }
         Enable_Refresh_Button(true);
         Enable_Send_Button(false);
     }
@@ -2800,6 +2804,15 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
             opt->setValue("auto");
         } else if (opt->contain_opt("on")) {
             opt->setValue("on");
+        }
+    }
+
+    if (obj->is_multi_extruders()) {
+        auto used_nozzle_idxes = _get_used_nozzle_idxes();
+        if (used_nozzle_idxes.size() == 1) {
+            m_checkbox_list["nozzle_offset_cali"]->setValue("off");
+        } else if (used_nozzle_idxes.size() >= 2) {
+            m_checkbox_list["nozzle_offset_cali"]->setValue("auto");
         }
     }
 
@@ -3965,10 +3978,11 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
         show_status(PrintDialogStatus::PrintStatusNoSdcard);
         return;
     }
-    if (wxGetApp().preset_bundle->filament_presets.size() > 16 && m_print_type != PrintFromType::FROM_SDCARD_VIEW) {
-        if (!obj_->is_enable_ams_np && !obj_->is_enable_np)
-        {
-            show_status(PrintDialogStatus::PrintStatusColorQuantityExceed);
+    if (m_print_type != PrintFromType::FROM_SDCARD_VIEW) {
+        const int    max_color = obj_->get_max_filament_color_count();
+        const size_t fila_cnt  = wxGetApp().preset_bundle->filament_presets.size();
+        if (max_color > 0 && fila_cnt > (size_t) max_color) {
+            show_status(PrintDialogStatus::PrintStatusColorQuantityExceed, {wxString::Format("%d", max_color)});
             return;
         }
     }
@@ -4487,6 +4501,13 @@ void SelectMachineDialog::reset_and_sync_ams_list()
     int left_sizer_count = 0, right_sizer_count = 0, sizer_count = 0;
 
     BitmapCache  bmcache;
+
+    auto dev = wxGetApp().getDeviceManager()->get_selected_machine();
+    bool has_switcher = dev && dev->GetFilaSwitch()->IsInstalled();
+
+    auto filament_color_render_info = wxGetApp().plater()->get_filament_colors_render_info();
+    auto filament_color_type_info   = wxGetApp().plater()->get_filament_color_render_type();
+
     for (auto i = 0; i < used_filaments.size(); i++) {
         auto          used_filament = used_filaments[i] - 1;
         if (used_filament >= preset_filament_vec.size()) {
@@ -4507,8 +4528,6 @@ void SelectMachineDialog::reset_and_sync_ams_list()
 
         // create material item
         MaterialItem* item = nullptr;
-        auto dev = wxGetApp().getDeviceManager()->get_selected_machine();
-        bool has_switcher = dev && dev->GetFilaSwitch()->IsInstalled();
         if (extruder_nums == 2 && !has_switcher) {
             if (m_filaments_map[used_filament] == 1) {
                 item = new MaterialItem(m_filament_left_panel, colour_rgb, preset_filament.filament_display_type, preset_filament.filament_id);
@@ -4526,6 +4545,20 @@ void SelectMachineDialog::reset_and_sync_ams_list()
         }
 
         if (!item) { continue; }
+
+        if (used_filament < filament_color_render_info.size() && used_filament < filament_color_type_info.size()) {
+            auto color_strs = Slic3r::split_string(filament_color_render_info[used_filament], ' ');
+            if (color_strs.size() > 1) {
+                int ctype = (filament_color_type_info[used_filament] == "0") ? 0 : 1;
+                std::vector<wxColour> cols;
+                for (const auto& cs : color_strs) {
+                    wxColour c(cs);
+                    if (c.IsOk()) cols.push_back(c);
+                }
+                if (cols.size() > 1) item->set_material_cols(ctype, cols);
+            }
+        }
+
         item->SetToolTip(_L("Upper half area:  Original\nLower half area:  Filament in AMS\nAnd you can click it to modify"));
 
         if (!selected_any && used_filament == m_current_filament_id && item->m_enable) {
@@ -5007,6 +5040,9 @@ void SelectMachineDialog::set_default_from_sdcard()
     MaterialItem *first_enabled     = nullptr;
     int           first_enabled_id  = -1;
 
+    auto filament_color_render_info2 = wxGetApp().plater()->get_filament_colors_render_info();
+    auto filament_color_type_info2   = wxGetApp().plater()->get_filament_color_render_type();
+
     for (auto i = 0; i < m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info.size(); i++) {
         FilamentInfo fo = m_required_data_plate_data_list[m_print_plate_idx]->slice_filaments_info[i];
 
@@ -5029,6 +5065,19 @@ void SelectMachineDialog::set_default_from_sdcard()
         }
 
         if (!item) continue;
+
+        if (fo.id < (int)filament_color_render_info2.size() && fo.id < (int)filament_color_type_info2.size()) {
+            auto color_strs = Slic3r::split_string(filament_color_render_info2[fo.id], ' ');
+            if (color_strs.size() > 1) {
+                int ctype = (filament_color_type_info2[fo.id] == "0") ? 0 : 1;
+                std::vector<wxColour> cols;
+                for (const auto& cs : color_strs) {
+                    wxColour c(cs);
+                    if (c.IsOk()) cols.push_back(c);
+                }
+                if (cols.size() > 1) item->set_material_cols(ctype, cols);
+            }
+        }
 
         if (!selected_any && fo.id == m_current_filament_id && item->m_enable) {
             item->on_selected();
@@ -6455,13 +6504,17 @@ std::optional<float> SelectMachineDialog::get_filament_change_gap_time(MachineOb
     params.selector_load_time = params.standard_load_time * 0.5;
     params.selector_unload_time = params.standard_unload_time * 0.5;
 
+    int group_count = group_of_filaments.empty() ? 0 : *std::max_element(group_of_filaments.begin(), group_of_filaments.end()) + 1;
+    std::vector<bool> ams_preload_enabled(group_count, obj_->ams_preload_version >= 1);
+
     try {
         return MultiNozzleUtils::calc_filament_change_gap_for_assignment(logic_filaments,
                                                                          nozzle_list,
                                                                          fila_change_seq,
                                                                          nozzle_change_seq,
                                                                          group_of_filaments,
-                                                                         params);
+                                                                         params,
+                                                                         ams_preload_enabled);
     } catch (const std::exception& e) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": exception: " << e.what();
         return std::nullopt;

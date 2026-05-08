@@ -65,6 +65,7 @@
 #include "FilamentMapDialog.hpp"
 
 #include "DeviceCore/DevManager.h"
+#include "slic3r/GUI/DeviceWeb/DeviceWebPage.hpp"
 
 #ifdef _WIN32
 #include <dbt.h>
@@ -1100,13 +1101,31 @@ void MainFrame::show_calibration_button(bool show, bool is_BBL)
     topbar()->ShowCalibrationButton(show);
 #endif
     show = is_BBL;
-    auto shown2 = m_tabpanel->FindPage(m_calibration) != wxNOT_FOUND;
+    // STUDIO-18116: locate the Calibration tab by its page pointer instead of relying on
+    // the hardcoded `tpCalibration` enum index. The enum value (6) is calibrated for the
+    // multi_machine-enabled layout (8 pages); when multi_machine is disabled the actual
+    // notebook only has 7 pages and Calibration sits at index 5 while the Filament Manager
+    // tab sits at index 6. Calling RemovePage(tpCalibration=6) in that situation removes
+    // the Filament Manager tab instead, which is exactly the "no Filament Manager tab on
+    // first launch" symptom users hit when no BBL preset is selected yet.
+    int cal_page_id = m_tabpanel->FindPage(m_calibration);
+    auto shown2 = cal_page_id != wxNOT_FOUND;
     if (shown2 == show)
         ;
-    else if (show)
-        m_tabpanel->InsertPage(tpCalibration, m_calibration, _L("Calibration"), std::string("tab_monitor_active"), std::string("tab_monitor_active"), false);
-    else
-        m_tabpanel->RemovePage(tpCalibration);
+    else if (show) {
+        // Insert right before the Filament Manager tab (or append if it isn't there) so
+        // the visual order stays Project / Calibration / Filament Manager regardless of
+        // how many leading plater pages update_layout() has inserted.
+        int fm_page_id = m_web_device ? m_tabpanel->FindPage(m_web_device) : wxNOT_FOUND;
+        size_t insert_at = (fm_page_id != wxNOT_FOUND)
+                               ? static_cast<size_t>(fm_page_id)
+                               : m_tabpanel->GetPageCount();
+        m_tabpanel->InsertPage(insert_at, m_calibration, _L("Calibration"),
+                               std::string("tab_monitor_active"),
+                               std::string("tab_monitor_active"), false);
+    } else {
+        m_tabpanel->RemovePage(static_cast<size_t>(cal_page_id));
+    }
 }
 
 void MainFrame::update_title_colour_after_set_title()
@@ -1158,6 +1177,9 @@ void MainFrame::init_tabpanel()
     m_settings_dialog.set_tabpanel(m_tabpanel);
 
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGING, [this](wxBookCtrlEvent& e) {
+        int old_sel = e.GetOldSelection();
+        int new_sel = e.GetSelection();
+
         //if (bool test = false) {
         //    SupportRecommendDialog* dialog = new SupportRecommendDialog(nullptr, _L("Notice"));;
 
@@ -1188,8 +1210,6 @@ void MainFrame::init_tabpanel()
         //    dialog->ShowModal();
         //}
 
-        int old_sel = e.GetOldSelection();
-        int new_sel = e.GetSelection();
         if (old_sel != wxNOT_FOUND &&
             new_sel != old_sel &&
             m_project != nullptr &&
@@ -1288,6 +1308,17 @@ void MainFrame::init_tabpanel()
             if (agent)
                 agent->track_update_property("select_device_page", std::to_string(++select_device_page_count));
         }
+        else if (panel == m_web_device) {
+#if defined(__WXOSX__)
+            // Defer hash navigation until after the notebook paints (macOS + WKWebView).
+            CallAfter([this]() {
+                if (m_web_device && m_tabpanel && m_tabpanel->GetCurrentPage() == m_web_device)
+                    m_web_device->NavigateTo("/filament");
+            });
+#else
+            m_web_device->NavigateTo("/filament");
+#endif
+        }
 #ifndef __APPLE__
         if (sel == tp3DEditor) {
             m_topbar->EnableUndoRedoItems();
@@ -1297,7 +1328,12 @@ void MainFrame::init_tabpanel()
         }
 #endif
 #ifndef __WXGTK__
-        if (panel)
+        // macOS: avoid moving first responder into WKWebView on Filament Manager (STUDIO-18111).
+        if (panel
+#if defined(__WXOSX__)
+            && panel != m_web_device
+#endif
+        )
             panel->SetFocus();
 #endif
         /*switch (sel) {
@@ -1365,6 +1401,9 @@ void MainFrame::init_tabpanel()
     m_calibration = new CalibrationPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
     m_calibration->SetBackgroundColour(*wxWHITE);
     m_tabpanel->AddPage(m_calibration, _L("Calibration"), std::string("tab_calibration_active"), std::string("tab_calibration_active"), false);
+
+    m_web_device = new DeviceWebPage(m_tabpanel);
+    m_tabpanel->AddPage(m_web_device, _L("Filament Manager"), std::string("tab_filament_active"), std::string("tab_filament_active"), false);
 
     if (m_plater) {
         // load initial config
@@ -2469,6 +2508,8 @@ void MainFrame::on_dpi_changed(const wxRect& suggested_rect)
     if (m_multi_machine)
         m_multi_machine->msw_rescale();
     m_calibration->msw_rescale();
+    if (m_web_device)
+        m_web_device->msw_rescale();
 
     // BBS
 #if 0
@@ -2528,6 +2569,7 @@ void MainFrame::on_sys_color_changed()
     wxGetApp().plater()->sys_color_changed();
     m_monitor->on_sys_color_changed();
     m_calibration->on_sys_color_changed();
+    if (m_web_device) m_web_device->on_sys_color_changed();
     // update Tabs
     for (auto tab : wxGetApp().tabs_list)
         tab->sys_color_changed();
@@ -2751,11 +2793,11 @@ void MainFrame::init_menubar_as_editor()
 
 
 #ifndef __APPLE__
-        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\t" + ctrl + _L("Shift+") + "S", _L("Save current project as"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\t" + ctrl + "Shift+" + "S", _L("Save current project as"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, "menu_save", nullptr,
             [this](){return m_plater != nullptr && can_save_as(); }, this);
 #else
-        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\t" + ctrl + _L("Shift+") + "S", _L("Save current project as"),
+        append_menu_item(fileMenu, wxID_ANY, _L("Save Project as") + dots + "\t" + ctrl + "Shift+" + "S", _L("Save current project as"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->save_project(true); }, "", nullptr,
             [this](){return m_plater != nullptr && can_save_as(); }, this);
 #endif
@@ -2899,7 +2941,7 @@ void MainFrame::init_menubar_as_editor()
             _L("Deletes the current selection"),[this](wxCommandEvent&) { m_plater->remove_selected(); },
             "menu_remove", nullptr, [this](){return can_delete(); }, this);
         //BBS: delete all
-        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + _L("Shift+") + "D",
+        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + "Shift+" + "D",
             _L("Deletes all objects"),[this](wxCommandEvent&) { m_plater->delete_all_objects_from_model(); },
             "menu_remove", nullptr, [this](){return can_delete_all(); }, this);
         editMenu->AppendSeparator();
@@ -2981,7 +3023,7 @@ void MainFrame::init_menubar_as_editor()
             "", nullptr, [this](){return can_delete(); }, this);
 #endif
         //BBS: delete all
-        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + _L("Shift+") + "D",
+        append_menu_item(editMenu, wxID_ANY, _L("Delete all") + "\t" + ctrl + "Shift+" + "D",
             _L("Deletes all objects"),[this, handle_key_event](wxCommandEvent&) {
                 wxKeyEvent e;
                 e.SetEventType(wxEVT_KEY_DOWN);
@@ -3101,7 +3143,7 @@ void MainFrame::init_menubar_as_editor()
         append_menu_check_item(viewMenu, wxID_ANY, _L("Show Labels by Layer") + "\t" + ctrl + "E", _L("Show Labels of printing by layer in 3D scene"),
             [this](wxCommandEvent&) { m_plater->show_view3D_layer_labels(!m_plater->are_view3D_layer_labels_shown()); m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, this,
             [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_layer_labels_shown(); }, this);
-        append_menu_check_item(viewMenu, wxID_ANY, _L("Show Labels by Object") + "\t" + _L("Shift+") + "E", _L("Show Labels of printing by object in 3D scene"),
+        append_menu_check_item(viewMenu, wxID_ANY, _L("Show Labels by Object") + "\t" + ctrl + "Shift+" + "E", _L("Show Labels of printing by object in 3D scene"),
             [this](wxCommandEvent&) { m_plater->show_view3D_object_labels(!m_plater->are_view3D_object_labels_shown()); m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT)); }, this,
             [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->are_view3D_object_labels_shown(); }, this);
 

@@ -114,6 +114,11 @@ void update_selected_items_inflation(ArrangePolygons& selected, const DynamicPri
         // 2. if there is an object with tree support, all objects use the max tree branch radius (brim_max=branch diameter)
         // 3. otherwise, use each object's own brim width
         ap.inflation = params.min_obj_distance != 0 ? params.min_obj_distance / 2 : params.plate_has_tree_support ? scaled(params.brim_max / 2) : scaled(ap.brim_width);
+        // STUDIO: 调用方可通过 params.min_inflation_floor 显式要求"最小可见间隙"。
+        // 仅在自动档位（用户没显式设 min_obj_distance）下生效，避免污染显式间距语义。
+        // 默认 0 = 关闭，保持各 arrange 路径的旧行为；FillBedJob 会在调用前主动设置。
+        if (params.min_obj_distance == 0 && params.min_inflation_floor > 0)
+            ap.inflation = std::max(ap.inflation, params.min_inflation_floor);
         });
     params.brim_skirt_distance = std::max(params.brim_skirt_distance, float(params.brim_max));
 }

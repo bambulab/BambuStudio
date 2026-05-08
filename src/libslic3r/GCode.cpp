@@ -3794,7 +3794,8 @@ namespace ProcessLayer
         unsigned int                                             current_extruder_id,
         // ID of the first extruder printing this layer.
         unsigned int                                             first_extruder_id,
-        const PrintConfig                                       &config)
+        const PrintConfig                                       &config,
+        bool                                                     unretract_before_custom_for_pa_pattern)
     {
         std::string gcode;
         // BBS
@@ -3859,6 +3860,10 @@ namespace ProcessLayer
                 else {
                     // add tag for processor
                     gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Custom_Code) + "\n";
+                    // PA pattern calibration G-code is generated with a fresh writer and assumes the nozzle starts
+                    // unretracted; after change_layer() the main path may still be retracted (e.g. wipe).
+                    if (unretract_before_custom_for_pa_pattern)
+                        gcode += gcodegen.writer().unretract();
                     if (gcode_type == CustomGCode::Template)    // Template Custom Gcode
                         gcode += gcodegen.placeholder_parser_process("template_custom_gcode", config.template_custom_gcode, current_extruder_id);
                     else                                        // custom Gcode
@@ -4205,7 +4210,8 @@ GCode::LayerResult GCode::process_layer(
 
     if (single_object_instance_idx == size_t(-1)) {
         // Normal (non-sequential) print.
-        gcode += ProcessLayer::emit_custom_gcode_per_print_z(*this, layer_tools.custom_gcode, m_writer.filament()->id(), first_extruder_id, print.config());
+        gcode += ProcessLayer::emit_custom_gcode_per_print_z(*this, layer_tools.custom_gcode, m_writer.filament()->id(), first_extruder_id, print.config(),
+            print.calib_mode() == CalibMode::Calib_PA_Pattern);
     }
     // Extrude skirt at the print_z of the raft layers and normal object layers
     // not at the print_z of the interlaced support material layers.

@@ -7,6 +7,8 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/nowide/cstdio.hpp>
+#include <boost/system/detail/error_code.hpp>
+#include <unordered_set>
 
 #ifdef __WXGTK2__
     // Broken alpha workaround
@@ -21,6 +23,23 @@
 #include "3DScene.hpp"
 
 namespace Slic3r { namespace GUI {
+
+static std::string dark_version(const std::string &bitmap_name)
+{
+    static std::unordered_set<std::string> cache;
+    auto dark_bitmap_name = bitmap_name + "_dark";
+
+    auto it = cache.find(dark_bitmap_name);
+    if (it != cache.end()) return *it;
+
+    boost::system::error_code ec;
+    if (boost::filesystem::exists(Slic3r::var(dark_bitmap_name) + ".svg", ec)) {
+        cache.insert(dark_bitmap_name);
+        return dark_bitmap_name;
+    }
+
+    return {};
+}
 
 BitmapCache::BitmapCache()
 {
@@ -307,9 +326,12 @@ error:
     return NULL;
 }
 
-wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_width, unsigned target_height, 
+wxBitmap* BitmapCache::load_svg(const std::string &light_bitmap_name, unsigned target_width, unsigned target_height, 
     const bool grayscale/* = false*/, const bool dark_mode/* = false*/, const std::string& new_color /*= ""*/, const float scale_in_center/* = 0*/)
 {
+    const std::string dark_bitmap_name = dark_mode ? dark_version(light_bitmap_name) : "";
+    const std::string bitmap_name      = dark_bitmap_name.empty() ? light_bitmap_name : dark_bitmap_name;
+
     std::string bitmap_key = bitmap_name + ( target_height !=0 ? 
                                            "-h" + std::to_string(target_height) : 
                                            "-w" + std::to_string(target_width))
@@ -322,9 +344,10 @@ wxBitmap* BitmapCache::load_svg(const std::string &bitmap_name, unsigned target_
     if (it != m_map.end())
         return it->second;
 
+    // if dark version icon not available, we make one from the light version by replacing some predefined colors
     // map of color replaces
     std::map<std::string, std::string> replaces;
-    if (dark_mode) {
+    if (dark_mode && dark_bitmap_name.empty()) {
         replaces["\"#262E30\""] = "\"#EFEFF0\"";
         replaces["\"#323A3D\""] = "\"#B3B3B5\"";
         replaces["\"#808080\""] = "\"#818183\"";

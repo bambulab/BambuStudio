@@ -45,7 +45,7 @@ namespace Slic3r {
 //static const std::string CONFIG_INHERITS_KEY = "inherits";
 //static const std::string CONFIG_INSTANT_KEY = "instantiation";
 
-// Escape \n, \r and backslash
+// Escape \n, \r, quotes and backslash
 std::string escape_string_cstyle(const std::string &str)
 {
     // Allocate a buffer twice the input string length,
@@ -60,6 +60,9 @@ std::string escape_string_cstyle(const std::string &str)
         } else if (c == '\n') {
             (*outptr ++) = '\\';
             (*outptr ++) = 'n';
+        } else if (c == '"') {
+            (*outptr ++) = '\\';
+            (*outptr ++) = '"';
         } else if (c == '\\') {
             (*outptr ++) = '\\';
             (*outptr ++) = '\\';
@@ -119,7 +122,7 @@ std::string escape_strings_cstyle(const std::vector<std::string> &strs)
     return std::string(out.data(), outptr - out.data());
 }
 
-// Unescape \n, \r and backslash
+// Unescape \n, \r, quotes and backslash
 bool unescape_string_cstyle(const std::string &str, std::string &str_out)
 {
     std::vector<char> out(str.size(), 0);

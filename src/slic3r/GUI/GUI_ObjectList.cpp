@@ -4023,7 +4023,7 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray *selectio
         bool should_show = printer_technology() == ptFFF
             && std::any_of(model_object->volumes.begin(), model_object->volumes.end(),
                 [](const ModelVolume* mv) {
-                    return !mv->supported_facets.empty();
+                    return mv->is_model_part() && !mv->supported_facets.empty();
                 });
         if (shows && !should_show) {
             m_objects_model->SetSupportPaintState(false, item_obj);
@@ -4038,7 +4038,7 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray *selectio
     {
         bool shows       = m_objects_model->IsFuzzySkinPainted(item_obj);
         bool should_show = printer_technology() == ptFFF &&
-                           std::any_of(model_object->volumes.begin(), model_object->volumes.end(), [](const ModelVolume *mv) { return !mv->fuzzy_skin_facets.empty(); });
+                           std::any_of(model_object->volumes.begin(), model_object->volumes.end(), [](const ModelVolume *mv) { return mv->is_model_part() && !mv->fuzzy_skin_facets.empty(); });
         if (shows && !should_show) {
             m_objects_model->SetFuzzySkinPaintState(false, item_obj);
         } else if (!shows && should_show) {
@@ -4053,7 +4053,7 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray *selectio
         bool should_show = printer_technology() == ptFFF
             && std::any_of(model_object->volumes.begin(), model_object->volumes.end(),
                 [](const ModelVolume* mv) {
-                    return !mv->mmu_segmentation_facets.empty();
+                    return mv->is_model_part() && !mv->mmu_segmentation_facets.empty();
                 });
         if (shows && !should_show) {
             m_objects_model->SetColorPaintState(false, item_obj);

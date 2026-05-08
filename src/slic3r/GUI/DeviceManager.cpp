@@ -2973,6 +2973,7 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                             is_enable_ams_np =  get_flag_bits(flag3, 9);
                             is_support_fila_change_abort = get_flag_bits(flag3, 13);
                             is_support_ext_change_assist_old = get_flag_bits(flag3, 16);
+                            is_support_filament_32_colors = get_flag_bits(flag3, 17);
                         }
                     }
                     if (!key_field_only) {
@@ -4181,6 +4182,14 @@ bool MachineObject::check_enable_np(const json& print) const
     return false;
 }
 
+int MachineObject::get_max_filament_color_count() const
+{
+    if (is_support_filament_32_colors) return 32;
+    if (is_enable_ams_np && !is_series_x())              return 20;
+    if (!is_series_x() && !is_series_o()) return 16;
+    return 0;
+}
+
 void MachineObject::parse_new_info(json print)
 {
     is_enable_np = check_enable_np(print);
@@ -4297,6 +4306,7 @@ void MachineObject::parse_new_info(json print)
         is_support_remote_dry = (get_flag_bits_no_border(fun2, 5) == 1);
         is_support_active_arc_fitting = (get_flag_bits_no_border(fun2, 8) == 1);
         is_support_check_track_switch_match_slice_printer = (get_flag_bits_no_border(fun2, 19) == 1);
+        ams_preload_version = static_cast<int>(get_flag_bits_no_border(fun2, 21, 2));
 
         if (DevPrinterConfigUtil::support_print_check_firmware_for_tpu_left(printer_type)) {
             m_firmware_support_print_tpu_left = DevUtil::get_flag_bits_no_border(fun2, 7) == 1;
@@ -4507,7 +4517,7 @@ void MachineObject::update_filament_list()
 
         for (auto it = filament_list.begin(); it != filament_list.end(); it++) {
             if (m_filament_list.find(it->first) != m_filament_list.end()) {
-                assert(it->first.size() == 8 && it->first[0] == 'P');
+               // assert(it->first.size() == 8 && it->first[0] == 'P');
 
                 if (it->second.first != m_filament_list[it->first].first) {
                     BOOST_LOG_TRIVIAL(info) << "old min temp is not equal to new min temp and filament id: " << it->first;

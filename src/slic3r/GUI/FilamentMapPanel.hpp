@@ -1,16 +1,22 @@
-
-#ifndef FILAMENT_MAP_PANEL_HPP
-#define FILAMENT_MAP_PANEL_HPP
+#pragma once
 
 #include "GUI.hpp"
 #include "DragDropPanel.hpp"
-#include "Widgets/SwitchButton.hpp"
+#include <wx/string.h>
 
-namespace Slic3r { namespace GUI {
+namespace Slic3r::GUI {
 
 wxDECLARE_EVENT(wxEVT_INVALID_MANUAL_MAP, wxCommandEvent);
+class FilamentMapBtnPanel;
 
-class FilamentMapManualPanel : public wxPanel
+class FilamentMapPanel : public wxPanel
+{
+public:
+    FilamentMapPanel(wxWindow *parent) : wxPanel(parent) {};
+    virtual FilamentMapMode GetMode() const = 0;
+};
+
+class FilamentMapManualPanel : public FilamentMapPanel
 {
 public:
     FilamentMapManualPanel(wxWindow                       *parent,
@@ -31,8 +37,9 @@ public:
     void UpdateNozzleVolumeType();
     void UpdateNozzleCountDisplay();
 
-    void Hide();
-    void Show();
+    bool Show(bool show = true) override;
+
+    FilamentMapMode GetMode() const override { return FilamentMapMode::fmmManual; }
 
 private:
     void OnTimer(wxTimerEvent &evt);
@@ -60,43 +67,11 @@ private:
     bool m_force_validation{ false };
 };
 
-class FilamentMapBtnPanel : public wxPanel
+class FilamentMapAutoPanel : public FilamentMapPanel
 {
 public:
-    FilamentMapBtnPanel(wxWindow *parent, const wxString &label, const wxString &detail, const std::string &icon_path);
-    void Hide();
-    void Show();
-    void Select(bool selected);
-    bool Enable(bool enable);
-    bool IsEnabled() const { return m_enabled; }
-protected:
-    void OnPaint(wxPaintEvent &event);
-private:
-    void OnEnterWindow(wxMouseEvent &event);
-    void OnLeaveWindow(wxMouseEvent &evnet);
-
-    void UpdateStatus();
-
-    wxBitmap icon_enabled;
-    wxBitmap icon_disabled;
-
-    wxBitmapButton *m_btn;
-    wxStaticText   *m_label;
-    Label          *m_disable_tip;
-    Label          *m_detail;
-    std::string     m_icon_path;
-    bool            m_enabled{ true };
-    bool            m_hover{false};
-    bool            m_selected{false};
-};
-
-class FilamentMapAutoPanel : public wxPanel
-{
-public:
-    FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mode, bool machine_synced, const std::vector<FilamentMapMode>& available_modes = {});
-    void            Hide();
-    void            Show();
-    FilamentMapMode GetMode() const { return m_mode; }
+    FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mode, bool machine_synced, const std::vector<FilamentMapMode> &available_modes = {});
+    FilamentMapMode GetMode() const override { return m_mode; }
 
 private:
     void OnModeSwitch(FilamentMapMode mode);
@@ -106,27 +81,16 @@ private:
 
     std::vector<FilamentMapBtnPanel*> m_mode_panels;
     std::vector<FilamentMapMode> m_available_modes;
+
     FilamentMapMode      m_mode;
-    bool                  m_machine_synced;
+    bool                 m_machine_synced;
 };
 
-class FilamentMapDefaultPanel : public wxPanel
-{
-public:
-    FilamentMapDefaultPanel(wxWindow *parent);
-    void Hide();
-    void Show();
-
-private:
-    Label *m_label;
-};
-
-class FilamentMapSavingPanel : public wxPanel
+class FilamentMapSavingPanel : public FilamentMapPanel
 {
 public:
     FilamentMapSavingPanel(wxWindow *parent);
+    FilamentMapMode GetMode() const override { return FilamentMapMode::fmmAutoForFlush; }
 };
 
-}} // namespace Slic3r::GUI
-
-#endif
+} // namespace Slic3r::GUI

@@ -104,6 +104,9 @@ public:
     void set_ams_info(wxColour col, wxString txt,
                       int ctype = 0, std::vector<wxColour> cols = std::vector<wxColour>(),
                       bool record_back_info = false);
+
+    void set_material_cols(int ctype, const std::vector<wxColour>& cols);
+
     void reset_ams_info();
     virtual void reset_valid_info();
 
@@ -127,6 +130,8 @@ public:
     std::string m_filament_id;
 
     wxColour    m_material_coloul;
+    int         m_material_ctype = 0;
+    std::vector<wxColour> m_material_cols;
     wxString    m_material_name;
     wxString    m_mapped_nozzle_str;
 

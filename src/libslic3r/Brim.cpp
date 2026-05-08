@@ -1052,13 +1052,6 @@ static ExPolygons outer_inner_brim_area(const Print& print,
     }
 
     int  extruder_nums = print.config().nozzle_diameter.values.size();
-    std::vector<Polygons> extruder_unprintable_area;
-    if (extruder_nums == 1)
-        extruder_unprintable_area.emplace_back(Polygons{Model::getBedPolygon()});
-    else {
-        extruder_unprintable_area = print.get_extruder_printable_polygons();
-    }
-    std::vector<int> filament_map = print.get_filament_maps();
 
     if (print.has_wipe_tower() && !print.get_fake_wipe_tower().outer_wall.empty()) {
         ExPolygons expolyFromLines{};
@@ -1070,33 +1063,42 @@ static ExPolygons outer_inner_brim_area(const Print& print,
         expolygons_append(no_brim_area, expolyFromLines);
     }
 
-    std::vector<ExPolygons> extruder_no_brim_area_cache(extruder_nums, no_brim_area);
-    for (int extruder_id = 0; extruder_id < extruder_nums; ++extruder_id) {
-        auto bedPoly = extruder_unprintable_area[extruder_id];
-        auto bedExPoly   = diff_ex((offset(bedPoly, scale_(30.), jtRound, SCALED_RESOLUTION)), {bedPoly});
-        if (!bedExPoly.empty()) {
-            extruder_no_brim_area_cache[extruder_id].push_back(bedExPoly.front());
+    // Determine which extruders are actually used via group_result.
+    // If multiple extruders are used, clip brim to the shared printable area;
+    // if only one extruder is used, clip brim to that extruder's printable area.
+    // This avoids depending on filament_map which varies per-layer under dynamic map mode.
+    if (extruder_nums > 1) {
+        std::vector<int> used_extruders;
+        auto group_result = print.get_nozzle_group_result();
+        if (group_result)
+            used_extruders = group_result->get_used_extruders();
+
+        Polygons clip_printable;
+        if (used_extruders.size() > 1) {
+            clip_printable = print.get_extruder_shared_printable_polygon();
+        } else if (used_extruders.size() == 1) {
+            auto extruder_printable_polys = print.get_extruder_printable_polygons();
+            int eid = used_extruders.front();
+            if (eid >= 0 && eid < (int)extruder_printable_polys.size())
+                clip_printable = extruder_printable_polys[eid];
         }
-        extruder_no_brim_area_cache[extruder_id] = offset2_ex(extruder_no_brim_area_cache[extruder_id], scaled_flow_width, -scaled_flow_width); // connect scattered small areas to prevent generating very small brims
+
+        if (!clip_printable.empty()) {
+            auto bedExPoly = diff_ex(offset(clip_printable, scale_(30.), jtRound, SCALED_RESOLUTION), {clip_printable});
+            if (!bedExPoly.empty()) {
+                no_brim_area.push_back(bedExPoly.front());
+            }
+        }
     }
+    no_brim_area = offset2_ex(no_brim_area, scaled_flow_width, -scaled_flow_width);
 
     for (const PrintObject* object : print.objects()) {
-        ExPolygons extruder_no_brim_area = no_brim_area;
-        auto iter = std::find_if(objPrintVec.begin(), objPrintVec.end(), [object](const std::pair<ObjectID, unsigned int>& item) {
-            return item.first == object->id();
-        });
-
-        if (iter != objPrintVec.end()) {
-            int extruder_id = filament_map[iter->second - 1] - 1;
-            extruder_no_brim_area = extruder_no_brim_area_cache[extruder_id];
-        }
-
         if (brimAreaMap.find(object->id()) != brimAreaMap.end()) {
-            brimAreaMap[object->id()] = diff_ex(brimAreaMap[object->id()], extruder_no_brim_area);
+            brimAreaMap[object->id()] = diff_ex(brimAreaMap[object->id()], no_brim_area);
         }
 
         if (supportBrimAreaMap.find(object->id()) != supportBrimAreaMap.end())
-            supportBrimAreaMap[object->id()] = diff_ex(supportBrimAreaMap[object->id()], extruder_no_brim_area);
+            supportBrimAreaMap[object->id()] = diff_ex(supportBrimAreaMap[object->id()], no_brim_area);
     }
 
     brim_area.clear();

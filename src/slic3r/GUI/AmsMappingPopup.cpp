@@ -124,6 +124,14 @@ void MaterialItem::set_nozzle_info(const wxString& mapped_nozzle_str)
     }
 }
 
+void MaterialItem::set_material_cols(int ctype, const std::vector<wxColour>& cols) {
+    if (m_material_ctype != ctype || m_material_cols != cols) {
+        m_material_ctype = ctype;
+        m_material_cols = cols;
+        Refresh();
+    }
+}
+
 void MaterialItem::reset_ams_info() {
     m_ams_name   = "-";
     m_ams_coloul = wxColour(0xCE, 0xCE, 0xCE);
@@ -290,12 +298,77 @@ void MaterialItem::doRender(wxDC& dc)
 
     //top
     dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.SetBrush(wxBrush(mcolor));
-    dc.DrawRoundedRectangle(0, 0, size.x, FromDIP(20), 5);
+    if (m_material_cols.size() > 1 && IsEnabled()) {
+        int top_h = FromDIP(20);
+        bool drawn = false;
 
-    dc.SetPen(*wxTRANSPARENT_PEN);
-    dc.SetBrush(wxBrush(mcolor));
-    dc.DrawRectangle(0, FromDIP(10), size.x, FromDIP(10));
+        wxGraphicsContext* gc = dc.GetGraphicsContext();
+        if (gc) {
+            double r = FromDIP(5);
+            auto make_path = [&](double x, double w, bool left_round, bool right_round) {
+                wxGraphicsPath p = gc->CreatePath();
+                double rl = left_round  ? std::min<double>(r, std::min<double>(w, top_h)) : 0.0;
+                double rr = right_round ? std::min<double>(r, std::min<double>(w, top_h)) : 0.0;
+                p.MoveToPoint(x, top_h);
+                p.AddLineToPoint(x, rl);
+                if (rl > 0) p.AddArc(x + rl, rl, rl, M_PI, -M_PI / 2, true);
+                p.AddLineToPoint(x + w - rr, 0);
+                if (rr > 0) p.AddArc(x + w - rr, rr, rr, -M_PI / 2, 0, true);
+                p.AddLineToPoint(x + w, top_h);
+                p.CloseSubpath();
+                return p;
+            };
+
+            if (m_material_ctype == 0) {
+                wxGraphicsPath path = make_path(0, size.x, true, true);
+                wxGraphicsGradientStops stops(m_material_cols.front(), m_material_cols.back());
+                for (size_t i = 1; i + 1 < m_material_cols.size(); i++) {
+                    float pos = (float)i / (m_material_cols.size() - 1);
+                    stops.Add(m_material_cols[i], pos);
+                }
+                gc->SetBrush(gc->CreateLinearGradientBrush(0, 0, size.x, 0, stops));
+                gc->FillPath(path);
+            } else {
+                int cols_size = m_material_cols.size();
+                for (int i = 0; i < cols_size; i++) {
+                    double x0 = (double)size.x * i / cols_size;
+                    double w  = (i == cols_size - 1) ? (size.x - x0) : ((double)size.x / cols_size);
+                    wxGraphicsPath seg = make_path(x0, w, i == 0, i == cols_size - 1);
+                    gc->SetBrush(gc->CreateBrush(wxBrush(m_material_cols[i])));
+                    gc->FillPath(seg);
+                }
+            }
+            drawn = true;
+        }
+
+        if (!drawn) {
+            if (m_material_ctype == 0) {
+                int seg = m_material_cols.size() - 1;
+                int gw = std::round((double)size.x / seg);
+                for (int i = 0; i < seg; i++) {
+                    int x0 = gw * i;
+                    int w  = (i == seg - 1) ? (size.x - x0) : gw;
+                    dc.GradientFillLinear(wxRect(x0, 0, w, top_h), m_material_cols[i], m_material_cols[i + 1], wxEAST);
+                }
+            } else {
+                int cols_size = m_material_cols.size();
+                int cw = std::round((double)size.x / cols_size);
+                for (int i = 0; i < cols_size; i++) {
+                    dc.SetBrush(wxBrush(m_material_cols[i]));
+                    int x0 = cw * i;
+                    int w  = (i == cols_size - 1) ? (size.x - x0) : cw;
+                    dc.DrawRectangle(x0, 0, w, top_h);
+                }
+            }
+        }
+    } else {
+        dc.SetBrush(wxBrush(mcolor));
+        dc.DrawRoundedRectangle(0, 0, size.x, FromDIP(20), 5);
+
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.SetBrush(wxBrush(mcolor));
+        dc.DrawRectangle(0, FromDIP(10), size.x, FromDIP(10));
+    }
 
     // materials name
     auto up = 0;

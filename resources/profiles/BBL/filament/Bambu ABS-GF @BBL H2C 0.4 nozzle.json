@@ -43,6 +43,10 @@
     "filament_change_length_nc": [
         "4"
     ],
+    "filament_preheat_temperature_delta": [
+        "20",
+        "20"
+    ],
     "include": [
         "fdm_filament_template_direct_dual"
     ],

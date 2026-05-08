@@ -6,10 +6,74 @@
 #include "TriangleSelector.hpp"
 #include "ObjectID.hpp"
 #include <boost/log/trivial.hpp>
+#include <queue>
+#include <algorithm>
 
 namespace Slic3r {
 
 using namespace Geometry;
+
+// Walk the source TriangleSelector's split tree and pick the first non-NONE leaf
+// state for source face s. Heavily refined paint within a single source triangle
+// collapses to one state on cut, but the dominant intent is preserved.
+static EnforcerBlockerType first_painted_leaf(TriangleSelector& sel, int root_idx)
+{
+    const auto& tris = sel.get_triangles();
+    if (root_idx < 0 || root_idx >= (int)tris.size()) return EnforcerBlockerType::NONE;
+    std::queue<int> q;
+    q.push(root_idx);
+    while (!q.empty()) {
+        int i = q.front(); q.pop();
+        const auto& t = tris[i];
+        if (!t.valid()) continue;
+        if (!t.is_split()) {
+            if (t.get_state() != EnforcerBlockerType::NONE)
+                return t.get_state();
+        } else {
+            for (int c : t.children) if (c >= 0) q.push(c);
+        }
+    }
+    return EnforcerBlockerType::NONE;
+}
+
+static void propagate_one_annotation(const FacetsAnnotation& src,
+                                     FacetsAnnotation&       dst,
+                                     const TriangleMesh&     src_mesh,
+                                     const TriangleMesh&     dst_mesh,
+                                     const std::vector<int>& dst_to_src_face)
+{
+    if (src.empty() || dst_to_src_face.empty()) return;
+
+    TriangleSelector src_sel(src_mesh);
+    src_sel.deserialize(src.get_data(), true);
+
+    TriangleSelector dst_sel(dst_mesh);
+    bool any = false;
+    const int n_dst = std::min<int>((int)dst_to_src_face.size(),
+                                    (int)dst_mesh.its.indices.size());
+    for (int new_idx = 0; new_idx < n_dst; ++new_idx) {
+        int s = dst_to_src_face[new_idx];
+        if (s < 0) continue;
+        EnforcerBlockerType st = first_painted_leaf(src_sel, s);
+        if (st == EnforcerBlockerType::NONE) continue;
+        dst_sel.set_facet(new_idx, st);
+        any = true;
+    }
+    if (any) dst.set(dst_sel);
+}
+
+static void propagate_paint(const ModelVolume&      src_volume,
+                            ModelVolume&            dst_volume,
+                            const std::vector<int>& dst_to_src_face)
+{
+    if (dst_to_src_face.empty()) return;
+    const TriangleMesh& src_mesh = src_volume.mesh();
+    const TriangleMesh& dst_mesh = dst_volume.mesh();
+    propagate_one_annotation(src_volume.supported_facets,        dst_volume.supported_facets,        src_mesh, dst_mesh, dst_to_src_face);
+    propagate_one_annotation(src_volume.seam_facets,             dst_volume.seam_facets,             src_mesh, dst_mesh, dst_to_src_face);
+    propagate_one_annotation(src_volume.mmu_segmentation_facets, dst_volume.mmu_segmentation_facets, src_mesh, dst_mesh, dst_to_src_face);
+    propagate_one_annotation(src_volume.fuzzy_skin_facets,       dst_volume.fuzzy_skin_facets,       src_mesh, dst_mesh, dst_to_src_face);
+}
 
 static void apply_tolerance(ModelVolume *vol)
 {
@@ -44,7 +108,8 @@ static void add_cut_volume(TriangleMesh &     mesh,
                            const ModelVolume *src_volume,
                            const Transform3d &cut_matrix,
                            const std::string &suffix = {},
-                           ModelVolumeType    type   = ModelVolumeType::MODEL_PART)
+                           ModelVolumeType    type   = ModelVolumeType::MODEL_PART,
+                           const std::vector<int>* src_faces = nullptr)
 {
     if (mesh.empty())
         return;
@@ -60,6 +125,8 @@ static void add_cut_volume(TriangleMesh &     mesh,
     assert(vol->config.id() != src_volume->config.id());
     vol->set_material(src_volume->material_id(), *src_volume->material());
     vol->cut_info = src_volume->cut_info;
+
+    if (src_faces && src_volume) propagate_paint(*src_volume, *vol, *src_faces);
 }
 
 static void process_volume_cut(ModelVolume *            volume,
@@ -67,7 +134,9 @@ static void process_volume_cut(ModelVolume *            volume,
                                const Transform3d &      cut_matrix,
                                ModelObjectCutAttributes attributes,
                                TriangleMesh &           upper_mesh,
-                               TriangleMesh &           lower_mesh)
+                               TriangleMesh &           lower_mesh,
+                               std::vector<int>*        upper_src_faces = nullptr,
+                               std::vector<int>*        lower_src_faces = nullptr)
 {
     const auto volume_matrix = volume->get_matrix();
 
@@ -81,7 +150,7 @@ static void process_volume_cut(ModelVolume *            volume,
     mesh.transform(invert_cut_matrix * instance_matrix * volume_matrix, true);
 
     indexed_triangle_set upper_its, lower_its;
-    cut_mesh(mesh.its, 0.0f, &upper_its, &lower_its);
+    cut_mesh(mesh.its, 0.0f, &upper_its, &lower_its, true, upper_src_faces, lower_src_faces);
     if (attributes.has(ModelObjectCutAttribute::KeepUpper))
         upper_mesh = TriangleMesh(upper_its);
     if (attributes.has(ModelObjectCutAttribute::KeepLower))
@@ -204,25 +273,26 @@ static void process_solid_part_cut(
 {
     // Perform cut
     TriangleMesh upper_mesh, lower_mesh;
-    process_volume_cut(volume, instance_matrix, cut_matrix, attributes, upper_mesh, lower_mesh);
+    std::vector<int> upper_src, lower_src;
+    process_volume_cut(volume, instance_matrix, cut_matrix, attributes, upper_mesh, lower_mesh, &upper_src, &lower_src);
 
     // Add required cut parts to the objects
 
     if (attributes.has(ModelObjectCutAttribute::CutToParts)) {
-        add_cut_volume(upper_mesh, upper, volume, cut_matrix, "_A");
+        add_cut_volume(upper_mesh, upper, volume, cut_matrix, "_A", ModelVolumeType::MODEL_PART, &upper_src);
         if (!lower_mesh.empty()) {
-            add_cut_volume(lower_mesh, upper, volume, cut_matrix, "_B");
+            add_cut_volume(lower_mesh, upper, volume, cut_matrix, "_B", ModelVolumeType::MODEL_PART, &lower_src);
             upper->volumes.back()->cut_info.is_from_upper = false;
         }
         return;
     }
 
     if (attributes.has(ModelObjectCutAttribute::KeepUpper)) {
-        add_cut_volume(upper_mesh, upper, volume, cut_matrix);
+        add_cut_volume(upper_mesh, upper, volume, cut_matrix, {}, ModelVolumeType::MODEL_PART, &upper_src);
     }
 
     if (attributes.has(ModelObjectCutAttribute::KeepLower) && !lower_mesh.empty()) {
-        add_cut_volume(lower_mesh, lower, volume, cut_matrix);
+        add_cut_volume(lower_mesh, lower, volume, cut_matrix, {}, ModelVolumeType::MODEL_PART, &lower_src);
     }
 }
 
@@ -364,8 +434,6 @@ const ModelObjectPtrs &Cut::perform_with_plane()
     const Transform3d    inverse_cut_matrix = cut_transformation.get_rotation_matrix().inverse() * translation_transform(-1. * cut_transformation.get_offset());
 
     for (ModelVolume *volume : mo->volumes) {
-        volume->reset_extra_facets();
-
         if (!volume->is_model_part()) {
             if (volume->cut_info.is_processed){
                 process_modifier_cut(volume, instance_matrix, inverse_cut_matrix, m_attributes, upper, lower);

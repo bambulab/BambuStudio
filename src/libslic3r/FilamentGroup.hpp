@@ -86,6 +86,7 @@ namespace Slic3r
             FGMode mode;
             FGStrategy strategy;
             bool ignore_ext_filament;
+            bool has_filament_switcher = false;
             std::vector<int> filament_volume_map;
         } group_info;
 
@@ -115,6 +116,7 @@ namespace Slic3r
         const std::vector<unsigned int>& used_filaments,
         const std::vector<FilamentGroupUtils::FilamentInfo>& used_filament_info,
         const std::vector<std::vector<FilamentGroupUtils::MachineFilamentInfo>>& machine_filament_info,
+        const bool has_filament_switcher = false,
         const double color_delta_threshold = 20);
 
 

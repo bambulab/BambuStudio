@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-14 19:58+0800\n"
+"POT-Creation-Date: 2026-04-28 17:39+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -119,22 +119,22 @@ msgid "auxiliary hotend"
 msgstr "hulp hotend"
 
 msgid "Left Hotend"
-msgstr ""
+msgstr "Linker hotend"
 
 msgid "Left hotend"
-msgstr ""
+msgstr "Linker hotend"
 
 msgid "left hotend"
-msgstr ""
+msgstr "linker hotend"
 
 msgid "Right Hotend"
-msgstr ""
+msgstr "Rechter hotend"
 
 msgid "Right hotend"
-msgstr ""
+msgstr "Rechter hotend"
 
 msgid "right hotend"
-msgstr ""
+msgstr "rechter hotend"
 
 msgid "main"
 msgstr "hoofd"
@@ -192,7 +192,7 @@ msgid "How to feed TPU filament."
 msgstr "Hoe TPU-filament te voeden."
 
 msgid "How to feed TPU filament on X2D."
-msgstr ""
+msgstr "Hoe TPU-filament te laden op de X2D."
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr "Het gebruik van niet-bambu filament kan problemen geven met de printkwaliteit."
@@ -2657,7 +2657,7 @@ msgid "Assembly"
 msgstr "Montage"
 
 msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
-msgstr ""
+msgstr "Het gebruik van variabele laaghoogte samen met een gemengde kleursublaag kan leiden tot een slechte kleurmengkwaliteit."
 
 msgid "Cut Connectors information"
 msgstr "Snede connectors informatie"
@@ -3043,7 +3043,7 @@ msgstr "Links (Aux)"
 
 msgctxt "air_duct"
 msgid "Left(Heating)"
-msgstr ""
+msgstr "Linker (verwarming)"
 
 msgctxt "air_duct"
 msgid "Chamber"
@@ -3180,11 +3180,11 @@ msgstr "Oriënteren "
 msgid "Filling"
 msgstr "Vullen"
 
-msgid "Bed filling canceled."
-msgstr "Bed vulling geannuleerd."
-
 msgid "Bed filling done."
 msgstr "Bedden gevuld."
+
+msgid "Bed filling canceled."
+msgstr "Bed vulling geannuleerd."
 
 #. TRN: This is the title of the action appearing in undo/redo stack.
 #. It is same for Text and SVG.
@@ -3861,6 +3861,9 @@ msgstr "Stack overflow"
 
 msgid "Running post-processing scripts"
 msgstr "Het uitvoeren van post-processing scripts"
+
+msgid "Updating preview with post-processed G-code"
+msgstr "Voorvertoning bijwerken met nabewerkte G-code"
 
 msgid "Successfully executed post-processing script"
 msgstr "Succesvol uitgevoerd nabewerkingsscript"
@@ -4609,6 +4612,9 @@ msgstr "Lijnbreedte"
 msgid "Fan Speed"
 msgstr "Ventilator snelheid"
 
+msgid "AUX Fan Speed"
+msgstr ""
+
 msgid "Flow"
 msgstr "Flow"
 
@@ -4683,6 +4689,9 @@ msgstr "Snelheid (mm/s)"
 
 msgid "Fan Speed (%)"
 msgstr "Ventilatorsnelheid (%)"
+
+msgid "AUX  Fan Speed (%)"
+msgstr ""
 
 msgid "Temperature (°C)"
 msgstr "Temperatuur (°C)"
@@ -4837,6 +4846,9 @@ msgstr "Laagtijd:"
 msgid "Fan Speed: "
 msgstr "Ventilatorsnelheid: "
 
+msgid "AUX Fan Speed: "
+msgstr ""
+
 msgid "Temperature: "
 msgstr "Temperatuur: "
 
@@ -4919,6 +4931,9 @@ msgstr "Muiswiel:"
 
 msgid "Increase/decrease edit area"
 msgstr "Bewerkingsgebied vergroten/verkleinen"
+
+msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
+msgstr ""
 
 msgid "Sequence"
 msgstr "Reeks"
@@ -5064,14 +5079,14 @@ msgid "Select Plate"
 msgstr "Printbed selecteren"
 
 msgid "Change camera perspective"
-msgstr ""
+msgstr "Wijzig cameraperspectief"
 
 msgid "Go to Wiki"
 msgstr "Ga naar Wiki"
 
 #, boost-format
 msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
-msgstr ""
+msgstr "Huidige assemblagesnelheid: %1%%%, volumetrische snelheid: %2%%%"
 
 msgctxt "Camera"
 msgid "Top"
@@ -5133,7 +5148,7 @@ msgid "Size:"
 msgstr "Maat:"
 
 msgid "Isolated objects detected"
-msgstr ""
+msgstr "Geïsoleerde objecten gedetecteerd"
 
 msgid "Click to move them closer to the main body."
 msgstr "Klik om ze dichter naar het hoofdgedeelte te verplaatsen."
@@ -5336,6 +5351,9 @@ msgstr "Meerdere apparaten"
 msgid "Project"
 msgstr "Project"
 
+msgid "Filament Manager"
+msgstr ""
+
 msgid "Yes"
 msgstr "Ja"
 
@@ -5478,6 +5496,9 @@ msgstr "Rechterzijde bekijken"
 msgid "Isometric View"
 msgstr "Isometrische weergave"
 
+msgid "Fit Camera"
+msgstr "Camera passen"
+
 msgid "Start a new window"
 msgstr "Een nieuw venster openen"
 
@@ -5501,9 +5522,6 @@ msgstr "Bewaar huidig project als"
 
 msgid "Save Project as"
 msgstr "Bewaar project als"
-
-msgid "Shift+"
-msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "Bewaar huidig project als"
@@ -6620,6 +6638,18 @@ msgstr "%s waarschuwing"
 msgid "%s has a warning"
 msgstr "%s heeft een waarschuwing"
 
+msgid "Collapse"
+msgstr "Instorten"
+
+msgid "View details"
+msgstr ""
+
+msgid "Execute"
+msgstr "Uitvoeren"
+
+msgid "Do not execute"
+msgstr ""
+
 #, c-format, boost-format
 msgid "%s info"
 msgstr "%s info"
@@ -6913,10 +6943,10 @@ msgid "Checks for any objects on the build plate at the start of a print to avoi
 msgstr "Controleert aan het begin van een printopdracht of er objecten op de bouwplaat aanwezig zijn om botsingen te voorkomen."
 
 msgid "Printed Part Displacement Detection"
-msgstr ""
+msgstr "Detectie van verplaatsing van geprint onderdeel"
 
 msgid "Monitors the printed part during printing and alerts immediately if it shifts or collapses."
-msgstr ""
+msgstr "Houdt het geprinte onderdeel tijdens het printen in de gaten en waarschuwt onmiddellijk als het verschuift of instort."
 
 msgid "Ensures the build plate type and placement are correct."
 msgstr "Zorgt ervoor dat het type en de plaatsing van het bouwoppervlak correct zijn."
@@ -7100,7 +7130,7 @@ msgid "High-shrinkage filament(s) detected: %s. These materials may cause dimens
 msgstr "Hoge krimpende filament(en) gedetecteerd: %s. Deze materialen kunnen dimensionale afwijkingen vertonen na afkoeling. Als uw model een nauwkeurige passing of assemblage vereist, raadpleeg dan de Wiki-handleiding voor krimp-testen."
 
 msgid "Printing mixed-color filament on a single-extruder printer requires frequent filament changes and flushing, which may significantly increase waste and the risk of nozzle / waste-chute clogging."
-msgstr ""
+msgstr "Het printen van meerkleurig filament op een printer met één extruder vereist frequent wisselen en spoelen van filament, wat de verspilling aanzienlijk kan verhogen en het risico op verstopping van de nozzle / afvoergoot."
 
 #, boost-format
 msgid " plate %1%: "
@@ -7245,13 +7275,13 @@ msgid "Remove last mixed filament"
 msgstr "Verwijder laatste gemengde filament"
 
 msgid "Mixed filament has invalid or mismatched components. Please re-edit affected entries."
-msgstr ""
+msgstr "Gemengd filament heeft ongeldige of verkeerd passende componenten. Bewerk de betreffende vermeldingen opnieuw."
 
 msgid "Search plate, object and part."
 msgstr "Zoek plaat, object en onderdeel."
 
 msgid "The target mixed filament uses this physical filament as a component. Merging will remove this physical filament and may invalidate the mixed filament. Continue?"
-msgstr ""
+msgstr "Het doel gemengde filament gebruikt dit fysieke filament als component. Samenvoegen verwijdert dit fysieke filament en kan het gemengde filament ongeldig maken. Doorgaan?"
 
 #, c-format, boost-format
 msgid "After completing your operation, %s project will be closed and create a new project."
@@ -7277,7 +7307,7 @@ msgid "Mixed filament has broken component references"
 msgstr "Mixed filament heeft gebroken componentreferenties"
 
 msgid "Edit / Delete / Merge"
-msgstr ""
+msgstr "Bewerken / Verwijderen / Samenvoegen"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -7298,9 +7328,6 @@ msgstr ""
 
 msgid "Restore"
 msgstr "Herstellen"
-
-msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
-msgstr "Er is een G-code-script aanwezig in het huidige 3mf-bestand, controleer alstublieft de inhoud van het script."
 
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "The current heatbed temperature is relatively high. The nozzle may clog when printing this filament in a closed environment. Please open the front door and/or remove the upper glass."
@@ -7380,6 +7407,12 @@ msgstr "Naam van onderdelen in stapbestand is niet UTF8-formaat!"
 
 msgid "The name may show garbage characters!"
 msgstr "De naam kan onzintekens bevatten!"
+
+msgid "The following shells are not closed and may cause issues:"
+msgstr ""
+
+msgid "Unclosed Shell Warning"
+msgstr ""
 
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
@@ -7921,9 +7954,11 @@ msgid ""
 "Failed to export the sliced file.\n"
 "Please check whether the file is occupied by another program or if there is enough disk space."
 msgstr ""
+"Het gesliced bestand kon niet worden geëxporteerd.\n"
+"Controleer of het bestand door een ander programma wordt bezet of dat er voldoende schijfruimte is."
 
 msgid "Export sliced file"
-msgstr "Export Sliced File"
+msgstr "Gesliced bestand exporteren"
 
 #, c-format, boost-format
 msgid "The file %s has been sent to the printer's storage space and can be viewed on the printer."
@@ -7957,9 +7992,14 @@ msgstr "Reden: \"%1%\" en een ander deel hebben geen snijpunt."
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Negatieve delen gedetecteerd. Wil je mesh booleaans uitvoeren voordat je exporteert?"
 
+msgid ""
+"Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\n"
+"Please verify the file source and script contents before continuing."
+msgstr ""
+
 #, c-format, boost-format
 msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
-msgstr ""
+msgstr "Het kalibratiefilament is momenteel toegewezen aan een andere extruder dan degene die is geselecteerd in het PA-kalibratiedialoogvenster (%s). Dit kan leiden tot onjuiste kalibratieresultaten. U kunt de toewijzing wijzigen in de instellingen voor filamentgroepering."
 
 msgid "It is not recommended to use PVA filaments with 0.2mm nozzles."
 msgstr "Het wordt niet aanbevolen om PVA-filamenten met nozzles van 0,2 mm te gebruiken."
@@ -8017,6 +8057,11 @@ msgstr "Ongeldig nummer"
 
 msgid "Plate Settings"
 msgstr "Plaatinstellingen"
+
+msgid ""
+"While printing by Object, the extruder may collide skirt.\n"
+"Thus, it is recommended to reset the skirt layer to 1 to avoid that."
+msgstr ""
 
 msgid "Prime Tower:"
 msgstr "Prime Toren:"
@@ -8279,7 +8324,7 @@ msgid "When enabled, the last used color scheme (e.g., Line Type, Speed) will be
 msgstr "Wanneer ingeschakeld, wordt het laatst gebruikte kleurenschema (bijv. Lijntype, Snelheid) automatisch toegepast bij de volgende opstart."
 
 msgid "Display overview"
-msgstr ""
+msgstr "Weergaveoverzicht"
 
 msgid "Show assembly BVH primary bounds"
 msgstr "Toon assemblage BVH primaire grenzen"
@@ -8631,7 +8676,7 @@ msgid "First layer filament sequence"
 msgstr "Eerste laag filamentvolgorde"
 
 msgid "The filament list contains mixed filaments. Custom filament sequence will not take effect."
-msgstr ""
+msgstr "De filamentenlijst bevat gemengde filamenten. De aangepaste filamentvolgorde wordt niet van kracht."
 
 msgid "Same as Global Bed Type"
 msgstr "Hetzelfde als Global Bed Type"
@@ -8871,6 +8916,10 @@ msgid "Recommended filament arrangement saves %s->"
 msgstr "Aanbevolen filamentindeling bespaart %s->"
 
 #, c-format, boost-format
+msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
+msgstr ""
+
+#, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
 msgstr "Filament %s komt niet overeen met het filament in AMS-sleuf %s. Werk de firmware van de printer bij om de toewijzing van AMS-sleuven te ondersteunen."
 
@@ -9043,7 +9092,7 @@ msgid "The current nozzle diameter (%.1fmm) doesn't match with the slicing file 
 msgstr "De huidige nozzle diameter (%.1fmm) komt niet overeen met het snijbestand (%.1fmm). Controleer of de geïnstalleerde nozzle overeenkomt met de instellingen in de printer en stel vervolgens de corresponderende voorinstelling van de printer in tijdens het slicen."
 
 msgid "The Filament Track Switch installed on the printer does not match the slicing file. Please re-slice to avoid print quality issues."
-msgstr ""
+msgstr "De filamentwisselaar die op de printer is geïnstalleerd, komt niet overeen met het slicingbestand. Snijd opnieuw om problemen met de printkwaliteit te voorkomen."
 
 msgid "This print requires a Filament Track Switch. Please install it first."
 msgstr "Deze print vereist een filamentwisselaar. Installeer deze eerst alstublieft."
@@ -9157,9 +9206,6 @@ msgstr "Stel dynamische stroomkalibratie in op 'UIT' om aangepaste dynamische st
 
 msgid "This printer does not support printing all plates"
 msgstr "Deze printer biedt geen ondersteuning voor het afdrukken van alle platen"
-
-msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
-msgstr "De huidige firmware ondersteunt maximaal 16 materialen. U kunt het aantal materialen terugbrengen tot 16 of minder op de Voorbereidingspagina, of proberen de firmware bij te werken. Als u na de update nog steeds beperkt bent, wacht dan op volgende firmware-ondersteuning."
 
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr "Controleer of de vereiste nozzle diameter en doorvoersnelheid overeenkomen met de huidige weergave."
@@ -9421,7 +9467,7 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "When using %s to support %s, We recommend the following settings:"
-msgstr ""
+msgstr "Bij gebruik van %s ter ondersteuning van %s raden we de volgende instellingen aan:"
 
 msgid "When using PLA to support TPU, We recommend the following settings:"
 msgstr "Bij gebruik van PLA ter ondersteuning van TPU raden we de volgende instellingen aan:"
@@ -10491,6 +10537,9 @@ msgstr "Cameraweergave - Rechts"
 
 msgid "Camera view - Isometric"
 msgstr "Cameraweergave - Isometrisch"
+
+msgid "Camera view - Fit to scene or selection"
+msgstr ""
 
 msgid "Shift+E"
 msgstr ""
@@ -12672,6 +12721,12 @@ msgstr "Het volume materiaal dat nodig is om de extruder op de toren te primen, 
 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr "Het volume materiaal dat nodig is om de extruder te primen voor een hot-end wissel op de toren."
+
+msgid "Preheat temperature delta"
+msgstr ""
+
+msgid "Temperature delta applied during pre-heating before tool change."
+msgstr ""
 
 msgid "Wipe tower cooling"
 msgstr "Afkoeling veegtoren"
@@ -14970,7 +15025,7 @@ msgstr ""
 "- Verschillende filamentmerken en -families (Merk = Bambu, Familie = Basis, Mat)\n"
 
 msgid "(Aux) does not support automatic flow calibration."
-msgstr ""
+msgstr "(Aux) ondersteunt geen automatische stroomkalibratie."
 
 msgid "- Note: The hotend's number is tied to the holder. When the hotend is moved to a new holder, its number will update automatically.\n"
 msgstr "- Opmerking: Het nummer van de hot-end is gekoppeld aan de houder. Wanneer de hot-end naar een nieuwe houder wordt verplaatst, wordt het nummer automatisch bijgewerkt.\n"
@@ -15345,9 +15400,6 @@ msgstr "Geselecteerde onderdelen"
 
 msgid "Keep original models"
 msgstr "Bewaar originele modellen"
-
-msgid "Execute"
-msgstr "Uitvoeren"
 
 msgid "Entity Only"
 msgstr "Alleen entiteit"
@@ -15870,9 +15922,6 @@ msgstr "Preset bewerken"
 
 msgid "For more information, please check out Wiki"
 msgstr "For more information, please check out our Wiki"
-
-msgid "Collapse"
-msgstr "Instorten"
 
 msgid "Daily Tips"
 msgstr "Dagelijkse tips"
@@ -16518,12 +16567,6 @@ msgstr "Draadgroepering"
 msgid "Fila Saving"
 msgstr "Filament besparing"
 
-msgid "Don't remind me again"
-msgstr "Herinner me er niet meer aan"
-
-msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
-msgstr "Er verschijnt geen pop-up meer. U kunt dit bijwerken in 'Voorkeuren'"
-
 msgid "Filament-Saving Mode"
 msgstr "Filament-besparende modus"
 
@@ -16580,9 +16623,6 @@ msgstr " om het aantal nozzles in te stellen"
 #, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
 msgstr "Genereert filamentgroepering voor de %s en %s op basis van de printkwaliteit, waarbij printkwaliteit boven filamentbesparing gaat"
-
-msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
-msgstr "De filamentgroeperingsmethode voor de huidige plaat wordt bepaald door de vervolgkeuzemogelijkheid bij de knop voor het snijden van de plaat."
 
 msgid "Skip Objects"
 msgstr "Objecten overslaan"
@@ -16965,59 +17005,59 @@ msgid "Print Outcome: "
 msgstr "Printresultaat: "
 
 msgid "Edit Mixed Filament"
-msgstr ""
+msgstr "Voeg gemengd filament toe"
 
 msgid "Effect Preview"
-msgstr ""
+msgstr "Effectvoorbeeld"
 
 msgid "Select Mixed Materials"
-msgstr ""
+msgstr "Selecteer gemengde materialen"
 
 msgid "+ Add Material"
-msgstr ""
+msgstr "+ Materiaal toevoegen"
 
 msgid "- Delete Material"
-msgstr ""
+msgstr "- Materialen verwijderen"
 
 msgid "Ratio"
-msgstr ""
+msgstr "Verhouding"
 
 msgid "Gradient Effect"
-msgstr ""
+msgstr "Verloop effect"
 
 msgid "Mixing Recommendations"
-msgstr ""
+msgstr "Aanbevelingen voor het mengen"
 
 msgid "-- Select --"
-msgstr ""
+msgstr "-- Selecteer --"
 
 msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-msgstr ""
+msgstr "Voor het verloopeffect moet de optie 'Sublaag gemengde kleuren' zijn ingeschakeld. Wilt u deze nu inschakelen?"
 
 msgid "Mixed Color Sublayer"
-msgstr ""
+msgstr "Sublaag met gemengde kleur"
 
 #, c-format, boost-format
 msgid "Slot %s (%s)"
 msgstr ""
 
 msgid "cannot be mixed. Please select the same filament type."
-msgstr ""
+msgstr "kan niet gemengd worden. Selecteer het type filament."
 
 msgid "Please select a filament for all components"
-msgstr ""
+msgstr "Selecteer een filament voor alle componenten."
 
 msgid "Cannot mix different filament types"
-msgstr ""
+msgstr "Verschillende soorten filamenten kunnen niet door elkaar gebruikt worden."
 
 msgid "Maximum 3 materials for mixing"
-msgstr ""
+msgstr "Maximaal 3 materialen voor menging"
 
 msgid "Maximum number of components reached"
-msgstr ""
+msgstr "Maximaal aantal componenten bereikt"
 
 msgid "Remove the third material"
-msgstr ""
+msgstr "Verwijder het derde materiaal."
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -17306,6 +17346,24 @@ msgid ""
 msgstr ""
 "Betrouwbaarheid in één keer goed\n"
 "Minder toezicht, voorspelbaardere output. Voorbeeld: een kleine boerderij die PETG-onderdelen produceert, voorkomt verrassingen zoals 'falen na 6 uur' en houdt batches op schema."
+
+#~ msgid "Shift+"
+#~ msgstr "Shift+"
+
+#~ msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
+#~ msgstr "Er is een G-code-script aanwezig in het huidige 3mf-bestand, controleer alstublieft de inhoud van het script."
+
+#~ msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
+#~ msgstr "De huidige firmware ondersteunt maximaal 16 materialen. U kunt het aantal materialen terugbrengen tot 16 of minder op de Voorbereidingspagina, of proberen de firmware bij te werken. Als u na de update nog steeds beperkt bent, wacht dan op volgende firmware-ondersteuning."
+
+#~ msgid "Don't remind me again"
+#~ msgstr "Herinner me er niet meer aan"
+
+#~ msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
+#~ msgstr "Er verschijnt geen pop-up meer. U kunt dit bijwerken in 'Voorkeuren'"
+
+#~ msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
+#~ msgstr "De filamentgroeperingsmethode voor de huidige plaat wordt bepaald door de vervolgkeuzemogelijkheid bij de knop voor het snijden van de plaat."
 
 #~ msgctxt "FilamentTrack"
 #~ msgid "Left"

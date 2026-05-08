@@ -79,6 +79,11 @@ typedef int (*func_get_my_message)(void *agent, int type, int after, int limit, 
 typedef int (*func_check_user_task_report)(void *agent, int* task_id, bool* printable);
 typedef int (*func_get_user_print_info)(void *agent, unsigned int* http_code, std::string* http_body);
 typedef int (*func_get_user_tasks)(void *agent, TaskQueryParams params, std::string* http_body);
+typedef int (*func_get_filament_spools)(void *agent, FilamentQueryParams params, std::string* http_body);
+typedef int (*func_create_filament_spool)(void *agent, std::string request_body, std::string* http_body);
+typedef int (*func_update_filament_spool)(void *agent, std::string spool_id, std::string request_body, std::string* http_body);
+typedef int (*func_delete_filament_spools)(void *agent, FilamentDeleteParams params, std::string* http_body);
+typedef int (*func_get_filament_config)(void *agent, std::string* http_body);
 typedef int (*func_get_printer_firmware)(void *agent, std::string dev_id, unsigned* http_code, std::string* http_body);
 typedef int (*func_get_task_plate_index)(void *agent, std::string task_id, int* plate_index);
 typedef int (*func_get_user_info)(void *agent, int* identifier);
@@ -200,6 +205,11 @@ public:
     int check_user_task_report(int* task_id, bool* printable);
     int get_user_print_info(unsigned int* http_code, std::string* http_body);
     int get_user_tasks(TaskQueryParams params, std::string* http_body);
+    int get_filament_spools(FilamentQueryParams params, std::string* http_body);
+    int create_filament_spool(std::string request_body, std::string* http_body);
+    int update_filament_spool(std::string spool_id, std::string request_body, std::string* http_body);
+    int delete_filament_spools(FilamentDeleteParams params, std::string* http_body);
+    int get_filament_config(std::string* http_body);
     int get_printer_firmware(std::string dev_id, unsigned* http_code, std::string* http_body);
     int get_task_plate_index(std::string task_id, int* plate_index);
     int get_user_info(int* identifier);
@@ -311,6 +321,11 @@ private:
     static func_check_user_task_report         check_user_task_report_ptr;
     static func_get_user_print_info            get_user_print_info_ptr;
     static func_get_user_tasks                 get_user_tasks_ptr;
+    static func_get_filament_spools            get_filament_spools_ptr;
+    static func_create_filament_spool          create_filament_spool_ptr;
+    static func_update_filament_spool          update_filament_spool_ptr;
+    static func_delete_filament_spools         delete_filament_spools_ptr;
+    static func_get_filament_config            get_filament_config_ptr;
     static func_get_printer_firmware           get_printer_firmware_ptr;
     static func_get_task_plate_index           get_task_plate_index_ptr;
     static func_get_user_info                  get_user_info_ptr;

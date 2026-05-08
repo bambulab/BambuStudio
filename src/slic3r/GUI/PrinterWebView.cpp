@@ -63,7 +63,7 @@ PrinterWebView::~PrinterWebView()
 }
 
 
-void PrinterWebView::load_url(wxString& url)
+void PrinterWebView::load_url(const wxString& url)
 {
 //    this->Show();
 //    this->Raise();

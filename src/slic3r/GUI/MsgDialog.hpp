@@ -131,6 +131,22 @@ public:
 	virtual ~WarningDialog() = default;
 };
 
+// Post-processing script confirmation before slicing (3MF with post_process scripts)
+class PostProcessScriptDialog : public MsgDialog
+{
+	::wxTextCtrl* m_script_text{ nullptr };
+	Button*     m_toggle_details{ nullptr };
+	bool        m_details_expanded{ false };
+
+public:
+	PostProcessScriptDialog(wxWindow* parent, const wxString& message, const wxString& script_content);
+	PostProcessScriptDialog(PostProcessScriptDialog&&)                 = delete;
+	PostProcessScriptDialog(const PostProcessScriptDialog&)            = delete;
+	PostProcessScriptDialog& operator=(PostProcessScriptDialog&&)      = delete;
+	PostProcessScriptDialog& operator=(const PostProcessScriptDialog&) = delete;
+	~PostProcessScriptDialog() override = default;
+};
+
 #if 1
 // Generic static line, used intead of wxStaticLine
 //class StaticLine: public wxTextCtrl

@@ -1613,9 +1613,13 @@ bool CalibUtils::is_support_auto_pa_cali(std::string filament_id)
     return not_support_auto_pa_cali_filaments.find(filament_id) == not_support_auto_pa_cali_filaments.end();
 }
 
-std::vector<std::string> CalibUtils::get_supported_nozzle_diameters_by_model(const std::string &printer_model)
+std::vector<std::string> CalibUtils::get_supported_nozzle_diameters_by_model(const MachineObject *obj)
 {
     std::vector<std::string> result;
+    if (!obj) return result;
+
+    std::string printer_model = DevPrinterConfigUtil::get_printer_display_name(obj->printer_type);
+
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     if (!preset_bundle || printer_model.empty())
         return result;
@@ -1633,9 +1637,13 @@ std::vector<std::string> CalibUtils::get_supported_nozzle_diameters_by_model(con
     return result;
 }
 
-std::vector<NozzleVolumeType> CalibUtils::get_supported_nozzle_volume_types_by_model_and_nozzle(const std::string &model_id, const std::string &nozzle_diameter)
+std::vector<NozzleVolumeType> CalibUtils::get_supported_nozzle_volume_types_by_model_and_nozzle(const MachineObject *obj, const std::string &nozzle_diameter)
 {
     std::vector<NozzleVolumeType> result;
+    if (!obj) return result;
+
+    std::string model_id = DevPrinterConfigUtil::get_printer_display_name(obj->printer_type);
+
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     if (!preset_bundle || model_id.empty())
         return result;
@@ -1659,20 +1667,26 @@ std::vector<NozzleVolumeType> CalibUtils::get_supported_nozzle_volume_types_by_m
     return std::vector<NozzleVolumeType>(unique_types.begin(), unique_types.end());
 }
 
-std::map<NozzleVolumeType, std::set<NozzleDiameterType>> CalibUtils::get_supported_nozzle_volume_and_diameters(const MachineObject *obj)
+std::map<NozzleVolumeType, std::set<NozzleDiameterType>> CalibUtils::get_supported_nozzle_volume_and_diameters(const MachineObject *obj, bool with_hybrid)
 {
     std::map<NozzleVolumeType, std::set<NozzleDiameterType>> volume_diameters_map;
     if (!obj) return volume_diameters_map;
 
     std::string printer_model = DevPrinterConfigUtil::get_printer_display_name(obj->printer_type);
 
-    std::vector<std::string> diameters = get_supported_nozzle_diameters_by_model(printer_model);
+    std::vector<std::string> diameters = get_supported_nozzle_diameters_by_model(obj);
 
     for (auto& diameter : diameters)
     {
-        std::vector<NozzleVolumeType> volumes = get_supported_nozzle_volume_types_by_model_and_nozzle(printer_model, diameter);
+        std::vector<NozzleVolumeType> volumes = get_supported_nozzle_volume_types_by_model_and_nozzle(obj, diameter);
         for (auto& volume : volumes)
         {
+            // high flow type does not support 0.2mm nozzle
+            if (diameter == "0.2") {
+                if (volume == NozzleVolumeType::nvtHighFlow) continue;
+                if (volume == NozzleVolumeType::nvtTPUHighFlow) continue;
+            }
+
             volume_diameters_map[volume].insert(DevNozzle::ToNozzleDiameterType(diameter));
         }
     }
@@ -1682,7 +1696,9 @@ std::map<NozzleVolumeType, std::set<NozzleDiameterType>> CalibUtils::get_support
         for (const auto& [volume, diameters] : volume_diameters_map) {
             hybrid_diameters_set.insert(diameters.begin(), diameters.end());
         }
-        volume_diameters_map[NozzleVolumeType::nvtHybrid] = hybrid_diameters_set;
+        if (with_hybrid) {
+            volume_diameters_map[NozzleVolumeType::nvtHybrid] = hybrid_diameters_set;
+        }
     }
 
     return volume_diameters_map;

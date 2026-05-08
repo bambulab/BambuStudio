@@ -5,6 +5,10 @@
     "from": "system",
     "setting_id": "GFSG60_14",
     "instantiation": "true",
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
     "filament_max_volumetric_speed": [
         "11.5",
         "11.5"
@@ -16,9 +20,6 @@
     "include": [
         "fdm_filament_template_direct_dual"
     ],
-    "nozzle_temperature_range_high": [
-        "270"
-    ],
     "nozzle_temperature": [
         "255",
         "255"
@@ -26,6 +27,9 @@
     "nozzle_temperature_initial_layer": [
         "255",
         "255"
+    ],
+    "nozzle_temperature_range_high": [
+        "270"
     ],
     "slow_down_min_speed": [
         "20",
