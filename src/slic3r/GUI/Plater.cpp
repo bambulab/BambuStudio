@@ -16892,7 +16892,7 @@ void Plater::import_model_id(wxString download_info)
                 if (boost::filesystem::is_directory(iter.path()))
                     continue;
 
-                wxString sFile = iter.path().filename().string().c_str();
+                wxString sFile = iter.path().filename().wstring();
                 if (strstr(sFile.c_str(), name.c_str()) != NULL) {
                     vecFiles.push_back(sFile);
                 }
