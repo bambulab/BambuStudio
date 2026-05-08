@@ -6105,8 +6105,8 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("override_process_overhang_speed",coBools);
     def->mode = comAdvanced;
-    def->label  = "Override overhang speed";
-    def->tooltip = "Override the overhang speed in process page";
+    def->label  = L("Override overhang speed");
+    def->tooltip = L("Override the overhang speed in process page");
     def->nullable = true;
     def->set_default_value(new ConfigOptionBoolsNullable({false}));
 
