@@ -1,7 +1,6 @@
 #include "PrintConfig.hpp"
 #include "ClipperUtils.hpp"
 #include "Config.hpp"
-#include "Flow.hpp"
 #include "I18N.hpp"
 #include "FilamentMixer.hpp"
 
@@ -9873,7 +9872,7 @@ Polygon get_bed_shape_with_excluded_area(const PrintConfig& cfg, bool use_share)
     if (!tmp.empty()) bed_poly = tmp[0];
     return bed_poly;
 }
-bool has_skirt(const ConfigBase& cfg)
+bool has_skirt(const DynamicPrintConfig& cfg)
 {
     auto opt_skirt_height = cfg.option("skirt_height");
     auto opt_skirt_loops = cfg.option("skirt_loops");
@@ -9881,40 +9880,8 @@ bool has_skirt(const ConfigBase& cfg)
     return (opt_skirt_height && opt_skirt_height->getInt() > 0 && opt_skirt_loops && opt_skirt_loops->getInt() > 0)
         || (opt_draft_shield && opt_draft_shield->getInt() != dsDisabled);
 }
-float get_real_skirt_dist(const ConfigBase& cfg) {
-    if (!has_skirt(cfg))
-        return 0;
-
-    auto opt_skirt_loops = cfg.option("skirt_loops");
-    int skirt_loops = opt_skirt_loops ? opt_skirt_loops->getInt() : 0;
-    if (skirt_loops <= 0)
-        return 0;
-
-    auto  opt_dist       = cfg.option("skirt_distance");
-    float skirt_distance = opt_dist ? static_cast<float>(opt_dist->getFloat()) : 0;
-
-    auto  opt_nozzle     = cfg.option("nozzle_diameter");
-    auto  opt_nozzle_f   = dynamic_cast<const ConfigOptionFloats *>(opt_nozzle);
-    float nozzle_dia     = opt_nozzle_f ? static_cast<float>(opt_nozzle_f->get_at(0)) : 0.4f;
-    auto  opt_lh       = cfg.option("initial_layer_print_height");
-    float layer_height = opt_lh ? static_cast<float>(opt_lh->getFloat()) : 0.2f;
-
-    // Use Flow to compute actual extrusion width and spacing,
-    // matching Print::skirt_flow() / _make_skirt() exactly.
-    ConfigOptionFloat width_opt;
-    auto opt_lw = cfg.option("initial_layer_line_width");
-    width_opt.value = (opt_lw && opt_lw->getFloat() > 0) ? opt_lw->getFloat() : 0;
-    if (width_opt.value == 0) {
-        auto opt_gen_lw = cfg.option("line_width");
-        width_opt.value = (opt_gen_lw && opt_gen_lw->getFloat() > 0) ? opt_gen_lw->getFloat() : 0;
-    }
-    Flow flow = Flow::new_from_config_width(frPerimeter, width_opt, nozzle_dia, layer_height);
-    float spacing    = flow.spacing();
-    float flow_width = flow.width();
-
-    // Outermost skirt centerline = skirt_distance + (N-0.5)*spacing,
-    // plus half extrusion width for the physical outer edge.
-    return skirt_distance + (skirt_loops - 0.5f) * spacing + 0.5f * flow_width;
+float get_real_skirt_dist(const DynamicPrintConfig& cfg) {
+    return has_skirt(cfg) ? cfg.opt_float("skirt_distance") : 0;
 }
 } // namespace Slic3r
 

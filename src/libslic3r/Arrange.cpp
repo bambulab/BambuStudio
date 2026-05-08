@@ -96,21 +96,6 @@ void update_arrange_params(ArrangeParams& params, const DynamicPrintConfig & pri
         }
         else
             params.min_obj_distance = std::max(params.min_obj_distance, scaled(params.cleareance_radius + 0.001)); // +0.001mm to avoid clearance check fail due to rounding error
-
-        // Add per-object skirt/brim expansion on top of clearance-based distance.
-        // When object has brim, skirt is skipped, so take max(skirt_ext, brim_ext).
-        float extra = params.brim_skirt_distance;
-        for (const auto& ap : selected)
-            extra = std::max(extra, static_cast<float>(ap.brim_width));
-        if (extra > 0) {
-            // Two constraints:
-            //   1) print-head clearance when nozzle is at skirt edge: gap >= clearance + extra
-            //   2) prevent skirt line overlap on the bed:             gap >= 2 * extra
-            // Ensuring base >= extra before adding extra satisfies both:
-            //   result = max(clearance, extra) + extra = max(clearance+extra, 2*extra)
-            params.min_obj_distance = std::max(params.min_obj_distance, scaled(extra + 0.001));
-            params.min_obj_distance += scaled(extra + 0.001);
-        }
     }
 }
 
