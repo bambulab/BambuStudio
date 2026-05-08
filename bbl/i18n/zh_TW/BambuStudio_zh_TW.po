@@ -5968,8 +5968,6 @@ msgstr "選擇"
 msgid "Batch manage files."
 msgstr "批次管理檔案。"
 
-msgid "Internal"
-msgstr ""
 
 msgid "Year"
 msgstr "年"
