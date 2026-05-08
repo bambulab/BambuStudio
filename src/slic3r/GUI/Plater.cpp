@@ -20595,6 +20595,65 @@ void Plater::feedback_helio_process(float rating, std::string commend)
     p->helio_background_process.feedback_current_helio_action(rating, commend);
 }
 
+// mixed_filaments telemetry
+static json build_mixed_filaments_telemetry()
+{
+    json arr = json::array();
+
+    const PresetBundle &preset_bundle  = *(wxGetApp().preset_bundle);
+    const auto         &project_config = preset_bundle.project_config;
+    const auto         *is_mixed_opt   = project_config.option<ConfigOptionBools>("filament_is_mixed");
+    if (!is_mixed_opt) return arr;
+
+    const auto *components_opt   = project_config.option<ConfigOptionStrings>("filament_mixed_components");
+    const auto *ratios_opt       = project_config.option<ConfigOptionStrings>("filament_mixed_sublayer_ratios");
+    const auto *gradient_opt     = project_config.option<ConfigOptionBools>("filament_mixed_gradient");
+    const auto *colours_opt      = project_config.option<ConfigOptionStrings>("filament_colour");
+    const bool  sublayer_on      = preset_bundle.prints.get_edited_preset().config.opt_bool("enable_mixed_color_sublayer");
+    const auto &filament_presets = preset_bundle.filament_presets;
+
+    for (size_t i = 0; i < is_mixed_opt->values.size() && i < filament_presets.size(); ++i) {
+        if (!is_mixed_opt->values[i]) continue;
+
+        json entry;
+        entry["filament_index"] = (i + 1);
+
+        const bool is_gradient = gradient_opt && i < gradient_opt->values.size() && gradient_opt->values[i];
+        entry["mode"]          = is_gradient ? "gradient" : (sublayer_on ? "sublayer" : "fixed_layer");
+
+        entry["components"] = components_opt->values[i];
+        std::vector<int> comp_indices;
+        {
+            std::vector<std::string> comps;
+            boost::split(comps, components_opt->values[i], boost::is_any_of(","));
+            for (const auto &c : comps) { comp_indices.push_back(std::stoi(c)); }
+        }
+
+        json comp_colors = json::array();
+        json comp_types  = json::array();
+        for (unsigned int idx0 : comp_indices) {
+            if (colours_opt && idx0 < colours_opt->values.size())
+                comp_colors.push_back(colours_opt->values[idx0]);
+            else
+                comp_colors.push_back("");
+
+            std::string ft;
+            if (idx0 < filament_presets.size()) {
+                const auto *preset = preset_bundle.filaments.find_preset(filament_presets[idx0]);
+                if (preset) ft = preset->config.get_filament_type();
+            }
+            comp_types.push_back(ft);
+        }
+        entry["component_colors"]         = comp_colors;
+        entry["component_filament_types"] = comp_types;
+        entry["ratios"]                   = ratios_opt->values[i];
+        entry["blended_color"]            = colours_opt->values[i];
+
+        arr.push_back(entry);
+    }
+    return arr;
+}
+
 void Plater::record_slice_preset(std::string action)
 {
     // record slice preset
@@ -20621,12 +20680,14 @@ void Plater::record_slice_preset(std::string action)
         for (int i = 0; i < filament_presets.size(); ++i) {
             auto filament_preset = wxGetApp().preset_bundle->filaments.find_preset(filament_presets[i]);
             if (filament_preset->is_system) {
-                j["filament_preset_" + std::to_string(i)] = filament_preset->name;
+                j["filament_preset_" + std::to_string(i+1)] = filament_preset->name;
             }
             else {
-                j["filament_preset_" + std::to_string(i)] = filament_preset->config.opt_string("inherits");
+                j["filament_preset_" + std::to_string(i+1)] = filament_preset->config.opt_string("inherits");
             }
         }
+
+        j["mixed_filaments"] = build_mixed_filaments_telemetry();
 
         Preset& print_preset = wxGetApp().preset_bundle->prints.get_edited_preset();
         if (print_preset.is_system) {

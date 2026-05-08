@@ -1883,7 +1883,7 @@ void PresetBundle::load_installed_filaments(AppConfig &config)
                         {
                             //already has compatible filament
                             add_default_materials = false;
-                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": printer %1% vendor %2% already has default filament %3%")%printer.name %printer.vendor %filament_iter.first;
+                            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": printer %1% vendor %2% already has default filament %3%")%printer.name %printer.vendor->name %filament_iter.first;
                             break;
                         }
                     }
