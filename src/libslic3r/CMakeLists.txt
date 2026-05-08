@@ -605,7 +605,7 @@ target_link_libraries(libslic3r
     ${OCCT_LIBS}
     Clipper2
     mcut
-    opencv_world
+    opencv_core
     )
 
 if(NOT WIN32)

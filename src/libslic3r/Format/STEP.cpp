@@ -20,6 +20,7 @@
 #define DIR_SEPARATOR '/'
 #endif
 
+#include "TDF_LabelSequence.hxx"
 #include "STEPCAFControl_Reader.hxx"
 #include "BRepMesh_IncrementalMesh.hxx"
 #include "Interface_Static.hxx"
