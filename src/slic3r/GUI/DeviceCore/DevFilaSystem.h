@@ -169,7 +169,6 @@ public:
 
 public:
     DevAms(std::shared_ptr<DevFilaSystem> owner, const std::string& ams_id, const std::set<int>& binded_extruder_set, DevAmsType type);
-    DevAms(std::shared_ptr<DevFilaSystem> owner, const std::string& ams_id, const std::set<int>& binded_extruder_set, int type);
     ~DevAms();
 
 public:

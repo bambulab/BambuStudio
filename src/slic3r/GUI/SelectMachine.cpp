@@ -6155,6 +6155,16 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
                 }
             }
         }
+
+        const auto &warning_tpu_filaments = DevPrinterConfigUtil::get_value_from_config<std::vector<std::string>>(obj_->printer_type, "auto_on_cali_warning_tpu_filaments");
+        for (const auto &warning_tpu_filament : warning_tpu_filaments) {
+            if (warning_tpu_filament == check_info.fila_id) {
+                show_status(PrintDialogStatus::PrintStatusTPUUnsuggestCali,
+                            {_L("It is recommended to perform an mannual flow calibration for TPU filament on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to "
+                                "Auto/On, the system will use the previous calibration value and skip the flow calibration process.")});
+                break;
+            }
+        }
     };
 
     for (const auto &iter : extruder_ams_ext_status) {
@@ -6219,15 +6229,6 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
             }
             if (auto weight =obj_->vt_slot[extruder_id].get_filament_remain_weight()) {
                 fila_remain_map[key] = weight.value();
-            }
-        }
-
-        const auto& warning_tpu_filaments = DevPrinterConfigUtil::get_value_from_config<std::vector<std::string>>(obj_->printer_type, "auto_on_cali_warning_tpu_filaments");
-        for (const auto& warning_tpu_filament : warning_tpu_filaments) {
-            if (warning_tpu_filament == check_info.fila_id) {
-                show_status(PrintDialogStatus::PrintStatusTPUUnsuggestCali,
-                            { _L("It is recommended to perform an mannual flow calibration for TPU filament on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the previous calibration value and skip the flow calibration process.") });
-                break;
             }
         }
     }
@@ -6357,8 +6358,8 @@ bool SelectMachineDialog::CheckWarningPrintTimeEstimate(MachineObject* obj_, con
             continue;
 
         if (DevAms* ams = obj_->GetFilaSystem()->GetAmsById(fila.ams_id)) {
-            DevAms::AmsType ams_type = ams->GetAmsType();
-            if (ams_type != DevAms::AmsType::AMS_LITE && ams_type != DevAms::AmsType::AMS_LITE_MIXED) {
+            DevAmsType ams_type = ams->GetAmsType();
+            if (ams_type != DevAmsType::AMS_LITE && ams_type != DevAmsType::AMS_LITE_MIXED) {
                 return false;
             }
         }

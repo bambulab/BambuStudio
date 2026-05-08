@@ -137,14 +137,6 @@ DevAms::DevAms(std::shared_ptr<DevFilaSystem> owner, const std::string& ams_id, 
     m_binded_extruder_set = binded_extruder_set;
 }
 
-DevAms::DevAms(std::shared_ptr<DevFilaSystem> owner, const std::string& ams_id, const std::set<int>& binded_extruder_set, DevAmsType type)
-{
-    m_fila_system = owner;
-    m_ams_id = ams_id;
-    m_ams_type = type;
-    m_binded_extruder_set = binded_extruder_set;
-}
-
 DevAms::~DevAms()
 {
     for (auto it = m_trays.begin(); it != m_trays.end(); it++)
@@ -584,12 +576,12 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
 
     std::set<int> binded_extruder_set;
     std::optional<DevFilaSwitch::SwitchPos> binded_switcher_pos;
-    int type_id = (int)DevAmsType::AMS; // 0:dummy 1:ams 2:ams-lite 3:n3f 4:n3s
+    auto type_id = DevAmsType::AMS; // 0:dummy 1:ams 2:ams-lite 3:n3f 4:n3s
 
     /*ams info*/
     if (j_ams.contains("info")) {
         const std::string& info = j_ams["info"].get<std::string>();
-        type_id = DevUtil::get_flag_bits(info, 0, 4);
+        type_id = (DevAmsType)DevUtil::get_flag_bits(info, 0, 4);
         int extuder_id = DevUtil::get_flag_bits(info, 8, 4);
         if (extuder_id == 0xE && obj->GetFilaSwitch()->IsInstalled()) {
             int bind_switch_in = DevUtil::get_flag_bits(info, 24, 4);
@@ -610,7 +602,7 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
     } else {
         binded_extruder_set = { MAIN_EXTRUDER_ID }; // Default extruder id
         if (!obj->is_enable_ams_np && obj->get_printer_ams_type() == "f1") {
-            type_id = (int)DevAmsType::AMS_LITE;
+            type_id = DevAmsType::AMS_LITE;
         }
     }
 

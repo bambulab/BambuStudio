@@ -3838,7 +3838,7 @@ void StatusPanel::update_ams(MachineObject *obj)
                 int         tray_id_int = atoi(tray_id.c_str());
                 // new protocol
                 if (ams_id_int < 128) {
-                    if ((ams_it->second->GetAmsType() == DevAms::AmsType::AMS_LITE && ams_it->second->IsAmsLiteMixed()) && ((obj->tray_reading_bits & (1 << (24 + tray_id_int))) == 0)) {
+                    if ((ams_it->second->GetAmsType() == DevAmsType::AMS_LITE && ams_it->second->IsAmsLiteMixed()) && ((obj->tray_reading_bits & (1 << (24 + tray_id_int))) == 0)) {
                         m_ams_control->StopRridLoading(ams_id, tray_id);
                     } else if ((obj->tray_reading_bits & (1 << (ams_id_int * 4 + tray_id_int))) == 0) {
                         m_ams_control->StopRridLoading(ams_id, tray_id);

@@ -136,9 +136,6 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     //m_sizer_ams_area_right->Add(m_simplebook_ams_right, 0, wxLEFT | wxRIGHT, FromDIP(5));
     m_sizer_ams_area_arrow_right->Add(m_simplebook_ams_arrow_right, 0, wxALIGN_CENTER, 0);
 
-    m_panel_down_road = new wxPanel(m_amswin, wxID_ANY, wxDefaultPosition, AMS_DOWN_ROAD_SIZE, 0);
-    m_panel_down_road->SetBackgroundColour(AMS_CONTROL_DEF_BLOCK_BK_COLOUR);
-
     m_down_road = new AMSRoadDownPart(m_amswin, wxID_ANY, wxDefaultPosition, AMS_DOWN_ROAD_SIZE);
     m_sizer_down_road->Add(m_down_road, 0, wxTOP, 0);
     // ams mode
@@ -374,7 +371,7 @@ void AMSControl::on_retry()
     post_event(wxCommandEvent(EVT_AMS_RETRY));
 }
 
-AMSControl::~AMSControl() 
+AMSControl::~AMSControl()
 {
     if (m_ams_dry_ctr_win) {
         delete m_ams_dry_ctr_win;
@@ -439,13 +436,13 @@ bool AMSControl::isFilaSwitchInstalled() const
 
 bool AMSControl::IsAmsMixed(const std::vector<AMSinfo> &ams_info)
 {
-    std::set<AMSModel> ams_kind;
+    std::set<DevAmsType> ams_kind;
 
     for (auto info : ams_info) {
         ams_kind.insert(info.ams_type);
     }
 
-    return ams_kind.size() > 1  && ams_kind.find(AMSModel::AMS_LITE) != ams_kind.end();
+    return ams_kind.size() > 1 && ams_kind.find(DevAmsType::AMS_LITE) != ams_kind.end();
 }
 
 void AMSControl::AmsSelectedSwitch(wxCommandEvent& event) {
@@ -700,7 +697,7 @@ void AMSControl::CreateAmsDoubleNozzle(const std::string &series_name, const std
             } else {
                 continue;
             }
-            
+
             AddAmsPreview(*ams_info, panel_pos);
             AddAms(*ams_info, panel_pos);
         }
@@ -832,7 +829,7 @@ void AMSControl::CreateAmsSingleNozzle(const std::string &series_name, const std
             m_item_ids[DEPUTY_EXTRUDER_ID].push_back(ams_info->ams_id);
             AddAmsPreview(*ams_info, panel_pos);
             AddAms(*ams_info, panel_pos);
-            if (m_ams_mixed && ams_info->ams_type == AMSModel::AMS_LITE) center_ids.emplace_back(ams_info->ams_id);
+            if (m_ams_mixed && ams_info->ams_type == DevAmsType::AMS_LITE) center_ids.emplace_back(ams_info->ams_id);
         }
         else if (ams_info->cans.size() == 1) {
             m_item_ids[DEPUTY_EXTRUDER_ID].push_back(ams_info->ams_id);
@@ -858,10 +855,24 @@ void AMSControl::CreateAmsSingleNozzle(const std::string &series_name, const std
     m_item_ids[MAIN_EXTRUDER_ID].push_back(single_info[0].ams_id);
 
     if (m_ams_mixed) {
-        AddAmsPreview(m_ext_info[0], m_ext_info[0].ams_type);
+        AddAmsPreview(m_ext_info[0], AMSPanelPos::RIGHT_PANEL);
         AddAms(m_ext_info[0], AMSPanelPos::RIGHT_PANEL);
     } else {
-        AddAms(single_info, series_name, printer_type, AMSPanelPos::RIGHT_PANEL);
+        for (const auto &info : m_ext_info) {
+            single_info.push_back(info);
+            if (single_info.size() == 2) {
+                AddAms(single_info, series_name, printer_type, AMSPanelPos::RIGHT_PANEL);
+                AddAmsPreview(single_info, AMSPanelPos::RIGHT_PANEL);
+                pair_id.push_back(std::make_pair(single_info[0].ams_id, single_info[1].ams_id));
+                single_info.clear();
+            }
+        }
+
+        if (single_info.size() > 0) {
+            AddAms(single_info, series_name, printer_type, AMSPanelPos::RIGHT_PANEL);
+            AddAmsPreview(single_info, AMSPanelPos::RIGHT_PANEL);
+            single_info.clear();
+        }
     }
 
     AddAmsPreview(single_info, AMSPanelPos::RIGHT_PANEL);
@@ -1021,7 +1032,7 @@ void AMSControl::UpdateAmsDryControl(MachineObject* obj)
     }
 
     std::weak_ptr<DevFilaSystem> weak_fila_system = obj->GetFilaSystem();
-    
+
     if (auto locaked_fila_system = weak_fila_system.lock()) {
         m_ams_dry_ctr_win->update(locaked_fila_system, obj);
     } else {
@@ -1350,9 +1361,9 @@ void AMSControl::AddAms(AMSinfo info, AMSPanelPos pos)
     }
     else if (m_total_ext_count == 1){
         if(m_ams_mixed ) {
-            if(info.ams_type == AMSModel::AMS_LITE)
+            if(info.ams_type == DevAmsType::AMS_LITE)
                 createAms(m_simplebook_ams_arrow_left, m_arrow_left_page_index, info, AMSPanelPos::LEFT_PANEL);
-            else if(info.ams_type == AMSModel::EXT_AMS)
+            else if (info.ams_type == DevAmsType::EXT_SPOOL)
                 createAms(m_simplebook_ams_arrow_right, m_arrow_right_page_index, info, AMSPanelPos::RIGHT_PANEL);
             else
                 createAms(m_simplebook_ams_left, m_left_page_index, info, AMSPanelPos::LEFT_PANEL);
@@ -1731,12 +1742,10 @@ void AMSControl::SetAmsStep(std::string ams_id, std::string canid, int extruder_
     }
 
     if (m_ams_mixed) {
-        if (model == AMSModel::EXT_AMS) {
-            left   = false;
+        if (model == DevAmsType::EXT_SPOOL) {
             length = 249;
             in_same_page = true;
-        } else if (model == AMSModel::AMS_LITE) {
-            left   = false;
+        } else if (model == DevAmsType::AMS_LITE) {
             length = 206;
             in_same_page = true;
         }
