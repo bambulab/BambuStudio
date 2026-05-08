@@ -2857,7 +2857,24 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     // OrcaSlicer: calib
     if (print.calib_params().mode == CalibMode::Calib_PA_Line) {
         std::string gcode;
+        CalibPressureAdvanceLine pa_test(this);
+        const float layer_height = static_cast<float>(pa_test.height_layer());
+        const float line_width   = static_cast<float>(pa_test.line_width());
+
+        gcode += "; PA_LINE_CALIBRATION_START\n";
         gcode += ";" + GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Layer_Change) + "\n";
+        char buf[64];
+        sprintf(buf, "; Z_HEIGHT: %g\n", layer_height);
+        gcode += buf;
+        sprintf(buf, ";%s%g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Height).c_str(), layer_height);
+        gcode += buf;
+        sprintf(buf, ";%s%g\n", GCodeProcessor::reserved_tag(GCodeProcessor::ETags::Width).c_str(), line_width);
+        gcode += buf;
+        m_last_layer_z = layer_height;
+        m_max_layer_z  = std::max(m_max_layer_z, m_last_layer_z);
+        m_last_height  = layer_height;
+        m_last_width   = line_width;
+
         if ((NOZZLE_CONFIG(default_acceleration) > 0 && NOZZLE_CONFIG(outer_wall_acceleration) > 0)) {
             m_writer.set_acceleration((unsigned int) floor(NOZZLE_CONFIG(outer_wall_acceleration) + 0.5));
         }
@@ -2867,7 +2884,6 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
             gcode += m_writer.set_jerk_xy(jerk);
         }
 
-        CalibPressureAdvanceLine pa_test(this);
         if (this->is_BBL_Printer()) {
             int filament_id = m_writer.filament() ? m_writer.filament()->id() : 0;
             int ext_id = m_config.filament_map.get_at(filament_id) - 1;
@@ -2884,6 +2900,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         pa_test.draw_numbers() = print.calib_params().print_numbers;
         auto params            = print.calib_params();
         gcode += pa_test.generate_test(params.start, params.step, std::llround(std::ceil((params.end - params.start) / params.step)) + 1);
+        gcode += "; PA_LINE_CALIBRATION_END\n";
 
         file.write(gcode);
     }
