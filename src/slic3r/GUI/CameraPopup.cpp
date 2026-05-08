@@ -168,11 +168,11 @@ void CameraPopup::on_switch_recording(wxMouseEvent& event)
     if (now - m_last_recording_click < std::chrono::milliseconds(300)) return;
     m_last_recording_click = now;
 
-    if (m_obj->GetStorage()->get_sdcard_state() != DevStorage::SdcardState::HAS_SDCARD_NORMAL) {
+    bool value = m_switch_recording->GetValue();
+    if (!value && m_obj->GetStorage()->get_sdcard_state() != DevStorage::SdcardState::HAS_SDCARD_NORMAL) {
         sdcard_absent_hint();
         return;
     }
-    bool value = m_switch_recording->GetValue();
     m_switch_recording->SetValue(!value);
     m_obj->command_ipcam_record(!value);
 }
