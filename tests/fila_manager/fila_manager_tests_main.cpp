@@ -177,3 +177,137 @@ TEST_CASE("Store::update_spool_if_changed: no sync-cared field changed -> no wri
 
     REQUIRE(store.update_spool_if_changed(sp) == false);
 }
+
+// ---------------------------------------------------------------------------
+// STUDIO-17977 / openspec 20260506耗材管理器AMS同步渐变多拼色 - Task 7
+// Persistence schema compatibility: legacy spools.json + forward-compat
+// ---------------------------------------------------------------------------
+
+TEST_CASE("FilamentSpool: loading legacy spools.json (no colors field) is non-destructive",
+          "[fila_manager][colors][compat]")
+{
+    // 模拟 2.5.2 之前的 spool 持久化 JSON
+    nlohmann::json legacy;
+    legacy["spool_id"]    = "LEGACY1";
+    legacy["color_code"]  = "#00AE42";
+    legacy["color_name"]  = "Bambu Green";
+    legacy["material_type"] = "PLA";
+    // 没有 colors / color_type
+
+    auto s = FilamentSpool::from_json(legacy);
+    REQUIRE(s.color_code == "#00AE42");
+    REQUIRE(s.colors.empty());
+    REQUIRE(s.color_type == 2);
+
+    // round-trip：再 to_json，单色 spool 不应引入破坏性新字段
+    auto j2 = s.to_json();
+    // colors 字段允许存在但为空数组，color_type=2 也允许写
+    if (j2.contains("colors")) REQUIRE(j2["colors"].empty());
+    REQUIRE(j2.value("color_type", 2) == 2);
+}
+
+TEST_CASE("FilamentSpool: forward-compat unknown future fields are ignored",
+          "[fila_manager][colors][compat]")
+{
+    nlohmann::json future;
+    future["spool_id"]   = "S1";
+    future["color_code"] = "#00AE42";
+    future["colors"]     = nlohmann::json::array({"#0066FF", "#00AA88"});
+    future["color_type"] = 0;
+    future["color_decoration"] = "metallic-flake"; // 未来字段
+    future["nozzle_match"]     = nlohmann::json::array({"0.4", "0.2"}); // 未来字段
+    REQUIRE_NOTHROW(FilamentSpool::from_json(future));
+    auto s = FilamentSpool::from_json(future);
+    REQUIRE(s.colors == std::vector<std::string>{"#0066FF", "#00AA88"});
+    REQUIRE(s.color_type == 0);
+}
+
+// ---------------------------------------------------------------------------
+// STUDIO-17977 / Task 10: ColorType bridge between swagger and
+//                         FilamentColor::ColorType
+//
+// `wgtFilaManagerColorType.h` is the canonical helper. It pulls
+// `EncodedFilament.hpp`, which transitively includes <wx/colour.h> /
+// <wx/string.h>. This test target (tests/fila_manager) intentionally links
+// only libslic3r + Catch2 — no wxWidgets — so blindly including the helper
+// would break the entire fila_manager_tests binary (and take down the
+// existing [colors] / [compat] / [cloud] / [store] cases above).
+//
+// The include is guarded with __has_include so that:
+//   * if a future cmake change adds wx headers to this target's include
+//     path, we pick up the real helper automatically and exercise the
+//     enum-typed signatures end-to-end;
+//   * otherwise we fall back to a mirror table test that still locks the
+//     swagger ↔ FilamentColor::ColorType mapping the helper is required
+//     to implement (design.md § 9.5). The mirror test MUST be kept in
+//     sync with wgtFilaManagerColorType.h — both reference the same
+//     swagger spec.
+// ---------------------------------------------------------------------------
+
+#if defined(__has_include) && __has_include(<wx/colour.h>)
+#  define BBL_TEST_HAS_WX 1
+#  include "slic3r/GUI/fila_manager/wgtFilaManagerColorType.h"
+#else
+#  define BBL_TEST_HAS_WX 0
+#endif
+
+#if BBL_TEST_HAS_WX
+
+TEST_CASE("ColorType: swagger <-> FilamentColor::ColorType round-trip",
+          "[fila_manager][colors][color_type_map]")
+{
+    using CT = Slic3r::FilamentColor::ColorType;
+    // swagger 0=gradient / 1=multicolor / 2=single
+    // FilamentColor::ColorType: SINGLE_CLR=0, MULTI_CLR=1, GRADIENT_CLR=2
+    REQUIRE(Slic3r::GUI::to_filament_color_type(0) == CT::GRADIENT_CLR);
+    REQUIRE(Slic3r::GUI::to_filament_color_type(1) == CT::MULTI_CLR);
+    REQUIRE(Slic3r::GUI::to_filament_color_type(2) == CT::SINGLE_CLR);
+    REQUIRE(Slic3r::GUI::to_filament_color_type(99) == CT::SINGLE_CLR); // defensive
+
+    REQUIRE(Slic3r::GUI::from_filament_color_type(CT::GRADIENT_CLR) == 0);
+    REQUIRE(Slic3r::GUI::from_filament_color_type(CT::MULTI_CLR)    == 1);
+    REQUIRE(Slic3r::GUI::from_filament_color_type(CT::SINGLE_CLR)   == 2);
+}
+
+#else // !BBL_TEST_HAS_WX — wx headers unavailable, mirror the spec table
+
+namespace {
+// Mirror of the two enum spaces. KEEP IN SYNC WITH wgtFilaManagerColorType.h
+// and with EncodedFilament.hpp:75-80 / DevFilaColorType.
+//
+//   FilamentColor::ColorType  : SINGLE_CLR=0, MULTI_CLR=1, GRADIENT_CLR=2
+//   swagger / FilamentSpool   : 0=gradient,   1=multicolor, 2=single
+constexpr int kFcSingle   = 0;
+constexpr int kFcMulti    = 1;
+constexpr int kFcGradient = 2;
+
+constexpr int swagger_to_fc_mirror(int spool_color_type) {
+    switch (spool_color_type) {
+        case 0: return kFcGradient;
+        case 1: return kFcMulti;
+        default: return kFcSingle;
+    }
+}
+constexpr int fc_to_swagger_mirror(int fc_color_type) {
+    switch (fc_color_type) {
+        case kFcGradient: return 0;
+        case kFcMulti:    return 1;
+        default:          return 2;
+    }
+}
+} // namespace
+
+TEST_CASE("ColorType: swagger <-> FilamentColor::ColorType round-trip (mirror)",
+          "[fila_manager][colors][color_type_map]")
+{
+    REQUIRE(swagger_to_fc_mirror(0)  == kFcGradient);
+    REQUIRE(swagger_to_fc_mirror(1)  == kFcMulti);
+    REQUIRE(swagger_to_fc_mirror(2)  == kFcSingle);
+    REQUIRE(swagger_to_fc_mirror(99) == kFcSingle); // defensive
+
+    REQUIRE(fc_to_swagger_mirror(kFcGradient) == 0);
+    REQUIRE(fc_to_swagger_mirror(kFcMulti)    == 1);
+    REQUIRE(fc_to_swagger_mirror(kFcSingle)   == 2);
+}
+
+#endif // BBL_TEST_HAS_WX

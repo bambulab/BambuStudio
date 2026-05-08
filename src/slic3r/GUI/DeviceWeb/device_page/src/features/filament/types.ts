@@ -85,6 +85,8 @@ export interface AmsTray {
   // FilamentSpool.color_type (0 = gradient / 1 = multicolor / 2 = single).
   colors?: string[];
   color_type?: 0 | 1 | 2;
+  color_name?: string;
+  fila_color_code?: string;
   weight?: number | string;
   remain?: number;
   diameter?: number | string;

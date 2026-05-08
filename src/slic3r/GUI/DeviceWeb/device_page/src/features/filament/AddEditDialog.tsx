@@ -1546,11 +1546,12 @@ export function AddEditDialog({
       setColors([]);
       setColorType(2);
     }
-    setColorName('');
-    // STUDIO-17977 F1.3: BBL official colour code is also tied to the new
-    // tray's candidate (if any); clear it and let the resolver fill in
-    // from the new fila_id's candidate cache.
-    setFilaColorCode('');
+    setColorName(tray.color_name || '');
+    // STUDIO-17977: AMS payload may already carry the official colour name
+    // and BBL code resolved by C++ from FilamentColorCodeQuery. Seed them
+    // immediately, then let the resolver below keep them aligned if the
+    // candidate cache refreshes later.
+    setFilaColorCode(tray.fila_color_code || '');
     userTouchedColorRef.current = true;
 
     // Seed both weight inputs from the AMS tray report. `tray.weight` is
