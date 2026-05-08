@@ -647,7 +647,21 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             });
 ;    }
     this->Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent &evt) {
+
+        // wxEVT_CHAR_HOOK on the top-level window will capture all key strokes sent to the application, even if a child widget would normally handle them.
+        // This can cause issues with global shortcuts which are also valid text entry (no modifier, Shift, or AltGr/Ctrl+Alt), or something the text editor would handle (like CTRL+A).
+        // Also wxWidgets isn't aware of ImGui text inputs at all, so we need to check if any ImGui widgets are expecting keyboard events.
+        // To do this we can check that current focus is not on a text editor control and use the ImGui functions provided for this purpose.
+        // However, our legacy behavior expects global CTRL/CMD shortcuts to work even when a text input has focus. Since it is highly unlikely that
+        // CTRL w/out ALT is used for text entry, we can skip those cases. The only issue is if the text/ImGui widget would normally handle any of our
+        // global shortucts, so ideally none of our globals should interfere with commonly-used text input shortcuts like CTRL+A, arrow keys, copy/cut/paste, etc.
+        if ((!evt.CmdDown() || evt.AltDown()) && (dynamic_cast<wxTextCtrl *>(wxWindow::FindFocus()) || wxGetApp().imgui()->want_keyboard())) {
+            evt.Skip();
+            return;
+        }
+
         const int key_code = evt.GetKeyCode();
+
 #ifdef __APPLE__
         if (evt.CmdDown() && (evt.GetKeyCode() == 'H')) {
             //call parent_menu hide behavior
