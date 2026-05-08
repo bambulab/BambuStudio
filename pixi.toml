@@ -29,6 +29,9 @@ openvdb = "*"
 openexr = "*"
 imath = "*"
 blosc = "*"
+cgal-cpp = "*"
+gmp = "*"
+mpfr = "*"
 
 # System libs needed by main BambuStudio configure (Linux)
 dbus = "*"
