@@ -34,6 +34,7 @@ gmp = "*"
 mpfr = "*"
 libopencv = "*"
 occt = "*"
+ffmpeg = "7.0.*"  # 7.0.x is needed: BambuStudio hardcodes libavcodec.so.61.3.100 paths
 
 # System libs needed by main BambuStudio configure (Linux)
 dbus = "*"
