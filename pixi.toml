@@ -37,3 +37,7 @@ mpfr = "*"
 dbus = "*"
 libgl-devel = "*"
 mesa-libgl-devel-cos7-x86_64 = "*"
+
+[tasks.setup-libnoise]
+cmd = "bash scripts/pixi/setup-libnoise.sh"
+description = "Build bambulab/libnoise (no conda-forge package) and install into pixi env"
