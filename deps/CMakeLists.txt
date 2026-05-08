@@ -21,7 +21,7 @@
 #
 
 project(BambuStudio-deps)
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.13)
 
 include(ExternalProject)
 include(ProcessorCount)
@@ -38,6 +38,8 @@ option(DEP_BUILD_PNG "Compile libpng" ON)
 option(DEP_BUILD_JPEG "Compile libjpeg" ON)
 option(DEP_BUILD_TIFF "Compile libtiff" ON)
 option(DEP_BUILD_BOOST "Compile boost" ON)
+option(DEP_BUILD_TBB "Compile TBB" ON)
+option(DEP_BUILD_CURL "Compile CURL" ON)
 option(DEP_BUILD_OPENSSL "Compile openssl" ON)
 option(DEP_BUILD_GLFW "Compile GLFW" ON)
 option(DEP_BUILD_BLOSC "Compile Blosc" ON)
@@ -240,7 +242,11 @@ if (DEP_BUILD_GLFW)
 endif ()
 include(OpenCSG/OpenCSG.cmake)
 
-include(TBB/TBB.cmake)
+set(TBB_PKG "")
+if (DEP_BUILD_TBB)
+    include(TBB/TBB.cmake)
+    set(TBB_PKG dep_TBB)
+endif ()
 
 set(BLOSC_PKG "")
 if (DEP_BUILD_BLOSC)
@@ -264,7 +270,7 @@ if (DEP_BUILD_OPENSSL)
     set(OPENSSL_PKG dep_OpenSSL)
 endif ()
 set(CURL_PKG "")
-if (NOT CURL_FOUND)
+if (DEP_BUILD_CURL AND NOT CURL_FOUND)
     include(CURL/CURL.cmake)
     set(CURL_PKG dep_CURL)
 endif ()
@@ -288,7 +294,7 @@ endif ()
 
 set(_dep_list
     ${BOOST_PKG}
-    dep_TBB
+    ${TBB_PKG}
     ${CURL_PKG}
     ${WXWIDGETS_PKG}
     dep_Cereal

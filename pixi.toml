@@ -1,0 +1,19 @@
+[workspace]
+name = "BambuStudio"
+description = "Pixi PoC: replace ExternalProject deps with conda-forge binaries"
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+compilers = ">=1.10"
+cmake = ">=3.27"
+ninja = "*"
+pkg-config = "*"
+
+# PoC: 3 deps currently built via deps/ ExternalProject
+libboost-devel = ">=1.84"
+tbb-devel = ">=2021.5"
+libcurl = "*"
+
+# System libs needed by main BambuStudio configure (Linux)
+dbus = "*"

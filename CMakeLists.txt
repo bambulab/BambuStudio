@@ -383,7 +383,7 @@ endif()
 # boost::process was introduced first in version 1.64.0,
 # boost::beast::detail::base64 was introduced first in version 1.66.0
 set(MINIMUM_BOOST_VERSION "1.83.0")
-set(_boost_components "system;filesystem;thread;log;locale;regex;chrono;atomic;date_time;iostreams")
+set(_boost_components "filesystem;thread;log;locale;regex;chrono;atomic;date_time;iostreams")
 find_package(Boost ${MINIMUM_BOOST_VERSION} REQUIRED COMPONENTS ${_boost_components})
 
 add_library(boost_libs INTERFACE)
@@ -410,9 +410,9 @@ function(slic3r_remap_configs targets from_Cfg to_Cfg)
     endif()
 endfunction()
 
-if(TARGET Boost::system)
-    message(STATUS "Boost::boost exists")
-    target_link_libraries(boost_headeronly INTERFACE Boost::boost)
+if(TARGET Boost::headers)
+    message(STATUS "Boost::headers exists")
+    target_link_libraries(boost_headeronly INTERFACE Boost::headers)
 
     # Only from cmake 3.12
     # list(TRANSFORM _boost_components PREPEND Boost:: OUTPUT_VARIABLE _boost_targets)
