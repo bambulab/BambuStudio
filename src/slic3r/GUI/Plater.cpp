@@ -17404,7 +17404,6 @@ void Plater::_calib_pa_pattern(const Calib_Params &params)
 {
     // add "handle" cube
     sidebar().obj_list()->load_generic_subobject("Cube", ModelVolumeType::INVALID);
-    orient();
     changed_objects({0});
     _calib_pa_select_added_objects();
 
