@@ -698,7 +698,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
 
 encoding_check(libslic3r_gui)
 
-target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
+target_link_libraries(libslic3r_gui libslic3r cereal::cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
 #target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi libcurl OpenSSL::SSL OpenSSL::Crypto ${wxWidgets_LIBRARIES} glfw)
 
 if (MSVC)
@@ -708,9 +708,20 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     FIND_LIBRARY(WAYLAND_EGL_LIBRARIES    NAMES wayland-egl)
     FIND_LIBRARY(WAYLAND_CLIENT_LIBRARIES NAMES wayland-client)
     find_package(CURL REQUIRED)
-    target_link_libraries(libslic3r_gui ${DBUS_LIBRARIES} OSMesa)
+    target_link_libraries(libslic3r_gui ${DBUS_LIBRARIES})
+    # OSMesa is optional (not on conda-forge); link only if available on the system.
+    find_library(OSMESA_LIBRARY OSMesa)
+    if(OSMESA_LIBRARY)
+        target_link_libraries(libslic3r_gui ${OSMESA_LIBRARY})
+    endif()
+    # FindOpenGL doesn't always emit the OpenGL::EGL target under the conda
+    # compiler sysroot; fall back to the cache-resolved library path.
+    if(TARGET OpenGL::EGL)
+        target_link_libraries(libslic3r_gui OpenGL::EGL)
+    else()
+        target_link_libraries(libslic3r_gui ${OPENGL_egl_LIBRARY})
+    endif()
     target_link_libraries(libslic3r_gui
-        OpenGL::EGL
         ${WAYLAND_SERVER_LIBRARIES}
         ${WAYLAND_EGL_LIBRARIES}
         ${WAYLAND_CLIENT_LIBRARIES}
@@ -720,11 +731,11 @@ elseif (APPLE)
     target_link_libraries(libslic3r_gui ${DISKARBITRATION_LIBRARY})
 endif()
 
-if (SLIC3R_STATIC)
-    # FIXME: This was previously exported by wx-config but the wxWidgets
-    # cmake build forgets this and the build fails in debug mode (or on raspberry release)
-    target_compile_definitions(libslic3r_gui PUBLIC -DwxDEBUG_LEVEL=0)
-endif()
+# wxWidgets is built with wxBUILD_DEBUG_LEVEL=0 (see deps/wxWidgets/wxWidgets.cmake),
+# but its setup.h doesn't propagate that to consumers, so wxASSERT macros still
+# emit references to wxTheAssertHandler which the static lib doesn't ship. Define
+# wxDEBUG_LEVEL=0 unconditionally to keep linker happy whether or not SLIC3R_STATIC.
+target_compile_definitions(libslic3r_gui PUBLIC -DwxDEBUG_LEVEL=0)
 
 if (SLIC3R_STATIC AND NOT SLIC3R_STATIC_EXCLUDE_CURL AND UNIX AND NOT APPLE)
     target_compile_definitions(libslic3r_gui PRIVATE OPENSSL_CERT_OVERRIDE)

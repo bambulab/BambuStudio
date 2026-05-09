@@ -128,7 +128,11 @@ if (NOT WIN32 AND NOT APPLE)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/unix/BuildLinuxImage.sh.in ${CMAKE_CURRENT_BINARY_DIR}/BuildLinuxImage.sh @ONLY)
 endif ()
 
-target_link_libraries(BambuStudio libslic3r cereal)
+# boost_libs first: imgui inlines boost/log calls into its static lib, so
+# Boost::log must come AFTER on the link line. With static archives the linker
+# resolves left-to-right, so put boost_libs at the end via --as-needed flags
+# (or rely on transitive inclusion).
+target_link_libraries(BambuStudio libslic3r libslic3r_cgal mcut cereal::cereal boost_libs Boost::log)
 if (APPLE)
 #    add_compile_options(-stdlib=libc++)
 #    add_definitions(-DBOOST_THREAD_DONT_USE_CHRONO -DBOOST_NO_CXX11_RVALUE_REFERENCES -DBOOST_THREAD_USES_MOVE)

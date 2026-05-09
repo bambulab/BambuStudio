@@ -19,4 +19,9 @@ add_library(imgui STATIC
 
 if(Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
+    # imgui_draw.cpp was patched to call BOOST_LOG_TRIVIAL — propagate the
+    # Boost::log requirement so consumers link it after libimgui.a.
+    if(TARGET Boost::log)
+        target_link_libraries(imgui PUBLIC Boost::log)
+    endif()
 endif()

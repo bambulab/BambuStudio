@@ -553,11 +553,7 @@ find_package(OpenCASCADE REQUIRED)
 target_include_directories(libslic3r PUBLIC ${OpenCASCADE_INCLUDE_DIR})
 
 set(OCCT_LIBS
-    TKXDESTEP
-    TKSTEP
-    TKSTEP209
-    TKSTEPAttr
-    TKSTEPBase
+    TKDESTEP  # OCCT 8.0 unified TKXDESTEP / TKSTEP / TKSTEP209 / TKSTEPAttr / TKSTEPBase
     TKXCAF
     TKXSBase
     TKVCAF
@@ -586,7 +582,7 @@ target_link_libraries(libslic3r
     noise::noise
     libnest2d
     admesh
-    cereal
+    cereal::cereal
     libigl
     miniz
     boost_libs
@@ -606,6 +602,8 @@ target_link_libraries(libslic3r
     Clipper2
     mcut
     opencv_core
+    opencv_imgproc
+    opencv_imgcodecs
     )
 
 if(NOT WIN32)
