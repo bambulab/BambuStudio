@@ -61,22 +61,25 @@ glib = ">=2.84.3,<3"
 # swscale-8, avutil-59). Pin to 7.1.* so bambustudio_copy_dlls() finds them.
 ffmpeg = "7.1.*"
 
-[tasks.setup-libnoise]
+# Linux pixi tasks (bash). Windows tasks live under [target.win-64.tasks.*]
+# in follow-up commits.
+
+[target.linux-64.tasks.setup-libnoise]
 cmd = "bash scripts/pixi/setup-libnoise.sh"
 description = "Build bambulab/libnoise (no conda-forge package) and install into pixi env"
 
-[tasks.setup-wxwidgets]
+[target.linux-64.tasks.setup-wxwidgets]
 cmd = "bash scripts/pixi/setup-wxwidgets.sh"
 description = "Build bambulab/wxWidgets fork (custom patches) and install into pixi env"
 
-[tasks.bootstrap]
+[target.linux-64.tasks.bootstrap]
 description = "One-time: build bambulab forks (libnoise, wxWidgets) into pixi env"
 depends-on = ["setup-libnoise", "setup-wxwidgets"]
 
-[tasks.build]
+[target.linux-64.tasks.build]
 description = "Configure and build BambuStudio. Parallelism = floor(free_mem_GB / 2.5), matching BuildLinux.sh; override with CMAKE_BUILD_PARALLEL_LEVEL=N."
 cmd = "bash scripts/pixi/build.sh"
 
-[tasks.bambu-studio]
+[target.linux-64.tasks.bambu-studio]
 description = "Launch the bambu-studio binary with the env workarounds the pixi build needs (host GTK theme, CA bundle, software GL fallback). Args pass through."
 cmd = "bash scripts/pixi/run.sh"
