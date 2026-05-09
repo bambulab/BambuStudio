@@ -349,7 +349,11 @@ include_directories(${LIBDIR_BIN}/platform)
 include_directories(${LIBDIR}/libigl)
 
 if(WIN32)
-    add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
+    # NOMINMAX / WIN32_LEAN_AND_MEAN guard <windows.h>'s `min` / `max` macros from
+    # clobbering std::max etc. The PCH (pchheader.hpp) sets these too, but TUs
+    # that include <windows.h> with SLIC3R_PCH=OFF (e.g. the Ninja+sccache flow)
+    # need them globally.
+    add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS -DNOMINMAX -DWIN32_LEAN_AND_MEAN)
     if(MSVC)
         # BOOST_ALL_NO_LIB: Avoid the automatic linking of Boost libraries on Windows. Rather rely on explicit linking.
         add_definitions(-DBOOST_ALL_NO_LIB -DBOOST_USE_WINAPI_VERSION=0x602 -DBOOST_SYSTEM_USE_UTF8 )
