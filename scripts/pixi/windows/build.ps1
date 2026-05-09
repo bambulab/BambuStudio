@@ -1,8 +1,8 @@
 # Configure (via CMakePresets) and build BambuStudio on Windows.
 #
-# Picks the right configure preset based on the detected Visual Studio:
-#   VS 2022 -> win-pixi
-#   VS 2019 -> win-pixi-vs2019
+# Uses the win-pixi preset (Ninja + sccache). Ninja calls cl.exe / link.exe
+# directly, so the script first sources Launch-VsDevShell.ps1 to bring the
+# MSVC toolchain onto PATH and set INCLUDE / LIB / LIBPATH from vcvars.
 #
 # Parallelism formula matches BuildLinux.sh:
 #   MAX_THREADS = floor(FREE_MEM_GB / 2.5)
@@ -11,31 +11,31 @@
 $ErrorActionPreference = 'Stop'
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
+# Locate VS Developer environment. -products '*' is required to pick up VS
+# Build Tools installations, not just the IDE.
 $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
-$preset = 'win-pixi'
-if (Test-Path $vswhere) {
-    $ver = & $vswhere -latest -products '*' -property installationVersion
-    if ($ver -match '^16\.') { $preset = 'win-pixi-vs2019' }
-}
-Write-Host "Using preset: $preset"
+if (-not (Test-Path $vswhere)) { throw "vswhere not found at $vswhere" }
+$vsroot = & $vswhere -latest -products '*' -property installationPath
+if (-not $vsroot) { throw "no Visual Studio installation found via vswhere" }
+$devShell = Join-Path $vsroot 'Common7/Tools/Launch-VsDevShell.ps1'
+if (-not (Test-Path $devShell)) { throw "Launch-VsDevShell.ps1 not found at $devShell" }
+& $devShell -Arch amd64 -SkipAutomaticLocation | Out-Null
+Write-Host "Using VS install: $vsroot"
 
 . (Join-Path $scriptDir '_jobs.ps1')
 $jobs = Get-PixiParallelJobs
 $env:CMAKE_BUILD_PARALLEL_LEVEL = $jobs
 Write-Host "Setting CMAKE_BUILD_PARALLEL_LEVEL=$jobs (mem-aware)"
 
-# Only reconfigure on first build (or after `rm -rf build`). Re-running
-# `cmake --preset` on every build invalidates the PCH and cascades into a
-# rebuild of all libslic3r / libslic3r_gui TUs even when nothing changed
-# (MSBuild's tracker compares per-obj recorded command lines, and the
-# regenerated .vcxproj alone is enough to bust them). `cmake --build`
-# already re-invokes configure internally via ZERO_CHECK if CMakeLists.txt
-# or CMakePresets.json changed. Mirror of scripts/pixi/build.sh on Linux.
-$buildDir = Join-Path $env:PIXI_PROJECT_ROOT 'build'
+# Only reconfigure on first build (or after `rm -rf build/release`). Re-running
+# `cmake --preset` on every build can invalidate caches even when nothing
+# changed; `cmake --build` re-invokes configure internally if CMakeLists.txt
+# or CMakePresets.json actually changed. Mirror of scripts/pixi/build.sh.
+$buildDir = Join-Path $env:PIXI_PROJECT_ROOT 'build/release'
 if (-not (Test-Path (Join-Path $buildDir 'CMakeCache.txt'))) {
-    & cmake --preset $preset
+    & cmake --preset win-pixi
     if ($LASTEXITCODE -ne 0) { throw "cmake configure failed ($LASTEXITCODE)" }
 }
 
-& cmake --build --preset $preset --parallel $jobs
+& cmake --build --preset win-pixi --parallel $jobs
 if ($LASTEXITCODE -ne 0) { throw "cmake build failed ($LASTEXITCODE)" }
