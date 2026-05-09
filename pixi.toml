@@ -89,3 +89,7 @@ cmd = "bash scripts/pixi/run.sh"
 [target.win-64.tasks.setup-libnoise]
 cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/setup-libnoise.ps1"
 description = "Build bambulab/libnoise via deps/ ExternalProject and install into pixi env"
+
+[target.win-64.tasks.setup-occt-bridge]
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/setup-occt-bridge.ps1"
+description = "Junction Library/bin/occt -> Library/bin so bambustudio_copy_dlls() finds OCCT DLLs"
