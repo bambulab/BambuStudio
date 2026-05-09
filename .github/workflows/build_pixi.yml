@@ -99,14 +99,16 @@ jobs:
       - name: sccache stats (before)
         run: pixi run sccache --zero-stats && pixi run sccache --show-stats
 
-      - name: Build BambuStudio
-        run: pixi run build
+      # CI verifies the Release variant for shipping fidelity. Devs default
+      # to `pixi run build` (Debug) for faster local iteration.
+      - name: Build BambuStudio (Release)
+        run: pixi run build-release
 
       - name: sccache stats (after)
         run: pixi run sccache --show-stats
 
       - name: Verify binary
-        run: test -x build/src/bambu-studio && file build/src/bambu-studio
+        run: test -x build/release/src/bambu-studio && file build/release/src/bambu-studio
 
       - name: Upload logs on failure
         if: failure()
@@ -114,8 +116,8 @@ jobs:
         with:
           name: build-logs-${{ matrix.os }}
           path: |
-            build/CMakeFiles/CMakeOutput.log
-            build/CMakeFiles/CMakeError.log
-            build/CMakeFiles/CMakeConfigureLog.yaml
+            build/release/CMakeFiles/CMakeOutput.log
+            build/release/CMakeFiles/CMakeError.log
+            build/release/CMakeFiles/CMakeConfigureLog.yaml
           if-no-files-found: ignore
           retention-days: 7
