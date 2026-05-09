@@ -24,8 +24,18 @@ $jobs = Get-PixiParallelJobs
 $env:CMAKE_BUILD_PARALLEL_LEVEL = $jobs
 Write-Host "Setting CMAKE_BUILD_PARALLEL_LEVEL=$jobs (mem-aware)"
 
-& cmake --preset $preset
-if ($LASTEXITCODE -ne 0) { throw "cmake configure failed ($LASTEXITCODE)" }
+# Only reconfigure on first build (or after `rm -rf build`). Re-running
+# `cmake --preset` on every build invalidates the PCH and cascades into a
+# rebuild of all libslic3r / libslic3r_gui TUs even when nothing changed
+# (MSBuild's tracker compares per-obj recorded command lines, and the
+# regenerated .vcxproj alone is enough to bust them). `cmake --build`
+# already re-invokes configure internally via ZERO_CHECK if CMakeLists.txt
+# or CMakePresets.json changed. Mirror of scripts/pixi/build.sh on Linux.
+$buildDir = Join-Path $env:PIXI_PROJECT_ROOT 'build'
+if (-not (Test-Path (Join-Path $buildDir 'CMakeCache.txt'))) {
+    & cmake --preset $preset
+    if ($LASTEXITCODE -ne 0) { throw "cmake configure failed ($LASTEXITCODE)" }
+}
 
 & cmake --build --preset $preset --parallel $jobs
 if ($LASTEXITCODE -ne 0) { throw "cmake build failed ($LASTEXITCODE)" }
