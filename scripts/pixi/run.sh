@@ -22,17 +22,21 @@ set -euo pipefail
 : "${PIXI_PROJECT_ROOT:?run via 'pixi run' so PIXI_PROJECT_ROOT is set}"
 : "${CONDA_PREFIX:?CONDA_PREFIX must be set; run via 'pixi run'}"
 
-bin="$PIXI_PROJECT_ROOT/build/src/bambu-studio"
+# Build type selected by the calling task via env (default debug, matching
+# `pixi run build`'s default). User CLI args pass through to the binary.
+build_type="${BAMBU_BUILD_TYPE:-debug}"
+build_dir="$PIXI_PROJECT_ROOT/build/${build_type}"
+bin="$build_dir/src/bambu-studio"
 if [[ ! -x "$bin" ]]; then
-    echo "$bin not found. Run 'pixi run build' first." >&2
+    echo "$bin not found. Run 'pixi run build-${build_type}' first." >&2
     exit 1
 fi
 
-# In-tree binary expects resources at <bin>/../../resources/ (i.e. build/resources/).
+# In-tree binary expects resources at <bin>/../../resources/ (i.e. build/<type>/resources/).
 # `pixi run build` doesn't create this — the AppImage staging usually does — so
 # a one-shot symlink keeps the workflow seamless.
-if [[ ! -e "$PIXI_PROJECT_ROOT/build/resources" ]]; then
-    ln -sfn "$PIXI_PROJECT_ROOT/resources" "$PIXI_PROJECT_ROOT/build/resources"
+if [[ ! -e "$build_dir/resources" ]]; then
+    ln -sfn "$PIXI_PROJECT_ROOT/resources" "$build_dir/resources"
 fi
 
 export LIBGL_ALWAYS_SOFTWARE="${LIBGL_ALWAYS_SOFTWARE:-1}"
