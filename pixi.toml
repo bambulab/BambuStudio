@@ -83,3 +83,9 @@ cmd = "bash scripts/pixi/build.sh"
 [target.linux-64.tasks.bambu-studio]
 description = "Launch the bambu-studio binary with the env workarounds the pixi build needs (host GTK theme, CA bundle, software GL fallback). Args pass through."
 cmd = "bash scripts/pixi/run.sh"
+
+# Windows pixi tasks (PowerShell). Scripts live under scripts/pixi/windows/.
+
+[target.win-64.tasks.setup-libnoise]
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/setup-libnoise.ps1"
+description = "Build bambulab/libnoise via deps/ ExternalProject and install into pixi env"
