@@ -77,6 +77,12 @@ public:
         if (full.generic_string().rfind(std::filesystem::weakly_canonical(root).generic_string(), 0) != 0)
             return response_404();
 
+        // POSIX open() succeeds on directories, so ifstream(dir) yields a
+        // technically-open stream that throws on first read. Guard explicitly.
+        std::error_code ec;
+        if (!std::filesystem::is_regular_file(full, ec))
+            return response_404();
+
         std::ifstream file(full, std::ios::binary);
         if (!file)
             return response_404();
