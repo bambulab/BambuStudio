@@ -1434,9 +1434,11 @@ GUI_App::GUI_App()
 {
 	//app config initializes early becasuse it is used in instance checking in BambuStudio.cpp
     this->init_app_config();
-    if (app_config) {
-        ::Label::initSysFont(app_config->get_language_code(), false);
-    }
+    // NOTE: Label::initSysFont() makes wxFont/wxSystemSettings calls, which on
+    // GTK end up in gtk_settings_get_default(). At this point we are inside
+    // the wxApp ctor — wxEntry/wxApp::OnInit hasn't run yet, so gtk_init()
+    // hasn't been called and gtk_settings_get_default() returns NULL,
+    // segfaulting downstream. Defer to OnInit() instead.
     this->init_download_path();
 
     reset_to_active();
@@ -2734,6 +2736,12 @@ bool GUI_App::OnInit()
 #ifdef __APPLE__
     RegisterMacPowerCallBack();
 #endif
+
+    // Initialize fonts here (post-wxEntry) — GTK is now initialized so
+    // wxFont / wxSystemSettings calls are safe. See note in GUI_App ctor.
+    if (app_config) {
+        ::Label::initSysFont(app_config->get_language_code(), false);
+    }
 
     try {
         return on_init_inner();
