@@ -22,7 +22,7 @@ if ($existing -and (Test-Path (Join-Path $libRoot 'include/libnoise'))) {
 $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
 $vsGen = 'Visual Studio 17 2022'
 if (Test-Path $vswhere) {
-    $ver = & $vswhere -latest -property installationVersion
+    $ver = & $vswhere -latest -products '*' -property installationVersion
     if ($ver -match '^16\.') { $vsGen = 'Visual Studio 16 2019' }
 }
 
