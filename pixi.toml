@@ -67,6 +67,9 @@ ffmpeg = "7.1.*"
 # TKDESTEP, but bambustudio_copy_dlls() (CMakeLists.txt:652-677) still
 # expects the old per-module DLL names. Pin to 7.x until upstream catches up.
 occt = "7.9.*"
+# ffmpeg's libavcodec.pc / libavformat.pc references -llzma. Conda-forge
+# doesn't pull xz transitively, so ask for it explicitly.
+xz = "*"
 
 # Linux pixi tasks (bash). Windows tasks live under [target.win-64.tasks.*]
 # in follow-up commits.
@@ -108,3 +111,7 @@ description = "Build bambulab/wxWidgets fork (with WebView Edge) and install int
 [target.win-64.tasks.bootstrap]
 description = "One-time: bridge OCCT layout + build bambulab forks (libnoise, wxWidgets) into pixi env"
 depends-on = ["setup-libnoise", "setup-occt-bridge", "setup-wxwidgets"]
+
+[target.win-64.tasks.build]
+description = "Configure and build BambuStudio with the win-pixi CMake preset (Visual Studio generator). Parallelism = floor(free_mem_GB / 2.5); override via CMAKE_BUILD_PARALLEL_LEVEL."
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/build.ps1"
