@@ -40,13 +40,10 @@ jobs:
         os: [ubuntu-24.04]
 
     env:
-      CCACHE_DIR: ${{ github.workspace }}/.ccache
-      CCACHE_MAXSIZE: 1G
-      CCACHE_COMPRESS: "true"
-      CCACHE_COMPRESSLEVEL: "5"
-      CCACHE_COMPILERCHECK: "%compiler% -dumpfullversion -dumpversion"
-      CCACHE_NOHASHDIR: "true"
-      CCACHE_SLOPPINESS: "include_file_ctime,include_file_mtime,pch_defines,time_macros"
+      # sccache uploads/restores its cache via the GitHub Actions cache API
+      # directly (no actions/cache wrapper needed). The sccache-action step
+      # below additionally injects ACTIONS_CACHE_URL / ACTIONS_RUNTIME_TOKEN.
+      SCCACHE_GHA_ENABLED: "true"
 
     steps:
       - name: Checkout
@@ -93,35 +90,23 @@ jobs:
         if: steps.cache-bootstrap.outputs.cache-hit != 'true'
         run: pixi run bootstrap
 
-      - name: Restore ccache
-        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
-        with:
-          path: ${{ env.CCACHE_DIR }}
-          key: ccache-${{ matrix.os }}-${{ github.ref }}-${{ github.run_id }}
-          restore-keys: |
-            ccache-${{ matrix.os }}-${{ github.ref }}-
-            ccache-${{ matrix.os }}-
+      # Sets ACTIONS_CACHE_URL / ACTIONS_RUNTIME_TOKEN so sccache (from the
+      # pixi env, invoked via CMAKE_<LANG>_COMPILER_LAUNCHER) can read/write
+      # the GHA cache directly. No actions/cache restore+save needed.
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@1583d6b38d7be47f593cb472781bbb21cab4321e  # v0.0.10
 
-      - name: ccache stats (before)
-        run: pixi run ccache -z && pixi run ccache -s
+      - name: sccache stats (before)
+        run: pixi run sccache --zero-stats && pixi run sccache --show-stats
 
       - name: Build BambuStudio
         run: pixi run build
 
-      - name: ccache stats (after)
-        run: pixi run ccache -s
+      - name: sccache stats (after)
+        run: pixi run sccache --show-stats
 
       - name: Verify binary
         run: test -x build/src/bambu-studio && file build/src/bambu-studio
-
-      # Save unconditionally so partial caches still get persisted on
-      # restore-key fallback (actions/cache/restore writes nothing).
-      - name: Save ccache
-        if: always()
-        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
-        with:
-          path: ${{ env.CCACHE_DIR }}
-          key: ccache-${{ matrix.os }}-${{ github.ref }}-${{ github.run_id }}
 
       - name: Upload logs on failure
         if: failure()
