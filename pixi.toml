@@ -54,8 +54,12 @@ glib = ">=2.84.3,<3"
 
 # Windows uses the user-installed Visual Studio (system MSVC) — conda-forge's
 # `vs2019_win-64`/`vs2022_win-64` wrappers shell out to that same toolchain
-# and add no value here. Section kept (empty) to make the intent explicit.
+# and add no value here.
 [target.win-64.dependencies]
+# conda-forge's current win-64 ffmpeg is 8.x (avcodec-62), but
+# CMakeLists.txt:679-720 hardcodes 7.x DLL names (avcodec-61, swresample-5,
+# swscale-8, avutil-59). Pin to 7.1.* so bambustudio_copy_dlls() finds them.
+ffmpeg = "7.1.*"
 
 [tasks.setup-libnoise]
 cmd = "bash scripts/pixi/setup-libnoise.sh"
