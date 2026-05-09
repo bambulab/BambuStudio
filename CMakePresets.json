@@ -78,8 +78,53 @@
         {
             "name": "win-pixi-base",
             "hidden": true,
-            "description": "Shared cache vars / env for the win-pixi presets (VS 2019 / VS 2022).",
+            "inherits": "common",
+            "description": "Windows pixi (Ninja + sccache + /Z7). Run via build.ps1 which sources Launch-VsDevShell first so Ninja can find cl.exe / link.exe. binaryDir comes from the inherited debug/release variant.",
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_PREFIX_PATH": "$env{CONDA_PREFIX}/Library",
+                "CMAKE_C_COMPILER_LAUNCHER": "sccache",
+                "CMAKE_CXX_COMPILER_LAUNCHER": "sccache",
+                "CMAKE_MSVC_DEBUG_INFORMATION_FORMAT": "Embedded",
+                "CMAKE_POLICY_DEFAULT_CMP0141": "NEW",
+                "SLIC3R_GUI": "ON",
+                "SLIC3R_STATIC": "OFF",
+                "SLIC3R_MSVC_COMPILE_PARALLEL": "OFF",
+                "SLIC3R_PCH": "OFF",
+                "BBL_RELEASE_TO_PUBLIC": "1",
+                "BBL_INTERNAL_TESTING": "0",
+                "WIN10SDK_PATH": "$env{WIN10SDK_PATH}"
+            },
+            "environment": {
+                "WXWIN": "$env{CONDA_PREFIX}/Library"
+            },
+            "condition": {
+                "type": "allOf",
+                "conditions": [
+                    {
+                        "type": "equals",
+                        "lhs": "${hostSystemName}",
+                        "rhs": "Windows"
+                    },
+                    {
+                        "type": "notEquals",
+                        "lhs": "$env{CONDA_PREFIX}",
+                        "rhs": ""
+                    }
+                ]
+            }
+        },
+        {
+            "name": "win-pixi",
+            "displayName": "Windows pixi (Release, Ninja+sccache)",
+            "inherits": ["release", "win-pixi-base"]
+        },
+        {
+            "name": "win-pixi-vs2019",
+            "displayName": "Windows / VS 2019 fallback (VS Generator)",
+            "description": "Legacy Visual Studio 16 2019 multi-config path for hosts where the Ninja+sccache flow doesn't work. Slower but doesn't depend on Launch-VsDevShell.",
             "binaryDir": "${sourceDir}/build",
+            "generator": "Visual Studio 16 2019",
             "architecture": { "value": "x64", "strategy": "set" },
             "cacheVariables": {
                 "CMAKE_PREFIX_PATH": "$env{CONDA_PREFIX}/Library",
@@ -110,20 +155,6 @@
                     }
                 ]
             }
-        },
-        {
-            "name": "win-pixi",
-            "displayName": "Windows / VS 2022 (pixi env)",
-            "description": "Default Windows pixi preset. Requires Visual Studio 2022 + `pixi install` + `pixi run bootstrap`.",
-            "inherits": "win-pixi-base",
-            "generator": "Visual Studio 17 2022"
-        },
-        {
-            "name": "win-pixi-vs2019",
-            "displayName": "Windows / VS 2019 (pixi env)",
-            "description": "Windows pixi preset for hosts with only Visual Studio 2019 installed.",
-            "inherits": "win-pixi-base",
-            "generator": "Visual Studio 16 2019"
         }
     ],
     "buildPresets": [
@@ -140,14 +171,13 @@
         {
             "name": "win-pixi",
             "configurePreset": "win-pixi",
-            "configuration": "Release",
-            "description": "Release build for the win-pixi (VS 2022) configure preset."
+            "description": "Build with `cmake --build --preset win-pixi`. Single-config Ninja, output at build/release/."
         },
         {
             "name": "win-pixi-vs2019",
             "configurePreset": "win-pixi-vs2019",
             "configuration": "Release",
-            "description": "Release build for the win-pixi-vs2019 configure preset."
+            "description": "Legacy VS 2019 multi-config fallback build."
         }
     ]
 }
