@@ -7,14 +7,38 @@
     },
     "configurePresets": [
         {
+            "name": "common",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "CMAKE_POLICY_VERSION_MINIMUM": "3.5"
+            }
+        },
+        {
+            "name": "debug",
+            "hidden": true,
+            "inherits": "common",
+            "binaryDir": "${sourceDir}/build/debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "release",
+            "hidden": true,
+            "inherits": "common",
+            "binaryDir": "${sourceDir}/build/release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
             "name": "linux-pixi",
-            "displayName": "Linux (pixi env)",
+            "hidden": true,
             "description": "Configure against the deps from the active pixi env. Requires `pixi install` and `pixi run setup-libnoise` / `pixi run setup-wxwidgets` first.",
             "generator": "Unix Makefiles",
-            "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
                 "CMAKE_PREFIX_PATH": "$env{CONDA_PREFIX}",
-                "CMAKE_POLICY_VERSION_MINIMUM": "3.5",
                 "CMAKE_C_COMPILER_LAUNCHER": "sccache",
                 "CMAKE_CXX_COMPILER_LAUNCHER": "sccache",
                 "CMAKE_LINKER_TYPE": "MOLD",
@@ -40,13 +64,28 @@
                     }
                 ]
             }
+        },
+        {
+            "name": "linux-pixi-debug",
+            "displayName": "Linux pixi (Debug)",
+            "inherits": ["debug", "linux-pixi"]
+        },
+        {
+            "name": "linux-pixi-release",
+            "displayName": "Linux pixi (Release)",
+            "inherits": ["release", "linux-pixi"]
         }
     ],
     "buildPresets": [
         {
-            "name": "linux-pixi",
-            "configurePreset": "linux-pixi",
-            "description": "Build with `cmake --build --preset linux-pixi`. CGAL/Boost templates are RAM-heavy; pass `-j N` (e.g. `-j 4`) on hosts with limited memory."
+            "name": "linux-pixi-debug",
+            "configurePreset": "linux-pixi-debug",
+            "description": "Build Debug. CGAL/Boost templates are RAM-heavy; pass `-j N` (e.g. `-j 4`) on hosts with limited memory."
+        },
+        {
+            "name": "linux-pixi-release",
+            "configurePreset": "linux-pixi-release",
+            "description": "Build Release. CGAL/Boost templates are RAM-heavy; pass `-j N` (e.g. `-j 4`) on hosts with limited memory."
         }
     ]
 }
