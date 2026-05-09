@@ -3945,8 +3945,14 @@ void Sidebar::on_filament_count_change(size_t num_filaments)
 
     auto& choices = combos_filament();
 
-    if (num_physical == choices.size())
+    if (num_physical == choices.size()) {
+        // the ctor pre-creates one combo, so on startup with a single-filament project this guard is hit 
+        // before any layout pass has sized m_physical_scroll_area.
+        // this is a workaround for such cases
+        recalc_filament_scroll_sizes();
+        update_mixed_filament_list();
         return;
+    }
 
     if (choices.size() == 1 || num_physical == 1)
         choices[0]->GetDropDown().Invalidate();
