@@ -97,3 +97,7 @@ description = "Junction Library/bin/occt -> Library/bin so bambustudio_copy_dlls
 [target.win-64.tasks.setup-wxwidgets]
 cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/setup-wxwidgets.ps1"
 description = "Build bambulab/wxWidgets fork (with WebView Edge) and install into pixi env"
+
+[target.win-64.tasks.bootstrap]
+description = "One-time: bridge OCCT layout + build bambulab forks (libnoise, wxWidgets) into pixi env"
+depends-on = ["setup-libnoise", "setup-occt-bridge", "setup-wxwidgets"]
