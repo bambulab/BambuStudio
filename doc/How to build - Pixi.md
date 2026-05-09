@@ -11,11 +11,20 @@ planned — extend `pixi.toml`'s `platforms` and per-target dependencies.
 ```bash
 curl -fsSL https://pixi.sh/install.sh | bash    # pixi, one-time
 
-pixi install                  # conda-forge deps         (~30 s)
-pixi run bootstrap            # libnoise + wxWidgets      (~30–40 min, once)
-pixi run build                # bambu-studio              (~10–15 min)
+pixi install                  # conda-forge deps
+pixi run bootstrap            # libnoise + wxWidgets (once)
+pixi run build                # bambu-studio (Debug)
 pixi run bambu-studio         # launch (args pass through)
 ```
+
+`pixi run build` defaults to Debug. For Release:
+
+```bash
+pixi run build-release
+pixi run bambu-studio-release
+```
+
+Build trees: `build/debug/`, `build/release/` (coexist).
 
 Override parallelism: `CMAKE_BUILD_PARALLEL_LEVEL=4 pixi run build`.
 Default is `floor(free_mem_GB / 2.5)` to fit Boost.Spirit / CGAL TUs.
