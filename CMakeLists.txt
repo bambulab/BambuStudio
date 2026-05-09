@@ -122,7 +122,9 @@ if (MSVC)
     # /bigobj (Increase Number of Sections in .Obj file)
     # error C3859: virtual memory range for PCH exceeded; please recompile with a command line option of '-Zm90' or greater
     # Generate symbols at every build target, even for the release.
-    add_compile_options(-bigobj -Zm520 /Zi)
+    # /FS routes PDB writes through mspdbsrv.exe so that PCH + .cpp compiles
+    # of the same target don't race on the shared libfoo.pdb file.
+    add_compile_options(-bigobj -Zm520 /Zi /FS)
     # Disable STL4007: Many result_type typedefs and all argument_type, first_argument_type, and second_argument_type typedefs are deprecated in C++17.
     #FIXME Remove this line after eigen library adapts to the new C++17 adaptor rules.
     add_compile_options(-D_SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING)
@@ -183,6 +185,15 @@ endif()
 # To be able to link libslic3r with the Perl XS module.
 # Once we get rid of Perl and libslic3r is linked statically, we can get rid of -fPIC
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+# When building under a pixi (conda-forge) env on Windows, FFmpeg/cairo/glib pull
+# bare-name .lib refs (iconv.lib, lzma.lib, ...) into the link line via pkg-config.
+# Add the conda-forge lib dir to every target's linker search path so link.exe
+# can resolve them. CMAKE_EXE_LINKER_FLAGS_INIT only seeds first-time configures
+# and the env LIB doesn't propagate through MSBuild's .vcxproj generation.
+if(WIN32 AND DEFINED ENV{CONDA_PREFIX} AND IS_DIRECTORY "$ENV{CONDA_PREFIX}/Library/lib")
+    link_directories(BEFORE "$ENV{CONDA_PREFIX}/Library/lib")
+endif()
 
 # WIN10SDK_PATH is used to point CMake to the WIN10 SDK installation directory.
 # We pick it from environment if it is not defined in another way
@@ -408,6 +419,13 @@ function(slic3r_remap_configs targets from_Cfg to_Cfg)
 
         foreach(tgt ${targets})
             if(TARGET ${tgt})
+                # Modern conda-forge / vcpkg ship some imported targets (e.g.
+                # IlmBase::Half, Blosc::blosc) as ALIAS, which set_target_properties
+                # rejects. Resolve to the underlying real target when present.
+                get_target_property(_aliased ${tgt} ALIASED_TARGET)
+                if(_aliased)
+                    set(tgt ${_aliased})
+                endif()
                 set_target_properties(${tgt} PROPERTIES MAP_IMPORTED_CONFIG_${from_CFG} ${to_Cfg})
             endif()
         endforeach()

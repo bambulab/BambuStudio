@@ -2,18 +2,17 @@
 name = "BambuStudio"
 description = "Pixi PoC: replace ExternalProject deps with conda-forge binaries"
 channels = ["conda-forge"]
-platforms = ["linux-64"]
+platforms = ["linux-64", "win-64"]
 
 [system-requirements]
-libc = "2.34"  # webkit2gtk4.1 needs glibc >=2.34
+libc = "2.34"  # webkit2gtk4.1 needs glibc >=2.34 (linux only)
 
+# Cross-platform deps. Things only one platform needs go in [target.<plat>.dependencies] below.
 [dependencies]
-compilers = ">=1.10"
 cmake = ">=3.27"
 ninja = "*"
 pkg-config = "*"
 sccache = "*"  # used as CMAKE_<LANG>_COMPILER_LAUNCHER; cross-platform, native GHA cache backend
-mold = "*"     # CMAKE_LINKER_TYPE=MOLD; bambu-studio links 35+ static archives
 
 # PoC: 3 deps currently built via deps/ ExternalProject
 libboost-devel = ">=1.84"
@@ -41,7 +40,11 @@ libopencv = "*"
 occt = "*"
 ffmpeg = "*"  # CMakeLists.txt:739 uses file(GLOB) so any FFmpeg with libavcodec is OK
 
-# System libs needed by main BambuStudio configure (Linux)
+# Linux-only: gcc/g++ + system libs that bambulab/wxWidgets fork (GTK3) and the
+# main configure rely on.
+[target.linux-64.dependencies]
+compilers = ">=1.10"
+mold = "*"     # CMAKE_LINKER_TYPE=MOLD; bambu-studio links 35+ static archives
 dbus = "*"
 libgl-devel = "*"
 libegl-devel = "*"
@@ -51,20 +54,44 @@ gtk3 = "*"  # required to build bambulab/wxWidgets fork
 glib = ">=2.84.3,<3"
 "webkit2gtk4.1" = "*"  # for wxWebView
 
-[tasks.setup-libnoise]
+# Windows uses the user-installed Visual Studio (system MSVC) — conda-forge's
+# `vs2019_win-64`/`vs2022_win-64` wrappers shell out to that same toolchain
+# and add no value here.
+[target.win-64.dependencies]
+# CMakeLists.txt:5 hard-fails on Windows when CMake >= 4.0; conda-forge's
+# default win-64 cmake is 4.3+. Pin until upstream lifts the cap.
+cmake = ">=3.27,<4"
+# conda-forge's current win-64 ffmpeg is 8.x (avcodec-62), but
+# CMakeLists.txt:679-720 hardcodes 7.x DLL names (avcodec-61, swresample-5,
+# swscale-8, avutil-59). Pin to 7.1.* so bambustudio_copy_dlls() finds them.
+ffmpeg = "7.1.*"
+# OCCT 8.x merged TKSTEP/TKSTEP209/TKSTEPAttr/TKSTEPBase/TKXDESTEP into
+# TKDESTEP, but bambustudio_copy_dlls() (CMakeLists.txt:652-677) still
+# expects the old per-module DLL names. Pin to 7.x until upstream catches up.
+occt = "7.9.*"
+# ffmpeg's libavcodec.pc / libavformat.pc references -llzma. Conda-forge
+# doesn't pull xz transitively, so ask for it explicitly.
+xz = "*"
+
+# Linux pixi tasks (bash). Windows tasks live under [target.win-64.tasks.*]
+# in follow-up commits.
+
+[target.linux-64.tasks.setup-libnoise]
 cmd = "bash scripts/pixi/setup-libnoise.sh"
 description = "Build bambulab/libnoise (no conda-forge package) and install into pixi env"
 
-[tasks.setup-wxwidgets]
+[target.linux-64.tasks.setup-wxwidgets]
 cmd = "bash scripts/pixi/setup-wxwidgets.sh"
 description = "Build bambulab/wxWidgets fork (custom patches) and install into pixi env"
 
-[tasks.bootstrap]
+[target.linux-64.tasks.bootstrap]
 description = "One-time: build bambulab forks (libnoise, wxWidgets) into pixi env"
 depends-on = ["setup-libnoise", "setup-wxwidgets"]
 
 # Top-level redirects (FreeCAD pattern: dev iteration → debug by default).
 # Use the explicit *-release variants for shipping/perf-checking builds.
+# Per-platform build / bambu-studio tasks live under [target.<plat>.tasks.*]
+# below and override these on Windows (PowerShell-driven).
 [tasks.build]
 description = "Build BambuStudio (Debug). Use `build-release` for the optimized variant."
 depends-on = ["build-debug"]
@@ -89,3 +116,40 @@ cmd = "bash scripts/pixi/run.sh"
 description = "Launch build/release/src/bambu-studio. Args pass through."
 cmd = "bash scripts/pixi/run.sh"
 env = { BAMBU_BUILD_TYPE = "release" }
+
+# Windows pixi tasks (PowerShell). Scripts live under scripts/pixi/windows/.
+# These shadow the top-level [tasks.*] above on win-64. The debug/release
+# split from upstream is Linux-only for now; on Windows `pixi run build`
+# falls through to the single Release configuration here.
+
+[target.win-64.tasks.setup-libnoise]
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/setup-libnoise.ps1"
+description = "Build bambulab/libnoise via deps/ ExternalProject and install into pixi env"
+
+[target.win-64.tasks.setup-occt-bridge]
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/setup-occt-bridge.ps1"
+description = "Junction Library/bin/occt -> Library/bin so bambustudio_copy_dlls() finds OCCT DLLs"
+
+[target.win-64.tasks.setup-intl-bridge]
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/setup-intl-bridge.ps1"
+description = "Generate intl.lib import library from intl-8.dll (conda-forge libintl ships DLL only)"
+
+[target.win-64.tasks.setup-lib-aliases]
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/setup-lib-aliases.ps1"
+description = "Copy libfoo.lib -> foo.lib aliases for ffmpeg deps where conda-forge name diverges from -lfoo"
+
+[target.win-64.tasks.setup-wxwidgets]
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/setup-wxwidgets.ps1"
+description = "Build bambulab/wxWidgets fork (with WebView Edge) and install into pixi env"
+
+[target.win-64.tasks.bootstrap]
+description = "One-time: bridge OCCT/intl/lib-name layouts + build bambulab forks (libnoise, wxWidgets) into pixi env"
+depends-on = ["setup-libnoise", "setup-occt-bridge", "setup-intl-bridge", "setup-lib-aliases", "setup-wxwidgets"]
+
+[target.win-64.tasks.build]
+description = "Configure and build BambuStudio with the win-pixi CMake preset (Visual Studio generator). Parallelism = floor(free_mem_GB / 2.5); override via CMAKE_BUILD_PARALLEL_LEVEL."
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/build.ps1"
+
+[target.win-64.tasks.bambu-studio]
+description = "Launch bambu-studio.exe from build/src/Release/. Args pass through."
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/run.ps1"

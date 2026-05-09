@@ -79,6 +79,56 @@
             "name": "linux-pixi-release",
             "displayName": "Linux pixi (Release)",
             "inherits": ["release", "linux-pixi"]
+        },
+        {
+            "name": "win-pixi-base",
+            "hidden": true,
+            "description": "Shared cache vars / env for the win-pixi presets (VS 2019 / VS 2022).",
+            "binaryDir": "${sourceDir}/build",
+            "architecture": { "value": "x64", "strategy": "set" },
+            "cacheVariables": {
+                "CMAKE_PREFIX_PATH": "$env{CONDA_PREFIX}/Library",
+                "CMAKE_POLICY_VERSION_MINIMUM": "3.5",
+                "SLIC3R_GUI": "ON",
+                "SLIC3R_STATIC": "OFF",
+                "BBL_RELEASE_TO_PUBLIC": "1",
+                "BBL_INTERNAL_TESTING": "0",
+                "WIN10SDK_PATH": "$env{WIN10SDK_PATH}",
+                "CMAKE_EXE_LINKER_FLAGS_INIT":    "/LIBPATH:\"$env{CONDA_PREFIX}/Library/lib\"",
+                "CMAKE_SHARED_LINKER_FLAGS_INIT": "/LIBPATH:\"$env{CONDA_PREFIX}/Library/lib\""
+            },
+            "environment": {
+                "WXWIN": "$env{CONDA_PREFIX}/Library"
+            },
+            "condition": {
+                "type": "allOf",
+                "conditions": [
+                    {
+                        "type": "equals",
+                        "lhs": "${hostSystemName}",
+                        "rhs": "Windows"
+                    },
+                    {
+                        "type": "notEquals",
+                        "lhs": "$env{CONDA_PREFIX}",
+                        "rhs": ""
+                    }
+                ]
+            }
+        },
+        {
+            "name": "win-pixi",
+            "displayName": "Windows / VS 2022 (pixi env)",
+            "description": "Default Windows pixi preset. Requires Visual Studio 2022 + `pixi install` + `pixi run bootstrap`.",
+            "inherits": "win-pixi-base",
+            "generator": "Visual Studio 17 2022"
+        },
+        {
+            "name": "win-pixi-vs2019",
+            "displayName": "Windows / VS 2019 (pixi env)",
+            "description": "Windows pixi preset for hosts with only Visual Studio 2019 installed.",
+            "inherits": "win-pixi-base",
+            "generator": "Visual Studio 16 2019"
         }
     ],
     "buildPresets": [
@@ -91,6 +141,18 @@
             "name": "linux-pixi-release",
             "configurePreset": "linux-pixi-release",
             "description": "Build Release. CGAL/Boost templates are RAM-heavy; pass `-j N` (e.g. `-j 4`) on hosts with limited memory."
+        },
+        {
+            "name": "win-pixi",
+            "configurePreset": "win-pixi",
+            "configuration": "Release",
+            "description": "Release build for the win-pixi (VS 2022) configure preset."
+        },
+        {
+            "name": "win-pixi-vs2019",
+            "configurePreset": "win-pixi-vs2019",
+            "configuration": "Release",
+            "description": "Release build for the win-pixi-vs2019 configure preset."
         }
     ]
 }
