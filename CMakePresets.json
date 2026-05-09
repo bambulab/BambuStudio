@@ -17,6 +17,7 @@
                 "CMAKE_POLICY_VERSION_MINIMUM": "3.5",
                 "CMAKE_C_COMPILER_LAUNCHER": "ccache",
                 "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
+                "CMAKE_LINKER_TYPE": "MOLD",
                 "SLIC3R_GUI": "ON",
                 "SLIC3R_GTK": "3",
                 "OPENGL_egl_LIBRARY": "$env{CONDA_PREFIX}/lib/libEGL.so",
