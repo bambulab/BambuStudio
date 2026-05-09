@@ -123,3 +123,7 @@ depends-on = ["setup-libnoise", "setup-occt-bridge", "setup-intl-bridge", "setup
 [target.win-64.tasks.build]
 description = "Configure and build BambuStudio with the win-pixi CMake preset (Visual Studio generator). Parallelism = floor(free_mem_GB / 2.5); override via CMAKE_BUILD_PARALLEL_LEVEL."
 cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/build.ps1"
+
+[target.win-64.tasks.bambu-studio]
+description = "Launch bambu-studio.exe from build/src/Release/. Args pass through."
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/run.ps1"
