@@ -121,10 +121,11 @@ if (MSVC)
     endif ()
     # /bigobj (Increase Number of Sections in .Obj file)
     # error C3859: virtual memory range for PCH exceeded; please recompile with a command line option of '-Zm90' or greater
-    # Generate symbols at every build target, even for the release.
-    # /FS routes PDB writes through mspdbsrv.exe so that PCH + .cpp compiles
-    # of the same target don't race on the shared libfoo.pdb file.
-    add_compile_options(-bigobj -Zm520 /Zi /FS)
+    # Debug info format (/Zi vs /Z7) and the matching /FS serializer are
+    # delegated to CMake's CMAKE_MSVC_DEBUG_INFORMATION_FORMAT abstraction
+    # (default ProgramDatabase = /Zi /FS, matches old behavior; pixi/Ninja
+    # presets flip to Embedded = /Z7 so sccache can cache cl.exe outputs).
+    add_compile_options(-bigobj -Zm520)
     # Disable STL4007: Many result_type typedefs and all argument_type, first_argument_type, and second_argument_type typedefs are deprecated in C++17.
     #FIXME Remove this line after eigen library adapts to the new C++17 adaptor rules.
     add_compile_options(-D_SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING)
