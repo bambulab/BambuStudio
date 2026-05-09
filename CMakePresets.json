@@ -51,7 +51,9 @@
                 "SLIC3R_STATIC": "OFF",
                 "BBL_RELEASE_TO_PUBLIC": "1",
                 "BBL_INTERNAL_TESTING": "0",
-                "WIN10SDK_PATH": "$env{WIN10SDK_PATH}"
+                "WIN10SDK_PATH": "$env{WIN10SDK_PATH}",
+                "CMAKE_EXE_LINKER_FLAGS_INIT":    "/LIBPATH:\"$env{CONDA_PREFIX}/Library/lib\"",
+                "CMAKE_SHARED_LINKER_FLAGS_INIT": "/LIBPATH:\"$env{CONDA_PREFIX}/Library/lib\""
             },
             "environment": {
                 "WXWIN": "$env{CONDA_PREFIX}/Library"
