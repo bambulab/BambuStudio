@@ -64,3 +64,7 @@ depends-on = ["setup-libnoise", "setup-wxwidgets"]
 [tasks.build]
 description = "Configure and build BambuStudio. Parallelism = floor(free_mem_GB / 2.5), matching BuildLinux.sh; override with CMAKE_BUILD_PARALLEL_LEVEL=N."
 cmd = "bash scripts/pixi/build.sh"
+
+[tasks.bambu-studio]
+description = "Launch the bambu-studio binary with the env workarounds the pixi build needs (host GTK theme, CA bundle, software GL fallback). Args pass through."
+cmd = "bash scripts/pixi/run.sh"
