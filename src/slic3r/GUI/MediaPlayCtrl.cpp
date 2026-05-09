@@ -25,7 +25,7 @@
 #include <boost/process/v1/handles.hpp>
 namespace boost { namespace process { using namespace v1; } }
 #ifdef __WIN32__
-#include <boost/process/windows.hpp>
+#include <boost/process/v1/windows.hpp>
 #else
 #include <sys/ipc.h>
 #include <sys/shm.h>
