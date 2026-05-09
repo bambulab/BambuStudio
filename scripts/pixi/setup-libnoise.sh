@@ -7,6 +7,9 @@
 
 set -euo pipefail
 
+# Resolve our own dir BEFORE any cd; we source _jobs.sh from here later.
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 : "${PIXI_PROJECT_ROOT:?PIXI_PROJECT_ROOT must be set; run this via 'pixi run'}"
 : "${CONDA_PREFIX:?CONDA_PREFIX must be set; run this via 'pixi run'}"
 
@@ -30,7 +33,7 @@ cmake "$PIXI_PROJECT_ROOT/deps" \
   -DDESTDIR="$destdir" \
   -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 
-source "$(dirname "$0")/_jobs.sh"
+source "$script_dir/_jobs.sh"
 jobs=$(pixi_parallel_jobs)
 echo "Building dep_libnoise with -j${jobs}"
 cmake --build . --target dep_libnoise -j"$jobs"

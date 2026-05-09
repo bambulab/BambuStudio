@@ -8,7 +8,9 @@
 
 set -euo pipefail
 
-source "$(dirname "$0")/_jobs.sh"
+# Resolve relative to this script regardless of caller's cwd.
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$script_dir/_jobs.sh"
 export CMAKE_BUILD_PARALLEL_LEVEL=$(pixi_parallel_jobs)
 echo "Setting CMAKE_BUILD_PARALLEL_LEVEL=${CMAKE_BUILD_PARALLEL_LEVEL} (mem-aware, matches BuildLinux.sh)"
 
