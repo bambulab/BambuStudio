@@ -49,7 +49,6 @@
                 "CMAKE_POLICY_VERSION_MINIMUM": "3.5",
                 "SLIC3R_GUI": "ON",
                 "SLIC3R_STATIC": "OFF",
-                "SLIC3R_MSVC_COMPILE_PARALLEL": "OFF",
                 "BBL_RELEASE_TO_PUBLIC": "1",
                 "BBL_INTERNAL_TESTING": "0",
                 "WIN10SDK_PATH": "$env{WIN10SDK_PATH}"
