@@ -93,3 +93,7 @@ description = "Build bambulab/libnoise via deps/ ExternalProject and install int
 [target.win-64.tasks.setup-occt-bridge]
 cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/setup-occt-bridge.ps1"
 description = "Junction Library/bin/occt -> Library/bin so bambustudio_copy_dlls() finds OCCT DLLs"
+
+[target.win-64.tasks.setup-wxwidgets]
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/setup-wxwidgets.ps1"
+description = "Build bambulab/wxWidgets fork (with WebView Edge) and install into pixi env"
