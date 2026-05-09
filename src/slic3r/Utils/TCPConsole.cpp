@@ -126,7 +126,9 @@ bool TCPConsole::run_queue()
 
         auto endpoints = m_resolver.resolve(m_host_name, m_port_name);
 
-        m_socket.async_connect(endpoints->endpoint(),
+        // Boost.Asio dropped resolver_iterator -> resolver_results inheritance;
+        // resolve() returns a results range, iterate to get the first endpoint.
+        m_socket.async_connect(endpoints.begin()->endpoint(),
             boost::bind(&TCPConsole::handle_connect, this, _1)
         );
 

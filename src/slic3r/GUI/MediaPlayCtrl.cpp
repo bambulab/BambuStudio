@@ -16,7 +16,14 @@
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/utf8_codecvt.hpp>
 #undef pid_t
-#include <boost/process.hpp>
+// Boost 1.86+ split process into v1/v2; <boost/process.hpp> exposes v2 only.
+// Pull v1 sub-headers and route the legacy boost::process::* names to v1.
+#include <boost/process/v1/child.hpp>
+#include <boost/process/v1/io.hpp>
+#include <boost/process/v1/pipe.hpp>
+#include <boost/process/v1/start_dir.hpp>
+#include <boost/process/v1/handles.hpp>
+namespace boost { namespace process { using namespace v1; } }
 #ifdef __WIN32__
 #include <boost/process/windows.hpp>
 #else
@@ -1118,7 +1125,7 @@ bool MediaPlayCtrl::start_stream_service(bool *need_install)
             auto file_dll  = tools_dir + dll;
             auto file_dll2 = plugins_dir + dll;
             if (!boost::filesystem::exists(file_dll) || boost::filesystem::last_write_time(file_dll) != boost::filesystem::last_write_time(file_dll2))
-                boost::filesystem::copy_file(file_dll2, file_dll, boost::filesystem::copy_option::overwrite_if_exists);
+                boost::filesystem::copy_file(file_dll2, file_dll, boost::filesystem::copy_options::overwrite_existing);
         }
         boost::process::child process_source(file_source, file_url2.ToStdWstring(), boost::process::start_dir(tools_dir),
                                              boost::process::windows::create_no_window,

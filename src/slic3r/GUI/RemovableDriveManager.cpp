@@ -22,8 +22,13 @@
 #include <pwd.h>
 #include <boost/filesystem.hpp>
 #include <boost/system/error_code.hpp>
-#include <boost/filesystem/convenience.hpp>
-#include <boost/process.hpp>
+// boost::filesystem 1.84+ removed convenience.hpp; operations.hpp covers what was used.
+#include <boost/filesystem/operations.hpp>
+// Boost 1.86+ split process into v1/v2; keep legacy names mapped to v1.
+#include <boost/process/v1/child.hpp>
+#include <boost/process/v1/io.hpp>
+#include <boost/process/v1/search_path.hpp>
+namespace boost { namespace process { using namespace v1; } }
 #endif
 
 namespace Slic3r {
@@ -202,7 +207,7 @@ namespace search_for_drives_internal
 				stat(path.c_str(), &buf);
 				uid_t uid = buf.st_uid;
 				if (getuid() == uid)
-					out.emplace_back(DriveData{ boost::filesystem::basename(boost::filesystem::path(path)), path });
+					out.emplace_back(DriveData{ boost::filesystem::path(path).stem().string(), path });
 			}
 		}
 	}

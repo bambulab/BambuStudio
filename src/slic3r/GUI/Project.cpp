@@ -709,7 +709,7 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
                                 if (!fs::exists(src_path))
                                     throw std::runtime_error("attachment not found: " + decoded_filepath);
                                 boost::system::error_code ec;
-                                fs::copy_file(src_path, dest_file, fs::copy_option::overwrite_if_exists, ec);
+                                fs::copy_file(src_path, dest_file, fs::copy_options::overwrite_existing, ec);
                                 if (ec)
                                     throw std::runtime_error("copy attachment failed: " + ec.message());
                             }

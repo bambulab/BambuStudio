@@ -17,8 +17,10 @@
 // For starting another BambuStudio instance on OSX.
 // Fails to compile on Windows on the build server.
 #ifdef __APPLE__
-    #include <boost/process/spawn.hpp>
-    #include <boost/process/args.hpp>
+    // Boost 1.86+ split process into v1/v2; the legacy paths are gone.
+    #include <boost/process/v1/spawn.hpp>
+    #include <boost/process/v1/args.hpp>
+    namespace boost { namespace process { using namespace v1; } }
 #endif
 
 #include <wx/stdpaths.h>

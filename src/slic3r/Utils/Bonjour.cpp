@@ -629,7 +629,7 @@ void Bonjour::priv::lookup_perform()
 	auto self = this;
 
 	try {
-		boost::asio::io_service io_service;
+		boost::asio::io_context io_service;
 		udp::socket socket(io_service);
 		socket.open(udp::v4());
 		socket.set_option(udp::socket::reuse_address(true));
