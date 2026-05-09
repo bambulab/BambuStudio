@@ -408,6 +408,13 @@ function(slic3r_remap_configs targets from_Cfg to_Cfg)
 
         foreach(tgt ${targets})
             if(TARGET ${tgt})
+                # Modern conda-forge / vcpkg ship some imported targets (e.g.
+                # IlmBase::Half, Blosc::blosc) as ALIAS, which set_target_properties
+                # rejects. Resolve to the underlying real target when present.
+                get_target_property(_aliased ${tgt} ALIASED_TARGET)
+                if(_aliased)
+                    set(tgt ${_aliased})
+                endif()
                 set_target_properties(${tgt} PROPERTIES MAP_IMPORTED_CONFIG_${from_CFG} ${to_Cfg})
             endif()
         endforeach()
