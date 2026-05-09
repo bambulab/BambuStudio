@@ -20,12 +20,7 @@
             "inherits": "common",
             "binaryDir": "${sourceDir}/build/debug",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_C_FLAGS_DEBUG": "-g -O0 -gsplit-dwarf",
-                "CMAKE_CXX_FLAGS_DEBUG": "-g -O0 -gsplit-dwarf",
-                "CMAKE_EXE_LINKER_FLAGS_DEBUG": "-Wl,--gdb-index",
-                "CMAKE_SHARED_LINKER_FLAGS_DEBUG": "-Wl,--gdb-index",
-                "CMAKE_MODULE_LINKER_FLAGS_DEBUG": "-Wl,--gdb-index"
+                "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
@@ -41,7 +36,7 @@
             "name": "linux-pixi",
             "hidden": true,
             "description": "Configure against the deps from the active pixi env. Requires `pixi install` and `pixi run setup-libnoise` / `pixi run setup-wxwidgets` first.",
-            "generator": "Unix Makefiles",
+            "generator": "Ninja",
             "cacheVariables": {
                 "CMAKE_PREFIX_PATH": "$env{CONDA_PREFIX}",
                 "CMAKE_C_COMPILER_LAUNCHER": "sccache",
