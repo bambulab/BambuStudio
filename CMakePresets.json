@@ -18,7 +18,9 @@
                 "SLIC3R_GUI": "ON",
                 "SLIC3R_GTK": "3",
                 "OPENGL_egl_LIBRARY": "$env{CONDA_PREFIX}/lib/libEGL.so",
-                "OPENGL_EGL_INCLUDE_DIR": "$env{CONDA_PREFIX}/include"
+                "OPENGL_EGL_INCLUDE_DIR": "$env{CONDA_PREFIX}/include",
+                "BBL_RELEASE_TO_PUBLIC": "1",
+                "BBL_INTERNAL_TESTING": "0"
             },
             "condition": {
                 "type": "allOf",
