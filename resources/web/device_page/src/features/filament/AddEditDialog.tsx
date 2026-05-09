@@ -1,13 +1,22 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Spool, PresetVendor, MachineItem, AmsData, AmsUnit, AmsTray } from './types';
+import type {
+  Spool, PresetVendor, MachineItem, AmsData, AmsUnit, AmsTray,
+  BridgeResponseBody, CandidateColor, FilamentColorCodesResponse,
+} from './types';
 import { BAMBU_COLORS, formatTypeSeries } from './constants';
-import { SpoolSvg } from './SpoolSvg';
+import { SpoolColorChip } from './SpoolColorChip';
 import useStore from '../../store/AppStore';
+import { useDeviceBridge } from '../../hooks/Bridge';
 import { buildVendorOptions } from './vendorOptions';
 // STUDIO-18114: shared draft -> commit helper for the custom color picker so
 // the OK/Cancel popover and the existing edit-dialog state stay aligned.
 import { commitCustomColorSelection } from './customColorSelection';
+import {
+  canonicalizeHex,
+  cssBackgroundFor,
+  candidateMatchesFormState,
+} from './colors';
 
 // STUDIO-17959: cap both 当前净重 / 总净重 inputs in the Add/Edit dialog.
 // Bug repro: users could type arbitrarily large numbers (e.g. 99999999999)
@@ -28,12 +37,11 @@ function clampWeight(value: number): number {
   return Math.min(MAX_NET_WEIGHT_GRAMS, Math.round(value));
 }
 
-function normalizeColorCode(value?: string): string {
-  const raw = (value || '').trim();
-  if (!raw) return '';
-  const hex = raw.startsWith('#') ? raw : `#${raw}`;
-  return hex.slice(0, 7).toUpperCase();
-}
+// STUDIO-17977: legacy spelling kept as an alias of `canonicalizeHex` so
+// existing call sites in this file (selectAmsSlot, handleSubmit AMS branch)
+// don't churn during the colours/ extraction. New code should import
+// `canonicalizeHex` from './colors' directly.
+const normalizeColorCode = canonicalizeHex;
 
 function isPresetColor(value: string): boolean {
   return BAMBU_COLORS.some((c) => c.toUpperCase() === value.toUpperCase());
@@ -140,6 +148,53 @@ export function AddEditDialog({
   const [colorCode, setColorCode] = useState('');
   const [customColors, setCustomColors] = useState<string[]>([]);
   const [colorName, setColorName] = useState('');
+  // STUDIO-17977 / Task 10: gradient/multicolor support in the manual-add
+  // path. Both fields mirror FilamentSpool.colors / .color_type (swagger
+  // semantics: 0=gradient / 1=multicolor / 2=single). They stay in sync with
+  // colorCode: picking a candidate from FilamentColorCodeQuery seeds all
+  // four (color_code, colors[], color_type, color_name); picking a plain
+  // custom hex via the "+" picker resets colors=[] and color_type=2 so the
+  // outgoing spool is unambiguously single-colour.
+  const [colors, setColors] = useState<string[]>([]);
+  const [colorType, setColorType] = useState<0 | 1 | 2>(2);
+  // STUDIO-17977 F1.3: BBL 官方耗材代码（如 "Q01B00" / "13903"），来自
+  // FilamentColorCodeQuery 中匹配的 candidate。仅用于 form 当前会话内的
+  // UI 展示（预览栏右侧），**不持久化**到 FilamentSpool / cloud schema：
+  // 下次 dialog 打开时由 resolver effect 从 candidates cache 重新反查。
+  // cache miss 或非官方耗材时为空字符串，UI 自动隐藏对应 span。
+  const [filaColorCode, setFilaColorCode] = useState('');
+  // STUDIO-17977 F1.3: tracks which fila_id the form's colour triple is
+  // currently in sync with. Cleared on every dialog (re)open by the init
+  // effect, then advanced by the colour-alignment effect. The first
+  // observation per session is non-destructive (we trust whatever colour
+  // is on the form); subsequent fila_id transitions trigger a reconcile
+  // pass that snaps the colour to the new candidate palette when the
+  // previous one is no longer valid for the new filament type.
+  const alignedFilaIdRef = useRef<string>('');
+  // STUDIO-17977 follow-up: tracks whether the user has performed a
+  // colour-changing action since this dialog session opened (picked a
+  // candidate / a custom swatch, confirmed the picker, or toggled an
+  // AMS slot). Once true the alignment effect's "first observation"
+  // exemption is dropped, so subsequent fila_id transitions reconcile
+  // even if the form's earlier colour came from a non-official-brand
+  // fallback panel that bypassed the strict per-fila_id route.
+  const userTouchedColorRef = useRef<boolean>(false);
+  // STUDIO-17977 follow-up (AMS slot toggle bug): selectAmsSlot writes the
+  // tray's authoritative colour triple (color_code / colors / color_type /
+  // color_name / fila_color_code) into the form, then bumps brand /
+  // material_type / series — which in turn changes filaId.  The fila_id
+  // reconcile effect below normally treats a fila_id transition that is
+  // accompanied by `userTouchedColorRef === true` as "user manually
+  // switched filament type, force-snap colour to the new palette's first
+  // candidate".  That logic is wrong for AMS slot toggles: the AMS hex
+  // (e.g. #5E43B7 紫 on a PLA Basic slot) is the *real* spool colour and
+  // legitimately may not appear in the new fila_id's official candidate
+  // list; the reconcile should NOT collapse it to candidates[0] (which
+  // would surface as "黑色 / 10101 / #000000" regardless of the actual
+  // tray hex).  This token marks the next fila_id transition as
+  // AMS-driven so the reconcile effect aligns silently and skips the
+  // snap-to-fallback branch.  Consumed exactly once.
+  const amsSlotDrivenFilaIdSwapRef = useRef<boolean>(false);
   // STUDIO-17991: align the weight form with the cloud schema
   // (design-user.api CreateFilamentV2Req: netWeight + totalNetWeight only).
   // The legacy "Total - Spool = Net" three-column UI leaked spool_weight
@@ -176,6 +231,21 @@ export function AddEditDialog({
     setAmsLockedFields({ brand: false, material: false, color: false, weight: false });
     setAmsData(null);
     setAmsError('');
+    // STUDIO-17977 F1.3: forget the previous dialog session's fila_id so
+    // the alignment effect treats this open as a fresh first observation
+    // and does not snap colours that the parent just seeded via initSpool
+    // or that we are about to seed for an 'add' flow.
+    alignedFilaIdRef.current = '';
+    // STUDIO-17977 follow-up: reset interaction tracker so the first
+    // alignment after open is non-destructive (protects initSpool seed).
+    userTouchedColorRef.current = false;
+    // STUDIO-17977 follow-up (AMS slot toggle): drop any leftover token from
+    // a prior dialog session so the very first reconcile pass after open
+    // doesn't get silently aligned to whatever fila_id the form ends up at.
+    amsSlotDrivenFilaIdSwapRef.current = false;
+    // STUDIO-17977 F1.3: BBL 官方代码不持久化，每次 open 都从空开始；
+    // 由 resolver effect 在 candidates 加载完后从 hit.color_code 反查回填。
+    setFilaColorCode('');
     if (initSpool) {
       setBrand(initSpool.brand || '');
       setMaterialType(initSpool.material_type || '');
@@ -184,6 +254,12 @@ export function AddEditDialog({
       setColorCode(initialColor);
       setCustomColors(initialColor && !isPresetColor(initialColor) ? [initialColor] : []);
       setColorName(initSpool.color_name || '');
+      // Restore multicolor / gradient state (W4 added these to the wire
+      // schema; W5 already round-trips them through the AMS read path).
+      // Default color_type to 2 (single) when the legacy spool has no
+      // explicit value so the outgoing payload stays valid.
+      setColors(Array.isArray(initSpool.colors) ? [...initSpool.colors] : []);
+      setColorType(((initSpool.color_type ?? 2) as 0 | 1 | 2));
       // Transparent migration from the legacy 毛重/料盘/净重 shape:
       // old rows stored initial_weight as 毛重 with spool_weight > 0,
       // new rows store initial_weight as the pure 整卷净重 with
@@ -202,10 +278,19 @@ export function AddEditDialog({
     } else {
       setBrand(''); setMaterialType(''); setSeries('');
       setColorCode(''); setCustomColors([]); setColorName('');
+      setColors([]); setColorType(2);
       setTotalNetWeight(1000); setCurrentNetWeight(1000);
       setNote('');
     }
-  }, [open]);
+    // STUDIO-17977 follow-up: depend on initSpool / prefilledSpool, not just
+    // `open`. The same dialog instance is reused for "edit a spool" and
+    // "add a fresh spool" - re-opening with a different `initSpool` (or
+    // dropping it back to null) must reset the form, not preserve the
+    // previous session's data. The earlier [open]-only deps relied on
+    // open false→true, but that transition only happens between two
+    // distinct close→open cycles, not when the parent flips initSpool
+    // mid-session (e.g. detail → edit → cancel → add).
+  }, [open, initSpool, prefilledSpool]);
 
   const findPresetMatchByFilamentId = useCallback((setting: {
     filamentVendor?: string;
@@ -368,6 +453,443 @@ export function AddEditDialog({
     return null;
   }, [presets, brand, materialType, series]);
 
+  // STUDIO-17977 / Task 10: drive the colour palette from
+  // `filament.colors.query_for_id`. The same fila_id resolution as
+  // handleSubmit (cloud filamentId > preset setting_id > preset filament_id)
+  // is reused here so the candidate query keys off whatever the spool will
+  // actually serialise as `setting_id` on save.
+  const filaId = useMemo(
+    () => (
+      matchedCloudFilamentId
+      || matchedPresetItem?.setting_id
+      || matchedPresetItem?.filament_id
+      || initSpool?.setting_id
+      || ''
+    ),
+    [matchedCloudFilamentId, matchedPresetItem, initSpool?.setting_id],
+  );
+  const candidatesByFilaId = useStore((s) => s.filament.candidatesByFilaId);
+  const setColorCandidates = useStore((s) => s.filament.setColorCandidates);
+  // STUDIO-17977 F1.3: memoise the per-fila_id slice so downstream effects
+  // (notably the colorName resolver) don't see a fresh `candidates` array
+  // identity on every render and re-run pointlessly.
+  const candidates: CandidateColor[] = useMemo(
+    () => (filaId ? (candidatesByFilaId[filaId] ?? []) : []),
+    [filaId, candidatesByFilaId],
+  );
+
+  // STUDIO-17977 follow-up requirement 3: when the user is editing a
+  // *non-official* spool (custom brand / no preset match → empty filaId,
+  // or filaId with no candidates), fall back to "all official colours of
+  // the same material_type" by aggregating every preset item under any
+  // vendor that exposes a type whose name matches `materialType`.
+  // - The aggregation keeps `setting_id` of the originating fila_id
+  //   *opaque*: picking from the fallback palette only seeds the colour
+  //   triple; the spool's own setting_id is left untouched (Q3 =
+  //   keep_setting_id), i.e. "borrow the colour, not the identity".
+  // - Without a back-end RPC we rely on the existing per-fila_id RPC
+  //   loader and prefetch each candidate fila_id below, then read from
+  //   the same cache. It is fan-out heavy on first open (≈ Σ items
+  //   under matching types) but the in-process bridge round-trip is
+  //   cheap and the cache short-circuits subsequent opens.
+  const fallbackFilaIds = useMemo<string[]>(() => {
+    if (!materialType) return [];
+    const ids = new Set<string>();
+    for (const vendor of presets) {
+      for (const tp of vendor.types) {
+        if (tp.name !== materialType) continue;
+        for (const item of tp.items || []) {
+          const id = (item.setting_id || item.filament_id || '').trim();
+          if (id) ids.add(id);
+        }
+      }
+    }
+    return [...ids];
+  }, [presets, materialType]);
+
+  // Final fallback when neither the per-fila_id RPC nor the type-aggregated
+  // pool yields anything — e.g. a custom-brand spool whose user-created
+  // PLA Basic preset has a setting_id that is not in the cloud catalogue,
+  // so no FilamentColorCodeQuery row exists and no other vendor's PLA Basic
+  // ids match either.  Surfacing the legacy BAMBU 40-hex palette here keeps
+  // parity with the pre-STUDIO-17977 panel: the user can still pick a
+  // colour, the chosen hex flows into spool.color_code with name='' and
+  // color_type=2 (single colour), which is exactly the legacy semantics.
+  const bambuFallbackCandidates = useMemo<CandidateColor[]>(
+    () =>
+      BAMBU_COLORS.map((hex): CandidateColor => {
+        const code = hex.toUpperCase();
+        return { color_code: code, colors: [code], color_type: 2, name: '' };
+      }),
+    [],
+  );
+
+  // Supplemental layer: every distinct colour the user already owns,
+  // collected from the cloud-synced spool list.  Surfaced in addition to
+  // the original 1/2/3 layer so users can re-pick a colour they have
+  // physically on the shelf without retyping the name or hunting for the
+  // hex.  Deliberately NOT filtered by material_type or brand — the user
+  // explicitly opted into "show everything I own" so cross-type reuse is
+  // a feature, not a leak (e.g. picking the same brand colour for a PLA
+  // and a PETG spool to keep colour bookkeeping consistent).
+  const ownedSpools = useStore((s) => s.filament.spools);
+  const userOwnedCandidates = useMemo<CandidateColor[]>(() => {
+    const out: CandidateColor[] = [];
+    const seen = new Set<string>();
+    for (const s of ownedSpools) {
+      const colorType = (s.color_type ?? 2) as 0 | 1 | 2;
+      const rawColors =
+        Array.isArray(s.colors) && s.colors.length > 0
+          ? s.colors
+          : (s.color_code ? [s.color_code] : []);
+      const colors = rawColors
+        .map((hex) => normalizeColorCode(hex))
+        .filter((hex) => hex.length > 0);
+      if (colors.length === 0) continue;
+      const key = `${colorType}|${colors.join(',')}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({
+        // The user-owned spool has no BBL official code; we surface the
+        // primary hex as the dedup / testid key but the preview-bar's
+        // BBL-code slot stays empty for these candidates (see
+        // onPickCandidate -> setFilaColorCode wired off c.color_code).
+        // Keeping color_code = primary hex avoids two user-owned reels
+        // with the same colour name but different shades aliasing onto
+        // the same React key.
+        color_code: colors[0]!,
+        colors,
+        color_type: colorType,
+        name: (s.color_name || '').trim(),
+      });
+    }
+    return out;
+  }, [ownedSpools]);
+
+  // The set actually rendered by the panel.  Composition rules:
+  //
+  //   Original layer (priority order, first non-empty wins):
+  //     1. strict per-fila_id candidates (official BBL match)
+  //     2. type-aggregated fallback (other vendors' same material_type)
+  //     3. BAMBU 40-colour legacy palette (only after material is chosen,
+  //        so dialog open does not flash a full palette before settling)
+  //
+  //   Supplemental layer (always evaluated, even when the original layer
+  //   is empty - e.g. before any material is chosen):
+  //     4. distinct colours from the user's owned spools (`ownedSpools`)
+  //
+  //   De-dup: across the FULL composed list, by (color_type | colors[]).
+  //   Original layer entries are kept on collision so brand-name surfacing
+  //   stays deterministic (a "Sunrise Orange" official candidate wins over
+  //   an unnamed user-owned #FF6600).
+  const effectiveCandidates: CandidateColor[] = useMemo(() => {
+    let base: CandidateColor[] = [];
+    if (candidates.length > 0) {
+      base = candidates;
+    } else if (fallbackFilaIds.length > 0) {
+      const out: CandidateColor[] = [];
+      const seen = new Set<string>();
+      for (const id of fallbackFilaIds) {
+        const list = candidatesByFilaId[id];
+        if (!list) continue;
+        for (const c of list) {
+          const key = `${c.color_type}|${(c.colors || []).join(',').toUpperCase()}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          out.push(c);
+        }
+      }
+      if (out.length > 0) {
+        base = out;
+      } else if (materialType) {
+        base = bambuFallbackCandidates;
+      }
+    } else if (materialType) {
+      base = bambuFallbackCandidates;
+    }
+
+    if (userOwnedCandidates.length === 0) return base;
+
+    const seen = new Set<string>();
+    for (const c of base) {
+      seen.add(`${c.color_type}|${(c.colors || []).join(',').toUpperCase()}`);
+    }
+    const supplemental = userOwnedCandidates.filter((c) => {
+      const key = `${c.color_type}|${(c.colors || []).join(',').toUpperCase()}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    return supplemental.length === 0 ? base : [...base, ...supplemental];
+  }, [
+    candidates,
+    fallbackFilaIds,
+    candidatesByFilaId,
+    materialType,
+    bambuFallbackCandidates,
+    userOwnedCandidates,
+  ]);
+
+  // STUDIO-17977 F1.3: derived preview-bar visuals.
+  // - previewSwatchBackground delegates to the shared `cssBackgroundFor`
+  //   so the 24×24 candidate / preview swatch / list row mini swatch /
+  //   detail dialog swatch all share one rendering rule.  When the form's
+  //   `colorType` is 2 / undefined but `colors[]` has 2+ hexes, the helper
+  //   defaults to a smooth gradient so the visible hex list is honoured.
+  // - previewHexLabel expands `colors[]` for non-single rows so the row
+  //   carries every constituent hex, not just the primary.
+  const previewSwatchBackground = useMemo(() => {
+    return cssBackgroundFor({
+      hexes: colors,
+      primaryHex: colorCode,
+      colorType,
+    });
+  }, [colors, colorType, colorCode]);
+
+  const previewHexLabel = useMemo(() => {
+    if (colors.length > 1) {
+      return colors.map((c) => (c || '').toUpperCase()).filter(Boolean).join(' / ');
+    }
+    return (colorCode || '').toUpperCase();
+  }, [colors, colorCode]);
+
+  // Issue the JSON-RPC lazily and cache by fila_id. We read the cache via
+  // `useStore.getState()` so the callback identity stays stable; otherwise
+  // every cache mutation would change the deps of the loader and re-trigger
+  // the effect, defeating the cache. The empty-array fallback on failure
+  // doubles as a negative cache so a transient C++ error doesn't make the
+  // dialog spam the dispatcher on every state tick.
+  const requestRpc = useDeviceBridge();
+  const loadCandidates = useCallback(async (id: string) => {
+    if (!id) return;
+    const cur = useStore.getState().filament.candidatesByFilaId;
+    if (cur[id]) return;
+    try {
+      const res = await requestRpc<{
+        module: 'filament'; submod: 'colors'; action: 'query_for_id';
+        payload: { fila_id: string };
+      }, BridgeResponseBody>({
+        module: 'filament', submod: 'colors', action: 'query_for_id',
+        payload: { fila_id: id },
+      });
+      if (res.ok && res.value.error_code === 0) {
+        const payload = res.value.payload as unknown as FilamentColorCodesResponse;
+        const list = Array.isArray(payload?.candidates) ? payload.candidates : [];
+        // STUDIO-17977: don't clobber a populated cache entry with an empty
+        // list. Mirrors the prefetch guard in useFilamentBridge: if a
+        // concurrent loader (the bridge prefetch fired by spools change)
+        // already wrote a non-empty candidate list and a slow / momentarily
+        // failing RPC lands here later with an empty payload, keep the good
+        // list. Otherwise the row tail would briefly show colorName, then
+        // lose it as the empty response races in (the user-visible "瞬间有
+        // 颜色名称，但很快变成不正确" symptom).
+        const after = useStore.getState().filament.candidatesByFilaId[id];
+        if (list.length === 0 && Array.isArray(after) && after.length > 0) return;
+        setColorCandidates(id, list);
+      } else {
+        const why = res.ok ? res.value.message : res.error;
+        console.warn('[fila] loadColorCandidates failed for', id, why);
+        // Don't overwrite a non-empty cache with an empty negative entry on
+        // a transient C++ error, same reason as the success path.
+        const after = useStore.getState().filament.candidatesByFilaId[id];
+        if (Array.isArray(after) && after.length > 0) return;
+        setColorCandidates(id, []);
+      }
+    } catch (err) {
+      console.warn('[fila] loadColorCandidates threw for', id, err);
+      const after = useStore.getState().filament.candidatesByFilaId[id];
+      if (Array.isArray(after) && after.length > 0) return;
+      setColorCandidates(id, []);
+    }
+  }, [requestRpc, setColorCandidates]);
+
+  useEffect(() => {
+    if (!open || !filaId) return;
+    void loadCandidates(filaId);
+  }, [open, filaId, loadCandidates]);
+
+  // STUDIO-17977 follow-up requirement 3: prefetch every fila_id whose
+  // material_type matches the current form selection so the type-aggregated
+  // fallback panel has data to render. Fires only when the strict per-
+  // fila_id panel would otherwise be empty (no filaId, or filaId resolved
+  // but its cached entry is empty). The loader is idempotent (cache-checked
+  // inside), so this is safe to fire on every dependency change.
+  useEffect(() => {
+    if (!open) return;
+    const primaryHasData = !!filaId && (candidatesByFilaId[filaId]?.length ?? 0) > 0;
+    if (primaryHasData) return;
+    if (fallbackFilaIds.length === 0) return;
+    for (const id of fallbackFilaIds) {
+      if (id === filaId) continue;
+      void loadCandidates(id);
+    }
+  }, [open, filaId, fallbackFilaIds, candidatesByFilaId, loadCandidates]);
+
+  // Comparing the form's current selection against a candidate. Delegates
+  // to `candidateMatchesFormState` from the shared `colors/` module so the
+  // same semantics power list-row reverse lookup (resolveCandidateForSpool)
+  // and dialog highlight here.  See `candidate.ts` for the full rule
+  // explanation (multiset over `colors[]`, ignores `color_type` mismatches
+  // between AMS RFID / BBL preset registry).
+  const isCandidateSelected = useCallback((c: CandidateColor): boolean => {
+    return candidateMatchesFormState({
+      candidate: c,
+      formColorCode: colorCode,
+      formColors: colors,
+    });
+  }, [colorCode, colors]);
+
+  // STUDIO-17977 F1.3: when the user switches to a different filament
+  // type (品牌 / 类型 / series toggle), the candidate palette behind
+  // `filaId` changes but the colour triple already on the form (color_code
+  // / colors / color_type) was inherited from the previous palette. Snap
+  // the form to the new palette so the displayed swatch + hex always
+  // stay valid for the currently chosen filament type.
+  //
+  // Rules:
+  //   - The first time a fila_id is observed in this dialog session is
+  //     non-destructive (alignedFilaIdRef gets bumped from '' to filaId
+  //     without touching the form). This protects:
+  //       * initSpool round-trip on edit (parent already paired
+  //         color_code with the right setting_id when the spool was
+  //         saved, so the colour is by definition valid),
+  //       * AMS slot toggles, where selectAmsSlot pre-seeds the new
+  //         tray's colour explicitly, and
+  //       * the freshly opened add-mode form, where colorCode is empty
+  //         and there is nothing to reconcile yet.
+  //   - Any subsequent fila_id transition reconciles. If the current
+  //     colour matches a candidate in the new palette (single-colour by
+  //     hex, gradient/multicolor by full colors[] + color_type) we keep
+  //     it. Otherwise we snap to the new palette's first single-colour
+  //     candidate (or candidates[0] when there is no single-colour entry)
+  //     and let the resolver effect below fill in color_name from the
+  //     same candidate.
+  //   - While candidates are still loading we early-return without
+  //     advancing alignedFilaIdRef, so a fila_id transition will not be
+  //     "consumed" before the new palette is actually known.
+  useEffect(() => {
+    if (!filaId) return;
+    if (!candidates || candidates.length === 0) return;
+
+    // First-observation exemption: dialog just opened *and* the user has
+    // not changed any colour yet → keep whatever initSpool / parent
+    // seeded (this is the "edit existing spool" path). The exemption
+    // expires the moment the user touches a candidate / custom swatch /
+    // AMS slot, so a fila_id transition that follows e.g. a fallback-
+    // panel pick (non-official brand) still reconciles correctly.
+    if (!alignedFilaIdRef.current && !userTouchedColorRef.current) {
+      alignedFilaIdRef.current = filaId;
+      return;
+    }
+    if (alignedFilaIdRef.current === filaId) return;
+
+    // AMS slot toggle pre-wrote the tray's authoritative colour triple for
+    // the new fila_id; align silently and never overwrite the form.  The
+    // tray hex may be a custom / 3rd-party colour absent from the official
+    // candidate list, so the snap-to-fallback below would corrupt it.
+    if (amsSlotDrivenFilaIdSwapRef.current) {
+      alignedFilaIdRef.current = filaId;
+      amsSlotDrivenFilaIdSwapRef.current = false;
+      return;
+    }
+
+    const stillValid = !!colorCode && candidates.some((c) => isCandidateSelected(c));
+    if (!stillValid) {
+      const fallback = candidates.find((c) => c.color_type === 2) || candidates[0];
+      if (fallback) {
+        // fallback.color_code is the BBL official code (e.g. "Q01B00"),
+        // not a hex - the primary hex always lives at fallback.colors[0].
+        const primary = (fallback.colors && fallback.colors[0]) || '';
+        if (primary) setColorCode(primary);
+        setColors(Array.isArray(fallback.colors) ? [...fallback.colors] : []);
+        setColorType((fallback.color_type ?? 2) as 0 | 1 | 2);
+        setColorName(fallback.name || '');
+        setFilaColorCode(fallback.color_code || '');
+        // Clear stale custom-swatch selection that no longer applies to
+        // the new palette; the user can re-pick if they want.
+        setCustomColors([]);
+      }
+    }
+    alignedFilaIdRef.current = filaId;
+  }, [filaId, candidates, colorCode, isCandidateSelected]);
+
+  // STUDIO-17977 F1.3: upgrade `colorName` to the canonical
+  // FilamentColorCodeQuery candidate name when the form's colour triple
+  // (color_code / colors / color_type) matches one. Resolver semantics:
+  //   - AMS slot toggle: selectAmsSlot pre-clears colorName to '' so the
+  //     stale name from the previous slot cannot leak through; this
+  //     effect then fills in the new slot's canonical name once the
+  //     candidates for the new fila_id finish loading.
+  //   - onPickCandidate: writes c.name optimistically; the resolver
+  //     re-confirms by finding the same candidate.
+  //   - Free picker / custom-swatch: clear colorName to '' on commit;
+  //     this resolver promotes it to a canonical name *only if* the hex
+  //     coincides with an existing single-colour candidate.
+  //   - Editing an existing spool: initSpool.color_name (C++ side has
+  //     already done its own GetFilaColorName lookup) seeds colorName.
+  //     We do NOT overwrite it when the front-end candidate cache cannot
+  //     resolve a match - the C++ resolution is just as authoritative
+  //     and the cache may simply be stale, empty for an unknown setting,
+  //     or use slightly different hex normalisation.
+  // Net rule: the resolver only writes when it has a real match; it
+  // never erases a name that is already on the form.
+  useEffect(() => {
+    if (!colorCode) return;
+    if (!candidates || candidates.length === 0) return;
+    const hit = candidates.find((c) => isCandidateSelected(c));
+    if (!hit) return;
+    if (hit.name) {
+      setColorName((prev) => (prev === hit.name ? prev : hit.name));
+    }
+    // STUDIO-17977 F1.3: BBL official colour code follows the same
+    // write-only-on-hit rule as colorName - never erase a value already on
+    // the form, so cache misses on edits don't blow away an optimistically
+    // seeded code, and only update when we have a candidate match.
+    if (hit.color_code) {
+      setFilaColorCode((prev) => (prev === hit.color_code ? prev : hit.color_code));
+    }
+  }, [colorCode, colors, colorType, candidates, isCandidateSelected]);
+
+  // Picking a query-driven candidate seeds *all four* form fields so the
+  // outgoing spool round-trips through cloud POST + AMS sync as gradient /
+  // multicolor. For single-colour candidates `colors` is left as a
+  // single-element array — handleSubmit drops it back to undefined later so
+  // the wire payload stays minimal for plain spools.
+  const onPickCandidate = useCallback((c: CandidateColor) => {
+    const primary = (c.colors && c.colors[0]) || '';
+    if (primary) setColorCode(primary);
+    setColors(Array.isArray(c.colors) ? [...c.colors] : []);
+    setColorType(c.color_type);
+    setColorName(c.name || '');
+    // STUDIO-17977 F1.3: capture the BBL official colour code (e.g. "Q01B00"
+    // / "13903") so the preview row can surface it next to the hex.
+    //
+    // BAMBU legacy fallback and user-owned supplemental candidates carry the
+    // primary hex in `color_code` purely as a unique key (testid / dedup);
+    // those values aren't real BBL codes, so we suppress them here and leave
+    // the preview row's `preview-fila-code` slot empty — matching the legacy
+    // pre-STUDIO-17977 behaviour for custom-brand spools.
+    const looksLikeBblCode = !!c.color_code && !c.color_code.startsWith('#');
+    setFilaColorCode(looksLikeBblCode ? c.color_code : '');
+    userTouchedColorRef.current = true;
+  }, []);
+
+  // Picking an existing custom-colour swatch is always a single-colour
+  // selection: clear any previous gradient / multicolor state so the spool
+  // we save matches what the swatch visually represents.
+  const onPickCustomSwatch = useCallback((hex: string) => {
+    setColorCode(hex);
+    setColors([]);
+    setColorType(2);
+    // STUDIO-17977 F1.3: a custom-swatch pick has no FilamentColorCodeQuery
+    // name; clear color_name and the BBL official colour code so the
+    // preview row hides them. Resolver effect promotes both back if the
+    // hex happens to coincide with an existing single-colour candidate.
+    setColorName('');
+    setFilaColorCode('');
+    userTouchedColorRef.current = true;
+  }, []);
+
   // 下拉切换时：
   //  - series 直接存下拉选中的完整 filamentName（例如 "PLA Basic"）。这与
   //    云端 PUT/POST 的 filamentName 字段语义一致，避免本地短名上云后丢类型前缀。
@@ -432,11 +954,12 @@ export function AddEditDialog({
     currentNetWeight <= totalNetWeight
   );
 
-  // F4.4: whether the currently picked colour is a user-defined one (not in
-  // the preset BAMBU_COLORS palette). Used to render a custom-colour preview.
-  const isCustomColor = !!colorCode && !BAMBU_COLORS.some(
-    (c) => c.toUpperCase() === colorCode.toUpperCase(),
-  );
+  // STUDIO-17977 F1.3: the previous F4.4 isCustomColor flag relied on a
+  // BAMBU_COLORS hex-membership check, which became stale once the palette
+  // switched to FilamentColorCodeQuery candidates. The "preset vs custom"
+  // distinction now lives in the preview row directly: it shows color_name
+  // when we have one (set by onPickCandidate from c.name) and falls back to
+  // the "Custom Color" label otherwise. No standalone flag is needed.
 
   // STUDIO-18114: the custom color picker now uses a draft-then-commit flow.
   // Previously a hidden <input type="color"> committed every onChange tick,
@@ -468,6 +991,18 @@ export function AddEditDialog({
     const next = commitCustomColorSelection(draftColor, customColors, BAMBU_COLORS);
     setColorCode(next.colorCode);
     setCustomColors(next.customColors);
+    // Custom-picker is single-colour only: drop any prior gradient /
+    // multicolor selection so the saved spool matches the swatch the user
+    // just confirmed.
+    setColors([]);
+    setColorType(2);
+    // STUDIO-17977 F1.3: a freshly hand-picked colour has no preset name
+    // or BBL official code; clear both so the preview row reflects the
+    // free-picker selection. Resolver effect upgrades them back if the
+    // hex happens to coincide with a single-colour candidate.
+    setColorName('');
+    setFilaColorCode('');
+    userTouchedColorRef.current = true;
     setColorPickerOpen(false);
   }, [draftColor, customColors]);
 
@@ -512,6 +1047,19 @@ export function AddEditDialog({
         || '',
     };
 
+    // STUDIO-17977 / Task 10: keep gradient/multicolor info on the manual-add
+    // path. Mirror the AMS-import branch below: only emit `colors` when there
+    // really is a non-trivial palette (length > 1), but always pin
+    // `color_type` so the cloud round-trip and AMS sync logic don't have to
+    // guess. For plain single-colour spools the field stays at 2 (single)
+    // and `colors` is left undefined so the wire payload stays minimal.
+    if (Array.isArray(colors) && colors.length > 1) {
+      data.colors = [...colors];
+      data.color_type = colorType;
+    } else {
+      data.color_type = 2;
+    }
+
     if (isEdit) {
       // STUDIO-17964: 编辑保存时只提交用户此次真正改过的字段。
       // - 空 patch 提交到 C++ 侧会被安全地忽略（不发空 PUT）。
@@ -554,6 +1102,37 @@ export function AddEditDialog({
         data.bound_ams_id = selectedSlot.ams_id;
         data.bound_dev_id = amsData?.selected_dev_id || '';
         data.remain_percent = remain;
+        // STUDIO-17977: keep gradient/multicolor info when creating a spool
+        // from an AMS slot. tray.colors / tray.color_type come from
+        // FilaManagerVM::build_ams_data (mirrors AMSColorMode on the device);
+        // forwarding them here means the new FilamentSpool stays multicolor
+        // instead of being silently downgraded to a single-color row. The
+        // C++ FilamentSpool::from_json enforces the
+        // `color_code == colors[0]` invariant on receipt, so we don't need
+        // to special-case it here.
+        //
+        // Two normalisations mirror selectAmsSlot so the wire payload, the
+        // form state, and the resulting list row stay byte-identical:
+        //   1. Each hex in tray.colors goes through normalizeColorCode so
+        //      MQTT-style raw "RRGGBBAA" / no-leading-# values become a
+        //      canonical "#RRGGBB" before reaching FilamentSpool::from_json.
+        //   2. When the device omits color_type for a multi-hex tray (MQTT
+        //      `cols` present but no `ctype`) we default to gradient (0).
+        //      Defaulting to single (2) here used to silently downgrade
+        //      multicolor AMS slots to a single-colour row on the next
+        //      cloud round-trip even though the form preview rendered them
+        //      as gradient.
+        const normalizedTrayColors = Array.isArray(tray.colors)
+          ? tray.colors
+              .map((c) => normalizeColorCode(c))
+              .filter((c) => c.length > 0)
+          : [];
+        if (normalizedTrayColors.length > 0) {
+          data.colors = normalizedTrayColors;
+        }
+        data.color_type = (typeof tray.color_type === 'number')
+          ? tray.color_type
+          : (normalizedTrayColors.length > 1 ? 0 : 2);
         if (trayNetInit > 0) {
           // tray.weight is already the spool's 整卷净重 (MQTT `tray_weight`,
           // see DevFilaSystem::weight); store it verbatim — no料盘 fudge.
@@ -828,6 +1407,13 @@ export function AddEditDialog({
 
   const selectAmsSlot = (unit: AmsUnit, tray: AmsTray) => {
     setSelectedSlot({ ams_id: unit.ams_id, slot_id: tray.slot_id, tray });
+    // Tell the fila_id reconcile effect: the next fila_id transition is
+    // driven by us (we're about to setBrand/setMaterialType/setSeries based
+    // on the tray's setting_id), not by a user-initiated brand switch.
+    // The effect will align silently and skip snap-to-fallback so the
+    // tray's real hex (which may be a custom colour absent from the new
+    // palette) survives.  Cleared inside the effect after one use.
+    amsSlotDrivenFilaIdSwapRef.current = true;
     // Historically we locked the form down when the tray reported an RFID
     // tag_uid (BBL original spool) so users could not accidentally change
     // authoritative fields. Product direction has since changed: the
@@ -907,13 +1493,65 @@ export function AddEditDialog({
     setSeries(filamentName || formatTypeSeries(typeName, seriesName));
 
     // F4.8: color may arrive as #RRGGBBAA (BBL firmware appends alpha for
-    // transparent filaments). Strip alpha so the palette match and the hex
-    // label stay canonical 6-digit HEX.
-    const rawColor = tray.color || '';
-    const sanitizedColor = /^#[0-9a-fA-F]{8}$/.test(rawColor)
-      ? rawColor.substring(0, 7)
-      : rawColor;
+    // transparent filaments) and historically *without* the leading `#`
+    // for AMS multi-hex payloads (`0047BBFF`).  `normalizeColorCode` does
+    // both: prefixes `#` if missing and slices to 7 chars (#RRGGBB) so
+    // every downstream consumer (palette match, CSS gradient string,
+    // preview-hex label) gets a canonical value.  Without this, an
+    // un-prefixed hex flows into a CSS gradient and silently breaks.
+    const sanitizedColor = normalizeColorCode(tray.color);
     if (sanitizedColor) setColorCode(sanitizedColor);
+
+    // STUDIO-17977 F1.3: switching AMS slots must also reset the
+    // gradient/multicolor pair (cols / ctype on the device side) and clear
+    // the lingering FilamentColorCodeQuery name from the previous slot.
+    // Without this, a slot-to-slot toggle keeps the old slot's `colors[]` /
+    // `color_type` / `color_name` even though `color_code` has changed,
+    // which is exactly what the F1.3 self-test caught: hex updates per slot
+    // but the colour-name preview row keeps the previous slot's name.
+    //
+    // The actual canonical name is reapplied by the colorName-resolver
+    // useEffect below as soon as the candidates for the new slot's
+    // setting_id finish loading; we just need to make sure the form is in
+    // a clean intermediate state so a stale label cannot leak through.
+    // Same canonicalisation as `tray.color` above — AMS multi-hex payloads
+    // routinely arrive as plain `RRGGBBAA` strings, which CSS gradients
+    // refuse to parse.  Run every entry through `normalizeColorCode` so
+    // both the AMS-card chip and the form's preview swatch get a list
+    // CSS will actually paint.
+    const traySanitizedColors = Array.isArray(tray.colors)
+      ? tray.colors
+          .map((c) => (typeof c === 'string' ? c : ''))
+          .filter((c) => !!c)
+          .map((c) => normalizeColorCode(c))
+          .filter((c) => !!c)
+      : [];
+    // Form invariant established by AddEditDialog and consumed by
+    // `isCandidateSelected`: `colors[]` is empty for single-hex spools and
+    // populated only for gradient / multicolor.  Writing a one-element
+    // array here would cause the resolver effect to miss every single-hex
+    // candidate (the resolver bails out as soon as `colors.length > 0` on
+    // a `color_type === 2` candidate), which is exactly how the AMS A1
+    // single-hex slot ended up rendering its hex with an empty colour
+    // name and missing BBL fila code.  Honour the invariant: only push
+    // the hex list to `colors` when the slot is genuinely multi-hex.
+    if (traySanitizedColors.length > 1) {
+      setColors(traySanitizedColors);
+      // Multi-hex AMS slot: if MQTT didn't forward `ctype` (older firmware,
+      // 3rd-party tray), fall back to gradient (0) instead of single (2)
+      // so both the AMS card chip and the form's preview swatch reflect
+      // the hex list rather than collapsing to the primary `color`.
+      setColorType(tray.color_type === 1 ? 1 : 0);
+    } else {
+      setColors([]);
+      setColorType(2);
+    }
+    setColorName('');
+    // STUDIO-17977 F1.3: BBL official colour code is also tied to the new
+    // tray's candidate (if any); clear it and let the resolver fill in
+    // from the new fila_id's candidate cache.
+    setFilaColorCode('');
+    userTouchedColorRef.current = true;
 
     // Seed both weight inputs from the AMS tray report. `tray.weight` is
     // the spool's original 整卷净重 (MQTT `tray_weight`, always net); the
@@ -976,6 +1614,8 @@ export function AddEditDialog({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-start justify-center pt-10 z-[1000]">
       <div
+        data-testid={isEdit ? 'edit-dialog' : 'add-dialog'}
+        data-mode={mode}
         className="w-[644px] max-h-[calc(100vh-80px)] bg-[#242424] [html[data-theme=light]_&]:bg-fm-sidebar rounded-lg shadow-[0px_8px_24px_0px_rgba(0,0,0,0.12)] flex flex-col overflow-hidden fm-native-form"
         style={{ transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)` }}
         onClick={(e) => e.stopPropagation()}
@@ -1002,10 +1642,14 @@ export function AddEditDialog({
         {!isEdit && (
           <div className="flex gap-[16px] items-start w-full">
             <div
+              data-testid="dialog-tab-manual"
+              data-active={mode === 'manual' ? 'true' : 'false'}
               className={`flex-1 flex items-center justify-center py-[4px] px-[16px] cursor-pointer rounded-[8px] border transition-all duration-150 ${mode === 'manual' ? 'border-fm-brand text-[#50e81d]' : 'border-fm-border-focus text-fm-text-primary hover:bg-fm-hover'}`}
               onClick={() => setMode('manual')}
             ><span className="py-[5px] text-[14px] leading-[22px]">{t('Manual Add')}</span></div>
             <div
+              data-testid="dialog-tab-ams"
+              data-active={mode === 'ams' ? 'true' : 'false'}
               className={`flex-1 flex items-center justify-center py-[4px] px-[8px] cursor-pointer rounded-[8px] border transition-all duration-150 ${mode === 'ams' ? 'border-fm-brand text-[#50e81d]' : 'border-fm-border-focus text-fm-text-primary hover:bg-fm-hover'}`}
               onClick={switchToAms}
             ><span className="py-[5px] text-[14px] leading-[22px]">{t('Read from AMS')}</span></div>
@@ -1073,13 +1717,15 @@ export function AddEditDialog({
             )}
 
             {!amsLoading && machines.length > 0 && (
-              <div className="flex flex-col gap-[4px]">
+              <div data-testid="ams-grid" className="flex flex-col gap-[4px]">
                 <div className="flex items-center gap-[12px]">
                   <div className="flex flex-1 gap-[12px] items-center justify-end min-w-0">
                     {amsData?.ams_units.map((u) => (
                       <button
                         key={u.ams_id}
                         type="button"
+                        data-testid={`ams-unit-${u.ams_id}`}
+                        data-active={u.ams_id === selectedUnit ? 'true' : 'false'}
                         className={`rounded-[4px] border bg-transparent cursor-pointer flex items-center p-[4px] transition-colors duration-150 hover:border-fm-text-secondary ${u.ams_id === selectedUnit ? 'border-fm-brand' : 'border-fm-border-focus'}`}
                         title={`AMS ${parseInt(u.ams_id, 10) + 1}`}
                         onClick={() => { setSelectedUnit(u.ams_id); setSelectedSlot(null); }}
@@ -1096,11 +1742,11 @@ export function AddEditDialog({
                       const isSelected = selectedSlot?.slot_id === tray.slot_id && selectedSlot?.ams_id === currentUnit.ams_id;
                       if (!tray.is_exists) {
                         return (
-                          <div key={label} className="flex-1 flex flex-col rounded-[6px] border border-fm-border-focus cursor-default opacity-30 transition-all duration-150 overflow-hidden">
+                          <div key={label} data-testid={`ams-slot-${currentUnit.ams_id}-${tray.slot_id}`} data-empty="true" className="flex-1 flex flex-col rounded-[6px] border border-fm-border-focus cursor-default opacity-30 transition-all duration-150 overflow-hidden">
                             <div className="fm-slot-header-bg text-center py-[2px] text-[11px] leading-[16px] text-fm-text-strong bg-[#424242] rounded-t-[6px]">{label}</div>
                             <div className="flex gap-[4px] items-center p-[4px]">
-                              <div className="size-[40px] shrink-0 [&>svg]:size-[40px]">
-                                <SpoolSvg color="#555" size={32} />
+                            <div className="size-[40px] shrink-0 flex items-center justify-center">
+                                <SpoolColorChip colorCode="#555" size={32} />
                               </div>
                               <div className="flex-1 flex flex-col gap-[4px] min-w-0">
                                 <span className="text-[12px] leading-[19px] text-fm-text-primary truncate">{t('Empty')}</span>
@@ -1112,17 +1758,28 @@ export function AddEditDialog({
                       return (
                         <div
                           key={label}
+                          data-testid={`ams-slot-${currentUnit.ams_id}-${tray.slot_id}`}
+                          data-empty="false"
+                          data-selected={isSelected ? 'true' : 'false'}
+                          data-color={tray.color}
+                          data-color-type={tray.color_type}
                           className={`flex-1 flex flex-col rounded-[6px] border cursor-pointer transition-all duration-150 overflow-hidden hover:border-fm-text-secondary ${isSelected ? 'border-fm-brand' : 'border-fm-border-focus'}`}
                           onClick={() => selectAmsSlot(currentUnit, tray)}
                         >
                           <div className={`fm-slot-header-bg text-center py-[2px] text-[11px] leading-[16px] text-fm-text-strong bg-[#424242] rounded-t-[6px] ${isSelected ? '!bg-fm-brand !text-white' : ''}`}>{label}</div>
                           <div className="flex gap-[4px] items-center p-[4px]">
-                            <div className="size-[40px] shrink-0 [&>svg]:size-[40px]">
-                              <SpoolSvg color={tray.color} size={32} />
+                            <div className="size-[40px] shrink-0 flex items-center justify-center">
+                              <SpoolColorChip colorCode={tray.color} colors={tray.colors} colorType={tray.color_type} size={32} />
                             </div>
                             <div className="flex-1 flex flex-col gap-[4px] min-w-0">
                               <div className="text-[12px] leading-[19px] text-fm-text-primary flex items-center gap-[4px] truncate">
-                                <span className="inline-block size-[12px] rounded-sm shrink-0" style={{ background: tray.color || '#888' }} />
+                                <SpoolColorChip
+                                  colorCode={tray.color}
+                                  colors={tray.colors}
+                                  colorType={tray.color_type}
+                                  size={14}
+                                  radius={3}
+                                />
                                 {tray.fila_type || '—'}
                               </div>
                               {/* Show the *remaining* net weight in each
@@ -1168,6 +1825,7 @@ export function AddEditDialog({
                 <div className="flex flex-col gap-[4px] flex-1 pb-[24px]">
                   <label className="text-[12px] leading-[19px] text-fm-text-secondary"><span className="text-[#ff2b00]">*</span> {t('Brand')}</label>
                   <select
+                    data-testid="filament-brand"
                     className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)] fm-select-arrow cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                     value={brand}
                     disabled={lockBrand}
@@ -1191,6 +1849,7 @@ export function AddEditDialog({
                       before a brand is set — disable the control instead and
                       show a hint placeholder. */}
                   <select
+                    data-testid="filament-material"
                     className="bg-fm-inner2 border-none rounded-[6px] h-[32px] pl-[8px] pr-[4px] text-fm-text-strong text-[12px] leading-[19px] outline-none w-full focus:shadow-[0_0_0_1px_var(--color-fm-brand)] fm-select-arrow cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
                     value={typeSeriesFull}
                     onChange={(e) => handleTypeSeriesChange(e.target.value)}
@@ -1214,13 +1873,14 @@ export function AddEditDialog({
                   "+" 始终保留为取色入口；新取的自定义色追加到预设色之后。 */}
               <div className="flex flex-col gap-[8px]">
                 <label className="text-[12px] leading-[19px] text-fm-text-secondary"><span className="text-[#ff2b00]">*</span> {t('Color')}</label>
-                <div className={`flex flex-wrap gap-[6px] items-center ${lockColor ? 'pointer-events-none opacity-60' : ''}`}>
+                <div data-testid="color-candidate-panel" className={`flex flex-wrap gap-[6px] items-center ${lockColor ? 'pointer-events-none opacity-60' : ''}`}>
                   {/* STUDIO-18114: Custom-color picker — click "+" to open a
                       draft popover; the form's color is only updated after
                       the user explicitly confirms with OK. */}
                   <div ref={colorPickerRef} className="relative">
                     <button
                       type="button"
+                      data-testid="pick-custom-color-button"
                       className="size-[24px] rounded-[4px] cursor-pointer border border-dashed border-fm-border-focus bg-fm-inner overflow-hidden flex items-center justify-center text-fm-text-detail text-sm hover:border-fm-text-secondary disabled:cursor-not-allowed disabled:opacity-60 p-0"
                       title={t('Pick Custom Color')}
                       aria-label={t('Pick Custom Color')}
@@ -1280,32 +1940,136 @@ export function AddEditDialog({
                       </div>
                     )}
                   </div>
-                  {BAMBU_COLORS.map((c) => (
-                    <div
-                      key={c}
-                      className={`size-[24px] rounded-[4px] cursor-pointer border transition-colors duration-150 hover:border-fm-text-secondary ${c.toUpperCase() === colorCode.toUpperCase() ? 'border-fm-brand border-2' : 'border-fm-border-focus'}`}
-                      style={{ background: c }}
-                      onClick={() => setColorCode(c)}
-                    />
-                  ))}
-                  {customColors.map((c) => (
-                    <div
-                      key={`custom-${c}`}
-                      className={`size-[24px] rounded-[4px] cursor-pointer border transition-colors duration-150 hover:border-fm-text-secondary ${c.toUpperCase() === colorCode.toUpperCase() ? 'border-fm-brand border-2' : 'border-fm-border-focus'}`}
-                      style={{ background: c }}
-                      title={t('Custom Color')}
-                      onClick={() => setColorCode(c)}
-                    />
-                  ))}
+                  {/* STUDIO-17977 / Task 10: query-driven palette. The list
+                      of swatches comes from `filament.colors.query_for_id`
+                      (cached by fila_id in zustand) instead of a hardcoded
+                      hex array, so gradient and multicolor presets are
+                      first-class swatches.
+                      Follow-up requirement 3: when the strict per-fila_id
+                      query returns nothing (non-official spool, or filaId
+                      not yet picked), `effectiveCandidates` falls back to
+                      "all official colours of the same material_type"
+                      aggregated client-side from the prefetched cache.
+                      Picking a fallback swatch only seeds the colour
+                      triple - the spool's setting_id is not rewritten
+                      (Q3 = keep_setting_id, "borrow colour, not identity").
+                      Empty state covers the case where neither path yields
+                      anything (e.g. material_type also unset). */}
+                  {effectiveCandidates.length === 0 && customColors.length === 0 && (
+                    <div className="text-[11px] leading-[16px] text-fm-text-detail">
+                      {t('No predefined colors for this filament')}
+                    </div>
+                  )}
+                  {effectiveCandidates.map((c) => {
+                    const selected = isCandidateSelected(c);
+                    // STUDIO-17977: 24×24 button wraps a SpoolColorChip so
+                    // single / multicolor / gradient candidates render via
+                    // the same component used by every other surface
+                    // (list / detail / AMS / preview). The button itself
+                    // owns the selection ring, so the inner chip is drawn
+                    // with `border={false}` to avoid a double outline.
+                    const cHexes = (c.colors || [])
+                      .map((h) => normalizeColorCode(h))
+                      .filter((h) => h.length > 0);
+                    return (
+                      <button
+                        key={`${c.color_code}|${(c.colors || []).join(',')}`}
+                        type="button"
+                        data-testid={`color-candidate-${c.color_code}`}
+                        data-color-code={c.color_code}
+                        data-color-name={c.name}
+                        data-color-type={c.color_type}
+                        data-colors={(c.colors || []).join(',')}
+                        data-selected={selected ? 'true' : 'false'}
+                        title={c.name}
+                        aria-label={c.name}
+                        onClick={() => onPickCandidate(c)}
+                        className={`size-[24px] rounded-[4px] p-0 cursor-pointer transition-colors duration-150 border hover:border-fm-text-secondary bg-transparent inline-flex items-center justify-center ${selected ? 'border-fm-brand border-2' : 'border-fm-border-focus'}`}
+                      >
+                        <SpoolColorChip
+                          colorCode={cHexes[0] || ''}
+                          colors={c.colors}
+                          colorType={c.color_type as 0 | 1 | 2 | undefined}
+                          size={22}
+                          radius={3}
+                          border={false}
+                        />
+                      </button>
+                    );
+                  })}
+                  {customColors.map((c) => {
+                    // A custom swatch is "selected" only when the form is
+                    // in single-colour mode AND the hex matches; otherwise
+                    // the user has since picked a multicolor candidate and
+                    // the visual highlight should follow that.
+                    const isSelected = colors.length === 0
+                      && c.toUpperCase() === colorCode.toUpperCase();
+                    return (
+                      <div
+                        key={`custom-${c}`}
+                        className={`size-[24px] rounded-[4px] cursor-pointer border transition-colors duration-150 hover:border-fm-text-secondary inline-flex items-center justify-center bg-transparent ${isSelected ? 'border-fm-brand border-2' : 'border-fm-border-focus'}`}
+                        title={t('Custom Color')}
+                        onClick={() => onPickCustomSwatch(c)}
+                      >
+                        <SpoolColorChip colorCode={c} size={22} radius={3} border={false} />
+                      </div>
+                    );
+                  })}
                 </div>
                 {/* Selected-color preview bar — always visible once a color is picked. */}
+                {/*
+                  STUDIO-17977 F1.3: previously this row only showed the
+                  primary hex and a literal "Custom Color" / "Preset Color"
+                  badge driven by a stale BAMBU_COLORS membership check.
+                  The new layout, in left-to-right order:
+                    [swatch] [colour name?] [BBL official code?] [hex list]
+                  - Swatch reuses the same flat CSS gradient strip as the
+                    24×24 candidate panel so single / gradient / multicolor
+                    selections look identical between the two.
+                  - Colour name is the FilamentColorCodeQuery candidate
+                    name, surfaced only when a match exists.
+                  - BBL official code (e.g. "Q01B00" / "13903") is the
+                    candidate.color_code returned by the same RPC; the
+                    in-form `colorCode` state is the *primary hex*, so do
+                    not confuse the two - they share a name only by
+                    historical accident.
+                  - Hex list expands `colors[]` for gradient / multicolor
+                    selections so the row carries every constituent hex,
+                    not just the primary. Single-colour rows still show
+                    one hex.
+                */}
                 {colorCode && (
-                  <div className="flex items-center gap-[8px] bg-fm-inner rounded-[6px] px-[8px] py-[6px]">
-                    <span className="size-[16px] rounded-[3px] border border-white/20 shrink-0" style={{ background: colorCode }} />
-                    <span className="text-[11px] leading-[16px] text-fm-text-secondary shrink-0">
-                      {isCustomColor ? t('Custom Color') : t('Preset Color')}
+                  <div data-testid="color-preview-bar" className="flex items-center gap-[8px] bg-fm-inner rounded-[6px] px-[8px] py-[6px] flex-wrap">
+                    <span
+                      data-testid="preview-swatch"
+                      data-swatch-bg={previewSwatchBackground}
+                      className="inline-flex shrink-0"
+                    >
+                      <SpoolColorChip
+                        colorCode={colorCode}
+                        colors={colors}
+                        colorType={colorType as 0 | 1 | 2 | undefined}
+                        size={16}
+                        radius={3}
+                      />
                     </span>
-                    <span className="text-[11px] leading-[16px] text-fm-text-primary font-mono tracking-wider">{colorCode.toUpperCase()}</span>
+                    {colorName && (
+                      <span data-testid="preview-color-name" className="text-[11px] leading-[16px] text-fm-text-secondary shrink-0">
+                        {colorName}
+                      </span>
+                    )}
+                    {filaColorCode && (
+                      <span
+                        data-testid="preview-fila-code"
+                        className="text-[11px] leading-[16px] text-fm-text-detail shrink-0"
+                        title={t('Bambu Color Code')}
+                      >
+                        · {filaColorCode}
+                      </span>
+                    )}
+                    <span data-testid="preview-hex-list" className="text-[11px] leading-[16px] text-fm-text-primary font-mono tracking-wider break-all">
+                      {previewHexLabel}
+                    </span>
                   </div>
                 )}
               </div>
@@ -1405,8 +2169,8 @@ export function AddEditDialog({
           )}
           {(isEdit || mode !== 'manual') && <div />}
           <div className="flex gap-[12px] items-center">
-            <button className="h-[30px] px-[32px] rounded-[8px] cursor-pointer text-[12px] leading-[19px] whitespace-nowrap transition-colors duration-150 bg-fm-input text-fm-text-primary border-none hover:bg-fm-hover" onClick={onClose}>{t('Cancel')}</button>
-            <button className="h-[30px] px-[32px] rounded-[8px] border-none cursor-pointer text-[12px] leading-[19px] font-medium whitespace-nowrap transition-colors duration-150 bg-fm-brand text-white hover:bg-fm-brand-hover disabled:opacity-40 disabled:cursor-default" disabled={!isValid} onClick={handleSubmit}>
+            <button data-testid="dialog-cancel" className="h-[30px] px-[32px] rounded-[8px] cursor-pointer text-[12px] leading-[19px] whitespace-nowrap transition-colors duration-150 bg-fm-input text-fm-text-primary border-none hover:bg-fm-hover" onClick={onClose}>{t('Cancel')}</button>
+            <button data-testid="dialog-confirm" className="h-[30px] px-[32px] rounded-[8px] border-none cursor-pointer text-[12px] leading-[19px] font-medium whitespace-nowrap transition-colors duration-150 bg-fm-brand text-white hover:bg-fm-brand-hover disabled:opacity-40 disabled:cursor-default" disabled={!isValid} onClick={handleSubmit}>
               {isEdit ? t('Save') : t('Add')}
             </button>
           </div>

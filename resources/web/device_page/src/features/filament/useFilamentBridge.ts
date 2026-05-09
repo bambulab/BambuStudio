@@ -80,6 +80,18 @@ export function useFilamentBridge() {
   const setDebugEnabled = useStore((s) => s.filament.setDebugEnabled);
   const appendDebugLog  = useStore((s) => s.filament.appendDebugLog);
 
+  // STUDIO-17977: prefetch per-fila_id colour candidates for every spool
+  // currently in the list so SpoolTable can render the official colour
+  // name and BBL fila code on the first paint, without waiting for the
+  // user to open the Add/Edit dialog. The cache key is the same fila_id
+  // resolution AddEditDialog uses on save (cloud filamentId fallback to
+  // preset setting_id), and we treat both "list with hits" and "empty
+  // list" as cached (negative cache) so we never refetch the same id.
+  const spoolsForPrefetch = useStore((s) => s.filament.spools);
+  const candidatesByFilaId = useStore((s) => s.filament.candidatesByFilaId);
+  const setColorCandidates = useStore((s) => s.filament.setColorCandidates);
+  const candidatePrefetchInflight = useRef<Set<string>>(new Set());
+
   // STUDIO-17956: coalesce per-spool push_done toasts into a single batch
   // toast. Adding N spools in quick succession used to spam N identical
   // "Filament synced to cloud." toasts (one per push_done). We now accumulate
@@ -293,6 +305,58 @@ export function useFilamentBridge() {
       if (agg.timer) { clearTimeout(agg.timer); agg.timer = null; }
     };
   }, [setSpools, setCloudSync, setCloudConfig, pushToast, appendCloudSyncHistory, appendDebugLog, setMachines, setAmsData, setSelectedMachineDevId, setCloudAutoPushSummary, t, flushPushDoneAgg]);
+
+  // STUDIO-17977: candidate prefetch — runs whenever the spool list changes.
+  // Drives the list row tail (colorName + BBL fila code) without waiting on
+  // the user to open AddEditDialog.  Each unique setting_id is queried once
+  // (negative cache via empty array marks it as "queried, none"), and
+  // in-flight ids tracked in `candidatePrefetchInflight` so a re-render in
+  // the middle of the prefetch does not re-issue the same RPC.
+  useEffect(() => {
+    if (!Array.isArray(spoolsForPrefetch) || spoolsForPrefetch.length === 0) return;
+    const ids = new Set<string>();
+    for (const s of spoolsForPrefetch) {
+      const id = (s.setting_id || '').trim();
+      if (!id) continue;
+      if (id in candidatesByFilaId) continue;
+      if (candidatePrefetchInflight.current.has(id)) continue;
+      ids.add(id);
+    }
+    if (ids.size === 0) return;
+    let cancelled = false;
+    (async () => {
+      for (const id of ids) {
+        if (cancelled) return;
+        candidatePrefetchInflight.current.add(id);
+        const res = await request<ReturnType<typeof makeBody>, BridgeResponseBody>(
+          makeBody('colors', 'query_for_id', { fila_id: id }),
+        );
+        candidatePrefetchInflight.current.delete(id);
+        if (cancelled) return;
+        // STUDIO-17977: never clobber an already-populated cache entry with
+        // an empty list. Two effects can race: AddEditDialog opens and
+        // queues `loadCandidates(filaId)` (lands a populated list), and the
+        // prefetch effect queues another query for the same fila_id which
+        // can come back later with an empty `candidates` array (e.g. C++
+        // FilamentColorCodeQuery index missed the cloud_filamentId, or the
+        // cloud catalogue was still warming up). Whichever response lands
+        // second wins `setColorCandidates`, so a delayed empty response
+        // would overwrite a good list and the row tail would lose its
+        // colorName / fila code mid-flight.  Keep the existing list when
+        // the new payload is empty; only refresh on non-empty data.
+        const arr = (res.ok && res.value.error_code === 0)
+          ? ((res.value.payload as { candidates?: unknown[] } | undefined)?.candidates ?? [])
+          : [];
+        const cur = useStore.getState().filament.candidatesByFilaId[id];
+        if (Array.isArray(arr) && arr.length === 0
+            && Array.isArray(cur) && cur.length > 0) {
+          continue; // keep the populated list
+        }
+        setColorCandidates(id, Array.isArray(arr) ? (arr as never) : []);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [spoolsForPrefetch, candidatesByFilaId, setColorCandidates, request]);
 
   // ---- Init ----
   const init = useCallback(async () => {

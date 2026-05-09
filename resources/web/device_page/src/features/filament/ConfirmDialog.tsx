@@ -44,6 +44,8 @@ export function ConfirmDialog({
 
   return (
     <div
+      data-testid="confirm-dialog"
+      data-danger={danger ? 'true' : 'false'}
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1100]"
     >
       <div
@@ -53,7 +55,7 @@ export function ConfirmDialog({
         aria-modal="true"
       >
         <div className="px-6 pt-5 pb-2">
-          <h3 className="text-sm font-medium text-fm-text-strong leading-5 m-0">{title}</h3>
+          <h3 data-testid="confirm-dialog-title" className="text-sm font-medium text-fm-text-strong leading-5 m-0">{title}</h3>
         </div>
         {message ? (
           <div className="px-6 pb-5 text-xs text-fm-text-secondary leading-5 whitespace-pre-line">
@@ -65,6 +67,7 @@ export function ConfirmDialog({
         <div className="flex gap-2 justify-end px-6 pb-5">
           <button
             type="button"
+            data-testid="confirm-dialog-cancel"
             onClick={onCancel}
             className="inline-flex items-center justify-center h-[30px] px-4 rounded-lg border border-fm-border-focus/50 bg-fm-inner text-fm-text-primary text-xs cursor-pointer transition-colors duration-150 hover:bg-fm-hover"
           >
@@ -72,6 +75,7 @@ export function ConfirmDialog({
           </button>
           <button
             type="button"
+            data-testid="confirm-dialog-confirm"
             onClick={handleConfirm}
             className={`inline-flex items-center justify-center h-[30px] px-4 rounded-lg border-none text-xs font-medium cursor-pointer transition-colors duration-150 ${
               danger

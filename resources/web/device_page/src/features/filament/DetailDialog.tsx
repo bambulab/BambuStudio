@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Spool } from './types';
-import { SpoolSvg } from './SpoolSvg';
+import { SpoolColorChip } from './SpoolColorChip';
 import { ENTRY_METHOD_LABELS, formatSpoolDisplayName } from './constants';
+import { cssBackgroundFor, colorNameWithHexLabel } from './colors';
 
 interface Props {
   open: boolean;
@@ -68,8 +69,30 @@ export function DetailDialog({ open, spool, filteredSpools, onClose, onEdit, onN
     ? Math.round(spool.net_weight)
     : Math.round(totalNet * (spool.remain_percent || 0) / 100);
 
+  // STUDIO-17977: colour rendering routes through the shared `colors/`
+  // module so the swatch + label match the list row and add/edit dialog
+  // exactly. Tolerates 6-char `RRGGBB`, 7-char `#RRGGBB`, and 8-char
+  // cloud-schema `#RRGGBBAA` payloads. `colorNameWithHexLabel` returns ''
+  // when both name and hex are empty; we substitute '—' as the dialog's
+  // "no info" placeholder.
+  const colorBackground = cssBackgroundFor({
+    hexes: spool.colors,
+    primaryHex: spool.color_code,
+    colorType: spool.color_type,
+  });
+  const colorTextLabel = colorNameWithHexLabel({
+    hexes: spool.colors,
+    primaryHex: spool.color_code,
+    colorType: spool.color_type,
+    name: spool.color_name,
+  }) || '—';
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-start justify-center pt-5 z-[1000]">
+    <div
+      data-testid="detail-dialog"
+      data-spool-id={spool.spool_id}
+      className="fixed inset-0 bg-black/50 flex items-start justify-center pt-5 z-[1000]"
+    >
       <div
         className="w-[480px] max-h-[calc(100vh-40px)] bg-fm-sidebar rounded-xl flex flex-col overflow-hidden"
         style={{ transform: `translate(${dragOffset.x}px, ${dragOffset.y}px)` }}
@@ -105,13 +128,13 @@ export function DetailDialog({ open, spool, filteredSpools, onClose, onEdit, onN
               </svg>
             </button>
           </div>
-          <button className="bg-transparent border-none text-fm-text-detail text-xl cursor-pointer leading-none hover:text-fm-text-strong" onClick={onClose}>×</button>
+          <button data-testid="detail-dialog-close" className="bg-transparent border-none text-fm-text-detail text-xl cursor-pointer leading-none hover:text-fm-text-strong" onClick={onClose}>×</button>
         </div>
 
         {/* Spool banner */}
         <div className="flex items-center gap-3 px-6">
           <div className="w-10 h-10 shrink-0 relative">
-            <SpoolSvg color={spool.color_code} />
+            <SpoolColorChip colorCode={spool.color_code} colors={spool.colors} colorType={spool.color_type} />
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-1 text-sm font-medium text-fm-text-strong leading-[22px] [&>svg]:text-fm-text-secondary [&>svg]:shrink-0">
@@ -146,8 +169,25 @@ export function DetailDialog({ open, spool, filteredSpools, onClose, onEdit, onN
               <div className="flex gap-3">
                 <div className="flex flex-col gap-1 mb-4 flex-1">
                   <label className="text-xs text-fm-text-secondary leading-[19px]">{t('Color')}</label>
-                  <div className="h-8 flex items-center">
-                    <div className="w-6 h-6 rounded-sm border border-white/[0.16]" style={{ background: spool.color_code || '#888' }} />
+                  <div
+                    data-testid="detail-color-field"
+                    data-color-type={spool.color_type ?? ''}
+                    className="text-xs text-fm-text-primary leading-[19px] min-h-8 flex items-center gap-2 bg-fm-inner2 rounded-md px-2 py-[6px]"
+                  >
+                    <span
+                      data-testid="detail-color-swatch"
+                      data-swatch-bg={colorBackground}
+                      className="inline-flex shrink-0"
+                    >
+                      <SpoolColorChip
+                        colorCode={spool.color_code}
+                        colors={spool.colors}
+                        colorType={spool.color_type}
+                        size={16}
+                        radius={3}
+                      />
+                    </span>
+                    <span data-testid="detail-color-label" className="truncate">{colorTextLabel}</span>
                   </div>
                 </div>
                 <div className="flex-1" />
@@ -179,7 +219,7 @@ export function DetailDialog({ open, spool, filteredSpools, onClose, onEdit, onN
 
         {/* Footer */}
         <div className="flex items-center justify-end px-6 py-3 border-t border-fm-border">
-          <button className="inline-flex items-center gap-1 h-[30px] px-8 rounded-lg border-none cursor-pointer text-xs whitespace-nowrap transition-colors duration-150 bg-fm-brand text-white font-medium hover:bg-fm-brand-hover" onClick={() => onEdit(spool)}>{t('Edit Filament Info')}</button>
+          <button data-testid="detail-dialog-edit" className="inline-flex items-center gap-1 h-[30px] px-8 rounded-lg border-none cursor-pointer text-xs whitespace-nowrap transition-colors duration-150 bg-fm-brand text-white font-medium hover:bg-fm-brand-hover" onClick={() => onEdit(spool)}>{t('Edit Filament Info')}</button>
         </div>
       </div>
     </div>

@@ -18,7 +18,13 @@ struct FilamentSpool {
     std::string series;
     std::string color_name;
     std::string color_code;
-    float       diameter        = 1.75f;
+    // STUDIO-17977: gradient / multicolor support, mirrors DevAmsTray::cols/ctype.
+    //   color_type: 0 = gradient, 1 = multicolor, 2 = single colour
+    //   invariant : when `colors` is non-empty, color_code == colors.front()
+    //               (write paths are responsible for keeping this in sync).
+    std::vector<std::string> colors;
+    int                      color_type = 2;
+    float                    diameter   = 1.75f;
 
     float       initial_weight  = 0;
     float       spool_weight    = 0;

@@ -7,6 +7,12 @@ export interface Spool {
   series: string;
   color_code: string;
   color_name: string;
+  // STUDIO-17977: gradient / multicolor support (mirrors C++ FilamentSpool).
+  //   color_type: 0 = gradient, 1 = multicolor, 2 = single (swagger layout)
+  // Both fields are optional so legacy `spools.json` payloads (no colors/
+  // color_type keys) still parse cleanly via the C++ from_json fallback.
+  colors?: string[];
+  color_type?: 0 | 1 | 2;
   diameter: number;
   initial_weight: number;
   net_weight?: number;
@@ -74,6 +80,11 @@ export interface AmsTray {
   fila_type?: string;
   sub_brands?: string;
   color?: string;
+  // STUDIO-17977: AMS-side multicolor / gradient hex list and type,
+  // forwarded by FilaManagerVM::build_ams_data.  Same swagger layout as
+  // FilamentSpool.color_type (0 = gradient / 1 = multicolor / 2 = single).
+  colors?: string[];
+  color_type?: 0 | 1 | 2;
   weight?: number | string;
   remain?: number;
   diameter?: number | string;
@@ -202,4 +213,29 @@ export interface BridgeResponseBody {
   error_code: number;
   message: string;
   payload: Record<string, unknown>;
+}
+
+// STUDIO-17977 / Task 10: candidate color list backed by FilamentColorCodeQuery.
+// `name` is already localized to the active app language by the C++ side, so
+// the front-end never carries its own colour-name translation table.
+//
+// Wire schema: response of the JSON-RPC action
+//   { module: 'filament', submod: 'colors', action: 'query_for_id',
+//     payload: { fila_id: string } }
+// (see openspec design.md §9.4). The C++ side internally maps the
+// FilamentColor::ColorType enum onto the swagger semantics used everywhere
+// else in this layer (FilamentSpool::color_type / AmsTray::color_type), so
+// front-end consumers can treat 0/1/2 as "gradient/multicolor/single"
+// without knowing about the upstream FilamentColor enum mismatch.
+export interface CandidateColor {
+  color_code: string;       // eg. "Q01B00"
+  colors: string[];         // hex list, #RRGGBB
+  color_type: 0 | 1 | 2;    // swagger semantics: 0=gradient / 1=multicolor / 2=single
+  name: string;
+}
+
+export interface FilamentColorCodesResponse {
+  fila_id: string;
+  fila_type: string;
+  candidates: CandidateColor[];
 }

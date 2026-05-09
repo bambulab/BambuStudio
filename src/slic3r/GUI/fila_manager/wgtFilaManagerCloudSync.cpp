@@ -111,6 +111,23 @@ FilamentSpool wgtFilaManagerCloudSync::cloud_json_to_spool(const nlohmann::json&
     s.color_code    = str_any({"color", "color_code"});
     s.color_name    = str_any({"color_name"}); // cloud has no direct counterpart
 
+    // STUDIO-17977 (pull-side): cloud carries `colorType` (int 0/1/2) and
+    // `colors` (string[]) when the spool was pushed up as a multicolor /
+    // gradient entry — `spool_to_cloud_json` below has been emitting them
+    // since 17977's first patch. Without these reads here a `pull_done`
+    // would silently overwrite a local multicolor spool's `colors` and
+    // `color_type` with the schema defaults (empty + 2), which downstream
+    // breaks SpoolTable row tail's reverse-lookup of the official BBL
+    // candidate (e.g. "马卡龙 / 13906") and leaves the row with no colour
+    // name. Round-trip the two fields here so cloud-stored multicolor
+    // data survives a sync.
+    s.color_type    = num_i_any({"colorType", "color_type"}, 2);
+    if (j.contains("colors") && j["colors"].is_array()) {
+        for (const auto& hex : j["colors"]) {
+            if (hex.is_string()) s.colors.push_back(hex.get<std::string>());
+        }
+    }
+
     s.diameter        = num_f_any({"diameter"}, 1.75f);
 
     // Weights: cloud uses totalNetWeight / netWeight (nullable int64 grams).
@@ -185,7 +202,9 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_json(const FilamentSpool&
     if (!s.tag_uid.empty())
         j["RFID"]       = s.tag_uid;
     j["color"]          = s.color_code;
-    j["colorType"]      = 2; // 2 = 单色, per CreateFilamentV2Req swagger
+    j["colorType"]      = s.color_type;          // STUDIO-17977: was hardcoded 2
+    if (!s.colors.empty())                       // STUDIO-17977: surface colors[] when multicolor
+        j["colors"]     = s.colors;
     if (create_type == "ams" && !s.bound_ams_id.empty()) {
         j["trayIdName"] = s.bound_ams_id;
         j["rolls"]      = 1;
@@ -388,7 +407,8 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_update_patch(const nlohma
     take_bool("is_support",     "isSupport");       // 同上
     take_str("color_code",      "color");
     take_int("color_type",      "colorType");       // 同上
-    // colors[] 目前本地没有拼/渐变色概念，若前端 patch 里主动带 colors 数组就透传。
+    // STUDIO-17977: colors[] is now a first-class local field; pass it through
+    // when the patch carries an explicit colors array.
     if (p.contains("colors") && p.at("colors").is_array())
         j["colors"] = p.at("colors");
     take_int("net_weight",      "netWeight");

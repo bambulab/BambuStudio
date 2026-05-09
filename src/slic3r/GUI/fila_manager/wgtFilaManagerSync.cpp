@@ -36,6 +36,21 @@ AmsAutoPushThrottle::DeviceState compute_device_state(MachineObject* obj)
     return AmsAutoPushThrottle::DeviceState::Idle;
 }
 
+// STUDIO-17977: DevFilaColorType (DevFilaSystem.h:27) numbers single/multi/
+// gradient as 2/0/1, but FilamentSpool.color_type follows the swagger
+// CreateFilamentV2Req.colorType layout 0/1/2 = gradient/multicolor/single.
+// Translate at the boundary so the spool always carries the swagger value -
+// every other consumer (cloud sync, FilaManagerVM, frontend) speaks swagger.
+int swagger_color_type_from_dev(DevFilaColorType ctype)
+{
+    switch (ctype) {
+        case DevFilaColorType::CTYPE_GRADIANT: return 0;  // gradient
+        case DevFilaColorType::CTYPE_MULTI:    return 1;  // multicolor
+        case DevFilaColorType::CTYPE_SINGLE:   return 2;  // single
+    }
+    return 2; // defensive default = single
+}
+
 } // namespace
 
 wgtFilaManagerSync::wgtFilaManagerSync(wgtFilaManagerStore* store)
@@ -105,6 +120,11 @@ void wgtFilaManagerSync::sync_all_trays(MachineObject* obj)
                               : (tray.remain < 20)   ? "low" : "active";
         updated.bound_dev_id   = dev_id;
         updated.bound_ams_id   = ams_id;
+        // STUDIO-17977: AMS-side colour list / type are non-identity fields,
+        // refresh them on every successful sync. color_code stays frozen
+        // (identity, see comment block below).
+        updated.colors         = tray.cols;
+        updated.color_type     = swagger_color_type_from_dev(tray.ctype);
         // identity 字段（spool_id / tag_uid / color_code / setting_id /
         // entry_method / created_at / cloud_synced）保持 *matched 原值。
         // 即便此处误赋值，update_spool_if_changed 会用 store 既有值覆盖回去

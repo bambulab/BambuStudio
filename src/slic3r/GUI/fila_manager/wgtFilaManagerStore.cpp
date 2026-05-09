@@ -51,6 +51,8 @@ nlohmann::json FilamentSpool::to_json() const
         {"series",          series},
         {"color_name",      color_name},
         {"color_code",      color_code},
+        {"colors",          colors},        // STUDIO-17977
+        {"color_type",      color_type},    // STUDIO-17977
         {"diameter",        diameter},
         {"initial_weight",  initial_weight},
         {"spool_weight",    spool_weight},
@@ -82,6 +84,13 @@ FilamentSpool FilamentSpool::from_json(const nlohmann::json& j)
     get("series",          s.series);
     get("color_name",      s.color_name);
     get("color_code",      s.color_code);
+    get("colors",          s.colors);       // STUDIO-17977
+    get("color_type",      s.color_type);   // STUDIO-17977
+    // STUDIO-17977 invariant: when colors is non-empty, color_code must be colors[0].
+    // Repair silently for legacy data that may have drifted.
+    if (!s.colors.empty() && s.color_code != s.colors.front()) {
+        s.color_code = s.colors.front();
+    }
     get("diameter",        s.diameter);
     get("initial_weight",  s.initial_weight);
     get("spool_weight",    s.spool_weight);
@@ -211,12 +220,18 @@ bool wgtFilaManagerStore::update_spool_if_changed(const FilamentSpool& sp)
     // （brand / material_type / series / color_name / diameter /
     // initial_weight / spool_weight / total_net_weight / note / favorite）
     // 由 sync 完全不动，比较时直接忽略输入 sp 的对应字段。
+    //
+    // STUDIO-17977: colors / color_type are *non-identity, sync-mutable*
+    // fields - AMS refreshes them when the slot's hex list / ctype changes.
+    // color_code remains identity-frozen and is therefore NOT in this set.
     const bool changed =
            cur.net_weight     != sp.net_weight
         || cur.remain_percent != sp.remain_percent
         || cur.status         != sp.status
         || cur.bound_dev_id   != sp.bound_dev_id
-        || cur.bound_ams_id   != sp.bound_ams_id;
+        || cur.bound_ams_id   != sp.bound_ams_id
+        || cur.colors         != sp.colors          // STUDIO-17977
+        || cur.color_type     != sp.color_type;     // STUDIO-17977
 
     if (!changed) return false;
 
@@ -226,6 +241,8 @@ bool wgtFilaManagerStore::update_spool_if_changed(const FilamentSpool& sp)
     cur.status         = sp.status;
     cur.bound_dev_id   = sp.bound_dev_id;
     cur.bound_ams_id   = sp.bound_ams_id;
+    cur.colors         = sp.colors;                 // STUDIO-17977
+    cur.color_type     = sp.color_type;             // STUDIO-17977
     cur.updated_at     = now_iso8601();
     m_dirty            = true;
     return true;

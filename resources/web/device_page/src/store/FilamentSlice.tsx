@@ -5,6 +5,7 @@ import type {
   CloudSyncState, CloudToast, CloudFilamentConfig,
   CloudSyncHistoryEntry, CloudAutoPushSummary,
   DebugLogEntry, DebugLogFilter,
+  CandidateColor,
 } from '../features/filament/types';
 
 const DEFAULT_SYNC_STATE: CloudSyncState = {
@@ -40,6 +41,15 @@ export interface FilamentState {
   debugLogs: DebugLogEntry[];
   debugFilter: DebugLogFilter;
 
+  // STUDIO-17977 / Task 10: per-fila_id cache of the candidate colour list
+  // returned by `filament.colors.query_for_id`. The Add/Edit dialog populates
+  // this lazily on filament selection so the colour palette becomes a live
+  // mirror of FilamentColorCodeQuery (gradient + multicolor + single) instead
+  // of a hardcoded BAMBU_COLORS hex array. An empty array means "queried,
+  // none available" — used as a negative cache so we don't re-issue the RPC
+  // on every dialog re-open for filaments without preset colours.
+  candidatesByFilaId: Record<string, CandidateColor[]>;
+
   // Keep legacy fields for backward compatibility
   items: Spool[];
 }
@@ -66,6 +76,11 @@ export interface FilamentActions {
   appendDebugLog: (entry: Omit<DebugLogEntry, 'id'>) => void;
   clearDebugLogs: () => void;
   setDebugFilter: (filter: DebugLogFilter) => void;
+
+  // STUDIO-17977 / Task 10: colour candidate cache writer. The actual RPC is
+  // issued by the dialog (it owns the `useDeviceBridge` hook); the slice only
+  // stores the result so the cache survives dialog open/close cycles.
+  setColorCandidates: (filaId: string, candidates: CandidateColor[]) => void;
 
   // Legacy
   setItems: (items: Spool[]) => void;
@@ -104,6 +119,7 @@ export const createFilamentSlice: StateCreator<
     debugEnabled: false,
     debugLogs: [],
     debugFilter: 'all',
+    candidatesByFilaId: {},
     items: [],
 
     setSpools: (spools) =>
@@ -205,6 +221,27 @@ export const createFilamentSlice: StateCreator<
     setDebugFilter: (filter) =>
       set((s) => {
         s.filament.debugFilter = filter;
+      }),
+
+    setColorCandidates: (filaId, candidates) =>
+      set((s) => {
+        if (!filaId) return;
+        const next = Array.isArray(candidates) ? candidates : [];
+        // STUDIO-17977: don't clobber a populated cache entry with an empty
+        // list. AddEditDialog.loadCandidates and useFilamentBridge's
+        // prefetch effect can both fire RPCs for the same fila_id; the
+        // dialog typically queues first when the user opens it, but the
+        // prefetch may finish later — and in production the C++ side
+        // occasionally returns an empty `candidates` array for a
+        // fila_id whose FilamentColorCodeQuery index is still warming up
+        // (cloud catalogue timing). Keeping the populated list when the
+        // late writer is empty preserves the row tail's colorName / fila
+        // code across the user-visible "瞬间正确，然后变成不正确" window.
+        // Non-empty payloads always win so legitimate refreshes still
+        // propagate.
+        const cur = s.filament.candidatesByFilaId[filaId];
+        if (next.length === 0 && Array.isArray(cur) && cur.length > 0) return;
+        s.filament.candidatesByFilaId[filaId] = next;
       }),
 
     // Legacy

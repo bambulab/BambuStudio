@@ -1,7 +1,7 @@
 import { useEffect, useRef, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Spool } from './types';
-import { SpoolSvg } from './SpoolSvg';
+import { SpoolColorChip } from './SpoolColorChip';
 
 const PIE_COLORS = ['#8BC34A','#4CAF50','#009688','#3F51B5','#FF9800','#F44336','#9C27B0','#00BCD4','#FFC107','#795548'];
 
@@ -106,7 +106,7 @@ export function StatsView({ spools, onOpenDetail }: Props) {
               reminderItems.map((s) => (
                 <div key={s.spool_id} className="flex items-center gap-[10px] p-2 rounded-md cursor-pointer transition-colors duration-150 hover:bg-fm-hover" onClick={() => onOpenDetail(s.spool_id)}>
                   <div className="w-10 h-10 shrink-0 relative" style={{ width: 32, height: 32 }}>
-                    <SpoolSvg color={s.color_code} size={32} />
+                    <SpoolColorChip colorCode={s.color_code} colors={s.colors} colorType={s.color_type} size={32} />
                   </div>
                   <div className="flex flex-col gap-[1px] flex-1 min-w-0">
                     <div className="text-xs text-fm-text-strong font-medium whitespace-nowrap overflow-hidden text-ellipsis">

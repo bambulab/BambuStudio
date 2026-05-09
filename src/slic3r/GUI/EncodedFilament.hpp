@@ -150,9 +150,8 @@ public:
 
 public:
     FilamentColorCodes* GetFilaInfoMap(const wxString& fila_id) const;
-    wxString GetFilaColorName(const wxString& fila_id, const FilamentColor& colors) const;
 
-private:
+    wxString GetFilaColorName(const wxString& fila_id, const FilamentColor& colors) const;
     FilamentColorCode* GetFilaInfo(const wxString& fila_id, const FilamentColor& colors) const;
 
 protected:

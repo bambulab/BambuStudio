@@ -62,6 +62,14 @@ export default defineConfig({
   },
 
   build: {
+    // STUDIO-17977 debug: emit `assets/index.js.map` so Chrome DevTools can
+    // attach to the live WebView2 over CDP and let the developer set
+    // source-level breakpoints inside .ts source. This adds ~1MB to dist/
+    // (gzipped only when served compressed) but does NOT affect the
+    // shipped runtime — the bundle stays minified, the .map file is
+    // requested on demand only when DevTools is open. Flip back to false
+    // before tagging a release if the size matters.
+    sourcemap: true,
     rollupOptions: {
       output: {
         // replace hash with real name

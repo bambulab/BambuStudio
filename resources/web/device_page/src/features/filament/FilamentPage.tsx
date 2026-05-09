@@ -312,7 +312,11 @@ export function FilamentPage() {
   }, [cloudAutoPushSummary, t]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-fm-base text-fm-text-primary text-xs leading-[19px] font-['HarmonyOS_Sans_SC',-apple-system,'Segoe_UI',sans-serif] fm-native-form">
+    <div
+      data-testid="filament-page-root"
+      data-logged-in={isLoggedIn ? 'true' : 'false'}
+      className="flex h-screen overflow-hidden bg-fm-base text-fm-text-primary text-xs leading-[19px] font-['HarmonyOS_Sans_SC',-apple-system,'Segoe_UI',sans-serif] fm-native-form"
+    >
       {/* Main content (sidebar removed: Stats / Archive entries are not
           shipped in this version, and "My Filaments" is the only remaining
           view so a single-item nav is redundant.) */}
@@ -327,6 +331,8 @@ export function FilamentPage() {
                   {(['all', 'ams'] as const).map((tb) => (
                     <div
                       key={tb}
+                      data-testid={`filament-tab-${tb}`}
+                      data-active={tab === tb ? 'true' : 'false'}
                       className={`px-[10px] py-1 h-7 rounded-md cursor-pointer text-xs text-fm-text-secondary flex items-center transition-colors duration-150 hover:bg-fm-hover ${tab === tb ? 'bg-fm-input text-fm-text-strong' : ''}`}
                       onClick={() => setTab(tb)}
                     >
@@ -377,6 +383,7 @@ export function FilamentPage() {
                     <path d="M9.5 9.5L13 13" stroke="currentColor" strokeWidth="1.2" />
                   </svg>
                   <input
+                    data-testid="filament-search"
                     className="bg-transparent border-none outline-none text-fm-text-primary text-xs w-full placeholder:text-fm-text-detail disabled:cursor-not-allowed"
                     type="text"
                     placeholder={t('Search Filament')}
@@ -387,6 +394,8 @@ export function FilamentPage() {
                 </div>
 
                 <button
+                  data-testid="filament-group-toggle"
+                  data-grouped={grouped ? 'true' : 'false'}
                   className={`inline-flex items-center gap-1 h-[30px] px-3 rounded-lg border-none text-xs whitespace-nowrap transition-colors duration-150 bg-fm-inner text-fm-text-primary border border-fm-border-focus/50 hover:bg-fm-hover ${grouped ? '!bg-[rgba(44,173,0,0.08)] !border-fm-brand !text-[#50e81d]' : ''} ${!isLoggedIn ? 'opacity-40 cursor-not-allowed hover:bg-fm-inner' : 'cursor-pointer'}`}
                   onClick={() => setGrouped(!grouped)}
                   disabled={!isLoggedIn}
@@ -402,6 +411,8 @@ export function FilamentPage() {
                     分离：pull 是云端→本地，本按钮是本地→云端，绕过 throttle。 */}
                 <button
                   type="button"
+                  data-testid="filament-push-all"
+                  data-pushing={pushingAll ? 'true' : 'false'}
                   className={`inline-flex items-center justify-center h-[30px] w-[30px] rounded-lg border border-fm-border-focus/50 bg-fm-inner text-fm-text-secondary transition-colors duration-150 ${(!isLoggedIn || pushingAll) ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer hover:bg-fm-hover'}`}
                   title={t('Push Local to Cloud')}
                   aria-label={t('Push Local to Cloud')}
@@ -436,6 +447,7 @@ export function FilamentPage() {
                   </svg>
                 </button>
                 <button
+                  data-testid="filament-add"
                   className={`inline-flex items-center gap-1 h-[30px] px-3 rounded-lg border-none text-xs whitespace-nowrap transition-colors duration-150 font-medium ${
                     isLoggedIn
                       ? 'cursor-pointer bg-fm-brand text-white hover:bg-fm-brand-hover'
@@ -486,7 +498,7 @@ export function FilamentPage() {
               {isLoading ? (
                 <div className="flex flex-col items-center justify-center py-20 text-fm-text-detail gap-4"><p>{t('Loading...')}</p></div>
               ) : !isLoggedIn ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center gap-3 rounded-lg border border-fm-border bg-fm-inner">
+                <div data-testid="auth-signed-out" className="flex flex-col items-center justify-center py-20 text-center gap-3 rounded-lg border border-fm-border bg-fm-inner">
                   <p className="m-0 text-[15px] leading-[22px] text-fm-text-strong">{t('Not signed in — no data available')}</p>
                   <p className="m-0 text-xs leading-[19px] text-fm-text-detail">{t('Please sign in to view your filament library.')}</p>
                 </div>
