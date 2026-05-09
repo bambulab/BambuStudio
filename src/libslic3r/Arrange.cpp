@@ -921,6 +921,18 @@ void _arrange(
             auto bb = itm.boundingBox();
             auto pure_bin_width = bin.width() + scale_(params.bed_shrink_x) * 2;
             auto pure_bin_height = bin.height() + scale_(params.bed_shrink_y) * 2;
+            // In sequential print, get_shrink_bedpts inflates the bin by
+            // min_obj_distance on each axis so nfp can push items up to the
+            // real plate edge. pure_item_* below strips the matching item
+            // inflation (min_obj_distance/2 per side), so without this
+            // adjustment the pre-screen would compare a raw-sized item
+            // against a clearance-inflated bin and let oversized objects
+            // through. Subtract the same inflation here so both sides are
+            // measured in raw plate / raw item coordinates.
+            if (params.is_seq_print) {
+                pure_bin_width  -= params.min_obj_distance;
+                pure_bin_height -= params.min_obj_distance;
+            }
             auto pure_item_width = bb.width() - itm.inflation() * 2;
             auto pure_item_height = bb.height() - itm.inflation() * 2;
             if (pure_item_width > pure_bin_width || pure_item_height > pure_bin_height) {
@@ -931,7 +943,7 @@ void _arrange(
             // Use the minimum bounding box rotation as a starting point.
             // TODO: This only works for convex hull. If we ever switch to concave
             // polygon nesting, a convex hull needs to be calculated.
-            if (params.align_to_y_axis) {
+            else if (params.align_to_y_axis) {
                 // only rotate the object if its long axis is significanly larger than its short axis (more than 10%)
                 try {
                     auto bbox = minAreaBoundingBox<ExPolygon, TCompute<ExPolygon>, boost::rational<LargeInt>>(itm.transformedShape());
@@ -1008,6 +1020,38 @@ void _arrange(
 
     arranger(inp.begin(), inp.end());
     for (Item &itm : inp) itm.inflation(0);
+
+    // Per-item edge clamp for placer rounding drift.
+    //
+    // libnest2d aligns each item's *inflated* polygon to the (inflated) bin, but
+    // ClipperLib offset can drift a few microns from `raw.bbox + infl_dist`,
+    // pushing the raw bbox past the real plate edge and tripping the GUI
+    // boundary check. Only seq-print needs this -- non-seq shrinks the bin into
+    // the plate, so the inflated bin already lies strictly inside the plate edge.
+    if constexpr (std::is_same_v<BinT, Box>) {
+        if (params.is_seq_print) {
+            // 50 um: empirical upper bound on observed offset drift, kept well
+            // above SceneEpsilon (~0.1 um) yet far below printer XY resolution
+            // (~100 um) so it cannot mask a real overflow.
+            const coord_t kEdgeClampMax = scaled(0.05);
+            const Point   pad(md, md);
+            const Box     raw_plate(bin.minCorner() + pad, bin.maxCorner() - pad);
+            for (Item &itm : inp) {
+                if (itm.binId() < 0) continue;
+                const auto bb = itm.boundingBox();
+                coord_t dx = 0, dy = 0;
+                if (auto d = raw_plate.minCorner().x() - bb.minCorner().x();
+                    d > 0 && d <= kEdgeClampMax) dx = d;
+                else if (auto d = bb.maxCorner().x() - raw_plate.maxCorner().x();
+                         d > 0 && d <= kEdgeClampMax) dx = -d;
+                if (auto d = raw_plate.minCorner().y() - bb.minCorner().y();
+                    d > 0 && d <= kEdgeClampMax) dy = d;
+                else if (auto d = bb.maxCorner().y() - raw_plate.maxCorner().y();
+                         d > 0 && d <= kEdgeClampMax) dy = -d;
+                if (dx != 0 || dy != 0) itm.translate(Point(dx, dy));
+            }
+        }
+    }
 }
 
 inline Box to_nestbin(const BoundingBox &bb) { return Box{{bb.min(X), bb.min(Y)}, {bb.max(X), bb.max(Y)}};}
