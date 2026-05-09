@@ -63,10 +63,29 @@ description = "Build bambulab/wxWidgets fork (custom patches) and install into p
 description = "One-time: build bambulab forks (libnoise, wxWidgets) into pixi env"
 depends-on = ["setup-libnoise", "setup-wxwidgets"]
 
+# Top-level redirects (FreeCAD pattern: dev iteration → debug by default).
+# Use the explicit *-release variants for shipping/perf-checking builds.
 [tasks.build]
-description = "Configure and build BambuStudio. Parallelism = floor(free_mem_GB / 2.5), matching BuildLinux.sh; override with CMAKE_BUILD_PARALLEL_LEVEL=N."
-cmd = "bash scripts/pixi/build.sh"
+description = "Build BambuStudio (Debug). Use `build-release` for the optimized variant."
+depends-on = ["build-debug"]
 
 [tasks.bambu-studio]
-description = "Launch the bambu-studio binary with the env workarounds the pixi build needs (host GTK theme, CA bundle, software GL fallback). Args pass through."
+description = "Launch the Debug bambu-studio binary. Args pass through; use `bambu-studio-release` for the optimized binary."
 cmd = "bash scripts/pixi/run.sh"
+
+[tasks.build-debug]
+description = "Configure + build BambuStudio Debug into build/debug. Mem-aware parallelism."
+cmd = "bash scripts/pixi/build.sh debug"
+
+[tasks.build-release]
+description = "Configure + build BambuStudio Release into build/release. Mem-aware parallelism."
+cmd = "bash scripts/pixi/build.sh release"
+
+[tasks.bambu-studio-debug]
+description = "Launch build/debug/src/bambu-studio. Args pass through."
+cmd = "bash scripts/pixi/run.sh"
+
+[tasks.bambu-studio-release]
+description = "Launch build/release/src/bambu-studio. Args pass through."
+cmd = "bash scripts/pixi/run.sh"
+env = { BAMBU_BUILD_TYPE = "release" }
