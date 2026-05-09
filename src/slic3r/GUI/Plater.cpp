@@ -59,6 +59,7 @@
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "Gizmos/GLGizmoAlignment.hpp"
 #include "libslic3r/Model.hpp"
+#include "libslic3r/ImportNamingRules.hpp"
 #include "libslic3r/SLA/Hollowing.hpp"
 #include "libslic3r/SLA/SupportPoint.hpp"
 #include "libslic3r/SLA/ReprojectPointsOnMesh.hpp"
@@ -8951,8 +8952,10 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 #ifdef AUTOPLACEMENT_ON_LOAD
     ModelInstancePtrs new_instances;
 #endif /* AUTOPLACEMENT_ON_LOAD */
+    const auto naming_rules = Slic3r::default_import_naming_rules();
     for (ModelObject *model_object : model_objects) {
         auto *object = model.add_object(*model_object);
+        apply_naming_rules_to_objects({object}, naming_rules);
         object->sort_volumes(true);
         std::string object_name = object->name.empty() ? fs::path(object->input_file).filename().string() : object->name;
         obj_idxs.push_back(obj_count++);
@@ -10563,10 +10566,33 @@ void Plater::priv::reload_from_disk()
             }
 
 
+            BOOST_LOG_TRIVIAL(info) << "[RELOAD_DEBUG] new_model has " << new_model.objects.size() << " object(s)";
+            for (size_t oi = 0; oi < new_model.objects.size(); ++oi) {
+                ModelObject* mo = new_model.objects[oi];
+                BOOST_LOG_TRIVIAL(info) << "[RELOAD_DEBUG]   obj[" << oi << "] name='" << mo->name
+                    << "' input_file='" << mo->input_file << "' volumes=" << mo->volumes.size();
+                for (size_t vi = 0; vi < mo->volumes.size(); ++vi) {
+                    ModelVolume* mv = mo->volumes[vi];
+                    Vec3d off = mv->get_transformation().get_offset();
+                    Vec3d mo_off = mv->source.mesh_offset;
+                    BOOST_LOG_TRIVIAL(info) << "[RELOAD_DEBUG]     vol[" << vi << "] name='" << mv->name
+                        << "' pre_center_offset=(" << off.x() << "," << off.y() << "," << off.z() << ")"
+                        << " mesh_offset=(" << mo_off.x() << "," << mo_off.y() << "," << mo_off.z() << ")";
+                }
+            }
             for (ModelObject* model_object : new_model.objects)
             {
                 model_object->center_around_origin();
                 model_object->ensure_on_bed();
+            }
+            BOOST_LOG_TRIVIAL(info) << "[RELOAD_DEBUG] After center_around_origin:";
+            for (size_t oi = 0; oi < new_model.objects.size(); ++oi) {
+                ModelObject* mo = new_model.objects[oi];
+                for (size_t vi = 0; vi < mo->volumes.size(); ++vi) {
+                    Vec3d off = mo->volumes[vi]->get_transformation().get_offset();
+                    BOOST_LOG_TRIVIAL(info) << "[RELOAD_DEBUG]   obj[" << oi << "] vol[" << vi << "] '" << mo->volumes[vi]->name
+                        << "' post_center_offset=(" << off.x() << "," << off.y() << "," << off.z() << ")";
+                }
             }
 
             if (plate_data.size() > 0)
@@ -10585,6 +10611,19 @@ void Plater::priv::reload_from_disk()
         }
 
 #if ENABLE_RELOAD_FROM_DISK_REWORK
+        // Track which new_model volumes were matched so we can add new ones afterwards.
+        std::set<std::pair<int,int>> used_new_volumes;
+        int target_obj_idx = -1;
+        std::set<int> refreshed_obj_idxs;
+        // old vol_idxs that had no match (body deleted from STEP) — removed after the loop
+        // so that sort_volumes inside the loop doesn't corrupt subsequent vol_idx values.
+        std::map<int, std::vector<int>> deleted_vol_idxs; // obj_idx → sorted list of vol_idxs
+        // Coordinate shift between new_model (post center_around_origin) and the existing model.
+        // Captured from the first matched volume: old_offset - new_model_offset.
+        // Applied to new bodies so they land in the same coordinate frame as existing volumes.
+        Vec3d coord_shift      = Vec3d::Zero();
+        bool  coord_shift_set  = false;
+
         for (auto [obj_idx, vol_idx] : selected_volumes) {
             ModelObject *old_model_object = model.objects[obj_idx];
             ModelVolume *old_volume       = old_model_object->volumes[vol_idx];
@@ -10595,14 +10634,21 @@ void Plater::priv::reload_from_disk()
                               boost::algorithm::iequals(fs::path(old_volume->source.input_file).filename().string(), fs::path(path).filename().string());
             bool has_name = !old_volume->name.empty() && boost::algorithm::iequals(old_volume->name, fs::path(path).filename().string());
             if (has_source || has_name) {
+                if (target_obj_idx < 0) target_obj_idx = obj_idx;
+
                 int  new_volume_idx = -1;
                 int  new_object_idx = -1;
                 bool match_found    = false;
-                // take idxs from the matching volume
+
+                // Pass 1: source-index + name — handles the common case where nothing changed.
                 if (has_source && old_volume->source.object_idx < int(new_model.objects.size())) {
                     const ModelObject *obj = new_model.objects[old_volume->source.object_idx];
                     if (old_volume->source.volume_idx < int(obj->volumes.size())) {
-                        if (obj->volumes[old_volume->source.volume_idx]->source.input_file == old_volume->source.input_file) {
+                        const ModelVolume *candidate = obj->volumes[old_volume->source.volume_idx];
+                        if (candidate->source.input_file == old_volume->source.input_file &&
+                            candidate->name == old_volume->name &&
+                            !used_new_volumes.count({(int)old_volume->source.object_idx,
+                                                     (int)old_volume->source.volume_idx})) {
                             new_volume_idx = old_volume->source.volume_idx;
                             new_object_idx = old_volume->source.object_idx;
                             match_found    = true;
@@ -10610,35 +10656,54 @@ void Plater::priv::reload_from_disk()
                     }
                 }
 
-                if (!match_found && has_name) {
-                    // take idxs from the 1st matching volume
-                    for (size_t o = 0; o < new_model.objects.size(); ++o) {
-                        ModelObject *obj   = new_model.objects[o];
-                        bool         found = false;
+                // Pass 2: name search — handles bodies that moved position but kept their name.
+                // Run whenever the volume has a name; the outer has_source/has_name gate
+                // already ensured this volume belongs to the file being reloaded.
+                if (!match_found && !old_volume->name.empty()) {
+                    for (size_t o = 0; o < new_model.objects.size() && !match_found; ++o) {
+                        ModelObject *obj = new_model.objects[o];
                         for (size_t v = 0; v < obj->volumes.size(); ++v) {
-                            if (obj->volumes[v]->name == old_volume->name) {
+                            if (obj->volumes[v]->name == old_volume->name &&
+                                !used_new_volumes.count({(int)o, (int)v})) {
                                 new_volume_idx = (int) v;
                                 new_object_idx = (int) o;
-                                found          = true;
+                                match_found    = true;
                                 break;
                             }
                         }
-                        if (found) break;
-                        // BBS: step model,object loaded as a volume. GUI_ObfectList.cpp load_modifier()
-                        if (obj->name == old_volume->name) {
-                            new_object_idx = (int) o;
-                            break;
+                        if (!match_found) {
+                            // BBS: step model,object loaded as a volume. GUI_ObfectList.cpp load_modifier()
+                            if (obj->name == old_volume->name) {
+                                new_object_idx = (int) o;
+                                break;
+                            }
                         }
                     }
                 }
 
-                if (new_object_idx < 0 || int(new_model.objects.size()) <= new_object_idx) {
-                    fail_list.push_back(from_u8(has_source ? old_volume->source.input_file : old_volume->name));
+                // Pass 3: source-index only — handles renamed bodies (same position, new name).
+                // Skip if the slot is already claimed by a previous iteration.
+                if (!match_found && has_source &&
+                    old_volume->source.object_idx < int(new_model.objects.size())) {
+                    const ModelObject *obj = new_model.objects[old_volume->source.object_idx];
+                    if (old_volume->source.volume_idx < int(obj->volumes.size()) &&
+                        !used_new_volumes.count({(int)old_volume->source.object_idx,
+                                                 (int)old_volume->source.volume_idx})) {
+                        new_volume_idx = old_volume->source.volume_idx;
+                        new_object_idx = old_volume->source.object_idx;
+                        match_found    = true;
+                    }
+                }
+
+                // No match means this body was deleted from the STEP file.
+                // Mark for silent removal — do NOT add to fail_list.
+                if (!match_found || new_object_idx < 0 || int(new_model.objects.size()) <= new_object_idx) {
+                    deleted_vol_idxs[obj_idx].push_back(vol_idx);
                     continue;
                 }
                 ModelObject *new_model_object = new_model.objects[new_object_idx];
                 if (int(new_model_object->volumes.size()) <= new_volume_idx) {
-                    fail_list.push_back(from_u8(has_source ? old_volume->source.input_file : old_volume->name));
+                    deleted_vol_idxs[obj_idx].push_back(vol_idx);
                     continue;
                 }
 
@@ -10649,9 +10714,25 @@ void Plater::priv::reload_from_disk()
                     new_volume = old_model_object->add_volume(std::move(mesh));
                     new_volume->name  = new_model_object->name;
                     new_volume->source.input_file = new_model_object->input_file;
-                }else {
-                    new_volume = old_model_object->add_volume(*new_model_object->volumes[new_volume_idx]);
-                    // new_volume = old_model_object->volumes.back();
+                } else {
+                    const ModelVolume *new_model_vol = new_model_object->volumes[new_volume_idx];
+                    // Capture coordinate shift from the first matched volume so that new
+                    // bodies added to the STEP can be placed in the existing coordinate frame.
+                    // shift = old_vol_offset - new_model_vol_offset (both measured from their
+                    // respective center_around_origin calls, so the difference is the drift in
+                    // bounding-box center between the initial import and this reload).
+                    if (!coord_shift_set) {
+                        Vec3d old_off = old_volume->get_transformation().get_offset();
+                        Vec3d new_off = new_model_vol->get_transformation().get_offset();
+                        coord_shift     = old_off - new_off;
+                        coord_shift_set = true;
+                        BOOST_LOG_TRIVIAL(info) << "[RELOAD_DEBUG] coord_shift captured from volume '" << old_volume->name << "'"
+                            << "  old_offset=(" << old_off.x() << "," << old_off.y() << "," << old_off.z() << ")"
+                            << "  new_model_offset=(" << new_off.x() << "," << new_off.y() << "," << new_off.z() << ")"
+                            << "  coord_shift=(" << coord_shift.x() << "," << coord_shift.y() << "," << coord_shift.z() << ")";
+                    }
+                    new_volume = old_model_object->add_volume(*new_model_vol);
+                    used_new_volumes.insert({new_object_idx, new_volume_idx});
                 }
 
                 new_volume->set_new_unique_id();
@@ -10659,11 +10740,25 @@ void Plater::priv::reload_from_disk()
                 new_volume->set_type(old_volume->type());
                 new_volume->set_material_id(old_volume->material_id());
 
-                new_volume->source.mesh_offset = old_volume->source.mesh_offset;
-                new_volume->set_transformation(old_volume->get_transformation());
+                // Re-apply naming rules so tag changes in the reloaded file take effect.
+                apply_naming_rules_to_volume(*new_volume, default_import_naming_rules());
 
-                new_volume->source.object_idx = old_volume->source.object_idx;
-                new_volume->source.volume_idx = old_volume->source.volume_idx;
+                new_volume->source.mesh_offset = old_volume->source.mesh_offset;
+                // Use the new STEP position translated into the existing scene's coordinate frame
+                // (via coord_shift). For the first matched volume this yields exactly old_volume's
+                // offset; for subsequent volumes it tracks Fusion's repositioning while preserving
+                // the existing object's plate anchor.
+                if (coord_shift_set)
+                    new_volume->set_offset(new_volume->get_transformation().get_offset() + coord_shift);
+                {
+                    Vec3d off = new_volume->get_transformation().get_offset();
+                    BOOST_LOG_TRIVIAL(info) << "[RELOAD_DEBUG] matched volume '" << new_volume->name << "'"
+                        << "  final_offset=(" << off.x() << "," << off.y() << "," << off.z() << ")";
+                }
+
+                // Update source indices to reflect the new model layout so the next reload is correct.
+                new_volume->source.object_idx = new_object_idx >= 0 ? new_object_idx : old_volume->source.object_idx;
+                new_volume->source.volume_idx = new_volume_idx  >= 0 ? new_volume_idx  : old_volume->source.volume_idx;
                 assert(!old_volume->source.is_converted_from_inches || !old_volume->source.is_converted_from_meters);
                 if (old_volume->source.is_converted_from_inches)
                     new_volume->convert_from_imperial_units();
@@ -10671,15 +10766,70 @@ void Plater::priv::reload_from_disk()
                     new_volume->convert_from_meters();
                 std::swap(old_model_object->volumes[vol_idx], old_model_object->volumes.back());
                 old_model_object->delete_volume(old_model_object->volumes.size() - 1);
-                if (!sinking) old_model_object->ensure_on_bed();
-                old_model_object->sort_volumes(wxGetApp().app_config->get("order_volumes") == "1");
+                // Do NOT call sort_volumes here — it would corrupt subsequent vol_idx values
+                // in this loop. A single sort_volumes call happens after the loop.
 
                 sla::reproject_points_and_holes(old_model_object);
 
-                // Fix warning icon in object list
-                wxGetApp().obj_list()->update_item_error_icon(obj_idx, vol_idx);
+                refreshed_obj_idxs.insert(obj_idx);
             }
         }
+
+        // Remove volumes whose bodies were deleted from the STEP file.
+        // Delete in reverse index order so earlier indices stay valid.
+        for (auto& [obj_idx, vol_idxs] : deleted_vol_idxs) {
+            ModelObject *obj = model.objects[obj_idx];
+            std::sort(vol_idxs.begin(), vol_idxs.end(), std::greater<int>());
+            for (int vi : vol_idxs)
+                obj->delete_volume(vi);
+            refreshed_obj_idxs.insert(obj_idx);
+        }
+
+        // Sort and reposition all modified objects now that the loop is done.
+        // (sort_volumes was intentionally omitted from the loop to keep vol_idx values stable.)
+        const bool full_sort = wxGetApp().app_config->get("order_volumes") == "1";
+        for (int oidx : refreshed_obj_idxs) {
+            ModelObject *obj = model.objects[oidx];
+            obj->sort_volumes(full_sort);
+            obj->ensure_on_bed();
+        }
+
+        // Add volumes that are new in the reloaded file (no matching old volume).
+        if (target_obj_idx >= 0) {
+            ModelObject *target_object = model.objects[target_obj_idx];
+            const auto naming_rules = default_import_naming_rules();
+            bool added_any = false;
+            for (int o = 0; o < (int)new_model.objects.size(); ++o) {
+                for (int v = 0; v < (int)new_model.objects[o]->volumes.size(); ++v) {
+                    if (used_new_volumes.count({o, v})) continue;
+                    ModelVolume *added = target_object->add_volume(*new_model.objects[o]->volumes[v]);
+                    added->set_new_unique_id();
+                    added->source.object_idx = o;
+                    added->source.volume_idx = v;
+                    // Shift into the existing model's coordinate frame.
+                    Vec3d pre_shift_off = added->get_transformation().get_offset();
+                    if (coord_shift_set)
+                        added->set_offset(pre_shift_off + coord_shift);
+                    Vec3d post_shift_off = added->get_transformation().get_offset();
+                    BOOST_LOG_TRIVIAL(info) << "[RELOAD_DEBUG] NEW body '" << added->name << "'"
+                        << "  pre_shift=(" << pre_shift_off.x() << "," << pre_shift_off.y() << "," << pre_shift_off.z() << ")"
+                        << "  post_shift=(" << post_shift_off.x() << "," << post_shift_off.y() << "," << post_shift_off.z() << ")"
+                        << "  coord_shift_set=" << coord_shift_set;
+                    apply_naming_rules_to_volume(*added, naming_rules);
+                    added_any = true;
+                }
+            }
+            if (added_any) {
+                target_object->sort_volumes(full_sort);
+                target_object->ensure_on_bed();
+                refreshed_obj_idxs.insert(target_obj_idx);
+            }
+        }
+
+        // Refresh object list entries for all modified objects so names, types,
+        // and filament columns reflect the reloaded volumes.
+        for (int oidx : refreshed_obj_idxs)
+            wxGetApp().obj_list()->add_volumes_to_object_in_list(oidx);
 #else
         // update the selected volumes whose source is the current file
         for (const SelectedVolume& sel_v : selected_volumes) {
@@ -10732,6 +10882,10 @@ void Plater::priv::reload_from_disk()
                 new_volume->config.apply(old_volume->config);
                 new_volume->set_type(old_volume->type());
                 new_volume->set_material_id(old_volume->material_id());
+
+                // Re-apply naming rules so tag changes in the reloaded file take effect.
+                apply_naming_rules_to_volume(*new_volume, default_import_naming_rules());
+
                 new_volume->set_transformation(old_volume->get_transformation());
                 new_volume->translate(new_volume->get_transformation().get_matrix(true) * (new_volume->source.mesh_offset - old_volume->source.mesh_offset));
                 new_volume->source.object_idx = old_volume->source.object_idx;
