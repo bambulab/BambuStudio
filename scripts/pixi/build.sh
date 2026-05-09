@@ -24,5 +24,12 @@ source "$script_dir/_jobs.sh"
 export CMAKE_BUILD_PARALLEL_LEVEL=$(pixi_parallel_jobs)
 echo "Setting CMAKE_BUILD_PARALLEL_LEVEL=${CMAKE_BUILD_PARALLEL_LEVEL} (mem-aware, matches BuildLinux.sh)"
 
-cmake --preset "$preset"
+# Only reconfigure on first build (or after `rm -rf build/<type>`). Re-running
+# `cmake --preset` on every build invalidates the PCH and cascades into a
+# rebuild of all libslic3r / libslic3r_gui TUs, even when nothing changed.
+# `cmake --build` re-invokes configure internally if CMakeLists.txt changed.
+build_dir="${PIXI_PROJECT_ROOT:-$script_dir/../..}/build/$build_type"
+if [[ ! -f "$build_dir/CMakeCache.txt" ]]; then
+    cmake --preset "$preset"
+fi
 cmake --build --preset "$preset" --parallel "$CMAKE_BUILD_PARALLEL_LEVEL"
