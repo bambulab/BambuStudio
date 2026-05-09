@@ -1,0 +1,47 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 25,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "linux-pixi",
+            "displayName": "Linux (pixi env)",
+            "description": "Configure against the deps from the active pixi env. Requires `pixi install` and `pixi run setup-libnoise` / `pixi run setup-wxwidgets` first.",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_PREFIX_PATH": "$env{CONDA_PREFIX}",
+                "CMAKE_POLICY_VERSION_MINIMUM": "3.5",
+                "SLIC3R_GUI": "ON",
+                "SLIC3R_GTK": "3",
+                "OPENGL_egl_LIBRARY": "$env{CONDA_PREFIX}/lib/libEGL.so",
+                "OPENGL_EGL_INCLUDE_DIR": "$env{CONDA_PREFIX}/include"
+            },
+            "condition": {
+                "type": "allOf",
+                "conditions": [
+                    {
+                        "type": "equals",
+                        "lhs": "${hostSystemName}",
+                        "rhs": "Linux"
+                    },
+                    {
+                        "type": "notEquals",
+                        "lhs": "$env{CONDA_PREFIX}",
+                        "rhs": ""
+                    }
+                ]
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "linux-pixi",
+            "configurePreset": "linux-pixi",
+            "description": "Build with `cmake --build --preset linux-pixi`. CGAL/Boost templates are RAM-heavy; pass `-j N` (e.g. `-j 4`) on hosts with limited memory."
+        }
+    ]
+}

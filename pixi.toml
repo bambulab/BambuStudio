@@ -4,6 +4,9 @@ description = "Pixi PoC: replace ExternalProject deps with conda-forge binaries"
 channels = ["conda-forge"]
 platforms = ["linux-64"]
 
+[system-requirements]
+libc = "2.34"  # webkit2gtk4.1 needs glibc >=2.34
+
 [dependencies]
 compilers = ">=1.10"
 cmake = ">=3.27"
@@ -34,13 +37,30 @@ gmp = "*"
 mpfr = "*"
 libopencv = "*"
 occt = "*"
-ffmpeg = "7.0.*"  # 7.0.x is needed: BambuStudio hardcodes libavcodec.so.61.3.100 paths
+ffmpeg = "*"  # CMakeLists.txt:739 uses file(GLOB) so any FFmpeg with libavcodec is OK
 
 # System libs needed by main BambuStudio configure (Linux)
 dbus = "*"
 libgl-devel = "*"
+libegl-devel = "*"
 mesa-libgl-devel-cos7-x86_64 = "*"
+mesa-libegl-devel-cos7-x86_64 = "*"
+gtk3 = "*"  # required to build bambulab/wxWidgets fork
+glib = ">=2.84.3,<3"
+"webkit2gtk4.1" = "*"  # for wxWebView
 
 [tasks.setup-libnoise]
 cmd = "bash scripts/pixi/setup-libnoise.sh"
 description = "Build bambulab/libnoise (no conda-forge package) and install into pixi env"
+
+[tasks.setup-wxwidgets]
+cmd = "bash scripts/pixi/setup-wxwidgets.sh"
+description = "Build bambulab/wxWidgets fork (custom patches) and install into pixi env"
+
+[tasks.bootstrap]
+description = "One-time: build bambulab forks (libnoise, wxWidgets) into pixi env"
+depends-on = ["setup-libnoise", "setup-wxwidgets"]
+
+[tasks.build]
+description = "Configure and build BambuStudio. Parallelism = floor(free_mem_GB / 2.5), matching BuildLinux.sh; override with CMAKE_BUILD_PARALLEL_LEVEL=N."
+cmd = "bash scripts/pixi/build.sh"

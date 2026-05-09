@@ -17,6 +17,11 @@ else ()
     set(_wx_edge "-DwxUSE_WEBVIEW_EDGE=OFF")
 endif ()
 
+# DEP_WX_WEBVIEW=OFF lets non-GUI builds skip webkit2gtk dependency.
+if (NOT DEFINED DEP_WX_WEBVIEW)
+    set(DEP_WX_WEBVIEW ON)
+endif ()
+
 # if (MSVC)
 #     set(_patch_cmd ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-wxWidget-fix.patch)
 # else ()
@@ -39,7 +44,7 @@ bambustudio_add_cmake_project(wxWidgets
         -DwxUSE_UNICODE=ON
         ${_wx_private_font}
         -DwxUSE_OPENGL=ON
-        -DwxUSE_WEBVIEW=ON
+        -DwxUSE_WEBVIEW=${DEP_WX_WEBVIEW}
         ${_wx_edge}
         -DwxUSE_WEBVIEW_IE=OFF
         -DwxUSE_REGEX=builtin

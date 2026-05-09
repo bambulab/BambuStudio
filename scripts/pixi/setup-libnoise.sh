@@ -30,7 +30,10 @@ cmake "$PIXI_PROJECT_ROOT/deps" \
   -DDESTDIR="$destdir" \
   -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 
-cmake --build . --target dep_libnoise -j
+source "$(dirname "$0")/_jobs.sh"
+jobs=$(pixi_parallel_jobs)
+echo "Building dep_libnoise with -j${jobs}"
+cmake --build . --target dep_libnoise -j"$jobs"
 
 src="$destdir/usr/local"
 mkdir -p "$CONDA_PREFIX/include" "$CONDA_PREFIX/lib"
