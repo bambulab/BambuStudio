@@ -12,8 +12,8 @@ compilers = ">=1.10"
 cmake = ">=3.27"
 ninja = "*"
 pkg-config = "*"
-ccache = "*"  # used as CMAKE_<LANG>_COMPILER_LAUNCHER; cached across CI runs
-mold = "*"    # CMAKE_LINKER_TYPE=MOLD; bambu-studio links 35+ static archives
+sccache = "*"  # used as CMAKE_<LANG>_COMPILER_LAUNCHER; cross-platform, native GHA cache backend
+mold = "*"     # CMAKE_LINKER_TYPE=MOLD; bambu-studio links 35+ static archives
 
 # PoC: 3 deps currently built via deps/ ExternalProject
 libboost-devel = ">=1.84"
