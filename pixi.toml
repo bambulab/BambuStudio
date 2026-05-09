@@ -13,6 +13,7 @@ cmake = ">=3.27"
 ninja = "*"
 pkg-config = "*"
 ccache = "*"  # used as CMAKE_<LANG>_COMPILER_LAUNCHER; cached across CI runs
+mold = "*"    # CMAKE_LINKER_TYPE=MOLD; bambu-studio links 35+ static archives
 
 # PoC: 3 deps currently built via deps/ ExternalProject
 libboost-devel = ">=1.84"
