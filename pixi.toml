@@ -108,13 +108,17 @@ description = "Junction Library/bin/occt -> Library/bin so bambustudio_copy_dlls
 cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/setup-intl-bridge.ps1"
 description = "Generate intl.lib import library from intl-8.dll (conda-forge libintl ships DLL only)"
 
+[target.win-64.tasks.setup-lib-aliases]
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/setup-lib-aliases.ps1"
+description = "Copy libfoo.lib -> foo.lib aliases for ffmpeg deps where conda-forge name diverges from -lfoo"
+
 [target.win-64.tasks.setup-wxwidgets]
 cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/setup-wxwidgets.ps1"
 description = "Build bambulab/wxWidgets fork (with WebView Edge) and install into pixi env"
 
 [target.win-64.tasks.bootstrap]
-description = "One-time: bridge OCCT/intl layouts + build bambulab forks (libnoise, wxWidgets) into pixi env"
-depends-on = ["setup-libnoise", "setup-occt-bridge", "setup-intl-bridge", "setup-wxwidgets"]
+description = "One-time: bridge OCCT/intl/lib-name layouts + build bambulab forks (libnoise, wxWidgets) into pixi env"
+depends-on = ["setup-libnoise", "setup-occt-bridge", "setup-intl-bridge", "setup-lib-aliases", "setup-wxwidgets"]
 
 [target.win-64.tasks.build]
 description = "Configure and build BambuStudio with the win-pixi CMake preset (Visual Studio generator). Parallelism = floor(free_mem_GB / 2.5); override via CMAKE_BUILD_PARALLEL_LEVEL."
