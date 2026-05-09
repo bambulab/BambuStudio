@@ -186,6 +186,15 @@ endif()
 # Once we get rid of Perl and libslic3r is linked statically, we can get rid of -fPIC
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# When building under a pixi (conda-forge) env on Windows, FFmpeg/cairo/glib pull
+# bare-name .lib refs (iconv.lib, lzma.lib, ...) into the link line via pkg-config.
+# Add the conda-forge lib dir to every target's linker search path so link.exe
+# can resolve them. CMAKE_EXE_LINKER_FLAGS_INIT only seeds first-time configures
+# and the env LIB doesn't propagate through MSBuild's .vcxproj generation.
+if(WIN32 AND DEFINED ENV{CONDA_PREFIX} AND IS_DIRECTORY "$ENV{CONDA_PREFIX}/Library/lib")
+    link_directories(BEFORE "$ENV{CONDA_PREFIX}/Library/lib")
+endif()
+
 # WIN10SDK_PATH is used to point CMake to the WIN10 SDK installation directory.
 # We pick it from environment if it is not defined in another way
 if(WIN32)
