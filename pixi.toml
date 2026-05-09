@@ -63,6 +63,10 @@ cmake = ">=3.27,<4"
 # CMakeLists.txt:679-720 hardcodes 7.x DLL names (avcodec-61, swresample-5,
 # swscale-8, avutil-59). Pin to 7.1.* so bambustudio_copy_dlls() finds them.
 ffmpeg = "7.1.*"
+# OCCT 8.x merged TKSTEP/TKSTEP209/TKSTEPAttr/TKSTEPBase/TKXDESTEP into
+# TKDESTEP, but bambustudio_copy_dlls() (CMakeLists.txt:652-677) still
+# expects the old per-module DLL names. Pin to 7.x until upstream catches up.
+occt = "7.9.*"
 
 # Linux pixi tasks (bash). Windows tasks live under [target.win-64.tasks.*]
 # in follow-up commits.
