@@ -395,7 +395,11 @@ if (APPLE)
 endif()
 
 if(NOT SLIC3R_STATIC)
-    target_compile_definitions(boost_headeronly INTERFACE BOOST_LOG_DYN_LINK)
+    # Apply globally so every translation unit (including libslic3r_cgal,
+    # imgui patches) sees the same `v2_mt_posix` namespace as conda-forge's
+    # libboost_log.so. INTERFACE on boost_headeronly was insufficient because
+    # libslic3r_cgal doesn't link to it.
+    add_compile_definitions(BOOST_LOG_DYN_LINK)
 endif()
 
 function(slic3r_remap_configs targets from_Cfg to_Cfg)
@@ -725,47 +729,35 @@ function(bambustudio_copy_sos target config postfix output_sos)
     set(_out_dir "${CMAKE_CURRENT_BINARY_DIR}")
     message ("set out_dir to CMAKE_CURRENT_BINARY_DIR: ${_out_dir}")
 
+    # Locate FFmpeg shared libs version-agnostically (each SO ships with
+    # FFmpeg-version-specific micro suffixes that drift across releases).
+    set(_ffmpeg_search_dirs "")
     if (EXISTS "/usr/lib/aarch64-linux-gnu/libavcodec.so")
-        file(COPY /usr/lib/aarch64-linux-gnu/libavcodec.so
-                  /usr/lib/aarch64-linux-gnu/libavcodec.so.61
-                  /usr/lib/aarch64-linux-gnu/libavutil.so
-                  /usr/lib/aarch64-linux-gnu/libavutil.so.59
-                  /usr/lib/aarch64-linux-gnu/libswscale.so
-                  /usr/lib/aarch64-linux-gnu/libswscale.so.8
-                  /usr/lib/aarch64-linux-gnu/libswresample.so
-                  /usr/lib/aarch64-linux-gnu/libswresample.so.5
-             DESTINATION ${_out_dir})
-    else()
-        file(COPY ${CMAKE_PREFIX_PATH}/lib/libavcodec.so
-                  ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61
-                  ${CMAKE_PREFIX_PATH}/lib/libavcodec.so.61.3.100
-                  ${CMAKE_PREFIX_PATH}/lib/libavutil.so
-                  ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59
-                  ${CMAKE_PREFIX_PATH}/lib/libavutil.so.59.8.100
-                  ${CMAKE_PREFIX_PATH}/lib/libswscale.so
-                  ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8
-                  ${CMAKE_PREFIX_PATH}/lib/libswscale.so.8.1.100
-                  ${CMAKE_PREFIX_PATH}/lib/libswresample.so
-                  ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5
-                  ${CMAKE_PREFIX_PATH}/lib/libswresample.so.5.1.100
-             DESTINATION ${_out_dir})
+        list(APPEND _ffmpeg_search_dirs "/usr/lib/aarch64-linux-gnu")
+    endif()
+    foreach(_p ${CMAKE_PREFIX_PATH})
+        list(APPEND _ffmpeg_search_dirs "${_p}/lib")
+    endforeach()
+
+    set(_ffmpeg_files "")
+    foreach(_dir ${_ffmpeg_search_dirs})
+        foreach(_lib avcodec avutil swscale swresample)
+            file(GLOB _matches "${_dir}/lib${_lib}.so*")
+            list(APPEND _ffmpeg_files ${_matches})
+        endforeach()
+    endforeach()
+    list(REMOVE_DUPLICATES _ffmpeg_files)
+
+    if (_ffmpeg_files)
+        file(COPY ${_ffmpeg_files} DESTINATION ${_out_dir})
     endif()
 
-    set(${output_dlls}
-        ${_out_dir}/libavcodec.so
-        ${_out_dir}/libavcodec.so.61
-        ${_out_dir}/libavcodec.so.61.3.100
-        ${_out_dir}/libavutil.so
-        ${_out_dir}/libavutil.so.59
-        ${_out_dir}/libavutil.so.59.8.100
-        ${_out_dir}/libswscale.so
-        ${_out_dir}/libswscale.so.8
-        ${_out_dir}/libswscale.so.8.1.100
-        ${_out_dir}/libswresample.so
-        ${_out_dir}/libswresample.so.5
-        ${_out_dir}/libswresample.so.5.1.100
-        PARENT_SCOPE
-    )
+    set(_copied "")
+    foreach(_src ${_ffmpeg_files})
+        get_filename_component(_name "${_src}" NAME)
+        list(APPEND _copied "${_out_dir}/${_name}")
+    endforeach()
+    set(${output_sos} ${_copied} PARENT_SCOPE)
 endfunction()
 
 # libslic3r, BambuStudio GUI and the BambuStudio executable.
