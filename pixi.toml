@@ -56,6 +56,9 @@ glib = ">=2.84.3,<3"
 # `vs2019_win-64`/`vs2022_win-64` wrappers shell out to that same toolchain
 # and add no value here.
 [target.win-64.dependencies]
+# CMakeLists.txt:5 hard-fails on Windows when CMake >= 4.0; conda-forge's
+# default win-64 cmake is 4.3+. Pin until upstream lifts the cap.
+cmake = ">=3.27,<4"
 # conda-forge's current win-64 ffmpeg is 8.x (avcodec-62), but
 # CMakeLists.txt:679-720 hardcodes 7.x DLL names (avcodec-61, swresample-5,
 # swscale-8, avutil-59). Pin to 7.1.* so bambustudio_copy_dlls() finds them.
