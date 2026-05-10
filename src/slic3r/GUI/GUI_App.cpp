@@ -5061,7 +5061,8 @@ void GUI_App::on_http_error(wxCommandEvent &evt)
                 }
             }
             if (found_json) {
-                json j = json::parse(body_str);
+                // libc++ needs UTF-8 std::string here; see Project.cpp comment.
+                json j = json::parse(std::string(body_str.utf8_str()));
                 if (j.contains("code")) {
                     if (!j["code"].is_null())
                         code = j["code"].get<int>();
