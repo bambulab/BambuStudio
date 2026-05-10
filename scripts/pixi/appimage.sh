@@ -45,9 +45,10 @@ cp -a "$CONDA_PREFIX/." "$appdir/usr/"
 # Drop bambu-studio in (overwrites if pixi env had a stub).
 cp -f "$binary" "$appdir/usr/bin/bambu-studio"
 
-# Resources expected at $PREFIX/share/BambuStudio/ at runtime.
-mkdir -p "$appdir/usr/share/BambuStudio"
-cp -rf "$PIXI_PROJECT_ROOT/resources/." "$appdir/usr/share/BambuStudio/"
+# bambu-studio looks for resources at <exec_dir>/../resources/ (matches the
+# in-tree layout build/<type>/resources/ where the symlink is generated).
+mkdir -p "$appdir/usr/resources"
+cp -rf "$PIXI_PROJECT_ROOT/resources/." "$appdir/usr/resources/"
 
 # Top-level metadata for appimagetool.
 install -m 755 "$PIXI_PROJECT_ROOT/packaging/appimage/AppRun" "$appdir/AppRun"
