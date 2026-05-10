@@ -2,7 +2,7 @@
 name = "BambuStudio"
 description = "Pixi PoC: replace ExternalProject deps with conda-forge binaries"
 channels = ["conda-forge"]
-platforms = ["linux-64", "win-64"]
+platforms = ["linux-64", "win-64", "osx-arm64"]
 
 [system-requirements]
 libc = "2.34"  # webkit2gtk4.1 needs glibc >=2.34 (linux only)
@@ -53,6 +53,16 @@ mesa-libegl-devel-cos7-x86_64 = "*"
 gtk3 = "*"  # required to build bambulab/wxWidgets fork
 glib = ">=2.84.3,<3"
 "webkit2gtk4.1" = "*"  # for wxWebView
+
+# macOS: clang via conda-forge (`compilers` -> clang/clangxx_osx-arm64) wraps
+# the system Xcode SDK, so Apple frameworks (Cocoa, OpenGL, WebKit) come
+# from /Library/Developer rather than being duplicated under the pixi env.
+# No GTK/dbus/EGL/webkit2gtk stack — wxWidgets builds against Cocoa.
+[target.osx-arm64.dependencies]
+compilers = ">=1.10"
+# Apple ships no gettext by default; brew/macports is the usual source.
+# Pull it from conda-forge so msgfmt is on PATH for the .po -> .mo step.
+gettext = "*"
 
 # Windows uses the user-installed Visual Studio (system MSVC) — conda-forge's
 # `vs2019_win-64`/`vs2022_win-64` wrappers shell out to that same toolchain
