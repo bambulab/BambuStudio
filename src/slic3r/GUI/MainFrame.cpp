@@ -700,7 +700,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             }
             return;}
 #endif
-        if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'R') {
+        if (evt.CmdDown() && evt.ShiftDown() && evt.GetKeyCode() == 'P') {
             PresetReloadResult result = wxGetApp().reload_user_presets_from_disk();
             if (result.any_change() && plater())
                 plater()->get_notification_manager()->push_notification(
