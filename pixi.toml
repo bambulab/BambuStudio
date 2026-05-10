@@ -117,6 +117,18 @@ description = "Launch build/release/src/bambu-studio. Args pass through."
 cmd = "bash scripts/pixi/run.sh"
 env = { BAMBU_BUILD_TYPE = "release" }
 
+[target.linux-64.tasks.appimage]
+description = "Bundle build/release/src/bambu-studio into a portable AppImage."
+depends-on = ["appimage-release"]
+
+[target.linux-64.tasks.appimage-debug]
+description = "Bundle build/debug/src/bambu-studio into an AppImage (huge, dev-only)."
+cmd = "bash scripts/pixi/appimage.sh debug"
+
+[target.linux-64.tasks.appimage-release]
+description = "Bundle build/release/src/bambu-studio into a portable AppImage."
+cmd = "bash scripts/pixi/appimage.sh release"
+
 # Windows pixi tasks (PowerShell). Scripts live under scripts/pixi/windows/.
 # These shadow the top-level [tasks.*] above on win-64. The debug/release
 # split from upstream is Linux-only for now; on Windows `pixi run build`
