@@ -98,6 +98,22 @@ description = "Build bambulab/wxWidgets fork (custom patches) and install into p
 description = "One-time: build bambulab forks (libnoise, wxWidgets) into pixi env"
 depends-on = ["setup-libnoise", "setup-wxwidgets"]
 
+# macOS pixi tasks (bash). The top-level [tasks.build] / [tasks.bambu-studio]
+# entries below already dispatch to scripts/pixi/{build,run}.sh, which pick
+# the osx-pixi-* preset on Darwin — no per-platform override needed here.
+
+[target.osx-arm64.tasks.setup-libnoise]
+cmd = "bash scripts/pixi/setup-libnoise.sh"
+description = "Build bambulab/libnoise (no conda-forge package) and install into pixi env"
+
+[target.osx-arm64.tasks.setup-wxwidgets]
+cmd = "bash scripts/pixi/macos/setup-wxwidgets.sh"
+description = "Build bambulab/wxWidgets fork as osx_cocoa and install into pixi env"
+
+[target.osx-arm64.tasks.bootstrap]
+description = "One-time: build bambulab forks (libnoise, wxWidgets) into pixi env"
+depends-on = ["setup-libnoise", "setup-wxwidgets"]
+
 # Top-level redirects (FreeCAD pattern: dev iteration → debug by default).
 # Use the explicit *-release variants for shipping/perf-checking builds.
 # Per-platform build / bambu-studio tasks live under [target.<plat>.tasks.*]
