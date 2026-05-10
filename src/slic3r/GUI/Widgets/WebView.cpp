@@ -385,6 +385,39 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
             && javascript.find("studio_userlogin") == wxString::npos)
         wxLogMessage("Running JavaScript:\n%s\n", javascript);
 
+    if (webView == nullptr)
+        return false;
+
+#ifdef __WXMAC__
+    // Skip JS evaluation on hidden webviews on macOS. Several panels keep a
+    // pool of wxWebView instances that are Hide()'d and swapped in on demand
+    // (see WebViewPanel::SetWebviewShow). Pushing JS into a hidden view
+    // still wakes the WebContent process via WKWebView evaluateJavaScript
+    // (runJavaScriptInFrameInScriptWorld cancels ProcessThrottler
+    // suspension) while the events delivered to its NSView are silently
+    // dropped because it is setHidden:YES. After sleep/wake this has been
+    // observed to produce a minutes-long "frozen input" state for the user
+    // -- the window has focus but the hit-test view is hidden.
+    //
+    // Return true (not false) because "view is hidden, skipped" is not an
+    // error from the caller's perspective: the wxWebView's wxEVT_SHOW
+    // handler in WebViewDialog re-pushes the relevant state when a hidden
+    // panel becomes visible. Returning false would conflate this benign
+    // skip with a real wkWebView/ICoreWebView2 failure and trigger the
+    // error-log paths in callers like wgtFilaManagerPanel::SendMsg. Same
+    // truthy contract as the macOS evaluateJavaScript path further down.
+    //
+    // Known follow-up: the timer-driven JS pushes that fire on a hidden
+    // home tab (e.g. m_LoginUpdateTimer's user-print-task refresh in
+    // WebViewPanel::OnFreshLoginStatus) drop on the floor without an
+    // explicit replay-on-show hook. The home page already lazy-initializes
+    // most state on tab activation, so this is mostly cosmetic, but a
+    // future commit could add the same m_has_pending_* defer/replay
+    // pattern used by SendDesignStaffpick at WebViewDialog.cpp:763.
+    if (!webView->IsShownOnScreen())
+        return true;
+#endif // __WXMAC__
+
     try {
 #ifdef __WIN32__
         ICoreWebView2 *   webView2 = (ICoreWebView2 *) webView->GetNativeBackend();
