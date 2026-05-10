@@ -3,31 +3,40 @@
 [Pixi](https://pixi.sh) provides all dependencies from conda-forge,
 replacing the legacy `BuildLinux.sh` + `deps/` ExternalProject flow.
 
-Currently supports `linux-64` (glibc ≥ 2.34). `osx-*` / `win-64` are
-planned — extend `pixi.toml`'s `platforms` and per-target dependencies.
+Supports `linux-64` (glibc ≥ 2.34) and `win-64` (Visual Studio 2019 or
+2022 required). `osx-*` is planned.
 
-## Quick start
+## Install pixi
 
-```bash
-curl -fsSL https://pixi.sh/install.sh | bash    # pixi, one-time
+- Linux / macOS: `curl -fsSL https://pixi.sh/install.sh | bash`
+- Windows: `iwr -useb https://pixi.sh/install.ps1 | iex`
 
+Windows additionally requires Visual Studio 2019 or 2022 with the C++ workload.
+
+## Build
+
+```
 pixi install                  # conda-forge deps
 pixi run bootstrap            # libnoise + wxWidgets (once)
-pixi run build                # bambu-studio (Debug)
+pixi run build                # bambu-studio
 pixi run bambu-studio         # launch (args pass through)
 ```
 
-`pixi run build` defaults to Debug. For Release:
-
-```bash
-pixi run build-release
-pixi run bambu-studio-release
-```
-
-Build trees: `build/debug/`, `build/release/` (coexist).
-
 Override parallelism: `CMAKE_BUILD_PARALLEL_LEVEL=4 pixi run build`.
 Default is `floor(free_mem_GB / 2.5)` to fit Boost.Spirit / CGAL TUs.
+
+### Build variants
+
+Linux has split Debug / Release trees that coexist (`build/debug/`,
+`build/release/`); `pixi run build` defaults to Debug for fast iteration.
+Windows is single-configuration Release for now.
+
+| | Linux | Windows |
+|---|---|---|
+| Debug | `pixi run build` (default) | not yet |
+| Release | `pixi run build-release` | `pixi run build` |
+| AppImage | `pixi run appimage` | -- |
+| Launch Release binary | `pixi run bambu-studio-release` | `pixi run bambu-studio` |
 
 ## Network plugin (cloud / printer features)
 
