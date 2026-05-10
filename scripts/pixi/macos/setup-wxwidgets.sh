@@ -52,8 +52,10 @@ cmake --build . --target dep_wxWidgets -j"$jobs"
 src="$destdir/usr/local"
 # wxWidgets installs into bin/ (wx-config), include/wx-X.Y/, lib/, lib/cmake/, share/.
 # Use cp -Rn (BSD cp; -n = no-clobber) to merge into the pixi env without
-# overwriting unrelated files.
-cp -Rn "$src/" "$CONDA_PREFIX/"
+# overwriting unrelated files. BSD cp exits 1 on every no-clobber skip,
+# even when the wx-specific files (libwx_*.a, wx-3.1/, wx/) copied cleanly —
+# unlike GNU cp on Linux, where the same flag returns 0. Tolerate that here.
+cp -Rn "$src/" "$CONDA_PREFIX/" || :
 
 # wxWidgets hard-codes the install prefix into wx-config and its companion
 # files (the upstream wxWidgets.cmake even warns about this). Rewrite those
