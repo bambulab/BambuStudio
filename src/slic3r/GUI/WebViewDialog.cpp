@@ -930,11 +930,13 @@ void WebViewPanel::SendMakerlabList(  )
                 return;
             }
             CallAfter([this, body] {
-                // body is already UTF-8 std::string from the HTTP callback; the
-                // from_u8 round-trip via wxString produced an iterator type
-                // (wxUniChar) that libc++ refuses to instantiate std::char_traits
-                // for. Parse the raw body and only convert downstream values to
-                // wxString where the GUI actually needs them.
+                auto body2 = from_u8(body);
+
+                // Parse the raw UTF-8 body — feeding wxString::const_iterator
+                // (value_type=wxUniChar) to json::parse breaks under libc++,
+                // which only specializes std::char_traits for the standard
+                // char types. body2 is still needed below for the wxString-
+                // based RunScript injection.
                 json jLab = json::parse(body);
                 if (jLab.contains("list"))
                 {
