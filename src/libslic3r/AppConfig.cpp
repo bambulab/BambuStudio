@@ -340,6 +340,27 @@ void AppConfig::set_defaults()
         set_bool("show_print_history", true);
     }
 
+    if (get("print_status_window_auto_show_on_minimize").empty())
+        set_bool("print_status_window_auto_show_on_minimize", false);
+    if (get("print_status_window_close_to_tray").empty())
+        set_bool("print_status_window_close_to_tray", false);
+    if (get("print_status_window_always_on_top").empty())
+        set_bool("print_status_window_always_on_top", true);
+    if (get("print_status_window_remember_position").empty())
+        set_bool("print_status_window_remember_position", true);
+    if (get("print_status_window_theme").empty())
+        set("print_status_window_theme", "follow_app");
+    if (get("print_status_window_opacity").empty())
+        set("print_status_window_opacity", "100");
+    if (get("print_status_window_pos_x").empty())
+        set("print_status_window_pos_x", "");
+    if (get("print_status_window_pos_y").empty())
+        set("print_status_window_pos_y", "");
+    if (get("print_status_window_width").empty())
+        set("print_status_window_width", "");
+    if (get("print_status_window_height").empty())
+        set("print_status_window_height", "");
+
     if (get("show_printable_box").empty()) {
         set_bool("show_printable_box", true);
     }

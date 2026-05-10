@@ -630,6 +630,12 @@ void PrintingTaskPanel::create_panel(wxWindow *parent)
 
     m_button_abort->Bind(wxEVT_LEAVE_WINDOW, [this](auto &e) { m_button_abort->SetBitmap_("print_control_stop"); });
 
+    m_button_open_status_window = new Button(progress_lr_panel, wxEmptyString, "print_status_window", 0, 20, wxID_ANY);
+    m_button_open_status_window->SetMinSize(wxSize(FromDIP(32), FromDIP(24)));
+    m_button_open_status_window->SetBackgroundColor(white_bg);
+    m_button_open_status_window->SetBorderColor(*wxWHITE);
+    m_button_open_status_window->SetToolTip(_L("Open print status window for this printer"));
+
     wxBoxSizer *bSizer_buttons     = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *bSizer_text        = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *bSizer_finish_time = new wxBoxSizer(wxHORIZONTAL);
@@ -801,6 +807,8 @@ void PrintingTaskPanel::create_panel(wxWindow *parent)
     progress_right_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(18));
     progress_right_sizer->Add(m_stopping_icon, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
     progress_right_sizer->Add(m_button_abort, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
+    progress_right_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(18));
+    progress_right_sizer->Add(m_button_open_status_window, 0, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
     progress_right_sizer->Add(0, 0, 0, wxEXPAND | wxLEFT, FromDIP(18));
 
     progress_lr_sizer->Add(progress_left_sizer, 1, wxEXPAND | wxALL, 0);
@@ -2446,6 +2454,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_project_task_panel->get_partskip_button()->Connect(wxEVT_LEFT_DOWN, wxCommandEventHandler(StatusPanel::on_subtask_partskip), NULL, this);
     m_project_task_panel->get_pause_resume_button()->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
     m_project_task_panel->get_abort_button()->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
+    m_project_task_panel->get_open_status_window_button()->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_open_print_status_window), NULL, this);
     m_project_task_panel->get_market_scoring_button()->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_market_scoring), NULL, this);
     m_project_task_panel->get_market_retry_buttom()->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_market_retry), NULL, this);
     m_project_task_panel->get_clean_button()->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_print_error_clean), NULL, this);
@@ -2511,6 +2520,7 @@ StatusPanel::~StatusPanel()
     m_project_task_panel->get_partskip_button()->Disconnect(wxEVT_LEFT_DOWN, wxCommandEventHandler(StatusPanel::on_subtask_partskip), NULL, this);
     m_project_task_panel->get_pause_resume_button()->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_pause_resume), NULL, this);
     m_project_task_panel->get_abort_button()->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_subtask_abort), NULL, this);
+    m_project_task_panel->get_open_status_window_button()->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_open_print_status_window), NULL, this);
     m_project_task_panel->get_market_scoring_button()->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_market_scoring), NULL, this);
     m_project_task_panel->get_market_retry_buttom()->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_market_retry), NULL, this);
     m_project_task_panel->get_clean_button()->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_print_error_clean), NULL, this);
@@ -2666,6 +2676,20 @@ void StatusPanel::on_subtask_partskip(wxCommandEvent &event)
         m_project_task_panel->set_part_skipped_dirty(5);
         BOOST_LOG_TRIVIAL(info) << "part skip: prepare to filter printer dirty data.";
     }
+}
+
+void StatusPanel::on_open_print_status_window(wxCommandEvent& event)
+{
+    if (wxGetApp().mainframe == nullptr) {
+        event.Skip();
+        return;
+    }
+
+    if (obj != nullptr)
+        wxGetApp().mainframe->open_print_status_frame_for_device(obj->get_dev_id());
+    else
+        wxGetApp().mainframe->show_print_status_frame();
+    event.Skip();
 }
 
 void StatusPanel::on_subtask_pause_resume(wxCommandEvent &event)

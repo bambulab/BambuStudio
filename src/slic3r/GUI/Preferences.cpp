@@ -14,6 +14,7 @@
 #include "wx/graphics.h"
 
 #include <wx/listimpl.cpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include <map>
 #include "Gizmos/GLGizmoBase.hpp"
 #include "OpenGLManager.hpp"
@@ -112,6 +113,8 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *pa
         if (callback) {
             callback(e.GetSelection());
         }
+        if (boost::starts_with(param, "print_status_window_"))
+            wxGetApp().update_ui_from_settings();
         e.Skip();
     });
     return m_sizer_combox;
@@ -500,7 +503,7 @@ wxBoxSizer *PreferencesDialog::create_item_range_input(
     wxString title, wxWindow *parent, wxString tooltip, std::string param, float range_min, float range_max, int keep_digital, std::function<void(wxString)> onchange)
 {
     wxBoxSizer *sizer_input = new wxBoxSizer(wxHORIZONTAL);
-    auto        input_title = new wxStaticText(parent, wxID_ANY, title);
+    auto        input_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
     input_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
     input_title->SetFont(::Label::Body_13);
     input_title->SetToolTip(tooltip);
@@ -536,6 +539,8 @@ wxBoxSizer *PreferencesDialog::create_item_range_input(
         if (onchange) {
             onchange(str);
         }
+        if (boost::starts_with(param, "print_status_window_"))
+            wxGetApp().update_ui_from_settings();
         input->GetTextCtrl()->SetValue(str);
     };
     input->GetTextCtrl()->Bind(wxEVT_TEXT_ENTER, [this, set_value_to_app, input](wxCommandEvent &e) {
@@ -854,6 +859,9 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
             app_config->set_bool(param, checkbox->GetValue());
             app_config->save();
         }
+
+        if (boost::starts_with(param, "print_status_window_"))
+            wxGetApp().update_ui_from_settings();
 
         if (param == "staff_pick_switch") {
             bool pbool = app_config->get("staff_pick_switch") == "true";
@@ -1447,6 +1455,18 @@ wxWindow* PreferencesDialog::create_general_page()
     auto title_media = create_item_title(_L("Media"), page, _L("Media"));
     auto item_auto_stop_liveview = create_item_checkbox(_L("Keep liveview when printing."), page, _L("By default, Liveview will pause after 15 minutes of inactivity on the computer. Check this box to disable this feature during printing."), 50, "auto_stop_liveview");
 
+    auto title_print_status_window = create_item_title(_L("Print Status Window"), page, _L("Print Status Window"));
+    auto item_print_status_window_auto_show = create_item_checkbox(_L("Auto show on minimize"), page, _L("Automatically show the print status window when the main window is minimized."), 50, "print_status_window_auto_show_on_minimize");
+#ifndef __APPLE__
+    auto item_print_status_window_close_to_tray = create_item_checkbox(_L("Minimize to system tray when closing the main window"), page, _L("When enabled, closing the main window with the window close button keeps Bambu Studio running in the system tray."), 50, "print_status_window_close_to_tray");
+#endif
+    auto item_print_status_window_always_on_top = create_item_checkbox(_L("Always on top"), page, _L("Keep the print status window above other windows."), 50, "print_status_window_always_on_top");
+    auto item_print_status_window_remember_position = create_item_checkbox(_L("Remember window position"), page, _L("Restore the print status window position on the next launch."), 50, "print_status_window_remember_position");
+    std::vector<wxString> print_status_window_theme_labels = { _L("Follow app"), _L("Light"), _L("Dark") };
+    std::vector<std::string> print_status_window_theme_values = { "follow_app", "light", "dark" };
+    auto item_print_status_window_theme = create_item_combobox(_L("Theme"), page, _L("Theme for the print status window."), "print_status_window_theme", print_status_window_theme_labels, print_status_window_theme_values);
+    auto item_print_status_window_opacity = create_item_range_input(_L("Opacity"), page, _L("Set the opacity of the print status window. Value range:[40,100]"), "print_status_window_opacity", 40.0f, 100.0f, 0);
+
     //dark mode
 #ifdef _WIN32
     auto title_darkmode = create_item_title(_L("Dark Mode"), page, _L("Dark Mode"));
@@ -1554,6 +1574,16 @@ wxWindow* PreferencesDialog::create_general_page()
 
     sizer_page->Add(title_media, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_auto_stop_liveview, 0, wxEXPAND, FromDIP(3));
+
+    sizer_page->Add(title_print_status_window, 0, wxTOP | wxEXPAND, FromDIP(20));
+    sizer_page->Add(item_print_status_window_auto_show, 0, wxTOP, FromDIP(3));
+#ifndef __APPLE__
+    sizer_page->Add(item_print_status_window_close_to_tray, 0, wxTOP, FromDIP(3));
+#endif
+    sizer_page->Add(item_print_status_window_always_on_top, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_print_status_window_remember_position, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_print_status_window_theme, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_print_status_window_opacity, 0, wxTOP, FromDIP(3));
 
 #ifdef _WIN32
     sizer_page->Add(title_darkmode, 0, wxTOP | wxEXPAND, FromDIP(20));

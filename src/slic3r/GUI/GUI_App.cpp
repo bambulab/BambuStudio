@@ -2914,10 +2914,12 @@ bool GUI_App::on_init_inner()
     wxGetApp().Bind(wxEVT_QUERY_END_SESSION, [this](auto & e) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__<< "received wxEVT_QUERY_END_SESSION";
         if (mainframe) {
+            mainframe->set_real_shutdown_requested(true);
             wxCloseEvent e2(wxEVT_CLOSE_WINDOW);
             e2.SetCanVeto(true);
             mainframe->GetEventHandler()->ProcessEvent(e2);
             if (e2.GetVeto()) {
+                mainframe->set_real_shutdown_requested(false);
                 e.Veto();
                 return;
             }
@@ -3199,10 +3201,10 @@ bool GUI_App::on_init_inner()
                      wxLaunchDefaultBrowser(download_url);
                      break;
                  case wxID_NO:
-                     wxGetApp().mainframe->Close(true);
+                     wxGetApp().mainframe->request_app_exit(true);
                      break;
                  default:
-                     wxGetApp().mainframe->Close(true);
+                     wxGetApp().mainframe->request_app_exit(true);
                 }
             });
 

@@ -15,6 +15,7 @@
 
 #include <string>
 #include <map>
+#include <memory>
 
 #include "GUI_Utils.hpp"
 #include "Event.hpp"
@@ -39,6 +40,7 @@
 class Notebook;
 class wxBookCtrlBase;
 class wxProgressDialog;
+class wxTaskBarIcon;
 
 namespace Slic3r {
 
@@ -52,6 +54,7 @@ class MainFrame;
 class ParamsDialog;
 class FilamentGroupPopup;
 class DeviceWebPage;
+class PrintStatusFrame;
 
 enum QuickSlice
 {
@@ -111,6 +114,8 @@ class MainFrame : public DPIFrame
 #endif
     wxMenuItem* m_menu_item_reslice_now { nullptr };
     wxSizer*    m_main_sizer{ nullptr };
+    std::unique_ptr<PrintStatusFrame> m_primary_print_status_frame;
+    std::vector<std::unique_ptr<PrintStatusFrame>> m_secondary_print_status_frames;
 
     size_t      m_last_selected_tab;
 
@@ -206,7 +211,7 @@ protected:
 
 public:
     MainFrame();
-    ~MainFrame() = default;
+    ~MainFrame() override;
 #ifdef __APPLE__
     bool get_mac_full_screen() { return m_mac_fullscreen; }
 #endif
@@ -293,6 +298,13 @@ public:
 #endif
     //BBS
     void        show_log_window();
+    void        request_app_exit(bool force = false);
+    void        set_real_shutdown_requested(bool requested = true) { m_real_shutdown_requested = requested; }
+    void        show_print_status_frame();
+    void        show_print_status_frame_safe_on_minimize();
+    void        open_print_status_frame_for_device(const std::string& dev_id);
+    void        open_additional_print_status_frame(const std::string& preferred_dev_id = {});
+    void        destroy_print_status_frame();
 
     void        update_ui_from_settings();
     //BBS
@@ -420,10 +432,25 @@ public:
     bool get_enable_slice_status();
     bool get_enable_print_status();
     //BBS
+    bool should_close_to_tray(const wxCloseEvent& event) const;
+    bool ensure_close_to_tray_icon();
+    void minimize_to_tray();
+    void restore_from_tray();
+    void remove_close_to_tray_icon();
+    PrintStatusFrame* ensure_primary_print_status_frame();
+    PrintStatusFrame* find_print_status_frame_for_device(const std::string& dev_id) const;
+    void refresh_print_status_frames();
+    std::string pick_additional_print_status_device(const std::string& preferred_dev_id) const;
+    void place_additional_print_status_frame(PrintStatusFrame* frame) const;
     void update_side_button_style();
     void update_slice_print_status(SlicePrintEventType event, bool can_slice = true, bool can_print = true);
 
     int select_device_page_count{ 0 };
+    bool m_real_shutdown_requested{ false };
+
+#ifndef __APPLE__
+    std::unique_ptr<wxTaskBarIcon> m_close_to_tray_icon;
+#endif
 
 #ifdef __APPLE__
     std::unique_ptr<wxTaskBarIcon> m_taskbar_icon;
