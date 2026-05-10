@@ -40,6 +40,7 @@ cmake "$PIXI_PROJECT_ROOT/deps" \
   -DDEP_BUILD_PNG=OFF -DDEP_BUILD_JPEG=OFF -DDEP_BUILD_TIFF=OFF \
   -DDEP_BUILD_WXWIDGETS=ON \
   -DDEP_WX_WEBVIEW=ON \
+  -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
   -DDESTDIR="$destdir"
 
 # scripts/pixi/_jobs.sh handles the Darwin / Linux split internally.
