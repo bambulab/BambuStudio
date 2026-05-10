@@ -177,7 +177,7 @@ void KBShortcutsDialog::fill_shortcuts()
             { ctrl + "S", L("Save Project") },
             { ctrl + "Shift+S", L("Save Project as")},
             // Reload user presets
-            { ctrl + "Shift+R", L("Reload user presets from disk") },
+            { ctrl + "Shift+P", L("Reload user presets from disk") },
             // File>Import
             { ctrl + "I", L("Import geometry data from STL/STEP/3MF/OBJ/AMF files") },
             // File>Export
