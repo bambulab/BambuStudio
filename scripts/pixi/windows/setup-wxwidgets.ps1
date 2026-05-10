@@ -2,7 +2,7 @@
 # the result into the active pixi env so the main BambuStudio configure can
 # link against wxWidgets via FindwxWidgets (WXWIN=$CONDA_PREFIX/Library).
 #
-# WebView is enabled (DEP_WX_WEBVIEW=ON) — on MSVC this picks WebView Edge
+# WebView is enabled (DEP_WX_WEBVIEW=ON) -- on MSVC this picks WebView Edge
 # (wxUSE_WEBVIEW_EDGE=ON in wxWidgets.cmake:15). BambuStudio.cpp pulls in
 # slic3r/GUI/* unconditionally so there's no real "GUI=OFF" build.
 #
@@ -69,7 +69,7 @@ finally {
 }
 
 # Merge destdir/usr/local/* into $CONDA_PREFIX/Library. wxWidgets MSW lays out
-# bin/, include/wx-3.x/, lib/vc_x64_lib/, lib/cmake/wxWidgets/ — all under usr/local.
+# bin/, include/wx-3.x/, lib/vc_x64_lib/, lib/cmake/wxWidgets/ -- all under usr/local.
 $src = Join-Path $destDir 'usr/local'
 Copy-Item -Path (Join-Path $src '*') -Destination $libRoot -Recurse -Force
 Write-Host "wxWidgets installed to $libRoot"
