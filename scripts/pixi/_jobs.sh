@@ -12,8 +12,16 @@ pixi_parallel_jobs() {
         return
     fi
     local free_gb nproc_count threads
-    free_gb=$(free -g | awk '/^Mem:/ {print $7}')
-    nproc_count=$(nproc)
+    if [[ "$(uname)" == "Darwin" ]]; then
+        # macOS: no /proc, no `free`. `memory_pressure` would give "free"
+        # mem but reliably misreports under load; total RAM is the closest
+        # stable proxy and keeps the formula consistent with Linux.
+        free_gb=$(( $(sysctl -n hw.memsize) / 1024 / 1024 / 1024 ))
+        nproc_count=$(sysctl -n hw.ncpu)
+    else
+        free_gb=$(free -g | awk '/^Mem:/ {print $7}')
+        nproc_count=$(nproc)
+    fi
     threads=$((free_gb * 10 / 25))
     if [[ $threads -lt 1 ]]; then
         threads=1
