@@ -174,7 +174,12 @@ if (MSVC)
     endif ()
 elseif (APPLE)
     message("OS X SDK Path: ${CMAKE_OSX_SYSROOT}")
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version" FORCE)
+    # 10.15 was the historical floor (matches BuildMac.sh -t default). Don't
+    # FORCE it: osx-arm64 / pixi builds need to opt up to 11.0+ so the
+    # bambulab/wxWidgets fork's Cocoa code (NSControlSizeLarge etc.) compiles.
+    if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version" FORCE)
+    endif ()
     if (CMAKE_OSX_DEPLOYMENT_TARGET)
         set(DEP_OSX_TARGET "${CMAKE_OSX_DEPLOYMENT_TARGET}")
         message("OS X Deployment Target: ${DEP_OSX_TARGET}")
