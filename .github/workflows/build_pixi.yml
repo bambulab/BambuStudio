@@ -35,9 +35,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Mirrors pixi.toml [workspace].platforms. Add osx-* / windows-*
-        # here once those platforms are added to pixi.toml.
-        os: [ubuntu-24.04]
+        include:
+          - os: ubuntu-24.04
+            build_task: build-release
+            binary: build/release/src/bambu-studio
+            logs: |
+              build/release/CMakeFiles/CMakeOutput.log
+              build/release/CMakeFiles/CMakeError.log
+              build/release/CMakeFiles/CMakeConfigureLog.yaml
+          - os: windows-2022
+            # Windows pixi.toml has no debug/release split yet; `build` is
+            # the single Release task driven by the win-pixi VS preset.
+            build_task: build
+            binary: build/src/Release/bambu-studio.exe
+            logs: |
+              build/CMakeFiles/CMakeOutput.log
+              build/CMakeFiles/CMakeError.log
+              build/CMakeFiles/CMakeConfigureLog.yaml
 
     env:
       # sccache uploads/restores its cache via the GitHub Actions cache API
@@ -51,16 +65,18 @@ jobs:
 
       # ubuntu-24.04 hosted runners ship with ~14GB free; pixi env (~1.5GB)
       # + bootstrap workspace (~3GB) + build tree (~5GB) is tight.
-      - name: Free disk space
+      - name: Free disk space (Linux)
+        if: runner.os == 'Linux'
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
                       /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
           df -h
 
-      - name: Install bubblewrap
+      - name: Install bubblewrap (Linux)
         # webkit2gtk4.1 from conda-forge invokes bwrap at runtime; not
         # needed to build, but installed here so test invocations of the
         # binary don't fail on a missing host tool.
+        if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y bubblewrap
 
       - name: Setup pixi
@@ -68,10 +84,11 @@ jobs:
         with:
           cache: true
 
-      # Cache the bambulab forks (libnoise + wxWidgets) installed into the
-      # pixi env. Their bootstrap takes 30-40 minutes; only re-run when the
-      # build scripts or fork sources actually change.
-      - name: Cache bootstrap (libnoise + wxWidgets)
+      # Linux bootstrap cache: bambulab forks (libnoise + wxWidgets) installed
+      # into the pixi env. Windows uses different paths under .pixi/envs/default/
+      # Library/ — caching is left as TODO; bootstrap re-runs every time on win.
+      - name: Cache bootstrap (Linux)
+        if: runner.os == 'Linux'
         id: cache-bootstrap
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
         with:
@@ -86,8 +103,13 @@ jobs:
             .pixi/envs/default/include/wx-3.1
           key: pixi-bootstrap-${{ matrix.os }}-${{ hashFiles('deps/wxWidgets/**', 'deps/libnoise/**', 'scripts/pixi/setup-libnoise.sh', 'scripts/pixi/setup-wxwidgets.sh', 'scripts/pixi/_jobs.sh') }}
 
-      - name: Bootstrap forks (libnoise + wxWidgets)
-        if: steps.cache-bootstrap.outputs.cache-hit != 'true'
+      - name: Bootstrap forks (Linux, cache miss)
+        if: runner.os == 'Linux' && steps.cache-bootstrap.outputs.cache-hit != 'true'
+        run: pixi run bootstrap
+
+      - name: Bootstrap forks (Windows)
+        # No cache yet; ~45-60 min on Windows runner.
+        if: runner.os == 'Windows'
         run: pixi run bootstrap
 
       # Sets ACTIONS_CACHE_URL / ACTIONS_RUNTIME_TOKEN so sccache (from the
@@ -99,25 +121,22 @@ jobs:
       - name: sccache stats (before)
         run: pixi run sccache --zero-stats && pixi run sccache --show-stats
 
-      # CI verifies the Release variant for shipping fidelity. Devs default
-      # to `pixi run build` (Debug) for faster local iteration.
-      - name: Build BambuStudio (Release)
-        run: pixi run build-release
+      - name: Build BambuStudio
+        run: pixi run ${{ matrix.build_task }}
 
       - name: sccache stats (after)
         run: pixi run sccache --show-stats
 
       - name: Verify binary
-        run: test -x build/release/src/bambu-studio && file build/release/src/bambu-studio
+        shell: bash
+        run: |
+          ls -la "${{ matrix.binary }}"
 
       - name: Upload logs on failure
         if: failure()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
         with:
           name: build-logs-${{ matrix.os }}
-          path: |
-            build/release/CMakeFiles/CMakeOutput.log
-            build/release/CMakeFiles/CMakeError.log
-            build/release/CMakeFiles/CMakeConfigureLog.yaml
+          path: ${{ matrix.logs }}
           if-no-files-found: ignore
           retention-days: 7
