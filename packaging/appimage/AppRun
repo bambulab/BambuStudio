@@ -1,0 +1,31 @@
+#!/bin/bash
+# AppImage entry point. Mirrors scripts/pixi/run.sh's runtime env workarounds:
+# the binary inside is the same one pixi builds, with the conda-forge / bambulab
+# fork stack laid out under usr/ as if it were the active pixi env.
+
+HERE="$(dirname "$(readlink -f "$0")")"
+PREFIX="$HERE/usr"
+
+# conda libGLX dispatches to host vendor drivers (e.g. nvidia) and the
+# resulting mix can crash MakeCurrent; software GL sidesteps it.
+export LIBGL_ALWAYS_SOFTWARE="${LIBGL_ALWAYS_SOFTWARE:-1}"
+
+# pixi env's libgtk-3 needs to see host theme files (e.g. /usr/share/themes)
+# to populate gtk_settings; merge the bundled share/ on the end.
+export XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/share:/usr/local/share}:$PREFIX/share"
+export GTK_THEME="${GTK_THEME:-Adwaita}"
+
+# conda's libcurl bakes its OPENSSLDIR at build time; outside `pixi run` it
+# can't find a CA bundle, breaking https auth. Probe the usual host paths.
+for ca in /etc/ssl/certs/ca-certificates.crt \
+          /etc/pki/tls/certs/ca-bundle.crt \
+          /etc/ssl/cert.pem \
+          "$PREFIX/ssl/cacert.pem"; do
+    if [[ -f "$ca" ]]; then
+        export SSL_CERT_FILE="${SSL_CERT_FILE:-$ca}"
+        export CURL_CA_BUNDLE="${CURL_CA_BUNDLE:-$ca}"
+        break
+    fi
+done
+
+exec "$PREFIX/bin/bambu-studio" "$@"
