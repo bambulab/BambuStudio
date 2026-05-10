@@ -1353,6 +1353,9 @@ void PrintingTaskPanel::set_thumbnail_img(const wxBitmap &bmp, const std::string
 
     m_thumbnail_bmp_display_name = bmp_name;
     m_thumbnail_bmp_display      = bmp;
+    if (m_bitmap_thumbnail && bmp.IsOk()) {
+        m_bitmap_thumbnail->SetBitmap(bmp);
+    }
     Refresh();
 }
 
@@ -3289,7 +3292,12 @@ void StatusPanel::update_ams(MachineObject *obj)
 {
     // update obj in sub dlg
     if (m_ams_setting_dlg && m_ams_setting_dlg->IsShown()) { m_ams_setting_dlg->UpdateByObj(obj); }
-    if (m_filament_setting_dlg) { m_filament_setting_dlg->obj = obj; }
+    if (m_filament_setting_dlg) {
+        m_filament_setting_dlg->obj = obj;
+        if (m_filament_setting_dlg->IsShown()) {
+            m_filament_setting_dlg->TryRefreshPAProfiles();
+        }
+    }
 
     if (obj && obj->GetCalib()->IsVersionExpired() && obj->is_security_control_ready()) {
         obj->GetCalib()->SyncCalibVersion();

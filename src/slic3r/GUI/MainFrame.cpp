@@ -712,6 +712,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             });
 ;    }
     this->Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent &evt) {
+        const int key_code = evt.GetKeyCode();
 #ifdef __APPLE__
         if (evt.CmdDown() && (evt.GetKeyCode() == 'H')) {
             //call parent_menu hide behavior
@@ -786,6 +787,19 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
         if (!evt.HasAnyModifiers() && evt.GetKeyCode() == 'Z') {
             view_zoom_to_fit();
+            return;
+        }
+
+        // Pass 3D view preset shortcuts directly to the current canvas. (Only 0-7 currently used but reserve 8 & 9 anyway.)
+        if (evt.CmdDown() && ((key_code >= '0' && key_code <= '9') || (key_code >= WXK_NUMPAD0 && key_code <= WXK_NUMPAD9)) && m_plater) {
+            if (auto *canvas = m_plater->canvas3D()) {
+                if (auto *target = (wxWindow*)canvas->get_wxglcanvas()) {
+                    wxKeyEvent e(evt);
+                    e.SetEventType(wxEVT_KEY_UP);
+                    e.SetEventObject(target);
+                    wxPostEvent(target, e);
+                }
+            }
             return;
         }
 

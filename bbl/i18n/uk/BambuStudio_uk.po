@@ -5441,7 +5441,7 @@ msgstr "Вигляд зверху"
 
 #. TRN To be shown in the main menu View->Bottom
 msgid "Bottom"
-msgstr "Ніз"
+msgstr "Низ"
 
 msgid "Bottom View"
 msgstr "Вигляд знизу"
