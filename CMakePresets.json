@@ -87,6 +87,7 @@
                 "CMAKE_FIND_FRAMEWORK": "LAST",
                 "CMAKE_FIND_APPBUNDLE": "LAST",
                 "CMAKE_MACOSX_BUNDLE": "OFF",
+                "CMAKE_OSX_DEPLOYMENT_TARGET": "11.0",
                 "SLIC3R_GUI": "ON",
                 "SLIC3R_STATIC": "OFF",
                 "BBL_RELEASE_TO_PUBLIC": "1",
