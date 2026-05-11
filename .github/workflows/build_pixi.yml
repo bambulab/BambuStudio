@@ -52,6 +52,14 @@ jobs:
               build/CMakeFiles/CMakeOutput.log
               build/CMakeFiles/CMakeError.log
               build/CMakeFiles/CMakeConfigureLog.yaml
+          - os: macos-14
+            # macos-14 is Apple Silicon, matching pixi.toml's osx-arm64 platform.
+            build_task: build-release
+            binary: build/release/src/bambu-studio
+            logs: |
+              build/release/CMakeFiles/CMakeOutput.log
+              build/release/CMakeFiles/CMakeError.log
+              build/release/CMakeFiles/CMakeConfigureLog.yaml
 
     env:
       # sccache uploads/restores its cache via the GitHub Actions cache API
@@ -84,11 +92,13 @@ jobs:
         with:
           cache: true
 
-      # Linux bootstrap cache: bambulab forks (libnoise + wxWidgets) installed
-      # into the pixi env. Windows uses different paths under .pixi/envs/default/
-      # Library/ — caching is left as TODO; bootstrap re-runs every time on win.
-      - name: Cache bootstrap (Linux)
-        if: runner.os == 'Linux'
+      # Unix bootstrap cache: bambulab forks (libnoise + wxWidgets) installed
+      # into the pixi env. Linux and macOS share the .pixi/envs/default/{bin,lib,include}
+      # layout, so the same path list works for both. Windows uses different paths
+      # under .pixi/envs/default/Library/ — caching is left as TODO; bootstrap
+      # re-runs every time on win.
+      - name: Cache bootstrap (Unix)
+        if: runner.os == 'Linux' || runner.os == 'macOS'
         id: cache-bootstrap
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
         with:
@@ -101,10 +111,10 @@ jobs:
             .pixi/envs/default/lib/liblibnoise_static.a
             .pixi/envs/default/include/libnoise
             .pixi/envs/default/include/wx-3.1
-          key: pixi-bootstrap-${{ matrix.os }}-${{ hashFiles('deps/wxWidgets/**', 'deps/libnoise/**', 'scripts/pixi/setup-libnoise.sh', 'scripts/pixi/setup-wxwidgets.sh', 'scripts/pixi/_jobs.sh') }}
+          key: pixi-bootstrap-${{ matrix.os }}-${{ hashFiles('deps/wxWidgets/**', 'deps/libnoise/**', 'scripts/pixi/setup-libnoise.sh', 'scripts/pixi/setup-wxwidgets.sh', 'scripts/pixi/macos/setup-wxwidgets.sh', 'scripts/pixi/_jobs.sh') }}
 
-      - name: Bootstrap forks (Linux, cache miss)
-        if: runner.os == 'Linux' && steps.cache-bootstrap.outputs.cache-hit != 'true'
+      - name: Bootstrap forks (Unix, cache miss)
+        if: (runner.os == 'Linux' || runner.os == 'macOS') && steps.cache-bootstrap.outputs.cache-hit != 'true'
         run: pixi run bootstrap
 
       - name: Bootstrap forks (Windows)
