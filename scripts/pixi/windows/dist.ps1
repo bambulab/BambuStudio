@@ -1,6 +1,9 @@
-#requires -Version 7
 <#
     Bundle the Release build into a Windows MSI installer.
+
+    Compatible with Windows PowerShell 5.1 (the engine that the
+    `powershell -NoProfile -ExecutionPolicy Bypass -File ...` invoker
+    in pixi.toml resolves to). Avoid PS7-only features.
 
     1. Stage payload via `cmake --install` driving the existing WIN32
        install() rules in src/CMakeLists.txt:294-298 + CMakeLists.txt:807.
