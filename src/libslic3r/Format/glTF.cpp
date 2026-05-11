@@ -305,6 +305,26 @@ int resolve_texture_image_index(const json& root, int tex_idx)
     return tex.value("source", -1);
 }
 
+bool has_draco_mesh_compression(const json& root)
+{
+    if (!root.contains("meshes"))
+        return false;
+
+    for (const auto& mesh : root["meshes"]) {
+        if (!mesh.contains("primitives"))
+            continue;
+        for (const auto& prim : mesh["primitives"]) {
+            if (!prim.contains("extensions"))
+                continue;
+            const auto& extensions = prim["extensions"];
+            if (extensions.contains("KHR_draco_mesh_compression"))
+                return true;
+        }
+    }
+
+    return false;
+}
+
 using Mat4 = std::array<float, 16>;
 
 Mat4 mat4_identity()
@@ -489,7 +509,7 @@ void process_gltf_node(const json& root,
 
 } // anonymous namespace
 
-bool load_gltf(const std::string& path, TexturedMesh& out)
+bool load_gltf(const std::string& path, TexturedMesh& out, std::string* error_message)
 {
     json root;
     std::vector<unsigned char> bin;
@@ -503,6 +523,13 @@ bool load_gltf(const std::string& path, TexturedMesh& out)
 
     if (!root.contains("meshes") || root["meshes"].empty()) {
         BOOST_LOG_TRIVIAL(error) << "glTF: no meshes found";
+        return false;
+    }
+
+    if (has_draco_mesh_compression(root)) {
+        if (error_message)
+            *error_message = "Draco-compressed glTF/GLB files are not supported.";
+        BOOST_LOG_TRIVIAL(error) << "glTF: Draco-compressed geometry is not supported in " << path;
         return false;
     }
 

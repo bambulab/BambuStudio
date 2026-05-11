@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cstdint>
 #include <functional>
+#include <set>
 
 #include "CgalUtils.hpp"
 #include "ColorUtils.hpp"
@@ -52,6 +53,88 @@ static void SaveToOFF(const std::string& path, const TriMesh& mesh, const std::v
         }
         ofs << "\n";
     }
+}
+
+static std::vector<std::size_t> count_cluster_label_usage(const std::vector<std::size_t>& face_labels, std::size_t cluster_count)
+{
+    std::vector<std::size_t> usage(cluster_count, 0);
+    for (std::size_t label : face_labels) {
+        if (label < cluster_count) {
+            ++usage[label];
+        }
+    }
+    return usage;
+}
+
+static bool ensure_all_cluster_centers_used(const std::vector<RGB>& source_face_colors, const std::vector<RGB>& cluster_centers,
+                                           std::vector<std::size_t>& face_labels, const char* stage_name)
+{
+    if (source_face_colors.size() != face_labels.size()) {
+        BOOST_LOG_TRIVIAL(warning) << "TextureToColor: cannot preserve cluster colors at " << stage_name
+                                   << ", face color count does not match label count.";
+        return false;
+    }
+    if (cluster_centers.empty()) {
+        BOOST_LOG_TRIVIAL(warning) << "TextureToColor: cannot preserve cluster colors at " << stage_name
+                                   << ", no cluster center is available.";
+        return false;
+    }
+    if (cluster_centers.size() > face_labels.size()) {
+        BOOST_LOG_TRIVIAL(warning) << "TextureToColor: cannot use all cluster centers at " << stage_name
+                                   << ", centers=" << cluster_centers.size() << " faces=" << face_labels.size() << ".";
+        return false;
+    }
+
+    std::vector<std::size_t> usage = count_cluster_label_usage(face_labels, cluster_centers.size());
+    std::size_t missing_count = 0;
+    for (std::size_t cluster_id = 0; cluster_id < usage.size(); ++cluster_id) {
+        if (usage[cluster_id] != 0) {
+            continue;
+        }
+        ++missing_count;
+
+        double best_cost = std::numeric_limits<double>::max();
+        std::size_t best_face_id = std::numeric_limits<std::size_t>::max();
+        std::size_t best_old_cluster_id = std::numeric_limits<std::size_t>::max();
+
+        for (std::size_t fid = 0; fid < face_labels.size(); ++fid) {
+            const std::size_t old_cluster_id = face_labels[fid];
+            if (old_cluster_id >= cluster_centers.size() || usage[old_cluster_id] <= 1) {
+                continue;
+            }
+
+            const double old_dist = calc_rgb_color_difference_by_ciede2000(source_face_colors[fid], cluster_centers[old_cluster_id]);
+            const double new_dist = calc_rgb_color_difference_by_ciede2000(source_face_colors[fid], cluster_centers[cluster_id]);
+            const double cost = new_dist - old_dist;
+            if (cost < best_cost) {
+                best_cost = cost;
+                best_face_id = fid;
+                best_old_cluster_id = old_cluster_id;
+            }
+        }
+
+        if (best_face_id == std::numeric_limits<std::size_t>::max()) {
+            BOOST_LOG_TRIVIAL(warning) << "TextureToColor: failed to assign a seed face for unused cluster " << cluster_id
+                                       << " at " << stage_name << ".";
+            continue;
+        }
+
+        face_labels[best_face_id] = cluster_id;
+        --usage[best_old_cluster_id];
+        ++usage[cluster_id];
+    }
+
+    if (missing_count > 0) {
+        BOOST_LOG_TRIVIAL(debug) << "TextureToColor: reassigned seed faces for " << missing_count
+                                 << " unused cluster centers at " << stage_name << ".";
+    }
+
+    for (std::size_t count : usage) {
+        if (count == 0) {
+            return false;
+        }
+    }
+    return true;
 }
 
 // Bilinear interpolation texture sampling; sub-pixel precision avoids nearest-neighbor aliasing
@@ -470,6 +553,14 @@ bool TextureToColor(const TriMesh& texture_mesh, const std::vector<std::vector<V
         if (cancelled()) return false;
     }
     BOOST_LOG_TRIVIAL(debug) << "TextureToColor: the k is " << cluster_centers.size() << ".";
+    if (cluster_centers.empty()) {
+        BOOST_LOG_TRIVIAL(debug) << "TextureToColor: no cluster center generated.";
+        return false;
+    }
+    const std::set<RGB> unique_cluster_centers(cluster_centers.begin(), cluster_centers.end());
+    if (unique_cluster_centers.size() != cluster_centers.size()) {
+        BOOST_LOG_TRIVIAL(warning) << "TextureToColor: cluster centers contain duplicated RGB values, unique exported colors may be fewer than centers.";
+    }
 
     report(70, "Assigning cluster labels");
     if (cancelled()) {
@@ -510,8 +601,12 @@ bool TextureToColor(const TriMesh& texture_mesh, const std::vector<std::vector<V
             return false;
         }
     }
+    ensure_all_cluster_centers_used(face_colors, cluster_centers, clustered_face_labels, "cluster assignment");
     lap("Color clustering & labeling");
 #ifdef OUTPUT_TEST_RESULT
+    for (std::size_t i = 0; i < clustered_face_colors.size(); ++i) {
+        clustered_face_colors[i] = cluster_centers[clustered_face_labels[i]];
+    }
     SaveToOFF("texture_to_color_3_cluster.off", color_mesh, clustered_face_colors);
 #endif
 
@@ -528,12 +623,19 @@ bool TextureToColor(const TriMesh& texture_mesh, const std::vector<std::vector<V
         return false;
     }
     BOOST_LOG_TRIVIAL(debug) << "TextureToColor: smooth region success.";
+    ensure_all_cluster_centers_used(face_colors, cluster_centers, clustered_face_labels, "color smoothing");
     report(95, "Updating face colors");
     if (cancelled()) {
         return false;
     }
     for (std::size_t i = 0; i < clustered_face_colors.size(); ++i) {
         clustered_face_colors[i] = cluster_centers[clustered_face_labels[i]];
+    }
+    const std::set<RGB> unique_exported_colors(clustered_face_colors.begin(), clustered_face_colors.end());
+    if (unique_exported_colors.size() < cluster_centers.size()) {
+        BOOST_LOG_TRIVIAL(warning) << "TextureToColor: final exported unique colors (" << unique_exported_colors.size()
+                                   << ") are fewer than cluster centers (" << cluster_centers.size()
+                                   << "), likely due to duplicate centers or unsatisfied seed assignment.";
     }
 #ifdef OUTPUT_TEST_RESULT
     SaveToOFF("texture_to_color_4_smooth.off", color_mesh, clustered_face_colors);

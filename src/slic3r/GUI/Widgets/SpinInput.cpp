@@ -5,6 +5,8 @@
 
 #include <wx/dcgraph.h>
 
+wxDEFINE_EVENT(EVT_SPINCTRL_TEXT, wxCommandEvent);
+
 BEGIN_EVENT_TABLE(SpinInput, wxPanel)
 
 EVT_KEY_DOWN(SpinInput::keyPressed)
@@ -23,6 +25,7 @@ END_EVENT_TABLE()
 SpinInput::SpinInput()
     : label_color(std::make_pair(0x909090, (int) StateColor::Disabled), std::make_pair(0x6B6B6B, (int) StateColor::Normal))
     , text_color(std::make_pair(0x909090, (int) StateColor::Disabled), std::make_pair(0x262E30, (int) StateColor::Normal))
+    , text_updating(false)
 {
     radius = 0;
     border_width     = 1;
@@ -63,13 +66,17 @@ void SpinInput::Create(wxWindow *parent,
     text_ctrl->SetForegroundColour(text_color.colorForStates(state_handler.states()));
     text_ctrl->SetInitialSize(text_ctrl->GetBestSize());
     state_handler.attach_child(text_ctrl);
+    text_ctrl->Bind(wxEVT_TEXT, &SpinInput::onTextChanged, this);
     text_ctrl->Bind(wxEVT_KILL_FOCUS, &SpinInput::onTextLostFocus, this);
     text_ctrl->Bind(wxEVT_TEXT_ENTER, &SpinInput::onTextEnter, this);
     text_ctrl->Bind(wxEVT_KEY_DOWN, &SpinInput::keyPressed, this);
     text_ctrl->Bind(wxEVT_RIGHT_DOWN, [this](auto &e) {}); // disable context menu
     text_ctrl->Bind(wxEVT_SET_FOCUS, [this](wxFocusEvent &e) {
         e.Skip();
-        CallAfter([this]() { text_ctrl->SelectAll(); });
+        CallAfter([this]() {
+            if (text_ctrl->HasFocus())
+                text_ctrl->SelectAll();
+        });
     });
     button_inc = createButton(true);
     button_dec = createButton(false);
@@ -126,7 +133,9 @@ void SpinInput::SetValue(int value)
     if (value < min) value = min;
     else if (value > max) value = max;
     this->val = value;
+    text_updating = true;
     text_ctrl->SetValue(wxString::FromDouble(value));
+    text_updating = false;
 }
 
 int SpinInput::GetValue()const
@@ -269,6 +278,21 @@ void SpinInput::onTimer(wxTimerEvent &evnet) {
     sendSpinEvent();
 }
 
+void SpinInput::onTextChanged(wxCommandEvent &event)
+{
+    if (!text_updating) {
+        long value;
+        if (text_ctrl->GetValue().ToLong(&value)) {
+            wxCommandEvent e(EVT_SPINCTRL_TEXT, GetId());
+            e.SetEventObject(this);
+            e.SetInt((int)value);
+            e.SetString(text_ctrl->GetValue());
+            GetEventHandler()->ProcessEvent(e);
+        }
+    }
+    event.Skip();
+}
+
 void SpinInput::onTextLostFocus(wxEvent &event)
 {
     timer.Stop();
@@ -281,16 +305,21 @@ void SpinInput::onTextLostFocus(wxEvent &event)
     // pass to outer
     event.SetId(GetId());
     ProcessEventLocally(event);
-    e.Skip();
+    event.Skip();
 }
 
 void SpinInput::onTextEnter(wxCommandEvent &event)
 {
     long value;
     if (!text_ctrl->GetValue().ToLong(&value)) { value = val; }
-    if (value != val) {
+    int normalized = (int)value;
+    if (normalized < min) normalized = min;
+    else if (normalized > max) normalized = max;
+    bool value_changed = normalized != val;
+    if (normalized != val || text_ctrl->GetValue() != wxString::FromDouble(normalized)) {
         SetValue(value);
-        sendSpinEvent();
+        if (value_changed)
+            sendSpinEvent();
     }
     event.SetId(GetId());
     ProcessEventLocally(event);

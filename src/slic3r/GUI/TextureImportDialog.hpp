@@ -109,8 +109,11 @@ private:
     float   m_zoom     = 1.0f;
     float   m_rot_x    = -30.0f;
     float   m_rot_y    = 30.0f;
+    float   m_pan_x    = 0.0f;
+    float   m_pan_y    = 0.0f;
     wxPoint m_last_mouse_pos;
-    bool    m_dragging = false;
+    enum class DragMode { None, Rotate, Pan };
+    DragMode m_drag_mode = DragMode::None;
 
     std::vector<std::array<float, 3>> m_vertices;
     std::vector<std::array<int, 3>>   m_indices;
@@ -150,9 +153,12 @@ public:
     TextureImportDialog(wxWindow*                        parent,
                         const Slic3r::TexturedMesh&      textured_mesh,
                         const std::vector<std::string>&  filament_color_strs,
-                        const std::vector<std::string>&  filament_names);
+                        const std::vector<std::string>&  filament_names,
+                        std::function<bool()>            initial_cancel_callback = {},
+                        std::function<bool(int)>         initial_progress_callback = {});
     ~TextureImportDialog();
 
+    int ShowModal() override;
     void on_dpi_changed(const wxRect& suggested_rect) override;
 
     Slic3r::PaintedMesh               get_painted_mesh() const;
@@ -161,8 +167,8 @@ public:
     // Colors of virtual filaments that need to be created after dialog confirmation.
     // Index i corresponds to filament index (m_existing_filament_count + i).
     const std::vector<std::array<float, 4>>& get_new_filament_colors() const { return m_new_filament_colors; }
+    const std::vector<std::string>& get_new_filament_preset_names() const { return m_new_filament_preset_names; }
     size_t get_existing_filament_count() const { return m_existing_filament_count; }
-    const std::map<size_t, std::string>& get_changed_existing_colors() const { return m_changed_existing_colors; }
 
 private:
     void build_ui();
@@ -174,7 +180,7 @@ private:
     void set_state(TextureImportState new_state);
     void update_ui_for_state();
 
-    void start_computation(bool auto_color = false);
+    void start_computation(bool auto_color = false, bool initial = false);
     void cancel_computation();
     void on_computation_complete(wxCommandEvent& evt);
     void on_computation_progress(wxCommandEvent& evt);
@@ -185,13 +191,18 @@ private:
     std::vector<Slic3r::FilamentMatch> build_matches_from_rows() const;
     void update_filament_color_map();
     void show_filament_popup(size_t row_index);
-    int  add_virtual_filament(const std::array<float, 4>& rgba, const std::string& hex);
+    void dismiss_filament_popup();
+    void dismiss_filament_popup_on_wheel(wxMouseEvent& evt);
+    int  add_virtual_filament(const std::array<float, 4>& rgba, const std::string& hex,
+                              const std::string& preset_name = std::string());
 
     void on_color_preset_clicked(wxCommandEvent& evt);
     void on_color_slider_changed(wxCommandEvent& evt);
     void on_color_spin_changed(wxCommandEvent& evt);
+    void on_color_spin_text_changed(wxCommandEvent& evt);
     void on_smooth_slider_changed(wxCommandEvent& evt);
     void on_smooth_spin_changed(wxCommandEvent& evt);
+    void on_smooth_spin_text_changed(wxCommandEvent& evt);
     void on_apply_clicked(wxCommandEvent& evt);
     void on_auto_merge_toggled(wxCommandEvent& evt);
     void on_view_button_clicked(wxCommandEvent& evt);
@@ -199,15 +210,22 @@ private:
     void on_skip_clicked(wxCommandEvent& evt);
     void on_ok_clicked(wxCommandEvent& evt);
 
+    void set_color_count_value(int value, bool update_spin);
+    void set_smooth_value(int value, bool update_spin);
+    void preview_spin_text_value(SpinInput* spin, GreenSlider* slider, int& param,
+                                 int min_value, int max_value, const wxString& text);
+
+    bool is_params_dirty() const;
+    void update_confirm_button_state();
+
     Slic3r::TexturedMesh               m_textured_mesh;
     std::vector<std::string>           m_filament_color_strs;   // existing + virtual
     std::vector<std::string>           m_filament_names;        // existing + virtual
     std::vector<std::array<float, 4>>  m_filament_colors_rgba;  // existing + virtual
     size_t                             m_existing_filament_count = 0;
     std::vector<std::array<float, 4>>  m_new_filament_colors;   // only virtual (to be created)
-    std::map<size_t, std::string>      m_changed_existing_colors; // idx -> new hex for existing filaments modified by user
-    std::vector<std::string>           m_filament_preset_ids;    // per existing filament, e.g. "GFA00"
-    std::vector<std::string>           m_filament_preset_types;  // per existing filament, e.g. "Bambu PLA Basic"
+    std::vector<std::string>           m_new_filament_preset_names; // only virtual, aligned with m_new_filament_colors
+    std::string                        m_default_virtual_filament_preset_name;
 
     TextureImportState                 m_state = TextureImportState::Idle;
     bool                               m_skipped = false;
@@ -219,10 +237,16 @@ private:
     std::atomic<bool>                  m_cancel_flag{false};
     std::mutex                         m_result_mutex;
     Slic3r::PaintedMesh               m_pending_result;
+    std::function<bool()>              m_initial_cancel_callback;
+    std::function<bool(int)>           m_initial_progress_callback;
+    bool                               m_current_computation_initial = false;
+    bool                               m_initial_computation_pending = false;
+    bool                               m_initial_computation_cancelled = false;
+    bool                               m_initial_computation_failed = false;
 
-    wxButton*    m_btn_color_4    = nullptr;
-    wxButton*    m_btn_color_8    = nullptr;
-    wxButton*    m_btn_color_16   = nullptr;
+    Button*      m_btn_color_4    = nullptr;
+    Button*      m_btn_color_8    = nullptr;
+    Button*      m_btn_color_16   = nullptr;
     Button*      m_btn_color_auto = nullptr;
     GreenSlider* m_color_slider   = nullptr;
     SpinInput*   m_color_spin     = nullptr;
@@ -234,12 +258,16 @@ private:
     wxScrolledWindow*     m_mapping_scroll = nullptr;
     wxBoxSizer*           m_mapping_sizer  = nullptr;
     std::vector<FilamentMappingRow> m_mapping_rows;
+    FilamentSelectPopup*  m_filament_popup = nullptr;
+    int                   m_filament_popup_row = -1;
+    int                   m_skip_next_filament_popup_row = -1;
 
     TexturePreviewCanvas* m_preview_canvas      = nullptr;
     wxPanel*              m_tab_panel           = nullptr;
     Button*               m_btn_view_original   = nullptr;
     Button*               m_btn_view_multicolor = nullptr;
     Button*               m_btn_view_filament   = nullptr;
+    ScalableButton*       m_btn_reset_view      = nullptr;
 
     ProgressDialog* m_progress_dlg = nullptr;
 
@@ -248,6 +276,10 @@ private:
 
     int   m_param_color_count = 4;
     int   m_param_smooth      = 5;
+
+    int   m_applied_color_count = -1;
+    int   m_applied_smooth      = -1;
+    wxStaticText* m_hint_label  = nullptr;
 
     static const int ID_COLOR_4     = wxID_HIGHEST + 200;
     static const int ID_COLOR_8     = wxID_HIGHEST + 201;
@@ -258,6 +290,7 @@ private:
     static const int ID_VIEW_ORIGINAL   = wxID_HIGHEST + 206;
     static const int ID_VIEW_MULTICOLOR = wxID_HIGHEST + 207;
     static const int ID_VIEW_FILAMENT   = wxID_HIGHEST + 208;
+    static const int ID_VIEW_RESET      = wxID_HIGHEST + 209;
 
     wxDECLARE_EVENT_TABLE();
 };
