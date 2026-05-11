@@ -4203,6 +4203,7 @@ void Sidebar::add_custom_filament(wxColour new_col) {
         rotate_strings("filament_mixed_sublayer_ratios");
         rotate_bools("filament_mixed_gradient");
         rotate_strings("filament_mixed_gradient_range");
+        rotate_bools("filament_mixed_gradient_per_part");
 
         if (ams_mc.size() > total)
             std::rotate(ams_mc.begin() + insert_pos, ams_mc.begin() + total, ams_mc.end());
@@ -5700,6 +5701,8 @@ void Sidebar::add_mixed_filament()
             project_config.set_key_value("filament_mixed_gradient", new ConfigOptionBools({false}));
         if (!project_config.option("filament_mixed_gradient_range"))
             project_config.set_key_value("filament_mixed_gradient_range", new ConfigOptionStrings({""}) );
+        if (!project_config.option("filament_mixed_gradient_per_part"))
+            project_config.set_key_value("filament_mixed_gradient_per_part", new ConfigOptionBools({false}));
 
         {
             auto* grad_opt = project_config.option<ConfigOptionBools>("filament_mixed_gradient");
@@ -5715,6 +5718,11 @@ void Sidebar::add_mixed_filament()
             } else {
                 grad_range_opt->values[new_idx] = "";
             }
+        }
+        {
+            auto* per_part_opt = project_config.option<ConfigOptionBools>("filament_mixed_gradient_per_part");
+            while (per_part_opt->values.size() <= new_idx) per_part_opt->values.push_back(false);
+            per_part_opt->values[new_idx] = result.gradient_enabled && result.per_part_gradient;
         }
 
         auto& presets = wxGetApp().preset_bundle->filament_presets;
@@ -5795,6 +5803,9 @@ void Sidebar::edit_mixed_filament(size_t panel_idx)
         if (std::sscanf(grad_range_opt->values[cfg_idx].c_str(), "%f,%f", &v0, &v1) == 2)
             existing.gradient_direction = (v0 > v1) ? 0 : 1;
     }
+    auto* per_part_opt = project_config.option<ConfigOptionBools>("filament_mixed_gradient_per_part");
+    if (existing.gradient_enabled && per_part_opt && cfg_idx < per_part_opt->values.size())
+        existing.per_part_gradient = per_part_opt->values[cfg_idx];
 
     MixedFilamentDialog dlg(this, existing, color_strs, names, types);
     if (dlg.ShowModal() == wxID_OK) {
@@ -5831,6 +5842,8 @@ void Sidebar::edit_mixed_filament(size_t panel_idx)
             project_config.set_key_value("filament_mixed_gradient", new ConfigOptionBools({false}));
         if (!project_config.option("filament_mixed_gradient_range"))
             project_config.set_key_value("filament_mixed_gradient_range", new ConfigOptionStrings({""}) );
+        if (!project_config.option("filament_mixed_gradient_per_part"))
+            project_config.set_key_value("filament_mixed_gradient_per_part", new ConfigOptionBools({false}));
 
         {
             auto* grad_opt = project_config.option<ConfigOptionBools>("filament_mixed_gradient");
@@ -5846,6 +5859,11 @@ void Sidebar::edit_mixed_filament(size_t panel_idx)
             } else {
                 grad_range_opt->values[cfg_idx] = "";
             }
+        }
+        {
+            auto* per_part_opt = project_config.option<ConfigOptionBools>("filament_mixed_gradient_per_part");
+            while (per_part_opt->values.size() <= cfg_idx) per_part_opt->values.push_back(false);
+            per_part_opt->values[cfg_idx] = result.gradient_enabled && result.per_part_gradient;
         }
 
         // Compute blended color
