@@ -2207,6 +2207,8 @@ void AMSRoadUpPart::SetMode(AMSRoadShowMode mode)
 
 void AMSRoadUpPart::paintEvent(wxPaintEvent& evt)
 {
+    if (IsBeingDeleted()) return;
+
     wxPaintDC dc(this);
     render(dc);
 }
@@ -3780,6 +3782,8 @@ std::string AmsItem::GetCurrentCan()
 
 void AmsItem::paintEvent(wxPaintEvent& evt)
 {
+    if (IsBeingDeleted()) return;
+
     wxPaintDC dc(this);
     render(dc);
 }
