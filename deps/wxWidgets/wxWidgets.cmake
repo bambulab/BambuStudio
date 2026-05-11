@@ -61,7 +61,3 @@ bambustudio_add_cmake_project(wxWidgets
         -DwxUSE_EXPAT=sys
         ${_wx_egl}
 )
-
-if (MSVC)
-    add_debug_dep(dep_wxWidgets)
-endif ()
