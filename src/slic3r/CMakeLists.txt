@@ -691,7 +691,10 @@ add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
 target_include_directories(libslic3r_gui PRIVATE Utils)
 
 if (WIN32)
-    target_include_directories(libslic3r_gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/WebView2/include)
+    # WebView2 SDK installed into the pixi env (Library/include) by
+    # scripts/pixi/windows/setup-webview2.ps1; was vendored under
+    # deps/WebView2/include before the pixi migration.
+    target_include_directories(libslic3r_gui PRIVATE ${CMAKE_PREFIX_PATH}/include)
 endif()
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})

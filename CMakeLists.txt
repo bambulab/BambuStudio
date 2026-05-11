@@ -658,18 +658,10 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
     get_filename_component(output_mpfrdll "${_mpfr_dll}" NAME)
     file(COPY ${_gmp_dll} ${_mpfr_dll} DESTINATION ${_out_dir})
 
-    # WebView2 SDK stays vendored in deps/WebView2/ (kept like deps/wxWidgets/,
-    # deps/libnoise/: Microsoft NuGet redistributable, no conda-forge package).
-    # BambuStudio's own GUI code includes <WebView2.h> via the include path
-    # added in src/slic3r/CMakeLists.txt.
-    if ((CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$") OR (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))
-        set(_webviewloaderdll win_arm64/WebView2Loader.dll)
-    elseif ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "4")
-        set(_webviewloaderdll win32/WebView2Loader.dll)
-    else ()
-        set(_webviewloaderdll win64/WebView2Loader.dll)
-    endif ()
-    file(COPY ${TOP_LEVEL_PROJECT_DIR}/deps/WebView2/lib/${_webviewloaderdll} DESTINATION ${_out_dir})
+    # WebView2 SDK installed by scripts/pixi/windows/setup-webview2.ps1 (Microsoft
+    # NuGet, no conda-forge package). wxWidgets-edge links against the import
+    # lib; the runtime DLL needs to sit next to bambu-studio.exe.
+    file(COPY ${CMAKE_PREFIX_PATH}/bin/WebView2Loader.dll DESTINATION ${_out_dir})
 
     file(COPY ${CMAKE_PREFIX_PATH}/bin/occt/TKBO.dll
             ${CMAKE_PREFIX_PATH}/bin/occt/TKBRep.dll

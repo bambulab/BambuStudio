@@ -180,9 +180,13 @@ description = "Copy libfoo.lib -> foo.lib aliases for ffmpeg deps where conda-fo
 cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/setup-wxwidgets.ps1"
 description = "Build bambulab/wxWidgets fork (with WebView Edge) and install into pixi env"
 
+[target.win-64.tasks.setup-webview2]
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/setup-webview2.ps1"
+description = "Download Microsoft.Web.WebView2 NuGet redistributable into pixi env (no conda-forge package)"
+
 [target.win-64.tasks.bootstrap]
-description = "One-time: bridge OCCT/intl/lib-name layouts + build bambulab forks (libnoise, wxWidgets) into pixi env"
-depends-on = ["setup-libnoise", "setup-occt-bridge", "setup-intl-bridge", "setup-lib-aliases", "setup-wxwidgets"]
+description = "One-time: bridge OCCT/intl/lib-name layouts + build bambulab forks (libnoise, wxWidgets) + install WebView2 SDK into pixi env"
+depends-on = ["setup-libnoise", "setup-occt-bridge", "setup-intl-bridge", "setup-lib-aliases", "setup-webview2", "setup-wxwidgets"]
 
 [target.win-64.tasks.build]
 description = "Configure and build BambuStudio with the win-pixi CMake preset (Visual Studio generator). Parallelism = floor(free_mem_GB / 2.5); override via CMAKE_BUILD_PARALLEL_LEVEL."
