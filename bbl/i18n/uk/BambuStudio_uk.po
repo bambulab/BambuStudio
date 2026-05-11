@@ -14848,7 +14848,7 @@ msgid "Title"
 msgstr "Назва"
 
 msgid "A test model will be printed. Please clear the build plate and place it back to the hot bed before calibration."
-msgstr "Буде надруковано тестову модель. Будь ласка, очистіть стільцевий стіл та поверніть його на гарячу ліжко перед калібруванням."
+msgstr "Буде надруковано тестову модель. Будь ласка, очистіть робочу поверхню та поверніть її на нагрівальний стіл перед калібруванням."
 
 msgid "Printing Parameters"
 msgstr "Параметри друку"
