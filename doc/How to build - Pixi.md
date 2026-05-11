@@ -39,11 +39,28 @@ for fast iteration. Windows is single-configuration Release for now.
 |---|---|---|---|
 | Debug | `pixi run build` (default) | `pixi run build` (default) | not yet |
 | Release | `pixi run build-release` | `pixi run build-release` | `pixi run build` |
-| AppImage | `pixi run appimage` | -- | -- |
 | Launch Release binary | `pixi run bambu-studio-release` | `pixi run bambu-studio-release` | `pixi run bambu-studio` |
+| Distributable | `pixi run dist` (AppImage) | `pixi run dist` (DMG) | -- |
 
-macOS currently ships a bare binary at `build/<type>/src/bambu-studio`
-(no `.app` bundling); proper `BambuStudio.app` packaging is a follow-up.
+`pixi run dist` produces the platform-native distributable for the
+host: an AppImage on Linux, a DMG on macOS. The artifact lands in
+`build/release/`.
+
+### macOS `.app` and DMG
+
+`pixi run package` builds `build/release/BambuStudio.app` — a
+self-contained bundle with all conda-forge dylibs in
+`Contents/Frameworks/` and the resources tree at
+`Contents/Resources/`. Ad-hoc codesigned by default; set
+`BAMBU_CODESIGN_IDENTITY="Developer ID Application: …"` to sign with a
+real cert.
+
+`pixi run dist` wraps that `.app` into `build/release/BambuStudio-<version>-arm64.dmg`
+via dmgbuild, with an `Applications` symlink for drag-installation.
+
+First launch from a downloaded DMG triggers the Gatekeeper
+"unidentified developer" dialog. Right-click the `.app` in
+Applications and choose **Open** to whitelist it once.
 
 ## Network plugin (cloud / printer features)
 
