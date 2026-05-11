@@ -30,16 +30,13 @@ Other major features are:
 - Flushing transition-filament into infill/object during filament change
 
 # How to compile
-Following platforms are currently supported to compile:
-- Windows 64-bit, [Compile Guide](https://github.com/bambulab/BambuStudio/wiki/Windows-Compile-Guide)
-- Mac 64-bit, [Compile Guide](https://github.com/bambulab/BambuStudio/wiki/Mac-Compile-Guide)
-- Linux, [Compile Guide](https://github.com/bambulab/BambuStudio/wiki/Linux-Compile-Guide)
-  - currently we only provide linux appimages on [github releases](https://github.com/bambulab/BambuStudio/releases) for Ubuntu/Fedora, and a [flathub version](https://flathub.org/apps/com.bambulab.BambuStudio) can be used for all the linux platforms
 
-Alternatively, [Pixi](https://pixi.sh) provides a single-tool flow that
-bootstraps deps from conda-forge and works across Linux and Windows
-without the legacy `BuildLinux.sh` / `deps/` ExternalProject path. See
-[`doc/How to build - Pixi.md`](doc/How%20to%20build%20-%20Pixi.md).
+This branch builds via [Pixi](https://pixi.sh): all dependencies come
+from conda-forge, replacing the legacy `BuildLinux.sh` / `deps/`
+ExternalProject flow. Supported targets: Linux 64-bit (glibc ≥ 2.34),
+Windows 64-bit (Visual Studio 2019 or 2022), macOS (Apple Silicon).
+
+See [`doc/How to build - Pixi.md`](doc/How%20to%20build%20-%20Pixi.md).
 
 # Report issue
 You can add an issue to the [github tracker](https://github.com/bambulab/BambuStudio/issues) if **it isn't already present.**
