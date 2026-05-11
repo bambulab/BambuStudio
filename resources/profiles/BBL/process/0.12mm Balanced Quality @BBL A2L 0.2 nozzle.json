@@ -1,11 +1,11 @@
 {
     "type": "process",
-    "name": "0.14mm Extra Draft @BBL A2L 0.2 nozzle",
-    "inherits": "fdm_process_single_0.14_nozzle_0.2",
+    "name": "0.12mm Balanced Quality @BBL A2L 0.2 nozzle",
+    "inherits": "fdm_process_single_0.12_nozzle_0.2",
     "from": "system",
-    "setting_id": "GP186",
+    "setting_id": "GP183",
     "instantiation": "true",
-    "description": "Compared with the default profile of a 0.2 mm nozzle, it has a bigger layer height, and results in slightly visible layer lines, but shorter printing time.",
+    "description": "Compared with the default profile of a 0.2 mm nozzle, it has a slightly bigger layer height, and results in almost negligible layer lines, and slightly shorter printing time.",
     "default_acceleration": [
         "6000"
     ],

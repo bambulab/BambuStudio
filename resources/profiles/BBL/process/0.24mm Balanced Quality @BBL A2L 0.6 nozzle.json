@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "name": "0.24mm Optimal @BBL A2L 0.6 nozzle",
+    "name": "0.24mm Balanced Quality @BBL A2L 0.6 nozzle",
     "inherits": "fdm_process_single_0.24_nozzle_0.6",
     "from": "system",
     "setting_id": "GP194",
@@ -11,21 +11,6 @@
     ],
     "elefant_foot_compensation": "0.075",
     "prime_tower_brim_width": "-1",
-    "slowdown_end_acc": [
-        "2000"
-    ],
-    "slowdown_end_height": [
-        "325"
-    ],
-    "slowdown_end_speed": [
-        "500"
-    ],
-    "slowdown_start_acc": [
-        "8000"
-    ],
-    "slowdown_start_speed": [
-        "500"
-    ],
     "smooth_coefficient": "4",
     "travel_acceleration": [
         "8000"

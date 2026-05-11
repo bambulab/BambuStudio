@@ -1,6 +1,6 @@
 {
     "type": "process",
-    "name": "0.24mm Fine @BBL A2L 0.8 nozzle",
+    "name": "0.24mm Balanced Quality @BBL A2L 0.8 nozzle",
     "inherits": "fdm_process_single_0.24_nozzle_0.8",
     "from": "system",
     "setting_id": "GP193",
