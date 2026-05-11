@@ -63,6 +63,9 @@ compilers = ">=1.10"
 # Apple ships no gettext by default; brew/macports is the usual source.
 # Pull it from conda-forge so msgfmt is on PATH for the .po -> .mo step.
 gettext = "*"
+# DMG packaging: pure-Python wrapper around hdiutil. Pulled in here so
+# `pixi run dist` works out-of-the-box without Homebrew create-dmg.
+dmgbuild = ">=1.6"
 
 # Windows uses the user-installed Visual Studio (system MSVC) — conda-forge's
 # `vs2019_win-64`/`vs2022_win-64` wrappers shell out to that same toolchain
