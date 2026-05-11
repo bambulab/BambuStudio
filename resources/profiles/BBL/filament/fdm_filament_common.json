@@ -297,6 +297,9 @@
     "hot_plate_temp_initial_layer": [
         "60"
     ],
+    "filament_ingredients_safe": "1",
+    "filament_emission_safe": "1",
+    "filament_contact_safe": "1",
     "hole_coef_1": [
         "0"
     ],
