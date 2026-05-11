@@ -309,16 +309,18 @@ void SkipPartCanvas::Render()
     float radius = std::min(rw, rh) * 0.05f;
 
     if (bg_texture_id_ != 0) {
+        float img_w = static_cast<float>(pick_image_.cols);
+        float img_h = static_cast<float>(pick_image_.rows);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, bg_texture_id_);
         glColor4f(1.f, 1.f, 1.f, 1.f);
         glBegin(GL_QUADS);
-        glTexCoord2f(0, 0); glVertex2f(rx,      ry);
-        glTexCoord2f(1, 0); glVertex2f(rx + rw, ry);
-        glTexCoord2f(1, 1); glVertex2f(rx + rw, ry + rh);
-        glTexCoord2f(0, 1); glVertex2f(rx,      ry + rh);
+        glTexCoord2f(0, 0); glVertex2f(0,     0);
+        glTexCoord2f(1, 0); glVertex2f(img_w, 0);
+        glTexCoord2f(1, 1); glVertex2f(img_w, img_h);
+        glTexCoord2f(0, 1); glVertex2f(0,     img_h);
         glEnd();
         glBindTexture(GL_TEXTURE_2D, 0);
         glDisable(GL_TEXTURE_2D);
