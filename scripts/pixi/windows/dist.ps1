@@ -44,11 +44,22 @@ foreach ($f in 'bambu-studio.exe', 'BambuStudio.dll', 'resources') {
     }
 }
 
-# 2) Bootstrap WiX into the pixi env if not already present
+# 2) Bootstrap WiX into the pixi env if not already present.
+# Pin to WiX 5: WiX 7 (the dotnet-tool default since 2025) gates production
+# use behind the Open Source Maintenance Fee EULA. WiX 5 keeps the modern
+# Files Include="**" syntax we use without the EULA.
+$wixVersion = '5.0.2'
 $wixExe = Join-Path $env:CONDA_PREFIX 'Library/bin/wix.exe'
-if (-not (Test-Path $wixExe)) {
-    Write-Host "Installing WiX 4+ via dotnet tool -> $wixExe"
-    & dotnet tool install --tool-path (Join-Path $env:CONDA_PREFIX 'Library/bin') wix
+$installedVer = $null
+if (Test-Path $wixExe) {
+    $installedVer = (& $wixExe --version 2>$null) -split '\+' | Select-Object -First 1
+}
+if ($installedVer -ne $wixVersion) {
+    Write-Host "Installing WiX $wixVersion via dotnet tool -> $wixExe"
+    if (Test-Path $wixExe) {
+        & dotnet tool uninstall --tool-path (Join-Path $env:CONDA_PREFIX 'Library/bin') wix
+    }
+    & dotnet tool install --tool-path (Join-Path $env:CONDA_PREFIX 'Library/bin') --version $wixVersion wix
     if ($LASTEXITCODE) { throw "dotnet tool install wix failed ($LASTEXITCODE)" }
 }
 

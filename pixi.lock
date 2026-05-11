@@ -327,6 +327,11 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/cgal-cpp-6.1.1-hc4f255e_1.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/cmake-3.31.8-hdcbee5b_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/dav1d-1.2.1-hcfcfb64_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/dotnet-10.0.100-h57928b3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/dotnet-aspnetcore-10.0.0-h57928b3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/dotnet-desktop-10.0.0-h57928b3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/dotnet-runtime-10.0.0-h57928b3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/dotnet-sdk-10.0.100-h57928b3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/eigen-3.4.0-h5112557_2.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/eigen-abi-3.4.0.100-hc11354d_2.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/expat-2.8.0-hac47afa_0.conda
@@ -4431,6 +4436,52 @@ packages:
   license_family: BSD
   size: 618643
   timestamp: 1685696352968
+- conda: https://conda.anaconda.org/conda-forge/win-64/dotnet-10.0.100-h57928b3_0.conda
+  sha256: fc7e44d8f6470fea023855528926179df8ae4a0d4f4764f846397d3096002aac
+  md5: 980307b45a6d86cc2a903daab088afda
+  depends:
+  - dotnet-aspnetcore 10.0.0.*
+  - dotnet-desktop 10.0.0.*
+  - dotnet-runtime 10.0.0.*
+  - dotnet-sdk 10.0.100.*
+  license: MIT
+  license_family: MIT
+  size: 18466
+  timestamp: 1764576787404
+- conda: https://conda.anaconda.org/conda-forge/win-64/dotnet-aspnetcore-10.0.0-h57928b3_0.conda
+  sha256: 5ac7e44bb571b8d7f88046f3256782371b5a81e99ed7af54a9f194ba35cfe561
+  md5: 3c5c1d99fc7008eeefbe9efecb230742
+  depends:
+  - dotnet-runtime 10.0.0.*
+  license: MIT
+  license_family: MIT
+  size: 9549992
+  timestamp: 1764576431404
+- conda: https://conda.anaconda.org/conda-forge/win-64/dotnet-desktop-10.0.0-h57928b3_0.conda
+  sha256: d9312f8956d12dd7ad515e04096b4fa44179630ca91c25d9d264aaf44f45a496
+  md5: f784673d502ef648cdebc6ac233f8f9b
+  depends:
+  - dotnet-runtime 10.0.0.*
+  license: MIT
+  license_family: MIT
+  size: 29183584
+  timestamp: 1764576475675
+- conda: https://conda.anaconda.org/conda-forge/win-64/dotnet-runtime-10.0.0-h57928b3_0.conda
+  sha256: 0707dfd8eb03aae3263b25b36fae3aeef332feaf89e25278d10211ddda0b5771
+  md5: 459da043d2e99f92f7ea123f9f3824ca
+  license: MIT
+  license_family: MIT
+  size: 28926799
+  timestamp: 1764576397445
+- conda: https://conda.anaconda.org/conda-forge/win-64/dotnet-sdk-10.0.100-h57928b3_0.conda
+  sha256: dd599c2f3677a53becdf6b2360bb55f86e748216411692af310bb22118e92241
+  md5: 5eb46845e8f3d9d06b19adcc94cda530
+  depends:
+  - dotnet-runtime 10.0.0.*
+  license: MIT
+  license_family: MIT
+  size: 143429902
+  timestamp: 1764576558695
 - conda: https://conda.anaconda.org/conda-forge/win-64/eigen-3.4.0-h5112557_2.conda
   sha256: c6a44edf0381f66826cd60ed30b07aa4bc5b9ce5de94d458f0c5457fb1d49dfd
   md5: e4314d9a347775fcc62c81fc2c37a229

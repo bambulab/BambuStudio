@@ -6,7 +6,7 @@
       wix build BambuStudio.wxs -arch x64 -d Payload=<staged-tree> -d Version=N.N.N.N -o ...
 
   $(Payload)  must point to a directory whose contents are the installed
-              tree root (cmake --install output: bambu-studio.exe + all
+              tree root (the cmake install output: bambu-studio.exe + all
               DLLs + resources/). Files Include="**" bulk-imports it.
 
   $(Version)  must be a 4-part numeric version (Windows Installer rule).
