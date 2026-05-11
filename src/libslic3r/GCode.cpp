@@ -7083,9 +7083,11 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
         }
         // rirDisabled: should_reduce remains false
         if (should_reduce && !is_perimeter(role) && m_layer != nullptr && m_config.sparse_infill_density.value > 0 &&
+            travel.length() < scale_(FILAMENT_CONFIG(retraction_minimum_travel)) &&
             m_retract_when_crossing_perimeters.travel_inside_internal_regions_no_wall_crossing(*m_layer, travel))
             // Skip retraction if travel is contained in an internal slice *and*
-            // internal infill is enabled (so that stringing is entirely not visible).
+            // internal infill is enabled (so that stringing is entirely not visible) *and*
+            // travel distance is shorter than retraction_minimum_travel (to prevent oozing on long moves).
             //FIXME any_internal_region_slice_contains() is potentionally very slow, it shall test for the bounding boxes first.
             return false;
     }
