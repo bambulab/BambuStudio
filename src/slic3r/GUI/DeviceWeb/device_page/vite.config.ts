@@ -57,7 +57,7 @@ export default defineConfig({
 
   resolve: {
     alias: {
-      '@locales': new URL('./locales', import.meta.url).pathname,
+      '@locales': new URL('./locales', import.meta.url).href,
     },
   },
 
