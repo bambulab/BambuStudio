@@ -63,6 +63,9 @@ compilers = ">=1.10"
 # Apple ships no gettext by default; brew/macports is the usual source.
 # Pull it from conda-forge so msgfmt is on PATH for the .po -> .mo step.
 gettext = "*"
+# DMG packaging: pure-Python wrapper around hdiutil. Pulled in here so
+# `pixi run dist` works out-of-the-box without Homebrew create-dmg.
+dmgbuild = ">=1.6"
 
 # Windows uses the user-installed Visual Studio (system MSVC) — conda-forge's
 # `vs2019_win-64`/`vs2022_win-64` wrappers shell out to that same toolchain
@@ -143,17 +146,44 @@ description = "Launch build/release/src/bambu-studio. Args pass through."
 cmd = "bash scripts/pixi/run.sh"
 env = { BAMBU_BUILD_TYPE = "release" }
 
-[target.linux-64.tasks.appimage]
-description = "Bundle build/release/src/bambu-studio into a portable AppImage."
-depends-on = ["appimage-release"]
+[target.linux-64.tasks.dist]
+description = "Bundle the Release binary into a portable AppImage (Linux host distributable)."
+depends-on = ["dist-release"]
 
-[target.linux-64.tasks.appimage-debug]
-description = "Bundle build/debug/src/bambu-studio into an AppImage (huge, dev-only)."
+[target.linux-64.tasks.dist-debug]
+description = "Bundle the Debug binary into an AppImage (huge, dev-only)."
 cmd = "bash scripts/pixi/appimage.sh debug"
 
-[target.linux-64.tasks.appimage-release]
-description = "Bundle build/release/src/bambu-studio into a portable AppImage."
+[target.linux-64.tasks.dist-release]
+description = "Bundle the Release binary into a portable AppImage."
 cmd = "bash scripts/pixi/appimage.sh release"
+
+# macOS: package* builds the .app, dist* wraps it in a DMG.
+[target.osx-arm64.tasks.package]
+description = "Build BambuStudio.app from the Release binary."
+depends-on = ["package-release"]
+
+[target.osx-arm64.tasks.package-debug]
+description = "Build BambuStudio.app from the Debug binary (dev variant, larger)."
+cmd = "bash scripts/pixi/macos/package.sh debug"
+
+[target.osx-arm64.tasks.package-release]
+description = "Build BambuStudio.app from the Release binary."
+cmd = "bash scripts/pixi/macos/package.sh release"
+
+[target.osx-arm64.tasks.dist]
+description = "Wrap BambuStudio.app into a distributable DMG (macOS host distributable)."
+depends-on = ["dist-release"]
+
+[target.osx-arm64.tasks.dist-debug]
+description = "Wrap the Debug BambuStudio.app into a DMG."
+depends-on = ["package-debug"]
+cmd = "bash scripts/pixi/macos/dmg.sh debug"
+
+[target.osx-arm64.tasks.dist-release]
+description = "Wrap the Release BambuStudio.app into a distributable DMG."
+depends-on = ["package-release"]
+cmd = "bash scripts/pixi/macos/dmg.sh release"
 
 # Windows pixi tasks (PowerShell). Scripts live under scripts/pixi/windows/.
 # These shadow the top-level [tasks.*] above on win-64. The debug/release
