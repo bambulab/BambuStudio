@@ -3604,6 +3604,9 @@ __retry:
             m_agent->set_country_code(country_code);
             m_agent->start();
             m_load_last_machine.InnerLoad(m_agent, getDeviceManager());
+            if (auto dev = getDeviceManager()) {
+                dev->restore_local_machines_from_user_access_config();
+            }
         }
     }
     else {
@@ -5196,6 +5199,7 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
         dev->update_user_machine_list_info();
         CallAfter([this, dev]() {
             m_load_last_machine.TryLoadFromHttpCB(m_agent, dev);
+            dev->restore_local_machines_from_user_access_config();
         });
     });
 
