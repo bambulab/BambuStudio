@@ -142,6 +142,19 @@ jobs:
         run: |
           ls -la "${{ matrix.binary }}"
 
+      - name: Package AppImage
+        if: runner.os == 'Linux'
+        run: pixi run appimage
+
+      - name: Upload AppImage artifact
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
+        with:
+          name: BambuStudio-Linux-AppImage
+          path: build/release/BambuStudio-*-x86_64.AppImage
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Upload logs on failure
         if: failure()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
