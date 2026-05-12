@@ -6,13 +6,13 @@
     "setting_id": "GFSG02_26",
     "instantiation": "true",
     "fan_cooling_layer_time": [
-        "15"
+        "80"
     ],
     "fan_max_speed": [
-        "50"
+        "60"
     ],
     "fan_min_speed": [
-        "30"
+        "40"
     ],
     "filament_flow_ratio": [
         "0.94"
@@ -26,8 +26,23 @@
     "filament_max_volumetric_speed": [
         "1"
     ],
+    "filament_overhang_4_4_speed": [
+        "30"
+    ],
+    "filament_overhang_totally_speed": [
+        "25"
+    ],
     "filament_retraction_distances_when_cut": [
         "18"
+    ],
+    "filament_wipe": [
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "1"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift"
     ],
     "nozzle_temperature": [
         "240"
@@ -39,7 +54,7 @@
         "2"
     ],
     "slow_down_layer_time": [
-        "7"
+        "25"
     ],
     "slow_down_min_speed": [
         "40"

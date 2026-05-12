@@ -23,11 +23,8 @@
     "filament_density": [
         "1.22"
     ],
-    "filament_deretraction_speed": [
-        "10"
-    ],
-    "filament_flow_ratio": [
-        "0.95"
+    "filament_max_volumetric_speed": [
+        "3"
     ],
     "filament_pre_cooling_temperature": [
         "195"
@@ -42,10 +39,7 @@
         "0.55"
     ],
     "filament_retraction_length": [
-        "2"
-    ],
-    "filament_retraction_speed": [
-        "10"
+        "1"
     ],
     "filament_support_printable": [
         "2"
@@ -56,11 +50,20 @@
     "long_retractions_when_ec": [
         "1"
     ],
+    "nozzle_temperature": [
+        "215"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "215"
+    ],
     "nozzle_temperature_range_high": [
         "250"
     ],
     "retraction_distances_when_ec": [
         "10"
+    ],
+    "slow_down_min_speed": [
+        "20"
     ],
     "compatible_printers": [
         "Bambu Lab A2L 0.8 nozzle"

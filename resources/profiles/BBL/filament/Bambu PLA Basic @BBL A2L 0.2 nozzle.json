@@ -32,6 +32,15 @@
     "filament_retraction_distances_when_cut": [
         "18"
     ],
+    "filament_wipe": [
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "1"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift"
+    ],
     "overhang_fan_threshold": [
         "25%"
     ],
@@ -39,7 +48,7 @@
         "2"
     ],
     "slow_down_layer_time": [
-        "6"
+        "25"
     ],
     "slow_down_min_speed": [
         "40"

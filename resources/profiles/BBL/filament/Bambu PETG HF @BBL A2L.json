@@ -29,11 +29,23 @@
     "filament_retraction_distances_when_cut": [
         "18"
     ],
+    "filament_retraction_length": [
+        "0.4"
+    ],
+    "filament_wipe": [
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "1"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift"
+    ],
     "nozzle_temperature": [
         "240"
     ],
     "overhang_fan_speed": [
-        "100"
+        "50"
     ],
     "pre_start_fan_time": [
         "2"

@@ -26,11 +26,26 @@
     "filament_max_volumetric_speed": [
         "2"
     ],
+    "filament_overhang_4_4_speed": [
+        "35"
+    ],
+    "filament_overhang_totally_speed": [
+        "25"
+    ],
+    "filament_wipe": [
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "1"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift"
+    ],
     "overhang_fan_threshold": [
         "25%"
     ],
     "slow_down_layer_time": [
-        "6"
+        "25"
     ],
     "slow_down_min_speed": [
         "40"

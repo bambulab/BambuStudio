@@ -23,6 +23,9 @@
     "filament_flush_temp": [
         "230"
     ],
+    "filament_retraction_distances_when_cut": [
+        "0.4"
+    ],
     "filament_wipe": [
         "1"
     ],

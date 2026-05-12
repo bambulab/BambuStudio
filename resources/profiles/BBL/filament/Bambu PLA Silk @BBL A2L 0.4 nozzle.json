@@ -20,14 +20,11 @@
     "fan_min_speed": [
         "60"
     ],
-    "filament_deretraction_speed": [
-        "50"
-    ],
     "filament_flush_temp": [
         "230"
     ],
     "filament_retraction_length": [
-        "0.6"
+        "0.4"
     ],
     "filament_wipe": [
         "1"
