@@ -842,8 +842,18 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
         }
         unsigned int extruder_support   = object.config().support_filament.value;
         unsigned int extruder_interface = object.config().support_interface_filament.value;
+        bool         interface_not_for_body = object.config().support_interface_not_for_body;
         if (has_support) {
-            if (extruder_support > 0 || !has_interface || extruder_interface == 0 || layer_tools.has_object)
+            auto has_reusable_layer_extruder = [&]() -> bool {
+                for (unsigned int extruder_id : layer_tools.extruders) {
+                    if (extruder_id == 0) continue;
+                    if (interface_not_for_body && extruder_id == extruder_interface) continue;
+                    if (object.print()->config().filament_soluble.get_at(extruder_id - 1)) continue;
+                    return true;
+                }
+                return false;
+            };
+            if (extruder_support > 0 || extruder_interface == 0 || has_reusable_layer_extruder())
                 layer_tools.extruders.push_back(extruder_support);
             else {
                 auto all_extruders     = object.print()->extruders();
@@ -866,7 +876,6 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                     }
                     return next_extruder;
                 };
-                bool interface_not_for_body = object.config().support_interface_not_for_body;
                 layer_tools.extruders.push_back(get_next_extruder(interface_not_for_body ? extruder_interface - 1 : -1, all_extruders) + 1);
             }
         }
