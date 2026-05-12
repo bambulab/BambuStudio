@@ -502,6 +502,7 @@ bool ImGuiWrapper::update_key_data(wxKeyEvent &evt)
         io.KeyCtrl = evt.ControlDown();
         io.KeyAlt = evt.AltDown();
         io.KeySuper = evt.MetaDown();
+        io.KeyMods = ImGui::GetMergedKeyModFlags();
     }
     bool ret = want_keyboard() || want_text_input();
     if (ret)
@@ -530,14 +531,10 @@ void ImGuiWrapper::new_frame()
     // when the application loses the focus it may happen that the key up event is not processed
 
     // synchronize modifier keys
-    constexpr std::array<std::pair<ImGuiKeyModFlags_, wxKeyCode>, 3> imgui_mod_keys{
-        std::make_pair(ImGuiKeyModFlags_Ctrl, WXK_CONTROL),
-        std::make_pair(ImGuiKeyModFlags_Shift, WXK_SHIFT),
-        std::make_pair(ImGuiKeyModFlags_Alt, WXK_ALT) };
-    for (const std::pair<ImGuiKeyModFlags_, wxKeyCode>& key : imgui_mod_keys) {
-        if ((io.KeyMods & key.first) != 0 && !wxGetKeyState(key.second))
-            io.KeyMods &= ~key.first;
-    }
+    io.KeyCtrl  = wxGetKeyState(WXK_CONTROL);
+    io.KeyShift = wxGetKeyState(WXK_SHIFT);
+    io.KeyAlt   = wxGetKeyState(WXK_ALT);
+    io.KeyMods  = ImGui::GetMergedKeyModFlags();
 
     // Not sure if it is neccessary
     // values from 33 to 126 are reserved for the standard ASCII characters
