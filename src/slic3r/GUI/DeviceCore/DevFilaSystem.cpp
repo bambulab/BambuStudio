@@ -248,6 +248,8 @@ int DevAms::GetTrayId(int slot_id) const
         return ams_id * 4 + slot_id;
     } else if (m_ams_type == DevAmsType::N3S) {
         return 16 + (ams_id - 128) + slot_id;
+    } else if (m_ams_type == DevAmsType::AMS_LITE_MIXED) {
+        return 24 + slot_id;
     } else {
         assert(0);
         // BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << m_ams_type;

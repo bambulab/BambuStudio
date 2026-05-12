@@ -825,6 +825,10 @@ void AMSControl::CreateAmsSingleNozzle(const std::string &series_name, const std
     //add ams data
     for (auto ams_info = m_ams_info.begin(); ams_info != m_ams_info.end(); ams_info++) {
         auto panel_pos = ams_info->GetDefaultPanelPos(s_extruder_count_single);
+        if (m_ams_mixed && ams_info->ams_type == DevAmsType::AMS_LITE) {
+            panel_pos = AMSPanelPos::RIGHT_PANEL;
+        }
+
         if (ams_info->cans.size() == GENERIC_AMS_SLOT_NUM) {
             m_item_ids[DEPUTY_EXTRUDER_ID].push_back(ams_info->ams_id);
             AddAmsPreview(*ams_info, panel_pos);
@@ -837,22 +841,12 @@ void AMSControl::CreateAmsSingleNozzle(const std::string &series_name, const std
             AddAms(*ams_info, panel_pos);
         }
     }
-    // if (single_info.size() > 0){
-    //     m_item_ids[DEPUTY_EXTRUDER_ID].push_back(single_info[0].ams_id);
-    //     m_item_nums[DEPUTY_EXTRUDER_ID]++;
-    //     AddAms(single_info, series_name, printer_type, AMSPanelPos::LEFT_PANEL);
-    //     AddAmsPreview(single_info, AMSPanelPos::LEFT_PANEL);
-    //     single_info.clear();
-    // }
 
     // data ext data
     if (m_ext_info.size() <= 0){
         BOOST_LOG_TRIVIAL(trace) << "vt_slot empty!";
         return;
     }
-
-    single_info.push_back(m_ext_info[0]);
-    m_item_ids[MAIN_EXTRUDER_ID].push_back(single_info[0].ams_id);
 
     if (m_ams_mixed) {
         AddAmsPreview(m_ext_info[0], AMSPanelPos::RIGHT_PANEL);
@@ -875,7 +869,6 @@ void AMSControl::CreateAmsSingleNozzle(const std::string &series_name, const std
         }
     }
 
-    AddAmsPreview(single_info, AMSPanelPos::RIGHT_PANEL);
     auto left_init_mode = findFirstMode(AMSPanelPos::LEFT_PANEL);
     auto right_init_mode = findFirstMode(AMSPanelPos::RIGHT_PANEL);
 
@@ -886,7 +879,7 @@ void AMSControl::CreateAmsSingleNozzle(const std::string &series_name, const std
         m_panel_prv_left->Hide();
     }
 
-    if (right_init_mode != AMSRoadShowMode::AMS_ROAD_MODE_NONE && !m_ams_info.empty()) {
+    if (m_panel_prv_right->GetChildren().size() > 1) {
         m_panel_prv_right->Layout();
         m_panel_prv_right->Show();
     } else {
@@ -940,6 +933,7 @@ void AMSControl::CreateAmsSingleNozzle(const std::string &series_name, const std
     m_current_show_ams_left = m_item_ids[DEPUTY_EXTRUDER_ID].size() > 0 ? m_item_ids[DEPUTY_EXTRUDER_ID][0] : "";
     m_current_show_ams_right = m_item_ids[MAIN_EXTRUDER_ID].size() > 0 ? m_item_ids[MAIN_EXTRUDER_ID][0] : "";
     m_current_show_ams_center = center_ids.size() > 0 ? center_ids[0] : "";
+    UpdateAmsPreviewSelection();
 
     m_down_road->UpdatePassRoad(AMSPanelPos::LEFT_PANEL, -1, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);
     m_down_road->UpdatePassRoad(AMSPanelPos::RIGHT_PANEL, -1, AMSPassRoadSTEP::AMS_ROAD_STEP_NONE);

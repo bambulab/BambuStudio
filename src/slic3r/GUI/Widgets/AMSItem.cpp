@@ -234,7 +234,9 @@ int AMSinfo::get_humidity_display_idx() const
 AMSPanelPos AMSinfo::GetDefaultPanelPos(int total_extruder_count) const
 {
     if (total_extruder_count == 1) {
-        if (ams_type != DevAmsType::EXT_SPOOL) {
+        if (ams_type == DevAmsType::AMS_LITE_MIXED) {
+            return AMSPanelPos::RIGHT_PANEL;
+        } else if (ams_type != DevAmsType::EXT_SPOOL) {
             return AMSPanelPos::LEFT_PANEL;
         } else {
             return AMSPanelPos::RIGHT_PANEL;
