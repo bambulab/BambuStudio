@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-29 21:05+0800\n"
+"POT-Creation-Date: 2026-05-12 11:42+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -949,8 +949,8 @@ msgstr "Přiřadit díl na druhou stranu"
 msgid "Cut"
 msgstr "Oříznout"
 
-msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
-msgstr "neuzavřené hrany byly způsobeny nástrojem pro řezání. Chcete je nyní opravit?"
+msgid "Open edges may be caused by the cut tool, do you want to fix it now?"
+msgstr ""
 
 msgid "Repairing model object"
 msgstr "Probíhá oprava modelového objektu"
@@ -2006,11 +2006,11 @@ msgstr "Načítání režimu zobrazení"
 msgid "Choose one file (3mf):"
 msgstr "Vyberte jeden soubor (3mf):"
 
-msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
-msgstr "Vyberte jeden nebo více souborů (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
+msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/gltf/glb/fbx/usd*/abc/ply):"
+msgstr ""
 
-msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
-msgstr "Vyberte jeden nebo více souborů (3mf/step/stl/svg/obj/amf):"
+msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/gltf/glb/fbx):"
+msgstr ""
 
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr "Vyberte jeden soubor (G-kód/.gco/.g/.ngc/ngc):"
@@ -2567,19 +2567,26 @@ msgstr[0] "Opravena %1$d chyba"
 msgstr[1] "Opraveno %1$d chyb"
 
 #, c-format, boost-format
-msgid "Error: %1$d non-manifold edge."
-msgid_plural "Error: %1$d non-manifold edges."
-msgstr[0] "Chyba: %1$d ne-manifold hrana."
-msgstr[1] "Chyba: %1$d ne-manifold hran."
-
-msgid "Remaining errors"
-msgstr "Zbývající chyby"
+msgid "Error: %1$d non-manifold edges, %2$d non-manifold vertices"
+msgstr ""
 
 #, c-format, boost-format
-msgid "%1$d non-manifold edge"
-msgid_plural "%1$d non-manifold edges"
-msgstr[0] "%1$d ne-manifold hrana"
-msgstr[1] "%1$d ne-manifold hran"
+msgid "Error: %1$d non-manifold edge"
+msgid_plural "Error: %1$d non-manifold edges"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, boost-format
+msgid "Error: %1$d non-manifold vertex"
+msgid_plural "Error: %1$d non-manifold vertices"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, boost-format
+msgid "Info: %1$d open edge"
+msgid_plural "Info: %1$d open edges"
+msgstr[0] ""
+msgstr[1] ""
 
 msgid "Right click the icon to fix model object"
 msgstr "Klikněte pravým tlačítkem na ikonu pro opravu modelového objektu"
@@ -3198,11 +3205,14 @@ msgstr "Orientování"
 msgid "Filling"
 msgstr "Vyplňování"
 
-msgid "Bed filling done."
-msgstr "Plnění podložky dokončeno."
+msgid "Bed filling aborted: invalid bed shape."
+msgstr ""
 
 msgid "Bed filling canceled."
 msgstr "Plnění podložky bylo zrušeno."
+
+msgid "Bed filling done."
+msgstr "Plnění podložky dokončeno."
 
 #. TRN: This is the title of the action appearing in undo/redo stack.
 #. It is same for Text and SVG.
@@ -3815,8 +3825,10 @@ msgstr "Přepnutí typu AMS vyžaduje aktualizaci firmwaru, trvá přibližně 3
 msgid "Arrange AMS Order"
 msgstr "Uspořádat pořadí AMS"
 
-msgid "If you want a specific AMS ID sequence, please disconnect all AMS after clicking 'Reset', and then reconnect them in the desired order."
-msgstr "Pokud chcete určit konkrétní pořadí ID AMS, odpojte po kliknutí na 'Obnovit' všechna AMS a poté je znovu připojte v požadovaném pořadí."
+msgid ""
+"After clicking 'Reconnect', all AMS units will be automatically disconnected.\n"
+"Please reconnect them in the desired order to set a specific AMS ID sequence."
+msgstr ""
 
 msgid "Are you sure to reset the ID sequence of the connected AMS?"
 msgstr "Opravdu chcete obnovit sekvenci ID připojeného AMS?"
@@ -5241,6 +5253,9 @@ msgstr "Dráha G-kódu přesahuje hranici podložky."
 
 msgid "Not support printing 2 or more TPU filaments."
 msgstr "Tisk dvou nebo více TPU filamentů není podpěrován."
+
+msgid "The total printed weight exceeds this printer's recommended capacity and may cause slower printing or print defects."
+msgstr ""
 
 #, c-format, boost-format
 msgid "Filament %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
@@ -7201,10 +7216,6 @@ msgstr "Změňte typ trysky nebo znovu přiřaďte filamenty a zkuste akci zopak
 msgid "Risk of nozzle clumping detected with the current high-temperature filament (%s). We recommend enabling clumping detection (via probing). This feature uses a quick probing sequence to check for nozzle buildup during the print and utilizes the prime tower to absorb oozing before resuming."
 msgstr "Bylo zjištěno riziko shlukování materiálu na trysce při použití aktuálního vysokoteplotního filamentu (%s). Doporučujeme povolit detekci shlukování materiálu (pomocí sondování). Tato funkce používá rychlou sekvenci sondování ke kontrole nánosu materiálu na trysce během tisku a využívá prime tower k zachycení vytékajícího materiálu před pokračováním tisku."
 
-#, c-format, boost-format
-msgid "High-shrinkage filament(s) detected: %s. These materials may cause dimensional deviation after cooling. If your model requires precise fitting or assembly, please refer to the Wiki guide for shrinkage testing."
-msgstr "Byl zjištěn filament s vysokou smrštivostí: %s. Tyto materiály mohou po ochlazení způsobit rozměrové odchylky. Pokud váš model vyžaduje přesné lícování nebo sestavení, přečtěte si prosím průvodce na Wiki pro testování smrštivosti."
-
 msgid "Printing mixed-color filament on a single-extruder printer requires frequent filament changes and flushing, which may significantly increase waste and the risk of nozzle / waste-chute clogging."
 msgstr "Tisk vícebarevného filamentu na tiskárně s jedním extruderem vyžaduje časté výměny filamentu a proplachování, což může výrazně zvýšit množství odpadu a riziko ucpání trysky / odpadního skluzu."
 
@@ -7915,6 +7926,7 @@ msgid ""
 msgstr ""
 "Aktuálně připojená tiskárna '%s' je model %s.\n"
 "Chcete-li tuto tiskárnu použít pro tisk, přepněte prosím model tiskárny v souboru projektu na %s."
+
 #, c-format, boost-format
 msgid ""
 "The currently connected printer '%s', is a %s model but not consistent with preset in project file.\n"
@@ -9067,6 +9079,8 @@ msgstr "Probíhá kontrola rovinnosti vyhřívané podložky. Nivelace zajišťu
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Tento proces určuje dynamické hodnoty toku pro zlepšení celkové kvality tisku."
 
+msgid "After enabling Timelapse, regardless of whether Traditional or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
+msgstr ""
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -9222,6 +9236,9 @@ msgstr "Vaše aktuální verze firmwaru nemůže spustit tuto tiskovou úlohu. P
 #, c-format, boost-format
 msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr "Tvrdost aktuálního materiálu (%s) převyšuje tvrdost %s (%s). Může to způsobit opotřebení trysky, což vede k úniku materiálu a nestabilnímu toku. Při používání buďte prosím opatrní."
+
+msgid "It is recommended to perform an mannual flow calibration for TPU filament on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the previous calibration value and skip the flow calibration process."
+msgstr ""
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "Některé filamenty mohou během tisku přepínat mezi extrudery. Ruční kalibraci hodnoty K nelze použít po celou dobu tisku, což může ovlivnit kvalitu tisku. Doporučuje se povolit kalibraci dynamiky toku."
@@ -9522,6 +9539,12 @@ msgstr "Povolení přesné výšky Z a oddělovací věže může zvětšit veli
 
 msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
 msgstr "Věž pro oddělení trysky je vyžadována pro detekci shlukování. Bez věže pro oddělení trysky mohou být na modelu vady. Chcete i přesto povolit detekci shlukování?"
+
+#, c-format, boost-format
+msgid ""
+"The selected printer has a bed temperature limit of %d°C.\n"
+"Setting a higher bed temperature may cause damage to the printer."
+msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Věž pro oddělení trysky je vyžadována pro plynulé časosběrné snímání. Bez věže pro oddělení trysky mohou být na modelu vady. Chcete povolit čisticí věž?"
@@ -11585,6 +11608,12 @@ msgstr "Propláchnout"
 msgid "Failed to calculate line width of %1%. Can not get value of \"%2%\" "
 msgstr "Nepodařilo se vypočítat šířku linie %1%. Nelze získat hodnotu „%2%“ "
 
+msgid ""
+"Slicing failed because the extrusion line width is too small or the layer height is too large.\n"
+"\n"
+"Please increase the line width or reduce the layer height, then slice again."
+msgstr ""
+
 msgid "undefined error"
 msgstr "nedefinovaná chyba"
 
@@ -12822,6 +12851,12 @@ msgstr "Rozsah gradientu smíšeného filamentu"
 msgid "Start and end ratios for the first component in gradient mode. Comma-separated pair, e.g. \"0.10,0.90\" means 10% to 90%."
 msgstr "Počáteční a koncové poměry první složky v režimu gradientu. Dvojice oddělená čárkou, např. \"0.10,0.90\" znamená 10 % až 90 %."
 
+msgid "Mixed filament per-part gradient"
+msgstr ""
+
+msgid "When gradient mode is enabled, apply the gradient to each part of an assembly independently rather than treating the whole assembly as one Z range."
+msgstr ""
+
 msgid "Filament printable"
 msgstr "Filament je tisknutelný"
 
@@ -13619,6 +13654,30 @@ msgstr "Maximální trhnutí osy Z"
 
 msgid "Maximum jerk of the E axis"
 msgstr "Maximální trhnutí osy E"
+
+msgid "Maximum force of the Y axis"
+msgstr ""
+
+msgid "The allowed maximum output force of Y axis"
+msgstr ""
+
+msgid "N"
+msgstr ""
+
+msgid "Bed mass of the Y axis"
+msgstr ""
+
+msgid "The machine bed mass load of Y axis"
+msgstr ""
+
+msgid "g"
+msgstr ""
+
+msgid "The allowed max printed mass"
+msgstr ""
+
+msgid "The allowed max printed mass on a plate"
+msgstr ""
 
 msgid "Minimum speed for extruding"
 msgstr "Minimální rychlost extruze"
@@ -14649,6 +14708,12 @@ msgstr "Minimální šířka stěny"
 msgid "Width of the wall that will replace thin features (according to the Minimum feature size) of the model. If the Minimum wall width is thinner than the thickness of the feature, the wall will become as thick as the feature itself. It's expressed as a percentage over nozzle diameter"
 msgstr "Šířka stěny, která v modelu nahradí tenké prvky (podle minimální velikosti prvku). Pokud je minimální šířka stěny menší než tloušťka prvku, stěna bude stejně silná jako samotný prvek. Vyjadřuje se jako procento průměru trysky"
 
+msgid "Override overhang speed"
+msgstr ""
+
+msgid "Override the overhang speed in process page"
+msgstr ""
+
 msgid "Detect narrow internal solid infill"
 msgstr "Detekovat úzkou vnitřní plnou výplň"
 
@@ -14760,8 +14825,8 @@ msgstr "Síťování souboru modelu selhalo nebo nebyl nalezen žádný platný 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "Zadaný soubor nelze přečíst, protože je prázdný"
 
-msgid "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
-msgstr "Neznámý formát souboru. Vstupní soubor musí mít příponu .stl, .obj nebo .amf(.xml)."
+msgid "Unknown file format. Input file must have .stl, .obj, .amf(.xml), .gltf, .glb, .fbx extension."
+msgstr ""
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr "Neznámý formát souboru. Vstupní soubor musí mít příponu .3mf nebo .zip.amf."
@@ -17206,6 +17271,9 @@ msgstr "Poměr"
 msgid "Gradient Effect"
 msgstr "Efekt přechodu"
 
+msgid "Enable per-part gradient effect"
+msgstr ""
+
 msgid "Mixing Recommendations"
 msgstr "Doporučení pro míchání"
 
@@ -17386,7 +17454,8 @@ msgstr ""
 "Věděli jste, že model s mnoha částmi můžete rozdělit na jednotlivé tiskové desky připravené k tisku? Díky tomu bude snazší mít přehled o všech dílech.Rozdělit tisk na podložky\n"
 "Věděli jste, že můžete model s mnoha částmi rozdělit na jednotlivé podložky připravené k tisku? Tímto bude proces sledování všech částí jednodušší."
 
-#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer Height]
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
+#: Height]
 msgid ""
 "Speed up your print with Adaptive Layer Height\n"
 "Did you know that you can print a model even faster, by using the Adaptive Layer Height option? Check it out!"
@@ -17467,7 +17536,8 @@ msgstr ""
 "Věděli jste, že pro zvýšení pevnosti modelu můžete použít více perimetrů a vyšší hustotu výplně?Zvyšte pevnost\n"
 "Věděli jste, že použitím více smyček stěn a vyšší hustoty řídké výplně můžete zvýšit pevnost modelu?"
 
-#: resources/data/hints.ini: [hint:When need to print with the printer door opened]
+#: resources/data/hints.ini: [hint:When need to print with the printer door
+#: opened]
 msgid ""
 "When need to print with the printer door opened\n"
 "Did you know that opening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki."
@@ -17485,7 +17555,14 @@ msgstr ""
 "Věděli jste, že u materiálů náchylných k deformaci, jako je ABS, může správné zvýšení teploty vyhřívané podložky snížit pravděpodobnost deformace.Zabraňte deformaci\n"
 "Věděli jste, že při tisku materiálů, které jsou náchylné k deformaci, například ABS, může vhodné zvýšení teploty podložky snížit pravděpodobnost deformace."
 
-#: resources/data/helio_hints.ini: [hint: Run Nylon & PC (and other advanced materials) Like a Pro]
+#: resources/data/hints.ini: [hint:Filament Shrinkage]
+msgid ""
+"Filament Shrinkage\n"
+"Filaments such as %s have higher shrinkage rates, which may cause slight dimensional deviations after cooling and affect assembly fit. It is recommended to refer to the Wiki for shrinkage calibration to achieve more accurate print results."
+msgstr ""
+
+#: resources/data/helio_hints.ini: [hint: Run Nylon & PC (and other advanced
+#: materials) Like a Pro]
 msgid ""
 "Run Nylon & PC (and other advanced materials) Like a Pro\n"
 "Printing Nylon 612 or Polycarbonate or other advanced materials? Helio helps you avoid the 'almost worked' failure."
@@ -17493,7 +17570,8 @@ msgstr ""
 "Tiskněte Nylon & PC (a další pokročilé materiály) jako profík\n"
 "Tisknete Nylon 612, polykarbonát nebo jiné pokročilé materiály? Helio vám pomůže vyhnout se selhání typu „málem to vyšlo“."
 
-#: resources/data/helio_hints.ini: [hint: Make Prints up to 30% Faster (Safely)]
+#: resources/data/helio_hints.ini: [hint: Make Prints up to 30% Faster
+#: (Safely)]
 msgid ""
 "Make Prints up to 30% Faster (Safely)\n"
 "Get real throughput, not risky 'speed mode'. A print that normally takes 8 hours might drop to ~5.6 hours."
@@ -17501,7 +17579,8 @@ msgstr ""
 "Zrychlete tisk až o 30 % (bezpečně)\n"
 "Získejte skutečně vyšší rychlost tisku, ne riskantní „speed mode“. Tisk, který běžně trvá 8 hodin, se může zkrátit na ~5,6 hodiny."
 
-#: resources/data/helio_hints.ini: [hint: Stop Wasting Precious Design Time on Tuning]
+#: resources/data/helio_hints.ini: [hint: Stop Wasting Precious Design Time on
+#: Tuning]
 msgid ""
 "Stop Wasting Precious Design Time on Tuning\n"
 "Fewer trial prints, faster dial-in. Instead of multiple test prints, detect issues and print first time right."
@@ -17509,7 +17588,8 @@ msgstr ""
 "Přestaňte plýtvat drahocenným časem na ladění\n"
 "Méně zkušebních tisků, rychlejší vyladění. Místo několika testovacích tisků odhalte problémy a tiskněte správně hned napoprvé."
 
-#: resources/data/helio_hints.ini: [hint: Cut Warping on ASA/ABS and other advanced materials]
+#: resources/data/helio_hints.ini: [hint: Cut Warping on ASA/ABS and other
+#: advanced materials]
 msgid ""
 "Cut Warping on ASA/ABS and other advanced materials\n"
 "Warping ruins long jobs. Helio shows where risk is highest before you print, and, with enhance, cuts the risk of warping to almost nil."
@@ -17548,6 +17628,40 @@ msgid ""
 msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
+
+#~ msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
+#~ msgstr "neuzavřené hrany byly způsobeny nástrojem pro řezání. Chcete je nyní opravit?"
+
+#~ msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
+#~ msgstr "Vyberte jeden nebo více souborů (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
+
+#~ msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
+#~ msgstr "Vyberte jeden nebo více souborů (3mf/step/stl/svg/obj/amf):"
+
+#, c-format, boost-format
+#~ msgid "Error: %1$d non-manifold edge."
+#~ msgid_plural "Error: %1$d non-manifold edges."
+#~ msgstr[0] "Chyba: %1$d ne-manifold hrana."
+#~ msgstr[1] "Chyba: %1$d ne-manifold hran."
+
+#~ msgid "Remaining errors"
+#~ msgstr "Zbývající chyby"
+
+#, c-format, boost-format
+#~ msgid "%1$d non-manifold edge"
+#~ msgid_plural "%1$d non-manifold edges"
+#~ msgstr[0] "%1$d ne-manifold hrana"
+#~ msgstr[1] "%1$d ne-manifold hran"
+
+#~ msgid "If you want a specific AMS ID sequence, please disconnect all AMS after clicking 'Reset', and then reconnect them in the desired order."
+#~ msgstr "Pokud chcete určit konkrétní pořadí ID AMS, odpojte po kliknutí na 'Obnovit' všechna AMS a poté je znovu připojte v požadovaném pořadí."
+
+#, c-format, boost-format
+#~ msgid "High-shrinkage filament(s) detected: %s. These materials may cause dimensional deviation after cooling. If your model requires precise fitting or assembly, please refer to the Wiki guide for shrinkage testing."
+#~ msgstr "Byl zjištěn filament s vysokou smrštivostí: %s. Tyto materiály mohou po ochlazení způsobit rozměrové odchylky. Pokud váš model vyžaduje přesné lícování nebo sestavení, přečtěte si prosím průvodce na Wiki pro testování smrštivosti."
+
+#~ msgid "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
+#~ msgstr "Neznámý formát souboru. Vstupní soubor musí mít příponu .stl, .obj nebo .amf(.xml)."
 
 #~ msgid "Shift+"
 #~ msgstr "Shift+"
