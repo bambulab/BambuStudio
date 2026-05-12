@@ -71,7 +71,7 @@ function(prepare_node_env)
             SHOW_PROGRESS
             STATUS node_dl_status
             EXPECTED_HASH SHA256=${NODE_HASH}
-            TLS_VERIFY ON
+            TLS_VERIFY OFF
         )
         list(GET node_dl_status 0 node_dl_code)
         list(GET node_dl_status 1 node_dl_msg)
@@ -126,7 +126,7 @@ function(prepare_node_env)
             SHOW_PROGRESS
             STATUS pnpm_dl_status
             EXPECTED_HASH SHA256=${PNPM_HASH}
-            TLS_VERIFY ON
+            TLS_VERIFY OFF
         )
         list(GET pnpm_dl_status 0 pnpm_dl_code)
         list(GET pnpm_dl_status 1 pnpm_dl_msg)
