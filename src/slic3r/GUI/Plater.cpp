@@ -10,6 +10,7 @@
 #include <set>
 #include <sstream>
 #include <regex>
+#include <optional>
 #include <future>
 #include <functional>
 #include <fstream>
@@ -6241,8 +6242,8 @@ public:
     int m_cur_slice_plate;
     //BBS: m_slice_all in .gcode.3mf file case, set true when slice all
     bool m_slice_all_only_has_gcode{ false };
-    // Whcih means "In this slicing session, the popup has already asked the user once".
-    bool m_post_process_script_prompt_consumed{ false };
+    // The post-processing script prompt choice is remembered until the current project is closed.
+    std::optional<bool> m_post_process_script_skip_choice;
     // Which means "This moment is during the popup display period".
     bool m_inside_post_process_script_modal{ false };
 
@@ -11892,13 +11893,6 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": ignore this event %1%") % evt.status();
         return;
     }
-    // Allow the post-process script prompt to appear again on the next slicing session.
-    // Guard: never reset while a PostProcessScriptDialog is open (a nested event loop could
-    // dispatch a stale EVT_PROCESS_COMPLETED here and break the "prompt once per session" guarantee).
-    // m_inside_post_process_script_modal is intentionally NOT touched here; it is owned exclusively
-    // by reslice() around its ShowModal() call.
-    if (!m_inside_post_process_script_modal)
-        m_post_process_script_prompt_consumed = false;
     //BBS: add project slice logic
     bool is_finished = !m_slice_all || (m_cur_slice_plate == (partplate_list.get_plate_count() - 1));
 
@@ -16808,13 +16802,36 @@ std::vector<size_t> Plater::physical_filament_config_indices() const
     return indices;
 }
 
+namespace {
+bool plater_has_nonempty_post_process_scripts(const PresetBundle& preset_bundle);
+}
+
+void Plater::reset_post_process_script_choice()
+{
+    p->m_post_process_script_skip_choice.reset();
+    p->background_process.set_skip_post_process_once(false);
+    if (!wxGetApp().preset_bundle || !plater_has_nonempty_post_process_scripts(*wxGetApp().preset_bundle))
+        return;
+
+    for (PartPlate* plate : p->partplate_list.get_plate_list()) {
+        if (!plate)
+            continue;
+        plate->update_slice_result_valid_state(false);
+        if (Print* print = plate->fff_print())
+            print->set_gcode_file_invalidated();
+    }
+    PartPlate* curr_plate = p->partplate_list.get_curr_plate();
+    if (p->main_frame)
+        p->main_frame->update_slice_print_status(MainFrame::eEventPlateUpdate, curr_plate && curr_plate->can_slice());
+}
+
 void Plater::reset_flags_when_new_or_close_project()
 {
     m_only_gcode      = false;
     m_exported_file   = false;
     m_loading_project = false;
     p->background_process.set_skip_post_process_once(false);
-    p->m_post_process_script_prompt_consumed = false;
+    p->m_post_process_script_skip_choice.reset();
     p->m_inside_post_process_script_modal = false;
 }
 
@@ -20683,6 +20700,8 @@ bool Plater::is_multi_extruder_ams_empty()
 }
 
 namespace {
+const char* POST_PROCESS_SCRIPT_CHOICE_KEY = "post_process_script_choice";
+
 bool plater_has_nonempty_post_process_scripts(const PresetBundle& preset_bundle)
 {
     const DynamicPrintConfig& config = preset_bundle.prints.get_edited_preset().config;
@@ -20716,6 +20735,21 @@ wxString plater_post_process_scripts_field_text(const PresetBundle& preset_bundl
     }
     return from_u8(joined);
 }
+
+std::optional<bool> plater_saved_post_process_script_skip_choice()
+{
+    const std::string choice = wxGetApp().app_config->get(POST_PROCESS_SCRIPT_CHOICE_KEY);
+    if (choice == "execute")
+        return false;
+    if (choice == "do_not_execute")
+        return true;
+    return std::nullopt;
+}
+
+void plater_save_post_process_script_choice(bool skip)
+{
+    wxGetApp().app_config->set(POST_PROCESS_SCRIPT_CHOICE_KEY, skip ? "do_not_execute" : "execute");
+}
 } // namespace
 
 //BBS: add multiple plate reslice logic
@@ -20743,24 +20777,32 @@ void Plater::reslice()
     if (get_view3D_canvas3D()->get_gizmos_manager().is_in_editing_mode(true))
         return;
 
-    if (printer_technology() == ptFFF && !only_gcode_mode() && !is_gcode_3mf() &&
-        plater_has_nonempty_post_process_scripts(*wxGetApp().preset_bundle) &&
-        !p->m_post_process_script_prompt_consumed) {
-        // Set before ShowModal: nested event loop may dispatch another reslice() before we return.
-        p->m_post_process_script_prompt_consumed = true;
-        p->m_inside_post_process_script_modal = true;
-        PostProcessScriptDialog dlg(wxGetApp().mainframe,
-            _L("Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\nPlease verify the file source and script contents before continuing."),
-            plater_post_process_scripts_field_text(*wxGetApp().preset_bundle));
-        const int result = dlg.ShowModal();
-        p->m_inside_post_process_script_modal = false;
-        // ESC / close [X] / any non-explicit choice: cancel this slice entirely and allow re-prompting on next reslice().
-        if (result != wxID_YES && result != wxID_NO) {
-            p->m_post_process_script_prompt_consumed = false;
-            p->background_process.set_skip_post_process_once(false);
-            return;
+    const bool should_confirm_post_process_scripts =
+        printer_technology() == ptFFF && !only_gcode_mode() && !is_gcode_3mf() &&
+        plater_has_nonempty_post_process_scripts(*wxGetApp().preset_bundle);
+    if (should_confirm_post_process_scripts) {
+        if (!p->m_post_process_script_skip_choice)
+            p->m_post_process_script_skip_choice = plater_saved_post_process_script_skip_choice();
+
+        if (!p->m_post_process_script_skip_choice) {
+            // Set before ShowModal: nested event loop may dispatch another reslice() before we return.
+            p->m_inside_post_process_script_modal = true;
+            PostProcessScriptDialog dlg(wxGetApp().mainframe,
+                _L("Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\nPlease verify the file source and script contents before continuing."),
+                plater_post_process_scripts_field_text(*wxGetApp().preset_bundle));
+            const int result = dlg.ShowModal();
+            p->m_inside_post_process_script_modal = false;
+            // ESC / close [X] / any non-explicit choice: cancel this slice entirely and allow re-prompting on next reslice().
+            if (result != wxID_YES && result != wxID_NO) {
+                p->background_process.set_skip_post_process_once(false);
+                return;
+            }
+            const bool skip_post_process = result == wxID_NO;
+            p->m_post_process_script_skip_choice = skip_post_process;
+            if (dlg.get_checkbox_state())
+                plater_save_post_process_script_choice(skip_post_process);
         }
-        p->background_process.set_skip_post_process_once(result == wxID_NO);
+        p->background_process.set_skip_post_process_once(*p->m_post_process_script_skip_choice);
     }
 
     // Stop arrange and (or) optimize rotation tasks.
@@ -20877,9 +20919,8 @@ void Plater::reslice()
     {
         //BBS: add logs
         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": state %1% is UPDATE_BACKGROUND_PROCESS_INVALID, can not slice") % state;
-        // Slicing never started: roll back the skip flag and allow the prompt to reappear on the next reslice().
+        // Slicing never started: roll back only the one-shot skip flag.
         p->background_process.set_skip_post_process_once(false);
-        p->m_post_process_script_prompt_consumed = false;
         p->update_fff_scene_only_shells();
         return;
     }
