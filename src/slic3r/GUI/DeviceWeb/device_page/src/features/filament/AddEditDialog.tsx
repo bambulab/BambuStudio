@@ -60,6 +60,10 @@ function getTrayCurrentNetWeight(tray: AmsTray): number {
   return Math.round(init * remain / 100);
 }
 
+function isValidTagUid(tagUid: string): boolean {
+  return tagUid.length > 0 && /[^0]/.test(tagUid);
+}
+
 // STUDIO-17958: `<input type="number">` controlled by a numeric React state
 // keeps a stale leading "0" once the controlled value has rendered "0".
 // Sequence: user clears the field → Number("")||0 == 0 → React syncs DOM to
@@ -524,48 +528,6 @@ export function AddEditDialog({
     [],
   );
 
-  // Supplemental layer: every distinct colour the user already owns,
-  // collected from the cloud-synced spool list.  Surfaced in addition to
-  // the original 1/2/3 layer so users can re-pick a colour they have
-  // physically on the shelf without retyping the name or hunting for the
-  // hex.  Deliberately NOT filtered by material_type or brand — the user
-  // explicitly opted into "show everything I own" so cross-type reuse is
-  // a feature, not a leak (e.g. picking the same brand colour for a PLA
-  // and a PETG spool to keep colour bookkeeping consistent).
-  const ownedSpools = useStore((s) => s.filament.spools);
-  const userOwnedCandidates = useMemo<CandidateColor[]>(() => {
-    const out: CandidateColor[] = [];
-    const seen = new Set<string>();
-    for (const s of ownedSpools) {
-      const colorType = (s.color_type ?? 2) as 0 | 1 | 2;
-      const rawColors =
-        Array.isArray(s.colors) && s.colors.length > 0
-          ? s.colors
-          : (s.color_code ? [s.color_code] : []);
-      const colors = rawColors
-        .map((hex) => normalizeColorCode(hex))
-        .filter((hex) => hex.length > 0);
-      if (colors.length === 0) continue;
-      const key = `${colorType}|${colors.join(',')}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      out.push({
-        // The user-owned spool has no BBL official code; we surface the
-        // primary hex as the dedup / testid key but the preview-bar's
-        // BBL-code slot stays empty for these candidates (see
-        // onPickCandidate -> setFilaColorCode wired off c.color_code).
-        // Keeping color_code = primary hex avoids two user-owned reels
-        // with the same colour name but different shades aliasing onto
-        // the same React key.
-        color_code: colors[0]!,
-        colors,
-        color_type: colorType,
-        name: (s.color_name || '').trim(),
-      });
-    }
-    return out;
-  }, [ownedSpools]);
-
   // The set actually rendered by the panel.  Composition rules:
   //
   //   Original layer (priority order, first non-empty wins):
@@ -574,19 +536,14 @@ export function AddEditDialog({
   //     3. BAMBU 40-colour legacy palette (only after material is chosen,
   //        so dialog open does not flash a full palette before settling)
   //
-  //   Supplemental layer (always evaluated, even when the original layer
-  //   is empty - e.g. before any material is chosen):
-  //     4. distinct colours from the user's owned spools (`ownedSpools`)
-  //
-  //   De-dup: across the FULL composed list, by (color_type | colors[]).
-  //   Original layer entries are kept on collision so brand-name surfacing
-  //   stays deterministic (a "Sunrise Orange" official candidate wins over
-  //   an unnamed user-owned #FF6600).
+  // Do not append colours from the user's inventory here. Manual material
+  // switching and AMS slot switching both need a full palette replacement
+  // based on the current brand/material context, not an accumulating list.
   const effectiveCandidates: CandidateColor[] = useMemo(() => {
-    let base: CandidateColor[] = [];
     if (candidates.length > 0) {
-      base = candidates;
-    } else if (fallbackFilaIds.length > 0) {
+      return candidates;
+    }
+    if (fallbackFilaIds.length > 0) {
       const out: CandidateColor[] = [];
       const seen = new Set<string>();
       for (const id of fallbackFilaIds) {
@@ -600,34 +557,16 @@ export function AddEditDialog({
         }
       }
       if (out.length > 0) {
-        base = out;
-      } else if (materialType) {
-        base = bambuFallbackCandidates;
+        return out;
       }
-    } else if (materialType) {
-      base = bambuFallbackCandidates;
     }
-
-    if (userOwnedCandidates.length === 0) return base;
-
-    const seen = new Set<string>();
-    for (const c of base) {
-      seen.add(`${c.color_type}|${(c.colors || []).join(',').toUpperCase()}`);
-    }
-    const supplemental = userOwnedCandidates.filter((c) => {
-      const key = `${c.color_type}|${(c.colors || []).join(',').toUpperCase()}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-    return supplemental.length === 0 ? base : [...base, ...supplemental];
+    return materialType ? bambuFallbackCandidates : [];
   }, [
     candidates,
     fallbackFilaIds,
     candidatesByFilaId,
     materialType,
     bambuFallbackCandidates,
-    userOwnedCandidates,
   ]);
 
   // STUDIO-17977 F1.3: derived preview-bar visuals.
@@ -1047,16 +986,14 @@ export function AddEditDialog({
         || '',
     };
 
-    // STUDIO-17977 / Task 10: keep gradient/multicolor info on the manual-add
-    // path. Mirror the AMS-import branch below: only emit `colors` when there
-    // really is a non-trivial palette (length > 1), but always pin
-    // `color_type` so the cloud round-trip and AMS sync logic don't have to
-    // guess. For plain single-colour spools the field stays at 2 (single)
-    // and `colors` is left undefined so the wire payload stays minimal.
+    // STUDIO-18340: emit `colors: []` for single-colour edits so an AMS-read
+    // multicolor palette can be explicitly cleared when the user changes the
+    // spool into a third-party single-colour filament.
     if (Array.isArray(colors) && colors.length > 1) {
       data.colors = [...colors];
       data.color_type = colorType;
     } else {
+      data.colors = [];
       data.color_type = 2;
     }
 
@@ -1070,20 +1007,26 @@ export function AddEditDialog({
       const normalizeStr = (v: unknown) =>
         (v === undefined || v === null) ? '' : String(v);
       const patch: Partial<Spool> = { spool_id: orig.spool_id };
+      const patchFields = patch as Partial<Record<keyof Spool, Spool[keyof Spool]>>;
       (Object.keys(data) as (keyof Spool)[]).forEach((k) => {
-        const nv = (data as any)[k];
-        const ov = (orig as any)[k];
+        const nv = data[k];
+        const ov = orig[k];
         let changed: boolean;
-        if (typeof nv === 'string' || typeof ov === 'string') {
+        if (Array.isArray(nv) || Array.isArray(ov)) {
+          const na = Array.isArray(nv) ? nv : [];
+          const oa = Array.isArray(ov) ? ov : [];
+          changed = na.length !== oa.length || na.some((v, i) => v !== oa[i]);
+        } else if (typeof nv === 'string' || typeof ov === 'string') {
           changed = normalizeStr(nv) !== normalizeStr(ov);
         } else {
           changed = !Object.is(nv, ov);
         }
-        if (changed) (patch as any)[k] = nv;
+        if (changed) patchFields[k] = nv;
       });
       const ok = await onSubmitUpdate(patch);
       if (!ok) return;
     } else {
+      let amsExistingSpoolId = '';
       if (mode === 'ams' && selectedSlot) {
         // The spool is imported from a live AMS slot. Propagate the
         // authoritative AMS-only fields (tag_uid / setting_id / diameter
@@ -1094,11 +1037,21 @@ export function AddEditDialog({
         // `remain_percent` with the authoritative device value so the
         // record lines up with what the printer reports on MQTT.
         const tray = selectedSlot.tray;
+        const trayTagUid = tray.tag_uid || '';
+        const existingSpool = isValidTagUid(trayTagUid)
+          ? spools.find((sp) => (sp.tag_uid || '') === trayTagUid)
+          : undefined;
         const trayNetInit = parseInt(String(tray.weight ?? '0'), 10) || 0;
         const remain = typeof tray.remain === 'number' ? tray.remain : 0;
+        if (existingSpool?.spool_id) {
+          amsExistingSpoolId = existingSpool.spool_id;
+          data.spool_id = existingSpool.spool_id;
+        }
         data.entry_method = 'ams_sync';
-        data.tag_uid = tray.tag_uid || '';
-        data.setting_id = tray.setting_id || data.setting_id || '';
+        data.tag_uid = trayTagUid;
+        // Keep the user's edited material choice. The AMS tray setting_id is
+        // only a fallback when the form could not resolve a selected preset.
+        data.setting_id = data.setting_id || tray.setting_id || '';
         data.bound_ams_id = selectedSlot.ams_id;
         data.bound_dev_id = amsData?.selected_dev_id || '';
         data.remain_percent = remain;
@@ -1145,7 +1098,9 @@ export function AddEditDialog({
       } else {
         data.entry_method = 'manual';
       }
-      const ok = await onSubmitAdd(data, mode === 'ams' ? 1 : quantity);
+      const ok = amsExistingSpoolId
+        ? await onSubmitUpdate(data)
+        : await onSubmitAdd(data, mode === 'ams' ? 1 : quantity);
       if (!ok) return;
     }
     onClose();
@@ -1537,20 +1492,12 @@ export function AddEditDialog({
     // the hex list to `colors` when the slot is genuinely multi-hex.
     if (traySanitizedColors.length > 1) {
       setColors(traySanitizedColors);
-      // Multi-hex AMS slot: if MQTT didn't forward `ctype` (older firmware,
-      // 3rd-party tray), fall back to gradient (0) instead of single (2)
-      // so both the AMS card chip and the form's preview swatch reflect
-      // the hex list rather than collapsing to the primary `color`.
       setColorType(tray.color_type === 1 ? 1 : 0);
     } else {
       setColors([]);
       setColorType(2);
     }
     setColorName(tray.color_name || '');
-    // STUDIO-17977: AMS payload may already carry the official colour name
-    // and BBL code resolved by C++ from FilamentColorCodeQuery. Seed them
-    // immediately, then let the resolver below keep them aligned if the
-    // candidate cache refreshes later.
     setFilaColorCode(tray.fila_color_code || '');
     userTouchedColorRef.current = true;
 
@@ -1764,6 +1711,7 @@ export function AddEditDialog({
                           data-selected={isSelected ? 'true' : 'false'}
                           data-color={tray.color}
                           data-color-type={tray.color_type}
+                          data-colors={(tray.colors || []).join(',')}
                           className={`flex-1 flex flex-col rounded-[6px] border cursor-pointer transition-all duration-150 overflow-hidden hover:border-fm-text-secondary ${isSelected ? 'border-fm-brand' : 'border-fm-border-focus'}`}
                           onClick={() => selectAmsSlot(currentUnit, tray)}
                         >

@@ -92,11 +92,8 @@ TEST_CASE("FilamentSpool: to_json single-color spool emits empty colors[] and co
 }
 
 // ---------------------------------------------------------------------------
-// STUDIO-17977 Task 2: sync writes colors/color_type;
-//                       identity color_code stays frozen.
-// Verifies the (now extended) sync-cared field set in
-// update_spool_if_changed - covers colors[] / color_type as
-// non-identity, sync-mutable fields.
+// STUDIO-18340: AMS sync may refresh weight/binding fields, but user-facing
+// display identity (color_code / colors / color_type) must stay local.
 // ---------------------------------------------------------------------------
 
 namespace {
@@ -122,7 +119,7 @@ namespace {
     }
 }
 
-TEST_CASE("Store::update_spool_if_changed: colors changed -> write through, color_code frozen",
+TEST_CASE("Store::update_spool_if_changed: sync weight update keeps display fields frozen",
           "[fila_manager][colors][store]")
 {
     using namespace Slic3r::GUI;
@@ -140,13 +137,14 @@ TEST_CASE("Store::update_spool_if_changed: colors changed -> write through, colo
 
     const auto* after = store.get_spool(seed.spool_id);
     REQUIRE(after != nullptr);
-    CHECK(after->colors     == std::vector<std::string>{"#0066FF", "#00AA88"});
-    CHECK(after->color_type == 0);
-    // color_code is identity-frozen: must stay seed value, NOT change to colors[0]
+    CHECK(after->net_weight == 800.0f);
+    CHECK(after->remain_percent == 80);
+    CHECK(after->colors.empty());
+    CHECK(after->color_type == 2);
     CHECK(after->color_code == "#00AE42");
 }
 
-TEST_CASE("Store::update_spool_if_changed: only colors/color_type changed still triggers write",
+TEST_CASE("Store::update_spool_if_changed: colors/color_type alone do not trigger sync write",
           "[fila_manager][colors][store]")
 {
     using namespace Slic3r::GUI;
@@ -156,12 +154,9 @@ TEST_CASE("Store::update_spool_if_changed: only colors/color_type changed still 
 
     FilamentSpool sp = *store.get_spool(seed.spool_id);
     sp.color_type    = 1;                 // multicolor (swagger value)
-    // colors stays empty intentionally - this exercises the "only color_type
-    // moved" edge case, mirroring an AMS that toggles ctype on a slot whose
-    // hex list hasn't been parsed yet.
 
-    REQUIRE(store.update_spool_if_changed(sp) == true);
-    CHECK(store.get_spool(seed.spool_id)->color_type == 1);
+    REQUIRE(store.update_spool_if_changed(sp) == false);
+    CHECK(store.get_spool(seed.spool_id)->color_type == 2);
 }
 
 TEST_CASE("Store::update_spool_if_changed: no sync-cared field changed -> no write",
@@ -176,6 +171,24 @@ TEST_CASE("Store::update_spool_if_changed: no sync-cared field changed -> no wri
     FilamentSpool sp = *store.get_spool(seed.spool_id);
 
     REQUIRE(store.update_spool_if_changed(sp) == false);
+}
+
+TEST_CASE("Store::find_by_tag_uid: all-zero placeholder is not a real RFID",
+          "[fila_manager][store][rfid]")
+{
+    using namespace Slic3r::GUI;
+    wgtFilaManagerStore store;
+    auto zero = make_seed_spool_for_colors("S4", "0000000000000000");
+    zero.spool_id = store.add_spool(zero);
+    auto real = make_seed_spool_for_colors("S5", "D5191A1000000100");
+    real.spool_id = store.add_spool(real);
+
+    CHECK(FilamentSpool::is_valid_tag_uid("") == false);
+    CHECK(FilamentSpool::is_valid_tag_uid("0000000000000000") == false);
+    CHECK(FilamentSpool::is_valid_tag_uid("D5191A1000000100") == true);
+    CHECK(store.find_by_tag_uid("0000000000000000") == nullptr);
+    REQUIRE(store.find_by_tag_uid("D5191A1000000100") != nullptr);
+    CHECK(store.find_by_tag_uid("D5191A1000000100")->spool_id == real.spool_id);
 }
 
 // ---------------------------------------------------------------------------
@@ -269,6 +282,14 @@ TEST_CASE("ColorType: swagger <-> FilamentColor::ColorType round-trip",
     REQUIRE(Slic3r::GUI::from_filament_color_type(CT::SINGLE_CLR)   == 2);
 }
 
+TEST_CASE("ColorType: AMS enum maps to swagger colour type",
+          "[fila_manager][colors][color_type_map]")
+{
+    REQUIRE(Slic3r::GUI::from_ams_color_type(Slic3r::GUI::DevFilaColorType::CTYPE_GRADIANT) == 0);
+    REQUIRE(Slic3r::GUI::from_ams_color_type(Slic3r::GUI::DevFilaColorType::CTYPE_MULTI)    == 1);
+    REQUIRE(Slic3r::GUI::from_ams_color_type(Slic3r::GUI::DevFilaColorType::CTYPE_SINGLE)   == 2);
+}
+
 #else // !BBL_TEST_HAS_WX — wx headers unavailable, mirror the spec table
 
 namespace {
@@ -280,6 +301,9 @@ namespace {
 constexpr int kFcSingle   = 0;
 constexpr int kFcMulti    = 1;
 constexpr int kFcGradient = 2;
+constexpr int kAmsMulti    = 0;
+constexpr int kAmsGradient = 1;
+constexpr int kAmsSingle   = 2;
 
 constexpr int swagger_to_fc_mirror(int spool_color_type) {
     switch (spool_color_type) {
@@ -295,6 +319,13 @@ constexpr int fc_to_swagger_mirror(int fc_color_type) {
         default:          return 2;
     }
 }
+constexpr int ams_to_swagger_mirror(int ams_color_type) {
+    switch (ams_color_type) {
+        case kAmsGradient: return 0;
+        case kAmsMulti:    return 1;
+        default:           return 2;
+    }
+}
 } // namespace
 
 TEST_CASE("ColorType: swagger <-> FilamentColor::ColorType round-trip (mirror)",
@@ -308,6 +339,10 @@ TEST_CASE("ColorType: swagger <-> FilamentColor::ColorType round-trip (mirror)",
     REQUIRE(fc_to_swagger_mirror(kFcGradient) == 0);
     REQUIRE(fc_to_swagger_mirror(kFcMulti)    == 1);
     REQUIRE(fc_to_swagger_mirror(kFcSingle)   == 2);
+
+    REQUIRE(ams_to_swagger_mirror(kAmsGradient) == 0);
+    REQUIRE(ams_to_swagger_mirror(kAmsMulti)    == 1);
+    REQUIRE(ams_to_swagger_mirror(kAmsSingle)   == 2);
 }
 
 #endif // BBL_TEST_HAS_WX

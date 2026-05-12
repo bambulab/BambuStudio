@@ -1,6 +1,7 @@
 #include "wgtFilaManagerCloudSync.h"
 #include "wgtFilaManagerCloudClient.h"
 #include "wgtFilaManagerCloudDispatcher.h"
+#include "wgtFilaManagerColorType.h"
 #include "wgtFilaManagerStore.h"
 
 #include "slic3r/Utils/NetworkAgent.hpp"
@@ -103,6 +104,8 @@ FilamentSpool wgtFilaManagerCloudSync::cloud_json_to_spool(const nlohmann::json&
     s.spool_id      = str_any({"id", "spool_id"});
     s.setting_id    = str_any({"filamentId", "setting_id"});
     s.tag_uid       = str_any({"RFID", "rfid", "tag_uid"});
+    if (!FilamentSpool::is_valid_tag_uid(s.tag_uid))
+        s.tag_uid.clear();
 
     // Descriptive fields.
     s.brand         = str_any({"filamentVendor", "brand"});
@@ -121,12 +124,14 @@ FilamentSpool wgtFilaManagerCloudSync::cloud_json_to_spool(const nlohmann::json&
     // candidate (e.g. "马卡龙 / 13906") and leaves the row with no colour
     // name. Round-trip the two fields here so cloud-stored multicolor
     // data survives a sync.
-    s.color_type    = num_i_any({"colorType", "color_type"}, 2);
+    const int raw_color_type = num_i_any({"colorType", "color_type"}, 2);
     if (j.contains("colors") && j["colors"].is_array()) {
         for (const auto& hex : j["colors"]) {
             if (hex.is_string()) s.colors.push_back(hex.get<std::string>());
         }
     }
+    s.color_type = to_fila_manager_color_type_int(
+        normalize_fila_manager_color_type(raw_color_type, s.colors.size()));
 
     s.diameter        = num_f_any({"diameter"}, 1.75f);
 
@@ -183,12 +188,11 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_json(const FilamentSpool&
     // Cloud CreateFilamentV2Req / UpdateFilamentV2Req schema (camelCase).
     nlohmann::json j;
 
-    // createType: "manual" (手动) | "ams" (AMS 自动). Normalize legacy value
-    // "ams_sync" that the old local format used.
-    std::string create_type = s.entry_method;
-    if (create_type == "ams_sync") create_type = "ams";
-    if (create_type == "rfid")     create_type = "ams";
-    if (create_type.empty())       create_type = "manual";
+    const bool has_valid_rfid = FilamentSpool::is_valid_tag_uid(s.tag_uid);
+    // Cloud createType tracks whether this spool has a real RFID, not which UI
+    // flow created it. Non-RFID AMS reads use placeholder tags and must stay
+    // manual to avoid cloud-side AMS/RFID semantics.
+    std::string create_type = has_valid_rfid ? "ams" : "manual";
     j["createType"]     = create_type;
 
     j["filamentVendor"] = s.brand;
@@ -199,13 +203,14 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_json(const FilamentSpool&
     j["filamentName"]   = s.series.empty() ? s.material_type : s.series;
     j["filamentId"]     = s.setting_id;
     j["isSupport"]      = false; // local schema has no equivalent yet
-    if (!s.tag_uid.empty())
+    if (has_valid_rfid)
         j["RFID"]       = s.tag_uid;
     j["color"]          = s.color_code;
-    j["colorType"]      = s.color_type;          // STUDIO-17977: was hardcoded 2
+    j["colorType"]      = to_fila_manager_color_type_int(
+        normalize_fila_manager_color_type(s.color_type, s.colors.size())); // STUDIO-17977: was hardcoded 2
     if (!s.colors.empty())                       // STUDIO-17977: surface colors[] when multicolor
         j["colors"]     = s.colors;
-    if (create_type == "ams" && !s.bound_ams_id.empty()) {
+    if (has_valid_rfid && !s.bound_ams_id.empty()) {
         j["trayIdName"] = s.bound_ams_id;
         j["rolls"]      = 1;
     }
@@ -406,11 +411,15 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_update_patch(const nlohma
     take_str("setting_id",      "filamentId");
     take_bool("is_support",     "isSupport");       // 同上
     take_str("color_code",      "color");
-    take_int("color_type",      "colorType");       // 同上
     // STUDIO-17977: colors[] is now a first-class local field; pass it through
     // when the patch carries an explicit colors array.
     if (p.contains("colors") && p.at("colors").is_array())
         j["colors"] = p.at("colors");
+    if (p.contains("color_type") && p.at("color_type").is_number()) {
+        const std::size_t color_count = j.contains("colors") && j["colors"].is_array() ? j["colors"].size() : 1;
+        j["colorType"] = to_fila_manager_color_type_int(
+            normalize_fila_manager_color_type(p.at("color_type").get<int>(), color_count));
+    }
     take_int("net_weight",      "netWeight");
     take_int("total_net_weight","totalNetWeight");
     take_str("note",            "note");
@@ -577,6 +586,10 @@ void wgtFilaManagerCloudSync::notify_ams_synced(
     AutoPushTally tally;
 
     for (const auto& item : changed) {
+        if (!FilamentSpool::is_valid_tag_uid(item.tag_uid)) {
+            ++tally.skipped_no_rfid;
+            continue;
+        }
         const auto decision = m_throttle.evaluate(
             item.tag_uid, item.net_weight, device_state, now);
 
@@ -643,7 +656,7 @@ void wgtFilaManagerCloudSync::push_all_now()
         const FilamentSpool* sp = m_store->get_spool(spool_id);
         if (!sp) continue;
 
-        if (sp->tag_uid.empty()) {
+        if (!FilamentSpool::is_valid_tag_uid(sp->tag_uid)) {
             ++skipped_no_rfid;
             continue;
         }

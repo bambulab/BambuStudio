@@ -54,15 +54,6 @@ std::string normalize_ams_hex_for_web(const std::string& raw)
     return hex;
 }
 
-int from_dev_fila_color_type(DevFilaColorType t)
-{
-    switch (t) {
-        case DevFilaColorType::CTYPE_GRADIANT: return 0;
-        case DevFilaColorType::CTYPE_MULTI:    return 1;
-        default:                               return 2;
-    }
-}
-
 } // namespace
 
 FilaManagerVM::FilaManagerVM()
@@ -152,8 +143,6 @@ nlohmann::json FilaManagerVM::OnCommand(
     if (submod == "ams")           return HandleAms(action, payload);
     if (submod == "sync")          return HandleSync(action, payload);
     if (submod == "config")        return HandleConfig(action, payload);
-    // STUDIO-17977 Task 10: filament.colors.* — preset color palette
-    // queries that go through FilamentColorCodeQuery.
     if (submod == "colors")        return HandleColors(action, payload);
 
     return MakeResp(submod, action, -1, "unknown submod");
@@ -531,20 +520,9 @@ nlohmann::json FilaManagerVM::HandleAms(const std::string& action, const nlohman
 }
 
 /* ================================================================
- *  Colors — preset color palette via FilamentColorCodeQuery
+ *  Colors
  * ================================================================ */
 
-// STUDIO-17977 / Task 10: filament.colors.query_for_id
-//
-// Front-end calls bridge.request("filament.colors.query_for_id",
-//                                { fila_id }) when the user opens the
-// "Add filament" dialog and picks a filament — design.md § 9.4 / § 9.6.
-// Response shape:
-//   { fila_id, fila_type, candidates: [
-//       { color_code, name, color_type, colors: [hex...] }, ... ] }
-// `color_type` in the response is in swagger semantics (0=gradient /
-// 1=multicolor / 2=single) — we never leak FilamentColor::ColorType's
-// raw enum value to the wire because its numeric layout is different.
 nlohmann::json FilaManagerVM::HandleColors(const std::string& action, const nlohmann::json& payload)
 {
     if (action != "query_for_id")
@@ -579,8 +557,6 @@ nlohmann::json FilaManagerVM::HandleColors(const std::string& action, const nloh
             nlohmann::json item;
             item["color_code"] = code->GetFilaColorCode().utf8_string();
             item["name"]       = code->GetFilaColorName().utf8_string();
-            // Translate FilamentColor::ColorType → swagger semantics.
-            // Never write the raw enum value here.
             item["color_type"] = from_filament_color_type(fc.m_color_type);
 
             nlohmann::json hex_arr = nlohmann::json::array();
@@ -719,18 +695,6 @@ nlohmann::json FilaManagerVM::build_spool_list()
     nlohmann::json spools = store ? store->spools_to_json() : nlohmann::json::array();
     if (!spools.is_array()) return spools;
 
-    // STUDIO-17977 / Task 10: derive `color_name` at serialization time
-    // through FilamentColorCodeQuery so that
-    //   - language switches (app_config["language"]) are honored without
-    //     a front-end translation table,
-    //   - multicolor / gradient names ("蓝绿渐变" / "黑白拼色") come from
-    //     the authoritative preset color palette,
-    //   - any user-edited name in the store wins (we only fill empty
-    //     color_name slots; we never write back).
-    //
-    // We post-process the JSON the store already produced rather than
-    // touching wgtFilaManagerStore so the store stays a pure data
-    // container with no GUI_App / wx dependency.
     auto* clr_query = wxGetApp().get_filament_color_code_query();
     if (!clr_query) return spools;
 
@@ -754,10 +718,7 @@ nlohmann::json FilaManagerVM::build_spool_list()
         }
         if (fc.m_colors.empty()) continue;
 
-        // Use the explicit ColorType bridge — never `static_cast<int>` →
-        // `FilamentColor::ColorType` here, the two enums use different
-        // numeric layouts (see wgtFilaManagerColorType.h).
-        fc.m_color_type = to_filament_color_type(sp_json.value("color_type", 2));
+        fc.m_color_type = to_filament_color_type(sp_json.value("color_type", 2), fc.ColorCount());
 
         wxString name = clr_query->GetFilaColorName(wxString::FromUTF8(setting_id), fc);
         if (!name.IsEmpty())
@@ -918,10 +879,6 @@ nlohmann::json FilaManagerVM::build_ams_data()
                             t["remain"]   = tray->remain;
                             t["diameter"] = tray->diameter;
                             t["is_bbl"]   = tray->is_bbl;
-                            // STUDIO-17977: surface AMS gradient / multicolor
-                            // metadata to the web layer. The device model stores
-                            // DevFilaColorType, while the filament manager web and
-                            // cloud schema use swagger semantics.
                             nlohmann::json colors = nlohmann::json::array();
                             std::vector<std::string> src_colors = tray->cols;
                             if (src_colors.empty()) src_colors.push_back(tray->color);
@@ -930,7 +887,7 @@ nlohmann::json FilaManagerVM::build_ams_data()
                                 if (!hex.empty()) colors.push_back(hex);
                             }
                             t["colors"]     = colors;
-                            int color_type  = from_dev_fila_color_type(tray->ctype);
+                            int color_type  = from_ams_color_type(tray->ctype, colors.size());
                             t["color_type"] = color_type;
 
                             if (!tray->setting_id.empty() && !colors.empty()) {
@@ -941,7 +898,7 @@ nlohmann::json FilaManagerVM::build_ams_data()
                                             fc.m_colors.emplace(wxColour(wxString::FromUTF8(c.get<std::string>())));
                                         }
                                     }
-                                    fc.m_color_type = to_filament_color_type(color_type);
+                                    fc.m_color_type = to_filament_color_type(color_type, colors.size());
                                     if (auto* color_info = clr_query->GetFilaInfo(wxString::FromUTF8(tray->setting_id), fc)) {
                                         t["color_name"]      = color_info->GetFilaColorName().utf8_string();
                                         t["fila_color_code"] = color_info->GetFilaColorCode().utf8_string();

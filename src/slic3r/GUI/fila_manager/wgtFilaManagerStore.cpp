@@ -108,6 +108,15 @@ FilamentSpool FilamentSpool::from_json(const nlohmann::json& j)
     return s;
 }
 
+bool FilamentSpool::is_valid_tag_uid(const std::string& tag_uid)
+{
+    if (tag_uid.empty()) return false;
+    for (char c : tag_uid) {
+        if (c != '0') return true;
+    }
+    return false;
+}
+
 // ---------- wgtFilaManagerStore ----------
 
 std::string wgtFilaManagerStore::get_storage_path() const
@@ -221,17 +230,12 @@ bool wgtFilaManagerStore::update_spool_if_changed(const FilamentSpool& sp)
     // initial_weight / spool_weight / total_net_weight / note / favorite）
     // 由 sync 完全不动，比较时直接忽略输入 sp 的对应字段。
     //
-    // STUDIO-17977: colors / color_type are *non-identity, sync-mutable*
-    // fields - AMS refreshes them when the slot's hex list / ctype changes.
-    // color_code remains identity-frozen and is therefore NOT in this set.
     const bool changed =
            cur.net_weight     != sp.net_weight
         || cur.remain_percent != sp.remain_percent
         || cur.status         != sp.status
         || cur.bound_dev_id   != sp.bound_dev_id
-        || cur.bound_ams_id   != sp.bound_ams_id
-        || cur.colors         != sp.colors          // STUDIO-17977
-        || cur.color_type     != sp.color_type;     // STUDIO-17977
+        || cur.bound_ams_id   != sp.bound_ams_id;
 
     if (!changed) return false;
 
@@ -241,8 +245,6 @@ bool wgtFilaManagerStore::update_spool_if_changed(const FilamentSpool& sp)
     cur.status         = sp.status;
     cur.bound_dev_id   = sp.bound_dev_id;
     cur.bound_ams_id   = sp.bound_ams_id;
-    cur.colors         = sp.colors;                 // STUDIO-17977
-    cur.color_type     = sp.color_type;             // STUDIO-17977
     cur.updated_at     = now_iso8601();
     m_dirty            = true;
     return true;
@@ -269,6 +271,8 @@ bool wgtFilaManagerStore::apply_patch(const std::string& spool_id, const nlohman
     get_if("series",          s.series);
     get_if("color_name",      s.color_name);
     get_if("color_code",      s.color_code);
+    get_if("colors",          s.colors);
+    get_if("color_type",      s.color_type);
     get_if("diameter",        s.diameter);
     get_if("initial_weight",  s.initial_weight);
     get_if("spool_weight",    s.spool_weight);
@@ -310,7 +314,7 @@ const FilamentSpool* wgtFilaManagerStore::get_spool(const std::string& spool_id)
 
 const FilamentSpool* wgtFilaManagerStore::find_by_tag_uid(const std::string& tag_uid) const
 {
-    if (tag_uid.empty()) return nullptr;
+    if (!FilamentSpool::is_valid_tag_uid(tag_uid)) return nullptr;
     for (auto& [id, spool] : m_spools) {
         if (spool.tag_uid == tag_uid)
             return &spool;

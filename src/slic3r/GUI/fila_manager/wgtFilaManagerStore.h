@@ -50,6 +50,8 @@ struct FilamentSpool {
     nlohmann::json to_json() const;
     static FilamentSpool from_json(const nlohmann::json& j);
 
+    static bool is_valid_tag_uid(const std::string& tag_uid);
+
     // STUDIO-18155：整卷净重（克）。
     // 新规约（STUDIO-17991 后）：spool_weight==0 且 initial_weight==整卷净重；
     // legacy 数据仍以 initial_weight=毛重 + spool_weight=料盘重 形式存在，
@@ -79,7 +81,7 @@ public:
     //
     // 为防御 sync 路径污染 identity 字段（设计 Q5 + STUDIO-18117 教训），
     // 该方法**强制**用 store 既有 spool 的 identity 字段（spool_id / tag_uid /
-    // color_code / setting_id / entry_method / created_at / cloud_synced）
+    // color_code / colors / color_type / setting_id / entry_method / created_at / cloud_synced）
     // 覆盖输入 sp 中的对应字段，再做比较与写入。即便 sync 误塞 identity，
     // store 也不会被改写。
     //
