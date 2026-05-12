@@ -2775,8 +2775,13 @@ static void add_common_view_menu_items(wxMenu* view_menu, MainFrame* mainFrame, 
     append_menu_item(view_menu, wxID_ANY, _CTX(L_CONTEXT("Isometric", "Camera"), "Camera") + " 3", _L("Isometric View") + " 3",
         [mainFrame](wxCommandEvent &) { mainFrame->select_view("iso_3"); }, "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
 #endif
-    append_menu_item(view_menu, wxID_ANY, _L("Fit Camera") + "\t" "Z", _L("Fit camera to scene or selected object."), 
+#ifdef __APPLE__//In the macOS menu, single-key shortcuts are not supported, so this option is hidden temporarily. The actual functionality still works normally.
+    append_menu_item(view_menu, wxID_ANY, _L("Fit Camera"), _L("Fit camera to scene or selected object."),
         [mainFrame](wxCommandEvent &) { mainFrame->view_zoom_to_fit(); }, "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
+#else
+    append_menu_item(view_menu, wxID_ANY, _L("Fit Camera") + "\t" "Z", _L("Fit camera to scene or selected object."),
+        [mainFrame](wxCommandEvent &) { mainFrame->view_zoom_to_fit(); }, "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
+#endif
 }
 
 void MainFrame::init_menubar_as_editor()
