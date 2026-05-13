@@ -43,6 +43,7 @@
 | `10-设备研发本地调试技能.md` | `device-local-debug` | 先按 `device-local-build` 做完整构建，再默认打开 Visual Studio（可切 VSCode）启动调试；仅用户手动调用时触发，激活时先告知用户 |
 | `11-设备联调自测技能.md` | `device-self-test` | 把改动 spec 目录里的"改动预期 / 功能预期"抽成可交互本地 HTML 自测页（写回该 spec 目录），供开发者勾选状态与备注、导出 Markdown 报告；仅生成页面，不触发构建/调试/提交，仅用户手动调用时触发 |
 | `12-本地网络库查找技能.md` | `device-local-network-library` | 在本地 deps / dep_win_new 历史中按 Slicer 版本前三段、Debug/Release、Internal/Public、加固状态查找匹配的 `bambu_networking.dll` / `.lib`，仅输出到独立目录，不自动覆盖依赖 |
+| `13-设备真实WebViewE2E验证技能.md` | `device-real-webview-e2e` | 用真实运行的 BambuStudio WebView2 跑设备域 Playwright E2E；用于重新生成 dist 后验证、真实 AMS / 云端 / printer 用例复测 Jira |
 
 ### 套件管理（手动触发）
 
