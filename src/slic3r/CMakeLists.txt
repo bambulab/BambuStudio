@@ -765,6 +765,18 @@ if (UNIX AND NOT APPLE)
     target_include_directories(libslic3r_gui PRIVATE ${GTK${SLIC3R_GTK}_INCLUDE_DIRS})
     target_link_libraries(libslic3r_gui ${GTK${SLIC3R_GTK}_LIBRARIES})
 
+    pkg_check_modules(WEBKIT2GTK_4_1 QUIET webkit2gtk-4.1)
+    if (WEBKIT2GTK_4_1_FOUND)
+        target_compile_definitions(libslic3r_gui PRIVATE BBL_WEBKITGTK_4_1)
+    else ()
+        pkg_check_modules(WEBKIT2GTK_4_0 QUIET webkit2gtk-4.0)
+        if (WEBKIT2GTK_4_0_FOUND)
+            target_compile_definitions(libslic3r_gui PRIVATE BBL_WEBKITGTK_4_0)
+        else ()
+            message(FATAL_ERROR "Neither webkit2gtk-4.1 nor webkit2gtk-4.0 was found.")
+        endif ()
+    endif ()
+
     # We add GStreamer for bambu:/// support.
     pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)
     pkg_check_modules(GST_BASE REQUIRED gstreamer-base-1.0)
