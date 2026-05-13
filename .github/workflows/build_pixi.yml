@@ -142,8 +142,8 @@ jobs:
         run: |
           ls -la "${{ matrix.binary }}"
 
-      - name: Package AppImage
-        if: runner.os == 'Linux'
+      - name: Package distributable
+        if: runner.os == 'Linux' || runner.os == 'macOS'
         run: pixi run dist
 
       - name: Upload AppImage artifact
@@ -152,6 +152,15 @@ jobs:
         with:
           name: BambuStudio-Linux-AppImage
           path: build/release/BambuStudio-*-x86_64.AppImage
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload DMG artifact
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
+        with:
+          name: BambuStudio-macOS-DMG
+          path: build/release/BambuStudio-*-arm64.dmg
           if-no-files-found: error
           retention-days: 14
 
