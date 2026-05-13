@@ -1,6 +1,7 @@
 #include "glTF.hpp"
 #include "../TexturePainting.hpp"
 
+#include "ResourcePathUtils.hpp"
 #include "nlohmann/json.hpp"
 
 #include <boost/log/trivial.hpp>
@@ -129,7 +130,10 @@ bool parse_gltf_json(const std::string& path,
 
     std::string uri = buf0["uri"].get<std::string>();
     boost::filesystem::path base_dir = boost::filesystem::path(path).parent_path();
-    boost::filesystem::path bin_path = base_dir / uri;
+    boost::filesystem::path bin_path = resource_path::resolve_existing_relative_path_case_insensitive(
+        base_dir, boost::filesystem::path(uri), "glTF: binary buffer");
+    if (bin_path.empty())
+        bin_path = base_dir / uri;
 
     boost::nowide::ifstream bin_file(bin_path.string(), std::ios::binary | std::ios::ate);
     if (!bin_file.is_open()) {
@@ -275,7 +279,10 @@ ImageData extract_image(const json& root,
                 BOOST_LOG_TRIVIAL(warning) << "glTF: base64 data URI textures not supported yet";
             }
         } else {
-            boost::filesystem::path img_path = boost::filesystem::path(base_dir) / uri;
+            boost::filesystem::path img_path = resource_path::resolve_existing_relative_path_case_insensitive(
+                boost::filesystem::path(base_dir), boost::filesystem::path(uri), "glTF: image URI");
+            if (img_path.empty())
+                img_path = boost::filesystem::path(base_dir) / uri;
             boost::nowide::ifstream f(img_path.string(), std::ios::binary | std::ios::ate);
             if (f.is_open()) {
                 auto sz = f.tellg();

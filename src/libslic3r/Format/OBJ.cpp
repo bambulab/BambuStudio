@@ -4,6 +4,7 @@
 #include "../TexturePainting.hpp"
 
 #include "OBJ.hpp"
+#include "ResourcePathUtils.hpp"
 #include "objparser.hpp"
 
 #include <string>
@@ -13,6 +14,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/locale.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/nowide/fstream.hpp>
 
 #ifdef _WIN32
 #define DIR_SEPARATOR '\\'
@@ -50,33 +52,26 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
                 continue;
             }
             exist_mtl = true;
-            bool  mtl_name_is_path = false;
             std::wstring   wide_mtl_name = boost::locale::conv::to_utf<wchar_t>(mtl_name, "UTF-8");
             if (boost::istarts_with(wide_mtl_name,"./")){
                 boost::replace_first(wide_mtl_name, "./", "");
             }
-            boost::filesystem::path mtl_abs_path(wide_mtl_name);
-            if (boost::filesystem::exists(mtl_abs_path)) {
-                mtl_name_is_path = true;
-            }
-            boost::filesystem::path mtl_path;
-            if (!mtl_name_is_path) {
-                boost::filesystem::path full_path(path);
-                auto  dir      = full_path.parent_path().wstring();
-                auto  mtl_file = dir + L"/" + wide_mtl_name;
-                boost::filesystem::path temp_mtl_path(mtl_file);
-                mtl_path = temp_mtl_path;
-            }
-            auto    _mtl_path = mtl_name_is_path ? mtl_abs_path.string().c_str() : mtl_path.string().c_str();
-            if (boost::filesystem::exists(mtl_name_is_path ? mtl_abs_path : mtl_path)) {
-                if (!ObjParser::mtlparse(_mtl_path, mtl_data)) {
-                    BOOST_LOG_TRIVIAL(error) << "load_obj:load_mtl: failed to parse " << _mtl_path;
+            const boost::filesystem::path requested_mtl_path(wide_mtl_name);
+            const boost::filesystem::path obj_dir = boost::filesystem::path(path).parent_path();
+            const boost::filesystem::path mtl_path = requested_mtl_path.is_absolute() ?
+                resource_path::resolve_existing_path_case_insensitive(requested_mtl_path, "load_obj: mtllib") :
+                resource_path::resolve_existing_relative_path_case_insensitive(obj_dir, requested_mtl_path, "load_obj: mtllib");
+
+            if (!mtl_path.empty()) {
+                const std::string mtl_path_string = mtl_path.string();
+                if (!ObjParser::mtlparse(mtl_path_string.c_str(), mtl_data)) {
+                    BOOST_LOG_TRIVIAL(error) << "load_obj:load_mtl: failed to parse " << mtl_path_string;
                     message = _L("load mtl in obj: failed to parse");
                     return false;
                 }
             }
             else {
-                BOOST_LOG_TRIVIAL(error) << "load_obj: failed to load mtl_path:" << _mtl_path;
+                BOOST_LOG_TRIVIAL(error) << "load_obj: failed to load mtl_path:" << requested_mtl_path;
             }
         }
     }
@@ -364,18 +359,20 @@ bool obj_to_textured_mesh(
             continue;
         }
 
-        // Resolve texture file path
-        boost::filesystem::path tex_path(mtl.map_Kd);
-        if (!tex_path.is_absolute())
-            tex_path = boost::filesystem::path(obj_directory) / tex_path;
+        // Resolve texture file path.
+        const boost::filesystem::path requested_tex_path(mtl.map_Kd);
+        const boost::filesystem::path tex_path = requested_tex_path.is_absolute() ?
+            resource_path::resolve_existing_path_case_insensitive(requested_tex_path, "obj_to_textured_mesh: map_Kd") :
+            resource_path::resolve_existing_relative_path_case_insensitive(
+                boost::filesystem::path(obj_directory), requested_tex_path, "obj_to_textured_mesh: map_Kd");
 
-        if (!boost::filesystem::exists(tex_path)) {
-            BOOST_LOG_TRIVIAL(warning) << "obj_to_textured_mesh: texture not found: " << tex_path;
+        if (tex_path.empty()) {
+            BOOST_LOG_TRIVIAL(warning) << "obj_to_textured_mesh: texture not found: " << requested_tex_path;
             continue;
         }
 
         // Read raw file bytes
-        std::ifstream file(tex_path.string(), std::ios::binary | std::ios::ate);
+        boost::nowide::ifstream file(tex_path.string(), std::ios::binary | std::ios::ate);
         if (!file.is_open())
             continue;
         auto file_size = file.tellg();

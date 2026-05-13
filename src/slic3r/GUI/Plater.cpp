@@ -6493,6 +6493,8 @@ public:
         std::vector<std::string>           new_filament_preset_names;
         size_t                             existing_filament_count = 0;
         bool                               skipped = false;
+        bool                               fallback_to_geometry_only = false;
+        wxString                           fallback_warning;
     };
 
     bool run_textured_mesh_import_dialog(Slic3r::Model& loaded_model, TextureImportResult& result,
@@ -8858,6 +8860,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     q->skip_thumbnail_invalid = false;
                     return empty_result;
                 }
+                if (texture_import_result.fallback_to_geometry_only && !texture_import_result.fallback_warning.empty()) {
+                    MessageDialog(q, texture_import_result.fallback_warning,
+                                  _L("Texture Import Warning"),
+                                  wxOK | wxICON_WARNING).ShowModal();
+                }
             }
 
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", before load_model_objects, count %1%")%model.objects.size();
@@ -9217,6 +9224,8 @@ bool Plater::priv::run_textured_mesh_import_dialog(Slic3r::Model& loaded_model, 
 {
     if (!loaded_model.texture_mesh || !has_importable_texture(*loaded_model.texture_mesh)) return false;
 
+    const wxString fallback_warning = _L("Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only.");
+
     BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: opening texture import dialog";
 
     const std::vector<std::string> filament_color_strs = wxGetApp().plater()->get_extruder_colors_from_plater_config();
@@ -9246,6 +9255,13 @@ bool Plater::priv::run_textured_mesh_import_dialog(Slic3r::Model& loaded_model, 
             loaded_model.texture_mesh.reset();
             return true;
         }
+        if (dlg.fallback_to_geometry_only()) {
+            BOOST_LOG_TRIVIAL(warning) << "handle_textured_mesh_import: texture import failed, falling back to geometry-only import";
+            result.fallback_to_geometry_only = true;
+            result.fallback_warning = fallback_warning;
+            loaded_model.texture_mesh.reset();
+            return true;
+        }
         BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: user cancelled";
         loaded_model.texture_mesh.reset();
         return false;
@@ -9256,8 +9272,10 @@ bool Plater::priv::run_textured_mesh_import_dialog(Slic3r::Model& loaded_model, 
 
     if (painted.face_colors.empty() || final_matches.empty()) {
         BOOST_LOG_TRIVIAL(warning) << "handle_textured_mesh_import: no painting result";
+        result.fallback_to_geometry_only = true;
+        result.fallback_warning = fallback_warning;
         loaded_model.texture_mesh.reset();
-        return false;
+        return true;
     }
 
     BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: got " << painted.cluster_colors.size()

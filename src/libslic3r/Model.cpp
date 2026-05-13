@@ -363,7 +363,7 @@ Model Model::read_from_file(const std::string&                                  
     }
     else if (boost::algorithm::iends_with(input_file, ".fbx")) {
         auto tex_mesh = std::make_shared<TexturedMesh>();
-        result = load_fbx(input_file, *tex_mesh);
+        result = load_fbx(input_file, *tex_mesh, &message);
         if (result) {
             model.texture_mesh = tex_mesh;
             add_textured_mesh_to_model(model, *tex_mesh, input_file);

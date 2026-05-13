@@ -52,7 +52,6 @@ struct FilamentMappingRow {
 };
 
 class FilamentSelectPopup;
-
 // Lightweight 3D preview panel using wxGLCanvas.
 // Renders: original textured, multi-color, or filament-mapped.
 class TexturePreviewCanvas : public wxGLCanvas
@@ -98,6 +97,11 @@ private:
     void render();
     void render_mesh();
     void render_textured_original();
+    void render_reset_overlay(const wxSize& logical_size, const wxSize& viewport_size);
+    void upload_reset_icon_textures();
+    unsigned int upload_reset_icon_texture(const std::string& icon_name);
+    wxRect reset_overlay_rect() const;
+    bool handle_reset_overlay_mouse(wxMouseEvent& evt);
     void upload_textures();
     void compute_smooth_normals();
     void update_bounding_box();
@@ -144,6 +148,13 @@ private:
 
     std::array<float, 3> m_center = {0, 0, 0};
     float                m_radius = 1.0f;
+
+    unsigned int m_reset_icon_tex        = 0;
+    unsigned int m_reset_icon_hover_tex  = 0;
+    unsigned int m_reset_icon_dark_tex   = 0;
+    unsigned int m_reset_icon_dark_hover_tex = 0;
+    bool         m_reset_overlay_hovered = false;
+    bool         m_reset_overlay_pressed = false;
 };
 
 
@@ -164,6 +175,7 @@ public:
     Slic3r::PaintedMesh               get_painted_mesh() const;
     std::vector<Slic3r::FilamentMatch> get_matches() const;
     bool                               was_skipped() const { return m_skipped; }
+    bool                               fallback_to_geometry_only() const { return m_fallback_to_geometry_only; }
     // Colors of virtual filaments that need to be created after dialog confirmation.
     // Index i corresponds to filament index (m_existing_filament_count + i).
     const std::vector<std::array<float, 4>>& get_new_filament_colors() const { return m_new_filament_colors; }
@@ -213,7 +225,9 @@ private:
     void set_color_count_value(int value, bool update_spin);
     void set_smooth_value(int value, bool update_spin);
     void preview_spin_text_value(SpinInput* spin, GreenSlider* slider, int& param,
-                                 int min_value, int max_value, const wxString& text);
+                                 int min_value, int max_value, const wxString& text,
+                                 std::function<void()> on_value_changed = {});
+    void update_color_count_preset_buttons();
 
     bool is_params_dirty() const;
     void update_confirm_button_state();
@@ -229,6 +243,7 @@ private:
 
     TextureImportState                 m_state = TextureImportState::Idle;
     bool                               m_skipped = false;
+    bool                               m_fallback_to_geometry_only = false;
 
     Slic3r::PaintedMesh               m_painted;
     std::vector<Slic3r::FilamentMatch> m_current_matches;
@@ -267,7 +282,6 @@ private:
     Button*               m_btn_view_original   = nullptr;
     Button*               m_btn_view_multicolor = nullptr;
     Button*               m_btn_view_filament   = nullptr;
-    ScalableButton*       m_btn_reset_view      = nullptr;
 
     ProgressDialog* m_progress_dlg = nullptr;
 
@@ -290,7 +304,6 @@ private:
     static const int ID_VIEW_ORIGINAL   = wxID_HIGHEST + 206;
     static const int ID_VIEW_MULTICOLOR = wxID_HIGHEST + 207;
     static const int ID_VIEW_FILAMENT   = wxID_HIGHEST + 208;
-    static const int ID_VIEW_RESET      = wxID_HIGHEST + 209;
 
     wxDECLARE_EVENT_TABLE();
 };
