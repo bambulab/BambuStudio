@@ -1673,36 +1673,38 @@ void PrintObject::detect_surfaces_type(std::vector<std::vector<SurfaceCollection
         BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << region_id << " - clipping in parallel - end";
     } // for each this->print->region_count
 
-    // Reclassify stInternal surfaces as stTop when they are covered by the upper layer
-    // on layers that also have stTop. This prevents visible fill-pattern boundaries
-    // (monotonic vs rectilinear) at material transitions (e.g., text footprint on keytag base).
-    // Skip mm-painted objects which already have correct surface classification.
-    if (! this->model_object()->is_mm_painted())
-    for (size_t idx_layer = 0; idx_layer + 1 < m_layers.size(); ++idx_layer) {
-        Layer *layer       = m_layers[idx_layer];
-        Layer *upper_layer = m_layers[idx_layer + 1];
-        for (size_t region_id = 0; region_id < layer->m_regions.size(); ++region_id) {
-            LayerRegion *layerm = layer->m_regions[region_id];
-            bool has_top = false;
-            bool has_internal = false;
-            for (const Surface &s : layerm->slices.surfaces) {
-                if (s.surface_type == stTop) has_top = true;
-                else if (s.surface_type == stInternal) has_internal = true;
-                if (has_top && has_internal) break;
-            }
-            if (! has_top || ! has_internal)
-                continue;
-            bool reclassified = false;
-            for (Surface &surface : layerm->slices.surfaces) {
-                if (surface.surface_type != stInternal)
-                    continue;
-                if (! intersection_ex(ExPolygons{surface.expolygon}, upper_layer->lslices, ApplySafetyOffset::Yes).empty()) {
-                    surface.surface_type = stTop;
-                    reclassified = true;
+    // Interface shells reclassify stInternal surfaces as stTop when they are
+    // covered by the upper layer on layers that also have stTop. This prevents
+    // visible fill-pattern boundaries (monotonic vs rectilinear) at material
+    // transitions (e.g., text footprint on keytag base). Skip mm-painted
+    // objects which already have correct surface classification.
+    if (interface_shells && ! this->model_object()->is_mm_painted()) {
+        for (size_t idx_layer = 0; idx_layer + 1 < m_layers.size(); ++idx_layer) {
+            Layer *layer       = m_layers[idx_layer];
+            Layer *upper_layer = m_layers[idx_layer + 1];
+            for (size_t region_id = 0; region_id < layer->m_regions.size(); ++region_id) {
+                LayerRegion *layerm = layer->m_regions[region_id];
+                bool has_top = false;
+                bool has_internal = false;
+                for (const Surface &s : layerm->slices.surfaces) {
+                    if (s.surface_type == stTop) has_top = true;
+                    else if (s.surface_type == stInternal) has_internal = true;
+                    if (has_top && has_internal) break;
                 }
+                if (! has_top || ! has_internal)
+                    continue;
+                bool reclassified = false;
+                for (Surface &surface : layerm->slices.surfaces) {
+                    if (surface.surface_type != stInternal)
+                        continue;
+                    if (! intersection_ex(ExPolygons{surface.expolygon}, upper_layer->lslices, ApplySafetyOffset::Yes).empty()) {
+                        surface.surface_type = stTop;
+                        reclassified = true;
+                    }
+                }
+                if (reclassified)
+                    layerm->slices_to_fill_surfaces_clipped();
             }
-            if (reclassified)
-                layerm->slices_to_fill_surfaces_clipped();
         }
     }
 

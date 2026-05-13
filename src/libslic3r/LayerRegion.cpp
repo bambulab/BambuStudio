@@ -166,10 +166,10 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, const Perimet
     if (this->layer()->upper_layer != NULL)
         g.upper_slices = &this->layer()->upper_layer->lslices;
 
-    // For non-painted multi-material objects, fill holes in top surfaces at material
-    // transitions to prevent different wall counts (e.g., text on keytags).
-    // Painted (mm) objects already have correct top surface detection.
-    g.fill_top_surface_holes = ! this->layer()->object()->model_object()->is_mm_painted();
+    // Interface shells need top-surface holes filled at material transitions to
+    // prevent different wall counts (e.g., text on keytags). Painted (mm)
+    // objects already have correct top surface detection.
+    g.fill_top_surface_holes = object_config.interface_shells && ! this->layer()->object()->model_object()->is_mm_painted();
 
     int region_id = this->region().print_object_region_id();
     if (this->layer()->upper_layer != NULL)
