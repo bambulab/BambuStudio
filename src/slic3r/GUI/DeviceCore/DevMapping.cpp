@@ -119,16 +119,15 @@ namespace Slic3r
         }
         else
         {
-            if (type == DevAmsType::N3S)
-            {
+            if (type == DevAmsType::N3S) {
                 result.id = ams_id + slot_id;
-            }
-            else if (type == DevAmsType::AMS_LITE_MIXED)
-            {
+            } else if (type == DevAmsType::AMS_LITE_MIXED) {
                 result.id = AMS_LITE_MIXED_TRAY_INDEX_OFFSET + slot_id;
-            }
-            else
-            {
+            } else if (type == DevAmsType::ZMULTI_A) {
+                result.id = 28 + slot_id;
+            } else if (type == DevAmsType::ZMULTI_B) {
+                result.id = 37 + slot_id;
+            } else {
                 result.id = ams_id * 4 + slot_id;
             }
         }

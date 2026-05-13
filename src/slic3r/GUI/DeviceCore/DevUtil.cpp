@@ -179,9 +179,11 @@ void DevJsonValParser::ParseLongLongVal(const nlohmann::json& j, long long& val,
     try {
         if (j.is_number()) {
             val = j.get<long long>();
+            return;
         } else if (j.is_string()) {
             auto str_val = j.get<std::string>();
             val = std::stoll(str_val, nullptr, base);
+            return;
         }
     } catch (const nlohmann::json::exception& e) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << e.what();
@@ -193,6 +195,7 @@ void DevJsonValParser::ParseLongLongVal(const nlohmann::json& j, long long& val,
         if (j.is_string()) {
             auto str_val = j.get<std::string>();
             val = std::stol(str_val, nullptr, base);
+            return;
         }
     } catch (const nlohmann::json::exception& e) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": " << e.what();
