@@ -207,6 +207,10 @@ private:
     void dismiss_filament_popup_on_wheel(wxMouseEvent& evt);
     int  add_virtual_filament(const std::array<float, 4>& rgba, const std::string& hex,
                               const std::string& preset_name = std::string());
+    size_t max_filament_count() const;
+    bool can_add_virtual_filament() const;
+    void show_filament_limit_warning_once();
+    int  find_closest_filament_index(const std::array<std::size_t, 3>& color) const;
 
     void on_color_preset_clicked(wxCommandEvent& evt);
     void on_color_slider_changed(wxCommandEvent& evt);
@@ -229,6 +233,7 @@ private:
                                  std::function<void()> on_value_changed = {});
     void update_color_count_preset_buttons();
 
+    bool has_valid_result() const;
     bool is_params_dirty() const;
     void update_confirm_button_state();
 
@@ -244,6 +249,7 @@ private:
     TextureImportState                 m_state = TextureImportState::Idle;
     bool                               m_skipped = false;
     bool                               m_fallback_to_geometry_only = false;
+    bool                               m_filament_limit_warning_shown = false;
 
     Slic3r::PaintedMesh               m_painted;
     std::vector<Slic3r::FilamentMatch> m_current_matches;
