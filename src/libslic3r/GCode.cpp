@@ -2493,9 +2493,12 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_placeholder_parser.set("initial_no_support_hotend",NOZZLE_ID_FOR_GCODE( group_result,group_result->get_first_nozzle_for_filament(initial_non_support_extruder_id)->group_id));
     m_placeholder_parser.set("current_extruder", initial_extruder_id);
     m_placeholder_parser.set("current_hotend", NOZZLE_ID_FOR_GCODE(group_result,group_result->get_first_nozzle_for_filament(initial_extruder_id)->group_id));
-    m_placeholder_parser.set("current_filament_id", (int)initial_extruder_id);
-    m_placeholder_parser.set("current_extruder_id", (int)get_extruder_id(initial_extruder_id));
-    m_placeholder_parser.set("current_nozzle_id", group_result->get_first_nozzle_for_filament(initial_extruder_id)->group_id);
+    m_placeholder_parser.set("initial_filament_id", (int)initial_extruder_id);
+    m_placeholder_parser.set("initial_extruder_id", (int)get_extruder_id(initial_extruder_id));
+    m_placeholder_parser.set("initial_nozzle_id", group_result->get_first_nozzle_for_filament(initial_extruder_id)->group_id);
+    m_placeholder_parser.set("initial_no_support_filament_id", (int)initial_non_support_extruder_id);
+    m_placeholder_parser.set("initial_no_support_extruder_id", (int)get_extruder_id(initial_non_support_extruder_id));
+    m_placeholder_parser.set("initial_no_support_nozzle_id", group_result->get_first_nozzle_for_filament(initial_non_support_extruder_id)->group_id);
     m_placeholder_parser.set("nozzle_diameter_at_nozzle_id", new ConfigOptionFloats(get_nozzle_diameters_by_nozzle_id(group_result.get())));
 
     //set the key for compatibilty, scalar values for the initial extruder (variant-aware)
