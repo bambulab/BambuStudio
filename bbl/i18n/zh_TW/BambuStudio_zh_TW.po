@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-12 11:42+0800\n"
+"POT-Creation-Date: 2026-05-13 18:12+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3311,6 +3311,63 @@ msgstr "保溫熱床可以最佳化首層列印質量，保溫完成後將發起
 #, c-format, boost-format
 msgid "Remaining time: %dmin%ds"
 msgstr "剩餘時間：%d分%d秒"
+
+msgid "Project Filaments"
+msgstr "專案耗材列表"
+
+msgid "New Filaments"
+msgstr ""
+
+msgid "Add Material"
+msgstr ""
+
+msgid "Import Model"
+msgstr "匯入專案"
+
+msgid "Original"
+msgstr "原始"
+
+msgid "Multi-Color"
+msgstr ""
+
+msgid "Filament Mapping"
+msgstr ""
+
+msgid "Color Count"
+msgstr ""
+
+msgid "Smooth Level"
+msgstr ""
+
+msgid "Automatically determine the optimal color count only and recompute filament mapping"
+msgstr ""
+
+msgid "Convert texture to painting using the specified color count and smooth level"
+msgstr ""
+
+msgid "Reminder: parameters changed, click Apply to take effect"
+msgstr ""
+
+msgid "Auto-merge same filament"
+msgstr ""
+
+msgid "Automatically merge identical filaments into existing filaments in the project"
+msgstr ""
+
+msgid "Skip Matching"
+msgstr ""
+
+msgid "Skip filament mapping and import as a single-color model"
+msgstr ""
+
+msgid "Processing"
+msgstr ""
+
+msgid "Computing texture colors..."
+msgstr ""
+
+msgid "Computation failed. Please adjust parameters and retry."
+msgstr ""
 
 msgid "Choose SLA archive:"
 msgstr "選擇SLA存檔："
@@ -7206,9 +7263,6 @@ msgstr "同步資訊"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "同步噴嘴資訊和AMS編號"
 
-msgid "Project Filaments"
-msgstr "專案耗材列表"
-
 msgid "Purge mode"
 msgstr "沖刷模式"
 
@@ -7413,6 +7467,13 @@ msgstr ""
 msgid "Multi-part object detected"
 msgstr "檢測到多部分物件"
 
+#, c-format, boost-format
+msgid "Computing texture colors: %s"
+msgstr ""
+
+msgid "Texture Import Warning"
+msgstr ""
+
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "將這些檔案載入為一個多零件物件？\n"
 
@@ -7427,6 +7488,9 @@ msgstr "物件看起來太大，希望將物件自動縮小以適應熱床嗎？
 
 msgid "Object too large"
 msgstr "物件太大"
+
+msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
+msgstr ""
 
 msgid "Export STL file:"
 msgstr "匯出 STL 檔案："
@@ -19449,9 +19513,6 @@ msgstr ""
 #~ msgid "Please do not mix-use the Ext with Ams"
 #~ msgstr "請勿將Ext與Ams混用"
 
-#~ msgid "Original"
-#~ msgstr "原始"
-
 #~ msgid "Only synchronize filament type and color, not included AMS slot info."
 #~ msgstr "僅同步耗材型別和顏色，不包含AMS槽位資訊。"
 
@@ -24121,9 +24182,6 @@ msgstr ""
 
 #~ msgid "request project id failed!"
 #~ msgstr "專案建立失敗"
-
-#~ msgid "Import Model"
-#~ msgstr "匯入專案"
 
 #~ msgid "Preselects faces by overhang angle. It is possible to restrict paintable facets to only preselected faces when the option \"%1%\" is enabled."
 #~ msgstr "根據懸空角度預選懸空面片。如果開啟了選項%1%，會限制畫刷的只能塗抹這些預選的懸空面片。"

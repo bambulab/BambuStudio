@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-12 11:42+0800\n"
+"POT-Creation-Date: 2026-05-13 18:12+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3326,6 +3326,63 @@ msgstr ""
 #, c-format, boost-format
 msgid "Remaining time: %dmin%ds"
 msgstr "Tempo rimanente: %dmin%ds"
+
+msgid "Project Filaments"
+msgstr "Filamenti Progetto"
+
+msgid "New Filaments"
+msgstr ""
+
+msgid "Add Material"
+msgstr ""
+
+msgid "Import Model"
+msgstr ""
+
+msgid "Original"
+msgstr "Originale"
+
+msgid "Multi-Color"
+msgstr ""
+
+msgid "Filament Mapping"
+msgstr ""
+
+msgid "Color Count"
+msgstr ""
+
+msgid "Smooth Level"
+msgstr ""
+
+msgid "Automatically determine the optimal color count only and recompute filament mapping"
+msgstr ""
+
+msgid "Convert texture to painting using the specified color count and smooth level"
+msgstr ""
+
+msgid "Reminder: parameters changed, click Apply to take effect"
+msgstr ""
+
+msgid "Auto-merge same filament"
+msgstr ""
+
+msgid "Automatically merge identical filaments into existing filaments in the project"
+msgstr ""
+
+msgid "Skip Matching"
+msgstr ""
+
+msgid "Skip filament mapping and import as a single-color model"
+msgstr ""
+
+msgid "Processing"
+msgstr ""
+
+msgid "Computing texture colors..."
+msgstr ""
+
+msgid "Computation failed. Please adjust parameters and retry."
+msgstr ""
 
 msgid "Choose SLA archive:"
 msgstr "Seleziona l'archivio SLA:"
@@ -7252,9 +7309,6 @@ msgstr "Info sincronizzazione"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Sincronizza informazioni dei nozzle e il numero di AMS"
 
-msgid "Project Filaments"
-msgstr "Filamenti Progetto"
-
 msgid "Purge mode"
 msgstr "Modalità spurgo"
 
@@ -7458,6 +7512,13 @@ msgstr ""
 msgid "Multi-part object detected"
 msgstr "Rilevato oggetto in più parti"
 
+#, c-format, boost-format
+msgid "Computing texture colors: %s"
+msgstr ""
+
+msgid "Texture Import Warning"
+msgstr ""
+
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Caricare questi file come un singolo oggetto con più parti?\n"
 
@@ -7472,6 +7533,9 @@ msgstr "Il tuo oggetto è troppo grande, vuoi scalarlo per adattarlo automaticam
 
 msgid "Object too large"
 msgstr "Oggetto troppo grande"
+
+msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
+msgstr ""
 
 msgid "Export STL file:"
 msgstr "Esporta file STL:"

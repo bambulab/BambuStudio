@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-12 11:42+0800\n"
+"POT-Creation-Date: 2026-05-13 18:12+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -948,7 +948,7 @@ msgid "Cut"
 msgstr "Cortar"
 
 msgid "Open edges may be caused by the cut tool, do you want to fix it now?"
-msgstr ""
+msgstr "La herramienta de corte puede causar bordes abiertos, ¿desea repararlos ahora?"
 
 msgid "Repairing model object"
 msgstr "Reparación de un objeto modelo"
@@ -1996,10 +1996,10 @@ msgid "Choose one file (3mf):"
 msgstr "Elija un archivo (3mf):"
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/gltf/glb/fbx/usd*/abc/ply):"
-msgstr ""
+msgstr "Seleccionar uno o varios archivos (3mf/step/stl/svg/obj/amf/gltf/glb/fbx/usd*/abc/ply):"
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/gltf/glb/fbx):"
-msgstr ""
+msgstr "Seleccionar uno o varios archivos (3mf/step/stl/svg/obj/amf/gltf/glb/fbx/usd*/abc/ply):"
 
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr "Elija un archivo (gcode/.gco/.g/.ngc/ngc):"
@@ -2557,7 +2557,7 @@ msgstr[1] "%1$d errores reparados"
 
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold edges, %2$d non-manifold vertices"
-msgstr ""
+msgstr "Error: %1$d bordes no cerrados, %2$d vértices no cerrados"
 
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold edge"
@@ -3324,6 +3324,63 @@ msgstr "El pre-acondicionamiento térmico de la cama térmica ayuda a optimizar 
 #, c-format, boost-format
 msgid "Remaining time: %dmin%ds"
 msgstr "Tiempo restante: %dmin%ds"
+
+msgid "Project Filaments"
+msgstr "Filamentos del proyecto"
+
+msgid "New Filaments"
+msgstr ""
+
+msgid "Add Material"
+msgstr ""
+
+msgid "Import Model"
+msgstr ""
+
+msgid "Original"
+msgstr ""
+
+msgid "Multi-Color"
+msgstr ""
+
+msgid "Filament Mapping"
+msgstr ""
+
+msgid "Color Count"
+msgstr ""
+
+msgid "Smooth Level"
+msgstr ""
+
+msgid "Automatically determine the optimal color count only and recompute filament mapping"
+msgstr ""
+
+msgid "Convert texture to painting using the specified color count and smooth level"
+msgstr ""
+
+msgid "Reminder: parameters changed, click Apply to take effect"
+msgstr ""
+
+msgid "Auto-merge same filament"
+msgstr ""
+
+msgid "Automatically merge identical filaments into existing filaments in the project"
+msgstr ""
+
+msgid "Skip Matching"
+msgstr ""
+
+msgid "Skip filament mapping and import as a single-color model"
+msgstr ""
+
+msgid "Processing"
+msgstr ""
+
+msgid "Computing texture colors..."
+msgstr ""
+
+msgid "Computation failed. Please adjust parameters and retry."
+msgstr ""
 
 msgid "Choose SLA archive:"
 msgstr "Elija el archivo de SLA:"
@@ -7255,9 +7312,6 @@ msgstr "Sincronizar información"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Sincronizar la información de la boquilla y el número de AMS"
 
-msgid "Project Filaments"
-msgstr "Filamentos del proyecto"
-
 msgid "Purge mode"
 msgstr "Modo de purga"
 
@@ -7461,6 +7515,13 @@ msgstr ""
 msgid "Multi-part object detected"
 msgstr "Se detectó un objeto de varias partes"
 
+#, c-format, boost-format
+msgid "Computing texture colors: %s"
+msgstr ""
+
+msgid "Texture Import Warning"
+msgstr ""
+
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "¿Cargar estos archivos como un objeto único con múltiples partes?\n"
 
@@ -7475,6 +7536,9 @@ msgstr "Su objeto parece ser demasiado grande. ¿Desea reducirlo para que se aju
 
 msgid "Object too large"
 msgstr "Objeto demasiado grande"
+
+msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
+msgstr ""
 
 msgid "Export STL file:"
 msgstr "Exportar archivo STL:"

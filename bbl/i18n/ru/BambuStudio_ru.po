@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio 2.0.2 Public Release\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-12 11:42+0800\n"
+"POT-Creation-Date: 2026-05-13 18:12+0800\n"
 "PO-Revision-Date: 2025-04-22 16:37+0700\n"
 "Last-Translator: \n"
 "Language-Team: Andylg <andylg@yandex.ru>\n"
@@ -3387,6 +3387,63 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Remaining time: %dmin%ds"
+msgstr ""
+
+msgid "Project Filaments"
+msgstr "Материалы проекта"
+
+msgid "New Filaments"
+msgstr ""
+
+msgid "Add Material"
+msgstr ""
+
+msgid "Import Model"
+msgstr ""
+
+msgid "Original"
+msgstr ""
+
+msgid "Multi-Color"
+msgstr ""
+
+msgid "Filament Mapping"
+msgstr ""
+
+msgid "Color Count"
+msgstr ""
+
+msgid "Smooth Level"
+msgstr ""
+
+msgid "Automatically determine the optimal color count only and recompute filament mapping"
+msgstr ""
+
+msgid "Convert texture to painting using the specified color count and smooth level"
+msgstr ""
+
+msgid "Reminder: parameters changed, click Apply to take effect"
+msgstr ""
+
+msgid "Auto-merge same filament"
+msgstr ""
+
+msgid "Automatically merge identical filaments into existing filaments in the project"
+msgstr ""
+
+msgid "Skip Matching"
+msgstr ""
+
+msgid "Skip filament mapping and import as a single-color model"
+msgstr ""
+
+msgid "Processing"
+msgstr ""
+
+msgid "Computing texture colors..."
+msgstr ""
+
+msgid "Computation failed. Please adjust parameters and retry."
 msgstr ""
 
 msgid "Choose SLA archive:"
@@ -7359,9 +7416,6 @@ msgstr ""
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Синхронизировать информацию о соплах и количестве АСПП"
 
-msgid "Project Filaments"
-msgstr "Материалы проекта"
-
 msgid "Purge mode"
 msgstr ""
 
@@ -7568,6 +7622,13 @@ msgstr ""
 msgid "Multi-part object detected"
 msgstr "Обнаружена модель, состоящая из нескольких частей"
 
+#, c-format, boost-format
+msgid "Computing texture colors: %s"
+msgstr ""
+
+msgid "Texture Import Warning"
+msgstr ""
+
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Загрузить эти файлы как единую модель, состоящую из нескольких частей?\n"
 
@@ -7585,6 +7646,9 @@ msgstr ""
 
 msgid "Object too large"
 msgstr "Модель слишком большая"
+
+msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
+msgstr ""
 
 msgid "Export STL file:"
 msgstr "Экспорт в STL файл:"

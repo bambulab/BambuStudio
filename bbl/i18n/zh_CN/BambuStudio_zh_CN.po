@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-12 11:42+0800\n"
+"POT-Creation-Date: 2026-05-13 18:12+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -382,10 +382,10 @@ msgid "Summary:"
 msgstr "总结："
 
 msgid "AMS on Filament Inlet A"
-msgstr "选料器进料口A的AMS"
+msgstr "变轨器进料口A的AMS"
 
 msgid "AMS on Filament Inlet B"
-msgstr "选料器进料口B的AMS"
+msgstr "变轨器进料口B的AMS"
 
 #, c-format, boost-format
 msgid "The No.%d slicing filament is matched to '%s'. Assigning it to '%s' can save printing time."
@@ -1919,7 +1919,7 @@ msgid "BambuStudio got an unhandled exception: %1%"
 msgstr "Bambu Studio捕捉到一个未处理的异常：%1%"
 
 msgid "This file is not from a trusted site, do you want to open it anyway?"
-msgstr "This file is not from a trusted site; do you want to open it anyway?"
+msgstr "此文件不是来自受信任站点，您仍然想要打开它吗？"
 
 msgid "Untitled"
 msgstr "未命名"
@@ -1991,10 +1991,10 @@ msgid "Choose one file (3mf):"
 msgstr "选择一个文件（3mf）："
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/gltf/glb/fbx/usd*/abc/ply):"
-msgstr ""
+msgstr "选择一个或多个文件（3mf/step/stl/svg/obj/amf/gltf/glb/fbx/usd*/abc/ply）："
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/gltf/glb/fbx):"
-msgstr ""
+msgstr "选择一个或多个文件（3mf/step/stl/svg/obj/amf/gltf/glb/fbx）："
 
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr "选择一个文件（gcode/.gco/.g/.ngc/ngc）："
@@ -2551,7 +2551,7 @@ msgstr[0] "%1$d个错误被修复"
 
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold edges, %2$d non-manifold vertices"
-msgstr ""
+msgstr "错误： %1$d 非流形边， %2$d 非流形顶点"
 
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold edge"
@@ -3093,13 +3093,13 @@ msgid "Wait for AMS cooling"
 msgstr "等待 AMS 冷却"
 
 msgid "Switch current filament at Filament Track Switch"
-msgstr "切换选料器的当前耗材"
+msgstr "切换变轨器的当前耗材"
 
 msgid "Pull back current filament at Filament Track Switch"
-msgstr "退选料器处当前使用料"
+msgstr "退变轨器处当前使用料"
 
 msgid "Switch track at Filament Track Switch"
-msgstr "选料器开关切换"
+msgstr "变轨器开关切换"
 
 msgid "Confirm extruded"
 msgstr "确认挤出"
@@ -3310,6 +3310,63 @@ msgstr "保温热床可以优化首层打印质量，保温完成后将发起打
 #, c-format, boost-format
 msgid "Remaining time: %dmin%ds"
 msgstr "剩余时间：%d分%d秒"
+
+msgid "Project Filaments"
+msgstr "项目耗材列表"
+
+msgid "New Filaments"
+msgstr "新增耗材"
+
+msgid "Add Material"
+msgstr "添加材料"
+
+msgid "Import Model"
+msgstr "导入模型"
+
+msgid "Original"
+msgstr "原项目"
+
+msgid "Multi-Color"
+msgstr "多色"
+
+msgid "Filament Mapping"
+msgstr "耗材映射"
+
+msgid "Color Count"
+msgstr "颜色数目"
+
+msgid "Smooth Level"
+msgstr "光滑程度"
+
+msgid "Automatically determine the optimal color count only and recompute filament mapping"
+msgstr "自动确定最佳颜色数量并重新计算耗材映射"
+
+msgid "Convert texture to painting using the specified color count and smooth level"
+msgstr "使用指定的颜色数目和光滑程度将纹理转换为涂色"
+
+msgid "Reminder: parameters changed, click Apply to take effect"
+msgstr "提醒：参数已更改，请点击应用生效"
+
+msgid "Auto-merge same filament"
+msgstr "自动合并相同的耗材"
+
+msgid "Automatically merge identical filaments into existing filaments in the project"
+msgstr "自动将新耗材合并到项目中现有的相同耗材"
+
+msgid "Skip Matching"
+msgstr "跳过匹配"
+
+msgid "Skip filament mapping and import as a single-color model"
+msgstr "跳过耗材匹配，导入为单色模型"
+
+msgid "Processing"
+msgstr ""
+
+msgid "Computing texture colors..."
+msgstr "正在计算纹理颜色..."
+
+msgid "Computation failed. Please adjust parameters and retry."
+msgstr "计算失败。请调整参数后重试。"
 
 msgid "Choose SLA archive:"
 msgstr "选择SLA存档："
@@ -3719,7 +3776,7 @@ msgid "To learn about the filaments matching rules."
 msgstr "了解丝材匹配规则。"
 
 msgid "External spools is not supported since Filament Track Switch has been installed. If you want to use external spool, please uninstall it."
-msgstr "安装有选料器，不支持使用外挂，如果使用，请拔掉选料器。"
+msgstr "安装有变轨器，不支持使用外挂，如果使用，请拔掉变轨器。"
 
 msgid "Select Filament && Hotends"
 msgstr "选择材料预设和喷头"
@@ -7203,9 +7260,6 @@ msgstr "同步信息"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "同步喷嘴信息和AMS编号"
 
-msgid "Project Filaments"
-msgstr "项目耗材列表"
-
 msgid "Purge mode"
 msgstr "冲刷模式"
 
@@ -7410,6 +7464,13 @@ msgstr ""
 msgid "Multi-part object detected"
 msgstr "检测到多部分对象"
 
+#, c-format, boost-format
+msgid "Computing texture colors: %s"
+msgstr ""
+
+msgid "Texture Import Warning"
+msgstr ""
+
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "将这些文件加载为一个多零件对象？\n"
 
@@ -7424,6 +7485,9 @@ msgstr "对象看起来太大，希望将对象自动缩小以适应热床吗？
 
 msgid "Object too large"
 msgstr "对象太大"
+
+msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
+msgstr ""
 
 msgid "Export STL file:"
 msgstr "导出 STL 文件："
@@ -9055,7 +9119,7 @@ msgid "This print requires a Filament Track Switch. Please install it first."
 msgstr "此打印件需要耗材变轨器。请先安装它。"
 
 msgid "The Filament Track Switch has not been setup. Please setup it first."
-msgstr "选料器尚未初始化，请先进行初始化。"
+msgstr "变轨器尚未初始化，请先进行初始化。"
 
 #, c-format, boost-format
 msgid "Failed to send nozzle auto-mapping request to printer { code: %d }. Please try to refresh the printer information. If it still does not recover, you can try to rebind the printer and check the network connection."
@@ -12667,10 +12731,10 @@ msgid "Start and end ratios for the first component in gradient mode. Comma-sepa
 msgstr ""
 
 msgid "Mixed filament per-part gradient"
-msgstr ""
+msgstr "混色耗材单个零件渐变"
 
 msgid "When gradient mode is enabled, apply the gradient to each part of an assembly independently rather than treating the whole assembly as one Z range."
-msgstr ""
+msgstr "启用渐变模式后，组合体中的每个零件按自身高度独立渐变，而非整体一起渐变。"
 
 msgid "Filament printable"
 msgstr "主体耗材可打印性"
@@ -17010,7 +17074,7 @@ msgid "Gradient Effect"
 msgstr "渐变效果"
 
 msgid "Enable per-part gradient effect"
-msgstr ""
+msgstr "开启单个零件渐变效果"
 
 msgid "Mixing Recommendations"
 msgstr "混色推荐"
@@ -19562,9 +19626,6 @@ msgstr ""
 
 #~ msgid "Please do not mix-use the Ext with Ams"
 #~ msgstr "请勿将Ext与Ams混用"
-
-#~ msgid "Original"
-#~ msgstr "原始"
 
 #~ msgid "Only synchronize filament type and color, not included AMS slot info."
 #~ msgstr "仅同步耗材类型和颜色，不包含AMS槽位信息。"
@@ -24235,9 +24296,6 @@ msgstr ""
 
 #~ msgid "request project id failed!"
 #~ msgstr "项目创建失败"
-
-#~ msgid "Import Model"
-#~ msgstr "导入项目"
 
 #~ msgid "Preselects faces by overhang angle. It is possible to restrict paintable facets to only preselected faces when the option \"%1%\" is enabled."
 #~ msgstr "根据悬空角度预选悬空面片。如果开启了选项%1%，会限制画刷的只能涂抹这些预选的悬空面片。"
