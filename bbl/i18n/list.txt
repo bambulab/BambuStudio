@@ -121,6 +121,7 @@ src/slic3r/GUI/Jobs/PrintJob.cpp
 src/slic3r/GUI/Jobs/SendJob.cpp
 src/slic3r/GUI/ThermalPreconditioningDialog.cpp
 src/slic3r/GUI/ThermalPreconditioningDialog.hpp
+src/slic3r/GUI/TextureImportDialog.cpp
 src/slic3r/GUI/Jobs/SLAImportJob.cpp
 src/slic3r/GUI/Jobs/UpgradeNetworkJob.cpp
 src/slic3r/GUI/AboutDialog.cpp
