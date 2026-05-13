@@ -144,7 +144,7 @@ jobs:
 
       - name: Package AppImage
         if: runner.os == 'Linux'
-        run: pixi run appimage
+        run: pixi run dist
 
       - name: Upload AppImage artifact
         if: runner.os == 'Linux'
