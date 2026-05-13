@@ -625,6 +625,13 @@ StringObjectException Print::sequential_print_clearance_valid(const Print &print
 
     bool all_objects_are_short = print.is_all_objects_are_short();
     float obj_distance = all_objects_are_short ? scale_(0.5*MAX_OUTER_NOZZLE_RADIUS-0.1) : scale_(0.5*print.config().extruder_clearance_max_radius.value-0.1);
+    // BBS: Add skirt expansion for sequential print collision detection.
+    // Per side: max(0.5*clearance + 0.5*skirt_extra, skirt_extra), matching the arrange logic.
+    if (print.is_sequential_print()) {
+        float skirt_extra = get_real_skirt_dist(print.config());
+        obj_distance += scale_(0.5f * skirt_extra);
+        obj_distance = std::max(obj_distance, static_cast<float>(scale_(skirt_extra)));
+    }
     {
         // sequential_print_horizontal_clearance_valid
         Polygons convex_hulls_other;
@@ -2516,7 +2523,7 @@ void Print::_make_skirt()
 
     // Initial offset of the brim inner edge from the object (possible with a support & raft).
     // The skirt will touch the brim if the brim is extruded.
-    auto   distance = float(scale_(m_config.skirt_distance.value) - spacing/2.);
+    auto   distance = float(scale_(m_config.skirt_distance.value - spacing / 2.f));
     // Draw outlines from outside to inside.
     // Loop while we have less skirts than required or any extruder hasn't reached the min length if any.
     std::vector<coordf_t> extruded_length(extruders.size(), 0.);
@@ -2574,7 +2581,7 @@ void Print::_make_skirt()
     const bool by_object = is_sequential_print();
     const size_t n_object_skirts = by_object ? std::max(size_t(1), size_t(m_config.skirt_loops.value)) : 1;
     const float object_skirt_initial_offset = by_object
-        ? (float(scale_(m_config.skirt_distance.value)) - spacing / 2.f)
+        ? float(scale_(m_config.skirt_distance.value - spacing / 2.f))
         : float(scale_(1.0));
     for (auto obj_cvx_hull : object_convex_hulls) {
         PrintObject* object = obj_cvx_hull.first;

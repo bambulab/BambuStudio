@@ -6405,6 +6405,12 @@ void GLCanvas3D::update_sequential_clearance()
         else
             shrink_factor = static_cast<float>(scale_(0.5 * fff_print()->config().extruder_clearance_max_radius.value - EPSILON));
 
+        if (fff_print()->is_sequential_print()) {
+            float skirt_extra = get_real_skirt_dist(fff_print()->config());
+            shrink_factor += scale_(0.5f * skirt_extra);
+            shrink_factor = std::max(shrink_factor, static_cast<float>(scale_(skirt_extra)));
+        }
+
         double mitter_limit = scale_(0.1);
         m_sequential_print_clearance.m_hull_2d_cache.reserve(m_model->objects.size());
         for (size_t i = 0; i < m_model->objects.size(); ++i) {
