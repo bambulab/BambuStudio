@@ -111,6 +111,7 @@
 #include "WebDownPluginDlg.hpp"
 #include "WebGuideDialog.hpp"
 #include "ReleaseNote.hpp"
+#include "BetaVersionDialog.hpp"
 #include "PrivacyUpdateDialog.hpp"
 #include "ModelMall.hpp"
 #include "HintNotification.hpp"
@@ -5430,7 +5431,29 @@ void GUI_App::check_beta_version()
                                         auto curr_version   = Semver::parse(SLIC3R_VERSION);
                                         auto remote_version = Semver::parse(version_info.version_str);
                                         if (curr_version && remote_version && (*remote_version > *curr_version)) {
-                                            GUI::wxGetApp().request_new_version(false);
+                                            std::string skip_ver = app_config->get("app", "skip_version");
+                                            if (!skip_ver.empty() && version_info.version_str <= skip_ver) {
+                                                return;
+                                            }
+
+                                            BetaVersionDialog beta_dlg(this->mainframe);
+                                            beta_dlg.updateContent(
+                                                wxString::FromUTF8(version_info.version_str),
+                                                wxString::FromUTF8(SLIC3R_VERSION));
+
+                                            switch (beta_dlg.ShowModal()) {
+                                            case wxID_YES:
+                                                GUI::wxGetApp().request_new_version(2);
+                                                break;
+                                            case wxID_CANCEL:
+                                                app_config->set("enable_beta_version_update", "false");
+                                                break;
+                                            case wxID_NO:
+                                                wxGetApp().set_skip_version(true);
+                                                break;
+                                            default:
+                                                break;
+                                            }
                                         }
                                     });
                                 }
