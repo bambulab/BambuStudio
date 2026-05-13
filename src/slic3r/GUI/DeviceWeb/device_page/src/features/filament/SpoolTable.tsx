@@ -88,7 +88,7 @@ interface SpoolGroup {
 function groupSpools(list: Spool[]): SpoolGroup[] {
   const map: Record<string, SpoolGroup> = {};
   list.forEach((s) => {
-    const key = `${formatSpoolDisplayName(s) || '?'}/${s.color_name || s.color_code || '?'}`;
+    const key = formatSpoolDisplayName(s) || '?';
     if (!map[key]) map[key] = { key, count: 0, totalWeight: 0, spools: [] };
     map[key].count++;
     map[key].totalWeight += getDisplayedRemainWeight(s);
@@ -254,7 +254,15 @@ export function SpoolTable({
                 const g = row.group;
                 const isCollapsed = !!collapsed[g.key];
                 return (
-                  <tr key={`g-${g.key}`} className="cursor-pointer select-none" onClick={() => toggleGroup(g.key)}>
+                  <tr
+                    key={`g-${g.key}`}
+                    data-testid="filament-group-row"
+                    data-group-key={g.key}
+                    data-group-count={g.count}
+                    data-group-weight={g.totalWeight}
+                    className="cursor-pointer select-none"
+                    onClick={() => toggleGroup(g.key)}
+                  >
                     <td colSpan={4} className="bg-fm-inner border-b border-fm-border px-6 pt-2 pb-[9px] h-8">
                       <div className="flex items-center gap-3 text-xs text-fm-text-secondary">
                         <span className={`inline-block w-3 transition-transform duration-150${isCollapsed ? ' -rotate-90' : ''}`}>▾</span>

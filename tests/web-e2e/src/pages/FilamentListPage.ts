@@ -96,6 +96,24 @@ export class FilamentListPage extends BasePage {
     ).catch(() => undefined)
   }
 
+  async setGrouped(grouped: boolean): Promise<void> {
+    if (await this.isGrouped() !== grouped) {
+      await this.toggleGroup()
+    }
+  }
+
+  async readGroupSummaries(): Promise<Array<{ key: string; count: number; totalWeight: number }>> {
+    const groups = await this.root.getByTestId('filament-group-row').all()
+    const out: Array<{ key: string; count: number; totalWeight: number }> = []
+    for (const group of groups) {
+      const key = (await group.getAttribute('data-group-key'))?.trim() ?? ''
+      const count = Number(await group.getAttribute('data-group-count')) || 0
+      const totalWeight = Number(await group.getAttribute('data-group-weight')) || 0
+      out.push({ key, count, totalWeight })
+    }
+    return out
+  }
+
   // ------------------------------------------------------------ rows
   /**
    * Locator that resolves to all rendered spool rows.
