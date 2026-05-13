@@ -40,10 +40,10 @@ inline int to_fila_manager_color_type_int(FilaManagerColorType color_type)
 
 inline int from_ams_color_type(DevFilaColorType ctype, std::size_t color_count = 1)
 {
-    switch (ctype) {
-        case DevFilaColorType::CTYPE_GRADIANT: return 0;
-        case DevFilaColorType::CTYPE_MULTI:    return 1;
-        case DevFilaColorType::CTYPE_SINGLE:   return 2;
+    switch (static_cast<int>(ctype)) {
+        case 0: return 0;
+        case 1: return 1;
+        case 2: return 2;
     }
     return to_fila_manager_color_type_int(fallback_fila_manager_color_type(color_count));
 }

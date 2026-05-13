@@ -285,9 +285,9 @@ TEST_CASE("ColorType: swagger <-> FilamentColor::ColorType round-trip",
 TEST_CASE("ColorType: AMS enum maps to swagger colour type",
           "[fila_manager][colors][color_type_map]")
 {
-    REQUIRE(Slic3r::GUI::from_ams_color_type(Slic3r::GUI::DevFilaColorType::CTYPE_GRADIANT) == 0);
-    REQUIRE(Slic3r::GUI::from_ams_color_type(Slic3r::GUI::DevFilaColorType::CTYPE_MULTI)    == 1);
-    REQUIRE(Slic3r::GUI::from_ams_color_type(Slic3r::GUI::DevFilaColorType::CTYPE_SINGLE)   == 2);
+    REQUIRE(Slic3r::GUI::from_ams_color_type(static_cast<Slic3r::DevFilaColorType>(0)) == 0);
+    REQUIRE(Slic3r::GUI::from_ams_color_type(static_cast<Slic3r::DevFilaColorType>(1)) == 1);
+    REQUIRE(Slic3r::GUI::from_ams_color_type(static_cast<Slic3r::DevFilaColorType>(2)) == 2);
 }
 
 #else // !BBL_TEST_HAS_WX — wx headers unavailable, mirror the spec table
@@ -296,13 +296,13 @@ namespace {
 // Mirror of the two enum spaces. KEEP IN SYNC WITH wgtFilaManagerColorType.h
 // and with EncodedFilament.hpp:75-80 / DevFilaColorType.
 //
-//   FilamentColor::ColorType  : SINGLE_CLR=0, MULTI_CLR=1, GRADIENT_CLR=2
-//   swagger / FilamentSpool   : 0=gradient,   1=multicolor, 2=single
+//   FilamentColor::ColorType    : SINGLE_CLR=0, MULTI_CLR=1, GRADIENT_CLR=2
+//   swagger / FilamentSpool/AMS : 0=gradient,   1=multicolor, 2=single
 constexpr int kFcSingle   = 0;
 constexpr int kFcMulti    = 1;
 constexpr int kFcGradient = 2;
-constexpr int kAmsMulti    = 0;
-constexpr int kAmsGradient = 1;
+constexpr int kAmsGradient = 0;
+constexpr int kAmsMulti    = 1;
 constexpr int kAmsSingle   = 2;
 
 constexpr int swagger_to_fc_mirror(int spool_color_type) {
