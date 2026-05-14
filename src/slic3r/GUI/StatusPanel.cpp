@@ -4365,6 +4365,7 @@ void StatusPanel::reset_printing_values()
     m_project_task_panel->update_finish_time(NA_STR);
     m_project_task_panel->update_layers_num(true, wxString::Format(_L("Layer: %s"), NA_STR));
     update_calib_bitmap();
+    m_current_print_mode = PrintingTaskType::PRINGINT;
 
     task_thumbnail_state      = ThumbnailState::PLACE_HOLDER;
     m_start_loading_thumbnail = false;
