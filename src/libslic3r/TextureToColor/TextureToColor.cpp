@@ -11,6 +11,7 @@
 
 #include "CgalUtils.hpp"
 #include "ColorUtils.hpp"
+#include "libslic3r/TriangleMesh.hpp"
 #include <filesystem>
 #include <fstream>
 #include "Repair.hpp"
@@ -485,16 +486,9 @@ bool TextureToColor(const TriMesh& texture_mesh, const std::vector<std::vector<V
 
     // Step 3: Repair mesh
     // Many textured models have non-manifold, non-closed, or other issues that need to be fixed beforehand
-    auto repair_and_resample_mesh = [&]() -> bool {
+    auto resample_repaired_mesh = [&](TriMesh&& repaired_mesh) -> bool {
         KdTree before_repair(color_mesh);
-        std::shared_ptr<TriMesh> repaired_mesh;
-        bool success = RepairMesh(color_mesh, repaired_mesh);
-        if (success == false) {
-            BOOST_LOG_TRIVIAL(debug) << "TextureToColor: repair mesh failed.";
-            return false;
-        }
-        if (cancelled()) return false;
-        color_mesh = std::move(*repaired_mesh);
+        color_mesh = std::move(repaired_mesh);
         if (is_closed(color_mesh)) {
             BOOST_LOG_TRIVIAL(debug) << "TextureToColor: repaired mesh is closed.";
         } else {
@@ -515,6 +509,51 @@ bool TextureToColor(const TriMesh& texture_mesh, const std::vector<std::vector<V
         face_colors = std::move(new_face_colors);
         return true;
     };
+
+    auto repair_and_resample_mesh = [&]() -> bool {
+        std::shared_ptr<TriMesh> repaired_mesh;
+        bool success = RepairMesh(color_mesh, repaired_mesh);
+        if (success == false) {
+            BOOST_LOG_TRIVIAL(debug) << "TextureToColor: repair mesh failed.";
+            return false;
+        }
+        if (cancelled()) return false;
+        return resample_repaired_mesh(std::move(*repaired_mesh));
+    };
+
+    {
+        TriangleMesh stats_mesh(static_cast<const indexed_triangle_set&>(color_mesh));
+        const auto& stats = stats_mesh.stats();
+        if (!stats.manifold() || stats.has_open_edges()) {
+            BOOST_LOG_TRIVIAL(info) << "TextureToColor: mesh has non-manifold geometry or open boundaries, open_edges="
+                                    << stats.open_edges << ", non_manifold_edges=" << stats.non_manifold_edges
+                                    << ", non_manifold_vertices=" << stats.non_manifold_vertices;
+            if (settings.mesh_repair_decision == MeshRepairDecision::Ask) {
+                if (settings.mesh_repair_decision_required)
+                    *settings.mesh_repair_decision_required = true;
+                return false;
+            }
+            if (settings.mesh_repair_decision == MeshRepairDecision::RepairAndImport) {
+                indexed_triangle_set repaired_its;
+                std::string repair_error;
+                bool repaired = settings.mesh_repair_callback && settings.mesh_repair_callback(static_cast<const indexed_triangle_set&>(color_mesh), repaired_its,
+                    [&](const char* message, unsigned percent) {
+                        sub_report(static_cast<int>(percent), 40, 60, message ? message : "Repairing mesh");
+                    },
+                    [&]() { return cancelled(); }, &repair_error);
+                if (repaired) {
+                    if (cancelled()) return false;
+                    BOOST_LOG_TRIVIAL(info) << "TextureToColor: Windows 3D mesh repair finished.";
+                    if (!resample_repaired_mesh(TriMesh(std::move(repaired_its))))
+                        return false;
+                } else {
+                    BOOST_LOG_TRIVIAL(warning) << "TextureToColor: Windows 3D mesh repair failed: " << repair_error;
+                }
+            } else {
+                BOOST_LOG_TRIVIAL(info) << "TextureToColor: importing mesh without Windows 3D repair.";
+            }
+        }
+    }
 
     if (!cgalutils::is_mesh_halfedge_compatible(color_mesh) && repair_and_resample_mesh() == false) {
         BOOST_LOG_TRIVIAL(debug) << "TextureToColor: repair and resample mesh failed.";

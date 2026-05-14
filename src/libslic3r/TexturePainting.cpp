@@ -4,6 +4,7 @@
 #include <cmath>
 #include <map>
 #include <set>
+#include <utility>
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -240,6 +241,18 @@ bool texture_to_painting(
     algo_settings.target_colors_num  = settings.target_colors_num;
     algo_settings.smooth_weight      = settings.smooth_weight;
     algo_settings.oversampling_iters = settings.oversampling_iters;
+    switch (settings.mesh_repair_decision) {
+    case TexturePaintingSettings::MeshRepairDecision::Ask:
+        algo_settings.mesh_repair_decision = tex2color::MeshRepairDecision::Ask;
+        break;
+    case TexturePaintingSettings::MeshRepairDecision::RepairAndImport:
+        algo_settings.mesh_repair_decision = tex2color::MeshRepairDecision::RepairAndImport;
+        break;
+    case TexturePaintingSettings::MeshRepairDecision::ImportWithoutRepair:
+    default:
+        algo_settings.mesh_repair_decision = tex2color::MeshRepairDecision::ImportWithoutRepair;
+        break;
+    }
 
     tex2color::AlgoProgressCallback algo_progress = nullptr;
     if (progress) {
@@ -255,6 +268,8 @@ bool texture_to_painting(
 
     tex2color::TriMesh color_mesh;
     std::vector<std::array<std::size_t,3>> face_colors;
+    algo_settings.mesh_repair_decision_required = settings.mesh_repair_decision_required;
+    algo_settings.mesh_repair_callback = settings.mesh_repair_callback;
 
     bool ok = tex2color::TextureToColor(
         input_mesh, uv_coords, texture,

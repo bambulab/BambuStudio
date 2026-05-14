@@ -1,5 +1,6 @@
 #include "FBX.hpp"
 #include "../TexturePainting.hpp"
+#include "../I18N.hpp"
 
 #include "ResourcePathUtils.hpp"
 
@@ -388,7 +389,7 @@ bool load_fbx(const std::string& path, TexturedMesh& out, std::string* error_mes
     if (!scene) {
         if (last_error.empty())
             last_error = "FBX import failed: no valid Assimp scene was produced.";
-        set_error_message(error_message, last_error);
+        set_error_message(error_message, I18N::translate("The file format is incompatible and cannot be parsed."));
         return false;
     }
 

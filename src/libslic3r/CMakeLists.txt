@@ -164,6 +164,7 @@ set(lisbslic3r_sources
     Format/FBX.cpp
     TexturePainting.hpp
     TexturePainting.cpp
+    Win10ModelRepair.hpp
     TextureToColor/TextureToColor.hpp
     TextureToColor/TextureToColor.cpp
     TextureToColor/ColorUtils.hpp

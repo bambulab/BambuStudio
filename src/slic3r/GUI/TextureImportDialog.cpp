@@ -4,6 +4,7 @@
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "Widgets/StateColor.hpp"
+#include "libslic3r/Win10ModelRepair.hpp"
 
 #include <wx/button.h>
 #include <wx/colour.h>
@@ -290,6 +291,7 @@ namespace Slic3r { namespace GUI {
 wxDEFINE_EVENT(EVT_TEXTURE_COMPUTE_DONE, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TEXTURE_COMPUTE_PROGRESS, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TEXTURE_COMPUTE_ERROR, wxCommandEvent);
+wxDEFINE_EVENT(EVT_TEXTURE_MESH_REPAIR_DECISION, wxCommandEvent);
 
 static std::array<float, 4> parse_color_string(const std::string& hex)
 {
@@ -1378,6 +1380,7 @@ TextureImportDialog::TextureImportDialog(
     Bind(EVT_TEXTURE_COMPUTE_DONE,     &TextureImportDialog::on_computation_complete, this);
     Bind(EVT_TEXTURE_COMPUTE_PROGRESS, &TextureImportDialog::on_computation_progress, this);
     Bind(EVT_TEXTURE_COMPUTE_ERROR,    &TextureImportDialog::on_computation_error,    this);
+    Bind(EVT_TEXTURE_MESH_REPAIR_DECISION, &TextureImportDialog::on_mesh_repair_decision_required, this);
 
     build_ui();
     SetMinSize(wxSize(FromDIP(800), FromDIP(500)));
@@ -1915,6 +1918,7 @@ void TextureImportDialog::start_computation(bool auto_color, bool initial)
 
     m_cancel_flag = false;
     m_current_computation_initial = initial;
+    m_current_computation_auto_color = auto_color;
     if (initial) {
         m_initial_computation_pending = true;
         m_initial_computation_cancelled = false;
@@ -1932,6 +1936,10 @@ void TextureImportDialog::start_computation(bool auto_color, bool initial)
     Slic3r::TexturePaintingSettings settings;
     settings.target_colors_num = auto_color ? 0 : (size_t)m_param_color_count;
     settings.smooth_weight     = m_param_smooth / 10.0;
+    settings.mesh_repair_decision = m_mesh_repair_decision;
+#ifdef _WIN32
+    settings.mesh_repair_callback = Slic3r::fix_mesh_by_win10_sdk;
+#endif
 
     Slic3r::TexturedMesh mesh_copy = m_textured_mesh;
     wxEvtHandler* handler = this;
@@ -1949,10 +1957,18 @@ void TextureImportDialog::start_computation(bool auto_color, bool initial)
             return m_cancel_flag.load();
         };
 
-        bool ok = Slic3r::texture_to_painting(mesh_copy, result, settings, progress_cb, cancel_cb);
+        auto worker_settings = settings;
+        bool mesh_repair_decision_required = false;
+        worker_settings.mesh_repair_decision_required = &mesh_repair_decision_required;
+        bool ok = Slic3r::texture_to_painting(mesh_copy, result, worker_settings, progress_cb, cancel_cb);
 
         if (m_cancel_flag.load()) {
             wxQueueEvent(handler, new wxCommandEvent(EVT_TEXTURE_COMPUTE_ERROR));
+            return;
+        }
+
+        if (!ok && mesh_repair_decision_required) {
+            wxQueueEvent(handler, new wxCommandEvent(EVT_TEXTURE_MESH_REPAIR_DECISION));
             return;
         }
 
@@ -2022,6 +2038,8 @@ void TextureImportDialog::on_computation_complete(wxCommandEvent&)
     m_preview_canvas->set_face_colors(m_painted.face_colors);
 
     do_auto_match();
+    compact_used_virtual_filaments();
+    update_filament_color_map();
     rebuild_mapping_rows();
 
     m_applied_color_count = m_param_color_count;
@@ -2100,6 +2118,50 @@ void TextureImportDialog::on_computation_error(wxCommandEvent&)
                  _L("Error"), wxOK | wxICON_ERROR, initial ? GetParent() : this);
 }
 
+void TextureImportDialog::on_mesh_repair_decision_required(wxCommandEvent&)
+{
+    bool initial = m_current_computation_initial;
+    bool auto_color = m_current_computation_auto_color;
+
+    if (m_progress_dlg) {
+        m_progress_dlg->Destroy();
+        m_progress_dlg = nullptr;
+    }
+
+#ifdef _WIN32
+    wxMessageDialog dlg(initial ? GetParent() : this,
+        "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing.",
+        "Mesh repair", wxYES_NO | wxICON_WARNING | wxYES_DEFAULT);
+    dlg.SetYesNoLabels("Import without repair", "Repair and import");
+    int ret = dlg.ShowModal();
+    m_mesh_repair_decision = (ret == wxID_NO)
+        ? Slic3r::TexturePaintingSettings::MeshRepairDecision::RepairAndImport
+        : Slic3r::TexturePaintingSettings::MeshRepairDecision::ImportWithoutRepair;
+#else
+    wxMessageDialog dlg(initial ? GetParent() : this,
+        "Please note that the mesh has non-manifold geometry or open boundaries.",
+        "Mesh issue", wxOK | wxCANCEL | wxICON_WARNING | wxOK_DEFAULT);
+    dlg.SetOKCancelLabels("Continue", "Cancel");
+    int ret = dlg.ShowModal();
+    if (ret != wxID_OK) {
+        m_cancel_flag = true;
+        if (initial) {
+            m_initial_computation_cancelled = true;
+            m_initial_computation_pending = false;
+            m_current_computation_initial = false;
+        } else if (has_valid_result()) {
+            set_state(TextureImportState::Ready);
+        } else {
+            set_state(TextureImportState::Idle);
+        }
+        return;
+    }
+    m_mesh_repair_decision = Slic3r::TexturePaintingSettings::MeshRepairDecision::ImportWithoutRepair;
+#endif
+
+    start_computation(auto_color, initial);
+}
+
 // ---- Mapping ----
 
 void TextureImportDialog::update_filament_color_map()
@@ -2158,7 +2220,8 @@ int TextureImportDialog::add_virtual_filament(const std::array<float, 4>& rgba, 
                                               const std::string& preset_name)
 {
     if (!can_add_virtual_filament()) {
-        show_filament_limit_warning_once();
+        if (m_allow_filament_limit_warning_once)
+            show_filament_limit_warning_once();
         return -1;
     }
 
@@ -2168,6 +2231,80 @@ int TextureImportDialog::add_virtual_filament(const std::array<float, 4>& rgba, 
     m_new_filament_colors.push_back(rgba);
     m_new_filament_preset_names.push_back(preset_name.empty() ? m_default_virtual_filament_preset_name : preset_name);
     return (int)m_filament_colors_rgba.size() - 1;
+}
+
+void TextureImportDialog::compact_used_virtual_filaments()
+{
+    if (m_current_matches.empty())
+        return;
+
+    const std::vector<std::array<float, 4>> old_colors = m_filament_colors_rgba;
+    const std::vector<std::string> old_color_strs = m_filament_color_strs;
+    const std::vector<std::string> old_names = m_filament_names;
+    const std::vector<std::string> old_preset_names = m_new_filament_preset_names;
+
+    std::set<int> used_virtual_indices;
+    for (const auto& m : m_current_matches) {
+        if (m.filament_index >= (int)m_existing_filament_count &&
+            m.filament_index < (int)old_colors.size()) {
+            used_virtual_indices.insert(m.filament_index);
+        }
+    }
+
+    std::vector<std::array<float, 4>> compact_colors;
+    std::vector<std::string> compact_color_strs;
+    std::vector<std::string> compact_names;
+    compact_colors.reserve(m_existing_filament_count + used_virtual_indices.size());
+    compact_color_strs.reserve(m_existing_filament_count + used_virtual_indices.size());
+    compact_names.reserve(m_existing_filament_count + used_virtual_indices.size());
+
+    const size_t existing_count = std::min(m_existing_filament_count, old_colors.size());
+    for (size_t i = 0; i < existing_count; ++i) {
+        compact_colors.push_back(old_colors[i]);
+        compact_color_strs.push_back(i < old_color_strs.size() ? old_color_strs[i] : "");
+        compact_names.push_back(i < old_names.size() ? old_names[i] : "Filament " + std::to_string(i + 1));
+    }
+
+    std::map<int, int> old_to_new;
+    std::vector<std::array<float, 4>> compact_new_colors;
+    std::vector<std::string> compact_new_preset_names;
+    compact_new_colors.reserve(used_virtual_indices.size());
+    compact_new_preset_names.reserve(used_virtual_indices.size());
+
+    for (int old_idx : used_virtual_indices) {
+        old_to_new[old_idx] = (int)compact_colors.size();
+        compact_colors.push_back(old_colors[old_idx]);
+        compact_color_strs.push_back(old_idx < (int)old_color_strs.size() ? old_color_strs[old_idx] : "");
+        compact_names.push_back(old_idx < (int)old_names.size() ? old_names[old_idx] : DEFAULT_VIRTUAL_FILAMENT_NAME);
+        compact_new_colors.push_back(old_colors[old_idx]);
+
+        size_t vi = (size_t)(old_idx - (int)m_existing_filament_count);
+        compact_new_preset_names.push_back(vi < old_preset_names.size()
+            ? old_preset_names[vi]
+            : m_default_virtual_filament_preset_name);
+    }
+
+    m_filament_colors_rgba = std::move(compact_colors);
+    m_filament_color_strs = std::move(compact_color_strs);
+    m_filament_names = std::move(compact_names);
+    m_new_filament_colors = std::move(compact_new_colors);
+    m_new_filament_preset_names = std::move(compact_new_preset_names);
+
+    for (auto& m : m_current_matches) {
+        auto it = old_to_new.find(m.filament_index);
+        if (it != old_to_new.end()) {
+            m.filament_index = it->second;
+        } else if (m.filament_index >= (int)m_existing_filament_count) {
+            m.filament_index = find_closest_filament_index(m.cluster_color);
+        }
+
+        if (m.filament_index >= 0 && m.filament_index < (int)m_filament_colors_rgba.size()) {
+            m.filament_color = m_filament_colors_rgba[m.filament_index];
+            m.delta_e = Slic3r::compute_delta_e(m.cluster_color, m.filament_color);
+            if (m.filament_index >= (int)m_existing_filament_count)
+                m.delta_e = 0.0;
+        }
+    }
 }
 
 void TextureImportDialog::dismiss_filament_popup()
@@ -2775,8 +2912,16 @@ void TextureImportDialog::on_apply_clicked(wxCommandEvent&)
 
 void TextureImportDialog::on_auto_merge_toggled(wxCommandEvent&)
 {
+    bool auto_merge_enabled = !m_auto_merge_cb || m_auto_merge_cb->GetValue();
+    bool allow_limit_warning = m_auto_merge_enabled && !auto_merge_enabled;
+    m_auto_merge_enabled = auto_merge_enabled;
+
     if (m_state == TextureImportState::Ready) {
+        m_allow_filament_limit_warning_once = allow_limit_warning;
         do_auto_match();
+        m_allow_filament_limit_warning_once = false;
+        compact_used_virtual_filaments();
+        update_filament_color_map();
         rebuild_mapping_rows();
     }
 }
@@ -2927,41 +3072,7 @@ void TextureImportDialog::on_ok_clicked(wxCommandEvent&)
     if (m_current_matches.empty())
         return;
 
-    // Rebuild m_new_filament_colors to only contain virtual filaments actually referenced
-    std::set<int> used_virtual_indices;
-    for (const auto& m : m_current_matches) {
-        if (m.filament_index >= (int)m_existing_filament_count)
-            used_virtual_indices.insert(m.filament_index);
-    }
-
-    // Compact: reassign virtual indices to be contiguous starting from m_existing_filament_count
-    std::map<int, int> old_to_new;
-    int next_idx = (int)m_existing_filament_count;
-    m_new_filament_colors.clear();
-    std::vector<std::string> new_preset_names;
-    for (int old_idx : used_virtual_indices) {
-        if (old_idx >= 0 && old_idx < (int)m_filament_colors_rgba.size()) {
-            if (next_idx >= (int)max_filament_count()) {
-                show_filament_limit_warning_once();
-                continue;
-            }
-            old_to_new[old_idx] = next_idx;
-            m_new_filament_colors.push_back(m_filament_colors_rgba[old_idx]);
-            size_t vi = (size_t)(old_idx - (int)m_existing_filament_count);
-            new_preset_names.push_back(vi < m_new_filament_preset_names.size()
-                ? m_new_filament_preset_names[vi]
-                : m_default_virtual_filament_preset_name);
-            next_idx++;
-        }
-    }
-    m_new_filament_preset_names = std::move(new_preset_names);
-    for (auto& m : m_current_matches) {
-        auto it = old_to_new.find(m.filament_index);
-        if (it != old_to_new.end())
-            m.filament_index = it->second;
-        else if (m.filament_index >= (int)m_existing_filament_count)
-            m.filament_index = find_closest_filament_index(m.cluster_color);
-    }
+    compact_used_virtual_filaments();
 
     EndModal(wxID_OK);
 }

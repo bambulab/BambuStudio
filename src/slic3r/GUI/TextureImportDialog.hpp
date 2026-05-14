@@ -34,6 +34,7 @@ namespace Slic3r { namespace GUI {
 wxDECLARE_EVENT(EVT_TEXTURE_COMPUTE_DONE, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TEXTURE_COMPUTE_PROGRESS, wxCommandEvent);
 wxDECLARE_EVENT(EVT_TEXTURE_COMPUTE_ERROR, wxCommandEvent);
+wxDECLARE_EVENT(EVT_TEXTURE_MESH_REPAIR_DECISION, wxCommandEvent);
 
 enum class TextureImportState {
     Idle,
@@ -197,6 +198,7 @@ private:
     void on_computation_complete(wxCommandEvent& evt);
     void on_computation_progress(wxCommandEvent& evt);
     void on_computation_error(wxCommandEvent& evt);
+    void on_mesh_repair_decision_required(wxCommandEvent& evt);
 
     void rebuild_mapping_rows();
     void do_auto_match();
@@ -210,6 +212,7 @@ private:
     size_t max_filament_count() const;
     bool can_add_virtual_filament() const;
     void show_filament_limit_warning_once();
+    void compact_used_virtual_filaments();
     int  find_closest_filament_index(const std::array<std::size_t, 3>& color) const;
 
     void on_color_preset_clicked(wxCommandEvent& evt);
@@ -250,6 +253,8 @@ private:
     bool                               m_skipped = false;
     bool                               m_fallback_to_geometry_only = false;
     bool                               m_filament_limit_warning_shown = false;
+    bool                               m_allow_filament_limit_warning_once = false;
+    bool                               m_auto_merge_enabled = true;
 
     Slic3r::PaintedMesh               m_painted;
     std::vector<Slic3r::FilamentMatch> m_current_matches;
@@ -264,6 +269,9 @@ private:
     bool                               m_initial_computation_pending = false;
     bool                               m_initial_computation_cancelled = false;
     bool                               m_initial_computation_failed = false;
+    bool                               m_current_computation_auto_color = false;
+    Slic3r::TexturePaintingSettings::MeshRepairDecision m_mesh_repair_decision =
+        Slic3r::TexturePaintingSettings::MeshRepairDecision::Ask;
 
     Button*      m_btn_color_4    = nullptr;
     Button*      m_btn_color_8    = nullptr;

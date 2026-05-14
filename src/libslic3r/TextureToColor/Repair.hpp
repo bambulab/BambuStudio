@@ -2,15 +2,40 @@
 #include "TriMesh.hpp"
 #include "CgalUtils.hpp"
 #include "Callbacks.hpp"
+#include <CGAL/Polygon_mesh_processing/border.h>
+#include <CGAL/Polygon_mesh_processing/manifoldness.h>
 #include <CGAL/Polygon_mesh_processing/repair_polygon_soup.h>
 #include <CGAL/Polygon_mesh_processing/repair.h>
 #include <CGAL/Polygon_mesh_processing/orient_polygon_soup.h>
 #include <CGAL/Polygon_mesh_processing/polygon_soup_to_polygon_mesh.h>
+#include <CGAL/Polygon_mesh_processing/stitch_borders.h>
+#include <CGAL/Polygon_mesh_processing/triangulate_hole.h>
 #include <memory>
 
 namespace Slic3r { namespace tex2color {
 
 namespace PMP = CGAL::Polygon_mesh_processing;
+
+inline void CloseBoundariesAndRepairManifoldness(cgalutils::CGALMesh& cgal_mesh)
+{
+    using CGALMesh = cgalutils::CGALMesh;
+    using HalfedgeDescriptor = boost::graph_traits<CGALMesh>::halfedge_descriptor;
+    using FaceDescriptor = boost::graph_traits<CGALMesh>::face_descriptor;
+
+    PMP::stitch_borders(cgal_mesh);
+    PMP::duplicate_non_manifold_vertices(cgal_mesh);
+
+    std::vector<HalfedgeDescriptor> border_cycles;
+    PMP::extract_boundary_cycles(cgal_mesh, std::back_inserter(border_cycles));
+
+    for (const HalfedgeDescriptor h : border_cycles) {
+        std::vector<FaceDescriptor> patch_faces;
+        PMP::triangulate_hole(cgal_mesh, h, std::back_inserter(patch_faces));
+    }
+
+    PMP::remove_degenerate_faces(cgal_mesh);
+    PMP::duplicate_non_manifold_vertices(cgal_mesh);
+}
 
 inline bool RepairMesh(const TriMesh& mesh,
                        std::shared_ptr<TriMesh>& out_mesh,
@@ -62,6 +87,15 @@ inline bool RepairMesh(const TriMesh& mesh,
     PMP::polygon_soup_to_polygon_mesh(soup_points, soup_triangles, cgal_mesh);
 
     PMP::remove_degenerate_faces(cgal_mesh);
+
+    if (progress_callback) {
+        progress_callback({80, "Closing mesh boundaries"});
+    }
+    if (cancel_callback && cancel_callback()) {
+        return false;
+    }
+
+    CloseBoundariesAndRepairManifoldness(cgal_mesh);
 
     if (progress_callback) {
         progress_callback({85, "Converting from CGAL mesh"});
