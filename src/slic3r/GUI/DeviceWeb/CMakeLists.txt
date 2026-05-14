@@ -72,6 +72,9 @@ function(prepare_node_env)
     # pnpm 放到 node 同目录，这样执行 pnpm 时 PATH 中天然能找到 node
     set(PNPM_EXECUTABLE "${NODE_CACHE_DIR}/${NODE_BIN_DIR}/${PNPM_EXEC_NAME}")
 
+    message(STATUS "Checking for node binary at ${NODE_EXECUTABLE}")
+    message(STATUS "Checking for pnpm binary ${PNPM_EXECUTABLE}")
+
     # ============ Node.js 下载 + 解压 ============
     if(NOT EXISTS "${NODE_EXECUTABLE}")
         message(STATUS "Downloading Node.js v${NODE_VERSION} from ${NODE_URL}")
