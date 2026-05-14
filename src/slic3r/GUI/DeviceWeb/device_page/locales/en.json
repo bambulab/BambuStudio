@@ -161,5 +161,7 @@
   "day_Wed": "Wed",
   "day_Thu": "Thu",
   "day_Fri": "Fri",
-  "day_Sat": "Sat"
+  "day_Sat": "Sat",
+  "No predefined colors for this filament": "No predefined colors for this filament",
+  "Bambu Color Code": "Bambu Color Code"
 }

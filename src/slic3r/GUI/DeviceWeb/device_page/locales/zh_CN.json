@@ -162,5 +162,7 @@
   "day_Wed": "三",
   "day_Thu": "四",
   "day_Fri": "五",
-  "day_Sat": "六"
+  "day_Sat": "六",
+  "No predefined colors for this filament": "该耗材暂无预设颜色",
+  "Bambu Color Code": "Bambu 色号"
 }
