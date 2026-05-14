@@ -346,3 +346,183 @@ TEST_CASE("ColorType: swagger <-> FilamentColor::ColorType round-trip (mirror)",
 }
 
 #endif // BBL_TEST_HAS_WX
+
+// ---------------------------------------------------------------------------
+// STUDIO-18355: cloud round-trip invariants for filament-spool colour fields.
+//
+// Why mirror tests instead of exercising the real functions:
+//   `wgtFilaManagerCloudSync::spool_to_cloud_update_patch` and
+//   `wgtFilaManagerCloudSync::cloud_json_to_spool` live in
+//   src/slic3r/GUI/fila_manager/wgtFilaManagerCloudSync.cpp, which transitively
+//   includes slic3r/Utils/NetworkAgent.hpp + slic3r/GUI/GUI_App.hpp +
+//   <wx/app.h>. Pulling those into this lean test target would break the
+//   binary (no wx, no NetworkAgent linkage). Same trade-off as the
+//   `swagger_to_fc_mirror` block above: lock the *invariants* in the test
+//   corpus and KEEP IN SYNC with the production code. Both blocks use the
+//   same comment convention.
+//
+// Invariants under test:
+//   I1 (PUT side, STUDIO-18355 main fix): cloud body containing `color` ⇒
+//      `colors` is non-empty AND `colors[0] == color`. Single-element
+//      `colors` disagreeing with `color` is realigned to `[color]`. Multi-
+//      element `colors` is left untouched (multicolor edits opt out).
+//   I2 (PULL side, STUDIO-18355 defensive): the FilamentSpool produced from
+//      a cloud response satisfies `colors.empty() || color_code == colors[0]`,
+//      mirroring `FilamentSpool::from_json`.
+// ---------------------------------------------------------------------------
+
+namespace {
+
+// Mirror of the relevant slice of
+// `wgtFilaManagerCloudSync::spool_to_cloud_update_patch`. Only colour fields
+// are reproduced — STUDIO-18355 does not touch other branches. KEEP IN SYNC
+// with that function; in particular, any change to the
+// "color ⇒ colors[0] == color" rule must be reflected here.
+nlohmann::json mirror_spool_to_cloud_update_patch_color_subset(const nlohmann::json& p)
+{
+    nlohmann::json j = nlohmann::json::object();
+    if (!p.is_object()) return j;
+    if (p.contains("color_code") && p.at("color_code").is_string())
+        j["color"] = p.at("color_code").get<std::string>();
+    if (p.contains("colors") && p.at("colors").is_array())
+        j["colors"] = p.at("colors");
+    if (j.contains("color") && j.at("color").is_string()) {
+        const std::string primary = j["color"].get<std::string>();
+        const bool empty_or_missing = !j.contains("colors")
+            || !j["colors"].is_array() || j["colors"].empty();
+        if (empty_or_missing) {
+            j["colors"] = nlohmann::json::array({primary});
+        } else if (j["colors"].size() == 1 && j["colors"][0].is_string()
+                   && j["colors"][0].get<std::string>() != primary) {
+            j["colors"] = nlohmann::json::array({primary});
+        }
+    }
+    return j;
+}
+
+// Mirror of the colour-relevant slice of
+// `wgtFilaManagerCloudSync::cloud_json_to_spool`. KEEP IN SYNC.
+struct CloudPullColourSubset {
+    std::string color_code;
+    std::vector<std::string> colors;
+    int color_type {2};
+};
+
+CloudPullColourSubset mirror_cloud_json_to_spool_colour_subset(const nlohmann::json& j)
+{
+    CloudPullColourSubset s;
+    if (j.contains("color") && j["color"].is_string())
+        s.color_code = j["color"].get<std::string>();
+    else if (j.contains("color_code") && j["color_code"].is_string())
+        s.color_code = j["color_code"].get<std::string>();
+    if (j.contains("colors") && j["colors"].is_array()) {
+        for (const auto& hex : j["colors"]) {
+            if (hex.is_string()) s.colors.push_back(hex.get<std::string>());
+        }
+    }
+    if (j.contains("colorType") && j["colorType"].is_number())
+        s.color_type = j["colorType"].get<int>();
+    if (!s.colors.empty() && s.color_code != s.colors.front())
+        s.color_code = s.colors.front();
+    return s;
+}
+
+} // namespace
+
+TEST_CASE("STUDIO-18355 (PUT): empty colors[] paired with new color collapses to [color]",
+          "[fila_manager][colors][cloud][studio-18355]")
+{
+    // Single→single edit: AddEditDialog.tsx ships {color_code: <new>, colors: []}.
+    // Cloud `[]string optional` would silently keep the previously-stored
+    // colours[]; the patch must promote the empty array to [primary] so the
+    // PUT actually overwrites the cloud row's colours.
+    nlohmann::json patch = {
+        {"color_code", "#0000FF"},
+        {"colors",     nlohmann::json::array()},
+    };
+    auto body = mirror_spool_to_cloud_update_patch_color_subset(patch);
+    REQUIRE(body.contains("color"));
+    REQUIRE(body.at("color") == "#0000FF");
+    REQUIRE(body.contains("colors"));
+    REQUIRE(body.at("colors").is_array());
+    REQUIRE(body.at("colors").size() == 1);
+    CHECK(body.at("colors").at(0) == "#0000FF");
+}
+
+TEST_CASE("STUDIO-18355 (PUT): single-element colors[] disagreeing with color is realigned",
+          "[fila_manager][colors][cloud][studio-18355]")
+{
+    nlohmann::json patch = {
+        {"color_code", "#0000FF"},
+        {"colors",     nlohmann::json::array({"#FF0000"})}, // stale primary leaked through
+    };
+    auto body = mirror_spool_to_cloud_update_patch_color_subset(patch);
+    REQUIRE(body.at("colors").size() == 1);
+    CHECK(body.at("colors").at(0) == "#0000FF");
+}
+
+TEST_CASE("STUDIO-18355 (PUT): multi-element colors[] left untouched on user-confirmed multicolor edit",
+          "[fila_manager][colors][cloud][studio-18355]")
+{
+    // Multicolor edits intentionally let `color` (primary preview) and
+    // `colors[]` carry independent semantics; do NOT collapse them.
+    nlohmann::json patch = {
+        {"color_code", "#0066FF"},
+        {"colors",     nlohmann::json::array({"#0066FF", "#00AA88"})},
+    };
+    auto body = mirror_spool_to_cloud_update_patch_color_subset(patch);
+    REQUIRE(body.at("colors").size() == 2);
+    CHECK(body.at("colors").at(0) == "#0066FF");
+    CHECK(body.at("colors").at(1) == "#00AA88");
+}
+
+TEST_CASE("STUDIO-18355 (PUT): patch without color_code does not synthesise a colors[] entry",
+          "[fila_manager][colors][cloud][studio-18355]")
+{
+    // Editing only material/note must not implicitly touch the colour fields.
+    nlohmann::json patch = {
+        {"material_type", "PLA"},
+        {"note",          "spare spool"},
+    };
+    auto body = mirror_spool_to_cloud_update_patch_color_subset(patch);
+    CHECK_FALSE(body.contains("color"));
+    CHECK_FALSE(body.contains("colors"));
+}
+
+TEST_CASE("STUDIO-18355 (PULL): cloud_json_to_spool snaps color_code to colors.front() when they disagree",
+          "[fila_manager][colors][cloud][studio-18355]")
+{
+    // Defensive invariant aligned with FilamentSpool::from_json. Even if a
+    // legacy or peer-written cloud row carries inconsistent {color, colors[0]},
+    // the local store must end up self-consistent so SpoolColorChip can pick
+    // either field and render the same hex.
+    nlohmann::json cloud_resp = {
+        {"id",        "S-18355"},
+        {"color",     "#0000FF"},
+        {"colors",    nlohmann::json::array({"#FF0000"})},
+        {"colorType", 2},
+    };
+    auto s = mirror_cloud_json_to_spool_colour_subset(cloud_resp);
+    CHECK(s.color_code == "#FF0000");
+    REQUIRE(s.colors.size() == 1);
+    CHECK(s.colors.front() == "#FF0000");
+    CHECK(s.color_code == s.colors.front());
+}
+
+TEST_CASE("STUDIO-18355 (PULL): cloud response with empty colors keeps top-level color intact",
+          "[fila_manager][colors][cloud][studio-18355]")
+{
+    // When the PUT-side guard above succeeds, the server eventually returns a
+    // record where colours[] was overwritten to [primary] (or stayed empty for
+    // genuinely uncoloured rows). Either way the invariant holds without
+    // mutating color_code.
+    nlohmann::json cloud_resp = {
+        {"id",        "S-18355"},
+        {"color",     "#0000FF"},
+        {"colors",    nlohmann::json::array()},
+        {"colorType", 2},
+    };
+    auto s = mirror_cloud_json_to_spool_colour_subset(cloud_resp);
+    CHECK(s.color_code == "#0000FF");
+    CHECK(s.colors.empty());
+}

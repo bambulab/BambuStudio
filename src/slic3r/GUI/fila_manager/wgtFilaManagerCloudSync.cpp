@@ -133,6 +133,18 @@ FilamentSpool wgtFilaManagerCloudSync::cloud_json_to_spool(const nlohmann::json&
     s.color_type = to_fila_manager_color_type_int(
         normalize_fila_manager_color_type(raw_color_type, s.colors.size()));
 
+    // STUDIO-18355 (defensive): align with FilamentSpool::from_json's invariant
+    // (`!colors.empty() ⇒ color_code == colors.front()`). If the cloud ever
+    // returns a record where the top-level `color` and `colors[0]` disagree
+    // (e.g. a stale record from before the PUT-side guard above was rolled
+    // out), the pull merge would otherwise leak the disagreement into the
+    // local store and SpoolColorChip would render `colors[0]`, not `color`.
+    // Snap to `colors.front()` to mirror the disk-load path so a restart and
+    // a fresh pull surface the same colour.
+    if (!s.colors.empty() && s.color_code != s.colors.front()) {
+        s.color_code = s.colors.front();
+    }
+
     s.diameter        = num_f_any({"diameter"}, 1.75f);
 
     // Weights: cloud uses totalNetWeight / netWeight (nullable int64 grams).
@@ -415,11 +427,45 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_update_patch(const nlohma
     // when the patch carries an explicit colors array.
     if (p.contains("colors") && p.at("colors").is_array())
         j["colors"] = p.at("colors");
+    // STUDIO-18355: cloud `[]string optional` treats an empty array as
+    // "field not provided" and silently keeps the previously stored colors.
+    // Combined with FilamentSpool's `color_code == colors[0]` invariant on
+    // the pull side that meant a single→single colour edit (frontend ships
+    // `{color_code: <new>, colors: []}` per AddEditDialog handleSubmit /
+    // STUDIO-18340) round-tripped to a stale colours[] on the next pull and
+    // the SpoolColorChip rendered the OLD hex.
+    //
+    // Whenever the cloud body carries `color`, ensure `colors` is non-empty
+    // and that its primary entry equals `color`. That keeps the cloud
+    // record self-consistent without changing the local "single = empty
+    // colors[]" canonical shape (fila_manager_tests_main.cpp / apply_patch
+    // / on-disk JSON keep emitting empty colors[] for single).
+    if (j.contains("color") && j.at("color").is_string()) {
+        const std::string primary = j["color"].get<std::string>();
+        const bool colors_missing_or_empty = !j.contains("colors")
+            || !j["colors"].is_array() || j["colors"].empty();
+        if (colors_missing_or_empty) {
+            j["colors"] = nlohmann::json::array({primary});
+        } else if (j["colors"].size() == 1 && j["colors"][0].is_string()
+                   && j["colors"][0].get<std::string>() != primary) {
+            // Single-element colors[] disagreeing with `color` is the same
+            // class of inconsistency; align to the user-confirmed primary.
+            // Multi-element colors[] is left untouched — that came from a
+            // multicolor edit and `color` is just the primary preview hex.
+            j["colors"] = nlohmann::json::array({primary});
+        }
+    }
     if (p.contains("color_type") && p.at("color_type").is_number()) {
         const std::size_t color_count = j.contains("colors") && j["colors"].is_array() ? j["colors"].size() : 1;
         j["colorType"] = to_fila_manager_color_type_int(
             normalize_fila_manager_color_type(p.at("color_type").get<int>(), color_count));
     }
+    // NOTE on STUDIO-18355: deliberately do NOT auto-fill `colorType` when
+    // the patch is silent about it. The bug only manifests on the user-driven
+    // single→single edit path, which always sets `color_type` (AddEditDialog
+    // handleSubmit / commitCustomColorSelection). Synthesising `colorType`
+    // for partial patches that only touch the primary hex would risk
+    // collapsing a multicolor cloud row to "single" without user intent.
     take_int("net_weight",      "netWeight");
     take_int("total_net_weight","totalNetWeight");
     take_str("note",            "note");
