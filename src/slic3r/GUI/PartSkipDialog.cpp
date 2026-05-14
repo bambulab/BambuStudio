@@ -715,6 +715,9 @@ void PartSkipDialog::InitDialogUI()
     m_canvas->SetZoomPercent(100);
     m_canvas->SetOffset(wxPoint(0, 0));
 
+    wxColour bg = GetBackgroundColour();
+    m_canvas->SetParentBackground(ColorRGB{bg.Red() / 255.f, bg.Green() / 255.f, bg.Blue() / 255.f});
+
     BOOST_LOG_TRIVIAL(info) << "part skip: load canvas pick image begin.";
     m_canvas->LoadPickImage(pick_img);
     BOOST_LOG_TRIVIAL(info) << "part skip: load canvas pick image end.";

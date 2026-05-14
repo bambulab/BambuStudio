@@ -46,8 +46,6 @@ void SkipPartCanvas::LoadBackgroundImage(const std::string& path)
     else
         cv::cvtColor(img, rgba, cv::COLOR_BGR2RGBA);
 
-    cv::flip(rgba, rgba, 0);
-
     SetCurrent(*context_);
 
     if (bg_texture_id_ == 0)
