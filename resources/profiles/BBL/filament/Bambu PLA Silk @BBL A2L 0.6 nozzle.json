@@ -21,6 +21,9 @@
         "60"
     ],
     "filament_flush_temp": [
+        "0"
+    ],
+    "filament_flush_temp_fast": [
         "230"
     ],
     "filament_retraction_distances_when_cut": [

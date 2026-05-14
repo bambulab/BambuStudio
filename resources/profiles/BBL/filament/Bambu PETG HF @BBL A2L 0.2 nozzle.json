@@ -18,6 +18,9 @@
         "0.94"
     ],
     "filament_flush_temp": [
+        "0"
+    ],
+    "filament_flush_temp_fast": [
         "240"
     ],
     "filament_long_retractions_when_cut": [

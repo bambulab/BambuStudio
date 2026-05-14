@@ -43,10 +43,15 @@ private:
     bool            m_selected{false};
 };
 
+enum class PurgeModeDialogType {
+    MultiNozzle,
+    FastMode
+};
+
 class PurgeModeDialog : public DPIDialog
 {
 public:
-    PurgeModeDialog(wxWindow *parent);
+    PurgeModeDialog(wxWindow *parent, PurgeModeDialogType dialog_type = PurgeModeDialogType::MultiNozzle);
 
     PrimeVolumeMode get_selected_mode() const { return m_selected_mode; }
 
@@ -60,6 +65,7 @@ private:
     PurgeModeBtnPanel *m_standard_panel;
     PurgeModeBtnPanel *m_saving_panel;
     PrimeVolumeMode    m_selected_mode;
+    PurgeModeDialogType m_dialog_type;
 };
 
 } // namespace GUI

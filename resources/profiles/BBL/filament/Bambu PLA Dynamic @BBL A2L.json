@@ -24,6 +24,9 @@
         "0.98"
     ],
     "filament_flush_temp": [
+        "0"
+    ],
+    "filament_flush_temp_fast": [
         "220"
     ],
     "filament_max_volumetric_speed": [

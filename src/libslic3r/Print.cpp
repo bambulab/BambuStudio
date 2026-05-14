@@ -3356,7 +3356,9 @@ void Print::_make_wipe_tower()
 
                 if(!nozzle_recorder.is_nozzle_empty(nozzle_id) && filament_id != prev_nozzle_filament){
                     volume_to_purge = multi_extruder_flush[extruder_id][prev_nozzle_filament][filament_id];
-                    volume_to_purge *= m_config.flush_multiplier.get_at(extruder_id);
+                    float multiplier = (m_config.prime_volume_mode == PrimeVolumeMode::pvmFast) ? m_config.flush_multiplier_fast.get_at(extruder_id) :
+                                                                                                  m_config.flush_multiplier.get_at(extruder_id);
+                    volume_to_purge *= multiplier;
                     volume_to_purge = layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, old_filament_id, filament_id, volume_to_purge);
                 }
 
@@ -3404,7 +3406,7 @@ void Print::_make_wipe_tower()
     m_wipe_tower_data.bbx = wipe_tower.get_bbx();
     m_wipe_tower_data.rib_offset = wipe_tower.get_rib_offset();
 
-    // Unload the current filament over the purge tower. 
+    // Unload the current filament over the purge tower.
     coordf_t layer_height = m_objects.front()->config().layer_height.value;
     if (m_wipe_tower_data.tool_ordering.back().wipe_tower_partitions > 0) {
         // The wipe tower goes up to the last layer of the print.

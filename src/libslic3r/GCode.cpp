@@ -889,6 +889,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 config.set_key_value("travel_point_3_y", new ConfigOptionFloat(float(travel_point_3.y())));
                 {
                     size_t num_filaments = m_print_config->filament_type.values.size();
+                    bool   use_fast_flush = m_print_config->prime_volume_mode == PrimeVolumeMode::pvmFast;
                     std::vector<double> flush_v_speed(num_filaments);
                     std::vector<int>    flush_temps(num_filaments);
                     std::vector<double> filament_cooling_before_tower(num_filaments);
@@ -897,7 +898,8 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                         flush_v_speed[idx] = m_print_config->filament_flush_volumetric_speed.get_at(fi);
                         if (flush_v_speed[idx] == 0)
                             flush_v_speed[idx] = m_print_config->filament_max_volumetric_speed.get_at(fi);
-                        flush_temps[idx] = m_print_config->filament_flush_temp.get_at(fi);
+                        flush_temps[idx] = use_fast_flush ? m_print_config->filament_flush_temp_fast.get_at(fi)
+                                                         : m_print_config->filament_flush_temp.get_at(fi);
                         if (flush_temps[idx] == 0)
                             flush_temps[idx] = m_print_config->nozzle_temperature_range_high.get_at(idx);
                         filament_cooling_before_tower[idx] = m_print_config->filament_cooling_before_tower.get_at(fi);
@@ -2288,7 +2290,9 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         DynamicPrintConfig print_cfg_temp = print.full_print_config();
 
         {//correct the flush_volumes_matrix with flush_multiplier values
-            std::vector<double> temp_cfg_flush_multiplier   = print_cfg_temp.option<ConfigOptionFloats>("flush_multiplier")->values;
+            std::vector<double> temp_cfg_flush_multiplier   = (print.config().prime_volume_mode == PrimeVolumeMode::pvmFast) ?
+                                                                  print_cfg_temp.option<ConfigOptionFloats>("flush_multiplier_fast")->values :
+                                                                  print_cfg_temp.option<ConfigOptionFloats>("flush_multiplier")->values;
             std::vector<double> temp_flush_volumes_matrix = print_cfg_temp.option<ConfigOptionFloats>("flush_volumes_matrix")->values;
             auto                temp_filament_color         = print_cfg_temp.option<ConfigOptionStrings>("filament_colour")->values;
             size_t              heads_count_tmp = temp_cfg_flush_multiplier.size(),
@@ -7487,9 +7491,11 @@ void GCode::update_placeholder_parser_with_variant_params()
 
     // --- flush_volumetric_speeds / flush_temperatures: derived with fallback ---
     {
+        bool use_fast_flush = m_config.prime_volume_mode == PrimeVolumeMode::pvmFast;
         auto flush_v_speed  = remap_floats_by_filament(m_config.filament_flush_volumetric_speed);
         auto filament_max_v = remap_floats_by_filament(m_config.filament_max_volumetric_speed);
-        auto flush_temps    = remap_ints_by_filament(m_config.filament_flush_temp);
+        auto flush_temps    = remap_ints_by_filament(use_fast_flush ? m_config.filament_flush_temp_fast
+                                                                    : m_config.filament_flush_temp);
         for (size_t i = 0; i < num_filaments; ++i) {
             if (flush_v_speed[i] == 0)
                 flush_v_speed[i] = filament_max_v[i];
@@ -7734,6 +7740,7 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
     dyn_config.set_key_value("filament_tower_interface_print_temp", new ConfigOptionFloat(-1));
     {
         size_t num_filaments = m_config.filament_type.values.size();
+        bool   use_fast_flush = m_print->config().prime_volume_mode == PrimeVolumeMode::pvmFast;
         std::vector<double> flush_v_speed(num_filaments);
         std::vector<int>    flush_temps(num_filaments);
         std::vector<double> filament_cooling_before_tower(num_filaments);
@@ -7742,7 +7749,8 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
             flush_v_speed[idx] = m_print->config().filament_flush_volumetric_speed.get_at(fi);
             if (flush_v_speed[idx] == 0)
                 flush_v_speed[idx] = m_print->config().filament_max_volumetric_speed.get_at(fi);
-            flush_temps[idx] = m_print->config().filament_flush_temp.get_at(fi);
+            flush_temps[idx] = use_fast_flush ? m_print->config().filament_flush_temp_fast.get_at(fi)
+                                              : m_print->config().filament_flush_temp.get_at(fi);
             if (flush_temps[idx] == 0)
                 flush_temps[idx] = m_print->config().nozzle_temperature_range_high.get_at(idx);
             filament_cooling_before_tower[idx] = m_config.filament_cooling_before_tower.get_at(fi);

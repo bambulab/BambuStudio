@@ -13082,7 +13082,8 @@ bool GLCanvas3D::is_flushing_matrix_error() {
 
     const auto                &project_config = wxGetApp().preset_bundle->project_config;
     const std::vector<double> &config_matrix  = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
-    const std::vector<double> &config_multiplier = (project_config.option<ConfigOptionFloats>("flush_multiplier"))->values;
+    bool                       use_fast          = project_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode")->value == PrimeVolumeMode::pvmFast;
+    const std::vector<double> &config_multiplier = (project_config.option<ConfigOptionFloats>(use_fast ? "flush_multiplier_fast" : "flush_multiplier"))->values;
 
     for (auto multiplier : config_multiplier) {
         if (multiplier == 0 && config_matrix.size() >= config_multiplier.size() * 4) return true;

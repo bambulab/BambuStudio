@@ -1110,7 +1110,7 @@ static std::vector<std::string> s_Preset_filament_options {/*"filament_colour", 
     "enable_pressure_advance", "pressure_advance", "chamber_temperatures","filament_notes",
     "filament_long_retractions_when_cut","filament_retraction_distances_when_cut","filament_shrink", "filament_velocity_adaptation_factor",
     //BBS filament change length while the extruder color
-    "filament_change_length","filament_change_length_nc","filament_prime_volume","filament_prime_volume_nc","filament_flush_volumetric_speed","filament_flush_temp",
+    "filament_change_length","filament_change_length_nc","filament_prime_volume","filament_prime_volume_nc","filament_flush_volumetric_speed","filament_flush_temp","filament_flush_temp_fast",
     "long_retractions_when_ec", "retraction_distances_when_ec",
     "filament_enable_overhang_speed",
     "filament_bridge_speed",
@@ -1165,7 +1165,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "use_relative_e_distances", "extruder_type","use_firmware_retraction",
     "grab_length","machine_switch_extruder_time","hotend_cooling_rate","hotend_heating_rate","enable_pre_heating", "support_object_skip_flush","physical_extruder_map",
     "bed_temperature_formula","machine_prepare_compensation_time", "nozzle_flush_dataset",
-    "group_algo_with_time","extruder_max_nozzle_count"
+    "group_algo_with_time","extruder_max_nozzle_count","support_fast_purge_mode"
 };
 
 static std::vector<std::string> s_Preset_sla_print_options {

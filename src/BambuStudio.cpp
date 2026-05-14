@@ -3788,6 +3788,8 @@ int CLI::run(int argc, char **argv)
             std::vector<double>& flush_multipliers = m_print_config.option<ConfigOptionFloats>("flush_multiplier", true)->values;
             flush_multipliers.resize(new_extruder_count, 1.f);
 
+            std::vector<double> &flush_multipliers_fast = m_print_config.option<ConfigOptionFloats>("flush_multiplier_fast", true)->values;
+            flush_multipliers_fast.resize(new_extruder_count, 1.2f);
             std::vector<int> nozzle_flush_dataset(new_extruder_count, 0);
             {
                 std::vector<int> nozzle_flush_dataset_full = m_print_config.option<ConfigOptionIntsNullable>("nozzle_flush_dataset",true)->values;

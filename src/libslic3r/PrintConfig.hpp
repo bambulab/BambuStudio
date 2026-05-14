@@ -297,7 +297,8 @@ enum FanDirection {
 
 enum PrimeVolumeMode {
     pvmDefault = 0,
-    pvmSaving
+    pvmSaving,
+    pvmFast 
 };
 
 static std::unordered_map<NozzleType, std::string>NozzleTypeEumnToStr = {
@@ -1253,6 +1254,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              filament_minimal_purge_on_wipe_tower))
     ((ConfigOptionFloatsNullable,      filament_flush_volumetric_speed))
     ((ConfigOptionIntsNullable,        filament_flush_temp))
+    ((ConfigOptionIntsNullable,        filament_flush_temp_fast))
     // BBS
     ((ConfigOptionBool,                scan_first_layer))
     ((ConfigOptionBool,                enable_wrapping_detection))
@@ -1310,6 +1312,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                support_cooling_filter))
     ((ConfigOptionBool,                cooling_filter_enabled))
     ((ConfigOptionIntsNullable,        extruder_max_nozzle_count))
+    ((ConfigOptionBool,                support_fast_purge_mode))
     ((ConfigOptionBool,                accel_to_decel_enable))
     ((ConfigOptionPercent,             accel_to_decel_factor))
     ((ConfigOptionEnumsGeneric,        extruder_type))
@@ -1478,6 +1481,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloats,             flush_volumes_vector))
     // BBS: wipe tower is only used for priming
     ((ConfigOptionFloats,             flush_multiplier))
+    ((ConfigOptionFloats,             flush_multiplier_fast))
     //((ConfigOptionFloat,              z_offset))
     // BBS: project filaments
     ((ConfigOptionFloats,             filament_colour_new))

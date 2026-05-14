@@ -4577,6 +4577,7 @@ void TabFilament::build()
     page = add_options_page(L("Multi Filament"), "advanced");
         optgroup = page->new_optgroup(L("Multi Filament"));
         optgroup->append_single_option_line("filament_flush_temp", "", 0);
+        optgroup->append_single_option_line("filament_flush_temp_fast", "", 0);
         optgroup->append_single_option_line("filament_flush_volumetric_speed", "", 0);
         optgroup->append_single_option_line("long_retractions_when_ec", "" , 0);
         optgroup->append_single_option_line("retraction_distances_when_ec", "" , 0);
@@ -4701,8 +4702,9 @@ void TabFilament::toggle_options()
         bool enable_fit = volumetric_speed_cos != "0 0 0 0 0 0";
         toggle_option("filament_adaptive_volumetric_speed", enable_fit, 256 + (unsigned int) (m_variant_combo->GetSelection()));
         auto prime_volume = this->m_preset_bundle->project_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode")->value;
-        toggle_option("filament_prime_volume", prime_volume == PrimeVolumeMode::pvmDefault, 256 + (unsigned int) (m_variant_combo->GetSelection()));
-        toggle_option("filament_prime_volume_nc", prime_volume == PrimeVolumeMode::pvmDefault, 256 + (unsigned int) (m_variant_combo->GetSelection()));
+        bool prime_volume_editable = (prime_volume != PrimeVolumeMode::pvmSaving);
+        toggle_option("filament_prime_volume", prime_volume_editable, 256 + (unsigned int) (m_variant_combo->GetSelection()));
+        toggle_option("filament_prime_volume_nc", prime_volume_editable, 256 + (unsigned int) (m_variant_combo->GetSelection()));
 
         std::string printer_model = m_preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
         bool is_tower_interface_supported = (printer_model.find("H2C") != std::string::npos ||
@@ -4713,10 +4715,59 @@ void TabFilament::toggle_options()
             toggle_line(el, is_tower_interface_supported);
     }
 
-    if (m_active_page->title() == "Multi Filament") {
-        const int extruder_idx = m_variant_combo->GetSelection();
+    if (m_active_page && m_active_page->title() == "Multi Filament") {
+        const int extruder_idx = m_variant_combo ? m_variant_combo->GetSelection() : 0;
+        auto support_fast_purge_opt = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("support_fast_purge_mode");
+        bool support_fast_purge     = support_fast_purge_opt ? support_fast_purge_opt->value : false;
+
+        if (!m_flush_mode_panel && support_fast_purge) {
+            m_flush_mode_panel = new wxWindow(m_active_page->parent(), wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+            m_flush_mode_panel->SetBackgroundColour(m_active_page->parent()->GetBackgroundColour());
+            m_flush_mode_switch = new MultiSwitchButton(m_flush_mode_panel);
+            m_flush_mode_switch->SetOptions({_L("Purge Mode: Standard"), _L("Purge Mode: Fast")});
+            m_flush_mode_switch->SetSelection(m_flush_mode_selection);
+            for (unsigned int i = 0; i < m_flush_mode_switch->GetCount(); ++i) {
+                Button *btn = m_flush_mode_switch->GetButton(i);
+                if (btn)
+                    btn->SetToolTip(m_flush_mode_switch->GetOptionText(i));
+            }
+            m_flush_mode_switch->Bind(wxCUSTOMEVT_MULTISWITCH_SELECTION, [this](auto &evt) {
+                evt.Skip();
+                m_flush_mode_selection = m_flush_mode_switch->GetSelection();
+                toggle_options();
+            });
+            auto *panel_sizer = new wxBoxSizer(wxHORIZONTAL);
+            panel_sizer->Add(m_flush_mode_switch, 1, wxEXPAND);
+            panel_sizer->AddStretchSpacer(2);
+            m_flush_mode_panel->SetSizer(panel_sizer);
+            m_active_page->vsizer()->Insert(0, m_flush_mode_panel, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 10);
+        }
+
+        if (m_flush_mode_panel) {
+            m_flush_mode_panel->Show(support_fast_purge);
+        }
+
+        if (support_fast_purge && m_flush_mode_switch) {
+            bool show_fast = m_flush_mode_switch->GetSelection() == 1;
+            toggle_line("filament_flush_temp#0", !show_fast);
+            toggle_line("filament_flush_temp_fast#0", show_fast);
+
+            const auto& saved_config = m_presets->get_selected_preset().config;
+            const auto& edited_config = m_presets->get_edited_preset().config;
+            bool std_dirty = saved_config.opt_serialize("filament_flush_temp") != edited_config.opt_serialize("filament_flush_temp");
+            bool fast_dirty = saved_config.opt_serialize("filament_flush_temp_fast") != edited_config.opt_serialize("filament_flush_temp_fast");
+            StateColor default_color(std::make_pair(0x6B6B6B, (int) StateColor::NotChecked), std::make_pair(0xFFFFFE, (int) StateColor::Normal));
+            StateColor modified_color(m_modified_label_clr);
+            m_flush_mode_switch->SetButtonTextColor(0, show_fast ? (std_dirty ? modified_color : default_color) : default_color);
+            m_flush_mode_switch->SetButtonTextColor(1, !show_fast ? (fast_dirty ? modified_color : default_color) : default_color);
+        } else {
+            toggle_line("filament_flush_temp#0", true);
+            toggle_line("filament_flush_temp_fast#0", false);
+        }
         toggle_line("long_retractions_when_ec", is_multi_extruder && is_BBL_printer, 256 + extruder_idx);
         toggle_line("retraction_distances_when_ec", is_multi_extruder && is_BBL_printer && m_config->opt_bool_nullable("long_retractions_when_ec", extruder_idx), 256 + extruder_idx);
+        m_active_page->update_visibility(m_mode, true);
+        update_changed_ui();
     }
 
     if (m_active_page->title() == "Setting Overrides")
@@ -4752,6 +4803,8 @@ void TabFilament::clear_pages()
 
     m_volumetric_speed_description_line = nullptr;
 	m_cooling_description_line = nullptr;
+	m_flush_mode_switch = nullptr;
+	m_flush_mode_panel = nullptr;
 
     //BBS: GUI refactor
     m_overrides_options.clear();
@@ -5596,10 +5649,17 @@ void TabPrinter::on_preset_loaded()
             m_preset_bundle->extruder_nozzle_stat.set_nozzle_data_flag(ExtruderNozzleStat::ndfNone);
 
             // only trigger prime volume type for printers with multi nozzle
-            auto prime_volume_type = m_preset_bundle->project_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode");
-            if(!has_multiple_nozzle)
+            auto support_fast_purge_opt = current_printer.config.option<ConfigOptionBool>("support_fast_purge_mode");
+            bool support_fast_purge     = support_fast_purge_opt ? support_fast_purge_opt->value : false;
+            bool show_purge_mode    = has_multiple_nozzle || support_fast_purge;
+            auto prime_volume_type  = m_preset_bundle->project_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode");
+            if (!show_purge_mode)
                 prime_volume_type->value = PrimeVolumeMode::pvmDefault;
-            wxGetApp().plater()->sidebar().enable_purge_mode_btn(has_multiple_nozzle);
+            else if (!has_multiple_nozzle && prime_volume_type->value == PrimeVolumeMode::pvmSaving)
+                prime_volume_type->value = PrimeVolumeMode::pvmDefault;
+            else if (!support_fast_purge && prime_volume_type->value == PrimeVolumeMode::pvmFast)
+                prime_volume_type->value = PrimeVolumeMode::pvmDefault;
+            wxGetApp().plater()->sidebar().enable_purge_mode_btn(show_purge_mode);
             wxGetApp().plater()->get_notification_manager()->remove_notification_of_type(NotificationType::BBLArcFittingInfo);
         }
         m_base_preset_model = base_model;

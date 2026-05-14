@@ -1478,7 +1478,7 @@ std::vector<FlushMatrix> prepare_flush_matrices(const PrintConfig& print_config)
         nozzle_flush_mtx.emplace_back(wipe_volumes);
     }
 
-    auto flush_multiplies = print_config.flush_multiplier.values;
+    auto flush_multiplies = (print_config.prime_volume_mode == PrimeVolumeMode::pvmFast) ? print_config.flush_multiplier_fast.values : print_config.flush_multiplier.values;
     flush_multiplies.resize(extruder_nums, 1);
     for (size_t nozzle_id = 0; nozzle_id < extruder_nums; ++nozzle_id) {
         for (auto& vec : nozzle_flush_mtx[nozzle_id]) {

@@ -2786,8 +2786,10 @@ Sidebar::Sidebar(Plater *parent)
 
     p->m_purge_mode_btn->Bind(wxEVT_BUTTON, ([parent, this](wxCommandEvent &e) {
         auto &preset_bundle = *wxGetApp().preset_bundle;
-
-        PurgeModeDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe));
+        auto support_fast_purge_opt = preset_bundle.printers.get_edited_preset().config.option<ConfigOptionBool>("support_fast_purge_mode");
+        bool support_fast_purge     = support_fast_purge_opt ? support_fast_purge_opt->value : false;
+        auto dlg_type          = support_fast_purge ? PurgeModeDialogType::FastMode : PurgeModeDialogType::MultiNozzle;
+        PurgeModeDialog dlg(static_cast<wxWindow *>(wxGetApp().mainframe), dlg_type);
         if (dlg.ShowModal() == wxID_OK) {
             preset_bundle.project_config.set_key_value("prime_volume_mode", new ConfigOptionEnum<PrimeVolumeMode>(dlg.get_selected_mode()));
             wxGetApp().plater()->update();
@@ -21776,6 +21778,9 @@ void Plater::update_flush_volume_matrix(size_t old_nozzle_size, size_t new_nozzl
         std::vector<double> flush_multipliers = project_config->option<ConfigOptionFloats>("flush_multiplier")->values;
         flush_multipliers.resize(nozzle_nums, 1.f);
         project_config->option<ConfigOptionFloats>("flush_multiplier")->values = flush_multipliers;
+        std::vector<double> flush_multipliers_fast                             = project_config->option<ConfigOptionFloats>("flush_multiplier_fast")->values;
+        flush_multipliers_fast.resize(nozzle_nums, 1.2f);
+        project_config->option<ConfigOptionFloats>("flush_multiplier_fast")->values = flush_multipliers_fast;
     }
     else if (old_nozzle_size > new_nozzle_size) {
         std::vector<double> new_flush_volume_mtx;
@@ -21789,6 +21794,9 @@ void Plater::update_flush_volume_matrix(size_t old_nozzle_size, size_t new_nozzl
         flush_multipliers.resize(nozzle_nums, 1.f);
         set_flush_volumes_matrix(project_config->option<ConfigOptionFloats>("flush_volumes_matrix")->values, new_flush_volume_mtx, -1, new_nozzle_size);
         project_config->option<ConfigOptionFloats>("flush_multiplier")->values = flush_multipliers;
+        std::vector<double> flush_multipliers_fast                             = project_config->option<ConfigOptionFloats>("flush_multiplier_fast")->values;
+        flush_multipliers_fast.resize(nozzle_nums, 1.2f);
+        project_config->option<ConfigOptionFloats>("flush_multiplier_fast")->values = flush_multipliers_fast;
     }
 }
 

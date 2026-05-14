@@ -53,6 +53,7 @@ static std::vector<std::string> s_project_options {
     "wipe_tower_rotation_angle",
     "curr_bed_type",
     "flush_multiplier",
+    "flush_multiplier_fast",
     "nozzle_volume_type",
     "filament_map_mode",
     "filament_map",
@@ -1331,7 +1332,9 @@ std::vector<std::vector<std::vector<float>>> PresetBundle::get_full_flush_matrix
     }
 
     if(with_multiplier){
-        auto flush_multiplies = project_config.option<ConfigOptionFloats>("flush_multiplier")->values;
+        bool use_fast         = project_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode")->value == PrimeVolumeMode::pvmFast;
+        auto flush_multiplies = use_fast ? project_config.option<ConfigOptionFloats>("flush_multiplier_fast")->values :
+                                           project_config.option<ConfigOptionFloats>("flush_multiplier")->values;
         flush_multiplies.resize(extruder_nums, 1);
         for (size_t extruder_id = 0; extruder_id < extruder_nums; ++extruder_id) {
             for (auto& vec : matrix[extruder_id]) {
@@ -2106,6 +2109,11 @@ void PresetBundle::load_selections(AppConfig &config, const PresetPreferences& p
         auto flush_multipliers = matrix | boost::adaptors::transformed(boost::lexical_cast<double, std::string>);
         project_config.option<ConfigOptionFloats>("flush_multiplier")->values = std::vector<double>(flush_multipliers.begin(), flush_multipliers.end());
     }
+    if (config.has("app", "flush_multiplier_fast")) {
+        boost::algorithm::split(matrix, config.get("app", "flush_multiplier_fast"), boost::algorithm::is_any_of("|"));
+        auto flush_multipliers_fast                                                = matrix | boost::adaptors::transformed(boost::lexical_cast<double, std::string>);
+        project_config.option<ConfigOptionFloats>("flush_multiplier_fast")->values = std::vector<double>(flush_multipliers_fast.begin(), flush_multipliers_fast.end());
+    }
 
     // Mixed filament metadata
     size_t n_filaments = filament_presets.size();
@@ -2267,6 +2275,11 @@ void PresetBundle::export_selections(AppConfig &config)
                                                                   boost::adaptors::transformed(static_cast<std::string (*)(double)>(std::to_string)),
                                                               "|");
     config.set("flush_multiplier", flush_multiplier_str);
+    std::string flush_multiplier_fast_str = boost::algorithm::join(project_config.option<ConfigOptionFloats>("flush_multiplier_fast")->values |
+                                                                       boost::adaptors::transformed(static_cast<std::string (*)(double)>(std::to_string)),
+                                                                   "|");
+    config.set("flush_multiplier_fast", flush_multiplier_fast_str);
+
 
     // Mixed filament metadata
     if (auto* opt = project_config.option<ConfigOptionBools>("filament_is_mixed")) {
@@ -5501,6 +5514,8 @@ void PresetBundle::update_multi_material_filament_presets(size_t to_delete_filam
     if (old_nozzle_nums != nozzle_nums) {
         std::vector<double>& f_multiplier = this->project_config.option<ConfigOptionFloats>("flush_multiplier")->values;
         f_multiplier.resize(nozzle_nums, 1.f);
+        std::vector<double> &f_multiplier_fast = this->project_config.option<ConfigOptionFloats>("flush_multiplier_fast")->values;
+        f_multiplier_fast.resize(nozzle_nums, 1.2f);
     }
 
     if ( (num_filaments * num_filaments) != size_t(old_matrix.size() / old_nozzle_nums) ) {

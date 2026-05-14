@@ -6,6 +6,9 @@
     "setting_id": "GFSG01_27",
     "instantiation": "true",
     "filament_flush_temp": [
+        "0"
+    ],
+    "filament_flush_temp_fast": [
         "245"
     ],
     "filament_long_retractions_when_cut": [

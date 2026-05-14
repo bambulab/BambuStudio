@@ -505,7 +505,8 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FilamentMapMode)
 
 static const t_config_enum_values s_keys_map_PrimeVolumeMode = {
     { "Default", pvmDefault},
-    { "Saving", pvmSaving}
+    { "Saving", pvmSaving},
+    { "Fast", pvmFast}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrimeVolumeMode)
 
@@ -2218,6 +2219,16 @@ void PrintConfigDef::init_fff_params()
     def->sidetext = "°C";
     def->set_default_value(new ConfigOptionIntsNullable{0});
 
+    def = this->add("filament_flush_temp_fast", coInts);
+    def->label = L("Flush temperature");
+    def->tooltip = L("Flush temperature used in fast purge mode. 0 indicates the upper bound of the recommended nozzle temperature range");
+    def->mode = comAdvanced;
+    def->nullable = true;
+    def->min = 0;
+    def->max = max_temp;
+    def->sidetext = "°C";
+    def->set_default_value(new ConfigOptionIntsNullable{0});
+
     def = this->add("filament_flush_volumetric_speed", coFloats);
     def->label = L("Flush volumetric speed");
     def->tooltip = L("Volumetric speed when flushing filament. 0 indicates the max volumetric speed");
@@ -3861,6 +3872,12 @@ void PrintConfigDef::init_fff_params()
     def->nullable = true;
     def->set_default_value(new ConfigOptionIntsNullable{ 1 });
 
+    def = this->add("support_fast_purge_mode", coBool);
+    def->label = L("Support fast purge mode");
+    def->tooltip = L("Whether this printer supports fast purge mode with optimized temperature and multiplier.");
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("has_scarf_joint_seam", coBool);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
@@ -4562,8 +4579,10 @@ void PrintConfigDef::init_fff_params()
     def = this->add("prime_volume_mode", coEnum);
     def->enum_values.push_back("Default");
     def->enum_values.push_back("Saving");
+    def->enum_values.push_back("Fast");
     def->enum_labels.push_back(L("Default"));
     def->enum_labels.push_back(L("Saving"));
+    def->enum_labels.push_back(L("Fast"));
     def->enum_keys_map = &ConfigOptionEnum<PrimeVolumeMode>::get_enum_values();
     def->set_default_value(new ConfigOptionEnum<PrimeVolumeMode>{ PrimeVolumeMode::pvmDefault });
 
@@ -5807,6 +5826,12 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("The actual flushing volumes is equal to the flush multiplier multiplied by the flushing volumes in the table.");
     def->sidetext = "";
     def->set_default_value(new ConfigOptionFloats{1.0});
+
+    def           = this->add("flush_multiplier_fast", coFloats);
+    def->label    = L("Flush multiplier (Fast mode)");
+    def->tooltip  = L("The flush multiplier used in fast purge mode.");
+    def->sidetext = "";
+    def->set_default_value(new ConfigOptionFloats{1.2});
 
     // // BBS
     // def = this->add("prime_volume", coFloat);
@@ -7111,6 +7136,7 @@ std::set<std::string> filament_options_with_variant = {
     "nozzle_temperature",
     "filament_flush_volumetric_speed",
     "filament_flush_temp",
+    "filament_flush_temp_fast",
     "filament_enable_overhang_speed",
     "filament_bridge_speed",
     "filament_overhang_1_4_speed",

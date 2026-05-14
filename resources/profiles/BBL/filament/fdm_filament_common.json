@@ -144,6 +144,9 @@
     "filament_flush_temp": [
         "0"
     ],
+    "filament_flush_temp_fast": [
+        "0"
+    ],
     "filament_flush_volumetric_speed": [
         "0"
     ],

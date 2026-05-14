@@ -596,6 +596,9 @@ class TabFilament : public Tab
 private:
 	ogStaticText*	m_volumetric_speed_description_line {nullptr};
 	ogStaticText*	m_cooling_description_line {nullptr};
+	MultiSwitchButton* m_flush_mode_switch {nullptr};
+	wxWindow*          m_flush_mode_panel {nullptr};
+	int                m_flush_mode_selection {0};
 
     void            add_filament_overrides_page();
     void            update_filament_overrides_page();

@@ -10,6 +10,7 @@
     ],
     "printer_model": "Bambu Lab A2L",
     "printer_variant": "0.4",
+    "support_fast_purge_mode": "1",
     "auxiliary_fan": "0",
     "bed_exclude_area": [],
     "default_filament_profile": [
