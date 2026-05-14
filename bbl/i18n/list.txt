@@ -209,6 +209,8 @@ src/slic3r/GUI/ReleaseNote.cpp
 src/slic3r/GUI/ReleaseNote.hpp
 src/slic3r/GUI/HelioReleaseNote.cpp
 src/slic3r/GUI/HelioReleaseNote.hpp
+src/slic3r/GUI/BetaVersionDialog.cpp
+src/slic3r/GUI/BetaVersionDialog.hpp
 src/slic3r/GUI/UpgradePanel.cpp
 src/slic3r/GUI/Project.cpp
 src/slic3r/Utils/FixModelByWin10.cpp
