@@ -1,30 +1,30 @@
 {
     "type": "filament",
-    "name": "Bambu TPU 95A HF @BBL A2L",
-    "inherits": "Bambu TPU 95A HF @base",
+    "name": "Bambu TPU for AMS @BBL A2L 0.6 nozzle",
+    "inherits": "Bambu TPU for AMS @base",
     "from": "system",
-    "setting_id": "GFSU00_15",
+    "setting_id": "GFSU02_21",
     "instantiation": "true",
-    "eng_plate_temp": [
-        "35"
+    "fan_max_speed": [
+        "60"
     ],
-    "eng_plate_temp_initial_layer": [
-        "35"
+    "fan_min_speed": [
+        "30"
     ],
     "filament_deretraction_speed": [
-        "50"
+        "nil"
     ],
     "filament_retraction_length": [
-        "1.2"
+        "0.6"
     ],
     "filament_retraction_speed": [
-        "100"
+        "90"
     ],
     "slow_down_min_speed": [
-        "50"
+        "35"
     ],
     "compatible_printers": [
-        "Bambu Lab A2L 0.4 nozzle"
+        "Bambu Lab A2L 0.6 nozzle"
     ],
     "filament_start_gcode": [
         ""

@@ -23,9 +23,6 @@
     "filament_flow_ratio": [
         "0.98"
     ],
-    "filament_flush_temp": [
-        "0"
-    ],
     "filament_flush_temp_fast": [
         "220"
     ],
@@ -39,9 +36,7 @@
         "6"
     ],
     "compatible_printers": [
-        "Bambu Lab A2L 0.4 nozzle",
-        "Bambu Lab A2L 0.6 nozzle",
-        "Bambu Lab A2L 0.8 nozzle"
+        "Bambu Lab A2L 0.4 nozzle"
     ],
     "filament_start_gcode": [
         ""

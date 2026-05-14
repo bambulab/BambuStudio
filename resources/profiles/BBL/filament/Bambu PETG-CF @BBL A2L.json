@@ -8,9 +8,6 @@
     "fan_min_speed": [
         "20"
     ],
-    "filament_flush_temp": [
-        "0"
-    ],
     "filament_flush_temp_fast": [
         "255"
     ],
@@ -33,8 +30,7 @@
         "65"
     ],
     "compatible_printers": [
-        "Bambu Lab A2L 0.6 nozzle",
-        "Bambu Lab A2L 0.8 nozzle"
+        "Bambu Lab A2L 0.6 nozzle"
     ],
     "filament_start_gcode": [
         ""

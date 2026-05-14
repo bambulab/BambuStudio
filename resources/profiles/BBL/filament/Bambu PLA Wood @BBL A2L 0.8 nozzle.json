@@ -1,9 +1,9 @@
 {
     "type": "filament",
-    "name": "Bambu PLA Wood @BBL A2L",
+    "name": "Bambu PLA Wood @BBL A2L 0.8 nozzle",
     "inherits": "Bambu PLA Wood @base",
     "from": "system",
-    "setting_id": "GFSA16_18",
+    "setting_id": "GFSA16_29",
     "instantiation": "true",
     "eng_plate_temp": [
         "55"
@@ -20,7 +20,7 @@
     "fan_min_speed": [
         "60"
     ],
-    "filament_flush_temp_fast": [
+    "filament_flush_temp": [
         "220"
     ],
     "filament_max_volumetric_speed": [
@@ -33,7 +33,7 @@
         "6"
     ],
     "compatible_printers": [
-        "Bambu Lab A2L 0.4 nozzle"
+        "Bambu Lab A2L 0.8 nozzle"
     ],
     "filament_start_gcode": [
         ""

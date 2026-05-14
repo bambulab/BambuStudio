@@ -1,9 +1,9 @@
 {
     "type": "filament",
-    "name": "Bambu PETG Basic @BBL A2L 0.8 nozzle",
+    "name": "Bambu PETG Basic @BBL A2L 0.6 nozzle",
     "inherits": "Bambu PETG Basic @base",
     "from": "system",
-    "setting_id": "GFSG00_27",
+    "setting_id": "GFSG00_43",
     "instantiation": "true",
     "fan_max_speed": [
         "50"
@@ -14,7 +14,7 @@
     "filament_flow_ratio": [
         "0.94"
     ],
-    "filament_flush_temp_fast": [
+    "filament_flush_temp": [
         "245"
     ],
     "filament_long_retractions_when_cut": [
@@ -57,7 +57,7 @@
         "65"
     ],
     "compatible_printers": [
-        "Bambu Lab A2L 0.8 nozzle"
+        "Bambu Lab A2L 0.6 nozzle"
     ],
     "filament_start_gcode": [
         ""

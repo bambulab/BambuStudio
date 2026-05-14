@@ -1,10 +1,13 @@
 {
     "type": "filament",
-    "name": "Bambu PETG Basic @BBL A2L 0.8 nozzle",
-    "inherits": "Bambu PETG Basic @base",
+    "name": "Bambu PETG HF @BBL A2L 0.6 nozzle",
+    "inherits": "Bambu PETG HF @base",
     "from": "system",
-    "setting_id": "GFSG00_27",
+    "setting_id": "GFSG02_49",
     "instantiation": "true",
+    "fan_cooling_layer_time": [
+        "15"
+    ],
     "fan_max_speed": [
         "50"
     ],
@@ -14,14 +17,14 @@
     "filament_flow_ratio": [
         "0.94"
     ],
-    "filament_flush_temp_fast": [
-        "245"
+    "filament_flush_temp": [
+        "240"
     ],
     "filament_long_retractions_when_cut": [
         "1"
     ],
     "filament_max_volumetric_speed": [
-        "13"
+        "18"
     ],
     "filament_retraction_distances_when_cut": [
         "18"
@@ -35,20 +38,20 @@
     "filament_wipe_distance": [
         "1"
     ],
-    "filament_z_hop": [
-        "0.2"
-    ],
     "filament_z_hop_types": [
         "Spiral Lift"
     ],
     "nozzle_temperature": [
-        "245"
+        "240"
     ],
-    "nozzle_temperature_initial_layer": [
-        "245"
+    "overhang_fan_speed": [
+        "50"
     ],
     "pre_start_fan_time": [
-        "0"
+        "2"
+    ],
+    "slow_down_layer_time": [
+        "7"
     ],
     "supertack_plate_temp": [
         "65"
@@ -57,7 +60,7 @@
         "65"
     ],
     "compatible_printers": [
-        "Bambu Lab A2L 0.8 nozzle"
+        "Bambu Lab A2L 0.6 nozzle"
     ],
     "filament_start_gcode": [
         ""

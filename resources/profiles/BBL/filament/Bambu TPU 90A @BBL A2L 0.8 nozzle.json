@@ -1,9 +1,9 @@
 {
     "type": "filament",
-    "name": "Bambu TPU 90A @BBL A2L 0.6 nozzle",
+    "name": "Bambu TPU 90A @BBL A2L 0.8 nozzle",
     "inherits": "Bambu TPU 90A @base",
     "from": "system",
-    "setting_id": "GFSU03_28",
+    "setting_id": "GFSU03_32",
     "instantiation": "true",
     "eng_plate_temp": [
         "35"
@@ -21,7 +21,7 @@
         "250"
     ],
     "compatible_printers": [
-        "Bambu Lab A2L 0.6 nozzle"
+        "Bambu Lab A2L 0.8 nozzle"
     ],
     "filament_start_gcode": [
         ""
