@@ -1258,6 +1258,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("top_solid_infill_flow_ratio", coFloats);
     def->label = L("Top surface flow ratio");
+    def->category = L("Quality");
     def->gui_type = ConfigOptionDef::GUIType::multi_variant;
     def->tooltip = L("This factor affects the amount of material for top solid infill. "
                      "You can decrease it slightly to have smooth surface finish");
@@ -1268,6 +1269,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("initial_layer_flow_ratio", coFloat);
     def->label = L("Initial layer flow ratio");
+    def->category = L("Quality");
     def->tooltip = L("This factor affects the amount of material for the initial layer");
     def->min = 0;
     def->max = 2;
@@ -2063,6 +2065,7 @@ void PrintConfigDef::init_fff_params()
 
     def          = this->add("print_flow_ratio", coFloat);
     def->label   = L("Object flow ratio");
+    def->category = L("Quality");
     def->tooltip = L("The flow ratio set by object, the meaning is the same as flow ratio.");
     def->mode    = comDevelop;
     def->max     = 2;
