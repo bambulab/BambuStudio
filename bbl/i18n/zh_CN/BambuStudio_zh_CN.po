@@ -2556,17 +2556,17 @@ msgstr "错误： %1$d 非流形边， %2$d 非流形顶点"
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold edge"
 msgid_plural "Error: %1$d non-manifold edges"
-msgstr[0] ""
+msgstr[0] "错误：%1$d 非流形边"
 
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold vertex"
 msgid_plural "Error: %1$d non-manifold vertices"
-msgstr[0] ""
+msgstr[0] "错误：%1$d 非流形顶点"
 
 #, c-format, boost-format
 msgid "Info: %1$d open edge"
 msgid_plural "Info: %1$d open edges"
-msgstr[0] ""
+msgstr[0] "信息：发现 %1$d 个开放边"
 
 msgid "Right click the icon to fix model object"
 msgstr "右键点击此图标可修复模型对象"
