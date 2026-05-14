@@ -1283,17 +1283,18 @@ wxWindow* PreferencesDialog::create_general_page()
     wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
 
     auto title_general_settings = create_item_title(_L("General Settings"), page, _L("General Settings"));
-    auto translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
+    auto available_translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
     std::vector<const wxLanguageInfo *> language_infos;
     language_infos.emplace_back(wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH));
-    for (size_t i = 0; i < translations.GetCount(); ++i) {
-        const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(translations[i]);
-
-        if (langinfo == nullptr) continue;
+    for (size_t i = 0; i < available_translations.GetCount(); ++i) {
+        const wxLanguageInfo *available_lan = wxLocale::FindLanguageInfo(available_translations[i]);
+        if (available_lan == nullptr) continue;
 
         for (auto si = 0; si < s_supported_languages.size(); si++) {
-            if (langinfo == wxLocale::GetLanguageInfo(s_supported_languages[si])) {
-                language_infos.emplace_back(langinfo);
+            auto* supported_lan = wxLocale::GetLanguageInfo(s_supported_languages[si]);
+            if (available_lan->CanonicalName == supported_lan->CanonicalName) {
+                language_infos.emplace_back(supported_lan);
+                break;
             }
         }
         //if (langinfo != nullptr) language_infos.emplace_back(langinfo);
