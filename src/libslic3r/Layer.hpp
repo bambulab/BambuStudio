@@ -285,6 +285,9 @@ private:
     LayerRegionPtrs     m_regions;
 };
 
+// Upper-layer footprint allowed to act as top surface at interface-shell transitions.
+ExPolygons interface_shell_upper_slices_for_top_holes(const Layer &upper_layer, size_t region_id);
+
 class SupportLayer : public Layer
 {
 public:

@@ -652,10 +652,12 @@ void PrintObject::prepare_infill()
             m_print->throw_if_canceled();
         }
 
+    this->apply_interface_shell_top_surface_hole_fill();
+    m_print->throw_if_canceled();
+
     // Add solid fills to ensure the shell vertical thickness.
     this->discover_vertical_shells();
     m_print->throw_if_canceled();
-
 
     // this will detect bridges and reverse bridges
     // and rearrange top/bottom/internal surfaces
@@ -1582,27 +1584,6 @@ void PrintObject::detect_surfaces_type(std::vector<std::vector<SurfaceCollection
                         surfaces_append(top, diff_ex(top_polygons, bottom), stTop);
                     }
 
-                    if (interface_shells && detect_top && upper_layer && ! top.empty()) {
-                        ExPolygons covered_by_upper = interface_shells ?
-                            intersection_ex(layerm->slices.surfaces, upper_layer->m_regions[region_id]->slices.surfaces, ApplySafetyOffset::Yes) :
-                            intersection_ex(layerm->slices.surfaces, upper_layer->lslices, ApplySafetyOffset::Yes);
-                        ExPolygons top_expolygons = union_ex(top);
-                        Polygons   filled_top_holes;
-                        for (const ExPolygon &expolygon : top_expolygons) {
-                            for (const Polygon &hole : expolygon.holes) {
-                                Polygons   hole_polygon{ hole };
-                                ExPolygons hole_expolygons = to_expolygons(hole_polygon);
-                                if (! intersection_ex(hole_expolygons, covered_by_upper, ApplySafetyOffset::Yes).empty())
-                                    filled_top_holes.push_back(hole);
-                            }
-                        }
-                        if (! filled_top_holes.empty()) {
-                            top_expolygons = union_ex(top_expolygons, to_expolygons(filled_top_holes));
-                            top.clear();
-                            surfaces_append(top, std::move(top_expolygons), stTop);
-                        }
-                    }
-
         #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
                     {
                         static int iRun = 0;
@@ -1673,43 +1654,68 @@ void PrintObject::detect_surfaces_type(std::vector<std::vector<SurfaceCollection
         BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << region_id << " - clipping in parallel - end";
     } // for each this->print->region_count
 
-    // Interface shells reclassify stInternal surfaces as stTop when they are
-    // covered by the upper layer on layers that also have stTop. This prevents
-    // visible fill-pattern boundaries (monotonic vs rectilinear) at material
-    // transitions (e.g., text footprint on keytag base). Skip mm-painted
-    // objects which already have correct surface classification.
-    if (interface_shells && ! this->model_object()->is_mm_painted()) {
-        for (size_t idx_layer = 0; idx_layer + 1 < m_layers.size(); ++idx_layer) {
-            Layer *layer       = m_layers[idx_layer];
-            Layer *upper_layer = m_layers[idx_layer + 1];
-            for (size_t region_id = 0; region_id < layer->m_regions.size(); ++region_id) {
-                LayerRegion *layerm = layer->m_regions[region_id];
-                bool has_top = false;
-                bool has_internal = false;
-                for (const Surface &s : layerm->slices.surfaces) {
-                    if (s.surface_type == stTop) has_top = true;
-                    else if (s.surface_type == stInternal) has_internal = true;
-                    if (has_top && has_internal) break;
-                }
-                if (! has_top || ! has_internal)
-                    continue;
-                bool reclassified = false;
-                for (Surface &surface : layerm->slices.surfaces) {
-                    if (surface.surface_type != stInternal)
-                        continue;
-                    if (! intersection_ex(ExPolygons{surface.expolygon}, upper_layer->lslices, ApplySafetyOffset::Yes).empty()) {
-                        surface.surface_type = stTop;
-                        reclassified = true;
-                    }
-                }
-                if (reclassified)
-                    layerm->slices_to_fill_surfaces_clipped();
-            }
-        }
-    }
-
     // Mark the object to have the region slices classified (typed, which also means they are split based on whether they are supported, bridging, top layers etc.)
     m_typed_slices = true;
+}
+
+void PrintObject::apply_interface_shell_top_surface_hole_fill()
+{
+    const bool spiral_mode      = this->print()->config().spiral_mode.value;
+    const bool interface_shells = ! spiral_mode && m_config.interface_shells.value;
+    if (! interface_shells || this->model_object()->is_mm_painted())
+        return;
+
+    // Patch fill surfaces without changing slice classification. Vertical shell
+    // discovery can then honor top-shell depth without making lower layers top.
+    for (size_t idx_layer = 0; idx_layer + 1 < m_layers.size(); ++idx_layer) {
+        m_print->throw_if_canceled();
+        Layer *layer       = m_layers[idx_layer];
+        Layer *upper_layer = m_layers[idx_layer + 1];
+        for (size_t region_id = 0; region_id < layer->m_regions.size(); ++region_id) {
+            LayerRegion *layerm = layer->m_regions[region_id];
+            if (! layerm->slices.has(stTop))
+                continue;
+
+            ExPolygons upper_interface_slices = interface_shell_upper_slices_for_top_holes(*upper_layer, region_id);
+            if (upper_interface_slices.empty())
+                continue;
+
+            ExPolygons top_expolygons = union_ex(to_expolygons(layerm->slices.filter_by_type(stTop)));
+            if (top_expolygons.empty())
+                continue;
+
+            ExPolygons internal_slices = to_expolygons(layerm->slices.filter_by_type(stInternal));
+            ExPolygons reclassify_area = intersection_ex(internal_slices, upper_interface_slices, ApplySafetyOffset::Yes);
+            if (reclassify_area.empty())
+                continue;
+
+            bool reclassified = false;
+            Surfaces surfaces_new;
+            surfaces_new.reserve(layerm->fill_surfaces.surfaces.size() + reclassify_area.size());
+            for (Surface &surface : layerm->fill_surfaces.surfaces) {
+                if (surface.surface_type != stInternal && surface.surface_type != stInternalSolid) {
+                    surfaces_new.emplace_back(std::move(surface));
+                    continue;
+                }
+
+                ExPolygons surface_expolygons{ surface.expolygon };
+                ExPolygons surface_top = intersection_ex(surface_expolygons, reclassify_area, ApplySafetyOffset::Yes);
+                if (surface_top.empty()) {
+                    surfaces_new.emplace_back(std::move(surface));
+                    continue;
+                }
+
+                Surface top_templ = surface;
+                top_templ.surface_type = stTop;
+                ExPolygons surface_internal = diff_ex(surface_expolygons, surface_top, ApplySafetyOffset::Yes);
+                surfaces_append(surfaces_new, std::move(surface_internal), surface);
+                surfaces_append(surfaces_new, std::move(surface_top), top_templ);
+                reclassified = true;
+            }
+            if (reclassified)
+                layerm->fill_surfaces.surfaces = std::move(surfaces_new);
+        }
+    }
 }
 
 void PrintObject::process_external_surfaces()
@@ -1904,8 +1910,11 @@ void PrintObject::discover_vertical_shells()
                         float        top_bottom_expansion = float(layerm.flow(frSolidInfill).scaled_spacing()) * top_bottom_expansion_coeff;
                         // Top surfaces.
                         auto &cache = cache_top_botom_regions[idx_layer];
-                        cache.top_surfaces = offset(layerm.slices.filter_by_type(stTop), top_bottom_expansion);
-//                        append(cache.top_surfaces, offset(layerm.fill_surfaces().filter_by_type(stTop), top_bottom_expansion));
+                        Polygons slice_top = offset(layerm.slices.filter_by_type(stTop), top_bottom_expansion);
+                        // Include synthetic interface-shell top patches kept out of slices.
+                        Polygons fill_top  = offset(layerm.fill_surfaces.filter_by_type(stTop), top_bottom_expansion);
+                        cache.top_surfaces = std::move(slice_top);
+                        append(cache.top_surfaces, std::move(fill_top));
                         // Bottom surfaces.
                         cache.bottom_surfaces = offset(layerm.slices.filter_by_types(surfaces_bottom), top_bottom_expansion);
 //                        append(cache.bottom_surfaces, offset(layerm.fill_surfaces().filter_by_types(surfaces_bottom), top_bottom_expansion));

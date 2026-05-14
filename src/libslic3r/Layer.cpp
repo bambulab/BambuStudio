@@ -13,6 +13,26 @@ static const int dist_scale_threshold = 1.2;
 
 namespace Slic3r {
 
+ExPolygons interface_shell_upper_slices_for_top_holes(const Layer &upper_layer, size_t region_id)
+{
+    const bool single_region_interface_shells = upper_layer.object()->num_printing_regions() == 1;
+
+    ExPolygons upper_interface_slices;
+    const LayerRegionPtrs &upper_regions = upper_layer.regions();
+    if (upper_regions.size() > 1) {
+        for (size_t upper_region_id = 0; upper_region_id < upper_regions.size(); ++upper_region_id) {
+            if (upper_region_id == region_id)
+                continue;
+            expolygons_append(upper_interface_slices, to_expolygons(upper_regions[upper_region_id]->slices.surfaces));
+        }
+    } else if (single_region_interface_shells)
+        upper_interface_slices = upper_layer.lslices;
+
+    if (! upper_interface_slices.empty())
+        upper_interface_slices = union_ex(upper_interface_slices);
+    return upper_interface_slices;
+}
+
 Layer::~Layer()
 {
     this->lower_layer = this->upper_layer = nullptr;

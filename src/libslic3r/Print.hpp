@@ -579,6 +579,7 @@ private:
     void bridge_over_infill();
     void clip_fill_surfaces();
     void discover_horizontal_shells();
+    void apply_interface_shell_top_surface_hole_fill();
     void merge_infill_types();
     void combine_infill();
     void _generate_support_material();

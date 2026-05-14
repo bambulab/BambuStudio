@@ -163,17 +163,18 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, const Perimet
     if (this->layer()->lower_layer != nullptr)
         // Cummulative sum of polygons over all the regions.
         g.lower_slices = &this->layer()->lower_layer->lslices;
-    if (this->layer()->upper_layer != NULL)
-        g.upper_slices = &this->layer()->upper_layer->lslices;
-
-    // Interface shells need top-surface holes filled at material transitions to
-    // prevent different wall counts (e.g., text on keytags). Painted (mm)
-    // objects already have correct top surface detection.
-    g.fill_top_surface_holes = object_config.interface_shells && ! this->layer()->object()->model_object()->is_mm_painted();
-
     int region_id = this->region().print_object_region_id();
-    if (this->layer()->upper_layer != NULL)
+    ExPolygons upper_slices_for_top_holes;
+    if (this->layer()->upper_layer != NULL) {
+        g.upper_slices = &this->layer()->upper_layer->lslices;
         g.upper_slices_same_region = &this->layer()->upper_layer->get_region(region_id)->slices;
+        upper_slices_for_top_holes = interface_shell_upper_slices_for_top_holes(*this->layer()->upper_layer, size_t(region_id));
+        g.upper_slices_for_top_holes = &upper_slices_for_top_holes;
+    }
+
+    // Interface-shell transitions need to participate in one-wall top detection,
+    // but only over the selected upper-layer footprint.
+    g.fill_top_surface_holes = object_config.interface_shells && ! this->layer()->object()->model_object()->is_mm_painted();
 
     g.layer_id              = (int)this->layer()->id();
     g.ext_perimeter_flow    = this->flow(frExternalPerimeter);
