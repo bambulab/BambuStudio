@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-13 18:12+0800\n"
+"POT-Creation-Date: 2026-05-14 16:05+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: BambuLab Україна\n"
@@ -3326,6 +3326,10 @@ msgid "New Filaments"
 msgstr ""
 
 msgid "Add Material"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The project supports up to %d filaments. Extra filaments will be discarded."
 msgstr ""
 
 msgid "Import Model"
@@ -7501,6 +7505,9 @@ msgstr "Виявлено об'єкт, що складається з кільк�
 msgid "The file does not contain any geometry data."
 msgstr "Файл не містить геометричних даних."
 
+msgid "Importing model to project..."
+msgstr ""
+
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr ""
 "Ваш об'єкт здається занадто великим. Ви хочете зменшити його, щоб він відповідав розміру?\n"
@@ -7509,7 +7516,25 @@ msgstr ""
 msgid "Object too large"
 msgstr "Об'єкт занадто великий"
 
+msgid "Placing model on the bed..."
+msgstr ""
+
+msgid "Updating object list..."
+msgstr ""
+
+msgid "Updating 3D view..."
+msgstr ""
+
+msgid "Model imported."
+msgstr ""
+
 msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
+msgstr ""
+
+msgid "Applying texture colors..."
+msgstr ""
+
+msgid "Texture colors applied."
 msgstr ""
 
 msgid "Export STL file:"
@@ -9762,6 +9787,12 @@ msgstr "G-код кінця Філаменту"
 msgid "Multi Filament"
 msgstr ""
 
+msgid "Purge Mode: Standard"
+msgstr ""
+
+msgid "Purge Mode: Fast"
+msgstr ""
+
 msgid "Printable space"
 msgstr "Місце для друку"
 
@@ -11216,6 +11247,45 @@ msgstr ""
 msgid "Fixing cold prints"
 msgstr ""
 
+msgid "Software Update"
+msgstr ""
+
+msgid "Try Now"
+msgstr ""
+
+msgid "Don't show me Beta updates again"
+msgstr ""
+
+msgid "New Bambu Studio Beta Available"
+msgstr ""
+
+msgid "Current Version"
+msgstr ""
+
+msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
+msgstr ""
+
+msgid "Separate configuration folder."
+msgstr ""
+
+msgid "As a beta release, some features may still be under development, and you may occasionally encounter bugs, unexpected behavior, or incomplete functionality. To prevent conflicts with the stable release, Bambu Studio Beta uses a separate configuration folder (Help -> Show Configuration Folder) and operates independently from the standard version of Bambu Studio."
+msgstr ""
+
+msgid "(Help -> Show Configuration Folder)"
+msgstr ""
+
+msgid "Why use the Beta version?"
+msgstr ""
+
+msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
+msgstr ""
+
+msgid "How to change settings?"
+msgstr ""
+
+msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
+msgstr ""
+
 msgid "Air Pump"
 msgstr ""
 
@@ -12471,6 +12541,9 @@ msgstr ""
 msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
 msgstr ""
 
+msgid "Flush temperature used in fast purge mode. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgstr ""
+
 msgid "Flush volumetric speed"
 msgstr ""
 
@@ -13390,6 +13463,12 @@ msgstr "Цей G-код буде використовуватися як код 
 msgid "This G-code will be used as a custom code"
 msgstr "Цей G-код буде використовуватися як код користувача"
 
+msgid "Support fast purge mode"
+msgstr ""
+
+msgid "Whether this printer supports fast purge mode with optimized temperature and multiplier."
+msgstr ""
+
 msgid "Maximum speed X"
 msgstr "Максимальна швидкість X"
 
@@ -13742,6 +13821,9 @@ msgid "Default Nozzle Volume Type"
 msgstr ""
 
 msgid "Saving"
+msgstr ""
+
+msgid "Fast"
 msgstr ""
 
 msgid "length when change hotend"
@@ -14404,6 +14486,12 @@ msgstr "Множина очищення"
 
 msgid "The actual flushing volumes is equal to the flush multiplier multiplied by the flushing volumes in the table."
 msgstr "Фактичні обсяги промивки дорівнюють множнику промивки, помноженому на обсягипромивання в таблиці."
+
+msgid "Flush multiplier (Fast mode)"
+msgstr ""
+
+msgid "The flush multiplier used in fast purge mode."
+msgstr ""
 
 msgid "Width of prime tower"
 msgstr "Ширина основної вежі"
@@ -16698,10 +16786,10 @@ msgstr ""
 msgid "Purge Mode Settings"
 msgstr ""
 
-msgid "Standard Mode"
+msgid "Perform full purging with speed and temperature transition for the best print quality."
 msgstr ""
 
-msgid "Performs full priming for the best print quality. Requires more material and time."
+msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
 msgstr ""
 
 msgid "Prime Saving"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-13 18:12+0800\n"
+"POT-Creation-Date: 2026-05-14 16:05+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3332,6 +3332,10 @@ msgid "New Filaments"
 msgstr ""
 
 msgid "Add Material"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The project supports up to %d filaments. Extra filaments will be discarded."
 msgstr ""
 
 msgid "Import Model"
@@ -7531,13 +7535,34 @@ msgstr "Object met meerdere delen is gedetecteerd"
 msgid "The file does not contain any geometry data."
 msgstr "Het bestand bevat geen geometriegegevens."
 
+msgid "Importing model to project..."
+msgstr ""
+
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr "Je object lijkt te groot. Wil je het verkleinen zodat het automatisch op het warmtebed past?"
 
 msgid "Object too large"
 msgstr "Object te groot"
 
+msgid "Placing model on the bed..."
+msgstr ""
+
+msgid "Updating object list..."
+msgstr ""
+
+msgid "Updating 3D view..."
+msgstr ""
+
+msgid "Model imported."
+msgstr ""
+
 msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
+msgstr ""
+
+msgid "Applying texture colors..."
+msgstr ""
+
+msgid "Texture colors applied."
 msgstr ""
 
 msgid "Export STL file:"
@@ -9851,6 +9876,12 @@ msgstr "Filament einde G-code"
 msgid "Multi Filament"
 msgstr "Multifilament"
 
+msgid "Purge Mode: Standard"
+msgstr ""
+
+msgid "Purge Mode: Fast"
+msgstr ""
+
 msgid "Printable space"
 msgstr "Ruimte waarbinnen geprint kan worden"
 
@@ -11331,6 +11362,45 @@ msgstr "Helio-stroomschema"
 msgid "Fixing cold prints"
 msgstr "Koude prints repareren"
 
+msgid "Software Update"
+msgstr ""
+
+msgid "Try Now"
+msgstr ""
+
+msgid "Don't show me Beta updates again"
+msgstr ""
+
+msgid "New Bambu Studio Beta Available"
+msgstr ""
+
+msgid "Current Version"
+msgstr ""
+
+msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
+msgstr ""
+
+msgid "Separate configuration folder."
+msgstr ""
+
+msgid "As a beta release, some features may still be under development, and you may occasionally encounter bugs, unexpected behavior, or incomplete functionality. To prevent conflicts with the stable release, Bambu Studio Beta uses a separate configuration folder (Help -> Show Configuration Folder) and operates independently from the standard version of Bambu Studio."
+msgstr ""
+
+msgid "(Help -> Show Configuration Folder)"
+msgstr ""
+
+msgid "Why use the Beta version?"
+msgstr ""
+
+msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
+msgstr ""
+
+msgid "How to change settings?"
+msgstr ""
+
+msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
+msgstr ""
+
 msgid "Air Pump"
 msgstr "Luchtpomp"
 
@@ -12594,6 +12664,9 @@ msgstr "Spoeltemperatuur"
 msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
 msgstr "temperatuur bij het spoelen van filament. 0 geeft de bovengrens aan van het aanbevolen temperatuurbereik van de nozzle"
 
+msgid "Flush temperature used in fast purge mode. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgstr ""
+
 msgid "Flush volumetric speed"
 msgstr "Spoelvolumetrische snelheid"
 
@@ -13523,6 +13596,12 @@ msgstr "Deze G-code wordt gebruikt als code voor de pauzeafdruk. Gebruiker kan p
 msgid "This G-code will be used as a custom code"
 msgstr "Deze G-code wordt gebruikt als een aangepaste code"
 
+msgid "Support fast purge mode"
+msgstr ""
+
+msgid "Whether this printer supports fast purge mode with optimized temperature and multiplier."
+msgstr ""
+
 msgid "Maximum speed X"
 msgstr "Maximale snelheid voor X"
 
@@ -13876,6 +13955,9 @@ msgstr "Standaard type nozzle volume"
 
 msgid "Saving"
 msgstr "Opslaan"
+
+msgid "Fast"
+msgstr ""
 
 msgid "length when change hotend"
 msgstr "lengte bij het verwisselen van de hot-end"
@@ -14539,6 +14621,12 @@ msgstr "Flush-vermenigvuldiger"
 
 msgid "The actual flushing volumes is equal to the flush multiplier multiplied by the flushing volumes in the table."
 msgstr "De werkelijke spoelhoeveelheden zijn gelijk aan de vermenigvuldigingsfactor vermenigvuldigd met de spoelhoeveelheden in de tabel."
+
+msgid "Flush multiplier (Fast mode)"
+msgstr ""
+
+msgid "The flush multiplier used in fast purge mode."
+msgstr ""
 
 msgid "Width of prime tower"
 msgstr "Breedte van prime toren"
@@ -16861,11 +16949,11 @@ msgstr "Uw printer heeft verschillende nozzles. Selecteer een spuitmondje voor d
 msgid "Purge Mode Settings"
 msgstr "Instellingen voor spoelmodus"
 
-msgid "Standard Mode"
-msgstr "Standaardmodus"
+msgid "Perform full purging with speed and temperature transition for the best print quality."
+msgstr ""
 
-msgid "Performs full priming for the best print quality. Requires more material and time."
-msgstr "Voert een volledige priming uit voor de beste printkwaliteit. Vereist meer materiaal en tijd."
+msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
+msgstr ""
 
 msgid "Prime Saving"
 msgstr "Primebesparing"
@@ -17484,6 +17572,12 @@ msgid ""
 msgstr ""
 "Betrouwbaarheid in één keer goed\n"
 "Minder toezicht, voorspelbaardere output. Voorbeeld: een kleine boerderij die PETG-onderdelen produceert, voorkomt verrassingen zoals 'falen na 6 uur' en houdt batches op schema."
+
+#~ msgid "Standard Mode"
+#~ msgstr "Standaardmodus"
+
+#~ msgid "Performs full priming for the best print quality. Requires more material and time."
+#~ msgstr "Voert een volledige priming uit voor de beste printkwaliteit. Vereist meer materiaal en tijd."
 
 #~ msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 #~ msgstr "Niet-gevormde randen worden veroorzaakt door snijgereedschap: wil je dit nu herstellen?"

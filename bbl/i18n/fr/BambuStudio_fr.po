@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-13 18:12+0800\n"
+"POT-Creation-Date: 2026-05-14 16:05+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3328,6 +3328,10 @@ msgid "New Filaments"
 msgstr ""
 
 msgid "Add Material"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The project supports up to %d filaments. Extra filaments will be discarded."
 msgstr ""
 
 msgid "Import Model"
@@ -7516,13 +7520,34 @@ msgstr "Un objet en plusieurs parties a été détecté"
 msgid "The file does not contain any geometry data."
 msgstr "Le fichier ne contient pas de données géométriques."
 
+msgid "Importing model to project..."
+msgstr ""
+
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr "Votre objet semble trop grand. Voulez-vous le réduire pour qu'il s'adapter au plateau d'impression ?"
 
 msgid "Object too large"
 msgstr "Objet trop grand"
 
+msgid "Placing model on the bed..."
+msgstr ""
+
+msgid "Updating object list..."
+msgstr ""
+
+msgid "Updating 3D view..."
+msgstr ""
+
+msgid "Model imported."
+msgstr ""
+
 msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
+msgstr ""
+
+msgid "Applying texture colors..."
+msgstr ""
+
+msgid "Texture colors applied."
 msgstr ""
 
 msgid "Export STL file:"
@@ -9839,6 +9864,12 @@ msgstr "G-code de fin de filament"
 msgid "Multi Filament"
 msgstr ""
 
+msgid "Purge Mode: Standard"
+msgstr ""
+
+msgid "Purge Mode: Fast"
+msgstr ""
+
 msgid "Printable space"
 msgstr "Espace imprimable"
 
@@ -11317,6 +11348,45 @@ msgstr "Organigramme Helio"
 msgid "Fixing cold prints"
 msgstr "Correction des impressions froides"
 
+msgid "Software Update"
+msgstr ""
+
+msgid "Try Now"
+msgstr ""
+
+msgid "Don't show me Beta updates again"
+msgstr ""
+
+msgid "New Bambu Studio Beta Available"
+msgstr ""
+
+msgid "Current Version"
+msgstr ""
+
+msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
+msgstr ""
+
+msgid "Separate configuration folder."
+msgstr ""
+
+msgid "As a beta release, some features may still be under development, and you may occasionally encounter bugs, unexpected behavior, or incomplete functionality. To prevent conflicts with the stable release, Bambu Studio Beta uses a separate configuration folder (Help -> Show Configuration Folder) and operates independently from the standard version of Bambu Studio."
+msgstr ""
+
+msgid "(Help -> Show Configuration Folder)"
+msgstr ""
+
+msgid "Why use the Beta version?"
+msgstr ""
+
+msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
+msgstr ""
+
+msgid "How to change settings?"
+msgstr ""
+
+msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
+msgstr ""
+
 msgid "Air Pump"
 msgstr "Pompe à Air"
 
@@ -12578,6 +12648,9 @@ msgstr "Température de rinçage"
 msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
 msgstr "température lors du rinçage du filament. Si elle est définie sur 0, la température maximale du filament sera sélectionnée."
 
+msgid "Flush temperature used in fast purge mode. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgstr ""
+
 msgid "Flush volumetric speed"
 msgstr "Vitesse volumétrique de rinçage"
 
@@ -13507,6 +13580,12 @@ msgstr "Ce G-code sera utilisé comme code pour la pause d'impression. Les utili
 msgid "This G-code will be used as a custom code"
 msgstr "Ce G-code sera utilisé comme code personnalisé"
 
+msgid "Support fast purge mode"
+msgstr ""
+
+msgid "Whether this printer supports fast purge mode with optimized temperature and multiplier."
+msgstr ""
+
 msgid "Maximum speed X"
 msgstr "Vitesse maximale X"
 
@@ -13860,6 +13939,9 @@ msgstr "Type de volume de buse par défaut"
 
 msgid "Saving"
 msgstr "Économe"
+
+msgid "Fast"
+msgstr ""
 
 msgid "length when change hotend"
 msgstr "longueur lors du changement de hotend"
@@ -14523,6 +14605,12 @@ msgstr "Multiplicateur de purge"
 
 msgid "The actual flushing volumes is equal to the flush multiplier multiplied by the flushing volumes in the table."
 msgstr "Le volume de rinçage final est égal au produit du multiplicateur par le volume de rinçage du tableau."
+
+msgid "Flush multiplier (Fast mode)"
+msgstr ""
+
+msgid "The flush multiplier used in fast purge mode."
+msgstr ""
 
 msgid "Width of prime tower"
 msgstr "Largeur de la tour d'amorçage"
@@ -16849,11 +16937,11 @@ msgstr "Votre imprimante est équipée de  différentes buses . Veuillez séle
 msgid "Purge Mode Settings"
 msgstr "Paramètres du Mode de Purge"
 
-msgid "Standard Mode"
-msgstr "Mode Standard"
+msgid "Perform full purging with speed and temperature transition for the best print quality."
+msgstr ""
 
-msgid "Performs full priming for the best print quality. Requires more material and time."
-msgstr "Effectue une amorce complète pour une meilleure qualité d'impression. Exige plus de matériau et de temps."
+msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
+msgstr ""
 
 msgid "Prime Saving"
 msgstr "Économie d'Amorçage"
@@ -17472,6 +17560,12 @@ msgid ""
 msgstr ""
 "Fiabilité Garantie du Premier Coup\n"
 "Moins de surveillance, une production plus prévisible. Exemple : une petite exploitation agricole produisant des pièces en PETG évite les mauvaises surprises \"panne au bout de 6 h\" et respecte les délais de production."
+
+#~ msgid "Standard Mode"
+#~ msgstr "Mode Standard"
+
+#~ msgid "Performs full priming for the best print quality. Requires more material and time."
+#~ msgstr "Effectue une amorce complète pour une meilleure qualité d'impression. Exige plus de matériau et de temps."
 
 #~ msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 #~ msgstr "Des arêtes non-mainfold sont apparus suite à la découpe : voulez-vous les réparer maintenant ?"

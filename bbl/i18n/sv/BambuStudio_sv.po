@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-13 18:12+0800\n"
+"POT-Creation-Date: 2026-05-14 16:05+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3329,6 +3329,10 @@ msgid "New Filaments"
 msgstr ""
 
 msgid "Add Material"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The project supports up to %d filaments. Extra filaments will be discarded."
 msgstr ""
 
 msgid "Import Model"
@@ -7526,13 +7530,34 @@ msgstr "Objekt med flera delar upptäcktes"
 msgid "The file does not contain any geometry data."
 msgstr "Filen innehåller ingen geometrisk data."
 
+msgid "Importing model to project..."
+msgstr ""
+
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr "Ditt objekt verkar vara för stort, vill du skala ner det för att passa byggplattan automatiskt?"
 
 msgid "Object too large"
 msgstr "Objektet är för stort"
 
+msgid "Placing model on the bed..."
+msgstr ""
+
+msgid "Updating object list..."
+msgstr ""
+
+msgid "Updating 3D view..."
+msgstr ""
+
+msgid "Model imported."
+msgstr ""
+
 msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
+msgstr ""
+
+msgid "Applying texture colors..."
+msgstr ""
+
+msgid "Texture colors applied."
 msgstr ""
 
 msgid "Export STL file:"
@@ -9847,6 +9872,12 @@ msgstr "Filament stop G-kod"
 msgid "Multi Filament"
 msgstr ""
 
+msgid "Purge Mode: Standard"
+msgstr ""
+
+msgid "Purge Mode: Fast"
+msgstr ""
+
 msgid "Printable space"
 msgstr "Utskriftsbar yta"
 
@@ -11329,6 +11360,45 @@ msgstr "Helio flödesschema"
 msgid "Fixing cold prints"
 msgstr "Åtgärdar kalla utskrifter"
 
+msgid "Software Update"
+msgstr ""
+
+msgid "Try Now"
+msgstr ""
+
+msgid "Don't show me Beta updates again"
+msgstr ""
+
+msgid "New Bambu Studio Beta Available"
+msgstr ""
+
+msgid "Current Version"
+msgstr ""
+
+msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
+msgstr ""
+
+msgid "Separate configuration folder."
+msgstr ""
+
+msgid "As a beta release, some features may still be under development, and you may occasionally encounter bugs, unexpected behavior, or incomplete functionality. To prevent conflicts with the stable release, Bambu Studio Beta uses a separate configuration folder (Help -> Show Configuration Folder) and operates independently from the standard version of Bambu Studio."
+msgstr ""
+
+msgid "(Help -> Show Configuration Folder)"
+msgstr ""
+
+msgid "Why use the Beta version?"
+msgstr ""
+
+msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
+msgstr ""
+
+msgid "How to change settings?"
+msgstr ""
+
+msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
+msgstr ""
+
 msgid "Air Pump"
 msgstr "Luftpump"
 
@@ -12590,6 +12660,9 @@ msgstr "Temperatur vid rensning"
 msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
 msgstr "temperatur vid rensning av filamentet. 0 anger den övre gränsen för den rekommenderade nozzle temperatur intervallen"
 
+msgid "Flush temperature used in fast purge mode. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgstr ""
+
 msgid "Flush volumetric speed"
 msgstr "Volymetrisk hastighet för rensning"
 
@@ -13519,6 +13592,12 @@ msgstr "Denna G-kod kommer att användas som kod för att pausa utskriften. Anv�
 msgid "This G-code will be used as a custom code"
 msgstr "Denna G-kod kommer att användas som en anpassad kod."
 
+msgid "Support fast purge mode"
+msgstr ""
+
+msgid "Whether this printer supports fast purge mode with optimized temperature and multiplier."
+msgstr ""
+
 msgid "Maximum speed X"
 msgstr "Max hastighet X"
 
@@ -13872,6 +13951,9 @@ msgstr "Standard typ av nozzle volym"
 
 msgid "Saving"
 msgstr "Sparar"
+
+msgid "Fast"
+msgstr ""
 
 msgid "length when change hotend"
 msgstr "längd vid byte av hotend"
@@ -14536,6 +14618,12 @@ msgstr "Rensnings multiplikator"
 
 msgid "The actual flushing volumes is equal to the flush multiplier multiplied by the flushing volumes in the table."
 msgstr "Den faktiska rensnings volymen är lika med värdet för rensnings multiplikatorn multiplicerat med rensnings volymerna i tabellen."
+
+msgid "Flush multiplier (Fast mode)"
+msgstr ""
+
+msgid "The flush multiplier used in fast purge mode."
+msgstr ""
 
 msgid "Width of prime tower"
 msgstr "Prime tornets bredd"
@@ -16862,11 +16950,11 @@ msgstr "Din printer har olika nozzle installerade. Välj en nozzle för denna ut
 msgid "Purge Mode Settings"
 msgstr "Inställningar för rensnings läge"
 
-msgid "Standard Mode"
-msgstr "Standard läge"
+msgid "Perform full purging with speed and temperature transition for the best print quality."
+msgstr ""
 
-msgid "Performs full priming for the best print quality. Requires more material and time."
-msgstr "Utför full rensning för bästa utskrifts kvalitet. Kräver mer material och tid."
+msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
+msgstr ""
 
 msgid "Prime Saving"
 msgstr "Rensnings besparing"
@@ -17485,6 +17573,12 @@ msgid ""
 msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
+
+#~ msgid "Standard Mode"
+#~ msgstr "Standard läge"
+
+#~ msgid "Performs full priming for the best print quality. Requires more material and time."
+#~ msgstr "Utför full rensning för bästa utskrifts kvalitet. Kräver mer material och tid."
 
 #~ msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 #~ msgstr "Icke-mångsidiga kanter orsakade av skärverktyg: vill du fixa det nu?"

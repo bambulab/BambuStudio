@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-13 18:12+0800\n"
+"POT-Creation-Date: 2026-05-14 16:05+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -3334,6 +3334,10 @@ msgid "New Filaments"
 msgstr ""
 
 msgid "Add Material"
+msgstr ""
+
+#, c-format, boost-format
+msgid "The project supports up to %d filaments. Extra filaments will be discarded."
 msgstr ""
 
 msgid "Import Model"
@@ -7514,13 +7518,34 @@ msgstr "Birden fazla parçaya sahip nesne algılandı"
 msgid "The file does not contain any geometry data."
 msgstr "Dosya herhangi bir geometri verisi içermiyor."
 
+msgid "Importing model to project..."
+msgstr ""
+
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr "Nesneniz çok büyük görünüyor. Isı yatağına sığacak şekilde otomatik olarak küçültmek istiyor musunuz?"
 
 msgid "Object too large"
 msgstr "Nesne çok büyük"
 
+msgid "Placing model on the bed..."
+msgstr ""
+
+msgid "Updating object list..."
+msgstr ""
+
+msgid "Updating 3D view..."
+msgstr ""
+
+msgid "Model imported."
+msgstr ""
+
 msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
+msgstr ""
+
+msgid "Applying texture colors..."
+msgstr ""
+
+msgid "Texture colors applied."
 msgstr ""
 
 msgid "Export STL file:"
@@ -9796,6 +9821,12 @@ msgstr "Filament Bitiş G Kodu"
 msgid "Multi Filament"
 msgstr "Çoklu Filament"
 
+msgid "Purge Mode: Standard"
+msgstr ""
+
+msgid "Purge Mode: Fast"
+msgstr ""
+
 msgid "Printable space"
 msgstr "Tabla Ayarı"
 
@@ -11260,6 +11291,45 @@ msgstr ""
 msgid "Fixing cold prints"
 msgstr ""
 
+msgid "Software Update"
+msgstr ""
+
+msgid "Try Now"
+msgstr ""
+
+msgid "Don't show me Beta updates again"
+msgstr ""
+
+msgid "New Bambu Studio Beta Available"
+msgstr ""
+
+msgid "Current Version"
+msgstr ""
+
+msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
+msgstr ""
+
+msgid "Separate configuration folder."
+msgstr ""
+
+msgid "As a beta release, some features may still be under development, and you may occasionally encounter bugs, unexpected behavior, or incomplete functionality. To prevent conflicts with the stable release, Bambu Studio Beta uses a separate configuration folder (Help -> Show Configuration Folder) and operates independently from the standard version of Bambu Studio."
+msgstr ""
+
+msgid "(Help -> Show Configuration Folder)"
+msgstr ""
+
+msgid "Why use the Beta version?"
+msgstr ""
+
+msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
+msgstr ""
+
+msgid "How to change settings?"
+msgstr ""
+
+msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
+msgstr ""
+
 msgid "Air Pump"
 msgstr "Hava Pompası"
 
@@ -12507,6 +12577,9 @@ msgstr "Temizleme sıcaklığı"
 msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
 msgstr "filament temizleme (flushing) sırasında sıcaklık. 0 değeri, önerilen nozül sıcaklık aralığının üst sınırını belirtir"
 
+msgid "Flush temperature used in fast purge mode. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgstr ""
+
 msgid "Flush volumetric speed"
 msgstr "Temizleme hacimsel hızı"
 
@@ -13426,6 +13499,12 @@ msgstr "Bu G kodu duraklatma yazdırması için bir kod olarak kullanılacaktır
 msgid "This G-code will be used as a custom code"
 msgstr "Bu G kodu özel kod olarak kullanılacak"
 
+msgid "Support fast purge mode"
+msgstr ""
+
+msgid "Whether this printer supports fast purge mode with optimized temperature and multiplier."
+msgstr ""
+
 msgid "Maximum speed X"
 msgstr "Maksimum hız X"
 
@@ -13778,6 +13857,9 @@ msgid "Default Nozzle Volume Type"
 msgstr "Varsayılan Nozul Hacim Tipi"
 
 msgid "Saving"
+msgstr ""
+
+msgid "Fast"
 msgstr ""
 
 msgid "length when change hotend"
@@ -14440,6 +14522,12 @@ msgstr "Temizleme çarpanı"
 
 msgid "The actual flushing volumes is equal to the flush multiplier multiplied by the flushing volumes in the table."
 msgstr "Gerçek temizleme hacimleri, tablodaki temizleme hacimleri ile temizleme çarpanının çarpımına eşittir."
+
+msgid "Flush multiplier (Fast mode)"
+msgstr ""
+
+msgid "The flush multiplier used in fast purge mode."
+msgstr ""
 
 msgid "Width of prime tower"
 msgstr "Prime kulesi genişliği"
@@ -16761,10 +16849,10 @@ msgstr ""
 msgid "Purge Mode Settings"
 msgstr ""
 
-msgid "Standard Mode"
+msgid "Perform full purging with speed and temperature transition for the best print quality."
 msgstr ""
 
-msgid "Performs full priming for the best print quality. Requires more material and time."
+msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
 msgstr ""
 
 msgid "Prime Saving"

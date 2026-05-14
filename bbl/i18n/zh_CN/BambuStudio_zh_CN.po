@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-13 18:12+0800\n"
+"POT-Creation-Date: 2026-05-14 16:05+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3320,6 +3320,10 @@ msgstr "新增耗材"
 msgid "Add Material"
 msgstr "添加材料"
 
+#, c-format, boost-format
+msgid "The project supports up to %d filaments. Extra filaments will be discarded."
+msgstr "项目最多支持 %d 个耗材，多余的耗材将被丢弃。"
+
 msgid "Import Model"
 msgstr "导入模型"
 
@@ -3360,7 +3364,7 @@ msgid "Skip filament mapping and import as a single-color model"
 msgstr "跳过耗材匹配，导入为单色模型"
 
 msgid "Processing"
-msgstr ""
+msgstr "处理中"
 
 msgid "Computing texture colors..."
 msgstr "正在计算纹理颜色..."
@@ -7466,10 +7470,10 @@ msgstr "检测到多部分对象"
 
 #, c-format, boost-format
 msgid "Computing texture colors: %s"
-msgstr ""
+msgstr "正在计算纹理颜色：%s"
 
 msgid "Texture Import Warning"
-msgstr ""
+msgstr "导入纹理警告"
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "将这些文件加载为一个多零件对象？\n"
@@ -7480,14 +7484,35 @@ msgstr "检测到多零件对象"
 msgid "The file does not contain any geometry data."
 msgstr "此文件不包含任何几何数据。"
 
+msgid "Importing model to project..."
+msgstr ""
+
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr "对象看起来太大，希望将对象自动缩小以适应热床吗？"
 
 msgid "Object too large"
 msgstr "对象太大"
 
-msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
+msgid "Placing model on the bed..."
 msgstr ""
+
+msgid "Updating object list..."
+msgstr ""
+
+msgid "Updating 3D view..."
+msgstr "正在更新3D视图……"
+
+msgid "Model imported."
+msgstr ""
+
+msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
+msgstr "纹理导入失败。模型似乎包含纹理数据，但未能完成纹理导入过程。模型将仅作为几何体导入。"
+
+msgid "Applying texture colors..."
+msgstr "正在应用纹理颜色..."
+
+msgid "Texture colors applied."
+msgstr "纹理颜色已应用。"
 
 msgid "Export STL file:"
 msgstr "导出 STL 文件："
@@ -9788,6 +9813,12 @@ msgstr "耗材丝结束G-code"
 msgid "Multi Filament"
 msgstr "多材料"
 
+msgid "Purge Mode: Standard"
+msgstr ""
+
+msgid "Purge Mode: Fast"
+msgstr ""
+
 msgid "Printable space"
 msgstr "可打印区域"
 
@@ -11263,6 +11294,45 @@ msgstr "Helio 流程图"
 msgid "Fixing cold prints"
 msgstr "解决打印过冷"
 
+msgid "Software Update"
+msgstr "软件更新"
+
+msgid "Try Now"
+msgstr "立即试用"
+
+msgid "Don't show me Beta updates again"
+msgstr "不再提醒Beta版本更新"
+
+msgid "New Bambu Studio Beta Available"
+msgstr "发现新Beta版本"
+
+msgid "Current Version"
+msgstr "当前软件版本"
+
+msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
+msgstr "Bambu Studio 测试版 让您能抢先体验尚未在稳定版中发布的新功能、改进和优化。该版本主要面向希望提前试用新功能并协助改进软件的高级用户。"
+
+msgid "Separate configuration folder."
+msgstr "独立的配置文件夹。"
+
+msgid "As a beta release, some features may still be under development, and you may occasionally encounter bugs, unexpected behavior, or incomplete functionality. To prevent conflicts with the stable release, Bambu Studio Beta uses a separate configuration folder (Help -> Show Configuration Folder) and operates independently from the standard version of Bambu Studio."
+msgstr "作为测试版，部分功能可能仍在开发中，您偶尔可能会遇到错误、意外行为或不完整的功能。为避免与稳定版发生冲突，Bambu Studio测试版使用独立的配置文件夹 (帮助->显示配置文件夹)，并与标准版BambuStudio独立运行。"
+
+msgid "(Help -> Show Configuration Folder)"
+msgstr "(帮助->显示配置文件夹)"
+
+msgid "Why use the Beta version?"
+msgstr "为什么要使用测试版？"
+
+msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
+msgstr "通过使用测试版并分享反馈、错误报告和建议,您可以帮助Bamibu Lab在正式发布前改进稳定性、兼容性和未来功能。"
+
+msgid "How to change settings?"
+msgstr "如何更改设置？"
+
+msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
+msgstr "如果您不想参与测试版计划，可以随时在设置中禁用测试版更新提示。"
+
 msgid "Air Pump"
 msgstr "气泵"
 
@@ -12157,7 +12227,7 @@ msgid "The default acceleration of both normal printing and travel except initia
 msgstr "除首层之外的默认的打印和空驶的加速度"
 
 msgid "The acceleration of travel except initial layer"
-msgstr ""
+msgstr "除首层外空驶加速度"
 
 msgid "Short travel"
 msgstr "短程移动"
@@ -12179,7 +12249,7 @@ msgid "Initial layer travel"
 msgstr "首层空驶"
 
 msgid "The acceleration of travel of initial layer"
-msgstr ""
+msgstr "首层空驶加速度"
 
 msgid "Default filament profile"
 msgstr "默认耗材配置"
@@ -12526,6 +12596,9 @@ msgstr "冲刷温度"
 
 msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
 msgstr "耗材冲刷时的温度。0表示使用最大建议喷嘴温度。"
+
+msgid "Flush temperature used in fast purge mode. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgstr ""
 
 msgid "Flush volumetric speed"
 msgstr "冲刷体积流量"
@@ -13459,6 +13532,12 @@ msgstr "该G-code用于暂停打印。您可以在gcode预览中插入暂停G-co
 msgid "This G-code will be used as a custom code"
 msgstr "该G-code是定制化指令"
 
+msgid "Support fast purge mode"
+msgstr ""
+
+msgid "Whether this printer supports fast purge mode with optimized temperature and multiplier."
+msgstr ""
+
 msgid "Maximum speed X"
 msgstr "X最大速度"
 
@@ -13812,6 +13891,9 @@ msgstr "默认喷嘴体积类型"
 
 msgid "Saving"
 msgstr "保存中"
+
+msgid "Fast"
+msgstr ""
 
 msgid "length when change hotend"
 msgstr "换热端时回抽量"
@@ -14475,6 +14557,12 @@ msgstr "冲刷量乘数"
 
 msgid "The actual flushing volumes is equal to the flush multiplier multiplied by the flushing volumes in the table."
 msgstr "实际冲刷量等于冲刷量乘数乘以表格单元中的冲刷量"
+
+msgid "Flush multiplier (Fast mode)"
+msgstr ""
+
+msgid "The flush multiplier used in fast purge mode."
+msgstr ""
 
 msgid "Width of prime tower"
 msgstr "擦料塔宽度"
@@ -16780,11 +16868,11 @@ msgstr "您的打印机安装了不同的喷嘴。请选择一个喷嘴进行本
 msgid "Purge Mode Settings"
 msgstr "冲刷模式"
 
-msgid "Standard Mode"
-msgstr "标准模式"
+msgid "Perform full purging with speed and temperature transition for the best print quality."
+msgstr ""
 
-msgid "Performs full priming for the best print quality. Requires more material and time."
-msgstr "执行完整的冲刷流程以获得最佳打印质量，需要更多材料和时间。"
+msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
+msgstr ""
 
 msgid "Prime Saving"
 msgstr "省料模式"
@@ -17405,6 +17493,12 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Standard Mode"
+#~ msgstr "标准模式"
+
+#~ msgid "Performs full priming for the best print quality. Requires more material and time."
+#~ msgstr "执行完整的冲刷流程以获得最佳打印质量，需要更多材料和时间。"
 
 #~ msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 #~ msgstr "因切割产生了非流形边，您是否想现在修复？"
