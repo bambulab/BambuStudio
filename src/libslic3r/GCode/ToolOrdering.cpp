@@ -711,11 +711,16 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
     unsigned int extruder_override = 0;
 
     // Pre-compute 1-based IDs of gradient mixed filament slots for per-object tracking.
+    // per_part_slots_1based is the subset of gradient_slots_1based for which per-part gradient is
+    // enabled (filament_mixed_gradient_per_part[i] = true). Used by the per-volume collection
+    // pass that runs alongside the existing per-object pass below.
     std::set<unsigned int> gradient_slots_1based;
+    std::set<unsigned int> per_part_slots_1based;
     {
         const PrintConfig &cfg       = object.print()->config();
         const auto        &is_mixed  = cfg.filament_is_mixed.values;
         const auto        &grad_flags = cfg.filament_mixed_gradient.values;
+        const auto        &per_part_flags = cfg.filament_mixed_gradient_per_part.values;
         const auto        &comp_strs = cfg.filament_mixed_components.values;
         for (size_t i = 0; i < is_mixed.size(); ++i) {
             if (!is_mixed[i])
@@ -726,6 +731,8 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
             if (i >= grad_flags.size() || !grad_flags[i])
                 continue;
             gradient_slots_1based.insert(static_cast<unsigned int>(i + 1));
+            if (i < per_part_flags.size() && per_part_flags[i])
+                per_part_slots_1based.insert(static_cast<unsigned int>(i + 1));
         }
     }
 
@@ -822,6 +829,37 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
             }
         }
 
+        // Per-part gradient: walk LayerRegions and record which (slot, ModelVolume) pairs
+        // contributed to this layer. Only regions tagged by PrintApply.cpp's get_create_region
+        // (i.e. gradient_volume_id().valid()) are considered, so this loop is a strict no-op
+        // unless per_part_gradient is enabled for at least one slot AND the corresponding
+        // ModelObject has >=2 model-part volumes using that slot. The per-object pass above is
+        // unaffected — both runs the same layer's data through orthogonal containers.
+        if (!per_part_slots_1based.empty()) {
+            size_t layer_idx = static_cast<size_t>(&layer_tools - m_layer_tools.data());
+            std::set<std::pair<unsigned int, ObjectID>> vol_seen;
+            for (const LayerRegion *layerm : layer->regions()) {
+                if (layerm->slices.empty())
+                    continue;
+                const PrintRegion &region = layerm->region();
+                ObjectID vol_id = region.gradient_volume_id();
+                if (! vol_id.valid())
+                    continue;
+                const PrintRegionConfig &rcfg = region.config();
+                const unsigned int role_slots[3] = {
+                    static_cast<unsigned int>(rcfg.wall_filament.value),
+                    static_cast<unsigned int>(rcfg.sparse_infill_filament.value),
+                    static_cast<unsigned int>(rcfg.solid_infill_filament.value),
+                };
+                for (unsigned int ext_1based : role_slots) {
+                    if (ext_1based >= 1
+                        && per_part_slots_1based.count(ext_1based)
+                        && vol_seen.insert({ext_1based, vol_id}).second)
+                        m_gradient_volume_layers[ext_1based - 1][{&object, vol_id}].push_back(layer_idx);
+                }
+            }
+        }
+
         layerCount++;
     }
 
@@ -842,8 +880,18 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
         }
         unsigned int extruder_support   = object.config().support_filament.value;
         unsigned int extruder_interface = object.config().support_interface_filament.value;
+        bool         interface_not_for_body = object.config().support_interface_not_for_body;
         if (has_support) {
-            if (extruder_support > 0 || !has_interface || extruder_interface == 0 || layer_tools.has_object)
+            auto has_reusable_layer_extruder = [&]() -> bool {
+                for (unsigned int extruder_id : layer_tools.extruders) {
+                    if (extruder_id == 0) continue;
+                    if (interface_not_for_body && extruder_id == extruder_interface) continue;
+                    if (object.print()->config().filament_soluble.get_at(extruder_id - 1)) continue;
+                    return true;
+                }
+                return false;
+            };
+            if (extruder_support > 0 || extruder_interface == 0 || has_reusable_layer_extruder())
                 layer_tools.extruders.push_back(extruder_support);
             else {
                 auto all_extruders     = object.print()->extruders();
@@ -866,7 +914,6 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                     }
                     return next_extruder;
                 };
-                bool interface_not_for_body = object.config().support_interface_not_for_body;
                 layer_tools.extruders.push_back(get_next_extruder(interface_not_for_body ? extruder_interface - 1 : -1, all_extruders) + 1);
             }
         }
@@ -1590,7 +1637,8 @@ std::vector<FilamentPlanRes> plan_filament_mapping_and_order_by_combo_ranges(
     const FilamentMapMode                              mode,
     const std::vector<std::set<int>>&                  physical_unprintables,
     const std::vector<std::set<int>>&                  geometric_unprintables,
-    const std::map<int, std::set<NozzleVolumeType>>&   unprintable_volumes)
+    const std::map<int, std::set<NozzleVolumeType>>&   unprintable_volumes,
+    MultiNozzleUtils::NozzleStatusRecorder*            io_nozzle_status = nullptr)
 {
     std::vector<FilamentPlanRes> results;
 
@@ -1630,6 +1678,8 @@ std::vector<FilamentPlanRes> plan_filament_mapping_and_order_by_combo_ranges(
 
     // 对每个材料组合的每个连续区间，构建新的 layer_filaments 并调用 get_recommended_filament_maps
     MultiNozzleUtils::NozzleStatusRecorder tool_status;
+    if (io_nozzle_status) tool_status = *io_nozzle_status;
+
     std::vector<int> fil_noz_map(ctx.group_info.total_filament_num, -1);    //全局的材料到喷嘴的映射
     std::unordered_map<int, int> fil_first_nozzle_map;  // 记录每个材料首次使用的喷嘴id (key: 材料id, value: 首次分配的喷嘴id)
     for (auto &[range, combo] : range_filas_map) {
@@ -1692,6 +1742,8 @@ std::vector<FilamentPlanRes> plan_filament_mapping_and_order_by_combo_ranges(
                 noz_id = (used_filaments.count(fil_id) && fil_first_nozzle_map.count(fil_id)) ? fil_first_nozzle_map[fil_id] : 0;
         }
     }
+
+    if (io_nozzle_status) *io_nozzle_status = tool_status;
 
     return results;
 }
@@ -1853,10 +1905,13 @@ void ToolOrdering::calculate_and_store_statistics(const PrintConfig             
             // 如果支持选料器
             if (m_print->is_dynamic_group_reorder()) {
                 auto grouping_context = GroupReorder::build_filament_group_context(m_print, layer_data.layer_filaments, layer_data.physical_unprintables,
-                                                                                   layer_data.geometric_unprintables, layer_data.filament_unprintable_volumes, FilamentMapMode::fmmAutoForFlush);
+                                                                                   layer_data.geometric_unprintables, layer_data.filament_unprintable_volumes, FilamentMapMode::fmmAutoForFlush,
+                                                                                   m_initial_nozzle_status.get_nozzle_filament_map());
 
+                MultiNozzleUtils::NozzleStatusRecorder best_nozzle_status = m_initial_nozzle_status;
                 auto dynamic_plan_res = plan_filament_mapping_and_order_by_combo_ranges(m_print, grouping_context, ordering_context, FilamentMapMode::fmmAutoForFlush,
-                                                                                layer_data.physical_unprintables, layer_data.geometric_unprintables, layer_data.filament_unprintable_volumes);
+                                                                                layer_data.physical_unprintables, layer_data.geometric_unprintables, layer_data.filament_unprintable_volumes,
+                                                                                &best_nozzle_status);
 
                 std::vector<std::vector<int>> nozzle_map_per_layer;
                 for (auto &res : dynamic_plan_res) {
@@ -2107,6 +2162,32 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
             per_obj_runs[slot][obj] = std::move(st);
         }
     }
+
+    // Per-volume gradient: mirror the per-object run-segmentation logic above for
+    // m_gradient_volume_layers. When per_part_gradient is off (or no qualifying volume exists),
+    // m_gradient_volume_layers is empty and per_vol_runs ends up empty too — so all subsequent
+    // checks of `per_vol_runs.find(slot) != end()` will fail and the legacy per-object path
+    // remains the only path taken.
+    using VolumeKey = LayerTools::MixedSubLayerGroup::VolumeKey;
+    std::map<unsigned int, std::map<VolumeKey, PerObjRunState>> per_vol_runs;
+    for (auto &[slot, vol_map] : m_gradient_volume_layers) {
+        if (slot >= is_gradient.size() || !is_gradient[slot])
+            continue;
+        for (auto &[vkey, layer_indices] : vol_map) {
+            sort_remove_duplicates(layer_indices);
+            if (!layer_indices.empty() && layer_indices.front() == 0)
+                layer_indices.erase(layer_indices.begin());
+            PerObjRunState st;
+            for (size_t i = 0; i < layer_indices.size(); ++i) {
+                if (i == 0 || layer_indices[i] != layer_indices[i - 1] + 1) {
+                    st.run_start_offsets.push_back(i);
+                    st.run_lengths.push_back(0);
+                }
+                st.run_lengths.back()++;
+            }
+            per_vol_runs[slot][vkey] = std::move(st);
+        }
+    }
     // Pass 2: resolve per layer
     coordf_t prev_print_z = 0.;
     for (LayerTools &lt : m_layer_tools) {
@@ -2178,7 +2259,15 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
                         sub_heights.push_back(r * lh);
                 }
 
-                if (gradient_last_no_split) {
+                // Per-part gradient: when this slot has any qualifying volume, the global
+                // no-split short-circuit must NOT bypass MixedSubLayerGroup creation — each
+                // volume needs its own no-split decision in GCode.cpp (a per-volume "last
+                // run-layer" can occur on a different layer index than the per-object one). We
+                // still keep the per-object short-circuit when per_vol_runs[ext] is empty, which
+                // covers the legacy path bit-identically.
+                bool per_vol_active_for_slot = per_vol_runs.find(ext) != per_vol_runs.end()
+                                                && !per_vol_runs[ext].empty();
+                if (gradient_last_no_split && !per_vol_active_for_slot) {
                     lt.mixed_filament_resolution[ext] = gradient_last_dominant_0b;
                     new_extruders.push_back(gradient_last_dominant_0b);
                     continue;
@@ -2193,8 +2282,39 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
                 }
                 grp.sub_heights = sub_heights;
 
-                // Write per-object gradient metadata (run-aware).
+                // Write gradient metadata (run-aware). Both per_object_gradient and
+                // per_volume_gradient are populated independently from their own run-state
+                // machines; the GCode emitter chooses per-region:
+                //  - tagged region (gradient_volume_id valid)  -> per_volume_gradient[{obj, vol}]
+                //  - untagged region (modifier / painted / etc.) -> per_object_gradient[obj]
+                // Populating both keeps the per-object run state correct even when per-volume
+                // takes over for the same (slot, obj), and lets untagged geometry (which is
+                // explicitly NOT split per-volume in v1 per the design doc) keep its legacy
+                // per-object gradient ratios.
                 if (grp.is_gradient) {
+                    auto vol_runs_slot_it = per_vol_runs.find(ext);
+                    if (vol_runs_slot_it != per_vol_runs.end()) {
+                        auto vol_slot_it = m_gradient_volume_layers.find(ext);
+                        for (auto &[vkey, st] : vol_runs_slot_it->second) {
+                            auto &layer_indices = vol_slot_it->second[vkey];
+                            if (!std::binary_search(layer_indices.begin(), layer_indices.end(), layer_idx))
+                                continue;
+                            if (st.current_run < 0 ||
+                                st.current_idx >= st.run_lengths[st.current_run]) {
+                                st.current_run++;
+                                st.current_idx = 0;
+                            }
+                            size_t run_N   = st.run_lengths[st.current_run];
+                            size_t run_idx = st.current_idx++;
+                            grp.per_volume_gradient[vkey] = {
+                                run_N,
+                                run_idx,
+                                gradient_info[ext].start,
+                                gradient_info[ext].end_val,
+                            };
+                        }
+                    }
+
                     auto runs_slot_it = per_obj_runs.find(ext);
                     if (runs_slot_it != per_obj_runs.end()) {
                         auto slot_it = m_gradient_object_layers.find(ext);
@@ -2202,7 +2322,6 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
                             auto &layer_indices = slot_it->second[obj];
                             if (!std::binary_search(layer_indices.begin(), layer_indices.end(), layer_idx))
                                 continue;
-                            // Advance per-object run state at Z gap boundaries.
                             if (st.current_run < 0 ||
                                 st.current_idx >= st.run_lengths[st.current_run]) {
                                 st.current_run++;
@@ -2429,20 +2548,22 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
             layer_data.physical_unprintables,
             layer_data.geometric_unprintables,
             layer_data.filament_unprintable_volumes,
-            m_print->config().filament_map_mode.value
+            m_print->config().filament_map_mode.value,
+            m_initial_nozzle_status.get_nozzle_filament_map()
         );
 
         // 时间预估器中存储的材料在不同挤出机的打印时间是全局的，不适用于当前分区间的分组方法
         grouping_context.speed_info.group_with_time = false;
 
-        // TODO(山苍)：逐件打印后面要考虑喷嘴状态
+        m_nozzle_status = m_initial_nozzle_status;
         auto dynamic_plan_res = plan_filament_mapping_and_order_by_combo_ranges(m_print,
                                                                        grouping_context,
                                                                        ordering_context,
                                                                        FilamentMapMode::fmmAutoForFlush,
                                                                        layer_data.physical_unprintables,
                                                                        layer_data.geometric_unprintables,
-                                                                       layer_data.filament_unprintable_volumes);
+                                                                       layer_data.filament_unprintable_volumes,
+                                                                       &m_nozzle_status);
          //auto dynamic_plan_res = plan_filament_nozzle_mapping_and_order(grouping_context);
 
 

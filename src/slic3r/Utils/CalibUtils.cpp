@@ -945,7 +945,7 @@ void CalibUtils::calib_pa_pattern(const MachineObject *obj, const CalibInfo &cal
 
     float nozzle_diameter = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0);
 
-    for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) {
+    for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs(nozzle_diameter)) {
         full_config.set_key_value(opt.first, new ConfigOptionFloat(opt.second));
     }
     for (const auto opt : SuggestedConfigCalibPAPattern().floats_pairs) {
@@ -993,7 +993,7 @@ void CalibUtils::set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &
     float nozzle_diameter = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0);
     int extruder_count = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
 
-    for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) { print_config.set_key_value(opt.first, new ConfigOptionFloat(opt.second)); }
+    for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs(nozzle_diameter)) { print_config.set_key_value(opt.first, new ConfigOptionFloat(opt.second)); }
     for (const auto opt : SuggestedConfigCalibPAPattern().floats_pairs) { print_config.set_key_value(opt.first, new ConfigOptionFloatsNullable(opt.second)); }
 
     std::vector<CalibInfo> sorted_calib_infos = calib_infos;
@@ -1724,6 +1724,25 @@ bool CalibUtils::get_pa_k_n_value_by_cali_idx(const MachineObject *obj, int cali
         }
     }
     return false;
+}
+
+ExtruderType CalibUtils::get_extruder_type(const MachineObject* obj, int extruder_id)
+{
+    ExtruderType extruder_type = ExtruderType::etDirectDrive;
+    if (Preset *printer_preset = get_printer_preset(obj)) {
+        auto opt_extruder_type = printer_preset->config.option<ConfigOptionEnumsGeneric>("extruder_type");
+        if (opt_extruder_type) {
+            assert(opt_extruder_type->values.size() <= 2);
+            int logic_extruder_id = DevExtder::to_logical_extruder_id(obj->GetExtderSystem()->GetTotalExtderCount(), extruder_id);
+            if (logic_extruder_id >=0 && logic_extruder_id < opt_extruder_type->values.size()) {
+                extruder_type = (ExtruderType)(opt_extruder_type->values[logic_extruder_id]);
+            } else {
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Invalid extruder_id " << extruder_id;
+            }
+        }
+    }
+
+    return extruder_type;
 }
 
 bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, const X1CCalibInfos &cali_infos, wxString &error_message)

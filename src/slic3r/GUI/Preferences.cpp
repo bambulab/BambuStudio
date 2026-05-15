@@ -144,6 +144,9 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
         if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CHINESE_SIMPLIFIED)) {
             language_name = wxString::FromUTF8("\xe4\xb8\xad\xe6\x96\x87\x28\xe7\xae\x80\xe4\xbd\x93\x29");
         }
+        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CHINESE_TRADITIONAL)) {
+            language_name = wxString::FromUTF8("\xe4\xb8\xad\xe6\x96\x87\x28\xe7\xb9\x81\xe9\xab\x94\x29");
+        }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_SPANISH)) {
             language_name = wxString::FromUTF8("\x45\x73\x70\x61\xc3\xb1\x6f\x6c");
         }
@@ -1280,17 +1283,18 @@ wxWindow* PreferencesDialog::create_general_page()
     wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
 
     auto title_general_settings = create_item_title(_L("General Settings"), page, _L("General Settings"));
-    auto translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
+    auto available_translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
     std::vector<const wxLanguageInfo *> language_infos;
     language_infos.emplace_back(wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH));
-    for (size_t i = 0; i < translations.GetCount(); ++i) {
-        const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(translations[i]);
-
-        if (langinfo == nullptr) continue;
+    for (size_t i = 0; i < available_translations.GetCount(); ++i) {
+        const wxLanguageInfo *available_lan = wxLocale::FindLanguageInfo(available_translations[i]);
+        if (available_lan == nullptr) continue;
 
         for (auto si = 0; si < s_supported_languages.size(); si++) {
-            if (langinfo == wxLocale::GetLanguageInfo(s_supported_languages[si])) {
-                language_infos.emplace_back(langinfo);
+            auto* supported_lan = wxLocale::GetLanguageInfo(s_supported_languages[si]);
+            if (available_lan->CanonicalName == supported_lan->CanonicalName) {
+                language_infos.emplace_back(supported_lan);
+                break;
             }
         }
         //if (langinfo != nullptr) language_infos.emplace_back(langinfo);
@@ -1326,6 +1330,7 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_step_mesh_setting = create_item_checkbox(_L("Show the step mesh parameter setting dialog."), page, _L("If enabled,a parameter settings dialog will appear during STEP file import."), 50, "enable_step_mesh_setting");
     auto item_beta_version_update = create_item_checkbox(_L("Support beta version update."), page, _L("With this option enabled, you can receive beta version updates."), 50, "enable_beta_version_update");
     auto item_mix_print_high_low_temperature = create_item_checkbox(_L("Remove the restriction on mixed printing of high and low temperature filaments."), page, _L("With this option enabled, you can print materials with a large temperature difference together."), 50, "enable_high_low_temp_mixed_printing");
+    auto item_camera_fullscreen_active_monitor_only = create_item_checkbox(_L("Open full screen camera view on active monitor only."), page, _L("When enabled, the camera full screen view opens only on the monitor that contains Bambu Studio."), 50, "camera_fullscreen_active_monitor_only");
     auto item_restore_hide_pop_ups = create_item_button(_L("Clear my choice for synchronizing printer preset after loading the file."), _L("Clear"), page, {}, []() {
         wxGetApp().app_config->erase("app", "sync_after_load_file_show_flag");
     });
@@ -1494,6 +1499,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_beta_version_update, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_auto_transfer_when_switch_preset, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_mix_print_high_low_temperature, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_camera_fullscreen_active_monitor_only, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_restore_hide_pop_ups, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_restore_hide_3mf_info, 0, wxTOP, FromDIP(3));
     sizer_page->Add(_3d_settings, 0, wxTOP | wxEXPAND, FromDIP(20));

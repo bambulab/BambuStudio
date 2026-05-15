@@ -8,6 +8,7 @@
 #include <wx/sizer.h>
 #include <wx/menu.h>
 #include <wx/progdlg.h>
+#include <wx/textentry.h>
 #include <wx/tooltip.h>
 //#include <wx/glcanvas.h>
 #include <wx/filename.h>
@@ -21,6 +22,7 @@
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/SLAPrint.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/AppConfig.hpp"
 
 #include "Tab.hpp"
 #include "ProgressStatusBar.hpp"
@@ -95,6 +97,35 @@ wxDEFINE_EVENT(EVT_UPDATE_PRESET_CB, SimpleEvent);
 wxDEFINE_EVENT(EVT_BACKUP_POST, wxCommandEvent);
 wxDEFINE_EVENT(EVT_LOAD_URL, wxCommandEvent);
 wxDEFINE_EVENT(EVT_LOAD_PRINTER_URL, wxCommandEvent);
+
+static bool is_text_entry_focused()
+{
+    for (wxWindow *window = wxWindow::FindFocus(); window != nullptr; window = window->GetParent())
+        if (dynamic_cast<wxTextEntry *>(window) != nullptr)
+            return true;
+
+    return false;
+}
+
+static bool should_skip_fit_camera_shortcut(Plater *plater)
+{
+    if (is_text_entry_focused())
+        return true;
+
+    if (wxGetApp().imgui()->want_text_input())
+        return true;
+
+    if (!plater)
+        return false;
+
+    auto is_gizmo_running = [](GLCanvas3D *canvas) {
+        return canvas && canvas->get_gizmos_manager().is_running();
+    };
+
+    return is_gizmo_running(plater->get_view3D_canvas3D()) ||
+           is_gizmo_running(plater->get_assmeble_canvas3D()) ||
+           is_gizmo_running(plater->get_current_canvas3D());
+}
 
 enum class ERescaleTarget
 {
@@ -647,6 +678,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             });
 ;    }
     this->Bind(wxEVT_CHAR_HOOK, [this](wxKeyEvent &evt) {
+        const int key_code = evt.GetKeyCode();
 #ifdef __APPLE__
         if (evt.CmdDown() && (evt.GetKeyCode() == 'H')) {
             //call parent_menu hide behavior
@@ -719,8 +751,24 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             return;
         }
 
-        if (!evt.HasAnyModifiers() && evt.GetKeyCode() == 'Z') {
-            view_zoom_to_fit();
+        if (!evt.HasAnyModifiers() && (evt.GetKeyCode() == 'Z' || evt.GetKeyCode() == 'z')) {
+            if (!should_skip_fit_camera_shortcut(m_plater))
+                view_zoom_to_fit();
+            else
+                evt.Skip();
+            return;
+        }
+
+        // Pass 3D view preset shortcuts directly to the current canvas. (Only 0-7 currently used but reserve 8 & 9 anyway.)
+        if (evt.CmdDown() && ((key_code >= '0' && key_code <= '9') || (key_code >= WXK_NUMPAD0 && key_code <= WXK_NUMPAD9)) && m_plater) {
+            if (auto *canvas = m_plater->canvas3D()) {
+                if (auto *target = (wxWindow*)canvas->get_wxglcanvas()) {
+                    wxKeyEvent e(evt);
+                    e.SetEventType(wxEVT_KEY_UP);
+                    e.SetEventObject(target);
+                    wxPostEvent(target, e);
+                }
+            }
             return;
         }
 
@@ -1764,6 +1812,21 @@ bool MainFrame::can_change_view() const
     }
 }
 
+bool MainFrame::can_toggle_camera_fullscreen() const
+{
+    StatusPanel *status_panel = m_monitor ? m_monitor->get_status_panel() : nullptr;
+    if (!status_panel) return false;
+    if (status_panel->is_camera_fullscreen()) return true;
+    return m_tabpanel && m_tabpanel->GetSelection() == TabPosition::tpMonitor && status_panel->can_show_camera_fullscreen();
+}
+
+void MainFrame::toggle_camera_fullscreen()
+{
+    StatusPanel *status_panel = m_monitor ? m_monitor->get_status_panel() : nullptr;
+    if (!status_panel || !can_toggle_camera_fullscreen()) return;
+    status_panel->toggle_camera_fullscreen();
+}
+
 bool MainFrame::can_clone() const {
     return can_select() && !m_plater->is_selection_empty();
 }
@@ -1940,14 +2003,16 @@ wxBoxSizer* MainFrame::create_side_tools()
                 std::unordered_set<std::string> printer_models = {"Bambu Lab H2D", "Bambu Lab H2D Pro", "Bambu Lab H2C"};
                 int extruder_count = wxGetApp().preset_bundle->get_printer_extruder_count();
                 if (extruder_count > 1 && printer_models.count(printer_model)) {
-                    if (wxGetApp().app_config->get("play_slicing_video") == "true") {
+                    const std::string slice_video_key = dual_extruder_first_slice_video_app_config_key(printer_model);
+                    const std::string slice_video_val = wxGetApp().app_config->get(slice_video_key);
+                    if (slice_video_val.empty() || slice_video_val == "true" || slice_video_val == "1") {
                         MessageDialog dlg(this, _L("This is your first time slicing with the dual extruder machine.\nWould you like to watch a quick tutorial video?"), _L("First Guide"), wxYES_NO);
                         auto  res = dlg.ShowModal();
                         if (res == wxID_YES) {
                             play_dual_extruder_slice_video();
                             slice = false;
                         }
-                        wxGetApp().app_config->set("play_slicing_video", "false");
+                        wxGetApp().app_config->set(slice_video_key, "false");
                     }
 
                     if ((wxGetApp().app_config->get("play_tpu_printing_video") == "true")) {
@@ -2725,8 +2790,13 @@ static void add_common_view_menu_items(wxMenu* view_menu, MainFrame* mainFrame, 
     append_menu_item(view_menu, wxID_ANY, _CTX(L_CONTEXT("Isometric", "Camera"), "Camera") + " 3", _L("Isometric View") + " 3",
         [mainFrame](wxCommandEvent &) { mainFrame->select_view("iso_3"); }, "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
 #endif
-    append_menu_item(view_menu, wxID_ANY, _L("Fit Camera") + "\t" "Z", _L("Fit camera to scene or selected object."), 
+#ifdef __APPLE__//In the macOS menu, single-key shortcuts are not supported, so this option is hidden temporarily. The actual functionality still works normally.
+    append_menu_item(view_menu, wxID_ANY, _L("Fit Camera"), _L("Fit camera to scene or selected object."),
         [mainFrame](wxCommandEvent &) { mainFrame->view_zoom_to_fit(); }, "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
+#else
+    append_menu_item(view_menu, wxID_ANY, _L("Fit Camera") + "\t" "Z", _L("Fit camera to scene or selected object."),
+        [mainFrame](wxCommandEvent &) { mainFrame->view_zoom_to_fit(); }, "", nullptr, [can_change_view]() { return can_change_view(); }, mainFrame);
+#endif
 }
 
 void MainFrame::init_menubar_as_editor()
@@ -3106,6 +3176,17 @@ void MainFrame::init_menubar_as_editor()
     if (m_plater) {
         viewMenu = new wxMenu();
         add_common_view_menu_items(viewMenu, this, std::bind(&MainFrame::can_change_view, this));
+        viewMenu->AppendSeparator();
+
+        wxMenuItem *camera_fullscreen_item = append_menu_item(
+            viewMenu, wxID_ANY, _L("Enter Camera Full Screen"), _L("Show the Device camera in full screen"),
+            [this](wxCommandEvent &) { toggle_camera_fullscreen(); }, "", nullptr);
+        Bind(wxEVT_UPDATE_UI, [this, camera_fullscreen_item](wxUpdateUIEvent &evt) {
+            StatusPanel *status_panel = m_monitor ? m_monitor->get_status_panel() : nullptr;
+            const bool active = status_panel && status_panel->is_camera_fullscreen();
+            camera_fullscreen_item->SetItemLabel(active ? _L("Exit Camera Full Screen") : _L("Enter Camera Full Screen"));
+            evt.Enable(can_toggle_camera_fullscreen());
+        }, camera_fullscreen_item->GetId());
         viewMenu->AppendSeparator();
 
         //BBS perspective view

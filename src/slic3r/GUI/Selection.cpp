@@ -3456,12 +3456,8 @@ void Selection::paste_objects_from_clipboard()
 
         for (ModelInstance* inst : dst_object->instances) {
             inst->set_offset(displacement);
-
-            //BBS init asssmble transformation
-            Geometry::Transformation t = inst->get_transformation();
-            inst->set_assemble_transformation(t);
         }
-
+        m_model->set_assembly_pos(dst_object);
         object_idxs.push_back(m_model->objects.size() - 1);
 #ifdef _DEBUG
 	    check_model_ids_validity(*m_model);

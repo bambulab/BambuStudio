@@ -37,7 +37,7 @@
     "ironing_spacing": "0.1",
     "ironing_speed": "15",
     "ironing_type": "no ironing",
-    "reduce_infill_retraction": "1",
+    "reduce_infill_retraction_mode": "Auto",
     "filename_format": "{input_filename_base}_{layer_height}mm_{filament_type[0]}_{printer_model}_{print_time}.gcode",
     "detect_overhang_wall": "1",
     "inner_wall_line_width": "0.65",

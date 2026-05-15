@@ -205,7 +205,13 @@ public:
                         this->unfitindicator_(it->get().name + " not fit! plate_id=" + std::to_string(placers.back().plateID()) + ", score=" + std::to_string(score) +
                                               ", best_bed_id=" + std::to_string(best_bed_id) + ", score_all_plates=" + std::to_string(score_all_plates) +
                                               ", item.bed_id=" + std::to_string(it->get().binId()));
-                    if (!placers.empty() && placers.back().getItems().empty()) {
+                    
+                    // Treat the placer as empty when it only holds preloaded fixed items
+                    // (wipe tower / excluded regions). With wipe tower enabled, every new
+                    // placer is preloaded with one tower instance, so getItems().empty() is
+                    // never true and we used to keep emplacing new empty bins instead of
+                    // marking the oversized item as UNFIT -- see STUDIO-14197.
+                    if (!placers.empty() && placers.back().getPackedSize() == 0) {
                         it->get().binId(BIN_ID_UNFIT);
                         if (this->unfitindicator_) this->unfitindicator_(it->get().name + " can't fit into a new bin. Can't fit!");
                         // remove the last empty placer to force next item to be fit in existing plates first

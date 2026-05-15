@@ -232,6 +232,8 @@ void Layer::make_perimeters()
                 const PrintRegionConfig &other_config = other_layerm->region().config();
                 if (!has_compatible_layer_regions(config, other_config))
                     continue;
+                if ((*layerm)->region().gradient_volume_id() != other_layerm->region().gradient_volume_id())
+                    continue;
 
                 other_layerm->perimeters.clear();
                 other_layerm->fills.clear();

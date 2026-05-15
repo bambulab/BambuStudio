@@ -38,6 +38,10 @@ private:
     nlohmann::json HandleInit(const std::string& action, const nlohmann::json& payload);
     nlohmann::json HandleSync(const std::string& action, const nlohmann::json& payload);
     nlohmann::json HandleConfig(const std::string& action, const nlohmann::json& payload);
+    // STUDIO-17977 Task 10: route filament.colors.* JSON-RPC into
+    // FilamentColorCodeQuery so the front-end never has to hardcode the
+    // preset color palette / color names.
+    nlohmann::json HandleColors(const std::string& action, const nlohmann::json& payload);
 
     // Data builders (migrated from wgtFilaManagerPanel)
     nlohmann::json build_spool_list();

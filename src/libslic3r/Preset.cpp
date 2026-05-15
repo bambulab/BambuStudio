@@ -51,6 +51,60 @@ using boost::property_tree::ptree;
 
 namespace Slic3r {
 
+const std::vector<std::string> &get_filament_orders()
+{
+    static std::vector<std::string> orders = {"Bambu PLA Basic",
+                                              "Bambu PLA Matte",
+                                              "Bambu PLA Pure",
+                                              "Bambu PLA Lite",
+                                              "Bambu PLA Tough+",
+                                              "Bambu PETG Basic",
+                                              "Bambu PETG HF",
+                                              "Bambu ABS",
+                                              "Bambu ASA",
+                                              "Bambu PLA Silk+",
+                                              "Bambu PLA Silk",
+                                              "Bambu PLA-CF",
+                                              "Bambu PLA Marble",
+                                              "Bambu PLA Metal",
+                                              "Bambu PLA Sparkle",
+                                              "Bambu PLA Galaxy",
+                                              "Bambu PLA Glow",
+                                              "Bambu PLA Wood",
+                                              "Bambu PLA Translucent",
+                                              "Bambu PETG Translucent",
+                                              "Bambu PC",
+                                              "Bambu PC FR",
+                                              "Bambu PETG-CF",
+                                              "Bambu ABS-GF",
+                                              "Bambu ASA-CF",
+                                              "Bambu PA6-CF",
+                                              "Bambu PA6-GF",
+                                              "Bambu PAHT-CF",
+                                              "Bambu PET-CF",
+                                              "Bambu PPA-CF",
+                                              "Bambu PPS-CF",
+                                              "Bambu PLA Aero",
+                                              "Bambu ASA-Aero",
+                                              "Bambu TPU for AMS",
+                                              "Bambu TPU 95A HF",
+                                              "Bambu TPU 90A",
+                                              "Bambu TPU 85A",
+                                              "Bambu Support For PLA",
+                                              "Bambu Support For PLA/PETG",
+                                              "Bambu Support for ABS",
+                                              "Bambu PVA",
+                                              "Bambu Support For PA/PET",
+                                              "Bambu TPU 95A",
+                                              "Bambu PA-CF",
+                                              "Bambu PLA Tough",
+                                              "Bambu PLA Dynamic",
+                                              "Bambu Support W",
+                                              "Bambu Support G"};
+
+    return orders;
+}
+
 //BBS: add a function to load the version from xxx.json
 Semver get_version_from_json(std::string file_path)
 {
@@ -1022,7 +1076,8 @@ static std::vector<std::string> s_Preset_print_options {
     "exclude_object", "override_filament_scarf_seam_setting", "seam_slope_type", "seam_slope_conditional", "scarf_angle_threshold",
     "seam_slope_start_height", "seam_slope_entire_loop", "seam_slope_min_length",
     "seam_slope_steps", "seam_slope_inner_walls", "role_base_wipe_speed", "seam_slope_gap", "precise_outer_wall",
-    "interlocking_beam", "interlocking_orientation", "interlocking_beam_layer_count", "interlocking_depth", "interlocking_boundary_avoidance", "interlocking_beam_width", "embedding_wall_into_infill" };
+    "interlocking_beam", "interlocking_orientation", "interlocking_beam_layer_count", "interlocking_depth", "interlocking_boundary_avoidance", "interlocking_beam_width", "embedding_wall_into_infill",
+    "alternate_extra_wall" };
 
 static std::vector<std::string> s_Preset_filament_options {/*"filament_colour", */ "default_filament_colour", "required_nozzle_HRC", "filament_diameter", "volumetric_speed_coefficients", "filament_type",
                                                           "filament_soluble", "filament_is_support", "filament_printable", "filament_extruder_compatibility", "filament_scarf_seam_type", "filament_scarf_height",

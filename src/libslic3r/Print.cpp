@@ -15,6 +15,7 @@
 #include "GCode/WipeTower.hpp"
 #include "Utils.hpp"
 #include "PrintConfig.hpp"
+#include "FilamentMixer.hpp"
 #include "Model.hpp"
 #include <float.h>
 
@@ -372,7 +373,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "seam_slope_start_height"
             || opt_key == "seam_slope_gap"
             || opt_key == "seam_slope_min_length"
-            || opt_key == "embedding_wall_into_infill") {
+            || opt_key == "embedding_wall_into_infill"
+            || opt_key == "alternate_extra_wall") {
             osteps.emplace_back(posPerimeters);
             osteps.emplace_back(posInfill);
             osteps.emplace_back(posSupportMaterial);
@@ -1097,7 +1099,15 @@ int Print::get_compatible_filament_type(const std::set<int>& filament_types)
 
 bool Print::is_dynamic_group_reorder() const
 {
-    return config().enable_filament_dynamic_map && config().filament_map_mode == FilamentMapMode::fmmAutoForFlush && config().nozzle_diameter.size() > 1;
+    if (!config().enable_filament_dynamic_map || config().filament_map_mode != FilamentMapMode::fmmAutoForFlush || config().nozzle_diameter.size() <= 1)
+        return false;
+
+    const auto &is_mixed = config().filament_is_mixed.values;
+    for (unsigned int filament_id : extruders()) {
+        if (filament_id < is_mixed.size() && is_mixed[filament_id])
+            return false;
+    }
+    return true;
 }
 
 int Print::get_filament_config_indx(int filament_id, int layer_id)

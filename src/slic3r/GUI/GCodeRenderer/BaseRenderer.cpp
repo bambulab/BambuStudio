@@ -1206,7 +1206,7 @@ namespace Slic3r
                         {
                         case EMoveType::Extrude:
                         {
-                            if (curr.extrusion_role != ExtrusionRole::erCustom) {
+                            if (curr.extrusion_role != ExtrusionRole::erCustom || curr.is_pa_line_calibration) {
                                 m_p_extrusions->ranges.height.update_from(round_to_bin(curr.height));
                                 m_p_extrusions->ranges.width.update_from(round_to_bin(curr.width));
                             }// prevent the start code extrude extreme height/width and make the range deviate from the normal range

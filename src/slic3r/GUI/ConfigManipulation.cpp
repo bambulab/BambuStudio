@@ -759,6 +759,24 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
     }
+
+    if (config->opt_bool("alternate_extra_wall") &&
+        config->opt_enum<EnsureVerticalThicknessLevel>("ensure_vertical_shell_thickness") == EnsureVerticalThicknessLevel::evtEnabled) {
+        const wxString msg_text = _L("Alternate extra wall doesn't work well when ensure vertical shell thickness is set to Enable.\n"
+                                     "Change these settings automatically?\n"
+                                     "Yes - Change ensure vertical shell thickness to Partial and enable alternate extra wall\n"
+                                     "No  - Don't use alternate extra wall");
+        MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxYES | wxNO);
+        DynamicPrintConfig new_conf = *config;
+        is_msg_dlg_already_exist = true;
+        auto answer = dialog.ShowModal();
+        if (answer == wxID_YES)
+            new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionEnum<EnsureVerticalThicknessLevel>(EnsureVerticalThicknessLevel::evtPartial));
+        else
+            new_conf.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
+        apply(config, &new_conf);
+        is_msg_dlg_already_exist = false;
+    }
 }
 
 void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase *, ModelConfig *> const &configs)

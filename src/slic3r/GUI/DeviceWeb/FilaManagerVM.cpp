@@ -12,6 +12,8 @@
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceManager.hpp"
+#include "slic3r/GUI/EncodedFilament.hpp"
+#include "slic3r/GUI/fila_manager/wgtFilaManagerColorType.h"
 #include "slic3r/GUI/fila_manager/wgtFilaManagerStore.h"
 #include "slic3r/GUI/fila_manager/wgtFilaManagerCloudClient.h"
 #include "slic3r/GUI/fila_manager/wgtFilaManagerCloudSync.h"
@@ -20,6 +22,8 @@
 #include "libslic3r/PresetBundle.hpp"
 
 #include <wx/app.h>
+#include <wx/colour.h>
+#include <wx/string.h>
 #include <iomanip>
 #include <sstream>
 
@@ -39,6 +43,15 @@ bool is_spool_cloud_write_action(const std::string& action)
 bool can_write_spool_to_cloud(NetworkAgent* agent)
 {
     return agent && agent->is_user_login() && agent->is_server_connected();
+}
+
+std::string normalize_ams_hex_for_web(const std::string& raw)
+{
+    if (raw.empty()) return {};
+    std::string hex = raw;
+    if (hex[0] != '#') hex = "#" + hex;
+    if (hex.size() >= 7) hex = hex.substr(0, 7);
+    return hex;
 }
 
 } // namespace
@@ -85,6 +98,16 @@ FilaManagerVM::FilaManagerVM()
             }
         });
     }
+    // STUDIO-18155: AMS 自动同步 / 手动 push_all_now 完成后 cloud_sync 会回调
+    // 该 observer，由 VM 转发到 Web 前端 `submod=sync, action=auto_push_summary`。
+    // 全 skipped 时 cloud_sync 自己已经决定不发，VM 这里收不到。
+    if (auto* sync = wxGetApp().fila_manager_cloud_sync()) {
+        sync->set_on_auto_push_summary([this](const nlohmann::json& summary) {
+            if (m_bridge) {
+                m_bridge->ReportMsg(MakeResp("sync", "auto_push_summary", 0, "", summary));
+            }
+        });
+    }
 }
 
 FilaManagerVM::~FilaManagerVM()
@@ -99,6 +122,9 @@ FilaManagerVM::~FilaManagerVM()
         disp->set_on_pull_done(nullptr);
         disp->set_on_push_failed(nullptr);
         disp->set_on_push_done(nullptr);
+    }
+    if (auto* sync = wxGetApp().fila_manager_cloud_sync()) {
+        sync->set_on_auto_push_summary(nullptr);
     }
 }
 
@@ -117,6 +143,7 @@ nlohmann::json FilaManagerVM::OnCommand(
     if (submod == "ams")           return HandleAms(action, payload);
     if (submod == "sync")          return HandleSync(action, payload);
     if (submod == "config")        return HandleConfig(action, payload);
+    if (submod == "colors")        return HandleColors(action, payload);
 
     return MakeResp(submod, action, -1, "unknown submod");
 }
@@ -359,6 +386,20 @@ nlohmann::json FilaManagerVM::HandleSync(const std::string& action, const nlohma
         return MakeResp("sync", action, 0, "", build_sync_state());
     }
 
+    // STUDIO-18155：用户在 StatsView 顶部点"推送本地到云端"时走这条入口。
+    // 绕过 throttle，把所有"有 RFID + 有整卷净重"的 spool 全部入 push 队列。
+    // 立即返回 enqueued_count，前端 toast 用；真正的 push 完成 / 失败仍走
+    // dispatcher 现有 push_done / push_failed 链路。
+    if (action == "push_all_now") {
+        auto* cloud = wxGetApp().fila_manager_cloud_sync();
+        if (!cloud) return MakeResp("sync", action, -1, "cloud disabled");
+        publish_debug_log("data", "info", "Manual push_all_now requested",
+                          "The web page requested a manual push of all local spools",
+                          {{"action", "push_all_now"}});
+        cloud->push_all_now();
+        return MakeResp("sync", action, 0, "", build_sync_state());
+    }
+
     return MakeResp("sync", action, -1, "unknown action");
 }
 
@@ -476,6 +517,59 @@ nlohmann::json FilaManagerVM::HandleAms(const std::string& action, const nlohman
         return MakeResp("ams", action, 0, "", build_ams_data());
     }
     return MakeResp("ams", action, -1, "unknown action");
+}
+
+/* ================================================================
+ *  Colors
+ * ================================================================ */
+
+nlohmann::json FilaManagerVM::HandleColors(const std::string& action, const nlohmann::json& payload)
+{
+    if (action != "query_for_id")
+        return MakeResp("colors", action, -1, "unknown action");
+
+    nlohmann::json out;
+    const std::string fila_id = payload.value("fila_id", std::string{});
+    out["fila_id"]    = fila_id;
+    out["fila_type"]  = std::string{};
+    out["candidates"] = nlohmann::json::array();
+
+    if (fila_id.empty())
+        return MakeResp("colors", action, 0, "", out);
+
+    auto* clr_query = wxGetApp().get_filament_color_code_query();
+    if (!clr_query)
+        return MakeResp("colors", action, 0, "", out);
+
+    auto* codes = clr_query->GetFilaInfoMap(wxString::FromUTF8(fila_id));
+    if (!codes)
+        return MakeResp("colors", action, 0, "", out);
+    out["fila_type"] = codes->GetFilaType().utf8_string();
+
+    nlohmann::json arr = nlohmann::json::array();
+    auto* color_map = codes->GetFilamentColor2CodeMap();
+    if (color_map) {
+        for (auto& kv : *color_map) {
+            const FilamentColor& fc      = kv.first;
+            FilamentColorCode*   code    = kv.second;
+            if (!code) continue;
+
+            nlohmann::json item;
+            item["color_code"] = code->GetFilaColorCode().utf8_string();
+            item["name"]       = code->GetFilaColorName().utf8_string();
+            item["color_type"] = from_filament_color_type(fc.m_color_type);
+
+            nlohmann::json hex_arr = nlohmann::json::array();
+            for (const auto& c : fc.m_colors) {
+                hex_arr.push_back(
+                    wxString::Format("#%02X%02X%02X", c.Red(), c.Green(), c.Blue()).utf8_string());
+            }
+            item["colors"] = hex_arr;
+            arr.push_back(item);
+        }
+    }
+    out["candidates"] = arr;
+    return MakeResp("colors", action, 0, "", out);
 }
 
 /* ================================================================
@@ -598,7 +692,39 @@ nlohmann::json FilaManagerVM::build_spool_list()
     auto* agent = wxGetApp().getAgent();
     if (!agent || !agent->is_user_login())
         return nlohmann::json::array();
-    return store ? store->spools_to_json() : nlohmann::json::array();
+    nlohmann::json spools = store ? store->spools_to_json() : nlohmann::json::array();
+    if (!spools.is_array()) return spools;
+
+    auto* clr_query = wxGetApp().get_filament_color_code_query();
+    if (!clr_query) return spools;
+
+    for (auto& sp_json : spools) {
+        if (!sp_json.is_object()) continue;
+        if (!sp_json.value("color_name", std::string()).empty()) continue;
+
+        const std::string setting_id = sp_json.value("setting_id", std::string());
+        if (setting_id.empty()) continue;
+
+        FilamentColor fc;
+        if (sp_json.contains("colors") && sp_json["colors"].is_array() && !sp_json["colors"].empty()) {
+            for (const auto& hex : sp_json["colors"]) {
+                if (!hex.is_string()) continue;
+                const std::string h = hex.get<std::string>();
+                if (h.size() > 3) fc.m_colors.emplace(wxColour(wxString::FromUTF8(h)));
+            }
+        } else {
+            const std::string code = sp_json.value("color_code", std::string());
+            if (code.size() > 3) fc.m_colors.emplace(wxColour(wxString::FromUTF8(code)));
+        }
+        if (fc.m_colors.empty()) continue;
+
+        fc.m_color_type = to_filament_color_type(sp_json.value("color_type", 2), fc.ColorCount());
+
+        wxString name = clr_query->GetFilaColorName(wxString::FromUTF8(setting_id), fc);
+        if (!name.IsEmpty())
+            sp_json["color_name"] = name.utf8_string();
+    }
+    return spools;
 }
 
 nlohmann::json FilaManagerVM::build_preset_options()
@@ -618,7 +744,12 @@ nlohmann::json FilaManagerVM::build_preset_options()
     std::set<std::string> filament_id_set;
     for (auto it = filaments.begin(); it != filaments.end(); ++it) {
         Preset& preset = *it;
-        if (filaments.get_preset_base(*it) != &preset)
+        // STUDIO-18110: 系统 preset 仍按 base 去重（避免 0.4 / 0.6 / 0.8 nozzle variant
+        // 分别成行），但用户自建耗材（!is_system && !is_default）通常 derived from
+        // 某个 system base，会被原 filter 排除，导致添加耗材弹窗的下拉中看不到。
+        // 此处放行 user-defined preset，让自建耗材按其继承的 vendor / type 落入桶中。
+        const bool is_user_defined = !preset.is_system && !preset.is_default;
+        if (!is_user_defined && filaments.get_preset_base(*it) != &preset)
             continue;
 
         std::string vendor = it->config.get_filament_vendor();
@@ -626,9 +757,12 @@ nlohmann::json FilaManagerVM::build_preset_options()
         if (vendor.empty()) continue;
         if (type.empty()) type = "Other";
 
-        const std::string dedupe_key = it->filament_id.empty()
+        // STUDIO-18110: 用户自建耗材可能复用父 system preset 的 filament_id，
+        // 用 filament_id 去重会让自建项被父 base 吞掉。改用 name 作为 dedupe key
+        // 才能稳定保留每个用户自建项。
+        const std::string dedupe_key = is_user_defined
             ? (vendor + "\n" + type + "\n" + it->name)
-            : it->filament_id;
+            : (it->filament_id.empty() ? (vendor + "\n" + type + "\n" + it->name) : it->filament_id);
         if (!filament_id_set.insert(dedupe_key).second)
             continue;
 
@@ -638,12 +772,21 @@ nlohmann::json FilaManagerVM::build_preset_options()
         if (shown_name.empty())
             continue;
 
-        vendor_type_items[vendor][type].push_back({
+        // STUDIO-18110 / STUDIO-18117: user-defined preset 通常派生自 system base，
+        // 共享同一个 filament_id。"添加耗材 -> 从 AMS 读取"路径上，前端用
+        // tray.setting_id 反查 presets 时如果命中了这条 user-defined entry，
+        // setSeries 会被填上不规范的 user alias，再由 cloud sync 兜底成 PUT
+        // filamentName 上传，覆盖云端 spool 的 Material Type，复现 18117。
+        // 加上 is_user 标识，让前端 setting_id 反查路径跳过 user-defined item，
+        // 但下拉选项仍然包含它们（满足 18110 自建耗材可见的目标）。
+        nlohmann::json entry = {
             {"name", shown_name},
             {"series", shown_name},
             {"filament_id", it->filament_id},
             {"setting_id", it->setting_id}
-        });
+        };
+        if (is_user_defined) entry["is_user"] = true;
+        vendor_type_items[vendor][type].push_back(entry);
     }
 
     nlohmann::json vendors_arr = nlohmann::json::array();
@@ -730,13 +873,38 @@ nlohmann::json FilaManagerVM::build_ams_data()
                             t["setting_id"] = tray->setting_id;
                             t["fila_type"]  = tray->m_fila_type;
                             t["sub_brands"] = tray->sub_brands;
-                            std::string color = tray->color;
-                            if (!color.empty() && color[0] != '#') color = "#" + color;
+                            std::string color = normalize_ams_hex_for_web(tray->color);
                             t["color"]    = color;
                             t["weight"]   = tray->weight;
                             t["remain"]   = tray->remain;
                             t["diameter"] = tray->diameter;
                             t["is_bbl"]   = tray->is_bbl;
+                            nlohmann::json colors = nlohmann::json::array();
+                            std::vector<std::string> src_colors = tray->cols;
+                            if (src_colors.empty()) src_colors.push_back(tray->color);
+                            for (const auto& c : src_colors) {
+                                std::string hex = normalize_ams_hex_for_web(c);
+                                if (!hex.empty()) colors.push_back(hex);
+                            }
+                            t["colors"]     = colors;
+                            int color_type  = from_ams_color_type(tray->ctype, colors.size());
+                            t["color_type"] = color_type;
+
+                            if (!tray->setting_id.empty() && !colors.empty()) {
+                                if (auto* clr_query = wxGetApp().get_filament_color_code_query()) {
+                                    FilamentColor fc;
+                                    for (const auto& c : colors) {
+                                        if (c.is_string()) {
+                                            fc.m_colors.emplace(wxColour(wxString::FromUTF8(c.get<std::string>())));
+                                        }
+                                    }
+                                    fc.m_color_type = to_filament_color_type(color_type, colors.size());
+                                    if (auto* color_info = clr_query->GetFilaInfo(wxString::FromUTF8(tray->setting_id), fc)) {
+                                        t["color_name"]      = color_info->GetFilaColorName().utf8_string();
+                                        t["fila_color_code"] = color_info->GetFilaColorCode().utf8_string();
+                                    }
+                                }
+                            }
                         }
                         trays.push_back(t);
                     }

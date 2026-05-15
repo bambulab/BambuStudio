@@ -84,6 +84,17 @@ struct MeshErrorsInfo
     std::string warning_icon_name;
 };
 
+struct MeshIssueCounts
+{
+    int non_manifold_edges    = 0;
+    int non_manifold_vertices = 0;
+    int open_edges            = 0;
+
+    bool has_error() const { return non_manifold_edges > 0 || non_manifold_vertices > 0; }
+    bool has_info() const { return open_edges > 0; }
+    bool has_any_issue() const { return has_error() || has_info(); }
+};
+
 class ObjectList : public wxDataViewCtrl
 {
 public:
@@ -256,8 +267,8 @@ public:
     // Return value is a pair <Tooltip, warning_icon_name>, used for the tooltip and related warning icon
     // Function without parameters is for a call from Manipulation panel,
     // when we don't know parameters of selected item
-    MeshErrorsInfo      get_mesh_errors_info(const int obj_idx, const int vol_idx = -1, wxString* sidebar_info = nullptr, int* non_manifold_edges = nullptr) const;
-    MeshErrorsInfo      get_mesh_errors_info(wxString* sidebar_info = nullptr, int* non_manifold_edges = nullptr);
+    MeshErrorsInfo      get_mesh_errors_info(const int obj_idx, const int vol_idx = -1, wxString* sidebar_info = nullptr, MeshIssueCounts* issue_counts = nullptr) const;
+    MeshErrorsInfo      get_mesh_errors_info(wxString* sidebar_info = nullptr, MeshIssueCounts* issue_counts = nullptr);
     void                set_tooltip_for_item(const wxPoint& pt);
 
     void                selection_changed();

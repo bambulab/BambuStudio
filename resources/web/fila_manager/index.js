@@ -287,7 +287,7 @@ function formatPrice(price, currency) {
 function groupSpools(list) {
     var map = {};
     list.forEach(function(s) {
-        var key = (s.brand||"?") + "/" + (s.material_type||"") + (s.series ? " "+s.series : "") + "/" + (s.color_name || s.color_code || "?");
+        var key = (s.brand||"?") + "/" + (s.material_type||"") + (s.series ? " "+s.series : "");
         if (!map[key]) map[key] = {key: key, count: 0, totalWeight: 0, spools: [], collapsed: !!g_collapsed_groups[key]};
         map[key].count++;
         map[key].totalWeight += Math.round((s.initial_weight||0) * (s.remain_percent||0) / 100);

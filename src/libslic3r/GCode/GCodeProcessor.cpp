@@ -2496,6 +2496,7 @@ void GCodeProcessor::reset()
     m_zero_layer_height = 0.0f;
     m_first_layer_height = 0.0f;
     m_processing_start_custom_gcode = false;
+    m_pa_line_calibration = false;
     m_g1_line_id = 0;
     m_layer_id = 0;
     m_cp_color.reset();
@@ -3075,7 +3076,8 @@ bool GCodeProcessor::get_last_z_from_gcode(const std::string& gcode_str, double&
             if (line_str.size() > 4 && (line_str.find("G0 ") == 0
                                        || line_str.find("G1 ") == 0
                                        || line_str.find("G2 ") == 0
-                                       || line_str.find("G3 ") == 0))
+                                       || line_str.find("G3 ") == 0
+                                       || line_str.find("M9711 ") == 0))
             {
                 auto z_pos = line_str.find(" Z");
                 double temp_z = 0;
@@ -3236,6 +3238,16 @@ void GCodeProcessor::process_tags(const std::string_view comment, bool producers
         if (m_extrusion_role == erExternalPerimeter)
             m_seams_detector.activate(true);
         m_processing_start_custom_gcode = (m_extrusion_role == erCustom && m_g1_line_id == 0);
+        return;
+    }
+
+    if (boost::starts_with(comment, " PA_LINE_CALIBRATION_START")) {
+        m_pa_line_calibration = true;
+        return;
+    }
+
+    if (boost::starts_with(comment, " PA_LINE_CALIBRATION_END")) {
+        m_pa_line_calibration = false;
         return;
     }
 
@@ -5980,7 +5992,8 @@ void GCodeProcessor::store_move_vertex(EMoveType type, EMovePathType path_type)
         Vec3f(m_arc_center(0, 0) + m_x_offset, m_arc_center(1, 0) + m_y_offset, m_arc_center(2, 0)) + m_extruder_offsets[filament_id],
         m_interpolation_points,
         m_object_label_id,
-        m_print_z
+        m_print_z,
+        m_pa_line_calibration
     });
 
     if (type == EMoveType::Seam) {

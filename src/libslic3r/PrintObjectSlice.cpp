@@ -402,13 +402,30 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                                     temp_slices[idx_region + 1].expolygons = std::move(source);
                             } else if ((region.model_volume->is_model_part() && clip_multipart_objects) || region.model_volume->is_negative_volume()) {
                                 // Clip every non-zero region preceding it.
+                                // Order-independent for overlapping MODEL_PARTs: the smaller bbox always
+                                // carves the larger one regardless of vector position. Without this,
+                                // a contained body (e.g. embossed text) listed before its container
+                                // (e.g. plate) gets erased entirely by the container's later carve pass
+                                // and silently drops out of the slice. Negative volumes always carve.
+                                auto bbox_volume = [](const PrintObjectRegions::BoundingBox &b) {
+                                    const auto sz = b.sizes();
+                                    return double(sz.x()) * double(sz.y()) * double(sz.z());
+                                };
+                                const bool current_is_negative = region.model_volume->is_negative_volume();
+                                const double current_vol = current_is_negative ? 0.0 : bbox_volume(*region.bbox);
                                 for (int idx_region2 = 0; idx_region2 < idx_region; ++ idx_region2)
                                     if (! temp_slices[idx_region2].expolygons.empty()) {
                                         // Skip trim_overlap for now, because it slow down the performace so much for some special cases
 #if 1
                                         if (const PrintObjectRegions::VolumeRegion& region2 = layer_range.volume_regions[idx_region2];
-                                            !region2.model_volume->is_negative_volume() && overlap_in_xy(*region.bbox, *region2.bbox))
-                                            temp_slices[idx_region2].expolygons = diff_ex(temp_slices[idx_region2].expolygons, temp_slices[idx_region].expolygons);
+                                            !region2.model_volume->is_negative_volume() && overlap_in_xy(*region.bbox, *region2.bbox)) {
+                                            const bool current_carves = current_is_negative ||
+                                                current_vol <= bbox_volume(*region2.bbox);
+                                            if (current_carves)
+                                                temp_slices[idx_region2].expolygons = diff_ex(temp_slices[idx_region2].expolygons, temp_slices[idx_region].expolygons);
+                                            else
+                                                temp_slices[idx_region].expolygons = diff_ex(temp_slices[idx_region].expolygons, temp_slices[idx_region2].expolygons);
+                                        }
 #else
                                         const PrintObjectRegions::VolumeRegion& region2 = layer_range.volume_regions[idx_region2];
                                         if (!region2.model_volume->is_negative_volume() && overlap_in_xy(*region.bbox, *region2.bbox))

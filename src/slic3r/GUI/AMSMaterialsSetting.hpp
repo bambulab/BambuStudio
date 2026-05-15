@@ -135,6 +135,11 @@ public:
     Label*                 m_clr_name;
     std::vector<PACalibResult>  m_pa_profile_items;
 
+    struct FilamentInfos {
+        std::string filament_id;
+        std::string setting_id;
+    };
+
 protected:
     void create_panel_normal(wxWindow* parent);
     void create_panel_kn(wxWindow* parent);
@@ -156,6 +161,15 @@ protected:
     int  get_nozzle_combo_id_code() const;
     int  get_nozzle_sel_by_sn(MachineObject* obj, const std::string& sn);
     int  get_cali_index_by_ams_slot(MachineObject* obj, int ams_id, int slot_id);
+
+    void get_filaments_info(const MachineObject*                     obj,
+                            const std::string&                       nozzle_diameter_str,
+                            wxArrayString&                           filament_items,
+                            std::map<std::string, FilamentInfos>&    map_filament_items,
+                            std::unordered_map<wxString, wxString>&  query_filament_vendors,
+                            std::unordered_map<wxString, wxString>&  query_filament_types);
+
+    Preset* get_filament_by_id(const std::string& filament_id, bool is_system);
 
 protected:
     StateColor          m_btn_bg_green;
@@ -202,10 +216,6 @@ protected:
     ComboBox * m_comboBox_cali_result;
     TextInput*       m_readonly_filament;
 
-    struct FilamentInfos {
-        std::string filament_id;
-        std::string setting_id;
-    };
     std::map<std::string, FilamentInfos> map_filament_items;
 };
 

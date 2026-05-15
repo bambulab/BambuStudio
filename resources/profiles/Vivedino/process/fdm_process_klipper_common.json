@@ -43,7 +43,7 @@
   "ironing_speed": "30",
   "ironing_type": "no ironing",
   "layer_height": "0.2",
-  "reduce_infill_retraction": "1",
+  "reduce_infill_retraction_mode": "Auto",
   "detect_overhang_wall": "1",
   "overhang_1_4_speed": "0",
   "overhang_2_4_speed": "50",
