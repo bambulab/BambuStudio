@@ -6397,8 +6397,7 @@ void GLCanvas3D::update_sequential_clearance()
     // the results are then cached for following displacements
     if (m_sequential_print_clearance_first_displacement) {
         m_sequential_print_clearance.m_hull_2d_cache.clear();
-        bool all_objects_are_short = std::all_of(fff_print()->objects().begin(), fff_print()->objects().end(), \
-            [&](PrintObject* obj) { return obj->height() < scale_(fff_print()->config().nozzle_height.value - MARGIN_HEIGHT); });
+        bool all_objects_are_short = fff_print()->is_all_objects_are_short();
         float shrink_factor;
         if (all_objects_are_short)
             shrink_factor = scale_(0.5 * MAX_OUTER_NOZZLE_RADIUS - 0.1);
