@@ -1,17 +1,17 @@
-// src/slic3r/GUI/DeviceWeb/FilaManagerVM.hpp
-#ifndef FILAMANAGERVM_HPP
-#define FILAMANAGERVM_HPP
+// src/slic3r/GUI/DeviceWeb/ViewModels/FilamentManager/FilamentManagerVM.hpp
+#ifndef FILAMENTMANAGERVM_HPP
+#define FILAMENTMANAGERVM_HPP
 
-#include "IViewModel.hpp"
+#include "slic3r/GUI/DeviceWeb/IViewModel.hpp"
 #include <nlohmann/json.hpp>
 #include <string>
 
 namespace Slic3r { namespace GUI {
 
-class FilaManagerVM : public IViewModel {
+class FilamentManagerVM : public IViewModel {
 public:
-    FilaManagerVM();
-    ~FilaManagerVM() override;
+    FilamentManagerVM();
+    ~FilamentManagerVM() override;
 
     std::string GetModule() const override { return "filament"; }
 
@@ -84,4 +84,4 @@ private:
 
 }} // namespace Slic3r::GUI
 
-#endif // FILAMANAGERVM_HPP
+#endif // FILAMENTMANAGERVM_HPP

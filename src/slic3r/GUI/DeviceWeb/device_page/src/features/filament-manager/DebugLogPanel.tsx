@@ -48,7 +48,7 @@ export function DebugLogPanel({
       search,
       hash,
       currentPathname,
-      filamentUrl: `${origin}${pathname}${search}#/filament`,
+      filamentUrl: `${origin}${pathname}${search}#/filament_manager`,
     };
   }, []);
 
@@ -64,12 +64,12 @@ export function DebugLogPanel({
           id: -2,
           ts: Date.now(),
           category: 'bridge',
-          level: pageInfo.currentPathname === '/filament' ? 'info' : 'warn',
+          level: pageInfo.currentPathname === '/filament_manager' ? 'info' : 'warn',
           title: 'Filament Page URL',
           summary: pageInfo.filamentUrl,
           detail: {
             href: pageInfo.filamentUrl,
-            targetRoute: '/filament',
+            targetRoute: '/filament_manager',
             currentPathname: pageInfo.currentPathname,
             currentHash: pageInfo.hash,
           },

@@ -615,7 +615,7 @@ export function AddEditDialog({
         const payload = res.value.payload as unknown as FilamentColorCodesResponse;
         const list = Array.isArray(payload?.candidates) ? payload.candidates : [];
         // STUDIO-17977: don't clobber a populated cache entry with an empty
-        // list. Mirrors the prefetch guard in useFilamentBridge: if a
+        // list. Mirrors the prefetch guard in useFilamentManagerBridge: if a
         // concurrent loader (the bridge prefetch fired by spools change)
         // already wrote a non-empty candidate list and a slow / momentarily
         // failing RPC lands here later with an empty payload, keep the good
@@ -1057,7 +1057,7 @@ export function AddEditDialog({
         data.remain_percent = remain;
         // STUDIO-17977: keep gradient/multicolor info when creating a spool
         // from an AMS slot. tray.colors / tray.color_type come from
-        // FilaManagerVM::build_ams_data (mirrors AMSColorMode on the device);
+        // FilamentManagerVM::build_ams_data (mirrors AMSColorMode on the device);
         // forwarding them here means the new FilamentSpool stays multicolor
         // instead of being silently downgraded to a single-color row. The
         // C++ FilamentSpool::from_json enforces the

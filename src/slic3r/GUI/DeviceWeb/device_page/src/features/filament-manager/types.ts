@@ -81,7 +81,7 @@ export interface AmsTray {
   sub_brands?: string;
   color?: string;
   // STUDIO-17977: AMS-side multicolor / gradient hex list and type,
-  // forwarded by FilaManagerVM::build_ams_data.  Same swagger layout as
+  // forwarded by FilamentManagerVM::build_ams_data. Same swagger layout as
   // FilamentSpool.color_type (0 = gradient / 1 = multicolor / 2 = single).
   colors?: string[];
   color_type?: 0 | 1 | 2;
@@ -113,7 +113,7 @@ export interface InitData {
   debug_enabled?: boolean;
 }
 
-// Cloud sync state — mirrors FilaManagerVM::build_sync_state() payload
+// Cloud sync state — mirrors FilamentManagerVM::build_sync_state() payload
 export interface CloudSyncError {
   code: number;
   message: string;

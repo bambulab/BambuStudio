@@ -1,6 +1,6 @@
-// src/slic3r/GUI/DeviceWeb/FilaManagerVM.cpp
-#include "FilaManagerVM.hpp"
-#include "DeviceWebBridge.hpp"
+// src/slic3r/GUI/DeviceWeb/ViewModels/FilamentManager/FilamentManagerVM.cpp
+#include "FilamentManagerVM.hpp"
+#include "slic3r/GUI/DeviceWeb/DeviceWebBridge.hpp"
 
 #include <algorithm>
 #include <vector>
@@ -56,7 +56,7 @@ std::string normalize_ams_hex_for_web(const std::string& raw)
 
 } // namespace
 
-FilaManagerVM::FilaManagerVM()
+FilamentManagerVM::FilamentManagerVM()
 {
 #if !BBL_RELEASE_TO_PUBLIC
     wxGetApp().set_fila_debug_sink([this](const nlohmann::json& payload) {
@@ -110,7 +110,7 @@ FilaManagerVM::FilaManagerVM()
     }
 }
 
-FilaManagerVM::~FilaManagerVM()
+FilamentManagerVM::~FilamentManagerVM()
 {
 #if !BBL_RELEASE_TO_PUBLIC
     wxGetApp().set_fila_debug_sink(nullptr);
@@ -128,12 +128,12 @@ FilaManagerVM::~FilaManagerVM()
     }
 }
 
-nlohmann::json FilaManagerVM::OnCommand(
+nlohmann::json FilamentManagerVM::OnCommand(
     const std::string& submod,
     const std::string& action,
     const nlohmann::json& payload)
 {
-    BOOST_LOG_TRIVIAL(info) << "FilaManagerVM::OnCommand submod=" << submod
+    BOOST_LOG_TRIVIAL(info) << "FilamentManagerVM::OnCommand submod=" << submod
                             << " action=" << action;
 
     if (submod == "init")          return HandleInit(action, payload);
@@ -148,7 +148,7 @@ nlohmann::json FilaManagerVM::OnCommand(
     return MakeResp(submod, action, -1, "unknown submod");
 }
 
-void FilaManagerVM::ReportState(const std::string& submod, const std::string& action)
+void FilamentManagerVM::ReportState(const std::string& submod, const std::string& action)
 {
     if (!m_bridge) return;
 
@@ -179,7 +179,7 @@ void FilaManagerVM::ReportState(const std::string& submod, const std::string& ac
  *  Resource handlers
  * ================================================================ */
 
-nlohmann::json FilaManagerVM::HandleInit(const std::string& action, const nlohmann::json& /*payload*/)
+nlohmann::json FilamentManagerVM::HandleInit(const std::string& action, const nlohmann::json& /*payload*/)
 {
     bool dark = wxGetApp().app_config->get("dark_color_mode") == "1";
     nlohmann::json data;
@@ -197,7 +197,7 @@ nlohmann::json FilaManagerVM::HandleInit(const std::string& action, const nlohma
     return MakeResp("init", action, 0, "", data);
 }
 
-nlohmann::json FilaManagerVM::HandleSpool(const std::string& action, const nlohmann::json& payload)
+nlohmann::json FilamentManagerVM::HandleSpool(const std::string& action, const nlohmann::json& payload)
 {
     auto* store = wxGetApp().fila_manager_store();
     auto* disp  = wxGetApp().fila_manager_cloud_disp();
@@ -370,7 +370,7 @@ nlohmann::json FilaManagerVM::HandleSpool(const std::string& action, const nlohm
     return MakeResp("spool", action, -1, "unknown action");
 }
 
-nlohmann::json FilaManagerVM::HandleSync(const std::string& action, const nlohmann::json& payload)
+nlohmann::json FilamentManagerVM::HandleSync(const std::string& action, const nlohmann::json& payload)
 {
     auto* disp = wxGetApp().fila_manager_cloud_disp();
 
@@ -403,7 +403,7 @@ nlohmann::json FilaManagerVM::HandleSync(const std::string& action, const nlohma
     return MakeResp("sync", action, -1, "unknown action");
 }
 
-nlohmann::json FilaManagerVM::HandleConfig(const std::string& action, const nlohmann::json& payload)
+nlohmann::json FilamentManagerVM::HandleConfig(const std::string& action, const nlohmann::json& payload)
 {
     auto* sync = wxGetApp().fila_manager_cloud_sync();
 
@@ -439,7 +439,7 @@ nlohmann::json FilaManagerVM::HandleConfig(const std::string& action, const nloh
     return MakeResp("config", action, -1, "unknown action");
 }
 
-nlohmann::json FilaManagerVM::HandlePreset(const std::string& action, const nlohmann::json& /*payload*/)
+nlohmann::json FilamentManagerVM::HandlePreset(const std::string& action, const nlohmann::json& /*payload*/)
 {
     if (action == "list") {
         return MakeResp("preset", action, 0, "", build_preset_options());
@@ -447,7 +447,7 @@ nlohmann::json FilaManagerVM::HandlePreset(const std::string& action, const nloh
     return MakeResp("preset", action, -1, "unknown action");
 }
 
-nlohmann::json FilaManagerVM::HandleMachine(const std::string& action, const nlohmann::json& payload)
+nlohmann::json FilamentManagerVM::HandleMachine(const std::string& action, const nlohmann::json& payload)
 {
     if (action == "list") {
         return MakeResp("machine", action, 0, "", build_machine_list());
@@ -487,7 +487,7 @@ nlohmann::json FilaManagerVM::HandleMachine(const std::string& action, const nlo
     return MakeResp("machine", action, -1, "unknown action");
 }
 
-nlohmann::json FilaManagerVM::HandleAms(const std::string& action, const nlohmann::json& payload)
+nlohmann::json FilamentManagerVM::HandleAms(const std::string& action, const nlohmann::json& payload)
 {
     if (action == "list") {
         // ams/list has two callers:
@@ -523,7 +523,7 @@ nlohmann::json FilaManagerVM::HandleAms(const std::string& action, const nlohman
  *  Colors
  * ================================================================ */
 
-nlohmann::json FilaManagerVM::HandleColors(const std::string& action, const nlohmann::json& payload)
+nlohmann::json FilamentManagerVM::HandleColors(const std::string& action, const nlohmann::json& payload)
 {
     if (action != "query_for_id")
         return MakeResp("colors", action, -1, "unknown action");
@@ -576,7 +576,7 @@ nlohmann::json FilaManagerVM::HandleColors(const std::string& action, const nloh
  *  Theme
  * ================================================================ */
 
-void FilaManagerVM::OnSysColorChanged()
+void FilamentManagerVM::OnSysColorChanged()
 {
     if (!m_bridge) return;
     bool dark = wxGetApp().app_config->get("dark_color_mode") == "1";
@@ -589,7 +589,7 @@ void FilaManagerVM::OnSysColorChanged()
  *  Helper
  * ================================================================ */
 
-nlohmann::json FilaManagerVM::MakeResp(
+nlohmann::json FilamentManagerVM::MakeResp(
     const std::string& submod, const std::string& action,
     int code, const std::string& msg, const nlohmann::json& payload)
 {
@@ -600,7 +600,7 @@ nlohmann::json FilaManagerVM::MakeResp(
  *  Cloud sync state
  * ================================================================ */
 
-nlohmann::json FilaManagerVM::build_sync_state() const
+nlohmann::json FilamentManagerVM::build_sync_state() const
 {
     auto*        disp  = wxGetApp().fila_manager_cloud_disp();
     auto*        agent = wxGetApp().getAgent();
@@ -617,13 +617,13 @@ nlohmann::json FilaManagerVM::build_sync_state() const
     return s;
 }
 
-void FilaManagerVM::publish_sync_state()
+void FilamentManagerVM::publish_sync_state()
 {
     if (!m_bridge) return;
     m_bridge->ReportMsg(MakeResp("sync", "state", 0, "", build_sync_state()));
 }
 
-void FilaManagerVM::publish_pull_done(int added, int updated)
+void FilamentManagerVM::publish_pull_done(int added, int updated)
 {
     if (!m_bridge) return;
 
@@ -645,7 +645,7 @@ void FilaManagerVM::publish_pull_done(int added, int updated)
     m_bridge->ReportMsg(MakeResp("sync", "pull_done", 0, "", body));
 }
 
-void FilaManagerVM::publish_push_failed(const std::string& spool_id,
+void FilamentManagerVM::publish_push_failed(const std::string& spool_id,
                                         const std::string& op,
                                         int code,
                                         const std::string& message)
@@ -663,7 +663,7 @@ void FilaManagerVM::publish_push_failed(const std::string& spool_id,
     m_bridge->ReportMsg(MakeResp("sync", "push_failed", 0, "", body));
 }
 
-void FilaManagerVM::publish_push_done(const std::string& spool_id, const std::string& op)
+void FilamentManagerVM::publish_push_done(const std::string& spool_id, const std::string& op)
 {
     if (!m_bridge) return;
     nlohmann::json body;
@@ -673,7 +673,7 @@ void FilaManagerVM::publish_push_done(const std::string& spool_id, const std::st
     m_bridge->ReportMsg(MakeResp("sync", "push_done", 0, "", body));
 }
 
-void FilaManagerVM::publish_debug_log(const std::string& category,
+void FilamentManagerVM::publish_debug_log(const std::string& category,
                                       const std::string& level,
                                       const std::string& title,
                                       const std::string& summary,
@@ -686,7 +686,7 @@ void FilaManagerVM::publish_debug_log(const std::string& category,
  *  Data builders (migrated from wgtFilaManagerPanel)
  * ================================================================ */
 
-nlohmann::json FilaManagerVM::build_spool_list()
+nlohmann::json FilamentManagerVM::build_spool_list()
 {
     auto* store = wxGetApp().fila_manager_store();
     auto* agent = wxGetApp().getAgent();
@@ -727,7 +727,7 @@ nlohmann::json FilaManagerVM::build_spool_list()
     return spools;
 }
 
-nlohmann::json FilaManagerVM::build_preset_options()
+nlohmann::json FilamentManagerVM::build_preset_options()
 {
     auto* bundle = wxGetApp().preset_bundle;
     if (!bundle)
@@ -808,7 +808,7 @@ nlohmann::json FilaManagerVM::build_preset_options()
     return {{"vendors", vendors_arr}};
 }
 
-nlohmann::json FilaManagerVM::build_machine_list()
+nlohmann::json FilamentManagerVM::build_machine_list()
 {
     // F4.7: include the Studio-wide selected machine so the web "Read from
     // AMS" tab can default to the same printer the rest of Studio is using,
@@ -847,7 +847,7 @@ nlohmann::json FilaManagerVM::build_machine_list()
     return result;
 }
 
-nlohmann::json FilaManagerVM::build_ams_data()
+nlohmann::json FilamentManagerVM::build_ams_data()
 {
     nlohmann::json empty = {{"selected_dev_id", ""}, {"ams_units", nlohmann::json::array()}};
     try {

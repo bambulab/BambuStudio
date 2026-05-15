@@ -156,7 +156,7 @@ export function SpoolTable({
   // row tail reads it to surface official colour name + BBL fila code for
   // each spool, including legacy spools whose own `color_name` field is
   // empty. The cache is primed on first dialog open by AddEditDialog and on
-  // a best-effort prefetch from useFilamentBridge after the spool list
+  // a best-effort prefetch from useFilamentManagerBridge after the spool list
   // loads, so the data is usually warm by the time the table renders.
   const candidatesByFilaId = useStore((s) => s.filament.candidatesByFilaId);
 

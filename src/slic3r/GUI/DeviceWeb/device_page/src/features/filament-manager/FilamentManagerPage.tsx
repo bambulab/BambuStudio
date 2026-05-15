@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import useStore from '../../store/AppStore';
-import { useFilamentBridge } from './useFilamentBridge';
+import { useFilamentManagerBridge } from './useFilamentManagerBridge';
 import { SpoolTable } from './SpoolTable';
 import { AddEditDialog } from './AddEditDialog';
 import { DetailDialog } from './DetailDialog';
@@ -11,7 +11,7 @@ import { CloudHistoryPopover } from './CloudHistoryPopover';
 import { ToastStack } from './ToastStack';
 import { DebugLogPanel } from './DebugLogPanel';
 import type { Spool, MachineItem, AmsData } from './types';
-import './filament.css';
+import './filament-manager.css';
 
 type TabMode = 'all' | 'ams';
 // 列表筛选项（label ↔ 本地字段 ↔ 云端字段）：
@@ -24,7 +24,7 @@ const FILTER_LABEL_KEYS: Record<FilterKey, string> = {
   brand: 'Brand', material_type: 'Filament Type', series: 'Material Type',
 };
 
-export function FilamentPage() {
+export function FilamentManagerPage() {
   const { t } = useTranslation();
   const {
     init, addSpool, batchAddSpool, updateSpool,
@@ -32,7 +32,7 @@ export function FilamentPage() {
     fetchMachines, requestMachinePushall, fetchAmsData,
     fetchPresets,
     fetchCloudSyncStatus, triggerCloudPull, pushAllNow, fetchCloudFilamentConfig,
-  } = useFilamentBridge();
+  } = useFilamentManagerBridge();
 
   // STUDIO-18110: 进入耗材管理页面时同步刷新所有耗材列表来源——
   // 本地预设（含用户在'准备页 -> 耗材预设'新建的自建耗材）+ 云端 config（标准品牌/类型字典）。

@@ -61,7 +61,7 @@ function normalizeCloudFilamentConfig(payload: unknown): CloudFilamentConfig {
   };
 }
 
-export function useFilamentBridge() {
+export function useFilamentManagerBridge() {
   const { t } = useTranslation();
   const request = useDeviceBridge();
   const setSpools    = useStore((s) => s.filament.setSpools);
@@ -280,7 +280,7 @@ export function useFilamentBridge() {
       }
 
       // F4.7: DeviceManager::OnSelectedMachineChanged -> DeviceWebPage ->
-      // FilaManagerVM::ReportState forwards the new global machine to the
+      // FilamentManagerVM::ReportState forwards the new global machine to the
       // web layer. Refresh the store mirrors so any open AddEditDialog can
       // react to the change without re-opening.
       if (body.submod === 'machine' && body.action === 'selected_changed') {
@@ -394,7 +394,7 @@ export function useFilamentBridge() {
 
   // F4.5 / F4.6: Surface cloud-sync intent right after a local mutation.  The
   // C++ dispatcher already enqueues a push when the user is logged in (see
-  // FilaManagerVM::HandleSpool), so this toast is purely UX feedback to
+  // FilamentManagerVM::HandleSpool), so this toast is purely UX feedback to
   // confirm the push was queued — or to warn that the change only lives
   // locally because no cloud session is active.  Success / failure of the
   // actual HTTP round-trip is surfaced separately via `sync/push_done` and

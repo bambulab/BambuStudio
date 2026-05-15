@@ -1365,10 +1365,10 @@ void MainFrame::init_tabpanel()
             // Defer hash navigation until after the notebook paints (macOS + WKWebView).
             CallAfter([this]() {
                 if (m_web_device && m_tabpanel && m_tabpanel->GetCurrentPage() == m_web_device)
-                    m_web_device->NavigateTo("/filament");
+                    m_web_device->NavigateTo("/filament_manager");
             });
 #else
-            m_web_device->NavigateTo("/filament");
+            m_web_device->NavigateTo("/filament_manager");
 #endif
         }
 #ifndef __APPLE__
