@@ -2,7 +2,7 @@
 name = "BambuStudio"
 description = "Pixi PoC: replace ExternalProject deps with conda-forge binaries"
 channels = ["conda-forge"]
-platforms = ["linux-64", "win-64"]
+platforms = ["linux-64", "win-64", "osx-arm64"]
 
 [system-requirements]
 libc = "2.34"  # webkit2gtk4.1 needs glibc >=2.34 (linux only)
@@ -54,6 +54,19 @@ gtk3 = "*"  # required to build bambulab/wxWidgets fork
 glib = ">=2.84.3,<3"
 "webkit2gtk4.1" = "*"  # for wxWebView
 
+# macOS: clang via conda-forge (`compilers` -> clang/clangxx_osx-arm64) wraps
+# the system Xcode SDK, so Apple frameworks (Cocoa, OpenGL, WebKit) come
+# from /Library/Developer rather than being duplicated under the pixi env.
+# No GTK/dbus/EGL/webkit2gtk stack — wxWidgets builds against Cocoa.
+[target.osx-arm64.dependencies]
+compilers = ">=1.10"
+# Apple ships no gettext by default; brew/macports is the usual source.
+# Pull it from conda-forge so msgfmt is on PATH for the .po -> .mo step.
+gettext = "*"
+# DMG packaging: pure-Python wrapper around hdiutil. Pulled in here so
+# `pixi run dist` works out-of-the-box without Homebrew create-dmg.
+dmgbuild = ">=1.6"
+
 # Windows uses the user-installed Visual Studio (system MSVC) — conda-forge's
 # `vs2019_win-64`/`vs2022_win-64` wrappers shell out to that same toolchain
 # and add no value here.
@@ -88,6 +101,22 @@ description = "Build bambulab/wxWidgets fork (custom patches) and install into p
 description = "One-time: build bambulab forks (libnoise, wxWidgets) into pixi env"
 depends-on = ["setup-libnoise", "setup-wxwidgets"]
 
+# macOS pixi tasks (bash). The top-level [tasks.build] / [tasks.bambu-studio]
+# entries below already dispatch to scripts/pixi/{build,run}.sh, which pick
+# the osx-pixi-* preset on Darwin — no per-platform override needed here.
+
+[target.osx-arm64.tasks.setup-libnoise]
+cmd = "bash scripts/pixi/setup-libnoise.sh"
+description = "Build bambulab/libnoise (no conda-forge package) and install into pixi env"
+
+[target.osx-arm64.tasks.setup-wxwidgets]
+cmd = "bash scripts/pixi/macos/setup-wxwidgets.sh"
+description = "Build bambulab/wxWidgets fork as osx_cocoa and install into pixi env"
+
+[target.osx-arm64.tasks.bootstrap]
+description = "One-time: build bambulab forks (libnoise, wxWidgets) into pixi env"
+depends-on = ["setup-libnoise", "setup-wxwidgets"]
+
 # Top-level redirects (FreeCAD pattern: dev iteration → debug by default).
 # Use the explicit *-release variants for shipping/perf-checking builds.
 # Per-platform build / bambu-studio tasks live under [target.<plat>.tasks.*]
@@ -117,6 +146,45 @@ description = "Launch build/release/src/bambu-studio. Args pass through."
 cmd = "bash scripts/pixi/run.sh"
 env = { BAMBU_BUILD_TYPE = "release" }
 
+[target.linux-64.tasks.dist]
+description = "Bundle the Release binary into a portable AppImage (Linux host distributable)."
+depends-on = ["dist-release"]
+
+[target.linux-64.tasks.dist-debug]
+description = "Bundle the Debug binary into an AppImage (huge, dev-only)."
+cmd = "bash scripts/pixi/appimage.sh debug"
+
+[target.linux-64.tasks.dist-release]
+description = "Bundle the Release binary into a portable AppImage."
+cmd = "bash scripts/pixi/appimage.sh release"
+
+# macOS: package* builds the .app, dist* wraps it in a DMG.
+[target.osx-arm64.tasks.package]
+description = "Build BambuStudio.app from the Release binary."
+depends-on = ["package-release"]
+
+[target.osx-arm64.tasks.package-debug]
+description = "Build BambuStudio.app from the Debug binary (dev variant, larger)."
+cmd = "bash scripts/pixi/macos/package.sh debug"
+
+[target.osx-arm64.tasks.package-release]
+description = "Build BambuStudio.app from the Release binary."
+cmd = "bash scripts/pixi/macos/package.sh release"
+
+[target.osx-arm64.tasks.dist]
+description = "Wrap BambuStudio.app into a distributable DMG (macOS host distributable)."
+depends-on = ["dist-release"]
+
+[target.osx-arm64.tasks.dist-debug]
+description = "Wrap the Debug BambuStudio.app into a DMG."
+depends-on = ["package-debug"]
+cmd = "bash scripts/pixi/macos/dmg.sh debug"
+
+[target.osx-arm64.tasks.dist-release]
+description = "Wrap the Release BambuStudio.app into a distributable DMG."
+depends-on = ["package-release"]
+cmd = "bash scripts/pixi/macos/dmg.sh release"
+
 # Windows pixi tasks (PowerShell). Scripts live under scripts/pixi/windows/.
 # These shadow the top-level [tasks.*] above on win-64. The debug/release
 # split from upstream is Linux-only for now; on Windows `pixi run build`
@@ -142,9 +210,13 @@ description = "Copy libfoo.lib -> foo.lib aliases for ffmpeg deps where conda-fo
 cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/setup-wxwidgets.ps1"
 description = "Build bambulab/wxWidgets fork (with WebView Edge) and install into pixi env"
 
+[target.win-64.tasks.setup-webview2]
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/setup-webview2.ps1"
+description = "Download Microsoft.Web.WebView2 NuGet redistributable into pixi env (no conda-forge package)"
+
 [target.win-64.tasks.bootstrap]
-description = "One-time: bridge OCCT/intl/lib-name layouts + build bambulab forks (libnoise, wxWidgets) into pixi env"
-depends-on = ["setup-libnoise", "setup-occt-bridge", "setup-intl-bridge", "setup-lib-aliases", "setup-wxwidgets"]
+description = "One-time: bridge OCCT/intl/lib-name layouts + build bambulab forks (libnoise, wxWidgets) + install WebView2 SDK into pixi env"
+depends-on = ["setup-libnoise", "setup-occt-bridge", "setup-intl-bridge", "setup-lib-aliases", "setup-webview2", "setup-wxwidgets"]
 
 [target.win-64.tasks.build]
 description = "Configure and build BambuStudio with the win-pixi CMake preset (Visual Studio generator). Parallelism = floor(free_mem_GB / 2.5); override via CMAKE_BUILD_PARALLEL_LEVEL."

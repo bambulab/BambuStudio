@@ -39,21 +39,25 @@ if [[ ! -e "$build_dir/resources" ]]; then
     ln -sfn "$PIXI_PROJECT_ROOT/resources" "$build_dir/resources"
 fi
 
-export LIBGL_ALWAYS_SOFTWARE="${LIBGL_ALWAYS_SOFTWARE:-1}"
-export XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/share:/usr/local/share}:${CONDA_PREFIX}/share"
-export GTK_THEME="${GTK_THEME:-Adwaita}"
+# Linux-only workarounds: macOS doesn't ship GTK, uses its own GL, and
+# conda's libcurl on osx-arm64 already finds the system trust store.
+if [[ "$(uname)" != "Darwin" ]]; then
+    export LIBGL_ALWAYS_SOFTWARE="${LIBGL_ALWAYS_SOFTWARE:-1}"
+    export XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/share:/usr/local/share}:${CONDA_PREFIX}/share"
+    export GTK_THEME="${GTK_THEME:-Adwaita}"
 
-# Probe the usual CA bundle locations and stop at the first one that exists.
-for ca in \
-    /etc/ssl/certs/ca-certificates.crt \
-    /etc/pki/tls/certs/ca-bundle.crt \
-    /etc/ssl/cert.pem \
-    "${CONDA_PREFIX}/ssl/cacert.pem"; do
-    if [[ -f "$ca" ]]; then
-        export SSL_CERT_FILE="${SSL_CERT_FILE:-$ca}"
-        export CURL_CA_BUNDLE="${CURL_CA_BUNDLE:-$ca}"
-        break
-    fi
-done
+    # Probe the usual CA bundle locations and stop at the first one that exists.
+    for ca in \
+        /etc/ssl/certs/ca-certificates.crt \
+        /etc/pki/tls/certs/ca-bundle.crt \
+        /etc/ssl/cert.pem \
+        "${CONDA_PREFIX}/ssl/cacert.pem"; do
+        if [[ -f "$ca" ]]; then
+            export SSL_CERT_FILE="${SSL_CERT_FILE:-$ca}"
+            export CURL_CA_BUNDLE="${CURL_CA_BUNDLE:-$ca}"
+            break
+        fi
+    done
+fi
 
 exec "$bin" "$@"

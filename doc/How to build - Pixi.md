@@ -3,31 +3,64 @@
 [Pixi](https://pixi.sh) provides all dependencies from conda-forge,
 replacing the legacy `BuildLinux.sh` + `deps/` ExternalProject flow.
 
-Currently supports `linux-64` (glibc ≥ 2.34). `osx-*` / `win-64` are
-planned — extend `pixi.toml`'s `platforms` and per-target dependencies.
+Supports `linux-64` (glibc ≥ 2.34), `win-64` (Visual Studio 2019 or
+2022), and `osx-arm64` (Apple Silicon, macOS 11+). `osx-64` is not
+wired yet.
 
-## Quick start
+## Install pixi
 
-```bash
-curl -fsSL https://pixi.sh/install.sh | bash    # pixi, one-time
+- Linux / macOS: `curl -fsSL https://pixi.sh/install.sh | bash`
+- Windows: `iwr -useb https://pixi.sh/install.ps1 | iex`
 
+Windows additionally requires Visual Studio 2019 or 2022 with the C++ workload.
+macOS additionally requires the Xcode Command Line Tools
+(`xcode-select --install`) — the conda-forge `clang_osx-arm64` wrapper
+uses the system SDK and `lipo`.
+
+## Build
+
+```
 pixi install                  # conda-forge deps
 pixi run bootstrap            # libnoise + wxWidgets (once)
-pixi run build                # bambu-studio (Debug)
+pixi run build                # bambu-studio
 pixi run bambu-studio         # launch (args pass through)
 ```
 
-`pixi run build` defaults to Debug. For Release:
-
-```bash
-pixi run build-release
-pixi run bambu-studio-release
-```
-
-Build trees: `build/debug/`, `build/release/` (coexist).
-
 Override parallelism: `CMAKE_BUILD_PARALLEL_LEVEL=4 pixi run build`.
 Default is `floor(free_mem_GB / 2.5)` to fit Boost.Spirit / CGAL TUs.
+
+### Build variants
+
+Linux and macOS have split Debug / Release trees that coexist
+(`build/debug/`, `build/release/`); `pixi run build` defaults to Debug
+for fast iteration. Windows is single-configuration Release for now.
+
+| | Linux | macOS | Windows |
+|---|---|---|---|
+| Debug | `pixi run build` (default) | `pixi run build` (default) | not yet |
+| Release | `pixi run build-release` | `pixi run build-release` | `pixi run build` |
+| Launch Release binary | `pixi run bambu-studio-release` | `pixi run bambu-studio-release` | `pixi run bambu-studio` |
+| Distributable | `pixi run dist` (AppImage) | `pixi run dist` (DMG) | -- |
+
+`pixi run dist` produces the platform-native distributable for the
+host: an AppImage on Linux, a DMG on macOS. The artifact lands in
+`build/release/`.
+
+### macOS `.app` and DMG
+
+`pixi run package` builds `build/release/BambuStudio.app` — a
+self-contained bundle with all conda-forge dylibs in
+`Contents/Frameworks/` and the resources tree at
+`Contents/Resources/`. Ad-hoc codesigned by default; set
+`BAMBU_CODESIGN_IDENTITY="Developer ID Application: …"` to sign with a
+real cert.
+
+`pixi run dist` wraps that `.app` into `build/release/BambuStudio-<version>-arm64.dmg`
+via dmgbuild, with an `Applications` symlink for drag-installation.
+
+First launch from a downloaded DMG triggers the Gatekeeper
+"unidentified developer" dialog. Right-click the `.app` in
+Applications and choose **Open** to whitelist it once.
 
 ## Network plugin (cloud / printer features)
 

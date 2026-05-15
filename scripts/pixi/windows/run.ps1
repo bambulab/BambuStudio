@@ -1,7 +1,7 @@
 # Launch the bambu-studio.exe built by `pixi run build`. Args pass through.
 #
 # The build itself stages a build/src/Release/resources junction via the
-# post-build step in src/CMakeLists.txt, so no extra work is needed here —
+# post-build step in src/CMakeLists.txt, so no extra work is needed here --
 # unlike the Linux flow which has to bridge a build/resources symlink for
 # its in-tree resource lookup.
 

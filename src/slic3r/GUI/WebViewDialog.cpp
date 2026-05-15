@@ -932,7 +932,12 @@ void WebViewPanel::SendMakerlabList(  )
             CallAfter([this, body] {
                 auto body2 = from_u8(body);
 
-                json jLab = json::parse(body2);
+                // Parse the raw UTF-8 body — feeding wxString::const_iterator
+                // (value_type=wxUniChar) to json::parse breaks under libc++,
+                // which only specializes std::char_traits for the standard
+                // char types. body2 is still needed below for the wxString-
+                // based RunScript injection.
+                json jLab = json::parse(body);
                 if (jLab.contains("list"))
                 {
                     int nSize = jLab["list"].size();

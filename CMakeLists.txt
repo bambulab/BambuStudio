@@ -471,11 +471,11 @@ find_package(TBB REQUIRED)
 # add_definitions(-DTBB_USE_CAPTURED_EXCEPTION=0)
 
 find_package(OpenSSL REQUIRED)
-if (APPLE)
-find_package(CURL CONFIG REQUIRED)
-else()
+# CMake's FindCURL module covers every dep source we use (conda-forge,
+# vcpkg, system, deps/ ExternalProject). The APPLE branch previously
+# required CONFIG mode, which conda-forge's libcurl doesn't ship
+# (pkg-config only) — module mode is the more portable default.
 find_package(CURL REQUIRED)
-endif()
 
 add_library(libcurl INTERFACE)
 target_link_libraries(libcurl INTERFACE CURL::libcurl)
@@ -628,26 +628,6 @@ endif ()
 
 set(TOP_LEVEL_PROJECT_DIR ${PROJECT_SOURCE_DIR})
 function(bambustudio_copy_dlls target config postfix output_dlls)
-    if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
-        set(_bits 64)
-    elseif ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "4")
-        set(_bits 32)
-    endif ()
-
-    if ((CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$") OR (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))
-        set(_gmpdll win_arm64/gmp-10.dll)
-        set(_mpfrdll win_arm64/mpfr-6.dll)
-        set(output_gmpdll gmp-10.dll)
-        set(output_mpfrdll mpfr-6.dll)
-        set(_webviewloaderdll win_arm64/WebView2Loader.dll)
-    else ()
-        set(_gmpdll win${_bits}/libgmp-10.dll)
-        set(_mpfrdll win${_bits}/libmpfr-4.dll)
-        set(output_gmpdll libgmp-10.dll)
-        set(output_mpfrdll libmpfr-4.dll)
-        set(_webviewloaderdll win${_bits}/WebView2Loader.dll)
-    endif ()
-
     get_property(_is_multi GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
     get_target_property(_alt_out_dir ${target} RUNTIME_OUTPUT_DIRECTORY)
 
@@ -662,10 +642,26 @@ function(bambustudio_copy_dlls target config postfix output_dlls)
         message ("set out_dir to CMAKE_CURRENT_BINARY_DIR: ${_out_dir}")
     endif ()
 
-    file(COPY ${TOP_LEVEL_PROJECT_DIR}/deps/GMP/gmp/lib/${_gmpdll}
-            ${TOP_LEVEL_PROJECT_DIR}/deps/MPFR/mpfr/lib/${_mpfrdll}
-            ${TOP_LEVEL_PROJECT_DIR}/deps/WebView2/lib/${_webviewloaderdll}
-        DESTINATION ${_out_dir})
+    # GMP/MPFR formerly vendored under deps/{GMP,MPFR}/lib/{win64,win_arm64}/;
+    # since the pixi migration they come from conda-forge under
+    # $CONDA_PREFIX/Library/bin/ (= ${CMAKE_PREFIX_PATH}/bin on Windows). Glob
+    # for tolerance of conda-forge naming variants (libgmp-10.dll vs gmp-10.dll,
+    # libmpfr-N.dll across mpfr ABI bumps).
+    file(GLOB _gmp_dll  "${CMAKE_PREFIX_PATH}/bin/libgmp-*.dll" "${CMAKE_PREFIX_PATH}/bin/gmp-*.dll")
+    file(GLOB _mpfr_dll "${CMAKE_PREFIX_PATH}/bin/libmpfr-*.dll" "${CMAKE_PREFIX_PATH}/bin/mpfr-*.dll")
+    if (NOT _gmp_dll OR NOT _mpfr_dll)
+        message(FATAL_ERROR "GMP/MPFR DLLs not found under ${CMAKE_PREFIX_PATH}/bin/; check pixi env")
+    endif ()
+    list(GET _gmp_dll  0 _gmp_dll)
+    list(GET _mpfr_dll 0 _mpfr_dll)
+    get_filename_component(output_gmpdll  "${_gmp_dll}"  NAME)
+    get_filename_component(output_mpfrdll "${_mpfr_dll}" NAME)
+    file(COPY ${_gmp_dll} ${_mpfr_dll} DESTINATION ${_out_dir})
+
+    # WebView2 SDK installed by scripts/pixi/windows/setup-webview2.ps1 (Microsoft
+    # NuGet, no conda-forge package). wxWidgets-edge links against the import
+    # lib; the runtime DLL needs to sit next to bambu-studio.exe.
+    file(COPY ${CMAKE_PREFIX_PATH}/bin/WebView2Loader.dll DESTINATION ${_out_dir})
 
     file(COPY ${CMAKE_PREFIX_PATH}/bin/occt/TKBO.dll
             ${CMAKE_PREFIX_PATH}/bin/occt/TKBRep.dll
@@ -799,10 +795,6 @@ if(SLIC3R_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
-if (NOT WIN32 AND NOT APPLE)
-    set(SLIC3R_APP_CMD "bambu-studio")
-    configure_file(${LIBDIR}/platform/unix/build_appimage.sh.in ${CMAKE_CURRENT_BINARY_DIR}/build_appimage.sh @ONLY)
-endif()
 
 option(BUILD_BBS_TEST_TOOLS          "Build bbs test tools" OFF)
 if(BUILD_BBS_TEST_TOOLS)

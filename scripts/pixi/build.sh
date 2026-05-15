@@ -16,7 +16,13 @@ case "$build_type" in
     debug|release) ;;
     *) echo "Unknown build type: $build_type (expected debug or release)" >&2; exit 1 ;;
 esac
-preset="linux-pixi-${build_type}"
+
+case "$(uname)" in
+    Linux)  preset_prefix="linux-pixi" ;;
+    Darwin) preset_prefix="osx-pixi" ;;
+    *) echo "Unsupported host: $(uname) (use scripts/pixi/windows/build.ps1 on Windows)" >&2; exit 1 ;;
+esac
+preset="${preset_prefix}-${build_type}"
 
 # Resolve relative to this script regardless of caller's cwd.
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

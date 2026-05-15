@@ -23,7 +23,7 @@ if (Test-Path $dst) {
     exit 0
 }
 if (-not (Test-Path $dll)) {
-    throw "intl-8.dll not found at $dll — is libintl resolved by pixi?"
+    throw "intl-8.dll not found at $dll -- is libintl resolved by pixi?"
 }
 
 # Locate VS Developer environment (lib.exe + dumpbin.exe live there).

@@ -76,6 +76,50 @@
             "inherits": ["release", "linux-pixi"]
         },
         {
+            "name": "osx-pixi",
+            "hidden": true,
+            "description": "Configure against the deps from the active pixi env. Requires `pixi install` and `pixi run setup-libnoise` / `pixi run setup-wxwidgets` first.",
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_PREFIX_PATH": "$env{CONDA_PREFIX}",
+                "CMAKE_C_COMPILER_LAUNCHER": "sccache",
+                "CMAKE_CXX_COMPILER_LAUNCHER": "sccache",
+                "CMAKE_FIND_FRAMEWORK": "LAST",
+                "CMAKE_FIND_APPBUNDLE": "LAST",
+                "CMAKE_MACOSX_BUNDLE": "OFF",
+                "CMAKE_OSX_DEPLOYMENT_TARGET": "11.0",
+                "SLIC3R_GUI": "ON",
+                "SLIC3R_STATIC": "OFF",
+                "BBL_RELEASE_TO_PUBLIC": "1",
+                "BBL_INTERNAL_TESTING": "0"
+            },
+            "condition": {
+                "type": "allOf",
+                "conditions": [
+                    {
+                        "type": "equals",
+                        "lhs": "${hostSystemName}",
+                        "rhs": "Darwin"
+                    },
+                    {
+                        "type": "notEquals",
+                        "lhs": "$env{CONDA_PREFIX}",
+                        "rhs": ""
+                    }
+                ]
+            }
+        },
+        {
+            "name": "osx-pixi-debug",
+            "displayName": "macOS pixi (Debug)",
+            "inherits": ["debug", "osx-pixi"]
+        },
+        {
+            "name": "osx-pixi-release",
+            "displayName": "macOS pixi (Release)",
+            "inherits": ["release", "osx-pixi"]
+        },
+        {
             "name": "win-pixi-base",
             "hidden": true,
             "description": "Shared cache vars / env for the win-pixi presets (VS 2019 / VS 2022).",
@@ -90,7 +134,8 @@
                 "BBL_INTERNAL_TESTING": "0",
                 "WIN10SDK_PATH": "$env{WIN10SDK_PATH}",
                 "CMAKE_EXE_LINKER_FLAGS_INIT":    "/LIBPATH:\"$env{CONDA_PREFIX}/Library/lib\"",
-                "CMAKE_SHARED_LINKER_FLAGS_INIT": "/LIBPATH:\"$env{CONDA_PREFIX}/Library/lib\""
+                "CMAKE_SHARED_LINKER_FLAGS_INIT": "/LIBPATH:\"$env{CONDA_PREFIX}/Library/lib\"",
+                "gp_tool":                       "dumpbin"
             },
             "environment": {
                 "WXWIN": "$env{CONDA_PREFIX}/Library"
@@ -135,6 +180,16 @@
         {
             "name": "linux-pixi-release",
             "configurePreset": "linux-pixi-release",
+            "description": "Build Release. CGAL/Boost templates are RAM-heavy; pass `-j N` (e.g. `-j 4`) on hosts with limited memory."
+        },
+        {
+            "name": "osx-pixi-debug",
+            "configurePreset": "osx-pixi-debug",
+            "description": "Build Debug. CGAL/Boost templates are RAM-heavy; pass `-j N` (e.g. `-j 4`) on hosts with limited memory."
+        },
+        {
+            "name": "osx-pixi-release",
+            "configurePreset": "osx-pixi-release",
             "description": "Build Release. CGAL/Boost templates are RAM-heavy; pass `-j N` (e.g. `-j 4`) on hosts with limited memory."
         },
         {

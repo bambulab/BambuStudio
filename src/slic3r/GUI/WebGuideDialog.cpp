@@ -376,7 +376,8 @@ void GuideFrame::OnScriptMessage(wxWebViewEvent &evt)
     try {
         wxString strInput = evt.GetString();
         BOOST_LOG_TRIVIAL(trace) << "GuideFrame::OnScriptMessage;OnRecv:" << strInput.c_str();
-        json     j        = json::parse(strInput);
+        // libc++ needs UTF-8 std::string here; see Project.cpp comment.
+        json     j        = json::parse(std::string(strInput.utf8_str()));
 
         wxString strCmd = j["command"];
         BOOST_LOG_TRIVIAL(trace) << "GuideFrame::OnScriptMessage;Command:" << strCmd;

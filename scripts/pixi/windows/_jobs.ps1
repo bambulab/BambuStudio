@@ -1,4 +1,4 @@
-# PowerShell port of _jobs.sh — print a memory-aware parallel job count for
+# PowerShell port of _jobs.sh -- print a memory-aware parallel job count for
 # Windows pixi tasks. Mirrors BuildLinux.sh / DockerBuild.sh:
 #   MAX_THREADS = floor(FREE_MEM_GB / 2.5)
 # capped at logical CPUs and at least 1. Honors CMAKE_BUILD_PARALLEL_LEVEL.

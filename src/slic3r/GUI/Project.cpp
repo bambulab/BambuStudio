@@ -294,7 +294,12 @@ void ProjectPanel::OnScriptMessage(wxWebViewEvent& evt)
 {
     try {
         wxString strInput = evt.GetString();
-        json     j = json::parse(strInput);
+        // libc++ (macOS) only specializes std::char_traits for the standard
+        // char types; passing wxString::const_iterator (value_type=wxUniChar)
+        // straight into json::parse fails to instantiate. UTF-8 conversion is
+        // semantically the right thing anyway — wxString's internal encoding
+        // is platform-dependent.
+        json     j = json::parse(std::string(strInput.utf8_str()));
 
         wxString strCmd = j["command"];
 
