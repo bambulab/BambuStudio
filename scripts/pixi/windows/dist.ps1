@@ -89,12 +89,10 @@ while ($digits.Count -lt 4) { $digits += 0 }
 $msiVersion = ($digits[0..3] -join '.')
 
 # 5) Generate _payload.wxs: explicit Directory tree + one Component per
-# file. The naive `<Files Include="**" />` element trips a WiX 5 dedup
-# bug — when a folder mixes loose files with subdirectories WiX emits
-# two sibling <Directory Name="X"> entries, and Windows Installer then
-# silently aborts file extraction at install time. Declaring every
-# Directory once with a stable Id and pinning each Component to that Id
-# bypasses the auto-merge entirely.
+# file. WiX 5's `<Files Include="**" />` emits duplicate sibling
+# <Directory Name="X"> entries when a folder mixes loose files with
+# subdirectories, which breaks install-time file extraction. Declaring
+# every Directory once with a stable Id sidesteps the auto-merge.
 $iconDir = Join-Path $root 'resources/images'
 New-Item -ItemType Directory -Force -Path $msiOut | Out-Null
 $msiPath     = Join-Path $msiOut "BambuStudio-$msiVersion-x64.msi"
@@ -189,7 +187,7 @@ Write-Host "Building MSI -> $msiPath"
 if ($LASTEXITCODE) { throw "wix build failed ($LASTEXITCODE)" }
 
 # 6) Sanity-check the built MSI: assert File entries exist and no
-# duplicate Directory siblings sneaked back in (the v1 silent-fail).
+# duplicate Directory siblings sneaked back in.
 $decompiled = Join-Path $msiOut '_verify.wxs'
 & $wixExe msi decompile $msiPath -o $decompiled | Out-Null
 if ($LASTEXITCODE) { throw "wix msi decompile failed ($LASTEXITCODE)" }
