@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  WiX 5+ MSI manifest for Bambu Studio.
+
+  Built via scripts/pixi/windows/dist.ps1:
+      wix build BambuStudio.wxs _payload.wxs -arch x64 \
+          -bindpath payload=<staged-tree> \
+          -bindpath icon=<dir-with-BambuStudio.ico> \
+          -d Version=N.N.N.N -o ...
+
+  bindpath.payload  Directory whose contents are the installed tree root
+                    (cmake install output: bambu-studio.exe + DLLs +
+                    resources/). Resolved by the explicit Components in
+                    _payload.wxs.
+
+  bindpath.icon     Directory containing BambuStudio.ico. Wired into
+                    ARPPRODUCTICON + StartMenu Shortcut.
+
+  $(Version)        4-part numeric version (Windows Installer rule).
+                    version.inc ships "02.06.01.55" which fits as-is.
+
+  UpgradeCode is the stable identity of the Bambu Studio MSI product
+  family. NEVER change it across releases — Windows Installer uses it
+  to find and uninstall older versions during MajorUpgrade.
+
+  BambuStudioFiles ComponentGroup is generated at build time by dist.ps1
+  into _payload.wxs (one explicit Component per file). See dist.ps1 for
+  why we don't use the naive `<Files Include="**" />` element.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="Bambu Studio"
+           Manufacturer="Bambu Lab"
+           Version="$(Version)"
+           UpgradeCode="7AA17F3C-249E-4A31-B663-5FBFD839DD76"
+           Scope="perMachine"
+           Compressed="yes">
+
+    <SummaryInformation Description="Bambu Studio — 3D printer slicer (pixi build)" />
+    <MediaTemplate EmbedCab="yes" />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+
+    <Icon Id="BambuStudio.ico" SourceFile="!(bindpath.icon)\BambuStudio.ico" />
+    <Property Id="ARPPRODUCTICON" Value="BambuStudio.ico" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="Bambu Studio" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="Bambu Studio" />
+    </StandardDirectory>
+
+    <Component Id="ApplicationShortcut" Directory="ApplicationProgramsFolder" Guid="*">
+      <Shortcut Id="StartMenuShortcut"
+                Name="Bambu Studio"
+                Target="[INSTALLFOLDER]bambu-studio.exe"
+                WorkingDirectory="INSTALLFOLDER"
+                Icon="BambuStudio.ico"
+                IconIndex="0" />
+      <RemoveFolder Id="CleanupShortcutFolder" Directory="ApplicationProgramsFolder" On="uninstall" />
+      <RegistryValue Root="HKCU"
+                     Key="Software\BambuLab\BambuStudio"
+                     Name="installed"
+                     Type="integer"
+                     Value="1"
+                     KeyPath="yes" />
+    </Component>
+
+    <Feature Id="Main" Title="Bambu Studio" Level="1">
+      <ComponentGroupRef Id="BambuStudioFiles" />
+      <ComponentRef Id="ApplicationShortcut" />
+    </Feature>
+
+  </Package>
+</Wix>

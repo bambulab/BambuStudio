@@ -221,6 +221,20 @@ if (WIN32)
             COMMENT "Symlinking the resources directory into the build tree"
             VERBATIM
         )
+
+        # Single-config (Ninja): drop the legacy GMP/MPFR/OCCT/FFmpeg/
+        # WebView2/freetype DLLs next to bambu-studio.exe so the build-dir
+        # binary launches without the pixi env on PATH. (The MSI itself
+        # gets a wider DLL set via dist.ps1 — see scripts/pixi/windows/.)
+        # The multi-config branch above only runs under Visual Studio
+        # Generator.
+        if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+            bambustudio_copy_dlls(BambuStudioDllsCopy "Debug" "d" output_dlls_Debug)
+        elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
+            bambustudio_copy_dlls(BambuStudioDllsCopy "RelWithDebInfo" "" output_dlls_RelWithDebInfo)
+        else ()
+            bambustudio_copy_dlls(BambuStudioDllsCopy "Release" "" output_dlls_Release)
+        endif ()
     endif ()
 
 
@@ -291,11 +305,11 @@ endif()
 message(STATUS "libslic3r-CMAKE_BUILD_TYPE: ${build_type}")
 message(STATUS "CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
 if (WIN32)
-    install(TARGETS BambuStudio RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}")
+    install(TARGETS BambuStudio RUNTIME DESTINATION ".")
     if (MSVC)
-        install(TARGETS BambuStudio_app_gui RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}")
+        install(TARGETS BambuStudio_app_gui RUNTIME DESTINATION ".")
     endif ()
-    install(FILES ${output_dlls_${build_type}} DESTINATION "${CMAKE_INSTALL_PREFIX}")
+    install(FILES ${output_dlls_${build_type}} DESTINATION ".")
 else ()
     if (APPLE)
     else()

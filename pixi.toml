@@ -85,6 +85,10 @@ occt = "7.9.*"
 # ffmpeg's libavcodec.pc / libavformat.pc references -llzma. Conda-forge
 # doesn't pull xz transitively, so ask for it explicitly.
 xz = "*"
+# .NET SDK: hosts the WiX dotnet tool that scripts/pixi/windows/dist.ps1
+# bootstraps on first run to build the MSI (no conda-forge package for
+# WiX itself).
+dotnet = "*"
 
 # Linux pixi tasks (bash). Windows tasks live under [target.win-64.tasks.*]
 # in follow-up commits.
@@ -225,3 +229,16 @@ cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/
 [target.win-64.tasks.bambu-studio]
 description = "Launch bambu-studio.exe from build/src/Release/. Args pass through."
 cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/run.ps1"
+
+# Windows distributable: cmake --install stages the payload, WiX wraps
+# it in an MSI. Mirrors the Linux dist-release / macOS dist-release
+# task names so `pixi run dist-release` works cross-platform.
+
+[target.win-64.tasks.dist-release]
+description = "Stage Release payload + wrap into a Windows MSI installer (build/release/dist/BambuStudio-<ver>-x64.msi)."
+depends-on = ["build"]
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/dist.ps1 release"
+
+[target.win-64.tasks.dist]
+description = "Alias for dist-release on Windows."
+depends-on = ["dist-release"]
