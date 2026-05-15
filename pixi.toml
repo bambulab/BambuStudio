@@ -72,11 +72,9 @@ occt = "7.9.*"
 # ffmpeg's libavcodec.pc / libavformat.pc references -llzma. Conda-forge
 # doesn't pull xz transitively, so ask for it explicitly.
 xz = "*"
-# .NET SDK: hosts the WiX 4+ tool that scripts/pixi/windows/dist.ps1 uses
-# to build MSI installers. WiX itself is a `dotnet tool` (no conda-forge
-# package as of 2025), so dist.ps1 idempotently runs
-# `dotnet tool install --tool-path "$env:CONDA_PREFIX/Library/bin" wix`
-# on first use to land wix.exe in the env.
+# .NET SDK: hosts the WiX dotnet tool that scripts/pixi/windows/dist.ps1
+# bootstraps on first run to build the MSI (no conda-forge package for
+# WiX itself).
 dotnet = "*"
 
 # Linux pixi tasks (bash). Windows tasks live under [target.win-64.tasks.*]

@@ -222,6 +222,20 @@ if (WIN32)
             COMMENT "Symlinking the resources directory into the build tree"
             VERBATIM
         )
+
+        # Single-config (Ninja): drop the legacy GMP/MPFR/OCCT/FFmpeg/
+        # WebView2/freetype DLLs next to bambu-studio.exe so the build-dir
+        # binary launches without the pixi env on PATH. (The MSI itself
+        # gets a wider DLL set via dist.ps1 — see scripts/pixi/windows/.)
+        # The multi-config branch above only runs under Visual Studio
+        # Generator.
+        if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+            bambustudio_copy_dlls(BambuStudioDllsCopy "Debug" "d" output_dlls_Debug)
+        elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
+            bambustudio_copy_dlls(BambuStudioDllsCopy "RelWithDebInfo" "" output_dlls_RelWithDebInfo)
+        else ()
+            bambustudio_copy_dlls(BambuStudioDllsCopy "Release" "" output_dlls_Release)
+        endif ()
     endif ()
 
 
