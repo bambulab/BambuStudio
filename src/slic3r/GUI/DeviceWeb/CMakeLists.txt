@@ -10,8 +10,8 @@ function(prepare_node_env)
     set(NODE_VERSION "22.22.2")
     set(PNPM_VERSION "10.12.1")
 
-    # 定义本地缓存目录（放在 build 目录下，clean 后会重下）
-    set(NODE_CACHE_DIR "${CMAKE_CURRENT_BINARY_DIR}/node-cache")
+    # 定义本地缓存目录（放在项目同级目录，clean build 后不会丢失）
+    set(NODE_CACHE_DIR "${CMAKE_SOURCE_DIR}/../node-cache")
 
     # 根据平台确定下载 URL、文件名和 hash 值
     if(WIN32)
