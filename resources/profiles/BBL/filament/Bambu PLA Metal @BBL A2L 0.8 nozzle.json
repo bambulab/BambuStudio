@@ -30,7 +30,7 @@
         "25%"
     ],
     "slow_down_layer_time": [
-        "6"
+        "10"
     ],
     "compatible_printers": [
         "Bambu Lab A2L 0.8 nozzle"

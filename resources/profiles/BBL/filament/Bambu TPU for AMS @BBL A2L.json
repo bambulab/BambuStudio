@@ -6,19 +6,31 @@
     "setting_id": "GFSU02_12",
     "instantiation": "true",
     "fan_max_speed": [
-        "60"
+        "80"
     ],
     "fan_min_speed": [
-        "30"
+        "50"
     ],
     "filament_deretraction_speed": [
         "nil"
     ],
     "filament_retraction_length": [
-        "0.6"
+        "0.4"
     ],
     "filament_retraction_speed": [
-        "90"
+        "nil"
+    ],
+    "filament_wipe": [
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "1"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift"
+    ],
+    "slow_down_layer_time": [
+        "12"
     ],
     "slow_down_min_speed": [
         "35"

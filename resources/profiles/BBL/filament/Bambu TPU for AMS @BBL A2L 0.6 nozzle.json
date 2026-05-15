@@ -20,8 +20,11 @@
     "filament_retraction_speed": [
         "90"
     ],
+    "slow_down_layer_time": [
+        "19"
+    ],
     "slow_down_min_speed": [
-        "35"
+        "30"
     ],
     "compatible_printers": [
         "Bambu Lab A2L 0.6 nozzle"
