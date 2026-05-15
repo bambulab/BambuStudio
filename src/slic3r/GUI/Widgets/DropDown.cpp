@@ -565,6 +565,22 @@ void DropDown::messureSize()
             e.SetId(GetId());
             GetEventHandler()->ProcessEvent(e);
         });
+#ifdef __WXGTK__
+        subDropDown->Bind(wxEVT_IDLE, [this](wxIdleEvent &evt) {
+            if (!subDropDown || !subDropDown->IsShown())
+                return;
+            wxPoint mouse_pos = wxGetMousePosition();
+            wxRect sub_rect = subDropDown->GetScreenRect();
+            if (!sub_rect.Contains(mouse_pos)) {
+                wxPoint local_pt = ScreenToClient(mouse_pos);
+                wxMouseEvent mouse_evt(wxEVT_MOTION);
+                mouse_evt.SetX(local_pt.x);
+                mouse_evt.SetY(local_pt.y);
+                wxPostEvent(this, mouse_evt);
+                evt.RequestMore();
+            }
+        });
+#endif
     }
     need_sync = false;
 }

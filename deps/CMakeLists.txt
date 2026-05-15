@@ -120,4 +120,7 @@ if (DEP_BUILD_WXWIDGETS)
     set(WXWIDGETS_PKG dep_wxWidgets)
 endif ()
 
+# Pixi-poc builds only the bambulab forks (libnoise, wxWidgets) here.
+# Everything else (Boost / TBB / OCCT / OpenCV / Assimp / FFmpeg / CGAL
+# / FREETYPE / ...) is supplied by conda-forge per pixi.toml.
 add_custom_target(deps ALL DEPENDS dep_libnoise ${WXWIDGETS_PKG})

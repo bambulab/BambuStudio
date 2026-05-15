@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>设备域新人开发指南 · 结合 AI</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f8fafc;
+      --panel: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --soft: #64748b;
+      --border: #cbd5e1;
+      --border-soft: #e2e8f0;
+      --accent: #4f46e5;
+      --accent-soft: #eef2ff;
+      --ok: #059669;
+      --ok-soft: #ecfdf5;
+      --warn: #b45309;
+      --warn-soft: #fffbeb;
+      --danger: #b91c1c;
+      --danger-soft: #fef2f2;
+      --info: #0369a1;
+      --info-soft: #f0f9ff;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+      line-height: 1.65;
+    }
+
+    code, kbd {
+      font-family: "JetBrains Mono", "Consolas", "Menlo", monospace;
+      font-size: 0.92em;
+      background: var(--accent-soft);
+      color: #3730a3;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    .page {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 28px 24px 72px;
+    }
+
+    .hero {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 28px 28px 24px;
+      margin-bottom: 20px;
+    }
+
+    .hero .eyebrow {
+      font-size: 13px;
+      color: var(--accent);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: 28px;
+      line-height: 1.25;
+    }
+
+    .hero p.lead {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .hero .meta {
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--soft);
+    }
+
+    .toc {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .toc a {
+      display: inline-block;
+      padding: 6px 12px;
+      background: var(--panel);
+      border: 1px solid var(--border-soft);
+      border-radius: 999px;
+      font-size: 13px;
+      text-decoration: none;
+      color: var(--muted);
+      transition: all 0.15s ease;
+    }
+
+    .toc a:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border-soft);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 22px 26px;
+      margin-bottom: 18px;
+      scroll-margin-top: 16px;
+    }
+
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 20px;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .card h2 .num {
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 1px;
+    }
+
+    .card h3 {
+      margin: 18px 0 8px;
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    .card p, .card li {
+      color: var(--muted);
+      font-size: 14.5px;
+    }
+
+    .card ul, .card ol {
+      padding-left: 20px;
+      margin: 8px 0;
+    }
+
+    .card li {
+      margin: 4px 0;
+    }
+
+    .card-intro {
+      color: var(--muted);
+      font-size: 14.5px;
+      margin: 0 0 14px;
+    }
+
+    table.grid {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin: 8px 0;
+    }
+
+    table.grid th, table.grid td {
+      padding: 9px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-soft);
+      vertical-align: top;
+    }
+
+    table.grid th {
+      font-weight: 600;
+      color: var(--text);
+      background: #fafbff;
+      font-size: 13px;
+    }
+
+    table.grid td code {
+      white-space: nowrap;
+    }
+
+    .group-title {
+      font-size: 13px;
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin: 18px 0 8px;
+      text-transform: uppercase;
+    }
+
+    /* ========== 工具分组（可折叠） ========== */
+    details.tool-group {
+      border: 1px solid var(--border-soft);
+      border-radius: 10px;
+      background: #fdfdff;
+      margin: 14px 0;
+      overflow: hidden;
+    }
+    details.tool-group + details.tool-group {
+      margin-top: 10px;
+    }
+    details.tool-group > summary {
+      list-style: none;
+      cursor: pointer;
+      user-select: none;
+      padding: 10px 14px;
+      background: #f8fafc;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background 0.15s ease;
+    }
+    details.tool-group > summary::-webkit-details-marker { display: none; }
+    details.tool-group > summary::marker { content: ""; }
+    details.tool-group[open] > summary {
+      border-bottom: 1px solid var(--border-soft);
+    }
+    details.tool-group > summary:hover { background: #eef2f7; }
+    details.tool-group > summary .gt-title {
+      flex: 1;
+      font-size: 13px;
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    details.tool-group > summary .gt-count {
+      font-size: 12px;
+      color: var(--soft);
+      font-weight: 400;
+      margin-left: 6px;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    details.tool-group > summary .chev {
+      width: 8px;
+      height: 8px;
+      border-right: 2px solid var(--muted);
+      border-bottom: 2px solid var(--muted);
+      transform: rotate(-45deg);
+      transition: transform 0.2s ease;
+      flex-shrink: 0;
+    }
+    details.tool-group[open] > summary .chev {
+      transform: rotate(45deg);
+    }
+    details.tool-group .tg-body {
+      padding: 12px 14px 14px;
+    }
+    details.tool-group .tg-body > :first-child { margin-top: 0; }
+    details.tool-group .tg-body > :last-child  { margin-bottom: 0; }
+
+    .tree {
+      font-family: "JetBrains Mono", "Consolas", monospace;
+      font-size: 13.5px;
+      background: #fafbff;
+      border: 1px solid var(--border-soft);
+      border-radius: 8px;
+      padding: 14px 18px;
+      color: var(--text);
+      white-space: pre;
+      overflow-x: auto;
+      line-height: 1.75;
+    }
+
+    .tree .comment { color: var(--soft); }
+    .tree .key { color: var(--accent); font-weight: 600; }
+
+    .callout {
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      margin: 12px 0;
+      border-left: 3px solid;
+    }
+
+    .callout.ok {
+      background: var(--ok-soft);
+      border-color: var(--ok);
+      color: #065f46;
+    }
+
+    .callout.warn {
+      background: var(--warn-soft);
+      border-color: var(--warn);
+      color: #78350f;
+    }
+
+    .callout.danger {
+      background: var(--danger-soft);
+      border-color: var(--danger);
+      color: #7f1d1d;
+    }
+
+    .callout.info {
+      background: var(--info-soft);
+      border-color: var(--info);
+      color: #0c4a6e;
+    }
+
+    .callout strong { color: inherit; }
+    .callout code { background: rgba(255,255,255,0.6); }
+
+    /* ========== 阶段卡（核心流程专用） ========== */
+    .phase-group {
+      margin: 16px 0 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .phase-group .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+    .phase-group.pre .dot   { background: #3b82f6; }
+    .phase-group.code .dot  { background: #059669; }
+    .phase-group.post .dot  { background: #7c3aed; }
+    .phase-group.wrap .dot  { background: #64748b; }
+    .phase-group.pre   { color: #1d4ed8; }
+    .phase-group.code  { color: #047857; }
+    .phase-group.post  { color: #6d28d9; }
+    .phase-group.wrap  { color: #334155; }
+
+    details.stage {
+      border: 1px solid var(--border-soft);
+      border-left: 4px solid var(--accent);
+      border-radius: 10px;
+      background: #fdfdff;
+      margin: 10px 0;
+      overflow: hidden;
+    }
+    details.stage.pre  { border-left-color: #3b82f6; }
+    details.stage.code { border-left-color: #059669; }
+    details.stage.post { border-left-color: #7c3aed; }
+    details.stage.wrap { border-left-color: #64748b; }
+
+    details.stage > summary {
+      display: grid;
+      grid-template-columns: 80px 1fr auto;
+      gap: 14px;
+      padding: 14px 16px;
+      cursor: pointer;
+      align-items: center;
+      list-style: none;
+      user-select: none;
+    }
+    details.stage > summary::-webkit-details-marker { display: none; }
+    details.stage > summary::marker { display: none; }
+    details.stage > summary:hover {
+      background: rgba(79, 70, 229, 0.04);
+    }
+    details.stage[open] > summary {
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    details.stage .idx {
+      font-family: "JetBrains Mono", Consolas, monospace;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+    }
+    details.stage.pre  .idx { color: #3b82f6; }
+    details.stage.code .idx { color: #059669; }
+    details.stage.post .idx { color: #7c3aed; }
+    details.stage.wrap .idx { color: #64748b; }
+
+    details.stage .head h3 {
+      margin: 0 0 2px;
+      font-size: 15px;
+      color: var(--text);
+    }
+    details.stage .head .sub {
+      font-size: 12.5px;
+      color: var(--soft);
+    }
+
+    details.stage .chev {
+      color: var(--soft);
+      font-size: 13px;
+      font-weight: 700;
+      transition: transform 0.2s ease;
+      padding: 0 4px;
+    }
+    details.stage[open] .chev {
+      transform: rotate(90deg);
+    }
+
+    details.stage .expand {
+      padding: 12px 16px 14px 110px;
+      background: #fdfdff;
+    }
+
+    /* 展开/收起 全部按钮 */
+    .phase-tools {
+      display: flex;
+      gap: 8px;
+      margin: 12px 0 4px;
+    }
+    .phase-btn {
+      font: inherit;
+      font-size: 12.5px;
+      padding: 5px 12px;
+      border: 1px solid var(--border-soft);
+      background: var(--panel);
+      color: var(--muted);
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .phase-btn:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .io {
+      display: grid;
+      grid-template-columns: 60px 1fr;
+      gap: 8px 10px;
+      font-size: 13.5px;
+      margin: 3px 0;
+      align-items: baseline;
+    }
+    .io .tag {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-align: center;
+      line-height: 1.5;
+      white-space: nowrap;
+    }
+    .io .tag.in   { background: #dbeafe; color: #1e40af; }
+    .io .tag.do   { background: #fef3c7; color: #92400e; }
+    .io .tag.out  { background: #d1fae5; color: #065f46; }
+    .io .tag.done { background: #ede9fe; color: #5b21b6; }
+    .io .val { color: var(--muted); }
+    .io .val code { font-size: 0.88em; }
+
+    /* ========== 工具速查表 ========== */
+    table.lookup { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0; }
+    table.lookup th, table.lookup td {
+      padding: 9px 12px; text-align: left;
+      border-bottom: 1px solid var(--border-soft);
+      vertical-align: top;
+    }
+    table.lookup th { background: #fafbff; font-size: 13px; }
+    table.lookup td.scene { width: 40%; }
+    table.lookup td.tool  { width: 30%; }
+    table.lookup td.note  { color: var(--soft); font-size: 13px; }
+    table.lookup td code { white-space: nowrap; }
+
+    /* ========== 流程图（核心流程总览） ========== */
+    .flow-chart {
+      margin: 14px 0;
+      padding: 14px;
+      border: 1px solid var(--border-soft);
+      border-radius: 10px;
+      background: #fdfdff;
+      overflow-x: auto;
+    }
+    .flow-chart svg {
+      display: block;
+      width: 100%;
+      min-width: 760px;
+      height: auto;
+      font-family: inherit;
+    }
+    .flow-chart .node { cursor: pointer; }
+    .flow-chart .node rect {
+      stroke-width: 1.5;
+      transition: filter 0.15s ease, stroke-width 0.15s ease;
+    }
+    .flow-chart .node:hover rect,
+    .flow-chart .node:focus-visible rect {
+      filter: brightness(0.96);
+      stroke-width: 2.5;
+    }
+    .flow-chart .node-idx {
+      font-size: 14px;
+      font-weight: 700;
+      text-anchor: middle;
+    }
+    .flow-chart .node-name {
+      font-size: 11.5px;
+      text-anchor: middle;
+      fill: #334155;
+    }
+    .flow-chart .lane-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .flow-chart .lane-label.pre   { fill: #1d4ed8; }
+    .flow-chart .lane-label.code  { fill: #047857; }
+    .flow-chart .lane-label.post  { fill: #6d28d9; }
+    .flow-chart .lane-label.wrap  { fill: #334155; }
+    .flow-chart .node.pre  rect   { fill: #eff6ff; stroke: #3b82f6; }
+    .flow-chart .node.code rect   { fill: #ecfdf5; stroke: #059669; }
+    .flow-chart .node.post rect   { fill: #f5f3ff; stroke: #7c3aed; }
+    .flow-chart .node.wrap rect   { fill: #f1f5f9; stroke: #64748b; }
+    .flow-chart .node.pre  .node-idx  { fill: #1d4ed8; }
+    .flow-chart .node.code .node-idx  { fill: #047857; }
+    .flow-chart .node.post .node-idx  { fill: #6d28d9; }
+    .flow-chart .node.wrap .node-idx  { fill: #334155; }
+    .flow-chart .flow-edge {
+      stroke: #94a3b8;
+      stroke-width: 1.5;
+      fill: none;
+    }
+    .flow-chart .flow-edge.fail {
+      stroke: #f59e0b;
+      stroke-dasharray: 5 4;
+      stroke-width: 1.3;
+    }
+    .flow-chart .flow-legend {
+      margin-top: 10px;
+      font-size: 12.5px;
+      color: var(--soft);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+    }
+    .flow-chart .flow-legend .swatch {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+    .flow-chart .flow-legend .line {
+      display: inline-block;
+      width: 22px;
+      height: 0;
+      border-top: 1.5px dashed #f59e0b;
+      vertical-align: middle;
+      margin-right: 5px;
+    }
+    .flow-chart .flow-legend .spacer { flex: 1; }
+
+    /* ========== 知识分层卡（可折叠） ========== */
+    details.kb-layer {
+      border: 1px solid var(--border-soft);
+      border-radius: 10px;
+      margin: 12px 0;
+      background: #fdfdff;
+      overflow: hidden;
+    }
+    details.kb-layer > summary {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 18px;
+      cursor: pointer;
+      list-style: none;
+      user-select: none;
+    }
+    details.kb-layer > summary::-webkit-details-marker { display: none; }
+    details.kb-layer > summary::marker { display: none; }
+    details.kb-layer > summary:hover {
+      background: rgba(79, 70, 229, 0.04);
+    }
+    details.kb-layer[open] > summary {
+      border-bottom: 1px solid var(--border-soft);
+    }
+    details.kb-layer > summary h3 {
+      margin: 0;
+      font-size: 15px;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    details.kb-layer > summary .badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    details.kb-layer > summary .chev {
+      color: var(--soft);
+      font-size: 13px;
+      font-weight: 700;
+      transition: transform 0.2s ease;
+      padding: 0 4px;
+    }
+    details.kb-layer[open] > summary .chev {
+      transform: rotate(90deg);
+    }
+    details.kb-layer .kb-body {
+      padding: 12px 18px 16px;
+    }
+    details.kb-layer .kb-body .kb-desc {
+      color: var(--soft);
+      font-size: 13.5px;
+      margin: 0 0 10px;
+    }
+
+    /* ========== 双列红绿清单 ========== */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .two-col .col {
+      border: 1px solid var(--border-soft);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .two-col .col.red    { border-color: #fecaca; background: var(--danger-soft); }
+    .two-col .col.green  { border-color: #bbf7d0; background: var(--ok-soft); }
+    .two-col .col h3 {
+      margin: 0 0 6px; font-size: 14px;
+    }
+    .two-col .col.red h3   { color: var(--danger); }
+    .two-col .col.green h3 { color: var(--ok); }
+    .two-col .col ul { margin: 6px 0 0; padding-left: 18px; }
+    .two-col .col li { font-size: 13.5px; color: var(--text); }
+
+    /* ========== Tip ========== */
+    .tip {
+      font-size: 13px;
+      color: var(--soft);
+      margin-top: 4px;
+    }
+    .tip strong { color: var(--text); }
+
+    .foot {
+      margin-top: 22px;
+      font-size: 13px;
+      color: var(--soft);
+      text-align: center;
+    }
+
+    .foot code { background: transparent; color: var(--soft); }
+
+    @media (max-width: 720px) {
+      .hero { padding: 20px; }
+      .hero h1 { font-size: 22px; }
+      .card { padding: 18px; }
+      details.stage > summary { grid-template-columns: 48px 1fr auto; padding: 12px 14px; }
+      details.stage .idx { font-size: 20px; }
+      details.stage .expand { padding: 10px 14px 12px 74px; }
+      .io { grid-template-columns: 52px 1fr; }
+      .two-col { grid-template-columns: 1fr; }
+      table.lookup td.scene,
+      table.lookup td.tool { width: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+
+    <header class="hero">
+      <div class="eyebrow">openspec/docs/device · 新人指南</div>
+      <h1>设备域新人开发指南 · 结合 AI</h1>
+      <p class="lead">
+        面向第一次在设备域做开发的同学。目标：<strong>看懂一次完整开发要走哪些阶段、每一步拿什么进、产出什么出去、该用哪个工具、去哪查资料</strong>。
+      </p>
+      <div class="meta">
+        本文路径：<code>openspec/docs/device/设备域新人开发指南</code>（HTML，无扩展名）
+        · 配合阅读：<code>openspec/docs/device/readme食用指南.md</code>、<code>openspec/docs/device/开发流程.md</code>
+      </div>
+    </header>
+
+    <nav class="toc">
+      <a href="#core">1. 核心流程</a>
+      <a href="#tools">2. 选择合适的工具</a>
+      <a href="#kb">3. 相关知识目录</a>
+      <a href="#setup">附 A. 一次性准备</a>
+      <a href="#safety">附 B. 安全红线</a>
+    </nav>
+
+    <div class="callout info">
+      <strong>怎么用这份文档：</strong>
+      第一次读 —— 从头到尾过一遍，对 <strong>核心流程</strong> 的 12 个阶段建立心智模型；
+      之后做任务 —— 遇到卡点直接跳 <strong>选择合适的工具</strong>；
+      要深挖 —— 去 <strong>相关知识目录</strong> 找对应入口。
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 1. 核心流程 -->
+    <!-- ============================================================ -->
+    <section id="core" class="card">
+      <h2><span class="num">01</span>核心流程 · 每个阶段的输入与输出</h2>
+      <p class="card-intro">
+        一次完整的设备域开发从"拿到任务"到"change 合入并回写"分 12 个阶段。
+        每个阶段给出 <strong>输入（IN）</strong>、<strong>动作（DO）</strong>、
+        <strong>输出（OUT）</strong>、<strong>完成标志（DONE）</strong>。
+        只有当前阶段 DONE 才进入下一个，避免把锅藏到后面。
+      </p>
+
+      <div class="callout ok">
+        <strong>分工约定：</strong>
+        每一阶段的 DO 行都会标明执行方 ——
+        <code>人</code>：你亲自决策或下判断；
+        <code>AI</code>：Cursor Agent 按技能执行；
+        <code>人+AI</code>：协作完成，AI 出草稿，你过目定稿。
+      </div>
+
+      <div class="flow-chart" aria-label="核心流程总览图">
+        <svg viewBox="0 0 1020 480" role="img" aria-labelledby="flow-title flow-desc">
+          <title id="flow-title">设备域开发 12 阶段流程总览</title>
+          <desc id="flow-desc">从"进入上下文"到"周期收尾"共 12 个阶段，按开发前 / 编码 / 开发后 / 收尾分 4 个泳道。任一阶段 DONE 不达标均可回退到上游阶段。</desc>
+          <defs>
+            <marker id="arrow-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/>
+            </marker>
+            <marker id="arrow-fail" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#f59e0b"/>
+            </marker>
+          </defs>
+
+          <!-- 泳道标签 -->
+          <text class="lane-label pre"  x="20" y="80">开发前</text>
+          <text class="lane-label code" x="20" y="200">编码</text>
+          <text class="lane-label post" x="20" y="320">开发后</text>
+          <text class="lane-label wrap" x="20" y="440">收尾</text>
+
+          <!-- 主流程连线 -->
+          <path class="flow-edge" d="M 243 75 L 267 75"   marker-end="url(#arrow-flow)"/>
+          <path class="flow-edge" d="M 393 75 L 417 75"   marker-end="url(#arrow-flow)"/>
+          <path class="flow-edge" d="M 480 103 L 480 135 L 180 135 L 180 167" marker-end="url(#arrow-flow)"/>
+          <path class="flow-edge" d="M 243 195 L 267 195" marker-end="url(#arrow-flow)"/>
+          <path class="flow-edge" d="M 330 223 L 330 255 L 180 255 L 180 287" marker-end="url(#arrow-flow)"/>
+          <path class="flow-edge" d="M 243 315 L 267 315" marker-end="url(#arrow-flow)"/>
+          <path class="flow-edge" d="M 393 315 L 417 315" marker-end="url(#arrow-flow)"/>
+          <path class="flow-edge" d="M 543 315 L 567 315" marker-end="url(#arrow-flow)"/>
+          <path class="flow-edge" d="M 693 315 L 717 315" marker-end="url(#arrow-flow)"/>
+          <path class="flow-edge" d="M 843 315 L 867 315" marker-end="url(#arrow-flow)"/>
+          <path class="flow-edge" d="M 930 343 L 930 375 L 180 375 L 180 407" marker-end="url(#arrow-flow)"/>
+
+          <!-- 失败回退示例（虚线，黄色）：05 构建失败 → 04；10 Review 打回 → 04 -->
+          <path class="flow-edge fail" d="M 300 170 C 300 150, 240 150, 240 170" marker-end="url(#arrow-fail)"/>
+          <path class="flow-edge fail" d="M 750 290 C 750 240, 180 240, 180 220" marker-end="url(#arrow-fail)"/>
+
+          <!-- 节点：开发前 -->
+          <g class="node pre" data-idx="1" role="button" tabindex="0" aria-label="阶段 01 进入上下文">
+            <rect x="120" y="50" width="120" height="50" rx="8"/>
+            <text class="node-idx"  x="180" y="74">01</text>
+            <text class="node-name" x="180" y="90">进入上下文</text>
+          </g>
+          <g class="node pre" data-idx="2" role="button" tabindex="0" aria-label="阶段 02 明确方案">
+            <rect x="270" y="50" width="120" height="50" rx="8"/>
+            <text class="node-idx"  x="330" y="74">02</text>
+            <text class="node-name" x="330" y="90">明确方案</text>
+          </g>
+          <g class="node pre" data-idx="3" role="button" tabindex="0" aria-label="阶段 03 检索背景">
+            <rect x="420" y="50" width="120" height="50" rx="8"/>
+            <text class="node-idx"  x="480" y="74">03</text>
+            <text class="node-name" x="480" y="90">检索背景</text>
+          </g>
+
+          <!-- 节点：编码 -->
+          <g class="node code" data-idx="4" role="button" tabindex="0" aria-label="阶段 04 设计编码">
+            <rect x="120" y="170" width="120" height="50" rx="8"/>
+            <text class="node-idx"  x="180" y="194">04</text>
+            <text class="node-name" x="180" y="210">设计编码</text>
+          </g>
+          <g class="node code" data-idx="5" role="button" tabindex="0" aria-label="阶段 05 构建调试">
+            <rect x="270" y="170" width="120" height="50" rx="8"/>
+            <text class="node-idx"  x="330" y="194">05</text>
+            <text class="node-name" x="330" y="210">构建调试</text>
+          </g>
+
+          <!-- 节点：开发后 -->
+          <g class="node post" data-idx="6" role="button" tabindex="0" aria-label="阶段 06 沉淀知识">
+            <rect x="120" y="290" width="120" height="50" rx="8"/>
+            <text class="node-idx"  x="180" y="314">06</text>
+            <text class="node-name" x="180" y="330">沉淀知识</text>
+          </g>
+          <g class="node post" data-idx="7" role="button" tabindex="0" aria-label="阶段 07 本地提交">
+            <rect x="270" y="290" width="120" height="50" rx="8"/>
+            <text class="node-idx"  x="330" y="314">07</text>
+            <text class="node-name" x="330" y="330">本地提交</text>
+          </g>
+          <g class="node post" data-idx="8" role="button" tabindex="0" aria-label="阶段 08 推送自查">
+            <rect x="420" y="290" width="120" height="50" rx="8"/>
+            <text class="node-idx"  x="480" y="314">08</text>
+            <text class="node-name" x="480" y="330">推送自查</text>
+          </g>
+          <g class="node post" data-idx="9" role="button" tabindex="0" aria-label="阶段 09 推送 Gerrit">
+            <rect x="570" y="290" width="120" height="50" rx="8"/>
+            <text class="node-idx"  x="630" y="314">09</text>
+            <text class="node-name" x="630" y="330">推送 Gerrit</text>
+          </g>
+          <g class="node post" data-idx="10" role="button" tabindex="0" aria-label="阶段 10 负责人 Review">
+            <rect x="720" y="290" width="120" height="50" rx="8"/>
+            <text class="node-idx"  x="780" y="314">10</text>
+            <text class="node-name" x="780" y="330">负责人 Review</text>
+          </g>
+          <g class="node post" data-idx="11" role="button" tabindex="0" aria-label="阶段 11 JIRA 回写">
+            <rect x="870" y="290" width="120" height="50" rx="8"/>
+            <text class="node-idx"  x="930" y="314">11</text>
+            <text class="node-name" x="930" y="330">JIRA 回写</text>
+          </g>
+
+          <!-- 节点：收尾 -->
+          <g class="node wrap" data-idx="12" role="button" tabindex="0" aria-label="阶段 12 周期收尾">
+            <rect x="120" y="410" width="120" height="50" rx="8"/>
+            <text class="node-idx"  x="180" y="434">12</text>
+            <text class="node-name" x="180" y="450">周期收尾</text>
+          </g>
+        </svg>
+        <div class="flow-legend">
+          <span><span class="swatch" style="background:#3b82f6"></span>开发前</span>
+          <span><span class="swatch" style="background:#059669"></span>编码</span>
+          <span><span class="swatch" style="background:#7c3aed"></span>开发后</span>
+          <span><span class="swatch" style="background:#64748b"></span>收尾</span>
+          <span><span class="line"></span>回退示例（虚线）</span>
+          <span class="spacer"></span>
+          <span><strong>点击节点</strong>可展开对应阶段卡并滚动到位</span>
+        </div>
+      </div>
+
+      <div class="phase-tools">
+        <button type="button" class="phase-btn" data-action="expand-all">展开全部</button>
+        <button type="button" class="phase-btn" data-action="collapse-all">收起全部</button>
+      </div>
+
+      <!-- 开发前 -->
+      <div class="phase-group pre"><span class="dot"></span>开发前 · 建立上下文与方案</div>
+
+      <details class="stage pre">
+        <summary>
+          <span class="idx">01</span>
+          <div class="head">
+            <h3>进入设备上下文</h3>
+            <div class="sub">技能：<code>device-context-entry</code></div>
+          </div>
+          <span class="chev">▸</span>
+        </summary>
+        <div class="expand">
+          <div class="io"><span class="tag in">IN</span>  <span class="val">一条任务描述（口头需求 / Jira 链接 / bug 现象）</span></div>
+          <div class="io"><span class="tag do">DO</span>  <span class="val"><code>AI</code> 校验设备 profile 是否启用——任一成立即生效：<code>openspec/ai-context/switch.json</code> 中 <code>deviceDevelopProfile: true</code>、环境变量 <code>STUDIO_AI_DEVICE_ENTRY=true/1/on</code>、用户显式要求；启用后按 <code>profiles/device/entry.md</code> 的 load-order 加载设备规则与技能</span></div>
+          <div class="io"><span class="tag out">OUT</span> <span class="val">已装入设备 profile 的对话上下文 + 任务归属的问题域初判</span></div>
+          <div class="io"><span class="tag done">DONE</span><span class="val">AI 能引用 <code>openspec/docs/device/</code> 中的规则与技能名称作答，不再泛泛回答</span></div>
+        </div>
+      </details>
+
+      <details class="stage pre">
+        <summary>
+          <span class="idx">02</span>
+          <div class="head">
+            <h3>明确需求与方案</h3>
+            <div class="sub">技能：<code>device-jira-analyze</code>（有 Jira 时）/ <code>device-problem-analysis</code>（只有现象时）</div>
+          </div>
+          <span class="chev">▸</span>
+        </summary>
+        <div class="expand">
+          <div class="io"><span class="tag in">IN</span>  <span class="val">Jira issue URL 或 bug 复现现象；明确的业务目标</span></div>
+          <div class="io"><span class="tag do">DO</span>  <span class="val"><code>AI</code> 抓取 Jira / 整理现象，结合 <code>openspec/specs/device/主题索引.md</code> 给出分析；<code>人</code> 判定取舍</span></div>
+          <div class="io"><span class="tag out">OUT</span> <span class="val">候选代码入口 · 可能根因 · 最小改动路径 · 风险点 · 验证建议</span></div>
+          <div class="io"><span class="tag done">DONE</span><span class="val">方案你能用 3 句话讲清楚，且确定了改哪些文件、不改哪些</span></div>
+        </div>
+      </details>
+
+      <details class="stage pre">
+        <summary>
+          <span class="idx">03</span>
+          <div class="head">
+            <h3>检索背景资料</h3>
+            <div class="sub">技能：<code>device-knowledge-search</code></div>
+          </div>
+          <span class="chev">▸</span>
+        </summary>
+        <div class="expand">
+          <div class="io"><span class="tag in">IN</span>  <span class="val">阶段 02 得到的问题域关键词 / 候选模块名</span></div>
+          <div class="io"><span class="tag do">DO</span>  <span class="val"><code>AI</code> 先查 <code>openspec/specs/device/主题索引.md</code> 与 <code>openspec/specs/device/来源映射表.md</code>，再用 <code>Glob</code> / <code>rg</code> / <code>SemanticSearch</code> 进入源码</span></div>
+          <div class="io"><span class="tag out">OUT</span> <span class="val">相关架构文档 · OpenSpec 变更 · 源码入口的引用清单</span></div>
+          <div class="io"><span class="tag done">DONE</span><span class="val">能回答「为什么现状是这样」「改了会影响谁」两个问题</span></div>
+        </div>
+      </details>
+
+      <!-- 编码 -->
+      <div class="phase-group code"><span class="dot"></span>编码 · 实现与本地验证</div>
+
+      <details class="stage code">
+        <summary>
+          <span class="idx">04</span>
+          <div class="head">
+            <h3>设计与编码</h3>
+            <div class="sub">无专属技能 · <code>人+AI</code> 协作</div>
+          </div>
+          <span class="chev">▸</span>
+        </summary>
+        <div class="expand">
+          <div class="io"><span class="tag in">IN</span>  <span class="val">阶段 02/03 产出的方案 + 代码入口</span></div>
+          <div class="io"><span class="tag do">DO</span>  <span class="val"><code>人</code> 定模块边界与接口；<code>AI</code> 按 <em>最小化格式改动</em> 落地；<code>人</code> 每次接受前读一遍 diff</span></div>
+          <div class="io"><span class="tag out">OUT</span> <span class="val">未提交的代码 diff（功能代码 + 必要注释）</span></div>
+          <div class="io"><span class="tag done">DONE</span><span class="val">代码可编译、无明显越界改动、逻辑你讲得出来</span></div>
+        </div>
+      </details>
+
+      <details class="stage code">
+        <summary>
+          <span class="idx">05</span>
+          <div class="head">
+            <h3>本地构建与调试</h3>
+            <div class="sub">技能：<code>device-local-build</code>（09）· <code>device-local-debug</code>（10）· <strong>手动触发</strong></div>
+          </div>
+          <span class="chev">▸</span>
+        </summary>
+        <div class="expand">
+          <div class="io"><span class="tag in">IN</span>  <span class="val">阶段 04 的 diff · 受影响的验证项清单</span></div>
+          <div class="io"><span class="tag do">DO</span>  <span class="val"><code>人</code> 明确要求"按本地编译技能编译"或"按本地调试技能调试"；<code>AI</code> 先告知再执行，Windows + VS2022 + Release 档</span></div>
+          <div class="io"><span class="tag out">OUT</span> <span class="val">构建产物（含 <code>libslic3r_gui.pdb</code>）· 自测结果记录（pass / fail + 备注）</span></div>
+          <div class="io"><span class="tag done">DONE</span><span class="val">最小验证或完整构建通过，关键功能点自测 pass</span></div>
+        </div>
+      </details>
+
+      <!-- 开发后 -->
+      <div class="phase-group post"><span class="dot"></span>开发后 · 沉淀 · 提交 · 推送 · 评审</div>
+
+      <details class="stage post">
+        <summary>
+          <span class="idx">06</span>
+          <div class="head">
+            <h3>知识沉淀</h3>
+            <div class="sub">技能：<code>device-doc-archiving</code>（本阶段可空跑，但不要省略判断）</div>
+          </div>
+          <span class="chev">▸</span>
+        </summary>
+        <div class="expand">
+          <div class="io"><span class="tag in">IN</span>  <span class="val">阶段 02–05 中产生的可复用经验：架构认知 / 源码入口 / OpenSpec 背景 / 踩坑记录</span></div>
+          <div class="io"><span class="tag do">DO</span>  <span class="val"><code>AI</code> 判断归档位置：稳定知识归 <code>openspec/specs/device/功能架构文档/</code> 或 <code>openspec/specs/device/软件代码文档/</code>；单个 OpenSpec change 完整产物归 <code>openspec/changes/device/&lt;主题&gt;/&lt;YYYYMMDD改动内容&gt;/</code>；同步更新 <code>主题索引.md</code> 与 <code>来源映射表.md</code></span></div>
+          <div class="io"><span class="tag out">OUT</span> <span class="val">新增或更新的 Markdown 文档 + 索引条目（可为 0 条，但必须有过判断记录）</span></div>
+          <div class="io"><span class="tag done">DONE</span><span class="val">要么产出文档并更新索引，要么明确记录「本次无可沉淀产物」的判断</span></div>
+        </div>
+      </details>
+
+      <details class="stage post">
+        <summary>
+          <span class="idx">07</span>
+          <div class="head">
+            <h3>本地分类提交</h3>
+            <div class="sub">技能：<code>device-local-commit</code></div>
+          </div>
+          <span class="chev">▸</span>
+        </summary>
+        <div class="expand">
+          <div class="io"><span class="tag in">IN</span>  <span class="val">代码 diff + 文档 diff + 配置 diff</span></div>
+          <div class="io"><span class="tag do">DO</span>  <span class="val"><code>AI</code> 按「功能代码 / 文档 / 配置」拆 commit，按 <code>.cursor/rules/commit-msg.mdc</code> 写 message；标题 ≤ 12 词，<strong>正文 ≤ 30 词（约 60 个汉字、单段）</strong>，只写「做了什么 / 为什么」，不复述 diff；<code>人</code> 确认语言规则与 Change-Id 位置</span></div>
+          <div class="io"><span class="tag out">OUT</span> <span class="val">本地 n 条 commit，每条符合规范（Change Type + jira / 自测 / Change-Id 末行）</span></div>
+          <div class="io"><span class="tag done">DONE</span><span class="val"><code>git log</code> 看起来像正常人的提交历史，没有"杂烩"提交</span></div>
+        </div>
+      </details>
+
+      <details class="stage post">
+        <summary>
+          <span class="idx">08</span>
+          <div class="head">
+            <h3>推送前自查</h3>
+            <div class="sub">技能：<code>device-change-review</code></div>
+          </div>
+          <span class="chev">▸</span>
+        </summary>
+        <div class="expand">
+          <div class="io"><span class="tag in">IN</span>  <span class="val">阶段 07 的 commit 序列</span></div>
+          <div class="io"><span class="tag do">DO</span>  <span class="val"><code>AI</code> 跑 P0 敏感信息检查 + C++/前端质量 + commit 规范 + 文档一致性；<code>人</code> 复核敏感信息项</span></div>
+          <div class="io"><span class="tag out">OUT</span> <span class="val">自查报告：通过 / 不通过 + 返修清单</span></div>
+          <div class="io"><span class="tag done">DONE</span><span class="val">P0 项全部通过；其它等级问题要么修掉，要么被显式接受</span></div>
+        </div>
+      </details>
+
+      <details class="stage post">
+        <summary>
+          <span class="idx">09</span>
+          <div class="head">
+            <h3>推送 Gerrit</h3>
+            <div class="sub">技能：<code>device-gerrit-push</code></div>
+          </div>
+          <span class="chev">▸</span>
+        </summary>
+        <div class="expand">
+          <div class="io"><span class="tag in">IN</span>  <span class="val">过检的 commit 序列 · 目标分支 · Gerrit 凭据与 commit-msg hook</span></div>
+          <div class="io"><span class="tag do">DO</span>  <span class="val"><code>人</code> 确认目标分支（如 <code>master</code> / 发布分支）；<code>AI</code> 推送到 <code>refs/for/&lt;目标分支&gt;</code>，解析返回的 change URL</span></div>
+          <div class="io"><span class="tag out">OUT</span> <span class="val">Gerrit change URL · 每条 commit 对应一个 change · CI 自动触发</span></div>
+          <div class="io"><span class="tag done">DONE</span><span class="val">change 创建成功、CI 开始跑、无 <code>missing Change-Id</code> / <code>401</code> / <code>403</code> 报错</span></div>
+        </div>
+      </details>
+
+      <details class="stage post">
+        <summary>
+          <span class="idx">10</span>
+          <div class="head">
+            <h3>提交负责人 Review</h3>
+            <div class="sub">技能：<code>device-gerrit-ops</code>（加 reviewer）· <code>device-gerrit-query</code>（查 CI / 状态）</div>
+          </div>
+          <span class="chev">▸</span>
+        </summary>
+        <div class="expand">
+          <div class="io"><span class="tag in">IN</span>  <span class="val">阶段 09 的 change URL · 模块负责人 / 对口 reviewer 名单 · CI 初步状态</span></div>
+          <div class="io"><span class="tag do">DO</span>  <span class="val"><code>人</code> 定 reviewer 名单与 CC 范围；<code>AI</code> 通过 <code>device-gerrit-ops</code> 添加 reviewer，必要时在 change 上留一段 patchset 评论说明改动要点与自测结果</span></div>
+          <div class="io"><span class="tag out">OUT</span> <span class="val">已添加 reviewer 的 change · 负责人收到评审通知 · 初版上下文评论</span></div>
+          <div class="io"><span class="tag done">DONE</span><span class="val">CI 绿灯 · reviewer 列表正确 · change 进入"待 Review"状态</span></div>
+        </div>
+      </details>
+
+      <details class="stage post">
+        <summary>
+          <span class="idx">11</span>
+          <div class="head">
+            <h3>回写 JIRA 申请合入</h3>
+            <div class="sub">技能：<code>device-jira-comment</code></div>
+          </div>
+          <span class="chev">▸</span>
+        </summary>
+        <div class="expand">
+          <div class="io"><span class="tag in">IN</span>  <span class="val">阶段 09/10 的 change URL · reviewer 与 CI 状态 · 自测结果（pass / fail + 备注）</span></div>
+          <div class="io"><span class="tag do">DO</span>  <span class="val"><code>AI</code> 按五段式（进度 / patch / 阻塞 / 结论 / 下一步）写 Jira 评论，贴 change 链接与 reviewer，申请合入并流转状态；<code>人</code> 过草稿再发送</span></div>
+          <div class="io"><span class="tag out">OUT</span> <span class="val">Jira 上可见 patch 链接 + 合入申请 + 状态流转（如"待合入"）</span></div>
+          <div class="io"><span class="tag done">DONE</span><span class="val">Jira 评论发出，不含 token / 本地路径；后续 reviewer 打分 / 合入有据可查</span></div>
+        </div>
+      </details>
+
+      <!-- 收尾 -->
+      <div class="phase-group wrap"><span class="dot"></span>收尾 · 合入后的闭环</div>
+
+      <details class="stage wrap">
+        <summary>
+          <span class="idx">12</span>
+          <div class="head">
+            <h3>周期收尾</h3>
+            <div class="sub">技能：<code>device-dev-completion</code></div>
+          </div>
+          <span class="chev">▸</span>
+        </summary>
+        <div class="expand">
+          <div class="io"><span class="tag in">IN</span>  <span class="val">change 合入完成 · 本次开发的踩坑与反馈</span></div>
+          <div class="io"><span class="tag do">DO</span>  <span class="val"><code>AI</code> 编排再跑一遍 <code>06 沉淀 → 07 提交 → 08 Review → 09 推送</code>（针对补漏的文档 / 规则）；<code>人</code> 确认是否需要补规则或改进流程</span></div>
+          <div class="io"><span class="tag out">OUT</span> <span class="val">新一轮文档更新 / 新规则 / 技能改进项（可为空但必须走一遍流程）</span></div>
+          <div class="io"><span class="tag done">DONE</span><span class="val">本任务的知识已对下次开发的人可见、可用</span></div>
+        </div>
+      </details>
+
+      <div class="callout warn">
+        <strong>阶段不要跳：</strong>
+        看起来"改几行代码"很小的任务，也要走完 04→07→08→09→10→11。
+        <strong>跳过 08 自查</strong> 是最常见的翻车原因：敏感信息 / 无关格式化 / Change-Id 漂移多半在这一步才会被发现；
+        <strong>跳过 10 加 reviewer</strong> 会让 change 一直挂着没人看；
+        <strong>跳过 11 回写 Jira</strong> 会让任务在 Jira 看板上"看起来还没开始"。
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 2. 选择合适的工具 -->
+    <!-- ============================================================ -->
+    <section id="tools" class="card">
+      <h2><span class="num">02</span>选择合适的工具</h2>
+      <p class="card-intro">
+        工具分三组：<strong>AI 技能</strong>（按意图调用）、<strong>原生工具</strong>（检索、读写、执行）、
+        <strong>外部系统</strong>（Gerrit / Jira / IDE）。下面按"想做什么"速查。
+      </p>
+
+      <div class="phase-tools">
+        <button type="button" class="phase-btn" data-action="expand-all">展开全部</button>
+        <button type="button" class="phase-btn" data-action="collapse-all">收起全部</button>
+      </div>
+
+      <!-- AI 技能 -->
+      <details class="tool-group" open>
+        <summary>
+          <span class="gt-title">A. AI 技能 · 按意图直接喊名字<span class="gt-count">18 项</span></span>
+          <span class="chev"></span>
+        </summary>
+        <div class="tg-body">
+          <p class="tip">用法：直接对 Cursor 说"<em>按 <code>device-xxx</code> 处理 ...</em>"，AI 会按技能的步骤与边界执行。</p>
+          <table class="lookup">
+            <thead><tr><th class="scene">想做什么</th><th class="tool">用哪个技能</th><th class="note">补充</th></tr></thead>
+            <tbody>
+              <tr><td class="scene">刚进设备任务，让 AI 装好上下文</td><td class="tool"><code>device-context-entry</code></td><td class="note">profile 开关开了就会自动加载，不放心可手动喊</td></tr>
+              <tr><td class="scene">查一个功能放在哪、文档在哪</td><td class="tool"><code>device-knowledge-search</code></td><td class="note">先索引后源码，不直接翻全文件</td></tr>
+              <tr><td class="scene">有现象没 Jira，要从问题追到源码</td><td class="tool"><code>device-problem-analysis</code></td><td class="note">三层拆解：语义 → 设计 → 源码</td></tr>
+              <tr><td class="scene">有 Jira，只想先拿到方案不动代码</td><td class="tool"><code>device-jira-analyze</code></td><td class="note">只分析，不改代码、不回写 Jira</td></tr>
+              <tr><td class="scene">有 Jira，要端到端跑完整链路</td><td class="tool"><code>device-jira-resolve</code></td><td class="note">覆盖阶段 02–09，过程中可随时叫停</td></tr>
+              <tr><td class="scene">批量处理自己名下的 Jira</td><td class="tool"><code>device-jira-auto-resolve</code></td><td class="note">支持 full-auto / assisted 两档，默认 assisted</td></tr>
+              <tr><td class="scene">本地编译验证（Windows + VS2022 + Release）</td><td class="tool"><code>device-local-build</code></td><td class="note">手动触发；激活前 AI 必告知</td></tr>
+              <tr><td class="scene">打开 IDE 起调试会话</td><td class="tool"><code>device-local-debug</code></td><td class="note">默认 VS，可切 VSCode</td></tr>
+              <tr><td class="scene">把本次经验写回设备知识库</td><td class="tool"><code>device-doc-archiving</code></td><td class="note">同步更新主题索引与来源映射</td></tr>
+              <tr><td class="scene">把 diff 拆成规范 commit</td><td class="tool"><code>device-local-commit</code></td><td class="note">功能 / 文档 / 配置分类提交</td></tr>
+              <tr><td class="scene">推送前自查敏感信息 + 规范</td><td class="tool"><code>device-change-review</code></td><td class="note">P0 项必须人眼复核</td></tr>
+              <tr><td class="scene">推到 Gerrit（含加 reviewer / 目标分支）</td><td class="tool"><code>device-gerrit-push</code></td><td class="note">用 <code>refs/for/</code> 语法</td></tr>
+              <tr><td class="scene">查某个 Gerrit change 状态 / CI / 评论</td><td class="tool"><code>device-gerrit-query</code></td><td class="note">可拿 current_revision / 文件列表</td></tr>
+              <tr><td class="scene">给别人的 Gerrit change 做评审</td><td class="tool"><code>device-gerrit-review</code></td><td class="note">默认不打分、发送前先给你确认</td></tr>
+              <tr><td class="scene">recheck / abandon / 加 reviewer / 拉到本地</td><td class="tool"><code>device-gerrit-ops</code></td><td class="note">单步快捷操作</td></tr>
+              <tr><td class="scene">向 Jira 同步进度 / 贴 patch 链接</td><td class="tool"><code>device-jira-comment</code></td><td class="note">五段式：进度 / patch / 阻塞 / 结论 / 下一步</td></tr>
+              <tr><td class="scene">任务合入后走流程回顾</td><td class="tool"><code>device-dev-completion</code></td><td class="note">编排沉淀 → 提交 → 回顾</td></tr>
+              <tr><td class="scene">首次配 Gerrit / Jira 凭据</td><td class="tool"><code>device-gerrit-setup</code> · <code>device-jira-setup</code></td><td class="note">一次性，配置完就不用再跑</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- 原生工具 -->
+      <details class="tool-group" open>
+        <summary>
+          <span class="gt-title">B. 原生工具 · AI 内建的检索与读写<span class="gt-count">7 项</span></span>
+          <span class="chev"></span>
+        </summary>
+        <div class="tg-body">
+          <p class="tip">这些工具 AI 会自己挑，但你知道它们在干什么，review diff 和定位问题时更有数。</p>
+          <table class="lookup">
+            <thead><tr><th class="scene">我要…</th><th class="tool">用什么</th><th class="note">备注</th></tr></thead>
+            <tbody>
+              <tr><td class="scene">按路径/通配符找文件</td><td class="tool"><code>Glob</code></td><td class="note">如 <code>src/slic3r/GUI/**/*Device*.cpp</code></td></tr>
+              <tr><td class="scene">按字面量/正则找代码</td><td class="tool"><code>Grep (rg)</code></td><td class="note">知道确切类名、函数名、协议字段时首选</td></tr>
+              <tr><td class="scene">按"语义/行为"追代码</td><td class="tool"><code>SemanticSearch</code></td><td class="note">问"这个功能在哪实现"「…是怎么工作的」</td></tr>
+              <tr><td class="scene">精读指定文件或片段</td><td class="tool"><code>Read</code></td><td class="note">支持 offset / limit，不要盲 cat 整个大文件</td></tr>
+              <tr><td class="scene">替换已有文件内容</td><td class="tool"><code>StrReplace</code> / <code>Write</code></td><td class="note">能改就别重写；<code>Write</code> 会覆盖整个文件</td></tr>
+              <tr><td class="scene">跑命令 / 构建 / git</td><td class="tool"><code>Shell</code></td><td class="note">长任务会自动后台化，用 <code>Await</code> 轮询</td></tr>
+              <tr><td class="scene">复杂多步探查</td><td class="tool"><code>Task</code> 子代理</td><td class="note">仅当广域探索时用，单点问题直接查</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- 外部系统 -->
+      <details class="tool-group" open>
+        <summary>
+          <span class="gt-title">C. 外部系统 · Gerrit / Jira / IDE / 构建<span class="gt-count">5 项</span></span>
+          <span class="chev"></span>
+        </summary>
+        <div class="tg-body">
+          <table class="lookup">
+            <thead><tr><th class="scene">系统</th><th class="tool">日常操作</th><th class="note">AI 入口</th></tr></thead>
+            <tbody>
+              <tr><td class="scene">Gerrit</td><td class="tool">查 change / 推送 / 评审 / recheck</td><td class="note"><code>device-gerrit-*</code> 五件套</td></tr>
+              <tr><td class="scene">Jira</td><td class="tool">分析 / 评论 / 批量处理</td><td class="note"><code>device-jira-*</code> 五件套</td></tr>
+              <tr><td class="scene">Visual Studio 2022（默认）</td><td class="tool">Release 构建 · 断点调试</td><td class="note">通过 <code>device-local-build</code> / <code>device-local-debug</code></td></tr>
+              <tr><td class="scene">Visual Studio Code（可选）</td><td class="tool">轻量调试 · Markdown 预览</td><td class="note">调试技能支持切换到 VSCode</td></tr>
+              <tr><td class="scene">构建脚本</td><td class="tool">最小验证 / 完整构建</td><td class="note">在 <code>device-local-build</code> 内部封装</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <div class="callout ok">
+        <strong>选择原则：</strong>
+        <strong>知道确切字符串</strong> → <code>Grep</code>；
+        <strong>只知道行为描述</strong> → <code>SemanticSearch</code>；
+        <strong>知道大概路径</strong> → <code>Glob</code>；
+        <strong>任务是"跑一条完整链路"</strong> → 直接喊对应 <code>device-*</code> 技能。
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 3. 相关知识目录 -->
+    <!-- ============================================================ -->
+    <section id="kb" class="card">
+      <h2><span class="num">03</span>相关知识目录</h2>
+      <p class="card-intro">
+        与结对开发直接相关的知识分三层：
+        <strong>协议层</strong>（AI 和你怎么配合的"合同"）、
+        <strong>设备知识层</strong>（设备本身的 WHAT / WHY）、
+        <strong>源码资源层</strong>（真正的实现 HOW）。
+      </p>
+
+      <div class="phase-tools">
+        <button type="button" class="phase-btn" data-action="expand-all">展开全部</button>
+        <button type="button" class="phase-btn" data-action="collapse-all">收起全部</button>
+      </div>
+
+      <!-- 层 1 协议 -->
+      <details class="kb-layer">
+        <summary>
+          <h3><span class="badge">L1</span>结对协议层 · AI 的行为规则</h3>
+          <span class="chev">▸</span>
+        </summary>
+        <div class="kb-body">
+          <p class="kb-desc">改动这些文件 = 改动 AI 的行为。没事别乱动，要动先看对应 README。</p>
+          <div class="tree"><span class="key">openspec/ai-context/</span>               <span class="comment"># 设备 profile 单一来源（也可用 env STUDIO_AI_DEVICE_ENTRY 或显式要求启用）</span>
+  switch.json                         <span class="comment"># deviceDevelopProfile 开关</span>
+  profiles/device/
+    entry.md                          <span class="comment"># 设备 profile 入口</span>
+    load-order.md                     <span class="comment"># 规则与技能加载顺序</span>
+
+<span class="key">.cursor/</span>
+  rules/                              <span class="comment"># 全局 always-applied 规则</span>
+    commit-msg.mdc                    <span class="comment"># commit 规范（必须）</span>
+    minimal-format-changes.mdc        <span class="comment"># 最小化格式改动（必须）</span>
+    agent-output-format.mdc           <span class="comment"># Agent 输出格式</span>
+    device-doc-context.mdc            <span class="comment"># 设备 profile 的门控逻辑</span>
+  skills/device/                      <span class="comment"># 设备技能桥接（每个 SKILL.md 指向下面 L2 的原始文件）</span></div>
+          <table class="grid">
+            <thead><tr><th>什么时候看这一层</th><th>看哪里</th></tr></thead>
+            <tbody>
+              <tr><td>搞不清 AI 为什么这么提交 / 这么回答</td><td><code>.cursor/rules/</code></td></tr>
+              <tr><td>profile 没生效 / 技能没被加载</td><td>三选一：<code>openspec/ai-context/switch.json</code> 中 <code>deviceDevelopProfile: true</code>、env <code>STUDIO_AI_DEVICE_ENTRY</code>、自然语言显式要求</td></tr>
+              <tr><td>想知道某个 <code>device-*</code> 技能的完整定义</td><td><code>.cursor/skills/device/&lt;skill&gt;/SKILL.md</code> 的桥接指向 L2 原始文件</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- 层 2 设备知识 -->
+      <details class="kb-layer">
+        <summary>
+          <h3><span class="badge">L2</span>设备知识层 · 你做设备任务的主工作台</h3>
+          <span class="chev">▸</span>
+        </summary>
+        <div class="kb-body">
+          <p class="kb-desc">设备域真实知识源，几乎 90% 的问题都先来这里。先读 <code>readme食用指南.md</code>，不要一上来通读全目录。</p>
+          <div class="tree"><span class="key">openspec/docs/device/</span>
+  readme食用指南.md                    <span class="comment"># 本目录入口（第一次先看这个）</span>
+  开发流程.md                          <span class="comment"># 5 步流程总览</span>
+  设备域新人开发指南                   <span class="comment"># 本文件（结合 AI 的新人指南，HTML 无扩展名）</span>
+
+  openspec/rules/device/                                    <span class="comment"># 目录 / 命名 / 归档 / 语言规则</span>
+    README.md
+    01-目录与命名规则.md
+    ...
+
+  openspec/skills/device/                                   <span class="comment"># 10 个技能原始定义（桥接来源）</span>
+    README.md
+    01-设备上下文进入技能.md          <span class="comment"># → device-context-entry</span>
+    02-设备知识检索技能.md            <span class="comment"># → device-knowledge-search</span>
+    03-设备问题分析技能.md            <span class="comment"># → device-problem-analysis</span>
+    04-文档沉淀技能.md                <span class="comment"># → device-doc-archiving</span>
+    05-设备代码本地提交技能.md        <span class="comment"># → device-local-commit</span>
+    06-设备改动Review技能.md          <span class="comment"># → device-change-review</span>
+    07-设备代码推送Gerrit技能.md      <span class="comment"># → device-gerrit-push</span>
+    08-设备开发完成技能.md            <span class="comment"># → device-dev-completion</span>
+    09-设备研发本地编译技能.md        <span class="comment"># → device-local-build（手动）</span>
+    10-设备研发本地调试技能.md        <span class="comment"># → device-local-debug（手动）</span>
+    30–34 Gerrit 系列
+    40–44 Jira 系列
+
+  openspec/specs/device/                                    <span class="comment"># 设备专题文档</span>
+    主题索引.md                        <span class="comment"># 按问题域检索（常用）</span>
+    来源映射表.md                      <span class="comment"># 反查原始路径</span>
+    功能架构文档/                      <span class="comment"># 系统结构、页面流转、设备能力</span>
+    软件代码文档/                      <span class="comment"># 源码入口、协议、OpenSpec 变更</span></div>
+          <table class="grid">
+            <thead><tr><th>什么时候看这一层</th><th>看哪里</th></tr></thead>
+            <tbody>
+              <tr><td>不知道某个功能归谁管</td><td><code>openspec/specs/device/主题索引.md</code></td></tr>
+              <tr><td>想搞清楚系统分层 / 页面流转</td><td><code>openspec/specs/device/功能架构文档/README.md</code></td></tr>
+              <tr><td>想搞清楚某块源码为什么这么写</td><td><code>openspec/specs/device/软件代码文档/README.md</code>（含 OpenSpec 背景）</td></tr>
+              <tr><td>要新增文档但不确定放哪</td><td><code>openspec/rules/device/01-目录与命名规则.md</code></td></tr>
+              <tr><td>想看某个技能的完整步骤</td><td><code>openspec/skills/device/&lt;编号&gt;-XXX技能.md</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- 层 3 源码与资源 -->
+      <details class="kb-layer">
+        <summary>
+          <h3><span class="badge">L3</span>源码与资源层 · 真正的实现</h3>
+          <span class="chev">▸</span>
+        </summary>
+        <div class="kb-body">
+          <p class="kb-desc">开源路径，<strong>commit message 必须全英文</strong>。不确定某个修改是否属于"开源改动"时，看它是不是放在这些目录下。</p>
+          <div class="tree"><span class="key">src/</span>                                 <span class="comment"># C++ 主源码（libslic3r / slic3r / …）</span>
+<span class="key">resources/</span>                           <span class="comment"># 配置、翻译、profiles、图片资源</span>
+<span class="key">tests/</span>                               <span class="comment"># 测试用例</span>
+<span class="key">scripts/</span>                             <span class="comment"># 构建、打包、CI 脚本</span></div>
+          <table class="grid">
+            <thead><tr><th>什么时候看这一层</th><th>看哪里 / 怎么用</th></tr></thead>
+            <tbody>
+              <tr><td>阶段 03 检索背景后要精读实现</td><td>先 <code>Grep</code> 定位，再 <code>Read</code> 局部精读</td></tr>
+              <tr><td>阶段 04 要落地改动</td><td>优先 <code>StrReplace</code>，避免 <code>Write</code> 整文件覆盖</td></tr>
+              <tr><td>判断这条 commit 要不要英文</td><td>只要 diff 命中 <code>src/</code> / <code>resources/</code> / <code>tests/</code>，整条 message 全英文</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <div class="callout info">
+        <strong>跨层流动的正确方向：</strong>
+        <code>L2 索引</code> → <code>L2 专题文档</code> → <code>L3 源码</code> → 改完回到 <code>L2</code> 沉淀。
+        尽量不要越过 L2 直接从"关键词 → 源码"硬搜，会漏掉历史背景。
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 附 A. 一次性准备 -->
+    <!-- ============================================================ -->
+    <section id="setup" class="card">
+      <h2><span class="num">附 A</span>一次性准备</h2>
+      <p class="card-intro">这几项配完就不用再配。新人第一天按顺序走一遍即可。</p>
+
+      <ol>
+        <li>
+          <strong>开启设备 profile</strong>：以下三路任一成立即启用——
+          <ul>
+            <li>在 <code>openspec/ai-context/switch.json</code> 中将 <code>"deviceDevelopProfile"</code> 设为 <code>true</code></li>
+            <li>设置环境变量 <code>STUDIO_AI_DEVICE_ENTRY=true</code>（也接受 <code>1</code> / <code>on</code>，不区分大小写；适合 CI 或临时会话）</li>
+            <li>在自然语言中明确要求 AI 进入设备域（如「按设备域处理」「使用设备域 XX 技能」）</li>
+          </ul>
+        </li>
+        <li>
+          <strong>配 Gerrit 凭据与 hook</strong>：让 AI 走 <code>device-gerrit-setup</code>，
+          设置 <code>GERRIT_USERNAME</code> / <code>GERRIT_PAT</code> 环境变量，
+          安装 <code>commit-msg</code> hook（自动补 Change-Id）。
+        </li>
+        <li>
+          <strong>配 Jira 凭据</strong>：让 AI 走 <code>device-jira-setup</code>，
+          设置 <code>STUDIO_JIRA_USER</code> / <code>STUDIO_JIRA_TOKEN</code>，并做一次连通性验证。
+        </li>
+        <li>
+          <strong>准备本地构建环境</strong>：Windows + Visual Studio 2022 + Release 档；
+          第一次构建建议让 AI 按 <code>device-local-build</code> 跑一次完整构建，确认产物包含
+          <code>libslic3r_gui.pdb</code>。
+        </li>
+        <li>
+          <strong>跑通第一条示例链路</strong>：挑一个量级最小的 Jira，用
+          <code>device-jira-analyze</code> 看方案，再用 <code>device-jira-resolve</code> 走完整流程，
+          感受一遍 12 个阶段的节奏。
+        </li>
+      </ol>
+
+      <div class="callout warn">
+        <strong>第一次不要贪多：</strong>先完整跑通一次，再去理解"如何并行开多个任务 / 如何批量处理 Jira"。
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 附 B. 安全红线 -->
+    <!-- ============================================================ -->
+    <section id="safety" class="card">
+      <h2><span class="num">附 B</span>安全红线</h2>
+      <p class="card-intro">不管用不用 AI，这两列都是你自己负责的事。</p>
+      <div class="two-col">
+        <div class="col red">
+          <h3>绝对不做</h3>
+          <ul>
+            <li>对 <code>master</code> / 发布分支 <code>git push --force</code></li>
+            <li>把 token、个人 PAT、内网 URL、本地绝对路径写进 commit 或文档</li>
+            <li>把 AI 顺手产出的大段无关格式化与功能改动一起提交</li>
+            <li>直接修改 <code>.cursor/rules/</code> 或 <code>openspec/rules/device/</code> 不做评审</li>
+            <li>跳过 <code>device-change-review</code> 就推 Gerrit</li>
+            <li>让 AI 连续执行超过 3 步没有你的反馈</li>
+          </ul>
+        </div>
+        <div class="col green">
+          <h3>每次必做</h3>
+          <ul>
+            <li>推送前 <code>git diff</code> 一遍本地 commit，人眼过</li>
+            <li>确认 <code>Change-Id:</code> 是每条 message 的最后一行</li>
+            <li>确认涉及 <code>src/</code> / <code>resources/</code> 的 commit message 全英文</li>
+            <li>AI 写的 commit 正文 ≤ 30 词、单段，没有复述 diff 或罗列文件</li>
+            <li>大改 / rebase 前 <code>git branch backup/pre-xxx-$(date)</code> 留备份</li>
+            <li>cherry-pick 到多分支时保留原 Change-Id 与语言</li>
+            <li>AI 每次给的 diff 都读过再采纳，不当黑盒</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <p>
+        深入细节 →
+        规则：<code>openspec/rules/device/</code> ·
+        技能：<code>openspec/skills/device/</code> ·
+        专题：<code>openspec/specs/device/</code>
+      </p>
+    </footer>
+
+  </main>
+
+  <script>
+    document.querySelectorAll('.phase-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var open = btn.dataset.action === 'expand-all';
+        var scope = btn.closest('section') || document;
+        scope.querySelectorAll('details').forEach(function (d) {
+          d.open = open;
+        });
+      });
+    });
+
+    // 流程图节点点击 / 键盘激活：展开对应阶段卡并滚动定位
+    (function () {
+      var stages = document.querySelectorAll('details.stage');
+      function activate(node) {
+        var idx = parseInt(node.getAttribute('data-idx'), 10);
+        if (!idx || !stages[idx - 1]) return;
+        var target = stages[idx - 1];
+        target.open = true;
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        var summary = target.querySelector('summary');
+        if (summary) summary.focus({ preventScroll: true });
+      }
+      document.querySelectorAll('.flow-chart .node').forEach(function (node) {
+        node.addEventListener('click', function () { activate(node); });
+        node.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            activate(node);
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

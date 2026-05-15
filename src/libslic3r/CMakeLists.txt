@@ -158,6 +158,18 @@ set(lisbslic3r_sources
     Format/SL1.cpp
 	Format/svg.hpp
     Format/svg.cpp
+    Format/glTF.hpp
+    Format/glTF.cpp
+    Format/FBX.hpp
+    Format/FBX.cpp
+    TexturePainting.hpp
+    TexturePainting.cpp
+    TextureToColor/TextureToColor.hpp
+    TextureToColor/TextureToColor.cpp
+    TextureToColor/ColorUtils.hpp
+    TextureToColor/ColorUtils.cpp
+    TextureToColor/KdTree.hpp
+    TextureToColor/KdTree.cpp
     GCode/ThumbnailData.cpp
     GCode/ThumbnailData.hpp
     GCode/GCodeEditor.cpp
@@ -344,6 +356,8 @@ set(lisbslic3r_sources
     Tesselate.hpp
     TriangleMesh.cpp
     TriangleMesh.hpp
+    MeshDiagnostics.hpp
+    MeshDiagnostics.cpp
     TriangleMeshDeal.cpp
     TriangleMeshDeal.hpp
     TriangleMeshSlicer.cpp
@@ -502,6 +516,7 @@ cmake_policy(PUSH)
 cmake_policy(SET CMP0011 NEW)
 find_package(CGAL REQUIRED)
 find_package(OpenCV REQUIRED core)
+find_package(assimp REQUIRED)
 cmake_policy(POP)
 
 add_library(libslic3r_cgal STATIC
@@ -544,7 +559,7 @@ endif ()
 encoding_check(libslic3r)
 
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
-target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/TextureToColor PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r PUBLIC ${EXPAT_INCLUDE_DIRS})
 
 # Find the OCCT and related libraries
@@ -604,6 +619,8 @@ target_link_libraries(libslic3r
     opencv_core
     opencv_imgproc
     opencv_imgcodecs
+    ${_cgal_tgt}
+    assimp::assimp
     )
 
 if(NOT WIN32)

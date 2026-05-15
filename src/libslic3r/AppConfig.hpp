@@ -298,6 +298,20 @@ private:
 	std::vector<PrinterCaliInfo>								m_printer_cali_infos;
 };
 
+// App "app" section key for first dual-extruder slicing guide video; one key per printer_model (spaces -> '_').
+inline std::string dual_extruder_first_slice_video_app_config_key(const std::string& printer_model)
+{
+	std::string slug;
+	slug.reserve(printer_model.size());
+	for (unsigned char c : printer_model) {
+		if (c == ' ')
+			slug.push_back('_');
+		else
+			slug.push_back(static_cast<char>(c));
+	}
+	return std::string("play_slicing_video_model_") + slug;
+}
+
 } // namespace Slic3r
 
 #endif /* slic3r_AppConfig_hpp_ */

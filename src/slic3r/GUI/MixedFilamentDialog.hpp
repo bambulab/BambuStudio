@@ -22,8 +22,9 @@ namespace GUI {
 struct MixedFilamentResult {
     std::vector<unsigned int> components;   // 1-based physical filament indices
     std::vector<int>          ratios;       // percentages, sum = 100
-    bool gradient_enabled  = false;
+    bool gradient_enabled   = false;
     int  gradient_direction = 0;            // 0 = A→B, 1 = B→A  (only for 2-color)
+    bool per_part_gradient  = false;        // valid only when gradient_enabled == true
 };
 
 class MixedFilamentDialog : public DPIDialog
@@ -59,6 +60,7 @@ private:
     void on_ratio_changed(int new_ratio_a);
     void on_gradient_toggled();
     void on_gradient_direction_changed();
+    void on_per_part_gradient_toggled();
     void on_add_material();
     void on_remove_material();
     void on_recommendation_clicked(unsigned int comp_a, unsigned int comp_b);
@@ -102,6 +104,9 @@ private:
     wxStaticText*               m_label_gradient{nullptr};
     ComboBox*                   m_combo_gradient_dir{nullptr};
     wxBoxSizer*                 m_gradient_sizer{nullptr};
+    CheckBox*                   m_chk_per_part_gradient{nullptr};
+    wxStaticText*               m_label_per_part_gradient{nullptr};
+    wxBoxSizer*                 m_per_part_gradient_sizer{nullptr};
     Button*                     m_btn_add_material{nullptr};
     Button*                     m_btn_remove_material{nullptr};
     Button*                     m_btn_ok{nullptr};

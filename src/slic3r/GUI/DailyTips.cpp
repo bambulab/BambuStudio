@@ -347,6 +347,51 @@ void DailyTipsPanel::retrieve_data_from_hint_database(HintDataNavigation nav)
     }
 }
 
+void DailyTipsPanel::retrieve_data_from_hint_database(const std::string& key, bool force_expand)
+{
+    if (force_expand)
+        m_is_expanded = true;
+
+    HintData* hint_data = HintDatabase::get_instance().get_hint_by_key(key);
+    if (hint_data != nullptr)
+    {
+        DailyTipsData data{ hint_data->text,
+                            hint_data->documentation_link,
+                            hint_data->image_url,
+                            hint_data->follow_text,
+                            hint_data->hypertext,
+                            hint_data->callback
+        };
+        m_dailytips_renderer->update_data(data);
+        m_first_enter = true;
+    }
+}
+
+void DailyTipsPanel::retrieve_data_from_hint_database(const std::string& key, const std::string& text_arg, bool force_expand)
+{
+    if (force_expand)
+        m_is_expanded = true;
+
+    HintData* hint_data = HintDatabase::get_instance().get_hint_by_key(key);
+    if (hint_data != nullptr)
+    {
+        std::string text = hint_data->text;
+        size_t pos = text.find("%s");
+        if (pos != std::string::npos)
+            text.replace(pos, 2, text_arg);
+
+        DailyTipsData data{ text,
+                            hint_data->documentation_link,
+                            hint_data->image_url,
+                            hint_data->follow_text,
+                            hint_data->hypertext,
+                            hint_data->callback
+        };
+        m_dailytips_renderer->update_data(data);
+        m_first_enter = true;
+    }
+}
+
 void DailyTipsPanel::expand(bool expand)
 {
     if (!m_can_expand)

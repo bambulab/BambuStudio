@@ -1,7 +1,9 @@
 #include "Plater.hpp"
+#include <array>
 #include <cstddef>
 #include <cstdio>
 #include <algorithm>
+#include <map>
 #include <numeric>
 #include <vector>
 #include <string>
@@ -9,6 +11,7 @@
 #include <sstream>
 #include <regex>
 #include <future>
+#include <functional>
 #include <fstream>
 #include <chrono>
 #include <boost/algorithm/string.hpp>
@@ -56,6 +59,8 @@
 #include "libslic3r/Format/AMF.hpp"
 //#include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
+#include "libslic3r/Format/glTF.hpp"
+#include "libslic3r/TexturePainting.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "Gizmos/GLGizmoAlignment.hpp"
 #include "libslic3r/Model.hpp"
@@ -128,6 +133,7 @@
 #include "PresetComboBoxes.hpp"
 #include "MsgDialog.hpp"
 #include "SingleChoiceDialog.hpp"
+#include "TextureImportDialog.hpp"
 #include "ProjectDirtyStateManager.hpp"
 #include "Gizmos/GLGizmoSimplify.hpp" // create suggestion notification
 #include "Gizmos/GLGizmoSVG.hpp" // Drop SVG file
@@ -197,6 +203,15 @@ static bool g_helio_pre_select_optimization = false;
 
 bool& get_helio_pre_select_optimization_flag() {
     return g_helio_pre_select_optimization;
+}
+
+static bool has_importable_texture(const Slic3r::TexturedMesh& textured_mesh)
+{
+    if (textured_mesh.vertices.empty() || textured_mesh.indices.empty())
+        return false;
+
+    return std::any_of(textured_mesh.textures.begin(), textured_mesh.textures.end(),
+        [](const Slic3r::TextureImage& texture) { return !texture.data.empty(); });
 }
 
 wxDEFINE_EVENT(EVT_SCHEDULE_BACKGROUND_PROCESS,     SimpleEvent);
@@ -3945,8 +3960,14 @@ void Sidebar::on_filament_count_change(size_t num_filaments)
 
     auto& choices = combos_filament();
 
-    if (num_physical == choices.size())
+    if (num_physical == choices.size()) {
+        // the ctor pre-creates one combo, so on startup with a single-filament project this guard is hit 
+        // before any layout pass has sized m_physical_scroll_area.
+        // this is a workaround for such cases
+        recalc_filament_scroll_sizes();
+        update_mixed_filament_list();
         return;
+    }
 
     if (choices.size() == 1 || num_physical == 1)
         choices[0]->GetDropDown().Invalidate();
@@ -4148,7 +4169,7 @@ void Sidebar::edit_filament()
         p->editing_filament = p->m_menu_filament_id; // sync with TabPresetComboxBox's m_filament_idx
 }
 
-void Sidebar::add_custom_filament(wxColour new_col) {
+void Sidebar::add_custom_filament(wxColour new_col, const std::string& preset_name) {
     if (is_new_project_in_gcode3mf()) { return; }
     if (p->combos_filament.size() >= size_t(EnforcerBlockerType::ExtruderMax)) return;
     if (wxGetApp().preset_bundle->filament_presets.size() >= size_t(EnforcerBlockerType::ExtruderMax)) return;
@@ -4194,6 +4215,7 @@ void Sidebar::add_custom_filament(wxColour new_col) {
         rotate_strings("filament_mixed_sublayer_ratios");
         rotate_bools("filament_mixed_gradient");
         rotate_strings("filament_mixed_gradient_range");
+        rotate_bools("filament_mixed_gradient_per_part");
 
         if (ams_mc.size() > total)
             std::rotate(ams_mc.begin() + insert_pos, ams_mc.begin() + total, ams_mc.end());
@@ -4216,6 +4238,12 @@ void Sidebar::add_custom_filament(wxColour new_col) {
                 vol->mmu_segmentation_facets.shift_states_above(*vol, ebt_threshold, +1);
             }
         }
+    }
+
+    if (!preset_name.empty() &&
+        wxGetApp().preset_bundle->filaments.find_preset(preset_name, false) &&
+        insert_pos < wxGetApp().preset_bundle->filament_presets.size()) {
+        wxGetApp().preset_bundle->filament_presets[insert_pos] = preset_name;
     }
 
     wxGetApp().plater()->get_partplate_list().on_filament_added(filament_count);
@@ -5691,6 +5719,8 @@ void Sidebar::add_mixed_filament()
             project_config.set_key_value("filament_mixed_gradient", new ConfigOptionBools({false}));
         if (!project_config.option("filament_mixed_gradient_range"))
             project_config.set_key_value("filament_mixed_gradient_range", new ConfigOptionStrings({""}) );
+        if (!project_config.option("filament_mixed_gradient_per_part"))
+            project_config.set_key_value("filament_mixed_gradient_per_part", new ConfigOptionBools({false}));
 
         {
             auto* grad_opt = project_config.option<ConfigOptionBools>("filament_mixed_gradient");
@@ -5706,6 +5736,11 @@ void Sidebar::add_mixed_filament()
             } else {
                 grad_range_opt->values[new_idx] = "";
             }
+        }
+        {
+            auto* per_part_opt = project_config.option<ConfigOptionBools>("filament_mixed_gradient_per_part");
+            while (per_part_opt->values.size() <= new_idx) per_part_opt->values.push_back(false);
+            per_part_opt->values[new_idx] = result.gradient_enabled && result.per_part_gradient;
         }
 
         auto& presets = wxGetApp().preset_bundle->filament_presets;
@@ -5786,6 +5821,9 @@ void Sidebar::edit_mixed_filament(size_t panel_idx)
         if (std::sscanf(grad_range_opt->values[cfg_idx].c_str(), "%f,%f", &v0, &v1) == 2)
             existing.gradient_direction = (v0 > v1) ? 0 : 1;
     }
+    auto* per_part_opt = project_config.option<ConfigOptionBools>("filament_mixed_gradient_per_part");
+    if (existing.gradient_enabled && per_part_opt && cfg_idx < per_part_opt->values.size())
+        existing.per_part_gradient = per_part_opt->values[cfg_idx];
 
     MixedFilamentDialog dlg(this, existing, color_strs, names, types);
     if (dlg.ShowModal() == wxID_OK) {
@@ -5822,6 +5860,8 @@ void Sidebar::edit_mixed_filament(size_t panel_idx)
             project_config.set_key_value("filament_mixed_gradient", new ConfigOptionBools({false}));
         if (!project_config.option("filament_mixed_gradient_range"))
             project_config.set_key_value("filament_mixed_gradient_range", new ConfigOptionStrings({""}) );
+        if (!project_config.option("filament_mixed_gradient_per_part"))
+            project_config.set_key_value("filament_mixed_gradient_per_part", new ConfigOptionBools({false}));
 
         {
             auto* grad_opt = project_config.option<ConfigOptionBools>("filament_mixed_gradient");
@@ -5838,6 +5878,11 @@ void Sidebar::edit_mixed_filament(size_t panel_idx)
                 grad_range_opt->values[cfg_idx] = "";
             }
         }
+        {
+            auto* per_part_opt = project_config.option<ConfigOptionBools>("filament_mixed_gradient_per_part");
+            while (per_part_opt->values.size() <= cfg_idx) per_part_opt->values.push_back(false);
+            per_part_opt->values[cfg_idx] = result.gradient_enabled && result.per_part_gradient;
+        }
 
         // Compute blended color
         std::string blended = blend_mixed_color(result.components, result.ratios, color_strs);
@@ -5850,6 +5895,8 @@ void Sidebar::edit_mixed_filament(size_t panel_idx)
             multi_colour_opt->values[cfg_idx] = blended;
 
         update_mixed_filament_list();
+        wxGetApp().plater()->update_project_dirty_from_presets();
+        wxPostEvent(this, SimpleEvent(EVT_SCHEDULE_BACKGROUND_PROCESS, this));
     }
 }
 
@@ -6436,8 +6483,30 @@ public:
     BoundingBox scaled_bed_shape_bb() const;
 
     // BBS: backup & restore
+    using LoadProgressCallback = std::function<bool(int, const wxString&)>;
     std::vector<size_t> load_files(const std::vector<fs::path>& input_files, LoadStrategy strategy, bool ask_multi = false);
-    std::vector<size_t> load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z = false, bool split_object = false);
+    std::vector<size_t> load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z = false,
+                                           bool split_object = false, LoadProgressCallback progress_callback = {});
+
+    struct TextureImportResult {
+        Slic3r::PaintedMesh               painted;
+        std::vector<Slic3r::FilamentMatch> matches;
+        std::vector<std::array<float, 4>>  new_filament_colors;
+        std::vector<std::string>           new_filament_preset_names;
+        size_t                             existing_filament_count = 0;
+        bool                               skipped = false;
+        bool                               fallback_to_geometry_only = false;
+        wxString                           fallback_warning;
+    };
+
+    bool run_textured_mesh_import_dialog(Slic3r::Model& loaded_model, TextureImportResult& result,
+                                         std::function<bool()> cancel_callback = {},
+                                         std::function<bool(int)> progress_callback = {});
+    void apply_textured_mesh_import_result(Slic3r::Model& loaded_model, const std::vector<size_t>& obj_idxs,
+                                           const TextureImportResult& result,
+                                           LoadProgressCallback progress_callback = {});
+    void handle_textured_mesh_import(Slic3r::Model& model, const std::vector<size_t>& obj_idxs,
+                                     std::function<bool()> cancel_callback = {});
 
     fs::path get_export_file_path(GUI::FileType file_type);
     wxString get_export_file(GUI::FileType file_type);
@@ -7894,6 +7963,15 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         // const bool type_zip_amf = !type_3mf && std::regex_match(path.string(), pattern_zip_amf);
         const bool type_any_amf = !type_3mf && std::regex_match(path.string(), pattern_any_amf);
         // const bool type_prusa   = std::regex_match(path.string(), pattern_prusa);
+        const bool may_have_texture = type_3mf
+            || boost::algorithm::iends_with(path.string(), ".obj")
+            || boost::algorithm::iends_with(path.string(), ".glb")
+            || boost::algorithm::iends_with(path.string(), ".gltf")
+            || boost::algorithm::iends_with(path.string(), ".fbx");
+        const float input_files_ratio = may_have_texture ? 0.12f : INPUT_FILES_RATIO;
+        const float init_model_ratio = may_have_texture ? 0.15f : INIT_MODEL_RATIO;
+        const float center_around_origin_ratio = may_have_texture ? 0.18f : CENTER_AROUND_ORIGIN_RATIO;
+        const float load_model_ratio = may_have_texture ? 0.20f : LOAD_MODEL_RATIO;
 
         Slic3r::Model model;
         // BBS: add auxiliary files related logic
@@ -7924,10 +8002,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     VolumeColorInfoMap volume_color_data;
                     model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, &config_substitutions, en_3mf_file_type, strategy, &plate_data, &project_presets,
                                                              &file_version,
-                                                             [this, &dlg, real_filename, &progress_percent, &file_percent, stage_percent, INPUT_FILES_RATIO, total_files, i,
+                                                             [this, &dlg, real_filename, &progress_percent, &file_percent, stage_percent, input_files_ratio, total_files, i,
                                                               &is_user_cancel](int import_stage, int current, int total, bool &cancel) {
                                                                  bool     cont = true;
-                                                                 float percent_float = (100.0f * (float)i / (float)total_files) + INPUT_FILES_RATIO * ((float)stage_percent[import_stage] + (float)current * (float)(stage_percent[import_stage + 1] - stage_percent[import_stage]) /(float) total) / (float)total_files;
+                                                                 float percent_float = (100.0f * (float)i / (float)total_files) + input_files_ratio * ((float)stage_percent[import_stage] + (float)current * (float)(stage_percent[import_stage + 1] - stage_percent[import_stage]) /(float) total) / (float)total_files;
                                                                  BOOST_LOG_TRIVIAL(trace) << "load_3mf_file: percent(float)=" << percent_float << ", stage = " << import_stage << ", curr = " << current << ", total = " << total;
                                                                  progress_percent = (int)percent_float;
                                                                  wxString msg  = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
@@ -8426,6 +8504,15 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                                 if (file_wipe_tower_y)
                                     *wipe_tower_y = *file_wipe_tower_y;
 
+                                // Re-clamp restored 3mf wipe tower positions against the current plate;
+                                // values that still fit are kept as-is.
+                                {
+                                    PartPlateList& plate_list = this->partplate_list;
+                                    for (size_t plate_id = 0; plate_id < plate_list.get_plate_list().size(); ++plate_id) {
+                                        plate_list.set_default_wipe_tower_pos_for_plate((int)plate_id, /*init_pos=*/false, /*keep_existing=*/true);
+                                    }
+                                }
+
                                 ConfigOptionStrings* filament_color = proj_cfg.opt<ConfigOptionStrings>("filament_colour");
                                 if (filament_color) {
                                     size_t filament_count = filament_color->size();
@@ -8515,10 +8602,10 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         if (angle <= 0) angle = 0.5;
                         bool split_compound = wxGetApp().app_config->get_bool("is_split_compound");
                         model = Slic3r::Model:: read_from_step(path.string(), strategy,
-                        [this, &dlg, real_filename, &progress_percent, &file_percent, step_percent, INPUT_FILES_RATIO, total_files, i](int load_stage, int current, int total, bool &cancel)
+                        [this, &dlg, real_filename, &progress_percent, &file_percent, step_percent, input_files_ratio, total_files, i](int load_stage, int current, int total, bool &cancel)
                         {
                                 bool     cont = true;
-                                float percent_float = (100.0f * (float)i / (float)total_files) + INPUT_FILES_RATIO * ((float)step_percent[load_stage] + (float)current * (float)(step_percent[load_stage + 1] - step_percent[load_stage]) / (float)total) / (float)total_files;
+                                float percent_float = (100.0f * (float)i / (float)total_files) + input_files_ratio * ((float)step_percent[load_stage] + (float)current * (float)(step_percent[load_stage + 1] - step_percent[load_stage]) / (float)total) / (float)total_files;
                                 BOOST_LOG_TRIVIAL(trace) << "load_step_file: percent(float)=" << percent_float << ", stage = " << load_stage << ", curr = " << current << ", total = " << total;
                                 progress_percent = (int)percent_float;
                                 wxString msg  = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
@@ -8561,7 +8648,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     }
                     model = Slic3r::Model:: read_from_file(
                     path.string(), nullptr, nullptr, strategy, &plate_data, &project_presets, &is_xxx, &file_version, nullptr,
-                    [this, &dlg, real_filename, &progress_percent, &file_percent, INPUT_FILES_RATIO, total_files, i, &designer_model_id, &designer_country_code, &makerlab_region, &makerlab_name, &makerlab_id](int current, int total, bool &cancel,
+                    [this, &dlg, real_filename, &progress_percent, &file_percent, input_files_ratio, total_files, i, &designer_model_id, &designer_country_code, &makerlab_region, &makerlab_name, &makerlab_id](int current, int total, bool &cancel,
                         std::string &mode_id, std::string &code, std::string &ml_region,  std::string &ml_name, std::string &ml_id)
                     {
                             designer_model_id       = mode_id;
@@ -8571,7 +8658,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                             makerlab_id             = ml_id;
 
                             bool     cont = true;
-                            float percent_float = (100.0f * (float)i / (float)total_files) + INPUT_FILES_RATIO * 100.0f * ((float)current / (float)total) / (float)total_files;
+                            float percent_float = (100.0f * (float)i / (float)total_files) + input_files_ratio * 100.0f * ((float)current / (float)total) / (float)total_files;
                             BOOST_LOG_TRIVIAL(trace) << "load_stl_file: percent(float)=" << percent_float << ", curr = " << current << ", total = " << total;
                             progress_percent = (int)percent_float;
                             wxString msg  = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
@@ -8620,7 +8707,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             continue;
         }
 
-        progress_percent = 100.0f * (float)i / (float)total_files + INIT_MODEL_RATIO * 100.0f / (float)total_files;
+        progress_percent = 100.0f * (float)i / (float)total_files + init_model_ratio * 100.0f / (float)total_files;
         dlg_cont = dlg.Update(progress_percent);
         if (!dlg_cont) {
             q->skip_thumbnail_invalid = false;
@@ -8703,7 +8790,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         //        return obj_idxs;
         //}
 
-        progress_percent = 100.0f * (float)i / (float)total_files + CENTER_AROUND_ORIGIN_RATIO * 100.0f / (float)total_files;
+        progress_percent = 100.0f * (float)i / (float)total_files + center_around_origin_ratio * 100.0f / (float)total_files;
         dlg_cont = dlg.Update(progress_percent);
         if (!dlg_cont) {
             q->skip_thumbnail_invalid = false;
@@ -8730,13 +8817,15 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
         tolal_model_count += model_idx;
 
-        progress_percent = 100.0f * (float)i / (float)total_files + LOAD_MODEL_RATIO * 100.0f / (float)total_files;
+        progress_percent = 100.0f * (float)i / (float)total_files + load_model_ratio * 100.0f / (float)total_files;
         dlg_cont = dlg.Update(progress_percent);
         if (!dlg_cont) {
             q->skip_thumbnail_invalid = false;
             return empty_result;
         }
-        if (boost::algorithm::iends_with(path.string(), ".stl") || boost::algorithm::iends_with(path.string(), ".obj")) {
+        if (boost::algorithm::iends_with(path.string(), ".stl") || boost::algorithm::iends_with(path.string(), ".obj") ||
+            boost::algorithm::iends_with(path.string(), ".glb") || boost::algorithm::iends_with(path.string(), ".gltf") ||
+            boost::algorithm::iends_with(path.string(), ".fbx")) {
             import_obj_or_stl = true;
         }
         if (one_by_one) {
@@ -8750,14 +8839,87 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 q->model().load_from(model);
                 load_auxiliary_files();
             }
+            TextureImportResult texture_import_result;
+            int texture_progress_start = progress_percent;
+            int texture_progress_compute_end = progress_percent;
+            int texture_progress_object_end = progress_percent;
+            int texture_progress_file_end = (int)(100.0f * (float)(i + 1) / (float)total_files);
+            if (model.texture_mesh && has_importable_texture(*model.texture_mesh)) {
+                texture_progress_start = (int)(100.0f * (float)i / (float)total_files
+                                            + load_model_ratio * 100.0f / (float)total_files);
+                texture_progress_file_end = (int)(100.0f * (float)(i + 1) / (float)total_files);
+                texture_progress_compute_end = texture_progress_start
+                    + (texture_progress_file_end - texture_progress_start) * 70 / 100;
+                texture_progress_object_end = texture_progress_start
+                    + (texture_progress_file_end - texture_progress_start) * 90 / 100;
+                wxString texture_msg = wxString::Format(_L("Computing texture colors: %s"), from_path(real_filename));
+                dlg_cont = dlg.Update(texture_progress_start, texture_msg);
+                if (!dlg_cont) {
+                    q->skip_thumbnail_invalid = false;
+                    return empty_result;
+                }
+
+                auto cancel_cb = [&dlg, &dlg_cont]() { return !dlg_cont || dlg.WasCancelled(); };
+                auto progress_cb = [&dlg, &dlg_cont, &progress_percent, texture_progress_start, texture_progress_compute_end, texture_msg](int percent) {
+                    int mapped_percent = texture_progress_start
+                        + (texture_progress_compute_end - texture_progress_start) * std::clamp(percent, 0, 100) / 100;
+                    progress_percent = mapped_percent;
+                    dlg_cont = dlg.Update(mapped_percent, texture_msg);
+                    return dlg_cont;
+                };
+                if (!run_textured_mesh_import_dialog(model, texture_import_result, cancel_cb, progress_cb)) {
+                    q->skip_thumbnail_invalid = false;
+                    return empty_result;
+                }
+                if (texture_import_result.fallback_to_geometry_only && !texture_import_result.fallback_warning.empty()) {
+                    MessageDialog(q, texture_import_result.fallback_warning,
+                                  _L("Texture Import Warning"),
+                                  wxOK | wxICON_WARNING).ShowModal();
+                }
+            }
+
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", before load_model_objects, count %1%")%model.objects.size();
-            auto loaded_idxs = load_model_objects(model.objects, is_project_file);
+            auto update_import_progress = [&dlg, &progress_percent](int percent, const wxString& msg) {
+                progress_percent = percent;
+                dlg.Update(percent, msg);
+                return true;
+            };
+            auto object_progress_cb = [&](int percent, const wxString& msg) {
+                if (texture_import_result.painted.face_colors.empty())
+                    return update_import_progress(progress_percent, msg);
+                int mapped_percent = texture_progress_compute_end
+                    + (texture_progress_object_end - texture_progress_compute_end) * std::clamp(percent, 0, 100) / 100;
+                return update_import_progress(mapped_percent, msg);
+            };
+            LoadProgressCallback load_progress_callback;
+            if (!texture_import_result.painted.face_colors.empty())
+                load_progress_callback = object_progress_cb;
+            auto loaded_idxs = load_model_objects(model.objects, is_project_file, false,
+                                                  load_progress_callback);
+            if (!dlg_cont) {
+                q->skip_thumbnail_invalid = false;
+                return empty_result;
+            }
             obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
             if (import_obj_or_stl) {
                 for (int i = 0; i < loaded_idxs.size(); i++) {
                     q->model().set_assembly_pos(q->model().objects[q->model().objects.size() - 1 - i]);
                 }
             }
+            if (!texture_import_result.painted.face_colors.empty()) {
+                this->model.texture_mesh = model.texture_mesh;
+                auto apply_progress_cb = [&](int percent, const wxString& msg) {
+                    int mapped_percent = texture_progress_object_end
+                        + (texture_progress_file_end - texture_progress_object_end) * std::clamp(percent, 0, 100) / 100;
+                    return update_import_progress(mapped_percent, msg);
+                };
+                apply_textured_mesh_import_result(this->model, loaded_idxs, texture_import_result, apply_progress_cb);
+                if (!dlg_cont) {
+                    q->skip_thumbnail_invalid = false;
+                    return empty_result;
+                }
+            }
+
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", finished load_model_objects");
             wxString msg = wxString::Format(_L("Loading file: %s"), from_path(real_filename));
             dlg_cont     = dlg.Update(progress_percent, msg);
@@ -8937,9 +9099,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
 
  #define AUTOPLACEMENT_ON_LOAD
 
-std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z, bool split_object)
+std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& model_objects, bool allow_negative_z,
+                                                     bool split_object, LoadProgressCallback progress_callback)
 {
     const Vec3d bed_size = Slic3r::to_3d(this->bed.build_volume().bounding_volume2d().size(), 1.0) - 2.0 * Vec3d::Ones();
+    auto update_load_progress = [&progress_callback](int percent, const wxString& message) {
+        return !progress_callback || progress_callback(std::clamp(percent, 0, 100), message);
+    };
 
 #ifndef AUTOPLACEMENT_ON_LOAD
     // bool need_arrange = false;
@@ -8951,6 +9117,8 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 #ifdef AUTOPLACEMENT_ON_LOAD
     ModelInstancePtrs new_instances;
 #endif /* AUTOPLACEMENT_ON_LOAD */
+    if (!update_load_progress(0, _L("Importing model to project...")))
+        return obj_idxs;
     for (ModelObject *model_object : model_objects) {
         auto *object = model.add_object(*model_object);
         object->sort_volumes(true);
@@ -9004,6 +9172,8 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
         }
 
         object->ensure_on_bed(allow_negative_z);
+        if (!update_load_progress(35, _L("Placing model on the bed...")))
+            return obj_idxs;
         if (!split_object) {
             //BBS initial assemble transformation
             for (ModelObject* model_object : model.objects) {
@@ -9018,6 +9188,8 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", loaded objects, begin to auto placement");
+    if (!update_load_progress(55, _L("Placing model on the bed...")))
+        return obj_idxs;
 #ifdef AUTOPLACEMENT_ON_LOAD
 #if 0
     // FIXME distance should be a config value /////////////////////////////////
@@ -9064,6 +9236,8 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", finished auto placement, before add_objects_to_list");
     notification_manager->close_notification_of_type(NotificationType::UpdatedItemsInfo);
+    if (!update_load_progress(75, _L("Updating object list...")))
+        return obj_idxs;
 
     if (obj_idxs.size() > 1) {
         std::vector<size_t> obj_idxs_1 (obj_idxs.begin(), obj_idxs.end() - 1);
@@ -9075,6 +9249,8 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
         wxGetApp().obj_list()->add_objects_to_list(obj_idxs);
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ":" << __LINE__ << boost::format(", after add_objects_to_list");
+    if (!update_load_progress(90, _L("Updating 3D view...")))
+        return obj_idxs;
     update();
     // Update InfoItems in ObjectList after update() to use of a correct value of the GLCanvas3D::is_sinking(),
     // which is updated after a view3D->reload_scene(false, flags & (unsigned int)UpdateParams::FORCE_FULL_SCREEN_REFRESH) call
@@ -9084,6 +9260,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
     object_list_changed();
 
     this->schedule_background_process();
+    update_load_progress(100, _L("Model imported."));
 
     return obj_idxs;
 }
@@ -9094,6 +9271,205 @@ void Plater::priv::load_auxiliary_files()
     wxLogNull suppress_log;
     std::string auxiliary_path = encode_path(q->model().get_auxiliary_file_temp_path().c_str());
     //wxGetApp().mainframe->m_project->Reload(auxiliary_path);
+}
+
+bool Plater::priv::run_textured_mesh_import_dialog(Slic3r::Model& loaded_model, TextureImportResult& result,
+                                                   std::function<bool()> cancel_callback,
+                                                   std::function<bool(int)> progress_callback)
+{
+    if (!loaded_model.texture_mesh || !has_importable_texture(*loaded_model.texture_mesh)) return false;
+
+    const wxString fallback_warning = _L("Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only.");
+
+    BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: opening texture import dialog";
+
+    const std::vector<std::string> filament_color_strs = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+
+    std::vector<std::string> filament_names;
+    {
+        auto& preset_bundle = *wxGetApp().preset_bundle;
+        for (size_t i = 0; i < filament_color_strs.size(); ++i) {
+            std::string name;
+            if (i < preset_bundle.filament_presets.size()) {
+                auto* preset = preset_bundle.filaments.find_preset(preset_bundle.filament_presets[i]);
+                if (preset)
+                    name = preset->label(false);
+            }
+            if (name.empty())
+                name = "Filament " + std::to_string(i + 1);
+            filament_names.push_back(name);
+        }
+    }
+
+    TextureImportDialog dlg(q, *loaded_model.texture_mesh, filament_color_strs, filament_names,
+                            std::move(cancel_callback), std::move(progress_callback));
+    if (dlg.ShowModal() != wxID_OK) {
+        if (dlg.was_skipped()) {
+            BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: user skipped texture matching";
+            result.skipped = true;
+            loaded_model.texture_mesh.reset();
+            return true;
+        }
+        if (dlg.fallback_to_geometry_only()) {
+            BOOST_LOG_TRIVIAL(warning) << "handle_textured_mesh_import: texture import failed, falling back to geometry-only import";
+            result.fallback_to_geometry_only = true;
+            result.fallback_warning = fallback_warning;
+            loaded_model.texture_mesh.reset();
+            return true;
+        }
+        BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: user cancelled";
+        loaded_model.texture_mesh.reset();
+        return false;
+    }
+
+    auto painted = dlg.get_painted_mesh();
+    auto final_matches = dlg.get_matches();
+
+    if (painted.face_colors.empty() || final_matches.empty()) {
+        BOOST_LOG_TRIVIAL(warning) << "handle_textured_mesh_import: no painting result";
+        result.fallback_to_geometry_only = true;
+        result.fallback_warning = fallback_warning;
+        loaded_model.texture_mesh.reset();
+        return true;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: got " << painted.cluster_colors.size()
+                            << " clusters, skipped=" << dlg.was_skipped();
+
+    result.painted = std::move(painted);
+    result.matches = std::move(final_matches);
+    result.new_filament_colors = dlg.get_new_filament_colors();
+    result.new_filament_preset_names = dlg.get_new_filament_preset_names();
+    result.existing_filament_count = dlg.get_existing_filament_count();
+    result.skipped = dlg.was_skipped();
+    return true;
+}
+
+void Plater::priv::apply_textured_mesh_import_result(Slic3r::Model& loaded_model, const std::vector<size_t>& obj_idxs,
+                                                     const TextureImportResult& result,
+                                                     LoadProgressCallback progress_callback)
+{
+    auto update_apply_progress = [&progress_callback](int percent, const wxString& message) {
+        return !progress_callback || progress_callback(std::clamp(percent, 0, 100), message);
+    };
+
+    const auto& painted = result.painted;
+    const auto& final_matches = result.matches;
+
+    if (painted.face_colors.empty() || final_matches.empty()) {
+        BOOST_LOG_TRIVIAL(warning) << "handle_textured_mesh_import: no painting result";
+        loaded_model.texture_mesh.reset();
+        return;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: got " << painted.cluster_colors.size()
+                            << " clusters, skipped=" << result.skipped;
+    if (!update_apply_progress(0, _L("Applying texture colors...")))
+        return;
+
+    int min_used_filament_1based = -1;
+    {
+        std::map<std::array<std::size_t, 3>, int> color_to_filament;
+        for (const auto& m : final_matches) {
+            if (m.cluster_index >= 0 && m.cluster_index < (int)painted.cluster_colors.size() && m.filament_index >= 0)
+                color_to_filament[painted.cluster_colors[m.cluster_index]] = m.filament_index + 1;
+        }
+        for (const auto& face_color : painted.face_colors) {
+            auto it = color_to_filament.find(face_color);
+            if (it == color_to_filament.end())
+                continue;
+            if (min_used_filament_1based < 0 || it->second < min_used_filament_1based)
+                min_used_filament_1based = it->second;
+        }
+    }
+    if (min_used_filament_1based < 0)
+        BOOST_LOG_TRIVIAL(warning) << "handle_textured_mesh_import: cannot determine base filament from painted faces";
+
+    // Create new filaments that were virtually assigned in the dialog
+    const auto& new_colors = result.new_filament_colors;
+    const auto& new_preset_names = result.new_filament_preset_names;
+    if (!new_preset_names.empty() && new_preset_names.size() != new_colors.size()) {
+        BOOST_LOG_TRIVIAL(warning) << "handle_textured_mesh_import: new filament preset count "
+                                   << new_preset_names.size() << " does not match color count "
+                                   << new_colors.size();
+    }
+    for (size_t i = 0; i < new_colors.size(); ++i) {
+        const auto& c = new_colors[i];
+        wxColour new_col((unsigned char)(c[0] * 255.f),
+                         (unsigned char)(c[1] * 255.f),
+                         (unsigned char)(c[2] * 255.f));
+        const std::string preset_name = i < new_preset_names.size() ? new_preset_names[i] : std::string();
+        sidebar->add_custom_filament(new_col, preset_name);
+        BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: created filament "
+                                << (result.existing_filament_count + i) << " color="
+                                << new_col.GetAsString().ToStdString()
+                                << " preset=" << preset_name;
+    }
+    if (!update_apply_progress(25, _L("Applying texture colors...")))
+        return;
+
+    for (size_t obj_order = 0; obj_order < obj_idxs.size(); ++obj_order) {
+        size_t idx = obj_idxs[obj_order];
+        if (idx >= this->model.objects.size()) continue;
+        ModelObject* obj = this->model.objects[idx];
+        if (!obj) continue;
+
+        // painted is derived from the whole textured mesh and is meaningful
+        // only against a single MODEL_PART volume. Applying it to every
+        // volume of a multi-part / modifier object would overwrite each
+        // volume with the same painted geometry. Restrict to the first
+        // model_part and warn when the object holds more than one.
+        ModelVolume* target = nullptr;
+        int part_count = 0;
+        for (ModelVolume* vol : obj->volumes) {
+            if (vol && vol->is_model_part()) {
+                ++part_count;
+                if (!target) target = vol;
+            }
+        }
+        if (!target) continue;
+        if (part_count > 1) {
+            BOOST_LOG_TRIVIAL(warning)
+                << "handle_textured_mesh_import: object has " << part_count
+                << " model parts; painting only applied to the first part.";
+        }
+        if (Slic3r::apply_painted_mesh_to_volume(painted, final_matches, *target)
+            && min_used_filament_1based > 0) {
+            target->config.set("extruder", min_used_filament_1based);
+            obj->config.set("extruder", min_used_filament_1based);
+            if (auto* obj_list = wxGetApp().obj_list()) {
+                obj_list->update_objects_list_filament_column(std::max<size_t>(
+                    wxGetApp().filaments_cnt(), (size_t)min_used_filament_1based));
+                obj_list->update_info_items(idx);
+            }
+            BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: set base filament to "
+                                    << min_used_filament_1based << " for object index " << idx
+                                    << ", object extruder=" << obj->config.extruder()
+                                    << ", volume extruder=" << target->config.extruder();
+        }
+        // bbox invalidation is performed inside apply_painted_mesh_to_volume.
+        obj->ensure_on_bed();
+        const int object_percent = 25 + (int)(60 * (obj_order + 1) / std::max<size_t>(obj_idxs.size(), 1));
+        if (!update_apply_progress(object_percent, _L("Applying texture colors...")))
+            return;
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "handle_textured_mesh_import: painting applied to model volumes";
+    loaded_model.texture_mesh.reset();
+    if (!update_apply_progress(90, _L("Updating 3D view...")))
+        return;
+    update();
+    update_apply_progress(100, _L("Texture colors applied."));
+}
+
+void Plater::priv::handle_textured_mesh_import(Slic3r::Model& loaded_model, const std::vector<size_t>& obj_idxs,
+                                               std::function<bool()> cancel_callback)
+{
+    TextureImportResult result;
+    if (!run_textured_mesh_import_dialog(loaded_model, result, std::move(cancel_callback)))
+        return;
+    if (!result.painted.face_colors.empty())
+        apply_textured_mesh_import_result(loaded_model, obj_idxs, result);
 }
 
 fs::path Plater::priv::get_export_file_path(GUI::FileType file_type)
@@ -10852,6 +11228,10 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
                 if (!this->background_process.running() && !this->m_is_slicing)
                 {
                     this->m_slice_all = false;
+                    auto curr_plate   = this->partplate_list.get_curr_plate();
+                    bool should_slice = try_pop_up_before_slice(false, this->q, curr_plate, false);
+                    if (!should_slice)
+                        return;
                     this->q->reslice();
                 }
                 else {
@@ -15633,14 +16013,14 @@ bool Plater::priv::can_smooth_mesh() const
     sidebar->obj_list()->get_selection_indexes(obj_idxs, vol_idxs);
     if (vol_idxs.empty()) {
         for (auto obj_idx : obj_idxs)
-            if (model.objects[obj_idx]->get_object_stl_stats().open_edges > 0)
+            if (model.objects[obj_idx]->get_object_stl_stats().has_any_issue())
                 return false;
         return true;
     }
 
     int obj_idx = obj_idxs.front();
     for (auto vol_idx : vol_idxs)
-        if (model.objects[obj_idx]->get_object_stl_stats().open_edges > 0)
+        if (model.objects[obj_idx]->get_object_stl_stats().has_any_issue())
             return false;
     return true;
 }
@@ -16879,7 +17259,7 @@ void Plater::import_model_id(wxString download_info)
                 if (boost::filesystem::is_directory(iter.path()))
                     continue;
 
-                wxString sFile = iter.path().filename().string().c_str();
+                wxString sFile = iter.path().filename().wstring();
                 if (strstr(sFile.c_str(), name.c_str()) != NULL) {
                     vecFiles.push_back(sFile);
                 }
@@ -17263,7 +17643,6 @@ void Plater::_calib_pa_pattern(const Calib_Params &params)
 {
     // add "handle" cube
     sidebar().obj_list()->load_generic_subobject("Cube", ModelVolumeType::INVALID);
-    orient();
     changed_objects({0});
     _calib_pa_select_added_objects();
 
@@ -17271,7 +17650,7 @@ void Plater::_calib_pa_pattern(const Calib_Params &params)
     DynamicPrintConfig &      print_config    = wxGetApp().preset_bundle->prints.get_edited_preset().config;
     float                    nozzle_diameter = printer_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0);
 
-    for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) {
+    for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs(nozzle_diameter)) {
         print_config.set_key_value(opt.first, new ConfigOptionFloat(opt.second));
     }
     for (const auto opt : SuggestedConfigCalibPAPattern().floats_pairs) {
@@ -18487,7 +18866,7 @@ bool Plater::load_same_type_files(const wxArrayString &filenames) {
     //BBS: remove GCodeViewer as seperate APP logic
 bool Plater::load_files(const wxArrayString& filenames)
 {
-    const std::regex pattern_drop(".*[.](stp|step|stl|oltp|obj|amf|3mf|svg)", std::regex::icase);
+    const std::regex pattern_drop(".*[.](stp|step|stl|oltp|obj|amf|3mf|svg|gltf|glb|fbx)", std::regex::icase);
     const std::regex pattern_gcode_drop(".*[.](gcode|g)", std::regex::icase);
 
     std::vector<fs::path> normal_paths;
@@ -20586,6 +20965,65 @@ void Plater::feedback_helio_process(float rating, std::string commend)
     p->helio_background_process.feedback_current_helio_action(rating, commend);
 }
 
+// mixed_filaments telemetry
+static json build_mixed_filaments_telemetry()
+{
+    json arr = json::array();
+
+    const PresetBundle &preset_bundle  = *(wxGetApp().preset_bundle);
+    const auto         &project_config = preset_bundle.project_config;
+    const auto         *is_mixed_opt   = project_config.option<ConfigOptionBools>("filament_is_mixed");
+    if (!is_mixed_opt) return arr;
+
+    const auto *components_opt   = project_config.option<ConfigOptionStrings>("filament_mixed_components");
+    const auto *ratios_opt       = project_config.option<ConfigOptionStrings>("filament_mixed_sublayer_ratios");
+    const auto *gradient_opt     = project_config.option<ConfigOptionBools>("filament_mixed_gradient");
+    const auto *colours_opt      = project_config.option<ConfigOptionStrings>("filament_colour");
+    const bool  sublayer_on      = preset_bundle.prints.get_edited_preset().config.opt_bool("enable_mixed_color_sublayer");
+    const auto &filament_presets = preset_bundle.filament_presets;
+
+    for (size_t i = 0; i < is_mixed_opt->values.size() && i < filament_presets.size(); ++i) {
+        if (!is_mixed_opt->values[i]) continue;
+
+        json entry;
+        entry["filament_index"] = (i + 1);
+
+        const bool is_gradient = gradient_opt && i < gradient_opt->values.size() && gradient_opt->values[i];
+        entry["mode"]          = is_gradient ? "gradient" : (sublayer_on ? "sublayer" : "fixed_layer");
+
+        entry["components"] = components_opt->values[i];
+        std::vector<int> comp_indices;
+        {
+            std::vector<std::string> comps;
+            boost::split(comps, components_opt->values[i], boost::is_any_of(","));
+            for (const auto &c : comps) { comp_indices.push_back(std::stoi(c)); }
+        }
+
+        json comp_colors = json::array();
+        json comp_types  = json::array();
+        for (unsigned int idx0 : comp_indices) {
+            if (colours_opt && idx0 < colours_opt->values.size())
+                comp_colors.push_back(colours_opt->values[idx0]);
+            else
+                comp_colors.push_back("");
+
+            std::string ft;
+            if (idx0 < filament_presets.size()) {
+                const auto *preset = preset_bundle.filaments.find_preset(filament_presets[idx0]);
+                if (preset) ft = preset->config.get_filament_type();
+            }
+            comp_types.push_back(ft);
+        }
+        entry["component_colors"]         = comp_colors;
+        entry["component_filament_types"] = comp_types;
+        entry["ratios"]                   = ratios_opt->values[i];
+        entry["blended_color"]            = colours_opt->values[i];
+
+        arr.push_back(entry);
+    }
+    return arr;
+}
+
 void Plater::record_slice_preset(std::string action)
 {
     // record slice preset
@@ -20612,12 +21050,14 @@ void Plater::record_slice_preset(std::string action)
         for (int i = 0; i < filament_presets.size(); ++i) {
             auto filament_preset = wxGetApp().preset_bundle->filaments.find_preset(filament_presets[i]);
             if (filament_preset->is_system) {
-                j["filament_preset_" + std::to_string(i)] = filament_preset->name;
+                j["filament_preset_" + std::to_string(i+1)] = filament_preset->name;
             }
             else {
-                j["filament_preset_" + std::to_string(i)] = filament_preset->config.opt_string("inherits");
+                j["filament_preset_" + std::to_string(i+1)] = filament_preset->config.opt_string("inherits");
             }
         }
+
+        j["mixed_filaments"] = build_mixed_filaments_telemetry();
 
         Preset& print_preset = wxGetApp().preset_bundle->prints.get_edited_preset();
         if (print_preset.is_system) {
@@ -23222,9 +23662,9 @@ void Plater::show_object_info()
     info_text += (boost::format(_utf8(L("Triangles: %1%\n"))) %face_count).str();
 
     wxString info_manifold;
-    int non_manifold_edges = 0;
-    auto mesh_errors = p->sidebar->obj_list()->get_mesh_errors_info(&info_manifold, &non_manifold_edges);
-    bool warning = non_manifold_edges > 0;
+    MeshIssueCounts mesh_issues;
+    p->sidebar->obj_list()->get_mesh_errors_info(&info_manifold, &mesh_issues);
+    bool warning = mesh_issues.has_any_issue();
     wxString hyper_text;
     std::function<bool(wxEvtHandler*)> callback;
     if (warning) {
@@ -23237,7 +23677,7 @@ void Plater::show_object_info()
     }
 
     #ifndef __WINDOWS__
-    if (non_manifold_edges > 0) {
+    if (mesh_issues.has_any_issue()) {
         info_manifold += into_u8("\n" + _L("Tips:") + "\n" +_L("To repair the model, please use a third-party tool before importing it into Bambu Studio, such as "));
     }
     if (warning) {
@@ -23250,7 +23690,6 @@ void Plater::show_object_info()
     }
     #endif //APPLE & LINUX
 
-    info_manifold = "<Error>" + info_manifold + "</Error>";
     info_text += into_u8(info_manifold);
     notify_manager->bbl_show_objectsinfo_notification(info_text, warning, !(p->current_panel == p->view3D), into_u8(hyper_text), callback);
 }

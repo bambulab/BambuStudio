@@ -7,6 +7,7 @@
 #include <wx/webviewarchivehandler.h>
 #include <wx/webviewfshandler.h>
 #include <wx/dynlib.h>
+#include <wx/utils.h>
 #if wxUSE_WEBVIEW_EDGE
 #include <wx/msw/webview_edge.h>
 #elif defined(__WXMAC__)
@@ -76,6 +77,22 @@ register_webview_handler(gpointer data)
 #endif
 
 #ifdef __WIN32__
+
+namespace {
+
+void enable_default_webview2_cdp_for_internal_builds()
+{
+#if !BBL_RELEASE_TO_PUBLIC
+    wxString existing;
+    if (wxGetEnv("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", &existing) && !existing.empty())
+        return;
+
+    wxSetEnv("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
+             "--remote-debugging-port=9222 --remote-allow-origins=*");
+#endif
+}
+
+} // namespace
 
 class WebViewEdge : public wxWebViewEdge
 {
@@ -277,6 +294,8 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
     //BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << url2.ToUTF8();
 
 #ifdef __WIN32__
+    enable_default_webview2_cdp_for_internal_builds();
+
     wxWebView* webView = new WebViewEdge;
     webView->SetUserDataPathOption(BuildEdgeUserDataPath());
 #elif defined(__WXOSX__)

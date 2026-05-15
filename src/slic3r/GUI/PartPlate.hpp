@@ -346,7 +346,7 @@ public:
     bool check_flow_compatible_of_nozzle_and_filament(const DynamicPrintConfig & config, const std::vector<std::string>& filament_presets, std::string& error_msg);
     bool check_tpu_nozzle_has_multiple_filaments(const DynamicPrintConfig &config, std::string &error_msg);
     bool check_high_temp_need_wrapping_detection(const DynamicPrintConfig &config, std::string &warning_text) const;
-    bool check_high_shrinkage_filament(const DynamicPrintConfig &config, std::string &warning_text) const;
+    bool check_high_shrinkage_filament(const DynamicPrintConfig &config, std::string &filament_names) const;
     bool check_single_extruder_mixed_filament_risk(const DynamicPrintConfig &config, std::string &warning_text) const;
 
     /* instance related operations*/
@@ -832,7 +832,12 @@ public:
     std::vector<PartPlate*> get_nonempty_plate_list();
 
     std::vector<const GCodeProcessorResult*> get_nonempty_plates_slice_results();
-    void set_default_wipe_tower_pos_for_plate(int plate_idx, bool init_pos = false);
+    // keep_existing=true keeps the saved wipe_tower_x/y[plate_idx] and only clamps
+    // it back when it falls outside the current plate. Used after loading 3mf to
+    // preserve valid user-adjusted positions while sanitising values whose original
+    // plate size differs from the active one (e.g. STUDIO-15720: 256x256 project
+    // reopened on A1 mini 180x180).
+    void set_default_wipe_tower_pos_for_plate(int plate_idx, bool init_pos = false, bool keep_existing = false);
 
     //compute the origin for printable plate with index i
     Vec3d get_current_plate_origin() { return compute_origin(m_current_plate, m_plate_cols); }

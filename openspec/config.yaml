@@ -1,0 +1,49 @@
+schema: spec-driven
+
+context: |
+  可选的设备开发 profile 开关，下列任一条件成立即视为启用：
+  - `/openspec/ai-context/switch.json` 中 `deviceDevelopProfile` 为 `true`
+  - 环境变量 `STUDIO_AI_DEVICE_ENTRY` 设置为 `true` / `1` / `on`（不区分大小写）
+  - 用户在自然语言里明确要求进入设备域
+
+  启用后的加载链路：
+  - 优先从以下入口开始：
+    - `/openspec/ai-context/profiles/device/entry.md`
+    - `/openspec/ai-context/profiles/device/load-order.md`
+  - 然后按以下文档链路加载：
+    1. `/openspec/docs/device/readme食用指南.md`
+    2. `/openspec/docs/device/开发流程.md`
+    3. `/openspec/specs/device/README.md`
+    4. 需要按主题快速定位时，再读取 `/openspec/specs/device/主题索引.md`
+  - 若需要继续深入设备专题，再进入：
+    - `/openspec/rules/device/README.md`
+    - `/openspec/skills/device/README.md`
+    - `/openspec/specs/device/README.md`
+  - 若两路开关都未启用且用户也未显式要求，或当前任务明显与设备域无关，则不要强制加载这条设备文档链路
+
+rules:
+  proposal:
+    - 当设备 profile 已启用（`deviceDevelopProfile == true`、`STUDIO_AI_DEVICE_ENTRY` 启用或用户显式要求）且当前变更属于设备域时，`proposal` 应与 `/openspec/` 中已有设备术语、范围边界和主题组织方式保持一致
+  design:
+    - 当设备 profile 已启用且当前变更属于设备域时，`design` 在做设计决策前应先遵循设备 profile 的加载顺序，并与已有规则和设备历史上下文保持一致
+  tasks:
+    - 当设备 profile 已启用且当前变更属于设备域时，`tasks` 应从 `/openspec/` 中相关的设备规则、技能和专题文档链路中推导，而不是按通用功能开发流程泛化处理
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+# Add your tech stack, conventions, style guides, domain knowledge, etc.
+# Example:
+#   context: |
+#     Tech stack: TypeScript, React, Node.js
+#     We use conventional commits
+#     Domain: e-commerce platform
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours

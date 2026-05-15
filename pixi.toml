@@ -39,6 +39,7 @@ mpfr = "*"
 libopencv = "*"
 occt = "*"
 ffmpeg = "*"  # CMakeLists.txt:739 uses file(GLOB) so any FFmpeg with libavcodec is OK
+assimp = "*"
 
 # Linux-only: gcc/g++ + system libs that bambulab/wxWidgets fork (GTK3) and the
 # main configure rely on.

@@ -1,5 +1,7 @@
 #include "wgtFilaManagerCloudSync.h"
 #include "wgtFilaManagerCloudClient.h"
+#include "wgtFilaManagerCloudDispatcher.h"
+#include "wgtFilaManagerColorType.h"
 #include "wgtFilaManagerStore.h"
 
 #include "slic3r/Utils/NetworkAgent.hpp"
@@ -7,6 +9,8 @@
 
 #include <wx/app.h>
 #include <boost/log/trivial.hpp>
+#include <chrono>
+#include <cmath>
 #include <set>
 
 namespace Slic3r { namespace GUI {
@@ -100,6 +104,8 @@ FilamentSpool wgtFilaManagerCloudSync::cloud_json_to_spool(const nlohmann::json&
     s.spool_id      = str_any({"id", "spool_id"});
     s.setting_id    = str_any({"filamentId", "setting_id"});
     s.tag_uid       = str_any({"RFID", "rfid", "tag_uid"});
+    if (!FilamentSpool::is_valid_tag_uid(s.tag_uid))
+        s.tag_uid.clear();
 
     // Descriptive fields.
     s.brand         = str_any({"filamentVendor", "brand"});
@@ -107,6 +113,37 @@ FilamentSpool wgtFilaManagerCloudSync::cloud_json_to_spool(const nlohmann::json&
     s.series        = str_any({"filamentName", "series"});
     s.color_code    = str_any({"color", "color_code"});
     s.color_name    = str_any({"color_name"}); // cloud has no direct counterpart
+
+    // STUDIO-17977 (pull-side): cloud carries `colorType` (int 0/1/2) and
+    // `colors` (string[]) when the spool was pushed up as a multicolor /
+    // gradient entry — `spool_to_cloud_json` below has been emitting them
+    // since 17977's first patch. Without these reads here a `pull_done`
+    // would silently overwrite a local multicolor spool's `colors` and
+    // `color_type` with the schema defaults (empty + 2), which downstream
+    // breaks SpoolTable row tail's reverse-lookup of the official BBL
+    // candidate (e.g. "马卡龙 / 13906") and leaves the row with no colour
+    // name. Round-trip the two fields here so cloud-stored multicolor
+    // data survives a sync.
+    const int raw_color_type = num_i_any({"colorType", "color_type"}, 2);
+    if (j.contains("colors") && j["colors"].is_array()) {
+        for (const auto& hex : j["colors"]) {
+            if (hex.is_string()) s.colors.push_back(hex.get<std::string>());
+        }
+    }
+    s.color_type = to_fila_manager_color_type_int(
+        normalize_fila_manager_color_type(raw_color_type, s.colors.size()));
+
+    // STUDIO-18355 (defensive): align with FilamentSpool::from_json's invariant
+    // (`!colors.empty() ⇒ color_code == colors.front()`). If the cloud ever
+    // returns a record where the top-level `color` and `colors[0]` disagree
+    // (e.g. a stale record from before the PUT-side guard above was rolled
+    // out), the pull merge would otherwise leak the disagreement into the
+    // local store and SpoolColorChip would render `colors[0]`, not `color`.
+    // Snap to `colors.front()` to mirror the disk-load path so a restart and
+    // a fresh pull surface the same colour.
+    if (!s.colors.empty() && s.color_code != s.colors.front()) {
+        s.color_code = s.colors.front();
+    }
 
     s.diameter        = num_f_any({"diameter"}, 1.75f);
 
@@ -163,12 +200,11 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_json(const FilamentSpool&
     // Cloud CreateFilamentV2Req / UpdateFilamentV2Req schema (camelCase).
     nlohmann::json j;
 
-    // createType: "manual" (手动) | "ams" (AMS 自动). Normalize legacy value
-    // "ams_sync" that the old local format used.
-    std::string create_type = s.entry_method;
-    if (create_type == "ams_sync") create_type = "ams";
-    if (create_type == "rfid")     create_type = "ams";
-    if (create_type.empty())       create_type = "manual";
+    const bool has_valid_rfid = FilamentSpool::is_valid_tag_uid(s.tag_uid);
+    // Cloud createType tracks whether this spool has a real RFID, not which UI
+    // flow created it. Non-RFID AMS reads use placeholder tags and must stay
+    // manual to avoid cloud-side AMS/RFID semantics.
+    std::string create_type = has_valid_rfid ? "ams" : "manual";
     j["createType"]     = create_type;
 
     j["filamentVendor"] = s.brand;
@@ -179,11 +215,14 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_json(const FilamentSpool&
     j["filamentName"]   = s.series.empty() ? s.material_type : s.series;
     j["filamentId"]     = s.setting_id;
     j["isSupport"]      = false; // local schema has no equivalent yet
-    if (!s.tag_uid.empty())
+    if (has_valid_rfid)
         j["RFID"]       = s.tag_uid;
     j["color"]          = s.color_code;
-    j["colorType"]      = 2; // 2 = 单色, per CreateFilamentV2Req swagger
-    if (create_type == "ams" && !s.bound_ams_id.empty()) {
+    j["colorType"]      = to_fila_manager_color_type_int(
+        normalize_fila_manager_color_type(s.color_type, s.colors.size())); // STUDIO-17977: was hardcoded 2
+    if (!s.colors.empty())                       // STUDIO-17977: surface colors[] when multicolor
+        j["colors"]     = s.colors;
+    if (has_valid_rfid && !s.bound_ams_id.empty()) {
         j["trayIdName"] = s.bound_ams_id;
         j["rolls"]      = 1;
     }
@@ -384,10 +423,49 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_update_patch(const nlohma
     take_str("setting_id",      "filamentId");
     take_bool("is_support",     "isSupport");       // 同上
     take_str("color_code",      "color");
-    take_int("color_type",      "colorType");       // 同上
-    // colors[] 目前本地没有拼/渐变色概念，若前端 patch 里主动带 colors 数组就透传。
+    // STUDIO-17977: colors[] is now a first-class local field; pass it through
+    // when the patch carries an explicit colors array.
     if (p.contains("colors") && p.at("colors").is_array())
         j["colors"] = p.at("colors");
+    // STUDIO-18355: cloud `[]string optional` treats an empty array as
+    // "field not provided" and silently keeps the previously stored colors.
+    // Combined with FilamentSpool's `color_code == colors[0]` invariant on
+    // the pull side that meant a single→single colour edit (frontend ships
+    // `{color_code: <new>, colors: []}` per AddEditDialog handleSubmit /
+    // STUDIO-18340) round-tripped to a stale colours[] on the next pull and
+    // the SpoolColorChip rendered the OLD hex.
+    //
+    // Whenever the cloud body carries `color`, ensure `colors` is non-empty
+    // and that its primary entry equals `color`. That keeps the cloud
+    // record self-consistent without changing the local "single = empty
+    // colors[]" canonical shape (fila_manager_tests_main.cpp / apply_patch
+    // / on-disk JSON keep emitting empty colors[] for single).
+    if (j.contains("color") && j.at("color").is_string()) {
+        const std::string primary = j["color"].get<std::string>();
+        const bool colors_missing_or_empty = !j.contains("colors")
+            || !j["colors"].is_array() || j["colors"].empty();
+        if (colors_missing_or_empty) {
+            j["colors"] = nlohmann::json::array({primary});
+        } else if (j["colors"].size() == 1 && j["colors"][0].is_string()
+                   && j["colors"][0].get<std::string>() != primary) {
+            // Single-element colors[] disagreeing with `color` is the same
+            // class of inconsistency; align to the user-confirmed primary.
+            // Multi-element colors[] is left untouched — that came from a
+            // multicolor edit and `color` is just the primary preview hex.
+            j["colors"] = nlohmann::json::array({primary});
+        }
+    }
+    if (p.contains("color_type") && p.at("color_type").is_number()) {
+        const std::size_t color_count = j.contains("colors") && j["colors"].is_array() ? j["colors"].size() : 1;
+        j["colorType"] = to_fila_manager_color_type_int(
+            normalize_fila_manager_color_type(p.at("color_type").get<int>(), color_count));
+    }
+    // NOTE on STUDIO-18355: deliberately do NOT auto-fill `colorType` when
+    // the patch is silent about it. The bug only manifests on the user-driven
+    // single→single edit path, which always sets `color_type` (AddEditDialog
+    // handleSubmit / commitCustomColorSelection). Synthesising `colorType`
+    // for partial patches that only touch the primary hex would risk
+    // collapsing a multicolor cloud row to "single" without user intent.
     take_int("net_weight",      "netWeight");
     take_int("total_net_weight","totalNetWeight");
     take_str("note",            "note");
@@ -504,6 +582,163 @@ void wgtFilaManagerCloudSync::push_delete_to_cloud(const std::vector<std::string
         [](int code, const std::string& err) {
             BOOST_LOG_TRIVIAL(error) << "[FilaCloudSync] push_delete_to_cloud failed: " << code << err_body_tail(err);
         });
+}
+
+// ---------------------------------------------------------------------------
+// STUDIO-18155 / openspec 20260506耗材管理器AMS自动同步云端
+//
+// AMS 同步完成本地写入 → 节流 → 云端 PUT。
+// 详细决策见 design § 1 数据流 / § 2 throttle / § 3 sync 改造。
+// ---------------------------------------------------------------------------
+
+namespace {
+
+// 把 throttle 决策转成统计字段名，方便摘要聚合。
+struct AutoPushTally {
+    int pushed           = 0;
+    int skipped_cooldown = 0;
+    int skipped_no_diff  = 0;
+    int skipped_no_rfid  = 0;
+};
+
+const char* device_state_label(AmsAutoPushThrottle::DeviceState s)
+{
+    return s == AmsAutoPushThrottle::DeviceState::Busy ? "busy" : "idle";
+}
+
+} // namespace
+
+void wgtFilaManagerCloudSync::notify_ams_synced(
+    const std::vector<AmsChangedSpool>&     changed,
+    AmsAutoPushThrottle::DeviceState        device_state)
+{
+    if (changed.empty()) return;
+
+    // STUDIO-18155 follow-up：未登录 / LAN-only 模式下不能进 throttle.record_success，
+    // 否则 cooldown 表会被锁死，等用户后续登录第一波同步会全部 SkipNoDiff，必须等
+    // AMS 余量再次变化才会真正推一次到云端。与 request_user_logout 中
+    // throttle().clear_all() 形成对称防御。
+    NetworkAgent* agent = wxGetApp().getAgent();
+    if (!agent || !agent->is_user_login()) return;
+
+    auto* disp = wxGetApp().fila_manager_cloud_disp();
+    if (!disp) {
+        BOOST_LOG_TRIVIAL(warning)
+            << "[FilaCloudSync] notify_ams_synced: dispatcher unavailable, skip";
+        return;
+    }
+
+    const auto    now = std::chrono::steady_clock::now();
+    AutoPushTally tally;
+
+    for (const auto& item : changed) {
+        if (!FilamentSpool::is_valid_tag_uid(item.tag_uid)) {
+            ++tally.skipped_no_rfid;
+            continue;
+        }
+        const auto decision = m_throttle.evaluate(
+            item.tag_uid, item.net_weight, device_state, now);
+
+        switch (decision) {
+        case AmsAutoPushThrottle::Decision::Push: {
+            // PUT body 只放 net_weight，其余字段留给 spool_to_cloud_update_json
+            // 兜底（filamentName 防 STUDIO-18117 重现）。其余 sync 关心字段
+            // (status / bound_*) 云端 PUT 不接受 → 不放进 patch。
+            nlohmann::json patch = {
+                {"net_weight", static_cast<double>(item.net_weight)}
+            };
+            disp->enqueue_push_update(item.spool_id, patch);
+            // 乐观 record：先记 cooldown 起点。设计权衡：失败时下次 sync 仍
+            // 等 10 min cooldown 才重试，把"网络抽风时无意义请求"的攻击面
+            // 关掉。用户着急可以用"推送本地到云端"按钮绕过 throttle。
+            m_throttle.record_success(item.tag_uid, item.net_weight, now);
+            ++tally.pushed;
+            break;
+        }
+        case AmsAutoPushThrottle::Decision::SkipCooldown:
+            ++tally.skipped_cooldown; break;
+        case AmsAutoPushThrottle::Decision::SkipNoDiff:
+            ++tally.skipped_no_diff;  break;
+        case AmsAutoPushThrottle::Decision::SkipNoRfid:
+            ++tally.skipped_no_rfid;  break;
+        }
+    }
+
+    BOOST_LOG_TRIVIAL(info)
+        << "[FilaCloudSync] auto_push device_state=" << device_state_label(device_state)
+        << " pushed=" << tally.pushed
+        << " skipped_cooldown=" << tally.skipped_cooldown
+        << " skipped_no_diff="  << tally.skipped_no_diff
+        << " skipped_no_rfid="  << tally.skipped_no_rfid;
+
+    // Q4 决策：仅在实际产生 push 时刷前端摘要；全 skipped 不通知
+    if (tally.pushed > 0 && m_on_auto_push_summary) {
+        m_on_auto_push_summary({
+            {"trigger",          "auto"},
+            {"device_state",     device_state_label(device_state)},
+            {"pushed",           tally.pushed},
+            {"skipped_cooldown", tally.skipped_cooldown},
+            {"skipped_no_diff",  tally.skipped_no_diff},
+            {"skipped_no_rfid",  tally.skipped_no_rfid},
+        });
+    }
+}
+
+void wgtFilaManagerCloudSync::push_all_now()
+{
+    auto* disp = wxGetApp().fila_manager_cloud_disp();
+    if (!disp) {
+        BOOST_LOG_TRIVIAL(warning)
+            << "[FilaCloudSync] push_all_now: dispatcher unavailable, skip";
+        return;
+    }
+
+    const auto now      = std::chrono::steady_clock::now();
+    int        enqueued = 0;
+    int        skipped_no_rfid       = 0;
+    int        skipped_no_total_nw   = 0;
+
+    for (const auto& spool_id : m_store->all_spool_ids()) {
+        const FilamentSpool* sp = m_store->get_spool(spool_id);
+        if (!sp) continue;
+
+        if (!FilamentSpool::is_valid_tag_uid(sp->tag_uid)) {
+            ++skipped_no_rfid;
+            continue;
+        }
+        if (sp->effective_total_net_weight() <= 0.f) {
+            ++skipped_no_total_nw;
+            continue;
+        }
+
+        const int64_t nw = static_cast<int64_t>(std::round(sp->net_weight));
+        nlohmann::json patch = {
+            {"net_weight", static_cast<double>(nw)}
+        };
+        disp->enqueue_push_update(spool_id, patch);
+        // 绕过 throttle.evaluate，但仍 record_success：保持 cooldown 状态
+        // 一致，避免手动按钮触发后下一次 AMS sync 又重复推一遍。
+        m_throttle.record_success(sp->tag_uid, nw, now);
+        ++enqueued;
+    }
+
+    BOOST_LOG_TRIVIAL(info)
+        << "[FilaCloudSync] push_all_now enqueued=" << enqueued
+        << " skipped_no_rfid="     << skipped_no_rfid
+        << " skipped_no_total_nw=" << skipped_no_total_nw;
+
+    // 手动按钮：summary **总是**发送（含 enqueued=0），让 toast 能显示"推送 0 卷"
+    if (m_on_auto_push_summary) {
+        m_on_auto_push_summary({
+            {"trigger",             "manual"},
+            {"device_state",        "manual"},
+            {"pushed",              enqueued},
+            {"skipped_cooldown",    0},
+            {"skipped_no_diff",     0},
+            {"skipped_no_rfid",     skipped_no_rfid},
+            {"skipped_no_total_nw", skipped_no_total_nw},
+        });
+    }
 }
 
 // ---------------------------------------------------------------------------

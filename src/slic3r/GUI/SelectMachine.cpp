@@ -1543,19 +1543,16 @@ void SelectMachineDialog::refresh_save_time(MachineObject *obj)
 
     // update the total print time
     auto save_time = get_filament_change_gap_time(obj);
-    if (save_time.has_value() && save_time.value() >= 1) {
+    {
         wxString   print_time;
         PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
         if (plate && plate->get_slice_result()) {
-            print_time = wxString::Format("%s", short_time(get_time_dhms(plate->get_slice_result()->print_statistics.modes[0].time + save_time.value())));
-        }
-
-        m_stext_time->SetLabel(print_time);
-    } else {
-        wxString   print_time;
-        PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
-        if (plate) {
-            print_time = wxString::Format("%s", short_time(get_time_dhms(plate->get_slice_result()->print_statistics.modes[0].time)));
+            float base_time = plate->get_slice_result()->print_statistics.modes[0].time;
+            if (save_time.has_value()) {
+                base_time += save_time.value();
+                if (base_time < 0) base_time = 0;
+            }
+            print_time = wxString::Format("%s", short_time(get_time_dhms(base_time)));
             m_stext_time->SetLabel(print_time);
         }
     }

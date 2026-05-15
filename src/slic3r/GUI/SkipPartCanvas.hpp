@@ -64,6 +64,7 @@ public:
     }
 
     void LoadPickImage(const std::string& path);
+    void LoadBackgroundImage(const std::string& path);
     void ZoomIn(const int zoom_percent);
     void ZoomOut(const int zoom_percent);
     void SwitchDrag(const bool drag_on);
@@ -98,6 +99,7 @@ private:
     ColorRGB parent_color_ = ColorRGB();
     int hover_id_{-1};
     double image_view_scale_{1};
+    GLuint bg_texture_id_{0};
 
     void SendSelectEvent(int id, PartState state);
     void SendZoomEvent(int zoom_percent);

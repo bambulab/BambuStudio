@@ -312,10 +312,21 @@ void HintDatabase::init()
 void HintDatabase::init_random_hint_id()
 {
 	srand(time(NULL));
+
+	auto pick_random_visible_hint = [](const std::vector<HintData>& hints) {
+		std::vector<size_t> candidates;
+		for (size_t i = 0; i < hints.size(); ++i) {
+			if (!hints[i].internal_only)
+				candidates.emplace_back(i);
+		}
+
+		return candidates.empty() ? size_t(0) : candidates[rand() % candidates.size()];
+	};
+
 	if (!m_loaded_hints.empty())
-		m_hint_id = rand() % m_loaded_hints.size();
+		m_hint_id = pick_random_visible_hint(m_loaded_hints);
 	if (!m_loaded_helio_hints.empty())
-		m_helio_hint_id = rand() % m_loaded_helio_hints.size();
+		m_helio_hint_id = pick_random_visible_hint(m_loaded_helio_hints);
 }
 void HintDatabase::load_hints_from_file(const boost::filesystem::path& path, std::vector<HintData>& hints_vector)
 {
@@ -337,8 +348,8 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path, std
 				dict.emplace(data.first, data.second.data());
 			}
 			// unique id string [hint:id] (trim "hint:")
-			std::string id_string = section.first.substr(5);
-			id_string = std::to_string(std::hash<std::string>{}(id_string));
+			std::string key = section.first.substr(5);
+			std::string id_string = std::to_string(std::hash<std::string>{}(key));
 			// unescaping and translating all texts and saving all data common for all hint types
 			std::string fulltext;
 			std::string text1;
@@ -350,6 +361,7 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path, std
 			// optional link to documentation (accessed from button)
 			std::string documentation_link;
 			std::string img_url;
+			bool        internal_only = false;
 			// randomized weighted order variables
 			size_t      weight = 1;
 			bool		was_displayed = false;
@@ -417,6 +429,9 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path, std
 			if (dict.find("image") != dict.end()) {
 				img_url = dict["image"];
 			}
+			if (dict.find("internal_only") != dict.end()) {
+				internal_only = dict["internal_only"] == "true";
+			}
 
 			if (dict.find("weight") != dict.end()) {
 				weight = (size_t)std::max(1, std::atoi(dict["weight"].c_str()));
@@ -427,7 +442,7 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path, std
 				//link to internet
 				if (dict["hypertext_type"] == "link") {
 					std::string	hypertext_link = dict["hypertext_link"];
-					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, img_url, [hypertext_link]() { launch_browser_if_allowed(hypertext_link); } };
+					HintData	hint_data{ id_string, key, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, img_url, internal_only, [hypertext_link]() { launch_browser_if_allowed(hypertext_link); } };
 					hints_vector.emplace_back(hint_data);
 					// highlight settings
 				}
@@ -435,28 +450,28 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path, std
 					std::string		opt = dict["hypertext_settings_opt"];
 					Preset::Type	type = static_cast<Preset::Type>(std::atoi(dict["hypertext_settings_type"].c_str()));
 					std::wstring	category = boost::nowide::widen(dict["hypertext_settings_category"]);
-					HintData		hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, img_url, [opt, type, category]() { GUI::wxGetApp().sidebar().jump_to_option(opt, type, category); } };
+					HintData		hint_data{ id_string, key, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, img_url, internal_only, [opt, type, category]() { GUI::wxGetApp().sidebar().jump_to_option(opt, type, category); } };
 					hints_vector.emplace_back(hint_data);
 					// open preferences
 				}
 				else if (dict["hypertext_type"] == "preferences") {
 					std::string	page = dict["hypertext_preferences_page"];
 					std::string	item = dict["hypertext_preferences_item"];
-					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, img_url, [page, item]() { wxGetApp().open_preferences(1, page); } };// 1 is to modify
+					HintData	hint_data{ id_string, key, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, img_url, internal_only, [page, item]() { wxGetApp().open_preferences(1, page); } };// 1 is to modify
 					hints_vector.emplace_back(hint_data);
 				}
 				else if (dict["hypertext_type"] == "plater") {
 					std::string	item = dict["hypertext_plater_item"];
-					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, img_url, [item]() { wxGetApp().plater()->canvas3D()->highlight_toolbar_item(item); } };
+					HintData	hint_data{ id_string, key, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, img_url, internal_only, [item]() { wxGetApp().plater()->canvas3D()->highlight_toolbar_item(item); } };
 					hints_vector.emplace_back(hint_data);
 				}
 				else if (dict["hypertext_type"] == "gizmo") {
 					std::string	item = dict["hypertext_gizmo_item"];
-					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, img_url, [item]() { wxGetApp().plater()->canvas3D()->highlight_gizmo(item); } };
+					HintData	hint_data{ id_string, key, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, img_url, internal_only, [item]() { wxGetApp().plater()->canvas3D()->highlight_gizmo(item); } };
 					hints_vector.emplace_back(hint_data);
 				}
 				else if (dict["hypertext_type"] == "gallery") {
-					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, img_url, []() {
+					HintData	hint_data{ id_string, key, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, img_url, internal_only, []() {
 						// Deselect all objects, otherwise gallery wont show.
 						wxGetApp().plater()->canvas3D()->deselect_all();
 						//wxGetApp().obj_list()->load_shape_object_from_gallery(); }
@@ -466,13 +481,13 @@ void HintDatabase::load_hints_from_file(const boost::filesystem::path& path, std
 				else if (dict["hypertext_type"] == "menubar") {
 					wxString menu(_("&" + dict["hypertext_menubar_menu_name"]));
 					wxString item(_(dict["hypertext_menubar_item_name"]));
-					HintData	hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, img_url, [menu, item]() { wxGetApp().mainframe->open_menubar_item(menu, item); } };
+					HintData	hint_data{ id_string, key, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, true, documentation_link, img_url, internal_only, [menu, item]() { wxGetApp().mainframe->open_menubar_item(menu, item); } };
 					hints_vector.emplace_back(hint_data);
 				}
 			}
 			else {
 				// plain text without hypertext
-				HintData hint_data{ id_string, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, img_url };
+				HintData hint_data{ id_string, key, text1, weight, was_displayed, hypertext_text, follow_text, disabled_tags, enabled_tags, false, documentation_link, img_url, internal_only };
 				hints_vector.emplace_back(hint_data);
 			}
 		}
@@ -501,17 +516,22 @@ HintData* HintDatabase::get_hint(HintDataNavigation nav, bool is_helio)
 	
 	try
 	{
+		const std::vector<HintData>& hints = is_helio ? m_loaded_helio_hints : m_loaded_hints;
+		size_t& hint_id = is_helio ? m_helio_hint_id : m_hint_id;
+		auto find_visible_hint = [&hints](size_t current, bool next) {
+			for (size_t step = 1; step <= hints.size(); ++step) {
+				const size_t idx = next ? (current + step) % hints.size() : (current + hints.size() - step) % hints.size();
+				if (!hints[idx].internal_only)
+					return idx;
+			}
+			return current < hints.size() ? current : size_t(0);
+		};
+
 		if (nav == HintDataNavigation::Next) {
-			if (is_helio)
-				m_helio_hint_id = m_helio_hint_id < m_loaded_helio_hints.size() - 1 ? m_helio_hint_id + 1 : 0;
-			else
-				m_hint_id = m_hint_id < m_loaded_hints.size() - 1 ? m_hint_id + 1 : 0;
+			hint_id = find_visible_hint(hint_id, true);
 		}
 		if (nav == HintDataNavigation::Prev) {
-			if (is_helio)
-				m_helio_hint_id = m_helio_hint_id > 0 ? m_helio_hint_id - 1 : m_loaded_helio_hints.size() - 1;
-			else
-				m_hint_id = m_hint_id > 0 ? m_hint_id - 1 : m_loaded_hints.size() - 1;
+			hint_id = find_visible_hint(hint_id, false);
 		}
 		if (nav == HintDataNavigation::Random)
 			init_random_hint_id();
@@ -522,6 +542,21 @@ HintData* HintDatabase::get_hint(HintDataNavigation nav, bool is_helio)
 	}
 
 	return is_helio ? &m_loaded_helio_hints[m_helio_hint_id] : &m_loaded_hints[m_hint_id];
+}
+
+HintData* HintDatabase::get_hint_by_key(const std::string& key)
+{
+	if (!m_initialized)
+		init();
+
+	for (size_t i = 0; i < m_loaded_hints.size(); ++i) {
+		if (m_loaded_hints[i].key == key) {
+			m_hint_id = i;
+			return &m_loaded_hints[m_hint_id];
+		}
+	}
+
+	return nullptr;
 }
 
 //size_t HintDatabase::get_random_next()

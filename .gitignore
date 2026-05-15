@@ -37,4 +37,5 @@ compile_commands.json
 .claude/settings.local.json
 **/node_modules/
 .worktrees/
+**/dist/
 

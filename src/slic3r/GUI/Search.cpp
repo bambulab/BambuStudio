@@ -1013,9 +1013,11 @@ void SearchObjectDialog::Popup(wxPoint position /*= wxDefaultPosition*/)
 
 void SearchObjectDialog::Dismiss()
 {
-    auto focus_window = this->GetParent()->HasFocus();
-    if (!focus_window)
-        PopupWindow::Dismiss();
+    auto pos    = wxGetMousePosition();
+    auto parent = this->GetParent();
+    if (parent && parent->GetScreenRect().Contains(pos)) return;
+    if (this->GetScreenRect().Contains(pos)) return;
+    PopupWindow::Dismiss();
 }
 
 void SearchObjectDialog::update_list()
