@@ -126,6 +126,15 @@ static void extract_painted_mesh(
 }
 
 // Build a vertically-stacked atlas from multiple textures and remap per-face UVs.
+//
+// Sub-textures are laid out left-aligned (x=0) at successive y offsets, with
+// atlas_w taken as the maximum width across all sub-textures. UVs must therefore
+// be remapped on BOTH axes so that faces belonging to a sub-texture narrower
+// than atlas_w sample inside that sub-texture's region (left side of the atlas)
+// instead of the right-side zero-padding. Materials that carry only a baseColor
+// (no map_Kd / glTF baseColorTexture) get their own 1x1 swatch at the bottom of
+// the atlas so their faces sample the correct flat colour rather than being
+// silently aliased onto textures[0].
 static bool build_multi_texture_atlas(
     const TexturedMesh& textured,
     cv::Mat& out_atlas,
@@ -136,12 +145,27 @@ static bool build_multi_texture_atlas(
     for (const auto& ti : textured.textures)
         decoded.push_back(decode_texture_image(ti));
 
-    // Determine atlas width (max width across all textures) and per-texture row offsets
+    const bool   has_mapping = !textured.material_texture_map.empty();
+    const size_t nf          = textured.indices.size();
+
+    auto resolve_tex_idx = [&](int mat_idx) -> int {
+        if (!has_mapping || mat_idx < 0
+            || static_cast<size_t>(mat_idx) >= textured.material_texture_map.size())
+            return -1;
+        const int ti = textured.material_texture_map[mat_idx];
+        if (ti < 0 || static_cast<size_t>(ti) >= decoded.size() || decoded[ti].empty())
+            return -1;
+        return ti;
+    };
+
+    // Determine atlas width (max width across all textures) and per-texture row offsets.
     int atlas_w = 0;
     int atlas_h = 0;
     std::vector<int> y_offsets(decoded.size(), 0);
+    int first_usable_tex = -1;
     for (size_t i = 0; i < decoded.size(); ++i) {
         if (decoded[i].empty()) continue;
+        if (first_usable_tex < 0) first_usable_tex = static_cast<int>(i);
         y_offsets[i] = atlas_h;
         atlas_w = std::max(atlas_w, decoded[i].cols);
         atlas_h += decoded[i].rows;
@@ -149,30 +173,62 @@ static bool build_multi_texture_atlas(
     if (atlas_w == 0 || atlas_h == 0)
         return false;
 
+    // Collect materials that have a baseColor but no usable texture so we can
+    // route their faces to a dedicated 1x1 solid swatch instead of aliasing
+    // them onto textures[0].
+    std::map<int, int>                 mat_solid_y;     // mat_idx -> y row in atlas
+    std::map<int, std::array<float,4>> mat_solid_color; // mat_idx -> baseColor (RGBA)
+    for (size_t fi = 0; fi < nf; ++fi) {
+        const int mat_idx = (fi < textured.material_ids.size()) ? textured.material_ids[fi] : -1;
+        if (mat_idx < 0) continue;
+        if (resolve_tex_idx(mat_idx) >= 0) continue;
+        if (static_cast<size_t>(mat_idx) >= textured.material_colors.size()) continue;
+        if (mat_solid_y.find(mat_idx) != mat_solid_y.end()) continue;
+        mat_solid_y[mat_idx]     = atlas_h++;
+        mat_solid_color[mat_idx] = textured.material_colors[mat_idx];
+    }
+
     out_atlas = cv::Mat::zeros(atlas_h, atlas_w, CV_8UC3);
     for (size_t i = 0; i < decoded.size(); ++i) {
         if (decoded[i].empty()) continue;
         cv::Mat roi = out_atlas(cv::Rect(0, y_offsets[i], decoded[i].cols, decoded[i].rows));
         decoded[i].copyTo(roi);
     }
+    for (const auto& kv : mat_solid_color) {
+        const auto& c = kv.second;
+        // OpenCV stores BGR; baseColor is RGBA in [0,1].
+        out_atlas.at<cv::Vec3b>(mat_solid_y[kv.first], 0) = cv::Vec3b(
+            static_cast<uchar>(std::clamp(c[2] * 255.f, 0.f, 255.f)),
+            static_cast<uchar>(std::clamp(c[1] * 255.f, 0.f, 255.f)),
+            static_cast<uchar>(std::clamp(c[0] * 255.f, 0.f, 255.f)));
+    }
 
-    // Remap UVs: for each face, shift v into the correct vertical band
-    const size_t nf = textured.indices.size();
-    const bool has_mapping = !textured.material_texture_map.empty();
     out_uv_coords.resize(nf);
-
     for (size_t fi = 0; fi < nf; ++fi) {
-        int mat_idx = (fi < textured.material_ids.size()) ? textured.material_ids[fi] : -1;
-        int tex_idx = -1;
-        if (has_mapping && mat_idx >= 0 && static_cast<size_t>(mat_idx) < textured.material_texture_map.size())
-            tex_idx = textured.material_texture_map[mat_idx];
-        if (tex_idx < 0) tex_idx = 0;
+        const int mat_idx = (fi < textured.material_ids.size()) ? textured.material_ids[fi] : -1;
+        const int tex_idx = resolve_tex_idx(mat_idx);
 
-        int y_off = 0;
-        int th = atlas_h;
-        if (tex_idx >= 0 && static_cast<size_t>(tex_idx) < decoded.size() && !decoded[tex_idx].empty()) {
+        // Pick the atlas region this face samples from.
+        int  y_off = 0, x_off = 0, th = atlas_h, tw = atlas_w;
+        bool use_solid = false;
+        if (tex_idx >= 0) {
             y_off = y_offsets[tex_idx];
-            th = decoded[tex_idx].rows;
+            th    = decoded[tex_idx].rows;
+            tw    = decoded[tex_idx].cols;
+        } else if (mat_idx >= 0 && mat_solid_y.count(mat_idx) > 0) {
+            y_off     = mat_solid_y[mat_idx];
+            th        = 1;
+            tw        = 1;
+            use_solid = true;
+        } else if (first_usable_tex >= 0) {
+            // Last-resort fallback: faces without a material or without any
+            // baseColor still need somewhere to sample; the first usable
+            // texture preserves legacy behaviour and, with the per-axis
+            // remapping below, no longer aliases onto the zero-padded right
+            // margin even when sub-textures have unequal widths.
+            y_off = y_offsets[first_usable_tex];
+            th    = decoded[first_usable_tex].rows;
+            tw    = decoded[first_usable_tex].cols;
         }
 
         out_uv_coords[fi].resize(3);
@@ -191,10 +247,24 @@ static bool build_multi_texture_atlas(
                     v = textured.uvs[vtx_idx][1];
                 }
             }
-            // Wrap to [0,1) then remap into atlas vertical band
-            v = v - std::floor(v);
-            float v_atlas = (y_off + v * th) / static_cast<float>(atlas_h);
-            out_uv_coords[fi][vi] = Vec2f(u, v_atlas);
+            if (use_solid) {
+                // Aim at the centre of the 1x1 swatch so bilinear sampling
+                // (in tex2color) cannot drift into neighbouring rows.
+                const float u_atlas = (x_off + 0.5f) / static_cast<float>(atlas_w);
+                const float v_atlas = (y_off + 0.5f) / static_cast<float>(atlas_h);
+                out_uv_coords[fi][vi] = Vec2f(u_atlas, v_atlas);
+            } else {
+                // Wrap to [0,1) on both axes (OBJ tile UVs may step outside
+                // the unit square), then scale by the sub-texture extents so
+                // samples land inside its actual region. Without scaling u,
+                // any sub-texture narrower than atlas_w would have all its
+                // faces sampled from the right-side zero-padding.
+                u = u - std::floor(u);
+                v = v - std::floor(v);
+                const float u_atlas = (x_off + u * tw) / static_cast<float>(atlas_w);
+                const float v_atlas = (y_off + v * th) / static_cast<float>(atlas_h);
+                out_uv_coords[fi][vi] = Vec2f(u_atlas, v_atlas);
+            }
         }
     }
     return true;

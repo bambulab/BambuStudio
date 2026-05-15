@@ -51,6 +51,8 @@ namespace PMP = CGAL::Polygon_mesh_processing;
 using cgalutils::CGALMesh;
 using CGALKernel = cgalutils::Kernel;
 
+static constexpr double TOPO_SMOOTH_WEIGHT_THRESHOLD = 0.3;
+
 namespace detail {
 template<typename Mesh>
 double average_edge_length_impl(const Mesh& m) {
@@ -879,13 +881,31 @@ bool is_closed(const TriMesh& bbs_mesh) {
     return CGAL::is_closed(cgal_mesh);
 }
 
-bool smooth_region(TriMesh& tri_mesh, std::vector<std::array<std::size_t, 3>>& face_colors, const SmoothParameters& smooth_parameters) {
+static bool smooth_region_labels(TriMesh& tri_mesh, std::vector<std::size_t>& face_labels, const SmoothParameters& smooth_parameters) {
     CGALMesh mesh;
     cgalutils::convert_trimesh_to_cgal(tri_mesh, mesh);
-    if (mesh.number_of_faces() != face_colors.size()) {
+
+    if (mesh.number_of_faces() != face_labels.size()) {
         BOOST_LOG_TRIVIAL(warning) << "Face count does not match label count";
         return false;
     }
+
+    if (smooth_parameters.smooth_weight >= TOPO_SMOOTH_WEIGHT_THRESHOLD) {
+        // Topological smoothing: reassign face labels.
+        smooth_region_topo_boundary(mesh, face_labels);
+    }
+
+    if (smooth_parameters.smooth_weight > EPSILON) {
+        // Geometric smoothing: smooth polylines and project back onto the original mesh.
+        smooth_region_geom_boundary(mesh, face_labels, smooth_parameters);
+    }
+
+    tri_mesh = cgalutils::cgal_to_trimesh(mesh);
+
+    return true;
+}
+
+bool smooth_region(TriMesh& tri_mesh, std::vector<std::array<std::size_t, 3>>& face_colors, const SmoothParameters& smooth_parameters) {
     // Convert colors to labels
     std::size_t label_next = 0;
     std::vector<std::size_t> face_labels;
@@ -901,13 +921,8 @@ bool smooth_region(TriMesh& tri_mesh, std::vector<std::array<std::size_t, 3>>& f
         face_labels.push_back(map_color_to_label[color]);
     }
 
-    // Topological smoothing: reassign face labels
-    smooth_region_topo_boundary(mesh, face_labels);
-
-    // Geometric smoothing: smooth polylines and project back onto the original mesh
-    smooth_region_geom_boundary(mesh, face_labels, smooth_parameters);
-
-    tri_mesh = cgalutils::cgal_to_trimesh(mesh);
+    if (!smooth_region_labels(tri_mesh, face_labels, smooth_parameters))
+        return false;
 
     // Convert labels back to colors
     for (std::size_t fid = 0; fid < face_labels.size(); ++fid) {
@@ -918,23 +933,7 @@ bool smooth_region(TriMesh& tri_mesh, std::vector<std::array<std::size_t, 3>>& f
 }
 
 bool smooth_region(TriMesh& tri_mesh, std::vector<std::size_t>& face_labels, const SmoothParameters& smooth_parameters) {
-    CGALMesh mesh;
-    cgalutils::convert_trimesh_to_cgal(tri_mesh, mesh);
-
-    if (mesh.number_of_faces() != face_labels.size()) {
-        BOOST_LOG_TRIVIAL(warning) << "Face count does not match label count";
-        return false;
-    }
-
-    // Topological smoothing: reassign face labels
-    smooth_region_topo_boundary(mesh, face_labels);
-
-    // Geometric smoothing: smooth polylines and project back onto the original mesh
-    smooth_region_geom_boundary(mesh, face_labels, smooth_parameters);
-
-    tri_mesh = cgalutils::cgal_to_trimesh(mesh);
-
-    return true;
+    return smooth_region_labels(tri_mesh, face_labels, smooth_parameters);
 }
 
 // Compute the squared Euclidean distance between two colors (RGB vectors)
