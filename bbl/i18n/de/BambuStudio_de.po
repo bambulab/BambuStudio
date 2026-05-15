@@ -11,7 +11,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n==1) ? 0 : 1;\n"
-"X-Generator: Poedit 3.4.2\n"
+"X-Generator: Poedit 3.9\n"
 
 msgid "The filament may not be compatible with the current machine settings. Generic filament presets will be used."
 msgstr "Das Filament ist möglicherweise nicht mit den aktuellen Maschineneinstellungen kompatibel. Es werden generische Filamentprofile verwendet."
@@ -291,7 +291,7 @@ msgid "Unknown"
 msgstr "Unbekannt"
 
 msgid "Hybrid"
-msgstr ""
+msgstr "Hybrid"
 
 msgid "Hardened Steel"
 msgstr "Gehärteter Stahl"
@@ -334,7 +334,7 @@ msgstr "Inaktiv"
 
 #, c-format, boost-format
 msgid "%d ℃"
-msgstr ""
+msgstr "%d ℃"
 
 msgid "Filament Inlet A"
 msgstr "Filamenteinlass A"
@@ -664,7 +664,7 @@ msgid "hit face"
 msgstr "an Fläche"
 
 msgid "Shortcut Key "
-msgstr "Tastenkürzel"
+msgstr "Tastenkürzel "
 
 msgid "Triangle"
 msgstr "Dreieck"
@@ -722,10 +722,10 @@ msgid "Error: Please close all toolbar menus first"
 msgstr "Fehler: Bitte schließen sie zuerst alle Werkzeugleisten"
 
 msgid "Tool-Move"
-msgstr "Tool-Move"
+msgstr "Werkzeug Bewegung"
 
 msgid "Tool-Scale"
-msgstr "Tool-Scale"
+msgstr "Werkzeug Skalierung"
 
 msgid "Tool-Rotate"
 msgstr "Werkzeug Rotieren"
@@ -948,7 +948,7 @@ msgid "Cut"
 msgstr "Zerschneiden"
 
 msgid "Open edges may be caused by the cut tool, do you want to fix it now?"
-msgstr ""
+msgstr "Es wurden möglicherweise offene Kanten durch das Schneidewerkzeug verursacht. Möchten Sie das jetzt reparieren?"
 
 msgid "Repairing model object"
 msgstr "Modellobjekt reparieren"
@@ -1367,10 +1367,10 @@ msgid "Remove selection"
 msgstr "Auswahl entfernen"
 
 msgid "Recommend"
-msgstr ""
+msgstr "Empfohlen"
 
 msgid "Old version"
-msgstr ""
+msgstr "Alte Version"
 
 msgid "First font"
 msgstr "Erste Schriftart"
@@ -1466,7 +1466,7 @@ msgid "Can't delete temporary style \"%1%\"."
 msgstr "Temporärer Stil „%1%“ kann nicht gelöscht werden."
 
 msgid "Operation"
-msgstr ""
+msgstr "Bearbeitung"
 
 msgid "Click to change text into object part."
 msgstr "Klicken Sie, um Text in einen Objektteil umzuwandeln."
@@ -1996,10 +1996,10 @@ msgid "Choose one file (3mf):"
 msgstr "Wählen Sie eine Datei (3mf):"
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/gltf/glb/fbx/usd*/abc/ply):"
-msgstr ""
+msgstr "Wähle eine oder mehrere Dateien aus (3mf/step/stl/svg/obj/amf/gltf/glb/fbx/usd*/abc/ply):"
 
 msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/gltf/glb/fbx):"
-msgstr ""
+msgstr "Wähle eine oder mehrere Dateien aus (3mf/step/stl/svg/obj/amf/gltf/glb/fbx):"
 
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr "Wählen Sie eine Datei (gcode/.gco/.g/.ngc/ngc):"
@@ -2557,25 +2557,25 @@ msgstr[1] "%1$d Fehler repariert"
 
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold edges, %2$d non-manifold vertices"
-msgstr ""
+msgstr "Fehler: %1$d ungültige Mesh-Kanten (non-manifold), %2$d ungültige Mesh-Knoten (non-manifold)"
 
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold edge"
 msgid_plural "Error: %1$d non-manifold edges"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Fehler: %1$d ungültige Mesh-Kante (non-manifold)"
+msgstr[1] "Fehler: %1$d ungültige Mesh-Kanten (non-manifold)"
 
 #, c-format, boost-format
 msgid "Error: %1$d non-manifold vertex"
 msgid_plural "Error: %1$d non-manifold vertices"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Fehler: %1$d ungültiger Mesh-Knoten (non-manifold)"
+msgstr[1] "Fehler: %1$d ungültige Mesh-Knoten (non-manifold)"
 
 #, c-format, boost-format
 msgid "Info: %1$d open edge"
 msgid_plural "Info: %1$d open edges"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Info: %1$d offene Kante"
+msgstr[1] "Info: %1$d offene Kanten"
 
 msgid "Right click the icon to fix model object"
 msgstr "Klicken Sie mit der rechten Maustaste auf das Symbol, um das Modellobjekt zu reparieren"
@@ -2623,7 +2623,7 @@ msgid "Switch to per-object setting mode to edit modifier settings."
 msgstr "Wechseln Sie in den objektbezogenen Einstellungsmodus, um die Modifikatoreinstellungen zu bearbeiten."
 
 msgid "Sub-merged body"
-msgstr "Sub-merged Körper"
+msgstr "Zusammengeführter Körper"
 
 msgid "Switch to per-object setting mode to edit process settings of selected objects."
 msgstr "Wechseln Sie in den objektbezogenen Einstellungsmodus, um die Prozesseinstellungen der ausgewählten Objekte zu bearbeiten."
@@ -2730,8 +2730,8 @@ msgstr[1] "Die folgenden Modellobjekte wurde repariert"
 
 msgid "Failed to repair the following model object"
 msgid_plural "Failed to repair the following model object"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Modellobjekt konnte nicht repariert werden"
+msgstr[1] "Modellobjekte konnten nicht repariert werden"
 
 msgid "Repairing was canceled"
 msgstr "Reparieren wurde abgebrochen"
@@ -2974,7 +2974,7 @@ msgid "Off"
 msgstr "Aus"
 
 msgid "Filter"
-msgstr ""
+msgstr "Filter"
 
 msgid "Enabling filtration redirects the right fan to filter gas, which may reduce cooling performance."
 msgstr "Durch Aktivieren der Filterung wird der rechte Lüfter zum Filtern von Gasen umgeleitet, was die Kühlleistung verringern kann."
@@ -4295,28 +4295,28 @@ msgid "Checking extruder temperature"
 msgstr "Überprüfen der Extruder Temperatur"
 
 msgid "Paused by the user"
-msgstr ""
+msgstr "Pausiert vom Benutzer"
 
 msgid "Pause (front cover fall off)"
-msgstr ""
+msgstr "Pause (Frontabdeckung abgefallen)"
 
 msgid "Calibrating the micro lidar"
-msgstr "Kalibrierung der Mikro-Lidar"
+msgstr "Micro-Lidar wird kalibriert"
 
 msgid "Calibrating flow ratio"
-msgstr ""
+msgstr "Flussrate wird kalibriert"
 
 msgid "Pause (nozzle temperature malfunction)"
-msgstr ""
+msgstr "Pausiert (Fehlfunktion der Düsentemperatur)"
 
 msgid "Pause (heatbed temperature malfunction)"
-msgstr ""
+msgstr "Pausiert (Fehlfunktion der Heizbetttemperatur)"
 
 msgid "Filament unloading"
 msgstr "Filament entladen"
 
 msgid "Pause (step loss)"
-msgstr ""
+msgstr "Pausiert (Schrittmotor verliert Schritte)"
 
 msgid "Filament loading"
 msgstr "Filament laden"
@@ -4325,43 +4325,43 @@ msgid "Motor noise cancellation"
 msgstr "Motorgeräuschunterdrückung"
 
 msgid "Pause (AMS offline)"
-msgstr ""
+msgstr "Pausiert (AMS offline)"
 
 msgid "Pause (low speed of the heatbreak fan)"
-msgstr ""
+msgstr "Pausiert (zu niedrige Drehzahl des Heatbreak-Lüfters)"
 
 msgid "Pause (chamber temperature control problem)"
-msgstr ""
+msgstr "Pausiert (Fehler in der Druckerkammer-Temperaturregelung)"
 
 msgid "Cooling chamber"
-msgstr "Kammer kühlen"
+msgstr "Druckerkammer kühlen"
 
 msgid "Pause (Gcode inserted by user)"
-msgstr ""
+msgstr "Pausiert (Gcode vom Benutzer eingefügt)"
 
 msgid "Motor noise showoff"
 msgstr "Motorgeräusch-Vorführung"
 
 msgid "Pause (nozzle clumping)"
-msgstr ""
+msgstr "Pausiert (Düse verklumpt)"
 
 msgid "Pause (cutter error)"
-msgstr ""
+msgstr "Pausiert (Fehler im Filament-Cutter)"
 
 msgid "Pause (first layer error)"
-msgstr ""
+msgstr "Pausiert (Fehler in der ersten Druckschicht)"
 
 msgid "Pause (nozzle clog)"
-msgstr ""
+msgstr "Pausiert (Düse verstopft)"
 
 msgid "Measuring motion percision"
-msgstr ""
+msgstr "Messung der Bewegungspräzision"
 
 msgid "Enhancing motion percision"
-msgstr ""
+msgstr "Verbesserung der Bewegungspräzision"
 
 msgid "Measure motion accuracy"
-msgstr ""
+msgstr "Messung der Bewegungsgenauigkeit"
 
 msgid "Nozzle offset calibration"
 msgstr "Kalibrierung des Düsenversatzes"
@@ -4382,10 +4382,10 @@ msgid "Auto Check: Platform"
 msgstr "Auto Check: Plattform"
 
 msgid "Confirming BirdsEye Camera location"
-msgstr ""
+msgstr "Bestätigung der BirdsEye-Kamera-Position"
 
 msgid "Calibrating BirdsEye Camera"
-msgstr ""
+msgstr "Kalibrierung der BirdsEye-Kamera"
 
 msgid "Auto bed leveling -phase 1"
 msgstr "Automatische Bettnivellierung - Phase 1"
@@ -4403,19 +4403,19 @@ msgid "Printing calibration lines"
 msgstr "Drucken von Kalibrierungslinien"
 
 msgid "Auto Check: Material"
-msgstr ""
+msgstr "Automatische Prüfung: Material"
 
 msgid "Live View Camera Calibration"
-msgstr ""
+msgstr "Live-View Kamera Kalibrierung"
 
 msgid "Waiting for heatbed to reach target temperature"
-msgstr ""
+msgstr "Heizbett wird auf Zieltemperatur aufgeheizt"
 
 msgid "Auto Check: Material Position"
-msgstr ""
+msgstr "Automatische Prüfung: Position des Materials"
 
 msgid "Cutting Module Offset Calibration"
-msgstr ""
+msgstr "Kalibrierung des Versatzes des Schneidmoduls"
 
 msgid "Measuring Surface"
 msgstr "Oberfläche messen"
@@ -4690,7 +4690,7 @@ msgid "Fan Speed"
 msgstr "Lüftergeschwindigkeit"
 
 msgid "AUX Fan Speed"
-msgstr "测试用二"
+msgstr "Drehzahl des AUX-Lüfters"
 
 msgid "Flow"
 msgstr "Fluss"
@@ -4933,10 +4933,10 @@ msgid "Thermal Index"
 msgstr "Thermalindex"
 
 msgid "Min: "
-msgstr ""
+msgstr "Min:"
 
 msgid "Max: "
-msgstr ""
+msgstr "Max:"
 
 msgid "Mean: "
 msgstr "Mittelwert: "
@@ -5256,7 +5256,7 @@ msgid "Not support printing 2 or more TPU filaments."
 msgstr "Unterstützt nicht das Drucken von 2 oder mehreren TPU-Filamenten."
 
 msgid "The total printed weight exceeds this printer's recommended capacity and may cause slower printing or print defects."
-msgstr ""
+msgstr "Das gesamte Druckgewicht überschreitet die empfohlene Kapazität dieses Druckers und kann zu langsamerem Druck oder Druckfehlern führen."
 
 #, c-format, boost-format
 msgid "Filament %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
@@ -6120,8 +6120,8 @@ msgstr "Das Durchsuchen von Dateien im Speicher wird im Nur-LAN-Modus nicht gest
 #, c-format, boost-format
 msgid "You are going to delete %u file from printer. Are you sure to continue?"
 msgid_plural "You are going to delete %u files from printer. Are you sure to continue?"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%u Datei wird vom Drucker gelöscht. Fortfahren?"
+msgstr[1] "%u Dateien werden vom Drucker gelöscht. Fortfahren?"
 
 msgid "Delete files"
 msgstr "Dateien löschen"
@@ -6845,8 +6845,8 @@ msgstr "Hardware sicher entfernen."
 #, c-format, boost-format
 msgid "%1$d Object has custom support."
 msgid_plural "%1$d Objects have custom support."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%1$d Objekt hat benutzerdefinierte Stützen."
+msgstr[1] "%1$d Objekte haben benutzerdefinierte Stützen."
 
 #, c-format, boost-format
 msgid "%1$d Object has color painting."
@@ -6857,14 +6857,14 @@ msgstr[1] "%1$d Objekte haben gemalte Farben."
 #, c-format, boost-format
 msgid "%1$d Object has fuzzy skin."
 msgid_plural "%1$d Objects have fuzzy skin."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%1$d Objekt hat eine „Fuzzy Skin“."
+msgstr[1] "%1$d Objekte haben eine „Fuzzy Skin“."
 
 #, c-format, boost-format
 msgid "%1$d object was loaded as a part of cut object."
 msgid_plural "%1$d objects were loaded as parts of cut object"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%1$d Objekt wurde als Teil eines geschnittenen Objekts geladen."
+msgstr[1] "%1$d Objekte wurden als Teile eines geschnittenen Objekts geladen."
 
 msgid "ERROR"
 msgstr "FEHLER"
@@ -7524,10 +7524,10 @@ msgstr "Mehrteiliges Objekt erkannt"
 
 #, c-format, boost-format
 msgid "Computing texture colors: %s"
-msgstr ""
+msgstr "Texturfarben werden berechnet: %s"
 
 msgid "Texture Import Warning"
-msgstr ""
+msgstr "Warnung beim Import der Textur"
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Diese Dateien als ein einziges Objekt mit mehreren Teilen laden?\n"
@@ -7539,7 +7539,7 @@ msgid "The file does not contain any geometry data."
 msgstr "Die Datei enthält keine Geometriedaten."
 
 msgid "Importing model to project..."
-msgstr ""
+msgstr "Modell wird in das Projekt importiert…"
 
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr "Ihr Objekt scheint zu groß zu sein. Möchten Sie es automatisch verkleinern, damit es auf das Druckbett passt?"
@@ -7548,25 +7548,25 @@ msgid "Object too large"
 msgstr "Objekt zu groß"
 
 msgid "Placing model on the bed..."
-msgstr ""
+msgstr "Platziere das Modell auf dem Druckbett…"
 
 msgid "Updating object list..."
-msgstr ""
+msgstr "Aktualisiere die Objektliste…"
 
 msgid "Updating 3D view..."
-msgstr ""
+msgstr "Aktualisiere die 3D-Ansicht…"
 
 msgid "Model imported."
-msgstr ""
+msgstr "Das Modell ist importiert."
 
 msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
-msgstr ""
+msgstr "Texturimport fehlgeschlagen. Das Modell enthält offenbar Texturdaten, aber der Import konnte nicht abgeschlossen werden. Das Modell wird nur als Geometrie importiert."
 
 msgid "Applying texture colors..."
-msgstr ""
+msgstr "Texturfarben werden aufgetragen…"
 
 msgid "Texture colors applied."
-msgstr ""
+msgstr "Die Texturfarben wurden aufgetragen."
 
 msgid "Export STL file:"
 msgstr "Exportiere STL Datei:"
@@ -9544,6 +9544,8 @@ msgid ""
 "The selected printer has a bed temperature limit of %d°C.\n"
 "Setting a higher bed temperature may cause damage to the printer."
 msgstr ""
+"Der ausgewählte Drucker hat ein Heizbett-Temperaturlimit von %d°C.\n"
+"Eine höhere Einstellung kann den Drucker beschädigen."
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Für den gewählten Zeitraffermodus ist ein Reinigungsturm erforderlich. Ohne Reinigungsturm kann es zu Fehlern am Modell kommen. Möchten Sie den Reinigungsturm aktivieren?"
@@ -9883,10 +9885,10 @@ msgid "Multi Filament"
 msgstr "Multi-Filament"
 
 msgid "Purge Mode: Standard"
-msgstr ""
+msgstr "Spülmodus: Normal"
 
 msgid "Purge Mode: Fast"
-msgstr ""
+msgstr "Spülmodus: Schnell"
 
 msgid "Printable space"
 msgstr "Druckbarer Raum"
@@ -11374,40 +11376,40 @@ msgid "Software Update"
 msgstr ""
 
 msgid "Try Now"
-msgstr ""
+msgstr "Teste jetzt"
 
 msgid "Don't show me Beta updates again"
-msgstr ""
+msgstr "Keine Beta-Updates mehr anzeigen"
 
 msgid "New Bambu Studio Beta Available"
-msgstr ""
+msgstr "Neue Bambu Studio Beta-Version verfügbar"
 
 msgid "Current Version"
-msgstr ""
+msgstr "Aktuelle Version"
 
 msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
-msgstr ""
+msgstr "Die Bambu Studio Beta bietet frühen Zugriff auf kommende Funktionen, Verbesserungen, Optimierungen und Fehlerbehebungen, bevor die stabile Version von Bambu Studio veröffentlicht wird. Sie richtet sich an fortgeschrittene Nutzer, die neue Funktionen frühzeitig testen und zur Verbesserung der Software beitragen möchten."
 
 msgid "Separate configuration folder."
-msgstr ""
+msgstr "Separater Konfigurationsordner"
 
 msgid "As a beta release, some features may still be under development, and you may occasionally encounter bugs, unexpected behavior, or incomplete functionality. To prevent conflicts with the stable release, Bambu Studio Beta uses a separate configuration folder (Help -> Show Configuration Folder) and operates independently from the standard version of Bambu Studio."
-msgstr ""
+msgstr "Als Beta-Version befinden sich einige Funktionen möglicherweise noch in der Entwicklung, und es können gelegentlich Fehler, unerwartetes Verhalten oder unvollständige Funktionen auftreten. Um Konflikte mit der stabilen Version zu vermeiden, verwendet Bambu Studio Beta einen separaten Konfigurationsordner (Hilfe -> Konfigurationsordner anzeigen) und arbeitet unabhängig von der Standardversion von Bambu Studio."
 
 msgid "(Help -> Show Configuration Folder)"
-msgstr ""
+msgstr "(Hilfe -> Konfigurationsordner anzeigen)"
 
 msgid "Why use the Beta version?"
-msgstr ""
+msgstr "Warum die Beta-Version verwenden?"
 
 msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
-msgstr ""
+msgstr "Durch die Nutzung der Beta-Version und das Teilen von Feedback, Fehlerberichten und Vorschlägen können Sie Bambu Lab dabei unterstützen, Stabilität, Kompatibilität und zukünftige Funktionen vor der offiziellen Veröffentlichung zu verbessern."
 
 msgid "How to change settings?"
-msgstr ""
+msgstr "Wie werden Einstellungen geändert?"
 
 msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
-msgstr ""
+msgstr "Wenn du nicht am Beta-Programm teilnehmen möchtest, kannst du Beta-Update-Benachrichtigungen jederzeit in den Einstellungen deaktivieren."
 
 msgid "Air Pump"
 msgstr "Luftpumpe"
@@ -11538,7 +11540,7 @@ msgid "Maybe parts of the object at these height are too thin, or the object has
 msgstr "Vielleicht sind Teile des Objekts in dieser Höhe zu dünn, oder das Objekt hat ein fehlerhaftes Netz"
 
 msgid "Flush volumes matrix do not match to the correct size!"
-msgstr ""
+msgstr "Die Matrix der Spülvolumen hat nicht die richtige Grösse!"
 
 msgid "No object can be printed. Maybe too small"
 msgstr "Es kann kein Objekt gedruckt werden. Vielleicht sind die Objekte zu klein."
@@ -12698,7 +12700,7 @@ msgid "The maximum volumetric speed for ramming before a hotend change, where -1
 msgstr "Die maximale Volumengeschwindigkeit für das Rammen vor einem Hotend-Wechsel, wobei -1 die Verwendung der maximalen Volumengeschwindigkeit bedeutet."
 
 msgid "Minimal purge on wipe tower"
-msgstr "Minimale Wischmenge im Wischturm"
+msgstr "Minimale Spülmenge im Wischturm"
 
 msgid "mm³"
 msgstr "mm³"
@@ -13960,10 +13962,10 @@ msgid "Default Nozzle Volume Type"
 msgstr "Standard-Düsenvolumentyp"
 
 msgid "Saving"
-msgstr ""
+msgstr "Sparen"
 
 msgid "Fast"
-msgstr ""
+msgstr "Schnell"
 
 msgid "length when change hotend"
 msgstr "Länge beim Wechseln des Hotends"
@@ -14629,10 +14631,10 @@ msgid "The actual flushing volumes is equal to the flush multiplier multiplied b
 msgstr "Das tatsächliche Reinigungsvolumen entspricht dem Wert des Reinigungsmultiplikators multipliziert mit den in der Tabelle angegebenen Reinigungsvolumen."
 
 msgid "Flush multiplier (Fast mode)"
-msgstr ""
+msgstr "Spülmultiplikator (Schnellmodus)"
 
 msgid "The flush multiplier used in fast purge mode."
-msgstr ""
+msgstr "Multiplikator für die Materialspülung im Schnellmodus."
 
 msgid "Width of prime tower"
 msgstr "Breite des Reinigungsturms."
@@ -14743,10 +14745,10 @@ msgid "Width of the wall that will replace thin features (according to the Minim
 msgstr "Breite der Wand, die dünne Features (entsprechend der Mindest-Featuregröße) des Modells ersetzen wird. Wenn die minimale Wandbreite dünner ist als die Dicke des Features, wird die Wand so dick wie das Feature selbst. Wird als Prozentsatz des Düsendurchmessers angegeben."
 
 msgid "Override overhang speed"
-msgstr ""
+msgstr "Geschwindigkeit für Überhänge überschreiben"
 
 msgid "Override the overhang speed in process page"
-msgstr ""
+msgstr "Überhang-Geschwindigkeit auf der Prozessseite überschreiben"
 
 msgid "Detect narrow internal solid infill"
 msgstr "Erkennen einer schmalen internen soliden Füllung"
@@ -14858,7 +14860,7 @@ msgid "The supplied file couldn't be read because it's empty"
 msgstr "Die angegebene Datei konnte nicht gelesen werden, weil sie leer ist."
 
 msgid "Unknown file format. Input file must have .stl, .obj, .amf(.xml), .gltf, .glb, .fbx extension."
-msgstr ""
+msgstr "Unbekanntes Dateiformat. Die Eingabedatei muss eine der folgenden Endungen haben: .stl, .obj, .amf(.xml), .gltf, .glb oder .fbx."
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr "Unbekanntes Dateiformat: Die Eingabedatei muss die Endung .3mf oder .zip.amf haben."
@@ -15344,7 +15346,7 @@ msgid "Are you sure to stop printing?"
 msgstr "Möchten Sie den Druckvorgang wirklich beenden?"
 
 msgid "0min"
-msgstr ""
+msgstr "0 Min"
 
 msgid "Flow Dynamics Calibration Result"
 msgstr "Ergebnis der Flussdynamik-Kalibrierung"
@@ -16097,8 +16099,8 @@ msgstr "Profile, auf denen andere Profile basieren, können nicht gelöscht werd
 
 msgid "The following presets inherits this preset."
 msgid_plural "The following preset inherits this preset."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Die folgende Voreinstellung basiert auf dieser Voreinstellung."
+msgstr[1] "Die folgenden Voreinstellungen basieren auf diesen Voreinstellungen."
 
 msgid "Delete Preset"
 msgstr "Profil löschen"
@@ -16758,15 +16760,15 @@ msgstr "Kein Inhalt"
 
 #, c-format, boost-format
 msgid "Printer presets (%d/%d)"
-msgstr ""
+msgstr "Drucker-Voreinstellungen (%d/%d)"
 
 #, c-format, boost-format
 msgid "Filament presets (%d/%d)"
-msgstr ""
+msgstr "Filament-Voreinstellungen (%d/%d)"
 
 #, c-format, boost-format
 msgid "Process presets (%d/%d)"
-msgstr ""
+msgstr "Prozess-Voreinstellungen (%d/%d)"
 
 #, c-format, boost-format
 msgid "%u Selected"
@@ -16873,13 +16875,13 @@ msgid "/%d Selected"
 msgstr "/%d Ausgewählt"
 
 msgid "Nothing selected"
-msgstr ""
+msgstr "Nichts ausgewählt"
 
 msgid "Over 64 objects in single plate"
-msgstr ""
+msgstr "Mehr als 64 Objekte auf einer einzelnen Platte"
 
 msgid "The current print job cannot be skipped"
-msgstr ""
+msgstr "Der aktuelle Druckauftrag kann nicht übersprungen werden"
 
 msgid "Skipping all objects."
 msgstr "Alle Objekte überspringen."
@@ -16954,10 +16956,10 @@ msgid "Purge Mode Settings"
 msgstr "Einstellungen für den Spülmodus"
 
 msgid "Perform full purging with speed and temperature transition for the best print quality."
-msgstr ""
+msgstr "Führt eine vollständige Reinigung mit Geschwindigkeits- und Temperaturwechsel durch, um die bestmögliche Druckqualität zu erreichen."
 
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
-msgstr ""
+msgstr "Verwendet eine optimierte Reinigungstemperatur, einen Multiplikator und eine verstärkte Extrusion für schnelleres Spülen. In einigen Extremfällen kann es zu leichter Farbvermischung kommen."
 
 msgid "Prime Saving"
 msgstr "Spül-Einsparung"
@@ -17247,7 +17249,7 @@ msgid "Gradient Effect"
 msgstr "Verlaufseffekt"
 
 msgid "Enable per-part gradient effect"
-msgstr ""
+msgstr "Gradienteneffekt pro Teil aktivieren"
 
 msgid "Mixing Recommendations"
 msgstr "Mischempfehlungen"
@@ -17263,7 +17265,7 @@ msgstr "Mischfarben-Subschicht"
 
 #, c-format, boost-format
 msgid "Slot %s (%s)"
-msgstr ""
+msgstr "Platz %s (%s)"
 
 msgid "cannot be mixed. Please select the same filament type."
 msgstr "können nicht gemischt werden. Bitte wählen Sie den gleichen Filamenttyp aus."
@@ -17413,8 +17415,7 @@ msgstr ""
 "Drucke in mehrere Druckplatten aufteilen\n"
 "Wussten Sie, dass Sie ein Modell, das aus vielen Teilen besteht, in einzelne Druckplatten aufteilen können? Dadurch wird es einfacher, den Überblick über alle Teile zu behalten."
 
-#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer
-#: Height]
+#: resources/data/hints.ini: [hint:Speed up your print with Adaptive Layer Height]
 msgid ""
 "Speed up your print with Adaptive Layer Height\n"
 "Did you know that you can print a model even faster, by using the Adaptive Layer Height option? Check it out!"
@@ -17486,8 +17487,7 @@ msgstr ""
 "Festigkeit verbessern\n"
 "Wussten Sie, dass Sie die Festigkeit des Modells durch mehr Wandlinien und eine höhere Dichte der Füllung verbessern können?"
 
-#: resources/data/hints.ini: [hint:When need to print with the printer door
-#: opened]
+#: resources/data/hints.ini: [hint:When need to print with the printer door opened]
 msgid ""
 "When need to print with the printer door opened\n"
 "Did you know that opening the printer door can reduce the probability of extruder/hotend clogging when printing lower temperature filament with a higher enclosure temperature. More info about this in the Wiki."
@@ -17508,9 +17508,10 @@ msgid ""
 "Filament Shrinkage\n"
 "Filaments such as %s have higher shrinkage rates, which may cause slight dimensional deviations after cooling and affect assembly fit. It is recommended to refer to the Wiki for shrinkage calibration to achieve more accurate print results."
 msgstr ""
+"Filament Schraumpfungsraten\n"
+"Filamente wie %s haben eine höhere Schrumpfungsrate, was nach dem Abkühlen zu Massabweichungen führen und die Passgenauigkeit bei der Montage beeinflussen kann. Empfohlen wird eine Schrumpfkalibrierung gemäß der Wiki-Anleitung, um präzisere Druckergebnisse zu erzielen."
 
-#: resources/data/helio_hints.ini: [hint: Run Nylon & PC (and other advanced
-#: materials) Like a Pro]
+#: resources/data/helio_hints.ini: [hint: Run Nylon & PC (and other advanced materials) Like a Pro]
 msgid ""
 "Run Nylon & PC (and other advanced materials) Like a Pro\n"
 "Printing Nylon 612 or Polycarbonate or other advanced materials? Helio helps you avoid the 'almost worked' failure."
@@ -17518,8 +17519,7 @@ msgstr ""
 "Drucken Sie Nylon & PC (und andere fortschrittliche Materialien) wie ein Profi\n"
 "Drucken Sie Nylon 612 oder Polycarbonat oder andere fortschrittliche Materialien? Helio hilft Ihnen, Fehlschläge zu vermeiden, bei denen es \"fast geklappt hätte\"."
 
-#: resources/data/helio_hints.ini: [hint: Make Prints up to 30% Faster
-#: (Safely)]
+#: resources/data/helio_hints.ini: [hint: Make Prints up to 30% Faster (Safely)]
 msgid ""
 "Make Prints up to 30% Faster (Safely)\n"
 "Get real throughput, not risky 'speed mode'. A print that normally takes 8 hours might drop to ~5.6 hours."
@@ -17527,8 +17527,7 @@ msgstr ""
 "Machen Sie Drucke bis zu 30 % schneller (sicher)\n"
 "Erhalten Sie echten Durchsatz, keinen riskanten \"Geschwindigkeitsmodus\". Ein Druck, der normalerweise 8 Stunden dauert, könnte auf ~5,6 Stunden sinken."
 
-#: resources/data/helio_hints.ini: [hint: Stop Wasting Precious Design Time on
-#: Tuning]
+#: resources/data/helio_hints.ini: [hint: Stop Wasting Precious Design Time on Tuning]
 msgid ""
 "Stop Wasting Precious Design Time on Tuning\n"
 "Fewer trial prints, faster dial-in. Instead of multiple test prints, detect issues and print first time right."
@@ -17536,8 +17535,7 @@ msgstr ""
 "Verschwenden Sie keine wertvolle Designzeit mehr mit Tuning\n"
 "Weniger Probedrucke, schnellere Einstellung. Statt mehrfacher Testdrucke Probleme erkennen und sofort fehlerfrei drucken."
 
-#: resources/data/helio_hints.ini: [hint: Cut Warping on ASA/ABS and other
-#: advanced materials]
+#: resources/data/helio_hints.ini: [hint: Cut Warping on ASA/ABS and other advanced materials]
 msgid ""
 "Cut Warping on ASA/ABS and other advanced materials\n"
 "Warping ruins long jobs. Helio shows where risk is highest before you print, and, with enhance, cuts the risk of warping to almost nil."
