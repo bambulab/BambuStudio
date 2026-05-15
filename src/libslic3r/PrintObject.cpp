@@ -29,6 +29,7 @@
 #include <tbb/parallel_for.h>
 #include <tbb/concurrent_vector.h>
 #include <tbb/concurrent_unordered_set.h>
+#include <tbb/task_group.h>  // tbb::is_current_task_group_canceling()
 
 #include <Shiny/Shiny.h>
 
@@ -875,9 +876,9 @@ void PrintObject::generate_support_material()
                 std::map<SupportNecessaryType, std::string> reasons = {{SharpTail, L("floating regions")},
                                                                        {Cantilever, L("floating cantilever")},
                                                                        {LargeOverhang, L("large overhangs")}};
-                std::string warning_message                         = Slic3r::format(L("It seems object %s has %s. Please re-orient the object or enable support generation."),
-                                                                                     this->model_object()->name, reasons[sntype]);
-                this->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL, warning_message, PrintStateBase::SlicingNeedSupportOn);
+                std::string error_message = Slic3r::format(L("It seems object %s has %s. Please re-orient the object or enable support generation."),
+                                                           this->model_object()->name, reasons[sntype]);
+                throw Slic3r::SlicingError(error_message, this->id().id, "enable_support");
             }
 
 #if 0
@@ -894,6 +895,32 @@ void PrintObject::generate_support_material()
 
             this->_generate_support_material();
             m_print->throw_if_canceled();
+
+            // When a notification-driven reslice runs (user just clicked
+            // "Enable support for [A]"), sibling PrintObject tasks that
+            // still lack supports throw SlicingError almost immediately. TBB
+            // records that exception on the task_group and signals cancellation
+            // to running siblings, but Print's own m_cancel_status is NOT set
+            // (only an explicit cancel() does that), so throw_if_canceled()
+            // above does not fire. Tree-support generation for A then exits
+            // through its nested parallel_for cancellation paths and "looks
+            // like it returned successfully" - but no support layers were
+            // actually produced. Falling through to the unconditional
+            // set_done() below would lock A's posSupportMaterial as DONE with
+            // empty data, and every subsequent reslice (including the one
+            // triggered when the user clicks the next "Enable support for [B]"
+            // notification) would see set_started() return false and SKIP A's
+            // support generation entirely, leaving A printed without support.
+            //
+            // Detect this case explicitly: if our enclosing TBB task_group is
+            // being cancelled (because a sibling threw), throw CanceledException
+            // here so the unwind happens before set_done(). The step state then
+            // stays in STARTED, and the next reslice gets another chance to run
+            // _generate_support_material() to completion. The CanceledException
+            // is harmless: the parallel_for will rethrow the sibling's original
+            // SlicingError to the main thread anyway.
+            if (tbb::is_current_task_group_canceling())
+                throw Slic3r::CanceledException();
         }
         this->set_done(posSupportMaterial);
     }

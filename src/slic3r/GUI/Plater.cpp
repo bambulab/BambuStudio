@@ -11979,7 +11979,8 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     // This bool stops showing export finished notification even when process_completed_with_error is false
     bool has_error = false;
     if (evt.error()) {
-        auto message = evt.format_error_message();
+        std::string opt_key;
+        auto message = evt.format_error_message(&opt_key);
         if (evt.critical_error()) {
             if (q->m_tracking_popup_menu) {
                 // We don't want to pop-up a message box when tracking a pop-up menu.
@@ -11996,7 +11997,7 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
                 const PrintObject *print_object = this->background_process.m_fff_print->get_object(ObjectID(oid));
                 if (print_object) { ptrs.push_back(print_object->model_object()); }
             }
-            notification_manager->push_slicing_error_notification(message.first, ptrs);
+            notification_manager->push_slicing_error_notification(message.first, ptrs, opt_key);
         }
         if (evt.invalidate_plater())
         {
