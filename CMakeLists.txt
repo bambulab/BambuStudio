@@ -121,10 +121,11 @@ if (MSVC)
     endif ()
     # /bigobj (Increase Number of Sections in .Obj file)
     # error C3859: virtual memory range for PCH exceeded; please recompile with a command line option of '-Zm90' or greater
-    # Generate symbols at every build target, even for the release.
-    # /FS routes PDB writes through mspdbsrv.exe so that PCH + .cpp compiles
-    # of the same target don't race on the shared libfoo.pdb file.
-    add_compile_options(-bigobj -Zm520 /Zi /FS)
+    # Debug info format (/Zi vs /Z7) and the matching /FS serializer are
+    # delegated to CMake's CMAKE_MSVC_DEBUG_INFORMATION_FORMAT abstraction
+    # (default ProgramDatabase = /Zi /FS, matches old behavior; pixi/Ninja
+    # presets flip to Embedded = /Z7 so sccache can cache cl.exe outputs).
+    add_compile_options(-bigobj -Zm520)
     # Disable STL4007: Many result_type typedefs and all argument_type, first_argument_type, and second_argument_type typedefs are deprecated in C++17.
     #FIXME Remove this line after eigen library adapts to the new C++17 adaptor rules.
     add_compile_options(-D_SILENCE_CXX17_ADAPTOR_TYPEDEFS_DEPRECATION_WARNING)
@@ -348,7 +349,11 @@ include_directories(${LIBDIR_BIN}/platform)
 include_directories(${LIBDIR}/libigl)
 
 if(WIN32)
-    add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
+    # NOMINMAX / WIN32_LEAN_AND_MEAN guard <windows.h>'s `min` / `max` macros from
+    # clobbering std::max etc. The PCH (pchheader.hpp) sets these too, but TUs
+    # that include <windows.h> with SLIC3R_PCH=OFF (e.g. the Ninja+sccache flow)
+    # need them globally.
+    add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS -DNOMINMAX -DWIN32_LEAN_AND_MEAN)
     if(MSVC)
         # BOOST_ALL_NO_LIB: Avoid the automatic linking of Boost libraries on Windows. Rather rely on explicit linking.
         add_definitions(-DBOOST_ALL_NO_LIB -DBOOST_USE_WINAPI_VERSION=0x602 -DBOOST_SYSTEM_USE_UTF8 )
