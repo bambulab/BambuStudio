@@ -5861,6 +5861,24 @@ void Tab::load_current_preset()
             wxGetApp().obj_list()->update_objects_list_filament_column(1);
     }
     if (m_type == Preset::TYPE_PRINT) {
+        // Apply user's preferred default infill pattern if the preset still uses its parent's value
+        const Preset *parent = m_presets->get_selected_preset_parent();
+        if (parent) {
+            auto *edited_opt = m_config->option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern");
+            auto *parent_opt = parent->config.option<ConfigOptionEnum<InfillPattern>>("sparse_infill_pattern");
+            if (edited_opt && parent_opt && edited_opt->value == parent_opt->value) {
+                std::string pref = wxGetApp().app_config->get("default_infill_pattern");
+                InfillPattern preferred;
+                if (!pref.empty() && ConfigOptionEnum<InfillPattern>::from_string(pref, preferred) && preferred != edited_opt->value) {
+                    auto *new_opt = new ConfigOptionEnum<InfillPattern>(preferred);
+                    m_config->set_key_value("sparse_infill_pattern", new_opt);
+                    // Also update the selected preset so the dirty check won't flag this as a user modification
+                    m_presets->get_selected_preset().config.set_key_value("sparse_infill_pattern",
+                        new ConfigOptionEnum<InfillPattern>(preferred));
+                }
+            }
+        }
+
         if (auto tab = wxGetApp().plate_tab) {
             tab->m_config->apply(*m_config);
             tab->update_extruder_variants();

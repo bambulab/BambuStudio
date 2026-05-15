@@ -316,6 +316,10 @@ void AppConfig::set_defaults()
         set("auto_calculate_flush","all");
     }
 
+    if (get("default_infill_pattern").empty()){
+        set("default_infill_pattern", "grid");
+    }
+
     if (get("enable_high_low_temp_mixed_printing").empty()){
         set_bool("enable_high_low_temp_mixed_printing", false);
     }
