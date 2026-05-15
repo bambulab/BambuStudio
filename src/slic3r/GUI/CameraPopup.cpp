@@ -551,10 +551,14 @@ void CameraItem::render(wxDC &dc)
 
 void CameraItem::doRender(wxDC &dc)
 {
-    if (m_hover) {
-        dc.DrawBitmap(m_bitmap_hover.bmp(), wxPoint((GetSize().x - m_bitmap_hover.GetBmpSize().x) / 2, (GetSize().y - m_bitmap_hover.GetBmpSize().y) / 2));
+    const wxBitmap &bmp = (m_hover && IsEnabled()) ? m_bitmap_hover.bmp() : m_bitmap_normal.bmp();
+    wxPoint pos((GetSize().x - bmp.GetWidth()) / 2, (GetSize().y - bmp.GetHeight()) / 2);
+
+    if (!IsEnabled()) {
+        wxImage img = bmp.ConvertToImage();
+        dc.DrawBitmap(wxBitmap(img.ConvertToGreyscale()), pos);
     } else {
-        dc.DrawBitmap(m_bitmap_normal.bmp(), wxPoint((GetSize().x - m_bitmap_normal.GetBmpSize().x) / 2, (GetSize().y - m_bitmap_normal.GetBmpSize().y) / 2));
+        dc.DrawBitmap(bmp, pos);
     }
 }
 

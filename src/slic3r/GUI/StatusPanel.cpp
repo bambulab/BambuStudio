@@ -89,11 +89,11 @@ static const wxColour BUTTON_HOVER_COL   = wxColour(0, 174, 66);
 static const wxColour DISCONNECT_TEXT_COL = wxColour(171, 172, 172);
 static const wxColour NORMAL_TEXT_COL     = wxColour(48, 58, 60);
 
-class CameraFullscreenCloseButton : public wxPanel
+class CameraFullscreenCloseButton : public wxPopupWindow
 {
 public:
     CameraFullscreenCloseButton(wxWindow *parent, std::function<void()> close_cb, std::function<void(bool)> hover_cb)
-        : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE)
+        : wxPopupWindow(parent, wxBORDER_NONE)
         , m_close_cb(std::move(close_cb))
         , m_hover_cb(std::move(hover_cb))
     {
@@ -167,7 +167,7 @@ class CameraFullscreenFrame : public wxFrame
 {
 public:
     explicit CameraFullscreenFrame(StatusBasePanel *owner)
-        : wxFrame(owner, wxID_ANY, _L("Camera Full Screen"), wxDefaultPosition, wxDefaultSize, wxBORDER_NONE | wxFRAME_NO_TASKBAR)
+        : wxFrame(owner, wxID_ANY, _L("Camera Full Screen"), wxDefaultPosition, wxDefaultSize, wxBORDER_NONE | wxFRAME_NO_TASKBAR | wxSTAY_ON_TOP)
         , m_owner(owner)
     {
         SetBackgroundColour(*wxBLACK);
@@ -185,7 +185,7 @@ public:
         SetSizer(root_sizer);
 
         m_close_button = new CameraFullscreenCloseButton(
-            m_video_host,
+            this,
             [this] { request_close(); },
             [this](bool hover) { on_close_hover_changed(hover); });
         m_close_button->Hide();
@@ -277,7 +277,11 @@ public:
         m_media_ctrl->Bind(wxEVT_MOTION, &CameraFullscreenFrame::on_mouse_motion, this);
         Layout();
         position_close_button();
-        CallAfter([this] { show_close_button(); });
+        CallAfter([this] {
+            show_close_button();
+            // Reclaim focus so ESC works immediately without clicking
+            SetFocus();
+        });
     }
 
     void detach_media()
@@ -426,12 +430,14 @@ private:
 
     void position_close_button()
     {
-        if (!m_video_host || !m_close_button) return;
+        if (!m_close_button) return;
         const int    button_size = FromDIP(44);
         const int    margin      = FromDIP(24);
-        const wxSize host_size   = m_video_host->GetClientSize();
+        const wxSize frame_size  = GetClientSize();
+        const int    local_x     = std::max(margin, frame_size.x - button_size - margin);
+        const int    local_y     = margin;
         m_close_button->SetSize(wxSize(button_size, button_size));
-        m_close_button->SetPosition(wxPoint(std::max(margin, host_size.x - button_size - margin), margin));
+        m_close_button->Move(ClientToScreen(wxPoint(local_x, local_y)));
     }
 
     StatusBasePanel             *m_owner{nullptr};
@@ -1857,7 +1863,12 @@ void StatusBasePanel::show_camera_fullscreen()
     if (!can_show_camera_fullscreen() || m_camera_fullscreen_frame || !m_camera_media_sizer) return;
 
     m_camera_fullscreen_frame = new CameraFullscreenFrame(this);
-    m_camera_media_sizer->Detach(m_media_ctrl);
+
+    // Insert a black placeholder so the sizer does not collapse
+    m_camera_placeholder = new wxPanel(this, wxID_ANY);
+    m_camera_placeholder->SetBackgroundColour(*wxBLACK);
+    m_camera_media_sizer->Replace(m_media_ctrl, m_camera_placeholder);
+
     m_media_ctrl->Reparent(m_camera_fullscreen_frame->video_parent());
     m_camera_fullscreen_frame->attach_media(m_media_ctrl);
 
@@ -1878,7 +1889,13 @@ void StatusBasePanel::close_camera_fullscreen()
     frame->detach_media();
 
     m_media_ctrl->Reparent(this);
-    m_camera_media_sizer->Insert(1, m_media_ctrl, 1, wxEXPAND | wxALL, 0);
+    if (m_camera_placeholder) {
+        m_camera_media_sizer->Replace(m_camera_placeholder, m_media_ctrl);
+        m_camera_placeholder->Destroy();
+        m_camera_placeholder = nullptr;
+    } else {
+        m_camera_media_sizer->Insert(1, m_media_ctrl, 1, wxEXPAND | wxALL, 0);
+    }
     Layout();
     Refresh();
 
@@ -2827,6 +2844,15 @@ void StatusPanel::update_camera_state(MachineObject *obj)
     if (m_camera_popup && m_camera_popup->IsShown()) {
         bool show_vcamera = m_media_play_ctrl->IsStreaming();
         m_camera_popup->update(show_vcamera);
+    }
+
+    // fullscreen button: enable only when media is playing
+    if (m_camera_fullscreen_button) {
+        bool playing = m_media_ctrl && m_media_ctrl->GetState() == wxMEDIASTATE_PLAYING;
+        if (m_camera_fullscreen_button->IsEnabled() != playing) {
+            m_camera_fullscreen_button->Enable(playing);
+            m_camera_fullscreen_button->Refresh();
+        }
     }
 }
 
