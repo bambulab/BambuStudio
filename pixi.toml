@@ -154,11 +154,13 @@ env = { BAMBU_BUILD_TYPE = "release" }
 
 [target.linux-64.tasks.dist]
 description = "Bundle the Release binary into a portable AppImage."
+depends-on = ["build-release"]
 cmd = "bash scripts/pixi/linux/appimage.sh release"
 
 # macOS: package* builds the .app, dist* wraps it in a DMG.
 [target.osx-arm64.tasks.package]
 description = "Build BambuStudio.app from the Release binary."
+depends-on = ["build-release"]
 cmd = "bash scripts/pixi/macos/package.sh release"
 
 [target.osx-arm64.tasks.dist]
