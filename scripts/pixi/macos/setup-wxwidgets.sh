@@ -43,8 +43,8 @@ cmake "$PIXI_PROJECT_ROOT/deps" \
   -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
   -DDESTDIR="$destdir"
 
-# scripts/pixi/_jobs.sh handles the Darwin / Linux split internally.
-source "$script_dir/../_jobs.sh"
+# scripts/pixi/shared/_jobs.sh handles the Darwin / Linux split internally.
+source "$script_dir/../shared/_jobs.sh"
 jobs=$(pixi_parallel_jobs)
 echo "Building dep_wxWidgets with -j${jobs}"
 cmake --build . --target dep_wxWidgets -j"$jobs"

@@ -44,7 +44,7 @@ cmake "$PIXI_PROJECT_ROOT/deps" \
   -DDEP_WX_WEBVIEW=ON \
   -DDESTDIR="$destdir"
 
-source "$script_dir/_jobs.sh"
+source "$script_dir/../shared/_jobs.sh"
 jobs=$(pixi_parallel_jobs)
 echo "Building dep_wxWidgets with -j${jobs}"
 cmake --build . --target dep_wxWidgets -j"$jobs"

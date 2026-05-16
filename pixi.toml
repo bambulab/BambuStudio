@@ -95,11 +95,11 @@ dotnet = "*"
 # in follow-up commits.
 
 [target.linux-64.tasks.setup-libnoise]
-cmd = "bash scripts/pixi/setup-libnoise.sh"
+cmd = "bash scripts/pixi/shared/setup-libnoise.sh"
 description = "Build bambulab/libnoise (no conda-forge package) and install into pixi env"
 
 [target.linux-64.tasks.setup-wxwidgets]
-cmd = "bash scripts/pixi/setup-wxwidgets.sh"
+cmd = "bash scripts/pixi/linux/setup-wxwidgets.sh"
 description = "Build bambulab/wxWidgets fork (custom patches) and install into pixi env"
 
 [target.linux-64.tasks.bootstrap]
@@ -107,11 +107,12 @@ description = "One-time: build bambulab forks (libnoise, wxWidgets) into pixi en
 depends-on = ["setup-libnoise", "setup-wxwidgets"]
 
 # macOS pixi tasks (bash). The top-level [tasks.build] / [tasks.bambu-studio]
-# entries below already dispatch to scripts/pixi/{build,run}.sh, which pick
-# the osx-pixi-* preset on Darwin — no per-platform override needed here.
+# entries below already dispatch to scripts/pixi/shared/{build,run}.sh,
+# which pick the osx-pixi-* preset on Darwin — no per-platform override
+# needed here.
 
 [target.osx-arm64.tasks.setup-libnoise]
-cmd = "bash scripts/pixi/setup-libnoise.sh"
+cmd = "bash scripts/pixi/shared/setup-libnoise.sh"
 description = "Build bambulab/libnoise (no conda-forge package) and install into pixi env"
 
 [target.osx-arm64.tasks.setup-wxwidgets]
@@ -132,28 +133,28 @@ depends-on = ["build-debug"]
 
 [tasks.bambu-studio]
 description = "Launch the Debug bambu-studio binary. Args pass through; use `bambu-studio-release` for the optimized binary."
-cmd = "bash scripts/pixi/run.sh"
+cmd = "bash scripts/pixi/shared/run.sh"
 
 [tasks.build-debug]
 description = "Configure + build BambuStudio Debug into build/debug. Mem-aware parallelism."
-cmd = "bash scripts/pixi/build.sh debug"
+cmd = "bash scripts/pixi/shared/build.sh debug"
 
 [tasks.build-release]
 description = "Configure + build BambuStudio Release into build/release. Mem-aware parallelism."
-cmd = "bash scripts/pixi/build.sh release"
+cmd = "bash scripts/pixi/shared/build.sh release"
 
 [tasks.bambu-studio-debug]
 description = "Launch build/debug/src/bambu-studio. Args pass through."
-cmd = "bash scripts/pixi/run.sh"
+cmd = "bash scripts/pixi/shared/run.sh"
 
 [tasks.bambu-studio-release]
 description = "Launch build/release/src/bambu-studio. Args pass through."
-cmd = "bash scripts/pixi/run.sh"
+cmd = "bash scripts/pixi/shared/run.sh"
 env = { BAMBU_BUILD_TYPE = "release" }
 
 [target.linux-64.tasks.dist]
 description = "Bundle the Release binary into a portable AppImage."
-cmd = "bash scripts/pixi/appimage.sh release"
+cmd = "bash scripts/pixi/linux/appimage.sh release"
 
 # macOS: package* builds the .app, dist* wraps it in a DMG.
 [target.osx-arm64.tasks.package]

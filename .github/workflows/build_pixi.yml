@@ -93,7 +93,7 @@ jobs:
             .pixi/envs/default/lib/liblibnoise_static.a
             .pixi/envs/default/include/libnoise
             .pixi/envs/default/include/wx-3.1
-          key: pixi-bootstrap-${{ matrix.os }}-${{ hashFiles('deps/wxWidgets/**', 'deps/libnoise/**', 'scripts/pixi/setup-libnoise.sh', 'scripts/pixi/setup-wxwidgets.sh', 'scripts/pixi/macos/setup-wxwidgets.sh', 'scripts/pixi/_jobs.sh') }}
+          key: pixi-bootstrap-${{ matrix.os }}-${{ hashFiles('deps/wxWidgets/**', 'deps/libnoise/**', 'scripts/pixi/shared/setup-libnoise.sh', 'scripts/pixi/linux/setup-wxwidgets.sh', 'scripts/pixi/macos/setup-wxwidgets.sh', 'scripts/pixi/shared/_jobs.sh') }}
 
       - name: Cache bootstrap (Windows)
         if: runner.os == 'Windows'
