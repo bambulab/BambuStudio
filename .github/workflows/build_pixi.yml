@@ -18,6 +18,8 @@ on:
       - 'deps/libnoise/**'
       - '**/CMakeLists.txt'
       - 'version.inc'
+      - 'resources/**'
+      - 'bbl/**'
       - '.github/workflows/build_pixi.yml'
   pull_request:
     paths: *triggers
