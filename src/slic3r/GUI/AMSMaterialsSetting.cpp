@@ -1165,7 +1165,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     // Request PA calibration history if not loaded yet — needed for k-profile dropdown
     if (obj->GetCalib()->IsVersionInited() && !obj->GetCalib()->IsPAHistoryReady()) {
         PACalibExtruderInfo cali_info;
-        int ext_id = obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
+        int ext_id = obj->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(ams_id));
         cali_info.nozzle_diameter        = obj->GetExtderSystem()->GetNozzleDiameter(ext_id);
         cali_info.use_extruder_id        = false;
         cali_info.use_nozzle_volume_type = false;
