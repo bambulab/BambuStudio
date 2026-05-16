@@ -1448,6 +1448,14 @@ FilamentGroupContext build_filament_group_context(
     context.speed_info.group_with_time = print->config().group_algo_with_time;
     context.speed_info.filament_change_time  = print->config().machine_load_filament_time + print->config().machine_unload_filament_time;
     context.speed_info.extruder_change_time = print->config().machine_switch_extruder_time;
+    {
+        double load_time   = print->config().machine_load_filament_time;
+        double unload_time = print->config().machine_unload_filament_time;
+        context.speed_info.change_time_params.standard_load_time   = static_cast<float>(load_time);
+        context.speed_info.change_time_params.standard_unload_time = static_cast<float>(unload_time);
+        context.speed_info.change_time_params.selector_load_time   = static_cast<float>(load_time / 2);
+        context.speed_info.change_time_params.selector_unload_time = static_cast<float>(unload_time / 2);
+    }
 
     context.machine_info.machine_filament_info = machine_filament_info;
     context.machine_info.max_group_size = std::move(group_size);
@@ -1893,20 +1901,20 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
         auto context = build_filament_group_context(
             print,layer_filaments,physical_unprintables,geometric_unprintables, unprintable_volumes, mode, nozzle_status);
 
-        if (has_multiple_nozzle) {
-            if(mode == FilamentMapMode::fmmManual){
-                auto manual_filament_map = print_config.filament_map.values;
-                std::transform(manual_filament_map.begin(), manual_filament_map.end(), manual_filament_map.begin(), [](int v) { return v - 1; });
-                ret = calc_filament_group_for_manual_multi_nozzle(manual_filament_map,context);
-            }
-            else if(mode == FilamentMapMode::fmmAutoForMatch){
-                ret = calc_filament_group_for_match_multi_nozzle(context);
-            }
-            else{
-                FilamentGroupMultiNozzle fg(context);
-                ret = fg.calc_filament_group_by_pam();
-            }
+        if (has_multiple_nozzle && mode == FilamentMapMode::fmmManual) {
+            auto manual_filament_map = print_config.filament_map.values;
+            std::transform(manual_filament_map.begin(), manual_filament_map.end(), manual_filament_map.begin(), [](int v) { return v - 1; });
+            ret = calc_filament_group_for_manual_multi_nozzle(manual_filament_map, context);
+        } else if (has_multiple_nozzle && mode == FilamentMapMode::fmmAutoForMatch) {
+            ret = calc_filament_group_for_match_multi_nozzle(context);
+        } else {
+            FilamentGroup fg(context);
+            if (!has_multiple_nozzle)
+                fg.get_custom_seq = create_custom_seq_function(print_config, false);
+            ret = fg.calc_filament_group();
+        }
 
+        if (has_multiple_nozzle) {
             auto result_opt = LayeredNozzleGroupResult::create(ret, context.nozzle_info.nozzle_list, used_filaments);
             if (!result_opt) return LayeredNozzleGroupResult();
             auto result = *result_opt;
@@ -1919,11 +1927,6 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
                 }
             }
             return result;
-        }
-        else{
-            FilamentGroup fg(context);
-            fg.get_custom_seq = create_custom_seq_function(print_config,false);
-            ret = fg.calc_filament_group();
         }
     }
 
