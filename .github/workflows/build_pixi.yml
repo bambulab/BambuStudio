@@ -40,53 +40,34 @@ jobs:
           - os: ubuntu-24.04
             build_task: build-release
             binary: build/release/src/bambu-studio
-            logs: |
-              build/release/CMakeFiles/CMakeOutput.log
-              build/release/CMakeFiles/CMakeError.log
-              build/release/CMakeFiles/CMakeConfigureLog.yaml
+            artifact_name: BambuStudio-Linux-AppImage
+            artifact_glob: build/release/BambuStudio-*-x86_64.AppImage
           - os: windows-2022
-            # Windows pixi.toml has no debug/release split yet; `build` is
-            # the single Release task driven by the win-pixi Ninja preset.
+            # No debug/release split on win64 yet; `build` = single Release.
             build_task: build
             binary: build/release/src/bambu-studio.exe
-            logs: |
-              build/release/CMakeFiles/CMakeOutput.log
-              build/release/CMakeFiles/CMakeError.log
-              build/release/CMakeFiles/CMakeConfigureLog.yaml
+            artifact_name: BambuStudio-Windows-MSI
+            artifact_glob: build/release/dist/BambuStudio-*-x64.msi
           - os: macos-14
-            # macos-14 is Apple Silicon, matching pixi.toml's osx-arm64 platform.
             build_task: build-release
             binary: build/release/src/bambu-studio
-            logs: |
-              build/release/CMakeFiles/CMakeOutput.log
-              build/release/CMakeFiles/CMakeError.log
-              build/release/CMakeFiles/CMakeConfigureLog.yaml
+            artifact_name: BambuStudio-macOS-DMG
+            artifact_glob: build/release/BambuStudio-*-arm64.dmg
 
     env:
-      # sccache uploads/restores its cache via the GitHub Actions cache API
-      # directly (no actions/cache wrapper needed). The sccache-action step
-      # below additionally injects ACTIONS_CACHE_URL / ACTIONS_RUNTIME_TOKEN.
-      SCCACHE_GHA_ENABLED: "true"
+      SCCACHE_GHA_ENABLED: "true"   # sccache reads/writes GHA Cache directly
 
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
-      # ubuntu-24.04 hosted runners ship with ~14GB free; pixi env (~1.5GB)
-      # + bootstrap workspace (~3GB) + build tree (~5GB) is tight.
+      # ubuntu runner ships ~14 GB free; pixi env + bootstrap + build is tight.
       - name: Free disk space (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
                       /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
           df -h
-
-      - name: Install bubblewrap (Linux)
-        # webkit2gtk4.1 from conda-forge invokes bwrap at runtime; not
-        # needed to build, but installed here so test invocations of the
-        # binary don't fail on a missing host tool.
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y bubblewrap
 
       - name: Setup pixi
         uses: prefix-dev/setup-pixi@1b2de7f3351f171c8b4dfeb558c639cb58ed4ec0  # v0.9.5
@@ -153,10 +134,8 @@ jobs:
         if: runner.os == 'Windows' && steps.cache-bootstrap-windows.outputs.cache-hit == 'true'
         run: pixi run setup-occt-bridge
 
-      # Sets ACTIONS_CACHE_URL / ACTIONS_RUNTIME_TOKEN so sccache (from the
-      # pixi env, invoked via CMAKE_<LANG>_COMPILER_LAUNCHER) can read/write
-      # the GHA cache directly. No actions/cache restore+save needed.
       - name: Setup sccache
+        # Injects ACTIONS_CACHE_URL/TOKEN; sccache reads/writes GHA Cache.
         uses: mozilla-actions/sccache-action@1583d6b38d7be47f593cb472781bbb21cab4321e  # v0.0.10
 
       - name: sccache stats (before)
@@ -170,36 +149,16 @@ jobs:
 
       - name: Verify binary
         shell: bash
-        run: |
-          ls -la "${{ matrix.binary }}"
+        run: ls -la "${{ matrix.binary }}"
 
       - name: Package distributable
         run: pixi run dist
 
-      - name: Upload AppImage artifact
-        if: runner.os == 'Linux'
+      - name: Upload distributable artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
         with:
-          name: BambuStudio-Linux-AppImage
-          path: build/release/BambuStudio-*-x86_64.AppImage
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Upload DMG artifact
-        if: runner.os == 'macOS'
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
-        with:
-          name: BambuStudio-macOS-DMG
-          path: build/release/BambuStudio-*-arm64.dmg
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Upload MSI artifact
-        if: runner.os == 'Windows'
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
-        with:
-          name: BambuStudio-Windows-MSI
-          path: build/release/dist/BambuStudio-*-x64.msi
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_glob }}
           if-no-files-found: error
           retention-days: 14
 
@@ -208,6 +167,9 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
         with:
           name: build-logs-${{ matrix.os }}
-          path: ${{ matrix.logs }}
+          path: |
+            build/release/CMakeFiles/CMakeOutput.log
+            build/release/CMakeFiles/CMakeError.log
+            build/release/CMakeFiles/CMakeConfigureLog.yaml
           if-no-files-found: ignore
           retention-days: 7
