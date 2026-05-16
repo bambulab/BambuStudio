@@ -25,7 +25,7 @@ $msiOut      = Join-Path $buildDir 'dist'
 $wxs         = Join-Path $PSScriptRoot 'BambuStudio.wxs'
 
 if (-not (Test-Path (Join-Path $buildDir 'CMakeCache.txt'))) {
-    throw "build not configured at $buildDir — run 'pixi run build-$BuildType' first"
+    throw "build not configured at $buildDir -- run 'pixi run build-$BuildType' first"
 }
 
 # 1) Stage payload via cmake --install.
@@ -45,7 +45,7 @@ foreach ($f in 'bambu-studio.exe', 'BambuStudio.dll', 'resources') {
 # 2) Bundle every .dll from the conda env's Library/bin into the payload.
 # Static import walkers (dumpbin / objdump) miss DLLs that conda libs
 # (notably OpenCV) pull in via runtime LoadLibrary. The env is the
-# curated source of truth — copy it whole. ~80 MB raw, no PE parser
+# curated source of truth -- copy it whole. ~80 MB raw, no PE parser
 # required, future-proof against dependency drift.
 Write-Host "Copying env DLLs into payload..."
 Copy-Item -Path (Join-Path $env:CONDA_PREFIX 'Library/bin/*.dll') -Destination $payloadDir -Force

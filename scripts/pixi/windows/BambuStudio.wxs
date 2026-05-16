@@ -20,7 +20,7 @@
                     version.inc ships "02.06.01.55" which fits as-is.
 
   UpgradeCode is the stable identity of the Bambu Studio MSI product
-  family. NEVER change it across releases — Windows Installer uses it
+  family. NEVER change it across releases -- Windows Installer uses it
   to find and uninstall older versions during MajorUpgrade.
 
   BambuStudioFiles ComponentGroup is generated at build time by dist.ps1
@@ -35,7 +35,7 @@
            Scope="perMachine"
            Compressed="yes">
 
-    <SummaryInformation Description="Bambu Studio — 3D printer slicer (pixi build)" />
+    <SummaryInformation Description="Bambu Studio - 3D printer slicer (pixi build)" />
     <MediaTemplate EmbedCab="yes" />
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
