@@ -4326,6 +4326,15 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionInt(0));
 
+    def = this->add("raft_filament", coInt);
+    def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
+    def->label    = L("Filament for raft");
+    def->category = L("Support");
+    def->tooltip  = L("Filament to print raft. \"Default\" means no specific filament for raft and current filament is used");
+    def->min      = 0;
+    def->mode     = comSimple;
+    def->set_default_value(new ConfigOptionInt(0));
+
     def = this->add("resolution", coFloat);
     def->label = L("Resolution");
     def->tooltip = L("G-code path is generated after simplifying the contour of model to avoid too many points and gcode lines "
@@ -5118,9 +5127,9 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("support_filament", coInt);
     def->gui_type = ConfigOptionDef::GUIType::i_enum_open;
-    def->label    = L("Support/raft base");
+    def->label    = L("Support base");
     def->category = L("Support");
-    def->tooltip = L("Filament to print support base and raft. \"Default\" means no specific filament for support and current filament is used");
+    def->tooltip = L("Filament to print support base. \"Default\" means no specific filament for support and current filament is used");
     def->min = 0;
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInt(0));

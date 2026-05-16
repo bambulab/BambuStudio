@@ -67,35 +67,39 @@ SlicingParameters SlicingParameters::create_from_config(
 {
     coordf_t initial_layer_print_height                      = (print_config.initial_layer_print_height.value <= 0) ? 
         object_config.layer_height.value : print_config.initial_layer_print_height.value;
-    // If object_config.support_filament == 0 resp. object_config.support_interface_filament == 0,
+    // If an explicit support / raft filament is not selected,
     // print_config.nozzle_diameter.get_at(size_t(-1)) returns the 0th nozzle diameter,
-    // which is consistent with the requirement that if support_filament == 0 resp. support_interface_filament == 0,
-    // support will not trigger tool change, but it will use the current nozzle instead.
+    // which is consistent with the requirement that default support / raft material
+    // will not trigger tool change, but it will use the current nozzle instead.
     // In that case all the nozzles have to be of the same diameter.
-    coordf_t support_material_extruder_dmr           = print_config.nozzle_diameter.get_at(object_config.support_filament.value - 1);
-    coordf_t support_material_interface_extruder_dmr = print_config.nozzle_diameter.get_at(object_config.support_interface_filament.value - 1);
-    bool     soluble_interface                       = object_config.support_top_z_distance.value == 0.;
+    coordf_t raft_material_extruder_dmr = print_config.nozzle_diameter.get_at(object_config.raft_filament.value - 1);
+    bool     soluble_interface          = object_config.support_top_z_distance.value == 0.;
 
     SlicingParameters params;
-    params.layer_height = object_config.layer_height.value;
-    params.first_print_layer_height = initial_layer_print_height;
+    params.layer_height              = object_config.layer_height.value;
+    params.first_print_layer_height  = initial_layer_print_height;
     params.first_object_layer_height = initial_layer_print_height;
-    params.object_print_z_min = 0.;
-    params.object_print_z_max = object_height;
-    params.base_raft_layers = object_config.raft_layers.value;
-    params.soluble_interface = soluble_interface;
+    params.object_print_z_min        = 0.;
+    params.object_print_z_max        = object_height;
+    params.base_raft_layers          = object_config.raft_layers.value;
+    params.soluble_interface         = soluble_interface;
 
     // Miniumum/maximum of the minimum layer height over all extruders.
-    params.min_layer_height = MIN_LAYER_HEIGHT;
-    params.max_layer_height = std::numeric_limits<double>::max();
-    if (object_config.enable_support.value || params.base_raft_layers > 0 || object_config.enforce_support_layers > 0) {
-        // Has some form of support. Add the support layers to the minimum / maximum layer height limits.
-        params.min_layer_height = std::max(
-            min_layer_height_from_nozzle(print_config, object_config.support_filament), 
-            min_layer_height_from_nozzle(print_config, object_config.support_interface_filament));
-        params.max_layer_height = std::min(
-            max_layer_height_from_nozzle(print_config, object_config.support_filament), 
-            max_layer_height_from_nozzle(print_config, object_config.support_interface_filament));
+    params.min_layer_height     = MIN_LAYER_HEIGHT;
+    params.max_layer_height     = std::numeric_limits<double>::max();
+    auto add_layer_height_limit = [&params, &print_config](int idx_nozzle) {
+        params.min_layer_height = std::max(params.min_layer_height, min_layer_height_from_nozzle(print_config, idx_nozzle));
+        params.max_layer_height = std::min(params.max_layer_height, max_layer_height_from_nozzle(print_config, idx_nozzle));
+    };
+    if (object_config.enable_support.value || object_config.enforce_support_layers > 0) {
+        // Has support. Add the support layers to the minimum / maximum layer height limits.
+        add_layer_height_limit(object_config.support_filament);
+        add_layer_height_limit(object_config.support_interface_filament);
+        params.max_suport_layer_height = params.max_layer_height;
+    }
+    if (params.base_raft_layers > 0) {
+        // Has raft. Raft layers use raft_filament.
+        add_layer_height_limit(object_config.raft_filament);
         params.max_suport_layer_height = params.max_layer_height;
     }
     if (object_extruders.empty()) {
@@ -110,27 +114,26 @@ SlicingParameters SlicingParameters::create_from_config(
     params.min_layer_height = std::min(params.min_layer_height, params.layer_height);
     params.max_layer_height = std::max(params.max_layer_height, params.layer_height);
 
-    params.gap_raft_object    = soluble_interface ? 0 : object_config.raft_contact_distance.value;
-    //BBS
-    params.gap_object_support = object_config.support_bottom_z_distance.value; 
+    params.gap_raft_object = soluble_interface ? 0 : object_config.raft_contact_distance.value;
+    // BBS
+    params.gap_object_support = object_config.support_bottom_z_distance.value;
     params.gap_support_object = object_config.support_top_z_distance.value;
-    if (params.gap_object_support <= 0)
-        params.gap_object_support = params.gap_support_object;
+    if (params.gap_object_support <= 0) params.gap_object_support = params.gap_support_object;
 
     if (!print_config.independent_support_layer_height) {
-        params.gap_raft_object = std::round(params.gap_raft_object / object_config.layer_height + EPSILON) * object_config.layer_height;
+        params.gap_raft_object    = std::round(params.gap_raft_object / object_config.layer_height + EPSILON) * object_config.layer_height;
         params.gap_object_support = std::round(params.gap_object_support / object_config.layer_height + EPSILON) * object_config.layer_height;
         params.gap_support_object = std::round(params.gap_support_object / object_config.layer_height + EPSILON) * object_config.layer_height;
     }
 
     if (params.base_raft_layers > 0) {
-		params.interface_raft_layers = (params.base_raft_layers + 1) / 2;
+        params.interface_raft_layers = (params.base_raft_layers + 1) / 2;
         params.base_raft_layers -= params.interface_raft_layers;
         // Use as large as possible layer height for the intermediate raft layers.
-        params.base_raft_layer_height       = std::max(params.layer_height, 0.75 * support_material_extruder_dmr);
-        params.interface_raft_layer_height  = std::max(params.layer_height, 0.75 * support_material_interface_extruder_dmr);
+        params.base_raft_layer_height       = std::max(params.layer_height, 0.75 * raft_material_extruder_dmr);
+        params.interface_raft_layer_height  = std::max(params.layer_height, 0.75 * raft_material_extruder_dmr);
         params.first_object_layer_bridging  = false;
-        params.contact_raft_layer_height    = std::max(params.layer_height, 0.75 * support_material_interface_extruder_dmr);
+        params.contact_raft_layer_height    = std::max(params.layer_height, 0.75 * raft_material_extruder_dmr);
         params.first_object_layer_height    = params.layer_height;
     }
 

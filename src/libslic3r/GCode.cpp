@@ -4327,14 +4327,19 @@ GCode::LayerResult GCode::process_layer(
                 ExtrusionRole   role               = support_layer.support_fills.role();
                 bool            has_support        = role == erMixed || role == erSupportMaterial || role == erSupportTransition;
                 bool            has_interface      = role == erMixed || role == erSupportMaterialInterface;
-                // Extruder ID of the support base. -1 if "don't care".
-                unsigned int    support_extruder   = object.config().support_filament.value - 1;
-                // Shall the support be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
-                bool            support_dontcare   = object.config().support_filament.value == 0;
+                const bool raft_layer_uses_raft_filament = object.slicing_parameters().raft_layer_uses_raft_filament(support_layer.id());
+                const ConfigOptionInt &base_filament      = raft_layer_uses_raft_filament ?
+                    object.config().raft_filament : object.config().support_filament;
+                const ConfigOptionInt &interface_filament = raft_layer_uses_raft_filament ?
+                    object.config().raft_filament : object.config().support_interface_filament;
+                // Extruder ID of the support or raft base. -1 if "don't care".
+                unsigned int    support_extruder   = base_filament.value - 1;
+                // Shall the support / raft base be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
+                bool            support_dontcare   = base_filament.value == 0;
                 // Extruder ID of the support interface. -1 if "don't care".
-                unsigned int    interface_extruder = object.config().support_interface_filament.value - 1;
+                unsigned int    interface_extruder = interface_filament.value - 1;
                 // Shall the support interface be printed with the active extruder, preferably with non-soluble, to avoid tool changes?
-                bool            interface_dontcare = object.config().support_interface_filament.value == 0;
+                bool            interface_dontcare = interface_filament.value == 0;
 
                 // BBS: apply wiping overridden extruders
                 WipingExtrusions& wiping_extrusions = const_cast<LayerTools&>(layer_tools).wiping_extrusions();

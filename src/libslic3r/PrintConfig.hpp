@@ -920,6 +920,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionPercent,             raft_first_layer_density))
     ((ConfigOptionFloat,               raft_first_layer_expansion))
     ((ConfigOptionInt,                 raft_layers))
+    ((ConfigOptionInt,                 raft_filament))
     ((ConfigOptionEnum<SeamPosition>,  seam_position))
     ((ConfigOptionBool,                seam_placement_away_from_overhangs))
     ((ConfigOptionFloat,               slice_closing_radius))

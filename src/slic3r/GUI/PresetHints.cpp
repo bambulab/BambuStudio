@@ -132,6 +132,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
     bool infill_extruder_active                     = feature_extruder_active(print_config.opt_int("sparse_infill_filament"));
     bool solid_infill_extruder_active               = feature_extruder_active(print_config.opt_int("solid_infill_filament"));
     bool support_material_extruder_active           = feature_extruder_active(print_config.opt_int("support_filament"));
+    bool raft_material_extruder_active              = feature_extruder_active(print_config.opt_int("raft_filament"));
     bool support_material_interface_extruder_active = feature_extruder_active(print_config.opt_int("support_interface_filament"));
 
     // Current filament values
@@ -178,7 +179,7 @@ std::string PresetHints::maximum_volumetric_flow_description(const PresetBundle 
             if (! bridging)
                 test_flow(frInfill, top_surface_line_width, top_surface_speed, L("top surface"));
         }
-        if (! bridging && support_material_extruder_active)
+        if (! bridging && (support_material_extruder_active || raft_material_extruder_active))
             test_flow(frSupportMaterial, support_line_width, support_speed, L("support"));
         if (support_material_interface_extruder_active)
             test_flow(frSupportMaterialInterface, support_line_width, support_interface_speed, L("support interface"));

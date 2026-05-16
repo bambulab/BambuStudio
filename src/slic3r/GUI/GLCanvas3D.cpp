@@ -10607,14 +10607,18 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
                 if (ctxt.has_support) {
                     const SupportLayer *support_layer = dynamic_cast<const SupportLayer*>(layer);
                     if (support_layer) {
-                        for (const ExtrusionEntity *extrusion_entity : support_layer->support_fills.entities)
+                        const bool raft_layer_uses_raft_filament = support_layer->object()->slicing_parameters().raft_layer_uses_raft_filament(support_layer->id());
+                        for (const ExtrusionEntity *extrusion_entity : support_layer->support_fills.entities) {
+                            const bool is_base_role = extrusion_entity->role() == erSupportMaterial || extrusion_entity->role() == erSupportTransition;
+                            const ConfigOptionInt &filament = raft_layer_uses_raft_filament ?
+                                support_layer->object()->config().raft_filament :
+                                (is_base_role ? support_layer->object()->config().support_filament :
+                                                support_layer->object()->config().support_interface_filament);
                             _3DScene::extrusionentity_to_verts(extrusion_entity, float(layer->print_z), copy,
 	                            volume(idx_layer,
-		                            (extrusion_entity->role() == erSupportMaterial ||
-                                     extrusion_entity->role() == erSupportTransition) ?
-			                            support_layer->object()->config().support_filament :
-			                            support_layer->object()->config().support_interface_filament,
+		                            filament,
 		                            2));
+                        }
                     }
                 }
             }

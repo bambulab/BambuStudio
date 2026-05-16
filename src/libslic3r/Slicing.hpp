@@ -37,6 +37,7 @@ struct SlicingParameters
     // Has any raft layers?
     bool        has_raft() const { return raft_layers() > 0; }
     size_t      raft_layers() const { return base_raft_layers + interface_raft_layers; }
+    bool        raft_layer_uses_raft_filament(size_t support_layer_id) const { return support_layer_id < raft_layers(); }
 
     // Is the 1st object layer height fixed, or could it be varied?
     bool        first_object_layer_height_fixed()  const { return ! has_raft() || first_object_layer_bridging; }

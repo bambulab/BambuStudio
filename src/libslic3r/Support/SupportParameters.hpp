@@ -63,10 +63,12 @@ struct SupportParameters {
                 }
             }
 	    }
-        this->first_layer_flow = Slic3r::support_material_1st_layer_flow(&object, float(slicing_params.first_print_layer_height));
-        this->support_material_flow = Slic3r::support_material_flow(&object, float(slicing_params.layer_height));
+        this->first_layer_flow                = Slic3r::support_material_1st_layer_flow(&object, float(slicing_params.first_print_layer_height));
+        this->raft_first_layer_flow           = Slic3r::raft_material_1st_layer_flow(&object, float(slicing_params.first_print_layer_height));
+        this->support_material_flow           = Slic3r::support_material_flow(&object, float(slicing_params.layer_height));
+        this->raft_material_flow              = Slic3r::raft_material_flow(&object, float(slicing_params.layer_height));
         this->support_material_interface_flow = Slic3r::support_material_interface_flow(&object, float(slicing_params.layer_height));
-    	this->raft_interface_flow                = support_material_interface_flow;
+        this->raft_interface_flow             = this->raft_material_flow;
 
         // Calculate a minimum support layer height as a minimum over all extruders, but not smaller than 10um.
         this->support_layer_height_min = scaled<coord_t>(0.01);
@@ -115,10 +117,12 @@ struct SupportParameters {
         this->interface_angle = Geometry::deg2rad(float(object_config.support_angle.value + 90.));
         this->interface_spacing = object_config.support_interface_spacing.value + this->support_material_interface_flow.spacing();
         this->interface_density = std::min(1., this->support_material_interface_flow.spacing() / this->interface_spacing);
-	    double raft_interface_spacing = object_config.support_interface_spacing.value + this->raft_interface_flow.spacing();
-	    this->raft_interface_density = std::min(1., this->raft_interface_flow.spacing() / raft_interface_spacing);
+        double raft_interface_spacing = object_config.support_interface_spacing.value + this->raft_interface_flow.spacing();
+        this->raft_interface_density = std::min(1., this->raft_interface_flow.spacing() / raft_interface_spacing);
         this->support_spacing = object_config.support_base_pattern_spacing.value + this->support_material_flow.spacing();
         this->support_density = std::min(1., this->support_material_flow.spacing() / this->support_spacing);
+        this->raft_spacing = object_config.support_base_pattern_spacing.value + this->raft_material_flow.spacing();
+        this->raft_density = std::min(1., this->raft_material_flow.spacing() / this->raft_spacing);
         if (object_config.support_interface_top_layers.value == 0) {
             // No interface layers allowed, print everything with the base support pattern.
             this->interface_spacing = this->support_spacing;
@@ -265,7 +269,9 @@ struct SupportParameters {
     size_t                  num_top_interface_layers_only() const { return std::max(0, int(this->num_top_interface_layers) - int(this->num_top_base_interface_layers)); }
     size_t                  num_bottom_interface_layers_only() const { return this->num_bottom_interface_layers - this->num_bottom_base_interface_layers; }
     Flow 		first_layer_flow;
+    Flow 		raft_first_layer_flow;
     Flow 		support_material_flow;
+    Flow 		raft_material_flow;
     Flow 		support_material_interface_flow;
     Flow 		support_material_bottom_interface_flow;
 	// Flow at raft inteface & contact layers.
@@ -289,6 +295,8 @@ struct SupportParameters {
     coordf_t 				raft_interface_density;
     coordf_t 				support_spacing;
     coordf_t 				support_density;
+    coordf_t 				raft_spacing;
+    coordf_t 				raft_density;
     SupportMaterialStyle    support_style = smsDefault;
     SupportMaterialPattern  support_base_pattern = smpDefault;
 
