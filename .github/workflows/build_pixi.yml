@@ -133,7 +133,6 @@ jobs:
             .pixi/envs/default/Library/lib/WebView2Loader.dll.lib
             .pixi/envs/default/Library/lib/WebView2LoaderStatic.lib
             .pixi/envs/default/Library/bin/WebView2Loader.dll
-            .pixi/envs/default/Library/bin/occt
             .pixi/envs/default/Library/lib/intl.lib
             .pixi/envs/default/Library/lib/libpng16.lib
             .pixi/envs/default/Library/lib/tiff.lib
@@ -148,6 +147,11 @@ jobs:
       - name: Bootstrap forks (Windows, cache miss)
         if: runner.os == 'Windows' && steps.cache-bootstrap-windows.outputs.cache-hit != 'true'
         run: pixi run bootstrap
+
+      - name: Re-create OCCT junction (Windows, cache hit)
+        # The Library/bin/occt junction can't be cached; recreate it.
+        if: runner.os == 'Windows' && steps.cache-bootstrap-windows.outputs.cache-hit == 'true'
+        run: pixi run setup-occt-bridge
 
       # Sets ACTIONS_CACHE_URL / ACTIONS_RUNTIME_TOKEN so sccache (from the
       # pixi env, invoked via CMAKE_<LANG>_COMPILER_LAUNCHER) can read/write
