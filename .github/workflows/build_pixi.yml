@@ -118,7 +118,9 @@ jobs:
             .pixi/envs/default/Library/lib/tiff.lib
             .pixi/envs/default/Library/lib/zlib.lib
             .pixi/envs/default/Library/lib/jpeg8.lib
-          key: pixi-bootstrap-windows-${{ hashFiles('scripts/pixi/windows/setup-*.ps1', 'scripts/pixi/_jobs.ps1', 'deps/wxWidgets/**', 'deps/libnoise/**') }}
+            .pixi/envs/default/Library/lib/mp3lame.lib
+            .pixi/envs/default/Library/lib/x265.lib
+          key: pixi-bootstrap-windows-${{ hashFiles('scripts/pixi/windows/setup-*.ps1', 'scripts/pixi/windows/_jobs.ps1', 'deps/wxWidgets/**', 'deps/libnoise/**') }}
 
       - name: Bootstrap forks (Unix, cache miss)
         if: (runner.os == 'Linux' || runner.os == 'macOS') && steps.cache-bootstrap.outputs.cache-hit != 'true'
