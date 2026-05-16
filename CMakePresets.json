@@ -33,6 +33,15 @@
             }
         },
         {
+            "name": "relwithdebinfo",
+            "hidden": true,
+            "inherits": "common",
+            "binaryDir": "${sourceDir}/build/relwithdebinfo",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+            }
+        },
+        {
             "name": "linux-pixi",
             "hidden": true,
             "description": "Configure against the deps from the active pixi env. Requires `pixi install` and `pixi run setup-libnoise` / `pixi run setup-wxwidgets` first.",
@@ -158,9 +167,9 @@
             }
         },
         {
-            "name": "win-pixi-debug",
-            "displayName": "Windows pixi (Debug)",
-            "inherits": ["debug", "win-pixi-base"]
+            "name": "win-pixi-relwithdebinfo",
+            "displayName": "Windows pixi (RelWithDebInfo)",
+            "inherits": ["relwithdebinfo", "win-pixi-base"]
         },
         {
             "name": "win-pixi-release",
@@ -228,9 +237,9 @@
             "description": "Build Release. CGAL/Boost templates are RAM-heavy; pass `-j N` (e.g. `-j 4`) on hosts with limited memory."
         },
         {
-            "name": "win-pixi-debug",
-            "configurePreset": "win-pixi-debug",
-            "description": "Build Debug. CGAL/Boost templates are RAM-heavy; pass `-j N` (e.g. `-j 4`) on hosts with limited memory."
+            "name": "win-pixi-relwithdebinfo",
+            "configurePreset": "win-pixi-relwithdebinfo",
+            "description": "Build RelWithDebInfo. Daily dev preset on Windows (conda-forge ships Release-only deps, so pure Debug isn't supported)."
         },
         {
             "name": "win-pixi-release",

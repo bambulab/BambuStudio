@@ -201,20 +201,20 @@ description = "Download Microsoft.Web.WebView2 NuGet redistributable into pixi e
 description = "One-time: bridge OCCT/intl/lib-name layouts + build bambulab forks (libnoise, wxWidgets) + install WebView2 SDK into pixi env"
 depends-on = ["setup-libnoise", "setup-occt-bridge", "setup-intl-bridge", "setup-lib-aliases", "setup-webview2", "setup-wxwidgets"]
 
-[target.win-64.tasks.build-debug]
-description = "Configure + build BambuStudio Debug into build/debug. Mem-aware parallelism."
-cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/build.ps1 debug"
+# Windows has no pure Debug variant: conda-forge ships Release-only deps
+# (TBB, wxWidgets sub-deps, expat, png, tiff, jpeg, zlib), so linking a
+# /MDd /Od BambuStudio against them fails or mixes CRTs. Daily dev uses
+# RelWithDebInfo instead (/MD /O2 /Ob1 /Zi — debugger-friendly, no hacks).
+[target.win-64.tasks.build]
+description = "Configure + build BambuStudio RelWithDebInfo into build/relwithdebinfo. Mem-aware parallelism."
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/build.ps1 relwithdebinfo"
 
 [target.win-64.tasks.build-release]
 description = "Configure + build BambuStudio Release into build/release. Mem-aware parallelism."
 cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/build.ps1 release"
 
 [target.win-64.tasks.bambu-studio]
-description = "Launch build/debug/src/bambu-studio.exe. Args pass through."
-cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/run.ps1"
-
-[target.win-64.tasks.bambu-studio-debug]
-description = "Launch build/debug/src/bambu-studio.exe. Args pass through."
+description = "Launch build/relwithdebinfo/src/bambu-studio.exe. Args pass through."
 cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/run.ps1"
 
 [target.win-64.tasks.bambu-studio-release]

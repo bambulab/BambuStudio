@@ -10,8 +10,8 @@
 # Override with `$env:CMAKE_BUILD_PARALLEL_LEVEL = N` before `pixi run build`.
 [CmdletBinding()]
 param(
-    [ValidateSet('release','debug')]
-    [string]$BuildType = 'release'
+    [ValidateSet('release','relwithdebinfo')]
+    [string]$BuildType = 'relwithdebinfo'
 )
 
 $ErrorActionPreference = 'Stop'
