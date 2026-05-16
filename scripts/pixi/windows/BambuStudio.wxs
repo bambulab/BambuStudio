@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  WiX 5+ MSI manifest for Bambu Studio.
+  WiX 7+ MSI manifest for Bambu Studio.
 
   Built via scripts/pixi/windows/dist.ps1:
-      wix build BambuStudio.wxs _payload.wxs -arch x64 \
+      wix build BambuStudio.wxs -arch x64 \
           -bindpath payload=<staged-tree> \
           -bindpath icon=<dir-with-BambuStudio.ico> \
           -d Version=N.N.N.N -o ...
 
   bindpath.payload  Directory whose contents are the installed tree root
                     (cmake install output: bambu-studio.exe + DLLs +
-                    resources/). Resolved by the explicit Components in
-                    _payload.wxs.
+                    resources/). The Files Include element below bulk-
+                    bundles it into INSTALLFOLDER.
 
   bindpath.icon     Directory containing BambuStudio.ico. Wired into
                     ARPPRODUCTICON + StartMenu Shortcut.
@@ -22,10 +22,6 @@
   UpgradeCode is the stable identity of the Bambu Studio MSI product
   family. NEVER change it across releases - Windows Installer uses it
   to find and uninstall older versions during MajorUpgrade.
-
-  BambuStudioFiles ComponentGroup is generated at build time by dist.ps1
-  into _payload.wxs (one explicit Component per file). See dist.ps1 for
-  why we don't use the naive `<Files Include="**" />` element.
 -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Package Name="Bambu Studio"
@@ -49,6 +45,10 @@
     <StandardDirectory Id="ProgramMenuFolder">
       <Directory Id="ApplicationProgramsFolder" Name="Bambu Studio" />
     </StandardDirectory>
+
+    <ComponentGroup Id="BambuStudioFiles" Directory="INSTALLFOLDER">
+      <Files Include="!(bindpath.payload)\**" />
+    </ComponentGroup>
 
     <Component Id="ApplicationShortcut" Directory="ApplicationProgramsFolder" Guid="*">
       <Shortcut Id="StartMenuShortcut"
