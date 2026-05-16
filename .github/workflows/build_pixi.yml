@@ -92,6 +92,9 @@ jobs:
         uses: prefix-dev/setup-pixi@1b2de7f3351f171c8b4dfeb558c639cb58ed4ec0  # v0.9.5
         with:
           cache: true
+          # Windows post-rmdir of .pixi/envs/default/bin hits EBUSY
+          # (file locks); ephemeral runner makes cleanup irrelevant.
+          post-cleanup: false
 
       # Bootstrap cache: outputs of `pixi run bootstrap` (libnoise +
       # wxWidgets fork builds, plus the OCCT/intl/lib-aliases/WebView2
