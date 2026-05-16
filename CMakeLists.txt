@@ -37,7 +37,6 @@ option(SLIC3R_PROFILE 			"Compile BambuStudio with an invasive Shiny profiler" 0
 option(SLIC3R_PCH               "Use precompiled headers" 1)
 option(SLIC3R_MSVC_COMPILE_PARALLEL "Compile on Visual Studio in parallel" 1)
 option(SLIC3R_MSVC_PDB          "Generate PDB files on MSVC in Release mode" 1)
-option(SLIC3R_PERL_XS           "Compile XS Perl module and enable Perl unit and integration tests" 0)
 option(SLIC3R_ASAN              "Enable ASan on Clang and GCC" 0)
 # If SLIC3R_FHS is 1 -> SLIC3R_DESKTOP_INTEGRATION is always 0, othrewise variable.
 CMAKE_DEPENDENT_OPTION(SLIC3R_DESKTOP_INTEGRATION "Allow performing desktop integration during runtime" 1 "NOT SLIC3R_FHS" 0)
@@ -74,16 +73,6 @@ elseif (MSVC)
             message(STATUS " is cross compile set to true.............")
             set(IS_CROSS_COMPILE TRUE)
         endif ()
-endif ()
-
-# Proposal for C++ unit tests and sandboxes
-option(SLIC3R_BUILD_SANDBOXES   "Build development sandboxes" OFF)
-option(SLIC3R_BUILD_TESTS       "Build unit tests" OFF)
-
-if (IS_CROSS_COMPILE)
-    message("Detected cross compilation setup. Tests and encoding checks will be forcedly disabled!")
-    set(SLIC3R_PERL_XS OFF CACHE BOOL "" FORCE)
-    set(SLIC3R_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 endif ()
 
 # Print out the SLIC3R_* cache options
@@ -784,22 +773,6 @@ add_subdirectory(src)
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT BambuStudio_app_gui)
 
 add_dependencies(gettext_make_pot hintsToPot)
-
-# Perl bindings, currently only used for the unit / integration tests of libslic3r.
-# Also runs the unit / integration tests.
-#FIXME Port the tests into C++ to finally get rid of the Perl!
-if (SLIC3R_PERL_XS)
-    add_subdirectory(xs)
-endif ()
-
-if(SLIC3R_BUILD_SANDBOXES)
-    add_subdirectory(sandboxes)
-endif()
-
-if(SLIC3R_BUILD_TESTS)
-    add_subdirectory(tests)
-endif()
-
 
 option(BUILD_BBS_TEST_TOOLS          "Build bbs test tools" OFF)
 if(BUILD_BBS_TEST_TOOLS)
