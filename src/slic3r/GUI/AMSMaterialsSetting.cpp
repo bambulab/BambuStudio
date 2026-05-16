@@ -1165,7 +1165,11 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     // Request PA calibration history if not loaded yet — needed for k-profile dropdown
     if (obj->GetCalib()->IsVersionInited() && !obj->GetCalib()->IsPAHistoryReady()) {
         PACalibExtruderInfo cali_info;
-        int ext_id = obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
+        // upstream bug: get_extruder_id_by_ams_id is referenced here
+        // (bambulab/BambuStudio commit 01781493c5) but the method is
+        // never defined anywhere. Stub to extruder 0 so the build
+        // compiles; revert once upstream defines the method.
+        int ext_id = 0; // obj->get_extruder_id_by_ams_id(std::to_string(ams_id));
         cali_info.nozzle_diameter        = obj->GetExtderSystem()->GetNozzleDiameter(ext_id);
         cali_info.use_extruder_id        = false;
         cali_info.use_nozzle_volume_type = false;
