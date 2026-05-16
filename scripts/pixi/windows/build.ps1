@@ -1,12 +1,18 @@
 # Configure (via CMakePresets) and build BambuStudio on Windows.
 #
-# Uses the win-pixi preset (Ninja + sccache). Ninja calls cl.exe / link.exe
-# directly, so the script first sources Launch-VsDevShell.ps1 to bring the
-# MSVC toolchain onto PATH and set INCLUDE / LIB / LIBPATH from vcvars.
+# Uses the win-pixi-{debug,release} preset (Ninja + sccache). Ninja calls
+# cl.exe / link.exe directly, so the script first sources Launch-VsDevShell.ps1
+# to bring the MSVC toolchain onto PATH and set INCLUDE / LIB / LIBPATH from
+# vcvars.
 #
 # Parallelism formula matches BuildLinux.sh:
 #   MAX_THREADS = floor(FREE_MEM_GB / 2.5)
 # Override with `$env:CMAKE_BUILD_PARALLEL_LEVEL = N` before `pixi run build`.
+[CmdletBinding()]
+param(
+    [ValidateSet('release','debug')]
+    [string]$BuildType = 'release'
+)
 
 $ErrorActionPreference = 'Stop'
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -27,15 +33,17 @@ $jobs = Get-PixiParallelJobs
 $env:CMAKE_BUILD_PARALLEL_LEVEL = $jobs
 Write-Host "Setting CMAKE_BUILD_PARALLEL_LEVEL=$jobs (mem-aware)"
 
-# Only reconfigure on first build (or after `rm -rf build/release`). Re-running
+$preset   = "win-pixi-$BuildType"
+$buildDir = Join-Path $env:PIXI_PROJECT_ROOT "build/$BuildType"
+
+# Only reconfigure on first build (or after rm -rf build/<type>). Re-running
 # `cmake --preset` on every build can invalidate caches even when nothing
 # changed; `cmake --build` re-invokes configure internally if CMakeLists.txt
 # or CMakePresets.json actually changed. Mirror of scripts/pixi/build.sh.
-$buildDir = Join-Path $env:PIXI_PROJECT_ROOT 'build/release'
 if (-not (Test-Path (Join-Path $buildDir 'CMakeCache.txt'))) {
-    & cmake --preset win-pixi
+    & cmake --preset $preset
     if ($LASTEXITCODE -ne 0) { throw "cmake configure failed ($LASTEXITCODE)" }
 }
 
-& cmake --build --preset win-pixi --parallel $jobs
+& cmake --build --preset $preset --parallel $jobs
 if ($LASTEXITCODE -ne 0) { throw "cmake build failed ($LASTEXITCODE)" }

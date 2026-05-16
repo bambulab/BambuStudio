@@ -3,9 +3,8 @@
 [Pixi](https://pixi.sh) provides all dependencies from conda-forge,
 replacing the legacy `BuildLinux.sh` + `deps/` ExternalProject flow.
 
-Supports `linux-64` (glibc ≥ 2.34), `win-64` (Visual Studio 2019 or
-2022), and `osx-arm64` (Apple Silicon, macOS 11+). `osx-64` is not
-wired yet.
+Supports `linux-64` (glibc ≥ 2.34), `win-64`, and `osx-arm64`
+(Apple Silicon, macOS 11+). `osx-64` is not wired yet.
 
 ## Install pixi
 
@@ -31,20 +30,16 @@ Default is `floor(free_mem_GB / 2.5)` to fit Boost.Spirit / CGAL TUs.
 
 ### Build variants
 
-Linux and macOS have split Debug / Release trees that coexist
-(`build/debug/`, `build/release/`); `pixi run build` defaults to Debug
-for fast iteration. Windows is single-configuration Release for now.
+All three platforms have split Debug / Release trees that coexist
+(`build/debug/`, `build/release/`).
 
-| | Linux | macOS | Windows |
-|---|---|---|---|
-| Debug | `pixi run build` (default) | `pixi run build` (default) | not yet |
-| Release | `pixi run build-release` | `pixi run build-release` | `pixi run build` |
-| Launch Release binary | `pixi run bambu-studio-release` | `pixi run bambu-studio-release` | `pixi run bambu-studio` |
-| Distributable | `pixi run dist` (AppImage) | `pixi run dist` (DMG) | -- |
-
-`pixi run dist` produces the platform-native distributable for the
-host: an AppImage on Linux, a DMG on macOS. The artifact lands in
-`build/release/`.
+- `pixi run build` — Debug build (default, fast iteration)
+- `pixi run build-release` — Release build
+- `pixi run bambu-studio-release` — launch the Release binary
+- `pixi run dist` — distributable for the host OS:
+  - Linux: AppImage at `build/release/`
+  - macOS: DMG at `build/release/`
+  - Windows: MSI at `build/release/dist/`
 
 ### macOS `.app` and DMG
 
@@ -61,6 +56,20 @@ via dmgbuild, with an `Applications` symlink for drag-installation.
 First launch from a downloaded DMG triggers the Gatekeeper
 "unidentified developer" dialog. Right-click the `.app` in
 Applications and choose **Open** to whitelist it once.
+
+### Windows MSI
+
+`pixi run dist` runs `cmake --install` to stage the Release tree under
+`build/release/dist/payload/BambuStudio/`, copies every DLL from the
+pixi env's `Library/bin/` into the payload (covers transitive deps
+that static analysis misses, e.g. OpenCV's runtime `LoadLibrary`),
+generates `_payload.wxs`, and wraps everything with WiX 5 into
+`build/release/dist/BambuStudio-<version>-x64.msi` (~400 MB).
+
+WiX itself is a `dotnet tool`; `dist.ps1` idempotently installs
+`wix.exe` into the pixi env on first use. The MSI is unsigned (Windows
+SmartScreen will warn on first run) and assumes the Visual C++ 2022
+Redistributable is already on the target system.
 
 ## Network plugin (cloud / printer features)
 

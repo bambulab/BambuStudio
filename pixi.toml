@@ -152,42 +152,17 @@ cmd = "bash scripts/pixi/run.sh"
 env = { BAMBU_BUILD_TYPE = "release" }
 
 [target.linux-64.tasks.dist]
-description = "Bundle the Release binary into a portable AppImage (Linux host distributable)."
-depends-on = ["dist-release"]
-
-[target.linux-64.tasks.dist-debug]
-description = "Bundle the Debug binary into an AppImage (huge, dev-only)."
-cmd = "bash scripts/pixi/appimage.sh debug"
-
-[target.linux-64.tasks.dist-release]
 description = "Bundle the Release binary into a portable AppImage."
 cmd = "bash scripts/pixi/appimage.sh release"
 
 # macOS: package* builds the .app, dist* wraps it in a DMG.
 [target.osx-arm64.tasks.package]
 description = "Build BambuStudio.app from the Release binary."
-depends-on = ["package-release"]
-
-[target.osx-arm64.tasks.package-debug]
-description = "Build BambuStudio.app from the Debug binary (dev variant, larger)."
-cmd = "bash scripts/pixi/macos/package.sh debug"
-
-[target.osx-arm64.tasks.package-release]
-description = "Build BambuStudio.app from the Release binary."
 cmd = "bash scripts/pixi/macos/package.sh release"
 
 [target.osx-arm64.tasks.dist]
-description = "Wrap BambuStudio.app into a distributable DMG (macOS host distributable)."
-depends-on = ["dist-release"]
-
-[target.osx-arm64.tasks.dist-debug]
-description = "Wrap the Debug BambuStudio.app into a DMG."
-depends-on = ["package-debug"]
-cmd = "bash scripts/pixi/macos/dmg.sh debug"
-
-[target.osx-arm64.tasks.dist-release]
 description = "Wrap the Release BambuStudio.app into a distributable DMG."
-depends-on = ["package-release"]
+depends-on = ["package"]
 cmd = "bash scripts/pixi/macos/dmg.sh release"
 
 # Windows pixi tasks (PowerShell). Scripts live under scripts/pixi/windows/.
@@ -223,23 +198,32 @@ description = "Download Microsoft.Web.WebView2 NuGet redistributable into pixi e
 description = "One-time: bridge OCCT/intl/lib-name layouts + build bambulab forks (libnoise, wxWidgets) + install WebView2 SDK into pixi env"
 depends-on = ["setup-libnoise", "setup-occt-bridge", "setup-intl-bridge", "setup-lib-aliases", "setup-webview2", "setup-wxwidgets"]
 
-[target.win-64.tasks.build]
-description = "Configure and build BambuStudio with the win-pixi CMake preset (Visual Studio generator). Parallelism = floor(free_mem_GB / 2.5); override via CMAKE_BUILD_PARALLEL_LEVEL."
-cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/build.ps1"
+[target.win-64.tasks.build-debug]
+description = "Configure + build BambuStudio Debug into build/debug. Mem-aware parallelism."
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/build.ps1 debug"
+
+[target.win-64.tasks.build-release]
+description = "Configure + build BambuStudio Release into build/release. Mem-aware parallelism."
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/build.ps1 release"
 
 [target.win-64.tasks.bambu-studio]
-description = "Launch bambu-studio.exe from build/src/Release/. Args pass through."
+description = "Launch build/debug/src/bambu-studio.exe. Args pass through."
 cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/run.ps1"
 
-# Windows distributable: cmake --install stages the payload, WiX wraps
-# it in an MSI. Mirrors the Linux dist-release / macOS dist-release
-# task names so `pixi run dist-release` works cross-platform.
+[target.win-64.tasks.bambu-studio-debug]
+description = "Launch build/debug/src/bambu-studio.exe. Args pass through."
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/run.ps1"
 
-[target.win-64.tasks.dist-release]
-description = "Stage Release payload + wrap into a Windows MSI installer (build/release/dist/BambuStudio-<ver>-x64.msi)."
-depends-on = ["build"]
-cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/dist.ps1 release"
+[target.win-64.tasks.bambu-studio-release]
+description = "Launch build/release/src/bambu-studio.exe. Args pass through."
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/run.ps1"
+env = { BAMBU_BUILD_TYPE = "release" }
+
+# Windows distributable: cmake --install stages the payload, WiX wraps
+# it in an MSI. `pixi run dist` works cross-platform (AppImage on Linux,
+# DMG on macOS, MSI on Windows).
 
 [target.win-64.tasks.dist]
-description = "Alias for dist-release on Windows."
-depends-on = ["dist-release"]
+description = "Stage Release payload + wrap into a Windows MSI installer (build/release/dist/BambuStudio-<ver>-x64.msi)."
+depends-on = ["build-release"]
+cmd = "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/pixi/windows/dist.ps1 release"

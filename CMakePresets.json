@@ -158,8 +158,13 @@
             }
         },
         {
-            "name": "win-pixi",
-            "displayName": "Windows pixi (Release, Ninja+sccache)",
+            "name": "win-pixi-debug",
+            "displayName": "Windows pixi (Debug)",
+            "inherits": ["debug", "win-pixi-base"]
+        },
+        {
+            "name": "win-pixi-release",
+            "displayName": "Windows pixi (Release)",
             "inherits": ["release", "win-pixi-base"]
         },
         {
@@ -223,9 +228,14 @@
             "description": "Build Release. CGAL/Boost templates are RAM-heavy; pass `-j N` (e.g. `-j 4`) on hosts with limited memory."
         },
         {
-            "name": "win-pixi",
-            "configurePreset": "win-pixi",
-            "description": "Build with `cmake --build --preset win-pixi`. Single-config Ninja, output at build/release/."
+            "name": "win-pixi-debug",
+            "configurePreset": "win-pixi-debug",
+            "description": "Build Debug. CGAL/Boost templates are RAM-heavy; pass `-j N` (e.g. `-j 4`) on hosts with limited memory."
+        },
+        {
+            "name": "win-pixi-release",
+            "configurePreset": "win-pixi-release",
+            "description": "Build Release. CGAL/Boost templates are RAM-heavy; pass `-j N` (e.g. `-j 4`) on hosts with limited memory."
         },
         {
             "name": "win-pixi-vs2019",

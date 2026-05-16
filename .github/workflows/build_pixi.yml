@@ -43,8 +43,7 @@ jobs:
             artifact_name: BambuStudio-Linux-AppImage
             artifact_glob: build/release/BambuStudio-*-x86_64.AppImage
           - os: windows-2022
-            # No debug/release split on win64 yet; `build` = single Release.
-            build_task: build
+            build_task: build-release
             binary: build/release/src/bambu-studio.exe
             artifact_name: BambuStudio-Windows-MSI
             artifact_glob: build/release/dist/BambuStudio-*-x64.msi
