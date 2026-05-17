@@ -694,6 +694,7 @@ if (WIN32)
             GUI/dark_mode/UAHMenuBar.hpp
             GUI/dark_mode.hpp
             GUI/dark_mode.cpp
+            GUI/SystemShare_win.cpp
         )
 endif ()
 
@@ -724,13 +725,13 @@ else ()
             GUI/wxMediaCtrl2.h
             GUI/wxMediaCtrl3.cpp
             GUI/wxMediaCtrl3.h
-            GUI/SystemShare_fallback.cpp
         )
 endif ()
 
 if (UNIX AND NOT APPLE)
     list(APPEND SLIC3R_GUI_SOURCES
         GUI/Printer/gstbambusrc.c
+        GUI/SystemShare_fallback.cpp
     )
 endif ()
 
