@@ -365,6 +365,19 @@ private:
 public:
     //try again when subscription fails
     void            on_start_subscribe_again(std::string dev_id);
+
+    // SSDP-driven retry of TryLoadLastMachine::InnerLoad. Called from
+    // DeviceManager::on_machine_alive when an SSDP packet announces a
+    // previously-paired printer. Closes the startup race where the cached
+    // user_access_dev_ip is stale (e.g. slicer_uuid rotated since pairing
+    // so the encoded IP can't be decoded, or the printer is at a new IP)
+    // and the initial InnerLoad's bind_detect fails -- by retrying once
+    // the printer's actual current IP is known via SSDP, we let the LAN
+    // path complete instead of leaving the printer discovered-but-not-
+    // selected. Idempotent and cheap to call repeatedly: InnerLoad
+    // returns early if a machine is already selected.
+    void            try_load_last_machine_on_alive(const std::string &dev_id);
+
     std::string     get_local_models_path();
     bool            OnInit() override;
     int             OnExit() override;

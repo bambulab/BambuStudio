@@ -282,6 +282,33 @@ namespace Slic3r
                 obj->erase_user_access_code();
                 obj->erase_user_access_dev_ip();
             }
+
+            // SSDP-driven retry of last-machine restore. The startup
+            // TryLoadLastMachine::InnerLoad path is racy for LAN-only users:
+            // if the cached user_access_dev_ip is stale (slicer_uuid rotated
+            // since pairing, or the printer is at a new IP) the initial
+            // bind_detect fails before SSDP can announce the printer's
+            // current IP, and the printer ends up in localMachineList but
+            // never selected.
+            //
+            // Recovery path: by the time SSDP populates localMachineList, the
+            // failed initial bind_detect has erased user_access_dev_ip. The
+            // retry's InnerLoad finds the encoded IP empty and falls through
+            // to the dev->get_my_machine(...) non-null branch (GUI_App.cpp
+            // around line 8429), which calls set_selected_machine directly.
+            // No second bind_detect is spawned.
+            //
+            // try_load_last_machine_on_alive runs on the wx UI thread (this
+            // function is dispatched via CallAfter from the SSDP listener),
+            // same thread as DeviceManagerRefresher::on_timer, so there is
+            // no concurrent invocation of set_selected_machine across the
+            // two LAN-recovery code paths in this commit.
+            //
+            // Called for every SSDP announcement (~5s/printer), not just
+            // first discovery. Cheap: try_load_last_machine_on_alive
+            // self-filters on dev_id == get_user_last_machine() and no-ops
+            // if a machine is already selected.
+            Slic3r::GUI::wxGetApp().try_load_last_machine_on_alive(dev_id);
         }
         catch (...) {
             ;
@@ -1002,6 +1029,69 @@ namespace Slic3r
             catch (...)
             {
                 ;
+            }
+        }
+
+        // LAN-only stale-MQTT auto-reconnect.
+        //
+        // For LAN-mode-only printers (no Bambu cloud login), nothing else in this
+        // refresher runs: check_pushing() / refresh_connection() are gated on
+        // is_user_login() above, so the keep_alive() that would otherwise probe
+        // the MQTT session never fires. After the app sits idle long enough that
+        // macOS App Nap, the network stack, or the printer side closes the
+        // underlying TCP socket, the next publish_gcode() returns
+        // BAMBU_NETWORK_ERR_SEND_MSG_FAILED (-4) and the user has to manually
+        // re-select the printer to re-trigger the disconnect+reconnect path in
+        // DeviceManager::set_selected_machine.
+        //
+        // Detect the stale-socket condition for LAN printers and run the same
+        // reconnect path automatically. is_connected() returns false for LAN
+        // printers when last_update_time is older than DISCONNECT_TIMEOUT (30s),
+        // see MachineObject::is_connected in DeviceManager.cpp. Throttled to one
+        // attempt per LAN_RECONNECT_INTERVAL_MS so a powered-off printer doesn't
+        // get hammered.
+        //
+        // Skipped while a print is in progress (!is_in_printing()): MachineObject::reset()
+        // -- which set_selected_machine's same-id-LAN branch calls -- clobbers
+        // print_status / iot_print_status / subtask_ / print_json. Recovering MQTT
+        // mid-print would briefly blank the user's progress UI. The print itself
+        // continues on the printer regardless; we'll reconnect on the next tick
+        // after the print finishes.
+        //
+        // Skipped when bind_state != "free" (is_avaliable()): set_selected_machine
+        // would just return false because get_my_machine_list() filters out
+        // occupied printers, but the throttle would still bump and we'd log
+        // every 10s with no recovery possible.
+        if (obj->is_lan_mode_printer() && obj->has_access_right() &&
+            obj->is_avaliable() &&
+            !obj->is_in_printing() &&
+            !obj->is_connected())
+        {
+            constexpr int LAN_RECONNECT_INTERVAL_MS = 10 * 1000;
+            static std::chrono::system_clock::time_point last_lan_reconnect_attempt{};
+            const auto now = std::chrono::system_clock::now();
+            const auto since_last_attempt =
+                std::chrono::duration_cast<std::chrono::milliseconds>(now - last_lan_reconnect_attempt).count();
+
+            if (since_last_attempt > LAN_RECONNECT_INTERVAL_MS)
+            {
+                BOOST_LOG_TRIVIAL(info)
+                    << "LAN auto-reconnect: stale MQTT socket detected for dev_id="
+                    << BBLCrossTalk::Crosstalk_DevId(obj->get_dev_id())
+                    << ", re-selecting machine to trigger disconnect+reconnect";
+                // Re-selecting the same LAN id hits the same-id-LAN branch in
+                // set_selected_machine (DevManager.cpp), which calls
+                // m_agent->disconnect_printer(), obj->reset(), then
+                // obj->connect(...). This is the exact path the user takes
+                // manually via the Devices tab.
+                //
+                // Bump the throttle only on successful set_selected_machine.
+                // If it returns false (e.g. printer dropped from
+                // get_my_machine_list because bind_state flipped to
+                // "occupied" between the gate and this call), we don't want
+                // to wait 10s before the next chance to recover.
+                if (m_manager->set_selected_machine(obj->get_dev_id()))
+                    last_lan_reconnect_attempt = now;
             }
         }
 

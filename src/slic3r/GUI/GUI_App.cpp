@@ -2653,6 +2653,32 @@ void GUI_App::on_start_subscribe_again(std::string dev_id)
     start_subscribe_timer->Start(5000, wxTIMER_ONE_SHOT);
 }
 
+void GUI_App::try_load_last_machine_on_alive(const std::string &dev_id)
+{
+    // Called from DeviceManager::on_machine_alive for every SSDP announcement
+    // (~5s/printer). Runs on the wx UI thread (the SSDP listener dispatches
+    // via CallAfter), same thread as DeviceManagerRefresher::on_timer, so
+    // there is no concurrent invocation of set_selected_machine between the
+    // SSDP-retry path here and the stale-MQTT-recovery path in on_timer.
+    if (dev_id.empty()) return;
+    if (!m_agent || !m_device_manager) return;
+
+    // Only retry for the machine the user had previously selected. Filter
+    // aggressively before doing anything observable so SSDP packets for
+    // other printers on the network are nearly free.
+    const auto &last = m_device_manager->get_user_last_machine();
+    if (last.empty() || last != dev_id) return;
+
+    // If a machine is already selected we have nothing to fix. InnerLoad
+    // would early-return anyway; we skip the call entirely to keep the
+    // log clean.
+    if (m_device_manager->get_selected_machine() != nullptr) return;
+
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": SSDP-triggered retry for "
+        << BBLCrossTalk::Crosstalk_DevId(dev_id);
+    m_load_last_machine.InnerLoad(m_agent, m_device_manager);
+}
+
 std::string GUI_App::get_local_models_path()
 {
     std::string local_path = "";
