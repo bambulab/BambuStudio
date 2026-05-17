@@ -112,6 +112,13 @@ public:
     //DisconnectPage
     wxString MakeDisconnectUrl(std::string MenuName);
 
+    // Translate the slicer-embedded MakerWorld view URL
+    // (https://makerworld.com/<lang>/studio/webview?modelid=N&from=bambustudio
+    // and friends) to the equivalent public-web URL the user can open in their
+    // default browser to see comments, designer profile, hyperlinks etc.
+    // Returns the input unchanged if no translation applies.
+    wxString TranslateMakerWorldEmbeddedUrl(const wxString &embedded_url);
+
     //LeftMenu
     std::string m_contentname; // CurrentMenu
     bool        m_leftfirst;   // Left First Loaded

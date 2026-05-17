@@ -585,6 +585,17 @@ void WebViewPanel::OnOpenInBrowser(wxCommandEvent& WXUNUSED(evt))
     if (IsBlankWebUrl(current_url))
         return;
 
+    // For the "Online Models" tab the embedded URL is the slicer-only
+    // /studio/webview view, which hides comments, designer profile,
+    // version-specific print profiles, and link rendering in descriptions.
+    // Translate to the public-web equivalent (e.g. /models/{id}) so the user
+    // lands on the actual MakerWorld page.
+    //
+    // For "makerlab" we don't translate yet; embedded MakerLab URLs don't
+    // have an obvious 1:1 public mapping.
+    if (m_contentname == "online")
+        current_url = TranslateMakerWorldEmbeddedUrl(current_url);
+
     wxLaunchDefaultBrowser(current_url);
     UpdateOnlineToolbarState();
 }
@@ -1242,6 +1253,136 @@ std::string UrlDecode(const std::string &str)
             strTemp += str[i];
     }
     return strTemp;
+}
+
+// Translate the slicer-embedded MakerWorld view URL to the equivalent public-web
+// URL. The embedded view (loaded as e.g. https://makerworld.com/en/studio/webview
+// ?modelid=12345&from=bambustudio) is a Studio-only iframe shape that hides
+// comments, designer profile, hyperlinks in descriptions, version selection and
+// per-version print profiles. The public-web shape (e.g.
+// https://makerworld.com/en/models/12345) shows all of that. This translation
+// powers the "Open in browser" toolbar button so users see the full model page
+// instead of a duplicate of what's already in the slicer.
+//
+// Returns the input unchanged when no public-web equivalent is known (e.g.
+// agree-terms / sign-in / sign-out auth redirects, makerlab sub-tools); the
+// caller can decide whether to launch as-is or skip.
+wxString WebViewPanel::TranslateMakerWorldEmbeddedUrl(const wxString &embedded_url)
+{
+    if (embedded_url.IsEmpty()) return embedded_url;
+
+    std::string url = embedded_url.ToStdString();
+
+    // Drop #fragment and utm_* tracking params before pattern matching. Both
+    // are noise in any context this function returns into (Open in browser,
+    // Share to system picker, copy link), and we want pass-through URLs (the
+    // ones the recognizer below doesn't match) to be cleaned too.
+    {
+        const size_t hash_pos = url.find('#');
+        if (hash_pos != std::string::npos) url.erase(hash_pos);
+
+        const size_t q_pos = url.find('?');
+        if (q_pos != std::string::npos) {
+            const std::string params = url.substr(q_pos + 1);
+            std::string filtered;
+            size_t start = 0;
+            while (start <= params.size()) {
+                const size_t end = params.find('&', start);
+                const size_t len = (end == std::string::npos)
+                                       ? params.size() - start
+                                       : end - start;
+                const std::string param = params.substr(start, len);
+                const bool is_utm = param.size() > 4
+                                    && param.compare(0, 4, "utm_") == 0;
+                if (!param.empty() && !is_utm) {
+                    if (!filtered.empty()) filtered += '&';
+                    filtered += param;
+                }
+                if (end == std::string::npos) break;
+                start = end + 1;
+            }
+            url = filtered.empty()
+                      ? url.substr(0, q_pos)
+                      : url.substr(0, q_pos + 1) + filtered;
+        }
+    }
+
+    // Find the host root: everything up to and including the first '/' after
+    // the host. We keep the original scheme+host+lang prefix (e.g.
+    // "https://makerworld.com/en/" or "https://makerworld.com.cn/zh-CN/") so
+    // that region- and language-localized embedded URLs translate to the same
+    // region/language on the public web.
+    const size_t scheme_end = url.find("://");
+    if (scheme_end == std::string::npos) return wxString::FromUTF8(url.c_str());
+    const size_t host_start = scheme_end + 3;
+    const size_t host_end = url.find('/', host_start);
+    if (host_end == std::string::npos) return wxString::FromUTF8(url.c_str());
+
+    // Bail out early if this isn't a MakerWorld URL we recognize. We don't
+    // attempt to translate makerlab/, store/, sign-in/, sign-out/, etc.
+    if (url.find("/studio/webview") == std::string::npos &&
+        url.find("/studio/print-history") == std::string::npos)
+        return wxString::FromUTF8(url.c_str());
+
+    // Lang prefix: "/en/", "/zh-CN/", or empty if no lang segment. The first
+    // path segment after the host is the language unless it's "studio" itself
+    // (in which case the URL has no lang prefix and we land at scheme+host+/).
+    std::string base; // scheme+host(+lang)+slash
+    {
+        const bool first_seg_is_studio =
+            url.compare(host_end + 1, 7, "studio/") == 0;
+        if (first_seg_is_studio) {
+            base = url.substr(0, host_end + 1);
+        } else {
+            const size_t lang_end = url.find('/', host_end + 1);
+            if (lang_end == std::string::npos) {
+                base = url.substr(0, host_end + 1);
+            } else {
+                base = url.substr(0, lang_end + 1);
+            }
+        }
+    }
+
+    // Print history is per-user and has no public-web equivalent. Falling back
+    // to the localized homepage is the least-surprising outcome.
+    if (url.find("/studio/print-history") != std::string::npos) {
+        return wxString::FromUTF8(base.c_str());
+    }
+
+    // Search results: /studio/webview/search?...keyword=K... -> /search?keyword=K
+    if (url.find("/studio/webview/search") != std::string::npos) {
+        const size_t kw_pos = url.find("keyword=");
+        if (kw_pos != std::string::npos) {
+            const size_t kw_start = kw_pos + std::strlen("keyword=");
+            const size_t kw_end   = url.find('&', kw_start);
+            const std::string keyword =
+                url.substr(kw_start, kw_end == std::string::npos
+                                         ? std::string::npos
+                                         : kw_end - kw_start);
+            // keyword stays URL-encoded -- it was percent-encoded going in.
+            return wxString::FromUTF8((base + "search?keyword=" + keyword).c_str());
+        }
+        // Search URL with no keyword param: drop user at the search landing.
+        return wxString::FromUTF8((base + "search").c_str());
+    }
+
+    // Single-model detail: /studio/webview?modelid=N -> /models/N
+    {
+        const size_t mid_pos = url.find("modelid=");
+        if (mid_pos != std::string::npos) {
+            const size_t mid_start = mid_pos + std::strlen("modelid=");
+            const size_t mid_end   = url.find('&', mid_start);
+            const std::string mid =
+                url.substr(mid_start, mid_end == std::string::npos
+                                          ? std::string::npos
+                                          : mid_end - mid_start);
+            if (!mid.empty())
+                return wxString::FromUTF8((base + "models/" + mid).c_str());
+        }
+    }
+
+    // Default landing: /studio/webview -> homepage.
+    return wxString::FromUTF8(base.c_str());
 }
 
 bool WebViewPanel::GetJumpUrl(bool login, wxString ticket, wxString targeturl, wxString &finalurl)
