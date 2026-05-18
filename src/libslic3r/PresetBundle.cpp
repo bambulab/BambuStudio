@@ -1157,7 +1157,16 @@ bool PresetBundle::import_json_presets(PresetsConfigSubstitutions &            s
         }
         if (inherit_preset) {
             new_config = inherit_preset->config;
-            new_config.apply(std::move(config));
+            // Merge child diff onto parent the same way PresetCollection::load_presets() does,
+            // so that "nil" sentinel slots in nullable variant arrays (e.g.
+            // nozzle_temperature == ["270","nil"]) fall back to the parent's value instead of
+            // leaking INT_MAX into the active config via DynamicPrintConfig::apply().
+            std::string            extruder_id_name, extruder_variant_name;
+            std::set<std::string> *key_set1 = nullptr, *key_set2 = nullptr;
+            Preset::get_extruder_names_and_keysets(collection->type(), extruder_id_name, extruder_variant_name, &key_set1, &key_set2);
+
+            extend_default_config_length(config, inherit_preset->config, false, {});
+            new_config.update_diff_values_to_child_config(config, extruder_id_name, extruder_variant_name, *key_set1, *key_set2);
         } else {
             // We support custom root preset now
             auto inherits_config2 = dynamic_cast<ConfigOptionString *>(inherits_config);
