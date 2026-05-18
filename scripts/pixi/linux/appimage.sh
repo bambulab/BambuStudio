@@ -45,6 +45,12 @@ cp -a "$CONDA_PREFIX/." "$appdir/usr/"
 # Drop bambu-studio in (overwrites if pixi env had a stub).
 cp -f "$binary" "$appdir/usr/bin/bambu-studio"
 
+# conda's compiler activation injects -Wl,-rpath,$CONDA_PREFIX/lib + --disable-new-dtags
+# into LDFLAGS, baking the build host's absolute path into bambu-studio's DT_RPATH.
+# Strip it: --set-rpath also flips DT_RPATH -> DT_RUNPATH, so AppRun's LD_LIBRARY_PATH
+# (and any host LD_PRELOAD overrides) take precedence over the bundled libs again.
+patchelf --set-rpath '$ORIGIN:$ORIGIN/../lib' "$appdir/usr/bin/bambu-studio"
+
 # bambu-studio looks for resources at <exec_dir>/../resources/ (matches the
 # in-tree layout build/<type>/resources/ where the symlink is generated).
 mkdir -p "$appdir/usr/resources"

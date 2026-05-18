@@ -46,6 +46,7 @@ assimp = "*"
 [target.linux-64.dependencies]
 compilers = ">=1.10"
 mold = "*"     # CMAKE_LINKER_TYPE=MOLD; bambu-studio links 35+ static archives
+patchelf = "*" # appimage.sh: rewrite bambu-studio RPATH to $ORIGIN-relative
 dbus = "*"
 libgl-devel = "*"
 libegl-devel = "*"
