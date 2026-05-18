@@ -21,6 +21,10 @@
 #include <sstream>
 #include <vector>
 
+#ifndef _L
+#define _L(s) Slic3r::I18N::translate(s)
+#endif
+
 namespace Slic3r {
 
 namespace {
@@ -389,7 +393,7 @@ bool load_fbx(const std::string& path, TexturedMesh& out, std::string* error_mes
     if (!scene) {
         if (last_error.empty())
             last_error = "FBX import failed: no valid Assimp scene was produced.";
-        set_error_message(error_message, I18N::translate("The file format is incompatible and cannot be parsed."));
+        set_error_message(error_message, _L("The file format is incompatible and cannot be parsed."));
         return false;
     }
 

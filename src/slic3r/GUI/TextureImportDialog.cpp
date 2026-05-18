@@ -1356,7 +1356,7 @@ TextureImportDialog::TextureImportDialog(
     std::function<bool(int)>         initial_progress_callback)
     : DPIDialog(parent, wxID_ANY, _L("Import Model"),
                 wxDefaultPosition, wxDefaultSize,
-                wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX)
+                (wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER) & ~(wxMINIMIZE_BOX | wxMAXIMIZE_BOX))
     , m_textured_mesh(textured_mesh)
     , m_filament_color_strs(filament_color_strs)
     , m_filament_names(filament_names)
@@ -1937,7 +1937,7 @@ void TextureImportDialog::start_computation(bool auto_color, bool initial)
     settings.target_colors_num = auto_color ? 0 : (size_t)m_param_color_count;
     settings.smooth_weight     = m_param_smooth / 10.0;
     settings.mesh_repair_decision = m_mesh_repair_decision;
-#ifdef _WIN32
+#ifdef HAS_WIN10SDK
     settings.mesh_repair_callback = Slic3r::fix_mesh_by_win10_sdk;
 #endif
 
@@ -2128,20 +2128,20 @@ void TextureImportDialog::on_mesh_repair_decision_required(wxCommandEvent&)
         m_progress_dlg = nullptr;
     }
 
-#ifdef _WIN32
+#ifdef HAS_WIN10SDK
     wxMessageDialog dlg(initial ? GetParent() : this,
-        "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing.",
-        "Mesh repair", wxYES_NO | wxICON_WARNING | wxYES_DEFAULT);
-    dlg.SetYesNoLabels("Import without repair", "Repair and import");
+        _L("The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."),
+        _L("Mesh repair"), wxYES_NO | wxICON_WARNING | wxYES_DEFAULT);
+    dlg.SetYesNoLabels(_L("Import without repair"), _L("Repair and import"));
     int ret = dlg.ShowModal();
     m_mesh_repair_decision = (ret == wxID_NO)
         ? Slic3r::TexturePaintingSettings::MeshRepairDecision::RepairAndImport
         : Slic3r::TexturePaintingSettings::MeshRepairDecision::ImportWithoutRepair;
 #else
     wxMessageDialog dlg(initial ? GetParent() : this,
-        "Please note that the mesh has non-manifold geometry or open boundaries.",
-        "Mesh issue", wxOK | wxCANCEL | wxICON_WARNING | wxOK_DEFAULT);
-    dlg.SetOKCancelLabels("Continue", "Cancel");
+        _L("Please note that the mesh has non-manifold geometry or open boundaries."),
+        _L("Mesh issue"), wxOK | wxCANCEL | wxICON_WARNING | wxOK_DEFAULT);
+    dlg.SetOKCancelLabels(_L("Continue"), _L("Cancel"));
     int ret = dlg.ShowModal();
     if (ret != wxID_OK) {
         m_cancel_flag = true;

@@ -327,11 +327,25 @@ bool fix_mesh_by_win10_sdk(const indexed_triangle_set& mesh,
 						   Win10RepairCancelFn         cancel_callback,
 						   std::string*                error_message)
 {
+	// RAII guard ensures the intermediate 3mf files are removed even if
+	// store_3mf / fix_model_by_win10_sdk / load_3mf throws.
+	struct TempFileGuard {
+		boost::filesystem::path path;
+		~TempFileGuard() {
+			if (!path.empty()) {
+				boost::system::error_code ec;
+				boost::filesystem::remove(path, ec);
+			}
+		}
+	};
+
 	try {
 		boost::filesystem::path path_src = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
 		path_src += ".3mf";
 		boost::filesystem::path path_dst = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
 		path_dst += ".3mf";
+		TempFileGuard src_guard{ path_src };
+		TempFileGuard dst_guard{ path_dst };
 
 		Model model;
 		ModelObject* model_object = model.add_object();
@@ -342,8 +356,6 @@ bool fix_mesh_by_win10_sdk(const indexed_triangle_set& mesh,
 		model_object->add_instance();
 
 		if (!Slic3r::store_3mf(path_src.string().c_str(), &model, nullptr, false, nullptr, false)) {
-			boost::filesystem::remove(path_src);
-			boost::filesystem::remove(path_dst);
 			throw Slic3r::RuntimeError(L("Exporting 3mf file failed"));
 		}
 
@@ -355,12 +367,10 @@ bool fix_mesh_by_win10_sdk(const indexed_triangle_set& mesh,
 				if (cancel_callback && cancel_callback())
 					throw Slic3r::RuntimeError("Model repair has been canceled.");
 			});
-		boost::filesystem::remove(path_src);
 
 		DynamicPrintConfig config;
 		ConfigSubstitutionContext config_substitutions{ ForwardCompatibilitySubstitutionRule::EnableSilent };
 		bool loaded = Slic3r::load_3mf(path_dst.string().c_str(), config, config_substitutions, &model, false);
-		boost::filesystem::remove(path_dst);
 
 		if (!loaded)
 			throw Slic3r::RuntimeError(L("Import 3mf file failed"));

@@ -33,6 +33,10 @@ constexpr int GLTF_UNSIGNED_SHORT = 5123;
 constexpr int GLTF_UNSIGNED_INT   = 5125;
 constexpr int GLTF_FLOAT          = 5126;
 
+constexpr int GLTF_MODE_TRIANGLES      = 4;
+constexpr int GLTF_MODE_TRIANGLE_STRIP = 5;
+constexpr int GLTF_MODE_TRIANGLE_FAN   = 6;
+
 struct GlbHeader {
     uint32_t magic;
     uint32_t version;
@@ -420,7 +424,10 @@ void collect_mesh_primitives(const json& root,
     const auto& mesh = root["meshes"][mesh_idx];
     if (!mesh.contains("primitives")) return;
     for (const auto& prim : mesh["primitives"]) {
-        if (prim.value("mode", 4) != 4)
+        const int primitive_mode = prim.value("mode", GLTF_MODE_TRIANGLES);
+        if (primitive_mode != GLTF_MODE_TRIANGLES &&
+            primitive_mode != GLTF_MODE_TRIANGLE_STRIP &&
+            primitive_mode != GLTF_MODE_TRIANGLE_FAN)
             continue;
         if (!prim.contains("attributes"))
             continue;
@@ -461,27 +468,46 @@ void collect_mesh_primitives(const json& root,
         while (out.uvs.size() < out.vertices.size())
             out.uvs.push_back({0.f, 0.f});
 
+        auto append_triangle = [&out, mat_idx](int i0, int i1, int i2) {
+            out.indices.push_back({i0, i1, i2});
+            out.material_ids.push_back(mat_idx);
+        };
+
+        auto append_primitive_indices = [&append_triangle, primitive_mode](const auto& read_vertex_index, size_t index_count) {
+            if (primitive_mode == GLTF_MODE_TRIANGLES) {
+                for (size_t i = 0; i + 2 < index_count; i += 3)
+                    append_triangle(read_vertex_index(i), read_vertex_index(i + 1), read_vertex_index(i + 2));
+            } else if (primitive_mode == GLTF_MODE_TRIANGLE_STRIP) {
+                for (size_t i = 0; i + 2 < index_count; ++i) {
+                    int i0 = read_vertex_index(i);
+                    int i1 = read_vertex_index(i + 1);
+                    int i2 = read_vertex_index(i + 2);
+                    if (i % 2 == 0)
+                        append_triangle(i0, i1, i2);
+                    else
+                        append_triangle(i1, i0, i2);
+                }
+            } else if (primitive_mode == GLTF_MODE_TRIANGLE_FAN) {
+                for (size_t i = 1; i + 1 < index_count; ++i)
+                    append_triangle(read_vertex_index(0), read_vertex_index(i), read_vertex_index(i + 1));
+            }
+        };
+
         if (idx_acc >= 0) {
             auto idx_info = resolve_accessor(root, idx_acc, bin);
             if (idx_info.data) {
                 size_t elem_sz = component_byte_size(idx_info.comp_type);
                 size_t idx_stride = idx_info.stride > 0 ? idx_info.stride : elem_sz;
-                for (size_t i = 0; i + 2 < idx_info.count; i += 3) {
-                    int i0 = static_cast<int>(read_index(idx_info.data + (i + 0) * idx_stride, idx_info.comp_type)) + vertex_offset;
-                    int i1 = static_cast<int>(read_index(idx_info.data + (i + 1) * idx_stride, idx_info.comp_type)) + vertex_offset;
-                    int i2 = static_cast<int>(read_index(idx_info.data + (i + 2) * idx_stride, idx_info.comp_type)) + vertex_offset;
-                    out.indices.push_back({i0, i1, i2});
-                    out.material_ids.push_back(mat_idx);
-                }
+                auto read_vertex_index = [&idx_info, idx_stride, vertex_offset](size_t idx) {
+                    return static_cast<int>(read_index(idx_info.data + idx * idx_stride, idx_info.comp_type)) + static_cast<int>(vertex_offset);
+                };
+                append_primitive_indices(read_vertex_index, idx_info.count);
             }
         } else {
-            for (size_t i = 0; i + 2 < pos_info.count; i += 3) {
-                int i0 = static_cast<int>(i + vertex_offset);
-                int i1 = static_cast<int>(i + 1 + vertex_offset);
-                int i2 = static_cast<int>(i + 2 + vertex_offset);
-                out.indices.push_back({i0, i1, i2});
-                out.material_ids.push_back(mat_idx);
-            }
+            auto read_vertex_index = [vertex_offset](size_t idx) {
+                return static_cast<int>(idx + vertex_offset);
+            };
+            append_primitive_indices(read_vertex_index, pos_info.count);
         }
 
         vertex_offset = static_cast<uint32_t>(out.vertices.size());
