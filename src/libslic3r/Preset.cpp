@@ -59,6 +59,7 @@ const std::vector<std::string> &get_filament_orders()
                                               "Bambu PLA Lite",
                                               "Bambu PLA Tough+",
                                               "Bambu PETG Basic",
+                                              "Bambu PETG Matte",
                                               "Bambu PETG HF",
                                               "Bambu ABS",
                                               "Bambu ASA",
