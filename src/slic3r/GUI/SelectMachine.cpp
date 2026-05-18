@@ -2173,6 +2173,20 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
     PartPlate* plate = m_plater->get_partplate_list().get_curr_plate();
 
     bool has_show_traditional_timelapse_waring = false;
+    //check I3 traditional timelapse warning without wipe tower
+    const Print* print = plate ? plate->fff_print() : nullptr;
+    const bool has_wipe_tower = print && print->has_wipe_tower() && print->tool_ordering().has_wipe_tower();
+    if (obj_->get_printer_arch() == PrinterArch::ARCH_I3 &&
+        print && print->config().timelapse_type.value == TimelapseType::tlTraditional &&
+        !has_wipe_tower &&
+        m_checkbox_list["timelapse"]->getValue() == "on") {
+        GCodeProcessorResult::SliceWarning warning;
+        warning.msg = NOT_SUPPORT_TRADITIONAL_TIMELAPSE;
+        confirm_text.push_back(ConfirmBeforeSendInfo(Plater::get_slice_warning_string(warning)));
+        has_show_traditional_timelapse_waring = true;
+        has_slice_warnings = true;
+    }
+
     for (auto warning : plate->get_slice_result()->warnings) {
         if (warning.msg == NOT_SUPPORT_TRADITIONAL_TIMELAPSE) {
             if (!has_show_traditional_timelapse_waring && (m_checkbox_list["timelapse"]->getValue() == "on")) {
