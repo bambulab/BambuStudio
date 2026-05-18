@@ -65,7 +65,13 @@ if (APPLE)
     endif ()
     message(STATUS "CMAKE_OSX_DEPLOYMENT_TARGET: ${CMAKE_OSX_DEPLOYMENT_TARGET}")
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(CMAKE_INSTALL_RPATH "$ORIGIN")
+    # appimage.sh ships the build-tree binary directly (no `make install`), so
+    # apply the install RPATH at build time and cover both bin/ (../lib) and
+    # lib/ (./) lookups. USE_ORIGIN keeps CMake from also prepending the build
+    # host's $CONDA_PREFIX/lib as an absolute path.
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+    set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
+    set(CMAKE_INSTALL_RPATH "$ORIGIN;$ORIGIN/../lib")
 elseif (MSVC)
         message(STATUS "CMAKE_GENERATOR_PLATFORM is ${CMAKE_GENERATOR_PLATFORM} ")
         message(STATUS "CMAKE_SYSTEM_PROCESSOR is ${CMAKE_SYSTEM_PROCESSOR} ")
