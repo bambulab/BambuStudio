@@ -5170,15 +5170,14 @@ DevNozzle MachineObject::get_nozzle_by_sn(const std::string& sn) const
     int nozzle_id;
     DevNozzle nozzle;
 
-    nozzle_id = m_extder_system->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
-    nozzle = m_nozzle_system->GetExtNozzle(nozzle_id);
-    if(nozzle.GetSerialNumber().compare(sn) == 0)
-        return nozzle;
+    if (!m_extder_system || !m_nozzle_system) return nozzle;
 
-    nozzle_id = m_extder_system->GetExtderById(DEPUTY_EXTRUDER_ID)->GetNozzleId();
-    nozzle = m_nozzle_system->GetExtNozzle(nozzle_id);
-    if(nozzle.GetSerialNumber().compare(sn) == 0)
-        return nozzle;
+    for (const auto& extder : m_extder_system->m_extders) {
+        nozzle_id = extder.GetNozzleId();
+        nozzle = m_nozzle_system->GetExtNozzle(nozzle_id);
+        if (nozzle.GetSerialNumber().compare(sn) == 0)
+            return nozzle;
+    }
 
     auto rack = m_nozzle_system->GetNozzleRack();
     auto nozzle_map = rack->GetRackNozzles();

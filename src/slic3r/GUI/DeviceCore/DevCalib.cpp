@@ -452,7 +452,7 @@ void DevCalib::ExtrusionCalibSelectParse(const json &jj){
             }
         }
     } catch(...){
-
+        BOOST_LOG_TRIVIAL(trace) << " extrusion_cali_sel: illegal ack = " << jj.dump();
     }
 }
 

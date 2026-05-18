@@ -639,7 +639,7 @@ int HistoryWindow::get_extruder_id()
         return 0;
     }
     if (!curr_obj->is_multi_extruders() || !m_extruder_switch_btn)
-        return -1;
+        return MAIN_EXTRUDER_ID;
 
     bool is_left = !m_extruder_switch_btn->GetValue();
     bool main_on_left = curr_obj->is_main_extruder_on_left();
@@ -988,11 +988,13 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
         m_comboBox_nozzle_id   = new ::ComboBox(top_panel, wxID_ANY, wxEmptyString, wxDefaultPosition, NEW_HISTORY_DIALOG_INPUT_SIZE, 0, nullptr, wxCB_READONLY);
         m_comboBox_nozzle_id->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, &NewCalibrationHistoryDialog::on_select_nozzle_pos, this);
 
-        int r_nozzle_id = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
-        auto r_nozzle = obj->GetNozzleSystem()->GetExtNozzle(r_nozzle_id);
+        if (rack->GetRackType() == DevNozzleRack::RackType::RackType_AB) {
+            int r_nozzle_id = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
+            auto r_nozzle = obj->GetNozzleSystem()->GetExtNozzle(r_nozzle_id);
 
-        if(r_nozzle.IsNormal()){
-            m_comboBox_nozzle_id->Append("R", wxNullBitmap, new int{0});
+            if(r_nozzle.IsNormal()){
+                m_comboBox_nozzle_id->Append("R", wxNullBitmap, new int{0});
+            }
         }
 
         if (rack->GetRackType() == DevNozzleRack::RackType::RackType_A ||
@@ -1020,7 +1022,8 @@ NewCalibrationHistoryDialog::NewCalibrationHistoryDialog(wxWindow *parent, const
         }
 
         m_comboBox_nozzle_id->SetSelection(-1);
-        m_comboBox_nozzle_id->Disable();
+        // multi_extruder default disable
+        m_comboBox_nozzle_id->Enable(!obj->is_multi_extruders());
         flex_sizer->Add(nozzle_id_title);
         flex_sizer->Add(m_comboBox_nozzle_id);
     }
