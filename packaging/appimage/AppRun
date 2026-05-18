@@ -6,6 +6,10 @@
 HERE="$(dirname "$(readlink -f "$0")")"
 PREFIX="$HERE/usr"
 
+# Resolve bundled .so deps even if the binary's baked-in RPATH points at the
+# build host's $CONDA_PREFIX/lib (which doesn't exist on user machines).
+export LD_LIBRARY_PATH="$PREFIX/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+
 # conda libGLX dispatches to host vendor drivers (e.g. nvidia) and the
 # resulting mix can crash MakeCurrent; software GL sidesteps it.
 export LIBGL_ALWAYS_SOFTWARE="${LIBGL_ALWAYS_SOFTWARE:-1}"
