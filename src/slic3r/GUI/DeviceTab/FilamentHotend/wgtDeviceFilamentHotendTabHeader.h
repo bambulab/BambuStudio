@@ -9,6 +9,7 @@ wxDECLARE_EVENT(EVT_DEVICE_FILAMENT_HOTEND_TAB_CHANGED, wxCommandEvent);
 wxDECLARE_EVENT(EVT_DEVICE_FILAMENT_HOTEND_BATCH_LOAD, wxCommandEvent);
 wxDECLARE_EVENT(EVT_DEVICE_FILAMENT_HOTEND_BATCH_UNLOAD, wxCommandEvent);
 wxDECLARE_EVENT(EVT_DEVICE_FILAMENT_HOTEND_BATCH_QUIT, wxCommandEvent);
+wxDECLARE_EVENT(EVT_DEVICE_FILAMENT_HOTEND_DRY, wxCommandEvent);
 wxDECLARE_EVENT(EVT_DEVICE_HOTEND_READ_ALL, wxCommandEvent);
 
 namespace Slic3r::GUI
@@ -49,6 +50,7 @@ private:
     void OnBtnLoad(wxCommandEvent& evt);
     void OnBtnUnload(wxCommandEvent& evt);
     void OnBtnQuit(wxCommandEvent& evt);
+    void OnBtnDry(wxCommandEvent& evt);
     void OnBtnReadAll(wxCommandEvent& evt);
 
 private:

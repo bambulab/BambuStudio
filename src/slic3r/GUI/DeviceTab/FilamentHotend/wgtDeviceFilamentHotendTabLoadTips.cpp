@@ -18,14 +18,28 @@ wgtDeviceFilamentHotendTabLoadTips::wgtDeviceFilamentHotendTabLoadTips(wxWindow*
     CreateGui();
 }
 
-void wgtDeviceFilamentHotendTabLoadTips::UpdateByObj(Slic3r::MachineObject* obj,
-                                                     bool select_all_checked,
-                                                     bool select_all_enabled,
-                                                     const wxString& summary_text)
+void wgtDeviceFilamentHotendTabLoadTips::UpdateByMachine(Slic3r::MachineObject* machine_obj,
+                                                         bool select_all_checked,
+                                                         bool select_all_enabled,
+                                                         const wxString& summary_text,
+                                                         wgtDeviceFilamentHotendBatchAction batch_action)
 {
     SetSelectAllChecked(select_all_checked);
-    SetSelectAllEnabled(obj && select_all_enabled);
+    SetSelectAllEnabled(machine_obj && select_all_enabled);
     SetSummaryText(summary_text);
+
+    if (m_batch_action != batch_action) {
+        m_batch_action = batch_action;
+        if (m_batch_action == wgtDeviceFilamentHotendBatchAction::Load) {
+            m_label_action->SetLabel(_L("Load"));
+            m_label_action->Show();
+        } else if (m_batch_action == wgtDeviceFilamentHotendBatchAction::Unload) {
+            m_label_action->SetLabel(_L("Unload"));
+            m_label_action->Show();
+        } else {
+            m_label_action->Hide();
+        }
+    }
 }
 
 void wgtDeviceFilamentHotendTabLoadTips::SetSelectAllChecked(bool checked)

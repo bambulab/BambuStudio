@@ -16,6 +16,7 @@
 #include <wx/dcbuffer.h>
 #include <wx/display.h>
 #include <wx/sizer.h>
+#include <wx/statbmp.h>
 
 wxDEFINE_EVENT(EVT_DEVICE_FILAMENT_HOTEND_ITEM_SELECTION_CHANGED, wxCommandEvent);
 
@@ -50,6 +51,11 @@ wxColour get_weight_text_color(const wxColour &color)
 }
 
 wxColour get_reading_color() { return wxColour("#1E39F6"); }
+
+int nozzle_pos_to_display_idx(int nozzle_pos)
+{
+    return nozzle_pos >= 0x10 ? (nozzle_pos - 0x10 + 1) : (nozzle_pos + 1);
+}
 
 class wgtFilamentHotendMenuDialog final : public wxDialog
 {
@@ -94,20 +100,90 @@ wgtDeviceFilamentHotendItemTube::wgtDeviceFilamentHotendItemTube(wxWindow* paren
 
 void wgtDeviceFilamentHotendItemTube::SetTubeColor(const wxColour& color)
 {
-    if (m_panel_tube_line) {
-        m_panel_tube_line->SetBackgroundColour(color);
-        m_panel_tube_line->Refresh();
-    }
-    Refresh();
+    const bool active = (color != wxColour("#D9D9D9"));
+    ApplyBitmapByState(active ? DeviceFilamentHotendLineState::Transporting : DeviceFilamentHotendLineState::Standby);
 }
 
 void wgtDeviceFilamentHotendItemTube::SetTubeVisible(bool visible)
 {
-    if (m_panel_tube_line) {
-        m_panel_tube_line->Show(visible);
+    if (m_tube_bitmap_widget) {
+        m_tube_bitmap_widget->Show(visible);
     }
     Layout();
     Refresh();
+}
+
+void wgtDeviceFilamentHotendItemTube::SetLineState(DeviceFilamentHotendLineState state)
+{
+    ApplyBitmapByState(state);
+}
+
+void wgtDeviceFilamentHotendItemTube::SetLineHeight(int height_dip)
+{
+    if (height_dip <= 0 || m_line_height_dip == height_dip) {
+        return;
+    }
+
+    m_line_height_dip = height_dip;
+    delete m_tube_bitmap_standby;
+    delete m_tube_bitmap_transporting;
+    delete m_tube_bitmap_at_nozzle;
+    delete m_tube_bitmap_error;
+    m_tube_bitmap_standby = new ScalableBitmap(this, "dev_filament_hotend_line_standby", m_line_height_dip);
+    m_tube_bitmap_transporting = new ScalableBitmap(this, "dev_filament_hotend_line_transporting", m_line_height_dip);
+    m_tube_bitmap_at_nozzle = new ScalableBitmap(this, "dev_filament_hotend_line_at_nozzle", m_line_height_dip);
+    m_tube_bitmap_error = new ScalableBitmap(this, "dev_filament_hotend_line_error", m_line_height_dip);
+
+    if (m_tube_bitmap_widget) {
+        m_tube_bitmap_widget->SetMinSize(wxSize(FromDIP(12), FromDIP(m_line_height_dip)));
+        m_tube_bitmap_widget->SetMaxSize(wxSize(FromDIP(12), FromDIP(m_line_height_dip)));
+    }
+    ApplyBitmapByState(m_tube_line_state);
+    Layout();
+}
+
+void wgtDeviceFilamentHotendItemTube::ApplyBitmapByState(DeviceFilamentHotendLineState state)
+{
+    if (!m_tube_bitmap_widget || !m_tube_bitmap_standby || !m_tube_bitmap_transporting || !m_tube_bitmap_at_nozzle || !m_tube_bitmap_error) {
+        return;
+    }
+
+    if (m_tube_line_state == state && m_tube_bitmap_widget->GetBitmap().IsOk()) {
+        return;
+    }
+
+    m_tube_line_state = state;
+    ScalableBitmap* target_bitmap = m_tube_bitmap_standby;
+    switch (m_tube_line_state) {
+    case DeviceFilamentHotendLineState::None:
+        m_tube_bitmap_widget->Show(false);
+        break;
+    case DeviceFilamentHotendLineState::Standby:
+        m_tube_bitmap_widget->Show(true);
+        target_bitmap = m_tube_bitmap_standby;
+        break;
+    case DeviceFilamentHotendLineState::Transporting:
+        m_tube_bitmap_widget->Show(true);
+        target_bitmap = m_tube_bitmap_transporting;
+        break;
+    case DeviceFilamentHotendLineState::AtNozzle:
+        m_tube_bitmap_widget->Show(true);
+        target_bitmap = m_tube_bitmap_at_nozzle;
+        break;
+    case DeviceFilamentHotendLineState::Error:
+        m_tube_bitmap_widget->Show(true);
+        target_bitmap = m_tube_bitmap_error;
+        break;
+    default:
+        m_tube_bitmap_widget->Show(true);
+        target_bitmap = m_tube_bitmap_standby;
+        break;
+    }
+
+    if (m_tube_bitmap_widget->IsShown()) {
+        m_tube_bitmap_widget->SetBitmap(target_bitmap->bmp());
+    }
+    m_tube_bitmap_widget->Refresh();
 }
 
 void wgtDeviceFilamentHotendItemTube::CreateGui()
@@ -117,12 +193,18 @@ void wgtDeviceFilamentHotendItemTube::CreateGui()
     auto* tube_sizer = new wxBoxSizer(wxHORIZONTAL);
     tube_sizer->AddStretchSpacer(1);
 
-    m_panel_tube_line = new wxPanel(this, wxID_ANY);
-    m_panel_tube_line->SetMinSize(wxSize(FromDIP(2), FromDIP(16)));
-    tube_sizer->Add(m_panel_tube_line, 0, wxEXPAND | wxALIGN_CENTER_HORIZONTAL);
+    m_tube_bitmap_standby = new ScalableBitmap(this, "dev_filament_hotend_line_standby", m_line_height_dip);
+    m_tube_bitmap_transporting = new ScalableBitmap(this, "dev_filament_hotend_line_transporting", m_line_height_dip);
+    m_tube_bitmap_at_nozzle = new ScalableBitmap(this, "dev_filament_hotend_line_at_nozzle", m_line_height_dip);
+    m_tube_bitmap_error = new ScalableBitmap(this, "dev_filament_hotend_line_error", m_line_height_dip);
+    m_tube_bitmap_widget = new wxStaticBitmap(this, wxID_ANY, m_tube_bitmap_standby->bmp());
+    m_tube_bitmap_widget->SetMinSize(wxSize(FromDIP(12), FromDIP(m_line_height_dip)));
+    m_tube_bitmap_widget->SetMaxSize(wxSize(FromDIP(12), FromDIP(m_line_height_dip)));
+    tube_sizer->Add(m_tube_bitmap_widget, 0, wxEXPAND | wxALIGN_CENTER_HORIZONTAL);
 
     tube_sizer->AddStretchSpacer(1);
     SetSizer(tube_sizer);
+    ApplyBitmapByState(DeviceFilamentHotendLineState::Standby);
 }
 
 wgtDeviceFilamentHotendItemSpool::wgtDeviceFilamentHotendItemSpool(wxWindow* parent, const std::vector<std::string>& reading_icon_list)
@@ -140,9 +222,14 @@ void wgtDeviceFilamentHotendItemSpool::SetFilamentType(const wxString& filament_
 
 void wgtDeviceFilamentHotendItemSpool::SetWeight(const wxString& weight)
 {
-    if (m_label_weight) {
-        m_label_weight->SetLabel(weight);
-        m_label_weight->Show(!weight.empty());
+    SetStatusText(weight);
+}
+
+void wgtDeviceFilamentHotendItemSpool::SetStatusText(const wxString& status_text)
+{
+    if (m_label_status) {
+        m_label_status->SetLabel(status_text);
+        m_label_status->Show(!status_text.empty());
     }
 }
 
@@ -165,43 +252,34 @@ void wgtDeviceFilamentHotendItemSpool::SetReading(bool is_reading)
     }
 }
 
-void wgtDeviceFilamentHotendItemSpool::ApplyVisualState(const wxColour& text_fg,
-                                                        const wxColour& rail_color,
-                                                        const wxColour& spool_line,
-                                                        const wxColour& block_color,
-                                                        const wxColour& weight_text_fg,
+void wgtDeviceFilamentHotendItemSpool::ApplyVisualState(const wxColour& type_text_fg,
+                                                        const wxColour& status_text_fg,
+                                                        const wxColour& ring_color,
+                                                        const wxColour& center_color,
                                                         bool show_type,
-                                                        bool show_weight,
-                                                        bool show_reading)
+                                                        bool show_status,
+                                                        bool show_reading,
+                                                        bool show_slash)
 {
     if (m_label_type) {
-        m_label_type->SetForegroundColour(text_fg);
+        m_label_type->SetForegroundColour(type_text_fg);
         m_label_type->Show(show_type);
     }
-    if (m_panel_spool_left_bar) {
-        m_panel_spool_left_bar->SetBackgroundColour(rail_color);
-        m_panel_spool_left_bar->Refresh();
+
+    if (m_label_status) {
+        m_label_status->SetForegroundColour(status_text_fg);
+        m_label_status->Show(show_status);
+        m_label_status->Refresh();
     }
-    if (m_panel_spool_top_line) {
-        m_panel_spool_top_line->SetBackgroundColour(spool_line);
-        m_panel_spool_top_line->Refresh();
-    }
-    if (m_panel_spool_right_bar) {
-        m_panel_spool_right_bar->SetBackgroundColour(rail_color);
-        m_panel_spool_right_bar->Refresh();
-    }
-    if (m_panel_color_block) {
-        m_panel_color_block->SetBackgroundColour(block_color);
-        m_panel_color_block->Refresh();
-    }
-    if (m_label_weight) {
-        m_label_weight->SetBackgroundColour(block_color);
-        m_label_weight->SetForegroundColour(weight_text_fg);
-        m_label_weight->Show(show_weight);
-        m_label_weight->Refresh();
+
+    m_disc_ring_color = ring_color;
+    m_disc_center_color = center_color;
+    m_disc_show_slash = !show_reading && show_slash;
+    if (m_panel_disc_outer) {
+        m_panel_disc_outer->Refresh();
     }
     if (m_reading_icon) {
-        m_reading_icon->SetBackgroundColour(block_color);
+        m_reading_icon->SetBackgroundColour(center_color);
         m_reading_icon->Show(show_reading);
         m_reading_icon->Refresh();
     }
@@ -214,60 +292,97 @@ void wgtDeviceFilamentHotendItemSpool::RefreshSpool()
 
 void wgtDeviceFilamentHotendItemSpool::UpdateSpoolLayout()
 {
-    if (m_panel_spool_center) {
-        m_panel_spool_center->Layout();
+    if (m_panel_disc_outer) {
+        m_panel_disc_outer->Layout();
+        m_panel_disc_outer->Refresh();
     }
     Layout();
 }
 
 void wgtDeviceFilamentHotendItemSpool::CreateGui(const std::vector<std::string>& reading_icon_list)
 {
-    const wxColour spool_bg = wxColour("#F2F2F2");
+    SetBackgroundColour(wxColour("#F2F2F2"));
+    SetMinSize(wxSize(FromDIP(88), FromDIP(90)));
+    SetMaxSize(wxSize(FromDIP(88), FromDIP(90)));
 
-    SetBackgroundColour(*wxWHITE);
-    SetMinSize(wxSize(FromDIP(52), FromDIP(60)));
+    auto* spool_sizer = new wxBoxSizer(wxVERTICAL);
 
-    auto* spool_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_panel_disc_outer = new wxPanel(this, wxID_ANY);
+    m_panel_disc_outer->SetMinSize(wxSize(FromDIP(52), FromDIP(52)));
+    m_panel_disc_outer->SetMaxSize(wxSize(FromDIP(52), FromDIP(52)));
+    m_panel_disc_outer->SetBackgroundColour(wxColour("#F2F2F2"));
+    m_panel_disc_outer->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    m_panel_disc_outer->Bind(wxEVT_PAINT, [this](wxPaintEvent& evt) {
+        wxAutoBufferedPaintDC dc(m_panel_disc_outer);
+        dc.SetBackground(wxBrush(wxColour("#F2F2F2")));
+        dc.Clear();
 
-    m_panel_spool_left_bar = new wxPanel(this, wxID_ANY);
-    m_panel_spool_left_bar->SetMinSize(wxSize(FromDIP(4), FromDIP(60)));
-    spool_sizer->Add(m_panel_spool_left_bar, 0, wxEXPAND);
+        wxRect rect = m_panel_disc_outer->GetClientRect();
+        if (rect.width <= 0 || rect.height <= 0) {
+            evt.Skip();
+            return;
+        }
 
-    m_panel_spool_center = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    m_panel_spool_center->SetBackgroundColour(spool_bg);
-    m_panel_spool_center->SetMinSize(wxSize(FromDIP(44), FromDIP(40)));
-    auto* center_sizer = new wxBoxSizer(wxVERTICAL);
+        const int cx = rect.width / 2;
+        const int cy = rect.height / 2;
+        const int outer_r = std::min(rect.width, rect.height) / 2 - FromDIP(1);
+        const int ring_r = std::max(outer_r - FromDIP(5), FromDIP(1));
+        const int center_r = std::max(outer_r - FromDIP(16), FromDIP(1));
 
-    m_panel_spool_top_line = new wxPanel(m_panel_spool_center, wxID_ANY);
-    m_panel_spool_top_line->SetMinSize(wxSize(FromDIP(44), FromDIP(1)));
-    center_sizer->Add(m_panel_spool_top_line, 0, wxEXPAND | wxTOP, FromDIP(1));
-    center_sizer->AddSpacer(FromDIP(2));
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.SetBrush(wxBrush(wxColour("#CFCFCF")));
+        dc.DrawCircle(cx, cy, outer_r);
 
-    m_label_type = new Label(m_panel_spool_center, "?");
-    m_label_type->SetFont(Label::Body_13);
-    center_sizer->Add(m_label_type, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(4));
-    center_sizer->AddStretchSpacer(1);
+        dc.SetBrush(wxBrush(m_disc_ring_color));
+        dc.DrawCircle(cx, cy, ring_r);
 
-    m_panel_color_block = new wxPanel(m_panel_spool_center, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-    m_panel_color_block->SetMinSize(wxSize(FromDIP(42), FromDIP(31)));
-    auto* color_sizer = new wxBoxSizer(wxVERTICAL);
-    m_label_weight    = new Label(m_panel_color_block, wxEmptyString);
-    m_label_weight->SetFont(Label::Body_12);
-    m_reading_icon = new AnimaIcon(m_panel_color_block, wxID_ANY, reading_icon_list, "refresh_printer", 100);
+        dc.SetBrush(wxBrush(m_disc_center_color));
+        dc.DrawCircle(cx, cy, center_r);
+
+        if (m_disc_show_slash) {
+            // Use a real diagonal stroke for empty-slot mark to match UX.
+            wxPen slash_pen(wxColour("#BEBEBE"), FromDIP(2));
+            dc.SetPen(slash_pen);
+            dc.DrawLine(cx - FromDIP(5), cy + FromDIP(5), cx + FromDIP(5), cy - FromDIP(5));
+        }
+    });
+    auto* outer_sizer = new wxBoxSizer(wxVERTICAL);
+    outer_sizer->AddStretchSpacer(1);
+
+    m_reading_icon = new AnimaIcon(m_panel_disc_outer, wxID_ANY, reading_icon_list, "refresh_printer", 100);
     m_reading_icon->SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
     m_reading_icon->Hide();
-    color_sizer->AddStretchSpacer(1);
-    color_sizer->Add(m_reading_icon, 0, wxALIGN_CENTER_HORIZONTAL);
-    color_sizer->Add(m_label_weight, 0, wxALIGN_CENTER_HORIZONTAL);
-    color_sizer->AddStretchSpacer(1);
-    m_panel_color_block->SetSizer(color_sizer);
-    center_sizer->Add(m_panel_color_block, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, FromDIP(1));
-    m_panel_spool_center->SetSizer(center_sizer);
-    spool_sizer->Add(m_panel_spool_center, 0, wxALIGN_CENTER_VERTICAL);
+    outer_sizer->Add(m_reading_icon, 0, wxALIGN_CENTER_HORIZONTAL);
+    outer_sizer->AddStretchSpacer(1);
+    m_panel_disc_outer->SetSizer(outer_sizer);
+    spool_sizer->Add(m_panel_disc_outer, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(2));
 
-    m_panel_spool_right_bar = new wxPanel(this, wxID_ANY);
-    m_panel_spool_right_bar->SetMinSize(wxSize(FromDIP(4), FromDIP(80)));
-    spool_sizer->Add(m_panel_spool_right_bar, 0, wxEXPAND);
+    spool_sizer->AddStretchSpacer(1);
+
+    m_panel_text_area = new wxPanel(this, wxID_ANY);
+    m_panel_text_area->SetBackgroundColour(*wxWHITE);
+    m_panel_text_area->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    m_panel_text_area->SetMinSize(wxSize(FromDIP(88), FromDIP(34)));
+    m_panel_text_area->SetMaxSize(wxSize(FromDIP(88), FromDIP(34)));
+    m_panel_text_area->Bind(wxEVT_PAINT, [this](wxPaintEvent&) {
+        wxAutoBufferedPaintDC dc(m_panel_text_area);
+        dc.SetBackground(wxBrush(*wxWHITE));
+        dc.Clear();
+        dc.SetPen(wxPen(wxColour("#E5E5E5"), 1));
+        dc.DrawLine(0, 0, m_panel_text_area->GetClientSize().GetWidth(), 0);
+    });
+    auto* text_sizer = new wxBoxSizer(wxVERTICAL);
+
+    m_label_type = new Label(m_panel_text_area, "?");
+    m_label_type->SetFont(Label::Body_12);
+    text_sizer->Add(m_label_type, 0, wxLEFT | wxTOP, FromDIP(4));
+
+    m_label_status = new Label(m_panel_text_area, wxEmptyString);
+    m_label_status->SetFont(Label::Body_12);
+    text_sizer->Add(m_label_status, 0, wxLEFT | wxTOP, FromDIP(0));
+
+    m_panel_text_area->SetSizer(text_sizer);
+    spool_sizer->Add(m_panel_text_area, 0, wxEXPAND | wxTOP, FromDIP(0));
 
     SetSizer(spool_sizer);
 }
@@ -280,14 +395,40 @@ wgtDeviceFilamentHotendItemHotend::wgtDeviceFilamentHotendItemHotend(wxWindow* p
 
 void wgtDeviceFilamentHotendItemHotend::SetHotendColor(const wxColour& color)
 {
-    if (m_panel_hotend_top) {
-        m_panel_hotend_top->SetBackgroundColour(color);
-        m_panel_hotend_top->Refresh();
+    const bool active = (color != wxColour("#D9D9D9"));
+    SetHotendState(active ? DeviceFilamentHotendNozzleState::Active : DeviceFilamentHotendNozzleState::Normal);
+}
+
+void wgtDeviceFilamentHotendItemHotend::SetHotendState(DeviceFilamentHotendNozzleState state)
+{
+    if (m_hotend_state == state && m_hotend_bitmap_widget && m_hotend_bitmap_widget->GetBitmap().IsOk()) {
+        return;
     }
-    if (m_panel_hotend_bottom) {
-        m_panel_hotend_bottom->SetBackgroundColour(color);
-        m_panel_hotend_bottom->Refresh();
+
+    m_hotend_state = state;
+    if (!m_hotend_bitmap_widget || !m_hotend_bitmap_normal || !m_hotend_bitmap_active || !m_hotend_bitmap_unknown || !m_hotend_bitmap_error) {
+        return;
     }
+
+    ScalableBitmap* target = m_hotend_bitmap_normal;
+    switch (m_hotend_state) {
+    case DeviceFilamentHotendNozzleState::Active:
+        target = m_hotend_bitmap_active;
+        break;
+    case DeviceFilamentHotendNozzleState::Unknown:
+        target = m_hotend_bitmap_unknown;
+        break;
+    case DeviceFilamentHotendNozzleState::Error:
+        target = m_hotend_bitmap_error;
+        break;
+    case DeviceFilamentHotendNozzleState::Normal:
+    default:
+        target = m_hotend_bitmap_normal;
+        break;
+    }
+
+    m_hotend_bitmap_widget->SetBitmap(target->bmp());
+    m_hotend_bitmap_widget->Refresh();
     Refresh();
 }
 
@@ -296,29 +437,32 @@ void wgtDeviceFilamentHotendItemHotend::CreateGui()
     SetBackgroundColour(*wxWHITE);
     SetMinSize(wxSize(FromDIP(24), FromDIP(24)));
 
+    m_hotend_bitmap_normal = new ScalableBitmap(this, "dev_filament_hotend_nozzle_normal", 24);
+    m_hotend_bitmap_active = new ScalableBitmap(this, "dev_filament_hotend_nozzle_active", 24);
+    m_hotend_bitmap_unknown = new ScalableBitmap(this, "dev_filament_hotend_nozzle_unknown", 24);
+    m_hotend_bitmap_error = new ScalableBitmap(this, "dev_filament_hotend_nozzle_error", 24);
+    m_hotend_bitmap_widget = new wxStaticBitmap(this, wxID_ANY, m_hotend_bitmap_normal->bmp());
+    m_hotend_bitmap_widget->SetMinSize(wxSize(FromDIP(24), FromDIP(24)));
+    m_hotend_bitmap_widget->SetMaxSize(wxSize(FromDIP(24), FromDIP(24)));
+
     auto* hotend_sizer = new wxBoxSizer(wxVERTICAL);
-    hotend_sizer->AddSpacer(FromDIP(2));
-
-    m_panel_hotend_top = new wxPanel(this, wxID_ANY);
-    m_panel_hotend_top->SetMinSize(wxSize(FromDIP(8), FromDIP(10)));
-    hotend_sizer->Add(m_panel_hotend_top, 0, wxALIGN_CENTER_HORIZONTAL);
-
-    hotend_sizer->AddSpacer(FromDIP(2));
-
-    m_panel_hotend_bottom = new wxPanel(this, wxID_ANY);
-    m_panel_hotend_bottom->SetMinSize(wxSize(FromDIP(8), FromDIP(6)));
-    hotend_sizer->Add(m_panel_hotend_bottom, 0, wxALIGN_CENTER_HORIZONTAL);
+    hotend_sizer->Add(m_hotend_bitmap_widget, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(1));
 
     SetSizer(hotend_sizer);
+    SetHotendState(DeviceFilamentHotendNozzleState::Normal);
 }
 
 wgtDeviceFilamentHotendItem::wgtDeviceFilamentHotendItem(wxWindow *parent) : wxPanel(parent, wxID_ANY) { CreateGui(); }
 
 void wgtDeviceFilamentHotendItem::Reset()
 {
+    m_machine_obj = nullptr;
     m_ams_id.clear();
     m_slot_id.clear();
     m_running = false;
+    m_card_state = DeviceFilamentHotendCardState::Empty;
+    m_line_state = DeviceFilamentHotendLineState::Standby;
+    m_nozzle_state = DeviceFilamentHotendNozzleState::Normal;
     SetIsReading(false);
     SetFilamentType("?");
     SetWeight(wxEmptyString);
@@ -329,23 +473,28 @@ void wgtDeviceFilamentHotendItem::Reset()
     RefreshVisualState();
 }
 
-void wgtDeviceFilamentHotendItem::UpdateBy(std::shared_ptr<DevFilaSystem> fila_system,
-                                           std::optional<DevAmsSlotId> ams_slot_id)
+void wgtDeviceFilamentHotendItem::UpdateByMachine(Slic3r::MachineObject* machine_obj,
+                                                  std::optional<DevAmsSlotId> ams_slot_id)
 {
+    m_machine_obj = machine_obj;
+    auto fila_system = machine_obj ? machine_obj->GetFilaSystem() : nullptr;
     m_fila_system = fila_system;
-    if (fila_system && ams_slot_id.has_value()) {
-        auto tray = fila_system->GetOwner()->get_tray(ams_slot_id->first, ams_slot_id->second);
+    if (machine_obj && fila_system && ams_slot_id.has_value()) {
+        auto tray = machine_obj->get_tray(ams_slot_id->first, ams_slot_id->second);
         if (tray.has_value()) {
             m_ams_id = tray->ams_id;
             m_slot_id = tray->id;
 
             const bool has_filament = tray->is_exists;
-            SetFilamentType(tray->m_fila_type.empty() ? "?" : wxString::FromUTF8(tray->m_fila_type));
-            SetWeight(has_filament ? format_weight(tray->weight) : "");
+            const std::string display_filament = !tray->sub_brands.empty() ? tray->sub_brands : tray->get_display_filament_type();
+            SetFilamentType(display_filament.empty() ? "?" : wxString::FromUTF8(display_filament));
+            SetWeight(wxEmptyString);
             SetFilamentColor(has_filament ? tray->get_color() : wxColour("#D9D9D9"));
             SetHasFilament(has_filament);
             SetEnabledState(true);
-            SetIsReading(tray->is_reading(fila_system->GetOwner()->tray_reading_bits));
+            SetIsReading(tray->is_reading(machine_obj->tray_reading_bits));
+            m_card_state = ResolveCardState(machine_obj, *tray);
+            m_line_state = ResolveLineState(m_card_state);
 
             RefreshVisualState();
             return;
@@ -355,61 +504,59 @@ void wgtDeviceFilamentHotendItem::UpdateBy(std::shared_ptr<DevFilaSystem> fila_s
     Reset();
 }
 
-#define FILAMENT_HOTEND_ITEM_SIZE wxSize(FromDIP(88), FromDIP(160))
+#define FILAMENT_HOTEND_CARD_SIZE wxSize(FromDIP(88), FromDIP(112))
+#define FILAMENT_HOTEND_ITEM_TOP_SIZE wxSize(FromDIP(88), FromDIP(236))
+#define FILAMENT_HOTEND_ITEM_BOTTOM_SIZE wxSize(FromDIP(88), FromDIP(118))
 void wgtDeviceFilamentHotendItem::CreateGui()
 {
-    const wxColour card_bg   = wxColour("#F7F7F7");
-    const wxColour hotend_bg = wxColour("#D9D9D9");
+    const wxColour card_bg   = wxColour("#F2F2F2");
     const wxColour border_bg = wxColour("#D9D9D9");
 
-    SetBackgroundColour(card_bg);
-    SetMinSize(FILAMENT_HOTEND_ITEM_SIZE);
-    SetMaxSize(FILAMENT_HOTEND_ITEM_SIZE);
+    SetBackgroundColour(*wxWHITE);
+    SetMinSize(FILAMENT_HOTEND_ITEM_TOP_SIZE);
+    SetMaxSize(FILAMENT_HOTEND_ITEM_TOP_SIZE);
 
     wxBoxSizer *root = new wxBoxSizer(wxVERTICAL);
     m_panel_card     = new StaticBox(this, wxID_ANY);
-    m_panel_card->SetCornerRadius(FromDIP(5));
+    m_panel_card->SetCornerRadius(FromDIP(4));
     m_panel_card->SetBorderWidth(1);
     m_panel_card->SetBackgroundColorNormal(card_bg);
     m_panel_card->SetBorderColorNormal(border_bg);
-    m_panel_card->SetMinSize(FILAMENT_HOTEND_ITEM_SIZE);
-    m_panel_card->SetMaxSize(FILAMENT_HOTEND_ITEM_SIZE);
+    m_panel_card->SetMinSize(FILAMENT_HOTEND_CARD_SIZE);
+    m_panel_card->SetMaxSize(FILAMENT_HOTEND_CARD_SIZE);
 
     wxBoxSizer *card_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *top_row    = new wxBoxSizer(wxHORIZONTAL);
 
     m_badge_index = new wgtCircleItem(m_panel_card, wxID_ANY);
-    top_row->AddSpacer(FromDIP(10));
-    top_row->AddStretchSpacer(1);
+    top_row->AddSpacer(FromDIP(3));
     top_row->Add(m_badge_index, 0, wxALIGN_CENTER_VERTICAL);
     top_row->AddStretchSpacer(1);
 
-    m_btn_menu = new ScalableButton(m_panel_card, wxID_ANY, "dev_filament_menu_icon", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, false, 16);
+    m_btn_menu = new ScalableButton(m_panel_card, wxID_ANY, "dev_filament_menu_icon", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, false, 14);
     m_btn_menu->SetBackgroundColour(card_bg);
-    m_btn_menu->SetMinSize(wxSize(FromDIP(16), FromDIP(16)));
-    m_btn_menu->SetMaxSize(wxSize(FromDIP(16), FromDIP(16)));
+    m_btn_menu->SetMinSize(wxSize(FromDIP(14), FromDIP(14)));
+    m_btn_menu->SetMaxSize(wxSize(FromDIP(14), FromDIP(14)));
     m_btn_menu->Bind(wxEVT_BUTTON, &wgtDeviceFilamentHotendItem::OnMenuButton, this);
     top_row->Add(m_btn_menu, 0, wxALIGN_TOP);
 
-    card_sizer->Add(top_row, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(5));
-    card_sizer->AddSpacer(FromDIP(4));
+    card_sizer->Add(top_row, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, FromDIP(2));
+    card_sizer->AddSpacer(FromDIP(0));
 
     std::vector<std::string> reading_icon_list{"ams_rfid_1", "ams_rfid_2", "ams_rfid_3", "ams_rfid_4"};
     m_panel_spool = new wgtDeviceFilamentHotendItemSpool(m_panel_card, reading_icon_list);
-    card_sizer->Add(m_panel_spool, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(4));
+    card_sizer->Add(m_panel_spool, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(0));
 
-    m_panel_tube = new wgtDeviceFilamentHotendItemTube(m_panel_card);
-    card_sizer->Add(m_panel_tube, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(4));
-
-    m_panel_hotend = new wgtDeviceFilamentHotendItemHotend(m_panel_card);
-    m_panel_hotend->SetHotendColor(hotend_bg);
-    card_sizer->Add(m_panel_hotend, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(1));
-
-    card_sizer->AddStretchSpacer(1);
-    card_sizer->AddSpacer(FromDIP(8));
+    card_sizer->AddSpacer(FromDIP(0));
 
     m_panel_card->SetSizer(card_sizer);
-    root->Add(m_panel_card, 1, wxEXPAND | wxALL, FromDIP(1));
+    root->Add(m_panel_card, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(0));
+
+    m_panel_tube = new wgtDeviceFilamentHotendItemTube(this);
+    root->Add(m_panel_tube, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(0));
+
+    // Hotend row is rendered by parent layout, keep this hidden here.
+    m_panel_hotend = nullptr;
 
     SetSizer(root);
     Reset();
@@ -431,14 +578,31 @@ void wgtDeviceFilamentHotendItem::SetNozzlePos(int index)
 
     m_nozzle_pos = index;
     if (m_badge_index) {
-        if (m_nozzle_pos >= 0x10) {
-            m_badge_index->SetValue(m_nozzle_pos - 0x10 + 1);
-        } else {
-            m_badge_index->SetValue(m_nozzle_pos + 1);
-        }
+        m_badge_index->SetValue(nozzle_pos_to_display_idx(m_nozzle_pos));
     }
 
+    SetLayoutTier((nozzle_pos_to_display_idx(m_nozzle_pos) % 2) == 0);
+
     m_visual_dirty = true;
+}
+
+void wgtDeviceFilamentHotendItem::SetLayoutTier(bool top_tier)
+{
+    if (m_is_top_tier == top_tier && GetMinSize().IsFullySpecified()) {
+        return;
+    }
+
+    m_is_top_tier = top_tier;
+    const int line_height = m_is_top_tier ? 128 : 14;
+    if (m_panel_tube) {
+        m_panel_tube->SetLineHeight(line_height);
+    }
+
+    const wxSize item_size = m_is_top_tier ? FILAMENT_HOTEND_ITEM_TOP_SIZE : FILAMENT_HOTEND_ITEM_BOTTOM_SIZE;
+    SetMinSize(item_size);
+    SetMaxSize(item_size);
+    m_layout_dirty = true;
+    Layout();
 }
 
 void wgtDeviceFilamentHotendItem::SetFilamentType(const wxString &type)
@@ -457,9 +621,106 @@ void wgtDeviceFilamentHotendItem::SetFilamentColor(const wxColour &color)
     if (m_filament_color == color) return;
 
     m_filament_color = color;
-
-    m_panel_tube->SetTubeColor(m_filament_color);
     m_visual_dirty   = true;
+}
+
+bool wgtDeviceFilamentHotendItem::IsSlotLoadedInExtruder(Slic3r::MachineObject* machine_obj) const
+{
+    if (!machine_obj || m_ams_id.empty() || m_slot_id.empty()) {
+        return false;
+    }
+
+    for (const auto& ext : machine_obj->GetExtderSystem()->GetExtruders()) {
+        if (ext.GetSlotNow().ams_id == m_ams_id && ext.GetSlotNow().slot_id == m_slot_id && ext.HasFilamentInExt()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+DeviceFilamentHotendCardState wgtDeviceFilamentHotendItem::ResolveCardState(Slic3r::MachineObject* machine_obj, const Slic3r::DevAmsTray& tray) const
+{
+    if (!tray.is_exists) {
+        return DeviceFilamentHotendCardState::Empty;
+    }
+
+    if (machine_obj && tray.is_reading(machine_obj->tray_reading_bits)) {
+        return DeviceFilamentHotendCardState::Reading;
+    }
+
+    const bool loaded_in_extruder = IsSlotLoadedInExtruder(machine_obj);
+    const bool is_filament_change = machine_obj && machine_obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE;
+    if (machine_obj && machine_obj->ams_status_main == AMS_STATUS_MAIN_UNKNOWN) {
+        return DeviceFilamentHotendCardState::Error;
+    }
+
+    if (is_filament_change && (m_running || loaded_in_extruder)) {
+        return loaded_in_extruder ? DeviceFilamentHotendCardState::Unloading : DeviceFilamentHotendCardState::Loading;
+    }
+
+    if (tray.setting_id.empty() || tray.m_fila_type.empty()) {
+        return DeviceFilamentHotendCardState::Unknown;
+    }
+
+    return loaded_in_extruder ? DeviceFilamentHotendCardState::ReadyToUse : DeviceFilamentHotendCardState::ReadyToLoad;
+}
+
+DeviceFilamentHotendLineState wgtDeviceFilamentHotendItem::ResolveLineState(DeviceFilamentHotendCardState card_state) const
+{
+    switch (card_state) {
+    case DeviceFilamentHotendCardState::Reading:
+        return DeviceFilamentHotendLineState::None;
+    case DeviceFilamentHotendCardState::Loading:
+    case DeviceFilamentHotendCardState::Unloading:
+        return DeviceFilamentHotendLineState::Transporting;
+    case DeviceFilamentHotendCardState::ReadyToUse:
+        return DeviceFilamentHotendLineState::AtNozzle;
+    case DeviceFilamentHotendCardState::Error:
+        return DeviceFilamentHotendLineState::Error;
+    case DeviceFilamentHotendCardState::ReadyToLoad:
+    case DeviceFilamentHotendCardState::Empty:
+    case DeviceFilamentHotendCardState::Unknown:
+    default:
+        return DeviceFilamentHotendLineState::Standby;
+    }
+}
+
+DeviceFilamentHotendNozzleState wgtDeviceFilamentHotendItem::ResolveNozzleState(DeviceFilamentHotendCardState card_state, DeviceFilamentHotendLineState line_state) const
+{
+    if (card_state == DeviceFilamentHotendCardState::Error) {
+        return DeviceFilamentHotendNozzleState::Error;
+    }
+    if (card_state == DeviceFilamentHotendCardState::Unknown) {
+        return DeviceFilamentHotendNozzleState::Unknown;
+    }
+    if (line_state == DeviceFilamentHotendLineState::Transporting || line_state == DeviceFilamentHotendLineState::AtNozzle) {
+        return DeviceFilamentHotendNozzleState::Active;
+    }
+    return DeviceFilamentHotendNozzleState::Normal;
+}
+
+wxString wgtDeviceFilamentHotendItem::ResolveCardStateDisplayText(DeviceFilamentHotendCardState card_state) const
+{
+    switch (card_state) {
+    case DeviceFilamentHotendCardState::Reading:
+        return _L("读取中");
+    case DeviceFilamentHotendCardState::Loading:
+        return _L("进料中");
+    case DeviceFilamentHotendCardState::Unloading:
+        return _L("退料中");
+    case DeviceFilamentHotendCardState::ReadyToLoad:
+        return _L("待进料");
+    case DeviceFilamentHotendCardState::ReadyToUse:
+        return _L("待使用");
+    case DeviceFilamentHotendCardState::Empty:
+        return _L("--");
+    case DeviceFilamentHotendCardState::Unknown:
+        return _L("未知耗材");
+    case DeviceFilamentHotendCardState::Error:
+        return _L("错误状态");
+    default:
+        return wxEmptyString;
+    }
 }
 
 void wgtDeviceFilamentHotendItem::SetHasFilament(bool has_filament)
@@ -489,6 +750,13 @@ void wgtDeviceFilamentHotendItem::SetRunning(bool running)
     }
 
     m_running = running;
+    if (m_machine_obj && !m_ams_id.empty() && !m_slot_id.empty()) {
+        auto tray = m_machine_obj->get_tray(m_ams_id, m_slot_id);
+        if (tray.has_value()) {
+            m_card_state = ResolveCardState(m_machine_obj, *tray);
+            m_line_state = ResolveLineState(m_card_state);
+        }
+    }
     if (m_btn_menu) {
         m_btn_menu->Enable(m_enabled_state && !m_running);
     }
@@ -784,13 +1052,33 @@ void wgtDeviceFilamentHotendItem::RefreshVisualState()
 {
     if (!m_visual_dirty && !m_layout_dirty) return;
 
-    const wxColour reading_color  = get_reading_color();
-    const wxColour text_fg        = !m_enabled_state ? wxColour("#A3A3A3") : wxColour("#1F1F1F");
-    const wxColour rail_color     = !m_enabled_state ? wxColour("#E5E5E5") : wxColour("#CFD4DB");
-    const wxColour spool_line     = !m_enabled_state ? wxColour("#C9C9C9") : wxColour("#6A6A6A");
-    const wxColour block_color    = !m_enabled_state ? wxColour("#D9D9D9") : m_is_reading ? reading_color : m_has_filament ? m_filament_color : wxColour("#D9D9D9");
-    const wxColour weight_text_fg = get_weight_text_color(block_color);
-    m_panel_spool->ApplyVisualState(text_fg, rail_color, spool_line, block_color, weight_text_fg, !m_is_reading, !m_weight_text.empty() && !m_is_reading, m_is_reading);
+    const bool is_empty_like       = (m_card_state == DeviceFilamentHotendCardState::Empty
+                                      || m_card_state == DeviceFilamentHotendCardState::Unknown);
+    const wxColour type_text_fg    = !m_enabled_state ? wxColour("#A3A3A3")
+                                  : (is_empty_like ? wxColour("#A3A3A3")
+                                  : (m_card_state == DeviceFilamentHotendCardState::Error ? wxColour("#D95047") : wxColour("#1F1F1F")));
+    const wxColour status_text_fg  = !m_enabled_state ? wxColour("#BDBDBD")
+                                  : (m_card_state == DeviceFilamentHotendCardState::Empty ? wxColour("#BDBDBD")
+                                  : (m_card_state == DeviceFilamentHotendCardState::Unknown ? wxColour("#A3A3A3")
+                                  : type_text_fg));
+    const wxColour ring_color      = !m_enabled_state ? wxColour("#D9D9D9")
+                                  : (m_card_state == DeviceFilamentHotendCardState::Reading ? wxColour("#D9D9D9")
+                                  : (m_card_state == DeviceFilamentHotendCardState::Error ? wxColour("#D95047")
+                                  : (m_has_filament ? m_filament_color : wxColour("#D9D9D9"))));
+    const wxColour center_color    = (m_card_state == DeviceFilamentHotendCardState::Empty
+                                      || m_card_state == DeviceFilamentHotendCardState::Reading)
+                                      ? wxColour("#D9D9D9")
+                                      : wxColour("#E9E9E9");
+    const bool show_reading = (m_card_state == DeviceFilamentHotendCardState::Reading);
+    const wxString state_text = ResolveCardStateDisplayText(m_card_state);
+    const bool show_type = (m_card_state != DeviceFilamentHotendCardState::Reading
+                            && m_card_state != DeviceFilamentHotendCardState::Empty
+                            && m_card_state != DeviceFilamentHotendCardState::Unknown);
+    const bool show_slash = (m_card_state == DeviceFilamentHotendCardState::Empty);
+    if (m_panel_spool) {
+        m_panel_spool->SetStatusText(state_text);
+        m_panel_spool->ApplyVisualState(type_text_fg, status_text_fg, ring_color, center_color, show_type, !state_text.empty(), show_reading, show_slash);
+    }
     m_panel_spool->RefreshSpool();
 
     const wxColour card_border    = !m_enabled_state ? wxColour("#EAEAEA") : m_running ? wxColour("#1E39F6") : m_selected ? wxColour("#00AE42") : wxColour("#D9D9D9");
@@ -798,8 +1086,20 @@ void wgtDeviceFilamentHotendItem::RefreshVisualState()
 
     m_panel_card->Refresh();
     m_btn_menu->Refresh();
-    m_panel_tube->Refresh();
-    m_panel_hotend->Refresh();
+    if (m_panel_tube) {
+        m_line_state = ResolveLineState(m_card_state);
+        m_panel_tube->SetLineState(m_line_state);
+        m_panel_tube->Refresh();
+    }
+    m_nozzle_state = ResolveNozzleState(m_card_state, m_line_state);
+    if (m_panel_hotend) {
+        const bool show_hotend = (m_line_state == DeviceFilamentHotendLineState::AtNozzle
+                                  || m_line_state == DeviceFilamentHotendLineState::Transporting
+                                  || m_line_state == DeviceFilamentHotendLineState::Error);
+        m_panel_hotend->Show(show_hotend);
+        m_panel_hotend->SetHotendState(m_nozzle_state);
+        m_panel_hotend->Refresh();
+    }
 
     if (m_layout_dirty) {
         if (m_panel_spool) { m_panel_spool->UpdateSpoolLayout(); }

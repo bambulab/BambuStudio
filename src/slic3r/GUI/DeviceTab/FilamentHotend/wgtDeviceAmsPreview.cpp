@@ -113,9 +113,10 @@ void wgtDeviceAmsPreview::CreateGui()
     Layout();
 }
 
-void wgtDeviceAmsPreview::UpdateBy(std::shared_ptr<Slic3r::DevFilaSystem> fila_system,
-                                   const std::map<int, std::optional<DevAmsSlotId>>& nozzle_slots)
+void wgtDeviceAmsPreview::UpdateByMachine(Slic3r::MachineObject* machine_obj,
+                                          const std::map<int, std::optional<DevAmsSlotId>>& nozzle_slots)
 {
+    auto fila_system = machine_obj ? machine_obj->GetFilaSystem() : nullptr;
     if (!fila_system) {
         return;
     }

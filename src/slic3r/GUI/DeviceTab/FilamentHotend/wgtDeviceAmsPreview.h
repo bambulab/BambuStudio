@@ -13,6 +13,7 @@ class wxBoxSizer;
 
 namespace Slic3r {
 class DevFilaSystem;
+class MachineObject;
 }
 
 namespace Slic3r::GUI
@@ -24,8 +25,8 @@ public:
     explicit wgtDeviceAmsPreview(wxWindow* parent);
     ~wgtDeviceAmsPreview() override = default;
 
-    void Reset() { UpdateBy(nullptr, {}); };
-    void UpdateBy(std::shared_ptr<Slic3r::DevFilaSystem> fila_system, const std::map<int, std::optional<DevAmsSlotId>>& nozzle_slots);
+    void Reset() { UpdateByMachine(nullptr, {}); };
+    void UpdateByMachine(Slic3r::MachineObject* machine_obj, const std::map<int, std::optional<DevAmsSlotId>>& nozzle_slots);
 
 private:
     void CreateGui();

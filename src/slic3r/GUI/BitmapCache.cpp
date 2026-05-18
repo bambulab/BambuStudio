@@ -385,6 +385,13 @@ wxBitmap* BitmapCache::load_svg(const std::string &light_bitmap_name, unsigned t
 
     int   width    = (int)(svg_scale * image->width + 0.5f);
     int   height   = (int)(svg_scale * image->height + 0.5f);
+    // Guard narrow/tall SVGs from rounding to zero width/height.
+    if (width <= 0) {
+        width = 1;
+    }
+    if (height <= 0) {
+        height = 1;
+    }
     int   n_pixels = width * height;
     if (n_pixels <= 0) {
         ::nsvgDelete(image);
@@ -439,6 +446,13 @@ wxBitmap* BitmapCache::load_svg2(const std::string& bitmap_name, unsigned target
 
     int   width = (int)(svg_scale * image->width + 0.5f);
     int   height = (int)(svg_scale * image->height + 0.5f);
+    // Guard narrow/tall SVGs from rounding to zero width/height.
+    if (width <= 0) {
+        width = 1;
+    }
+    if (height <= 0) {
+        height = 1;
+    }
     int   n_pixels = width * height;
     if (n_pixels <= 0) {
         ::nsvgDelete(image);

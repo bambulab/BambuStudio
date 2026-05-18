@@ -4,6 +4,8 @@
 #include <wx/panel.h>
 #include <wx/string.h>
 
+#include "wgtDeviceFilamentHotendBatchFlow.h"
+
 class Label;
 class wxCheckBox;
 
@@ -22,10 +24,11 @@ public:
     explicit wgtDeviceFilamentHotendTabLoadTips(wxWindow* parent);
     ~wgtDeviceFilamentHotendTabLoadTips() override = default;
 
-    void UpdateByObj(Slic3r::MachineObject* obj,
+    void UpdateByMachine(Slic3r::MachineObject* machine_obj,
                      bool select_all_checked,
                      bool select_all_enabled,
-                     const wxString& summary_text);
+                     const wxString& summary_text,
+                     wgtDeviceFilamentHotendBatchAction batch_action);
 
 private:
     void CreateGui();
@@ -37,6 +40,8 @@ private:
 private:
     wxCheckBox* m_check_select_all{ nullptr };
     Label* m_label_summary{ nullptr };
+    Label* m_label_action;
+    wgtDeviceFilamentHotendBatchAction m_batch_action{wgtDeviceFilamentHotendBatchAction::None};
 };
 
 } // namespace Slic3r::GUI

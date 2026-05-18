@@ -923,7 +923,13 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
                 }
             }
             if (njon.contains("bind_ams")) {
-                nozzle_obj.m_bind_ams = njon["bind_ams"].get<std::vector<int>>();
+                nozzle_obj.m_bind_ams.clear();
+                auto bind_ams_list = njon["bind_ams"].get<std::vector<int>>();
+                for (auto ams_id : bind_ams_list) {
+                    if (system->GetOwner()->GetFilaSystem()->GetAmsById(std::to_string(ams_id))) {
+                        nozzle_obj.m_bind_ams.push_back(ams_id);
+                    }
+                }
             }
 
             if (DevUtil::get_hex_bits(njon["id"].get<int>(), 1) == 1) {

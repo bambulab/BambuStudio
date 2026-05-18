@@ -1059,5 +1059,11 @@ namespace Slic3r
 
         // certificate
         agent->install_device_cert(obj->get_dev_id(), obj->is_lan_mode_printer());
+
+        // Temporary startup helper: force switch to Device tab after window is shown.
+        static bool startup_device_tab_forced = false;
+        if (startup_device_tab_forced) {
+            Slic3r::GUI::wxGetApp().mainframe->jump_to_monitor();
+        }
     }
 }

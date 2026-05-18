@@ -84,15 +84,25 @@ export default defineConfig({
         assetFileNames: 'assets/[name].[ext]'
       }
     },
-    // Use terser instead of esbuild so we can reserve the name "wx".
-    // WKWebView's AddScriptMessageHandler("wx") injects `window.wx` as a
-    // UserMessageHandler instance. If the minifier generates a top-level
-    // variable called "wx", it shadows the global and causes:
-    // "wx is not a function (it is an instance of UserMessageHandler)".
+    // Use terser instead of esbuild so we can reserve names that would
+    // otherwise collide with WebView host globals or with browser builtins.
+    //
+    //   wx : WKWebView's AddScriptMessageHandler("wx") injects `window.wx`.
+    //        If terser mangles a top-level variable to "wx", it shadows the
+    //        global and we get
+    //          "wx is not a function (it is an instance of UserMessageHandler)".
+    //
+    //   gc : Some Chromium / WebView2 builds expose `window.gc()` as a
+    //        debug-only garbage-collect hook. When terser mangles two
+    //        different module-level identifiers to `gc` they collide as a
+    //        single `var gc` declaration in the IIFE bundle and cause
+    //          "SyntaxError: Identifier 'gc' has already been declared"
+    //        at script-load time, leaving the React tree blank. Reserving
+    //        the name keeps terser away from it.
     minify: 'terser',
     terserOptions: {
       mangle: {
-        reserved: ['wx'],
+        reserved: ['wx', 'gc'],
       },
     },
   }

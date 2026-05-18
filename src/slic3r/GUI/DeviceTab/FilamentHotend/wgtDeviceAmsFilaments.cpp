@@ -8,6 +8,7 @@
 #include "slic3r/GUI/I18N.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 
+#include <algorithm>
 #include <wx/gbsizer.h>
 #include <wx/sizer.h>
 
@@ -19,13 +20,14 @@ wgtDeviceAmsFilaments::wgtDeviceAmsFilaments(wxWindow *parent) : wxPanel(parent,
 
 void wgtDeviceAmsFilaments::Reset()
 {
-    UpdateBy(nullptr, {});
+    UpdateByMachine(nullptr, {});
     UpdateAmsDry(nullptr);
 }
 
-void wgtDeviceAmsFilaments::UpdateBy(std::shared_ptr<Slic3r::DevFilaSystem> fila_system,
-                                     const std::map<int, std::optional<DevAmsSlotId>>& nozzle_slots)
+void wgtDeviceAmsFilaments::UpdateByMachine(Slic3r::MachineObject* machine_obj,
+                                            const std::map<int, std::optional<DevAmsSlotId>>& nozzle_slots)
 {
+    auto fila_system = machine_obj ? machine_obj->GetFilaSystem() : nullptr;
     m_nozzle_slots = nozzle_slots;
 
     // Update item count and layout
@@ -34,29 +36,45 @@ void wgtDeviceAmsFilaments::UpdateBy(std::shared_ptr<Slic3r::DevFilaSystem> fila
         for (const auto& iter : m_filament_items) {
             iter.second->Destroy();
         }
+        for (const auto& iter : m_hotend_items) {
+            iter.second->Destroy();
+        }
         m_filament_items.clear();
+        m_hotend_items.clear();
 
-        int item_count = 0;
-        int mid_count = m_nozzle_slots.size() / 2;
+        std::vector<int> nozzle_positions;
+        nozzle_positions.reserve(m_nozzle_slots.size());
         for (const auto& iter : m_nozzle_slots) {
-            if (item_count == mid_count) {
-                m_items_sizer->Add(m_ams_dry_icon, wxGBPosition(0, mid_count), wxDefaultSpan, wxALIGN_LEFT | wxLEFT, FromDIP(8));
-                item_count++;
-            }
+            nozzle_positions.push_back(iter.first);
+        }
+        std::sort(nozzle_positions.begin(), nozzle_positions.end(), [this](int lhs, int rhs) {
+            auto to_display_idx = [](int nozzle_pos) {
+                return nozzle_pos >= 0x10 ? (nozzle_pos - 0x10 + 1) : (nozzle_pos + 1);
+            };
+            return to_display_idx(lhs) < to_display_idx(rhs);
+        });
 
+        int col = 0;
+        for (int nozzle_pos : nozzle_positions) {
             auto* item = new wgtDeviceFilamentHotendItem(m_panel_content);
-            item->SetNozzlePos(iter.first);
+            item->SetNozzlePos(nozzle_pos);
+            item->SetLayoutTier(IsTopTierNozzle(nozzle_pos));
+            item->SetEnableSelection(false);
             item->Bind(EVT_DEVICE_FILAMENT_HOTEND_ITEM_SELECTION_CHANGED, &wgtDeviceAmsFilaments::OnItemSelectionChanged, this);
 
-            if (item_count < mid_count) {
-                m_items_sizer->Add(item, wxGBPosition(0, item_count), wxDefaultSpan, wxALIGN_LEFT);
-            } else {
-                m_items_sizer->Add(item, wxGBPosition(1, item_count - mid_count - 1), wxDefaultSpan, wxALIGN_LEFT);
-            }
+            const int row = IsTopTierNozzle(nozzle_pos) ? 0 : 1;
+            m_items_sizer->Add(item, wxGBPosition(row, col), wxDefaultSpan, wxALIGN_CENTER_HORIZONTAL);
 
-            m_filament_items[iter.first] = item;
-            item_count++;
+            auto* hotend = new wgtDeviceFilamentHotendItemHotend(m_panel_content);
+            m_items_sizer->Add(hotend, wxGBPosition(2, col), wxDefaultSpan, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(2));
+
+            m_filament_items[nozzle_pos] = item;
+            m_hotend_items[nozzle_pos] = hotend;
+            col++;
         }
+
+        // Keep legacy dry icon for later style-A integration.
+        m_ams_dry_icon->Hide();
 
         Layout();
         Fit();
@@ -65,7 +83,10 @@ void wgtDeviceAmsFilaments::UpdateBy(std::shared_ptr<Slic3r::DevFilaSystem> fila
     // Update data
     for (const auto& item : m_filament_items) {
         if (m_nozzle_slots.count(item.first) != 0) {
-            item.second->UpdateBy(fila_system, m_nozzle_slots[item.first]);
+            item.second->UpdateByMachine(machine_obj, m_nozzle_slots[item.first]);
+            if (m_hotend_items.count(item.first) != 0 && m_hotend_items[item.first]) {
+                m_hotend_items[item.first]->SetHotendState(item.second->GetNozzleState());
+            }
         }
     }
 }
@@ -149,6 +170,12 @@ void wgtDeviceAmsFilaments::UpdateAmsDry(Slic3r::DevAms* ams)
     m_ams_dry_icon->Layout();
 }
 
+bool wgtDeviceAmsFilaments::IsTopTierNozzle(int nozzle_pos) const
+{
+    const int display_idx = nozzle_pos >= 0x10 ? (nozzle_pos - 0x10 + 1) : (nozzle_pos + 1);
+    return (display_idx % 2) == 0;
+}
+
 void wgtDeviceAmsFilaments::CreateGui()
 {
     SetBackgroundColour(*wxWHITE);
@@ -157,7 +184,7 @@ void wgtDeviceAmsFilaments::CreateGui()
 
     m_panel_content = new wxPanel(this, wxID_ANY);
     m_panel_content->SetBackgroundColour(*wxWHITE);
-    m_items_sizer = new wxGridBagSizer(FromDIP(16), FromDIP(8));
+    m_items_sizer = new wxGridBagSizer(FromDIP(6), FromDIP(18));
 
     m_ams_dry_icon = new wgtDeviceAmsDryIcon(m_panel_content);
     m_panel_content->SetSizer(m_items_sizer);

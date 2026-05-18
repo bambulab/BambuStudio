@@ -14,6 +14,7 @@
 #include "DeviceWebBridge.hpp"
 #include "DeviceWebManager.hpp"
 #include "ViewModels/FilamentManager/FilamentManagerVM.hpp"
+#include "ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendVM.hpp"
 #include "slic3r/GUI/PrinterWebView.hpp"
 #include "slic3r/GUI/Widgets/WebViewWatcher.hpp"
 
@@ -23,6 +24,7 @@ namespace GUI {
 enum class DeviceWebHostMode {
     FilamentManager,
     DevicePageAmsControlWeb,
+    DevicePageAmsFilamentHotend,
     AllForDebug
 };
 

@@ -20,7 +20,7 @@ class wgtDeviceHotentPanel : public wxPanel
 public:
     explicit wgtDeviceHotentPanel(wxWindow *parent);
     ~wgtDeviceHotentPanel() override = default;
-    void UpdateByObj(Slic3r::MachineObject *obj_);
+    void UpdateByMachine(Slic3r::MachineObject *machine_obj);
     void ReadAll();
 
 private:

@@ -6338,7 +6338,7 @@ void StatusPanel::update_rack(MachineObject *obj)
         m_ams_rack_switch->Show(false);
         m_panel_nozzle_rack->Show(false);
         m_filament_hotend_tab->Show(true);
-        m_filament_hotend_tab->UpdateBy(obj);
+        m_filament_hotend_tab->UpdateByMachine(obj);
     } else {
         m_ams_control->Show();
         m_ams_rack_switch->Show(false);

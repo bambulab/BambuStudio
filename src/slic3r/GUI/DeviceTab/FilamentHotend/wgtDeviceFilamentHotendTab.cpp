@@ -16,6 +16,7 @@
 #include "slic3r/GUI/DeviceCore/DevDefs.h"
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
+#include "slic3r/GUI/DeviceWeb/DeviceWebHost.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
 
 #include <wx/simplebook.h>
@@ -35,6 +36,17 @@ wgtDeviceFilamentHotendTab::wgtDeviceFilamentHotendTab(wxWindow *parent) : wxPan
 void wgtDeviceFilamentHotendTab::CreateGui()
 {
     wxBoxSizer *root = new wxBoxSizer(wxVERTICAL);
+
+    // Sized to fit the full Figma 965:30691 layout (toolbar + 2 tiers of cards
+    // with 161px top feed lines + nozzle row + footer). 390px previously
+    // clipped the bottom row; 480px keeps the design intact at 1x DPI.
+    SetMinSize(wxSize(FromDIP(560), FromDIP(480)));
+    m_device_filament_web = new DeviceWebHost(this, DeviceWebHostMode::DevicePageAmsFilamentHotend, "/device_page/ams_filament_hotend");
+    m_device_filament_web->SetMinSize(wxSize(FromDIP(560), FromDIP(480)));
+    root->Add(m_device_filament_web, 1, wxEXPAND, 0);
+    SetSizer(root);
+    Layout();
+    return;
 
     m_tab_header = new wgtDeviceFilamentHotendTabHeader(this);
     m_tab_header->Bind(EVT_DEVICE_FILAMENT_HOTEND_TAB_CHANGED, &wgtDeviceFilamentHotendTab::OnHeaderTabChanged, this);
@@ -77,6 +89,7 @@ void wgtDeviceFilamentHotendTab::CreateGui()
     m_tab_header->Bind(EVT_DEVICE_FILAMENT_HOTEND_BATCH_LOAD, &wgtDeviceFilamentHotendTab::OnHeaderBatchLoad, this);
     m_tab_header->Bind(EVT_DEVICE_FILAMENT_HOTEND_BATCH_UNLOAD, &wgtDeviceFilamentHotendTab::OnHeaderBatchUnload, this);
     m_tab_header->Bind(EVT_DEVICE_FILAMENT_HOTEND_BATCH_QUIT, &wgtDeviceFilamentHotendTab::OnHeaderBatchQuit, this);
+    m_tab_header->Bind(EVT_DEVICE_FILAMENT_HOTEND_DRY, &wgtDeviceFilamentHotendTab::OnHeaderDry, this);
     m_tab_header->Bind(EVT_DEVICE_HOTEND_READ_ALL, &wgtDeviceFilamentHotendTab::OnHeaderHotendReadAll, this);
 
     if (m_filament_panel && m_filament_panel->GetAmsFilamentsWidget()) {
@@ -90,11 +103,16 @@ void wgtDeviceFilamentHotendTab::CreateGui()
     Layout();
 }
 
-void wgtDeviceFilamentHotendTab::UpdateBy(Slic3r::MachineObject *obj)
+void wgtDeviceFilamentHotendTab::UpdateByMachine(Slic3r::MachineObject *obj)
 {
     m_fila_system = obj ? obj->GetFilaSystem() : std::weak_ptr<Slic3r::DevFilaSystem>{};
-    m_filament_panel->UpdateByObj(obj);
-    m_hotend_panel->UpdateByObj(obj);
+    if (m_device_filament_web) {
+        m_device_filament_web->NotifyDeviceFilamentChanged();
+        return;
+    }
+    m_filament_panel->UpdateByMachine(obj);
+    m_hotend_panel->UpdateByMachine(obj);
+    m_batch_flow.UpdateSelectedSlots(GetSelectedSlots());
 
     UpdateBatchTask(obj);
     UpdateAmsButtons();
@@ -139,7 +157,8 @@ void wgtDeviceFilamentHotendTab::OnHeaderTabChanged(wxCommandEvent &evt)
 
 void wgtDeviceFilamentHotendTab::OnHeaderBatchLoad(wxCommandEvent &evt)
 {
-    m_batch_action = BatchAction::Load;
+    m_batch_flow.SetAction(BatchAction::Load);
+    m_batch_flow.UpdateSelectedSlots(GetSelectedSlots());
     m_filament_panel->GetAmsFilamentsWidget()->SetEnableSelection(true);
     m_tab_header->EnterBatchMode();
     m_load_tips->Show();
@@ -149,7 +168,8 @@ void wgtDeviceFilamentHotendTab::OnHeaderBatchLoad(wxCommandEvent &evt)
 
 void wgtDeviceFilamentHotendTab::OnHeaderBatchUnload(wxCommandEvent &evt)
 {
-    m_batch_action = BatchAction::Unload;
+    m_batch_flow.SetAction(BatchAction::Unload);
+    m_batch_flow.UpdateSelectedSlots(GetSelectedSlots());
     m_filament_panel->GetAmsFilamentsWidget()->SetEnableSelection(true);
     m_tab_header->EnterBatchMode();
     m_load_tips->Show();
@@ -159,10 +179,16 @@ void wgtDeviceFilamentHotendTab::OnHeaderBatchUnload(wxCommandEvent &evt)
 
 void wgtDeviceFilamentHotendTab::OnHeaderBatchQuit(wxCommandEvent& evt)
 {
-    m_batch_action = BatchAction::None;
+    m_batch_flow.SetAction(BatchAction::None);
     m_filament_panel->GetAmsFilamentsWidget()->SetEnableSelection(false);
     m_tab_header->QuitBatchMode();
     m_load_tips->Hide();
+    evt.Skip();
+}
+
+void wgtDeviceFilamentHotendTab::OnHeaderDry(wxCommandEvent& evt)
+{
+    m_dry_entry_presenter.ShowCapabilityBoundaryTip(this);
     evt.Skip();
 }
 
@@ -176,6 +202,7 @@ void wgtDeviceFilamentHotendTab::OnHeaderHotendReadAll(wxCommandEvent &evt)
 
 void wgtDeviceFilamentHotendTab::OnSelectionChanged(wxCommandEvent &evt)
 {
+    m_batch_flow.UpdateSelectedSlots(GetSelectedSlots());
     ResetBatchResultOnSelectionChange();
     UpdateAmsButtons();
     UpdateLoadTips();
@@ -184,12 +211,13 @@ void wgtDeviceFilamentHotendTab::OnSelectionChanged(wxCommandEvent &evt)
 
 void wgtDeviceFilamentHotendTab::OnSelectAllChanged(wxCommandEvent &evt)
 {
-    if (m_batch_action != BatchAction::None || !m_filament_panel || !m_filament_panel->GetAmsFilamentsWidget()) {
+    if (m_batch_flow.GetAction() == BatchAction::None) {
         evt.Skip();
         return;
     }
 
     m_filament_panel->GetAmsFilamentsWidget()->SetAllSelected(evt.GetInt() != 0);
+    m_batch_flow.UpdateSelectedSlots(GetSelectedSlots());
     ResetBatchResultOnSelectionChange();
     UpdateAmsButtons();
     UpdateLoadTips();
@@ -198,9 +226,8 @@ void wgtDeviceFilamentHotendTab::OnSelectAllChanged(wxCommandEvent &evt)
 
 void wgtDeviceFilamentHotendTab::ResetBatchResultOnSelectionChange()
 {
-    if (m_batch_action == BatchAction::None) {
-        m_last_batch_status.clear();
-        m_last_batch_status_color = wxColour("#00AE42");
+    if (m_batch_flow.GetAction() == BatchAction::None) {
+        m_batch_flow.ClearLastStatus();
     }
 }
 
@@ -236,15 +263,11 @@ void wgtDeviceFilamentHotendTab::OnBtnAmsAutoRefill(wxCommandEvent &evt)
 
 void wgtDeviceFilamentHotendTab::UpdateAmsButtons()
 {
-    if (auto fila_system = m_fila_system.lock()) {
-        const auto& obj_ = fila_system->GetOwner();
-        const bool has_connected_ams = (obj_ && obj_->is_connected() && !fila_system->GetAmsList().empty() && obj_->ams_exist_bits != 0);
-        m_btn_ams_setting->Show(has_connected_ams);
-        m_btn_ams_auto_refill->Show(has_connected_ams);
-    } else {
-        m_btn_ams_setting->Hide();
-        m_btn_ams_auto_refill->Hide();
-    }
+    auto fila_system = m_fila_system.lock();
+    const auto* machine_obj = fila_system ? fila_system->GetOwner() : nullptr;
+    const auto action_state = m_feature_gate.ResolveAmsActionState(machine_obj);
+    m_btn_ams_setting->Show(action_state.show_ams_setting);
+    m_btn_ams_auto_refill->Show(action_state.show_auto_refill);
 }
 
 void wgtDeviceFilamentHotendTab::UpdateLoadTips()
@@ -259,16 +282,16 @@ void wgtDeviceFilamentHotendTab::UpdateLoadTips()
     }
 
     if (auto fila_system = m_fila_system.lock()) {
+        const auto selected_slots = GetSelectedSlots();
+        m_batch_flow.UpdateSelectedSlots(selected_slots);
         const size_t selectable_count = m_filament_panel->GetAmsFilamentsWidget()->GetSelectableItemCount();
-        const size_t selected_count = GetSelectedSlots().size();
-        const bool select_all_checked = selectable_count > 0 && selectable_count == selected_count;
-        const bool select_all_enabled = selectable_count > 0;
-        wxString summary_text;
-        if (selected_count > 0) {
-            summary_text = wxString::Format(_L("Selected %d slots"), static_cast<int>(selected_count));
-        }
-
-        m_load_tips->UpdateByObj(fila_system->GetOwner(), select_all_checked, select_all_enabled, summary_text);
+        const auto tips_model = m_state_resolver.ResolveLoadTipsModel(selectable_count, selected_slots.size());
+        m_load_tips->UpdateByMachine(
+            fila_system->GetOwner(),
+            tips_model.select_all_checked,
+            tips_model.select_all_enabled,
+            tips_model.summary_text,
+            m_batch_flow.GetAction());
     }
 }
 
@@ -315,10 +338,10 @@ bool wgtDeviceFilamentHotendTab::IsSlotLoadedInExtruder(Slic3r::MachineObject* o
 
 bool wgtDeviceFilamentHotendTab::IsCurrentTaskComplete(Slic3r::MachineObject* obj, const BatchSlotTask& task) const
 {
-    if (m_batch_action == BatchAction::Load) {
+    if (m_batch_flow.GetAction() == BatchAction::Load) {
         return IsSlotLoadedInExtruder(obj, task);
     }
-    if (m_batch_action == BatchAction::Unload) {
+    if (m_batch_flow.GetAction() == BatchAction::Unload) {
         return !IsSlotLoadedInExtruder(obj, task);
     }
     return false;
@@ -460,7 +483,8 @@ bool wgtDeviceFilamentHotendTab::ShowBatchConfirmDialog(bool load, const std::ve
 
 void wgtDeviceFilamentHotendTab::SetBatchOperation(bool load)
 {
-    m_batch_action = load ? BatchAction::Load : BatchAction::Unload;
+    m_batch_flow.SetAction(load ? BatchAction::Load : BatchAction::Unload);
+    m_batch_flow.UpdateSelectedSlots(GetSelectedSlots());
     m_filament_panel->GetAmsFilamentsWidget()->SetEnableSelection(true);
     m_tab_header->EnterBatchMode();
     m_load_tips->Show();
@@ -468,28 +492,29 @@ void wgtDeviceFilamentHotendTab::SetBatchOperation(bool load)
 
 void wgtDeviceFilamentHotendTab::StartCurrentBatchCommand(Slic3r::MachineObject* obj)
 {
-    if (!obj || m_batch_action == BatchAction::None) {
+    const auto action = m_batch_flow.GetAction();
+    if (!obj || action == BatchAction::None) {
         StopBatchOperation(_L("Batch operation stopped because printer is unavailable."));
         return;
     }
 
-    if (m_batch_current_index >= m_batch_slots.size()) {
+    if (m_batch_flow.GetCurrentIndex() >= m_batch_flow.GetBatchSlots().size()) {
         FinishBatchOperation();
         return;
     }
 
-    const auto& task = m_batch_slots[m_batch_current_index];
+    const auto& task = m_batch_flow.GetBatchSlots()[m_batch_flow.GetCurrentIndex()];
     wxString load_error_info;
     wxString unload_error_info;
     GetSlotSwitchInfo(obj, task, load_error_info, unload_error_info);
-    const wxString action_error = (m_batch_action == BatchAction::Load) ? load_error_info : unload_error_info;
+    const wxString action_error = (action == BatchAction::Load) ? load_error_info : unload_error_info;
     if (!action_error.empty()) {
-        const int remaining_count = static_cast<int>(m_batch_slots.size() - m_batch_current_index);
+        const int remaining_count = static_cast<int>(m_batch_flow.GetBatchSlots().size() - m_batch_flow.GetCurrentIndex());
         const wxString status =
-            (m_batch_action == BatchAction::Load ? _L("Batch loading stopped at ") : _L("Batch unloading stopped at "))
+            (action == BatchAction::Load ? _L("Batch loading stopped at ") : _L("Batch unloading stopped at "))
             + GetSlotDisplayName(task)
             + ". "
-            + wxString::Format(_L("Completed: %d. Remaining: %d."), static_cast<int>(m_batch_completed_slots.size()), remaining_count);
+            + wxString::Format(_L("Completed: %d. Remaining: %d."), static_cast<int>(m_batch_flow.GetCompletedSlots().size()), remaining_count);
         StopBatchOperation(status + " " + action_error);
         return;
     }
@@ -498,14 +523,16 @@ void wgtDeviceFilamentHotendTab::StartCurrentBatchCommand(Slic3r::MachineObject*
         m_filament_panel->GetAmsFilamentsWidget()->SetRunningSlot(task.ams_id, task.slot_id);
     }
 
-    m_batch_waiting_state_change = true;
-    m_batch_seen_busy_state = IsBatchBusy(obj);
-    m_batch_step_started_at = std::chrono::steady_clock::now();
-    m_last_batch_status = wxString::Format(_L("Processing slot %d of %d."),
-        static_cast<int>(m_batch_current_index + 1), static_cast<int>(m_batch_slots.size()));
-    m_last_batch_status_color = wxColour("#00AE42");
+    m_batch_flow.SetWaitingStateChange(true);
+    m_batch_flow.SetSeenBusyState(IsBatchBusy(obj));
+    m_batch_flow.SetStepStartedAt(std::chrono::steady_clock::now());
+    m_batch_flow.SetLastStatus(
+        wxString::Format(_L("Processing slot %d of %d."),
+            static_cast<int>(m_batch_flow.GetCurrentIndex() + 1),
+            static_cast<int>(m_batch_flow.GetBatchSlots().size())),
+        wxColour("#00AE42"));
 
-    if (m_batch_action == BatchAction::Load) {
+    if (action == BatchAction::Load) {
         int old_temp = -1;
         int new_temp = -1;
 
@@ -535,7 +562,9 @@ void wgtDeviceFilamentHotendTab::StartCurrentBatchCommand(Slic3r::MachineObject*
 
 void wgtDeviceFilamentHotendTab::UpdateBatchTask(Slic3r::MachineObject* obj)
 {
-    if (m_batch_action == BatchAction::None && GetSelectedSlots().empty()) {
+    const auto selected_slots = GetSelectedSlots();
+    m_batch_flow.UpdateSelectedSlots(selected_slots);
+    if (m_batch_flow.GetAction() == BatchAction::None && selected_slots.empty()) {
         const wxString tip = _L("Select one or more slots to continue.");
         m_tab_header->ShowLoad(true, tip);
         m_tab_header->ShowUnload(true, tip);
@@ -544,7 +573,7 @@ void wgtDeviceFilamentHotendTab::UpdateBatchTask(Slic3r::MachineObject* obj)
         m_tab_header->ShowUnload(false, "");
     }
 
-    if (m_batch_action == BatchAction::None) {
+    if (m_batch_flow.GetAction() == BatchAction::None) {
         return;
     }
 
@@ -555,25 +584,25 @@ void wgtDeviceFilamentHotendTab::UpdateBatchTask(Slic3r::MachineObject* obj)
 
     return;
 
-    if (m_batch_current_index >= m_batch_slots.size()) {
+    if (m_batch_flow.GetCurrentIndex() >= m_batch_flow.GetBatchSlots().size()) {
         FinishBatchOperation();
         return;
     }
 
-    const auto& task = m_batch_slots[m_batch_current_index];
+    const auto& task = m_batch_flow.GetBatchSlots()[m_batch_flow.GetCurrentIndex()];
     const auto now = std::chrono::steady_clock::now();
     const bool busy = IsBatchBusy(obj);
     if (busy) {
-        m_batch_seen_busy_state = true;
+        m_batch_flow.SetSeenBusyState(true);
     }
 
     if (IsCurrentTaskComplete(obj, task)) {
-        m_batch_completed_slots.push_back(task);
-        ++m_batch_current_index;
-        m_batch_waiting_state_change = false;
-        m_batch_seen_busy_state = false;
+        m_batch_flow.MutableCompletedSlots().push_back(task);
+        m_batch_flow.IncrementCurrentIndex();
+        m_batch_flow.SetWaitingStateChange(false);
+        m_batch_flow.SetSeenBusyState(false);
 
-        if (m_batch_current_index >= m_batch_slots.size()) {
+        if (m_batch_flow.GetCurrentIndex() >= m_batch_flow.GetBatchSlots().size()) {
             FinishBatchOperation();
         } else {
             StartCurrentBatchCommand(obj);
@@ -582,36 +611,36 @@ void wgtDeviceFilamentHotendTab::UpdateBatchTask(Slic3r::MachineObject* obj)
     }
 
     if (busy) {
-        if (now - m_batch_step_started_at > kBatchFinishTimeout) {
-            const int remaining_count = static_cast<int>(m_batch_slots.size() - m_batch_current_index);
+        if (now - m_batch_flow.GetStepStartedAt() > kBatchFinishTimeout) {
+            const int remaining_count = static_cast<int>(m_batch_flow.GetBatchSlots().size() - m_batch_flow.GetCurrentIndex());
             StopBatchOperation(
-                (m_batch_action == BatchAction::Load ? _L("Batch loading stopped at ") : _L("Batch unloading stopped at "))
+                (m_batch_flow.GetAction() == BatchAction::Load ? _L("Batch loading stopped at ") : _L("Batch unloading stopped at "))
                 + GetSlotDisplayName(task)
                 + ". "
-                + wxString::Format(_L("Completed: %d. Remaining: %d."), static_cast<int>(m_batch_completed_slots.size()), remaining_count)
+                + wxString::Format(_L("Completed: %d. Remaining: %d."), static_cast<int>(m_batch_flow.GetCompletedSlots().size()), remaining_count)
                 + " "
                 + _L("The current slot did not finish in time. Remaining slots were not processed."));
         }
         return;
     }
 
-    if (m_batch_seen_busy_state) {
-        const int remaining_count = static_cast<int>(m_batch_slots.size() - m_batch_current_index);
+    if (m_batch_flow.HasSeenBusyState()) {
+        const int remaining_count = static_cast<int>(m_batch_flow.GetBatchSlots().size() - m_batch_flow.GetCurrentIndex());
         StopBatchOperation(
-            (m_batch_action == BatchAction::Load ? _L("Batch loading stopped at ") : _L("Batch unloading stopped at "))
+            (m_batch_flow.GetAction() == BatchAction::Load ? _L("Batch loading stopped at ") : _L("Batch unloading stopped at "))
             + GetSlotDisplayName(task)
             + ". "
-            + wxString::Format(_L("Completed: %d. Remaining: %d."), static_cast<int>(m_batch_completed_slots.size()), remaining_count));
+            + wxString::Format(_L("Completed: %d. Remaining: %d."), static_cast<int>(m_batch_flow.GetCompletedSlots().size()), remaining_count));
         return;
     }
 
-    if (now - m_batch_step_started_at > kBatchStartTimeout) {
-        const int remaining_count = static_cast<int>(m_batch_slots.size() - m_batch_current_index);
+    if (now - m_batch_flow.GetStepStartedAt() > kBatchStartTimeout) {
+        const int remaining_count = static_cast<int>(m_batch_flow.GetBatchSlots().size() - m_batch_flow.GetCurrentIndex());
         StopBatchOperation(
-            (m_batch_action == BatchAction::Load ? _L("Batch loading stopped at ") : _L("Batch unloading stopped at "))
+            (m_batch_flow.GetAction() == BatchAction::Load ? _L("Batch loading stopped at ") : _L("Batch unloading stopped at "))
             + GetSlotDisplayName(task)
             + ". "
-            + wxString::Format(_L("Completed: %d. Remaining: %d."), static_cast<int>(m_batch_completed_slots.size()), remaining_count)
+            + wxString::Format(_L("Completed: %d. Remaining: %d."), static_cast<int>(m_batch_flow.GetCompletedSlots().size()), remaining_count)
             + " "
             + _L("The current slot did not finish in time. Remaining slots were not processed."));
     }
@@ -619,14 +648,9 @@ void wgtDeviceFilamentHotendTab::UpdateBatchTask(Slic3r::MachineObject* obj)
 
 void wgtDeviceFilamentHotendTab::StopBatchOperation(const wxString& status_text, const wxColour& color)
 {
-    m_last_batch_status = status_text;
-    m_last_batch_status_color = color;
-    m_batch_action = BatchAction::None;
-    m_batch_slots.clear();
-    m_batch_completed_slots.clear();
-    m_batch_current_index = 0;
-    m_batch_waiting_state_change = false;
-    m_batch_seen_busy_state = false;
+    m_batch_flow.SetLastStatus(status_text, color);
+    m_batch_flow.SetAction(BatchAction::None);
+    m_batch_flow.ResetRuntimeData();
     if (m_filament_panel && m_filament_panel->GetAmsFilamentsWidget()) {
         m_filament_panel->GetAmsFilamentsWidget()->SetEnableSelection(true);
         m_filament_panel->GetAmsFilamentsWidget()->ClearRunningSlot();
@@ -637,10 +661,11 @@ void wgtDeviceFilamentHotendTab::StopBatchOperation(const wxString& status_text,
 
 void wgtDeviceFilamentHotendTab::FinishBatchOperation()
 {
+    const auto action = m_batch_flow.GetAction();
     const wxString status =
-        (m_batch_action == BatchAction::Load ? _L("Batch loading completed.") : _L("Batch unloading completed."))
+        (action == BatchAction::Load ? _L("Batch loading completed.") : _L("Batch unloading completed."))
         + " "
-        + wxString::Format(_L("Completed %d slots"), static_cast<int>(m_batch_completed_slots.size()));
+        + wxString::Format(_L("Completed %d slots"), static_cast<int>(m_batch_flow.GetCompletedSlots().size()));
     StopBatchOperation(status, wxColour("#00AE42"));
 }
 

@@ -161,6 +161,9 @@ void DeviceWebHost::EnsureBuilt()
     if (m_mode == DeviceWebHostMode::DevicePageAmsControlWeb || m_mode == DeviceWebHostMode::AllForDebug) {
         m_device_web_mgr->Register(std::make_unique<DevicePageAmsControlWebVM>());
     }
+    if (m_mode == DeviceWebHostMode::DevicePageAmsFilamentHotend || m_mode == DeviceWebHostMode::AllForDebug) {
+        m_device_web_mgr->Register(std::make_unique<DevicePageAmsFilamentHotendVM>());
+    }
     m_device_web_mgr->SetBridge(m_device_web_bridge.get());
     m_device_web_bridge->SetManager(m_device_web_mgr.get());
     m_host_hidden = !IsShownOnScreen();
@@ -582,6 +585,15 @@ void DeviceWebHost::NotifyFilamentMachineChanged()
         return;
 
     m_device_web_mgr->NotifyState("filament", "machine", "selected_changed");
+    NotifyDeviceFilamentChanged();
+}
+
+void DeviceWebHost::NotifyDeviceFilamentChanged()
+{
+    if (!m_device_web_mgr)
+        return;
+
+    m_device_web_mgr->NotifyState("device_page_ams_filament_hotend", "state", "changed");
 }
 
 void DeviceWebHost::NotifyAmsControlWebChanged()

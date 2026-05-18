@@ -12,6 +12,7 @@ wxDEFINE_EVENT(EVT_DEVICE_FILAMENT_HOTEND_TAB_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DEVICE_FILAMENT_HOTEND_BATCH_LOAD, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DEVICE_FILAMENT_HOTEND_BATCH_UNLOAD, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DEVICE_FILAMENT_HOTEND_BATCH_QUIT, wxCommandEvent);
+wxDEFINE_EVENT(EVT_DEVICE_FILAMENT_HOTEND_DRY, wxCommandEvent);
 wxDEFINE_EVENT(EVT_DEVICE_HOTEND_READ_ALL, wxCommandEvent);
 
 namespace Slic3r::GUI
@@ -143,6 +144,13 @@ void wgtDeviceFilamentHotendTabHeader::OnBtnQuit(wxCommandEvent&)
     GetEventHandler()->ProcessEvent(evt);
 }
 
+void wgtDeviceFilamentHotendTabHeader::OnBtnDry(wxCommandEvent&)
+{
+    wxCommandEvent evt(EVT_DEVICE_FILAMENT_HOTEND_DRY, GetId());
+    evt.SetEventObject(this);
+    GetEventHandler()->ProcessEvent(evt);
+}
+
 void wgtDeviceFilamentHotendTabHeader::OnBtnReadAll(wxCommandEvent&)
 {
     wxCommandEvent evt(EVT_DEVICE_HOTEND_READ_ALL, GetId());
@@ -233,6 +241,7 @@ void wgtDeviceFilamentHotendTabHeader::CreateGui()
     m_btn_fila_load->Bind(wxEVT_BUTTON, &wgtDeviceFilamentHotendTabHeader::OnBtnLoad, this);
     m_btn_fila_unload->Bind(wxEVT_BUTTON, &wgtDeviceFilamentHotendTabHeader::OnBtnUnload, this);
     m_btn_fila_quit->Bind(wxEVT_BUTTON, &wgtDeviceFilamentHotendTabHeader::OnBtnQuit, this);
+    m_btn_fila_dry->Bind(wxEVT_BUTTON, &wgtDeviceFilamentHotendTabHeader::OnBtnDry, this);
     m_btn_hotend_read_all->Bind(wxEVT_BUTTON, &wgtDeviceFilamentHotendTabHeader::OnBtnReadAll, this);
 }
 

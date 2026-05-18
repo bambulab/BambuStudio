@@ -18,15 +18,15 @@ wgtDeviceFilamentPanel::wgtDeviceFilamentPanel(wxWindow* parent)
     CreateGui();
 }
 
-void wgtDeviceFilamentPanel::UpdateByObj(Slic3r::MachineObject* obj_)
+void wgtDeviceFilamentPanel::UpdateByMachine(Slic3r::MachineObject* machine_obj)
 {
     std::map<int, std::optional<DevAmsSlotId>> nozzlepos2slots;
-    if (obj_) {
-        const auto& rack_type = obj_->GetNozzleRack()->GetRackType();
+    if (machine_obj) {
+        const auto& rack_type = machine_obj->GetNozzleRack()->GetRackType();
         if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) {
-            const auto& total_nozzles = obj_->GetNozzleRack()->GetTotalRackNozzlePosSet();
+            const auto& total_nozzles = machine_obj->GetNozzleRack()->GetTotalRackNozzlePosSet();
             for (const auto& nozzle_pos : total_nozzles) {
-                const auto& rack_nozzle = obj_->GetNozzleSystem()->GetNozzleByPosId(nozzle_pos);
+                const auto& rack_nozzle = machine_obj->GetNozzleSystem()->GetNozzleByPosId(nozzle_pos);
                 const auto& ams_slots = rack_nozzle.GetBindAmsSlots();
                 if (ams_slots.size() > 0) {
                     nozzlepos2slots[rack_nozzle.GetNozzlePosId()] = ams_slots[0];
@@ -38,8 +38,8 @@ void wgtDeviceFilamentPanel::UpdateByObj(Slic3r::MachineObject* obj_)
     }
 
     if (!nozzlepos2slots.empty()) {
-        m_ams_preview->UpdateBy(obj_->GetFilaSystem(), nozzlepos2slots);
-        m_ams_filaments->UpdateBy(obj_->GetFilaSystem(), nozzlepos2slots);
+        m_ams_preview->UpdateByMachine(machine_obj, nozzlepos2slots);
+        m_ams_filaments->UpdateByMachine(machine_obj, nozzlepos2slots);
     } else {
         m_ams_preview->Reset();
         m_ams_filaments->Reset();

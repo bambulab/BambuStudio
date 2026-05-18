@@ -162,9 +162,9 @@ void wgtDeviceHotendItem::UpdateNozzleInfo()
     }
 }
 
-void wgtDeviceHotendItem::UpdateByObj(Slic3r::MachineObject *obj)
+void wgtDeviceHotendItem::UpdateByMachine(Slic3r::MachineObject *machine_obj)
 {
-    m_obj = obj;
+    m_obj = machine_obj;
 
     if (!m_obj) return;
 

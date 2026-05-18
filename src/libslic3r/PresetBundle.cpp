@@ -11,6 +11,7 @@
 #include "format.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <set>
 #include <fstream>
 #include <unordered_set>
@@ -31,6 +32,12 @@
 #include <tbb/parallel_for.h>
 
 #define PARALLEL_LOAD_PRESET 1
+
+#ifndef NDEBUG
+#define ASSERT_ONCE(expr) do { static std::atomic_bool assertion_fired{ false }; if (!(expr) && !assertion_fired.exchange(true)) { assert(expr); } } while (false)
+#else
+#define ASSERT_ONCE(expr) ((void)0)
+#endif
 
 // Mark string for localization and translate.
 #define L(s) Slic3r::I18N::translate(s)
@@ -3039,7 +3046,7 @@ std::set<std::string> PresetBundle::get_printer_names_by_printer_type_and_nozzle
         if (printer_it->name.find(nozzle_diameter_str) != std::string::npos) printer_names.insert(printer_it->name);
     }
 
-    assert(printer_names.size() == 1);
+    ASSERT_ONCE(printer_names.size() == 1);
 
     for (auto& printer_name : printer_names) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " " << __LINE__ << " printer name: " << printer_name;

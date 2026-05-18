@@ -16,12 +16,14 @@ class wxPanel;
 namespace Slic3r {
 class DevFilaSystem;
 class DevAms;
+class MachineObject;
 }
 
 namespace Slic3r::GUI
 {
 
 class wgtDeviceFilamentHotendItem;
+class wgtDeviceFilamentHotendItemHotend;
 class wgtDeviceAmsDryIcon;
 
 struct DeviceFilamentSelectionItem
@@ -40,8 +42,8 @@ public:
     ~wgtDeviceAmsFilaments() override = default;
 
     void Reset();
-    void UpdateBy(std::shared_ptr<Slic3r::DevFilaSystem> fila_system,
-                  const std::map<int, std::optional<DevAmsSlotId>>& nozzle_slots);
+    void UpdateByMachine(Slic3r::MachineObject* machine_obj,
+                         const std::map<int, std::optional<DevAmsSlotId>>& nozzle_slots);
     std::vector<DeviceFilamentSelectionItem> GetSelectedItems() const;
     size_t GetSelectableItemCount() const;
     void SetAllSelected(bool selected);
@@ -52,6 +54,7 @@ public:
 private:
     void CreateGui();
     void UpdateAmsDry(Slic3r::DevAms* ams);
+    bool IsTopTierNozzle(int nozzle_pos) const;
     void OnItemSelectionChanged(wxCommandEvent& evt);
     void NotifySelectionChanged();
 
@@ -62,6 +65,7 @@ private:
 
     std::map<int, std::optional<DevAmsSlotId>> m_nozzle_slots;// nozzle_pos -> ams slot
     std::map<int, wgtDeviceFilamentHotendItem*> m_filament_items; // nozzle_pos -> items
+    std::map<int, wgtDeviceFilamentHotendItemHotend*> m_hotend_items; // nozzle_pos -> hotend icons
 };
 
 } // namespace Slic3r::GUI

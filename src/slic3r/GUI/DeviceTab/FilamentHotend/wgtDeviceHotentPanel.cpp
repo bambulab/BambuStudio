@@ -14,14 +14,14 @@ static constexpr int kHotendSlotCount = 9;
 
 wgtDeviceHotentPanel::wgtDeviceHotentPanel(wxWindow *parent) : wxPanel(parent, wxID_ANY) { CreateGui(); }
 
-void wgtDeviceHotentPanel::UpdateByObj(Slic3r::MachineObject *obj_)
+void wgtDeviceHotentPanel::UpdateByMachine(Slic3r::MachineObject *machine_obj)
 {
-    m_obj = obj_;
+    m_obj = machine_obj;
 
     if (!m_obj) return;
 
     for (auto &[id, item] : m_hotend_items) {
-        item->UpdateByObj(m_obj);
+        item->UpdateByMachine(m_obj);
     }
 
     auto rack = m_obj->GetNozzleRack();

@@ -1,4 +1,4 @@
-﻿// STUDIO-17977 dev-only mock bridge.
+// Dev-only mock bridge.
 //
 // Only loaded when `import.meta.env.DEV` is truthy AND no webview host is
 // detected. Production builds (`pnpm build`) drop this file via tree-shaking
@@ -25,6 +25,7 @@ import type {
 } from '../features/filament-manager/types';
 import { applySlotSelection, mockAmsControlWebState } from '../features/device-page/ams-control-web/mockData';
 import type { AmsControlWebViewModel } from '../features/device-page/ams-control-web/types';
+import { mockAmsFilamentHotendState } from '../features/device-page/ams-filament-hotend/mockData';
 
 interface RequestPacket {
   head: { version: string; type: string; seq: number; ts: number };
@@ -32,7 +33,6 @@ interface RequestPacket {
 }
 
 const SDK_VERSION = '1.0';
-const mockAmsFilamentHotendState: Record<string, unknown> = {};
 
 let amsControlWebMockState: AmsControlWebViewModel = mockAmsControlWebState;
 

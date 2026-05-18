@@ -34,7 +34,7 @@ public:
     void UpdateNozzleInfo();
 
     // Called by Panel, passes device object to update temperature and send commands
-    void UpdateByObj(Slic3r::MachineObject *obj);
+    void UpdateByMachine(Slic3r::MachineObject *machine_obj);
 
     // Get hotend display index (1~9)
     int GetHotendId() const { return m_hotend_id; }

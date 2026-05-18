@@ -12,6 +12,7 @@
 #include <memory>
 #include <unordered_set>
 #include <set>
+#include <vector>
 
 #include <wx/string.h>
 #include <wx/colour.h>
@@ -187,6 +188,7 @@ public:
         DryingInProgress = 6,
         Upgrading = 7,
         InsufficientPowerNeedPluginPower = 8,
+        ClosingAmsDrying = 9,
         FilamentAtAmsOutletManualUnload = 10,
     };
 
@@ -195,6 +197,25 @@ public:
         std::string dry_filament;
         int dry_temp = -1; // -1 means invalid
         int dry_hour = -1; // -1 means invalid, hours
+    };
+
+    struct DevAmsZone
+    {
+        int zone_id = -1;
+        std::vector<int> zone_slots;
+
+        float current_temperature = INVALID_AMS_TEMPERATURE;
+        int humidity_level = -1; // 0-5, larger means drier
+        int humidity_percent = -1; // 0-100, -1 means invalid
+
+        int left_dry_time = 0; // minutes
+        std::optional<DryStatus> dry_status;
+        std::optional<DrySubStatus> dry_sub_status;
+        std::optional<DryFanStatus> dry_fan1_status;
+        std::optional<DryFanStatus> dry_fan2_status;
+        std::optional<std::vector<CannotDryReason>> dry_cannot_reasons;
+        std::optional<DrySettings> dry_settings;
+        std::string info;
     };
 
 public:
@@ -256,6 +277,8 @@ public:
     std::optional<DryFanStatus> GetFan2Status() const { return m_dry_fan2_status; }
     std::optional<std::vector<CannotDryReason>> GetCannotDryReason() const { return m_dry_cannot_reasons; }
     std::optional<DrySettings> GetDrySettings() const { return m_dry_settings; };
+    const std::vector<DevAmsZone>& GetZones() const { return m_zones; }
+    const DevAmsZone* GetZone(int zone_id) const;
 
     bool AmsIsDrying();
 
@@ -292,8 +315,13 @@ private:
     std::optional<DryFanStatus> m_dry_fan2_status;
     std::optional<std::vector<CannotDryReason>> m_dry_cannot_reasons;
     std::optional<DrySettings> m_dry_settings;
+
+    std::map<int, DevAmsZone> m_zones; // zone_id -> zones
+    
     RemainEstimateVersion m_remain_estimate_version = RemainEstimateVersion::Legacy;
 };
+
+using DevAmsZone = DevAms::DevAmsZone;
 
 class DevFilaSystem
 {

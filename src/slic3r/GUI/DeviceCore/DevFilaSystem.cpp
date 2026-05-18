@@ -13,6 +13,8 @@
 
 #include "DevUtilBackend.h"
 
+#include <algorithm>
+
 using namespace nlohmann;
 
 namespace Slic3r
@@ -476,6 +478,14 @@ DevAmsTray* DevAms::GetTray(const std::string& tray_id) const
     return nullptr;
 }
 
+const DevAms::DevAmsZone* DevAms::GetZone(int zone_id) const
+{
+    auto it = std::find_if(m_zones.begin(), m_zones.end(), [zone_id](const DevAmsZone& zone) {
+        return zone.zone_id == zone_id;
+    });
+    return it == m_zones.end() ? nullptr : &(*it);
+}
+
 
 int DevAms::GetTrayId(int slot_id) const
 {
@@ -582,6 +592,10 @@ DevFilaSystem::~DevFilaSystem()
 
 DevAms* DevFilaSystem::GetAmsById(const std::string& ams_id) const
 {
+    if (ams_id.empty()) {
+        return nullptr;
+    }
+
     auto it = amsList.find(ams_id);
     if (it != amsList.end()) {
         return it->second;
@@ -976,6 +990,80 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
 
         if (j_ams.contains("dry_sf_reason")) {
             curr_ams->m_dry_cannot_reasons = DevJsonValParser::GetVal<std::vector<DevAms::CannotDryReason>>(j_ams, "dry_sf_reason");
+        }
+    }
+
+    curr_ams->m_zones.clear();
+    if (j_ams.contains("zone_info") && j_ams["zone_info"].is_array()) {
+        for (const auto& j_zone : j_ams["zone_info"]) {
+            DevAms::DevAmsZone zone;
+            DevJsonValParser::ParseVal(j_zone, "zone_id", zone.zone_id);
+
+            if (j_zone.contains("zone_slots") && j_zone["zone_slots"].is_array()) {
+                for (const auto& j_slot : j_zone["zone_slots"]) {
+                    try {
+                        if (j_slot.is_number_integer()) {
+                            zone.zone_slots.push_back(j_slot.get<int>());
+                        } else if (j_slot.is_string()) {
+                            zone.zone_slots.push_back(std::stoi(j_slot.get<std::string>()));
+                        }
+                    } catch (const std::exception& e) {
+                        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: invalid zone slot, error: " << e.what();
+                    }
+                }
+            }
+
+            if (j_zone.contains("temp")) {
+                std::string temp = j_zone["temp"].get<std::string>();
+                try {
+                    zone.current_temperature = DevUtil::string_to_float(temp);
+                } catch (...) {
+                    zone.current_temperature = INVALID_AMS_TEMPERATURE;
+                }
+            }
+
+            if (j_zone.contains("humidity")) {
+                std::string humidity = j_zone["humidity"].get<std::string>();
+                try {
+                    zone.humidity_level = atoi(humidity.c_str());
+                } catch (const std::exception& e) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: invalid zone humidity, error: " << e.what();
+                }
+            }
+
+            if (j_zone.contains("humidity_raw")) {
+                std::string humidity_raw = j_zone["humidity_raw"].get<std::string>();
+                try {
+                    zone.humidity_percent = atoi(humidity_raw.c_str());
+                } catch (const std::exception& e) {
+                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: invalid zone humidity_raw, error: " << e.what();
+                }
+            }
+
+            DevJsonValParser::ParseVal(j_zone, "dry_time", zone.left_dry_time);
+
+            if (j_zone.contains("info")) {
+                zone.info = j_zone["info"].get<std::string>();
+                zone.dry_status = (DevAms::DryStatus)DevUtil::get_flag_bits(zone.info, 4, 4);
+                zone.dry_fan1_status = (DevAms::DryFanStatus)DevUtil::get_flag_bits(zone.info, 18, 2);
+                zone.dry_fan2_status = (DevAms::DryFanStatus)DevUtil::get_flag_bits(zone.info, 20, 2);
+                zone.dry_sub_status = (DevAms::DrySubStatus)DevUtil::get_flag_bits(zone.info, 22, 2);
+            }
+
+            if (j_zone.contains("dry_setting")) {
+                const auto& j_dry_settings = j_zone["dry_setting"];
+                DevAms::DrySettings dry_settings;
+                DevJsonValParser::ParseVal(j_dry_settings, "dry_filament", dry_settings.dry_filament);
+                DevJsonValParser::ParseVal(j_dry_settings, "dry_temperature", dry_settings.dry_temp);
+                DevJsonValParser::ParseVal(j_dry_settings, "dry_duration", dry_settings.dry_hour);
+                zone.dry_settings = dry_settings;
+            }
+
+            if (j_zone.contains("dry_sf_reason")) {
+                zone.dry_cannot_reasons = DevJsonValParser::GetVal<std::vector<DevAms::CannotDryReason>>(j_zone, "dry_sf_reason");
+            }
+
+            curr_ams->m_zones.push_back(zone);
         }
     }
 

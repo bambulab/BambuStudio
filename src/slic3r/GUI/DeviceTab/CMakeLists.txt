@@ -27,6 +27,14 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendTabHeader.cpp
     GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendTab.h
     GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendTab.cpp
+    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendFeatureGate.h
+    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendFeatureGate.cpp
+    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendStateResolver.h
+    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendStateResolver.cpp
+    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendDryEntryPresenter.h
+    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendDryEntryPresenter.cpp
+    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendBatchFlow.h
+    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendBatchFlow.cpp
     GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendTabLoadTips.h
     GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendTabLoadTips.cpp
     GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentPanel.h

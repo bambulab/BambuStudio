@@ -1,12 +1,16 @@
 #pragma once
 
-#include <chrono>
 #include <memory>
 #include <optional>
 #include <string>
 #include <vector>
 #include <wx/colour.h>
 #include <wx/panel.h>
+
+#include "wgtDeviceFilamentHotendBatchFlow.h"
+#include "wgtDeviceFilamentHotendDryEntryPresenter.h"
+#include "wgtDeviceFilamentHotendFeatureGate.h"
+#include "wgtDeviceFilamentHotendStateResolver.h"
 
 class Button;
 class wxSimplebook;
@@ -22,23 +26,20 @@ class wgtDeviceFilamentPanel;
 class wgtDeviceHotentPanel;
 class wgtDeviceFilamentHotendTabHeader;
 class wgtDeviceFilamentHotendTabLoadTips;
+class DeviceWebHost;
 class AMSSetting;
 class AmsReplaceMaterialDialog;
 
 class wgtDeviceFilamentHotendTab : public wxPanel
 {
 public:
-    enum class BatchAction
-    {
-        None = 0,
-        Load,
-        Unload
-    };
+    using BatchAction = wgtDeviceFilamentHotendBatchAction;
+    using BatchSlotTask = wgtDeviceFilamentHotendBatchSlotTask;
 
     explicit wgtDeviceFilamentHotendTab(wxWindow *parent);
     ~wgtDeviceFilamentHotendTab() override = default;
 
-    void UpdateBy(Slic3r::MachineObject *obj);
+    void UpdateByMachine(Slic3r::MachineObject *obj);
 
 private:
     // lifecycle
@@ -56,6 +57,7 @@ private:
     void OnHeaderBatchLoad(wxCommandEvent &evt);
     void OnHeaderBatchUnload(wxCommandEvent &evt);
     void OnHeaderBatchQuit(wxCommandEvent &evt);
+    void OnHeaderDry(wxCommandEvent &evt);
     void OnHeaderHotendReadAll(wxCommandEvent &evt);
 
     // batch
@@ -69,21 +71,13 @@ private:
 
     // batch execution
     void SetBatchOperation(bool load);
-    BatchAction GetBatchOperation() const { return m_batch_action; }
+    BatchAction GetBatchOperation() const { return m_batch_flow.GetAction(); }
 
     void StartCurrentBatchCommand(Slic3r::MachineObject* obj);
     void StopBatchOperation(const wxString& status_text, const wxColour& color = wxColour("#D95047"));
     void FinishBatchOperation();
 
 private:
-
-    struct BatchSlotTask
-    {
-        int nozzle_pos{ -1 };
-        std::string ams_id;
-        std::string slot_id;
-    };
-
     // batch query and validation
     std::vector<BatchSlotTask> GetSelectedSlots() const;
     bool IsBatchBusy(Slic3r::MachineObject* obj) const;
@@ -104,6 +98,7 @@ private:
     wgtDeviceFilamentHotendTabLoadTips* m_load_tips{ nullptr };
     Button* m_btn_ams_setting{ nullptr };
     Button* m_btn_ams_auto_refill{ nullptr };
+    DeviceWebHost* m_device_filament_web{ nullptr };
 
     // dialog
     AMSSetting* m_ams_setting_dlg{ nullptr };
@@ -111,15 +106,10 @@ private:
 
     // data
     std::weak_ptr<Slic3r::DevFilaSystem> m_fila_system;
-    BatchAction m_batch_action{ BatchAction::None };
-    std::vector<BatchSlotTask> m_batch_slots;
-    std::vector<BatchSlotTask> m_batch_completed_slots;
-    size_t m_batch_current_index{ 0 };
-    bool m_batch_waiting_state_change{ false };
-    bool m_batch_seen_busy_state{ false };
-    wxString m_last_batch_status;
-    wxColour m_last_batch_status_color{ wxColour("#00AE42") };
-    std::chrono::steady_clock::time_point m_batch_step_started_at{};
+    wgtDeviceFilamentHotendFeatureGate m_feature_gate;
+    wgtDeviceFilamentHotendStateResolver m_state_resolver;
+    wgtDeviceFilamentHotendDryEntryPresenter m_dry_entry_presenter;
+    wgtDeviceFilamentHotendBatchFlow m_batch_flow;
 };
 
 } // namespace Slic3r::GUI

@@ -1,4 +1,4 @@
-﻿# GUI/DeviceWeb
+# GUI/DeviceWeb
 # usage -- GUI about device web for BambuStudio
 # date -- 2025.01.01
 # status -- Building
@@ -274,5 +274,7 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/Schema.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/SchemaData.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/SchemaDisplay.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendVM.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendVM.hpp
 )
 set(SLIC3R_GUI_SOURCES ${SLIC3R_GUI_SOURCES} PARENT_SCOPE)

@@ -18,7 +18,7 @@ public:
     ~wgtDeviceFilamentPanel() override = default;
 
 public:
-    void UpdateByObj(Slic3r::MachineObject *obj_);
+    void UpdateByMachine(Slic3r::MachineObject *machine_obj);
     wgtDeviceAmsFilaments* GetAmsFilamentsWidget() const { return m_ams_filaments; }
 
 private:
