@@ -10,7 +10,6 @@
     ],
     "printer_model": "Bambu Lab A2L",
     "printer_variant": "0.4",
-    "support_fast_purge_mode": "1",
     "auxiliary_fan": "0",
     "bed_exclude_area": [],
     "default_filament_profile": [
@@ -43,9 +42,6 @@
         "Bambu Lab A2L 0.4 nozzle template change_filament_gcode"
     ],
     "machine_bed_mass_Y": [
-        "2700",
-        "2700",
-        "2700",
         "2700"
     ],
     "machine_load_filament_time": "11",
@@ -66,9 +62,6 @@
         "1500"
     ],
     "machine_max_force_Y": [
-        "29",
-        "29",
-        "29",
         "29"
     ],
     "machine_max_jerk_e": [
@@ -76,10 +69,7 @@
         "3"
     ],
     "machine_max_printed_mass": [
-        "10000",
-        "10000",
-        "10000",
-        "10000"
+        "2000"
     ],
     "machine_max_speed_x": [
         "500",
@@ -112,6 +102,7 @@
     "retract_lift_below": [
         "326"
     ],
+    "support_fast_purge_mode": "1",
     "support_object_skip_flush": "1",
     "upward_compatible_machine": [
         "Bambu Lab H2D 0.4 nozzle",

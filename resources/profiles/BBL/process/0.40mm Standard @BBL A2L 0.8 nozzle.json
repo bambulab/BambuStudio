@@ -10,6 +10,7 @@
         "6000"
     ],
     "elefant_foot_compensation": "0.075",
+    "enable_arc_fitting": false,
     "prime_tower_brim_width": "-1",
     "smooth_coefficient": "4",
     "travel_acceleration": [
