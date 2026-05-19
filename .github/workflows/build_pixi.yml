@@ -104,9 +104,6 @@ jobs:
         id: cache-bootstrap-windows
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
         with:
-          # Save even if a later step fails (Windows post-cleanup
-          # EBUSY otherwise causes the bootstrap cache to be dropped).
-          save-always: true
           path: |
             .pixi/envs/default/Library/lib/libnoise_static.lib
             .pixi/envs/default/Library/include/libnoise
