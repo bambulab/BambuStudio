@@ -4520,6 +4520,7 @@ void GUI_App::request_user_logout()
     if (m_agent && m_agent->is_user_login()) {
         m_load_last_machine.is_list_ok = false;
         m_load_last_machine.is_mqtt_ok = false;
+        m_load_last_machine.launched_dev_ids.clear();
         // Update data first before showing dialogs
         m_agent->user_logout(true);
         if (auto obj = m_device_manager->get_selected_machine();
@@ -8255,53 +8256,62 @@ bool is_support_filament(int extruder_id, bool strict_check)
     return support_option->get_at(0);
 };
 
-static void sLocalBindFunc(std::string str_ip,
-                           std::string str_access_code,
-                           std::string sn)
+static void sLocalBindFuncInsertOnly(std::string str_ip,
+                                     std::string str_access_code,
+                                     std::string sn,
+                                     bool select_after_insert = false)
 {
     detectResult detectData;
     auto result = wxGetApp().getAgent()->bind_detect(str_ip, "secure", detectData);
     if (result < 0) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": bind_detect failed code=" << result;
-        wxGetApp().CallAfter([sn]() { wxGetApp().app_config->erase("user_access_dev_ip", sn);});
         return;
     }
 
     if (detectData.connect_type != "farm") {
         if (detectData.bind_state == "occupied") {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the device is already occupied";
-            wxGetApp().CallAfter([sn]() { wxGetApp().app_config->erase("user_access_dev_ip", sn);});
             return;
         }
 
         if (detectData.connect_type == "cloud") {
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": the device is cloud";
-            wxGetApp().CallAfter([sn]() { wxGetApp().app_config->erase("user_access_dev_ip", sn);});
             return;
         }
     }
 
-    wxGetApp().CallAfter([detectData, str_ip, str_access_code]() {
+    wxGetApp().CallAfter([detectData, str_ip, str_access_code, select_after_insert]() {
         if (DeviceManager* dev = wxGetApp().getDeviceManager()) {
             auto obj = dev->insert_local_device(detectData.dev_name, detectData.dev_id, str_ip,
                                                 detectData.connect_type, detectData.bind_state, detectData.version,
                                                 str_access_code, detectData.model_id);
             if (obj) {
                 obj->set_user_access_code(str_access_code);
-                dev->set_selected_machine(obj->get_dev_id());
+                if (select_after_insert) {
+                    dev->set_selected_machine(obj->get_dev_id());
+                }
             };
         };
     });
-};
+}
+
+static void sLocalBindFunc(std::string str_ip,
+                           std::string str_access_code,
+                           std::string sn)
+{
+    sLocalBindFuncInsertOnly(str_ip, str_access_code, sn, true);
+}
 
 TryLoadLastMachine::~TryLoadLastMachine()
 {
-    try {
-        if (local_bind_thread.joinable()) {
-            local_bind_thread.join();
+    for (auto& t : local_bind_threads) {
+        try {
+            if (t.joinable()) {
+                t.join();
+            }
+        } catch (const std::exception& ex) {
+            BOOST_LOG_TRIVIAL(error) << "Local bind thread join failed in destructor: " << ex.what();
         }
-    } catch (const std::exception& ex) {
-        BOOST_LOG_TRIVIAL(error) << "Local bind thread join failed in destructor: " << ex.what();
     }
 }
 
@@ -8320,42 +8330,66 @@ void TryLoadLastMachine::InnerLoad(NetworkAgent* agent, DeviceManager* dev)
     const auto& last_select_machine = dev->get_user_last_machine();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": try to reconnect " << BBLCrossTalk::Crosstalk_DevId(last_select_machine)
         << ", is_mqtt_ok=" << is_mqtt_ok << ", is_list_ok=" << is_list_ok;
-    if (last_select_machine.empty()) {
-        return;
-    }
 
-    const auto& encoded_dev_ip_str = wxGetApp().app_config->get("user_access_dev_ip", last_select_machine);
-    const auto& dev_ip_str = BBLCrossTalk::Decode_DevIp(encoded_dev_ip_str, wxGetApp().app_config->get("slicer_uuid"));
-    if (!encoded_dev_ip_str.empty() && dev_ip_str.empty()) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Decode_DevIp failed, the slicer maybe switched";
-        wxGetApp().app_config->erase("user_access_dev_ip", last_select_machine);
-        return;
-    }
+    const std::string slicer_uuid = wxGetApp().app_config->get("slicer_uuid");
 
-    const auto& user_access_code_str = GUI::wxGetApp().app_config->get("user_access_code", last_select_machine);
-    if (!dev_ip_str.empty() && !user_access_code_str.empty()) {
-        if (!dev->get_my_machine(last_select_machine)) {
-            try {
-                if (local_bind_thread.joinable()) {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": thread is running";
-                    return;
-                }
+    // Insert all known LAN-only machines into the device list
+    if (wxGetApp().app_config->has_section("user_access_dev_ip")) {
+        const auto& lan_devices = wxGetApp().app_config->get_section("user_access_dev_ip");
+        for (const auto& [dev_id, encoded_ip] : lan_devices) {
+            if (encoded_ip.empty()) continue;
 
-                auto bind = boost::bind(&sLocalBindFunc, dev_ip_str, user_access_code_str, last_select_machine);
-                local_bind_thread = boost::thread(bind);
-            } catch (const std::exception& ex) {
-                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": thread exception: " << ex.what();
+            const auto dev_ip = BBLCrossTalk::Decode_DevIp(encoded_ip, slicer_uuid);
+            if (dev_ip.empty()) {
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": Decode_DevIp failed for " << BBLCrossTalk::Crosstalk_DevId(dev_id);
+                continue;
             }
-        } else {
-            dev->set_selected_machine(last_select_machine);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": try select lan machine";
+
+            const auto access_code = wxGetApp().app_config->get("user_access_code", dev_id);
+            if (access_code.empty()) {
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": no access code for " << BBLCrossTalk::Crosstalk_DevId(dev_id);
+                continue;
+            }
+
+            // Skip if already in the device list
+            if (dev->get_my_machine(dev_id)) {
+                // If it's the last-selected and already inserted, select it now
+                if (dev_id == last_select_machine) {
+                    dev->set_selected_machine(last_select_machine);
+                    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": selecting already-inserted lan machine: " << BBLCrossTalk::Crosstalk_DevId(dev_id);
+                }
+                continue;
+            }
+
+            // Skip if we already launched a thread for this device
+            if (launched_dev_ids.count(dev_id)) {
+                continue;
+            }
+
+            // Spawn a thread to detect and insert this LAN machine
+            bool is_last_selected = (dev_id == last_select_machine);
+            try {
+                local_bind_threads.emplace_back(boost::bind(&sLocalBindFuncInsertOnly, dev_ip, access_code, dev_id, is_last_selected));
+                launched_dev_ids.insert(dev_id);
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": spawned bind thread for lan machine: " << BBLCrossTalk::Crosstalk_DevId(dev_id)
+                    << ", select=" << is_last_selected;
+            } catch (const std::exception& ex) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": thread exception for " << BBLCrossTalk::Crosstalk_DevId(dev_id) << ": " << ex.what();
+            }
         }
-    } else {
-        if (is_mqtt_ok && is_list_ok) {
-            dev->set_selected_machine(last_select_machine);
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": try select cloud machine";
-        } else {
-            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": mqtt or list not ready";
+    }
+
+    // For non-LAN (cloud) last-selected machine, use existing logic
+    if (!last_select_machine.empty()) {
+        const auto& encoded_dev_ip_str = wxGetApp().app_config->get("user_access_dev_ip", last_select_machine);
+        if (encoded_dev_ip_str.empty()) {
+            // Not a LAN machine — try cloud selection
+            if (is_mqtt_ok && is_list_ok) {
+                dev->set_selected_machine(last_select_machine);
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": try select cloud machine";
+            } else {
+                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": mqtt or list not ready for cloud machine";
+            }
         }
     }
 }

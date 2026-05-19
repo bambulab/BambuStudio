@@ -3,7 +3,9 @@
 
 #include <functional>
 #include <memory>
+#include <set>
 #include <string>
+#include <vector>
 #include "ImGuiWrapper.hpp"
 #include "ConfigWizard.hpp"
 #include "libslic3r/Preset.hpp"
@@ -250,7 +252,8 @@ struct TryLoadLastMachine
         InnerLoad(agent, dev);
     }
 
-    boost::thread local_bind_thread;
+    std::vector<boost::thread> local_bind_threads;
+    std::set<std::string> launched_dev_ids;
 };
 
 class GUI_App : public wxApp
