@@ -47,6 +47,9 @@ assimp = "*"
 compilers = ">=1.10"
 mold = "*"     # CMAKE_LINKER_TYPE=MOLD; bambu-studio links 35+ static archives
 patchelf = "*" # appimage.sh: rewrite bambu-studio RPATH to $ORIGIN-relative
+bubblewrap = "*"  # AppRun: bind-mount AppDir/usr onto build-host $CONDA_PREFIX so
+               # baked-in absolute paths (webkit2gtk libexec, libcurl OPENSSLDIR,
+               # fontconfig defaults) resolve to the bundled tree at runtime
 dbus = "*"
 libgl-devel = "*"
 libegl-devel = "*"

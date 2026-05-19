@@ -42,6 +42,11 @@ mkdir -p "$appdir/usr"
 echo "Copying pixi env to AppDir/usr (~1.5 GB)…"
 cp -a "$CONDA_PREFIX/." "$appdir/usr/"
 
+# Record build-host $CONDA_PREFIX so AppRun can bind-mount AppDir/usr onto it at
+# runtime. Required because conda-forge libs (webkit2gtk, libcurl, fontconfig)
+# bake this absolute path into their .so files with no env-var override.
+printf '%s\n' "$CONDA_PREFIX" > "$appdir/conda-prefix-at-build.txt"
+
 # Drop bambu-studio in (overwrites if pixi env had a stub).
 cp -f "$binary" "$appdir/usr/bin/bambu-studio"
 

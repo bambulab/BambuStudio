@@ -20,6 +20,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/binutils_impl_linux-64-2.45.1-default_hfdba357_102.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/binutils_linux-64-2.45.1-default_h4852527_102.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/blosc-1.21.6-he440d0b_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/bubblewrap-0.11.2-h008f793_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/bzip2-1.0.8-hda65f42_9.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/c-ares-1.34.6-hb03c661_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/c-compiler-1.11.0-h4d9bdce_0.conda
@@ -812,6 +813,17 @@ packages:
   license_family: BSD
   size: 48427
   timestamp: 1733513201413
+- conda: https://conda.anaconda.org/conda-forge/linux-64/bubblewrap-0.11.2-h008f793_0.conda
+  sha256: a66f3afdf2174028be99d574b7158ad3d46f3e06f2137956b56fc826b4db6520
+  md5: edd1036040dea39ad62b0ca8f7eb4ddd
+  depends:
+  - libgcc >=14
+  - __glibc >=2.17,<3.0.a0
+  - libcap >=2.77,<2.78.0a0
+  license: LGPL-2.0-or-later
+  license_family: LGPL
+  size: 49107
+  timestamp: 1776948902197
 - conda: https://conda.anaconda.org/conda-forge/linux-64/bzip2-1.0.8-hda65f42_9.conda
   sha256: 0b75d45f0bba3e95dc693336fa51f40ea28c980131fec438afb7ce6118ed05f6
   md5: d2ffd7602c02f2b316fd921d39876885
