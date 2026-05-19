@@ -39,7 +39,6 @@ namespace Slic3r {
                 ColorPrint,
                 FilamentId,
                 LayerTime,
-                AdditionalFanSpeed,
                 // helio
                 ThermalIndexMin,
                 ThermalIndexMax,
@@ -183,7 +182,6 @@ namespace Slic3r {
                 void render_shells();
                 void render_slider(int canvas_width, int canvas_height);
                 virtual void render_legend(float& legend_height, int canvas_width, int canvas_height, int right_margin);
-                void apply_view_type_selection(int view_type_sel, EViewType type);
                 void update_by_mode(ConfigOptionMode mode);
                 void update_thermal_options(bool add);
                 void push_combo_style();
@@ -427,8 +425,6 @@ namespace Slic3r {
                 Range feedrate;
                 // Color mapping by fan speed.
                 Range fan_speed;
-                // Color mapping by additional fan speed.
-                Range additional_fan_speed;
                 // Color mapping by volumetric extrusion rate.
                 Range volumetric_rate;
                 // Color mapping by extrusion temperature.
@@ -449,7 +445,6 @@ namespace Slic3r {
                     width.reset();
                     feedrate.reset();
                     fan_speed.reset();
-                    additional_fan_speed.reset();
                     volumetric_rate.reset();
                     temperature.reset();
                     layer_duration.reset(true);

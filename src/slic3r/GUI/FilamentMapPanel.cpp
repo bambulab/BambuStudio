@@ -9,7 +9,7 @@
 #include <map>
 #include <algorithm>
 
-namespace Slic3r::GUI {
+namespace Slic3r { namespace GUI {
 
 static const wxColour BgNormalColor  = wxColour("#FFFFFF");
 static const wxColour BgSelectColor  = wxColour("#EBF9F0");
@@ -200,8 +200,8 @@ void FilamentMapManualPanel::SyncPanelHeights()
     auto curr_left = m_left_panel->GetMinSize();
     auto curr_right = m_right_panel->GetMinSize();
 
-    m_left_panel->SetMinSize(wxSize(FromDIP(260), FromDIP(110)));
-    m_right_panel->SetMinSize(wxSize(FromDIP(260), FromDIP(110)));
+    m_left_panel->SetMinSize(wxSize(FromDIP(260), -1));
+    m_right_panel->SetMinSize(wxSize(FromDIP(260), -1));
 
     m_left_panel->Layout();
     m_left_panel->Fit();
@@ -249,12 +249,7 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
                                                const std::vector<int>         &filament_list,
                                                const std::vector<int>         &filament_map,
                                                const std::vector<int>         &filament_volume_map)
-    : FilamentMapPanel(parent)
-    , m_filament_map(filament_map)
-    , m_filament_volume_map(filament_volume_map)
-    , m_filament_list(filament_list)
-    , m_filament_color(color)
-    , m_filament_type(type)
+    : wxPanel(parent), m_filament_map(filament_map), m_filament_color(color), m_filament_type(type), m_filament_list(filament_list), m_filament_volume_map(filament_volume_map)
 {
     SetName(wxT("FilamentMapManualPanel"));
     SetBackgroundColour(BgNormalColor);
@@ -288,12 +283,16 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
             m_right_panel->AddColorBlock(color, type, idx + 1, is_high_flow);
         }
     }
-    m_left_panel->SetMinSize({FromDIP(260), FromDIP(110)});
-    m_right_panel->SetMinSize({FromDIP(260), FromDIP(110)});
+    m_left_panel->SetMinSize({ FromDIP(260),-1 });
+    m_right_panel->SetMinSize({ FromDIP(260),-1 });
 
+    drag_sizer->AddStretchSpacer();
     drag_sizer->Add(m_left_panel, 1, wxALIGN_CENTER | wxEXPAND);
-    drag_sizer->Add(m_switch_btn, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
+    drag_sizer->AddSpacer(FromDIP(7));
+    drag_sizer->Add(m_switch_btn, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(1));
+    drag_sizer->AddSpacer(FromDIP(7));
     drag_sizer->Add(m_right_panel, 1, wxALIGN_CENTER | wxEXPAND);
+    drag_sizer->AddStretchSpacer();
 
     top_sizer->Add(drag_sizer, 0, wxALIGN_CENTER | wxEXPAND);
 
@@ -344,12 +343,16 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
     SetMinSize(wxSize(FromDIP(580), -1));
     Layout();
     Fit();
+    if (GetParent()) {
+        GetParent()->Layout();
+        GetParent()->Fit();
+    }
     GUI::wxGetApp().UpdateDarkUIWin(this);
 }
 
 void FilamentMapManualPanel::UpdateNozzleVolumeType()
 {
-    auto check_separation = []() {
+    auto check_separation = [this]() {
         auto preset_bundle = wxGetApp().preset_bundle;
         auto nozzle_volume_values = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
         if (nozzle_volume_values.size() <= 1)
@@ -364,6 +367,10 @@ void FilamentMapManualPanel::UpdateNozzleVolumeType()
 
     Layout();
     Fit();
+    if (GetParent()) {
+        GetParent()->Layout();
+        GetParent()->Fit();
+    }
 }
 
 void FilamentMapManualPanel::UpdateNozzleCountDisplay()
@@ -411,7 +418,7 @@ void FilamentMapManualPanel::OnSwitchFilament(wxCommandEvent &)
     }
     this->GetParent()->Layout();
     this->GetParent()->Fit();
-
+    
     if (m_right_panel->IsUseSeparation()) {
         m_left_panel->Layout();
         m_left_panel->Fit();
@@ -421,53 +428,32 @@ void FilamentMapManualPanel::OnSwitchFilament(wxCommandEvent &)
     }
 }
 
-bool FilamentMapManualPanel::Show(bool show)
+void FilamentMapManualPanel::Hide()
 {
-    m_force_validation = show;
-    if (show)
-        m_timer->Start(500);
-    else
-        m_timer->Stop();
-
-    return FilamentMapPanel::Show(show);
+    m_left_panel->Hide();
+    m_right_panel->Hide();
+    m_switch_btn->Hide();
+    wxPanel::Hide();
+    m_timer->Stop();
 }
 
-class FilamentMapBtnPanel : public wxPanel
+void FilamentMapManualPanel::Show()
 {
-public:
-    FilamentMapBtnPanel(wxWindow *parent, const wxString &label, const wxString &detail, const std::string &icon_path);
-    void Select(bool selected);
-    bool Enable(bool enable) override;
-    bool IsEnabled() const { return m_enabled; }
-
-protected:
-    void OnPaint(wxPaintEvent &event);
-
-private:
-    void OnEnterWindow(wxMouseEvent &event);
-    void OnLeaveWindow(wxMouseEvent &evnet);
-    void OnSize(wxSizeEvent &event);
-
-    void UpdateStatus();
-
-    wxBitmap icon_enabled;
-    wxBitmap icon_disabled;
-
-    wxBitmapButton *m_btn;
-    wxStaticText   *m_label;
-    Label          *m_disable_tip;
-    Label          *m_detail;
-    std::string     m_icon_path;
-    bool            m_enabled{true}; //  override system enable state, to get consistent UI
-    bool            m_hover{false};
-    bool            m_selected{false};
-};
+    m_left_panel->Show();
+    m_right_panel->Show();
+    m_switch_btn->Show();
+    wxPanel::Show();
+    m_force_validation = true;
+    m_timer->Start(500);
+}
 
 GUI::FilamentMapBtnPanel::FilamentMapBtnPanel(wxWindow *parent, const wxString &label, const wxString &detail, const std::string &icon) : wxPanel(parent)
 {
     SetBackgroundColour(*wxWHITE);
     SetBackgroundStyle(wxBG_STYLE_PAINT);
     m_hover = false;
+
+    const int horizontal_margin = FromDIP(12);
 
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -488,8 +474,8 @@ GUI::FilamentMapBtnPanel::FilamentMapBtnPanel(wxWindow *parent, const wxString &
     label_sizer->AddStretchSpacer();
 
     auto label_width = label_sizer->GetMinSize().GetWidth();
-    auto min_width = label_width + FromDIP(24) * 2;
-    min_width = std::max(FromDIP(160), min_width);
+    auto pwidth = label_width + FromDIP(24) * 2;
+    const int panel_width = std::max(FromDIP(160), pwidth);
 
     m_disable_tip = new Label(this, _L("(Sync with printer)"));
 
@@ -498,15 +484,23 @@ GUI::FilamentMapBtnPanel::FilamentMapBtnPanel(wxWindow *parent, const wxString &
     sizer->Add(m_disable_tip, 0, wxALIGN_CENTER);
     sizer->AddSpacer(FromDIP(3));
 
-    m_detail = new Label(this, detail);
+    //auto detail_sizer = new wxBoxSizer(wxVERTICAL);
+    m_detail          = new Label(this, detail);
     m_detail->SetFont(Label::Body_12);
     m_detail->SetForegroundColour(TextNormalGreyColor);
+    int text_width = panel_width - horizontal_margin * 2;
+    m_detail->SetMaxSize(wxSize(text_width, -1));
+    m_detail->Wrap(text_width);
+
+    //detail_sizer->AddStretchSpacer();
+    //detail_sizer->Add(m_detail, 1, wxALIGN_CENTER | wxLEFT | wxRIGHT, horizontal_margin);
+    //detail_sizer->AddStretchSpacer();
 
     sizer->Add(m_detail, 1, wxALIGN_CENTER | wxEXPAND);
     sizer->AddSpacer(FromDIP(10));
 
     SetSizer(sizer);
-    SetMinSize(wxSize(min_width, -1));
+    SetMinSize(wxSize(panel_width, -1));
     Layout();
     Fit();
 
@@ -525,7 +519,6 @@ GUI::FilamentMapBtnPanel::FilamentMapBtnPanel(wxWindow *parent, const wxString &
     Bind(wxEVT_PAINT, &FilamentMapBtnPanel::OnPaint, this);
     Bind(wxEVT_ENTER_WINDOW, &FilamentMapBtnPanel::OnEnterWindow, this);
     Bind(wxEVT_LEAVE_WINDOW, &FilamentMapBtnPanel::OnLeaveWindow, this);
-    Bind(wxEVT_SIZE, &FilamentMapBtnPanel::OnSize, this);
 }
 
 void FilamentMapBtnPanel::OnPaint(wxPaintEvent &event)
@@ -572,7 +565,8 @@ void FilamentMapBtnPanel::UpdateStatus()
         m_btn->SetForegroundColour(BgDisableColor);
         m_label->SetForegroundColour(TextDisableColor);
         m_detail->SetForegroundColour(TextDisableColor);
-    } else {
+    }
+    else {
         m_disable_tip->SetLabel("");
         m_disable_tip->SetForegroundColour(TextNormalBlackColor);
         m_btn->SetBitmap(icon_enabled);
@@ -581,7 +575,6 @@ void FilamentMapBtnPanel::UpdateStatus()
         m_detail->SetForegroundColour(TextNormalGreyColor);
     }
     GUI::wxGetApp().UpdateDarkUIWin(this);
-    Refresh();
 }
 
 void FilamentMapBtnPanel::OnEnterWindow(wxMouseEvent &event)
@@ -589,6 +582,7 @@ void FilamentMapBtnPanel::OnEnterWindow(wxMouseEvent &event)
     if (!m_hover && m_enabled) {
         m_hover = true;
         UpdateStatus();
+        Refresh();
         event.Skip();
     }
 }
@@ -600,18 +594,8 @@ void FilamentMapBtnPanel::OnLeaveWindow(wxMouseEvent &event)
         if (this->GetClientRect().Contains(pos)) return;
         m_hover = false;
         UpdateStatus();
+        Refresh();
         event.Skip();
-    }
-}
-
-void FilamentMapBtnPanel::OnSize(wxSizeEvent &event)
-{
-    event.Skip();
-    const int horizontal_margin = FromDIP(12);
-    int text_width = event.GetSize().GetWidth() - horizontal_margin * 2;
-    if (text_width > 0) {
-        m_detail->SetMaxSize(wxSize(text_width, -1));
-        m_detail->Wrap(text_width);
     }
 }
 
@@ -619,6 +603,7 @@ bool FilamentMapBtnPanel::Enable(bool enable)
 {
     m_enabled = enable;
     UpdateStatus();
+    Refresh();
     return true;
 }
 
@@ -626,10 +611,25 @@ void FilamentMapBtnPanel::Select(bool selected)
 {
     m_selected = selected;
     UpdateStatus();
+    Refresh();
 }
 
-FilamentMapAutoPanel::FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mode, bool machine_synced, const std::vector<FilamentMapMode> &available_modes)
-    : FilamentMapPanel(parent)
+void GUI::FilamentMapBtnPanel::Hide()
+{
+    m_btn->Hide();
+    m_label->Hide();
+    m_detail->Hide();
+    wxPanel::Hide();
+}
+void GUI::FilamentMapBtnPanel::Show()
+{
+    m_btn->Show();
+    m_label->Show();
+    m_detail->Show();
+    wxPanel::Show();
+}
+
+FilamentMapAutoPanel::FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mode, bool machine_synced, const std::vector<FilamentMapMode>& available_modes) : wxPanel(parent)
 {
     std::string pt_auto = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
     wxString main_nz_auto   = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt_auto, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
@@ -681,25 +681,69 @@ FilamentMapAutoPanel::FilamentMapAutoPanel(wxWindow *parent, FilamentMapMode mod
         });
     }
 
-    int spacer_width = FromDIP(20);
-    sizer->AddSpacer(spacer_width);
-    for (size_t i = 0; i < m_mode_panels.size(); ++i) {
-        if (i > 0)
-            sizer->AddSpacer(spacer_width);
-        sizer->Add(m_mode_panels[i], 1, wxEXPAND);
+    // Calculate width based on number of modes
+    int num_modes = m_mode_panels.size();
+    if (num_modes > 0) {
+        int dialog_width = FromDIP(580);
+        if (GetParent() != nullptr) {
+            int parent_width = GetParent()->GetClientSize().GetWidth();
+            if (parent_width > 0)
+                dialog_width = parent_width;
+        }
+        int spacer_width = FromDIP(20);
+        int side_margin = FromDIP(30);
+        int total_spacer_width = spacer_width * (num_modes - 1);
+        int available_width = dialog_width - total_spacer_width - side_margin * 2;
+        if (available_width <= 0)
+            available_width = dialog_width;
+        int panel_width = available_width / num_modes;
+
+        int max_width = FromDIP(160);
+        panel_width = std::min(panel_width, max_width);
+
+        sizer->AddStretchSpacer();
+
+        int max_height = 0;
+        for (size_t i = 0; i < m_mode_panels.size(); ++i) {
+            int best_h = m_mode_panels[i]->GetBestSize().GetHeight();
+            max_height = std::max(best_h, max_height);
+        }
+
+        for (size_t i = 0; i < m_mode_panels.size(); ++i) {
+            if (i > 0) {
+                sizer->AddSpacer(spacer_width);
+            }
+            auto* panel = m_mode_panels[i];
+            sizer->Add(panel, 1, wxEXPAND | wxFIXED_MINSIZE, 0);
+            panel->SetMinSize(wxSize(panel->GetMinSize().GetWidth(), max_height));
+            panel->SetMaxSize(wxSize(panel->GetMaxSize().GetWidth(), max_height));
+        }
+        sizer->AddStretchSpacer();
     }
-    sizer->AddSpacer(spacer_width);
 
     UpdateStatus();
 
-    SetSizer(sizer);
-    // First layout assigns equal widths, triggering OnSize which re-wraps
-    // detail text. Second Fit/Layout picks up the updated heights.
-    Layout();
-    Fit();
+    // Set sizer and fit
+    SetSizerAndFit(sizer);
     Layout();
 
     GUI::wxGetApp().UpdateDarkUIWin(this);
+}
+
+void FilamentMapAutoPanel::Hide()
+{
+    for (auto panel : m_mode_panels) {
+        panel->Hide();
+    }
+    wxPanel::Hide();
+}
+
+void FilamentMapAutoPanel::Show()
+{
+    for (auto panel : m_mode_panels) {
+        panel->Show();
+    }
+    wxPanel::Show();
 }
 
 void FilamentMapAutoPanel::UpdateStatus()
@@ -729,7 +773,37 @@ std::string FilamentMapAutoPanel::GetIconForMode(FilamentMapMode mode)
     }
 }
 
-FilamentMapSavingPanel::FilamentMapSavingPanel(wxWindow *parent) : FilamentMapPanel(parent)
+FilamentMapDefaultPanel::FilamentMapDefaultPanel(wxWindow *parent) : wxPanel(parent)
+{
+    auto sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_label = new Label(this, _L("The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."));
+    m_label->SetFont(Label::Body_14);
+    m_label->SetBackgroundColour(*wxWHITE);
+    m_label->Wrap(FromDIP(500));
+
+    sizer->AddStretchSpacer();
+    sizer->Add(m_label, 1, wxEXPAND | wxALIGN_CENTER);
+    sizer->AddStretchSpacer();
+
+    SetSizerAndFit(sizer);
+    Layout();
+    GUI::wxGetApp().UpdateDarkUIWin(this);
+}
+
+void FilamentMapDefaultPanel::Hide()
+{
+    m_label->Hide();
+    wxPanel::Hide();
+}
+
+void FilamentMapDefaultPanel::Show()
+{
+    m_label->Show();
+    wxPanel::Show();
+}
+
+FilamentMapSavingPanel::FilamentMapSavingPanel(wxWindow *parent) : wxPanel(parent)
 {
     SetBackgroundColour(*wxWHITE);
 
@@ -753,4 +827,5 @@ FilamentMapSavingPanel::FilamentMapSavingPanel(wxWindow *parent) : FilamentMapPa
     SetSizer(saving_sizer);
 }
 
-} // namespace Slic3r::GUI
+} // namespace GUI
+} // namespace Slic3r

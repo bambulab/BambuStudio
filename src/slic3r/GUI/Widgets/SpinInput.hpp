@@ -2,13 +2,10 @@
 #define slic3r_GUI_SpinInput_hpp_
 
 #include <wx/dcclient.h>
-#include <wx/event.h>
 #include <wx/timer.h>
 #include <wx/textctrl.h>
 #include <wx/valtext.h>
 #include "StaticBox.hpp"
-
-wxDECLARE_EVENT(EVT_SPINCTRL_TEXT, wxCommandEvent);
 
 class Button;
 
@@ -26,7 +23,6 @@ class SpinInput : public wxNavigationEnabled<StaticBox>
     int min;
     int max;
     int delta;
-    bool text_updating;
 
     static const int SpinInputWidth = 200;
     static const int SpinInputHeight = 50;
@@ -92,7 +88,6 @@ private:
     void mouseWheelMoved(wxMouseEvent& event);
     void keyPressed(wxKeyEvent& event);
     void onTimer(wxTimerEvent &evnet);
-    void onTextChanged(wxCommandEvent &event);
     void onTextLostFocus(wxEvent &event);
     void onTextEnter(wxCommandEvent &event);
 

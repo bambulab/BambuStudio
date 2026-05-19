@@ -56,7 +56,7 @@
     "print_settings_id": "",
     "prime_tower_width": "35",
     "reduce_crossing_wall": "0",
-    "reduce_infill_retraction_mode": "Auto",
+    "reduce_infill_retraction": "1",
     "raft_layers": "0",
     "resolution": "0.012",
     "sparse_infill_density": "15%",

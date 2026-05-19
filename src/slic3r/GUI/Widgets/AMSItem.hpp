@@ -67,12 +67,7 @@ enum class AMSRoadShowMode : int {
     AMS_ROAD_MODE_SINGLE,
     AMS_ROAD_MODE_SINGLE_N3S,
     AMS_ROAD_MODE_AMS_LITE,
-    AMS_ROAD_MODE_ARROW,
-    AMS_ROAD_MODE_NONE,
-    // Variants of DOUBLE that only draw the AMS side when paired with an EXT_SPOOL
-    // (used when fila switch is installed and EXT's down-road should be hidden)
-    AMS_ROAD_MODE_DOUBLE_FAR_ONLY,
-    AMS_ROAD_MODE_DOUBLE_NEAR_ONLY,
+    AMS_ROAD_MODE_NONE
 };
 
 enum class AMSPassRoadMode : int {
@@ -556,7 +551,6 @@ public:
     wxColour                     m_road_def_color;
     wxColour                     m_road_color;
     void                         Update(AMSinfo amsinfo, Caninfo info, int canindex, int maxcan);
-    void                         UpdateDeviceInfo(std::weak_ptr<DevFilaSystem> fila_system);
 
     std::vector<ScalableBitmap> ams_humidity_img;
 
@@ -575,10 +569,6 @@ public:
     void paintEvent(wxPaintEvent &evt);
     void render(wxDC &dc);
     void doRender(wxDC &dc);
-
-private:
-    std::weak_ptr<DevFilaSystem> m_fila_system;
-    bool shouldHideExtRoad() const;
 };
 
 
@@ -594,7 +584,6 @@ public:
 
 public:
     void Update(AMSinfo amsinfo);
-    void UpdateDeviceInfo(std::weak_ptr<DevFilaSystem> fila_system);
 
     void OnVamsLoading(bool load, wxColour col = AMS_CONTROL_GRAY500);
     void SetPassRoadColour(wxColour col);
@@ -633,9 +622,6 @@ private:
     bool     m_show_humidity = {false};
     bool     m_vams_loading{false};
     DevAmsType m_ams_model;
-
-    std::weak_ptr<DevFilaSystem> m_fila_system;
-    bool shouldHideExtRoad() const;
 };
 
 
@@ -653,7 +639,6 @@ public:
     // void                         Update(AMSRoadDownPartMode nozzle, AMSRoadShowMode left_mode, AMSRoadShowMode right_mode, int left_len, int right_len);
     void UpdateLeft(int nozzle_num, AMSRoadShowMode mode);
     void UpdateRight(int nozzle_num, AMSRoadShowMode mode);
-    void UpdateDeviceInfo(std::weak_ptr<DevFilaSystem> fila_system);
 
     void OnVamsLoading(bool load, wxColour col = AMS_CONTROL_GRAY500);
     void SetPassRoadColour(bool left, wxColour col);
@@ -684,9 +669,6 @@ private:
     std::map<int, wxColour> m_road_color;
     bool m_vams_loading{false};
     DevAmsType m_ams_model;
-
-    std::weak_ptr<DevFilaSystem> m_fila_system;
-    bool shouldHideExtRoad() const;
 };
 
 /*************************************************
@@ -788,7 +770,6 @@ public:
     ~AmsItem();
 
     void     Update(AMSinfo info);
-    void     UpdateDeviceInfo(std::weak_ptr<DevFilaSystem> fila_system);
     void     create(wxWindow *parent);
     void     AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* sizer);
     void     AddLiteCan(Caninfo caninfo, int canindex, wxGridSizer* sizer);
@@ -797,7 +778,6 @@ public:
     void     PlayRridLoading(wxString canid);
     void     StopRridLoading(wxString canid);
     void     msw_rescale();
-    bool     ShowRoad(bool show);
     void     show_sn_value(bool show);
     void     SetAmsStepExtra(wxString canid, AMSPassRoadType type, AMSPassRoadSTEP step);
     void     SetAmsStep(std::string amsid, std::string canid, AMSPassRoadType type, AMSPassRoadSTEP step);
@@ -934,7 +914,7 @@ private:
 class FeedDirectionDialog : public wxDialog
 {
 public:
-    FeedDirectionDialog(wxWindow* parent, const int extruderNum, const std::string& printer_type = "");
+    FeedDirectionDialog(wxWindow* parent, const int extruderNum);
 
     std::optional<int> GetExtruderID();
 
@@ -947,7 +927,6 @@ private:
     static wxString calcTrayName(MachineObject* obj, const std::string& amsID, const std::string& slotID);
 
     int m_extruder_num{};
-    std::string m_printer_type;
     wxString m_filament_id{};
     wxRadioButton* m_radioHelper{nullptr};
     wxRadioButton* m_leftRadio{nullptr};

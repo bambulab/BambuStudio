@@ -945,7 +945,7 @@ void CalibUtils::calib_pa_pattern(const MachineObject *obj, const CalibInfo &cal
 
     float nozzle_diameter = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0);
 
-    for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs(nozzle_diameter)) {
+    for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) {
         full_config.set_key_value(opt.first, new ConfigOptionFloat(opt.second));
     }
     for (const auto opt : SuggestedConfigCalibPAPattern().floats_pairs) {
@@ -993,7 +993,7 @@ void CalibUtils::set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &
     float nozzle_diameter = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->get_at(0);
     int extruder_count = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
 
-    for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs(nozzle_diameter)) { print_config.set_key_value(opt.first, new ConfigOptionFloat(opt.second)); }
+    for (const auto opt : SuggestedConfigCalibPAPattern().float_pairs) { print_config.set_key_value(opt.first, new ConfigOptionFloat(opt.second)); }
     for (const auto opt : SuggestedConfigCalibPAPattern().floats_pairs) { print_config.set_key_value(opt.first, new ConfigOptionFloatsNullable(opt.second)); }
 
     std::vector<CalibInfo> sorted_calib_infos = calib_infos;
@@ -1613,13 +1613,9 @@ bool CalibUtils::is_support_auto_pa_cali(std::string filament_id)
     return not_support_auto_pa_cali_filaments.find(filament_id) == not_support_auto_pa_cali_filaments.end();
 }
 
-std::vector<std::string> CalibUtils::get_supported_nozzle_diameters_by_model(const MachineObject *obj)
+std::vector<std::string> CalibUtils::get_supported_nozzle_diameters_by_model(const std::string &printer_model)
 {
     std::vector<std::string> result;
-    if (!obj) return result;
-
-    std::string printer_model = DevPrinterConfigUtil::get_printer_display_name(obj->printer_type);
-
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     if (!preset_bundle || printer_model.empty())
         return result;
@@ -1637,13 +1633,9 @@ std::vector<std::string> CalibUtils::get_supported_nozzle_diameters_by_model(con
     return result;
 }
 
-std::vector<NozzleVolumeType> CalibUtils::get_supported_nozzle_volume_types_by_model_and_nozzle(const MachineObject *obj, const std::string &nozzle_diameter)
+std::vector<NozzleVolumeType> CalibUtils::get_supported_nozzle_volume_types_by_model_and_nozzle(const std::string &model_id, const std::string &nozzle_diameter)
 {
     std::vector<NozzleVolumeType> result;
-    if (!obj) return result;
-
-    std::string model_id = DevPrinterConfigUtil::get_printer_display_name(obj->printer_type);
-
     PresetBundle *preset_bundle = wxGetApp().preset_bundle;
     if (!preset_bundle || model_id.empty())
         return result;
@@ -1667,26 +1659,20 @@ std::vector<NozzleVolumeType> CalibUtils::get_supported_nozzle_volume_types_by_m
     return std::vector<NozzleVolumeType>(unique_types.begin(), unique_types.end());
 }
 
-std::map<NozzleVolumeType, std::set<NozzleDiameterType>> CalibUtils::get_supported_nozzle_volume_and_diameters(const MachineObject *obj, bool with_hybrid)
+std::map<NozzleVolumeType, std::set<NozzleDiameterType>> CalibUtils::get_supported_nozzle_volume_and_diameters(const MachineObject *obj)
 {
     std::map<NozzleVolumeType, std::set<NozzleDiameterType>> volume_diameters_map;
     if (!obj) return volume_diameters_map;
 
     std::string printer_model = DevPrinterConfigUtil::get_printer_display_name(obj->printer_type);
 
-    std::vector<std::string> diameters = get_supported_nozzle_diameters_by_model(obj);
+    std::vector<std::string> diameters = get_supported_nozzle_diameters_by_model(printer_model);
 
     for (auto& diameter : diameters)
     {
-        std::vector<NozzleVolumeType> volumes = get_supported_nozzle_volume_types_by_model_and_nozzle(obj, diameter);
+        std::vector<NozzleVolumeType> volumes = get_supported_nozzle_volume_types_by_model_and_nozzle(printer_model, diameter);
         for (auto& volume : volumes)
         {
-            // high flow type does not support 0.2mm nozzle
-            if (diameter == "0.2") {
-                if (volume == NozzleVolumeType::nvtHighFlow) continue;
-                if (volume == NozzleVolumeType::nvtTPUHighFlow) continue;
-            }
-
             volume_diameters_map[volume].insert(DevNozzle::ToNozzleDiameterType(diameter));
         }
     }
@@ -1696,9 +1682,7 @@ std::map<NozzleVolumeType, std::set<NozzleDiameterType>> CalibUtils::get_support
         for (const auto& [volume, diameters] : volume_diameters_map) {
             hybrid_diameters_set.insert(diameters.begin(), diameters.end());
         }
-        if (with_hybrid) {
-            volume_diameters_map[NozzleVolumeType::nvtHybrid] = hybrid_diameters_set;
-        }
+        volume_diameters_map[NozzleVolumeType::nvtHybrid] = hybrid_diameters_set;
     }
 
     return volume_diameters_map;
@@ -1724,25 +1708,6 @@ bool CalibUtils::get_pa_k_n_value_by_cali_idx(const MachineObject *obj, int cali
         }
     }
     return false;
-}
-
-ExtruderType CalibUtils::get_extruder_type(const MachineObject* obj, int extruder_id)
-{
-    ExtruderType extruder_type = ExtruderType::etDirectDrive;
-    if (Preset *printer_preset = get_printer_preset(obj)) {
-        auto opt_extruder_type = printer_preset->config.option<ConfigOptionEnumsGeneric>("extruder_type");
-        if (opt_extruder_type) {
-            assert(opt_extruder_type->values.size() <= 2);
-            int logic_extruder_id = DevExtder::to_logical_extruder_id(obj->GetExtderSystem()->GetTotalExtderCount(), extruder_id);
-            if (logic_extruder_id >=0 && logic_extruder_id < opt_extruder_type->values.size()) {
-                extruder_type = (ExtruderType)(opt_extruder_type->values[logic_extruder_id]);
-            } else {
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " Invalid extruder_id " << extruder_id;
-            }
-        }
-    }
-
-    return extruder_type;
 }
 
 bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, const X1CCalibInfos &cali_infos, wxString &error_message)

@@ -2575,8 +2575,6 @@ bool ObjectGridTable::OnCellLeftClick(int row, int col, ConfigOptionType &type)
 void ObjectGridTable::OnSelectCell(int row, int col)
 {
     m_selected_cells.clear();
-    if (!m_panel->m_side_window)
-        return;
     m_panel->m_side_window->Freeze();
     if (row == 0 || col == col_filaments) {
         m_panel->m_object_settings->UpdateAndShow(row, false, false, false, nullptr, nullptr, std::string());
@@ -3346,7 +3344,7 @@ ObjectTableDialog::ObjectTableDialog(wxWindow* parent, Plater* platerObj, Model 
     auto m_main_sizer = new wxBoxSizer(wxVERTICAL);
 
     // icon
-    std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/AGBStudio.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     //top line

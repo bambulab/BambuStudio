@@ -22,7 +22,6 @@ add_executable(${_TEST_NAME}_tests
     test_png_io.cpp
     test_timeutils.cpp
     test_indexed_triangle_set.cpp
-    test_debounce.cpp
     ../libnest2d/printer_parts.cpp
 	)
 
@@ -34,12 +33,7 @@ target_link_libraries(${_TEST_NAME}_tests test_common libslic3r)
 set_property(TARGET ${_TEST_NAME}_tests PROPERTY FOLDER "tests")
 
 if (WIN32)
-    # bambustudio_copy_dlls now requires 4 args (target, config, postfix,
-    # output_dlls); legacy 1-arg call sites in tests/* predate that signature
-    # change.  Test executables link libslic3r and do not need the heavyweight
-    # OCCT / GMP / MPFR / FFmpeg DLL bundle, so skip the copy step here.
-    # Run tests with PATH pointing at deps build dir if extra DLLs are needed.
-    # bambustudio_copy_dlls(${_TEST_NAME}_tests <config> <postfix> <out>)
+    bambuslicer_copy_dlls(${_TEST_NAME}_tests)
 endif()
 
 # catch_discover_tests(${_TEST_NAME}_tests TEST_PREFIX "${_TEST_NAME}: ")

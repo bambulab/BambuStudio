@@ -1,4 +1,4 @@
-﻿#include "MsgDialog.hpp"
+#include "MsgDialog.hpp"
 
 #include <wx/settings.h>
 #include <wx/sizer.h>
@@ -9,11 +9,9 @@
 #include <wx/clipbrd.h>
 #include <wx/checkbox.h>
 #include <wx/html/htmlwin.h>
-#include <wx/textctrl.h>
 
 #include <boost/algorithm/string/replace.hpp>
 
-#include "Widgets/Label.hpp"
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/Utils.hpp"
 #include "GUI.hpp"
@@ -378,7 +376,7 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &temp_msg, bool monosp
     add_msg_content(this, content_sizer, msg, monospaced_font);
 
     // Use a small bitmap with monospaced font, as the error text will not be wrapped.
-    logo->SetBitmap(create_scaled_bitmap("BambuStudio_192px_grayscale.png", this, monospaced_font ? 48 : /*1*/84));
+    logo->SetBitmap(create_scaled_bitmap("AGBStudio_192px.png", this, monospaced_font ? 48 : /*1*/84));
 
     SetMaxSize(MSG_DLG_MAX_SIZE);
 
@@ -396,73 +394,6 @@ WarningDialog::WarningDialog(wxWindow *parent,
 {
     add_msg_content(this, content_sizer, message);
     finalize();
-}
-
-PostProcessScriptDialog::PostProcessScriptDialog(wxWindow* parent, const wxString& message, const wxString& script_content)
-    : MsgDialog(parent,
-        wxString::Format(_L("%s warning"), SLIC3R_APP_FULL_NAME),
-        wxString::Format(_L("%s has a warning") + ":", SLIC3R_APP_FULL_NAME),
-        wxICON_WARNING)
-{
-    const int content_width = FromDIP(500);
-    wxFont msg_font = wxGetApp().normal_font();
-    msg_font.SetPointSize(wxGetApp().code_font().GetPointSize());
-    auto* msg = new Label(this, msg_font, message, LB_AUTO_WRAP, wxSize(content_width, -1));
-    msg->SetMinSize(wxSize(content_width, -1));
-    msg->SetForegroundColour(wxGetApp().get_label_clr_default());
-    msg->Wrap(content_width);
-    content_sizer->Add(msg, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
-
-    m_script_text = new wxTextCtrl(this, wxID_ANY, script_content, wxDefaultPosition,
-        wxSize(content_width, FromDIP(140)), wxTE_MULTILINE | wxTE_READONLY | wxTE_WORDWRAP);
-    m_script_text->SetFont(wxGetApp().code_font());
-    m_details_expanded = true;
-    content_sizer->Add(m_script_text, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
-
-    m_toggle_details = new Button(this, _L("Collapse") + " \u2227", "", 0, 0, wxID_ANY);
-    m_toggle_details->SetMinSize(wxSize(FromDIP(120), FromDIP(24)));
-    m_toggle_details->SetCornerRadius(FromDIP(12));
-    m_toggle_details->SetFont(Label::Body_12);
-    StateColor btn_bg_white(
-        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Pressed),
-        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Hovered),
-        std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal)
-    );
-    StateColor btn_bd_white(
-        std::pair<wxColour, int>(WXCOLOUR_GREY500, StateColor::Pressed),
-        std::pair<wxColour, int>(WXCOLOUR_GREY500, StateColor::Hovered),
-        std::pair<wxColour, int>(WXCOLOUR_GREY500, StateColor::Normal)
-    );
-    StateColor btn_text_white(
-        std::pair<wxColour, int>(WXCOLOUR_GREY700, StateColor::Pressed),
-        std::pair<wxColour, int>(WXCOLOUR_GREY700, StateColor::Hovered),
-        std::pair<wxColour, int>(WXCOLOUR_GREY700, StateColor::Normal)
-    );
-    m_toggle_details->SetBackgroundColor(btn_bg_white);
-    m_toggle_details->SetBorderColor(btn_bd_white);
-    m_toggle_details->SetTextColor(btn_text_white);
-    m_toggle_details->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
-        m_details_expanded = !m_details_expanded;
-        m_script_text->Show(m_details_expanded);
-        m_toggle_details->SetLabel(m_details_expanded ? (_L("Collapse") + " \u2227") : (_L("View details") + " \u2228"));
-        Layout();
-        Fit();
-    });
-    content_sizer->Add(m_toggle_details, 0, wxBOTTOM, FromDIP(4));
-
-    add_button(wxID_YES, false, _L("Execute"));
-    add_button(wxID_NO, true, _L("Do not execute"));
-    if (Button* execute_btn = get_button(wxID_YES)) {
-        execute_btn->SetBorderColor(WXCOLOUR_GREY500);
-        execute_btn->SetTextColor(WXCOLOUR_GREY700);
-    }
-    SetMaxSize(MSG_DLG_MAX_SIZE);
-    finalize();
-    CallAfter([this]() {
-        Layout();
-        Fit();
-        CenterOnParent();
-    });
 }
 
 #if 1
@@ -561,7 +492,7 @@ DeleteConfirmDialog::DeleteConfirmDialog(wxWindow *parent, const wxString &title
 {
     this->SetBackgroundColour(*wxWHITE);
     this->SetSize(wxSize(FromDIP(450), FromDIP(200)));
-    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/AGBStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     wxBoxSizer *m_main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -622,7 +553,7 @@ Newer3mfVersionDialog::Newer3mfVersionDialog(wxWindow *parent, const Semver *fil
     , m_new_keys(new_keys)
 {
     this->SetBackgroundColour(*wxWHITE);
-    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/AGBStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
@@ -739,7 +670,7 @@ NetworkErrorDialog::NetworkErrorDialog(wxWindow* parent)
     : DPIDialog(parent ? parent : nullptr, wxID_ANY, _L("Server Exception"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
     this->SetBackgroundColour(*wxWHITE);
-    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/AGBStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     wxBoxSizer* sizer_main = new wxBoxSizer(wxVERTICAL);

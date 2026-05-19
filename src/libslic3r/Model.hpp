@@ -24,9 +24,6 @@
 //BBS: add stl
 #include "Format/STL.hpp"
 #include "Format/OBJ.hpp"
-#include "Format/glTF.hpp"
-#include "Format/FBX.hpp"
-#include "TexturePainting.hpp"
 
 #include "Calib.hpp"
 
@@ -50,6 +47,10 @@ namespace cereal {
 namespace Slic3r {
 enum class ConversionType;
 
+namespace ColorCut {
+struct VolumeAppearanceSnapshot;
+}
+
 class BuildVolume;
 class Model;
 class ModelInstance;
@@ -63,6 +64,8 @@ class TriangleSelector;
 //BBS: add Preset
 class Preset;
 class BBLProject;
+
+struct CutMeshProvenance;
 
 class KeyStore;
 
@@ -439,7 +442,7 @@ public:
     // This bounding box is approximate and not snug.
     // This bounding box is being cached.
     const BoundingBoxf3& bounding_box() const;
-    const BoundingBoxf3 &bounding_box_in_assembly_view() const;
+    const BoundingBoxf3& bounding_box_in_assembly_view() const;
     void invalidate_bounding_box() { m_bounding_box_valid = false; m_raw_bounding_box_valid = false; m_raw_mesh_bounding_box_valid = false; }
 
     // A mesh containing all transformed instances of this object.
@@ -526,9 +529,12 @@ public:
                             const Transform3d &      cut_matrix,
                             ModelObjectCutAttributes attributes,
                             TriangleMesh &           upper_mesh,
-                            TriangleMesh &           lower_mesh);
+                            TriangleMesh &           lower_mesh,
+                            CutMeshProvenance *      provenance = nullptr);
     void process_solid_part_cut(ModelVolume *            volume,
+                                const std::optional<ColorCut::VolumeAppearanceSnapshot> &appearance_snapshot,
                                 const Transform3d &      instance_matrix,
+                                const size_t             instance,
                                 const Transform3d &      cut_matrix,
                                 const std::array<Vec3d, 4> &plane_points,
                                 ModelObjectCutAttributes attributes,
@@ -1611,9 +1617,6 @@ public:
     std::shared_ptr<ModelInfo> model_info = nullptr;
     std::shared_ptr<ModelProfileInfo> profile_info = nullptr;
 
-    // Textured mesh data for texture-to-painting import
-    std::shared_ptr<TexturedMesh> texture_mesh;
-
     //makerlab information
     std::string mk_name;
     std::string mk_version;
@@ -1663,8 +1666,7 @@ public:
                                 std::function<int(Slic3r::Step&, double&, double&, bool&)>     step_mesh_fn,
                                 double                                                  linear_defletion,
                                 double                                                  angle_defletion,
-                                bool                                                    is_split_compound,
-                                std::function<void(const std::vector<std::string>&)>    open_shell_warn_fn = nullptr);
+                                bool                                                    is_split_compound);
 
     //BBS: add part plate related logic
     // BBS: backup
@@ -1724,7 +1726,7 @@ public:
     bool          add_default_instances();
     // Returns approximate axis aligned bounding box of this model
     BoundingBoxf3 bounding_box() const;
-    BoundingBoxf3 bounding_box_in_assembly_view(ModelObject *model_object = nullptr) const;
+    BoundingBoxf3 bounding_box_in_assembly_view() const;
     // Set the print_volume_state of PrintObject::instances,
     // return total number of printable objects.
     unsigned int  update_print_volume_state(const BuildVolume &build_volume);

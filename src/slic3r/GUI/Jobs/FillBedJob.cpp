@@ -8,18 +8,10 @@
 #include "slic3r/GUI/GUI_ObjectList.hpp"
 #include "libnest2d/common.hpp"
 
-#include <algorithm>
 #include <numeric>
 
 namespace Slic3r {
 namespace GUI {
-
-// Minimum grid capacity (rough cell count = floor(W/step_x) * floor(H/step_y))
-// for FillBed to take the fast grid path; otherwise fall back to the NFP arrange.
-// Empirical threshold (STUDIO-18064): NFP path is noticeably slow even with
-// only a few dozen candidate cells, so we prefer the grid path whenever the
-// bed/step ratio leaves room for a reasonable number of copies.
-static constexpr long long FILL_BED_GRID_PATH_MIN_CAPACITY = 50;
 
 //BBS: add partplate related logic
 void FillBedJob::prepare()
@@ -67,9 +59,6 @@ void FillBedJob::prepare()
             ap.height = 1;
             ap.name = mo->name;
 
-            // overlap 判定，避免姿态导致 AABB 略超盘边的对象被错划入 m_locked。
-            const bool on_current_plate = plate_bb.overlap(ap_bb);
-
             if (selected)
             {
                 if (mo->instances[inst_idx]->printable)
@@ -100,7 +89,7 @@ void FillBedJob::prepare()
             }
             else
             {
-                if (on_current_plate)
+                if (plate_bb.contains(ap_bb))
                 {
                     ap.bed_idx = 0;
                     ap.itemid = m_unselected.size();
@@ -119,6 +108,15 @@ void FillBedJob::prepare()
             }
         }
     }
+    /*
+    for (ModelInstance *inst : model_object->instances)
+        if (inst->printable) {
+            ArrangePolygon ap = get_arrange_poly(inst);
+            // Existing objects need to be included in the result. Only
+            // the needed amount of object will be added, no more.
+            ++ap.priority;
+            m_selected.emplace_back(ap);
+        }*/
 
     if (m_selected.empty()) return;
 
@@ -130,6 +128,20 @@ void FillBedJob::prepare()
 
     m_bedpts = get_bed_shape(global_config);
 
+    auto &objects = m_plater->model().objects;
+    /*BoundingBox bedbb = get_extents(m_bedpts);
+
+    for (size_t idx = 0; idx < objects.size(); ++idx)
+        if (int(idx) != m_object_idx)
+            for (ModelInstance *mi : objects[idx]->instances) {
+                ArrangePolygon ap = get_arrange_poly(mi);
+                auto ap_bb = ap.transformed_poly().contour.bounding_box();
+
+                if (ap.bed_idx == 0 && !bedbb.contains(ap_bb))
+                    ap.bed_idx = arrangement::UNARRANGED;
+
+                m_unselected.emplace_back(ap);
+            }*/
     if (auto wt = get_wipe_tower_arrangepoly(*m_plater))
         m_unselected.emplace_back(std::move(*wt));
 
@@ -138,11 +150,12 @@ void FillBedJob::prepare()
     auto polys = offset_ex(m_selected.front().poly, params.min_obj_distance / 2);
     ExPolygon poly = polys.empty() ? m_selected.front().poly : polys.front();
     double poly_area = poly.area() / sc;
-    // m_unselected 的 bed_idx 在 prepare 阶段已统一置 0，按 0 判定而非 cur_plate_index。
     double unsel_area = std::accumulate(m_unselected.begin(),
                                         m_unselected.end(), 0.,
-                                        [](double s, const auto &ap) {
-                                            return s + (ap.bed_idx == 0) * ap.poly.area();
+                                        [cur_plate_index](double s, const auto &ap) {
+                                            //BBS: m_unselected instance is in the same partplate
+                                            return s + (ap.bed_idx == cur_plate_index) * ap.poly.area();
+                                            //return s + (ap.bed_idx == 0) * ap.poly.area();
                                         }) / sc;
 
     double fixed_area = unsel_area + m_selected.size() * poly_area;
@@ -157,24 +170,18 @@ void FillBedJob::prepare()
     ModelInstance *mi = model_object->instances[sel_id];
     ArrangePolygon template_ap = get_instance_arrange_poly(mi, global_config);
 
-    // STUDIO-15820: 快照模板原始 transformation；setter 里强制 reset 后再 apply_arrange_result，
-    // 避免 finalize 顺序 apply 时新副本被复合上模板的额外旋转、与 arrange 用的 transformed_poly 不一致。
-    Geometry::Transformation mi_orig_trafo = mi->get_transformation();
     for (int i = 0; i < needed_items; ++i) {
         ArrangePolygon ap = template_ap;
         ap.poly = m_selected.front().poly;
         ap.bed_idx = PartPlateList::MAX_PLATES_COUNT;
         ap.height = 1;
         ap.itemid = -1;
-        ap.setter = [this, mi_orig_trafo](const ArrangePolygon &p) {
+        ap.setter = [this, mi](const ArrangePolygon &p) {
             ModelObject *mo = m_plater->model().objects[m_object_idx];
             ModelObject* newObj = m_plater->model().add_object(*mo);
             newObj->name = mo->name +" "+ std::to_string(p.itemid);
-            for (ModelInstance *newInst : newObj->instances) {
-                newInst->set_transformation(mi_orig_trafo);
-                newInst->apply_arrange_result(p.translation.cast<double>(), p.rotation);
-            }
-            m_plater->model().set_assembly_pos(newObj);
+            for (ModelInstance *newInst : newObj->instances) { newInst->apply_arrange_result(p.translation.cast<double>(), p.rotation); }
+            //m_plater->sidebar().obj_list()->paste_objects_into_list({m_plater->model().objects.size()-1});
         };
         m_selected.emplace_back(ap);
     }
@@ -203,10 +210,6 @@ void FillBedJob::process()
     if (params.avoid_extrusion_cali_region && global_config.opt_bool("scan_first_layer"))
         partplate_list.preprocess_nonprefered_areas(m_unselected, MAX_NUM_PLATES);
 
-    // min_obj_distance==0 时给 fill bed 加 0.5mm inflation 下限，保证副本间至少 1mm 可见间隙。
-    if (params.min_obj_distance == 0)
-        params.min_inflation_floor = scaled<coord_t>(0.5);
-
     update_selected_items_inflation(m_selected, global_config, params);
     update_unselected_items_inflation(m_unselected, global_config, params);
 
@@ -226,148 +229,28 @@ void FillBedJob::process()
     // final align用的是凸包，在有fixed item的情况下可能找到的参考点位置是错的，这里就不做了。见STUDIO-3265
     params.do_final_align = false;
 
-    if (m_bedpts.empty()) {
-        BOOST_LOG_TRIVIAL(warning) << "FillBedJob::process: empty m_bedpts, abort";
-        update_status(m_status_range, _L("Bed filling aborted: invalid bed shape."));
-        return;
-    }
+    if (m_selected.size() > 100){
+        // too many items, just find grid empty cells to put them
+        Vec2f step = unscaled<float>(get_extents(m_selected.front().poly).size()) + 2 * Vec2f(m_selected.front().brim_width, m_selected.front().brim_width);
 
-    // step 复用 update_selected_items_inflation 算出的 ap.inflation，与 NFP 路径间距一致。
-    const ArrangePolygon &tmpl = m_selected.front();
-    const float inflation_mm = unscaled<float>(tmpl.inflation);
-    const Vec2f step = unscaled<float>(get_extents(tmpl.poly).size())
-                       + 2.f * Vec2f(inflation_mm, inflation_mm);
+        // calc the polygon position offset based on origin, in order to normalize the initial position of the arrange polygon
+        auto offset_on_origin = m_selected.front().poly.contour.bounding_box().center();
 
-    // re-click consistency: pick path by grid capacity (stable across clicks).
-    // Use double here so the floor() near-edge result is not perturbed by float rounding.
-    // Use long long for the product so a (pathological) tiny step on a huge bed
-    // cannot overflow signed int.
-    const auto bed_size = get_extents(m_bedpts).size();
-    const double bed_w  = unscaled<double>(bed_size.x());
-    const double bed_h  = unscaled<double>(bed_size.y());
-    const double step_x = double(step.x());
-    const double step_y = double(step.y());
-    const long long cells_x = (step_x > 0.0) ? (long long)std::floor(bed_w / step_x) : 0;
-    const long long cells_y = (step_y > 0.0) ? (long long)std::floor(bed_h / step_y) : 0;
-    const long long grid_cap = cells_x * cells_y;
-
-    if (grid_cap > FILL_BED_GRID_PATH_MIN_CAPACITY) {
-        auto offset_on_origin = tmpl.poly.contour.bounding_box().center();
-
-        // 用 m_bedpts (已含 bed_shrink + brim_skirt_distance/2) 作为安全区，避免边缘副本 brim/skirt 越界。
-        BoundingBox shrunk_bb = Polygon{m_bedpts}.bounding_box();
-        BoundingBoxf safe_area_2d(
-            Vec2d(unscale<double>(shrunk_bb.min.x()), unscale<double>(shrunk_bb.min.y())),
-            Vec2d(unscale<double>(shrunk_bb.max.x()), unscale<double>(shrunk_bb.max.y()))
-        );
-        std::vector<Vec2f> empty_cells = Plater::get_empty_cells(step, safe_area_2d);
-
-        // STUDIO-16564:
-        // m_unselected 中 bed_idx==0 的项已经在 prepare 阶段统一规整到 plate-0 LOCAL，
-        // 既包含真实对象，也包含 cur_plate 的虚拟障碍 (Excluded / Wrapping /
-        // Nonprefered)。这些虚拟障碍必须算占用：Plater::get_empty_cells 内置的
-        // exclude 过滤只在 cur_plate==0 上生效，cur_plate>0 时不会再过滤这些区域。
-        // bed_idx>0 的项是 preprocess_*_areas(num_plates=MAX_NUM_PLATES) 给其它 plate
-        // 注入的副本，与本次 fill bed 无关，跳过。
-        // m_selected 中 priority>0 的模板实例使用世界坐标，必须先做 stride 修正再算 bbox。
-        // TODO: root-cause fix is to make Plater::get_empty_cells honor exclude regions for any plate.
-        PartPlateList &plist       = m_plater->get_partplate_list();
-        const int plate_cols       = plist.get_plate_cols();
-        const int cur_plate_index  = plist.get_curr_plate_index();
-        const int cur_col          = cur_plate_index % plate_cols;
-        const int cur_row          = cur_plate_index / plate_cols;
-        const coord_t stride_dx    = bed_stride_x(m_plater) * cur_col;
-        const coord_t stride_dy    = bed_stride_y(m_plater) * cur_row;
-
-        std::vector<BoundingBoxf> occupied;
-        auto add_occupied_local = [&](const ArrangePolygon &ap, bool needs_stride_correction) {
-            BoundingBox sbb = ap.transformed_poly().contour.bounding_box();
-            if (needs_stride_correction) {
-                sbb.translate(-stride_dx, stride_dy);
-            }
-            occupied.emplace_back(
-                Vec2d(unscale<double>(sbb.min.x()), unscale<double>(sbb.min.y())),
-                Vec2d(unscale<double>(sbb.max.x()), unscale<double>(sbb.max.y()))
-            );
-        };
-        size_t unsel_blocked = 0, tmpl_blocked = 0;
-        for (const auto &ap : m_unselected) {
-            if (ap.bed_idx != 0) continue;
-            add_occupied_local(ap, /*needs_stride_correction=*/false);
-            ++unsel_blocked;
+        std::vector<Vec2f> empty_cells = Plater::get_empty_cells(step);
+        size_t n=std::min(m_selected.size(), empty_cells.size());
+        for (size_t i = 0; i < n; i++) {
+            m_selected[i].translation = scaled<coord_t>(empty_cells[i]);
+            m_selected[i].translation -= offset_on_origin;
+            m_selected[i].bed_idx= 0;
         }
-        for (const auto &ap : m_selected) {
-            if (ap.priority > 0) {
-                add_occupied_local(ap, /*needs_stride_correction=*/true);
-                ++tmpl_blocked;
-            }
+        for (size_t i = n; i < m_selected.size(); i++) {
+            m_selected[i].bed_idx = -1;
         }
-
-        const size_t cells_before = empty_cells.size();
-        if (!occupied.empty()) {
-            const double half_x = step(0) / 2.0;
-            const double half_y = step(1) / 2.0;
-            // 严格相交（带 ε 容差），避免浮点贴边误判导致 grid 出现不规则缺口。
-            auto strict_overlap = [](const BoundingBoxf &a, const BoundingBoxf &b) {
-                const double ix = std::min(a.max.x(), b.max.x()) - std::max(a.min.x(), b.min.x());
-                const double iy = std::min(a.max.y(), b.max.y()) - std::max(a.min.y(), b.min.y());
-                return ix > EPSILON && iy > EPSILON;
-            };
-            empty_cells.erase(
-                std::remove_if(empty_cells.begin(), empty_cells.end(),
-                    [&](const Vec2f &c) {
-                        BoundingBoxf cell(
-                            Vec2d(c.x() - half_x, c.y() - half_y),
-                            Vec2d(c.x() + half_x, c.y() + half_y)
-                        );
-                        for (const auto &bb : occupied)
-                            if (strict_overlap(bb, cell)) return true;
-                        return false;
-                    }),
-                empty_cells.end()
-            );
-        }
-
-        // 模板实例 (priority>0) 原位不动；新副本 (priority==0) 顺序填 empty_cells，超出则置 -1。
-        // priority>0 的 ap.translation 是 cur_plate 的 WORLD（来自 mi->get_transformation()），
-        // setter 由 ModelArrange.cpp::get_arrange_poly 设置，命中条件是 p.is_arranged() 而不是
-        // p.bed_idx == 0，所以 finalize 会无条件 set_offset 到 ap.translation。
-        // finalize 主循环会做 `ap.translation += bed_stride_x * ap.col`，这里先把 translation
-        // 从 WORLD 减一个 stride 变成 plate-0 LOCAL，让那一步的 +stride 正好抵消回 WORLD，
-        // 模板对象 ModelInstance 才能 set_offset 回原位置。
-        // 旧实现里这一段被误读为冗余而删除过一次，cur_plate>0 时模板被多加一个 stride
-        // 跑到盘外（见 STUDIO-18064 review 回归）。
-        size_t cell_idx = 0, placed = 0, skipped = 0;
-        for (size_t i = 0; i < m_selected.size(); ++i) {
-            if (was_canceled()) break;
-            if (m_selected[i].priority > 0) {
-                m_selected[i].bed_idx = 0;
-                m_selected[i].translation(X) -= stride_dx;
-                m_selected[i].translation(Y) += stride_dy;
-                continue;
-            }
-            if (cell_idx < empty_cells.size()) {
-                m_selected[i].translation = scaled<coord_t>(empty_cells[cell_idx]);
-                m_selected[i].translation -= offset_on_origin;
-                m_selected[i].bed_idx = 0;
-                ++cell_idx;
-                ++placed;
-            } else {
-                m_selected[i].bed_idx = -1;
-                ++skipped;
-            }
-        }
-
-        BOOST_LOG_TRIVIAL(debug) << "FillBedJob::process[grid]: selected=" << m_selected.size()
-            << ", unselected=" << m_unselected.size()
-            << ", inflation_mm=" << inflation_mm
-            << ", cells " << cells_before << "->" << empty_cells.size()
-            << " (blocked unsel=" << unsel_blocked << ", tmpl=" << tmpl_blocked << ")"
-            << ", placed=" << placed << ", skipped=" << skipped;
     }
     else
         arrangement::arrange(m_selected, m_unselected, m_bedpts, params);
 
+    // finalize just here.
     update_status(m_status_range, was_canceled() ?
                                        _L("Bed filling canceled.") :
                                        _L("Bed filling done."));
@@ -383,6 +266,7 @@ void FillBedJob::finalize()
     ModelObject *model_object = m_plater->model().objects[m_object_idx];
     if (model_object->instances.empty()) return;
 
+    //BBS: partplate
     PartPlateList& plate_list = m_plater->get_partplate_list();
     int plate_cols = plate_list.get_plate_cols();
     int cur_plate = plate_list.get_curr_plate_index();
@@ -396,19 +280,23 @@ void FillBedJob::finalize()
     int oldSize = m_plater->model().objects.size();
 
     if (added_cnt > 0) {
+        //BBS: adjust the selected instances
         for (ArrangePolygon& ap : m_selected) {
             if (ap.bed_idx != 0) {
                 BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":skipped: bed_id %1%, trans {%2%,%3%}") % ap.bed_idx % unscale<double>(ap.translation(X)) % unscale<double>(ap.translation(Y));
-                continue;
+                /*if (ap.itemid == -1)*/
+                    continue;
+                ap.bed_idx = plate_list.get_plate_count();
             }
             else
                 ap.bed_idx = cur_plate;
 
-            // STUDIO-15820: 把 plate-0 局部坐标平移回 cur_plate 世界坐标，否则非 0 号盘的新副本会落到 0 号盘。
-            ap.row = ap.bed_idx / plate_cols;
-            ap.col = ap.bed_idx % plate_cols;
-            ap.translation(X) += bed_stride_x(m_plater) * ap.col;
-            ap.translation(Y) -= bed_stride_y(m_plater) * ap.row;
+            if (m_selected.size() <= 100) {
+                ap.row = ap.bed_idx / plate_cols;
+                ap.col = ap.bed_idx % plate_cols;
+                ap.translation(X) += bed_stride_x(m_plater) * ap.col;
+                ap.translation(Y) -= bed_stride_y(m_plater) * ap.row;
+            }
 
             ap.apply();
 
@@ -423,6 +311,14 @@ void FillBedJob::finalize()
         }
 
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": paste_objects_into_list";
+
+        /*for (ArrangePolygon& ap : m_selected) {
+            if (ap.bed_idx != arrangement::UNARRANGED && (ap.priority != 0 || ap.bed_idx == 0))
+                ap.apply();
+        }*/
+
+        //model_object->ensure_on_bed();
+        //BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ": model_object->ensure_on_bed()";
 
         m_plater->update();
     }

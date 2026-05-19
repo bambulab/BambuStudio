@@ -1,20 +1,14 @@
 #include "../libslic3r.h"
 #include "../Model.hpp"
 #include "../TriangleMesh.hpp"
-#include "../TexturePainting.hpp"
 
 #include "OBJ.hpp"
-#include "ResourcePathUtils.hpp"
 #include "objparser.hpp"
 
 #include <string>
-#include <fstream>
-#include <map>
 
 #include <boost/log/trivial.hpp>
 #include <boost/locale.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/nowide/fstream.hpp>
 
 #ifdef _WIN32
 #define DIR_SEPARATOR '\\'
@@ -28,7 +22,7 @@
 
 namespace Slic3r {
 
-bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::string &message, bool gamma_correct, ObjParser::MtlData *out_mtl)
+bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::string &message, bool gamma_correct)
 {
     if (meshptr == nullptr)
         return false;
@@ -52,26 +46,33 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
                 continue;
             }
             exist_mtl = true;
+            bool  mtl_name_is_path = false;
             std::wstring   wide_mtl_name = boost::locale::conv::to_utf<wchar_t>(mtl_name, "UTF-8");
             if (boost::istarts_with(wide_mtl_name,"./")){
                 boost::replace_first(wide_mtl_name, "./", "");
             }
-            const boost::filesystem::path requested_mtl_path(wide_mtl_name);
-            const boost::filesystem::path obj_dir = boost::filesystem::path(path).parent_path();
-            const boost::filesystem::path mtl_path = requested_mtl_path.is_absolute() ?
-                resource_path::resolve_existing_path_case_insensitive(requested_mtl_path, "load_obj: mtllib") :
-                resource_path::resolve_existing_relative_path_case_insensitive(obj_dir, requested_mtl_path, "load_obj: mtllib");
-
-            if (!mtl_path.empty()) {
-                const std::string mtl_path_string = mtl_path.string();
-                if (!ObjParser::mtlparse(mtl_path_string.c_str(), mtl_data)) {
-                    BOOST_LOG_TRIVIAL(error) << "load_obj:load_mtl: failed to parse " << mtl_path_string;
+            boost::filesystem::path mtl_abs_path(wide_mtl_name);
+            if (boost::filesystem::exists(mtl_abs_path)) {
+                mtl_name_is_path = true;
+            }
+            boost::filesystem::path mtl_path;
+            if (!mtl_name_is_path) {
+                boost::filesystem::path full_path(path);
+                auto  dir      = full_path.parent_path().wstring();
+                auto  mtl_file = dir + L"/" + wide_mtl_name;
+                boost::filesystem::path temp_mtl_path(mtl_file);
+                mtl_path = temp_mtl_path;
+            }
+            auto    _mtl_path = mtl_name_is_path ? mtl_abs_path.string().c_str() : mtl_path.string().c_str();
+            if (boost::filesystem::exists(mtl_name_is_path ? mtl_abs_path : mtl_path)) {
+                if (!ObjParser::mtlparse(_mtl_path, mtl_data)) {
+                    BOOST_LOG_TRIVIAL(error) << "load_obj:load_mtl: failed to parse " << _mtl_path;
                     message = _L("load mtl in obj: failed to parse");
                     return false;
                 }
             }
             else {
-                BOOST_LOG_TRIVIAL(error) << "load_obj: failed to load mtl_path:" << requested_mtl_path;
+                BOOST_LOG_TRIVIAL(error) << "load_obj: failed to load mtl_path:" << _mtl_path;
             }
         }
     }
@@ -240,16 +241,14 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
     }
     if (meshptr->volume() < 0)
         meshptr->flip_triangles();
-    if (out_mtl)
-        *out_mtl = mtl_data;
     return true;
 }
 
-bool load_obj(const char *path, Model *model, ObjInfo& obj_info, std::string &message, const char *object_name_in, bool gamma_correct, ObjParser::MtlData *out_mtl)
+bool load_obj(const char *path, Model *model, ObjInfo& obj_info, std::string &message, const char *object_name_in,bool gamma_correct)
 {
     TriangleMesh mesh;
 
-    bool ret = load_obj(path, &mesh, obj_info, message, gamma_correct, out_mtl);
+    bool ret = load_obj(path, &mesh, obj_info, message, gamma_correct);
 
     if (ret) {
         std::string  object_name;
@@ -281,144 +280,6 @@ bool store_obj(const char *path, Model *model)
 {
     TriangleMesh mesh = model->mesh();
     return store_obj(path, &mesh);
-}
-
-bool obj_to_textured_mesh(
-    const ObjInfo& obj_info,
-    const indexed_triangle_set& its,
-    const ObjParser::MtlData& mtl_data,
-    const std::string& obj_directory,
-    TexturedMesh& out)
-{
-    if (its.vertices.empty() || its.indices.empty() || !obj_info.has_uv_png)
-        return false;
-
-    const size_t nv = its.vertices.size();
-    const size_t nf = its.indices.size();
-
-    // 1. Copy vertices
-    out.vertices.resize(nv);
-    for (size_t i = 0; i < nv; ++i)
-        out.vertices[i] = {its.vertices[i].x(), its.vertices[i].y(), its.vertices[i].z()};
-
-    // 2. Copy face indices
-    out.indices.resize(nf);
-    for (size_t i = 0; i < nf; ++i)
-        out.indices[i] = {its.indices[i][0], its.indices[i][1], its.indices[i][2]};
-
-    // 3. Build per-face UV (uv_coords + uv_indices)
-    // OBJ UV convention: V=0 at bottom (OpenGL); texture sampling expects V=0 at top (like glTF/OpenCV).
-    // Flip V here so downstream code works uniformly.
-    if (!obj_info.uvs.empty()) {
-        const size_t uv_face_count = obj_info.uvs.size();
-        out.uv_coords.resize(uv_face_count * 3);
-        out.uv_indices.resize(nf);
-        for (size_t fi = 0; fi < nf; ++fi) {
-            if (fi < uv_face_count) {
-                int base = static_cast<int>(fi * 3);
-                out.uv_coords[base + 0] = {obj_info.uvs[fi][0].x(), 1.f - obj_info.uvs[fi][0].y()};
-                out.uv_coords[base + 1] = {obj_info.uvs[fi][1].x(), 1.f - obj_info.uvs[fi][1].y()};
-                out.uv_coords[base + 2] = {obj_info.uvs[fi][2].x(), 1.f - obj_info.uvs[fi][2].y()};
-                out.uv_indices[fi] = {base, base + 1, base + 2};
-            } else {
-                out.uv_indices[fi] = {0, 0, 0};
-            }
-        }
-    }
-
-    // 4. Build material list and load textures from disk
-    // Map: material name -> material index
-    std::map<std::string, int> mtl_name_to_idx;
-    for (size_t i = 0; i < mtl_data.mtl_orders.size(); ++i)
-        mtl_name_to_idx[mtl_data.mtl_orders[i]] = static_cast<int>(i);
-
-    const int num_materials = static_cast<int>(mtl_data.mtl_orders.size());
-    out.material_colors.resize(num_materials, {1.f, 1.f, 1.f, 1.f});
-    out.material_texture_map.resize(num_materials, -1);
-
-    // Map: texture filename -> index in out.textures
-    std::map<std::string, int> png_to_tex_idx;
-
-    for (int mi = 0; mi < num_materials; ++mi) {
-        const std::string& name = mtl_data.mtl_orders[mi];
-        auto it = mtl_data.new_mtl_unmap.find(name);
-        if (it == mtl_data.new_mtl_unmap.end())
-            continue;
-        const auto& mtl = *(it->second);
-
-        // Material color from Kd
-        out.material_colors[mi] = {mtl.Kd[0], mtl.Kd[1], mtl.Kd[2], mtl.Tr};
-
-        // Texture from map_Kd
-        if (mtl.map_Kd.empty())
-            continue;
-
-        auto tex_it = png_to_tex_idx.find(mtl.map_Kd);
-        if (tex_it != png_to_tex_idx.end()) {
-            out.material_texture_map[mi] = tex_it->second;
-            continue;
-        }
-
-        // Resolve texture file path.
-        const boost::filesystem::path requested_tex_path(mtl.map_Kd);
-        const boost::filesystem::path tex_path = requested_tex_path.is_absolute() ?
-            resource_path::resolve_existing_path_case_insensitive(requested_tex_path, "obj_to_textured_mesh: map_Kd") :
-            resource_path::resolve_existing_relative_path_case_insensitive(
-                boost::filesystem::path(obj_directory), requested_tex_path, "obj_to_textured_mesh: map_Kd");
-
-        if (tex_path.empty()) {
-            BOOST_LOG_TRIVIAL(warning) << "obj_to_textured_mesh: texture not found: " << requested_tex_path;
-            continue;
-        }
-
-        // Read raw file bytes
-        boost::nowide::ifstream file(tex_path.string(), std::ios::binary | std::ios::ate);
-        if (!file.is_open())
-            continue;
-        auto file_size = file.tellg();
-        if (file_size <= 0)
-            continue;
-        file.seekg(0, std::ios::beg);
-
-        TextureImage ti;
-        ti.data.resize(static_cast<size_t>(file_size));
-        file.read(reinterpret_cast<char*>(ti.data.data()), file_size);
-        ti.width = -1;
-        ti.height = -1;
-        ti.channels = 0;
-
-        int new_idx = static_cast<int>(out.textures.size());
-        out.textures.push_back(std::move(ti));
-        png_to_tex_idx[mtl.map_Kd] = new_idx;
-        out.material_texture_map[mi] = new_idx;
-    }
-
-    // 5. Build per-face material_ids from usemtls ranges
-    out.material_ids.resize(nf, -1);
-    if (!obj_info.usemtls.empty()) {
-        for (size_t fi = 0; fi < nf; ++fi) {
-            int face_idx = static_cast<int>(fi);
-            for (size_t k = 0; k < obj_info.usemtls.size(); ++k) {
-                const auto& um = obj_info.usemtls[k];
-                if (face_idx >= um.face_start && face_idx <= um.face_end) {
-                    auto name_it = mtl_name_to_idx.find(um.name);
-                    if (name_it != mtl_name_to_idx.end())
-                        out.material_ids[fi] = name_it->second;
-                    break;
-                }
-            }
-        }
-    }
-
-    if (out.textures.empty()) {
-        BOOST_LOG_TRIVIAL(warning) << "obj_to_textured_mesh: no textures loaded";
-        return false;
-    }
-
-    BOOST_LOG_TRIVIAL(info) << "obj_to_textured_mesh: " << nf << " faces, "
-                            << out.textures.size() << " textures, "
-                            << num_materials << " materials";
-    return true;
 }
 
 }; // namespace Slic3r

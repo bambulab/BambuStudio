@@ -29,7 +29,7 @@
     "sparse_infill_speed": "50",
     "interface_shells": "0",
     "detect_overhang_wall": "0",
-    "reduce_infill_retraction_mode": "Disabled",
+    "reduce_infill_retraction": "0",
     "wall_loops": "3",
     "inner_wall_line_width": "0.45",
     "inner_wall_speed": "40",

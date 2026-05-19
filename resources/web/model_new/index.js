@@ -279,8 +279,8 @@ function isImageFileTail(fileTail) {
 
 function ConstructFileHtml( ID, pItem ){
   let fTotal=pItem.length;
-  let $container = $("#"+ID);
-  $container.empty();
+	
+	let strHtml='';
   for( let f=0;f<fTotal;f++ ){
     let pOne=pItem[f];
 		
@@ -304,28 +304,19 @@ function ConstructFileHtml( ID, pItem ){
       ImgPath='img/icon_pdf.svg';
     }
 
-    let $attachment = $('<div>').addClass('attachment');
-    if (isImageFile && tPath) {
-      $attachment.addClass('attachment-image');
-    }
+    // base64 图片不发送外部打开指令
+    let onclick = '';
     if (tPath) {
-      $attachment.on('click', function() {
-        OnClickOpenFile(tPath);
-      });
+      onclick = ' onClick="OnClickOpenFile(\''+tPath+'\')"';
     }
-
-    let $img = $('<img>').attr('alt', tName);
     if (isImageFile && tPath) {
-      $img.addClass('attachment-thumb').attr('src', tPath);
+      strHtml += '<div class="attachment attachment-image"' + onclick + '><img class="attachment-thumb" src="' + tPath + '" alt="' + tName + '">' + tName + '</div>';
     } else {
-      $img.attr('src', ImgPath);
+      strHtml += '<div class="attachment"' + onclick + '><img src="' + ImgPath + '" alt="' + tName + '">' + tName + '</div>';
     }
-
-    $attachment.append($img);
-    $attachment.append(document.createTextNode(tName));
-    $container.append($attachment);
   }
-  if( fTotal>0 ) {$container.show();}
+  $("#"+ID).html( strHtml );
+  if( fTotal>0 ) {$("#"+ID).show();}
 }
 
 function OnClickOpenFile( strFullPath )

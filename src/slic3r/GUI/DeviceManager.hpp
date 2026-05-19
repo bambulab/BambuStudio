@@ -557,8 +557,6 @@ public:
     bool is_support_active_arc_fitting{false};
     bool is_support_liveview_preview{false};
     bool is_support_check_track_switch_match_slice_printer{ false };
-    bool is_support_model_internal_storage{false};
-    int  ams_preload_version{0};
 
     bool installed_upgrade_kit{false};
     int  bed_temperature_limit = -1;
@@ -761,11 +759,6 @@ public:
     /*for more extruder*/
     bool                        is_enable_np{ false };
     bool                        is_enable_ams_np{ false };
-    bool                        is_support_filament_32_colors{ false };
-
-    // Returns the maximum filament color count allowed to be sent to this printer.
-    // Returns 0 when there is no explicit upper bound (legacy behavior for is_enable_np).
-    int get_max_filament_color_count() const;
 
     /*vi slot data*/
     std::vector<DevAmsTray> vt_slot;

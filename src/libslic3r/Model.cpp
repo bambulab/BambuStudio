@@ -35,6 +35,8 @@
 // BBS: for segment
 #include "MeshBoolean.hpp"
 #include "Format/3mf.hpp"
+#include "ag/customcut/ColorCutIntegrationBridge.hpp"
+#include "ag/customcut/ColorCutRepositoryBridge.hpp"
 
 // Transtltion
 #include "I18N.hpp"
@@ -104,8 +106,6 @@ Model& Model::assign_copy(const Model &rhs)
     this->md_name = rhs.md_name;
     this->md_value = rhs.md_value;
 
-    this->texture_mesh = rhs.texture_mesh;
-
     return *this;
 }
 
@@ -143,7 +143,6 @@ Model& Model::assign_copy(Model &&rhs)
     this->mk_version = rhs.mk_version;
     this->md_name = rhs.md_name;
     this->md_value = rhs.md_value;
-    this->texture_mesh = std::move(rhs.texture_mesh);
     this->backup_path = std::move(rhs.backup_path);
     this->object_backup_id_map = std::move(rhs.object_backup_id_map);
     this->next_object_backup_id = rhs.next_object_backup_id;
@@ -194,8 +193,7 @@ Model Model::read_from_step(const std::string&                                  
                             std::function<int(Slic3r::Step&, double&, double&, bool&)>     step_mesh_fn,
                             double                                                  linear_defletion,
                             double                                                  angle_defletion,
-                            bool                                                   is_split_compound,
-                            std::function<void(const std::vector<std::string>&)>    open_shell_warn_fn)
+                            bool                                                   is_split_compound)
 {
     Model model;
     bool result = false;
@@ -205,9 +203,6 @@ Model Model::read_from_step(const std::string&                                  
     status = step_file.load();
     if(status != Step::Step_Status::LOAD_SUCCESS) {
         goto _finished;
-    }
-    if (open_shell_warn_fn && !step_file.get_unclosed_shells().empty()) {
-        open_shell_warn_fn(step_file.get_unclosed_shells());
     }
     if (step_mesh_fn) {
         if (step_mesh_fn(step_file, linear_defletion, angle_defletion, is_split_compound) == -1) {
@@ -243,25 +238,6 @@ _finished:
         model.add_default_instances();
 
     return model;
-}
-
-static void add_textured_mesh_to_model(Model& model, const TexturedMesh& tex_mesh, const std::string& input_file)
-{
-    std::string object_name = boost::filesystem::path(input_file).filename().string();
-
-    indexed_triangle_set its;
-    its.vertices.resize(tex_mesh.vertices.size());
-    for (size_t i = 0; i < tex_mesh.vertices.size(); ++i)
-        its.vertices[i] = Vec3f(tex_mesh.vertices[i][0], tex_mesh.vertices[i][1], tex_mesh.vertices[i][2]);
-    its.indices.resize(tex_mesh.indices.size());
-    for (size_t i = 0; i < tex_mesh.indices.size(); ++i)
-        its.indices[i] = Vec3i(tex_mesh.indices[i][0], tex_mesh.indices[i][1], tex_mesh.indices[i][2]);
-
-    its_merge_vertices(its);
-    its_remove_degenerate_faces(its);
-    its_compactify_vertices(its);
-
-    model.add_object(object_name.c_str(), input_file.c_str(), std::move(TriangleMesh(std::move(its))));
 }
 
 // BBS: add part plate related logic
@@ -307,44 +283,39 @@ Model Model::read_from_file(const std::string&                                  
         result = load_stl(input_file.c_str(), &model, nullptr, stlFn,256);
     else if (boost::algorithm::iends_with(input_file, ".obj")) {
         ObjInfo                 obj_info;
-        ObjParser::MtlData      mtl_data;
-        result = load_obj(input_file.c_str(), &model, obj_info, message, nullptr, (is_xxx && *is_xxx) ? true : false, &mtl_data);
+        result = load_obj(input_file.c_str(), &model, obj_info, message, nullptr, (is_xxx && *is_xxx) ? true : false);
         if (result){
-            if (obj_info.has_uv_png && !obj_info.uvs.empty() && !model.objects.empty()) {
-                auto tex_mesh = std::make_shared<TexturedMesh>();
-                std::string obj_dir = boost::filesystem::path(input_file).parent_path().string();
-                if (obj_to_textured_mesh(obj_info,
-                        model.objects.back()->volumes[0]->mesh().its,
-                        mtl_data, obj_dir, *tex_mesh)) {
-                    model.texture_mesh = tex_mesh;
+            ObjDialogInOut in_out;
+            in_out.model = &model;
+            in_out.lost_material_name = obj_info.lost_material_name;
+            in_out.ml_region          = obj_info.ml_region;
+            in_out.ml_name            = obj_info.ml_name;
+            in_out.ml_id              = obj_info.ml_id;
+            if (obj_info.vertex_colors.size() > 0) {
+                if (objFn) { // 1.result is ok and pop up a dialog
+                    in_out.input_colors      = std::move(obj_info.vertex_colors);
+                    in_out.is_single_color   = false;
+                    in_out.deal_vertex_color = true;
+                    objFn(in_out);
                 }
-            } else {
-                ObjDialogInOut in_out;
-                in_out.model = &model;
-                in_out.lost_material_name = obj_info.lost_material_name;
-                in_out.ml_region          = obj_info.ml_region;
-                in_out.ml_name            = obj_info.ml_name;
-                in_out.ml_id              = obj_info.ml_id;
-                if (obj_info.vertex_colors.size() > 0) {
-                    if (objFn) {
-                        in_out.input_colors      = std::move(obj_info.vertex_colors);
-                        in_out.is_single_color   = false;
-                        in_out.deal_vertex_color = true;
-                        objFn(in_out);
-                    }
-                } else if (obj_info.face_colors.size() > 0 && obj_info.has_uv_png == false) {
-                    if (objFn) {
-                        in_out.input_colors      = std::move(obj_info.face_colors);
-                        in_out.mtl_colors        = std::move(obj_info.mtl_colors);
-                        in_out.mtl_color_names   = std::move(obj_info.mtl_color_names);
-                        in_out.first_time_using_makerlab = obj_info.first_time_using_makerlab;
-                        in_out.is_single_color   = obj_info.is_single_mtl;
-                        in_out.usemtls           = obj_info.usemtls;
-                        in_out.deal_vertex_color = false;
-                        objFn(in_out);
-                    }
+            } else if (obj_info.face_colors.size() > 0 && obj_info.has_uv_png == false) { // mtl file
+                if (objFn) { // 1.result is ok and pop up a dialog
+                    in_out.input_colors      = std::move(obj_info.face_colors);
+                    in_out.mtl_colors        = std::move(obj_info.mtl_colors);
+                    in_out.mtl_color_names   = std::move(obj_info.mtl_color_names);
+                    in_out.first_time_using_makerlab = obj_info.first_time_using_makerlab;
+                    in_out.is_single_color   = obj_info.is_single_mtl;
+                    in_out.usemtls           = obj_info.usemtls;
+                    in_out.deal_vertex_color = false;
+                    objFn(in_out);
                 }
-            }
+            } /*else if (obj_info.has_uv_png && obj_info.uvs.size() > 0) {
+                boost::filesystem::path full_path(input_file);
+                std::string             obj_directory = full_path.parent_path().string();
+                obj_info.obj_dircetory = obj_directory;
+                result = false;
+                message = _L("Importing obj with png function is developing.");
+            }*/
         }
     }
     //BBS: remove the old .amf.xml files
@@ -352,23 +323,6 @@ Model Model::read_from_file(const std::string&                                  
     else if (boost::algorithm::iends_with(input_file, ".amf"))
         //BBS: is_xxx is used for is_inches when load amf
         result = load_amf(input_file.c_str(), config, config_substitutions, &model, is_xxx);
-    else if (boost::algorithm::iends_with(input_file, ".glb") ||
-             boost::algorithm::iends_with(input_file, ".gltf")) {
-        auto tex_mesh = std::make_shared<TexturedMesh>();
-        result = load_gltf(input_file, *tex_mesh, &message);
-        if (result) {
-            model.texture_mesh = tex_mesh;
-            add_textured_mesh_to_model(model, *tex_mesh, input_file);
-        }
-    }
-    else if (boost::algorithm::iends_with(input_file, ".fbx")) {
-        auto tex_mesh = std::make_shared<TexturedMesh>();
-        result = load_fbx(input_file, *tex_mesh, &message);
-        if (result) {
-            model.texture_mesh = tex_mesh;
-            add_textured_mesh_to_model(model, *tex_mesh, input_file);
-        }
-    }
     else if (boost::algorithm::iends_with(input_file, ".3mf"))
         //BBS: add part plate related logic
         // BBS: backup & restore
@@ -388,7 +342,7 @@ Model Model::read_from_file(const std::string&                                  
     }
 #endif
     else
-        throw Slic3r::RuntimeError(_L("Unknown file format. Input file must have .stl, .obj, .amf(.xml), .gltf, .glb, .fbx extension."));
+        throw Slic3r::RuntimeError(_L("Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."));
 
     if (is_cb_cancel) {
         Model empty_model;
@@ -435,6 +389,10 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
 
     bool result = false;
     bool is_bbl_3mf;
+    std::map<int, std::vector<std::string>> local_color_group_map;
+    VolumeColorInfoMap local_volume_color_data;
+    auto *active_color_group_map = color_group_map != nullptr ? color_group_map : &local_color_group_map;
+    auto *active_volume_color_data = volume_color_data != nullptr ? volume_color_data : &local_volume_color_data;
     if (boost::algorithm::iends_with(input_file, ".3mf")) {
         PrusaFileParser prusa_file_parser;
         if (prusa_file_parser.check_3mf_from_prusa(input_file)) {
@@ -444,7 +402,12 @@ Model Model::read_from_archive(const std::string& input_file, DynamicPrintConfig
         } else {
             // BBS: add part plate related logic
             // BBS: backup & restore
-            result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, &is_bbl_3mf, file_version, proFn, options, project, 0, color_group_map, volume_color_data);
+            result = load_bbs_3mf(input_file.c_str(), config, config_substitutions, &model, plate_data, project_presets, &is_bbl_3mf, file_version, proFn, options, project, 0, active_color_group_map, active_volume_color_data);
+            if (result) {
+                std::unordered_map<int, std::vector<std::string>> repository_color_group_map;
+                repository_color_group_map.insert(active_color_group_map->begin(), active_color_group_map->end());
+                ColorCut::RepositoryBridge::register_standard_3mf_colors(repository_color_group_map, *active_volume_color_data);
+            }
         }
     }
     else if (boost::algorithm::iends_with(input_file, ".zip.amf"))
@@ -574,28 +537,15 @@ ModelObject* Model::add_object(const ModelObject &other)
 void Model::set_assembly_pos(ModelObject *model_object)
 {
     if (!model_object) {return;}
-    if (this->objects.size() == 0) { return; }
-    auto set_assembly_mo_offset = [](ModelObject *model_object, Vec3d& offset, const BoundingBoxf3 &mo_box) {
-        for (size_t i = 0; i < model_object->instances.size(); i++) {
-            auto inst = model_object->instances[i];
-            if (i >= 1) {//along y axis
-                offset[1] += (mo_box.size()[1] + 10);
-            }
-            inst->set_assemble_offset(offset);
-        }
-    };
-    auto mo_box = model_object->bounding_box_in_assembly_view();
-    if (this->objects.size() == 1) {
-        Vec3d offset(0, 0, mo_box.size()[2]/2.f);
-        set_assembly_mo_offset(model_object, offset, mo_box);
-        return;
-    }
-    auto cur_assemble_scene_box = this->bounding_box_in_assembly_view(model_object);
+    auto cur_assemble_scene_box = bounding_box_in_assembly_view();
     if (cur_assemble_scene_box.defined) {
         auto offset = cur_assemble_scene_box.center();
+        auto mo_box = model_object->bounding_box_in_assembly_view();
         offset[0] += ((cur_assemble_scene_box.size()[0] / 2.0f + mo_box.size()[0] / 2.0f) + 10);//fix space:10mm
-        offset[2] = mo_box.size()[2] / 2.f;//on the ground
-        set_assembly_mo_offset(model_object, offset, mo_box);
+        offset[2] = cur_assemble_scene_box.min[2] + mo_box.size()[2];
+        model_object->instances[0]->set_assemble_offset(offset);
+        offset[1] += cur_assemble_scene_box.center().y() - model_object->bounding_box_in_assembly_view().center().y();
+        model_object->instances[0]->set_assemble_offset(offset);
     }
 }
 
@@ -654,7 +604,6 @@ void Model::clear_objects()
     this->objects.clear();
     object_backup_id_map.clear();
     next_object_backup_id = 1;
-    texture_mesh.reset();
 }
 
 // BBS: backup, reuse objects
@@ -751,15 +700,10 @@ BoundingBoxf3 Model::bounding_box() const
     return bb;
 }
 
-BoundingBoxf3 Model::bounding_box_in_assembly_view(ModelObject *model_object) const
-{
+BoundingBoxf3 Model::bounding_box_in_assembly_view() const {
     BoundingBoxf3 bb;
-    for (ModelObject *o : this->objects) {
-        if (model_object && model_object == o) {
-            continue;
-        }
+    for (ModelObject *o : this->objects)
         bb.merge(o->bounding_box_in_assembly_view());
-    }
     return bb;
 }
 
@@ -940,13 +884,6 @@ void Model::convert_from_imperial_units(bool only_small_volumes)
                 v->source.is_converted_from_inches = true;
             }
         }
-    if (texture_mesh) {
-        for (auto& v : texture_mesh->vertices) {
-            v[0] *= in_to_mm;
-            v[1] *= in_to_mm;
-            v[2] *= in_to_mm;
-        }
-    }
 }
 
 static constexpr const double volume_threshold_meters = 0.008; // 0.008 = 0.2*0.2*0.2
@@ -974,14 +911,6 @@ void Model::convert_from_meters(bool only_small_volumes)
                 v->source.is_converted_from_meters = true;
             }
         }
-    if (texture_mesh) {
-        const float scale = static_cast<float>(m_to_mm);
-        for (auto& v : texture_mesh->vertices) {
-            v[0] *= scale;
-            v[1] *= scale;
-            v[2] *= scale;
-        }
-    }
 }
 
 static constexpr const double zero_volume = 0.0000000001;
@@ -1152,7 +1081,6 @@ void Model::load_from(Model& model)
     mk_version = model.mk_version;
     md_name = model.md_name;
     md_value = model.md_value;
-    texture_mesh = std::move(model.texture_mesh);
     model.design_info.reset();
     model.model_info.reset();
     model.profile_info.reset();
@@ -1374,6 +1302,7 @@ ModelVolume* ModelObject::add_volume(const ModelVolume &other, ModelVolumeType t
         v->set_type(type);
 
     v->cut_info = other.cut_info;
+    ColorCut::IntegrationBridge::replicate_external_volume_appearance_data(other, *v);
 
     this->volumes.push_back(v);
 	// The volume should already be centered at this point of time when copying shared pointers of the triangle mesh and convex hull.
@@ -1387,6 +1316,7 @@ ModelVolume* ModelObject::add_volume(const ModelVolume &other, ModelVolumeType t
 ModelVolume* ModelObject::add_volume(const ModelVolume &other, TriangleMesh &&mesh)
 {
     ModelVolume* v = new ModelVolume(this, other, std::move(mesh));
+    ColorCut::IntegrationBridge::replicate_external_volume_appearance_data(other, *v);
     this->volumes.push_back(v);
     v->center_geometry_after_creation();
     this->invalidate_bounding_box();
@@ -2249,7 +2179,8 @@ void ModelObject::process_volume_cut(ModelVolume *            volume,
                         const Transform3d &      cut_matrix,
                         ModelObjectCutAttributes attributes,
                         TriangleMesh &           upper_mesh,
-                        TriangleMesh &           lower_mesh)
+                        TriangleMesh &           lower_mesh,
+                        CutMeshProvenance *      provenance)
 {
     const auto volume_matrix = volume->get_matrix();
 
@@ -2265,7 +2196,7 @@ void ModelObject::process_volume_cut(ModelVolume *            volume,
     mesh.transform(invert_cut_matrix * instance_matrix * volume_matrix, true);
 
     indexed_triangle_set upper_its, lower_its;
-    cut_mesh(mesh.its, 0.0f, &upper_its, &lower_its);
+    cut_mesh(mesh.its, 0.0f, &upper_its, &lower_its, true, provenance);
     if (attributes.has(ModelObjectCutAttribute::KeepUpper))
         upper_mesh = TriangleMesh(upper_its);
     if (attributes.has(ModelObjectCutAttribute::KeepLower))
@@ -2273,7 +2204,9 @@ void ModelObject::process_volume_cut(ModelVolume *            volume,
 }
 
 void ModelObject::process_solid_part_cut(ModelVolume *            volume,
+                                         const std::optional<ColorCut::VolumeAppearanceSnapshot> &appearance_snapshot,
                                          const Transform3d &      instance_matrix,
+                                         const size_t             instance,
                                          const Transform3d &      cut_matrix,
                                          const std::array<Vec3d, 4> &plane_points,
                                          ModelObjectCutAttributes attributes,
@@ -2281,22 +2214,65 @@ void ModelObject::process_solid_part_cut(ModelVolume *            volume,
                                          ModelObject *            lower,
                                          Vec3d &                  local_displace)
 {
-    // Perform cut
+    // Perform cut. Capture provenance so cap (newly-created cut-surface) triangles
+    // can be marked on the resulting volumes via `exterior_facets`. Without this,
+    // the ColorCut appearance-transfer pipeline cannot identify cap triangles for
+    // angled cuts and falls back to nearest-source colouring, producing the
+    // chequer-board pattern reported on -38/-32 degree planar cuts.
     TriangleMesh upper_mesh, lower_mesh;
-    process_volume_cut(volume, instance_matrix, cut_matrix, attributes, upper_mesh, lower_mesh);
+    CutMeshProvenance provenance;
+    process_volume_cut(volume, instance_matrix, cut_matrix, attributes, upper_mesh, lower_mesh, &provenance);
+
+    auto mark_exterior_facets = [volume](ModelVolume *target_volume,
+                                         const std::vector<CutMeshFacetProvenance> &facet_provenance) {
+        if (target_volume == nullptr)
+            return;
+        target_volume->exterior_facets.reset();
+        target_volume->exterior_facets.reserve(static_cast<int>(facet_provenance.size()));
+        for (size_t triangle_index = 0; triangle_index < facet_provenance.size(); ++triangle_index) {
+            const CutMeshFacetProvenance &fp = facet_provenance[triangle_index];
+            bool mark_triangle = fp.is_cap;
+            if (!mark_triangle && fp.source_facet >= 0) {
+                const std::string carried = volume->exterior_facets.get_triangle_as_string(fp.source_facet);
+                mark_triangle = !carried.empty();
+            }
+            if (mark_triangle)
+                target_volume->exterior_facets.set_triangle_from_string(static_cast<int>(triangle_index), "1");
+        }
+        target_volume->exterior_facets.shrink_to_fit();
+    };
 
     // Add required cut parts to the objects
     if (attributes.has(ModelObjectCutAttribute::CutToParts)) {
         add_cut_volume(upper_mesh, upper, volume, cut_matrix, "_A");
+        if (!upper_mesh.empty()) {
+            upper->volumes.back()->reset_from_upper();
+            mark_exterior_facets(upper->volumes.back(), provenance.upper_facets);
+            ColorCut::IntegrationBridge::reapply_using_cut_provenance(*volume, *upper->volumes.back(), provenance.upper_facets);
+        }
         add_cut_volume(lower_mesh, upper, volume, cut_matrix, "_B");
+        if (!lower_mesh.empty()) {
+            upper->volumes.back()->cut_info.is_from_upper = false;
+            mark_exterior_facets(upper->volumes.back(), provenance.lower_facets);
+            ColorCut::IntegrationBridge::reapply_using_cut_provenance(*volume, *upper->volumes.back(), provenance.lower_facets);
+        }
         return;
     }
 
-    if (attributes.has(ModelObjectCutAttribute::KeepUpper))
+    if (attributes.has(ModelObjectCutAttribute::KeepUpper)) {
         add_cut_volume(upper_mesh, upper, volume, cut_matrix);
+        if (!upper_mesh.empty()) {
+            upper->volumes.back()->reset_from_upper();
+            mark_exterior_facets(upper->volumes.back(), provenance.upper_facets);
+            ColorCut::IntegrationBridge::reapply_using_cut_provenance(*volume, *upper->volumes.back(), provenance.upper_facets);
+        }
+    }
 
     if (attributes.has(ModelObjectCutAttribute::KeepLower) && !lower_mesh.empty()) {
         add_cut_volume(lower_mesh, lower, volume, cut_matrix);
+        lower->volumes.back()->cut_info.is_from_upper = false;
+        mark_exterior_facets(lower->volumes.back(), provenance.lower_facets);
+        ColorCut::IntegrationBridge::reapply_using_cut_provenance(*volume, *lower->volumes.back(), provenance.lower_facets);
 
         // Compute the displacement (in instance coordinates) to be applied to place the upper parts
         // The upper part displacement is set to half of the lower part bounding box
@@ -2426,11 +2402,12 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
 
     for (ModelVolume *volume : volumes) {
         const auto volume_matrix = volume->get_matrix();
+        const std::optional<ColorCut::VolumeAppearanceSnapshot> appearance_snapshot =
+            volume->is_model_part() && !volume->mesh().empty() ? ColorCut::IntegrationBridge::capture_volume_appearance_snapshot(*volume) : std::nullopt;
 
         volume->supported_facets.reset();
         volume->fuzzy_skin_facets.reset();
         volume->seam_facets.reset();
-        volume->mmu_segmentation_facets.reset();
 
         if (! volume->is_model_part()) {
             if (volume->cut_info.is_processed) {
@@ -2444,7 +2421,7 @@ ModelObjectPtrs ModelObject::cut(size_t instance, std::array<Vec3d, 4> plane_poi
             }
         }
         else if (! volume->mesh().empty()) {
-            process_solid_part_cut(volume, instance_matrix, cut_matrix, plane_points, attributes, upper, lower, local_displace);
+            process_solid_part_cut(volume, appearance_snapshot, instance_matrix, instance, cut_matrix, plane_points, attributes, upper, lower, local_displace);
         }
     }
 
@@ -3011,11 +2988,7 @@ void ModelObject::print_info() const
     cout << "number_of_facets = " << mesh.facets_count() << endl;
 
     cout << "manifold = "   << (mesh.stats().manifold() ? "yes" : "no") << endl;
-    if (! mesh.stats().manifold()) {
-        cout << "non_manifold_edges = "    << mesh.stats().non_manifold_edges    << endl;
-        cout << "non_manifold_vertices = " << mesh.stats().non_manifold_vertices << endl;
-    }
-    if (mesh.stats().has_open_edges())
+    if (! mesh.stats().manifold())
         cout << "open_edges = " << mesh.stats().open_edges << endl;
 
     if (mesh.stats().repaired()) {
@@ -3066,9 +3039,7 @@ TriangleMeshStats ModelObject::get_object_stl_stats() const
         const TriangleMeshStats& stats = volume->mesh().stats();
 
         // initialize full_stats (for repaired errors)
-        full_stats.open_edges              += stats.open_edges;
-        full_stats.non_manifold_edges      += stats.non_manifold_edges;
-        full_stats.non_manifold_vertices   += stats.non_manifold_vertices;
+        full_stats.open_edges           += stats.open_edges;
         full_stats.repaired_errors.merge(stats.repaired_errors);
 
         // another used satistics value

@@ -7,7 +7,6 @@
 #include <wx/webviewarchivehandler.h>
 #include <wx/webviewfshandler.h>
 #include <wx/dynlib.h>
-#include <wx/utils.h>
 #if wxUSE_WEBVIEW_EDGE
 #include <wx/msw/webview_edge.h>
 #elif defined(__WXMAC__)
@@ -24,28 +23,8 @@
 #include <gtk/gtk.h>
 #define WEBKIT_API
 struct WebKitWebView;
-#if defined(BBL_WEBKITGTK_4_1)
-struct _JSCValue;
-typedef struct _JSCValue JSCValue;
-#else
 struct WebKitJavascriptResult;
-#endif
 extern "C" {
-#if defined(BBL_WEBKITGTK_4_1)
-WEBKIT_API void
-webkit_web_view_evaluate_javascript                  (WebKitWebView             *web_view,
-                                                      const gchar               *script,
-                                                      gssize                     length,
-                                                      const gchar               *world_name,
-                                                      const gchar               *source_uri,
-                                                      GCancellable              *cancellable,
-                                                      GAsyncReadyCallback       callback,
-                                                      gpointer                  user_data);
-WEBKIT_API JSCValue *
-webkit_web_view_evaluate_javascript_finish           (WebKitWebView             *web_view,
-                                                      GAsyncResult              *result,
-                                                      GError                    **error);
-#else
 WEBKIT_API void
 webkit_web_view_run_javascript                       (WebKitWebView             *web_view,
                                                       const gchar               *script,
@@ -55,10 +34,9 @@ webkit_web_view_run_javascript                       (WebKitWebView             
 WEBKIT_API WebKitJavascriptResult *
 webkit_web_view_run_javascript_finish                (WebKitWebView             *web_view,
                                                       GAsyncResult              *result,
-                                                      GError                    **error);
+						      GError                    **error);
 WEBKIT_API void
-webkit_javascript_result_unref                       (WebKitJavascriptResult    *js_result);
-#endif
+webkit_javascript_result_unref              (WebKitJavascriptResult *js_result);
 }
 
 static GOnce register_handler_once = G_ONCE_INIT;
@@ -77,22 +55,6 @@ register_webview_handler(gpointer data)
 #endif
 
 #ifdef __WIN32__
-
-namespace {
-
-void enable_default_webview2_cdp_for_internal_builds()
-{
-#if !BBL_RELEASE_TO_PUBLIC
-    wxString existing;
-    if (wxGetEnv("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", &existing) && !existing.empty())
-        return;
-
-    wxSetEnv("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
-             "--remote-debugging-port=9222 --remote-allow-origins=*");
-#endif
-}
-
-} // namespace
 
 class WebViewEdge : public wxWebViewEdge
 {
@@ -294,8 +256,6 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
     //BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << url2.ToUTF8();
 
 #ifdef __WIN32__
-    enable_default_webview2_cdp_for_internal_builds();
-
     wxWebView* webView = new WebViewEdge;
     webView->SetUserDataPathOption(BuildEdgeUserDataPath());
 #elif defined(__WXOSX__)
@@ -397,19 +357,6 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
         return true;
 #else
         WebKitWebView *wkWebView = (WebKitWebView *) webView->GetNativeBackend();
-#if defined(BBL_WEBKITGTK_4_1)
-        webkit_web_view_evaluate_javascript(
-            wkWebView, javascript.utf8_str(), -1, NULL, NULL, NULL,
-            [](GObject *wkWebView, GAsyncResult *res, void *) {
-                GError *error = NULL;
-                JSCValue *result = webkit_web_view_evaluate_javascript_finish((WebKitWebView*)wkWebView, res, &error);
-                if (!result) {
-                    if (error) g_error_free(error);
-                } else {
-                    g_object_unref(result);
-                }
-        }, NULL);
-#else
         webkit_web_view_run_javascript(
             wkWebView, javascript.utf8_str(), NULL,
             [](GObject *wkWebView, GAsyncResult *res, void *) {
@@ -420,7 +367,6 @@ bool WebView::RunScript(wxWebView *webView, wxString const &javascript)
                 else
                     webkit_javascript_result_unref (result);
         }, NULL);
-#endif
         return true;
 #endif
     } catch (std::exception &/*e*/) {

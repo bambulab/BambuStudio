@@ -46,6 +46,51 @@ namespace GUI {
 
 static int SecondsSinceLastInput();
 
+static std::string build_agbstudio_lan_liveview_url(
+    int lan_proto,
+    const std::string& lan_ip,
+    const std::string& lan_user,
+    const std::string& lan_passwd,
+    const std::string& machine,
+    const std::string& agent_version,
+    const std::string& dev_ver)
+{
+    std::string url;
+    if (lan_proto == MachineObject::LVL_Local)
+        url = "bambu:///local/" + lan_ip + ".?port=6000&user=" + lan_user + "&passwd=" + lan_passwd;
+    else if (lan_proto == MachineObject::LVL_Rtsps)
+        url = "bambu:///rtsps___" + lan_user + ":" + lan_passwd + "@" + lan_ip + "/streaming/live/1?proto=rtsps";
+    else if (lan_proto == MachineObject::LVL_Rtsp)
+        url = "bambu:///rtsp___" + lan_user + ":" + lan_passwd + "@" + lan_ip + "/streaming/live/1?proto=rtsp";
+
+    if (!url.empty()) {
+        url += "&device=" + machine;
+        url += "&net_ver=" + agent_version;
+        url += "&dev_ver=" + dev_ver;
+        url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
+        url += "&cli_ver=" + std::string(SLIC3R_VERSION);
+    }
+
+    return url;
+}
+
+static bool can_agbstudio_try_lan_liveview(
+    int lan_proto,
+    const std::string& lan_ip,
+    const std::string& lan_passwd,
+    bool disable_lan)
+{
+    return !disable_lan
+        && lan_proto > MachineObject::LVL_Disable
+        && !lan_ip.empty()
+        && !lan_passwd.empty();
+}
+
+static wxString agbstudio_cloud_liveview_limited_message()
+{
+    return _L("Cloud liveview is not available for AGBStudio because Bambu cloud authorization denied the camera stream request. Enable LAN liveview on the printer and make sure AGBStudio knows the printer IP address and access code, then try again.");
+}
+
 MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const wxPoint &pos, const wxSize &size)
     : wxPanel(parent, wxID_ANY, pos, size)
     , m_media_ctrl(media_ctrl)
@@ -315,18 +360,7 @@ void MediaPlayCtrl::Play()
     std::string  agent_version = agent ? agent->get_version() : "";
     if (m_lan_proto > MachineObject::LVL_Disable && (m_lan_mode || !m_remote_proto) && !m_disable_lan && !m_lan_ip.empty()) {
         m_disable_lan = m_remote_proto && !m_lan_mode; // try remote next time
-        std::string url;
-        if (m_lan_proto == MachineObject::LVL_Local)
-            url = "bambu:///local/" + m_lan_ip + ".?port=6000&user=" + m_lan_user + "&passwd=" + m_lan_passwd;
-        else if (m_lan_proto == MachineObject::LVL_Rtsps)
-            url = "bambu:///rtsps___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?proto=rtsps";
-        else if (m_lan_proto == MachineObject::LVL_Rtsp)
-            url = "bambu:///rtsp___" + m_lan_user + ":" + m_lan_passwd + "@" + m_lan_ip + "/streaming/live/1?proto=rtsp";
-        url += "&device=" + m_machine;
-        url += "&net_ver=" + agent_version;
-        url += "&dev_ver=" + m_dev_ver;
-        url += "&cli_id=" + wxGetApp().app_config->get("slicer_uuid");
-        url += "&cli_ver=" + std::string(SLIC3R_VERSION);
+        std::string url = build_agbstudio_lan_liveview_url(m_lan_proto, m_lan_ip, m_lan_user, m_lan_passwd, m_machine, agent_version, m_dev_ver);
 
 #if !BBL_RELEASE_TO_PUBLIC
         BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_passwd(hide_id_middle_string(url, url.find(m_lan_ip), m_lan_ip.length()), {m_lan_passwd});
@@ -390,7 +424,7 @@ void MediaPlayCtrl::Play()
             BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: " << hide_passwd(url, {"?uid=", "channel=", "authkey=", "passwd=", "license=", "token="});
 #endif
 
-            CallAfter([this, m, url] {
+            CallAfter([this, m, url, v, dv] {
                 if (m != m_machine) {
                     BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl drop late ttcode for machine: " << BBLCrossTalk::Crosstalk_DevId(m);
                     return;
@@ -403,7 +437,23 @@ void MediaPlayCtrl::Play()
                             if (n != std::string::npos)
                                 m_failed_code = std::atoi(url.substr(n + 1, url.length() - n - 2).c_str());
                         }
-                        Stop(_L("Connection Failed. Please check the network and try again"), from_u8(url));
+                        BOOST_LOG_TRIVIAL(warning) << "MediaPlayCtrl camera URL request failed for machine " << BBLCrossTalk::Crosstalk_DevId(m)
+                                                   << ": " << url << ", failed_code=" << m_failed_code;
+                        if (m_failed_code == 403) {
+                            if (can_agbstudio_try_lan_liveview(m_lan_proto, m_lan_ip, m_lan_passwd, m_disable_lan)) {
+                                const std::string lan_url = build_agbstudio_lan_liveview_url(m_lan_proto, m_lan_ip, m_lan_user, m_lan_passwd, m_machine, v, dv);
+                                BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl cloud liveview forbidden; trying AGBStudio LAN fallback: "
+                                                        << hide_passwd(hide_id_middle_string(lan_url, lan_url.find(m_lan_ip), m_lan_ip.length()), {m_lan_passwd});
+                                m_failed_code = 0;
+                                m_url = lan_url;
+                                load();
+                                return;
+                            }
+
+                            Stop(agbstudio_cloud_liveview_limited_message(), from_u8(url));
+                        } else {
+                            Stop(_L("Connection Failed. Please check the network and try again"), from_u8(url));
+                        }
                     } else {
                         m_url = url;
                         load();

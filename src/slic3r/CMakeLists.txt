@@ -70,6 +70,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/Widgets/FilamentLoad.hpp
     GUI/Widgets/FanControl.cpp
     GUI/Widgets/FanControl.hpp
+    GUI/Widgets/Scrollbar.cpp
+    GUI/Widgets/Scrollbar.hpp
+    GUI/Widgets/ScrolledWindow.cpp
+    GUI/Widgets/ScrolledWindow.hpp
     GUI/Widgets/StepCtrl.cpp
     GUI/Widgets/StepCtrl.hpp
     GUI/Widgets/ProgressBar.cpp
@@ -140,6 +144,14 @@ set(SLIC3R_GUI_SOURCES
     GUI/Gizmos/GLGizmoFlatten.hpp
     GUI/Gizmos/GLGizmoAdvancedCut.cpp
     GUI/Gizmos/GLGizmoAdvancedCut.hpp
+    GUI/Gizmos/BallEraserBackend.cpp
+    GUI/Gizmos/BallEraserBackend.hpp
+    GUI/Gizmos/GLGizmoBallEraser.cpp
+    GUI/Gizmos/GLGizmoBallEraser.hpp
+    GUI/Gizmos/GLGizmoColorCut.cpp
+    GUI/Gizmos/GLGizmoColorCut.hpp
+    GUI/Gizmos/GLGizmoWarpCut.cpp
+    GUI/Gizmos/GLGizmoWarpCut.hpp
     GUI/Gizmos/GLGizmoHollow.cpp
     GUI/Gizmos/GLGizmoHollow.hpp
     GUI/Gizmos/GLGizmoPainterBase.cpp
@@ -332,8 +344,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/wxExtensions.hpp
     GUI/ObjColorDialog.cpp
     GUI/ObjColorDialog.hpp
-    GUI/TextureImportDialog.hpp
-    GUI/TextureImportDialog.cpp
     GUI/FilamentPickerDialog.cpp
     GUI/FilamentPickerDialog.hpp
     GUI/FilamentBitmapUtils.cpp
@@ -508,8 +518,6 @@ set(SLIC3R_GUI_SOURCES
     GUI/HelioReleaseNote.cpp
     GUI/HelioHistoryDialog.hpp
     GUI/HelioHistoryDialog.cpp
-    GUI/BetaVersionDialog.hpp
-    GUI/BetaVersionDialog.cpp
     GUI/SingleChoiceDialog.hpp
     GUI/SingleChoiceDialog.cpp
     GUI/CaliHistoryDialog.hpp
@@ -640,8 +648,6 @@ set(SLIC3R_GUI_SOURCES
 
 add_subdirectory(GUI/DeviceCore)
 add_subdirectory(GUI/DeviceTab)
-add_subdirectory(GUI/fila_manager)
-add_subdirectory(GUI/DeviceWeb)
 
 if (WIN32)
     list(APPEND SLIC3R_GUI_SOURCES
@@ -685,13 +691,6 @@ if (UNIX AND NOT APPLE)
 endif ()
 
 add_library(libslic3r_gui STATIC ${SLIC3R_GUI_SOURCES})
-
-#if (MSVC)
-#    target_compile_options(libslic3r_gui PRIVATE /Od /Zi)
-#else ()
-#    target_compile_options(libslic3r_gui PRIVATE -O0 -g)
-#endif ()
-
 target_include_directories(libslic3r_gui PRIVATE Utils)
 
 if (WIN32)
@@ -754,18 +753,6 @@ if (UNIX AND NOT APPLE)
     find_package(GTK${SLIC3R_GTK} REQUIRED)
     target_include_directories(libslic3r_gui PRIVATE ${GTK${SLIC3R_GTK}_INCLUDE_DIRS})
     target_link_libraries(libslic3r_gui ${GTK${SLIC3R_GTK}_LIBRARIES})
-
-    pkg_check_modules(WEBKIT2GTK_4_1 QUIET webkit2gtk-4.1)
-    if (WEBKIT2GTK_4_1_FOUND)
-        target_compile_definitions(libslic3r_gui PRIVATE BBL_WEBKITGTK_4_1)
-    else ()
-        pkg_check_modules(WEBKIT2GTK_4_0 QUIET webkit2gtk-4.0)
-        if (WEBKIT2GTK_4_0_FOUND)
-            target_compile_definitions(libslic3r_gui PRIVATE BBL_WEBKITGTK_4_0)
-        else ()
-            message(FATAL_ERROR "Neither webkit2gtk-4.1 nor webkit2gtk-4.0 was found.")
-        endif ()
-    endif ()
 
     # We add GStreamer for bambu:/// support.
     pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)

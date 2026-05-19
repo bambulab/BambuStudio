@@ -101,11 +101,6 @@ func_get_my_message                 NetworkAgent::get_my_message_ptr = nullptr;
 func_check_user_task_report         NetworkAgent::check_user_task_report_ptr = nullptr;
 func_get_user_print_info            NetworkAgent::get_user_print_info_ptr = nullptr;
 func_get_user_tasks                 NetworkAgent::get_user_tasks_ptr = nullptr;
-func_get_filament_spools            NetworkAgent::get_filament_spools_ptr = nullptr;
-func_create_filament_spool          NetworkAgent::create_filament_spool_ptr = nullptr;
-func_update_filament_spool          NetworkAgent::update_filament_spool_ptr = nullptr;
-func_delete_filament_spools         NetworkAgent::delete_filament_spools_ptr = nullptr;
-func_get_filament_config            NetworkAgent::get_filament_config_ptr = nullptr;
 func_get_printer_firmware           NetworkAgent::get_printer_firmware_ptr = nullptr;
 func_get_task_plate_index           NetworkAgent::get_task_plate_index_ptr = nullptr;
 func_get_user_info                  NetworkAgent::get_user_info_ptr = nullptr;
@@ -170,11 +165,8 @@ std::string NetworkAgent::get_libpath_in_current_directory(std::string library_n
     std::string file_name_string(size_needed, 0);
     ::WideCharToMultiByte(0, 0, file_name, wcslen(file_name), file_name_string.data(), size_needed, nullptr, nullptr);
 
-    std::size_t found = file_name_string.find("bambu-studio.exe");
-    if (found == (file_name_string.size() - 16)) {
-        lib_path = library_name + ".dll";
-        lib_path = file_name_string.replace(found, 16, lib_path);
-    }
+    boost::filesystem::path exe_path(file_name_string);
+    lib_path = (exe_path.parent_path() / (library_name + ".dll")).string();
 #else
 #endif
     return lib_path;
@@ -353,11 +345,6 @@ int NetworkAgent::initialize_network_module(bool using_backup, bool validate_cer
     check_user_task_report_ptr        =  reinterpret_cast<func_check_user_task_report>(get_network_function("bambu_network_check_user_task_report"));
     get_user_print_info_ptr           =  reinterpret_cast<func_get_user_print_info>(get_network_function("bambu_network_get_user_print_info"));
     get_user_tasks_ptr                =  reinterpret_cast<func_get_user_tasks>(get_network_function("bambu_network_get_user_tasks"));
-    get_filament_spools_ptr           =  reinterpret_cast<func_get_filament_spools>(get_network_function("bambu_network_get_filament_spools"));
-    create_filament_spool_ptr         =  reinterpret_cast<func_create_filament_spool>(get_network_function("bambu_network_create_filament_spool"));
-    update_filament_spool_ptr         =  reinterpret_cast<func_update_filament_spool>(get_network_function("bambu_network_update_filament_spool"));
-    delete_filament_spools_ptr        =  reinterpret_cast<func_delete_filament_spools>(get_network_function("bambu_network_delete_filament_spools"));
-    get_filament_config_ptr           =  reinterpret_cast<func_get_filament_config>(get_network_function("bambu_network_get_filament_config"));
     get_printer_firmware_ptr          =  reinterpret_cast<func_get_printer_firmware>(get_network_function("bambu_network_get_printer_firmware"));
     get_task_plate_index_ptr          =  reinterpret_cast<func_get_task_plate_index>(get_network_function("bambu_network_get_task_plate_index"));
     get_user_info_ptr                 =  reinterpret_cast<func_get_user_info>(get_network_function("bambu_network_get_user_info"));
@@ -483,11 +470,6 @@ int NetworkAgent::unload_network_module()
     check_user_task_report_ptr        =  nullptr;
     get_user_print_info_ptr           =  nullptr;
     get_user_tasks_ptr                =  nullptr;
-    get_filament_spools_ptr           =  nullptr;
-    create_filament_spool_ptr         =  nullptr;
-    update_filament_spool_ptr         =  nullptr;
-    delete_filament_spools_ptr        =  nullptr;
-    get_filament_config_ptr           =  nullptr;
     get_printer_firmware_ptr          =  nullptr;
     get_task_plate_index_ptr          =  nullptr;
     get_user_info_ptr                 =  nullptr;
@@ -600,6 +582,8 @@ std::string NetworkAgent::get_version()
     bool consistent = true;
     //check the debug consistent first
     if (check_debug_consistent_ptr) {
+        if (std::string(SLIC3R_APP_KEY) == "AGBStudio")
+            return get_version_ptr ? get_version_ptr() : "00.00.00.00";
 #if defined(NDEBUG)
         consistent = check_debug_consistent_ptr(false);
 #else
@@ -1326,66 +1310,6 @@ int NetworkAgent::get_user_tasks(TaskQueryParams params, std::string* http_body)
         ret = get_user_tasks_ptr(network_agent, params, http_body);
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%") %network_agent %ret;
     }
-    return ret;
-}
-
-int NetworkAgent::get_filament_spools(FilamentQueryParams params, std::string* http_body)
-{
-    if (!network_agent || !get_filament_spools_ptr) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unavailable (network_agent="
-            << network_agent << " func_ptr=" << (void*)get_filament_spools_ptr << ")";
-        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
-    }
-    int ret = get_filament_spools_ptr(network_agent, params, http_body);
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") %network_agent %ret;
-    return ret;
-}
-
-int NetworkAgent::create_filament_spool(std::string request_body, std::string* http_body)
-{
-    if (!network_agent || !create_filament_spool_ptr) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unavailable (network_agent="
-            << network_agent << " func_ptr=" << (void*)create_filament_spool_ptr << ")";
-        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
-    }
-    int ret = create_filament_spool_ptr(network_agent, request_body, http_body);
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") %network_agent %ret;
-    return ret;
-}
-
-int NetworkAgent::update_filament_spool(std::string spool_id, std::string request_body, std::string* http_body)
-{
-    if (!network_agent || !update_filament_spool_ptr) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unavailable (network_agent="
-            << network_agent << " func_ptr=" << (void*)update_filament_spool_ptr << ")";
-        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
-    }
-    int ret = update_filament_spool_ptr(network_agent, spool_id, request_body, http_body);
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%, spool_id=%3%") %network_agent %ret %spool_id;
-    return ret;
-}
-
-int NetworkAgent::delete_filament_spools(FilamentDeleteParams params, std::string* http_body)
-{
-    if (!network_agent || !delete_filament_spools_ptr) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unavailable (network_agent="
-            << network_agent << " func_ptr=" << (void*)delete_filament_spools_ptr << ")";
-        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
-    }
-    int ret = delete_filament_spools_ptr(network_agent, params, http_body);
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") %network_agent %ret;
-    return ret;
-}
-
-int NetworkAgent::get_filament_config(std::string* http_body)
-{
-    if (!network_agent || !get_filament_config_ptr) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": unavailable (network_agent="
-            << network_agent << " func_ptr=" << (void*)get_filament_config_ptr << ")";
-        return BAMBU_NETWORK_ERR_INVALID_HANDLE;
-    }
-    int ret = get_filament_config_ptr(network_agent, http_body);
-    BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" : network_agent=%1%, ret=%2%") %network_agent %ret;
     return ret;
 }
 

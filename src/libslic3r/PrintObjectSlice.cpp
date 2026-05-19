@@ -402,30 +402,13 @@ static std::vector<std::vector<ExPolygons>> slices_to_regions(
                                     temp_slices[idx_region + 1].expolygons = std::move(source);
                             } else if ((region.model_volume->is_model_part() && clip_multipart_objects) || region.model_volume->is_negative_volume()) {
                                 // Clip every non-zero region preceding it.
-                                // Order-independent for overlapping MODEL_PARTs: the smaller bbox always
-                                // carves the larger one regardless of vector position. Without this,
-                                // a contained body (e.g. embossed text) listed before its container
-                                // (e.g. plate) gets erased entirely by the container's later carve pass
-                                // and silently drops out of the slice. Negative volumes always carve.
-                                auto bbox_volume = [](const PrintObjectRegions::BoundingBox &b) {
-                                    const auto sz = b.sizes();
-                                    return double(sz.x()) * double(sz.y()) * double(sz.z());
-                                };
-                                const bool current_is_negative = region.model_volume->is_negative_volume();
-                                const double current_vol = current_is_negative ? 0.0 : bbox_volume(*region.bbox);
                                 for (int idx_region2 = 0; idx_region2 < idx_region; ++ idx_region2)
                                     if (! temp_slices[idx_region2].expolygons.empty()) {
                                         // Skip trim_overlap for now, because it slow down the performace so much for some special cases
 #if 1
                                         if (const PrintObjectRegions::VolumeRegion& region2 = layer_range.volume_regions[idx_region2];
-                                            !region2.model_volume->is_negative_volume() && overlap_in_xy(*region.bbox, *region2.bbox)) {
-                                            const bool current_carves = current_is_negative ||
-                                                current_vol <= bbox_volume(*region2.bbox);
-                                            if (current_carves)
-                                                temp_slices[idx_region2].expolygons = diff_ex(temp_slices[idx_region2].expolygons, temp_slices[idx_region].expolygons);
-                                            else
-                                                temp_slices[idx_region].expolygons = diff_ex(temp_slices[idx_region].expolygons, temp_slices[idx_region2].expolygons);
-                                        }
+                                            !region2.model_volume->is_negative_volume() && overlap_in_xy(*region.bbox, *region2.bbox))
+                                            temp_slices[idx_region2].expolygons = diff_ex(temp_slices[idx_region2].expolygons, temp_slices[idx_region].expolygons);
 #else
                                         const PrintObjectRegions::VolumeRegion& region2 = layer_range.volume_regions[idx_region2];
                                         if (!region2.model_volume->is_negative_volume() && overlap_in_xy(*region.bbox, *region2.bbox))
@@ -812,12 +795,7 @@ void PrintObject::slice()
     //BBS: add flag to reload scene for shell rendering
     m_print->set_status(5, L("Slicing mesh"), PrintBase::SlicingStatus::RELOAD_SCENE);
     std::vector<coordf_t> layer_height_profile;
-    bool nozzle_range_reset = false;
-    this->update_layer_height_profile(*this->model_object(), m_slicing_params, layer_height_profile, nozzle_range_reset);
-    if (nozzle_range_reset)
-        this->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL,
-            L("The variable layer height profile has been reset because some layer heights "
-              "exceed the allowed range of the current nozzle."));
+    this->update_layer_height_profile(*this->model_object(), m_slicing_params, layer_height_profile);
     m_print->throw_if_canceled();
     m_typed_slices = false;
     this->clear_layers();
@@ -1167,7 +1145,7 @@ void PrintObject::slice_volumes()
     // Is any ModelVolume MMU painted?
     if (const auto& volumes = this->model_object()->volumes;
         m_print->config().filament_diameter.size() > 1 && // BBS
-        std::find_if(volumes.begin(), volumes.end(), [](const ModelVolume *v) { return v->is_model_part() && !v->mmu_segmentation_facets.empty(); }) != volumes.end()) {
+        std::find_if(volumes.begin(), volumes.end(), [](const ModelVolume* v) { return !v->mmu_segmentation_facets.empty(); }) != volumes.end()) {
 
         // If XY Size compensation is also enabled, notify the user that XY Size compensation
         // would not be used because the object is multi-material painted.

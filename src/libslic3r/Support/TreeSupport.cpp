@@ -923,7 +923,7 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
 
                 Layer* lower_layer = layer->lower_layer;
                 coordf_t lower_layer_offset = layer_nr < enforce_support_layers ? -0.15 * extrusion_width : (float)lower_layer->height / tan(threshold_rad);
-                //lower_layer_offset = std::min(lower_layer_offset, extrusion_width);
+                lower_layer_offset = std::min(lower_layer_offset, extrusion_width);
                 coordf_t support_offset_scaled = scale_(lower_layer_offset);
                 ExPolygons& curr_polys = layer->lslices_extrudable;
                 ExPolygons& lower_polys = lower_layer->lslices_extrudable;
@@ -3458,9 +3458,8 @@ first_pass_next:;
                 to_outside             = projection_onto(next_collision, next_node->position);
                 direction_to_outer     = to_outside - node.position;
                 double dist_to_outer   = unscale_(direction_to_outer.cast<double>().norm());
-                next_node->radius      = (next_node->print_z < DO_NOT_MOVER_UNDER_MM && node.dist_mm_to_top > DO_NOT_MOVER_UNDER_MM) ?
-                                             node.radius + support_extrusion_width / 2. :
-                                             std ::max(node.radius, std::min(next_node->radius, dist_to_outer));
+                next_node->radius      = next_node->print_z < DO_NOT_MOVER_UNDER_MM ? node.radius + max_move_distance :
+                                                                                      std ::max(node.radius, std::min(next_node->radius, dist_to_outer));
                 get_max_move_dist(next_node);
                 m_ts_data->m_mutex.lock();
                 contact_nodes[layer_nr_next].push_back(next_node);

@@ -1,4 +1,6 @@
 #include "CutUtils.hpp"
+#include "ag/customcut/ColorCutIntegrationBridge.hpp"
+#include "ag/customcut/ColorCutRepositoryBridge.hpp"
 #include "Geometry.hpp"
 #include "libslic3r.h"
 #include "Model.hpp"
@@ -6,74 +8,11 @@
 #include "TriangleSelector.hpp"
 #include "ObjectID.hpp"
 #include <boost/log/trivial.hpp>
-#include <queue>
-#include <algorithm>
 
 namespace Slic3r {
 
 using namespace Geometry;
-
-// Walk the source TriangleSelector's split tree and pick the first non-NONE leaf
-// state for source face s. Heavily refined paint within a single source triangle
-// collapses to one state on cut, but the dominant intent is preserved.
-static EnforcerBlockerType first_painted_leaf(TriangleSelector& sel, int root_idx)
-{
-    const auto& tris = sel.get_triangles();
-    if (root_idx < 0 || root_idx >= (int)tris.size()) return EnforcerBlockerType::NONE;
-    std::queue<int> q;
-    q.push(root_idx);
-    while (!q.empty()) {
-        int i = q.front(); q.pop();
-        const auto& t = tris[i];
-        if (!t.valid()) continue;
-        if (!t.is_split()) {
-            if (t.get_state() != EnforcerBlockerType::NONE)
-                return t.get_state();
-        } else {
-            for (int c : t.children) if (c >= 0) q.push(c);
-        }
-    }
-    return EnforcerBlockerType::NONE;
-}
-
-static void propagate_one_annotation(const FacetsAnnotation& src,
-                                     FacetsAnnotation&       dst,
-                                     const TriangleMesh&     src_mesh,
-                                     const TriangleMesh&     dst_mesh,
-                                     const std::vector<int>& dst_to_src_face)
-{
-    if (src.empty() || dst_to_src_face.empty()) return;
-
-    TriangleSelector src_sel(src_mesh);
-    src_sel.deserialize(src.get_data(), true);
-
-    TriangleSelector dst_sel(dst_mesh);
-    bool any = false;
-    const int n_dst = std::min<int>((int)dst_to_src_face.size(),
-                                    (int)dst_mesh.its.indices.size());
-    for (int new_idx = 0; new_idx < n_dst; ++new_idx) {
-        int s = dst_to_src_face[new_idx];
-        if (s < 0) continue;
-        EnforcerBlockerType st = first_painted_leaf(src_sel, s);
-        if (st == EnforcerBlockerType::NONE) continue;
-        dst_sel.set_facet(new_idx, st);
-        any = true;
-    }
-    if (any) dst.set(dst_sel);
-}
-
-static void propagate_paint(const ModelVolume&      src_volume,
-                            ModelVolume&            dst_volume,
-                            const std::vector<int>& dst_to_src_face)
-{
-    if (dst_to_src_face.empty()) return;
-    const TriangleMesh& src_mesh = src_volume.mesh();
-    const TriangleMesh& dst_mesh = dst_volume.mesh();
-    propagate_one_annotation(src_volume.supported_facets,        dst_volume.supported_facets,        src_mesh, dst_mesh, dst_to_src_face);
-    propagate_one_annotation(src_volume.seam_facets,             dst_volume.seam_facets,             src_mesh, dst_mesh, dst_to_src_face);
-    propagate_one_annotation(src_volume.mmu_segmentation_facets, dst_volume.mmu_segmentation_facets, src_mesh, dst_mesh, dst_to_src_face);
-    propagate_one_annotation(src_volume.fuzzy_skin_facets,       dst_volume.fuzzy_skin_facets,       src_mesh, dst_mesh, dst_to_src_face);
-}
+namespace CCIBridge = ColorCut::IntegrationBridge;
 
 static void apply_tolerance(ModelVolume *vol)
 {
@@ -109,7 +48,7 @@ static void add_cut_volume(TriangleMesh &     mesh,
                            const Transform3d &cut_matrix,
                            const std::string &suffix = {},
                            ModelVolumeType    type   = ModelVolumeType::MODEL_PART,
-                           const std::vector<int>* src_faces = nullptr)
+                           std::optional<bool> is_from_upper = std::nullopt)
 {
     if (mesh.empty())
         return;
@@ -125,8 +64,9 @@ static void add_cut_volume(TriangleMesh &     mesh,
     assert(vol->config.id() != src_volume->config.id());
     vol->set_material(src_volume->material_id(), *src_volume->material());
     vol->cut_info = src_volume->cut_info;
+    if (is_from_upper.has_value())
+        vol->cut_info.is_from_upper = *is_from_upper;
 
-    if (src_faces && src_volume) propagate_paint(*src_volume, *vol, *src_faces);
 }
 
 static void process_volume_cut(ModelVolume *            volume,
@@ -135,8 +75,7 @@ static void process_volume_cut(ModelVolume *            volume,
                                ModelObjectCutAttributes attributes,
                                TriangleMesh &           upper_mesh,
                                TriangleMesh &           lower_mesh,
-                               std::vector<int>*        upper_src_faces = nullptr,
-                               std::vector<int>*        lower_src_faces = nullptr)
+                               CutMeshProvenance *      provenance = nullptr)
 {
     const auto volume_matrix = volume->get_matrix();
 
@@ -150,11 +89,58 @@ static void process_volume_cut(ModelVolume *            volume,
     mesh.transform(invert_cut_matrix * instance_matrix * volume_matrix, true);
 
     indexed_triangle_set upper_its, lower_its;
-    cut_mesh(mesh.its, 0.0f, &upper_its, &lower_its, true, upper_src_faces, lower_src_faces);
+    cut_mesh(mesh.its, 0.0f, &upper_its, &lower_its, true, provenance);
     if (attributes.has(ModelObjectCutAttribute::KeepUpper))
         upper_mesh = TriangleMesh(upper_its);
     if (attributes.has(ModelObjectCutAttribute::KeepLower))
         lower_mesh = TriangleMesh(lower_its);
+}
+
+static bool is_temp_cut_surface_triangle(const ModelVolume &volume, size_t triangle_index)
+{
+    return !volume.exterior_facets.get_triangle_as_string(static_cast<int>(triangle_index)).empty();
+}
+
+static void propagate_temp_cut_surface_facets(
+    const std::vector<CutMeshFacetProvenance> &facet_provenance,
+    const ModelVolume &source_volume,
+    ModelVolume &target_volume)
+{
+    target_volume.exterior_facets.reset();
+    target_volume.exterior_facets.reserve(static_cast<int>(facet_provenance.size()));
+
+    for (size_t triangle_index = 0; triangle_index < facet_provenance.size(); ++triangle_index) {
+        const CutMeshFacetProvenance &provenance = facet_provenance[triangle_index];
+        bool mark_triangle = provenance.is_cap;
+
+        if (!mark_triangle && provenance.source_facet >= 0)
+            mark_triangle = is_temp_cut_surface_triangle(source_volume, static_cast<size_t>(provenance.source_facet));
+
+        if (mark_triangle)
+            target_volume.exterior_facets.set_triangle_from_string(static_cast<int>(triangle_index), "1");
+    }
+
+    target_volume.exterior_facets.shrink_to_fit();
+}
+
+static void merge_temp_cut_surface_data(const std::vector<const ModelVolume *> &source_volumes, ModelVolume &target_volume)
+{
+    target_volume.exterior_facets.reset();
+    target_volume.exterior_facets.reserve(static_cast<int>(target_volume.mesh().its.indices.size()));
+
+    int target_triangle_index = 0;
+    for (const ModelVolume *volume : source_volumes) {
+        if (volume == nullptr)
+            continue;
+
+        for (size_t triangle_index = 0; triangle_index < volume->mesh().its.indices.size(); ++triangle_index, ++target_triangle_index) {
+            const std::string marker = volume->exterior_facets.get_triangle_as_string(static_cast<int>(triangle_index));
+            if (!marker.empty())
+                target_volume.exterior_facets.set_triangle_from_string(target_triangle_index, marker);
+        }
+    }
+
+    target_volume.exterior_facets.shrink_to_fit();
 }
 
 static void process_connector_cut(ModelVolume *               volume,
@@ -273,26 +259,39 @@ static void process_solid_part_cut(
 {
     // Perform cut
     TriangleMesh upper_mesh, lower_mesh;
-    std::vector<int> upper_src, lower_src;
-    process_volume_cut(volume, instance_matrix, cut_matrix, attributes, upper_mesh, lower_mesh, &upper_src, &lower_src);
+    CutMeshProvenance provenance;
+    process_volume_cut(volume, instance_matrix, cut_matrix, attributes, upper_mesh, lower_mesh, &provenance);
 
     // Add required cut parts to the objects
 
     if (attributes.has(ModelObjectCutAttribute::CutToParts)) {
-        add_cut_volume(upper_mesh, upper, volume, cut_matrix, "_A", ModelVolumeType::MODEL_PART, &upper_src);
+        add_cut_volume(upper_mesh, upper, volume, cut_matrix, "_A", ModelVolumeType::MODEL_PART, true);
+        if (!upper->volumes.empty()) {
+            propagate_temp_cut_surface_facets(provenance.upper_facets, *volume, *upper->volumes.back());
+            CCIBridge::reapply_using_cut_provenance(*volume, *upper->volumes.back(), provenance.upper_facets);
+        }
         if (!lower_mesh.empty()) {
-            add_cut_volume(lower_mesh, upper, volume, cut_matrix, "_B", ModelVolumeType::MODEL_PART, &lower_src);
-            upper->volumes.back()->cut_info.is_from_upper = false;
+            add_cut_volume(lower_mesh, upper, volume, cut_matrix, "_B", ModelVolumeType::MODEL_PART, false);
+            propagate_temp_cut_surface_facets(provenance.lower_facets, *volume, *upper->volumes.back());
+            CCIBridge::reapply_using_cut_provenance(*volume, *upper->volumes.back(), provenance.lower_facets);
         }
         return;
     }
 
     if (attributes.has(ModelObjectCutAttribute::KeepUpper)) {
-        add_cut_volume(upper_mesh, upper, volume, cut_matrix, {}, ModelVolumeType::MODEL_PART, &upper_src);
+        add_cut_volume(upper_mesh, upper, volume, cut_matrix, {}, ModelVolumeType::MODEL_PART, true);
+        if (!upper->volumes.empty()) {
+            propagate_temp_cut_surface_facets(provenance.upper_facets, *volume, *upper->volumes.back());
+            CCIBridge::reapply_using_cut_provenance(*volume, *upper->volumes.back(), provenance.upper_facets);
+        }
     }
 
     if (attributes.has(ModelObjectCutAttribute::KeepLower) && !lower_mesh.empty()) {
-        add_cut_volume(lower_mesh, lower, volume, cut_matrix, {}, ModelVolumeType::MODEL_PART, &lower_src);
+        add_cut_volume(lower_mesh, lower, volume, cut_matrix, {}, ModelVolumeType::MODEL_PART, false);
+        if (!lower->volumes.empty()) {
+            propagate_temp_cut_surface_facets(provenance.lower_facets, *volume, *lower->volumes.back());
+            CCIBridge::reapply_using_cut_provenance(*volume, *lower->volumes.back(), provenance.lower_facets);
+        }
     }
 }
 
@@ -434,6 +433,14 @@ const ModelObjectPtrs &Cut::perform_with_plane()
     const Transform3d    inverse_cut_matrix = cut_transformation.get_rotation_matrix().inverse() * translation_transform(-1. * cut_transformation.get_offset());
 
     for (ModelVolume *volume : mo->volumes) {
+        // NOTE: reset_extra_facets() must run AFTER process_*_cut so that
+        // process_solid_part_cut can capture the source volume's MMU/seam/etc.
+        // appearance snapshot before it is wiped. Resetting first caused
+        // ColorCut appearance preservation to fail on tilted/vertical planar
+        // cuts: the snapshot came back empty, cut-time reapply became a no-op,
+        // and the GUI fallback then reapplied colors after place_on_cut had
+        // already reoriented the cut parts, producing horizontally-projected
+        // colors on a vertical cut.
         if (!volume->is_model_part()) {
             if (volume->cut_info.is_processed){
                 process_modifier_cut(volume, instance_matrix, inverse_cut_matrix, m_attributes, upper, lower);
@@ -444,6 +451,8 @@ const ModelObjectPtrs &Cut::perform_with_plane()
         } else if (!volume->mesh().empty()) {
             process_solid_part_cut(volume, instance_matrix, m_cut_matrix, m_attributes, upper, lower);
         }
+
+        volume->reset_extra_facets();
     }
 
     // Post-process cut parts
@@ -529,9 +538,13 @@ static void merge_solid_parts_inside_object(ModelObjectPtrs &objects)
 {
     for (ModelObject *mo : objects) {
         TriangleMesh mesh;
+        std::vector<const ModelVolume *> source_volumes;
+        bool all_sources_from_lower = true;
         // Merge all SolidPart but not Connectors
         for (const ModelVolume *mv : mo->volumes) {
             if (mv->is_model_part() && !mv->is_cut_connector()) {
+                source_volumes.push_back(mv);
+                all_sources_from_lower &= !mv->is_from_upper();
                 TriangleMesh m = mv->mesh();
                 m.transform(mv->get_matrix());
                 mesh.merge(m);
@@ -540,6 +553,10 @@ static void merge_solid_parts_inside_object(ModelObjectPtrs &objects)
         if (!mesh.empty()) {
             ModelVolume *new_volume = mo->add_volume(mesh);
             new_volume->name        = mo->name;
+            if (!source_volumes.empty())
+                new_volume->cut_info.is_from_upper = !all_sources_from_lower;
+            CCIBridge::merge_volume_appearance_data(source_volumes, *new_volume);
+            merge_temp_cut_surface_data(source_volumes, *new_volume);
             // Delete all merged SolidPart but not Connectors
             for (int i = int(mo->volumes.size()) - 2; i >= 0; --i) {
                 const ModelVolume *mv = mo->volumes[i];
@@ -634,6 +651,13 @@ const ModelObjectPtrs &Cut::perform_with_groove(const Groove &groove, const Tran
 {
     ModelObject *cut_mo = m_model.objects.front();
 
+    struct GrooveAppearanceSource
+    {
+        ColorCut::VolumeAppearanceSnapshot snapshot;
+        TriangleMesh                       transformed_mesh;
+        Vec3d                              centroid{Vec3d::Zero()};
+    };
+
     // Clone the object to duplicate instances, materials etc.
     ModelObject *upper{nullptr};
     cut_mo->clone_for_cut(&upper);
@@ -652,6 +676,52 @@ const ModelObjectPtrs &Cut::perform_with_groove(const Groove &groove, const Tran
     tmp_model.add_object(*cut_mo);
     ModelObject *tmp_object = tmp_model.objects.front();
 
+    std::vector<GrooveAppearanceSource> groove_sources;
+    groove_sources.reserve(cut_mo->volumes.size());
+    for (const ModelVolume *volume : cut_mo->volumes) {
+        if (volume == nullptr || !volume->is_model_part() || volume->is_cut_connector() || volume->mesh().empty())
+            continue;
+
+        const std::optional<ColorCut::VolumeAppearanceSnapshot> snapshot = CCIBridge::capture_volume_appearance_snapshot(*volume);
+        if (!snapshot.has_value())
+            continue;
+
+        GrooveAppearanceSource source;
+        source.snapshot = *snapshot;
+        source.transformed_mesh = CCIBridge::build_transformed_volume_mesh(*volume, m_instance);
+        source.centroid = source.transformed_mesh.bounding_box().center().cast<double>();
+        groove_sources.emplace_back(std::move(source));
+    }
+
+    auto reapply_original_groove_appearance = [this, &groove_sources](ModelObject *object) {
+        if (object == nullptr || groove_sources.empty())
+            return;
+
+        for (ModelVolume *volume : object->volumes) {
+            if (volume == nullptr || !volume->is_model_part() || volume->is_cut_connector() || volume->mesh().empty())
+                continue;
+
+            const GrooveAppearanceSource *best_source = nullptr;
+            if (groove_sources.size() == 1) {
+                best_source = &groove_sources.front();
+            } else {
+                const TriangleMesh transformed_target_mesh = CCIBridge::build_transformed_volume_mesh(*volume, m_instance < static_cast<int>(object->instances.size()) ? m_instance : 0);
+                const Vec3d target_centroid = transformed_target_mesh.bounding_box().center().cast<double>();
+                double best_distance = std::numeric_limits<double>::max();
+                for (const GrooveAppearanceSource &source : groove_sources) {
+                    const double distance = (source.centroid - target_centroid).squaredNorm();
+                    if (distance < best_distance) {
+                        best_distance = distance;
+                        best_source = &source;
+                    }
+                }
+            }
+
+            if (best_source != nullptr)
+                CCIBridge::reapply_after_mesh_repair(best_source->snapshot, best_source->transformed_mesh, *volume);
+        }
+    };
+
     auto add_volumes_from_cut = [](ModelObject *object, const ModelObjectCutAttribute attribute, const Model &tmp_model_for_cut) {
         const auto &volumes = tmp_model_for_cut.objects.front()->volumes;
         for (const ModelVolume *volume : volumes)
@@ -659,17 +729,19 @@ const ModelObjectPtrs &Cut::perform_with_groove(const Groove &groove, const Tran
                 if ((attribute == ModelObjectCutAttribute::KeepUpper && volume->is_from_upper()) ||
                     (attribute != ModelObjectCutAttribute::KeepUpper && !volume->is_from_upper())) {
                     ModelVolume *new_vol = object->add_volume(*volume);
-                    new_vol->reset_from_upper();
+                    new_vol->cut_info.is_from_upper = volume->is_from_upper();
                 }
             }
     };
 
-    auto cut = [this, add_volumes_from_cut](ModelObject *object, const Transform3d &cut_matrix, const ModelObjectCutAttribute add_volumes_attribute, Model &tmp_model_for_cut) {
+    auto cut = [this, add_volumes_from_cut, &reapply_original_groove_appearance](ModelObject *object, const Transform3d &cut_matrix, const ModelObjectCutAttribute add_volumes_attribute, Model &tmp_model_for_cut) {
         Cut cut(object, m_instance, cut_matrix);
 
         tmp_model_for_cut = Model();
         tmp_model_for_cut.add_object(*cut.perform_with_plane().front());
         assert(!tmp_model_for_cut.objects.empty());
+
+        reapply_original_groove_appearance(tmp_model_for_cut.objects.front());
 
         object->clear_volumes();
         add_volumes_from_cut(object, add_volumes_attribute, tmp_model_for_cut);

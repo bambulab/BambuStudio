@@ -14,6 +14,8 @@
 
 #include "bbs_3mf.hpp"
 
+#include "ag/customcut/ColorCutRepositoryBridge.hpp"
+
 #include <limits>
 #include <stdexcept>
 #include <iomanip>
@@ -6937,12 +6939,15 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             return false;
         }
 
+        const auto &color_group_map = ColorCut::RepositoryBridge::export_color_group_map();
 
         {
             std::stringstream stream;
             reset_stream(stream);
             stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
             stream << "<" << MODEL_TAG << " unit=\"millimeter\" xml:lang=\"en-US\" xmlns=\"http://schemas.microsoft.com/3dmanufacturing/core/2015/02\" xmlns:BambuStudio=\"http://schemas.bambulab.com/package/2021\"";
+            if (!color_group_map.empty())
+                stream << " xmlns:m=\"http://schemas.microsoft.com/3dmanufacturing/material/2015/02\"";
             if (m_production_ext)
                 stream << " xmlns:p=\"http://schemas.microsoft.com/3dmanufacturing/production/2015/06\" requiredextensions=\"p\"";
             stream << ">\n";
@@ -7391,6 +7396,9 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
             if (volume == nullptr)
                 continue;
 
+            const std::optional<ColorCut::ExternalVolumeColorData> volume_color_data =
+                ColorCut::RepositoryBridge::export_volume_color_data(volume->id().id);
+
             int volume_id = object_data.volumes_objectID.find(volume)->second;
             if (m_share_mesh && volume_id == 0)
                 continue;
@@ -7537,6 +7545,40 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                         output_buffer += "=\"";
                         output_buffer += prop_str;
                         output_buffer += "\"";
+                    }
+                }
+
+                if (volume_color_data.has_value()) {
+                    const bool has_triangle_binding = i < static_cast<int>(volume_color_data->triangle_colors.size())
+                                                     && volume_color_data->triangle_colors[static_cast<size_t>(i)].pid >= 0;
+
+                    TriangleColor triangle_color;
+                    if (has_triangle_binding) {
+                        triangle_color = volume_color_data->triangle_colors[static_cast<size_t>(i)];
+                    } else {
+                        triangle_color.pid = volume_color_data->pid;
+                        triangle_color.indices[0] = volume_color_data->pindex;
+                        triangle_color.indices[1] = volume_color_data->pindex;
+                        triangle_color.indices[2] = volume_color_data->pindex;
+                    }
+
+                    if (triangle_color.pid >= 0) {
+                        output_buffer += " ";
+                        output_buffer += PID_ATTR;
+                        output_buffer += "=\"";
+                        output_buffer += std::to_string(triangle_color.pid);
+                        output_buffer += "\"";
+
+                        const char *color_attrs[3] = { P1_ATTR, P2_ATTR, P3_ATTR };
+                        for (int color_index = 0; color_index < 3; ++color_index) {
+                            if (triangle_color.indices[color_index] < 0)
+                                continue;
+                            output_buffer += " ";
+                            output_buffer += color_attrs[color_index];
+                            output_buffer += "=\"";
+                            output_buffer += std::to_string(triangle_color.indices[color_index]);
+                            output_buffer += "\"";
+                        }
                     }
                 }
 

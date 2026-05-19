@@ -50,7 +50,7 @@
     "ironing_speed": "100",
     "ironing_type": "no ironing",
     "layer_height": "0.2",
-    "reduce_infill_retraction_mode": "Auto",
+    "reduce_infill_retraction": "1",
     "filename_format": "{input_filename_base}_{filament_type[0]}_{print_time}.gcode",
     "detect_overhang_wall": "1",
     "overhang_1_4_speed": "0",

@@ -3,6 +3,7 @@ Build.bat
 /build/
 /build2022/
 deps/build
+deps/build-ag-check/
 MYMETA.json
 MYMETA.yml
 _build
@@ -35,7 +36,3 @@ dep_win_new
 compile_commands.json
 .jira/
 .claude/settings.local.json
-**/node_modules/
-.worktrees/
-**/dist/
-

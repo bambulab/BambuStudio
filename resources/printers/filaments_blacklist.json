@@ -65,13 +65,6 @@
       "description": "The current filament doesn't support the TPU high-flow nozzle and can't be used."
     },
     {
-      "type": "TPU",
-      "action": "prohibition",
-      "calib_mode": "auto_pa",
-      "model_id": ["O1D", "O1E"],
-      "description": "Auto dynamic flow calibration is not supported for TPU filament."
-    },
-    {
       "name_suffix": "Bambu TPU 85A",
       "nozzle_flows": ["Standard", "High Flow"],
       "nozzle_diameters": [0.4],
@@ -81,13 +74,6 @@
     },
     {
       "types": ["TPU"],
-      "action": "warning",
-      "model_id":["N6"],
-      "description": "How to feed TPU filament on X2D.",
-      "wiki": "https://e.bambulab.com/t?c=PAxXqQu2zBgvN3ea"
-    },
-    {
-      "types": ["TPU", "TPU-AMS"],
       "action": "warning",
       "model_id":["N7"],
       "description": "How to feed TPU filament.",
@@ -122,9 +108,41 @@
       "wiki": "https://e.bambulab.com/t?c=L45sIEpzy1Wz0tsV"
     },
     {
+      "type": "TPU",
+      "action": "prohibition",
+      "calib_mode": "auto_pa",
+      "model_id": ["O1D", "O1E"],
+      "description": "Auto dynamic flow calibration is not supported for TPU filament.",
+      "action": "warning",
+      "model_id":["N6"],
+      "description": "How to feed TPU filament on X2D.",
+      "wiki": "https://e.bambulab.com/t?c=PAxXqQu2zBgvN3ea"
+    },
+    {
       "types": ["TPU", "TPU-AMS"],
       "action": "warning",
-      "description": "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer."
+      "model_id":["N6"],
+      "description": "How to feed TPU filament on X2D.",
+      "wiki": "https://e.bambulab.com/t?c=PAxXqQu2zBgvN3ea"
+    },
+    {
+      "white_names": ["support for PLA", "support for ABS", "support for PETG", "PVA", "ASA", "ABS", "PETG HF", "PETG Basic"],
+      "action": "warning",
+      "model_id":["N6"],
+      "vendor": "third party",
+      "description": "Using non-bambu filament may have printing quality issues."
+    },
+    {
+      "type": "TPU",
+      "action": "warning",
+      "description": "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer.",
+      "wiki": "https://e.bambulab.com/t?c=PAxXqQu2zBgvN3ea"
+    },
+    {
+      "type": "TPU-AMS",
+      "action": "warning",
+      "description": "Please cold pull before printing TPU to avoid clogging. You may use cold pull maintenance on the printer.",
+      "wiki": "https://e.bambulab.com/t?c=PAxXqQu2zBgvN3ea"
     },
     {
       "type": "PVA",

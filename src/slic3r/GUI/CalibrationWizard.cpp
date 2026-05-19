@@ -1564,7 +1564,8 @@ std::map<std::string, ConfigIndexValue> FlowRateWizard::generate_index_key_value
     int  index = 0;
     if (!selected_filaments.empty()) {
         TrayInfo tray_info = selected_filaments.begin()->second;
-        ExtruderType extruder_type = CalibUtils::get_extruder_type(obj, tray_info.extruder_id);
+        // todo multi_extruder: get_extruder_type from obj
+        ExtruderType extruder_type = ExtruderType::etDirectDrive;
         index = get_index_for_extruder_parameter(tray_info.preset->config, "filament_flow_ratio", tray_info.extruder_id, extruder_type, tray_info.nozzle_volume_type);
         ConfigIndexValue config_value;
         config_value.index = index;

@@ -6,7 +6,6 @@
 #include "STEP.hpp"
 
 #include <string>
-#include <algorithm>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/iostream.hpp>
 #include <boost/nowide/fstream.hpp>
@@ -27,7 +26,6 @@
 #include "XCAFDoc_ShapeTool.hxx"
 #include "XCAFApp_Application.hxx"
 #include "TopoDS_Solid.hxx"
-#include "TopoDS_Shell.hxx"
 #include "TopoDS_Compound.hxx"
 #include "TopoDS_Builder.hxx"
 #include "TopoDS.hxx"
@@ -174,8 +172,7 @@ static void getNamedSolids(const TopLoc_Location& location,
                            const Handle(XCAFDoc_ShapeTool) shapeTool,
                            const TDF_Label label,
                            std::vector<NamedSolid>& namedSolids,
-                           bool isSplitCompound = false,
-                           std::vector<std::string>* unclosed_shells = nullptr) {
+                           bool isSplitCompound = false) {
     TDF_Label referredLabel{label};
     if (shapeTool->IsReference(label))
         shapeTool->GetReferredShape(label, referredLabel);
@@ -194,7 +191,7 @@ static void getNamedSolids(const TopLoc_Location& location,
     TDF_LabelSequence components;
     if (shapeTool->GetComponents(referredLabel, components)) {
         for (Standard_Integer compIndex = 1; compIndex <= components.Length(); ++compIndex) {
-            getNamedSolids(localLocation, fullName, id, shapeTool, components.Value(compIndex), namedSolids, isSplitCompound, unclosed_shells);
+            getNamedSolids(localLocation, fullName, id, shapeTool, components.Value(compIndex), namedSolids, isSplitCompound);
         }
     } else {
         TopoDS_Shape shape;
@@ -223,15 +220,6 @@ static void getNamedSolids(const TopLoc_Location& location,
         case TopAbs_SOLID:
             namedSolids.emplace_back(TopoDS::Solid(transform.Shape()), fullName);
             break;
-        case TopAbs_SHELL: {
-            const TopoDS_Shape& shellShape = transform.Shape();
-            if (!BRep_Tool::IsClosed(shellShape) && unclosed_shells) {
-                if (std::find(unclosed_shells->begin(), unclosed_shells->end(), fullName) == unclosed_shells->end())
-                    unclosed_shells->push_back(fullName);
-            }
-            namedSolids.emplace_back(TopoDS::Shell(shellShape), fullName);
-            break;
-        }
         default:
             break;
         }
@@ -483,7 +471,7 @@ Step::Step_Status Step::load()
         Standard_Integer topShapeLength = topLevelShapes.Length() + 1;
         for (Standard_Integer iLabel = 1; iLabel < topShapeLength; ++iLabel) {
             if (cb_cancel) return;
-            getNamedSolids(TopLoc_Location{}, "", id, m_shape_tool, topLevelShapes.Value(iLabel), m_name_solids, false, &m_unclosed_shells);
+            getNamedSolids(TopLoc_Location{}, "", id, m_shape_tool, topLevelShapes.Value(iLabel), m_name_solids);
         }
         progress = 10;
         load_result = true;

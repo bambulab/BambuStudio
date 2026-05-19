@@ -110,7 +110,6 @@ public:
                wxString k = wxEmptyString, wxString n = wxEmptyString);
 
     void post_select_event(int index);
-    void TryRefreshPAProfiles();
     void set_color(wxColour color);
     void set_empty_color(wxColour color);
     void set_colors(std::vector<wxColour> colors);
@@ -135,11 +134,6 @@ public:
     Label*                 m_clr_name;
     std::vector<PACalibResult>  m_pa_profile_items;
 
-    struct FilamentInfos {
-        std::string filament_id;
-        std::string setting_id;
-    };
-
 protected:
     void create_panel_normal(wxWindow* parent);
     void create_panel_kn(wxWindow* parent);
@@ -161,15 +155,6 @@ protected:
     int  get_nozzle_combo_id_code() const;
     int  get_nozzle_sel_by_sn(MachineObject* obj, const std::string& sn);
     int  get_cali_index_by_ams_slot(MachineObject* obj, int ams_id, int slot_id);
-
-    void get_filaments_info(const MachineObject*                     obj,
-                            const std::string&                       nozzle_diameter_str,
-                            wxArrayString&                           filament_items,
-                            std::map<std::string, FilamentInfos>&    map_filament_items,
-                            std::unordered_map<wxString, wxString>&  query_filament_vendors,
-                            std::unordered_map<wxString, wxString>&  query_filament_types);
-
-    Preset* get_filament_by_id(const std::string& filament_id, bool is_system);
 
 protected:
     StateColor          m_btn_bg_green;
@@ -205,7 +190,6 @@ protected:
     int                 m_filament_selection;
 
     int m_pa_cali_select_id = 0;
-    bool m_pa_data_pending{false};
 
 #ifdef __APPLE__
     wxComboBox *m_comboBox_filament;
@@ -216,6 +200,10 @@ protected:
     ComboBox * m_comboBox_cali_result;
     TextInput*       m_readonly_filament;
 
+    struct FilamentInfos {
+        std::string filament_id;
+        std::string setting_id;
+    };
     std::map<std::string, FilamentInfos> map_filament_items;
 };
 

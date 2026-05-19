@@ -1136,8 +1136,8 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
         else if (opt->gui_flags == "serialized") {
             std::vector<std::string> values = config.option<ConfigOptionStrings>(opt_key2)->values;
             if (!values.empty() && !values[0].empty())
-                for (const auto& el : values)
-                    text_value += from_u8(el) + ";";
+                for (auto el : values)
+                    text_value += el + ";";
             ret = text_value;
         }
         else

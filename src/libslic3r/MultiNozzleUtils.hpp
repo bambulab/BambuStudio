@@ -242,8 +242,7 @@ float calc_filament_change_gap_for_assignment(
     const std::vector<int>&           filament_change_seq,
     const std::vector<int>&           nozzle_change_seq,
     const std::vector<int>&           group_of_filament,
-    const FilamentChangeTimeParams&   time_params,
-    const std::vector<bool>&          ams_preload_enabled = {});
+    const FilamentChangeTimeParams&   time_params);
 
 std::vector<int> find_optimal_physical_assignment(
     const std::vector<int>&           logical_filaments,

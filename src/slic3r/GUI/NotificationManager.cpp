@@ -38,8 +38,6 @@ static constexpr int   FADING_OUT_TIMEOUT = 100;
 namespace Slic3r {
 namespace GUI {
 
-static const std::string HIGH_SHRINKAGE_FILAMENT_HINT_KEY = "Filament Shrinkage";
-
 wxDEFINE_EVENT(EVT_EJECT_DRIVE_NOTIFICAION_CLICKED, EjectDriveNotificationClickedEvent);
 wxDEFINE_EVENT(EVT_EXPORT_GCODE_NOTIFICAION_CLICKED, ExportGcodeNotificationClickedEvent);
 wxDEFINE_EVENT(EVT_PRESET_UPDATE_AVAILABLE_CLICKED, PresetUpdateAvailableClickedEvent);
@@ -64,20 +62,6 @@ namespace {
 			ImGui::PushStyleColor(idx, ImVec4(col.x, col.y, col.z, col.w * current_fade_opacity));
 		else
 			ImGui::PushStyleColor(idx, col);
-	}
-
-	bool get_high_shrinkage_filament_names(std::string& filament_names)
-	{
-		Plater* plater = wxGetApp().plater();
-		if (plater == nullptr)
-			return false;
-
-		PartPlate* plate = plater->get_partplate_list().get_curr_plate();
-		if (plate == nullptr)
-			return false;
-
-		auto full_config = wxGetApp().preset_bundle->full_config();
-		return plate->check_high_shrinkage_filament(full_config, filament_names);
 	}
 
 	void open_folder(const std::string& path)
@@ -2304,11 +2288,7 @@ void NotificationManager::update_slicing_notif_dailytips(bool need_change)
 			SlicingProgressNotification* spn = dynamic_cast<SlicingProgressNotification*>(notification.get());
 			if (need_change) {
 				wxGetApp().plater()->get_dailytips()->close();
-				std::string high_shrinkage_filament_names;
-				if (get_high_shrinkage_filament_names(high_shrinkage_filament_names))
-					spn->get_dailytips_panel()->retrieve_data_from_hint_database(HIGH_SHRINKAGE_FILAMENT_HINT_KEY, high_shrinkage_filament_names, true);
-				else
-					spn->get_dailytips_panel()->retrieve_data_from_hint_database(HintDataNavigation::Random);
+				spn->get_dailytips_panel()->retrieve_data_from_hint_database(HintDataNavigation::Random);
 				wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
 			}
 			return;
