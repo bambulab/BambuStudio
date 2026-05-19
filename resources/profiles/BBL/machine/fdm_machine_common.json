@@ -64,12 +64,9 @@
     "machine_max_acceleration_z": [
         "100"
     ],
-    "machine_max_force_Y": [
-        "0"
-    ],
-    "machine_bed_mass_Y": [
-        "0"
-    ],
+    "machine_max_force_Y": "0",
+    "machine_bed_mass_Y": "0",
+    "machine_max_printed_mass": "0",
     "machine_max_jerk_e": [
         "5"
     ],

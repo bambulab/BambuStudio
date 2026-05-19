@@ -10,7 +10,7 @@
         "4000"
     ],
     "elefant_foot_compensation": "0.075",
-    "enable_arc_fitting": false,
+    "enable_arc_fitting": "0",
     "initial_layer_infill_speed": [
         "28"
     ],

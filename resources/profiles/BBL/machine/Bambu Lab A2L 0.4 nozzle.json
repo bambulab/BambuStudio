@@ -41,9 +41,7 @@
         "Bambu Lab A2L 0.4 nozzle template time_lapse_gcode",
         "Bambu Lab A2L 0.4 nozzle template change_filament_gcode"
     ],
-    "machine_bed_mass_Y": [
-        "2700"
-    ],
+    "machine_bed_mass_Y": "2700",
     "machine_load_filament_time": "11",
     "machine_max_acceleration_extruding": [
         "12000",
@@ -61,16 +59,12 @@
         "1500",
         "1500"
     ],
-    "machine_max_force_Y": [
-        "29"
-    ],
+    "machine_max_force_Y": "29",
     "machine_max_jerk_e": [
         "3",
         "3"
     ],
-    "machine_max_printed_mass": [
-        "2000"
-    ],
+    "machine_max_printed_mass": "2000",
     "machine_max_speed_x": [
         "500",
         "500"
