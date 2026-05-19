@@ -317,6 +317,27 @@ function handleRequest(pkt: RequestPacket) {
     return;
   }
 
+  // STUDIO-18344: AMS multi-select fast path. `creates[]` get appended with
+  // fresh ids, `updates[]` are merged into the existing record by spool_id
+  // (mirroring the C++ batch_create dispatcher behaviour). Either bucket
+  // may be empty so an "all updates" or "all creates" save still works.
+  if (submod === 'spool' && action === 'batch_create') {
+    const creates = (payload.creates as Partial<Spool>[] | undefined) ?? [];
+    const updates = (payload.updates as Partial<Spool>[] | undefined) ?? [];
+    creates.forEach((sp, i) => {
+      const id = `sp-${Date.now()}-c${i}`;
+      SPOOLS = [...SPOOLS, { ...(sp as Spool), spool_id: id }];
+    });
+    updates.forEach((sp) => {
+      const id = String(sp.spool_id ?? '');
+      if (!id) return;
+      SPOOLS = SPOOLS.map((s) => s.spool_id === id ? { ...s, ...sp } as Spool : s);
+    });
+    dispatchResponse(pkt.head.seq, makeOk('spool', action, SPOOLS));
+    dispatchReport({ module: 'filament', submod: 'spool', action: 'list', payload: SPOOLS });
+    return;
+  }
+
   if (submod === 'spool' && action === 'update') {
     const sp = payload as Partial<Spool>;
     SPOOLS = SPOOLS.map((s) => s.spool_id === sp.spool_id ? { ...s, ...sp } as Spool : s);

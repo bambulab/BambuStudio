@@ -35,6 +35,9 @@ bool is_spool_cloud_write_action(const std::string& action)
 {
     return action == "add"
         || action == "batch_add"
+        // STUDIO-18344: AMS multi-select batch path. Same cloud-sync
+        // gating as the single add — must be logged in + server reachable.
+        || action == "batch_create"
         || action == "update"
         || action == "remove"
         || action == "batch_remove";
@@ -250,6 +253,75 @@ nlohmann::json FilamentManagerVM::HandleSpool(const std::string& action, const n
                           "Multiple spool create requests were queued for cloud",
                           {{"action", "batch_add"}, {"count", qty}});
         if (disp) for (auto& spool : new_spools) disp->enqueue_push_create(spool);
+        publish_sync_state();
+        return MakeResp("spool", action, 0, "", build_spool_list());
+    }
+    if (action == "batch_create") {
+        // STUDIO-18344: AMS multi-select batch path.
+        //
+        // Unlike `batch_add` (which expects a single `spool` + `quantity`),
+        // this action carries two distinct buckets:
+        //   - `creates[]`: each entry is a full FilamentSpool payload, runs
+        //                  through the dispatcher's create path.
+        //   - `updates[]`: each entry carries an existing `spool_id` plus
+        //                  the AMS-derived patch; routed through the update
+        //                  path so the existing cloud record is overwritten
+        //                  in place rather than duplicated.
+        //
+        // The front-end has already partitioned the buckets by reverse-
+        // looking up tray.tag_uid against the local spool list, so we do
+        // not redo that decision here. Per-entry failures (malformed JSON,
+        // missing spool_id for an update) are logged and skipped so a
+        // single bad row cannot abort the rest of the batch.
+        const nlohmann::json creates = payload.contains("creates") && payload["creates"].is_array()
+                                           ? payload["creates"]
+                                           : nlohmann::json::array();
+        const nlohmann::json updates = payload.contains("updates") && payload["updates"].is_array()
+                                           ? payload["updates"]
+                                           : nlohmann::json::array();
+        publish_debug_log("data", "info", "Spool batch_create queued",
+                          "Batch create/update request from AMS multi-select",
+                          {{"action", "batch_create"},
+                           {"creates", static_cast<int>(creates.size())},
+                           {"updates", static_cast<int>(updates.size())}});
+
+        int created = 0;
+        for (const auto& entry : creates) {
+            try {
+                FilamentSpool s = FilamentSpool::from_json(entry);
+                s.cloud_synced = false;
+                if (disp) disp->enqueue_push_create(s);
+                ++created;
+            } catch (const std::exception& e) {
+                publish_debug_log("data", "warn", "batch_create: create entry rejected",
+                                  "Skipping malformed create payload",
+                                  {{"what", e.what()}});
+            }
+        }
+
+        int updated = 0;
+        for (const auto& entry : updates) {
+            if (!entry.is_object()) continue;
+            const std::string updated_id = entry.value("spool_id", "");
+            if (updated_id.empty()) {
+                publish_debug_log("data", "warn", "batch_create: update entry missing spool_id",
+                                  "Skipping update without spool_id",
+                                  {{"keys", static_cast<int>(entry.size())}});
+                continue;
+            }
+            if (!store || store->get_spool(updated_id) == nullptr) {
+                publish_debug_log("data", "warn", "batch_create: target spool not found",
+                                  "Local store has no record matching spool_id",
+                                  {{"spool_id", updated_id}});
+                continue;
+            }
+            if (disp) disp->enqueue_push_update(updated_id, entry);
+            ++updated;
+        }
+
+        publish_debug_log("data", "info", "Spool batch_create accepted",
+                          "Enqueued create + update batch from AMS multi-select",
+                          {{"created", created}, {"updated", updated}});
         publish_sync_state();
         return MakeResp("spool", action, 0, "", build_spool_list());
     }

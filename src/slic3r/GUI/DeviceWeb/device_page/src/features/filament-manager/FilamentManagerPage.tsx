@@ -27,7 +27,7 @@ const FILTER_LABEL_KEYS: Record<FilterKey, string> = {
 export function FilamentManagerPage() {
   const { t } = useTranslation();
   const {
-    init, addSpool, batchAddSpool, updateSpool,
+    init, addSpool, batchAddSpool, batchCreateSpools, updateSpool,
     removeSpool, batchRemoveSpool,
     fetchMachines, requestMachinePushall, fetchAmsData,
     fetchPresets,
@@ -256,6 +256,16 @@ export function FilamentManagerPage() {
   const handleSubmitUpdate = useCallback(async (data: Partial<Spool>) => {
     return updateSpool(data);
   }, [updateSpool]);
+
+  // STUDIO-18344: AMS multi-select batch path. Receives the pre-partitioned
+  // `creates[]` / `updates[]` from AddEditDialog (already keyed by the
+  // tag_uid existence check) and forwards them straight to the bridge.
+  const handleBatchCreate = useCallback(async (
+    creates: Partial<Spool>[],
+    updates: Partial<Spool>[],
+  ) => {
+    return batchCreateSpools(creates, updates);
+  }, [batchCreateSpools]);
 
   // AMS bridge callbacks for dialog
   const handleFetchMachines = useCallback(async (): Promise<MachineItem[]> => {
@@ -539,6 +549,7 @@ export function FilamentManagerPage() {
         onClose={() => { setDialogOpen(false); setEditingSpool(null); setPrefilledSpool(null); }}
         onSubmitAdd={handleSubmitAdd}
         onSubmitUpdate={handleSubmitUpdate}
+        onBatchCreate={handleBatchCreate}
         onFetchMachines={handleFetchMachines}
         onRequestPushall={requestMachinePushall}
         onFetchAmsData={handleFetchAmsData}

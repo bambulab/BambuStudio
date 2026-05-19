@@ -17,6 +17,14 @@ import {
   cssBackgroundFor,
   candidateMatchesFormState,
 } from './colors';
+// STUDIO-18344: shared AMS-tray -> Spool payload helper. Single-select still
+// goes through the editable form (so the user can review and tweak before
+// saving), but multi-select uses these helpers directly so the wire payload
+// matches an unedited single-slot save byte for byte.
+import {
+  buildSpoolFromTray,
+  partitionTraysForBatchCreate,
+} from './buildSpoolFromTray';
 
 // STUDIO-17959: cap both 当前净重 / 总净重 inputs in the Add/Edit dialog.
 // Bug repro: users could type arbitrarily large numbers (e.g. 99999999999)
@@ -64,6 +72,24 @@ function isValidTagUid(tagUid: string): boolean {
   return tagUid.length > 0 && /[^0]/.test(tagUid);
 }
 
+// STUDIO-18344: resolve a `${ams_id}:${slot_id}` key against the latest AMS
+// snapshot. Returns null when either the unit or the slot has disappeared
+// since the user clicked (filament physically pulled, etc.) so callers can
+// drop stale keys without crashing on a missing `.tray` access.
+function lookupSelectedSlot(
+  amsData: AmsData | null,
+  key: string,
+): { ams_id: string; slot_id: string; tray: AmsTray } | null {
+  if (!amsData || !key) return null;
+  const [amsId, slotId] = key.split(':');
+  if (!amsId || !slotId) return null;
+  const unit = amsData.ams_units.find((u) => u.ams_id === amsId);
+  if (!unit) return null;
+  const tray = unit.trays.find((t) => t.slot_id === slotId);
+  if (!tray) return null;
+  return { ams_id: amsId, slot_id: slotId, tray };
+}
+
 // STUDIO-17958: `<input type="number">` controlled by a numeric React state
 // keeps a stale leading "0" once the controlled value has rendered "0".
 // Sequence: user clears the field → Number("")||0 == 0 → React syncs DOM to
@@ -109,6 +135,15 @@ interface Props {
   onClose: () => void;
   onSubmitAdd: (data: Partial<Spool>, quantity: number) => boolean | Promise<boolean>;
   onSubmitUpdate: (data: Partial<Spool>) => boolean | Promise<boolean>;
+  // STUDIO-18344: batch-add path for AMS multi-select. `creates[]` go through
+  // the create dispatcher; `updates[]` carry an existing `spool_id` and go
+  // through the update dispatcher (default UX for tag_uid collisions, per
+  // the ticket's confirmation). Returns true when all items were enqueued
+  // successfully on the C++ side; toast surface is handled by the bridge.
+  onBatchCreate: (
+    creates: Partial<Spool>[],
+    updates: Partial<Spool>[],
+  ) => boolean | Promise<boolean>;
   onFetchMachines: () => Promise<MachineItem[]>;
   // Ask the currently-selected (or specified) printer to resend its full
   // state package. Bound to the refresh button next to the Printer
@@ -123,7 +158,8 @@ interface Props {
 
 export function AddEditDialog({
   open, editingSpool, prefilledSpool, presets, onClose,
-  onSubmitAdd, onSubmitUpdate, onFetchMachines, onRequestPushall, onFetchAmsData,
+  onSubmitAdd, onSubmitUpdate, onBatchCreate,
+  onFetchMachines, onRequestPushall, onFetchAmsData,
 }: Props) {
   const { t } = useTranslation();
   const isEdit = !!editingSpool;
@@ -215,7 +251,17 @@ export function AddEditDialog({
   const [machines, setMachines] = useState<MachineItem[]>([]);
   const [amsData, setAmsData] = useState<AmsData | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
-  const [selectedSlot, setSelectedSlot] = useState<{ ams_id: string; slot_id: string; tray: AmsTray } | null>(null);
+  // STUDIO-18344: multi-select slots. Each entry is `${ams_id}:${slot_id}`.
+  // The live tray for each key is looked up from `amsData` on demand, so MQTT
+  // refreshes propagate without needing to mirror tray snapshots into local
+  // state. Single-select form behaviour is preserved by reseeding the form
+  // whenever the set transitions to size 1 (see `useEffect` below).
+  const [selectedSlotKeys, setSelectedSlotKeys] = useState<Set<string>>(() => new Set());
+  // Track the slot that last seeded the editable form so we only call the
+  // expensive `selectAmsSlot` field-resolver when the primary slot truly
+  // changes (size 1 <-> 1 swap, or 0/N -> 1 transition). Size >= 2 leaves
+  // this alone because the form is hidden.
+  const lastSeededSlotKeyRef = useRef<string>('');
   const [amsLockedFields, setAmsLockedFields] = useState({
     brand: false,
     material: false,
@@ -224,13 +270,17 @@ export function AddEditDialog({
   });
   const [amsLoading, setAmsLoading] = useState(false);
   const [amsError, setAmsError] = useState('');
+  // STUDIO-18344: shown above the slot grid in multi-select mode so the user
+  // can see how many tag_uid hits will overwrite existing spools before
+  // confirming the batch save. Derived in a useMemo below.
 
   // Reset form when dialog opens
   useEffect(() => {
     if (!open) return;
     setMode('manual');
     setQuantity(1);
-    setSelectedSlot(null);
+    setSelectedSlotKeys(new Set());
+    lastSeededSlotKeyRef.current = '';
     setSelectedUnit(null);
     setAmsLockedFields({ brand: false, material: false, color: false, weight: false });
     setAmsData(null);
@@ -885,13 +935,20 @@ export function AddEditDialog({
     }
     return '';
   })();
-  const isValid = !!(
-    brand && materialType && colorCode &&
-    totalNetWeight > 0 && currentNetWeight >= 0 &&
-    totalNetWeight <= MAX_NET_WEIGHT_GRAMS &&
-    currentNetWeight <= MAX_NET_WEIGHT_GRAMS &&
-    currentNetWeight <= totalNetWeight
-  );
+  // STUDIO-18344: in AMS multi-select mode the editable form is hidden, so
+  // the per-field validation above is irrelevant — every payload is built
+  // directly from the AMS tray. The form's `isValid` guard is therefore
+  // skipped and we only require at least one slot to be selected.
+  const isAmsBatch = !isEdit && mode === 'ams' && selectedSlotKeys.size >= 2;
+  const isValid = isAmsBatch
+    ? selectedSlotKeys.size >= 2
+    : !!(
+        brand && materialType && colorCode &&
+        totalNetWeight > 0 && currentNetWeight >= 0 &&
+        totalNetWeight <= MAX_NET_WEIGHT_GRAMS &&
+        currentNetWeight <= MAX_NET_WEIGHT_GRAMS &&
+        currentNetWeight <= totalNetWeight
+      );
 
   // STUDIO-17977 F1.3: the previous F4.4 isCustomColor flag relied on a
   // BAMBU_COLORS hex-membership check, which became stale once the palette
@@ -962,6 +1019,41 @@ export function AddEditDialog({
   }, [colorPickerOpen, cancelCustomColor]);
 
   const handleSubmit = async () => {
+    // STUDIO-18344: AMS multi-select fast path. When the user has ticked
+    // two or more slots, the editable form is hidden (see the AMS pane
+    // below) and we build each spool's payload straight from its live
+    // tray via `buildSpoolFromTray`. Hits against an existing spool (by
+    // tag_uid) become `updates[]` so the existing cloud record is
+    // overwritten in place rather than duplicated (per ticket UX choice).
+    //
+    // The single-slot AMS path keeps the editable form and the existing
+    // submit logic below, so this branch only fires when size >= 2.
+    if (!isEdit && mode === 'ams' && selectedSlotKeys.size >= 2) {
+      const devId = amsData?.selected_dev_id || '';
+      const built = [] as ReturnType<typeof buildSpoolFromTray>[];
+      // Iterate amsData top-down (units in order, slots in order) so the
+      // batch result is stable and matches the visual order of the grid;
+      // skip any selected key whose tray has since disappeared so a stale
+      // selection cannot poison the wire payload.
+      for (const unit of amsData?.ams_units || []) {
+        for (const tray of unit.trays) {
+          if (!tray.is_exists) continue;
+          const key = `${unit.ams_id}:${tray.slot_id}`;
+          if (!selectedSlotKeys.has(key)) continue;
+          built.push(buildSpoolFromTray({ tray, unit, devId, presets, spools }));
+        }
+      }
+      if (built.length === 0) {
+        onClose();
+        return;
+      }
+      const { creates, updates } = partitionTraysForBatchCreate(built);
+      const ok = await onBatchCreate(creates, updates);
+      if (!ok) return;
+      onClose();
+      return;
+    }
+
     // New weight model: initial_weight is now 整卷净重 (= swagger
     // totalNetWeight) and spool_weight is always persisted as 0 so no
     // code path can re-introduce 毛重 via cloud round-trips. remain_percent
@@ -1027,7 +1119,13 @@ export function AddEditDialog({
       if (!ok) return;
     } else {
       let amsExistingSpoolId = '';
-      if (mode === 'ams' && selectedSlot) {
+      // STUDIO-18344: derived primary slot for the single-select AMS form
+      // path. Only set when exactly one slot is selected, otherwise the
+      // multi-select fast path above already returned.
+      const primarySlot = (mode === 'ams' && selectedSlotKeys.size === 1)
+        ? lookupSelectedSlot(amsData, [...selectedSlotKeys][0])
+        : null;
+      if (mode === 'ams' && primarySlot) {
         // The spool is imported from a live AMS slot. Propagate the
         // authoritative AMS-only fields (tag_uid / setting_id / diameter
         // / remain / binding) so the local record knows which physical
@@ -1036,7 +1134,7 @@ export function AddEditDialog({
         // `initial_weight` with the tray's reported 整卷净重 and
         // `remain_percent` with the authoritative device value so the
         // record lines up with what the printer reports on MQTT.
-        const tray = selectedSlot.tray;
+        const tray = primarySlot.tray;
         const trayTagUid = tray.tag_uid || '';
         const existingSpool = isValidTagUid(trayTagUid)
           ? spools.find((sp) => (sp.tag_uid || '') === trayTagUid)
@@ -1052,7 +1150,7 @@ export function AddEditDialog({
         // Keep the user's edited material choice. The AMS tray setting_id is
         // only a fallback when the form could not resolve a selected preset.
         data.setting_id = data.setting_id || tray.setting_id || '';
-        data.bound_ams_id = selectedSlot.ams_id;
+        data.bound_ams_id = primarySlot.ams_id;
         data.bound_dev_id = amsData?.selected_dev_id || '';
         data.remain_percent = remain;
         // STUDIO-17977: keep gradient/multicolor info when creating a spool
@@ -1109,7 +1207,8 @@ export function AddEditDialog({
   // AMS mode switch
   const switchToAms = async () => {
     setMode('ams');
-    setSelectedSlot(null);
+    setSelectedSlotKeys(new Set());
+    lastSeededSlotKeyRef.current = '';
     setAmsLoading(true);
     setAmsError('');
     try {
@@ -1118,7 +1217,8 @@ export function AddEditDialog({
       if (list.length === 0) {
         setAmsData(null);
         setSelectedUnit(null);
-        setSelectedSlot(null);
+        setSelectedSlotKeys(new Set());
+        lastSeededSlotKeyRef.current = '';
         setAmsError('');
         setAmsLoading(false);
         return;
@@ -1162,7 +1262,12 @@ export function AddEditDialog({
     switchSelected: boolean = true,
   ) => {
     setSelectedUnit(null);
-    setSelectedSlot(null);
+    // STUDIO-18344: device switch clears all multi-select state. Slots on a
+    // different printer are a different context and the AMS unit / slot
+    // index numbering may collide; carrying the selection over would risk
+    // submitting trays the user can no longer see in the new device's grid.
+    setSelectedSlotKeys(new Set());
+    lastSeededSlotKeyRef.current = '';
     setAmsLoading(true);
     setAmsError('');
     try {
@@ -1240,8 +1345,10 @@ export function AddEditDialog({
   // form is stale. A lightweight 1.5 s poll is enough — the RPC payload is
   // a few KB and we keep the existing selection + form fields intact so
   // there is no visible flicker.
-  const selectedSlotRef = useRef(selectedSlot);
-  selectedSlotRef.current = selectedSlot;
+  // STUDIO-18344: poll tick reads / prunes the selected-slot Set so stale
+  // keys (filament physically pulled out) drop off automatically.
+  const selectedSlotKeysRef = useRef<Set<string>>(selectedSlotKeys);
+  selectedSlotKeysRef.current = selectedSlotKeys;
   // Mirror amsData into a ref so the poll tick can diff the incoming
   // snapshot against the latest value without having to list amsData in
   // the effect's dep array (which would reset the interval timer).
@@ -1302,18 +1409,28 @@ export function AddEditDialog({
           }
         }
 
-        // Keep the currently highlighted slot pointing at the latest tray
-        // object so downstream renderers (form, palette) reflect the new
-        // MQTT snapshot. If the tray disappeared (user pulled the spool),
-        // clear the selection so stale form values can't be submitted.
-        const cur = selectedSlotRef.current;
-        if (cur) {
-          const unit = data.ams_units.find((u) => u.ams_id === cur.ams_id);
-          const tray = unit?.trays.find((tr) => tr.slot_id === cur.slot_id);
-          if (!tray) {
-            setSelectedSlot(null);
-          } else if (JSON.stringify(tray) !== JSON.stringify(cur.tray)) {
-            setSelectedSlot({ ams_id: cur.ams_id, slot_id: cur.slot_id, tray });
+        // STUDIO-18344: prune selected keys whose tray has disappeared
+        // (filament physically pulled). The live tray is looked up on
+        // demand from `amsData` so we no longer need to mirror tray
+        // snapshots into local state; this loop only fires when the set
+        // is non-empty so the no-selection case stays free.
+        const cur = selectedSlotKeysRef.current;
+        if (cur.size > 0) {
+          const next = new Set<string>();
+          for (const key of cur) {
+            const [amsId, slotId] = key.split(':');
+            const unit = data.ams_units.find((u) => u.ams_id === amsId);
+            const tray = unit?.trays.find((tr) => tr.slot_id === slotId);
+            if (tray && tray.is_exists) next.add(key);
+          }
+          if (next.size !== cur.size) {
+            setSelectedSlotKeys(next);
+            // Also clear the "form last seeded from this key" pointer if
+            // the seeding slot is gone, so a subsequent fresh 1-select
+            // will re-seed instead of being skipped as "already seeded".
+            if (lastSeededSlotKeyRef.current && !next.has(lastSeededSlotKeyRef.current)) {
+              lastSeededSlotKeyRef.current = '';
+            }
           }
         }
       } catch {
@@ -1360,8 +1477,12 @@ export function AddEditDialog({
     };
   }, [open, mode, amsLoading, onFetchMachines]);
 
-  const selectAmsSlot = (unit: AmsUnit, tray: AmsTray) => {
-    setSelectedSlot({ ams_id: unit.ams_id, slot_id: tray.slot_id, tray });
+  // STUDIO-18344: split out the form-seed body so the single-slot click,
+  // the multi -> single deselect transition, and the polling slot-prune
+  // path can all reuse the same setBrand / setMaterialType / setColor /
+  // setWeights logic without going through the Set toggle helper.
+  const seedFormFromTray = (unit: AmsUnit, tray: AmsTray) => {
+    lastSeededSlotKeyRef.current = `${unit.ams_id}:${tray.slot_id}`;
     // Tell the fila_id reconcile effect: the next fila_id transition is
     // driven by us (we're about to setBrand/setMaterialType/setSeries based
     // on the tray's setting_id), not by a user-initiated brand switch.
@@ -1518,6 +1639,81 @@ export function AddEditDialog({
     });
   };
 
+  // STUDIO-18344: resolve a slot key back to (unit, tray) using the live
+  // amsData snapshot. Returns null when either side is missing so callers
+  // can no-op rather than crash.
+  const resolveSlotByKey = (key: string): { unit: AmsUnit; tray: AmsTray } | null => {
+    if (!amsData || !key) return null;
+    const [amsId, slotId] = key.split(':');
+    const unit = amsData.ams_units.find((u) => u.ams_id === amsId);
+    if (!unit) return null;
+    const tray = unit.trays.find((t) => t.slot_id === slotId);
+    if (!tray) return null;
+    return { unit, tray };
+  };
+
+  // STUDIO-18344: per-slot toggle handler for the multi-select grid.
+  //
+  // Branches by the post-toggle Set size:
+  //   - size 0  -> form keeps its previous values (UX continuity for
+  //               "deselected by accident").
+  //   - size 1  -> seed the form from the only selected tray, same as the
+  //               pre-multi-select behaviour.
+  //   - size N  -> form is hidden, no seeding required.
+  const toggleSlotSelection = (unit: AmsUnit, tray: AmsTray) => {
+    const key = `${unit.ams_id}:${tray.slot_id}`;
+    const next = new Set(selectedSlotKeys);
+    if (next.has(key)) {
+      next.delete(key);
+    } else {
+      next.add(key);
+    }
+    setSelectedSlotKeys(next);
+    if (next.size === 1) {
+      const onlyKey = [...next][0];
+      if (lastSeededSlotKeyRef.current !== onlyKey) {
+        if (onlyKey === key) {
+          seedFormFromTray(unit, tray);
+        } else {
+          const r = resolveSlotByKey(onlyKey);
+          if (r) seedFormFromTray(r.unit, r.tray);
+        }
+      }
+    } else if (next.size === 0) {
+      // Allow a later 0 -> 1 transition to reseed even if the form still
+      // shows the last-selected tray's values.
+      lastSeededSlotKeyRef.current = '';
+    }
+  };
+
+  // STUDIO-18344: convenience "select every detected slot in the current
+  // unit" action. Trays without RFID are still importable (they fall back
+  // to the manual create path on the C++ side), so the only filter is
+  // `is_exists`. Selection is keyed per (ams_id, slot_id) so this never
+  // collides with other AMS units' slots already in the Set.
+  const selectAllDetected = (unit: AmsUnit) => {
+    const next = new Set(selectedSlotKeys);
+    for (const tray of unit.trays) {
+      if (tray.is_exists) next.add(`${unit.ams_id}:${tray.slot_id}`);
+    }
+    setSelectedSlotKeys(next);
+    // Reseed the form if the resulting set collapses back to a single
+    // entry (e.g. the unit only had one populated slot). Most of the
+    // time this will land at size >= 2 and the form stays hidden.
+    if (next.size === 1) {
+      const onlyKey = [...next][0];
+      if (lastSeededSlotKeyRef.current !== onlyKey) {
+        const r = resolveSlotByKey(onlyKey);
+        if (r) seedFormFromTray(r.unit, r.tray);
+      }
+    }
+  };
+
+  const clearSlotSelection = () => {
+    setSelectedSlotKeys(new Set());
+    lastSeededSlotKeyRef.current = '';
+  };
+
   // F4.10: dialog drag support. Users expect to be able to drag the dialog
   // around by its header so it doesn't cover underlying context.
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -1553,11 +1749,35 @@ export function AddEditDialog({
 
   const currentUnit = amsData?.ams_units.find((u) => u.ams_id === selectedUnit);
   const slotLabels = ['A1', 'A2', 'A3', 'A4'];
-  const amsFieldLocked = mode === 'ams' && !!selectedSlot;
+  // STUDIO-18344: form lock + form visibility derive from the new selection
+  // model. Multi-select (>=2) hides the form entirely, so the lock flags
+  // only matter in single-select mode.
+  const slotSelectionCount = selectedSlotKeys.size;
+  const isAmsMultiSelect = mode === 'ams' && slotSelectionCount >= 2;
+  const isAmsSingleSelect = mode === 'ams' && slotSelectionCount === 1;
+  const amsFieldLocked = isAmsSingleSelect;
   const lockBrand = amsFieldLocked && amsLockedFields.brand;
   const lockMaterial = amsFieldLocked && amsLockedFields.material;
   const lockColor = amsFieldLocked && amsLockedFields.color;
   const lockWeight = amsFieldLocked && amsLockedFields.weight;
+  // Snapshot of (unit, tray) pairs for the batch summary panel. Resolved
+  // against the live `amsData` so a slot whose tray was just pulled drops
+  // out automatically on the next render (the poll-prune effect will catch
+  // up to the Set itself on the next 1.5s tick).
+  const batchSelectionItems = isAmsMultiSelect
+    ? Array.from(selectedSlotKeys)
+        .map((key) => {
+          const r = resolveSlotByKey(key);
+          if (!r) return null;
+          return { key, unit: r.unit, tray: r.tray };
+        })
+        .filter((x): x is { key: string; unit: AmsUnit; tray: AmsTray } => x !== null)
+    : [];
+  const batchUpdateCount = batchSelectionItems.reduce((count, item) => {
+    const trayTagUid = item.tray.tag_uid || '';
+    if (!isValidTagUid(trayTagUid)) return count;
+    return spools.some((sp) => (sp.tag_uid || '') === trayTagUid) ? count + 1 : count;
+  }, 0);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-start justify-center pt-10 z-[1000]">
@@ -1676,7 +1896,10 @@ export function AddEditDialog({
                         data-active={u.ams_id === selectedUnit ? 'true' : 'false'}
                         className={`rounded-[4px] border bg-transparent cursor-pointer flex items-center p-[4px] transition-colors duration-150 hover:border-fm-text-secondary ${u.ams_id === selectedUnit ? 'border-fm-brand' : 'border-fm-border-focus'}`}
                         title={`AMS ${parseInt(u.ams_id, 10) + 1}`}
-                        onClick={() => { setSelectedUnit(u.ams_id); setSelectedSlot(null); }}
+                        // STUDIO-18344: switching AMS unit keeps the
+                        // selected slots across units (per the ticket UX
+                        // confirmation). Only handleDeviceChange clears.
+                        onClick={() => setSelectedUnit(u.ams_id)}
                       >
                         <AmsUnitIcon unit={u} isActive={u.ams_id === selectedUnit} />
                       </button>
@@ -1684,10 +1907,47 @@ export function AddEditDialog({
                   </div>
                 </div>
                 {currentUnit && (
+                  <>
+                  {/* STUDIO-18344: multi-select toolbar. Always rendered
+                      so the testids/test hooks exist regardless of count;
+                      counts and helper actions surface the current
+                      selection state for the user. */}
+                  <div className="flex items-center justify-between px-[2px]">
+                    <span
+                      data-testid="ams-selection-count"
+                      data-count={slotSelectionCount}
+                      className="text-[11px] leading-[16px] text-fm-text-detail"
+                    >
+                      {slotSelectionCount > 0
+                        ? t('Selected {{count}} slots', { count: slotSelectionCount })
+                        : t('Tap slots to select; pick multiple to batch-add')}
+                    </span>
+                    <div className="flex items-center gap-[12px]">
+                      <button
+                        type="button"
+                        data-testid="ams-select-all"
+                        className="bg-transparent border-none p-0 text-[11px] leading-[16px] text-fm-text-secondary hover:text-fm-text-strong cursor-pointer disabled:opacity-40 disabled:cursor-default"
+                        disabled={!currentUnit.trays.some((tr) => tr.is_exists)}
+                        onClick={() => selectAllDetected(currentUnit)}
+                      >
+                        {t('Select all detected')}
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="ams-clear-selection"
+                        className="bg-transparent border-none p-0 text-[11px] leading-[16px] text-fm-text-secondary hover:text-fm-text-strong cursor-pointer disabled:opacity-40 disabled:cursor-default"
+                        disabled={slotSelectionCount === 0}
+                        onClick={clearSlotSelection}
+                      >
+                        {t('Clear Selection')}
+                      </button>
+                    </div>
+                  </div>
                   <div className="flex gap-[8px] py-[8px]">
                     {currentUnit.trays.map((tray, i) => {
                       const label = slotLabels[i] || `A${i + 1}`;
-                      const isSelected = selectedSlot?.slot_id === tray.slot_id && selectedSlot?.ams_id === currentUnit.ams_id;
+                      const slotKey = `${currentUnit.ams_id}:${tray.slot_id}`;
+                      const isSelected = selectedSlotKeys.has(slotKey);
                       if (!tray.is_exists) {
                         return (
                           <div key={label} data-testid={`ams-slot-${currentUnit.ams_id}-${tray.slot_id}`} data-empty="true" className="flex-1 flex flex-col rounded-[6px] border border-fm-border-focus cursor-default opacity-30 transition-all duration-150 overflow-hidden">
@@ -1712,9 +1972,22 @@ export function AddEditDialog({
                           data-color={tray.color}
                           data-color-type={tray.color_type}
                           data-colors={(tray.colors || []).join(',')}
-                          className={`flex-1 flex flex-col rounded-[6px] border cursor-pointer transition-all duration-150 overflow-hidden hover:border-fm-text-secondary ${isSelected ? 'border-fm-brand' : 'border-fm-border-focus'}`}
-                          onClick={() => selectAmsSlot(currentUnit, tray)}
+                          className={`relative flex-1 flex flex-col rounded-[6px] border cursor-pointer transition-all duration-150 overflow-hidden hover:border-fm-text-secondary ${isSelected ? 'border-fm-brand' : 'border-fm-border-focus'}`}
+                          onClick={() => toggleSlotSelection(currentUnit, tray)}
                         >
+                          {/* STUDIO-18344: corner checkbox surfaces the
+                              multi-select affordance. Always rendered
+                              (also on size 1) so users discover the
+                              capability without needing to click a
+                              second slot first. */}
+                          <span
+                            data-testid="ams-slot-checkbox"
+                            data-checked={isSelected ? 'true' : 'false'}
+                            aria-hidden="true"
+                            className={`absolute top-[4px] right-[4px] size-[14px] rounded-[3px] flex items-center justify-center pointer-events-none transition-colors duration-150 ${isSelected ? 'bg-fm-brand text-white' : 'bg-fm-inner2 border border-fm-border-focus text-transparent'}`}
+                          >
+                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5.2 4.2 7.4 8.5 2.8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          </span>
                           <div className={`fm-slot-header-bg text-center py-[2px] text-[11px] leading-[16px] bg-[var(--color-fm-slot-header)] text-[var(--color-fm-slot-header-text)] rounded-t-[6px] ${isSelected ? '!bg-fm-brand !text-white' : ''}`}>{label}</div>
                           <div className="flex gap-[4px] items-center p-[4px]">
                             <div className="size-[40px] shrink-0 flex items-center justify-center">
@@ -1747,6 +2020,55 @@ export function AddEditDialog({
                       );
                     })}
                   </div>
+                  </>
+                )}
+                {/* STUDIO-18344: batch summary panel — only shown when the
+                    user has ticked >=2 slots. The editable form below is
+                    hidden in this state so users see exactly what will
+                    land in the cloud after pressing the confirm button. */}
+                {isAmsMultiSelect && (
+                  <div
+                    data-testid="ams-batch-summary"
+                    data-count={slotSelectionCount}
+                    data-update-count={batchUpdateCount}
+                    className="flex flex-col gap-[8px] rounded-[8px] border border-fm-border-focus bg-fm-inner p-3"
+                  >
+                    <div className="text-[12px] leading-[19px] text-fm-text-primary">
+                      {t('{{count}} slots will be batch-added using AMS data', { count: slotSelectionCount })}
+                    </div>
+                    {batchUpdateCount > 0 && (
+                      <div className="text-[11px] leading-[16px] text-fm-text-detail">
+                        {t('Some slots already exist; they will be updated')}
+                      </div>
+                    )}
+                    <div className="flex flex-wrap gap-[6px]">
+                      {batchSelectionItems.map((item) => (
+                        <div
+                          key={item.key}
+                          data-testid={`ams-batch-item-${item.unit.ams_id}-${item.tray.slot_id}`}
+                          className="flex items-center gap-[6px] rounded-[6px] bg-fm-inner2 pl-[6px] pr-[8px] py-[4px]"
+                          title={`${item.tray.fila_type || ''} ${item.tray.color || ''}`.trim()}
+                        >
+                          <SpoolColorChip
+                            colorCode={item.tray.color}
+                            colors={item.tray.colors}
+                            colorType={item.tray.color_type}
+                            size={14}
+                            radius={3}
+                          />
+                          <span className="text-[11px] leading-[16px] text-fm-text-primary truncate max-w-[120px]">
+                            {item.tray.fila_type || '—'}
+                          </span>
+                          <span className="text-[11px] leading-[16px] text-fm-text-detail">
+                            {(() => {
+                              const cur = getTrayCurrentNetWeight(item.tray);
+                              return cur > 0 ? `${cur}g` : '—';
+                            })()}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
             )}
@@ -1754,10 +2076,12 @@ export function AddEditDialog({
         )}
 
         {/* Separator between AMS and form */}
-        {mode === 'ams' && selectedSlot && <div className="h-0 w-full border-t border-fm-border" />}
+        {isAmsSingleSelect && <div className="h-0 w-full border-t border-fm-border" />}
 
-        {/* Form body — visible in manual mode, or in AMS when slot is selected */}
-        {(mode === 'manual' || selectedSlot) && (
+        {/* Form body — visible in manual mode, or in AMS when exactly one
+            slot is selected. Multi-select (>=2) hides the form entirely
+            (STUDIO-18344). */}
+        {(mode === 'manual' || isAmsSingleSelect) && (
           <div className="flex flex-col gap-[12px]">
             {/* Section title: 耗材信息 */}
             <div className="flex flex-col gap-[16px]">
@@ -2119,8 +2443,16 @@ export function AddEditDialog({
           {(isEdit || mode !== 'manual') && <div />}
           <div className="flex gap-[12px] items-center">
             <button data-testid="dialog-cancel" className="h-[30px] px-[32px] rounded-[8px] cursor-pointer text-[12px] leading-[19px] whitespace-nowrap transition-colors duration-150 bg-fm-input text-fm-text-primary border-none hover:bg-fm-hover" onClick={onClose}>{t('Cancel')}</button>
-            <button data-testid="dialog-confirm" className="h-[30px] px-[32px] rounded-[8px] border-none cursor-pointer text-[12px] leading-[19px] font-medium whitespace-nowrap transition-colors duration-150 bg-fm-brand text-white hover:bg-fm-brand-hover disabled:opacity-40 disabled:cursor-default" disabled={!isValid} onClick={handleSubmit}>
-              {isEdit ? t('Save') : t('Add')}
+            <button
+              data-testid="dialog-confirm"
+              data-batch={isAmsBatch ? 'true' : 'false'}
+              className="h-[30px] px-[32px] rounded-[8px] border-none cursor-pointer text-[12px] leading-[19px] font-medium whitespace-nowrap transition-colors duration-150 bg-fm-brand text-white hover:bg-fm-brand-hover disabled:opacity-40 disabled:cursor-default"
+              disabled={!isValid}
+              onClick={handleSubmit}
+            >
+              {isEdit
+                ? t('Save')
+                : (isAmsBatch ? t('Batch Add ({{count}})', { count: slotSelectionCount }) : t('Add'))}
             </button>
           </div>
         </div>

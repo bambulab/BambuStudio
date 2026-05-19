@@ -453,6 +453,38 @@ export function useFilamentManagerBridge() {
     return res.ok && res.value.error_code === 0;
   }, [request, setSpools, notifyCloudQueued, notifyCloudWriteFailed]);
 
+  // STUDIO-18344: AMS multi-select batch path. Distinct payloads in
+  // `creates[]` go through the create dispatcher; `updates[]` carry an
+  // existing spool_id and go through the update dispatcher. The C++ side
+  // returns the post-batch spool list on success and we route the toast
+  // through `notifyCloudQueued` with the total combined count.
+  //
+  // Empty arrays are handled gracefully (no-op short-circuit). Mixed
+  // outcomes (e.g. create succeeds but update fails on one row) still
+  // return true here because the wire response only reports a global
+  // status; individual per-row outcomes surface through the existing
+  // per-op push_done / push_failed reports.
+  const batchCreateSpools = useCallback(async (
+    creates: Partial<Spool>[],
+    updates: Partial<Spool>[],
+  ) => {
+    const totalCount = creates.length + updates.length;
+    if (totalCount === 0) return true;
+    const res = await request<ReturnType<typeof makeBody>, BridgeResponseBody>(
+      makeBody('spool', 'batch_create', { creates, updates } as unknown as Record<string, unknown>)
+    );
+    if (res.ok && res.value.error_code === 0) {
+      setSpools(res.value.payload as unknown as Spool[]);
+      // The cloud queue accepts both buckets via the dispatcher's create
+      // and update paths respectively, so the toast count is the union.
+      // Calling notifyCloudQueued twice (one per op) would double-toast
+      // for the same user action.
+      notifyCloudQueued('create', totalCount);
+    }
+    if (!res.ok || res.value.error_code !== 0) notifyCloudWriteFailed('create');
+    return res.ok && res.value.error_code === 0;
+  }, [request, setSpools, notifyCloudQueued, notifyCloudWriteFailed]);
+
   const updateSpool = useCallback(async (spool: Partial<Spool>) => {
     const res = await request<ReturnType<typeof makeBody>, BridgeResponseBody>(
       makeBody('spool', 'update', spool as Record<string, unknown>)
@@ -654,6 +686,7 @@ export function useFilamentManagerBridge() {
     fetchSpools,
     addSpool,
     batchAddSpool,
+    batchCreateSpools,
     updateSpool,
     removeSpool,
     batchRemoveSpool,
