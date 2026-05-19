@@ -20,6 +20,7 @@ on:
       - 'version.inc'
       - 'resources/**'
       - 'bbl/**'
+      - 'packaging/appimage/**'
       - '.github/workflows/build_pixi.yml'
   pull_request:
     paths: *triggers
@@ -93,7 +94,10 @@ jobs:
             .pixi/envs/default/lib/liblibnoise_static.a
             .pixi/envs/default/include/libnoise
             .pixi/envs/default/include/wx-3.1
-          key: pixi-bootstrap-${{ matrix.os }}-${{ hashFiles('deps/wxWidgets/**', 'deps/libnoise/**', 'scripts/pixi/shared/setup-libnoise.sh', 'scripts/pixi/linux/setup-wxwidgets.sh', 'scripts/pixi/macos/setup-wxwidgets.sh', 'scripts/pixi/shared/_jobs.sh') }}
+          # v2: cache key bumped to invalidate prior macOS wx static archives.
+          # The old cache produced a wxBitmap::CopyFromIcon null-deref at MainFrame
+          # init on macOS 14.4 hosts; locally-built wx (same source) works there.
+          key: pixi-bootstrap-v2-${{ matrix.os }}-${{ hashFiles('deps/wxWidgets/**', 'deps/libnoise/**', 'scripts/pixi/shared/setup-libnoise.sh', 'scripts/pixi/linux/setup-wxwidgets.sh', 'scripts/pixi/macos/setup-wxwidgets.sh', 'scripts/pixi/shared/_jobs.sh') }}
 
       - name: Cache bootstrap (Windows)
         if: runner.os == 'Windows'
