@@ -1,10 +1,23 @@
 #!/bin/bash
-# AppImage entry point. Mirrors scripts/pixi/run.sh's runtime env workarounds:
-# the binary inside is the same one pixi builds, with the conda-forge / bambulab
-# fork stack laid out under usr/ as if it were the active pixi env.
+# AppImage entry point.
+#
+# Strategy: conda-forge libs (webkit2gtk, libcurl, fontconfig, ...) bake the
+# build-host $CONDA_PREFIX into .so files as absolute strings, and none of them
+# honor env-var overrides for those paths. So we wrap bambu-studio in a
+# bundled bwrap that bind-mounts AppDir/usr onto the build-time prefix --
+# every baked path resolves to the bundled tree.
+#
+# Fallback: if the host kernel disables unprivileged user namespaces (RHEL 7/8
+# without sysctl tweak), drop the wrap and rely on env vars alone. Webkit-
+# backed WebView will fail there, but at least the main UI starts.
 
 HERE="$(dirname "$(readlink -f "$0")")"
 PREFIX="$HERE/usr"
+BUILD_PREFIX="$(cat "$HERE/conda-prefix-at-build.txt" 2>/dev/null || true)"
+
+# ---------------------------------------------------------------------------
+# Env vars (apply in both bwrap and fallback paths)
+# ---------------------------------------------------------------------------
 
 # Resolve bundled .so deps even if the binary's baked-in RPATH points at the
 # build host's $CONDA_PREFIX/lib (which doesn't exist on user machines).
@@ -21,17 +34,32 @@ export GDK_PIXBUF_MODULE_FILE="$PREFIX/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache"
 export GIO_MODULE_DIR="$PREFIX/lib/gio/modules"
 export GSETTINGS_SCHEMA_DIR="$PREFIX/share/glib-2.0/schemas"
 
+# fontconfig probes /etc/fonts/fonts.conf by default but conda's libfontconfig
+# has the build-host's prefix baked; point both env vars at the bundled config.
+export FONTCONFIG_PATH="$PREFIX/etc/fonts"
+export FONTCONFIG_FILE="$PREFIX/etc/fonts/fonts.conf"
+
+# WebKit ships its own bwrap-based sandbox for the network/web process. When
+# we wrap the whole app in bwrap, the inner sandbox can't nest, so disable it
+# -- the outer bwrap already isolates the process. Acceptable trade-off for
+# release-notes/printer-auth use cases.
+export WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS=1
+# Software GL hosts (and many remote-desktop setups) don't have working
+# dma-buf; force the legacy renderer to avoid blank WebViews.
+export WEBKIT_DISABLE_DMABUF_RENDERER=1
+
 # Bundled share/ first so the env's Adwaita theme / icons resolve, then host
 # share/ as fallback for system overrides.
 export XDG_DATA_DIRS="$PREFIX/share:${XDG_DATA_DIRS:-/usr/share:/usr/local/share}"
 export GTK_THEME="${GTK_THEME:-Adwaita}"
 
-# conda's libcurl bakes its OPENSSLDIR at build time; outside `pixi run` it
-# can't find a CA bundle, breaking https auth. Probe the usual host paths.
-for ca in /etc/ssl/certs/ca-certificates.crt \
+# CA bundle: bundled first (matches the conda libcurl's baked-in OPENSSLDIR
+# layout once bwrap exposes the bundle at the expected path); host CAs as
+# fallback for the no-bwrap path or stricter compliance setups.
+for ca in "$PREFIX/ssl/cacert.pem" \
+          /etc/ssl/certs/ca-certificates.crt \
           /etc/pki/tls/certs/ca-bundle.crt \
-          /etc/ssl/cert.pem \
-          "$PREFIX/ssl/cacert.pem"; do
+          /etc/ssl/cert.pem; do
     if [[ -f "$ca" ]]; then
         export SSL_CERT_FILE="${SSL_CERT_FILE:-$ca}"
         export CURL_CA_BUNDLE="${CURL_CA_BUNDLE:-$ca}"
@@ -39,4 +67,46 @@ for ca in /etc/ssl/certs/ca-certificates.crt \
     fi
 done
 
+# ---------------------------------------------------------------------------
+# Bwrap wrap
+# ---------------------------------------------------------------------------
+
+# Ubuntu 24.04+ ships kernel.apparmor_restrict_unprivileged_userns=1, which
+# only lets bwrap binaries listed in the bwrap-userns-restrict AppArmor
+# profile (e.g. /usr/bin/bwrap) set up uid maps. The bundled copy inside
+# AppDir isn't on that list, so we try host paths first and only fall back
+# to the bundled bwrap on systems without one installed.
+BWRAP=""
+if [[ -n "$BUILD_PREFIX" ]]; then
+    for candidate in /usr/bin/bwrap /usr/local/bin/bwrap "$PREFIX/bin/bwrap"; do
+        if [[ -x "$candidate" ]] && "$candidate" --ro-bind / / true 2>/dev/null; then
+            BWRAP="$candidate"
+            break
+        fi
+    done
+fi
+
+if [[ -n "$BWRAP" ]]; then
+    # bambu-studio writes config/cache under $HOME and reads native UI/system
+    # files (X11 sockets, /run/user/$UID for xdg-runtime, /sys for hwinfo); bind
+    # them rw so the inner process can actually live a normal session.
+    user_home="${HOME:-/root}"
+    extra_binds=(--bind "$user_home" "$user_home")
+    [[ -d "/run/user/$(id -u)" ]] && extra_binds+=(--bind "/run/user/$(id -u)" "/run/user/$(id -u)")
+    [[ -d /sys ]] && extra_binds+=(--ro-bind /sys /sys)
+
+    # Order matters: bwrap applies binds left-to-right, so binding $BUILD_PREFIX
+    # MUST come after the $HOME bind when $BUILD_PREFIX is under $HOME
+    # (otherwise the home bind silently overwrites our prefix bind).
+    exec "$BWRAP" \
+        --ro-bind / / \
+        --dev-bind /dev /dev \
+        --proc /proc \
+        --bind /tmp /tmp \
+        "${extra_binds[@]}" \
+        --bind "$PREFIX" "$BUILD_PREFIX" \
+        "$BUILD_PREFIX/bin/bambu-studio" "$@"
+fi
+
+echo "AppRun: bwrap unavailable (unprivileged userns disabled? AppArmor blocking bundled bwrap?); falling back to env-var mode. WebView and HTTPS may fail." >&2
 exec "$PREFIX/bin/bambu-studio" "$@"
