@@ -993,7 +993,12 @@ int Model::removed_objects_with_zero_volume()
 
     int removed = 0;
     for (int i = int(objects.size()) - 1; i >= 0; i--)
-        if (objects[i]->get_object_stl_stats().volume < zero_volume) {
+        // stl_stats.volume is a signed divergence-theorem volume, so a flipped
+        // or non-closed mesh (typical for FBX scenery / open surfaces) can
+        // legitimately produce a large negative number. Compare against the
+        // magnitude so we only drop objects that really have no geometry, not
+        // objects that merely have inverted face winding.
+        if (std::abs(objects[i]->get_object_stl_stats().volume) < zero_volume) {
             delete_object(size_t(i));
             removed++;
         }

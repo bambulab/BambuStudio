@@ -3,7 +3,9 @@
 #include "TextureImportDialog.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
+#include "MsgDialog.hpp"
 #include "Widgets/StateColor.hpp"
+#include "Widgets/StaticLine.hpp"
 #include "libslic3r/Win10ModelRepair.hpp"
 
 #include <wx/button.h>
@@ -35,6 +37,21 @@ static bool is_dark() { return Slic3r::GUI::wxGetApp().dark_mode(); }
 static wxColour dark_or(const wxColour& light, const wxColour& dark)
 {
     return is_dark() ? dark : light;
+}
+
+static wxColour texture_import_gray9000()
+{
+    return wxColour(38, 46, 48);
+}
+
+static wxColour texture_import_text_colour()
+{
+    return StateColor::darkModeColorFor(texture_import_gray9000());
+}
+
+static wxColour texture_import_separator_colour()
+{
+    return StateColor::darkModeColorFor(wxColour("#CECECE"));
 }
 
 static wxFont texture_import_section_title_font(wxWindow* win)
@@ -434,7 +451,8 @@ public:
             hdr->SetFont(hf);
             hdr->SetForegroundColour(header_clr);
             outer->Add(hdr, 0, wxLEFT | wxRIGHT | wxTOP, pad);
-            auto* line = new wxStaticLine(m_content, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+            auto* line = new StaticLine(m_content);
+            line->SetLineColour(texture_import_separator_colour());
             outer->Add(line, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, pad);
         };
 
@@ -498,7 +516,8 @@ public:
         top_sizer->Add(m_content, 0, wxEXPAND);
 
         top_sizer->AddSpacer(FromDIP(4));
-        auto* sep_line = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+        auto* sep_line = new StaticLine(this);
+        sep_line->SetLineColour(texture_import_separator_colour());
         top_sizer->Add(sep_line, 0, wxEXPAND | wxLEFT | wxRIGHT, pad);
         top_sizer->Add(add_label, 0, wxLEFT | wxRIGHT | wxTOP | wxBOTTOM, pad);
         SetSizerAndFit(top_sizer);
@@ -538,7 +557,7 @@ private:
     {
         wxColour row_bg    = dark_or(*wxWHITE, wxColour(0x2D, 0x2D, 0x31));
         wxColour hover_bg  = dark_or(wxColour(245, 245, 245), wxColour(0x3C, 0x3C, 0x42));
-        wxColour name_fg   = dark_or(wxColour(38, 46, 48), wxColour(0xEF, 0xEF, 0xF0));
+        wxColour name_fg   = texture_import_text_colour();
 
         wxPanel* row = new wxPanel(m_content, wxID_ANY, wxDefaultPosition, wxSize(-1, row_h));
         row->SetBackgroundColour(row_bg);
@@ -585,7 +604,7 @@ private:
                 wxFont nf = p->GetFont();
                 nf.SetPointSize(9);
                 dc.SetFont(nf);
-                dc.SetTextForeground(paint_clr.GetLuminance() < 0.6 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30));
+                dc.SetTextForeground(paint_clr.GetLuminance() < 0.6 ? *wxWHITE : texture_import_gray9000());
                 wxString ns = wxString::Format("%d", (int)(idx + 1));
                 wxSize tsz = dc.GetTextExtent(ns);
                 dc.DrawText(ns, sq_x + (sq - tsz.x) / 2, sq_y + (sq - tsz.y) / 2);
@@ -1759,7 +1778,9 @@ void TextureImportDialog::build_params_panel(wxWindow* parent, wxSizer* sizer)
     m_hint_label->Hide();
     sizer->Add(m_hint_label, 0, wxBOTTOM, FromDIP(4));
 
-    sizer->Add(new wxStaticLine(parent), 0, wxEXPAND | wxBOTTOM, FromDIP(8));
+    auto* mapping_separator = new StaticLine(parent);
+    mapping_separator->SetLineColour(texture_import_separator_colour());
+    sizer->Add(mapping_separator, 0, wxEXPAND | wxBOTTOM, FromDIP(8));
 }
 
 void TextureImportDialog::build_mapping_panel(wxWindow* parent, wxSizer* sizer)
@@ -1803,7 +1824,7 @@ void TextureImportDialog::build_bottom_buttons(wxSizer* sizer)
     m_btn_skip->SetId(ID_BTN_SKIP);
     m_btn_skip->SetToolTip(_L("Skip filament mapping and import as a single-color model"));
     m_btn_skip->SetCornerRadius(FromDIP(20));
-    m_btn_skip->SetMinSize(wxSize(FromDIP(106), FromDIP(36)));
+    m_btn_skip->SetMinSize(wxSize(FromDIP(136), FromDIP(40)));
     {
         StateColor skip_bg(
             std::pair<wxColour, int>(dark_or(wxColour(206, 206, 206), wxColour(0x54, 0x54, 0x5B)), StateColor::Pressed),
@@ -1821,7 +1842,7 @@ void TextureImportDialog::build_bottom_buttons(wxSizer* sizer)
     m_btn_ok = new Button(this, _L("Confirm"));
     m_btn_ok->SetId(wxID_OK);
     m_btn_ok->SetCornerRadius(FromDIP(20));
-    m_btn_ok->SetMinSize(wxSize(FromDIP(156), FromDIP(36)));
+    m_btn_ok->SetMinSize(wxSize(FromDIP(156), FromDIP(40)));
     {
         StateColor ok_bg(
             std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
@@ -1830,14 +1851,14 @@ void TextureImportDialog::build_bottom_buttons(wxSizer* sizer)
         StateColor ok_bd(
             std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
         StateColor ok_text(
-            std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+            std::pair<wxColour, int>(wxColour("#FFFFFE"), StateColor::Normal));
         m_btn_ok->SetBackgroundColor(ok_bg);
         m_btn_ok->SetBorderColor(ok_bd);
         m_btn_ok->SetTextColor(ok_text);
     }
 
     btn_sizer->AddStretchSpacer();
-    btn_sizer->Add(m_btn_skip, 0, wxRIGHT, FromDIP(12));
+    btn_sizer->Add(m_btn_skip, 0, wxRIGHT, FromDIP(16));
     btn_sizer->Add(m_btn_ok, 0);
 
     sizer->Add(btn_sizer, 0, wxEXPAND | wxTOP, FromDIP(8));
@@ -1896,7 +1917,7 @@ void TextureImportDialog::update_ui_for_state()
         StateColor ok_bd(
             std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
         StateColor ok_text(
-            std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
+            std::pair<wxColour, int>(wxColour("#FFFFFE"), StateColor::Normal));
         m_btn_ok->SetBackgroundColor(ok_bg);
         m_btn_ok->SetBorderColor(ok_bd);
         m_btn_ok->SetTextColor(ok_text);
@@ -2114,8 +2135,10 @@ void TextureImportDialog::on_computation_error(wxCommandEvent&)
     }
 
     set_state(TextureImportState::Error);
-    wxMessageBox(_L("Computation failed. Please adjust parameters and retry."),
-                 _L("Error"), wxOK | wxICON_ERROR, initial ? GetParent() : this);
+    Slic3r::GUI::MessageDialog dlg(initial ? GetParent() : this,
+        _L("Computation failed. Please adjust parameters and retry."),
+        _L("Error"), wxOK | wxICON_ERROR);
+    dlg.ShowModal();
 }
 
 void TextureImportDialog::on_mesh_repair_decision_required(wxCommandEvent&)
@@ -2129,19 +2152,52 @@ void TextureImportDialog::on_mesh_repair_decision_required(wxCommandEvent&)
     }
 
 #ifdef HAS_WIN10SDK
-    wxMessageDialog dlg(initial ? GetParent() : this,
+    Slic3r::GUI::MessageDialog dlg(initial ? GetParent() : this,
         _L("The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."),
         _L("Mesh repair"), wxYES_NO | wxICON_WARNING | wxYES_DEFAULT);
-    dlg.SetYesNoLabels(_L("Import without repair"), _L("Repair and import"));
+    dlg.SetButtonLabel(wxID_YES, _L("Import without repair"));
+    dlg.SetButtonLabel(wxID_NO, _L("Repair and import"), true);
+    StateColor primary_bg(
+        std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour(61, 203, 115), StateColor::Hovered),
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    StateColor primary_bd(
+        std::pair<wxColour, int>(wxColour(0, 174, 66), StateColor::Normal));
+    StateColor primary_text(
+        std::pair<wxColour, int>(wxColour("#FFFFFE"), StateColor::Normal));
+    StateColor secondary_bg(
+        std::pair<wxColour, int>(wxColour("#CECECE"), StateColor::Pressed),
+        std::pair<wxColour, int>(wxColour("#EEEEEE"), StateColor::Hovered),
+        std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
+    StateColor secondary_bd(
+        std::pair<wxColour, int>(texture_import_gray9000(), StateColor::Normal));
+    StateColor secondary_text(
+        std::pair<wxColour, int>(texture_import_gray9000(), StateColor::Normal));
+    if (auto* yes_btn = dynamic_cast<Button*>(dlg.FindWindow(wxID_YES))) {
+        yes_btn->SetMinSize(wxSize(FromDIP(180), FromDIP(24)));
+        yes_btn->SetBackgroundColor(secondary_bg);
+        yes_btn->SetBorderColor(secondary_bd);
+        yes_btn->SetTextColor(secondary_text);
+    }
+    if (auto* no_btn = dynamic_cast<Button*>(dlg.FindWindow(wxID_NO))) {
+        no_btn->SetMinSize(wxSize(FromDIP(160), FromDIP(24)));
+        no_btn->SetBackgroundColor(primary_bg);
+        no_btn->SetBorderColor(primary_bd);
+        no_btn->SetTextColor(primary_text);
+    }
+    dlg.Layout();
+    dlg.Fit();
+    dlg.CenterOnParent();
     int ret = dlg.ShowModal();
     m_mesh_repair_decision = (ret == wxID_NO)
         ? Slic3r::TexturePaintingSettings::MeshRepairDecision::RepairAndImport
         : Slic3r::TexturePaintingSettings::MeshRepairDecision::ImportWithoutRepair;
 #else
-    wxMessageDialog dlg(initial ? GetParent() : this,
+    Slic3r::GUI::MessageDialog dlg(initial ? GetParent() : this,
         _L("Please note that the mesh has non-manifold geometry or open boundaries."),
         _L("Mesh issue"), wxOK | wxCANCEL | wxICON_WARNING | wxOK_DEFAULT);
-    dlg.SetOKCancelLabels(_L("Continue"), _L("Cancel"));
+    dlg.SetButtonLabel(wxID_OK, _L("Continue"), true);
+    dlg.SetButtonLabel(wxID_CANCEL, _L("Cancel"));
     int ret = dlg.ShowModal();
     if (ret != wxID_OK) {
         m_cancel_flag = true;
@@ -2195,10 +2251,12 @@ void TextureImportDialog::show_filament_limit_warning_once()
         return;
 
     m_filament_limit_warning_shown = true;
-    wxMessageBox(wxString::Format(
-                     _L("The project supports up to %d filaments. Extra filaments will be discarded."),
-                     (int)max_filament_count()),
-                 _L("Warning"), wxOK | wxICON_WARNING, this);
+    Slic3r::GUI::MessageDialog dlg(this,
+        wxString::Format(
+            _L("The project supports up to %d filaments. Extra filaments will be discarded."),
+            (int)max_filament_count()),
+        _L("Warning"), wxOK | wxICON_WARNING);
+    dlg.ShowModal();
 }
 
 int TextureImportDialog::find_closest_filament_index(const std::array<std::size_t, 3>& color) const
@@ -2482,8 +2540,8 @@ void TextureImportDialog::do_auto_match()
         m_current_matches = Slic3r::match_clusters_to_filaments(
             m_painted.cluster_colors, existing_filament_colors, names);
 
-        // For clusters with poor match (ΔE > 15), create virtual filaments
-        constexpr double NEW_FILAMENT_THRESHOLD = 15.0;
+        // For clusters with poor match (CIEDE2000 ΔE > 5), create virtual filaments.
+        constexpr double NEW_FILAMENT_THRESHOLD = 5.0;
         std::map<std::array<std::size_t, 3>, int> virtual_color_index;
 
         for (auto& m : m_current_matches) {
@@ -2568,10 +2626,10 @@ void TextureImportDialog::rebuild_mapping_rows()
     };
 
     const wxColour dash_clr   = dark_or(wxColour(179, 179, 179), wxColour(100, 100, 106));
-    const wxColour hex_fg     = dark_or(wxColour(125, 130, 131), wxColour(180, 180, 186));
+    const wxColour hex_fg     = texture_import_text_colour();
     const wxColour card_bg    = dark_or(wxColour(235, 235, 235), wxColour(0x3C, 0x3C, 0x42));
     const wxColour card_bd    = dark_or(wxColour(224, 224, 224), wxColour(0x46, 0x46, 0x4C));
-    const wxColour name_fg    = dark_or(wxColour(38, 46, 48), wxColour(0xEF, 0xEF, 0xF0));
+    const wxColour name_fg    = texture_import_text_colour();
     const wxColour chev_clr   = dark_or(wxColour(107, 107, 107), wxColour(0xB3, 0xB3, 0xB5));
 
     m_mapping_rows.resize(m_current_matches.size());
@@ -2724,7 +2782,7 @@ void TextureImportDialog::rebuild_mapping_rows()
                 wxFont num_font = p->GetFont();
                 num_font.SetPointSize(10);
                 dc.SetFont(num_font);
-                dc.SetTextForeground(fil_clr.GetLuminance() < 0.6 ? *wxWHITE : wxColour(0x26, 0x2E, 0x30));
+                dc.SetTextForeground(fil_clr.GetLuminance() < 0.6 ? *wxWHITE : texture_import_gray9000());
                 wxString num_str = wxString::Format("%d", fil_idx + 1);
                 wxSize nsz = dc.GetTextExtent(num_str);
                 dc.DrawText(num_str, sq_x + (sq - nsz.x) / 2, sq_y + (sq - nsz.y) / 2);

@@ -19,6 +19,7 @@
 #include <map>
 #include <memory>
 #include <sstream>
+#include <tuple>
 #include <vector>
 
 #ifndef _L
@@ -31,9 +32,10 @@ namespace {
 
 constexpr unsigned int DEFAULT_FBX_FLAGS = aiProcess_Triangulate
                                          | aiProcess_GenNormals
-                                         | aiProcess_JoinIdenticalVertices
                                          | aiProcess_FlipUVs
                                          | aiProcess_PreTransformVertices;
+
+constexpr size_t FBX_MAX_EXPANDED_TRIANGLES_PER_FINGERPRINT = 1000000;
 
 struct FbxImportAttempt
 {
@@ -41,6 +43,21 @@ struct FbxImportAttempt
     unsigned int flags = 0;
     bool         configure_fbx_properties = false;
     bool         read_from_memory = false;
+};
+
+// Records which Assimp meshes should be skipped during node traversal.
+//
+// When aiProcess_PreTransformVertices is active, Assimp duplicates every FBX
+// mesh once per scene-graph reference and bakes the cumulative transform into
+// the vertices. For heavily instanced FBX files (e.g. Blender Dupli arrays)
+// that explodes into hundreds of identical meshes and millions of triangles,
+// which is what causes the "loads forever" behaviour. We deduplicate by mesh
+// fingerprint (vertex count + face count + material index + primitive types):
+// when one fingerprint group expands past the triangle budget we keep only
+// its first occurrence and skip the rest.
+struct FbxMeshInstancePolicy
+{
+    std::vector<bool> skip_mesh;
 };
 
 void set_error_message(std::string* error_message, const std::string& message)
@@ -71,6 +88,83 @@ size_t count_node_mesh_refs(const aiNode* node)
     for (unsigned int i = 0; i < node->mNumChildren; ++i)
         count += count_node_mesh_refs(node->mChildren[i]);
     return count;
+}
+
+// Fingerprint of an Assimp mesh used to recognise sibling copies produced by
+// aiProcess_PreTransformVertices. Two meshes with the same fingerprint share
+// the same source geometry (and therefore the same triangle count) but live in
+// different scene-graph instances, so collapsing them retains the visible
+// shape without paying the per-instance triangle cost.
+struct MeshFingerprint
+{
+    unsigned int num_vertices = 0;
+    unsigned int num_faces = 0;
+    unsigned int primitive_types = 0;
+    unsigned int material_index = 0;
+
+    bool operator<(const MeshFingerprint& other) const
+    {
+        return std::tie(num_vertices, num_faces, primitive_types, material_index)
+             < std::tie(other.num_vertices, other.num_faces, other.primitive_types, other.material_index);
+    }
+};
+
+MeshFingerprint make_mesh_fingerprint(const aiMesh& mesh)
+{
+    MeshFingerprint fp;
+    fp.num_vertices = mesh.mNumVertices;
+    fp.num_faces = mesh.mNumFaces;
+    fp.primitive_types = mesh.mPrimitiveTypes;
+    fp.material_index = mesh.mMaterialIndex;
+    return fp;
+}
+
+FbxMeshInstancePolicy build_mesh_instance_policy(
+    const aiScene* scene,
+    const char* attempt_name,
+    const std::string& path)
+{
+    FbxMeshInstancePolicy policy;
+    if (!scene)
+        return policy;
+
+    policy.skip_mesh.assign(scene->mNumMeshes, false);
+
+    // Group meshes by fingerprint to recognise instance copies of the same source mesh.
+    std::map<MeshFingerprint, std::vector<unsigned int>> groups;
+    for (unsigned int mesh_index = 0; mesh_index < scene->mNumMeshes; ++mesh_index) {
+        const aiMesh* mesh = scene->mMeshes[mesh_index];
+        if (!mesh)
+            continue;
+        groups[make_mesh_fingerprint(*mesh)].push_back(mesh_index);
+    }
+
+    for (auto& [fingerprint, mesh_indices] : groups) {
+        const size_t instance_count = mesh_indices.size();
+        if (instance_count <= 1 || fingerprint.num_faces == 0)
+            continue;
+
+        const size_t expanded_faces = static_cast<size_t>(fingerprint.num_faces) * instance_count;
+        if (expanded_faces <= FBX_MAX_EXPANDED_TRIANGLES_PER_FINGERPRINT)
+            continue;
+
+        // Keep the first occurrence so at least one usable instance is imported,
+        // even when the file consists entirely of heavy Dupli copies.
+        for (size_t i = 1; i < mesh_indices.size(); ++i)
+            policy.skip_mesh[mesh_indices[i]] = true;
+
+        BOOST_LOG_TRIVIAL(warning) << "FBX: collapsing duplicated mesh instances"
+                                   << " (attempt=" << attempt_name
+                                   << ", faces_per_instance=" << fingerprint.num_faces
+                                   << ", instances=" << instance_count
+                                   << ", expanded_faces=" << expanded_faces
+                                   << ", threshold=" << FBX_MAX_EXPANDED_TRIANGLES_PER_FINGERPRINT
+                                   << ", kept_mesh_index=" << mesh_indices.front()
+                                   << ", skipped_meshes=" << (mesh_indices.size() - 1)
+                                   << "), path=" << path;
+    }
+
+    return policy;
 }
 
 std::string scene_summary(const aiScene* scene)
@@ -214,6 +308,18 @@ void configure_fbx_importer(Assimp::Importer& importer)
     importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_READ_CAMERAS, false);
 }
 
+// When aiProcess_PreTransformVertices is requested, Assimp would otherwise
+// merge every same-material mesh into a single big mesh, which masks instance
+// duplication and prevents the fingerprint-based collapse in
+// build_mesh_instance_policy from kicking in. Keeping the hierarchy still
+// bakes transforms into vertices but leaves each instance as its own aiMesh
+// so we can spot heavy Dupli arrays and drop their copies.
+void configure_pretransform_options(Assimp::Importer& importer, unsigned int flags)
+{
+    if (flags & aiProcess_PreTransformVertices)
+        importer.SetPropertyBool(AI_CONFIG_PP_PTV_KEEP_HIERARCHY, true);
+}
+
 boost::filesystem::path resolve_fbx_external_texture_path(
     const boost::filesystem::path& base_dir,
     const std::string& texture_path)
@@ -268,20 +374,29 @@ void collect_mesh(const aiScene* scene,
     vertex_offset += mesh->mNumVertices;
 }
 
+bool should_skip_mesh(const FbxMeshInstancePolicy& policy, unsigned int mesh_index)
+{
+    return mesh_index < policy.skip_mesh.size() && policy.skip_mesh[mesh_index];
+}
+
 void process_node(const aiScene* scene,
                   const aiNode* node,
                   const aiMatrix4x4& parent_transform,
                   bool apply_transforms,
                   uint32_t& vertex_offset,
-                  TexturedMesh& out)
+                  TexturedMesh& out,
+                  const FbxMeshInstancePolicy& instance_policy)
 {
     const aiMatrix4x4 node_transform = parent_transform * node->mTransformation;
     for (unsigned int i = 0; i < node->mNumMeshes; ++i) {
-        const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+        const unsigned int mesh_index = node->mMeshes[i];
+        if (should_skip_mesh(instance_policy, mesh_index))
+            continue;
+        const aiMesh* mesh = scene->mMeshes[mesh_index];
         collect_mesh(scene, mesh, node_transform, apply_transforms, vertex_offset, out);
     }
     for (unsigned int i = 0; i < node->mNumChildren; ++i) {
-        process_node(scene, node->mChildren[i], node_transform, apply_transforms, vertex_offset, out);
+        process_node(scene, node->mChildren[i], node_transform, apply_transforms, vertex_offset, out, instance_policy);
     }
 }
 
@@ -311,6 +426,7 @@ bool load_fbx(const std::string& path, TexturedMesh& out, std::string* error_mes
         auto importer = std::make_unique<Assimp::Importer>();
         if (attempt.configure_fbx_properties)
             configure_fbx_importer(*importer);
+        configure_pretransform_options(*importer, attempt.flags);
 
         std::vector<char> file_buffer;
         const aiScene* attempt_scene = nullptr;
@@ -367,7 +483,9 @@ bool load_fbx(const std::string& path, TexturedMesh& out, std::string* error_mes
         TexturedMesh imported;
         uint32_t vertex_offset = 0;
         const bool apply_node_transforms = (attempt.flags & aiProcess_PreTransformVertices) == 0;
-        process_node(attempt_scene, attempt_scene->mRootNode, aiMatrix4x4(), apply_node_transforms, vertex_offset, imported);
+        FbxMeshInstancePolicy instance_policy = build_mesh_instance_policy(attempt_scene, attempt.name, path);
+        process_node(attempt_scene, attempt_scene->mRootNode, aiMatrix4x4(), apply_node_transforms,
+                     vertex_offset, imported, instance_policy);
 
         if (imported.vertices.empty() || imported.indices.empty()) {
             std::ostringstream ss;

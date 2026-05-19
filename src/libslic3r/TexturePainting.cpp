@@ -353,38 +353,17 @@ bool texture_to_painting(
     return true;
 }
 
-static std::array<double,3> rgb_to_lab(double r, double g, double b) {
-    auto linearize = [](double c) -> double {
-        c /= 255.0;
-        return (c > 0.04045) ? std::pow((c + 0.055) / 1.055, 2.4) : c / 12.92;
-    };
-    double rl = linearize(r), gl = linearize(g), bl = linearize(b);
-
-    double x = 0.4124564 * rl + 0.3575761 * gl + 0.1804375 * bl;
-    double y = 0.2126729 * rl + 0.7151522 * gl + 0.0721750 * bl;
-    double z = 0.0193339 * rl + 0.1191920 * gl + 0.9503041 * bl;
-
-    x /= 0.95047; y /= 1.0; z /= 1.08883;
-
-    auto f = [](double t) -> double {
-        return (t > 0.008856) ? std::cbrt(t) : (7.787 * t + 16.0 / 116.0);
-    };
-    double L = 116.0 * f(y) - 16.0;
-    double a = 500.0 * (f(x) - f(y));
-    double b_val = 200.0 * (f(y) - f(z));
-    return {L, a, b_val};
-}
-
 double compute_delta_e(
     const std::array<std::size_t,3>& rgb1,
     const std::array<float,4>& rgba2)
 {
-    auto lab1 = rgb_to_lab((double)rgb1[0], (double)rgb1[1], (double)rgb1[2]);
-    auto lab2 = rgb_to_lab(rgba2[0] * 255.0, rgba2[1] * 255.0, rgba2[2] * 255.0);
-    double dL = lab1[0] - lab2[0];
-    double da = lab1[1] - lab2[1];
-    double db = lab1[2] - lab2[2];
-    return std::sqrt(dL*dL + da*da + db*db);
+    return tex2color::color_utils::calc_rgb_color_difference_by_ciede2000(
+        rgb1,
+        {
+            static_cast<std::size_t>(rgba2[0] * 255.0f),
+            static_cast<std::size_t>(rgba2[1] * 255.0f),
+            static_cast<std::size_t>(rgba2[2] * 255.0f)
+        });
 }
 
 std::vector<FilamentMatch> match_clusters_to_filaments(
