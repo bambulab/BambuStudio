@@ -342,6 +342,7 @@ public:
         float filament_tower_interface_print_temp;
         float filament_tower_interface_pre_extrusion_dist = 0;
         float filament_tower_interface_pre_extrusion_length = 0;
+        float filament_petg_pre_extrusion_offset_dist = 0;
     };
 
 
@@ -528,6 +529,7 @@ private:
     bool                       is_valid_last_layer(int tool, int layer_id, double layer_z) const;
     bool                       m_flat_ironing=false;
     bool                       m_contact_ironing = false;
+    bool                       m_has_filament_switcher = false;
     float                      m_contact_speed   = 20 * 60.f;
     std::vector<int>           m_physical_extruder_map;
 	// Calculates length of extrusion line to extrude given volume
@@ -551,6 +553,7 @@ private:
     void save_on_last_wipe();
 
 	bool is_tpu_filament(int filament_id) const;
+	bool is_petg_filament(int filament_id) const;
     bool is_need_reverse_travel(int filament, bool extruder_change) const;
 	// BBS
 	box_coordinates align_perimeter(const box_coordinates& perimeter_box);

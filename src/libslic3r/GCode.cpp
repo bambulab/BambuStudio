@@ -1074,7 +1074,14 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
 
         // do unretract after setting current extruder_id
         float filament_tower_interface_pre_extrusion_length = gcodegen.m_config.filament_tower_interface_pre_extrusion_length.values[tcr.new_tool];
-        std::string toolchange_unretract_str = (tcr.is_contact && gcodegen.m_config.enable_tower_interface_features) ? gcodegen.unretract(filament_tower_interface_pre_extrusion_length) : gcodegen.unretract();
+        bool is_contact_pre_extrusion = tcr.is_contact && gcodegen.m_config.enable_tower_interface_features;
+        bool is_petg_pre_extrusion    = !is_contact_pre_extrusion && gcodegen.config().filament_type.get_at(tcr.new_tool) == "PETG" && gcodegen.m_config.has_filament_switcher;
+        float extra_unretract = 0.f;
+        if (is_contact_pre_extrusion)
+            extra_unretract = filament_tower_interface_pre_extrusion_length;
+        else if (is_petg_pre_extrusion)
+            extra_unretract = 2.f;
+        std::string toolchange_unretract_str = (extra_unretract > 0.f) ? gcodegen.unretract(extra_unretract) : gcodegen.unretract();
         int current_nozzle_id = group_result->get_nozzle_id(new_filament_id,m_layer_idx);
         // std::string toolchange_unretract_str = gcodegen.unretract(); check_add_eol(toolchange_unretract_str);
         gcodegen.placeholder_parser().set("current_extruder", new_filament_id);
