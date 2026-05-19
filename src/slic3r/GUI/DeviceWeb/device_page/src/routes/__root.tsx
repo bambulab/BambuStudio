@@ -6,6 +6,7 @@ const embeddedRoutes = new Set([
   '/device_page/ams_control_web_debug',
   '/device_page/ams_filament_hotend',
   '/device_page/ams_ext_operation',
+  '/device_page/ams_bridge_debug',
 ])
 
 function RootComponent() {

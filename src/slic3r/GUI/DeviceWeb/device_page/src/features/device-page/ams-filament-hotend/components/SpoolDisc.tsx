@@ -11,12 +11,11 @@ export function SpoolDisc({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
   const { card_state: state, color, display_index } = slot;
   const colors = slot.colors && slot.colors.length > 1 ? slot.colors : [color];
   const isFilled =
-    state === 'Loading' ||
-    state === 'Unloading' ||
     state === 'ReadyToLoad' ||
     state === 'ReadyToUse';
   const isError = state === 'Error';
-  const showFilamentTag = state !== 'Empty' && state !== 'Unknown';
+  const isTransporting = state === 'Loading' || state === 'Unloading';
+  const showFilamentTag = state !== 'Empty' && state !== 'Unknown' && !isTransporting;
   const center = SIZE / 2;
 
   return (
@@ -50,6 +49,8 @@ export function SpoolDisc({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
 
       {state === 'Reading' && <ReadingArc center={center} />}
 
+      {isTransporting && <LoadingMark center={center} />}
+
       {state === 'Empty' && (
         <text
           x={center + 0.5}
@@ -68,14 +69,6 @@ export function SpoolDisc({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
         <image href={unknownSpoolUrl} x={0} y={0} width={SIZE} height={SIZE} preserveAspectRatio="none" />
       )}
 
-      {(state === 'Loading' || state === 'Unloading') && typeof slot.progress_pct === 'number' && (
-        <ProgressArc
-          center={center}
-          radius={(RING + HOLE) / 2}
-          percent={slot.progress_pct}
-          reversed={state === 'Unloading'}
-        />
-      )}
     </svg>
   );
 }
@@ -114,46 +107,39 @@ function ReadingArc({ center }: { center: number }) {
   const r = RING - 3;
   const dashLen = 2 * Math.PI * r * 0.28;
   return (
-    <circle
-      cx={center}
-      cy={center}
-      r={r}
-      fill="none"
-      stroke="#00AE42"
-      strokeWidth={3}
-      strokeLinecap="round"
-      strokeDasharray={`${dashLen} 999`}
-      transform={`rotate(-90 ${center} ${center})`}
-    />
+    <g className="spool-loading-rotor" style={{ transformOrigin: `${center}px ${center}px` }}>
+      <circle
+        className="spool-loading-mark"
+        cx={center}
+        cy={center}
+        r={r}
+        fill="none"
+        stroke="#00AE42"
+        strokeWidth={3}
+        strokeLinecap="round"
+        strokeDasharray={`${dashLen} 999`}
+      />
+    </g>
   );
 }
 
-function ProgressArc({
-  center,
-  radius,
-  percent,
-  reversed,
-}: {
-  center: number;
-  radius: number;
-  percent: number;
-  reversed?: boolean;
-}) {
-  const clamped = Math.min(Math.max(percent, 0), 100);
-  const total = 2 * Math.PI * radius;
-  const filled = (clamped / 100) * total;
+function LoadingMark({ center }: { center: number }) {
+  const r = 8;
+  const dashLen = 2 * Math.PI * r * 0.35;
   return (
-    <circle
-      cx={center}
-      cy={center}
-      r={radius}
-      fill="none"
-      stroke="#00AE42"
-      strokeWidth={4}
-      strokeLinecap="round"
-      strokeDasharray={`${filled} ${total - filled}`}
-      transform={`rotate(${reversed ? 90 : -90} ${center} ${center})`}
-    />
+    <g className="spool-loading-rotor" style={{ transformOrigin: `${center}px ${center}px` }}>
+      <circle
+        className="spool-loading-mark"
+        cx={center}
+        cy={center}
+        r={r}
+        fill="none"
+        stroke="#00AE42"
+        strokeWidth={3}
+        strokeLinecap="round"
+        strokeDasharray={`${dashLen} 999`}
+      />
+    </g>
   );
 }
 

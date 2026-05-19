@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { AmsFilamentHotendActionState, AmsFilamentHotendTab } from '../types';
 
 export function PageToolbar({
@@ -11,6 +12,7 @@ export function PageToolbar({
   actions: AmsFilamentHotendActionState;
   onAction: (action: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <header className="page-toolbar">
       <div className="tab-group">
@@ -20,7 +22,7 @@ export function PageToolbar({
           className={`tab${selectedTab === 'filament' ? ' active' : ''}`}
           onClick={() => onTabChange('filament')}
         >
-          耗材
+          {t('Filament')}
         </button>
         <button
           type="button"
@@ -28,13 +30,13 @@ export function PageToolbar({
           className={`tab${selectedTab === 'hotend' ? ' active' : ''}`}
           onClick={() => onTabChange('hotend')}
         >
-          热端
+          {t('Hotend')}
         </button>
       </div>
 
       {selectedTab === 'filament'
         ? <FilamentActions actions={actions} onAction={onAction} />
-        : <HotendActions onAction={onAction} />}
+        : <HotendActions actions={actions} onAction={onAction} />}
     </header>
   );
 }
@@ -46,6 +48,7 @@ function FilamentActions({
   actions: AmsFilamentHotendActionState;
   onAction: (action: string) => void;
 }) {
+  const { t } = useTranslation();
   const canLoadExternal = actions.can_load_external ?? actions.can_load ?? false;
   const canLoadAuto     = actions.can_load_auto     ?? actions.can_load ?? false;
   return (
@@ -56,7 +59,7 @@ function FilamentActions({
         disabled={!actions.can_dry}
         onClick={() => onAction('dry')}
       >
-        烘干
+        {t('Dry')}
       </button>
       <span className="action-divider" aria-hidden="true" />
       <button
@@ -65,7 +68,7 @@ function FilamentActions({
         disabled={!canLoadExternal}
         onClick={() => onAction('load_external')}
       >
-        外挂手动进料
+        {t('Load External Spool')}
       </button>
       <button
         type="button"
@@ -73,7 +76,7 @@ function FilamentActions({
         disabled={!canLoadAuto}
         onClick={() => onAction('load_auto')}
       >
-        自动进料
+        {t('Auto Load')}
       </button>
       <button
         type="button"
@@ -81,22 +84,32 @@ function FilamentActions({
         disabled={!actions.can_unload}
         onClick={() => onAction('unload')}
       >
-        退料
+        {t('Unload')}
       </button>
     </div>
   );
 }
 
-function HotendActions({ onAction }: { onAction: (action: string) => void }) {
+function HotendActions({
+  actions,
+  onAction,
+}: {
+  actions: AmsFilamentHotendActionState;
+  onAction: (action: string) => void;
+}) {
+  const { t } = useTranslation();
+  const canReadAll = actions.can_read_all_hotends ?? true;
   return (
     <div className="action-group hotend-actions">
       <button
         type="button"
         className="primary"
         data-testid="ams-hotend-action-read-all"
+        disabled={!canReadAll}
+        title={canReadAll ? undefined : actions.read_all_disabled_reason}
         onClick={() => onAction('read_all_hotends')}
       >
-        读取全部
+        {t('Read All')}
       </button>
     </div>
   );

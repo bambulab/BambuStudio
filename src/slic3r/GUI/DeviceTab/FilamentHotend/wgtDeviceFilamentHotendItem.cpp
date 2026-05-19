@@ -711,7 +711,7 @@ wxString wgtDeviceFilamentHotendItem::ResolveCardStateDisplayText(DeviceFilament
     case DeviceFilamentHotendCardState::ReadyToLoad:
         return _L("待进料");
     case DeviceFilamentHotendCardState::ReadyToUse:
-        return _L("待使用");
+        return _L("已进料");
     case DeviceFilamentHotendCardState::Empty:
         return _L("--");
     case DeviceFilamentHotendCardState::Unknown:

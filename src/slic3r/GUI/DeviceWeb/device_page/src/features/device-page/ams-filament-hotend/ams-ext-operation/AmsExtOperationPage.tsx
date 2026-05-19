@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useDeviceBridge } from '../../../../hooks/Bridge';
 import { Nozzle } from '../components/Nozzle';
 import { SpoolDisc } from '../components/SpoolDisc';
@@ -66,6 +67,7 @@ function isAmsFilamentHotendBody(body: unknown): body is BridgeResponseBody<AmsF
 }
 
 export function AmsExtOperationPage() {
+  const { t } = useTranslation();
   const query = getQuery();
   const request = useDeviceBridge();
   const [state, setState] = useState<AmsFilamentHotendViewModel | null>(null);
@@ -132,12 +134,12 @@ export function AmsExtOperationPage() {
     <div className="ext-ams-page">
       <header className="ext-ams-titlebar">
         <span className="window-dots" aria-hidden="true"><i /><i /><i /></span>
-        <strong>Ext AMS 操作</strong>
+        <strong>{t('Ext AMS Operation')}</strong>
         <span className="window-spacer" aria-hidden="true" />
       </header>
 
       <main className="ext-ams-body">
-        <h1>Ext AMS详情</h1>
+        <h1>{t('Ext AMS Details')}</h1>
         <div className="ext-ams-tabs">
           {amsUnits.map((ams, index) => (
             <button
@@ -177,8 +179,13 @@ export function AmsExtOperationPage() {
           </div>
 
           <p className="ext-ams-source">
-            当前热端 {query.display_index || '--'}，来源 AMS {query.ams_id || '--'} / 槽 {query.slot_id || '--'}，
-            当前 AMS {selectedAms?.ams_id ?? '--'}，关联槽位总数 {selectedTrays.length || query.count || '0'}
+            {t('Current hotend {{hotend}}, source AMS {{ams}} / slot {{slot}}, current AMS {{currentAms}}, total bound slots {{count}}', {
+              hotend: query.display_index || '--',
+              ams: query.ams_id || '--',
+              slot: query.slot_id || '--',
+              currentAms: selectedAms?.ams_id ?? '--',
+              count: selectedTrays.length || Number(query.count) || 0,
+            })}
           </p>
         </section>
       </main>

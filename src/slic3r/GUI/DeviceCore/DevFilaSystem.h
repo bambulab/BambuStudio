@@ -81,7 +81,7 @@ public:
 
     wxColour        wx_color;
     bool            is_bbl;
-    bool            is_exists = false;
+    bool            is_exists = false; // for external spool, default to true
     int             hold_count = 0;
     int             remain = 0;         // filament remain: 0 ~ 100
     int             remain_g = -1;      // accurate remaining weight in grams; -1 means not edited / not provided by firmware
@@ -202,7 +202,7 @@ public:
     struct DevAmsZone
     {
         int zone_id = -1;
-        std::vector<int> zone_slots;
+        std::set<int> zone_slots;
 
         float current_temperature = INVALID_AMS_TEMPERATURE;
         int humidity_level = -1; // 0-5, larger means drier
@@ -216,6 +216,10 @@ public:
         std::optional<std::vector<CannotDryReason>> dry_cannot_reasons;
         std::optional<DrySettings> dry_settings;
         std::string info;
+
+        int   GetHumidityPercent() const { return humidity_percent; }
+        bool  SupportDrying() const { return zone_slots.size() == 2; };
+        std::optional<DryStatus> GetDryStatus() const { return dry_status; };
     };
 
 public:
@@ -278,8 +282,10 @@ public:
     std::optional<DryFanStatus> GetFan2Status() const { return m_dry_fan2_status; }
     std::optional<std::vector<CannotDryReason>> GetCannotDryReason() const { return m_dry_cannot_reasons; }
     std::optional<DrySettings> GetDrySettings() const { return m_dry_settings; };
-    const std::vector<DevAmsZone>& GetZones() const { return m_zones; }
-    const DevAmsZone* GetZone(int zone_id) const;
+
+    std::map<int, DevAmsZone> GetZones() const { return m_zones; }
+    std::optional<DevAmsZone> GetZone(int zone_id) const;
+    std::optional<DevAmsZone> GetZoneBySlotId(int slot_id) const;
 
     bool AmsIsDrying();
 
@@ -342,6 +348,9 @@ public:
     std::map<std::string, DevAms*, NumericStrCompare>& GetAmsList() { return amsList; }
     int                             GetAmsCount() const { return amsList.size(); }
 
+    /* zone */
+    std::optional<DevAmsZone> GetZoneBySlot(int ams_id, int slot_id) const;
+
     /* tray*/
     DevAmsTray* GetAmsTray(const std::string& ams_id, const std::string& tray_id) const;
     void        CollectAmsColors(std::vector<wxColour>& ams_colors) const;
@@ -365,7 +374,9 @@ public:
 
     // filament change steps
     std::optional<DevFilamentStep> GetCurrentFilamentChangeStep() const;
-    std::vector<DevFilamentStep> GetFilamentChangeSteps() const { return m_filament_change_steps; }
+    std::vector<DevFilamentStep> GetFilamentChangeSteps() const { return m_filament_change_steps; }// some firmwares support this, RackType_A or RackType_B
+    const std::vector<DevAmsSlotId>& GetFilamentChangingSlots() const { return m_filament_changing_slots; }// some firmwares support this, RackType_A or RackType_B
+    bool IsFilamentChangingSlot(int ams_id, int slot_id) const;
 
     /* AMS settings*/
     DevAmsSystemSetting& GetAmsSystemSetting() { return m_ams_system_setting; }
@@ -399,6 +410,7 @@ private:
 
     /* filament change step*/
     std::vector<DevFilamentStep> m_filament_change_steps; // some firmwares support this
+    std::vector<DevAmsSlotId> m_filament_changing_slots; // some firmwares support this
 
     std::map<std::string, DevAms*, NumericStrCompare> amsList;// key: ams[id], start with 0
     std::map<std::string, DevAmsTray> m_vt_trays; // virutal tray info

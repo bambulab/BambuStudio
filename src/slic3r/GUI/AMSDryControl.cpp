@@ -2180,8 +2180,8 @@ AMSDryCtrWin::DryView AMSDryCtrWin::get_dry_view(DevAms* dev_ams) const
     if (!dev_ams) return v;
 
     if (!dev_ams->GetZones().empty()) {
-        const DevAmsZone* z = dev_ams->GetZone(0);
-        if (z) {
+        auto z = dev_ams->GetZone(0);
+        if (z.has_value()) {
             v.dry_status        = z->dry_status;
             v.dry_sub_status    = z->dry_sub_status;
             v.humidity_percent  = z->humidity_percent;
@@ -2214,10 +2214,10 @@ AMSDryCtrWin::AmbientView AMSDryCtrWin::get_ambient_view(DevAms* dev_ams) const
         long long temp_sum = 0;
         long long hum_sum = 0;
         int        count = 0;
-        for (const auto& z : dev_ams->GetZones()) {
-            if (z.zone_id == 0) continue;
-            temp_sum += static_cast<long long>(z.current_temperature);
-            hum_sum  += z.humidity_percent;
+        for (const auto& [zone_id, zone] : dev_ams->GetZones()) {
+            if (zone_id == 0) continue;
+            temp_sum += static_cast<long long>(zone.current_temperature);
+            hum_sum  += zone.humidity_percent;
             ++count;
         }
         if (count > 0) {

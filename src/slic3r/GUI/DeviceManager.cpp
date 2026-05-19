@@ -1600,7 +1600,7 @@ int MachineObject::command_set_nozzle_new(int nozzle_id, int temp)
     json j;
     j["print"]["sequence_id"]    = std::to_string(MachineObject::m_sequence_id++);
     j["print"]["command"]        = "set_nozzle_temp";
-    j["print"]["extruder_index"] = nozzle_id;
+    j["print"]["extruder_index"] = nozzle_id >= 0x10 ? nozzle_id - 0x10 : nozzle_id;
     j["print"]["target_temp"]    = temp;
 
     return this->publish_json(j, 1);
@@ -4178,7 +4178,7 @@ DevAmsTray MachineObject::parse_vt_tray(MachineObject* obj_, const json& vtray)
 {
     auto vt_tray = DevAmsTray(std::to_string(VIRTUAL_TRAY_MAIN_ID), std::to_string(VIRTUAL_TRAY_MAIN_ID));
     vt_tray.ams_type = DevAmsType::EXT_SPOOL;
-    vt_tray.is_exists = true;
+    vt_tray.is_exists = true;// for external spool, default to true
 
     if (vtray.contains("id")) {
         std::string id = vtray["id"].get<std::string>();

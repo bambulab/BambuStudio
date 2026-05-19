@@ -58,8 +58,8 @@ public:
     static wxString             ToNozzleDiameterStr(const NozzleDiameterType& type);
 
 public:
-    bool     IsExist() const { return m_is_exist; }
-    bool     IsEmpty() const { return !m_is_exist; }
+    bool     IsExist() const { return m_is_exist && m_nozzle_id > -1; }
+    bool     IsEmpty() const { return !IsExist(); }
 
     /**/
     void       SetRack(const std::weak_ptr<DevNozzleRack>& rack) { m_nozzle_rack = rack; };
@@ -144,7 +144,7 @@ private:
     std::string m_fila_id;// main material
     std::string m_filament_clr;// main color
 
-    std::vector<DevAmsSlotId> m_bind_ams_slots;
+    std::vector<DevAmsSlotId> m_bind_ams_slots;// direct bind ams slots which means when load/unload is using the slot. eg. ZMULTI_A 
     std::vector<int>          m_bind_ams;
     std::optional<DevAmsSlotId> m_slot_now;
 

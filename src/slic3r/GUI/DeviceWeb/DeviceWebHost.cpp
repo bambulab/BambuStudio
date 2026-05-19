@@ -6,6 +6,7 @@
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "libslic3r/Utils.hpp"
 
+#include <algorithm>
 #if defined(__WXOSX__)
 #include "slic3r/Utils/MacDarkMode.hpp"
 #endif

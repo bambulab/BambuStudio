@@ -5,7 +5,9 @@
 #include <deque>
 #include <functional>
 #include <memory>
+#include <functional>
 #include <string>
+#include <utility>
 
 #include <wx/panel.h>
 #include <wx/power.h>

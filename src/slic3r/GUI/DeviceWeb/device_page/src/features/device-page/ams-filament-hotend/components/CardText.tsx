@@ -3,12 +3,15 @@ import type { AmsFilamentHotendSlotViewModel } from '../types';
 export function CardText({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
   const isEmpty = slot.card_state === 'Empty';
   const isUnknown = slot.card_state === 'Unknown';
+  const isTransporting = slot.card_state === 'Loading' || slot.card_state === 'Unloading';
   const showStatusLine = Boolean(slot.status_text);
 
   const primary = isEmpty
     ? 'Empty'
     : isUnknown
     ? '?'
+    : isTransporting
+    ? '--'
     : slot.filament_type || slot.filament_name || '';
 
   return (

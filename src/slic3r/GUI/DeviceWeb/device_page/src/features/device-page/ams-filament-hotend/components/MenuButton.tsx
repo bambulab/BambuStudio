@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { AmsFilamentHotendSlotViewModel } from '../types';
 
 export function MenuButton({
@@ -6,17 +7,19 @@ export function MenuButton({
   onAction,
 }: {
   slot: AmsFilamentHotendSlotViewModel;
+  globalBusy?: boolean;
   onAction: (action: string, slot: AmsFilamentHotendSlotViewModel) => void;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLSpanElement>(null);
-  const busy = slot.line_state === 'loading' || slot.line_state === 'unloading' || slot.is_running;
-  const disabled = !slot.enabled || slot.card_state === 'Empty' || busy;
-  const canEdit = !busy && slot.card_state !== 'Empty';
-  const canLoad = !busy && slot.card_state !== 'Empty' && slot.line_state === 'no_filament';
-  const canUnload = !busy && slot.line_state === 'loaded';
-  const canRead = !busy && slot.card_state !== 'Reading' && slot.card_state !== 'Empty';
-  const showAmsAction = (slot.bind_ams_slot_count ?? 0) > 0;
+  const menuActions = slot.menu_actions;
+  const canEdit = menuActions?.can_edit ?? slot.card_state !== 'Empty';
+  const canLoad = menuActions?.can_load ?? (slot.line_state === 'no_filament' && slot.card_state !== 'Empty');
+  const canUnload = menuActions?.can_unload ?? slot.line_state === 'loaded';
+  const canRead = menuActions?.can_read ?? (slot.card_state !== 'Reading' && slot.card_state !== 'Empty');
+  const canAmsOperation = menuActions?.can_ams_operation ?? (slot.bind_ams_slot_count ?? 0) > 0;
+  const disabled = !slot.enabled || !(canEdit || canLoad || canUnload || canRead || canAmsOperation);
 
   useEffect(() => {
     if (!open) return;
@@ -50,12 +53,11 @@ export function MenuButton({
       </button>
       {open && (
         <div className="slot-menu-popover" role="menu">
-          <button type="button" role="menuitem" disabled={!canEdit} onClick={() => run('edit')}>编辑</button>
-          {canUnload
-            ? <button type="button" role="menuitem" onClick={() => run('unload')}>退料</button>
-            : <button type="button" role="menuitem" disabled={!canLoad} onClick={() => run('load')}>进料</button>}
-          <button type="button" role="menuitem" disabled={!canRead} onClick={() => run('read')}>读取</button>
-          {showAmsAction && <button type="button" role="menuitem" onClick={() => run('ams_operation')}>AMS操作</button>}
+          {canEdit && <button type="button" role="menuitem" onClick={() => run('edit')}>{t('Edit')}</button>}
+          {canLoad && <button type="button" role="menuitem" onClick={() => run('load')}>{t('Load')}</button>}
+          {canUnload && <button type="button" role="menuitem" onClick={() => run('unload')}>{t('Unload')}</button>}
+          {canRead && <button type="button" role="menuitem" onClick={() => run('read')}>{t('Read')}</button>}
+          {canAmsOperation && <button type="button" role="menuitem" onClick={() => run('ams_operation')}>{t('AMS Operation')}</button>}
         </div>
       )}
     </span>

@@ -5,7 +5,7 @@ export type AmsFilamentHotendCardState =
   | 'Reading'      // 读取中:      灰盘 + 顶部 1/4 弧
   | 'Unknown'      // 未知耗材:    灰盘+浅芯+右侧缺口; 主文案 ?
   | 'ReadyToLoad'  // 已就绪待进料: 单色甜甜圈
-  | 'ReadyToUse'   // 已就绪可用:   单色甜甜圈 + 内圈高亮
+  | 'ReadyToUse'   // 已进料:      单色甜甜圈 + 内圈高亮
   | 'Loading'      // 进料中:      单色甜甜圈 + 进度弧
   | 'Unloading'    // 退料中:      单色甜甜圈 + 反向进度弧
   | 'Error';       // 错误态:      红色甜甜圈 + 中心 X
@@ -65,6 +65,13 @@ export interface AmsFilamentHotendSlotViewModel {
   bind_ams_slot_count?: number;
   is_top_tier: boolean;
   enabled: boolean;
+  menu_actions?: {
+    can_edit?: boolean;
+    can_load?: boolean;
+    can_unload?: boolean;
+    can_read?: boolean;
+    can_ams_operation?: boolean;
+  };
 
   card_state: AmsFilamentHotendCardState;
   line_state: AmsFilamentHotendLineState;
@@ -80,6 +87,7 @@ export interface AmsFilamentHotendSlotViewModel {
   progress_pct?: number;     // 0..100 -- partial arc on the spool
 
   selected?: boolean;        // user UI selection (red border + green index pill)
+  is_on_extruder?: boolean;  // current hotend is physically mounted on the extruder
   is_running?: boolean;      // batch flow currently executing this slot (S6)
   in_dryer?: boolean;        // physically inside the dryer chamber
   dryer_humidity_pct?: number; // -1 means invalid / unsupported
@@ -87,6 +95,51 @@ export interface AmsFilamentHotendSlotViewModel {
   is_drying?: boolean;       // chamber actively drying (highlight the chamber bg)
 
   hotend?: HotendSlotInfo;
+}
+
+export interface HotendRackStatus {
+  active: boolean;
+  mode: 'idle' | 'single' | 'all';
+  display_index: number;
+  current: number;
+  total: number;
+  message: string;
+  tips: string;
+}
+
+export interface FilamentChangeSlotRef {
+  ams_id: string;
+  slot_id: string;
+  display_index: number;
+}
+
+export interface FilamentChangeBatchReservedItem {
+  display_index: number;
+  state: 'pending' | 'running' | 'success' | 'failed';
+  reason?: string;
+}
+
+export interface FilamentChangeBatchReserved {
+  operation?: 'load' | 'unload' | 'change';
+  current?: number;
+  total?: number;
+  items?: FilamentChangeBatchReservedItem[];
+}
+
+export interface FilamentChangeStatus {
+  active: boolean;
+  mode: 'idle' | 'single' | 'batch_reserved';
+  operation?: 'change' | 'unknown';
+  running_slot?: FilamentChangeSlotRef | null;
+  current_step?: number | null;
+  current_step_name?: string;
+  steps?: number[];
+  step_labels?: string[];
+  current_step_index?: number;
+  current_step_total?: number;
+  message?: string;
+  tips?: string;
+  batch_reserved?: FilamentChangeBatchReserved;
 }
 
 export interface AmsFilamentHotendActionState {
@@ -97,10 +150,28 @@ export interface AmsFilamentHotendActionState {
   can_load?: boolean;
   can_load_external?: boolean;
   can_load_auto?: boolean;
+  can_read_all_hotends?: boolean;
+  read_all_disabled_reason?: string;
 
   show_ams_settings: boolean;
   show_auto_refill: boolean;
   tips: string;
+}
+
+export interface AmsFilamentHotendDryerZone {
+  ams_id?: string;
+  zone_id?: number;
+  zone_slots?: Array<number | string>;
+  humidity?: number;
+  humidity_raw?: number;
+  dry_time?: number;
+  dry_status?: string;
+  dry_sub_status?: string;
+  info?: string;
+}
+
+export interface AmsFilamentHotendSlotActionPayload extends Record<string, unknown> {
+  target_temp?: number;
 }
 
 export interface AmsFilamentHotendViewModel {
@@ -131,9 +202,11 @@ export interface AmsFilamentHotendViewModel {
         remain?: number;
       }>;
     }>;
-    zones?: Array<Record<string, unknown>>;
+    zones?: AmsFilamentHotendDryerZone[];
   };
   hotend_slots: AmsFilamentHotendSlotViewModel[];
+  hotend_rack_status?: HotendRackStatus;
+  filament_change_status?: FilamentChangeStatus;
   actions: AmsFilamentHotendActionState;
 }
 

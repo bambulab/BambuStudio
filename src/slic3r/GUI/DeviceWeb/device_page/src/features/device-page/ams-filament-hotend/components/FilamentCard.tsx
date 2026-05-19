@@ -6,9 +6,11 @@ import { CardText } from './CardText';
 
 export function FilamentCard({
   slot,
+  globalBusy,
   onAction,
 }: {
   slot: AmsFilamentHotendSlotViewModel;
+  globalBusy?: boolean;
   onAction: (action: string, slot: AmsFilamentHotendSlotViewModel) => void;
 }) {
   const cls = ['filament-card'];
@@ -26,7 +28,7 @@ export function FilamentCard({
       <div className="card-spool-wrap">
         <div className="card-head">
           <IndexPill slot={slot} />
-          <MenuButton slot={slot} onAction={onAction} />
+          <MenuButton slot={slot} globalBusy={globalBusy} onAction={onAction} />
         </div>
         <SpoolDisc slot={slot} />
       </div>

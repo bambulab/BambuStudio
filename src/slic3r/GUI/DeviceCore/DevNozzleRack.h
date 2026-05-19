@@ -46,13 +46,27 @@ public:
         RackType_B = 2, // DevAmsType::ZMULTI_B 
     };
 
-    enum RackPos : int
+    enum RackABPos : int
     {
         RACK_POS_UNKNOWN = 0,
         RACK_POS_A_TOP = 1,
         RACK_POS_B_TOP = 2,
         RACK_POS_CENTRE = 3,
         RACK_POS_END,
+    };
+
+    enum class RackAPos : int
+    {
+        RACK_POS_CENTRE = 0,
+        RACK_POS_UP = 1,
+        RACK_POS_DOWN = 2
+    };
+
+    enum class RackBPos : int
+    {
+        RACK_POS_CENTRE = 0,
+        RACK_POS_UP = 1,
+        RACK_POS_DOWN = 2
     };
 
     enum RackCaliStatus
@@ -74,7 +88,7 @@ public:
     // getters
     DevNozzleSystem* GetNozzleSystem() const { return m_nozzle_system; }
 
-    RackPos     GetPosition() const { return m_position; }
+    RackABPos     GetPosition() const { return m_position; }
     RackStatus  GetStatus() const { return m_status; }
     RackCaliStatus GetCaliStatus() const { return m_cali_status; }
 
@@ -83,6 +97,8 @@ public:
 
     RackType    GetRackType() const { return m_rack_type; }
     int         GetTotalRackNozzleCount() const;
+
+    std::set<int> GetTotalRackNozzleAddIdSet() const;
     std::set<int> GetTotalRackNozzlePosSet() const;
 
     // status
@@ -108,7 +124,9 @@ public:
 public:
     void ParseRackInfo(const nlohmann::json& rack_info);
 
-    void CtrlRackPosMove(RackPos new_pos) const;
+    void CtrlRackPosMove(RackAPos new_pos) const;
+    void CtrlRackPosMove(RackBPos new_pos) const;
+    void CtrlRackPosMove(RackABPos new_pos) const;
     void CtrlRackPosGoHome() const;
 
     void CtrlRackConfirmNozzle(int rack_nozzle_id) const;
@@ -139,7 +157,7 @@ private:
     DevNozzleSystem* m_nozzle_system = nullptr;
 
     bool m_is_supported = false; // Indicates if the nozzle rack is supported by the printer
-    RackPos m_position = RACK_POS_UNKNOWN;
+    RackABPos m_position = RACK_POS_UNKNOWN;
     RackStatus m_status = RACK_STATUS_UNKNOWN;
     RackCaliStatus m_cali_status = Rack_CALI_UNKNOWN;
 

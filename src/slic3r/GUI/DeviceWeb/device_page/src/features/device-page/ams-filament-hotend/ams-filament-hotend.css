@@ -1,7 +1,8 @@
 .ams-filament-hotend-page {
+  position: relative;
   width: 100%;
-  height: 100%;
-  min-height: 0;
+  height: auto;
+  min-height: 260px;
   display: flex;
   flex-direction: column;
   background: #ffffff;
@@ -10,6 +11,23 @@
   font-size: 12px;
   box-sizing: border-box;
   overflow: hidden;
+}
+
+.bridge-debug-button {
+  height: 24px;
+  padding: 0 9px;
+  border: 1px solid #ff9f1a;
+  border-radius: 12px;
+  background: #fff7e6;
+  color: #9a5a00;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(255, 159, 26, 0.16);
+}
+
+.bridge-debug-button:hover {
+  background: #ffe8bf;
 }
 
 .page-toolbar {
@@ -131,8 +149,8 @@
 /* Keep both tiers ending on a shared nozzle row. */
 .stage {
   position: relative;
-  flex: 1 1 auto;
-  min-height: 307px;
+  flex: 0 0 365px;
+  min-height: 365px;
   padding: 8px 12px 4px;
   overflow: hidden;
 }
@@ -395,6 +413,11 @@
   display: block;
 }
 
+.spool-loading-rotor {
+  animation: spool-loading-spin 0.8s linear infinite;
+  transform-box: view-box;
+}
+
 .card-text {
   display: flex;
   flex-direction: column;
@@ -512,28 +535,34 @@
 .page-footer {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 12px 6px;
+  gap: 8px;
+  padding: 4px 12px 6px;
   flex: 0 0 auto;
-  height: 32px;
+  height: 34px;
   box-sizing: border-box;
 }
 
 .page-footer button {
-  height: 22px;
-  padding: 0 8px;
-  border: 1px solid #dbdbdb;
-  border-radius: 4px;
-  background: #ffffff;
-  color: #333333;
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid #d8dce2;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #ffffff 0%, #f7f8fa 100%);
+  color: #2f343a;
   font: inherit;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 18px;
   cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.page-footer button:hover:not(:disabled) {
+  border-color: #c8ced6;
+  background: #ffffff;
 }
 
 .page-footer button.dev-tips {
-  width: 22px;
+  width: 24px;
   padding: 0;
   margin-left: auto;
   color: #909090;
@@ -541,8 +570,204 @@
 }
 
 .footer-tip {
-  color: #707070;
-  font-size: 11px;
+  color: #00ae42;
+  font-size: 13px;
+  line-height: 22px;
+}
+
+.filament-change-panel {
+  position: relative;
+  margin: 0 12px 0;
+  padding: 0 0 44px;
+  background: #ffffff;
+  flex: 0 0 auto;
+}
+
+.filament-change-panel-reserved {
+  padding: 8px 10px;
+  border: 1px solid #dfe6ee;
+  border-radius: 4px;
+  border-style: dashed;
+}
+
+.filament-change-status-bar {
+  display: flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 16px;
+  border: 1px solid #c9cdd3;
+  border-radius: 4px;
+  background: #f7f7f7;
+  box-sizing: border-box;
+}
+
+.filament-change-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.filament-change-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #1f1f1f;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 22px;
+}
+
+.filament-change-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e0e0e0;
+  border-top-color: #00ae42;
+  border-radius: 50%;
+  animation: hotend-reading-spin 0.8s linear infinite;
+}
+
+.filament-change-meta,
+.filament-change-tips {
+  color: #8a8f99;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.filament-change-step {
+  margin-top: 4px;
+  color: #4f5661;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.filament-change-detail {
+  display: flex;
+  justify-content: space-between;
+  min-height: 156px;
+  padding-top: 28px;
+}
+
+.filament-change-task-list {
+  width: 386px;
+}
+
+.filament-change-task-row {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  column-gap: 6px;
+  align-items: start;
+  min-height: 30px;
+  color: #1f1f1f;
+  font-size: 12px;
+  line-height: 22px;
+}
+
+.filament-change-task-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-top: 3px;
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  background: #c4c7cc;
+}
+
+.filament-change-task-row.done .filament-change-task-mark,
+.filament-change-task-row.active .filament-change-task-mark {
+  background: #00ae42;
+}
+
+.filament-change-task-label {
+  min-width: 0;
+}
+
+.filament-change-manual-card {
+  grid-column: 2;
+  width: 364px;
+  margin: 6px 0 0;
+  padding: 12px;
+  border-radius: 6px;
+  background: #eeeeee;
+  box-sizing: border-box;
+}
+
+.filament-change-manual-title {
+  margin-bottom: 8px;
+  color: #00ae42;
+  font-size: 13px;
+  line-height: 22px;
+}
+
+.filament-change-manual-text {
+  color: #1f1f1f;
+  font-size: 13px;
+  line-height: 22px;
+}
+
+.filament-change-hotend-visual {
+  width: 160px;
+  min-height: 156px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 14px;
+  box-sizing: border-box;
+}
+
+.filament-change-hotend-visual .nozzle {
+  width: 64px;
+  height: 128px;
+}
+
+.filament-change-stop {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 76px;
+  height: 32px;
+  border: 1px solid #d8dce2;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #2f343a;
+  font: inherit;
+  font-size: 13px;
+  line-height: 22px;
+  cursor: pointer;
+}
+
+.filament-change-batch-list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.filament-change-batch-item {
+  padding: 2px 8px;
+  border: 1px solid #dfe6ee;
+  border-radius: 999px;
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.filament-change-batch-item.state-running,
+.filament-change-batch-item.state-success {
+  border-color: rgba(0, 174, 66, 0.28);
+  color: #00ae42;
+  background: rgba(0, 174, 66, 0.08);
+}
+
+.filament-change-batch-item.state-failed {
+  border-color: rgba(217, 80, 71, 0.28);
+  color: #d95047;
+  background: rgba(217, 80, 71, 0.08);
 }
 
 .action-group.hotend-actions .primary {
@@ -576,11 +801,71 @@
   overflow: hidden;
 }
 
+.hotend-panel-reading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hotend-read-all-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #1f1f1f;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.hotend-read-all-tips {
+  color: #999999;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.hotend-read-all-spinner,
+.hotend-rack-status-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #d9d9d9;
+  border-top-color: #00ae42;
+  border-radius: 50%;
+  animation: hotend-reading-spin 0.8s linear infinite;
+}
+
 .hotend-strip {
   display: flex;
   align-items: stretch;
   gap: 8px;
   width: 100%;
+}
+
+.hotend-rack-status-bar {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 28px;
+  color: #1f1f1f;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+@keyframes hotend-reading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spool-loading-spin {
+  from {
+    transform: rotate(-90deg);
+  }
+
+  to {
+    transform: rotate(270deg);
+  }
 }
 
 .hotend-card {
@@ -727,20 +1012,70 @@
 
 .hotend-readout.cooling .hotend-temp-current,
 .hotend-readout.cooling .hotend-temp-arrow {
-  color: #2f86ff;
+  color: #0e65e9;
 }
 
 .hotend-temp-arrow {
-  display: inline-flex;
+  display: block;
   width: 12px;
   height: 16px;
-  color: #1f1f1f;
+  transform-origin: center;
 }
 
-.hotend-temp-target {
+.hotend-temp-arrow-up {
+  transform: rotate(-90deg);
+}
+
+.hotend-temp-arrow-down {
+  transform: rotate(90deg);
+}
+
+.hotend-temp-target,
+.hotend-temp-target-button,
+.hotend-temp-target-edit {
   font-size: 12px;
   line-height: 16px;
   color: #c2c2c2;
+}
+
+.hotend-temp-target-button {
+  height: 16px;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  font: inherit;
+  cursor: text;
+}
+
+.hotend-temp-target-button:hover:not(:disabled),
+.hotend-temp-target-button:focus-visible {
+  background: #f2f2f2;
+  color: #8c8c8c;
+  outline: none;
+}
+
+.hotend-temp-target-button.disabled {
+  cursor: default;
+}
+
+.hotend-temp-target-edit {
+  display: inline-flex;
+  align-items: center;
+}
+
+.hotend-temp-target-edit input {
+  width: 30px;
+  height: 18px;
+  margin: 0 1px;
+  padding: 0 2px;
+  border: 1px solid #00ae42;
+  border-radius: 3px;
+  background: #ffffff;
+  color: #1f1f1f;
+  font: inherit;
+  text-align: center;
+  outline: none;
 }
 
 .hotend-readout.status {

@@ -37,12 +37,20 @@ void wgtDeviceFilamentHotendTab::CreateGui()
 {
     wxBoxSizer *root = new wxBoxSizer(wxVERTICAL);
 
-    // Sized to fit the full Figma 965:30691 layout (toolbar + 2 tiers of cards
-    // with 161px top feed lines + nozzle row + footer). 390px previously
-    // clipped the bottom row; 480px keeps the design intact at 1x DPI.
-    SetMinSize(wxSize(FromDIP(560), FromDIP(480)));
+    SetMinSize(wxSize(FromDIP(560), FromDIP(440)));
     m_device_filament_web = new DeviceWebHost(this, DeviceWebHostMode::DevicePageAmsFilamentHotend, "/device_page/ams_filament_hotend");
-    m_device_filament_web->SetMinSize(wxSize(FromDIP(560), FromDIP(480)));
+    m_device_filament_web->SetMinSize(wxSize(FromDIP(560), FromDIP(440)));
+    m_device_filament_web->SetContentSizeChangedHandler([this](const wxSize& content_size) {
+        SetMinSize(content_size);
+        if (m_device_filament_web) {
+            m_device_filament_web->SetMinSize(content_size);
+        }
+        Layout();
+        if (auto* parent = GetParent()) {
+            parent->Layout();
+            parent->SendSizeEvent();
+        }
+    });
     root->Add(m_device_filament_web, 1, wxEXPAND, 0);
     SetSizer(root);
     Layout();

@@ -400,7 +400,7 @@ void wgtDeviceNozzleRackArea::UpdateNozzleItems(const std::unordered_map<int, wg
         m_simple_book->SetSelection(0);
     }
 
-    const DevNozzleRack::RackPos new_pos = nozzle_rack->GetPosition();
+    const DevNozzleRack::RackABPos new_pos = nozzle_rack->GetPosition();
     const DevNozzleRack::RackStatus new_status = nozzle_rack->GetStatus();
     if (m_rack_pos != new_pos || m_rack_status != new_status)
     {
@@ -594,7 +594,7 @@ static void s_show_label(Label* label, const wxString& text, const wxColour& tex
     label->Show();
 }
 
-void wgtDeviceNozzleRackPos::UpdateRackPos(DevNozzleRack::RackPos new_pos,
+void wgtDeviceNozzleRackPos::UpdateRackPos(DevNozzleRack::RackABPos new_pos,
     DevNozzleRack::RackStatus new_status, bool is_reading)
 {
     /* di*/

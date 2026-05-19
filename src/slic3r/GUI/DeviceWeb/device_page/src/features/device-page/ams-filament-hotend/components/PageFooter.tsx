@@ -3,9 +3,15 @@ import type { AmsFilamentHotendActionState } from '../types';
 export function PageFooter({
   actions,
   onAction,
+  showDebugButton,
+  debugOpening,
+  onDebug,
 }: {
   actions: AmsFilamentHotendActionState;
   onAction: (action: string) => void;
+  showDebugButton?: boolean;
+  debugOpening?: boolean;
+  onDebug?: () => void;
 }) {
   return (
     <footer className="page-footer">
@@ -27,6 +33,17 @@ export function PageFooter({
           Auto-refill
         </button>
       )}
+      {showDebugButton && (
+        <button
+          type="button"
+          className="bridge-debug-button"
+          disabled={debugOpening}
+          onClick={onDebug}
+        >
+          {debugOpening ? 'Opening...' : 'Debug'}
+        </button>
+      )}
+      {actions.tips && <span className="footer-tip">{actions.tips}</span>}
       <button
         type="button"
         className="dev-tips"
@@ -36,7 +53,6 @@ export function PageFooter({
       >
         ?
       </button>
-      {actions.tips && <span className="footer-tip">{actions.tips}</span>}
     </footer>
   );
 }

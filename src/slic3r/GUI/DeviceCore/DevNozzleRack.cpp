@@ -99,6 +99,20 @@ int DevNozzleRack::GetTotalRackNozzleCount() const
     return 0;
 }
 
+
+std::set<int> DevNozzleRack::GetTotalRackNozzleAddIdSet() const
+{
+    std::set<int> rack_nozzle_addid_set;
+
+    int start_idx = 0;
+    for (int idx = 0; idx < GetTotalRackNozzleCount(); idx++) {
+        rack_nozzle_addid_set.insert(start_idx);
+        start_idx++;
+    }
+
+    return rack_nozzle_addid_set;
+}
+
 std::set<int> DevNozzleRack::GetTotalRackNozzlePosSet() const
 {
     std::set<int> rack_nozzle_pos_set;

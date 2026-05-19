@@ -18,6 +18,10 @@ export function Stage({
   onAction: (action: string, slot: AmsFilamentHotendSlotViewModel) => void;
 }) {
   const dryerRuns = findDryerRuns(topSlots);
+  const allSlots = [...topSlots, ...bottomSlots];
+  const globalBusy = allSlots.some((slot) =>
+    slot.line_state === 'loading' || slot.line_state === 'unloading' || !!slot.is_running
+  );
 
   return (
     <section className={`stage${hotendMode ? ' hotend-mode' : ''}`}>
@@ -38,6 +42,7 @@ export function Stage({
             key={slot.display_index}
             slot={slot}
             lineHeight={TOP_LINE_HEIGHT}
+            globalBusy={globalBusy}
             onAction={onAction}
           />
         ))}
@@ -49,6 +54,7 @@ export function Stage({
             key={slot.display_index}
             slot={slot}
             lineHeight={BOTTOM_LINE_HEIGHT}
+            globalBusy={globalBusy}
             onAction={onAction}
           />
         ))}

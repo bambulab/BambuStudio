@@ -37,5 +37,8 @@ public:
     void compare_print(json &a, json &b);
 
     bool is_need_request();
+
+    // Full print JSON after diff2all merge (device push snapshot).
+    const json& merged_print() const { return diff2all_base; }
 };
 #endif // __JSON_DIFF_HPP

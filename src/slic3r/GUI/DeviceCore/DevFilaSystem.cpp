@@ -478,12 +478,23 @@ DevAmsTray* DevAms::GetTray(const std::string& tray_id) const
     return nullptr;
 }
 
-const DevAms::DevAmsZone* DevAms::GetZone(int zone_id) const
+std::optional<DevAms::DevAmsZone>
+DevAms::GetZone(int zone_id) const
 {
-    auto it = std::find_if(m_zones.begin(), m_zones.end(), [zone_id](const DevAmsZone& zone) {
-        return zone.zone_id == zone_id;
-    });
-    return it == m_zones.end() ? nullptr : &(*it);
+    auto it = m_zones.find(zone_id);
+    return it == m_zones.end() ? std::optional<DevAms::DevAmsZone>() : it->second;
+}
+
+std::optional<DevAms::DevAmsZone>
+DevAms::GetZoneBySlotId(int slot_id) const
+{
+    for (const auto& [zone_id, zone] : m_zones) {
+        if (zone.zone_slots.count(slot_id) != 0) {
+            return zone;
+        }
+    }
+
+    return std::nullopt;
 }
 
 
@@ -573,7 +584,7 @@ bool DevAms::IsDryableSlot(int slot_id) const
     // Fall back to the legacy "all slots are dryable" semantics for AMS types
     // that don't report zone information.
     if (!m_zones.empty()) {
-        const DevAmsZone* dry_zone = GetZone(0);
+        auto dry_zone = GetZone(0);
         if (!dry_zone) return false;
         return std::find(dry_zone->zone_slots.begin(), dry_zone->zone_slots.end(), slot_id) != dry_zone->zone_slots.end();
     }
@@ -615,6 +626,16 @@ DevAms* DevFilaSystem::GetAmsById(const std::string& ams_id) const
     }
 
     return nullptr;
+}
+
+std::optional<DevAmsZone>
+DevFilaSystem::GetZoneBySlot(int ams_id, int slot_id) const
+{
+    if (auto ams_item = GetAmsById(std::to_string(ams_id))) {
+        return ams_item->GetZoneBySlotId(slot_id);
+    }
+
+    return std::nullopt;
 }
 
 DevAmsTray* DevFilaSystem::GetAmsTray(const std::string& ams_id, const std::string& tray_id) const
@@ -784,6 +805,14 @@ std::optional<DevFilamentStep> DevFilaSystem::GetCurrentFilamentChangeStep() con
     return std::nullopt;
 }
 
+bool DevFilaSystem::IsFilamentChangingSlot(int ams_id, int slot_id) const
+{
+    return std::any_of(m_filament_changing_slots.begin(), m_filament_changing_slots.end(),
+        [ams_id, slot_id](const DevAmsSlotId& item) {
+            return item.first == ams_id && item.second == slot_id;
+        });
+}
+
 void DevFilaSystem::ParseVirtualTrayInfos(const json& jj)
 {
     if (jj.contains("vir_slot") && jj["vir_slot"].is_array()) {
@@ -817,6 +846,20 @@ void DevFilaSystemParser::ParseV1_0(const json& jj, MachineObject* obj, DevFilaS
                     system->m_filament_change_steps = DevJsonValParser::GetVal<std::vector<DevFilamentStep>>(jj["ams"], "cfs");
                 } else {
                     system->m_filament_change_steps.clear();
+                }
+                const char* changing_slot_key = jj["ams"].contains("csl") ? "csl" : (jj["ams"].contains("cs") ? "cs" : nullptr);
+                if (changing_slot_key) {
+                    system->m_filament_changing_slots.clear();
+                    const auto changing_slots = DevJsonValParser::GetVal<std::vector<int>>(jj["ams"], changing_slot_key);
+                    for (const int encoded_slot : changing_slots) {
+                        if (encoded_slot < 0) continue;
+                        system->m_filament_changing_slots.push_back({
+                            DevUtil::get_flag_bits(encoded_slot, 8, 8),
+                            DevUtil::get_flag_bits(encoded_slot, 0, 8)
+                        });
+                    }
+                } else {
+                    system->m_filament_changing_slots.clear();
                 }
 
                 if (jj["ams"].contains("tray_read_done_bits")) {
@@ -1016,9 +1059,9 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
                 for (const auto& j_slot : j_zone["zone_slots"]) {
                     try {
                         if (j_slot.is_number_integer()) {
-                            zone.zone_slots.push_back(j_slot.get<int>());
+                            zone.zone_slots.insert(j_slot.get<int>());
                         } else if (j_slot.is_string()) {
-                            zone.zone_slots.push_back(std::stoi(j_slot.get<std::string>()));
+                            zone.zone_slots.insert(std::stoi(j_slot.get<std::string>()));
                         }
                     } catch (const std::exception& e) {
                         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "[error]: invalid zone slot, error: " << e.what();
@@ -1076,7 +1119,7 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
                 zone.dry_cannot_reasons = DevJsonValParser::GetVal<std::vector<DevAms::CannotDryReason>>(j_zone, "dry_sf_reason");
             }
 
-            curr_ams->m_zones.push_back(zone);
+            curr_ams->m_zones[zone.zone_id] = zone;
         }
     }
 

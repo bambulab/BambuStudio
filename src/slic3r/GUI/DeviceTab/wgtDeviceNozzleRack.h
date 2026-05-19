@@ -119,7 +119,7 @@ private:
 
 private:
     std::weak_ptr<DevNozzleRack> m_nozzle_rack;
-    DevNozzleRack::RackPos m_rack_pos = DevNozzleRack::RACK_POS_UNKNOWN;
+    DevNozzleRack::RackABPos m_rack_pos = DevNozzleRack::RACK_POS_UNKNOWN;
     DevNozzleRack::RackStatus m_rack_status = DevNozzleRack::RACK_STATUS_UNKNOWN;
 
     // GUI
@@ -157,7 +157,7 @@ public:
 private:
     void CreateGui();
 
-    void UpdateRackPos(DevNozzleRack::RackPos new_pos,
+    void UpdateRackPos(DevNozzleRack::RackABPos new_pos,
                        DevNozzleRack::RackStatus new_status,
                        bool is_reading);
 
@@ -168,7 +168,7 @@ private:
 
 private:
     std::weak_ptr<DevNozzleRack> m_rack;
-    DevNozzleRack::RackPos m_rack_pos = DevNozzleRack::RACK_POS_UNKNOWN;
+    DevNozzleRack::RackABPos m_rack_pos = DevNozzleRack::RACK_POS_UNKNOWN;
     DevNozzleRack::RackStatus m_rack_status = DevNozzleRack::RACK_STATUS_UNKNOWN;
 
     // GUI

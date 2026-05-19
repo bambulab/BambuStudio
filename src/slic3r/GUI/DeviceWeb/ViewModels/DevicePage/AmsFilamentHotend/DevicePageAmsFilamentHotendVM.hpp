@@ -36,9 +36,19 @@ private:
     std::string ResolveLineState(const std::string& card_state, bool has_hotend_slot) const;
     std::string ResolveNozzleState(const std::string& card_state, const std::string& line_state) const;
     std::string ResolveStatusText(const std::string& card_state) const;
+    nlohmann::json BuildFilamentChangeStatus(Slic3r::MachineObject* machine_obj,
+                                             const nlohmann::json& running_slot,
+                                             const std::string& operation,
+                                             const std::string& message) const;
     bool IsSlotLoadedInExtruder(Slic3r::MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id) const;
+    bool IsSlotTargetForExtruder(Slic3r::MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id) const;
+    bool IsSlotInFilamentChangeList(Slic3r::MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id) const;
+    bool IsFilamentChangeActive(Slic3r::MachineObject* machine_obj) const;
+    bool IsNozzleOnExtruder(Slic3r::MachineObject* machine_obj, int nozzle_pos) const;
 
     nlohmann::json HandleAction(const std::string& action, const nlohmann::json& payload);
+    nlohmann::json HandleDebug(const std::string& action, const nlohmann::json& payload);
+    nlohmann::json BuildDebugSnapshot(const nlohmann::json& payload) const;
 
     std::string m_last_report_state;
 };

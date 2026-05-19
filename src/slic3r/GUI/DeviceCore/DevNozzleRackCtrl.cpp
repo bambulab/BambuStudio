@@ -17,7 +17,7 @@ void DevNozzleRack::SetNozzleTargetTemp(int nozzle_pos_id, int temp)
     m_nozzle_system->GetOwner()->command_set_nozzle_new(nozzle_pos_id, temp);
 }
 
-void DevNozzleRack::CtrlRackPosMove(RackPos new_pos) const
+void DevNozzleRack::CtrlRackPosMove(RackABPos new_pos) const
 {
     if (!CheckRackMoveWarningDlg())
     {
@@ -44,6 +44,28 @@ void DevNozzleRack::CtrlRackPosMove(RackPos new_pos) const
     }
 }
 
+void DevNozzleRack::CtrlRackPosMove(RackAPos new_pos) const
+{
+    if (CheckRackMoveWarningDlg()) {
+        json j;
+        j["print"]["command"] = "nozzle_holder_ctrl";
+        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+        j["print"]["action"] = (int)new_pos;
+        m_nozzle_system->GetOwner()->publish_json(j);
+    }
+}
+
+
+void DevNozzleRack::CtrlRackPosMove(RackBPos new_pos) const
+{
+    if (CheckRackMoveWarningDlg()) {
+        json j;
+        j["print"]["command"] = "nozzle_holder_ctrl";
+        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+        j["print"]["action"] = (int)new_pos;
+        m_nozzle_system->GetOwner()->publish_json(j);
+    }
+}
 
 void DevNozzleRack::CtrlRackPosGoHome() const
 {
