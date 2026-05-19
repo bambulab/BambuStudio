@@ -1691,7 +1691,7 @@ export function AddEditDialog({
                       if (!tray.is_exists) {
                         return (
                           <div key={label} data-testid={`ams-slot-${currentUnit.ams_id}-${tray.slot_id}`} data-empty="true" className="flex-1 flex flex-col rounded-[6px] border border-fm-border-focus cursor-default opacity-30 transition-all duration-150 overflow-hidden">
-                            <div className="fm-slot-header-bg text-center py-[2px] text-[11px] leading-[16px] text-fm-text-strong bg-[#424242] rounded-t-[6px]">{label}</div>
+                            <div className="fm-slot-header-bg text-center py-[2px] text-[11px] leading-[16px] bg-[var(--color-fm-slot-header)] text-[var(--color-fm-slot-header-text)] rounded-t-[6px]">{label}</div>
                             <div className="flex gap-[4px] items-center p-[4px]">
                             <div className="size-[40px] shrink-0 flex items-center justify-center">
                                 <SpoolColorChip colorCode="#555" size={32} />
@@ -1715,7 +1715,7 @@ export function AddEditDialog({
                           className={`flex-1 flex flex-col rounded-[6px] border cursor-pointer transition-all duration-150 overflow-hidden hover:border-fm-text-secondary ${isSelected ? 'border-fm-brand' : 'border-fm-border-focus'}`}
                           onClick={() => selectAmsSlot(currentUnit, tray)}
                         >
-                          <div className={`fm-slot-header-bg text-center py-[2px] text-[11px] leading-[16px] text-fm-text-strong bg-[#424242] rounded-t-[6px] ${isSelected ? '!bg-fm-brand !text-white' : ''}`}>{label}</div>
+                          <div className={`fm-slot-header-bg text-center py-[2px] text-[11px] leading-[16px] bg-[var(--color-fm-slot-header)] text-[var(--color-fm-slot-header-text)] rounded-t-[6px] ${isSelected ? '!bg-fm-brand !text-white' : ''}`}>{label}</div>
                           <div className="flex gap-[4px] items-center p-[4px]">
                             <div className="size-[40px] shrink-0 flex items-center justify-center">
                               <SpoolColorChip colorCode={tray.color} colors={tray.colors} colorType={tray.color_type} size={32} />

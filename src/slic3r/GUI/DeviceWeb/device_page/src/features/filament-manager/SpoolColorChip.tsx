@@ -22,6 +22,10 @@
 //   - The shadow also lets the 1 px ring use a soft alpha (10 %) instead
 //     of the harsh `border-white/20` that produced the bright outlines
 //     PM flagged as too loud against dark slot card backgrounds.
+//   - The ring color is provided by the theme token `--color-fm-chip-ring`,
+//     which has its own light / dark value pair in `styles.css`. A white /
+//     near-white chip fill therefore still keeps a visible outline on the
+//     light-theme white surface without darkening the dark-theme look.
 
 import type { CSSProperties } from 'react';
 import { canonicalizeHex, canonicalizeHexList } from './colors';
@@ -58,8 +62,10 @@ export function SpoolColorChip({
   const fallback = canonicalizeHex(colorCode) || '#888';
   const r = radius ?? Math.max(2, Math.round(size / 6));
 
-  // Soft alpha + box-shadow inset; see file header for why.
-  const ring = border ? 'inset 0 0 0 1px rgba(255, 255, 255, 0.10)' : undefined;
+  // Soft alpha + box-shadow inset; see file header for why. The color
+  // comes from a theme token so light vs dark stays in sync with the
+  // surrounding surface.
+  const ring = border ? 'inset 0 0 0 1px var(--color-fm-chip-ring)' : undefined;
 
   // Common chip wrapper. `overflow: hidden` is mandatory for the
   // multicolor flex-strip mode so the strips inherit the rounded
@@ -73,20 +79,26 @@ export function SpoolColorChip({
     boxSizing: 'border-box',
   };
 
-  // Multi-hex with explicit multicolor intent: render an outer rounded
-  // chip frame, then inset the actual colour strips as plain rectangles.
-  // Human perception reads clipped rounded corners as vertical imbalance:
-  // the edge colour loses anti-aliased corner pixels while the inner seam
-  // stays full-height. Insetting the colour body keeps the shared top and
-  // bottom edges visually straight while preserving the rounded square
-  // language of the rest of the UI.
+  // Multi-hex with explicit multicolor intent: paint the colour strips
+  // edge-to-edge inside the rounded chip frame and let `overflow: hidden`
+  // clip the rounded corners.
+  //
+  // An earlier revision inset the strips by 1-2 px and filled the gap
+  // with a soft wrapper background so the shared top / bottom edges
+  // would visually stay straight at rounded corners. That extra inset
+  // was invisible when the chip ring was a near-transparent white, but
+  // STUDIO-18338 made the ring theme-aware (light theme uses a darker
+  // ring), at which point the inset became a clearly visible "ring
+  // floating away from the strips" artefact. Filling the gap with a
+  // theme-matched colour would still leave a perceptible band between
+  // ring and strips on small chips, so the cleaner fix is to drop the
+  // inset entirely. The corner anti-alias loss is negligible at the
+  // sizes we render (14-40 px).
   if (hexList.length > 1 && colorType === 1) {
     const n = hexList.length;
-    const inset = size >= 24 ? 2 : 1;
-    const bodySize = Math.max(1, size - inset * 2);
-    const baseStrip = Math.floor(bodySize / n);
+    const baseStrip = Math.floor(size / n);
     const widths = hexList.map((_, i) =>
-      i === n - 1 ? bodySize - baseStrip * (n - 1) : baseStrip,
+      i === n - 1 ? size - baseStrip * (n - 1) : baseStrip,
     );
     return (
       <span
@@ -94,35 +106,22 @@ export function SpoolColorChip({
         style={{
           ...chipStyle,
           display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
           lineHeight: 0,
           fontSize: 0,
-          background: 'rgba(255, 255, 255, 0.06)',
         }}
       >
-        <span
-          style={{
-            display: 'inline-flex',
-            width: bodySize,
-            height: bodySize,
-            lineHeight: 0,
-            fontSize: 0,
-          }}
-        >
-          {hexList.map((hex, i) => (
-            <span
-              key={`${i}-${hex}`}
-              style={{
-                display: 'block',
-                flex: `0 0 ${widths[i]}px`,
-                width: widths[i],
-                height: bodySize,
-                background: hex,
-              }}
-            />
-          ))}
-        </span>
+        {hexList.map((hex, i) => (
+          <span
+            key={`${i}-${hex}`}
+            style={{
+              display: 'block',
+              flex: `0 0 ${widths[i]}px`,
+              width: widths[i],
+              height: size,
+              background: hex,
+            }}
+          />
+        ))}
       </span>
     );
   }
