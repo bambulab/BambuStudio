@@ -860,6 +860,39 @@ void PrintObject::generate_support_material()
         this->clear_support_layers();
 
         if (!has_support() && !m_print->get_no_check_flag()) {
+            // Check for truly floating layers: empty layers between non-empty
+            // layers indicate a physical gap that makes printing impossible
+            // without support. Gaps > 2x layer_height throw an error and
+            // guide the user to enable support; thinner gaps only warn.
+            // 2x is chosen because support cannot bridge gaps smaller than
+            // ~2 layers anyway, so enabling support would not help there.
+            {
+                const double gap_hard_thresh = 2.0 * m_config.layer_height.value;
+                coordf_t last_non_empty_top = 0;
+                bool     found_non_empty    = false;
+                bool     in_gap             = false;
+                for (const Layer *layer : m_layers) {
+                    if (!layer->empty()) {
+                        if (in_gap) {
+                            double gap_mm = layer->bottom_z() - last_non_empty_top;
+                            if (gap_mm > gap_hard_thresh) {
+                                throw Slic3r::SlicingError(L("Levitating objects cannot be printed without supports."), this->id().id, "enable_support");
+                            } else {
+                                std::string warning_message = Slic3r::format(
+                                    L("It seems object %s has floating regions. Please re-orient the object or enable support generation."),
+                                    this->model_object()->name);
+                                this->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL, warning_message, PrintStateBase::SlicingNeedSupportOn);
+                            }
+                            in_gap = false;
+                        }
+                        last_non_empty_top = layer->print_z;
+                        found_non_empty    = true;
+                    } else if (found_non_empty) {
+                        in_gap = true;
+                    }
+                }
+            }
+
             // BBS: pop a warning if objects have significant amount of overhangs but support material is not enabled
             // Note: we also need to pop warning if support is disabled and only raft is enabled
             m_print->set_status(50, L("Checking support necessity"));
@@ -876,18 +909,10 @@ void PrintObject::generate_support_material()
                 std::map<SupportNecessaryType, std::string> reasons = {{SharpTail, L("floating regions")},
                                                                        {Cantilever, L("floating cantilever")},
                                                                        {LargeOverhang, L("large overhangs")}};
-                std::string error_message = Slic3r::format(L("It seems object %s has %s. Please re-orient the object or enable support generation."),
-                                                           this->model_object()->name, reasons[sntype]);
-                throw Slic3r::SlicingError(error_message, this->id().id, "enable_support");
+                std::string warning_message = Slic3r::format(L("It seems object %s has %s. Please re-orient the object or enable support generation."),
+                                                             this->model_object()->name, reasons[sntype]);
+                this->active_step_add_warning(PrintStateBase::WarningLevel::NON_CRITICAL, warning_message, PrintStateBase::SlicingNeedSupportOn);
             }
-
-#if 0
-            // Printing without supports. Empty layer means some objects or object parts are levitating,
-            // therefore they cannot be printed without supports.
-            for (const Layer *layer : m_layers)
-                if (layer->empty())
-                    throw Slic3r::SlicingError("Levitating objects cannot be printed without supports.");
-#endif
         }
 
         if ((this->has_support() && m_layers.size() > 1) || (this->has_raft() && !m_layers.empty())) {
