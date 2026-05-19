@@ -186,6 +186,37 @@ PrintOptionsDialog::PrintOptionsDialog(wxWindow* parent)
         int sel = m_smart_nozzle_blob_mode_switch->GetSelection();
         // UI: 0=Auto, 1=On, 2=Off → Protocol: 0=off, 1=on, 2=auto
         int mode_map[] = {2, 1, 0};
+
+        // Auto -> On in-print confirmation: if the printer is currently in auto mode
+        // (cfg[43:44] == 2) AND a print is running AND any AMS slot currently loaded
+        // matches the stringing-prone filament list, ask the user to confirm before
+        // sending the command. See figma N1-9 screen #10100-23113 (flow 2.6).
+        const auto* opt = obj->GetPrintOptions()
+                              ? obj->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Smart_Nozzle_Blob_Detection)
+                              : nullptr;
+        const bool was_auto = opt && opt->current_detect_value == 2;
+        if (sel == 1 /*On*/ && was_auto && obj->is_in_printing()
+            && obj->any_loaded_filament_is_stringing_prone()) {
+            wxString message = _L("There is stringing-prone filament in the current print job. "
+                                  "Enabling nozzle clumping detection now may degrade print quality. "
+                                  "Are you sure you want to enable it?");
+            wxString caption = _L("Enable Nozzle Clumping Detection");
+            // Use Bambu-styled MessageDialog (warning icon) and manually add the buttons so
+            // that Cancel is the highlighted (green) default and Confirm is the plain white
+            // button. This is a risky in-print toggle, so the safe choice should be the
+            // default, requiring the user to actively pick Confirm.
+            MessageDialog dialog(this, message, caption, wxICON_WARNING);
+            dialog.AddButton(wxID_CANCEL, _L("Cancel"),  true);
+            dialog.AddButton(wxID_OK,     _L("Confirm"), false);
+            if (dialog.ShowModal() != wxID_OK) {
+                // User cancelled: roll the switch back to Auto without sending the command.
+                m_smart_nozzle_blob_mode_switch->SetSelection(0);
+                update_smart_nozzle_blob_mode_desc(0);
+                evt.Skip();
+                return;
+            }
+        }
+
         obj->GetPrintOptions()->command_smart_nozzle_blob_detect_mode(mode_map[sel]);
         update_smart_nozzle_blob_mode_desc(sel);
         evt.Skip();
@@ -1431,14 +1462,19 @@ wxBoxSizer* PrintOptionsDialog::create_settings_group(wxWindow* parent)
     text_smart_nozzle_blob_mode_desc->SetFont(Label::Body_12);
     text_smart_nozzle_blob_mode_desc->Wrap(FromDIP(400));
     text_smart_nozzle_blob_mode_desc->SetForegroundColour(STATIC_TEXT_CAPTION_COL);
-    line_sizer->Add(FromDIP(30), 0, 0, 0);
-    line_sizer->Add(text_smart_nozzle_blob_mode_desc, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(0));
+    // Align caption with the section title above (both use a 5px leading spacer + 5px
+    // label left padding under the same 18px outer margin), per figma N1-9 #10100-23113.
+    line_sizer->Add(FromDIP(5), 0, 0, 0);
+    line_sizer->Add(text_smart_nozzle_blob_mode_desc, 1, wxLEFT | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     sizer->Add(line_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(18));
 
     m_smart_nozzle_blob_mode_switch = new MultiSwitchButton(parent);
     m_smart_nozzle_blob_mode_switch->SetOptions({_L("Auto"), _L("On"), _L("Off")});
     m_smart_nozzle_blob_mode_switch->SetSelection(0);
-    sizer->Add(m_smart_nozzle_blob_mode_switch, 0, wxLEFT | wxTOP, FromDIP(30));
+    // Tight vertical spacing (5px) between caption and the 3-state switch; keep the
+    // 30px left indent that hints the switch is a child of the section above.
+    sizer->Add(0, FromDIP(5), 0, 0);
+    sizer->Add(m_smart_nozzle_blob_mode_switch, 0, wxLEFT, FromDIP(30));
     sizer->Add(0, 0, 0, wxTOP, FromDIP(15));
 
     text_smart_nozzle_blob->Hide();

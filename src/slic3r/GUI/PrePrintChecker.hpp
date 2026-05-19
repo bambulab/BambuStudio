@@ -29,6 +29,7 @@ enum class prePrintInfoStyle : int
     BtnConfirmNotShowAgain = 0x004,
     BtnInstallFanF000 = 0x008,
     BtnJumpToUpgrade = 0x010,
+    BtnSwitchNozzleBlobAuto = 0x020,
 };
 
 inline constexpr prePrintInfoStyle operator|(prePrintInfoStyle a, prePrintInfoStyle b) noexcept
@@ -164,6 +165,7 @@ enum PrintDialogStatus : unsigned int {
     PrintStatusTPUUnsupportCaliOn,
     PrintStatusTPUUnsuggestCali,
     PrintStatusPrintTimeEstimateWarning,
+    PrintStatusSmartNozzleBlobNeedAuto,
     PrintStatusFilamentWarningEnd,
 
     PrintStatusWarningEnd,//->end error<-

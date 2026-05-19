@@ -19,6 +19,7 @@
 #include "slic3r/Utils/BBLUtil.hpp"
 
 #include "DeviceCore/DevConfig.h"
+#include "DeviceCore/DevPrintOptions.h"
 #include "DeviceCore/DevMappingNozzle.h"
 #include "DeviceCore/DevNozzleSystem.h"
 #include "DeviceCore/DevExtensionTool.h"
@@ -1896,6 +1897,10 @@ void SelectMachineDialog::show_status(PrintDialogStatus status, std::vector<wxSt
     } else if (status == PrintStatusFilamentWarningRemainNotEnough) {
         Enable_Refresh_Button(true);
         Enable_Send_Button(true);
+    } else if (status == PrintStatusSmartNozzleBlobNeedAuto) {
+        // Non-blocking advisory: user can still send the print job.
+        Enable_Refresh_Button(true);
+        Enable_Send_Button(true);
     }
 
     /*enter perpare mode*/
@@ -2536,7 +2541,7 @@ void SelectMachineDialog::timelapse_button_click()
 void SelectMachineDialog::update_timelapse_folder_btn_icon()
 {
     if (!m_timelapse_folder_btn) return;
-    // always restore to normal (grey) ¡ª active state is managed by popup open/close
+    // always restore to normal (grey) ï¿½ï¿½ active state is managed by popup open/close
     m_timelapse_folder_btn->SetBitmap(create_scaled_bitmap("folder-closed", m_timelapse_folder_btn, 16));
     m_timelapse_folder_btn->Refresh();
 }
@@ -2701,20 +2706,20 @@ void SelectMachineDialog::on_timelapse_storage_check_result()
     MachineObject* obj = dev ? dev->get_selected_machine() : nullptr;
     if (!obj) { on_send_print(); return; }
 
-    // query failed ¡ú ignore, proceed with print
+    // query failed ï¿½ï¿½ ignore, proceed with print
     if (obj->timelapse_storage_check_result != 0) {
         BOOST_LOG_TRIVIAL(info) << "timelapse storage check failed (result=" << obj->timelapse_storage_check_result << "), proceeding";
         on_send_print();
         return;
     }
 
-    // space is enough ¡ú proceed
+    // space is enough ï¿½ï¿½ proceed
     if (obj->timelapse_storage_is_enough) {
         on_send_print();
         return;
     }
 
-    // space not enough ¡ú show dialog
+    // space not enough ï¿½ï¿½ show dialog
     show_timelapse_storage_dialog(obj);
 }
 
@@ -2788,8 +2793,8 @@ void SelectMachineDialog::show_timelapse_storage_dialog(MachineObject* obj)
     dlg.Fit();
     dlg.CenterOnParent();
 
-    // ShowModal returns after dialog closes ¡ª handle action outside modal stack
-    // wxID_CANCEL is returned when user clicks X (close button) ¡ª do nothing in that case
+    // ShowModal returns after dialog closes ï¿½ï¿½ handle action outside modal stack
+    // wxID_CANCEL is returned when user clicks X (close button) ï¿½ï¿½ do nothing in that case
     int result = dlg.ShowModal();
 
     if (result == wxID_OK) {
@@ -2838,7 +2843,7 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
     if (!config) return;
     if (!obj) return;
 
-    // Read saved values from config ¡ª only called once on open / switch machine
+    // Read saved values from config ï¿½ï¿½ only called once on open / switch machine
     for (auto item : m_checkbox_list) {
         PrintOption       *opt = item.second;
         const std::string &val = config->get(obj->printer_type, item.first);
@@ -2978,7 +2983,7 @@ void SelectMachineDialog::check_tpu_aero_flow_cali(MachineObject* obj)
     if (has_mapped && all_tpu_or_aero) {
         m_checkbox_list["flow_cali"]->setValue("off");
 
-        // Immediately update pa_panel visibility ¡ª same as on_flow_pa_caliation_option_changed
+        // Immediately update pa_panel visibility ï¿½ï¿½ same as on_flow_pa_caliation_option_changed
         if (obj->is_support_pa_mode) {
             m_pa_value_panel->Show();
             Layout();
@@ -6200,6 +6205,16 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
         show_status(PrintDialogStatus::PrintStatusFilamentCrossExtruderWarning, { warning_msg });
     }
 
+    // Smart nozzle clumping (wrap) detection: recommend switching to Auto when the project
+    // contains stringing-prone filament and the printer is not already in Auto mode.
+    if (!CheckWarningSmartNozzleBlobAuto(obj_)) {
+        const wxString warning_msg = _L("There is stringing-prone filament in this file. For best print quality, "
+                                        "we recommend switching nozzle clumping detection to Auto mode.");
+        show_status(PrintDialogStatus::PrintStatusSmartNozzleBlobNeedAuto,
+                    {warning_msg}, wxEmptyString,
+                    prePrintInfoStyle::BtnSwitchNozzleBlobAuto);
+    }
+
     return true;
 };
 
@@ -6404,6 +6419,39 @@ bool SelectMachineDialog::CheckWarningFilamentCrossExtruder(MachineObject* obj_,
     }
 
     return cross_extruder_filament_ids.empty();
+}
+
+bool SelectMachineDialog::CheckWarningSmartNozzleBlobAuto(MachineObject* obj_)
+{
+    if (!obj_ || m_print_type != PrintFromType::FROM_NORMAL) return true;
+
+    // Only relevant when the printer firmware supports the smart wrap detection feature.
+    auto* opts = obj_->GetPrintOptions();
+    if (!opts) return true;
+    const auto* opt = opts->GetDetectionOption(PrintOptionEnum::Smart_Nozzle_Blob_Detection);
+    if (!opt || !opt->is_support_detect) return true;
+
+    // Already in Auto (cfg[43:44] == 2): nothing to recommend.
+    if (opt->current_detect_value == 2) return true;
+
+    // Need at least one stringing-prone filament in the sliced project for any nozzle on
+    // the current printer config. Iterating the cross-product covers single- and
+    // dual-extruder printers without needing per-filament extruder assignment.
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle) return true;
+    const auto* opt_nozzle_diameters =
+        preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    if (!opt_nozzle_diameters || opt_nozzle_diameters->size() == 0) return true;
+
+    for (const auto& fila : m_filaments) {
+        if (fila.filament_id.empty()) continue;
+        for (size_t i = 0; i < opt_nozzle_diameters->size(); ++i) {
+            const float d = static_cast<float>(opt_nozzle_diameters->get_at(i));
+            if (Slic3r::is_stringing_prone_filament(fila.filament_id, d))
+                return false;
+        }
+    }
+    return true;
 }
 
 ShowType SelectMachineDialog::get_filament_mapping_show_type(MachineObject* obj_, int fila_logic_id) const

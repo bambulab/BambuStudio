@@ -316,7 +316,6 @@ public:
     int  CtrlAmsStartDryingHour(int ams_id, std::string filament_type, int tag_temp, int tag_duration_hour, bool rotate_tray, int cooling_temp, bool close_power_conflict = false) const;
     int  CtrlAmsStopDrying(int ams_id) const;
 
-
 public:
     static bool IsBBL_Filament(std::string tag_uid);
 

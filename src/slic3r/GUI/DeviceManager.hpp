@@ -97,6 +97,15 @@ class DevUpgrade;
 struct DevPrintTaskRatingInfo;
 struct DevNozzle;
 
+// Returns true when the given filament_id (e.g. "GFA11", "GFU00") is on the
+// stringing-prone list for the given nozzle diameter (mm). The list is bucketed
+// per nozzle size and mirrors the printer firmware:
+//   nozzle < 0.3 mm           : empty (no entries for 0.2 nozzle)
+//   0.3 mm <= nozzle < 0.5 mm : 0.4 list  (PLA Aero / TPU 90A / TPU 95A HF / TPU for AMS)
+//   nozzle >= 0.5 mm          : 0.6/0.8 list (PLA Aero / TPU 95A HF)
+// filament_id is matched case-sensitively against the official Bambu Lab IDs.
+bool is_stringing_prone_filament(const std::string& filament_id, float nozzle_diameter);
+
 
 class MachineObject
 {
@@ -586,6 +595,11 @@ public:
     BBLSliceInfo* slice_info {nullptr};
     boost::thread* get_slice_info_thread { nullptr };
     boost::thread* get_model_task_thread { nullptr };
+
+    // Per-filament-index AMS slot mapping reported by the printer in print.mapping.
+    // Up to 32 entries, each value packs (ams_id << 8) | slot_id; 0xFFFF means unused.
+    std::vector<uint16_t> print_job_filament_mapping;
+    bool any_loaded_filament_is_stringing_prone() const;
 
     /* job attr */
     int jobState_ = 0;

@@ -500,6 +500,11 @@ public:
     bool CheckWarningFilamentCrossExtruder(MachineObject* obj_, std::set<int>& cross_extruder_filament_ids); // return true if no warning
     bool CheckWarningPrintTimeEstimate(MachineObject* obj_, const std::vector<FilamentInfo>& ams_mapping_result); // return true if no warning
 
+    // Smart nozzle clumping (wrap) detection: when fun2[15] is supported, the project
+    // contains a stringing-prone filament and the printer is not yet in Auto mode,
+    // recommend switching to Auto. Returns true if no warning. See figma N1-9 #10100-23113.
+    bool CheckWarningSmartNozzleBlobAuto(MachineObject* obj_);
+
     void update_best_pos_dialog(wxCommandEvent &evt);
     void update_ams_check(MachineObject* obj);
     void update_filament_change_count();
