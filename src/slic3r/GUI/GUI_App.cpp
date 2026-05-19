@@ -5302,11 +5302,15 @@ void GUI_App::check_update(bool show_tips, int by_user)
     } else {
         wxGetApp().app_config->set("upgrade", "force_upgrade", false);
 
-        if (show_tips) {
+        // When the beta channel is enabled, defer the "newest version" toast to
+        // check_beta_version(): the stable channel says no, but GitHub may still have
+        // a newer beta. Showing the toast now would contradict the beta dialog that
+        // pops up moments later from the async GitHub check.
+        if (show_tips && app_config->get("enable_beta_version_update") != "true") {
             this->no_new_version();
+        } else {
+            check_beta_version(show_tips);
         }
-
-        check_beta_version();
     }
 }
 
@@ -5341,10 +5345,14 @@ void GUI_App::check_new_version(bool show_tips, int by_user)
                 if (j["message"].get<std::string>() == "success") {
                     if (j.contains("software")) {
                         if (j["software"].empty()) {
-                            if (show_tips) {
+                            // Same reasoning as in check_update(): suppress the toast when
+                            // the beta channel is enabled so it cannot contradict the beta
+                            // release dialog raised by the async GitHub check below.
+                            if (show_tips && app_config->get("enable_beta_version_update") != "true") {
                                 this->no_new_version();
+                            } else {
+                                check_beta_version(show_tips);
                             }
-                            check_beta_version();
                         }
                         else {
                             if (j["software"].contains("url")
@@ -5377,8 +5385,10 @@ void GUI_App::check_new_version(bool show_tips, int by_user)
     }).perform();
 }
 
-void GUI_App::check_beta_version()
+void GUI_App::check_beta_version(bool show_tips_when_no_beta)
 {
+    // When the beta channel is off the stable callers have already shown the toast
+    // (see check_update / check_new_version), so we just bail out here.
     if (app_config->get("enable_beta_version_update") != "true") {
         return;
     }
@@ -5405,7 +5415,7 @@ void GUI_App::check_beta_version()
     http.header("accept", "application/json")
         .timeout_connect(TIMEOUT_CONNECT)
         .timeout_max(TIMEOUT_RESPONSE)
-        .on_complete([this, platform](std::string body, unsigned) {
+        .on_complete([this, platform, show_tips_when_no_beta](std::string body, unsigned) {
         try {
             json versions = json::parse(body, nullptr, false);
             for (auto version : versions){
@@ -5431,7 +5441,12 @@ void GUI_App::check_beta_version()
                                     version_info.url = url;
                                     version_info.description = "###" + std::string(version["html_url"]) + "###";
                                     version_info.force_upgrade = false;
-                                    CallAfter([this]() {
+                                    CallAfter([this, show_tips_when_no_beta]() {
+                                        auto fallback_tips = [this, show_tips_when_no_beta]() {
+                                            if (show_tips_when_no_beta) {
+                                                this->no_new_version();
+                                            }
+                                        };
 
                                         if (version_info.version_str.empty() || version_info.url.empty()) {
                                             return;
@@ -5442,6 +5457,7 @@ void GUI_App::check_beta_version()
                                         if (curr_version && remote_version && (*remote_version > *curr_version)) {
                                             std::string skip_ver = app_config->get("app", "skip_version");
                                             if (!skip_ver.empty() && version_info.version_str <= skip_ver) {
+                                                fallback_tips();
                                                 return;
                                             }
 
@@ -5463,6 +5479,8 @@ void GUI_App::check_beta_version()
                                             default:
                                                 break;
                                             }
+                                        } else {
+                                            fallback_tips();
                                         }
                                     });
                                 }

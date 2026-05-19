@@ -539,7 +539,7 @@ public:
     void            check_new_version(bool show_tips = false, int by_user = 0);
     void            check_cert();
     bool            process_network_msg(std::string dev_id, std::string msg);
-    void            check_beta_version();
+    void            check_beta_version(bool show_tips_when_no_beta = false);
     void            request_new_version(int by_user);
     void            enter_force_upgrade();
     void            set_skip_version(bool skip = true);
