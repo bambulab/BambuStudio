@@ -4263,6 +4263,11 @@ GCode::LayerResult GCode::process_layer(
         config.set_key_value("curr_y_acceleration_limit", new ConfigOptionFloat(curr_y_acceleration_limit));
         config.set_key_value("curr_accumulated_mass", new ConfigOptionFloat(curr_accumulated_mass));
         config.set_key_value("curr_layer_mass", new ConfigOptionFloat(curr_layer_mass));
+        int cur_filament_id = (int)m_writer.filament()->id();
+        config.set_key_value("current_filament_id", new ConfigOptionInt(cur_filament_id));
+        config.set_key_value("current_extruder_id", new ConfigOptionInt((int)get_extruder_id(cur_filament_id)));
+        auto group_result = m_print->get_layered_nozzle_group_result();
+        config.set_key_value("current_nozzle_id", new ConfigOptionInt(group_result ? group_result->get_nozzle_id(cur_filament_id, m_layer_index) : 0));
         gcode += this->placeholder_parser_process("layer_change_gcode",
             print.config().layer_change_gcode.value, m_writer.filament()->id(), &config)
             + "\n";
