@@ -28,11 +28,43 @@ endif ()
 #     set(_patch_cmd test -f WXWIDGETS_PATCHED || ${PATCH_CMD} ${CMAKE_CURRENT_LIST_DIR}/0001-wxWidget-fix.patch && touch WXWIDGETS_PATCHED)
 # endif ()
 
+# Pin wx's "sys" thirdparty libs to the conda env explicitly: wx's
+# wx_add_thirdparty_library() silently flips wxUSE_LIBPNG=sys back to
+# "builtin" (vendored libpng-1.4.12) when find_package(PNG) misses, and
+# that's exactly what happens on macos-14 runners.
+set(_wx_prefix_path "${DESTDIR}/usr/local")
+set(_wx_extra_args "")
+if(APPLE AND DEFINED ENV{CONDA_PREFIX})
+    set(_wx_prefix_path "$ENV{CONDA_PREFIX};${_wx_prefix_path}")
+    set(_wx_extra_args
+        "-DPNG_PNG_INCLUDE_DIR:PATH=$ENV{CONDA_PREFIX}/include"
+        "-DPNG_LIBRARY:FILEPATH=$ENV{CONDA_PREFIX}/lib/libpng.dylib"
+        "-DJPEG_INCLUDE_DIR:PATH=$ENV{CONDA_PREFIX}/include"
+        "-DJPEG_LIBRARY:FILEPATH=$ENV{CONDA_PREFIX}/lib/libjpeg.dylib"
+        "-DTIFF_INCLUDE_DIR:PATH=$ENV{CONDA_PREFIX}/include"
+        "-DTIFF_LIBRARY:FILEPATH=$ENV{CONDA_PREFIX}/lib/libtiff.dylib"
+        "-DZLIB_INCLUDE_DIR:PATH=$ENV{CONDA_PREFIX}/include"
+        "-DZLIB_LIBRARY:FILEPATH=$ENV{CONDA_PREFIX}/lib/libz.dylib"
+        "-DEXPAT_INCLUDE_DIR:PATH=$ENV{CONDA_PREFIX}/include"
+        "-DEXPAT_LIBRARY:FILEPATH=$ENV{CONDA_PREFIX}/lib/libexpat.dylib"
+    )
+endif()
+
 bambustudio_add_cmake_project(wxWidgets
     GIT_REPOSITORY "https://github.com/bambulab/wxWidgets"
     GIT_TAG master
     DEPENDS ${PNG_PKG} ${ZLIB_PKG} ${EXPAT_PKG} ${TIFF_PKG} ${JPEG_PKG}
+    # Drop the vendored libs so the "builtin" fallback can't quietly steal the
+    # build from the conda-pinned sys ones above.
+    PATCH_COMMAND ${CMAKE_COMMAND} -E rm -rf
+        <SOURCE_DIR>/src/png
+        <SOURCE_DIR>/src/jpeg
+        <SOURCE_DIR>/src/tiff
+        <SOURCE_DIR>/src/zlib
+        <SOURCE_DIR>/src/expat
     CMAKE_ARGS
+        "-DCMAKE_PREFIX_PATH:STRING=${_wx_prefix_path}"
+        ${_wx_extra_args}
         -DwxBUILD_PRECOMP=ON
         ${_wx_toolkit}
         "-DCMAKE_DEBUG_POSTFIX:STRING="
