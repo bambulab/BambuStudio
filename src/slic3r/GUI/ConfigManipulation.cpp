@@ -644,22 +644,11 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
             s_mixed_sublayer_warned = false;
     }
 
-    // Check "enable_support" and "overhangs" relations only on global settings level
-    if (is_global_config && config->opt_bool("enable_support")) {
-        // Ask only once.
-        if (!m_support_material_overhangs_queried) {
-            m_support_material_overhangs_queried = true;
-            if (!config->opt_bool("detect_overhang_wall")/* != 1*/) {
-                //BBS: detect_overhang_wall is setting in develop mode. Enable it directly.
-                DynamicPrintConfig new_conf = *config;
-                new_conf.set_key_value("detect_overhang_wall", new ConfigOptionBool(true));
-                apply(config, &new_conf);
-            }
-        }
-    }
-    else {
-        m_support_material_overhangs_queried = false;
-    }
+    // Removed: legacy "develop mode" auto-restore that forced detect_overhang_wall back
+    // to true whenever enable_support was on. It silently overrode user intent across
+    // project save/reopen (e.g. system preset + enable_support => detect_overhang_wall
+    // came back checked after reopening the 3MF). User toggles for detect_overhang_wall
+    // must be respected.
 
     if (config->opt_bool("enable_support")) {
         auto   support_type = config->opt_enum<SupportType>("support_type");

@@ -1969,6 +1969,16 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
         update_wiping_button_visibility();
 
+    // BBS: 用户在 UI 上主动开启支撑时，联动开启识别悬空外墙（辅助体验，配合支撑可改善打印效果）。
+    // preset 切换 / 3MF 加载走 Field::set_value(value, false) 不会进入本回调，已存值不会被覆盖。
+    if (opt_key == "enable_support" && boost::any_cast<bool>(value)) {
+        if (!m_config->opt_bool("detect_overhang_wall")) {
+            DynamicPrintConfig new_conf = *m_config;
+            new_conf.set_key_value("detect_overhang_wall", new ConfigOptionBool(true));
+            m_config_manipulation.apply(m_config, &new_conf);
+        }
+    }
+
     if (opt_key == "enable_prime_tower") {
         auto timelapse_type = m_config->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
         bool timelapse_enabled = timelapse_type->value == TimelapseType::tlSmooth;
@@ -3361,19 +3371,6 @@ void TabPrint::update()
         return; // ys_FIXME
 
     m_update_cnt++;
-
-    // ysFIXME: It's temporary workaround and should be clewer reworked:
-    // Note: This workaround works till "enable_support" and "overhangs" is exclusive sets of mutually no-exclusive parameters.
-    // But it should be corrected when we will have more such sets.
-    // Disable check of the compatibility of the "enable_support" and "overhangs" options for saved user profile
-    // NOTE: Initialization of the support_material_overhangs_queried value have to be processed just ones
-    if (!m_config_manipulation.is_initialized_support_material_overhangs_queried())
-    {
-        const Preset& selected_preset = m_preset_bundle->prints.get_selected_preset();
-        bool is_user_and_saved_preset = !selected_preset.is_system && !selected_preset.is_dirty;
-        bool support_material_overhangs_queried = m_config->opt_bool("enable_support") && !m_config->opt_bool("detect_overhang_wall");
-        m_config_manipulation.initialize_support_material_overhangs_queried(is_user_and_saved_preset && support_material_overhangs_queried);
-    }
 
     m_config_manipulation.update_print_fff_config(m_config, m_type < Preset::TYPE_COUNT, m_type == Preset::TYPE_PLATE);
 
