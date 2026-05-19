@@ -567,6 +567,19 @@ bool DevAms::IsSupportRemoteDry(const MachineObject* obj) const
     return false;
 }
 
+bool DevAms::IsDryableSlot(int slot_id) const
+{
+    // Zoned AMS: only slots inside the dryable zone (zone_id == 0) can be dried.
+    // Fall back to the legacy "all slots are dryable" semantics for AMS types
+    // that don't report zone information.
+    if (!m_zones.empty()) {
+        const DevAmsZone* dry_zone = GetZone(0);
+        if (!dry_zone) return false;
+        return std::find(dry_zone->zone_slots.begin(), dry_zone->zone_slots.end(), slot_id) != dry_zone->zone_slots.end();
+    }
+    return true;
+}
+
 bool DevAms::AmsIsDrying()
 {
     if (!GetDryStatus().has_value()) {

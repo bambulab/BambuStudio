@@ -271,6 +271,7 @@ public:
 
     // remote drying control
     bool IsSupportRemoteDry(const MachineObject* obj) const;
+    bool IsDryableSlot(int slot_id) const;
     std::optional<DryStatus> GetDryStatus() const { return m_dry_status; };
     std::optional<DrySubStatus> GetDrySubStatus() const { return m_dry_sub_status; }
     std::optional<DryFanStatus> GetFan1Status() const { return m_dry_fan1_status; }
@@ -380,7 +381,7 @@ public:
     int  CtrlAmsReset() const;
 
     // crtl
-    int  CtrlAmsStartDryingHour(int ams_id, std::string filament_type, int tag_temp, int tag_duration_hour, bool rotate_tray, int cooling_temp, bool close_power_conflict = false) const;
+    int  CtrlAmsStartDryingHour(int ams_id, int zone_id, std::string filament_type, int tag_temp, int tag_duration_hour, bool rotate_tray, int cooling_temp, bool close_power_conflict = false) const;
     int  CtrlAmsStopDrying(int ams_id) const;
 
     // Parse

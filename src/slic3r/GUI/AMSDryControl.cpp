@@ -16,9 +16,13 @@
 #include "slic3r/GUI/Widgets/ProgressBar.hpp"
 #include "DeviceCore/DevUtilBackend.h"
 
+#include <wx/dcbuffer.h>
+#include <wx/dcgraph.h>
+
 namespace Slic3r { namespace GUI {
 
 const int AMS_DRY_STATUS_IMAGE_SIZE = 96;
+const int AMS_DRY_STATUS_IMAGE_SIZE_ZMULTI = 200;
 
 static std::string get_humidity_level_img_path(int humidity_percent)
 {
@@ -55,6 +59,10 @@ static std::string get_dry_status_img_path(DevAmsType type, DevAms::DryStatus st
         case DevAmsType::N3F:
             img_name += "n3f";
             break;
+        case DevAmsType::ZMULTI_A:
+            // ZMULTI_A uses a single "heating" image for all active states
+            // (the dryable area border turns red)
+            return "dev_ams_dry_ctr_zmulti_a_heating";
         default:
             return "";
     }
@@ -289,30 +297,301 @@ wxBoxSizer* AMSDryCtrWin::create_humidity_status_section(wxPanel* parent)
 {
     wxBoxSizer* image_sizer = new wxBoxSizer(wxVERTICAL);
 
-    m_humidity_img = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap);
-    image_sizer->Add(m_humidity_img, 1, wxALIGN_CENTER_HORIZONTAL, 0);
+    m_zmulti_humidity_icon = ScalableBitmap(this, "dev_ams_dry_ctr_humidity", 16);
+    m_zmulti_temp_icon = ScalableBitmap(this, "dev_ams_dry_ctr_temp", 16);
 
-    m_humidity_img->SetBitmap(wxNullBitmap);
+    m_zmulti_image_overlay = new wxPanel(parent, wxID_ANY);
+    m_zmulti_image_overlay->SetBackgroundColour(parent->GetBackgroundColour());
+    m_zmulti_image_overlay->SetDoubleBuffered(true);
+    m_zmulti_image_overlay->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    m_zmulti_image_overlay->Bind(wxEVT_PAINT, &AMSDryCtrWin::on_overlay_paint, this);
+    m_zmulti_image_overlay->Bind(wxEVT_ERASE_BACKGROUND, [](wxEraseEvent&){});
 
-    // Create a horizontal sizer for description and icon
-    wxBoxSizer* desc_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_humidity_img = new wxStaticBitmap(m_zmulti_image_overlay, wxID_ANY, wxNullBitmap);
+    m_humidity_img->Move(0, 0);
+
+    image_sizer->Add(m_zmulti_image_overlay, 0, wxALIGN_CENTER_HORIZONTAL, 0);
+
+    m_zmulti_m2y_pill = create_m2y_pill(parent);
+    m_zmulti_m2y_pill->Show(false);
+    // The overlay panel is wider than the bitmap (extra reserve on the right
+    // for the dryable badge). To centre the pill under the bitmap rather than
+    // the overlay, wrap it in a row sizer with an asymmetric right padding
+    // equal to the overlay's right reserve.
+    wxBoxSizer* pill_row = new wxBoxSizer(wxHORIZONTAL);
+    pill_row->Add(m_zmulti_m2y_pill, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(40));
+    image_sizer->Add(pill_row, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, FromDIP(6));
+
+    m_image_desc_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_image_description_icon = new wxStaticBitmap(parent, wxID_ANY, wxNullBitmap);
     m_image_description_icon->SetBackgroundColour(*wxWHITE);
     m_image_description_icon->SetMinSize(wxSize(FromDIP(20), FromDIP(20)));
     m_image_description_icon->SetMaxSize(wxSize(FromDIP(20), FromDIP(20)));
     m_image_description_icon->Show(false);
-    desc_sizer->Add(m_image_description_icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(5));
+    m_image_desc_sizer->Add(m_image_description_icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(5));
 
     m_image_description = new Label(parent, _L("Idle"));
     m_image_description->SetFont(Label::Head_14);
     m_image_description->SetForegroundColour(*wxBLACK);
     m_image_description->SetBackgroundColour(*wxWHITE);
-    desc_sizer->Add(m_image_description, 0, wxALIGN_CENTER_VERTICAL);
+    m_image_desc_sizer->Add(m_image_description, 0, wxALIGN_CENTER_VERTICAL);
 
-    image_sizer->Add(desc_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+    image_sizer->Add(m_image_desc_sizer, 0, wxALIGN_CENTER | wxALL, FromDIP(5));
+    image_sizer->AddStretchSpacer(1);
 
     return image_sizer;
+}
+
+namespace {
+
+// Geometry / styling constants for the ZMULTI_A overlay drawn entirely in
+// AMSDryCtrWin::on_overlay_paint. Pixel positions are derived from the figma
+// design at https://figma.com/.../node-id=965-32760 (200x180 device image
+// inside a 230x221 frame) and scaled to the runtime bitmap size.
+struct ZMultiBadgeStyle {
+    wxColour bg;
+    wxColour fg;
+    wxColour separator;
+    int      radius_dip;
+    int      pad_h_dip; // horizontal padding (each side)
+    int      pad_v_dip; // vertical padding (each side)
+};
+
+constexpr double kFigmaImageW = 200.0;
+constexpr double kFigmaImageH = 180.0;
+// Figma badge anchor positions (top-left), in figma image-local coords.
+constexpr int kFigmaDryableX = 91;
+constexpr int kFigmaDryableY = 0;
+constexpr int kFigmaNormalX  = 40;
+constexpr int kFigmaNormalY  = 116;
+
+} // namespace
+
+wxSize AMSDryCtrWin::compute_zmulti_overlay_size() const
+{
+    if (!m_humidity_image.bmp().IsOk()) return wxSize(0, 0);
+    wxSize bmp_sz = m_humidity_image.bmp().GetSize();
+    // Conservative reserve for the dryable badge that overhangs the top edge
+    // of the bitmap (figma anchor y=0, badge centred there) and the dashed
+    // connector that descends below it. The actual badge size is computed in
+    // on_overlay_paint, so we add a generous upper bound here to guarantee
+    // the panel never clips its overlay drawing.
+    int extra_top = FromDIP(28);
+    int extra_right = FromDIP(40); // dryable badge anchored near right side may extend past bitmap width
+    return wxSize(bmp_sz.GetWidth() + extra_right, bmp_sz.GetHeight() + extra_top);
+}
+
+void AMSDryCtrWin::on_overlay_paint(wxPaintEvent&)
+{
+    wxAutoBufferedPaintDC bdc(m_zmulti_image_overlay);
+    bdc.SetBackground(wxBrush(m_zmulti_image_overlay->GetBackgroundColour()));
+    bdc.Clear();
+
+    bool is_zmulti = (m_ams_info.m_model == DevAmsType::ZMULTI_A);
+    if (!is_zmulti || !m_humidity_image.bmp().IsOk()) {
+        return;
+    }
+
+    wxBitmap bmp = m_humidity_image.bmp();
+    wxSize bmp_sz = bmp.GetSize();
+    // Must match compute_zmulti_overlay_size(): the panel reserves 28dp at
+    // the top so the dryable badge (anchored at figma y=0 i.e. on the upper
+    // edge of the device image) is fully visible.
+    int extra_top = FromDIP(28);
+    int bmp_x = 0;
+    int bmp_y = extra_top;
+    bdc.DrawBitmap(bmp, bmp_x, bmp_y, true);
+
+    wxGCDC dc(bdc);
+    wxGraphicsContext* gc = dc.GetGraphicsContext();
+    if (!gc) return;
+    gc->SetAntialiasMode(wxANTIALIAS_DEFAULT);
+
+    ZMultiBadgeStyle style_normal{
+        StateColor::darkModeColorFor(wxColour("#141414")),
+        StateColor::darkModeColorFor(wxColour("#A3A3A3")),
+        StateColor::darkModeColorFor(wxColour("#474747")),
+        FromDIP(8), FromDIP(8), FromDIP(3)
+    };
+    ZMultiBadgeStyle style_dryable{
+        StateColor::darkModeColorFor(wxColour("#474747")),
+        StateColor::darkModeColorFor(wxColour("#A3A3A3")),
+        StateColor::darkModeColorFor(wxColour("#797979")),
+        FromDIP(8), FromDIP(8), FromDIP(3)
+    };
+
+    auto fmt_value = [](int v) -> wxString {
+        return v < 0 ? wxString("--") : wxString::Format("%d", v);
+    };
+    wxString dryable_hum_text = fmt_value(m_ams_info.m_humidity_percent);
+    wxString dryable_temp_text = fmt_value(m_ams_info.m_temperature);
+    wxString normal_hum_text = fmt_value(m_ambient_humidity_percent);
+    wxString normal_temp_text = fmt_value(m_ambient_temperature);
+
+    wxFont font_value = Label::Body_13;
+    wxFont font_unit = Label::Body_10;
+
+    auto measure_badge = [&](const ZMultiBadgeStyle& s, const wxString& hum_text, const wxString& temp_text) -> wxSize {
+        gc->SetFont(font_value, s.fg);
+        wxDouble vw_h = 0, vh_h = 0, vd, ve;
+        gc->GetTextExtent(hum_text, &vw_h, &vh_h, &vd, &ve);
+        wxDouble vw_t = 0, vh_t = 0;
+        gc->GetTextExtent(temp_text, &vw_t, &vh_t, &vd, &ve);
+        gc->SetFont(font_unit, s.fg);
+        wxDouble uw_p = 0, uh_p = 0;
+        gc->GetTextExtent("%", &uw_p, &uh_p, &vd, &ve);
+        wxDouble uw_c = 0, uh_c = 0;
+        gc->GetTextExtent(wxString::FromUTF8("℃"), &uw_c, &uh_c, &vd, &ve);
+
+        int icon_w = m_zmulti_humidity_icon.bmp().GetWidth();
+        int icon_h = m_zmulti_humidity_icon.bmp().GetHeight();
+        int gap = FromDIP(2);
+        int sep_w = FromDIP(1);
+        int sep_pad = FromDIP(6);
+
+        int content_w =
+            icon_w + gap + static_cast<int>(vw_h) + gap + static_cast<int>(uw_p)
+          + sep_pad + sep_w + sep_pad
+          + icon_w + gap + static_cast<int>(vw_t) + gap + static_cast<int>(uw_c);
+        int content_h = std::max(icon_h, static_cast<int>(std::max(vh_h, uh_p)));
+        return wxSize(content_w + 2 * s.pad_h_dip,
+                      content_h + 2 * s.pad_v_dip);
+    };
+
+    auto draw_badge = [&](double bx, double by, const ZMultiBadgeStyle& s, wxSize badge_size,
+                          const wxString& hum_text, const wxString& temp_text) {
+        // Rounded background.
+        gc->SetBrush(wxBrush(s.bg));
+        gc->SetPen(*wxTRANSPARENT_PEN);
+        gc->DrawRoundedRectangle(bx, by, badge_size.GetWidth(), badge_size.GetHeight(), s.radius_dip);
+
+        int icon_w = m_zmulti_humidity_icon.bmp().GetWidth();
+        int icon_h = m_zmulti_humidity_icon.bmp().GetHeight();
+        int gap = FromDIP(2);
+        int sep_w = FromDIP(1);
+        int sep_pad = FromDIP(6);
+
+        gc->SetFont(font_value, s.fg);
+        wxDouble vw_h, vh_h, vd, ve;
+        gc->GetTextExtent(hum_text, &vw_h, &vh_h, &vd, &ve);
+        wxDouble vw_t, vh_t;
+        gc->GetTextExtent(temp_text, &vw_t, &vh_t, &vd, &ve);
+        gc->SetFont(font_unit, s.fg);
+        wxDouble uw_p, uh_p;
+        gc->GetTextExtent("%", &uw_p, &uh_p, &vd, &ve);
+        wxDouble uw_c, uh_c;
+        gc->GetTextExtent(wxString::FromUTF8("℃"), &uw_c, &uh_c, &vd, &ve);
+
+        double cy = by + badge_size.GetHeight() / 2.0;
+        double cur_x = bx + s.pad_h_dip;
+
+        gc->DrawBitmap(m_zmulti_humidity_icon.bmp(), cur_x, cy - icon_h / 2.0, icon_w, icon_h);
+        cur_x += icon_w + gap;
+        gc->SetFont(font_value, s.fg);
+        gc->DrawText(hum_text, cur_x, cy - vh_h / 2.0);
+        cur_x += vw_h + gap;
+        gc->SetFont(font_unit, s.fg);
+        gc->DrawText("%", cur_x, cy - uh_p / 2.0 + FromDIP(1));
+        cur_x += uw_p + sep_pad;
+
+        gc->SetPen(wxPen(s.separator, sep_w));
+        double sep_h = badge_size.GetHeight() - 2 * s.pad_v_dip - FromDIP(2);
+        gc->StrokeLine(cur_x, cy - sep_h / 2.0, cur_x, cy + sep_h / 2.0);
+        cur_x += sep_w + sep_pad;
+        gc->SetPen(*wxTRANSPARENT_PEN);
+
+        gc->DrawBitmap(m_zmulti_temp_icon.bmp(), cur_x, cy - icon_h / 2.0, icon_w, icon_h);
+        cur_x += icon_w + gap;
+        gc->SetFont(font_value, s.fg);
+        gc->DrawText(temp_text, cur_x, cy - vh_t / 2.0);
+        cur_x += vw_t + gap;
+        gc->SetFont(font_unit, s.fg);
+        gc->DrawText(wxString::FromUTF8("℃"), cur_x, cy - uh_c / 2.0 + FromDIP(1));
+    };
+
+    wxSize sz_normal = measure_badge(style_normal, normal_hum_text, normal_temp_text);
+    wxSize sz_dryable = measure_badge(style_dryable, dryable_hum_text, dryable_temp_text);
+
+    double sx = bmp_sz.GetWidth() / kFigmaImageW;
+    double sy = bmp_sz.GetHeight() / kFigmaImageH;
+
+    // Place the dryable badge so its centre line sits at figma y=0 (i.e. on
+    // the upper edge of the device image). Half of it spills into the reserved
+    // top strip we added in compute_zmulti_overlay_size().
+    double dryable_x = bmp_x + kFigmaDryableX * sx;
+    double dryable_y = bmp_y + kFigmaDryableY * sy - sz_dryable.GetHeight() / 2.0;
+    double normal_x  = bmp_x + kFigmaNormalX * sx;
+    double normal_y  = bmp_y + kFigmaNormalY * sy;
+
+    draw_badge(normal_x, normal_y, style_normal, sz_normal, normal_hum_text, normal_temp_text);
+    draw_badge(dryable_x, dryable_y, style_dryable, sz_dryable, dryable_hum_text, dryable_temp_text);
+
+    // Green dashed connector descending from the dryable badge.
+    double cx = dryable_x + sz_dryable.GetWidth() / 2.0;
+    double y_top = dryable_y + sz_dryable.GetHeight();
+    double y_bot = y_top + FromDIP(18);
+    wxPen pen(wxColour(0, 174, 66), FromDIP(1));
+    wxDash dashes[2] = { 2, 2 };
+    pen.SetStyle(wxPENSTYLE_USER_DASH);
+    pen.SetDashes(2, dashes);
+    gc->SetPen(pen);
+    gc->StrokeLine(cx, y_top, cx, y_bot);
+}
+
+wxPanel* AMSDryCtrWin::create_m2y_pill(wxPanel* parent)
+{
+    wxPanel* pill = new wxPanel(parent, wxID_ANY);
+    pill->SetBackgroundColour(parent->GetBackgroundColour());
+    pill->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    pill->SetDoubleBuffered(true);
+    pill->Bind(wxEVT_ERASE_BACKGROUND, [](wxEraseEvent&){});
+
+    auto on_paint = [pill](wxPaintEvent&) {
+        wxAutoBufferedPaintDC bdc(pill);
+        bdc.SetBackground(wxBrush(pill->GetBackgroundColour()));
+        bdc.Clear();
+        wxGCDC dc(bdc);
+        wxGraphicsContext* gc = dc.GetGraphicsContext();
+        if (!gc) return;
+        gc->SetAntialiasMode(wxANTIALIAS_DEFAULT);
+
+        wxColour bg = StateColor::darkModeColorFor(wxColour(51, 51, 51));
+        wxColour fg = StateColor::darkModeColorFor(wxColour("#E0E0E0"));
+        wxSize sz = pill->GetSize();
+        gc->SetBrush(wxBrush(bg));
+        gc->SetPen(*wxTRANSPARENT_PEN);
+        gc->DrawRoundedRectangle(0, 0, sz.GetWidth(), sz.GetHeight(), pill->FromDIP(12));
+
+        wxBitmap icon = ScalableBitmap(pill, "dev_ams_dry_ctr_plugedin", 20).bmp();
+        wxString text("m2y-AMS");
+        wxFont font = Label::Body_14;
+        gc->SetFont(font, fg);
+        wxDouble tw, th, td, te;
+        gc->GetTextExtent(text, &tw, &th, &td, &te);
+
+        int gap = pill->FromDIP(6);
+        int icon_w = icon.GetWidth();
+        int icon_h = icon.GetHeight();
+        double total_w = tw + gap + icon_w;
+        double cur_x = (sz.GetWidth() - total_w) / 2.0;
+        double cy = sz.GetHeight() / 2.0;
+
+        gc->DrawText(text, cur_x, cy - th / 2.0);
+        cur_x += tw + gap;
+        gc->DrawBitmap(icon, cur_x, cy - icon_h / 2.0, icon_w, icon_h);
+    };
+    pill->Bind(wxEVT_PAINT, on_paint);
+
+    int icon_w = ScalableBitmap(pill, "dev_ams_dry_ctr_plugedin", 20).bmp().GetWidth();
+    wxClientDC dc(pill);
+    dc.SetFont(Label::Body_14);
+    wxSize text_size = dc.GetTextExtent("m2y-AMS");
+    int width = text_size.GetWidth() + icon_w + pill->FromDIP(6) + 2 * pill->FromDIP(14);
+    int height = pill->FromDIP(28);
+    pill->SetMinSize(wxSize(width, height));
+    pill->SetSize(wxSize(width, height));
+    return pill;
 }
 
 wxBoxSizer* AMSDryCtrWin::create_description_item(wxPanel* parent, const wxString& title, Label*& dataLabel)
@@ -368,8 +647,8 @@ wxBoxSizer* AMSDryCtrWin::create_left_panel(wxPanel* parent)
     wxBoxSizer* image_section = create_humidity_status_section(parent);
     left_sizer->Add(image_section, 1, wxEXPAND | wxALL, FromDIP(5));
 
-    wxBoxSizer* descriptions_section = create_status_descriptions_section(parent);
-    left_sizer->Add(descriptions_section, 0, wxEXPAND | wxALL, FromDIP(20));
+    m_descriptions_section_sizer = create_status_descriptions_section(parent);
+    left_sizer->Add(m_descriptions_section_sizer, 0, wxEXPAND | wxALL, FromDIP(20));
 
     return left_sizer;
 }
@@ -816,7 +1095,7 @@ void AMSDryCtrWin::start_sending_drying_command()
         cooling_temp = static_cast<int>(preset.value().filament_dev_drying_softening_temperature);
     }
 
-    fila_system->CtrlAmsStartDryingHour(std::stoi(m_ams_info.m_ams_id), m_tray_ids[tray_index].filament_type,
+    fila_system->CtrlAmsStartDryingHour(std::stoi(m_ams_info.m_ams_id), 0, m_tray_ids[tray_index].filament_type,
         temperature, time, m_rotate_spool_toggle->GetValue(), cooling_temp, false);
 
     m_dry_setting.m_filament_names[m_ams_info.m_ams_id] = m_tray_ids[tray_index].filament_name;
@@ -1125,7 +1404,10 @@ int AMSDryCtrWin::update_image(DevAmsType model, DevAms::DryStatus status, DevAm
 
     std::string img_path;
 
-    if (status == DevAms::DryStatus::Off && sub_status == DevAms::DrySubStatus::Off) {
+    bool is_idle = (status == DevAms::DryStatus::Off || status == DevAms::DryStatus::Cooling);
+    if (model == DevAmsType::ZMULTI_A) {
+        img_path = is_idle ? "dev_ams_dry_ctr_zmulti_a_idle" : "dev_ams_dry_ctr_zmulti_a_heating";
+    } else if (status == DevAms::DryStatus::Off && sub_status == DevAms::DrySubStatus::Off) {
         img_path = get_humidity_level_img_path(humidity_percent);
     } else {
         img_path = get_dry_status_img_path(model, status, sub_status);
@@ -1135,8 +1417,30 @@ int AMSDryCtrWin::update_image(DevAmsType model, DevAms::DryStatus status, DevAm
         return 0;
     }
 
-    m_humidity_image = ScalableBitmap(this, img_path, AMS_DRY_STATUS_IMAGE_SIZE);
-    m_humidity_img->SetBitmap(m_humidity_image.bmp());
+    int img_size = (model == DevAmsType::ZMULTI_A) ? AMS_DRY_STATUS_IMAGE_SIZE_ZMULTI : AMS_DRY_STATUS_IMAGE_SIZE;
+    m_humidity_image = ScalableBitmap(this, img_path, img_size);
+
+    if (model == DevAmsType::ZMULTI_A) {
+        m_humidity_img->Show(false);
+        wxSize overlay_sz = compute_zmulti_overlay_size();
+        if (m_zmulti_image_overlay->GetMinSize() != overlay_sz) {
+            m_zmulti_image_overlay->SetMinSize(overlay_sz);
+            m_zmulti_image_overlay->SetSize(overlay_sz);
+            if (m_original_page) m_original_page->Layout();
+        }
+        m_zmulti_image_overlay->Refresh();
+    } else {
+        m_humidity_img->Show(true);
+        m_humidity_img->SetBitmap(m_humidity_image.bmp());
+        m_humidity_img->SetMinSize(m_humidity_image.bmp().GetSize());
+        m_humidity_img->SetSize(m_humidity_image.bmp().GetSize());
+        wxSize bmp_sz = m_humidity_image.bmp().GetSize();
+        if (m_zmulti_image_overlay->GetMinSize() != bmp_sz) {
+            m_zmulti_image_overlay->SetMinSize(bmp_sz);
+            m_zmulti_image_overlay->SetSize(bmp_sz);
+            if (m_original_page) m_original_page->Layout();
+        }
+    }
 
     update_img_description(status, sub_status);
 
@@ -1152,18 +1456,20 @@ bool AMSDryCtrWin::check_values_changed(DevAms* dev_ams)
         changed = true;
     }
 
-    if (dev_ams->GetDryStatus().has_value() && m_ams_info.m_dry_status != dev_ams->GetDryStatus()) {
-        m_ams_info.m_dry_status = dev_ams->GetDryStatus().value();
+    DryView v = get_dry_view(dev_ams);
+
+    if (v.dry_status.has_value() && m_ams_info.m_dry_status != v.dry_status.value()) {
+        m_ams_info.m_dry_status = v.dry_status.value();
         changed = true;
     }
 
-    if (dev_ams->GetDrySubStatus().has_value() && m_ams_info.m_dry_sub_status != dev_ams->GetDrySubStatus()) {
-        m_ams_info.m_dry_sub_status = dev_ams->GetDrySubStatus().value();
+    if (v.dry_sub_status.has_value() && m_ams_info.m_dry_sub_status != v.dry_sub_status.value()) {
+        m_ams_info.m_dry_sub_status = v.dry_sub_status.value();
         changed = true;
     }
 
-    if (m_ams_info.m_humidity_percent != dev_ams->GetHumidityPercent()) {
-        m_ams_info.m_humidity_percent = dev_ams->GetHumidityPercent();
+    if (m_ams_info.m_humidity_percent != v.humidity_percent) {
+        m_ams_info.m_humidity_percent = v.humidity_percent;
         changed = true;
     }
 
@@ -1186,7 +1492,8 @@ void AMSDryCtrWin::update_normal_description(DevAms* dev_ams)
     struct AmsTempLimit { DevAmsType type; int min_temp; int max_temp; const char* name; };
     static const AmsTempLimit ams_limits[] = {
         { DevAmsType::N3F, 45, 65, "AMS2" },
-        { DevAmsType::N3S, 45, 85, "AMS-S" }
+        { DevAmsType::N3S, 45, 85, "AMS-S" },
+        { DevAmsType::ZMULTI_A, 45, 85, "m2y-AMS" }
     };
 
     for (const auto& lim : ams_limits) {
@@ -1215,7 +1522,11 @@ void AMSDryCtrWin::update_normal_description(DevAms* dev_ams)
         // empty AMS only needs to respect the device hardware temperature limit.
         bool has_filament_inserted = false;
         for (const auto& tray_pair : dev_ams->GetTrays()) {
-            if (tray_pair.second && tray_pair.second->is_exists) {
+            if (!tray_pair.second) continue;
+            int slot_id = 0;
+            try { slot_id = std::stoi(tray_pair.first); } catch (...) { continue; }
+            if (!dev_ams->IsDryableSlot(slot_id)) continue;
+            if (tray_pair.second->is_exists) {
                 has_filament_inserted = true;
                 break;
             }
@@ -1404,8 +1715,9 @@ wxString organize_cannot_reasons_text(std::vector<DevAms::CannotDryReason>& reas
 
 int AMSDryCtrWin::update_state(DevAms* dev_ams)
 {
-    std::vector<DevAms::CannotDryReason> cannot_reasons = dev_ams->GetCannotDryReason().has_value()?
-        dev_ams->GetCannotDryReason().value(): std::vector<DevAms::CannotDryReason>();
+    DryView v = get_dry_view(dev_ams);
+    std::vector<DevAms::CannotDryReason> cannot_reasons = v.cannot_dry_reasons.has_value()?
+        v.cannot_dry_reasons.value(): std::vector<DevAms::CannotDryReason>();
 
     if (cannot_reasons.size() == 0 ||
         (cannot_reasons.size() == 1 && cannot_reasons[0] == DevAms::CannotDryReason::DryingInProgress)) {
@@ -1443,6 +1755,8 @@ int AMSDryCtrWin::update_ams_change(DevAms* dev_ams)
         m_temperature_input->SetHint("45-65" + wxString::FromUTF8("°C"));
     } else if (dev_ams->GetAmsType() == DevAmsType::N3S) {
         m_temperature_input->SetHint("45-85" + wxString::FromUTF8("°C"));
+    } else if (dev_ams->GetAmsType() == DevAmsType::ZMULTI_A) {
+        m_temperature_input->SetHint("45-85" + wxString::FromUTF8("°C"));
     }
 
     m_time_input->SetHint("1-24 h");
@@ -1454,16 +1768,28 @@ int AMSDryCtrWin::update_dryness_status(DevAms* dev_ams)
 {
     int updated = 0;
 
-    if (m_ams_info.m_humidity_percent != dev_ams->GetHumidityPercent()) {
+    DryView dry = get_dry_view(dev_ams);
+    AmbientView ambient = get_ambient_view(dev_ams);
+
+    if (m_ams_info.m_humidity_percent != dry.humidity_percent) {
         updated += 1;
-        m_ams_info.m_humidity_percent = dev_ams->GetHumidityPercent();
+        m_ams_info.m_humidity_percent = dry.humidity_percent;
         m_humidity_data_label->SetLabel(std::to_string(m_ams_info.m_humidity_percent) + "%");
     }
 
-    if (m_ams_info.m_temperature != dev_ams->GetCurrentTemperature()) {
+    if (m_ams_info.m_temperature != dry.temperature) {
         updated += 1;
-        m_ams_info.m_temperature = dev_ams->GetCurrentTemperature();
+        m_ams_info.m_temperature = dry.temperature;
         m_temperature_data_label->SetLabel(std::to_string(m_ams_info.m_temperature) + wxString::FromUTF8("°C"));
+    }
+
+    if (m_ambient_humidity_percent != ambient.humidity_percent) {
+        m_ambient_humidity_percent = ambient.humidity_percent;
+        updated += 1;
+    }
+    if (m_ambient_temperature != ambient.temperature) {
+        m_ambient_temperature = ambient.temperature;
+        updated += 1;
     }
 
     if (is_dry_ctr_idle(dev_ams)) {
@@ -1475,12 +1801,26 @@ int AMSDryCtrWin::update_dryness_status(DevAms* dev_ams)
             m_original_page->Layout();
         }
 
-        if (m_ams_info.m_left_dry_time != dev_ams->GetLeftDryTime()) {
+        if (m_ams_info.m_left_dry_time != dry.left_dry_time) {
             updated += 1;
-            m_ams_info.m_left_dry_time = dev_ams->GetLeftDryTime();
+            m_ams_info.m_left_dry_time = dry.left_dry_time;
             m_time_data_label->SetLabel(wxString::Format("%02d : %02d",
                 m_ams_info.m_left_dry_time / 60, m_ams_info.m_left_dry_time % 60));
         }
+    }
+
+    bool is_zmulti_a = (dev_ams->GetAmsType() == DevAmsType::ZMULTI_A);
+    int  visible_now = is_zmulti_a ? 1 : 0;
+    if (m_last_visible_zmulti_a != visible_now) {
+        m_last_visible_zmulti_a = visible_now;
+        if (m_image_desc_sizer) m_image_desc_sizer->ShowItems(!is_zmulti_a);
+        if (m_descriptions_section_sizer) m_descriptions_section_sizer->ShowItems(!is_zmulti_a);
+        if (m_zmulti_m2y_pill) m_zmulti_m2y_pill->Show(is_zmulti_a);
+        if (m_original_page) m_original_page->Layout();
+    }
+
+    if (is_zmulti_a && updated > 0 && m_zmulti_image_overlay) {
+        m_zmulti_image_overlay->Refresh();
     }
 
     return updated;
@@ -1512,6 +1852,11 @@ void AMSDryCtrWin::update_filament_guide_info(DevAms* dev_ams)
         if (!tray_pair.second) {
             continue;
         }
+
+        int slot_id = 0;
+        try { slot_id = std::stoi(tray_pair.first); } catch (...) { continue; }
+        if (!dev_ams->IsDryableSlot(slot_id)) continue;
+
         ++slot_count;
         if (!tray_pair.second->is_exists) {
             m_ams_filament_panel->AddFilamentItem("/", "dev_ams_dry_ctr_enable");
@@ -1644,7 +1989,7 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
 
     if (!is_dry_ctr_idle(dev_ams)) {
         const std::string& ams_id = dev_ams->GetAmsId();
-        const auto settings_opt = dev_ams->GetDrySettings();
+        const auto settings_opt = get_dry_view(dev_ams).dry_settings;
 
         // Set the combobox display label by the filament "type" string.
         // Priority: last saved selection for this AMS (if the type matches) -> fallback to current `m_tray_ids`.
@@ -1702,6 +2047,11 @@ int AMSDryCtrWin::update_filament_list(DevAms* dev_ams, MachineObject* obj)
     const auto fallback_preset = DevUtilBackend::GetFilamentDryingPreset("GFA00");
     for (const auto& tray_pair : dev_ams->GetTrays()) {
         if (!tray_pair.second || !tray_pair.second->is_exists) continue;
+
+        int slot_id = 0;
+        try { slot_id = std::stoi(tray_pair.first); } catch (...) { continue; }
+        if (!dev_ams->IsDryableSlot(slot_id)) continue;
+
         has_ready = true;
         wxString filament_type = tray_pair.second->get_display_filament_type();
         Slic3r::DevFilamentDryingPreset preset;
@@ -1795,13 +2145,15 @@ void AMSDryCtrWin::update(std::shared_ptr<DevFilaSystem> fila_system, MachineObj
         return;
     }
 
-
     update_ams_change(dev_ams);
 
-    update_image(dev_ams->GetAmsType(),
-        dev_ams->GetDryStatus().has_value()? dev_ams->GetDryStatus().value(): DevAms::DryStatus::Off,
-        dev_ams->GetDrySubStatus().has_value()? dev_ams->GetDrySubStatus().value(): DevAms::DrySubStatus::Off,
-        dev_ams->GetHumidityPercent());
+    {
+        DryView dry = get_dry_view(dev_ams);
+        update_image(dev_ams->GetAmsType(),
+            dry.dry_status.has_value()? dry.dry_status.value(): DevAms::DryStatus::Off,
+            dry.dry_sub_status.has_value()? dry.dry_sub_status.value(): DevAms::DrySubStatus::Off,
+            dry.humidity_percent);
+    }
 
     update_state(dev_ams);
     update_dryness_status(dev_ams);
@@ -1822,24 +2174,82 @@ bool AMSDryCtrWin::is_ams_changed(DevAms* dev_ams)
     return m_ams_info.m_ams_id != dev_ams->GetAmsId() || m_is_ams_changed;
 }
 
-bool AMSDryCtrWin::is_dry_status_changed(DevAms* dev_ams)
+AMSDryCtrWin::DryView AMSDryCtrWin::get_dry_view(DevAms* dev_ams) const
 {
-    if (!dev_ams->GetDryStatus().has_value() || !dev_ams->GetDrySubStatus().has_value()) {
-        return true;
+    DryView v;
+    if (!dev_ams) return v;
+
+    if (!dev_ams->GetZones().empty()) {
+        const DevAmsZone* z = dev_ams->GetZone(0);
+        if (z) {
+            v.dry_status        = z->dry_status;
+            v.dry_sub_status    = z->dry_sub_status;
+            v.humidity_percent  = z->humidity_percent;
+            v.temperature       = static_cast<int>(z->current_temperature);
+            v.left_dry_time     = z->left_dry_time;
+            v.dry_settings      = z->dry_settings;
+            v.cannot_dry_reasons = z->dry_cannot_reasons;
+            return v;
+        }
     }
 
-    return dev_ams->GetDryStatus().value() != m_ams_info.m_dry_status
-        || dev_ams->GetDrySubStatus().value() != m_ams_info.m_dry_sub_status;
+    v.dry_status        = dev_ams->GetDryStatus();
+    v.dry_sub_status    = dev_ams->GetDrySubStatus();
+    v.humidity_percent  = dev_ams->GetHumidityPercent();
+    v.temperature       = static_cast<int>(dev_ams->GetCurrentTemperature());
+    v.left_dry_time     = dev_ams->GetLeftDryTime();
+    v.dry_settings      = dev_ams->GetDrySettings();
+    v.cannot_dry_reasons = dev_ams->GetCannotDryReason();
+    return v;
+}
+
+AMSDryCtrWin::AmbientView AMSDryCtrWin::get_ambient_view(DevAms* dev_ams) const
+{
+    AmbientView v;
+    if (!dev_ams) return v;
+
+    if (!dev_ams->GetZones().empty()) {
+        // Average humidity/temperature across all zones with id != 0. If the
+        // unit only has zone 0, fall through to legacy unit-wide values.
+        long long temp_sum = 0;
+        long long hum_sum = 0;
+        int        count = 0;
+        for (const auto& z : dev_ams->GetZones()) {
+            if (z.zone_id == 0) continue;
+            temp_sum += static_cast<long long>(z.current_temperature);
+            hum_sum  += z.humidity_percent;
+            ++count;
+        }
+        if (count > 0) {
+            v.temperature      = static_cast<int>(temp_sum / count);
+            v.humidity_percent = static_cast<int>(hum_sum / count);
+            return v;
+        }
+    }
+
+    v.humidity_percent = dev_ams->GetHumidityPercent();
+    v.temperature      = static_cast<int>(dev_ams->GetCurrentTemperature());
+    return v;
+}
+
+bool AMSDryCtrWin::is_dry_status_changed(DevAms* dev_ams)
+{
+    DryView v = get_dry_view(dev_ams);
+    if (!v.dry_status.has_value() || !v.dry_sub_status.has_value()) {
+        return true;
+    }
+    return v.dry_status.value() != m_ams_info.m_dry_status
+        || v.dry_sub_status.value() != m_ams_info.m_dry_sub_status;
 }
 
 bool AMSDryCtrWin::is_dry_ctr_idle(DevAms* dev_ams)
 {
-    if (!dev_ams->GetDryStatus().has_value() || !dev_ams->GetDrySubStatus().has_value()) {
+    DryView v = get_dry_view(dev_ams);
+    if (!v.dry_status.has_value() || !v.dry_sub_status.has_value()) {
         return true;
     }
-
-    return dev_ams->GetDryStatus().value() == DevAms::DryStatus::Off
-        || dev_ams->GetDryStatus().value() == DevAms::DryStatus::Cooling;
+    return v.dry_status.value() == DevAms::DryStatus::Off
+        || v.dry_status.value() == DevAms::DryStatus::Cooling;
 }
 
 bool AMSDryCtrWin::is_dry_ctr_idle()
@@ -1849,11 +2259,11 @@ bool AMSDryCtrWin::is_dry_ctr_idle()
 
 bool AMSDryCtrWin::is_dry_ctr_err(DevAms* dev_ams)
 {
-    if (!dev_ams->GetDryStatus().has_value() || !dev_ams->GetDrySubStatus().has_value()) {
+    DryView v = get_dry_view(dev_ams);
+    if (!v.dry_status.has_value() || !v.dry_sub_status.has_value()) {
         return false;
     }
-
-    return dev_ams->GetDryStatus().value() == DevAms::DryStatus::Error;
+    return v.dry_status.value() == DevAms::DryStatus::Error;
 }
 
 } // GUI

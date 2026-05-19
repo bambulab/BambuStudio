@@ -16,7 +16,7 @@
 class wxGrid;
 
 namespace Slic3r {
-    
+
 namespace GUI {
 
 
@@ -42,17 +42,17 @@ struct DryingPreset {
 class FilamentItemPanel : public wxPanel
 {
 public:
-    FilamentItemPanel(wxWindow* parent, const wxString& text, const std::string& icon_name = "", 
+    FilamentItemPanel(wxWindow* parent, const wxString& text, const std::string& icon_name = "",
                       wxWindowID id = wxID_ANY);
-    
+
     void SetText(const wxString& text);
     void SetIcon(const std::string& icon_name);
     void msw_rescale();
-    
+
 private:
     void OnPaint(wxPaintEvent& event);
     void OnSize(wxSizeEvent& event);
-    
+
     Label* m_text_label;
     wxStaticBitmap* m_icon_bitmap;
     int m_target_size;
@@ -67,10 +67,10 @@ class AMSFilamentPanel : public wxPanel
     int m_border_radius;
     wxPanel* m_filament_container{nullptr};
     std::vector<FilamentItemPanel*> m_filament_items;
-    
+
 public:
     AMSFilamentPanel(wxWindow* parent, const wxString& ams_name, wxWindowID id = wxID_ANY);
-    
+
     void AddFilamentItem(const wxString& text, const std::string& icon_name);
     void AddFilamentItem(FilamentItemPanel* panel);
     void SetAmsName(const wxString& ams_name);
@@ -112,10 +112,24 @@ private:
     wxStaticBitmap* m_image_description_icon{nullptr};
     ScalableBitmap m_description_icon_bitmap;
 
+    // ZMULTI_A overlay: a single panel that paints the device image plus
+    // two temperature/humidity badges and a green dashed connector line.
+    // Everything is drawn in OnPaint to avoid native-widget z-order/flicker
+    // issues on Windows at fractional DPI scaling.
+    wxBoxSizer* m_image_desc_sizer = nullptr;
+    wxPanel* m_zmulti_image_overlay{nullptr};
+    wxPanel* m_zmulti_m2y_pill{nullptr};
+    ScalableBitmap m_zmulti_humidity_icon;
+    ScalableBitmap m_zmulti_temp_icon;
+    int m_last_visible_zmulti_a = -1; // -1=unset, 0=hidden, 1=shown
+    int m_ambient_humidity_percent = -1;
+    int m_ambient_temperature = 0;
+
     Label* m_humidity_data_label = nullptr;
     Label* m_temperature_data_label = nullptr;
     Label* m_time_data_label = nullptr;
     wxBoxSizer* m_time_descrition_container = nullptr;
+    wxBoxSizer* m_descriptions_section_sizer = nullptr;
 
     // right panel related members
     wxBoxSizer* m_normal_state_sizer{nullptr};
@@ -202,9 +216,12 @@ private:
     wxBoxSizer* create_main_page_sizer(wxPanel* parent);
     wxBoxSizer* create_left_panel(wxPanel* parent);
     wxBoxSizer* create_humidity_status_section(wxPanel* parent);
+    wxPanel* create_m2y_pill(wxPanel* parent);
+    void on_overlay_paint(wxPaintEvent& evt);
+    wxSize compute_zmulti_overlay_size() const;
     wxBoxSizer* create_description_item(wxPanel* parent, const wxString& title, Label*& dataLabel);
     wxBoxSizer* create_status_descriptions_section(wxPanel* parent);
-    
+
     wxBoxSizer* create_right_panel(wxPanel* parent);
     wxBoxSizer* create_normal_state_panel(wxPanel* parent);
     wxBoxSizer* create_cannot_dry_panel(wxPanel* parent);
@@ -246,6 +263,29 @@ private:
     bool is_dry_ctr_idle();
     bool is_tray_changed(DevAms* dev_ams);
     bool is_dry_ctr_err(DevAms* dev_ams);
+
+    // Aggregated dry state for the active drying area. For zoned AMS units
+    // (ZMULTI_A, etc.) this reflects zone 0 only; for legacy AMS it reflects
+    // the whole unit. Centralising the lookup here keeps every consumer in
+    // this dialog (image, badges, state machine, settings prefill) consistent.
+    struct DryView {
+        std::optional<DevAms::DryStatus>    dry_status;
+        std::optional<DevAms::DrySubStatus> dry_sub_status;
+        int                                 humidity_percent = -1;
+        int                                 temperature      = 0;
+        int                                 left_dry_time    = 0;
+        std::optional<DevAms::DrySettings>  dry_settings;
+        std::optional<std::vector<DevAms::CannotDryReason>> cannot_dry_reasons;
+    };
+    DryView get_dry_view(DevAms* dev_ams) const;
+    // Non-dryable view: data shown on the "normal" badge (the area that
+    // cannot be dried). For zoned AMS, this aggregates non-zone-0 zones; for
+    // legacy AMS it falls back to the unit-wide values (same as DryView).
+    struct AmbientView {
+        int humidity_percent = -1;
+        int temperature      = 0;
+    };
+    AmbientView get_ambient_view(DevAms* dev_ams) const;
 
 };
 

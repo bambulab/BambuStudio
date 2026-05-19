@@ -17,6 +17,7 @@ int DevFilaSystem::CtrlAmsReset() const
 }
 
 int DevFilaSystem::CtrlAmsStartDryingHour(int ams_id,
+                                          int zone_id,
                                           std::string filament_type,
                                           int tag_temp,
                                           int tag_duration_hour,
@@ -28,6 +29,7 @@ int DevFilaSystem::CtrlAmsStartDryingHour(int ams_id,
     jj_command["print"]["command"] = "ams_filament_drying";
     jj_command["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
     jj_command["print"]["ams_id"] = ams_id;
+    jj_command["print"]["zone_id"] = zone_id;
     jj_command["print"]["mode"] = DevAms::DryCtrlMode::OnTime;
     jj_command["print"]["filament"] = filament_type,
     jj_command["print"]["temp"] = tag_temp;
