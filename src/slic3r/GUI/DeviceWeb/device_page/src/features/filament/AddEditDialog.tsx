@@ -1552,7 +1552,8 @@ export function AddEditDialog({
   if (!open) return null;
 
   const currentUnit = amsData?.ams_units.find((u) => u.ams_id === selectedUnit);
-  const slotLabels = ['A1', 'A2', 'A3', 'A4'];
+  const unitLetter = currentUnit ? String.fromCharCode('A'.charCodeAt(0) + parseInt(currentUnit.ams_id, 10)) : 'A';
+  const slotLabels = [1, 2, 3, 4].map((n) => `${unitLetter}${n}`);
   const amsFieldLocked = mode === 'ams' && !!selectedSlot;
   const lockBrand = amsFieldLocked && amsLockedFields.brand;
   const lockMaterial = amsFieldLocked && amsLockedFields.material;
@@ -1686,7 +1687,7 @@ export function AddEditDialog({
                 {currentUnit && (
                   <div className="flex gap-[8px] py-[8px]">
                     {currentUnit.trays.map((tray, i) => {
-                      const label = slotLabels[i] || `A${i + 1}`;
+                      const label = slotLabels[i] || `${unitLetter}${i + 1}`;
                       const isSelected = selectedSlot?.slot_id === tray.slot_id && selectedSlot?.ams_id === currentUnit.ams_id;
                       if (!tray.is_exists) {
                         return (
