@@ -105,7 +105,6 @@
     "support_fast_purge_mode": "1",
     "support_object_skip_flush": "1",
     "upward_compatible_machine": [
-        "Bambu Lab H2D 0.4 nozzle",
-        "Bambu Lab H2D Pro 0.4 nozzle"
+        "Bambu Lab H2S 0.4 nozzle"
     ]
 }
