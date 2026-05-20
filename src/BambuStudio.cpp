@@ -31,6 +31,7 @@ using namespace nlohmann;
 #if defined(__linux__) || defined(__LINUX__)
 #include <condition_variable>
 #include <mutex>
+#include <syslog.h>
 #include <boost/thread.hpp>
 #endif
 
@@ -1462,6 +1463,17 @@ int CLI::run(int argc, char **argv)
     set_current_thread_name("bambustu_main");
     // Save the thread ID of the main thread.
     save_main_thread_id();
+
+#if defined(__linux__) || defined(__LINUX__)
+    // The closed-source bambu_networking plugin calls syslog() with LOG_EMERG
+    // for certain non-critical errors (e.g. "SO register failed").  On Linux,
+    // systemd-journald broadcasts every PRIORITY=0 message to all logged-in
+    // terminals as a wall message, which is disruptive.  Suppress LOG_EMERG
+    // and LOG_ALERT in this process's syslog mask so those messages are simply
+    // not forwarded to the system journal.  All other priorities (CRIT and
+    // below) are unaffected.
+    setlogmask(LOG_UPTO(LOG_DEBUG) & ~LOG_MASK(LOG_EMERG) & ~LOG_MASK(LOG_ALERT));
+#endif
 
 #ifdef __WXGTK__
     // On Linux, wxGTK has no support for Wayland, and the app crashes on
