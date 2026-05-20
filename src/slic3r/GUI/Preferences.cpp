@@ -1452,7 +1452,43 @@ wxWindow* PreferencesDialog::create_general_page()
     //dark mode
 #ifdef _WIN32
     auto title_darkmode = create_item_title(_L("Dark Mode"), page, _L("Dark Mode"));
-    auto item_darkmode = create_item_darkmode_checkbox(_L("Enable dark mode"), page,_L("Enable dark mode"), 50, "dark_color_mode");
+    auto item_darkmode = create_item_darkmode_checkbox(_L("Enable dark mode"), page, _L("Enable dark mode"), 50, "dark_color_mode");
+
+    // "Follow system theme" checkbox
+    auto sizer_follow = new wxBoxSizer(wxHORIZONTAL);
+    sizer_follow->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
+    m_dark_mode_follow_system_checkbox = new ::CheckBox(page);
+    m_dark_mode_follow_system_checkbox->SetValue(app_config->get("dark_mode_follow_system") == "1");
+    sizer_follow->Add(m_dark_mode_follow_system_checkbox, 0, wxALIGN_CENTER, 0);
+    sizer_follow->Add(0, 0, 0, wxEXPAND | wxLEFT, 8);
+    auto follow_label = new wxStaticText(page, wxID_ANY, _L("Follow system theme"), wxDefaultPosition, wxDefaultSize, 0);
+    follow_label->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    follow_label->SetFont(::Label::Body_13);
+    sizer_follow->Add(follow_label, 0, wxALIGN_CENTER | wxALL, 3);
+    m_dark_mode_follow_system_checkbox->SetToolTip(_L("Automatically switch dark mode to match the Windows system theme."));
+    if (app_config->get("dark_mode_follow_system") == "1")
+        m_dark_mode_ckeckbox->Enable(false);
+    m_dark_mode_follow_system_checkbox->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) {
+        bool follow = m_dark_mode_follow_system_checkbox->GetValue();
+        app_config->set("dark_mode_follow_system", follow ? "1" : "0");
+        app_config->save();
+        m_dark_mode_ckeckbox->Enable(!follow);
+        if (follow) {
+            bool sys_dark = wxSystemSettings::GetAppearance().IsDark();
+            app_config->set("dark_color_mode", sys_dark ? "1" : "0");
+            m_dark_mode_ckeckbox->SetValue(sys_dark);
+        }
+        wxGetApp().Update_dark_mode_flag();
+#ifdef _MSW_DARK_MODE
+        wxGetApp().force_colors_update();
+        wxGetApp().update_ui_from_settings();
+        set_dark_mode();
+#endif
+        SimpleEvent evt = SimpleEvent(EVT_GLCANVAS_COLOR_MODE_CHANGED);
+        wxPostEvent(wxGetApp().plater(), evt);
+        e.Skip();
+    });
+    auto item_darkmode_follow = sizer_follow;
 #endif
 
 #if 0
@@ -1561,6 +1597,7 @@ wxWindow* PreferencesDialog::create_general_page()
 #ifdef _WIN32
     sizer_page->Add(title_darkmode, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_darkmode, 0, wxEXPAND, FromDIP(3));
+    sizer_page->Add(item_darkmode_follow, 0, wxEXPAND, FromDIP(3));
 #endif
 
 #if 0
