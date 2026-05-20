@@ -144,7 +144,7 @@ std::string DevNozzle::ToNozzleVolumeString(const NozzleVolumeType& type)
 std::string DevNozzle::ToNozzleVolumeShortString(const NozzleVolumeType& type)
 {
     switch (type) {
-    case NozzleVolumeType::nvtStandard:     return "SF";
+    case NozzleVolumeType::nvtStandard:     return "Std";
     case NozzleVolumeType::nvtHighFlow:     return "HF";
     case NozzleVolumeType::nvtTPUHighFlow:  return "UHF";
     case NozzleVolumeType::nvtE3DHighFlow:  return "EHF";
