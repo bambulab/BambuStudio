@@ -91,7 +91,24 @@ if [[ -n "$BWRAP" ]]; then
     # files (X11 sockets, /run/user/$UID for xdg-runtime, /sys for hwinfo); bind
     # them rw so the inner process can actually live a normal session.
     user_home="${HOME:-/root}"
-    extra_binds=(--bind "$user_home" "$user_home")
+    extra_binds=()
+
+    # --bind below needs $BUILD_PREFIX's parent dirs to exist in the namespace
+    # so it can mkdir the mountpoint. With --ro-bind / / there's no writable
+    # layer to mkdir into, so on a user machine where $BUILD_PREFIX (e.g.
+    # /home/runner/work/.../.pixi/envs/default from a GitHub Actions build)
+    # doesn't exist, the bind fails with "Can't mkdir parents ... Read-only".
+    # Fix: overlay the deepest existing ancestor of $BUILD_PREFIX with a
+    # tmpfs to get a writable layer, then bwrap auto-creates the rest.
+    if [[ ! -d "$BUILD_PREFIX" ]]; then
+        tmpfs_ancestor="$BUILD_PREFIX"
+        while [[ ! -e "$tmpfs_ancestor" ]]; do
+            tmpfs_ancestor="$(dirname "$tmpfs_ancestor")"
+        done
+        extra_binds+=(--tmpfs "$tmpfs_ancestor")
+    fi
+
+    extra_binds+=(--bind "$user_home" "$user_home")
     [[ -d "/run/user/$(id -u)" ]] && extra_binds+=(--bind "/run/user/$(id -u)" "/run/user/$(id -u)")
     [[ -d /sys ]] && extra_binds+=(--ro-bind /sys /sys)
 
