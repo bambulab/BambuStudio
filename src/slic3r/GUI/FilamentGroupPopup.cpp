@@ -16,7 +16,8 @@ static const wxColour LabelEnableColor = wxColour("#262E30");
 static const wxColour LabelDisableColor = wxColour("#ACACAC");
 static const wxColour GreyColor = wxColour("#6B6B6B");
 static const wxColour GreenColor = wxColour("#00AE42");
-static const wxColour BackGroundColor = wxColour("#FFFFFF");
+static wxColour bg_color() { return wxGetApp().dark_mode() ? wxColour("#2D2D31") : wxColour("#FFFFFF"); }
+static wxColour label_clr() { return wxGetApp().dark_mode() ? wxColour("#EFEFF0") : wxColour("#262E30"); }
 
 
 static bool should_pop_up()
@@ -120,7 +121,7 @@ void FilamentGroupPopup::RecreateUIElements()
     const int   vertical_padding  = FromDIP(12);
     const int   ratio_spacing     = FromDIP(4);
 
-    SetBackgroundColour(BackGroundColor);
+    SetBackgroundColour(bg_color());
 
     // Create all possible modes
     m_all_modes = {fmmAutoForFlush, fmmAutoForMatch, fmmAutoForQuality, fmmManual};
@@ -180,21 +181,21 @@ void FilamentGroupPopup::RecreateUIElements()
     for (size_t idx = 0; idx < mode_count; ++idx) {
         button_sizers[idx] = new wxBoxSizer(wxHORIZONTAL);
         radio_btns[idx]          = new wxBitmapButton(this, wxID_ANY, unchecked_bmp, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
-        radio_btns[idx]->SetBackgroundColour(BackGroundColor);
+        radio_btns[idx]->SetBackgroundColour(bg_color());
 
         button_labels[idx] = new Label(this, btn_texts[idx]);
-        button_labels[idx]->SetBackgroundColour(BackGroundColor);
-        button_labels[idx]->SetForegroundColour(LabelEnableColor);
+        button_labels[idx]->SetBackgroundColour(bg_color());
+        button_labels[idx]->SetForegroundColour(label_clr());
         button_labels[idx]->SetFont(Label::Body_14);
 
         button_desps[idx] = new Label(this, btn_desps[idx]);
-        button_desps[idx]->SetBackgroundColour(BackGroundColor);
-        button_desps[idx]->SetForegroundColour(LabelEnableColor);
+        button_desps[idx]->SetBackgroundColour(bg_color());
+        button_desps[idx]->SetForegroundColour(label_clr());
         button_desps[idx]->SetFont(Label::Body_14);
 
 #if 0
         global_mode_tags[idx] = new wxBitmapButton(this, wxID_ANY, global_tag_bmp, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
-        global_mode_tags[idx]->SetBackgroundColour(BackGroundColor);
+        global_mode_tags[idx]->SetBackgroundColour(bg_color());
         global_mode_tags[idx]->SetToolTip(_L("Global settings"));
 #endif
         button_sizers[idx]->Add(radio_btns[idx], 0, wxALIGN_CENTER);
@@ -207,7 +208,7 @@ void FilamentGroupPopup::RecreateUIElements()
         label_sizers[idx] = new wxBoxSizer(wxHORIZONTAL);
 
         detail_infos[idx] = new Label(this, mode_details[idx]);
-        detail_infos[idx]->SetBackgroundColour(BackGroundColor);
+        detail_infos[idx]->SetBackgroundColour(bg_color());
         detail_infos[idx]->SetForegroundColour(GreyColor);
         detail_infos[idx]->SetFont(Label::Body_12);
         detail_infos[idx]->Wrap(FromDIP(320));
@@ -237,7 +238,7 @@ void FilamentGroupPopup::RecreateUIElements()
 
         auto* video_sizer = new wxBoxSizer(wxHORIZONTAL);
         video_link = new wxStaticText(this, wxID_ANY, _L("Video tutorial"));
-        video_link->SetBackgroundColour(BackGroundColor);
+        video_link->SetBackgroundColour(bg_color());
         video_link->SetForegroundColour(GreenColor);
         video_link->SetFont(Label::Body_12.Underlined());
         video_link->SetCursor(wxCursor(wxCURSOR_HAND));
@@ -254,7 +255,7 @@ void FilamentGroupPopup::RecreateUIElements()
 
         auto* wiki_sizer = new wxBoxSizer(wxHORIZONTAL);
         wiki_link = new wxStaticText(this, wxID_ANY, _L("Learn more"));
-        wiki_link->SetBackgroundColour(BackGroundColor);
+        wiki_link->SetBackgroundColour(bg_color());
         wiki_link->SetForegroundColour(GreenColor);
         wiki_link->SetFont(Label::Body_12.Underlined());
         wiki_link->SetCursor(wxCursor(wxCURSOR_HAND));
@@ -379,8 +380,8 @@ void FilamentGroupPopup::Init(const std::vector<FilamentMapMode>& available_mode
         }
         if (mode == fmmAutoForMatch) {
             if (m_connected) {
-                button_labels[i]->SetForegroundColour(LabelEnableColor);
-                button_desps[i]->SetForegroundColour(LabelEnableColor);
+                button_labels[i]->SetForegroundColour(label_clr());
+                button_desps[i]->SetForegroundColour(label_clr());
                 detail_infos[i]->SetForegroundColour(GreyColor);
                 radio_btns[i]->SetBitmap(unchecked_bmp);
                 button_desps[i]->SetLabel(AutoForMatchDesp);
@@ -575,13 +576,14 @@ void FilamentGroupPopup::MakeSmartFilamentSection(wxSizer *top_sizer, int horizo
     m_smart_filament_panel = new StaticBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
     m_smart_filament_panel->SetCornerRadius(FromDIP(4));
     m_smart_filament_panel->SetBorderWidth(FromDIP(1));
-    m_smart_filament_panel->SetBorderColor(wxColour("#CECECE"));
-    m_smart_filament_panel->SetBackgroundColor(StateColor(std::pair<wxColour, int>(wxColour("#F8F8F8"), StateColor::Normal)));
+    m_smart_filament_panel->SetBorderColor(wxGetApp().dark_mode() ? wxColour("#54545B") : wxColour("#CECECE"));
+    const wxColour smart_bg = wxGetApp().dark_mode() ? wxColour("#36363C") : wxColour("#F8F8F8");
+    m_smart_filament_panel->SetBackgroundColor(StateColor(std::pair<wxColour, int>(smart_bg, StateColor::Normal)));
 
     auto *label = new Label(m_smart_filament_panel, _L("Enable smart filament assign: Assign one filament to multiple nozzles to maximize savings"));
     label->SetFont(Label::Body_12);
     label->SetForegroundColour(GreyColor);
-    label->SetBackgroundColour(wxColour("#F8F8F8"));
+    label->SetBackgroundColour(smart_bg);
     label->Wrap(FromDIP(240));
 
     m_smart_filament_switch = new SwitchButton(m_smart_filament_panel);

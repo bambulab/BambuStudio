@@ -1639,11 +1639,11 @@ void PreferencesDialog::create_gui_page()
 
     auto title_index_and_tip = create_item_title(_L("Home page and daily tips"), page, _L("Home page and daily tips"));
     auto item_home_page      = create_item_checkbox(_L("Show home page on startup"), page, _L("Show home page on startup"), 50, "show_home_page");
-    //auto item_daily_tip      = create_item_checkbox(_L("Show daily tip on startup"), page, _L("Show daily tip on startup"), 50, "show_daily_tips");
+    auto item_daily_tip      = create_item_checkbox(_L("Show daily tips after slicing"), page, _L("If enabled, daily tips are shown in the slicing notification panel after slicing completes."), 50, "show_daily_tips");
 
     sizer_page->Add(title_index_and_tip, 0, wxTOP, 26);
     sizer_page->Add(item_home_page, 0, wxTOP, 6);
-    //sizer_page->Add(item_daily_tip, 0, wxTOP, 6);
+    sizer_page->Add(item_daily_tip, 0, wxTOP, 6);
 
     page->SetSizer(sizer_page);
     page->Layout();
