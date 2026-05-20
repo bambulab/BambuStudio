@@ -4355,10 +4355,10 @@ msgstr "Wstrzymano (błąd pierwszej warstwy)"
 msgid "Pause (nozzle clog)"
 msgstr "Wstrzymano (zatkanie dyszy)"
 
-msgid "Measuring motion percision"
+msgid "Measuring motion precision"
 msgstr "Pomiar precyzji ruchu"
 
-msgid "Enhancing motion percision"
+msgid "Enhancing motion precision"
 msgstr "Poprawa percyzji ruchu"
 
 msgid "Measure motion accuracy"

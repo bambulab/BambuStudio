@@ -4319,10 +4319,10 @@ msgstr "暂停（首层扫描异常）"
 msgid "Pause (nozzle clog)"
 msgstr "暂停（堵头）"
 
-msgid "Measuring motion percision"
+msgid "Measuring motion precision"
 msgstr "检查运动精度"
 
-msgid "Enhancing motion percision"
+msgid "Enhancing motion precision"
 msgstr "运动精度增强"
 
 msgid "Measure motion accuracy"

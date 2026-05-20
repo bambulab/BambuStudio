@@ -4353,10 +4353,10 @@ msgstr "Pausa (erro na primeira camada)"
 msgid "Pause (nozzle clog)"
 msgstr "Pausa (bico entupido)"
 
-msgid "Measuring motion percision"
+msgid "Measuring motion precision"
 msgstr "Medindo a precisão do movimento"
 
-msgid "Enhancing motion percision"
+msgid "Enhancing motion precision"
 msgstr "Melhorando a precisão do movimento"
 
 msgid "Measure motion accuracy"
