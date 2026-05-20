@@ -4909,7 +4909,7 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
 
     int  current_position_x = m_ams_control->GetScreenPosition().x;
     int  current_position_y = m_ams_control->GetScreenPosition().y - FromDIP(40);
-    auto drect              = wxDisplay(GetParent()).GetGeometry().GetHeight() - FromDIP(50);
+    int  drect              = wxDisplay(GetParent()).GetGeometry().GetBottom() - FromDIP(50);
     current_position_y = current_position_y + m_filament_setting_dlg->GetSize().GetHeight() > drect ? drect - m_filament_setting_dlg->GetSize().GetHeight() : current_position_y;
 
     if (obj) {
@@ -4972,7 +4972,7 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
 
     int  current_position_x = m_ams_control->GetScreenPosition().x;
     int  current_position_y = m_ams_control->GetScreenPosition().y - FromDIP(40);
-    auto drect              = wxDisplay(GetParent()).GetGeometry().GetHeight() - FromDIP(50);
+    int  drect              = wxDisplay(GetParent()).GetGeometry().GetBottom() - FromDIP(50);
     current_position_y = current_position_y + m_filament_setting_dlg->GetSize().GetHeight() > drect ? drect - m_filament_setting_dlg->GetSize().GetHeight() : current_position_y;
 
     if (obj) {
