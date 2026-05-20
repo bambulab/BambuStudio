@@ -344,6 +344,18 @@ test.describe('STUDIO-18344 real AMS multi-select batch add dry-run @studio-1834
     ).toBeEnabled()
 
     await dialog.confirm()
+    // STUDIO-18385: if any of the picked slots' RFID is already in the
+    // local spool list, AddEditDialog now gates the batch_create write
+    // behind a duplicate-RFID confirmation dialog. Acknowledge it so the
+    // bridge call is actually issued. When no slot collides the dialog
+    // never opens and we fall straight through to interceptedWrite.
+    const overwriteOk = page.getByTestId('confirm-dialog-confirm')
+    try {
+      await overwriteOk.waitFor({ state: 'visible', timeout: 1_500 })
+      await overwriteOk.click()
+    } catch {
+      /* no duplicates → no gate */
+    }
     await page.waitForFunction(() => {
       const state = (window as unknown as { __studio18344?: CapturedBridgeState }).__studio18344
       return !!state?.interceptedWrite

@@ -25,6 +25,9 @@ import {
   buildSpoolFromTray,
   partitionTraysForBatchCreate,
 } from './buildSpoolFromTray';
+// STUDIO-18385: gate AMS save on duplicate RFID detection so users explicitly
+// agree before an existing spool record is overwritten.
+import { ConfirmDialog } from './ConfirmDialog';
 
 // STUDIO-17959: cap both 当前净重 / 总净重 inputs in the Add/Edit dialog.
 // Bug repro: users could type arbitrarily large numbers (e.g. 99999999999)
@@ -273,6 +276,19 @@ export function AddEditDialog({
   // STUDIO-18344: shown above the slot grid in multi-select mode so the user
   // can see how many tag_uid hits will overwrite existing spools before
   // confirming the batch save. Derived in a useMemo below.
+
+  // STUDIO-18385: pending duplicate-RFID overwrite confirmation. The AMS
+  // save path (single + multi) writes to this state instead of dispatching
+  // when an existing spool would be overwritten; the actual bridge call
+  // is deferred to confirmRfidOverwrite() once the user accepts. The
+  // payload snapshot captured here is what gets sent on confirm, so a
+  // late AMS poll cannot mutate the wire data between the prompt and the
+  // user's click.
+  const [rfidConfirm, setRfidConfirm] = useState<
+    | { kind: 'single'; existing: Spool; data: Partial<Spool> }
+    | { kind: 'batch'; creates: Partial<Spool>[]; updates: Partial<Spool>[] }
+    | null
+  >(null);
 
   // Reset form when dialog opens
   useEffect(() => {
@@ -1048,6 +1064,13 @@ export function AddEditDialog({
         return;
       }
       const { creates, updates } = partitionTraysForBatchCreate(built);
+      // STUDIO-18385: require explicit confirmation before overwriting any
+      // existing spool records. Snapshot the partition so a late AMS poll
+      // cannot mutate what gets sent on accept.
+      if (updates.length > 0) {
+        setRfidConfirm({ kind: 'batch', creates, updates });
+        return;
+      }
       const ok = await onBatchCreate(creates, updates);
       if (!ok) return;
       onClose();
@@ -1196,6 +1219,16 @@ export function AddEditDialog({
       } else {
         data.entry_method = 'manual';
       }
+      // STUDIO-18385: AMS RFID matches an existing local record — gate the
+      // overwrite behind an explicit confirmation. Snapshot `data` so a
+      // late AMS poll cannot rewrite what we send on accept.
+      if (amsExistingSpoolId) {
+        const existing = spools.find((sp) => sp.spool_id === amsExistingSpoolId);
+        if (existing) {
+          setRfidConfirm({ kind: 'single', existing, data: { ...data } });
+          return;
+        }
+      }
       const ok = amsExistingSpoolId
         ? await onSubmitUpdate(data)
         : await onSubmitAdd(data, mode === 'ams' ? 1 : quantity);
@@ -1203,6 +1236,61 @@ export function AddEditDialog({
     }
     onClose();
   };
+
+  // STUDIO-18385: dispatch the deferred AMS save once the user accepts the
+  // duplicate-RFID overwrite. Single-select hits the update bridge; batch
+  // forwards the captured creates/updates partition to the batch_create
+  // bridge so creates and updates ride one transaction. Fail without
+  // closing the dialog so the user can retry/edit; success closes as
+  // usual.
+  const confirmRfidOverwrite = useCallback(async () => {
+    const pending = rfidConfirm;
+    if (!pending) return;
+    setRfidConfirm(null);
+    if (pending.kind === 'single') {
+      const ok = await onSubmitUpdate(pending.data);
+      if (!ok) return;
+    } else {
+      const ok = await onBatchCreate(pending.creates, pending.updates);
+      if (!ok) return;
+    }
+    onClose();
+  }, [rfidConfirm, onSubmitUpdate, onBatchCreate, onClose]);
+
+  // STUDIO-18385: derive the duplicate-RFID prompt copy from the pending
+  // overwrite snapshot so the wording stays in sync with which spool / how
+  // many slots the user is about to overwrite. Single-select names the
+  // exact existing record (so the user can spot a wrong-printer mismatch);
+  // batch reports the K-of-N hit count so the user knows how many cloud
+  // rows will change.
+  const rfidConfirmContent = useMemo(() => {
+    if (!rfidConfirm) return null;
+    if (rfidConfirm.kind === 'single') {
+      const sp = rfidConfirm.existing;
+      const label = [sp.brand, sp.material_type, sp.series, sp.color_name]
+        .map((s) => (s || '').trim())
+        .filter((s) => s.length > 0)
+        .join(' · ') || sp.spool_id;
+      return {
+        title: t('Duplicate RFID detected'),
+        message: t(
+          'This RFID is already bound to "{{name}}". Continuing will overwrite the existing record with the latest AMS data. Proceed?',
+          { name: label }
+        ),
+        confirmText: t('Overwrite'),
+      };
+    }
+    const totalCount = rfidConfirm.creates.length + rfidConfirm.updates.length;
+    const updateCount = rfidConfirm.updates.length;
+    return {
+      title: t('Duplicate RFID detected'),
+      message: t(
+        '{{updateCount}} of {{totalCount}} selected slots already have records and will be overwritten with the latest AMS data. Proceed?',
+        { updateCount, totalCount }
+      ),
+      confirmText: t('Overwrite'),
+    };
+  }, [rfidConfirm, t]);
 
   // AMS mode switch
   const switchToAms = async () => {
@@ -1780,6 +1868,7 @@ export function AddEditDialog({
   }, 0);
 
   return (
+    <>
     <div className="fixed inset-0 bg-black/50 flex items-start justify-center pt-10 z-[1000]">
       <div
         data-testid={isEdit ? 'edit-dialog' : 'add-dialog'}
@@ -2458,6 +2547,19 @@ export function AddEditDialog({
         </div>
       </div>
     </div>
+    {/* STUDIO-18385: duplicate RFID overwrite gate. Rendered as a sibling
+        of the Add/Edit modal so the parent dialog stays mounted (and its
+        selection state is preserved) while the user decides; canceling
+        simply clears the pending state and leaves the user on the form. */}
+    <ConfirmDialog
+      open={!!rfidConfirmContent}
+      title={rfidConfirmContent?.title ?? ''}
+      message={rfidConfirmContent?.message}
+      confirmText={rfidConfirmContent?.confirmText}
+      onCancel={() => setRfidConfirm(null)}
+      onConfirm={confirmRfidOverwrite}
+    />
+    </>
   );
 }
 

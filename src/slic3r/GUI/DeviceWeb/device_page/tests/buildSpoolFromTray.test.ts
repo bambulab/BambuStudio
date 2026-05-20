@@ -233,6 +233,23 @@ assert.equal(updates[0].brand, 'Bambu Lab',
 assert.ok(!('spool_id' in creates[0]) || !creates[0].spool_id,
   'create payloads must not carry a spool_id');
 
+// ---- 4b. STUDIO-18385: AddEditDialog gates the AMS save behind a
+// duplicate-RFID confirmation. The gate predicate is exactly
+// `partitionTraysForBatchCreate(...).updates.length > 0`, so a
+// mixed batch (≥1 RFID hit) must trip the gate and an all-fresh
+// batch must not. We exercise both cases here so a future change
+// to the partition output is forced to update the gate too. ----
+
+assert.ok(
+  partitionTraysForBatchCreate([built1, built2, built3]).updates.length > 0,
+  'STUDIO-18385: mixed batch (RFID hit + fresh trays) must trigger the overwrite gate',
+);
+assert.equal(
+  partitionTraysForBatchCreate([built2]).updates.length,
+  0,
+  'STUDIO-18385: all-fresh RFID batch must skip the gate (updates is empty)',
+);
+
 // ---- 5. Empty AMS tray (is_exists === false) is still buildable, but
 // callers (UI / handleSubmit) filter on `is_exists` before calling. We
 // still ensure the helper does not crash on minimal input. ----
