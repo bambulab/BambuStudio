@@ -310,7 +310,7 @@ protected:
     float       m_smart_fill_angle           = DEFAULT_FILL_ANGLE;
     float       m_last_edge_detection_smart_fill_angle = DEFAULT_FILL_ANGLE;
     enum class BucketFillType { SameColor, EdgeDetect };
-    BucketFillType m_bucket_fill_mode           = BucketFillType::SameColor;
+    BucketFillType m_bucket_fill_mode           = BucketFillType::EdgeDetect;
     bool     m_paint_on_overhangs_only          = false;
     float    m_highlight_by_angle_threshold_deg = 0.f;
 
