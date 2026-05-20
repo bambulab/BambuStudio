@@ -2400,24 +2400,24 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     std::string text = m_text;
     auto    cur_world = m_model_object_in_world_tran.get_matrix() * m_text_tran_in_object.get_matrix();
     if (!is_only_text_case() && has_reflection(cur_world)) {
-        m_imgui->warning_text_wrapped(_L("Warning:There is a mirror in the text matrix, and dragging it will completely regenerate it."), full_width);
+        m_imgui->warning_text_wrapped(_L("Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."), full_width);
         m_parent.request_extra_frame();
     }
     if (m_warning_font) {
-        m_imgui->warning_text_wrapped(_L("Warning:Due to font upgrades,previous font may not necessarily be replaced successfully, and recommend you to modify the font."), full_width);
+        m_imgui->warning_text_wrapped(_L("Warning: Due to font upgrades, previous font may not necessarily be replaced successfully. Please modify the font."), full_width);
         m_parent.request_extra_frame();
     }
     if (m_show_warning_text_create_fail) {
-        m_imgui->warning_text(_L("Warning:create text fail."));
+        m_imgui->warning_text(_L("Warning: Text creation failed."));
     }
     if (m_show_text_normal_error) {
-        m_imgui->warning_text(_L("Warning:text normal is error."));
+        m_imgui->warning_text(_L("Warning: Text normal has an error."));
     }
     if (m_show_text_normal_reset_tip) {
-        m_imgui->warning_text(_L("Warning:text normal has been reset."));
+        m_imgui->warning_text(_L("Warning: Text normal has been reset."));
     }
     if (m_font_version == NEW_FONT_BEGIN_VERSION) {
-        m_imgui->warning_text_wrapped(_L("Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated.")
+        m_imgui->warning_text_wrapped(_L("Warning: Current text spacing is not optimal. If you continue editing, a more reasonable text spacing will be generated.")
                                           ,full_width);
     }
    /* if (m_show_warning_regenerated && m_font_version != CUR_FONT_VERSION) {
@@ -2426,8 +2426,8 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
         m_parent.request_extra_frame();
     }*/
     if (m_show_warning_old_tran) {
-        m_imgui->warning_text_wrapped(_L("Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please "
-                                 "dragging text or cancel using current pose, save and reedit again."),
+        m_imgui->warning_text_wrapped(_L("Warning: Old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please "
+                                 "drag the text or cancel the current pose, save and reedit again."),
                               full_width);
         m_parent.request_extra_frame();
     }
@@ -2439,12 +2439,12 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     }
     if (m_show_warning_lost_rotate) {
         m_imgui->warning_text_wrapped(
-            _L("Warning:Due to functional upgrade, rotation information cannot be restored. Please drag or modify text,save it and reedit it will ok."),
+            _L("Warning: Due to functional upgrade, rotation information cannot be restored. Please drag or modify text, save it and reedit it to fix the issue."),
                               full_width);
         m_parent.request_extra_frame();
     }
     if (m_last_text_mv && m_rr.mesh_id < 0 && !is_only_text_case()) {
-        m_imgui->warning_text_wrapped(_L("Warning") + ":"+ _L("Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."),
+        m_imgui->warning_text_wrapped(_L("Warning") + ": " + _L("Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."),
                                       full_width);
         m_parent.request_extra_frame();
     }

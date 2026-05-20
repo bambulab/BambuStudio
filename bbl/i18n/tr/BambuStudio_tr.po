@@ -1273,13 +1273,13 @@ msgstr ""
 "Özellik 1 sıfırlandı,\n"
 "özellik 2, özellik 1 olmuştur"
 
-msgid "Warning:please select Plane's feature."
+msgid "Warning: Please select a Plane feature."
 msgstr "Uyarı: Lütfen Düzlemin özelliğini seçin."
 
-msgid "Warning:please select Point's or Circle's feature."
+msgid "Warning: Please select a Point or Circle feature."
 msgstr "Uyarı: Lütfen Nokta'nın veya Daire'nin özelliğini seçin."
 
-msgid "Warning:please select two different mesh."
+msgid "Warning: Please select two different meshes."
 msgstr "Uyarı: Lütfen farklı iki ağ yüzeyi seçin."
 
 msgid "Copy to clipboard"
@@ -1528,31 +1528,31 @@ msgstr ""
 msgid "Text Gap"
 msgstr "Metin Boşluğu"
 
-msgid "Warning:There is a mirror in the text matrix, and dragging it will completely regenerate it."
+msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr "Uyarı:Metin matrisinde bir ayna (yansıma) bulunuyor; sürükleme işlemi, matrisi tamamen yeniden oluşturacaktır."
 
-msgid "Warning:Due to font upgrades,previous font may not necessarily be replaced successfully, and recommend you to modify the font."
+msgid "Warning: Due to font upgrades, previous font may not necessarily be replaced successfully. Please modify the font."
 msgstr "Uyarı: Yazı tipi yükseltmeleri nedeniyle, önceki yazı tipi başarıyla değiştirilemeyebilir ve yazı tipini değiştirmenizi öneririz."
 
-msgid "Warning:create text fail."
+msgid "Warning: Text creation failed."
 msgstr "Uyarı:metin oluşturma başarısız."
 
-msgid "Warning:text normal is error."
+msgid "Warning: Text normal has an error."
 msgstr "Uyarı:normal metin hatalıdır."
 
-msgid "Warning:text normal has been reset."
+msgid "Warning: Text normal has been reset."
 msgstr "Uyarı:normal metin sıfırlandı."
 
-msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
+msgid "Warning: Current text spacing is not optimal. If you continue editing, a more reasonable text spacing will be generated."
 msgstr "Uyarı: mevcut metin aralığı çok uygun değildir. Düzenlemeye devam ederseniz, daha uygun bir metin aralığı oluşturulacaktır."
 
-msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
+msgid "Warning: Old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please drag the text or cancel the current pose, save and reedit again."
 msgstr "Uyarı:eski matrisin en az iki parametresi vardır: yansıtma, ölçekleme ve döndürme. Düzenlemeye devam ederseniz, doğru olmayabilir. Lütfen metni sürükleyin veya mevcut pozu kullanarak iptal edin, kaydedin ve yeniden düzenleyin."
 
 msgid "Error: Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes. Please drag text, save it then reedit it again."
 msgstr "Hata: Yanlış bir ağ kimliği veya bilinmeyen bir hata algılandığında, metnin yeniden oluşturulması yanlış sonuçlara neden olabilir, lütfen metni sürükleyin, kaydedin ve tekrar düzenleyin."
 
-msgid "Warning:Due to functional upgrade, rotation information cannot be restored. Please drag or modify text,save it and reedit it will ok."
+msgid "Warning: Due to functional upgrade, rotation information cannot be restored. Please drag or modify text, save it and reedit it to fix the issue."
 msgstr "Uyarı: İşlevsel yükseltme nedeniyle döndürme bilgileri geri yüklenemez. Lütfen metni sürükleyin veya değiştirin, kaydedin ve yeniden düzenleyin."
 
 msgid "Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."
@@ -1770,7 +1770,7 @@ msgstr "Kabartmalı şekilde eksik svg dosyası"
 msgid "Missing data of svg file"
 msgstr "Svg dosyasının eksik verileri"
 
-msgid "Tip:If you want to place svg file on another part surface,you should select part first, and then drag svg file to the part surface."
+msgid "Tip: If you want to place an SVG file on another part surface, select the part first, then drag the SVG file to the part surface."
 msgstr ""
 "İpucu: svg dosyasını başka bir parça yüzeyine yerleştirmek istiyorsanız,\n"
 "önce parçayı seçmeli ve ardından svg dosyasını parça yüzeyine sürüklemelisiniz."
@@ -3824,7 +3824,7 @@ msgstr "Yeni bir filament yerleştirirken AMS, bilgileri otomatik olarak okumaz 
 msgid "Power on update"
 msgstr "Güncellemeyi aç"
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
 msgstr "AMS, başlangıçta takılan filamentin bilgilerini otomatik olarak okuyacaktır. Yaklaşık 1 dakika sürecektir. Okuma işlemi filament makaralarını saracaktır."
 
 msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
@@ -4064,7 +4064,7 @@ msgstr ""
 "Varsayılana sıfırla"
 
 #, c-format, boost-format
-msgid "Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"
+msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
 msgstr "Mevcut hazne sıcaklığı malzemenin güvenli sıcaklığından yüksektir, malzemenin yumuşamasına ve tıkanmasına neden olabilir Malzeme için maksimum güvenli sıcaklık %d'dir"
 
 msgid ""
@@ -4488,7 +4488,7 @@ msgstr "AMS sıcaklığı çok yüksek, bu da filamentin yumuşamasına neden ol
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "Mevcut hazne sıcaklığı veya hedef hazne sıcaklığı 45 ° C'yi aşıyor Ekstruder tıkanmasını önlemek için düşük sıcaklıkta filament (PLA / PETG / TPU) yüklenmesine izin verilmez."
 
-msgid "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to avoid extruder clogging,it is not allowed to set the chamber temperature."
+msgid "Low temperature filament (PLA/PETG/TPU) is loaded in the extruder. In order to avoid extruder clogging, it is not allowed to set the chamber temperature."
 msgstr "Ekstrudere düşük sıcaklıkta filament (PLA / PETG / TPU) yüklendi. Ekstruder tıkanmasını önlemek için hazne sıcaklığının 45 ° C'nin üzerine ayarlanmasına izin verilmez."
 
 msgid "When you set the chamber temperature below 40℃, the chamber temperature control will not be activated. And the target chamber temperature will automatically be set to 0℃."
@@ -8364,7 +8364,7 @@ msgstr "2B pencere merkezi yerine, 3B görünümde fare işaretçisinin konumuna
 msgid "Always show shells in preview"
 msgstr "Kabukları her zaman önizlemede göster"
 
-msgid "Always show shells or not in preview view tab.If change value,you should reslice."
+msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "Kabukları her zaman önizleme görünümü sekmesinde gösterin veya göstermeyin, değeri değiştirirseniz yeniden dilimlemeniz gerekir."
 
 msgid "Import a single SVG and split it"

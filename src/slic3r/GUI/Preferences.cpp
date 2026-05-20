@@ -1343,7 +1343,7 @@ wxWindow* PreferencesDialog::create_general_page()
                                                          _L("Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center."), 50,
                                                          "zoom_to_mouse");
     auto  item_show_shells_in_preview_settings = create_item_checkbox(_L("Always show shells in preview"), page,
-                                                         _L("Always show shells or not in preview view tab.If change value,you should reslice."), 50,
+                                                         _L("Always show shells or not in preview view tab. If you change this value, you should reslice."), 50,
                                                          "show_shells_in_preview");
     auto  item_import_single_svg_and_split         = create_item_checkbox(_L("Import a single SVG and split it"), page,
                                                                      _L("Import a single SVG and then split it to several parts."), 50,

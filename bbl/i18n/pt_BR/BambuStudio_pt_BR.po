@@ -1277,13 +1277,13 @@ msgstr ""
 "O recurso 1 foi redefinido, \n"
 "o recurso 2 foi o recurso 1"
 
-msgid "Warning:please select Plane's feature."
+msgid "Warning: Please select a Plane feature."
 msgstr "Aviso: selecione o recurso do plano."
 
-msgid "Warning:please select Point's or Circle's feature."
+msgid "Warning: Please select a Point or Circle feature."
 msgstr "Aviso: selecione o recurso Ponto ou Círculo."
 
-msgid "Warning:please select two different mesh."
+msgid "Warning: Please select two different meshes."
 msgstr "Aviso: selecione duas malhas diferentes."
 
 msgid "Copy to clipboard"
@@ -1532,31 +1532,31 @@ msgstr "Profundidade incorporada"
 msgid "Text Gap"
 msgstr "Lacuna de texto"
 
-msgid "Warning:There is a mirror in the text matrix, and dragging it will completely regenerate it."
+msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr "Aviso: Há um espelho na matriz de texto e arrastá-lo o regenerará completamente."
 
-msgid "Warning:Due to font upgrades,previous font may not necessarily be replaced successfully, and recommend you to modify the font."
+msgid "Warning: Due to font upgrades, previous font may not necessarily be replaced successfully. Please modify the font."
 msgstr "Aviso: Devido às atualizações de fonte, a fonte anterior pode não necessariamente ser substituída com êxito, e recomendamos que você modifique a fonte."
 
-msgid "Warning:create text fail."
+msgid "Warning: Text creation failed."
 msgstr "Aviso: Falha na criação do texto."
 
-msgid "Warning:text normal is error."
+msgid "Warning: Text normal has an error."
 msgstr "Aviso: Texto normal é erro."
 
-msgid "Warning:text normal has been reset."
+msgid "Warning: Text normal has been reset."
 msgstr "Aviso: O texto normal foi redefinido."
 
-msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
+msgid "Warning: Current text spacing is not optimal. If you continue editing, a more reasonable text spacing will be generated."
 msgstr "Aviso: o espaçamento atual do texto não é muito razoável. Se você continuar editando, um espaçamento de texto mais adequado será gerado."
 
-msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
+msgid "Warning: Old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please drag the text or cancel the current pose, save and reedit again."
 msgstr ""
 
 msgid "Error: Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes. Please drag text, save it then reedit it again."
 msgstr "Erro: Ao detectar uma ID de malha incorreta ou um erro desconhecido, a regeneração do texto pode resultar em resultados incorretos. Arraste o texto, salve-o e edite-o novamente."
 
-msgid "Warning:Due to functional upgrade, rotation information cannot be restored. Please drag or modify text,save it and reedit it will ok."
+msgid "Warning: Due to functional upgrade, rotation information cannot be restored. Please drag or modify text, save it and reedit it to fix the issue."
 msgstr "Aviso: Devido à atualização funcional, as informações de rotação não podem ser restauradas. Arraste ou modifique o texto, salve-o e reedite-o, tudo bem."
 
 msgid "Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."
@@ -1774,7 +1774,7 @@ msgstr "Arquivo svg ausente em forma de relevo"
 msgid "Missing data of svg file"
 msgstr "Dados ausentes do arquivo svg"
 
-msgid "Tip:If you want to place svg file on another part surface,you should select part first, and then drag svg file to the part surface."
+msgid "Tip: If you want to place an SVG file on another part surface, select the part first, then drag the SVG file to the part surface."
 msgstr "Dica: se você quiser colocar o arquivo svg na superfície de outra peça, selecione a peça primeiro e depois arraste o arquivo svg para a superfície da peça."
 
 #. TRN - Preview of filename after clear local filepath.
@@ -3826,7 +3826,7 @@ msgstr "Ao inserir um novo filamento, o AMS não lerá automaticamente suas info
 msgid "Power on update"
 msgstr "Atualização na inicialização"
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
 msgstr "O AMS lerá automaticamente as informações do filamento inserido na inicialização. Levará cerca de 1 minuto. O processo de leitura irá girar os carretéis de filamento."
 
 msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
@@ -4065,7 +4065,7 @@ msgstr ""
 "Redefinir para o padrão"
 
 #, c-format, boost-format
-msgid "Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"
+msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
 msgstr "A temperatura atual da câmara é superior à temperatura segura do material, o que pode resultar no amolecimento e entupimento do material. A temperatura máxima segura para o material é%d"
 
 msgid ""
@@ -4502,7 +4502,7 @@ msgstr "A temperatura do AMS está muito alta, o que pode fazer com que o filame
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "A temperatura atual da câmara ou a temperatura alvo da câmara excede 45 ℃. Para evitar o entupimento da extrusora, não é permitido carregar filamentos de baixa temperatura (PLA/PETG/TPU)."
 
-msgid "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to avoid extruder clogging,it is not allowed to set the chamber temperature."
+msgid "Low temperature filament (PLA/PETG/TPU) is loaded in the extruder. In order to avoid extruder clogging, it is not allowed to set the chamber temperature."
 msgstr "O filamento de baixa temperatura (PLA/PETG/TPU) é carregado na extrusora. Para evitar o entupimento da extrusora, não é permitido ajustar a temperatura da câmara."
 
 msgid "When you set the chamber temperature below 40℃, the chamber temperature control will not be activated. And the target chamber temperature will automatically be set to 0℃."
@@ -8412,7 +8412,7 @@ msgstr "Amplie em direção à posição do ponteiro do mouse na visualização 
 msgid "Always show shells in preview"
 msgstr "Sempre mostre a carcaça na pré-visualização"
 
-msgid "Always show shells or not in preview view tab.If change value,you should reslice."
+msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "Alterna a exibição de carcaças na guia de visualização prévia: se você alterar o valor, deverá redimensionar."
 
 msgid "Import a single SVG and split it"

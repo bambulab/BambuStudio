@@ -1273,13 +1273,13 @@ msgid ""
 "feature 2 has been feature 1"
 msgstr "特征1已经被重置，特征2变成特征1"
 
-msgid "Warning:please select Plane's feature."
+msgid "Warning: Please select a Plane feature."
 msgstr "警告:请选择面特征。"
 
-msgid "Warning:please select Point's or Circle's feature."
+msgid "Warning: Please select a Point or Circle feature."
 msgstr "警告:请选择点或圆特征。"
 
-msgid "Warning:please select two different mesh."
+msgid "Warning: Please select two different meshes."
 msgstr "警告:请选择两个不同的网格。"
 
 msgid "Copy to clipboard"
@@ -1525,31 +1525,31 @@ msgstr "内嵌深度"
 msgid "Text Gap"
 msgstr "文字间距"
 
-msgid "Warning:There is a mirror in the text matrix, and dragging it will completely regenerate it."
+msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr "警告：文本矩阵中有一个镜像，拖动它将完全重新生成它。"
 
-msgid "Warning:Due to font upgrades,previous font may not necessarily be replaced successfully, and recommend you to modify the font."
+msgid "Warning: Due to font upgrades, previous font may not necessarily be replaced successfully. Please modify the font."
 msgstr "警告：由于字体升级，以前的字体不一定能替换成功，建议您修改字体。"
 
-msgid "Warning:create text fail."
+msgid "Warning: Text creation failed."
 msgstr "警告：创建文字失败。"
 
-msgid "Warning:text normal is error."
+msgid "Warning: Text normal has an error."
 msgstr "警告：文字法向量错误"
 
-msgid "Warning:text normal has been reset."
+msgid "Warning: Text normal has been reset."
 msgstr "警告:文字法向量已经被重置。"
 
-msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
+msgid "Warning: Current text spacing is not optimal. If you continue editing, a more reasonable text spacing will be generated."
 msgstr "警告：当前文本间距不够合理。如果继续编辑，将生成更合理的文本间距。"
 
-msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
+msgid "Warning: Old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please drag the text or cancel the current pose, save and reedit again."
 msgstr "警告：旧矩阵至少有两个参数：镜像、缩放和旋转。如果继续编辑，则可能不正确。请拖动文本或取消使用当前姿势，保存并重新编辑。"
 
 msgid "Error: Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes. Please drag text, save it then reedit it again."
 msgstr "错误：检测到不正确的网格id或未知错误，重新生成文本可能会导致不正确的结果。请拖动文本，保存，然后重新编辑。"
 
-msgid "Warning:Due to functional upgrade, rotation information cannot be restored. Please drag or modify text,save it and reedit it will ok."
+msgid "Warning: Due to functional upgrade, rotation information cannot be restored. Please drag or modify text, save it and reedit it to fix the issue."
 msgstr ""
 
 msgid "Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."
@@ -1767,7 +1767,7 @@ msgstr "缺少浮雕形状的svg文件"
 msgid "Missing data of svg file"
 msgstr "svg文件数据缺失"
 
-msgid "Tip:If you want to place svg file on another part surface,you should select part first, and then drag svg file to the part surface."
+msgid "Tip: If you want to place an SVG file on another part surface, select the part first, then drag the SVG file to the part surface."
 msgstr "提示：如果要将 SVG 文件放置在另一个零件表面，请先选择零件，再将 SVG 文件拖到零件表面。"
 
 #. TRN - Preview of filename after clear local filepath.
@@ -3806,7 +3806,7 @@ msgstr "在插入一卷新料时，AMS将不会自动读取料卷信息，预留
 msgid "Power on update"
 msgstr "开机时检测"
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
 msgstr "每次开机时，AMS将会自动读取其所插入的耗材信息(读取过程会转料卷)。需要花时大约1分钟。"
 
 msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
@@ -4044,7 +4044,7 @@ msgid ""
 msgstr "起始高度不应大于100%。将重置为默认值"
 
 #, c-format, boost-format
-msgid "Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"
+msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
 msgstr "当前腔体温度高于材料的安全温度，这可能导致材料软化和堵塞。该材料的最高安全温度为 %d。"
 
 msgid ""
@@ -4468,7 +4468,7 @@ msgstr "AMS 温度过高，可能导致打印材料软化。请等待 AMS 温度
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "当前腔温或目标腔温超过了45℃。为了避免挤出机堵塞，不允许加载低温度的打印材料（如PLA/PETG/TPU）"
 
-msgid "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to avoid extruder clogging,it is not allowed to set the chamber temperature."
+msgid "Low temperature filament (PLA/PETG/TPU) is loaded in the extruder. In order to avoid extruder clogging, it is not allowed to set the chamber temperature."
 msgstr "挤出机中加载了低温度的打印材料（如PLA/PETG/TPU）。为了避免挤出机堵塞，不允许设置腔温。"
 
 msgid "When you set the chamber temperature below 40℃, the chamber temperature control will not be activated. And the target chamber temperature will automatically be set to 0℃."
@@ -8350,7 +8350,7 @@ msgstr "在3D视角放大到鼠标位置，而不是2D窗口的中心。"
 msgid "Always show shells in preview"
 msgstr "在预览界面总是显示透明壳"
 
-msgid "Always show shells or not in preview view tab.If change value,you should reslice."
+msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "始终在预览视图选项卡中显示或不显示壳。如果更改值，您应该重新切片。"
 
 msgid "Import a single SVG and split it"
