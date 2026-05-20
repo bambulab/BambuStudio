@@ -29,6 +29,9 @@
     "filament_z_hop_types": [
         "Spiral Lift"
     ],
+    "pre_start_fan_time": [
+        "2"
+    ],
     "slow_down_layer_time": [
         "12"
     ],

@@ -59,6 +59,9 @@
     "nozzle_temperature_range_high": [
         "250"
     ],
+    "pre_start_fan_time": [
+        "2"
+    ],
     "retraction_distances_when_ec": [
         "10"
     ],

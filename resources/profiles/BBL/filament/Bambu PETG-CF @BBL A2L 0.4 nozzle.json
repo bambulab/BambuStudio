@@ -26,6 +26,9 @@
     "overhang_fan_speed": [
         "50"
     ],
+    "pre_start_fan_time": [
+        "2"
+    ],
     "supertack_plate_temp": [
         "65"
     ],

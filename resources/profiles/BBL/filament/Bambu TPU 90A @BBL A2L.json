@@ -23,6 +23,9 @@
     "nozzle_temperature_range_high": [
         "250"
     ],
+    "pre_start_fan_time": [
+        "2"
+    ],
     "slow_down_min_speed": [
         "35"
     ],

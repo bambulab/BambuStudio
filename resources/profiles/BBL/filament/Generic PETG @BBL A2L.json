@@ -8,6 +8,9 @@
     "filament_max_volumetric_speed": [
         "8"
     ],
+    "pre_start_fan_time": [
+        "2"
+    ],
     "compatible_printers": [
         "Bambu Lab A2L 0.4 nozzle",
         "Bambu Lab A2L 0.6 nozzle",

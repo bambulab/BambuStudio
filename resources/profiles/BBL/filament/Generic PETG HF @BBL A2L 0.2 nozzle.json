@@ -5,6 +5,9 @@
     "from": "system",
     "setting_id": "GFSG96_20",
     "instantiation": "true",
+    "pre_start_fan_time": [
+        "2"
+    ],
     "slow_down_min_speed": [
         "40"
     ],

@@ -26,6 +26,9 @@
     "hot_plate_temp_initial_layer": [
         "60"
     ],
+    "pre_start_fan_time": [
+        "2"
+    ],
     "textured_plate_temp": [
         "60"
     ],
