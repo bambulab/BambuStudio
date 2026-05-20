@@ -614,6 +614,8 @@ DailyTipsWindow::DailyTipsWindow()
 
 void DailyTipsWindow::open()
 {
+    if (wxGetApp().app_config && wxGetApp().app_config->get("show_daily_tips") == "false")
+        return;
     m_show = true;
     m_panel->retrieve_data_from_hint_database(HintDataNavigation::Curr);
 }
