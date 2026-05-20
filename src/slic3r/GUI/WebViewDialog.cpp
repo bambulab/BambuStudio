@@ -1378,22 +1378,25 @@ wxString WebViewPanel::TranslateMakerWorldEmbeddedUrl(const wxString &embedded_u
                                            : value_end - value_start);
     };
 
-    // Search results: /studio/webview/search?...keyword=K... -> /search?keyword=K
-    if (url.find("/studio/webview/search") != std::string::npos) {
-        const std::string keyword = find_param("keyword");
-        if (!keyword.empty()) {
-            // keyword stays URL-encoded -- it was percent-encoded going in.
-            return wxString::FromUTF8((base + "search?keyword=" + keyword).c_str());
-        }
-        // Search URL with no keyword param: drop user at the search landing.
-        return wxString::FromUTF8((base + "search").c_str());
-    }
-
-    // Single-model detail: /studio/webview?modelid=N -> /models/N
+    // Single-model detail comes first: a model viewed THROUGH the search
+    // context still has a modelid in the URL, and what the user wants to
+    // share is the model itself, not the search query that found it.
+    //
+    //   /studio/webview?modelid=N             -> /models/N
+    //   /studio/webview/search?...&modelid=N  -> /models/N
     {
         const std::string mid = find_param("modelid");
         if (!mid.empty())
             return wxString::FromUTF8((base + "models/" + mid).c_str());
+    }
+
+    // Search results with no modelid: there is no public-web search-results
+    // URL we can hand back. /<lang>/search?keyword=K returns 404 on
+    // makerworld.com (verified 2026-05-20). Fall back to the localized
+    // homepage, same shape as the print-history branch above. The user
+    // gets a working link, not a broken one.
+    if (url.find("/studio/webview/search") != std::string::npos) {
+        return wxString::FromUTF8(base.c_str());
     }
 
     // Default landing: /studio/webview -> homepage.
