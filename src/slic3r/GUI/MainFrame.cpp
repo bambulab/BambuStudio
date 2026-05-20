@@ -296,6 +296,19 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 	});
 #endif
 
+    // Auto-save timer: silently saves the open project every 5 minutes when enabled
+    m_autosave_timer = new wxTimer(this);
+    Bind(wxEVT_TIMER, [this](wxTimerEvent& e) {
+        if (e.GetTimer().GetId() != m_autosave_timer->GetId()) { e.Skip(); return; }
+        if (!wxGetApp().app_config || wxGetApp().app_config->get("autosave_enabled") != "1") return;
+        if (!m_plater) return;
+        if (!m_plater->is_project_dirty()) return;
+        if (m_plater->get_project_filename(".3mf").IsEmpty()) return;
+        BOOST_LOG_TRIVIAL(info) << "auto-save: saving project";
+        m_plater->save_project(false);
+    });
+    m_autosave_timer->Start(5 * 60 * 1000); // every 5 minutes
+
 #ifdef __APPLE__
     // Initialize the docker task bar icon.
     switch (wxGetApp().get_app_mode()) {

@@ -1319,6 +1319,10 @@ wxWindow* PreferencesDialog::create_general_page()
         50, "single_instance");
 
     auto item_auto_transfer_when_switch_preset = create_item_checkbox(_L("Automatically transfer modified value when switching process and filament presets"), page,_L("After closing, a popup will appear to ask each time"), 50, "auto_transfer_when_switch_preset");
+    auto item_autosave = create_item_checkbox(_L("Auto-save project every 5 minutes"), page,
+                                              _L("Automatically save the open project file every 5 minutes. Only saves if the project has a filename and unsaved changes."), 50,
+                                              "autosave_enabled");
+
     auto item_bed_type_follow_preset = create_item_checkbox(_L("Auto plate type"), page,
                                                          _L("Studio will remember build plate selected last time for certain printer model."), 50,
                                                          "user_bed_type");
@@ -1529,6 +1533,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_region, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_currency, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_auto_flush, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_autosave, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_single_instance, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_bed_type_follow_preset, 0, wxTOP, FromDIP(3));
     //sizer_page->Add(item_hints, 0, wxTOP, FromDIP(3));

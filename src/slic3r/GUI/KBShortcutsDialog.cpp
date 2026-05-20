@@ -240,6 +240,8 @@ void KBShortcutsDialog::fill_shortcuts()
             {L("Arrow Left"), L("Move selection 10 mm in negative X direction")},
             {L("Arrow Right"), L("Move selection 10 mm in positive X direction")},
             {L("Shift+Any arrow"), L("Movement step set to 1 mm")},
+            {L("Alt+Any arrow"), L("Movement step set to 0.1 mm")},
+            {L("Alt+Shift+Any arrow"), L("Movement step set to 0.01 mm")},
             {"Esc", L("Deselect all")},
             {"1-9", L("keyboard 1-9: set filament for object/part")},
             {ctrl + "0", L("Camera view - Default")},

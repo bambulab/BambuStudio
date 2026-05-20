@@ -4329,7 +4329,7 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
 class TranslationProcessor
 {
     using UpAction = std::function<void(void)>;
-    using DownAction = std::function<void(const Vec3d&, bool, bool)>;
+    using DownAction = std::function<void(const Vec3d&, bool, bool, bool)>;
 
     UpAction m_up_action{ nullptr };
     DownAction m_down_action{ nullptr };
@@ -4407,7 +4407,7 @@ public:
 
             if (apply) {
                 m_running = true;
-                m_down_action(m_direction, evt.ShiftDown(), evt.CmdDown());
+                m_down_action(m_direction, evt.ShiftDown(), evt.CmdDown(), evt.AltDown());
             }
         }
     }
@@ -4433,12 +4433,12 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
             refresh_camera_scene_box();
             m_dirty = true;
         },
-        [this](const Vec3d& direction, bool slow, bool camera_space) {
+        [this](const Vec3d& direction, bool slow, bool camera_space, bool fine) {
             if (m_gizmos.is_ban_move_glvolume()) {
                 return;
             }
             m_selection.setup_cache();
-            double multiplier = slow ? 1.0 : 10.0;
+            double multiplier = fine ? (slow ? 0.01 : 0.1) : (slow ? 1.0 : 10.0);
 
             Vec3d displacement;
             if (camera_space) {
