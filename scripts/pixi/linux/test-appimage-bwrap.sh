@@ -2,9 +2,11 @@
 # Smoke-launch the latest AppImage in an isolated env to simulate a clean
 # user machine, then grep the output for known startup-time failure modes.
 #
-# Isolation: outer bwrap masks the build host's $CONDA_PREFIX with a tmpfs
-# so the AppImage cannot fall back to "happens to exist locally"; everything
-# must resolve via the AppRun's inner bwrap bind onto AppDir/usr.
+# Isolation: outer bwrap masks the entire /home (and points HOME at /tmp) so
+# every /home/$user/... path the build baked in -- including the parent dirs
+# of $CONDA_PREFIX -- is gone from the namespace. The AppRun's inner bwrap
+# then has to recreate $BUILD_PREFIX from scratch, matching what an end user
+# actually sees (no /home/runner on their box).
 #
 # Display: an Xvfb on :99 is started so wxWidgets / GTK can open the main
 # window. We don't attach a screen-grabber -- pass/fail comes from stderr.
@@ -17,6 +19,10 @@ AI="$(ls -t build/release/BambuStudio-*-x86_64.AppImage 2>/dev/null | head -1)"
 [[ -n "$AI" ]] || { echo "No AppImage in build/release/. Run 'pixi run dist' first." >&2; exit 2; }
 
 build_prefix="$PWD/.pixi/envs/default"
+# /home is the highest ancestor we can safely tmpfs to cover both the GHA path
+# (/home/runner/...) and any local dev path (/home/$user/...); the build's
+# baked $CONDA_PREFIX always sits under it.
+isolate_root=/home
 
 # 1. Virtual display (optional -- Fontconfig/SSL errors surface before GUI;
 # WebKit/WebView errors need a display).
@@ -34,17 +40,17 @@ fi
 LOG=$(mktemp /tmp/appimage-test.XXXXXX.log)
 echo "Log: $LOG"
 echo "AppImage: $AI"
-echo "Masking build prefix: $build_prefix"
+echo "Masking $isolate_root (hides build prefix $build_prefix and its parents)"
 
-# 2. Launch under outer bwrap that masks the build host's $CONDA_PREFIX so the
-# AppImage cannot accidentally satisfy baked-in absolute paths from the dev
-# tree. --appimage-extract-and-run skips squashfuse (which bwrap can't help
-# with) and lets AppRun resolve $HERE inside the extracted dir.
+# 2. Launch under outer bwrap that tmpfs's $isolate_root so the AppImage
+# cannot accidentally satisfy any baked-in /home/$user/... path from the
+# build host. --appimage-extract-and-run skips squashfuse (which bwrap can't
+# help with) and lets AppRun resolve $HERE inside the extracted dir.
 set +e
 timeout --signal=TERM --kill-after=3 12 \
     bwrap \
         --ro-bind / / \
-        --tmpfs "$build_prefix" \
+        --tmpfs "$isolate_root" \
         --dev-bind /dev /dev \
         --proc /proc \
         --bind /tmp /tmp \
