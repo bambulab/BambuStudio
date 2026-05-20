@@ -1,5 +1,9 @@
 #include "StatusPanel.hpp"
 #include "I18N.hpp"
+#include "Plater.hpp"
+#include "GLCanvas3D.hpp"
+#include "GCodeViewer.hpp"
+#include "libslic3r/CustomGCode.hpp"
 #include "Widgets/Label.hpp"
 #include "Widgets/Button.hpp"
 #include "Widgets/StepCtrl.hpp"
@@ -1047,10 +1051,17 @@ void PrintingTaskPanel::create_panel(wxWindow *parent)
     m_staticText_layers->SetForegroundColour(wxColour(107, 107, 107));
     m_staticText_layers->Hide();
 
+    m_staticText_next_pause = new wxStaticText(penel_text, wxID_ANY, wxEmptyString);
+    m_staticText_next_pause->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false, wxT("HarmonyOS Sans SC")));
+    m_staticText_next_pause->SetForegroundColour(wxColour(107, 107, 107));
+    m_staticText_next_pause->Hide();
+
     bSizer_text->Add(sizer_percent, 0, wxEXPAND, 0);
     bSizer_text->Add(sizer_percent_icon, 0, wxEXPAND, 0);
     bSizer_text->Add(0, 0, 1, wxEXPAND, 0);
     bSizer_text->Add(m_staticText_layers, 0, wxALIGN_CENTER_VERTICAL | wxALL, 0);
+    bSizer_text->Add(0, 0, 0, wxLEFT, FromDIP(20));
+    bSizer_text->Add(m_staticText_next_pause, 0, wxALIGN_CENTER_VERTICAL | wxALL, 0);
     bSizer_text->Add(0, 0, 0, wxLEFT, FromDIP(20));
     bSizer_text->Add(m_staticText_progress_left, 0, wxALIGN_CENTER_VERTICAL | wxALL, 0);
 
@@ -1655,6 +1666,19 @@ void PrintingTaskPanel::update_left_time(int mc_left_time)
         BOOST_LOG_TRIVIAL(info) << "PrintingTaskPanel::update_left_time: " << mc_left_time << ", " << left_time_text << ": " << right_time;
         s_mc_left_time = mc_left_time;
     }
+}
+
+void PrintingTaskPanel::update_next_pause(int seconds_to_pause)
+{
+    if (!m_staticText_next_pause) return;
+    if (seconds_to_pause <= 0) {
+        m_staticText_next_pause->Hide();
+        return;
+    }
+    wxString label = wxString::Format(_L("Pause in %s"), get_bbl_monitor_time_dhm(seconds_to_pause));
+    m_staticText_next_pause->SetLabelText(label);
+    m_staticText_next_pause->Show();
+    m_staticText_next_pause->GetParent()->Layout();
 }
 
 void PrintingTaskPanel::update_layers_num(bool show, wxString num)
@@ -4184,6 +4208,43 @@ void StatusPanel::update_subtask(MachineObject *obj)
             m_project_task_panel->enable_partskip_button(obj, true);
             // update printing stage
             m_project_task_panel->update_left_time(obj->mc_left_time);
+
+            // compute time to next scheduled pause from the current slice result
+            {
+                int next_pause_sec = -1;
+                if (obj->curr_layer > 0 && obj->total_layers > 1 && obj->mc_left_time > 0) {
+                    try {
+                        Plater* plater = wxGetApp().plater();
+                        GLCanvas3D* canvas = plater ? plater->get_preview_canvas3D() : nullptr;
+                        if (canvas) {
+                            auto& viewer = canvas->get_gcode_viewer();
+                            const std::vector<double> layers_zs = viewer.get_layers_zs();
+                            const std::vector<CustomGCode::Item>& gcodes = viewer.get_custom_gcode_per_print_z();
+                            if (!layers_zs.empty() && !gcodes.empty()) {
+                                // current layer's Z (1-based, clamp to valid range)
+                                int cur_idx = std::min((int)obj->curr_layer - 1, (int)layers_zs.size() - 1);
+                                double cur_z = layers_zs[cur_idx];
+                                // find the first PausePrint above current Z
+                                for (const auto& item : gcodes) {
+                                    if (item.type == CustomGCode::PausePrint && item.print_z > cur_z) {
+                                        // map pause Z to layer index by lower_bound
+                                        auto it = std::lower_bound(layers_zs.begin(), layers_zs.end(), item.print_z);
+                                        int pause_layer = (int)std::distance(layers_zs.begin(), it) + 1;
+                                        int remaining_layers = obj->total_layers - obj->curr_layer;
+                                        int layers_to_pause  = pause_layer - obj->curr_layer;
+                                        if (layers_to_pause > 0 && remaining_layers > 0) {
+                                            next_pause_sec = (int)((double)obj->mc_left_time * layers_to_pause / remaining_layers);
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    } catch (...) {}
+                }
+                m_project_task_panel->update_next_pause(next_pause_sec);
+            }
+
             if (obj->subtask_) {
                 m_project_task_panel->update_stage_value_with_machine(obj->get_curr_stage(), obj->subtask_->task_progress, obj);
                 m_project_task_panel->update_progress_percent(wxString::Format("%d", obj->subtask_->task_progress), "%");
