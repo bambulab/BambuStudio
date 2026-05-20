@@ -48,6 +48,14 @@ function clampWeight(value: number): number {
   return Math.min(MAX_NET_WEIGHT_GRAMS, Math.round(value));
 }
 
+// STUDIO-18125: footer quantity widget is bounded [1, 99]; floor (not round)
+// so a paste like "1.9" can't bump the count up by one. Empty/NaN/<1 falls
+// back to 1 because min=1 has no sane "empty" semantic.
+function clampQuantity(value: number): number {
+  if (!Number.isFinite(value) || value < 1) return 1;
+  return Math.min(99, Math.floor(value));
+}
+
 // STUDIO-17977: legacy spelling kept as an alias of `canonicalizeHex` so
 // existing call sites in this file (selectAmsSlot, handleSubmit AMS branch)
 // don't churn during the colours/ extraction. New code should import
@@ -2515,8 +2523,37 @@ export function AddEditDialog({
         <div className="flex items-center justify-between h-[60px] px-[16px] shrink-0">
           {!isEdit && mode === 'manual' && (
             <div className="flex items-center gap-[4px] w-[106px]">
-              <div className="flex-1 flex items-center gap-[4px] bg-fm-inner2 rounded-[6px] h-[24px] pl-[8px] pr-[4px]">
-                <span className="text-[12px] leading-[19px] text-fm-text-strong flex-1">{quantity}</span>
+              {/* STUDIO-18125: keep the up/down stepper, but also let the
+                  user type the quantity directly. Reuses the Weight input
+                  pattern (sanitizeWeightInput + select-on-focus, see
+                  STUDIO-17958) so a backspace-clear followed by typing does
+                  not leave a "0X" residue. Native spinner is hidden because
+                  the external stepper buttons already cover that role and
+                  the inline spinner would clash with the 24px row and the
+                  "roll" suffix.
+                  onClick={select} is intentional alongside onFocus={select}:
+                  in Chromium the mouseup that follows focus cancels the
+                  onFocus selection and drops the caret next to the default
+                  "1", so a mouse-click + keypress yields "15" instead of
+                  "5". The click event fires after mouseup, so re-selecting
+                  there restores the all-select. Keyboard Tab never fires
+                  click, so the Tab flow stays on the onFocus path. The
+                  Weight inputs above deliberately do NOT do this because
+                  users often edit weights mid-string (e.g. 1000 -> 100). */}
+              <div className="flex-1 flex items-center gap-[4px] bg-fm-inner2 rounded-[6px] h-[24px] pl-[8px] pr-[4px] focus-within:shadow-[0_0_0_1px_var(--color-fm-brand)]">
+                <input
+                  data-testid="quantity-input"
+                  className="flex-1 min-w-0 bg-transparent border-none outline-none p-0 text-[12px] leading-[19px] text-fm-text-strong appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0 [&::-webkit-outer-spin-button]:m-0"
+                  type="number"
+                  min={1}
+                  max={99}
+                  step={1}
+                  value={quantity}
+                  onFocus={(e) => e.target.select()}
+                  onClick={(e) => e.currentTarget.select()}
+                  onChange={(e) => setQuantity(clampQuantity(sanitizeWeightInput(e.target)))}
+                  aria-label={t('Quantity')}
+                />
                 <span className="text-[11px] leading-[16px] text-fm-text-detail">{t('roll')}</span>
               </div>
               <div className="flex flex-col shrink-0 w-[18px] h-[24px]">
