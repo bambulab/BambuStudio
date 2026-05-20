@@ -77,24 +77,33 @@ FilaManagerVM::FilaManagerVM()
                                         const std::string& msg) {
             publish_push_failed(id, op, code, msg);
         });
-        // Cloud is the source of truth: whenever a local push succeeds we
-        // immediately enqueue a pull so the next spool list the web sees is
-        // whatever the cloud just acknowledged. The dispatcher is single-slot
-        // so the pull runs right after this push op returns to idle.
+        // After a successful push we refresh the spool list so the UI reflects
+        // the latest local state immediately.  A follow-up cloud pull is only
+        // necessary for CREATE operations — we need the server-assigned spool
+        // id before advertising the new row to the web UI.  For UPDATE and
+        // DELETE we already know the outcome and triggering a pull introduces
+        // a read-after-write race: the cloud PUT may not yet be visible to the
+        // subsequent GET, so the pull can return stale data (e.g., the old
+        // netWeight before the user's manual-weight edit was pushed) and
+        // overwrite the local store back to the pre-edit value.  Skipping the
+        // pull for non-create ops avoids that race without losing any
+        // information — the local store is already consistent.
         disp->set_on_push_done([this](const std::string& id,
                                       const std::string& op) {
             if (m_bridge) {
                 m_bridge->ReportMsg(MakeResp("spool", "list", 0, "", build_spool_list()));
             }
             publish_push_done(id, op);
-            // If create returned an id, the dispatcher has already inserted
-            // the accepted cloud row locally. The follow-up pull will see no
-            // size delta, so carry the create count into publish_pull_done.
-            if (op == "create" && !id.empty()) {
-                m_pending_pull_added_hint += 1;
-            }
-            if (auto* d = wxGetApp().fila_manager_cloud_disp()) {
-                d->enqueue_pull();
+            if (op == "create") {
+                // If create returned an id, the dispatcher has already inserted
+                // the accepted cloud row locally. The follow-up pull will see no
+                // size delta, so carry the create count into publish_pull_done.
+                if (!id.empty()) {
+                    m_pending_pull_added_hint += 1;
+                }
+                if (auto* d = wxGetApp().fila_manager_cloud_disp()) {
+                    d->enqueue_pull();
+                }
             }
         });
     }
