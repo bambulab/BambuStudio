@@ -3325,62 +3325,62 @@ msgid "Project Filaments"
 msgstr "Filaments de projet"
 
 msgid "New Filaments"
-msgstr ""
+msgstr "Nouveaux filaments"
 
 msgid "Add Material"
-msgstr ""
+msgstr "Ajouter un matériau"
 
 #, c-format, boost-format
 msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr ""
+msgstr "Le projet supporte jusqu'à %d filaments. Les filaments supplémentaires seront supprimés."
 
 msgid "Import Model"
-msgstr ""
+msgstr "Importer le modèle"
 
 msgid "Original"
 msgstr ""
 
 msgid "Multi-Color"
-msgstr ""
+msgstr "Multicolore"
 
 msgid "Filament Mapping"
-msgstr ""
+msgstr "Mappage de filaments"
 
 msgid "Color Count"
-msgstr ""
+msgstr "Nombre de couleurs"
 
 msgid "Smooth Level"
-msgstr ""
+msgstr "Niveau de lissage"
 
 msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr ""
+msgstr "Déterminer automatiquement le nombre de couleurs optimal et recalculer le mappage des filaments"
 
 msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr ""
+msgstr "Convertir la texture en peinture avec le nombre de couleurs et le niveau de lissage spécifiés"
 
 msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr ""
+msgstr "Rappel : paramètres modifiés, cliquez sur Appliquer pour valider"
 
 msgid "Auto-merge same filament"
-msgstr ""
+msgstr "Fusionner automatiquement les filaments identiques"
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr ""
+msgstr "Fusionner automatiquement les filaments identiques avec les filaments existants dans le projet"
 
 msgid "Skip Matching"
-msgstr ""
+msgstr "Ignorer la correspondance"
 
 msgid "Skip filament mapping and import as a single-color model"
-msgstr ""
+msgstr "Ignorer le mappage des filaments et importer comme modèle monochrome"
 
 msgid "Processing"
-msgstr ""
+msgstr "Traitement en cours…"
 
 msgid "Computing texture colors..."
-msgstr ""
+msgstr "Calcul des couleurs de texture…"
 
 msgid "Computation failed. Please adjust parameters and retry."
-msgstr ""
+msgstr "Calcul échoué. Veuillez ajuster les paramètres et réessayer."
 
 msgid "Choose SLA archive:"
 msgstr "Choisissez l'archive SLA:"
@@ -7509,7 +7509,7 @@ msgid "Computing texture colors: %s"
 msgstr ""
 
 msgid "Texture Import Warning"
-msgstr ""
+msgstr "Avertissement d'importation de texture"
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Charger ces fichiers en tant qu'objet unique avec plusieurs parties ?\n"
@@ -7521,7 +7521,7 @@ msgid "The file does not contain any geometry data."
 msgstr "Le fichier ne contient pas de données géométriques."
 
 msgid "Importing model to project..."
-msgstr ""
+msgstr "Importation du modèle dans le projet…"
 
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr "Votre objet semble trop grand. Voulez-vous le réduire pour qu'il s'adapter au plateau d'impression ?"
@@ -7530,25 +7530,25 @@ msgid "Object too large"
 msgstr "Objet trop grand"
 
 msgid "Placing model on the bed..."
-msgstr ""
+msgstr "Placement du modèle sur le plateau…"
 
 msgid "Updating object list..."
-msgstr ""
+msgstr "Mise à jour de la liste des objets…"
 
 msgid "Updating 3D view..."
-msgstr ""
+msgstr "Mise à jour de la vue 3D…"
 
 msgid "Model imported."
-msgstr ""
+msgstr "Modèle importé."
 
 msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
 msgstr ""
 
 msgid "Applying texture colors..."
-msgstr ""
+msgstr "Application des couleurs de texture…"
 
 msgid "Texture colors applied."
-msgstr ""
+msgstr "Couleurs de texture appliquées."
 
 msgid "Export STL file:"
 msgstr "Exporter le fichier STL :"
@@ -9223,7 +9223,7 @@ msgid "Some filaments may switch between extruders during printing. Manual K-val
 msgstr "Certains filaments peuvent basculer entre les extrudeurs pendant l'impression. L'étalonnage manuel de la valeur K ne peut pas être appliqué sur l'ensemble de l'impression, ce qui peut affecter la qualité d'impression. L'activation de la Calibration de la Dynamique du Débit est recommandée."
 
 msgid "Cool"
-msgstr ""
+msgstr "Refroidissement"
 
 msgid "Engineering"
 msgstr "Ingénierie"
@@ -9865,10 +9865,10 @@ msgid "Multi Filament"
 msgstr ""
 
 msgid "Purge Mode: Standard"
-msgstr ""
+msgstr "Mode purge : Standard"
 
 msgid "Purge Mode: Fast"
-msgstr ""
+msgstr "Mode purge : Rapide"
 
 msgid "Printable space"
 msgstr "Espace imprimable"
@@ -11349,19 +11349,19 @@ msgid "Fixing cold prints"
 msgstr "Correction des impressions froides"
 
 msgid "Software Update"
-msgstr ""
+msgstr "Mise à jour logicielle"
 
 msgid "Try Now"
-msgstr ""
+msgstr "Essayer maintenant"
 
 msgid "Don't show me Beta updates again"
-msgstr ""
+msgstr "Ne plus afficher les mises à jour bêta"
 
 msgid "New Bambu Studio Beta Available"
-msgstr ""
+msgstr "Nouvelle version bêta de Bambu Studio disponible"
 
 msgid "Current Version"
-msgstr ""
+msgstr "Version actuelle"
 
 msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
 msgstr ""
@@ -11376,13 +11376,13 @@ msgid "(Help -> Show Configuration Folder)"
 msgstr ""
 
 msgid "Why use the Beta version?"
-msgstr ""
+msgstr "Pourquoi utiliser la version bêta ?"
 
 msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
 msgstr ""
 
 msgid "How to change settings?"
-msgstr ""
+msgstr "Comment modifier les paramètres ?"
 
 msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
 msgstr ""
@@ -13941,7 +13941,7 @@ msgid "Saving"
 msgstr "Économe"
 
 msgid "Fast"
-msgstr ""
+msgstr "Rapide"
 
 msgid "length when change hotend"
 msgstr "longueur lors du changement de hotend"

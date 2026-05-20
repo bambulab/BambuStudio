@@ -1367,10 +1367,10 @@ msgid "Remove selection"
 msgstr "Видалити виділення"
 
 msgid "Recommend"
-msgstr ""
+msgstr "Рекомендувати"
 
 msgid "Old version"
-msgstr ""
+msgstr "Стара версія"
 
 msgid "First font"
 msgstr ""
@@ -2968,7 +2968,7 @@ msgid "Off"
 msgstr "Вимк."
 
 msgid "Filter"
-msgstr ""
+msgstr "Фільтр"
 
 msgid "Enabling filtration redirects the right fan to filter gas, which may reduce cooling performance."
 msgstr ""
@@ -3211,7 +3211,7 @@ msgid "Text mesh ie empty."
 msgstr ""
 
 msgid "Text"
-msgstr ""
+msgstr "Текст"
 
 msgid "Error! Unable to create thread!"
 msgstr "Помилка! Неможливо створити тему!"
@@ -3323,62 +3323,62 @@ msgid "Project Filaments"
 msgstr "Філаменти проєкта"
 
 msgid "New Filaments"
-msgstr ""
+msgstr "Нові філаменти"
 
 msgid "Add Material"
-msgstr ""
+msgstr "Додати матеріал"
 
 #, c-format, boost-format
 msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr ""
+msgstr "Проект підтримує до %d філаментів. Зайві філаменти будуть видалені."
 
 msgid "Import Model"
-msgstr ""
+msgstr "Імпортувати модель"
 
 msgid "Original"
 msgstr ""
 
 msgid "Multi-Color"
-msgstr ""
+msgstr "Багатоколірний"
 
 msgid "Filament Mapping"
-msgstr ""
+msgstr "Зіставлення філаментів"
 
 msgid "Color Count"
-msgstr ""
+msgstr "Кількість кольорів"
 
 msgid "Smooth Level"
-msgstr ""
+msgstr "Рівень згладжування"
 
 msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr ""
+msgstr "Автоматично визначити оптимальну кількість кольорів і перерахувати зіставлення"
 
 msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr ""
+msgstr "Перетворити текстуру на малюнок за допомогою вказаної кількості кольорів"
 
 msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr ""
+msgstr "Нагадування: параметри змінено, натисніть Застосувати для підтвердження"
 
 msgid "Auto-merge same filament"
-msgstr ""
+msgstr "Автоматично об'єднувати однакові філаменти"
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr ""
+msgstr "Автоматично об'єднувати ідентичні філаменти з наявними у проекті"
 
 msgid "Skip Matching"
-msgstr ""
+msgstr "Пропустити зіставлення"
 
 msgid "Skip filament mapping and import as a single-color model"
-msgstr ""
+msgstr "Пропустити зіставлення філаментів та імпортувати як одноколірну модель"
 
 msgid "Processing"
-msgstr ""
+msgstr "Обробка…"
 
 msgid "Computing texture colors..."
-msgstr ""
+msgstr "Обчислення кольорів текстури…"
 
 msgid "Computation failed. Please adjust parameters and retry."
-msgstr ""
+msgstr "Обчислення не вдалося. Налаштуйте параметри та повторіть спробу."
 
 msgid "Choose SLA archive:"
 msgstr "Виберіть архів SLA:"
@@ -4242,13 +4242,13 @@ msgid "M400 pause"
 msgstr "M400 пауза"
 
 msgid "Paused (filament ran out)"
-msgstr ""
+msgstr "Призупинено (закінчився філамент)"
 
 msgid "Heating nozzle"
-msgstr ""
+msgstr "Нагрів сопла"
 
 msgid "Calibrating dynamic flow"
-msgstr ""
+msgstr "Калібрування динамічної подачі"
 
 msgid "Scanning bed surface"
 msgstr "Сканування поверхні столу"
@@ -4272,28 +4272,28 @@ msgid "Checking extruder temperature"
 msgstr "Перевірка температури сопла"
 
 msgid "Paused by the user"
-msgstr ""
+msgstr "Призупинено користувачем"
 
 msgid "Pause (front cover fall off)"
-msgstr ""
+msgstr "Пауза (передня кришка знята)"
 
 msgid "Calibrating the micro lidar"
 msgstr ""
 
 msgid "Calibrating flow ratio"
-msgstr ""
+msgstr "Калібрування коефіцієнта подачі"
 
 msgid "Pause (nozzle temperature malfunction)"
-msgstr ""
+msgstr "Пауза (несправність температури сопла)"
 
 msgid "Pause (heatbed temperature malfunction)"
-msgstr ""
+msgstr "Пауза (несправність температури столу)"
 
 msgid "Filament unloading"
 msgstr "Розвантаження філаменту"
 
 msgid "Pause (step loss)"
-msgstr ""
+msgstr "Пауза (втрата кроку)"
 
 msgid "Filament loading"
 msgstr "Завантаження філаменту"
@@ -4302,34 +4302,34 @@ msgid "Motor noise cancellation"
 msgstr "Скасування шуму мотора"
 
 msgid "Pause (AMS offline)"
-msgstr ""
+msgstr "Пауза (AMS офлайн)"
 
 msgid "Pause (low speed of the heatbreak fan)"
-msgstr ""
+msgstr "Пауза (низька швидкість вентилятора)"
 
 msgid "Pause (chamber temperature control problem)"
-msgstr ""
+msgstr "Пауза (проблема керування температурою камери)"
 
 msgid "Cooling chamber"
 msgstr "Охолодження камери"
 
 msgid "Pause (Gcode inserted by user)"
-msgstr ""
+msgstr "Пауза (G-код вставлено користувачем)"
 
 msgid "Motor noise showoff"
 msgstr "Демонстрація шуму мотора"
 
 msgid "Pause (nozzle clumping)"
-msgstr ""
+msgstr "Пауза (засорення сопла)"
 
 msgid "Pause (cutter error)"
-msgstr ""
+msgstr "Пауза (помилка різака)"
 
 msgid "Pause (first layer error)"
-msgstr ""
+msgstr "Пауза (помилка першого шару)"
 
 msgid "Pause (nozzle clog)"
-msgstr ""
+msgstr "Пауза (засорення сопла)"
 
 msgid "Measuring motion percision"
 msgstr ""
@@ -4338,7 +4338,7 @@ msgid "Enhancing motion percision"
 msgstr ""
 
 msgid "Measure motion accuracy"
-msgstr ""
+msgstr "Виміряти точність руху"
 
 msgid "Nozzle offset calibration"
 msgstr ""
@@ -4362,7 +4362,7 @@ msgid "Confirming BirdsEye Camera location"
 msgstr ""
 
 msgid "Calibrating BirdsEye Camera"
-msgstr ""
+msgstr "Калібрування камери BirdsEye"
 
 msgid "Auto bed leveling -phase 1"
 msgstr ""
@@ -4383,10 +4383,10 @@ msgid "Auto Check: Material"
 msgstr ""
 
 msgid "Live View Camera Calibration"
-msgstr ""
+msgstr "Калібрування камери прямого перегляду"
 
 msgid "Waiting for heatbed to reach target temperature"
-msgstr ""
+msgstr "Очікування досягнення столом цільової температури"
 
 msgid "Auto Check: Material Position"
 msgstr ""
@@ -5403,7 +5403,7 @@ msgid "Project"
 msgstr "Проєкт"
 
 msgid "Filament Manager"
-msgstr ""
+msgstr "Менеджер філаментів"
 
 msgid "Yes"
 msgstr "Так"
@@ -7494,7 +7494,7 @@ msgid "Computing texture colors: %s"
 msgstr ""
 
 msgid "Texture Import Warning"
-msgstr ""
+msgstr "Попередження імпорту текстури"
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Завантажити ці файли як єдиний об'єкт з кількома частинами?\n"
@@ -7506,7 +7506,7 @@ msgid "The file does not contain any geometry data."
 msgstr "Файл не містить геометричних даних."
 
 msgid "Importing model to project..."
-msgstr ""
+msgstr "Імпорт моделі до проекту…"
 
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr ""
@@ -7517,25 +7517,25 @@ msgid "Object too large"
 msgstr "Об'єкт занадто великий"
 
 msgid "Placing model on the bed..."
-msgstr ""
+msgstr "Розміщення моделі на столі…"
 
 msgid "Updating object list..."
-msgstr ""
+msgstr "Оновлення списку об'єктів…"
 
 msgid "Updating 3D view..."
-msgstr ""
+msgstr "Оновлення 3D-виду…"
 
 msgid "Model imported."
-msgstr ""
+msgstr "Модель імпортовано."
 
 msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
 msgstr ""
 
 msgid "Applying texture colors..."
-msgstr ""
+msgstr "Застосування кольорів текстури…"
 
 msgid "Texture colors applied."
-msgstr ""
+msgstr "Кольори текстури застосовано."
 
 msgid "Export STL file:"
 msgstr "Експорт файлу STL:"
@@ -9153,13 +9153,13 @@ msgid "Some filaments may switch between extruders during printing. Manual K-val
 msgstr ""
 
 msgid "Cool"
-msgstr ""
+msgstr "Охолодження"
 
 msgid "Engineering"
 msgstr ""
 
 msgid "High Temp"
-msgstr ""
+msgstr "Висока темп."
 
 msgid "Cool(Supertack)"
 msgstr ""
@@ -9788,10 +9788,10 @@ msgid "Multi Filament"
 msgstr ""
 
 msgid "Purge Mode: Standard"
-msgstr ""
+msgstr "Режим очищення: Стандартний"
 
 msgid "Purge Mode: Fast"
-msgstr ""
+msgstr "Режим очищення: Швидкий"
 
 msgid "Printable space"
 msgstr "Місце для друку"
@@ -11002,7 +11002,7 @@ msgid "Slicer default"
 msgstr ""
 
 msgid "Limits"
-msgstr ""
+msgstr "Обмеження"
 
 msgid "Set your own speed and flow rate limits - or rely on Helio's custom limit settings. With unsupported materials you need to supply your own data or rely on the slicer's built in data."
 msgstr ""
@@ -11248,19 +11248,19 @@ msgid "Fixing cold prints"
 msgstr ""
 
 msgid "Software Update"
-msgstr ""
+msgstr "Оновлення ПЗ"
 
 msgid "Try Now"
-msgstr ""
+msgstr "Спробувати зараз"
 
 msgid "Don't show me Beta updates again"
-msgstr ""
+msgstr "Більше не показувати оновлення бета-версії"
 
 msgid "New Bambu Studio Beta Available"
-msgstr ""
+msgstr "Доступна нова бета-версія Bambu Studio"
 
 msgid "Current Version"
-msgstr ""
+msgstr "Поточна версія"
 
 msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
 msgstr ""
@@ -11275,13 +11275,13 @@ msgid "(Help -> Show Configuration Folder)"
 msgstr ""
 
 msgid "Why use the Beta version?"
-msgstr ""
+msgstr "Навіщо використовувати бета-версію?"
 
 msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
 msgstr ""
 
 msgid "How to change settings?"
-msgstr ""
+msgstr "Як змінити налаштування?"
 
 msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
 msgstr ""
@@ -12929,13 +12929,13 @@ msgid "2D Lattice"
 msgstr ""
 
 msgid "Skin infill pattern"
-msgstr ""
+msgstr "Тип заповнення шкіра"
 
 msgid "Line pattern for skin"
 msgstr ""
 
 msgid "Skeleton infill pattern"
-msgstr ""
+msgstr "Тип заповнення скелет"
 
 msgid "Line pattern for skeleton"
 msgstr ""
@@ -13821,10 +13821,10 @@ msgid "Default Nozzle Volume Type"
 msgstr ""
 
 msgid "Saving"
-msgstr ""
+msgstr "Збереження…"
 
 msgid "Fast"
-msgstr ""
+msgstr "Швидкий"
 
 msgid "length when change hotend"
 msgstr ""
@@ -16591,15 +16591,15 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Printer presets (%d/%d)"
-msgstr ""
+msgstr "Профілі принтера (%d/%d)"
 
 #, c-format, boost-format
 msgid "Filament presets (%d/%d)"
-msgstr ""
+msgstr "Профілі філаменту (%d/%d)"
 
 #, c-format, boost-format
 msgid "Process presets (%d/%d)"
-msgstr ""
+msgstr "Профілі процесу (%d/%d)"
 
 #, c-format, boost-format
 msgid "%u Selected"
@@ -16706,7 +16706,7 @@ msgid "/%d Selected"
 msgstr ""
 
 msgid "Nothing selected"
-msgstr ""
+msgstr "Нічого не вибрано"
 
 msgid "Over 64 objects in single plate"
 msgstr ""

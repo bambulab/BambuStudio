@@ -3329,62 +3329,62 @@ msgid "Project Filaments"
 msgstr "Projekt filamentek"
 
 msgid "New Filaments"
-msgstr ""
+msgstr "Új szálak"
 
 msgid "Add Material"
-msgstr ""
+msgstr "Anyag hozzáadása"
 
 #, c-format, boost-format
 msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr ""
+msgstr "A projekt legfeljebb %d szálat támogat. A felesleges szálak törlésre kerülnek."
 
 msgid "Import Model"
-msgstr ""
+msgstr "Modell importálása"
 
 msgid "Original"
 msgstr "Eredeti"
 
 msgid "Multi-Color"
-msgstr ""
+msgstr "Többszínű"
 
 msgid "Filament Mapping"
-msgstr ""
+msgstr "Szálleképezés"
 
 msgid "Color Count"
-msgstr ""
+msgstr "Színek száma"
 
 msgid "Smooth Level"
-msgstr ""
+msgstr "Simítási szint"
 
 msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr ""
+msgstr "Az optimális színszám automatikus meghatározása és a szálleképezés újraszámítása"
 
 msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr ""
+msgstr "Textúra konvertálása festménnyé a megadott színszám és simítási szint használatával"
 
 msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr ""
+msgstr "Emlékeztető: a paraméterek megváltoztak, kattintson az Alkalmaz gombra"
 
 msgid "Auto-merge same filament"
-msgstr ""
+msgstr "Azonos szálak automatikus összevonása"
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr ""
+msgstr "Azonos szálak automatikus összevonása a projekt meglévő száljaival"
 
 msgid "Skip Matching"
-msgstr ""
+msgstr "Párosítás kihagyása"
 
 msgid "Skip filament mapping and import as a single-color model"
-msgstr ""
+msgstr "Szálleképezés kihagyása és importálás egyszínű modellként"
 
 msgid "Processing"
-msgstr ""
+msgstr "Feldolgozás folyamatban…"
 
 msgid "Computing texture colors..."
-msgstr ""
+msgstr "Textúraszínek kiszámítása…"
 
 msgid "Computation failed. Please adjust parameters and retry."
-msgstr ""
+msgstr "A számítás sikertelen. Módosítsa a paramétereket, és próbálja újra."
 
 msgid "Choose SLA archive:"
 msgstr "Válaszd ki az SLA-archívumot:"
@@ -7521,7 +7521,7 @@ msgid "Computing texture colors: %s"
 msgstr ""
 
 msgid "Texture Import Warning"
-msgstr ""
+msgstr "Textúraimportálási figyelmeztetés"
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Betöltöd ezeket a fájlokat több részből álló egyetlen objektumként?\n"
@@ -7533,7 +7533,7 @@ msgid "The file does not contain any geometry data."
 msgstr "A fájl nem tartalmaz geometriai adatokat."
 
 msgid "Importing model to project..."
-msgstr ""
+msgstr "Modell importálása a projektbe…"
 
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr "Úgy tűnik, hogy az objektum túl nagy. Szeretnéd átméretezni, hogy illeszkedjen az asztal méretéhez?"
@@ -7542,25 +7542,25 @@ msgid "Object too large"
 msgstr "Az objektum túl nagy"
 
 msgid "Placing model on the bed..."
-msgstr ""
+msgstr "A modell elhelyezése az ágyon…"
 
 msgid "Updating object list..."
-msgstr ""
+msgstr "Objektumlista frissítése…"
 
 msgid "Updating 3D view..."
-msgstr ""
+msgstr "3D nézet frissítése…"
 
 msgid "Model imported."
-msgstr ""
+msgstr "A modell importálva."
 
 msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
 msgstr ""
 
 msgid "Applying texture colors..."
-msgstr ""
+msgstr "Textúraszínek alkalmazása…"
 
 msgid "Texture colors applied."
-msgstr ""
+msgstr "Textúraszínek alkalmazva."
 
 msgid "Export STL file:"
 msgstr "STL fájl exportálása:"
@@ -9233,13 +9233,13 @@ msgid "Some filaments may switch between extruders during printing. Manual K-val
 msgstr "Előfordulhat, hogy nyomtatás közben egyes filamentek váltanak az extruderek között. A manuális K-érték kalibrálás nem alkalmazható a teljes nyomtatás során, ami befolyásolhatja a nyomtatási minőséget. Az áramlásdinamikai kalibrálás engedélyezése ajánlott."
 
 msgid "Cool"
-msgstr ""
+msgstr "Hűtés"
 
 msgid "Engineering"
 msgstr ""
 
 msgid "High Temp"
-msgstr ""
+msgstr "Magas hőm."
 
 msgid "Cool(Supertack)"
 msgstr ""
@@ -9871,10 +9871,10 @@ msgid "Multi Filament"
 msgstr ""
 
 msgid "Purge Mode: Standard"
-msgstr ""
+msgstr "Tisztítási mód: Standard"
 
 msgid "Purge Mode: Fast"
-msgstr ""
+msgstr "Tisztítási mód: Gyors"
 
 msgid "Printable space"
 msgstr "Nyomtatási terület"
@@ -11359,19 +11359,19 @@ msgid "Fixing cold prints"
 msgstr "Hideg nyomatok javítása"
 
 msgid "Software Update"
-msgstr ""
+msgstr "Szoftverfrissítés"
 
 msgid "Try Now"
-msgstr ""
+msgstr "Kipróbálás most"
 
 msgid "Don't show me Beta updates again"
-msgstr ""
+msgstr "Ne mutassanak nekem béta frissítéseket"
 
 msgid "New Bambu Studio Beta Available"
-msgstr ""
+msgstr "Új Bambu Studio bétaverzió érhető el"
 
 msgid "Current Version"
-msgstr ""
+msgstr "Jelenlegi verzió"
 
 msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
 msgstr ""
@@ -11386,13 +11386,13 @@ msgid "(Help -> Show Configuration Folder)"
 msgstr ""
 
 msgid "Why use the Beta version?"
-msgstr ""
+msgstr "Miért használja a bétaverziót?"
 
 msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
 msgstr ""
 
 msgid "How to change settings?"
-msgstr ""
+msgstr "Hogyan lehet módosítani a beállításokat?"
 
 msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
 msgstr ""
@@ -13951,7 +13951,7 @@ msgid "Saving"
 msgstr "Mentés"
 
 msgid "Fast"
-msgstr ""
+msgstr "Gyors"
 
 msgid "length when change hotend"
 msgstr "hossz hotendcsere esetén"
@@ -16863,7 +16863,7 @@ msgid "/%d Selected"
 msgstr "/%d kiválasztva"
 
 msgid "Nothing selected"
-msgstr ""
+msgstr "Semmi sincs kijelölve"
 
 msgid "Over 64 objects in single plate"
 msgstr ""

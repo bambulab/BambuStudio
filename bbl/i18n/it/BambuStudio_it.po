@@ -1367,10 +1367,10 @@ msgid "Remove selection"
 msgstr "Rimuovi selezione"
 
 msgid "Recommend"
-msgstr ""
+msgstr "Consigliare"
 
 msgid "Old version"
-msgstr ""
+msgstr "Versione precedente"
 
 msgid "First font"
 msgstr "Primo font"
@@ -3331,62 +3331,62 @@ msgid "Project Filaments"
 msgstr "Filamenti Progetto"
 
 msgid "New Filaments"
-msgstr ""
+msgstr "Nuovi filamenti"
 
 msgid "Add Material"
-msgstr ""
+msgstr "Aggiungi materiale"
 
 #, c-format, boost-format
 msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr ""
+msgstr "Il progetto supporta fino a %d filamenti. I filamenti in eccesso verranno eliminati."
 
 msgid "Import Model"
-msgstr ""
+msgstr "Importa modello"
 
 msgid "Original"
 msgstr "Originale"
 
 msgid "Multi-Color"
-msgstr ""
+msgstr "Multicolore"
 
 msgid "Filament Mapping"
-msgstr ""
+msgstr "Mappatura filamenti"
 
 msgid "Color Count"
-msgstr ""
+msgstr "Numero di colori"
 
 msgid "Smooth Level"
-msgstr ""
+msgstr "Livello di smussamento"
 
 msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr ""
+msgstr "Determinare automaticamente il numero di colori ottimale e ricalcolare la mappatura dei filamenti"
 
 msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr ""
+msgstr "Converti la texture in pittura usando il numero di colori e il livello specificati"
 
 msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr ""
+msgstr "Promemoria: parametri modificati, fare clic su Applica per confermare"
 
 msgid "Auto-merge same filament"
-msgstr ""
+msgstr "Unisci automaticamente filamenti identici"
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr ""
+msgstr "Unisci automaticamente filamenti identici con i filamenti esistenti nel progetto"
 
 msgid "Skip Matching"
-msgstr ""
+msgstr "Salta corrispondenza"
 
 msgid "Skip filament mapping and import as a single-color model"
-msgstr ""
+msgstr "Salta la mappatura dei filamenti e importa come modello monocromatico"
 
 msgid "Processing"
-msgstr ""
+msgstr "Elaborazione in corso…"
 
 msgid "Computing texture colors..."
-msgstr ""
+msgstr "Calcolo dei colori della texture…"
 
 msgid "Computation failed. Please adjust parameters and retry."
-msgstr ""
+msgstr "Calcolo non riuscito. Regolare i parametri e riprovare."
 
 msgid "Choose SLA archive:"
 msgstr "Seleziona l'archivio SLA:"
@@ -4266,13 +4266,13 @@ msgid "M400 pause"
 msgstr "M400 pausa"
 
 msgid "Paused (filament ran out)"
-msgstr ""
+msgstr "In pausa (filamento esaurito)"
 
 msgid "Heating nozzle"
-msgstr ""
+msgstr "Riscaldamento ugello"
 
 msgid "Calibrating dynamic flow"
-msgstr ""
+msgstr "Calibrazione del flusso dinamico"
 
 msgid "Scanning bed surface"
 msgstr "Scansione superfice piatto"
@@ -4296,28 +4296,28 @@ msgid "Checking extruder temperature"
 msgstr "Controllo temperatura dell'estrusore"
 
 msgid "Paused by the user"
-msgstr ""
+msgstr "In pausa dall'utente"
 
 msgid "Pause (front cover fall off)"
-msgstr ""
+msgstr "Pausa (coperchio anteriore aperto)"
 
 msgid "Calibrating the micro lidar"
 msgstr "Calibrazione Micro Lidar"
 
 msgid "Calibrating flow ratio"
-msgstr ""
+msgstr "Calibrazione del rapporto di flusso"
 
 msgid "Pause (nozzle temperature malfunction)"
-msgstr ""
+msgstr "Pausa (malfunzionamento temperatura ugello)"
 
 msgid "Pause (heatbed temperature malfunction)"
-msgstr ""
+msgstr "Pausa (malfunzionamento temperatura piatto)"
 
 msgid "Filament unloading"
 msgstr "Scarico filamento"
 
 msgid "Pause (step loss)"
-msgstr ""
+msgstr "Pausa (perdita di passo)"
 
 msgid "Filament loading"
 msgstr "Caricamento del filamento"
@@ -4326,34 +4326,34 @@ msgid "Motor noise cancellation"
 msgstr "Riduzione rumore motore"
 
 msgid "Pause (AMS offline)"
-msgstr ""
+msgstr "Pausa (AMS offline)"
 
 msgid "Pause (low speed of the heatbreak fan)"
-msgstr ""
+msgstr "Pausa (ventola heatbreak lenta)"
 
 msgid "Pause (chamber temperature control problem)"
-msgstr ""
+msgstr "Pausa (problema controllo temperatura camera)"
 
 msgid "Cooling chamber"
 msgstr "Raffredda camera"
 
 msgid "Pause (Gcode inserted by user)"
-msgstr ""
+msgstr "Pausa (G-code inserito dall'utente)"
 
 msgid "Motor noise showoff"
 msgstr "Dimostrazione rumore motore"
 
 msgid "Pause (nozzle clumping)"
-msgstr ""
+msgstr "Pausa (otturazione ugello)"
 
 msgid "Pause (cutter error)"
-msgstr ""
+msgstr "Pausa (errore del taglierino)"
 
 msgid "Pause (first layer error)"
-msgstr ""
+msgstr "Pausa (errore primo strato)"
 
 msgid "Pause (nozzle clog)"
-msgstr ""
+msgstr "Pausa (ugello ostruito)"
 
 msgid "Measuring motion percision"
 msgstr ""
@@ -4362,7 +4362,7 @@ msgid "Enhancing motion percision"
 msgstr ""
 
 msgid "Measure motion accuracy"
-msgstr ""
+msgstr "Misura la precisione del movimento"
 
 msgid "Nozzle offset calibration"
 msgstr "Calibrazione offset nozzle"
@@ -4386,7 +4386,7 @@ msgid "Confirming BirdsEye Camera location"
 msgstr ""
 
 msgid "Calibrating BirdsEye Camera"
-msgstr ""
+msgstr "Calibrazione fotocamera BirdsEye"
 
 msgid "Auto bed leveling -phase 1"
 msgstr "Auto bed leveling -fase 1"
@@ -4407,10 +4407,10 @@ msgid "Auto Check: Material"
 msgstr ""
 
 msgid "Live View Camera Calibration"
-msgstr ""
+msgstr "Calibrazione fotocamera live"
 
 msgid "Waiting for heatbed to reach target temperature"
-msgstr ""
+msgstr "In attesa che il piano raggiunga la temperatura target"
 
 msgid "Auto Check: Material Position"
 msgstr ""
@@ -7521,7 +7521,7 @@ msgid "Computing texture colors: %s"
 msgstr ""
 
 msgid "Texture Import Warning"
-msgstr ""
+msgstr "Avviso importazione texture"
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Caricare questi file come un singolo oggetto con più parti?\n"
@@ -7533,7 +7533,7 @@ msgid "The file does not contain any geometry data."
 msgstr "Il file non contiene dati geometrici."
 
 msgid "Importing model to project..."
-msgstr ""
+msgstr "Importazione modello nel progetto…"
 
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr "Il tuo oggetto è troppo grande, vuoi scalarlo per adattarlo automaticamente al letto di stampa?"
@@ -7542,25 +7542,25 @@ msgid "Object too large"
 msgstr "Oggetto troppo grande"
 
 msgid "Placing model on the bed..."
-msgstr ""
+msgstr "Posizionamento del modello sul piano…"
 
 msgid "Updating object list..."
-msgstr ""
+msgstr "Aggiornamento lista oggetti…"
 
 msgid "Updating 3D view..."
-msgstr ""
+msgstr "Aggiornamento vista 3D…"
 
 msgid "Model imported."
-msgstr ""
+msgstr "Modello importato."
 
 msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
 msgstr ""
 
 msgid "Applying texture colors..."
-msgstr ""
+msgstr "Applicazione dei colori della texture…"
 
 msgid "Texture colors applied."
-msgstr ""
+msgstr "Colori della texture applicati."
 
 msgid "Export STL file:"
 msgstr "Esporta file STL:"
@@ -9231,7 +9231,7 @@ msgid "Some filaments may switch between extruders during printing. Manual K-val
 msgstr "Alcuni filamenti possono passare da un estrusore all’altro durante la stampa. La calibrazione manuale del valore K non può essere applicata all’intera stampa, il che può influire sulla qualità. Abilita la calibrazione del Flusso Dinamico."
 
 msgid "Cool"
-msgstr ""
+msgstr "Raffreddamento"
 
 msgid "Engineering"
 msgstr ""
@@ -9871,10 +9871,10 @@ msgid "Multi Filament"
 msgstr "Multi filamento"
 
 msgid "Purge Mode: Standard"
-msgstr ""
+msgstr "Modalità spurgo: Standard"
 
 msgid "Purge Mode: Fast"
-msgstr ""
+msgstr "Modalità spurgo: Rapida"
 
 msgid "Printable space"
 msgstr "Spazio stampabile"
@@ -11355,19 +11355,19 @@ msgid "Fixing cold prints"
 msgstr "Correzione stampe troppo fredde"
 
 msgid "Software Update"
-msgstr ""
+msgstr "Aggiornamento software"
 
 msgid "Try Now"
-msgstr ""
+msgstr "Prova ora"
 
 msgid "Don't show me Beta updates again"
-msgstr ""
+msgstr "Non mostrare più aggiornamenti beta"
 
 msgid "New Bambu Studio Beta Available"
-msgstr ""
+msgstr "Nuova versione beta di Bambu Studio disponibile"
 
 msgid "Current Version"
-msgstr ""
+msgstr "Versione corrente"
 
 msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
 msgstr ""
@@ -11382,13 +11382,13 @@ msgid "(Help -> Show Configuration Folder)"
 msgstr ""
 
 msgid "Why use the Beta version?"
-msgstr ""
+msgstr "Perché usare la versione beta?"
 
 msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
 msgstr ""
 
 msgid "How to change settings?"
-msgstr ""
+msgstr "Come cambiare le impostazioni?"
 
 msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
 msgstr ""
@@ -13049,13 +13049,13 @@ msgid "2D Lattice"
 msgstr "Reticolo 2D"
 
 msgid "Skin infill pattern"
-msgstr ""
+msgstr "Schema di riempimento pelle"
 
 msgid "Line pattern for skin"
 msgstr "Trama linee per pelle"
 
 msgid "Skeleton infill pattern"
-msgstr ""
+msgstr "Schema di riempimento scheletro"
 
 msgid "Line pattern for skeleton"
 msgstr "Trama linee per scheletro."
@@ -13954,7 +13954,7 @@ msgid "Saving"
 msgstr "Salvataggio"
 
 msgid "Fast"
-msgstr ""
+msgstr "Rapido"
 
 msgid "length when change hotend"
 msgstr "lunghezza quando si cambia hotend"
@@ -16755,15 +16755,15 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Printer presets (%d/%d)"
-msgstr ""
+msgstr "Profili stampante (%d/%d)"
 
 #, c-format, boost-format
 msgid "Filament presets (%d/%d)"
-msgstr ""
+msgstr "Profili filamento (%d/%d)"
 
 #, c-format, boost-format
 msgid "Process presets (%d/%d)"
-msgstr ""
+msgstr "Profili processo (%d/%d)"
 
 #, c-format, boost-format
 msgid "%u Selected"
@@ -16870,7 +16870,7 @@ msgid "/%d Selected"
 msgstr "/%d Selezionato"
 
 msgid "Nothing selected"
-msgstr ""
+msgstr "Nessuna selezione"
 
 msgid "Over 64 objects in single plate"
 msgstr ""

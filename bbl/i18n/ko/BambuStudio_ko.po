@@ -3323,62 +3323,62 @@ msgid "Project Filaments"
 msgstr "프로젝트 필라멘트"
 
 msgid "New Filaments"
-msgstr ""
+msgstr "새 필라멘트"
 
 msgid "Add Material"
-msgstr ""
+msgstr "재료 추가"
 
 #, c-format, boost-format
 msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr ""
+msgstr "프로젝트는 최대 %d개의 필라멘트를 지원합니다. 초과 필라멘트는 삭제됩니다."
 
 msgid "Import Model"
-msgstr ""
+msgstr "모델 가져오기"
 
 msgid "Original"
 msgstr "원본"
 
 msgid "Multi-Color"
-msgstr ""
+msgstr "다색"
 
 msgid "Filament Mapping"
-msgstr ""
+msgstr "필라멘트 매핑"
 
 msgid "Color Count"
-msgstr ""
+msgstr "색상 수"
 
 msgid "Smooth Level"
-msgstr ""
+msgstr "부드러움 수준"
 
 msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr ""
+msgstr "최적의 색상 수를 자동으로 결정하고 필라멘트 매핑 재계산"
 
 msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr ""
+msgstr "지정된 색상 수와 부드러움 수준을 사용하여 텍스처를 페인팅으로 변환"
 
 msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr ""
+msgstr "알림: 매개변수가 변경되었습니다. 적용하려면 적용을 클릭하세요"
 
 msgid "Auto-merge same filament"
-msgstr ""
+msgstr "동일한 필라멘트 자동 병합"
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr ""
+msgstr "프로젝트의 기존 필라멘트와 동일한 필라멘트를 자동으로 병합"
 
 msgid "Skip Matching"
-msgstr ""
+msgstr "매칭 건너뛰기"
 
 msgid "Skip filament mapping and import as a single-color model"
-msgstr ""
+msgstr "필라멘트 매핑을 건너뛰고 단색 모델로 가져오기"
 
 msgid "Processing"
-msgstr ""
+msgstr "처리 중…"
 
 msgid "Computing texture colors..."
-msgstr ""
+msgstr "텍스처 색상 계산 중…"
 
 msgid "Computation failed. Please adjust parameters and retry."
-msgstr ""
+msgstr "계산 실패. 매개변수를 조정하고 다시 시도하세요."
 
 msgid "Choose SLA archive:"
 msgstr "SLA 아카이브 선택:"
@@ -7513,7 +7513,7 @@ msgid "Computing texture colors: %s"
 msgstr ""
 
 msgid "Texture Import Warning"
-msgstr ""
+msgstr "텍스처 가져오기 경고"
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "이 파일들을 여러 부품을 지닌 단일 객체로 불러오시겠습니까?\n"
@@ -7525,7 +7525,7 @@ msgid "The file does not contain any geometry data."
 msgstr "파일에는 형상 데이터가 포함되어 있지 않습니다."
 
 msgid "Importing model to project..."
-msgstr ""
+msgstr "프로젝트로 모델 가져오는 중…"
 
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr "객체가 너무 큽니다. 프린터 빌드사이즈에 맞춰 스케일을 자동으로 조정하시겠습니까?"
@@ -7534,25 +7534,25 @@ msgid "Object too large"
 msgstr "객체가 너무 큽니다"
 
 msgid "Placing model on the bed..."
-msgstr ""
+msgstr "베드에 모델 배치 중…"
 
 msgid "Updating object list..."
-msgstr ""
+msgstr "객체 목록 업데이트 중…"
 
 msgid "Updating 3D view..."
-msgstr ""
+msgstr "3D 뷰 업데이트 중…"
 
 msgid "Model imported."
-msgstr ""
+msgstr "모델을 가져왔습니다."
 
 msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
 msgstr ""
 
 msgid "Applying texture colors..."
-msgstr ""
+msgstr "텍스처 색상 적용 중…"
 
 msgid "Texture colors applied."
-msgstr ""
+msgstr "텍스처 색상이 적용되었습니다."
 
 msgid "Export STL file:"
 msgstr "STL 파일 내보내기:"
@@ -9867,10 +9867,10 @@ msgid "Multi Filament"
 msgstr "멀티 필라멘트"
 
 msgid "Purge Mode: Standard"
-msgstr ""
+msgstr "퍼지 모드: 표준"
 
 msgid "Purge Mode: Fast"
-msgstr ""
+msgstr "퍼지 모드: 빠름"
 
 msgid "Printable space"
 msgstr "출력 가능 공간"
@@ -11353,19 +11353,19 @@ msgid "Fixing cold prints"
 msgstr "냉각 출력물 수정하기"
 
 msgid "Software Update"
-msgstr ""
+msgstr "소프트웨어 업데이트"
 
 msgid "Try Now"
-msgstr ""
+msgstr "지금 시도"
 
 msgid "Don't show me Beta updates again"
-msgstr ""
+msgstr "베타 업데이트를 다시 표시하지 않음"
 
 msgid "New Bambu Studio Beta Available"
-msgstr ""
+msgstr "새 Bambu Studio 베타 버전 사용 가능"
 
 msgid "Current Version"
-msgstr ""
+msgstr "현재 버전"
 
 msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
 msgstr ""
@@ -11380,13 +11380,13 @@ msgid "(Help -> Show Configuration Folder)"
 msgstr ""
 
 msgid "Why use the Beta version?"
-msgstr ""
+msgstr "베타 버전을 사용하는 이유는?"
 
 msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
 msgstr ""
 
 msgid "How to change settings?"
-msgstr ""
+msgstr "설정을 변경하는 방법은?"
 
 msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
 msgstr ""
@@ -13945,7 +13945,7 @@ msgid "Saving"
 msgstr "저장 중"
 
 msgid "Fast"
-msgstr ""
+msgstr "빠름"
 
 msgid "length when change hotend"
 msgstr "핫엔드 교체 시 길이"

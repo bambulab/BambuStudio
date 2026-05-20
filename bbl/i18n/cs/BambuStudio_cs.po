@@ -3347,62 +3347,62 @@ msgid "Project Filaments"
 msgstr "Filamenty projektu"
 
 msgid "New Filaments"
-msgstr ""
+msgstr "Nová vlákna"
 
 msgid "Add Material"
-msgstr ""
+msgstr "Přidat materiál"
 
 #, c-format, boost-format
 msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr ""
+msgstr "Projekt podporuje až %d vláken. Přebytečná vlákna budou odstraněna."
 
 msgid "Import Model"
-msgstr ""
+msgstr "Importovat model"
 
 msgid "Original"
 msgstr ""
 
 msgid "Multi-Color"
-msgstr ""
+msgstr "Vícebarevný"
 
 msgid "Filament Mapping"
-msgstr ""
+msgstr "Mapování filamentů"
 
 msgid "Color Count"
-msgstr ""
+msgstr "Počet barev"
 
 msgid "Smooth Level"
-msgstr ""
+msgstr "Úroveň vyhlazení"
 
 msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr ""
+msgstr "Automaticky určit optimální počet barev a přepočítat mapování filamentů"
 
 msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr ""
+msgstr "Převést texturu na malbu pomocí zadaného počtu barev a úrovně vyhlazení"
 
 msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr ""
+msgstr "Připomínka: parametry změněny, klikněte na Použít pro potvrzení"
 
 msgid "Auto-merge same filament"
-msgstr ""
+msgstr "Automaticky sloučit stejná vlákna"
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr ""
+msgstr "Automaticky sloučit identická vlákna s existujícími vlákny v projektu"
 
 msgid "Skip Matching"
-msgstr ""
+msgstr "Přeskočit párování"
 
 msgid "Skip filament mapping and import as a single-color model"
-msgstr ""
+msgstr "Přeskočit mapování vláken a importovat jako jednobarevný model"
 
 msgid "Processing"
-msgstr ""
+msgstr "Zpracování…"
 
 msgid "Computing texture colors..."
-msgstr ""
+msgstr "Výpočet barev textury…"
 
 msgid "Computation failed. Please adjust parameters and retry."
-msgstr ""
+msgstr "Výpočet selhal. Upravte parametry a zkuste to znovu."
 
 msgid "Choose SLA archive:"
 msgstr "Vyberte SLA archiv:"
@@ -7599,7 +7599,7 @@ msgid "Computing texture colors: %s"
 msgstr ""
 
 msgid "Texture Import Warning"
-msgstr ""
+msgstr "Upozornění importu textury"
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Načíst tyto soubory jako jeden vícedílný objekt?\n"
@@ -7611,7 +7611,7 @@ msgid "The file does not contain any geometry data."
 msgstr "Soubor neobsahuje žádná geometrická data."
 
 msgid "Importing model to project..."
-msgstr ""
+msgstr "Import modelu do projektu…"
 
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr "Váš objekt se zdá být příliš velký. Chcete jej automaticky zmenšit, aby se vešel na vyhřívanou podložku?"
@@ -7620,25 +7620,25 @@ msgid "Object too large"
 msgstr "Objekt je příliš velký"
 
 msgid "Placing model on the bed..."
-msgstr ""
+msgstr "Umisťování modelu na tiskovou podložku…"
 
 msgid "Updating object list..."
-msgstr ""
+msgstr "Aktualizace seznamu objektů…"
 
 msgid "Updating 3D view..."
-msgstr ""
+msgstr "Aktualizace 3D pohledu…"
 
 msgid "Model imported."
-msgstr ""
+msgstr "Model importován."
 
 msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
 msgstr ""
 
 msgid "Applying texture colors..."
-msgstr ""
+msgstr "Aplikování barev textury…"
 
 msgid "Texture colors applied."
-msgstr ""
+msgstr "Barvy textury aplikovány."
 
 msgid "Export STL file:"
 msgstr "Exportovat soubor STL:"
@@ -9976,10 +9976,10 @@ msgid "Multi Filament"
 msgstr "Multi-filament"
 
 msgid "Purge Mode: Standard"
-msgstr ""
+msgstr "Režim proplachování: Standardní"
 
 msgid "Purge Mode: Fast"
-msgstr ""
+msgstr "Režim proplachování: Rychlý"
 
 msgid "Printable space"
 msgstr "Tisknutelný prostor"
@@ -11472,19 +11472,19 @@ msgid "Fixing cold prints"
 msgstr "Řešení studených tisků"
 
 msgid "Software Update"
-msgstr ""
+msgstr "Aktualizace softwaru"
 
 msgid "Try Now"
-msgstr ""
+msgstr "Zkusit nyní"
 
 msgid "Don't show me Beta updates again"
-msgstr ""
+msgstr "Nezobrazovat mi beta aktualizace znovu"
 
 msgid "New Bambu Studio Beta Available"
-msgstr ""
+msgstr "K dispozici nová beta verze Bambu Studio"
 
 msgid "Current Version"
-msgstr ""
+msgstr "Aktuální verze"
 
 msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
 msgstr ""
@@ -11499,13 +11499,13 @@ msgid "(Help -> Show Configuration Folder)"
 msgstr ""
 
 msgid "Why use the Beta version?"
-msgstr ""
+msgstr "Proč používat beta verzi?"
 
 msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
 msgstr ""
 
 msgid "How to change settings?"
-msgstr ""
+msgstr "Jak změnit nastavení?"
 
 msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
 msgstr ""
@@ -14078,7 +14078,7 @@ msgid "Saving"
 msgstr "Ukládání"
 
 msgid "Fast"
-msgstr ""
+msgstr "Rychlý"
 
 msgid "length when change hotend"
 msgstr "délka při výměně hotendu"

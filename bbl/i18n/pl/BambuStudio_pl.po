@@ -3335,62 +3335,62 @@ msgid "Project Filaments"
 msgstr "Filamenty projektu"
 
 msgid "New Filaments"
-msgstr ""
+msgstr "Nowe filamenty"
 
 msgid "Add Material"
-msgstr ""
+msgstr "Dodaj materiał"
 
 #, c-format, boost-format
 msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr ""
+msgstr "Projekt obsługuje do %d filamentów. Nadmiarowe filamenty zostaną odrzucone."
 
 msgid "Import Model"
-msgstr ""
+msgstr "Importuj model"
 
 msgid "Original"
 msgstr "Oryginalny"
 
 msgid "Multi-Color"
-msgstr ""
+msgstr "Wielokolorowy"
 
 msgid "Filament Mapping"
-msgstr ""
+msgstr "Mapowanie filamentów"
 
 msgid "Color Count"
-msgstr ""
+msgstr "Liczba kolorów"
 
 msgid "Smooth Level"
-msgstr ""
+msgstr "Poziom wygładzania"
 
 msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr ""
+msgstr "Automatycznie ustal optymalną liczbę kolorów i przelicz mapowanie filamentów"
 
 msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr ""
+msgstr "Konwertuj teksturę na malowanie używając podanej liczby kolorów i poziomu wygładzania"
 
 msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr ""
+msgstr "Przypomnienie: zmieniono parametry, kliknij Zastosuj, aby zatwierdzić"
 
 msgid "Auto-merge same filament"
-msgstr ""
+msgstr "Automatycznie scalaj te same filamenty"
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr ""
+msgstr "Automatycznie scalaj identyczne filamenty z istniejącymi filamentami w projekcie"
 
 msgid "Skip Matching"
-msgstr ""
+msgstr "Pomiń dopasowanie"
 
 msgid "Skip filament mapping and import as a single-color model"
-msgstr ""
+msgstr "Pomiń mapowanie filamentów i importuj jako model jednokolorowy"
 
 msgid "Processing"
-msgstr ""
+msgstr "Przetwarzanie…"
 
 msgid "Computing texture colors..."
-msgstr ""
+msgstr "Obliczanie kolorów tekstury…"
 
 msgid "Computation failed. Please adjust parameters and retry."
-msgstr ""
+msgstr "Obliczenie nie powiodło się. Dostosuj parametry i spróbuj ponownie."
 
 msgid "Choose SLA archive:"
 msgstr "Wybierz archiwum SLA:"
@@ -7536,7 +7536,7 @@ msgid "Computing texture colors: %s"
 msgstr ""
 
 msgid "Texture Import Warning"
-msgstr ""
+msgstr "Ostrzeżenie importu tekstury"
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Czy wczytać te pliki jako pojedynczy obiekt wieloczęściowy?\n"
@@ -7548,7 +7548,7 @@ msgid "The file does not contain any geometry data."
 msgstr "Plik nie zawiera żadnych danych geometrycznych."
 
 msgid "Importing model to project..."
-msgstr ""
+msgstr "Importowanie modelu do projektu…"
 
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr "Twój obiekt wydaje się być zbyt duży. Czy chcesz automatycznie przeskalować go, aby pasował do stołu grzejnego?"
@@ -7557,25 +7557,25 @@ msgid "Object too large"
 msgstr "Obiekt zbyt duży"
 
 msgid "Placing model on the bed..."
-msgstr ""
+msgstr "Umieszczanie modelu na stole…"
 
 msgid "Updating object list..."
-msgstr ""
+msgstr "Aktualizowanie listy obiektów…"
 
 msgid "Updating 3D view..."
-msgstr ""
+msgstr "Aktualizowanie widoku 3D…"
 
 msgid "Model imported."
-msgstr ""
+msgstr "Model zaimportowany."
 
 msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
 msgstr ""
 
 msgid "Applying texture colors..."
-msgstr ""
+msgstr "Stosowanie kolorów tekstury…"
 
 msgid "Texture colors applied."
-msgstr ""
+msgstr "Kolory tekstury zastosowane."
 
 msgid "Export STL file:"
 msgstr "Eksportuj plik STL:"
@@ -9250,13 +9250,13 @@ msgid "Some filaments may switch between extruders during printing. Manual K-val
 msgstr "Podczas drukowania niektóre filamenty mogą być przełączane między ekstruderami. Ręczna kalibracja wartości K nie może być stosowana dla całego wydruku, co może wpływać na jego jakość. Zaleca się włączenie kalibracji dynamiki przepływu."
 
 msgid "Cool"
-msgstr ""
+msgstr "Chłodzenie"
 
 msgid "Engineering"
 msgstr ""
 
 msgid "High Temp"
-msgstr ""
+msgstr "Wysoka temp."
 
 msgid "Cool(Supertack)"
 msgstr ""
@@ -9895,10 +9895,10 @@ msgid "Multi Filament"
 msgstr "Wiele filamentów"
 
 msgid "Purge Mode: Standard"
-msgstr ""
+msgstr "Tryb czyszczenia: Standardowy"
 
 msgid "Purge Mode: Fast"
-msgstr ""
+msgstr "Tryb czyszczenia: Szybki"
 
 msgid "Printable space"
 msgstr "Przestrzeń do druku"
@@ -11385,19 +11385,19 @@ msgid "Fixing cold prints"
 msgstr "Naprawa niedogrzanych wydruków"
 
 msgid "Software Update"
-msgstr ""
+msgstr "Aktualizacja oprogramowania"
 
 msgid "Try Now"
-msgstr ""
+msgstr "Spróbuj teraz"
 
 msgid "Don't show me Beta updates again"
-msgstr ""
+msgstr "Nie pokazuj mi ponownie aktualizacji beta"
 
 msgid "New Bambu Studio Beta Available"
-msgstr ""
+msgstr "Dostępna nowa wersja beta Bambu Studio"
 
 msgid "Current Version"
-msgstr ""
+msgstr "Aktualna wersja"
 
 msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
 msgstr ""
@@ -11412,13 +11412,13 @@ msgid "(Help -> Show Configuration Folder)"
 msgstr ""
 
 msgid "Why use the Beta version?"
-msgstr ""
+msgstr "Dlaczego używać wersji beta?"
 
 msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
 msgstr ""
 
 msgid "How to change settings?"
-msgstr ""
+msgstr "Jak zmienić ustawienia?"
 
 msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
 msgstr ""
@@ -13984,7 +13984,7 @@ msgid "Saving"
 msgstr "Oszczędność"
 
 msgid "Fast"
-msgstr ""
+msgstr "Szybki"
 
 msgid "length when change hotend"
 msgstr "długość przy zmianie hotendu"
@@ -16903,7 +16903,7 @@ msgid "/%d Selected"
 msgstr "/%d wybrano"
 
 msgid "Nothing selected"
-msgstr ""
+msgstr "Nic nie wybrano"
 
 msgid "Over 64 objects in single plate"
 msgstr ""

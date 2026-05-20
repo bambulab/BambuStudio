@@ -1367,10 +1367,10 @@ msgid "Remove selection"
 msgstr "Eliminar selección"
 
 msgid "Recommend"
-msgstr ""
+msgstr "Recomendar"
 
 msgid "Old version"
-msgstr ""
+msgstr "Versión antigua"
 
 msgid "First font"
 msgstr "Primera fuente"
@@ -4263,13 +4263,13 @@ msgid "M400 pause"
 msgstr "Pausa M400"
 
 msgid "Paused (filament ran out)"
-msgstr ""
+msgstr "Pausado (filamento agotado)"
 
 msgid "Heating nozzle"
-msgstr ""
+msgstr "Calentando boquilla"
 
 msgid "Calibrating dynamic flow"
-msgstr ""
+msgstr "Calibrando flujo dinámico"
 
 msgid "Scanning bed surface"
 msgstr "Escaneando la superficie de la cama"
@@ -4293,28 +4293,28 @@ msgid "Checking extruder temperature"
 msgstr "Comprobando la temperatura del extrusor"
 
 msgid "Paused by the user"
-msgstr ""
+msgstr "Pausado por el usuario"
 
 msgid "Pause (front cover fall off)"
-msgstr ""
+msgstr "Pausa (cubierta frontal abierta)"
 
 msgid "Calibrating the micro lidar"
 msgstr "Calibrando el micro lidar"
 
 msgid "Calibrating flow ratio"
-msgstr ""
+msgstr "Calibrando relación de flujo"
 
 msgid "Pause (nozzle temperature malfunction)"
-msgstr ""
+msgstr "Pausa (avería temperatura boquilla)"
 
 msgid "Pause (heatbed temperature malfunction)"
-msgstr ""
+msgstr "Pausa (avería temperatura cama)"
 
 msgid "Filament unloading"
 msgstr "Descargando filamento"
 
 msgid "Pause (step loss)"
-msgstr ""
+msgstr "Pausa (pérdida de paso)"
 
 msgid "Filament loading"
 msgstr "Carga de filamentos"
@@ -4323,34 +4323,34 @@ msgid "Motor noise cancellation"
 msgstr "Cancelación de ruido del motor"
 
 msgid "Pause (AMS offline)"
-msgstr ""
+msgstr "Pausa (AMS sin conexión)"
 
 msgid "Pause (low speed of the heatbreak fan)"
-msgstr ""
+msgstr "Pausa (ventilador heatbreak lento)"
 
 msgid "Pause (chamber temperature control problem)"
-msgstr ""
+msgstr "Pausa (problema control temperatura cámara)"
 
 msgid "Cooling chamber"
 msgstr "Cámara de enfriamiento"
 
 msgid "Pause (Gcode inserted by user)"
-msgstr ""
+msgstr "Pausa (G-code insertado por usuario)"
 
 msgid "Motor noise showoff"
 msgstr "Alarde del ruido del motor"
 
 msgid "Pause (nozzle clumping)"
-msgstr ""
+msgstr "Pausa (obstrucción de boquilla)"
 
 msgid "Pause (cutter error)"
-msgstr ""
+msgstr "Pausa (error del cortador)"
 
 msgid "Pause (first layer error)"
-msgstr ""
+msgstr "Pausa (error primera capa)"
 
 msgid "Pause (nozzle clog)"
-msgstr ""
+msgstr "Pausa (boquilla obstruida)"
 
 msgid "Measuring motion percision"
 msgstr ""
@@ -4359,7 +4359,7 @@ msgid "Enhancing motion percision"
 msgstr ""
 
 msgid "Measure motion accuracy"
-msgstr ""
+msgstr "Medir la precisión del movimiento"
 
 msgid "Nozzle offset calibration"
 msgstr "Calibración de la compensación de la boquilla"
@@ -4383,7 +4383,7 @@ msgid "Confirming BirdsEye Camera location"
 msgstr ""
 
 msgid "Calibrating BirdsEye Camera"
-msgstr ""
+msgstr "Calibrando cámara BirdsEye"
 
 msgid "Auto bed leveling -phase 1"
 msgstr "Nivelación automática de la cama - fase 1"
@@ -4404,10 +4404,10 @@ msgid "Auto Check: Material"
 msgstr ""
 
 msgid "Live View Camera Calibration"
-msgstr ""
+msgstr "Calibración de cámara en vivo"
 
 msgid "Waiting for heatbed to reach target temperature"
-msgstr ""
+msgstr "Esperando que la cama alcance la temperatura objetivo"
 
 msgid "Auto Check: Material Position"
 msgstr ""
@@ -9888,10 +9888,10 @@ msgid "Multi Filament"
 msgstr "Filamento múltiple"
 
 msgid "Purge Mode: Standard"
-msgstr ""
+msgstr "Modo purga: Estándar"
 
 msgid "Purge Mode: Fast"
-msgstr ""
+msgstr "Modo purga: Rápido"
 
 msgid "Printable space"
 msgstr "Espacio imprimible"
@@ -11376,19 +11376,19 @@ msgid "Fixing cold prints"
 msgstr "Reparación de impresiones en frío"
 
 msgid "Software Update"
-msgstr ""
+msgstr "Actualización de software"
 
 msgid "Try Now"
-msgstr ""
+msgstr "Probar ahora"
 
 msgid "Don't show me Beta updates again"
-msgstr ""
+msgstr "No mostrar actualizaciones beta de nuevo"
 
 msgid "New Bambu Studio Beta Available"
-msgstr ""
+msgstr "Nueva versión beta de Bambu Studio disponible"
 
 msgid "Current Version"
-msgstr ""
+msgstr "Versión actual"
 
 msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
 msgstr ""
@@ -11403,13 +11403,13 @@ msgid "(Help -> Show Configuration Folder)"
 msgstr ""
 
 msgid "Why use the Beta version?"
-msgstr ""
+msgstr "¿Por qué usar la versión beta?"
 
 msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
 msgstr ""
 
 msgid "How to change settings?"
-msgstr ""
+msgstr "¿Cómo cambiar la configuración?"
 
 msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
 msgstr ""
@@ -13066,13 +13066,13 @@ msgid "2D Lattice"
 msgstr "Estructura reticular 2D"
 
 msgid "Skin infill pattern"
-msgstr ""
+msgstr "Patrón de relleno piel"
 
 msgid "Line pattern for skin"
 msgstr "Patrón de líneas para la piel"
 
 msgid "Skeleton infill pattern"
-msgstr ""
+msgstr "Patrón de relleno esqueleto"
 
 msgid "Line pattern for skeleton"
 msgstr "Patrón de líneas para el esqueleto"
@@ -13971,7 +13971,7 @@ msgid "Saving"
 msgstr "Guardando"
 
 msgid "Fast"
-msgstr ""
+msgstr "Rápido"
 
 msgid "length when change hotend"
 msgstr "longitud al cambiar el hotend"
@@ -16772,15 +16772,15 @@ msgstr ""
 
 #, c-format, boost-format
 msgid "Printer presets (%d/%d)"
-msgstr ""
+msgstr "Perfiles de impresora (%d/%d)"
 
 #, c-format, boost-format
 msgid "Filament presets (%d/%d)"
-msgstr ""
+msgstr "Perfiles de filamento (%d/%d)"
 
 #, c-format, boost-format
 msgid "Process presets (%d/%d)"
-msgstr ""
+msgstr "Perfiles de proceso (%d/%d)"
 
 #, c-format, boost-format
 msgid "%u Selected"
@@ -16887,7 +16887,7 @@ msgid "/%d Selected"
 msgstr "/%dSeleccionado"
 
 msgid "Nothing selected"
-msgstr ""
+msgstr "Nada seleccionado"
 
 msgid "Over 64 objects in single plate"
 msgstr ""

@@ -3333,62 +3333,62 @@ msgid "Project Filaments"
 msgstr "Filamentos do Projeto"
 
 msgid "New Filaments"
-msgstr ""
+msgstr "Novos filamentos"
 
 msgid "Add Material"
-msgstr ""
+msgstr "Adicionar material"
 
 #, c-format, boost-format
 msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr ""
+msgstr "O projeto suporta até %d filamentos. Filamentos extras serão descartados."
 
 msgid "Import Model"
-msgstr ""
+msgstr "Importar modelo"
 
 msgid "Original"
 msgstr ""
 
 msgid "Multi-Color"
-msgstr ""
+msgstr "Multicolorido"
 
 msgid "Filament Mapping"
-msgstr ""
+msgstr "Mapeamento de filamentos"
 
 msgid "Color Count"
-msgstr ""
+msgstr "Quantidade de cores"
 
 msgid "Smooth Level"
-msgstr ""
+msgstr "Nível de suavização"
 
 msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr ""
+msgstr "Determinar automaticamente o número ideal de cores e recalcular o mapeamento de filamentos"
 
 msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr ""
+msgstr "Converter textura em pintura usando o número de cores e nível de suavização especificados"
 
 msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr ""
+msgstr "Lembrete: parâmetros alterados, clique em Aplicar para confirmar"
 
 msgid "Auto-merge same filament"
-msgstr ""
+msgstr "Mesclar automaticamente filamentos idênticos"
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr ""
+msgstr "Mesclar automaticamente filamentos idênticos com os filamentos existentes no projeto"
 
 msgid "Skip Matching"
-msgstr ""
+msgstr "Ignorar correspondência"
 
 msgid "Skip filament mapping and import as a single-color model"
-msgstr ""
+msgstr "Ignorar mapeamento de filamentos e importar como modelo de uma cor"
 
 msgid "Processing"
-msgstr ""
+msgstr "Processando…"
 
 msgid "Computing texture colors..."
-msgstr ""
+msgstr "Calculando cores da textura…"
 
 msgid "Computation failed. Please adjust parameters and retry."
-msgstr ""
+msgstr "Cálculo falhou. Ajuste os parâmetros e tente novamente."
 
 msgid "Choose SLA archive:"
 msgstr "Escolha o arquivo SLA:"
@@ -7527,7 +7527,7 @@ msgid "Computing texture colors: %s"
 msgstr ""
 
 msgid "Texture Import Warning"
-msgstr ""
+msgstr "Aviso de importação de textura"
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Carregar esses arquivos como um único objeto com várias partes?\n"
@@ -7539,7 +7539,7 @@ msgid "The file does not contain any geometry data."
 msgstr "O arquivo não contém nenhum dado de geometria."
 
 msgid "Importing model to project..."
-msgstr ""
+msgstr "Importando modelo para o projeto…"
 
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr "Seu objeto parece ser muito grande. Deseja reduzi-lo para caber automaticamente na cama térmica?"
@@ -7548,25 +7548,25 @@ msgid "Object too large"
 msgstr "Objeto muito grande"
 
 msgid "Placing model on the bed..."
-msgstr ""
+msgstr "Posicionando modelo na mesa…"
 
 msgid "Updating object list..."
-msgstr ""
+msgstr "Atualizando lista de objetos…"
 
 msgid "Updating 3D view..."
-msgstr ""
+msgstr "Atualizando vista 3D…"
 
 msgid "Model imported."
-msgstr ""
+msgstr "Modelo importado."
 
 msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
 msgstr ""
 
 msgid "Applying texture colors..."
-msgstr ""
+msgstr "Aplicando cores da textura…"
 
 msgid "Texture colors applied."
-msgstr ""
+msgstr "Cores da textura aplicadas."
 
 msgid "Export STL file:"
 msgstr "Exportar arquivo STL:"
@@ -9883,10 +9883,10 @@ msgid "Multi Filament"
 msgstr "Multifilamento"
 
 msgid "Purge Mode: Standard"
-msgstr ""
+msgstr "Modo de purga: Padrão"
 
 msgid "Purge Mode: Fast"
-msgstr ""
+msgstr "Modo de purga: Rápido"
 
 msgid "Printable space"
 msgstr "Espaço imprimível"
@@ -11371,19 +11371,19 @@ msgid "Fixing cold prints"
 msgstr "Corrigindo impressões frias"
 
 msgid "Software Update"
-msgstr ""
+msgstr "Atualização de software"
 
 msgid "Try Now"
-msgstr ""
+msgstr "Tentar agora"
 
 msgid "Don't show me Beta updates again"
-msgstr ""
+msgstr "Não mostrar atualizações beta novamente"
 
 msgid "New Bambu Studio Beta Available"
-msgstr ""
+msgstr "Nova versão beta do Bambu Studio disponível"
 
 msgid "Current Version"
-msgstr ""
+msgstr "Versão atual"
 
 msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
 msgstr ""
@@ -11398,13 +11398,13 @@ msgid "(Help -> Show Configuration Folder)"
 msgstr ""
 
 msgid "Why use the Beta version?"
-msgstr ""
+msgstr "Por que usar a versão beta?"
 
 msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
 msgstr ""
 
 msgid "How to change settings?"
-msgstr ""
+msgstr "Como alterar as configurações?"
 
 msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
 msgstr ""
@@ -13963,7 +13963,7 @@ msgid "Saving"
 msgstr "Salvando"
 
 msgid "Fast"
-msgstr ""
+msgstr "Rápido"
 
 msgid "length when change hotend"
 msgstr "comprimento ao trocar o hotend"

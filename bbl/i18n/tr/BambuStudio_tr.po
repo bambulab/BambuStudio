@@ -3331,62 +3331,62 @@ msgid "Project Filaments"
 msgstr "Proje Filamentleri"
 
 msgid "New Filaments"
-msgstr ""
+msgstr "Yeni Filamentler"
 
 msgid "Add Material"
-msgstr ""
+msgstr "Malzeme Ekle"
 
 #, c-format, boost-format
 msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr ""
+msgstr "Proje en fazla %d filament destekliyor. Fazla filamentler silinecek."
 
 msgid "Import Model"
-msgstr ""
+msgstr "Model İçe Aktar"
 
 msgid "Original"
 msgstr ""
 
 msgid "Multi-Color"
-msgstr ""
+msgstr "Çok Renkli"
 
 msgid "Filament Mapping"
-msgstr ""
+msgstr "Filament Eşleştirme"
 
 msgid "Color Count"
-msgstr ""
+msgstr "Renk Sayısı"
 
 msgid "Smooth Level"
-msgstr ""
+msgstr "Yumuşatma Seviyesi"
 
 msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr ""
+msgstr "Optimum renk sayısını otomatik belirle ve filament eşleştirmesini yeniden hesapla"
 
 msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr ""
+msgstr "Belirtilen renk sayısı ve yumuşatma seviyesini kullanarak dokuyu boyamaya dönüştür"
 
 msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr ""
+msgstr "Hatırlatıcı: parametreler değiştirildi, geçerli kılmak için Uygula'ya tıklayın"
 
 msgid "Auto-merge same filament"
-msgstr ""
+msgstr "Aynı filamentleri otomatik birleştir"
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr ""
+msgstr "Projedeki mevcut filamentlerle özdeş filamentleri otomatik birleştir"
 
 msgid "Skip Matching"
-msgstr ""
+msgstr "Eşleştirmeyi Atla"
 
 msgid "Skip filament mapping and import as a single-color model"
-msgstr ""
+msgstr "Filament eşleştirmesini atla ve tek renkli model olarak içe aktar"
 
 msgid "Processing"
-msgstr ""
+msgstr "İşleniyor…"
 
 msgid "Computing texture colors..."
-msgstr ""
+msgstr "Doku renkleri hesaplanıyor…"
 
 msgid "Computation failed. Please adjust parameters and retry."
-msgstr ""
+msgstr "Hesaplama başarısız. Lütfen parametreleri ayarlayın ve tekrar deneyin."
 
 msgid "Choose SLA archive:"
 msgstr "SLA arşivini seçin:"
@@ -5417,7 +5417,7 @@ msgid "Project"
 msgstr "Proje"
 
 msgid "Filament Manager"
-msgstr ""
+msgstr "Filament Yöneticisi"
 
 msgid "Yes"
 msgstr "Evet"
@@ -7507,7 +7507,7 @@ msgid "Computing texture colors: %s"
 msgstr ""
 
 msgid "Texture Import Warning"
-msgstr ""
+msgstr "Doku İçe Aktarma Uyarısı"
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Bu dosyalar birden fazla parçadan oluşan tek bir nesne olarak mı yüklensin?\n"
@@ -7519,7 +7519,7 @@ msgid "The file does not contain any geometry data."
 msgstr "Dosya herhangi bir geometri verisi içermiyor."
 
 msgid "Importing model to project..."
-msgstr ""
+msgstr "Model projeye aktarılıyor…"
 
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr "Nesneniz çok büyük görünüyor. Isı yatağına sığacak şekilde otomatik olarak küçültmek istiyor musunuz?"
@@ -7528,25 +7528,25 @@ msgid "Object too large"
 msgstr "Nesne çok büyük"
 
 msgid "Placing model on the bed..."
-msgstr ""
+msgstr "Model baskı yatağına yerleştiriliyor…"
 
 msgid "Updating object list..."
-msgstr ""
+msgstr "Nesne listesi güncelleniyor…"
 
 msgid "Updating 3D view..."
-msgstr ""
+msgstr "3D görünüm güncelleniyor…"
 
 msgid "Model imported."
-msgstr ""
+msgstr "Model içe aktarıldı."
 
 msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
 msgstr ""
 
 msgid "Applying texture colors..."
-msgstr ""
+msgstr "Doku renkleri uygulanıyor…"
 
 msgid "Texture colors applied."
-msgstr ""
+msgstr "Doku renkleri uygulandı."
 
 msgid "Export STL file:"
 msgstr "STL dosyasını dışa aktar:"
@@ -9822,10 +9822,10 @@ msgid "Multi Filament"
 msgstr "Çoklu Filament"
 
 msgid "Purge Mode: Standard"
-msgstr ""
+msgstr "Temizleme Modu: Standart"
 
 msgid "Purge Mode: Fast"
-msgstr ""
+msgstr "Temizleme Modu: Hızlı"
 
 msgid "Printable space"
 msgstr "Tabla Ayarı"
@@ -11046,7 +11046,7 @@ msgid "Slicer default"
 msgstr ""
 
 msgid "Limits"
-msgstr ""
+msgstr "Sınırlar"
 
 msgid "Set your own speed and flow rate limits - or rely on Helio's custom limit settings. With unsupported materials you need to supply your own data or rely on the slicer's built in data."
 msgstr ""
@@ -11292,19 +11292,19 @@ msgid "Fixing cold prints"
 msgstr ""
 
 msgid "Software Update"
-msgstr ""
+msgstr "Yazılım Güncellemesi"
 
 msgid "Try Now"
-msgstr ""
+msgstr "Şimdi dene"
 
 msgid "Don't show me Beta updates again"
-msgstr ""
+msgstr "Beta güncellemelerini bir daha gösterme"
 
 msgid "New Bambu Studio Beta Available"
-msgstr ""
+msgstr "Yeni Bambu Studio Beta Mevcut"
 
 msgid "Current Version"
-msgstr ""
+msgstr "Mevcut Sürüm"
 
 msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
 msgstr ""
@@ -11319,13 +11319,13 @@ msgid "(Help -> Show Configuration Folder)"
 msgstr ""
 
 msgid "Why use the Beta version?"
-msgstr ""
+msgstr "Beta sürümünü neden kullanmalı?"
 
 msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
 msgstr ""
 
 msgid "How to change settings?"
-msgstr ""
+msgstr "Ayarlar nasıl değiştirilir?"
 
 msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
 msgstr ""
@@ -13857,10 +13857,10 @@ msgid "Default Nozzle Volume Type"
 msgstr "Varsayılan Nozul Hacim Tipi"
 
 msgid "Saving"
-msgstr ""
+msgstr "Kaydediliyor…"
 
 msgid "Fast"
-msgstr ""
+msgstr "Hızlı"
 
 msgid "length when change hotend"
 msgstr ""
