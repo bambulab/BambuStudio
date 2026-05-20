@@ -1425,6 +1425,9 @@ wxWindow* PreferencesDialog::create_general_page()
 
     auto item_show_history = create_item_checkbox(_L("Show history on the home page"), page, _L("Show history on the home page"), 50, "show_print_history");
 
+    auto item_makerworld_fullsite = create_item_checkbox(_L("Open full MakerWorld site instead of the simplified Studio view"), page,
+        _L("Load the full MakerWorld website in the Online Models tab instead of the restricted Studio webview."), 50, "makerworld_use_full_site");
+
     std::vector<wxString>  air_temp_timing_list = {_L("Reminder During Slicing"), _L("Automatic mode")};
     std::vector<std::string> air_temp_timing_value_list = {"slicing", "auto"};
 
@@ -1527,15 +1530,17 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_associate_stl, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_associate_step, 0, wxTOP, FromDIP(3));
 #endif // _WIN32
-    auto item_title_modelmall   = sizer_page->Add(title_modelmall, 0, wxTOP | wxEXPAND, FromDIP(20));
-    auto item_item_modelmall    = sizer_page->Add(item_modelmall, 0, wxTOP, FromDIP(3));
-    auto item_item_show_history = sizer_page->Add(item_show_history, 0, wxTOP, FromDIP(3));
+    auto item_title_modelmall        = sizer_page->Add(title_modelmall, 0, wxTOP | wxEXPAND, FromDIP(20));
+    auto item_item_modelmall         = sizer_page->Add(item_modelmall, 0, wxTOP, FromDIP(3));
+    auto item_item_show_history      = sizer_page->Add(item_show_history, 0, wxTOP, FromDIP(3));
+    auto item_item_mw_fullsite       = sizer_page->Add(item_makerworld_fullsite, 0, wxTOP, FromDIP(3));
 
-    auto update_modelmall = [this, item_title_modelmall, item_item_modelmall, item_item_show_history](wxEvent &e) {
+    auto update_modelmall = [this, item_title_modelmall, item_item_modelmall, item_item_show_history, item_item_mw_fullsite](wxEvent &e) {
         bool has_model_mall = wxGetApp().has_model_mall();
         item_title_modelmall->Show(has_model_mall);
         item_item_modelmall->Show(has_model_mall);
         item_item_show_history->Show(has_model_mall);
+        item_item_mw_fullsite->Show(has_model_mall);
         Layout();
         Fit();
     };
