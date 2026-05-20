@@ -192,7 +192,7 @@ namespace Slic3r
                 m_layers_slider = new IMSlider(0, 0, 0, 100, wxSL_VERTICAL);
                 m_p_extrusions = std::make_shared<Extrusions>();
                 m_p_extrusions->reset_role_visibility_flags();
-                if (GUI::wxGetApp().app_config->get_bool("enable_record_gcodeviewer_option_item")) {
+                {
                     auto back_gcodeviewer_option_item = wxGetApp().app_config->get("gcodeviewer_option_item");
                     if (!back_gcodeviewer_option_item.empty()) {
                         m_last_non_helio_option_item = std::atoi(back_gcodeviewer_option_item.c_str());
@@ -3009,10 +3009,8 @@ namespace Slic3r
             }
 
             void BaseRenderer::record_gcodeviewer_option_item() {
-                if (GUI::wxGetApp().app_config->get_bool("enable_record_gcodeviewer_option_item")) {
-                    wxGetApp().app_config->set("gcodeviewer_option_item", std::to_string(m_last_non_helio_option_item));
-                    wxGetApp().app_config->save();
-                }
+                wxGetApp().app_config->set("gcodeviewer_option_item", std::to_string(m_last_non_helio_option_item));
+                wxGetApp().app_config->save();
             }
 
             bool BaseRenderer::get_min_max_value_of_option(int index, float& _min, float& _max) const
