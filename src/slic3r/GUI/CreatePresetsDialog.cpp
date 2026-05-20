@@ -378,7 +378,7 @@ static wxBoxSizer *create_select_filament_preset_checkbox(wxWindow *            
     combobox->SetBorderColor(*wxWHITE);
     combobox->SetLabel(_L("Select filament preset"));
     combobox->Bind(wxEVT_COMBOBOX, [combobox, checkbox, presets, &machine_filament_preset, compatible_printer](wxCommandEvent &e) {
-        combobox->SetLabelColor(*wxBLACK);
+        combobox->SetLabelColor(wxGetApp().get_label_clr_default());
         wxString preset_name = combobox->GetStringSelection();
         checkbox->SetValue(true);
         for (Preset *preset : presets) {
@@ -728,7 +728,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_vendor_item()
     m_filament_vendor_combobox->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
     m_filament_vendor_combobox->Set(choices);
     m_filament_vendor_combobox->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
-        m_filament_vendor_combobox->SetLabelColor(*wxBLACK);
+        m_filament_vendor_combobox->SetLabelColor(wxGetApp().get_label_clr_default());
         e.Skip();
     });
     vendor_sizer->Add(m_filament_vendor_combobox, 0, wxEXPAND | wxALL, 0);
@@ -814,7 +814,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_type_item()
     horizontal_sizer->Add(comboBoxSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
 
     m_filament_type_combobox->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
-        m_filament_type_combobox->SetLabelColor(*wxBLACK);
+        m_filament_type_combobox->SetLabelColor(wxGetApp().get_label_clr_default());
         const wxString &curr_create_type = curr_create_filament_type();
         clear_filament_preset_map();
         if (curr_create_type == m_create_type.base_filament) {
@@ -886,7 +886,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_filament_preset_item()
 
 
     m_filament_preset_combobox->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent &e) {
-        m_filament_preset_combobox->SetLabelColor(*wxBLACK);
+        m_filament_preset_combobox->SetLabelColor(wxGetApp().get_label_clr_default());
         wxString filament_type = m_filament_preset_combobox->GetStringSelection();
         std::unordered_map<std::string, std::vector<Preset *>>::iterator iter = m_filament_choice_map.find(m_public_name_to_filament_id_map[filament_type]);
 
@@ -1663,7 +1663,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
     }
     m_select_vendor->Set(printer_vendor);
     m_select_vendor->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent e) {
-        m_select_vendor->SetLabelColor(*wxBLACK);
+        m_select_vendor->SetLabelColor(wxGetApp().get_label_clr_default());
         std::string curr_selected_vendor = into_u8(m_select_vendor->GetStringSelection());
         std::unordered_map<std::string,std::vector<std::string>>::const_iterator iter  = printer_model_map.find(curr_selected_vendor);
         if (iter != printer_model_map.end())
@@ -1676,7 +1676,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
             m_select_model->Set(model_choice);
             if (!model_choice.empty()) {
                 m_select_model->SetSelection(0);
-                m_select_model->SetLabelColor(*wxBLACK);
+                m_select_model->SetLabelColor(wxGetApp().get_label_clr_default());
             }
         } else {
             MessageDialog dlg(this, _L("The model is not fond, place reselect vendor."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
@@ -1696,7 +1696,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
     m_select_model->SetValue(_L("Select Model"));
     m_select_model->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
     m_select_model->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent e) {
-        m_select_model->SetLabelColor(*wxBLACK);
+        m_select_model->SetLabelColor(wxGetApp().get_label_clr_default());
         e.Skip();
     });
 
@@ -1705,7 +1705,7 @@ wxBoxSizer *CreatePrinterPresetDialog::create_printer_item(wxWindow *parent)
     m_select_printer->SetValue(_L("Select Printer"));
     m_select_printer->SetLabelColor(DEFAULT_PROMPT_TEXT_COLOUR);
     m_select_printer->Bind(wxEVT_COMBOBOX, [this](wxCommandEvent e) {
-        m_select_printer->SetLabelColor(*wxBLACK);
+        m_select_printer->SetLabelColor(wxGetApp().get_label_clr_default());
 
         e.Skip();
     });
@@ -3047,7 +3047,7 @@ bool CreatePrinterPresetDialog::data_init()
 void CreatePrinterPresetDialog::on_select_printer_model(wxCommandEvent &e)
 {
     bool is_from_last_page = e.GetExtraLong() == 0; // 0 means form last page,  1 means form cur combobox
-    m_printer_vendor->SetLabelColor(*wxBLACK);
+    m_printer_vendor->SetLabelColor(wxGetApp().get_label_clr_default());
     VendorMap     vendors;
     wxArrayString exist_vendor_choice  = get_exist_vendor_choices(vendors);
     std::string curr_selected_vendor = into_u8(m_printer_vendor->GetStringSelection());
@@ -3408,7 +3408,7 @@ bool CreatePrinterPresetDialog::validate_input_valid()
 
 void CreatePrinterPresetDialog::on_preset_model_value_change(wxCommandEvent &e)
 {
-    m_printer_model->SetLabelColor(*wxBLACK);
+    m_printer_model->SetLabelColor(wxGetApp().get_label_clr_default());
     if (m_printer_preset_vendor_selected.models.empty()) {
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " selected vendor has no models, and the vendor is: " << m_printer_preset_vendor_selected.id;
         return;
