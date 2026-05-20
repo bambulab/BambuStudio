@@ -79,7 +79,9 @@ const std::vector<std::string> GCodeProcessor::CustomTags = {
     " VFLUSH_END",
     " SKIPPABLE_START",
     " SKIPPABLE_END",
-    " SKIPTYPE: "
+    " SKIPTYPE: ",
+    " FilamentChangeGCodeStart",
+    " FilamentChangeGCodeEnd"
 };
 
 
@@ -770,6 +772,13 @@ void GCodeProcessor::TimeProcessor::post_process(const std::string& filename, st
                 skippable_blocks.back().first = line_id;
             }
             else if (line == custom_tags(CustomETags::SKIPPABLE_END)){
+                skippable_blocks.back().second = line_id;
+            }
+            else if (context.handle_hotend_as_extruder && line == custom_tags(CustomETags::FilamentChangeGCodeStart)) {
+                skippable_blocks.emplace_back(0, 0);
+                skippable_blocks.back().first = line_id;
+            }
+            else if (context.handle_hotend_as_extruder && line == custom_tags(CustomETags::FilamentChangeGCodeEnd) && !skippable_blocks.empty()) {
                 skippable_blocks.back().second = line_id;
             }
         }
@@ -6617,6 +6626,15 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         }
         return 0;
     };
+    auto adjust_pre_heating_insert_gcode_id = [&find_skip_block_start](unsigned int gcode_id) -> unsigned int {
+        while (gcode_id > 0) {
+            unsigned skip_block_start = find_skip_block_start(gcode_id);
+            if (skip_block_start == 0)
+                return gcode_id;
+            gcode_id = skip_block_start - 1;
+        }
+        return 0;
+    };
 
     auto adjust_iter = [&](std::vector<GCodeProcessorResult::MoveVertex>::const_iterator iter,
                        const std::vector<GCodeProcessorResult::MoveVertex>::const_iterator& begin,
@@ -6762,7 +6780,10 @@ void GCodeProcessor::PreCoolingInjector::inject_cooling_heating_command(TimeProc
         float heating_start_time = move_iter_upper->time[valid_machine_id] - (target_temp - curr_temp) / ext_heating_rate;
         auto heating_move_iter = std::upper_bound(move_iter_lower, move_iter_upper + 1, heating_start_time, [valid_machine_id = this->valid_machine_id](float time, const GCodeProcessorResult::MoveVertex& a) {return time < a.time[valid_machine_id]; });
         if (heating_move_iter == move_iter_lower) {
-            add_M104_lines(block.free_lower_gcode_id,extruder_id,target_temp, block.next_filament_id, true, block.next_filament_id,block.next_nozzle_id, true, TimeProcessor::InsertLineType::PreHeating,"Multi extruder pre heating");
+            unsigned int heating_gcode_id = adjust_pre_heating_insert_gcode_id(block.free_lower_gcode_id);
+            if (heating_gcode_id == 0)
+                return;
+            add_M104_lines(heating_gcode_id,extruder_id,target_temp, block.next_filament_id, true, block.next_filament_id,block.next_nozzle_id, true, TimeProcessor::InsertLineType::PreHeating,"Multi extruder pre heating");
         }
         else {
             --heating_move_iter;

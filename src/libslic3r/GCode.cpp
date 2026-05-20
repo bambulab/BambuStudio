@@ -1104,6 +1104,10 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             toolchange_gcode_str = gcodegen.placeholder_parser_process("change_filament_gcode", change_filament_gcode, new_filament_id, &config);
 
             check_add_eol(toolchange_gcode_str);
+            toolchange_gcode_str =
+                ";" + GCodeProcessor::custom_tags(GCodeProcessor::CustomETags::FilamentChangeGCodeStart) + "\n" +
+                toolchange_gcode_str +
+                ";" + GCodeProcessor::custom_tags(GCodeProcessor::CustomETags::FilamentChangeGCodeEnd) + "\n";
 
             //BBS
             {

@@ -503,7 +503,9 @@ namespace Slic3r {
             VFLUSH_END,
             SKIPPABLE_START,
             SKIPPABLE_END,
-            SKIPPABLE_TYPE
+            SKIPPABLE_TYPE,
+            FilamentChangeGCodeStart,
+            FilamentChangeGCodeEnd
         };
 
         static const std::string& reserved_tag(ETags tag) { return ReservedTags[static_cast<unsigned char>(tag)]; }
