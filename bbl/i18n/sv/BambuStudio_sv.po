@@ -320,7 +320,7 @@ msgstr "Luftfuktighet"
 msgid "Temperature"
 msgstr "Temperatur"
 
-msgid "Left Time"
+msgid "Remaining Time"
 msgstr "Tid kvar"
 
 msgid "Drying"
@@ -593,7 +593,7 @@ msgstr "Konvext skrov"
 msgid "Triangular facet"
 msgstr "Triangulär fasett"
 
-msgid "Warning: All triangle areas are too small,The current function is not working."
+msgid "Warning: All triangle areas are too small. The current function is not working."
 msgstr "Varning: Alla trianglar är för små; Den aktuella funktionen fungerar inte."
 
 msgid "Lay on face"
@@ -2976,7 +2976,7 @@ msgstr ""
 msgid "Enabling filtration redirects the right fan to filter gas, which may reduce cooling performance."
 msgstr "Om filtrering aktiveras omdirigeras höger fläkt till filtergas, vilket kan minska kylprestandan."
 
-msgid "Enabling filtration during printing may reduce cooling and affect print qulity. Please choose carefully"
+msgid "Enabling filtration during printing may reduce cooling and affect print quality. Please choose carefully"
 msgstr "Att aktivera filtrering under utskrift kan minska kylningen och påverka utskriftskvaliteten. Välj noggrant."
 
 msgid "The selected material only supports the current fan mode, and it can't be changed during printing."
@@ -3810,7 +3810,7 @@ msgstr "Infoga uppdatering"
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "AMS läser automatiskt filament informationen när du sätter in ett nytt Bambu Lab-filament. Det tar ungefär 20 sekunder."
 
-msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
+msgid "Note: if a new filament is inserted during printing, the AMS will not automatically read any information until printing is completed."
 msgstr "Obs:  Om ett nytt filament sätts in under utskriften kommer AMS inte att automatiskt läsa av någon information förrän utskriften är klar."
 
 msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
@@ -6689,7 +6689,7 @@ msgctxt "Firmware"
 msgid "Update"
 msgstr "Uppdatera"
 
-msgid "Assistant(HMS)"
+msgid "Assistant (HMS)"
 msgstr "Assistent (HMS)"
 
 msgid "Go to"
@@ -7399,7 +7399,7 @@ msgstr "Återställ"
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "The current heatbed temperature is relatively high. The nozzle may clog when printing this filament in a closed environment. Please open the front door and/or remove the upper glass."
 
-msgid "The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be attrited or damaged."
+msgid "The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be worn or damaged."
 msgstr "Nozzelns hårdhet som filamentet kräver är högre än printerns standard för nozzeln. Byt ut den härdade nozzeln eller filamentet, annars kommer nozzeln att slitas ner eller skadas."
 
 msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."

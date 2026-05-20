@@ -328,7 +328,7 @@ msgstr "溼度"
 msgid "Temperature"
 msgstr "溫度"
 
-msgid "Left Time"
+msgid "Remaining Time"
 msgstr "剩餘時間"
 
 msgid "Drying"
@@ -601,7 +601,7 @@ msgstr "凸包"
 msgid "Triangular facet"
 msgstr "三角面片"
 
-msgid "Warning: All triangle areas are too small,The current function is not working."
+msgid "Warning: All triangle areas are too small. The current function is not working."
 msgstr "警告：所有的三角形面積過小，當前功能不能工作。"
 
 msgid "Lay on face"
@@ -2968,7 +2968,7 @@ msgstr "過濾"
 msgid "Enabling filtration redirects the right fan to filter gas, which may reduce cooling performance."
 msgstr "開啟過濾後右側風扇將用於過濾氣體，同時降低冷卻效果。"
 
-msgid "Enabling filtration during printing may reduce cooling and affect print qulity. Please choose carefully"
+msgid "Enabling filtration during printing may reduce cooling and affect print quality. Please choose carefully"
 msgstr "開啟過濾後會降低冷卻效果，同時可能會影響列印質量，請確認是否開啟"
 
 msgid "The selected material only supports the current fan mode, and it can't be changed during printing."
@@ -3798,7 +3798,7 @@ msgstr "插入料時更新"
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "當插入新的Bambu Lab耗材絲的時候，AMS會自動讀取耗材絲資訊。這個過程大約需要20秒。"
 
-msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
+msgid "Note: if a new filament is inserted during printing, the AMS will not automatically read any information until printing is completed."
 msgstr "注意：如果是在列印過程中插入新的耗材絲，AMS會在列印結束後自動讀取此耗材絲資訊。"
 
 msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
@@ -6651,7 +6651,7 @@ msgctxt "Firmware"
 msgid "Update"
 msgstr "韌體更新"
 
-msgid "Assistant(HMS)"
+msgid "Assistant (HMS)"
 msgstr "助手(HMS)"
 
 msgid "Go to"
@@ -7357,7 +7357,7 @@ msgstr "恢復"
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "當前熱床溫度相對較高。在封閉式外殼中列印這種絲可能會導致噴嘴堵塞。請開啟前門和/或取下上部玻璃。"
 
-msgid "The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be attrited or damaged."
+msgid "The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be worn or damaged."
 msgstr "耗材絲所要求的噴嘴硬度高於印表機預設的噴嘴硬度。請更換硬化的噴嘴或耗材絲，否則噴嘴可能被磨損或損壞。"
 
 msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."

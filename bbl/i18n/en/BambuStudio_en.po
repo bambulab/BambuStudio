@@ -320,7 +320,7 @@ msgstr ""
 msgid "Temperature"
 msgstr "Temperature"
 
-msgid "Left Time"
+msgid "Remaining Time"
 msgstr "Remaining Time"
 
 msgid "Drying"
@@ -593,7 +593,7 @@ msgstr ""
 msgid "Triangular facet"
 msgstr ""
 
-msgid "Warning: All triangle areas are too small,The current function is not working."
+msgid "Warning: All triangle areas are too small. The current function is not working."
 msgstr ""
 
 msgid "Lay on face"
@@ -2965,7 +2965,7 @@ msgstr ""
 msgid "Enabling filtration redirects the right fan to filter gas, which may reduce cooling performance."
 msgstr ""
 
-msgid "Enabling filtration during printing may reduce cooling and affect print qulity. Please choose carefully"
+msgid "Enabling filtration during printing may reduce cooling and affect print quality. Please choose carefully"
 msgstr ""
 
 msgid "The selected material only supports the current fan mode, and it can't be changed during printing."
@@ -3786,7 +3786,7 @@ msgstr "Insertion update"
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "The AMS will automatically read the filament information when inserting a new Bambu Lab filament spool. This takes about 20 seconds."
 
-msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
+msgid "Note: if a new filament is inserted during printing, the AMS will not automatically read any information until printing is completed."
 msgstr "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
 
 msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
@@ -6636,7 +6636,7 @@ msgctxt "Firmware"
 msgid "Update"
 msgstr ""
 
-msgid "Assistant(HMS)"
+msgid "Assistant (HMS)"
 msgstr ""
 
 msgid "Go to"
@@ -7341,7 +7341,7 @@ msgstr "Restore"
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "The current heatbed temperature is relatively high. The nozzle may clog when printing this filament in a closed environment. Please open the front door and/or remove the upper glass."
 
-msgid "The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be attrited or damaged."
+msgid "The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be worn or damaged."
 msgstr "The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be worn down or damaged."
 
 msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."

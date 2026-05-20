@@ -324,7 +324,7 @@ msgstr "Vlhkost"
 msgid "Temperature"
 msgstr "Teplota"
 
-msgid "Left Time"
+msgid "Remaining Time"
 msgstr "Zbývající čas"
 
 msgid "Drying"
@@ -597,7 +597,7 @@ msgstr "Konvexní obal"
 msgid "Triangular facet"
 msgstr "Trojúhelníková plocha"
 
-msgid "Warning: All triangle areas are too small,The current function is not working."
+msgid "Warning: All triangle areas are too small. The current function is not working."
 msgstr "Varování: Všechny trojúhelníkové plochy jsou příliš malé, aktuální funkce není funkční."
 
 msgid "Lay on face"
@@ -2993,7 +2993,7 @@ msgstr "Filtrace"
 msgid "Enabling filtration redirects the right fan to filter gas, which may reduce cooling performance."
 msgstr "Povolení filtrace nasměruje pravý ventilátor k filtrování plynu, což může snížit výkon chlazení."
 
-msgid "Enabling filtration during printing may reduce cooling and affect print qulity. Please choose carefully"
+msgid "Enabling filtration during printing may reduce cooling and affect print quality. Please choose carefully"
 msgstr "Povolení filtrace během tisku může snížit chlazení a ovlivnit kvalitu tisku. Volte pečlivě"
 
 msgid "The selected material only supports the current fan mode, and it can't be changed during printing."
@@ -3835,7 +3835,7 @@ msgstr "Aktualizace vložení"
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "AMS automaticky načte informace o filamentu při vložení nového filamentu značky Bambu Lab. Tento proces trvá přibližně 20 sekund."
 
-msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
+msgid "Note: if a new filament is inserted during printing, the AMS will not automatically read any information until printing is completed."
 msgstr "Poznámka: Pokud během tisku vložíte nový filament, AMS jeho informace automaticky nenačte, dokud tisk neskončí."
 
 msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
@@ -6765,7 +6765,7 @@ msgctxt "Firmware"
 msgid "Update"
 msgstr "Aktualizovat"
 
-msgid "Assistant(HMS)"
+msgid "Assistant (HMS)"
 msgstr "Asistent (HMS)"
 
 msgid "Go to"
@@ -7482,7 +7482,7 @@ msgstr "Obnovit"
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "Teplota vyhřívané podložky je aktuálně poměrně vysoká. Při tisku tohoto filamentu v uzavřeném prostoru může dojít k ucpání trysky. Otevřete prosím přední dvířka a/nebo sejměte horní sklo."
 
-msgid "The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be attrited or damaged."
+msgid "The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be worn or damaged."
 msgstr "Filament vyžaduje vyšší tvrdost trysky, než je výchozí tvrdost trysky tiskárny. Vyměňte trysku za tvrzenou nebo použijte jiný filament, jinak může dojít k opotřebení nebo poškození trysky."
 
 msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."

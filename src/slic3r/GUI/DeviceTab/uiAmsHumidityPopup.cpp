@@ -65,7 +65,7 @@ void uiAmsPercentHumidityDryPopup::Create()
     wxGridSizer* grid_sizer = new wxGridSizer(2, 3, FromDIP(10), FromDIP(10));
     m_humidity_header = new Label(this, _L("Humidity"));
     m_temperature_header = new Label(this, _L("Temperature"));
-    left_dry_time_header = new Label(this, _L("Left Time"));
+    left_dry_time_header = new Label(this, _L("Remaining Time"));
     m_humidity_label = new Label(this);
     m_temperature_label = new Label(this);
     left_dry_time_label = new Label(this);

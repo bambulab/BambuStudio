@@ -323,7 +323,7 @@ msgstr "습도"
 msgid "Temperature"
 msgstr "온도"
 
-msgid "Left Time"
+msgid "Remaining Time"
 msgstr "남은 시간: {time}"
 
 msgid "Drying"
@@ -596,7 +596,7 @@ msgstr "볼록한 선체"
 msgid "Triangular facet"
 msgstr "삼각형 패싯"
 
-msgid "Warning: All triangle areas are too small,The current function is not working."
+msgid "Warning: All triangle areas are too small. The current function is not working."
 msgstr "경고: 모든 삼각형 영역이 너무 작아서 현재 기능이 작동하지 않습니다."
 
 msgid "Lay on face"
@@ -2973,7 +2973,7 @@ msgstr "필터"
 msgid "Enabling filtration redirects the right fan to filter gas, which may reduce cooling performance."
 msgstr "필터링을 활성화하면 오른쪽 팬이 가스를 걸러내도록 하여 냉각 성능이 저하될 수 있습니다."
 
-msgid "Enabling filtration during printing may reduce cooling and affect print qulity. Please choose carefully"
+msgid "Enabling filtration during printing may reduce cooling and affect print quality. Please choose carefully"
 msgstr "출력 중에 필터링을 활성화하면 냉각이 감소하고 출력 품질에 영향을 줄 수 있습니다. 신중하게 선택하세요."
 
 msgid "The selected material only supports the current fan mode, and it can't be changed during printing."
@@ -3807,7 +3807,7 @@ msgstr "필라멘트 삽입 업데이트"
 msgid "The AMS will automatically read the filament information when inserting a new Bambu Lab filament. This takes about 20 seconds."
 msgstr "AMS는 새 Bambu Lab 필라멘트 스풀을 삽입할 때 필라멘트 정보를 자동으로 읽습니다. 이 과정은 약 20초 정도 소요됩니다."
 
-msgid "Note: if a new filament is inserted during  printing, the AMS will not automatically read any information until printing is completed."
+msgid "Note: if a new filament is inserted during printing, the AMS will not automatically read any information until printing is completed."
 msgstr "참고: 출력 중에 새 필라멘트를 삽입하면, 출력이 완료될 때까지 AMS가 자동으로 정보를 읽지 않습니다."
 
 msgid "When inserting a new filament, the AMS will not automatically read its information, leaving it blank for you to enter manually."
@@ -6683,7 +6683,7 @@ msgctxt "Firmware"
 msgid "Update"
 msgstr "업데이트"
 
-msgid "Assistant(HMS)"
+msgid "Assistant (HMS)"
 msgstr "도우미 (HMS)"
 
 msgid "Go to"
@@ -7393,7 +7393,7 @@ msgstr "복원"
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "현재 열판 온도가 상대적으로 높습니다. 밀폐된 환경에서 이 필라멘트를 출력할 경우 노즐이 막힐 수 있습니다. 전면 도어를 열거나 상단 유리를 제거하세요."
 
-msgid "The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be attrited or damaged."
+msgid "The nozzle hardness required by the filament is higher than the default nozzle hardness of the printer. Please replace the hardened nozzle or filament, otherwise, the nozzle will be worn or damaged."
 msgstr "필라멘트에 필요한 노즐 경도는 프린터의 기본 노즐 경도보다 높습니다. 노즐을 강화된 노즐로 변경하거나 필라멘트를 교체하십시오. 그렇지 않으면 노즐이 마모되거나 손상될 수 있습니다."
 
 msgid "Enabling traditional timelapse photography may cause surface imperfections. It is recommended to change to smooth mode."
