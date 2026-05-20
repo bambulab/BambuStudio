@@ -177,6 +177,7 @@ struct Caninfo
     std::string     can_id;
     std::string     can_pannel_name;
     wxString        material_name;
+    wxString        sub_brands;
     wxColour        material_colour = { *wxWHITE };
     AMSCanType      material_state;
     int             ctype = 0;
@@ -193,6 +194,7 @@ public:
         if (can_id == other.can_id &&
             can_pannel_name == other.can_pannel_name &&
             material_name == other.material_name &&
+            sub_brands == other.sub_brands &&
             material_colour == other.material_colour &&
             material_state == other.material_state &&
             ctype == other.ctype &&

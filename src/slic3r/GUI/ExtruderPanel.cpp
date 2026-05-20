@@ -1142,8 +1142,9 @@ void ExtruderDialogPanel::update_ams()
                     nozzle_internal.question_label->Show(); // 未知材料增加？显示
                 }
                 else {
-                    // 正常识别材料
-                    nozzle_internal.material_label->SetLabel(info.material_name);
+                    // 正常识别材料 — prefer the full sub-brand name (e.g. "PLA Basic") over the bare type (e.g. "PLA")
+                    const wxString &display_name = !info.sub_brands.IsEmpty() ? info.sub_brands : info.material_name;
+                    nozzle_internal.material_label->SetLabel(display_name);
                     nozzle_internal.material_color_box->SetBackgroundColour(wxColour(info.material_colour));
                     nozzle_internal.material_color_box->SetBorderWidth(0);
                     nozzle_internal.question_label->Hide();

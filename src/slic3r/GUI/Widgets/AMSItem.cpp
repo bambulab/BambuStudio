@@ -87,6 +87,7 @@ bool AMSinfo::parse_ams_info(MachineObject *obj, DevAms *ams, bool remain_flag, 
                 info.can_id        = it->second->id;
                 info.ctype         = it->second->ctype;
                 info.material_name = it->second->get_display_filament_type();
+                info.sub_brands    = wxString::FromUTF8(it->second->sub_brands);
                 info.cali_idx      = it->second->cali_idx;
                 info.filament_id   = it->second->setting_id;
                 if (!it->second->color.empty()) {
@@ -163,6 +164,7 @@ void AMSinfo::parse_ext_info(MachineObject* obj, DevAmsTray tray) {
     if (tray.is_tray_info_ready()) {
         info.ctype = tray.ctype;
         info.material_name = tray.get_display_filament_type();
+        info.sub_brands    = wxString::FromUTF8(tray.sub_brands);
         info.cali_idx    = tray.cali_idx;
         info.filament_id = tray.setting_id;
         if (!tray.color.empty()) {
