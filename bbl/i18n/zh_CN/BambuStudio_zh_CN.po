@@ -1087,7 +1087,7 @@ msgstr "个连接件超出了切割面范围"
 msgid "connector is out of object"
 msgstr "个连接件穿透了模型"
 
-msgid "connectors is out of object"
+msgid "connectors are out of object"
 msgstr "个连接件穿透了模型"
 
 msgid "Some connectors are overlapped"
@@ -1546,7 +1546,7 @@ msgstr "警告：当前文本间距不够合理。如果继续编辑，将生成
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "警告：旧矩阵至少有两个参数：镜像、缩放和旋转。如果继续编辑，则可能不正确。请拖动文本或取消使用当前姿势，保存并重新编辑。"
 
-msgid "Error:Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes.Please drag text,save it then reedit it again."
+msgid "Error: Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes. Please drag text, save it then reedit it again."
 msgstr "错误：检测到不正确的网格id或未知错误，重新生成文本可能会导致不正确的结果。请拖动文本，保存，然后重新编辑。"
 
 msgid "Warning:Due to functional upgrade, rotation information cannot be restored. Please drag or modify text,save it and reedit it will ok."
@@ -5934,7 +5934,7 @@ msgstr "打印机正在忙于下载，请等下载完成后再尝试。"
 msgid "Printer camera is malfunctioning."
 msgstr "打印机摄像头异常。"
 
-msgid "Problem occured. Please update the printer firmware and try again."
+msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "出现了一些问题。请更新打印机固件后重试。"
 
 msgid "LAN Only Liveview is off. Please turn on the liveview on printer screen."
@@ -8978,7 +8978,7 @@ msgstr "材料编号和AMS槽位中的耗材丝材质不匹配，请更新打印
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
 msgstr "当前选择的打印机（%s）与打印文件配置（%s）不兼容，请前往准备界面重新选择打印机预设，或在此页面选择兼容的打印机。"
 
-msgid "When enable spiral vase mode, machines with I3 structure will not generate timelapse videos."
+msgid "When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "启用螺旋花瓶模式时，具有I3结构的机器将不会生成延时视频。"
 
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."

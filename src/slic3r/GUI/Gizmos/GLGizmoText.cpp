@@ -2433,7 +2433,7 @@ void GLGizmoText::on_render_input_window(float x, float y, float bottom_limit)
     }
     if (m_show_warning_error_mesh) {
         m_imgui->warning_text_wrapped(
-            _L("Error:Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes.Please drag text,save it then reedit it again."),
+            _L("Error: Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes. Please drag text, save it then reedit it again."),
             full_width);
         m_parent.request_extra_frame();
     }

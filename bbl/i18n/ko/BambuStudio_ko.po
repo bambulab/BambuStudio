@@ -1085,7 +1085,7 @@ msgstr "커넥터가 절단 윤곽에서 벗어남"
 msgid "connector is out of object"
 msgstr "커넥터가 객체에서 벗어남"
 
-msgid "connectors is out of object"
+msgid "connectors are out of object"
 msgstr "커넥터는 객체 표면에 있어야 합니다."
 
 msgid "Some connectors are overlapped"
@@ -1549,7 +1549,7 @@ msgstr "경고: 현재 텍스트 간격이 적절하지 않습니다. 편집을 
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "경고: 이전 매트릭스에는 미러링, 크기 조정 및 회전이라는 두 가지 이상의 매개변수가 있습니다. 계속 편집하면 올바르지 않을 수 있습니다. 텍스트를 드래그하거나 현재 포즈를 사용하여 취소하고 저장한 후 다시 편집하세요."
 
-msgid "Error:Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes.Please drag text,save it then reedit it again."
+msgid "Error: Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes. Please drag text, save it then reedit it again."
 msgstr "오류: 잘못된 메시 ID 또는 알 수 없는 오류를 감지하여 텍스트를 다시 생성하면 잘못된 결과가 발생할 수 있으므로 텍스트를 드래그하여 저장한 후 다시 편집하세요."
 
 msgid "Warning:Due to functional upgrade, rotation information cannot be restored. Please drag or modify text,save it and reedit it will ok."
@@ -5961,7 +5961,7 @@ msgstr "프린터가 현재 다운로드 중입니다. 다운로드가 완료된
 msgid "Printer camera is malfunctioning."
 msgstr "프린터 카메라가 오작동합니다."
 
-msgid "Problem occured. Please update the printer firmware and try again."
+msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "문제가 발생했습니다. 프린터 펌웨어를 업데이트하고 다시 시도하세요."
 
 msgid "LAN Only Liveview is off. Please turn on the liveview on printer screen."
@@ -9026,7 +9026,7 @@ msgstr "필라멘트가 AMS 슬롯의 필라멘트와 일치하지 않습니다.
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
 msgstr "선택한 프린터(%s)가 출력 파일 구성(%s)과 호환되지 않습니다. 준비 페이지에서 프린터 사전 설정을 조정하거나 이 페이지에서 호환되는 프린터를 선택하세요."
 
-msgid "When enable spiral vase mode, machines with I3 structure will not generate timelapse videos."
+msgid "When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "나선형 꽃병 모드가 활성화되면 I3 구조의 머신은 타임랩스 동영상을 생성하지 않습니다."
 
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."

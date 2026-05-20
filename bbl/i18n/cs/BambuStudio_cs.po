@@ -1087,7 +1087,7 @@ msgstr "konektory jsou mimo řeznou konturu"
 msgid "connector is out of object"
 msgstr "konektor je mimo objekt"
 
-msgid "connectors is out of object"
+msgid "connectors are out of object"
 msgstr "konektory jsou mimo objekt"
 
 msgid "Some connectors are overlapped"
@@ -1559,7 +1559,7 @@ msgstr "Varování: Aktuální rozestupy textu nejsou příliš vhodné. Pokud b
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "Varování: Stará matice obsahuje alespoň dva parametry: zrcadlení, škálování a rotaci. Pokud budete pokračovat v úpravách, výsledek nemusí být správný. Přetáhněte text nebo zrušte použití aktuální polohy, uložte změny a poté upravujte znovu."
 
-msgid "Error:Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes.Please drag text,save it then reedit it again."
+msgid "Error: Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes. Please drag text, save it then reedit it again."
 msgstr "Chyba: Bylo zjištěno nesprávné ID sítě nebo došlo k neznámé chybě. Opětovné generování textu může vést k nesprávným výsledkům. Přetáhněte text, uložte jej a poté jej znovu upravte."
 
 msgid "Warning:Due to functional upgrade, rotation information cannot be restored. Please drag or modify text,save it and reedit it will ok."
@@ -6036,7 +6036,7 @@ msgstr "Tiskárna právě stahuje data. Zkuste to prosím znovu po dokončení."
 msgid "Printer camera is malfunctioning."
 msgstr "Kamera tiskárny nefunguje správně."
 
-msgid "Problem occured. Please update the printer firmware and try again."
+msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "Došlo k problému. Aktualizujte firmware tiskárny a zkuste to znovu."
 
 msgid "LAN Only Liveview is off. Please turn on the liveview on printer screen."
@@ -9132,7 +9132,7 @@ msgstr "Filament neodpovídá filamentu ve slotu AMS. Aktualizujte firmware tisk
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
 msgstr "Vybraná tiskárna (%s) není kompatibilní s konfigurací tiskového souboru (%s). Upravte prosím předvolbu tiskárny na stránce Příprava nebo na této stránce zvolte kompatibilní tiskárnu."
 
-msgid "When enable spiral vase mode, machines with I3 structure will not generate timelapse videos."
+msgid "When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "Při zapnutí režimu spirálové vázy nebudou tiskárny s konstrukcí I3 generovat časosběrná videa."
 
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."

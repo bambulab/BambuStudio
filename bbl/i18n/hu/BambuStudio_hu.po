@@ -1085,7 +1085,7 @@ msgstr "az összekötők kívül esnek a vágás kontúrján"
 msgid "connector is out of object"
 msgstr "az összekötő tárgyon kívül van"
 
-msgid "connectors is out of object"
+msgid "connectors are out of object"
 msgstr "az összekötők a tárgyon kívül vannak"
 
 msgid "Some connectors are overlapped"
@@ -1549,7 +1549,7 @@ msgstr "Figyelmeztetés: a jelenlegi betűköz nem túl megfelelő. Ha folytatod
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "Figyelmeztetés: a régi mátrixnak legalább két paramétere van: tükrözés, skálázás és forgatás. Ha folytatod a szerkesztést, lehet, hogy nem lesz helyes. Kérjük, húzd odébb a szöveget vagy töröld az aktuális beállítás, mentsd és szerkeszd újra."
 
-msgid "Error:Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes.Please drag text,save it then reedit it again."
+msgid "Error: Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes. Please drag text, save it then reedit it again."
 msgstr "Hiba: Helytelen hálóazonosító vagy ismeretlen hiba esetén a szöveg újraszerkesztése hibás eredményt eredményezhet. Kérjük, húzd odébb a szöveget, mentsd el, majd szerkeszd újra."
 
 msgid "Warning:Due to functional upgrade, rotation information cannot be restored. Please drag or modify text,save it and reedit it will ok."
@@ -5969,7 +5969,7 @@ msgstr "A nyomtató a letöltéssel van elfoglalva. Kérjük, várd meg, amíg a
 msgid "Printer camera is malfunctioning."
 msgstr "A nyomtató kamerája hibásan működik."
 
-msgid "Problem occured. Please update the printer firmware and try again."
+msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "Probléma merült fel. Kérjük, frissítsd a nyomtató firmware-ét, és próbáld meg újra."
 
 msgid "LAN Only Liveview is off. Please turn on the liveview on printer screen."
@@ -9030,7 +9030,7 @@ msgstr "A filament típusa nem egyezik az AMS-férőhelyben találhatóval. Kér
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
 msgstr "A kiválasztott nyomtató (%s) nem kompatibilis a nyomtatási fájl konfigurációjával (%s). Kérjük, válaszd ki a megfelel nyomtatóbeállítást az előkészítés oldalon, vagy válassz egy kompatibilis nyomtatót ezen az oldalon."
 
-msgid "When enable spiral vase mode, machines with I3 structure will not generate timelapse videos."
+msgid "When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "When spiral vase mode is enabled, machines with I3 structure will not generate timelapse videos."
 
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."

@@ -1085,7 +1085,7 @@ msgstr "konektörler kesim konturunun dışında"
 msgid "connector is out of object"
 msgstr "konektör nesnenin dışında"
 
-msgid "connectors is out of object"
+msgid "connectors are out of object"
 msgstr "konektörler nesne dışı"
 
 msgid "Some connectors are overlapped"
@@ -1549,7 +1549,7 @@ msgstr "Uyarı: mevcut metin aralığı çok uygun değildir. Düzenlemeye devam
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "Uyarı:eski matrisin en az iki parametresi vardır: yansıtma, ölçekleme ve döndürme. Düzenlemeye devam ederseniz, doğru olmayabilir. Lütfen metni sürükleyin veya mevcut pozu kullanarak iptal edin, kaydedin ve yeniden düzenleyin."
 
-msgid "Error:Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes.Please drag text,save it then reedit it again."
+msgid "Error: Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes. Please drag text, save it then reedit it again."
 msgstr "Hata: Yanlış bir ağ kimliği veya bilinmeyen bir hata algılandığında, metnin yeniden oluşturulması yanlış sonuçlara neden olabilir, lütfen metni sürükleyin, kaydedin ve tekrar düzenleyin."
 
 msgid "Warning:Due to functional upgrade, rotation information cannot be restored. Please drag or modify text,save it and reedit it will ok."
@@ -5954,7 +5954,7 @@ msgstr "Yazıcı şu anda indirme işlemiyle meşgul. Lütfen bittikten sonra te
 msgid "Printer camera is malfunctioning."
 msgstr "Yazıcı kamerası arızalı."
 
-msgid "Problem occured. Please update the printer firmware and try again."
+msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "Sorun meydana geldi. Lütfen yazıcı aygıt yazılımını güncelleyin ve tekrar deneyin."
 
 msgid "LAN Only Liveview is off. Please turn on the liveview on printer screen."
@@ -8988,7 +8988,7 @@ msgstr "Filament, AMS yuvasındaki filamentle eşleşmiyor. AMS yuvası ataması
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
 msgstr "Seçilen yazıcı (%s), baskı dosyası yapılandırmasıyla (%s) uyumlu değil. Lütfen hazırlık sayfasında yazıcı ön ayarını düzenleyin veya bu sayfada uyumlu bir yazıcı seçin."
 
-msgid "When enable spiral vase mode, machines with I3 structure will not generate timelapse videos."
+msgid "When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "Spiral vazo modu etkinleştirildiğinde, I3 yapısına sahip makineler zaman atlamalı videolar oluşturmayacaktır."
 
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."

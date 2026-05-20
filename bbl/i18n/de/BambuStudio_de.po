@@ -1085,7 +1085,7 @@ msgstr "Die Verbinder befinden sich außerhalb der Schnittkontur"
 msgid "connector is out of object"
 msgstr "Verbinder ist außerhalb des Objekts"
 
-msgid "connectors is out of object"
+msgid "connectors are out of object"
 msgstr "Die Verbinder müssen sich auf der Oberfläche des Objekts befinden."
 
 msgid "Some connectors are overlapped"
@@ -1549,7 +1549,7 @@ msgstr "Warnung: Der aktuelle Textabstand ist nicht sehr sinnvoll. Wenn Sie mit 
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "Warnung: Die alte Matrix hat mindestens zwei Parameter: Spiegelung, Skalierung und Drehung. Wenn Sie mit der Bearbeitung fortfahren, ist sie möglicherweise nicht korrekt. Bitte ziehen Sie den Text oder brechen Sie die Bearbeitung mit der aktuellen Position ab, speichern Sie und bearbeiten Sie erneut."
 
-msgid "Error:Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes.Please drag text,save it then reedit it again."
+msgid "Error: Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes. Please drag text, save it then reedit it again."
 msgstr "Fehler: Bei Erkennung einer falschen Netz-ID oder eines unbekannten Fehlers kann die Neuerstellung von Text zu falschen Ergebnissen führen. Bitte ziehen Sie den Text, speichern Sie ihn und bearbeiten Sie ihn erneut."
 
 msgid "Warning:Due to functional upgrade, rotation information cannot be restored. Please drag or modify text,save it and reedit it will ok."
@@ -5971,7 +5971,7 @@ msgstr "Der Drucker ist gerade mit dem Herunterladen beschäftigt. Bitte versuch
 msgid "Printer camera is malfunctioning."
 msgstr "Die Druckerkamera funktioniert nicht richtig."
 
-msgid "Problem occured. Please update the printer firmware and try again."
+msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "Es ist ein Problem aufgetreten. Bitte aktualisieren Sie die Druckerfirmware und versuchen Sie es erneut."
 
 msgid "LAN Only Liveview is off. Please turn on the liveview on printer screen."
@@ -9040,7 +9040,7 @@ msgstr "Filament stimmt nicht mit dem Filament in AMS-Slot überein. Bitte aktua
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
 msgstr "Der ausgewählte Drucker (%s) ist mit der Konfiguration der Druckdatei (%s) nicht kompatibel. Passen Sie das Druckerprofil auf der Vorbereitungsseite an oder wählen Sie auf dieser Seite einen kompatiblen Drucker aus."
 
-msgid "When enable spiral vase mode, machines with I3 structure will not generate timelapse videos."
+msgid "When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "When spiral vase mode is enabled, machines with I3 structure will not generate timelapse videos."
 
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
