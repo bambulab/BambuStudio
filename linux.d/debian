@@ -35,7 +35,21 @@ REQUIRED_DEV_PACKAGES=(
 
 if [[ -n "$UPDATE_LIB" ]]
 then
-    REQUIRED_DEV_PACKAGES+=(libwebkit2gtk-4.1-dev)
+    # Detect distro and version to pick correct webkit package
+    DISTRO_ID="$(grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"')"
+    VERSION_MAJOR="$(grep VERSION_ID /etc/os-release | cut -d "=" -f 2 | cut -d "." -f 1 | tr -d '\"')"
+    # Debian 13+ and Ubuntu 24+ ship libwebkit2gtk-4.1-dev
+    if [ "$DISTRO_ID" = "debian" ] && [ "$VERSION_MAJOR" -ge "13" ] 2>/dev/null; then
+        REQUIRED_DEV_PACKAGES+=(libwebkit2gtk-4.1-dev curl libfuse-dev libssl-dev libcurl4-openssl-dev m4)
+    elif [ "$VERSION_MAJOR" = "22" ] || [ "$VERSION_MAJOR" = "23" ]
+    then
+        REQUIRED_DEV_PACKAGES+=(libwebkit2gtk-4.0-dev curl libfuse-dev libssl-dev libcurl4-openssl-dev m4)
+    elif [ "$VERSION_MAJOR" = "24" ]
+    then
+        REQUIRED_DEV_PACKAGES+=(libwebkit2gtk-4.1-dev)
+    else
+        REQUIRED_DEV_PACKAGES+=(libwebkit2gtk-4.1-dev)
+    fi
     if [[ -n "$BUILD_DEBUG" ]]
     then
         REQUIRED_DEV_PACKAGES+=(libssl-dev libcurl4-openssl-dev)
