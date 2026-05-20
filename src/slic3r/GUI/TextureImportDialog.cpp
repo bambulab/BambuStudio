@@ -1607,49 +1607,75 @@ void TextureImportDialog::build_preview_panel(wxWindow* parent, wxSizer* sizer)
     m_btn_view_original->SetId(ID_VIEW_ORIGINAL);
     m_btn_view_multicolor = new Button(m_tab_panel, _L("Multi-Color"));
     m_btn_view_multicolor->SetId(ID_VIEW_MULTICOLOR);
-    m_btn_view_filament   = new Button(m_tab_panel, _L("Filament Mapping"));
-    m_btn_view_filament->SetId(ID_VIEW_FILAMENT);
 
-    m_btn_view_original->SetCornerRadius(FromDIP(12));
-    m_btn_view_original->SetMinSize(wxSize(FromDIP(80), FromDIP(28)));
-    m_btn_view_multicolor->SetCornerRadius(FromDIP(12));
-    m_btn_view_multicolor->SetMinSize(wxSize(FromDIP(90), FromDIP(28)));
-    m_btn_view_filament->SetCornerRadius(FromDIP(12));
-    m_btn_view_filament->SetMinSize(wxSize(FromDIP(100), FromDIP(28)));
+    const int view_button_height = FromDIP(27);
+    m_btn_view_original->SetCornerRadius(view_button_height / 2);
+    m_btn_view_original->SetMinSize(wxSize(FromDIP(57), view_button_height));
+    m_btn_view_original->SetFont(m_btn_view_original->GetFont().Bold());
+    m_btn_view_original->SetToolTip(_L("Your input texture model"));
+    m_btn_view_multicolor->SetCornerRadius(view_button_height / 2);
+    m_btn_view_multicolor->SetMinSize(wxSize(FromDIP(57), view_button_height));
+    m_btn_view_multicolor->SetFont(m_btn_view_multicolor->GetFont().Bold());
+    m_btn_view_multicolor->SetToolTip(_L("Processed multi-color model"));
 
     wxBoxSizer* tab_sizer = new wxBoxSizer(wxHORIZONTAL);
     tab_sizer->Add(m_btn_view_original,   0, wxRIGHT, FromDIP(2));
-    tab_sizer->Add(m_btn_view_multicolor, 0, wxRIGHT, FromDIP(2));
-    tab_sizer->Add(m_btn_view_filament,   0);
+    tab_sizer->Add(m_btn_view_multicolor, 0);
     m_tab_panel->SetSizer(tab_sizer);
     m_tab_panel->Fit();
 
     m_btn_view_multicolor->Hide();
-    m_btn_view_filament->Hide();
 
-    m_btn_view_original->Bind(wxEVT_BUTTON,   &TextureImportDialog::on_view_button_clicked, this);
-    m_btn_view_multicolor->Bind(wxEVT_BUTTON,  &TextureImportDialog::on_view_button_clicked, this);
-    m_btn_view_filament->Bind(wxEVT_BUTTON,    &TextureImportDialog::on_view_button_clicked, this);
+    auto preview_original = [this](wxMouseEvent& e) {
+        if (m_preview_canvas) {
+            m_preview_canvas->set_render_mode(TexturePreviewCanvas::RenderMode::Original);
+            highlight_view_button(0);
+        }
+        e.Skip();
+    };
+    auto preview_multicolor = [this](wxMouseEvent& e) {
+        if (m_preview_canvas) {
+            m_preview_canvas->set_render_mode(TexturePreviewCanvas::RenderMode::MultiColor);
+            highlight_view_button(1);
+        }
+        e.Skip();
+    };
+    auto restore_filament_if_outside = [this](wxMouseEvent& e) {
+        if (m_preview_canvas && m_tab_panel) {
+            wxWindow* event_window = wxDynamicCast(e.GetEventObject(), wxWindow);
+            wxPoint screen_pos = event_window ? event_window->ClientToScreen(e.GetPosition()) : wxGetMousePosition();
+            wxPoint panel_pos = m_tab_panel->ScreenToClient(screen_pos);
+            if (!m_tab_panel->GetClientRect().Contains(panel_pos)) {
+                const bool mapping_ready = (m_state == TextureImportState::Ready);
+                m_preview_canvas->set_render_mode(mapping_ready ? TexturePreviewCanvas::RenderMode::FilamentMap :
+                                                            TexturePreviewCanvas::RenderMode::Original);
+                highlight_view_button(-1);
+            }
+        }
+        e.Skip();
+    };
 
-    auto update_preview_overlay_buttons = [this](const wxSize& cs) {
-        wxPoint tab_pos(0, FromDIP(8));
-        wxSize ts;
+    m_btn_view_original->Bind(wxEVT_ENTER_WINDOW, preview_original);
+    m_btn_view_multicolor->Bind(wxEVT_ENTER_WINDOW, preview_multicolor);
+    m_btn_view_original->Bind(wxEVT_LEAVE_WINDOW, restore_filament_if_outside);
+    m_btn_view_multicolor->Bind(wxEVT_LEAVE_WINDOW, restore_filament_if_outside);
+    m_tab_panel->Bind(wxEVT_LEAVE_WINDOW, restore_filament_if_outside);
+
+    auto update_preview_overlay_buttons = [this]() {
         if (m_tab_panel) {
             m_tab_panel->Fit();
-            ts = m_tab_panel->GetSize();
-            tab_pos.x = (cs.x - ts.x) / 2;
-            m_tab_panel->SetPosition(tab_pos);
+            m_tab_panel->SetPosition(wxPoint(FromDIP(8), FromDIP(8)));
             m_tab_panel->Raise();
         }
     };
 
     preview_container->Bind(wxEVT_SIZE, [update_preview_overlay_buttons](wxSizeEvent& e) {
         e.Skip();
-        update_preview_overlay_buttons(e.GetSize());
+        update_preview_overlay_buttons();
     });
-    update_preview_overlay_buttons(preview_container->GetClientSize());
+    update_preview_overlay_buttons();
 
-    highlight_view_button(0);
+    highlight_view_button(-1);
 }
 
 void TextureImportDialog::build_params_panel(wxWindow* parent, wxSizer* sizer)
@@ -1819,6 +1845,15 @@ void TextureImportDialog::build_mapping_panel(wxWindow* parent, wxSizer* sizer)
 
 void TextureImportDialog::build_bottom_buttons(wxSizer* sizer)
 {
+    m_drop_warning_label = new wxStaticText(this, wxID_ANY,
+        wxString::Format(
+            _L("The project supports up to %d filaments. Extra filaments will be discarded."),
+            (int)max_filament_count()));
+    m_drop_warning_label->SetForegroundColour(wxColour(0xFF, 0x6F, 0x00));
+    m_drop_warning_label->SetFont(texture_import_section_title_font(this));
+    m_drop_warning_label->Hide();
+    sizer->Add(m_drop_warning_label, 0, wxALIGN_LEFT | wxBOTTOM, FromDIP(4));
+
     wxBoxSizer* btn_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_btn_skip = new Button(this, _L("Skip Matching"));
     m_btn_skip->SetId(ID_BTN_SKIP);
@@ -2058,8 +2093,22 @@ void TextureImportDialog::on_computation_complete(wxCommandEvent&)
     m_preview_canvas->set_painted_mesh_data(m_painted.vertices, m_painted.indices);
     m_preview_canvas->set_face_colors(m_painted.face_colors);
 
+    // A fresh texture computation replaces m_painted, so virtual filaments from
+    // the previous computation must not consume capacity when deciding whether
+    // this run drops extra colors. Rebuild virtual filaments from this result.
+    m_current_matches.clear();
+    if (m_filament_colors_rgba.size() > m_existing_filament_count)
+        m_filament_colors_rgba.resize(m_existing_filament_count);
+    if (m_filament_color_strs.size() > m_existing_filament_count)
+        m_filament_color_strs.resize(m_existing_filament_count);
+    if (m_filament_names.size() > m_existing_filament_count)
+        m_filament_names.resize(m_existing_filament_count);
+    m_new_filament_colors.clear();
+    m_new_filament_preset_names.clear();
+
     do_auto_match();
     compact_used_virtual_filaments();
+    sort_current_matches_by_filament_index();
     update_filament_color_map();
     rebuild_mapping_rows();
 
@@ -2067,23 +2116,18 @@ void TextureImportDialog::on_computation_complete(wxCommandEvent&)
     m_applied_smooth      = m_param_smooth;
 
     set_state(TextureImportState::Ready);
+    update_drop_warning_visibility();
 
     m_btn_view_multicolor->Show();
-    m_btn_view_filament->Show();
     if (m_tab_panel) {
         m_tab_panel->GetSizer()->Layout();
         m_tab_panel->Fit();
-        wxWindow* container = m_tab_panel->GetParent();
-        if (container) {
-            wxSize cs = container->GetClientSize();
-            wxSize ts = m_tab_panel->GetSize();
-            m_tab_panel->SetPosition(wxPoint((cs.x - ts.x) / 2, FromDIP(8)));
-        }
+        m_tab_panel->SetPosition(wxPoint(FromDIP(8), FromDIP(8)));
     }
     GetSizer()->Layout();
 
     m_preview_canvas->set_render_mode(TexturePreviewCanvas::RenderMode::FilamentMap);
-    highlight_view_button(2);
+    highlight_view_button(-1);
 
     if (initial) {
         m_initial_computation_pending = false;
@@ -2235,6 +2279,68 @@ void TextureImportDialog::update_filament_color_map()
     m_preview_canvas->set_filament_color_map(color_map);
 }
 
+// Canonical ordering used on the very first display after a computation:
+// sort ascending by filament_index, and push unmapped (filament_index < 0)
+// entries to the end. This gives the user a stable, predictable mapping
+// layout regardless of the cluster discovery order.
+void TextureImportDialog::sort_current_matches_by_filament_index()
+{
+    std::stable_sort(m_current_matches.begin(), m_current_matches.end(),
+        [](const auto& lhs, const auto& rhs) {
+            const bool lhs_valid = lhs.filament_index >= 0;
+            const bool rhs_valid = rhs.filament_index >= 0;
+
+            if (lhs_valid != rhs_valid)
+                return lhs_valid;
+            if (!lhs_valid)
+                return false;
+
+            return lhs.filament_index < rhs.filament_index;
+        });
+}
+
+// Preserve the row order the user is currently looking at across a
+// re-computation (e.g. when auto-merge is toggled). We key on cluster_index
+// because it survives compact_used_virtual_filaments() and filament-index
+// renumbering, whereas filament_index does not.
+//
+// Behaviour:
+//   * Entries whose cluster_index appeared in `previous_matches` keep their
+//     previous relative order.
+//   * Entries whose cluster_index is new (not in `previous_matches`) are
+//     appended at the end, in their current relative order.
+//
+// Assumption: each cluster_index appears at most once in both vectors. This
+// is currently guaranteed by do_auto_match(), which emits exactly one match
+// per cluster. If that invariant ever changes, the std::map::emplace below
+// silently keeps only the first occurrence and the order will be wrong.
+void TextureImportDialog::restore_current_match_order(const std::vector<Slic3r::FilamentMatch>& previous_matches)
+{
+    if (previous_matches.empty() || m_current_matches.size() < 2)
+        return;
+
+    std::map<int, size_t> previous_order_by_cluster;
+    for (size_t i = 0; i < previous_matches.size(); ++i) {
+        if (previous_matches[i].cluster_index >= 0)
+            previous_order_by_cluster.emplace(previous_matches[i].cluster_index, i);
+    }
+
+    std::stable_sort(m_current_matches.begin(), m_current_matches.end(),
+        [&previous_order_by_cluster](const auto& lhs, const auto& rhs) {
+            const auto lhs_it = previous_order_by_cluster.find(lhs.cluster_index);
+            const auto rhs_it = previous_order_by_cluster.find(rhs.cluster_index);
+            const bool lhs_known = lhs_it != previous_order_by_cluster.end();
+            const bool rhs_known = rhs_it != previous_order_by_cluster.end();
+
+            if (lhs_known != rhs_known)
+                return lhs_known;
+            if (!lhs_known)
+                return false;
+
+            return lhs_it->second < rhs_it->second;
+        });
+}
+
 size_t TextureImportDialog::max_filament_count() const
 {
     return static_cast<size_t>(EnforcerBlockerType::ExtruderMax);
@@ -2243,20 +2349,6 @@ size_t TextureImportDialog::max_filament_count() const
 bool TextureImportDialog::can_add_virtual_filament() const
 {
     return m_filament_colors_rgba.size() < max_filament_count();
-}
-
-void TextureImportDialog::show_filament_limit_warning_once()
-{
-    if (m_filament_limit_warning_shown)
-        return;
-
-    m_filament_limit_warning_shown = true;
-    Slic3r::GUI::MessageDialog dlg(this,
-        wxString::Format(
-            _L("The project supports up to %d filaments. Extra filaments will be discarded."),
-            (int)max_filament_count()),
-        _L("Warning"), wxOK | wxICON_WARNING);
-    dlg.ShowModal();
 }
 
 int TextureImportDialog::find_closest_filament_index(const std::array<std::size_t, 3>& color) const
@@ -2278,8 +2370,14 @@ int TextureImportDialog::add_virtual_filament(const std::array<float, 4>& rgba, 
                                               const std::string& preset_name)
 {
     if (!can_add_virtual_filament()) {
-        if (m_allow_filament_limit_warning_once)
-            show_filament_limit_warning_once();
+        // Mark that this do_auto_match() run hit the filament cap and had to
+        // drop at least one cluster. The mapping itself still falls back via
+        // find_closest_filament_index() below; this flag only drives the
+        // inline orange warning above the bottom buttons.
+        // Note: only the false -> true transition happens here; the flag is
+        // cleared exclusively at the entry of do_auto_match() so it always
+        // reflects the most recent match, never an accumulated history.
+        m_filaments_dropped = true;
         return -1;
     }
 
@@ -2485,6 +2583,21 @@ void TextureImportDialog::show_filament_popup(size_t row_index)
 void TextureImportDialog::do_auto_match()
 {
     if (m_painted.cluster_colors.empty()) return;
+
+    // Reset the "filaments were dropped" flag at the start of every run, so it
+    // strictly reflects what happens during *this* match (no historical
+    // accumulation). add_virtual_filament() will flip it back to true if and
+    // only if it hits the global filament cap below.
+    m_filaments_dropped = false;
+
+    // Drop any virtual filaments left over from previous match runs that the
+    // current m_current_matches no longer references. Without this, the
+    // residual virtual filaments inflate m_filament_colors_rgba.size() at the
+    // entry of this match, which can make add_virtual_filament() fail (and
+    // wrongly flip m_filaments_dropped to true) even when the *real* count
+    // of needed virtual filaments for this run is well below the global cap.
+    // This is purely a state cleanup; it does not change any mapping rule.
+    compact_used_virtual_filaments();
 
     const auto previous_matches = m_current_matches;
 
@@ -2971,39 +3084,22 @@ void TextureImportDialog::on_apply_clicked(wxCommandEvent&)
 void TextureImportDialog::on_auto_merge_toggled(wxCommandEvent&)
 {
     bool auto_merge_enabled = !m_auto_merge_cb || m_auto_merge_cb->GetValue();
-    bool allow_limit_warning = m_auto_merge_enabled && !auto_merge_enabled;
     m_auto_merge_enabled = auto_merge_enabled;
 
     if (m_state == TextureImportState::Ready) {
-        m_allow_filament_limit_warning_once = allow_limit_warning;
+        const auto previous_matches = m_current_matches;
         do_auto_match();
-        m_allow_filament_limit_warning_once = false;
+        restore_current_match_order(previous_matches);
         compact_used_virtual_filaments();
         update_filament_color_map();
         rebuild_mapping_rows();
-    }
-}
-
-void TextureImportDialog::on_view_button_clicked(wxCommandEvent& evt)
-{
-    if (!m_preview_canvas) return;
-
-    int id = evt.GetId();
-    if (id == ID_VIEW_ORIGINAL) {
-        m_preview_canvas->set_render_mode(TexturePreviewCanvas::RenderMode::Original);
-        highlight_view_button(0);
-    } else if (id == ID_VIEW_MULTICOLOR) {
-        m_preview_canvas->set_render_mode(TexturePreviewCanvas::RenderMode::MultiColor);
-        highlight_view_button(1);
-    } else if (id == ID_VIEW_FILAMENT) {
-        m_preview_canvas->set_render_mode(TexturePreviewCanvas::RenderMode::FilamentMap);
-        highlight_view_button(2);
+        update_drop_warning_visibility();
     }
 }
 
 void TextureImportDialog::highlight_view_button(int view_index)
 {
-    Button* btns[] = { m_btn_view_original, m_btn_view_multicolor, m_btn_view_filament };
+    Button* btns[] = { m_btn_view_original, m_btn_view_multicolor };
 
     StateColor active_bg(
         std::pair<wxColour, int>(wxColour(27, 136, 68), StateColor::Pressed),
@@ -3015,15 +3111,15 @@ void TextureImportDialog::highlight_view_button(int view_index)
         std::pair<wxColour, int>(wxColour(255, 255, 255), StateColor::Normal));
 
     StateColor inactive_bg(
-        std::pair<wxColour, int>(dark_or(wxColour(210, 210, 210), wxColour(0x54, 0x54, 0x5B)), StateColor::Pressed),
-        std::pair<wxColour, int>(dark_or(wxColour(225, 225, 225), wxColour(0x4C, 0x4C, 0x55)), StateColor::Hovered),
-        std::pair<wxColour, int>(dark_or(wxColour(238, 238, 238), wxColour(0x3E, 0x3E, 0x45)), StateColor::Normal));
+        std::pair<wxColour, int>(dark_or(wxColour(245, 245, 245), wxColour(0x5C, 0x5C, 0x64)), StateColor::Pressed),
+        std::pair<wxColour, int>(dark_or(wxColour(255, 255, 255), wxColour(0x66, 0x66, 0x6E)), StateColor::Hovered),
+        std::pair<wxColour, int>(dark_or(wxColour(255, 255, 255), wxColour(0x54, 0x54, 0x5B)), StateColor::Normal));
     StateColor inactive_bd(
-        std::pair<wxColour, int>(dark_or(wxColour(238, 238, 238), wxColour(0x3E, 0x3E, 0x45)), StateColor::Normal));
+        std::pair<wxColour, int>(dark_or(wxColour(255, 255, 255), wxColour(0x54, 0x54, 0x5B)), StateColor::Normal));
     StateColor inactive_text(
-        std::pair<wxColour, int>(dark_or(wxColour(160, 160, 160), wxColour(0x81, 0x81, 0x83)), StateColor::Normal));
+        std::pair<wxColour, int>(dark_or(wxColour(104, 104, 104), wxColour(0xD0, 0xD0, 0xD2)), StateColor::Normal));
 
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 2; ++i) {
         if (!btns[i]) continue;
         if (i == view_index) {
             btns[i]->SetBackgroundColor(active_bg);
@@ -3070,6 +3166,19 @@ bool TextureImportDialog::is_params_dirty() const
         return false;
     return m_param_color_count != m_applied_color_count
         || m_param_smooth      != m_applied_smooth;
+}
+
+void TextureImportDialog::update_drop_warning_visibility()
+{
+    if (!m_drop_warning_label) return;
+    // Show only when the most recent do_auto_match() ran into the filament
+    // cap AND we are in the Ready state. The flag is reset at every
+    // do_auto_match() entry, so any "clean" re-run automatically hides the
+    // warning even if a previous run had dropped clusters.
+    const bool show = (m_state == TextureImportState::Ready) && m_filaments_dropped;
+    if (m_drop_warning_label->IsShown() == show) return;
+    m_drop_warning_label->Show(show);
+    Layout();
 }
 
 void TextureImportDialog::update_confirm_button_state()

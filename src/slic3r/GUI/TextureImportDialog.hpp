@@ -202,6 +202,19 @@ private:
 
     void rebuild_mapping_rows();
     void do_auto_match();
+    // Reorder m_current_matches into a canonical, predictable order (ascending
+    // filament_index, with unmapped entries pushed to the end). Used right
+    // after the initial computation so the first view the user sees has a
+    // stable, intuitive layout.
+    void sort_current_matches_by_filament_index();
+    // Reorder m_current_matches so they appear in the same order as
+    // `previous_matches` (keyed by cluster_index). Entries whose cluster_index
+    // was not present before are appended at the end, preserving their current
+    // relative order. Used when the user toggles auto-merge so the rows do not
+    // visually jump around. Assumes each cluster_index appears at most once in
+    // both vectors (this invariant is currently guaranteed by do_auto_match,
+    // which produces one match per cluster).
+    void restore_current_match_order(const std::vector<Slic3r::FilamentMatch>& previous_matches);
     std::vector<Slic3r::FilamentMatch> build_matches_from_rows() const;
     void update_filament_color_map();
     void show_filament_popup(size_t row_index);
@@ -211,7 +224,12 @@ private:
                               const std::string& preset_name = std::string());
     size_t max_filament_count() const;
     bool can_add_virtual_filament() const;
-    void show_filament_limit_warning_once();
+    // Recomputes m_drop_warning_label visibility from m_filaments_dropped and
+    // m_state. Safe to call whether or not the label has been created yet.
+    // Visibility reflects ONLY the result of the most recent do_auto_match():
+    // if the latest match did not drop any cluster, the label is hidden even
+    // if a previous match had dropped (no historical accumulation).
+    void update_drop_warning_visibility();
     void compact_used_virtual_filaments();
     int  find_closest_filament_index(const std::array<std::size_t, 3>& color) const;
 
@@ -224,7 +242,6 @@ private:
     void on_smooth_spin_text_changed(wxCommandEvent& evt);
     void on_apply_clicked(wxCommandEvent& evt);
     void on_auto_merge_toggled(wxCommandEvent& evt);
-    void on_view_button_clicked(wxCommandEvent& evt);
     void highlight_view_button(int view_index);
     void on_skip_clicked(wxCommandEvent& evt);
     void on_ok_clicked(wxCommandEvent& evt);
@@ -252,8 +269,13 @@ private:
     TextureImportState                 m_state = TextureImportState::Idle;
     bool                               m_skipped = false;
     bool                               m_fallback_to_geometry_only = false;
-    bool                               m_filament_limit_warning_shown = false;
-    bool                               m_allow_filament_limit_warning_once = false;
+    // True iff *the most recent* do_auto_match() ran into the global filament
+    // limit and had to drop one or more clusters. Reset to false on every
+    // do_auto_match() entry so it never accumulates across runs: a run that
+    // does not drop anything must observe false here, regardless of whether
+    // previous runs dropped. Drives the inline orange warning above the
+    // bottom buttons; never affects the mapping itself.
+    bool                               m_filaments_dropped = false;
     bool                               m_auto_merge_enabled = true;
 
     Slic3r::PaintedMesh               m_painted;
@@ -295,12 +317,12 @@ private:
     wxPanel*              m_tab_panel           = nullptr;
     Button*               m_btn_view_original   = nullptr;
     Button*               m_btn_view_multicolor = nullptr;
-    Button*               m_btn_view_filament   = nullptr;
 
     ProgressDialog* m_progress_dlg = nullptr;
 
     Button*       m_btn_skip = nullptr;
     Button*       m_btn_ok   = nullptr;
+    wxStaticText* m_drop_warning_label = nullptr;
 
     int   m_param_color_count = 4;
     int   m_param_smooth      = 5;
@@ -317,7 +339,6 @@ private:
     static const int ID_BTN_SKIP    = wxID_HIGHEST + 205;
     static const int ID_VIEW_ORIGINAL   = wxID_HIGHEST + 206;
     static const int ID_VIEW_MULTICOLOR = wxID_HIGHEST + 207;
-    static const int ID_VIEW_FILAMENT   = wxID_HIGHEST + 208;
 
     wxDECLARE_EVENT_TABLE();
 };
