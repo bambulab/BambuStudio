@@ -17070,6 +17070,12 @@ int Plater::load_project(wxString const &filename2,
         p->select_view("topfront");
         p->get_current_camera().requires_zoom_to_plate = REQUIRES_ZOOM_TO_ALL_PLATE;
         wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+        // Ensure the Prepare view shows the newly loaded scene.  If the canvas
+        // was dirty or the tab was switching, the reload inside load_files() may
+        // not have produced a visible repaint.  Force one here so that the old
+        // model is never left on screen after a second file is opened.
+        p->view3D->get_canvas3d()->set_as_dirty();
+        p->view3D->get_canvas3d()->request_extra_frame();
     }
     else {
         p->partplate_list.select_plate_view();
