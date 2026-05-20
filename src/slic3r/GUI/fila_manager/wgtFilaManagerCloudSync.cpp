@@ -90,6 +90,19 @@ FilamentSpool wgtFilaManagerCloudSync::cloud_json_to_spool(const nlohmann::json&
         }
         return def;
     };
+    // STUDIO-17959: weight fields go through the double-precision parser so a
+    // cloud-provided netWeight / totalNetWeight close to MAX_NET_WEIGHT_GRAMS
+    // (999_999_999) survives the JSON -> in-memory hop intact. Going through
+    // num_f_any here used to snap 999_999_999 -> 1.0e9 at v.get<float>().
+    auto num_d_any = [&](std::initializer_list<const char*> keys, double def = 0.0) -> double {
+        for (const char* key : keys) {
+            if (!j.contains(key)) continue;
+            const auto& v = j[key];
+            if (v.is_null()) continue;
+            if (v.is_number()) return v.get<double>();
+        }
+        return def;
+    };
     auto num_i_any = [&](std::initializer_list<const char*> keys, int def = 0) -> int {
         for (const char* key : keys) {
             if (!j.contains(key)) continue;
@@ -148,17 +161,19 @@ FilamentSpool wgtFilaManagerCloudSync::cloud_json_to_spool(const nlohmann::json&
     s.diameter        = num_f_any({"diameter"}, 1.75f);
 
     // Weights: cloud uses totalNetWeight / netWeight (nullable int64 grams).
-    s.initial_weight = num_f_any({"totalNetWeight", "initial_weight"});
-    s.net_weight     = num_f_any({"netWeight", "net_weight"});
-    s.spool_weight   = num_f_any({"spool_weight"});
+    // STUDIO-17959: parse as double so values up to 999_999_999 don't lose
+    // precision (float32 would snap them to 1.0e9 here).
+    s.initial_weight = num_d_any({"totalNetWeight", "initial_weight"});
+    s.net_weight     = num_d_any({"netWeight", "net_weight"});
+    s.spool_weight   = num_d_any({"spool_weight"});
 
     // remain_percent is not provided by cloud; derive from weights when we can,
-    // otherwise honor any locally-provided value (+0.5f for simple rounding).
-    if (s.initial_weight > 0.f && s.net_weight >= 0.f) {
-        float pct = s.net_weight / s.initial_weight * 100.0f;
-        if (pct < 0.f)   pct = 0.f;
-        if (pct > 100.f) pct = 100.f;
-        s.remain_percent = static_cast<int>(pct + 0.5f);
+    // otherwise honor any locally-provided value (+0.5 for simple rounding).
+    if (s.initial_weight > 0.0 && s.net_weight >= 0.0) {
+        double pct = s.net_weight / s.initial_weight * 100.0;
+        if (pct < 0.0)   pct = 0.0;
+        if (pct > 100.0) pct = 100.0;
+        s.remain_percent = static_cast<int>(pct + 0.5);
     } else {
         s.remain_percent = num_i_any({"remain_percent"}, 100);
     }
@@ -240,16 +255,16 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_json(const FilamentSpool&
     // 总净重 to the 当前净重 whenever the two differed (e.g. 当前=200,
     // 总=1500 was pushed as netWeight=200, totalNetWeight=200 and the
     // row came back from cloud showing 200/200 instead of 200/1500).
-    const float material_weight = s.net_weight > 0.f
+    const double material_weight = s.net_weight > 0.0
         ? s.net_weight
-        : ((s.initial_weight > s.spool_weight) ? (s.initial_weight - s.spool_weight) : 0.f);
-    const float total_net_weight = (s.spool_weight > 0.f && s.initial_weight > s.spool_weight)
+        : ((s.initial_weight > s.spool_weight) ? (s.initial_weight - s.spool_weight) : 0.0);
+    const double total_net_weight = (s.spool_weight > 0.0 && s.initial_weight > s.spool_weight)
         ? (s.initial_weight - s.spool_weight)
         : s.initial_weight;
-    if (material_weight > 0.f)
-        j["netWeight"] = static_cast<int64_t>(material_weight + 0.5f);
-    if (total_net_weight > 0.f)
-        j["totalNetWeight"] = static_cast<int64_t>(total_net_weight + 0.5f);
+    if (material_weight > 0.0)
+        j["netWeight"] = static_cast<int64_t>(material_weight + 0.5);
+    if (total_net_weight > 0.0)
+        j["totalNetWeight"] = static_cast<int64_t>(total_net_weight + 0.5);
 
     if (!s.note.empty())
         j["note"] = s.note;
@@ -706,7 +721,7 @@ void wgtFilaManagerCloudSync::push_all_now()
             ++skipped_no_rfid;
             continue;
         }
-        if (sp->effective_total_net_weight() <= 0.f) {
+        if (sp->effective_total_net_weight() <= 0.0) {
             ++skipped_no_total_nw;
             continue;
         }
