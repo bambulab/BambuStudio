@@ -350,6 +350,7 @@ void FillBedJob::process()
                 m_selected[i].translation = scaled<coord_t>(empty_cells[cell_idx]);
                 m_selected[i].translation -= offset_on_origin;
                 m_selected[i].bed_idx = 0;
+                m_selected[i].itemid = static_cast<int>(placed);
                 ++cell_idx;
                 ++placed;
             } else {
