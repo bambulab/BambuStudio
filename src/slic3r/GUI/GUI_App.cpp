@@ -2061,10 +2061,14 @@ void GUI_App::init_networking_callbacks()
                 GUI::wxGetApp().CallAfter([this] {
                     static bool is_showing = false;
                     if (is_showing) return;
+                    if (app_config && app_config->get("suppress_cloud_warnings") == "1") return;
                     is_showing = true;
                     BOOST_LOG_TRIVIAL(trace) << "static: server connection failed";
-                    MessageDialog msg_dlg(nullptr, _L("Failed to connect to the cloud device server. Please check your network and firewall."), "", wxOK);
+                    RichMessageDialog msg_dlg(nullptr, _L("Failed to connect to the cloud device server. Please check your network and firewall."), "", wxOK);
+                    msg_dlg.ShowCheckBox(_L("Don't show this warning again"));
                     msg_dlg.ShowModal();
+                    if (msg_dlg.IsCheckBoxChecked() && app_config)
+                        app_config->set("suppress_cloud_warnings", "1");
                     is_showing = false;
                 });
                 return;

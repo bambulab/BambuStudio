@@ -795,6 +795,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                  m_topbar->EnableSaveItem(can_save());
                  m_topbar->EnableUndoItem(m_plater->can_undo());
                  m_topbar->EnableRedoItem(m_plater->can_redo());
+                 update_title();
              }
          }));
 #ifdef _MSW_DARK_MODE
@@ -1142,8 +1143,18 @@ void MainFrame::update_filament_tab_ui()
 void MainFrame::update_title()
 {
 #ifndef __APPLE__
-    if (m_topbar)
-        m_topbar->SetTitle(wxString(SLIC3R_APP_FULL_NAME) + " " + SLIC3R_VERSION);
+    if (!m_topbar) return;
+    wxString title = wxString(SLIC3R_APP_FULL_NAME) + " " + SLIC3R_VERSION;
+    if (m_plater) {
+        wxString proj = m_plater->get_project_filename();
+        if (!proj.IsEmpty()) {
+            wxFileName fn(proj);
+            title = fn.GetName() + " - " + title;
+        }
+        if (m_plater->is_project_dirty())
+            title = "* " + title;
+    }
+    m_topbar->SetTitle(title);
 #endif
 }
 
