@@ -668,6 +668,8 @@ if (APPLE)
             GUI/Mouse3DHandlerMac.mm
             GUI/InstanceCheckMac.mm
             GUI/InstanceCheckMac.h
+            GUI/CameraFullscreenMac.mm
+            GUI/CameraFullscreenMac.hpp
             GUI/wxMediaCtrl2.mm
             GUI/wxMediaCtrl2.h
             GUI/wxMediaCtrl3.h

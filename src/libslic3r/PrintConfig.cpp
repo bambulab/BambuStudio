@@ -4217,6 +4217,12 @@ void PrintConfigDef::init_fff_params()
     def->tooltip  = L("Embedding the wall into parts where the wall loops are absent ensures that the wall connects seamlessly to the infill.");
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("alternate_extra_wall", coBool);
+    def->label = L("Alternate extra wall");
+    def->category = L("Strength");
+    def->tooltip  = L("Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall.");
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("post_process", coStrings);
     def->label = L("Post-processing Scripts");
     def->tooltip = L("If you want to process the output G-code through custom scripts, "

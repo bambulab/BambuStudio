@@ -1134,6 +1134,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionInt,                  seam_slope_steps))
     ((ConfigOptionBool,                 seam_slope_inner_walls))
     ((ConfigOptionBool,                 embedding_wall_into_infill))
+    ((ConfigOptionBool,                 alternate_extra_wall))
 )
 
 PRINT_CONFIG_CLASS_DEFINE(

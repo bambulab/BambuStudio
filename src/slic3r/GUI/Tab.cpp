@@ -2920,6 +2920,7 @@ void TabPrint::build()
     page = add_options_page(L("Strength"), "empty");
         optgroup = page->new_optgroup(L("Walls"), L"param_wall");
         optgroup->append_single_option_line("wall_loops","wall-generator");
+        optgroup->append_single_option_line("alternate_extra_wall");
         optgroup->append_single_option_line("embedding_wall_into_infill");
 
         optgroup->append_single_option_line("detect_thin_wall","wall-generator");
