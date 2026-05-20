@@ -1141,7 +1141,10 @@ void MainFrame::update_filament_tab_ui()
 
 void MainFrame::update_title()
 {
-    return;
+#ifndef __APPLE__
+    if (m_topbar)
+        m_topbar->SetTitle(wxString(SLIC3R_APP_FULL_NAME) + " " + SLIC3R_VERSION);
+#endif
 }
 
 void MainFrame::show_calibration_button(bool show, bool is_BBL)
