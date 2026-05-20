@@ -681,8 +681,12 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         const int key_code = evt.GetKeyCode();
 #ifdef __APPLE__
         if (evt.CmdDown() && (evt.GetKeyCode() == 'H')) {
-            //call parent_menu hide behavior
-            return;}
+            // Pass Cmd+H through to the macOS application menu so the
+            // standard "Hide BambuStudio" action fires.  Without evt.Skip()
+            // wxEVT_CHAR_HOOK consumes the event and macOS never sees it.
+            evt.Skip();
+            return;
+        }
         if (evt.CmdDown() && !evt.ShiftDown() && (evt.GetKeyCode() == 'M')) {
             this->Iconize();
             return;
