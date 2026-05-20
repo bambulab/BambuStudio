@@ -100,10 +100,20 @@ wxDEFINE_EVENT(EVT_LOAD_PRINTER_URL, wxCommandEvent);
 
 static bool is_text_entry_focused()
 {
-    for (wxWindow *window = wxWindow::FindFocus(); window != nullptr; window = window->GetParent())
-        if (dynamic_cast<wxTextEntry *>(window) != nullptr)
+    wxWindow *focused = wxWindow::FindFocus();
+    // Walk up the parent chain — covers the common case where a native text
+    // control (wxTextCtrl) or a composite widget's inner text ctrl has focus.
+    for (wxWindow *w = focused; w != nullptr; w = w->GetParent())
+        if (dynamic_cast<wxTextEntry *>(w) != nullptr)
             return true;
-
+    // Also check direct children of the focused window: on some platforms
+    // (e.g. Windows with custom TextInput panels) focus lands on the outer
+    // container while the inner wxTextCtrl is a direct child.
+    if (focused) {
+        for (wxWindowList::Node *node = focused->GetChildren().GetFirst(); node; node = node->GetNext())
+            if (dynamic_cast<wxTextEntry *>(node->GetData()) != nullptr)
+                return true;
+    }
     return false;
 }
 
