@@ -504,40 +504,40 @@ void ExtruderPanel::update_ams()
         m_ams_sizer->Add(m_ams_previews[idx], 0, wxALL, FromDIP(2));
     }
 
-    wxWindow *parent_window = m_scroll ? m_scroll : m_ams_sizer->GetContainingWindow();
-    if (!m_ext.empty()) {
-        while (m_ext_previews.size() < m_ext.size()) {
-            AMSinfo info;
-            info.ams_type = DevAmsType::N3S;
-            auto ext_preview = new AMSPreview(parent_window, wxID_ANY, info);
-            ext_preview->Close();
-            m_ext_previews.push_back(ext_preview);
-        }
+    // wxWindow *parent_window = m_scroll ? m_scroll : m_ams_sizer->GetContainingWindow();
+    // if (!m_ext.empty()) {
+    //     while (m_ext_previews.size() < m_ext.size()) {
+    //         AMSinfo info;
+    //         info.ams_type = DevAmsType::N3S;
+    //         auto ext_preview = new AMSPreview(parent_window, wxID_ANY, info);
+    //         ext_preview->Close();
+    //         m_ext_previews.push_back(ext_preview);
+    //     }
 
-        for (size_t i = 0; i < m_ext.size(); ++i) {
-            if (i < m_ext_previews.size()) {
-                AMSinfo &ext_info = m_ext[i];
-                m_ext_previews[i]->Update(ext_info);
-                m_ext_previews[i]->Refresh();
-                m_ext_previews[i]->Open();
+    //     for (size_t i = 0; i < m_ext.size(); ++i) {
+    //         if (i < m_ext_previews.size()) {
+    //             AMSinfo &ext_info = m_ext[i];
+    //             m_ext_previews[i]->Update(ext_info);
+    //             m_ext_previews[i]->Refresh();
+    //             m_ext_previews[i]->Open();
 
-                m_ams_sizer->Add(m_ext_previews[i], 0, wxALL, FromDIP(2));
-            }
-        }
-    } else {
-        if (m_ext_previews.empty()) {
-            AMSinfo info;
-            info.ams_type    = DevAmsType::EXT_SPOOL;
-            auto ext_preview = new AMSPreview(parent_window, wxID_ANY, info);
-            ext_preview->Close();
-            m_ext_previews.push_back(ext_preview);
-        }
+    //             m_ams_sizer->Add(m_ext_previews[i], 0, wxALL, FromDIP(2));
+    //         }
+    //     }
+    // } else {
+    //     if (m_ext_previews.empty()) {
+    //         AMSinfo info;
+    //         info.ams_type    = DevAmsType::EXT_SPOOL;
+    //         auto ext_preview = new AMSPreview(parent_window, wxID_ANY, info);
+    //         ext_preview->Close();
+    //         m_ext_previews.push_back(ext_preview);
+    //     }
 
-        m_ext_previews[0]->Update(info_ext);
-        m_ext_previews[0]->Refresh();
-        m_ext_previews[0]->Open();
-        m_ams_sizer->Add(m_ext_previews[0], 0, wxALL, FromDIP(2));
-    }
+    //     m_ext_previews[0]->Update(info_ext);
+    //     m_ext_previews[0]->Refresh();
+    //     m_ext_previews[0]->Open();
+    //     m_ams_sizer->Add(m_ext_previews[0], 0, wxALL, FromDIP(2));
+    // }
 
     Layout();
 
@@ -2102,13 +2102,6 @@ void ExtruderPanelGroup::SetSeparatorState(CustomSeparator::State state)
 {
     if (m_separator) {
         m_separator->SetState(state);
-    }
-}
-
-void ExtruderPanelGroup::ShowSeparatorIcon(bool show)
-{
-    if (m_separator) {
-        m_separator->SetState(show ? CustomSeparator::Normal : CustomSeparator::Hidden);
     }
 }
 

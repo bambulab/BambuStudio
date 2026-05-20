@@ -846,6 +846,7 @@ struct Sidebar::priv
     bool switch_diameter(bool single);
     void update_right_extruder_group_color();
     void update_sync_status(const MachineObject* obj);
+    void reset_extruder_ams_counts_from_machine(const MachineObject *obj);
     void adjust_filament_title_layout();
     bool is_fila_switch_ready();
     void update_extruder_separator_icon(bool show, bool ready);
@@ -2596,7 +2597,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
         machine_extruder_infos[extruder.GetExtId()].diameter          = extruder.GetNozzleDiameter();
     }
     for (const auto &item : obj->GetFilaSystem()->GetAmsList()) {
-        int extruder_id;
+        int extruder_id{0};
         if (fila_switch_flag) {
             auto switcher_pos = item.second->GetSwitcherPos();
             if (!switcher_pos) {
@@ -2605,10 +2606,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
             extruder_id = obj->is_main_extruder_on_left() ? (1 - static_cast<int>(switcher_pos.value())) : static_cast<int>(switcher_pos.value());
         } else {
             const auto &uniq_extruder_id = item.second->GetUniqueBindedExtruderId();
-            if(!uniq_extruder_id) {
-                continue;
-            }
-            extruder_id = uniq_extruder_id.value();
+            if (uniq_extruder_id) extruder_id = uniq_extruder_id.value();
         }
 
         if (extruder_id >= machine_extruder_infos.size())
@@ -2691,6 +2689,59 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
                 cb->update();
         }
     }
+}
+
+// Reset AMS counts from the connected machine
+// should only be called after manualy sync
+// some code copied from Sidebar::priv::update_sync_status
+void Sidebar::priv::reset_extruder_ams_counts_from_machine(const MachineObject *obj)
+{
+    if (!obj) return;
+    const int extruder_nums     = wxGetApp().preset_bundle->get_printer_extruder_count();
+    const int machine_ext_count = obj->GetExtderSystem()->GetTotalExtderCount();
+    if (extruder_nums != machine_ext_count) return;
+    if (machine_ext_count != 1 && machine_ext_count != 2) return;
+
+    const bool fila_switch_flag = is_fila_switch_ready();
+
+    std::vector<std::pair<int, int>> counts(machine_ext_count, {0, 0}); // {n4, n1}
+    for (const auto &item : obj->GetFilaSystem()->GetAmsList()) {
+        int extruder_id = 0;
+        if (fila_switch_flag) {
+            auto switcher_pos = item.second->GetSwitcherPos();
+            if (!switcher_pos) continue;
+            extruder_id = obj->is_main_extruder_on_left()
+                              ? (1 - static_cast<int>(switcher_pos.value()))
+                              : static_cast<int>(switcher_pos.value());
+        } else {
+            const auto &uniq = item.second->GetUniqueBindedExtruderId();
+            if (uniq) extruder_id = uniq.value();
+        }
+        if (extruder_id < 0 || extruder_id >= (int) counts.size()) continue;
+
+        const auto type = item.second->GetAmsType();
+        if (type == DevAmsType::ZMULTI_A || type == DevAmsType::ZMULTI_B)
+            continue; // internal AMS — not part of n4/n1
+        if (type == DevAmsType::N3S)
+            counts[extruder_id].second++;
+        else
+            counts[extruder_id].first++;
+    }
+
+    // update_sync_status reverses to match UI order (right=index 0); mirror that.
+    std::reverse(counts.begin(), counts.end());
+
+    if (machine_ext_count == 1) {
+        AMSCountPopupWindow::SetAMSCount(0, counts[0].first, counts[0].second, false);
+        AMSCountPopupWindow::UpdateAMSCount(0, s_extruder_panel);
+        AMSCountPopupWindow::UpdateAMSCount(0, single_extruder);
+    } else {
+        AMSCountPopupWindow::SetAMSCount(0, counts[0].first, counts[0].second, false);
+        AMSCountPopupWindow::SetAMSCount(1, counts[1].first, counts[1].second, false);
+        AMSCountPopupWindow::UpdateAMSCount(0, l_extruder_panel);
+        AMSCountPopupWindow::UpdateAMSCount(1, r_extruder_panel);
+    }
+    wxGetApp().plater()->update(); // single update() after AMS counts are written
 }
 
 std::optional<NozzleOption> Sidebar::priv::get_nozzle_options(MachineObject* obj, int extruder_count, bool support_multi_nozzle, bool is_manual)
@@ -5259,6 +5310,8 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "begin pop_finsish_sync_ams_dialog";
     pop_finsish_sync_ams_dialog();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "finish pop_finsish_sync_ams_dialog";
+
+    p->reset_extruder_ams_counts_from_machine(obj);
 
     wxGetApp().plater()->get_partplate_list().reset_thumbnail_assembly_view_data();
 }
