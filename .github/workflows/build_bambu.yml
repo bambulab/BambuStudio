@@ -177,6 +177,11 @@ jobs:
           ./BuildLinux.sh -isfr
           mv -n ./build/BambuStudio_ubu64.AppImage ./build/Bambu_Studio_${{inputs.os}}_${{ env.ver }}.AppImage
 
+      - name: Build .deb package
+        if: inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04'
+        shell: bash
+        run: ./BuildLinux.sh -pr
+
       # - name: Build orca_custom_preset_tests
       #   if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-22.04'
       #   working-directory: ${{ github.workspace }}/build/src
@@ -192,6 +197,13 @@ jobs:
         with:
           name: BambuStudio_${{inputs.os}}_${{ env.ver }}
           path: './build/Bambu_Studio_${{inputs.os}}_${{ env.ver }}.AppImage'
+
+      - name: Upload .deb package
+        if: ${{ ! env.ACT && (inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04') }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: BambuStudio_${{inputs.os}}_${{ env.ver }}_deb
+          path: './build/bambustudio_*.deb'
 
       # - name: Deploy Ubuntu release
       #   if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-22.04' }}

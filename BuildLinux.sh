@@ -25,7 +25,7 @@ function check_available_memory_and_disk() {
 }
 
 function usage() {
-    echo "Usage: ./BuildLinux.sh [-1][-b][-c][-d][-i][-r][-s][-u]"
+    echo "Usage: ./BuildLinux.sh [-1][-b][-c][-d][-i][-p][-r][-s][-u]"
     echo "   -1: limit builds to 1 core (where possible)"
     echo "   -f: disable safe parallel number limit(By default, the maximum number of parallels is set to free memory/2.5)"
     echo "   -b: build in debug mode"
@@ -33,6 +33,7 @@ function usage() {
     echo "   -d: build deps (optional)"
     echo "   -h: this help output"
     echo "   -i: Generate appimage (optional)"
+    echo "   -p: Build .deb package (requires -s to have run first)"
     echo "   -r: skip ram and disk checks (low ram compiling)"
     echo "   -s: build bambu-studio (optional)"
     echo "   -u: update and build dependencies (optional and need sudo)"
@@ -42,7 +43,7 @@ function usage() {
 }
 
 unset name
-while getopts ":1fbcdhirsut:" opt; do
+while getopts ":1fbcdhiprsut:" opt; do
   case ${opt} in
     1 )
         export CMAKE_BUILD_PARALLEL_LEVEL=1
@@ -64,6 +65,9 @@ while getopts ":1fbcdhirsut:" opt; do
         ;;
     i )
         BUILD_IMAGE="1"
+        ;;
+    p )
+        BUILD_DEB="1"
         ;;
     r )
 	    SKIP_RAM_CHECK="1"
@@ -216,4 +220,10 @@ echo "[9/9] Generating Linux app..."
         fi
     popd
 echo "done"
+fi
+
+if [[ -n "${BUILD_DEB}" ]]
+then
+    echo "Building .deb package..."
+    bash "${ROOT}/scripts/build_deb.sh"
 fi
