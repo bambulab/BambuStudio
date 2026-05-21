@@ -271,6 +271,9 @@ public:
     void attach_media(wxMediaCtrl3 *media_ctrl)
     {
         m_media_ctrl = media_ctrl;
+        m_saved_max_size = m_media_ctrl->GetMaxSize();
+        m_media_ctrl->SetConstrainByAspectRatio(false);
+        m_media_ctrl->SetMaxSize(wxDefaultSize);
         m_video_sizer->Add(m_media_ctrl, 1, wxEXPAND);
         m_media_ctrl->Bind(wxEVT_CHAR_HOOK, &CameraFullscreenFrame::on_char_hook, this);
         m_media_ctrl->Bind(wxEVT_KEY_DOWN, &CameraFullscreenFrame::on_char_hook, this);
@@ -291,6 +294,8 @@ public:
         m_media_ctrl->Unbind(wxEVT_KEY_DOWN, &CameraFullscreenFrame::on_char_hook, this);
         m_media_ctrl->Unbind(wxEVT_MOTION, &CameraFullscreenFrame::on_mouse_motion, this);
         m_video_sizer->Detach(m_media_ctrl);
+        m_media_ctrl->SetConstrainByAspectRatio(true);
+        m_media_ctrl->SetMaxSize(m_saved_max_size);
         m_media_ctrl = nullptr;
     }
 
@@ -372,6 +377,9 @@ private:
 
     void request_close()
     {
+        m_hide_timer.Stop();
+        m_fade_timer.Stop();
+        if (m_close_button) m_close_button->Hide();
         if (m_owner) {
             m_owner->close_camera_fullscreen();
         } else {
@@ -431,19 +439,31 @@ private:
     void position_close_button()
     {
         if (!m_close_button) return;
-        const int    button_size = FromDIP(44);
-        const int    margin      = FromDIP(24);
-        const wxSize frame_size  = GetClientSize();
-        const int    local_x     = std::max(margin, frame_size.x - button_size - margin);
-        const int    local_y     = margin;
+        const int button_size = FromDIP(44);
+        const int margin      = FromDIP(24);
+
+        wxRect target_rect;
+        wxPoint mouse_screen = wxGetMousePosition();
+        int display_idx = wxDisplay::GetFromPoint(mouse_screen);
+        if (display_idx != wxNOT_FOUND) {
+            wxDisplay display(static_cast<unsigned int>(display_idx));
+            target_rect = display.GetGeometry();
+        } else {
+            target_rect = wxRect(wxPoint(0, 0), GetClientSize());
+            target_rect.SetPosition(ClientToScreen(wxPoint(0, 0)));
+        }
+
+        int screen_x = target_rect.GetRight() - button_size - margin;
+        int screen_y = target_rect.GetTop() + margin;
         m_close_button->SetSize(wxSize(button_size, button_size));
-        m_close_button->Move(ClientToScreen(wxPoint(local_x, local_y)));
+        m_close_button->Move(wxPoint(screen_x, screen_y));
     }
 
     StatusBasePanel             *m_owner{nullptr};
     wxPanel                     *m_video_host{nullptr};
     wxBoxSizer                  *m_video_sizer{nullptr};
     wxMediaCtrl3                *m_media_ctrl{nullptr};
+    wxSize                       m_saved_max_size{wxDefaultSize};
     CameraFullscreenCloseButton *m_close_button{nullptr};
     wxTimer m_hide_timer;
     wxTimer m_fade_timer;
@@ -1905,6 +1925,8 @@ void StatusBasePanel::close_camera_fullscreen()
 
 void StatusBasePanel::on_camera_fullscreen(wxMouseEvent &event)
 {
+    if (m_camera_fullscreen_button)
+        m_camera_fullscreen_button->reset_hover();
     toggle_camera_fullscreen();
     event.Skip();
 }

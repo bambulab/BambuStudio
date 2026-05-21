@@ -41,6 +41,9 @@ public:
 
     int GetLastError() const { return m_error; }
 
+    void SetConstrainByAspectRatio(bool constrain) { m_constrain_by_aspect_ratio = constrain; }
+    bool GetConstrainByAspectRatio() const { return m_constrain_by_aspect_ratio; }
+
     static constexpr wxMediaState MEDIASTATE_BUFFERING = (wxMediaState) 6;
 
 protected:
@@ -60,6 +63,7 @@ private:
     wxMediaState m_state = wxMEDIASTATE_STOPPED;
     int          m_error  = 0;
     wxSize       m_video_size{16, 9};
+    bool         m_constrain_by_aspect_ratio{true};
 
     wxString m_idle_image;
     wxString m_watermark_text;
@@ -88,6 +92,9 @@ public:
 
     wxSize GetVideoSize() const;
 
+    void SetConstrainByAspectRatio(bool constrain) { m_constrain_by_aspect_ratio = constrain; }
+    bool GetConstrainByAspectRatio() const { return m_constrain_by_aspect_ratio; }
+
 protected:
     wxSize DoGetBestSize() const override;
 
@@ -104,6 +111,7 @@ private:
     int      m_error = 0;
     bool     m_loaded = false;
     wxSize   m_video_size{16, 9};
+    bool     m_constrain_by_aspect_ratio{true};
 };
 
 #endif

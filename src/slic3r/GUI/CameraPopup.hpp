@@ -113,10 +113,15 @@ public:
 
     void msw_rescale();
     void on_enter_win(wxMouseEvent &evt);
-    void on_level_win(wxMouseEvent &evt);
-    void paintEvent(wxPaintEvent &evt);
-    void render(wxDC &dc);
-    void doRender(wxDC &dc);
+    void on_leave_win(wxMouseEvent &evt);
+    void reset_hover();
+
+    bool Enable(bool enable = true) override;
+
+private:
+    void on_paint(wxPaintEvent &evt);
+    wxBitmap make_disabled_bitmap(const wxBitmap &bmp) const;
+    wxBitmap m_current_bmp;
 };
 
 }

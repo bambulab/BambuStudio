@@ -1211,6 +1211,15 @@ static int SecondsSinceLastInput()
 
 void wxMediaCtrl_OnSize(wxWindow * ctrl, wxSize const & videoSize, int width, int height)
 {
+    if (auto *media3 = dynamic_cast<wxMediaCtrl3 *>(ctrl)) {
+        if (!media3->GetConstrainByAspectRatio()) return;
+    }
+#ifndef __WXMAC__
+    else if (auto *media2 = dynamic_cast<wxMediaCtrl2 *>(ctrl)) {
+        if (!media2->GetConstrainByAspectRatio()) return;
+    }
+#endif
+
     wxSize size = videoSize;
     if (!size.IsFullySpecified()) size = {16, 9};
     int maxHeight = (width * size.GetHeight() + size.GetHeight() - 1) / size.GetWidth();

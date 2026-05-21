@@ -66,6 +66,9 @@ public:
 
     wxSize GetVideoSize();
 
+    void SetConstrainByAspectRatio(bool constrain) { m_constrain_by_aspect_ratio = constrain; }
+    bool GetConstrainByAspectRatio() const { return m_constrain_by_aspect_ratio; }
+
 protected:
     DECLARE_EVENT_TABLE()
 
@@ -99,6 +102,7 @@ private:
     std::condition_variable m_cond;
     std::thread m_thread;
 
+    bool m_constrain_by_aspect_ratio{true};
     const int m_buffer_time = 300;
     Slic3r::Utils::FixedOverwriteBuffer<PlayFrame> m_frame_buffer;
     std::thread m_get_frame_thread;
