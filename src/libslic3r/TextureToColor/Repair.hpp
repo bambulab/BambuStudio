@@ -10,13 +10,26 @@
 #include <CGAL/Polygon_mesh_processing/polygon_soup_to_polygon_mesh.h>
 #include <CGAL/Polygon_mesh_processing/stitch_borders.h>
 #include <CGAL/Polygon_mesh_processing/triangulate_hole.h>
+#include <boost/log/trivial.hpp>
+#include <algorithm>
+#include <cstddef>
 #include <memory>
 
 namespace Slic3r { namespace tex2color {
 
 namespace PMP = CGAL::Polygon_mesh_processing;
 
-inline void CloseBoundariesAndRepairManifoldness(cgalutils::CGALMesh& cgal_mesh)
+// Default upper bound on the number of half-edges in any single boundary cycle
+// that CloseBoundariesAndRepairManifoldness will attempt to triangulate. The
+// cost of triangulate_hole grows non-linearly with cycle length, so this caps
+// the worst-case per-hole work rather than the aggregate boundary size: a mesh
+// with many small holes is still fully repaired, while a mesh containing one
+// pathologically large hole skips triangulation entirely.
+inline constexpr std::size_t MAX_REPAIRABLE_MESH_HOLE_EDGES = 1500;
+
+inline void CloseBoundariesAndRepairManifoldness(
+    cgalutils::CGALMesh& cgal_mesh,
+    std::size_t max_hole_edges = MAX_REPAIRABLE_MESH_HOLE_EDGES)
 {
     using CGALMesh = cgalutils::CGALMesh;
     using HalfedgeDescriptor = boost::graph_traits<CGALMesh>::halfedge_descriptor;
@@ -28,9 +41,28 @@ inline void CloseBoundariesAndRepairManifoldness(cgalutils::CGALMesh& cgal_mesh)
     std::vector<HalfedgeDescriptor> border_cycles;
     PMP::extract_boundary_cycles(cgal_mesh, std::back_inserter(border_cycles));
 
-    for (const HalfedgeDescriptor h : border_cycles) {
-        std::vector<FaceDescriptor> patch_faces;
-        PMP::triangulate_hole(cgal_mesh, h, std::back_inserter(patch_faces));
+    auto cycle_length = [&](HalfedgeDescriptor h0) {
+        std::size_t n = 0;
+        HalfedgeDescriptor h = h0;
+        do {
+            ++n;
+            h = next(h, cgal_mesh);
+        } while (h != h0);
+        return n;
+    };
+
+    std::size_t max_cycle_edges = 0;
+    for (const HalfedgeDescriptor h : border_cycles)
+        max_cycle_edges = std::max(max_cycle_edges, cycle_length(h));
+
+    if (max_cycle_edges <= max_hole_edges) {
+        for (const HalfedgeDescriptor h : border_cycles) {
+            std::vector<FaceDescriptor> patch_faces;
+            PMP::triangulate_hole(cgal_mesh, h, std::back_inserter(patch_faces));
+        }
+    } else {
+        BOOST_LOG_TRIVIAL(info) << "TextureToColor: skip mesh hole triangulation, max cycle edges="
+                                << max_cycle_edges << ", limit=" << max_hole_edges;
     }
 
     PMP::remove_degenerate_faces(cgal_mesh);

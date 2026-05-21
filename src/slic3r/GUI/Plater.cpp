@@ -60,7 +60,6 @@
 #include "libslic3r/Format/AMF.hpp"
 //#include "libslic3r/Format/3mf.hpp"
 #include "libslic3r/Format/bbs_3mf.hpp"
-#include "libslic3r/Format/glTF.hpp"
 #include "libslic3r/TexturePainting.hpp"
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "Gizmos/GLGizmoAlignment.hpp"

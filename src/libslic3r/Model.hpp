@@ -24,8 +24,6 @@
 //BBS: add stl
 #include "Format/STL.hpp"
 #include "Format/OBJ.hpp"
-#include "Format/glTF.hpp"
-#include "Format/FBX.hpp"
 #include "TexturePainting.hpp"
 
 #include "Calib.hpp"

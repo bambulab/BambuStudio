@@ -51,19 +51,19 @@ static bool obj_parseline(const char *line, ObjData &data)
 				line = endptr;
 				EATWS();
 			}
-			/*double w = 0;
+			// OBJ allows vt u v w; only u/v are used by the current texture pipeline,
+			// but the optional w must still be consumed so well-formed lines do not fail.
 			if (*line != 0) {
-				w = strtod(line, &endptr);
+				(void)strtod(line, &endptr);
 				if (endptr == 0 || (*endptr != ' ' && *endptr != '\t' && *endptr != 0))
 					return false;
 				line = endptr;
 				EATWS();
-			}*/
+			}
 			if (*line != 0)
 				return false;
 			data.textureCoordinates.push_back((float)u);
 			data.textureCoordinates.push_back((float)v);
-			//data.textureCoordinates.push_back((float)w);
 			break;
 		}
 		case 'n':

@@ -158,10 +158,8 @@ set(lisbslic3r_sources
     Format/SL1.cpp
 	Format/svg.hpp
     Format/svg.cpp
-    Format/glTF.hpp
-    Format/glTF.cpp
-    Format/FBX.hpp
-    Format/FBX.cpp
+    Format/AssimpImport.hpp
+    Format/AssimpImport.cpp
     TexturePainting.hpp
     TexturePainting.cpp
     Win10ModelRepair.hpp
