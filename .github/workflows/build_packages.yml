@@ -103,7 +103,7 @@ jobs:
           echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: BambuStudio_${{ matrix.artifact_suffix }}_${{ steps.ver.outputs.ver }}
           path: ${{ matrix.artifact_glob }}
@@ -185,7 +185,7 @@ jobs:
           echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
 
       - name: Upload AppImage
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: BambuStudio_${{ matrix.artifact_suffix }}_appimage_${{ steps.ver.outputs.ver }}
           path: ./build/BambuStudio_${{ matrix.artifact_suffix }}_${{ steps.ver.outputs.ver }}.AppImage
@@ -194,7 +194,7 @@ jobs:
 
       - name: Upload .deb package
         if: matrix.artifact_deb != ''
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: BambuStudio_${{ matrix.artifact_suffix }}_deb_${{ steps.ver.outputs.ver }}
           path: ${{ matrix.artifact_deb }}
@@ -203,7 +203,7 @@ jobs:
 
       - name: Upload native package
         if: matrix.artifact_pkg != ''
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: BambuStudio_${{ matrix.artifact_suffix }}_pkg_${{ steps.ver.outputs.ver }}
           path: ${{ matrix.artifact_pkg }}

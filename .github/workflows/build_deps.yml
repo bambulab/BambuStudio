@@ -150,7 +150,7 @@ jobs:
       # Upload Artifacts
       - name: Upload Mac ${{ inputs.arch }} artifacts
         if: inputs.os == 'macos-15-intel' || inputs.os == 'macos-15'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: BambuStudio_dep_mac_${{ inputs.arch }}_${{ env.date }}
           path: ${{ github.workspace }}/deps/BambuStudio_dep_mac_${{ inputs.arch }}*.tar.gz
@@ -162,14 +162,14 @@ jobs:
 
       - name: Upload Windows artifacts
         if: inputs.os == 'windows-2025'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: BambuStudio_dep_win64_${{ env.date }}
           path: ${{ github.workspace }}/deps/build/BambuStudio_dep*.zip
 
       - name: Upload Ubuntu artifacts
         if: ${{ ! env.ACT && startsWith(inputs.os, 'ubuntu-') }}
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: BambuStudio_dep_${{ inputs.os }}_${{ env.date }}
           path: ${{ github.workspace }}/deps/build/BambuStudio_dep_${{ inputs.os }}_*.tar.gz
