@@ -37,7 +37,7 @@ REQUIRED_DEV_PACKAGES=(
 
 if [[ -n "$UPDATE_LIB" ]]
 then
-    REQUIRED_DEV_PACKAGES+=(webkit2gtk4.1-devel)
+    REQUIRED_DEV_PACKAGES+=(webkitgtk3-devel)
     sudo zypper -n refresh
     sudo zypper -n install ${REQUIRED_DEV_PACKAGES[@]}
     echo -e "done\n"
