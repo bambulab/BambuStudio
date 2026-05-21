@@ -15,7 +15,7 @@
         "3.6"
     ],
     "pre_start_fan_time": [
-        "2"
+        "0"
     ],
     "compatible_printers": [
         "Bambu Lab A2L 0.4 nozzle",
