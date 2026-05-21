@@ -1,23 +1,14 @@
 name: Flatpak Build
 
 on:
-  push:
-    branches: [master]
-    paths:
-      - 'src/**'
-      - 'deps/**'
-      - '**/CMakeLists.txt'
-      - 'version.inc'
-      - '.github/workflows/flatpak.yml'
-      - 'flatpak/**'
-  pull_request:
-    branches: [master]
-    paths:
-      - 'src/**'
-      - 'flatpak/**'
   release:
     types: [released]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v2.6.1) — leave empty for latest release'
+        required: false
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -25,41 +16,103 @@ concurrency:
 
 jobs:
   flatpak:
-    name: Build Flatpak
+    name: Build Flatpak bundle
     runs-on: ubuntu-24.04
-    container:
-      image: ghcr.io/flathub/flatpak-builder:latest
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
-      - name: Install flatpak-builder
+      - name: Determine release tag
+        id: tag
         run: |
-          apt-get update -qq
-          apt-get install -y --no-install-recommends flatpak flatpak-builder git
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            TAG="${{ github.event.release.tag_name }}"
+          elif [[ -n "${{ inputs.tag }}" ]]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG=$(gh release list --repo "${{ github.repository }}" \
+              --limit 1 --json tagName -q '.[0].tagName')
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Using tag: $TAG"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            flatpak flatpak-builder squashfs-tools desktop-file-utils \
+            appstream
 
       - name: Add Flathub remote
         run: |
-          flatpak remote-add --if-not-exists flathub \
+          flatpak remote-add --user --if-not-exists flathub \
             https://dl.flathub.org/repo/flathub.flatpakrepo
 
-      - name: Build Flatpak
+      - name: Install Flatpak runtimes
         run: |
-          flatpak-builder --force-clean --repo=flatpak-repo \
-            --install-deps-from=flathub \
-            build-dir flatpak/com.bambulab.BambuStudio.yaml
+          flatpak install --user -y flathub \
+            org.freedesktop.Platform//24.08 \
+            org.freedesktop.Sdk//24.08
 
-      - name: Create Flatpak bundle
+      - name: Download AppImage
+        id: appimage
         run: |
-          flatpak build-bundle flatpak-repo \
-            BambuStudio.flatpak com.bambulab.BambuStudio
+          TAG="${{ steps.tag.outputs.tag }}"
+          # Try common naming patterns
+          for PATTERN in \
+            "BambuStudio_linux_x86_64_${TAG}.AppImage" \
+            "BambuStudio_linux_amd64_${TAG}.AppImage" \
+            "BambuStudio-${TAG}-linux-x86_64.AppImage" \
+            "BambuStudio.AppImage"; do
+            URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/${PATTERN}"
+            if curl -sIf "$URL" >/dev/null 2>&1; then
+              echo "Downloading: $URL"
+              curl -L -o BambuStudio.AppImage "$URL"
+              echo "url=$URL" >> "$GITHUB_OUTPUT"
+              break
+            fi
+          done
+          if [[ ! -f BambuStudio.AppImage ]]; then
+            echo "::error::No AppImage found for tag $TAG"
+            exit 1
+          fi
+          chmod +x BambuStudio.AppImage
 
-      - name: Upload Flatpak artifact
+      - name: Extract AppImage
+        run: |
+          ./BambuStudio.AppImage --appimage-extract
+          echo "Extracted to squashfs-root/"
+          ls squashfs-root/usr/bin/ | head -5
+
+      - name: Prepare Flatpak sources
+        run: |
+          # Move squashfs-root into flatpak/ so flatpak-builder can find it
+          mv squashfs-root flatpak/squashfs-root
+
+      - name: Build Flatpak bundle
+        run: |
+          flatpak-builder \
+            --user \
+            --force-clean \
+            --repo=flatpak-repo \
+            --bundle-sources \
+            flatpak-build \
+            flatpak/com.bambulab.BambuStudio.yaml
+
+      - name: Export Flatpak bundle
+        run: |
+          flatpak build-bundle \
+            --runtime-repo=https://dl.flathub.org/repo/flathub.flatpakrepo \
+            flatpak-repo \
+            BambuStudio.flatpak \
+            com.bambulab.BambuStudio
+
+      - name: Upload as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: BambuStudio-flatpak
+          name: BambuStudio-${{ steps.tag.outputs.tag }}-flatpak
           path: BambuStudio.flatpak
           retention-days: 30
 
@@ -67,4 +120,5 @@ jobs:
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.tag.outputs.tag }}
           files: BambuStudio.flatpak

@@ -1,0 +1,84 @@
+app-id: com.bambulab.BambuStudio
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: bambu-studio
+separate-locales: false
+
+finish-args:
+  # Netzwerk (Cloud-Druck, Updates)
+  - --share=network
+  # OpenGL / Hardware-Beschleunigung
+  - --device=dri
+  # X11 + XShm
+  - --share=ipc
+  - --socket=x11
+  # Wayland (fallback auf X11 per env)
+  - --socket=wayland
+  # Audio (für Benachrichtigungstöne)
+  - --socket=pulseaudio
+  # Dateisystem: Benutzer-Dokumente und Downloads
+  - --filesystem=home
+  # D-Bus: Schlüsselbund (für gespeicherte Passwörter)
+  - --talk-name=org.freedesktop.secrets
+  # D-Bus: Desktop-Benachrichtigungen
+  - --talk-name=org.freedesktop.Notifications
+  # USB-Geräte für direkte Drucker-Verbindung
+  - --device=all
+  # Umgebungsvariablen
+  - --env=GDK_BACKEND=x11
+  - --env=BAMBU_PROFILE_DIRECTORY=/var/config/BambuStudio
+
+modules:
+  - name: bambu-studio
+    buildsystem: simple
+    build-commands:
+      # Binaries und Libraries aus der extrahierten AppImage installieren
+      - install -d /app/bin /app/lib /app/share
+      - |
+        if [ -d squashfs-root/usr/bin ]; then
+          cp -a squashfs-root/usr/bin/. /app/bin/
+        fi
+      - |
+        if [ -d squashfs-root/usr/lib ]; then
+          cp -a squashfs-root/usr/lib/. /app/lib/
+        fi
+      - |
+        if [ -d squashfs-root/usr/share ]; then
+          cp -a squashfs-root/usr/share/. /app/share/
+        fi
+      # AppStream-Metadaten installieren
+      - install -Dm644 com.bambulab.BambuStudio.metainfo.xml
+          /app/share/metainfo/com.bambulab.BambuStudio.metainfo.xml
+      # Desktop-Datei auf Flatpak-ID umbenennen
+      - |
+        if [ -f /app/share/applications/BambuStudio.desktop ]; then
+          desktop-file-edit \
+            --set-key=Icon --set-value=com.bambulab.BambuStudio \
+            /app/share/applications/BambuStudio.desktop
+          mv /app/share/applications/BambuStudio.desktop \
+             /app/share/applications/com.bambulab.BambuStudio.desktop
+        fi
+      # Icon installieren (192px aus Repository)
+      - install -Dm644 BambuStudio_192px.png
+          /app/share/icons/hicolor/192x192/apps/com.bambulab.BambuStudio.png
+      # SVG-Icon installieren
+      - |
+        if [ -f BambuStudioBlack.svg ]; then
+          install -Dm644 BambuStudioBlack.svg \
+            /app/share/icons/hicolor/scalable/apps/com.bambulab.BambuStudio.svg
+        fi
+    sources:
+      # squashfs-root/ wird vom CI-Workflow aus der AppImage extrahiert
+      - type: dir
+        path: squashfs-root
+      # AppStream-Metadaten aus dem flatpak/-Verzeichnis
+      - type: file
+        path: com.bambulab.BambuStudio.metainfo.xml
+      # Icons direkt aus dem Repository
+      - type: file
+        path: ../resources/images/BambuStudio_192px.png
+        dest-filename: BambuStudio_192px.png
+      - type: file
+        path: ../resources/images/BambuStudioBlack.svg
+        dest-filename: BambuStudioBlack.svg

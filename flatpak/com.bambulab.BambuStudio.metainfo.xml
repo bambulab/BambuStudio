@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.bambulab.BambuStudio</id>
+
+  <name>BambuStudio</name>
+  <summary>3D-Drucker-Slicer für Bambu Lab Drucker</summary>
+
+  <metadata_license>FSFAP</metadata_license>
+  <project_license>AGPL-3.0-only</project_license>
+
+  <description>
+    <p>
+      BambuStudio is a feature-rich slicer for Bambu Lab 3D printers. It supports
+      multi-color printing, automatic support generation, variable layer heights,
+      and direct cloud printing to all Bambu Lab printer models.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>Multi-color and multi-material printing (AMS support)</li>
+      <li>Automatic and manual support structures</li>
+      <li>Variable layer height and adaptive slicing</li>
+      <li>Cloud printing and printer management</li>
+      <li>Import of STL, 3MF, OBJ, AMF, and STEP files</li>
+      <li>Built-in model library and Makerworld integration</li>
+    </ul>
+  </description>
+
+  <url type="homepage">https://github.com/bambulab/BambuStudio</url>
+  <url type="bugtracker">https://github.com/bambulab/BambuStudio/issues</url>
+
+  <launchable type="desktop-id">com.bambulab.BambuStudio.desktop</launchable>
+
+  <provides>
+    <binary>bambu-studio</binary>
+    <mediatype>model/stl</mediatype>
+    <mediatype>model/3mf</mediatype>
+    <mediatype>application/vnd.ms-3mfdocument</mediatype>
+    <mediatype>application/prs.wavefront-obj</mediatype>
+    <mediatype>application/x-amf</mediatype>
+    <mediatype>model/step</mediatype>
+  </provides>
+
+  <categories>
+    <category>Graphics</category>
+    <category>3DGraphics</category>
+    <category>Engineering</category>
+  </categories>
+
+  <keywords>
+    <keyword>3D printing</keyword>
+    <keyword>slicer</keyword>
+    <keyword>Bambu Lab</keyword>
+    <keyword>gcode</keyword>
+    <keyword>STL</keyword>
+    <keyword>3MF</keyword>
+  </keywords>
+
+  <content_rating type="oars-1.1" />
+
+  <releases>
+    <!-- Releases werden automatisch durch den AUR/Homebrew-Workflow gepflegt -->
+  </releases>
+</component>
