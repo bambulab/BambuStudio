@@ -19,7 +19,7 @@ REQUIRED_DEV_PACKAGES=(
     libsecret-devel
     libtool
     Mesa-libGL-devel
-    Mesa-libOSMesa-devel
+    Mesa-devel
     ninja
     libopenssl-devel
     texinfo
