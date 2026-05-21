@@ -1444,6 +1444,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloatsNullable,     retraction_minimum_travel))
     ((ConfigOptionBoolsNullable,      retract_when_changing_layer))
     ((ConfigOptionFloat,              skirt_distance))
+    ((ConfigOptionBool,               skirt_per_object))
     ((ConfigOptionInt,                skirt_height))
     ((ConfigOptionInt,                skirt_loops))
     ((ConfigOptionInts,               slow_down_layer_time))

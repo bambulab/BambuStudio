@@ -4852,6 +4852,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloat(2));
 
+    def = this->add("skirt_per_object", coBool);
+    def->label = L("Skirt per object");
+    def->tooltip = L("Generate independent skirt around each object in sequential printing mode. When disabled, a single skirt is drawn around all objects.");
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBool(true));
+
     def = this->add("skirt_height", coInt);
     def->label = L("Skirt height");
     //def->label = "Skirt height";
@@ -9956,6 +9962,10 @@ bool has_skirt(const ConfigBase& cfg)
 }
 float get_real_skirt_dist(const ConfigBase& cfg)
 {
+    auto opt_skirt_per_object = cfg.option("skirt_per_object");
+    if (!opt_skirt_per_object || !opt_skirt_per_object->getBool())
+        return 0.f;
+
     if (!has_skirt(cfg))
         return 0.f;
 

@@ -104,6 +104,7 @@
     "seam_position": "aligned",
     "seam_placement_away_from_overhangs": "0",
     "skirt_distance": "2",
+    "skirt_per_object": "1",
     "skirt_height": "1",
     "skirt_loops": "0",
     "smooth_coefficient": "80",

@@ -240,6 +240,7 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             || opt_key == "skirt_height"
             || opt_key == "draft_shield"
             || opt_key == "skirt_distance"
+            || opt_key == "skirt_per_object"
             || opt_key == "ooze_prevention"
             || opt_key == "wipe_tower_x"
             || opt_key == "wipe_tower_y"
@@ -2578,7 +2579,7 @@ void Print::_make_skirt()
         append(m_skirt_convex_hull, std::move(poly.points));
 
     // BBS: per-object skirt. Sequential (ByObject + multi-object) uses config skirt_loops/skirt_distance; otherwise one loop at 1mm.
-    const bool by_object = is_sequential_print();
+    const bool by_object = is_sequential_print() && m_config.skirt_per_object.value;
     const size_t n_object_skirts = by_object ? std::max(size_t(1), size_t(m_config.skirt_loops.value)) : 1;
     const float object_skirt_initial_offset = by_object
         ? float(scale_(m_config.skirt_distance.value - spacing / 2.f))

@@ -4048,8 +4048,9 @@ namespace Skirt {
         // Extrude skirt at the print_z of the raft layers and normal object layers
         // not at the print_z of the interlaced support material layers.
         std::map<unsigned int, std::pair<size_t, size_t>> skirt_loops_per_extruder_out;
-        // BBS: Only in sequential (ByObject + multi-object) mode skip global skirt; use is_sequential_print() for consistency.
-        if (print.is_sequential_print()) {
+        // BBS: Only in sequential (ByObject + multi-object) mode skip global skirt when skirt_per_object is on;
+        // otherwise fall through so the global skirt is printed around all objects.
+        if (print.is_sequential_print() && print.config().skirt_per_object.value) {
             return skirt_loops_per_extruder_out;
         }
         //For sequential print, the following test may fail when extruding the 2nd and other objects.
@@ -4070,8 +4071,8 @@ namespace Skirt {
         // Extrude skirt at the print_z of the raft layers and normal object layers
         // not at the print_z of the interlaced support material layers.
         std::map<unsigned int, std::pair<size_t, size_t>> skirt_loops_per_extruder_out;
-        // BBS: Only in sequential (ByObject + multi-object) mode skip global skirt on other layers; use is_sequential_print() for consistency.
-        if (print.is_sequential_print()) {
+        // BBS: Only in sequential (ByObject + multi-object) mode skip global skirt on other layers when skirt_per_object is on.
+        if (print.is_sequential_print() && print.config().skirt_per_object.value) {
             return skirt_loops_per_extruder_out;
         }
         if (print.has_skirt() && ! print.skirt().entities.empty() && layer_tools.has_skirt &&
@@ -4800,8 +4801,9 @@ GCode::LayerResult GCode::process_layer(
     };
 
     // BBS: In sequential (ByObject + multi-object) mode, per-object skirt is drawn by the object's first extruder on this layer.
+    // Only when skirt_per_object is enabled; otherwise global skirt is used.
     std::map<const PrintObject*, unsigned int> object_first_extruder;
-    if (print.has_skirt() && print.is_sequential_print() && first_layer) {
+    if (print.has_skirt() && print.is_sequential_print() && first_layer && print.config().skirt_per_object.value) {
         for (unsigned int eid : layer_tools.extruders) {
             for (const InstanceToPrint& inst : filament_to_print_instances[eid]) {
                 const PrintObject* obj = &inst.print_object;
@@ -4917,7 +4919,8 @@ GCode::LayerResult GCode::process_layer(
         // BBS: In sequential (ByObject + multi-object) mode, output per-object skirt on first layer. Each object's skirt is drawn by the first extruder assigned to the object(e.g. A by ext1, B by ext2).
         // Do not require prime_extruder: the first object has prime_extruder==false but still needs skirt.
         // If object has brim (object brim or support brim), skip skirt and keep brim.
-        if (print.has_skirt() && print.is_sequential_print() && first_layer) {
+        // Only when skirt_per_object is enabled; otherwise global skirt is used.
+        if (print.has_skirt() && print.is_sequential_print() && first_layer && print.config().skirt_per_object.value) {
             for (InstanceToPrint& instance_to_print : instances_to_print) {
                 const PrintObject* obj = &instance_to_print.print_object;
                 auto it = object_first_extruder.find(obj);
