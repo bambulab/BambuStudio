@@ -88,7 +88,9 @@ jobs:
         run: ./BuildLinux.sh -dfr
 
       - name: Build BambuStudio
-        run: ./BuildLinux.sh -sfr
+        run: |
+          ./BuildLinux.sh -sfr
+          cd build && ./src/BuildLinuxImage.sh
 
       - name: Build package
         run: ${{ matrix.pkg_cmd }}
