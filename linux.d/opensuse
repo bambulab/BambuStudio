@@ -1,0 +1,48 @@
+FOUND_GTK3=$(rpm -qa | grep -P '^libgtk-3' || true)
+
+REQUIRED_DEV_PACKAGES=(
+    autoconf
+    automake
+    cmake
+    ninja
+    dbus-1-devel
+    extra-cmake-modules
+    file
+    gcc
+    gcc-c++
+    gettext-tools
+    git
+    perl
+    gstreamer-devel
+    gstreamer-plugins-base-devel
+    gtk3-devel
+    libsecret-devel
+    libtool
+    Mesa-libGL-devel
+    Mesa-libOSMesa-devel
+    ninja
+    libopenssl-devel
+    texinfo
+    libxkbcommon-devel
+    wget
+    libcurl-devel
+    nasm
+    yasm
+    libx264-devel
+    libbz2-devel
+    systemd-devel
+    libunwind-devel
+    fuse
+    rpm-build
+)
+
+if [[ -n "$UPDATE_LIB" ]]
+then
+    REQUIRED_DEV_PACKAGES+=(webkit2gtk3-devel)
+    sudo zypper -n refresh
+    sudo zypper -n install ${REQUIRED_DEV_PACKAGES[@]}
+    echo -e "done\n"
+    exit 0
+fi
+
+FOUND_GTK3_DEV=$(rpm -qa | grep -P '^libgtk-3.*-devel' || echo '')

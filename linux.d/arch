@@ -1,0 +1,44 @@
+FOUND_GTK3=$(pacman -Q gtk3 2>/dev/null || true)
+
+REQUIRED_DEV_PACKAGES=(
+    autoconf
+    automake
+    cmake
+    ninja
+    dbus
+    extra-cmake-modules
+    file
+    base-devel
+    gettext
+    git
+    perl
+    gst-plugins-base
+    gtk3
+    libsecret
+    libtool
+    mesa
+    openssl
+    texinfo
+    libxkbcommon
+    wget
+    curl
+    nasm
+    yasm
+    x264
+    bzip2
+    systemd
+    libunwind
+    fuse2
+    namcap
+)
+
+if [[ -n "$UPDATE_LIB" ]]
+then
+    REQUIRED_DEV_PACKAGES+=(webkit2gtk-4.1)
+    sudo pacman -Syu --noconfirm
+    sudo pacman -S --noconfirm --needed ${REQUIRED_DEV_PACKAGES[@]}
+    echo -e "done\n"
+    exit 0
+fi
+
+FOUND_GTK3_DEV=$(pacman -Q gtk3 2>/dev/null || echo '')

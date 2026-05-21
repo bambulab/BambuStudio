@@ -12,6 +12,7 @@ on:
       - 'linux.d/**'
       - 'scripts/build_deb.sh'
       - 'scripts/build_rpm.sh'
+      - 'scripts/build_pkg_arch.sh'
       - '.github/workflows/build_packages.yml'
   pull_request:
     branches: [master]
@@ -24,6 +25,7 @@ on:
       - 'linux.d/**'
       - 'scripts/build_deb.sh'
       - 'scripts/build_rpm.sh'
+      - 'scripts/build_pkg_arch.sh'
       - '.github/workflows/build_packages.yml'
   workflow_dispatch:
   workflow_call:
@@ -33,7 +35,8 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  build:
+  # GitHub-hosted builds inside distribution containers
+  build_container:
     name: Build ${{ matrix.name }}
     runs-on: ubuntu-24.04
     container: ${{ matrix.container }}
@@ -46,6 +49,7 @@ jobs:
             pkg_cmd: ./BuildLinux.sh -pr
             artifact_suffix: debian-bookworm_deb
             artifact_glob: ./build/bambustudio_*.deb
+
           - name: Fedora 41 .rpm
             container: fedora:41
             pkg_cmd: bash scripts/build_rpm.sh
@@ -102,4 +106,103 @@ jobs:
           name: BambuStudio_${{ matrix.artifact_suffix }}_${{ steps.ver.outputs.ver }}
           path: ${{ matrix.artifact_glob }}
           if-no-files-found: error
+          retention-days: 14
+
+  # Self-hosted distro runner builds (AppImage + native package)
+  build_selfhosted:
+    name: Build ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu 22.04 AppImage + .deb
+            runner: [self-hosted, pve05-ubuntu22]
+            pkg_cmd: ./BuildLinux.sh -pr
+            artifact_suffix: ubuntu2204
+            artifact_deb: ./build/bambustudio_*.deb
+
+          - name: Ubuntu 24.04 AppImage + .deb
+            runner: [self-hosted, pve05-ubuntu24]
+            pkg_cmd: ./BuildLinux.sh -pr
+            artifact_suffix: ubuntu2404
+            artifact_deb: ./build/bambustudio_*.deb
+
+          - name: openSUSE Tumbleweed AppImage + .rpm
+            runner: [self-hosted, pve05-opensuse]
+            pkg_cmd: bash scripts/build_rpm.sh
+            artifact_suffix: opensuse-tumbleweed
+            artifact_pkg: ./build/bambustudio-*.rpm
+
+          - name: Arch Linux AppImage + .pkg.tar.zst
+            runner: [self-hosted, pve05-arch]
+            pkg_cmd: bash scripts/build_pkg_arch.sh
+            artifact_suffix: arch
+            artifact_pkg: ./build/bambustudio-*.pkg.tar.zst
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          lfs: 'true'
+
+      - name: Cache deps
+        id: cache-deps
+        uses: actions/cache@v5
+        with:
+          path: deps/build/destdir
+          key: pkg-deps-${{ matrix.artifact_suffix }}-${{ hashFiles('deps/**') }}
+
+      - name: Install build dependencies
+        run: sudo ./BuildLinux.sh -ur
+
+      - name: Fix permissions
+        run: sudo chown "$(id -u):$(id -g)" -R ./
+
+      - name: Build deps
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: ./BuildLinux.sh -dfr
+
+      - name: Build BambuStudio + AppImage
+        run: |
+          ./BuildLinux.sh -isfr
+          ARCH=$(uname -m)
+          ver=$(grep 'set(SLIC3R_VERSION' version.inc | cut -d '"' -f2)
+          mv -n ./build/BambuStudio_ubu64.AppImage \
+            "./build/BambuStudio_${{ matrix.artifact_suffix }}_V${ver}.AppImage" 2>/dev/null || true
+
+      - name: Build package
+        run: ${{ matrix.pkg_cmd }}
+
+      - name: Get version
+        id: ver
+        run: |
+          ver=$(grep 'set(SLIC3R_VERSION' version.inc | cut -d '"' -f2)
+          echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload AppImage
+        uses: actions/upload-artifact@v6
+        with:
+          name: BambuStudio_${{ matrix.artifact_suffix }}_appimage_${{ steps.ver.outputs.ver }}
+          path: ./build/BambuStudio_${{ matrix.artifact_suffix }}_${{ steps.ver.outputs.ver }}.AppImage
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload .deb package
+        if: matrix.artifact_deb != ''
+        uses: actions/upload-artifact@v6
+        with:
+          name: BambuStudio_${{ matrix.artifact_suffix }}_deb_${{ steps.ver.outputs.ver }}
+          path: ${{ matrix.artifact_deb }}
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload native package
+        if: matrix.artifact_pkg != ''
+        uses: actions/upload-artifact@v6
+        with:
+          name: BambuStudio_${{ matrix.artifact_suffix }}_pkg_${{ steps.ver.outputs.ver }}
+          path: ${{ matrix.artifact_pkg }}
+          if-no-files-found: warn
           retention-days: 14
