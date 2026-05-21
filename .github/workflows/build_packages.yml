@@ -117,6 +117,7 @@ jobs:
     continue-on-error: true
     strategy:
       fail-fast: false
+      max-parallel: 2
       matrix:
         include:
           - name: Ubuntu 22.04 AppImage + .deb
