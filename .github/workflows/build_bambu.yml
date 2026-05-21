@@ -161,17 +161,17 @@ jobs:
 
   # Ubuntu
       - name: Install dependencies from BuildLinux.sh
-        if: inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04'
+        if: startsWith(inputs.os, 'ubuntu-')
         shell: bash
         run: sudo ./BuildLinux.sh -ur
 
       - name: Fix permissions
-        if: inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04'
+        if: startsWith(inputs.os, 'ubuntu-')
         shell: bash
         run: sudo chown $USER -R ./
 
       - name: Build slicer
-        if: inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04'
+        if: startsWith(inputs.os, 'ubuntu-')
         shell: bash
         run: |
           ./BuildLinux.sh -isfr
@@ -192,7 +192,7 @@ jobs:
       #     zip -r orca_custom_preset_tests.zip user/
 
       - name: Upload artifacts Ubuntu
-        if: ${{ ! env.ACT && (inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04') }}
+        if: ${{ ! env.ACT && startsWith(inputs.os, 'ubuntu-') }}
         uses: actions/upload-artifact@v6
         with:
           name: BambuStudio_${{inputs.os}}_${{ env.ver }}

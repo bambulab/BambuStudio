@@ -1,0 +1,105 @@
+name: Build Packages
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'deps/**'
+      - 'src/**'
+      - '**/CMakeLists.txt'
+      - 'version.inc'
+      - 'BuildLinux.sh'
+      - 'linux.d/**'
+      - 'scripts/build_deb.sh'
+      - 'scripts/build_rpm.sh'
+      - '.github/workflows/build_packages.yml'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'deps/**'
+      - 'src/**'
+      - '**/CMakeLists.txt'
+      - 'version.inc'
+      - 'BuildLinux.sh'
+      - 'linux.d/**'
+      - 'scripts/build_deb.sh'
+      - 'scripts/build_rpm.sh'
+      - '.github/workflows/build_packages.yml'
+  workflow_dispatch:
+  workflow_call:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    container: ${{ matrix.container }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Debian bookworm .deb
+            container: debian:bookworm
+            pkg_cmd: ./BuildLinux.sh -pr
+            artifact_suffix: debian-bookworm_deb
+            artifact_glob: ./build/bambustudio_*.deb
+          - name: Fedora 41 .rpm
+            container: fedora:41
+            pkg_cmd: bash scripts/build_rpm.sh
+            artifact_suffix: fedora41_rpm
+            artifact_glob: ./build/bambustudio-*.rpm
+
+    steps:
+      - name: Bootstrap (Debian)
+        if: startsWith(matrix.container, 'debian:')
+        run: apt-get update -qq && apt-get install -y sudo git curl git-lfs
+
+      - name: Bootstrap (Fedora)
+        if: startsWith(matrix.container, 'fedora:')
+        run: dnf install -y sudo git curl git-lfs
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          lfs: 'true'
+
+      - name: Cache deps
+        id: cache-deps
+        uses: actions/cache@v5
+        with:
+          path: deps/build/destdir
+          key: pkg-deps-${{ matrix.artifact_suffix }}-${{ hashFiles('deps/**') }}
+
+      - name: Install build dependencies
+        run: sudo ./BuildLinux.sh -ur
+
+      - name: Fix permissions
+        run: chown -R "$(id -u):$(id -g)" ./
+
+      - name: Build deps
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: ./BuildLinux.sh -dfr
+
+      - name: Build BambuStudio
+        run: ./BuildLinux.sh -sfr
+
+      - name: Build package
+        run: ${{ matrix.pkg_cmd }}
+
+      - name: Get version
+        id: ver
+        shell: bash
+        run: |
+          ver=$(grep 'set(SLIC3R_VERSION' version.inc | cut -d '"' -f2)
+          echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: BambuStudio_${{ matrix.artifact_suffix }}_${{ steps.ver.outputs.ver }}
+          path: ${{ matrix.artifact_glob }}
+          if-no-files-found: error
+          retention-days: 14

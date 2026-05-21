@@ -48,6 +48,7 @@ jobs:
         include:
           - os: ubuntu-22.04
           - os: ubuntu-24.04
+          - os: ubuntu-24.04-arm
           - os: windows-2025
           - os: macos-15-intel
             arch: x86_64
@@ -60,9 +61,15 @@ jobs:
       build-deps-only: false
     secrets: inherit
 
+  build_packages:
+    name: Build Debian .deb + Fedora .rpm
+    needs: [prepare]
+    uses: ./.github/workflows/build_packages.yml
+    secrets: inherit
+
   create_release:
     name: Create GitHub Release
-    needs: [prepare, build]
+    needs: [prepare, build, build_packages]
     runs-on: ubuntu-latest
     permissions:
       contents: write

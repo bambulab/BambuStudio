@@ -138,7 +138,7 @@ jobs:
 
 
       - name: Build on Ubuntu
-        if: inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04'
+        if: startsWith(inputs.os, 'ubuntu-')
         working-directory: ${{ github.workspace }}
         run: |
             sudo ./BuildLinux.sh -ur
@@ -168,7 +168,7 @@ jobs:
           path: ${{ github.workspace }}/deps/build/BambuStudio_dep*.zip
 
       - name: Upload Ubuntu artifacts
-        if: ${{ ! env.ACT && (inputs.os == 'ubuntu-22.04' || inputs.os == 'ubuntu-24.04') }}
+        if: ${{ ! env.ACT && startsWith(inputs.os, 'ubuntu-') }}
         uses: actions/upload-artifact@v6
         with:
           name: BambuStudio_dep_${{ inputs.os }}_${{ env.date }}
