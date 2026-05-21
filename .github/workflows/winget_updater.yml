@@ -4,9 +4,9 @@ on:
     types: [ released ]
 jobs:
   publish:
-    runs-on: windows-latest
+    runs-on: windows-2025
     steps:
-      - uses: vedantmgoyal9/winget-releaser@main
+      - uses: vedantmgoyal9/winget-releaser@v2
         with:
           identifier: Bambulab.BambuStudio
           version: ${{ github.event.release.tag_name }}

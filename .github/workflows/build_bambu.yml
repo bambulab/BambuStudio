@@ -101,7 +101,7 @@ jobs:
           ./BuildMac.sh -s -x -a universal -t 10.15 -1
 
       - name: pack mac app
-        if: github.ref != 'refs/heads/main' && (inputs.os == 'macos-15-intel' || inputs.os == 'macos-15')
+        if: github.ref != 'refs/heads/master' && (inputs.os == 'macos-15-intel' || inputs.os == 'macos-15')
         working-directory: ${{ github.workspace }}
         run: zip -r BambuStudio_Mac_${{inputs.arch}}_${{ env.ver }}.zip ${{ github.workspace }}/build
 
