@@ -48,7 +48,7 @@ jobs:
           echo "sha_intel=$SHA_INTEL" >> "$GITHUB_OUTPUT"
 
       - name: Update Homebrew Cask via PR
-        uses: mislav/bump-homebrew-formula-action@v3
+        uses: mislav/bump-homebrew-formula-action@v4
         with:
           formula-name: bambu-studio
           formula-path: Casks/bambu-studio.rb
