@@ -12,6 +12,9 @@
     ],
     "elefant_foot_compensation": "0.075",
     "enable_arc_fitting": "0",
+    "enable_height_slowdown": [
+        "1"
+    ],
     "initial_layer_infill_speed": [
         "28"
     ],
@@ -28,6 +31,9 @@
         "40"
     ],
     "prime_tower_brim_width": "-1",
+    "slowdown_start_height": [
+        "150"
+    ],
     "smooth_coefficient": "4",
     "travel_acceleration": [
         "8000"

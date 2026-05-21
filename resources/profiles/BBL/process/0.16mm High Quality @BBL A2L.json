@@ -11,6 +11,10 @@
     ],
     "elefant_foot_compensation": "0.075",
     "enable_arc_fitting": "0",
+    "enable_height_slowdown": [
+        "1",
+        "1"
+    ],
     "gap_infill_speed": [
         "250"
     ],
@@ -38,6 +42,10 @@
     ],
     "slowdown_start_acc": [
         "8000"
+    ],
+    "slowdown_start_height": [
+        "150",
+        "150"
     ],
     "slowdown_start_speed": [
         "500"
