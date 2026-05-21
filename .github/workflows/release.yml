@@ -6,9 +6,9 @@ on:
       - 'v[0-9]*.[0-9]*.[0-9]*'
   workflow_dispatch:
     inputs:
-      tag:
-        description: 'Tag to release (e.g. v2.6.1)'
-        required: true
+      version:
+        description: 'Version override (e.g. 2.6.1) — leave empty to read from version.inc'
+        required: false
         type: string
 
 concurrency:
@@ -16,8 +16,32 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  prepare:
+    name: Determine release tag
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.get-tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine tag
+        id: get-tag
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          elif [[ -n "${{ inputs.version }}" ]]; then
+            echo "tag=v${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            ver=$(grep 'set(SLIC3R_VERSION' version.inc | cut -d '"' -f2)
+            echo "tag=v${ver}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Show tag
+        run: echo "Releasing ${{ steps.get-tag.outputs.tag }}"
+
   build:
     name: Build ${{ matrix.os }}
+    needs: [prepare]
     strategy:
       fail-fast: false
       matrix:
@@ -38,7 +62,7 @@ jobs:
 
   create_release:
     name: Create GitHub Release
-    needs: [build]
+    needs: [prepare, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -56,7 +80,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="${{ github.ref_name || inputs.tag }}"
+          TAG="${{ needs.prepare.outputs.tag }}"
           mapfile -d '' ASSETS < <(find release-assets/ -type f -print0)
           gh release create "$TAG" \
             --repo "${{ github.repository }}" \
