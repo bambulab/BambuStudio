@@ -269,7 +269,8 @@ bool Print::invalidate_state_by_config_options(const ConfigOptionResolver & /* n
             // Spiral Vase forces different kind of slicing than the normal model:
             // In Spiral Vase mode, holes are closed and only the largest area contour is kept at each layer.
             // Therefore toggling the Spiral Vase on / off requires complete reslicing.
-            || opt_key == "spiral_mode") {
+            || opt_key == "spiral_mode"
+            || opt_key == "enable_order_independent_overlap_carving") {
             osteps.emplace_back(posSlice);
         } else if (
                opt_key == "print_sequence"

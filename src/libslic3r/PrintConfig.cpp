@@ -3278,6 +3278,12 @@ void PrintConfigDef::init_fff_params()
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def          = this->add("enable_order_independent_overlap_carving", coBool);
+    def->label   = L("Order-independent overlap carving");
+    def->tooltip = L("When enabled, overlapping model parts are carved by bounding-box size so smaller embedded parts are not removed by larger parts due to volume order.");
+    def->mode    = comDevelop;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def           = this->add("wrapping_detection_layers", coInt);
     def->label    = L("Clumping detection layers");
     def->tooltip  = L("Clumping detection layers.");
