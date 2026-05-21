@@ -1,14 +1,9 @@
 name: Build (Pixi)
 
-# Smoke test: verify `pixi run bootstrap && pixi run build` still produces
-# a working bambu-studio binary on every push/PR that touches the build
-# inputs, and publish the platform installer (AppImage / DMG / MSI) as a
-# workflow artifact. Pattern adapted from FreeCAD's sub_buildPixi.yml.
-
 on:
   push:
-    branches: [master, main, "modernize/**", "ci/**"]
-    paths: &triggers
+    branches: [master]
+    paths:
       - 'pixi.toml'
       - 'pixi.lock'
       - 'CMakePresets.json'
@@ -22,7 +17,19 @@ on:
       - 'bbl/**'
       - '.github/workflows/build_pixi.yml'
   pull_request:
-    paths: *triggers
+    paths:
+      - 'pixi.toml'
+      - 'pixi.lock'
+      - 'CMakePresets.json'
+      - 'scripts/pixi/**'
+      - 'src/**'
+      - 'deps/wxWidgets/**'
+      - 'deps/libnoise/**'
+      - '**/CMakeLists.txt'
+      - 'version.inc'
+      - 'resources/**'
+      - 'bbl/**'
+      - '.github/workflows/build_pixi.yml'
   workflow_dispatch:
 
 concurrency:
@@ -30,9 +37,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check:
+    name: Check prerequisites
+    runs-on: ubuntu-latest
+    outputs:
+      has_pixi: ${{ steps.pixi-check.outputs.has_pixi }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          sparse-checkout: |
+            pixi.toml
+          sparse-checkout-cone-mode: false
+      - name: Check for pixi.toml
+        id: pixi-check
+        shell: bash
+        run: |
+          if [ -f pixi.toml ]; then
+            echo "has_pixi=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "pixi.toml not found — skipping build jobs"
+            echo "has_pixi=false" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
     name: Build with Pixi (${{ matrix.artifact_name }})
-    if: hashFiles('pixi.toml') != ''
+    needs: [check]
+    if: needs.check.outputs.has_pixi == 'true'
     runs-on: ${{ matrix.os }}
     container: ${{ matrix.container || '' }}
     strategy:
