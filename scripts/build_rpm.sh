@@ -45,7 +45,7 @@ spec = textwrap.dedent(f"""
     License:    AGPLv3
     URL:        https://bambulab.com
     BuildArch:  {arch}
-    Requires:   mesa-libGL, gtk3, glib2, dbus-libs, systemd-libs, libsecret, webkitgtk6.0, libxkbcommon
+    Requires:   mesa-libGL, gtk3, glib2, dbus-libs, systemd-libs, libsecret, webkit2gtk4.1, libxkbcommon
 
     %description
     BambuStudio is a cutting-edge, feature-rich slicing software.
