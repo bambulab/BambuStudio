@@ -1,4 +1,4 @@
-name: Build Linux
+name: Build Linux (AppImage, PR only)
 
 on: [pull_request]
 
