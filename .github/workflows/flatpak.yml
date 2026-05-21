@@ -1,0 +1,70 @@
+name: Flatpak Build
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'src/**'
+      - 'deps/**'
+      - '**/CMakeLists.txt'
+      - 'version.inc'
+      - '.github/workflows/flatpak.yml'
+      - 'flatpak/**'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'src/**'
+      - 'flatpak/**'
+  release:
+    types: [released]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  flatpak:
+    name: Build Flatpak
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/flathub/flatpak-builder:latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install flatpak-builder
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends flatpak flatpak-builder git
+
+      - name: Add Flathub remote
+        run: |
+          flatpak remote-add --if-not-exists flathub \
+            https://dl.flathub.org/repo/flathub.flatpakrepo
+
+      - name: Build Flatpak
+        run: |
+          flatpak-builder --force-clean --repo=flatpak-repo \
+            --install-deps-from=flathub \
+            build-dir flatpak/com.bambulab.BambuStudio.yaml
+
+      - name: Create Flatpak bundle
+        run: |
+          flatpak build-bundle flatpak-repo \
+            BambuStudio.flatpak com.bambulab.BambuStudio
+
+      - name: Upload Flatpak artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BambuStudio-flatpak
+          path: BambuStudio.flatpak
+          retention-days: 30
+
+      - name: Attach to release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: BambuStudio.flatpak

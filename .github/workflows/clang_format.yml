@@ -1,0 +1,49 @@
+name: clang-format Check
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - 'src/**/*.cpp'
+      - 'src/**/*.hpp'
+      - 'src/**/*.h'
+      - 'src/**/*.c'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  clang-format:
+    name: Check formatting
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install clang-format
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends clang-format-18
+          sudo ln -sf /usr/bin/clang-format-18 /usr/local/bin/clang-format
+
+      - name: Get changed files
+        id: changed
+        run: |
+          git diff --name-only origin/${{ github.base_ref }}...HEAD \
+            -- '*.cpp' '*.hpp' '*.h' '*.c' \
+            | grep '^src/' > /tmp/changed_files.txt || true
+          echo "files=$(cat /tmp/changed_files.txt | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
+          cat /tmp/changed_files.txt
+
+      - name: Run clang-format
+        if: steps.changed.outputs.files != ''
+        run: |
+          files=$(cat /tmp/changed_files.txt)
+          if [ -z "$files" ]; then
+            echo "No C/C++ files changed."
+            exit 0
+          fi
+          clang-format --dry-run --Werror $files

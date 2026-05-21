@@ -1,0 +1,66 @@
+name: AUR Update
+
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g. 2.6.1)'
+        required: false
+        type: string
+
+jobs:
+  aur-update:
+    name: Update AUR PKGBUILD
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            VERSION="${{ github.event.release.tag_name }}"
+            VERSION="${VERSION#v}"
+          else
+            VERSION="${{ inputs.version }}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Version: $VERSION"
+
+      - name: Get release asset checksums
+        id: checksums
+        run: |
+          TAG="v${{ steps.version.outputs.version }}"
+          URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/BambuStudio_linux_amd64_${TAG}.AppImage"
+          SHA256=$(curl -sL "$URL" | sha256sum | cut -d' ' -f1)
+          echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Publish to AUR
+        uses: KSXGitHub/github-actions-deploy-aur@v3
+        with:
+          pkgname: bambu-studio-bin
+          pkgbuild: |
+            # Maintainer: ${{ github.repository_owner }}
+            pkgname=bambu-studio-bin
+            pkgver=${{ steps.version.outputs.version }}
+            pkgrel=1
+            pkgdesc="BambuStudio slicer for Bambu Lab 3D printers"
+            arch=('x86_64')
+            url="https://github.com/${{ github.repository }}"
+            license=('AGPL3')
+            provides=('bambu-studio')
+            conflicts=('bambu-studio')
+            depends=('gtk3' 'glib2' 'glibc' 'libsecret' 'webkit2gtk')
+            source=("BambuStudio.AppImage::${{ steps.checksums.outputs.url }}")
+            sha256sums=('${{ steps.checksums.outputs.sha256 }}')
+            package() {
+              install -Dm755 "$srcdir/BambuStudio.AppImage" "$pkgdir/usr/bin/bambu-studio"
+            }
+          commit_username: ${{ github.repository_owner }}
+          commit_email: ${{ github.repository_owner }}@users.noreply.github.com
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: "update to v${{ steps.version.outputs.version }}"

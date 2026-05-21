@@ -1,0 +1,59 @@
+name: Homebrew Cask Update
+
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g. 2.6.1)'
+        required: false
+        type: string
+
+jobs:
+  homebrew-update:
+    name: Update Homebrew Cask
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            VERSION="${{ github.event.release.tag_name }}"
+            VERSION="${VERSION#v}"
+          else
+            VERSION="${{ inputs.version }}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Version: $VERSION"
+
+      - name: Get macOS asset checksums
+        id: checksums
+        run: |
+          TAG="v${{ steps.version.outputs.version }}"
+          BASE="https://github.com/${{ github.repository }}/releases/download/${TAG}"
+
+          URL_ARM="${BASE}/BambuStudio_mac_arm64_${TAG}.dmg"
+          URL_INTEL="${BASE}/BambuStudio_mac_x86_64_${TAG}.dmg"
+
+          SHA_ARM=$(curl -sL "$URL_ARM" | sha256sum | cut -d' ' -f1)
+          SHA_INTEL=$(curl -sL "$URL_INTEL" | sha256sum | cut -d' ' -f1)
+
+          echo "url_arm=$URL_ARM" >> "$GITHUB_OUTPUT"
+          echo "sha_arm=$SHA_ARM" >> "$GITHUB_OUTPUT"
+          echo "url_intel=$URL_INTEL" >> "$GITHUB_OUTPUT"
+          echo "sha_intel=$SHA_INTEL" >> "$GITHUB_OUTPUT"
+
+      - name: Update Homebrew Cask via PR
+        uses: mislav/bump-homebrew-formula-action@v3
+        with:
+          formula-name: bambu-studio
+          formula-path: Casks/bambu-studio.rb
+          homebrew-tap: ${{ github.repository_owner }}/homebrew-tap
+          download-url: ${{ steps.checksums.outputs.url_arm }}
+          commit-message: "update bambu-studio to {{version}}"
+        env:
+          COMMITTER_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}

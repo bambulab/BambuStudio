@@ -1,0 +1,75 @@
+name: CodeQL Security Scan
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'src/**'
+      - '**/CMakeLists.txt'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'src/**'
+  schedule:
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-24.04
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [c-cpp]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: manual
+          queries: security-extended
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            cmake ninja-build gcc g++ \
+            libgtk-3-dev libglu1-mesa-dev libgl1-mesa-dev \
+            libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+            libdbus-1-dev libsecret-1-dev libwebkit2gtk-4.1-dev \
+            libssl-dev libcurl4-openssl-dev libudev-dev \
+            libxkbcommon-dev nasm yasm
+
+      - name: Configure (source only, no deps)
+        run: |
+          cmake -S . -B build/codeql -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBBL_RELEASE_TO_PUBLIC=1 \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            || true
+
+      - name: Build for CodeQL
+        run: |
+          cmake --build build/codeql --target BambuStudio \
+            --parallel 4 2>&1 | head -5000 || true
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
