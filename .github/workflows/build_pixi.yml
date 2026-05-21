@@ -32,6 +32,7 @@ concurrency:
 jobs:
   build:
     name: Build with Pixi (${{ matrix.artifact_name }})
+    if: hashFiles('pixi.toml') != ''
     runs-on: ${{ matrix.os }}
     container: ${{ matrix.container || '' }}
     strategy:
