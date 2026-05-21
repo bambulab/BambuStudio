@@ -1038,7 +1038,7 @@ void AMSLib::on_left_down(wxMouseEvent &evt)
                 bottom = size.y - FromDIP(20);
             }
 
-            if (pos.x >= left && pos.x <= right && pos.y >= top && top <= bottom) {
+            if (pos.x >= left && pos.x <= right && pos.y >= top && pos.y <= bottom) {
                 if (m_selected) {
                     if (m_info.material_state == AMSCanType::AMS_CAN_TYPE_VIRTUAL) {
                         post_event(wxCommandEvent(EVT_VAMS_ON_FILAMENT_EDIT));
