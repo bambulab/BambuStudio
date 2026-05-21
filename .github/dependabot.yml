@@ -9,3 +9,25 @@ updates:
       - "dependencies"
     commit-message:
       prefix: "ci"
+
+  - package-ecosystem: "npm"
+    directory: "/src/slic3r/GUI/DeviceWeb/device_page"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "javascript"
+    commit-message:
+      prefix: "fix"
+
+  - package-ecosystem: "npm"
+    directory: "/tests/web-e2e"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "javascript"
+    commit-message:
+      prefix: "ci"

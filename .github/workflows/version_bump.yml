@@ -1,0 +1,84 @@
+name: Version Bump
+
+on:
+  workflow_dispatch:
+    inputs:
+      part:
+        description: 'Which part to bump'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      custom:
+        description: 'Custom version (e.g. 02.08.00.00) — overrides part selection'
+        required: false
+        type: string
+
+jobs:
+  bump:
+    name: Bump version.inc
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read current version
+        id: current
+        run: |
+          VER=$(grep 'set(SLIC3R_VERSION' version.inc | cut -d '"' -f2)
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "Current version: $VER"
+
+      - name: Calculate new version
+        id: new
+        run: |
+          CURRENT="${{ steps.current.outputs.version }}"
+          CUSTOM="${{ inputs.custom }}"
+
+          if [[ -n "$CUSTOM" ]]; then
+            NEW="$CUSTOM"
+          else
+            IFS='.' read -r A B C D <<< "$CURRENT"
+            A=$((10#$A)); B=$((10#$B)); C=$((10#$C)); D=$((10#$D))
+            case "${{ inputs.part }}" in
+              major) A=$((A+1)); B=0; C=0; D=0 ;;
+              minor) B=$((B+1)); C=0; D=0 ;;
+              patch) D=$((D+1)) ;;
+            esac
+            NEW=$(printf "%02d.%02d.%02d.%02d" $A $B $C $D)
+          fi
+
+          echo "version=$NEW" >> "$GITHUB_OUTPUT"
+          echo "New version: $NEW"
+
+      - name: Update version.inc
+        run: |
+          NEW="${{ steps.new.outputs.version }}"
+          sed -i "s/set(SLIC3R_VERSION \"[^\"]*\")/set(SLIC3R_VERSION \"${NEW}\")/" version.inc
+          grep 'SLIC3R_VERSION' version.inc
+
+      - name: Commit and push
+        run: |
+          NEW="${{ steps.new.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add version.inc
+          git commit -m "chore: bump version to ${NEW}"
+          git push
+
+      - name: Summary
+        run: |
+          echo "## Version bumped" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**${{ steps.current.outputs.version }}** → **${{ steps.new.outputs.version }}**" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Trigger a release by pushing a tag:" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "git tag v${{ steps.new.outputs.version }} && git push fork v${{ steps.new.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
