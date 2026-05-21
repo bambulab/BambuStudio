@@ -2591,7 +2591,7 @@ int CLI::run(int argc, char **argv)
     if (filament_count == 0)
         filament_count = load_filament_count;
 
-    if (is_bbl_3mf && (load_filament_count > 0) && (load_filaments_set.size() == 1))
+    if (is_bbl_3mf && (load_filament_count > 0) && (load_filaments_set.size() == 1) && !estimate_mode)
     {
         disable_wipe_tower_after_mapping = true;
         BOOST_LOG_TRIVIAL(info) << boost::format("map all the filaments to the same one, load_filament_count %1%")%load_filament_count;
