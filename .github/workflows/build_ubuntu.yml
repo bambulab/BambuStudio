@@ -40,7 +40,7 @@ jobs:
         run: ./BuildLinux.sh -ir
       - uses: actions/upload-artifact@v6
         with:
-          name: BambuStudio_Linux_ubu64_20.04
+          name: BambuStudio_Linux_ubu64_22.04
           path: './build/BambuStudio_ubu64.AppImage'
 
   appimage-builder-using-container:
