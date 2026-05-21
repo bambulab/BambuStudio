@@ -9,6 +9,7 @@ const embeddedRoutes = new Set([
   '/device_page/ams_ext_filament_edit',
   '/device_page/ams_bridge_debug',
   '/device_page/hotend_detail',
+  '/device_page/ams_mapping_hotend',
 ])
 
 function RootComponent() {

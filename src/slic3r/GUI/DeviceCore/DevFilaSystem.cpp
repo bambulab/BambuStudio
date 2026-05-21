@@ -28,8 +28,8 @@ wxColour DevAmsTray::decode_color(const std::string& color)
     }
 
     std::string clr_str = color;
-    if (color[0] != '#') {
-        clr_str = "#" + color;
+    if (clr_str[0] != '#') {
+        clr_str = "#" + clr_str;
     }
 
     const auto& clr = wxColour(clr_str);

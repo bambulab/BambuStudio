@@ -56,6 +56,10 @@
     "lightningcss-win32-x64-msvc": "^1.32.0"
   },
   "pnpm": {
+    "onlyBuiltDependencies": ["@tailwindcss/oxide", "esbuild"],
+    "allowedBuiltDependencies": ["@tailwindcss/oxide", "esbuild"]
+  },
+  "pnpm": {
     "overrides": {
       "undici": "7.28.0",
       "js-yaml": "4.2.0",

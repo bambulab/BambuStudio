@@ -38,6 +38,11 @@ public:
                      const std::string& submod,
                      const std::string& action);
 
+    // Look up a registered ViewModel by module key, or return nullptr if
+    // the module is not registered. Borrowed pointer; manager retains
+    // ownership.
+    IViewModel* Find(const std::string& module) const;
+
 private:
     std::unordered_map<std::string, std::unique_ptr<IViewModel>> m_vms;
 };

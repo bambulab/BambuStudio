@@ -7,9 +7,11 @@
  * \date   February 2026
  *********************************************************************/
 #include "AmsMappingPopup.hpp"
-#include "AmsMappingHotend.hpp"
+#include "DevMappingHelpers.h"
 #include "I18N.hpp"
 #include "DeviceCore/DevConfigUtil.h"
+#include "DeviceWeb/DeviceWebHost.hpp"
+#include "DeviceWeb/ViewModels/DevicePage/AmsMappingHotend/DevicePageAmsMappingHotendVM.hpp"
 
 #include "libslic3r/Utils.hpp"
 #include "slic3r/Utils/WxFontUtils.hpp"
@@ -82,20 +84,22 @@ void AmsMapingPopup::update(MachineObject* obj,
     m_amsmapping_container_sizer_list.clear();
     m_mapping_item_list.clear();
 
-    // Destroy hotend items - they are not inside MappingContainers
-    for (auto* item : m_mapping_item_hotend_list) {
-        if (item)
-        {
-            auto *sp = item->get_sub_panel_ref();
-            if (sp) { sp->Destroy(); }
-            item->Destroy();
-        }
-    }
-    m_mapping_item_hotend_list.clear();
-
     // Clear basket sizers (child windows already destroyed above, sizer items auto-detached)
     m_sizer_ams_basket_left->Clear(false);
     m_sizer_ams_basket_right->Clear(false);
+
+    // Hotend rack renders the body via Web/DeviceWebHost. Hand off
+    // early so the legacy wx layout below stays untouched for that machine.
+    auto rack_type = obj->GetNozzleRack()->GetRackType();
+    if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) {
+        m_title_text->SetLabelText(_L("Please select the filament."));
+        update_hotend_web(obj, ams_mapping_result, print_type);
+        return;
+    }
+
+    // Restore legacy layout in case a previous hotend-rack call hid the scrolled body.
+    m_scrolled_window->Show(true);
+    if (m_hotend_web_host) m_hotend_web_host->Show(false);
 
     /*title*/
     update_title(obj);
@@ -200,207 +204,21 @@ void AmsMapingPopup::update(MachineObject* obj,
     Refresh();
 }
 
-// Slicing nozzle requirement for a specific filament.
-// Used by hotend mapping to mark slots whose physical nozzle (diameter
-// or flow type) differs from what the current filament was sliced with.
-struct ExpectedNozzleSpec
-{
-    float          diameter    = -1.0f;
-    NozzleFlowType flow        = NozzleFlowType::NONE_FLOWTYPE;
-    NozzleType     nozzle_type = NozzleType::ntUndefine;
-    bool           valid       = false;
-};
-
-// Resolve the slicing's expected nozzle for the given filament id by reading
-// the live preset bundle. The translation goes:
-//   filament_id (0-based) --[filament_map]--> 1-based extruder
-//                          --[-1]-->         0-based nozzle index
-//                          --[nozzle_diameter / nozzle_volume_type]--> spec
-// Falls back to using filament_id directly when filament_map is missing
-// (works for simple single-extruder slicing).
-static ExpectedNozzleSpec sResolveExpectedNozzleSpec(int filament_id)
-{
-    ExpectedNozzleSpec spec;
-
-    auto* preset_bundle = wxGetApp().preset_bundle;
-    if (!preset_bundle) return spec;
-
-    const auto& project_config = preset_bundle->project_config;
-    const auto& full_config    = preset_bundle->full_config();
-
-    int extruder_idx = filament_id;
-    const auto* opt_fmap = project_config.option<ConfigOptionInts>("filament_map");
-    if (opt_fmap && filament_id >= 0 && (size_t)filament_id < opt_fmap->size()) {
-        extruder_idx = opt_fmap->get_at(filament_id) - 1;
-    }
-    if (extruder_idx < 0) return spec;
-
-    const auto* opt_dia = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-    if (!opt_dia || (size_t)extruder_idx >= opt_dia->size()) return spec;
-    spec.diameter = (float)opt_dia->get_at(extruder_idx);
-    spec.valid    = true;
-
-    const auto* opt_vol = project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-    if (opt_vol && (size_t)extruder_idx < opt_vol->size()) {
-        // Hybrid maps to NONE_FLOWTYPE here, which the per-slot check treats as
-        // "any flow accepted".
-        spec.flow = DevNozzle::ToNozzleFlowType((NozzleVolumeType)opt_vol->get_at(extruder_idx));
-    }
-
-    const auto* opt_nt = full_config.option<ConfigOptionEnumsGenericNullable>("nozzle_type");
-    if (opt_nt && (size_t)extruder_idx < opt_nt->size()) {
-        spec.nozzle_type = (NozzleType)opt_nt->get_at(extruder_idx);
-    }
-
-    return spec;
-}
-
-// Compare the physical nozzle of a hotend slot (tray) against the slicing
-// expectation.  Follows the same strictness as O1C's s_enable_item_if_match:
-//   1. Nozzle must exist, not be abnormal, and not be unknown.
-//   2. Nozzle type (material) must match when the slicing spec is defined.
-//   3. Diameter must match.
-//   4. Flow type must match (unless slicing says "any flow").
-// Returns true when compatible, or when the slot's nozzle cannot be resolved
-// (we don't want to false-positive a mismatch for missing data).
-static bool sIsSlotNozzleCompatible(MachineObject* obj,
-                                    const TrayData& td,
-                                    const ExpectedNozzleSpec& spec)
-{
-    if (!spec.valid || !obj) return true;
-
-    auto tray_opt = obj->get_tray(std::to_string(td.ams_id), std::to_string(td.slot_id));
-    if (!tray_opt.has_value()) return true;
-
-    auto np = tray_opt->get_nozzle_pos_id(obj);
-    if (!np.has_value() || np.value() < 0x10) return true;
-
-    auto nz = obj->GetNozzleSystem()->GetNozzleOptByAddrId(np.value() - 0x10);
-    if (!nz.has_value()) return true;
-
-    // Reject empty / abnormal / unknown nozzles
-    if (nz->IsEmpty() || nz->IsAbnormal() || nz->IsUnknown()) return false;
-
-    // Nozzle material type (stainless steel / hardened steel / tungsten carbide …)
-    if (spec.nozzle_type != NozzleType::ntUndefine &&
-        nz->GetNozzleType() != spec.nozzle_type)
-        return false;
-
-    if (!is_approx(nz->GetNozzleDiameter(), spec.diameter)) return false;
-
-    if (spec.flow != NozzleFlowType::NONE_FLOWTYPE &&
-        nz->GetNozzleFlowType() != spec.flow)
-        return false;
-
-    return true;
-}
-
+// Thin shim over the shared MakeTrayData helper. Kept under the original
+// name so the legacy (non-hotend-rack) call sites below stay unchanged.
 static std::optional<TrayData> sGetTrayData(MachineObject* obj,
-                                            DevAms* ams /*= nullptr*/,
-                                            DevAmsTray* tray,
+                                            DevAms*        ams /*= nullptr*/,
+                                            DevAmsTray*    tray,
                                             const std::string& ams_id_str)
 {
-    int ams_id = 0;
-    int tray_id = 0;
-    try {
-        ams_id = std::stoi(ams_id_str);
-        tray_id = atoi(tray->id.c_str());
-    } catch (const std::exception& e) {
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ":[error] invalid ams_id or tray_id: " << e.what();
-        return std::nullopt;
-    }
-
-    TrayData td;
-    td.ams_id = ams_id;
-    td.ams_type = tray->ams_type;
-    if (tray->ams_type != DevAmsType::EXT_SPOOL) {
-        td.slot_id = tray_id;
-        if (ams) {
-            td.id = ams->GetTrayId(td.slot_id);
-        }
-    } else {
-        td.slot_id = 0;
-        td.id = td.ams_id;
-        if (obj->GetFilaSystem()->GetVirtualTrays().size() > 2) {
-            td.ams_slot_name = wxString::Format("Ext-%d", 256 - td.id).ToStdString();
-        }
-    }
-
-    if (tray->ams_type != EXT_SPOOL && !tray->is_exists) {
-        td.type = EMPTY;
-    } else {
-        if (!tray->is_tray_info_ready()) {
-            td.type = THIRD;
-        } else {
-            td.type = NORMAL;
-            td.remain = tray->remain;
-            td.colour = DevAmsTray::decode_color(tray->color);
-            td.name = tray->get_display_filament_type();
-            td.filament_type = tray->get_filament_type();
-            td.ctype = tray->ctype;
-            for (const auto& col : tray->cols) {
-                td.material_cols.push_back(DevAmsTray::decode_color(col));
-            }
-        }
-    }
-
-    return td;
+    return MakeTrayData(obj, ams, tray, ams_id_str);
 }
 
 void AmsMapingPopup::update_mapping_items(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result, bool use_dynamic_switch)
 {
-    // N1X hotend rack: use MappingItemHotend instead of MappingItem
-    auto rack_type = obj->GetNozzleRack()->GetRackType();
-    bool is_n1x = (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B);
-    if (is_n1x) {
-        const auto& ams_list = obj->GetFilaSystem()->GetAmsList();
-        bool        has_zmulti_ams = false;
-        // For N1X, there is one ZMULTI AMS with all hotend slots
-        for (auto ams_iter = ams_list.begin(); ams_iter != ams_list.end(); ams_iter++) {
-            auto ams_type = ams_iter->second->GetAmsType();
-            if (ams_type != DevAmsType::ZMULTI_A && ams_type != DevAmsType::ZMULTI_B) {
-                continue;
-            }
-
-            has_zmulti_ams = true;
-            DevAms* ams_group = ams_iter->second;
-            std::vector<TrayData> tray_datas;
-            for (auto tray_iter = ams_group->GetTrays().cbegin(); tray_iter != ams_group->GetTrays().cend(); tray_iter++) {
-                const auto& td_opt = sGetTrayData(obj, ams_group, tray_iter->second, ams_group->GetAmsId());
-                if (td_opt.has_value()) {
-                    tray_datas.push_back(td_opt.value());
-                }
-            }
-
-            auto* sizer_hotend = new wxBoxSizer(wxVERTICAL);
-            add_ams_mapping_hotend(obj, tray_datas, m_right_marea_panel, sizer_hotend);
-            m_sizer_ams_basket_right->Add(sizer_hotend, 0, wxEXPAND | wxTOP, FromDIP(5));
-        }
-
-        //without AMS case : show virtual trays as hotend items
-        if (!has_zmulti_ams) {
-            const auto& vir_list = obj->GetFilaSystem()->GetVirtualTrays();
-            if (!vir_list.empty()) {
-                std::vector<TrayData> tray_datas;
-                for (auto iter = vir_list.rbegin(); iter != vir_list.rend(); iter++) {
-                    DevAmsTray tray_data = iter->second;
-                    const auto& td_opt = sGetTrayData(obj, nullptr, &tray_data, tray_data.id);
-                    if (td_opt.has_value()) {
-                        tray_datas.push_back(td_opt.value());
-                    }
-                }
-
-                if (!tray_datas.empty()) {
-                    auto* sizer_hotend = new wxBoxSizer(wxVERTICAL);
-                    add_ams_mapping_hotend(obj, tray_datas, m_right_marea_panel, sizer_hotend);
-                    m_sizer_ams_basket_right->Add(sizer_hotend, 0, wxEXPAND | wxTOP, FromDIP(5));
-                }
-            }
-        }
-
-        update_items_check_state(ams_mapping_result);
-        return;
-    }
+    // Hotend rack (RackType_A/B) is handled earlier by AmsMapingPopup::update()
+    // via update_hotend_web(), which short-circuits before reaching this function.
+    // The legacy wx grid below is for non-hotend-rack machines only.
 
     std::list<MappingContainer*>   left_one_slot_containers;
     std::list<MappingContainer*>   right_one_slot_containers;
@@ -740,23 +558,9 @@ void AmsMapingPopup::update_items_check_state(const std::vector<FilamentInfo>& a
         for (auto mapping_item : m_mapping_item_list) {
             update_item_check_state(mapping_item);
         }
-
-        // N1X hotend items
-        for (auto hotend_item : m_mapping_item_hotend_list) {
-            if (hotend_item) {
-                for (const auto& mapping_res : ams_mapping_result) {
-                    if (mapping_res.id == this->m_current_filament_id) {
-                        if (mapping_res.ams_id == std::to_string(hotend_item->m_ams_id) &&
-                            mapping_res.slot_id == std::to_string(hotend_item->m_slot_id)) {
-                            hotend_item->set_checked(true);
-                        } else {
-                            hotend_item->set_checked(false);
-                        }
-                        break;
-                    }
-                }
-            }
-        }
+        // Hotend-rack check state is owned by DevicePageAmsMappingHotendVM,
+        // which re-emits a fresh state report whenever ams_mapping_result
+        // is refreshed.
     }
 }
 
@@ -907,355 +711,66 @@ void AmsMapingPopup::add_ext_ams_mapping(TrayData tray_data, MappingItem* item)
         });
     }
 
-    item->set_tray_index("Ext");
+    item->set_tray_index(_L("Ext"));
 }
 
-// MappingContainer width by slot count, in DIP units (mirrors MappingContainer ctor).
-inline int sub_ams_card_width_dip(int slots)
+
+// Hotend mapping is rendered by the Web view (DevicePageAmsMappingHotendVM);
+// the legacy wxWidgets sub-AMS expand panel helpers were removed.
+
+void AmsMapingPopup::update_hotend_web(MachineObject* obj,
+                                       const std::vector<FilamentInfo>& ams_mapping_result,
+                                       std::optional<PrintFromType> /*print_type*/)
 {
-    if (slots == 1) return kSubAmsSingleSlotWidthDIP;
-    if (slots == 4) return kSubAmsFourSlotWidthDIP;
-    return slots * 54 + 20;
-}
-} // namespace
+    if (!obj) return;
 
-// Helper: build AMS sub-panel (MappingContainer + MappingItems) for a hotend slot
-static wxPanel* sCreateSubAmsPanel(wxWindow* parent,
-                                    wxWindow* send_win,
-                                    const std::vector<TrayData>& sub_trays,
-                                    const wxString& ams_name,
-                                    bool remain_detect,
-                                    int filament_id,
-                                    std::vector<MappingItem*>& out_items)
-{
-    out_items.clear();
+    // Hide the scrolled window that hosts the legacy wx controls; the WebView
+    // replaces it entirely for hotend-rack machines.
+    m_scrolled_window->Show(false);
 
-    auto* panel = new wxPanel(parent, wxID_ANY);
-    panel->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
+    // Lazily create the WebView host. Parent is the popup itself (this) so the
+    // control lives outside m_scrolled_window. We insert it into m_sizer_main
+    // right after the title panel (index 1).
+    if (!m_hotend_web_host) {
+        m_hotend_web_host  = new DeviceWebHost(this,
+                                               DeviceWebHostMode::DevicePageAmsMappingHotend,
+                                               "/device_page/ams_mapping_hotend");
+        // Initial size is a small fallback; the React page reports its real
+        // content size via device_host/layout/content_size and the host will
+        // re-SetMinSize as soon as the first ResizeObserver tick fires.
+        m_hotend_web_host->SetMinSize(wxSize(FromDIP(660), FromDIP(400)));
+        m_hotend_web_sizer = new wxBoxSizer(wxVERTICAL);
+        m_hotend_web_sizer->Add(m_hotend_web_host, 1, wxEXPAND | wxALL, FromDIP(2));
+        m_sizer_main->Insert(1, m_hotend_web_sizer, 1, wxEXPAND);
 
-    auto* panel_sizer = new wxBoxSizer(wxVERTICAL);
-    auto* container   = new MappingContainer(panel, ams_name, (int)sub_trays.size());
-    auto* row_sizer   = new wxBoxSizer(wxHORIZONTAL);
-    container->SetSizer(row_sizer);
-    row_sizer->Add(0, 0, 0, wxLEFT, panel->FromDIP(6));
+        // PopupWindow does not Fit() itself when the host SetMinSize() shrinks,
+        // so we drive the popup re-layout from the host's content-size signal.
+        m_hotend_web_host->SetContentSizeChangedHandler([this](const wxSize& /*size*/) {
+            if (!m_hotend_web_host) return;
+            this->Layout();
+            this->Fit();
+        });
+    }
+    m_hotend_web_host->Show(true);
 
-    for (size_t i = 0; i < sub_trays.size(); i++) {
-        const auto& td = sub_trays[i];
-
-        auto* item = new MappingItem(container);
-        item->send_win = send_win;
-        item->m_ams_id  = td.ams_id;
-        item->m_slot_id = td.slot_id;
-        item->set_tray_index(wxGetApp().transition_tridid(td.id));
-
-        int item_w = panel->FromDIP(48);
-        int item_h = panel->FromDIP(60);
-        item->SetSize(wxSize(item_w, item_h));
-        item->SetMinSize(wxSize(item_w, item_h));
-        item->SetMaxSize(wxSize(item_w, item_h));
-
-        bool can_pick = (td.type == NORMAL);
-        wxColour col = can_pick ? td.colour : wxColour(0xEE, 0xEE, 0xEE);
-        wxString name;
-        if (td.type == THIRD)     name = "?";
-        else if (td.type == EMPTY) name = "-";
-        else                       name = td.name;
-
-        item->set_data(wxEmptyString, col, name, remain_detect, td, !can_pick);
-        row_sizer->Add(0, 0, 0, wxRIGHT, panel->FromDIP(6));
-        row_sizer->Add(item, 0, wxTOP, panel->FromDIP(1));
-        out_items.push_back(item);
+    // Push the latest snapshot into the registered VM so the next state/get
+    // request from the React side returns the up-to-date payload.
+    if (auto* vm = m_hotend_web_host->GetAmsMappingHotendVM()) {
+        vm->Refresh(obj,
+                    ams_mapping_result,
+                    m_current_filament_id,
+                    m_show_type,
+                    m_ext_mapping_filatype_check,
+                    m_tag_material,
+                    m_reset_callback,
+                    send_win,
+                    this,
+                    std::nullopt);
     }
 
-    container->Layout();
-    panel_sizer->Add(container, 0, wxEXPAND | wxALL, panel->FromDIP(4));
-    panel->SetSizer(panel_sizer);
-    panel->Layout();
-    panel->Fit();
-    return panel;
-}
-
-void AmsMapingPopup::add_ams_mapping_hotend(MachineObject* obj,
-                                             std::vector<TrayData> tray_data,
-                                             wxWindow* container,
-                                             wxBoxSizer* sizer)
-{
-    // Strategy: pre-create ALL sub-AMS panels hidden, then Show/Hide on click.
-    // This is far more reliable than dynamically inserting sizer items.
-    //
-    // Layout in sizer:
-    //   Row 0 (5 slots)   ← hotend items
-    //   SubPanel 0        ← pre-created, hidden by default
-    //   Row 1 (5 slots)
-    //   SubPanel 1
-    //   ...
-
-    static const int COLS = 5;
-    int gap = container->FromDIP(4);
-
-    // Map: hotend_item → its sub-panel (nullptr if no sub-AMS)
-    struct RowInfo {
-        wxBoxSizer* row_sizer    = nullptr;
-        wxPanel*    sub_panel    = nullptr;  // pre-created, hidden
-        std::vector<MappingItem*> sub_items;
-    };
-
-    std::vector<RowInfo> rows;
-    RowInfo cur_row;
-    int col_in_row = 0;
-
-    // Helper to finalize current row and create its sub-panel placeholder
-    auto finish_row = [&]() {
-        if (!cur_row.row_sizer) return;
-        rows.push_back(cur_row);
-        cur_row = RowInfo{};
-    };
-
-    // Slicing requirement for the current filament. Only resolved when the
-    // device exposes a nozzle rack ; other paths keep their legacy
-    // filament-type-only check.
-    ExpectedNozzleSpec expected_nozzle;
-    if (obj->GetNozzleRack()->IsSupported()) {
-        expected_nozzle = sResolveExpectedNozzleSpec(m_current_filament_id);
-    }
-
-    for (size_t i = 0; i < tray_data.size(); i++) {
-        if (col_in_row == 0) {
-            cur_row.row_sizer = new wxBoxSizer(wxHORIZONTAL);
-        }
-
-        auto* hotend_item = new MappingItemHotend(container);
-        hotend_item->send_win = send_win;
-
-        wxString index_str = wxString::Format("%d", (int)(i + 1));
-        hotend_item->set_tray_index(index_str);
-
-        // State detection
-        HotendSlotState slot_state = HotendSlotState::Normal;
-        bool can_pick = true;
-
-        if (tray_data[i].ams_type == DevAmsType::EXT_SPOOL) {
-            if (tray_data[i].type == NORMAL && !is_match_material(tray_data[i].filament_type)) {
-                slot_state = HotendSlotState::Unmatch; can_pick = false;
-            } else if (tray_data[i].type == EMPTY) {
-                slot_state = HotendSlotState::AllEmpty; can_pick = false;
-            }
-        } else if (tray_data[i].type == EMPTY) {
-            bool has_nozzle = false;
-            if (obj->GetNozzleRack()->IsSupported()) {
-                auto tray_opt = obj->get_tray(std::to_string(tray_data[i].ams_id),
-                                               std::to_string(tray_data[i].slot_id));
-                if (tray_opt.has_value()) {
-                    auto np = tray_opt->get_nozzle_pos_id(obj);
-                    if (np.has_value()) {
-                        int rid = np.value(); if (rid >= 16) rid -= 16;
-                        has_nozzle = obj->GetNozzleRack()->GetRackNozzles().count(rid) > 0;
-                    }
-                }
-            }
-            slot_state = has_nozzle ? HotendSlotState::NozzleEmpty : HotendSlotState::AllEmpty;
-            can_pick = false;
-        } else if (tray_data[i].type == NORMAL) {
-            // Reject slot when filament type mismatches OR the slot's physical
-            // nozzle does not match the slicing requirement.
-            const bool unmatch = !is_match_material(tray_data[i].filament_type) ||
-                                 !sIsSlotNozzleCompatible(obj, tray_data[i], expected_nozzle);
-            if (unmatch) {
-                slot_state = HotendSlotState::Unmatch;
-                can_pick   = false;
-            }
-        }
-
-        wxColour display_color = (can_pick || tray_data[i].type == THIRD)
-            ? (tray_data[i].type == NORMAL ? tray_data[i].colour : wxColour(0xCE, 0xCE, 0xCE))
-            : wxColour(0xEE, 0xEE, 0xEE);
-
-        wxString display_name;
-        if (tray_data[i].type == THIRD)     display_name = "?";
-        else if (tray_data[i].type == EMPTY) display_name = "-";
-        else                                 display_name = tray_data[i].name;
-
-        hotend_item->set_data(index_str, display_color, display_name, tray_data[i], !can_pick);
-        hotend_item->set_slot_state(slot_state);
-
-        if (tray_data[i].ams_type == DevAmsType::EXT_SPOOL)
-            hotend_item->set_ext_mode(true, false);
-
-        // Nozzle info
-        if (obj->GetNozzleRack()->IsSupported()) {
-            auto tray_opt = obj->get_tray(std::to_string(tray_data[i].ams_id),
-                                           std::to_string(tray_data[i].slot_id));
-            if (tray_opt.has_value()) {
-                auto np = tray_opt->get_nozzle_pos_id(obj);
-                if (np.has_value()) {
-                    int rid = np.value(); if (rid >= 16) rid -= 16;
-                    auto it = obj->GetNozzleRack()->GetRackNozzles().find(rid);
-                    if (it != obj->GetNozzleRack()->GetRackNozzles().end()) {
-                        hotend_item->set_nozzle_info(
-                            wxString::Format("%.1f mm", it->second.GetNozzleDiameter()),
-                            wxString::FromUTF8(DevNozzle::ToNozzleVolumeShortString(
-                                DevNozzle::ToNozzleVolumeType(it->second.GetNozzleFlowType()))));
-                    }
-                }
-            }
-        }
-
-        // G1: detect real sub-AMS
-        if (tray_data[i].ams_type != DevAmsType::EXT_SPOOL && obj->GetNozzleRack()->IsSupported()) {
-            auto tray_opt = obj->get_tray(std::to_string(tray_data[i].ams_id),
-                                           std::to_string(tray_data[i].slot_id));
-            if (tray_opt.has_value()) {
-                auto np = tray_opt->get_nozzle_pos_id(obj);
-                if (np.has_value()) {
-                    for (const auto& [aid, aptr] : obj->GetFilaSystem()->GetAmsList()) {
-                        auto at = aptr->GetAmsType();
-                        if (at == DevAmsType::ZMULTI_A || at == DevAmsType::ZMULTI_B) continue;
-                        if (!aptr->GetBindedExtruderSet().count(np.value())) continue;
-                        std::vector<TrayData> sub;
-                        for (auto ti = aptr->GetTrays().cbegin(); ti != aptr->GetTrays().cend(); ti++) {
-                            auto td_opt = sGetTrayData(obj, aptr, ti->second, aid);
-                            if (td_opt.has_value()) sub.push_back(td_opt.value());
-                        }
-                        if (!sub.empty())
-                            hotend_item->set_sub_ams(sub, aptr->GetDisplayName(),
-                                                      obj->GetFilaSystem()->IsDetectRemainEnabled());
-                        break;
-                    }
-
-                    // G1 fallback: if BindedExtruderSet didn't match, try nozzle's bind_ams
-                    if (!hotend_item->has_sub_ams()) {
-                        auto nozzle_opt = obj->GetNozzleSystem()->GetNozzleOptByPosId(np.value());
-                        if (nozzle_opt.has_value()) {
-                            for (int bind_ams_id : nozzle_opt->GetBindAms()) {
-                                std::string bind_ams_id_str = std::to_string(bind_ams_id);
-                                auto ams_it = obj->GetFilaSystem()->GetAmsList().find(bind_ams_id_str);
-                                if (ams_it == obj->GetFilaSystem()->GetAmsList().end()) continue;
-                                auto at = ams_it->second->GetAmsType();
-                                if (at != DevAmsType::N3S && at != DevAmsType::N3F) continue;
-                                std::vector<TrayData> sub;
-                                for (auto ti = ams_it->second->GetTrays().cbegin(); ti != ams_it->second->GetTrays().cend(); ti++) {
-                                    auto td_opt = sGetTrayData(obj, ams_it->second, ti->second, bind_ams_id_str);
-                                    if (td_opt.has_value()) sub.push_back(td_opt.value());
-                                }
-                                if (!sub.empty()) {
-                                    hotend_item->set_sub_ams(sub, ams_it->second->GetDisplayName(),
-                                                              obj->GetFilaSystem()->IsDetectRemainEnabled());
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        if (tray_data[i].ams_type == DevAmsType::EXT_SPOOL && hotend_item->has_sub_ams())
-            hotend_item->set_ext_mode(true, true);
-
-        // Slot with sub-AMS should not appear greyed out even if ZMULTI tray is empty
-        if (hotend_item->has_sub_ams() && !can_pick) {
-            hotend_item->set_slot_state(HotendSlotState::Normal);
-        }
-
-        // Build sub-panel for this slot if it has sub-AMS (hidden by default)
-        wxPanel* sub_panel = nullptr;
-        std::vector<MappingItem*> sub_items;
-        if (hotend_item->has_sub_ams()) {
-            sub_panel = sCreateSubAmsPanel(
-                container, send_win,
-                hotend_item->get_sub_tray_data(),
-                hotend_item->get_sub_ams_name(),
-                hotend_item->get_remain_detect(),
-                m_current_filament_id,
-                sub_items);
-            sub_panel->Hide();
-
-            // Bind click events for sub-items
-            for (auto* item : sub_items) {
-                item->Bind(wxEVT_LEFT_DOWN, [this, item, sub_panel](wxMouseEvent& e) {
-                    item->send_event(m_current_filament_id);
-                    sub_panel->Hide();
-                    // collapse all
-                    for (auto* other : m_mapping_item_hotend_list)
-                        other->set_expanded(false);
-                    this->Layout();
-                    this->Fit();
-                    this->Refresh();
-                    Dismiss();
-                });
-            }
-        }
-
-        // Track sub-panel with row
-        // We store sub-panel pointer on hotend_item via set_sub_panel_ref (new approach)
-        hotend_item->set_sub_panel_ref(sub_panel);
-
-        // Click handler for hotend_item
-        if (sub_panel) {
-            hotend_item->Bind(wxEVT_LEFT_DOWN, [this, hotend_item, sub_panel](wxMouseEvent& e) {
-                e.Skip(false);
-                bool expanding = !hotend_item->is_expanded();
-
-                // Hide all other sub-panels and clear expanded state
-                for (auto* other : m_mapping_item_hotend_list) {
-                    if (other->get_sub_panel_ref() && other != hotend_item) {
-                        other->get_sub_panel_ref()->Hide();
-                        other->set_expanded(false);
-                    }
-                }
-
-                // Toggle this one
-                hotend_item->set_expanded(expanding);
-                sub_panel->Show(expanding);
-
-                this->Layout();
-                this->Fit();
-                this->Refresh();
-            });
-        } else {
-            hotend_item->Bind(wxEVT_LEFT_DOWN, [this, can_pick, hotend_item](wxMouseEvent& e) {
-                if (!can_pick) return;
-                hotend_item->send_event(m_current_filament_id);
-                Dismiss();
-            });
-        }
-
-        // Add to row sizer
-        if (col_in_row > 0) cur_row.row_sizer->Add(0, 0, 0, wxLEFT, gap);
-        cur_row.row_sizer->Add(hotend_item, 0, 0);
-        if (sub_panel) cur_row.sub_panel = sub_panel;
-        m_mapping_item_hotend_list.push_back(hotend_item);
-
-        col_in_row++;
-        if (col_in_row >= COLS) {
-            finish_row();
-            col_in_row = 0;
-        }
-    }
-    // Finalize last (possibly incomplete) row
-    if (col_in_row > 0) finish_row();
-
-    // Build final sizer: row0, sub_panel0, row1, sub_panel1, ...
-    bool has_any_sub_ams = false;
-    for (auto& row : rows) {
-        sizer->Add(row.row_sizer, 0, wxBOTTOM, gap);
-        if (row.sub_panel) {
-            sizer->Add(row.sub_panel, 0, wxEXPAND | wxBOTTOM, gap);
-            has_any_sub_ams = true;
-        }
-    }
-
-    // Reserve enough horizontal room for the sub-AMS row capacity even while
-    // every sub-panel is hidden. The popup width is computed once at SHOW
-    // time from m_sizer_main_h->GetMinSize(); without this hint the hidden
-    // sub-panels do not contribute to that min size, and the rightmost cards
-    // get clipped after the user expands a hotend slot.
-    if (has_any_sub_ams) {
-        sizer->SetMinSize(container->FromDIP(sub_ams_row_capacity_dip()), -1);
-    }
-
-    container->Layout();
-    container->Fit();
+    Layout();
+    Fit();
+    Refresh();
 }
 
 } // namespace Slic3r::GUI

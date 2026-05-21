@@ -560,8 +560,10 @@ set(SLIC3R_GUI_SOURCES
     GUI/AmsMappingPopup.hpp
     GUI/AmsMappingPopup.cpp
     GUI/AmsMappingPopupUpdate.cpp
-    GUI/AmsMappingHotend.hpp
-    GUI/AmsMappingHotend.cpp
+    GUI/MaterialItemHotend.hpp
+    GUI/MaterialItemHotend.cpp
+    GUI/DevMappingHelpers.h
+    GUI/DevMappingHelpers.cpp
     GUI/ReleaseNote.hpp
     GUI/ReleaseNote.cpp
     GUI/VersionPolicyDialog.hpp

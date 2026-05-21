@@ -17,6 +17,7 @@
 #include "DeviceWebManager.hpp"
 #include "ViewModels/FilamentManager/FilamentManagerVM.hpp"
 #include "ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendVM.hpp"
+#include "ViewModels/DevicePage/AmsMappingHotend/DevicePageAmsMappingHotendVM.hpp"
 #include "slic3r/GUI/PrinterWebView.hpp"
 #include "slic3r/GUI/Widgets/WebViewWatcher.hpp"
 
@@ -27,6 +28,7 @@ enum class DeviceWebHostMode {
     FilamentManager,
     DevicePageAmsControlWeb,
     DevicePageAmsFilamentHotend,
+    DevicePageAmsMappingHotend,
     AllForDebug
 };
 
@@ -61,6 +63,10 @@ public:
     void DispatchCommand(const nlohmann::json& body);
     void SetContentSizeChangedHandler(ContentSizeChangedHandler handler) { m_content_size_changed_handler = std::move(handler); }
 
+    // Access the registered AMS mapping VM so the popup can push a fresh
+    // snapshot of (machine, mapping_result, current_filament_id, ...) before
+    // the Web side requests state/get.
+    DevicePageAmsMappingHotendVM* GetAmsMappingHotendVM() const;
 
     void on_sys_color_changed();
     void msw_rescale();

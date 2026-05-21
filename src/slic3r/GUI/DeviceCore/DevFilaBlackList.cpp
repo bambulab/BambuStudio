@@ -211,12 +211,19 @@ void check_filaments(const DevFilaBlacklist::CheckFilamentInfo& check_info, DevF
 
             // check loc
             if (!slot.empty()) {
-                bool is_virtual_slot = devPrinterUtil::IsVirtualSlot(check_info.ams_id);
+                bool is_ext_spool = false;
+                DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+                if (dev) {
+                    MachineObject* obj = dev->get_selected_machine();
+                    if (obj) {
+                        is_ext_spool = obj->GetFilaSystem()->IsVirtualTrayId(std::to_string(check_info.ams_id));
+                    }
+                }
                 bool check_virtual_slot = (slot == "ext");
                 bool check_ams_slot = (slot == "ams");
-                if (is_virtual_slot && !check_virtual_slot) {
+                if (is_ext_spool && !check_virtual_slot) {
                     continue;
-                } else if (!is_virtual_slot && !check_ams_slot) {
+                } else if (!is_ext_spool && !check_ams_slot) {
                     continue;
                 }
             }

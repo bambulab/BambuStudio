@@ -119,6 +119,12 @@ public:
     // direct bind ams slots. eg. ZMULTI_A
     std::vector<DevAmsSlotId> GetBindAmsSlots() const { return m_bind_ams_slots; };
 
+    // Preload (pre-feed) AMS slots: rack-matching internal AMS only.
+    // Differs from GetBindAmsSlots() when the current feed source is the
+    // external spool but an internal AMS slot is also preloaded for this
+    // rack nozzle.
+    std::vector<DevAmsSlotId> GetPreloadBindAmsSlots() const { return m_preload_bind_ams_slots; };
+
     // external ams ids bound to this nozzle (from device push "bind_ams")
     std::vector<int> GetBindAms() const { return m_bind_ams; };
 
@@ -145,6 +151,7 @@ private:
     std::string m_filament_clr;// main color
 
     std::vector<DevAmsSlotId> m_bind_ams_slots;// direct bind ams slots which means when load/unload is using the slot. eg. ZMULTI_A 
+    std::vector<DevAmsSlotId> m_preload_bind_ams_slots;// preload (pre-feed) AMS slot, rack-matching internal AMS only, no Ext fallback
     std::vector<int>          m_bind_ams;
     std::optional<DevAmsSlotId> m_slot_now;
 
@@ -245,5 +252,6 @@ public:
 
 private:
     static void sTraverseBindAmsSlot(DevNozzleSystem* system, DevNozzle& nozzle_obj);
+    static void sTraversePreloadBindAmsSlot(DevNozzleSystem* system, DevNozzle& nozzle_obj);
 };
 };

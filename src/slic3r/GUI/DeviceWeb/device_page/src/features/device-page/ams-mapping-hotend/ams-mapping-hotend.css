@@ -1,0 +1,539 @@
+/* "Send to print" filament mapping popup — Web implementation.
+ *
+ * Figma reference: node-id=5605-2876 / 8936:31276 in
+ *   Bambu Studio 开源2025 (https://www.figma.com/design/3agospssuBDKZagQ1lDoz6).
+ *
+ * Card size: 104x140 per Figma "耗材匹配卡片".
+ */
+
+.ams-map-hotend-page {
+  --slot-width: 104px;
+  --slot-height: 140px;
+  --slot-gap: 16px;
+  --color-card-bg: #f8f8f8;
+  --color-card-border: #e0e0e0;
+  --color-card-border-active: #00ae42;
+  --color-card-border-unmatch: #ea1f30;
+  --color-disabled-overlay: rgba(255, 255, 255, 0.7);
+  --color-text-primary: #262e30;
+  --color-text-secondary: #acacac;
+  --color-brand: #00ae42;
+  --color-pill-bg: #eeeeee;
+
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 12px 16px;
+  background: #ffffff;
+  overflow-x: hidden;
+  color: var(--color-text-primary);
+  font-family: "HarmonyOS Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 12px;
+  box-sizing: border-box;
+}
+
+.ams-map-hotend-page__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ams-map-hotend-page__row-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.ams-map-hotend-page__row {
+  display: flex;
+  flex-direction: row;
+  gap: var(--slot-gap);
+  justify-content: flex-start;
+}
+
+.ams-map-hotend-page__row--centered {
+  justify-content: center;
+}
+
+/* ---------- Slot card (104x140) ---------- */
+
+.ams-map-hotend__slot-card {
+  position: relative;
+  width: var(--slot-width);
+  height: var(--slot-height);
+  background: var(--color-card-bg);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px;
+  gap: 4px;
+  box-sizing: border-box;
+  transition: border-color 120ms ease;
+}
+
+.ams-map-hotend__slot-card:not([data-state="MaterialUnmatch"]):not([data-state="MaterialEmpty"]):not([data-state="NozzleUnmatch"]):not([data-state="NozzleEmpty"]):not([data-state="Unavailable"]):hover {
+  border-color: var(--color-card-border);
+}
+
+.ams-map-hotend__slot-card[data-has-sub-ams="true"]:hover {
+  border-color: var(--color-card-border);
+}
+
+.ams-map-hotend__slot-card:focus-visible {
+  outline: 2px solid #1e88e5;
+  outline-offset: 2px;
+}
+
+.ams-map-hotend__slot-card[data-state="MaterialUnmatch"],
+.ams-map-hotend__slot-card[data-state="NozzleUnmatch"] {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.ams-map-hotend__slot-card[data-state="MaterialEmpty"],
+.ams-map-hotend__slot-card[data-state="NozzleEmpty"] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.ams-map-hotend__slot-card[data-state="MaterialEmpty"][data-has-sub-ams="true"],
+.ams-map-hotend__slot-card[data-state="NozzleEmpty"][data-has-sub-ams="true"] {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.ams-map-hotend__slot-card[data-state="Unavailable"] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+
+/* CardHead: index pill + radio */
+
+.ams-map-hotend__slot-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 16px;
+}
+
+.ams-map-hotend__slot-card__pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  max-width: 50px;
+  height: 14px;
+  padding: 0 2px;
+  background: var(--color-pill-bg);
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 16px;
+}
+
+.ams-map-hotend__slot-card__pill-ext {
+  margin-left: 2px;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
+.ams-map-hotend__slot-card__pill[data-state="Unavailable"] {
+  color: var(--color-text-secondary);
+}
+
+.ams-map-hotend__slot-card__radio {
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--color-card-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.ams-map-hotend__slot-card__radio[data-checked="true"] {
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+}
+
+/* Spool area: ring + name */
+
+.ams-map-hotend__slot-card__spool-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 72px;
+}
+
+.ams-map-hotend__slot-card__spool-area .spool-ring {
+  display: block;
+}
+
+.ams-map-hotend__slot-card__material-name {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-text-primary);
+  text-align: center;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Divider */
+
+.ams-map-hotend__slot-card__divider {
+  width: 100%;
+  height: 0;
+  border-top: 0.5px solid #e0e0e0;
+}
+
+/* Nozzle info (inside card, flow layout) */
+
+.ams-map-hotend__nozzle-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 96px;
+}
+
+.ams-map-hotend__nozzle-info__icon {
+  width: 12px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.ams-map-hotend__nozzle-info__text {
+  display: flex;
+  flex-direction: column;
+  line-height: 16px;
+  min-width: 0;
+  max-width: 80px;
+}
+
+.ams-map-hotend__nozzle-info__dia {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.ams-map-hotend__nozzle-info__flow {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+.ams-map-hotend__nozzle-na {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  text-align: center;
+  width: 100%;
+}
+
+/* Spool wrapper (relative container for swap icon overlay) */
+
+.ams-map-hotend__slot-card__spool-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.ams-map-hotend__slot-card__swap-icon {
+  position: absolute;
+  right: -4px;
+  bottom: -2px;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+}
+
+/* ---------- Sub-AMS badge on SlotCard ---------- */
+
+.ams-map-hotend__slot-card__head-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ams-map-hotend__sub-ams-badge {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.ams-map-hotend__sub-ams-badge__count {
+  font-size: 12px;
+  color: #a3a3a3;
+}
+
+/* ---------- Sub-AMS full-page selection ---------- */
+
+.ams-map-hotend__sub-ams-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: #ffffff;
+}
+
+.ams-map-hotend__sub-ams-page__back {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #262e30;
+  padding: 0 8px 6px 4px;
+  margin: 0 0 0 12px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.ams-map-hotend__sub-ams-page__back:hover {
+  background: #f0f0f0;
+}
+
+.ams-map-hotend__sub-ams-page__body {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 8px 16px 0;
+  /* Allow inner overflow-y child (__groups) to shrink and scroll. */
+  min-height: 0;
+}
+
+.ams-map-hotend__sub-ams-page__body--flat {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 8px 0 0;
+}
+
+.ams-map-hotend__sub-ams-page__parent {
+  flex-shrink: 0;
+}
+
+.ams-map-hotend__sub-ams-page__groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  /* Cap the AMS group list so the popup never grows beyond ~500px total
+     (back + tip + parent card area ≈ 140px reserved). Extra groups scroll
+     inside this container; back button, parent card and bottom tip stay
+     visible. */
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.ams-map-hotend__sub-ams-page__group {
+  background: #ebebeb;
+  border: 1px solid #dbdbdb;
+  border-radius: 7.5px;
+  overflow: hidden;
+}
+
+.ams-map-hotend__sub-ams-page__group-inner {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  background: #ffffff;
+  padding: 10px 16px;
+  flex-wrap: nowrap;
+}
+
+.ams-map-hotend__sub-ams-page__group-inner > .ams-map-hotend__sub-card {
+  flex-shrink: 0;
+}
+
+.ams-map-hotend__sub-ams-page__group-name {
+  font-size: 12px;
+  color: #858585;
+  padding: 6px 16px 8px;
+}
+
+.ams-map-hotend__sub-ams-page__tip {
+  font-size: 12px;
+  color: #ea6e00;
+  padding: 12px 16px 8px;
+  flex-shrink: 0;
+}
+
+.ams-map-hotend__sub-ams-page__tip-label {
+  color: #ea6e00;
+  font-weight: 600;
+}
+
+/* ---------- Sub-AMS card (104x112, no nozzle row) ---------- */
+
+.ams-map-hotend__sub-card {
+  position: relative;
+  width: 104px;
+  height: 112px;
+  background: var(--color-card-bg);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px;
+  gap: 4px;
+  box-sizing: border-box;
+  transition: border-color 120ms ease;
+}
+
+.ams-map-hotend__sub-card:hover:not(.ams-map-hotend__sub-card--parent) {
+  border-color: var(--color-card-border);
+}
+
+.ams-map-hotend__sub-card--parent {
+  cursor: default;
+  background: #ffffff;
+}
+
+/* Parent card becomes clickable in the preload-differs scenario. */
+.ams-map-hotend__sub-card--parent[data-clickable="true"] {
+  cursor: pointer;
+}
+
+.ams-map-hotend__sub-card--parent[data-clickable="true"]:hover {
+  border-color: var(--color-card-border);
+}
+
+/* Ext tag inside the sub-card pill (parent variant) mirrors SlotCard. */
+.ams-map-hotend__sub-card__pill-ext {
+  margin-left: 2px;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
+.ams-map-hotend__sub-card:focus-visible {
+  outline: 2px solid #1e88e5;
+  outline-offset: 2px;
+}
+
+.ams-map-hotend__sub-card[data-state="MaterialUnmatch"],
+.ams-map-hotend__sub-card[data-state="MaterialEmpty"],
+.ams-map-hotend__sub-card[data-state="NozzleUnmatch"],
+.ams-map-hotend__sub-card[data-state="NozzleEmpty"],
+.ams-map-hotend__sub-card[data-state="Unavailable"] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ams-map-hotend__sub-card[data-checked="true"] {
+  border-color: var(--color-card-border-active);
+}
+
+.ams-map-hotend__sub-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 16px;
+}
+
+.ams-map-hotend__sub-card__pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 2px;
+  background: var(--color-pill-bg);
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.ams-map-hotend__sub-card__radio {
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--color-card-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.ams-map-hotend__sub-card__radio[data-checked="true"] {
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+}
+
+.ams-map-hotend__sub-card__spool-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 72px;
+}
+
+.ams-map-hotend__sub-card__name {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-text-primary);
+  text-align: center;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Reset button ---------- */
+
+.ams-map-hotend__reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid var(--color-card-border);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.ams-map-hotend__reset-btn:hover {
+  background: #f0f0f0;
+}
+
+.ams-map-hotend__reset-btn__icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* ---------- Tips ---------- */
+
+.ams-map-hotend__tips {
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  background: #fff7e6;
+  color: #ff6f00;
+  border-radius: 4px;
+  font-size: 11px;
+}

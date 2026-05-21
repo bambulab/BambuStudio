@@ -50,6 +50,7 @@ namespace GUI
 {
 class wgtDeviceNozzleRackSelect;
 class wgtMsgPanel;
+class DeviceWebHost;
 };
 };
 
@@ -113,7 +114,7 @@ public:
     virtual void reset_valid_info();
 
     void set_nozzle_info(const wxString& mapped_nozzle_str);
-    virtual void set_ams_filament_type(const wxString &) {}; // only for n1x
+    virtual void set_ams_filament_type(const wxString &) {};
     virtual void set_nozzle_dia_and_type(const wxString & dia_type_info){};
 
     void disable();
@@ -276,8 +277,6 @@ private:
     wxStaticBitmap* m_icon{ nullptr };
 };
 
-class MappingItemHotend; // forward declaration for N1X hotend mapping items
-
 class AmsMapingPopup : public PopupWindow
 {
     bool m_use_in_sync_dialog = false;
@@ -298,7 +297,6 @@ public:
     std::vector<wxBoxSizer*> m_amsmapping_container_sizer_list;
     std::vector<MappingContainer*> m_amsmapping_container_list;
     std::vector<MappingItem*> m_mapping_item_list;
-    std::vector<MappingItemHotend*> m_mapping_item_hotend_list;
 
     bool        m_has_unmatch_filament {false};
     int         m_current_filament_id;
@@ -352,7 +350,6 @@ public:
     void         update_items_check_state(const std::vector<FilamentInfo>& ams_mapping_result);
     void         update_ams_data_multi_machines();
     void         add_ams_mapping(std::vector<TrayData> tray_data, bool remain_detect_flag, wxWindow *container, wxBoxSizer *sizer);
-    void         add_ams_mapping_hotend(MachineObject* obj, std::vector<TrayData> tray_data, wxWindow *container, wxBoxSizer *sizer);
     void         add_ext_ams_mapping(TrayData tray_data, MappingItem *item);
     void         set_current_filament_id(int id) { m_current_filament_id = id; };
     int          get_current_filament_id(){return m_current_filament_id;};
@@ -382,11 +379,27 @@ public:
 
     void EnableExtMappingFilaTypeCheck(bool to_check = true) { m_ext_mapping_filatype_check = to_check;} ;
 
+    // Web path: VM stages the last selected slot's ctype/material_cols
+    // here so SelectMachine.cpp can recover them when handling
+    // EVT_SET_FINISH_MAPPING (legacy wxWidgets path used to read from
+    // m_mapping_item_hotend_list directly).
+    void                          set_last_hotend_select(int                          ctype,
+                                                         const std::vector<wxColour>& cols);
+    int                           get_last_hotend_select_ctype() const { return m_last_hotend_select_ctype; }
+    const std::vector<wxColour>&  get_last_hotend_select_material_cols() const { return m_last_hotend_select_material_cols; }
+
 private:
     // update
     void update_title(MachineObject* obj);
     void update_ams_tips(MachineObject* obj);
     void update_mapping_items(MachineObject* obj, const std::vector<FilamentInfo>& ams_mapping_result, bool use_dynamic_switch);
+
+    // Hotend rack routes the popup body through a DeviceWebHost
+    // instead of the legacy wxWidgets layout. Lazily created the first time
+    // the popup is opened on a hotend-rack machine.
+    void update_hotend_web(MachineObject* obj,
+                           const std::vector<FilamentInfo>& ams_mapping_result,
+                           std::optional<PrintFromType> print_type);
 
     // events
     void OnNozzleMappingSelected(wxCommandEvent& evt);
@@ -397,6 +410,17 @@ private:
 
     ResetCallback m_reset_callback{nullptr};
     std::string m_material_index;
+
+    // Hotend rack Web host. Owned by wx parent (the popup) once
+    // created. nullptr until the popup is first opened on a hotend-rack machine.
+    DeviceWebHost*         m_hotend_web_host{nullptr};
+    wxBoxSizer*            m_hotend_web_sizer{nullptr};
+
+    // Last selection metadata staged by the hotend Web VM right before posting
+    // EVT_SET_FINISH_MAPPING (so SelectMachine.cpp can recover ctype and
+    // multi-color preview without iterating wxWidgets hotend items).
+    int                    m_last_hotend_select_ctype{0};
+    std::vector<wxColour>  m_last_hotend_select_material_cols;
 };
 
 class AmsMapingTipPopup : public PopupWindow

@@ -286,5 +286,7 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchExtLoadModeBuilder.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchUnloadModeBuilder.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchUnloadModeBuilder.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsMappingHotend/DevicePageAmsMappingHotendVM.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsMappingHotend/DevicePageAmsMappingHotendVM.hpp
 )
 set(SLIC3R_GUI_SOURCES ${SLIC3R_GUI_SOURCES} PARENT_SCOPE)

@@ -1143,6 +1143,13 @@ bool AmsMapingPopup::is_match_material(std::string material) const
     return m_tag_material == material ? true : false;
 }
 
+void AmsMapingPopup::set_last_hotend_select(int                          ctype,
+                                            const std::vector<wxColour>& cols)
+{
+    m_last_hotend_select_ctype         = ctype;
+    m_last_hotend_select_material_cols = cols;
+}
+
 
 void AmsMapingPopup::on_left_down(wxMouseEvent &evt)
 {

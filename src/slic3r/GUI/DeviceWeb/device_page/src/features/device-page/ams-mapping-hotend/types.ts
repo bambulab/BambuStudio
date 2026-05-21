@@ -1,0 +1,105 @@
+// View-model types for the "send to print" filament mapping panel.
+//
+// Mirrors DevicePageAmsMappingHotendVM::BuildState() on the C++ side.
+// C++ Schema (single source of truth for field names and enum values):
+//   src/slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsMappingHotend/DevicePageAmsMappingHotendSchema.hpp
+
+export type AmsMappingHotendShowType =
+  | 'LEFT'
+  | 'RIGHT'
+  | 'LEFT_AND_RIGHT'
+  | 'LEFT_AND_RIGHT_DYNAMIC';
+
+// Symmetric on the dimension that has a problem:
+//   Material* = filament dimension; Nozzle* = nozzle dimension
+//   - MaterialUnmatch: filament loaded but type mismatch
+//   - MaterialEmpty:   nozzle present but no filament loaded
+//   - NozzleUnmatch:   nozzle present but dia / flow mismatch
+//   - NozzleEmpty:     no nozzle on this rack position
+//   - Unavailable:     nozzle abnormal / unknown
+export type AmsMappingHotendSlotState =
+  | 'Normal'
+  | 'MaterialUnmatch'
+  | 'MaterialEmpty'
+  | 'NozzleUnmatch'
+  | 'NozzleEmpty'
+  | 'Unavailable';
+
+export type AmsMappingHotendColorType = 'single' | 'multi' | 'gradient';
+
+export interface AmsMappingHotendNozzleInfo {
+  dia: string;        // e.g. "0.4 mm"
+  flow_type: string;  // e.g. "Standard"
+}
+
+// Display vs. selectability are decoupled on purpose:
+//   `has_filament` drives the spool ring (real color vs empty placeholder)
+//   `is_pickable`  drives `disabled` (clickability under all-ext rules)
+//   `state`        drives CSS opacity / cursor (dimming style)
+// A slot can have filament loaded while its nozzle is missing — we still
+// want to show the spool color even though the card is non-clickable.
+export interface AmsMappingHotendSubSlotViewModel {
+  ams_id: string;
+  slot_id: string;
+  tray_id: number;
+  index: string;
+  ext: boolean;
+  state: AmsMappingHotendSlotState;
+  filament_type: string;
+  filament_name: string;
+  color: string;
+  ctype: number;
+  color_type: AmsMappingHotendColorType;
+  remain: number;
+  has_filament: boolean;
+  is_pickable: boolean;
+  checked: boolean;
+  multi_colors: string[];
+}
+
+export interface AmsMappingHotendSubAmsGroupViewModel {
+  name: string;
+  is_preload?: boolean;
+  slots: AmsMappingHotendSubSlotViewModel[];
+}
+
+export interface AmsMappingHotendSlotViewModel {
+  ams_id: string;
+  slot_id: string;
+  tray_id: number;
+  index: string;
+  is_top_tier: boolean;
+  ext: boolean;
+  state: AmsMappingHotendSlotState;
+  filament_type: string;
+  filament_name: string;
+  color: string;
+  ctype: number;
+  color_type: AmsMappingHotendColorType;
+  remain: number;
+  has_filament: boolean;
+  is_pickable: boolean;
+  checked: boolean;
+  multi_colors: string[];
+  nozzle?: AmsMappingHotendNozzleInfo;
+  sub_ams?: AmsMappingHotendSubAmsGroupViewModel[];
+}
+
+export interface AmsMappingHotendViewModel {
+  selected_dev_id: string;
+  current_filament_id: number;
+  show_type: AmsMappingHotendShowType;
+  material_index: string;
+  reset_visible: boolean;
+  is_all_ext: boolean;
+  hotend_slots: AmsMappingHotendSlotViewModel[];
+}
+
+export interface BridgeResponseBody<T> {
+  module: string;
+  submod: string;
+  action: string;
+  error_code: number;
+  message?: string;
+  payload?: T;
+}

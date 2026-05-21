@@ -856,6 +856,35 @@ void DevNozzleSystemParser::sTraverseBindAmsSlot(DevNozzleSystem* system, DevNoz
     }
 }
 
+void DevNozzleSystemParser::sTraversePreloadBindAmsSlot(DevNozzleSystem* system, DevNozzle& nozzle_obj)
+{
+    nozzle_obj.m_preload_bind_ams_slots.clear();
+
+    const auto& fila_sys = system->GetOwner()->GetFilaSystem();
+    const auto& ams_list = fila_sys->GetAmsList();
+    const auto& rack     = system->GetOwner()->GetNozzleRack();
+    const auto& rack_type = rack->GetRackType();
+    if (rack_type != DevNozzleRack::RackType_A && rack_type != DevNozzleRack::RackType_B) {
+        return;
+    }
+
+    // Preload only considers rack-matching internal AMS (e.g. ZMULTI).
+    // Does NOT use slot_now and does NOT fallback to external spool.
+    for (const auto& ams_item : ams_list) {
+        if (ams_item.second->GetSlotCount() == rack->GetTotalRackNozzleCount()) {
+            DevAmsSlotId ams_slot_id;
+            ams_slot_id.first  = ams_item.second->GetAmdIdInt();
+            ams_slot_id.second = nozzle_obj.GetNozzlePosId() - 16;
+            if (auto ams_tray = fila_sys->GetAmsTray(std::to_string(ams_slot_id.first),
+                                                     std::to_string(ams_slot_id.second))) {
+                if (!ams_tray->is_exists) continue;
+                nozzle_obj.m_preload_bind_ams_slots = { ams_slot_id };
+                return;
+            }
+        }
+    }
+}
+
 void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* system)
 {
     if (device_json.contains("nozzle"))
@@ -974,6 +1003,7 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
 
             // traverse bind ams slot after parse
             DevNozzleSystemParser::sTraverseBindAmsSlot(system, nozzle_obj);
+            DevNozzleSystemParser::sTraversePreloadBindAmsSlot(system, nozzle_obj);
 
             if (nozzle_obj.IsOnRack()) {
                 system->m_nozzle_rack->AddRackNozzle(nozzle_obj);
@@ -999,6 +1029,7 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
             nozzle_obj.m_is_exist = false;
             nozzle_obj.m_nozzle_id = rack_nozzle_pos - 0x10;
             DevNozzleSystemParser::sTraverseBindAmsSlot(system, nozzle_obj);
+            DevNozzleSystemParser::sTraversePreloadBindAmsSlot(system, nozzle_obj);
             system->m_nozzle_rack->AddRackNozzle(nozzle_obj);
         }
     }

@@ -35,6 +35,7 @@ dep_win_new
 compile_commands.json
 .jira/
 .claude/settings.local.json
+.cursor/mcp.json
 **/node_modules/
 .worktrees/
 **/dist/

@@ -1,5 +1,5 @@
 #include "SelectMachine.hpp"
-#include "AmsMappingHotend.hpp"
+#include "MaterialItemHotend.hpp"
 #include "I18N.hpp"
 
 #include "libslic3r/Utils.hpp"
@@ -1264,7 +1264,7 @@ void SelectMachineDialog::sync_ams_mapping_result(const std::vector<FilamentInfo
                 }
                 m->set_ams_filament_type(ams_filament_type);
 
-                // Set nozzle spec for N1x (e.g. "0.4 HF")
+                // Set nozzle spec for hotend-rack machines (e.g. "0.4 HF")
                 wxString nozzle_dia_and_type;
                 if (obj_ && f->tray_id >= 0) { nozzle_dia_and_type = get_nozzle_dia_and_type(f->ams_id, f->slot_id); }
                 m->set_nozzle_dia_and_type(nozzle_dia_and_type);
@@ -3515,16 +3515,19 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
                 break;
             }
         }
-        // Also search in hotend  mapping items
-        for (auto hotend_item : m_mapping_popup.m_mapping_item_hotend_list) {
-            if (hotend_item->m_tray_data.id == evt.GetInt()) {
-                ctype = hotend_item->m_tray_data.ctype;
-                material_cols = hotend_item->m_tray_data.material_cols;
-                for (auto col : hotend_item->m_tray_data.material_cols) {
+        // Also recover from the hotend Web VM: the wxWidgets hotend item list
+        // no longer exists. The VM stages the last selected slot's ctype and
+        // multi-color preview on the popup right before posting this event.
+        if (material_cols.empty()) {
+            int last_ctype = m_mapping_popup.get_last_hotend_select_ctype();
+            const auto& last_cols = m_mapping_popup.get_last_hotend_select_material_cols();
+            if (!last_cols.empty()) {
+                ctype         = last_ctype;
+                material_cols = last_cols;
+                for (auto col : last_cols) {
                     wxString color = wxString::Format("#%02X%02X%02X%02X", col.Red(), col.Green(), col.Blue(), col.Alpha());
                     tray_cols.push_back(color.ToStdString());
                 }
-                break;
             }
         }
 

@@ -62,4 +62,10 @@ void DeviceWebManager::NotifyState(const std::string& module,
     it->second->ReportState(submod, action);
 }
 
+IViewModel* DeviceWebManager::Find(const std::string& module) const
+{
+    auto it = m_vms.find(module);
+    return it == m_vms.end() ? nullptr : it->second.get();
+}
+
 }} // namespace Slic3r::GUI

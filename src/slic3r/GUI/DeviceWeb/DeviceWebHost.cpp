@@ -165,6 +165,9 @@ void DeviceWebHost::EnsureBuilt()
     if (m_mode == DeviceWebHostMode::DevicePageAmsFilamentHotend || m_mode == DeviceWebHostMode::AllForDebug) {
         m_device_web_mgr->Register(std::make_unique<DevicePageAmsFilamentHotendVM>());
     }
+    if (m_mode == DeviceWebHostMode::DevicePageAmsMappingHotend || m_mode == DeviceWebHostMode::AllForDebug) {
+        m_device_web_mgr->Register(std::make_unique<DevicePageAmsMappingHotendVM>());
+    }
     m_device_web_mgr->SetBridge(m_device_web_bridge.get());
     m_device_web_bridge->SetManager(m_device_web_mgr.get());
     m_host_hidden = !IsShownOnScreen();
@@ -644,6 +647,21 @@ void DeviceWebHost::ApplyAmsControlWebHostSize(int height_dip)
         parent->Layout();
         parent->SendSizeEvent();
     }
+}
+
+void DeviceWebHost::NotifyAmsMappingChanged()
+{
+    if (!m_device_web_mgr)
+        return;
+
+    m_device_web_mgr->NotifyState("device_page_ams_mapping_hotend", "state", "changed");
+}
+
+DevicePageAmsMappingHotendVM* DeviceWebHost::GetAmsMappingHotendVM() const
+{
+    if (!m_device_web_mgr) return nullptr;
+    return dynamic_cast<DevicePageAmsMappingHotendVM*>(
+        m_device_web_mgr->Find("device_page_ams_mapping_hotend"));
 }
 
 void DeviceWebHost::OnWebContentSizeChanged(int width, int height)

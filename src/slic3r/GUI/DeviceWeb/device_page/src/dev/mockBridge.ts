@@ -27,6 +27,7 @@ import { applySlotSelection, mockAmsControlWebState } from '../features/device-p
 import type { AmsControlWebViewModel } from '../features/device-page/ams-control-web/types';
 import type { AmsFilamentHotendViewModel } from '../features/device-page/ams-filament-hotend/types';
 import { mockAmsFilamentHotendState } from '../features/device-page/ams-filament-hotend/mockData';
+import { mockAmsMappingHotendState } from '../features/device-page/ams-mapping-hotend/mockData';
 
 interface RequestPacket {
   head: { version: string; type: string; seq: number; ts: number };
@@ -502,6 +503,20 @@ function handleRequest(pkt: RequestPacket) {
         cpp_trace: [],
         dialog_cpp_state: amsControlWebMockState,
       }));
+      return;
+    }
+  }
+  if (module === 'device_page_ams_mapping_hotend') {
+    if (submod === 'state' && (action === 'get' || action === 'init')) {
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, mockAmsMappingHotendState));
+      return;
+    }
+    if (submod === 'action') {
+      // Echo back the same state; the React side maps a select into a checked
+      // toggle locally. The C++ VM will emit EVT_SET_FINISH_MAPPING and a
+      // follow-up state report when the popup is real.
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, mockAmsMappingHotendState));
+      dispatchReport(makeModuleOk(module, 'state', 'changed', mockAmsMappingHotendState));
       return;
     }
   }
