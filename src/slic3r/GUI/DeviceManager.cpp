@@ -2347,6 +2347,7 @@ void MachineObject::reset()
     device_cert_installed = false;
     clear_auto_nozzle_mapping();// reset nozzle mapping
     m_printTaskInfo.reset();
+    support_liveview_cams.clear();
 
     // reset print_json
     json empty_j;
