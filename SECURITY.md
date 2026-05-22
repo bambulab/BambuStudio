@@ -12,7 +12,7 @@
 **Please do not report security vulnerabilities through public GitHub issues.**
 
 Use GitHub's private vulnerability reporting instead:
-👉 [Report a vulnerability](../../security/advisories/new)
+👉 [Report a vulnerability](https://github.com/BenJule/BambuStudio/security/advisories/new)
 
 Include as much of the following as possible:
 
