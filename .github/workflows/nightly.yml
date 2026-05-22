@@ -1,0 +1,92 @@
+name: Nightly Pre-Release
+
+on:
+  workflow_run:
+    workflows: ["Build all"]
+    types: [completed]
+    branches: [master]
+
+permissions: read-all
+
+jobs:
+  nightly:
+    name: Publish nightly pre-release
+    # Run even on partial failures — publish whatever artifacts are available.
+    if: >
+      github.event.workflow_run.conclusion == 'success' ||
+      github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      actions: read
+      id-token: write
+      attestations: write
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Download artifacts from triggering run
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v4
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: artifacts/
+          merge-multiple: true
+        continue-on-error: true
+
+      - name: Check artifact count
+        id: check
+        run: |
+          n=$(find artifacts/ -maxdepth 1 -type f 2>/dev/null | wc -l)
+          echo "n=$n" >> "$GITHUB_OUTPUT"
+          echo "Found $n artifact(s):"
+          find artifacts/ -maxdepth 1 -type f | sort || true
+
+      - name: Build info
+        id: info
+        run: |
+          SHA="${{ github.event.workflow_run.head_sha }}"
+          echo "sha_short=${SHA:0:7}" >> "$GITHUB_OUTPUT"
+          echo "date=$(date -u +'%Y-%m-%d %H:%M UTC')" >> "$GITHUB_OUTPUT"
+
+      - name: Attest build provenance
+        if: steps.check.outputs.n > 0
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32  # v4.1.0
+        with:
+          subject-path: artifacts/**
+
+      - name: Delete previous nightly release + tag
+        if: steps.check.outputs.n > 0
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete nightly \
+            --repo "${{ github.repository }}" \
+            --yes --cleanup-tag 2>/dev/null || true
+
+      - name: Publish nightly pre-release
+        if: steps.check.outputs.n > 0
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BUILD_STATUS="${{ github.event.workflow_run.conclusion }}"
+          if [[ "$BUILD_STATUS" == "success" ]]; then
+            STATUS_NOTE="All build jobs succeeded."
+          else
+            STATUS_NOTE="Some build jobs failed — only partially available artifacts are included."
+          fi
+
+          mapfile -d '' FILES < <(find artifacts/ -maxdepth 1 -type f -print0 | sort -z)
+          gh release create nightly \
+            --repo "${{ github.repository }}" \
+            --title "Nightly ${{ steps.info.outputs.date }}" \
+            --notes "Automatic build from commit [\`${{ steps.info.outputs.sha_short }}\`](https://github.com/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha }}).
+
+          $STATUS_NOTE
+
+          Build run: ${{ github.event.workflow_run.html_url }}" \
+            --prerelease \
+            "${FILES[@]}"
