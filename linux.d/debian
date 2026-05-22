@@ -25,13 +25,19 @@ REQUIRED_DEV_PACKAGES=(
     libxkbcommon-dev
     libtool
     libunwind-dev
-    libfuse2
     texinfo
     nasm
     yasm
     libx264-dev
     libbz2-dev
 )
+
+# libfuse2 was renamed to libfuse2t64 in Debian Trixie (t64 transition)
+if apt-cache show libfuse2t64 &>/dev/null 2>&1; then
+    REQUIRED_DEV_PACKAGES+=(libfuse2t64)
+else
+    REQUIRED_DEV_PACKAGES+=(libfuse2)
+fi
 
 if [[ -n "$UPDATE_LIB" ]]
 then
