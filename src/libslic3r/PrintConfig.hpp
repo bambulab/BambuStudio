@@ -1427,6 +1427,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnum<PrinterStructure>,printer_structure))
     ((ConfigOptionPoint,               default_wipe_tower_pos))
     ((ConfigOptionBool,                auxiliary_fan))
+    ((ConfigOptionBool,                sync_auxiliary_fan_to_second_fan))
     ((ConfigOptionEnum<FanDirection>,fan_direction))
     ((ConfigOptionBool,                support_chamber_temp_control))
     ((ConfigOptionBool,                support_air_filtration))

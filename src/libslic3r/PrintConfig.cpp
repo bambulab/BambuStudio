@@ -3794,6 +3794,12 @@ void PrintConfigDef::init_fff_params()
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("sync_auxiliary_fan_to_second_fan", coBool);
+    def->label = L("Sync auxiliary fan to second fan");
+    def->tooltip = L("Enable this if the printer has a second auxiliary part cooling fan that should use the same speed as the auxiliary fan");
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("fan_direction", coEnum);
     def->label = L("Fan direction");
     def->tooltip = L("Cooling fan direction of the printer");

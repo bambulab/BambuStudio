@@ -2722,7 +2722,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
         int part_fan_init = print.config().first_x_layer_part_fan_speed.get_at(initial_extruder_id);
         file.write(m_writer.set_fan(part_fan_init));
         if (m_config.auxiliary_fan.value)
-            file.write(m_writer.set_additional_fan(0));
+            file.write(m_writer.set_additional_fan(0, m_config.sync_auxiliary_fan_to_second_fan.value));
     }
 
     // Let the start-up script prime the 1st printing tool.
@@ -3396,7 +3396,7 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     file.write(m_writer.set_fan(0));
     //BBS: make sure the additional fan is closed when end
     if (m_config.auxiliary_fan.value)
-        file.write(m_writer.set_additional_fan(0));
+        file.write(m_writer.set_additional_fan(0, m_config.sync_auxiliary_fan_to_second_fan.value));
     //BBS: close spaghetti detector
     //Note: M981 is also used to tell xcam the last layer is finished, so we need always send it even if spaghetti option is disabled.
     //if (print.config().spaghetti_detector.value)

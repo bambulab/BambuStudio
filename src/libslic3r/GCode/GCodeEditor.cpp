@@ -472,7 +472,7 @@ std::string GCodeEditor::write_layer_gcode(
         if (additional_fan_speed_new != m_additional_fan_speed) {
             m_additional_fan_speed = additional_fan_speed_new;
             if (type == SetFanType::sfImmediatelyApply && m_set_fan_changing_filament_start && m_config.auxiliary_fan.value)
-                new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
+                new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed, m_config.sync_auxiliary_fan_to_second_fan.value);
             else if (type == SetFanType::sfChangingLayer && !not_set_additional_fan)
                 this->m_set_addition_fan_changing_layer = true;
             //BBS: don't need to handle change filament, because we are always force to resume fan speed when filament change is finished
@@ -558,7 +558,7 @@ std::string GCodeEditor::write_layer_gcode(
             if (m_current_fan_speed != -1)
                 new_gcode += GCodeWriter::set_fan(m_config.gcode_flavor, m_current_fan_speed);
             if (m_additional_fan_speed != -1 && m_set_fan_changing_filament_start && m_config.auxiliary_fan.value)
-                new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
+                new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed, m_config.sync_auxiliary_fan_to_second_fan.value);
         } else if (line->type & CoolingLine::TYPE_SET_FAN_CHANGING_LAYER) {
             //BBS: check whether fan speed need to changed when change layer
             if (m_current_fan_speed != -1 && m_set_fan_changing_layer) {
@@ -566,7 +566,7 @@ std::string GCodeEditor::write_layer_gcode(
                 m_set_fan_changing_layer = false;
             }
             if (m_additional_fan_speed != -1 && m_set_addition_fan_changing_layer && m_config.auxiliary_fan.value) {
-                new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed);
+                new_gcode += GCodeWriter::set_additional_fan(m_additional_fan_speed, m_config.sync_auxiliary_fan_to_second_fan.value);
                 m_set_addition_fan_changing_layer = false;
             }
         }
