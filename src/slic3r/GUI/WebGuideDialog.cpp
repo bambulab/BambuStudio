@@ -47,8 +47,15 @@ static wxString update_custom_filaments()
     m_Res["command"]                                                               = "update_custom_filaments";
     m_Res["sequence_id"]                                                           = "2000";
     json                                               m_CustomFilaments           = json::array();
-    PresetBundle *                                     preset_bundle               = wxGetApp().preset_bundle;
-    std::map<std::string, std::vector<Preset const *>> temp_filament_id_to_presets = preset_bundle->filaments.get_filament_presets();
+    PresetBundle                                      *preset_bundle               = wxGetApp().preset_bundle;
+    std::map<std::string, std::vector<Preset const *>> temp_filament_id_to_presets;
+    for (const Preset &preset : preset_bundle->filaments.get_presets()) {
+        if (!preset.is_user() || preset.is_project_embedded)
+            continue;
+        if (preset.filament_id.empty())
+            continue;
+        temp_filament_id_to_presets[preset.filament_id].push_back(&preset);
+    }
 
     std::vector<std::pair<std::string, std::string>>   need_sort;
     bool                                             need_delete_some_filament = false;
