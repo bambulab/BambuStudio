@@ -23,6 +23,10 @@ jobs:
       cache-path: ${{ steps.set_outputs.outputs.cache-path }}
       valid-cache: ${{ steps.cache_deps.outputs.cache-hit }}
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
+        with:
+          egress-policy: audit
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
         with:
