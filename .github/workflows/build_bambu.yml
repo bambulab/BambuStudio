@@ -105,17 +105,30 @@ jobs:
           brew pin cmake@3.31.0
           ./BuildMac.sh -s -x -a universal -t 10.15 -1
 
-      - name: pack mac app
-        if: github.ref != 'refs/heads/master' && (inputs.os == 'macos-15-intel' || inputs.os == 'macos-15')
+      - name: Pack macOS .dmg
+        if: inputs.os == 'macos-15-intel' || inputs.os == 'macos-15'
         working-directory: ${{ github.workspace }}
-        run: zip -r BambuStudio_Mac_${{inputs.arch}}_${{ env.ver }}.zip ${{ github.workspace }}/build
+        run: |
+          if [[ "${{ inputs.arch }}" == "x86_64" ]]; then
+            APP_PATH="${{ github.workspace }}/build/x86_64/BambuStudio/BambuStudio.app"
+          else
+            APP_PATH="${{ github.workspace }}/build/universal/BambuStudio/BambuStudio.app"
+          fi
+          DMG_NAME="BambuStudio_Mac_${{ inputs.arch }}_${{ env.ver }}.dmg"
+          mkdir -p /tmp/dmg-staging
+          cp -R "$APP_PATH" /tmp/dmg-staging/BambuStudio.app
+          ln -s /Applications /tmp/dmg-staging/Applications
+          hdiutil create -volname "BambuStudio ${{ env.ver }}" \
+            -srcfolder /tmp/dmg-staging \
+            -ov -format UDZO \
+            "${{ github.workspace }}/$DMG_NAME"
 
       - name: Upload artifacts mac
         if: inputs.os == 'macos-15-intel' || inputs.os == 'macos-15'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
           name: BambuStudio_Mac_${{inputs.arch}}_${{ env.ver }}
-          path: ${{ github.workspace }}/BambuStudio_Mac_${{inputs.arch}}_${{ env.ver }}.zip
+          path: ${{ github.workspace }}/BambuStudio_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
 
   # Windows
       - name: setup MSVC
