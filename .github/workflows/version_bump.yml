@@ -16,6 +16,8 @@ on:
         required: false
         type: string
 
+permissions: read-all
+
 jobs:
   bump:
     name: Bump version.inc
