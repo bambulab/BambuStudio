@@ -4384,10 +4384,10 @@ msgstr "Duraklat (ilk katman hatası)"
 msgid "Pause (nozzle clog)"
 msgstr "Duraklatma (nozul tıkanıklığı)"
 
-msgid "Measuring motion percision"
+msgid "Measuring motion precision"
 msgstr "Hareket hassasiyetinin ölçülmesi"
 
-msgid "Enhancing motion percision"
+msgid "Enhancing motion precision"
 msgstr "Hareket hassasiyetini artırma"
 
 msgid "Measure motion accuracy"

@@ -4392,10 +4392,10 @@ msgstr "Paus (fel på första lagret)"
 msgid "Pause (nozzle clog)"
 msgstr "Paus (igensatt nozzle)"
 
-msgid "Measuring motion percision"
+msgid "Measuring motion precision"
 msgstr "Mäter rörelse precision"
 
-msgid "Enhancing motion percision"
+msgid "Enhancing motion precision"
 msgstr "Förbättra rörelseprecisionen"
 
 msgid "Measure motion accuracy"

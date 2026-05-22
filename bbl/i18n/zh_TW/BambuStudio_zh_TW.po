@@ -4365,10 +4365,10 @@ msgstr "暫停（首層掃描異常）"
 msgid "Pause (nozzle clog)"
 msgstr "暫停（堵頭）"
 
-msgid "Measuring motion percision"
+msgid "Measuring motion precision"
 msgstr "檢查運動精度"
 
-msgid "Enhancing motion percision"
+msgid "Enhancing motion precision"
 msgstr "運動精度增強"
 
 msgid "Measure motion accuracy"
