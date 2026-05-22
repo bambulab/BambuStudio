@@ -67,13 +67,13 @@ jobs:
         run: dnf install -y sudo git curl git-lfs
 
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
         with:
           lfs: 'true'
 
       - name: Cache deps
         id: cache-deps
-        uses: actions/cache@v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5
         with:
           path: deps/build/destdir
           key: pkg-deps-${{ matrix.artifact_suffix }}-${{ hashFiles('deps/**') }}
@@ -104,7 +104,7 @@ jobs:
           echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
           name: BambuStudio_${{ matrix.artifact_suffix }}_${{ steps.ver.outputs.ver }}
           path: ${{ matrix.artifact_glob }}
@@ -147,13 +147,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
         with:
           lfs: 'true'
 
       - name: Cache deps
         id: cache-deps
-        uses: actions/cache@v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5
         with:
           path: deps/build/destdir
           key: pkg-deps-${{ matrix.artifact_suffix }}-${{ hashFiles('deps/**') }}
@@ -186,7 +186,7 @@ jobs:
           echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
 
       - name: Upload AppImage
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
           name: BambuStudio_${{ matrix.artifact_suffix }}_appimage_${{ steps.ver.outputs.ver }}
           path: ./build/BambuStudio_${{ matrix.artifact_suffix }}_${{ steps.ver.outputs.ver }}.AppImage
@@ -195,7 +195,7 @@ jobs:
 
       - name: Upload .deb package
         if: matrix.artifact_deb != ''
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
           name: BambuStudio_${{ matrix.artifact_suffix }}_deb_${{ steps.ver.outputs.ver }}
           path: ${{ matrix.artifact_deb }}
@@ -204,7 +204,7 @@ jobs:
 
       - name: Upload native package
         if: matrix.artifact_pkg != ''
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
           name: BambuStudio_${{ matrix.artifact_suffix }}_pkg_${{ steps.ver.outputs.ver }}
           path: ${{ matrix.artifact_pkg }}

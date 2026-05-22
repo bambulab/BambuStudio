@@ -7,7 +7,7 @@ jobs:
   publish:
     runs-on: windows-2025-vs2026
     steps:
-      - uses: vedantmgoyal9/winget-releaser@v2
+      - uses: vedantmgoyal9/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e  # v2
         with:
           identifier: BenJule.BambuStudio
           version: ${{ github.event.release.tag_name }}

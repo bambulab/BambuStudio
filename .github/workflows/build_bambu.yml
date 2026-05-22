@@ -26,12 +26,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
         with:
           lfs: 'true'
 
       - name: load cached deps
-        uses: actions/cache@v5
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5
         with:
           path: ${{ inputs.cache-path }}
           key: ${{ inputs.cache-key }}
@@ -108,7 +108,7 @@ jobs:
 
       - name: Upload artifacts mac
         if: inputs.os == 'macos-15-intel' || inputs.os == 'macos-15'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
           name: BambuStudio_Mac_${{inputs.arch}}_${{ env.ver }}
           path: ${{ github.workspace }}/BambuStudio_Mac_${{inputs.arch}}_${{ env.ver }}.zip
@@ -116,7 +116,7 @@ jobs:
   # Windows
       - name: setup MSVC
         if: inputs.os == 'windows-2025-vs2026'
-        uses: microsoft/setup-msbuild@v3
+        uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57  # v3
 
       - name: Install nsis and pkgconfig
         if: inputs.os == 'windows-2025-vs2026'
@@ -154,7 +154,7 @@ jobs:
 
       - name: Upload artifacts Win zip
         if: inputs.os == 'windows-2025-vs2026'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
           name: BambuStudio_Windows_${{ env.ver }}_portable
           path: ${{ github.workspace }}/BambuStudio_Windows_${{ env.ver }}_portable.zip
@@ -194,21 +194,21 @@ jobs:
 
       - name: Upload artifacts Ubuntu
         if: ${{ ! env.ACT && startsWith(inputs.os, 'ubuntu-') }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
           name: BambuStudio_${{inputs.os}}_${{ env.ver }}
           path: './build/Bambu_Studio_${{inputs.os}}_${{ env.ver }}.AppImage'
 
       - name: Upload .deb package
         if: ${{ ! env.ACT && inputs.os == 'ubuntu-22.04' }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
           name: BambuStudio_${{inputs.os}}_${{ env.ver }}_deb
           path: './build/bambustudio_*.deb'
 
       # - name: Deploy Ubuntu release
       #   if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-22.04' }}
-      #   uses: WebFreak001/deploy-nightly@v3.2.0
+      #   uses: WebFreak001/deploy-nightly@46ecbabd7fad70d3e7d2c97fe8cd54e7a52e215b  # v3.2.0
       #   with:
       #     upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
       #     release_id: 137995723
@@ -219,7 +219,7 @@ jobs:
 
       # - name: Deploy orca_custom_preset_tests
       #   if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-22.04' }}
-      #   uses: WebFreak001/deploy-nightly@v3.2.0
+      #   uses: WebFreak001/deploy-nightly@46ecbabd7fad70d3e7d2c97fe8cd54e7a52e215b  # v3.2.0
       #   with:
       #     upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
       #     release_id: 137995723
