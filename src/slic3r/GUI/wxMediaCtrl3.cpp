@@ -50,11 +50,12 @@ wxMediaCtrl3::~wxMediaCtrl3()
     m_thread.join();
 }
 
-void wxMediaCtrl3::Load(wxURI url)
+void wxMediaCtrl3::Load(wxURI url, std::chrono::system_clock::time_point play_start_time)
 {
     std::unique_lock<std::mutex> lk(m_mutex);
     m_video_size = wxDefaultSize;
     m_error = 0;
+    m_play_start_time = play_start_time;
     m_url.reset(new wxURI(url));
     m_cond.notify_all();
 }
@@ -433,6 +434,16 @@ void wxMediaCtrl3::GetFrameThread(int frame_rate)
                 first_frame_time = std::chrono::system_clock::now();
                 pop_success = true;
                 frame_count = 0;
+                auto play_start = m_play_start_time;
+                if (play_start != std::chrono::system_clock::time_point{}) {
+                    int ms = (int) std::chrono::duration_cast<std::chrono::milliseconds>(first_frame_time - play_start).count();
+                    CallAfter([this, ms] {
+                        wxCommandEvent evt(EVT_MEDIA_CTRL_FIRST_FRAME);
+                        evt.SetEventObject(this);
+                        evt.SetInt(ms);
+                        wxPostEvent(this, evt);
+                    });
+                }
             }
             ++frame_count;
             long long  pts_gap = (frame_count * 1000) / frame_rate;

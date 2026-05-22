@@ -15,6 +15,7 @@
 #include <atomic>
 
 wxDECLARE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
+wxDECLARE_EVENT(EVT_MEDIA_CTRL_FIRST_FRAME, wxCommandEvent);
 
 void wxMediaCtrl_OnSize(wxWindow * ctrl, wxSize const & videoSize, int width, int height);
 
@@ -48,7 +49,9 @@ public:
 
     ~wxMediaCtrl3();
 
-    void Load(wxURI url);
+    void Load(wxURI url, std::chrono::system_clock::time_point play_start_time = {});
+
+    std::chrono::system_clock::time_point m_play_start_time;
 
     void Play();
 

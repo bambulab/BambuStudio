@@ -10,8 +10,10 @@
 
 #include "wx/uri.h"
 #include "wx/mediactrl.h"
+#include <chrono>
 
 wxDECLARE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
+wxDECLARE_EVENT(EVT_MEDIA_CTRL_FIRST_FRAME, wxCommandEvent);
 
 void wxMediaCtrl_OnSize(wxWindow * ctrl, wxSize const & videoSize, int width, int height);
 
@@ -24,7 +26,7 @@ public:
 
     ~wxMediaCtrl2();
 
-    void Load(wxURI url);
+    void Load(wxURI url, std::chrono::system_clock::time_point play_start_time = {});
 
     void Play();
 
@@ -63,6 +65,7 @@ private:
     wxString m_watermark_text;
     void *   m_idle_layer = nullptr;      // CALayer* for idle image
     void *   m_watermark_layer = nullptr;  // CATextLayer* for watermark
+    std::chrono::system_clock::time_point m_play_start_time;
 };
 
 #else

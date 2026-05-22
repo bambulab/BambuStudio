@@ -32,6 +32,8 @@
 #include <wx/dcgraph.h>
 #include <wx/mstream.h>
 
+wxDEFINE_EVENT(EVT_MEDIA_CTRL_FIRST_FRAME, wxCommandEvent);
+
 static std::map<int, std::string> error_messages = {
     {1, L("The device cannot handle more conversations. Please retry later.")},
     {2, L("Player is malfunctioning. Please reinstall the system player.")},
@@ -53,6 +55,18 @@ MediaPlayCtrl::MediaPlayCtrl(wxWindow *parent, wxMediaCtrl3 *media_ctrl, const w
     SetLabel("MediaPlayCtrl");
     SetBackgroundColour(*wxWHITE);
     m_media_ctrl->Bind(wxEVT_MEDIA_STATECHANGED, &MediaPlayCtrl::onStateChanged, this);
+    m_media_ctrl->Bind(EVT_MEDIA_CTRL_FIRST_FRAME, [this](wxCommandEvent &e) {
+        if (!m_pending_start_liveview_json.empty()) {
+            try {
+                auto j = json::parse(m_pending_start_liveview_json);
+                j["first_frame_time"] = e.GetInt();
+                NetworkAgent *agent = wxGetApp().getAgent();
+                if (agent)
+                    agent->track_event("start_liveview", j.dump());
+            } catch (...) {}
+            m_pending_start_liveview_json.clear();
+        }
+    });
     m_media_ctrl->SetIdleImage(from_u8(resources_dir() + "/images/live_stream_default.png"));
 
     m_button_play = new Button(this, "", "media_play", wxBORDER_NONE);
@@ -423,6 +437,7 @@ void MediaPlayCtrl::Stop(wxString const &msg, wxString const &msg2)
     int last_state = m_last_state;
 
     if (m_last_state != MEDIASTATE_IDLE) {
+        m_pending_start_liveview_json.clear();
         m_media_ctrl->InvalidateBestSize();
         m_button_play->SetIcon("media_play");
         boost::unique_lock lock(m_mutex);
@@ -905,26 +920,24 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
             m_load_duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - m_play_timer).count();
             m_play_timer    = now + 1min;
 
-            // track event
-            json j;
-            j["stage"] =  std::to_string(m_last_state);
-            //j["dev_id"] = m_machine;
-            j["dev_id"] = "";
-            j["dev_ip"] = "";
-            j["result"] = "success";
-            j["code"] = 0;
-            auto tunnel = into_u8(wxURI(m_url).GetPath()).substr(1);
-            if (auto n = tunnel.find_first_of("/_"); n != std::string::npos)
-                tunnel = tunnel.substr(0, n);
-            j["tunnel"]         = tunnel;
-            if (tunnel == "tutk") {
-                if (m_url.size() > 38)
-                    j["tutk_id"] = m_url.substr(18, 20).c_str();
-                j["tutk_state"] = m_tutk_state;
+            // track event — deferred to first frame (EVT_MEDIA_CTRL_FIRST_FRAME)
+            {
+                json j;
+                j["stage"] = std::to_string(m_last_state);
+                // j["dev_id"] = m_machine;
+                j["dev_id"] = "";
+                j["dev_ip"] = "";
+                j["result"] = "success";
+                j["code"]   = 0;
+                auto tunnel = into_u8(wxURI(m_url).GetPath()).substr(1);
+                if (auto n = tunnel.find_first_of("/_"); n != std::string::npos) tunnel = tunnel.substr(0, n);
+                j["tunnel"] = tunnel;
+                if (tunnel == "tutk") {
+                    if (m_url.size() > 38) j["tutk_id"] = m_url.substr(18, 20).c_str();
+                    j["tutk_state"] = m_tutk_state;
+                }
+                m_pending_start_liveview_json = j.dump();
             }
-            NetworkAgent *agent = wxGetApp().getAgent();
-            if (agent)
-                agent->track_event("start_liveview", j.dump());
 
             m_failed_retry = 0;
             m_disable_lan = false;
@@ -1068,7 +1081,7 @@ void MediaPlayCtrl::media_proc()
         }
         else {
             BOOST_LOG_TRIVIAL(info) <<  "MediaPlayCtrl: start load";
-            m_media_ctrl->Load(wxURI(url));
+            m_media_ctrl->Load(wxURI(url), m_play_timer);
             BOOST_LOG_TRIVIAL(info) << "MediaPlayCtrl: end load";
         }
         lock.lock();
