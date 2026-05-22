@@ -57,3 +57,8 @@ jobs:
       arch: ${{ matrix.arch }}
       build-deps-only: ${{ inputs.build-deps-only || false }}
     secrets: inherit
+
+  build_packages:
+    name: Build Packages
+    uses: ./.github/workflows/build_packages.yml
+    secrets: inherit
