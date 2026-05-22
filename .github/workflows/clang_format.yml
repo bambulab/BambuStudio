@@ -35,21 +35,16 @@ jobs:
           sudo apt-get install -y --no-install-recommends clang-format-18
           sudo ln -sf /usr/bin/clang-format-18 /usr/local/bin/clang-format
 
-      - name: Get changed files
-        id: changed
+      - name: Run clang-format on changed lines
         run: |
-          git diff --name-only origin/${{ github.base_ref }}...HEAD \
-            -- '*.cpp' '*.hpp' '*.h' '*.c' \
-            | grep '^src/' > /tmp/changed_files.txt || true
-          echo "files=$(cat /tmp/changed_files.txt | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
-          cat /tmp/changed_files.txt
-
-      - name: Run clang-format
-        if: steps.changed.outputs.files != ''
-        run: |
-          files=$(cat /tmp/changed_files.txt)
-          if [ -z "$files" ]; then
-            echo "No C/C++ files changed."
-            exit 0
+          # git clang-format checks only the lines touched by the PR diff,
+          # not pre-existing formatting issues in unchanged lines.
+          git clang-format --diff origin/${{ github.base_ref }} HEAD \
+            -- 'src/**/*.cpp' 'src/**/*.hpp' 'src/**/*.h' 'src/**/*.c' \
+            > /tmp/clang_diff.txt 2>&1 || true
+          if grep -q "^---\|^+++" /tmp/clang_diff.txt; then
+            echo "Formatting issues found in changed lines:"
+            cat /tmp/clang_diff.txt
+            exit 1
           fi
-          clang-format --dry-run --Werror $files
+          echo "All changed lines are correctly formatted."
