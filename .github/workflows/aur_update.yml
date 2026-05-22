@@ -36,17 +36,24 @@ jobs:
         run: |
           TAG="v${{ steps.version.outputs.version }}"
           VER="${TAG#v}"
+          UPSTREAM_VER="${VER%-fork.*}"    # strip fork suffix for filename
           BASE="https://github.com/${{ github.repository }}/releases/download/${TAG}"
-          # Try our naming patterns
+          URL=""
+          # Try our naming patterns (filenames use upstream version, not fork tag)
           for PATTERN in \
-            "Bambu_Studio_ubuntu-24.04_V${VER}.AppImage" \
-            "Bambu_Studio_ubuntu-22.04_V${VER}.AppImage" \
+            "Bambu_Studio_ubuntu-24.04_V${UPSTREAM_VER}.AppImage" \
+            "Bambu_Studio_ubuntu-22.04_V${UPSTREAM_VER}.AppImage" \
             "BambuStudio_linux_amd64_${TAG}.AppImage"; do
-            URL="${BASE}/${PATTERN}"
-            if curl -sIf "$URL" >/dev/null 2>&1; then
+            CANDIDATE="${BASE}/${PATTERN}"
+            if curl -sIf "$CANDIDATE" >/dev/null 2>&1; then
+              URL="$CANDIDATE"
               break
             fi
           done
+          if [[ -z "$URL" ]]; then
+            echo "::error::No AppImage asset found for tag $TAG"
+            exit 1
+          fi
           SHA256=$(curl -sL "$URL" | sha256sum | cut -d' ' -f1)
           echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
           echo "url=$URL" >> "$GITHUB_OUTPUT"
@@ -71,8 +78,10 @@ jobs:
             install -Dm755 "$srcdir/BambuStudio.AppImage" "$pkgdir/usr/bin/bambu-studio"
           }
           PKGBUILD_EOF
+          PKGVER="${{ steps.version.outputs.version }}"
+          PKGVER="${PKGVER//-/.}"   # AUR pkgver: no hyphens allowed → 02.07.00.55.fork.1
           sed -i \
-            -e "s|PKGVER_PLACEHOLDER|${{ steps.version.outputs.version }}|g" \
+            -e "s|PKGVER_PLACEHOLDER|${PKGVER}|g" \
             -e "s|URL_PLACEHOLDER|${{ steps.checksums.outputs.url }}|g" \
             -e "s|SHA256_PLACEHOLDER|${{ steps.checksums.outputs.sha256 }}|g" \
             PKGBUILD

@@ -66,11 +66,12 @@ jobs:
         id: appimage
         run: |
           TAG="${{ steps.tag.outputs.tag }}"
-          VER="${TAG#v}"  # strip leading 'v' → 02.07.00.55
+          VER="${TAG#v}"                    # 02.07.00.55-fork.1
+          UPSTREAM_VER="${VER%-fork.*}"    # 02.07.00.55  (filename only uses upstream ver)
           # Try naming patterns (newest first, then fallbacks)
           for PATTERN in \
-            "Bambu_Studio_ubuntu-24.04_V${VER}.AppImage" \
-            "Bambu_Studio_ubuntu-22.04_V${VER}.AppImage" \
+            "Bambu_Studio_ubuntu-24.04_V${UPSTREAM_VER}.AppImage" \
+            "Bambu_Studio_ubuntu-22.04_V${UPSTREAM_VER}.AppImage" \
             "BambuStudio_linux_x86_64_${TAG}.AppImage" \
             "BambuStudio_linux_amd64_${TAG}.AppImage" \
             "BambuStudio-${TAG}-linux-x86_64.AppImage" \

@@ -36,10 +36,11 @@ jobs:
         run: |
           TAG="v${{ steps.version.outputs.version }}"
           VER="${TAG#v}"
+          UPSTREAM_VER="${VER%-fork.*}"    # strip fork suffix for filename
           BASE="https://github.com/${{ github.repository }}/releases/download/${TAG}"
 
-          URL_ARM="${BASE}/BambuStudio_Mac_arm64_V${VER}.zip"
-          URL_INTEL="${BASE}/BambuStudio_Mac_x86_64_V${VER}.zip"
+          URL_ARM="${BASE}/BambuStudio_Mac_arm64_V${UPSTREAM_VER}.zip"
+          URL_INTEL="${BASE}/BambuStudio_Mac_x86_64_V${UPSTREAM_VER}.zip"
 
           SHA_ARM=$(curl -sL "$URL_ARM" | sha256sum | cut -d' ' -f1)
           SHA_INTEL=$(curl -sL "$URL_INTEL" | sha256sum | cut -d' ' -f1)
