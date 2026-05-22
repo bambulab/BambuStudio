@@ -552,6 +552,13 @@ endif()
 
 target_link_libraries(libslic3r_cgal PRIVATE ${_cgal_tgt} libigl mcut)
 
+# GCC 13+ triggers false-positive -Wmaybe-uninitialized warnings deep inside
+# CGAL's Epic_converter.h template instantiations (e.g. remesh_intersections).
+# This is a known compiler analysis limitation, not a real bug. Suppress it.
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "13")
+    target_compile_options(libslic3r_cgal PRIVATE -Wno-maybe-uninitialized)
+endif()
+
 if (MSVC AND "${CMAKE_SIZEOF_VOID_P}" STREQUAL "4") # 32 bit MSVC workaround
     target_compile_definitions(libslic3r_cgal PRIVATE CGAL_DO_NOT_USE_MPZF)
 endif ()
