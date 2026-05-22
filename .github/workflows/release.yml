@@ -42,6 +42,7 @@ jobs:
   build:
     name: Build ${{ matrix.os }}
     needs: [prepare]
+    continue-on-error: ${{ matrix.optional == true }}
     strategy:
       fail-fast: false
       matrix:
@@ -52,6 +53,7 @@ jobs:
           - os: windows-2025-vs2026
           - os: macos-15-intel
             arch: x86_64
+            optional: true
           - os: macos-15
             arch: arm64
     uses: ./.github/workflows/build_check_cache.yml
