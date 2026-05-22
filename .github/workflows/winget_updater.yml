@@ -15,7 +15,7 @@ on:
 permissions: read-all
 jobs:
   publish:
-    runs-on: windows-2025-vs2026
+    runs-on: windows-2022
     steps:
       - uses: vedantmgoyal9/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e  # v2
         with:

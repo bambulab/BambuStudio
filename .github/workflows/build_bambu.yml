@@ -38,7 +38,7 @@ jobs:
           fail-on-cache-miss: true
 
       - name: Get the version and date on Ubuntu and macOS
-        if: inputs.os != 'windows-2025-vs2026'
+        if: inputs.os != 'windows-2022'
         run: |
           ver_pure=$(grep 'set(SLIC3R_VERSION' version.inc | cut -d '"' -f2)
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
@@ -52,7 +52,7 @@ jobs:
         shell: bash
 
       - name: Get the version and date on Windows
-        if: inputs.os == 'windows-2025-vs2026'
+        if: inputs.os == 'windows-2022'
         run: |
           $date = Get-Date -Format 'yyyyMMdd'
           $ref = "${{ github.ref }}"
@@ -115,55 +115,45 @@ jobs:
 
   # Windows
       - name: setup MSVC
-        if: inputs.os == 'windows-2025-vs2026'
+        if: inputs.os == 'windows-2022'
         uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57  # v3
 
-      - name: Install CMake 3.31.x on Windows
-        if: inputs.os == 'windows-2025-vs2026'
-        shell: pwsh
-        run: |
-          $ver = "3.31.7"
-          $url = "https://github.com/Kitware/CMake/releases/download/v${ver}/cmake-${ver}-windows-x86_64.zip"
-          Invoke-WebRequest -Uri $url -OutFile cmake.zip
-          Expand-Archive cmake.zip -DestinationPath C:\cmake_custom
-          "C:\cmake_custom\cmake-${ver}-windows-x86_64\bin" | Out-File -Append -FilePath $env:GITHUB_PATH
-
       - name: Install nsis and pkgconfig
-        if: inputs.os == 'windows-2025-vs2026'
+        if: inputs.os == 'windows-2022'
         run: |
           dir "C:/Program Files (x86)/Windows Kits/10/Include"
           choco install nsis
           choco install pkgconfiglite
 
       - name: Build slicer Win
-        if: inputs.os == 'windows-2025-vs2026'
+        if: inputs.os == 'windows-2022'
         working-directory: ${{ github.workspace }}
         run: |
           mkdir build
           cd build
-          cmake .. -G "Visual Studio 18 2026" -A X64 -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0 -DCMAKE_PREFIX_PATH="${{ github.workspace }}\deps\build\BambuStudio_dep\usr\local" -DCMAKE_INSTALL_PREFIX="../install-dir" -DCMAKE_BUILD_TYPE=Release -DWIN10SDK_PATH="C:/Program Files (x86)/Windows Kits/10/Include/10.0.22000.0"
+          cmake .. -G "Visual Studio 17 2022" -A X64 -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0 -DCMAKE_PREFIX_PATH="${{ github.workspace }}\deps\build\BambuStudio_dep\usr\local" -DCMAKE_INSTALL_PREFIX="../install-dir" -DCMAKE_BUILD_TYPE=Release -DWIN10SDK_PATH="C:/Program Files (x86)/Windows Kits/10/Include/10.0.22000.0"
           cmake --build . --target install --config Release -- -m
 
       # - name: Create installer Win
-      #   if: inputs.os == 'windows-2025-vs2026'
+      #   if: inputs.os == 'windows-2022'
       #   working-directory: ${{ github.workspace }}/build
       #   run: |
       #     cpack -G NSIS
 
       - name: Pack app
-        if: inputs.os == 'windows-2025-vs2026'
+        if: inputs.os == 'windows-2022'
         working-directory: ${{ github.workspace }}
         shell: cmd
         run: '"C:/Program Files/7-Zip/7z.exe" a -tzip BambuStudio_Windows_${{ env.ver }}_portable.zip ${{ github.workspace }}/install-dir'
 
       # - name: Pack PDB
-      #   if: inputs.os == 'windows-2025-vs2026'
+      #   if: inputs.os == 'windows-2022'
       #   working-directory: ${{ github.workspace }}/build/src/Release
       #   shell: cmd
       #   run: '"C:/Program Files/7-Zip/7z.exe" a -m0=lzma2 -mx9 Debug_PDB_${{ env.ver }}_for_developers_only.7z  *.pdb'
 
       - name: Upload artifacts Win zip
-        if: inputs.os == 'windows-2025-vs2026'
+        if: inputs.os == 'windows-2022'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
           name: BambuStudio_Windows_${{ env.ver }}_portable

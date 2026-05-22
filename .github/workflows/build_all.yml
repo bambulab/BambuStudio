@@ -46,7 +46,7 @@ jobs:
         include:
           - os: ubuntu-22.04
           - os: ubuntu-24.04
-          - os: windows-2025-vs2026
+          - os: windows-2022
           - os: macos-15-intel
             arch: x86_64
           - os: macos-15

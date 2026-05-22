@@ -82,7 +82,7 @@ jobs:
             binary: build/release/src/bambu-studio
             artifact_name: BambuStudio-Debian-AppImage
             artifact_glob: build/release/BambuStudio-*-x86_64.AppImage
-          - os: windows-2025-vs2026
+          - os: windows-2022
             build_task: build-release
             binary: build/release/src/bambu-studio.exe
             artifact_name: BambuStudio-Windows-MSI
