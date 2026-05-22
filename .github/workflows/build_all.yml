@@ -67,7 +67,7 @@ jobs:
 
   # GitHub-hosted builds inside distribution containers
   build_packages_container:
-    name: Build ${{ matrix.name }}
+    name: ${{ matrix.name }}
     runs-on: ubuntu-24.04
     container: ${{ matrix.container }}
     permissions: read-all
@@ -147,7 +147,7 @@ jobs:
 
   # Self-hosted distro runner builds (AppImage + native package)
   build_packages_selfhosted:
-    name: Build ${{ matrix.name }}
+    name: ${{ matrix.name }}
     runs-on: ${{ matrix.runner }}
     continue-on-error: true
     permissions: read-all
