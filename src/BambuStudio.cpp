@@ -96,36 +96,28 @@ using namespace nlohmann;
 #endif /* SLIC3R_GUI */
 
 #if defined(__linux__) || defined(__LINUX__)
-#include <gtk/gtk.h>
-
 static void setup_display_backend() {
-    // If the user already set GDK_BACKEND, respect their choice.
     if (std::getenv("GDK_BACKEND") != nullptr)
         return;
 
     const char* xdg_session = std::getenv("XDG_SESSION_TYPE");
     if (xdg_session && std::strcmp(xdg_session, "wayland") == 0) {
-        // We are in a Wayland session. Only redirect to X11 (via XWayland) if
-        // DISPLAY is already set — i.e. XWayland is actually running.
-        // If XWayland uses lazy autostart it may not have started yet, so
-        // forcing GDK_BACKEND=x11 without a live X11 server would crash
-        // exactly the same way as the original bug.
+        // Only redirect to X11 (via XWayland) when DISPLAY is already set.
+        // Lazy/autostart XWayland may not have started yet even in a Wayland
+        // session, so forcing x11 without a live X server would crash GTK.
         const char* display = std::getenv("DISPLAY");
         if (display && *display) {
             setenv("GDK_BACKEND", "x11", 1);
         }
-        // Otherwise let GTK negotiate with the Wayland compositor directly.
     }
 }
 
-static bool check_gdk_display_connection() {
-    if (!gtk_init_check(nullptr, nullptr)) {
-        std::cerr << "[BambuStudio] Critical Error: No capable display connection found." << std::endl;
-        return false;
-    }
-    GdkDisplay* display = gdk_display_get_default();
-    if (!display) {
-        std::cerr << "[BambuStudio] Critical Error: GdkDisplay is NULL. Aborting GUI setup." << std::endl;
+static bool check_display_available() {
+    const char* display = std::getenv("DISPLAY");
+    const char* wayland_display = std::getenv("WAYLAND_DISPLAY");
+    if ((!display || !*display) && (!wayland_display || !*wayland_display)) {
+        std::cerr << "[BambuStudio] Critical Error: No display available. "
+                     "Set DISPLAY or WAYLAND_DISPLAY before launching." << std::endl;
         return false;
     }
     return true;
@@ -1620,9 +1612,7 @@ int CLI::run(int argc, char **argv)
         ::Label::initSysFont();
 #ifdef SLIC3R_GUI
 #if defined(__linux__) || defined(__LINUX__)
-        // Verify we actually have a working display before handing off to wxWidgets/GTK.
-        // gtk_init_check is safe to call here; it will not abort on failure.
-        if (!check_gdk_display_connection()) {
+        if (!check_display_available()) {
             boost::nowide::cerr << "[BambuStudio] Cannot connect to a display. "
                                 << "Try: export DISPLAY=:0  or  GDK_BACKEND=x11" << std::endl;
             return CLI_ENVIRONMENT_ERROR;
