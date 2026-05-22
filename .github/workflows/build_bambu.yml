@@ -118,6 +118,16 @@ jobs:
         if: inputs.os == 'windows-2025-vs2026'
         uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57  # v3
 
+      - name: Install CMake 3.31.x on Windows
+        if: inputs.os == 'windows-2025-vs2026'
+        shell: pwsh
+        run: |
+          $ver = "3.31.7"
+          $url = "https://github.com/Kitware/CMake/releases/download/v${ver}/cmake-${ver}-windows-x86_64.zip"
+          Invoke-WebRequest -Uri $url -OutFile cmake.zip
+          Expand-Archive cmake.zip -DestinationPath C:\cmake_custom
+          "C:\cmake_custom\cmake-${ver}-windows-x86_64\bin" | Out-File -Append -FilePath $env:GITHUB_PATH
+
       - name: Install nsis and pkgconfig
         if: inputs.os == 'windows-2025-vs2026'
         run: |
