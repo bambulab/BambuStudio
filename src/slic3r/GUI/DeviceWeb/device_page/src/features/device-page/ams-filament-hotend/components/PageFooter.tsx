@@ -1,4 +1,4 @@
-import type { AmsFilamentHotendActionState } from '../types';
+import type { FilamentPageActionState } from '../types';
 
 export function PageFooter({
   actions,
@@ -7,7 +7,7 @@ export function PageFooter({
   debugOpening,
   onDebug,
 }: {
-  actions: AmsFilamentHotendActionState;
+  actions: FilamentPageActionState;
   onAction: (action: string) => void;
   showDebugButton?: boolean;
   debugOpening?: boolean;

@@ -52,6 +52,43 @@ export interface HotendSlotInfo {
   selected?: boolean;        // hotend tab 自己的选中态(可与 filament tab 独立)
 }
 
+// Filament card render group (spool disc + labels). Mirrors C++ keys::filament_card.
+export interface FilamentCardInfo {
+  state: AmsFilamentHotendCardState;          // was slot.card_state
+  color: string;                              // hex; #D9D9D9 = unknown
+  color_type?: AmsFilamentHotendColorType;
+  colors?: string[];
+  name: string;                               // was slot.filament_name
+  type: string;                               // was slot.filament_type
+  remain?: number;                            // 0..100; default 100
+  status_text: string;
+}
+
+// Feed-line render group. Mirrors C++ keys::filament_line.
+export interface FilamentLineInfo {
+  state: AmsFilamentHotendLineState;          // was slot.line_state
+  has_filament?: boolean;                     // true iff loaded/loading/unloading
+  // Color of filament currently in the tube; empty when no filament. Today
+  // mirrors filament_card.color because C++ has no separate signal yet.
+  filament_color?: string;
+}
+
+// Nozzle render group. Mirrors C++ keys::filament_nozzle. `has_filament` is
+// the direct mirror of DevNozzle::HasFilamentInNozzle().
+export interface FilamentNozzleInfo {
+  state: AmsFilamentHotendNozzleState;        // was slot.nozzle_state
+  has_filament?: boolean;                     // was slot.hotend.has_filament_in_nozzle
+  // Color of filament currently inside the nozzle; empty when no filament.
+  filament_color?: string;
+  // True when this rack nozzle is the one mounted on the extruder right now.
+  on_extruder?: boolean;
+}
+
+/**
+ * Slot payload consumed by the Filament tab only. Mirrors C++
+ * `state.filament_page.hotend_slots[]`. Hotend tool fields live on the
+ * separate {@link HotendSlotViewModel}.
+ */
 export interface AmsFilamentHotendSlotViewModel {
   nozzle_pos: number;
   display_index: number;
@@ -72,34 +109,43 @@ export interface AmsFilamentHotendSlotViewModel {
     can_read?: boolean;
     can_ams_operation?: boolean;
   };
+  /**
+   * Backend data for the AMS Operation dialog of this slot. When
+   * `can_ams_operation === true` C++ ships the bound AMS units (with trays)
+   * here; this is the sole source for the dialog (there is no top-level
+   * units array anymore).
+   */
+  ams_operation?: {
+    available?: boolean;
+    units: AmsUnitInfo[];
+  };
 
-  card_state: AmsFilamentHotendCardState;
-  line_state: AmsFilamentHotendLineState;
-  nozzle_state: AmsFilamentHotendNozzleState;
-
-  filament_name: string;     // e.g. "PLA Basic"
-  filament_type: string;     // e.g. "PLA" -- preferred for the compact 31558 layout
-  color: string;             // primary hex; legacy single-color spools use this
-  color_type?: AmsFilamentHotendColorType; // single / multi / gradient
-  status_text: string;       // e.g. "待进料"; pre-rendered server-side for i18n
-  colors?: string[];         // multi-color filament (>=2 segments). [0] === color.
-
-  progress_pct?: number;     // 0..100 -- partial arc on the spool
-  filament_remain?: number;  // 0..100 remaining filament; default 100 when missing
+  // Grouped render zones. C++ guarantees these objects always exist on a
+  // live payload; mock data should populate them too.
+  filament_card: FilamentCardInfo;
+  filament_line: FilamentLineInfo;
+  filament_nozzle: FilamentNozzleInfo;
 
   selected?: boolean;        // user UI selection (red border + green index pill)
-  is_on_extruder?: boolean;  // current hotend is physically mounted on the extruder
   // True when this slot is currently fed by an external spool (Ext slot)
   // rather than an AMS slot. The hotend card shows an "Ext" badge next to
   // the slot index when this flag is set. Optional for backward compatibility.
   is_external_spool?: boolean;
   is_running?: boolean;      // batch flow currently executing this slot (S6)
-  in_dryer?: boolean;        // physically inside the dryer chamber
-  dryer_humidity_pct?: number; // -1 means invalid / unsupported
-  dryer_status_text?: string;  // "Idle" / "Drying" / "Cooling" ...
-  is_drying?: boolean;       // chamber actively drying (highlight the chamber bg)
+}
 
-  hotend?: HotendSlotInfo;
+/** Slot payload consumed by the Hotend tab only. Mirrors C++
+ *  `state.hotend_page.hotend_slots[]`. */
+export interface HotendSlotViewModel {
+  nozzle_pos: number;
+  display_index: number;
+  ams_id: string;
+  slot_id: string;
+  enabled: boolean;
+  /** True when this rack nozzle is currently mounted on the extruder; the
+   *  Hotend tab card shows a "Taken" overlay instead of the live temperature. */
+  taken?: boolean;
+  hotend: HotendSlotInfo;
 }
 
 export interface HotendRackStatus {
@@ -147,72 +193,101 @@ export interface FilamentChangeStatus {
   batch_reserved?: FilamentChangeBatchReserved;
 }
 
-export interface AmsFilamentHotendActionState {
+/** state.filament_page.actions */
+export interface FilamentPageActionState {
   can_dry: boolean;
   can_unload: boolean;
-
-  /** @deprecated  Prefer can_load_external + can_load_auto on new bridges. */
+  /** @deprecated Prefer can_load_external + can_load_auto on new bridges. */
   can_load?: boolean;
   can_load_external?: boolean;
   can_load_auto?: boolean;
-  can_read_all_hotends?: boolean;
-  read_all_disabled_reason?: string;
-
   show_ams_settings: boolean;
   show_auto_refill: boolean;
   tips: string;
 }
 
+/** state.hotend_page.actions */
+export interface HotendPageActionState {
+  can_read_all_hotends?: boolean;
+  read_all_disabled_reason?: string;
+}
+
+export interface AmsTrayInfo {
+  ams_id: string;
+  slot_id: string;
+  exists: boolean;
+  // tray_state == 'reading' subsumes the old top-level `reading` boolean,
+  // which C++ no longer emits.
+  tray_state: 'empty' | 'reading' | 'ready' | 'unknown' | 'error';
+  filament_type: string;
+  filament_name: string;
+  color: string;
+  color_type?: AmsFilamentHotendColorType;
+  colors?: string[];
+  remain?: number;
+  // Per-tray menu controls for the AMS Operation dialog. Only items with a
+  // truthy flag are rendered; default is read-only when actions is missing.
+  actions?: {
+    can_load?: boolean;
+    can_unload?: boolean;
+    can_read?: boolean;
+  };
+}
+
+export interface AmsUnitInfo {
+  ams_id: string;
+  ams_type?: string;
+  slot_count?: number;
+  // Only `humidity_raw` (0..100 percent) and `dry_status` are surfaced; the
+  // 0..5 humidity level, `temp`, `dry_time`, `dry_sub_status` and `exist`
+  // were never consumed by any component so they no longer travel on the wire.
+  humidity_raw?: number;
+  dry_status?: string;
+  trays: AmsTrayInfo[];
+}
+
+/**
+ * One dryer chamber. The DryerChamber component renders one decoration per
+ * zone, wrapping the slot columns whose `(ams_id, slot_id)` matches an entry
+ * in `zone_slots`.
+ *
+ * - `dry_status`      — untranslated English enum used for logic (`!== 'Idle'`).
+ * - `dry_status_text` — translated user-facing label shown in the chamber chip.
+ */
 export interface AmsFilamentHotendDryerZone {
   ams_id?: string;
-  zone_id?: number;
-  zone_slots?: Array<number | string>;
-  humidity?: number;
+  zone_slots?: Array<number | string>;  // native AMS slot_id values
   humidity_raw?: number;
   dry_time?: number;
   dry_status?: string;
-  dry_sub_status?: string;
-  info?: string;
+  dry_status_text?: string;
+  temp?: number;
 }
 
 export interface AmsFilamentHotendSlotActionPayload extends Record<string, unknown> {
   target_temp?: number;
 }
 
-export interface AmsFilamentHotendViewModel {
-  selected_dev_id: string;
-  ams?: {
-    units: Array<{
-      ams_id: string;
-      ams_type?: string;
-      slot_count?: number;
-      exist?: boolean;
-      temp?: number;
-      humidity?: number;
-      humidity_raw?: number;
-      dry_time?: number;
-      dry_status?: string;
-      dry_sub_status?: string;
-      trays: Array<{
-        ams_id: string;
-        slot_id: string;
-        exists: boolean;
-        tray_state: 'empty' | 'reading' | 'ready' | 'unknown' | 'error';
-        filament_type: string;
-        filament_name: string;
-        color: string;
-        color_type?: AmsFilamentHotendColorType;
-        colors?: string[];
-        reading?: boolean;
-        remain?: number;
-      }>;
-    }>;
-    zones?: AmsFilamentHotendDryerZone[];
-  };
-  hotend_slots: AmsFilamentHotendSlotViewModel[];
-  hotend_rack_status?: HotendRackStatus;
+export interface FilamentPageViewModel {
+  actions: FilamentPageActionState;
   filament_change_status?: FilamentChangeStatus;
-  actions: AmsFilamentHotendActionState;
+  // Flat dryer-zone signal lifted from the old `ams.zones`. AMS-unit detail
+  // ships per-slot via `hotend_slots[].ams_operation.units` instead of being
+  // duplicated at the page root.
+  // Only zones that physically support drying are listed here (C++ filter).
+  ams_dry_zones?: AmsFilamentHotendDryerZone[];
+  hotend_slots: AmsFilamentHotendSlotViewModel[];
+}
+
+export interface HotendPageViewModel {
+  actions: HotendPageActionState;
+  hotend_rack_status?: HotendRackStatus;
+  hotend_slots: HotendSlotViewModel[];
+}
+
+export interface AmsFilamentHotendViewModel {
+  filament_page: FilamentPageViewModel;
+  hotend_page: HotendPageViewModel;
 }
 
 export interface BridgeResponseBody<T = unknown> {

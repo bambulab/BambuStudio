@@ -1,5 +1,10 @@
 import { useTranslation } from 'react-i18next';
-import type { AmsFilamentHotendActionState, AmsFilamentHotendTab } from '../types';
+import type { FilamentPageActionState, HotendPageActionState, AmsFilamentHotendTab } from '../types';
+
+// Union of fields PageToolbar needs from either page's actions section. The
+// parent merges filament_page.actions and hotend_page.actions before passing
+// in, so this is a flat read-only shape.
+type ToolbarActions = FilamentPageActionState & HotendPageActionState;
 
 export function PageToolbar({
   selectedTab,
@@ -9,7 +14,7 @@ export function PageToolbar({
 }: {
   selectedTab: AmsFilamentHotendTab;
   onTabChange: (tab: AmsFilamentHotendTab) => void;
-  actions: AmsFilamentHotendActionState;
+  actions: ToolbarActions;
   onAction: (action: string) => void;
 }) {
   const { t } = useTranslation();
@@ -45,7 +50,7 @@ function FilamentActions({
   actions,
   onAction,
 }: {
-  actions: AmsFilamentHotendActionState;
+  actions: ToolbarActions;
   onAction: (action: string) => void;
 }) {
   const { t } = useTranslation();
@@ -94,7 +99,7 @@ function HotendActions({
   actions,
   onAction,
 }: {
-  actions: AmsFilamentHotendActionState;
+  actions: ToolbarActions;
   onAction: (action: string) => void;
 }) {
   const { t } = useTranslation();

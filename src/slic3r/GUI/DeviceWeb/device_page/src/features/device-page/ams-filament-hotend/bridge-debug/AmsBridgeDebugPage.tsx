@@ -24,12 +24,61 @@ function makeBody(submod: string, action: string, payload: Record<string, unknow
   return { module: MODULE, submod, action, payload };
 }
 
+// Copy `text` to the clipboard. WebView2 supports navigator.clipboard for
+// localhost/file origins; the textarea + execCommand path is a Safari/older
+// WebView fallback when the modern API is unavailable.
+async function copyTextToClipboard(text: string): Promise<boolean> {
+  if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // fall through to the textarea fallback below
+    }
+  }
+  if (typeof document === 'undefined') return false;
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.setAttribute('readonly', '');
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  let ok = false;
+  try {
+    ok = document.execCommand('copy');
+  } catch {
+    ok = false;
+  }
+  document.body.removeChild(ta);
+  return ok;
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleClick = useCallback(async () => {
+    const ok = await copyTextToClipboard(text);
+    setCopied(ok);
+    if (ok) setTimeout(() => setCopied(false), 1200);
+  }, [text]);
+  return (
+    <button
+      type="button"
+      className="rounded border border-neutral-600 bg-neutral-800 px-2 py-0.5 text-[11px] text-neutral-100 hover:bg-neutral-700"
+      onClick={() => void handleClick()}
+    >
+      {copied ? 'Copied' : 'Copy'}
+    </button>
+  );
+}
+
 function JsonBlock({ title, value }: { title: string; value: unknown }) {
   const text = useMemo(() => JSON.stringify(value ?? null, null, 2), [value]);
   return (
     <section className="min-h-0 rounded-lg border border-neutral-700 bg-neutral-950 overflow-hidden">
-      <div className="px-3 py-2 text-xs font-semibold text-neutral-100 border-b border-neutral-700 bg-neutral-900">
-        {title}
+      <div className="flex items-center justify-between gap-2 px-3 py-2 text-xs font-semibold text-neutral-100 border-b border-neutral-700 bg-neutral-900">
+        <span className="truncate">{title}</span>
+        <CopyButton text={text} />
       </div>
       <pre className="m-0 max-h-[280px] overflow-auto p-3 text-[11px] leading-4 text-neutral-200 whitespace-pre-wrap break-all">
         {text}
@@ -127,7 +176,8 @@ export function AmsBridgeDebugPage() {
             <div className="text-sm font-semibold">Trigger Request</div>
             <div className="text-xs text-neutral-400">Requests sent here use this dialog WebView's Bridge.</div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
+            <CopyButton text={requestText} />
             <button
               className="rounded border border-neutral-600 bg-neutral-800 px-3 py-1 text-xs hover:bg-neutral-700"
               onClick={() => void loadSnapshot()}

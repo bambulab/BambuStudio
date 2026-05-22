@@ -1,5 +1,10 @@
 import { useTranslation } from 'react-i18next';
-import type { AmsFilamentHotendSlotActionPayload, AmsFilamentHotendSlotViewModel, HotendRackStatus } from '../types';
+import type {
+  AmsFilamentHotendSlotActionPayload,
+  AmsFilamentHotendSlotViewModel,
+  HotendRackStatus,
+  HotendSlotViewModel,
+} from '../types';
 import { HotendCard } from './HotendCard';
 
 export function HotendPanel({
@@ -7,9 +12,13 @@ export function HotendPanel({
   rackStatus,
   onAction,
 }: {
-  slots: AmsFilamentHotendSlotViewModel[];
+  slots: HotendSlotViewModel[];
   rackStatus?: HotendRackStatus;
-  onAction: (action: string, slot?: AmsFilamentHotendSlotViewModel, payload?: AmsFilamentHotendSlotActionPayload) => void;
+  onAction: (
+    action: string,
+    slot?: AmsFilamentHotendSlotViewModel | HotendSlotViewModel,
+    payload?: AmsFilamentHotendSlotActionPayload,
+  ) => void;
 }) {
   const { t } = useTranslation();
   const ordered = [...slots].sort((a, b) => a.display_index - b.display_index);

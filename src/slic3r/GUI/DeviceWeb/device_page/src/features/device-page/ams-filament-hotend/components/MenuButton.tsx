@@ -13,11 +13,13 @@ export function MenuButton({
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLSpanElement>(null);
+  const lineState = slot.filament_line.state;
+  const cardState = slot.filament_card.state;
   const menuActions = slot.menu_actions;
-  const canEdit = menuActions?.can_edit ?? slot.card_state !== 'Empty';
-  const canLoad = menuActions?.can_load ?? (slot.line_state === 'no_filament' && slot.card_state !== 'Empty');
-  const canUnload = menuActions?.can_unload ?? slot.line_state === 'loaded';
-  const canRead = menuActions?.can_read ?? (slot.card_state !== 'Reading' && slot.card_state !== 'Empty');
+  const canEdit = menuActions?.can_edit ?? cardState !== 'Empty';
+  const canLoad = menuActions?.can_load ?? (lineState === 'no_filament' && cardState !== 'Empty');
+  const canUnload = menuActions?.can_unload ?? lineState === 'loaded';
+  const canRead = menuActions?.can_read ?? (cardState !== 'Reading' && cardState !== 'Empty');
   const canAmsOperation = menuActions?.can_ams_operation ?? (slot.bind_ams_slot_count ?? 0) > 0;
   const disabled = !slot.enabled || !(canEdit || canLoad || canUnload || canRead || canAmsOperation);
 

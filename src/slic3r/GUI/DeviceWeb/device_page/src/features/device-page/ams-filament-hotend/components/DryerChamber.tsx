@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import type { AmsFilamentHotendSlotViewModel } from '../types';
+import type { AmsFilamentHotendDryerZone, AmsFilamentHotendSlotViewModel } from '../types';
 
 const COL = 80;
 
@@ -82,32 +82,67 @@ function DryerIcon() {
   );
 }
 
-export function findDryerRuns(slots: AmsFilamentHotendSlotViewModel[]): Array<{
+// Drying status logical check — matches the C++ enum (`dry_status` field on
+// the zone). Translated display text comes via `dry_status_text`.
+function isDryingStatus(status?: string) {
+  return !!status && status !== 'Idle' && status !== 'Off';
+}
+
+/**
+ * Resolve the contiguous run of slot columns covered by each dryer zone.
+ *
+ * `zone.zone_slots` carries native AMS slot_id values; we match them against
+ * the displayed slot order to find the column span. The DryerChamber
+ * rectangle is then drawn across that span.
+ *
+ * Only contiguous runs are rendered today (matches the physical chamber
+ * geometry). A zone whose members map to non-adjacent columns is split into
+ * one run per contiguous segment to avoid drawing a chamber across unrelated
+ * slots.
+ */
+export function findDryerRuns(
+  slots: AmsFilamentHotendSlotViewModel[],
+  zones: AmsFilamentHotendDryerZone[],
+): Array<{
   start: number;
   end: number;
   humidity: number;
   status: string;
   isDrying: boolean;
 }> {
-  const runs: ReturnType<typeof findDryerRuns> = [];
-  for (let i = 0; i < slots.length; i++) {
-    if (!slots[i].in_dryer) continue;
-    let j = i;
-    while (j + 1 < slots.length && slots[j + 1].in_dryer) j++;
-    // Use the first concrete dryer signal across the grouped slots.
-    let humidity = -1;
-    let status = '';
-    let isDrying = false;
-    for (let k = i; k <= j; k++) {
-      const s = slots[k];
-      if (humidity < 0 && typeof s.dryer_humidity_pct === 'number' && s.dryer_humidity_pct >= 0) {
-        humidity = s.dryer_humidity_pct;
+  if (!zones?.length) return [];
+  const runs: Array<{ start: number; end: number; humidity: number; status: string; isDrying: boolean }> = [];
+
+  for (const zone of zones) {
+    const ids = (zone.zone_slots ?? []).map((v) => Number(v)).filter((n) => !Number.isNaN(n));
+    if (!ids.length) continue;
+    const idSet = new Set(ids);
+
+    const matchedCols: number[] = [];
+    slots.forEach((slot, idx) => {
+      if (zone.ams_id && slot.ams_id && zone.ams_id !== slot.ams_id) return;
+      if (idSet.has(Number(slot.slot_id))) matchedCols.push(idx);
+    });
+    if (!matchedCols.length) continue;
+
+    const humidity = typeof zone.humidity_raw === 'number' && zone.humidity_raw >= 0 ? zone.humidity_raw : -1;
+    const status = zone.dry_status_text || '';
+    const isDrying = isDryingStatus(zone.dry_status) || (typeof zone.dry_time === 'number' && zone.dry_time > 0);
+
+    let runStart = matchedCols[0];
+    let prev = matchedCols[0];
+    for (let i = 1; i <= matchedCols.length; i++) {
+      const cur = matchedCols[i];
+      if (cur === prev + 1) {
+        prev = cur;
+        continue;
       }
-      if (!status && s.dryer_status_text) status = s.dryer_status_text;
-      if (s.is_drying) isDrying = true;
+      runs.push({ start: runStart, end: prev, humidity, status, isDrying });
+      if (cur === undefined) break;
+      runStart = cur;
+      prev = cur;
     }
-    runs.push({ start: i, end: j, humidity, status, isDrying });
-    i = j;
   }
+
   return runs;
 }

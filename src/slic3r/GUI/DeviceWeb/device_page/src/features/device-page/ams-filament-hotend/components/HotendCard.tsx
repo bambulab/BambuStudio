@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { AmsFilamentHotendSlotActionPayload, AmsFilamentHotendSlotViewModel, HotendOpState, HotendToolKind } from '../types';
+import type {
+  AmsFilamentHotendSlotActionPayload,
+  AmsFilamentHotendSlotViewModel,
+  HotendOpState,
+  HotendSlotViewModel,
+  HotendToolKind,
+} from '../types';
 
 import hotendNozzleUrl        from '../assets/hotend_nozzle.svg';
 import hotendNozzleOutlineUrl from '../assets/hotend_nozzle_outline.svg';
@@ -15,14 +21,22 @@ export function HotendCard({
   globalBusy,
   onAction,
 }: {
-  slot: AmsFilamentHotendSlotViewModel;
+  slot: HotendSlotViewModel;
   globalBusy?: boolean;
-  onAction: (action: string, slot: AmsFilamentHotendSlotViewModel, payload?: AmsFilamentHotendSlotActionPayload) => void;
+  // HotendCard reuses the same onAction shape used by the Filament tab so a
+  // single handler can serve both pages. Only identity + hotend fields are
+  // read from the slot; the union keeps callers strongly typed.
+  onAction: (
+    action: string,
+    slot: AmsFilamentHotendSlotViewModel | HotendSlotViewModel,
+    payload?: AmsFilamentHotendSlotActionPayload,
+  ) => void;
 }) {
   const { t } = useTranslation();
   const hot = slot.hotend ?? {};
   const op: HotendOpState = hot.op_state ?? 'Idle';
-  const isSelected = !!slot.is_on_extruder || !!hot.selected || !!slot.selected;
+  const isTaken = !!slot.taken;
+  const isSelected = isTaken || !!hot.selected;
   const isStatusReplaced = op === 'Reading' || op === 'Placing' || op === 'Removing' || op === 'Error';
   const [menuOpen, setMenuOpen] = useState(false);
   const [editingTemp, setEditingTemp] = useState(false);
@@ -86,6 +100,7 @@ export function HotendCard({
   cardCls.push(`hotend-card-${op.toLowerCase()}`);
   if (isSelected) cardCls.push('selected');
   if (!slot.enabled) cardCls.push('disabled');
+  if (isTaken) cardCls.push('taken');
 
   const indexCls = ['hotend-card-index'];
   if (isSelected) indexCls.push('selected');
@@ -127,7 +142,9 @@ export function HotendCard({
       </div>
 
       <div className="hotend-card-body">
-        {isStatusReplaced ? (
+        {isTaken ? (
+          <TakenReadout />
+        ) : isStatusReplaced ? (
           <StatusReadout op={op} />
         ) : (
           <TempReadout
@@ -247,6 +264,18 @@ function TempReadout({
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+// Shown when the hotend rack nozzle is currently mounted on the extruder; the
+// Hotend tab card replaces live temperature with a "Taken" overlay so the
+// operator does not try to control the same nozzle twice.
+function TakenReadout() {
+  const { t } = useTranslation();
+  return (
+    <div className="hotend-readout status status-taken" data-testid="ams-hotend-taken">
+      <span className="hotend-readout-text">{t('Taken')}</span>
     </div>
   );
 }

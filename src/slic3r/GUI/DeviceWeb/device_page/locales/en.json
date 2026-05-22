@@ -55,6 +55,7 @@
   "Loading/Unloading Filament": "loading/unloading",
   "Slot {{n}}": "Slot {{n}}",
   "Step {{n}}": "Step {{n}}",
+  "Taken": "Taken",
   "Getting AMS data failed": "Getting AMS data failed",
   "Getting device list failed, please retry": "Getting device list failed, please retry",
   "HTTP": "HTTP",

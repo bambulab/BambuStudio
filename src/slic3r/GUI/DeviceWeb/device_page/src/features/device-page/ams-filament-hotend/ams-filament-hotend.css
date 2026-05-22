@@ -502,7 +502,7 @@
 }
 
 .feed-line-empty {
-  width: 20px;
+  width: 24px;
 }
 
 .hotend-row > * {
@@ -819,7 +819,8 @@
   flex: 1 1 auto;
   min-height: 0;
   padding: 12px;
-  overflow: hidden;
+  /* keep `visible` so the per-card menu popover is not clipped */
+  overflow: visible;
 }
 
 .hotend-panel-reading {
@@ -901,12 +902,26 @@
   box-sizing: border-box;
   cursor: pointer;
   user-select: none;
-  overflow: hidden;
+  /* keep `visible` so the per-card menu popover (positioned absolutely) is
+     not clipped at the card border */
+  overflow: visible;
 }
 
 .hotend-card.disabled {
   cursor: default;
   opacity: 0.6;
+}
+
+/* When the rack nozzle is currently mounted on the extruder, the Hotend tab
+   card shows a "Taken" overlay instead of the live temperature; mute the
+   background so operators do not mistake it for an actionable slot. */
+.hotend-card.taken {
+  background: #e6e6e6;
+}
+
+.hotend-card.taken .hotend-readout.status-taken {
+  color: #5c5c5c;
+  font-weight: 500;
 }
 
 .hotend-card-head {
@@ -971,6 +986,13 @@
   border-radius: 4px;
   background: #ffffff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+}
+
+/* For the leftmost hotend card the menu would overflow the left edge of the
+   panel; anchor it to the left of the trigger instead so it pops to the right. */
+.hotend-strip > .hotend-card:first-child .hotend-menu-popover {
+  right: auto;
+  left: -4px;
 }
 
 .hotend-menu-popover button {

@@ -2,6 +2,7 @@
 #define DEVICEPAGEAMSFILAMENTHOTENDVM_HPP
 
 #include "slic3r/GUI/DeviceWeb/IViewModel.hpp"
+#include "DevicePageAmsFilamentHotendSchema.hpp"
 
 #include <optional>
 #include <string>
@@ -32,7 +33,7 @@ private:
                              const std::optional<std::pair<int, int>>& slot_id,
                              const Slic3r::DevAms* fallback_dryer_unit) const;
 
-    std::string ResolveCardState(Slic3r::MachineObject* machine_obj, const Slic3r::DevAmsTray* tray, const std::string& ams_id, const std::string& slot_id) const;
+    std::string ResolveCardState(Slic3r::MachineObject* machine_obj, const Slic3r::DevAmsTray* tray, const std::string& ams_id, const std::string& slot_id, int nozzle_pos) const;
     std::string ResolveLineState(const std::string& card_state, bool has_hotend_slot) const;
     std::string ResolveNozzleState(const std::string& card_state, const std::string& line_state) const;
     std::string ResolveStatusText(const std::string& card_state) const;
@@ -40,6 +41,11 @@ private:
                                              const nlohmann::json& running_slot,
                                              const std::string& operation,
                                              const std::string& message) const;
+    // Serialize a single AMS unit (including its trays) to the JSON shape consumed
+    // by the Web. Used both by the top-level `ams.units` list and by per-slot
+    // `ams_operation.units` so the AMS Operation dialog can read straight from
+    // the slot without re-querying.
+    nlohmann::json BuildAmsUnitJson(Slic3r::MachineObject* machine_obj, const Slic3r::DevAms* ams_unit) const;
     bool IsSlotLoadedInExtruder(Slic3r::MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id) const;
     bool IsSlotTargetForExtruder(Slic3r::MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id) const;
     bool IsSlotInFilamentChangeList(Slic3r::MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id) const;

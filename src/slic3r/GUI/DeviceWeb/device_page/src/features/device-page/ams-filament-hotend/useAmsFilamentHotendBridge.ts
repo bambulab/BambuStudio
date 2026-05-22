@@ -2,13 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDeviceBridge } from '../../../hooks/Bridge';
 import { mockAmsFilamentHotendState } from './mockData';
 import type {
-  AmsFilamentHotendDryerZone,
   AmsFilamentHotendSlotActionPayload,
   AmsFilamentHotendSlotViewModel,
   AmsFilamentHotendViewModel,
   BridgeResponseBody,
   FilamentChangeStatus,
   HotendRackStatus,
+  HotendSlotViewModel,
 } from './types';
 
 const MODULE = 'device_page_ams_filament_hotend';
@@ -23,60 +23,8 @@ function isAmsFilamentHotendBody(body: unknown): body is BridgeResponseBody<AmsF
     && (body as { module?: unknown }).module === MODULE;
 }
 
-function normalizeDryStatus(status?: string) {
-  return status || 'Idle';
-}
-
-function isDryingStatus(status?: string) {
-  const normalized = normalizeDryStatus(status);
-  return !!normalized && normalized !== 'Idle' && normalized !== 'Off';
-}
-
-function zoneContainsSlot(zone: AmsFilamentHotendDryerZone, slot: AmsFilamentHotendSlotViewModel) {
-  const values = zone.zone_slots ?? [];
-  return values.some((value) => {
-    const n = Number(value);
-    return n === slot.display_index
-      || n === slot.display_index - 1
-      || n === Number(slot.slot_id);
-  });
-}
-
-function firstZoneWithDryerSignal(zones: AmsFilamentHotendDryerZone[]) {
-  return zones.find((zone) => typeof zone.humidity_raw === 'number' && zone.humidity_raw >= 0)
-    ?? zones.find((zone) => !!zone.dry_status)
-    ?? zones[0];
-}
-
-function applyDryerZoneSignals(state: AmsFilamentHotendViewModel): AmsFilamentHotendSlotViewModel[] {
-  const zones = state.ams?.zones ?? [];
-  if (!zones.length) return state.hotend_slots;
-
-  const dryerSlots = state.hotend_slots.filter((slot) => slot.in_dryer);
-  return state.hotend_slots.map((slot) => {
-    if (!slot.in_dryer) return slot;
-
-    const zone = zones.find((candidate) => zoneContainsSlot(candidate, slot))
-      ?? (dryerSlots.length === 1 ? firstZoneWithDryerSignal(zones) : zones[dryerSlots.findIndex((s) => s.display_index === slot.display_index)])
-      ?? firstZoneWithDryerSignal(zones);
-    if (!zone) return slot;
-
-    const humidity = typeof zone.humidity_raw === 'number' && zone.humidity_raw >= 0
-      ? zone.humidity_raw
-      : slot.dryer_humidity_pct;
-    const status = normalizeDryStatus(zone.dry_status || slot.dryer_status_text);
-
-    return {
-      ...slot,
-      dryer_humidity_pct: humidity,
-      dryer_status_text: status,
-      is_drying: isDryingStatus(status) || (typeof zone.dry_time === 'number' && zone.dry_time > 0),
-    };
-  });
-}
-
 function normalizeState(payload: AmsFilamentHotendViewModel): AmsFilamentHotendViewModel {
-  const defaultRackStatus: HotendRackStatus = mockAmsFilamentHotendState.hotend_rack_status ?? {
+  const defaultRackStatus: HotendRackStatus = mockAmsFilamentHotendState.hotend_page.hotend_rack_status ?? {
     active: false,
     mode: 'idle',
     display_index: 0,
@@ -89,26 +37,47 @@ function normalizeState(payload: AmsFilamentHotendViewModel): AmsFilamentHotendV
     active: false,
     mode: 'idle',
   };
-  const next = {
-    ...mockAmsFilamentHotendState,
-    ...payload,
-    actions: {
-      ...mockAmsFilamentHotendState.actions,
-      ...(payload.actions ?? {}),
-    },
-    hotend_rack_status: {
-      ...defaultRackStatus,
-      ...(payload.hotend_rack_status ?? {}),
-    },
-    filament_change_status: {
-      ...defaultFilamentChangeStatus,
-      ...(payload.filament_change_status ?? {}),
-    },
-    hotend_slots: Array.isArray(payload.hotend_slots) ? payload.hotend_slots : mockAmsFilamentHotendState.hotend_slots,
-  };
+
+  const incomingFp = payload.filament_page ?? ({} as AmsFilamentHotendViewModel['filament_page']);
+  const incomingHp = payload.hotend_page ?? ({} as AmsFilamentHotendViewModel['hotend_page']);
+
+  const filamentSlots = Array.isArray(incomingFp.hotend_slots)
+    ? incomingFp.hotend_slots
+    : mockAmsFilamentHotendState.filament_page.hotend_slots;
+  const amsDryZones = Array.isArray(incomingFp.ams_dry_zones)
+    ? incomingFp.ams_dry_zones
+    : mockAmsFilamentHotendState.filament_page.ams_dry_zones ?? [];
+
   return {
-    ...next,
-    hotend_slots: applyDryerZoneSignals(next),
+    filament_page: {
+      ...mockAmsFilamentHotendState.filament_page,
+      ...incomingFp,
+      actions: {
+        ...mockAmsFilamentHotendState.filament_page.actions,
+        ...(incomingFp.actions ?? {}),
+      },
+      filament_change_status: {
+        ...defaultFilamentChangeStatus,
+        ...(incomingFp.filament_change_status ?? {}),
+      },
+      ams_dry_zones: amsDryZones,
+      hotend_slots: filamentSlots,
+    },
+    hotend_page: {
+      ...mockAmsFilamentHotendState.hotend_page,
+      ...incomingHp,
+      actions: {
+        ...mockAmsFilamentHotendState.hotend_page.actions,
+        ...(incomingHp.actions ?? {}),
+      },
+      hotend_rack_status: {
+        ...defaultRackStatus,
+        ...(incomingHp.hotend_rack_status ?? {}),
+      },
+      hotend_slots: Array.isArray(incomingHp.hotend_slots)
+        ? incomingHp.hotend_slots
+        : mockAmsFilamentHotendState.hotend_page.hotend_slots,
+    },
   };
 }
 
@@ -147,7 +116,7 @@ export function useAmsFilamentHotendBridge() {
 
   const runSlotAction = useCallback(async (
     action: string,
-    slot?: AmsFilamentHotendSlotViewModel,
+    slot?: AmsFilamentHotendSlotViewModel | HotendSlotViewModel,
     extraPayload: AmsFilamentHotendSlotActionPayload = {},
   ) => {
     const payload = slot
@@ -156,7 +125,9 @@ export function useAmsFilamentHotendBridge() {
         display_index: slot.display_index,
         ams_id: slot.ams_id,
         slot_id: slot.slot_id,
-        bind_ams_slot_count: slot.bind_ams_slot_count ?? 0,
+        // Only filament-tab slots ship bind_ams_slot_count; hotend-tab slots
+        // do not need it on action payloads.
+        bind_ams_slot_count: 'bind_ams_slot_count' in slot ? (slot.bind_ams_slot_count ?? 0) : 0,
         ...extraPayload,
       }
       : extraPayload;

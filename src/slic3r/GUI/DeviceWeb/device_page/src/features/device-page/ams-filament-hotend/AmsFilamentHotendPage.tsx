@@ -2,7 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import { useAmsFilamentHotendBridge } from './useAmsFilamentHotendBridge';
 import { useSendToCpp } from '../../../hooks/Bridge';
-import type { AmsFilamentHotendSlotActionPayload, AmsFilamentHotendSlotViewModel, AmsFilamentHotendTab } from './types';
+import type {
+  AmsFilamentHotendSlotActionPayload,
+  AmsFilamentHotendSlotViewModel,
+  AmsFilamentHotendTab,
+  HotendSlotViewModel,
+} from './types';
 import { PageToolbar } from './components/PageToolbar';
 import { Stage } from './components/Stage';
 import { HotendPanel } from './components/HotendPanel';
@@ -77,22 +82,37 @@ export function AmsFilamentHotendPage() {
   const showDebugButton = Boolean((window as Window & { __internalBuild?: boolean }).__internalBuild);
   useReportHostContentSize(pageRef);
 
-  const hotendSlots = useMemo(
-    () => [...state.hotend_slots].sort((a, b) => a.display_index - b.display_index),
-    [state.hotend_slots],
+  const fp = state.filament_page;
+  const hp = state.hotend_page;
+
+  const filamentSlots = useMemo(
+    () => [...fp.hotend_slots].sort((a, b) => a.display_index - b.display_index),
+    [fp.hotend_slots],
   );
-  const topSlots = hotendSlots.filter((s) => s.is_top_tier);
-  const bottomSlots = hotendSlots.filter((s) => !s.is_top_tier);
+  const hotendSlots = useMemo(
+    () => [...hp.hotend_slots].sort((a, b) => a.display_index - b.display_index),
+    [hp.hotend_slots],
+  );
+  const topSlots = filamentSlots.filter((s) => s.is_top_tier);
+  const bottomSlots = filamentSlots.filter((s) => !s.is_top_tier);
+
+  // Toolbar actions: filament tab → filament_page.actions; hotend tab →
+  // hotend_page.actions. Both are passed through and PageToolbar picks fields
+  // by tab.
+  const toolbarActions = useMemo(
+    () => ({ ...fp.actions, ...hp.actions }),
+    [fp.actions, hp.actions],
+  );
   const footerActions = useMemo(
-    () => state.filament_change_status?.active ? { ...state.actions, tips: '' } : state.actions,
-    [state.actions, state.filament_change_status?.active],
+    () => (fp.filament_change_status?.active ? { ...fp.actions, tips: '' } : fp.actions),
+    [fp.actions, fp.filament_change_status?.active],
   );
 
   const handleToolbarAction = (action: string) => runSlotAction(action);
 
   const handleSlotAction = (
     action: string,
-    slot?: AmsFilamentHotendSlotViewModel,
+    slot?: AmsFilamentHotendSlotViewModel | HotendSlotViewModel,
     payload?: AmsFilamentHotendSlotActionPayload,
   ) => runSlotAction(action, slot, payload);
 
@@ -101,7 +121,7 @@ export function AmsFilamentHotendPage() {
       <PageToolbar
         selectedTab={tab}
         onTabChange={setTab}
-        actions={state.actions}
+        actions={toolbarActions}
         onAction={handleToolbarAction}
       />
 
@@ -112,18 +132,19 @@ export function AmsFilamentHotendPage() {
           <Stage
             topSlots={topSlots}
             bottomSlots={bottomSlots}
+            amsDryZones={fp.ams_dry_zones ?? []}
             hotendMode={false}
             onAction={handleSlotAction}
           />
           <FilamentChangeProgressPanel
-            status={state.filament_change_status}
+            status={fp.filament_change_status}
             onAction={handleToolbarAction}
           />
         </>
       ) : (
         <HotendPanel
           slots={hotendSlots}
-          rackStatus={state.hotend_rack_status}
+          rackStatus={hp.hotend_rack_status}
           onAction={handleSlotAction}
         />
       )}

@@ -1,17 +1,60 @@
 import type { AmsFilamentHotendLineState } from '../types';
-import lineAtNozzleUrl from '../assets/line_at_nozzle.svg';
-import lineStandbyUrl from '../assets/line_standby.svg';
-import lineTransportingUrl from '../assets/line_transporting.svg';
 
-export function FeedLine({ height, state }: { height: number; state: AmsFilamentHotendLineState }) {
+// Standby tube color when no filament is in the line.
+const STANDBY_COLOR = '#DBDBDB';
+// Default spool color emitted by C++ when no real filament color is known;
+// fall back to standby grey so the line never paints a faux "loaded" hue.
+const FALLBACK_SPOOL_COLOR = '#D9D9D9';
+
+export function FeedLine({
+  height,
+  state,
+  color,
+  hasFilamentInNozzle,
+}: {
+  height: number;
+  state: AmsFilamentHotendLineState;
+  color?: string;
+  hasFilamentInNozzle?: boolean;
+}) {
   if (state === 'no_hotend') return <div className="feed-line feed-line-empty" style={{ height }} />;
 
-  const src =
-    state === 'loaded' ? lineAtNozzleUrl :
-    state === 'loading' || state === 'unloading' ? lineTransportingUrl :
-    lineStandbyUrl;
+  // Drive the tube tint from the rack nozzle signal (DevNozzle::HasFilamentInNozzle)
+  // shipped on hotend.has_filament_in_nozzle; line_state stays as the fallback
+  // for legacy payloads that do not include it. The spool color paints the
+  // tube only when both the nozzle holds filament AND C++ knows the real
+  // color (default `#D9D9D9` is treated as "unknown" and falls back to grey).
+  const hasRealColor = !!color && color.toLowerCase() !== FALLBACK_SPOOL_COLOR.toLowerCase();
+  const isLive = hasFilamentInNozzle ?? (state === 'loaded' || state === 'loading' || state === 'unloading');
+  const stroke = isLive && hasRealColor ? color : STANDBY_COLOR;
 
+  // Per Figma 1477:113586, the feed line is solid when filament is fully
+  // loaded; loading / unloading keep the dashed look to convey motion;
+  // no_filament stays dashed as the standby tube hint.
+  const isSolid = state === 'loaded';
+
+  // Match the Nozzle SVG width (24px) so both children of `.slot-column`
+  // center on the same subpixel — otherwise differing intrinsic widths
+  // (20 vs 24) can round to a noticeable horizontal offset between the
+  // feed line and the nozzle below it at certain zoom levels.
   return (
-    <img className="feed-line" src={src} width={20} height={height} alt="" aria-hidden="true" />
+    <svg
+      className={`feed-line${isSolid ? ' feed-line-solid' : ''}`}
+      width={24}
+      height={height}
+      viewBox={`0 0 24 ${height}`}
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <line
+        x1={12}
+        y1={0}
+        x2={12}
+        y2={height}
+        stroke={stroke}
+        strokeWidth={2}
+        strokeDasharray={isSolid ? undefined : '2.025 4.05'}
+      />
+    </svg>
   );
 }

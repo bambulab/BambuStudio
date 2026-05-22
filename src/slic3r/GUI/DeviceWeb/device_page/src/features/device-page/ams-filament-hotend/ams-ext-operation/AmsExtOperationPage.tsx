@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDeviceBridge } from '../../../../hooks/Bridge';
 import { Nozzle } from '../components/Nozzle';
 import { SpoolDisc } from '../components/SpoolDisc';
-import type { AmsFilamentHotendSlotViewModel, AmsFilamentHotendViewModel, BridgeResponseBody } from '../types';
+import type { AmsFilamentHotendSlotViewModel, AmsFilamentHotendViewModel, AmsTrayInfo, BridgeResponseBody } from '../types';
 import './ams-ext-operation.css';
 
 type BindAms = {
@@ -104,7 +104,7 @@ export function AmsExtOperationPage() {
 
   const selectedSlot = useMemo(() => {
     const nozzlePos = Number(query.nozzle_pos);
-    return state?.hotend_slots.find((slot) => slot.nozzle_pos === nozzlePos);
+    return state?.filament_page?.hotend_slots?.find((slot) => slot.nozzle_pos === nozzlePos);
   }, [query.nozzle_pos, state]);
 
   const bindAms = selectedSlot?.bind_ams && selectedSlot.bind_ams.length > 0
@@ -113,8 +113,12 @@ export function AmsExtOperationPage() {
     ? query.bind_ams
     : [{ ams_id: query.ams_id || '0', ams_type: 'ZMULTI_A', slot_count: Number(query.count || 4) }];
 
+  // Per-slot ams_operation.units (shipped by C++ when can_ams_operation === true)
+  // is the only AMS-unit source for this dialog. The top-level page payload no
+  // longer carries an ams.units array.
+  const slotAmsUnits = selectedSlot?.ams_operation?.units;
   const amsUnits = bindAms.map((ams) => {
-    const unit = state?.ams?.units.find((item) => item.ams_id === ams.ams_id);
+    const unit = slotAmsUnits?.find((item) => item.ams_id === ams.ams_id);
     return unit ?? { ...ams, trays: [] };
   });
 
@@ -125,6 +129,24 @@ export function AmsExtOperationPage() {
     }
   }, [amsUnits, selectedAmsId]);
 
+  // Send a per-tray menu action (load / unload / read) through the same Web
+  // bridge as the main page. Payload uses the slot's ams_id/slot_id so C++
+  // can route to DevAmsTray / DevFilaSystem without needing extra hints.
+  const runTrayAction = useCallback(async (action: 'load' | 'unload' | 'read', tray: ExtAmsTray) => {
+    const body = {
+      module: MODULE,
+      submod: 'action',
+      action,
+      payload: {
+        nozzle_pos: Number(query.nozzle_pos) || selectedSlot?.nozzle_pos || 0,
+        display_index: Number(query.display_index) || 0,
+        ams_id: tray.ams_id,
+        slot_id: tray.slot_id,
+      },
+    };
+    await request(body, 8000);
+  }, [query.display_index, query.nozzle_pos, request, selectedSlot]);
+
   const selectedAms = amsUnits.find((ams) => ams.ams_id === selectedAmsId) ?? amsUnits[0];
   const selectedTrays = selectedAms?.trays ?? [];
   const displayTrays = selectedTrays.length > 0 ? selectedTrays : buildFallbackTrays();
@@ -132,12 +154,6 @@ export function AmsExtOperationPage() {
 
   return (
     <div className="ext-ams-page">
-      <header className="ext-ams-titlebar">
-        <span className="window-dots" aria-hidden="true"><i /><i /><i /></span>
-        <strong>{t('Ext AMS Operation')}</strong>
-        <span className="window-spacer" aria-hidden="true" />
-      </header>
-
       <main className="ext-ams-body">
         <h1>{t('Ext AMS Details')}</h1>
         <div className="ext-ams-tabs">
@@ -167,6 +183,8 @@ export function AmsExtOperationPage() {
                   key={`${tray.ams_id}-${tray.slot_id}-${index}`}
                   index={Number(tray.slot_id) + 1 || index + 1}
                   slot={trayToSlot(tray, index)}
+                  actions={tray.actions}
+                  onAction={(action) => void runTrayAction(action, tray)}
                 />
               ))}
             </div>
@@ -174,26 +192,19 @@ export function AmsExtOperationPage() {
               count={displayTrays.length}
               activeIndex={activeTrayIndex}
               displayIndex={Number(query.display_index) || 0}
-              nozzleState={selectedSlot?.nozzle_state ?? 'Normal'}
+              nozzleState={selectedSlot?.filament_nozzle.state ?? 'Normal'}
+              nozzleColor={selectedSlot?.filament_nozzle.filament_color || selectedSlot?.filament_card.color}
+              hasFilamentInNozzle={selectedSlot?.filament_nozzle.has_filament}
             />
           </div>
 
-          <p className="ext-ams-source">
-            {t('Current hotend {{hotend}}, source AMS {{ams}} / slot {{slot}}, current AMS {{currentAms}}, total bound slots {{count}}', {
-              hotend: query.display_index || '--',
-              ams: query.ams_id || '--',
-              slot: query.slot_id || '--',
-              currentAms: selectedAms?.ams_id ?? '--',
-              count: selectedTrays.length || Number(query.count) || 0,
-            })}
-          </p>
         </section>
       </main>
     </div>
   );
 }
 
-type ExtAmsTray = NonNullable<NonNullable<AmsFilamentHotendViewModel['ams']>['units'][number]['trays']>[number];
+type ExtAmsTray = AmsTrayInfo;
 
 function colorsForAms(index: number, trays?: ExtAmsTray[]) {
   const colors = trays?.map((tray) => tray.color).filter(Boolean).slice(0, 4);
@@ -240,15 +251,27 @@ function trayToSlot(tray: ExtAmsTray, index: number): AmsFilamentHotendSlotViewM
     slot_id: tray.slot_id,
     is_top_tier: false,
     enabled: tray.exists,
-    card_state: state,
-    line_state: 'no_filament',
-    nozzle_state: 'Normal',
-    filament_name: tray.filament_name,
-    filament_type: tray.filament_type,
-    color: tray.color || '#d9d9d9',
-    color_type: tray.color_type,
-    colors: tray.colors,
-    status_text: '',
+    filament_card: {
+      state,
+      color: tray.color || '#d9d9d9',
+      color_type: tray.color_type,
+      colors: tray.colors,
+      name: tray.filament_name,
+      type: tray.filament_type,
+      remain: typeof tray.remain === 'number' ? tray.remain : 100,
+      status_text: '',
+    },
+    filament_line: {
+      state: 'no_filament',
+      has_filament: false,
+      filament_color: '',
+    },
+    filament_nozzle: {
+      state: 'Normal',
+      has_filament: false,
+      filament_color: '',
+      on_extruder: false,
+    },
   };
 }
 
@@ -264,24 +287,97 @@ function buildFallbackTrays(): ExtAmsTray[] {
 function AmsSlot({
   index,
   slot,
+  actions,
+  onAction,
 }: {
   index: number;
   slot: AmsFilamentHotendSlotViewModel;
+  actions?: ExtAmsTray['actions'];
+  onAction?: (action: 'load' | 'unload' | 'read') => void;
 }) {
+  const canLoad = actions?.can_load ?? false;
+  const canUnload = actions?.can_unload ?? false;
+  // Read button defaults to visible when actions is missing so the dialog
+  // stays interactive on older payloads.
+  const canRead = actions?.can_read ?? !actions;
+  const hasMenu = canLoad || canUnload || canRead;
+
   return (
     <div className="ext-ams-slot">
       <span className="slot-index">{index}</span>
+      {hasMenu && (
+        <ExtTrayMenu
+          canLoad={canLoad}
+          canUnload={canUnload}
+          canRead={canRead}
+          onAction={(action) => onAction?.(action)}
+        />
+      )}
       <SpoolDisc slot={slot} />
       <span className="slot-label">{trayLabel({
         ams_id: slot.ams_id,
         slot_id: slot.slot_id,
         exists: slot.enabled,
-        tray_state: slot.card_state === 'Unknown' ? 'unknown' : slot.card_state === 'Empty' ? 'empty' : 'ready',
-        filament_type: slot.filament_type,
-        filament_name: slot.filament_name,
-        color: slot.color,
+        tray_state: slot.filament_card.state === 'Unknown' ? 'unknown' : slot.filament_card.state === 'Empty' ? 'empty' : 'ready',
+        filament_type: slot.filament_card.type,
+        filament_name: slot.filament_card.name,
+        color: slot.filament_card.color,
       })}</span>
     </div>
+  );
+}
+
+function ExtTrayMenu({
+  canLoad,
+  canUnload,
+  canRead,
+  onAction,
+}: {
+  canLoad: boolean;
+  canUnload: boolean;
+  canRead: boolean;
+  onAction: (action: 'load' | 'unload' | 'read') => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [open]);
+
+  const run = (action: 'load' | 'unload' | 'read') => {
+    setOpen(false);
+    onAction(action);
+  };
+
+  return (
+    <span className="ext-tray-menu-wrap" ref={rootRef}>
+      <button
+        type="button"
+        className={`ext-tray-menu${open ? ' open' : ''}`}
+        aria-label="tray menu"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={(event) => {
+          event.stopPropagation();
+          setOpen((value) => !value);
+        }}
+      >
+        <span /><span /><span />
+      </button>
+      {open && (
+        <div className="ext-tray-menu-popover" role="menu">
+          {canLoad && <button type="button" role="menuitem" onClick={() => run('load')}>Load</button>}
+          {canUnload && <button type="button" role="menuitem" onClick={() => run('unload')}>Unload</button>}
+          {canRead && <button type="button" role="menuitem" onClick={() => run('read')}>Read</button>}
+        </div>
+      )}
+    </span>
   );
 }
 
@@ -290,11 +386,15 @@ function AmsRoute({
   activeIndex,
   displayIndex,
   nozzleState,
+  nozzleColor,
+  hasFilamentInNozzle,
 }: {
   count: number;
   activeIndex: number;
   displayIndex: number;
-  nozzleState: AmsFilamentHotendSlotViewModel['nozzle_state'];
+  nozzleState: AmsFilamentHotendSlotViewModel['filament_nozzle']['state'];
+  nozzleColor?: string;
+  hasFilamentInNozzle?: boolean;
 }) {
   const safeCount = Math.max(1, count);
   const slotWidth = 80;
@@ -307,6 +407,11 @@ function AmsRoute({
   const nozzleTopY = 62;
   const height = 108;
 
+  // Route is grey unless the filament is actually loaded into the nozzle
+  // (signalled by nozzleState === 'Active'); avoids a misleading purple
+  // line when the slot is only selected/bound but not feeding.
+  const activeColor = nozzleState === 'Active' ? '#7a75ff' : '#c2c2c2';
+
   return (
     <div className="ext-ams-route" style={{ width: totalWidth, ['--center-x' as string]: `${centerX}px` }}>
       <svg className="route-svg" width={totalWidth} height={height} viewBox={`0 0 ${totalWidth} ${height}`} aria-hidden="true">
@@ -317,12 +422,17 @@ function AmsRoute({
           <line x1={centers[0]} y1={busY} x2={centers[centers.length - 1]} y2={busY} stroke="#c2c2c2" strokeWidth={3} />
         )}
         {activeX !== centerX && (
-          <line x1={activeX} y1={busY} x2={centerX} y2={busY} stroke="#7a75ff" strokeWidth={3} />
+          <line x1={activeX} y1={busY} x2={centerX} y2={busY} stroke={activeColor} strokeWidth={3} />
         )}
-        <line x1={centerX} y1={busY} x2={centerX} y2={nozzleTopY} stroke="#7a75ff" strokeWidth={3} />
+        <line x1={centerX} y1={busY} x2={centerX} y2={nozzleTopY} stroke={activeColor} strokeWidth={3} />
       </svg>
       <div className="route-nozzle">
-        <Nozzle nozzleState={nozzleState} displayIndex={displayIndex} />
+        <Nozzle
+          nozzleState={nozzleState}
+          displayIndex={displayIndex}
+          color={nozzleColor}
+          hasFilamentInNozzle={hasFilamentInNozzle}
+        />
       </div>
     </div>
   );

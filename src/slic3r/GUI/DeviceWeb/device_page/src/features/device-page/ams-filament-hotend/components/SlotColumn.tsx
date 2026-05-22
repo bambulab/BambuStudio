@@ -18,11 +18,22 @@ export function SlotColumn({
     <div
       className="slot-column"
       data-tier={slot.is_top_tier ? 'top' : 'bottom'}
-      data-in-dryer={slot.in_dryer ? 'true' : 'false'}
     >
       <FilamentCard slot={slot} globalBusy={globalBusy} onAction={onAction} />
-      <FeedLine height={lineHeight} state={slot.line_state} />
-      <Nozzle nozzleState={slot.nozzle_state} displayIndex={slot.display_index} />
+      <FeedLine
+        height={lineHeight}
+        state={slot.filament_line.state}
+        color={slot.filament_line.filament_color || slot.filament_card.color}
+        hasFilamentInNozzle={slot.filament_line.has_filament}
+      />
+      <Nozzle
+        nozzleState={slot.filament_nozzle.state}
+        displayIndex={slot.display_index}
+        color={slot.filament_nozzle.filament_color || slot.filament_card.color}
+        hasFilamentInNozzle={slot.filament_nozzle.has_filament}
+        onExtruder={slot.filament_nozzle.on_extruder}
+        solid={slot.filament_line.state === 'loaded'}
+      />
     </div>
   );
 }

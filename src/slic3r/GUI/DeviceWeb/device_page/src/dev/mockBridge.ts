@@ -284,27 +284,30 @@ let AMS_FILAMENT_HOTEND_STATE: AmsFilamentHotendViewModel = cloneHotendState();
 function setMockHotendReading(displayIndex: number, total: number) {
   AMS_FILAMENT_HOTEND_STATE = {
     ...AMS_FILAMENT_HOTEND_STATE,
-    actions: {
-      ...AMS_FILAMENT_HOTEND_STATE.actions,
-      can_read_all_hotends: false,
-      read_all_disabled_reason: 'Hotend rack is reading',
-    },
-    hotend_rack_status: {
-      active: true,
-      mode: total > 1 ? 'all' : 'single',
-      display_index: displayIndex,
-      current: total > 1 ? 1 : 1,
-      total,
-      message: total > 1 ? `读取中（1 / ${total}）` : `${displayIndex}号热端读取中`,
-      tips: '请稍后...',
-    },
-    hotend_slots: AMS_FILAMENT_HOTEND_STATE.hotend_slots.map((slot) => ({
-      ...slot,
-      hotend: {
-        ...slot.hotend,
-        op_state: slot.display_index === displayIndex ? 'Reading' : (slot.hotend?.op_state === 'Reading' ? 'Idle' : slot.hotend?.op_state),
+    hotend_page: {
+      ...AMS_FILAMENT_HOTEND_STATE.hotend_page,
+      actions: {
+        ...AMS_FILAMENT_HOTEND_STATE.hotend_page.actions,
+        can_read_all_hotends: false,
+        read_all_disabled_reason: 'Hotend rack is reading',
       },
-    })),
+      hotend_rack_status: {
+        active: true,
+        mode: total > 1 ? 'all' : 'single',
+        display_index: displayIndex,
+        current: total > 1 ? 1 : 1,
+        total,
+        message: total > 1 ? `读取中（1 / ${total}）` : `${displayIndex}号热端读取中`,
+        tips: '请稍后...',
+      },
+      hotend_slots: AMS_FILAMENT_HOTEND_STATE.hotend_page.hotend_slots.map((slot) => ({
+        ...slot,
+        hotend: {
+          ...slot.hotend,
+          op_state: slot.display_index === displayIndex ? 'Reading' : (slot.hotend?.op_state === 'Reading' ? 'Idle' : slot.hotend?.op_state),
+        },
+      })),
+    },
   };
 }
 
@@ -315,54 +318,60 @@ function setMockHotendTemperature(payload: Record<string, unknown>) {
 
   AMS_FILAMENT_HOTEND_STATE = {
     ...AMS_FILAMENT_HOTEND_STATE,
-    hotend_slots: AMS_FILAMENT_HOTEND_STATE.hotend_slots.map((slot) => {
-      if (slot.display_index !== displayIndex) return slot;
-      const hotend = slot.hotend ?? {};
-      if (hotend.tool_kind === 'empty' || hotend.op_state === 'Error') return slot;
+    hotend_page: {
+      ...AMS_FILAMENT_HOTEND_STATE.hotend_page,
+      hotend_slots: AMS_FILAMENT_HOTEND_STATE.hotend_page.hotend_slots.map((slot) => {
+        if (slot.display_index !== displayIndex) return slot;
+        const hotend = slot.hotend ?? {};
+        if (hotend.tool_kind === 'empty' || hotend.op_state === 'Error') return slot;
 
-      const currentTemp = typeof hotend.current_temp === 'number' ? hotend.current_temp : null;
-      const opState = currentTemp === null || currentTemp === targetTemp
-        ? 'Idle'
-        : (currentTemp < targetTemp ? 'Heating' : 'Cooling');
-      return {
-        ...slot,
-        hotend: {
-          ...hotend,
-          target_temp: targetTemp,
-          op_state: opState,
-        },
-      };
-    }),
+        const currentTemp = typeof hotend.current_temp === 'number' ? hotend.current_temp : null;
+        const opState = currentTemp === null || currentTemp === targetTemp
+          ? 'Idle'
+          : (currentTemp < targetTemp ? 'Heating' : 'Cooling');
+        return {
+          ...slot,
+          hotend: {
+            ...hotend,
+            target_temp: targetTemp,
+            op_state: opState,
+          },
+        };
+      }),
+    },
   };
 }
 
 function stopMockFilamentChange() {
   AMS_FILAMENT_HOTEND_STATE = {
     ...AMS_FILAMENT_HOTEND_STATE,
-    actions: {
-      ...AMS_FILAMENT_HOTEND_STATE.actions,
-      can_load: true,
-      can_load_external: true,
-      can_load_auto: true,
-      can_unload: true,
-      tips: '',
+    filament_page: {
+      ...AMS_FILAMENT_HOTEND_STATE.filament_page,
+      actions: {
+        ...AMS_FILAMENT_HOTEND_STATE.filament_page.actions,
+        can_load: true,
+        can_load_external: true,
+        can_load_auto: true,
+        can_unload: true,
+        tips: '',
+      },
+      filament_change_status: {
+        active: false,
+        mode: 'idle',
+        operation: 'change',
+        message: '',
+        tips: '',
+      },
+      hotend_slots: AMS_FILAMENT_HOTEND_STATE.filament_page.hotend_slots.map((slot) => {
+        const cardState = slot.filament_card.state;
+        if (cardState !== 'Loading' && cardState !== 'Unloading') return slot;
+        return {
+          ...slot,
+          filament_card: { ...slot.filament_card, state: 'ReadyToUse', status_text: '已进料' },
+          filament_line: { ...slot.filament_line, state: 'loaded', has_filament: true },
+        };
+      }),
     },
-    filament_change_status: {
-      active: false,
-      mode: 'idle',
-      operation: 'change',
-      message: '',
-      tips: '',
-    },
-    hotend_slots: AMS_FILAMENT_HOTEND_STATE.hotend_slots.map((slot) => {
-      if (slot.card_state !== 'Loading' && slot.card_state !== 'Unloading') return slot;
-      return {
-        ...slot,
-        card_state: 'ReadyToUse',
-        line_state: 'loaded',
-        status_text: '已进料',
-      };
-    }),
   };
 }
 
@@ -377,7 +386,7 @@ function handleRequest(pkt: RequestPacket) {
     }
     if (submod === 'action') {
       if (action === 'read_all_hotends') {
-        setMockHotendReading(1, AMS_FILAMENT_HOTEND_STATE.hotend_slots.length);
+        setMockHotendReading(1, AMS_FILAMENT_HOTEND_STATE.hotend_page.hotend_slots.length);
       } else if (action === 'read_hotend') {
         const displayIndex = Number((payload as Record<string, unknown>).display_index ?? 1);
         setMockHotendReading(displayIndex, 1);

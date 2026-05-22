@@ -47,6 +47,7 @@
   "Loading/Unloading Filament": "进/退料",
   "Slot {{n}}": "{{n}}号",
   "Step {{n}}": "步骤 {{n}}",
+  "Taken": "已挂载",
   "Getting AMS data failed": "获取 AMS 数据失败",
   "Getting device list failed, please retry": "获取设备列表失败，请重试",
   "HTTP": "HTTP",

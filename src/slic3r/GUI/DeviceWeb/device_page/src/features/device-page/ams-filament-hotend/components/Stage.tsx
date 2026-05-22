@@ -1,4 +1,4 @@
-import type { AmsFilamentHotendSlotViewModel } from '../types';
+import type { AmsFilamentHotendDryerZone, AmsFilamentHotendSlotViewModel } from '../types';
 import { SlotColumn } from './SlotColumn';
 import { DryerChamberDecoration, findDryerRuns } from './DryerChamber';
 
@@ -9,18 +9,22 @@ export const BOTTOM_LINE_HEIGHT = 26;
 export function Stage({
   topSlots,
   bottomSlots,
+  amsDryZones,
   hotendMode,
   onAction,
 }: {
   topSlots: AmsFilamentHotendSlotViewModel[];
   bottomSlots: AmsFilamentHotendSlotViewModel[];
+  amsDryZones: AmsFilamentHotendDryerZone[];
   hotendMode: boolean;
   onAction: (action: string, slot: AmsFilamentHotendSlotViewModel) => void;
 }) {
-  const dryerRuns = findDryerRuns(topSlots);
+  // Dryer chambers are physically attached to the top tier in the current
+  // hardware layout; only top slots can fall under a chamber decoration.
+  const dryerRuns = findDryerRuns(topSlots, amsDryZones);
   const allSlots = [...topSlots, ...bottomSlots];
   const globalBusy = allSlots.some((slot) =>
-    slot.line_state === 'loading' || slot.line_state === 'unloading' || !!slot.is_running
+    slot.filament_line.state === 'loading' || slot.filament_line.state === 'unloading' || !!slot.is_running
   );
 
   return (

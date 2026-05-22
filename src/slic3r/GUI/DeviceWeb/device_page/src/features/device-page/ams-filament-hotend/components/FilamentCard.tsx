@@ -22,8 +22,8 @@ export function FilamentCard({
     <div
       className={cls.join(' ')}
       data-testid={`ams-hotend-slot-${slot.display_index}`}
-      data-card-state={slot.card_state}
-      data-line-state={slot.line_state}
+      data-card-state={slot.filament_card.state}
+      data-line-state={slot.filament_line.state}
     >
       <div className="card-spool-wrap">
         <div className="card-head">

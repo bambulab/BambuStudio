@@ -8,8 +8,10 @@ const RING = 23;
 const HOLE = 9;
 
 export function SpoolDisc({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
-  const { card_state: state, color, display_index } = slot;
-  const colors = slot.colors && slot.colors.length > 1 ? slot.colors : [color];
+  const { state, color } = slot.filament_card;
+  const display_index = slot.display_index;
+  const cardColors = slot.filament_card.colors;
+  const colors = cardColors && cardColors.length > 1 ? cardColors : [color];
   const isFilled =
     state === 'ReadyToLoad' ||
     state === 'ReadyToUse';
@@ -22,7 +24,7 @@ export function SpoolDisc({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
   // Render a partial ring (12 o'clock clockwise) only for non-empty single-color
   // spools whose remain is strictly between 0 and 100; full and unknown stays
   // on the solid donut, multi-color spools keep the segmented donut.
-  const remain = typeof slot.filament_remain === 'number' ? slot.filament_remain : 100;
+  const remain = typeof slot.filament_card.remain === 'number' ? slot.filament_card.remain : 100;
   const showPartialRing = isFilled && colors.length === 1 && remain > 0 && remain < 100;
 
   return (
