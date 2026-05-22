@@ -19,10 +19,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Debian bookworm .deb
-            container: debian:bookworm@sha256:6b2217693a4963470f76adbee0d8d5371293fd102bfe3bcb77615566b0b0efe7  # bookworm
+          - name: Debian trixie .deb
+            container: debian:trixie@sha256:4ae67669760b807c19f23902a3fd7c121a6a70cf2ae709035674b23e712e4d62  # trixie
             pkg_cmd: ./BuildLinux.sh -pr
-            artifact_suffix: debian-bookworm_deb
+            artifact_suffix: debian-trixie_deb
             artifact_glob: ./build/bambustudio_*.deb
 
           - name: Fedora 41 .rpm
@@ -37,7 +37,7 @@ jobs:
         with:
           egress-policy: audit
       - name: Bootstrap (Debian)
-        if: startsWith(matrix.container, 'debian:bookworm')
+        if: startsWith(matrix.container, 'debian:trixie')
         run: apt-get update -qq && apt-get install -y sudo git curl git-lfs
 
       - name: Bootstrap (Fedora)
