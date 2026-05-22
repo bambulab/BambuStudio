@@ -1543,7 +1543,7 @@ int CLI::run(int argc, char **argv)
             boost::algorithm::iends_with(boost::filesystem::path(argv[0]).filename().string(), "gcodeviewer");
 #endif // _WIN32*/
 
-    bool translate_old = false, regenerate_thumbnails = false, keep_old_params = false, remove_wrapping_detect = false, filament_color_changed = false, downward_check = false;
+    bool translate_old = false, regenerate_thumbnails = false, keep_old_params = false, remove_wrapping_detect = false, filament_color_changed = false, downward_check = false, skirt_per_object_reset = false;
     int current_printable_width, current_printable_depth, current_printable_height, shrink_to_new_bed = 0;
     int old_printable_height = 0, old_printable_width = 0, old_printable_depth = 0;
     Pointfs old_printable_area, old_exclude_area;
@@ -1878,7 +1878,7 @@ int CLI::run(int argc, char **argv)
                         record_exit_reson(outfile_dir, CLI_FILE_VERSION_NOT_SUPPORTED, 0, cli_errors[CLI_FILE_VERSION_NOT_SUPPORTED], sliced_info);
                         flush_and_exit(CLI_FILE_VERSION_NOT_SUPPORTED);
                     }
-                    Semver old_version(1, 5, 9), old_version2(1, 5, 9), old_version3(2, 0, 0), old_version4(2, 2, 0);
+                    Semver old_version(1, 5, 9), old_version2(1, 5, 9), old_version3(2, 0, 0), old_version4(2, 2, 0), old_version5(2, 7, 0);
                     if ((file_version < old_version) && !config.empty()) {
                         translate_old = true;
                         BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to translate")%file_version.to_string();
@@ -1907,6 +1907,11 @@ int CLI::run(int argc, char **argv)
                     if (file_version < old_version4) {
                         remove_wrapping_detect = true;
                         BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to set enable_wrapping_detection to false")%file_version.to_string();
+                    }
+
+                    if (file_version < old_version5) {
+                        skirt_per_object_reset = true;
+                        BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to set skirt_per_object to false")%file_version.to_string();
                     }
 
                     if (normative_check) {
@@ -4090,6 +4095,12 @@ int CLI::run(int argc, char **argv)
     BOOST_LOG_TRIVIAL(info) << boost::format("%1%, remove_wrapping_detect %2%, old value %3%")%__LINE__ %remove_wrapping_detect %enable_wrapping_detection_option->value;
     if (is_bbl_3mf && remove_wrapping_detect) {
         enable_wrapping_detection_option->value = false;
+    }
+
+    if (is_bbl_3mf && skirt_per_object_reset) {
+        ConfigOptionBool* skirt_per_object_option = m_print_config.option<ConfigOptionBool>("skirt_per_object", true);
+        BOOST_LOG_TRIVIAL(info) << boost::format("%1%, skirt_per_object_reset, old value %2%")%__LINE__ %skirt_per_object_option->value;
+        skirt_per_object_option->value = false;
     }
     enable_wrapping_detect = enable_wrapping_detection_option->value;
     Pointfs current_wrapping_exclude_area = m_print_config.opt<ConfigOptionPoints>("wrapping_exclude_area", true)->values;
