@@ -62,15 +62,15 @@ jobs:
       - name: Generate Release file
         run: |
           mkdir -p dists/stable
-          cat > dists/stable/Release << 'RELEASE_EOF'
-Origin: BenJule BambuStudio
-Label: BenJule BambuStudio
-Suite: stable
-Codename: stable
-Architectures: amd64
-Components: main
-Description: BenJule BambuStudio APT Repository
-RELEASE_EOF
+          printf '%s\n' \
+            'Origin: BenJule BambuStudio' \
+            'Label: BenJule BambuStudio' \
+            'Suite: stable' \
+            'Codename: stable' \
+            'Architectures: amd64' \
+            'Components: main' \
+            'Description: BenJule BambuStudio APT Repository' \
+            > dists/stable/Release
           cd dists/stable && apt-ftparchive release . >> Release
           cat dists/stable/Release
 
