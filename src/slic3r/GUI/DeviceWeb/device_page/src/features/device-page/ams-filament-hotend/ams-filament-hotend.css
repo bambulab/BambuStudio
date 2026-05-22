@@ -396,6 +396,7 @@
   right: -4px;
   z-index: 20;
   min-width: 101px;
+  width: max-content;
   padding: 6px 0;
   border: 1px solid #dedede;
   border-radius: 4px;
@@ -414,6 +415,7 @@
   font-size: 12px;
   line-height: 24px;
   text-align: left;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -963,6 +965,7 @@
   right: -4px;
   z-index: 30;
   min-width: 86px;
+  width: max-content;
   padding: 6px 0;
   border: 1px solid #dedede;
   border-radius: 4px;
@@ -981,6 +984,7 @@
   font-size: 12px;
   line-height: 24px;
   text-align: left;
+  white-space: nowrap;
   cursor: pointer;
 }
 
