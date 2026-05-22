@@ -840,7 +840,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_serial_item()
     wxBoxSizer *horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     wxBoxSizer *  optionSizer        = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *static_serial_text = new wxStaticText(this, wxID_ANY, _L("Serial (optional)"), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_serial_text = new wxStaticText(this, wxID_ANY, _L("Serial / Variant"), wxDefaultPosition, wxDefaultSize);
     optionSizer->Add(static_serial_text, 0, wxEXPAND | wxALL, 0);
     optionSizer->SetMinSize(OPTION_SIZE);
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
@@ -1030,6 +1030,12 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
         }
         boost::algorithm::trim(vendor_name);
         boost::algorithm::trim(serial_name);
+        if (!serial_str.IsEmpty() && serial_name.empty()) {
+            MessageDialog dlg(this, _L("The filament serial contains only invalid characters or spaces. Please correct it or leave it blank."),
+                              wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
+            dlg.ShowModal();
+            return;
+        }
         if (vendor_name.empty()) {
             MessageDialog dlg(this, _L("The filament vendor name cannot be blank. Please enter a vendor name."),
                               wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
@@ -4839,7 +4845,7 @@ wxBoxSizer *EditFilamentPresetDialog::create_filament_basic_info()
 
     //serial
     wxBoxSizer *  serial_key_sizer   = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *static_serial_text = new wxStaticText(this, wxID_ANY, _L("Serial"), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_serial_text = new wxStaticText(this, wxID_ANY, _L("Serial / Variant"), wxDefaultPosition, wxDefaultSize);
     serial_key_sizer->Add(static_serial_text, 0, wxEXPAND | wxALL, 0);
     serial_key_sizer->SetMinSize(OPTION_SIZE);
     serial_sizer->Add(serial_key_sizer, 0, wxEXPAND | wxLEFT | wxBOTTOM | wxALIGN_CENTER_VERTICAL, FromDIP(10));
