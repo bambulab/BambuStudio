@@ -1,0 +1,9 @@
+name: AUR Verify
+on:
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: [self-hosted, pve05-arch]
+    steps:
+      - name: Get pacman challenge response
+        run: LC_ALL=C pacman -V|sed -r 's#[0-9]+#542#g'|md5sum|cut -c1-6
