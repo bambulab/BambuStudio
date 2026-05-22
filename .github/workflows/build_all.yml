@@ -3,34 +3,34 @@ name: Build all
 on:
   push:
     branches:
-     - master
+      - master
     paths:
-     - 'deps/**'
-     - 'src/**'
-     - '**/CMakeLists.txt'
-     - 'version.inc'
-     - 'bbl/**'
-     - 'resources/**'
-     - ".github/workflows/build_*.yml"
+      - 'deps/**'
+      - 'src/**'
+      - '**/CMakeLists.txt'
+      - 'version.inc'
+      - 'bbl/**'
+      - 'resources/**'
+      - ".github/workflows/build_*.yml"
 
   pull_request:
     branches:
-     - master
+      - master
     paths:
-     - 'deps/**'
-     - 'src/**'
-     - '**/CMakeLists.txt'
-     - 'version.inc'
-     - ".github/workflows/build_*.yml"
-     - 'BuildLinux.sh'
-     - 'build_win.bat'
+      - 'deps/**'
+      - 'src/**'
+      - '**/CMakeLists.txt'
+      - 'version.inc'
+      - ".github/workflows/build_*.yml"
+      - 'BuildLinux.sh'
+      - 'build_win.bat'
     
   workflow_dispatch: # manual dispatch
-      inputs:
-        build-deps-only:
-            description: 'Only build dependencies (bypasses caching)'
-            type: boolean
-            default: false
+    inputs:
+      build-deps-only:
+        description: 'Only build dependencies (bypasses caching)'
+        type: boolean
+        default: false
 
 permissions: read-all
 concurrency:
@@ -92,6 +92,7 @@ jobs:
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
         with:
           egress-policy: audit
+
       - name: Bootstrap (Debian)
         if: startsWith(matrix.container, 'debian:trixie')
         run: apt-get update -qq && apt-get install -y sudo git curl git-lfs
@@ -185,6 +186,7 @@ jobs:
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
         with:
           egress-policy: audit
+
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
         with:
