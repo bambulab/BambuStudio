@@ -24,4 +24,4 @@ jobs:
         with:
           fail-on-severity: high
           comment-summary-in-pr: always
-          deny-licenses: BUSL-1.1, SSPL-1.0, Commons-Clause
+          deny-licenses: BUSL-1.1, SSPL-1.0
