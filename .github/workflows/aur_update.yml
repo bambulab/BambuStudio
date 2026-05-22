@@ -35,7 +35,18 @@ jobs:
         id: checksums
         run: |
           TAG="v${{ steps.version.outputs.version }}"
-          URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/BambuStudio_linux_amd64_${TAG}.AppImage"
+          VER="${TAG#v}"
+          BASE="https://github.com/${{ github.repository }}/releases/download/${TAG}"
+          # Try our naming patterns
+          for PATTERN in \
+            "Bambu_Studio_ubuntu-24.04_V${VER}.AppImage" \
+            "Bambu_Studio_ubuntu-22.04_V${VER}.AppImage" \
+            "BambuStudio_linux_amd64_${TAG}.AppImage"; do
+            URL="${BASE}/${PATTERN}"
+            if curl -sIf "$URL" >/dev/null 2>&1; then
+              break
+            fi
+          done
           SHA256=$(curl -sL "$URL" | sha256sum | cut -d' ' -f1)
           echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
           echo "url=$URL" >> "$GITHUB_OUTPUT"

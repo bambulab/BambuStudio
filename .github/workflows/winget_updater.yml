@@ -1,7 +1,17 @@
 name: Publish to WinGet
 on:
-  release:
-    types: [ released ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release tag (e.g. v02.07.00.55)'
+        required: true
+        type: string
+
+# Automatic release trigger disabled until BenJule.BambuStudio is submitted
+# to microsoft/winget-pkgs. Enable by adding:
+#   release:
+#     types: [released]
+
 permissions: read-all
 jobs:
   publish:
@@ -10,6 +20,6 @@ jobs:
       - uses: vedantmgoyal9/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e  # v2
         with:
           identifier: BenJule.BambuStudio
-          version: ${{ github.event.release.tag_name }}
+          version: ${{ github.event.release.tag_name || inputs.version }}
           token: ${{ secrets.WINGET_TOKEN }}
           installers-regex: '\.exe$'
