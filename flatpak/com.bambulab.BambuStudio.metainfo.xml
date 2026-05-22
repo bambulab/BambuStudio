@@ -28,6 +28,8 @@
   <url type="homepage">https://github.com/bambulab/BambuStudio</url>
   <url type="bugtracker">https://github.com/bambulab/BambuStudio/issues</url>
 
+  <icon type="stock">com.bambulab.BambuStudio</icon>
+
   <launchable type="desktop-id">com.bambulab.BambuStudio.desktop</launchable>
 
   <provides>
