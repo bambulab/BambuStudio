@@ -129,7 +129,7 @@ jobs:
           dir "C:/Program Files (x86)/Windows Kits/10/Include"
 
           $nsisUrl  = 'https://prdownloads.sourceforge.net/nsis/nsis-3.10-setup.exe'
-          $nsisHash = '4313d352e0dafd1f22b6517126a655cae3b444fa758d2845eddfbe72f24f7bdd'
+          $nsisHash = 'd13e5797abdcaabb525ce29b0efbc22f85ce9c8df3a7eca0d703651bd9bd904d'
           $nsisPath = "$env:TEMP\nsis-3.10-setup.exe"
           Invoke-WebRequest -Uri $nsisUrl -OutFile $nsisPath -UseBasicParsing
           $actual = (Get-FileHash $nsisPath -Algorithm SHA256).Hash.ToLower()
