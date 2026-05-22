@@ -62,16 +62,16 @@ jobs:
       - name: Generate Release file
         run: |
           mkdir -p dists/stable
-          printf '%s\n' \
-            'Origin: BenJule BambuStudio' \
-            'Label: BenJule BambuStudio' \
-            'Suite: stable' \
-            'Codename: stable' \
-            'Architectures: amd64' \
-            'Components: main' \
-            'Description: BenJule BambuStudio APT Repository' \
+          apt-ftparchive \
+            -o APT::FTPArchive::Release::Origin="BenJule BambuStudio" \
+            -o APT::FTPArchive::Release::Label="BenJule BambuStudio" \
+            -o APT::FTPArchive::Release::Suite=stable \
+            -o APT::FTPArchive::Release::Codename=stable \
+            -o APT::FTPArchive::Release::Architectures=amd64 \
+            -o APT::FTPArchive::Release::Components=main \
+            -o "APT::FTPArchive::Release::Description=BenJule BambuStudio APT Repository" \
+            release dists/stable \
             > dists/stable/Release
-          cd dists/stable && apt-ftparchive release . >> Release
           cat dists/stable/Release
 
       - name: Sign Release
