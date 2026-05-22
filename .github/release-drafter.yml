@@ -34,6 +34,10 @@ exclude-labels:
   - 'duplicate'
   - 'invalid'
 
+exclude-contributors:
+  - 'dependabot'
+  - 'dependabot[bot]'
+
 template: |
   ## What's Changed
 
