@@ -96,6 +96,32 @@ find "$appdir/usr" -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null || 
 # Dangling symlinks left by everything above.
 find "$appdir/usr" -xtype l -delete
 
+# TODO: pruning candidates worth ~250 MB more, deferred pending runtime checks.
+# Each is absent from ldd's static closure but could still be dlopen'd; verify
+# with `strace -f -e openat ./bambu-studio` over a full session (slice, send to
+# printer, play camera feed) before enabling.
+#
+#   share/gir-1.0   ~46M  .gir XML for GObject Introspection. C++ apps don't
+#                         read these directly, but check whether any bundled
+#                         lib loads them via g_irepository_require().
+#   lib/perl5       ~48M  Conda's Perl runtime (autoconf/gettext build-dep).
+#                         No Perl in bambu-studio sources -- almost certainly
+#                         safe, but confirm no .so wraps a perl interpreter.
+#   lib/ruby        ~36M  Same story for Ruby. Safe pending confirmation.
+#   lib/qt6         ~73M  Qt6 runtime; bambu-studio is wxWidgets-based and
+#                         qt6 isn't in ldd. Risk: webkit2gtk's WebInspector
+#                         tooling, or some pulled-in lib, could dlopen Qt.
+#   lib/openvino*   ~114M Intel OpenVINO. ffmpeg may dlopen the OpenVINO
+#                         filter at runtime if --enable-libopenvino was set
+#                         at ffmpeg build time. Check `ffmpeg -filters | grep
+#                         openvino` first; if empty, safe to drop.
+#
+# rm -rf "$appdir/usr/share/gir-1.0"
+# rm -rf "$appdir/usr/lib/perl5"
+# rm -rf "$appdir/usr/lib/ruby"
+# rm -rf "$appdir/usr/lib/qt6"
+# rm -rf "$appdir/usr/lib/openvino"*
+
 # Record build-host $CONDA_PREFIX so AppRun can bind-mount AppDir/usr onto it at
 # runtime. Required because conda-forge libs (webkit2gtk, libcurl, fontconfig)
 # bake this absolute path into their .so files with no env-var override.
