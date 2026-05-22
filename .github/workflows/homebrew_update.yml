@@ -55,6 +55,7 @@ jobs:
           formula-name: bambu-studio
           formula-path: Casks/bambu-studio.rb
           homebrew-tap: ${{ github.repository_owner }}/homebrew-tap
+          base-branch: main
           download-url: ${{ steps.checksums.outputs.url_arm }}
           commit-message: "update bambu-studio to {{version}}"
         env:
