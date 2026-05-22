@@ -23,9 +23,13 @@
 #include <exception>
 #include <cstdlib>
 #include <chrono>
+#include <fstream>
 #include <regex>
 #include <thread>
 #include <string_view>
+#ifdef __linux__
+#include <sys/utsname.h>
+#endif
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
@@ -1331,7 +1335,7 @@ void GUI_App::post_init()
         CallAfter([this] {
             bool cw_showed = this->config_wizard_startup();
 
-            std::string http_url = get_http_url(app_config->get_country_code());
+            std::string http_url = get_slicer_update_url(app_config->get_country_code());
             std::string language = GUI::into_u8(current_language_code());
             std::string network_ver = Slic3r::NetworkAgent::get_version();
             bool        sys_preset  = app_config->get("sync_system_preset") == "true";
@@ -1500,6 +1504,48 @@ std::string GUI_App::get_http_url(std::string country_code, std::string path)
 
     url += path.empty() ? "v1/iot-service/api/slicer/resource" : path;
     return url;
+}
+
+// Returns the URL used for in-app slicer update checks.
+// On Linux, appends ?distro=<ID>&arch=<machine> so the server can return
+// the correct platform-specific download link.
+// Falls back to get_http_url() when no custom URL is configured.
+std::string GUI_App::get_slicer_update_url(std::string country_code)
+{
+    std::string base = app_config->get("slicer_update_url");
+    if (base.empty())
+        base = "https://apt.s3-dev.ovh/v1/iot-service/api/slicer/resource";
+
+#ifdef __linux__
+    std::string distro;
+    {
+        std::ifstream f("/etc/os-release");
+        std::string line;
+        while (std::getline(f, line)) {
+            if (boost::starts_with(line, "ID=")) {
+                distro = line.substr(3);
+                if (distro.size() >= 2 && distro.front() == '"' && distro.back() == '"')
+                    distro = distro.substr(1, distro.size() - 2);
+                boost::to_lower(distro);
+                break;
+            }
+        }
+    }
+
+    std::string arch;
+    struct utsname u;
+    if (uname(&u) == 0)
+        arch = u.machine;
+
+    if (!distro.empty() || !arch.empty()) {
+        base += '?';
+        if (!distro.empty()) base += "distro=" + distro;
+        if (!distro.empty() && !arch.empty()) base += '&';
+        if (!arch.empty()) base += "arch=" + arch;
+    }
+#endif
+
+    return base;
 }
 
 std::string GUI_App::get_model_http_url(std::string country_code)
@@ -5314,12 +5360,15 @@ void GUI_App::check_new_version(bool show_tips, int by_user)
 #ifdef __LINUX__
     platform = "linux";
 #endif
-    std::string query_params = (boost::format("?name=slicer&version=%1%&guide_version=%2%")
+    std::string base_url    = get_slicer_update_url(app_config->get_country_code());
+    std::string sep         = (base_url.find('?') != std::string::npos) ? "&" : "?";
+    std::string query_params = (boost::format("%1%name=slicer&version=%2%&guide_version=%3%")
+        % sep
         % VersionInfo::convert_full_version(SLIC3R_VERSION)
         % VersionInfo::convert_full_version("0.0.0.1")
         ).str();
 
-    std::string url = get_http_url(app_config->get_country_code()) + query_params;
+    std::string url = base_url + query_params;
     Slic3r::Http http = Slic3r::Http::get(url);
 
     http.header("accept", "application/json")

@@ -743,6 +743,7 @@ public:
     int             download_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
     int             install_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn = nullptr, WasCancelledFn cancel_fn = nullptr);
     std::string     get_http_url(std::string country_code, std::string path = {});
+    std::string     get_slicer_update_url(std::string country_code);
     std::string     get_model_http_url(std::string country_code);
     bool            is_compatibility_version();
     bool            check_networking_version();

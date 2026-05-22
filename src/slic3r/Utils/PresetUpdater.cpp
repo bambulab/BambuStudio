@@ -565,7 +565,7 @@ bool PresetUpdater::priv::sync_resources(std::string http_url, std::map<std::str
 
     BOOST_LOG_TRIVIAL(info) << boost::format("[BBL Updater]: sync_resources get preferred setting version for app version %1%, url: %2%, current_version_str %3%, check_patch %4%")%SLIC3R_APP_NAME%http_url%current_version_str%check_patch;
 
-    std::string query_params = "?";
+    std::string query_params = (http_url.find('?') != std::string::npos) ? "&" : "?";
     bool        first        = true;
     for (auto resource_it : resources) {
         if (cancel) { return false; }
