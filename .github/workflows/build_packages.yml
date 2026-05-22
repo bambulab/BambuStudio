@@ -54,7 +54,7 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5
         with:
           path: deps/build/destdir
-          key: pkg-deps-${{ matrix.artifact_suffix }}-${{ hashFiles('deps/**') }}
+          key: pkg-deps-${{ matrix.artifact_suffix }}-${{ hashFiles('deps/CMakeLists.txt', 'deps/**/*.cmake') }}
 
       - name: Install build dependencies
         run: sudo ./BuildLinux.sh -ur
@@ -138,7 +138,7 @@ jobs:
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5
         with:
           path: deps/build/destdir
-          key: pkg-deps-${{ matrix.artifact_suffix }}-${{ hashFiles('deps/**') }}
+          key: pkg-deps-${{ matrix.artifact_suffix }}-${{ hashFiles('deps/CMakeLists.txt', 'deps/**/*.cmake') }}
 
       - name: Install build dependencies
         run: sudo ./BuildLinux.sh -ur
