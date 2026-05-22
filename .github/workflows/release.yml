@@ -90,6 +90,12 @@ jobs:
         with:
           subject-path: release-assets/**
 
+      - name: Generate SBOM
+        uses: actions/attest-sbom@v2
+        with:
+          subject-path: release-assets/**
+          sbom-format: spdx-json
+
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "security:openssf-scorecard"
+  ],
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 5,
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "commitMessagePrefix": "ci:",
+      "labels": ["dependencies", "area: ci"],
+      "automerge": false
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPaths": ["src/slic3r/GUI/DeviceWeb/device_page/**"],
+      "commitMessagePrefix": "fix:",
+      "labels": ["dependencies", "javascript"],
+      "automerge": false
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchPaths": ["tests/web-e2e/**"],
+      "commitMessagePrefix": "ci:",
+      "labels": ["dependencies", "area: ci"],
+      "automerge": false
+    },
+    {
+      "matchUpdateTypes": ["patch"],
+      "matchManagers": ["npm"],
+      "automerge": false
+    }
+  ],
+  "ignorePaths": [
+    "**/node_modules/**"
+  ]
+}

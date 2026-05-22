@@ -1,0 +1,17 @@
+# Global owner — reviews everything by default
+* @BenJule
+
+# CI/CD and build system
+/.github/ @BenJule
+/deps/ @BenJule
+/scripts/ @BenJule
+BuildLinux.sh @BenJule
+CMakeLists.txt @BenJule
+version.inc @BenJule
+
+# Flatpak packaging
+/flatpak/ @BenJule
+
+# Security-sensitive files
+SECURITY.md @BenJule
+/.github/workflows/release.yml @BenJule

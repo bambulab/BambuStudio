@@ -1,0 +1,75 @@
+'area: ui':
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'src/slic3r/GUI/**'
+      - 'src/bambu-studio-gui/**'
+
+'area: slicing':
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'src/libslic3r/**'
+      - 'src/slic3r/**'
+
+'area: networking':
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'src/slic3r/GUI/DeviceWeb/**'
+      - 'src/slic3r/GUI/Mqtt*'
+      - 'src/slic3r/GUI/*Network*'
+      - 'src/slic3r/GUI/*Connect*'
+
+'area: build':
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'CMakeLists.txt'
+      - '**/CMakeLists.txt'
+      - 'deps/**'
+      - 'BuildLinux.sh'
+      - 'linux.d/**'
+      - 'scripts/**'
+      - 'version.inc'
+
+'area: ci':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.github/workflows/**'
+      - '.github/dependabot.yml'
+
+'area: packaging':
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'flatpak/**'
+      - 'scripts/build_deb.sh'
+      - 'scripts/build_rpm.sh'
+      - 'scripts/build_pkg_arch.sh'
+
+'area: filament':
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'resources/profiles/**'
+
+'javascript':
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'src/slic3r/GUI/DeviceWeb/device_page/**'
+      - 'tests/web-e2e/**'
+
+'documentation':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '*.md'
+      - 'doc/**'
+      - '.github/*.md'
+
+'platform: windows':
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.wxs'
+      - 'src/platform/msw/**'
+
+'platform: macos':
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'src/platform/osx/**'
+      - '**/*.entitlements'
+      - '**/*.plist'
