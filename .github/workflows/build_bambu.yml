@@ -124,10 +124,27 @@ jobs:
 
       - name: Install nsis and pkgconfig
         if: inputs.os == 'windows-2022'
+        shell: pwsh
         run: |
           dir "C:/Program Files (x86)/Windows Kits/10/Include"
-          choco install nsis --version=3.10 --force
-          choco install pkgconfiglite --version=0.28
+
+          $nsisUrl  = 'https://prdownloads.sourceforge.net/nsis/nsis-3.10-setup.exe'
+          $nsisHash = '4313d352e0dafd1f22b6517126a655cae3b444fa758d2845eddfbe72f24f7bdd'
+          $nsisPath = "$env:TEMP\nsis-3.10-setup.exe"
+          Invoke-WebRequest -Uri $nsisUrl -OutFile $nsisPath -UseBasicParsing
+          $actual = (Get-FileHash $nsisPath -Algorithm SHA256).Hash.ToLower()
+          if ($actual -ne $nsisHash) { throw "NSIS hash mismatch: expected $nsisHash, got $actual" }
+          Start-Process -FilePath $nsisPath -ArgumentList '/S' -Wait
+
+          $pkgUrl  = 'https://downloads.sourceforge.net/project/pkgconfiglite/0.28-1/pkg-config-lite-0.28-1_bin-win32.zip'
+          $pkgHash = '2038c49d23b5ca19e2218ca89f06df18fe6d870b4c6b54c0498548ef88771f6f'
+          $pkgZip  = "$env:TEMP\pkgconfiglite.zip"
+          Invoke-WebRequest -Uri $pkgUrl -OutFile $pkgZip -UseBasicParsing
+          $actual = (Get-FileHash $pkgZip -Algorithm SHA256).Hash.ToLower()
+          if ($actual -ne $pkgHash) { throw "pkgconfiglite hash mismatch: expected $pkgHash, got $actual" }
+          Expand-Archive -Path $pkgZip -DestinationPath "$env:TEMP\pkgconfiglite"
+          $exe = Get-ChildItem "$env:TEMP\pkgconfiglite" -Recurse -Filter 'pkg-config.exe' | Select-Object -First 1
+          Copy-Item $exe.FullName 'C:\Windows\System32\pkg-config.exe'
 
       - name: Build slicer Win
         if: inputs.os == 'windows-2022'
