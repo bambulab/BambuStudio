@@ -1,32 +1,6 @@
 name: Build Packages
 
 on:
-  push:
-    branches: [master]
-    paths:
-      - 'deps/**'
-      - 'src/**'
-      - '**/CMakeLists.txt'
-      - 'version.inc'
-      - 'BuildLinux.sh'
-      - 'linux.d/**'
-      - 'scripts/build_deb.sh'
-      - 'scripts/build_rpm.sh'
-      - 'scripts/build_pkg_arch.sh'
-      - '.github/workflows/build_packages.yml'
-  pull_request:
-    branches: [master]
-    paths:
-      - 'deps/**'
-      - 'src/**'
-      - '**/CMakeLists.txt'
-      - 'version.inc'
-      - 'BuildLinux.sh'
-      - 'linux.d/**'
-      - 'scripts/build_deb.sh'
-      - 'scripts/build_rpm.sh'
-      - 'scripts/build_pkg_arch.sh'
-      - '.github/workflows/build_packages.yml'
   workflow_dispatch:
   workflow_call:
 
