@@ -29,24 +29,40 @@ rm -rf "$PKGDIR"
 # Directory structure
 mkdir -p "$PKGDIR/DEBIAN"
 mkdir -p "$PKGDIR/usr/bin"
-mkdir -p "$PKGDIR/usr/lib/$PKGNAME"
+mkdir -p "$PKGDIR/usr/lib/$PKGNAME/bin"   # binary lives here so parent().parent() == /usr/lib/bambustudio
 mkdir -p "$PKGDIR/usr/share/applications"
 mkdir -p "$PKGDIR/usr/share/icons/hicolor/192x192/apps"
 mkdir -p "$PKGDIR/usr/share/icons/hicolor/128x128/apps"
 mkdir -p "$PKGDIR/usr/share/icons/hicolor/32x32/apps"
 
-# Binary and bundled libs
-cp "$APPDIR/bin/bambu-studio" "$PKGDIR/usr/lib/$PKGNAME/"
-find "$APPDIR/bin" -name "*.so*" -exec cp {} "$PKGDIR/usr/lib/$PKGNAME/" \;
+# Binary goes into bin/ so the resource-path calculation
+# (parent_path().parent_path() / "resources") resolves to
+# /usr/lib/bambustudio/resources — matching where we install resources.
+cp "$APPDIR/bin/bambu-studio" "$PKGDIR/usr/lib/$PKGNAME/bin/"
 
-# App resources
+# Bundled app-specific libs — exclude GTK/GLib/X11/Wayland/DBus/udev
+# because those are system libraries declared in Depends; bundling them
+# causes LD_LIBRARY_PATH to override the system versions and crash on GTK init.
+find "$APPDIR/bin" -name "*.so*" \
+    ! -name "libgtk*"     ! -name "libgdk*"      ! -name "libgdk-pixbuf*" \
+    ! -name "libglib*"    ! -name "libgobject*"   ! -name "libgio*" \
+    ! -name "libgmodule*" ! -name "libgthread*"   ! -name "libgthread*" \
+    ! -name "libX*"       ! -name "libxcb*"       ! -name "libxkbcommon*" \
+    ! -name "libwayland*" \
+    ! -name "libdbus*"    ! -name "libudev*"      \
+    ! -name "libsecret*"  ! -name "libfontconfig*" \
+    ! -name "libfreetype*" ! -name "libpango*"    ! -name "libcairo*" \
+    ! -name "libatk*"     ! -name "libharfbuzz*"  \
+    -exec cp {} "$PKGDIR/usr/lib/$PKGNAME/" \;
+
+# App resources (alongside the bin/ directory, not inside it)
 cp -r "$APPDIR/resources" "$PKGDIR/usr/lib/$PKGNAME/"
 
 # Launcher wrapper
 cat > "$PKGDIR/usr/bin/$PKGNAME" <<'WRAPPER'
 #!/bin/bash
 export LD_LIBRARY_PATH="/usr/lib/bambustudio${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-exec /usr/lib/bambustudio/bambu-studio "$@"
+exec /usr/lib/bambustudio/bin/bambu-studio "$@"
 WRAPPER
 chmod 755 "$PKGDIR/usr/bin/$PKGNAME"
 
