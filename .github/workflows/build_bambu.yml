@@ -126,8 +126,8 @@ jobs:
         if: inputs.os == 'windows-2022'
         run: |
           dir "C:/Program Files (x86)/Windows Kits/10/Include"
-          choco install nsis --version=3.10
-          choco install pkgconfiglite --version=0.28.1
+          choco install nsis --version=3.10 --force
+          choco install pkgconfiglite --version=0.28
 
       - name: Build slicer Win
         if: inputs.os == 'windows-2022'
