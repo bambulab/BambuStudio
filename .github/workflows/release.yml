@@ -76,7 +76,7 @@ jobs:
     if: |
       always() &&
       needs.prepare.result == 'success' &&
-      needs.build_packages.result == 'success' &&
+      (needs.build_packages.result == 'success' || needs.build_packages.result == 'failure' || needs.build_packages.result == 'skipped' || needs.build_packages.result == 'cancelled') &&
       (needs.build.result == 'success' || needs.build.result == 'failure')
     runs-on: ubuntu-latest
     permissions:
