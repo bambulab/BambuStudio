@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag (e.g. v02.07.00.55-fork.1) — leave empty for latest'
+        description: 'Release tag (e.g. v02.07.00.55-fork.1) - leave empty for latest'
         required: false
         type: string
 
