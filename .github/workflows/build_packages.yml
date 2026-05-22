@@ -46,24 +46,24 @@ jobs:
       matrix:
         include:
           - name: Debian bookworm .deb
-            container: debian:bookworm
+            container: debian:bookworm@sha256:6b2217693a4963470f76adbee0d8d5371293fd102bfe3bcb77615566b0b0efe7  # bookworm
             pkg_cmd: ./BuildLinux.sh -pr
             artifact_suffix: debian-bookworm_deb
             artifact_glob: ./build/bambustudio_*.deb
 
           - name: Fedora 41 .rpm
-            container: fedora:41
+            container: fedora:41@sha256:68bb1ba893be0c05991b2df55bc6571862bab7526fd6053b1ebacd53a2a75366  # fedora 41
             pkg_cmd: bash scripts/build_rpm.sh
             artifact_suffix: fedora41_rpm
             artifact_glob: ./build/bambustudio-*.rpm
 
     steps:
       - name: Bootstrap (Debian)
-        if: startsWith(matrix.container, 'debian:')
+        if: startsWith(matrix.container, 'debian:bookworm')
         run: apt-get update -qq && apt-get install -y sudo git curl git-lfs
 
       - name: Bootstrap (Fedora)
-        if: startsWith(matrix.container, 'fedora:')
+        if: startsWith(matrix.container, 'fedora:41')
         run: dnf install -y sudo git curl git-lfs
 
       - name: Checkout

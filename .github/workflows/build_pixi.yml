@@ -77,7 +77,7 @@ jobs:
             artifact_name: BambuStudio-Linux-AppImage
             artifact_glob: build/release/BambuStudio-*-x86_64.AppImage
           - os: ubuntu-24.04
-            container: debian:bookworm
+            container: debian:bookworm@sha256:6b2217693a4963470f76adbee0d8d5371293fd102bfe3bcb77615566b0b0efe7  # bookworm
             build_task: build-release
             binary: build/release/src/bambu-studio
             artifact_name: BambuStudio-Debian-AppImage
@@ -109,7 +109,7 @@ jobs:
           df -h
 
       - name: Install curl (Debian container)
-        if: matrix.container == 'debian:bookworm'
+        if: startsWith(matrix.container, 'debian:bookworm')
         run: apt-get update && apt-get install -y curl
 
       - name: Setup pixi

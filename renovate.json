@@ -8,6 +8,12 @@
   "prConcurrentLimit": 5,
   "packageRules": [
     {
+      "matchManagers": ["docker-compose", "dockerfile"],
+      "commitMessagePrefix": "ci:",
+      "labels": ["dependencies", "area: ci"],
+      "automerge": false
+    },
+    {
       "matchManagers": ["github-actions"],
       "commitMessagePrefix": "ci:",
       "labels": ["dependencies", "area: ci"],
