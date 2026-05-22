@@ -11,6 +11,7 @@ jobs:
   assign:
     name: Add to BambuStudio Development project
     runs-on: ubuntu-24.04
+    if: github.event_name == 'issues' || github.event_name == 'pull_request'
     steps:
       - uses: actions/add-to-project@v2.0.0
         with:
