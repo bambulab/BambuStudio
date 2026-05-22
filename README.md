@@ -3,7 +3,36 @@
 Bambu Studio is a cutting-edge, feature-rich slicing software.  
 It contains project-based workflows, systematically optimized slicing algorithms, and an easy-to-use graphic interface, bringing users an incredibly smooth printing experience.
 
-Prebuilt Windows, macOS 64-bit and Linux releases are available through the [github releases page](https://github.com/bambulab/BambuStudio/releases/).
+Prebuilt Windows, macOS 64-bit and Linux releases are available through the [releases page](https://github.com/BenJule/BambuStudio/releases/).
+
+## Installation
+
+### Debian / Ubuntu (APT)
+
+```bash
+curl -fsSL https://apt.s3-dev.ovh/KEY.gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/bambustudio.gpg
+echo "deb [signed-by=/etc/apt/trusted.gpg.d/bambustudio.gpg] https://apt.s3-dev.ovh stable main" | sudo tee /etc/apt/sources.list.d/bambustudio.list
+sudo apt update && sudo apt install bambu-studio
+```
+
+Updates are installed via `sudo apt upgrade`.
+
+### Arch Linux (AUR)
+
+```bash
+yay -S bambu-studio-bin
+```
+
+### macOS (Homebrew)
+
+```bash
+brew tap BenJule/homebrew-tap
+brew install --cask bambu-studio
+```
+
+### Windows / Other Linux
+
+Download the latest installer from the [releases page](https://github.com/BenJule/BambuStudio/releases/).
 
 Bambu Studio is based on [PrusaSlicer](https://github.com/prusa3d/PrusaSlicer) by Prusa Research, which is from [Slic3r](https://github.com/Slic3r/Slic3r) by Alessandro Ranellucci and the RepRap community.
 
