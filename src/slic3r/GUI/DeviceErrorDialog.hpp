@@ -52,6 +52,8 @@ public:
         DISABLE_PURIFICATION = 54,
         DONT_REMIND_NEXT_TIME = 57,
 
+        USE_OTHER_AMS_SLOT = 60,
+
         // old error code to pseudo action
         DBL_CHECK_CANCEL = 10000,
         DBL_CHECK_DONE = 10001,
