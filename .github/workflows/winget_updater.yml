@@ -2,6 +2,7 @@ name: Publish to WinGet
 on:
   release:
     types: [ released ]
+permissions: read-all
 jobs:
   publish:
     runs-on: windows-2025-vs2026

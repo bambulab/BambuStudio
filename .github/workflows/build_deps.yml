@@ -20,6 +20,7 @@ on:
         required: false
         type: boolean
 
+permissions: read-all
 jobs:
   build_deps:
     name: Build Deps

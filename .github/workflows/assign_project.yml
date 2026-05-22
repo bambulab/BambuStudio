@@ -7,6 +7,7 @@ on:
     types: [opened]
   workflow_dispatch:
 
+permissions: read-all
 jobs:
   assign:
     name: Add to BambuStudio Development project

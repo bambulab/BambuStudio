@@ -32,6 +32,7 @@ on:
       - '.github/workflows/build_pixi.yml'
   workflow_dispatch:
 
+permissions: read-all
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -39,7 +40,7 @@ concurrency:
 jobs:
   check:
     name: Check prerequisites
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       has_pixi: ${{ steps.pixi-check.outputs.has_pixi }}
     steps:
@@ -81,7 +82,7 @@ jobs:
             binary: build/release/src/bambu-studio
             artifact_name: BambuStudio-Debian-AppImage
             artifact_glob: build/release/BambuStudio-*-x86_64.AppImage
-          - os: windows-2022
+          - os: windows-2025-vs2026
             build_task: build-release
             binary: build/release/src/bambu-studio.exe
             artifact_name: BambuStudio-Windows-MSI

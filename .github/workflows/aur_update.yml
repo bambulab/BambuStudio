@@ -10,6 +10,7 @@ on:
         required: false
         type: string
 
+permissions: read-all
 jobs:
   aur-update:
     name: Update AUR PKGBUILD
