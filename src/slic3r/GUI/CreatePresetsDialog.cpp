@@ -840,7 +840,7 @@ wxBoxSizer *CreateFilamentPresetDialog::create_serial_item()
     wxBoxSizer *horizontal_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     wxBoxSizer *  optionSizer        = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *static_serial_text = new wxStaticText(this, wxID_ANY, _L("Serial"), wxDefaultPosition, wxDefaultSize);
+    wxStaticText *static_serial_text = new wxStaticText(this, wxID_ANY, _L("Serial (optional)"), wxDefaultPosition, wxDefaultSize);
     optionSizer->Add(static_serial_text, 0, wxEXPAND | wxALL, 0);
     optionSizer->SetMinSize(OPTION_SIZE);
     horizontal_sizer->Add(optionSizer, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
@@ -1018,28 +1018,20 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
         }
         //get filament serial
         wxString    serial_str = m_filament_serial_input->GetTextCtrl()->GetValue();
-        std::string serial_name;
-        if (serial_str.empty()) {
-            MessageDialog dlg(this, _L("Filament serial is not inputed, please input serial."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
-                              wxYES | wxYES_DEFAULT | wxCENTRE);
-            dlg.ShowModal();
-            return;
-        } else {
-            serial_name = into_u8(serial_str);
-        }
+        std::string serial_name = into_u8(serial_str);
         vendor_name = remove_special_key(vendor_name);
         serial_name = remove_special_key(serial_name);
 
-        if (vendor_name.empty() || serial_name.empty()) {
-            MessageDialog dlg(this, _L("There may be escape characters in the vendor or serial input of filament. Please delete and re-enter."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
+        if (vendor_name.empty()) {
+            MessageDialog dlg(this, _L("The filament vendor name contains invalid characters. Please remove them and try again."), wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"),
                               wxYES | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
             return;
         }
         boost::algorithm::trim(vendor_name);
         boost::algorithm::trim(serial_name);
-        if (vendor_name.empty() || serial_name.empty()) {
-            MessageDialog dlg(this, _L("All inputs in the custom vendor or serial are spaces. Please re-enter."),
+        if (vendor_name.empty()) {
+            MessageDialog dlg(this, _L("The filament vendor name cannot be blank. Please enter a vendor name."),
                               wxString(SLIC3R_APP_FULL_NAME) + " - " + _L("Info"), wxYES | wxYES_DEFAULT | wxCENTRE);
             dlg.ShowModal();
             return;
@@ -1058,7 +1050,8 @@ wxBoxSizer *CreateFilamentPresetDialog::create_button_item()
             return;
         }
 
-        std::string filament_preset_name = vendor_name + " " + (type_name == "PLA-AERO" ? "PLA Aero" : type_name) + " " + serial_name;
+        std::string display_type         = type_name == "PLA-AERO" ? "PLA Aero" : type_name;
+        std::string filament_preset_name = vendor_name + " " + display_type + (serial_name.empty() ? "" : " " + serial_name);
         PresetBundle *preset_bundle        = wxGetApp().preset_bundle;
         if (preset_bundle->filaments.is_alias_exist(filament_preset_name)) {
             MessageDialog dlg(this,
