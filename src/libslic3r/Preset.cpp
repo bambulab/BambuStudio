@@ -1453,8 +1453,13 @@ void PresetCollection::load_presets(
                     else {
                         auto inherits_config2 = dynamic_cast<ConfigOptionString *>(inherits_config);
                         if ((inherits_config2 && !inherits_config2->value.empty())) {
-                            BOOST_LOG_TRIVIAL(error) << boost::format("can not find parent %1% for config %2%!") % inherits_config2->value % PathSanitizer::sanitize(preset.file);
-                            continue;
+                            // Parent preset not found (e.g. renamed or removed by a system update).
+                            // Do NOT skip the preset — that would silently delete the user's work.
+                            // Fall back to the built-in default config so the user at least sees
+                            // their preset and can correct any settings that differ from the old parent.
+                            BOOST_LOG_TRIVIAL(warning) << boost::format(
+                                "Parent preset '%1%' not found for '%2%'; loading with default config as fallback.")
+                                % inherits_config2->value % PathSanitizer::sanitize(preset.file);
                         }
                         // We support custom root preset now
                         // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
