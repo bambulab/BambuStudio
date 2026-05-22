@@ -619,6 +619,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     std::string filament_type;
     std::string color = "#D9D9D9";
     std::string color_type = "single";
+    int          filament_remain = 100; // 0~100; default full when device does not report
     if (tray && tray->is_exists) {
         if (tray->m_fila_type == "PLA-S") filament_type = "Sup.PLA";
         else if (tray->m_fila_type == "PA-S") filament_type = "Sup.PA";
@@ -627,6 +628,9 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         filament_name = !tray->sub_brands.empty() ? tray->sub_brands : filament_type;
         color = normalize_hex_for_web(tray->color);
         color_type = color_type_for_web(tray->ctype);
+        if (tray->remain >= 0 && tray->remain <= 100) {
+            filament_remain = tray->remain;
+        }
     }
 
     // Dryer UI is slot-level; humidity/status are AMS-level.
@@ -741,6 +745,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         {"filament_type", filament_type},
         {"color", color},
         {"color_type", color_type},
+        {"filament_remain", filament_remain},
         {"status_text", ResolveStatusText(card_state)},
         {"enabled", has_hotend_slot},
         {"is_on_extruder", is_on_extruder},

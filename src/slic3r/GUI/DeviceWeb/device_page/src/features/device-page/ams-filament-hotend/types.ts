@@ -85,6 +85,7 @@ export interface AmsFilamentHotendSlotViewModel {
   colors?: string[];         // multi-color filament (>=2 segments). [0] === color.
 
   progress_pct?: number;     // 0..100 -- partial arc on the spool
+  filament_remain?: number;  // 0..100 remaining filament; default 100 when missing
 
   selected?: boolean;        // user UI selection (red border + green index pill)
   is_on_extruder?: boolean;  // current hotend is physically mounted on the extruder

@@ -21,6 +21,7 @@ interface SlotSeed {
   line_state?: AmsFilamentHotendLineState;
   nozzle_state?: AmsFilamentHotendNozzleState;
   bind_ams_slot_count?: number;
+  filament_remain?: number;
   hotend?: HotendSlotInfo;
 }
 
@@ -78,6 +79,7 @@ const buildSlot = (seed: SlotSeed): AmsFilamentHotendSlotViewModel => ({
   filament_type: seed.filament_name?.split(' ')[0] ?? '',
   color: seed.color ?? '#00AE42',
   color_type: seed.color_type ?? 'single',
+  filament_remain: seed.filament_remain ?? 100,
   status_text: seed.status_text ?? '',
   enabled: true,
   is_top_tier: seed.display_index % 2 === 0,
@@ -162,10 +164,10 @@ export const mockAmsFilamentHotendState: AmsFilamentHotendViewModel = {
     buildSlot({ display_index: 2, card_state: 'Reading',                                  status_text: 'Reading', hotend: mockHotend(2) }),
     buildSlot({ display_index: 3, card_state: 'ReadyToLoad', filament_name: 'PLA Basic', status_text: 'Ready to load', color: '#00AE42', hotend: mockHotend(3) }),
     buildSlot({ display_index: 4, card_state: 'Empty',                                    status_text: '--', hotend: mockHotend(4) }),
-    buildSlot({ display_index: 5, card_state: 'ReadyToUse',  filament_name: 'PLA Basic', status_text: 'Loaded', color: '#00AE42', bind_ams_slot_count: 4, hotend: mockHotend(5) }),
-    buildSlot({ display_index: 6, card_state: 'ReadyToUse',  filament_name: 'PLA Basic', status_text: 'Loaded', color: '#00AE42', in_dryer: true, hotend: mockHotend(6) }),
+    buildSlot({ display_index: 5, card_state: 'ReadyToUse',  filament_name: 'PLA Basic', status_text: 'Loaded', color: '#00AE42', bind_ams_slot_count: 4, filament_remain: 35, hotend: mockHotend(5) }),
+    buildSlot({ display_index: 6, card_state: 'ReadyToUse',  filament_name: 'PLA Basic', status_text: 'Loaded', color: '#00AE42', in_dryer: true, filament_remain: 75, hotend: mockHotend(6) }),
     buildSlot({ display_index: 7, card_state: 'ReadyToUse',  filament_name: 'PLA Basic', status_text: 'Loaded', color: '#00AE42', hotend: mockHotend(7) }),
-    buildSlot({ display_index: 8, card_state: 'ReadyToUse',  filament_name: 'PLA Basic', status_text: 'Loaded', color: '#00AE42', in_dryer: true, hotend: mockHotend(8) }),
+    buildSlot({ display_index: 8, card_state: 'ReadyToUse',  filament_name: 'PLA Basic', status_text: 'Loaded', color: '#00AE42', in_dryer: true, filament_remain: 10, hotend: mockHotend(8) }),
     buildSlot({ display_index: 9, card_state: 'ReadyToUse',  filament_name: 'PLA Basic', status_text: 'Loaded', color: '#00AE42', hotend: mockHotend(9) }),
   ],
 };

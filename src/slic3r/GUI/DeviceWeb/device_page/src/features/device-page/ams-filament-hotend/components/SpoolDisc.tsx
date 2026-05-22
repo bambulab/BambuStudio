@@ -18,6 +18,13 @@ export function SpoolDisc({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
   const showFilamentTag = state !== 'Empty' && state !== 'Unknown' && !isTransporting;
   const center = SIZE / 2;
 
+  // Remaining filament: 0..100; default 100 when missing.
+  // Render a partial ring (12 o'clock clockwise) only for non-empty single-color
+  // spools whose remain is strictly between 0 and 100; full and unknown stays
+  // on the solid donut, multi-color spools keep the segmented donut.
+  const remain = typeof slot.filament_remain === 'number' ? slot.filament_remain : 100;
+  const showPartialRing = isFilled && colors.length === 1 && remain > 0 && remain < 100;
+
   return (
     <svg
       className={`spool spool-${state.toLowerCase()}`}
@@ -28,8 +35,12 @@ export function SpoolDisc({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
       <circle cx={center} cy={center} r={OUTER} fill="#e6e6e6" />
       <circle cx={center} cy={center} r={OUTER - 0.5} fill="none" stroke="#d4d4d4" strokeWidth={1} />
 
-      {isFilled && (
+      {isFilled && !showPartialRing && (
         <FilledDonut center={center} colors={colors} />
+      )}
+
+      {showPartialRing && (
+        <PartialDonut center={center} color={colors[0]} pct={remain} />
       )}
 
       {isError && (
@@ -100,6 +111,40 @@ function FilledDonut({ center, colors }: { center: number; colors: string[] }) {
       <circle cx={center} cy={center} r={HOLE} fill="#ffffff" />
       <circle cx={center} cy={center} r={HOLE} fill="none" stroke="#e6e6e6" strokeWidth={1} />
     </>
+  );
+}
+
+// Donut with a partial fill arc that runs clockwise from 12 o'clock (0deg).
+// Background ring stays grey for the unfilled portion; foreground arc paints
+// `pct` percent of the circumference in the spool color.
+function PartialDonut({ center, color, pct }: { center: number; color: string; pct: number }) {
+  const ringRadius = (RING + HOLE) / 2;
+  const stroke = RING - HOLE;
+  const circumference = 2 * Math.PI * ringRadius;
+  const filled = (pct / 100) * circumference;
+  const gap = circumference - filled;
+  return (
+    <g transform={`rotate(-90 ${center} ${center})`}>
+      <circle
+        cx={center}
+        cy={center}
+        r={ringRadius}
+        fill="none"
+        stroke="#e6e6e6"
+        strokeWidth={stroke}
+      />
+      <circle
+        cx={center}
+        cy={center}
+        r={ringRadius}
+        fill="none"
+        stroke={color}
+        strokeWidth={stroke}
+        strokeDasharray={`${filled} ${gap}`}
+      />
+      <circle cx={center} cy={center} r={HOLE} fill="#ffffff" />
+      <circle cx={center} cy={center} r={HOLE} fill="none" stroke="#e6e6e6" strokeWidth={1} />
+    </g>
   );
 }
 
