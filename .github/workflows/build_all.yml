@@ -39,19 +39,25 @@ concurrency:
 
 jobs:
   build_all:
-    name: Build All
+    name: ${{ matrix.name }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: ubuntu-22.04
+            name: Linux / Ubuntu 22.04
           - os: ubuntu-24.04
+            name: Linux / Ubuntu 24.04
           - os: ubuntu-24.04-arm
+            name: Linux / Ubuntu 24.04 ARM
           - os: windows-2022
+            name: Windows / Windows 2022
           - os: macos-15-intel
             arch: x86_64
+            name: macOS / macOS 15 Intel
           - os: macos-15
             arch: arm64
+            name: macOS / macOS 15 ARM
     uses: ./.github/workflows/build_check_cache.yml
     with:
       os: ${{ matrix.os }}
@@ -69,13 +75,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Debian bookworm .deb
+          - name: Linux / Debian bookworm .deb
             container: debian:bookworm@sha256:6b2217693a4963470f76adbee0d8d5371293fd102bfe3bcb77615566b0b0efe7
             pkg_cmd: ./BuildLinux.sh -pr
             artifact_suffix: debian-bookworm_deb
             artifact_glob: ./build/bambustudio_*.deb
 
-          - name: Fedora 41 .rpm
+          - name: Linux / Fedora 41 .rpm
             container: fedora:41@sha256:68bb1ba893be0c05991b2df55bc6571862bab7526fd6053b1ebacd53a2a75366
             pkg_cmd: bash scripts/build_rpm.sh
             artifact_suffix: fedora41_rpm
@@ -150,25 +156,25 @@ jobs:
       max-parallel: 2
       matrix:
         include:
-          - name: Ubuntu 22.04 AppImage + .deb
+          - name: Linux / Ubuntu 22.04 AppImage + .deb
             runner: [self-hosted, pve05-ubuntu22]
             pkg_cmd: ./BuildLinux.sh -pr
             artifact_suffix: ubuntu2204
             artifact_deb: ./build/bambustudio_*.deb
 
-          - name: Ubuntu 24.04 AppImage + .deb
+          - name: Linux / Ubuntu 24.04 AppImage + .deb
             runner: [self-hosted, pve05-ubuntu24]
             pkg_cmd: ./BuildLinux.sh -pr
             artifact_suffix: ubuntu2404
             artifact_deb: ./build/bambustudio_*.deb
 
-          - name: openSUSE Tumbleweed AppImage + .rpm
+          - name: Linux / openSUSE Tumbleweed
             runner: [self-hosted, pve05-opensuse]
             pkg_cmd: bash scripts/build_rpm.sh
             artifact_suffix: opensuse-tumbleweed
             artifact_pkg: ./build/bambustudio-*.rpm
 
-          - name: Arch Linux AppImage + .pkg.tar.zst
+          - name: Linux / Arch Linux
             runner: [self-hosted, pve05-arch]
             pkg_cmd: bash scripts/build_pkg_arch.sh
             artifact_suffix: arch
