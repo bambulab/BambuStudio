@@ -99,7 +99,7 @@ jobs:
         run: |
           knock -d 200 "${{ secrets.VPS_HOST }}" 7000 8000 9000
           sleep 1
-          rsync -avz --delete \
+          rsync -avz \
             -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
-            pool/ dists/ \
+            pool dists \
             "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/srv/apt-repo/"
