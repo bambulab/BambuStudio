@@ -86,12 +86,12 @@ jobs:
         run: find release-assets/ -type f | sort
 
       - name: Attest build provenance
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4.1.0
         with:
           subject-path: release-assets/**
 
       - name: Generate SBOM
-        uses: actions/attest-sbom@v2
+        uses: actions/attest-sbom@v4.1.0
         with:
           subject-path: release-assets/**
           sbom-format: spdx-json

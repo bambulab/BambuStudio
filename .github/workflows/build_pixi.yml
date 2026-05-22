@@ -87,7 +87,7 @@ jobs:
             binary: build/release/src/bambu-studio.exe
             artifact_name: BambuStudio-Windows-MSI
             artifact_glob: build/release/dist/BambuStudio-*-x64.msi
-          - os: macos-14
+          - os: macos-15
             build_task: build-release
             binary: build/release/src/bambu-studio
             artifact_name: BambuStudio-macOS-DMG
