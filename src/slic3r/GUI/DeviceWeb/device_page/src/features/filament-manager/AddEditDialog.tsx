@@ -2267,16 +2267,35 @@ export function AddEditDialog({
                         aria-label={t('Pick Custom Color')}
                         className="absolute left-0 top-[calc(100%+8px)] z-[1100] w-[224px] flex flex-col gap-[12px] rounded-[10px] border border-fm-border bg-fm-base p-[14px] shadow-[0_12px_32px_rgba(0,0,0,0.5)]"
                       >
+                        {/* STUDIO-18137: on macOS WKWebView the system
+                            color picker is anchored to the <input
+                            type="color"> element's bounding rect. When
+                            the input is hidden via Tailwind's `sr-only`
+                            (clip:rect(0,0,0,0), width/height:1px) WebKit
+                            cannot compute a valid anchor and falls back
+                            to the bottom-left corner of the screen.
+                            Wrap the input in a <label> sized like the
+                            swatch and make the input a transparent
+                            overlay so WebKit always sees a real anchor.
+                            STUDIO-18114's draft-then-commit flow is
+                            preserved: input.onChange still only writes
+                            draftColor; OK/Cancel still gate the commit. */}
                         <div className="flex items-center gap-[12px]">
-                          <button
-                            type="button"
-                            autoFocus
-                            className="size-[56px] shrink-0 rounded-[8px] border border-fm-border-focus cursor-pointer focus:outline-none focus:ring-2 focus:ring-fm-brand transition-shadow"
+                          <label
+                            className="relative size-[56px] shrink-0 rounded-[8px] border border-fm-border-focus cursor-pointer block overflow-hidden focus-within:ring-2 focus-within:ring-fm-brand transition-shadow"
                             style={{ background: draftColor }}
-                            aria-label={t('Pick Custom Color')}
                             title={t('Pick Custom Color')}
-                            onClick={() => nativeColorInputRef.current?.click()}
-                          />
+                          >
+                            <input
+                              ref={nativeColorInputRef}
+                              type="color"
+                              value={draftColor || '#000000'}
+                              onChange={(e) => setDraftColor(e.target.value)}
+                              autoFocus
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                              aria-label={t('Pick Custom Color')}
+                            />
+                          </label>
                           <div className="flex flex-col gap-[4px] min-w-0 flex-1">
                             <span className="text-[10px] leading-[12px] text-fm-text-detail uppercase tracking-wider">
                               {t('Custom Color')}
@@ -2286,15 +2305,6 @@ export function AddEditDialog({
                             </span>
                           </div>
                         </div>
-                        <input
-                          ref={nativeColorInputRef}
-                          type="color"
-                          value={draftColor || '#000000'}
-                          onChange={(e) => setDraftColor(e.target.value)}
-                          className="sr-only"
-                          tabIndex={-1}
-                          aria-hidden="true"
-                        />
                         <div className="flex justify-end gap-[8px]">
                           <button
                             type="button"
