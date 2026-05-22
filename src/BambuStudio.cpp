@@ -98,12 +98,23 @@ using namespace nlohmann;
 #if defined(__linux__) || defined(__LINUX__)
 #include <gtk/gtk.h>
 
-static void setup_kde_display_backend() {
+static void setup_display_backend() {
+    // If the user already set GDK_BACKEND, respect their choice.
+    if (std::getenv("GDK_BACKEND") != nullptr)
+        return;
+
     const char* xdg_session = std::getenv("XDG_SESSION_TYPE");
     if (xdg_session && std::strcmp(xdg_session, "wayland") == 0) {
-        if (std::getenv("GDK_BACKEND") == nullptr) {
+        // We are in a Wayland session. Only redirect to X11 (via XWayland) if
+        // DISPLAY is already set — i.e. XWayland is actually running.
+        // If XWayland uses lazy autostart it may not have started yet, so
+        // forcing GDK_BACKEND=x11 without a live X11 server would crash
+        // exactly the same way as the original bug.
+        const char* display = std::getenv("DISPLAY");
+        if (display && *display) {
             setenv("GDK_BACKEND", "x11", 1);
         }
+        // Otherwise let GTK negotiate with the Wayland compositor directly.
     }
 }
 
@@ -1604,7 +1615,7 @@ int CLI::run(int argc, char **argv)
 #if defined(__linux__) || defined(__LINUX__)
         // Force X11 backend via XWayland when running under a Wayland session,
         // unless the user has already set GDK_BACKEND explicitly.
-        setup_kde_display_backend();
+        setup_display_backend();
 #endif
         ::Label::initSysFont();
 #ifdef SLIC3R_GUI
