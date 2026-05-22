@@ -1,12 +1,11 @@
-contact_links:
-  - name: Do you need Support?
-    url: https://bambulab.com/en/support
-    about: You can find all the entries(FAQ/Official Wiki//General Inquiry/Technical Support/Documentation And Manuals/Official Community Forum) from here
-  - name: Technical Support
-    url: https://bambulab.com/en/my/support/tickets/create
-    about: You can file a ticket directly from here, especially for the printer related hardware/software issues.
-  - name: Bambu lab Community Forum
-    url: https://forum.bambulab.com/
-    about: Please get in touch on our Bambu lab Community Forum! (Not an official support channel.)
-    
 blank_issues_enabled: false
+contact_links:
+  - name: Ask a question (Discussions)
+    url: https://github.com/BenJule/BambuStudio/discussions
+    about: Use GitHub Discussions for questions and general support.
+  - name: Security vulnerability
+    url: https://github.com/BenJule/BambuStudio/security/advisories/new
+    about: Report security issues privately — do not open a public issue.
+  - name: Bambu Lab official support
+    url: https://bambulab.com/en/support
+    about: For hardware issues or Bambu Lab cloud/firmware problems.

@@ -1,114 +1,118 @@
 name: Bug Report
-description: File a bug report
-labels: bug
+description: Report something that is not working correctly
+labels: ["bug", "status: needs-triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        **Thank you for using Bambu Studio and wanting to report a bug.**
-        Before filing, please check if the issue already exists (either open or closed) by using the search bar on the issues page. If it does, comment there. Even if it's closed, we can reopen it based on your comment.
+        Before filing, please **search existing issues** to avoid duplicates. If one exists, comment there instead.
+
   - type: input
     id: version
     attributes:
-      label: Bambu Studio Version
-      description: Which version of Bambu Studio are you running? You can see the full version in `Help` -> `About Bambu Studio`.
-      placeholder: e.g. 1.6.2.4
+      label: BambuStudio Version
+      description: Found in `Help` → `About Bambu Studio`
+      placeholder: e.g. 02.07.00.55
     validations:
       required: true
+
   - type: dropdown
-    id: app_from
+    id: source
     attributes:
-      label: Where is the application from?
-      description: please confirm where is your Bambu Studio from
-      multiple: true
+      label: Where did you get this build?
       options:
-        - Bambu Lab Official website
-        - Bambu Lab GitHub releases
-        - Built from source by yourself or others
+        - BenJule/BambuStudio GitHub releases
+        - Built from source
+        - Bambu Lab official release
     validations:
       required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Operating System
+      options:
+        - Linux
+        - Windows
+        - macOS
+    validations:
+      required: true
+
   - type: input
-    id: os_info
+    id: os_version
     attributes:
-      label: OS version
-      description: Which OS version are you using?
-      placeholder: |
-        OS: Windows 7/8/10/11 ... , Ubuntu 22.04/Fedora 36 ... , macOS 10.15/11.1/12.3 ...
+      label: OS Version
+      placeholder: e.g. Ubuntu 24.04, Windows 11, macOS 14.5
     validations:
       required: true
-  - type: textarea
-    id: system_info
-    attributes:
-      label: Additional system information
-      description: For the performance issue, please also show the CPU、Memory information; For the 3D Rendering issue, please also show the Display Card information.
-      placeholder: |
-        CPU: 11th gen intel r core tm i7-1185g7/amd ryzen 7 6800h/...
-        Memory: 32/16 GB...
-        Display Card: NVIDIA Quadro P400/...
-    validations:
-      required: false
+
   - type: input
     id: printer
     attributes:
-      label: Printer
-      description: Which printer was selected
-      placeholder: Bambu Lab X1 series/Bambu Lab P1P/...
+      label: Printer model
+      placeholder: e.g. Bambu Lab X1C, P1S, A1 Mini
     validations:
-      required: true
+      required: false
+
   - type: textarea
-    id: reproduce_steps
+    id: reproduce
     attributes:
-      label: How to reproduce
-      description: Please described the detailed steps to reproduce this issue
+      label: Steps to reproduce
       placeholder: |
-        1. Go to '...'
-        2. Click on '....'
-        3. Scroll down to '....'
-        4. See error
+        1. Open ...
+        2. Click ...
+        3. See error
     validations:
       required: true
+
   - type: textarea
-    id: actual_results
+    id: expected
     attributes:
-      label: Actual results
-      description: What happens after the above steps? Please, enclose a screenshot whenever possible (even when you think the description is clear). 
+      label: Expected behavior
     validations:
       required: true
+
   - type: textarea
-    id: expected_results
+    id: actual
     attributes:
-      label: Expected results
-      description: What should happen after the above steps?
+      label: Actual behavior
+      description: Screenshots or screen recordings are very helpful.
     validations:
       required: true
+
+  - type: textarea
+    id: system_info
+    attributes:
+      label: System information (optional)
+      placeholder: |
+        GPU: NVIDIA RTX 3080 / AMD RX 6700 XT / Intel Iris Xe
+        RAM: 16 GB
+    validations:
+      required: false
+
   - type: markdown
-    id: file_required
     attributes:
       value: |
-        Please be sure to add the following files:
-          * Please upload a ZIP archive containing the **project file** used when the problem arise. Please export it just before or after the problem occurs. Even if you did nothing and/or there is no object, export it! (We need the configurations in project file).
-            You can export the project file from the application menu in `File`->`Save project as...`, then zip it
-          * A **log file** for crashes and similar issues.
-            You can find your log file here:
-            Windows: `%APPDATA%\BambuStudio\log` or usually `C:\Users\<your username>\AppData\Roaming\BambuStudio\log`
-            MacOS: `$HOME/Library/Application Support/BambuStudio/log`
-            Linux: `$HOME/.config/BambuStudio/log`
-            If Bambu Studio still starts, you can also reach this directory from the application menu in `Help` -> `Show Configuration Folder`
-            You can zip the log directory, or just select the newest logs when this issue happens, and zip them
+        ### Log file location
+        - **Windows:** `%APPDATA%\BambuStudio\log`
+        - **macOS:** `~/Library/Application Support/BambuStudio/log`
+        - **Linux:** `~/.config/BambuStudio/log`
+
+        Or: `Help` → `Show Configuration Folder`
+
   - type: textarea
-    id: file_uploads
+    id: logs
     attributes:
-      label: Project file & Debug log uploads
-      description:  Drop the project file(a ZIP archive containing 3mf file) and debug log here
-      placeholder: |
-        Project File: `File` -> `Save project as...` then zip it & drop it here
-        Log File:  `Help` -> `Show Configuration Folder`, then zip the log directory, or just select the newest logs in `log` when this issue happens and zip them, then drop the zip file here
+      label: Log file & project file
+      description: Drop a ZIP of the log directory and/or the exported project file (`.3mf` zipped) here.
+      placeholder: Drag & drop files here
     validations:
-      required: true
+      required: false
+
   - type: checkboxes
-    id: file_checklist
+    id: checklist
     attributes:
-      label: Checklist of files to include
+      label: Attachments checklist
       options:
-        - label: Log file
-        - label: Project file
+        - label: Log file attached
+        - label: Project file attached (if applicable)

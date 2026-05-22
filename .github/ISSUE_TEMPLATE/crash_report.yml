@@ -1,0 +1,86 @@
+name: Crash Report
+description: The application crashed or froze completely
+labels: ["crash", "status: needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please include a log file — it is essential for diagnosing crashes.
+
+  - type: input
+    id: version
+    attributes:
+      label: BambuStudio Version
+      description: Found in `Help` → `About Bambu Studio`
+      placeholder: e.g. 02.07.00.55
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Operating System
+      options:
+        - Linux
+        - Windows
+        - macOS
+    validations:
+      required: true
+
+  - type: input
+    id: os_version
+    attributes:
+      label: OS Version
+      placeholder: e.g. Ubuntu 24.04, Windows 11, macOS 14.5
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reproducible
+    attributes:
+      label: Is the crash reproducible?
+      options:
+        - Always — happens every time
+        - Sometimes — happens occasionally
+        - Once — could not reproduce again
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open file ...
+        2. Click ...
+        3. Application crashes
+    validations:
+      required: true
+
+  - type: textarea
+    id: system_info
+    attributes:
+      label: System information
+      placeholder: |
+        GPU: NVIDIA RTX 3080 / AMD RX 6700 XT
+        Driver version: 550.x
+        RAM: 16 GB
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ### Log file location
+        - **Windows:** `%APPDATA%\BambuStudio\log`
+        - **macOS:** `~/Library/Application Support/BambuStudio/log`
+        - **Linux:** `~/.config/BambuStudio/log`
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log file
+      description: Please attach a ZIP of the log directory. This is required for crash diagnosis.
+      placeholder: Drag & drop log ZIP here
+    validations:
+      required: true
