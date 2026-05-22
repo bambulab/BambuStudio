@@ -28,6 +28,23 @@ jobs:
         with:
           egress-policy: audit
 
+      - name: Checkout (for signed tag creation)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 1
+
+      - name: Import GPG signing key
+        run: |
+          echo "${{ secrets.GIT_SIGNING_KEY }}" | \
+            gpg --batch --pinentry-mode loopback \
+                --passphrase "${{ secrets.GIT_SIGNING_KEY_PASSPHRASE }}" \
+                --import
+          git config user.signingkey "${{ secrets.GIT_SIGNING_KEY_ID }}"
+          git config tag.gpgSign true
+          git config user.name "BenJule"
+          git config user.email "benjamin.luetker@gmail.com"
+
       - name: Download artifacts from triggering run
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v4
         with:
@@ -66,6 +83,15 @@ jobs:
           gh release delete nightly \
             --repo "${{ github.repository }}" \
             --yes --cleanup-tag 2>/dev/null || true
+          git push origin :refs/tags/nightly 2>/dev/null || true
+
+      - name: Create signed nightly tag
+        if: steps.check.outputs.n > 0
+        run: |
+          git tag -s nightly \
+            -m "Nightly build $(date -u +'%Y-%m-%d')" \
+            "${{ github.event.workflow_run.head_sha }}"
+          git push origin nightly
 
       - name: Publish nightly pre-release
         if: steps.check.outputs.n > 0
