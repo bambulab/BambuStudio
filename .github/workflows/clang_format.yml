@@ -8,6 +8,7 @@ on:
       - 'src/**/*.hpp'
       - 'src/**/*.h'
       - 'src/**/*.c'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
