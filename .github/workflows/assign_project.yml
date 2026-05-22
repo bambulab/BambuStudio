@@ -1,0 +1,17 @@
+name: Auto-assign to Project
+
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [opened]
+
+jobs:
+  assign:
+    name: Add to BambuStudio Development project
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/add-to-project@v1
+        with:
+          project-url: https://github.com/users/BenJule/projects/1
+          github-token: ${{ secrets.PROJECT_TOKEN }}
