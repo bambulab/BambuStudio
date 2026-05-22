@@ -4344,10 +4344,10 @@ msgstr "일시 중지 (첫 레이어 오류)"
 msgid "Pause (nozzle clog)"
 msgstr "일시 중지 (노즐 막힘)"
 
-msgid "Measuring motion percision"
+msgid "Measuring motion precision"
 msgstr "모션 정확도 측정중"
 
-msgid "Enhancing motion percision"
+msgid "Enhancing motion precision"
 msgstr "모션 정확도 향상"
 
 msgid "Measure motion accuracy"

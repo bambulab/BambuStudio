@@ -4330,10 +4330,10 @@ msgstr "一時停止（1層目のエラー）"
 msgid "Pause (nozzle clog)"
 msgstr "一時停止 (ノズル詰まり)"
 
-msgid "Measuring motion percision"
+msgid "Measuring motion precision"
 msgstr "動作精度の測定"
 
-msgid "Enhancing motion percision"
+msgid "Enhancing motion precision"
 msgstr "動作精度の向上"
 
 msgid "Measure motion accuracy"

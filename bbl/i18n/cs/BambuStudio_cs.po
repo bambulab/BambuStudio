@@ -4412,10 +4412,10 @@ msgstr "Pozastavení (chyba první vrstvy)"
 msgid "Pause (nozzle clog)"
 msgstr "Pozastavení (ucpání trysky)"
 
-msgid "Measuring motion percision"
+msgid "Measuring motion precision"
 msgstr "Měření přesnosti pohybu"
 
-msgid "Enhancing motion percision"
+msgid "Enhancing motion precision"
 msgstr "Zvyšování přesnosti pohybu"
 
 msgid "Measure motion accuracy"

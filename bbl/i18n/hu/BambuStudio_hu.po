@@ -4350,10 +4350,10 @@ msgstr "Szünet (első réteg hibája)"
 msgid "Pause (nozzle clog)"
 msgstr "Szünet (fúvóka eltömődése)"
 
-msgid "Measuring motion percision"
+msgid "Measuring motion precision"
 msgstr "Mozgás pontosságának mérése"
 
-msgid "Enhancing motion percision"
+msgid "Enhancing motion precision"
 msgstr "Mozgás pontosságának javítása"
 
 msgid "Measure motion accuracy"
