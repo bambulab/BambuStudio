@@ -359,6 +359,10 @@ Model Model::read_from_file(const std::string&                                  
         if (result) {
             model.texture_mesh = tex_mesh;
             add_textured_mesh_to_model(model, *tex_mesh, input_file);
+        } else if (!message.empty()) {
+            BOOST_LOG_TRIVIAL(error) << "glTF: failed to load model: " << message
+                                     << ", path=" << input_file;
+            message = _L("The file format is incompatible and cannot be parsed.");
         }
     }
     else if (boost::algorithm::iends_with(input_file, ".fbx")) {
@@ -367,6 +371,10 @@ Model Model::read_from_file(const std::string&                                  
         if (result) {
             model.texture_mesh = tex_mesh;
             add_textured_mesh_to_model(model, *tex_mesh, input_file);
+        } else if (!message.empty()) {
+            BOOST_LOG_TRIVIAL(error) << "FBX: failed to load model: " << message
+                                     << ", path=" << input_file;
+            message = _L("The file format is incompatible and cannot be parsed.");
         }
     }
     else if (boost::algorithm::iends_with(input_file, ".3mf"))
