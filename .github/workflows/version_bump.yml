@@ -8,11 +8,12 @@ on:
         required: true
         type: choice
         options:
-          - patch
-          - minor
-          - major
+          - fork       # bump FORK_RELEASE (e.g. fork.1 → fork.2)
+          - patch      # bump upstream patch + reset fork to 1
+          - minor      # bump upstream minor + reset fork to 1
+          - major      # bump upstream major + reset fork to 1
       custom:
-        description: 'Custom version (e.g. 02.08.00.00) — overrides part selection'
+        description: 'Custom upstream version (e.g. 02.08.00.00) — overrides part selection (fork resets to 1)'
         required: false
         type: string
 
@@ -34,53 +35,66 @@ jobs:
         id: current
         run: |
           VER=$(grep 'set(SLIC3R_VERSION' version.inc | cut -d '"' -f2)
+          FORK=$(grep 'set(FORK_RELEASE' version.inc | cut -d '"' -f2)
           echo "version=$VER" >> "$GITHUB_OUTPUT"
-          echo "Current version: $VER"
+          echo "fork=$FORK" >> "$GITHUB_OUTPUT"
+          echo "Current: ${VER}-fork.${FORK}"
 
       - name: Calculate new version
         id: new
         run: |
           CURRENT="${{ steps.current.outputs.version }}"
+          FORK="${{ steps.current.outputs.fork }}"
           CUSTOM="${{ inputs.custom }}"
 
           if [[ -n "$CUSTOM" ]]; then
-            NEW="$CUSTOM"
+            NEW_VER="$CUSTOM"
+            NEW_FORK=1
           else
             IFS='.' read -r A B C D <<< "$CURRENT"
             A=$((10#$A)); B=$((10#$B)); C=$((10#$C)); D=$((10#$D))
             case "${{ inputs.part }}" in
-              major) A=$((A+1)); B=0; C=0; D=0 ;;
-              minor) B=$((B+1)); C=0; D=0 ;;
-              patch) D=$((D+1)) ;;
+              major) A=$((A+1)); B=0; C=0; D=0; NEW_FORK=1 ;;
+              minor) B=$((B+1)); C=0; D=0; NEW_FORK=1 ;;
+              patch) D=$((D+1)); NEW_FORK=1 ;;
+              fork)  NEW_FORK=$((10#$FORK+1)) ;;
             esac
-            NEW=$(printf "%02d.%02d.%02d.%02d" $A $B $C $D)
+            NEW_VER=$(printf "%02d.%02d.%02d.%02d" $A $B $C $D)
           fi
 
-          echo "version=$NEW" >> "$GITHUB_OUTPUT"
-          echo "New version: $NEW"
+          echo "version=$NEW_VER" >> "$GITHUB_OUTPUT"
+          echo "fork=$NEW_FORK" >> "$GITHUB_OUTPUT"
+          echo "New: ${NEW_VER}-fork.${NEW_FORK}"
 
       - name: Update version.inc
         run: |
-          NEW="${{ steps.new.outputs.version }}"
-          sed -i "s/set(SLIC3R_VERSION \"[^\"]*\")/set(SLIC3R_VERSION \"${NEW}\")/" version.inc
-          grep 'SLIC3R_VERSION' version.inc
+          NEW_VER="${{ steps.new.outputs.version }}"
+          NEW_FORK="${{ steps.new.outputs.fork }}"
+          sed -i "s/set(SLIC3R_VERSION \"[^\"]*\")/set(SLIC3R_VERSION \"${NEW_VER}\")/" version.inc
+          sed -i "s/set(FORK_RELEASE \"[^\"]*\")/set(FORK_RELEASE \"${NEW_FORK}\")/" version.inc
+          grep -E 'SLIC3R_VERSION|FORK_RELEASE' version.inc
 
       - name: Commit and push
         run: |
-          NEW="${{ steps.new.outputs.version }}"
+          NEW_VER="${{ steps.new.outputs.version }}"
+          NEW_FORK="${{ steps.new.outputs.fork }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add version.inc
-          git commit -m "chore: bump version to ${NEW}"
+          git commit -m "chore: bump version to ${NEW_VER}-fork.${NEW_FORK}"
           git push
 
       - name: Summary
         run: |
+          OLD_VER="${{ steps.current.outputs.version }}"
+          OLD_FORK="${{ steps.current.outputs.fork }}"
+          NEW_VER="${{ steps.new.outputs.version }}"
+          NEW_FORK="${{ steps.new.outputs.fork }}"
           echo "## Version bumped" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "**${{ steps.current.outputs.version }}** → **${{ steps.new.outputs.version }}**" >> "$GITHUB_STEP_SUMMARY"
+          echo "**${OLD_VER}-fork.${OLD_FORK}** → **${NEW_VER}-fork.${NEW_FORK}**" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Trigger a release by pushing a tag:" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-          echo "git tag v${{ steps.new.outputs.version }} && git push fork v${{ steps.new.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "git tag v${NEW_VER}-fork.${NEW_FORK} && git push fork v${NEW_VER}-fork.${NEW_FORK}" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"

@@ -3,11 +3,11 @@ name: Release
 on:
   push:
     tags:
-      - 'v[0-9]*.[0-9]*.[0-9]*'
+      - 'v[0-9]*.[0-9]*.[0-9]*-fork.[0-9]*'
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version override (e.g. 2.6.1) — leave empty to read from version.inc'
+        description: 'Version override (e.g. 02.07.00.55-fork.1) — leave empty to read from version.inc'
         required: false
         type: string
 
@@ -35,7 +35,8 @@ jobs:
             echo "tag=v${{ inputs.version }}" >> "$GITHUB_OUTPUT"
           else
             ver=$(grep 'set(SLIC3R_VERSION' version.inc | cut -d '"' -f2)
-            echo "tag=v${ver}" >> "$GITHUB_OUTPUT"
+            fork=$(grep 'set(FORK_RELEASE' version.inc | cut -d '"' -f2)
+            echo "tag=v${ver}-fork.${fork}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Show tag
