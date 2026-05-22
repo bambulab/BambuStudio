@@ -16,8 +16,6 @@ jobs:
   update-apt-repo:
     name: Update APT Repository
     runs-on: ubuntu-24.04
-    permissions:
-      contents: write
 
     steps:
       - name: Determine tag
@@ -36,14 +34,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
-      - name: Check out gh-pages branch
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
-        with:
-          ref: gh-pages
-          token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Install tools
-        run: sudo apt-get install -y --no-install-recommends dpkg-dev apt-utils
+        run: sudo apt-get install -y --no-install-recommends dpkg-dev apt-utils knockd rsync
 
       - name: Download .deb from release
         run: |
@@ -65,45 +57,53 @@ jobs:
             > dists/stable/main/binary-amd64/Packages
           gzip  -k -f dists/stable/main/binary-amd64/Packages
           bzip2 -k -f dists/stable/main/binary-amd64/Packages
-          echo "Packages generated:"
-          wc -l dists/stable/main/binary-amd64/Packages
+          echo "Packages generated ($(wc -l < dists/stable/main/binary-amd64/Packages) lines)"
 
       - name: Generate Release file
         run: |
-          cd dists/stable
-          cat > Release << 'RELEASE_EOF'
-          Origin: BenJule BambuStudio
-          Label: BenJule BambuStudio
-          Suite: stable
-          Codename: stable
-          Architectures: amd64
-          Components: main
-          Description: BenJule BambuStudio APT Repository
-          RELEASE_EOF
-          apt-ftparchive release . >> Release
-          cat Release
+          mkdir -p dists/stable
+          cat > dists/stable/Release << 'RELEASE_EOF'
+Origin: BenJule BambuStudio
+Label: BenJule BambuStudio
+Suite: stable
+Codename: stable
+Architectures: amd64
+Components: main
+Description: BenJule BambuStudio APT Repository
+RELEASE_EOF
+          cd dists/stable && apt-ftparchive release . >> Release
+          cat dists/stable/Release
 
       - name: Sign Release
         run: |
           echo "${{ secrets.APT_SIGNING_KEY }}" | gpg --batch --import
-          # InRelease (clearsigned, contains Release text)
           gpg --batch --yes \
             --default-key 1726EB3278D7246499B5F2C319BC754BE4AC6B68 \
             --clearsign \
             -o dists/stable/InRelease \
             dists/stable/Release
-          # Release.gpg (detached signature)
           gpg --batch --yes \
             --default-key 1726EB3278D7246499B5F2C319BC754BE4AC6B68 \
             -abs \
             -o dists/stable/Release.gpg \
             dists/stable/Release
 
-      - name: Commit and push
+      - name: Setup SSH key
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add pool/ dists/
-          git diff --cached --stat
-          git commit -m "apt: add ${{ steps.tag.outputs.tag }}" || echo "nothing to commit"
-          git push origin gh-pages
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_DEPLOY_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Port knock
+        run: |
+          sudo apt-get install -y --no-install-recommends knockd
+          knock -d 200 "${{ secrets.VPS_HOST }}" 7000 8000 9000
+          sleep 1
+
+      - name: Deploy to VPS via rsync
+        run: |
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
+            pool/ dists/ \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/srv/apt-repo/"
