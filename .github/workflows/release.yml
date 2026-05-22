@@ -42,7 +42,6 @@ jobs:
   build:
     name: Build ${{ matrix.os }}
     needs: [prepare]
-    continue-on-error: ${{ matrix.optional == true }}
     strategy:
       fail-fast: false
       matrix:
@@ -53,7 +52,6 @@ jobs:
           - os: windows-2025-vs2026
           - os: macos-15-intel
             arch: x86_64
-            optional: true
           - os: macos-15
             arch: arm64
     uses: ./.github/workflows/build_check_cache.yml
@@ -62,6 +60,7 @@ jobs:
       arch: ${{ matrix.arch }}
       build-deps-only: false
     secrets: inherit
+
 
   build_packages:
     name: Build Debian .deb + Fedora .rpm
@@ -72,6 +71,11 @@ jobs:
   create_release:
     name: Create GitHub Release
     needs: [prepare, build, build_packages]
+    if: |
+      always() &&
+      needs.prepare.result == 'success' &&
+      needs.build_packages.result == 'success' &&
+      (needs.build.result == 'success' || needs.build.result == 'failure')
     runs-on: ubuntu-latest
     permissions:
       contents: write
