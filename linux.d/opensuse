@@ -37,7 +37,15 @@ REQUIRED_DEV_PACKAGES=(
 
 if [[ -n "$UPDATE_LIB" ]]
 then
-    REQUIRED_DEV_PACKAGES+=(webkitgtk3-devel)
+    # webkit2gtk4-devel (soup3) replaced webkitgtk3-devel in newer Tumbleweed snapshots
+    if zypper search -x webkitgtk3-devel 2>/dev/null | grep -q "^i\|^v"; then
+        REQUIRED_DEV_PACKAGES+=(webkitgtk3-devel)
+    elif zypper search -x webkit2gtk3-devel 2>/dev/null | grep -q "^i\|^v"; then
+        REQUIRED_DEV_PACKAGES+=(webkit2gtk3-devel)
+    else
+        REQUIRED_DEV_PACKAGES+=(webkit2gtk4-devel)
+    fi
+    sudo zypper -n clean --all
     sudo zypper -n refresh
     sudo zypper -n install ${REQUIRED_DEV_PACKAGES[@]}
     echo -e "done\n"

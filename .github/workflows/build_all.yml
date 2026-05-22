@@ -205,11 +205,11 @@ jobs:
 
       - name: Build deps
         if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: ./BuildLinux.sh -dfr
+        run: ./BuildLinux.sh -dr
 
       - name: Build BambuStudio + AppImage
         run: |
-          ./BuildLinux.sh -isfr
+          ./BuildLinux.sh -isr
           ARCH=$(uname -m)
           ver=$(grep 'set(SLIC3R_VERSION' version.inc | cut -d '"' -f2)
           mv -n ./build/BambuStudio_ubu64.AppImage \
