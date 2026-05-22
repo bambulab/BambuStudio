@@ -98,13 +98,14 @@ public:
 
     static bool check_tpu_volume_type_before_cali(const CalibMode& cali_mode, const std::vector<CalibInfo> &cali_infos, wxString& error_message);
 
+    // Build filament/AMS map for the calibration pages.
+    static std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj);
+
 private:
     static bool process_and_store_3mf(Model* model, const DynamicPrintConfig& full_config, const Calib_Params& params, wxString& error_message);
     static void send_to_print(const CalibInfo &calib_info, wxString& error_message, int flow_ratio_mode = 0); // 0: none  1: coarse  2: fine
     static void send_to_print(const std::vector<CalibInfo> &calib_infos, wxString &error_message, int flow_ratio_mode = 0); // 0: none  1: coarse  2: fine
 };
-
-extern std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj);
 
 extern void get_tray_ams_and_slot_id(MachineObject* obj, int in_tray_id, int &ams_id, int &slot_id, int &tray_id);
 

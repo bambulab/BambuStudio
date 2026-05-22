@@ -402,8 +402,9 @@ void DevCalib::ExtrusionCalibSetParse(const json & jj){
     int slot_id = tray_ams_slot_map.find(tray_id) != tray_ams_slot_map.end() ? tray_ams_slot_map[tray_id].second : -1;
 
     if(tray_id == VIRTUAL_TRAY_MAIN_ID) {
-        GetOwner()->vt_slot[MAIN_EXTRUDER_ID].k = jj.value("k_value", GetOwner()->vt_slot[MAIN_EXTRUDER_ID].k);
-        GetOwner()->vt_slot[MAIN_EXTRUDER_ID].n = jj.value("n_value", GetOwner()->vt_slot[MAIN_EXTRUDER_ID].n);
+        std::optional<float> k_opt = jj.contains("k_value") ? std::optional<float>(jj["k_value"].get<float>()) : std::nullopt;
+        std::optional<float> n_opt = jj.contains("n_value") ? std::optional<float>(jj["n_value"].get<float>()) : std::nullopt;
+        GetOwner()->GetFilaSystem()->SetVirtualTray(VIRTUAL_TRAY_MAIN_ID, k_opt, n_opt, std::nullopt);
     }else{
         auto tray_item = GetOwner()->GetFilaSystem()->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id));
         if (tray_item) {
@@ -428,15 +429,9 @@ void DevCalib::ExtrusionCalibSelectParse(const json &jj){
         int ams_id = jj.value("ams_id", default_ams_id);
         int slot_id = jj.value("slot_id", default_slot_id);
 
-        BOOST_LOG_TRIVIAL(trace) << "extrusion_cali_sel: illegal ams_id = " << ams_id << "slot_id = " << slot_id;
-
-        std::vector<DevAmsTray> &vt_slot = GetOwner()->vt_slot;
-        if (ams_id == VIRTUAL_TRAY_MAIN_ID && vt_slot.size() > 0) {
-            vt_slot[MAIN_EXTRUDER_ID].cali_idx = jj.value("cali_idx", vt_slot[MAIN_EXTRUDER_ID].cali_idx);
-            vt_slot[MAIN_EXTRUDER_ID].set_hold_count();
-        } else if (ams_id == VIRTUAL_TRAY_DEPUTY_ID && vt_slot.size() > 1) {
-            vt_slot[DEPUTY_EXTRUDER_ID].cali_idx = jj.value("cali_idx", vt_slot[DEPUTY_EXTRUDER_ID].cali_idx);
-            vt_slot[DEPUTY_EXTRUDER_ID].set_hold_count();
+        if (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
+            std::optional<int> idx_opt = jj.contains("cali_idx") ? std::optional<int>(jj["cali_idx"].get<int>()) : std::nullopt;
+            GetOwner()->GetFilaSystem()->SetVirtualTray(ams_id, std::nullopt, std::nullopt, idx_opt, /*is_set_hold_count=*/true);
         } else {
             auto tray_item = GetOwner()->GetFilaSystem()->GetAmsTray(std::to_string(ams_id), std::to_string(slot_id));
             if (tray_item) {

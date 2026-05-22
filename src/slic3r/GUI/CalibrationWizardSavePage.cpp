@@ -453,12 +453,7 @@ void CaliPASaveAutoPanel::sync_cali_result_for_multi_extruder(const std::vector<
 {
     if (!m_obj || !m_obj->GetNozzleSystem()) return;
 
-    std::map<int, DynamicPrintConfig> old_full_filament_ams_list = build_filament_ams_list(m_obj);
-    std::map<int, DynamicPrintConfig> full_filament_ams_list;
-    for (auto ams_item : old_full_filament_ams_list) {
-        int key = ams_item.first & 0x0FFFF;
-        full_filament_ams_list[key] = std::move(ams_item.second);
-    }
+    std::map<int, DynamicPrintConfig> full_filament_ams_list = CalibUtils::build_filament_ams_list(m_obj);
 
     m_is_all_failed  = true;
     bool part_failed = false;

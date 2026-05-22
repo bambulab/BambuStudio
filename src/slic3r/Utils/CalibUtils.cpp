@@ -96,7 +96,7 @@ wxString get_nozzle_volume_type_name(NozzleVolumeType type)
     return wxString();
 }
 
-std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj)
+std::map<int, DynamicPrintConfig> CalibUtils::build_filament_ams_list(MachineObject* obj)
 {
     std::map<int, DynamicPrintConfig> filament_ams_list;
     if (!obj) return filament_ams_list;
@@ -127,10 +127,9 @@ std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj)
     };
 
     if (obj->ams_support_virtual_tray) {
-        int extruder = 0x10000; // Main (first) extruder at right
-        for (auto & vt_tray : obj->vt_slot) {
-            filament_ams_list.emplace(extruder + stoi(vt_tray.id), build_tray_config(vt_tray, "Ext",vt_tray.id, "0"));//254 or 255
-            extruder = 0;
+        // Calibration consumers key by tray_id only; extruder bit is unused here (unlike Sidebar version).
+        for (const auto& [vt_id, vt_tray] : obj->GetFilaSystem()->GetVirtualTrays()) {
+            filament_ams_list.emplace(stoi(vt_tray.id), build_tray_config(vt_tray, "Ext", vt_tray.id, "0"));//254 or 255
         }
     }
 
@@ -148,22 +147,20 @@ std::map<int, DynamicPrintConfig> build_filament_ams_list(MachineObject* obj)
 
     auto list = obj->GetFilaSystem()->GetAmsList();
 
+    // Calibration consumers key by tray_id only;
     for (const auto& ams : list) {
-        for (auto extruder_id : ams.second->GetBindedExtruderSet()) {
-            int extruder = extruder_id ? 0 : 0x10000; // Main (first) extruder at right
-            for (auto tray : ams.second->GetTrays()) {
-                int ams_id = -1;
-                int slot_id = -1;
-                int tray_id = -1;
-                try {
-                    ams_id  = std::stoi(ams.first);
-                    slot_id = std::stoi(tray.first);
-                    tray_id = obj->GetFilaSystem()->GetTrayIdByAmsSlotId(ams_id, slot_id);
+        for (auto tray : ams.second->GetTrays()) {
+            int ams_id  = -1;
+            int slot_id = -1;
+            int tray_id = -1;
+            try {
+                ams_id  = std::stoi(ams.first);
+                slot_id = std::stoi(tray.first);
+                tray_id = obj->GetFilaSystem()->GetTrayIdByAmsSlotId(ams_id, slot_id);
 
-                    filament_ams_list.emplace(extruder + tray_id, build_tray_config(*tray.second, get_ams_name(ams_id, slot_id), std::to_string(ams_id), std::to_string(slot_id)));
-                } catch(...) {
-                    BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid ams_id:"<< ams.first << " or slot_id:" << tray.first;
-                }
+                filament_ams_list.emplace(tray_id, build_tray_config(*tray.second, get_ams_name(ams_id, slot_id), std::to_string(ams_id), std::to_string(slot_id)));
+            } catch(...) {
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "invalid ams_id:"<< ams.first << " or slot_id:" << tray.first;
             }
         }
     }

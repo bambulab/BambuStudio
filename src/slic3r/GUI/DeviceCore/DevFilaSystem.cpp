@@ -687,6 +687,35 @@ std::optional<DevAmsTray> DevFilaSystem::GetVirtualTray(int virtual_tray_id) con
     return std::nullopt;
 }
 
+std::optional<DevAmsTray> DevFilaSystem::GetVirtualTray(const std::string& virtual_tray_id) const
+{
+    auto it = m_vt_trays.find(virtual_tray_id);
+    if (it != m_vt_trays.end()) {
+        return it->second;
+    }
+
+    return std::nullopt;
+}
+
+void DevFilaSystem::SetVirtualTray(int virtual_tray_id,
+                                   std::optional<float> k_value,
+                                   std::optional<float> n_value,
+                                   std::optional<int>   cali_idx,
+                                   bool                 is_set_hold_count)
+{
+    auto it = m_vt_trays.find(std::to_string(virtual_tray_id));
+    if (it == m_vt_trays.end()) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": virtual tray " << virtual_tray_id << " not found";
+        return;
+    }
+
+    DevAmsTray& tray = it->second;
+    if (k_value.has_value())  tray.k        = k_value.value();
+    if (n_value.has_value())  tray.n        = n_value.value();
+    if (cali_idx.has_value()) tray.cali_idx = cali_idx.value();
+    if (is_set_hold_count)    tray.set_hold_count();
+}
+
 void DevFilaSystem::CollectAmsColors(std::vector<wxColour>& ams_colors) const
 {
     ams_colors.clear();

@@ -2443,14 +2443,11 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
 {
     if (!obj) return;
     // read ams slot info from printer, then save to DynamicPrintConfig
-    std::map<int, DynamicPrintConfig> old_full_filament_ams_list = build_filament_ams_list(obj);
-    std::map<int, DynamicPrintConfig> full_filament_ams_list;
-    for (auto ams_item : old_full_filament_ams_list) {
-        int key = ams_item.first & 0x0FFFF;
-        if (key == VIRTUAL_TRAY_MAIN_ID || key == VIRTUAL_TRAY_DEPUTY_ID) {
-            ams_item.second.set_key_value("filament_exist", new ConfigOptionBools{true});
+    std::map<int, DynamicPrintConfig> full_filament_ams_list = CalibUtils::build_filament_ams_list(obj);
+    for (auto& [tray_id, tray_item] : full_filament_ams_list) {
+        if (obj->GetFilaSystem()->IsVirtualTrayId(std::to_string(tray_id))) {
+            tray_item.set_key_value("filament_exist", new ConfigOptionBools{true});
         }
-        full_filament_ams_list[key] = std::move(ams_item.second);
     }
 
     // sync m_filament_ams_list from obj ams list
@@ -2470,19 +2467,19 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
             }
         }
     }
-    if (!obj->GetFilaSwitch()->IsInstalled()) {
-        // init virtual tray info
-        if (full_filament_ams_list.find(VIRTUAL_TRAY_MAIN_ID) != full_filament_ams_list.end()) {
-            m_filament_ams_list[VIRTUAL_TRAY_MAIN_ID] = full_filament_ams_list[VIRTUAL_TRAY_MAIN_ID];
-        }
 
-        if (full_filament_ams_list.find(VIRTUAL_TRAY_DEPUTY_ID) != full_filament_ams_list.end()) {
-            m_filament_ams_list[VIRTUAL_TRAY_DEPUTY_ID] = full_filament_ams_list[VIRTUAL_TRAY_DEPUTY_ID];
+    // init virtual trays info
+    for (auto& [vt_id, vt_tray] : obj->GetFilaSystem()->GetVirtualTrays()) {
+        try {
+            int vt_tray_id = std::stoi(vt_id);
+            if (!obj->GetFilaSwitch()->IsInstalled() && full_filament_ams_list.find(vt_tray_id) != full_filament_ams_list.end()) {
+                m_filament_ams_list[vt_tray_id] = full_filament_ams_list[vt_tray_id];
+            } else {
+                m_filament_ams_list[vt_tray_id] = get_empty_dynamic_print_config();
+            }
+        } catch(...) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " invalid vt_id:" << vt_id;
         }
-    } else {
-        DynamicPrintConfig empty_config = get_empty_dynamic_print_config();
-        m_filament_ams_list[VIRTUAL_TRAY_MAIN_ID] = empty_config;
-        m_filament_ams_list[VIRTUAL_TRAY_DEPUTY_ID] = empty_config;
     }
 
     update_nozzle_id_combox();
@@ -2555,7 +2552,7 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
         }
 
         /* add vt_ams info to ams info list*/
-        for (const DevAmsTray& vt_tray : obj->vt_slot) {
+        for (auto [vt_id, vt_tray] : obj->GetFilaSystem()->GetVirtualTrays()) {
             AMSinfo     info;
             info.parse_ext_info(obj, vt_tray);
             info.ams_type = DevAmsType::EXT_SPOOL;
@@ -2565,8 +2562,10 @@ void CalibrationPresetPage::sync_ams_info(MachineObject* obj)
                 main_ams_info.push_back(info);
             } else if (vt_tray.id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
                 deputy_ams_info.push_back(info);
+            } else if (obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A) {
+                ams_info.push_back(info);
             } else {
-                assert(false);
+                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__<< " may be a unknown virtual tray id:" << vt_tray.id;
             }
         }
     }
@@ -3033,7 +3032,7 @@ void CalibrationPresetPage::update_slots_panel(FilamentComboBoxList& fila_combox
     auto ams_item = curr_obj->GetFilaSystem()->GetAmsById(ams_id);
     if (ams_item) {
         slot_size = ams_item->GetSlotCount();
-    } else if (ams_id == std::to_string(VIRTUAL_TRAY_MAIN_ID) || ams_id == std::to_string(VIRTUAL_TRAY_DEPUTY_ID)) {
+    } else if (curr_obj->GetFilaSystem()->IsVirtualTrayId(ams_id)) {
         slot_size = 1;
     }
 
