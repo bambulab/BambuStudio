@@ -51,27 +51,38 @@ jobs:
           echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
           echo "url=$URL" >> "$GITHUB_OUTPUT"
 
+      - name: Write PKGBUILD
+        run: |
+          cat > PKGBUILD << 'PKGBUILD_EOF'
+          # Maintainer: BenJule <benjamin.luetker@gmail.com>
+          pkgname=bambu-studio-bin
+          pkgver=PKGVER_PLACEHOLDER
+          pkgrel=1
+          pkgdesc="BambuStudio slicer for Bambu Lab 3D printers"
+          arch=('x86_64')
+          url="https://github.com/BenJule/BambuStudio"
+          license=('AGPL3')
+          provides=('bambu-studio')
+          conflicts=('bambu-studio')
+          depends=('gtk3' 'glib2' 'glibc' 'libsecret' 'webkit2gtk')
+          source=("BambuStudio.AppImage::URL_PLACEHOLDER")
+          sha256sums=('SHA256_PLACEHOLDER')
+          package() {
+            install -Dm755 "$srcdir/BambuStudio.AppImage" "$pkgdir/usr/bin/bambu-studio"
+          }
+          PKGBUILD_EOF
+          sed -i \
+            -e "s|PKGVER_PLACEHOLDER|${{ steps.version.outputs.version }}|g" \
+            -e "s|URL_PLACEHOLDER|${{ steps.checksums.outputs.url }}|g" \
+            -e "s|SHA256_PLACEHOLDER|${{ steps.checksums.outputs.sha256 }}|g" \
+            PKGBUILD
+          cat PKGBUILD
+
       - name: Publish to AUR
         uses: KSXGitHub/github-actions-deploy-aur@da03e160361ce01bf087e790b6ffd196d7dccff7  # v4.1.3
         with:
           pkgname: bambu-studio-bin
-          pkgbuild: |
-            # Maintainer: ${{ github.repository_owner }}
-            pkgname=bambu-studio-bin
-            pkgver=${{ steps.version.outputs.version }}
-            pkgrel=1
-            pkgdesc="BambuStudio slicer for Bambu Lab 3D printers"
-            arch=('x86_64')
-            url="https://github.com/${{ github.repository }}"
-            license=('AGPL3')
-            provides=('bambu-studio')
-            conflicts=('bambu-studio')
-            depends=('gtk3' 'glib2' 'glibc' 'libsecret' 'webkit2gtk')
-            source=("BambuStudio.AppImage::${{ steps.checksums.outputs.url }}")
-            sha256sums=('${{ steps.checksums.outputs.sha256 }}')
-            package() {
-              install -Dm755 "$srcdir/BambuStudio.AppImage" "$pkgdir/usr/bin/bambu-studio"
-            }
+          pkgbuild: ./PKGBUILD
           commit_username: ${{ github.repository_owner }}
           commit_email: ${{ github.repository_owner }}@users.noreply.github.com
           ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
