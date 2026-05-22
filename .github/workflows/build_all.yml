@@ -81,10 +81,10 @@ jobs:
             artifact_suffix: debian-trixie_deb
             artifact_glob: ./build/bambustudio_*.deb
 
-          - name: Linux / Fedora 42 .rpm
-            container: fedora:42@sha256:7c63468daf71fdc5bda3699cd483b169bb995b5137265d5ffe8f04e2ce87fbb8
+          - name: Linux / Fedora 44 .rpm
+            container: fedora:44@sha256:f717d3f59ea0dc45d3c024c9477e786bab7d418d26636920d17b48016f1e69ca
             pkg_cmd: bash scripts/build_rpm.sh
-            artifact_suffix: fedora42_rpm
+            artifact_suffix: fedora44_rpm
             artifact_glob: ./build/bambustudio-*.rpm
 
     steps:
@@ -97,7 +97,7 @@ jobs:
         run: apt-get update -qq && apt-get install -y sudo git curl git-lfs
 
       - name: Bootstrap (Fedora)
-        if: startsWith(matrix.container, 'fedora:42')
+        if: startsWith(matrix.container, 'fedora:44')
         run: dnf install -y sudo git curl git-lfs
 
       - name: Checkout
