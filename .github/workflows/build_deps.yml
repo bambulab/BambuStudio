@@ -67,13 +67,13 @@ jobs:
             mkdir ${{ github.workspace }}\deps\build
             mkdir ${{ github.workspace }}\deps\build\BambuStudio_dep
             cd "${{ github.workspace }}\deps\build"
-            cmake ../ -G "Visual Studio 17 2022" -A x64 -DDESTDIR="./BambuStudio_dep" -DCMAKE_BUILD_TYPE=Release -DDEP_DEBUG=OFF
+            cmake ../ -G "Visual Studio 18 2026" -A x64 -DDESTDIR="./BambuStudio_dep" -DCMAKE_BUILD_TYPE=Release -DDEP_DEBUG=OFF
             msbuild /m ALL_BUILD.vcxproj
 
       - name: pack deps on Windows
         if: inputs.os == 'windows-2025-vs2026'
         working-directory: ${{ github.workspace }}
-        run: Compress-Archive -Path "${{ github.workspace }}\deps\build\BambuStudio_dep\*" -DestinationPath "${{ github.workspace }}\deps\build\BambuStudio_dep_win64_${{ env.date }}_vs2022.zip"
+        run: Compress-Archive -Path "${{ github.workspace }}\deps\build\BambuStudio_dep\*" -DestinationPath "${{ github.workspace }}\deps\build\BambuStudio_dep_win64_${{ env.date }}_vs2026.zip"
         shell: pwsh
           
       - name: Fix python install error on mac
