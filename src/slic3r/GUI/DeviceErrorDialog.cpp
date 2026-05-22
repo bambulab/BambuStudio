@@ -5,6 +5,7 @@
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
 #include "ReleaseNote.hpp"
+#include <wx/choicdlg.h>
 
 namespace Slic3r {
 namespace GUI
@@ -208,6 +209,7 @@ void DeviceErrorDialog::init_button_list()
     init_button(ABORT, _L("Abort"));
     init_button(DISABLE_PURIFICATION, _L("Disable Purification for This Print"));
     init_button(DONT_REMIND_NEXT_TIME, _L("Don't Remind Me"));
+    init_button(USE_OTHER_AMS_SLOT, _L("Use other AMS slot"));
 
     init_button(DBL_CHECK_CANCEL, _L("Cancel"));
     init_button(DBL_CHECK_DONE, _L("Done"));
@@ -263,6 +265,15 @@ wxString DeviceErrorDialog::show_error_code(int error_code)
         std::vector<int> used_button;
         wxString         error_image_url = wxGetApp().get_hms_query()->query_print_image_action(m_obj, error_code, used_button);
         if (s_jump_liveview_error_codes.count(error_str)) { used_button.emplace_back(DeviceErrorDialog::JUMP_TO_LIVEVIEW); } // special case
+
+        // If the print paused because a filament ran out and the printer has an AMS with other
+        // loaded slots, offer the user the option to switch to a different slot and continue.
+        if (m_obj->stage_curr == 6) {
+            auto fila_sys = m_obj->GetFilaSystem();
+            if (fila_sys && fila_sys->HasAms()) {
+                used_button.emplace_back(DeviceErrorDialog::USE_OTHER_AMS_SLOT);
+            }
+        }
 
         /* do update*/
         update_contents(error_level, error_msg, error_str, error_image_url, used_button);
@@ -639,6 +650,50 @@ void DeviceErrorDialog::on_button_click(ActionButton btn_id)
     case DeviceErrorDialog::ABORT:
     {
         m_obj->command_ams_control("abort");
+        break;
+    }
+
+    case DeviceErrorDialog::USE_OTHER_AMS_SLOT: {
+        auto fila_sys = m_obj->GetFilaSystem();
+        if (!fila_sys || !fila_sys->HasAms()) break;
+
+        wxArrayString slot_labels;
+        std::vector<std::string> tray_ids;
+
+        for (auto& [ams_id_str, ams] : fila_sys->GetAmsList()) {
+            if (!ams || !ams->IsExist()) continue;
+            int ams_id_int = std::stoi(ams_id_str);
+            for (auto& [tray_id_str, tray] : ams->GetTrays()) {
+                if (!tray || !tray->is_exists) continue;
+                int slot_id_int  = std::stoi(tray->id);
+                int global_tray_id = fila_sys->GetTrayIdByAmsSlotId(ams_id_int, slot_id_int);
+
+                wxString fila_type = wxString::FromUTF8(tray->get_display_filament_type());
+                if (fila_type.IsEmpty()) fila_type = _L("Unknown");
+                wxString label = wxString::Format("%s – %s %d: %s",
+                    ams->GetDisplayName(), _L("Slot"), slot_id_int + 1, fila_type);
+
+                slot_labels.Add(label);
+                tray_ids.push_back(std::to_string(global_tray_id));
+            }
+        }
+
+        if (slot_labels.IsEmpty()) {
+            wxMessageBox(_L("No other AMS slots with filament available."), _L("Info"), wxOK | wxICON_INFORMATION, this);
+            return; // skip Hide()
+        }
+
+        wxSingleChoiceDialog dlg(this,
+            _L("Select an AMS slot to continue printing with:"),
+            _L("Use other AMS slot"),
+            slot_labels);
+        if (dlg.ShowModal() == wxID_OK) {
+            int idx = dlg.GetSelection();
+            m_obj->command_ams_select_tray(tray_ids[idx]);
+            m_obj->command_hms_resume(std::to_string(m_error_code), m_obj->job_id_);
+        } else {
+            return; // user cancelled — keep dialog open
+        }
         break;
     }
 
