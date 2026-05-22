@@ -1,31 +1,7 @@
 name: Build Mac
 
 on:
-  push:
-    branches:
-     - master
-    paths:
-     - 'deps/**'
-     - 'src/**'
-     - '**/CMakeLists.txt'
-     - 'version.inc'
-     - 'bbl/**'
-     - 'resources/**'
-     - ".github/workflows/build_*.yml"
-
-  pull_request:
-    branches:
-     - master
-    paths:
-     - 'deps/**'
-     - 'src/**'
-     - '**/CMakeLists.txt'
-     - 'version.inc'
-     - ".github/workflows/build_*.yml"
-     - 'BuildLinux.sh'
-     - 'build_win.bat'
-
-  workflow_dispatch: # manual dispatch
+  workflow_dispatch:
       inputs:
         build-deps-only:
             description: 'Only build dependencies (bypasses caching)'
