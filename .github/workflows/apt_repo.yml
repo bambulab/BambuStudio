@@ -1,0 +1,109 @@
+name: APT Repository Update
+
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v02.07.00.55-fork.1) — leave empty for latest'
+        required: false
+        type: string
+
+permissions: read-all
+
+jobs:
+  update-apt-repo:
+    name: Update APT Repository
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Determine tag
+        id: tag
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            TAG="${{ github.event.release.tag_name }}"
+          elif [[ -n "${{ inputs.tag }}" ]]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG=$(gh release list --repo "${{ github.repository }}" \
+              --limit 1 --json tagName -q '.[0].tagName')
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Using tag: $TAG"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Check out gh-pages branch
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+        with:
+          ref: gh-pages
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install tools
+        run: sudo apt-get install -y --no-install-recommends dpkg-dev apt-utils
+
+      - name: Download .deb from release
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          mkdir -p pool/main/b/bambu-studio
+          gh release download "$TAG" \
+            --repo "${{ github.repository }}" \
+            --pattern "*.deb" \
+            --dir pool/main/b/bambu-studio/ \
+            --clobber
+          ls -lh pool/main/b/bambu-studio/
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Generate Packages index
+        run: |
+          mkdir -p dists/stable/main/binary-amd64
+          dpkg-scanpackages --multiversion pool/ \
+            > dists/stable/main/binary-amd64/Packages
+          gzip  -k -f dists/stable/main/binary-amd64/Packages
+          bzip2 -k -f dists/stable/main/binary-amd64/Packages
+          echo "Packages generated:"
+          wc -l dists/stable/main/binary-amd64/Packages
+
+      - name: Generate Release file
+        run: |
+          cd dists/stable
+          cat > Release << 'RELEASE_EOF'
+          Origin: BenJule BambuStudio
+          Label: BenJule BambuStudio
+          Suite: stable
+          Codename: stable
+          Architectures: amd64
+          Components: main
+          Description: BenJule BambuStudio APT Repository
+          RELEASE_EOF
+          apt-ftparchive release . >> Release
+          cat Release
+
+      - name: Sign Release
+        run: |
+          echo "${{ secrets.APT_SIGNING_KEY }}" | gpg --batch --import
+          # InRelease (clearsigned, contains Release text)
+          gpg --batch --yes \
+            --default-key 1726EB3278D7246499B5F2C319BC754BE4AC6B68 \
+            --clearsign \
+            -o dists/stable/InRelease \
+            dists/stable/Release
+          # Release.gpg (detached signature)
+          gpg --batch --yes \
+            --default-key 1726EB3278D7246499B5F2C319BC754BE4AC6B68 \
+            -abs \
+            -o dists/stable/Release.gpg \
+            dists/stable/Release
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pool/ dists/
+          git diff --cached --stat
+          git commit -m "apt: add ${{ steps.tag.outputs.tag }}" || echo "nothing to commit"
+          git push origin gh-pages
