@@ -42,6 +42,60 @@ mkdir -p "$appdir/usr"
 echo "Copying pixi env to AppDir/usr (~1.5 GB)…"
 cp -a "$CONDA_PREFIX/." "$appdir/usr/"
 
+# Prune the env down before layering our binary on top. Doing it now (vs after)
+# avoids the bin/ whitelist rebuild blowing away the bambu-studio we'd just
+# copied in.
+echo "Pruning conda artifacts…"
+
+# Whitelist-replace bin/: keep only runtime tools bambu-studio shells out to.
+# bwrap is the AppRun fallback when host bwrap is missing; ffmpeg/ffprobe are
+# spawned by MediaPlayCtrl for live-camera playback. Everything else (cmake,
+# mold, sccache, gcc/g++/clang/ld/ar/nm/strip, conda compiler wrappers,
+# gettext utilities, python3.*, demo apps like JxrEncApp / WebKitWebDriver) is
+# unreachable at runtime.
+mv "$appdir/usr/bin" "$appdir/usr/bin_tmp"
+mkdir "$appdir/usr/bin"
+for tool in bwrap ffmpeg ffprobe; do
+    [[ -e "$appdir/usr/bin_tmp/$tool" ]] && cp -a "$appdir/usr/bin_tmp/$tool" "$appdir/usr/bin/"
+done
+rm -rf "$appdir/usr/bin_tmp"
+
+# Build-only directories. FreeCAD-Bundle (conda/linux/create_bundle.sh) prunes
+# a smaller set; this list goes further because pixi env carries the full
+# toolchain (gcc/cmake/mold/sccache/LLVM) that FreeCAD's runtime-only
+# `mamba create` doesn't pull in.
+rm -rf \
+    "$appdir/usr/conda-meta" \
+    "$appdir/usr/include" \
+    "$appdir/usr/lib/cmake" \
+    "$appdir/usr/lib/pkgconfig" \
+    "$appdir/usr/lib/aclocal" \
+    "$appdir/usr/libexec/gcc" \
+    "$appdir/usr/libexec/gettext" \
+    "$appdir/usr/x86_64-conda-linux-gnu" \
+    "$appdir/usr/man" \
+    "$appdir/usr/share/man" \
+    "$appdir/usr/share/doc" \
+    "$appdir/usr/share/gtk-doc" \
+    "$appdir/usr/share/info" \
+    "$appdir/usr/share/aclocal"
+
+# LLVM/Clang are absent from bambu-studio's ldd closure (pulled in only by
+# rust/clang-based build tools we just deleted). Same for the Python runtime.
+rm -f  "$appdir"/usr/lib/libLLVM*.so* \
+       "$appdir"/usr/lib/libclang*.so* \
+       "$appdir"/usr/lib/libLTO*.so* \
+       "$appdir"/usr/lib/libRemarks*.so* \
+       "$appdir"/usr/lib/libpython3.*.so*
+rm -rf "$appdir"/usr/lib/python3.*
+
+# Remaining dev artifacts.
+find "$appdir/usr" \( -name '*.a' -o -name '*.h' -o -name '*.hpp' -o -name '*.la' -o -name '*.cmake' \) -delete
+find "$appdir/usr" -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null || true
+
+# Dangling symlinks left by everything above.
+find "$appdir/usr" -xtype l -delete
+
 # Record build-host $CONDA_PREFIX so AppRun can bind-mount AppDir/usr onto it at
 # runtime. Required because conda-forge libs (webkit2gtk, libcurl, fontconfig)
 # bake this absolute path into their .so files with no env-var override.
@@ -71,18 +125,6 @@ for size in 32 128 192; do
     install -Dm 644 "$PIXI_PROJECT_ROOT/resources/images/BambuStudio_${size}px.png" \
         "$appdir/usr/share/icons/hicolor/${size}x${size}/apps/BambuStudio.png"
 done
-
-# Drop conda metadata + dev artifacts to shrink the AppImage (FreeCAD-Bundle
-# does the same). Skip pruning anything bambu-studio may dlopen at runtime.
-echo "Pruning conda artifacts…"
-rm -rf \
-    "$appdir/usr/conda-meta" \
-    "$appdir/usr/lib/cmake" \
-    "$appdir/usr/lib/pkgconfig" \
-    "$appdir/usr/share/man" \
-    "$appdir/usr/share/doc"
-find "$appdir/usr" \( -name '*.a' -o -name '*.h' -o -name '*.hpp' \) -delete
-find "$appdir/usr" -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null || true
 
 echo "Running appimagetool (zstd compression)…"
 out="$build_dir/BambuStudio-${version}-x86_64.AppImage"
