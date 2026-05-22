@@ -707,6 +707,17 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         hotend["selected"]       = is_on_extruder;
     }
 
+    // External spool flag: true when this slot is currently fed by a virtual
+    // tray (the external/Ext slot) instead of an AMS slot. The web UI renders
+    // an "Ext" tag next to the slot index. Reported at the slot top level so
+    // it stays meaningful even when no hotend is mounted.
+    bool is_external_spool = false;
+    if (machine_obj && slot_id.has_value()) {
+        if (auto fila_system = machine_obj->GetFilaSystem()) {
+            is_external_spool = fila_system->GetVirtualTray(slot_id->first).has_value();
+        }
+    }
+
     const bool is_on_extruder = machine_obj && IsNozzleOnExtruder(machine_obj, nozzle_pos);
     const nlohmann::json menu_actions = {
         {"can_edit", card_state != "Empty"},
@@ -733,6 +744,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         {"status_text", ResolveStatusText(card_state)},
         {"enabled", has_hotend_slot},
         {"is_on_extruder", is_on_extruder},
+        {"is_external_spool", is_external_spool},
         {"is_top_tier", is_top_tier},
         {"in_dryer", in_dryer},
         {"dryer_humidity_pct", dryer_humidity_pct},

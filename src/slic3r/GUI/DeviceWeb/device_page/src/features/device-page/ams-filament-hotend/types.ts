@@ -88,6 +88,10 @@ export interface AmsFilamentHotendSlotViewModel {
 
   selected?: boolean;        // user UI selection (red border + green index pill)
   is_on_extruder?: boolean;  // current hotend is physically mounted on the extruder
+  // True when this slot is currently fed by an external spool (Ext slot)
+  // rather than an AMS slot. The hotend card shows an "Ext" badge next to
+  // the slot index when this flag is set. Optional for backward compatibility.
+  is_external_spool?: boolean;
   is_running?: boolean;      // batch flow currently executing this slot (S6)
   in_dryer?: boolean;        // physically inside the dryer chamber
   dryer_humidity_pct?: number; // -1 means invalid / unsupported

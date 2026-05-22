@@ -321,6 +321,25 @@
   color: #ffffff;
 }
 
+/* "Ext" tag shown next to the slot index on the filament card when the
+   slot is currently fed by an external spool (Ext slot). */
+.card-index-ext-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 14px;
+  padding: 0 4px;
+  border-radius: 7px;
+  background: #ebebeb;
+  color: #5c5c5c;
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  flex: 0 0 auto;
+  user-select: none;
+}
+
 .ams-bind-badge {
   display: inline-flex;
   align-items: center;

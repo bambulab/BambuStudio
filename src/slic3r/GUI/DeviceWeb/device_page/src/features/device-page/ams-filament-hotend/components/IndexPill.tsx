@@ -1,6 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import type { AmsFilamentHotendSlotViewModel } from '../types';
 
 export function IndexPill({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
+  const { t } = useTranslation();
   const cls = ['card-index'];
   if (slot.selected) cls.push('selected');
   if (slot.is_running) cls.push('running');
@@ -11,6 +13,15 @@ export function IndexPill({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
       <span className={cls.join(' ')} data-testid={`ams-hotend-slot-index-${slot.display_index}`}>
         {slot.display_index}
       </span>
+      {slot.is_external_spool && (
+        <span
+          className="card-index-ext-tag"
+          data-testid={`ams-hotend-slot-ext-${slot.display_index}`}
+          title={t('External spool')}
+        >
+          {t('Ext')}
+        </span>
+      )}
       {bindCount > 0 && (
         <span className="ams-bind-badge" title={`Associated AMS slots: ${bindCount}`}>
           <AmsBindIcon />

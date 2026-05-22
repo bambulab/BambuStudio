@@ -16,6 +16,7 @@ interface SlotSeed {
   color_type?: AmsFilamentHotendSlotViewModel['color_type'];
   selected?: boolean;
   is_on_extruder?: boolean;
+  is_external_spool?: boolean;
   in_dryer?: boolean;
   line_state?: AmsFilamentHotendLineState;
   nozzle_state?: AmsFilamentHotendNozzleState;
@@ -82,6 +83,7 @@ const buildSlot = (seed: SlotSeed): AmsFilamentHotendSlotViewModel => ({
   is_top_tier: seed.display_index % 2 === 0,
   selected: seed.selected ?? false,
   is_on_extruder: seed.is_on_extruder ?? false,
+  is_external_spool: seed.is_external_spool ?? false,
   in_dryer: seed.in_dryer ?? false,
   hotend: seed.hotend,
 });
@@ -156,7 +158,7 @@ export const mockAmsFilamentHotendState: AmsFilamentHotendViewModel = {
     ],
   },
   hotend_slots: [
-    buildSlot({ display_index: 1, card_state: 'Loading',     filament_name: 'PLA Basic', status_text: 'Loading/Unloading Filament', color: '#00AE42', selected: true, is_on_extruder: true, hotend: mockHotend(1) }),
+    buildSlot({ display_index: 1, card_state: 'Loading',     filament_name: 'PLA Basic', status_text: 'Loading/Unloading Filament', color: '#00AE42', selected: true, is_on_extruder: true, is_external_spool: true, hotend: mockHotend(1) }),
     buildSlot({ display_index: 2, card_state: 'Reading',                                  status_text: 'Reading', hotend: mockHotend(2) }),
     buildSlot({ display_index: 3, card_state: 'ReadyToLoad', filament_name: 'PLA Basic', status_text: 'Ready to load', color: '#00AE42', hotend: mockHotend(3) }),
     buildSlot({ display_index: 4, card_state: 'Empty',                                    status_text: '--', hotend: mockHotend(4) }),
