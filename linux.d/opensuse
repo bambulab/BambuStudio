@@ -20,7 +20,6 @@ REQUIRED_DEV_PACKAGES=(
     libtool
     Mesa-libGL-devel
     Mesa-devel
-    ninja
     libopenssl-devel
     texinfo
     libxkbcommon-devel

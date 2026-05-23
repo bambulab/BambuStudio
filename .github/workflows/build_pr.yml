@@ -9,6 +9,8 @@ on:
       - 'src/**'
       - '**/CMakeLists.txt'
       - 'version.inc'
+      - 'linux.d/**'
+      - 'scripts/**'
       - ".github/workflows/build_*.yml"
       - 'BuildLinux.sh'
       - 'build_win.bat'

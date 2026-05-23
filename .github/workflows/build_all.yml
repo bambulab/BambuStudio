@@ -11,6 +11,8 @@ on:
       - 'version.inc'
       - 'bbl/**'
       - 'resources/**'
+      - 'linux.d/**'
+      - 'scripts/**'
       - ".github/workflows/build_*.yml"
 
   workflow_dispatch: # manual dispatch
