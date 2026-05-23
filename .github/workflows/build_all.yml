@@ -2,6 +2,36 @@ name: Build all
 run-name: "Build all — ${{ github.actor }}"
 
 on:
+  push:
+    branches:
+      - main
+      - 'release/*'
+    paths:
+      - 'deps/**'
+      - 'src/**'
+      - '**/CMakeLists.txt'
+      - 'version.inc'
+      - 'localization/**'
+      - 'resources/**'
+      - '.github/workflows/build_*.yml'
+      - 'scripts/flatpak/**'
+
+  pull_request:
+    branches:
+      - main
+      - 'release/*'
+    paths:
+      - 'deps/**'
+      - 'deps_src/**'
+      - 'src/**'
+      - '**/CMakeLists.txt'
+      - 'version.inc'
+      - '.github/workflows/build_*.yml'
+      - 'build_linux.sh'
+      - 'build_release_vs2022.bat'
+      - 'build_release_macos.sh'
+      - 'scripts/flatpak/**'
+
   workflow_dispatch:
     inputs:
       build-deps-only:
@@ -10,12 +40,14 @@ on:
         default: false
 
 permissions: read-all
+
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
+  # Der Group-Key sorgt dafür, dass PR-Updates alte Läufe abbrechen, die Main-Branch-Builds aber durchlaufen
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  # ── GitHub-hosted platform matrix (Ubuntu AppImage, Windows, macOS) ───────
+  # ── GitHub-hosted platform matrix (Ubuntu, Windows, macOS) ────────────────
   build_platforms:
     name: ${{ matrix.name }}
     strategy:
@@ -23,12 +55,16 @@ jobs:
       matrix:
         include:
           - os: ubuntu-22.04
+            arch: x86_64
             name: Linux / Ubuntu 22.04
           - os: ubuntu-24.04
+            arch: x86_64
             name: Linux / Ubuntu 24.04
           - os: ubuntu-24.04-arm
+            arch: arm64
             name: Linux / Ubuntu 24.04 ARM
           - os: windows-2022
+            arch: x86_64
             name: Windows / Windows 2022
           - os: macos-15-intel
             arch: x86_64
@@ -43,8 +79,22 @@ jobs:
       build-deps-only: ${{ inputs.build-deps-only || false }}
     secrets: inherit
 
-  # ── Distribution packages (Debian .deb, Fedora .rpm, self-hosted) ─────────
+  # ── macOS Universal Binary (Fusions-Job für die Mac-Builds) ────────────────
+  build_macos_universal:
+    name: macOS / Universal Binary
+    needs: build_platforms
+    if: ${{ !cancelled() && needs.build_platforms.result == 'success' && !inputs.build-deps-only }}
+    uses: ./.github/workflows/build_orca.yml
+    with:
+      os: macos-15
+      arch: universal
+      macos-combine-only: true
+    secrets: inherit
+
+  # ── Distribution packages (Debian .deb, Fedora .rpm) ──────────────────────
   build_packages:
     name: Build distribution packages
+    needs: build_platforms
+    if: ${{ !cancelled() && needs.build_platforms.result == 'success' }}
     uses: ./.github/workflows/build_packages.yml
     secrets: inherit
