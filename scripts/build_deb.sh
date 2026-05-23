@@ -90,7 +90,7 @@ Version: $VERSION
 Architecture: $ARCH
 Maintainer: Bambu Lab <https://bambulab.com>
 Installed-Size: $INSTALLED_KB
-Depends: libgl1, libgtk-3-0, libglib2.0-0, libdbus-1-3, libudev1, libsecret-1-0, libwebkit2gtk-4.1-0 | libwebkit2gtk-4.0-37, libxkbcommon0, zenity
+Depends: libgl1, libgtk-3-0, libglib2.0-0, libdbus-1-3, libudev1, libsecret-1-0, libwebkit2gtk-4.1-0 | libwebkit2gtk-4.0-37, libxkbcommon0
 Section: graphics
 Priority: optional
 Homepage: https://bambulab.com

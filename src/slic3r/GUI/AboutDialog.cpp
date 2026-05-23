@@ -13,6 +13,14 @@
 namespace Slic3r {
 namespace GUI {
 
+static wxString build_flavor_label()
+{
+    std::string flavor = SLIC3R_BUILD_FLAVOR;
+    return flavor == "nightly" ? _L("Nightly Version") :
+           flavor == "release" ? _L("Release Version") :
+                                 _L("Dev Version");
+}
+
 AboutDialogLogo::AboutDialogLogo(wxWindow* parent)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 {
@@ -248,9 +256,9 @@ AboutDialog::AboutDialog()
     // version text overlaid on header panel
     {
         vesizer->Add(0, FromDIP(165), 1, wxEXPAND, 0);
-        auto version_text   = GUI_App::format_display_version();
-        auto version_string = _L("Beta Version") + " " + std::string(version_text);
-        wxStaticText* version = new wxStaticText(header_panel, wxID_ANY, version_string.c_str(),
+        wxString version_text   = GUI_App::format_display_version();
+        wxString version_string = build_flavor_label() + " " + version_text;
+        wxStaticText* version = new wxStaticText(header_panel, wxID_ANY, version_string,
                                                  wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
         wxFont version_font = GetFont();
         #ifdef __WXMSW__
@@ -435,7 +443,8 @@ void AboutDialog::onCopyrightBtn(wxEvent &)
 void AboutDialog::onCopyToClipboard(wxEvent&)
 {
     wxTheClipboard->Open();
-    wxTheClipboard->SetData(new wxTextDataObject(_L("Beta Version") + " " + GUI_App::format_display_version()));
+    wxTheClipboard->SetData(new wxTextDataObject(
+        build_flavor_label() + " " + GUI_App::format_display_version()));
     wxTheClipboard->Close();
 }
 

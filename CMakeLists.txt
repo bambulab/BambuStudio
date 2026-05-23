@@ -27,6 +27,15 @@ message(STATUS "BambuStudio version: ${SLIC3R_VERSION}")
 string(TIMESTAMP SLIC3R_DEV_TIMESTAMP "%Y%m%d.%H%M%S" UTC)
 add_compile_definitions(SLIC3R_DEV_TIMESTAMP="${SLIC3R_DEV_TIMESTAMP}")
 
+# Build flavor shown in the About dialog: "nightly", "release", or "" (local dev).
+# Set via environment variable BBL_BUILD_FLAVOR in CI workflows.
+if(DEFINED ENV{BBL_BUILD_FLAVOR} AND NOT "$ENV{BBL_BUILD_FLAVOR}" STREQUAL "")
+    set(SLIC3R_BUILD_FLAVOR "$ENV{BBL_BUILD_FLAVOR}")
+else()
+    set(SLIC3R_BUILD_FLAVOR "")
+endif()
+add_compile_definitions(SLIC3R_BUILD_FLAVOR="${SLIC3R_BUILD_FLAVOR}")
+
 include(GNUInstallDirs)
 include(CMakeDependentOption)
 
