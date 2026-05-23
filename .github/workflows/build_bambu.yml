@@ -15,21 +15,23 @@ on:
         type: string
 
 permissions: read-all
+
 jobs:
   build_bambu:
     name: Build BambuStudio
     runs-on: ${{ inputs.os }}
     timeout-minutes: 120
     env:
-      date:
-      ver:
-      ver_pure:
+      date: ""
+      ver: ""
+      ver_pure: ""
 
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
         with:
           egress-policy: audit
+
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
         with:
@@ -43,7 +45,8 @@ jobs:
           fail-on-cache-miss: true
 
       - name: Get the version and date on Ubuntu and macOS
-        if: inputs.os != 'windows-2022'
+        if: runner.os != 'Windows'
+        shell: bash
         run: |
           ver_pure=$(grep 'set(SLIC3R_VERSION' version.inc | cut -d '"' -f2)
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
@@ -54,13 +57,12 @@ jobs:
           echo "ver=$ver" >> $GITHUB_ENV
           echo "ver_pure=$ver_pure" >> $GITHUB_ENV
           echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
-        shell: bash
 
       - name: Get the version and date on Windows
-        if: inputs.os == 'windows-2022'
+        if: runner.os == 'Windows'
+        shell: pwsh
         run: |
           $date = Get-Date -Format 'yyyyMMdd'
-          $ref = "${{ github.ref }}"
           $eventName = "${{ github.event_name }}"
           $prNumber = "${{ github.event.number }}"
 
@@ -76,39 +78,27 @@ jobs:
 
           echo "ver=$ver" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
           echo "date=$date" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
-          echo "date: ${{ env.date }} version: ${{ env.ver }}"
-        shell: pwsh
+          echo "date: $date version: $ver"
 
-  #   Mac
-      - name: Build slicer mac
+# ── macOS ───────────────────────────────────────────────────────────────────
+      - name: Build slicer mac (Intel)
         if: inputs.os == 'macos-15-intel'
         working-directory: ${{ github.workspace }}
         run: |
           brew install automake texinfo
-          brew unlink cmake || true
-          brew tap-new $USER/old-cmake
-          brew extract --version=3.31.0 cmake $USER/old-cmake
-          brew install $USER/old-cmake/cmake@3.31.0
-          brew link --overwrite cmake@3.31.0
-          brew pin cmake@3.31.0
           ./BuildMac.sh -s -x -a x86_64 -t 10.15 -1
 
-      - name: Build slicer mac
+      - name: Build slicer mac (ARM / Universal)
         if: inputs.os == 'macos-15'
         working-directory: ${{ github.workspace }}
         run: |
           brew install automake texinfo
-          brew unlink cmake || true
-          brew tap-new $USER/old-cmake
-          brew extract --version=3.31.0 cmake $USER/old-cmake
-          brew install $USER/old-cmake/cmake@3.31.0
-          brew link --overwrite cmake@3.31.0
-          brew pin cmake@3.31.0
           ./BuildMac.sh -s -x -a universal -t 10.15 -1
 
       - name: Pack macOS .dmg
-        if: inputs.os == 'macos-15-intel' || inputs.os == 'macos-15'
+        if: runner.os == 'macOS'
         working-directory: ${{ github.workspace }}
+        shell: bash
         run: |
           if [[ "${{ inputs.arch }}" == "x86_64" ]]; then
             APP_PATH="${{ github.workspace }}/build/x86_64/BambuStudio/BambuStudio.app"
@@ -125,27 +115,26 @@ jobs:
             "${{ github.workspace }}/$DMG_NAME"
 
       - name: Upload artifacts mac
-        if: inputs.os == 'macos-15-intel' || inputs.os == 'macos-15'
+        if: runner.os == 'macOS'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
-          name: BambuStudio_Mac_${{inputs.arch}}_${{ env.ver }}
-          path: ${{ github.workspace }}/BambuStudio_Mac_${{inputs.arch}}_${{ env.ver }}.dmg
+          name: BambuStudio_Mac_${{ inputs.arch }}_${{ env.ver }}
+          path: ${{ github.workspace }}/BambuStudio_Mac_${{ inputs.arch }}_${{ env.ver }}.dmg
 
-  # Windows
+# ── Windows ─────────────────────────────────────────────────────────────────
       - name: setup MSVC
-        if: inputs.os == 'windows-2022'
+        if: runner.os == 'Windows'
         uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57  # v3
 
       - name: Install nsis and pkgconfig
-        if: inputs.os == 'windows-2022'
+        if: runner.os == 'Windows'
         shell: cmd
         run: |
-          dir "C:/Program Files (x86)/Windows Kits/10/Include"
           choco install nsis --version=3.10.0 --force -y
           choco install pkgconfiglite --version=0.28 --force -y
 
       - name: Build slicer Win
-        if: inputs.os == 'windows-2022'
+        if: runner.os == 'Windows'
         working-directory: ${{ github.workspace }}
         run: |
           mkdir build
@@ -153,96 +142,52 @@ jobs:
           cmake .. -G "Visual Studio 17 2022" -A X64 -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0 -DCMAKE_PREFIX_PATH="${{ github.workspace }}\deps\build\BambuStudio_dep\usr\local" -DCMAKE_INSTALL_PREFIX="../install-dir" -DCMAKE_BUILD_TYPE=Release -DWIN10SDK_PATH="C:/Program Files (x86)/Windows Kits/10/Include/10.0.22000.0"
           cmake --build . --target install --config Release -- -m
 
-      # - name: Create installer Win
-      #   if: inputs.os == 'windows-2022'
-      #   working-directory: ${{ github.workspace }}/build
-      #   run: |
-      #     cpack -G NSIS
-
-      - name: Pack app
-        if: inputs.os == 'windows-2022'
+      - name: Pack app Win
+        if: runner.os == 'Windows'
         working-directory: ${{ github.workspace }}
         shell: cmd
         run: '"C:/Program Files/7-Zip/7z.exe" a -tzip BambuStudio_Windows_${{ env.ver }}_portable.zip ${{ github.workspace }}/install-dir'
 
-      # - name: Pack PDB
-      #   if: inputs.os == 'windows-2022'
-      #   working-directory: ${{ github.workspace }}/build/src/Release
-      #   shell: cmd
-      #   run: '"C:/Program Files/7-Zip/7z.exe" a -m0=lzma2 -mx9 Debug_PDB_${{ env.ver }}_for_developers_only.7z  *.pdb'
-
       - name: Upload artifacts Win zip
-        if: inputs.os == 'windows-2022'
+        if: runner.os == 'Windows'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
           name: BambuStudio_Windows_${{ env.ver }}_portable
           path: ${{ github.workspace }}/BambuStudio_Windows_${{ env.ver }}_portable.zip
 
-
-  # Ubuntu
+# ── Ubuntu / Linux ──────────────────────────────────────────────────────────
       - name: Install dependencies from BuildLinux.sh
-        if: startsWith(inputs.os, 'ubuntu-')
+        if: runner.os == 'Linux'
         shell: bash
         run: sudo ./BuildLinux.sh -ur
 
       - name: Fix permissions
-        if: startsWith(inputs.os, 'ubuntu-')
+        if: runner.os == 'Linux'
         shell: bash
         run: sudo chown $USER -R ./
 
-      - name: Build slicer
-        if: startsWith(inputs.os, 'ubuntu-')
+      - name: Build slicer Linux
+        if: runner.os == 'Linux'
         shell: bash
         run: |
           ./BuildLinux.sh -isfr
-          mv -n ./build/BambuStudio_ubu64.AppImage ./build/Bambu_Studio_${{inputs.os}}_${{ env.ver }}.AppImage
+          mv -n ./build/BambuStudio_ubu64.AppImage ./build/Bambu_Studio_${{ inputs.os }}_${{ env.ver }}.AppImage
 
       - name: Build .deb package
-        if: inputs.os == 'ubuntu-22.04'
+        if: runner.os == 'Linux'
         shell: bash
         run: ./BuildLinux.sh -pr
 
-      # - name: Build orca_custom_preset_tests
-      #   if: github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-22.04'
-      #   working-directory: ${{ github.workspace }}/build/src
-      #   shell: bash
-      #   run: |
-      #     ./OrcaSlicer_profile_validator -p ${{ github.workspace }}/resources/profiles -g 1
-      #     cd ${{ github.workspace }}/resources/profiles
-      #     zip -r orca_custom_preset_tests.zip user/
-
-      - name: Upload artifacts Ubuntu
-        if: ${{ ! env.ACT && startsWith(inputs.os, 'ubuntu-') }}
+      - name: Upload artifacts Ubuntu AppImage
+        if: ${{ ! env.ACT && runner.os == 'Linux' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
-          name: BambuStudio_${{inputs.os}}_${{ env.ver }}
-          path: './build/Bambu_Studio_${{inputs.os}}_${{ env.ver }}.AppImage'
+          name: BambuStudio_${{ inputs.os }}_${{ env.ver }}
+          path: './build/Bambu_Studio_${{ inputs.os }}_${{ env.ver }}.AppImage'
 
       - name: Upload .deb package
-        if: ${{ ! env.ACT && inputs.os == 'ubuntu-22.04' }}
+        if: ${{ ! env.ACT && runner.os == 'Linux' }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
-          name: BambuStudio_${{inputs.os}}_${{ env.ver }}_deb
+          name: BambuStudio_${{ inputs.os }}_${{ env.ver }}_deb
           path: './build/bambustudio_*.deb'
-
-      # - name: Deploy Ubuntu release
-      #   if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-22.04' }}
-      #   uses: WebFreak001/deploy-nightly@46ecbabd7fad70d3e7d2c97fe8cd54e7a52e215b  # v3.2.0
-      #   with:
-      #     upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
-      #     release_id: 137995723
-      #     asset_path: ./build/OrcaSlicer_Linux_${{ env.ver }}.AppImage
-      #     asset_name: OrcaSlicer_Linux_${{ env.ver }}.AppImage
-      #     asset_content_type: application/octet-stream
-      #     max_releases: 1 # optional, if there are more releases than this matching the asset_name, the oldest ones are going to be deleted
-
-      # - name: Deploy orca_custom_preset_tests
-      #   if: ${{ ! env.ACT && github.ref == 'refs/heads/main' && inputs.os == 'ubuntu-22.04' }}
-      #   uses: WebFreak001/deploy-nightly@46ecbabd7fad70d3e7d2c97fe8cd54e7a52e215b  # v3.2.0
-      #   with:
-      #     upload_url: https://uploads.github.com/repos/SoftFever/OrcaSlicer/releases/137995723/assets{?name,label}
-      #     release_id: 137995723
-      #     asset_path: ${{ github.workspace }}/resources/profiles/orca_custom_preset_tests.zip
-      #     asset_name: orca_custom_preset_tests.zip
-      #     asset_content_type: application/octet-stream
-      #     max_releases: 1
