@@ -24,39 +24,39 @@ fi
 
 echo "Building .pkg.tar.zst for BambuStudio ${VERSION}..."
 rm -rf "$PKGDIR"
-mkdir -p "$PKGDIR/pkg/${PKGNAME}"
-
-FAKEROOT="$PKGDIR/pkg/${PKGNAME}"
-
-install -d "$FAKEROOT/usr/bin"
-install -d "$FAKEROOT/usr/lib/${PKGNAME}"
-install -d "$FAKEROOT/usr/share/applications"
+# Use a staging dir OUTSIDE of pkg/ — makepkg clears pkg/<pkgname>/ before
+# calling package(), so pre-populating that path would leave it empty.
+STAGING="$PKGDIR/staging"
+mkdir -p "$STAGING/usr/bin"
+mkdir -p "$STAGING/usr/lib/${PKGNAME}"
+mkdir -p "$STAGING/usr/share/applications"
 for SIZE in 32x32 128x128 192x192; do
-    install -d "$FAKEROOT/usr/share/icons/hicolor/${SIZE}/apps"
+    mkdir -p "$STAGING/usr/share/icons/hicolor/${SIZE}/apps"
 done
 
-install -m 755 "$APPDIR/bin/bambu-studio" "$FAKEROOT/usr/lib/${PKGNAME}/"
-find "$APPDIR/bin" -name "*.so*" -exec install -m 755 {} "$FAKEROOT/usr/lib/${PKGNAME}/" \;
-cp -r "$APPDIR/resources" "$FAKEROOT/usr/lib/${PKGNAME}/"
+install -m 755 "$APPDIR/bin/bambu-studio" "$STAGING/usr/lib/${PKGNAME}/"
+find "$APPDIR/bin" -name "*.so*" -exec install -m 755 {} "$STAGING/usr/lib/${PKGNAME}/" \;
+cp -r "$APPDIR/resources" "$STAGING/usr/lib/${PKGNAME}/"
 
-cat > "$FAKEROOT/usr/bin/${PKGNAME}" << 'WRAPPER'
+cat > "$STAGING/usr/bin/${PKGNAME}" << 'WRAPPER'
 #!/bin/bash
 export LD_LIBRARY_PATH="/usr/lib/bambustudio${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
 exec /usr/lib/bambustudio/bambu-studio "$@"
 WRAPPER
-chmod 755 "$FAKEROOT/usr/bin/${PKGNAME}"
+chmod 755 "$STAGING/usr/bin/${PKGNAME}"
 
 sed 's|^Exec=.*|Exec=/usr/bin/'"${PKGNAME}"' %U|' \
     "$APPDIR/BambuStudio.desktop" \
-    > "$FAKEROOT/usr/share/applications/${PKGNAME}.desktop"
+    > "$STAGING/usr/share/applications/${PKGNAME}.desktop"
 
 for SIZE in 32x32 128x128 192x192; do
     SRC="$APPDIR/usr/share/icons/hicolor/${SIZE}/apps/BambuStudio.png"
-    DST="$FAKEROOT/usr/share/icons/hicolor/${SIZE}/apps/${PKGNAME}.png"
+    DST="$STAGING/usr/share/icons/hicolor/${SIZE}/apps/${PKGNAME}.png"
     [ -f "$SRC" ] && install -m 644 "$SRC" "$DST"
 done
 
-# Write PKGBUILD
+# Write PKGBUILD — package() copies from our staging dir into makepkg's pkgdir
+STAGING_ABS="$(realpath "$STAGING")"
 cat > "$PKGDIR/PKGBUILD" << EOF
 pkgname=${PKGNAME}
 pkgver=${VERSION//-/_}
@@ -68,7 +68,7 @@ license=('AGPL3')
 depends=('gtk3' 'glib2' 'dbus' 'libsecret' 'webkit2gtk-4.1' 'libxkbcommon' 'mesa')
 
 package() {
-    cp -r "\${srcdir}/../pkg/${PKGNAME}/." "\${pkgdir}/"
+    cp -r "${STAGING_ABS}/." "\${pkgdir}/"
 }
 EOF
 
