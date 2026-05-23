@@ -5,12 +5,20 @@ on:
     workflows:
       - Nightly Pre-Release
       - Build all
-      - Build PR
+      - PR Build
       - Check Cache
-      - Build Deps
       - Build Linux
       - Build Mac
       - Build Packages
+      - CodeQL Security Scan
+      - clang-format Check
+      - Dependency Review
+      - PR Auto-Labeler
+      - Release Drafter
+      - Copilot code review
+      - Auto-assign to Project
+      - OpenSSF Scorecard
+      - Issue Auto-Labeler
     types: [completed]
   schedule:
     - cron: '30 3 * * *'  # daily at 03:30 UTC, after nightly (02:00)
