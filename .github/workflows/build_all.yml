@@ -13,18 +13,6 @@ on:
       - 'resources/**'
       - ".github/workflows/build_*.yml"
 
-  pull_request:
-    branches:
-      - master
-    paths:
-      - 'deps/**'
-      - 'src/**'
-      - '**/CMakeLists.txt'
-      - 'version.inc'
-      - ".github/workflows/build_*.yml"
-      - 'BuildLinux.sh'
-      - 'build_win.bat'
-
   workflow_dispatch: # manual dispatch
     inputs:
       build-deps-only:
@@ -34,14 +22,13 @@ on:
 
 permissions: read-all
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  # Full platform matrix — skipped on pull_request
+  # GitHub-hosted platform matrix (Ubuntu, Windows, macOS, ARM)
   build_all:
     name: ${{ matrix.name }}
-    if: github.event_name != 'pull_request'
     strategy:
       fail-fast: false
       matrix:
@@ -67,6 +54,7 @@ jobs:
       build-deps-only: ${{ inputs.build-deps-only || false }}
     secrets: inherit
 
+  # GitHub-hosted builds inside distribution containers
   # Debian trixie .deb — runs on all events including pull_request
   build_debian:
     name: Linux / Debian trixie .deb
@@ -131,7 +119,6 @@ jobs:
   # Other container builds — skipped on pull_request
   build_packages_container:
     name: ${{ matrix.name }}
-    if: github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     container: ${{ matrix.container }}
     permissions: read-all
@@ -139,6 +126,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - name: Linux / Debian trixie .deb
+            container: debian:trixie@sha256:4ae67669760b807c19f23902a3fd7c121a6a70cf2ae709035674b23e712e4d62
+            pkg_cmd: ./BuildLinux.sh -pr
+            artifact_suffix: debian-trixie_deb
+            artifact_glob: ./build/bambustudio_*.deb
+
           - name: Linux / Fedora 42 .rpm
             container: fedora:42@sha256:7c63468daf71fdc5bda3699cd483b169bb995b5137265d5ffe8f04e2ce87fbb8
             pkg_cmd: bash scripts/build_rpm.sh
@@ -151,7 +144,12 @@ jobs:
         with:
           egress-policy: audit
 
-      - name: Bootstrap
+      - name: Bootstrap (Debian)
+        if: startsWith(matrix.container, 'debian:trixie')
+        run: apt-get update -qq && apt-get install -y sudo git curl git-lfs
+
+      - name: Bootstrap (Fedora)
+        if: startsWith(matrix.container, 'fedora:42')
         run: dnf install -y sudo git curl git-lfs
 
       - name: Checkout
@@ -199,10 +197,9 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  # Self-hosted distro runner builds — skipped on pull_request
+  # Self-hosted distro runner builds (AppImage + native package)
   build_packages_selfhosted:
     name: ${{ matrix.name }}
-    if: github.event_name != 'pull_request'
     runs-on: ${{ matrix.runner }}
     continue-on-error: true
     permissions: read-all

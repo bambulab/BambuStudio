@@ -1,0 +1,80 @@
+name: PR Build
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'deps/**'
+      - 'src/**'
+      - '**/CMakeLists.txt'
+      - 'version.inc'
+      - ".github/workflows/build_*.yml"
+      - 'BuildLinux.sh'
+      - 'build_win.bat'
+
+permissions: read-all
+concurrency:
+  group: pr-build-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  build_debian:
+    name: Linux / Debian trixie .deb
+    runs-on: ubuntu-24.04
+    container: debian:trixie@sha256:4ae67669760b807c19f23902a3fd7c121a6a70cf2ae709035674b23e712e4d62
+    permissions: read-all
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Bootstrap
+        run: apt-get update -qq && apt-get install -y sudo git curl git-lfs
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+        with:
+          lfs: 'true'
+
+      - name: Cache deps
+        id: cache-deps
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5
+        with:
+          path: deps/build/destdir
+          key: pkg-deps-debian-trixie_deb-${{ hashFiles('deps/CMakeLists.txt', 'deps/**/*.cmake') }}
+
+      - name: Install build dependencies
+        run: sudo ./BuildLinux.sh -ur
+
+      - name: Fix permissions
+        run: chown -R "$(id -u):$(id -g)" ./
+
+      - name: Build deps
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: ./BuildLinux.sh -dfr
+
+      - name: Build BambuStudio
+        run: |
+          ./BuildLinux.sh -sfr
+          cd build && ./src/BuildLinuxImage.sh
+
+      - name: Build package
+        run: ./BuildLinux.sh -pr
+
+      - name: Get version
+        id: ver
+        shell: bash
+        run: |
+          ver=$(grep 'set(SLIC3R_VERSION ' version.inc | cut -d '"' -f2)
+          echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+        with:
+          name: BambuStudio_debian-trixie_deb_${{ steps.ver.outputs.ver }}_PR${{ github.event.pull_request.number }}
+          path: ./build/bambustudio_*.deb
+          if-no-files-found: error
+          retention-days: 7
