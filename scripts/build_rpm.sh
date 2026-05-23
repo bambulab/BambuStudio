@@ -60,12 +60,12 @@ spec = textwrap.dedent(f"""
     install -d %{{buildroot}}/usr/lib/{rpmname}
     install -d %{{buildroot}}/usr/share/applications
     for SIZE in 32x32 128x128 192x192; do
-        install -d %{{buildroot}}/usr/share/icons/hicolor/\${{SIZE}}/apps
+        install -d %{{buildroot}}/usr/share/icons/hicolor/${{SIZE}}/apps
     done
 
-    install -m 755 "\${{APPDIR}}/bin/bambu-studio" %{{buildroot}}/usr/lib/{rpmname}/
-    find "\${{APPDIR}}/bin" -name "*.so*" -exec install -m 755 {{}} %{{buildroot}}/usr/lib/{rpmname}/ \\;
-    cp -r "\${{APPDIR}}/resources" %{{buildroot}}/usr/lib/{rpmname}/
+    install -m 755 "${{APPDIR}}/bin/bambu-studio" %{{buildroot}}/usr/lib/{rpmname}/
+    find "${{APPDIR}}/bin" -name "*.so*" -exec install -m 755 {{}} %{{buildroot}}/usr/lib/{rpmname}/ \\;
+    cp -r "${{APPDIR}}/resources" %{{buildroot}}/usr/lib/{rpmname}/
 
     cat > %{{buildroot}}/usr/bin/{rpmname} << 'WRAPPER'
     #!/bin/bash
@@ -76,13 +76,13 @@ spec = textwrap.dedent(f"""
     sed -i '1s/^    //' %{{buildroot}}/usr/bin/{rpmname}
 
     sed 's|^Exec=.*|Exec=/usr/bin/{rpmname} %%U|' \\
-        "\${{APPDIR}}/BambuStudio.desktop" \\
+        "${{APPDIR}}/BambuStudio.desktop" \\
         > %{{buildroot}}/usr/share/applications/{rpmname}.desktop
 
     for SIZE in 32x32 128x128 192x192; do
-        SRC="\${{APPDIR}}/usr/share/icons/hicolor/\${{SIZE}}/apps/BambuStudio.png"
-        DST="%{{buildroot}}/usr/share/icons/hicolor/\${{SIZE}}/apps/{rpmname}.png"
-        [ -f "\${{SRC}}" ] && install -m 644 "\${{SRC}}" "\${{DST}}"
+        SRC="${{APPDIR}}/usr/share/icons/hicolor/${{SIZE}}/apps/BambuStudio.png"
+        DST="%{{buildroot}}/usr/share/icons/hicolor/${{SIZE}}/apps/{rpmname}.png"
+        [ -f "${{SRC}}" ] && install -m 644 "${{SRC}}" "${{DST}}"
     done
 
     %files
