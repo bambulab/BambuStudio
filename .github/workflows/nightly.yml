@@ -28,11 +28,19 @@ jobs:
         with:
           egress-policy: audit
 
-      - name: Checkout (for signed tag creation)
+      - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
-          fetch-depth: 1
+          ref: master
+          fetch-depth: 0
+
+      - name: Compute version tag
+        id: ver
+        run: |
+          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
+          count=$(git rev-list --count HEAD)
+          echo "tag=v${base}.${count}-nightly" >> "$GITHUB_OUTPUT"
+          echo "ver=${base}.${count}" >> "$GITHUB_OUTPUT"
 
       - name: Import GPG signing key
         run: |
@@ -75,23 +83,13 @@ jobs:
         with:
           subject-path: artifacts/**
 
-      - name: Delete previous nightly release + tag
-        if: steps.check.outputs.n > 0
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release delete nightly \
-            --repo "${{ github.repository }}" \
-            --yes --cleanup-tag 2>/dev/null || true
-          git push origin :refs/tags/nightly 2>/dev/null || true
-
       - name: Create signed nightly tag
         if: steps.check.outputs.n > 0
         run: |
-          git tag -s nightly \
-            -m "Nightly build $(date -u +'%Y-%m-%d')" \
+          git tag -s "${{ steps.ver.outputs.tag }}" \
+            -m "Nightly build ${{ steps.info.outputs.date }}" \
             "${{ github.event.workflow_run.head_sha }}"
-          git push origin nightly
+          git push origin "${{ steps.ver.outputs.tag }}"
 
       - name: Publish nightly pre-release
         if: steps.check.outputs.n > 0
@@ -106,13 +104,13 @@ jobs:
           fi
 
           mapfile -d '' FILES < <(find artifacts/ -maxdepth 1 -type f -print0 | sort -z)
-          gh release create nightly \
+          gh release create "${{ steps.ver.outputs.tag }}" \
             --repo "${{ github.repository }}" \
-            --title "Nightly ${{ steps.info.outputs.date }}" \
-            --notes "Automatic build from commit [\`${{ steps.info.outputs.sha_short }}\`](https://github.com/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha }}).
+            --title "BambuStudio ${{ steps.ver.outputs.tag }} — ${{ steps.info.outputs.date }}" \
+            --notes "Automatic nightly build from commit [\`${{ steps.info.outputs.sha_short }}\`](https://github.com/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha }}).
 
-          $STATUS_NOTE
+$STATUS_NOTE
 
-          Build run: ${{ github.event.workflow_run.html_url }}" \
+Build run: ${{ github.event.workflow_run.html_url }}" \
             --prerelease \
             "${FILES[@]}"

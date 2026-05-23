@@ -3,11 +3,11 @@ name: Release
 on:
   push:
     tags:
-      - 'v[0-9]*.[0-9]*.[0-9]*-fork.[0-9]*'
+      - 'v[0-9]*.[0-9]*.[0-9]*.[0-9]*-dev'
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Version override (e.g. 02.07.00.55-fork.1) — leave empty to read from version.inc'
+      tag:
+        description: 'Release tag (e.g. v02.07.00.145-dev) — leave empty to auto-compute'
         required: false
         type: string
 
@@ -20,31 +20,56 @@ permissions: read-all
 jobs:
   prepare:
     name: Determine release tag
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
-      tag: ${{ steps.get-tag.outputs.tag }}
+      tag: ${{ steps.tag.outputs.tag }}
+    permissions:
+      contents: write
+
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
         with:
           egress-policy: audit
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
 
-      - name: Determine tag
-        id: get-tag
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+        with:
+          fetch-depth: 0
+
+      - name: Compute tag
+        id: tag
         run: |
           if [[ "${{ github.event_name }}" == "push" ]]; then
             echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
-          elif [[ -n "${{ inputs.version }}" ]]; then
-            echo "tag=v${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          elif [[ -n "${{ inputs.tag }}" ]]; then
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
           else
-            ver=$(grep 'set(SLIC3R_VERSION' version.inc | cut -d '"' -f2)
-            fork=$(grep 'set(FORK_RELEASE' version.inc | cut -d '"' -f2)
-            echo "tag=v${ver}-fork.${fork}" >> "$GITHUB_OUTPUT"
+            base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
+            count=$(git rev-list --count HEAD)
+            echo "tag=v${base}.${count}-dev" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Import GPG key
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          echo "${{ secrets.GIT_SIGNING_KEY }}" | \
+            gpg --batch --pinentry-mode loopback \
+                --passphrase "${{ secrets.GIT_SIGNING_KEY_PASSPHRASE }}" \
+                --import
+          git config user.signingkey "${{ secrets.GIT_SIGNING_KEY_ID }}"
+          git config tag.gpgSign true
+          git config user.name "BenJule"
+          git config user.email "benjamin.luetker@gmail.com"
+
+      - name: Create signed tag (workflow_dispatch only)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          git tag -s "$TAG" -m "BambuStudio $TAG"
+          git push origin "$TAG"
+
       - name: Show tag
-        run: echo "Releasing ${{ steps.get-tag.outputs.tag }}"
+        run: echo "Releasing ${{ steps.tag.outputs.tag }}"
 
   build:
     name: Build ${{ matrix.os }}
@@ -68,7 +93,6 @@ jobs:
       build-deps-only: false
     secrets: inherit
 
-
   build_packages:
     name: Build Debian .deb + Fedora .rpm
     needs: [prepare]
@@ -76,23 +100,25 @@ jobs:
     secrets: inherit
 
   create_release:
-    name: Create GitHub Release
+    name: Publish Latest release
     needs: [prepare, build, build_packages]
     if: |
       always() &&
       needs.prepare.result == 'success' &&
-      (needs.build_packages.result == 'success' || needs.build_packages.result == 'failure' || needs.build_packages.result == 'skipped' || needs.build_packages.result == 'cancelled') &&
-      (needs.build.result == 'success' || needs.build.result == 'failure')
-    runs-on: ubuntu-latest
+      (needs.build.result == 'success' || needs.build.result == 'failure') &&
+      (needs.build_packages.result == 'success' || needs.build_packages.result == 'failure' || needs.build_packages.result == 'skipped')
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
       id-token: write
       attestations: write
+
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
         with:
           egress-policy: audit
+
       - name: Download all build artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8
         with:
@@ -107,12 +133,6 @@ jobs:
         with:
           subject-path: release-assets/**
 
-      - name: Generate SBOM
-        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e  # v4.1.0
-        with:
-          subject-path: release-assets/**
-          sbom-format: spdx-json
-
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -123,4 +143,5 @@ jobs:
             --repo "${{ github.repository }}" \
             --title "BambuStudio $TAG" \
             --generate-notes \
+            --latest \
             "${ASSETS[@]}"
