@@ -64,11 +64,7 @@ jobs:
 
       - name: Get version
         id: ver
-        run: |
-          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
-          count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
-          ver="${base}.${count}"
-          echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
+        uses: ./.github/actions/get-version
 
       - name: Upload artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
@@ -158,11 +154,7 @@ jobs:
 
       - name: Get version
         id: ver
-        run: |
-          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
-          count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
-          ver="${base}.${count}"
-          echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
+        uses: ./.github/actions/get-version
 
       - name: Upload artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
@@ -251,11 +243,7 @@ jobs:
 
       - name: Get version
         id: ver
-        run: |
-          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
-          count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
-          ver="${base}.${count}"
-          echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
+        uses: ./.github/actions/get-version
 
       - name: Upload AppImage
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
