@@ -20,6 +20,14 @@ jobs:
       actions: read
 
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
+        with:
+          # audit instead of block: scorecard-action runs in a Docker container
+          # whose DNS (UDP) is blocked by egress-policy:block even for listed
+          # endpoints, causing Fuzzing/Vulnerabilities/CII-Best-Practices checks
+          # to fail with "operation not permitted" on DNS lookups.
+          egress-policy: audit
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
         with:
           persist-credentials: false
