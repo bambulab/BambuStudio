@@ -88,14 +88,27 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           brew install automake texinfo
-          ./BuildMac.sh -s -x -a x86_64 -t 10.15 -1
+          # Wenn das Verzeichnis leer ist, baut BuildMac.sh die deps automatisch ohne das '-s' Flag mit
+          if [ ! -d "${{ github.workspace }}/deps/build/x86_64" ]; then
+            echo "Kein macOS-Intel Cache vorhanden. Baue Abhängigkeiten + Slicer..."
+            ./BuildMac.sh -x -a x86_64 -t 10.15 -1
+          else
+            echo "Nutze geladene Cache-Abhängigkeiten..."
+            ./BuildMac.sh -s -x -a x86_64 -t 10.15 -1
+          fi
 
       - name: Build slicer mac (ARM / Universal)
         if: inputs.os == 'macos-15'
         working-directory: ${{ github.workspace }}
         run: |
           brew install automake texinfo
-          ./BuildMac.sh -s -x -a universal -t 10.15 -1
+          if [ ! -d "${{ github.workspace }}/deps/build/universal" ]; then
+            echo "Kein macOS-ARM Cache vorhanden. Baue Abhängigkeiten + Slicer..."
+            ./BuildMac.sh -x -a universal -t 10.15 -1
+          else
+            echo "Nutze geladene Cache-Abhängigkeiten..."
+            ./BuildMac.sh -s -x -a universal -t 10.15 -1
+          fi
 
       - name: Pack macOS .dmg
         if: runner.os == 'macOS'
@@ -138,10 +151,18 @@ jobs:
       - name: Build slicer Win
         if: runner.os == 'Windows'
         working-directory: ${{ github.workspace }}
+        shell: pwsh
         run: |
+          $depPath = "${{ github.workspace }}\deps\build\BambuStudio_dep\usr\local"
+          if (!(Test-Path $depPath)) {
+              echo "Kein Windows-Cache gefunden! Kompiliere Third-Party-Abhängigkeiten zuerst..."
+              # Falls dein Skript für Windows-Deps anders heißt, hier anpassen (z.B. .\build_release_vs.bat dep)
+              .\build_release_vs.bat dep
+          }
+          
           mkdir build
           cd build
-          cmake .. -G "Visual Studio 17 2022" -A X64 -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0 -DCMAKE_PREFIX_PATH="${{ github.workspace }}\deps\build\BambuStudio_dep\usr\local" -DCMAKE_INSTALL_PREFIX="../install-dir" -DCMAKE_BUILD_TYPE=Release -DWIN10SDK_PATH="C:/Program Files (x86)/Windows Kits/10/Include/10.0.22000.0"
+          cmake .. -G "Visual Studio 17 2022" -A X64 -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0 -DCMAKE_PREFIX_PATH="$depPath" -DCMAKE_INSTALL_PREFIX="../install-dir" -DCMAKE_BUILD_TYPE=Release -DWIN10SDK_PATH="C:/Program Files (x86)/Windows Kits/10/Include/10.0.22000.0"
           cmake --build . --target install --config Release -- -m
 
       - name: Pack app Win
@@ -172,6 +193,13 @@ jobs:
         if: runner.os == 'Linux'
         shell: bash
         run: |
+          # Dynamische Cache-Prüfung für Linux-Abhängigkeiten
+          if [ ! -d "${{ github.workspace }}/deps/build/destdir" ]; then
+            echo "Kein Linux-Cache gefunden! Kompiliere Third-Party-Abhängigkeiten komplett neu..."
+            ./BuildLinux.sh -idfr
+          fi
+          
+          # Jetzt steht die destdir bereit, wir bauen den Slicer
           ./BuildLinux.sh -isfr
           mv -n ./build/BambuStudio_ubu64.AppImage ./build/Bambu_Studio_${{ inputs.os }}_${{ env.ver }}.AppImage
 
