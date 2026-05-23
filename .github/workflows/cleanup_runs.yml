@@ -1,0 +1,78 @@
+name: Cleanup old workflow runs
+
+on:
+  workflow_run:
+    workflows:
+      - Nightly Pre-Release
+      - Build all
+      - Build PR
+      - Check Cache
+      - Build Deps
+      - Build Linux
+      - Build Mac
+      - Build Packages
+    types: [completed]
+  schedule:
+    - cron: '30 3 * * *'  # daily at 03:30 UTC, after nightly (02:00)
+  workflow_dispatch:
+    inputs:
+      keep:
+        description: 'Number of recent runs to keep per workflow'
+        default: '5'
+        required: false
+
+permissions:
+  actions: write
+
+jobs:
+  cleanup:
+    name: Delete old runs
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+
+      - name: Delete old completed runs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          KEEP: ${{ inputs.keep || '5' }}
+        run: |
+          set -euo pipefail
+          REPO="${{ github.repository }}"
+          echo "Repository: $REPO — keeping last $KEEP completed runs per workflow"
+
+          # Fetch all workflow file names
+          mapfile -t WORKFLOWS < <(
+            gh api "repos/${REPO}/actions/workflows" --paginate \
+              --jq '.workflows[].path' | xargs -I{} basename {}
+          )
+
+          for WF in "${WORKFLOWS[@]}"; do
+            # List completed run IDs, oldest first, skip the most recent $KEEP
+            mapfile -t OLD_IDS < <(
+              gh run list \
+                --repo "$REPO" \
+                --workflow "$WF" \
+                --status completed \
+                --limit 100 \
+                --json databaseId \
+                --jq '.[].databaseId' \
+              | tail -n +"$((KEEP + 1))"
+            )
+
+            if [[ ${#OLD_IDS[@]} -eq 0 ]]; then
+              echo "  $WF — nothing to delete"
+              continue
+            fi
+
+            echo "  $WF — deleting ${#OLD_IDS[@]} old run(s)"
+            for ID in "${OLD_IDS[@]}"; do
+              gh run delete "$ID" --repo "$REPO" 2>/dev/null && echo "    deleted $ID" || true
+            done
+          done
+
+          echo "Done."
