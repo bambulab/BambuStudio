@@ -84,7 +84,7 @@ jobs:
     name: macOS / Universal Binary
     needs: build_platforms
     if: ${{ !cancelled() && needs.build_platforms.result == 'success' && !inputs.build-deps-only }}
-    uses: ./.github/workflows/build_orca.yml
+    uses: ./.github/workflows/build_bambu.yml
     with:
       os: macos-15
       arch: universal
