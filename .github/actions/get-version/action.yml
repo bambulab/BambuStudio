@@ -13,6 +13,7 @@ runs:
       id: compute
       shell: bash
       run: |
+        set -euo pipefail
         base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
         count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
         echo "ver=V${base}.${count}" >> "$GITHUB_OUTPUT"

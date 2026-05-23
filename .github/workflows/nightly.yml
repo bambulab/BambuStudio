@@ -85,15 +85,11 @@ jobs:
           echo "date=$(date -u +'%Y-%m-%d %H:%M UTC')" >> "$GITHUB_OUTPUT"
 
       - name: Import GPG signing key
-        run: |
-          echo "${{ secrets.GIT_SIGNING_KEY }}" | \
-            gpg --batch --pinentry-mode loopback \
-                --passphrase "${{ secrets.GIT_SIGNING_KEY_PASSPHRASE }}" \
-                --import
-          git config user.signingkey "${{ secrets.GIT_SIGNING_KEY_ID }}"
-          git config tag.gpgSign true
-          git config user.name "BenJule"
-          git config user.email "benjamin.luetker@gmail.com"
+        uses: ./.github/actions/setup-gpg
+        with:
+          signing-key: ${{ secrets.GIT_SIGNING_KEY }}
+          signing-key-passphrase: ${{ secrets.GIT_SIGNING_KEY_PASSPHRASE }}
+          signing-key-id: ${{ secrets.GIT_SIGNING_KEY_ID }}
 
       - name: Download all artifacts from this run
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v4

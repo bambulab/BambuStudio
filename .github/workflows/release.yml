@@ -53,15 +53,11 @@ jobs:
 
       - name: Import GPG key
         if: github.event_name == 'workflow_dispatch'
-        run: |
-          echo "${{ secrets.GIT_SIGNING_KEY }}" | \
-            gpg --batch --pinentry-mode loopback \
-                --passphrase "${{ secrets.GIT_SIGNING_KEY_PASSPHRASE }}" \
-                --import
-          git config user.signingkey "${{ secrets.GIT_SIGNING_KEY_ID }}"
-          git config tag.gpgSign true
-          git config user.name "BenJule"
-          git config user.email "benjamin.luetker@gmail.com"
+        uses: ./.github/actions/setup-gpg
+        with:
+          signing-key: ${{ secrets.GIT_SIGNING_KEY }}
+          signing-key-passphrase: ${{ secrets.GIT_SIGNING_KEY_PASSPHRASE }}
+          signing-key-id: ${{ secrets.GIT_SIGNING_KEY_ID }}
 
       - name: Create signed tag (workflow_dispatch only)
         if: github.event_name == 'workflow_dispatch'
