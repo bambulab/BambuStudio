@@ -13,6 +13,7 @@ jobs:
   stale:
     name: Mark and close stale items
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4

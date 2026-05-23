@@ -16,6 +16,7 @@ jobs:
   update-apt-repo:
     name: Update APT Repository
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
 
     steps:
       - name: Harden Runner
