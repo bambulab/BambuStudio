@@ -66,6 +66,7 @@
     - any-glob-to-any-file:
       - '**/*.wxs'
       - 'src/platform/msw/**'
+      - 'build_win.bat'
 
 'platform: macos':
   - changed-files:
@@ -73,3 +74,46 @@
       - 'src/platform/osx/**'
       - '**/*.entitlements'
       - '**/*.plist'
+      - 'BuildMac.sh'
+
+'platform: linux':
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'BuildLinux.sh'
+      - 'linux.d/**'
+      - 'Dockerfile*'
+      - 'Containerfile'
+      - 'DockerBuild.sh'
+      - 'DockerEntrypoint.sh'
+      - 'DockerRun.sh'
+
+'dependencies':
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'deps/**'
+      - 'renovate.json'
+      - '.github/dependabot.yml'
+
+'translations':
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'resources/i18n/**'
+      - 'bbl/i18n/**'
+      - 'localazy.json'
+      - '**/*.po'
+      - '**/*.pot'
+
+'tests':
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'tests/**'
+      - 'sandboxes/**'
+      - 'bbs_test_tools/**'
+      - 't/**'
+
+'security':
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'SECURITY.md'
+      - '.github/workflows/codeql.yml'
+      - '.github/workflows/scorecard.yml'

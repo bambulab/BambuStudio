@@ -1,0 +1,83 @@
+name: Issue Auto-Labeler
+
+on:
+  issues:
+    types: [opened, reopened]
+  pull_request:
+    types: [opened, reopened]
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  label:
+    name: Label issue by content
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
+        with:
+          egress-policy: block
+          allowed-endpoints: |
+            api.github.com:443
+
+      - name: Apply labels
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7
+        with:
+          script: |
+            const isPR   = !!context.payload.pull_request;
+            const item   = isPR ? context.payload.pull_request : context.payload.issue;
+            const title  = (item.title || '').toLowerCase();
+            const body   = (item.body  || '').toLowerCase();
+            const text   = `${title} ${body}`;
+            const number = item.number;
+
+            const existing = (item.labels || []).map(l => l.name);
+            const toAdd = [];
+
+            // Area labels
+            if (/\b(ci|workflow|action|nightly|build system|cmake)\b/.test(text))
+              toAdd.push('area: ci');
+            if (/\b(appimage|\.deb|\.rpm|package|install|flatpak|packaging)\b/.test(text))
+              toAdd.push('area: packaging');
+            if (/\b(network|cloud|mqtt|connect(ion)?|bambu.?lab server)\b/.test(text))
+              toAdd.push('area: networking');
+            if (/\b(slic(er|ing)|toolpath|support|infill|speed|layer|g-?code)\b/.test(text))
+              toAdd.push('area: slicing');
+            if (/\b(ui|button|dialog|window|panel|menu|interface|display|warning|tooltip)\b/.test(text))
+              toAdd.push('area: ui');
+            if (/\b(filament|material|profile|temperature|nozzle)\b/.test(text))
+              toAdd.push('area: filament');
+            if (/\b(translat|i18n|locale|\.po\b|\.pot\b|localaz)\b/.test(text))
+              toAdd.push('translations');
+            if (/\b(test|spec|fixture|mock|assert)\b/.test(text))
+              toAdd.push('tests');
+
+            // Platform labels
+            if (/\b(linux|ubuntu|debian|fedora|arch|opensuse|appimage)\b/.test(text))
+              toAdd.push('platform: linux');
+            if (/\b(windows|win(10|11)?|msvc|\.exe)\b/.test(text))
+              toAdd.push('platform: windows');
+            if (/\b(macos|mac.?os|osx|\.dmg|apple silicon|m[12] (pro|max|ultra)?)\b/.test(text))
+              toAdd.push('platform: macos');
+
+            // needs-triage for new issues without template labels
+            if (!isPR && existing.length === 0)
+              toAdd.push('status: needs-triage');
+
+            // Crash label
+            if (/\b(crash|freeze|hang|segfault|abort|core dump)\b/.test(text) && !existing.includes('crash'))
+              toAdd.push('crash');
+
+            const unique = [...new Set(toAdd)];
+            if (unique.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo:  context.repo.repo,
+                issue_number: number,
+                labels: unique,
+              });
+              core.info(`Added labels: ${unique.join(', ')}`);
+            }

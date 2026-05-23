@@ -1,24 +1,291 @@
 name: Nightly Pre-Release
 
 on:
-  workflow_run:
-    workflows: ["Build all"]
-    types: [completed]
-    branches: [master]
+  schedule:
+    - cron: '0 2 * * *'  # 02:00 UTC every night
+  workflow_dispatch: {}   # manual trigger
 
 permissions: read-all
 
+concurrency:
+  group: nightly
+  cancel-in-progress: false
+
 jobs:
-  nightly:
+  # ── 1. Debian .deb — built first (fastest sanity check) ──────────────────
+  build_debian:
+    name: Linux / Debian trixie .deb
+    runs-on: ubuntu-24.04
+    container: debian:trixie@sha256:4ae67669760b807c19f23902a3fd7c121a6a70cf2ae709035674b23e712e4d62
+    permissions: read-all
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Bootstrap
+        run: apt-get update -qq && apt-get install -y sudo git curl git-lfs
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+        with:
+          lfs: 'true'
+          fetch-depth: 0
+
+      - name: Cache deps
+        id: cache-deps
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5
+        with:
+          path: deps/build/destdir
+          key: pkg-deps-debian-trixie_deb-${{ hashFiles('deps/CMakeLists.txt', 'deps/**/*.cmake') }}
+
+      - name: Install build dependencies
+        run: sudo ./BuildLinux.sh -ur
+
+      - name: Fix permissions
+        run: chown -R "$(id -u):$(id -g)" ./
+
+      - name: Build deps
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: ./BuildLinux.sh -dfr
+
+      - name: Build BambuStudio
+        run: |
+          ./BuildLinux.sh -sfr
+          cd build && ./src/BuildLinuxImage.sh
+
+      - name: Build package
+        run: ./BuildLinux.sh -pr
+
+      - name: Get version
+        id: ver
+        run: |
+          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
+          count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+          ver="${base}.${count}"
+          echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+        with:
+          name: BambuStudio_debian-trixie_deb_${{ steps.ver.outputs.ver }}
+          path: ./build/bambustudio_*.deb
+          if-no-files-found: error
+          retention-days: 3
+
+  # ── 2. GitHub-hosted platforms — parallel with Debian ────────────────────
+  build_platforms:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            name: Linux / Ubuntu 22.04
+          - os: ubuntu-24.04
+            name: Linux / Ubuntu 24.04
+          - os: ubuntu-24.04-arm
+            name: Linux / Ubuntu 24.04 ARM
+          - os: windows-2022
+            name: Windows / Windows 2022
+          - os: macos-15-intel
+            arch: x86_64
+            name: macOS / macOS 15 Intel
+          - os: macos-15
+            arch: arm64
+            name: macOS / macOS 15 ARM
+    uses: ./.github/workflows/build_check_cache.yml
+    with:
+      os: ${{ matrix.os }}
+      arch: ${{ matrix.arch }}
+      build-deps-only: false
+    secrets: inherit
+
+  # ── 3. Fedora .rpm — parallel ─────────────────────────────────────────────
+  build_fedora:
+    name: Linux / Fedora 42 .rpm
+    runs-on: ubuntu-24.04
+    container: fedora:42@sha256:7c63468daf71fdc5bda3699cd483b169bb995b5137265d5ffe8f04e2ce87fbb8
+    permissions: read-all
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Bootstrap
+        run: dnf install -y sudo git curl git-lfs
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+        with:
+          lfs: 'true'
+          fetch-depth: 0
+
+      - name: Cache deps
+        id: cache-deps
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5
+        with:
+          path: deps/build/destdir
+          key: pkg-deps-fedora42_rpm-${{ hashFiles('deps/CMakeLists.txt', 'deps/**/*.cmake') }}
+
+      - name: Install build dependencies
+        run: sudo ./BuildLinux.sh -ur
+
+      - name: Fix permissions
+        run: chown -R "$(id -u):$(id -g)" ./
+
+      - name: Build deps
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: ./BuildLinux.sh -dfr
+
+      - name: Build BambuStudio
+        run: |
+          ./BuildLinux.sh -sfr
+          cd build && ./src/BuildLinuxImage.sh
+
+      - name: Build package
+        run: bash scripts/build_rpm.sh
+
+      - name: Get version
+        id: ver
+        run: |
+          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
+          count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+          ver="${base}.${count}"
+          echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+        with:
+          name: BambuStudio_fedora42_rpm_${{ steps.ver.outputs.ver }}
+          path: ./build/bambustudio-*.rpm
+          if-no-files-found: warn
+          retention-days: 3
+
+  # ── 4. Self-hosted distro runners — parallel, non-blocking ───────────────
+  build_selfhosted:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    continue-on-error: true
+    permissions: read-all
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - name: Linux / Ubuntu 22.04 AppImage + .deb
+            runner: [self-hosted, pve05-ubuntu22]
+            pkg_cmd: ./BuildLinux.sh -pr
+            artifact_suffix: ubuntu2204
+            artifact_deb: ./build/bambustudio_*.deb
+
+          - name: Linux / Ubuntu 24.04 AppImage + .deb
+            runner: [self-hosted, pve05-ubuntu24]
+            pkg_cmd: ./BuildLinux.sh -pr
+            artifact_suffix: ubuntu2404
+            artifact_deb: ./build/bambustudio_*.deb
+
+          - name: Linux / openSUSE Tumbleweed
+            runner: [self-hosted, pve05-opensuse]
+            pkg_cmd: bash scripts/build_rpm.sh
+            artifact_suffix: opensuse-tumbleweed
+            artifact_pkg: ./build/bambustudio-*.rpm
+
+          - name: Linux / Arch Linux
+            runner: [self-hosted, pve05-arch]
+            pkg_cmd: bash scripts/build_pkg_arch.sh
+            artifact_suffix: arch
+            artifact_pkg: ./build/bambustudio-*.pkg.tar.zst
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+        with:
+          lfs: 'true'
+          fetch-depth: 0
+
+      - name: Cache deps
+        id: cache-deps
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5
+        with:
+          path: deps/build/destdir
+          key: pkg-deps-${{ matrix.artifact_suffix }}-${{ hashFiles('deps/CMakeLists.txt', 'deps/**/*.cmake') }}
+
+      - name: Install build dependencies
+        run: sudo ./BuildLinux.sh -ur
+
+      - name: Fix permissions
+        run: sudo chown "$(id -u):$(id -g)" -R ./
+
+      - name: Build deps
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: ./BuildLinux.sh -dr
+
+      - name: Build BambuStudio + AppImage
+        run: |
+          ./BuildLinux.sh -isr
+          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
+          count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+          ver="${base}.${count}"
+          mv -n ./build/BambuStudio_ubu64.AppImage \
+            "./build/BambuStudio_${{ matrix.artifact_suffix }}_V${ver}.AppImage" 2>/dev/null || true
+
+      - name: Build package
+        run: ${{ matrix.pkg_cmd }}
+
+      - name: Get version
+        id: ver
+        run: |
+          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
+          count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+          ver="${base}.${count}"
+          echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload AppImage
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+        with:
+          name: BambuStudio_${{ matrix.artifact_suffix }}_appimage_${{ steps.ver.outputs.ver }}
+          path: ./build/BambuStudio_${{ matrix.artifact_suffix }}_${{ steps.ver.outputs.ver }}.AppImage
+          if-no-files-found: warn
+          retention-days: 3
+
+      - name: Upload .deb package
+        if: matrix.artifact_deb != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+        with:
+          name: BambuStudio_${{ matrix.artifact_suffix }}_deb_${{ steps.ver.outputs.ver }}
+          path: ${{ matrix.artifact_deb }}
+          if-no-files-found: warn
+          retention-days: 3
+
+      - name: Upload native package
+        if: matrix.artifact_pkg != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+        with:
+          name: BambuStudio_${{ matrix.artifact_suffix }}_pkg_${{ steps.ver.outputs.ver }}
+          path: ${{ matrix.artifact_pkg }}
+          if-no-files-found: warn
+          retention-days: 3
+
+  # ── 5. Publish — after all builds, Debian must succeed ───────────────────
+  publish:
     name: Publish nightly pre-release
-    # Run even on partial failures — publish whatever artifacts are available.
-    if: >
-      github.event.workflow_run.conclusion == 'success' ||
-      github.event.workflow_run.conclusion == 'failure'
+    needs: [build_debian, build_platforms, build_fedora, build_selfhosted]
+    if: |
+      always() &&
+      needs.build_debian.result == 'success'
     runs-on: ubuntu-24.04
     permissions:
       contents: write
-      actions: read
       id-token: write
       attestations: write
 
@@ -40,7 +307,7 @@ jobs:
           base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
           count=$(git rev-list --count HEAD)
           echo "tag=v${base}.${count}-nightly" >> "$GITHUB_OUTPUT"
-          echo "ver=${base}.${count}" >> "$GITHUB_OUTPUT"
+          echo "date=$(date -u +'%Y-%m-%d %H:%M UTC')" >> "$GITHUB_OUTPUT"
 
       - name: Import GPG signing key
         run: |
@@ -53,11 +320,9 @@ jobs:
           git config user.name "BenJule"
           git config user.email "benjamin.luetker@gmail.com"
 
-      - name: Download artifacts from triggering run
+      - name: Download all artifacts from this run
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v4
         with:
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           path: artifacts/
           merge-multiple: true
         continue-on-error: true
@@ -70,13 +335,6 @@ jobs:
           echo "Found $n artifact(s):"
           find artifacts/ -maxdepth 1 -type f | sort || true
 
-      - name: Build info
-        id: info
-        run: |
-          SHA="${{ github.event.workflow_run.head_sha }}"
-          echo "sha_short=${SHA:0:7}" >> "$GITHUB_OUTPUT"
-          echo "date=$(date -u +'%Y-%m-%d %H:%M UTC')" >> "$GITHUB_OUTPUT"
-
       - name: Attest build provenance
         if: steps.check.outputs.n > 0
         uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32  # v4.1.0
@@ -87,32 +345,37 @@ jobs:
         if: steps.check.outputs.n > 0
         run: |
           git tag -s "${{ steps.ver.outputs.tag }}" \
-            -m "Nightly build ${{ steps.info.outputs.date }}" \
-            "${{ github.event.workflow_run.head_sha }}"
+            -m "Nightly build ${{ steps.ver.outputs.date }}" \
+            HEAD
           git push origin "${{ steps.ver.outputs.tag }}"
+
+      - name: Build status summary
+        id: summary
+        if: steps.check.outputs.n > 0
+        run: |
+          parts=()
+          [[ "${{ needs.build_platforms.result }}" == "success" ]] && parts+=("GitHub-hosted platforms ✅") || parts+=("GitHub-hosted platforms ⚠️ ${{ needs.build_platforms.result }}")
+          [[ "${{ needs.build_fedora.result }}" == "success" ]] && parts+=("Fedora .rpm ✅") || parts+=("Fedora .rpm ⚠️ ${{ needs.build_fedora.result }}")
+          [[ "${{ needs.build_selfhosted.result }}" == "success" ]] && parts+=("Self-hosted runners ✅") || parts+=("Self-hosted runners ⚠️ ${{ needs.build_selfhosted.result }}")
+          printf '%s\n' "${parts[@]}" > /tmp/status.txt
+          echo "notes<<EOF" >> "$GITHUB_OUTPUT"
+          cat /tmp/status.txt >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Publish nightly pre-release
         if: steps.check.outputs.n > 0
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          BUILD_STATUS="${{ github.event.workflow_run.conclusion }}"
-          if [[ "$BUILD_STATUS" == "success" ]]; then
-            STATUS_NOTE="All build jobs succeeded."
-          else
-            STATUS_NOTE="Some build jobs failed — only partially available artifacts are included."
-          fi
-
           mapfile -d '' FILES < <(find artifacts/ -maxdepth 1 -type f -print0 | sort -z)
-          printf 'Automatic nightly build from commit [`%s`](https://github.com/%s/commit/%s).\n\n%s\n\nBuild run: %s\n' \
-            "${{ steps.info.outputs.sha_short }}" \
+          printf 'Automatic nightly build from commit [`%s`](https://github.com/%s/commit/%s).\n\n%s\n' \
+            "${GITHUB_SHA:0:7}" \
             "${{ github.repository }}" \
-            "${{ github.event.workflow_run.head_sha }}" \
-            "$STATUS_NOTE" \
-            "${{ github.event.workflow_run.html_url }}" > /tmp/release-notes.md
+            "${{ github.sha }}" \
+            "${{ steps.summary.outputs.notes }}" > /tmp/release-notes.md
           gh release create "${{ steps.ver.outputs.tag }}" \
             --repo "${{ github.repository }}" \
-            --title "BambuStudio ${{ steps.ver.outputs.tag }} — ${{ steps.info.outputs.date }}" \
+            --title "BambuStudio ${{ steps.ver.outputs.tag }} — ${{ steps.ver.outputs.date }}" \
             --notes-file /tmp/release-notes.md \
             --prerelease \
             "${FILES[@]}"
