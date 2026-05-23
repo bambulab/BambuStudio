@@ -42,7 +42,6 @@ on:
 permissions: read-all
 
 concurrency:
-  # Der Group-Key sorgt dafür, dass PR-Updates alte Läufe abbrechen, die Main-Branch-Builds aber durchlaufen
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
@@ -72,11 +71,13 @@ jobs:
           - os: macos-15
             arch: arm64
             name: macOS / macOS 15 ARM
-    uses: ./.github/workflows/build_check_cache.yml
+    uses: ./.github/workflows/build_bambu.yml  # <-- Hier korrigiert auf build_bambu.yml
     with:
       os: ${{ matrix.os }}
       arch: ${{ matrix.arch }}
-      build-deps-only: ${{ inputs.build-deps-only || false }}
+      # Übergabe der Pflichtfelder für den Cache, basierend auf OS und Architektur
+      cache-key: "bambu-deps-${{ matrix.os }}-${{ matrix.arch }}-${{ github.sha }}"
+      cache-path: "${{ github.workspace }}/deps/build"
     secrets: inherit
 
   # ── macOS Universal Binary (Fusions-Job für die Mac-Builds) ────────────────
@@ -88,7 +89,8 @@ jobs:
     with:
       os: macos-15
       arch: universal
-      macos-combine-only: true
+      cache-key: "bambu-deps-macos-15-universal" # Dummy-Key, da beim Combine kein Cache geladen wird
+      cache-path: "${{ github.workspace }}/deps/build"
     secrets: inherit
 
   # ── Distribution packages (Debian .deb, Fedora .rpm) ──────────────────────
