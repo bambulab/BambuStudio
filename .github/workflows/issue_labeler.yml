@@ -50,7 +50,7 @@ jobs:
               toAdd.push('area: ui');
             if (/\b(filament|material|profile|temperature|nozzle)\b/.test(text))
               toAdd.push('area: filament');
-            if (/\b(translat|i18n|locale|\.po\b|\.pot\b|localaz)\b/.test(text))
+            if (/\b(translat|i18n|locale|\.po\b|\.pot\b|localazy)\b/.test(text))
               toAdd.push('translations');
             if (/\b(test|spec|fixture|mock|assert)\b/.test(text))
               toAdd.push('tests');

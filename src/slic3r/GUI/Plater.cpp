@@ -20743,7 +20743,8 @@ void Plater::reslice()
 
     if (printer_technology() == ptFFF && !only_gcode_mode() && !is_gcode_3mf() &&
         plater_has_nonempty_post_process_scripts(*wxGetApp().preset_bundle) &&
-        !p->m_post_process_script_prompt_consumed) {
+        !p->m_post_process_script_prompt_consumed &&
+        !wxGetApp().app_config->get_bool("post_process_script_warn_dismissed")) {
         // Set before ShowModal: nested event loop may dispatch another reslice() before we return.
         p->m_post_process_script_prompt_consumed = true;
         p->m_inside_post_process_script_modal = true;
@@ -20758,6 +20759,8 @@ void Plater::reslice()
             p->background_process.set_skip_post_process_once(false);
             return;
         }
+        if (result == wxID_YES && dlg.is_dont_show_again())
+            wxGetApp().app_config->set("post_process_script_warn_dismissed", "true");
         p->background_process.set_skip_post_process_once(result == wxID_NO);
     }
 

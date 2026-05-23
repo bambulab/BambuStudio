@@ -7,7 +7,10 @@ on:
     types: [opened]
   workflow_dispatch:
 
-permissions: read-all
+permissions:
+  issues: write
+  pull-requests: write
+
 jobs:
   assign:
     name: Add to BambuStudio Development project
@@ -20,7 +23,24 @@ jobs:
           egress-policy: block
           allowed-endpoints: |
             api.github.com:443
-      - uses: actions/add-to-project@5afcf98fcd03f1c2f92c3c83f58ae24323cc57fd  # v2.0.0
+
+      - name: Add to project board
+        uses: actions/add-to-project@5afcf98fcd03f1c2f92c3c83f58ae24323cc57fd  # v2.0.0
         with:
           project-url: https://github.com/users/BenJule/projects/1
           github-token: ${{ secrets.PROJECT_TOKEN }}
+
+      - name: Assign BenJule
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7
+        with:
+          script: |
+            const isPR    = !!context.payload.pull_request;
+            const number  = isPR
+              ? context.payload.pull_request.number
+              : context.payload.issue.number;
+            await github.rest.issues.addAssignees({
+              owner:        context.repo.owner,
+              repo:         context.repo.repo,
+              issue_number: number,
+              assignees:    ['BenJule'],
+            });

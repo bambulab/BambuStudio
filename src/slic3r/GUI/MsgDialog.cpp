@@ -450,6 +450,9 @@ PostProcessScriptDialog::PostProcessScriptDialog(wxWindow* parent, const wxStrin
     });
     content_sizer->Add(m_toggle_details, 0, wxBOTTOM, FromDIP(4));
 
+    m_dont_show_again = new wxCheckBox(this, wxID_ANY, _L("I understand the risks — don't warn me again"));
+    content_sizer->Add(m_dont_show_again, 0, wxBOTTOM, FromDIP(8));
+
     add_button(wxID_YES, false, _L("Execute"));
     add_button(wxID_NO, true, _L("Do not execute"));
     if (Button* execute_btn = get_button(wxID_YES)) {

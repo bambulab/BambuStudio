@@ -135,8 +135,9 @@ public:
 class PostProcessScriptDialog : public MsgDialog
 {
 	::wxTextCtrl* m_script_text{ nullptr };
-	Button*     m_toggle_details{ nullptr };
-	bool        m_details_expanded{ false };
+	Button*       m_toggle_details{ nullptr };
+	wxCheckBox*   m_dont_show_again{ nullptr };
+	bool          m_details_expanded{ false };
 
 public:
 	PostProcessScriptDialog(wxWindow* parent, const wxString& message, const wxString& script_content);
@@ -145,6 +146,8 @@ public:
 	PostProcessScriptDialog& operator=(PostProcessScriptDialog&&)      = delete;
 	PostProcessScriptDialog& operator=(const PostProcessScriptDialog&) = delete;
 	~PostProcessScriptDialog() override = default;
+
+	bool is_dont_show_again() const { return m_dont_show_again && m_dont_show_again->IsChecked(); }
 };
 
 #if 1
