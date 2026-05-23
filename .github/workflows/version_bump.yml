@@ -1,4 +1,5 @@
 name: Version Bump
+run-name: "Bump ${{ inputs.custom || inputs.part }} — ${{ github.actor }}"
 
 on:
   workflow_dispatch:

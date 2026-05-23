@@ -1,4 +1,5 @@
 name: Build Packages
+run-name: "Build packages — ${{ github.actor }}"
 
 on:
   workflow_dispatch:

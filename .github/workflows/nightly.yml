@@ -1,4 +1,5 @@
 name: Nightly Pre-Release
+run-name: "Nightly #${{ github.run_number }}"
 
 on:
   schedule:

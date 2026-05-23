@@ -1,4 +1,5 @@
 name: Build all
+run-name: "Build all — ${{ github.actor }}"
 
 on:
   workflow_dispatch:

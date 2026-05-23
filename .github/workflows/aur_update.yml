@@ -1,4 +1,5 @@
 name: AUR Update
+run-name: "AUR update — ${{ github.event.release.tag_name || inputs.version || 'latest' }}"
 
 on:
   release:

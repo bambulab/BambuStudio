@@ -1,4 +1,5 @@
 name: Cleanup old workflow runs
+run-name: "Cleanup runs — keep ${{ inputs.keep || '2' }}"
 
 on:
   workflow_run:

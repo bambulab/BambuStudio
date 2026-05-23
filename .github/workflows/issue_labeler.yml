@@ -1,4 +1,5 @@
 name: Issue Auto-Labeler
+run-name: "Label issue #${{ github.event.issue.number }}"
 
 on:
   issues:

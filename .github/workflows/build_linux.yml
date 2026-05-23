@@ -1,4 +1,5 @@
 name: Build Linux
+run-name: "Build Linux — ${{ github.actor }}"
 
 on:
   workflow_dispatch:
