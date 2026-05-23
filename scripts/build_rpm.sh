@@ -40,6 +40,9 @@ appdir    = os.environ['APPDIR']
 rpmtop    = os.environ['RPMTOP']
 
 spec = textwrap.dedent(f"""
+    %define __brp_check_rpaths %{{nil}}
+    %define __brp_strip_static_archive %{{nil}}
+
     Name:       {rpmname}
     Version:    {version}
     Release:    {release}%{{?dist}}
