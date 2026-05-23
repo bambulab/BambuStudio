@@ -117,9 +117,8 @@ jobs:
         id: ver
         shell: bash
         run: |
-          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
-          count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
-          echo "ver=V${base}.${count}" >> "$GITHUB_OUTPUT"
+          ver=$(grep 'set(SLIC3R_VERSION ' version.inc | cut -d '"' -f2)
+          echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
 
       - name: Upload artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
@@ -189,9 +188,8 @@ jobs:
         id: ver
         shell: bash
         run: |
-          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
-          count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
-          echo "ver=V${base}.${count}" >> "$GITHUB_OUTPUT"
+          ver=$(grep 'set(SLIC3R_VERSION ' version.inc | cut -d '"' -f2)
+          echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
 
       - name: Upload artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
@@ -268,9 +266,7 @@ jobs:
       - name: Build BambuStudio + AppImage
         run: |
           ./BuildLinux.sh -isr
-          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
-          count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
-          ver="${base}.${count}"
+          ver=$(grep 'set(SLIC3R_VERSION ' version.inc | cut -d '"' -f2)
           mv -n ./build/BambuStudio_ubu64.AppImage \
             "./build/BambuStudio_${{ matrix.artifact_suffix }}_V${ver}.AppImage" 2>/dev/null || true
 
@@ -280,9 +276,8 @@ jobs:
       - name: Get version
         id: ver
         run: |
-          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
-          count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
-          echo "ver=V${base}.${count}" >> "$GITHUB_OUTPUT"
+          ver=$(grep 'set(SLIC3R_VERSION ' version.inc | cut -d '"' -f2)
+          echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
 
       - name: Upload AppImage
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7

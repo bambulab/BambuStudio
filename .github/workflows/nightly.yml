@@ -37,7 +37,7 @@ jobs:
       - name: Compute version tag
         id: ver
         run: |
-          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
+          base=$(grep 'set(SLIC3R_VERSION ' version.inc | cut -d '"' -f2 | cut -d'.' -f1-3)
           count=$(git rev-list --count HEAD)
           echo "tag=v${base}.${count}-nightly" >> "$GITHUB_OUTPUT"
           echo "ver=${base}.${count}" >> "$GITHUB_OUTPUT"
@@ -104,13 +104,15 @@ jobs:
           fi
 
           mapfile -d '' FILES < <(find artifacts/ -maxdepth 1 -type f -print0 | sort -z)
+          printf 'Automatic nightly build from commit [`%s`](https://github.com/%s/commit/%s).\n\n%s\n\nBuild run: %s\n' \
+            "${{ steps.info.outputs.sha_short }}" \
+            "${{ github.repository }}" \
+            "${{ github.event.workflow_run.head_sha }}" \
+            "$STATUS_NOTE" \
+            "${{ github.event.workflow_run.html_url }}" > /tmp/release-notes.md
           gh release create "${{ steps.ver.outputs.tag }}" \
             --repo "${{ github.repository }}" \
             --title "BambuStudio ${{ steps.ver.outputs.tag }} — ${{ steps.info.outputs.date }}" \
-            --notes "Automatic nightly build from commit [\`${{ steps.info.outputs.sha_short }}\`](https://github.com/${{ github.repository }}/commit/${{ github.event.workflow_run.head_sha }}).
-
-$STATUS_NOTE
-
-Build run: ${{ github.event.workflow_run.html_url }}" \
+            --notes-file /tmp/release-notes.md \
             --prerelease \
             "${FILES[@]}"
