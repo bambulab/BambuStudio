@@ -26,6 +26,7 @@ jobs:
     name: Build Deps
     if: inputs.build-deps-only || inputs.valid-cache != true
     runs-on: ${{ inputs.os }}
+    timeout-minutes: 240
     env:
       date:
     steps:

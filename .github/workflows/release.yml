@@ -21,6 +21,7 @@ jobs:
   prepare:
     name: Determine release tag
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
     permissions:
@@ -108,6 +109,7 @@ jobs:
       (needs.build.result == 'success' || needs.build.result == 'failure') &&
       (needs.build_packages.result == 'success' || needs.build_packages.result == 'failure' || needs.build_packages.result == 'skipped')
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     permissions:
       contents: write
       id-token: write

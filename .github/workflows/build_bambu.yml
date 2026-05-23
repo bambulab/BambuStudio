@@ -19,6 +19,7 @@ jobs:
   build_bambu:
     name: Build BambuStudio
     runs-on: ${{ inputs.os }}
+    timeout-minutes: 120
     env:
       date:
       ver:

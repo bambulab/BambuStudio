@@ -24,6 +24,7 @@ jobs:
   build_debian:
     name: Linux / Debian trixie .deb
     runs-on: ubuntu-24.04
+    timeout-minutes: 90
     container: debian:trixie@sha256:4ae67669760b807c19f23902a3fd7c121a6a70cf2ae709035674b23e712e4d62
     permissions: read-all
 

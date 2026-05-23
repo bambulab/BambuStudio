@@ -14,12 +14,13 @@ permissions: read-all
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   flatpak:
     name: Build Flatpak bundle
     runs-on: ubuntu-24.04
+    timeout-minutes: 120
     permissions:
       contents: write
       id-token: write
