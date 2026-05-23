@@ -1,4 +1,5 @@
 name: Homebrew Cask Update
+run-name: "Homebrew update — ${{ github.event.release.tag_name || inputs.version || 'latest' }}"
 
 on:
   release:
@@ -15,6 +16,7 @@ jobs:
   homebrew-update:
     name: Update Homebrew Cask
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
 
     steps:
       - name: Harden Runner
@@ -30,6 +32,7 @@ jobs:
       - name: Determine version
         id: version
         run: |
+          set -euo pipefail
           if [[ "${{ github.event_name }}" == "release" ]]; then
             VERSION="${{ github.event.release.tag_name }}"
             VERSION="${VERSION#v}"
@@ -42,6 +45,7 @@ jobs:
       - name: Get macOS asset checksums
         id: checksums
         run: |
+          set -euo pipefail
           TAG="v${{ steps.version.outputs.version }}"
           VER="${TAG#v}"
           UPSTREAM_VER="${VER%-fork.*}"    # strip fork suffix for filename

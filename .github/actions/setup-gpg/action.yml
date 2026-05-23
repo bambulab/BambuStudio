@@ -1,0 +1,42 @@
+name: Setup GPG signing
+description: Import a GPG key and configure git for signed tags and commits
+
+inputs:
+  signing-key:
+    description: 'Armored GPG private key (secret)'
+    required: true
+  signing-key-passphrase:
+    description: 'Passphrase for the GPG key (secret)'
+    required: true
+  signing-key-id:
+    description: 'Key ID or fingerprint to use for signing'
+    required: true
+  git-name:
+    description: 'git user.name for the signing commit'
+    required: false
+    default: 'BenJule'
+  git-email:
+    description: 'git user.email for the signing commit'
+    required: false
+    default: 'benjamin.luetker@gmail.com'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Import GPG key and configure git
+      shell: bash
+      env:
+        GPG_KEY: ${{ inputs.signing-key }}
+        GPG_PASSPHRASE: ${{ inputs.signing-key-passphrase }}
+        GPG_KEY_ID: ${{ inputs.signing-key-id }}
+        GIT_NAME: ${{ inputs.git-name }}
+        GIT_EMAIL: ${{ inputs.git-email }}
+      run: |
+        echo "$GPG_KEY" | \
+          gpg --batch --pinentry-mode loopback \
+              --passphrase "$GPG_PASSPHRASE" \
+              --import
+        git config user.signingkey "$GPG_KEY_ID"
+        git config tag.gpgSign true
+        git config user.name "$GIT_NAME"
+        git config user.email "$GIT_EMAIL"

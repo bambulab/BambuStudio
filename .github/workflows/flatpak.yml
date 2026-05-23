@@ -1,4 +1,5 @@
 name: Flatpak Build
+run-name: "Flatpak — ${{ github.event.release.tag_name || inputs.tag || 'latest' }}"
 
 on:
   release:

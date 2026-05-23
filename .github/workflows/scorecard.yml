@@ -1,4 +1,5 @@
 name: OpenSSF Scorecard
+run-name: "Scorecard — ${{ github.ref_name }}"
 
 on:
   push:

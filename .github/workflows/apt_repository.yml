@@ -1,4 +1,5 @@
 name: APT Repository Update
+run-name: "APT update — ${{ github.event.release.tag_name || inputs.tag || 'latest' }}"
 
 on:
   release:
@@ -16,6 +17,7 @@ jobs:
   update-apt-repo:
     name: Update APT Repository
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
 
     steps:
       - name: Harden Runner
@@ -25,6 +27,7 @@ jobs:
       - name: Determine tag
         id: tag
         run: |
+          set -euo pipefail
           if [[ "${{ github.event_name }}" == "release" ]]; then
             TAG="${{ github.event.release.tag_name }}"
           elif [[ -n "${{ inputs.tag }}" ]]; then
@@ -43,6 +46,7 @@ jobs:
 
       - name: Download .deb from release
         run: |
+          set -euo pipefail
           TAG="${{ steps.tag.outputs.tag }}"
           mkdir -p pool/main/b/bambu-studio
           # Only the Debian Trixie build goes into the apt repo.
@@ -62,6 +66,7 @@ jobs:
 
       - name: Generate Packages index
         run: |
+          set -euo pipefail
           mkdir -p dists/stable/main/binary-amd64
           dpkg-scanpackages pool/ \
             > dists/stable/main/binary-amd64/Packages
@@ -71,6 +76,7 @@ jobs:
 
       - name: Generate Release file
         run: |
+          set -euo pipefail
           mkdir -p dists/stable
           apt-ftparchive \
             -o APT::FTPArchive::Release::Origin="BenJule BambuStudio" \
@@ -86,6 +92,7 @@ jobs:
 
       - name: Sign Release
         run: |
+          set -euo pipefail
           echo "${{ secrets.APT_SIGNING_KEY }}" | gpg --batch --import
           gpg --batch --yes \
             --default-key 1726EB3278D7246499B5F2C319BC754BE4AC6B68 \
@@ -100,13 +107,14 @@ jobs:
 
       - name: Setup SSH key
         run: |
+          set -euo pipefail
           mkdir -p ~/.ssh
-          echo "${{ secrets.VPS_DEPLOY_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
+          (umask 077 && printf '%s\n' "${{ secrets.VPS_DEPLOY_KEY }}" > ~/.ssh/deploy_key)
           ssh-keyscan -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: Port knock and deploy
         run: |
+          set -euo pipefail
           knock -d 200 "${{ secrets.VPS_HOST }}" 7000 8000 9000
           sleep 1
           rsync -avz --delete \

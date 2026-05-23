@@ -1,4 +1,5 @@
 name: Cleanup old workflow runs
+run-name: "Cleanup runs — keep ${{ inputs.keep || '2' }}"
 
 on:
   workflow_run:
@@ -36,6 +37,7 @@ jobs:
   cleanup:
     name: Delete old runs
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4

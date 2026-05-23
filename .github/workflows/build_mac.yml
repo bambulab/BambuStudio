@@ -1,4 +1,5 @@
 name: Build Mac
+run-name: "Build Mac — ${{ github.actor }}"
 
 on:
   workflow_dispatch:

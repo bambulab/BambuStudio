@@ -1,4 +1,5 @@
 name: AUR Update
+run-name: "AUR update — ${{ github.event.release.tag_name || inputs.version || 'latest' }}"
 
 on:
   release:
@@ -15,6 +16,7 @@ jobs:
   aur-update:
     name: Update AUR PKGBUILD
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
 
     steps:
       - name: Harden Runner
@@ -26,6 +28,7 @@ jobs:
       - name: Determine version
         id: version
         run: |
+          set -euo pipefail
           if [[ "${{ github.event_name }}" == "release" ]]; then
             VERSION="${{ github.event.release.tag_name }}"
             VERSION="${VERSION#v}"
@@ -38,6 +41,7 @@ jobs:
       - name: Get release asset checksums
         id: checksums
         run: |
+          set -euo pipefail
           TAG="v${{ steps.version.outputs.version }}"
           VER="${TAG#v}"
           UPSTREAM_VER="${VER%-fork.*}"    # strip fork suffix for filename
@@ -64,6 +68,7 @@ jobs:
 
       - name: Write PKGBUILD
         run: |
+          set -euo pipefail
           cat > PKGBUILD << 'PKGBUILD_EOF'
           # Maintainer: BenJule <benjamin.luetker@gmail.com>
           pkgname=bambu-studio-bin

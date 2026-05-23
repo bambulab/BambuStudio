@@ -1,4 +1,5 @@
 name: clang-format Check
+run-name: "Format check — PR #${{ github.event.pull_request.number }}"
 
 on:
   pull_request:
@@ -19,6 +20,7 @@ jobs:
   clang-format:
     name: Check formatting
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
 
     steps:
       - name: Harden Runner
