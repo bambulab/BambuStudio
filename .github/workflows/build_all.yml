@@ -24,7 +24,7 @@ on:
       - ".github/workflows/build_*.yml"
       - 'BuildLinux.sh'
       - 'build_win.bat'
-    
+
   workflow_dispatch: # manual dispatch
     inputs:
       build-deps-only:
@@ -38,8 +38,10 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # Full platform matrix — skipped on pull_request
   build_all:
     name: ${{ matrix.name }}
+    if: github.event_name != 'pull_request'
     strategy:
       fail-fast: false
       matrix:
@@ -65,9 +67,72 @@ jobs:
       build-deps-only: ${{ inputs.build-deps-only || false }}
     secrets: inherit
 
-  # GitHub-hosted builds inside distribution containers
+  # Debian trixie .deb — runs on all events including pull_request
+  build_debian:
+    name: Linux / Debian trixie .deb
+    runs-on: ubuntu-24.04
+    container: debian:trixie@sha256:4ae67669760b807c19f23902a3fd7c121a6a70cf2ae709035674b23e712e4d62
+    permissions: read-all
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Bootstrap
+        run: apt-get update -qq && apt-get install -y sudo git curl git-lfs
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+        with:
+          lfs: 'true'
+
+      - name: Cache deps
+        id: cache-deps
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5
+        with:
+          path: deps/build/destdir
+          key: pkg-deps-debian-trixie_deb-${{ hashFiles('deps/CMakeLists.txt', 'deps/**/*.cmake') }}
+
+      - name: Install build dependencies
+        run: sudo ./BuildLinux.sh -ur
+
+      - name: Fix permissions
+        run: chown -R "$(id -u):$(id -g)" ./
+
+      - name: Build deps
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: ./BuildLinux.sh -dfr
+
+      - name: Build BambuStudio
+        run: |
+          ./BuildLinux.sh -sfr
+          cd build && ./src/BuildLinuxImage.sh
+
+      - name: Build package
+        run: ./BuildLinux.sh -pr
+
+      - name: Get version
+        id: ver
+        shell: bash
+        run: |
+          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
+          count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+          echo "ver=V${base}.${count}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+        with:
+          name: BambuStudio_debian-trixie_deb_${{ steps.ver.outputs.ver }}
+          path: ./build/bambustudio_*.deb
+          if-no-files-found: error
+          retention-days: 14
+
+  # Other container builds — skipped on pull_request
   build_packages_container:
     name: ${{ matrix.name }}
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-24.04
     container: ${{ matrix.container }}
     permissions: read-all
@@ -75,12 +140,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Linux / Debian trixie .deb
-            container: debian:trixie@sha256:4ae67669760b807c19f23902a3fd7c121a6a70cf2ae709035674b23e712e4d62
-            pkg_cmd: ./BuildLinux.sh -pr
-            artifact_suffix: debian-trixie_deb
-            artifact_glob: ./build/bambustudio_*.deb
-
           - name: Linux / Fedora 42 .rpm
             container: fedora:42@sha256:7c63468daf71fdc5bda3699cd483b169bb995b5137265d5ffe8f04e2ce87fbb8
             pkg_cmd: bash scripts/build_rpm.sh
@@ -93,12 +152,7 @@ jobs:
         with:
           egress-policy: audit
 
-      - name: Bootstrap (Debian)
-        if: startsWith(matrix.container, 'debian:trixie')
-        run: apt-get update -qq && apt-get install -y sudo git curl git-lfs
-
-      - name: Bootstrap (Fedora)
-        if: startsWith(matrix.container, 'fedora:42')
+      - name: Bootstrap
         run: dnf install -y sudo git curl git-lfs
 
       - name: Checkout
@@ -135,8 +189,9 @@ jobs:
         id: ver
         shell: bash
         run: |
-          ver=$(grep 'set(SLIC3R_VERSION' version.inc | cut -d '"' -f2)
-          echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
+          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
+          count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+          echo "ver=V${base}.${count}" >> "$GITHUB_OUTPUT"
 
       - name: Upload artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
@@ -146,9 +201,10 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  # Self-hosted distro runner builds (AppImage + native package)
+  # Self-hosted distro runner builds — skipped on pull_request
   build_packages_selfhosted:
     name: ${{ matrix.name }}
+    if: github.event_name != 'pull_request'
     runs-on: ${{ matrix.runner }}
     continue-on-error: true
     permissions: read-all
@@ -212,8 +268,9 @@ jobs:
       - name: Build BambuStudio + AppImage
         run: |
           ./BuildLinux.sh -isr
-          ARCH=$(uname -m)
-          ver=$(grep 'set(SLIC3R_VERSION' version.inc | cut -d '"' -f2)
+          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
+          count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+          ver="${base}.${count}"
           mv -n ./build/BambuStudio_ubu64.AppImage \
             "./build/BambuStudio_${{ matrix.artifact_suffix }}_V${ver}.AppImage" 2>/dev/null || true
 
@@ -223,8 +280,9 @@ jobs:
       - name: Get version
         id: ver
         run: |
-          ver=$(grep 'set(SLIC3R_VERSION' version.inc | cut -d '"' -f2)
-          echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
+          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
+          count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+          echo "ver=V${base}.${count}" >> "$GITHUB_OUTPUT"
 
       - name: Upload AppImage
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
