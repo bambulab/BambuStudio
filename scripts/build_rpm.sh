@@ -27,15 +27,17 @@ echo "Building .rpm for BambuStudio ${VERSION}..."
 mkdir -p "$RPMTOP"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 
 # Generate spec file via Python to avoid bash/RPM macro escaping conflicts
-python3 - <<PYEOF
+# Variables are passed via environment to keep the heredoc fully quoted.
+export RPMNAME RPMTOP VERSION RELEASE ARCH APPDIR
+python3 - <<'PYEOF'
 import os, textwrap
 
-rpmname   = "${RPMNAME}"
-version   = "${VERSION}"
-release   = "${RELEASE}"
-arch      = "${ARCH}"
-appdir    = "${APPDIR}"
-rpmtop    = "${RPMTOP}"
+rpmname   = os.environ['RPMNAME']
+version   = os.environ['VERSION']
+release   = os.environ['RELEASE']
+arch      = os.environ['ARCH']
+appdir    = os.environ['APPDIR']
+rpmtop    = os.environ['RPMTOP']
 
 spec = textwrap.dedent(f"""
     Name:       {rpmname}
