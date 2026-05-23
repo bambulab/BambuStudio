@@ -37,7 +37,7 @@ jobs:
       - name: Compute version tag
         id: ver
         run: |
-          base=$(grep 'set(SLIC3R_VERSION ' version.inc | cut -d '"' -f2 | cut -d'.' -f1-3)
+          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
           count=$(git rev-list --count HEAD)
           echo "tag=v${base}.${count}-nightly" >> "$GITHUB_OUTPUT"
           echo "ver=${base}.${count}" >> "$GITHUB_OUTPUT"

@@ -5824,6 +5824,11 @@ std::string GUI_App::format_display_version()
         else
             ++j;
     }
+
+    std::string dev_ts = SLIC3R_DEV_TIMESTAMP;
+    if (!dev_ts.empty())
+        version_display += "-dev." + dev_ts;
+
     return version_display;
 }
 

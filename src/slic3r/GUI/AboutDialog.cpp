@@ -218,62 +218,68 @@ AboutDialog::AboutDialog()
     std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
-    wxPanel *m_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(560), FromDIP(237)), wxTAB_TRAVERSAL);
-
-    wxBoxSizer *panel_versizer = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *vesizer  = new wxBoxSizer(wxVERTICAL);
-
-    m_panel->SetSizer(panel_versizer);
-
     wxBoxSizer *ver_sizer = new wxBoxSizer(wxVERTICAL);
-
-	auto main_sizer = new wxBoxSizer(wxVERTICAL);
-    main_sizer->Add(m_panel, 1, wxEXPAND | wxALL, 0);
+    auto main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(ver_sizer, 0, wxEXPAND | wxALL, 0);
 
-    // logo
+    // Header panel — draws the background bitmap via OnPaint so child
+    // widgets render correctly on GTK (wxStaticBitmap::SetSizer breaks on Linux)
     m_logo_bitmap = ScalableBitmap(this, "BambuStudio_about", 250);
-    m_logo = new wxStaticBitmap(this, wxID_ANY, m_logo_bitmap.bmp(), wxDefaultPosition,wxDefaultSize, 0);
-    m_logo->SetSizer(vesizer);
+    wxPanel *header_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition,
+                                        wxSize(FromDIP(560), FromDIP(237)));
+    header_panel->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    header_panel->SetBackgroundColour(wxColour("#00AF42"));
+    header_panel->Bind(wxEVT_PAINT, [this, header_panel](wxPaintEvent&) {
+        wxAutoBufferedPaintDC dc(header_panel);
+        dc.SetBackground(wxBrush(wxColour("#00AF42")));
+        dc.Clear();
+        if (m_logo_bitmap.bmp().IsOk()) {
+            wxSize sz  = header_panel->GetSize();
+            wxSize bsz = m_logo_bitmap.bmp().GetSize();
+            dc.DrawBitmap(m_logo_bitmap.bmp(), (sz.x - bsz.x) / 2, 0, true);
+        }
+    });
 
-    panel_versizer->Add(m_logo, 1, wxALL | wxEXPAND, 0);
+    wxBoxSizer *vesizer = new wxBoxSizer(wxVERTICAL);
+    header_panel->SetSizer(vesizer);
+    m_header_panel = header_panel;
+    main_sizer->Add(header_panel, 0, wxEXPAND, 0);
 
-    // version
+    // version text overlaid on header panel
     {
-        vesizer->Add(0, FromDIP(165), 1, wxEXPAND, FromDIP(5));
-        auto version_text = GUI_App::format_display_version();
-#if BBL_INTERNAL_TESTING
-        wxString versionText    = BBL_INTERNAL_TESTING == 1 ? _L("Internal Version") : _L("Beta Version");
-        auto     version_string = versionText + " " + std::string(version_text);
-#else
-        auto version_string = _L("Version") + " " + std::string(version_text);
-#endif
-        wxStaticText* version = new wxStaticText(this, wxID_ANY, version_string.c_str(), wxDefaultPosition, wxDefaultSize);
+        vesizer->Add(0, FromDIP(165), 1, wxEXPAND, 0);
+        auto version_text   = GUI_App::format_display_version();
+        auto version_string = _L("Beta Version") + " " + std::string(version_text);
+        wxStaticText* version = new wxStaticText(header_panel, wxID_ANY, version_string.c_str(),
+                                                 wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
         wxFont version_font = GetFont();
         #ifdef __WXMSW__
-        version_font.SetPointSize(version_font.GetPointSize()-1);
+        version_font.SetPointSize(version_font.GetPointSize() - 1);
         #else
             version_font.SetPointSize(11);
         #endif
         version_font.SetPointSize(FromDIP(16));
         version->SetFont(version_font);
         version->SetForegroundColour(wxColour("#FFFFFD"));
-        version->SetBackgroundColour(wxColour("#00AF42"));
+        version->SetBackgroundColour(wxColour(0, 0, 0, 0));
+        version->SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
         vesizer->Add(version, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
-#if BBL_INTERNAL_TESTING
-        wxString plugin_version = wxString::Format("Plugin Version: %s", wxGetApp().getAgent() ? wxGetApp().getAgent()->get_version() : "");
-        wxStaticText *plugin_version_text = new wxStaticText(this, wxID_ANY, plugin_version, wxDefaultPosition, wxDefaultSize);
+
+        wxString plugin_ver_str = wxString::Format("Plugin Version: %s",
+            wxGetApp().getAgent() ? wxGetApp().getAgent()->get_version() : "");
+        wxStaticText *plugin_version_text = new wxStaticText(header_panel, wxID_ANY, plugin_ver_str,
+                                                             wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
         plugin_version_text->SetForegroundColour(wxColour("#FFFFFE"));
-        plugin_version_text->SetBackgroundColour(wxColour("#00AF42"));
+        plugin_version_text->SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
         vesizer->Add(plugin_version_text, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
 
-        wxString build_time = wxString::Format("Build Time: %s", std::string(SLIC3R_BUILD_TIME));
-        wxStaticText* build_time_text = new wxStaticText(this, wxID_ANY, build_time, wxDefaultPosition, wxDefaultSize);
+        wxString build_time_str = wxString::Format("Build Time: %s", std::string(SLIC3R_BUILD_TIME));
+        wxStaticText* build_time_text = new wxStaticText(header_panel, wxID_ANY, build_time_str,
+                                                         wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
         build_time_text->SetForegroundColour(wxColour("#FFFFFE"));
-        build_time_text->SetBackgroundColour(wxColour("#00AF42"));
+        build_time_text->SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
         vesizer->Add(build_time_text, 0, wxALL | wxALIGN_CENTER_HORIZONTAL, FromDIP(5));
-#endif
-        vesizer->Add(0, 0, 1, wxEXPAND, FromDIP(5));
+        vesizer->Add(0, 0, 1, wxEXPAND, 0);
     }
 
     wxBoxSizer *text_sizer_horiz = new wxBoxSizer(wxHORIZONTAL);
@@ -387,7 +393,8 @@ AboutDialog::AboutDialog()
 void AboutDialog::on_dpi_changed(const wxRect &suggested_rect)
 {
     m_logo_bitmap.msw_rescale();
-    m_logo->SetBitmap(m_logo_bitmap.bmp());
+    if (m_header_panel)
+        m_header_panel->Refresh();
 
     const wxFont& font = GetFont();
     const int fs = font.GetPointSize() - 1;
@@ -428,7 +435,7 @@ void AboutDialog::onCopyrightBtn(wxEvent &)
 void AboutDialog::onCopyToClipboard(wxEvent&)
 {
     wxTheClipboard->Open();
-    wxTheClipboard->SetData(new wxTextDataObject(_L("Version") + " " + GUI_App::format_display_version()));
+    wxTheClipboard->SetData(new wxTextDataObject(_L("Beta Version") + " " + GUI_App::format_display_version()));
     wxTheClipboard->Close();
 }
 

@@ -11,10 +11,5 @@ if(NOT DEFINED BBL_INTERNAL_TESTING)
 set(BBL_INTERNAL_TESTING "1")
 endif()
 
-# The build_version should start from 50 in master branch
-
-set(SLIC3R_VERSION "02.07.00.55")
-set(FORK_RELEASE "1")
-
-string(REPLACE "." "," SLIC3R_COMMA_SEPARATED_VERSION ${SLIC3R_VERSION})
-set(SLIC3R_COMMA_SEPARATED_VERSION "${SLIC3R_COMMA_SEPARATED_VERSION}")
+# Base version — the 4th segment is auto-computed from git commit count at build time
+set(SLIC3R_VERSION_BASE "02.07.00")

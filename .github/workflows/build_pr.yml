@@ -70,7 +70,9 @@ jobs:
         id: ver
         shell: bash
         run: |
-          ver=$(grep 'set(SLIC3R_VERSION ' version.inc | cut -d '"' -f2)
+          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
+          count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+          ver="${base}.${count}"
           echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
 
       - name: Upload artifact

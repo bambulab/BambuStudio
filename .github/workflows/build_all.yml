@@ -107,7 +107,9 @@ jobs:
         id: ver
         shell: bash
         run: |
-          ver=$(grep 'set(SLIC3R_VERSION ' version.inc | cut -d '"' -f2)
+          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
+          count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+          ver="${base}.${count}"
           echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
 
       - name: Upload artifact
@@ -188,7 +190,9 @@ jobs:
         id: ver
         shell: bash
         run: |
-          ver=$(grep 'set(SLIC3R_VERSION ' version.inc | cut -d '"' -f2)
+          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
+          count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+          ver="${base}.${count}"
           echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
 
       - name: Upload artifact
@@ -265,7 +269,9 @@ jobs:
       - name: Build BambuStudio + AppImage
         run: |
           ./BuildLinux.sh -isr
-          ver=$(grep 'set(SLIC3R_VERSION ' version.inc | cut -d '"' -f2)
+          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
+          count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+          ver="${base}.${count}"
           mv -n ./build/BambuStudio_ubu64.AppImage \
             "./build/BambuStudio_${{ matrix.artifact_suffix }}_V${ver}.AppImage" 2>/dev/null || true
 
@@ -275,7 +281,9 @@ jobs:
       - name: Get version
         id: ver
         run: |
-          ver=$(grep 'set(SLIC3R_VERSION ' version.inc | cut -d '"' -f2)
+          base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
+          count=$(git rev-list --count HEAD 2>/dev/null || echo "0")
+          ver="${base}.${count}"
           echo "ver=V${ver}" >> "$GITHUB_OUTPUT"
 
       - name: Upload AppImage

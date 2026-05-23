@@ -5,11 +5,13 @@ set -e
 
 ROOT=$(dirname "$(readlink -f "$0")")/..
 
-VERSION=$(grep 'set(SLIC3R_VERSION' "$ROOT/version.inc" | cut -d '"' -f2)
-if [ -z "$VERSION" ]; then
+BASE=$(grep 'set(SLIC3R_VERSION_BASE' "$ROOT/version.inc" | cut -d '"' -f2)
+if [ -z "$BASE" ]; then
     echo "Error: could not read version from version.inc" >&2
     exit 1
 fi
+COUNT=$(git -C "$ROOT" rev-list --count HEAD 2>/dev/null || echo "0")
+VERSION="${BASE}.${COUNT}"
 
 PKGNAME="bambustudio"
 ARCH="amd64"
@@ -88,7 +90,7 @@ Version: $VERSION
 Architecture: $ARCH
 Maintainer: Bambu Lab <https://bambulab.com>
 Installed-Size: $INSTALLED_KB
-Depends: libgl1, libgtk-3-0, libglib2.0-0, libdbus-1-3, libudev1, libsecret-1-0, libwebkit2gtk-4.1-0 | libwebkit2gtk-4.0-37, libxkbcommon0
+Depends: libgl1, libgtk-3-0, libglib2.0-0, libdbus-1-3, libudev1, libsecret-1-0, libwebkit2gtk-4.1-0 | libwebkit2gtk-4.0-37, libxkbcommon0, zenity
 Section: graphics
 Priority: optional
 Homepage: https://bambulab.com

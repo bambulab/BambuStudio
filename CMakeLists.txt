@@ -8,6 +8,25 @@ endif()
 project(BambuStudio)
 
 include("version.inc")
+
+# Auto-compute build number from git commit count
+execute_process(
+  COMMAND git rev-list --count HEAD
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE _SLIC3R_BUILD_NUMBER
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  ERROR_QUIET
+)
+if(NOT _SLIC3R_BUILD_NUMBER OR _SLIC3R_BUILD_NUMBER STREQUAL "")
+  set(_SLIC3R_BUILD_NUMBER "0")
+endif()
+set(SLIC3R_VERSION "${SLIC3R_VERSION_BASE}.${_SLIC3R_BUILD_NUMBER}")
+string(REPLACE "." "," SLIC3R_COMMA_SEPARATED_VERSION ${SLIC3R_VERSION})
+set(SLIC3R_COMMA_SEPARATED_VERSION "${SLIC3R_COMMA_SEPARATED_VERSION}")
+message(STATUS "BambuStudio version: ${SLIC3R_VERSION}")
+string(TIMESTAMP SLIC3R_DEV_TIMESTAMP "%Y%m%d.%H%M%S" UTC)
+add_compile_definitions(SLIC3R_DEV_TIMESTAMP="${SLIC3R_DEV_TIMESTAMP}")
+
 include(GNUInstallDirs)
 include(CMakeDependentOption)
 
