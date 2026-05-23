@@ -45,19 +45,25 @@ jobs:
         run: |
           TAG="${{ steps.tag.outputs.tag }}"
           mkdir -p pool/main/b/bambu-studio
+          # Only the Debian Trixie build goes into the apt repo.
+          # Downloading all *.deb would put Ubuntu/self-hosted builds with the same
+          # version string into the pool, producing duplicate Packages stanzas and
+          # causing apt to offer a same-version "upgrade" on every run.
           gh release download "$TAG" \
             --repo "${{ github.repository }}" \
-            --pattern "*.deb" \
+            --pattern "*debian-trixie*.deb" \
             --dir pool/main/b/bambu-studio/ \
             --clobber
           ls -lh pool/main/b/bambu-studio/
+          [ -n "$(ls pool/main/b/bambu-studio/*.deb 2>/dev/null)" ] || \
+            { echo "ERROR: no debian-trixie .deb found in release $TAG" >&2; exit 1; }
         env:
           GH_TOKEN: ${{ github.token }}
 
       - name: Generate Packages index
         run: |
           mkdir -p dists/stable/main/binary-amd64
-          dpkg-scanpackages --multiversion pool/ \
+          dpkg-scanpackages pool/ \
             > dists/stable/main/binary-amd64/Packages
           gzip  -k -f dists/stable/main/binary-amd64/Packages
           bzip2 -k -f dists/stable/main/binary-amd64/Packages
@@ -103,7 +109,7 @@ jobs:
         run: |
           knock -d 200 "${{ secrets.VPS_HOST }}" 7000 8000 9000
           sleep 1
-          rsync -avz \
+          rsync -avz --delete \
             -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
             pool dists \
             "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/srv/apt-repo/"
