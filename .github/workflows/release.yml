@@ -80,10 +80,15 @@ jobs:
           - os: ubuntu-24.04
           - os: ubuntu-24.04-arm
           - os: windows-2022
+            arch: x64
+          - os: windows-11-arm
+            arch: arm64
+          - os: macos-13
+            arch: x86_64
           - os: macos-15-intel
             arch: x86_64
           - os: macos-15
-            arch: arm64
+            arch: universal
     uses: ./.github/workflows/build_check_cache.yml
     with:
       os: ${{ matrix.os }}
@@ -93,8 +98,11 @@ jobs:
 
   build_packages:
     name: Build Debian .deb + Fedora .rpm
-    needs: [prepare]
+    needs: [prepare, build]
+    if: ${{ !cancelled() && needs.build.result != 'failure' }}
     uses: ./.github/workflows/build_packages.yml
+    with:
+      retention-days: 90
     secrets: inherit
 
   create_release:

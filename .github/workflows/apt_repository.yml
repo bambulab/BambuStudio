@@ -34,6 +34,7 @@ jobs:
             TAG="${{ inputs.tag }}"
           else
             TAG=$(gh release list --repo "${{ github.repository }}" \
+              --exclude-pre-releases \
               --limit 1 --json tagName -q '.[0].tagName')
           fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"

@@ -35,13 +35,20 @@ jobs:
           - os: ubuntu-24.04-arm
             name: Linux / Ubuntu 24.04 ARM
           - os: windows-2022
-            name: Windows / Windows 2022
+            arch: x64
+            name: Windows / windows-2022 (x64)
+          - os: windows-11-arm
+            arch: arm64
+            name: Windows / windows-11-arm (arm64)
+          - os: macos-13
+            arch: x86_64
+            name: macOS / macOS 13 Intel
           - os: macos-15-intel
             arch: x86_64
             name: macOS / macOS 15 Intel
           - os: macos-15
-            arch: arm64
-            name: macOS / macOS 15 ARM
+            arch: universal
+            name: macOS / macOS 15 ARM Universal
     uses: ./.github/workflows/build_check_cache.yml
     with:
       os: ${{ matrix.os }}
