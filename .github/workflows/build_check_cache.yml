@@ -42,10 +42,8 @@ jobs:
           INPUT_OS:   ${{ inputs.os }}
           DEPS_HASH:  ${{ hashFiles('deps/**') }}
           # OS-specific subfolder inside deps/build that gets cached
-          DEP_FOLDER: ${{ inputs.os == 'windows-2022'
-            && '/BambuStudio_dep'
-            || (inputs.os == 'macos-15-intel' || inputs.os == 'macos-15')
-            && ''
+          DEP_FOLDER: ${{ startsWith(inputs.os, 'windows-') && '/BambuStudio_dep'
+            || startsWith(inputs.os, 'macos-') && ''
             || '/destdir' }}
         run: |
           set -euo pipefail

@@ -64,19 +64,34 @@ jobs:
 
   # ── Windows ────────────────────────────────────────────────────────────────
   build_windows:
-    name: Windows / windows-2022
+    name: Windows / ${{ matrix.os }} (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2022
+            arch: x64
+          - os: windows-11-arm
+            arch: arm64
     uses: ./.github/workflows/build_check_cache.yml
     with:
-      os:              windows-2022
+      os:              ${{ matrix.os }}
+      arch:            ${{ matrix.arch }}
       build-deps-only: ${{ inputs.build-deps-only || false }}
     secrets: inherit
 
   # ── macOS ──────────────────────────────────────────────────────────────────
   build_macos_intel:
-    name: macOS / Intel (x86_64)
+    name: macOS / Intel (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-13
+          - macos-15-intel
     uses: ./.github/workflows/build_check_cache.yml
     with:
-      os:              macos-15-intel
+      os:              ${{ matrix.os }}
       arch:            x86_64
       build-deps-only: ${{ inputs.build-deps-only || false }}
     secrets: inherit

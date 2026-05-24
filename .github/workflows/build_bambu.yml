@@ -89,47 +89,47 @@ jobs:
           Write-Host "date: $date version: $ver"
 
 # ── macOS ───────────────────────────────────────────────────────────────────
-      - name: Build slicer mac (Intel)
-        if: inputs.os == 'macos-15-intel'
+      - name: Build slicer mac (Intel x86_64)
+        if: runner.os == 'macOS' && inputs.arch == 'x86_64'
         working-directory: ${{ github.workspace }}
         run: |
           set -euo pipefail
           brew install automake texinfo nasm yasm
           brew uninstall --ignore-dependencies zstd || true
           brew unlink cmake || true
-          brew tap-new $USER/old-cmake
+          brew tap-new $USER/old-cmake || true
           brew extract --version=3.31.0 cmake $USER/old-cmake
           brew install $USER/old-cmake/cmake@3.31.0
           brew link --overwrite cmake@3.31.0
           brew pin cmake@3.31.0
           brew install zstd
           if [ ! -d "${{ github.workspace }}/deps/build/x86_64" ]; then
-            echo "Kein macOS-Intel Cache vorhanden. Baue Abhängigkeiten + Slicer..."
+            echo "No macOS Intel cache found. Building deps + slicer..."
             ./BuildMac.sh -x -a x86_64 -t 10.15 -1
           else
-            echo "Nutze geladene Cache-Abhängigkeiten..."
+            echo "Using cached deps..."
             ./BuildMac.sh -s -x -a x86_64 -t 10.15 -1
           fi
 
       - name: Build slicer mac (ARM / Universal)
-        if: inputs.os == 'macos-15'
+        if: runner.os == 'macOS' && inputs.arch != 'x86_64'
         working-directory: ${{ github.workspace }}
         run: |
           set -euo pipefail
           brew install automake texinfo nasm yasm
           brew uninstall --ignore-dependencies zstd || true
           brew unlink cmake || true
-          brew tap-new $USER/old-cmake
+          brew tap-new $USER/old-cmake || true
           brew extract --version=3.31.0 cmake $USER/old-cmake
           brew install $USER/old-cmake/cmake@3.31.0
           brew link --overwrite cmake@3.31.0
           brew pin cmake@3.31.0
           brew install zstd
           if [ ! -d "${{ github.workspace }}/deps/build/arm64" ]; then
-            echo "Kein macOS-ARM Cache vorhanden. Baue Abhängigkeiten + Slicer..."
+            echo "No macOS ARM cache found. Building deps + slicer..."
             ./BuildMac.sh -x -a universal -t 10.15 -1
           else
-            echo "Nutze geladene Cache-Abhängigkeiten..."
+            echo "Using cached deps..."
             ./BuildMac.sh -s -x -a universal -t 10.15 -1
           fi
 
@@ -156,7 +156,7 @@ jobs:
         if: runner.os == 'macOS'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
-          name: BambuStudio_Mac_${{ inputs.arch }}_${{ env.ver }}
+          name: BambuStudio_Mac_${{ inputs.os }}_${{ inputs.arch }}_${{ env.ver }}
           path: ${{ github.workspace }}/BambuStudio_Mac_${{ inputs.arch }}_${{ env.ver }}.dmg
 
 # ── Windows ─────────────────────────────────────────────────────────────────
@@ -175,20 +175,23 @@ jobs:
         if: runner.os == 'Windows'
         working-directory: ${{ github.workspace }}
         shell: pwsh
+        env:
+          INPUT_ARCH: ${{ inputs.arch }}
         run: |
+          $vsArch  = if ($env:INPUT_ARCH -eq "arm64") { "ARM64" } else { "X64" }
           $depPath = "$env:GITHUB_WORKSPACE\deps\build\BambuStudio_dep"
           if (!(Test-Path $depPath)) {
-              Write-Host "Kein Windows-Cache gefunden! Kompiliere Third-Party-Abhängigkeiten zuerst..."
+              Write-Host "No Windows cache found. Building third-party deps first..."
               choco install strawberryperl pkgconfiglite -y
               New-Item -ItemType Directory -Force -Path "$env:GITHUB_WORKSPACE\deps\build\BambuStudio_dep" | Out-Null
               Push-Location "$env:GITHUB_WORKSPACE\deps\build"
-              cmake ../ -G "Visual Studio 17 2022" -A x64 -DDESTDIR="./BambuStudio_dep" -DCMAKE_BUILD_TYPE=Release -DDEP_DEBUG=OFF
+              cmake ../ -G "Visual Studio 17 2022" -A $vsArch -DDESTDIR="./BambuStudio_dep" -DCMAKE_BUILD_TYPE=Release -DDEP_DEBUG=OFF
               msbuild /m ALL_BUILD.vcxproj
               Pop-Location
           }
           New-Item -ItemType Directory -Force -Path build | Out-Null
           Push-Location build
-          cmake .. -G "Visual Studio 17 2022" -A X64 `
+          cmake .. -G "Visual Studio 17 2022" -A $vsArch `
             -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0 `
             -DCMAKE_PREFIX_PATH="$depPath\usr\local" `
             -DCMAKE_INSTALL_PREFIX="../install-dir" `
@@ -200,14 +203,14 @@ jobs:
         if: runner.os == 'Windows'
         working-directory: ${{ github.workspace }}
         shell: cmd
-        run: '"C:/Program Files/7-Zip/7z.exe" a -tzip BambuStudio_Windows_${{ env.ver }}_portable.zip ${{ github.workspace }}/install-dir'
+        run: '"C:/Program Files/7-Zip/7z.exe" a -tzip BambuStudio_Windows_${{ inputs.os }}_${{ inputs.arch || ''x64'' }}_${{ env.ver }}_portable.zip ${{ github.workspace }}/install-dir'
 
       - name: Upload artifacts Win zip
         if: runner.os == 'Windows'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
-          name: BambuStudio_Windows_${{ env.ver }}_portable
-          path: ${{ github.workspace }}/BambuStudio_Windows_${{ env.ver }}_portable.zip
+          name: BambuStudio_Windows_${{ inputs.os }}_${{ inputs.arch || 'x64' }}_${{ env.ver }}_portable
+          path: ${{ github.workspace }}/BambuStudio_Windows_${{ inputs.os }}_${{ inputs.arch || 'x64' }}_${{ env.ver }}_portable.zip
 
 # ── Ubuntu / Linux ──────────────────────────────────────────────────────────
       - name: Install dependencies from BuildLinux.sh

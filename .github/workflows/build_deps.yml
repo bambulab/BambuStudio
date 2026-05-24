@@ -48,38 +48,47 @@ jobs:
           key: ${{ inputs.cache-key }}
 
       - name: setup dev on Windows
-        if: inputs.os == 'windows-2022'
+        if: startsWith(inputs.os, 'windows-')
         uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57  # v3
 
       - name: Get the date on Ubuntu and macOS
-        if: inputs.os != 'windows-2022'
+        if: ${{ !startsWith(inputs.os, 'windows-') }}
         run: echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
         shell: bash
 
       - name: Get the date on Windows
-        if: inputs.os == 'windows-2022'
+        if: startsWith(inputs.os, 'windows-')
         run: echo "date=$(Get-Date -Format 'yyyyMMdd')" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
         shell: pwsh
 
 
       # Build Dependencies
       - name: Build on Windows
-        if: inputs.os == 'windows-2022'
+        if: startsWith(inputs.os, 'windows-')
         working-directory: ${{ github.workspace }}
+        shell: pwsh
+        env:
+          INPUT_ARCH: ${{ inputs.arch }}
         run: |
-            choco install strawberryperl
-            choco install pkgconfiglite
-            mkdir ${{ github.workspace }}\deps\build
-            mkdir ${{ github.workspace }}\deps\build\BambuStudio_dep
-            cd "${{ github.workspace }}\deps\build"
-            cmake ../ -G "Visual Studio 17 2022" -A x64 -DDESTDIR="./BambuStudio_dep" -DCMAKE_BUILD_TYPE=Release -DDEP_DEBUG=OFF
+            $vsArch = if ($env:INPUT_ARCH -eq "arm64") { "ARM64" } else { "x64" }
+            choco install strawberryperl pkgconfiglite -y
+            New-Item -ItemType Directory -Force -Path "deps\build\BambuStudio_dep" | Out-Null
+            Push-Location "deps\build"
+            cmake ../ -G "Visual Studio 17 2022" -A $vsArch -DDESTDIR="./BambuStudio_dep" -DCMAKE_BUILD_TYPE=Release -DDEP_DEBUG=OFF
             msbuild /m ALL_BUILD.vcxproj
+            Pop-Location
 
       - name: pack deps on Windows
-        if: inputs.os == 'windows-2022'
+        if: startsWith(inputs.os, 'windows-')
         working-directory: ${{ github.workspace }}
-        run: Compress-Archive -Path "${{ github.workspace }}\deps\build\BambuStudio_dep\*" -DestinationPath "${{ github.workspace }}\deps\build\BambuStudio_dep_win64_${{ env.date }}_vs2022.zip"
         shell: pwsh
+        env:
+          INPUT_OS: ${{ inputs.os }}
+        run: |
+          $os   = $env:INPUT_OS
+          $date = "${{ env.date }}"
+          Compress-Archive -Path "$env:GITHUB_WORKSPACE\deps\build\BambuStudio_dep\*" `
+            -DestinationPath "$env:GITHUB_WORKSPACE\deps\build\BambuStudio_dep_${os}_${date}_vs2022.zip"
 
       - name: Fix python install error on mac
         if: inputs.os == 'macos-15-intel'
@@ -97,33 +106,31 @@ jobs:
           sudo rm -rf ~/Library/Developer/CoreSimulator/Caches/*
           df -h
 
-      - name: Build on Mac ${{ inputs.arch }}
-        if: inputs.os == 'macos-15-intel'
+      - name: Build on Mac x86_64
+        if: startsWith(inputs.os, 'macos-') && inputs.arch == 'x86_64'
         working-directory: ${{ github.workspace }}
         run: |
             brew install automake texinfo nasm yasm x264
             brew uninstall --ignore-dependencies zstd
             brew unlink cmake || true
-            brew tap-new $USER/old-cmake
+            brew tap-new $USER/old-cmake || true
             brew extract --version=3.31.0 cmake $USER/old-cmake
             brew install $USER/old-cmake/cmake@3.31.0
             brew link --overwrite cmake@3.31.0
             brew pin cmake@3.31.0
             ./BuildMac.sh -d -x -a x86_64 -t 10.15 -1
-            for arch in x86_64; do
-                (cd "${{ github.workspace }}/deps/build/${arch}" && \
-                find . -mindepth 1 -maxdepth 1 ! -name 'BambuStudio_deps' -exec rm -rf {} +)
-            done
+            (cd "${{ github.workspace }}/deps/build/x86_64" && \
+            find . -mindepth 1 -maxdepth 1 ! -name 'BambuStudio_deps' -exec rm -rf {} +)
             brew install zstd
 
-      - name: Build on Mac ${{ inputs.arch }}
-        if: inputs.os == 'macos-15'
+      - name: Build on Mac universal (arm64 + x86_64)
+        if: startsWith(inputs.os, 'macos-') && inputs.arch != 'x86_64'
         working-directory: ${{ github.workspace }}
         run: |
             brew install automake texinfo nasm yasm x264
             brew uninstall --ignore-dependencies zstd
             brew unlink cmake || true
-            brew tap-new $USER/old-cmake
+            brew tap-new $USER/old-cmake || true
             brew extract --version=3.31.0 cmake $USER/old-cmake
             brew install $USER/old-cmake/cmake@3.31.0
             brew link --overwrite cmake@3.31.0
@@ -136,7 +143,7 @@ jobs:
             brew install zstd
 
       - name: pack deps on Macos
-        if: inputs.os == 'macos-15-intel' || inputs.os == 'macos-15'
+        if: startsWith(inputs.os, 'macos-')
         working-directory: ${{ github.workspace }}
         run: |
           cd ${{ github.workspace }}/deps
@@ -155,22 +162,22 @@ jobs:
 
       # Upload Artifacts
       - name: Upload Mac ${{ inputs.arch }} artifacts
-        if: inputs.os == 'macos-15-intel' || inputs.os == 'macos-15'
+        if: startsWith(inputs.os, 'macos-')
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
-          name: BambuStudio_dep_mac_${{ inputs.arch }}_${{ env.date }}
+          name: BambuStudio_dep_${{ inputs.os }}_${{ inputs.arch }}_${{ env.date }}
           path: ${{ github.workspace }}/deps/BambuStudio_dep_mac_${{ inputs.arch }}*.tar.gz
 
       - name: clean artifacts
-        if: inputs.os == 'macos-15-intel' || inputs.os == 'macos-15'
+        if: startsWith(inputs.os, 'macos-')
         working-directory: ${{ github.workspace }}
         run: rm -rf ${{ github.workspace }}/deps/build/BambuStudio_dep_mac_${{ inputs.arch }}*.tar.gz
 
       - name: Upload Windows artifacts
-        if: inputs.os == 'windows-2022'
+        if: startsWith(inputs.os, 'windows-')
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
-          name: BambuStudio_dep_win64_${{ env.date }}
+          name: BambuStudio_dep_${{ inputs.os }}_${{ env.date }}
           path: ${{ github.workspace }}/deps/build/BambuStudio_dep*.zip
 
       - name: Upload Ubuntu artifacts
