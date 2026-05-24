@@ -1,17 +1,21 @@
-name: Nightly Pre-Release
-run-name: "Nightly #${{ github.run_number }}"
+name: Release Candidate Build
+run-name: "RC — ${{ github.ref_name }}"
 
 on:
-  schedule:
-    - cron: '0 2 * * *'  # 02:00 UTC every night
   push:
-    branches: [develop]
-  workflow_dispatch: {}   # manual trigger
+    branches:
+      - 'release/**'
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'release/* branch to build RC from'
+        required: false
+        default: ''
 
 permissions: read-all
 
 concurrency:
-  group: nightly
+  group: release-candidate-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -20,7 +24,7 @@ jobs:
     name: Build distribution packages
     uses: ./.github/workflows/build_packages.yml
     with:
-      retention-days: 3
+      retention-days: 30
     secrets: inherit
 
   # ── 2. GitHub-hosted platforms (Ubuntu AppImage, Windows, macOS) ──────────
@@ -58,7 +62,7 @@ jobs:
       build-deps-only: false
     secrets: inherit
 
-  # ── 3. Flatpak — built from the Ubuntu 24.04 AppImage of this same run ─────
+  # ── 3. Flatpak ────────────────────────────────────────────────────────────
   build_flatpak:
     name: Flatpak (x86_64)
     needs: [build_platforms]
@@ -116,18 +120,18 @@ jobs:
         run: |
           flatpak build-bundle \
             --runtime-repo=https://dl.flathub.org/repo/flathub.flatpakrepo \
-            flatpak-repo BambuStudio_nightly.flatpak com.bambulab.BambuStudio
+            flatpak-repo BambuStudio_rc.flatpak com.bambulab.BambuStudio
 
       - name: Upload Flatpak artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         with:
-          name: BambuStudio_flatpak_nightly
-          path: BambuStudio_nightly.flatpak
-          retention-days: 3
+          name: BambuStudio_flatpak_rc_${{ github.ref_name }}
+          path: BambuStudio_rc.flatpak
+          retention-days: 30
 
-  # ── 4. Publish — after all builds, requires at least one artifact ─────────
+  # ── 4. Publish RC release ─────────────────────────────────────────────────
   publish:
-    name: Publish nightly pre-release
+    name: Publish release candidate
     needs: [build_packages, build_platforms, build_flatpak]
     if: |
       always() &&
@@ -150,19 +154,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
         with:
-          ref: main
           fetch-depth: 0
 
-      - name: Compute version tag
+      - name: Compute RC version tag
         id: ver
         run: |
           base=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
           sha=$(git rev-parse --short=7 HEAD)
-          date_tag=$(date -u +'%Y%m%d')
-          date_human=$(date -u +'%Y-%m-%d %H:%M UTC')
-          echo "tag=nightly-${date_tag}-${sha}" >> "$GITHUB_OUTPUT"
-          echo "title=BambuStudio Nightly ${base}-dev.${date_tag}+git.${sha}" >> "$GITHUB_OUTPUT"
-          echo "date=${date_human}" >> "$GITHUB_OUTPUT"
+          branch="${{ github.ref_name }}"
+          # release/v02.07.00.55 → rc suffix from branch name
+          rc_suffix=$(echo "$branch" | sed 's|release/||')
+          echo "tag=${rc_suffix}-rc.${sha}" >> "$GITHUB_OUTPUT"
+          echo "title=BambuStudio ${rc_suffix} RC (${sha})" >> "$GITHUB_OUTPUT"
+          echo "date=$(date -u +'%Y-%m-%d %H:%M UTC')" >> "$GITHUB_OUTPUT"
 
       - name: Import GPG signing key
         uses: ./.github/actions/setup-gpg
@@ -192,55 +196,25 @@ jobs:
         with:
           subject-path: artifacts/**
 
-      - name: Create signed nightly tag
+      - name: Create signed RC tag
         if: steps.check.outputs.n > 0
         run: |
           git tag -s "${{ steps.ver.outputs.tag }}" \
-            -m "Nightly build ${{ steps.ver.outputs.date }}" \
+            -m "Release candidate ${{ steps.ver.outputs.date }}" \
             HEAD
           git push origin "${{ steps.ver.outputs.tag }}"
 
-      - name: Cleanup old nightly releases (keep last 14)
-        if: steps.check.outputs.n > 0
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release list --repo "${{ github.repository }}" \
-            --limit 200 --json tagName,createdAt,isPrerelease \
-            --jq '[.[] | select(.isPrerelease and (.tagName | startswith("nightly-")))]
-                  | sort_by(.createdAt) | reverse | .[14:] | .[].tagName' \
-          | while read -r old_tag; do
-              echo "Deleting old nightly release: $old_tag"
-              gh release delete "$old_tag" --repo "${{ github.repository }}" --yes --cleanup-tag || true
-            done
-
-      - name: Build status summary
-        id: summary
-        if: steps.check.outputs.n > 0
-        run: |
-          parts=()
-          [[ "${{ needs.build_packages.result }}" == "success" ]] \
-            && parts+=("Distribution packages ✅") \
-            || parts+=("Distribution packages ⚠️ ${{ needs.build_packages.result }}")
-          [[ "${{ needs.build_platforms.result }}" == "success" ]] \
-            && parts+=("GitHub-hosted platforms ✅") \
-            || parts+=("GitHub-hosted platforms ⚠️ ${{ needs.build_platforms.result }}")
-          printf '%s\n' "${parts[@]}" > /tmp/status.txt
-          echo "notes<<EOF" >> "$GITHUB_OUTPUT"
-          cat /tmp/status.txt >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
-
-      - name: Publish nightly pre-release
+      - name: Publish RC pre-release
         if: steps.check.outputs.n > 0
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mapfile -d '' FILES < <(find artifacts/ -maxdepth 1 -type f -print0 | sort -z)
-          printf 'Automatic nightly build from commit [`%s`](https://github.com/%s/commit/%s).\n\n%s\n' \
+          printf 'Release Candidate built from branch `%s`, commit [`%s`](https://github.com/%s/commit/%s).\n\n' \
+            "${{ github.ref_name }}" \
             "${GITHUB_SHA:0:7}" \
             "${{ github.repository }}" \
-            "${{ github.sha }}" \
-            "${{ steps.summary.outputs.notes }}" > /tmp/release-notes.md
+            "${{ github.sha }}" > /tmp/release-notes.md
           gh release create "${{ steps.ver.outputs.tag }}" \
             --repo "${{ github.repository }}" \
             --title "${{ steps.ver.outputs.title }}" \

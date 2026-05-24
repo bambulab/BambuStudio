@@ -3,7 +3,7 @@ run-name: "Format check — PR #${{ github.event.pull_request.number }}"
 
 on:
   pull_request:
-    branches: [master]
+    branches: [main, develop]
     paths:
       - 'src/**/*.cpp'
       - 'src/**/*.hpp'

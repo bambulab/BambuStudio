@@ -3,7 +3,7 @@ run-name: "Draft release notes — ${{ github.ref_name }}"
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
     types: [opened, reopened, synchronize]
   workflow_dispatch:

@@ -3,12 +3,12 @@ run-name: "CodeQL — ${{ github.ref_name }}"
 
 on:
   push:
-    branches: [master]
+    branches: [main, develop]
     paths:
       - 'src/**'
       - '**/CMakeLists.txt'
   pull_request:
-    branches: [master]
+    branches: [main, develop]
     paths:
       - 'src/**'
   schedule:
