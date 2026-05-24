@@ -28,8 +28,8 @@ on:
       - 'version.inc'
       - '.github/workflows/build_*.yml'
       - 'build_linux.sh'
-      - 'build_release_vs2022.bat'
-      - 'build_release_macos.sh'
+      - 'build_win.bat'
+      - 'BuildMac.sh'
       - 'scripts/flatpak/**'
 
   workflow_dispatch:
@@ -46,57 +46,54 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ── GitHub-hosted platform matrix (Ubuntu, Windows, macOS) ────────────────
-  build_platforms:
-    name: ${{ matrix.name }}
+  # ── Linux ──────────────────────────────────────────────────────────────────
+  build_linux:
+    name: Linux / ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-22.04
-            arch: x86_64
-            name: Linux / Ubuntu 22.04
-          - os: ubuntu-24.04
-            arch: x86_64
-            name: Linux / Ubuntu 24.04
-          - os: ubuntu-24.04-arm
-            arch: arm64
-            name: Linux / Ubuntu 24.04 ARM
-          - os: windows-2022
-            arch: x86_64
-            name: Windows / Windows 2022
-          - os: macos-15-intel
-            arch: x86_64
-            name: macOS / macOS 15 Intel
-          - os: macos-15
-            arch: arm64
-            name: macOS / macOS 15 ARM
-    uses: ./.github/workflows/build_bambu.yml  # <-- Hier korrigiert auf build_bambu.yml
+        os:
+          - ubuntu-22.04
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+    uses: ./.github/workflows/build_check_cache.yml
     with:
-      os: ${{ matrix.os }}
-      arch: ${{ matrix.arch }}
-      # Übergabe der Pflichtfelder für den Cache, basierend auf OS und Architektur
-      cache-key: "bambu-deps-${{ matrix.os }}-${{ matrix.arch }}-${{ github.sha }}"
-      cache-path: "${{ github.workspace }}/deps/build"
+      os:              ${{ matrix.os }}
+      build-deps-only: ${{ inputs.build-deps-only || false }}
     secrets: inherit
 
-  # ── macOS Universal Binary (Fusions-Job für die Mac-Builds) ────────────────
-  build_macos_universal:
-    name: macOS / Universal Binary
-    needs: build_platforms
-    if: ${{ !cancelled() && needs.build_platforms.result == 'success' && !inputs.build-deps-only }}
-    uses: ./.github/workflows/build_bambu.yml
+  # ── Windows ────────────────────────────────────────────────────────────────
+  build_windows:
+    name: Windows / windows-2022
+    uses: ./.github/workflows/build_check_cache.yml
     with:
-      os: macos-15
-      arch: universal
-      cache-key: "bambu-deps-macos-15-universal" # Dummy-Key, da beim Combine kein Cache geladen wird
-      cache-path: "${{ github.workspace }}/deps/build"
+      os:              windows-2022
+      build-deps-only: ${{ inputs.build-deps-only || false }}
+    secrets: inherit
+
+  # ── macOS ──────────────────────────────────────────────────────────────────
+  build_macos_intel:
+    name: macOS / Intel (x86_64)
+    uses: ./.github/workflows/build_check_cache.yml
+    with:
+      os:              macos-15-intel
+      arch:            x86_64
+      build-deps-only: ${{ inputs.build-deps-only || false }}
+    secrets: inherit
+
+  build_macos_arm:
+    name: macOS / ARM Universal
+    uses: ./.github/workflows/build_check_cache.yml
+    with:
+      os:              macos-15
+      arch:            universal
+      build-deps-only: ${{ inputs.build-deps-only || false }}
     secrets: inherit
 
   # ── Distribution packages (Debian .deb, Fedora .rpm) ──────────────────────
   build_packages:
     name: Build distribution packages
-    needs: build_platforms
-    if: ${{ !cancelled() && needs.build_platforms.result == 'success' }}
+    needs: build_linux
+    if: ${{ !cancelled() && needs.build_linux.result != 'failure' }}
     uses: ./.github/workflows/build_packages.yml
     secrets: inherit

@@ -1,3 +1,5 @@
+name: Build BambuStudio
+
 on:
   workflow_call:
     inputs:
@@ -5,7 +7,7 @@ on:
         required: true
         type: string
       cache-path:
-        required: true
+        required: false
         type: string
       os:
         required: true
@@ -40,7 +42,7 @@ jobs:
       - name: load cached deps
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5
         with:
-          path: ${{ inputs.cache-path }}
+          path: ${{ inputs.cache-path || format('{0}/deps/build', github.workspace) }}
           key: ${{ inputs.cache-key }}
           restore-keys: |
             bambu-deps-${{ inputs.os }}-${{ inputs.arch }}-
@@ -49,46 +51,58 @@ jobs:
       - name: Get the version and date on Ubuntu and macOS
         if: runner.os != 'Windows'
         shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.number }}
         run: |
-          ver_pure=$(grep 'set(SLIC3R_VERSION' version.inc | cut -d '"' -f2)
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            ver="PR-${{ github.event.number }}"
+          set -euo pipefail
+          ver_pure=$(grep 'set(SLIC3R_VERSION_BASE' version.inc | cut -d '"' -f2)
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            ver="PR-${PR_NUMBER}"
           else
-            ver=V$ver_pure
+            ver="V${ver_pure}"
           fi
-          echo "ver=$ver" >> $GITHUB_ENV
-          echo "ver_pure=$ver_pure" >> $GITHUB_ENV
-          echo "date=$(date +'%Y%m%d')" >> $GITHUB_ENV
+          echo "ver=$ver" >> "$GITHUB_ENV"
+          echo "ver_pure=$ver_pure" >> "$GITHUB_ENV"
+          echo "date=$(date +'%Y%m%d')" >> "$GITHUB_ENV"
 
       - name: Get the version and date on Windows
         if: runner.os == 'Windows'
         shell: pwsh
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.number }}
         run: |
           $date = Get-Date -Format 'yyyyMMdd'
-          $eventName = "${{ github.event_name }}"
-          $prNumber = "${{ github.event.number }}"
-
-          if ($eventName -eq 'pull_request') {
-              $ver = "PR" + $prNumber
+          if ($env:EVENT_NAME -eq 'pull_request') {
+              $ver = "PR$env:PR_NUMBER"
           } else {
               $versionContent = Get-Content version.inc -Raw
-              if ($versionContent -match 'set\(SLIC3R_VERSION "(.*?)"\)') {
-                  $ver = $matches[1]
+              if ($versionContent -match 'set\(SLIC3R_VERSION_BASE "(.*?)"\)') {
+                  $ver = "V$($matches[1])"
+              } else {
+                  $ver = "Vunknown"
               }
-              $ver = "V$ver"
           }
-
-          echo "ver=$ver" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
-          echo "date=$date" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
-          echo "date: $date version: $ver"
+          "ver=$ver" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
+          "date=$date" | Out-File -Append -FilePath $env:GITHUB_ENV -Encoding utf8
+          Write-Host "date: $date version: $ver"
 
 # ── macOS ───────────────────────────────────────────────────────────────────
       - name: Build slicer mac (Intel)
         if: inputs.os == 'macos-15-intel'
         working-directory: ${{ github.workspace }}
         run: |
-          brew install automake texinfo
-          # Wenn das Verzeichnis leer ist, baut BuildMac.sh die deps automatisch ohne das '-s' Flag mit
+          set -euo pipefail
+          brew install automake texinfo nasm yasm
+          brew uninstall --ignore-dependencies zstd || true
+          brew unlink cmake || true
+          brew tap-new $USER/old-cmake
+          brew extract --version=3.31.0 cmake $USER/old-cmake
+          brew install $USER/old-cmake/cmake@3.31.0
+          brew link --overwrite cmake@3.31.0
+          brew pin cmake@3.31.0
+          brew install zstd
           if [ ! -d "${{ github.workspace }}/deps/build/x86_64" ]; then
             echo "Kein macOS-Intel Cache vorhanden. Baue Abhängigkeiten + Slicer..."
             ./BuildMac.sh -x -a x86_64 -t 10.15 -1
@@ -101,8 +115,17 @@ jobs:
         if: inputs.os == 'macos-15'
         working-directory: ${{ github.workspace }}
         run: |
-          brew install automake texinfo
-          if [ ! -d "${{ github.workspace }}/deps/build/universal" ]; then
+          set -euo pipefail
+          brew install automake texinfo nasm yasm
+          brew uninstall --ignore-dependencies zstd || true
+          brew unlink cmake || true
+          brew tap-new $USER/old-cmake
+          brew extract --version=3.31.0 cmake $USER/old-cmake
+          brew install $USER/old-cmake/cmake@3.31.0
+          brew link --overwrite cmake@3.31.0
+          brew pin cmake@3.31.0
+          brew install zstd
+          if [ ! -d "${{ github.workspace }}/deps/build/arm64" ]; then
             echo "Kein macOS-ARM Cache vorhanden. Baue Abhängigkeiten + Slicer..."
             ./BuildMac.sh -x -a universal -t 10.15 -1
           else
@@ -153,17 +176,25 @@ jobs:
         working-directory: ${{ github.workspace }}
         shell: pwsh
         run: |
-          $depPath = "${{ github.workspace }}\deps\build\BambuStudio_dep\usr\local"
+          $depPath = "$env:GITHUB_WORKSPACE\deps\build\BambuStudio_dep"
           if (!(Test-Path $depPath)) {
-              echo "Kein Windows-Cache gefunden! Kompiliere Third-Party-Abhängigkeiten zuerst..."
-              # Falls dein Skript für Windows-Deps anders heißt, hier anpassen (z.B. .\build_release_vs.bat dep)
-              .\build_release_vs.bat dep
+              Write-Host "Kein Windows-Cache gefunden! Kompiliere Third-Party-Abhängigkeiten zuerst..."
+              choco install strawberryperl pkgconfiglite -y
+              New-Item -ItemType Directory -Force -Path "$env:GITHUB_WORKSPACE\deps\build\BambuStudio_dep" | Out-Null
+              Push-Location "$env:GITHUB_WORKSPACE\deps\build"
+              cmake ../ -G "Visual Studio 17 2022" -A x64 -DDESTDIR="./BambuStudio_dep" -DCMAKE_BUILD_TYPE=Release -DDEP_DEBUG=OFF
+              msbuild /m ALL_BUILD.vcxproj
+              Pop-Location
           }
-          
-          mkdir build
-          cd build
-          cmake .. -G "Visual Studio 17 2022" -A X64 -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0 -DCMAKE_PREFIX_PATH="$depPath" -DCMAKE_INSTALL_PREFIX="../install-dir" -DCMAKE_BUILD_TYPE=Release -DWIN10SDK_PATH="C:/Program Files (x86)/Windows Kits/10/Include/10.0.22000.0"
+          New-Item -ItemType Directory -Force -Path build | Out-Null
+          Push-Location build
+          cmake .. -G "Visual Studio 17 2022" -A X64 `
+            -DBBL_RELEASE_TO_PUBLIC=1 -DBBL_INTERNAL_TESTING=0 `
+            -DCMAKE_PREFIX_PATH="$depPath" `
+            -DCMAKE_INSTALL_PREFIX="../install-dir" `
+            -DCMAKE_BUILD_TYPE=Release
           cmake --build . --target install --config Release -- -m
+          Pop-Location
 
       - name: Pack app Win
         if: runner.os == 'Windows'

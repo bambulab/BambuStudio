@@ -186,8 +186,8 @@ jobs:
     if: ${{ !cancelled() && !inputs.build-deps-only && (inputs.valid-cache == true && needs.build_deps.result == 'skipped') || (inputs.valid-cache != true && success()) }}
     uses: ./.github/workflows/build_bambu.yml
     with:
-      cache-key: ${{ inputs.cache-key }}
+      cache-key:  ${{ inputs.cache-key }}
       cache-path: ${{ inputs.cache-path }}
-      os: ${{ inputs.os }}
-      arch: ${{ inputs.arch }}
+      os:         ${{ inputs.os }}
+      arch:       ${{ inputs.arch }}
     secrets: inherit
