@@ -114,13 +114,14 @@ jobs:
       - name: Install numpy for FFmpeg on macOS ARM
         if: inputs.os == 'macos-15' || inputs.os == 'macos-26'
         run: |
-          # FFmpeg's configure uses numpy.distutils, removed in numpy 2.0 AND
-          # broken on Python 3.13+ (distutils removed from stdlib in Python 3.12).
-          # Use Python 3.12 explicitly — the last version with working numpy.distutils.
-          brew install python@3.12
-          /opt/homebrew/opt/python@3.12/bin/pip3.12 install "numpy==1.26.4" --break-system-packages
-          /opt/homebrew/opt/python@3.12/bin/python3.12 -c "import numpy; import numpy.distutils"
-          echo "/opt/homebrew/opt/python@3.12/bin" >> "$GITHUB_PATH"
+          # FFmpeg's configure requires numpy.distutils (removed in numpy 2.0).
+          # numpy 1.26.4 binary wheels for Python 3.12+ ship without numpy.distutils
+          # because Python 3.12 removed distutils from its stdlib.
+          # Python 3.11 still includes distutils, so numpy.distutils works there.
+          brew install python@3.11
+          /opt/homebrew/opt/python@3.11/bin/pip3.11 install "numpy==1.26.4" --break-system-packages
+          /opt/homebrew/opt/python@3.11/bin/python3.11 -c "import numpy; import numpy.distutils"
+          echo "/opt/homebrew/opt/python@3.11/bin" >> "$GITHUB_PATH"
 
       - name: Build on Mac x86_64
         if: startsWith(inputs.os, 'macos-') && inputs.arch == 'x86_64'
