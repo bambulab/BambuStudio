@@ -46,6 +46,9 @@ jobs:
           - os: macos-15
             arch: universal
             name: macOS / macOS 15 ARM Universal
+          - os: macos-26
+            arch: universal
+            name: macOS / macOS 26 ARM Universal
     uses: ./.github/workflows/build_check_cache.yml
     with:
       os: ${{ matrix.os }}

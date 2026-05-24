@@ -96,10 +96,16 @@ jobs:
     secrets: inherit
 
   build_macos_arm:
-    name: macOS / ARM Universal
+    name: macOS / ARM Universal (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-15
+          - macos-26
     uses: ./.github/workflows/build_check_cache.yml
     with:
-      os:              macos-15
+      os:              ${{ matrix.os }}
       arch:            universal
       build-deps-only: ${{ inputs.build-deps-only || false }}
     secrets: inherit

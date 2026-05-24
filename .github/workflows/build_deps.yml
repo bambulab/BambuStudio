@@ -104,7 +104,7 @@ jobs:
           brew install --force python3 && brew unlink python3 && brew link --overwrite python3
 
       - name: Free disk space
-        if: inputs.os == 'macos-15'
+        if: inputs.os == 'macos-15' || inputs.os == 'macos-26'
         run: |
           df -h
           sudo find /Applications -maxdepth 1 -type d -name "Xcode_*.app" ! -name "Xcode_15.4.app" -exec rm -rf {} +
@@ -112,7 +112,7 @@ jobs:
           df -h
 
       - name: Install numpy for FFmpeg on macOS ARM
-        if: inputs.os == 'macos-15'
+        if: inputs.os == 'macos-15' || inputs.os == 'macos-26'
         run: |
           # FFmpeg's configure uses numpy.distutils which was removed in numpy 2.0.
           # 1.26.4 is the last 1.x release (supports Python 3.9-3.12).
