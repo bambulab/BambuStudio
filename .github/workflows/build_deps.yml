@@ -118,7 +118,7 @@ jobs:
           # broken on Python 3.13+ (distutils removed from stdlib in Python 3.12).
           # Use Python 3.12 explicitly — the last version with working numpy.distutils.
           brew install python@3.12
-          /opt/homebrew/opt/python@3.12/bin/pip3.12 install "numpy==1.26.4"
+          /opt/homebrew/opt/python@3.12/bin/pip3.12 install "numpy==1.26.4" --break-system-packages
           /opt/homebrew/opt/python@3.12/bin/python3.12 -c "import numpy; import numpy.distutils"
           echo "/opt/homebrew/opt/python@3.12/bin" >> "$GITHUB_PATH"
 
