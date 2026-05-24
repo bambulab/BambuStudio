@@ -83,11 +83,11 @@ jobs:
             arch: x64
           - os: windows-11-arm
             arch: arm64
-          - os: macos-13
-            arch: x86_64
           - os: macos-15-intel
             arch: x86_64
           - os: macos-15
+            arch: universal
+          - os: macos-26
             arch: universal
     uses: ./.github/workflows/build_check_cache.yml
     with:
