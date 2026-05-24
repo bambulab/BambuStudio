@@ -179,6 +179,11 @@ jobs:
           INPUT_ARCH: ${{ inputs.arch }}
         run: |
           $vsArch  = if ($env:INPUT_ARCH -eq "arm64") { "ARM64" } else { "X64" }
+          # Pin cmake to 3.31.x — CMake 4.x removed compatibility with
+          # cmake_minimum_required(VERSION < 3.5) which breaks wxWidgets
+          # cotire_test and other vendored subprojects.
+          choco install cmake --version=3.31.6 --force --allow-downgrade -y
+          $env:PATH = "C:\Program Files\CMake\bin;$env:PATH"
           $depPath = "$env:GITHUB_WORKSPACE\deps\build\BambuStudio_dep"
           if (!(Test-Path $depPath)) {
               Write-Host "No Windows cache found. Building third-party deps first..."

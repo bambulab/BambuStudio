@@ -72,6 +72,11 @@ jobs:
         run: |
             $vsArch = if ($env:INPUT_ARCH -eq "arm64") { "ARM64" } else { "x64" }
             choco install strawberryperl pkgconfiglite -y
+            # Pin cmake to 3.31.x — CMake 4.x removed compatibility with
+            # cmake_minimum_required(VERSION < 3.5) which breaks wxWidgets
+            # cotire_test and other vendored subprojects.
+            choco install cmake --version=3.31.6 --force --allow-downgrade -y
+            $env:PATH = "C:\Program Files\CMake\bin;$env:PATH"
             New-Item -ItemType Directory -Force -Path "deps\build\BambuStudio_dep" | Out-Null
             Push-Location "deps\build"
             cmake ../ -G "Visual Studio 17 2022" -A $vsArch -DDESTDIR="./BambuStudio_dep" -DCMAKE_BUILD_TYPE=Release -DDEP_DEBUG=OFF
@@ -105,6 +110,14 @@ jobs:
           sudo find /Applications -maxdepth 1 -type d -name "Xcode_*.app" ! -name "Xcode_15.4.app" -exec rm -rf {} +
           sudo rm -rf ~/Library/Developer/CoreSimulator/Caches/*
           df -h
+
+      - name: Install numpy for FFmpeg on macOS ARM
+        if: inputs.os == 'macos-15'
+        run: |
+          # FFmpeg's configure uses numpy.distutils which was removed in numpy 2.0.
+          # Install numpy<2 so the FFmpeg dep build can find it.
+          pip3 install "numpy<2" --break-system-packages 2>/dev/null || \
+          pip3 install "numpy<2" 2>/dev/null || true
 
       - name: Build on Mac x86_64
         if: startsWith(inputs.os, 'macos-') && inputs.arch == 'x86_64'
