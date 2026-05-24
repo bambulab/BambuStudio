@@ -104,7 +104,7 @@ jobs:
   build_selfhosted:
     name: Linux / ${{ matrix.name }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 120
+    timeout-minutes: 180
     continue-on-error: true
     permissions: read-all
     strategy:
