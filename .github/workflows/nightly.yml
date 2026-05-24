@@ -40,9 +40,6 @@ jobs:
           - os: windows-11-arm
             arch: arm64
             name: Windows / windows-11-arm (arm64)
-          - os: macos-13
-            arch: x86_64
-            name: macOS / macOS 13 Intel
           - os: macos-15-intel
             arch: x86_64
             name: macOS / macOS 15 Intel
@@ -56,14 +53,82 @@ jobs:
       build-deps-only: false
     secrets: inherit
 
-  # ── 3. Publish — after all builds, requires at least one artifact ─────────
+  # ── 3. Flatpak — built from the Ubuntu 24.04 AppImage of this same run ─────
+  build_flatpak:
+    name: Flatpak (x86_64)
+    needs: [build_platforms]
+    if: always() && needs.build_platforms.result != 'cancelled'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411  # v2.19.4
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
+
+      - name: Download Ubuntu 24.04 AppImage from this run
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v4
+        with:
+          pattern: BambuStudio_Linux_AppImage_ubuntu-24.04_amd64_*
+          merge-multiple: true
+
+      - name: Install Flatpak toolchain
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            flatpak flatpak-builder squashfs-tools desktop-file-utils appstream
+
+      - name: Add Flathub remote
+        run: |
+          flatpak remote-add --user --if-not-exists flathub \
+            https://dl.flathub.org/repo/flathub.flatpakrepo
+
+      - name: Install Flatpak runtimes
+        run: |
+          flatpak install --user -y flathub \
+            org.freedesktop.Platform//24.08 \
+            org.freedesktop.Sdk//24.08
+
+      - name: Extract AppImage
+        run: |
+          APPIMAGE=$(find . -maxdepth 1 -name "*.AppImage" | head -1)
+          chmod +x "$APPIMAGE"
+          "$APPIMAGE" --appimage-extract
+          mv squashfs-root flatpak/squashfs-root
+
+      - name: Build Flatpak bundle
+        run: |
+          flatpak-builder --user --force-clean \
+            --repo=flatpak-repo --bundle-sources \
+            flatpak-build flatpak/com.bambulab.BambuStudio.yaml
+
+      - name: Export Flatpak bundle
+        run: |
+          flatpak build-bundle \
+            --runtime-repo=https://dl.flathub.org/repo/flathub.flatpakrepo \
+            flatpak-repo BambuStudio_nightly.flatpak com.bambulab.BambuStudio
+
+      - name: Upload Flatpak artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+        with:
+          name: BambuStudio_flatpak_nightly
+          path: BambuStudio_nightly.flatpak
+          retention-days: 3
+
+  # ── 4. Publish — after all builds, requires at least one artifact ─────────
   publish:
     name: Publish nightly pre-release
-    needs: [build_packages, build_platforms]
+    needs: [build_packages, build_platforms, build_flatpak]
     if: |
       always() &&
       needs.build_packages.result != 'cancelled' &&
-      needs.build_platforms.result != 'cancelled'
+      needs.build_platforms.result != 'cancelled' &&
+      needs.build_flatpak.result != 'cancelled'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:

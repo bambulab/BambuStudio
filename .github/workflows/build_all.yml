@@ -87,7 +87,6 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - macos-13
           - macos-15-intel
     uses: ./.github/workflows/build_check_cache.yml
     with:
