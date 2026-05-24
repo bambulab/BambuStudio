@@ -24,6 +24,7 @@ REQUIRED_DEV_PACKAGES=(
     libopenssl-devel
     texinfo
     libxkbcommon-devel
+    wayland-protocols-devel
     wget
     libcurl-devel
     nasm
