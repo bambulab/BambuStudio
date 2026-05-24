@@ -100,7 +100,7 @@ jobs:
           brew tap-new $USER/old-cmake || true
           brew extract --version=3.31.0 cmake $USER/old-cmake
           brew install $USER/old-cmake/cmake@3.31.0
-          brew link --overwrite cmake@3.31.0
+          brew link --overwrite cmake@3.31.0 || cmake --version | grep -q "3\.31\." || { echo "cmake@3.31.0 link failed unexpectedly"; exit 1; }
           brew pin cmake@3.31.0
           brew install zstd
           if [ ! -d "${{ github.workspace }}/deps/build/x86_64" ]; then
@@ -122,7 +122,7 @@ jobs:
           brew tap-new $USER/old-cmake || true
           brew extract --version=3.31.0 cmake $USER/old-cmake
           brew install $USER/old-cmake/cmake@3.31.0
-          brew link --overwrite cmake@3.31.0
+          brew link --overwrite cmake@3.31.0 || cmake --version | grep -q "3\.31\." || { echo "cmake@3.31.0 link failed unexpectedly"; exit 1; }
           brew pin cmake@3.31.0
           brew install zstd
           if [ ! -d "${{ github.workspace }}/deps/build/arm64" ]; then
