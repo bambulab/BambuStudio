@@ -3,7 +3,7 @@
   <id>com.bambulab.BambuStudio</id>
 
   <name>BambuStudio</name>
-  <summary>3D-Drucker-Slicer für Bambu Lab Drucker</summary>
+  <summary>Feature-rich slicer for Bambu Lab 3D printers</summary>
 
   <metadata_license>FSFAP</metadata_license>
   <project_license>AGPL-3.0-only</project_license>
@@ -59,7 +59,4 @@
 
   <content_rating type="oars-1.1" />
 
-  <releases>
-    <!-- Releases werden automatisch durch den AUR/Homebrew-Workflow gepflegt -->
-  </releases>
 </component>

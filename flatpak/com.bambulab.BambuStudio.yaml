@@ -47,7 +47,11 @@ modules:
         if [ -d squashfs-root/usr/share ]; then
           cp -a squashfs-root/usr/share/. /app/share/
         fi
-      # AppStream-Metadaten installieren
+      # Remove AppStream files shipped by the AppImage to prevent conflicts
+      # with appstreamcli compose (AppStream 1.0 is strict about duplicate IDs)
+      - rm -rf /app/share/appdata
+      - find /app/share/metainfo -maxdepth 1 -name "*.xml" -delete 2>/dev/null || true
+      # Install our AppStream metadata
       - install -Dm644 com.bambulab.BambuStudio.metainfo.xml
           /app/share/metainfo/com.bambulab.BambuStudio.metainfo.xml
       # Desktop-Datei auf Flatpak-ID umbenennen
