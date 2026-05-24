@@ -115,9 +115,9 @@ jobs:
         if: inputs.os == 'macos-15'
         run: |
           # FFmpeg's configure uses numpy.distutils which was removed in numpy 2.0.
-          # Install numpy<2 so the FFmpeg dep build can find it.
-          pip3 install "numpy<2" --break-system-packages || \
-          pip3 install "numpy<2"
+          # 1.26.4 is the last 1.x release (supports Python 3.9-3.12).
+          pip3 install "numpy==1.26.4" --break-system-packages || \
+          pip3 install "numpy==1.26.4"
           python3 -c "import numpy; import numpy.distutils"
 
       - name: Build on Mac x86_64

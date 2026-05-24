@@ -2,9 +2,21 @@
 ARCH=$(uname -m)
 APPIMAGETOOLURL="https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${ARCH}.AppImage"
 
+# Expected SHA-256 hashes for the pinned continuous-release binaries.
+# Update both hashes together whenever bumping appimagetool.
+case "${ARCH}" in
+  x86_64)  APPIMAGETOOL_SHA256="a6d71e2b6cd66f8e8d16c37ad164658985e0cf5fcaa950c90a482890cb9d13e0" ;;
+  aarch64) APPIMAGETOOL_SHA256="1b00524ba8c6b678dc15ef88a5c25ec24def36cdfc7e3abb32ddcd068e8007fe" ;;
+  *) echo "Unsupported arch: ${ARCH}" >&2; exit 1 ;;
+esac
+
 APP_IMAGE="@SLIC3R_APP_KEY@_ubu64.AppImage"
 
-wget ${APPIMAGETOOLURL} -O ../appimagetool.AppImage
+wget "${APPIMAGETOOLURL}" -O ../appimagetool.AppImage
+printf '%s  ../appimagetool.AppImage\n' "${APPIMAGETOOL_SHA256}" | sha256sum --check --status || {
+    printf 'appimagetool hash mismatch for %s — update hashes in build_appimage.sh.in\n' "${ARCH}" >&2
+    exit 1
+}
 chmod +x ../appimagetool.AppImage
 
 # Patch AppImage magic bytes so appimagetool runs without FUSE in any
