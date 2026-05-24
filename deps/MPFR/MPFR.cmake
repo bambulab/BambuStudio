@@ -5,7 +5,8 @@ if (MSVC)
     if ((CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$") OR (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))
         set(_output  ${_dstdir}/include/mpfr.h
                  ${_dstdir}/include/mpf2mpfr.h
-                 ${_dstdir}/lib/libmpfr-6.lib 
+                 ${_dstdir}/lib/libmpfr-6.lib
+                 ${_dstdir}/lib/libmpfr-4.lib
                  ${_dstdir}/bin/mpfr-6.dll)
         set(_mpfrheader win_arm64)
         set(_mpfrlib win_arm64/libmpfr-6.lib)
@@ -13,7 +14,7 @@ if (MSVC)
     else ()
         set(_output  ${_dstdir}/include/mpfr.h
                  ${_dstdir}/include/mpf2mpfr.h
-                 ${_dstdir}/lib/libmpfr-4.lib 
+                 ${_dstdir}/lib/libmpfr-4.lib
                  ${_dstdir}/bin/libmpfr-4.dll)
         set(_mpfrheader win64)
         set(_mpfrlib win${DEPS_BITS}/libmpfr-4.lib)
@@ -25,6 +26,10 @@ if (MSVC)
         COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/include/${_mpfrheader}/mpfr.h ${_dstdir}/include/
         COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/include/${_mpfrheader}/mpf2mpfr.h ${_dstdir}/include/
         COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/lib/${_mpfrlib} ${_dstdir}/lib/
+        # CGAL's FindMPFR.cmake searches for NAMES mpfr libmpfr-4 libmpfr-1.
+        # On ARM64 the pre-built lib is libmpfr-6.lib, so install an alias so
+        # find_library() succeeds without patching CGAL's cmake modules.
+        COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/lib/${_mpfrlib} ${_dstdir}/lib/libmpfr-4.lib
         COMMAND ${CMAKE_COMMAND} -E copy ${_srcdir}/lib/${_mpfrdll} ${_dstdir}/bin/
     )
 
