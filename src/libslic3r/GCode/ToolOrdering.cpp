@@ -2082,7 +2082,12 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
     // Parse gradient settings per slot
     const auto &gradient_flags = config.filament_mixed_gradient.values;
     const auto &gradient_range_strs = config.filament_mixed_gradient_range.values;
-    struct GradientInfo { double start = 0.10; double end_val = 0.90; };
+    const auto &gradient_curve_strs = config.filament_mixed_gradient_curve.values;
+    struct GradientInfo {
+        double        start = 0.10;
+        double        end_val = 0.90;
+        GradientCurve curve;  // empty -> use linear (start, end_val); non-empty wins
+    };
     std::vector<bool> is_gradient(is_mixed.size(), false);
     std::vector<GradientInfo> gradient_info(is_mixed.size());
     for (size_t i = 0; i < is_mixed.size(); ++i) {
@@ -2100,6 +2105,8 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
                 gradient_info[i].end_val = v1;
             }
         }
+        if (i < gradient_curve_strs.size() && !gradient_curve_strs[i].empty())
+            gradient_info[i].curve = parse_gradient_curve(gradient_curve_strs[i]);
     }
 
     // Pass 1: identify continuous runs for each gradient slot (Per-Run).
@@ -2230,7 +2237,10 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
                         size_t N   = run.run_lengths[run.current_run];
                         size_t idx = run.current_idx++;
                         double t   = (N > 0) ? (2.0 * idx + 1.0) / (2.0 * N) : 0.5;
-                        double r1  = gradient_info[ext].start + (gradient_info[ext].end_val - gradient_info[ext].start) * t;
+                        // Custom curve wins over linear range when present; OFF path stays bit-identical.
+                        double r1  = gradient_info[ext].curve.empty()
+                                     ? (gradient_info[ext].start + (gradient_info[ext].end_val - gradient_info[ext].start) * t)
+                                     : sample_gradient_curve(gradient_info[ext].curve, t);
                         double r2  = 1.0 - r1;
                         sub_heights.push_back(r1 * lh);
                         sub_heights.push_back(r2 * lh);
@@ -2311,6 +2321,7 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
                                 run_idx,
                                 gradient_info[ext].start,
                                 gradient_info[ext].end_val,
+                                gradient_info[ext].curve,
                             };
                         }
                     }
@@ -2334,6 +2345,7 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
                                 run_idx,
                                 gradient_info[ext].start,
                                 gradient_info[ext].end_val,
+                                gradient_info[ext].curve,
                             };
                         }
                     }

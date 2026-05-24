@@ -11,6 +11,7 @@
 
 #include <boost/container/small_vector.hpp>
 #include "../FilamentGroup.hpp"
+#include "../FilamentMixer.hpp"
 #include "../ExtrusionEntity.hpp"
 #include "../PrintConfig.hpp"
 #include "../ObjectID.hpp"
@@ -218,10 +219,11 @@ public:
         int                       gradient_first_sorted_idx = 0; // index of "first" config component after sorting
 
         struct ObjectGradient {
-            size_t total_layers;
-            size_t current_idx;
-            double gradient_start;
-            double gradient_end;
+            size_t        total_layers;
+            size_t        current_idx;
+            double        gradient_start;
+            double        gradient_end;
+            GradientCurve curve;    // empty -> linear fallback (start, end); non-empty wins
         };
         std::map<const PrintObject*, ObjectGradient> per_object_gradient;
 

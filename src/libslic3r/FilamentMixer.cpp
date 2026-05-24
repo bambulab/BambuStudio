@@ -2,10 +2,14 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cctype>
 #include <cmath>
 #include <cstdio>
+#include <limits>
 #include <sstream>
 #include <numeric>
+
+#include <boost/log/trivial.hpp>
 
 #include "FilamentMixerModel.hpp"
 #include "LocalesUtils.hpp"
@@ -164,6 +168,221 @@ std::vector<unsigned int> parse_mixed_components(const std::string &str)
         } catch (...) {}
     }
     return components;
+}
+
+namespace {
+
+// Parse a token that may represent a finite double or "use default" (empty / "nan").
+// Returns NaN on either explicit sentinel or any parse error.
+inline double parse_tangent_token(const std::string& tok)
+{
+    if (tok.empty()) return std::numeric_limits<double>::quiet_NaN();
+    std::string lower(tok.size(), '\0');
+    std::transform(tok.begin(), tok.end(), lower.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    if (lower == "nan") return std::numeric_limits<double>::quiet_NaN();
+    try {
+        const double v = std::stod(tok);
+        if (!std::isfinite(v)) return std::numeric_limits<double>::quiet_NaN();
+        return v;
+    } catch (...) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+}
+
+// Split a "a,b,c,d" segment on commas, preserving empty tokens (so "0.5,0.4,," yields
+// {"0.5","0.4","",""}). Used by the gradient-curve parser to distinguish NaN tangents
+// from a malformed segment.
+inline std::vector<std::string> split_commas(const std::string& seg)
+{
+    std::vector<std::string> out;
+    size_t start = 0;
+    while (true) {
+        const size_t comma = seg.find(',', start);
+        if (comma == std::string::npos) {
+            out.emplace_back(seg.substr(start));
+            return out;
+        }
+        out.emplace_back(seg.substr(start, comma - start));
+        start = comma + 1;
+    }
+}
+
+} // namespace
+
+// Default Fritsch-Carlson PCHIP tangents for a sorted-by-x anchor list. m has size n
+// matching the anchor count; for n == 1 the tangent is 0; for n == 2 both endpoint
+// tangents equal the single secant (degenerates to linear).
+std::vector<double> compute_pchip_default_tangents(const std::vector<GradientAnchor>& pts)
+{
+    const size_t n = pts.size();
+    std::vector<double> m(n, 0.0);
+    if (n < 2) return m;
+
+    std::vector<double> d(n - 1);
+    for (size_t i = 0; i + 1 < n; ++i) {
+        const double h = std::max(1e-12, pts[i + 1].x - pts[i].x);
+        d[i] = (pts[i + 1].y - pts[i].y) / h;
+    }
+
+    m[0]     = d[0];
+    m[n - 1] = d[n - 2];
+    for (size_t i = 1; i + 1 < n; ++i)
+        m[i] = 0.5 * (d[i - 1] + d[i]);
+
+    // Fritsch-Carlson monotonic guard: kill flats then rescale steep tangents so the
+    // resulting cubic never overshoots [min, max] of the surrounding anchors.
+    for (size_t i = 0; i + 1 < n; ++i) {
+        if (d[i] == 0.0) {
+            m[i]     = 0.0;
+            m[i + 1] = 0.0;
+            continue;
+        }
+        const double a = m[i]     / d[i];
+        const double b = m[i + 1] / d[i];
+        const double s = a * a + b * b;
+        if (s > 9.0) {
+            const double tau = 3.0 / std::sqrt(s);
+            m[i]     = tau * a * d[i];
+            m[i + 1] = tau * b * d[i];
+        }
+    }
+    return m;
+}
+
+GradientCurve parse_gradient_curve(const std::string& s)
+{
+    GradientCurve curve;
+    if (s.empty())
+        return curve;
+
+    CNumericLocalesSetter c_locale_setter;
+    std::istringstream ss(s);
+    std::string segment;
+    while (std::getline(ss, segment, '|')) {
+        if (segment.empty())
+            continue;
+        const auto fields = split_commas(segment);
+        // 2-field legacy form -> (x, y), tangents stay NaN.
+        // 4-field form -> (x, y, m_in, m_out), empty / "nan" tokens preserved as NaN.
+        if (fields.size() != 2 && fields.size() != 4) {
+            BOOST_LOG_TRIVIAL(warning) << "parse_gradient_curve: ignoring malformed segment \""
+                                       << segment << "\" (expected 2 or 4 comma-separated fields, got "
+                                       << fields.size() << ")";
+            continue;
+        }
+        try {
+            double x = std::stod(fields[0]);
+            double y = std::stod(fields[1]);
+            x = std::max(0.0, std::min(1.0, x));
+            y = std::max(kGradientMinRatio, std::min(kGradientMaxRatio, y));
+            GradientAnchor a;
+            a.x = x;
+            a.y = y;
+            if (fields.size() == 4) {
+                a.m_in  = parse_tangent_token(fields[2]);
+                a.m_out = parse_tangent_token(fields[3]);
+            }
+            curve.points.push_back(a);
+        } catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(warning) << "parse_gradient_curve: ignoring unparseable segment \""
+                                       << segment << "\": " << e.what();
+        }
+    }
+
+    if (curve.points.size() < 2) {
+        if (!curve.points.empty())
+            BOOST_LOG_TRIVIAL(warning) << "parse_gradient_curve: only "
+                << curve.points.size() << " valid point(s), need at least 2; discarding";
+        curve.points.clear();
+        return curve;
+    }
+
+    std::sort(curve.points.begin(), curve.points.end(),
+              [](const GradientAnchor& a, const GradientAnchor& b) {
+                  return a.x < b.x;
+              });
+    return curve;
+}
+
+std::string serialize_gradient_curve(const GradientCurve& c)
+{
+    if (c.points.empty())
+        return std::string{};
+
+    CNumericLocalesSetter c_locale_setter;
+    std::string out;
+    char buf[128];
+    for (size_t i = 0; i < c.points.size(); ++i) {
+        if (i > 0) out += '|';
+        const auto& a = c.points[i];
+        const bool has_in  = std::isfinite(a.m_in);
+        const bool has_out = std::isfinite(a.m_out);
+        if (has_in || has_out) {
+            // Emit empty tokens for NaN slots so the legacy parser would still split
+            // four fields; the new parser interprets empty tokens as "use PCHIP default".
+            char in_buf[32]  = {0};
+            char out_buf[32] = {0};
+            if (has_in)  std::snprintf(in_buf,  sizeof(in_buf),  "%.4f", a.m_in);
+            if (has_out) std::snprintf(out_buf, sizeof(out_buf), "%.4f", a.m_out);
+            std::snprintf(buf, sizeof(buf), "%.4f,%.4f,%s,%s",
+                          a.x, a.y, in_buf, out_buf);
+        } else {
+            // 4-field form is only emitted when at least one tangent is finite; the
+            // 2-field form is emitted otherwise so the JSON payload stays minimal
+            // and remains readable by older clients that only know (x, y) pairs.
+            std::snprintf(buf, sizeof(buf), "%.4f,%.4f", a.x, a.y);
+        }
+        out += buf;
+    }
+    return out;
+}
+
+double sample_gradient_curve(const GradientCurve& c, double t)
+{
+    const auto& pts = c.points;
+    if (pts.size() < 2)
+        return 0.5;
+    if (t <= pts.front().x)
+        return pts.front().y;
+    if (t >= pts.back().x)
+        return pts.back().y;
+
+    // PCHIP defaults are computed for every call; control point counts are typically
+    // tiny (< 16) so the allocation cost is negligible compared to any actual rendering
+    // or G-code work that drives the sampler.
+    const std::vector<double> m_def = compute_pchip_default_tangents(pts);
+    const size_t n = pts.size();
+
+    // Linear scan to locate the interval [pts[i].x, pts[i+1].x] containing t. Cheap
+    // and avoids the upper_bound boilerplate; n is small.
+    for (size_t i = 1; i < n; ++i) {
+        const double x0 = pts[i - 1].x;
+        const double x1 = pts[i].x;
+        if (t > x1) continue;
+
+        const double y0 = pts[i - 1].y;
+        const double y1 = pts[i].y;
+        const double h  = std::max(1e-12, x1 - x0);
+        const double m_left  = std::isfinite(pts[i - 1].m_out) ? pts[i - 1].m_out : m_def[i - 1];
+        const double m_right = std::isfinite(pts[i].m_in)      ? pts[i].m_in      : m_def[i];
+
+        const double u   = (t - x0) / h;
+        const double u2  = u * u;
+        const double u3  = u2 * u;
+        const double h00 =  2.0 * u3 - 3.0 * u2 + 1.0;
+        const double h10 =        u3 - 2.0 * u2 + u;
+        const double h01 = -2.0 * u3 + 3.0 * u2;
+        const double h11 =        u3 -       u2;
+        double y = h00 * y0 + h10 * h * m_left
+                 + h01 * y1 + h11 * h * m_right;
+        // Defensive clamp in case tangent overrides on legacy curves push the
+        // single-segment Hermite slightly outside the anchor band.
+        if (y < kGradientMinRatio) y = kGradientMinRatio;
+        if (y > kGradientMaxRatio) y = kGradientMaxRatio;
+        return y;
+    }
+    return pts.back().y;
 }
 
 std::vector<double> parse_mixed_ratios(const std::string &str, size_t n_components)

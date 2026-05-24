@@ -4218,6 +4218,7 @@ void Sidebar::add_custom_filament(wxColour new_col, const std::string& preset_na
         rotate_strings("filament_mixed_sublayer_ratios");
         rotate_bools("filament_mixed_gradient");
         rotate_strings("filament_mixed_gradient_range");
+        rotate_strings("filament_mixed_gradient_curve");
         rotate_bools("filament_mixed_gradient_per_part");
 
         if (ams_mc.size() > total)
@@ -5656,6 +5657,40 @@ void Sidebar::collect_physical_filament_info(std::vector<std::string>& color_str
     }
 }
 
+// Serialize the dialog's custom gradient curve only when it deviates from the
+// direction-implied two-point linear default. Returning an empty string keeps
+// projects with the default shape bit-identical with the legacy 2-field format
+// (curve string stays "" so the slicer falls back to gradient_range linear).
+// Shared by add_mixed_filament / edit_mixed_filament so the "is default" rule
+// stays consistent between both entry points.
+static std::string serialize_mixed_gradient_curve_if_custom(const MixedFilamentResult& result)
+{
+    if (!(result.components.size() == 2 && !result.gradient_curve.empty()))
+        return {};
+
+    const double y0 = (result.gradient_direction == 0) ? kGradientMaxRatio : kGradientMinRatio;
+    const double y1 = (result.gradient_direction == 0) ? kGradientMinRatio : kGradientMaxRatio;
+    const double eps = 1e-4;
+    if (result.gradient_curve.size() == 2) {
+        const auto& a0 = result.gradient_curve[0];
+        const auto& a1 = result.gradient_curve[1];
+        // Default curve also requires no tangent overrides; any finite tangent
+        // means the user bent the segment, so we must serialize it.
+        const bool is_default =
+               std::abs(a0.x - 0.0) < eps
+            && std::abs(a1.x - 1.0) < eps
+            && std::abs(a0.y - y0)  < eps
+            && std::abs(a1.y - y1)  < eps
+            && !std::isfinite(a0.m_in)  && !std::isfinite(a0.m_out)
+            && !std::isfinite(a1.m_in)  && !std::isfinite(a1.m_out);
+        if (is_default) return {};
+    }
+
+    Slic3r::GradientCurve gc;
+    gc.points = result.gradient_curve;
+    return Slic3r::serialize_gradient_curve(gc);
+}
+
 void Sidebar::add_mixed_filament()
 {
     auto* plater = dynamic_cast<Plater*>(GetParent());
@@ -5722,6 +5757,8 @@ void Sidebar::add_mixed_filament()
             project_config.set_key_value("filament_mixed_gradient", new ConfigOptionBools({false}));
         if (!project_config.option("filament_mixed_gradient_range"))
             project_config.set_key_value("filament_mixed_gradient_range", new ConfigOptionStrings({""}) );
+        if (!project_config.option("filament_mixed_gradient_curve"))
+            project_config.set_key_value("filament_mixed_gradient_curve", new ConfigOptionStrings({""}) );
         if (!project_config.option("filament_mixed_gradient_per_part"))
             project_config.set_key_value("filament_mixed_gradient_per_part", new ConfigOptionBools({false}));
 
@@ -5739,6 +5776,11 @@ void Sidebar::add_mixed_filament()
             } else {
                 grad_range_opt->values[new_idx] = "";
             }
+        }
+        {
+            auto* grad_curve_opt = project_config.option<ConfigOptionStrings>("filament_mixed_gradient_curve");
+            while (grad_curve_opt->values.size() <= new_idx) grad_curve_opt->values.push_back("");
+            grad_curve_opt->values[new_idx] = serialize_mixed_gradient_curve_if_custom(result);
         }
         {
             auto* per_part_opt = project_config.option<ConfigOptionBools>("filament_mixed_gradient_per_part");
@@ -5824,6 +5866,11 @@ void Sidebar::edit_mixed_filament(size_t panel_idx)
         if (std::sscanf(grad_range_opt->values[cfg_idx].c_str(), "%f,%f", &v0, &v1) == 2)
             existing.gradient_direction = (v0 > v1) ? 0 : 1;
     }
+    auto* grad_curve_opt = project_config.option<ConfigOptionStrings>("filament_mixed_gradient_curve");
+    if (existing.gradient_enabled && grad_curve_opt && cfg_idx < grad_curve_opt->values.size()) {
+        auto curve = Slic3r::parse_gradient_curve(grad_curve_opt->values[cfg_idx]);
+        existing.gradient_curve = curve.points;
+    }
     auto* per_part_opt = project_config.option<ConfigOptionBools>("filament_mixed_gradient_per_part");
     if (existing.gradient_enabled && per_part_opt && cfg_idx < per_part_opt->values.size())
         existing.per_part_gradient = per_part_opt->values[cfg_idx];
@@ -5863,6 +5910,8 @@ void Sidebar::edit_mixed_filament(size_t panel_idx)
             project_config.set_key_value("filament_mixed_gradient", new ConfigOptionBools({false}));
         if (!project_config.option("filament_mixed_gradient_range"))
             project_config.set_key_value("filament_mixed_gradient_range", new ConfigOptionStrings({""}) );
+        if (!project_config.option("filament_mixed_gradient_curve"))
+            project_config.set_key_value("filament_mixed_gradient_curve", new ConfigOptionStrings({""}) );
         if (!project_config.option("filament_mixed_gradient_per_part"))
             project_config.set_key_value("filament_mixed_gradient_per_part", new ConfigOptionBools({false}));
 
@@ -5880,6 +5929,11 @@ void Sidebar::edit_mixed_filament(size_t panel_idx)
             } else {
                 grad_range_opt->values[cfg_idx] = "";
             }
+        }
+        {
+            auto* grad_curve_opt = project_config.option<ConfigOptionStrings>("filament_mixed_gradient_curve");
+            while (grad_curve_opt->values.size() <= cfg_idx) grad_curve_opt->values.push_back("");
+            grad_curve_opt->values[cfg_idx] = serialize_mixed_gradient_curve_if_custom(result);
         }
         {
             auto* per_part_opt = project_config.option<ConfigOptionBools>("filament_mixed_gradient_per_part");

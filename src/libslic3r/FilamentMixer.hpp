@@ -1,10 +1,62 @@
 #ifndef SLIC3R_FILAMENT_MIXER_HPP
 #define SLIC3R_FILAMENT_MIXER_HPP
 
+#include <limits>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace Slic3r {
+
+// Photoshop-style gradient curve control point in [0,1] x [0,1].
+// (x, y) is the anchor position; (m_in, m_out) are optional cubic Hermite tangent
+// overrides. NaN means "use the PCHIP-computed default", which is the case for plain
+// anchors loaded from old 2-field 3MF projects or freshly added via a quick click.
+// A press-and-drag on a curve segment populates m_out of its left anchor and m_in of
+// its right anchor so the segment bends without inserting a new anchor.
+struct GradientAnchor {
+    double x     = 0.0;
+    double y     = 0.0;
+    double m_in  = std::numeric_limits<double>::quiet_NaN();
+    double m_out = std::numeric_limits<double>::quiet_NaN();
+};
+
+// Sorted list of GradientAnchor; x in [0,1], y in [kGradientMinRatio, kGradientMaxRatio].
+// Empty means "no custom curve" (callers should fall back to the linear range).
+struct GradientCurve {
+    std::vector<GradientAnchor> points;
+    bool empty() const { return points.empty(); }
+};
+
+// Reserved blend ratio range. Anchor y values (= component 0's ratio) are constrained
+// to this band so the mixed filament never reaches pure 0% / 100% of either physical
+// component, which keeps both extruders flowing and avoids degenerate transitions.
+// Both the editor and the sampler enforce this clamp.
+constexpr double kGradientMinRatio = 0.1;
+constexpr double kGradientMaxRatio = 0.9;
+
+// Parse "x0,y0[,m_in0,m_out0];x1,y1[,m_in1,m_out1];..." into a GradientCurve.
+// Accepts both the legacy 2-field form (tangents -> NaN) and the new 4-field form
+// (empty token or "nan" preserved as NaN). Returns an empty curve when the input is
+// empty or unparsable. Points are clamped to [0,1] for (x, y) and re-sorted by x.
+GradientCurve parse_gradient_curve(const std::string& s);
+
+// Serialize a GradientCurve back to a string. Emits 4 fields per anchor when any
+// tangent override is finite; emits 2 fields when both tangents are NaN so unchanged
+// projects stay byte-identical with the legacy format. Returns "" when empty.
+std::string serialize_gradient_curve(const GradientCurve& c);
+
+// Sample the curve at t in [0,1] using cubic Hermite with Fritsch-Carlson PCHIP
+// default tangents, optionally overridden per anchor via m_in / m_out. Returns the
+// clamped end values when t is outside the control point range. Returns 0.5 when the
+// curve has fewer than 2 points (a safety fallback; callers should check empty()).
+double sample_gradient_curve(const GradientCurve& c, double t);
+
+// Compute Fritsch-Carlson PCHIP default tangents for a sorted-by-x anchor list.
+// Result size == pts.size(). Useful for callers that need to know what tangent the
+// sampler would synthesize when m_in / m_out are NaN (e.g. the GUI's segment-bend
+// interaction that inserts a virtual anchor and reads back the surrounding tangents).
+std::vector<double> compute_pchip_default_tangents(const std::vector<GradientAnchor>& pts);
 
 void filament_mixer_lerp(unsigned char r1, unsigned char g1, unsigned char b1,
                          unsigned char r2, unsigned char g2, unsigned char b2,

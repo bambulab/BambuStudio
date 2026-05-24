@@ -5236,7 +5236,10 @@ GCode::LayerResult GCode::process_layer(
 
                 auto gradient_ratios = [](const auto &g) -> std::pair<double, double> {
                     double t  = (g.total_layers > 0) ? (2.0 * g.current_idx + 1.0) / (2.0 * g.total_layers) : 0.5;
-                    double r1 = g.gradient_start + (g.gradient_end - g.gradient_start) * t;
+                    // Custom curve wins over linear range when present; OFF path stays bit-identical.
+                    double r1 = g.curve.empty()
+                                ? (g.gradient_start + (g.gradient_end - g.gradient_start) * t)
+                                : sample_gradient_curve(g.curve, t);
                     return {r1, 1.0 - r1};
                 };
 
