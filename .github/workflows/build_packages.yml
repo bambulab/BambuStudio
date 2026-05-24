@@ -25,7 +25,7 @@ jobs:
   build_container:
     name: Linux / ${{ matrix.name }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 150
     container: ${{ matrix.container }}
     permissions: read-all
     strategy:
