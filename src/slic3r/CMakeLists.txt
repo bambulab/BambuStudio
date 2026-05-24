@@ -670,9 +670,13 @@ if (APPLE)
         )
     FIND_LIBRARY(DISKARBITRATION_LIBRARY DiskArbitration)
 else ()
+    if (NOT (MSVC AND ((CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$") OR (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))))
+        list(APPEND SLIC3R_GUI_SOURCES
+                GUI/AVVideoDecoder.cpp
+                GUI/AVVideoDecoder.hpp
+            )
+    endif ()
     list(APPEND SLIC3R_GUI_SOURCES
-            GUI/AVVideoDecoder.cpp
-            GUI/AVVideoDecoder.hpp
             GUI/wxMediaCtrl2.cpp
             GUI/wxMediaCtrl2.h
             GUI/wxMediaCtrl3.cpp
@@ -709,6 +713,9 @@ target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW
 
 if (MSVC)
     target_link_libraries(libslic3r_gui Setupapi.lib dwmapi.lib)
+    if ((CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$") OR (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))
+        target_compile_definitions(libslic3r_gui PRIVATE BAMBUSTUDIO_NO_AVVIDEODECODER)
+    endif ()
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     FIND_LIBRARY(WAYLAND_SERVER_LIBRARIES NAMES wayland-server)
     FIND_LIBRARY(WAYLAND_EGL_LIBRARIES    NAMES wayland-egl)
@@ -746,7 +753,7 @@ if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
     add_precompiled_header(libslic3r_gui pchheader.hpp FORCEINCLUDE)
 endif ()
 
-if (NOT APPLE)
+if (NOT APPLE AND NOT (MSVC AND ((CMAKE_SYSTEM_PROCESSOR MATCHES "^(ARM64|aarch64)$") OR (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64"))))
     pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
         libavcodec
         libswscale
