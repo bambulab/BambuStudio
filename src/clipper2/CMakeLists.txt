@@ -44,6 +44,9 @@ else()
   if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 14.1)
     target_compile_options(Clipper2 PRIVATE -Wno-error=template-id-cdtor)
   endif()
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|AppleClang")
+    target_compile_options(Clipper2 PRIVATE -Wno-unknown-warning-option)
+  endif()
 endif()
 
 set_target_properties(Clipper2 PROPERTIES FOLDER Libraries
