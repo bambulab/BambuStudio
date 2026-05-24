@@ -10,7 +10,8 @@ REQUIRED_DEV_PACKAGES=(
     gettext
     git
     wget
-    libgstreamerd-3-dev
+    libgstreamer1.0-dev
+    libgstreamer-plugins-base1.0-dev
     libsecret-1-dev
     libosmesa6-dev
     libssl-dev

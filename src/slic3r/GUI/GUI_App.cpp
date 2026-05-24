@@ -1801,6 +1801,23 @@ int GUI_App::download_plugin(std::string name, std::string package_name, Install
     return result;
 }
 
+#if defined(__linux__)
+// Clear the executable-stack ELF flag on a freshly written plugin .so.
+// Debian Trixie (kernel ≥ 6.1 + AppArmor) blocks dlopen() of .so files whose
+// GNU_STACK section is marked RWE. The Bambu networking plugin ships with that
+// flag set. Clearing it here — once, at install/copy time — avoids re-patching
+// on every startup and eliminates any race with a concurrent dlopen().
+static void clear_plugin_execstack(const std::string& path)
+{
+    std::string cmd = "patchelf --clear-execstack \"" + path + "\" 2>/dev/null";
+    if (std::system(cmd.c_str()) != 0) {
+        cmd = "execstack -c \"" + path + "\" 2>/dev/null";
+        std::system(cmd.c_str());
+    }
+    BOOST_LOG_TRIVIAL(info) << "[clear_plugin_execstack] patched " << path;
+}
+#endif
+
 int GUI_App::install_plugin(std::string name, std::string package_name, InstallProgressFn pro_fn, WasCancelledFn cancel_fn)
 {
     bool cancel = false;
@@ -1893,6 +1910,10 @@ int GUI_App::install_plugin(std::string name, std::string package_name, InstallP
                             return InstallStatusUnzipFailed;
                         }
                     }
+#if defined(__linux__)
+                    if (boost::algorithm::iends_with(dest_file, ".so"))
+                        clear_plugin_execstack(dest_path.string());
+#endif
                 }
                 catch (const std::exception& e)
                 {
@@ -3555,6 +3576,9 @@ void GUI_App::copy_network_if_available()
 
                 static constexpr const auto perms = fs::owner_read | fs::owner_write | fs::group_read | fs::others_read;
                 fs::permissions(dest_path, perms);
+#if defined(__linux__)
+                clear_plugin_execstack(dest_path);
+#endif
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << ": Copying network library successfully.";
             }
         }

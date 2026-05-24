@@ -90,7 +90,7 @@ Version: $VERSION
 Architecture: $ARCH
 Maintainer: Bambu Lab <https://bambulab.com>
 Installed-Size: $INSTALLED_KB
-Depends: libgl1, libgtk-3-0, libglib2.0-0, libdbus-1-3, libudev1, libsecret-1-0, libwebkit2gtk-4.1-0 | libwebkit2gtk-4.0-37, libxkbcommon0
+Depends: libgl1, libgtk-3-0, libglib2.0-0, libdbus-1-3, libudev1, libsecret-1-0, libwebkit2gtk-4.1-0 | libwebkit2gtk-4.0-37, libxkbcommon0, libgstreamer1.0-0, libgstreamer-plugins-base1.0-0, gstreamer1.0-plugins-good, gstreamer1.0-gl
 Section: graphics
 Priority: optional
 Homepage: https://bambulab.com
