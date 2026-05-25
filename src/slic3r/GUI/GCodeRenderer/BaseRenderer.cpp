@@ -596,6 +596,20 @@ namespace Slic3r
                 std::vector<std::string> type_opt = print.config().option<ConfigOptionStrings>("filament_type")->values;
                 std::vector<unsigned char> support_filament_opt = print.config().option<ConfigOptionBools>("filament_is_support")->values;
                 for (auto extruder_id : m_extruder_ids) {
+                    // 防御：某些异常工程文件中 project_settings.config 的
+                    // filament_* 数组长度不一致 — filament_colour/type 可能为 N，但 filament_is_support
+                    // 等可能缺失或更短，按 extruder_id 索引会越界。任一数组覆盖不到当前 extruder_id 时跳过。
+                    if (extruder_id >= filament_maps.size()
+                        || extruder_id >= type_opt.size()
+                        || extruder_id >= color_opt.size()
+                        || extruder_id >= support_filament_opt.size()) {
+                        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": filament_* config arrays too short for extruder_id=" << int(extruder_id)
+                            << ", sizes=[map " << filament_maps.size()
+                            << ", type " << type_opt.size()
+                            << ", color " << color_opt.size()
+                            << ", is_support " << support_filament_opt.size() << "], skip";
+                        continue;
+                    }
                     if (filament_maps[extruder_id] == 1) {
                         m_left_extruder_filament.push_back({ type_opt[extruder_id], color_opt[extruder_id], extruder_id, (bool)(support_filament_opt[extruder_id]) });
                     }

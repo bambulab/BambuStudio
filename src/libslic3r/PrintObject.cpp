@@ -322,10 +322,19 @@ std::unordered_map<int, std::unordered_map<int, double>> PrintObject::calc_estim
 {
     auto                     full_print_config             = this->print()->m_ori_full_print_config;
     std::vector<std::string> extruder_variant_list         = this->print()->config().printer_extruder_variant.values;
-    std::vector<std::string> filament_variant_list         = full_print_config.option<ConfigOptionStrings>("filament_extruder_variant")->values;
-    std::vector<int>         filament_self_idx             = full_print_config.option<ConfigOptionInts>("filament_self_index")->values;
-    std::vector<double>      filament_max_volumetric_speed = full_print_config.option<ConfigOptionFloats>("filament_max_volumetric_speed")->values;
-    std::vector<double>      filament_flow_ratio           = full_print_config.option<ConfigOptionFloats>("filament_flow_ratio")->values;
+
+    const auto* opt_filament_variant      = full_print_config.option<ConfigOptionStrings>("filament_extruder_variant");
+    const auto* opt_filament_self_idx     = full_print_config.option<ConfigOptionInts>("filament_self_index");
+    const auto* opt_filament_max_vol_spd  = full_print_config.option<ConfigOptionFloats>("filament_max_volumetric_speed");
+    const auto* opt_filament_flow_ratio   = full_print_config.option<ConfigOptionFloats>("filament_flow_ratio");
+    if (!opt_filament_variant || !opt_filament_self_idx || !opt_filament_max_vol_spd || !opt_filament_flow_ratio) {
+        BOOST_LOG_TRIVIAL(warning) << "calc_estimated_filament_print_time: filament_* config option missing, skip estimation";
+        return {};
+    }
+    std::vector<std::string> filament_variant_list         = opt_filament_variant->values;
+    std::vector<int>         filament_self_idx             = opt_filament_self_idx->values;
+    std::vector<double>      filament_max_volumetric_speed = opt_filament_max_vol_spd->values;
+    std::vector<double>      filament_flow_ratio           = opt_filament_flow_ratio->values;
 
     auto get_limit_from_volumetric_speed = [&](int filament_idx, int extruder_idx, double width, double height) {
         std::string extruder_variant = extruder_variant_list[extruder_idx];

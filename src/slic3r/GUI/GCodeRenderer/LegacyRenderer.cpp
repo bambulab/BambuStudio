@@ -1883,7 +1883,9 @@ namespace Slic3r {
                             }
                             if (path.type == EMoveType::Extrude && !is_visible(path))
                                 continue;
-                            if (m_view_type == EViewType::ColorPrint && !m_tools.m_tool_visibles[path.extruder_id])
+                            if (m_view_type == EViewType::ColorPrint
+                                && path.extruder_id < m_tools.m_tool_visibles.size()
+                                && !m_tools.m_tool_visibles[path.extruder_id])
                                 continue;
                             // store valid path
                             for (size_t j = 0; j < path.sub_paths.size(); ++j) {

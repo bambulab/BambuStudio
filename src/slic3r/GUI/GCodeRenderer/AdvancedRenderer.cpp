@@ -1990,7 +1990,9 @@ namespace Slic3r
                         }
                     }
 
-                    if (t_view_type == EViewType::ColorPrint && !filament_visible_flags[t_seg.m_extruder_id]) {
+                    if (t_view_type == EViewType::ColorPrint
+                        && t_seg.m_extruder_id < filament_visible_flags.size()
+                        && !filament_visible_flags[t_seg.m_extruder_id]) {
                         continue;
                     }
                     m_visible_segment_list.emplace_back(i_seg);

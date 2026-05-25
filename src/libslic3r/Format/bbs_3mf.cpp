@@ -8383,8 +8383,12 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     }
                 }
 
-                std::vector<int> extruder_types      = config.option<ConfigOptionEnumsGeneric>("extruder_type")->values;
-                std::vector<int> nozzle_volume_types = config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
+                std::vector<int> extruder_types;
+                if (auto* opt = config.option<ConfigOptionEnumsGeneric>("extruder_type"))
+                    extruder_types = opt->values;
+                std::vector<int> nozzle_volume_types;
+                if (auto* opt = config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type"))
+                    nozzle_volume_types = opt->values;
 
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << EXTRUDER_TYPE_ATTR << "\" " << VALUE_ATTR << "=\"";
                 add_vector(stream, extruder_types);
@@ -8417,8 +8421,10 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                     stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << HAS_FILAMENT_SWITCHER_ATTR << "\" " << VALUE_ATTR << "=\"" << std::boolalpha << has_filament_switcher << "\"/>\n";
                 }
                 std::vector<int> filament_maps = plate_data->filament_maps;
-                if (filament_maps.empty())
-                    filament_maps = config.option<ConfigOptionInts>("filament_map")->values;
+                if (filament_maps.empty()) {
+                    if (auto* opt = config.option<ConfigOptionInts>("filament_map"))
+                        filament_maps = opt->values;
+                }
                 stream << "    <" << METADATA_TAG << " " << KEY_ATTR << "=\"" << FILAMENT_MAP_ATTR << "\" " << VALUE_ATTR << "=\"";
                 add_vector<int>(stream, filament_maps);
                 stream << "\"/>\n";

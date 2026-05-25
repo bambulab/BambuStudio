@@ -2147,9 +2147,9 @@ void GCodeProcessor::apply_config(const DynamicPrintConfig& config)
         m_result.settings_ids.printer = printer_settings_id->value;
 
     // BBS
-    m_result.filaments_count = config.option<ConfigOptionFloats>("filament_diameter")->values.size();
-
     const ConfigOptionFloats* filament_diameters = config.option<ConfigOptionFloats>("filament_diameter");
+    m_result.filaments_count = filament_diameters != nullptr ? filament_diameters->values.size() : 0;
+
     if (filament_diameters != nullptr) {
         m_result.filament_diameters.clear();
         m_result.filament_diameters.resize(filament_diameters->values.size());
