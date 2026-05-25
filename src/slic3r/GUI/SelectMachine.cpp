@@ -5274,14 +5274,13 @@ bool SelectMachineDialog::Show(bool show)
     m_ams_mapping_result.clear();
     show_status(PrintDialogStatus::PrintStatusInit);
 
-    PresetBundle& preset_bundle = *wxGetApp().preset_bundle;
-    const auto& project_config = preset_bundle.project_config;
+    PartPlate* curr_plate = m_plater->get_partplate_list().get_curr_plate();
+    BedType bed_type_value = curr_plate ? curr_plate->get_bed_type(true) : btDefault;
 
     const t_config_enum_values &enum_keys_map = ConfigOptionEnum<BedType>::get_enum_values();
-    const ConfigOptionEnum<BedType>* bed_type=project_config.option<ConfigOptionEnum<BedType>>("curr_bed_type");
     std::string plate_name;
     for (auto& elem : enum_keys_map) {
-        if (elem.second == bed_type->value)
+        if (elem.second == bed_type_value)
             plate_name = elem.first;
     }
 
