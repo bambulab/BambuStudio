@@ -97,8 +97,18 @@ export function FilamentManagerPage() {
     }
   }, [setDebugEnabled]);
 
-  // Init
+    // Init
   useEffect(() => { init(); }, [init]);
+
+  // STUDIO-18110: every time AddEditDialog opens, re-fetch the preset list so
+  // that filaments created/deleted on the Prepare page are immediately visible
+  // in the brand dropdown. The filament manager pulls data on its own without
+  // relying on external modules to push notifications, avoiding coupling.
+  useEffect(() => {
+    if (dialogOpen) {
+      void fetchPresets();
+    }
+  }, [dialogOpen, fetchPresets]);
 
   // Kick off cloud status + filament list refresh at mount; if already logged
   // in (e.g. user opened Filament tab after signing in), trigger pull so list
