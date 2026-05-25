@@ -2857,11 +2857,16 @@ void SelectMachineDialog::load_option_vals(MachineObject *obj)
     }
 
     if (obj->is_multi_extruders()) {
+        const bool has_switcher = obj->GetFilaSwitch() && obj->GetFilaSwitch()->IsInstalled();
         auto used_nozzle_idxes = _get_used_nozzle_idxes();
-        if (used_nozzle_idxes.size() == 1) {
-            m_checkbox_list["nozzle_offset_cali"]->setValue("off");
-        } else if (used_nozzle_idxes.size() >= 2) {
+        if (used_nozzle_idxes.size() >= 2) {
             m_checkbox_list["nozzle_offset_cali"]->setValue("auto");
+        } else if (used_nozzle_idxes.size() == 1) {
+            if (has_switcher) {
+                m_checkbox_list["nozzle_offset_cali"]->setValue("auto");
+            } else {
+                m_checkbox_list["nozzle_offset_cali"]->setValue("off");
+            }
         }
     }
 
