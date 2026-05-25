@@ -1202,6 +1202,10 @@ void PrintObject::slice_volumes()
     InterlockingGenerator::generate_embedding_wall(this);
     m_print->throw_if_canceled();
 
+    // TODO(filament-shrink): refactor — apply per role/region in perimeter & infill stages instead of baking
+    //   into posSlice geometry. Current impl scales whole region by the wall_filament's shrink, which:
+    //     (1) forces posSlice invalidation whenever wall_filament changes (see PrintObject::invalidate_state_by_config_options),
+    //     (2) ignores per-role shrink (infill/solid_infill filament may differ from wall_filament).
     // SuperSlicer: filament shrink
     for (Layer *layer : m_layers) {
         for (size_t i = 0; i < layer->region_count(); ++i) {

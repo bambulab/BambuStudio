@@ -1370,6 +1370,9 @@ bool PrintObject::invalidate_state_by_config_options(
             || opt_key == "enable_overhang_speed"
             || opt_key == "detect_thin_wall"
             || opt_key == "precise_outer_wall") {
+            // filament_shrink is applied to slice contours in slice_volumes() (posSlice) using wall_filament.
+            if (opt_key == "wall_filament")
+                steps.emplace_back(posSlice);
             steps.emplace_back(posPerimeters);
             steps.emplace_back(posSupportMaterial);
         } else if (opt_key == "bridge_flow") {
