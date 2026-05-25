@@ -276,6 +276,10 @@ AMSDryCtrWin::AMSDryCtrWin(wxWindow *parent)
 
 AMSDryCtrWin::~AMSDryCtrWin()
 {
+    if (m_refresh_timer) {
+        m_refresh_timer->Stop();
+        delete m_refresh_timer;
+    }
     if (m_progress_timer) {
         delete m_progress_timer;
     }
@@ -1132,6 +1136,17 @@ void AMSDryCtrWin::OnProgressTimer(wxTimerEvent& event)
     }
 }
 
+void AMSDryCtrWin::OnRefreshTimer(wxTimerEvent&)
+{
+    auto* dev_mgr = wxGetApp().getDeviceManager();
+    MachineObject* obj = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
+    if (!obj || !obj->GetFilaSystem()) {
+        Close();
+        return;
+    }
+    update(obj->GetFilaSystem(), obj);
+}
+
 void AMSDryCtrWin::restore_stop_button_if_deadline_passed()
 {
     if (m_stop_button_restore_deadline.has_value()) {
@@ -1181,12 +1196,32 @@ void AMSDryCtrWin::OnShow(wxShowEvent& event)
     if (event.IsShown()) {
         wxGetApp().UpdateDlgDarkUI(this);
         msw_rescale();
+    } else {
+        if (m_refresh_timer && m_refresh_timer->IsRunning()) {
+            m_refresh_timer->Stop();
+        }
     }
     event.Skip();
 }
 
+void AMSDryCtrWin::enableSelfRefresh(bool enable)
+{
+    if (!m_refresh_timer) return;
+    if (enable) {
+        if (!m_refresh_timer->IsRunning()) {
+            m_refresh_timer->Start(1000);
+        }
+    } else {
+        m_refresh_timer->Stop();
+    }
+}
+
 void AMSDryCtrWin::OnClose(wxCloseEvent& event)
 {
+    if (m_refresh_timer && m_refresh_timer->IsRunning()) {
+        m_refresh_timer->Stop();
+    }
+
     if (m_progress_timer && m_progress_timer->IsRunning()) {
         m_progress_timer->Stop();
     }
@@ -1284,6 +1319,9 @@ void AMSDryCtrWin::create()
 
     m_progress_timer = new wxTimer(this, wxID_ANY);
     Bind(wxEVT_TIMER, &AMSDryCtrWin::OnProgressTimer, this, m_progress_timer->GetId());
+
+    m_refresh_timer = new wxTimer(this, wxID_ANY);
+    Bind(wxEVT_TIMER, &AMSDryCtrWin::OnRefreshTimer, this, m_refresh_timer->GetId());
 
     Bind(wxEVT_CLOSE_WINDOW, &AMSDryCtrWin::OnClose, this);
 

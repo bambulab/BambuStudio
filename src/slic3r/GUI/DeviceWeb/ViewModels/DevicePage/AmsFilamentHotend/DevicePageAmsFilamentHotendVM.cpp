@@ -2,6 +2,7 @@
 #include "DevicePageAmsFilamentHotendSchema.hpp"
 #include "slic3r/GUI/DeviceWeb/DeviceWebBridge.hpp"
 
+#include "slic3r/GUI/AMSDryControl.hpp"
 #include "slic3r/GUI/AMSMaterialsSetting.hpp"
 #include "slic3r/GUI/AMSSetting.hpp"
 #include "slic3r/GUI/AmsMappingPopup.hpp"
@@ -1230,6 +1231,32 @@ nlohmann::json DevicePageAmsFilamentHotendVM::HandleAction(const std::string& ac
         } catch (const std::exception& e) {
             return MakeResponse(GetModule(), "action", action, 2, e.what(), BuildState());
         }
+    } else if (action == "dry") {
+        // If ams_id is empty, find the first AMS unit that supports drying.
+        std::string dry_ams_id = ams_id;
+        if (dry_ams_id.empty() && fila_system) {
+            for (const auto& [_, ams_unit] : fila_system->GetAmsList()) {
+                if (ams_unit && ams_unit->SupportDrying()) {
+                    dry_ams_id = ams_unit->GetAmsId();
+                    break;
+                }
+            }
+        }
+        if (dry_ams_id.empty()) {
+            return MakeResponse(GetModule(), "action", action, 2, "No dryable AMS unit found", BuildState());
+        }
+        wxGetApp().CallAfter([dry_ams_id]() {
+            auto* dev_mgr = wxGetApp().getDeviceManager();
+            MachineObject* mo = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
+            if (!mo || !mo->GetFilaSystem()) return;
+
+            wxWindow* parent = wxGetApp().mainframe;
+            AMSDryCtrWin dlg(parent);
+            dlg.set_ams_id(dry_ams_id);
+            dlg.update(mo->GetFilaSystem(), mo);
+            dlg.enableSelfRefresh(true);
+            dlg.ShowModal();
+        });
     } else if (action == "stop_filament_change") {
         const int result = machine_obj->command_ams_control("abort");
         if (result != 0) {

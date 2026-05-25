@@ -108,7 +108,14 @@ export function AmsFilamentHotendPage() {
     [fp.actions, fp.filament_change_status?.active],
   );
 
-  const handleToolbarAction = (action: string) => runSlotAction(action);
+  const handleToolbarAction = (action: string) => {
+    if (action === 'dry') {
+      const dryZone = fp.ams_dry_zones?.find((z) => z.ams_id);
+      runSlotAction(action, undefined, dryZone ? { ams_id: dryZone.ams_id } : {});
+      return;
+    }
+    runSlotAction(action);
+  };
 
   const handleSlotAction = (
     action: string,

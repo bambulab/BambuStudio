@@ -90,6 +90,7 @@ public:
     void msw_rescale();
     void update(std::shared_ptr<DevFilaSystem> fila_system, MachineObject* obj);
     void set_ams_id(const std::string& ams_id);
+    void enableSelfRefresh(bool enable);
 
 protected:
     void on_dpi_changed(const wxRect &suggested_rect) override;
@@ -158,6 +159,7 @@ private:
     wxPanel* m_progress_page;
     ProgressBar* m_progress_gauge;
     wxTimer* m_progress_timer;
+    wxTimer* m_refresh_timer{nullptr};
 
     std::optional<std::chrono::steady_clock::time_point> m_stop_button_restore_deadline;
     std::optional<std::chrono::steady_clock::time_point> m_unload_button_restore_deadline;
@@ -231,6 +233,7 @@ private:
 
     wxBoxSizer* create_progress_page_sizer(wxPanel* parent);
     void OnProgressTimer(wxTimerEvent& event);
+    void OnRefreshTimer(wxTimerEvent& event);
     void OnClose(wxCloseEvent& event);
     void OnShow(wxShowEvent& event);
 
