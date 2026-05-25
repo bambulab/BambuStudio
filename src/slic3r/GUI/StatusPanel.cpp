@@ -191,6 +191,7 @@ public:
         m_close_button->Hide();
 
         Bind(wxEVT_CLOSE_WINDOW, &CameraFullscreenFrame::on_close, this);
+        Bind(wxEVT_ACTIVATE, &CameraFullscreenFrame::on_activate, this);
         m_escape_accel_id = wxWindow::NewControlId();
         Bind(wxEVT_MENU, &CameraFullscreenFrame::on_escape_accelerator, this, m_escape_accel_id);
         Bind(wxEVT_CHAR_HOOK, &CameraFullscreenFrame::on_char_hook, this);
@@ -309,6 +310,26 @@ private:
             return;
         }
         event.Skip();
+    }
+
+    void on_activate(wxActivateEvent &event)
+    {
+        event.Skip();
+        if (!event.GetActive()) {
+#ifdef __WXMSW__
+            ::SetWindowPos(GetHWND(), HWND_NOTOPMOST, 0, 0, 0, 0,
+                           SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+#elif defined(__APPLE__)
+            suspend_camera_fullscreen_topmost(this);
+#endif
+        } else {
+#ifdef __WXMSW__
+            ::SetWindowPos(GetHWND(), HWND_TOPMOST, 0, 0, 0, 0,
+                           SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+#elif defined(__APPLE__)
+            resume_camera_fullscreen_topmost(this);
+#endif
+        }
     }
 
     void on_escape_accelerator(wxCommandEvent &)

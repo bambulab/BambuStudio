@@ -98,6 +98,26 @@ void restore_camera_fullscreen_presentation(void *presentation)
     delete state;
 }
 
+void suspend_camera_fullscreen_topmost(wxWindow *window)
+{
+    NSWindow *ns_window = camera_fullscreen_window(window);
+    if (!ns_window)
+        return;
+
+    [ns_window setLevel:NSNormalWindowLevel];
+    [ns_window orderBack:nil];
+}
+
+void resume_camera_fullscreen_topmost(wxWindow *window)
+{
+    NSWindow *ns_window = camera_fullscreen_window(window);
+    if (!ns_window)
+        return;
+
+    [ns_window setLevel:NSModalPanelWindowLevel];
+    [ns_window orderFront:nil];
+}
+
 }} // namespace Slic3r::GUI
 
 #endif
