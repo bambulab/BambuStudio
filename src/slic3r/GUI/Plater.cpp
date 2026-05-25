@@ -64,6 +64,7 @@
 #include "libslic3r/GCode/ThumbnailData.hpp"
 #include "Gizmos/GLGizmoAlignment.hpp"
 #include "libslic3r/Model.hpp"
+#include "libslic3r/ModelArrange.hpp"
 #include "libslic3r/SLA/Hollowing.hpp"
 #include "libslic3r/SLA/SupportPoint.hpp"
 #include "libslic3r/SLA/ReprojectPointsOnMesh.hpp"
@@ -15327,6 +15328,14 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
     // BBS: Save the model in the current platelist
     std::vector<vector<int>> plate_object;
     std::set<int>            all_plate_object;
+    // Snapshot plate bboxes and wipe-tower geometry before select_prest() rebuilds plate state.
+    std::vector<BoundingBoxf3> old_plate_bbox_list;
+    old_plate_bbox_list.reserve(old_plate_list.get_plate_count());
+    std::vector<BoundingBoxf3> old_plate_wt_bbox; // per-plate wipe tower bbox; .defined=false when absent
+    old_plate_wt_bbox.reserve(old_plate_list.get_plate_count());
+    const DynamicPrintConfig &old_full_config         = wxGetApp().preset_bundle->full_config();
+    const int                 old_nozzle_nums         = wxGetApp().preset_bundle->get_printer_extruder_count();
+    const bool                old_prime_tower_enabled = old_full_config.opt_bool("enable_prime_tower");
     for (size_t i = 0; i < old_plate_list.get_plate_count(); ++i) {
         PartPlate                    *plate   = old_plate_list.get_plate(i);
         std::set<std::pair<int, int>> obj_set = plate->get_obj_and_inst_set();
@@ -15337,7 +15346,30 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
             all_plate_object.emplace(p.first);
         }
         plate_object.emplace_back(std::move(obj_idxs));
+
+        old_plate_bbox_list.emplace_back(plate->get_plate_box());
+
+        BoundingBoxf3 wt_bbox; // default-constructed: defined=false
+        const int     filament_cnt = static_cast<int>(plate->get_extruders().size());
+        // Wipe tower contributes only when prime tower is on and the plate has >1 filament.
+        if (old_prime_tower_enabled && filament_cnt > 1) {
+            Vec3d wt_pos, wt_size;
+            plate->estimate_wipe_tower_polygon(old_full_config, static_cast<int>(i),
+                                               wt_pos, wt_size, old_nozzle_nums, filament_cnt);
+            if (wt_size.x() > 1e-3 && wt_size.y() > 1e-3) {
+                const Vec3d plate_origin = plate->get_origin();
+                const Vec3d wt_min       = plate_origin + Vec3d(wt_pos.x(), wt_pos.y(), 0.0);
+                wt_bbox = BoundingBoxf3(wt_min, wt_min + wt_size);
+            }
+        }
+        old_plate_wt_bbox.emplace_back(std::move(wt_bbox));
     }
+
+    // Carry-over virtual-plate membership: off_bed (bbox check) misses oversized
+    // assemblies parked at the virtual centre whose bbox grazes a real plate.
+    std::set<int> sticky_virtual_old_objs;
+    for (const auto &p : old_plate_list.get_unprintable_plate().get_obj_and_inst_set())
+        sticky_virtual_old_objs.insert(p.first);
 
 #if 0
     BoundingBoxf3      platelist_bbox = old_plate_list.get_bounding_box();
@@ -15392,81 +15424,364 @@ void Plater::priv::update_objects_position_when_select_preset(const std::functio
 
     q->show_wrapping_detect_dialog_if_necessary();
 
-    // BBS:Model reset by plate center
-    PartPlate     *cur_plate            = cur_plate_list.get_curr_plate();
-    Vec3d          cur_plate_pos        = cur_plate->get_center_origin();
-    Vec3d          cur_plate_size       = cur_plate->get_bounding_box().size();
-    bool           cur_plate_is_smaller = cur_plate_size.x() + 1.0 < old_plate_size.x() || cur_plate_size.y() + 1.0 < old_plate_size.y();
-    BOOST_LOG_TRIVIAL(info) << format("change bed pos from (%.0f,%.0f) to (%.0f,%.0f)", old_plate_pos.x(), old_plate_pos.y(), cur_plate_pos.x(), cur_plate_pos.y());
+    // BBS: re-place objects after preset switch.
+    PartPlate *cur_plate     = cur_plate_list.get_curr_plate();
+    Vec3d      cur_plate_pos = cur_plate->get_center_origin();
+    BOOST_LOG_TRIVIAL(info) << format("change bed pos from (%.0f,%.0f) to (%.0f,%.0f)",
+                                      old_plate_pos.x(), old_plate_pos.y(),
+                                      cur_plate_pos.x(), cur_plate_pos.y());
 
-    bool plate_not_empty = std::any_of(plate_object.begin(), plate_object.end(), [](const std::vector<int> &obj_idxs) { return !obj_idxs.empty(); });
-    if (old_plate_pos.x() != cur_plate_pos.x() || old_plate_pos.y() != cur_plate_pos.y() || cur_plate_is_smaller) {
-        for (int i = 0; i < plate_object.size(); ++i) {
-            view3D->select_object_from_idx(plate_object[i]);
-            this->sidebar->obj_list()->update_selections();
-            view3D->center_selected_plate(i);
+    const double new_max_print_height = this->bed.build_volume().printable_height();
+    const double size_eps             = 1.0;
+    // Tight FP epsilon: any geometric overhang (even sub-mm) must go to reschedule_set.
+    const double xy_overflow_eps      = EPSILON;
+
+    // Objects whose bbox does not intersect ANY old plate are considered off-bed
+    // (covers instances the user dragged outside the build area before switching).
+    std::set<int> off_bed_obj_idxs;
+    for (int i = 0; i < static_cast<int>(model.objects.size()); ++i) {
+        ModelObject *o = model.objects[i];
+        if (!o || o->instances.empty())
+            continue;
+        const BoundingBoxf3 obj_bbox = o->instance_convex_hull_bounding_box(static_cast<size_t>(0));
+        bool intersects_any_old_plate = false;
+        for (const auto &plate_bbox : old_plate_bbox_list) {
+            if (plate_bbox.intersects(obj_bbox)) {
+                intersects_any_old_plate = true;
+                break;
+            }
+        }
+        if (!intersects_any_old_plate)
+            off_bed_obj_idxs.insert(i);
+    }
+
+    // Objects taller than the new Z capacity go to the virtual plate. Compare
+    // bbox max.z (not size.z) so models lifted off z=0 are still caught.
+    std::set<int> tall_obj_idxs;
+    for (int i = 0; i < static_cast<int>(model.objects.size()); ++i) {
+        ModelObject *o = model.objects[i];
+        if (!o || o->instances.empty())
+            continue;
+        if (o->instance_bounding_box(0).max.z() > new_max_print_height + size_eps)
+            tall_obj_idxs.insert(i);
+    }
+
+    std::set<int> virtual_obj_idxs;
+    virtual_obj_idxs.insert(off_bed_obj_idxs.begin(),        off_bed_obj_idxs.end());
+    virtual_obj_idxs.insert(tall_obj_idxs.begin(),           tall_obj_idxs.end());
+    virtual_obj_idxs.insert(sticky_virtual_old_objs.begin(), sticky_virtual_old_objs.end());
+
+    // Per old plate: drop virtual-bound objects, then decide between rigid translate
+    // (content fits XY) and rescheduling (content overflows XY -> let ArrangeJob
+    // re-pack). Tall objects no longer enter the XY check; they were handled above.
+    struct PassPlateTranslation {
+        int              plate_idx;
+        std::vector<int> effective_objs;
+        // Snapshot only; delta is re-derived after create_plate settles the final grid.
+        Vec3d            content_center;
+    };
+    std::set<int>                     reschedule_set;
+    std::vector<PassPlateTranslation> pass_translations;
+    const int                         new_plate_count = cur_plate_list.get_plate_count();
+    const int                         common_count    = std::min(static_cast<int>(plate_object.size()), new_plate_count);
+
+    for (int i = 0; i < static_cast<int>(plate_object.size()); ++i) {
+        std::vector<int> effective_objs;
+        effective_objs.reserve(plate_object[i].size());
+        for (int o : plate_object[i]) {
+            if (virtual_obj_idxs.count(o) == 0)
+                effective_objs.push_back(o);
+        }
+        if (effective_objs.empty())
+            continue;
+
+        if (i >= common_count) {
+            // No matching plate in the new list -> reschedule.
+            for (int o : effective_objs)
+                reschedule_set.insert(o);
+            continue;
         }
 
-        BOOST_LOG_TRIVIAL(info) << format("change bed size from (%.0f,%.0f) to (%.0f,%.0f)", old_plate_size.x(), old_plate_size.y(), cur_plate_size.x(), cur_plate_size.y());
-        if (cur_plate_is_smaller && plate_not_empty) {
-            take_snapshot("Arrange after bed size changes");
-            //collect all the objects on the current plates
-            std::set<ModelObject*>  new_all_plate_object;
-            for (int index = 0; index < cur_plate_list.get_plate_count(); index++)
-            {
-                PartPlate* plate = cur_plate_list.get_plate(index);
-                ModelObjectPtrs plate_obj_list = plate->get_objects_on_this_plate();
-                new_all_plate_object.insert(plate_obj_list.begin(), plate_obj_list.end());
+        BoundingBoxf3 content_bbox;
+        for (int o : effective_objs) {
+            ModelObject *mo = model.objects[o];
+            if (!mo || mo->instances.empty())
+                continue;
+            content_bbox.merge(mo->instance_bounding_box(0));
+        }
+        if (i < static_cast<int>(old_plate_wt_bbox.size()) && old_plate_wt_bbox[i].defined)
+            content_bbox.merge(old_plate_wt_bbox[i]);
+
+        PartPlate  *new_plate    = cur_plate_list.get_plate(i);
+        const Vec3d new_plate_sz = new_plate->get_bounding_box().size();
+        const Vec3d content_dim  = content_bbox.size();
+        const bool  xy_over      = content_dim.x() > new_plate_sz.x() + xy_overflow_eps
+                                || content_dim.y() > new_plate_sz.y() + xy_overflow_eps;
+        if (xy_over) {
+            for (int o : effective_objs)
+                reschedule_set.insert(o);
+        } else {
+            // Defer delta until create_plate has settled the final grid.
+            pass_translations.push_back({ i, std::move(effective_objs), content_bbox.center() });
+        }
+    }
+
+    const bool any_action = !virtual_obj_idxs.empty()
+                         || !reschedule_set.empty()
+                         || !pass_translations.empty();
+
+    if (any_action) {
+        take_snapshot("Update positions after bed change");
+
+        // 1. Arrange reschedule objects fresh (no excludes). bed_idx is bin-0-relative
+        //    and will be shifted by existing_plate_count below so the layout is APPENDED.
+        arrangement::ArrangePolygons arrange_items;
+        std::vector<int>             arrange_obj_ids;
+        int                          max_arrange_bed = -1;
+        if (!reschedule_set.empty()) {
+            const DynamicPrintConfig &new_full_config = wxGetApp().preset_bundle->full_config();
+            arrange_items.reserve(reschedule_set.size());
+            arrange_obj_ids.reserve(reschedule_set.size());
+            for (int obj_idx : reschedule_set) {
+                if (virtual_obj_idxs.count(obj_idx) > 0)
+                    continue;
+                if (obj_idx < 0 || obj_idx >= static_cast<int>(model.objects.size()))
+                    continue;
+                ModelObject *mo = model.objects[obj_idx];
+                if (!mo || mo->instances.empty())
+                    continue;
+                arrangement::ArrangePolygon ap = get_instance_arrange_poly(mo->instances[0], new_full_config);
+                ap.itemid = static_cast<int>(arrange_items.size());
+                arrange_items.emplace_back(std::move(ap));
+                arrange_obj_ids.push_back(obj_idx);
             }
-            std::set<std::pair<int, int>>& obj_set = cur_plate->get_obj_and_inst_set();
-            std::set<std::pair<int, int>>& obj_out_set = cur_plate->get_obj_and_inst_outside_set();
-            for (int i = 0; i < model.objects.size(); ++i) {
-                ModelObject* object = model.objects[i];
-                if (new_all_plate_object.find(object) == new_all_plate_object.end()) {
-                    //need to arrange
-                    obj_set.emplace(std::pair<int, int>{i, 0});
-                    obj_out_set.emplace(std::pair<int, int>{i, 0});
+
+            if (!arrange_items.empty()) {
+                arrangement::ArrangeParams params = init_arrange_params(q);
+                // init_arrange_params reads best_object_pos from the slicing Print
+                // config, which lags one update behind during a preset switch.
+                // Override from the fresh full_config so arrange aligns to the NEW printer.
+                if (auto *bop = new_full_config.opt<ConfigOptionPoint>("best_object_pos"))
+                    params.align_center = bop->value;
+                arrangement::update_arrange_params(params, new_full_config, arrange_items);
+                arrangement::update_selected_items_inflation(arrange_items, new_full_config, params);
+                Points                       bedpts = arrangement::get_shrink_bedpts(new_full_config, params);
+                arrangement::ArrangePolygons excludes;  // empty per spec: ignore existing plates
+
+                // Reserve wipe-tower space on each potential new bed
+                // (mirrors ArrangeJob::prepare_wipe_tower's need_wipe_tower gate).
+                auto need_wipe_tower = [&]() -> bool {
+                    const DynamicPrintConfig &edited_print_cfg =
+                        wxGetApp().preset_bundle->prints.get_edited_preset().config;
+                    auto op_enable = edited_print_cfg.option("enable_prime_tower");
+                    const bool enable_prime_tower = op_enable && op_enable->getBool();
+                    if (!enable_prime_tower || params.is_seq_print)
+                        return false;
+                    auto op_tl = edited_print_cfg.option("timelapse_type");
+                    if (op_tl && op_tl->getInt() == TimelapseType::tlSmooth)
+                        return true;
+                    for (const auto &item : arrange_items)
+                        if (item.extrude_id_filament_types.size() > 1)
+                            return true;
+                    if (params.allow_multi_materials_on_same_plate) {
+                        std::map<int, std::set<int>> bedTemp2extruderIds;
+                        for (const auto &item : arrange_items)
+                            for (auto id : item.extrude_id_filament_types)
+                                bedTemp2extruderIds[item.bed_temp].insert(id.first);
+                        for (const auto &be : bedTemp2extruderIds)
+                            if (be.second.size() > 1)
+                                return true;
+                    }
+                    return false;
+                }();
+
+                int wt_obstacle_count = 0;
+                if (need_wipe_tower && cur_plate_list.get_plate_count() > 0) {
+                    PartPlate *tpl_plate = cur_plate_list.get_plate(0);
+                    if (tpl_plate) {
+                        std::set<int> extruder_ids   = cur_plate_list.get_extruders(true);
+                        const int     extruder_size  = static_cast<int>(extruder_ids.size());
+                        const int     nozzle_nums    = wxGetApp().preset_bundle->get_printer_extruder_count();
+                        Vec3d         wt_pos, wt_size;
+                        arrangement::ArrangePolygon wt_template = tpl_plate->estimate_wipe_tower_polygon(
+                            new_full_config, /*plate_index=*/0, wt_pos, wt_size,
+                            nozzle_nums, extruder_size, /*use_global_objects=*/false);
+                        // One obstacle per potential new bed, capped to global plate budget.
+                        const int existing_plate_count_now = static_cast<int>(cur_plate_list.get_plate_count());
+                        const int budget = std::max(0,
+                            static_cast<int>(PartPlateList::MAX_PLATES_COUNT) - existing_plate_count_now);
+                        const int max_new_beds = std::min<int>(static_cast<int>(arrange_items.size()), budget);
+                        for (int n = 0; n < max_new_beds; ++n) {
+                            arrangement::ArrangePolygon wt_copy = wt_template;
+                            wt_copy.bed_idx = n;  // fresh-arrange local bed_idx
+                            excludes.emplace_back(std::move(wt_copy));
+                        }
+                        wt_obstacle_count = max_new_beds;
+                    }
                 }
+
+                arrangement::arrange(arrange_items, excludes, bedpts, params);
+                for (const auto &ap : arrange_items)
+                    if (ap.bed_idx >= 0)
+                        max_arrange_bed = std::max(max_arrange_bed, ap.bed_idx);
             }
         }
-#if 0
-        const BoundingBoxf3 &cur_platelist_bbox = cur_plate_list.get_bounding_box();
-        const BoundingBoxf3  last_plate_bbox    = cur_plate_list.get_plate(cur_plate_list.get_plate_count() - 1)->get_bounding_box();
-        int                  cur_plate_w, cur_plate_d, cur_plate_h;
-        cur_plate_list.get_plate_size(cur_plate_w, cur_plate_d, cur_plate_h);
-        for (auto &iter : outside_plate_object) {
-            ModelObject  *object        = model.objects[iter.first];
-            BoundingBoxf3 instance_bbox = object->instance_convex_hull_bounding_box(size_t(0), false);
-            Vec3d         offset        = Vec3d::Zero();
-            switch (iter.second) {
-            case 1:
-            case 2: offset(1) = cur_platelist_bbox.max.y() - platelist_bbox.max.y(); break;
-            case 7:
-            case 8: offset(1) = cur_platelist_bbox.min.y() - platelist_bbox.min.y(); break;
-            case 3:
-                offset(0) = cur_platelist_bbox.max.x() - platelist_bbox.max.x();
-                offset(1) = cur_platelist_bbox.max.y() - platelist_bbox.max.y();
-                break;
-            case 6: offset(0) = cur_platelist_bbox.max.x() - platelist_bbox.max.x(); break;
-            case 9:
-                offset(0) = cur_platelist_bbox.max.x() - platelist_bbox.max.x();
-                offset(1) = cur_platelist_bbox.min.y() - platelist_bbox.min.y();
-                break;
-            case 5:
-                offset(0) = last_plate_bbox.center().x() + 1.2f * cur_plate_w - instance_bbox.center().x();
-                offset(1) = last_plate_bbox.center().y() - instance_bbox.center().y();
-                break;
-            default: break;
+
+        // 2. Create new plates for the arranged result so the grid (m_plate_cols
+        //    and every plate's world origin) is settled before we apply offsets.
+        const int existing_plate_count = static_cast<int>(cur_plate_list.get_plate_count());
+        if (max_arrange_bed >= 0) {
+            const int target_count = existing_plate_count + max_arrange_bed + 1;
+            while (static_cast<int>(cur_plate_list.get_plate_count()) < target_count) {
+                if (cur_plate_list.create_plate(false) < 0)
+                    break;  // hit MAX_PLATES_COUNT; remaining items will be virtual-bound
+            }
+        }
+        const int final_plate_count = static_cast<int>(cur_plate_list.get_plate_count());
+
+        // 3. Apply rigid-translate pass plates using FINAL plate centres; the
+        //    wipe tower follows the same delta to preserve its relative position.
+        DynamicConfig      &proj_cfg     = wxGetApp().preset_bundle->project_config;
+        ConfigOptionFloats *wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
+        ConfigOptionFloats *wipe_tower_y = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
+        for (const auto &pt : pass_translations) {
+            if (pt.plate_idx < 0 || pt.plate_idx >= final_plate_count)
+                continue;
+            PartPlate  *new_plate        = cur_plate_list.get_plate(pt.plate_idx);
+            const Vec3d new_plate_center = new_plate->get_center_origin();
+            const Vec3d delta(new_plate_center.x() - pt.content_center.x(),
+                              new_plate_center.y() - pt.content_center.y(),
+                              0.0);
+            if (delta.cwiseAbs().maxCoeff() <= 1e-6)
+                continue;
+            for (int obj_idx : pt.effective_objs) {
+                if (obj_idx < 0 || obj_idx >= static_cast<int>(model.objects.size()))
+                    continue;
+                ModelObject *o = model.objects[obj_idx];
+                if (!o || o->instances.empty())
+                    continue;
+                ModelInstance *inst = o->instances[0];
+                inst->set_offset(inst->get_offset() + delta);
+                o->invalidate_bounding_box();
             }
 
-            object->translate_instance(0, offset);
-            cur_plate_list.notify_instance_update(iter.first, 0);
+            if (pt.plate_idx < static_cast<int>(old_plate_wt_bbox.size())
+                && old_plate_wt_bbox[pt.plate_idx].defined
+                && wipe_tower_x && wipe_tower_y
+                && pt.plate_idx < static_cast<int>(wipe_tower_x->values.size())
+                && pt.plate_idx < static_cast<int>(wipe_tower_y->values.size())) {
+                const Vec3d new_plate_origin = new_plate->get_origin();
+                const Vec3d new_wt_world_min = old_plate_wt_bbox[pt.plate_idx].min + delta;
+                wipe_tower_x->values[pt.plate_idx] = new_wt_world_min.x() - new_plate_origin.x();
+                wipe_tower_y->values[pt.plate_idx] = new_wt_world_min.y() - new_plate_origin.y();
+            }
         }
-#endif
+
+        // 4. Apply arrange result; items that didn't fit a fresh bin or exceed
+        //    MAX_PLATES_COUNT are deferred to the virtual plate below.
+        std::set<int> arrange_unpackable;
+        for (size_t i = 0; i < arrange_items.size(); ++i) {
+            arrangement::ArrangePolygon &ap     = arrange_items[i];
+            const int                    obj_id = arrange_obj_ids[i];
+            if (ap.bed_idx < 0) {
+                arrange_unpackable.insert(obj_id);
+                continue;
+            }
+            ap.bed_idx += existing_plate_count;
+            if (ap.bed_idx >= final_plate_count) {
+                arrange_unpackable.insert(obj_id);
+                continue;
+            }
+            // postprocess applies the (col,row) stride; apply() writes the offset.
+            cur_plate_list.postprocess_arrange_polygon(ap, /*selected=*/true);
+            ap.apply();
+            if (obj_id >= 0 && obj_id < static_cast<int>(model.objects.size())
+                && model.objects[obj_id] && !model.objects[obj_id]->instances.empty())
+                model.objects[obj_id]->invalidate_bounding_box();
+        }
+
+        // 5. Park virtual-bound objects on the virtual plate, aligned by
+        //    convex-hull centre so multi-part offset origins don't spill out.
+        PartPlate    &unprintable_plate = cur_plate_list.get_unprintable_plate();
+        const Vec3d   virtual_center    = unprintable_plate.get_center_origin();
+        std::set<int> all_virtual       = virtual_obj_idxs;
+        all_virtual.insert(arrange_unpackable.begin(), arrange_unpackable.end());
+        for (int obj_idx : all_virtual) {
+            if (obj_idx < 0 || obj_idx >= static_cast<int>(model.objects.size()))
+                continue;
+            ModelObject *o = model.objects[obj_idx];
+            if (!o || o->instances.empty())
+                continue;
+            ModelInstance *inst        = o->instances[0];
+            BoundingBoxf3  hull        = o->instance_convex_hull_bounding_box(static_cast<size_t>(0));
+            const Vec3d    cur_off     = inst->get_offset();
+            const Vec3d    hull_center = hull.center();
+            inst->set_offset(Vec3d(cur_off.x() + (virtual_center.x() - hull_center.x()),
+                                   cur_off.y() + (virtual_center.y() - hull_center.y()),
+                                   cur_off.z()));
+            o->invalidate_bounding_box();
+        }
+
+        // 6. Clear stale virtual-plate entries before reload; sticky_virtual
+        //    in reload_all_objects could otherwise re-park real-plate objects.
+        //    Legitimate virtual members are re-added in step 7.
+        unprintable_plate.clear(false);
+        cur_plate_list.reload_all_objects();
+        cur_plate = cur_plate_list.get_curr_plate();
+
+        // 7. Enforce virtual-plate membership; reload may have grabbed the
+        //    instance onto an overlapping real plate, so move it back.
+        for (int obj_idx : all_virtual) {
+            for (int p = 0; p < cur_plate_list.get_plate_count(); ++p)
+                cur_plate_list.get_plate(p)->remove_instance(obj_idx, 0);
+            if (!unprintable_plate.contain_instance(obj_idx, 0))
+                unprintable_plate.add_instance(obj_idx, 0, false);
+        }
+
+        // 8. Compact the plate list by dropping empty non-locked plates.
+        //    cur_plate is skipped here and handled separately in 8b.
+        int cur_plate_index = cur_plate_list.get_curr_plate_index();
+        for (int idx = cur_plate_list.get_plate_count() - 1; idx >= 0; --idx) {
+            if (cur_plate_list.get_plate_count() <= 1)
+                break;
+            PartPlate *plate = cur_plate_list.get_plate(idx);
+            if (!plate || plate->is_locked())
+                continue;
+            if (idx == cur_plate_index)
+                continue;
+            if (plate->empty()) {
+                cur_plate_list.delete_plate(idx);
+                if (idx < cur_plate_index)
+                    cur_plate_index = cur_plate_list.get_curr_plate_index();
+            }
+        }
+
+        // 8b. Drop cur_plate too if it ended up empty (all-reschedule case).
+        if (cur_plate_list.get_plate_count() > 1) {
+            const int cur_idx = cur_plate_list.get_curr_plate_index();
+            PartPlate *cur_p  = (cur_idx >= 0 && cur_idx < static_cast<int>(cur_plate_list.get_plate_count()))
+                                    ? cur_plate_list.get_plate(cur_idx)
+                                    : nullptr;
+            if (cur_p && !cur_p->is_locked() && cur_p->empty())
+                cur_plate_list.delete_plate(cur_idx);
+        }
+        cur_plate = cur_plate_list.get_curr_plate();
+
+        // Rebind slice context before update() reads the current Print.
+        cur_plate_list.update_slice_context_to_current_plate(this->background_process);
+
+        // delete_plate does not notify ObjectList; mirror Plater::delete_plate.
+        wxGetApp().obj_list()->reload_all_plates();
+
+        // Refresh wipe-tower GLVolumes against the compacted plate indices.
+        update();
+
         view3D->deselect_all();
     }
 
-    wxQueueEvent(view3D->get_wxglcanvas(), new SimpleEvent(EVT_GLCANVAS_ARRANGE_OUTPLATE));
+    // EVT_GLCANVAS_ARRANGE_OUTPLATE intentionally NOT posted: reschedule is now
+    // done inline above; re-posting would re-trigger reload_all_objects whose
+    // sticky_virtual snapshot can drag already-placed objects back to the virtual plate.
 }
 
 void Plater::orient()
