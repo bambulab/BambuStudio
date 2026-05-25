@@ -17,9 +17,6 @@
     "filament_flow_ratio": [
         "0.94"
     ],
-    "filament_flush_temp": [
-        "0"
-    ],
     "filament_flush_temp_fast": [
         "255"
     ],
@@ -49,6 +46,9 @@
     ],
     "overhang_fan_threshold": [
         "25%"
+    ],
+    "override_process_overhang_speed": [
+        "1"
     ],
     "pre_start_fan_time": [
         "2"

@@ -14,9 +14,6 @@
     "fan_min_speed": [
         "30"
     ],
-    "filament_flush_temp": [
-        "0"
-    ],
     "filament_flush_temp_fast": [
         "245"
     ],
@@ -46,6 +43,9 @@
     ],
     "filament_z_hop_types": [
         "Spiral Lift"
+    ],
+    "override_process_overhang_speed": [
+        "1"
     ],
     "pre_start_fan_time": [
         "2"

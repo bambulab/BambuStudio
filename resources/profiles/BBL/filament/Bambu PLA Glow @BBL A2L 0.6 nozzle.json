@@ -17,9 +17,6 @@
     "fan_min_speed": [
         "50"
     ],
-    "filament_flush_temp": [
-        "0"
-    ],
     "filament_flush_temp_fast": [
         "220"
     ],
@@ -31,6 +28,15 @@
     ],
     "filament_retraction_length": [
         "0.4"
+    ],
+    "filament_wipe": [
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "1"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift"
     ],
     "overhang_fan_threshold": [
         "25%"

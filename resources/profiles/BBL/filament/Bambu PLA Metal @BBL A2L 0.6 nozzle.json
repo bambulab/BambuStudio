@@ -26,6 +26,18 @@
     "filament_max_volumetric_speed": [
         "21"
     ],
+    "filament_retraction_length": [
+        "0.4"
+    ],
+    "filament_wipe": [
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "1"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift"
+    ],
     "overhang_fan_threshold": [
         "25%"
     ],
