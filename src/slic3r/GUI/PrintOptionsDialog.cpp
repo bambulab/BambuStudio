@@ -1549,16 +1549,16 @@ void PrintOptionsDialog::update_smart_nozzle_blob_mode_desc(int selection)
     wxString desc;
     switch (selection) {
     case 0: // Auto
-        desc = _L("Automatically enables or disables nozzle clumping detection based on filament type: off for easy-to-string filaments, on for regular filaments.");
+        desc = _L("Automatically match the corresponding switch strategy for leak-prone filaments (disable blob detection) and regular filaments (enable blob detection).");
         break;
     case 1: // On
-        desc = _L("Checks if the nozzle is clumping by filament or other foreign objects. Not recommended for easy-to-string filaments to avoid false alarms.");
+        desc = _L("Detect whether the nozzle is wrapped by filament or other foreign matter.");
         break;
     case 2: // Off
-        desc = _L("Disables nozzle clumping detection. Recommended for easy-to-string filaments to avoid false alarms.");
+        desc = _L("After disabling, nozzle wrapping cannot be detected, which may lead to print failure or nozzle damage.");
         break;
     default:
-        desc = _L("Checks if the nozzle is clumping by filament or other foreign objects.");
+        desc = _L("Detect whether the nozzle is wrapped by filament or other foreign matter.");
         break;
     }
     text_smart_nozzle_blob_mode_desc->SetLabel(desc);
