@@ -1,10 +1,11 @@
+/* External AMS operation dialog. */
 .ext-ams-page {
   width: 520px;
   height: 420px;
   overflow: hidden;
   border-radius: 4px;
-  background: #ffffff;
-  color: #1f1f1f;
+  background: var(--ams-page-bg);
+  color: var(--ams-text-strong);
   font-family: "HarmonyOS Sans SC", "PingFang SC", system-ui, sans-serif;
   box-sizing: border-box;
 }
@@ -15,8 +16,8 @@
   justify-content: space-between;
   height: 36px;
   padding: 0 12px;
-  border-bottom: 1px solid #c2c2c2;
-  background: linear-gradient(180deg, #ffffff 16%, #e9e9e9 102%);
+  border-bottom: 1px solid var(--ams-border);
+  background: linear-gradient(180deg, var(--ams-page-bg) 16%, var(--ams-card-wrap-bg) 102%);
   font-size: 14px;
 }
 
@@ -30,11 +31,11 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #d9d9d9;
+  background: var(--ams-window-dot);
 }
 
 .window-dots i:first-child {
-  background: #d01b1b;
+  background: var(--ams-window-dot-close);
 }
 
 .window-spacer {
@@ -45,7 +46,7 @@
   padding: 12px;
   height: calc(100% - 36px);
   overflow: hidden;
-  background: #ffffff;
+  background: var(--ams-page-bg);
   box-sizing: border-box;
 }
 
@@ -62,7 +63,7 @@
   margin-bottom: 8px;
   padding: 4px;
   border-radius: 5px;
-  background: #ebebeb;
+  background: var(--ams-soft-border);
 }
 
 .ext-ams-tabs button {
@@ -70,11 +71,11 @@
   height: 32px;
   border: 0;
   border-radius: 10px;
-  background: #ffffff;
+  background: var(--ams-card-text-bg);
 }
 
 .ext-ams-tabs button.active {
-  border: 1px solid #00ae42;
+  border: 1px solid var(--ams-brand);
   border-radius: 5px;
 }
 
@@ -85,9 +86,9 @@
   gap: 2px;
   width: 36px;
   height: 23px;
-  border-bottom: 11px solid #c2c2c2;
+  border-bottom: 11px solid var(--ams-text-disabled);
   border-radius: 5px 5px 0 0;
-  background: #ebebeb;
+  background: var(--ams-soft-border);
   box-sizing: border-box;
 }
 
@@ -102,7 +103,7 @@
   height: 280px;
   padding: 12px;
   border-radius: 8px;
-  background: #ebebeb;
+  background: var(--ams-card-tray-tag-bg);
   box-sizing: border-box;
 }
 
@@ -119,16 +120,16 @@
   align-items: center;
   gap: 6px;
   padding: 2px 8px;
-  border: 1px solid #c2c2c2;
+  border: 1px solid var(--ams-border);
   border-radius: 20px;
-  color: #a3a3a3;
+  color: var(--ams-text-muted);
   font-size: 12px;
 }
 
 .humidity-pill b {
   width: 1px;
   height: 12px;
-  background: #c2c2c2;
+  background: var(--ams-border);
 }
 
 .ext-ams-flow {
@@ -151,7 +152,7 @@
   height: 105px;
   padding-top: 4px;
   border-radius: 4px;
-  background: #ffffff;
+  background: var(--ams-card-text-bg);
   text-align: center;
   box-sizing: border-box;
 }
@@ -169,7 +170,7 @@
   min-width: 14px;
   height: 14px;
   border-radius: 7px;
-  background: #dbdbdb;
+  background: var(--ams-index-bg);
   font-size: 12px;
   line-height: 14px;
 }
@@ -199,12 +200,12 @@
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background: #5f5f5f;
+  background: var(--ams-text-card-menu-dot);
 }
 
 .ext-tray-menu:hover,
 .ext-tray-menu.open {
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--ams-hover-bg);
   border-radius: 4px;
 }
 
@@ -216,10 +217,10 @@
   min-width: 86px;
   width: max-content;
   padding: 6px 0;
-  border: 1px solid #dedede;
+  border: 1px solid var(--ams-popover-border);
   border-radius: 4px;
-  background: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+  background: var(--ams-popover-bg);
+  box-shadow: var(--ams-popover-shadow);
   text-align: left;
 }
 
@@ -230,7 +231,7 @@
   padding: 0 10px;
   border: 0;
   background: transparent;
-  color: #1f1f1f;
+  color: var(--ams-text-strong);
   font-size: 12px;
   line-height: 24px;
   text-align: left;
@@ -239,14 +240,14 @@
 }
 
 .ext-tray-menu-popover button:hover:not(:disabled) {
-  background: #f5f5f5;
+  background: var(--ams-popover-hover-bg);
 }
 
 .slot-label {
   display: block;
   padding: 0 4px;
   overflow: hidden;
-  color: #5c5c5c;
+  color: var(--ams-text-secondary);
   font-size: 12px;
   line-height: 16px;
   text-overflow: ellipsis;
@@ -285,7 +286,7 @@
 
 .ext-ams-source {
   margin: 6px 0 0;
-  color: #a3a3a3;
+  color: var(--ams-text-muted);
   font-size: 12px;
   line-height: 16px;
 }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDeviceBridge } from '../../../hooks/Bridge';
+import useStore from '../../../store/AppStore';
 import { mockAmsFilamentHotendState } from './mockData';
 import type {
   AmsFilamentHotendSlotActionPayload,
@@ -10,6 +11,13 @@ import type {
   HotendRackStatus,
   HotendSlotViewModel,
 } from './types';
+
+// Extract the theme field when present on state payloads.
+function pickTheme(payload: unknown): 'dark' | 'light' | null {
+  if (!payload || typeof payload !== 'object') return null;
+  const value = (payload as { theme?: unknown }).theme;
+  return value === 'dark' || value === 'light' ? value : null;
+}
 
 const MODULE = 'device_page_ams_filament_hotend';
 
@@ -83,6 +91,7 @@ function normalizeState(payload: AmsFilamentHotendViewModel): AmsFilamentHotendV
 
 export function useAmsFilamentHotendBridge() {
   const request = useDeviceBridge();
+  const setTheme = useStore((s) => s.filament.setTheme);
   const [state, setState] = useState<AmsFilamentHotendViewModel>(mockAmsFilamentHotendState);
   const [error, setError] = useState('');
   const stateKeyRef = useRef(JSON.stringify(mockAmsFilamentHotendState));
@@ -109,10 +118,12 @@ export function useAmsFilamentHotendBridge() {
       return;
     }
     if (resp.value.payload) {
+      const theme = pickTheme(resp.value.payload);
+      if (theme) setTheme(theme);
       applyState(resp.value.payload, true);
       setError('');
     }
-  }, [applyState, request]);
+  }, [applyState, request, setTheme]);
 
   const runSlotAction = useCallback(async (
     action: string,
@@ -125,8 +136,7 @@ export function useAmsFilamentHotendBridge() {
         display_index: slot.display_index,
         ams_id: slot.ams_id,
         slot_id: slot.slot_id,
-        // Only filament-tab slots ship bind_ams_slot_count; hotend-tab slots
-        // do not need it on action payloads.
+        // Present only on filament-tab slots.
         bind_ams_slot_count: 'bind_ams_slot_count' in slot ? (slot.bind_ams_slot_count ?? 0) : 0,
         ...extraPayload,
       }

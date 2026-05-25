@@ -60,7 +60,7 @@ function DropletIcon() {
       <path
         d="M8 2 C5 6 3 8.5 3 11 a5 5 0 1 0 10 0 c0 -2.5 -2 -5 -5 -9 z"
         fill="none"
-        stroke="#5c5c5c"
+        stroke="var(--ams-text-secondary)"
         strokeWidth={1.2}
       />
     </svg>
@@ -70,11 +70,11 @@ function DropletIcon() {
 function DryerIcon() {
   return (
     <svg width={14} height={14} viewBox="0 0 16 16" aria-hidden="true">
-      <circle cx={8} cy={8} r={6.2} fill="none" stroke="#5c5c5c" strokeWidth={1.2} />
+      <circle cx={8} cy={8} r={6.2} fill="none" stroke="var(--ams-text-secondary)" strokeWidth={1.2} />
       <path
         d="M5 9 q1.5 -2 3 0 t3 0"
         fill="none"
-        stroke="#5c5c5c"
+        stroke="var(--ams-text-secondary)"
         strokeWidth={1.2}
         strokeLinecap="round"
       />
@@ -82,24 +82,12 @@ function DryerIcon() {
   );
 }
 
-// Drying status logical check — matches the C++ enum (`dry_status` field on
-// the zone). Translated display text comes via `dry_status_text`.
+// Non-idle dryer states are shown as active.
 function isDryingStatus(status?: string) {
   return !!status && status !== 'Idle' && status !== 'Off';
 }
 
-/**
- * Resolve the contiguous run of slot columns covered by each dryer zone.
- *
- * `zone.zone_slots` carries native AMS slot_id values; we match them against
- * the displayed slot order to find the column span. The DryerChamber
- * rectangle is then drawn across that span.
- *
- * Only contiguous runs are rendered today (matches the physical chamber
- * geometry). A zone whose members map to non-adjacent columns is split into
- * one run per contiguous segment to avoid drawing a chamber across unrelated
- * slots.
- */
+// Split each dryer zone into contiguous rendered slot runs.
 export function findDryerRuns(
   slots: AmsFilamentHotendSlotViewModel[],
   zones: AmsFilamentHotendDryerZone[],

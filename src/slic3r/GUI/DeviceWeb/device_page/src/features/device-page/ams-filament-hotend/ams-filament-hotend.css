@@ -1,12 +1,13 @@
+/* AMS Filament/Hotend layout; colors come from --ams-* tokens. */
 .ams-filament-hotend-page {
   position: relative;
   width: 100%;
   height: auto;
-  min-height: 260px;
+  min-height: 440px;
   display: flex;
   flex-direction: column;
-  background: #ffffff;
-  color: #1f1f1f;
+  background: var(--ams-page-bg);
+  color: var(--ams-text-strong);
   font-family: 'PingFang SC', 'HarmonyOS Sans SC', system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-size: 12px;
   box-sizing: border-box;
@@ -16,18 +17,18 @@
 .bridge-debug-button {
   height: 24px;
   padding: 0 9px;
-  border: 1px solid #ff9f1a;
+  border: 1px solid var(--ams-debug-btn-border);
   border-radius: 12px;
-  background: #fff7e6;
-  color: #9a5a00;
+  background: var(--ams-debug-btn-bg);
+  color: var(--ams-debug-btn-text);
   font: inherit;
   font-size: 12px;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(255, 159, 26, 0.16);
+  box-shadow: var(--ams-debug-btn-shadow);
 }
 
 .bridge-debug-button:hover {
-  background: #ffe8bf;
+  background: var(--ams-debug-btn-hover-bg);
 }
 
 .page-toolbar {
@@ -36,7 +37,7 @@
   justify-content: space-between;
   height: 40px;
   padding: 0 12px;
-  background: #f7f7f7;
+  background: var(--ams-toolbar-bg);
   flex: 0 0 40px;
 }
 
@@ -53,7 +54,7 @@
   padding: 0 2px;
   border: 0;
   background: transparent;
-  color: #1f1f1f;
+  color: var(--ams-text-strong);
   font: inherit;
   font-size: 14px;
   line-height: 22px;
@@ -61,7 +62,7 @@
 }
 
 .tab-group .tab.active {
-  color: #00ae42;
+  color: var(--ams-brand);
   font-weight: 600;
 }
 
@@ -72,7 +73,7 @@
   bottom: 0;
   height: 2px;
   content: '';
-  background: #00ae42;
+  background: var(--ams-brand);
 }
 
 .action-group {
@@ -84,10 +85,10 @@
 .action-group button {
   height: 28px;
   padding: 0 10px;
-  border: 1px solid #dbdbdb;
+  border: 1px solid var(--ams-border);
   border-radius: 4px;
-  background: #ffffff;
-  color: #333333;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-primary);
   font: inherit;
   font-size: 13px;
   line-height: 22px;
@@ -95,18 +96,18 @@
 }
 
 .action-group button:disabled {
-  color: #a3a3a3;
-  background: #f5f5f5;
+  color: var(--ams-text-muted);
+  background: var(--ams-popover-hover-bg);
   cursor: not-allowed;
 }
 
 .page-error {
   margin: 4px 12px 0;
   padding: 4px 8px;
-  border: 1px solid #f0c0bd;
+  border: 1px solid var(--ams-danger-border);
   border-radius: 4px;
-  background: #fdecea;
-  color: #d95047;
+  background: var(--ams-danger-bg);
+  color: var(--ams-danger);
   font-size: 12px;
 }
 
@@ -119,7 +120,7 @@
   height: 22px;
   margin: 4px auto 0;
   padding: 0 10px;
-  background: #f1f1f1;
+  background: var(--ams-pill-bg);
   border-radius: 11px;
 }
 
@@ -127,7 +128,7 @@
   margin-right: 4px;
   font-weight: 600;
   font-size: 11px;
-  color: #5c5c5c;
+  color: var(--ams-text-secondary);
 }
 
 .ams-dot {
@@ -138,15 +139,14 @@
 }
 
 .ams-dot.empty {
-  background: #d7d7d7;
+  background: var(--ams-tab-bar-empty);
 }
 
 .ams-more {
   margin-left: 4px;
-  color: #8c8c8c;
+  color: var(--ams-text-detail);
 }
 
-/* Keep both tiers ending on a shared nozzle row. */
 .stage {
   position: relative;
   flex: 0 0 365px;
@@ -192,7 +192,7 @@
   height: 138px;
   left: var(--chamber-left);
   width: calc(var(--chamber-right) - var(--chamber-left) + 56px);
-  background: #dbdbdb;
+  background: var(--ams-dryer-chamber-bg);
   border-radius: 8px;
   z-index: 0;
   pointer-events: none;
@@ -209,7 +209,7 @@
   justify-content: center;
   gap: 4px;
   pointer-events: auto;
-  color: #5c5c5c;
+  color: var(--ams-text-secondary);
 }
 
 .dryer-info-row {
@@ -261,7 +261,7 @@
 }
 
 .filament-card.selected {
-  box-shadow: 0 0 0 1px #00ae42;
+  box-shadow: 0 0 0 1px var(--ams-brand);
 }
 
 .card-spool-wrap {
@@ -270,8 +270,8 @@
   align-items: center;
   gap: 4px;
   padding: 4px 4px 8px;
-  background: #f2f2f2;
-  border: 1px solid #ebebeb;
+  background: var(--ams-card-wrap-bg);
+  border: 1px solid var(--ams-card-wrap-border);
   border-radius: 4px 4px 0 0;
   box-sizing: border-box;
 }
@@ -281,7 +281,7 @@
 }
 
 .filament-card:hover .card-spool-wrap {
-  border-color: #00ae42;
+  border-color: var(--ams-brand);
 }
 
 .card-head {
@@ -308,8 +308,8 @@
   height: 14px;
   padding: 0 4px;
   border-radius: 7px;
-  background: #dbdbdb;
-  color: #1f1f1f;
+  background: var(--ams-index-bg);
+  color: var(--ams-text-strong);
   font-size: 12px;
   line-height: 14px;
   font-weight: 400;
@@ -317,12 +317,10 @@
 }
 
 .card-index.selected {
-  background: #00ae42;
-  color: #ffffff;
+  background: var(--ams-brand);
+  color: var(--ams-text-on-brand);
 }
 
-/* "Ext" tag shown next to the slot index on the filament card when the
-   slot is currently fed by an external spool (Ext slot). */
 .card-index-ext-tag {
   display: inline-flex;
   align-items: center;
@@ -330,8 +328,8 @@
   height: 14px;
   padding: 0 4px;
   border-radius: 7px;
-  background: #ebebeb;
-  color: #5c5c5c;
+  background: var(--ams-card-tray-tag-bg);
+  color: var(--ams-text-tray-tag);
   font-size: 10px;
   line-height: 14px;
   font-weight: 500;
@@ -344,7 +342,7 @@
   display: inline-flex;
   align-items: center;
   gap: 1px;
-  color: #6c6c6c;
+  color: var(--ams-text-ams-bind);
   font-size: 10px;
   line-height: 12px;
   font-weight: 500;
@@ -377,7 +375,7 @@
   width: 3px;
   height: 3px;
   border-radius: 50%;
-  background: #5f5f5f;
+  background: var(--ams-text-card-menu-dot);
 }
 
 .card-menu.disabled {
@@ -387,7 +385,7 @@
 
 .card-menu.open span,
 .card-menu:hover:not(:disabled) span {
-  background: #1f1f1f;
+  background: var(--ams-text-strong);
 }
 
 .slot-menu-popover {
@@ -398,10 +396,10 @@
   min-width: 101px;
   width: max-content;
   padding: 6px 0;
-  border: 1px solid #dedede;
+  border: 1px solid var(--ams-popover-border);
   border-radius: 4px;
-  background: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+  background: var(--ams-popover-bg);
+  box-shadow: var(--ams-popover-shadow);
 }
 
 .slot-menu-popover button {
@@ -411,7 +409,7 @@
   padding: 0 10px;
   border: 0;
   background: transparent;
-  color: #1f1f1f;
+  color: var(--ams-text-strong);
   font-size: 12px;
   line-height: 24px;
   text-align: left;
@@ -420,11 +418,11 @@
 }
 
 .slot-menu-popover button:hover:not(:disabled) {
-  background: #f5f5f5;
+  background: var(--ams-popover-hover-bg);
 }
 
 .slot-menu-popover button:disabled {
-  color: #c2c2c2;
+  color: var(--ams-text-disabled);
   cursor: default;
 }
 
@@ -444,8 +442,8 @@
   flex-direction: column;
   justify-content: center;
   padding: 4px;
-  background: #ffffff;
-  border: 1px solid #ebebeb;
+  background: var(--ams-card-text-bg);
+  border: 1px solid var(--ams-card-text-border);
   border-top: 0;
   border-radius: 0 0 4px 4px;
   line-height: 16px;
@@ -459,7 +457,7 @@
 .card-name {
   font-size: 12px;
   font-weight: 500;
-  color: #333333;
+  color: var(--ams-text-primary);
   display: block;
   width: 100%;
   text-align: center;
@@ -469,32 +467,13 @@
 }
 
 .card-name.placeholder {
-  color: #c2c2c2;
+  color: var(--ams-text-disabled);
   font-weight: 400;
 }
 
 .card-name.card-name-unknown {
-  color: #1f1f1f;
+  color: var(--ams-text-strong);
   font-weight: 500;
-}
-
-.card-status {
-  font-size: 10px;
-  font-weight: 400;
-  color: #333333;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.card-status.status-empty,
-.card-status.status-reading {
-  color: #a3a3a3;
-}
-
-.card-status.status-error {
-  color: #d95047;
 }
 
 .feed-line {
@@ -522,7 +501,7 @@
   gap: 6px;
   padding: 4px 4px 4px 2px;
   margin-left: 4px;
-  color: #5c5c5c;
+  color: var(--ams-text-secondary);
 }
 
 .dryer-info-row {
@@ -566,32 +545,32 @@
 .page-footer button {
   height: 24px;
   padding: 0 10px;
-  border: 1px solid #d8dce2;
+  border: 1px solid var(--ams-footer-btn-border);
   border-radius: 6px;
-  background: linear-gradient(180deg, #ffffff 0%, #f7f8fa 100%);
-  color: #2f343a;
+  background: var(--ams-footer-btn-bg);
+  color: var(--ams-text-button);
   font: inherit;
   font-size: 12px;
   line-height: 18px;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--ams-footer-btn-shadow);
 }
 
 .page-footer button:hover:not(:disabled) {
-  border-color: #c8ced6;
-  background: #ffffff;
+  border-color: var(--ams-footer-btn-hover-border);
+  background: var(--ams-footer-btn-hover-bg);
 }
 
 .page-footer button.dev-tips {
   width: 24px;
   padding: 0;
   margin-left: auto;
-  color: #909090;
+  color: var(--ams-text-weak);
   font-weight: 600;
 }
 
 .footer-tip {
-  color: #00ae42;
+  color: var(--ams-brand);
   font-size: 13px;
   line-height: 22px;
 }
@@ -600,13 +579,13 @@
   position: relative;
   margin: 0 12px 0;
   padding: 0 0 44px;
-  background: #ffffff;
+  background: var(--ams-page-bg);
   flex: 0 0 auto;
 }
 
 .filament-change-panel-reserved {
   padding: 8px 10px;
-  border: 1px solid #dfe6ee;
+  border: 1px solid var(--ams-dashed-border);
   border-radius: 4px;
   border-style: dashed;
 }
@@ -616,9 +595,9 @@
   align-items: center;
   height: 38px;
   padding: 0 16px;
-  border: 1px solid #c9cdd3;
+  border: 1px solid var(--ams-status-bar-border);
   border-radius: 4px;
-  background: #f7f7f7;
+  background: var(--ams-toolbar-bg);
   box-sizing: border-box;
 }
 
@@ -633,7 +612,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #1f1f1f;
+  color: var(--ams-text-strong);
   font-size: 12px;
   font-weight: 400;
   line-height: 22px;
@@ -642,22 +621,22 @@
 .filament-change-spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid #e0e0e0;
-  border-top-color: #00ae42;
+  border: 2px solid var(--ams-spinner-track);
+  border-top-color: var(--ams-brand);
   border-radius: 50%;
   animation: hotend-reading-spin 0.8s linear infinite;
 }
 
 .filament-change-meta,
 .filament-change-tips {
-  color: #8a8f99;
+  color: var(--ams-text-meta);
   font-size: 12px;
   line-height: 16px;
 }
 
 .filament-change-step {
   margin-top: 4px;
-  color: #4f5661;
+  color: var(--ams-text-step);
   font-size: 12px;
   line-height: 16px;
 }
@@ -679,7 +658,7 @@
   column-gap: 6px;
   align-items: start;
   min-height: 30px;
-  color: #1f1f1f;
+  color: var(--ams-text-strong);
   font-size: 12px;
   line-height: 22px;
 }
@@ -692,16 +671,16 @@
   height: 16px;
   margin-top: 3px;
   border-radius: 50%;
-  color: #ffffff;
+  color: var(--ams-text-on-brand);
   font-size: 10px;
   font-weight: 600;
   line-height: 16px;
-  background: #c4c7cc;
+  background: var(--ams-text-task-mark-pending);
 }
 
 .filament-change-task-row.done .filament-change-task-mark,
 .filament-change-task-row.active .filament-change-task-mark {
-  background: #00ae42;
+  background: var(--ams-brand);
 }
 
 .filament-change-task-label {
@@ -714,19 +693,19 @@
   margin: 6px 0 0;
   padding: 12px;
   border-radius: 6px;
-  background: #eeeeee;
+  background: var(--ams-manual-card-bg);
   box-sizing: border-box;
 }
 
 .filament-change-manual-title {
   margin-bottom: 8px;
-  color: #00ae42;
+  color: var(--ams-brand);
   font-size: 13px;
   line-height: 22px;
 }
 
 .filament-change-manual-text {
-  color: #1f1f1f;
+  color: var(--ams-text-strong);
   font-size: 13px;
   line-height: 22px;
 }
@@ -752,10 +731,10 @@
   bottom: 0;
   width: 76px;
   height: 32px;
-  border: 1px solid #d8dce2;
+  border: 1px solid var(--ams-footer-btn-border);
   border-radius: 4px;
-  background: #ffffff;
-  color: #2f343a;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-button);
   font: inherit;
   font-size: 13px;
   line-height: 22px;
@@ -771,24 +750,24 @@
 
 .filament-change-batch-item {
   padding: 2px 8px;
-  border: 1px solid #dfe6ee;
+  border: 1px solid var(--ams-batch-border);
   border-radius: 999px;
-  color: #6b7280;
+  color: var(--ams-text-batch-idle);
   font-size: 12px;
   line-height: 16px;
 }
 
 .filament-change-batch-item.state-running,
 .filament-change-batch-item.state-success {
-  border-color: rgba(0, 174, 66, 0.28);
-  color: #00ae42;
-  background: rgba(0, 174, 66, 0.08);
+  border-color: var(--ams-batch-state-running-border);
+  color: var(--ams-brand);
+  background: var(--ams-batch-state-running-bg);
 }
 
 .filament-change-batch-item.state-failed {
-  border-color: rgba(217, 80, 71, 0.28);
-  color: #d95047;
-  background: rgba(217, 80, 71, 0.08);
+  border-color: var(--ams-batch-state-failed-border);
+  color: var(--ams-danger);
+  background: var(--ams-batch-state-failed-bg);
 }
 
 .action-group.hotend-actions .primary {
@@ -796,8 +775,8 @@
   padding: 0 12px;
   border: 0;
   border-radius: 4px;
-  background: #00ae42;
-  color: #ffffff;
+  background: var(--ams-brand);
+  color: var(--ams-text-on-brand);
   font: inherit;
   font-size: 14px;
   line-height: 22px;
@@ -805,21 +784,21 @@
 }
 
 .action-group.hotend-actions .primary:disabled {
-  background: #bcbcbc;
+  background: var(--ams-text-disabled-strong);
   cursor: not-allowed;
 }
 
 .action-divider {
   width: 1px;
   height: 16px;
-  background: #dbdbdb;
+  background: var(--ams-border);
 }
 
 .hotend-panel {
   flex: 1 1 auto;
   min-height: 0;
   padding: 12px;
-  /* keep `visible` so the per-card menu popover is not clipped */
+  /* allow card menus to overflow */
   overflow: visible;
 }
 
@@ -834,13 +813,13 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  color: #1f1f1f;
+  color: var(--ams-text-strong);
   font-size: 14px;
   line-height: 20px;
 }
 
 .hotend-read-all-tips {
-  color: #999999;
+  color: var(--ams-text-weak);
   font-size: 12px;
   line-height: 16px;
 }
@@ -849,8 +828,8 @@
 .hotend-rack-status-spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid #d9d9d9;
-  border-top-color: #00ae42;
+  border: 2px solid var(--ams-spinner-track);
+  border-top-color: var(--ams-brand);
   border-radius: 50%;
   animation: hotend-reading-spin 0.8s linear infinite;
 }
@@ -869,7 +848,7 @@
   justify-content: center;
   gap: 6px;
   min-height: 28px;
-  color: #1f1f1f;
+  color: var(--ams-text-strong);
   font-size: 12px;
   line-height: 16px;
 }
@@ -897,13 +876,12 @@
   flex-direction: column;
   gap: 8px;
   padding: 4px;
-  background: #f2f2f2;
+  background: var(--ams-hotend-card-bg);
   border-radius: 4px;
   box-sizing: border-box;
   cursor: pointer;
   user-select: none;
-  /* keep `visible` so the per-card menu popover (positioned absolutely) is
-     not clipped at the card border */
+  /* allow card menus to overflow */
   overflow: visible;
 }
 
@@ -912,15 +890,13 @@
   opacity: 0.6;
 }
 
-/* When the rack nozzle is currently mounted on the extruder, the Hotend tab
-   card shows a "Taken" overlay instead of the live temperature; mute the
-   background so operators do not mistake it for an actionable slot. */
+/* Mounted nozzle card. */
 .hotend-card.taken {
-  background: #e6e6e6;
+  background: var(--ams-hotend-card-bg-taken);
 }
 
 .hotend-card.taken .hotend-readout.status-taken {
-  color: #5c5c5c;
+  color: var(--ams-text-secondary);
   font-weight: 500;
 }
 
@@ -939,16 +915,16 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #dbdbdb;
-  color: #1f1f1f;
+  background: var(--ams-index-bg);
+  color: var(--ams-text-strong);
   font-size: 12px;
   line-height: 14px;
   flex: 0 0 auto;
 }
 
 .hotend-card-index.selected {
-  background: #00ae42;
-  color: #ffffff;
+  background: var(--ams-brand);
+  color: var(--ams-text-on-brand);
 }
 
 .hotend-card-menu-wrap {
@@ -970,7 +946,7 @@
 
 .hotend-card-menu:hover,
 .hotend-card-menu.open {
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--ams-hover-bg);
   border-radius: 4px;
 }
 
@@ -982,14 +958,13 @@
   min-width: 86px;
   width: max-content;
   padding: 6px 0;
-  border: 1px solid #dedede;
+  border: 1px solid var(--ams-popover-border);
   border-radius: 4px;
-  background: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+  background: var(--ams-popover-bg);
+  box-shadow: var(--ams-popover-shadow);
 }
 
-/* For the leftmost hotend card the menu would overflow the left edge of the
-   panel; anchor it to the left of the trigger instead so it pops to the right. */
+/* Keep the first card menu inside the panel. */
 .hotend-strip > .hotend-card:first-child .hotend-menu-popover {
   right: auto;
   left: -4px;
@@ -1002,7 +977,7 @@
   padding: 0 10px;
   border: 0;
   background: transparent;
-  color: #1f1f1f;
+  color: var(--ams-text-strong);
   font-size: 12px;
   line-height: 24px;
   text-align: left;
@@ -1011,11 +986,11 @@
 }
 
 .hotend-menu-popover button:hover:not(:disabled) {
-  background: #f5f5f5;
+  background: var(--ams-popover-hover-bg);
 }
 
 .hotend-menu-popover button:disabled {
-  color: #c2c2c2;
+  color: var(--ams-text-disabled);
   cursor: default;
 }
 
@@ -1046,18 +1021,18 @@
 .hotend-temp-current {
   font-size: 14px;
   line-height: 16px;
-  color: #1f1f1f;
+  color: var(--ams-text-strong);
   font-weight: 400;
 }
 
 .hotend-readout.heating .hotend-temp-current,
 .hotend-readout.heating .hotend-temp-arrow {
-  color: #f09a17;
+  color: var(--ams-temp-heating);
 }
 
 .hotend-readout.cooling .hotend-temp-current,
 .hotend-readout.cooling .hotend-temp-arrow {
-  color: #0e65e9;
+  color: var(--ams-temp-cooling);
 }
 
 .hotend-temp-arrow {
@@ -1080,7 +1055,7 @@
 .hotend-temp-target-edit {
   font-size: 12px;
   line-height: 16px;
-  color: #c2c2c2;
+  color: var(--ams-text-disabled);
 }
 
 .hotend-temp-target-button {
@@ -1095,8 +1070,8 @@
 
 .hotend-temp-target-button:hover:not(:disabled),
 .hotend-temp-target-button:focus-visible {
-  background: #f2f2f2;
-  color: #8c8c8c;
+  background: var(--ams-temp-target-hover-bg);
+  color: var(--ams-text-detail);
   outline: none;
 }
 
@@ -1114,10 +1089,10 @@
   height: 18px;
   margin: 0 1px;
   padding: 0 2px;
-  border: 1px solid #00ae42;
+  border: 1px solid var(--ams-brand);
   border-radius: 3px;
-  background: #ffffff;
-  color: #1f1f1f;
+  background: var(--ams-temp-edit-bg);
+  color: var(--ams-text-strong);
   font: inherit;
   text-align: center;
   outline: none;
@@ -1130,11 +1105,11 @@
 .hotend-readout.status .hotend-readout-text {
   font-size: 12px;
   line-height: 16px;
-  color: #c2c2c2;
+  color: var(--ams-text-disabled);
 }
 
 .hotend-readout.status-error .hotend-readout-text {
-  color: #d95047;
+  color: var(--ams-danger);
 }
 
 .hotend-tool-icon-wrap {
@@ -1151,10 +1126,10 @@
   height: 36px;
   background: repeating-linear-gradient(
     135deg,
-    #dcdcdc 0,
-    #dcdcdc 3px,
-    #f2f2f2 3px,
-    #f2f2f2 6px
+    var(--ams-tab-bar-empty) 0,
+    var(--ams-tab-bar-empty) 3px,
+    var(--ams-card-wrap-bg) 3px,
+    var(--ams-card-wrap-bg) 6px
   );
   border-radius: 2px;
 }
@@ -1172,12 +1147,12 @@
   text-align: center;
   font-size: 12px;
   line-height: 16px;
-  color: #1f1f1f;
+  color: var(--ams-text-strong);
   width: 100%;
 }
 
 .hotend-tool-label.muted {
-  color: #c2c2c2;
+  color: var(--ams-text-disabled);
 }
 
 .hotend-tool-name,

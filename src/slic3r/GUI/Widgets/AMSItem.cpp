@@ -2454,7 +2454,9 @@ void AMSRoadUpPart::msw_rescale() {
 void AMSRoadUpPart::UpdateDeviceInfo(std::weak_ptr<DevFilaSystem> fila_system)
 {
     m_fila_system = fila_system;
-    Refresh();
+    if (IsShown()) {
+        Refresh();
+    }
 }
 
 bool AMSRoadUpPart::shouldHideExtRoad() const

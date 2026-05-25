@@ -60,7 +60,8 @@
 #include "DeviceCore/DevPrintTaskInfo.h"
 #include "DeviceCore/DevPrintOptions.h"
 #include "DeviceTab/wgtDeviceNozzleRack.h"
-#include "DeviceTab/FilamentHotend/wgtDeviceFilamentHotendTab.h"
+#include "DeviceTab/FilamentHotend/wgtDeviceFilamentHotendWeb.h"
+#include "DeviceTab/FilamentHotend/wgtHotendRackControl.h"
 #if BBL_ENABLE_AMS_CONTROL_WEB
 #include "DeviceTab/AmsControl/wgtAmsControlWebPanel.h"
 #endif
@@ -2334,9 +2335,9 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
     m_ams_control_web_panel->Hide();
     bSizer_control->Add(m_ams_control_web_panel, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
 #endif
-    m_filament_hotend_tab = new wgtDeviceFilamentHotendTab(parent);
-    m_filament_hotend_tab->Hide();
-    bSizer_control->Add(m_filament_hotend_tab, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
+    m_filament_hotend_web = new wgtDeviceFilamentHotendWeb(parent);
+    m_filament_hotend_web->Hide();
+    bSizer_control->Add(m_filament_hotend_web, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
     bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(6));
     bSizer_control->Add(m_filament_load_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
     bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(4));
@@ -2377,7 +2378,7 @@ wxBoxSizer *StatusBasePanel::create_temp_axis_group(wxWindow *parent)
     wxBoxSizer *axis_and_bed_control_sizer = new wxBoxSizer(wxVERTICAL);
     axis_and_bed_control_sizer->Add(m_axis_sizer, 0, wxEXPAND | wxALL, 0);
     axis_and_bed_control_sizer->Add(bedPanel, 0, wxALIGN_CENTER, 0);
-    axis_and_bed_control_sizer->Add(rackPanel, 0, wxALIGN_CENTER, 0);
+    axis_and_bed_control_sizer->Add(rackPanel, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(4));
 
     content_sizer->Add(m_temp_ctrl, 0, wxEXPAND | wxALL, FromDIP(5));
     content_sizer->Add(m_temp_temp_line, 0, wxEXPAND, 1);
@@ -2674,60 +2675,8 @@ wxPanel *StatusBasePanel::create_bed_control(wxWindow *parent)
 
 wxPanel *StatusBasePanel::create_hotend_rack_control(wxWindow *parent)
 {
-    // N1x-only sub-toolbar: label + lift/center/lower buttons.
-    // Mirrors create_bed_control() styling so it blends into the same control box.
-    auto *panel = new wxPanel(parent, wxID_ANY);
-    panel->SetBackgroundColour(*wxWHITE);
-    m_panel_hotend_rack_ctrl = panel;
-
-    StateColor rack_btn_bg(std::pair<wxColour, int>(BUTTON_PRESS_COL, StateColor::Pressed),
-                           std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
-    StateColor rack_btn_bd(std::pair<wxColour, int>(BUTTON_HOVER_COL, StateColor::Hovered),
-                           std::pair<wxColour, int>(BUTTON_NORMAL1_COL, StateColor::Normal));
-    StateColor rack_btn_text(std::make_pair(DISCONNECT_TEXT_COL, (int) StateColor::Disabled),
-                             std::make_pair(NORMAL_TEXT_COL, (int) StateColor::Normal));
-
-    auto build_btn = [&](const wxString &icon) {
-        // TODO: replace placeholder icons with dedicated hotend-rack SVGs once design assets land.
-        auto *btn = new Button(panel, wxEmptyString, icon, 0, FromDIP(15));
-        btn->SetFont(::Label::Body_12);
-        btn->SetBorderWidth(0);
-        btn->SetBackgroundColor(rack_btn_bg);
-        btn->SetBorderColor(rack_btn_bd);
-        btn->SetTextColor(rack_btn_text);
-        btn->SetMinSize(Z_BUTTON_SIZE);
-        btn->SetSize(Z_BUTTON_SIZE);
-        btn->SetCornerRadius(0);
-        return btn;
-    };
-
-    m_bpButton_rack_lift   = build_btn("monitor_bed_up");
-    m_bpButton_rack_center = build_btn("monitor_axis_home");
-    m_bpButton_rack_lower  = build_btn("monitor_bed_down");
-
-    m_bpButton_rack_lift->SetToolTip(_L("Lift Hotend Rack"));
-    m_bpButton_rack_center->SetToolTip(_L("Recenter Hotend Rack"));
-    m_bpButton_rack_lower->SetToolTip(_L("Lower Hotend Rack"));
-
-    m_staticText_hotend_rack_tip = new wxStaticText(panel, wxID_ANY, _L("Hotend Rack"));
-    m_staticText_hotend_rack_tip->SetFont(::Label::Body_12);
-    if (wxGetApp().app_config->get("language") == "de_DE") m_staticText_hotend_rack_tip->SetFont(::Label::Body_11);
-    m_staticText_hotend_rack_tip->SetForegroundColour(TEXT_LIGHT_FONT_COL);
-
-    auto *sizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(m_staticText_hotend_rack_tip, 0, wxALIGN_CENTRE | wxRIGHT, FromDIP(5));
-    sizer->Add(m_bpButton_rack_lift,   0, wxEXPAND | wxLEFT | wxRIGHT, 0);
-    sizer->Add(m_bpButton_rack_center, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(2));
-    sizer->Add(m_bpButton_rack_lower,  0, wxEXPAND | wxLEFT | wxRIGHT, 0);
-
-    panel->SetSizer(sizer);
-    panel->Layout();
-    panel->Fit();
-
-    // Hidden by default; update_rack() will reveal it for N1x single-rack printers.
-    panel->Hide();
-
-    return panel;
+    m_hotend_rack_control = new wgtHotendRackControl(parent);
+    return m_hotend_rack_control;
 }
 
 wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
@@ -3242,9 +3191,6 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_buttons.push_back(m_bpButton_z_down_10);
     m_buttons.push_back(m_bpButton_e_10);
     m_buttons.push_back(m_bpButton_e_down_10);
-    m_buttons.push_back(m_bpButton_rack_lift);
-    m_buttons.push_back(m_bpButton_rack_center);
-    m_buttons.push_back(m_bpButton_rack_lower);
 
     obj                     = nullptr;
     m_score_data            = new ScoreData;
@@ -3321,9 +3267,6 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_bpButton_z_down_10->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_z_down_10), NULL, this);
     m_bpButton_e_10->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_e_up_10), NULL, this);
     m_bpButton_e_down_10->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_e_down_10), NULL, this);
-    m_bpButton_rack_lift->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_rack_lift), NULL, this);
-    m_bpButton_rack_center->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_rack_center), NULL, this);
-    m_bpButton_rack_lower->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_rack_lower), NULL, this);
     m_nozzle_btn_panel->Connect(wxCUSTOMEVT_SWITCH_POS, wxCommandEventHandler(StatusPanel::on_nozzle_selected), NULL, this);
 
     Bind(EVT_AMS_EXTRUSION_CALI, &StatusPanel::on_filament_extrusion_cali, this);
@@ -3394,9 +3337,6 @@ StatusPanel::~StatusPanel()
     m_bpButton_z_down_10->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_z_down_10), NULL, this);
     m_bpButton_e_10->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_e_up_10), NULL, this);
     m_bpButton_e_down_10->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_e_down_10), NULL, this);
-    m_bpButton_rack_lift->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_rack_lift), NULL, this);
-    m_bpButton_rack_center->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_rack_center), NULL, this);
-    m_bpButton_rack_lower->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_rack_lower), NULL, this);
     m_nozzle_btn_panel->Disconnect(wxCUSTOMEVT_SWITCH_POS, wxCommandEventHandler(StatusPanel::on_nozzle_selected), NULL, this);
     m_switch_speed->Disconnect(wxEVT_LEFT_DOWN, wxCommandEventHandler(StatusPanel::on_switch_speed), NULL, this);
     m_calibration_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_start_calibration), NULL, this);
@@ -3429,6 +3369,7 @@ void StatusPanel::init_scaled_buttons()
     m_bpButton_e_10->SetCornerRadius(FromDIP(12));
     m_bpButton_e_down_10->SetMinSize(wxSize(FromDIP(40), FromDIP(40)));
     m_bpButton_e_down_10->SetCornerRadius(FromDIP(12));
+    if (m_hotend_rack_control) m_hotend_rack_control->Rescale();
 }
 
 void StatusPanel::on_market_scoring(wxCommandEvent &event)
@@ -3840,9 +3781,6 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
         m_bpButton_z_down_10->Enable(false);
         m_bpButton_e_10->Enable(false);
         m_bpButton_e_down_10->Enable(false);
-        if (m_bpButton_rack_lift)   m_bpButton_rack_lift->Enable(false);
-        if (m_bpButton_rack_center) m_bpButton_rack_center->Enable(false);
-        if (m_bpButton_rack_lower)  m_bpButton_rack_lower->Enable(false);
 
         m_bpButton_z_10->SetIcon("monitor_bed_up_disable");
         m_bpButton_z_1->SetIcon("monitor_bed_up_disable");
@@ -3861,9 +3799,6 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
         m_bpButton_z_down_10->Enable();
         m_bpButton_e_10->Enable();
         m_bpButton_e_down_10->Enable();
-        if (m_bpButton_rack_lift)   m_bpButton_rack_lift->Enable();
-        if (m_bpButton_rack_center) m_bpButton_rack_center->Enable();
-        if (m_bpButton_rack_lower)  m_bpButton_rack_lower->Enable();
 
         m_bpButton_z_10->SetIcon("monitor_bed_up");
         m_bpButton_z_1->SetIcon("monitor_bed_up");
@@ -3875,6 +3810,7 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
         m_staticText_z_tip->SetForegroundColour(TEXT_LIGHT_FONT_COL);
         m_extruder_label->SetForegroundColour(TEXT_LIGHT_FONT_COL);
     }
+    if (m_hotend_rack_control) m_hotend_rack_control->SetControlEnabled(ctrl_area);
 
     if (!temp_area) {
         m_tempCtrl_nozzle->Enable(false);
@@ -4954,54 +4890,6 @@ void StatusPanel::on_axis_ctrl_z_down_10(wxCommandEvent &event)
         obj->GetAxis()->Ctrl_Axis("Z", 1.0, 10.0f, 900);
         if (!check_axis_z_at_home(obj)) return;
     }
-}
-
-namespace {
-
-enum class RackMoveDir { Lift, Center, Lower };
-
-void DispatchRackMove(MachineObject *obj, RackMoveDir dir)
-{
-    if (!obj || !obj->GetNozzleSystem()) return;
-    auto rack = obj->GetNozzleSystem()->GetNozzleRack();
-    if (!rack || !rack->IsSupported()) return;
-
-    switch (rack->GetRackType()) {
-    case DevNozzleRack::RackType_A: {
-        DevNozzleRack::RackAPos pos = DevNozzleRack::RackAPos::RACK_POS_CENTRE;
-        if (dir == RackMoveDir::Lift)  pos = DevNozzleRack::RackAPos::RACK_POS_UP;
-        if (dir == RackMoveDir::Lower) pos = DevNozzleRack::RackAPos::RACK_POS_DOWN;
-        rack->CtrlRackPosMove(pos);
-        break;
-    }
-    case DevNozzleRack::RackType_B: {
-        DevNozzleRack::RackBPos pos = DevNozzleRack::RackBPos::RACK_POS_CENTRE;
-        if (dir == RackMoveDir::Lift)  pos = DevNozzleRack::RackBPos::RACK_POS_UP;
-        if (dir == RackMoveDir::Lower) pos = DevNozzleRack::RackBPos::RACK_POS_DOWN;
-        rack->CtrlRackPosMove(pos);
-        break;
-    }
-    default:
-        // Other rack types (e.g. AB) are not exposed via this row yet.
-        break;
-    }
-}
-
-} // namespace
-
-void StatusPanel::on_rack_lift(wxCommandEvent &event)
-{
-    DispatchRackMove(obj, RackMoveDir::Lift);
-}
-
-void StatusPanel::on_rack_center(wxCommandEvent &event)
-{
-    DispatchRackMove(obj, RackMoveDir::Center);
-}
-
-void StatusPanel::on_rack_lower(wxCommandEvent &event)
-{
-    DispatchRackMove(obj, RackMoveDir::Lower);
 }
 
 void StatusPanel::axis_ctrl_e_hint(bool up_down)
@@ -6455,30 +6343,21 @@ void StatusPanel::update_rack(MachineObject *obj)
         m_ams_control->Show();
         m_ams_rack_switch->Show();
         m_panel_nozzle_rack->UpdateRackInfo(obj->GetNozzleSystem()->GetNozzleRack());
-        m_filament_hotend_tab->Show(false);
+        m_filament_hotend_web->Show(false);
     } else if (obj && (obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A || obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B)) {
         m_ams_control->Show(false);
         m_ams_rack_switch->Show(false);
         m_panel_nozzle_rack->Show(false);
-        m_filament_hotend_tab->Show(true);
-        m_filament_hotend_tab->UpdateByMachine(obj);
+        m_filament_hotend_web->Show(true);
+        m_filament_hotend_web->UpdateByMachine(obj);
     } else {
         m_ams_control->Show();
         m_ams_rack_switch->Show(false);
         m_panel_nozzle_rack->Show(false);
-        m_filament_hotend_tab->Show(false);
+        m_filament_hotend_web->Show(false);
     }
 
-    // Hotend rack move sub-toolbar is only meaningful for N1x single-rack printers.
-    if (m_panel_hotend_rack_ctrl) {
-        const bool show_rack_row = obj && obj->GetNozzleSystem() && obj->GetNozzleRack() &&
-                                   obj->GetNozzleRack()->IsSupported() &&
-                                   (obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A ||
-                                    obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B);
-        if (m_panel_hotend_rack_ctrl->IsShown() != show_rack_row) {
-            m_panel_hotend_rack_ctrl->Show(show_rack_row);
-        }
-    }
+    if (m_hotend_rack_control) m_hotend_rack_control->UpdateByMachine(obj);
 
     Layout();
 }

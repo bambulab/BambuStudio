@@ -43,7 +43,7 @@ public:
         None = -1,
         RackType_AB = 0,
         RackType_A = 1, // DevAmsType::ZMULTI_A
-        RackType_B = 2, // DevAmsType::ZMULTI_B 
+        RackType_B = 2, // DevAmsType::ZMULTI_B
     };
 
     enum RackABPos : int
@@ -57,16 +57,18 @@ public:
 
     enum class RackAPos : int
     {
-        RACK_POS_CENTRE = 0,
-        RACK_POS_UP = 1,
-        RACK_POS_DOWN = 2
+        RACK_POS_UNKNOWN = 0,
+        RACK_POS_DOWN = 1,
+        RACK_POS_UP = 2,
+        RACK_POS_CENTRE = 3,
     };
 
     enum class RackBPos : int
     {
-        RACK_POS_CENTRE = 0,
-        RACK_POS_UP = 1,
-        RACK_POS_DOWN = 2
+        RACK_POS_UNKNOWN = 0,
+        RACK_POS_DOWN = 1,
+        RACK_POS_UP = 2,
+        RACK_POS_CENTRE = 3,
     };
 
     enum RackCaliStatus
@@ -88,7 +90,10 @@ public:
     // getters
     DevNozzleSystem* GetNozzleSystem() const { return m_nozzle_system; }
 
-    RackABPos     GetPosition() const { return m_position; }
+    RackABPos   GetPosition() const { return (RackABPos)m_position; }
+    RackAPos    GetRackAPos() const { return (RackAPos)m_position; }
+    RackBPos    GetRackBPos() const { return (RackBPos)m_position; }
+
     RackStatus  GetStatus() const { return m_status; }
     RackCaliStatus GetCaliStatus() const { return m_cali_status; }
 
@@ -157,7 +162,7 @@ private:
     DevNozzleSystem* m_nozzle_system = nullptr;
 
     bool m_is_supported = false; // Indicates if the nozzle rack is supported by the printer
-    RackABPos m_position = RACK_POS_UNKNOWN;
+    int m_position = RACK_POS_UNKNOWN;
     RackStatus m_status = RACK_STATUS_UNKNOWN;
     RackCaliStatus m_cali_status = Rack_CALI_UNKNOWN;
 

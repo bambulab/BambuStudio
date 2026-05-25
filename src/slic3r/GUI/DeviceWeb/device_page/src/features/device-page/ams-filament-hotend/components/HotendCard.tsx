@@ -23,9 +23,7 @@ export function HotendCard({
 }: {
   slot: HotendSlotViewModel;
   globalBusy?: boolean;
-  // HotendCard reuses the same onAction shape used by the Filament tab so a
-  // single handler can serve both pages. Only identity + hotend fields are
-  // read from the slot; the union keeps callers strongly typed.
+  // Shared action handler for both tabs.
   onAction: (
     action: string,
     slot: AmsFilamentHotendSlotViewModel | HotendSlotViewModel,
@@ -268,9 +266,7 @@ function TempReadout({
   );
 }
 
-// Shown when the hotend rack nozzle is currently mounted on the extruder; the
-// Hotend tab card replaces live temperature with a "Taken" overlay so the
-// operator does not try to control the same nozzle twice.
+// Overlay for the nozzle currently mounted on the extruder.
 function TakenReadout() {
   const { t } = useTranslation();
   return (
@@ -297,9 +293,9 @@ function StatusReadout({ op }: { op: HotendOpState }) {
 function MenuDots() {
   return (
     <svg width={16} height={16} viewBox="0 0 16 16" aria-hidden="true">
-      <circle cx={3} cy={8} r={1.2} fill="#5c5c5c" />
-      <circle cx={8} cy={8} r={1.2} fill="#5c5c5c" />
-      <circle cx={13} cy={8} r={1.2} fill="#5c5c5c" />
+      <circle cx={3} cy={8} r={1.2} fill="var(--ams-text-card-menu-dot)" />
+      <circle cx={8} cy={8} r={1.2} fill="var(--ams-text-card-menu-dot)" />
+      <circle cx={13} cy={8} r={1.2} fill="var(--ams-text-card-menu-dot)" />
     </svg>
   );
 }

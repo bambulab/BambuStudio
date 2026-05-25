@@ -312,7 +312,13 @@ nlohmann::json DevicePageAmsFilamentHotendVM::OnCommand(const std::string& submo
     try {
         if (submod == "state" && (action == "get" || action == "init")) {
             m_last_report_state.clear();
-            return MakeResponse(GetModule(), submod, action, 0, "", BuildState());
+            nlohmann::json state = BuildState();
+            // Surface the current Studio colour mode so the Web layer can apply
+            // its `data-theme` attribute on first paint without waiting for a
+            // separate `theme_changed` Report. Mirrors FilamentManagerVM.
+            const bool dark = wxGetApp().app_config->get("dark_color_mode") == "1";
+            state["theme"] = dark ? "dark" : "light";
+            return MakeResponse(GetModule(), submod, action, 0, "", state);
         }
         if (submod == "action") {
             return HandleAction(action, payload);
@@ -347,7 +353,18 @@ void DevicePageAmsFilamentHotendVM::ReportState(const std::string& submod, const
 
 void DevicePageAmsFilamentHotendVM::OnSysColorChanged()
 {
-    ReportState("state", "theme_changed");
+    // Theme is global UI state — it must NOT be routed through
+    // ReportState("state", ...) because that path is de-duped against the
+    // last BuildState() snapshot; when the device payload is unchanged
+    // (e.g. the user just toggled dark mode without touching the AMS) the
+    // notification would otherwise be silently dropped. Emit an independent
+    // `init/theme_changed` Report carrying the resolved theme so the Web
+    // layer can update `<html data-theme>` regardless of device state.
+    if (!m_bridge) return;
+    const bool dark = wxGetApp().app_config->get("dark_color_mode") == "1";
+    nlohmann::json data;
+    data["theme"] = dark ? "dark" : "light";
+    m_bridge->ReportMsg(MakeResponse(GetModule(), "init", "theme_changed", 0, "", data));
 }
 
 nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
@@ -1149,7 +1166,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::HandleAction(const std::string& ac
             open_ext_ams_operation(action_payload);
         });
     } else if (action == "read_all_hotends") {
-        // Same as wgtDeviceHotentPanel::ReadAll(): rack refresh all with GUI move warning.
+        // Rack refresh all with GUI move warning.
         wxGetApp().CallAfter([]() {
             auto* dev_mgr = wxGetApp().getDeviceManager();
             MachineObject* mo = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;

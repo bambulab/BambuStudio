@@ -140,13 +140,7 @@ void DevNozzleRack::ParseRackInfoV1_0(const nlohmann::json& rack_info)
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Invalid rack status: " << m_status << ", reset";
     }
 
-    DevJsonValParser::ParseVal(rack_info, "pos", m_position, RACK_POS_UNKNOWN);
-    if (m_position < RACK_POS_UNKNOWN || m_position >= RACK_POS_END)
-    {
-        m_position = RACK_POS_UNKNOWN; // Reset to default if out of range
-        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Invalid rack position: " << m_position << ", reset";
-    }
-
+    DevJsonValParser::ParseVal(rack_info, "pos", m_position, 0);
     DevJsonValParser::ParseVal(rack_info, "info", m_cali_status);
 
     m_rack_type = RackType_AB; // default to RackType_AB

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import { useAmsFilamentHotendBridge } from './useAmsFilamentHotendBridge';
 import { useSendToCpp } from '../../../hooks/Bridge';
+import { useDeviceWebTheme } from '../../../hooks/useDeviceWebTheme';
 import type {
   AmsFilamentHotendSlotActionPayload,
   AmsFilamentHotendSlotViewModel,
@@ -13,10 +14,10 @@ import { Stage } from './components/Stage';
 import { HotendPanel } from './components/HotendPanel';
 import { PageFooter } from './components/PageFooter';
 import { FilamentChangeProgressPanel } from './components/FilamentChangeProgressPanel';
+import { resolveHostContentSize } from './hostContentSize';
 import './ams-filament-hotend.css';
 
 const HOST_LAYOUT_MODULE = 'device_host';
-const HOTEND_PAGE_MIN_WIDTH = 560;
 
 function useReportHostContentSize(rootRef: RefObject<HTMLElement | null>) {
   const send = useSendToCpp();
@@ -31,8 +32,7 @@ function useReportHostContentSize(rootRef: RefObject<HTMLElement | null>) {
 
     const report = () => {
       rafId = 0;
-      const width = Math.ceil(Math.max(root.scrollWidth, HOTEND_PAGE_MIN_WIDTH));
-      const height = Math.ceil(root.scrollHeight || root.offsetHeight);
+      const { width, height } = resolveHostContentSize(root);
       if (width <= 0 || height <= 0) return;
 
       const sizeKey = `${width}x${height}`;
@@ -81,6 +81,8 @@ export function AmsFilamentHotendPage() {
   const [debugOpening, setDebugOpening] = useState(false);
   const showDebugButton = Boolean((window as Window & { __internalBuild?: boolean }).__internalBuild);
   useReportHostContentSize(pageRef);
+  // Sync host theme into page CSS variables.
+  useDeviceWebTheme();
 
   const fp = state.filament_page;
   const hp = state.hotend_page;
@@ -96,9 +98,7 @@ export function AmsFilamentHotendPage() {
   const topSlots = filamentSlots.filter((s) => s.is_top_tier);
   const bottomSlots = filamentSlots.filter((s) => !s.is_top_tier);
 
-  // Toolbar actions: filament tab → filament_page.actions; hotend tab →
-  // hotend_page.actions. Both are passed through and PageToolbar picks fields
-  // by tab.
+  // Merge tab-specific toolbar actions.
   const toolbarActions = useMemo(
     () => ({ ...fp.actions, ...hp.actions }),
     [fp.actions, hp.actions],

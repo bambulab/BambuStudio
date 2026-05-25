@@ -20,10 +20,7 @@ export function SpoolDisc({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
   const showFilamentTag = state !== 'Empty' && state !== 'Unknown' && !isTransporting;
   const center = SIZE / 2;
 
-  // Remaining filament: 0..100; default 100 when missing.
-  // Render a partial ring (12 o'clock clockwise) only for non-empty single-color
-  // spools whose remain is strictly between 0 and 100; full and unknown stays
-  // on the solid donut, multi-color spools keep the segmented donut.
+  // Show a partial ring only for single-color spools with known remaining percent.
   const remain = typeof slot.filament_card.remain === 'number' ? slot.filament_card.remain : 100;
   const showPartialRing = isFilled && colors.length === 1 && remain > 0 && remain < 100;
 
@@ -34,8 +31,8 @@ export function SpoolDisc({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
       role="img"
       aria-label={`spool-${display_index}`}
     >
-      <circle cx={center} cy={center} r={OUTER} fill="#e6e6e6" />
-      <circle cx={center} cy={center} r={OUTER - 0.5} fill="none" stroke="#d4d4d4" strokeWidth={1} />
+      <circle cx={center} cy={center} r={OUTER} fill="var(--ams-overlay-bg)" />
+      <circle cx={center} cy={center} r={OUTER - 0.5} fill="none" stroke="var(--ams-border)" strokeWidth={1} />
 
       {isFilled && !showPartialRing && (
         <FilledDonut center={center} colors={colors} />
@@ -47,9 +44,9 @@ export function SpoolDisc({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
 
       {isError && (
         <>
-          <circle cx={center} cy={center} r={RING} fill="#D95047" />
-          <circle cx={center} cy={center} r={HOLE} fill="#ffffff" />
-          <g stroke="#fff" strokeWidth={2.5} strokeLinecap="round">
+          <circle cx={center} cy={center} r={RING} fill="var(--ams-danger)" />
+          <circle cx={center} cy={center} r={HOLE} fill="var(--ams-card-text-bg)" />
+          <g stroke="var(--ams-text-on-brand)" strokeWidth={2.5} strokeLinecap="round">
             <line x1={center - 5} y1={center - 5} x2={center + 5} y2={center + 5} />
             <line x1={center - 5} y1={center + 5} x2={center + 5} y2={center - 5} />
           </g>
@@ -70,7 +67,7 @@ export function SpoolDisc({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
           y={center + 1}
           fontFamily="HarmonyOS Sans SC, system-ui, sans-serif"
           fontSize={14}
-          fill="#c2c2c2"
+          fill="var(--ams-text-disabled)"
           textAnchor="middle"
           dominantBaseline="central"
         >
@@ -91,9 +88,9 @@ function FilledDonut({ center, colors }: { center: number; colors: string[] }) {
     return (
       <>
         <circle cx={center} cy={center} r={RING} fill={colors[0]} />
-        <circle cx={center} cy={center} r={RING} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth={1} />
-        <circle cx={center} cy={center} r={HOLE} fill="#ffffff" />
-        <circle cx={center} cy={center} r={HOLE} fill="none" stroke="#e6e6e6" strokeWidth={1} />
+        <circle cx={center} cy={center} r={RING} fill="none" stroke="var(--color-fm-chip-ring)" strokeWidth={1} />
+        <circle cx={center} cy={center} r={HOLE} fill="var(--ams-card-text-bg)" />
+        <circle cx={center} cy={center} r={HOLE} fill="none" stroke="var(--ams-border)" strokeWidth={1} />
       </>
     );
   }
@@ -109,16 +106,14 @@ function FilledDonut({ center, colors }: { center: number; colors: string[] }) {
       {slices.map((d, i) => (
         <path key={i} d={d} fill={colors[i]} />
       ))}
-      <circle cx={center} cy={center} r={RING} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth={1} />
-      <circle cx={center} cy={center} r={HOLE} fill="#ffffff" />
-      <circle cx={center} cy={center} r={HOLE} fill="none" stroke="#e6e6e6" strokeWidth={1} />
+      <circle cx={center} cy={center} r={RING} fill="none" stroke="var(--color-fm-chip-ring)" strokeWidth={1} />
+      <circle cx={center} cy={center} r={HOLE} fill="var(--ams-card-text-bg)" />
+      <circle cx={center} cy={center} r={HOLE} fill="none" stroke="var(--ams-border)" strokeWidth={1} />
     </>
   );
 }
 
-// Donut with a partial fill arc that runs clockwise from 12 o'clock (0deg).
-// Background ring stays grey for the unfilled portion; foreground arc paints
-// `pct` percent of the circumference in the spool color.
+// Partial fill arc from 12 o'clock clockwise.
 function PartialDonut({ center, color, pct }: { center: number; color: string; pct: number }) {
   const ringRadius = (RING + HOLE) / 2;
   const stroke = RING - HOLE;
@@ -132,7 +127,7 @@ function PartialDonut({ center, color, pct }: { center: number; color: string; p
         cy={center}
         r={ringRadius}
         fill="none"
-        stroke="#e6e6e6"
+        stroke="var(--ams-overlay-bg)"
         strokeWidth={stroke}
       />
       <circle
@@ -144,8 +139,8 @@ function PartialDonut({ center, color, pct }: { center: number; color: string; p
         strokeWidth={stroke}
         strokeDasharray={`${filled} ${gap}`}
       />
-      <circle cx={center} cy={center} r={HOLE} fill="#ffffff" />
-      <circle cx={center} cy={center} r={HOLE} fill="none" stroke="#e6e6e6" strokeWidth={1} />
+      <circle cx={center} cy={center} r={HOLE} fill="var(--ams-card-text-bg)" />
+      <circle cx={center} cy={center} r={HOLE} fill="none" stroke="var(--ams-border)" strokeWidth={1} />
     </g>
   );
 }
@@ -161,7 +156,7 @@ function ReadingArc({ center }: { center: number }) {
         cy={center}
         r={r}
         fill="none"
-        stroke="#00AE42"
+        stroke="var(--ams-brand)"
         strokeWidth={3}
         strokeLinecap="round"
         strokeDasharray={`${dashLen} 999`}
@@ -181,7 +176,7 @@ function LoadingMark({ center }: { center: number }) {
         cy={center}
         r={r}
         fill="none"
-        stroke="#00AE42"
+        stroke="var(--ams-brand)"
         strokeWidth={3}
         strokeLinecap="round"
         strokeDasharray={`${dashLen} 999`}

@@ -59,6 +59,7 @@ class wgtDeviceNozzleRack;
 #if BBL_ENABLE_AMS_CONTROL_WEB
 class wgtAmsControlWebPanel;
 #endif
+class wgtHotendRackControl;
 class CameraFullscreenFrame;
 class wgtDeviceFilamentHotendTab;
 
@@ -546,12 +547,7 @@ protected:
     Button *        m_bpButton_z_down_10;
     wxStaticText *  m_staticText_z_tip;
 
-    // Hotend rack move row (N1x single rack only)
-    wxPanel *       m_panel_hotend_rack_ctrl{ nullptr };
-    wxStaticText *  m_staticText_hotend_rack_tip{ nullptr };
-    Button *        m_bpButton_rack_lift{ nullptr };
-    Button *        m_bpButton_rack_center{ nullptr };
-    Button *        m_bpButton_rack_lower{ nullptr };
+    wgtHotendRackControl* m_hotend_rack_control{ nullptr };
     Label *         m_extruder_label;
     Button *        m_bpButton_e_10;
     Button *        m_bpButton_e_down_10;
@@ -563,7 +559,7 @@ protected:
 
     /* switch*/
     SwitchBoard*    m_ams_rack_switch;
-    wgtDeviceFilamentHotendTab* m_filament_hotend_tab{ nullptr };
+    wgtDeviceFilamentHotendWeb* m_filament_hotend_web{ nullptr };
 
     AMSControl*     m_ams_control;
     StaticBox*      m_ams_control_box;
@@ -625,9 +621,6 @@ protected:
     virtual void on_axis_ctrl_e_up_10(wxCommandEvent &event) { event.Skip(); }
     virtual void on_axis_ctrl_e_down_10(wxCommandEvent &event) { event.Skip(); }
     virtual void on_nozzle_selected(wxCommandEvent &event) { event.Skip(); }
-    virtual void on_rack_lift(wxCommandEvent &event) { event.Skip(); }
-    virtual void on_rack_center(wxCommandEvent &event) { event.Skip(); }
-    virtual void on_rack_lower(wxCommandEvent &event) { event.Skip(); }
 
 public:
     StatusBasePanel(wxWindow *      parent,
@@ -777,11 +770,6 @@ protected:
     void on_axis_ctrl_e_up_10(wxCommandEvent &event);
     void on_axis_ctrl_e_down_10(wxCommandEvent &event);
     void axis_ctrl_e_hint(bool up_down);
-
-    /* hotend rack move (N1x) */
-    void on_rack_lift(wxCommandEvent &event);
-    void on_rack_center(wxCommandEvent &event);
-    void on_rack_lower(wxCommandEvent &event);
 
     void on_nozzle_selected(wxCommandEvent &event);
     /* temp control */

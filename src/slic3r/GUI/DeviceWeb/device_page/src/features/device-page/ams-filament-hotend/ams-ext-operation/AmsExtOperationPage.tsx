@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useDeviceBridge } from '../../../../hooks/Bridge';
+import { useDeviceWebTheme } from '../../../../hooks/useDeviceWebTheme';
+import useStore from '../../../../store/AppStore';
 import { Nozzle } from '../components/Nozzle';
 import { SpoolDisc } from '../components/SpoolDisc';
 import type { AmsFilamentHotendSlotViewModel, AmsFilamentHotendViewModel, AmsTrayInfo, BridgeResponseBody } from '../types';
@@ -70,8 +72,12 @@ export function AmsExtOperationPage() {
   const { t } = useTranslation();
   const query = getQuery();
   const request = useDeviceBridge();
+  const setTheme = useStore((s) => s.filament.setTheme);
   const [state, setState] = useState<AmsFilamentHotendViewModel | null>(null);
   const [selectedAmsId, setSelectedAmsId] = useState(query.bind_ams[0]?.ams_id ?? query.ams_id);
+
+  // Sync host theme into page CSS variables.
+  useDeviceWebTheme();
 
   const applyState = useCallback((payload?: AmsFilamentHotendViewModel) => {
     if (payload) setState(payload);
@@ -83,9 +89,12 @@ export function AmsExtOperationPage() {
       5000,
     );
     if (resp.ok && resp.value.error_code === 0) {
+      // Seed theme before first paint.
+      const themeRaw = (resp.value.payload as unknown as { theme?: unknown })?.theme;
+      if (themeRaw === 'dark' || themeRaw === 'light') setTheme(themeRaw);
       applyState(resp.value.payload);
     }
-  }, [applyState, request]);
+  }, [applyState, request, setTheme]);
 
   useEffect(() => {
     void refresh();
@@ -113,9 +122,7 @@ export function AmsExtOperationPage() {
     ? query.bind_ams
     : [{ ams_id: query.ams_id || '0', ams_type: 'ZMULTI_A', slot_count: Number(query.count || 4) }];
 
-  // Per-slot ams_operation.units (shipped by C++ when can_ams_operation === true)
-  // is the only AMS-unit source for this dialog. The top-level page payload no
-  // longer carries an ams.units array.
+  // Dialog AMS units come from the selected slot.
   const slotAmsUnits = selectedSlot?.ams_operation?.units;
   const amsUnits = bindAms.map((ams) => {
     const unit = slotAmsUnits?.find((item) => item.ams_id === ams.ams_id);
@@ -129,9 +136,7 @@ export function AmsExtOperationPage() {
     }
   }, [amsUnits, selectedAmsId]);
 
-  // Send a per-tray menu action (load / unload / read) through the same Web
-  // bridge as the main page. Payload uses the slot's ams_id/slot_id so C++
-  // can route to DevAmsTray / DevFilaSystem without needing extra hints.
+  // Send a per-tray menu action through the bridge.
   const runTrayAction = useCallback(async (action: 'load' | 'unload' | 'read', tray: ExtAmsTray) => {
     const body = {
       module: MODULE,
@@ -297,8 +302,7 @@ function AmsSlot({
 }) {
   const canLoad = actions?.can_load ?? false;
   const canUnload = actions?.can_unload ?? false;
-  // Read button defaults to visible when actions is missing so the dialog
-  // stays interactive on older payloads.
+  // Keep read visible for legacy payloads.
   const canRead = actions?.can_read ?? !actions;
   const hasMenu = canLoad || canUnload || canRead;
 
@@ -407,19 +411,19 @@ function AmsRoute({
   const nozzleTopY = 62;
   const height = 108;
 
-  // Route is grey unless the filament is actually loaded into the nozzle
-  // (signalled by nozzleState === 'Active'); avoids a misleading purple
-  // line when the slot is only selected/bound but not feeding.
-  const activeColor = nozzleState === 'Active' ? '#7a75ff' : '#c2c2c2';
+  // Only loaded filament uses the active route color.
+  const activeColor = nozzleState === 'Active'
+    ? 'var(--ams-route-active)'
+    : 'var(--ams-route-inactive)';
 
   return (
     <div className="ext-ams-route" style={{ width: totalWidth, ['--center-x' as string]: `${centerX}px` }}>
       <svg className="route-svg" width={totalWidth} height={height} viewBox={`0 0 ${totalWidth} ${height}`} aria-hidden="true">
         {centers.map((x) => (
-          <line key={x} x1={x} y1={0} x2={x} y2={busY} stroke="#c2c2c2" strokeWidth={3} />
+          <line key={x} x1={x} y1={0} x2={x} y2={busY} stroke="var(--ams-route-inactive)" strokeWidth={3} />
         ))}
         {safeCount > 1 && (
-          <line x1={centers[0]} y1={busY} x2={centers[centers.length - 1]} y2={busY} stroke="#c2c2c2" strokeWidth={3} />
+          <line x1={centers[0]} y1={busY} x2={centers[centers.length - 1]} y2={busY} stroke="var(--ams-route-inactive)" strokeWidth={3} />
         )}
         {activeX !== centerX && (
           <line x1={activeX} y1={busY} x2={centerX} y2={busY} stroke={activeColor} strokeWidth={3} />

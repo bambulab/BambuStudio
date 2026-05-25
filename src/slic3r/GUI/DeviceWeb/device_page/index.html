@@ -9,9 +9,15 @@
   </head>
   <body>
     <script>
-      // Sync theme from C++ UserAgent BEFORE first paint — eliminates flash
+      // Sync theme from C++ UserAgent BEFORE first paint — eliminates flash.
+      // We set BOTH dark and light explicitly so any selector that only
+      // covers one direction (e.g. AMS device-page CSS, defaults to light)
+      // still resolves correctly when the other direction is not the
+      // global Tailwind default.
       if (/\(\s*light\s*\)/i.test(navigator.userAgent)) {
         document.documentElement.dataset.theme = 'light';
+      } else if (/\(\s*dark\s*\)/i.test(navigator.userAgent)) {
+        document.documentElement.dataset.theme = 'dark';
       }
     </script>
     <div id="root"></div>

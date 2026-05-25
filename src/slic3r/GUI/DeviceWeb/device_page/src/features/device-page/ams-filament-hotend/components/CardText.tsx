@@ -5,7 +5,6 @@ export function CardText({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
   const isEmpty = card.state === 'Empty';
   const isUnknown = card.state === 'Unknown';
   const isTransporting = card.state === 'Loading' || card.state === 'Unloading';
-  const showStatusLine = Boolean(card.status_text);
 
   const primary = isEmpty
     ? 'Empty'
@@ -26,14 +25,6 @@ export function CardText({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
           {primary}
         </span>
       </div>
-      {showStatusLine && (
-        <div
-          className={`card-status status-${card.state.toLowerCase()}`}
-          data-testid={`ams-hotend-slot-status-${slot.display_index}`}
-        >
-          {card.status_text}
-        </div>
-      )}
     </div>
   );
 }

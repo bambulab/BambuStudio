@@ -23,33 +23,9 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceTab/AmsControl/AmsControlWebEnable.hpp
     GUI/DeviceTab/AmsControl/wgtAmsControlWebPanel.h
     GUI/DeviceTab/AmsControl/wgtAmsControlWebPanel.cpp
-    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendTabHeader.h
-    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendTabHeader.cpp
-    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendTab.h
-    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendTab.cpp
-    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendFeatureGate.h
-    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendFeatureGate.cpp
-    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendStateResolver.h
-    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendStateResolver.cpp
-    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendDryEntryPresenter.h
-    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendDryEntryPresenter.cpp
-    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendBatchFlow.h
-    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendBatchFlow.cpp
-    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendTabLoadTips.h
-    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendTabLoadTips.cpp
-    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentPanel.h
-    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentPanel.cpp
-    GUI/DeviceTab/FilamentHotend/wgtDeviceAmsPreview.h
-    GUI/DeviceTab/FilamentHotend/wgtDeviceAmsPreview.cpp
-    GUI/DeviceTab/FilamentHotend/wgtDeviceAmsDryIcon.h
-    GUI/DeviceTab/FilamentHotend/wgtDeviceAmsDryIcon.cpp
-    GUI/DeviceTab/FilamentHotend/wgtDeviceAmsFilaments.h
-    GUI/DeviceTab/FilamentHotend/wgtDeviceAmsFilaments.cpp
-    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendItem.h
-    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendItem.cpp
-    GUI/DeviceTab/FilamentHotend/wgtDeviceHotentPanel.h
-    GUI/DeviceTab/FilamentHotend/wgtDeviceHotentPanel.cpp
-    GUI/DeviceTab/FilamentHotend/wgtDeviceHotendItem.h
-    GUI/DeviceTab/FilamentHotend/wgtDeviceHotendItem.cpp
+    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendWeb.h
+    GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendWeb.cpp
+    GUI/DeviceTab/FilamentHotend/wgtHotendRackControl.h
+    GUI/DeviceTab/FilamentHotend/wgtHotendRackControl.cpp
 )
 set(SLIC3R_GUI_SOURCES ${SLIC3R_GUI_SOURCES} PARENT_SCOPE)
