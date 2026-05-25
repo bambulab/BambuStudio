@@ -284,10 +284,14 @@ void wxMediaCtrl3::PlayThread()
 
         lk.unlock();
         Bambu_Tunnel tunnel = nullptr;
+        auto t0 = std::chrono::steady_clock::now();
         int error = Bambu_Create(&tunnel, m_url->BuildURI().ToUTF8());
         if (error == 0) {
             Bambu_SetLogger(tunnel, &wxMediaCtrl3::bambu_log, this);
             error = Bambu_Open(tunnel);
+            auto t1 = std::chrono::steady_clock::now();
+            BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl3: Bambu_Open took "
+                                    << std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() << "ms, error=" << error;
             if (error == 0)
                 error = Bambu_would_block;
 
@@ -301,6 +305,7 @@ void wxMediaCtrl3::PlayThread()
             }
         }
         lk.lock();
+        auto t_stream_start = std::chrono::steady_clock::now();
         while (error == int(Bambu_would_block)) {
             m_cond.wait_for(lk, 100ms);
             if (m_url != url) {
@@ -310,6 +315,12 @@ void wxMediaCtrl3::PlayThread()
             lk.unlock();
             error = Bambu_StartStream(tunnel, true);
             lk.lock();
+        }
+        {
+            auto t_stream_end = std::chrono::steady_clock::now();
+            BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl3: Bambu_StartStream loop took "
+                                    << std::chrono::duration_cast<std::chrono::milliseconds>(t_stream_end - t_stream_start).count()
+                                    << "ms, error=" << error;
         }
         Bambu_StreamInfo info;
         if (error == 0)
@@ -391,8 +402,16 @@ void wxMediaCtrl3::PlayThread()
         m_frame_buffer.reset();
         if (tunnel) {
             lk.unlock();
+            auto t_close_start = std::chrono::steady_clock::now();
             Bambu_Close(tunnel);
             Bambu_Destroy(tunnel);
+            auto t_close_end = std::chrono::steady_clock::now();
+            auto close_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t_close_end - t_close_start).count();
+            if (close_ms > 3000) {
+                BOOST_LOG_TRIVIAL(warning) << "wxMediaCtrl3: Bambu_Close+Destroy took " << close_ms << "ms (>3s, potential hang source)";
+            } else {
+                BOOST_LOG_TRIVIAL(info) << "wxMediaCtrl3: Bambu_Close+Destroy took " << close_ms << "ms";
+            }
             tunnel = nullptr;
             lk.lock();
         }

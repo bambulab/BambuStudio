@@ -200,6 +200,17 @@ void MediaPlayCtrl::SetMachineObject(MachineObject* obj)
     if (machine == m_machine) {
         if (m_last_state == MEDIASTATE_IDLE && IsEnabled())
             Play();
+        if (m_last_state == MEDIASTATE_LOADING || m_last_state == MEDIASTATE_INITIALIZING) {
+            auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+                std::chrono::system_clock::now() - m_play_timer).count();
+            if (elapsed >= 15) {
+                BOOST_LOG_TRIVIAL(error) << "MediaPlayCtrl: loading/initializing timeout after " << elapsed
+                                         << "s, forcing stop";
+                m_failed_code = 2;
+                Stop(_L("Loading failed. Please check the network and try again."));
+                return;
+            }
+        }
         if (m_last_state == wxMediaState::wxMEDIASTATE_PLAYING) {
             auto now = std::chrono::system_clock::now();
             if (m_play_timer <= now) {
@@ -950,6 +961,12 @@ void MediaPlayCtrl::onStateChanged(wxMediaEvent &event)
             else if (m_failed_code == -2)
                 SetStatus(_L("DLL load error"));
             Stop();
+        } else {
+            // GetId()==0: media_proc synthetic event. PlayThread may still be connecting or
+            // stuck in Bambu_Close. Timeout enforced by SetMachineObject periodic polling.
+            BOOST_LOG_TRIVIAL(warning) << "MediaPlayCtrl: synthetic stateChanged with no valid frame, "
+                                       << "state=" << state << " size=" << size.x << "x" << size.y
+                                       << " failed_code=" << m_failed_code;
         }
     } else {
         m_last_state = state;
