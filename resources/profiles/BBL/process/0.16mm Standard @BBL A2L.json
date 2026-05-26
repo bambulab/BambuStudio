@@ -17,10 +17,10 @@
     ],
     "prime_tower_brim_width": "-1",
     "slowdown_end_acc": [
-        "2000"
+        "1000"
     ],
     "slowdown_end_height": [
-        "325"
+        "225"
     ],
     "slowdown_end_speed": [
         "500"
@@ -29,8 +29,7 @@
         "8000"
     ],
     "slowdown_start_height": [
-        "150",
-        "150"
+        "0"
     ],
     "slowdown_start_speed": [
         "500"

@@ -37,10 +37,10 @@
     "skeleton_infill_density": "25%",
     "skin_infill_density": "25%",
     "slowdown_end_acc": [
-        "2000"
+        "1000"
     ],
     "slowdown_end_height": [
-        "325"
+        "225"
     ],
     "slowdown_end_speed": [
         "500"
@@ -49,8 +49,7 @@
         "8000"
     ],
     "slowdown_start_height": [
-        "150",
-        "150"
+        "0"
     ],
     "slowdown_start_speed": [
         "500"

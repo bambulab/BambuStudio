@@ -31,8 +31,11 @@
         "25"
     ],
     "prime_tower_brim_width": "-1",
-    "slowdown_start_height": [
-        "150"
+    "slowdown_end_acc": [
+        "1000"
+    ],
+    "slowdown_end_height": [
+        "225"
     ],
     "smooth_coefficient": "4",
     "support_line_width": "0.4",
