@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-14 16:05+0800\n"
+"POT-Creation-Date: 2026-05-26 20:44+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3262,28 +3262,11 @@ msgstr "Sending print job over LAN"
 msgid "Sending print job through cloud service"
 msgstr "Sending print job through cloud service"
 
-msgid "Print task sending times out."
-msgstr "Print task sending times out."
-
 msgid "Service Unavailable"
 msgstr "Service Unavailable"
 
 msgid "Unknown Error."
 msgstr "Unknown Error."
-
-msgid "Sending print configuration"
-msgstr "Sending print configuration"
-
-#, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the device page in %ss"
-msgstr "Successfully sent. Will automatically jump to the device page in %ss"
-
-#, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the next page in %ss"
-msgstr "Successfully sent. Will automatically jump to the next page in %ss"
-
-msgid "Storage needs to be inserted before printing via LAN."
-msgstr ""
 
 msgid "Sending gcode file over LAN"
 msgstr "Sending gcode file over LAN"
@@ -3333,7 +3316,10 @@ msgstr ""
 msgid "Multi-Color"
 msgstr ""
 
-msgid "Filament Mapping"
+msgid "Your input texture model"
+msgstr ""
+
+msgid "Processed multi-color model"
 msgstr ""
 
 msgid "Color Count"
@@ -3349,6 +3335,9 @@ msgid "Convert texture to painting using the specified color count and smooth le
 msgstr ""
 
 msgid "Reminder: parameters changed, click Apply to take effect"
+msgstr ""
+
+msgid "Filament Mapping"
 msgstr ""
 
 msgid "Auto-merge same filament"
@@ -3370,6 +3359,27 @@ msgid "Computing texture colors..."
 msgstr ""
 
 msgid "Computation failed. Please adjust parameters and retry."
+msgstr ""
+
+msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+msgstr ""
+
+msgid "Mesh repair"
+msgstr ""
+
+msgid "Import without repair"
+msgstr ""
+
+msgid "Repair and import"
+msgstr ""
+
+msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+msgstr ""
+
+msgid "Mesh issue"
+msgstr ""
+
+msgid "Continue"
 msgstr ""
 
 msgid "Choose SLA archive:"
@@ -4186,6 +4196,13 @@ msgid ""
 msgstr ""
 "lock depth should smaller than skin depth.\n"
 "Reset to half of skin depth"
+
+msgid ""
+"Alternate extra wall doesn't work well when ensure vertical shell thickness is set to Enable.\n"
+"Change these settings automatically?\n"
+"Yes - Change ensure vertical shell thickness to Partial and enable alternate extra wall\n"
+"No  - Don't use alternate extra wall"
+msgstr ""
 
 msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
 msgstr ""
@@ -5154,6 +5171,9 @@ msgstr ""
 msgid "Paint Toolbar"
 msgstr "Paint Toolbar"
 
+msgid "This border is used to distinguish it from the background"
+msgstr ""
+
 msgid "Explosion Ratio"
 msgstr "Explosion Ratio"
 
@@ -5663,6 +5683,15 @@ msgstr "Deselect all"
 msgid "Deselects all objects"
 msgstr "Deselects all objects"
 
+msgid "Enter Camera Full Screen"
+msgstr ""
+
+msgid "Show the Device camera in full screen"
+msgstr ""
+
+msgid "Exit Camera Full Screen"
+msgstr ""
+
 msgid "Use Perspective View"
 msgstr "Use Perspective View"
 
@@ -5726,17 +5755,17 @@ msgstr "Help"
 msgid "Temperature Calibration"
 msgstr "Temperature Calibration"
 
-msgid "Pass 1"
-msgstr "Pass 1"
+msgid "Coarse"
+msgstr ""
 
-msgid "Flow rate test - Pass 1"
-msgstr "Flow rate test - Pass 1"
+msgid "Flow rate test - Coarse"
+msgstr ""
 
-msgid "Pass 2"
-msgstr "Pass 2"
+msgid "Fine"
+msgstr ""
 
-msgid "Flow rate test - Pass 2"
-msgstr "Flow rate test - Pass 2"
+msgid "Flow rate test - Fine"
+msgstr ""
 
 msgid "Flow rate"
 msgstr "Flow rate"
@@ -5902,6 +5931,9 @@ msgid "The player is not loaded, please click \"play\" button to retry."
 msgstr "The player is not loaded; please click the \"play\" button to retry."
 
 msgid "Plugin library failed to load. Click here to view the solution."
+msgstr ""
+
+msgid "Loading failed. Please check the network and try again."
 msgstr ""
 
 msgid "Temporarily closed because there is no operation for a while."
@@ -6262,6 +6294,9 @@ msgid ""
 msgstr ""
 
 msgid "Go to Login"
+msgstr ""
+
+msgid "Camera Full Screen"
 msgstr ""
 
 msgctxt "Quit_Switching"
@@ -6826,6 +6861,9 @@ msgstr "Jump to"
 msgid "Error:"
 msgstr "Error:"
 
+msgid "Enable support for"
+msgstr ""
+
 msgid "Open link for more info"
 msgstr ""
 
@@ -6899,6 +6937,12 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Bottom"
 
+msgid "There is stringing-prone filament in the current print job. Enabling nozzle clumping detection now may degrade print quality. Are you sure you want to enable it?"
+msgstr ""
+
+msgid "Enable Nozzle Clumping Detection"
+msgstr ""
+
 msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
 msgstr ""
 
@@ -6917,8 +6961,8 @@ msgstr ""
 msgid "Enable detection of build plate position"
 msgstr "Enable detection of build plate position"
 
-msgid "The localization tag of build plate is detected, and printing is paused if the tag is not in predefined range."
-msgstr "The localization tag of the build plate will be detected, and printing will be paused if the tag is not in predefined range."
+msgid "Pauses printing when build plate misalignment is detected."
+msgstr ""
 
 msgid "Build Plate Detection"
 msgstr ""
@@ -6983,9 +7027,6 @@ msgstr ""
 msgid "Alignment Detection"
 msgstr ""
 
-msgid "Pauses printing when build plate misalignment is detected."
-msgstr ""
-
 msgid "First Layer Inspection"
 msgstr "First Layer Inspection"
 
@@ -7013,6 +7054,9 @@ msgstr "Filament Tangle Detection"
 msgid "Checks if the nozzle is clumping by filament or other foreign objects."
 msgstr ""
 
+msgid "On"
+msgstr ""
+
 msgid "Open Door Detection"
 msgstr ""
 
@@ -7029,6 +7073,15 @@ msgid "Print Status Snapshot"
 msgstr ""
 
 msgid "Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."
+msgstr ""
+
+msgid "Automatically match the corresponding switch strategy for leak-prone filaments (disable blob detection) and regular filaments (enable blob detection)."
+msgstr ""
+
+msgid "Detect whether the nozzle is wrapped by filament or other foreign matter."
+msgstr ""
+
+msgid "After disabling, nozzle wrapping cannot be detected, which may lead to print failure or nozzle damage."
 msgstr ""
 
 msgctxt "Nozzle Type"
@@ -8287,10 +8340,25 @@ msgstr ""
 msgid "With this option enabled, you can print materials with a large temperature difference together."
 msgstr ""
 
+msgid "Open full screen camera view on active monitor only."
+msgstr ""
+
+msgid "When enabled, the camera full screen view opens only on the monitor that contains Bambu Studio."
+msgstr ""
+
 msgid "Clear my choice for synchronizing printer preset after loading the file."
 msgstr ""
 
 msgid "Clear my choice for Load 3mf dialog settings."
+msgstr ""
+
+msgid "Clear my choice for executing post-processing scripts."
+msgstr ""
+
+msgid "Show the security warning dialog again before slicing when post-processing scripts are configured."
+msgstr ""
+
+msgid "Clear my choice for disabling support parameter recommendation."
 msgstr ""
 
 msgid "3D Settings"
@@ -8853,9 +8921,6 @@ msgstr "Cool Plate SuperTack"
 msgid "Send print job"
 msgstr ""
 
-msgid "On"
-msgstr ""
-
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr ""
 
@@ -9121,6 +9186,9 @@ msgstr ""
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr ""
 
+msgid "There is stringing-prone filament in this file. For best print quality, we recommend switching nozzle clumping detection to Auto mode."
+msgstr ""
+
 msgid "Cool"
 msgstr ""
 
@@ -9170,6 +9238,9 @@ msgid "Please do not mix-use the Ext with AMS"
 msgstr "Please avoid using AMS filaments and external spool filament simultaneously."
 
 msgid "Invalid nozzle information, please refresh or manually set nozzle information."
+msgstr ""
+
+msgid "Storage needs to be inserted before printing via LAN."
 msgstr ""
 
 msgid "Storage is not available or is in read-only mode."
@@ -11348,6 +11419,9 @@ msgstr "Repaired 3mf file does not contain any volume"
 msgid "Repaired 3mf file contains more than one volume"
 msgstr "Repaired 3mf file contains more than one volume"
 
+msgid "Repaired 3mf file contains more than one instance"
+msgstr ""
+
 msgid "Repair finished"
 msgstr "Repair finished"
 
@@ -11362,6 +11436,20 @@ msgstr "Configuration package updated to "
 
 msgid "Open G-code file:"
 msgstr "Open G-code file:"
+
+msgid "Print task sending times out."
+msgstr "Print task sending times out."
+
+msgid "Sending print configuration"
+msgstr "Sending print configuration"
+
+#, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the device page in %ss"
+msgstr "Successfully sent. Will automatically jump to the device page in %ss"
+
+#, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the next page in %ss"
+msgstr "Successfully sent. Will automatically jump to the next page in %ss"
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
@@ -12693,6 +12781,12 @@ msgstr ""
 msgid "Start and end ratios for the first component in gradient mode. Comma-separated pair, e.g. \"0.10,0.90\" means 10% to 90%."
 msgstr ""
 
+msgid "Mixed filament gradient curve"
+msgstr ""
+
+msgid "Optional Photoshop-style custom curve mapping Z progress to the first component ratio. Encoded as pipe-separated control points, either \"x,y\" (legacy) or \"x,y,m_in,m_out\" when a tangent override is needed (empty token or \"nan\" means use PCHIP default). x in [0,1]; y is clamped to the configured ratio range, e.g. \"0,0.15|0.5,0.50|1,0.85\". When empty, the linear gradient_range is used instead."
+msgstr ""
+
 msgid "Mixed filament per-part gradient"
 msgstr ""
 
@@ -13093,6 +13187,12 @@ msgstr ""
 
 msgid "Enable clumping detection"
 msgstr "Enable clumping detection by probing"
+
+msgid "Order-independent overlap carving"
+msgstr ""
+
+msgid "When enabled, overlapping model parts are carved by bounding-box size so smaller embedded parts are not removed by larger parts due to volume order."
+msgstr ""
 
 msgid "Clumping detection layers"
 msgstr "Layers of clumping detection by probing"
@@ -13649,6 +13749,12 @@ msgstr ""
 msgid "Embedding the wall into parts where the wall loops are absent ensures that the wall connects seamlessly to the infill."
 msgstr ""
 
+msgid "Alternate extra wall"
+msgstr ""
+
+msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
+msgstr ""
+
 msgid "Post-processing Scripts"
 msgstr "Post-processing Scripts"
 
@@ -13893,6 +13999,12 @@ msgstr "Skirt distance"
 
 msgid "Distance from skirt to brim or object"
 msgstr "Distance from skirt to brim or object"
+
+msgid "Skirt per object"
+msgstr ""
+
+msgid "Generate independent skirt around each object in sequential printing mode. When disabled, a single skirt is drawn around all objects."
+msgstr ""
 
 msgid "Skirt height"
 msgstr "Skirt height"
@@ -14605,6 +14717,13 @@ msgstr "Generating infill toolpath"
 msgid "Detect overhangs for auto-lift"
 msgstr "Detect overhangs for auto-lift"
 
+msgid "Levitating objects cannot be printed without supports."
+msgstr ""
+
+#, c-format, boost-format
+msgid "It seems object %s has floating regions. Please re-orient the object or enable support generation."
+msgstr ""
+
 msgid "Checking support necessity"
 msgstr "Checking support necessity"
 
@@ -14663,6 +14782,9 @@ msgstr ""
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "The supplied file couldn't be read because it's empty"
 
+msgid "The file format is incompatible and cannot be parsed."
+msgstr ""
+
 msgid "Unknown file format. Input file must have .stl, .obj, .amf(.xml), .gltf, .glb, .fbx extension."
 msgstr ""
 
@@ -14678,11 +14800,8 @@ msgstr "load_obj: failed to parse"
 msgid "load mtl in obj: failed to parse"
 msgstr "load mtl in obj: failed to parse"
 
-msgid "The file contains polygons with more than 4 vertices."
-msgstr "The file contains polygons with more than 4 vertices."
-
-msgid "The file contains polygons with less than 2 vertices."
-msgstr "The file contains polygons with less than 2 vertices."
+msgid "The file contains polygons with less than 3 vertices."
+msgstr ""
 
 msgid "The file contains invalid vertex index."
 msgstr "The file contains invalid vertex index."
@@ -16667,9 +16786,6 @@ msgstr ""
 msgid "Skipping objects."
 msgstr ""
 
-msgid "Continue"
-msgstr ""
-
 msgid "Null Color"
 msgstr ""
 
@@ -17045,6 +17161,12 @@ msgstr ""
 msgid "Remove the third material"
 msgstr ""
 
+msgid "Model Height"
+msgstr ""
+
+msgid "Material Ratio"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -17322,6 +17444,27 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#~ msgid "Pass 1"
+#~ msgstr "Pass 1"
+
+#~ msgid "Flow rate test - Pass 1"
+#~ msgstr "Flow rate test - Pass 1"
+
+#~ msgid "Pass 2"
+#~ msgstr "Pass 2"
+
+#~ msgid "Flow rate test - Pass 2"
+#~ msgstr "Flow rate test - Pass 2"
+
+#~ msgid "The localization tag of build plate is detected, and printing is paused if the tag is not in predefined range."
+#~ msgstr "The localization tag of the build plate will be detected, and printing will be paused if the tag is not in predefined range."
+
+#~ msgid "The file contains polygons with more than 4 vertices."
+#~ msgstr "The file contains polygons with more than 4 vertices."
+
+#~ msgid "The file contains polygons with less than 2 vertices."
+#~ msgstr "The file contains polygons with less than 2 vertices."
 
 #~ msgid "Standard Mode"
 #~ msgstr "Standard"
