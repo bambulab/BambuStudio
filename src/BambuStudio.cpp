@@ -1329,6 +1329,14 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
     return ret;
 }
 
+// Empty compatible_printers means compatible with all printers (same as Preset::is_compatible_with_printer).
+static bool is_preset_compatible_with_printer(const std::vector<std::string> &compatible_printers, const std::string &printer_system_name)
+{
+    if (printer_system_name.empty() || compatible_printers.empty())
+        return true;
+    return std::find(compatible_printers.begin(), compatible_printers.end(), printer_system_name) != compatible_printers.end();
+}
+
 // For estimate_mode: given a source filament preset name (e.g. "Bambu PLA Basic @BBL P1S 0.4 nozzle")
 // and the new machine's BBL tag (e.g. "X2D 0.4 nozzle"), construct the target filament preset name
 // (e.g. "Bambu PLA Basic @BBL X2D 0.4 nozzle") and verify it exists in filament_full_dir.
@@ -2976,6 +2984,32 @@ int CLI::run(int argc, char **argv)
         BOOST_LOG_TRIVIAL(error) <<__FUNCTION__ << boost::format(" %1%: process not compatible with printer.")%__LINE__;
         record_exit_reson(outfile_dir, CLI_PROCESS_NOT_COMPATIBLE, 0, cli_errors[CLI_PROCESS_NOT_COMPATIBLE], sliced_info);
         flush_and_exit(CLI_PROCESS_NOT_COMPATIBLE);
+    }
+
+    // Validate compatible_printers for externally loaded filament presets.
+    {
+        std::string effective_printer_system_name;
+        if (!new_printer_system_name.empty())
+            effective_printer_system_name = new_printer_system_name;
+        else
+            effective_printer_system_name = current_printer_system_name;
+
+        if (!effective_printer_system_name.empty()) {
+            for (size_t index = 0; index < load_filaments_config.size(); ++index) {
+                const auto *compatible_printers_opt = load_filaments_config[index].option<ConfigOptionStrings>("compatible_printers");
+                if (!compatible_printers_opt)
+                    continue;
+                const std::vector<std::string> &compatible_printers = compatible_printers_opt->values;
+                if (is_preset_compatible_with_printer(compatible_printers, effective_printer_system_name))
+                    continue;
+
+                const std::string &filament_name = (index < load_filaments_name.size()) ? load_filaments_name[index] : "";
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" %1%: filament preset %2% (slot %3%) is not compatible with printer %4%.")
+                    % __LINE__ % filament_name % (index + 1) % effective_printer_system_name;
+                record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
+                flush_and_exit(CLI_CONFIG_FILE_ERROR);
+            }
+        }
     }
 
     if (estimate_mode && (new_printer_name.empty() || current_printer_name.empty() || (new_printer_name == current_printer_name))) {
