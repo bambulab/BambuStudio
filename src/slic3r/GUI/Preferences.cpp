@@ -1439,6 +1439,7 @@ wxWindow* PreferencesDialog::create_general_page()
     });
     // auto item_backup = create_item_switch(_L("Backup switch"), page, _L("Backup switch"), "units");
     auto item_gcodes_warning = create_item_checkbox(_L("No warnings when loading 3MF with modified G-codes"), page,_L("No warnings when loading 3MF with modified G-codes"), 50, "no_warn_when_modified_gcodes");
+    auto item_cloud_server_warning = create_item_checkbox(_L("Don't show cloud device server connection warnings"), page, _L("When enabled, the \"Failed to connect to the cloud device server\" dialog will not appear. Uncheck to restore the warning."), 50, "suppress_cloud_device_server_warning");
     auto item_backup  = create_item_checkbox(_L("Auto-Backup"), page,_L("Backup your project periodically for restoring from the occasional crash."), 50, "backup_switch");
     auto item_backup_interval = create_item_backup_input(_L("every"), page, _L("The peroid of backup in seconds."), "backup_interval");
 
@@ -1549,6 +1550,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(item_max_recent_count, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_save_choise, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_gcodes_warning, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_cloud_server_warning, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_backup, 0, wxTOP,FromDIP(3));
     item_backup->Add(item_backup_interval, 0, wxLEFT, 0);
 
