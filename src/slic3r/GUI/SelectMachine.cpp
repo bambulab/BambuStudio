@@ -6183,8 +6183,8 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
         for (const auto &warning_tpu_filament : warning_tpu_filaments) {
             if (warning_tpu_filament == check_info.fila_id) {
                 show_status(PrintDialogStatus::PrintStatusTPUUnsuggestCali,
-                            {_L("It is recommended to perform an mannual flow calibration for TPU filament on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to "
-                                "Auto/On, the system will use the previous calibration value and skip the flow calibration process.")});
+                            {_L("If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip "
+                                "the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page.")});
                 break;
             }
         }
