@@ -7,6 +7,7 @@
 #include "DevFirmware.h"
 
 #include <map>
+#include <vector>
 
 // wx
 #include <wx/string.h>
@@ -29,12 +30,14 @@ public:
         RACK_STATUS_HOTEND_CENTRE = 1,
         RACK_STATUS_TOOLHEAD_CENTRE = 2,
         RACK_STATUS_CALIBRATE_HOTEND_RACK = 3,
-        RACK_STATUS_CUT_MATERIAL = 4,
-        RACK_STATUS_UNLOCK_HOTEND = 5,
-        RACK_STATUS_LIFT_HOTEND_RACK = 6,
-        RACK_STATUS_PLACE_HOTEND = 7,
-        RACK_STATUS_PICK_HOTEND = 8,
-        RACK_STATUS_LOCK_HOTEND = 9,
+        RACK_STATUS_WAIT_HOTEND_HEATING = 4,
+        RACK_STATUS_CUT_MATERIAL = 5,
+        RACK_STATUS_UNLOCK_HOTEND = 6,
+        RACK_STATUS_LIFT_HOTEND_RACK = 7,
+        RACK_STATUS_PLACE_HOTEND = 8,
+        RACK_STATUS_PICK_HOTEND = 9,
+        RACK_STATUS_LOCK_HOTEND = 10,
+        RACK_STATUS_MOVE = 11,
         RACK_STATUS_END,
     };
 
@@ -96,6 +99,8 @@ public:
 
     RackStatus  GetStatus() const { return m_status; }
     RackCaliStatus GetCaliStatus() const { return m_cali_status; }
+    int GetJob() const { return m_job; }
+    const std::vector<int>& GetSteps() const { return m_steps; }
 
     DevNozzle GetNozzle(int idx) const;
     const std::map<int, DevNozzle>& GetRackNozzles() const { return m_rack_nozzles; }
@@ -139,6 +144,7 @@ public:
 
     void CrtlRackReadNozzle(int rack_nozzle_id) const;
     void CtrlRackReadAll(bool gui_check = false) const;
+    void CtrlNozzleExchange(int from, int to) const;
     bool CtrlCanReadAll() const;
 
     void SetNozzleTargetTemp(int nozzle_pos_id, int temp);
@@ -165,6 +171,8 @@ private:
     int m_position = RACK_POS_UNKNOWN;
     RackStatus m_status = RACK_STATUS_UNKNOWN;
     RackCaliStatus m_cali_status = Rack_CALI_UNKNOWN;
+    int m_job = 0;
+    std::vector<int> m_steps;
 
     std::map<int, DevNozzle> m_rack_nozzles; // Map of nozzle ID to DevNozzle objects
     std::map<int, DevFirmwareVersionInfo> m_rack_nozzles_firmware;

@@ -853,6 +853,244 @@
   line-height: 16px;
 }
 
+.hotend-rack-progress {
+  position: relative;
+  margin-top: 10px;
+  padding-bottom: 40px;
+  color: var(--ams-text-strong);
+}
+
+.hotend-rack-progress-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 16px;
+  border: 1px solid var(--ams-status-bar-border);
+  border-radius: 4px;
+  background: var(--ams-toolbar-bg);
+  box-sizing: border-box;
+  font-size: 12px;
+  line-height: 22px;
+}
+
+.hotend-rack-progress-detail {
+  display: flex;
+  justify-content: space-between;
+  min-height: 156px;
+  padding-top: 22px;
+}
+
+.hotend-rack-progress-steps {
+  width: 386px;
+}
+
+.hotend-rack-progress-step {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  column-gap: 6px;
+  align-items: start;
+  min-height: 30px;
+  color: var(--ams-text-strong);
+  font-size: 12px;
+  line-height: 22px;
+}
+
+.hotend-rack-progress-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-top: 3px;
+  border-radius: 50%;
+  color: var(--ams-text-on-brand);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  background: var(--ams-text-task-mark-pending);
+}
+
+.hotend-rack-progress-step.done .hotend-rack-progress-mark,
+.hotend-rack-progress-step.active .hotend-rack-progress-mark {
+  background: var(--ams-brand);
+}
+
+.hotend-rack-progress-step.failed .hotend-rack-progress-mark {
+  background: var(--ams-danger);
+}
+
+.hotend-rack-progress-step.pending {
+  color: var(--ams-text-step);
+}
+
+.hotend-rack-progress-visual {
+  width: 166px;
+  min-height: 200px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.hotend-rack-progress-visual-card {
+  position: relative;
+  width: 166px;
+  height: 200px;
+  background: var(--ams-overlay-bg);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.hotend-rack-progress-visual-card img {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+
+.rack-visual-read-nozzle {
+  left: 24px;
+  top: 76px;
+  width: 22px;
+  height: 49px;
+}
+
+.rack-visual-read-holder {
+  left: 104px;
+  top: 69px;
+  width: 39px;
+  height: 62px;
+}
+
+.rack-visual-read-line {
+  left: 51px;
+  top: 92px;
+  width: 50px;
+  height: 6px;
+}
+
+.rack-visual-read-head {
+  left: 68px;
+  top: 86px;
+  width: 13px;
+  height: 13px;
+  transform: rotate(90deg);
+}
+
+.rack-visual-toolhead {
+  position: absolute;
+  left: 47px;
+  top: 45px;
+  width: 72px;
+  height: 110px;
+  overflow: hidden;
+}
+
+.rack-visual-toolhead img {
+  position: absolute;
+}
+
+.rack-visual-take-body {
+  left: 14px;
+  top: 28px;
+  width: 44px;
+  height: 62px;
+}
+
+.rack-visual-take-shell {
+  left: 11px;
+  top: 20px;
+  width: 28px;
+  height: 66px;
+}
+
+.rack-visual-take-tube-dark.top,
+.rack-visual-take-tube-dark.bottom {
+  left: 32px;
+  width: 8px;
+  height: 400px;
+  transform: rotate(-90deg);
+  transform-origin: left top;
+  opacity: 0.6;
+}
+
+.rack-visual-take-tube-light.top,
+.rack-visual-take-tube-light.bottom {
+  left: 34px;
+  width: 4px;
+  height: 400px;
+  transform: rotate(-90deg);
+  transform-origin: left top;
+  opacity: 0.6;
+}
+
+.rack-visual-take-tube-dark.top,
+.rack-visual-take-tube-light.top {
+  top: 0;
+}
+
+.rack-visual-take-tube-dark.bottom,
+.rack-visual-take-tube-light.bottom {
+  top: 58px;
+}
+
+.rack-visual-take-nozzle {
+  left: 21px;
+  top: 60px;
+  width: 27px;
+  height: 47px;
+}
+
+.rack-visual-take-left-block {
+  left: 14px;
+  top: 86px;
+  width: 17px;
+  height: 6px;
+  transform: rotate(180deg) scaleX(-1);
+}
+
+.rack-visual-take-right-block {
+  left: 45px;
+  top: 86px;
+  width: 17px;
+  height: 6px;
+  transform: rotate(180deg) scaleX(-1);
+}
+
+.rack-visual-take-arc {
+  left: 8px;
+  top: 53px;
+  width: 17px;
+  height: 43px;
+}
+
+.hotend-rack-progress-actions {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  gap: 8px;
+}
+
+.hotend-rack-progress-actions button {
+  min-width: 60px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--ams-footer-btn-border);
+  border-radius: 4px;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-button);
+  font: inherit;
+  font-size: 13px;
+  line-height: 22px;
+  cursor: pointer;
+}
+
+.hotend-rack-progress-actions button:disabled {
+  color: var(--ams-text-disabled);
+  cursor: not-allowed;
+}
+
 @keyframes hotend-reading-spin {
   to {
     transform: rotate(360deg);

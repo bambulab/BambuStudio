@@ -76,6 +76,21 @@ namespace rack_status {
     inline constexpr const char* total         = "total";
     inline constexpr const char* message       = "message";
     inline constexpr const char* tips          = "tips";
+    inline constexpr const char* job           = "job";           // values::rack_job
+    inline constexpr const char* operation     = "operation";     // values::rack_operation
+    inline constexpr const char* state         = "state";         // values::rack_state
+    inline constexpr const char* target_display_index = "target_display_index";
+    inline constexpr const char* current_step  = "current_step";
+    inline constexpr const char* steps         = "steps";
+    inline constexpr const char* can_stop      = "can_stop";
+    inline constexpr const char* can_retry     = "can_retry";
+}
+
+// state.hotend_rack_status.steps[]
+namespace rack_step {
+    inline constexpr const char* id    = "id";
+    inline constexpr const char* label = "label";
+    inline constexpr const char* state = "state"; // values::rack_step_state
 }
 
 // state.filament_change_status
@@ -287,6 +302,29 @@ namespace rack_mode {
     inline constexpr const char* all    = "all";
 }
 
+namespace rack_operation {
+    inline constexpr const char* idle        = "idle";
+    inline constexpr const char* take        = "take";
+    inline constexpr const char* place       = "place";
+    inline constexpr const char* exchange    = "exchange";
+    inline constexpr const char* read_all    = "read_all";
+    inline constexpr const char* read_single = "read_single";
+    inline constexpr const char* move        = "move";
+}
+
+namespace rack_state {
+    inline constexpr const char* idle    = "idle";
+    inline constexpr const char* running = "running";
+    inline constexpr const char* failed  = "failed";
+}
+
+namespace rack_step_state {
+    inline constexpr const char* done    = "done";
+    inline constexpr const char* active  = "active";
+    inline constexpr const char* pending = "pending";
+    inline constexpr const char* failed  = "failed";
+}
+
 namespace filament_change_mode {
     inline constexpr const char* idle           = "idle";
     inline constexpr const char* single         = "single";
@@ -345,6 +383,7 @@ namespace hotend_op_state {
     inline constexpr const char* heating  = "Heating";
     inline constexpr const char* cooling  = "Cooling";
     inline constexpr const char* reading  = "Reading";
+    inline constexpr const char* taking   = "Taking";
     inline constexpr const char* placing  = "Placing";
     inline constexpr const char* removing = "Removing";
     inline constexpr const char* error    = "Error";

@@ -20,6 +20,8 @@ void DevNozzleRack::Reset()
 {
     m_position = RACK_POS_UNKNOWN;
     m_status = RACK_STATUS_UNKNOWN;
+    m_job = 0;
+    m_steps.clear();
     m_rack_type = RackType::None;
     m_rack_nozzles.clear();
 }
@@ -142,6 +144,15 @@ void DevNozzleRack::ParseRackInfoV1_0(const nlohmann::json& rack_info)
 
     DevJsonValParser::ParseVal(rack_info, "pos", m_position, 0);
     DevJsonValParser::ParseVal(rack_info, "info", m_cali_status);
+    DevJsonValParser::ParseVal(rack_info, "job", m_job, 0);
+    m_steps.clear();
+    if (rack_info.contains("step") && rack_info["step"].is_array()) {
+        for (const auto& item : rack_info["step"]) {
+            if (item.is_number_integer()) {
+                m_steps.push_back(item.get<int>());
+            }
+        }
+    }
 
     m_rack_type = RackType_AB; // default to RackType_AB
     if (rack_info.contains("info2")) {

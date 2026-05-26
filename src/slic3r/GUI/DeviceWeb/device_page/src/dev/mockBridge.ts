@@ -282,6 +282,12 @@ function cloneHotendState(): AmsFilamentHotendViewModel {
 let AMS_FILAMENT_HOTEND_STATE: AmsFilamentHotendViewModel = cloneHotendState();
 
 function setMockHotendReading(displayIndex: number, total: number) {
+  const steps = [
+    { id: 1, label: 'Homing Induction Hotend Rack', state: 'done' as const },
+    { id: 2, label: 'Homing Toolhead', state: 'active' as const },
+    { id: 3, label: 'Calibrating Hotend Rack', state: 'pending' as const },
+    { id: 10, label: 'Locking Hotend', state: 'pending' as const },
+  ];
   AMS_FILAMENT_HOTEND_STATE = {
     ...AMS_FILAMENT_HOTEND_STATE,
     hotend_page: {
@@ -295,16 +301,74 @@ function setMockHotendReading(displayIndex: number, total: number) {
         active: true,
         mode: total > 1 ? 'all' : 'single',
         display_index: displayIndex,
+        target_display_index: displayIndex,
         current: total > 1 ? 1 : 1,
         total,
         message: total > 1 ? `读取中（1 / ${total}）` : `${displayIndex}号热端读取中`,
         tips: '请稍后...',
+        job: total > 1 ? 4 : 6,
+        operation: total > 1 ? 'read_all' : 'read_single',
+        state: 'running',
+        current_step: 2,
+        steps,
+        can_stop: false,
+        can_retry: false,
       },
       hotend_slots: AMS_FILAMENT_HOTEND_STATE.hotend_page.hotend_slots.map((slot) => ({
         ...slot,
         hotend: {
           ...slot.hotend,
-          op_state: slot.display_index === displayIndex ? 'Reading' : (slot.hotend?.op_state === 'Reading' ? 'Idle' : slot.hotend?.op_state),
+          op_state: slot.display_index === displayIndex ? 'Reading' : (
+            slot.hotend?.op_state === 'Reading' || slot.hotend?.op_state === 'Taking' ? 'Idle' : slot.hotend?.op_state
+          ),
+        },
+      })),
+    },
+  };
+}
+
+function setMockHotendTaking(displayIndex: number) {
+  const steps = [
+    { id: 1, label: 'Homing Induction Hotend Rack', state: 'done' as const },
+    { id: 2, label: 'Homing Toolhead', state: 'done' as const },
+    { id: 3, label: 'Calibrating Hotend Rack', state: 'done' as const },
+    { id: 5, label: 'Cutting Filament', state: 'done' as const },
+    { id: 9, label: 'Taking Hotend', state: 'active' as const },
+    { id: 10, label: 'Locking Hotend', state: 'pending' as const },
+  ];
+  AMS_FILAMENT_HOTEND_STATE = {
+    ...AMS_FILAMENT_HOTEND_STATE,
+    hotend_page: {
+      ...AMS_FILAMENT_HOTEND_STATE.hotend_page,
+      actions: {
+        ...AMS_FILAMENT_HOTEND_STATE.hotend_page.actions,
+        can_read_all_hotends: false,
+        read_all_disabled_reason: 'Hotend rack is busy',
+      },
+      hotend_rack_status: {
+        active: true,
+        mode: 'single',
+        display_index: displayIndex,
+        target_display_index: displayIndex,
+        current: 0,
+        total: steps.length,
+        message: '',
+        tips: '请稍后...',
+        job: 1,
+        operation: 'take',
+        state: 'running',
+        current_step: 9,
+        steps,
+        can_stop: false,
+        can_retry: false,
+      },
+      hotend_slots: AMS_FILAMENT_HOTEND_STATE.hotend_page.hotend_slots.map((slot) => ({
+        ...slot,
+        hotend: {
+          ...slot.hotend,
+          op_state: slot.display_index === displayIndex ? 'Taking' : (
+            slot.hotend?.op_state === 'Taking' || slot.hotend?.op_state === 'Reading' ? 'Idle' : slot.hotend?.op_state
+          ),
         },
       })),
     },
@@ -390,6 +454,9 @@ function handleRequest(pkt: RequestPacket) {
       } else if (action === 'read_hotend') {
         const displayIndex = Number((payload as Record<string, unknown>).display_index ?? 1);
         setMockHotendReading(displayIndex, 1);
+      } else if (action === 'take_hotend' || action === 'place_hotend') {
+        const displayIndex = Number((payload as Record<string, unknown>).display_index ?? 1);
+        setMockHotendTaking(displayIndex);
       } else if (action === 'set_hotend_temperature') {
         setMockHotendTemperature(payload as Record<string, unknown>);
       } else if (action === 'stop_filament_change') {

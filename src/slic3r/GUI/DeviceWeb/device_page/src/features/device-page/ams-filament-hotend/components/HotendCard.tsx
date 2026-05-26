@@ -35,16 +35,18 @@ export function HotendCard({
   const op: HotendOpState = hot.op_state ?? 'Idle';
   const isTaken = !!slot.taken;
   const isSelected = isTaken || !!hot.selected;
-  const isStatusReplaced = op === 'Reading' || op === 'Placing' || op === 'Removing' || op === 'Error';
+  const isStatusReplaced = op === 'Reading' || op === 'Taking' || op === 'Placing' || op === 'Removing' || op === 'Error';
   const [menuOpen, setMenuOpen] = useState(false);
   const [editingTemp, setEditingTemp] = useState(false);
   const [draftTemp, setDraftTemp] = useState('');
   const menuRef = useRef<HTMLSpanElement>(null);
   const tempInputRef = useRef<HTMLInputElement>(null);
   const skipBlurCommitRef = useRef(false);
-  const isBusy = op === 'Reading' || op === 'Placing' || op === 'Removing';
+  const isBusy = op === 'Reading' || op === 'Taking' || op === 'Placing' || op === 'Removing';
   const canOperate = slot.enabled && !isBusy && !globalBusy;
   const canSetTemperature = canOperate && hot.tool_kind !== 'empty' && op !== 'Error';
+  const hotendMoveAction = isTaken ? 'place_hotend' : 'take_hotend';
+  const hotendMoveLabel = isTaken ? t('Place') : t('Take');
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -131,9 +133,9 @@ export function HotendCard({
           {menuOpen && (
             <div className="hotend-menu-popover" role="menu">
               <button type="button" role="menuitem" disabled={!canOperate} onClick={() => runMenuAction('read_hotend')}>{t('Read')}</button>
-              <button type="button" role="menuitem" disabled={!canSetTemperature} onClick={() => runMenuAction('adjust_temperature')}>{t('Set Temperature')}</button>
-              <button type="button" role="menuitem" disabled={!canOperate} onClick={() => runMenuAction('place_hotend')}>{t('Place')}</button>
               <button type="button" role="menuitem" onClick={() => runMenuAction('hotend_detail')}>{t('Details')}</button>
+              <button type="button" role="menuitem" disabled={!canSetTemperature} onClick={() => runMenuAction('adjust_temperature')}>{t('Set Temperature')}</button>
+              <button type="button" role="menuitem" disabled={!canOperate} onClick={() => runMenuAction(hotendMoveAction)}>{hotendMoveLabel}</button>
             </div>
           )}
         </span>
@@ -280,6 +282,7 @@ function StatusReadout({ op }: { op: HotendOpState }) {
   const { t } = useTranslation();
   const text =
     op === 'Reading'  ? t('Reading') :
+    op === 'Taking'   ? t('Taking') :
     op === 'Placing'  ? t('Placing') :
     op === 'Removing' ? t('Removing') :
     op === 'Error'    ? t('Error') : '';
@@ -362,7 +365,7 @@ function ToolIcon({
       {withError && (
         <img className="hotend-icon-error-badge" src={hotendErrorBadgeUrl} width={16} height={16} alt="error" />
       )}
-      {op === 'Placing' && (
+      {(op === 'Placing' || op === 'Taking') && (
         <img className="hotend-placing-arrow" src={hotendPlacingArrowUrl} width={9} height={32} alt="placing" />
       )}
     </div>

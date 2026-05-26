@@ -31,6 +31,7 @@ export type HotendOpState =
   | 'Heating'     // 加热中:    温度上升箭头
   | 'Cooling'     // 降温中:    温度下降箭头
   | 'Reading'     // 读取中:    Reading 弧形
+  | 'Taking'      // 取用中:    工具头正在取用
   | 'Placing'     // 放置中:    工具头正在装上
   | 'Removing'    // 取下中:    工具头正在卸下
   | 'Error';      // 错误态
@@ -156,6 +157,18 @@ export interface HotendRackStatus {
   total: number;
   message: string;
   tips: string;
+  job?: number;
+  operation?: 'idle' | 'take' | 'place' | 'exchange' | 'read_all' | 'read_single' | 'move';
+  state?: 'idle' | 'running' | 'failed';
+  target_display_index?: number;
+  current_step?: number | null;
+  steps?: Array<{
+    id: number;
+    label: string;
+    state: 'done' | 'active' | 'pending' | 'failed';
+  }>;
+  can_stop?: boolean;
+  can_retry?: boolean;
 }
 
 export interface FilamentChangeSlotRef {

@@ -1,0 +1,9 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 12.0138 43.5013" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path id="Union" d="M10.1953 0.0932329C11.151 -0.279958 12.1521 0.521233 11.998 1.53562L11.1299 7.24362C10.9755 8.25834 9.78008 8.72553 8.97852 8.08444L7.57129 6.95847C4.40195 11.4338 2.66714 16.8116 2.66699 22.3686C2.66699 29.441 5.4767 36.2241 10.4775 41.2251C10.998 41.7457 10.9978 42.5901 10.4775 43.1108C9.95689 43.6315 9.11251 43.6313 8.5918 43.1108C3.09086 37.6098 2.47286e-07 30.1482 0 22.3686C0.000153925 16.2034 1.94272 10.2395 5.48633 5.29148L4.46973 4.478C3.66885 3.83686 3.86191 2.5695 4.81738 2.19577L10.1953 0.0932329Z" fill="url(#paint0_radial_0_452)"/>
+<defs>
+<radialGradient id="paint0_radial_0_452" cx="0" cy="0" r="1" gradientTransform="matrix(4.6664 37.9996 -32.569 3.99988 7.33292 -0.2969)" gradientUnits="userSpaceOnUse">
+<stop stop-color="#00AE42"/>
+<stop offset="1" stop-color="white" stop-opacity="0"/>
+</radialGradient>
+</defs>
+</svg>
