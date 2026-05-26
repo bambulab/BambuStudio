@@ -228,12 +228,14 @@ static bool obj_parseline(const char *line, ObjData &data)
 					line = endptr;
 				}
 				if (*line == '/') {
-					// Parse normal index.
 					++ line;
-					vertex.normalIdx = strtol(line, &endptr, 10);
-					if (endptr == 0 || (*endptr != ' ' && *endptr != '\t' && *endptr != 0))
-						return false;
-					line = endptr;
+                    // Normal index is optional after "//" (e.g. "1//" or "1// 2//"); skip strtol when omitted.
+                    if (*line != 0 && *line != ' ' && *line != '\t') {
+                        vertex.normalIdx = strtol(line, &endptr, 10);
+                        if (endptr == line || (*endptr != ' ' && *endptr != '\t' && *endptr != 0))
+                            return false;
+                        line = endptr;
+                    }
 				}
 			}
 			if (vertex.coordIdx < 0)
