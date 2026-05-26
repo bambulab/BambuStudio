@@ -2278,7 +2278,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             }
             else
             {
-                shown_infos.emplace_back(ConfirmBeforeSendInfo(_L("Please click the confirm button if you still want to proceed with printing.")));
+                shown_infos.emplace_back(ConfirmBeforeSendInfo(_L("Please click the \"Continue printing\"  button if you still want to proceed with printing.")));
             }
 
             confirm_dlg.update_text(shown_infos, has_warning_msg&& has_normal_msg);
@@ -2286,6 +2286,11 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
         else
         {
             confirm_dlg.update_text(confirm_text, false);
+        }
+
+        if (!is_printing_block) 
+        {
+            confirm_dlg.update_btn_label(_L("Continue printing"), _L("Return to modify"));
         }
 
         confirm_dlg.on_show();
