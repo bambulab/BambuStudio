@@ -468,6 +468,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
                     new_conf.set_key_value("enforce_support_layers", new ConfigOptionInt(0));
                     new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionEnum<EnsureVerticalThicknessLevel>(EnsureVerticalThicknessLevel::evtEnabled));
                     new_conf.set_key_value("detect_thin_wall", new ConfigOptionBool(false));
+                    new_conf.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
             }
 
             timelapse_type = TimelapseType::tlTraditional;
@@ -749,22 +750,83 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
         is_msg_dlg_already_exist = false;
     }
 
-    if (config->opt_bool("alternate_extra_wall") &&
-        config->opt_enum<EnsureVerticalThicknessLevel>("ensure_vertical_shell_thickness") == EnsureVerticalThicknessLevel::evtEnabled) {
-        const wxString msg_text = _L("Alternate extra wall doesn't work well when ensure vertical shell thickness is set to Enable.\n"
-                                     "Change these settings automatically?\n"
-                                     "Yes - Change ensure vertical shell thickness to Partial and enable alternate extra wall\n"
-                                     "No  - Don't use alternate extra wall");
-        MessageDialog dialog(m_msg_dlg_parent, msg_text, "", wxICON_WARNING | wxYES | wxNO);
-        DynamicPrintConfig new_conf = *config;
+    if (config->opt_bool("alternate_extra_wall") && config->opt_bool("spiral_mode") && applying_keys().empty()) {
+        const wxString msg_text = _L("Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:")
+                                  + wxString("\n  - ") + _L("Set ensure vertical shell thickness to Partial.")
+                                  + wxString("\n  - ") + wxString::Format(_L("Set wall loops to %d."), 2)
+                                  + wxString("\n  - ") + wxString::Format(_L("Set sparse infill density to %d%%."), 15)
+                                  + wxString("\n  - ") + _L("Disable spiral vase mode.")
+                                  + "\n\n"
+                                  + _L("Change these settings automatically?\n"
+                                       "Yes - Apply and keep alternate extra wall enabled\n"
+                                       "No  - Don't use alternate extra wall");
+        MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
         is_msg_dlg_already_exist = true;
         auto answer = dialog.ShowModal();
-        if (answer == wxID_YES)
-            new_conf.set_key_value("ensure_vertical_shell_thickness", new ConfigOptionEnum<EnsureVerticalThicknessLevel>(EnsureVerticalThicknessLevel::evtPartial));
-        else
-            new_conf.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
-        apply(config, &new_conf);
         is_msg_dlg_already_exist = false;
+        if (answer == wxID_YES) {
+            DynamicPrintConfig new_conf = *config;
+            new_conf.set_key_value("ensure_vertical_shell_thickness",
+                                   new ConfigOptionEnum<EnsureVerticalThicknessLevel>(EnsureVerticalThicknessLevel::evtPartial));
+            new_conf.set_key_value("wall_loops", new ConfigOptionInt(2));
+            new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(15));
+            new_conf.set_key_value("spiral_mode", new ConfigOptionBool(false));
+            apply(config, &new_conf);
+        } else {
+            DynamicPrintConfig new_conf = *config;
+            new_conf.set_key_value("alternate_extra_wall", new ConfigOptionBool(false));
+            apply(config, &new_conf);
+        }
+    }
+
+    // Single consolidated prompt for non-optimal companion settings when alternate extra wall
+    // is on: EVT == Enabled, wall_loops != 2, sparse_infill_density == 0. Skip during apply()
+    // cascades so density sync (Tab::on_value_change skeleton/skin) does not double-prompt.
+    {
+        const bool alt_on       = config->opt_bool("alternate_extra_wall");
+        const auto evt          = config->opt_enum<EnsureVerticalThicknessLevel>("ensure_vertical_shell_thickness");
+        const int  wall_loops   = config->opt_int("wall_loops");
+        const int  density      = config->option<ConfigOptionPercent>("sparse_infill_density")->value;
+        const bool evt_enabled  = evt == EnsureVerticalThicknessLevel::evtEnabled;
+        const bool walls_not_rec = wall_loops != 2;
+        const bool density_zero = density == 0;
+        const bool suboptimal   = evt_enabled || walls_not_rec || density_zero;
+
+        if (!alt_on || !suboptimal)
+            m_alt_suboptimal_acknowledged = false;
+
+        if (alt_on && !config->opt_bool("spiral_mode") && suboptimal && !m_alt_suboptimal_acknowledged && applying_keys().empty()) {
+            wxString adjustments;
+            if (evt_enabled)
+                adjustments += wxString("\n  - ") + _L("Set ensure vertical shell thickness to Partial.");
+            if (walls_not_rec)
+                adjustments += "\n  - " + wxString::Format(_L("Set wall loops to %d."), 2);
+            if (density_zero)
+                adjustments += "\n  - " + wxString::Format(_L("Set sparse infill density to %d%%."), 15);
+
+            const wxString msg_text = _L("For alternate extra wall to work properly, the following adjustments are recommended:")
+                                      + adjustments + "\n\n"
+                                      + _L("Apply these adjustments?\n"
+                                           "Yes - Apply and keep alternate extra wall enabled\n"
+                                           "No  - Keep current settings and alternate extra wall enabled");
+            MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxYES | wxNO);
+            is_msg_dlg_already_exist = true;
+            auto answer = dialog.ShowModal();
+            is_msg_dlg_already_exist = false;
+            if (answer == wxID_YES) {
+                DynamicPrintConfig new_conf = *config;
+                if (evt_enabled)
+                    new_conf.set_key_value("ensure_vertical_shell_thickness",
+                                           new ConfigOptionEnum<EnsureVerticalThicknessLevel>(EnsureVerticalThicknessLevel::evtPartial));
+                if (walls_not_rec)
+                    new_conf.set_key_value("wall_loops", new ConfigOptionInt(2));
+                if (density_zero)
+                    new_conf.set_key_value("sparse_infill_density", new ConfigOptionPercent(15));
+                apply(config, &new_conf);
+            } else {
+                m_alt_suboptimal_acknowledged = true;
+            }
+        }
     }
 }
 
@@ -1132,7 +1194,7 @@ void ConfigManipulation::toggle_print_sla_options(DynamicPrintConfig* config)
 
 int ConfigManipulation::show_spiral_mode_settings_dialog(bool is_object_config)
 {
-    wxString msg_text = _(L("Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."));
+    wxString msg_text = _(L("Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."));
     auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
     if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
         msg_text += _(L(" But machines with I3 structure will not generate timelapse videos."));
