@@ -1,0 +1,92 @@
+import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { AmsFilamentHotendSlotViewModel } from '../types';
+
+const VIEWPORT_MARGIN = 4;
+
+/**
+ * Floating context menu rendered at a fixed (x, y) anchor coming from
+ * useCardContextMenu. Owns the viewport-edge clamping so the popover never
+ * spills off-screen; everything else (open/close, outside-click, escape)
+ * lives in the hook.
+ */
+export function CardContextMenu({
+  slot,
+  anchor,
+  onAction,
+  onClose,
+}: {
+  slot: AmsFilamentHotendSlotViewModel;
+  anchor: { x: number; y: number };
+  onAction: (action: string, slot: AmsFilamentHotendSlotViewModel) => void;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ left: number; top: number }>({
+    left: anchor.x,
+    top: anchor.y,
+  });
+
+  const lineState = slot.filament_line.state;
+  const cardState = slot.filament_card.state;
+  const m = slot.menu_actions;
+  const canEdit = m?.can_edit ?? cardState !== 'Empty';
+  const canLoad = m?.can_load ?? (lineState === 'no_filament' && cardState !== 'Empty');
+  const canUnload = m?.can_unload ?? lineState === 'loaded';
+  const canRead = m?.can_read ?? (cardState !== 'Reading' && cardState !== 'Empty');
+  const canAmsOperation = m?.can_ams_operation ?? (slot.bind_ams_slot_count ?? 0) > 0;
+
+  // Clamp inside the viewport after the menu measures itself; flips to the
+  // left / above the anchor when there isn't enough room to the right / below.
+  useLayoutEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    const rect = node.getBoundingClientRect();
+    let left = anchor.x;
+    let top = anchor.y;
+    const maxLeft = window.innerWidth - rect.width - VIEWPORT_MARGIN;
+    const maxTop = window.innerHeight - rect.height - VIEWPORT_MARGIN;
+    if (left > maxLeft) left = Math.max(VIEWPORT_MARGIN, anchor.x - rect.width);
+    if (top > maxTop) top = Math.max(VIEWPORT_MARGIN, anchor.y - rect.height);
+    setPos({ left, top });
+  }, [anchor.x, anchor.y]);
+
+  // Bail out when the slot has no actionable items so right-click on a
+  // fully-empty slot doesn't pop a useless empty box.
+  if (!canEdit && !canLoad && !canUnload && !canRead && !canAmsOperation) {
+    return null;
+  }
+
+  const style: CSSProperties = {
+    position: 'fixed',
+    left: pos.left,
+    top: pos.top,
+    zIndex: 200,
+  };
+
+  const run = (action: string) => {
+    onClose();
+    onAction(action, slot);
+  };
+
+  return (
+    <div
+      ref={ref}
+      className="card-context-menu"
+      role="menu"
+      data-card-context-menu="true"
+      data-testid={`ams-hotend-slot-${slot.display_index}-context-menu`}
+      style={style}
+      // Stop the bubble: clicks inside the menu shouldn't trigger the card's
+      // own click-to-select handler.
+      onClick={(e) => e.stopPropagation()}
+    >
+      {canEdit          && <button type="button" role="menuitem" onClick={() => run('edit')}         >{t('Edit')}</button>}
+      {canLoad          && <button type="button" role="menuitem" onClick={() => run('load')}         >{t('Load')}</button>}
+      {canUnload        && <button type="button" role="menuitem" onClick={() => run('unload')}       >{t('Unload')}</button>}
+      {canRead          && <button type="button" role="menuitem" onClick={() => run('read')}         >{t('Read')}</button>}
+      {canAmsOperation  && <button type="button" role="menuitem" onClick={() => run('ams_operation')}>{t('AMS Operation')}</button>}
+    </div>
+  );
+}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import { useAmsFilamentHotendBridge } from './useAmsFilamentHotendBridge';
 import { useSendToCpp } from '../../../hooks/Bridge';
@@ -7,12 +7,15 @@ import type {
   AmsFilamentHotendSlotActionPayload,
   AmsFilamentHotendSlotViewModel,
   AmsFilamentHotendTab,
+  FilamentPageActionState,
+  FilamentPageMode,
   HotendSlotViewModel,
 } from './types';
 import { PageToolbar } from './components/PageToolbar';
-import { Stage } from './components/Stage';
+import { Stage, selectionKey } from './components/Stage';
 import { HotendPanel } from './components/HotendPanel';
 import { PageFooter } from './components/PageFooter';
+import { BatchModeFooter } from './components/BatchModeFooter';
 import { FilamentChangeProgressPanel } from './components/FilamentChangeProgressPanel';
 import { resolveHostContentSize } from './hostContentSize';
 import './ams-filament-hotend.css';
@@ -74,15 +77,31 @@ function useReportHostContentSize(rootRef: RefObject<HTMLElement | null>) {
   }, [rootRef, send]);
 }
 
+// Map a toolbar action name to the batch mode it should switch to. Dry is
+// intentionally absent because it triggers a single-step dialog (HandleAction
+// "dry") instead of entering a selection mode.
+const ACTION_TO_BATCH_MODE: Record<string, FilamentPageMode> = {
+  load_auto: 'batch_ams_load',
+  load_external: 'batch_ext_load',
+  unload: 'batch_unload',
+};
+
 export function AmsFilamentHotendPage() {
   const pageRef = useRef<HTMLDivElement>(null);
-  const { state, error, runSlotAction, openBridgeDebugDialog } = useAmsFilamentHotendBridge();
+  const { state, error, refresh, runSlotAction, runBatchAction, openBridgeDebugDialog } = useAmsFilamentHotendBridge();
   const [tab, setTab] = useState<AmsFilamentHotendTab>('filament');
   const [debugOpening, setDebugOpening] = useState(false);
+  // Local checkbox set, keyed by `selectionKey(slot)` so two slots that share
+  // a display_index across different AMS units cannot collide. Reset whenever
+  // the page mode changes (entering / leaving / switching batch modes).
+  const [selectedKeys, setSelectedKeys] = useState<ReadonlySet<string>>(() => new Set());
   const showDebugButton = Boolean((window as Window & { __internalBuild?: boolean }).__internalBuild);
   useReportHostContentSize(pageRef);
   // Sync host theme into page CSS variables.
   useDeviceWebTheme();
+
+  const currentMode: FilamentPageMode = state.filament_page.mode ?? 'normal';
+  const inBatchMode = currentMode !== 'normal';
 
   const fp = state.filament_page;
   const hp = state.hotend_page;
@@ -98,14 +117,68 @@ export function AmsFilamentHotendPage() {
   const topSlots = filamentSlots.filter((s) => s.is_top_tier);
   const bottomSlots = filamentSlots.filter((s) => !s.is_top_tier);
 
-  // Merge tab-specific toolbar actions.
-  const toolbarActions = useMemo(
-    () => ({ ...fp.actions, ...hp.actions }),
-    [fp.actions, hp.actions],
+  // The batch-eligible subset, computed solely from the C++ select_action.
+  // Not used for rendering the cards (those iterate the full slot list and
+  // grey out non-eligible ones); only used to drive `Select All` and the
+  // commit payload.
+  const selectableSlots = useMemo(
+    () => filamentSlots.filter((s) => !!s.select_action?.can_select),
+    [filamentSlots],
   );
-  const footerActions = useMemo(
-    () => (fp.filament_change_status?.active ? { ...fp.actions, tips: '' } : fp.actions),
-    [fp.actions, fp.filament_change_status?.active],
+
+  // Reset the local selection set whenever C++ switches the page mode (e.g.
+  // when entering Auto Load, leaving via Exit, or after a successful commit
+  // that flips back to normal). Without this the selection would survive
+  // across mode boundaries and leak stale slot ids into batch_run payloads.
+  useEffect(() => {
+    setSelectedKeys(new Set());
+  }, [currentMode]);
+
+  // Drop slot keys that no longer correspond to a selectable slot. Happens
+  // when a slot's eligibility flips during batch mode (e.g. RFID finishes
+  // reading or a load progresses), so stale ticks do not survive into the
+  // commit payload.
+  useEffect(() => {
+    if (!inBatchMode) return;
+    const validKeys = new Set(selectableSlots.map(selectionKey));
+    setSelectedKeys((prev) => {
+      let pruned: Set<string> | null = null;
+      for (const key of prev) {
+        if (!validKeys.has(key)) {
+          if (!pruned) pruned = new Set(prev);
+          pruned.delete(key);
+        }
+      }
+      return pruned ?? prev;
+    });
+  }, [inBatchMode, selectableSlots]);
+
+  // Merge tab-specific toolbar actions. In batch modes `fp.actions` values
+  // are `{enabled, reason}` objects instead of plain booleans; PageToolbar
+  // and PageFooter currently consume the boolean shape, so this build
+  // collapses the object form to its `.enabled` boolean to keep the UI
+  // alive end-to-end while the toolbar still ships its v1 (P0). The
+  // BatchModeFooter (next subiteration) will own the `{enabled, reason}`
+  // semantics and tooltip rendering.
+  const fpActionsAsBool = useMemo(() => {
+    const out: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(fp.actions ?? {})) {
+      if (value && typeof value === 'object' && 'enabled' in value) {
+        out[key] = (value as { enabled?: boolean }).enabled ?? false;
+      } else {
+        out[key] = value;
+      }
+    }
+    return out as unknown as FilamentPageActionState;
+  }, [fp.actions]);
+
+  const toolbarActions = useMemo(
+    () => ({ ...fpActionsAsBool, ...hp.actions }),
+    [fpActionsAsBool, hp.actions],
+  );
+  const footerActions: FilamentPageActionState = useMemo(
+    () => (fp.filament_change_status?.active ? { ...fpActionsAsBool, tips: '' } : fpActionsAsBool),
+    [fpActionsAsBool, fp.filament_change_status?.active],
   );
 
   const handleToolbarAction = (action: string) => {
@@ -114,8 +187,21 @@ export function AmsFilamentHotendPage() {
       runSlotAction(action, undefined, dryZone ? { ams_id: dryZone.ams_id } : {});
       return;
     }
+    // Three batch entry points enter selection mode by re-requesting state
+    // for the matching mode. Any other action keeps the legacy direct path.
+    const nextMode = ACTION_TO_BATCH_MODE[action];
+    if (nextMode) {
+      void refresh(nextMode);
+      return;
+    }
     runSlotAction(action);
   };
+
+  const exitBatchMode = useCallback(() => void refresh('normal'), [refresh]);
+  // Dev-only escape hatch the bridge debug dialog can fall back to.
+  useEffect(() => {
+    (window as Window & { __exitBatchMode?: () => void }).__exitBatchMode = exitBatchMode;
+  }, [exitBatchMode]);
 
   const handleSlotAction = (
     action: string,
@@ -123,13 +209,39 @@ export function AmsFilamentHotendPage() {
     payload?: AmsFilamentHotendSlotActionPayload,
   ) => runSlotAction(action, slot, payload);
 
+  const onToggleSelect = useCallback((slot: AmsFilamentHotendSlotViewModel) => {
+    const key = selectionKey(slot);
+    setSelectedKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  }, []);
+
+  const onSelectAll = useCallback(() => {
+    setSelectedKeys(new Set(selectableSlots.map(selectionKey)));
+  }, [selectableSlots]);
+
+  const onClearSelection = useCallback(() => {
+    setSelectedKeys(new Set());
+  }, []);
+
+  const onBatchCommit = useCallback(() => {
+    if (!inBatchMode) return;
+    const picked = selectableSlots.filter((s) => selectedKeys.has(selectionKey(s)));
+    if (picked.length === 0) return;
+    void runBatchAction(currentMode, picked);
+  }, [inBatchMode, selectableSlots, selectedKeys, runBatchAction, currentMode]);
+
   return (
     <div ref={pageRef} className="ams-filament-hotend-page" data-testid="ams-filament-hotend-page">
       <PageToolbar
         selectedTab={tab}
         onTabChange={setTab}
         actions={toolbarActions}
+        mode={currentMode}
         onAction={handleToolbarAction}
+        onExitBatchMode={exitBatchMode}
       />
 
       {error && <div className="page-error">{error}</div>}
@@ -141,6 +253,9 @@ export function AmsFilamentHotendPage() {
             bottomSlots={bottomSlots}
             amsDryZones={fp.ams_dry_zones ?? []}
             hotendMode={false}
+            mode={currentMode}
+            selectedKeys={selectedKeys}
+            onToggleSelect={onToggleSelect}
             onAction={handleSlotAction}
           />
           <FilamentChangeProgressPanel
@@ -156,20 +271,31 @@ export function AmsFilamentHotendPage() {
         />
       )}
 
-      <PageFooter
-        actions={footerActions}
-        onAction={handleToolbarAction}
-        showDebugButton={showDebugButton}
-        debugOpening={debugOpening}
-        onDebug={async () => {
-          setDebugOpening(true);
-          try {
-            await openBridgeDebugDialog(state);
-          } finally {
-            setDebugOpening(false);
-          }
-        }}
-      />
+      {inBatchMode ? (
+        <BatchModeFooter
+          mode={currentMode}
+          selectableSlots={selectableSlots}
+          selectedKeys={selectedKeys}
+          onSelectAll={onSelectAll}
+          onClearSelection={onClearSelection}
+          onCommit={onBatchCommit}
+        />
+      ) : (
+        <PageFooter
+          actions={footerActions}
+          onAction={handleToolbarAction}
+          showDebugButton={showDebugButton}
+          debugOpening={debugOpening}
+          onDebug={async () => {
+            setDebugOpening(true);
+            try {
+              await openBridgeDebugDialog(state);
+            } finally {
+              setDebugOpening(false);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

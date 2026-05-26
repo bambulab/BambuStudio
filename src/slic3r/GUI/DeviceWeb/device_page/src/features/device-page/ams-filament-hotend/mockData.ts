@@ -170,6 +170,7 @@ const slotSeeds: SlotSeed[] = [
 
 export const mockAmsFilamentHotendState: AmsFilamentHotendViewModel = {
   filament_page: {
+    mode: 'normal',
     actions: {
       can_load: false,
       can_load_external: false,

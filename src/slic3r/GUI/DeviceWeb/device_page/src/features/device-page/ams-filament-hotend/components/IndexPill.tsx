@@ -3,8 +3,13 @@ import type { AmsFilamentHotendSlotViewModel } from '../types';
 
 export function IndexPill({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
   const { t } = useTranslation();
+  const cardState = slot.filament_card.state;
+  const isTransporting = cardState === 'Loading' || cardState === 'Unloading';
   const cls = ['card-index'];
-  if (slot.selected) cls.push('selected');
+  // `selected` covers both the user's manual UI selection and the firmware-
+  // reported transport states so the pill matches the green-highlight in
+  // Figma 1498:84068 while filament is in motion.
+  if (slot.selected || isTransporting) cls.push('selected');
   if (slot.is_running) cls.push('running');
   if (!slot.enabled) cls.push('disabled');
   const bindCount = slot.bind_ams_slot_count ?? 0;

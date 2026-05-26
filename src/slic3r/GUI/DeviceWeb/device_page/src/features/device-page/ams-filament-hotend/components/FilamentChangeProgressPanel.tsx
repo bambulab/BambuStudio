@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import type { FilamentChangeStatus } from '../types';
+import { BatchProgressStrip } from './BatchProgressStrip';
 import { Nozzle } from './Nozzle';
 
 const STEP_IDLE = 0x00;
@@ -125,15 +126,30 @@ export function FilamentChangeProgressPanel({
 
   const slotName = displaySlotName(t, status);
   const op = operationText(t, status.operation);
-  const title = status.message
-    || (slotName
-      ? t('{{slot}} filament {{op}} in progress', { slot: slotName, op })
-      : t('Filament {{op}} in progress', { op }));
+  // Batch-run mode reuses the per-step layout below for the currently-
+  // active slot but prepends a horizontal step strip so the user can see
+  // overall queue progress. C++ only emits `batch_running.items` when
+  // ≥2 slots are queued, so a 1-slot batch falls back to plain single.
+  const batchItems = status.mode === 'batch_running'
+    ? (status.batch_running?.items ?? [])
+    : [];
+  const showBatchStrip = batchItems.length >= 2;
+  // Title reflects the run scope: in batch mode, the per-slot detail is
+  // already conveyed by the strip + step list, so the bar collapses to a
+  // generic "Batch ... in progress" message; single-slot keeps the
+  // firmware-supplied message or the slot-specific fallback.
+  const title = showBatchStrip
+    ? t('Batch filament {{op}} in progress', { op })
+    : status.message
+      || (slotName
+        ? t('{{slot}} filament {{op}} in progress', { slot: slotName, op })
+        : t('Filament {{op}} in progress', { op }));
   const steps = resolveSteps(t, status);
   const activeIndex = resolveActiveIndex(status, steps);
 
   return (
     <section className="filament-change-panel" data-testid="ams-filament-change-panel">
+      {showBatchStrip && <BatchProgressStrip items={batchItems} />}
       <div className="filament-change-status-bar">
         <div className="filament-change-title" data-testid="ams-filament-change-title">
           <span className="filament-change-spinner" />

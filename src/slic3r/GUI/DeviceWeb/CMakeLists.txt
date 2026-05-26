@@ -277,6 +277,14 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendVM.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendVM.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendSchema.hpp
-    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendBatchSchema.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/IFilamentPageModeBuilder.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/NormalModeBuilder.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/NormalModeBuilder.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchAmsLoadModeBuilder.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchAmsLoadModeBuilder.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchExtLoadModeBuilder.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchExtLoadModeBuilder.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchUnloadModeBuilder.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/BatchUnloadModeBuilder.cpp
 )
 set(SLIC3R_GUI_SOURCES ${SLIC3R_GUI_SOURCES} PARENT_SCOPE)

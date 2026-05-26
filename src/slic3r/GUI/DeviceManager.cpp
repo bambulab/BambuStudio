@@ -1661,6 +1661,32 @@ int MachineObject::command_ams_change_filament(bool load, std::string ams_id, st
     return this->publish_json(j);
 }
 
+int MachineObject::command_multi_slot_ams_change_filament(bool is_load, const std::vector<std::pair<int, int>>& slots)
+{
+    json j;
+    try {
+        j["print"]["command"]     = "multi_slot_ams_change_filament";
+        j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+        j["print"]["is_load"]     = is_load;
+
+        json arr = json::array();
+        for (const auto& [ams_id, slot_id] : slots) {
+            int encoded_slot_id = slot_id;
+            if (!is_load) {
+                // Per-slot unload encoding (see header doc).
+                if (ams_id == 0x20) {
+                    encoded_slot_id = 0xff - slot_id;
+                } else {
+                    encoded_slot_id = 0xff;
+                }
+            }
+            arr.push_back({{"ams_id", ams_id}, {"slot_id", encoded_slot_id}});
+        }
+        j["print"]["request_array"] = arr;
+    } catch (const std::exception&) {}
+    return this->publish_json(j);
+}
+
 int MachineObject::command_ams_user_settings(bool start_read_opt, bool tray_read_opt, bool remain_flag)
 {
     json j;

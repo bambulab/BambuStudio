@@ -133,6 +133,37 @@ export interface AmsFilamentHotendSlotViewModel {
   // the slot index when this flag is set. Optional for backward compatibility.
   is_external_spool?: boolean;
   is_running?: boolean;      // batch flow currently executing this slot (S6)
+  /** Batch-mode-only: per-mode selection eligibility for the card checkbox.
+   *  Absent in normal mode. */
+  select_action?: BatchSelectAction;
+}
+
+/** Four UI modes the filament_page can render. The default `normal` mirrors
+ *  the current behaviour; the three batch_* modes are entered by clicking
+ *  the respective toolbar button. `Dry` is not a mode (it opens
+ *  AMSDryCtrWin directly). */
+export type FilamentPageMode =
+  | 'normal'
+  | 'batch_ams_load'
+  | 'batch_ext_load'
+  | 'batch_unload';
+
+/** Per-slot eligibility for the active batch mode. The Web renders a
+ *  checkbox for cards with `can_select`, greys out the rest and shows
+ *  `reason` as a tooltip. `ext_label` lights the EXT badge for external-spool
+ *  cards in `batch_ext_load`. */
+export interface BatchSelectAction {
+  can_select: boolean;
+  reason: string;
+  ext_label?: boolean;
+}
+
+/** Wrapper for `filament_page.actions.<name>` when the page is in a batch
+ *  mode — same key set as normal but value is `{enabled, reason}` instead
+ *  of a plain bool. */
+export interface BatchActionState {
+  enabled: boolean;
+  reason: string;
 }
 
 /** Slot payload consumed by the Hotend tab only. Mirrors C++
@@ -192,7 +223,11 @@ export interface FilamentChangeBatchReserved {
 
 export interface FilamentChangeStatus {
   active: boolean;
-  mode: 'idle' | 'single' | 'batch_reserved';
+  // `batch_reserved` is the pre-run state (queue listed, nothing started yet);
+  // `batch_running` is the live multi-slot run with the same item shape but
+  // a horizontal step strip rendering. Single-slot runs (or batches that the
+  // firmware reports as a 1-element queue) keep `single`.
+  mode: 'idle' | 'single' | 'batch_reserved' | 'batch_running';
   operation?: 'change' | 'unknown';
   running_slot?: FilamentChangeSlotRef | null;
   current_step?: number | null;
@@ -204,6 +239,7 @@ export interface FilamentChangeStatus {
   message?: string;
   tips?: string;
   batch_reserved?: FilamentChangeBatchReserved;
+  batch_running?: FilamentChangeBatchReserved;
 }
 
 /** state.filament_page.actions */
@@ -282,6 +318,15 @@ export interface AmsFilamentHotendSlotActionPayload extends Record<string, unkno
 }
 
 export interface FilamentPageViewModel {
+  /** Which UI mode this payload was built for. Defaults to "normal" on
+   *  older C++ payloads that pre-date the mode field. */
+  mode?: FilamentPageMode;
+  /** In normal mode the values are plain booleans / strings (matches
+   *  FilamentPageActionState). In batch modes the same keys hold
+   *  `{enabled, reason}` BatchActionState objects instead — consumers
+   *  unpack at runtime (see AmsFilamentHotendPage.fpActionsAsBool). The
+   *  declared type stays the strict normal-mode shape so TypeScript can
+   *  still catch normal-mode misuses; the union shape lives in C++ schema. */
   actions: FilamentPageActionState;
   filament_change_status?: FilamentChangeStatus;
   // Flat dryer-zone signal lifted from the old `ams.zones`. AMS-unit detail

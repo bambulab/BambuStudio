@@ -35,7 +35,13 @@ namespace root {
 // units array was dropped. Dryer-chamber state is lifted to
 // `ams_dry_zones` (a flat array of drying-capable zones only) so the
 // Filament tab can map zone → dryer slot without an intermediate object.
+//
+// `mode` is the UI mode the payload is targeted at — one of values::mode::*.
+// Per-mode payload shape is in `design.md` section 7.3: normal mode carries
+// full slot render data (filament_card/line/nozzle), batch modes only the
+// slot identity + select_action.
 namespace filament_page {
+    inline constexpr const char* mode                   = "mode";        // values::mode::*
     inline constexpr const char* actions                = "actions";
     inline constexpr const char* filament_change_status = "filament_change_status";
     inline constexpr const char* ams_dry_zones          = "ams_dry_zones";
@@ -59,6 +65,14 @@ namespace filament_actions {
     inline constexpr const char* show_ams_settings = "show_ams_settings";
     inline constexpr const char* show_auto_refill  = "show_auto_refill";
     inline constexpr const char* tips              = "tips";
+}
+
+// Batch-mode shape for filament_page.actions.<name>. In normal mode each
+// toolbar action key holds a plain bool; in batch modes it holds this
+// `{ enabled, reason }` object so the Web can show a tooltip on hover.
+namespace action_state {
+    inline constexpr const char* enabled = "enabled";
+    inline constexpr const char* reason  = "reason";
 }
 
 // state.hotend_page.actions — hotend tab toolbar.
@@ -96,7 +110,7 @@ namespace rack_step {
 // state.filament_change_status
 namespace filament_change {
     inline constexpr const char* active             = "active";
-    inline constexpr const char* mode               = "mode";       // "idle" | "single" | "batch_reserved"
+    inline constexpr const char* mode               = "mode";       // "idle" | "single" | "batch_reserved" | "batch_running"
     inline constexpr const char* operation          = "operation";  // "change" | "unknown"
     inline constexpr const char* running_slot       = "running_slot";
     inline constexpr const char* current_step       = "current_step";
@@ -107,6 +121,32 @@ namespace filament_change {
     inline constexpr const char* current_step_total = "current_step_total";
     inline constexpr const char* message            = "message";
     inline constexpr const char* tips               = "tips";
+    // Per-slot batch progress info (mode == "batch_running"). Same shape as
+    // the pre-run `batch_reserved` payload — Web reuses the same item list
+    // type but renders a horizontal step strip instead of the reservation
+    // pills. See `batch_progress` below for the field names.
+    inline constexpr const char* batch_running      = "batch_running";
+}
+
+// state.filament_change_status.batch_running (and batch_reserved) shape.
+// `current` is the 1-based index of the slot currently being processed,
+// `total` mirrors items.size().
+namespace batch_progress {
+    inline constexpr const char* operation = "operation";
+    inline constexpr const char* current   = "current";
+    inline constexpr const char* total     = "total";
+    inline constexpr const char* items     = "items";
+}
+
+// state.filament_change_status.batch_running.items[] entry.
+// `state` enumerates the per-slot completion status. Until the firmware
+// `cfs2[]` push is wired in, the C++ producer only emits `running` for the
+// single active slot and `pending` for the rest; future firmware integration
+// will fill in `done` / `failed`.
+namespace batch_progress_item {
+    inline constexpr const char* display_index = "display_index";
+    inline constexpr const char* state         = "state";
+    inline constexpr const char* reason        = "reason";
 }
 
 // state.filament_page.hotend_slots[] — what the Filament tab renders for a slot.
@@ -135,6 +175,9 @@ namespace filament_slot {
     inline constexpr const char* filament_card       = "filament_card";
     inline constexpr const char* filament_line       = "filament_line";
     inline constexpr const char* filament_nozzle     = "filament_nozzle";
+    // Batch-mode-only: per-mode eligibility for the cards' selection checkbox.
+    // Absent on normal-mode slots. See keys::select_action below.
+    inline constexpr const char* select_action       = "select_action";
 
     // Internal-only fields kept in the BuildSlot output so BuildState can
     // project them into the Hotend page; never appear on the filament_page
@@ -187,6 +230,16 @@ namespace filament_nozzle {
     inline constexpr const char* filament_color = "filament_color";
     // True when this rack nozzle is the one mounted on the extruder right now.
     inline constexpr const char* on_extruder    = "on_extruder";
+}
+
+// slot.select_action — per-mode selection eligibility (batch modes only).
+// Single object per slot (not a per-mode matrix); the active mode is carried
+// by `filament_page.mode`. `ext_label` is true for slots that should show the
+// "EXT" badge on the card head (only meaningful in `batch_ext_load`).
+namespace select_action {
+    inline constexpr const char* can_select = "can_select";
+    inline constexpr const char* reason     = "reason";
+    inline constexpr const char* ext_label  = "ext_label";
 }
 
 // slot.menu_actions
@@ -329,6 +382,28 @@ namespace filament_change_mode {
     inline constexpr const char* idle           = "idle";
     inline constexpr const char* single         = "single";
     inline constexpr const char* batch_reserved = "batch_reserved";
+    inline constexpr const char* batch_running  = "batch_running";
+}
+
+// values for batch_progress_item::state
+namespace batch_item_state {
+    inline constexpr const char* pending = "pending";
+    inline constexpr const char* running = "running";
+    inline constexpr const char* success = "success";
+    inline constexpr const char* failed  = "failed";
+}
+
+// values for filament_page::mode — the four UI modes the page can render.
+//   * normal           — default page (IDLE or single-slot 进/退料中)
+//   * batch_ams_load   — entered by clicking the toolbar Auto Load button
+//   * batch_ext_load   — entered by clicking the toolbar Load External Spool
+//   * batch_unload     — entered by clicking the toolbar Unload button
+// `Dry` is not a mode — it opens AMSDryCtrWin directly as a single-step dialog.
+namespace mode {
+    inline constexpr const char* normal         = "normal";
+    inline constexpr const char* batch_ams_load = "batch_ams_load";
+    inline constexpr const char* batch_ext_load = "batch_ext_load";
+    inline constexpr const char* batch_unload   = "batch_unload";
 }
 
 namespace filament_change_operation {

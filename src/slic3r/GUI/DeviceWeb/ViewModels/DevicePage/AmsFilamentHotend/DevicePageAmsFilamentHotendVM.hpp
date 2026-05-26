@@ -57,6 +57,12 @@ private:
     nlohmann::json BuildDebugSnapshot(const nlohmann::json& payload) const;
 
     std::string m_last_report_state;
+    // UI mode requested by Web ("normal" / "batch_ams_load" / ...). When the
+    // Web sends state.get with a `mode` field it's mirrored here so the
+    // next ReportState() picks the same mode-specific builder without the
+    // Web re-fetching. Defaults to normal so first paint matches today's
+    // behaviour exactly.
+    std::string m_active_mode = "normal";
 };
 
 }} // namespace Slic3r::GUI

@@ -8,6 +8,7 @@ import type {
   AmsFilamentHotendViewModel,
   BridgeResponseBody,
   FilamentChangeStatus,
+  FilamentPageMode,
   HotendRackStatus,
   HotendSlotViewModel,
 } from './types';
@@ -104,9 +105,13 @@ export function useAmsFilamentHotendBridge() {
     setState(next);
   }, []);
 
-  const refresh = useCallback(async () => {
+  // `state.get` accepts an optional `mode` payload so the page can switch
+  // between the normal view and the batch-* selection modes without a
+  // separate endpoint. C++ remembers the last requested mode and re-uses it
+  // for subsequent ReportState() pushes until Web changes mode again.
+  const refresh = useCallback(async (mode: FilamentPageMode = 'normal') => {
     const resp = await request<ReturnType<typeof makeBody>, BridgeResponseBody<AmsFilamentHotendViewModel>>(
-      makeBody('state', 'get'),
+      makeBody('state', 'get', { mode }),
       5000,
     );
     if (!resp.ok) {
@@ -143,6 +148,31 @@ export function useAmsFilamentHotendBridge() {
       : extraPayload;
     const resp = await request<ReturnType<typeof makeBody>, BridgeResponseBody<AmsFilamentHotendViewModel>>(
       makeBody('action', action, payload),
+      8000,
+    );
+    if (resp.ok && resp.value.payload) {
+      applyState(resp.value.payload);
+    }
+  }, [applyState, request]);
+
+  // Batch-mode commit action. Sends `{ mode, slots: [{ams_id, slot_id, display_index}, ...] }`
+  // so C++ has everything it needs to dispatch the matching MQTT command.
+  // C++ flips the page back to `normal` mode in its response; the next state
+  // payload picked up by `applyState` reflects that.
+  const runBatchAction = useCallback(async (
+    mode: FilamentPageMode,
+    slots: Array<Pick<AmsFilamentHotendSlotViewModel, 'ams_id' | 'slot_id' | 'display_index'>>,
+  ) => {
+    const payload = {
+      mode,
+      slots: slots.map((s) => ({
+        ams_id: s.ams_id,
+        slot_id: s.slot_id,
+        display_index: s.display_index,
+      })),
+    };
+    const resp = await request<ReturnType<typeof makeBody>, BridgeResponseBody<AmsFilamentHotendViewModel>>(
+      makeBody('action', 'batch_run', payload),
       8000,
     );
     if (resp.ok && resp.value.payload) {
@@ -196,5 +226,5 @@ export function useAmsFilamentHotendBridge() {
     return () => document.removeEventListener('cpp:device', handler);
   }, [applyState]);
 
-  return { state, error, refresh, runSlotAction, openBridgeDebugDialog };
+  return { state, error, refresh, runSlotAction, runBatchAction, openBridgeDebugDialog };
 }

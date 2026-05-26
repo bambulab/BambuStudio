@@ -280,8 +280,17 @@
   border-color: transparent;
 }
 
-.filament-card:hover .card-spool-wrap {
-  border-color: var(--ams-brand);
+/* Hover frames the whole card (spool + text below) by mirroring the
+ * `.selected` box-shadow trick on the outer container, and dropping the
+ * inner per-segment borders so the outline doesn't double up at the seam
+ * between .card-spool-wrap and .card-text. Disabled cards stay un-hovered. */
+.filament-card:hover:not(.disabled) {
+  box-shadow: 0 0 0 1px var(--ams-brand);
+}
+
+.filament-card:hover:not(.disabled) .card-spool-wrap,
+.filament-card:hover:not(.disabled) .card-text {
+  border-color: transparent;
 }
 
 .card-head {
@@ -353,46 +362,191 @@
   flex: 0 0 auto;
 }
 
-.card-menu-wrap {
-  position: relative;
-  display: inline-flex;
+/* Batch-mode primary action button used by the page toolbar's `Exit` and the
+ * footer's commit button when something is selected. Mirrors the brand-green
+ * filled style from Figma 1498:83131. */
+.action-group button.primary {
+  background: var(--ams-brand);
+  border-color: var(--ams-brand);
+  color: var(--ams-text-on-brand);
 }
 
-.card-menu {
+.action-group button.primary:disabled {
+  background: var(--ams-popover-hover-bg);
+  border-color: var(--ams-border);
+  color: var(--ams-text-muted);
+}
+
+/* Card-head batch checkbox. Sits in the top-right corner where the (now
+ * legacy) three-dot menu used to live. The card body itself gets an extra
+ * `batch-mode` class so we can scope hover/cursor changes to batch mode. */
+.batch-slot-checkbox {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
   width: 16px;
   height: 16px;
-  border: 0;
   padding: 0;
-  background: transparent;
+  border: 1px solid var(--ams-border);
+  border-radius: 3px;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-on-brand);
+  cursor: pointer;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+}
+
+.batch-slot-checkbox:hover:not(:disabled) {
+  border-color: var(--ams-brand);
+}
+
+.batch-slot-checkbox.checked {
+  background: var(--ams-brand);
+  border-color: var(--ams-brand);
+}
+
+.batch-slot-checkbox.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Card-head loading icon. Fills the same 16×16 slot the BatchSlotCheckbox
+ * occupies in batch mode; FilamentCard mutually-excludes the two so the
+ * filament-change visual takes priority over batch selection on a busy
+ * slot. The inner spinning arc reuses the shared `spool-loading-rotor`
+ * keyframes so we only have one rotation source on the page. */
+.card-loading-arc {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  pointer-events: none;
+}
+
+/* Card states scoped to batch mode. Cursor + hover hint differ depending on
+ * whether the slot is eligible. The .selected class (added when the slot is
+ * in `selectedKeys`) overrides the default border with the brand colour. */
+.filament-card.batch-mode {
   cursor: pointer;
 }
 
-.card-menu span {
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: var(--ams-text-card-menu-dot);
+.filament-card.batch-mode.not-allowed {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
-.card-menu.disabled {
-  cursor: default;
-  opacity: 0.35;
+.filament-card.batch-mode.not-allowed:hover {
+  box-shadow: none;
 }
 
-.card-menu.open span,
-.card-menu:hover:not(:disabled) span {
-  background: var(--ams-text-strong);
+/* The `🚫` overlay drawn at the bottom-right of the spool when the slot is
+ * not selectable. SpoolDisc emits this group; no extra positioning needed. */
+.spool.not-allowed .spool-not-allowed {
+  pointer-events: none;
 }
 
-.slot-menu-popover {
-  position: absolute;
-  top: 18px;
-  right: -4px;
-  z-index: 20;
+/* Bottom panel that replaces the legacy PageFooter while in batch_* modes.
+ * Layout: [select-all checkbox + label] ........ [count] [commit button].
+ * Sized to match `.page-footer` (≈34px) so switching between normal and
+ * batch modes does not push total page height past the WebView allocation
+ * — otherwise a vertical scrollbar appears in batch mode only. */
+.batch-mode-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 34px;
+  margin: 0 12px;
+  padding: 0 12px;
+  border: 1px solid var(--ams-border);
+  border-radius: 4px;
+  background: var(--ams-card-text-bg);
+  font-size: 13px;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+}
+
+.batch-select-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ams-text-strong);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.batch-select-all:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.batch-select-all-box {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--ams-border);
+  border-radius: 3px;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-on-brand);
+  flex: 0 0 auto;
+  box-sizing: border-box;
+}
+
+.batch-select-all.checked .batch-select-all-box,
+.batch-select-all.indeterminate .batch-select-all-box {
+  background: var(--ams-brand);
+  border-color: var(--ams-brand);
+}
+
+.batch-select-all-dash {
+  width: 8px;
+  height: 2px;
+  background: var(--ams-text-on-brand);
+  border-radius: 1px;
+}
+
+.batch-select-count {
+  flex: 1 1 auto;
+  color: var(--ams-text-muted);
+  font-size: 12px;
+}
+
+.batch-commit {
+  height: 24px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ams-brand);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  opacity: 0.4;
+}
+
+.batch-commit.active {
+  opacity: 1;
+}
+
+.batch-commit:disabled {
+  cursor: not-allowed;
+}
+
+/* The legacy three-dot card menu (`.card-menu` / `.slot-menu-popover`) has
+ * been replaced by a right-click / long-press context menu rendered by
+ * <CardContextMenu> at fixed viewport coordinates. The styles below describe
+ * the floating popover; positioning is set inline by the component so the
+ * menu can clamp itself inside the viewport. */
+.card-context-menu {
   min-width: 101px;
   width: max-content;
   padding: 6px 0;
@@ -402,7 +556,7 @@
   box-shadow: var(--ams-popover-shadow);
 }
 
-.slot-menu-popover button {
+.card-context-menu button {
   display: block;
   width: 100%;
   height: 24px;
@@ -417,11 +571,11 @@
   cursor: pointer;
 }
 
-.slot-menu-popover button:hover:not(:disabled) {
+.card-context-menu button:hover:not(:disabled) {
   background: var(--ams-popover-hover-bg);
 }
 
-.slot-menu-popover button:disabled {
+.card-context-menu button:disabled {
   color: var(--ams-text-disabled);
   cursor: default;
 }
@@ -588,6 +742,68 @@
   border: 1px solid var(--ams-dashed-border);
   border-radius: 4px;
   border-style: dashed;
+}
+
+/* Horizontal step strip that prefixes the per-step panel during a batch
+ * filament-change run. Mirrors Figma 1670:80943 — 20×20 numbered pips
+ * connected by a thin neutral-grey line. Per-state colour lives on the
+ * pip fill (`pending` light grey, `running` / `success` brand, `failed`
+ * danger); the connector stays grey regardless of progress so the strip
+ * mirrors the design-system stepper component.
+ *
+ * Pips and connectors are direct children of the strip container — no
+ * per-cell wrapper — so connectors can flex-grow / shrink to keep a
+ * 5–20px run between adjacent pips while the whole group stays centred. */
+.batch-progress-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  margin: 0 0 12px;
+  padding: 0 8px;
+}
+
+.batch-progress-pip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ams-pip-pending-bg, var(--ams-popover-hover-bg));
+  color: var(--ams-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.batch-progress-pip.state-running,
+.batch-progress-pip.state-success {
+  background: var(--ams-brand);
+  color: var(--ams-text-on-brand);
+}
+
+.batch-progress-pip.state-failed {
+  background: var(--ams-danger);
+  color: var(--ams-text-on-brand);
+}
+
+/* Connector fills the gap between two adjacent pips. `flex: 1 1 0` lets it
+ * grow up to 20px when the panel is wide (then justify-content: center
+ * leaves the surplus space outside the group as left/right padding) and
+ * shrink to 5px when many slots are queued. Always neutral grey per
+ * Figma — completion progress is communicated by the pip fill, not the
+ * connector. */
+.batch-progress-connector {
+  flex: 1 1 0;
+  height: 2px;
+  min-width: 5px;
+  max-width: 20px;
+  background: var(--ams-border);
+  border-radius: 1px;
 }
 
 .filament-change-status-bar {

@@ -4,14 +4,15 @@ export function CardText({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
   const card = slot.filament_card;
   const isEmpty = card.state === 'Empty';
   const isUnknown = card.state === 'Unknown';
-  const isTransporting = card.state === 'Loading' || card.state === 'Unloading';
 
+  // Loading / Unloading slots intentionally fall through to the default
+  // branch: the tray still holds known filament during a change, and the
+  // user expects to see the filament type (e.g. "PLA") under the spool —
+  // the spinning indicator on the card head already conveys "in transit".
   const primary = isEmpty
     ? 'Empty'
     : isUnknown
     ? '?'
-    : isTransporting
-    ? '--'
     : card.type || card.name || '';
 
   return (

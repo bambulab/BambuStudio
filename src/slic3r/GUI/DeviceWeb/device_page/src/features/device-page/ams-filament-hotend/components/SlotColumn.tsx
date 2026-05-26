@@ -1,4 +1,4 @@
-import type { AmsFilamentHotendSlotViewModel } from '../types';
+import type { AmsFilamentHotendSlotViewModel, FilamentPageMode } from '../types';
 import { FilamentCard } from './FilamentCard';
 import { FeedLine } from './FeedLine';
 import { Nozzle } from './Nozzle';
@@ -7,11 +7,17 @@ export function SlotColumn({
   slot,
   lineHeight,
   globalBusy,
+  mode,
+  batchChecked,
+  onToggleSelect,
   onAction,
 }: {
   slot: AmsFilamentHotendSlotViewModel;
   lineHeight: number;
   globalBusy?: boolean;
+  mode: FilamentPageMode;
+  batchChecked: boolean;
+  onToggleSelect: (slot: AmsFilamentHotendSlotViewModel) => void;
   onAction: (action: string, slot: AmsFilamentHotendSlotViewModel) => void;
 }) {
   return (
@@ -19,7 +25,14 @@ export function SlotColumn({
       className="slot-column"
       data-tier={slot.is_top_tier ? 'top' : 'bottom'}
     >
-      <FilamentCard slot={slot} globalBusy={globalBusy} onAction={onAction} />
+      <FilamentCard
+        slot={slot}
+        globalBusy={globalBusy}
+        mode={mode}
+        batchChecked={batchChecked}
+        onToggleSelect={onToggleSelect}
+        onAction={onAction}
+      />
       <FeedLine
         height={lineHeight}
         state={slot.filament_line.state}

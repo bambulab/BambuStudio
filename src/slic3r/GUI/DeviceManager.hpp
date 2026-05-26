@@ -694,6 +694,8 @@ public:
     // ams controls
     //int command_ams_switch(int tray_index, int old_temp = 210, int new_temp = 210);
     int command_ams_change_filament(bool load, std::string ams_id, std::string slot_id, int old_temp = 210, int new_temp = 210, std::optional<int> extruder_id = std::nullopt);
+
+    int command_multi_slot_ams_change_filament(bool is_load, const std::vector<std::pair<int, int>>& slots);
     int command_ams_user_settings(bool start_read_opt, bool tray_read_opt, bool remain_flag = false);
     int command_ams_switch_filament(bool switch_filament);
     int command_ams_air_print_detect(bool air_print_detect);

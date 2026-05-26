@@ -1,5 +1,9 @@
 ﻿#include "DevicePageAmsFilamentHotendVM.hpp"
 #include "DevicePageAmsFilamentHotendSchema.hpp"
+#include "Modes/NormalModeBuilder.hpp"
+#include "Modes/BatchAmsLoadModeBuilder.hpp"
+#include "Modes/BatchExtLoadModeBuilder.hpp"
+#include "Modes/BatchUnloadModeBuilder.hpp"
 #include "slic3r/GUI/DeviceWeb/DeviceWebBridge.hpp"
 
 #include "slic3r/GUI/AMSDryControl.hpp"
@@ -19,6 +23,7 @@
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 
 #include <algorithm>
+#include <memory>
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
 #include <chrono>
@@ -414,8 +419,23 @@ nlohmann::json DevicePageAmsFilamentHotendVM::OnCommand(const std::string& submo
                                                         const std::string& action,
                                                         const nlohmann::json& payload)
 {
+    namespace SV = AmsHotendSchema::values;
     try {
         if (submod == "state" && (action == "get" || action == "init")) {
+            // Mode dispatch: Web includes `{ mode: "..." }` in the payload to
+            // request a specific page variant (normal / batch_ams_load / ...).
+            // An unknown or missing mode falls back to "normal" so we never
+            // refuse a state request. The chosen mode sticks across
+            // subsequent ReportState() pushes until Web sends a new get.
+            const std::string requested_mode = payload.value("mode", std::string(SV::mode::normal));
+            if (requested_mode == SV::mode::normal
+             || requested_mode == SV::mode::batch_ams_load
+             || requested_mode == SV::mode::batch_ext_load
+             || requested_mode == SV::mode::batch_unload) {
+                m_active_mode = requested_mode;
+            } else {
+                m_active_mode = SV::mode::normal;
+            }
             m_last_report_state.clear();
             nlohmann::json state = BuildState();
             // Surface the current Studio colour mode so the Web layer can apply
@@ -748,6 +768,27 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
             running_change_message = fp_tips.get<std::string>();
         }
         fp[SK::filament_page::filament_change_status] = BuildFilamentChangeStatus(machine_obj, running_change_slot, running_change_operation, running_change_message);
+    }
+
+    // Mode dispatch: for non-normal modes, hand the prebuilt normal-shape
+    // filament_page off to the matching builder. The builder returns the
+    // batch-shaped page (per-slot select_action + {enabled, reason} actions),
+    // which replaces the normal filament_page in the final payload. Normal
+    // mode just stamps `mode = "normal"` on the existing object.
+    //
+    // hotend_page is unaffected: batch UI lives entirely on the Filament tab.
+    {
+        std::unique_ptr<IFilamentPageModeBuilder> builder;
+        if (m_active_mode == SV::mode::batch_ams_load) {
+            builder = std::make_unique<BatchAmsLoadModeBuilder>();
+        } else if (m_active_mode == SV::mode::batch_ext_load) {
+            builder = std::make_unique<BatchExtLoadModeBuilder>();
+        } else if (m_active_mode == SV::mode::batch_unload) {
+            builder = std::make_unique<BatchUnloadModeBuilder>();
+        } else {
+            builder = std::make_unique<NormalModeBuilder>();
+        }
+        data[SK::root::filament_page] = builder->BuildFilamentPage(*this, machine_obj, fp);
     }
 
     return data;
@@ -1160,6 +1201,56 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildFilamentChangeStatus(MachineO
     status[SK::filament_change::current_step_index] = current_index;
     status[SK::filament_change::current_step_total] = static_cast<int>(status[SK::filament_change::steps].size());
 
+    // Batch progress strip: when the firmware reports 2+ slots queued for a
+    // single filament-change run we surface a per-slot item list so the Web
+    // can render the horizontal step strip above the regular per-step
+    // panel. The items mirror `cfs1[]` order; per-slot completion state
+    // (`success` / `failed` / `done`) lands once `cfs2[]` parsing is wired
+    // into DevFilaSystem — until then we only know which slot is currently
+    // running (matches `running_slot`) and treat the rest as `pending`.
+    const auto& changing_slots = fila_system->GetFilamentChangingSlots();
+    if (changing_slots.size() >= 2) {
+        status[SK::filament_change::mode] = SV::filament_change_mode::batch_running;
+
+        const std::string running_ams_id = running_slot.is_object()
+            ? running_slot.value(SK::running_slot::ams_id, std::string())
+            : std::string();
+        const std::string running_slot_id = running_slot.is_object()
+            ? running_slot.value(SK::running_slot::slot_id, std::string())
+            : std::string();
+
+        nlohmann::json items = nlohmann::json::array();
+        int running_index_1based = 0;
+        for (size_t i = 0; i < changing_slots.size(); ++i) {
+            const auto& s = changing_slots[i]; // DevAmsSlotId = std::pair<int,int>
+            const std::string ams_str  = std::to_string(s.first);
+            const std::string slot_str = std::to_string(s.second);
+            // `display_index` is a UI affordance for the strip label; if the
+            // firmware reports an ams_id / slot_id we cannot map back to a
+            // live filament_page slot, fall back to the 1-based queue
+            // position so the pip still has something to show.
+            int display_idx = static_cast<int>(i) + 1;
+            const bool is_running = (!running_ams_id.empty() && ams_str == running_ams_id
+                                  && !running_slot_id.empty() && slot_str == running_slot_id);
+            const std::string item_state = is_running
+                ? std::string(SV::batch_item_state::running)
+                : std::string(SV::batch_item_state::pending);
+            if (is_running) running_index_1based = static_cast<int>(i) + 1;
+            items.push_back({
+                {SK::batch_progress_item::display_index, display_idx},
+                {SK::batch_progress_item::state,         item_state},
+                {SK::batch_progress_item::reason,        ""}
+            });
+        }
+
+        status[SK::filament_change::batch_running] = {
+            {SK::batch_progress::operation, operation.empty() ? std::string(SV::filament_change_operation::unknown) : operation},
+            {SK::batch_progress::current,   running_index_1based},
+            {SK::batch_progress::total,     static_cast<int>(changing_slots.size())},
+            {SK::batch_progress::items,     items}
+        };
+    }
+
     return status;
 }
 
@@ -1433,6 +1524,51 @@ nlohmann::json DevicePageAmsFilamentHotendVM::HandleAction(const std::string& ac
         if (result != 0) {
             return MakeResponse(GetModule(), "action", action, 2, "AMS filament change abort failed", BuildState());
         }
+    } else if (action == "batch_run") {
+        // Web ships `{ mode: "batch_ams_load" | "batch_ext_load" | "batch_unload",
+        //              slots: [{ams_id, slot_id, display_index}, ...] }`.
+        // The mode determines the `is_load` flag on the MQTT command:
+        //   batch_ams_load / batch_ext_load → is_load = true
+        //   batch_unload                    → is_load = false
+        // The (ams_id, slot_id) pairs are passed straight through to the
+        // command builder which applies the per-device-family encoding.
+        // After publishing we flip the page back to normal so the user
+        // immediately leaves selection mode; the firmware status push will
+        // drive the (next-subiteration) progress window.
+        namespace SV = AmsHotendSchema::values;
+        const std::string batch_mode = payload.value("mode", std::string());
+        const auto& slots_array = payload.value("slots", nlohmann::json::array());
+        if (slots_array.empty()) {
+            return MakeResponse(GetModule(), "action", action, 2,
+                                _u8L("No slots selected for batch run"), BuildState());
+        }
+        const bool is_load = (batch_mode == SV::mode::batch_ams_load
+                           || batch_mode == SV::mode::batch_ext_load);
+        std::vector<std::pair<int, int>> slot_pairs;
+        slot_pairs.reserve(slots_array.size());
+        for (const auto& s : slots_array) {
+            try {
+                const std::string ams_str  = s.value("ams_id",  std::string());
+                const std::string slot_str = s.value("slot_id", std::string());
+                if (ams_str.empty() || slot_str.empty()) continue;
+                slot_pairs.emplace_back(std::stoi(ams_str), std::stoi(slot_str));
+            } catch (const std::exception&) { /* skip malformed entry */ }
+        }
+        if (slot_pairs.empty()) {
+            return MakeResponse(GetModule(), "action", action, 2,
+                                _u8L("All selected slots are invalid"), BuildState());
+        }
+        BOOST_LOG_TRIVIAL(info) << "batch_run dispatch: mode=" << batch_mode
+                                << " is_load=" << is_load
+                                << " slot_count=" << slot_pairs.size();
+        const int rc = machine_obj->command_multi_slot_ams_change_filament(is_load, slot_pairs);
+        if (rc != 0) {
+            return MakeResponse(GetModule(), "action", action, 2,
+                                _u8L("MQTT publish failed for multi_slot_ams_change_filament"),
+                                BuildState());
+        }
+        m_active_mode = SV::mode::normal;
+        return MakeResponse(GetModule(), "action", action, 0, "", BuildState());
     }
 
     return MakeResponse(GetModule(), "action", action, 0, "", BuildState());
