@@ -24,8 +24,8 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
 
-    /* Suppresses TS5.x deprecations (e.g. dom-lib changes) needed by React 19 / TS 6 upgrade.
-       Narrowed to "5.0" so TS 6.x deprecations still surface. Remove once DOM typings stabilise. */
+    /* Suppresses TS 5.0 deprecations (e.g. dom-lib changes) needed by React 19 / TS 6 upgrade.
+       Kept at "5.0" so TS 6.x deprecations still surface. Remove once DOM typings stabilise. */
     "ignoreDeprecations": "5.0",
     "baseUrl": ".",
     "paths": {
