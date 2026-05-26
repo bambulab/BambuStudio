@@ -5474,10 +5474,18 @@ void GUI_App::check_beta_version(bool show_tips_when_no_beta)
                                                 GUI::wxGetApp().request_new_version(2);
                                                 break;
                                             case wxID_CANCEL:
+                                                // Triggered only by the explicit
+                                                // "Don't show me Beta updates again" button.
                                                 app_config->set("enable_beta_version_update", "false");
                                                 break;
                                             case wxID_NO:
                                                 wxGetApp().set_skip_version(true);
+                                                break;
+                                            case wxID_CLOSE:
+                                                // Window close (X): dismiss the dialog without
+                                                // touching the beta-channel preference or
+                                                // skip_version. Same as default, listed
+                                                // explicitly to document the intent.
                                                 break;
                                             default:
                                                 break;
