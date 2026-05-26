@@ -1436,7 +1436,7 @@ int PresetBundle::validate_presets(const std::string &file_name, DynamicPrintCon
 
 void PresetBundle::remove_users_preset(AppConfig &config, std::map<std::string, std::map<std::string, std::string>> *my_presets)
 {
-    auto check_removed = [my_presets, this](Preset &preset) -> bool {
+    auto check_removed = [my_presets](Preset &preset) -> bool {
         if (my_presets == nullptr) return true;
         if (my_presets->find(preset.name) != my_presets->end()) return false;
         if (!preset.sync_info.empty()) return false; // syncing, not remove
@@ -1447,6 +1447,8 @@ void PresetBundle::remove_users_preset(AppConfig &config, std::map<std::string, 
             return false;
         }
         preset.remove_files();
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__
+                                   << boost::format("preset removed, name: %1%, type: %2%, user_id: %3%") % preset.name % Preset::get_type_string(preset.type) % preset.user_id;
         return true;
     };
     std::string preset_folder_user_id = config.get("preset_folder");
@@ -1454,12 +1456,10 @@ void PresetBundle::remove_users_preset(AppConfig &config, std::map<std::string, 
     bool need_reset_printer_preset = false;
     for (auto it = printers.begin(); it != printers.end();) {
         if (it->is_user() && it->user_id.compare(preset_folder_user_id) == 0 && check_removed(*it)) {
-            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":printers erase %1%, type %2%， user_id %3%") % it->name % Preset::get_type_string(it->type) % it->user_id;
             if (it->name == printer_selected_preset_name)
                 need_reset_printer_preset = true;
             it = printers.erase(it);
-        }
-        else {
+        } else {
             it++;
         }
     }
@@ -1485,12 +1485,10 @@ void PresetBundle::remove_users_preset(AppConfig &config, std::map<std::string, 
     // remove preset if user_id is not current user
     for (auto it = prints.begin(); it != prints.end();) {
         if (it->is_user() && it->user_id.compare(preset_folder_user_id) == 0 && check_removed(*it)) {
-            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":prints erase %1%, type %2%， user_id %3%")%it->name %Preset::get_type_string(it->type) %it->user_id;
             if (it->name == selected_print_name)
                 need_reset_print_preset = true;
             it = prints.erase(it);
-        }
-        else {
+        } else {
             it++;
         }
     }
@@ -1505,12 +1503,10 @@ void PresetBundle::remove_users_preset(AppConfig &config, std::map<std::string, 
     bool need_reset_filament_preset = false;
     for (auto it = filaments.begin(); it != filaments.end();) {
         if (it->is_user() && it->user_id.compare(preset_folder_user_id) == 0 && check_removed(*it)) {
-            BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(":filaments erase %1%, type %2%， user_id %3%")%it->name %Preset::get_type_string(it->type) %it->user_id;
             if (it->name == selected_filament_name)
                 need_reset_filament_preset = true;
             it = filaments.erase(it);
-        }
-        else {
+        } else {
             it++;
         }
     }

@@ -2548,6 +2548,9 @@ void GUI_App::init_app_config()
         }
         // Save orig_version here, so its empty if no app_config existed before this run.
         m_last_config_version = app_config->orig_version();//parse_semver_from_ini(app_config->config_path());
+
+        auto loglevel = wxGetApp().app_config->get("severity_level");
+        Slic3r::set_logging_level(Slic3r::level_string_to_boost(loglevel));
     }
     else {
 #ifdef _WIN32

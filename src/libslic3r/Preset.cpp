@@ -888,7 +888,7 @@ std::string Preset::get_current_printer_type(PresetBundle *preset_bundle)
     if (preset_bundle) {
         auto config = &(this->config);
         std::string vendor_name;
-        for (auto vendor_profile : preset_bundle->vendors) {
+        for (const auto& vendor_profile : preset_bundle->vendors) {
             for (auto vendor_model : vendor_profile.second.models)
                 if (vendor_model.name == config->opt_string("printer_model")) {
                     vendor_name = vendor_profile.first;
