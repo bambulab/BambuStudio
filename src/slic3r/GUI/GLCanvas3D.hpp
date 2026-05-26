@@ -16,6 +16,7 @@
 #include "MeshUtils.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "Camera.hpp"
+namespace Slic3r { namespace GUI { class AssemblyStepsUtils; } }
 #include "IMToolbar.hpp"
 #include "slic3r/GUI/3DBed.hpp"
 #include "libslic3r/Slicing.hpp"
@@ -549,7 +550,10 @@ public:
     {
         Standard,
         Cross,
-        Hand
+        Hand,
+        Move,
+        ResizeNWSE,
+        ResizeNESW
     };
 
     struct ArrangeSettings
@@ -625,12 +629,16 @@ private:
     mutable float              m_sc{1};
     mutable float m_paint_toolbar_width;
 
-    // assembly_view
-    Camera::ViewAngleType m_assembly_view_preview_angle{Camera::ViewAngleType::Iso};
-    bool                  m_show_assembly_view_preview_menu{false};
-    size_t                m_assembly_view_thumbnail_volume_count{static_cast<size_t>(-1)};
-    bool                  m_isolated_volumes_notified{false};
-    //BBS: add canvas type for assemble view usage
+    //assembly_view
+    Camera::ViewAngleType        m_assembly_view_preview_angle{Camera::ViewAngleType::Iso};
+    bool                         m_show_assembly_view_preview_menu{false};
+    size_t                       m_assembly_view_thumbnail_volume_count{static_cast<size_t>(-1)};
+    bool                         m_isolated_volumes_notified{false};
+
+    // Assembly tree view (pointer to decouple header layout from AssemblyStepsUtils size)
+    std::unique_ptr<AssemblyStepsUtils> m_assembly_steps;
+
+    // BBS: add canvas type for assemble view usage
     ECanvasType m_canvas_type;
     std::array<ClippingPlane, 2> m_clipping_planes;
     ClippingPlane m_camera_clipping_plane;
@@ -875,6 +883,13 @@ public:
     void set_config(const DynamicPrintConfig* config);
     void set_process(BackgroundSlicingProcess* process);
     void set_model(Model* model);
+
+    void active_view();
+    // Append a freshly imported STEP hierarchy to the existing assembly tree.
+    void append_step_import_to_assembly_tree(const std::vector<Model::StepImportTreeNode>& step_nodes,
+                                             const std::vector<size_t>&                    loaded_idxs,
+                                             const std::string&                            source_path);
+
     const Model* get_model() const { return m_model; }
     Model&       get_ref_model() const { return *m_model; }
 
@@ -1057,7 +1072,18 @@ public:
     void select_all();
     void deselect_all();
     void exit_gizmo();
-    void set_selected_visible(bool visible);
+
+    void close_project_and_save_assembly_steps_tree();
+    void new_project_clear_assembly_steps_tree_view(bool save);
+    bool prepare_assembly_steps_for_project_save();
+    bool can_add_selected_to_assembly_step() const;
+    bool can_add_selected_to_current_assembly_step() const;
+    std::vector<std::pair<int, std::string>> assembly_step_choices() const;
+    void add_selected_to_new_assembly_step();
+    void add_selected_to_current_assembly_step();
+    void add_selected_to_assembly_step(int folder_idx);
+    void _create_assembly_steps_from_step_import_tree(const std::vector<Model::StepImportTreeNode> &step_nodes, const std::string &source_path);
+
     void delete_selected();
     void ensure_on_bed(unsigned int object_idx, bool allow_negative_z);
 
@@ -1336,6 +1362,12 @@ private:
     void _render_imgui_select_plate_toolbar();
     void _render_assembly_view_thumbnail_toolbar();
     void _render_assembly_view_preview_menu(float anchor_x, float anchor_y, float anchor_width, float anchor_height);
+
+    void _render_assembly_steps_view();
+    void _try_update_selected_keyframe();
+    bool _allow_sync_in_assemble_view();
+    void  open_assembly_view();
+
     void _render_return_toolbar();
     void _render_fit_camera_toolbar();
     void _render_collapse_toolbar() const;

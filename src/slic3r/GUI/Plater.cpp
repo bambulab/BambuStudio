@@ -15,6 +15,7 @@
 #include <functional>
 #include <fstream>
 #include <chrono>
+#include <iomanip>
 #include <boost/algorithm/string.hpp>
 #include <boost/optional.hpp>
 #include <boost/filesystem/path.hpp>
@@ -3964,7 +3965,7 @@ void Sidebar::on_filament_count_change(size_t num_filaments)
     auto& choices = combos_filament();
 
     if (num_physical == choices.size()) {
-        // the ctor pre-creates one combo, so on startup with a single-filament project this guard is hit 
+        // the ctor pre-creates one combo, so on startup with a single-filament project this guard is hit
         // before any layout pass has sized m_physical_scroll_area.
         // this is a workaround for such cases
         recalc_filament_scroll_sizes();
@@ -6261,6 +6262,8 @@ public:
         bool is_collapsed{false};
         bool show{false};
     } sidebar_layout;
+    // Snapshot of sidebar_layout.is_collapsed captured the moment the user
+    std::optional<bool> m_pre_assemble_sidebar_collapsed;
     MainFrame *main_frame;
 
     MenuFactory menus;
@@ -7681,6 +7684,7 @@ void Plater::priv::select_view_3D(const std::string& name, bool no_slice)
     }
     else if (name == "Assemble") {
         BOOST_LOG_TRIVIAL(info) << "select assemble view";
+        assemble_view->get_canvas3d()->active_view();
         set_current_panel(assemble_view, no_slice);
     }
 
@@ -8021,6 +8025,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
         const bool type_3mf = std::regex_match(path.string(), pattern_3mf);
         // const bool type_zip_amf = !type_3mf && std::regex_match(path.string(), pattern_zip_amf);
         const bool type_any_amf = !type_3mf && std::regex_match(path.string(), pattern_any_amf);
+        const bool type_step = boost::algorithm::iends_with(path.string(), ".stp") ||
+                               boost::algorithm::iends_with(path.string(), ".step");
         // const bool type_prusa   = std::regex_match(path.string(), pattern_prusa);
         const bool may_have_texture = type_3mf
             || boost::algorithm::iends_with(path.string(), ".obj")
@@ -8654,8 +8660,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         in_out.filament_ids.clear();
                     }
                 };
-                if (boost::iends_with(path.string(), ".stp") ||
-                    boost::iends_with(path.string(), ".step")) {
+                if (type_step) {
                         double linear = string_to_double_decimal_point(wxGetApp().app_config->get("linear_defletion"));
                         if (linear <= 0) linear = 0.003;
                         double angle = string_to_double_decimal_point(wxGetApp().app_config->get("angle_defletion"));
@@ -8864,6 +8869,82 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             return empty_result;
         }
 
+        const bool step_subassembly_split = type_step && model.objects.size() > 1;
+        std::vector<Vec3d> step_object_position_compensations;
+        if (step_subassembly_split) {
+            BoundingBoxf3 step_assembly_bbox;
+            std::vector<BoundingBoxf3> step_object_bboxes;
+            step_object_bboxes.reserve(model.objects.size());
+            for (const ModelObject* model_object : model.objects) {
+                const BoundingBoxf3 object_bbox = model_object->raw_mesh_bounding_box();
+                step_object_bboxes.emplace_back(object_bbox);
+                step_assembly_bbox.merge(object_bbox);
+            }
+            if (step_assembly_bbox.defined) {
+                step_object_position_compensations.reserve(step_object_bboxes.size());
+                for (const BoundingBoxf3& object_bbox : step_object_bboxes) {
+                    Vec3d compensation = Vec3d::Zero();
+                    if (object_bbox.defined) {
+                        compensation.x() = object_bbox.center().x() - step_assembly_bbox.center().x();
+                        compensation.y() = object_bbox.center().y() - step_assembly_bbox.center().y();
+                        compensation.z() = object_bbox.min.z() - step_assembly_bbox.min.z();
+                    }
+                    step_object_position_compensations.emplace_back(compensation);
+                }
+            }
+        }
+
+        auto apply_step_object_position_compensations = [this](const std::vector<size_t>& loaded_idxs, const std::vector<Vec3d>& compensations) {
+            if (compensations.empty())
+                return false;
+            const size_t count = std::min(loaded_idxs.size(), compensations.size());
+            if (count == 0)
+                return false;
+
+            ModelObject* anchor_object = nullptr;
+            for (size_t loaded_idx : loaded_idxs) {
+                if (loaded_idx >= q->model().objects.size())
+                    continue;
+                ModelObject* object = q->model().objects[loaded_idx];
+                if (object != nullptr && !object->instances.empty()) {
+                    anchor_object = object;
+                    break;
+                }
+            }
+            if (anchor_object == nullptr)
+                return false;
+
+            const Vec3d anchor_offset = anchor_object->instances.front()->get_offset();
+            for (size_t idx = 0; idx < count; ++idx) {
+                if (loaded_idxs[idx] >= q->model().objects.size())
+                    continue;
+                ModelObject* object = q->model().objects[loaded_idxs[idx]];
+                if (object == nullptr)
+                    continue;
+
+                const Vec3d& compensation = compensations[idx];
+                for (ModelInstance* instance : object->instances) {
+                    Vec3d offset = instance->get_offset();
+                    offset.x() = anchor_offset.x() + compensation.x();
+                    offset.y() = anchor_offset.y() + compensation.y();
+                    offset.z() += compensation.z();
+                    instance->set_offset(offset);
+                    instance->set_assemble_transformation(instance->get_transformation());
+                }
+                // BBS: keep each volume's assemble transformation in sync with its base transformation
+                for (ModelVolume *mv : object->volumes) {
+                    if (mv != nullptr && !mv->is_assemble_initialized()) {
+                        mv->set_assemble_transformation(mv->get_transformation());
+                    }
+                }
+                object->invalidate_bounding_box();
+                BOOST_LOG_TRIVIAL(info) << "STEP import: restore sub-assembly relative position for object \""
+                                        << object->name << "\", compensation="
+                                        << compensation.x() << "," << compensation.y() << "," << compensation.z();
+            }
+            return count > 0;
+        };
+
         int model_idx = 0;
         for (ModelObject *model_object : model.objects) {
             if (!type_3mf && !type_any_amf)
@@ -8906,6 +8987,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 q->model().load_from(model);
                 load_auxiliary_files();
             }
+            const bool assembly_tree_json_brought_in = !model.get_assembly_tree_json_str().empty();
+            if (assembly_tree_json_brought_in)
+                q->model().set_assembly_tree_json_str(model.get_assembly_tree_json_str());
+            const bool steps_json_brought_in = !model.get_assembly_steps_json_str().empty();
+            if (steps_json_brought_in)
+                q->model().set_assembly_steps_json_str(model.get_assembly_steps_json_str());
+
             TextureImportResult texture_import_result;
             int texture_progress_start = progress_percent;
             int texture_progress_compute_end = progress_percent;
@@ -8945,6 +9033,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 }
             }
 
+            const size_t prev_object_count = q->model().objects.size();
             auto update_import_progress = [&dlg, &progress_percent](int percent, const wxString& msg) {
                 progress_percent = percent;
                 dlg.Update(percent, msg);
@@ -8984,6 +9073,49 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                 q->skip_thumbnail_invalid = false;
                 return empty_result;
             }
+            {//deal step for assembly_tree
+                if (assembly_tree_json_brought_in && prev_object_count == 0) {
+                    std::string tree_error;
+                    if (!AssemblyTreeData::from_json_string(q->model().get_assembly_tree_json_str(), q->model().get_assembly_tree_data(), &tree_error)) {
+                        BOOST_LOG_TRIVIAL(warning) << "Plater::load_files: failed to restore assembly tree from JSON: " << tree_error;
+                    }
+                }
+
+                if (steps_json_brought_in) {
+                    std::string steps_error;
+                    float assembly_part_number_label_font_size = 0.0f;
+                    if (!AssemblyStepsTreeData::from_json_string(q->model().get_assembly_steps_json_str(), q->model().get_assembly_steps_tree_data(), q->model(), &steps_error, &assembly_part_number_label_font_size)) {
+                        BOOST_LOG_TRIVIAL(warning) << "Plater::load_files: failed to restore assembly steps tree from JSON: " << steps_error;
+                    }
+                    if (assembly_part_number_label_font_size > 0.1f && wxGetApp().app_config) {
+                        std::ostringstream ss;
+                        ss << std::fixed << std::setprecision(2) << assembly_part_number_label_font_size;
+                        wxGetApp().app_config->set("assembly_part_number_label_font_size", ss.str());
+                    }
+                }
+                const bool step_position_compensated = apply_step_object_position_compensations(loaded_idxs, step_object_position_compensations);
+                if (type_step && !model.step_import_tree_nodes.empty() && !loaded_idxs.empty()) {
+                    BOOST_LOG_TRIVIAL(info) << "STEP import: forward tree to assemble canvas, node_count=" << model.step_import_tree_nodes.size()
+                                            << ", loaded_object_count=" << loaded_idxs.size();
+                    if (GLCanvas3D *assemble_canvas = q->get_assmeble_canvas3D()) {
+                        assemble_canvas->append_step_import_to_assembly_tree(model.step_import_tree_nodes, loaded_idxs, model.step_import_path);
+                    }
+                }
+                if (step_position_compensated) {
+                    update();
+                    for (const size_t idx : loaded_idxs) wxGetApp().obj_list()->update_info_items(idx);
+                    object_list_changed();
+                }
+                if (step_subassembly_split && !loaded_idxs.empty()) {
+                    q->get_notification_manager()
+                        ->bbl_show_sole_text_notification(NotificationType::CustomNotification,
+                                                          _u8L("The imported STEP file is split by sub-assembly, so some objects may not be placed on the build plate at first.\n"
+                                                               "It is expected if they are placed on the build plate later after translation or similar operations.\n"
+                                                               "The overall assembly can be checked from the assembly thumbnail or by entering the assembly view."),
+                                                          true, 0, false);
+                }
+            }
+
             obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
             if (import_obj_or_stl) {
                 for (int i = 0; i < loaded_idxs.size(); i++) {
@@ -9252,6 +9384,11 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs& mode
                     if (!model_object->instances[i]->is_assemble_initialized()) {
                         model_object->instances[i]->set_assemble_transformation(model_object->instances[i]->get_transformation());
                     }
+                }
+                // BBS: also initialize per-volume assemble transformation so the assembly view can render new volumes correctly even before any explicit per-volume edit.
+                for (ModelVolume *mv : model_object->volumes) {
+                    if (mv != nullptr && !mv->is_assemble_initialized())
+                        mv->set_assemble_transformation(mv->get_transformation());
                 }
             }
         }
@@ -11421,6 +11558,17 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
     // Add sidebar and toolbar collapse logic
     if (panel == view3D || panel == preview) {
         this->enable_sidebar(!q->only_gcode_mode());
+    }
+    // Auto-collapse the sidebar each time the user transitions INTO the
+    if (panel == assemble_view && current_panel != panel) {
+        m_pre_assemble_sidebar_collapsed = sidebar_layout.is_collapsed;
+        this->collapse_sidebar(true);
+    }
+    // Mirror: when the user transitions OUT of the assembly view, restore the
+    if (panel != assemble_view && current_panel == assemble_view
+            && m_pre_assemble_sidebar_collapsed.has_value()) {
+        this->collapse_sidebar(*m_pre_assemble_sidebar_collapsed);
+        m_pre_assemble_sidebar_collapsed.reset();
     }
     if (panel == preview) {
         if (q->only_gcode_mode()) {
@@ -17360,6 +17508,10 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString &project_
     if (!skip_confirm && (result = close_with_confirm(check)) == wxID_CANCEL)
         return wxID_CANCEL;
 
+    if (auto *assemble_canvas = get_assmeble_canvas3D()) {
+        assemble_canvas->new_project_clear_assembly_steps_tree_view(false);
+    }
+
     reset_flags_when_new_or_close_project();
     get_notification_manager()->clear_all();
 
@@ -17643,6 +17795,9 @@ int Plater::save_project(bool saveAs)
         return wxID_NO;
     if (filename == "<cancel>")
         return wxID_CANCEL;
+
+    if (auto *assemble_canvas = get_assmeble_canvas3D())
+        assemble_canvas->prepare_assembly_steps_for_project_save();
 
     //BBS export 3mf without gcode
     auto save_strategy = SaveStrategy::SplitModel | SaveStrategy::ShareMesh;
@@ -19860,9 +20015,17 @@ void Plater::reset_with_confirm()
 // BBS: save logic
 int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check)
 {
+    auto restore_assemble_sidebar = [this]() {
+        if (p->m_pre_assemble_sidebar_collapsed.has_value()) {
+            p->collapse_sidebar(*p->m_pre_assemble_sidebar_collapsed);
+            p->m_pre_assemble_sidebar_collapsed.reset();
+        }
+    };
+
     if (up_to_date(false, false)) {
         if (second_check && !second_check(false)) return wxID_CANCEL;
         model().set_backup_path("");
+        restore_assemble_sidebar();
         return wxID_NO;
     }
 
@@ -19877,6 +20040,7 @@ int GUI::Plater::close_with_confirm(std::function<bool(bool)> second_check)
         if (dlg.get_checkbox_state())
             wxGetApp().app_config->set("save_project_choise", result == wxID_YES ? "yes" : "no");
         if (result == wxID_YES) {
+            restore_assemble_sidebar();
             result = save_project();
             if (result == wxID_CANCEL) {
                 if (choise.empty())
@@ -19913,19 +20077,6 @@ void Plater::delete_all_objects_from_model()
 {
     p->delete_all_objects_from_model();
 }
-
-void Plater::set_selected_visible(bool visible)
-{
-    if (p->get_curr_selection().is_empty())
-        return;
-
-    Plater::TakeSnapshot snapshot(this, "Set Selected Objects Visible in AssembleView");
-    get_ui_job_worker().cancel_all();
-    p->m_ui_jobs.cancel_all();
-
-    p->get_current_canvas3D()->set_selected_visible(visible);
-}
-
 
 void Plater::remove_selected()
 {
@@ -23290,6 +23441,16 @@ const Camera& Plater::get_camera() const
 Camera& Plater::get_camera()
 {
     return p->get_current_camera();
+}
+
+void Plater::mark_assemble_view_requires_zoom_to_volumes()
+{
+    if (p->assemble_view) {
+        const auto& p_camera = p->assemble_view->get_override_camera();
+        if (p_camera) {
+            p_camera->requires_zoom_to_volumes = true;
+        }
+    }
 }
 
 const Camera& Plater::get_picking_camera() const

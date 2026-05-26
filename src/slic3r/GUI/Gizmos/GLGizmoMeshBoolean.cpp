@@ -726,6 +726,11 @@ static void attach_ignored_non_models_to_target(ModelObject* target_object,
         attached->config.apply(nv->config);
         attached->set_material_id(nv->material_id());
         attached->set_transformation(nv->get_transformation());
+        // BBS: keep per-volume assemble matrix in sync (mirrors set_transformation above).
+        if (nv->is_assemble_initialized())
+            attached->set_assemble_transformation(nv->get_assemble_transformation());
+        else
+            attached->set_assemble_transformation(attached->get_transformation());
     }
 
     // Update object info in UI
@@ -1380,6 +1385,11 @@ ModelVolume* BooleanOperationEngine::create_result_volume(ModelObject* target_ob
 
     // Copy the transformation from source volume
     new_volume->set_transformation(source_volume->get_transformation());
+    // BBS: keep the per-volume assemble matrix in sync so the assembly view renders
+    if (source_volume->is_assemble_initialized())
+        new_volume->set_assemble_transformation(source_volume->get_assemble_transformation());
+    else
+        new_volume->set_assemble_transformation(new_volume->get_transformation());
     return new_volume;
 }
 

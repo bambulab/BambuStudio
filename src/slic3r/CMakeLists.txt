@@ -116,6 +116,12 @@ set(SLIC3R_GUI_SOURCES
     GUI/GLCanvas3D.hpp
     GUI/GLCanvas3D.cpp
     GUI/GLEnums.hpp
+    GUI/MP4/PBOReader.hpp
+    GUI/MP4/PBOReader.cpp
+    GUI/MP4/Mp4Recorder.hpp
+    GUI/MP4/Mp4Recorder.cpp
+    GUI/MP4/minimp4_impl.c
+    GUI/MP4/minih264_impl.c
     GUI/OpenGLManager.hpp
     GUI/OpenGLManager.cpp
     GUI/Selection.hpp
@@ -328,6 +334,12 @@ set(SLIC3R_GUI_SOURCES
     GUI/3DBed.hpp
     GUI/Camera.cpp
     GUI/Camera.hpp
+    GUI/Overview/AssemblyPdfExportDialog.cpp
+    GUI/Overview/AssemblyPdfExportDialog.hpp
+    GUI/Overview/TinyExportMardDown.cpp
+    GUI/Overview/TinyExportMardDown.hpp
+    GUI/Overview/AssemblyStepsUtils.cpp
+    GUI/Overview/AssemblyStepsUtils.hpp
     GUI/CameraUtils.cpp
     GUI/CameraUtils.hpp
     GUI/wxExtensions.cpp
@@ -701,6 +713,7 @@ endif()
 #endif ()
 
 target_include_directories(libslic3r_gui PRIVATE Utils)
+target_include_directories(libslic3r_gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../)
 
 if (WIN32)
     target_include_directories(libslic3r_gui PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/WebView2/include)
@@ -710,7 +723,18 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
 
 encoding_check(libslic3r_gui)
 
-target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
+# libharu installs as hpdf.lib on Windows but libhpdf.a on Linux/macOS.
+if (WIN32)
+    set(HPDF_LIBRARY
+        $<$<CONFIG:Debug>:${CMAKE_PREFIX_PATH}/lib/Debug/hpdf.lib>
+        $<$<NOT:$<CONFIG:Debug>>:${CMAKE_PREFIX_PATH}/lib/hpdf.lib>)
+else ()
+    set(HPDF_LIBRARY ${CMAKE_PREFIX_PATH}/lib/libhpdf.a)
+endif ()
+
+target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi
+    ${HPDF_LIBRARY}
+    ${wxWidgets_LIBRARIES} glfw libcurl OpenSSL::SSL OpenSSL::Crypto)
 #target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi libcurl OpenSSL::SSL OpenSSL::Crypto ${wxWidgets_LIBRARIES} glfw)
 
 if (MSVC)

@@ -782,6 +782,43 @@ bool ImGuiWrapper::bbl_slider_float_style(const std::string &label, float *v, fl
     return ret;
 }
 
+void ImGuiWrapper::bbl_readonly_progress(float fraction, const ImVec2 &size, const ImVec4 &track_col, const ImVec4 &fill_col, const ImVec4 &thumb_col)
+{
+    fraction = std::clamp(fraction, 0.0f, 1.0f);
+
+    float frame_h = ImGui::GetFrameHeight();
+    float w       = size.x;
+    float h       = size.y > 0 ? size.y : frame_h;
+
+    // Dummy reserves layout space and vertically centers via SameLine
+    ImVec2 cursor = ImGui::GetCursorScreenPos();
+    ImGui::Dummy(ImVec2(w, frame_h));
+
+    ImDrawList *dl = ImGui::GetWindowDrawList();
+
+    float track_h   = h * 0.35f;
+    float track_y   = cursor.y + (frame_h - track_h) * 0.5f;
+    float rounding   = track_h * 0.5f;
+    float thumb_r    = track_h * 0.9f;
+
+    ImVec2 track_min(cursor.x, track_y);
+    ImVec2 track_max(cursor.x + w, track_y + track_h);
+
+    // gray background track
+    dl->AddRectFilled(track_min, track_max, ImGui::ColorConvertFloat4ToU32(track_col), rounding);
+
+    // green filled portion
+    if (fraction > 0.0f) {
+        float fill_x = cursor.x + w * fraction;
+        dl->AddRectFilled(track_min, ImVec2(fill_x, track_y + track_h), ImGui::ColorConvertFloat4ToU32(fill_col), rounding);
+    }
+
+    // round thumb
+    float thumb_cx = cursor.x + w * fraction;
+    float thumb_cy = track_y + track_h * 0.5f;
+    dl->AddCircleFilled(ImVec2(thumb_cx, thumb_cy), thumb_r, ImGui::ColorConvertFloat4ToU32(thumb_col), 24);
+}
+
 bool ImGuiWrapper::bbl_slider_float(const std::string& label, float* v, float v_min, float v_max, const char* format, float power, bool clamp, const wxString& tooltip)
 {
 
@@ -1546,7 +1583,7 @@ bool begin_menu(const char *label, bool enabled)
 
     // If a menu with same the ID was already submitted, we will append to it, matching the behavior of Begin().
     // We are relying on a O(N) search - so O(N log N) over the frame - which seems like the most efficient for the expected small amount of BeginMenu() calls per frame.
-    // If somehow this is ever becoming a problem we can switch to use e.g. ImGuiStorage mapping key to last frame used.
+    // If somehow this is ever becoming a problem we can switch to use e.g. ImGuiStorage mapping key to end frame used.
     if (g.MenusIdSubmittedThisFrame.contains(id)) {
         if (menu_is_open)
             menu_is_open = ImGui::BeginPopupEx(id, flags); // menu_is_open can be 'false' when the popup is completely clipped (e.g. zero size display)

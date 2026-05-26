@@ -75,6 +75,9 @@ Model& Model::assign_copy(const Model &rhs)
         mo->set_model(this);
 		this->objects.emplace_back(mo);
     }
+    this->step_import_path = rhs.step_import_path;
+    this->step_import_tree_nodes = rhs.step_import_tree_nodes;
+    this->m_assembly_tree_data = rhs.m_assembly_tree_data;
 
     // copy custom code per height
     // BBS
@@ -105,6 +108,10 @@ Model& Model::assign_copy(const Model &rhs)
     this->md_name = rhs.md_name;
     this->md_value = rhs.md_value;
 
+    this->m_assembly_tree_data       = rhs.m_assembly_tree_data;
+    this->m_assembly_tree_json_str  = rhs.m_assembly_tree_json_str;
+    this->m_assembly_steps_tree_data = rhs.m_assembly_steps_tree_data;
+    this->m_assembly_steps_json_str = rhs.m_assembly_steps_json_str;
     this->texture_mesh = rhs.texture_mesh;
 
     return *this;
@@ -125,6 +132,9 @@ Model& Model::assign_copy(Model &&rhs)
     for (ModelObject *model_object : this->objects)
         model_object->set_model(this);
     rhs.objects.clear();
+    this->step_import_path = std::move(rhs.step_import_path);
+    this->step_import_tree_nodes = std::move(rhs.step_import_tree_nodes);
+    this->m_assembly_tree_data = std::move(rhs.m_assembly_tree_data);
 
     // copy custom code per height
     // BBS
@@ -154,6 +164,12 @@ Model& Model::assign_copy(Model &&rhs)
     rhs.model_info.reset();
     this->profile_info = rhs.profile_info;
     rhs.profile_info.reset();
+
+    this->m_assembly_tree_data       = std::move(rhs.m_assembly_tree_data);
+    this->m_assembly_tree_json_str   = std::move(rhs.m_assembly_tree_json_str);
+    this->m_assembly_steps_tree_data = std::move(rhs.m_assembly_steps_tree_data);
+    this->m_assembly_steps_json_str  = std::move(rhs.m_assembly_steps_json_str);
+
     return *this;
 }
 
@@ -650,6 +666,8 @@ void Model::clear_objects()
         delete o;
     }
     this->objects.clear();
+    step_import_path.clear();
+    step_import_tree_nodes.clear();
     object_backup_id_map.clear();
     next_object_backup_id = 1;
     texture_mesh.reset();
@@ -1151,7 +1169,12 @@ void Model::load_from(Model& model)
     md_name = model.md_name;
     md_value = model.md_value;
     texture_mesh = std::move(model.texture_mesh);
-    model.design_info.reset();
+    step_import_path           = model.step_import_path;
+    step_import_tree_nodes     = model.step_import_tree_nodes;
+    m_assembly_tree_data       = model.m_assembly_tree_data;
+    m_assembly_tree_json_str  = model.m_assembly_tree_json_str;
+    m_assembly_steps_tree_data = model.m_assembly_steps_tree_data;
+    m_assembly_steps_json_str = model.m_assembly_steps_json_str;    model.design_info.reset();
     model.model_info.reset();
     model.profile_info.reset();
     model.calib_pa_pattern.reset();
@@ -3381,6 +3404,32 @@ void ModelVolume::set_transformation(const Geometry::Transformation &transformat
 
 void ModelVolume::set_transformation(const Transform3d &trafo) {
     m_transformation.set_from_transform(trafo);
+}
+
+// Per-volume assemble transformation, mirrors ModelInstance::get_assemble_transformation().
+const Geometry::Transformation& ModelVolume::get_assemble_transformation() const
+{
+    if (!m_assemble_initialized)
+        return m_transformation;
+    return m_assemble_transformation;
+}
+
+void ModelVolume::set_assemble_transformation(const Geometry::Transformation &transformation)
+{
+    m_assemble_initialized    = true;
+    m_assemble_transformation = transformation;
+}
+
+void ModelVolume::set_assemble_from_transform(const Transform3d &transform)
+{
+    m_assemble_initialized = true;
+    m_assemble_transformation.set_from_transform(transform);
+}
+
+void ModelVolume::set_assemble_offset(const Vec3d &offset)
+{
+    m_assemble_initialized = true;
+    m_assemble_transformation.set_offset(offset);
 }
 
 int ModelVolume::get_repaired_errors_count() const

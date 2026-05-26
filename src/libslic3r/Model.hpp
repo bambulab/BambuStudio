@@ -19,6 +19,8 @@
 #include "EmbossShape.hpp"
 //BBS: add bbs 3mf
 #include "Format/bbs_3mf.hpp"
+#include "libslic3r/Format/AssemblyStepsJson.hpp"
+#include "libslic3r/Format/AssemblyTreeJson.hpp"
 //BBS: add step
 #include "Format/STEP.hpp"
 //BBS: add stl
@@ -1047,6 +1049,13 @@ public:
     void                            set_transformation(const Geometry::Transformation &transformation);
     void                            set_transformation(const Transform3d &trafo);
 
+    // Per-volume assemble transformation, mirrors ModelInstance::m_assemble_transformation.
+    const Geometry::Transformation& get_assemble_transformation() const;
+    void                            set_assemble_transformation(const Geometry::Transformation &transformation);
+    void                            set_assemble_from_transform(const Transform3d &transform);
+    void                            set_assemble_offset(const Vec3d &offset);
+    bool                            is_assemble_initialized() const { return m_assemble_initialized; }
+
     const Vec3d& get_offset() const { return m_transformation.get_offset(); }
     double get_offset(Axis axis) const { return m_transformation.get_offset(axis); }
 
@@ -1129,6 +1138,9 @@ private:
     mutable Transform3d                 m_cached_trans_matrix{Transform3d::Identity()}; // BBS, used for convex_hell_2d acceleration
     mutable Polygon                     m_cached_2d_polygon;   //BBS, used for convex_hell_2d acceleration
     Geometry::Transformation        	m_transformation;
+    // BBS: per-volume assemble transformation, mirrors ModelInstance::m_assemble_transformation.
+    mutable Geometry::Transformation    m_assemble_transformation;
+    bool                                m_assemble_initialized{false};
 
     TextInfo m_text_info;
 
@@ -1195,6 +1207,8 @@ private:
         ObjectBase(other),
         name(other.name), source(other.source), m_mesh(other.m_mesh), m_convex_hull(other.m_convex_hull),
         config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
+        , m_assemble_transformation(other.m_assemble_transformation)
+        , m_assemble_initialized(other.m_assemble_initialized)
         , supported_facets(other.supported_facets)
         , fuzzy_skin_facets(other.fuzzy_skin_facets)
         , seam_facets(other.seam_facets)
@@ -1223,6 +1237,8 @@ private:
     // Providing a new mesh, therefore this volume will get a new unique ID assigned.
     ModelVolume(ModelObject *object, const ModelVolume &other, const TriangleMesh &&mesh) :
         name(other.name), source(other.source), m_mesh(new TriangleMesh(std::move(mesh))), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation),
+        m_assemble_transformation(other.m_assemble_transformation),
+        m_assemble_initialized(other.m_assemble_initialized),
         emboss_shape(other.emboss_shape)
     {
 		assert(this->id().valid());
@@ -1274,7 +1290,7 @@ private:
         // BBS: add backup, check modify
         bool mesh_changed = false;
         auto tr = m_transformation;
-        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info, cut_info);
+        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info, cut_info, m_assemble_transformation, m_assemble_initialized);
         mesh_changed |= !(tr == m_transformation);
         auto t = supported_facets.timestamp();
         cereal::load_by_value(ar, supported_facets);
@@ -1303,7 +1319,7 @@ private:
 	}
 	template<class Archive> void save(Archive &ar) const {
 		bool has_convex_hull = m_convex_hull.get() != nullptr;
-        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info, cut_info);
+        ar(name, source, m_mesh, m_type, m_material_id, m_transformation, m_is_splittable, has_convex_hull, m_text_info, cut_info, m_assemble_transformation, m_assemble_initialized);
         cereal::save_by_value(ar, supported_facets);
         cereal::save_by_value(ar, fuzzy_skin_facets);
         cereal::save_by_value(ar, seam_facets);
@@ -1590,6 +1606,22 @@ public:
     ModelMaterialMap    materials;
     // Objects are owned by a model. Each model may have multiple instances, each instance having its own transformation (shift, scale, rotation).
     ModelObjectPtrs     objects;
+    std::string                         step_import_path;
+    struct StepImportTreeNode
+    {
+        size_t              id{0};
+        size_t              parent_id{0};
+        std::vector<size_t> children;
+        std::string         name;
+        std::string         shape_type;
+        std::string         object_name;
+        std::string         object_key;
+        int                 model_object_idx{-1};
+        bool                is_reference{false};
+        bool                has_shape{false};
+        int                 component_count{0};
+    };
+    std::vector<StepImportTreeNode>     step_import_tree_nodes;
     // Wipe tower object.
     ModelWipeTower	wipe_tower;
     // BBS static members store extruder parameters and speed map of all models
@@ -1626,6 +1658,23 @@ public:
         //BBS tips: clean design user id when set designer
         design_info->DesignerUserId = designer_user_id;
     }
+
+    const AssemblyTreeData& get_assembly_tree_data() const { return m_assembly_tree_data; }
+    AssemblyTreeData&       get_assembly_tree_data()       { return m_assembly_tree_data; }
+    void                    set_assembly_tree_data(AssemblyTreeData data) { m_assembly_tree_data = std::move(data); }
+
+    const std::string& get_assembly_tree_json_str() const { return m_assembly_tree_json_str; }
+    std::string&       get_assembly_tree_json_str()       { return m_assembly_tree_json_str; }
+    void               set_assembly_tree_json_str(std::string json_str) { m_assembly_tree_json_str = std::move(json_str); }
+
+
+    const AssemblyStepsTreeData& get_assembly_steps_tree_data() const { return m_assembly_steps_tree_data; }
+    AssemblyStepsTreeData&       get_assembly_steps_tree_data()       { return m_assembly_steps_tree_data; }
+    void                         set_assembly_steps_tree_data(AssemblyStepsTreeData data) { m_assembly_steps_tree_data = std::move(data); }
+
+    const std::string& get_assembly_steps_json_str() const { return m_assembly_steps_json_str; }
+    std::string&       get_assembly_steps_json_str()       { return m_assembly_steps_json_str; }
+    void               set_assembly_steps_json_str(std::string json_str) { m_assembly_steps_json_str = std::move(json_str); }
 
     // Extensions for color print
     // CustomGCode::Info custom_gcode_per_print_z;
@@ -1797,6 +1846,11 @@ private:
     bool need_backup = false;
     std::map<int, int> object_backup_id_map; // ObjectId -> backup id;
     int next_object_backup_id = 1;
+    // Backing storage for the public accessors declared above. Must remain private so
+    AssemblyTreeData      m_assembly_tree_data;
+    std::string           m_assembly_tree_json_str;
+    AssemblyStepsTreeData m_assembly_steps_tree_data;
+    std::string           m_assembly_steps_json_str;
 };
 
 #undef OBJECTBASE_DERIVED_COPY_MOVE_CLONE

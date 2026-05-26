@@ -389,9 +389,12 @@ void ObjectClipper::on_update()
     Geometry::Transformation     mc_tr;
 
     if (meshes.empty()) {
+        // BBS: assembly view uses per-volume assemble transformation so the clipper
+        GLCanvas3D *canvas         = get_pool()->get_canvas();
+        const bool  is_assemble_cv = canvas && canvas->get_canvas_type() == GLCanvas3D::CanvasAssembleView;
         for (const ModelVolume *mv : mo->volumes) {
             meshes.emplace_back(&mv->mesh());
-            trafos.emplace_back(mv->get_transformation());
+            trafos.emplace_back(is_assemble_cv ? mv->get_assemble_transformation() : mv->get_transformation());
         }
     }
 

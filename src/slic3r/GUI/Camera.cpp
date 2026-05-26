@@ -174,6 +174,18 @@ const Transform3d Camera::get_view_matrix_for_billboard() const
 
     return view_matrix_for_billboard;
 }
+void Camera::set_view_projection(const Transform3d &view, const Transform3d &proj, const Vec3d &target, double zoom)
+{
+    m_view_matrix       = view;
+    m_projection_matrix = proj;
+
+    m_view_rotation     = Eigen::Quaterniond(view.matrix().block<3, 3>(0, 0));
+    m_view_rotation.normalize();
+    m_target   = target;
+    m_zoom     = zoom;
+    m_distance = (get_position() - m_target).norm();
+    update_zenit();
+}
 //how to use
 //BoundingBox bbox = mesh.aabb.transform(transform);
 //return camera_->getFrustum().intersects(bbox);

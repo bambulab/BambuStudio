@@ -519,6 +519,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             event.Veto();
             return;
         }
+        if (GLCanvas3D *canvas = m_plater->get_assmeble_canvas3D()) {
+            canvas->close_project_and_save_assembly_steps_tree();
+        }
 
     #if 0 // BBS
         //if (m_plater != nullptr) {
@@ -570,6 +573,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                 j["color_painting"] = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::MmuSegmentation));
                 j["brimears"]            = get_value(GLGizmosManager::convert_gizmo_type_to_string(GLGizmosManager::EType::BrimEars));
                 j["assembly_view"] = get_value("assembly_view");
+                j["assembly_view_export_pdf"] = get_value("assembly_view_export_pdf");
+                j["assembly_view_export_markdown"] = get_value("assembly_view_export_markdown");
+                j["assembly_view_export_mp4"] = get_value("assembly_view_export_mp4");
 
                 agent->track_event("key_func", j.dump());
 

@@ -142,6 +142,10 @@ set(lisbslic3r_sources
     format.hpp
     Format/3mf.cpp
     Format/3mf.hpp
+    Format/AssemblyStepsJson.cpp
+    Format/AssemblyStepsJson.hpp
+    Format/AssemblyTreeJson.cpp
+    Format/AssemblyTreeJson.hpp
     Format/bbs_3mf.cpp
     Format/bbs_3mf.hpp
     Format/AMF.cpp

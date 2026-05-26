@@ -112,6 +112,8 @@ public:
     const Transform3d& get_projection_matrix() const { return m_projection_matrix; }
     const Transform3d get_view_matrix_for_billboard() const;
 
+    void set_view_projection(const Transform3d &view, const Transform3d &proj, const Vec3d &target, double zoom);
+
     //BBS
     const Eigen::Quaterniond& get_view_rotation() const {return m_view_rotation; }
 

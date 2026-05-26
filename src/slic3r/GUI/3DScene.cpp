@@ -519,7 +519,6 @@ GLVolume::GLVolume(float r, float g, float b, float a, bool create_index_data)
     , selected(false)
     , disabled(false)
     , printable(true)
-    , visible(true)
     , is_active(true)
     , zoom_to_volumes(true)
     , shader_outside_printer_detection_enabled(false)
@@ -623,13 +622,6 @@ void GLVolume::set_render_color()
         render_color[3] = UNPRINTABLE_COLOR[3];
     }
 
-    //BBS set invisible color
-    if (!visible) {
-        render_color[0] = MODEL_HIDDEN_COL[0];
-        render_color[1] = MODEL_HIDDEN_COL[1];
-        render_color[2] = MODEL_HIDDEN_COL[2];
-        render_color[3] = MODEL_HIDDEN_COL[3];
-    }
 }
 
 std::array<float, 4> color_from_model_volume(const ModelVolume& model_volume)
@@ -1407,10 +1399,13 @@ int GLVolumeCollection::load_object_volume(
     if (in_assemble_view) {
         v.set_instance_transformation(instance->get_assemble_transformation());
         v.set_offset_to_assembly(instance->get_offset_to_assembly());
+        // BBS: in the assembly view the per-volume assemble transformation contributes
+        v.set_volume_transformation(model_volume->get_assemble_transformation());
     }
-    else
+    else {
         v.set_instance_transformation(instance->get_transformation());
-    v.set_volume_transformation(model_volume->get_transformation());
+        v.set_volume_transformation(model_volume->get_transformation());
+    }
     //use object's instance id
     if (use_loaded_id && (instance->loaded_id > 0))
         v.model_object_ID = instance->loaded_id;

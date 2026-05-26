@@ -209,6 +209,8 @@ void AppConfig::set_defaults()
         set_bool("user_bed_type", true);
     if (get("grabber_size_factor").empty())
         set("grabber_size_factor", "1.0");
+    if (get("assembly_part_number_label_font_size").empty())
+        set("assembly_part_number_label_font_size", "0");
     if (get("3d_middle_tooltip_offset_x").empty())
         set("3d_middle_tooltip_offset_x", "0.0");
     if (get("3d_middle_tooltip_offset_y").empty())

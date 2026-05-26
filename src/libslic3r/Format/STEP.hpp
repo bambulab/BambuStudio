@@ -29,10 +29,14 @@ typedef std::function<void(bool isUtf8)> StepIsUtf8Fn;
 struct NamedSolid
 {
     NamedSolid(const TopoDS_Shape& s,
-               const std::string& n) : solid{ s }, name{ n } {
+               const std::string& n,
+               const std::string& object_n = std::string(),
+               const std::string& object_k = std::string()) : solid{ s }, name{ n }, object_name{ object_n }, object_key{ object_k } {
     }
     const TopoDS_Shape solid;
     const std::string  name;
+    const std::string  object_name;
+    const std::string  object_key;
     int tri_face_cout = 0;
 };
 
@@ -99,6 +103,7 @@ public:
     Step(std::string path, ImportStepProgressFn stepFn = nullptr, StepIsUtf8Fn isUtf8Fn = nullptr);
     ~Step();
     Step_Status load();
+    void dump_structure_tree() const;
     unsigned int get_triangle_num(double linear_defletion, double angle_defletion);
     unsigned int get_triangle_num_tbb(double linear_defletion, double angle_defletion);
     void clean_mesh_data();
