@@ -167,8 +167,6 @@ set(lisbslic3r_sources
     TextureToColor/TextureToColor.cpp
     TextureToColor/ColorUtils.hpp
     TextureToColor/ColorUtils.cpp
-    TextureToColor/KdTree.hpp
-    TextureToColor/KdTree.cpp
     GCode/ThumbnailData.cpp
     GCode/ThumbnailData.hpp
     GCode/GCodeEditor.cpp

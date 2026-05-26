@@ -15,7 +15,7 @@
 #include <filesystem>
 #include <fstream>
 #include "Repair.hpp"
-#include "KdTree.hpp"
+#include "libslic3r/AABBTreeIndirect.hpp"
 #include <boost/log/trivial.hpp>
 
 namespace Slic3r { namespace tex2color {
@@ -529,35 +529,63 @@ bool TextureToColor(const TriMesh& texture_mesh, const std::vector<std::vector<V
         return false;
     }
 
+    // Sub-stage timing helper for the "Repairing mesh" outer lap. Logs each
+    // sub-phase under a [timing][Repairing mesh] prefix so that regressions in
+    // mesh inspection, RepairMesh, AABB resampling, etc. can be attributed
+    // to a specific sub-stage without changing the outer lap structure.
+    auto sub_lap = [&](const char* sub_name, Clock::time_point t0) {
+        double ms = std::chrono::duration<double, std::milli>(Clock::now() - t0).count();
+        BOOST_LOG_TRIVIAL(debug) << "[timing][Repairing mesh] " << sub_name << ": " << ms << "ms";
+    };
+
     // Step 3: Repair mesh
     // Many textured models have non-manifold, non-closed, or other issues that need to be fixed beforehand
     auto resample_repaired_mesh = [&](TriMesh&& repaired_mesh) -> bool {
-        KdTree before_repair(color_mesh);
+        // AABBTreeIndirect references vertices/faces externally, so snapshot the
+        // pre-repair geometry by moving them out of color_mesh before it gets
+        // overwritten with the repaired mesh below. std::move on std::vector is
+        // O(1) (pointer adoption), no element copy.
+        const auto t_aabb = Clock::now();
+        TriVertices old_vertices = std::move(color_mesh.vertices);
+        TriFaces    old_indices  = std::move(color_mesh.indices);
+        auto before_repair_tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(old_vertices, old_indices);
+        sub_lap("resample.aabb_build", t_aabb);
+
         color_mesh = std::move(repaired_mesh);
+
+        const auto t_is_closed = Clock::now();
         if (is_closed(color_mesh)) {
             BOOST_LOG_TRIVIAL(debug) << "TextureToColor: repaired mesh is closed.";
         } else {
             BOOST_LOG_TRIVIAL(debug) << "TextureToColor: repaired mesh is open.";
         }
+        sub_lap("resample.is_closed", t_is_closed);
 
         // New faces after repair inherit old face colors via centroid nearest-neighbor lookup.
         // Since the mesh barely changes after repair, resampling via centroid nearest-neighbor is sufficient.
+        const auto t_resample = Clock::now();
         std::vector<RGB> new_face_colors(color_mesh.facets_count());
         tbb::parallel_for(tbb::blocked_range<std::size_t>(0, color_mesh.facets_count()), [&](const tbb::blocked_range<size_t>& range) {
             for (std::size_t fid = range.begin(); fid < range.end(); ++fid) {
                 const auto& face = color_mesh.indices[fid];
-                auto center = (color_mesh.vertices[face[0]] + color_mesh.vertices[face[1]] + color_mesh.vertices[face[2]]) / 3.0f;
-                auto nearest_node = before_repair.nearest(center);
-                new_face_colors[fid] = face_colors[nearest_node.face_id];
+                Vec3f center = (color_mesh.vertices[face[0]] + color_mesh.vertices[face[1]] + color_mesh.vertices[face[2]]) / 3.0f;
+                size_t hit_idx = 0;
+                Vec3f  closest;
+                AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
+                    old_vertices, old_indices, before_repair_tree, center, hit_idx, closest);
+                new_face_colors[fid] = face_colors[hit_idx];
             }
         });
         face_colors = std::move(new_face_colors);
+        sub_lap("resample.parallel_nearest", t_resample);
         return true;
     };
 
     auto repair_and_resample_mesh = [&]() -> bool {
         std::shared_ptr<TriMesh> repaired_mesh;
+        const auto t_repair = Clock::now();
         bool success = RepairMesh(color_mesh, repaired_mesh);
+        sub_lap("RepairMesh", t_repair);
         if (success == false) {
             BOOST_LOG_TRIVIAL(debug) << "TextureToColor: repair mesh failed.";
             return false;
@@ -567,8 +595,10 @@ bool TextureToColor(const TriMesh& texture_mesh, const std::vector<std::vector<V
     };
 
     {
+        const auto t_stats = Clock::now();
         TriangleMesh stats_mesh(static_cast<const indexed_triangle_set&>(color_mesh));
         const auto& stats = stats_mesh.stats();
+        sub_lap("stats_check", t_stats);
         if (!stats.manifold() || stats.has_open_edges()) {
             BOOST_LOG_TRIVIAL(info) << "TextureToColor: mesh has non-manifold geometry or open boundaries, open_edges="
                                     << stats.open_edges << ", non_manifold_edges=" << stats.non_manifold_edges
@@ -581,11 +611,13 @@ bool TextureToColor(const TriMesh& texture_mesh, const std::vector<std::vector<V
             if (settings.mesh_repair_decision == MeshRepairDecision::RepairAndImport) {
                 indexed_triangle_set repaired_its;
                 std::string repair_error;
+                const auto t_win3d = Clock::now();
                 bool repaired = settings.mesh_repair_callback && settings.mesh_repair_callback(static_cast<const indexed_triangle_set&>(color_mesh), repaired_its,
                     [&](const char* message, unsigned percent) {
                         sub_report(static_cast<int>(percent), 40, 60, message ? message : "Repairing mesh");
                     },
                     [&]() { return cancelled(); }, &repair_error);
+                sub_lap("windows_3d_repair", t_win3d);
                 if (repaired) {
                     if (cancelled()) return false;
                     BOOST_LOG_TRIVIAL(info) << "TextureToColor: Windows 3D mesh repair finished.";
@@ -600,7 +632,10 @@ bool TextureToColor(const TriMesh& texture_mesh, const std::vector<std::vector<V
         }
     }
 
-    if (!cgalutils::is_mesh_halfedge_compatible(color_mesh) && repair_and_resample_mesh() == false) {
+    const auto t_halfedge = Clock::now();
+    const bool halfedge_ok = cgalutils::is_mesh_halfedge_compatible(color_mesh);
+    sub_lap("is_mesh_halfedge_compatible", t_halfedge);
+    if (!halfedge_ok && repair_and_resample_mesh() == false) {
         BOOST_LOG_TRIVIAL(debug) << "TextureToColor: repair and resample mesh failed.";
         return false;
     }

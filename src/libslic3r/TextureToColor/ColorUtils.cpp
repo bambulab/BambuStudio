@@ -24,7 +24,7 @@
 #include <tbb/parallel_for.h>
 
 #include "CgalUtils.hpp"
-#include "KdTree.hpp"
+#include "libslic3r/AABBTreeIndirect.hpp"
 #include <boost/log/trivial.hpp>
 
 namespace Slic3r { namespace tex2color {
@@ -692,12 +692,18 @@ bool remesh_mesh(TriMesh& bbs_mesh, std::vector<std::size_t>& face_labels, doubl
         return false;
     }
 
-    // Build a KdTree for the input mesh and back up face colors for recovery after remeshing
-    KdTree kd_tree_of_original_mesh(bbs_mesh);
+    // Back up face labels for recovery after remeshing.
     std::vector<std::size_t> face_labels_of_original_mesh(face_labels);
 
     CGALMesh cgal_mesh;
     cgalutils::convert_trimesh_to_cgal(bbs_mesh, cgal_mesh);
+
+    // AABBTreeIndirect references vertices/faces externally, so snapshot the
+    // pre-remesh geometry by moving it out of bbs_mesh (which is overwritten
+    // below with the post-remesh mesh). std::move on std::vector is O(1).
+    TriVertices old_vertices = std::move(bbs_mesh.vertices);
+    TriFaces    old_indices  = std::move(bbs_mesh.indices);
+    auto original_mesh_tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(old_vertices, old_indices);
 
     std::unordered_set<CGAL::SM_Edge_index> feature_edges;
     std::unordered_set<CGAL::SM_Vertex_index> feature_vertices;
@@ -811,8 +817,11 @@ bool remesh_mesh(TriMesh& bbs_mesh, std::vector<std::size_t>& face_labels, doubl
         for (std::size_t fid = range.begin(); fid < range.end(); ++fid) {
             auto& face = bbs_mesh.indices[fid];
             Vec3f face_centroid = (bbs_mesh.vertices[face[0]] + bbs_mesh.vertices[face[1]] + bbs_mesh.vertices[face[2]]) / 3.0;
-            auto node = kd_tree_of_original_mesh.nearest(face_centroid);
-            face_labels[fid] = face_labels_of_original_mesh[node.face_id];
+            size_t hit_idx = 0;
+            Vec3f  closest;
+            AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
+                old_vertices, old_indices, original_mesh_tree, face_centroid, hit_idx, closest);
+            face_labels[fid] = face_labels_of_original_mesh[hit_idx];
         }
     });
 
