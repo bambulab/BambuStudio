@@ -1,7 +1,7 @@
 {
     "name": "Bambulab",
     "url": "http://www.bambulab.com/Parameters/vendor/BBL.json",
-    "version": "02.07.00.04",
+    "version": "02.07.00.05",
     "force_update": "0",
     "description": "the initial version of BBL configurations",
     "machine_model_list": [
@@ -8918,6 +8918,10 @@
         {
             "name": "0.20mm Standard @BBL X1C",
             "sub_path": "process/0.20mm Standard @BBL X1C.json"
+        },
+        {
+            "name": "0.20mm Steady @BBL A2L",
+            "sub_path": "process/0.20mm Steady @BBL A2L.json"
         },
         {
             "name": "0.20mm Strength @BBL A1",
