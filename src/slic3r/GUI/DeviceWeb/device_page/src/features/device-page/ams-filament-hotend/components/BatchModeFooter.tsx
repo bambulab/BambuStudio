@@ -19,6 +19,7 @@ export function BatchModeFooter({
   onSelectAll,
   onClearSelection,
   onCommit,
+  onEdit,
 }: {
   mode: FilamentPageMode;
   selectableSlots: AmsFilamentHotendSlotViewModel[];
@@ -28,6 +29,7 @@ export function BatchModeFooter({
   onSelectAll: () => void;
   onClearSelection: () => void;
   onCommit: () => void;
+  onEdit?: () => void;
 }) {
   const { t } = useTranslation();
   if (mode === 'normal') return null;
@@ -39,6 +41,7 @@ export function BatchModeFooter({
   const allSelected = totalSelectable > 0 && selectedCount === totalSelectable;
   const someSelected = selectedCount > 0 && selectedCount < totalSelectable;
   const canCommit = selectedCount > 0;
+  const showEdit = mode === 'batch_ext_load';
 
   const commitLabel = t(COMMIT_LABEL[mode] || 'Confirm');
 
@@ -93,6 +96,20 @@ export function BatchModeFooter({
       >
         {commitLabel}
       </button>
+      {showEdit && (
+        <button
+          type="button"
+          className={`batch-edit${selectedCount > 0 ? ' active' : ''}`}
+          data-testid="ams-hotend-batch-edit"
+          disabled={selectedCount === 0}
+          onClick={() => {
+            if (selectedCount === 0) return;
+            onEdit?.();
+          }}
+        >
+          {t('Edit Filament')}
+        </button>
+      )}
     </footer>
   );
 }

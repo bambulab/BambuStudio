@@ -235,6 +235,46 @@ void DevNozzleRack::CtrlNozzleExchange(int from, int to) const
     m_nozzle_system->GetOwner()->publish_json(j);
 }
 
+namespace {
+void ctrl_hotend_rack_ams_control(const DevNozzleRack* rack, const std::string& action)
+{
+    if (!rack || !rack->GetNozzleSystem() || !rack->GetNozzleSystem()->GetOwner()) {
+        return;
+    }
+    rack->GetNozzleSystem()->GetOwner()->command_ams_control(action);
+}
+}
+
+void DevNozzleRack::CtrlStopHotendRead() const
+{
+    ctrl_hotend_rack_ams_control(this, "abort");
+}
+
+void DevNozzleRack::CtrlStopHotendPlace() const
+{
+    ctrl_hotend_rack_ams_control(this, "abort");
+}
+
+void DevNozzleRack::CtrlStopHotendPick() const
+{
+    ctrl_hotend_rack_ams_control(this, "abort");
+}
+
+void DevNozzleRack::CtrlRetryHotendRead() const
+{
+    ctrl_hotend_rack_ams_control(this, "resume");
+}
+
+void DevNozzleRack::CtrlRetryHotendPlace() const
+{
+    ctrl_hotend_rack_ams_control(this, "resume");
+}
+
+void DevNozzleRack::CtrlRetryHotendPick() const
+{
+    ctrl_hotend_rack_ams_control(this, "resume");
+}
+
 
 bool DevNozzleRack::CtrlCanUpdateAll() const
 {

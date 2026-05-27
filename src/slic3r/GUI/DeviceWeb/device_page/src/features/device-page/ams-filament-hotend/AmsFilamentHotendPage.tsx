@@ -125,6 +125,10 @@ export function AmsFilamentHotendPage() {
     () => filamentSlots.filter((s) => !!s.select_action?.can_select),
     [filamentSlots],
   );
+  const selectedSlots = useMemo(
+    () => selectableSlots.filter((s) => selectedKeys.has(selectionKey(s))),
+    [selectableSlots, selectedKeys],
+  );
 
   // Reset the local selection set whenever C++ switches the page mode (e.g.
   // when entering Auto Load, leaving via Exit, or after a successful commit
@@ -152,6 +156,31 @@ export function AmsFilamentHotendPage() {
       return pruned ?? prev;
     });
   }, [inBatchMode, selectableSlots]);
+
+  // External-filament editing happens in a separate C++ modal with its own
+  // WebView/bridge, so the report emitted after the native edit dialog closes
+  // does not automatically reach this page. While the external-load selection
+  // mode is active, refresh on focus and with a light poll so the card grid
+  // behind the edit dialog catches up after filament metadata changes.
+  useEffect(() => {
+    if (currentMode !== 'batch_ext_load') return;
+    let refreshing = false;
+    const refreshExtMode = () => {
+      if (refreshing) return;
+      refreshing = true;
+      void refresh('batch_ext_load').finally(() => {
+        refreshing = false;
+      });
+    };
+    window.addEventListener('focus', refreshExtMode);
+    document.addEventListener('visibilitychange', refreshExtMode);
+    const timer = window.setInterval(refreshExtMode, 2000);
+    return () => {
+      window.removeEventListener('focus', refreshExtMode);
+      document.removeEventListener('visibilitychange', refreshExtMode);
+      window.clearInterval(timer);
+    };
+  }, [currentMode, refresh]);
 
   // Merge tab-specific toolbar actions. In batch modes `fp.actions` values
   // are `{enabled, reason}` objects instead of plain booleans; PageToolbar
@@ -228,10 +257,41 @@ export function AmsFilamentHotendPage() {
 
   const onBatchCommit = useCallback(() => {
     if (!inBatchMode) return;
-    const picked = selectableSlots.filter((s) => selectedKeys.has(selectionKey(s)));
-    if (picked.length === 0) return;
-    void runBatchAction(currentMode, picked);
-  }, [inBatchMode, selectableSlots, selectedKeys, runBatchAction, currentMode]);
+    if (selectedSlots.length === 0) return;
+    // Manual external load requires known filament metadata. C++ surfaces
+    // unknown / never-edited virtual trays as card_state=Unknown; open the
+    // batch edit dialog first and let the user retry the load after saving.
+    if (currentMode === 'batch_ext_load') {
+      const unknownSlot = selectedSlots.find((s) => s.filament_card.state === 'Unknown');
+      if (unknownSlot) {
+        runSlotAction('batch_ext_edit', undefined, {
+          intent: 'run',
+          slots: selectedSlots.map((s) => ({
+            nozzle_pos: s.nozzle_pos,
+            ams_id: s.ams_id,
+            slot_id: s.slot_id,
+            display_index: s.display_index,
+          })),
+        });
+        return;
+      }
+    }
+    void runBatchAction(currentMode, selectedSlots);
+  }, [inBatchMode, selectedSlots, runBatchAction, runSlotAction, currentMode]);
+
+  const onBatchEdit = useCallback(() => {
+    if (currentMode !== 'batch_ext_load') return;
+    if (selectedSlots.length === 0) return;
+    runSlotAction('batch_ext_edit', undefined, {
+      intent: 'edit',
+      slots: selectedSlots.map((s) => ({
+        nozzle_pos: s.nozzle_pos,
+        ams_id: s.ams_id,
+        slot_id: s.slot_id,
+        display_index: s.display_index,
+      })),
+    });
+  }, [currentMode, selectedSlots, runSlotAction]);
 
   return (
     <div ref={pageRef} className="ams-filament-hotend-page" data-testid="ams-filament-hotend-page">
@@ -279,6 +339,7 @@ export function AmsFilamentHotendPage() {
           onSelectAll={onSelectAll}
           onClearSelection={onClearSelection}
           onCommit={onBatchCommit}
+          onEdit={onBatchEdit}
         />
       ) : (
         <PageFooter

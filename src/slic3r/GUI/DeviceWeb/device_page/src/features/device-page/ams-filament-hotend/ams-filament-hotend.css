@@ -541,6 +541,254 @@
   cursor: not-allowed;
 }
 
+.batch-edit {
+  height: 24px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ams-brand);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  opacity: 0.4;
+}
+
+.batch-edit.active {
+  opacity: 1;
+}
+
+.batch-edit:disabled {
+  cursor: not-allowed;
+}
+
+.batch-ext-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.batch-ext-dialog {
+  width: min(620px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  border: 1px solid var(--ams-border);
+  border-radius: 8px;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-strong);
+  box-shadow: var(--ams-popover-shadow);
+  overflow: hidden;
+}
+
+.batch-ext-edit-page {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: var(--ams-page-bg);
+  color: var(--ams-text-strong);
+}
+
+.batch-ext-dialog.embedded {
+  width: min(620px, 100%);
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.batch-ext-dialog-titlebar {
+  display: none;
+}
+
+.batch-ext-dialog-titlebar h3 {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.batch-ext-dialog-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--ams-border);
+  flex: 0 0 auto;
+}
+
+.batch-ext-dialog-dot.red {
+  background: var(--ams-danger);
+}
+
+.batch-ext-dialog-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 16px 12px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  background: var(--ams-danger-bg);
+  color: var(--ams-text-strong);
+  font-size: 14px;
+  line-height: 22px;
+}
+
+.batch-ext-dialog-warning-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--ams-danger);
+  border-radius: 50%;
+  color: var(--ams-danger);
+  font-size: 12px;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
+.batch-ext-dialog-warning button {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: var(--ams-text-muted);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.batch-ext-dialog-table {
+  display: grid;
+  margin: 0 16px;
+  overflow-x: hidden;
+}
+
+.batch-ext-dialog-row {
+  display: grid;
+  grid-template-columns: 52px 240px 64px 88px;
+  align-items: center;
+  column-gap: 8px;
+  min-height: 54px;
+  border-bottom: 1px solid var(--ams-border);
+  font-size: 13px;
+}
+
+.batch-ext-dialog-row.header {
+  min-height: 40px;
+  color: var(--ams-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.batch-ext-select,
+.batch-ext-weight {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--ams-border);
+  border-radius: 4px;
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-strong);
+  font: inherit;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.batch-ext-select.placeholder,
+.batch-ext-select .placeholder,
+.batch-ext-weight .placeholder {
+  color: var(--ams-text-muted);
+}
+
+.batch-ext-select-arrow {
+  color: var(--ams-text-muted);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.batch-ext-color {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--ams-border);
+  border-radius: 50%;
+  background: var(--ext-color, var(--ams-brand));
+  color: var(--ams-text-muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.batch-ext-color.unknown {
+  background: var(--ams-overlay-bg);
+}
+
+.batch-ext-weight {
+  gap: 6px;
+  justify-content: flex-start;
+}
+
+.batch-ext-weight-refresh {
+  color: var(--ams-text-muted);
+  font-size: 16px;
+}
+
+.batch-ext-row-edit {
+  height: 28px;
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  color: var(--ams-brand);
+  font: inherit;
+  cursor: pointer;
+}
+
+.batch-ext-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 16px 16px;
+}
+
+.batch-ext-cancel,
+.batch-ext-confirm {
+  min-width: 86px;
+  height: 32px;
+  padding: 0 16px;
+  border-radius: 16px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.batch-ext-cancel {
+  border: 1px solid var(--ams-border);
+  background: var(--ams-card-text-bg);
+  color: var(--ams-text-strong);
+}
+
+.batch-ext-confirm {
+  border: 0;
+  background: var(--ams-brand);
+  color: var(--ams-text-on-brand);
+}
+
+.batch-ext-confirm:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 /* The legacy three-dot card menu (`.card-menu` / `.slot-menu-popover`) has
  * been replaced by a right-click / long-press context menu rendered by
  * <CardContextMenu> at fixed viewport coordinates. The styles below describe
@@ -1070,9 +1318,8 @@
 }
 
 .hotend-rack-progress {
-  position: relative;
-  margin-top: 10px;
-  padding-bottom: 40px;
+  margin-top: 12px;
+  padding: 0;
   color: var(--ams-text-strong);
 }
 
@@ -1080,21 +1327,22 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 38px;
+  min-height: 48px;
   padding: 0 16px;
   border: 1px solid var(--ams-status-bar-border);
   border-radius: 4px;
   background: var(--ams-toolbar-bg);
   box-sizing: border-box;
   font-size: 12px;
-  line-height: 22px;
+  line-height: 16px;
+  font-weight: 600;
 }
 
 .hotend-rack-progress-detail {
   display: flex;
   justify-content: space-between;
-  min-height: 156px;
-  padding-top: 22px;
+  min-height: 220px;
+  padding: 24px 0 0;
 }
 
 .hotend-rack-progress-steps {
@@ -1104,9 +1352,9 @@
 .hotend-rack-progress-step {
   display: grid;
   grid-template-columns: 16px 1fr;
-  column-gap: 6px;
+  column-gap: 8px;
   align-items: start;
-  min-height: 30px;
+  min-height: 28px;
   color: var(--ams-text-strong);
   font-size: 12px;
   line-height: 22px;
@@ -1120,190 +1368,190 @@
   height: 16px;
   margin-top: 3px;
   border-radius: 50%;
-  color: var(--ams-text-on-brand);
+  background: var(--ams-index-bg);
+  color: var(--ams-text-strong);
   font-size: 10px;
   font-weight: 600;
   line-height: 16px;
-  background: var(--ams-text-task-mark-pending);
 }
 
 .hotend-rack-progress-step.done .hotend-rack-progress-mark,
 .hotend-rack-progress-step.active .hotend-rack-progress-mark {
   background: var(--ams-brand);
+  color: var(--ams-text-on-brand);
 }
 
 .hotend-rack-progress-step.failed .hotend-rack-progress-mark {
   background: var(--ams-danger);
+  color: var(--ams-text-on-brand);
 }
 
-.hotend-rack-progress-step.pending {
-  color: var(--ams-text-step);
+.hotend-rack-progress-label {
+  overflow-wrap: anywhere;
 }
 
 .hotend-rack-progress-visual {
-  width: 166px;
-  min-height: 200px;
+  width: 160px;
+  min-height: 156px;
   display: flex;
   align-items: flex-start;
   justify-content: center;
+  padding-top: 14px;
   box-sizing: border-box;
 }
 
 .hotend-rack-progress-visual-card {
   position: relative;
-  width: 166px;
-  height: 200px;
-  background: var(--ams-overlay-bg);
-  overflow: hidden;
-  box-sizing: border-box;
+  width: 96px;
+  height: 156px;
 }
 
-.hotend-rack-progress-visual-card img {
+.rack-visual-read-nozzle,
+.rack-visual-read-holder,
+.rack-visual-read-line,
+.rack-visual-read-head,
+.rack-visual-take-body,
+.rack-visual-take-shell,
+.rack-visual-take-tube-dark,
+.rack-visual-take-tube-light,
+.rack-visual-take-nozzle,
+.rack-visual-take-lower-tube,
+.rack-visual-take-left-block,
+.rack-visual-take-right-block,
+.rack-visual-take-arc {
   position: absolute;
   display: block;
+  max-width: none;
   pointer-events: none;
 }
 
 .rack-visual-read-nozzle {
-  left: 24px;
-  top: 76px;
-  width: 22px;
-  height: 49px;
+  left: 38px;
+  top: 0;
+  width: 20px;
+  height: 48px;
 }
 
 .rack-visual-read-holder {
-  left: 104px;
-  top: 69px;
-  width: 39px;
-  height: 62px;
+  left: 36px;
+  top: 44px;
+  width: 24px;
+  height: 72px;
 }
 
 .rack-visual-read-line {
-  left: 51px;
-  top: 92px;
-  width: 50px;
-  height: 6px;
+  left: 47px;
+  top: 8px;
+  width: 2px;
+  height: 126px;
 }
 
 .rack-visual-read-head {
-  left: 68px;
-  top: 86px;
-  width: 13px;
-  height: 13px;
-  transform: rotate(90deg);
+  left: 41px;
+  top: 124px;
+  width: 14px;
+  height: 14px;
 }
 
 .rack-visual-toolhead {
-  position: absolute;
-  left: 47px;
-  top: 45px;
-  width: 72px;
-  height: 110px;
-  overflow: hidden;
-}
-
-.rack-visual-toolhead img {
-  position: absolute;
+  position: relative;
+  width: 96px;
+  height: 156px;
 }
 
 .rack-visual-take-body {
-  left: 14px;
-  top: 28px;
+  left: 26px;
+  top: 58px;
   width: 44px;
-  height: 62px;
+  height: 92px;
 }
 
 .rack-visual-take-shell {
-  left: 11px;
-  top: 20px;
-  width: 28px;
-  height: 66px;
-}
-
-.rack-visual-take-tube-dark.top,
-.rack-visual-take-tube-dark.bottom {
-  left: 32px;
-  width: 8px;
-  height: 400px;
-  transform: rotate(-90deg);
-  transform-origin: left top;
-  opacity: 0.6;
-}
-
-.rack-visual-take-tube-light.top,
-.rack-visual-take-tube-light.bottom {
-  left: 34px;
-  width: 4px;
-  height: 400px;
-  transform: rotate(-90deg);
-  transform-origin: left top;
-  opacity: 0.6;
-}
-
-.rack-visual-take-tube-dark.top,
-.rack-visual-take-tube-light.top {
+  left: 21px;
   top: 0;
+  width: 54px;
+  height: 84px;
 }
 
-.rack-visual-take-tube-dark.bottom,
-.rack-visual-take-tube-light.bottom {
-  top: 58px;
+.rack-visual-take-tube-dark.top {
+  left: 43px;
+  top: 12px;
+  width: 10px;
+  height: 46px;
+}
+
+.rack-visual-take-tube-light.top {
+  left: 46px;
+  top: 20px;
+  width: 4px;
+  height: 30px;
 }
 
 .rack-visual-take-nozzle {
-  left: 21px;
-  top: 60px;
-  width: 27px;
-  height: 47px;
+  left: 40px;
+  top: 124px;
+  width: 16px;
+  height: 32px;
+}
+
+.rack-visual-take-tube-dark.bottom {
+  left: 43px;
+  top: 82px;
+  width: 10px;
+  height: 46px;
+}
+
+.rack-visual-take-tube-light.bottom {
+  left: 46px;
+  top: 88px;
+  width: 4px;
+  height: 30px;
 }
 
 .rack-visual-take-left-block {
-  left: 14px;
-  top: 86px;
-  width: 17px;
-  height: 6px;
-  transform: rotate(180deg) scaleX(-1);
+  left: 16px;
+  top: 88px;
+  width: 28px;
+  height: 18px;
 }
 
 .rack-visual-take-right-block {
-  left: 45px;
-  top: 86px;
-  width: 17px;
-  height: 6px;
-  transform: rotate(180deg) scaleX(-1);
+  left: 52px;
+  top: 88px;
+  width: 28px;
+  height: 18px;
 }
 
 .rack-visual-take-arc {
-  left: 8px;
-  top: 53px;
-  width: 17px;
-  height: 43px;
+  left: 54px;
+  top: 12px;
+  width: 26px;
+  height: 26px;
 }
 
 .hotend-rack-progress-actions {
-  position: absolute;
-  right: 0;
-  bottom: 0;
   display: flex;
-  gap: 8px;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
 }
 
 .hotend-rack-progress-actions button {
-  min-width: 60px;
   height: 32px;
-  padding: 0 12px;
-  border: 1px solid var(--ams-footer-btn-border);
-  border-radius: 4px;
+  min-width: 76px;
+  padding: 0 16px;
+  border: 1px solid var(--ams-border);
+  border-radius: 6px;
   background: var(--ams-card-text-bg);
-  color: var(--ams-text-button);
+  color: var(--ams-text-strong);
   font: inherit;
-  font-size: 13px;
-  line-height: 22px;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
 }
 
 .hotend-rack-progress-actions button:disabled {
-  color: var(--ams-text-disabled);
+  opacity: 0.55;
   cursor: not-allowed;
 }
 

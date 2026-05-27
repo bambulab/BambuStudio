@@ -1,4 +1,4 @@
-﻿#include "DevicePageAmsFilamentHotendVM.hpp"
+#include "DevicePageAmsFilamentHotendVM.hpp"
 #include "DevicePageAmsFilamentHotendSchema.hpp"
 #include "Modes/NormalModeBuilder.hpp"
 #include "Modes/BatchAmsLoadModeBuilder.hpp"
@@ -272,10 +272,143 @@ protected:
     }
 };
 
+class ExtFilamentEditDialog : public DPIDialog
+{
+public:
+    explicit ExtFilamentEditDialog(wxWindow* parent, int content_height)
+        : DPIDialog(parent, wxID_ANY, _L("Edit Filament"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    {
+        SetClientSize(wxSize(FromDIP(620), FromDIP(content_height)));
+        SetMinClientSize(wxSize(FromDIP(620), FromDIP(content_height)));
+    }
+
+protected:
+    void on_dpi_changed(const wxRect& suggested_rect) override
+    {
+        SetSize(suggested_rect.GetSize());
+    }
+};
+
 nlohmann::json& bridge_debug_snapshot()
 {
     static nlohmann::json snapshot = nlohmann::json::object();
     return snapshot;
+}
+
+wxWindow*& ext_filament_edit_dialog()
+{
+    static wxWindow* dlg = nullptr;
+    return dlg;
+}
+
+nlohmann::json& ext_filament_edit_payload()
+{
+    static nlohmann::json payload = nlohmann::json::object();
+    return payload;
+}
+
+bool is_ext_dialog_slot_loaded(MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id)
+{
+    if (!machine_obj || !machine_obj->GetExtderSystem()) {
+        return false;
+    }
+    for (const auto& ext : machine_obj->GetExtderSystem()->GetExtruders()) {
+        if (ext.GetSlotNow().ams_id == ams_id && ext.GetSlotNow().slot_id == slot_id && ext.HasFilamentInExt()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+nlohmann::json build_ext_dialog_slot(MachineObject* machine_obj, const nlohmann::json& source)
+{
+    namespace SK = AmsHotendSchema::keys;
+    namespace SV = AmsHotendSchema::values;
+
+    const int nozzle_pos = source.value("nozzle_pos", 0);
+    const int display_index = source.value("display_index", 0);
+    const std::string ams_id = source.value("ams_id", std::string());
+    const std::string slot_id = source.value("slot_id", std::string());
+    const bool loaded = is_ext_dialog_slot_loaded(machine_obj, ams_id, slot_id);
+    const auto tray = machine_obj ? machine_obj->get_tray(ams_id, slot_id) : std::nullopt;
+
+    std::string state = SV::card_state::unknown;
+    std::string color = "#D9D9D9";
+    std::string color_type = "single";
+    std::string name;
+    std::string type;
+    int remain = 100;
+    std::vector<std::string> colors;
+
+    if (tray.has_value() && !tray->m_fila_type.empty()) {
+        type = tray->m_fila_type;
+        name = !tray->sub_brands.empty() ? tray->sub_brands : type;
+        color = normalize_hex_for_web(tray->color);
+        color_type = color_type_for_web(tray->ctype);
+        colors = tray->cols;
+        if (colors.empty() && !tray->color.empty()) {
+            colors.push_back(tray->color);
+        }
+        for (auto& c : colors) {
+            c = normalize_hex_for_web(c);
+        }
+        if (tray->remain >= 0 && tray->remain <= 100) {
+            remain = tray->remain;
+        }
+        state = loaded ? SV::card_state::ready_to_use : SV::card_state::ready_to_load;
+    }
+
+    return {
+        {SK::filament_slot::nozzle_pos,        nozzle_pos},
+        {SK::filament_slot::display_index,     display_index},
+        {SK::filament_slot::ams_id,            ams_id},
+        {SK::filament_slot::slot_id,           slot_id},
+        {SK::filament_slot::enabled,           true},
+        {SK::filament_slot::is_external_spool, true},
+        {SK::filament_slot::filament_card, {
+            {SK::filament_card::state,       state},
+            {SK::filament_card::color,       color},
+            {SK::filament_card::color_type,  color_type},
+            {SK::filament_card::colors,      colors},
+            {SK::filament_card::name,        name},
+            {SK::filament_card::type,        type},
+            {SK::filament_card::remain,      remain},
+            {SK::filament_card::status_text, state == SV::card_state::unknown ? _u8L("Unknown filament") : std::string()}
+        }},
+        {SK::filament_slot::filament_line, {
+            {SK::filament_line::state,          loaded ? SV::line_state::loaded : SV::line_state::no_filament},
+            {SK::filament_line::has_filament,   loaded},
+            {SK::filament_line::filament_color, loaded ? color : std::string()}
+        }},
+        {SK::filament_slot::filament_nozzle, {
+            {SK::filament_nozzle::state,          loaded ? SV::nozzle_state::active : SV::nozzle_state::normal},
+            {SK::filament_nozzle::has_filament,   loaded},
+            {SK::filament_nozzle::filament_color, loaded ? color : std::string()},
+            {SK::filament_nozzle::on_extruder,    false}
+        }},
+        {SK::filament_slot::select_action, {
+            {SK::select_action::can_select, !loaded},
+            {SK::select_action::reason,     loaded ? _u8L("External filament already loaded into hotend") : std::string()},
+            {SK::select_action::ext_label,  true}
+        }}
+    };
+}
+
+nlohmann::json build_ext_filament_edit_payload(MachineObject* machine_obj, const nlohmann::json& request)
+{
+    nlohmann::json rows = nlohmann::json::array();
+    const auto slots = request.value("slots", nlohmann::json::array());
+    if (slots.is_array()) {
+        for (const auto& slot : slots) {
+            rows.push_back(build_ext_dialog_slot(machine_obj, slot));
+        }
+    }
+
+    return {
+        {"intent", request.value("intent", std::string("edit"))},
+        {"slots", rows},
+        {"message", _u8L("Please finish editing filament information before starting filament load.")}
+    };
 }
 
 void open_ams_materials_setting(const std::string& ams_id, const std::string& slot_id)
@@ -411,6 +544,60 @@ void open_bridge_debug_dialog()
     dlg.SetSizer(sizer);
     dlg.Layout();
     dlg.ShowModal();
+}
+
+std::string make_ext_edit_slots_param(const nlohmann::json& slots)
+{
+    std::vector<std::string> parts;
+    if (slots.is_array()) {
+        for (const auto& s : slots) {
+            const std::string ams_id = s.value("ams_id", std::string());
+            const std::string slot_id = s.value("slot_id", std::string());
+            const int display_index = s.value("display_index", 0);
+            if (ams_id.empty() || slot_id.empty() || display_index <= 0) continue;
+            parts.push_back((boost::format("%1%|%2%|%3%") % ams_id % slot_id % display_index).str());
+        }
+    }
+    std::string joined;
+    for (size_t i = 0; i < parts.size(); ++i) {
+        if (i) joined += ",";
+        joined += parts[i];
+    }
+    return joined;
+}
+
+void open_ext_filament_edit_dialog(const nlohmann::json& payload)
+{
+    wxWindow* parent = wxGetApp().mainframe;
+    const std::string intent = payload.value("intent", std::string("edit"));
+    const nlohmann::json slot_array = payload.value("slots", nlohmann::json::array());
+    const std::string slots = make_ext_edit_slots_param(slot_array);
+    const int slot_count = slot_array.is_array()
+        ? static_cast<int>(slot_array.size())
+        : 1;
+    const bool show_warning = intent == "run";
+    const int content_height = std::clamp(
+        (show_warning ? 58 : 12) + 40 + std::max(1, slot_count) * 54 + 66,
+        194,
+        392
+    );
+
+    ExtFilamentEditDialog dlg(parent, content_height);
+    ext_filament_edit_dialog() = &dlg;
+
+    const std::string route = (boost::format("/device_page/ams_ext_filament_edit?intent=%1%&slots=%2%")
+        % intent % slots).str();
+    auto* host = new DeviceWebHost(&dlg, DeviceWebHostMode::DevicePageAmsFilamentHotend, route);
+    host->SetMinSize(wxSize(dlg.FromDIP(620), dlg.FromDIP(content_height)));
+    auto* sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(host, 1, wxEXPAND);
+    dlg.SetSizer(sizer);
+    dlg.Layout();
+    dlg.ShowModal();
+
+    if (ext_filament_edit_dialog() == &dlg) {
+        ext_filament_edit_dialog() = nullptr;
+    }
 }
 
 } // namespace
@@ -564,6 +751,13 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
     const auto rack_operation = rack_operation_for_job(rack_job, reading_count);
     const bool rack_reading = reading_count > 0;
     const bool rack_busy = rack_job != 0 || rack_reading;
+    const bool rack_is_target_operation =
+        rack_operation == SV::rack_operation::read_all
+        || rack_operation == SV::rack_operation::read_single
+        || rack_operation == SV::rack_operation::take
+        || rack_operation == SV::rack_operation::place
+        || rack_operation == SV::rack_operation::exchange;
+    const bool rack_failed = rack_status == DevNozzleRack::RACK_STATUS_UNKNOWN && rack_busy;
     const int target_display_index = rack_target_display_index(machine_obj, rack_job, reading_idx);
     const bool filament_changing = IsFilamentChangeActive(machine_obj);
     hp[SK::hotend_page::hotend_rack_status] = {
@@ -579,12 +773,12 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
         {SK::rack_status::tips, rack_busy ? _u8L("Please wait...") : std::string()},
         {SK::rack_status::job, rack_job},
         {SK::rack_status::operation, rack_operation},
-        {SK::rack_status::state, rack_busy ? SV::rack_state::running : SV::rack_state::idle},
+        {SK::rack_status::state, rack_failed ? SV::rack_state::failed : (rack_busy ? SV::rack_state::running : SV::rack_state::idle)},
         {SK::rack_status::target_display_index, rack_busy ? target_display_index : 0},
         {SK::rack_status::current_step, rack_busy ? static_cast<int>(rack_status) : 0},
         {SK::rack_status::steps, nozzle_rack ? build_rack_steps(nozzle_rack->GetSteps(), rack_status) : nlohmann::json::array()},
-        {SK::rack_status::can_stop, false},
-        {SK::rack_status::can_retry, false}
+        {SK::rack_status::can_stop, rack_busy && rack_is_target_operation},
+        {SK::rack_status::can_retry, rack_failed && rack_is_target_operation}
     };
     const bool can_read_all = nozzle_rack && nozzle_rack->CtrlCanReadAll() && !rack_busy;
     hp[SK::hotend_page::actions][SK::hotend_actions::can_read_all_hotends] = can_read_all;
@@ -1221,15 +1415,39 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildFilamentChangeStatus(MachineO
 
         nlohmann::json items = nlohmann::json::array();
         int running_index_1based = 0;
+        std::map<std::pair<int, int>, int> slot_to_display_index;
+        if (machine_obj && machine_obj->GetNozzleRack() && machine_obj->GetNozzleSystem()) {
+            const auto& rack_type = machine_obj->GetNozzleRack()->GetRackType();
+            if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) {
+                const auto& total_nozzles = machine_obj->GetNozzleRack()->GetTotalRackNozzlePosSet();
+                for (const int nozzle_pos : total_nozzles) {
+                    const auto& rack_nozzle_opt = machine_obj->GetNozzleSystem()->GetNozzleOptByPosId(nozzle_pos);
+                    if (!rack_nozzle_opt.has_value()) continue;
+
+                    const auto& ams_slots = rack_nozzle_opt->GetBindAmsSlots();
+                    if (ams_slots.empty()) continue;
+                    int ams_id = ams_slots[0].first;
+                    int slot_id = ams_slots[0].second;
+                    if (auto fila = machine_obj->GetFilaSystem(); fila && fila->GetVirtualTray(ams_id).has_value()) {
+                        slot_id = 0;
+                    }
+                    slot_to_display_index[{ams_id, slot_id}] = nozzle_pos_to_display_idx(nozzle_pos);
+                }
+            }
+        }
         for (size_t i = 0; i < changing_slots.size(); ++i) {
             const auto& s = changing_slots[i]; // DevAmsSlotId = std::pair<int,int>
             const std::string ams_str  = std::to_string(s.first);
             const std::string slot_str = std::to_string(s.second);
-            // `display_index` is a UI affordance for the strip label; if the
-            // firmware reports an ams_id / slot_id we cannot map back to a
-            // live filament_page slot, fall back to the 1-based queue
-            // position so the pip still has something to show.
+            // The strip label must be the nozzle display index, not the queue
+            // index. Firmware reports csl as AMS slot ids, so map it back via
+            // the current rack nozzle binding. If the device reports a slot
+            // that no longer maps to a visible nozzle, fall back to queue
+            // position so the strip still has a stable label.
             int display_idx = static_cast<int>(i) + 1;
+            if (auto it = slot_to_display_index.find({s.first, s.second}); it != slot_to_display_index.end()) {
+                display_idx = it->second;
+            }
             const bool is_running = (!running_ams_id.empty() && ams_str == running_ams_id
                                   && !running_slot_id.empty() && slot_str == running_slot_id);
             const std::string item_state = is_running
@@ -1391,6 +1609,21 @@ nlohmann::json DevicePageAmsFilamentHotendVM::HandleAction(const std::string& ac
         wxGetApp().CallAfter([action_payload]() {
             open_ext_ams_operation(action_payload);
         });
+    } else if (action == "batch_ext_edit") {
+        const nlohmann::json action_payload = payload;
+        wxGetApp().CallAfter([action_payload]() {
+            open_ext_filament_edit_dialog(action_payload);
+        });
+    } else if (action == "close_dialog") {
+        wxGetApp().CallAfter([]() {
+            if (auto* dlg = ext_filament_edit_dialog()) {
+                if (auto* dialog = dynamic_cast<wxDialog*>(dlg)) {
+                    dialog->EndModal(wxID_OK);
+                } else {
+                    dlg->Close();
+                }
+            }
+        });
     } else if (action == "read_all_hotends") {
         // Rack refresh all with GUI move warning.
         wxGetApp().CallAfter([]() {
@@ -1433,6 +1666,27 @@ nlohmann::json DevicePageAmsFilamentHotendVM::HandleAction(const std::string& ac
                 }
             }
         });
+    } else if (action == "stop_hotend_operation" || action == "retry_hotend_operation") {
+        wxGetApp().CallAfter([action]() {
+            auto* dev_mgr = wxGetApp().getDeviceManager();
+            MachineObject* mo = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
+            if (!mo || !mo->GetNozzleSystem())
+                return;
+            auto rack = mo->GetNozzleSystem()->GetNozzleRack();
+            if (!rack)
+                return;
+
+            const int job = rack->GetJob();
+            const int reading_count = rack->GetReadingCount();
+            const bool is_retry = action == "retry_hotend_operation";
+            if (job == 1 || job == 3) {
+                is_retry ? rack->CtrlRetryHotendPick() : rack->CtrlStopHotendPick();
+            } else if (job == 2) {
+                is_retry ? rack->CtrlRetryHotendPlace() : rack->CtrlStopHotendPlace();
+            } else if (job == 4 || job == 6 || reading_count > 0) {
+                is_retry ? rack->CtrlRetryHotendRead() : rack->CtrlStopHotendRead();
+            }
+        });
     } else if (action == "set_hotend_temperature") {
         const int nozzle_pos = payload.value("nozzle_pos", -1);
         const int target_temp = payload.value("target_temp", -1);
@@ -1462,8 +1716,9 @@ nlohmann::json DevicePageAmsFilamentHotendVM::HandleAction(const std::string& ac
             }
         }
     } else if (action == "edit" && fila_system && !ams_id.empty() && !slot_id.empty()) {
-        wxGetApp().CallAfter([ams_id, slot_id]() {
+        wxGetApp().CallAfter([this, ams_id, slot_id]() {
             open_ams_materials_setting(ams_id, slot_id);
+            ReportState("state", "changed");
         });
     } else if (action == "load" && fila_system && !ams_id.empty() && !slot_id.empty()) {
         try {
