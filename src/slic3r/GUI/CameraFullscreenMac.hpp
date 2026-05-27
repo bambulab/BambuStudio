@@ -20,6 +20,11 @@ void  suspend_camera_fullscreen_topmost(wxWindow *window);
 // Restore the elevated window level when the fullscreen view regains focus.
 void  resume_camera_fullscreen_topmost(wxWindow *window);
 
+void  attach_camera_fullscreen_overlay(wxWindow *parent, wxWindow *overlay);
+void  detach_camera_fullscreen_overlay(wxWindow *parent, wxWindow *overlay);
+
+void  raise_main_window_after_camera_fullscreen(wxWindow *top_level);
+
 }} // namespace Slic3r::GUI
 
 #endif

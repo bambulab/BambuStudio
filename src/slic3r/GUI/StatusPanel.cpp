@@ -8,6 +8,7 @@
 #include "BitmapCache.hpp"
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
+#include <wx/weakref.h>
 #ifdef __APPLE__
 #include "CameraFullscreenMac.hpp"
 #endif
@@ -216,12 +217,18 @@ public:
         m_close_button->Bind(wxEVT_CHAR_HOOK, &CameraFullscreenFrame::on_char_hook, this);
         m_close_button->Bind(wxEVT_KEY_DOWN, &CameraFullscreenFrame::on_char_hook, this);
 
+        m_top_level = wxGetTopLevelParent(owner);
+        if (wxWindow *top = m_top_level.get())
+            top->Bind(wxEVT_CLOSE_WINDOW, &CameraFullscreenFrame::on_top_level_close, this);
+
         wxDisplay display(wxDisplay::GetFromWindow(owner));
         if (display.IsOk()) SetSize(display.GetGeometry());
     }
 
     ~CameraFullscreenFrame() override
     {
+        if (wxWindow *top = m_top_level.get())
+            top->Unbind(wxEVT_CLOSE_WINDOW, &CameraFullscreenFrame::on_top_level_close, this);
 #ifdef __APPLE__
         restore_camera_fullscreen_presentation(m_presentation_state);
         uninstall_camera_fullscreen_escape_monitor(m_escape_monitor);
@@ -264,9 +271,20 @@ public:
     {
         if (m_native_fullscreen) ShowFullScreen(false);
 #ifdef __APPLE__
+        if (m_close_button)
+            detach_camera_fullscreen_overlay(this, m_close_button);
         restore_camera_fullscreen_presentation(m_presentation_state);
         m_presentation_state = nullptr;
 #endif
+        if (wxWindow *top = m_top_level.get(); top && !top->IsBeingDeleted()) {
+            if (auto *tlw = dynamic_cast<wxTopLevelWindow *>(top); tlw && tlw->IsIconized())
+                tlw->Iconize(false);
+#ifdef __APPLE__
+            raise_main_window_after_camera_fullscreen(top);
+#else
+            top->Raise();
+#endif
+        }
     }
 
     void attach_media(wxMediaCtrl3 *media_ctrl)
@@ -320,14 +338,16 @@ private:
             ::SetWindowPos(GetHWND(), HWND_NOTOPMOST, 0, 0, 0, 0,
                            SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 #elif defined(__APPLE__)
-            suspend_camera_fullscreen_topmost(this);
+            if (!m_native_fullscreen)
+                suspend_camera_fullscreen_topmost(this);
 #endif
         } else {
 #ifdef __WXMSW__
             ::SetWindowPos(GetHWND(), HWND_TOPMOST, 0, 0, 0, 0,
                            SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 #elif defined(__APPLE__)
-            resume_camera_fullscreen_topmost(this);
+            if (!m_native_fullscreen)
+                resume_camera_fullscreen_topmost(this);
 #endif
         }
     }
@@ -335,6 +355,16 @@ private:
     void on_escape_accelerator(wxCommandEvent &)
     {
         request_close();
+    }
+
+    void on_top_level_close(wxCloseEvent &event)
+    {
+        event.Skip();
+        if (m_owner) {
+            m_owner->close_camera_fullscreen();
+        } else {
+            Destroy();
+        }
     }
 
     void on_char_hook(wxKeyEvent &event)
@@ -448,6 +478,9 @@ private:
         if (!m_close_button->IsShown()) m_close_button->Show();
         position_close_button();
         m_close_button->Raise();
+#ifdef __APPLE__
+        attach_camera_fullscreen_overlay(this, m_close_button);
+#endif
         if (reset_idle_timer && !m_close_hover) start_hide_timer();
     }
 
@@ -481,6 +514,7 @@ private:
     }
 
     StatusBasePanel             *m_owner{nullptr};
+    wxWeakRef<wxWindow>          m_top_level;
     wxPanel                     *m_video_host{nullptr};
     wxBoxSizer                  *m_video_sizer{nullptr};
     wxMediaCtrl3                *m_media_ctrl{nullptr};

@@ -7,6 +7,7 @@
 #include <wx/panel.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
+#include <wx/statbmp.h>
 #include <wx/sizer.h>
 #include <wx/timer.h>
 #include <chrono>
@@ -119,9 +120,11 @@ public:
     bool Enable(bool enable = true) override;
 
 private:
-    void on_paint(wxPaintEvent &evt);
+    void update_displayed_bitmap();
     wxBitmap make_disabled_bitmap(const wxBitmap &bmp) const;
-    wxBitmap m_current_bmp;
+    void forward_mouse_event(wxMouseEvent &evt);
+
+    wxStaticBitmap *m_image{nullptr};
 };
 
 }
