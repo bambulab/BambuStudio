@@ -733,8 +733,14 @@ void DevFilaSystem::CollectAmsColors(std::vector<wxColour>& ams_colors) const
 std::map<int, DevAmsSlotId> DevFilaSystem::GetTrayIndexMap()
 {
     std::map<int, DevAmsSlotId> tray_id_map;
-    tray_id_map[VIRTUAL_TRAY_MAIN_ID] = DevAmsSlotId{ VIRTUAL_TRAY_MAIN_ID, 0 };
-    tray_id_map[VIRTUAL_TRAY_DEPUTY_ID] = DevAmsSlotId{ VIRTUAL_TRAY_DEPUTY_ID, 0 };
+    for (auto& [virtual_tray_id, virtual_tray_item] : GetVirtualTrays()) {
+        try {
+            int virtual_tray_id_int = stoi(virtual_tray_id);
+            tray_id_map[virtual_tray_id_int] = DevAmsSlotId{ virtual_tray_id_int, 0 };
+        } catch (...) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " invalid virtual tray id: " << virtual_tray_id;
+        }
+    }
 
     for (auto& [ams_id, ams_item] : GetAmsList()) {
         for (auto& [slot_id, slot_item] : ams_item->GetTrays()) {

@@ -1,5 +1,6 @@
 #pragma once
 #include "libslic3r/Calib.hpp"
+#include "../GUI/Widgets/ComboBox.hpp"
 #include "../GUI/DeviceManager.hpp"
 #include "../GUI/Jobs/PrintJob.hpp"
 
@@ -115,6 +116,32 @@ extern bool     is_pa_params_valid(const Calib_Params &params);
 
 extern void update_speed_parameter(const std::string &key);
 extern std::vector<double> generate_max_speed_parameter_value(const std::string &key);
+template<typename T>
+inline bool switch_combox_to_target(ComboBox* combox, const T& target)
+{
+    for (unsigned int i = 0; i < combox->GetCount(); i++) {
+        if (combox->GetClientData(i) != nullptr && target == T(*(int*)combox->GetClientData(i))) {
+            combox->SetSelection(i);
+            return true;
+        }
+    }
+    combox->SetSelection(-1);
+    return false;
+}
+
+/* Read the enum value attached as ClientData(int*) on the currently selected
+   item. Returns `fallback` when combox is null, no item is selected, or
+   ClientData is missing. */
+template<typename T>
+inline T get_combox_selected_value(const ComboBox* combox, T fallback)
+{
+    if (!combox) return fallback;
+    int sel = combox->GetSelection();
+    if (sel == wxNOT_FOUND) return fallback;
+    int* data = reinterpret_cast<int*>(combox->GetClientData(sel));
+    return data ? static_cast<T>(*data) : fallback;
+}
+
 
 }
 }

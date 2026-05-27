@@ -429,7 +429,7 @@ void DevCalib::ExtrusionCalibSelectParse(const json &jj){
         int ams_id = jj.value("ams_id", default_ams_id);
         int slot_id = jj.value("slot_id", default_slot_id);
 
-        if (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID) {
+        if (GetOwner()->GetFilaSystem()->IsVirtualTrayId(std::to_string(ams_id))) {
             std::optional<int> idx_opt = jj.contains("cali_idx") ? std::optional<int>(jj["cali_idx"].get<int>()) : std::nullopt;
             GetOwner()->GetFilaSystem()->SetVirtualTray(ams_id, std::nullopt, std::nullopt, idx_opt, /*is_set_hold_count=*/true);
         } else {

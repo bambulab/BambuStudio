@@ -84,19 +84,36 @@ enum class CaliPageType {
     CALI_PAGE_COMMON_SAVE,
 };
 
+struct SelectedFilamentInfo
+{
+    int          tray_id{-1};
+    int          extruder_id{-1};
+    int          nozzle_id{-1};        // ext_fcb's nozzle id
+    int          nozzle_pos_id{-1};    // matches CaliFilamentInfo::nozzle_pos_id
+    Preset*      preset{nullptr};
+    std::string  tray_name;
+    bool         is_bbl_filament{false};
+    ExtruderRole extruder_role{ExtruderRole::SINGLE_EXTRUDER};
+    int          model_index{0};       // index of model objects in 3mf
+};
+
 class FilamentComboBox : public wxPanel
 {
 public:
-    FilamentComboBox(wxWindow* parent, int index, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+    FilamentComboBox(wxWindow* parent, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
     ~FilamentComboBox() {};
+
+    SelectedFilamentInfo get_selected_filament_info() const;
 
     void set_select_mode(CalibrationFilamentMode mode);
     CalibrationFilamentMode get_select_mode() { return m_mode; }
-    void load_tray_from_ams(int id, const DynamicPrintConfig& tray);
-    void update_from_preset();
-    int get_index() { return m_index; }
-    int get_tray_id() { return m_tray_id; }
-    bool is_bbl_filament() { return m_is_bbl_filamnet; }
+
+    void        load_tray_from_ams(int id, const DynamicPrintConfig& tray);
+    void        update_from_preset();
+    void        set_index(int index) { m_index = index; }
+    int         get_index() { return m_index; }
+    int         get_tray_id() { return m_tray_id; }
+    bool        is_bbl_filament() { return m_is_bbl_filamnet; }
     std::string get_tray_name() { return m_tray_name; }
     CalibrateFilamentComboBox* GetComboBox() { return m_comboBox; }
     CheckBox* GetCheckBox() { return m_checkBox; }
@@ -120,10 +137,10 @@ public:
     ExtruderRole GetExtuderRole() const { return m_extuder_role; }
 
 protected:
-    int m_index{0};
-    int m_tray_id { -1 };
+    int         m_index{0};         // index of model objects in 3mf
+    int         m_tray_id { -1 };
     std::string m_tray_name;
-    bool m_is_bbl_filamnet{ false };
+    bool        m_is_bbl_filamnet{ false };
 
     CheckBox* m_checkBox{ nullptr };
     RadioBox* m_radioBox{ nullptr };
@@ -131,8 +148,54 @@ protected:
     wxStaticBitmap* m_nozzle_bmp{ nullptr };
     ComboBox* m_nozzle_combo{ nullptr };
 
-    CalibrationFilamentMode m_mode { CalibrationFilamentMode::CALI_MODEL_SINGLE };
-    ExtruderRole m_extuder_role{ExtruderRole::SINGLE_EXTRUDER};
+    CalibrationFilamentMode     m_mode { CalibrationFilamentMode::CALI_MODEL_SINGLE };
+    ExtruderRole                m_extuder_role{ExtruderRole::SINGLE_EXTRUDER};
+};
+
+class FilamentExtendComboBox : public FilamentComboBox
+{
+public:
+    FilamentExtendComboBox(wxWindow* parent, int nozzle_id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
+
+    void SetNozzleInfo(const DevNozzle& nozzle, MachineObject* obj);
+
+    NozzleDiameterType GetSelectedDiameterType() const;
+    NozzleFlowType     GetSelectedFlowType() const;
+
+    int GetNozzleId() const { return m_nozzle_id; }         // 1-n nozzle id for display
+    int GetNozzlePosId() const { return m_nozzle_pos_id; }  // based on 0x10
+
+    void SetSubAmsMode(bool enable, const wxString& text = wxEmptyString);
+    bool IsSubAmsMode() const { return m_subams_mode; }
+    wxWindow* GetSubAmsPanel() const { return m_subams_panel; }
+
+    /* SubAms selection state — owned per ext_fcb so popup can restore last picks and the page can collect them at calibration start.*/
+    bool GetSubAmsSelected(int tray_id) const;
+    void SetSubAmsSelected(int tray_id, const SelectedFilamentInfo& info);
+    void ClearSubAmsSelected(int tray_id);
+    void ClearSubAmsSelection() { m_subams_selection.clear(); }
+    const std::map<int, SelectedFilamentInfo>& GetSubAmsSelection() const { return m_subams_selection; }
+
+    // Refresh m_subams_label from current selection ("A4; B2"); empty -> fallback.
+    void RefreshSubAmsLabel(const wxString& empty_fallback = wxEmptyString);
+
+    bool Enable(bool enable) override;
+    void msw_rescale();
+
+private:
+    void init_diameter_combo(MachineObject* obj, const NozzleVolumeType& volume_type);
+    void init_flow_type_combo(MachineObject* obj);
+
+    int       m_nozzle_id{-1};
+    int       m_nozzle_pos_id{-1};
+    Label*    m_id_label{nullptr};
+    Label*    m_nozzle_info_label{nullptr};
+    ComboBox* m_diameter_combo{nullptr};
+    ComboBox* m_flow_type_combo{nullptr};
+    wxPanel*  m_subams_panel{nullptr};
+    Label*    m_subams_label{nullptr};
+    bool      m_subams_mode{false};
+    std::map<int, SelectedFilamentInfo> m_subams_selection;
 };
 
 typedef std::vector<FilamentComboBox*> FilamentComboBoxList;
@@ -358,6 +421,7 @@ private:
 
 wxDECLARE_EVENT(EVT_CALI_ACTION, wxCommandEvent);
 wxDECLARE_EVENT(EVT_CALI_TRAY_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_SUBAMS_CLICK, wxCommandEvent);
 
 
 }} // namespace Slic3r::GUI

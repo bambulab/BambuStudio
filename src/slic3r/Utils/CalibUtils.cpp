@@ -1168,6 +1168,8 @@ bool CalibUtils::calib_generic_auto_pa_cali(const std::vector<CalibInfo> &calib_
     std::string input_file;
     if (obj_->is_multi_extruders())
         input_file = Slic3r::resources_dir() + "/calib/pressure_advance/auto_pa_line_dual.3mf";
+    else if (obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A)
+        input_file = Slic3r::resources_dir() + "/calib/pressure_advance/auto_pa_line_single_all.3mf";
     else
         input_file = Slic3r::resources_dir() + "/calib/pressure_advance/auto_pa_line_single.3mf";
 
@@ -2309,7 +2311,7 @@ void CalibUtils::send_to_print(const CalibInfo &calib_info, wxString &error_mess
     std::string new_ams_mapping = "[{\"ams_id\":" + std::to_string(calib_info.ams_id) + ", \"slot_id\":" + std::to_string(calib_info.slot_id) + "}]";
     print_job->task_ams_mapping2 = new_ams_mapping;
 
-    if (obj_->GetNozzleRack()->IsSupported()) {
+    if (obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType::RackType_AB) {
         auto nozzle_tar = obj_->GetNozzleSystem()->GetReplaceNozzleTar();
         if (calib_info.nozzle_pos_id == 0 && nozzle_tar.has_value()) {
             print_job->task_nozzle_mapping = "[" + std::to_string(nozzle_tar.value()) + "]";
@@ -2448,7 +2450,7 @@ void CalibUtils::send_to_print(const std::vector<CalibInfo> &calib_infos, wxStri
     print_job->task_ams_mapping      = select_ams;
     print_job->task_ams_mapping_info = "";
     print_job->task_ams_mapping2     = new_select_ams;
-    print_job->task_nozzle_mapping   = obj_->GetNozzleRack()->IsSupported() ? nozzle_mapping : "";
+    print_job->task_nozzle_mapping   = obj_->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_AB ? nozzle_mapping : "";
 
     print_job->task_use_ams = false;
     for (const CalibInfo& calib_info : calib_infos) {

@@ -4,11 +4,14 @@
 #include "MsgDialog.hpp"
 
 #include "DeviceCore/DevFilaSystem.h"
+#include "DeviceCore/DevNozzleSystem.h"
+#include "CalibUtils.hpp"
 
 namespace Slic3r { namespace GUI {
 
 wxDEFINE_EVENT(EVT_CALI_ACTION, wxCommandEvent);
 wxDEFINE_EVENT(EVT_CALI_TRAY_CHANGED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_SUBAMS_CLICK, wxCommandEvent);
 
 
 CalibrationStyle get_cali_style(MachineObject* obj)
@@ -267,9 +270,8 @@ void CaliPageButton::msw_rescale()
 }
 
 
-FilamentComboBox::FilamentComboBox(wxWindow* parent, int index, const wxPoint& pos, const wxSize& size)
+FilamentComboBox::FilamentComboBox(wxWindow* parent, const wxPoint& pos, const wxSize& size)
     : wxPanel(parent, wxID_ANY, pos, size, wxTAB_TRAVERSAL)
-    , m_index(index)
 {
     SetBackgroundColour(*wxWHITE);
 
@@ -377,6 +379,21 @@ void FilamentComboBox::load_tray_from_ams(int id, const DynamicPrintConfig& tray
     wxPostEvent(GetParent(), event);
 }
 
+SelectedFilamentInfo FilamentComboBox::get_selected_filament_info() const
+{
+    SelectedFilamentInfo info;
+    info.tray_id         = m_tray_id;
+    info.tray_name       = m_tray_name;
+    info.is_bbl_filament = m_is_bbl_filamnet;
+    info.extruder_role   = m_extuder_role;
+    info.model_index     = m_index;
+    info.extruder_id     = m_extuder_role == ExtruderRole::DEPUTY_EXTRUDER ? DEPUTY_EXTRUDER_ID : MAIN_EXTRUDER_ID;
+    if (m_comboBox) {
+        info.preset = const_cast<Preset*>(m_comboBox->get_selected_preset());
+    }
+    return info;
+}
+
 void FilamentComboBox::update_from_preset()
 {
     m_comboBox->update();
@@ -438,7 +455,264 @@ void FilamentComboBox::msw_rescale()
     m_nozzle_combo->Rescale();
 }
 
+FilamentExtendComboBox::FilamentExtendComboBox(wxWindow* parent, int nozzle_id, const wxPoint& pos, const wxSize& size)
+    : FilamentComboBox(parent, pos, size)
+    , m_nozzle_id(nozzle_id)
+{
+    if (m_nozzle_bmp)   m_nozzle_bmp->Hide();
+    if (m_nozzle_combo) m_nozzle_combo->Hide();
 
+    wxSizer* old_sizer = this->GetSizer();
+    if (old_sizer) {
+        old_sizer->Clear(false);
+    }
+    this->SetSizer(nullptr, true);
+
+    wxBoxSizer* main_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    m_id_label = new Label(this, wxString::Format("%d", m_nozzle_id + 1));
+    m_id_label->SetBackgroundColour(*wxWHITE);
+    main_sizer->Add(m_id_label, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(8));
+
+    m_nozzle_info_label = new Label(this, _L("Nozzle Type and Diameter"));
+    m_nozzle_info_label->SetBackgroundColour(*wxWHITE);
+    main_sizer->Add(m_nozzle_info_label, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(8));
+
+    const wxSize NOZZLE_COMBO_SIZE(FromDIP(160), CALIBRATION_FILAMENT_COMBOX_SIZE.y);
+
+    m_diameter_combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, NOZZLE_COMBO_SIZE, 0, nullptr, wxCB_READONLY);
+    m_diameter_combo->SetMinSize(NOZZLE_COMBO_SIZE);
+    m_diameter_combo->Disable();
+    main_sizer->Add(m_diameter_combo, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(8));
+
+    m_flow_type_combo = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, NOZZLE_COMBO_SIZE, 0, nullptr, wxCB_READONLY);
+    m_flow_type_combo->SetMinSize(NOZZLE_COMBO_SIZE);
+    m_flow_type_combo->Disable();
+    main_sizer->Add(m_flow_type_combo, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(8));
+
+    if (m_comboBox) {
+        if (m_comboBox->clr_picker)
+            main_sizer->Add(m_comboBox->clr_picker, 0, wxALIGN_CENTER | wxRIGHT, FromDIP(8));
+        main_sizer->Add(m_comboBox, 0, wxALIGN_CENTER);
+    }
+
+    // subams placeholder (replaces clr_picker + comboBox visually when active)
+    const wxSize subams_panel_size(FromDIP(20) + FromDIP(8) + CALIBRATION_FILAMENT_COMBOX_SIZE.x, CALIBRATION_FILAMENT_COMBOX_SIZE.y);
+    m_subams_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, subams_panel_size, wxBORDER_NONE);
+    m_subams_panel->SetBackgroundColour(*wxWHITE);
+    m_subams_panel->SetMinSize(subams_panel_size);
+    auto* hover_state = new bool(false);
+    m_subams_panel->Bind(wxEVT_DESTROY, [hover_state](wxWindowDestroyEvent& evt) { delete hover_state; evt.Skip(); });
+    m_subams_panel->Bind(wxEVT_PAINT, [panel = m_subams_panel, hover_state](wxPaintEvent&) {
+        wxPaintDC dc(panel);
+        wxSize sz = panel->GetClientSize();
+        wxColour border = !panel->IsEnabled() ? wxColour(0xDB, 0xDB, 0xDB)
+                          : (*hover_state)   ? wxColour(0x00, 0xAE, 0x42)
+                                             : wxColour(0xDB, 0xDB, 0xDB);
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.SetPen(wxPen(border, 1));
+        dc.DrawRectangle(0, 0, sz.x, sz.y);
+    });
+    m_subams_panel->Bind(wxEVT_ENTER_WINDOW, [panel = m_subams_panel, hover_state](wxMouseEvent& evt) {
+        if (panel->IsEnabled()) { *hover_state = true; panel->Refresh(); }
+        evt.Skip();
+    });
+    m_subams_panel->Bind(wxEVT_LEAVE_WINDOW, [panel = m_subams_panel, hover_state](wxMouseEvent& evt) {
+        if (*hover_state) { *hover_state = false; panel->Refresh(); }
+        evt.Skip();
+    });
+    m_subams_panel->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& evt) {
+        if (!m_subams_panel || !m_subams_panel->IsEnabled()) { evt.Skip(); return; }
+        wxCommandEvent event(EVT_SUBAMS_CLICK);
+        event.SetEventObject(this);
+        wxPostEvent(this, event);
+        evt.Skip();
+    });
+    auto* subams_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_subams_label = new Label(m_subams_panel, wxEmptyString);
+    m_subams_label->SetBackgroundColour(*wxWHITE);
+    /* label sits on top of m_subams_panel and intercepts mouse events; forward them. */
+    m_subams_label->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent& evt) {
+        if (!m_subams_panel || !m_subams_panel->IsEnabled()) { evt.Skip(); return; }
+        wxCommandEvent event(EVT_SUBAMS_CLICK);
+        event.SetEventObject(this);
+        wxPostEvent(this, event);
+        evt.Skip();
+    });
+    m_subams_label->Bind(wxEVT_ENTER_WINDOW, [panel = m_subams_panel, hover_state](wxMouseEvent& evt) {
+        if (panel->IsEnabled() && !*hover_state) { *hover_state = true; panel->Refresh(); }
+        evt.Skip();
+    });
+    m_subams_label->Bind(wxEVT_LEAVE_WINDOW, [panel = m_subams_panel, hover_state](wxMouseEvent& evt) {
+        /* leaving the label may still be inside the panel; rely on panel's leave to clear. */
+        evt.Skip();
+    });
+    subams_sizer->AddStretchSpacer();
+    subams_sizer->Add(m_subams_label, 0, wxALIGN_CENTER_VERTICAL);
+    subams_sizer->AddStretchSpacer();
+    m_subams_panel->SetSizer(subams_sizer);
+    m_subams_panel->Hide();
+    main_sizer->Add(m_subams_panel, 0, wxALIGN_CENTER);
+
+    this->SetSizer(main_sizer);
+    this->Layout();
+    main_sizer->Fit(this);
+}
+
+void FilamentExtendComboBox::SetSubAmsMode(bool enable, const wxString& text)
+{
+    m_subams_mode = enable;
+    if (enable) {
+        if (m_comboBox) {
+            if (m_comboBox->clr_picker) m_comboBox->clr_picker->Hide();
+            m_comboBox->Hide();
+        }
+        if (m_subams_label) m_subams_label->SetLabel(text);
+        if (m_subams_panel) {
+            m_subams_panel->Show();
+            m_subams_panel->Layout();
+        }
+    } else {
+        if (m_subams_panel) m_subams_panel->Hide();
+        if (m_comboBox) {
+            if (m_comboBox->clr_picker) m_comboBox->clr_picker->Show();
+            m_comboBox->Show();
+        }
+    }
+    Layout();
+    if (auto* sizer = GetSizer()) sizer->Fit(this);
+}
+
+void FilamentExtendComboBox::RefreshSubAmsLabel(const wxString& empty_fallback)
+{
+    if (!m_subams_label) return;
+    wxString text;
+    for (const auto& [tray_id, info] : m_subams_selection) {
+        if (info.tray_name.empty()) continue;
+        if (!text.IsEmpty()) text += "; ";
+        text += wxString::FromUTF8(info.tray_name);
+    }
+    m_subams_label->SetLabel(text.IsEmpty() ? empty_fallback : text);
+    if (m_subams_panel) m_subams_panel->Layout();
+}
+
+bool FilamentExtendComboBox::GetSubAmsSelected(int tray_id) const
+{
+    return m_subams_selection.find(tray_id) != m_subams_selection.end();
+}
+
+void FilamentExtendComboBox::SetSubAmsSelected(int tray_id, const SelectedFilamentInfo& info)
+{
+    m_subams_selection[tray_id] = info;
+}
+
+void FilamentExtendComboBox::ClearSubAmsSelected(int tray_id)
+{
+    m_subams_selection.erase(tray_id);
+}
+
+void FilamentExtendComboBox::init_diameter_combo(MachineObject* obj, const NozzleVolumeType& volume_type)
+{
+    if (!m_diameter_combo || !obj) return;
+    m_diameter_combo->Clear();
+
+    auto supported_volumes_and_diameters = CalibUtils::get_supported_nozzle_volume_and_diameters(obj);
+    if (supported_volumes_and_diameters.find(volume_type) != supported_volumes_and_diameters.end()) {
+        for (const auto& diameter_type : supported_volumes_and_diameters[volume_type]) {
+            m_diameter_combo->Append(wxString::Format("%1.1f mm", DevNozzle::ToNozzleDiameterFloat(diameter_type)), wxNullBitmap, new int{diameter_type});
+        }
+    }
+
+    m_diameter_combo->SetSelection(-1);
+}
+
+void FilamentExtendComboBox::init_flow_type_combo(MachineObject* obj)
+{
+    if (!m_flow_type_combo || !obj) return;
+    m_flow_type_combo->Clear();
+
+    auto supported_volumes_and_diameters = CalibUtils::get_supported_nozzle_volume_and_diameters(obj);
+    for (const auto& [vol, _diameters] : supported_volumes_and_diameters) {
+        m_flow_type_combo->Append(DevNozzle::GetNozzleVolumeTypeStr(vol), wxNullBitmap, new int{DevNozzle::ToNozzleFlowType(vol)});
+    }
+
+    m_flow_type_combo->SetSelection(-1);
+}
+
+void FilamentExtendComboBox::SetNozzleInfo(const DevNozzle& nozzle, MachineObject* obj)
+{
+    m_nozzle_id     = nozzle.GetNozzleId();
+    m_nozzle_pos_id = nozzle.GetNozzlePosId();
+
+    if (m_id_label)
+        m_id_label->SetLabel(wxString::Format("%d", m_nozzle_id + 1));
+
+    init_flow_type_combo(obj);
+    if (m_flow_type_combo) {
+        switch_combox_to_target(m_flow_type_combo, nozzle.GetNozzleFlowType());
+    }
+
+    init_diameter_combo(obj, DevNozzle::ToNozzleVolumeType(nozzle.GetNozzleFlowType()));
+    if (m_diameter_combo) {
+        switch_combox_to_target(m_diameter_combo, nozzle.GetNozzleDiameterType());
+    }
+}
+
+NozzleDiameterType FilamentExtendComboBox::GetSelectedDiameterType() const
+{
+    return get_combox_selected_value<NozzleDiameterType>(m_diameter_combo, NONE_DIAMETER_TYPE);
+}
+
+NozzleFlowType FilamentExtendComboBox::GetSelectedFlowType() const
+{
+    return get_combox_selected_value<NozzleFlowType>(m_flow_type_combo, NONE_FLOWTYPE);
+}
+
+bool FilamentExtendComboBox::Enable(bool enable)
+{
+    /* Disable interactive children individually instead of disabling the whole panel. */
+    if (!enable) SetValue(false);
+    if (m_radioBox)  m_radioBox->Enable(enable);
+    if (m_checkBox)  m_checkBox->Enable(enable);
+    if (m_comboBox)  m_comboBox->Enable(enable);
+    if (m_nozzle_combo) {
+        m_nozzle_combo->Enable(enable);
+        if (!enable) m_nozzle_combo->SetValue(wxEmptyString);
+    }
+
+    /* m_diameter_combo / m_flow_type_combo are display-only and stay disabled. */
+    if (m_subams_mode && m_subams_panel) {
+        m_subams_panel->Enable(enable);
+        if (m_subams_label) m_subams_label->Enable(enable);
+        m_subams_panel->Refresh();
+        if (m_comboBox) {
+            if (m_comboBox->clr_picker) m_comboBox->clr_picker->Hide();
+            m_comboBox->Hide();
+        }
+    }
+    return true;
+}
+
+void FilamentExtendComboBox::msw_rescale()
+{
+    FilamentComboBox::msw_rescale();
+    if (m_diameter_combo) {
+        m_diameter_combo->SetSize(CALIBRATION_FILAMENT_COMBOX_SIZE);
+        m_diameter_combo->SetMinSize(CALIBRATION_FILAMENT_COMBOX_SIZE);
+        m_diameter_combo->Rescale();
+    }
+    if (m_flow_type_combo) {
+        m_flow_type_combo->SetSize(CALIBRATION_FILAMENT_COMBOX_SIZE);
+        m_flow_type_combo->SetMinSize(CALIBRATION_FILAMENT_COMBOX_SIZE);
+        m_flow_type_combo->Rescale();
+    }
+    if (m_subams_panel) {
+        const wxSize subams_panel_size(FromDIP(20) + FromDIP(8) + CALIBRATION_FILAMENT_COMBOX_SIZE.x, CALIBRATION_FILAMENT_COMBOX_SIZE.y);
+        m_subams_panel->SetMinSize(subams_panel_size);
+        m_subams_panel->SetSize(subams_panel_size);
+        m_subams_panel->Refresh();
+    }
+}
 
 CaliPageCaption::CaliPageCaption(wxWindow* parent, CalibMode cali_mode,
     wxWindowID id, const wxPoint& pos, const wxSize& size, long style)

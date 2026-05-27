@@ -18,6 +18,35 @@ enum FlowRatioCaliSource {
 };
 
 class CalibrationPresetPage;
+class FilamentExtendComboBox;
+
+/* Carries a subams radio click up to the page so it can enforce page-wide
+   single-selection in CALI_MODEL_SINGLE mode. */
+wxDECLARE_EVENT(EVT_SUBAMS_RADIO_SELECTED, wxCommandEvent);
+
+class SubAmsPopup : public PopupWindow
+{
+public:
+    SubAmsPopup(wxWindow* parent);
+
+    void SetData(MachineObject* obj,
+                 const std::map<int, DynamicPrintConfig>& fila_ams_list,
+                 CalibrationFilamentMode mode,
+                 FilamentExtendComboBox* owner,
+                 const std::set<int>& bind_ams_ids = {});
+    void PopupAt(wxWindow* anchor);
+
+    FilamentExtendComboBox* GetOwner() const { return m_owner; }
+    /* Page-driven visual sync used when another fcb claims the radio under SINGLE mode. */
+    void ClearAllRadioVisuals();
+
+private:
+    wxScrolledWindow*           m_scroll{nullptr};
+    wxBoxSizer*                 m_list_sizer{nullptr};
+    FilamentComboBoxList        m_fcb_list;
+
+    FilamentExtendComboBox*     m_owner{nullptr};
+};
 
 class CaliPresetCaliStagePanel : public wxPanel
 {
@@ -216,7 +245,7 @@ public:
 
     int get_index_by_extruder_tray_id(int extruder_id, int tray_id);
 
-    std::vector<FilamentComboBox*> get_selected_filament_combobox();
+    std::vector<SelectedFilamentInfo> get_selected_filament_combobox();
 
     // key is tray_id
     std::vector<CaliFilamentInfo> get_selected_filaments();
@@ -252,8 +281,11 @@ public:
 protected:
     void create_selection_panel(wxWindow* parent);
     void create_filament_list_panel(wxWindow* parent);
+    void create_rack_nozzle_panel(wxWindow* parent);
     wxSizer* create_ams_items_sizer(wxPanel* ams_preview_panel, std::vector<AMSPreview*> &ams_preview_list, std::vector<AMSinfo> &ams_info, ExtruderRole role);
     wxSizer* create_slot_items_sizer(wxPanel* slot_items_panel, FilamentComboBoxList& filament_comboBox_list, ExtruderRole extuder_role);
+    wxSizer* create_rack_items_sizer(wxPanel* rack_items_panel, FilamentComboBoxList& rack_filament_comboBox_list);
+    void update_rack_filament_combobox(MachineObject* obj);
 
     void manage_filament_radio_btn(FilamentComboBox* selected_fcb);
 
@@ -268,6 +300,9 @@ protected:
     void on_choose_ext_spool(wxCommandEvent& event);
 
     void on_select_tray(wxCommandEvent& event);
+
+    void on_subams_click(wxCommandEvent& event);
+    void on_subams_radio_selected(wxCommandEvent& event);
 
     void on_switch_ams(std::string ams_id = "");
 
@@ -311,8 +346,9 @@ protected:
     CaliPresetCaliStagePanel* m_cali_stage_panel { nullptr };
     wxPanel*                  m_selection_panel { nullptr };
     wxPanel*                  m_filament_from_panel { nullptr };
-    Label*             m_filament_list_tips{ nullptr };
+    Label*                    m_filament_list_tips{ nullptr };
     wxPanel*                  m_filament_list_panel { nullptr };
+    wxPanel*                  m_rack_nozzle_panel { nullptr };
     CaliPresetWarningPanel*   m_warning_panel{nullptr};
     CaliPresetWarningPanel*   m_error_panel { nullptr };
     CaliPresetCustomRangePanel* m_custom_range_panel { nullptr };
@@ -379,6 +415,7 @@ protected:
 
     ScalableButton*      m_ams_sync_button;
     FilamentComboBoxList m_filament_comboBox_list;
+    FilamentComboBoxList m_rack_filament_comboBox_list;
 
     // for update filament combobox, key : tray_id
     std::map<int, DynamicPrintConfig> m_filament_ams_list;
@@ -389,6 +426,8 @@ protected:
     bool m_show_custom_range { false };
     bool m_has_filament_incompatible { false };
     MachineObject* curr_obj { nullptr };
+
+    SubAmsPopup* m_subams_popup{nullptr};
 };
 
 class MaxVolumetricSpeedPresetPage : public CalibrationPresetPage
