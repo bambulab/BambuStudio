@@ -434,7 +434,26 @@ bool apply_painted_mesh_to_volume(
     // and CGAL polygon-soup repair, so the painted vertex count and
     // bbox no longer match the original textured mesh and a bbox-
     // center alignment would silently displace the geometry.
-    const Vec3d mesh_offset = volume.source.mesh_offset;
+    //
+    // If the model has been scaled by Model::convert_from_meters /
+    // convert_from_imperial_units after load, the painted mesh fed
+    // here is already in millimetres (Model::convert_* also scales
+    // texture_mesh in place) while source.mesh_offset was recorded
+    // before the conversion and therefore still lives in the original
+    // pre-scaled frame. Bring it into the same frame as the painted
+    // vertices so the alignment shift below stays correct on the
+    // textured-import path. This compensation is scoped to this
+    // function so that other (non-textured) import paths are not
+    // affected.
+    Vec3d mesh_offset = volume.source.mesh_offset;
+    double unit_scale = 1.0;
+    if (volume.source.is_converted_from_meters)
+        unit_scale = 1000.0;
+    else if (volume.source.is_converted_from_inches)
+        unit_scale = 25.4;
+    if (unit_scale != 1.0)
+        mesh_offset *= unit_scale;
+
     if (!mesh_offset.isApprox(Vec3d::Zero()))
         new_mesh.translate(-mesh_offset.cast<float>());
     new_mesh.set_init_shift(mesh_offset);
@@ -450,11 +469,15 @@ bool apply_painted_mesh_to_volume(
         if (drift > 0.05 * std::max(1.0, diag))
             BOOST_LOG_TRIVIAL(warning)
                 << "apply_painted_mesh_to_volume: painted bbox center drifted by "
-                << drift << " (bbox diag=" << diag << ")";
+                << drift << " (bbox diag=" << diag
+                << ", unit_scale=" << unit_scale
+                << ", from_meters=" << volume.source.is_converted_from_meters
+                << ", from_inches=" << volume.source.is_converted_from_inches << ")";
         else if (drift > 1e-3 * std::max(1.0, diag))
             BOOST_LOG_TRIVIAL(info)
                 << "apply_painted_mesh_to_volume: minor bbox drift "
-                << drift << " (bbox diag=" << diag << ")";
+                << drift << " (bbox diag=" << diag
+                << ", unit_scale=" << unit_scale << ")";
     }
 
     volume.set_mesh(std::move(new_mesh));

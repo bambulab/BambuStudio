@@ -1789,8 +1789,24 @@ void TextureImportDialog::build_params_panel(wxWindow* parent, wxSizer* sizer)
         m_btn_apply->SetTextColor(btn_text_green);
     }
 
-    m_btn_color_auto->SetToolTip(_L("Automatically determine the optimal color count only and recompute filament mapping"));
-    m_btn_apply->SetToolTip(_L("Convert texture to painting using the specified color count and smooth level"));
+    // Defer attaching the Auto/Apply tooltips until the dialog has actually
+    // been shown. On macOS, AppKit creates NSTrackingArea and dispatches a
+    // synthetic mouseEntered: as soon as the window first becomes visible,
+    // which would otherwise pop the native tooltip without the user actually
+    // hovering when the cursor happens to land on these buttons as the dialog
+    // appears.
+    Bind(wxEVT_SHOW, [this](wxShowEvent& e) {
+        e.Skip();
+        if (!e.IsShown() || m_initial_tooltips_set)
+            return;
+        m_initial_tooltips_set = true;
+        CallAfter([this]() {
+            if (m_btn_color_auto)
+                m_btn_color_auto->SetToolTip(_L("Automatically determine the optimal color count only and recompute filament mapping"));
+            if (m_btn_apply)
+                m_btn_apply->SetToolTip(_L("Convert texture to painting using the specified color count and smooth level"));
+        });
+    });
 
     wxBoxSizer* apply_sizer = new wxBoxSizer(wxHORIZONTAL);
     apply_sizer->Add(m_btn_color_auto, 0, wxRIGHT, FromDIP(4));

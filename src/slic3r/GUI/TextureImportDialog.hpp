@@ -291,6 +291,7 @@ private:
     bool                               m_initial_computation_pending = false;
     bool                               m_initial_computation_cancelled = false;
     bool                               m_initial_computation_failed = false;
+    bool                               m_initial_tooltips_set = false;
     bool                               m_current_computation_auto_color = false;
     Slic3r::TexturePaintingSettings::MeshRepairDecision m_mesh_repair_decision =
         Slic3r::TexturePaintingSettings::MeshRepairDecision::Ask;

@@ -8780,6 +8780,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
             if ((!is_project_file) && (!load_old_project)) {
                 // if (!is_project_file) {
                 if (int deleted_objects = model.removed_objects_with_zero_volume(); deleted_objects > 0) {
+                    // GLB / glTF / FBX may have produced a textured ModelObject via
+                    // add_textured_mesh_to_model(). When that single object gets
+                    // removed (e.g. non-watertight surface whose signed volume
+                    // integrates to ~0), drop model.texture_mesh as well so the
+                    // texture-import dialog does not pop up over an empty model.
+                    if (model.objects.empty())
+                        model.texture_mesh.reset();
                     MessageDialog(q, _L("Objects with zero volume removed"), _L("The volume of the object is zero"), wxICON_INFORMATION | wxOK).ShowModal();
                 }
                 if (imperial_units)
@@ -9339,6 +9346,18 @@ bool Plater::priv::run_textured_mesh_import_dialog(Slic3r::Model& loaded_model, 
                                                    std::function<bool(int)> progress_callback)
 {
     if (!loaded_model.texture_mesh || !has_importable_texture(*loaded_model.texture_mesh)) return false;
+
+    // Defense in depth: if all geometry got dropped earlier (e.g. by a future
+    // regression of the zero-volume cleanup) but the textured mesh is still
+    // alive, there is nothing for the dialog to paint onto. Skip the dialog
+    // gracefully so load_files() can fall through to its "no geometry"
+    // message instead of making the user round-trip a meaningless matcher.
+    if (loaded_model.objects.empty()) {
+        BOOST_LOG_TRIVIAL(warning) << "handle_textured_mesh_import: skipping dialog because the loaded model has no geometry objects";
+        loaded_model.texture_mesh.reset();
+        result.skipped = true;
+        return true;
+    }
 
     const wxString fallback_warning = _L("Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only.");
 
