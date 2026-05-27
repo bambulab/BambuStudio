@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-26 20:44+0800\n"
+"POT-Creation-Date: 2026-05-27 15:56+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2030,7 +2030,7 @@ msgid "new or open project file is not allowed during the slicing process!"
 msgstr "arquivo de projeto novo ou aberto não é permitido durante o processo de fatiamento!"
 
 msgid "Open Project"
-msgstr "Projeto aberto"
+msgstr "Abrir projeto"
 
 msgid "The Bambu Studio version is too old to enable cloud service. Please download the latest version from Bambu Lab website."
 msgstr "A versão do Bambu Studio é muito antiga para habilitar o serviço em nuvem. Faça o download da versão mais recente no site do Bambu Lab."
@@ -4242,15 +4242,40 @@ msgstr ""
 "a profundidade da trava deve ser menor que a profundidade da pele.\n"
 "Redefinir para 50%% da profundidade da pele"
 
+msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
+msgstr ""
+
+msgid "Set ensure vertical shell thickness to Partial."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Set wall loops to %d."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Set sparse infill density to %d%%."
+msgstr ""
+
+msgid "Disable spiral vase mode."
+msgstr ""
+
 msgid ""
-"Alternate extra wall doesn't work well when ensure vertical shell thickness is set to Enable.\n"
 "Change these settings automatically?\n"
-"Yes - Change ensure vertical shell thickness to Partial and enable alternate extra wall\n"
+"Yes - Apply and keep alternate extra wall enabled\n"
 "No  - Don't use alternate extra wall"
 msgstr ""
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
-msgstr "O modo espiral só funciona quando os loops de parede são 1, o suporte está desabilitado, a detecção de aglomeração por sondagem está desabilitada, as camadas de casca superior são 0, a densidade de preenchimento esparso é 0, o tipo de timelapse é tradicional e a velocidade de suavização da parede na direção z é falsa."
+msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
+msgstr ""
+
+msgid ""
+"Apply these adjustments?\n"
+"Yes - Apply and keep alternate extra wall enabled\n"
+"No  - Keep current settings and alternate extra wall enabled"
+msgstr ""
+
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Mas máquinas com estrutura I3 não gerarão vídeos em timelapse."
@@ -6390,7 +6415,7 @@ msgid "Click to view thermal preconditioning explanation"
 msgstr "Clique para ver a explicação do pré-condicionamento térmico"
 
 msgid "Estimated finish time: "
-msgstr "Tempo estimado de conclusão: "
+msgstr "Hora estimada de conclusão:"
 
 msgid ""
 "The estimated printing time for \n"
@@ -9301,8 +9326,8 @@ msgstr "A versão atual do seu firmware não é compatível com esta impressão.
 msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr "A dureza do material atual (%s) excede a dureza de %s (%s). Isso pode causar desgaste do bocal, levando a vazamento de material e fluxo instável. Tenha cuidado ao usá-lo."
 
-msgid "It is recommended to perform an mannual flow calibration for TPU filament on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the previous calibration value and skip the flow calibration process."
-msgstr "É recomendável realizar uma calibração manual de fluxo para filamento TPU na página \"Calibração\". Se \"Calibração dinâmica de fluxo\" estiver definida como Auto/Ligado, o sistema usará o valor de calibração anterior e ignorará o processo de calibração de fluxo."
+msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
+msgstr ""
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "Alguns filamentos podem alternar entre extrusoras durante a impressão. A calibração manual do valor K não pode ser aplicada durante toda a impressão, o que pode afetar a qualidade da impressão. Recomenda-se habilitar a Calibração de Fluxo Dinâmico."
@@ -12765,7 +12790,7 @@ msgstr "Temperatura de descarga"
 msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
 msgstr "temperatura ao lavar o filamento. 0 indica o limite superior da faixa de temperatura do bico recomendada"
 
-msgid "Flush temperature used in fast purge mode. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgid "Flush temperature used in fast purge mode."
 msgstr ""
 
 msgid "Flush volumetric speed"
@@ -17713,6 +17738,12 @@ msgid ""
 msgstr ""
 "Confiabilidade na Primeira Tentativa\n"
 "Menos supervisão, saída mais previsível. Exemplo: uma pequena fazenda produzindo peças de PETG evita surpresas de \"falha na hora 6\" e mantém os lotes no cronograma."
+
+#~ msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
+#~ msgstr "O modo espiral só funciona quando os loops de parede são 1, o suporte está desabilitado, a detecção de aglomeração por sondagem está desabilitada, as camadas de casca superior são 0, a densidade de preenchimento esparso é 0, o tipo de timelapse é tradicional e a velocidade de suavização da parede na direção z é falsa."
+
+#~ msgid "It is recommended to perform an mannual flow calibration for TPU filament on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the previous calibration value and skip the flow calibration process."
+#~ msgstr "É recomendável realizar uma calibração manual de fluxo para filamento TPU na página \"Calibração\". Se \"Calibração dinâmica de fluxo\" estiver definida como Auto/Ligado, o sistema usará o valor de calibração anterior e ignorará o processo de calibração de fluxo."
 
 #~ msgid "Pass 1"
 #~ msgstr "Passe 1"

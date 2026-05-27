@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-26 20:44+0800\n"
+"POT-Creation-Date: 2026-05-27 15:56+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4244,15 +4244,40 @@ msgstr ""
 "la profondità del blocco deve essere inferiore alla profondità della skin.\n"
 "Ripristina a 50%% di profondità della skin"
 
+msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
+msgstr ""
+
+msgid "Set ensure vertical shell thickness to Partial."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Set wall loops to %d."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Set sparse infill density to %d%%."
+msgstr ""
+
+msgid "Disable spiral vase mode."
+msgstr ""
+
 msgid ""
-"Alternate extra wall doesn't work well when ensure vertical shell thickness is set to Enable.\n"
 "Change these settings automatically?\n"
-"Yes - Change ensure vertical shell thickness to Partial and enable alternate extra wall\n"
+"Yes - Apply and keep alternate extra wall enabled\n"
 "No  - Don't use alternate extra wall"
 msgstr ""
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
-msgstr "La modalità a spirale funziona solo quando il numero delle pareti è 1, i supporti sono disattivati, il rilevamento di agglomerati tramite sondaggio è disattivato, gli strati superiori sono 0, la densità di riempimento è 0, il tipo di timelapse è tradizionale e la velocità di parete in direzione Z con smussatura è impostata su falso."
+msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
+msgstr ""
+
+msgid ""
+"Apply these adjustments?\n"
+"Yes - Apply and keep alternate extra wall enabled\n"
+"No  - Keep current settings and alternate extra wall enabled"
+msgstr ""
+
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Ma le macchine con struttura I3 non genereranno video timelapse."
@@ -9291,8 +9316,8 @@ msgstr "La versione firmware attuale non può avviare questo lavoro di stampa. A
 msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr "La durezza del materiale attuale (%s) supera la durezza di %s (%s). Potrebbe causare usura del nozzle, con conseguente fuoriuscita di materiale e flusso instabile. Usa questo materiale con cautela."
 
-msgid "It is recommended to perform an mannual flow calibration for TPU filament on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the previous calibration value and skip the flow calibration process."
-msgstr "Consigliamo di eseguire una calibrazione manuale del flusso per il filamento TPU nella pagina \"Calibrazione\". Se \"Calibrazione dinamica del flusso\" è impostata su Automatico/Attivato, il sistema utilizzerà il valore di calibrazione precedente e salterà il processo di calibrazione del flusso."
+msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
+msgstr ""
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "Alcuni filamenti possono passare da un estrusore all’altro durante la stampa. La calibrazione manuale del valore K non può essere applicata all’intera stampa, il che può influire sulla qualità. Abilita la calibrazione del Flusso Dinamico."
@@ -12749,7 +12774,7 @@ msgstr "Temperatura di Spurgo"
 msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
 msgstr "temperatura durante lo spurgo filamento. 0 indica il limite superiore dell'intervallo di temperature consigliate per il nozzle."
 
-msgid "Flush temperature used in fast purge mode. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgid "Flush temperature used in fast purge mode."
 msgstr ""
 
 msgid "Flush volumetric speed"
@@ -17701,6 +17726,12 @@ msgid ""
 msgstr ""
 "Affidabilità al Primo Tentativo\n"
 "Meno supervisione, risultati più prevedibili. Ad esempio: una piccola produzione che stampa parti in PETG evita sorprese tipo \"fallimento alla sesta ora\" e mantiene i lotti nei tempi previsti."
+
+#~ msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
+#~ msgstr "La modalità a spirale funziona solo quando il numero delle pareti è 1, i supporti sono disattivati, il rilevamento di agglomerati tramite sondaggio è disattivato, gli strati superiori sono 0, la densità di riempimento è 0, il tipo di timelapse è tradizionale e la velocità di parete in direzione Z con smussatura è impostata su falso."
+
+#~ msgid "It is recommended to perform an mannual flow calibration for TPU filament on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the previous calibration value and skip the flow calibration process."
+#~ msgstr "Consigliamo di eseguire una calibrazione manuale del flusso per il filamento TPU nella pagina \"Calibrazione\". Se \"Calibrazione dinamica del flusso\" è impostata su Automatico/Attivato, il sistema utilizzerà il valore di calibrazione precedente e salterà il processo di calibrazione del flusso."
 
 #~ msgid "Pass 1"
 #~ msgstr "Passo 1"

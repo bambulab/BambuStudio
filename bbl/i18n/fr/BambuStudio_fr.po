@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-26 20:44+0800\n"
+"POT-Creation-Date: 2026-05-27 15:56+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4230,15 +4230,40 @@ msgstr ""
 "la profondeur du verrouillage doit être inférieure à la profondeur de la peau.\n"
 "Réinitialiser à 50%% de la profondeur de la peau"
 
+msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
+msgstr ""
+
+msgid "Set ensure vertical shell thickness to Partial."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Set wall loops to %d."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Set sparse infill density to %d%%."
+msgstr ""
+
+msgid "Disable spiral vase mode."
+msgstr ""
+
 msgid ""
-"Alternate extra wall doesn't work well when ensure vertical shell thickness is set to Enable.\n"
 "Change these settings automatically?\n"
-"Yes - Change ensure vertical shell thickness to Partial and enable alternate extra wall\n"
+"Yes - Apply and keep alternate extra wall enabled\n"
 "No  - Don't use alternate extra wall"
 msgstr ""
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
-msgstr "Le mode spirale ne fonctionne que lorsque le nombre de parois est égal à 1, que les supports sont désactivés, que la détection d'encrassement par palpage est désactivée, que le nombre de couches supérieures est de 0, que la densité de remplissage est de 0, que le type de timelapse est « traditionnel » et que le lissage de la vitesse des parois dans la direction Z est désactivé."
+msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
+msgstr ""
+
+msgid ""
+"Apply these adjustments?\n"
+"Yes - Apply and keep alternate extra wall enabled\n"
+"No  - Keep current settings and alternate extra wall enabled"
+msgstr ""
+
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Mais les machines avec une structure I3 ne généreront pas de vidéos timelapse."
@@ -9283,8 +9308,8 @@ msgstr "Votre version actuelle du firmware ne peut pas démarrer cette tâche d'
 msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr "La dureté du matériau actuel (%s) dépasse celle de %s (%s). Cela peut entraîner une usure de la buse, provoquant des fuites de matériau et un débit instable. Veuillez faire preuve de prudence lors de son utilisation."
 
-msgid "It is recommended to perform an mannual flow calibration for TPU filament on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the previous calibration value and skip the flow calibration process."
-msgstr "Il est recommandé d'effectuer un étalonnage manuel du débit pour le filament TPU sur la page « Étalonnage ». Si l'option « Étalonnage dynamique du débit » est activée (Auto), le système utilise la valeur d'étalonnage précédente et ignore le processus d'étalonnage du débit."
+msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
+msgstr ""
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "Certains filaments peuvent basculer entre les extrudeurs pendant l'impression. L'étalonnage manuel de la valeur K ne peut pas être appliqué sur l'ensemble de l'impression, ce qui peut affecter la qualité d'impression. L'activation de la Calibration de la Dynamique du Débit est recommandée."
@@ -12742,7 +12767,7 @@ msgstr "Température de rinçage"
 msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
 msgstr "température lors du rinçage du filament. Si elle est définie sur 0, la température maximale du filament sera sélectionnée."
 
-msgid "Flush temperature used in fast purge mode. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgid "Flush temperature used in fast purge mode."
 msgstr ""
 
 msgid "Flush volumetric speed"
@@ -17690,6 +17715,12 @@ msgid ""
 msgstr ""
 "Fiabilité Garantie du Premier Coup\n"
 "Moins de surveillance, une production plus prévisible. Exemple : une petite exploitation agricole produisant des pièces en PETG évite les mauvaises surprises \"panne au bout de 6 h\" et respecte les délais de production."
+
+#~ msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
+#~ msgstr "Le mode spirale ne fonctionne que lorsque le nombre de parois est égal à 1, que les supports sont désactivés, que la détection d'encrassement par palpage est désactivée, que le nombre de couches supérieures est de 0, que la densité de remplissage est de 0, que le type de timelapse est « traditionnel » et que le lissage de la vitesse des parois dans la direction Z est désactivé."
+
+#~ msgid "It is recommended to perform an mannual flow calibration for TPU filament on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the previous calibration value and skip the flow calibration process."
+#~ msgstr "Il est recommandé d'effectuer un étalonnage manuel du débit pour le filament TPU sur la page « Étalonnage ». Si l'option « Étalonnage dynamique du débit » est activée (Auto), le système utilise la valeur d'étalonnage précédente et ignore le processus d'étalonnage du débit."
 
 #~ msgid "Pass 1"
 #~ msgstr "Passe 1"

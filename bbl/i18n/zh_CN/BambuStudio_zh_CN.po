@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-26 20:44+0800\n"
+"POT-Creation-Date: 2026-05-27 15:56+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3317,10 +3317,10 @@ msgid "Multi-Color"
 msgstr "多色"
 
 msgid "Your input texture model"
-msgstr ""
+msgstr "您输入的纹理模型"
 
 msgid "Processed multi-color model"
-msgstr ""
+msgstr "处理后的多色模型"
 
 msgid "Color Count"
 msgstr "颜色数目"
@@ -3862,6 +3862,8 @@ msgid ""
 "After clicking 'Reconnect', all AMS units will be automatically disconnected.\n"
 "Please reconnect them in the desired order to set a specific AMS ID sequence."
 msgstr ""
+"点击“重新连接”后，所有 AMS 单元将自动断开连接。\n"
+"请按照所需顺序重新连接，以设置特定的 AMS ID 序列。"
 
 msgid "Are you sure to reset the ID sequence of the connected AMS?"
 msgstr "您确定要重置已连接AMS的ID序列吗？"
@@ -4206,15 +4208,46 @@ msgstr ""
 "互锁深度应该比表皮深度小,\n"
 "重设为表皮深度的一半"
 
+msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
+msgstr "交替额外墙层与旋转花瓶模式不兼容。若要启用交替额外墙层，建议进行以下调整："
+
+msgid "Set ensure vertical shell thickness to Partial."
+msgstr "将确保垂直外壳厚度设为「部分」。"
+
+#, c-format, boost-format
+msgid "Set wall loops to %d."
+msgstr "将墙层数设为 %d。"
+
+#, c-format, boost-format
+msgid "Set sparse infill density to %d%%."
+msgstr "将稀疏填充密度设为 %d%%。"
+
+msgid "Disable spiral vase mode."
+msgstr "关闭旋转花瓶模式。"
+
 msgid ""
-"Alternate extra wall doesn't work well when ensure vertical shell thickness is set to Enable.\n"
 "Change these settings automatically?\n"
-"Yes - Change ensure vertical shell thickness to Partial and enable alternate extra wall\n"
+"Yes - Apply and keep alternate extra wall enabled\n"
 "No  - Don't use alternate extra wall"
 msgstr ""
+"是否自动修改这些设置？\n"
+"是 - 应用修改并保持交替额外墙层启用\n"
+"否 - 不使用交替额外墙层"
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
-msgstr "花瓶模式仅在以下条件下可用：墙壁环数设置为 1，支撑禁用，触碰裹头检测禁用，顶壳层数为 0，稀疏填充密度为 0，延时摄影类型为传统，并且 Z 方向墙速度平滑不启用。"
+msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
+msgstr "为使交替额外墙层正常工作，建议进行以下调整："
+
+msgid ""
+"Apply these adjustments?\n"
+"Yes - Apply and keep alternate extra wall enabled\n"
+"No  - Keep current settings and alternate extra wall enabled"
+msgstr ""
+"是否应用这些修改？\n"
+"是 - 应用修改并保持交替额外墙层启用\n"
+"否 - 保持当前设置并启用交替额外墙层"
+
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+msgstr "花瓶模式仅在以下条件下可用：墙壁环数设置为1，支撑禁用，触碰裹头检测禁用，顶壳层数为0，稀疏填充密度为0，延时摄影类型为传统，Z方向墙速度平滑不启用且交替额外墙层关闭。"
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr "但是I3结构的机器将不会生成延时视频。"
@@ -5776,16 +5809,16 @@ msgid "Temperature Calibration"
 msgstr "温度校准"
 
 msgid "Coarse"
-msgstr ""
+msgstr "粗调"
 
 msgid "Flow rate test - Coarse"
-msgstr ""
+msgstr "流量测试 - 粗调"
 
 msgid "Fine"
-msgstr ""
+msgstr "细调"
 
 msgid "Flow rate test - Fine"
-msgstr ""
+msgstr "流量测试 - 细调"
 
 msgid "Flow rate"
 msgstr "流量比例"
@@ -7084,13 +7117,13 @@ msgid "Automatically capture and upload print photos, showing defects during pri
 msgstr "自动拍摄打印件照片并上传云端，包括打印过程中检测到的缺陷和任务结束时的打印件状态，便于远程查看。"
 
 msgid "Automatically match the corresponding switch strategy for leak-prone filaments (disable blob detection) and regular filaments (enable blob detection)."
-msgstr ""
+msgstr "对易拉丝耗材(关闭裹头检测)与常规耗材(开启裹头检测)自动匹配相应的开关策略。"
 
 msgid "Detect whether the nozzle is wrapped by filament or other foreign matter."
-msgstr ""
+msgstr "检测喷嘴是否被耗材或其他异物包裹住。"
 
 msgid "After disabling, nozzle wrapping cannot be detected, which may lead to print failure or nozzle damage."
-msgstr ""
+msgstr "关闭后无法发现喷嘴包裹,可能导致打印失败或喷嘴损坏。"
 
 msgctxt "Nozzle Type"
 msgid "Type"
@@ -9239,8 +9272,8 @@ msgstr "您当前的固件版本无法启动此打印作业。请更新至最新
 msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr "当前材料（%s）的硬度高于 %s（%s）的硬度，可能导致喷嘴磨损，进而造成材料泄漏和流动不稳定。使用时请务必小心。"
 
-msgid "It is recommended to perform an mannual flow calibration for TPU filament on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the previous calibration value and skip the flow calibration process."
-msgstr ""
+msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
+msgstr "若动态流量校准设置为自动/打开，系统将使用您的手动校准值或默认值，并跳过流量校准过程。可以在'校准'页面对TPU耗材进行手动流量校准。"
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "某些耗材在打印过程中可能会在挤出机之间切换。手动 K 值校准无法在整个打印过程中应用，这可能会影响打印质量。建议启用动态校准。"
@@ -9887,10 +9920,10 @@ msgid "Multi Filament"
 msgstr "多材料"
 
 msgid "Purge Mode: Standard"
-msgstr ""
+msgstr "冲刷模式：标准"
 
 msgid "Purge Mode: Fast"
-msgstr ""
+msgstr "冲刷模式：快速"
 
 msgid "Printable space"
 msgstr "可打印区域"
@@ -12687,7 +12720,7 @@ msgstr "冲刷温度"
 msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
 msgstr "耗材冲刷时的温度。0表示使用最大建议喷嘴温度。"
 
-msgid "Flush temperature used in fast purge mode. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgid "Flush temperature used in fast purge mode."
 msgstr ""
 
 msgid "Flush volumetric speed"
@@ -13311,10 +13344,10 @@ msgid "Enable clumping detection"
 msgstr "开启触碰裹头检测"
 
 msgid "Order-independent overlap carving"
-msgstr ""
+msgstr "重叠区域稳定归属"
 
 msgid "When enabled, overlapping model parts are carved by bounding-box size so smaller embedded parts are not removed by larger parts due to volume order."
-msgstr ""
+msgstr "开启后，重叠零件按边界框大小决定切割归属，避免小零件因对象顺序被大零件覆盖。"
 
 msgid "Clumping detection layers"
 msgstr "触碰裹头检测层数"
@@ -13872,7 +13905,7 @@ msgid "Embedding the wall into parts where the wall loops are absent ensures tha
 msgstr "将墙体嵌入没有外墙的区域以确保墙体与填充物无缝连接。"
 
 msgid "Alternate extra wall"
-msgstr ""
+msgstr "交替额外墙层"
 
 msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
 msgstr ""
@@ -14909,7 +14942,7 @@ msgid "The supplied file couldn't be read because it's empty"
 msgstr "无法读取提供的文件，因为该文件为空。"
 
 msgid "The file format is incompatible and cannot be parsed."
-msgstr ""
+msgstr "文件格式不兼容，无法解析。"
 
 msgid "Unknown file format. Input file must have .stl, .obj, .amf(.xml), .gltf, .glb, .fbx extension."
 msgstr ""
@@ -17617,6 +17650,9 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
+#~ msgstr "花瓶模式仅在以下条件下可用：墙壁环数设置为 1，支撑禁用，触碰裹头检测禁用，顶壳层数为 0，稀疏填充密度为 0，延时摄影类型为传统，并且 Z 方向墙速度平滑不启用。"
 
 #~ msgid "Pass 1"
 #~ msgstr "粗调"

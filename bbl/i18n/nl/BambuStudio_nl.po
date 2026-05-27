@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-26 20:44+0800\n"
+"POT-Creation-Date: 2026-05-27 15:56+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4239,15 +4239,40 @@ msgstr ""
 "de overlapdiepte moet kleiner zijn dan de huiddiepte.\n"
 "Reset naar 50%% van huiddiepte"
 
+msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
+msgstr ""
+
+msgid "Set ensure vertical shell thickness to Partial."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Set wall loops to %d."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Set sparse infill density to %d%%."
+msgstr ""
+
+msgid "Disable spiral vase mode."
+msgstr ""
+
 msgid ""
-"Alternate extra wall doesn't work well when ensure vertical shell thickness is set to Enable.\n"
 "Change these settings automatically?\n"
-"Yes - Change ensure vertical shell thickness to Partial and enable alternate extra wall\n"
+"Yes - Apply and keep alternate extra wall enabled\n"
 "No  - Don't use alternate extra wall"
 msgstr ""
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
-msgstr "De spiraalmodus werkt alleen als wanden op 1 staat, support is uitgeschakeld, klonteringdetectie via peilen is uitgeschakeld, bovenste lagen van de schaal op 0 staat, de dichtheid van de dunne vulling op 0 staat, het timelapse-type op traditioneel staat en het afvlakken van de wandsnelheid in de z-richting op false staat."
+msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
+msgstr ""
+
+msgid ""
+"Apply these adjustments?\n"
+"Yes - Apply and keep alternate extra wall enabled\n"
+"No  - Keep current settings and alternate extra wall enabled"
+msgstr ""
+
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Maar machines met een I3-structuur genereren geen timelapsevideo's."
@@ -9296,8 +9321,8 @@ msgstr "Jouw huidige firmwareversie kan deze printtaak niet starten. Update naar
 msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr "De hardheid van het huidige materiaal (%s) overschrijdt de hardheid van %s (%s). Dit kan nozzle-slijtage veroorzaken, wat leidt tot materiaallekkage en een onstabiele materiaaltoevoer. Gebruik het met voorzichtigheid."
 
-msgid "It is recommended to perform an mannual flow calibration for TPU filament on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the previous calibration value and skip the flow calibration process."
-msgstr "Het wordt aanbevolen om op de pagina 'Kalibratie' een handmatige flowkalibratie voor TPU-filament uit te voeren. Als 'Dynamische flowkalibratie' is ingesteld op 'Automatisch/Aan', gebruikt het systeem de vorige kalibratiewaarde en wordt het flowkalibratieproces overgeslagen."
+msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
+msgstr ""
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "Sommige filamenten kunnen tijdens het printen wisselen tussen extruders. Handmatige K-waarde kalibratie kan niet gedurende de gehele print worden toegepast, wat de printkwaliteit kan beïnvloeden. Het inschakelen van Kalibratie van de doorvoerdynamica wordt aanbevolen."
@@ -12759,7 +12784,7 @@ msgstr "Spoeltemperatuur"
 msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
 msgstr "temperatuur bij het spoelen van filament. 0 geeft de bovengrens aan van het aanbevolen temperatuurbereik van de nozzle"
 
-msgid "Flush temperature used in fast purge mode. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgid "Flush temperature used in fast purge mode."
 msgstr ""
 
 msgid "Flush volumetric speed"
@@ -17703,6 +17728,12 @@ msgid ""
 msgstr ""
 "Betrouwbaarheid in één keer goed\n"
 "Minder toezicht, voorspelbaardere output. Voorbeeld: een kleine boerderij die PETG-onderdelen produceert, voorkomt verrassingen zoals 'falen na 6 uur' en houdt batches op schema."
+
+#~ msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
+#~ msgstr "De spiraalmodus werkt alleen als wanden op 1 staat, support is uitgeschakeld, klonteringdetectie via peilen is uitgeschakeld, bovenste lagen van de schaal op 0 staat, de dichtheid van de dunne vulling op 0 staat, het timelapse-type op traditioneel staat en het afvlakken van de wandsnelheid in de z-richting op false staat."
+
+#~ msgid "It is recommended to perform an mannual flow calibration for TPU filament on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the previous calibration value and skip the flow calibration process."
+#~ msgstr "Het wordt aanbevolen om op de pagina 'Kalibratie' een handmatige flowkalibratie voor TPU-filament uit te voeren. Als 'Dynamische flowkalibratie' is ingesteld op 'Automatisch/Aan', gebruikt het systeem de vorige kalibratiewaarde en wordt het flowkalibratieproces overgeslagen."
 
 #~ msgid "Pass 1"
 #~ msgstr "Fase 1"
