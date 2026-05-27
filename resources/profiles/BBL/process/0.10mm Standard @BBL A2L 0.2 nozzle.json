@@ -25,9 +25,12 @@
         "60"
     ],
     "overhang_3_4_speed": [
-        "35"
+        "60"
     ],
     "overhang_4_4_speed": [
+        "35"
+    ],
+    "overhang_totally_speed": [
         "25"
     ],
     "prime_tower_brim_width": "-1",

@@ -20,8 +20,8 @@
     "fan_min_speed": [
         "60"
     ],
-    "filament_flush_temp": [
-        "0"
+    "filament_bridge_speed": [
+        "50"
     ],
     "filament_flush_temp_fast": [
         "240"
@@ -49,6 +49,9 @@
     ],
     "overhang_fan_threshold": [
         "25%"
+    ],
+    "override_process_overhang_speed": [
+        "1"
     ],
     "pre_start_fan_time": [
         "0"
