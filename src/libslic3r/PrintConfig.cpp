@@ -80,6 +80,15 @@ const std::vector<std::string> filament_extruder_override_keys = {
     "filament_retraction_distances_when_cut"
 };
 
+// Some filament override parameters are generated from filament_extruder_override_keys,
+// while filament_retract_length_nc is defined separately. Keep the generator list
+// unchanged and use this helper for behavior checks that need the full override set.
+bool is_filament_extruder_override_key(const std::string &opt_key)
+{
+    return std::find(filament_extruder_override_keys.begin(), filament_extruder_override_keys.end(), opt_key) != filament_extruder_override_keys.end() ||
+           opt_key == "filament_retract_length_nc";
+}
+
 const std::vector<std::string> filament_overhang_override_keys = {
     "filament_enable_overhang_speed",
     "filament_bridge_speed",
@@ -9052,6 +9061,7 @@ void DynamicPrintConfig::update_diff_values_to_child_config(DynamicPrintConfig& 
                 BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(" change key %1% from base_value %2% to child's value %3%")
                         %opt %(opt_src->serialize()) %(opt_target->serialize());
                 if (opt_target->is_scalar()
+                    || is_filament_extruder_override_key(opt)
                     || ((key_set1.find(opt) == key_set1.end()) && (key_set2.empty() || (key_set2.find(opt) == key_set2.end())))) {
                     //nothing to do, keep the original one
                     opt_src->set(opt_target);

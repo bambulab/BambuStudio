@@ -386,7 +386,7 @@ PresetBundle::PresetBundle()
         auto& default_config = this->filaments.default_preset().config;
         for(const std::string& opt_key : default_config.keys()){
             ConfigOption* opt = default_config.optptr(opt_key, false);
-            bool is_override_key = std::find(filament_extruder_override_keys.begin(),filament_extruder_override_keys.end(), opt_key) != filament_extruder_override_keys.end();
+            bool is_override_key = is_filament_extruder_override_key(opt_key);
             if(!is_override_key || !opt->nullable())
                 continue;
             opt->deserialize("nil",ForwardCompatibilitySubstitutionRule::Disable);

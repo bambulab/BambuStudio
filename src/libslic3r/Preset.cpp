@@ -240,7 +240,7 @@ void extend_default_config_length(DynamicPrintConfig& config, const DynamicPrint
     auto replace_nil_and_resize = [&](const std::string & key, int length){
         ConfigOption* raw_ptr = config.option(key);
         ConfigOptionVectorBase* opt_vec = static_cast<ConfigOptionVectorBase *>(raw_ptr);
-        if(set_nil_to_default && raw_ptr->is_nil() && defaults.has(key) && std::find(filament_extruder_override_keys.begin(), filament_extruder_override_keys.end(), key) == filament_extruder_override_keys.end()){
+        if(set_nil_to_default && raw_ptr->is_nil() && defaults.has(key) && !is_filament_extruder_override_key(key)){
             opt_vec->clear();
             opt_vec->resize(length, defaults.option(key));
         }
@@ -665,7 +665,7 @@ bool Preset::save(DynamicPrintConfig* parent_config)
         {
             ConfigOption *opt_src = config.option(option);
             ConfigOption *opt_dst = temp_config.option(option, true);
-            if (opt_dst->is_scalar() || !(opt_dst->nullable()))
+            if (opt_dst->is_scalar() || !(opt_dst->nullable()) || is_filament_extruder_override_key(option))
                 opt_dst->set(opt_src);
             else {
                 ConfigOptionVectorBase* opt_vec_src = static_cast<ConfigOptionVectorBase*>(opt_src);
@@ -1568,7 +1568,7 @@ Preset* PresetCollection::get_preset_differed_for_save(Preset& preset)
         {
             ConfigOption *opt_src = preset.config.option(option);
             ConfigOption *opt_dst = temp_config.option(option, true);
-            if (opt_dst->is_scalar() || !(opt_dst->nullable()))
+            if (opt_dst->is_scalar() || !(opt_dst->nullable()) || is_filament_extruder_override_key(option))
                 opt_dst->set(opt_src);
             else {
                 ConfigOptionVectorBase* opt_vec_src = static_cast<ConfigOptionVectorBase*>(opt_src);
