@@ -43,6 +43,9 @@
     "filament_vendor": [
         "Bambu Lab"
     ],
+    "fins_extrude_safe_temp": [
+        "55"
+    ],
     "slow_down_layer_time": [
         "8"
     ],

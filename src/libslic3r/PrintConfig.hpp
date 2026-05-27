@@ -1329,6 +1329,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionString,              filament_notes))
     ((ConfigOptionStrings,             default_filament_colour))
     ((ConfigOptionInts,                temperature_vitrification))  //BBS
+    ((ConfigOptionInts,                fins_extrude_safe_temp))  //BBS: per-filament safe temp for hotend fin extrusion, exposed to gcode
     ((ConfigOptionFloatsNullable,      filament_ramming_travel_time))  //BBS
     ((ConfigOptionIntsNullable,        filament_pre_cooling_temperature))// BBS
     ((ConfigOptionFloatsNullable,      filament_max_volumetric_speed))

@@ -18,6 +18,9 @@
     "filament_vendor": [
         "Bambu Lab"
     ],
+    "fins_extrude_safe_temp": [
+        "55"
+    ],
     "nozzle_temperature": [
         "225"
     ],

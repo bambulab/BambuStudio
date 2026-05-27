@@ -27,6 +27,9 @@
     "filament_vendor": [
         "Bambu Lab"
     ],
+    "fins_extrude_safe_temp": [
+        "55"
+    ],
     "impact_strength_z": [
         "86.3"
     ],

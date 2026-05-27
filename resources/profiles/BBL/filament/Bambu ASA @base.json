@@ -30,6 +30,9 @@
     "filament_vendor": [
         "Bambu Lab"
     ],
+    "fins_extrude_safe_temp": [
+        "100"
+    ],
     "hot_plate_temp": [
         "100"
     ],

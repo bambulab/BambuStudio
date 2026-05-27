@@ -339,6 +339,10 @@ void AppConfig::set_defaults()
         set_bool("auto_optimize_wipe_tower_placement", true);
     }
 
+    if (get("disable_fins_extrude_safe_temp").empty()){
+        set_bool("disable_fins_extrude_safe_temp", false);
+    }
+
     if (get("camera_fullscreen_active_monitor_only").empty()){
         set_bool("camera_fullscreen_active_monitor_only", true);
     }

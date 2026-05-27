@@ -4739,6 +4739,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_velocity_adaptation_factor");
         optgroup->append_single_option_line("filament_cost");
         optgroup->append_single_option_line("temperature_vitrification");
+        optgroup->append_single_option_line("fins_extrude_safe_temp");
         optgroup->append_single_option_line("filament_printable");
 
         optgroup->append_single_option_line("filament_cooling_before_tower");

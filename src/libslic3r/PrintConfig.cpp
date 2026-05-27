@@ -3121,6 +3121,16 @@ void PrintConfigDef::init_fff_params()
     def->mode = comSimple;
     def->set_default_value(new ConfigOptionInts{ 100 });
 
+    // BBS: per-filament safe hotend temperature for fin extrusion, also accessible in custom G-code via {fins_extrude_safe_temp[...]}.
+    def = this->add("fins_extrude_safe_temp", coInts);
+    def->label = L("Fin extrude safe temperature");
+    def->tooltip = L("Safe hotend temperature for fin extrusion. 0 means not set. Accessible in custom G-code via fins_extrude_safe_temp.");
+    def->sidetext = "°C";
+    def->mode = comAdvanced;
+    def->min = 0;
+    def->max = 350;
+    def->set_default_value(new ConfigOptionInts{ 0 });
+
     def          = this->add("filament_ramming_travel_time", coFloats);
     def->label   = L("Extruder change");
     def->tooltip = L("To prevent oozing, the nozzle will perform a reverse travel movement for a certain period after "

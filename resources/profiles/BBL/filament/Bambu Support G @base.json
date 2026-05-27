@@ -46,6 +46,9 @@
     "filament_dev_drying_softening_temperature": [
         "85"
     ],
+    "fins_extrude_safe_temp": [
+        "55"
+    ],
     "nozzle_temperature": [
         "280"
     ],
