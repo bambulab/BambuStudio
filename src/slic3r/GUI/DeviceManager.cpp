@@ -2165,6 +2165,25 @@ int MachineObject::command_ipcam_record(bool on_off)
     return this->publish_json(j);
 }
 
+int MachineObject::command_ipcam_record_cam(int camera_id, bool on_off)
+{
+    json j;
+    j["camera"]["command"]     = "ipcam_record_set";
+    j["camera"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    j["camera"]["camera_id"]   = camera_id;
+    j["camera"]["control"]     = on_off ? "enable" : "disable";
+    camera_record_cam_ctl_start = time(nullptr);
+    auto it = std::find(enable_record_cams.begin(), enable_record_cams.end(), camera_id);
+    if (on_off) {
+        if (it == enable_record_cams.end())
+            enable_record_cams.push_back(camera_id);
+    } else {
+        if (it != enable_record_cams.end())
+            enable_record_cams.erase(it);
+    }
+    return this->publish_json(j);
+}
+
 int MachineObject::command_ipcam_timelapse(bool on_off)
 {
     json j;
@@ -3520,6 +3539,28 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                         }
                                     }
                                 }
+                                if (ipcam.contains("support_record_cams")) {
+                                    if (ipcam["support_record_cams"].is_array()) {
+                                        support_record_cams.clear();
+                                        for (auto cam : ipcam["support_record_cams"]) {
+                                            if (cam.is_number()) {
+                                                support_record_cams.push_back(cam.get<int>());
+                                            }
+                                        }
+                                    }
+                                }
+                                if (ipcam.contains("enable_record_cams")) {
+                                    if (ipcam["enable_record_cams"].is_array()) {
+                                        if (time(nullptr) - camera_record_cam_ctl_start > HOLD_TIME_3SEC) {
+                                            enable_record_cams.clear();
+                                            for (auto cam : ipcam["enable_record_cams"]) {
+                                                if (cam.is_number()) {
+                                                    enable_record_cams.push_back(cam.get<int>());
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                         catch (...) {
@@ -3723,10 +3764,24 @@ int MachineObject::parse_json(std::string tunnel, std::string payload, bool key_
                                 BOOST_LOG_TRIVIAL(info) << "ack of timelapse = " << camera_timelapse;
                             }
                         } else if (j["camera"]["command"].get<std::string>() == "ipcam_record_set") {
-                            if (time(nullptr) - camera_recording_ctl_start > HOLD_TIME_3SEC) {
-                                if (j["camera"]["control"].get<std::string>() == "enable") this->camera_recording_when_printing = true;
-                                if (j["camera"]["control"].get<std::string>() == "disable") this->camera_recording_when_printing = false;
-                                BOOST_LOG_TRIVIAL(info) << "ack of ipcam_record_set " << camera_recording_when_printing;
+                            if (j["camera"].contains("camera_id")) {
+                                if (time(nullptr) - camera_record_cam_ctl_start > HOLD_TIME_3SEC) {
+                                    int cam_id = j["camera"]["camera_id"].get<int>();
+                                    bool enabled = j["camera"]["control"].get<std::string>() == "enable";
+                                    auto it = std::find(enable_record_cams.begin(), enable_record_cams.end(), cam_id);
+                                    if (enabled) {
+                                        if (it == enable_record_cams.end()) enable_record_cams.push_back(cam_id);
+                                    } else {
+                                        if (it != enable_record_cams.end()) enable_record_cams.erase(it);
+                                    }
+                                    BOOST_LOG_TRIVIAL(info) << "ack of ipcam_record_set camera_id=" << cam_id << " enabled=" << enabled;
+                                }
+                            } else {
+                                if (time(nullptr) - camera_recording_ctl_start > HOLD_TIME_3SEC) {
+                                    if (j["camera"]["control"].get<std::string>() == "enable") this->camera_recording_when_printing = true;
+                                    if (j["camera"]["control"].get<std::string>() == "disable") this->camera_recording_when_printing = false;
+                                    BOOST_LOG_TRIVIAL(info) << "ack of ipcam_record_set " << camera_recording_when_printing;
+                                }
                             }
                         } else if (j["camera"]["command"].get<std::string>() == "ipcam_resolution_set") {
                             if (camera_resolution_hold_count > 0) {

@@ -51,6 +51,8 @@ public:
 
 protected:
     void on_switch_recording(wxMouseEvent& event);
+    void on_switch_live_cam_rec(wxMouseEvent& event);
+    void on_switch_visual_cam_rec(wxMouseEvent& event);
     void on_set_resolution();
     void sdcard_absent_hint();
 
@@ -67,6 +69,10 @@ private:
     bool  m_is_in_interval{ false };
     wxStaticText* m_text_recording;
     SwitchButton* m_switch_recording;
+    wxStaticText* m_text_live_cam_rec;
+    SwitchButton* m_switch_live_cam_rec;
+    wxStaticText* m_text_visual_cam_rec;
+    SwitchButton* m_switch_visual_cam_rec;
     wxStaticText* m_text_vcamera;
     SwitchButton* m_switch_vcamera;
     wxStaticText* m_text_liveview_retry;
@@ -93,6 +99,8 @@ private:
 
     // Debounce guards to prevent double-trigger on macOS
     std::chrono::steady_clock::time_point m_last_recording_click{};
+    std::chrono::steady_clock::time_point m_last_live_cam_click{};
+    std::chrono::steady_clock::time_point m_last_visual_cam_click{};
     std::chrono::steady_clock::time_point m_last_vcamera_click{};
 
 private:

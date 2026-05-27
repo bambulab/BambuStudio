@@ -1,6 +1,7 @@
 #include "CameraPopup.hpp"
 
 #include "I18N.hpp"
+#include "MediaPlayCtrl.h"
 #include "Widgets/Label.hpp"
 #include "libslic3r/Utils.hpp"
 #include "BitmapCache.hpp"
@@ -71,8 +72,30 @@ CameraPopup::CameraPopup(wxWindow *parent)
     m_text_vcamera->SetForegroundColour(TEXT_COL);
     m_switch_vcamera = new SwitchButton(m_panel);
 
+    //live camera recording
+    m_text_live_cam_rec = new wxStaticText(m_panel, wxID_ANY, _L("Live Camera Recording"));
+    m_text_live_cam_rec->Wrap(-1);
+    m_text_live_cam_rec->SetFont(Label::Head_14);
+    m_text_live_cam_rec->SetForegroundColour(TEXT_COL);
+    m_switch_live_cam_rec = new SwitchButton(m_panel);
+    m_text_live_cam_rec->Hide();
+    m_switch_live_cam_rec->Hide();
+
+    //visual enhancement camera recording
+    m_text_visual_cam_rec = new wxStaticText(m_panel, wxID_ANY, _L("Visual Enhancement Camera Recording"));
+    m_text_visual_cam_rec->Wrap(-1);
+    m_text_visual_cam_rec->SetFont(Label::Head_14);
+    m_text_visual_cam_rec->SetForegroundColour(TEXT_COL);
+    m_switch_visual_cam_rec = new SwitchButton(m_panel);
+    m_text_visual_cam_rec->Hide();
+    m_switch_visual_cam_rec->Hide();
+
     top_sizer->Add(m_text_recording, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
     top_sizer->Add(m_switch_recording, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
+    top_sizer->Add(m_text_live_cam_rec, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
+    top_sizer->Add(m_switch_live_cam_rec, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
+    top_sizer->Add(m_text_visual_cam_rec, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
+    top_sizer->Add(m_switch_visual_cam_rec, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
     top_sizer->Add(m_text_vcamera, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
     top_sizer->Add(m_switch_vcamera, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
 
@@ -141,6 +164,12 @@ CameraPopup::CameraPopup(wxWindow *parent)
     m_switch_recording->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         on_switch_recording(e);
     });
+    m_switch_live_cam_rec->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+        on_switch_live_cam_rec(e);
+    });
+    m_switch_visual_cam_rec->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
+        on_switch_visual_cam_rec(e);
+    });
     m_switch_vcamera->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
         auto now = std::chrono::steady_clock::now();
         if (now - m_last_vcamera_click < std::chrono::milliseconds(300)) return;
@@ -183,6 +212,40 @@ void CameraPopup::on_switch_recording(wxMouseEvent& event)
     }
     m_switch_recording->SetValue(!value);
     m_obj->command_ipcam_record(!value);
+}
+
+void CameraPopup::on_switch_live_cam_rec(wxMouseEvent& event)
+{
+    if (!m_obj) return;
+
+    auto now = std::chrono::steady_clock::now();
+    if (now - m_last_live_cam_click < std::chrono::milliseconds(300)) return;
+    m_last_live_cam_click = now;
+
+    bool value = m_switch_live_cam_rec->GetValue();
+    if (!value && m_obj->GetStorage()->get_sdcard_state() != DevStorage::SdcardState::HAS_SDCARD_NORMAL) {
+        sdcard_absent_hint();
+        return;
+    }
+    m_switch_live_cam_rec->SetValue(!value);
+    m_obj->command_ipcam_record_cam(static_cast<int>(LiveviewCameraType::CAMERA_MAIN), !value);
+}
+
+void CameraPopup::on_switch_visual_cam_rec(wxMouseEvent& event)
+{
+    if (!m_obj) return;
+
+    auto now = std::chrono::steady_clock::now();
+    if (now - m_last_visual_cam_click < std::chrono::milliseconds(300)) return;
+    m_last_visual_cam_click = now;
+
+    bool value = m_switch_visual_cam_rec->GetValue();
+    if (!value && m_obj->GetStorage()->get_sdcard_state() != DevStorage::SdcardState::HAS_SDCARD_NORMAL) {
+        sdcard_absent_hint();
+        return;
+    }
+    m_switch_visual_cam_rec->SetValue(!value);
+    m_obj->command_ipcam_record_cam(static_cast<int>(LiveviewCameraType::CAMERA_DEPUTY), !value);
 }
 
 void CameraPopup::on_set_resolution()
@@ -300,8 +363,17 @@ void CameraPopup::check_func_supported(MachineObject *obj2)
     m_obj = obj2;
     if (m_obj == nullptr)
         return;
-    // function supported
-    if (m_obj->has_ipcam) {
+
+    // per-camera recording capability
+    auto& srcs = m_obj->support_record_cams;
+    bool support_cam_main   = std::find(srcs.begin(), srcs.end(),
+        static_cast<int>(LiveviewCameraType::CAMERA_MAIN))   != srcs.end();
+    bool support_cam_deputy = std::find(srcs.begin(), srcs.end(),
+        static_cast<int>(LiveviewCameraType::CAMERA_DEPUTY)) != srcs.end();
+    bool support_per_cam_rec = support_cam_main || support_cam_deputy;
+
+    // function supported: Auto-record Monitoring only visible when per-camera recording is unsupported
+    if (m_obj->has_ipcam && !support_per_cam_rec) {
         m_text_recording->Show();
         m_switch_recording->Show();
     } else {
@@ -353,12 +425,28 @@ void CameraPopup::check_func_supported(MachineObject *obj2)
     else {
         m_text_resolution->Show();
     }
+
+    // per-camera recording buttons
+    m_text_live_cam_rec->Show(support_cam_main);
+    m_switch_live_cam_rec->Show(support_cam_main);
+    m_text_visual_cam_rec->Show(support_cam_deputy);
+    m_switch_visual_cam_rec->Show(support_cam_deputy);
+    rescale();
 }
 
 void CameraPopup::update(bool vcamera_streaming)
 {
     if (!m_obj) return;
     m_switch_recording->SetValue(m_obj->camera_recording_when_printing);
+
+    auto& erc = m_obj->enable_record_cams;
+    m_switch_live_cam_rec->SetValue(
+        std::find(erc.begin(), erc.end(),
+            static_cast<int>(LiveviewCameraType::CAMERA_MAIN)) != erc.end());
+    m_switch_visual_cam_rec->SetValue(
+        std::find(erc.begin(), erc.end(),
+            static_cast<int>(LiveviewCameraType::CAMERA_DEPUTY)) != erc.end());
+
     sync_resolution_setting(m_obj->camera_resolution);
     sync_vcamera_state(vcamera_streaming);
 
@@ -409,6 +497,24 @@ void CameraPopup::OnLeftUp(wxMouseEvent &event)
             wxMouseEvent recording_evt(wxEVT_LEFT_DOWN);
             on_switch_recording(recording_evt);
             return;
+        }
+        //live camera recording
+        if (m_switch_live_cam_rec->IsShown()) {
+            auto live_cam_rect = m_switch_live_cam_rec->ClientToScreen(wxPoint(0, 0));
+            if (mouse_pos.x > live_cam_rect.x && mouse_pos.y > live_cam_rect.y && mouse_pos.x < (live_cam_rect.x + m_switch_live_cam_rec->GetSize().x) && mouse_pos.y < (live_cam_rect.y + m_switch_live_cam_rec->GetSize().y)) {
+                wxMouseEvent live_cam_evt(wxEVT_LEFT_DOWN);
+                on_switch_live_cam_rec(live_cam_evt);
+                return;
+            }
+        }
+        //visual enhancement camera recording
+        if (m_switch_visual_cam_rec->IsShown()) {
+            auto visual_cam_rect = m_switch_visual_cam_rec->ClientToScreen(wxPoint(0, 0));
+            if (mouse_pos.x > visual_cam_rect.x && mouse_pos.y > visual_cam_rect.y && mouse_pos.x < (visual_cam_rect.x + m_switch_visual_cam_rec->GetSize().x) && mouse_pos.y < (visual_cam_rect.y + m_switch_visual_cam_rec->GetSize().y)) {
+                wxMouseEvent visual_cam_evt(wxEVT_LEFT_DOWN);
+                on_switch_visual_cam_rec(visual_cam_evt);
+                return;
+            }
         }
         //vcamera
         auto vcamera_rect = m_switch_vcamera->ClientToScreen(wxPoint(0, 0));

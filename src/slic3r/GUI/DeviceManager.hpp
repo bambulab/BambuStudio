@@ -491,6 +491,9 @@ public:
     int  camera_resolution_hold_count = 0;
     int liveview_current_camera = -1;
     std::vector<int> support_liveview_cams;
+    std::vector<int> support_record_cams;
+    std::vector<int> enable_record_cams;
+    time_t camera_record_cam_ctl_start = 0;
     std::string camera_resolution            = "";
     std::vector<std::string> camera_resolution_supported;
     std::string local_rtsp_url;
@@ -736,6 +739,7 @@ public:
 
     // camera control
     int command_ipcam_record(bool on_off);
+    int command_ipcam_record_cam(int camera_id, bool on_off);
     int command_ipcam_timelapse(bool on_off);
     int command_ipcam_resolution_set(std::string resolution);
     int command_ipcam_check_timelapse_storage(const std::string& storage, int total_layer);
