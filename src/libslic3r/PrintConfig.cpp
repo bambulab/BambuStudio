@@ -2225,7 +2225,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("filament_flush_temp_fast", coInts);
     def->label = L("Flush temperature");
-    def->tooltip = L("Flush temperature used in fast purge mode. 0 indicates the upper bound of the recommended nozzle temperature range");
+    def->tooltip = L("Flush temperature used in fast purge mode.");
     def->mode = comAdvanced;
     def->nullable = true;
     def->min = 0;
