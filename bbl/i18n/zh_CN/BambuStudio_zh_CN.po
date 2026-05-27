@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-27 15:56+0800\n"
+"POT-Creation-Date: 2026-05-27 20:41+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -12721,7 +12721,7 @@ msgid "temperature when flushing filament. 0 indicates the upper bound of the re
 msgstr "耗材冲刷时的温度。0表示使用最大建议喷嘴温度。"
 
 msgid "Flush temperature used in fast purge mode."
-msgstr ""
+msgstr "快速冲刷模式下使用的冲刷温度。"
 
 msgid "Flush volumetric speed"
 msgstr "冲刷体积流量"
@@ -13908,7 +13908,7 @@ msgid "Alternate extra wall"
 msgstr "交替额外墙层"
 
 msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
-msgstr ""
+msgstr "在奇数层额外增加一圈墙，以增强层间结合与零件强度，同时避免全程使用额外墙层所带来的耗材与时间成本。"
 
 msgid "Post-processing Scripts"
 msgstr "后处理脚本"
