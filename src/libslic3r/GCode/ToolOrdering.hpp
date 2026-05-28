@@ -215,6 +215,7 @@ public:
         unsigned int              mixed_slot_0based;
         std::vector<unsigned int> components_0based;
         std::vector<double>       sub_heights;       // per-component, sum ≈ layer_height
+        double                    layer_height = 0.;  // the actual lh used to compute sub_heights
         bool                      is_gradient = false;
         int                       gradient_first_sorted_idx = 0; // index of "first" config component after sorting
 
@@ -420,6 +421,11 @@ private:
     // Per-object gradient tracking: slot(0-based) -> PrintObject* -> list of layer indices
     // where that object uses the slot. Populated by collect_extruders, consumed by resolve_mixed_filaments.
     std::map<unsigned int, std::map<const PrintObject*, std::vector<size_t>>> m_gradient_object_layers;
+
+    // All layer indices (in m_layer_tools) where each object has any layer.
+    // Used by gradient run detection to distinguish real gaps (object has a layer
+    // that doesn't use the slot) from spurious gaps (another object's layer).
+    std::map<const PrintObject*, std::vector<size_t>> m_object_all_layer_indices;
 
     // Per-volume gradient tracking: slot(0-based) -> (PrintObject*, ModelVolume id) -> list of
     // layer indices where the given volume contributes to the slot. Populated by collect_extruders

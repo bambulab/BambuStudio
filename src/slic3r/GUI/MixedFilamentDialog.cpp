@@ -57,6 +57,26 @@ static wxColour blend_n_colors(const std::vector<wxColour>& cols, const std::vec
     return wxColour(hex);
 }
 
+// When a swatch color is too close to the surrounding background it becomes invisible.
+// This draws a thin border to restore visibility: light grey for white-ish swatches in
+// light mode, white-ish for near-black swatches in dark mode. The thresholds and border
+// colors match the original make_swatch_bitmap implementation; extracted here so all
+// swatch draw sites share the same logic.
+static void draw_swatch_border_if_needed(wxDC& dc, const wxColour& col,
+                                         int x, int y, int sz, int radius)
+{
+    if (!wxGetApp().dark_mode() && col.Red() > 224 && col.Green() > 224 && col.Blue() > 224) {
+        dc.SetPen(wxPen(wxColour(130, 130, 128), 1));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawRoundedRectangle(x, y, sz, sz, radius);
+    }
+    if (wxGetApp().dark_mode() && col.Red() < 45 && col.Green() < 45 && col.Blue() < 45) {
+        dc.SetPen(wxPen(wxColour(207, 207, 207), 1));
+        dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        dc.DrawRoundedRectangle(x, y, sz, sz, radius);
+    }
+}
+
 // ---- Constructors ----
 
 MixedFilamentDialog::MixedFilamentDialog(wxWindow* parent,
@@ -179,16 +199,7 @@ wxBitmap MixedFilamentDialog::make_swatch_bitmap(size_t idx)
         dc.SetPen(*wxTRANSPARENT_PEN);
         dc.DrawRoundedRectangle(pad_left, 0, swatch_sz, swatch_sz, FromDIP(2));
 
-        if (!wxGetApp().dark_mode() && col.Red() > 224 && col.Green() > 224 && col.Blue() > 224) {
-            dc.SetPen(wxPen(wxColour(130, 130, 128), 1));
-            dc.SetBrush(*wxTRANSPARENT_BRUSH);
-            dc.DrawRoundedRectangle(pad_left, 0, swatch_sz, swatch_sz, FromDIP(2));
-        }
-        if (wxGetApp().dark_mode() && col.Red() < 45 && col.Green() < 45 && col.Blue() < 45) {
-            dc.SetPen(wxPen(wxColour(207, 207, 207), 1));
-            dc.SetBrush(*wxTRANSPARENT_BRUSH);
-            dc.DrawRoundedRectangle(pad_left, 0, swatch_sz, swatch_sz, FromDIP(2));
-        }
+        draw_swatch_border_if_needed(dc, col, pad_left, 0, swatch_sz, FromDIP(2));
 
         wxString num = wxString::Format(wxT("%zu"), idx + 1);
         dc.SetFont(::Label::Body_13);
@@ -273,19 +284,59 @@ wxBoxSizer* MixedFilamentDialog::create_preview_panel()
 
         if (n == 0) return;
 
-        std::vector<wxColour> cols;
-        std::vector<double>   weights;
-        for (size_t i = 0; i < n; ++i) {
-            cols.push_back(comp_colour(i));
-            weights.push_back(ratio(i) / 100.0);
-        }
-
-        wxColour mixed = blend_n_colors(cols, weights);
         int swatch_sz = FromDIP(80);
-        dc.SetBrush(wxBrush(mixed));
-        dc.SetPen(*wxTRANSPARENT_PEN);
-        dc.DrawRoundedRectangle((sz.GetWidth() - swatch_sz) / 2, (sz.GetHeight() - swatch_sz) / 2,
-                                swatch_sz, swatch_sz, FromDIP(6));
+        int x0 = (sz.GetWidth() - swatch_sz) / 2;
+        int y0 = (sz.GetHeight() - swatch_sz) / 2;
+        double radius = FromDIP(6);
+
+        if (m_result.gradient_enabled && n == 2) {
+            Slic3r::GradientCurve curve;
+            if (!m_result.gradient_curve.empty()) {
+                curve.points = m_result.gradient_curve;
+            } else {
+                double yStart = (m_result.gradient_direction == 0) ? kGradientMaxRatio : kGradientMinRatio;
+                double yEnd   = (m_result.gradient_direction == 0) ? kGradientMinRatio : kGradientMaxRatio;
+                curve.points = {{0.0, yStart, NAN, NAN}, {1.0, yEnd, NAN, NAN}};
+            }
+
+            wxColour colA = comp_colour(0);
+            wxColour colB = comp_colour(1);
+            const int bands = std::max(80, swatch_sz);
+            double band_h = static_cast<double>(swatch_sz) / bands;
+            dc.SetPen(*wxTRANSPARENT_PEN);
+            for (int b = 0; b < bands; ++b) {
+                double t = 1.0 - (b + 0.5) / bands;
+                double r1 = Slic3r::sample_gradient_curve(curve, t);
+                double r2 = 1.0 - r1;
+                wxColour band_col = blend_n_colors({colA, colB}, {r1, r2});
+                dc.SetBrush(wxBrush(band_col));
+                int by = y0 + static_cast<int>(b * band_h);
+                int bh = static_cast<int>((b + 1) * band_h) - static_cast<int>(b * band_h) + 1;
+                dc.DrawRectangle(x0, by, swatch_sz, bh);
+            }
+
+            // Mask corners: overdraw a thick background-colored rounded rect frame
+            // so the inner edge forms the desired rounded corners.
+            // Known limitation: this assumes the panel background equals
+            // darkModeColorFor(white).  wxGraphicsContext::Clip(path) is not
+            // available in our wxWidgets build (only Clip(wxRegion) exists).
+            int r = static_cast<int>(radius);
+            wxColour bg = StateColor::darkModeColorFor(*wxWHITE);
+            dc.SetBrush(*wxTRANSPARENT_BRUSH);
+            dc.SetPen(wxPen(bg, r * 2));
+            dc.DrawRoundedRectangle(x0 - r, y0 - r, swatch_sz + r * 2, swatch_sz + r * 2, radius * 2);
+        } else {
+            std::vector<wxColour> cols;
+            std::vector<double>   weights;
+            for (size_t i = 0; i < n; ++i) {
+                cols.push_back(comp_colour(i));
+                weights.push_back(ratio(i) / 100.0);
+            }
+            wxColour mixed = blend_n_colors(cols, weights);
+            dc.SetBrush(wxBrush(mixed));
+            dc.SetPen(*wxTRANSPARENT_PEN);
+            dc.DrawRoundedRectangle(x0, y0, swatch_sz, swatch_sz, radius);
+        }
     });
 
     sizer->Add(m_preview_canvas, 0, wxALIGN_CENTER);
@@ -321,29 +372,46 @@ wxBoxSizer* MixedFilamentDialog::create_material_selection()
 
         dc.SetFont(::Label::Body_13);
 
-        for (size_t i = 0; i < num_components(); ++i) {
-            if (i > 0) {
-                dc.SetTextForeground(sum_text);
-                dc.DrawText(wxT("+"), x, y_center);
-                x += dc.GetTextExtent(wxT("+")).GetWidth() + FromDIP(4);
-            }
-
-            wxColour col = comp_colour(i);
+        auto draw_summary_swatch = [&](size_t comp_idx) {
+            wxColour col = comp_colour(comp_idx);
             dc.SetBrush(wxBrush(col));
             dc.SetPen(*wxTRANSPARENT_PEN);
             dc.DrawRoundedRectangle(x, y_center, swatch_sz, swatch_sz, FromDIP(2));
+            draw_swatch_border_if_needed(dc, col, x, y_center, swatch_sz, FromDIP(2));
 
-            wxString num = wxString::Format(wxT("%u"), comp(i));
+            wxString num = wxString::Format(wxT("%u"), comp(comp_idx));
             wxSize num_sz = dc.GetTextExtent(num);
             dc.SetTextForeground(col.GetLuminance() > 0.5 ? wxColour(50, 58, 61) : *wxWHITE);
             dc.DrawText(num, x + (swatch_sz - num_sz.GetWidth()) / 2,
                              y_center + (swatch_sz - num_sz.GetHeight()) / 2);
             x += swatch_sz + FromDIP(4);
+        };
+
+        if (m_result.gradient_enabled && num_components() == 2) {
+            size_t idx_a = (m_result.gradient_direction == 0) ? 0 : 1;
+            size_t idx_b = 1 - idx_a;
+            draw_summary_swatch(idx_a);
 
             dc.SetTextForeground(sum_text);
-            wxString pct = wxString::Format(wxT("%d%%"), ratio(i));
-            dc.DrawText(pct, x, y_center);
-            x += dc.GetTextExtent(pct).GetWidth() + FromDIP(4);
+            wxString arrow = wxT("\u2192");
+            dc.DrawText(arrow, x, y_center);
+            x += dc.GetTextExtent(arrow).GetWidth() + FromDIP(4);
+
+            draw_summary_swatch(idx_b);
+        } else {
+            for (size_t i = 0; i < num_components(); ++i) {
+                if (i > 0) {
+                    dc.SetTextForeground(sum_text);
+                    dc.DrawText(wxT("+"), x, y_center);
+                    x += dc.GetTextExtent(wxT("+")).GetWidth() + FromDIP(4);
+                }
+                draw_summary_swatch(i);
+
+                dc.SetTextForeground(sum_text);
+                wxString pct = wxString::Format(wxT("%d%%"), ratio(i));
+                dc.DrawText(pct, x, y_center);
+                x += dc.GetTextExtent(pct).GetWidth() + FromDIP(4);
+            }
         }
     });
     sizer->Add(m_summary_panel, 0, wxEXPAND);
@@ -1075,12 +1143,14 @@ void MixedFilamentDialog::on_gradient_direction_changed()
         m_curve_editor->reverse();
         m_result.gradient_curve = m_curve_editor->get_points();
     }
+    update_preview();
 }
 
 void MixedFilamentDialog::on_gradient_curve_changed()
 {
     if (m_curve_editor)
         m_result.gradient_curve = m_curve_editor->get_points();
+    update_preview();
 }
 
 void MixedFilamentDialog::on_per_part_gradient_toggled()
@@ -1420,9 +1490,10 @@ void MixedFilamentDialog::update_gradient_direction_items()
                 dc.SetBrush(wxBrush(col));
                 dc.SetPen(*wxTRANSPARENT_PEN);
                 dc.DrawRoundedRectangle(x, 0, swatch_sz, swatch_sz, FromDIP(2));
+                draw_swatch_border_if_needed(dc, col, x, 0, swatch_sz, FromDIP(2));
                 wxString num = wxString::Format(wxT("%zu"), idx + 1);
                 wxSize txt_sz = dc.GetTextExtent(num);
-                dc.SetTextForeground(col.GetLuminance() > 0.5 ? dir_text : *wxWHITE);
+                dc.SetTextForeground(col.GetLuminance() > 0.5 ? wxColour(50, 58, 61) : *wxWHITE);
                 dc.DrawText(num, x + (swatch_sz - txt_sz.GetWidth()) / 2,
                                  (swatch_sz - txt_sz.GetHeight()) / 2);
             };

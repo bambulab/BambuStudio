@@ -1,5 +1,8 @@
 #include "GradientCurveEditor.hpp"
+#include "GUI_App.hpp"
+#include "GuiColor.hpp"
 #include "I18N.hpp"
+#include "Widgets/StateColor.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -34,11 +37,22 @@ constexpr int kStrokeAxis       = 2;   // axis line width (px, no DPI scaling - 
 constexpr int kAxisArrowHalf    = 5;   // half-base of the axis arrow triangle (DIP)
 constexpr int kAxisArrowLen     = 10;  // length of the axis arrow triangle (DIP)
 
-// Colors from Figma.
+// Light-mode design tokens from Figma. Resolved through StateColor::darkModeColorFor()
+// at paint time so the editor follows the app theme (#EEEEEE -> #4C4C55, #6B6B6B ->
+// #818183, #262E30 -> #EFEFF0, *wxWHITE -> #2D2D31). Don't read these directly in paint;
+// always go through the resolved locals declared at the top of on_paint().
 const wxColour kGridColor   (238, 238, 238);   // #EEEEEE grey 300
 const wxColour kAxisColor   (107, 107, 107);   // #6B6B6B grey 700
 const wxColour kLabelMuted  (107, 107, 107);   // #6B6B6B grey 700
 const wxColour kLabelStrong ( 38,  46,  48);   // #262E30 grey 900
+
+// LAB (DeltaE76) threshold for "curve color is too close to the background". Below this
+// we paint a subtle axis-color outline so the curve doesn't visually vanish; above this
+// we draw the curve plain. ~15 is "perceptible but still close", looser than the strict
+// 5.0 used by FlushPredict::is_similar_color but loose enough that a pastel pink on white
+// or a charcoal on #2B2B2B still triggers an outline.
+constexpr float kBgSimilarThreshold = 15.0f;
+constexpr int   kOutlineExtraDip    = 2;
 } // namespace
 
 GradientCurveEditor::GradientCurveEditor(wxWindow* parent,
@@ -49,7 +63,7 @@ GradientCurveEditor::GradientCurveEditor(wxWindow* parent,
     , m_color_high(color_high)
 {
     SetBackgroundStyle(wxBG_STYLE_PAINT);
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+    SetBackgroundColour(wxGetApp().get_window_default_clr());
     // Wide enough so the X-axis "Material Ratio" label fits past the arrow tip without overlap.
     // 260 (was 240): adds room for the "Material Ratio" label that gets shifted right by the
     // longer axis arrow; the hosting MixedFilamentDialog grows to 470 DIP to accommodate.
@@ -290,8 +304,18 @@ int GradientCurveEditor::hit_test_curve(int px, int py, int* seg_out) const
 
 void GradientCurveEditor::on_paint(wxPaintEvent& /*evt*/)
 {
+    // Resolve theme colors every paint so dark-mode toggles (no re-construction) take
+    // effect without an explicit listener. Window bg is read from GUI_App, not
+    // GetBackgroundColour(), since the latter is snapshotted at construction time.
+    const wxColour bg            = wxGetApp().get_window_default_clr();
+    const wxColour grid_color    = StateColor::darkModeColorFor(kGridColor);
+    const wxColour axis_color    = StateColor::darkModeColorFor(kAxisColor);
+    const wxColour label_muted   = StateColor::darkModeColorFor(kLabelMuted);
+    const wxColour label_strong  = StateColor::darkModeColorFor(kLabelStrong);
+    const wxColour point_fill    = StateColor::darkModeColorFor(*wxWHITE);
+
     wxAutoBufferedPaintDC raw_dc(this);
-    raw_dc.SetBackground(wxBrush(GetBackgroundColour()));
+    raw_dc.SetBackground(wxBrush(bg));
     raw_dc.Clear();
 
     // Render through wxGCDC so curves, arrows and anchor circles get anti-aliased; the buffered
@@ -303,7 +327,7 @@ void GradientCurveEditor::on_paint(wxPaintEvent& /*evt*/)
         return;
 
     // 10x10 light grid (10 lines including outer borders, 9 equal divisions).
-    dc.SetPen(wxPen(kGridColor, 1));
+    dc.SetPen(wxPen(grid_color, 1));
     for (int i = 0; i <= kGridDivisions; ++i) {
         const int x = rc.x + rc.width  * i / kGridDivisions;
         const int y = rc.y + rc.height * i / kGridDivisions;
@@ -316,8 +340,8 @@ void GradientCurveEditor::on_paint(wxPaintEvent& /*evt*/)
     label_font.SetPointSize(std::max(7, label_font.GetPointSize() - 1));
     dc.SetFont(label_font);
 
-    const wxString axis_y_title = _L("Model Height");
-    const wxString axis_x_title = _L("Material Ratio");
+    const wxString axis_y_title = _L("Material Ratio");
+    const wxString axis_x_title = _L("Model Height");
     const wxString pct_text     = wxT("100%");
     const wxSize   x_title_sz   = dc.GetTextExtent(axis_x_title);
     const wxSize   y_title_sz   = dc.GetTextExtent(axis_y_title);
@@ -333,8 +357,8 @@ void GradientCurveEditor::on_paint(wxPaintEvent& /*evt*/)
     const int arrow_half = FromDIP(kAxisArrowHalf);
     const int arrow_len  = FromDIP(kAxisArrowLen);
     const wxSize sz      = GetClientSize();
-    dc.SetPen(wxPen(kAxisColor, kStrokeAxis));
-    dc.SetBrush(wxBrush(kAxisColor));
+    dc.SetPen(wxPen(axis_color, kStrokeAxis));
+    dc.SetBrush(wxBrush(axis_color));
 
     // Y-axis: vertical line at plot_left, from arrow tip near canvas top down to plot bottom.
     const int y_axis_x   = rc.x;
@@ -378,18 +402,18 @@ void GradientCurveEditor::on_paint(wxPaintEvent& /*evt*/)
     // "Model Height" and "100%" share the same left x; the gap is larger than the
     // axis-arrow half-base so the text never visually touches the Y-axis arrow.
     const int label_left_x = y_axis_x + FromDIP(10);
-    dc.SetTextForeground(kLabelMuted);
+    dc.SetTextForeground(label_muted);
     dc.DrawText(axis_y_title, label_left_x, y_title_y);
 
     dc.SetFont(strong_font);
-    dc.SetTextForeground(kLabelStrong);
+    dc.SetTextForeground(label_strong);
     dc.DrawText(pct_text, label_left_x, y_title_y + y_title_sz.y + y_title_pct_gap);
 
     // Bottom-right "100%" sits under the right end of the plot; "Material Ratio" follows the
     // X-axis arrow tip (placement was already clamped above to leave room).
     dc.DrawText(pct_text, rc.x + rc.width - pct_text_sz.x, x_axis_y);
     dc.SetFont(label_font);
-    dc.SetTextForeground(kLabelMuted);
+    dc.SetTextForeground(label_muted);
     dc.DrawText(axis_x_title, x_title_x, x_axis_y - x_title_sz.y / 2);
 
     if (m_points.size() < 2)
@@ -399,31 +423,53 @@ void GradientCurveEditor::on_paint(wxPaintEvent& /*evt*/)
         return (curve_idx == 0) ? m_color_low : m_color_high;
     };
 
-    auto draw_curve = [&](int curve_idx, int stroke_dip) {
-        const int stroke  = FromDIP(stroke_dip);
-        dc.SetPen(wxPen(color_for_curve(curve_idx), stroke));
-        // ~2 samples per plot-rect pixel keep tight bends visually smooth before AA.
+    auto build_polyline = [&](int curve_idx) -> std::vector<wxPoint> {
         const int samples = std::max(128, rc.width * 2);
         std::vector<wxPoint> poly;
         poly.reserve(samples + 1);
         for (int s = 0; s <= samples; ++s) {
             const double x  = double(s) / samples;
-            const double y0 = sample_curve_y(x);           // stored = component 0
-            const double vy = to_visual_y(curve_idx, y0);  // mirror for component 1
+            const double y0 = sample_curve_y(x);
+            const double vy = to_visual_y(curve_idx, y0);
             poly.push_back(data_to_px(x, vy));
         }
+        return poly;
+    };
+
+    auto draw_polyline = [&](const std::vector<wxPoint>& poly, const wxColour& col, int stroke_dip) {
+        dc.SetPen(wxPen(col, FromDIP(stroke_dip)));
         dc.DrawLines(static_cast<int>(poly.size()), poly.data());
+    };
+
+    // Outline only when the curve color is perceptually close to the background; otherwise
+    // the plain filament color reads fine and the extra stroke would look heavy.
+    // Outline tone is intentionally softer than axis_color so it disambiguates the curve
+    // from the bg without competing with the structural axis/grid: light mode uses a pale
+    // grey, dark mode uses a slightly-above-bg grey (gDarkColors has no entry for these).
+    const wxColour outline_color = wxGetApp().dark_mode()
+        ? wxColour(90,  90,  94)    // > bg #2B2B2B, < axis #818183
+        : wxColour(200, 200, 200);  // > grid #EEEEEE, < axis #6B6B6B
+    auto needs_outline = [&](const wxColour& c) {
+        return calc_color_distance(c, bg) < kBgSimilarThreshold;
+    };
+
+    auto draw_one = [&](int curve_idx, int stroke_dip) {
+        const auto       poly = build_polyline(curve_idx);
+        const wxColour   col  = color_for_curve(curve_idx);
+        if (needs_outline(col))
+            draw_polyline(poly, outline_color, stroke_dip + kOutlineExtraDip);
+        draw_polyline(poly, col, stroke_dip);
     };
 
     // Draw unselected first so the selected curve sits on top.
     const int other = 1 - m_selected_curve;
-    draw_curve(other,            kStrokeUnselected);
-    draw_curve(m_selected_curve, kStrokeSelected);
+    draw_one(other,            kStrokeUnselected);
+    draw_one(m_selected_curve, kStrokeSelected);
 
-    // Control points (selected curve only): hollow circle with grey border, white fill.
+    // Control points (selected curve only): hollow circle with axis-color border, theme-aware fill.
     const int r = FromDIP(kPointRadius);
-    dc.SetPen(wxPen(kAxisColor, 1));
-    dc.SetBrush(wxBrush(*wxWHITE));
+    dc.SetPen(wxPen(axis_color, 1));
+    dc.SetBrush(wxBrush(point_fill));
     for (size_t i = 0; i < m_points.size(); ++i) {
         const double vy = to_visual_y(m_selected_curve, m_points[i].y);
         const wxPoint p = data_to_px(m_points[i].x, vy);

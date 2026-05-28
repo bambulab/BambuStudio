@@ -5158,7 +5158,7 @@ GCode::LayerResult GCode::process_layer(
             if (mixed_instances_it == filament_to_print_instances.end() || mixed_instances_it->second.empty())
                 continue;
 
-            double lh = static_cast<double>(height);
+            double lh = grp.layer_height > 0. ? grp.layer_height : static_cast<double>(height);
             double cumulative_h = 0.0;
             for (int i = 0; i < sub_idx; ++i)
                 cumulative_h += grp.sub_heights[i];

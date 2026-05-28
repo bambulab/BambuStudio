@@ -523,4 +523,25 @@ std::vector<size_t> check_mixed_filament_type_consistency(
     return result;
 }
 
+void expand_mixed_slots_in_unprintables(
+    std::vector<std::set<int>>        &unprintables,
+    const std::vector<unsigned char>  &is_mixed,
+    const std::vector<std::string>    &comp_strs)
+{
+    for (auto &unprintable_set : unprintables) {
+        std::set<int> expanded;
+        for (int fid : unprintable_set) {
+            if (fid >= 0 && (size_t)fid < is_mixed.size() && is_mixed[fid]
+                && (size_t)fid < comp_strs.size()) {
+                auto comps = parse_mixed_components(comp_strs[fid]);
+                for (unsigned int c : comps)
+                    if (c >= 1) expanded.insert((int)(c - 1));
+            } else {
+                expanded.insert(fid);
+            }
+        }
+        unprintable_set = std::move(expanded);
+    }
+}
+
 } // namespace Slic3r

@@ -2,6 +2,7 @@
 #define SLIC3R_FILAMENT_MIXER_HPP
 
 #include <limits>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -128,6 +129,14 @@ std::vector<size_t> check_mixed_filament_type_consistency(
     const std::vector<unsigned char> &is_mixed,
     const std::vector<std::string>   &comp_strs,
     const std::vector<std::string>   &filament_types);
+
+// Expand mixed-slot IDs in geometric unprintable sets to their physical component IDs.
+// Each set entry that corresponds to a mixed slot is replaced by the slot's component
+// IDs (0-based). Non-mixed entries pass through unchanged.
+void expand_mixed_slots_in_unprintables(
+    std::vector<std::set<int>>        &unprintables,
+    const std::vector<unsigned char>  &is_mixed,
+    const std::vector<std::string>    &comp_strs);
 
 } // namespace Slic3r
 
