@@ -27,5 +27,7 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceTab/FilamentHotend/wgtDeviceFilamentHotendWeb.cpp
     GUI/DeviceTab/FilamentHotend/wgtHotendRackControl.h
     GUI/DeviceTab/FilamentHotend/wgtHotendRackControl.cpp
+    GUI/DeviceTab/wgtRackExtruder.h
+    GUI/DeviceTab/wgtRackExtruder.cpp
 )
 set(SLIC3R_GUI_SOURCES ${SLIC3R_GUI_SOURCES} PARENT_SCOPE)

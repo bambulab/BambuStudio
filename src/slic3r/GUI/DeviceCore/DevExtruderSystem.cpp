@@ -166,6 +166,15 @@ namespace Slic3r
         return backup_groups;
     }
 
+    std::optional<int> DevExtder::GetPickedNozzleAddrId() const
+    {
+        if (HasNozzleInstalled()) {
+            return system->Owner()->GetNozzleSystem()->GetExtNozzle(m_ext_id).GetAddrId();
+        }
+
+        return std::nullopt;
+    }
+
     DevExtderSystem::DevExtderSystem(MachineObject* obj)
         : m_owner(obj)
     {

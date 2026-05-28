@@ -57,6 +57,8 @@ public:
     float          GetNozzleDiameter() const;
     NozzleDiameterType GetNozzleDiameterType() const;
 
+    std::optional<int> GetPickedNozzleAddrId() const;
+
     // temperature
     int  GetCurrentTemp() const { return m_cur_temp; }
     int  GetTargetTemp() const { return m_target_temp; }

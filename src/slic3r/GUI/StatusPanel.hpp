@@ -60,6 +60,7 @@ class wgtDeviceNozzleRack;
 class wgtAmsControlWebPanel;
 #endif
 class wgtHotendRackControl;
+class wgtRackExtruder;
 class CameraFullscreenFrame;
 class wgtDeviceFilamentHotendTab;
 
@@ -555,6 +556,9 @@ protected:
     Button *        m_bpButton_e_10;
     Button *        m_bpButton_e_down_10;
     ExtruderSwithingStatus *m_extruder_switching_status;
+
+    wxPanel*         m_legacy_extruder_panel{ nullptr };
+    wgtRackExtruder* m_rack_extruder_panel{ nullptr };
 
     wxPanel *       m_temp_temp_line;
     wxPanel *       m_temp_extruder_line;

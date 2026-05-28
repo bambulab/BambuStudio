@@ -62,6 +62,7 @@
 #include "DeviceTab/wgtDeviceNozzleRack.h"
 #include "DeviceTab/FilamentHotend/wgtDeviceFilamentHotendWeb.h"
 #include "DeviceTab/FilamentHotend/wgtHotendRackControl.h"
+#include "DeviceTab/wgtRackExtruder.h"
 #if BBL_ENABLE_AMS_CONTROL_WEB
 #include "DeviceTab/AmsControl/wgtAmsControlWebPanel.h"
 #endif
@@ -2780,7 +2781,14 @@ wxBoxSizer *StatusBasePanel::create_extruder_control(wxWindow *parent)
 
     panel->SetSizer(bSizer_e_ctrl);
     panel->Layout();
+    m_legacy_extruder_panel = panel;
     sizer->Add(panel, 1, wxEXPAND, 0);
+
+    // Hidden by default; toggled by update_rack().
+    m_rack_extruder_panel = new wgtRackExtruder(parent);
+    m_rack_extruder_panel->Hide();
+    sizer->Add(m_rack_extruder_panel, 1, wxEXPAND, 0);
+
     return sizer;
 }
 
@@ -3310,6 +3318,11 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_bpButton_e_down_10->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_axis_ctrl_e_down_10), NULL, this);
     m_nozzle_btn_panel->Connect(wxCUSTOMEVT_SWITCH_POS, wxCommandEventHandler(StatusPanel::on_nozzle_selected), NULL, this);
 
+    if (m_rack_extruder_panel) {
+        m_rack_extruder_panel->Bind(EVT_RACK_EXTRUDER_E_UP,   &StatusPanel::on_axis_ctrl_e_up_10,   this);
+        m_rack_extruder_panel->Bind(EVT_RACK_EXTRUDER_E_DOWN, &StatusPanel::on_axis_ctrl_e_down_10, this);
+    }
+
     Bind(EVT_AMS_EXTRUSION_CALI, &StatusPanel::on_filament_extrusion_cali, this);
     Bind(EVT_AMS_LOAD, &StatusPanel::on_ams_load, this);
     Bind(EVT_AMS_UNLOAD, &StatusPanel::on_ams_unload, this);
@@ -3411,6 +3424,7 @@ void StatusPanel::init_scaled_buttons()
     m_bpButton_e_down_10->SetMinSize(wxSize(FromDIP(40), FromDIP(40)));
     m_bpButton_e_down_10->SetCornerRadius(FromDIP(12));
     if (m_hotend_rack_control) m_hotend_rack_control->Rescale();
+    if (m_rack_extruder_panel) m_rack_extruder_panel->Rescale();
 }
 
 void StatusPanel::on_market_scoring(wxCommandEvent &event)
@@ -3870,6 +3884,7 @@ void StatusPanel::show_printing_status(bool ctrl_area, bool temp_area)
         m_extruder_label->SetForegroundColour(TEXT_LIGHT_FONT_COL);
     }
     if (m_hotend_rack_control) m_hotend_rack_control->SetControlEnabled(ctrl_area);
+    if (m_rack_extruder_panel) m_rack_extruder_panel->SetControlEnabled(ctrl_area);
 
     if (!temp_area) {
         m_tempCtrl_nozzle->Enable(false);

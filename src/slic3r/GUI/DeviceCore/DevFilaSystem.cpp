@@ -967,7 +967,13 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
             }
         } else if (extuder_id == 0xE && type_id == DevAmsType::ZMULTI_A || type_id == DevAmsType::ZMULTI_B) {
             binded_extruder_set = { MAIN_EXTRUDER_ID };
-        } else {
+        } else if (extuder_id == 0xE && (obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A || obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B)) {
+            binded_extruder_set = { MAIN_EXTRUDER_ID };
+        } else if (extuder_id == 0xE)
+        {
+            binded_extruder_set = {};
+        } else
+        {
             binded_extruder_set = { extuder_id };
         }
 
