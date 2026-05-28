@@ -1922,9 +1922,9 @@ bool PartPlate::check_high_temp_need_wrapping_detection(const DynamicPrintConfig
     return false;
 }
 
-bool PartPlate::check_high_shrinkage_filament(const DynamicPrintConfig &config, std::string &filament_names_text) const
+bool PartPlate::check_high_shrinkage_filament(const DynamicPrintConfig &config, std::string &warning_text) const
 {
-    filament_names_text.clear();
+    warning_text.clear();
 
     std::vector<int> used_filaments = get_extruders(true); // 1 base
     if (used_filaments.empty()){
@@ -1980,7 +1980,8 @@ bool PartPlate::check_high_shrinkage_filament(const DynamicPrintConfig &config, 
                 filament_names += ", ";
             filament_names += *it;
         }
-        filament_names_text = filament_names;
+        warning_text = GUI::format(_L("High-shrinkage filament(s) detected: %s. These materials may cause dimensional deviation after cooling. If your model requires precise fitting or assembly, please refer to the Wiki guide for shrinkage testing."),
+                                   filament_names);
         return true;
     }
 
@@ -2339,9 +2340,7 @@ bool PartPlate::generate_plate_name_texture()
             m_name_texture.reset();
             m_plate_name_icon.reset();
             calc_vertex_for_plate_name_edit_icon(&m_name_texture, 0, m_plate_name_edit_icon);
-        } else if (!m_plate_name_edit_icon.is_initialized()) {
-            calc_vertex_for_plate_name_edit_icon(&m_name_texture, 0, m_plate_name_edit_icon);
-        }
+		}
 		return false;
 	}
 	// generate m_name_texture texture from m_name with generate_from_text_string
@@ -4510,27 +4509,22 @@ void PartPlateList::release_icon_textures()
     }
 }
 
-void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx, bool init_pos, bool keep_existing)
+void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx, bool init_pos)
 {
     DynamicConfig &     proj_cfg     = wxGetApp().preset_bundle->project_config;
     ConfigOptionFloats *wipe_tower_x = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_x");
     ConfigOptionFloats *wipe_tower_y = proj_cfg.opt<ConfigOptionFloats>("wipe_tower_y");
-    // Guard against UB when values is empty: front() on an empty vector is undefined.
-    wipe_tower_x->values.resize(m_plate_list.size(), wipe_tower_x->values.empty() ? 0.0 : wipe_tower_x->values.front());
-    wipe_tower_y->values.resize(m_plate_list.size(), wipe_tower_y->values.empty() ? 0.0 : wipe_tower_y->values.front());
+    wipe_tower_x->values.resize(m_plate_list.size(), wipe_tower_x->values.front());
+    wipe_tower_y->values.resize(m_plate_list.size(), wipe_tower_y->values.front());
 
-    // Resolve initial wipe tower position in one shot so x/y are never read uninitialised.
-    // Each branch in the IIFE must return, guaranteeing both coordinates have a value.
-    auto [x, y] = [&]() -> std::pair<float, float> {
-        if (keep_existing && plate_idx >= 0 && plate_idx < (int)wipe_tower_x->values.size() && plate_idx < (int)wipe_tower_y->values.size())
-            return { (float)wipe_tower_x->values[plate_idx], (float)wipe_tower_y->values[plate_idx] };
-
-        auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
-        if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3)
-            return { I3_WIPE_TOWER_DEFAULT_X_POS, I3_WIPE_TOWER_DEFAULT_Y_POS };
-        // Default position aligns with print config (left top).
-        return { WIPE_TOWER_DEFAULT_X_POS, WIPE_TOWER_DEFAULT_Y_POS };
-    }();
+    auto printer_structure_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnum<PrinterStructure>>("printer_structure");
+    // set the default position, the same with print config(left top)
+    float x = WIPE_TOWER_DEFAULT_X_POS;
+    float y = WIPE_TOWER_DEFAULT_Y_POS;
+    if (printer_structure_opt && printer_structure_opt->value == PrinterStructure::psI3) {
+        x = I3_WIPE_TOWER_DEFAULT_X_POS;
+        y = I3_WIPE_TOWER_DEFAULT_Y_POS;
+    }
 
     const float margin     = WIPE_TOWER_MARGIN;
     PartPlate* part_plate = get_plate(plate_idx);

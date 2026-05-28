@@ -479,19 +479,8 @@ void AppConfig::set_defaults()
     if (get("is_split_compound").empty()) {
         set_bool("is_split_compound", false);
     }
-    // Dual-extruder first-slice guide: per printer_model (H2D / H2D Pro / H2C); migrate legacy global play_slicing_video.
-    {
-        static const char* dual_extruder_slice_guide_models[] = { "Bambu Lab H2D", "Bambu Lab H2D Pro", "Bambu Lab H2C" };
-        const std::string  legacy_sv                            = get("play_slicing_video");
-        for (const char* model : dual_extruder_slice_guide_models) {
-            const std::string k = dual_extruder_first_slice_video_app_config_key(model);
-            if (get(k).empty()) {
-                if (!legacy_sv.empty())
-                    set(k, legacy_sv);
-                else
-                    set_bool(k, true);
-            }
-        }
+    if (get("play_slicing_video").empty()) {
+        set_bool("play_slicing_video", true);
     }
     if (get("show_fila_switch_tips").empty()) {
         set_bool("show_fila_switch_tips", true);

@@ -100,7 +100,7 @@ MsgUpdateConfig::MsgUpdateConfig(const std::vector<Update> &updates, bool force_
 	auto  title = force_before_wizard ? _L("Configuration update") : _L("Configuration update");
 	SetTitle(title);
 
-	std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+	std::string icon_path = (boost::format("%1%/images/AGBStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     SetBackgroundColour(*wxWHITE);

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-14 16:05+0800\n"
+"POT-Creation-Date: 2026-04-14 19:58+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -189,7 +189,7 @@ msgid "How to feed TPU filament."
 msgstr "Hur man matar TPU filament."
 
 msgid "How to feed TPU filament on X2D."
-msgstr "Hur man matar TPU filament på X2D."
+msgstr ""
 
 msgid "Using non-bambu filament may have printing quality issues."
 msgstr "Användning av icke bambu filament kan ha problem med utskriftskvaliteten."
@@ -944,8 +944,8 @@ msgstr "Tilldela delen till den andra sidan"
 msgid "Cut"
 msgstr "Beskär"
 
-msgid "Open edges may be caused by the cut tool, do you want to fix it now?"
-msgstr ""
+msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
+msgstr "Icke-mångsidiga kanter orsakade av skärverktyg: vill du fixa det nu?"
 
 msgid "Repairing model object"
 msgstr "Reparerar modell objektet"
@@ -1992,11 +1992,11 @@ msgstr "Laddar modell vy"
 msgid "Choose one file (3mf):"
 msgstr "Välj en fil (3mf):"
 
-msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/gltf/glb/fbx/usd*/abc/ply):"
-msgstr ""
+msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
+msgstr "Välj en eller flera filer (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
 
-msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/gltf/glb/fbx):"
-msgstr ""
+msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
+msgstr "Välj en eller flera filer (3mf/step/stl/svg/obj/amf):"
 
 msgid "Choose one file (gcode/.gco/.g/.ngc/ngc):"
 msgstr "Välj en fil (.gcode/.gco/.g/.ngc/ngc):"
@@ -2553,26 +2553,19 @@ msgstr[0] "%1$d fel åtgärdat@%1$d felen åtgärdade"
 msgstr[1] "%1$d fel åtgärdat@%1$d felen åtgärdade"
 
 #, c-format, boost-format
-msgid "Error: %1$d non-manifold edges, %2$d non-manifold vertices"
-msgstr ""
+msgid "Error: %1$d non-manifold edge."
+msgid_plural "Error: %1$d non-manifold edges."
+msgstr[0] "Fel: %1$d inte mångfaldig kant.@Fel: %1$d inte mångfaldiga kanter."
+msgstr[1] "Fel: %1$d inte mångfaldig kant.@Fel: %1$d inte mångfaldiga kanter."
+
+msgid "Remaining errors"
+msgstr "Kvarstående fel"
 
 #, c-format, boost-format
-msgid "Error: %1$d non-manifold edge"
-msgid_plural "Error: %1$d non-manifold edges"
-msgstr[0] ""
-msgstr[1] ""
-
-#, c-format, boost-format
-msgid "Error: %1$d non-manifold vertex"
-msgid_plural "Error: %1$d non-manifold vertices"
-msgstr[0] ""
-msgstr[1] ""
-
-#, c-format, boost-format
-msgid "Info: %1$d open edge"
-msgid_plural "Info: %1$d open edges"
-msgstr[0] ""
-msgstr[1] ""
+msgid "%1$d non-manifold edge"
+msgid_plural "%1$d non-manifold edges"
+msgstr[0] "%1$d inte mångfaldig kant@%1$d inte mångfaldiga kanter"
+msgstr[1] "%1$d inte mångfaldig kant@%1$d inte mångfaldiga kanter"
 
 msgid "Right click the icon to fix model object"
 msgstr "Höger klicka på ikonen för att reparera modell objektet"
@@ -2661,7 +2654,7 @@ msgid "Assembly"
 msgstr "Montering"
 
 msgid "Using variable layer height together with mixed color sublayer may result in poor color mixing quality."
-msgstr "Att använda variabel lagerhöjd tillsammans med ett underlager med blandade färger kan resultera i dålig färgblandnings kvalitet."
+msgstr ""
 
 msgid "Cut Connectors information"
 msgstr "Information om kontakter"
@@ -3184,9 +3177,6 @@ msgstr "Placerar"
 msgid "Filling"
 msgstr "Fyllnad"
 
-msgid "Bed filling aborted: invalid bed shape."
-msgstr ""
-
 msgid "Bed filling canceled."
 msgstr "Byggplattans fyllning avbruten."
 
@@ -3321,67 +3311,6 @@ msgstr "Den uppvärmda bäddens termiska förberedning hjälper till att optimer
 #, c-format, boost-format
 msgid "Remaining time: %dmin%ds"
 msgstr "Återstående tid: %dmin%ds"
-
-msgid "Project Filaments"
-msgstr "Projekt Filament"
-
-msgid "New Filaments"
-msgstr ""
-
-msgid "Add Material"
-msgstr ""
-
-#, c-format, boost-format
-msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr ""
-
-msgid "Import Model"
-msgstr ""
-
-msgid "Original"
-msgstr ""
-
-msgid "Multi-Color"
-msgstr ""
-
-msgid "Filament Mapping"
-msgstr ""
-
-msgid "Color Count"
-msgstr ""
-
-msgid "Smooth Level"
-msgstr ""
-
-msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr ""
-
-msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr ""
-
-msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr ""
-
-msgid "Auto-merge same filament"
-msgstr ""
-
-msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr ""
-
-msgid "Skip Matching"
-msgstr ""
-
-msgid "Skip filament mapping and import as a single-color model"
-msgstr ""
-
-msgid "Processing"
-msgstr ""
-
-msgid "Computing texture colors..."
-msgstr ""
-
-msgid "Computation failed. Please adjust parameters and retry."
-msgstr ""
 
 msgid "Choose SLA archive:"
 msgstr "Välj SLA arkiv:"
@@ -3861,10 +3790,8 @@ msgstr "AMS typ växling behöver uppdatering av firmware, tar ca 30s. Växla nu
 msgid "Arrange AMS Order"
 msgstr "Arrangera AMS ordning"
 
-msgid ""
-"After clicking 'Reconnect', all AMS units will be automatically disconnected.\n"
-"Please reconnect them in the desired order to set a specific AMS ID sequence."
-msgstr ""
+msgid "If you want a specific AMS ID sequence, please disconnect all AMS after clicking 'Reset', and then reconnect them in the desired order."
+msgstr "Om du vill ha en specifik AMS ID sekvens, koppla från all AMS efter att du klickat på \"Återställ\" och sedan ansluta dem igen i önskad ordning."
 
 msgid "Are you sure to reset the ID sequence of the connected AMS?"
 msgstr "Är du säker på att återställa ID sekvens för anslutna AMS?"
@@ -3931,9 +3858,6 @@ msgstr "Lagra överflöde"
 
 msgid "Running post-processing scripts"
 msgstr "Kör efterbearbetnings skript"
-
-msgid "Updating preview with post-processed G-code"
-msgstr "Uppdaterar förhandsgranskning med efterbearbetad G kod"
 
 msgid "Successfully executed post-processing script"
 msgstr "Framgångsrikt utfört efterbehandlingsskript"
@@ -4682,9 +4606,6 @@ msgstr "Linjebredd"
 msgid "Fan Speed"
 msgstr "Fläkt Hastighet"
 
-msgid "AUX Fan Speed"
-msgstr "AUX-fläkthastighet"
-
 msgid "Flow"
 msgstr "Flöde"
 
@@ -4759,9 +4680,6 @@ msgstr "Hastighet (mm/s)"
 
 msgid "Fan Speed (%)"
 msgstr "Fläkt hastighet (%)"
-
-msgid "AUX  Fan Speed (%)"
-msgstr "AUX-fläkthastighet (%)"
 
 msgid "Temperature (°C)"
 msgstr "Temperatur (°C)"
@@ -4916,9 +4834,6 @@ msgstr "Lager Tid: "
 msgid "Fan Speed: "
 msgstr "Fläkthastighet: "
 
-msgid "AUX Fan Speed: "
-msgstr "AUX-fläkthastighet: "
-
 msgid "Temperature: "
 msgstr "Temperatur: "
 
@@ -5001,9 +4916,6 @@ msgstr "Mus hjul:"
 
 msgid "Increase/decrease edit area"
 msgstr "Öka/minska redigeringsområdet"
-
-msgid "The variable layer height profile has been reset because some layer heights exceed the allowed range of the current nozzle."
-msgstr "Den variabla lagerhöjdsprofilen har återställts eftersom vissa lagerhöjder överskrider det tillåtna intervallet för den aktuella nozzle."
 
 msgid "Sequence"
 msgstr "Sekvens"
@@ -5248,9 +5160,6 @@ msgstr "En G-kod väg passerar över byggplattans begränsningar."
 msgid "Not support printing 2 or more TPU filaments."
 msgstr "Stöder inte utskrift av 2 eller fler TPU filament."
 
-msgid "The total printed weight exceeds this printer's recommended capacity and may cause slower printing or print defects."
-msgstr ""
-
 #, c-format, boost-format
 msgid "Filament %s is placed in the %s, but the generated G-code path exceeds the printable range of the %s."
 msgstr "Filament %s är placerad i %s men den genererade G kods banan överskrider det utskrivbara området för %s."
@@ -5424,9 +5333,6 @@ msgstr "Flera enheter"
 msgid "Project"
 msgstr "Projekt"
 
-msgid "Filament Manager"
-msgstr "Filamenthanterare"
-
 msgid "Yes"
 msgstr "Ja"
 
@@ -5569,9 +5475,6 @@ msgstr "Vy Höger"
 msgid "Isometric View"
 msgstr "Isometrisk vy"
 
-msgid "Fit Camera"
-msgstr "Anpassa kamera"
-
 msgid "Start a new window"
 msgstr "Starta ett nytt fönster"
 
@@ -5595,6 +5498,9 @@ msgstr "Spara nuvarande projekt till fil"
 
 msgid "Save Project as"
 msgstr "Spara Projekt som"
+
+msgid "Shift+"
+msgstr "Shift+"
 
 msgid "Save current project as"
 msgstr "Spara nuvarande projekt som"
@@ -6037,42 +5943,6 @@ msgstr "DLL inläsningsfel"
 msgid "Loading..."
 msgstr "Laddar..."
 
-msgid "Timelapse"
-msgstr "Timelapse"
-
-msgid "Switch to timelapse files."
-msgstr "Växla till timelapse filer."
-
-msgid "Video"
-msgstr "Video"
-
-msgid "Switch to video files."
-msgstr "Växla till video filer."
-
-msgid "Switch to 3mf model files."
-msgstr "Byt till 3mf modell filer."
-
-msgid "Reload file list from printer."
-msgstr "Ladda om fil listan från printer."
-
-msgid "Delete selected files from printer."
-msgstr "Ta bort valda filer från skrivaren."
-
-msgid "Download"
-msgstr "Ladda ner"
-
-msgid "Download selected files from printer."
-msgstr "Ladda ner valda filer från skrivaren."
-
-msgid "Select"
-msgstr "Välj"
-
-msgid "Batch manage files."
-msgstr "Batch hantera filer."
-
-msgid "Internal"
-msgstr "Intern"
-
 msgid "Year"
 msgstr "År"
 
@@ -6090,6 +5960,39 @@ msgstr "Gruppera filer efter månad, senaste först."
 
 msgid "Show all files, recent first."
 msgstr "Visa alla filer, de senaste först."
+
+msgid "Timelapse"
+msgstr "Timelapse"
+
+msgid "Switch to timelapse files."
+msgstr "Växla till timelapse filer."
+
+msgid "Video"
+msgstr "Video"
+
+msgid "Switch to video files."
+msgstr "Växla till video filer."
+
+msgid "Switch to 3mf model files."
+msgstr "Byt till 3mf modell filer."
+
+msgid "Delete selected files from printer."
+msgstr "Ta bort valda filer från skrivaren."
+
+msgid "Download"
+msgstr "Ladda ner"
+
+msgid "Download selected files from printer."
+msgstr "Ladda ner valda filer från skrivaren."
+
+msgid "Select"
+msgstr "Välj"
+
+msgid "Batch manage files."
+msgstr "Batch hantera filer."
+
+msgid "Reload file list from printer."
+msgstr "Ladda om fil listan från printer."
 
 msgid "No printers."
 msgstr "Ingen printer."
@@ -6714,18 +6617,6 @@ msgstr "%s varning"
 msgid "%s has a warning"
 msgstr "%s har en varning"
 
-msgid "Collapse"
-msgstr "Komprimera"
-
-msgid "View details"
-msgstr "Visa detaljer"
-
-msgid "Execute"
-msgstr "Utför"
-
-msgid "Do not execute"
-msgstr "Utför inte"
-
 #, c-format, boost-format
 msgid "%s info"
 msgstr "%s info"
@@ -7201,8 +7092,12 @@ msgstr "Ändra nozzle typ eller tilldela filamenten på nytt och försök igen."
 msgid "Risk of nozzle clumping detected with the current high-temperature filament (%s). We recommend enabling clumping detection (via probing). This feature uses a quick probing sequence to check for nozzle buildup during the print and utilizes the prime tower to absorb oozing before resuming."
 msgstr "Risk för klumpbildning i nozzle upptäckt med det aktuella högtemperatur filamentet (%s). Vi rekommenderar att du aktiverar klumpbildnings detektering (via probning). Den här funktionen använder en snabb probningssekvens för att kontrollera om det finns nozzle avlagringar under utskriften och använder prime tornet för att absorbera läckage innan utskriften återupptas."
 
+#, c-format, boost-format
+msgid "High-shrinkage filament(s) detected: %s. These materials may cause dimensional deviation after cooling. If your model requires precise fitting or assembly, please refer to the Wiki guide for shrinkage testing."
+msgstr "Detekterat filament med hög krympning: %s. Dessa material kan orsaka dimensionsavvikelser efter kylning. Om din modell kräver exakt passform eller montering, se Wiki-guiden för krympningstestning."
+
 msgid "Printing mixed-color filament on a single-extruder printer requires frequent filament changes and flushing, which may significantly increase waste and the risk of nozzle / waste-chute clogging."
-msgstr "Att skriva ut blandfärgade filament på en printer med en extruder kräver frekventa filament byten och rensning, vilket kan öka spill och risken för igensättning av nozzle/avfallsrännan avsevärt."
+msgstr ""
 
 #, boost-format
 msgid " plate %1%: "
@@ -7313,6 +7208,9 @@ msgstr "Synkroniserings information"
 msgid "Synchronize nozzle information and the number of AMS"
 msgstr "Synkronisera nozzle information och antalet AMS"
 
+msgid "Project Filaments"
+msgstr "Projekt Filament"
+
 msgid "Purge mode"
 msgstr "Rensnings läge"
 
@@ -7396,6 +7294,9 @@ msgstr ""
 msgid "Restore"
 msgstr "Återställ"
 
+msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
+msgstr "Det finns ett G-kod skript i den aktuella 3mf filen, verifiera innehållet i skriptet."
+
 msgid "The current hot bed temperature is relatively high. The nozzle may be clogged when printing this filament in a closed enclosure. Please open the front door and/or remove the upper glass."
 msgstr "The current heatbed temperature is relatively high. The nozzle may clog when printing this filament in a closed environment. Please open the front door and/or remove the upper glass."
 
@@ -7475,12 +7376,6 @@ msgstr "Komponent namnet i step filen är inte UTF8 format!"
 msgid "The name may show garbage characters!"
 msgstr "Namnet kan visa skräptecken!"
 
-msgid "The following shells are not closed and may cause issues:"
-msgstr "Följande skal är inte stängda och kan orsaka problem:"
-
-msgid "Unclosed Shell Warning"
-msgstr "Varning för oavslutat skal"
-
 #, boost-format
 msgid "Failed loading file \"%1%\". An invalid configuration was found."
 msgstr "Laddning av fil misslyckades \"%1%\". En ogiltlig konfiguration hittades."
@@ -7514,13 +7409,6 @@ msgstr ""
 msgid "Multi-part object detected"
 msgstr "Objekt i flera delar har upptäckts"
 
-#, c-format, boost-format
-msgid "Computing texture colors: %s"
-msgstr ""
-
-msgid "Texture Import Warning"
-msgstr ""
-
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Ladda dessa filer som ett enkelt objekt med multipla delar?\n"
 
@@ -7530,35 +7418,11 @@ msgstr "Objekt med flera delar upptäcktes"
 msgid "The file does not contain any geometry data."
 msgstr "Filen innehåller ingen geometrisk data."
 
-msgid "Importing model to project..."
-msgstr ""
-
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr "Ditt objekt verkar vara för stort, vill du skala ner det för att passa byggplattan automatiskt?"
 
 msgid "Object too large"
 msgstr "Objektet är för stort"
-
-msgid "Placing model on the bed..."
-msgstr ""
-
-msgid "Updating object list..."
-msgstr ""
-
-msgid "Updating 3D view..."
-msgstr ""
-
-msgid "Model imported."
-msgstr ""
-
-msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
-msgstr ""
-
-msgid "Applying texture colors..."
-msgstr ""
-
-msgid "Texture colors applied."
-msgstr ""
 
 msgid "Export STL file:"
 msgstr "Exportera STL-fil:"
@@ -8090,11 +7954,6 @@ msgstr "Orsak: \"%1%\" och en annan del har ingen korsning."
 msgid "Negative parts detected. Would you like to perform mesh boolean before exporting?"
 msgstr "Negativa delar upptäckta. Vill du utföra boolean av mesh före export?"
 
-msgid ""
-"Security Warning: This 3MF file contains post-processing script commands that will run automatically during slicing and may pose security risks!\n"
-"Please verify the file source and script contents before continuing."
-msgstr "Säkerhetsvarning: Denna 3MF-fil innehåller skriptkommandon för efterbearbetning som körs automatiskt under beredningen och kan utgöra säkerhetsrisker! Kontrollera filkällan och skriptinnehållet innan du fortsätter."
-
 #, c-format, boost-format
 msgid "The calibration filament is currently assigned to a different extruder than the one selected in the PA Calibration dialog (%s). This may lead to incorrect calibration results. You can change the assignment in the filament grouping settings."
 msgstr "Kalibrerings filamentet är för närvarande tilldelat en annan extruder än den som valts i PA kalibrerings dialogrutan (%s). Detta kan leda till felaktiga kalibrerings resultat. Du kan ändra tilldelningen i inställningarna för filament gruppering."
@@ -8155,11 +8014,6 @@ msgstr "Ogiltligt nummer"
 
 msgid "Plate Settings"
 msgstr "Inställningar för platta"
-
-msgid ""
-"While printing by Object, the extruder may collide skirt.\n"
-"Thus, it is recommended to reset the skirt layer to 1 to avoid that."
-msgstr "Vid utskrift efter objekt kan extrudern kollidera med kjolar. Därför rekommenderas att återställa kjollagret till 1 för att undvika detta."
 
 msgid "Prime Tower:"
 msgstr ""
@@ -9014,10 +8868,6 @@ msgid "Recommended filament arrangement saves %s->"
 msgstr "Rekommenderat filament arrangemang sparar %s->"
 
 #, c-format, boost-format
-msgid "The current firmware supports a maximum of %s materials. You can either reduce the number of materials to %s or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
-msgstr "Den nuvarande firmware stöder maximalt %s material. Man kan antingen minska antalet material till %s eller färre på förberedelsesidan, eller försöka uppdatera firmware. Om du fortfarande är begränsad efter uppdateringen, vänta på efterföljande firmware-support."
-
-#, c-format, boost-format
 msgid "Filament %s does not match the filament in AMS slot %s. Please update the printer firmware to support AMS slot assignment."
 msgstr "Filamentet %s matchar inte filamentet i AMS-facket %s. Uppdatera skrivarens programvara för att stödja tilldelning av AMS-fack."
 
@@ -9066,8 +8916,8 @@ msgstr "Detta kontrollerar värmebäddens planhet. Utjämning gör den extrudera
 msgid "This process determines the dynamic flow values to improve overall print quality."
 msgstr "Den här processen bestämmer de dynamiska flödesvärdena för att förbättra den övergripande utskriftskvaliteten."
 
-msgid "After enabling Timelapse, regardless of whether Traditional or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."
-msgstr ""
+msgid "Internal"
+msgstr "Intern"
 
 #, c-format, boost-format
 msgid "%s space less than 10MB. Timelapse may not save properly. You can turn it off or"
@@ -9224,9 +9074,6 @@ msgstr "Din nuvarande firmwareversion kan inte starta den här utskriften. Uppda
 msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr "Hårdheten hos aktuellt material (%s) överskrider hårdheten hos %s(%s). Det kan orsaka nozzle slitage, vilket leder till material läckage och instabila flöde. Var försiktig när du använder den."
 
-msgid "It is recommended to perform an mannual flow calibration for TPU filament on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the previous calibration value and skip the flow calibration process."
-msgstr ""
-
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "Vissa filament kan växla mellan extruders under utskrift. Manuell K-värdes kalibrering kan inte appliceras under hela utskriften, vilket kan påverka utskrifts kvaliteten. Aktivering av Kalibrering av flödesdynamik rekommenderas."
 
@@ -9307,6 +9154,9 @@ msgstr "Ställ in dynamiskt flödes kalibrering till \"OFF\" för att aktivera a
 
 msgid "This printer does not support printing all plates"
 msgstr "Den här skrivaren stöder inte utskrift av alla byggplattor"
+
+msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
+msgstr "Nuvarande firmware stöder maximalt 16 material. Du kan antingen minska antalet material till 16 eller färre på Berednings sidan eller prova att uppdatera firmware. Om du fortfarande är begränsad efter uppdateringen, vänta på följande stöd i firmware."
 
 msgid "Please check if the required nozzle diameter and flow rate match the current display."
 msgstr "Kontrollera om den erforderlig nozzle diameter och flödeshastighet matchar aktuell visning."
@@ -9526,12 +9376,6 @@ msgstr "Om du aktiverar både exakt Z-höjd och prime tower kan det leda till at
 
 msgid "Prime tower is required for clumping detection. There may be flaws on the model without prime tower. Do you still want to enable clumping detection?"
 msgstr "Prime Tower krävs för klumpnings detektering. Det kan finnas defekter på modellen utan Prime Tower. Vill du fortfarande aktivera klumpnings detektering?"
-
-#, c-format, boost-format
-msgid ""
-"The selected printer has a bed temperature limit of %d°C.\n"
-"Setting a higher bed temperature may cause damage to the printer."
-msgstr ""
 
 msgid "Prime tower is required for smooth timelapse. There may be flaws on the model without prime tower. Do you want to enable prime tower?"
 msgstr "Prime tower krävs för Smooth timelapse-läge. Det kan bli fel på modellen utan prime tower. Vill du aktivera prime tower?"
@@ -9870,12 +9714,6 @@ msgid "Filament end G-code"
 msgstr "Filament stop G-kod"
 
 msgid "Multi Filament"
-msgstr ""
-
-msgid "Purge Mode: Standard"
-msgstr ""
-
-msgid "Purge Mode: Fast"
 msgstr ""
 
 msgid "Printable space"
@@ -10652,9 +10490,6 @@ msgstr "Kamera vy - Höger"
 msgid "Camera view - Isometric"
 msgstr "Kamera vy - Isometrisk"
 
-msgid "Camera view - Fit to scene or selection"
-msgstr "Kamera vy - Anpassa till scen eller markering"
-
 msgid "Shift+E"
 msgstr ""
 
@@ -11360,45 +11195,6 @@ msgstr "Helio flödesschema"
 msgid "Fixing cold prints"
 msgstr "Åtgärdar kalla utskrifter"
 
-msgid "Software Update"
-msgstr ""
-
-msgid "Try Now"
-msgstr ""
-
-msgid "Don't show me Beta updates again"
-msgstr ""
-
-msgid "New Bambu Studio Beta Available"
-msgstr ""
-
-msgid "Current Version"
-msgstr ""
-
-msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
-msgstr ""
-
-msgid "Separate configuration folder."
-msgstr ""
-
-msgid "As a beta release, some features may still be under development, and you may occasionally encounter bugs, unexpected behavior, or incomplete functionality. To prevent conflicts with the stable release, Bambu Studio Beta uses a separate configuration folder (Help -> Show Configuration Folder) and operates independently from the standard version of Bambu Studio."
-msgstr ""
-
-msgid "(Help -> Show Configuration Folder)"
-msgstr ""
-
-msgid "Why use the Beta version?"
-msgstr ""
-
-msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
-msgstr ""
-
-msgid "How to change settings?"
-msgstr ""
-
-msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
-msgstr ""
-
 msgid "Air Pump"
 msgstr "Luftpump"
 
@@ -11628,12 +11424,6 @@ msgstr "Rensa"
 #, boost-format
 msgid "Failed to calculate line width of %1%. Can not get value of \"%2%\" "
 msgstr "Kunde inte beräkna linje bredden för %1%. Kan inte få fram värdet för \"%2%\" "
-
-msgid ""
-"Slicing failed because the extrusion line width is too small or the layer height is too large.\n"
-"\n"
-"Please increase the line width or reduce the layer height, then slice again."
-msgstr ""
 
 msgid "undefined error"
 msgstr "Oidentifierat fel"
@@ -12660,9 +12450,6 @@ msgstr "Temperatur vid rensning"
 msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
 msgstr "temperatur vid rensning av filamentet. 0 anger den övre gränsen för den rekommenderade nozzle temperatur intervallen"
 
-msgid "Flush temperature used in fast purge mode. 0 indicates the upper bound of the recommended nozzle temperature range"
-msgstr ""
-
 msgid "Flush volumetric speed"
 msgstr "Volymetrisk hastighet för rensning"
 
@@ -12863,12 +12650,6 @@ msgstr "Blandat filament gradient område"
 msgid "Start and end ratios for the first component in gradient mode. Comma-separated pair, e.g. \"0.10,0.90\" means 10% to 90%."
 msgstr "Start- och slutförhållanden för den första komponenten i gradient läge. Komma avgränsade par, t.ex. \"0,10,0,90\" betyder 10 % till 90 %."
 
-msgid "Mixed filament per-part gradient"
-msgstr ""
-
-msgid "When gradient mode is enabled, apply the gradient to each part of an assembly independently rather than treating the whole assembly as one Z range."
-msgstr ""
-
 msgid "Filament printable"
 msgstr "Utskrivbart filament"
 
@@ -12889,12 +12670,6 @@ msgstr "Den materialvolym som krävs för att prima extrudern på tower, exklusi
 
 msgid "The volume of material required to prime the extruder for a hotend change on the tower."
 msgstr "Volymen av material som krävs för att prima extrudern för en hotend förändring på tower."
-
-msgid "Preheat temperature delta"
-msgstr "Förvärmningstemperaturdelta"
-
-msgid "Temperature delta applied during pre-heating before tool change."
-msgstr "Temperaturdelta tillämpad under förvärmning före verktygsbyte."
 
 msgid "Wipe tower cooling"
 msgstr "Wipe Tower kylning"
@@ -13592,12 +13367,6 @@ msgstr "Denna G-kod kommer att användas som kod för att pausa utskriften. Anv�
 msgid "This G-code will be used as a custom code"
 msgstr "Denna G-kod kommer att användas som en anpassad kod."
 
-msgid "Support fast purge mode"
-msgstr ""
-
-msgid "Whether this printer supports fast purge mode with optimized temperature and multiplier."
-msgstr ""
-
 msgid "Maximum speed X"
 msgstr "Max hastighet X"
 
@@ -13672,30 +13441,6 @@ msgstr "Max jerk på Z-axis"
 
 msgid "Maximum jerk of the E axis"
 msgstr "Max jerk på E-axis"
-
-msgid "Maximum force of the Y axis"
-msgstr ""
-
-msgid "The allowed maximum output force of Y axis"
-msgstr ""
-
-msgid "N"
-msgstr ""
-
-msgid "Bed mass of the Y axis"
-msgstr ""
-
-msgid "The machine bed mass load of Y axis"
-msgstr ""
-
-msgid "g"
-msgstr ""
-
-msgid "The allowed max printed mass"
-msgstr ""
-
-msgid "The allowed max printed mass on a plate"
-msgstr ""
 
 msgid "Minimum speed for extruding"
 msgstr "Min hastighet för extrudering"
@@ -13951,9 +13696,6 @@ msgstr "Standard typ av nozzle volym"
 
 msgid "Saving"
 msgstr "Sparar"
-
-msgid "Fast"
-msgstr ""
 
 msgid "length when change hotend"
 msgstr "längd vid byte av hotend"
@@ -14619,12 +14361,6 @@ msgstr "Rensnings multiplikator"
 msgid "The actual flushing volumes is equal to the flush multiplier multiplied by the flushing volumes in the table."
 msgstr "Den faktiska rensnings volymen är lika med värdet för rensnings multiplikatorn multiplicerat med rensnings volymerna i tabellen."
 
-msgid "Flush multiplier (Fast mode)"
-msgstr ""
-
-msgid "The flush multiplier used in fast purge mode."
-msgstr ""
-
 msgid "Width of prime tower"
 msgstr "Prime tornets bredd"
 
@@ -14732,12 +14468,6 @@ msgstr "Minsta vägg bredd"
 
 msgid "Width of the wall that will replace thin features (according to the Minimum feature size) of the model. If the Minimum wall width is thinner than the thickness of the feature, the wall will become as thick as the feature itself. It's expressed as a percentage over nozzle diameter"
 msgstr "Bredden på den vägg som ska ersätta tunna element (enligt minsta storlek för element) i modellen. Om den minsta väggbredden är tunnare än tjockleken på elementet blir väggen lika tjock som själva elementet. Den uttrycks i procent av nozzel diametern."
-
-msgid "Override overhang speed"
-msgstr ""
-
-msgid "Override the overhang speed in process page"
-msgstr ""
 
 msgid "Detect narrow internal solid infill"
 msgstr "Upptäck tight inre solid ifyllnad"
@@ -14848,8 +14578,8 @@ msgstr "Meshing av en modellfil misslyckades eller ingen giltig form."
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "Den medföljande filen kunde inte läsas eftersom den är tom."
 
-msgid "Unknown file format. Input file must have .stl, .obj, .amf(.xml), .gltf, .glb, .fbx extension."
-msgstr ""
+msgid "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
+msgstr "Okänt filformat. Indata filen måste ha tillägget .stl, .obj eller .amf(.xml)."
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr "Okänt filformat: indata filen måste ha fil ändelsen .3mf eller .zip.amf."
@@ -15621,6 +15351,9 @@ msgstr "Valda delar"
 msgid "Keep original models"
 msgstr "Behåll original modellerna"
 
+msgid "Execute"
+msgstr "Utför"
+
 msgid "Entity Only"
 msgstr "Endast enhet"
 
@@ -16142,6 +15875,9 @@ msgstr "Redigera inställningar"
 
 msgid "For more information, please check out Wiki"
 msgstr "For more information, please check out our Wiki"
+
+msgid "Collapse"
+msgstr "Komprimera"
 
 msgid "Daily Tips"
 msgstr "Dagliga tips"
@@ -16785,6 +16521,12 @@ msgstr "Filament gruppering"
 msgid "Fila Saving"
 msgstr "Filament besparing"
 
+msgid "Don't remind me again"
+msgstr "Påminn mig inte igen"
+
+msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
+msgstr "Inget ytterligare popup-fönster kommer att visas. Du kan uppdatera detta i \"Inställningar\""
+
 msgid "Filament-Saving Mode"
 msgstr "Filament sparande läge"
 
@@ -16841,6 +16583,9 @@ msgstr " för att ange antal nozzle"
 #, c-format, boost-format
 msgid "Generates filament grouping for the %s and %s based on the quality of prints, prioritizing print quality over filament saving"
 msgstr "Genererar filament gruppering för %s och %s baserat på utskrifternas kvalitet, med prioritet för utskriftskvalitet framför filament besparing"
+
+msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
+msgstr "Grupperings metoden för filament för plattan bestäms av rullgardins alternativet vid beredning plattan knappen."
 
 msgid "Skip Objects"
 msgstr "Hoppa över objekt"
@@ -16950,11 +16695,11 @@ msgstr "Din printer har olika nozzle installerade. Välj en nozzle för denna ut
 msgid "Purge Mode Settings"
 msgstr "Inställningar för rensnings läge"
 
-msgid "Perform full purging with speed and temperature transition for the best print quality."
-msgstr ""
+msgid "Standard Mode"
+msgstr "Standard läge"
 
-msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
-msgstr ""
+msgid "Performs full priming for the best print quality. Requires more material and time."
+msgstr "Utför full rensning för bästa utskrifts kvalitet. Kräver mer material och tid."
 
 msgid "Prime Saving"
 msgstr "Rensnings besparing"
@@ -17223,62 +16968,59 @@ msgid "Print Outcome: "
 msgstr "Utskrifts resultat: "
 
 msgid "Edit Mixed Filament"
-msgstr "Redigera blandat filament"
+msgstr ""
 
 msgid "Effect Preview"
-msgstr "Förhandsgranska effekt"
+msgstr ""
 
 msgid "Select Mixed Materials"
-msgstr "Välj blandade material"
+msgstr ""
 
 msgid "+ Add Material"
-msgstr "+ Lägg till material"
+msgstr ""
 
 msgid "- Delete Material"
-msgstr "- Ta bort material"
+msgstr ""
 
 msgid "Ratio"
-msgstr "Förhållande"
+msgstr ""
 
 msgid "Gradient Effect"
-msgstr "Gradient effekt"
-
-msgid "Enable per-part gradient effect"
 msgstr ""
 
 msgid "Mixing Recommendations"
-msgstr "Blandnings rekommendationer"
+msgstr ""
 
 msgid "-- Select --"
-msgstr "-- Välj --"
+msgstr ""
 
 msgid "Gradient effect requires 'Mixed color sublayer' to be enabled. Enable it now?"
-msgstr "För att kunna använda gradient effekten måste \"Underlager med blandade färger\" vara aktiverat. Vill du aktivera det nu?"
+msgstr ""
 
 msgid "Mixed Color Sublayer"
-msgstr "Blandade färger i underlager"
+msgstr ""
 
 #, c-format, boost-format
 msgid "Slot %s (%s)"
-msgstr "Fack %s (%s)"
+msgstr ""
 
 msgid "cannot be mixed. Please select the same filament type."
-msgstr "kan inte blandas. Välj samma filament typ."
+msgstr ""
 
 msgid "Please select a filament for all components"
-msgstr "Välj ett filament för alla komponenter"
+msgstr ""
 
 msgid "Cannot mix different filament types"
-msgstr "Kan inte blanda olika filament typer"
+msgstr ""
 
 msgid "Maximum 3 materials for mixing"
-msgstr "Max 3 material för blandning"
+msgstr ""
 
 msgid "Maximum number of components reached"
-msgstr "Max antal komponenter uppnått"
+msgstr ""
 
 msgid "Remove the third material"
-msgstr "Ta bort det tredje materialet"
+msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -17500,12 +17242,6 @@ msgstr ""
 "Undvik vridning\n"
 "Visste du att när du skriver ut material som är benägna att vrida, såsom ABS, kan en lämplig ökning av värmebäddens temperatur minska sannolikheten för vridning."
 
-#: resources/data/hints.ini: [hint:Filament Shrinkage]
-msgid ""
-"Filament Shrinkage\n"
-"Filaments such as %s have higher shrinkage rates, which may cause slight dimensional deviations after cooling and affect assembly fit. It is recommended to refer to the Wiki for shrinkage calibration to achieve more accurate print results."
-msgstr ""
-
 #: resources/data/helio_hints.ini: [hint: Run Nylon & PC (and other advanced
 #: materials) Like a Pro]
 msgid ""
@@ -17573,64 +17309,6 @@ msgid ""
 msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
-
-#~ msgid "Standard Mode"
-#~ msgstr "Standard läge"
-
-#~ msgid "Performs full priming for the best print quality. Requires more material and time."
-#~ msgstr "Utför full rensning för bästa utskrifts kvalitet. Kräver mer material och tid."
-
-#~ msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
-#~ msgstr "Icke-mångsidiga kanter orsakade av skärverktyg: vill du fixa det nu?"
-
-#~ msgid "Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
-#~ msgstr "Välj en eller flera filer (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"
-
-#~ msgid "Choose one or more files (3mf/step/stl/svg/obj/amf):"
-#~ msgstr "Välj en eller flera filer (3mf/step/stl/svg/obj/amf):"
-
-#, c-format, boost-format
-#~ msgid "Error: %1$d non-manifold edge."
-#~ msgid_plural "Error: %1$d non-manifold edges."
-#~ msgstr[0] "Fel: %1$d inte mångfaldig kant.@Fel: %1$d inte mångfaldiga kanter."
-#~ msgstr[1] "Fel: %1$d inte mångfaldig kant.@Fel: %1$d inte mångfaldiga kanter."
-
-#~ msgid "Remaining errors"
-#~ msgstr "Kvarstående fel"
-
-#, c-format, boost-format
-#~ msgid "%1$d non-manifold edge"
-#~ msgid_plural "%1$d non-manifold edges"
-#~ msgstr[0] "%1$d inte mångfaldig kant@%1$d inte mångfaldiga kanter"
-#~ msgstr[1] "%1$d inte mångfaldig kant@%1$d inte mångfaldiga kanter"
-
-#~ msgid "If you want a specific AMS ID sequence, please disconnect all AMS after clicking 'Reset', and then reconnect them in the desired order."
-#~ msgstr "Om du vill ha en specifik AMS ID sekvens, koppla från all AMS efter att du klickat på \"Återställ\" och sedan ansluta dem igen i önskad ordning."
-
-#, c-format, boost-format
-#~ msgid "High-shrinkage filament(s) detected: %s. These materials may cause dimensional deviation after cooling. If your model requires precise fitting or assembly, please refer to the Wiki guide for shrinkage testing."
-#~ msgstr "Detekterat filament med hög krympning: %s. Dessa material kan orsaka dimensionsavvikelser efter kylning. Om din modell kräver exakt passform eller montering, se Wiki-guiden för krympningstestning."
-
-#~ msgid "Unknown file format. Input file must have .stl, .obj, .amf(.xml) extension."
-#~ msgstr "Okänt filformat. Indata filen måste ha tillägget .stl, .obj eller .amf(.xml)."
-
-#~ msgid "Shift+"
-#~ msgstr "Shift+"
-
-#~ msgid "There is a G-code script present in the current 3mf file, please verify the content of the script."
-#~ msgstr "Det finns ett G-kod skript i den aktuella 3mf filen, verifiera innehållet i skriptet."
-
-#~ msgid "The current firmware supports a maximum of 16 materials. You can either reduce the number of materials to 16 or fewer on the Preparation Page, or try updating the firmware. If you are still restricted after the update, please wait for subsequent firmware support."
-#~ msgstr "Nuvarande firmware stöder maximalt 16 material. Du kan antingen minska antalet material till 16 eller färre på Berednings sidan eller prova att uppdatera firmware. Om du fortfarande är begränsad efter uppdateringen, vänta på följande stöd i firmware."
-
-#~ msgid "Don't remind me again"
-#~ msgstr "Påminn mig inte igen"
-
-#~ msgid "No further pop-up will appear. You can reopen it in 'Preferences'"
-#~ msgstr "Inget ytterligare popup-fönster kommer att visas. Du kan uppdatera detta i \"Inställningar\""
-
-#~ msgid "The filament grouping method for current plate is determined by the dropdown option at the slicing plate button."
-#~ msgstr "Grupperings metoden för filament för plattan bestäms av rullgardins alternativet vid beredning plattan knappen."
 
 #~ msgctxt "FilamentTrack"
 #~ msgid "Left"

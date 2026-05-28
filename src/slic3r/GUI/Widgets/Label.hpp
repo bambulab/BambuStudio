@@ -21,9 +21,6 @@ public:
 
 	void Wrap(int width);
 
-protected:
-	wxSize DoGetBestClientSize() const override;
-
 private:
 	void OnSize(wxSizeEvent & evt);
 

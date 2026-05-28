@@ -35,7 +35,7 @@
     "ironing_flow": "15%",
     "ironing_spacing": "0.1",
     "ironing_type": "no ironing",
-    "reduce_infill_retraction_mode": "Auto",
+    "reduce_infill_retraction": "1",
     "filename_format": "[input_filename_base].gcode",
     "detect_overhang_wall": "1",
     "inner_wall_line_width": "0.45",

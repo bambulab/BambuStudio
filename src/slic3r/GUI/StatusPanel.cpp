@@ -1719,9 +1719,6 @@ void PrintingTaskPanel::set_thumbnail_img(const wxBitmap &bmp, const std::string
 
     m_thumbnail_bmp_display_name = bmp_name;
     m_thumbnail_bmp_display      = bmp;
-    if (m_bitmap_thumbnail && bmp.IsOk()) {
-        m_bitmap_thumbnail->SetBitmap(bmp);
-    }
     Refresh();
 }
 
@@ -3712,12 +3709,7 @@ void StatusPanel::update_ams(MachineObject *obj)
 {
     // update obj in sub dlg
     if (m_ams_setting_dlg && m_ams_setting_dlg->IsShown()) { m_ams_setting_dlg->UpdateByObj(obj); }
-    if (m_filament_setting_dlg) {
-        m_filament_setting_dlg->obj = obj;
-        if (m_filament_setting_dlg->IsShown()) {
-            m_filament_setting_dlg->TryRefreshPAProfiles();
-        }
-    }
+    if (m_filament_setting_dlg) { m_filament_setting_dlg->obj = obj; }
 
     if (obj && obj->GetCalib()->IsVersionExpired() && obj->is_security_control_ready()) {
         obj->GetCalib()->SyncCalibVersion();
@@ -3727,10 +3719,6 @@ void StatusPanel::update_ams(MachineObject *obj)
         cali_info.use_extruder_id        = false;
         cali_info.use_nozzle_volume_type = false;
         CalibUtils::emit_get_PA_calib_infos(cali_info);
-
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " calibration: sync calib version for device " << BBLCrossTalk::Crosstalk_DevName(obj->get_dev_name());
-    } else if (obj) {
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " calibration: not sync calib version, IsVersionExpired=" << obj->GetCalib()->IsVersionExpired() << " is_security_control_ready=" << obj->is_security_control_ready();
     }
 
     if (obj && obj->is_security_control_ready()) { obj->check_ams_filament_valid(); }
@@ -3790,7 +3778,7 @@ void StatusPanel::update_ams(MachineObject *obj)
     }
 
     // must select a current can
-    m_ams_control->UpdateAms(obj->get_printer_series_str(), obj->printer_type, ams_info, ext_info, *obj->GetExtderSystem(), obj->get_dev_id(), obj, false);
+    m_ams_control->UpdateAms(obj->get_printer_series_str(), obj->printer_type, ams_info, ext_info, *obj->GetExtderSystem(), obj->get_dev_id(), false);
     m_ams_control->UpdateAmsDryControl(obj);
 
     last_tray_exist_bits  = obj->tray_exist_bits;
@@ -4701,7 +4689,7 @@ void StatusPanel::on_ams_load_curr()
                 }
             }
 
-            FeedDirectionDialog dialog(nullptr, 2, obj->printer_type);
+            FeedDirectionDialog dialog(nullptr, 2);
             dialog.SetExtruderMapping(obj, curr_ams_id, curr_can_id, extruderSlots);
             auto rtn = dialog.ShowModal();
 
@@ -5304,7 +5292,7 @@ void StatusPanel::on_lamp_switch(wxCommandEvent &event)
     }
 }
 
-void StatusPanel::on_switch_vcamera(wxCommandEvent &event)
+void StatusPanel::on_switch_vcamera(wxMouseEvent &event)
 {
     // if (!obj) return;
     // bool value = m_recording_button->get_switch_status();
@@ -6008,7 +5996,7 @@ void ScoreDialog::init()
 
     fail_image = wxImage(Slic3r::resources_dir() + "/images/oss_picture_load_failed.png", wxBITMAP_TYPE_ANY);
     // icon
-    std::string icon_path = (boost::format("%1%/images/BambuStudio.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/AGBStudio.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 }
 

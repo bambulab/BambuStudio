@@ -192,7 +192,7 @@ public:
     void delete_filament(size_t filament_id = size_t(-1), int replace_filament_id = -1);  // 0 base, -1 means default
     void change_filament(size_t from_id, size_t to_id);  // 0 base
     void edit_filament();
-    void add_custom_filament(wxColour new_col, const std::string& preset_name = std::string());
+    void add_custom_filament(wxColour new_col);
     bool is_new_project_in_gcode3mf();
     // BBS
     void on_bed_type_change(BedType bed_type);
@@ -356,6 +356,7 @@ public:
     void request_download_project(std::string project_id);
     // BBS: check snapshot
     bool up_to_date(bool saved, bool backup);
+    bool check_include_gcode();
 
     bool open_3mf_file(const fs::path &file_path);
     int  get_3mf_file_count(std::vector<fs::path> paths);
@@ -695,13 +696,7 @@ public:
     void split_volume();
     void optimize_rotation();
     // find all empty cells on the plate and won't overlap with exclusion areas
-    // safe_area_2d: 可选的可放置区域包围盒（毫米，世界坐标）。defined() 时优先使用，
-    //               典型由 `get_shrink_bedpts` 收缩后的 m_bedpts 传入，使网格路径与
-    //               NFP 路径在 bed_shrink/brim_skirt_distance 上保持一致；未提供时
-    //               回落到 plate->get_build_volume(true)（旧行为）。
-    // 网格无论使用哪个区域，都会按 step 在区域内居中，把整除剩余的空间均匀分到两端，
-    //               避免边缘对象贴床边导致 brim/skirt 越出。
-    static std::vector<Vec2f> get_empty_cells(const Vec2f step, const BoundingBoxf& safe_area_2d = BoundingBoxf());
+    static std::vector<Vec2f> get_empty_cells(const Vec2f step);
 
     //BBS:
     void fill_color(int extruder_id);

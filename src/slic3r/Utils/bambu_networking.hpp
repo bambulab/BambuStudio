@@ -4,7 +4,6 @@
 #include <string>
 #include <functional>
 #include <map>
-#include <vector>
 
 extern std::string g_log_folder;
 extern std::string g_log_start_time;
@@ -38,11 +37,6 @@ namespace BBL {
 #define BAMBU_NETWORK_ERR_NO_CORRESPONDING_BUCKET       -24
 #define BAMBU_NETWORK_ERR_GET_INSTANCE_ID_FAILED        -25
 #define BAMBU_NETWORK_SIGNED_ERROR                      -26
-#define BAMBU_NETWORK_ERR_GET_FILAMENTS_FAILED          -27
-#define BAMBU_NETWORK_ERR_CREATE_FILAMENT_FAILED        -28
-#define BAMBU_NETWORK_ERR_UPDATE_FILAMENT_FAILED        -29
-#define BAMBU_NETWORK_ERR_DELETE_FILAMENT_FAILED        -30
-#define BAMBU_NETWORK_ERR_GET_FILAMENT_CONFIG_FAILED    -31
 
 //bind error
 #define BAMBU_NETWORK_ERR_BIND_CREATE_SOCKET_FAILED          -1010 //failed to create socket
@@ -103,7 +97,7 @@ namespace BBL {
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
 
-#define BAMBU_NETWORK_AGENT_VERSION         "02.06.01.50"
+#define BAMBU_NETWORK_AGENT_VERSION         "02.05.03.65"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -252,22 +246,6 @@ struct TaskQueryParams
     int status = 0;
     int offset = 0;
     int limit = 20;
-};
-
-struct FilamentQueryParams
-{
-    std::string category;
-    std::string status;
-    std::string spool_id;
-    std::string rfid;
-    int offset = 0;
-    int limit = 20;
-};
-
-struct FilamentDeleteParams
-{
-    std::vector<std::string> ids;
-    std::vector<std::string> rfids;
 };
 
 struct PublishParams {

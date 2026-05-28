@@ -1077,7 +1077,7 @@ static void check_objects_after_cut(const ModelObjectPtrs &objects)
 
         // check manifol/repairs
         auto stats = object->get_object_stl_stats();
-        if (!stats.manifold() || stats.has_open_edges() || stats.repaired()) err_objects_idxs.push_back(obj_idx);
+        if (!stats.manifold() || stats.repaired()) err_objects_idxs.push_back(obj_idx);
         obj_idx++;
     }
 
@@ -1172,7 +1172,7 @@ void GLGizmoAdvancedCut::perform_cut(const Selection& selection)
                     if (its_num_open_edges(new_objects[i]->volumes[j]->mesh().its) > 0) {
                         if (!is_showed_dialog) {
                             is_showed_dialog = true;
-                            MessageDialog dlg(nullptr, _L("Open edges may be caused by the cut tool, do you want to fix it now?"), "", wxYES | wxNO);
+                            MessageDialog dlg(nullptr, _L("non-manifold edges be caused by cut tool, do you want to fix it now?"), "", wxYES | wxNO);
                             int           ret = dlg.ShowModal();
                             if (ret == wxID_YES) {
                                 user_fix_model = true;

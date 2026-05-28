@@ -1997,10 +1997,8 @@ void AMSRoad::doRender(wxDC &dc)
 
     //virtual road
     if (m_rode_mode == AMSRoadMode::AMS_ROAD_MODE_VIRTUAL_TRAY) {
-        if (!shouldHideExtRoad()) {
-            dc.SetBrush(wxBrush(m_road_def_color));
-            dc.DrawLine(size.x / 2, -1, size.x / 2, size.y - 1);
-        }
+        dc.SetBrush(wxBrush(m_road_def_color));
+        dc.DrawLine(size.x / 2, -1, size.x / 2, size.y - 1);
     }
 
     // mode none
@@ -2062,22 +2060,6 @@ void AMSRoad::doRender(wxDC &dc)
 }
 
 void AMSRoad::UpdatePassRoad(int tag_index, AMSPassRoadType type, AMSPassRoadSTEP step) {}
-
-void AMSRoad::UpdateDeviceInfo(std::weak_ptr<DevFilaSystem> fila_system)
-{
-    m_fila_system = fila_system;
-    Refresh();
-}
-
-bool AMSRoad::shouldHideExtRoad() const
-{
-    auto fila_sys = m_fila_system.lock();
-    if (!fila_sys) return false;
-    auto* obj = fila_sys->GetOwner();
-    if (!obj) return false;
-    auto fila_switch = obj->GetFilaSwitch();
-    return fila_switch && fila_switch->IsInstalled() && fila_switch->IsReady();
-}
 
 void AMSRoad::OnPassRoad(std::vector<AMSPassRoadMode> prord_list)
 {
@@ -2207,8 +2189,6 @@ void AMSRoadUpPart::SetMode(AMSRoadShowMode mode)
 
 void AMSRoadUpPart::paintEvent(wxPaintEvent& evt)
 {
-    if (IsBeingDeleted()) return;
-
     wxPaintDC dc(this);
     render(dc);
 }
@@ -2255,22 +2235,16 @@ void AMSRoadUpPart::render(wxDC& dc)
 
 void AMSRoadUpPart::doRender(wxDC& dc)
 {
-    if (m_load_slot_index < 0 || m_load_slot_index >= (int)m_amsinfo.cans.size())
-        return;
-
     wxSize size = GetSize();
     //dc.SetPen(wxPen(m_road_def_color, 2, wxPENSTYLE_SOLID));
     dc.SetPen(wxPen(AMS_CONTROL_GRAY500, 2, wxPENSTYLE_SOLID));
     dc.SetBrush(wxBrush(*wxTRANSPARENT_BRUSH));
 
     if ((m_ams_model == DevAmsType::N3S || m_ams_model == DevAmsType::EXT_SPOOL) && m_amsinfo.cans.size() != 4){
-        bool hide_ext = (m_ams_model == DevAmsType::EXT_SPOOL) && shouldHideExtRoad();
-        if (!hide_ext) {
-            dc.DrawLine(((float)size.x / 2), (0), ((float)size.x / 2), (size.y));
-            if (m_load_step == AMSPassRoadSTEP::AMS_ROAD_STEP_2 || m_load_step == AMSPassRoadSTEP::AMS_ROAD_STEP_3){
-                dc.SetPen(wxPen(_get_diff_clr(this, m_amsinfo.cans[m_load_slot_index].material_colour), 4, wxPENSTYLE_SOLID));
-                dc.DrawLine((size.x / 2), (0), (size.x / 2), (size.y));
-            }
+        dc.DrawLine(((float)size.x / 2), (0), ((float)size.x / 2), (size.y));
+        if (m_load_step == AMSPassRoadSTEP::AMS_ROAD_STEP_2 || m_load_step == AMSPassRoadSTEP::AMS_ROAD_STEP_3){
+            dc.SetPen(wxPen(_get_diff_clr(this, m_amsinfo.cans[m_load_slot_index].material_colour), 4, wxPENSTYLE_SOLID));
+            dc.DrawLine((size.x / 2), (0), (size.x / 2), (size.y));
         }
     }
     else{
@@ -2319,9 +2293,9 @@ void AMSRoadUpPart::UpdatePassRoad(std::string ams_index, std::string slot_index
         return;
     };
 
-    if (slot_idx < 0 || slot_idx >= (int)m_amsinfo.cans.size()) {
-        BOOST_LOG_TRIVIAL(error) << "[Dev][error] up road render error: slot_idx=" << slot_idx
-                                 << " cans.size()=" << m_amsinfo.cans.size();
+    if (m_amsinfo.cans.size() <= m_load_slot_index || m_load_slot_index < 0) {
+        BOOST_LOG_TRIVIAL(error) << "[Dev][error] up road render error: m_load_slot_index=" << m_load_slot_index;
+        assert(false);
         return;
     }
 
@@ -2344,21 +2318,7 @@ void AMSRoadUpPart::msw_rescale() {
     Refresh();
 }
 
-void AMSRoadUpPart::UpdateDeviceInfo(std::weak_ptr<DevFilaSystem> fila_system)
-{
-    m_fila_system = fila_system;
-    Refresh();
-}
 
-bool AMSRoadUpPart::shouldHideExtRoad() const
-{
-    auto fila_sys = m_fila_system.lock();
-    if (!fila_sys) return false;
-    auto* obj = fila_sys->GetOwner();
-    if (!obj) return false;
-    auto fila_switch = obj->GetFilaSwitch();
-    return fila_switch && fila_switch->IsInstalled() && fila_switch->IsReady();
-}
 
 /*************************************************
 Description:AMSRoadDownPart
@@ -2486,7 +2446,7 @@ void AMSRoadDownPart::doRender(wxDC& dc)
     wxPoint left_nozzle_pos = wxPoint(std::ceil((float)size.x / 2 - FromDIP(8)), FromDIP(258));
     wxPoint right_nozzle_pos = wxPoint(std::ceil((float)size.x / 2 + FromDIP(6)), FromDIP(258));
     dc.SetPen(empty_pen);
-    if (m_nozzle_num < 2 && (m_left_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_NONE || m_right_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_NONE)){
+    if (m_left_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_NONE || m_right_rode_mode == AMSRoadShowMode::AMS_ROAD_MODE_NONE){
         //switch (m_left_rode_mode) {
         //    default: break;
         //};
@@ -2528,14 +2488,6 @@ void AMSRoadDownPart::doRender(wxDC& dc)
             dc.DrawLine(left_nozzle_pos.x - FromDIP(110), 0, left_nozzle_pos.x - FromDIP(110), (size.y / 2));
             dc.DrawLine(left_nozzle_pos.x - FromDIP(218), 0, left_nozzle_pos.x - FromDIP(218), (size.y / 2));
             break;
-        case AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE_FAR_ONLY:
-            dc.DrawLine(left_nozzle_pos.x - FromDIP(218), (size.y / 2), left_nozzle_pos.x, (size.y / 2));
-            dc.DrawLine(left_nozzle_pos.x - FromDIP(218), 0, left_nozzle_pos.x - FromDIP(218), (size.y / 2));
-            break;
-        case AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE_NEAR_ONLY:
-            dc.DrawLine(left_nozzle_pos.x - FromDIP(110), (size.y / 2), left_nozzle_pos.x, (size.y / 2));
-            dc.DrawLine(left_nozzle_pos.x - FromDIP(110), 0, left_nozzle_pos.x - FromDIP(110), (size.y / 2));
-            break;
         case AMSRoadShowMode::AMS_ROAD_MODE_SINGLE:
             dc.DrawLine(left_nozzle_pos.x - FromDIP(129), (size.y / 2), left_nozzle_pos.x, (size.y / 2));
             dc.DrawLine(left_nozzle_pos.x - FromDIP(129), 0, left_nozzle_pos.x - FromDIP(129), (size.y / 2));
@@ -2562,14 +2514,6 @@ void AMSRoadDownPart::doRender(wxDC& dc)
             dc.DrawLine(right_nozzle_pos.x + FromDIP(110), 0, right_nozzle_pos.x + FromDIP(110), (size.y / 2));
             dc.DrawLine(right_nozzle_pos.x + FromDIP(218), 0, right_nozzle_pos.x + FromDIP(218), (size.y / 2));
             break;
-        case AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE_FAR_ONLY:
-            dc.DrawLine(right_nozzle_pos.x, (size.y / 2), right_nozzle_pos.x + FromDIP(218), (size.y / 2));
-            dc.DrawLine(right_nozzle_pos.x + FromDIP(218), 0, right_nozzle_pos.x + FromDIP(218), (size.y / 2));
-            break;
-        case AMSRoadShowMode::AMS_ROAD_MODE_DOUBLE_NEAR_ONLY:
-            dc.DrawLine(right_nozzle_pos.x, (size.y / 2), right_nozzle_pos.x + FromDIP(110), (size.y / 2));
-            dc.DrawLine(right_nozzle_pos.x + FromDIP(110), 0, right_nozzle_pos.x + FromDIP(110), (size.y / 2));
-            break;
         case AMSRoadShowMode::AMS_ROAD_MODE_SINGLE:
             dc.DrawLine(right_nozzle_pos.x, (size.y / 2), right_nozzle_pos.x + FromDIP(131), (size.y / 2));
             dc.DrawLine(right_nozzle_pos.x + FromDIP(131), 0, right_nozzle_pos.x + FromDIP(131), (size.y / 2));
@@ -2592,12 +2536,8 @@ void AMSRoadDownPart::doRender(wxDC& dc)
         if (m_nozzle_num == 2) {
             /*dc.DrawLine(FromDIP(left_nozzle_pos.x), FromDIP(size.y / 2), FromDIP(left_nozzle_pos.x), FromDIP(size.y));
             dc.DrawLine(FromDIP(right_nozzle_pos.x), FromDIP(size.y / 2), FromDIP(right_nozzle_pos.x), FromDIP(size.y));*/
-            if (m_left_rode_mode != AMSRoadShowMode::AMS_ROAD_MODE_NONE) {
-                dc.DrawLine((left_nozzle_pos.x), (size.y / 2), (left_nozzle_pos.x), (size.y));
-            }
-            if (m_right_rode_mode != AMSRoadShowMode::AMS_ROAD_MODE_NONE) {
-                dc.DrawLine((right_nozzle_pos.x), (size.y / 2), (right_nozzle_pos.x), (size.y));
-            }
+            dc.DrawLine((left_nozzle_pos.x), (size.y / 2), (left_nozzle_pos.x), (size.y));
+            dc.DrawLine((right_nozzle_pos.x), (size.y / 2), (right_nozzle_pos.x), (size.y));
         }
         else {
             if (m_right_rode_mode != AMSRoadShowMode::AMS_ROAD_MODE_NONE && m_left_rode_mode != AMSRoadShowMode::AMS_ROAD_MODE_NONE) {
@@ -2687,22 +2627,6 @@ void AMSRoadDownPart::msw_rescale() {
     Layout();
     Fit();
     Refresh();
-}
-
-void AMSRoadDownPart::UpdateDeviceInfo(std::weak_ptr<DevFilaSystem> fila_system)
-{
-    m_fila_system = fila_system;
-    Refresh();
-}
-
-bool AMSRoadDownPart::shouldHideExtRoad() const
-{
-    auto fila_sys = m_fila_system.lock();
-    if (!fila_sys) return false;
-    auto* obj = fila_sys->GetOwner();
-    if (!obj) return false;
-    auto fila_switch = obj->GetFilaSwitch();
-    return fila_switch && fila_switch->IsInstalled() && fila_switch->IsReady();
 }
 
 /*************************************************
@@ -3362,16 +3286,6 @@ void AmsItem::create(wxWindow *parent)
     //Refresh();
 }
 
-bool AmsItem::ShowRoad(bool show)
-{
-    if (!m_panel_road) return false;
-    if (m_panel_road->IsShown() == show) return false;
-    m_panel_road->Show(show);
-    Layout();
-    Refresh();
-    return true;
-}
-
 void AmsItem::AddCan(Caninfo caninfo, int canindex, int maxcan, wxBoxSizer* sizer)
 {
     auto        amscan = new wxWindow(this, wxID_ANY);
@@ -3535,12 +3449,6 @@ void AmsItem::AddLiteCan(Caninfo caninfo, int canindex, wxGridSizer* sizer)
 
     m_can_lib_list[caninfo.can_id] = m_panel_lib;
     //m_can_road_list[caninfo.can_id] = m_panel_road;
-}
-
-void AmsItem::UpdateDeviceInfo(std::weak_ptr<DevFilaSystem> fila_system)
-{
-    if (m_panel_road)
-        m_panel_road->UpdateDeviceInfo(fila_system);
 }
 
 void AmsItem::Update(AMSinfo info)
@@ -3782,8 +3690,6 @@ std::string AmsItem::GetCurrentCan()
 
 void AmsItem::paintEvent(wxPaintEvent& evt)
 {
-    if (IsBeingDeleted()) return;
-
     wxPaintDC dc(this);
     render(dc);
 }
@@ -4110,11 +4016,9 @@ void DevExtruderImage::doRender(wxDC &dc)
 
 
 FeedDirectionDialog::FeedDirectionDialog(wxWindow* parent,
-                                        const int extruderNum,
-                                        const std::string& printer_type)
+                                        const int extruderNum)
     : wxDialog(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize),
-    m_extruder_num(extruderNum),
-    m_printer_type(printer_type)
+    m_extruder_num(extruderNum)
 {
     SetBackgroundColour(wxColour("#FFFFFF"));
     SetMaxSize(wxSize(FromDIP(360), FromDIP(207)));
@@ -4126,10 +4030,11 @@ FeedDirectionDialog::FeedDirectionDialog(wxWindow* parent,
     wxGridSizer* topSizer = new wxGridSizer (1, 3, FromDIP(5), 0);
 
     m_radioHelper = new wxRadioButton(this, wxID_ANY, wxT(""), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+    std::string ai_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
     m_leftRadio = new wxRadioButton(this, wxID_ANY,
-        _L(DevPrinterConfigUtil::get_toolhead_display_name(m_printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true)));
+        _L(DevPrinterConfigUtil::get_toolhead_display_name(ai_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true)));
     m_rightRadio = new wxRadioButton(this, wxID_ANY,
-        _L(DevPrinterConfigUtil::get_toolhead_display_name(m_printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true)));
+        _L(DevPrinterConfigUtil::get_toolhead_display_name(ai_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::TitleCase, true)));
     m_radioHelper->Show(false);
     m_radioHelper->SetCanFocus(false);
 
@@ -4194,7 +4099,8 @@ void FeedDirectionDialog::OnRadioClicked(wxCommandEvent& evt)
             m_extruderImage->setExtruderUsed("left");
             m_load_extruder_id = 1;
             {
-                SetTitle(wxString::Format(_L("Load %s to ") + _L(DevPrinterConfigUtil::get_toolhead_display_name(m_printer_type, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase)), m_filament_id));
+                std::string ai_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+                SetTitle(wxString::Format(_L("Load %s to ") + _L(DevPrinterConfigUtil::get_toolhead_display_name(ai_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase)), m_filament_id));
             }
         }
         else if (clicked == m_rightRadio)
@@ -4203,7 +4109,8 @@ void FeedDirectionDialog::OnRadioClicked(wxCommandEvent& evt)
             m_extruderImage->setExtruderUsed("right");
             m_load_extruder_id = 0;
             {
-                SetTitle(wxString::Format(_L("Load %s to ") + _L(DevPrinterConfigUtil::get_toolhead_display_name(m_printer_type, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase)), m_filament_id));
+                std::string ai_pt2 = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+                SetTitle(wxString::Format(_L("Load %s to ") + _L(DevPrinterConfigUtil::get_toolhead_display_name(ai_pt2, MAIN_EXTRUDER_ID, ToolHeadComponent::Extruder, ToolHeadNameCase::LowerCase)), m_filament_id));
             }
         }
     }

@@ -32,7 +32,7 @@ PurgeModeDialog::PurgeModeDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY,
     SetBackgroundColour(*wxWHITE);
     SetMinSize(wxSize(FromDIP(520), FromDIP(320)));
     SetMaxSize(wxSize(FromDIP(520), FromDIP(320)));
-    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % Slic3r::resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/AGBStudioTitle.ico") % Slic3r::resources_dir()).str();
     SetIcon(wxIcon(Slic3r::encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
 
     auto main_sizer = new wxBoxSizer(wxVERTICAL);

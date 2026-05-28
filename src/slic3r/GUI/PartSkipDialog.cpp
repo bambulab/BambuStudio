@@ -69,7 +69,7 @@ PartSkipDialog::PartSkipDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY, _
     buf << put_time(std::localtime(&t), "%a_%b_%d_%H_%M_%S/");
     m_timestamp = buf.str();
 
-    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % Slic3r::resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/AGBStudioTitle.ico") % Slic3r::resources_dir()).str();
     SetIcon(wxIcon(Slic3r::encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
     SetBackgroundColour(*wxWHITE);
 
@@ -715,22 +715,9 @@ void PartSkipDialog::InitDialogUI()
     m_canvas->SetZoomPercent(100);
     m_canvas->SetOffset(wxPoint(0, 0));
 
-    wxColour bg = GetBackgroundColour();
-    m_canvas->SetParentBackground(ColorRGB{bg.Red() / 255.f, bg.Green() / 255.f, bg.Blue() / 255.f});
-
     BOOST_LOG_TRIVIAL(info) << "part skip: load canvas pick image begin.";
     m_canvas->LoadPickImage(pick_img);
     BOOST_LOG_TRIVIAL(info) << "part skip: load canvas pick image end.";
-
-    std::string bg_image_name;
-    if (m_obj && m_obj->is_series_o())
-        bg_image_name = "skippart_bg_o.png";
-    else if (m_obj && m_obj->printer_type == "N1")
-        bg_image_name = "skippart_bg_a1mini.png";
-    else
-        bg_image_name = "skippart_bg_default.png";
-    m_canvas->LoadBackgroundImage(
-        (boost::format("%1%/images/%2%") % Slic3r::resources_dir() % bg_image_name).str());
     ModelSettingHelper helper(slice_info);
 
     if (helper.Parse()) {
@@ -970,7 +957,7 @@ int PartSkipDialog::GetAllSkippedPartsNum()
 
 PartSkipConfirmDialog::PartSkipConfirmDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY, _L("Skip Objects"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
 {
-    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % Slic3r::resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/AGBStudioTitle.ico") % Slic3r::resources_dir()).str();
     SetIcon(wxIcon(Slic3r::encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
     SetBackgroundColour(*wxWHITE);
     SetMinSize(wxSize(FromDIP(480), FromDIP(215)));

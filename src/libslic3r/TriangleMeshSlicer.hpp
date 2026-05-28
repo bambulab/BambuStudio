@@ -46,6 +46,28 @@ struct MeshSlicingParamsEx : public MeshSlicingParams
     double        resolution { 0 };
 };
 
+struct CutMeshFacetProvenance
+{
+    int  source_facet{-1};
+    bool is_cap{false};
+};
+
+struct CutMeshProvenance
+{
+    std::vector<CutMeshFacetProvenance> upper_facets;
+    std::vector<CutMeshFacetProvenance> lower_facets;
+    std::vector<int>                    upper_cap_adjacent_facets;
+    std::vector<int>                    lower_cap_adjacent_facets;
+
+    void clear()
+    {
+        upper_facets.clear();
+        lower_facets.clear();
+        upper_cap_adjacent_facets.clear();
+        lower_cap_adjacent_facets.clear();
+    }
+};
+
 // All the following slicing functions shall produce consistent results with the same mesh, same transformation matrix and slicing parameters.
 // Namely, slice_mesh_slabs() shall produce consistent results with slice_mesh() and slice_mesh_ex() in the sense, that projections made by 
 // slice_mesh_slabs() shall fall onto slicing planes produced by slice_mesh().
@@ -130,8 +152,7 @@ void cut_mesh(
     indexed_triangle_set            *upper,
     indexed_triangle_set            *lower,
     bool                             triangulate_caps = true,
-    std::vector<int>                *upper_src_faces = nullptr,
-    std::vector<int>                *lower_src_faces = nullptr);
+    CutMeshProvenance               *provenance = nullptr);
 
 // BBS
 void cut_mesh(
@@ -139,7 +160,8 @@ void cut_mesh(
     std::array<Vec3d, 4>            plane_points,
     indexed_triangle_set            *upper,
     indexed_triangle_set            *lower,
-    bool                             triangulate_caps = true);
+    bool                             triangulate_caps = true,
+    CutMeshProvenance               *provenance = nullptr);
 
 }
 

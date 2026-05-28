@@ -5,7 +5,6 @@
 #include "libslic3r/Preset.hpp"
 #include "I18N.hpp"
 #include <boost/log/trivial.hpp>
-#include <iterator>
 #include <wx/colordlg.h>
 #include <wx/dcgraph.h>
 #include "CalibUtils.hpp"
@@ -920,86 +919,6 @@ static void _collect_filament_info(const wxString& shown_name,
     query_filament_types[shown_name] = filament.config.get_filament_type();
 }
 
-void AMSMaterialsSetting::get_filaments_info(const MachineObject*                     obj,
-                                             const std::string&                       nozzle_diameter_str,
-                                             wxArrayString&                           filament_items,
-                                             std::map<std::string, FilamentInfos>&    map_filament_items,
-                                             std::unordered_map<wxString, wxString>&  query_filament_vendors,
-                                             std::unordered_map<wxString, wxString>&  query_filament_types)
-{
-    if (!obj) return;
-
-    PresetBundle *  preset_bundle = wxGetApp().preset_bundle;
-    if (!preset_bundle) return;
-
-    auto& filaments = preset_bundle->filaments;
-    BOOST_LOG_TRIVIAL(trace) << "system_preset_bundle filament number=" << filaments.size();
-
-    auto printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(
-        DevPrinterConfigUtil::get_printer_display_name(obj->printer_type), nozzle_diameter_str);
-
-    auto collect_pass = [&](bool want_system) {
-        std::set<std::string> filament_id_set; // Deduplicate by filament_id.
-        for (auto filament_it = filaments.begin(); filament_it != filaments.end(); ++filament_it) {
-            Preset& preset = *filament_it;
-            // Skip non-root presets.
-            if (filaments.get_preset_base(preset) != &preset) continue;
-            // First pass: only system presets. Second pass: only user presets, and
-
-            // skip user fila in system preset mode
-            if (want_system && !preset.is_system) continue;
-            // skip system fila in user preset mode
-            if (!want_system && preset.is_system) continue;
-
-            ConfigOption*        printer_opt  = filament_it->config.option("compatible_printers");
-            ConfigOptionStrings* printer_strs = dynamic_cast<ConfigOptionStrings*>(printer_opt);
-            if (!printer_strs) continue;
-
-            for (const auto& printer_str : printer_strs->values) {
-                if (printer_names.find(printer_str) == printer_names.end()) continue;
-                // This preset is compatible with the current printer. Append it to the out containers, if not duplicated.
-                if (filament_it->filament_id.empty()) break;
-                if (!filament_id_set.insert(filament_it->filament_id).second) break;
-
-                auto fialment_alias = filaments.get_preset_alias(preset, true);
-                if (fialment_alias.empty()) break;
-
-                filament_items.push_back(from_u8(fialment_alias));
-                _collect_filament_info(fialment_alias, preset, query_filament_vendors, query_filament_types);
-
-                FilamentInfos filament_infos;
-                filament_infos.filament_id         = filament_it->filament_id;
-                filament_infos.setting_id          = filament_it->setting_id;
-                map_filament_items[fialment_alias] = filament_infos;
-                break;
-            }
-        }
-    };
-
-    // First pass: system presets.
-    collect_pass(true);
-    // Second pass: user presets.
-    if (obj->is_support_user_preset) {
-        collect_pass(false);
-    }
-}
-
-Preset* AMSMaterialsSetting::get_filament_by_id(const std::string& filament_id, bool is_system)
-{
-    PresetBundle *  preset_bundle = wxGetApp().preset_bundle;
-    if (!preset_bundle) return nullptr;
-
-    if (filament_id.empty()) return nullptr;
-    auto& filaments = preset_bundle->filaments;
-    for (auto it = filaments.begin(); it != filaments.end(); ++it) {
-        Preset& preset = *it;
-        if (filaments.get_preset_base(preset) != &preset) continue;
-        if (is_system && !preset.is_system) continue;
-        if (preset.filament_id == filament_id) return &preset;
-    }
-    return nullptr;
-}
-
 void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_min, wxString temp_max, wxString k, wxString n)
 {
     if (!obj) return;
@@ -1013,12 +932,14 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     m_input_k_val->GetTextCtrl()->SetValue(k);
     m_input_n_val->GetTextCtrl()->SetValue(n);
 
+    int idx = 0;
     wxArrayString filament_items;
     wxString bambu_filament_name;
     wxString hint_filament_name; // the hint type to be selected
     std::unordered_map<wxString, wxString> query_filament_vendors;// some information for sort
     std::unordered_map<wxString, wxString> query_filament_types;  //
 
+    std::set<std::string> filament_id_set;
     PresetBundle *        preset_bundle = wxGetApp().preset_bundle;
     std::ostringstream    stream;
     // TODO: fila_switcher broken the connection of ams->extruder
@@ -1030,30 +951,69 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     }
     stream << std::fixed << std::setprecision(1) << obj->GetExtderSystem()->GetNozzleDiameter(extruder_id);
     std::string nozzle_diameter_str = stream.str();
+    std::set<std::string> printer_names = preset_bundle->get_printer_names_by_printer_type_and_nozzle(DevPrinterConfigUtil::get_printer_display_name(obj->printer_type), nozzle_diameter_str);
 
-    get_filaments_info(obj, nozzle_diameter_str, filament_items, map_filament_items, query_filament_vendors, query_filament_types);
-
-    if (Preset* ams_fila_it = get_filament_by_id(ams_filament_id, !m_is_third)) {
-        auto fialment_alias = preset_bundle->filaments.get_preset_alias(*ams_fila_it, true);
-        if (!fialment_alias.empty()) {
-            hint_filament_name  = from_u8(fialment_alias);
-            bambu_filament_name = from_u8(fialment_alias);
-        }
-
-        // update if nozzle_temperature_range is found
-        if (ConfigOption *opt_min = ams_fila_it->config.option("nozzle_temperature_range_low")) {
-            ConfigOptionInts *opt_min_ints = dynamic_cast<ConfigOptionInts *>(opt_min);
-            if (opt_min_ints) {
-                wxString text_nozzle_temp_min = wxString::Format("%d", opt_min_ints->get_at(0));
-                m_input_nozzle_min->GetTextCtrl()->SetValue(text_nozzle_temp_min);
+    auto & filaments = preset_bundle->filaments;
+    if (preset_bundle) {
+        BOOST_LOG_TRIVIAL(trace) << "system_preset_bundle filament number=" << filaments.size();
+        for (auto filament_it = filaments.begin(); filament_it != filaments.end(); filament_it++) {
+            //filter by system preset
+            Preset& preset = *filament_it;
+            /*The situation where the user preset is not displayed is as follows:
+                1. Not a root preset
+                2. Not system preset and the printer firmware does not support user preset */
+            if (filaments.get_preset_base(*filament_it) != &preset || (!filament_it->is_system && !obj->is_support_user_preset)) {
+                continue;
             }
-        }
-        if (ConfigOption *opt_max = ams_fila_it->config.option("nozzle_temperature_range_high")) {
-            ConfigOptionInts *opt_max_ints = dynamic_cast<ConfigOptionInts *>(opt_max);
-            if (opt_max_ints) {
-                wxString text_nozzle_temp_max = wxString::Format("%d", opt_max_ints->get_at(0));
-                m_input_nozzle_max->GetTextCtrl()->SetValue(text_nozzle_temp_max);
+
+            ConfigOption *       printer_opt  = filament_it->config.option("compatible_printers");
+            ConfigOptionStrings *printer_strs = dynamic_cast<ConfigOptionStrings *>(printer_opt);
+            for (auto printer_str : printer_strs->values) {
+                if (printer_names.find(printer_str) != printer_names.end()) {
+                    if (filament_id_set.find(filament_it->filament_id) != filament_id_set.end()) {
+                        continue;
+                    } else {
+                        filament_id_set.insert(filament_it->filament_id);
+                        // name matched
+                        auto fialment_alias = filaments.get_preset_alias(*filament_it, true);
+                        if (!fialment_alias.empty()) {
+                            filament_items.push_back(from_u8(fialment_alias));
+                            _collect_filament_info(fialment_alias, preset, query_filament_vendors, query_filament_types);
+
+                            FilamentInfos filament_infos;
+                            filament_infos.filament_id         = filament_it->filament_id;
+                            filament_infos.setting_id          = filament_it->setting_id;
+                            map_filament_items[fialment_alias] = filament_infos;
+                        }
+
+                        if (filament_it->filament_id == ams_filament_id) {
+                            hint_filament_name  = from_u8(fialment_alias);
+                            bambu_filament_name = from_u8(fialment_alias);
+
+
+                            // update if nozzle_temperature_range is found
+                            ConfigOption *opt_min = filament_it->config.option("nozzle_temperature_range_low");
+                            if (opt_min) {
+                                ConfigOptionInts *opt_min_ints = dynamic_cast<ConfigOptionInts *>(opt_min);
+                                if (opt_min_ints) {
+                                    wxString text_nozzle_temp_min = wxString::Format("%d", opt_min_ints->get_at(0));
+                                    m_input_nozzle_min->GetTextCtrl()->SetValue(text_nozzle_temp_min);
+                                }
+                            }
+                            ConfigOption *opt_max = filament_it->config.option("nozzle_temperature_range_high");
+                            if (opt_max) {
+                                ConfigOptionInts *opt_max_ints = dynamic_cast<ConfigOptionInts *>(opt_max);
+                                if (opt_max_ints) {
+                                    wxString text_nozzle_temp_max = wxString::Format("%d", opt_max_ints->get_at(0));
+                                    m_input_nozzle_max->GetTextCtrl()->SetValue(text_nozzle_temp_max);
+                                }
+                            }
+                        }
+                        idx++;
+                    }
+                }
             }
+
         }
     }
 
@@ -1101,18 +1061,34 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
 
     // Sort the filaments
     {
+        static std::unordered_map<wxString, int> sorted_names
+        {   {"Bambu PLA Basic",        0},
+            {"Bambu PLA Matte",        1},
+            {"Bambu PETG HF",          2},
+            {"Bambu ABS",              3},
+            {"Bambu PLA Silk",         4},
+            {"Bambu PLA-CF" ,          5},
+            {"Bambu PLA Galaxy",       6},
+            {"Bambu PLA Metal",        7},
+            {"Bambu PLA Marble",       8},
+            {"Bambu PETG-CF",          9},
+            {"Bambu PETG Translucent", 10},
+            {"Bambu ABS-GF",           11}
+        };
+
         static std::vector<wxString> sorted_vendors { "Bambu Lab", "Generic" };
         static std::vector<wxString> sorted_types { "PLA", "PETG", "ABS", "TPU" };
         auto _filament_sorter = [&query_filament_vendors, &query_filament_types](const wxString& left, const wxString& right) -> bool
         {
-            {   // Compare name order
-                const std::vector<std::string>& sorted_names = get_filament_orders();
-                const auto begin = sorted_names.cbegin();
-                const auto& iter1 = std::find(sorted_names.cbegin(), sorted_names.cend(), left);
-                const auto& iter2 = std::find(sorted_names.cbegin(), sorted_names.cend(), right);
-                if (iter1 != iter2)
+            { // Compare name order
+                const auto& iter1 = sorted_names.find(left);
+                int name_order1 = (iter1 != sorted_names.end()) ? iter1->second : INT_MAX;
+
+                const auto& iter2 = sorted_names.find(right);
+                int name_order2 = (iter2 != sorted_names.end()) ? iter2->second : INT_MAX;
+                if (name_order1 != name_order2)
                 {
-                    return std::distance(iter1, iter2) > 0;
+                    return name_order1 < name_order2;
                 }
             }
             { // Compare vendor
@@ -1188,21 +1164,6 @@ void AMSMaterialsSetting::post_select_event(int index) {
     event.SetInt(index);
     event.SetEventObject(m_comboBox_filament);
     wxPostEvent(m_comboBox_filament, event);
-}
-
-void AMSMaterialsSetting::TryRefreshPAProfiles()
-{
-    if (!m_pa_data_pending || !obj) return;
-    if (!obj->GetCalib()->IsPAHistoryReady()) return;
-
-    m_pa_data_pending = false;
-
-    // Re-trigger filament selection to repopulate PA profile dropdown with real data
-    int sel = m_comboBox_filament->GetSelection();
-    if (sel >= 0) {
-        m_comboBox_filament->SetClientData(new int(1));
-        post_select_event(sel);
-    }
 }
 
 void AMSMaterialsSetting::on_select_cali_result(wxCommandEvent &evt)

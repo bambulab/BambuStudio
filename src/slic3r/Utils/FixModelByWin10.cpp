@@ -33,6 +33,7 @@
 #include "libslic3r/Print.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Format/3mf.hpp"
+#include "ag/customcut/ColorCutIntegrationBridge.hpp"
 #include "../GUI/GUI.hpp"
 #include "../GUI/I18N.hpp"
 #include "../GUI/MsgDialog.hpp"
@@ -340,6 +341,24 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 	else
 		volumes.emplace_back(model_object.volumes[volume_idx]);
 
+	const Slic3r::ColorCut::ObjectAppearanceSnapshot appearance_snapshot =
+		Slic3r::ColorCut::IntegrationBridge::build_object_snapshot(model_object);
+	std::vector<Slic3r::ColorCut::VolumeAppearanceSnapshot> volume_snapshots;
+	std::vector<TriangleMesh> source_meshes;
+	volume_snapshots.reserve(volumes.size());
+	source_meshes.reserve(volumes.size());
+	for (ModelVolume *volume : volumes) {
+		auto snapshot_it = std::find_if(appearance_snapshot.volumes.begin(), appearance_snapshot.volumes.end(),
+			[volume](const Slic3r::ColorCut::VolumeAppearanceSnapshot &snapshot) {
+				return snapshot.volume_id == volume->id().id;
+			});
+		if (snapshot_it != appearance_snapshot.volumes.end())
+			volume_snapshots.emplace_back(*snapshot_it);
+		else
+			volume_snapshots.emplace_back();
+		source_meshes.emplace_back(volume->mesh());
+	}
+
 	// Executing the calculation in a background thread, so that the COM context could be created with its own threading model.
 	// (It seems like wxWidgets initialize the COM contex as single threaded and we need a multi-threaded context).
 	bool   success = false;
@@ -439,6 +458,12 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 		fix_result = progress.message;
 	}
 	worker_thread.join();
+
+	if (!canceled && success) {
+		for (size_t i = 0; i < volumes.size(); ++i)
+			Slic3r::ColorCut::IntegrationBridge::reapply_after_mesh_repair(volume_snapshots[i], source_meshes[i], *volumes[i]);
+		model_object.invalidate_bounding_box();
+	}
 	return !canceled;
 }
 

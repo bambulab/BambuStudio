@@ -9,7 +9,6 @@
 #include <mutex>
 #include <boost/filesystem/path.hpp>
 #include <boost/property_tree/ptree_fwd.hpp>
-#include <vector>
 
 #include "PrintConfig.hpp"
 #include "Semver.hpp"
@@ -75,7 +74,6 @@
 #define BBL_JSON_KEY_DEFAULT_MATERIALS          "default_materials"
 #define BBL_JSON_KEY_NOT_SUPPORT_BED_TYPE       "not_support_bed_type"
 #define BBL_JSON_KEY_MODEL_ID                   "model_id"
-#define BBL_JSON_KEY_SUPPORT_SIDE_PANEL_FAN     "support_side_panel_fan"
 
 //BBL: json path
 
@@ -101,8 +99,6 @@ extern int get_values_from_json(std::string file_path, std::vector<std::string>&
 extern ConfigFileType guess_config_file_type(const boost::property_tree::ptree &tree);
 
 extern void extend_default_config_length(DynamicPrintConfig &config, const DynamicPrintConfig &inherit_config, const bool set_nil_to_default, const DynamicPrintConfig &defaults);
-
-const std::vector<std::string> &get_filament_orders();
 
 class VendorProfile
 {
@@ -143,7 +139,6 @@ public:
         std::string                 middle_texture_rect;
         std::string                 right_icon_offset_bed;
         std::string                 hotend_model;
-        std::string                 support_side_panel_fan{ "true" };
         PrinterVariant*       variant(const std::string &name) {
             for (auto &v : this->variants)
                 if (v.name == name)

@@ -11,6 +11,8 @@ include("version.inc")
 include(GNUInstallDirs)
 include(CMakeDependentOption)
 
+set(AG_BAMBU_STUDIO_OUTPUT_NAME "bambu-studio" CACHE STRING "Application executable output name")
+
 set(SLIC3R_RESOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/resources")
 file(TO_NATIVE_PATH "${SLIC3R_RESOURCES_DIR}" SLIC3R_RESOURCES_DIR_WIN)
 

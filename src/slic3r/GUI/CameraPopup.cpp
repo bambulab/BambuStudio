@@ -25,7 +25,7 @@ wxBEGIN_EVENT_TABLE(CameraPopup, PopupWindow)
     EVT_KILL_FOCUS(CameraPopup::OnKillFocus )
 wxEND_EVENT_TABLE()
 
-wxDEFINE_EVENT(EVT_VCAMERA_SWITCH, wxCommandEvent);
+wxDEFINE_EVENT(EVT_VCAMERA_SWITCH, wxMouseEvent);
 wxDEFINE_EVENT(EVT_SDCARD_ABSENT_HINT, wxCommandEvent);
 
 #define CAMERAPOPUP_CLICK_INTERVAL 20
@@ -130,18 +130,12 @@ CameraPopup::CameraPopup(wxWindow *parent)
     main_sizer->Fit(m_panel);
 
     SetClientSize(m_panel->GetSize());
-    m_switch_recording->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
-        on_switch_recording(e);
-    });
+    m_switch_recording->Connect(wxEVT_LEFT_DOWN, wxCommandEventHandler(CameraPopup::on_switch_recording), NULL, this);
     m_switch_vcamera->Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &e) {
-        auto now = std::chrono::steady_clock::now();
-        if (now - m_last_vcamera_click < std::chrono::milliseconds(300)) return;
-        m_last_vcamera_click = now;
-
-        wxCommandEvent evt(EVT_VCAMERA_SWITCH);
+        wxMouseEvent evt(EVT_VCAMERA_SWITCH);
         evt.SetEventObject(this);
         GetEventHandler()->ProcessEvent(evt);
-    });
+        });
     #ifdef __APPLE__
     m_panel->Bind(wxEVT_LEFT_UP, &CameraPopup::OnLeftUp, this);
     #endif //APPLE
@@ -160,15 +154,10 @@ void CameraPopup::sdcard_absent_hint()
     GetEventHandler()->ProcessEvent(evt);
 }
 
-void CameraPopup::on_switch_recording(wxMouseEvent& event)
+void CameraPopup::on_switch_recording(wxCommandEvent& event)
 {
     if (!m_obj) return;
-
-    auto now = std::chrono::steady_clock::now();
-    if (now - m_last_recording_click < std::chrono::milliseconds(300)) return;
-    m_last_recording_click = now;
-
-    if (m_obj->GetStorage()->get_sdcard_state() != DevStorage::SdcardState::HAS_SDCARD_NORMAL) {
+    if (m_obj->GetStorage()->get_sdcard_state()  != DevStorage::SdcardState::HAS_SDCARD_NORMAL) {
         sdcard_absent_hint();
         return;
     }
@@ -399,7 +388,7 @@ void CameraPopup::OnLeftUp(wxMouseEvent &event)
         auto recording_rect = m_switch_recording->ClientToScreen(wxPoint(0, 0));
         if (mouse_pos.x > recording_rect.x && mouse_pos.y > recording_rect.y && mouse_pos.x < (recording_rect.x + m_switch_recording->GetSize().x) && mouse_pos.y < (recording_rect.y + m_switch_recording->GetSize().y)) {
             wxMouseEvent recording_evt(wxEVT_LEFT_DOWN);
-            on_switch_recording(recording_evt);
+            m_switch_recording->GetEventHandler()->ProcessEvent(recording_evt);
             return;
         }
         //vcamera

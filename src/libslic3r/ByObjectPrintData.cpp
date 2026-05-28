@@ -6,57 +6,8 @@
 #include "MultiNozzleUtils.hpp"
 #include "FilamentMixer.hpp"
 
-#include <algorithm>
-#include <unordered_map>
 namespace Slic3r {
 
-static void normalize_nozzle_map_per_layer(std::vector<std::vector<int>> &nozzle_map_per_layer,const std::vector<std::vector<unsigned int>> &all_filaments)
-{
-    if (nozzle_map_per_layer.empty())
-        return;
-
-    const int total_layers = nozzle_map_per_layer.size();
-    int filament_count = 0;
-    for (auto &layer_map : nozzle_map_per_layer)
-        filament_count = std::max(filament_count, int(layer_map.size()));
-
-    auto layer_uses_filament = [](const std::vector<unsigned int> &fils, int fil_id) {
-        return std::find(fils.begin(), fils.end(), static_cast<unsigned int>(fil_id)) != fils.end();
-    };
-
-    std::vector<int> fil_noz_map(filament_count, -1);
-    std::unordered_map<int, int> fil_first_nozzle_map;
-    std::unordered_map<int, int> fil_first_layer;
-
-    // Pass 1: forward scan — for used filaments, update current nozzle state;
-    //         for unused filaments, overwrite with current state (or mark for back-fill)
-    for (int layer_id = 0; layer_id < total_layers; ++layer_id) {
-        auto &layer_map = nozzle_map_per_layer[layer_id];
-        const auto &layer_fils = (layer_id < all_filaments.size()) ? all_filaments[layer_id] : std::vector<unsigned int>();
-
-        for (int fil_id = 0; fil_id < (int)layer_map.size(); ++fil_id) {
-            if (layer_uses_filament(layer_fils, fil_id)) {
-                fil_noz_map[fil_id] = layer_map[fil_id];
-                if (fil_first_nozzle_map.count(fil_id) == 0) {
-                    fil_first_nozzle_map[fil_id] = layer_map[fil_id];
-                    fil_first_layer[fil_id] = layer_id;
-                }
-            } else if (fil_noz_map[fil_id] >= 0) {
-                layer_map[fil_id] = fil_noz_map[fil_id];
-            }
-        }
-    }
-
-    // Pass 2: back-fill layers before first use — use first-ever nozzle
-    for (int layer_id = 0; layer_id < total_layers; ++layer_id) {
-        auto &layer_map = nozzle_map_per_layer[layer_id];
-        for (int fil_id = 0; fil_id < (int)layer_map.size(); ++fil_id) {
-            if (fil_first_layer.count(fil_id) != 0 && layer_id < fil_first_layer[fil_id]) {
-                layer_map[fil_id] = fil_first_nozzle_map[fil_id];
-            }
-        }
-    }
-}
 
 std::vector<std::vector<unsigned int>> ByObjectPrintData::collect_filament_data(
     const Print* print, const std::vector<const PrintObject *> &print_obj_order)
@@ -128,7 +79,6 @@ ByObjectPrintData ByObjectPrintData::build(Print* print)
     prev_object = nullptr;
     int last_filament_id = -1;
     std::vector<std::vector<int>> nozzle_map_per_layer;
-    MultiNozzleUtils::NozzleStatusRecorder nozzle_status;
 
     // 逐件打印支持选料器时，需要逐个object追加nozzle_map，构造最终的group result
     for(size_t idx =0; idx< data.print_instance_order.size(); ++idx){
@@ -137,10 +87,7 @@ ByObjectPrintData ByObjectPrintData::build(Print* print)
         if(object != prev_object){
             data.object_tool_ordering_map[object] = ToolOrdering(*object, last_filament_id);
             auto & curr_ordering = data.object_tool_ordering_map[object];
-            curr_ordering.set_nozzle_status(nozzle_status);
             curr_ordering.sort_and_build_data(*object, last_filament_id);
-
-            nozzle_status = curr_ordering.get_nozzle_status();
 
             if (print->is_dynamic_group_reorder()) {
                 auto obj_nozzle_map_per_layer = curr_ordering.get_layered_nozzle_group_result().get_layer_filament_nozzle_maps();
@@ -157,7 +104,6 @@ ByObjectPrintData ByObjectPrintData::build(Print* print)
 
     // 支持选料器时，需要根据nozzle_map_per_layer，重新构造group result，并写入到print中
     if (print->is_dynamic_group_reorder()) {
-        normalize_nozzle_map_per_layer(nozzle_map_per_layer, all_filaments);
         auto grouping_context = GroupReorder::build_filament_group_context(
             print,
             all_filaments,

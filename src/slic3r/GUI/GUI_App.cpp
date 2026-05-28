@@ -3,7 +3,6 @@
 #include "GUI_Init.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_Factories.hpp"
-#include "slic3r/GUI/DeviceWeb/DeviceWebPage.hpp"
 #include "slic3r/GUI/UserManager.hpp"
 #include "slic3r/GUI/TaskManager.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
@@ -22,7 +21,6 @@
 #include <iterator>
 #include <exception>
 #include <cstdlib>
-#include <chrono>
 #include <regex>
 #include <thread>
 #include <string_view>
@@ -57,7 +55,6 @@
 #include <wx/glcanvas.h>
 
 #include "libslic3r/Utils.hpp"
-#include "libslic3r/Debounce.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/I18N.hpp"
 #include "libslic3r/LogSink.hpp"
@@ -111,7 +108,6 @@
 #include "WebDownPluginDlg.hpp"
 #include "WebGuideDialog.hpp"
 #include "ReleaseNote.hpp"
-#include "BetaVersionDialog.hpp"
 #include "PrivacyUpdateDialog.hpp"
 #include "ModelMall.hpp"
 #include "HintNotification.hpp"
@@ -376,9 +372,9 @@ public:
         // load bitmap for logo
         BitmapCache bmp_cache;
         int logo_margin = FromDIP(72 * m_scale);
-        int logo_size = FromDIP(122 * m_scale);
-        int logo_width = FromDIP(94 * m_scale);
-        wxBitmap logo_bmp = *bmp_cache.load_svg("splash_logo", logo_size, logo_size);
+        int logo_size = FromDIP(142 * m_scale);
+        int logo_width = logo_size;
+        wxBitmap logo_bmp = *bmp_cache.load_png("AGBStudio_192px", logo_size, logo_size, false, false);
         int logo_y = top_margin + title_rect.GetHeight() + logo_margin;
         memDc.DrawBitmap(logo_bmp, (width - logo_width) / 2, logo_y, true);
 
@@ -459,10 +455,12 @@ private:
     {
         wxString title;
         wxString version;
+        wxString build;
         wxString credits;
 
         wxFont   title_font;
         wxFont   version_font;
+        wxFont   build_font;
         wxFont   credits_font;
 
         void init(wxFont init_font)
@@ -606,6 +604,12 @@ public:
         memDc.SetFont(m_constant_text.version_font);
         memDc.DrawLabel(m_constant_text.version, banner_rect, wxALIGN_TOP | wxALIGN_LEFT);
         int version_height = memDc.GetTextExtent(m_constant_text.version).GetY();
+        banner_rect.SetTop(banner_rect.GetTop() + version_height);
+        banner_rect.SetHeight(banner_rect.GetHeight() - version_height);
+
+        memDc.SetFont(m_constant_text.build_font);
+        memDc.DrawLabel(m_constant_text.build, banner_rect, wxALIGN_TOP | wxALIGN_LEFT);
+        int build_height = memDc.GetTextExtent(m_constant_text.build).GetY();
 
         memDc.SetFont(m_constant_text.credits_font);
         memDc.DrawLabel(m_constant_text.credits, banner_rect, wxALIGN_BOTTOM | wxALIGN_LEFT);
@@ -613,7 +617,7 @@ public:
         int text_height    = memDc.GetTextExtent("text").GetY();
 
         // calculate position for the dynamic text
-        int logo_and_header_height = margin + logo_size + title_height + version_height;
+        int logo_and_header_height = margin + logo_size + title_height + version_height + build_height;
         m_action_line_y_position = logo_and_header_height + 0.5 * (bmp.GetHeight() - margin - credits_height - logo_and_header_height - text_height);
     }
 
@@ -627,10 +631,12 @@ private:
     {
         wxString title;
         wxString version;
+        wxString build;
         wxString credits;
 
         wxFont   title_font;
         wxFont   version_font;
+        wxFont   build_font;
         wxFont   credits_font;
 
         void init(wxFont init_font)
@@ -645,11 +651,12 @@ private:
 #else
             version = _L("Version") + " " + std::string(version_text);
 #endif
+            build = _L("Build") + " " + std::string(SLIC3R_BUILD_NUMBER);
 
             // credits infornation
             credits =   title;
 
-            title_font = version_font = credits_font = init_font;
+            title_font = version_font = build_font = credits_font = init_font;
         }
     }
     m_constant_text;
@@ -668,6 +675,9 @@ private:
 
         float version_font_scale = (float)text_banner_width / GetTextExtent(m_constant_text.version).GetX();
         scale_font(m_constant_text.version_font, version_font_scale > 2.f ? 2.f : version_font_scale);
+
+        float build_font_scale = (float)text_banner_width / GetTextExtent(m_constant_text.build).GetX();
+        scale_font(m_constant_text.build_font, build_font_scale > 1.2f ? 1.2f : build_font_scale);
 
         // The width of the credits information string doesn't respect to the banner width some times.
         // So, scale credits_font in the respect to the longest string width
@@ -808,10 +818,10 @@ static const FileWildcards file_wildcards_by_type[FT_SIZE] = {
     /* FT_GCODE */   { "G-code files"sv,    { ".gcode"sv } },
 #ifdef __APPLE__
     /* FT_MODEL */
-    {"Supported files"sv, {".3mf"sv, ".stl"sv, ".oltp"sv, ".stp"sv, ".step"sv, ".svg"sv, ".amf"sv, ".obj"sv, ".gltf"sv, ".glb"sv, ".fbx"sv, ".usd"sv, ".usda"sv, ".usdc"sv, ".usdz"sv, ".abc"sv, ".ply"sv}},
+    {"Supported files"sv, {".3mf"sv, ".stl"sv, ".oltp"sv, ".stp"sv, ".step"sv, ".svg"sv, ".amf"sv, ".obj"sv, ".usd"sv, ".usda"sv, ".usdc"sv, ".usdz"sv, ".abc"sv, ".ply"sv}},
 #else
     /* FT_MODEL */
-    {"Supported files"sv, {".3mf"sv, ".stl"sv, ".oltp"sv, ".stp"sv, ".step"sv, ".svg"sv, ".amf"sv, ".obj"sv, ".gltf"sv, ".glb"sv, ".fbx"sv}},
+    {"Supported files"sv, {".3mf"sv, ".stl"sv, ".oltp"sv, ".stp"sv, ".step"sv, ".svg"sv, ".amf"sv, ".obj"sv}},
 #endif
     /* FT_PROJECT */ { "Project files"sv,   { ".3mf"sv} },
     /* FT_GALLERY */ { "Known files"sv,     { ".stl"sv, ".obj"sv } },
@@ -1146,7 +1156,13 @@ void GUI_App::post_init()
                 download_url = input_str;
             }
 #endif
-            download_url = sanitize_download_url(download_url);
+            try
+            {
+                //filter relative directories
+                std::regex pattern("\\.\\.[\\/\\\\]|\\.\\.[\\/\\\\][\\/\\\\]|\\.\\/[\\/\\\\]|\\.[\\/\\\\]");
+                download_url = std::regex_replace(download_url, pattern, "");
+            }
+            catch (...){}
 
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", download_url %1%") % PathSanitizer::sanitize(download_url);
 
@@ -1983,6 +1999,10 @@ bool GUI_App::check_networking_version()
     if (!network_ver.empty()) {
         BOOST_LOG_TRIVIAL(info) << "get_network_agent_version=" << network_ver;
     }
+    if (std::string(SLIC3R_APP_KEY) == "AGBStudio" && network_ver != "00.00.00.00") {
+        m_networking_compatible = true;
+        return true;
+    }
     std::string studio_ver = SLIC3R_VERSION;
     if (network_ver.length() >= 8) {
         if (network_ver.substr(0,8) == studio_ver.substr(0,8)) {
@@ -2227,8 +2247,6 @@ void GUI_App::init_networking_callbacks()
                     if (sel && sel->get_dev_id() == dev_id) {
                         obj->parse_json("cloud", msg);
                         GUI::wxGetApp().sidebar().load_ams_list(obj);
-                        // STUDIO-18155: AMS 状态变化驱动耗材同步（本地 store + 节流后云端）
-                        if (auto* sync = wxGetApp().fila_manager_sync()) sync->on_device_update(obj);
                     } else {
                         obj->parse_json("cloud", msg, true);
                     }
@@ -2276,8 +2294,6 @@ void GUI_App::init_networking_callbacks()
                     obj->parse_json("lan", msg);
                     if (this->m_device_manager->get_selected_machine() == obj) {
                         GUI::wxGetApp().sidebar().load_ams_list(obj);
-                        // STUDIO-18155: AMS 状态变化驱动耗材同步（本地 store + 节流后云端）
-                        if (auto* sync = wxGetApp().fila_manager_sync()) sync->on_device_update(obj);
                     }
                 }
 
@@ -2592,8 +2608,8 @@ std::map<std::string, std::string> GUI_App::get_extra_header()
 {
     std::map<std::string, std::string> extra_headers;
     extra_headers.insert(std::make_pair("X-BBL-Client-Type", "slicer"));
-    extra_headers.insert(std::make_pair("X-BBL-Client-Name", SLIC3R_APP_NAME));
-    extra_headers.insert(std::make_pair("X-BBL-Client-Version", VersionInfo::convert_full_version(SLIC3R_VERSION)));
+    extra_headers.insert(std::make_pair("X-BBL-Client-Name", "BambuStudio"));
+    extra_headers.insert(std::make_pair("X-BBL-Client-Version", "02.06.00.51"));
 #if defined(__WINDOWS__)
 #ifdef _M_X64
     extra_headers.insert(std::make_pair("X-BBL-OS-Type", "windows"));
@@ -2757,32 +2773,6 @@ int GUI_App::OnExit()
 
     stop_sync_user_preset();
 
-    if (m_fila_manager_cloud_disp) {
-        delete m_fila_manager_cloud_disp;
-        m_fila_manager_cloud_disp = nullptr;
-    }
-
-    if (m_fila_manager_cloud_sync) {
-        delete m_fila_manager_cloud_sync;
-        m_fila_manager_cloud_sync = nullptr;
-    }
-
-    if (m_fila_manager_cloud_client) {
-        delete m_fila_manager_cloud_client;
-        m_fila_manager_cloud_client = nullptr;
-    }
-
-    if (m_fila_manager_sync) {
-        delete m_fila_manager_sync;
-        m_fila_manager_sync = nullptr;
-    }
-
-    if (m_fila_manager_store) {
-        m_fila_manager_store->save();
-        delete m_fila_manager_store;
-        m_fila_manager_store = nullptr;
-    }
-
     if (m_device_manager) {
         delete m_device_manager;
         m_device_manager = nullptr;
@@ -2802,45 +2792,7 @@ int GUI_App::OnExit()
         m_agent = nullptr;
     }
 
-#if !BBL_RELEASE_TO_PUBLIC
-    m_fila_debug_sink = nullptr;
-#endif
-
-    // Flush any config changes that were deferred by the idle-handler debounce.
-    if (app_config && app_config->dirty())
-        app_config->save();
-
     return wxApp::OnExit();
-}
-
-void GUI_App::emit_fila_debug_log(const std::string& category,
-                                  const std::string& level,
-                                  const std::string& title,
-                                  const std::string& summary,
-                                  const nlohmann::json& detail)
-{
-#if !BBL_RELEASE_TO_PUBLIC
-    if (!m_fila_debug_sink)
-        return;
-
-    nlohmann::json payload = {
-        {"category", category},
-        {"level",    level},
-        {"title",    title},
-        {"summary",  summary},
-        {"detail",   detail},
-        {"ts",       static_cast<std::uint64_t>(
-                         std::chrono::duration_cast<std::chrono::milliseconds>(
-                             std::chrono::system_clock::now().time_since_epoch()).count())}
-    };
-    m_fila_debug_sink(payload);
-#else
-    (void)category;
-    (void)level;
-    (void)title;
-    (void)summary;
-    (void)detail;
-#endif
 }
 
 class wxBoostLog : public wxLog
@@ -3283,32 +3235,6 @@ bool GUI_App::on_init_inner()
     // Let the libslic3r know the callback, which will translate messages on demand.
     Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
 
-    // Initialize Filament Manager store & sync
-    if (!m_fila_manager_store) {
-        m_fila_manager_store = new wgtFilaManagerStore();
-        m_fila_manager_store->load();
-        BOOST_LOG_TRIVIAL(info) << "Filament Manager store initialized";
-    }
-    if (!m_fila_manager_sync) {
-        m_fila_manager_sync = new wgtFilaManagerSync(m_fila_manager_store);
-        BOOST_LOG_TRIVIAL(info) << "Filament Manager sync initialized";
-    }
-    // Cloud layer — owns HTTP client, high-level sync and the serialization dispatcher.
-    if (!m_fila_manager_cloud_client) {
-        m_fila_manager_cloud_client = new wgtFilaManagerCloudClient();
-        BOOST_LOG_TRIVIAL(info) << "Filament Manager cloud client initialized";
-    }
-    if (!m_fila_manager_cloud_sync) {
-        m_fila_manager_cloud_sync = new wgtFilaManagerCloudSync(m_fila_manager_store,
-                                                                m_fila_manager_cloud_client);
-        BOOST_LOG_TRIVIAL(info) << "Filament Manager cloud sync initialized";
-    }
-    if (!m_fila_manager_cloud_disp) {
-        m_fila_manager_cloud_disp = new wgtFilaManagerCloudDispatcher(m_fila_manager_cloud_sync,
-                                                                     m_fila_manager_cloud_client);
-        BOOST_LOG_TRIVIAL(info) << "Filament Manager cloud dispatcher initialized";
-    }
-
     BOOST_LOG_TRIVIAL(info) << "create the main window";
     mainframe = new MainFrame();
     // hide settings tabs after first Layout
@@ -3406,13 +3332,8 @@ bool GUI_App::on_init_inner()
         if (! plater_)
             return;
 
-        if (app_config->dirty()) {
-            // Debounce: avoid synchronous disk writes on every idle event.
-            // Save at most once per 5 seconds; OnExit() flushes any remaining dirty state.
-            static auto s_last_config_save = std::chrono::steady_clock::time_point{};
-            if (Slic3r::debounce_elapsed(s_last_config_save, std::chrono::seconds(5)))
-                app_config->save();
-        }
+        if (app_config->dirty())
+            app_config->save();
 
         // BBS
         //this->obj_manipul()->update_if_dirty();
@@ -3455,6 +3376,144 @@ bool GUI_App::on_init_inner()
 
 void GUI_App::copy_network_if_available()
 {
+    auto copy_bambu_network_auth_config = [this]() {
+        if (app_config == nullptr)
+            return;
+
+        wxString appdata_value;
+        if (!wxGetEnv(wxS("APPDATA"), &appdata_value) || appdata_value.empty())
+            return;
+
+        const fs::path bambu_config_path = fs::path(appdata_value.ToStdString()) / "BambuStudio" / "BambuStudio.conf";
+        if (!fs::exists(bambu_config_path))
+            return;
+
+        std::ifstream stream(bambu_config_path.string(), std::ios::in | std::ios::binary);
+        if (!stream)
+            return;
+
+        std::string content((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+        const size_t json_end = content.find_last_of('}');
+        if (json_end == std::string::npos)
+            return;
+
+        try {
+            const nlohmann::json source_config = nlohmann::json::parse(content.substr(0, json_end + 1));
+            bool changed = false;
+
+            auto copy_section_if_missing = [&](const char* section_name) {
+                if (app_config->has_section(section_name))
+                    return;
+                if (!source_config.contains(section_name) || !source_config.at(section_name).is_object())
+                    return;
+
+                std::map<std::string, std::string> values;
+                for (const auto& item : source_config.at(section_name).items()) {
+                    if (item.value().is_string())
+                        values[item.key()] = item.value().get<std::string>();
+                }
+                if (!values.empty()) {
+                    app_config->set_section(section_name, values);
+                    changed = true;
+                    BOOST_LOG_TRIVIAL(info) << "AGBStudio network config reuse: copied section " << section_name;
+                }
+            };
+
+            copy_section_if_missing("user_access_code");
+            copy_section_if_missing("access_code");
+
+            if (changed)
+                app_config->save();
+        } catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(warning) << "AGBStudio network config reuse: failed to import BambuStudio access config: " << e.what();
+        }
+    };
+
+    auto copy_existing_bambu_network_plugins = [this]() {
+        const std::vector<std::string> required_plugin_files = {
+            "BambuSource.dll",
+            "bambu_networking.dll",
+            "agora_rtc_sdk.dll",
+            "libagora-ffmpeg.dll",
+            "libagora-soundtouch.dll",
+            "libaosl.dll",
+            "live555.dll"
+        };
+
+        fs::path plugin_folder = fs::path(data_dir()) / "plugins";
+        bool missing_required_file = false;
+        for (const std::string &file_name : required_plugin_files) {
+            if (!fs::exists(plugin_folder / file_name)) {
+                missing_required_file = true;
+                break;
+            }
+        }
+        if (!missing_required_file)
+            return;
+
+        wxString appdata_value;
+        if (!wxGetEnv(wxS("APPDATA"), &appdata_value) || appdata_value.empty())
+            return;
+
+        const fs::path bambu_plugin_folder = fs::path(appdata_value.ToStdString()) / "BambuStudio" / "plugins";
+        if (!fs::exists(bambu_plugin_folder) || !fs::is_directory(bambu_plugin_folder)) {
+            BOOST_LOG_TRIVIAL(info) << "AGBStudio network plugin reuse: BambuStudio plugin folder not found: " << bambu_plugin_folder.string();
+            return;
+        }
+
+        for (const std::string &file_name : required_plugin_files) {
+            if (!fs::exists(bambu_plugin_folder / file_name)) {
+                BOOST_LOG_TRIVIAL(info) << "AGBStudio network plugin reuse: missing source file " << file_name;
+                return;
+            }
+        }
+
+        if (!fs::exists(plugin_folder))
+            fs::create_directories(plugin_folder);
+
+        std::string error_message;
+        for (const std::string &file_name : required_plugin_files) {
+            const fs::path source_path = bambu_plugin_folder / file_name;
+            const fs::path dest_path = plugin_folder / file_name;
+            CopyFileResult cfr = copy_file(source_path.string(), dest_path.string(), error_message, false);
+            if (cfr != CopyFileResult::SUCCESS) {
+                BOOST_LOG_TRIVIAL(error) << "AGBStudio network plugin reuse: failed to copy " << file_name << " (" << cfr << "): " << error_message;
+                return;
+            }
+        }
+
+        if (app_config != nullptr)
+            app_config->set_str("app", "installed_networking", "1");
+        BOOST_LOG_TRIVIAL(info) << "AGBStudio network plugin reuse: copied BambuStudio user plugins into " << plugin_folder.string();
+    };
+
+    auto copy_bambu_network_engine_config = []() {
+        wxString appdata_value;
+        if (!wxGetEnv(wxS("APPDATA"), &appdata_value) || appdata_value.empty())
+            return;
+
+        const fs::path appdata_root = fs::path(appdata_value.ToStdString());
+        const fs::path source_path = appdata_root / "BambuStudio" / "BambuNetworkEngine.conf";
+        const fs::path dest_path = appdata_root / "AGBStudio" / "BambuNetworkEngine.conf";
+        if (!fs::exists(source_path))
+            return;
+
+        boost::system::error_code ec;
+        if (fs::exists(dest_path) && fs::last_write_time(dest_path, ec) >= fs::last_write_time(source_path, ec))
+            return;
+
+        std::string error_message;
+        CopyFileResult cfr = copy_file(source_path.string(), dest_path.string(), error_message, false);
+        if (cfr == CopyFileResult::SUCCESS)
+            BOOST_LOG_TRIVIAL(info) << "AGBStudio network plugin reuse: copied BambuNetworkEngine.conf";
+        else
+            BOOST_LOG_TRIVIAL(warning) << "AGBStudio network plugin reuse: failed to copy BambuNetworkEngine.conf (" << cfr << "): " << error_message;
+    };
+
+    copy_bambu_network_auth_config();
+    copy_bambu_network_engine_config();
+    copy_existing_bambu_network_plugins();
+
     if (app_config->get("update_network_plugin") != "true")
         return;
     std::string data_dir_str = data_dir();
@@ -4396,9 +4455,9 @@ void GUI_App::import_model(wxWindow *parent, wxArrayString& input_files) const
     input_files.Clear();
     wxFileDialog dialog(parent ? parent : GetTopWindow(),
 #ifdef __APPLE__
-        _L("Choose one or more files (3mf/step/stl/svg/obj/amf/gltf/glb/fbx/usd*/abc/ply):"),
+        _L("Choose one or more files (3mf/step/stl/svg/obj/amf/usd*/abc/ply):"),
 #else
-        _L("Choose one or more files (3mf/step/stl/svg/obj/amf/gltf/glb/fbx):"),
+        _L("Choose one or more files (3mf/step/stl/svg/obj/amf):"),
 #endif
         from_u8(app_config->get_last_dir()), "",
         file_wildcards(FT_MODEL), wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
@@ -4541,19 +4600,6 @@ void GUI_App::request_user_logout()
         mainframe->update_side_preset_ui();
 
         GUI::wxGetApp().stop_sync_user_preset();
-
-        // Drop queued cloud ops so they don't fire against a stale user.
-        if (m_fila_manager_cloud_disp) {
-            m_fila_manager_cloud_disp->clear_pending();
-        }
-        // STUDIO-18155: 清 AMS auto-push 节流账本，避免账号 A 的 cooldown
-        // 影响登入账号 B 后第一次 sync 触发 push 的时机。
-        if (m_fila_manager_cloud_sync) {
-            m_fila_manager_cloud_sync->throttle().clear_all();
-        }
-        if (mainframe && mainframe->web_device()) {
-            mainframe->web_device()->NotifyFilamentSessionState();
-        }
     }
 }
 
@@ -4985,15 +5031,6 @@ void GUI_App::request_model_download(wxString url)
     }
 }
 
-std::string GUI_App::sanitize_download_url(const std::string &url)
-{
-    try {
-        std::regex pattern("\\.\\.[\\/\\\\]|\\.\\.[\\/\\\\][\\/\\\\]|\\.\\/[\\/\\\\]|\\.[\\/\\\\]");
-        return std::regex_replace(url, pattern, "");
-    } catch (...) {}
-    return url;
-}
-
 //BBS download project by project id
 void GUI_App::download_project(std::string project_id)
 {
@@ -5201,15 +5238,6 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
         mainframe->update_side_preset_ui();
 
         GUI::wxGetApp().mainframe->show_sync_dialog();
-
-        // Trigger filament-manager cloud pull on the dispatcher queue; no-op if
-        // already pulling.  Runs after login so auth token is available.
-        if (m_fila_manager_cloud_disp) {
-            m_fila_manager_cloud_disp->enqueue_pull();
-        }
-        if (mainframe && mainframe->web_device()) {
-            mainframe->web_device()->NotifyFilamentSessionState();
-        }
     }
 }
 
@@ -5431,29 +5459,7 @@ void GUI_App::check_beta_version()
                                         auto curr_version   = Semver::parse(SLIC3R_VERSION);
                                         auto remote_version = Semver::parse(version_info.version_str);
                                         if (curr_version && remote_version && (*remote_version > *curr_version)) {
-                                            std::string skip_ver = app_config->get("app", "skip_version");
-                                            if (!skip_ver.empty() && version_info.version_str <= skip_ver) {
-                                                return;
-                                            }
-
-                                            BetaVersionDialog beta_dlg(this->mainframe);
-                                            beta_dlg.updateContent(
-                                                wxString::FromUTF8(version_info.version_str),
-                                                wxString::FromUTF8(SLIC3R_VERSION));
-
-                                            switch (beta_dlg.ShowModal()) {
-                                            case wxID_YES:
-                                                GUI::wxGetApp().request_new_version(2);
-                                                break;
-                                            case wxID_CANCEL:
-                                                app_config->set("enable_beta_version_update", "false");
-                                                break;
-                                            case wxID_NO:
-                                                wxGetApp().set_skip_version(true);
-                                                break;
-                                            default:
-                                                break;
-                                            }
+                                            GUI::wxGetApp().request_new_version(false);
                                         }
                                     });
                                 }
@@ -7291,21 +7297,7 @@ void GUI_App::MacOpenURL(const wxString& url)
             if (!input_str.empty()) download_origin_url = input_str;
         }
 
-        std::string decoded_url = url_decode(download_origin_url);
-        std::string download_file_url;
-#if BBL_RELEASE_TO_PUBLIC
-        if (boost::starts_with(decoded_url, "http://makerworld") || boost::starts_with(decoded_url, "https://makerworld") ||
-            boost::starts_with(decoded_url, "http://public-cdn.bblmw.com") || boost::starts_with(decoded_url, "https://public-cdn.bblmw.com") ||
-            boost::algorithm::contains(decoded_url, "amazonaws.com") || boost::algorithm::contains(decoded_url, "aliyuncs.com")) {
-            download_file_url = decoded_url;
-        } else {
-            MessageDialog msg_dlg(nullptr, _L("This file is not from a trusted site, do you want to open it anyway?"), "", wxAPPLY | wxYES_NO);
-            if (msg_dlg.ShowModal() == wxID_YES) download_file_url = decoded_url;
-        }
-#else
-        download_file_url = decoded_url;
-#endif
-        download_file_url = sanitize_download_url(download_file_url);
+        std::string download_file_url = url_decode(download_origin_url);
 
 #if !BBL_RELEASE_TO_PUBLIC
         BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << download_file_url;

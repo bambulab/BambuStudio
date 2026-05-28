@@ -2168,7 +2168,8 @@ static void triangulate_slice(
     float                    z,
     bool                     triangulate,
     bool                     normals_down,
-    const std::map<int, Vec3f*> &section_vertices_map)
+    const std::map<int, Vec3f*> &section_vertices_map,
+    std::vector<CutMeshFacetProvenance> *facet_provenance = nullptr)
 {
     sort_remove_duplicates(slice_vertices);
 
@@ -2217,8 +2218,12 @@ static void triangulate_slice(
                     f(k) = map_duplicate_vertex[f(k) - num_original_vertices];
             if (f(0) == f(1) || f(0) == f(2) || f(1) == f(2)) {
                 // Remove degenerate face.
+                if (facet_provenance != nullptr)
+                    (*facet_provenance)[i] = facet_provenance->back();
                 f = its.indices.back();
                 its.indices.pop_back();
+                if (facet_provenance != nullptr)
+                    facet_provenance->pop_back();
             } else
                 // Keep the face.
                 ++ i;
@@ -2283,6 +2288,8 @@ static void triangulate_slice(
             }
             if (facet(0) != facet(1) && facet(0) != facet(2) && facet(1) != facet(2))
                 its.indices.emplace_back(facet);
+            if (facet(0) != facet(1) && facet(0) != facet(2) && facet(1) != facet(2) && facet_provenance != nullptr)
+                facet_provenance->push_back({-1, true});
         }
     }
 
@@ -2320,8 +2327,7 @@ Polygons project_mesh(
     return union_(top.front(), bottom.back());
 }
 
-void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* upper, indexed_triangle_set* lower, bool triangulate_caps,
-              std::vector<int>* upper_src_faces, std::vector<int>* lower_src_faces)
+void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* upper, indexed_triangle_set* lower, bool triangulate_caps, CutMeshProvenance *provenance)
 {
     assert(upper || lower);
     if (upper == nullptr && lower == nullptr)
@@ -2329,18 +2335,23 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
 
     BOOST_LOG_TRIVIAL(trace) << "cut_mesh - slicing object";
 
+    if (provenance != nullptr)
+        provenance->clear();
+
     if (upper) {
         upper->clear();
         upper->vertices = mesh.vertices;
         upper->indices.reserve(mesh.indices.size());
-        if (upper_src_faces) { upper_src_faces->clear(); upper_src_faces->reserve(mesh.indices.size()); }
+        if (provenance != nullptr)
+            provenance->upper_facets.reserve(mesh.indices.size());
     }
 
     if (lower) {
         lower->clear();
         lower->vertices = mesh.vertices;
         lower->indices.reserve(mesh.indices.size());
-        if (lower_src_faces) { lower_src_faces->clear(); lower_src_faces->reserve(mesh.indices.size()); }
+        if (provenance != nullptr)
+            provenance->lower_facets.reserve(mesh.indices.size());
     }
 
 #ifndef NDEBUG
@@ -2386,13 +2397,21 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
                 lower_lines.emplace_back(line);
                 lower_slice_vertices.emplace_back(line.a_id);
                 lower_slice_vertices.emplace_back(line.b_id);
+                if (provenance != nullptr)
+                    provenance->lower_cap_adjacent_facets.emplace_back(facet_idx);
             } else if (line.edge_type == IntersectionLine::FacetEdgeType::Bottom) {
                 upper_lines.emplace_back(line);
                 upper_slice_vertices.emplace_back(line.a_id);
                 upper_slice_vertices.emplace_back(line.b_id);
+                if (provenance != nullptr)
+                    provenance->upper_cap_adjacent_facets.emplace_back(facet_idx);
             } else if (line.edge_type == IntersectionLine::FacetEdgeType::General) {
                 lower_lines.emplace_back(line);
                 upper_lines.emplace_back(line);
+                if (provenance != nullptr) {
+                    provenance->upper_cap_adjacent_facets.emplace_back(facet_idx);
+                    provenance->lower_cap_adjacent_facets.emplace_back(facet_idx);
+                }
             }
         }
 
@@ -2400,13 +2419,15 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
             // facet is above the cut plane and does not belong to it
             if (upper != nullptr) {
                 upper->indices.emplace_back(facet);
-                if (upper_src_faces) upper_src_faces->emplace_back(facet_idx);
+                if (provenance != nullptr)
+                    provenance->upper_facets.push_back({facet_idx, false});
             }
         } else if (max_z < z || (is_equal(max_z, z) && min_z < z)) {
             // facet is below the cut plane and does not belong to it
             if (lower != nullptr) {
                 lower->indices.emplace_back(facet);
-                if (lower_src_faces) lower_src_faces->emplace_back(facet_idx);
+                if (provenance != nullptr)
+                    provenance->lower_facets.push_back({facet_idx, false});
             }
         } else if (min_z < z && max_z > z) {
             // Facet is cut by the slicing plane.
@@ -2509,47 +2530,53 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
             bool is_new_vertex_v2v0;
             auto [iv0v1_upper, iv0v1_lower] = new_vertex(v1, iv1, v0, iv0, v2, iv2, v0v1, is_new_vertex_v0v1);
             auto [iv2v0_upper, iv2v0_lower] = new_vertex(v2, iv2, v0, iv0, v1, iv1, v2v0, is_new_vertex_v2v0);
-            auto new_face                   = [upper, lower, upper_src_faces, lower_src_faces, facet_idx](indexed_triangle_set *its, int i, int j, int k) {
+            auto new_face                   = [facet_idx](indexed_triangle_set *its, std::vector<CutMeshFacetProvenance> *facet_provenance, int i, int j, int k) {
                 if (its != nullptr && i != j && i != k && j != k) {
                     its->indices.emplace_back(i, j, k);
-                    if (its == upper && upper_src_faces) upper_src_faces->emplace_back(facet_idx);
-                    else if (its == lower && lower_src_faces) lower_src_faces->emplace_back(facet_idx);
+                    if (facet_provenance != nullptr)
+                        facet_provenance->push_back({facet_idx, false});
                 }
             };
             if (is_new_vertex_v0v1 && is_new_vertex_v2v0) {
                 if (v0.z() > z) {
-                    new_face(upper, iv0, iv0v1_upper, iv2v0_upper);
-                    new_face(lower, iv1, iv2, iv0v1_lower);
-                    new_face(lower, iv2, iv2v0_lower, iv0v1_lower);
+                    new_face(upper, provenance != nullptr ? &provenance->upper_facets : nullptr, iv0, iv0v1_upper, iv2v0_upper);
+                    new_face(lower, provenance != nullptr ? &provenance->lower_facets : nullptr, iv1, iv2, iv0v1_lower);
+                    new_face(lower, provenance != nullptr ? &provenance->lower_facets : nullptr, iv2, iv2v0_lower, iv0v1_lower);
                 } else {
-                    new_face(upper, iv1, iv2, iv0v1_upper);
-                    new_face(upper, iv2, iv2v0_upper, iv0v1_upper);
-                    new_face(lower, iv0, iv0v1_lower, iv2v0_lower);
+                    new_face(upper, provenance != nullptr ? &provenance->upper_facets : nullptr, iv1, iv2, iv0v1_upper);
+                    new_face(upper, provenance != nullptr ? &provenance->upper_facets : nullptr, iv2, iv2v0_upper, iv0v1_upper);
+                    new_face(lower, provenance != nullptr ? &provenance->lower_facets : nullptr, iv0, iv0v1_lower, iv2v0_lower);
                 }
             } else if (is_new_vertex_v0v1) {
                 if (v0.z() > z) {
-                    new_face(upper, iv0, iv0v1_upper, iv2);
-                    new_face(lower, iv1, iv2, iv0v1_lower);
+                    new_face(upper, provenance != nullptr ? &provenance->upper_facets : nullptr, iv0, iv0v1_upper, iv2);
+                    new_face(lower, provenance != nullptr ? &provenance->lower_facets : nullptr, iv1, iv2, iv0v1_lower);
                 } else {
-                    new_face(lower, iv0, iv0v1_lower, iv2);
-                    new_face(upper, iv1, iv2, iv0v1_upper);
+                    new_face(lower, provenance != nullptr ? &provenance->lower_facets : nullptr, iv0, iv0v1_lower, iv2);
+                    new_face(upper, provenance != nullptr ? &provenance->upper_facets : nullptr, iv1, iv2, iv0v1_upper);
                 }
             } else if (is_new_vertex_v2v0) {
                 if (v0.z() > z) {
-                    new_face(upper, iv0, iv1, iv2v0_upper);
-                    new_face(lower, iv1, iv2, iv2v0_lower);
+                    new_face(upper, provenance != nullptr ? &provenance->upper_facets : nullptr, iv0, iv1, iv2v0_upper);
+                    new_face(lower, provenance != nullptr ? &provenance->lower_facets : nullptr, iv1, iv2, iv2v0_lower);
                 } else {
-                    new_face(lower, iv0, iv1, iv2v0_lower);
-                    new_face(upper, iv1, iv2, iv2v0_upper);
+                    new_face(lower, provenance != nullptr ? &provenance->lower_facets : nullptr, iv0, iv1, iv2v0_lower);
+                    new_face(upper, provenance != nullptr ? &provenance->upper_facets : nullptr, iv1, iv2, iv2v0_upper);
                 }
             }
         }
     }
 
+    if (provenance != nullptr) {
+        std::sort(provenance->upper_cap_adjacent_facets.begin(), provenance->upper_cap_adjacent_facets.end());
+        provenance->upper_cap_adjacent_facets.erase(std::unique(provenance->upper_cap_adjacent_facets.begin(), provenance->upper_cap_adjacent_facets.end()), provenance->upper_cap_adjacent_facets.end());
+        std::sort(provenance->lower_cap_adjacent_facets.begin(), provenance->lower_cap_adjacent_facets.end());
+        provenance->lower_cap_adjacent_facets.erase(std::unique(provenance->lower_cap_adjacent_facets.begin(), provenance->lower_cap_adjacent_facets.end()), provenance->lower_cap_adjacent_facets.end());
+    }
+
     if (upper != nullptr) {
-        triangulate_slice(*upper, upper_lines, upper_slice_vertices, int(mesh.vertices.size()), z, triangulate_caps, NORMALS_DOWN, section_vertices_map);
-        if (upper_src_faces && upper_src_faces->size() < upper->indices.size())
-            upper_src_faces->resize(upper->indices.size(), -1);
+        triangulate_slice(*upper, upper_lines, upper_slice_vertices, int(mesh.vertices.size()), z, triangulate_caps, NORMALS_DOWN, section_vertices_map,
+            provenance != nullptr ? &provenance->upper_facets : nullptr);
 #ifndef NDEBUG
         if (triangulate_caps) {
             size_t num_open_edges_new = its_num_open_edges(*upper);
@@ -2559,9 +2586,8 @@ void cut_mesh(const indexed_triangle_set& mesh, float z, indexed_triangle_set* u
     }
 
     if (lower != nullptr) {
-        triangulate_slice(*lower, lower_lines, lower_slice_vertices, int(mesh.vertices.size()), z, triangulate_caps, NORMALS_UP, section_vertices_map);
-        if (lower_src_faces && lower_src_faces->size() < lower->indices.size())
-            lower_src_faces->resize(lower->indices.size(), -1);
+        triangulate_slice(*lower, lower_lines, lower_slice_vertices, int(mesh.vertices.size()), z, triangulate_caps, NORMALS_UP, section_vertices_map,
+            provenance != nullptr ? &provenance->lower_facets : nullptr);
 #ifndef NDEBUG
         if (triangulate_caps) {
             size_t num_open_edges_new = its_num_open_edges(*lower);
@@ -2590,6 +2616,7 @@ void cut_mesh
     indexed_triangle_set* upper,
     indexed_triangle_set* lower,
     bool triangulate_caps
+    , CutMeshProvenance *provenance
 )
 {
     assert(upper || lower);
@@ -2600,7 +2627,7 @@ void cut_mesh
 
     Vec3d plane_normal = calc_plane_normal(plane_points);
     if (std::abs(plane_normal(0)) < EPSILON && std::abs(plane_normal(1)) < EPSILON) {
-        cut_mesh(mesh, plane_points[0](2), upper, lower);
+        cut_mesh(mesh, plane_points[0](2), upper, lower, triangulate_caps, provenance);
         return;
     }
 
@@ -2624,13 +2651,12 @@ void cut_mesh
     Matrix3d matrix;
     matrix.setIdentity();
     Geometry::rotation_from_two_vectors(plane_normal, { 0.0, 0.0, 1.0 }, axis, phi, &matrix);
-    Vec3d angles = Geometry::extract_euler_angles(matrix);
 
     movement = matrix * movement;
     Transform3d transfo;
     transfo.setIdentity();
     transfo.translate(movement);
-    transfo.rotate(Eigen::AngleAxisd(angles(2), Vec3d::UnitZ()) * Eigen::AngleAxisd(angles(1), Vec3d::UnitY()) * Eigen::AngleAxisd(angles(0), Vec3d::UnitX()));
+    transfo.rotate(matrix);
     
     indexed_triangle_set mesh_temp = mesh;
     its_transform(mesh_temp, transfo);

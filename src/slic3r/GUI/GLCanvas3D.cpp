@@ -218,6 +218,12 @@ std::string& get_high_temp_wrapping_warning_text()
     return high_temp_wrapping_warning_text;
 }
 
+std::string& get_high_shrinkage_warning_text()
+{
+    static std::string high_shrinkage_warning_text;
+    return high_shrinkage_warning_text;
+}
+
 static std::string& get_single_extruder_mixed_filament_warning_text()
 {
     static std::string text;
@@ -272,7 +278,6 @@ void GLCanvas3D::LayersEditing::set_config(const DynamicPrintConfig* config)
     m_slicing_parameters = nullptr;
     m_layers_texture.valid = false;
     m_layer_height_profile.clear();
-    m_profile_dirty = true;
 }
 
 void GLCanvas3D::LayersEditing::select_object(const Model& model, int object_id)
@@ -787,13 +792,7 @@ void GLCanvas3D::LayersEditing::render_volumes(const GLCanvas3D & canvas, const 
 void GLCanvas3D::LayersEditing::adjust_layer_height_profile()
 {
     this->update_slicing_parameters();
-    bool nozzle_range_reset = false;
-    PrintObject::update_layer_height_profile(*m_model_object, *m_slicing_parameters, m_layer_height_profile, nozzle_range_reset);
-    if (nozzle_range_reset) {
-        wxGetApp().plater()->get_notification_manager()->push_plater_warning_notification(
-            _u8L("The variable layer height profile has been reset because some layer heights "
-                 "exceed the allowed range of the current nozzle."));
-    }
+    PrintObject::update_layer_height_profile(*m_model_object, *m_slicing_parameters, m_layer_height_profile);
     Slic3r::adjust_layer_height_profile(*m_slicing_parameters, m_layer_height_profile, this->last_z, this->strength, this->band_width, this->last_action);
     m_layers_texture.valid = false;
     m_profile_dirty = true;
@@ -836,16 +835,9 @@ void GLCanvas3D::LayersEditing::generate_layer_height_texture()
     this->update_slicing_parameters();
     // Always try to update the layer height profile.
     bool update = !m_layers_texture.valid;
-    bool nozzle_range_reset = false;
-    if (PrintObject::update_layer_height_profile(*m_model_object, *m_slicing_parameters, m_layer_height_profile, nozzle_range_reset)) {
+    if (PrintObject::update_layer_height_profile(*m_model_object, *m_slicing_parameters, m_layer_height_profile)) {
         // Initialized to the default value.
         update = true;
-        m_profile_dirty = true;
-    }
-    if (nozzle_range_reset) {
-        wxGetApp().plater()->get_notification_manager()->push_plater_warning_notification(
-            _u8L("The variable layer height profile has been reset because some layer heights "
-                 "exceed the allowed range of the current nozzle."));
     }
     // Update if the layer height profile was changed, or when the texture is not valid.
     if (!update && !m_layers_texture.data.empty() && m_layers_texture.cells > 0)
@@ -3657,6 +3649,9 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
             bool high_temp_need_wrapping = cur_plate->check_high_temp_need_wrapping_detection(full_config_temp, get_high_temp_wrapping_warning_text());
             _set_warning_notification(EWarning::HighTempNeedWrappingDetection, high_temp_need_wrapping);
 
+            bool has_high_shrinkage = cur_plate->check_high_shrinkage_filament(full_config_temp, get_high_shrinkage_warning_text());
+            _set_warning_notification(EWarning::HighShrinkageFilament, has_high_shrinkage);
+
             bool single_extruder_mixed_risk = cur_plate->check_single_extruder_mixed_filament_risk(full_config_temp, get_single_extruder_mixed_filament_warning_text());
             _set_warning_notification(EWarning::SingleExtruderMixedFilament, single_extruder_mixed_risk);
         }
@@ -3679,6 +3674,7 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
            _set_warning_notification(EWarning::MixtureFilamentIncompatible,false);
            _set_warning_notification(EWarning::TpuNozzleMultipleFilaments, false);
            _set_warning_notification(EWarning::HighTempNeedWrappingDetection, false);
+           _set_warning_notification(EWarning::HighShrinkageFilament, false);
            _set_warning_notification(EWarning::SingleExtruderMixedFilament, false);
 
            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
@@ -4035,13 +4031,6 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 }
                 return;
             }
-            case 'e':
-            case 'E':
-            case WXK_CONTROL_E: {
-                m_labels.show_object_labels(!m_labels.are_object_labels_shown());
-                m_dirty = true;
-                return;
-            }
             }
         }
         // CTRL is pressed
@@ -4207,6 +4196,17 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
         case WXK_BACK: { post_event(SimpleEvent(EVT_GLTOOLBAR_DELETE)); break; }
 #endif
         case WXK_ESCAPE: { deselect_all(); break; }
+        // Shift+E to toggle object labels
+        case 'E':
+        case 'e': {
+            if ((evt.GetModifiers() & shiftMask) != 0) {
+                m_labels.show_object_labels(!m_labels.are_object_labels_shown());
+                m_dirty = true;
+                break;
+            }
+            evt.Skip();
+            break;
+        }
         //case WXK_F5: {
         //    if ((wxGetApp().is_editor() && !wxGetApp().plater()->model().objects.empty()) ||
         //        (wxGetApp().is_gcode_viewer() && !wxGetApp().plater()->get_last_loaded_gcode().empty()))
@@ -12853,6 +12853,10 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
         text = _u8L(get_high_temp_wrapping_warning_text());
         break;
     }
+    case EWarning::HighShrinkageFilament: {
+        text = _u8L(get_high_shrinkage_warning_text());
+        break;
+    }
     case EWarning::SingleExtruderMixedFilament: {
         text = _u8L(get_single_extruder_mixed_filament_warning_text());
         break;
@@ -12926,6 +12930,28 @@ void GLCanvas3D::_set_warning_notification(EWarning warning, bool state)
                     });
             } else {
                 notification_manager.close_slicing_customize_error_notification(NotificationType::BBLHighTempNeedWrappingDetection, NotificationLevel::WarningNotificationLevel);
+            }
+        }
+        else if (warning == EWarning::HighShrinkageFilament) {
+            if (state) {
+                notification_manager.push_slicing_customize_error_notification(
+                    NotificationType::BBLHighShrinkageFilament,
+                    NotificationLevel::WarningNotificationLevel,
+                    text,
+                    _u8L("Click Wiki for help."),
+                    [](wxEvtHandler*) {
+                        std::string language = wxGetApp().app_config->get("language");
+                        wxString    region = L"en";
+                        if (language.find("zh") == 0)
+                            region = L"zh";
+                        wxGetApp().open_browser_with_warning_dialog(
+                            wxString::Format(L"https://wiki.bambulab.com/%s/knowledge-sharing/3d-prints-shrinkage", region));
+                        return false;
+                    });
+            } else {
+                notification_manager.close_slicing_customize_error_notification(
+                    NotificationType::BBLHighShrinkageFilament,
+                    NotificationLevel::WarningNotificationLevel);
             }
         }
         else if (warning == EWarning::SingleExtruderMixedFilament) {

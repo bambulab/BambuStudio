@@ -74,6 +74,7 @@ public:
         Scale,
         Flatten,
         Cut,
+        ColorCut,
         MeshBoolean,
         Assembly,
         MmuSegmentation,
@@ -85,6 +86,8 @@ public:
         FuzzySkin,
         Measure,
         Simplify,
+        WarpCut,
+        BallEraser,
         SlaSupports,
         // BBS
         //FaceRecognition,
@@ -278,6 +281,7 @@ public:
 
     bool is_gizmo_activable_when_single_full_instance();
     bool is_gizmo_click_empty_not_exit();
+    bool is_cut_like_gizmo(EType type) const;
     bool is_only_text_volume() const;
     bool is_show_only_active_plate() const;
     bool is_ban_move_glvolume() const;

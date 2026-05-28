@@ -420,6 +420,7 @@ class GLCanvas3D
         FilamentNozzleFlowIncompatible,
         TpuNozzleMultipleFilaments,
         HighTempNeedWrappingDetection,
+        HighShrinkageFilament,
         SingleExtruderMixedFilament
     };
 

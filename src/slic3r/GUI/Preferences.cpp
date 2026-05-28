@@ -144,9 +144,6 @@ wxBoxSizer *PreferencesDialog::create_item_language_combobox(
         if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CHINESE_SIMPLIFIED)) {
             language_name = wxString::FromUTF8("\xe4\xb8\xad\xe6\x96\x87\x28\xe7\xae\x80\xe4\xbd\x93\x29");
         }
-        else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_CHINESE_TRADITIONAL)) {
-            language_name = wxString::FromUTF8("\xe4\xb8\xad\xe6\x96\x87\x28\xe7\xb9\x81\xe9\xab\x94\x29");
-        }
         else if (vlist[i] == wxLocale::GetLanguageInfo(wxLANGUAGE_SPANISH)) {
             language_name = wxString::FromUTF8("\x45\x73\x70\x61\xc3\xb1\x6f\x6c");
         }
@@ -1163,7 +1160,7 @@ void PreferencesDialog::create()
     m_backup_interval_time = app_config->get("backup_interval");
 
     // set icon for dialog
-    std::string icon_path = (boost::format("%1%/images/BambuStudioTitle.ico") % resources_dir()).str();
+    std::string icon_path = (boost::format("%1%/images/AGBStudioTitle.ico") % resources_dir()).str();
     SetIcon(wxIcon(encode_path(icon_path.c_str()), wxBITMAP_TYPE_ICO));
     SetSizeHints(wxDefaultSize, wxDefaultSize);
 
@@ -1283,18 +1280,17 @@ wxWindow* PreferencesDialog::create_general_page()
     wxBoxSizer *sizer_page = new wxBoxSizer(wxVERTICAL);
 
     auto title_general_settings = create_item_title(_L("General Settings"), page, _L("General Settings"));
-    auto available_translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
+    auto translations = wxTranslations::Get()->GetAvailableTranslations(SLIC3R_APP_KEY);
     std::vector<const wxLanguageInfo *> language_infos;
     language_infos.emplace_back(wxLocale::GetLanguageInfo(wxLANGUAGE_ENGLISH));
-    for (size_t i = 0; i < available_translations.GetCount(); ++i) {
-        const wxLanguageInfo *available_lan = wxLocale::FindLanguageInfo(available_translations[i]);
-        if (available_lan == nullptr) continue;
+    for (size_t i = 0; i < translations.GetCount(); ++i) {
+        const wxLanguageInfo *langinfo = wxLocale::FindLanguageInfo(translations[i]);
+
+        if (langinfo == nullptr) continue;
 
         for (auto si = 0; si < s_supported_languages.size(); si++) {
-            auto* supported_lan = wxLocale::GetLanguageInfo(s_supported_languages[si]);
-            if (available_lan->CanonicalName == supported_lan->CanonicalName) {
-                language_infos.emplace_back(supported_lan);
-                break;
+            if (langinfo == wxLocale::GetLanguageInfo(s_supported_languages[si])) {
+                language_infos.emplace_back(langinfo);
             }
         }
         //if (langinfo != nullptr) language_infos.emplace_back(langinfo);
@@ -1309,12 +1305,12 @@ wxWindow* PreferencesDialog::create_general_page()
     std::vector<wxString> Units         = {_L("Metric") + " (mm, g)", _L("Imperial") + " (in, oz)"};
     auto item_currency = create_item_combobox(_L("Units"), page, _L("Units"), "use_inches", Units,{"0","1"});
     auto item_12h_time_format = create_item_checkbox(_L("Use 12-hour time format"), page, _L("Display time in 12-hour format with AM/PM instead of 24-hour format"), 50, "use_12h_time_format");
-    auto item_single_instance = create_item_checkbox(_L("Keep only one Bambu Studio instance"), page,
+    auto item_single_instance = create_item_checkbox(_L("Keep only one AGBStudio instance"), page,
 #if __APPLE__
         _L("On OSX there is always only one instance of app running by default. However it is allowed to run multiple instances "
 			  "of same app from the command line. In such case this settings will allow only one instance."),
 #else
-        _L("If this is enabled, when starting Bambu Studio and another instance of the same Bambu Studio is already running, that instance will be reactivated instead."),
+        _L("If this is enabled, when starting AGBStudio and another instance of AGBStudio is already running, that instance will be reactivated instead."),
 #endif
         50, "single_instance");
 
@@ -1404,19 +1400,19 @@ wxWindow* PreferencesDialog::create_general_page()
                                                                   std::to_string(range_max) + "]",
                                                                          "3d_middle_tooltip_offset_x", "3d_middle_tooltip_offset_y", range_min, range_max, 1, nullptr, nullptr);
     auto title_presets = create_item_title(_L("Presets"), page, _L("Presets"));
-    auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), page, _L("If enabled, auto sync user presets with cloud after Bambu Studio startup or presets modified."), 50, "sync_user_preset");
-    auto item_system_sync        = create_item_checkbox(_L("Auto check for system presets updates"), page, _L("If enabled, auto check whether there are system presets updates after Bambu Studio startup."), 50, "sync_system_preset");
+    auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), page, _L("If enabled, auto sync user presets with cloud after AGBStudio startup or presets modified."), 50, "sync_user_preset");
+    auto item_system_sync        = create_item_checkbox(_L("Auto check for system presets updates"), page, _L("If enabled, auto check whether there are system presets updates after AGBStudio startup."), 50, "sync_system_preset");
 
 #ifdef _WIN32
-    auto title_associate_file = create_item_title(_L("Associate Files To Bambu Studio"), page, _L("Associate Files To Bambu Studio"));
+    auto title_associate_file = create_item_title(_L("Associate Files To AGBStudio"), page, _L("Associate Files To AGBStudio"));
 
     // associate file
-    auto item_associate_3mf  = create_item_checkbox(_L("Associate .3mf files to Bambu Studio"), page,
-                                                        _L("If enabled, sets Bambu Studio as default application to open .3mf files"), 50, "associate_3mf");
-    auto item_associate_stl  = create_item_checkbox(_L("Associate .stl files to Bambu Studio"), page,
-                                                        _L("If enabled, sets Bambu Studio as default application to open .stl files"), 50, "associate_stl");
-    auto item_associate_step = create_item_checkbox(_L("Associate .step/.stp files to Bambu Studio"), page,
-                                                         _L("If enabled, sets Bambu Studio as default application to open .step files"), 50, "associate_step");
+    auto item_associate_3mf  = create_item_checkbox(_L("Associate .3mf files to AGBStudio"), page,
+                                                        _L("If enabled, sets AGBStudio as default application to open .3mf files"), 50, "associate_3mf");
+    auto item_associate_stl  = create_item_checkbox(_L("Associate .stl files to AGBStudio"), page,
+                                                        _L("If enabled, sets AGBStudio as default application to open .stl files"), 50, "associate_stl");
+    auto item_associate_step = create_item_checkbox(_L("Associate .step/.stp files to AGBStudio"), page,
+                                                         _L("If enabled, sets AGBStudio as default application to open .step files"), 50, "associate_step");
 #endif // _WIN32
 
     auto title_modelmall = create_item_title(_L("Online Models"), page, _L("Online Models"));

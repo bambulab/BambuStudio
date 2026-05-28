@@ -51,7 +51,6 @@ class Plater;
 class MainFrame;
 class ParamsDialog;
 class FilamentGroupPopup;
-class DeviceWebPage;
 
 enum QuickSlice
 {
@@ -212,7 +211,6 @@ public:
 #ifdef __APPLE__
     bool get_mac_full_screen() { return m_mac_fullscreen; }
 #endif
-    DeviceWebPage* web_device() const { return m_web_device; }
     //BBS GUI refactor
     enum TabPosition
     {
@@ -222,11 +220,9 @@ public:
         tpMonitor       = 3,
         tpMultiDevice   = 4,
         tpProject       = 5,
-        tpCalibration      = 6,
-        tpAuxiliary        = 7,
-        toDebugTool        = 8,
-        tpFilamentManager  = 9,
-        tpWebDevice        = 10,
+        tpCalibration   = 6,
+        tpAuxiliary     = 7,
+        toDebugTool     = 8,
     };
 
     //BBS: add slice&&print status update logic
@@ -384,7 +380,6 @@ public:
     ProjectPanel*         m_project{ nullptr };
 
     CalibrationPanel*     m_calibration{ nullptr };
-    DeviceWebPage*        m_web_device{ nullptr };
     WebViewPanel*         m_webview { nullptr };
     PrinterWebView*       m_printer_view{nullptr};
     wxLogWindow*          m_log_window { nullptr };

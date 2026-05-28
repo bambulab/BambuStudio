@@ -37,9 +37,6 @@
     "filament_max_volumetric_speed": [
         "8"
     ],
-    "filament_metal_stickiness": [
-        "High"
-    ],
     "filament_type": [
         "PA"
     ],

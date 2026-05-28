@@ -515,10 +515,10 @@ int ObjectList::get_repaired_errors_count(const int obj_idx, const int vol_idx /
 
 static std::string get_warning_icon_name(const TriangleMeshStats& stats)
 {
-    return (!stats.manifold() || stats.has_open_edges() || stats.repaired()) ? "obj_warning" : "";
+    return stats.manifold() ? (stats.repaired() ? "obj_warning" : "") : "obj_warning";
 }
 
-MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol_idx /*= -1*/, wxString* sidebar_info /*= nullptr*/, MeshIssueCounts* issue_counts) const
+MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol_idx /*= -1*/, wxString* sidebar_info /*= nullptr*/, int* non_manifold_edges) const
 {
     if (obj_idx < 0)
         return { {}, {} }; // hide tooltip
@@ -527,18 +527,13 @@ MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol
         (*m_objects)[obj_idx]->get_object_stl_stats() :
         (*m_objects)[obj_idx]->volumes[vol_idx]->mesh().stats();
 
-    MeshIssueCounts issues;
-    issues.non_manifold_edges    = stats.non_manifold_edges;
-    issues.non_manifold_vertices = stats.non_manifold_vertices;
-    issues.open_edges            = stats.open_edges;
-    if (issue_counts)
-        *issue_counts = issues;
-
-    if (!stats.repaired() && !issues.has_any_issue()) {
+    if (!stats.repaired() && stats.manifold()) {
+        //if (sidebar_info)
+        //    *sidebar_info = _L("No errors");
         return { {}, {} }; // hide tooltip
     }
 
-    wxString tooltip, auto_repaired_info, error_info, open_info;
+    wxString tooltip, auto_repaired_info, remaining_info;
 
     // Create tooltip string, if there are errors
     if (stats.repaired()) {
@@ -546,39 +541,19 @@ MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol
         auto_repaired_info = format_wxstr(_L_PLURAL("%1$d error repaired", "%1$d errors repaired", errors), errors);
         tooltip += auto_repaired_info + "\n";
     }
+    if (!stats.manifold()) {
+        remaining_info = format_wxstr(_L_PLURAL("Error: %1$d non-manifold edge.", "Error: %1$d non-manifold edges.", stats.open_edges), stats.open_edges);
 
-    if (issues.has_error()) {
-        if (issues.non_manifold_edges > 0 && issues.non_manifold_vertices > 0)
-            error_info = format_wxstr(_L("Error: %1$d non-manifold edges, %2$d non-manifold vertices"),
-                                      issues.non_manifold_edges, issues.non_manifold_vertices);
-        else if (issues.non_manifold_edges > 0)
-            error_info = format_wxstr(_L_PLURAL("Error: %1$d non-manifold edge", "Error: %1$d non-manifold edges", issues.non_manifold_edges),
-                                      issues.non_manifold_edges);
-        else
-            error_info = format_wxstr(_L_PLURAL("Error: %1$d non-manifold vertex", "Error: %1$d non-manifold vertices", issues.non_manifold_vertices),
-                                      issues.non_manifold_vertices);
-
-        tooltip += error_info + "\n";
-    }
-
-    if (issues.has_info()) {
-        open_info = format_wxstr(_L_PLURAL("Info: %1$d open edge", "Info: %1$d open edges", issues.open_edges), issues.open_edges);
-        tooltip += open_info + "\n";
+        tooltip += _L("Remaining errors") + ":\n";
+        tooltip += "\t" + format_wxstr(_L_PLURAL("%1$d non-manifold edge", "%1$d non-manifold edges", stats.open_edges), stats.open_edges) + "\n";
     }
 
     if (sidebar_info) {
-        wxString info;
-        if (!open_info.empty())
-            info += open_info;
-        if (!error_info.empty()) {
-            if (!info.empty())
-                info += "\n";
-            info += "<Error>" + error_info + "</Error>";
-        }
-        if (stats.repaired())
-            info += info.empty() ? auto_repaired_info : ("\n" + auto_repaired_info);
-        *sidebar_info = info;
+        *sidebar_info = stats.manifold() ? auto_repaired_info : (remaining_info + (stats.repaired() ? ("\n" + auto_repaired_info) : ""));
     }
+
+    if (non_manifold_edges)
+        *non_manifold_edges = stats.open_edges;
 
     if (is_windows10() && !sidebar_info)
         tooltip += "\n" + _L("Right click the icon to fix model object");
@@ -586,7 +561,7 @@ MeshErrorsInfo ObjectList::get_mesh_errors_info(const int obj_idx, const int vol
     return { tooltip, get_warning_icon_name(stats) };
 }
 
-MeshErrorsInfo ObjectList::get_mesh_errors_info(wxString* sidebar_info /*= nullptr*/, MeshIssueCounts* issue_counts)
+MeshErrorsInfo ObjectList::get_mesh_errors_info(wxString* sidebar_info /*= nullptr*/, int* non_manifold_edges)
 {
     wxDataViewItem item = GetSelection();
     if (!item)
@@ -601,7 +576,7 @@ MeshErrorsInfo ObjectList::get_mesh_errors_info(wxString* sidebar_info /*= nullp
         else
             return { "", "" };
     }
-    return get_mesh_errors_info(obj_idx, vol_idx, sidebar_info, issue_counts);
+    return get_mesh_errors_info(obj_idx, vol_idx, sidebar_info, non_manifold_edges);
 }
 
 void ObjectList::set_tooltip_for_item(const wxPoint& pt)
@@ -3261,28 +3236,9 @@ void ObjectList::merge(bool to_multipart_object)
         new_object->center_around_origin();
         new_object->translate_instances(-new_object->origin_translation);
         new_object->origin_translation = Vec3d::Zero();
-        //BBS init assemble transformation based on non-selected objects' assembly bounding box
+        //BBS init asssmble transformation
         Geometry::Transformation new_object_trsf = new_object->instances[0]->get_transformation();
         new_object->instances[0]->set_assemble_transformation(new_object_trsf);
-        {
-            const std::set<int> selected_set(obj_idxs.begin(), obj_idxs.end());
-            BoundingBoxf3 others_assembly_bb;
-            for (int i = 0; i < (int)m_objects->size(); i++) {
-                if (selected_set.count(i) || (*m_objects)[i] == new_object)
-                    continue;
-                others_assembly_bb.merge((*m_objects)[i]->bounding_box_in_assembly_view());
-            }
-            auto mo_box = new_object->bounding_box_in_assembly_view();
-            if (!others_assembly_bb.defined) {
-                Vec3d offset(0, 0, mo_box.size()[2] / 2.0);
-                new_object->instances[0]->set_assemble_offset(offset);
-            } else {
-                auto offset = others_assembly_bb.center();
-                offset[0] += (others_assembly_bb.size()[0] / 2.0 + mo_box.size()[0] / 2.0 + 10.0);
-                offset[2] = mo_box.size()[2] / 2.0;
-                new_object->instances[0]->set_assemble_offset(offset);
-            }
-        }
         // merge brim ears
         const Transform3d& new_object_inverse_matrix = new_object_trsf.get_matrix().inverse();
         for (auto& p : new_object->brim_points) {
@@ -4067,7 +4023,7 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray *selectio
         bool should_show = printer_technology() == ptFFF
             && std::any_of(model_object->volumes.begin(), model_object->volumes.end(),
                 [](const ModelVolume* mv) {
-                    return mv->is_model_part() && !mv->supported_facets.empty();
+                    return !mv->supported_facets.empty();
                 });
         if (shows && !should_show) {
             m_objects_model->SetSupportPaintState(false, item_obj);
@@ -4082,7 +4038,7 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray *selectio
     {
         bool shows       = m_objects_model->IsFuzzySkinPainted(item_obj);
         bool should_show = printer_technology() == ptFFF &&
-                           std::any_of(model_object->volumes.begin(), model_object->volumes.end(), [](const ModelVolume *mv) { return mv->is_model_part() && !mv->fuzzy_skin_facets.empty(); });
+                           std::any_of(model_object->volumes.begin(), model_object->volumes.end(), [](const ModelVolume *mv) { return !mv->fuzzy_skin_facets.empty(); });
         if (shows && !should_show) {
             m_objects_model->SetFuzzySkinPaintState(false, item_obj);
         } else if (!shows && should_show) {
@@ -4097,7 +4053,7 @@ void ObjectList::update_info_items(size_t obj_idx, wxDataViewItemArray *selectio
         bool should_show = printer_technology() == ptFFF
             && std::any_of(model_object->volumes.begin(), model_object->volumes.end(),
                 [](const ModelVolume* mv) {
-                    return mv->is_model_part() && !mv->mmu_segmentation_facets.empty();
+                    return !mv->mmu_segmentation_facets.empty();
                 });
         if (shows && !should_show) {
             m_objects_model->SetColorPaintState(false, item_obj);

@@ -51,60 +51,6 @@ using boost::property_tree::ptree;
 
 namespace Slic3r {
 
-const std::vector<std::string> &get_filament_orders()
-{
-    static std::vector<std::string> orders = {"Bambu PLA Basic",
-                                              "Bambu PLA Matte",
-                                              "Bambu PLA Pure",
-                                              "Bambu PLA Lite",
-                                              "Bambu PLA Tough+",
-                                              "Bambu PETG Basic",
-                                              "Bambu PETG HF",
-                                              "Bambu ABS",
-                                              "Bambu ASA",
-                                              "Bambu PLA Silk+",
-                                              "Bambu PLA Silk",
-                                              "Bambu PLA-CF",
-                                              "Bambu PLA Marble",
-                                              "Bambu PLA Metal",
-                                              "Bambu PLA Sparkle",
-                                              "Bambu PLA Galaxy",
-                                              "Bambu PLA Glow",
-                                              "Bambu PLA Wood",
-                                              "Bambu PLA Translucent",
-                                              "Bambu PETG Translucent",
-                                              "Bambu PC",
-                                              "Bambu PC FR",
-                                              "Bambu PETG-CF",
-                                              "Bambu ABS-GF",
-                                              "Bambu ASA-CF",
-                                              "Bambu PA6-CF",
-                                              "Bambu PA6-GF",
-                                              "Bambu PAHT-CF",
-                                              "Bambu PET-CF",
-                                              "Bambu PPA-CF",
-                                              "Bambu PPS-CF",
-                                              "Bambu PLA Aero",
-                                              "Bambu ASA-Aero",
-                                              "Bambu TPU for AMS",
-                                              "Bambu TPU 95A HF",
-                                              "Bambu TPU 90A",
-                                              "Bambu TPU 85A",
-                                              "Bambu Support For PLA",
-                                              "Bambu Support For PLA/PETG",
-                                              "Bambu Support for ABS",
-                                              "Bambu PVA",
-                                              "Bambu Support For PA/PET",
-                                              "Bambu TPU 95A",
-                                              "Bambu PA-CF",
-                                              "Bambu PLA Tough",
-                                              "Bambu PLA Dynamic",
-                                              "Bambu Support W",
-                                              "Bambu Support G"};
-
-    return orders;
-}
-
 //BBS: add a function to load the version from xxx.json
 Semver get_version_from_json(std::string file_path)
 {
@@ -1120,7 +1066,6 @@ static std::vector<std::string> s_Preset_filament_options {/*"filament_colour", 
     "filament_overhang_4_4_speed",
     "filament_overhang_totally_speed",
     "override_process_overhang_speed",
-    "filament_preheat_temperature_delta",
     "filament_cooling_before_tower",
     "filament_tower_interface_pre_extrusion_dist",
     "filament_tower_interface_pre_extrusion_length",
