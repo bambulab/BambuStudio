@@ -776,7 +776,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                             something_nonoverriddable = true;
                 }
 
-                if (something_nonoverriddable || (m_print_config_ptr && m_print_config_ptr->nozzle_diameter.size() > 1)){
+                if (something_nonoverriddable){
                		layer_tools.extruders.emplace_back((extruder_override == 0) ? region.config().wall_filament.value : extruder_override);
                     if (layerCount == 0) {
                         firstLayerExtruders.emplace_back((extruder_override == 0) ? region.config().wall_filament.value : extruder_override);
@@ -807,7 +807,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                 }
             }
 
-            if (something_nonoverriddable || (m_print_config_ptr && m_print_config_ptr->nozzle_diameter.size() > 1)) {
+            if (something_nonoverriddable) {
             	if (extruder_override == 0) {
 	                if (has_solid_infill)
 	                    layer_tools.extruders.emplace_back(region.config().solid_infill_filament);
