@@ -8,6 +8,7 @@
 
 #include <map>
 #include <vector>
+#include <optional>
 
 // wx
 #include <wx/string.h>
@@ -125,6 +126,7 @@ public:
     void AddNozzleFirmwareInfo(int nozzle_id, const DevFirmwareVersionInfo& info) { m_rack_nozzles_firmware[nozzle_id] = info; }
     void ClearNozzleFirmwareInfo() { m_rack_nozzles_firmware.clear(); }
     DevFirmwareVersionInfo GetNozzleFirmwareInfo(int nozzle_id) const;
+    std::optional<DevFirmwareVersionInfo> GetNozzleFirwwareInfoBySn(const std::string& sn) const;
 
     // setters
     void  Reset();

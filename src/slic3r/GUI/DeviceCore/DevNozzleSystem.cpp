@@ -570,6 +570,21 @@ void DevNozzleSystem::AddFirmwareInfoWTM(const DevFirmwareVersionInfo& info)
     }
 }
 
+void DevNozzleSystem::AddFirmwareInfoHE(const DevFirmwareVersionInfo& info)
+{
+    static const std::string s_he_prefix = "he";
+    if (info.name.find(s_he_prefix) != string::npos) {
+        try {
+            auto str = info.name.substr(s_he_prefix.size());
+            int rack_nozzle_id = std::stoi(str);
+            m_nozzle_rack->AddNozzleFirmwareInfo(rack_nozzle_id, info);
+        } catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << ": Invalid nozzle ID in firmware name:  "
+                << info.name << ", error: " << e.what();
+        }
+    }
+}
+
 void DevNozzleSystem::ClearFirmwareInfoWTM()
 {
     m_ext_nozzle_firmware_info = DevFirmwareVersionInfo();

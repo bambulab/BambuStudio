@@ -184,6 +184,7 @@ namespace filament_slot {
     // payload after projection.
     inline constexpr const char* is_on_extruder = "is_on_extruder";
     inline constexpr const char* hotend         = "hotend";
+    inline constexpr const char* hotend_detail_dialog = "hotend_detail_dialog";
 }
 
 // state.hotend_page.hotend_slots[] — Hotend tab cards only.
@@ -197,6 +198,7 @@ namespace hotend_slot {
     // Hotend tab card shows a "Taken" state instead of the live temperature.
     inline constexpr const char* taken         = "taken";
     inline constexpr const char* hotend        = "hotend";
+    inline constexpr const char* hotend_detail_dialog = "hotend_detail_dialog";
 }
 
 // slot.filament_card — everything the spool card needs to render.
@@ -336,6 +338,16 @@ namespace hotend {
     inline constexpr const char* nozzle_label   = "nozzle_label";
     inline constexpr const char* nozzle_subtext = "nozzle_subtext";
     inline constexpr const char* selected       = "selected";
+}
+
+// slot.hotend_detail_dialog — data used only by the hotend detail modal.
+namespace hotend_detail_dialog {
+    inline constexpr const char* filament_name  = "filament_name";
+    inline constexpr const char* filament_color = "filament_color";
+    inline constexpr const char* nozzle_type    = "nozzle_type";
+    inline constexpr const char* firmware_version = "firmware_version";
+    inline constexpr const char* serial_number  = "serial_number";
+    inline constexpr const char* used_time_hours = "used_time_hours";
 }
 
 // state.filament_change_status.running_slot

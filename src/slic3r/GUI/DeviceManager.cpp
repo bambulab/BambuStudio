@@ -971,6 +971,8 @@ void MachineObject::store_version_info(const DevFirmwareVersionInfo& info)
         amshub_version_info = info;
     }else if (info.isFilaTrackSwitch()){
         filatrack_version_info = info;
+    } else if(info.isHE()){
+        m_nozzle_system->AddFirmwareInfoHE(info);
     }
 
     module_vers.emplace(info.name, info);

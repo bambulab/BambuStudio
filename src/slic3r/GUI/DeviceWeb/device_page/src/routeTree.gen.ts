@@ -17,6 +17,7 @@ import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
 import { Route as DevicepageAmscontrolwebdebugImport } from './routes/device_page/ams_control_web_debug'
 import { Route as DevicepageAmscontrolwebImport } from './routes/device_page/ams_control_web'
+import { Route as DevicepageHotenddetailImport } from './routes/device_page/hotend_detail'
 import { Route as DevicepageAmsfilamenthotendImport } from './routes/device_page/ams_filament_hotend'
 import { Route as DevicepageAmsextoperationImport } from './routes/device_page/ams_ext_operation'
 import { Route as DevicepageAmsextfilamenteditImport } from './routes/device_page/ams_ext_filament_edit'
@@ -58,6 +59,12 @@ const DevicepageAmscontrolwebdebugRoute =
 const DevicepageAmscontrolwebRoute = DevicepageAmscontrolwebImport.update({
   id: '/device_page/ams_control_web',
   path: '/device_page/ams_control_web',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const DevicepageHotenddetailRoute = DevicepageHotenddetailImport.update({
+  id: '/device_page/hotend_detail',
+  path: '/device_page/hotend_detail',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -161,6 +168,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevicepageAmsfilamenthotendImport
       parentRoute: typeof rootRoute
     }
+    '/device_page/hotend_detail': {
+      id: '/device_page/hotend_detail'
+      path: '/device_page/hotend_detail'
+      fullPath: '/device_page/hotend_detail'
+      preLoaderRoute: typeof DevicepageHotenddetailImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -177,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/device_page/ams_ext_filament_edit': typeof DevicepageAmsextfilamenteditRoute
   '/device_page/ams_ext_operation': typeof DevicepageAmsextoperationRoute
   '/device_page/ams_filament_hotend': typeof DevicepageAmsfilamenthotendRoute
+  '/device_page/hotend_detail': typeof DevicepageHotenddetailRoute
 }
 
 export interface FileRoutesByTo {
@@ -190,6 +205,7 @@ export interface FileRoutesByTo {
   '/device_page/ams_ext_filament_edit': typeof DevicepageAmsextfilamenteditRoute
   '/device_page/ams_ext_operation': typeof DevicepageAmsextoperationRoute
   '/device_page/ams_filament_hotend': typeof DevicepageAmsfilamenthotendRoute
+  '/device_page/hotend_detail': typeof DevicepageHotenddetailRoute
 }
 
 export interface FileRoutesById {
@@ -204,6 +220,7 @@ export interface FileRoutesById {
   '/device_page/ams_ext_filament_edit': typeof DevicepageAmsextfilamenteditRoute
   '/device_page/ams_ext_operation': typeof DevicepageAmsextoperationRoute
   '/device_page/ams_filament_hotend': typeof DevicepageAmsfilamenthotendRoute
+  '/device_page/hotend_detail': typeof DevicepageHotenddetailRoute
 }
 
 export interface FileRouteTypes {
@@ -219,6 +236,7 @@ export interface FileRouteTypes {
     | '/device_page/ams_ext_filament_edit'
     | '/device_page/ams_ext_operation'
     | '/device_page/ams_filament_hotend'
+    | '/device_page/hotend_detail'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -231,6 +249,7 @@ export interface FileRouteTypes {
     | '/device_page/ams_ext_filament_edit'
     | '/device_page/ams_ext_operation'
     | '/device_page/ams_filament_hotend'
+    | '/device_page/hotend_detail'
   id:
     | '__root__'
     | '/'
@@ -243,6 +262,7 @@ export interface FileRouteTypes {
     | '/device_page/ams_ext_filament_edit'
     | '/device_page/ams_ext_operation'
     | '/device_page/ams_filament_hotend'
+    | '/device_page/hotend_detail'
   fileRoutesById: FileRoutesById
 }
 
@@ -257,6 +277,7 @@ export interface RootRouteChildren {
   DevicepageAmsextfilamenteditRoute: typeof DevicepageAmsextfilamenteditRoute
   DevicepageAmsextoperationRoute: typeof DevicepageAmsextoperationRoute
   DevicepageAmsfilamenthotendRoute: typeof DevicepageAmsfilamenthotendRoute
+  DevicepageHotenddetailRoute: typeof DevicepageHotenddetailRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -270,6 +291,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevicepageAmsextfilamenteditRoute: DevicepageAmsextfilamenteditRoute,
   DevicepageAmsextoperationRoute: DevicepageAmsextoperationRoute,
   DevicepageAmsfilamenthotendRoute: DevicepageAmsfilamenthotendRoute,
+  DevicepageHotenddetailRoute: DevicepageHotenddetailRoute,
 }
 
 export const routeTree = rootRoute
@@ -291,7 +313,8 @@ export const routeTree = rootRoute
         "/device_page/ams_bridge_debug",
         "/device_page/ams_ext_filament_edit",
         "/device_page/ams_ext_operation",
-        "/device_page/ams_filament_hotend"
+        "/device_page/ams_filament_hotend",
+        "/device_page/hotend_detail"
       ]
     },
     "/": {
@@ -323,6 +346,9 @@ export const routeTree = rootRoute
     },
     "/device_page/ams_filament_hotend": {
       "filePath": "device_page/ams_filament_hotend.tsx"
+    },
+    "/device_page/hotend_detail": {
+      "filePath": "device_page/hotend_detail.tsx"
     }
   }
 }

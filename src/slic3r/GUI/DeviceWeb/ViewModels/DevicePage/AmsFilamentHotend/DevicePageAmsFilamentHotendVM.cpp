@@ -255,6 +255,23 @@ protected:
     }
 };
 
+class HotendDetailDialog : public DPIDialog
+{
+public:
+    explicit HotendDetailDialog(wxWindow* parent)
+        : DPIDialog(parent, wxID_ANY, _L("Hotend Details"), wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX)
+    {
+        SetClientSize(wxSize(FromDIP(520), FromDIP(320)));
+        SetMinClientSize(wxSize(FromDIP(520), FromDIP(320)));
+    }
+
+protected:
+    void on_dpi_changed(const wxRect& suggested_rect) override
+    {
+        SetSize(suggested_rect.GetSize());
+    }
+};
+
 class AmsBridgeDebugDialog : public DPIDialog
 {
 public:
@@ -525,6 +542,29 @@ void open_ext_ams_operation(const nlohmann::json& payload)
         % nozzle_pos % display_index % ams_id % slot_id % count).str();
     auto* host = new DeviceWebHost(&dlg, DeviceWebHostMode::DevicePageAmsFilamentHotend, route);
     host->SetMinSize(wxSize(dlg.FromDIP(520), dlg.FromDIP(420)));
+    auto* sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(host, 1, wxEXPAND);
+    dlg.SetSizer(sizer);
+    dlg.Layout();
+    dlg.ShowModal();
+}
+
+void open_hotend_detail_dialog(const nlohmann::json& payload)
+{
+    MachineObject* machine_obj = get_selected_machine_for_dialog();
+    if (!machine_obj) return;
+
+    const int nozzle_pos = payload.value("nozzle_pos", -1);
+    const int display_index = payload.value("display_index", -1);
+    if (display_index <= 0) return;
+
+    wxWindow* parent = wxGetApp().mainframe;
+    HotendDetailDialog dlg(parent);
+
+    const std::string route = (boost::format("/device_page/hotend_detail?nozzle_pos=%1%&display_index=%2%")
+        % nozzle_pos % display_index).str();
+    auto* host = new DeviceWebHost(&dlg, DeviceWebHostMode::DevicePageAmsFilamentHotend, route);
+    host->SetMinSize(wxSize(dlg.FromDIP(520), dlg.FromDIP(320)));
     auto* sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(host, 1, wxEXPAND);
     dlg.SetSizer(sizer);
@@ -949,7 +989,8 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
             {SK::hotend_slot::slot_id,       full_slot.value(SK::filament_slot::slot_id,        std::string())},
             {SK::hotend_slot::enabled,       full_slot.value(SK::filament_slot::enabled,        false)},
             {SK::hotend_slot::taken,         full_slot.value(SK::filament_slot::is_on_extruder, false)},
-            {SK::hotend_slot::hotend,        full_slot.value(SK::filament_slot::hotend,         nlohmann::json::object())}
+            {SK::hotend_slot::hotend,        full_slot.value(SK::filament_slot::hotend,         nlohmann::json::object())},
+            {SK::hotend_slot::hotend_detail_dialog, full_slot.value(SK::filament_slot::hotend_detail_dialog, nlohmann::json::object())}
         };
         hp[SK::hotend_page::hotend_slots].push_back(std::move(hotend_slot_json));
     }
@@ -1068,10 +1109,19 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
 
     // ---- Hotend tab data (Figma 965:31757) ----
     nlohmann::json hotend;
+    nlohmann::json hotend_detail_dialog;
     {
         auto rack_nozzle_info = machine_obj->GetNozzleSystem()->GetNozzleByPosId(nozzle_pos);
         const bool has_tool = has_hotend_slot && rack_nozzle_info.IsExist();
         const bool is_on_extruder = IsNozzleOnExtruder(machine_obj, nozzle_pos);
+        const bool has_read_detail = has_tool && !rack_nozzle_info.IsUnknown();
+        const std::string serial_number = has_read_detail ? rack_nozzle_info.GetSerialNumber().ToStdString() : "";
+        std::optional<DevFirmwareVersionInfo> firmware;
+        if (has_read_detail && !serial_number.empty()) {
+            if (auto rack = machine_obj->GetNozzleSystem()->GetNozzleRack()) {
+                firmware = rack->GetNozzleFirmwareInfo(nozzle_pos - 0x10);
+            }
+        }
 
         std::string op_state = SV::hotend_op_state::idle;
 
@@ -1109,6 +1159,19 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         hotend[SK::hotend::tool_kind]      = has_tool ? SV::tool_kind::nozzle : SV::tool_kind::empty;
         hotend[SK::hotend::nozzle_label]   = has_tool ? rack_nozzle_info.GetNozzleDiameterStr().ToStdString() : "--";
         hotend[SK::hotend::nozzle_subtext] = has_tool ? nozzle_flow_short_name(rack_nozzle_info.GetNozzleFlowType()) : "";
+        hotend_detail_dialog[SK::hotend_detail_dialog::filament_name]  = filament_name;
+        hotend_detail_dialog[SK::hotend_detail_dialog::filament_color] = color;
+        hotend_detail_dialog[SK::hotend_detail_dialog::nozzle_type]    = has_tool
+            ? (boost::format("%1% %2% %3%")
+                % rack_nozzle_info.GetNozzleDiameterStr().ToStdString()
+                % rack_nozzle_info.GetNozzleFlowTypeStr().ToStdString()
+                % rack_nozzle_info.GetNozzleTypeStr().ToStdString()).str()
+            : "--";
+        hotend_detail_dialog[SK::hotend_detail_dialog::firmware_version] = firmware.has_value() && !firmware->sw_ver.empty() ? firmware->sw_ver : "--";
+        hotend_detail_dialog[SK::hotend_detail_dialog::serial_number]    = has_read_detail ? serial_number : "--";
+        hotend_detail_dialog[SK::hotend_detail_dialog::used_time_hours]  = has_read_detail
+            ? nlohmann::json(std::max(0, rack_nozzle_info.GetNozzlePrintTime()) / 60)
+            : nlohmann::json(nullptr);
         if (has_tool) {
             hotend[SK::hotend::current_temp] = rack_nozzle_info.GetCurrentTemp();
         } else {
@@ -1186,7 +1249,8 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         {SK::filament_slot::filament_card,       card_section},
         {SK::filament_slot::filament_line,       line_section},
         {SK::filament_slot::filament_nozzle,     nozzle_section},
-        {SK::filament_slot::hotend,              hotend}
+        {SK::filament_slot::hotend,              hotend},
+        {SK::filament_slot::hotend_detail_dialog, hotend_detail_dialog}
     };
 }
 
@@ -1613,6 +1677,15 @@ nlohmann::json DevicePageAmsFilamentHotendVM::HandleAction(const std::string& ac
         const nlohmann::json action_payload = payload;
         wxGetApp().CallAfter([action_payload]() {
             open_ext_filament_edit_dialog(action_payload);
+        });
+    } else if (action == "hotend_detail") {
+        const int display_index = payload.value("display_index", 0);
+        if (display_index <= 0) {
+            return MakeResponse(GetModule(), "action", action, 2, _u8L("Invalid hotend display_index"), BuildState());
+        }
+        const nlohmann::json action_payload = payload;
+        wxGetApp().CallAfter([action_payload]() {
+            open_hotend_detail_dialog(action_payload);
         });
     } else if (action == "close_dialog") {
         wxGetApp().CallAfter([]() {

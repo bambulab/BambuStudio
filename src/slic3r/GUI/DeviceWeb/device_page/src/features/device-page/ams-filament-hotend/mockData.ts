@@ -112,7 +112,21 @@ const buildHotendSlot = (display_index: number, seed: SlotSeed): HotendSlotViewM
   enabled: true,
   taken: seed.is_on_extruder ?? false,
   hotend: seed.hotend ?? { op_state: 'Idle', tool_kind: 'empty' },
+  hotend_detail_dialog: buildHotendDetail(seed.hotend),
 });
+
+const mockDetail = {
+  filament_name: 'BambuLab PLA Basic',
+  filament_color: '#675AFF',
+  nozzle_type: '0.4mm Standard Hardened',
+  firmware_version: '10.10.10.10',
+  serial_number: '1234567890',
+  used_time_hours: 2057,
+};
+
+const buildHotendDetail = (hotend?: HotendSlotInfo) => (
+  hotend?.tool_kind === 'empty' ? { used_time_hours: null } : mockDetail
+);
 
 const mockHotend = (display_index: number): HotendSlotInfo => {
   switch (display_index) {

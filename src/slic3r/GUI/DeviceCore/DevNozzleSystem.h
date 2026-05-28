@@ -204,6 +204,7 @@ public:
 
     /* firmware*/
     void AddFirmwareInfoWTM(const DevFirmwareVersionInfo& info);
+    void AddFirmwareInfoHE(const DevFirmwareVersionInfo& info);
     void ClearFirmwareInfoWTM();
     DevFirmwareVersionInfo GetExtruderNozzleFirmware() const { return m_ext_nozzle_firmware_info; }
 

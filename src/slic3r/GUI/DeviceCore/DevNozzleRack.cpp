@@ -51,6 +51,18 @@ DevFirmwareVersionInfo DevNozzleRack::GetNozzleFirmwareInfo(int nozzle_id) const
     return iter != m_rack_nozzles_firmware.end() ? iter->second : DevFirmwareVersionInfo();
 }
 
+std::optional<DevFirmwareVersionInfo> DevNozzleRack::GetNozzleFirwwareInfoBySn(const std::string& sn) const
+{
+    for (const auto& iter : m_rack_nozzles_firmware) {
+        const auto& info = iter.second;
+        if (info.sn == sn) {
+            return info;
+        }
+    }
+
+    return std::nullopt;
+}
+
 
 bool DevNozzleRack::HasUnreliableNozzles() const
 {

@@ -53,6 +53,15 @@ export interface HotendSlotInfo {
   selected?: boolean;        // hotend tab 自己的选中态(可与 filament tab 独立)
 }
 
+export interface HotendDetailDialogInfo {
+  filament_name?: string;    // detail dialog: filament currently associated with this hotend
+  filament_color?: string;
+  nozzle_type?: string;      // detail dialog: diameter + flow + material/type
+  firmware_version?: string;
+  serial_number?: string;
+  used_time_hours?: number | null;
+}
+
 // Filament card render group (spool disc + labels). Mirrors C++ keys::filament_card.
 export interface FilamentCardInfo {
   state: AmsFilamentHotendCardState;          // was slot.card_state
@@ -178,6 +187,7 @@ export interface HotendSlotViewModel {
    *  Hotend tab card shows a "Taken" overlay instead of the live temperature. */
   taken?: boolean;
   hotend: HotendSlotInfo;
+  hotend_detail_dialog?: HotendDetailDialogInfo;
 }
 
 export interface HotendRackStatus {
