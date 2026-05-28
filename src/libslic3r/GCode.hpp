@@ -596,6 +596,8 @@ private:
     // BBS
     Print* m_curr_print = nullptr;
     unsigned int m_toolchange_count;
+    std::vector<unsigned int> m_filament_change_sequence;
+    std::vector<unsigned int> m_nozzle_change_sequence;
     coordf_t m_nominal_z;
     double   m_sub_layer_flow_ratio = 0.0;
     double   m_sub_layer_height     = 0.0;

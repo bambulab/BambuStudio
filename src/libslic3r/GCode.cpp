@@ -1128,8 +1128,11 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         std::string tcr_gcode, tcr_escaped_gcode = gcodegen.placeholder_parser_process("tcr_rotated_gcode", tcr_rotated_gcode, new_filament_id, &config);
         unescape_string_cstyle(tcr_escaped_gcode, tcr_gcode);
         gcode += tcr_gcode;
-        if (custom_gcode_changes_tool(tcr_gcode, gcodegen.writer().toolchange_prefix(), new_filament_id))
-            gcodegen.m_toolchange_count++; //BBS: only increase the toolchange_count when realy happend
+        if (custom_gcode_changes_tool(tcr_gcode, gcodegen.writer().toolchange_prefix(), new_filament_id)) {
+            gcodegen.m_toolchange_count++;
+            gcodegen.m_filament_change_sequence.emplace_back(new_filament_id);
+            gcodegen.m_nozzle_change_sequence.emplace_back(new_nozzle_info->group_id);
+        }
         check_add_eol(toolchange_gcode_str);
 
         //OrcaSlicer: set new PA for new filament. BBS: never use for Bambu Printer
@@ -2833,6 +2836,11 @@ void GCode::_do_export(Print& print, GCodeOutputStream &file, ThumbnailsGenerato
     m_start_gcode_filament = GCodeProcessor::get_gcode_last_filament(machine_start_gcode);
 
     m_writer.init_extruder(initial_non_support_extruder_id,0);
+    // Record the initial filament as the first entry in the change sequence
+    m_filament_change_sequence.clear();
+    m_nozzle_change_sequence.clear();
+    m_filament_change_sequence.emplace_back(initial_non_support_extruder_id);
+    m_nozzle_change_sequence.emplace_back(group_result->get_first_nozzle_for_filament(initial_non_support_extruder_id)->group_id);
     // add the missing filament start gcode in machine start gcode
     {
         DynamicConfig config;
@@ -3296,29 +3304,17 @@ void GCode::export_layer_filaments(GCodeProcessorResult* result)
     {
         result->filament_change_sequence.clear();
         result->nozzle_change_sequence.clear();
-
-        std::optional<unsigned int> prev_filament;
-        std::optional<unsigned int> prev_nozzle;
         auto group_result = m_print->get_layered_nozzle_group_result();
 
-        if (m_sorted_layer_filaments.empty() && m_print->calib_params().mode == CalibMode::Calib_PA_Line) {
-            // PA line calibration writes its own G-code, so it must publish the used filament explicitly.
+        if (!m_filament_change_sequence.empty()) {
+            result->filament_change_sequence = m_filament_change_sequence;
+            result->nozzle_change_sequence = m_nozzle_change_sequence;
+        } else if (m_print->calib_params().mode == CalibMode::Calib_PA_Line) {
+            // PA line calibration writes its own G-code without normal toolchange flow
             unsigned int fidx = m_writer.filament() ? m_writer.filament()->id() : 0;
             result->filament_change_sequence.emplace_back(fidx);
             if (group_result)
                 result->nozzle_change_sequence.emplace_back(group_result->get_nozzle_id(fidx, 0));
-        } else {
-            for(size_t layer_idx = 0; layer_idx < m_sorted_layer_filaments.size(); ++layer_idx){
-                for(auto fidx : m_sorted_layer_filaments[layer_idx]){
-                    int nozzle_idx = group_result->get_nozzle_id(fidx, layer_idx);
-                    if(!prev_nozzle || ! prev_filament || prev_nozzle != nozzle_idx || prev_filament != fidx){
-                        result->nozzle_change_sequence.emplace_back(nozzle_idx);
-                        result->filament_change_sequence.emplace_back(fidx);
-                        prev_nozzle = nozzle_idx;
-                        prev_filament = fidx;
-                    }
-                }
-            }
         }
 
         std::vector<int> optimal_assignment;
@@ -7610,6 +7606,8 @@ std::string GCode::set_extruder(unsigned int new_filament_id, double print_z, bo
 
     // BBS. Should be placed before retract.
     m_toolchange_count++;
+    m_filament_change_sequence.emplace_back(new_filament_id);
+    m_nozzle_change_sequence.emplace_back(new_nozzle_id);
 
     // prepend retraction on the current extruder
     std::string gcode = this->retract(true, false);
