@@ -120,6 +120,8 @@ public:
     void ShowEnable(bool enable);
     void UpdateScrollButtons();
 
+    // reset ams count to machine reported
+    void         reset_ams_count();
     virtual void set_ams_count(int n4, int n1);
     virtual void update_ams();
     void sync_ams(MachineObject const *obj, std::vector<DevAms *> const &ams_internal, std::vector<DevAms *> const &ams4, std::vector<DevAms *> const &ams1, std::vector<DevAmsTray> const &ext);

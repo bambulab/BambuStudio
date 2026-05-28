@@ -1,6 +1,9 @@
 #include "PresetComboBoxes.hpp"
+#include "libslic3r/Utils.hpp"
 
 #include <cstddef>
+#include <cmath>
+#include <utility>
 #include <vector>
 #include <string>
 #include <algorithm>
@@ -59,6 +62,25 @@ namespace Slic3r {
 namespace GUI {
 
 #define BORDER_W 10
+
+int tray_icon_width(const std::map<int, DynamicPrintConfig> &filament_ams_list)
+{
+    size_t max{3};
+    for (auto &[_, tray] : filament_ams_list) {
+        auto name = tray.opt_string("tray_name", 0u);
+        max       = std::max(max, name.size());
+    }
+
+    return max * 8;
+}
+
+wxBitmap *tray_color_icon(const DynamicPrintConfig &tray, const std::string &name, int icon_width)
+{
+    auto color       = tray.opt_string("filament_colour", 0u);
+    auto multi_color = tray.opt<ConfigOptionStrings>("filament_multi_colour")->values;
+    auto ctype_str   = tray.opt_string("filament_colour_type", 0u);
+    return (multi_color.size() > 1) ? get_extruder_color_icon(multi_color, ctype_str == "0", name, icon_width, 16) : get_extruder_color_icon(color, name, icon_width, 16);
+}
 
 // ---------------------------------
 // ***  PresetComboBox  ***
@@ -491,99 +513,189 @@ int PresetComboBox::selected_connected_printer(int index) const
     return -1;
 }
 
+bool PresetComboBox::add_ams_filaments_grouped_by_nozzle(std::string selected, bool alias_name)
+{
+    bool selected_in_ams = false;
+
+    // Resolve the slicing nozzle diameter for this combobox's extruder.
+    double cur_nozzle_dia = 0.0;
+    {
+        int         extruder_index = 0;
+        const auto *fil_map        = m_preset_bundle->project_config.option<ConfigOptionInts>("filament_map");
+        if (fil_map && (size_t) m_filament_idx < fil_map->values.size()) { extruder_index = std::max(0, fil_map->values[m_filament_idx] - 1); }
+        const auto *nozzles = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+        if (nozzles && (size_t) extruder_index < nozzles->values.size()) { cur_nozzle_dia = nozzles->values[extruder_index]; }
+    }
+
+    auto     &filaments  = m_collection->get_presets();
+    const int icon_width = tray_icon_width(m_preset_bundle->filament_ams_list);
+
+    auto append_one = [&](int entry_key, const DynamicPrintConfig &tray) {
+        std::string filament_id = tray.opt_string("filament_id", 0u);
+        auto        name        = tray.opt_string("tray_name", 0u);
+        if (filament_id.empty()) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  %1% 's filament_id is empty.") % name;
+            return;
+        }
+
+        auto iter = std::find_if(filaments.begin(), filaments.end(),
+                                 [&filament_id, this](auto &f) { return f.is_compatible && m_collection->get_preset_base(f) == &f && f.filament_id == filament_id; });
+        if (iter == filaments.end()) {
+            auto filament_type = tray.opt_string("filament_type", 0u);
+            if (!filament_type.empty()) {
+                filament_type = "Generic " + filament_type;
+                iter          = std::find_if(filaments.begin(), filaments.end(),
+                                             [&filament_type](auto &f) { return f.is_compatible && f.is_system && boost::algorithm::starts_with(f.name, filament_type); });
+            }
+        }
+        if (iter == filaments.end()) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % filament_id;
+            return;
+        }
+
+        const_cast<Preset &>(*iter).is_visible = true;
+        auto      color                        = tray.opt_string("filament_colour", 0u);
+        wxBitmap *ams_bmp                      = tray_color_icon(tray, name, icon_width);
+        if (!ams_bmp) return;
+        wxBitmap bmp(*ams_bmp);
+        auto     text = get_preset_name(*iter);
+        Append(text, bmp.ConvertToImage(), &m_first_ams_filament + entry_key);
+        SetFlag(GetCount() - 1, (int) FilamentAMSType::FROM_AMS);
+        if (text == selected) {
+            DynamicPrintConfig *cfg = &wxGetApp().preset_bundle->project_config;
+            if (cfg) {
+                auto colors = static_cast<ConfigOptionStrings *>(cfg->option("filament_colour")->clone());
+                if (m_filament_idx < colors->values.size() && color == colors->values[m_filament_idx]) { selected_in_ams = true; }
+            }
+        }
+    };
+
+    auto is_incompatible = [cur_nozzle_dia](const DynamicPrintConfig &tray) -> bool {
+        if (cur_nozzle_dia <= 0.0) return false;
+        const auto *tray_nd = tray.option<ConfigOptionFloats>("tray_nozzle_diameter");
+        if (!tray_nd || tray_nd->values.empty()) return false;
+        double tray_dia = tray_nd->values.front();
+        return tray_dia > 0.0 && std::abs(tray_dia - cur_nozzle_dia) > 1e-3;
+    };
+
+    set_label_marker(Append(_L("Available Nozzles"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+    m_first_ams_filament = GetCount();
+
+    std::vector<std::pair<int, const DynamicPrintConfig *>> incompatible_entries;
+    std::vector<std::pair<int, const DynamicPrintConfig *>> compatible_entries;
+    for (auto &entry : m_preset_bundle->filament_ams_list) {
+        if (is_incompatible(entry.second))
+            incompatible_entries.emplace_back(entry.first, &entry.second);
+        else
+            compatible_entries.emplace_back(entry.first, &entry.second);
+    }
+
+    std::sort(compatible_entries.begin(), compatible_entries.end(),
+              [](const auto &a, const auto &b) { return a.second->opt_string("tray_name", 0u) < b.second->opt_string("tray_name", 0u); });
+    std::sort(incompatible_entries.begin(), incompatible_entries.end(),
+              [](const auto &a, const auto &b) { return a.second->opt_string("tray_name", 0u) < b.second->opt_string("tray_name", 0u); });
+
+    for (auto &entry : compatible_entries) { append_one(entry.first, *entry.second); }
+
+    if (!incompatible_entries.empty()) {
+        set_label_marker(Append(_L("Unavailable Nozzles"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+        for (auto &kv : incompatible_entries) append_one(kv.first, *kv.second);
+    }
+
+    m_last_ams_filament = GetCount();
+    return selected_in_ams;
+}
+
 bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
 {
+    auto &cur_printer = m_preset_bundle->printers.get_edited_preset();
+
+    if(!cur_printer.is_bbl_vendor_preset(m_preset_bundle) || m_preset_bundle->filament_ams_list.empty()) {
+        return {};
+    }
+
+    if (cur_printer.config.opt_bool("handle_hotend_as_extruder")) {
+        return add_ams_filaments_grouped_by_nozzle(selected, alias_name);
+    }
+
     bool selected_in_ams      = false;
-    bool is_bbl_vendor_preset = m_preset_bundle->printers.get_edited_preset().is_bbl_vendor_preset(m_preset_bundle);
-    if (is_bbl_vendor_preset && !m_preset_bundle->filament_ams_list.empty()) {
-        bool fila_switch_ready = wxGetApp().sidebar().is_fila_switch_ready();
-        bool dual_extruder   = (m_preset_bundle->filament_ams_list.begin()->first & 0x10000) == 0;
+    bool fila_switch_ready = wxGetApp().sidebar().is_fila_switch_ready();
+    bool dual_extruder   = (m_preset_bundle->filament_ams_list.begin()->first & 0x10000) == 0;
+
+    if (fila_switch_ready) {
+        set_label_marker(Append(_L("AMS filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+    } else {
+        set_label_marker(Append(dual_extruder ? _L("Left filaments") : _L("AMS filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+    }
+
+    m_first_ams_filament = GetCount();
+    auto &filaments      = m_collection->get_presets();
+
+    const int icon_width = tray_icon_width(m_preset_bundle->filament_ams_list);
+
+    std::set<std::pair<std::string, std::string>> added_filaments;
+
+    for (auto &entry : m_preset_bundle->filament_ams_list) {
+        if (!fila_switch_ready && dual_extruder && (entry.first & 0x10000)) {
+            dual_extruder = false;
+            set_label_marker(Append(_L("Right filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+        }
+        auto &      tray        = entry.second;
+        std::string filament_id = tray.opt_string("filament_id", 0u);
+        auto        name        = tray.opt_string("tray_name", 0u);
+        if (filament_id.empty()) {
+            BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  %1% 's filament_id is empty.") % name;
+            continue;
+        }
+        if (fila_switch_ready && name == "Ext") {
+            continue;
+        }
 
         if (fila_switch_ready) {
-            set_label_marker(Append(_L("AMS filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
-        } else {
-            set_label_marker(Append(dual_extruder ? _L("Left filaments") : _L("AMS filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
+            auto filament_pair = std::make_pair(name, filament_id);
+            if (added_filaments.find(filament_pair) != added_filaments.end()) {
+                continue;
+            }
+            added_filaments.insert(filament_pair);
         }
 
-        m_first_ams_filament = GetCount();
-        auto &filaments      = m_collection->get_presets();
-
-        int icon_width = 24;
-        for (auto &entry : m_preset_bundle->filament_ams_list) {
-            auto &      tray        = entry.second;
-            auto  name = tray.opt_string("tray_name", 0u);
-            if (name.size() > 3)
-                icon_width = 32;
+        auto iter = std::find_if(filaments.begin(), filaments.end(),
+            [&filament_id, this](auto &f) { return f.is_compatible && m_collection->get_preset_base(f) == &f && f.filament_id == filament_id; });
+        if (iter == filaments.end()) {
+            auto filament_type = tray.opt_string("filament_type", 0u);
+            if (!filament_type.empty()) {
+                filament_type = "Generic " + filament_type;
+                iter          = std::find_if(filaments.begin(), filaments.end(),
+                                    [&filament_type](auto &f) { return f.is_compatible && f.is_system && boost::algorithm::starts_with(f.name, filament_type); });
+            }
         }
-
-        std::set<std::pair<std::string, std::string>> added_filaments;
-
-        for (auto &entry : m_preset_bundle->filament_ams_list) {
-            if (!fila_switch_ready && dual_extruder && (entry.first & 0x10000)) {
-                dual_extruder = false;
-                set_label_marker(Append(_L("Right filaments"), wxNullBitmap, DD_ITEM_STYLE_SPLIT_ITEM));
-            }
-            auto &      tray        = entry.second;
-            std::string filament_id = tray.opt_string("filament_id", 0u);
-            auto        name        = tray.opt_string("tray_name", 0u);
-            if (filament_id.empty()) {
-                BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":  %1% 's filament_id is empty.") % name;
-                continue;
-            }
-            if (fila_switch_ready && name == "Ext") {
-                continue;
-            }
-
-            if (fila_switch_ready) {
-                auto filament_pair = std::make_pair(name, filament_id);
-                if (added_filaments.find(filament_pair) != added_filaments.end()) {
-                    continue;
-                }
-                added_filaments.insert(filament_pair);
-            }
-
-            auto iter = std::find_if(filaments.begin(), filaments.end(),
-                [&filament_id, this](auto &f) { return f.is_compatible && m_collection->get_preset_base(f) == &f && f.filament_id == filament_id; });
-            if (iter == filaments.end()) {
-                auto filament_type = tray.opt_string("filament_type", 0u);
-                if (!filament_type.empty()) {
-                    filament_type = "Generic " + filament_type;
-                    iter          = std::find_if(filaments.begin(), filaments.end(),
-                                        [&filament_type](auto &f) { return f.is_compatible && f.is_system && boost::algorithm::starts_with(f.name, filament_type); });
-                }
-            }
-            if (iter == filaments.end()) {
-                BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % filament_id;
-                continue;
-            }
-            const_cast<Preset&>(*iter).is_visible = true;
-            auto color = tray.opt_string("filament_colour", 0u);
-            auto multi_color = tray.opt<ConfigOptionStrings>("filament_multi_colour")->values;
-            auto ctype_str   = tray.opt_string("filament_colour_type", 0u);
-            wxBitmap *ams_bmp = (multi_color.size() > 1)
-                ? get_extruder_color_icon(multi_color, ctype_str == "0", name, icon_width, 16)
-                : get_extruder_color_icon(color, name, icon_width, 16);
-            if (!ams_bmp) continue;
-            wxBitmap bmp(*ams_bmp);
-            auto text = get_preset_name(*iter);
-            int      item_id = Append(text, bmp.ConvertToImage(), &m_first_ams_filament + entry.first);
-            SetFlag(GetCount() - 1, (int) FilamentAMSType::FROM_AMS);
-            if (text == selected) {
-                DynamicPrintConfig *cfg    = &wxGetApp().preset_bundle->project_config;
-                if (cfg) {
-                    auto colors = static_cast<ConfigOptionStrings *>(cfg->option("filament_colour")->clone());
-                    if (m_filament_idx < colors->values.size()) {
-                        auto cur_color = colors->values[m_filament_idx];
-                        if (color == cur_color) {
-                            selected_in_ams = true;
-                        }
+        if (iter == filaments.end()) {
+            BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << boost::format(": filament_id %1% not found or system or compatible") % filament_id;
+            continue;
+        }
+        const_cast<Preset&>(*iter).is_visible = true;
+        auto      color                       = tray.opt_string("filament_colour", 0u);
+        wxBitmap *ams_bmp                     = tray_color_icon(tray, name, icon_width);
+        if (!ams_bmp) continue;
+        wxBitmap bmp(*ams_bmp);
+        auto text = get_preset_name(*iter);
+        int      item_id = Append(text, bmp.ConvertToImage(), &m_first_ams_filament + entry.first);
+        SetFlag(GetCount() - 1, (int) FilamentAMSType::FROM_AMS);
+        if (text == selected) {
+            DynamicPrintConfig *cfg    = &wxGetApp().preset_bundle->project_config;
+            if (cfg) {
+                auto colors = static_cast<ConfigOptionStrings *>(cfg->option("filament_colour")->clone());
+                if (m_filament_idx < colors->values.size()) {
+                    auto cur_color = colors->values[m_filament_idx];
+                    if (color == cur_color) {
+                        selected_in_ams = true;
                     }
                 }
             }
-            //validate_selection(id->value == selected); // can not select
         }
-        m_last_ams_filament = GetCount();
+        //validate_selection(id->value == selected); // can not select
     }
+    m_last_ams_filament = GetCount();
     return selected_in_ams;
 }
 

@@ -1566,4 +1566,10 @@ void load_string_file(const boost::filesystem::path& p, std::string& str)
     file.read(&str[0], sz);
 }
 
+ScopeTimer::~ScopeTimer()
+{
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(clock_t::now() - start_);
+    BOOST_LOG_TRIVIAL(info) << name_ << " cost " << elapsed.count() << "ms";
+}
+
 }; // namespace Slic3r

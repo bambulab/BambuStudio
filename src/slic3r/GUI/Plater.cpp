@@ -2,6 +2,7 @@
 #include "libslic3r/PerfTrace.hpp"
 #include <array>
 #include <boost/format/format_fwd.hpp>
+#include <cassert>
 #include <cstddef>
 #include <cstdio>
 #include <cctype>
@@ -213,6 +214,34 @@ using namespace nlohmann;
 
 static const std::pair<unsigned int, unsigned int> THUMBNAIL_SIZE_3MF = { 512, 512 };
 
+namespace fmt {
+
+// the best we can do to get fmtlib/std::foramt style formatting
+// std::string name = format("{} error: {}({})", 4, err_str, err_code);
+// switch to fmtlib or std::format when we are c++20 ready
+template<typename... Args> std::string format(std::string_view fmt_str, Args &&...args)
+{
+    std::string out;
+    out.reserve(fmt_str.size() + 8);
+    int idx = 1;
+    for (size_t i = 0; i < fmt_str.size(); ++i) {
+        if (i + 1 < fmt_str.size() && fmt_str[i] == '{' && fmt_str[i + 1] == '}') {
+            out += '%';
+            out += std::to_string(idx++);
+            out += '%';
+            ++i;
+        } else {
+            out += fmt_str[i];
+        }
+    }
+
+    boost::format f(out);
+    (f % ... % std::forward<Args>(args));
+    return f.str();
+}
+
+} // namespace fmt
+
 namespace Slic3r {
 namespace GUI {
 
@@ -361,6 +390,115 @@ static void merge_custom_gcodes_orphaned_above_stack(const CustomGCode::Info& pr
         }
     }
     std::sort(cur.gcodes.begin(), cur.gcodes.end(), [](const CustomGCode::Item& a, const CustomGCode::Item& b) { return a.print_z < b.print_z; });
+}
+
+// for filament tab
+static DynamicPrintConfig build_tray_config(DevAmsTray const &tray, std::string const &name, std::string ams_id, std::string slot_id, double nozzle_dia = 0)
+{
+    BOOST_LOG_TRIVIAL(info) << "making tray, name: " << name << ", setting_id: " << tray.setting_id << ", type: " << tray.m_fila_type << ", color: " << tray.color;
+
+    DynamicPrintConfig tray_config;
+    tray_config.set_key_value("filament_id", new ConfigOptionStrings{tray.setting_id});
+    tray_config.set_key_value("tag_uid", new ConfigOptionStrings{tray.tag_uid});
+    tray_config.set_key_value("ams_id", new ConfigOptionStrings{ams_id});
+    tray_config.set_key_value("slot_id", new ConfigOptionStrings{slot_id});
+    tray_config.set_key_value("filament_type", new ConfigOptionStrings{tray.m_fila_type});
+    tray_config.set_key_value("tray_name", new ConfigOptionStrings{name});
+    tray_config.set_key_value("filament_colour", new ConfigOptionStrings{into_u8(wxColour("#" + tray.color).GetAsString(wxC2S_HTML_SYNTAX))});
+    tray_config.set_key_value("filament_multi_colour", new ConfigOptionStrings{});
+    tray_config.set_key_value("filament_colour_type", new ConfigOptionStrings{std::to_string(tray.ctype)});
+    tray_config.set_key_value("filament_exist", new ConfigOptionBools{tray.is_exists});
+    tray_config.set_key_value("tray_nozzle_diameter", new ConfigOptionFloats{nozzle_dia});
+
+    {
+        std::optional<FilamentBaseInfo> info = wxGetApp().preset_bundle->get_filament_by_filament_id(tray.setting_id);
+        tray_config.set_key_value("filament_is_support", new ConfigOptionBools{info.has_value() ? info->is_support : false});
+    }
+
+    for (int i = 0; i < (int) tray.cols.size(); ++i) {
+        tray_config.opt<ConfigOptionStrings>("filament_multi_colour")->values.push_back(into_u8(wxColour("#" + tray.cols[i]).GetAsString(wxC2S_HTML_SYNTAX)));
+    }
+
+    return tray_config;
+}
+
+static std::map<int, DynamicPrintConfig> build_filament_ams_list_for_n1x(MachineObject *obj)
+{
+    auto *nozzle_system = obj->GetNozzleSystem();
+    auto  fila_system   = obj->GetFilaSystem();
+    if (!nozzle_system || !fila_system) return {};
+
+    // Collect physical nozzles in stable order (rack first, then external),
+    // deduped by addr_id -- mirrors collect_nozzle_configs_from_machine.
+    auto nozzle_id = [](const DevNozzle &n) {
+        if (auto a = n.GetAddrId()) return a.value();
+        return n.GetNozzleId();
+    };
+    std::map<int, const DevNozzle *> nozzles_by_id;
+    for (const auto &[_, n] : nozzle_system->GetRackNozzles()) nozzles_by_id[nozzle_id(n)] = &n;
+    for (const auto &[_, n] : nozzle_system->GetExtNozzles()) nozzles_by_id.emplace(nozzle_id(n), &n);
+
+    std::map<int, DynamicPrintConfig>       result;
+    const static std::array<std::string, 4> bind_ams_name{"A", "B", "C", "D"}; // at most 4 ams can be connected at present
+
+    const auto &ams_list = fila_system->GetAmsList();
+    for (const auto &[idx, nozzle] : nozzles_by_id) {
+        double nozzle_dia    = nozzle->GetNozzleDiameter();
+        int    extruder_flag = 0; // only one extruder
+
+        // Internal AMS trays via ZMULTI rack binding.
+        for (const auto &[ams_id, slot_id] : nozzle->GetBindAmsSlots()) {
+            auto ams_it = ams_list.find(std::to_string(ams_id));
+
+            // no ams, filament directly into nozzle
+            if (ams_it == ams_list.end()) {
+                auto v_ams_it = fila_system->GetVirtualTray(ams_id);
+                if (!v_ams_it) continue;
+
+                auto name = fmt::format("{}-Ext", idx + 1);
+                result.emplace(extruder_flag + (ams_id * 4), build_tray_config(*v_ams_it, name, std::to_string(ams_id), "0", nozzle_dia));
+                continue;
+            }
+
+            DevAmsTray *tray = ams_it->second->GetTray(std::to_string(slot_id));
+            if (!tray) continue;
+            std::string display = std::to_string(idx + 1);
+            result.emplace(extruder_flag + (ams_id * 4 + slot_id), build_tray_config(*tray, display, std::to_string(ams_id), std::to_string(slot_id), nozzle_dia));
+        }
+
+        // ams name is A, B, C, D in order
+        size_t ams_4_idx{0}; // for 4 slots ams
+        size_t ams_1_idx{0}; // for 1 slots ams
+
+        // External AMS units bound to this nozzle (whole AMS at a time).
+        for (int ams_id : nozzle->GetBindAms()) {
+            auto ams_it = ams_list.find(std::to_string(ams_id));
+            if (ams_it == ams_list.end()) continue;
+            const bool ams_is_single_slot = (ams_it->second->GetTrays().size() == 1);
+
+            size_t *ams_idx = ams_is_single_slot ? &ams_1_idx : &ams_4_idx;
+
+            for (auto &[slot_str, tray] : ams_it->second->GetTrays()) {
+                if (!tray) continue;
+                int slot_id = -1;
+                try {
+                    slot_id = std::stoi(slot_str);
+                } catch (...) {
+                    continue;
+                }
+                std::string name;
+                if (ams_is_single_slot) {
+                    name = fmt::format("{}-HT-{}", idx + 1, bind_ams_name[*ams_idx]);
+                } else {
+                    name = fmt::format("{}-{}{}", idx + 1, bind_ams_name[*ams_idx], slot_id + 1);
+                }
+                result.emplace(extruder_flag + (ams_id * 4 + slot_id), build_tray_config(*tray, name, std::to_string(ams_id), std::to_string(slot_id), nozzle_dia));
+            }
+            ++(*ams_idx);
+        }
+    }
+
+    return result;
 }
 
 bool Plater::has_illegal_filename_characters(const wxString& wxs_name)
@@ -846,7 +984,6 @@ struct Sidebar::priv
     bool switch_diameter(bool single);
     void update_right_extruder_group_color();
     void update_sync_status(const MachineObject* obj);
-    void reset_extruder_ams_counts_from_machine(const MachineObject *obj);
     void adjust_filament_title_layout();
     bool is_fila_switch_ready();
     void update_extruder_separator_icon(bool show, bool ready);
@@ -2405,8 +2542,6 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         }
     }
     only_external_material = !obj->GetFilaSystem()->HasAms();
-    int main_index = obj->is_main_extruder_on_left() ? 0 : 1;
-    int deputy_index = obj->is_main_extruder_on_left() ? 1 : 0;
 
     auto find_string = [](ComboBox *combo, const wxString& str) {
         for (int i = 0; i < (int)combo->GetCount(); ++i) {
@@ -2438,6 +2573,11 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         is_switching_diameter = true;
         switch_diameter(true);
         is_switching_diameter = false;
+
+        // reset ams count to the value reported by machine
+        // FIXME (baijie): use ams_cnt_map when it has the right value
+        s_extruder_panel->reset_ams_count();
+        AMSCountPopupWindow::SetAMSCount(0, s_extruder_panel->m_ams_n4, s_extruder_panel->m_ams_n1);
     }
 
     // set nozzle volume type after switching prset, so this value can override the old value stored in conf
@@ -2689,59 +2829,6 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
                 cb->update();
         }
     }
-}
-
-// Reset AMS counts from the connected machine
-// should only be called after manualy sync
-// some code copied from Sidebar::priv::update_sync_status
-void Sidebar::priv::reset_extruder_ams_counts_from_machine(const MachineObject *obj)
-{
-    if (!obj) return;
-    const int extruder_nums     = wxGetApp().preset_bundle->get_printer_extruder_count();
-    const int machine_ext_count = obj->GetExtderSystem()->GetTotalExtderCount();
-    if (extruder_nums != machine_ext_count) return;
-    if (machine_ext_count != 1 && machine_ext_count != 2) return;
-
-    const bool fila_switch_flag = is_fila_switch_ready();
-
-    std::vector<std::pair<int, int>> counts(machine_ext_count, {0, 0}); // {n4, n1}
-    for (const auto &item : obj->GetFilaSystem()->GetAmsList()) {
-        int extruder_id = 0;
-        if (fila_switch_flag) {
-            auto switcher_pos = item.second->GetSwitcherPos();
-            if (!switcher_pos) continue;
-            extruder_id = obj->is_main_extruder_on_left()
-                              ? (1 - static_cast<int>(switcher_pos.value()))
-                              : static_cast<int>(switcher_pos.value());
-        } else {
-            const auto &uniq = item.second->GetUniqueBindedExtruderId();
-            if (uniq) extruder_id = uniq.value();
-        }
-        if (extruder_id < 0 || extruder_id >= (int) counts.size()) continue;
-
-        const auto type = item.second->GetAmsType();
-        if (type == DevAmsType::ZMULTI_A || type == DevAmsType::ZMULTI_B)
-            continue; // internal AMS — not part of n4/n1
-        if (type == DevAmsType::N3S)
-            counts[extruder_id].second++;
-        else
-            counts[extruder_id].first++;
-    }
-
-    // update_sync_status reverses to match UI order (right=index 0); mirror that.
-    std::reverse(counts.begin(), counts.end());
-
-    if (machine_ext_count == 1) {
-        AMSCountPopupWindow::SetAMSCount(0, counts[0].first, counts[0].second, false);
-        AMSCountPopupWindow::UpdateAMSCount(0, s_extruder_panel);
-        AMSCountPopupWindow::UpdateAMSCount(0, single_extruder);
-    } else {
-        AMSCountPopupWindow::SetAMSCount(0, counts[0].first, counts[0].second, false);
-        AMSCountPopupWindow::SetAMSCount(1, counts[1].first, counts[1].second, false);
-        AMSCountPopupWindow::UpdateAMSCount(0, l_extruder_panel);
-        AMSCountPopupWindow::UpdateAMSCount(1, r_extruder_panel);
-    }
-    wxGetApp().plater()->update(); // single update() after AMS counts are written
 }
 
 std::optional<NozzleOption> Sidebar::priv::get_nozzle_options(MachineObject* obj, int extruder_count, bool support_multi_nozzle, bool is_manual)
@@ -4894,34 +4981,18 @@ void Sidebar::on_bed_type_change(BedType bed_type)
 
 std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject* obj)
 {
+    if (!obj) return {};
+
+    auto *preset_bundle = wxGetApp().preset_bundle;
+    assert(preset_bundle);
+
+    // for machines like N10, which treat hotends as logical extruders)
+    {
+        auto *opt = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("handle_hotend_as_extruder");
+        if (opt && opt->value) return build_filament_ams_list_for_n1x(obj);
+    }
+
     std::map<int, DynamicPrintConfig> filament_ams_list;
-    if (!obj) return filament_ams_list;
-
-    auto build_tray_config = [](DevAmsTray const &tray, std::string const &name, std::string ams_id, std::string slot_id) {
-        BOOST_LOG_TRIVIAL(info) << boost::format("build_filament_ams_list: name %1% setting_id %2% type %3% color %4%")
-                    % name % tray.setting_id % tray.m_fila_type % tray.color;
-        DynamicPrintConfig tray_config;
-        tray_config.set_key_value("filament_id", new ConfigOptionStrings{tray.setting_id});
-        tray_config.set_key_value("tag_uid", new ConfigOptionStrings{tray.tag_uid});
-        tray_config.set_key_value("ams_id", new ConfigOptionStrings{ams_id});
-        tray_config.set_key_value("slot_id", new ConfigOptionStrings{slot_id});
-        tray_config.set_key_value("filament_type", new ConfigOptionStrings{tray.m_fila_type});
-        tray_config.set_key_value("tray_name", new ConfigOptionStrings{ name });
-        tray_config.set_key_value("filament_colour", new ConfigOptionStrings{into_u8(wxColour("#" + tray.color).GetAsString(wxC2S_HTML_SYNTAX))});
-        tray_config.set_key_value("filament_multi_colour", new ConfigOptionStrings{});
-        tray_config.set_key_value("filament_colour_type", new ConfigOptionStrings{std::to_string(tray.ctype)});
-        tray_config.set_key_value("filament_exist", new ConfigOptionBools{tray.is_exists});
-        std::optional<FilamentBaseInfo> info;
-        if (wxGetApp().preset_bundle) {
-            info = wxGetApp().preset_bundle->get_filament_by_filament_id(tray.setting_id);
-        }
-        tray_config.set_key_value("filament_is_support", new ConfigOptionBools{ info.has_value() ? info->is_support : false});
-        for (int i = 0; i < tray.cols.size(); ++i) {
-            tray_config.opt<ConfigOptionStrings>("filament_multi_colour")->values.push_back(into_u8(wxColour("#" + tray.cols[i]).GetAsString(wxC2S_HTML_SYNTAX)));
-        }
-        return tray_config;
-    };
-
     if (obj->ams_support_virtual_tray) {
         int extruder = 0x10000; // Main (first) extruder at right
         for (auto & vt_tray : obj->vt_slot) {
@@ -5310,8 +5381,6 @@ void Sidebar::sync_ams_list(bool is_from_big_sync_btn)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "begin pop_finsish_sync_ams_dialog";
     pop_finsish_sync_ams_dialog();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "finish pop_finsish_sync_ams_dialog";
-
-    p->reset_extruder_ams_counts_from_machine(obj);
 
     wxGetApp().plater()->get_partplate_list().reset_thumbnail_assembly_view_data();
 }

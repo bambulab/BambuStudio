@@ -443,6 +443,8 @@ void ExtruderPanel::Rescale()
     Refresh();
 }
 
+void ExtruderPanel::reset_ams_count() { set_ams_count(m_ams_4.size(), m_ams_1.size()); }
+
 void ExtruderPanel::set_ams_count(int n4, int n1)
 {
     if (n4 == m_ams_n4 && n1 == m_ams_n1)

@@ -918,6 +918,19 @@ inline std::string filter_characters(const std::string& str, const std::string& 
 void save_string_file(const boost::filesystem::path& p, const std::string& str);
 void load_string_file(const boost::filesystem::path& p, std::string& str);
 
+class ScopeTimer
+{
+    using clock_t = std::chrono::steady_clock;
+
+public:
+    ScopeTimer(std::string name) : start_{clock_t::now()}, name_(name) {}
+    ~ScopeTimer();
+
+private:
+    std::chrono::time_point<clock_t> start_;
+    std::string                      name_;
+};
+
 } // namespace Slic3r
 
 #if WIN32
@@ -929,5 +942,7 @@ void load_string_file(const boost::filesystem::path& p, std::string& str);
     //FIXME this is an inprecise hack. Add the hash table size and possibly some estimate of the linked list at each of the used bin.
     #define SLIC3R_STDUNORDEREDSET_MEMSIZE(NAME, TYPE) NAME.size() * ((sizeof(TYPE) + alignof(TYPE) - 1) / alignof(TYPE)) * alignof(TYPE)
 #endif
+
+#define SCOPE_TIMER ScopeTimer _st(__FUNCTION__)
 
 #endif // slic3r_Utils_hpp_
