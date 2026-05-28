@@ -2515,10 +2515,10 @@ void SelectMachineDialog::timelapse_button_click()
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
 
-    wxStaticText* message = new wxStaticText(&dlg, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(FromDIP(400), -1));
-    message->SetLabel(_L("After enabling Timelapse, regardless of whether Traditional or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."));
-    message->Wrap(FromDIP(400));
-    main_sizer->Add(message, 0, wxALL | wxEXPAND, FromDIP(20));
+    auto* message = new Label(&dlg, _L("After enabling Timelapse, regardless of whether Traditional or Smooth mode is selected, the printer will move the build plate and toolhead before each shot, which may increase the overall print time."));
+    message->SetFont(Label::Body_14);
+    message->Wrap(FromDIP(360));
+    main_sizer->Add(message, 0, wxALL, FromDIP(20));
 
     auto timelapse_url = wxString::Format(L"https://wiki.bambulab.com/%s/software/bambu-studio/Timelapse",
         wxGetApp().current_language_code_safe() == "zh_CN" ? "zh" : "en");
@@ -7113,13 +7113,15 @@ void PrintOption::set_tips_clickable(bool clickable, std::function<void()> callb
     m_tips_clickable = clickable;
     m_tips_click_callback = callback;
 
+    // Always unbind first to avoid stacking multiple handlers when called repeatedly
+    m_printoption_tips->Unbind(wxEVT_BUTTON, &PrintOption::OnTipsButtonClicked, this);
+
     if (clickable) {
         m_printoption_tips->SetCursor(wxCursor(wxCURSOR_HAND));
         m_printoption_tips->Bind(wxEVT_BUTTON, &PrintOption::OnTipsButtonClicked, this);
         m_printoption_tips->Show(true);
     } else {
         m_printoption_tips->SetCursor(wxNullCursor);
-        m_printoption_tips->Unbind(wxEVT_BUTTON, &PrintOption::OnTipsButtonClicked, this);
         m_printoption_tips->Show(!m_printoption_tips->GetToolTipText().IsEmpty());
     }
 }
