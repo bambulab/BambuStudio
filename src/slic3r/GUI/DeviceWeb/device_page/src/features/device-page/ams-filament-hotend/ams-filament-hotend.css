@@ -795,6 +795,8 @@
  * the floating popover; positioning is set inline by the component so the
  * menu can clamp itself inside the viewport. */
 .card-context-menu {
+  position: fixed;
+  z-index: 1100;
   min-width: 101px;
   width: max-content;
   padding: 6px 0;

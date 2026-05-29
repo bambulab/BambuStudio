@@ -1,8 +1,11 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import type { AmsFilamentHotendSlotViewModel } from '../types';
 
 const VIEWPORT_MARGIN = 4;
+// Above .stage slot columns and batch dialogs so the menu is never clipped by siblings.
+const CONTEXT_MENU_Z_INDEX = 1100;
 
 /**
  * Floating context menu rendered at a fixed (x, y) anchor coming from
@@ -62,7 +65,7 @@ export function CardContextMenu({
     position: 'fixed',
     left: pos.left,
     top: pos.top,
-    zIndex: 200,
+    zIndex: CONTEXT_MENU_Z_INDEX,
   };
 
   const run = (action: string) => {
@@ -70,7 +73,7 @@ export function CardContextMenu({
     onAction(action, slot);
   };
 
-  return (
+  return createPortal(
     <div
       ref={ref}
       className="card-context-menu"
@@ -87,6 +90,7 @@ export function CardContextMenu({
       {canUnload        && <button type="button" role="menuitem" onClick={() => run('unload')}       >{t('Unload')}</button>}
       {canRead          && <button type="button" role="menuitem" onClick={() => run('read')}         >{t('Read')}</button>}
       {canAmsOperation  && <button type="button" role="menuitem" onClick={() => run('ams_operation')}>{t('AMS Operation')}</button>}
-    </div>
+    </div>,
+    document.body,
   );
 }
