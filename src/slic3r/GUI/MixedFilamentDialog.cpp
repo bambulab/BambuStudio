@@ -1279,6 +1279,7 @@ void MixedFilamentDialog::on_recommendation_clicked(unsigned int comp_a, unsigne
 
     rebuild_all_combos();
     refresh_curve_editor_colors();
+    update_gradient_direction_items();
     update_component_count_ui();
     update_preview();
     update_ok_button_state();
@@ -1330,6 +1331,7 @@ void MixedFilamentDialog::on_recommendation_clicked_triple(unsigned int a, unsig
 
     rebuild_all_combos();
     refresh_curve_editor_colors();
+    update_gradient_direction_items();
     update_component_count_ui();
     update_preview();
     update_ok_button_state();
