@@ -1499,6 +1499,7 @@ void GCodeProcessorResult::reset() {
     //BBS: add label_object_enabled
     label_object_enabled = false;
     timelapse_warning_code = 0;
+    support_traditional_timelapse = true;
     printable_height = 0.0f;
     settings_ids.reset();
     extruders_count = 0;
@@ -1531,6 +1532,7 @@ void GCodeProcessorResult::reset() {
     label_object_enabled = false;
     long_retraction_when_cut = false;
     timelapse_warning_code = 0;
+    support_traditional_timelapse = true;
     printable_height = 0.0f;
     settings_ids.reset();
     filaments_count = 0;

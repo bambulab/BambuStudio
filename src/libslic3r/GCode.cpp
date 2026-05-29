@@ -1831,7 +1831,13 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
         m_timelapse_warning_code += (1 << 2);
     }
     m_processor.result().timelapse_warning_code = m_timelapse_warning_code;
-    m_processor.result().support_traditional_timelapse = m_support_traditional_timelapse;
+    const bool is_i3_traditional_timelapse =
+        m_config.printer_structure.value == PrinterStructure::psI3 &&
+        m_config.timelapse_type.value == TimelapseType::tlTraditional;
+    const bool has_generated_wipe_tower = print->has_wipe_tower() && !print->wipe_tower_data().tool_changes.empty();
+
+    m_processor.result().support_traditional_timelapse =
+        is_i3_traditional_timelapse ? has_generated_wipe_tower : m_support_traditional_timelapse;
 
     bool activate_long_retraction_when_cut = false;
     for (const auto& filament : m_writer.extruders())

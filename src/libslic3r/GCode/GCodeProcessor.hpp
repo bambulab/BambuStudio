@@ -324,6 +324,7 @@ namespace Slic3r {
             is_helio_gcode            = other.is_helio_gcode;
             long_retraction_when_cut = other.long_retraction_when_cut;
             timelapse_warning_code = other.timelapse_warning_code;
+            support_traditional_timelapse = other.support_traditional_timelapse;
             printable_height = other.printable_height;
             settings_ids = other.settings_ids;
             filaments_count = other.filaments_count;
