@@ -20,6 +20,9 @@
     "fan_min_speed": [
         "60"
     ],
+    "filament_flush_temp": [
+        "220"
+    ],
     "filament_max_volumetric_speed": [
         "2"
     ],

@@ -5,6 +5,9 @@
     "from": "system",
     "setting_id": "GFSG99_21",
     "instantiation": "true",
+    "filament_flush_temp": [
+        "255"
+    ],
     "filament_max_volumetric_speed": [
         "1"
     ],
