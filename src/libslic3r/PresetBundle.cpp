@@ -346,7 +346,7 @@ void ExtruderNozzleStat::on_volume_type_switch(int extruder_id, NozzleVolumeType
         // do nothing here
     }
     else if (type != nvtHybrid) {
-        int current_count = get_extruder_nozzle_count(extruder_id, std::nullopt);
+        int current_count = get_extruder_nozzle_count(extruder_id, type);
         if (extruder_id >= extruder_nozzle_counts.size()) {
             extruder_nozzle_counts.resize(extruder_id + 1);
         }

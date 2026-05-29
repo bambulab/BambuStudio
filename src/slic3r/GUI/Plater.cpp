@@ -1919,6 +1919,9 @@ std::vector<NozzleConfig> Sidebar::priv::collect_nozzle_configs_from_machine(Mac
         nozzle_config.diameter = get_diameter_string(nozzle->GetNozzleDiameter());
         nozzle_config.volume   = DevNozzle::ToNozzleVolumeType(nozzle->GetNozzleFlowType());
 
+        const auto &bind_ams_slots = nozzle->GetBindAmsSlots();
+        if (!bind_ams_slots.empty()) nozzle_config.ams_slot = bind_ams_slots[0];
+
         if (extruder_nozzle_count <= 1) {
             nozzle_config.status = NozzleStatus::nsNormal;
         } else {
@@ -2574,10 +2577,8 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         switch_diameter(true);
         is_switching_diameter = false;
 
-        // reset ams count to the value reported by machine
-        // FIXME (baijie): use ams_cnt_map when it has the right value
-        s_extruder_panel->reset_ams_count();
-        AMSCountPopupWindow::SetAMSCount(0, s_extruder_panel->m_ams_n4, s_extruder_panel->m_ams_n1);
+        AMSCountPopupWindow::SetAMSCount(0, ams_cnt_map[{MAIN_EXTRUDER_ID, 4}], ams_cnt_map[{MAIN_EXTRUDER_ID, 1}]);
+        AMSCountPopupWindow::UpdateAMSCount(0, s_extruder_panel);
     }
 
     // set nozzle volume type after switching prset, so this value can override the old value stored in conf
@@ -4127,9 +4128,10 @@ void Sidebar::update_presets(Preset::Type preset_type)
             } else {
                 AMSCountPopupWindow::UpdateAMSCount(0, p->single_extruder);
                 update_extruder_variant(*p->single_extruder, 0);
-                //if (!p->is_switching_diameter)
-                    update_extruder_diameter(*p->single_extruder);
-                 update_bed_thumbnail(image_path);
+                // if (!p->is_switching_diameter)
+                update_extruder_diameter(*p->single_extruder);
+                if (p->s_ext_cfg.empty()) update_extruder_config(p->s_ext_cfg, 0);
+                update_bed_thumbnail(image_path);
             }
         }
 

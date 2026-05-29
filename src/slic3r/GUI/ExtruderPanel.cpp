@@ -443,8 +443,6 @@ void ExtruderPanel::Rescale()
     Refresh();
 }
 
-void ExtruderPanel::reset_ams_count() { set_ams_count(m_ams_4.size(), m_ams_1.size()); }
-
 void ExtruderPanel::set_ams_count(int n4, int n1)
 {
     if (n4 == m_ams_n4 && n1 == m_ams_n1)
@@ -930,6 +928,7 @@ ExtruderDialogPanel::ExtruderDialogPanel(wxWindow *parent, GroupType type, std::
             sizer->Add(nozzle_internal.material_label, 0, wxALIGN_CENTER_VERTICAL);
             nozzle_internal.material_color_panel->SetSizer(sizer);
             nozzle_internal.material_color_panel->Hide(); // 预设状态不显示，同步之后才显示
+            nozzle_internal.ams_slot = m_nozzle_configs[i].ams_slot;
 
             nozzle_internal_sizer->Add(warning_icon, 0, wxRESERVE_SPACE_EVEN_IF_HIDDEN | wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(4));
             nozzle_internal_sizer->Add(title, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(4));
@@ -1114,40 +1113,52 @@ void ExtruderDialogPanel::sync_ams_from_panel(const ExtruderPanel *source_panel)
     update_ams();
 }
 
+std::pair<const Caninfo *, DevAmsType> ExtruderDialogPanel::get_caninfo(const NozzleInternal &nozzle) const
+{
+    const auto [ams_id, slot_id] = nozzle.ams_slot;
+    if (ams_id < 0 || slot_id < 0) return {nullptr, AMS};
+
+    auto ams_id_str = std::to_string(ams_id);
+
+    // bind to internal ams
+    for (const auto &ams : m_ams_internal) {
+        if (ams_id_str == ams.ams_id && ams.cans.size() > slot_id) { return {&(ams.cans[slot_id]), ams.ams_type}; }
+    }
+
+    // no ams, external attached, virtual ams
+    for (const auto &ams : m_ext) {
+        if (ams_id_str == ams.ams_id && ams.cans.size() > slot_id) { return {&(ams.cans[slot_id]), ams.ams_type}; }
+    }
+
+    return {nullptr, AMS};
+}
+
 void ExtruderDialogPanel::update_ams()
 {
     ExtruderPanel::update_ams();
     bool has_ams = (m_ams_n4 + m_ams_n1) > 0;
-    if (m_type == SingleExtruder) {
-        // update internal AMS
-        if (!m_ams_internal.empty()) {
-            AMSinfo &ams = m_ams_internal.front(); // 自带的专用AMS放在一个AMS里面
-            size_t cansNum = ams.cans.size(); 
-            if (cansNum != m_nozzles.size()) {
-                wxLogMessage("ExtruderDialogPanel::update_am, cansNum = %d, m_nozzles.size() = %d", cansNum, m_nozzles.size());
-            }
-            // 刷新专用ams
-            for (size_t i = 0; i < m_nozzles.size() && i < cansNum; ++i) {
-                NozzleInternal &nozzle_internal  = m_nozzles[i];
-                Caninfo &info = ams.cans[i];
-                if (!info.is_exist) {
+    if (m_type == SingleExtruder && !m_nozzles.empty()) {
+        for (auto &nozzle_internal : m_nozzles) {
+            const auto [can_info, type] = get_caninfo(nozzle_internal);
+            if (can_info) {
+                bool exist = (can_info->is_exist || type == DevAmsType::EXT_SPOOL);
+                if (!exist) {
                     // 无材料
                     nozzle_internal.material_label->SetLabel("Empty");
                     nozzle_internal.material_color_box->SetBackgroundColour(wxColour("#FFFFFF"));
                     nozzle_internal.material_color_box->SetBorderWidth(FromDIP(1));
                     nozzle_internal.question_label->Hide();
-                } else if (info.is_exist && info.filament_id == "") {
+                } else if (exist && can_info->filament_id == "") {
                     // 未知材料
                     nozzle_internal.material_label->SetLabel("Unknown Filament");
                     nozzle_internal.material_color_box->SetBackgroundColour(wxColour("#FFFFFF"));
                     nozzle_internal.material_color_box->SetBorderWidth(FromDIP(1));
                     nozzle_internal.question_label->Show(); // 未知材料增加？显示
-                }
-                else {
+                } else {
                     // 正常识别材料 — prefer the full sub-brand name (e.g. "PLA Basic") over the bare type (e.g. "PLA")
-                    const wxString &display_name = !info.sub_brands.IsEmpty() ? info.sub_brands : info.material_name;
+                    const wxString &display_name = !can_info->sub_brands.IsEmpty() ? can_info->sub_brands : can_info->material_name;
                     nozzle_internal.material_label->SetLabel(display_name);
-                    nozzle_internal.material_color_box->SetBackgroundColour(wxColour(info.material_colour));
+                    nozzle_internal.material_color_box->SetBackgroundColour(wxColour(can_info->material_colour));
                     nozzle_internal.material_color_box->SetBorderWidth(0);
                     nozzle_internal.question_label->Hide();
                 }
@@ -1157,7 +1168,8 @@ void ExtruderDialogPanel::update_ams()
                 nozzle_internal.material_color_box->Refresh();
             }
         }
-        m_filament_label->Show(!has_ams);
+
+        if (m_filament_label) m_filament_label->Show(!has_ams);
         auto nozzle = m_nozzles[m_nozzle_configs.size() / 2]; // AMS放在中间位置
         if (nozzle.material_color_panel && nozzle.material_label) {
             if (nozzle.material_color_panel->IsShown()) {

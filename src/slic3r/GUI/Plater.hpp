@@ -143,6 +143,7 @@ struct NozzleConfig
     wxString         diameter;
     NozzleVolumeType volume {nvtStandard};
     NozzleStatus     status{2}; // unknow
+    std::pair<int, int> ams_slot{-1, -1}; // ams_id, slot_id
 
     NozzleConfig()          = default;
     NozzleConfig(const wxString &diameter_, NozzleVolumeType volume_, NozzleStatus status_) : diameter(diameter_), volume(volume_), status(status_) {}
