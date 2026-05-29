@@ -690,13 +690,21 @@ void DevicePageAmsFilamentHotendVM::ReportState(const std::string& submod, const
 {
     if (!m_bridge) return;
     nlohmann::json state = BuildState();
-    const std::string state_key = state.dump();
+    // Device data may contain non-UTF-8 bytes; strict dump() throws
+    // type_error.316. Skip this report instead of letting it crash the page.
+    std::string state_key;
+    try {
+        state_key = state.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace);
+    } catch (const std::exception& e) {
+        BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << " state.dump() failed: " << e.what();
+        return;
+    }
     if (state_key == m_last_report_state) {
         return;
     }
 
 #if 1
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "[new]" << state.dump(1);
+    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "[new]" << state_key;
 #endif
 
     m_last_report_state = state_key;

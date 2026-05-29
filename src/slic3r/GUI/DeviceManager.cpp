@@ -4422,12 +4422,18 @@ DevAmsTray MachineObject::parse_vt_tray(MachineObject* obj_, const json& vtray)
         }
     }
 
-    if (vt_tray.id == VIRTUAL_AMS_MAIN_ID_STR) {
+    int total_ext_count = obj_->GetExtderSystem()->GetTotalExtderCount();
+    if (total_ext_count == 1) {
         vt_tray.current_extruder_id = MAIN_EXTRUDER_ID;
         vt_tray.binded_extruder_set = { MAIN_EXTRUDER_ID };
-    } else if (vt_tray.id == VIRTUAL_AMS_DEPUTY_ID_STR) {
-        vt_tray.current_extruder_id = DEPUTY_EXTRUDER_ID;
-        vt_tray.binded_extruder_set = { DEPUTY_EXTRUDER_ID };
+    } else if (total_ext_count == 2) {
+        if (vt_tray.id == VIRTUAL_AMS_MAIN_ID_STR) {
+            vt_tray.current_extruder_id = MAIN_EXTRUDER_ID;
+            vt_tray.binded_extruder_set = { MAIN_EXTRUDER_ID };
+        } else if (vt_tray.id == VIRTUAL_AMS_DEPUTY_ID_STR) {
+            vt_tray.current_extruder_id = DEPUTY_EXTRUDER_ID;
+            vt_tray.binded_extruder_set = { DEPUTY_EXTRUDER_ID };
+        }
     }
 
     return vt_tray;
