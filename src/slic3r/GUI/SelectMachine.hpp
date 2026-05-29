@@ -63,6 +63,12 @@ namespace Slic3r { namespace GUI {
 std::string get_nozzle_volume_type_cloud_string(NozzleVolumeType nozzle_volume_type);
 void        print_ams_mapping_result(std::vector<FilamentInfo> &result);
 
+// Fill a FilamentInfo's slicing nozzle (diameter + volume type).
+void        fill_slicing_nozzle_info(FilamentInfo &info, const std::vector<int> &filament_map);
+
+// Whether ams_filament_mapping should filter slots by nozzle diameter / flow type.
+bool        check_nozzle_type_for_ams_mapping(const MachineObject *obj, PrintFromType print_type);
+
 enum PrintPageMode {
     PrintPageModePrepare = 0,
     PrintPageModeSending,

@@ -51,6 +51,7 @@
 #include <wx/mstream.h>
 #include <miniz.h>
 #include <algorithm>
+#include <set>
 #include "Plater.hpp"
 #include "Notebook.hpp"
 #include "BitmapCache.hpp"
@@ -166,6 +167,79 @@ static std::vector<int> build_actual_ams_type_per_filament(const std::vector<Fil
         }
     }
     return types;
+}
+
+static bool fill_nozzle_info_from_group_result(FilamentInfo &info, const std::shared_ptr<MultiNozzleUtils::NozzleGroupResultBase> &nozzle_group_result)
+{
+    if (!nozzle_group_result)
+        return false;
+
+    const auto nozzles = nozzle_group_result->get_nozzles_for_filament(info.id);
+    if (nozzles.empty())
+        return false;
+
+    std::set<double>           diameters;
+    std::set<NozzleVolumeType> volume_types;
+    for (const auto &nozzle : nozzles) {
+        try {
+            diameters.insert(boost::lexical_cast<double>(nozzle.diameter));
+        } catch (const std::exception &) {
+            diameters.insert(atof(nozzle.diameter.c_str()));
+        }
+        volume_types.insert(nozzle.volume_type);
+    }
+
+    if (diameters.empty())
+        return false;
+
+    info.nozzle_diameter = *diameters.begin();
+    if (volume_types.size() > 1)
+        info.nozzle_volume_type = get_nozzle_volume_type_string(nvtHybrid);
+    else if (!volume_types.empty())
+        info.nozzle_volume_type = get_nozzle_volume_type_string(*volume_types.begin());
+
+    return true;
+}
+
+bool check_nozzle_type_for_ams_mapping(const MachineObject *obj, PrintFromType print_type)
+{
+    if (print_type != PrintFromType::FROM_NORMAL || !obj)
+        return false;
+
+    const auto rack_type = obj->GetNozzleRack()->GetRackType();
+    return rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B;
+}
+
+void fill_slicing_nozzle_info(FilamentInfo &info, const std::vector<int> &filament_map)
+{
+    if (auto *plater = wxGetApp().plater()) {
+        if (fill_nozzle_info_from_group_result(info, DevUtilBackend::GetNozzleGroupResult(plater)))
+            return;
+    }
+
+    auto *preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle)
+        return;
+
+    const auto &full_config    = preset_bundle->full_config();
+    const auto &project_config = preset_bundle->project_config;
+
+    const auto *opt_dia = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    if (!opt_dia || opt_dia->values.empty())
+        return;
+
+    // filament_map: 1-based extruder index per filament; fall back to extruder 0.
+    int extruder_idx = 0;
+    if (info.id >= 0 && info.id < (int) filament_map.size() && filament_map[info.id] >= 1)
+        extruder_idx = filament_map[info.id] - 1;
+    if (extruder_idx < 0 || extruder_idx >= (int) opt_dia->values.size())
+        extruder_idx = 0;
+
+    info.nozzle_diameter = opt_dia->get_at(extruder_idx);
+
+    const auto *opt_vol = project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    if (opt_vol && extruder_idx < (int) opt_vol->size())
+        info.nozzle_volume_type = get_nozzle_volume_type_string((NozzleVolumeType) opt_vol->get_at(extruder_idx));
 }
 
 std::vector<wxString> SelectMachineDialog::MACHINE_BED_TYPE_STRING;
@@ -1308,6 +1382,7 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
     }
 
     int filament_result = 0;
+    const bool check_nozzle_type = check_nozzle_type_for_ams_mapping(obj_, m_print_type);
     std::vector<bool> map_opt;  //four values: use_left_ams, use_right_ams, use_left_ext, use_right_ext
     if (nozzle_nums > 1){
         //get nozzle property, the extders are same?
@@ -1355,13 +1430,13 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
                 map_opt[0] = false;
                 map_opt[2] = true;
             }
-            int result_first = DevMappingUtil::ams_filament_mapping(obj_, m_filament_left, m_ams_mapping_result_left, map_opt);
+            int result_first = DevMappingUtil::ams_filament_mapping(obj_, m_filament_left, m_ams_mapping_result_left, map_opt, std::vector<int>(), false, check_nozzle_type);
             map_opt = { false, true, false, !has_right_ams };
             if (!use_ams) {
                 map_opt[1] = false;
                 map_opt[3] = true;
             }
-            int result_second = DevMappingUtil::ams_filament_mapping(obj_, m_filament_right, m_ams_mapping_result_right, map_opt);
+            int result_second = DevMappingUtil::ams_filament_mapping(obj_, m_filament_right, m_ams_mapping_result_right, map_opt, std::vector<int>(), false, check_nozzle_type);
 
             //m_ams_mapping_result.clear();
             m_ams_mapping_result.resize(m_ams_mapping_result_left.size() + m_ams_mapping_result_right.size());
@@ -1379,7 +1454,7 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
                 map_opt[0] = false;
                 map_opt[1] = false;
             }
-            filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt);
+            filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(), false, check_nozzle_type);
         }
         //When filaments cannot be matched automatically, whether to use ext for automatic supply
         //auto_supply_with_ext(obj_->vt_slot);
@@ -1392,7 +1467,7 @@ bool SelectMachineDialog::do_ams_mapping(MachineObject *obj_,bool use_ams)
             map_opt[1] = false;
             map_opt[3] = true;
         }
-        filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt);
+        filament_result = DevMappingUtil::ams_filament_mapping(obj_, m_filaments, m_ams_mapping_result, map_opt, std::vector<int>(), false, check_nozzle_type);
         // auto_supply_with_ext(obj_->vt_slot);
     }
 
@@ -4909,6 +4984,8 @@ void SelectMachineDialog::reset_and_sync_ams_list()
         info.filament_id = preset_filament.filament_id;
         info.setting_id = preset_filament.setting_id;
         info.color = wxString::Format("#%02X%02X%02X%02X", colour_rgb.Red(), colour_rgb.Green(), colour_rgb.Blue(), colour_rgb.Alpha()).ToStdString();
+        // FROM_NORMAL: slicing nozzle from preset (FROM_SDCARD uses the 3mf's).
+        fill_slicing_nozzle_info(info, m_filaments_map);
         m_filaments.push_back(info);
     }
 

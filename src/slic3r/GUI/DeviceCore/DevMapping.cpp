@@ -2,6 +2,7 @@
 #include "DevMapping.h"
 #include "DevFilaSystem.h"
 #include "DevUtil.h"
+#include "DevNozzleSystem.h"
 
 // TODO: remove this include
 #include "slic3r/GUI/DeviceManager.hpp"
@@ -9,6 +10,8 @@
 #include "slic3r/GUI/GuiColor.hpp"
 
 #include <algorithm>
+#include <cmath>
+#include <optional>
 
 using namespace nlohmann;
 
@@ -72,7 +75,22 @@ namespace Slic3r
         float distance;
         bool  is_same_color = true;
         bool  is_type_match = true;
+        bool  is_nozzle_match = true;
     };
+
+    static std::optional<DevNozzle> _query_slot_nozzle(const MachineObject* obj, const DevAmsTray* tray)
+    {
+        if (!obj || !tray)
+            return std::nullopt;
+
+        // const_cast: get_nozzle_pos_id() needs a non-const obj but is read-only here.
+        MachineObject* mobj = const_cast<MachineObject*>(obj);
+        auto pos_id = tray->get_nozzle_pos_id(mobj);
+        if (!pos_id.has_value() || pos_id.value() < 0x10)
+            return std::nullopt;
+
+        return mobj->GetNozzleSystem()->GetNozzleOptByAddrId(pos_id.value() - 0x10);
+    }
 
     static void _parse_tray_info(int ams_id, int slot_id, DevAmsType type, DevAmsTray tray, FilamentInfo& result)
     {
@@ -130,7 +148,8 @@ namespace Slic3r
         return candidate.remain < picked.remain;
     }
 
-    int DevMappingUtil::ams_filament_mapping(const MachineObject* obj, const std::vector<FilamentInfo>& filaments, std::vector<FilamentInfo>& result, std::vector<bool> map_opt, std::vector<int> exclude_id, bool nozzle_has_ams_then_ignore_ext)
+    int DevMappingUtil::ams_filament_mapping(const MachineObject* obj, const std::vector<FilamentInfo>& filaments, std::vector<FilamentInfo>& result,
+                                             std::vector<bool> map_opt, std::vector<int> exclude_id, bool nozzle_has_ams_then_ignore_ext, bool check_nozzle_type)
     {
         // Match priority:
         //   type (hard) > setting_id (sub-class) > filament_id (class) > color.
@@ -142,12 +161,13 @@ namespace Slic3r
         static_assert(kColorDistanceMax < kClassDistanceOffset, "color distance must not override sub-class / class match priority");
         static_assert(kTypeDistanceOffset - kClassDistanceOffset > kColorDistanceMax, "class-vs-type gap must exceed the color distance range");
 
-        if (filaments.empty())
+        if (filaments.empty() || !obj)
             return -1;
 
         /////////////////////////
         // Step 1: collect filaments in machine
         std::map<int, FilamentInfo> tray_filaments; // tray_index : tray_color
+        std::map<int, std::optional<DevNozzle>> tray_nozzles;
         bool  left_nozzle_has_ams = false, right_nozzle_has_ams = false;
 
         const auto& ams_list = obj->GetFilaSystem()->GetAmsList();
@@ -184,6 +204,8 @@ namespace Slic3r
                 if (right_ams_valid || left_ams_valid)
                 {
                     tray_filaments.emplace(std::make_pair(tray_index, info));
+                    if (check_nozzle_type)
+                        tray_nozzles.emplace(tray_index, _query_slot_nozzle(obj, tray->second));
                     if (right_ams_valid)
                     {
                         right_nozzle_has_ams = true;
@@ -218,6 +240,8 @@ namespace Slic3r
                     FilamentInfo info;
                     _parse_tray_info(atoi(tray.id.c_str()), 0, DevAmsType::EXT_SPOOL, tray, info);
                     tray_filaments.emplace(std::make_pair(info.tray_id, info));
+                    if (check_nozzle_type)
+                        tray_nozzles.emplace(info.tray_id, _query_slot_nozzle(obj, &tray));
                 }
             }
         }
@@ -267,6 +291,23 @@ namespace Slic3r
 
                     val.is_type_match = true;
                 }
+
+                if (check_nozzle_type) {
+                    auto nz_it = tray_nozzles.find(tray->first);
+                    const bool has_slot_nz = (nz_it != tray_nozzles.end() && nz_it->second.has_value());
+                    const bool has_fila_nz = (filaments[i].nozzle_diameter > 0.0) && (!filaments[i].nozzle_volume_type.empty());
+                    if (has_slot_nz && has_fila_nz) {
+                        const DevNozzle& nz = nz_it->second.value();
+                        const bool diameter_match = std::fabs(filaments[i].nozzle_diameter - (double)nz.GetNozzleDiameter()) < 1e-3;
+                        const NozzleFlowType fila_flow = DevNozzle::ToNozzleFlowType(filaments[i].nozzle_volume_type);
+                        const bool flow_match = (fila_flow == nz.GetNozzleFlowType());
+                        if (!diameter_match || !flow_match) {
+                            val.distance = 999999;
+                            val.is_nozzle_match = false;
+                        }
+                    }
+                }
+
                 ::sprintf(buffer, "  %6.0f", val.distance);
                 line += std::string(buffer);
                 rol.push_back(val);
@@ -312,6 +353,7 @@ namespace Slic3r
                     {
                         if (distance_map[i][j].is_same_color
                             && distance_map[i][j].is_type_match
+                            && distance_map[i][j].is_nozzle_match
                             && distance_map[i][j].distance < (float)0.0001)
                         {
                             min_val = distance_map[i][j].distance;
@@ -323,7 +365,8 @@ namespace Slic3r
                     }
 
                     if (distance_map[i][j].is_same_color
-                        && distance_map[i][j].is_type_match)
+                        && distance_map[i][j].is_type_match
+                        && distance_map[i][j].is_nozzle_match)
                     {
                         if (min_val > distance_map[i][j].distance)
                         {
@@ -353,7 +396,7 @@ namespace Slic3r
                 {
                     for (int j = 0; j < distance_map[i].size(); j++)
                     {
-                        if (distance_map[i][j].is_same_color && distance_map[i][j].is_type_match)
+                        if (distance_map[i][j].is_same_color && distance_map[i][j].is_type_match && distance_map[i][j].is_nozzle_match)
                         {
                             if (min_val > distance_map[i][j].distance)
                             {
