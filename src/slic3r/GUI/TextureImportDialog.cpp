@@ -3276,7 +3276,63 @@ std::vector<Slic3r::FilamentMatch> TextureImportDialog::get_matches() const
 
 void TextureImportDialog::on_dpi_changed(const wxRect&)
 {
-    Fit();
+    // All control sizes below are baked into persistent properties (min size,
+    // corner radius, fixed wxSize) using FromDIP() at build time. The base
+    // DPIAware::rescale() only rescales fonts; it does not recompute these
+    // stored pixel values. Re-apply them here so the layout stays consistent
+    // when the dialog is dragged to a screen with a different DPI.
+    SetMinSize(wxSize(FromDIP(800), FromDIP(500)));
+
+    const int view_button_height = FromDIP(27);
+    for (Button* btn : {m_btn_view_original, m_btn_view_multicolor}) {
+        if (btn) {
+            btn->SetCornerRadius(view_button_height / 2);
+            btn->SetMinSize(wxSize(FromDIP(57), view_button_height));
+        }
+    }
+
+    for (Button* btn : {m_btn_color_4, m_btn_color_8, m_btn_color_16}) {
+        if (btn) {
+            btn->SetCornerRadius(FromDIP(12));
+            btn->SetMinSize(wxSize(FromDIP(28), FromDIP(28)));
+        }
+    }
+
+    if (m_btn_color_auto) {
+        m_btn_color_auto->SetCornerRadius(FromDIP(12));
+        m_btn_color_auto->SetMinSize(wxSize(FromDIP(60), FromDIP(28)));
+    }
+    if (m_btn_apply) {
+        m_btn_apply->SetCornerRadius(FromDIP(12));
+        m_btn_apply->SetMinSize(wxSize(FromDIP(60), FromDIP(28)));
+    }
+
+    if (m_color_spin)
+        m_color_spin->SetMinSize(wxSize(FromDIP(60), FromDIP(28)));
+    if (m_smooth_spin)
+        m_smooth_spin->SetMinSize(wxSize(FromDIP(60), FromDIP(28)));
+
+    if (m_mapping_scroll) {
+        m_mapping_scroll->SetMinSize(wxSize(-1, FromDIP(300)));
+        m_mapping_scroll->SetScrollRate(0, FromDIP(10));
+    }
+
+    if (m_btn_skip) {
+        m_btn_skip->SetCornerRadius(FromDIP(20));
+        m_btn_skip->SetMinSize(wxSize(FromDIP(136), FromDIP(40)));
+    }
+    if (m_btn_ok) {
+        m_btn_ok->SetCornerRadius(FromDIP(20));
+        m_btn_ok->SetMinSize(wxSize(FromDIP(156), FromDIP(40)));
+    }
+
+    // Mapping rows store their panel sizes (source/target/arrow/row height)
+    // as fixed FromDIP min/max sizes, so rebuild them to pick up the new DPI.
+    rebuild_mapping_rows();
+
+    if (wxSizer* sizer = GetSizer())
+        sizer->Layout();
+    Layout();
     Refresh();
     wxGetApp().UpdateDlgDarkUI(this);
 }
