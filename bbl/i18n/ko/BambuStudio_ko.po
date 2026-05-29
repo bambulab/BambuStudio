@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-27 20:41+0800\n"
+"POT-Creation-Date: 2026-05-29 14:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3306,86 +3306,86 @@ msgid "Project Filaments"
 msgstr "프로젝트 필라멘트"
 
 msgid "New Filaments"
-msgstr ""
+msgstr "새로운 필라멘트"
 
 msgid "Add Material"
-msgstr ""
+msgstr "재료 추가"
 
 #, c-format, boost-format
 msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr ""
+msgstr "이 프로젝트에서는 최대 %d개 필라멘트를 지원하며 남은 필라멘트는 폐기됩니다."
 
 msgid "Import Model"
-msgstr ""
+msgstr "모델 가져오기"
 
 msgid "Original"
 msgstr "원본"
 
 msgid "Multi-Color"
-msgstr ""
+msgstr "멀티 컬러"
 
 msgid "Your input texture model"
-msgstr ""
+msgstr "입력 텍스처 모델"
 
 msgid "Processed multi-color model"
-msgstr ""
+msgstr "처리된 멀티 컬러 모델"
 
 msgid "Color Count"
-msgstr ""
+msgstr "색상 수"
 
 msgid "Smooth Level"
-msgstr ""
+msgstr "매끄러움 레벨"
 
 msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr ""
+msgstr "최적의 색상 수만 자동으로 결정하고 필라멘트 매핑을 다시 계산합니다."
 
 msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr ""
+msgstr "지정된 색상 수와 매끄러움 수준을 사용하여 텍스처를 그림으로 변환합니다."
 
 msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr ""
+msgstr "알림: 매개변수가 변경되었습니다. 적용하려면 적용을 클릭하세요."
 
 msgid "Filament Mapping"
-msgstr ""
+msgstr "필라멘트 매핑"
 
 msgid "Auto-merge same filament"
-msgstr ""
+msgstr "동일한 필라멘트 자동 병합"
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr ""
+msgstr "동일한 필라멘트를 프로젝트 내 기존 필라멘트에 자동으로 병합합니다."
 
 msgid "Skip Matching"
-msgstr ""
+msgstr "매칭 건너뛰기"
 
 msgid "Skip filament mapping and import as a single-color model"
-msgstr ""
+msgstr "필라멘트 매핑을 건너뛰고 단색 모델로 가져옵니다."
 
 msgid "Processing"
-msgstr ""
+msgstr "처리중"
 
 msgid "Computing texture colors..."
-msgstr ""
+msgstr "텍스처 색상 계산 중..."
 
 msgid "Computation failed. Please adjust parameters and retry."
-msgstr ""
+msgstr "계산에 실패했습니다. 매개변수를 조정하고 다시 시도하세요."
 
 msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr ""
+msgstr "메시에 비매니폴드 지오메트리 또는 열린 경계가 있습니다. 메시를 그대로 가져오거나 Windows 3D 복구 서비스를 사용하여 복구한 다음 가져올 수 있습니다."
 
 msgid "Mesh repair"
-msgstr ""
+msgstr "메쉬 복구"
 
 msgid "Import without repair"
-msgstr ""
+msgstr "복구 없이 가져오기"
 
 msgid "Repair and import"
-msgstr ""
+msgstr "복구 및 가져오기"
 
 msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr ""
+msgstr "메쉬에 비매니폴드 지오메트리 또는 열린 경계가 있습니다."
 
 msgid "Mesh issue"
-msgstr ""
+msgstr "메쉬 문제"
 
 msgid "Continue"
 msgstr "계속"
@@ -5755,13 +5755,13 @@ msgid "Deselects all objects"
 msgstr "모든 객체 선택을 해제합니다."
 
 msgid "Enter Camera Full Screen"
-msgstr ""
+msgstr "카메라 전체 스크린으로 전환"
 
 msgid "Show the Device camera in full screen"
-msgstr ""
+msgstr "기기 카메라를 전체 스크린으로 표시"
 
 msgid "Exit Camera Full Screen"
-msgstr ""
+msgstr "카메라 전체 스크린 종료"
 
 msgid "Use Perspective View"
 msgstr "원근 보기 사용"
@@ -5827,16 +5827,16 @@ msgid "Temperature Calibration"
 msgstr "온도 보정"
 
 msgid "Coarse"
-msgstr ""
+msgstr "거친 보정"
 
 msgid "Flow rate test - Coarse"
-msgstr ""
+msgstr "유량 비율 테스트 - 거친 보정"
 
 msgid "Fine"
-msgstr ""
+msgstr "미세 보정"
 
 msgid "Flow rate test - Fine"
-msgstr ""
+msgstr "유량 비율 테스트 - 미세 보정"
 
 msgid "Flow rate"
 msgstr "유량 비율"
@@ -6369,7 +6369,7 @@ msgid "Go to Login"
 msgstr "로그인으로 이동"
 
 msgid "Camera Full Screen"
-msgstr ""
+msgstr "카메라 전체 스크린"
 
 msgctxt "Quit_Switching"
 msgid "Quit"
@@ -6932,7 +6932,7 @@ msgid "Error:"
 msgstr "오류:"
 
 msgid "Enable support for"
-msgstr ""
+msgstr "다음에 대한 지원 활성화"
 
 msgid "Open link for more info"
 msgstr "자세한 정보는 링크를 열어주세요"
@@ -7008,10 +7008,10 @@ msgid "Bottom"
 msgstr "하단"
 
 msgid "There is stringing-prone filament in the current print job. Enabling nozzle clumping detection now may degrade print quality. Are you sure you want to enable it?"
-msgstr ""
+msgstr "현재 출력 작업에 스트링잉 현상이 발생하기 쉬운 필라멘트가 포함되어 있습니다. 지금 노즐 뭉침 감지 기능을 활성화하면 출력 품질이 저하될 수 있습니다. 이 기능을 활성화하시겠어요?"
 
 msgid "Enable Nozzle Clumping Detection"
-msgstr ""
+msgstr "노즐 뭉침 감지 활성화"
 
 msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
 msgstr "활성화하면 프린터가 출력된 부품 사진을 자동으로 촬영하여 클라우드에 업로드합니다. 이 옵션을 활성화하시겠습니까?"
@@ -7590,10 +7590,10 @@ msgstr "멀티 부품 객체가 감지됨"
 
 #, c-format, boost-format
 msgid "Computing texture colors: %s"
-msgstr ""
+msgstr "텍스처 색상 계산:%s"
 
 msgid "Texture Import Warning"
-msgstr ""
+msgstr "텍스처 가져오기 경고"
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "이 파일들을 여러 부품을 지닌 단일 객체로 불러오시겠습니까?\n"
@@ -7605,7 +7605,7 @@ msgid "The file does not contain any geometry data."
 msgstr "파일에는 형상 데이터가 포함되어 있지 않습니다."
 
 msgid "Importing model to project..."
-msgstr ""
+msgstr "모델을 프로젝트로 가져오는 중..."
 
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr "객체가 너무 큽니다. 프린터 빌드사이즈에 맞춰 스케일을 자동으로 조정하시겠습니까?"
@@ -7614,25 +7614,25 @@ msgid "Object too large"
 msgstr "객체가 너무 큽니다"
 
 msgid "Placing model on the bed..."
-msgstr ""
+msgstr "모델을 베드 위에 놓는 중..."
 
 msgid "Updating object list..."
-msgstr ""
+msgstr "객체 목록을 업데이트하는 중..."
 
 msgid "Updating 3D view..."
-msgstr ""
+msgstr "3D 보기를 업데이트하는 중..."
 
 msgid "Model imported."
-msgstr ""
+msgstr "모델을 가져왔습니다."
 
 msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
-msgstr ""
+msgstr "텍스처 가져오기에 실패했습니다. 모델에 텍스처 데이터가 포함된 것으로 보이지만, 텍스처 가져오기 프로세스를 완료할 수 없었습니다. 모델은 지오메트리로만 가져옵니다."
 
 msgid "Applying texture colors..."
-msgstr ""
+msgstr "질감 색상을 적용하기..."
 
 msgid "Texture colors applied."
-msgstr ""
+msgstr "텍스처 색상이 적용되었습니다."
 
 msgid "Export STL file:"
 msgstr "STL 파일 내보내기:"
@@ -8461,10 +8461,10 @@ msgid "With this option enabled, you can print materials with a large temperatur
 msgstr "이 옵션을 활성화하면 온도 차이가 큰 재료를 함께 출력할 수 있습니다."
 
 msgid "Open full screen camera view on active monitor only."
-msgstr ""
+msgstr "전체 스크린 카메라 보기를 활성 모니터에서만 엽니다."
 
 msgid "When enabled, the camera full screen view opens only on the monitor that contains Bambu Studio."
-msgstr ""
+msgstr "이 기능을 활성화하면 카메라 전체 스크린 보기가 Bambu Studio가 포함된 모니터에서만 열립니다."
 
 msgid "Clear my choice for synchronizing printer preset after loading the file."
 msgstr "파일을 로드한 후 프린터 사전 설정 동기화를 선택 취소합니다."
@@ -8473,13 +8473,13 @@ msgid "Clear my choice for Load 3mf dialog settings."
 msgstr "3mf 로드 대화상자 설정에 대한 내 선택을 취소합니다."
 
 msgid "Clear my choice for executing post-processing scripts."
-msgstr ""
+msgstr "후처리 스크립트 실행에 대한 선택 항목을 지웁니다."
 
 msgid "Show the security warning dialog again before slicing when post-processing scripts are configured."
-msgstr ""
+msgstr "후처리 스크립트가 구성된 경우 슬라이싱 전에 보안 경고 대화 상자를 다시 표시합니다."
 
 msgid "Clear my choice for disabling support parameter recommendation."
-msgstr ""
+msgstr "지원 매개변수 권장 사항 비활성화에 대한 선택 항목을 지웁니다."
 
 msgid "3D Settings"
 msgstr "3D 설정"
@@ -9321,7 +9321,7 @@ msgid "Some filaments may switch between extruders during printing. Manual K-val
 msgstr "일부 필라멘트는 출력 중에 압출기 간에 전환될 수 있습니다. 수동 K값 보정은 전체 출력 과정에 적용할 수 없으며, 이로 인해 출력 품질이 저하될 수 있습니다. 유동 역학 보정 기능을 활성화하는 것이 좋습니다."
 
 msgid "There is stringing-prone filament in this file. For best print quality, we recommend switching nozzle clumping detection to Auto mode."
-msgstr ""
+msgstr "이 파일에는 스트링잉 현상이 발생하기 쉬운 필라멘트가 포함되어 있습니다. 최상의 출력 품질을 얻으려면 노즐 뭉침 감지 모드를 자동으로 전환하는 것이 좋습니다."
 
 msgid "Cool"
 msgstr "쿨한"
@@ -9967,10 +9967,10 @@ msgid "Multi Filament"
 msgstr "멀티 필라멘트"
 
 msgid "Purge Mode: Standard"
-msgstr ""
+msgstr "퍼지 모드: 표준"
 
 msgid "Purge Mode: Fast"
-msgstr ""
+msgstr "퍼지 모드: 고속"
 
 msgid "Printable space"
 msgstr "출력 가능 공간"
@@ -11453,43 +11453,43 @@ msgid "Fixing cold prints"
 msgstr "냉각 출력물 수정하기"
 
 msgid "Software Update"
-msgstr ""
+msgstr "소프트웨어 업데이트"
 
 msgid "Try Now"
-msgstr ""
+msgstr "지금 체험하기"
 
 msgid "Don't show me Beta updates again"
-msgstr ""
+msgstr "베타 업데이트 다시 표시 안 함"
 
 msgid "New Bambu Studio Beta Available"
-msgstr ""
+msgstr "새로운 Bambu Studio 베타 버전 사용 가능"
 
 msgid "Current Version"
-msgstr ""
+msgstr "현재 버전"
 
 msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
-msgstr ""
+msgstr "Bambu Studio 베타 버전에서는 공식 Bambu Studio 버전을 출시하기 전에 출시가 예정된 기능, 개선 사항, 최적화 및 버그 수정 사항을 미리 체험해 볼 수 있습니다. 베타 버전은 새로운 기능을 먼저 살펴보고 소프트웨어 사용 경험 개선에 기여하고자 하는 고급 사용자를 위해 제공됩니다."
 
 msgid "Separate configuration folder."
-msgstr ""
+msgstr "구성 폴더는 별도로 분리하세요."
 
 msgid "As a beta release, some features may still be under development, and you may occasionally encounter bugs, unexpected behavior, or incomplete functionality. To prevent conflicts with the stable release, Bambu Studio Beta uses a separate configuration folder (Help -> Show Configuration Folder) and operates independently from the standard version of Bambu Studio."
-msgstr ""
+msgstr "베타 버전이므로 일부 기능은 아직 개발 중일 수 있으며, 간혹 버그, 예기치 않은 동작이 발생하거나 기능이 불완전할 수 있습니다. 공식 버전과의 충돌을 방지하기 위해 Bambu Studio 베타는 별도의 구성 폴더(도움말 -> 구성 폴더 표시)를 사용하여 표준 Bambu Studio 버전과 별도로 작동합니다."
 
 msgid "(Help -> Show Configuration Folder)"
-msgstr ""
+msgstr "(도움말 -> 구성 폴더 표시)"
 
 msgid "Why use the Beta version?"
-msgstr ""
+msgstr "베타 버전을 사용해야 하는 이유는 무엇인가요?"
 
 msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
-msgstr ""
+msgstr "베타 버전을 사용해 보고 피드백, 버그 신고 및 제안 사항을 공유하면 공식 출시 전에 Bambu Lab이 안정성, 호환성 및 향후 기능을 개선하는 데 도움을 줄 수 있습니다."
 
 msgid "How to change settings?"
-msgstr ""
+msgstr "설정은 어떻게 변경하나요?"
 
 msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
-msgstr ""
+msgstr "베타 프로그램 참여를 원치 않으면 설정에서 언제든지 베타 업데이트 알림을 비활성화할 수 있습니다."
 
 msgid "Air Pump"
 msgstr "공기 펌프"
@@ -11591,7 +11591,7 @@ msgid "Repaired 3mf file contains more than one volume"
 msgstr "수리된 3mf 파일에 두 개 이상의 부피가 포함되어 있습니다"
 
 msgid "Repaired 3mf file contains more than one instance"
-msgstr ""
+msgstr "복구된 3mf 파일에 인스턴스가 2개 이상의 포함되어 있습니다."
 
 msgid "Repair finished"
 msgstr "오류수정 완료"
@@ -12982,10 +12982,10 @@ msgid "Optional Photoshop-style custom curve mapping Z progress to the first com
 msgstr ""
 
 msgid "Mixed filament per-part gradient"
-msgstr ""
+msgstr "혼합 필라멘트 파트별 그레이디언트"
 
 msgid "When gradient mode is enabled, apply the gradient to each part of an assembly independently rather than treating the whole assembly as one Z range."
-msgstr ""
+msgstr "그레이디언트 모드가 활성화되면 전체 어셈블리를 하나의 Z 범위로 처리하는 대신 어셈블리의 각 파트에 그레이디언트를 독립적으로 적용합니다."
 
 msgid "Filament printable"
 msgstr "필라멘트 출력 가능"
@@ -13717,10 +13717,10 @@ msgid "This G-code will be used as a custom code"
 msgstr "이 G-코드는 커스텀 코드로 사용됩니다."
 
 msgid "Support fast purge mode"
-msgstr ""
+msgstr "고속 퍼지 모드 지원"
 
 msgid "Whether this printer supports fast purge mode with optimized temperature and multiplier."
-msgstr ""
+msgstr "프린터가 최적화된 온도 및 승수와 함께 고속 퍼지 모드를 지원하는지 여부입니다."
 
 msgid "Maximum speed X"
 msgstr "최대 속도 X"
@@ -13954,10 +13954,10 @@ msgid "Embedding the wall into parts where the wall loops are absent ensures tha
 msgstr "벽 루프가 없는 부분에 벽을 삽입하면 벽이 채움재와 원활하게 연결됩니다."
 
 msgid "Alternate extra wall"
-msgstr ""
+msgstr "대체 추가 외벽"
 
 msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
-msgstr ""
+msgstr "외벽을 영구적으로 추가하는데 비용을 낭비하는 대신 레이어에 번갈아 가며 외벽을 추가해 레이어 간 접착력과 파트 강도를 향상시킬 수 있습니다."
 
 msgid "Post-processing Scripts"
 msgstr "후처리 스크립트"
@@ -14083,7 +14083,7 @@ msgid "Saving"
 msgstr "저장 중"
 
 msgid "Fast"
-msgstr ""
+msgstr "빠른"
 
 msgid "length when change hotend"
 msgstr "핫엔드 교체 시 길이"
@@ -14205,10 +14205,10 @@ msgid "Distance from skirt to brim or object"
 msgstr "스커트에서 브림 또는 객체까지의 거리"
 
 msgid "Skirt per object"
-msgstr ""
+msgstr "객체별 스커트"
 
 msgid "Generate independent skirt around each object in sequential printing mode. When disabled, a single skirt is drawn around all objects."
-msgstr ""
+msgstr "순차 출력 모드에서 각 객체 주위에 독립적인 스커트를 생성합니다. 이 옵션을 비활성화하면 모든 객체 주위에 스커트가 하나만 그려집니다."
 
 msgid "Skirt height"
 msgstr "스커트 높이"
@@ -14755,10 +14755,10 @@ msgid "The actual flushing volumes is equal to the flush multiplier multiplied b
 msgstr "실제 짜내기 볼륨은 짜내기 승수 값에 표로 입력된 짜내기 볼륨을 곱한 값과 같습니다."
 
 msgid "Flush multiplier (Fast mode)"
-msgstr ""
+msgstr "플러시 승수(고속 모드)"
 
 msgid "The flush multiplier used in fast purge mode."
-msgstr ""
+msgstr "고속 퍼지 모드에서 사용되는 플러시 승수입니다."
 
 msgid "Width of prime tower"
 msgstr "프라임타워의 폭입니다."
@@ -14924,11 +14924,11 @@ msgid "Detect overhangs for auto-lift"
 msgstr "자동 리프트를 위한 오버행 감지"
 
 msgid "Levitating objects cannot be printed without supports."
-msgstr ""
+msgstr "지지대 없이 공중에 떠 있는 객체는 출력할 수 없습니다."
 
 #, c-format, boost-format
 msgid "It seems object %s has floating regions. Please re-orient the object or enable support generation."
-msgstr ""
+msgstr "객체 %s에 허공에 떠 있는 영역이 있는 것 같습니다. 객체의 방향을 다시 조정하거나 지지대 생성을 활성화하세요."
 
 msgid "Checking support necessity"
 msgstr "서포트 필요성 확인"
@@ -14991,7 +14991,7 @@ msgid "The supplied file couldn't be read because it's empty"
 msgstr "제공된 파일이 비어 있어 읽을 수 없습니다."
 
 msgid "The file format is incompatible and cannot be parsed."
-msgstr ""
+msgstr "파일 형식이 호환되지 않아 구문 분석할 수 없습니다."
 
 msgid "Unknown file format. Input file must have .stl, .obj, .amf(.xml), .gltf, .glb, .fbx extension."
 msgstr "알 수 없는 파일 형식입니다. 입력 파일의 확장자는 .stl, .obj, .amf(.xml), .gltf, .glb, .fbx여야 합니다."
@@ -15009,7 +15009,7 @@ msgid "load mtl in obj: failed to parse"
 msgstr "obj에서 MTL 로드: 구문 분석 실패"
 
 msgid "The file contains polygons with less than 3 vertices."
-msgstr ""
+msgstr "파일에 꼭짓점이 3개 미만인 다각형이 포함되어 있습니다."
 
 msgid "The file contains invalid vertex index."
 msgstr "파일에 잘못된 꼭짓점 인덱스가 포함되어 있습니다."
@@ -17089,10 +17089,10 @@ msgid "Purge Mode Settings"
 msgstr "퍼지 모드 설정"
 
 msgid "Perform full purging with speed and temperature transition for the best print quality."
-msgstr ""
+msgstr "최상의 인쇄 품질을 얻으려면 속도와 온도를 변경하며 완전히 퍼징합니다."
 
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
-msgstr ""
+msgstr "최적화된 퍼지 온도, 승수 및 강화된 압출을 사용하여 더 빠르게 퍼지할 수 있습니다. 일부 극단적인 경우에는 약간의 색상 혼합이 발생할 수 있습니다."
 
 msgid "Prime Saving"
 msgstr "프라임 절약"
@@ -17382,7 +17382,7 @@ msgid "Gradient Effect"
 msgstr "그라디언트 효과"
 
 msgid "Enable per-part gradient effect"
-msgstr ""
+msgstr "파트별 그레이디언트 효과 활성화"
 
 msgid "Mixing Recommendations"
 msgstr "권장 혼합"
@@ -17418,10 +17418,10 @@ msgstr "최대 구성 요소 수에 도달했습니다."
 msgid "Remove the third material"
 msgstr "세 번째 재료를 제거하세요"
 
-msgid "Model Height"
+msgid "Material Ratio"
 msgstr ""
 
-msgid "Material Ratio"
+msgid "Model Height"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]

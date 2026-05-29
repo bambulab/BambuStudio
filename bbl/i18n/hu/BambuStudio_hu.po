@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-27 20:41+0800\n"
+"POT-Creation-Date: 2026-05-29 14:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3312,86 +3312,86 @@ msgid "Project Filaments"
 msgstr "Projekt filamentek"
 
 msgid "New Filaments"
-msgstr ""
+msgstr "Új filamentek"
 
 msgid "Add Material"
-msgstr ""
+msgstr "Anyag hozzáadása"
 
 #, c-format, boost-format
 msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr ""
+msgstr "A projekt akár %d filementet támogat. A felesleges filamentek elvetésre kerülnek."
 
 msgid "Import Model"
-msgstr ""
+msgstr "Modell importálása"
 
 msgid "Original"
 msgstr "Eredeti"
 
 msgid "Multi-Color"
-msgstr ""
+msgstr "Többszínű"
 
 msgid "Your input texture model"
-msgstr ""
+msgstr "Bemeneti textúramodell"
 
 msgid "Processed multi-color model"
-msgstr ""
+msgstr "Feldolgozott többszínű modell"
 
 msgid "Color Count"
-msgstr ""
+msgstr "Színszám"
 
 msgid "Smooth Level"
-msgstr ""
+msgstr "Simasági szint"
 
 msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr ""
+msgstr "Automatikusan meghatározza az optimális színszámot, és újraszámítja a filamentleképezést"
 
 msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr ""
+msgstr "Textúra konvertálása festéssé a megadott színszám és simasági szint használatával"
 
 msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr ""
+msgstr "Emlékeztető: a paraméterek megváltoztak, a hatályba lépéshez kattintson az Alkalmazás lehetőségre"
 
 msgid "Filament Mapping"
-msgstr ""
+msgstr "Filamentleképezés"
 
 msgid "Auto-merge same filament"
-msgstr ""
+msgstr "Ugyanazon filament automatikus egyesítése"
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr ""
+msgstr "Azonos filamentek automatikus egyesítése a projektben már meglévő filamentekkel"
 
 msgid "Skip Matching"
-msgstr ""
+msgstr "Egyeztetés kihagyása"
 
 msgid "Skip filament mapping and import as a single-color model"
-msgstr ""
+msgstr "Filamentleképezés kihagyása és importálás egyszínű modellként"
 
 msgid "Processing"
-msgstr ""
+msgstr "Feldolgozás"
 
 msgid "Computing texture colors..."
-msgstr ""
+msgstr "Textúraszínek kiszámítása…"
 
 msgid "Computation failed. Please adjust parameters and retry."
-msgstr ""
+msgstr "Számítási hiba. Módosítsa a paramétereket, és próbálja újra."
 
 msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr ""
+msgstr "A háló geometriája nem sokrétű, vagy nyitott határvonalakkal rendelkezik. Importálhatja eredeti állapotában, vagy javíthatja a Windows 3D javítószolgáltatásával az importálás előtt."
 
 msgid "Mesh repair"
-msgstr ""
+msgstr "Hálójavítás"
 
 msgid "Import without repair"
-msgstr ""
+msgstr "Importálás javítás nélkül"
 
 msgid "Repair and import"
-msgstr ""
+msgstr "Javítás és importálás"
 
 msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr ""
+msgstr "Tartsa szem előtt, hogy a háló nem sokrétű geometriával vagy nyitott határokkal rendelkezik."
 
 msgid "Mesh issue"
-msgstr ""
+msgstr "Hálóprobléma"
 
 msgid "Continue"
 msgstr "Folytatás"
@@ -5761,13 +5761,13 @@ msgid "Deselects all objects"
 msgstr "Megszünteti az összes objektum kijelölését"
 
 msgid "Enter Camera Full Screen"
-msgstr ""
+msgstr "Belépés a kamera teljes kijelzős nézetébe"
 
 msgid "Show the Device camera in full screen"
-msgstr ""
+msgstr "A készülék kamerájának megjelenítése teljes kijelzőn"
 
 msgid "Exit Camera Full Screen"
-msgstr ""
+msgstr "Kilépés a kamera teljes kijelzős nézetéből"
 
 msgid "Use Perspective View"
 msgstr "Perspektivikus nézet használata"
@@ -5833,16 +5833,16 @@ msgid "Temperature Calibration"
 msgstr "Hőmérséklet kalibrálás"
 
 msgid "Coarse"
-msgstr ""
+msgstr "Durva"
 
 msgid "Flow rate test - Coarse"
-msgstr ""
+msgstr "Anyagáramlásteszt – Durva"
 
 msgid "Fine"
-msgstr ""
+msgstr "Finom"
 
 msgid "Flow rate test - Fine"
-msgstr ""
+msgstr "Anyagáramlásteszt – Finom"
 
 msgid "Flow rate"
 msgstr "Anyagáramlás"
@@ -6378,7 +6378,7 @@ msgid "Go to Login"
 msgstr "Ugrás a bejelentkezéshez"
 
 msgid "Camera Full Screen"
-msgstr ""
+msgstr "Kamera teljes kijelzős nézete"
 
 msgctxt "Quit_Switching"
 msgid "Quit"
@@ -6945,7 +6945,7 @@ msgid "Error:"
 msgstr "Hiba:"
 
 msgid "Enable support for"
-msgstr ""
+msgstr "Támogatás engedélyezése a következőhöz"
 
 msgid "Open link for more info"
 msgstr "További információkért nyisd meg a linket"
@@ -7021,10 +7021,10 @@ msgid "Bottom"
 msgstr "Alsó"
 
 msgid "There is stringing-prone filament in the current print job. Enabling nozzle clumping detection now may degrade print quality. Are you sure you want to enable it?"
-msgstr ""
+msgstr "A jelenlegi nyomtatási feladatban szálazásra hajlamos filament található. A fúvókafeltapadás-észlelés engedélyezése ronthatja a nyomtatási minőséget. Biztosan engedélyezni szeretné?"
 
 msgid "Enable Nozzle Clumping Detection"
-msgstr ""
+msgstr "Fúvókafeltapadás-észlelés engedélyezése"
 
 msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
 msgstr "Ha engedélyezve van, a nyomtató automatikusan képeket készít a nyomtatott tárgyakról, és feltölti azokat a felhőbe. Szeretnéd engedélyezni ezt az opciót?"
@@ -7598,10 +7598,10 @@ msgstr "Több részből álló objektum észlelve"
 
 #, c-format, boost-format
 msgid "Computing texture colors: %s"
-msgstr ""
+msgstr "Textúraszínek kiszámítása: %s"
 
 msgid "Texture Import Warning"
-msgstr ""
+msgstr "Textúra importálása figyelmeztetés"
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Betöltöd ezeket a fájlokat több részből álló egyetlen objektumként?\n"
@@ -7613,7 +7613,7 @@ msgid "The file does not contain any geometry data."
 msgstr "A fájl nem tartalmaz geometriai adatokat."
 
 msgid "Importing model to project..."
-msgstr ""
+msgstr "Modell importálása a projektbe…"
 
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr "Úgy tűnik, hogy az objektum túl nagy. Szeretnéd átméretezni, hogy illeszkedjen az asztal méretéhez?"
@@ -7622,25 +7622,25 @@ msgid "Object too large"
 msgstr "Az objektum túl nagy"
 
 msgid "Placing model on the bed..."
-msgstr ""
+msgstr "Modell elhelyezése az asztalon…"
 
 msgid "Updating object list..."
-msgstr ""
+msgstr "Objektumlista frissítése…"
 
 msgid "Updating 3D view..."
-msgstr ""
+msgstr "3D nézet frissítése…"
 
 msgid "Model imported."
-msgstr ""
+msgstr "Modell importálva."
 
 msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
-msgstr ""
+msgstr "A textúra importálása sikertelen. Úgy tűnik, hogy a modell textúraadatokat tartalmaz, de a textúra importálási folyamata nem fejezhető be. A modell csak geometriaként lesz importálva."
 
 msgid "Applying texture colors..."
-msgstr ""
+msgstr "Textúraszínek alkalmazása…"
 
 msgid "Texture colors applied."
-msgstr ""
+msgstr "Textúraszínek alkalmazva."
 
 msgid "Export STL file:"
 msgstr "STL fájl exportálása:"
@@ -8465,10 +8465,10 @@ msgid "With this option enabled, you can print materials with a large temperatur
 msgstr "Ha ez az opció be van kapcsolva, akkor nagy hőmérsékletkülönbségű anyagokat is nyomtathatsz egyszerre."
 
 msgid "Open full screen camera view on active monitor only."
-msgstr ""
+msgstr "Teljes kijelzős kameranézet megnyitása csak az aktív monitoron."
 
 msgid "When enabled, the camera full screen view opens only on the monitor that contains Bambu Studio."
-msgstr ""
+msgstr "Ha engedélyezve van, a kamera teljes kijelzős nézete csak azon a monitoron nyílik meg, amelyen a Bambu Studio található."
 
 msgid "Clear my choice for synchronizing printer preset after loading the file."
 msgstr "Törölje a nyomtatóbeállítás szinkronizálására vonatkozó választásomat a fájl betöltése után."
@@ -8477,13 +8477,13 @@ msgid "Clear my choice for Load 3mf dialog settings."
 msgstr "Törölje a választásomat a 3mf betöltése párbeszédpanelen."
 
 msgid "Clear my choice for executing post-processing scripts."
-msgstr ""
+msgstr "Törölje a kijelölést az utófeldolgozási szkriptek végrehajtásához."
 
 msgid "Show the security warning dialog again before slicing when post-processing scripts are configured."
-msgstr ""
+msgstr "A biztonsági figyelmeztető párbeszédpanel ismételt megjelenítése szeletelés előtt, ha utófeldolgozási szkriptek vannak konfigurálva."
 
 msgid "Clear my choice for disabling support parameter recommendation."
-msgstr ""
+msgstr "Törölje a támogatási paraméterek ajánlásának letiltására vonatkozó választásomat."
 
 msgid "3D Settings"
 msgstr "3D-beállítások"
@@ -9325,7 +9325,7 @@ msgid "Some filaments may switch between extruders during printing. Manual K-val
 msgstr "Előfordulhat, hogy nyomtatás közben egyes filamentek váltanak az extruderek között. A manuális K-érték kalibrálás nem alkalmazható a teljes nyomtatás során, ami befolyásolhatja a nyomtatási minőséget. Az áramlásdinamikai kalibrálás engedélyezése ajánlott."
 
 msgid "There is stringing-prone filament in this file. For best print quality, we recommend switching nozzle clumping detection to Auto mode."
-msgstr ""
+msgstr "Ebben a fájlban szálak feltapadására hajlamos filament található. A legjobb nyomtatási minőség érdekében javasoljuk, hogy a fúvókafeltapadás-észlelést automatikus módra állítsa."
 
 msgid "Cool"
 msgstr ""
@@ -9971,10 +9971,10 @@ msgid "Multi Filament"
 msgstr ""
 
 msgid "Purge Mode: Standard"
-msgstr ""
+msgstr "Tisztítási mód: Standard"
 
 msgid "Purge Mode: Fast"
-msgstr ""
+msgstr "Tisztítási mód: Gyors"
 
 msgid "Printable space"
 msgstr "Nyomtatási terület"
@@ -11459,43 +11459,43 @@ msgid "Fixing cold prints"
 msgstr "Hideg nyomatok javítása"
 
 msgid "Software Update"
-msgstr ""
+msgstr "Szoftverfrissítés"
 
 msgid "Try Now"
-msgstr ""
+msgstr "Próbálja ki most"
 
 msgid "Don't show me Beta updates again"
-msgstr ""
+msgstr "Ne jelenjenek meg többé a bétafrissítések"
 
 msgid "New Bambu Studio Beta Available"
-msgstr ""
+msgstr "Új Bambu Studio béta érhető el"
 
 msgid "Current Version"
-msgstr ""
+msgstr "Jelenlegi verzió"
 
 msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
-msgstr ""
+msgstr "A Bambu Studio Beta bétahozzáférést biztosít a közelgő funkciókhoz, fejlesztésekhez, optimalizálásokhoz és hibajavításokhoz, mielőtt azok megjelennének a Bambu Studio stabil verziójában. Haladó felhasználóknak készült, akik szeretnék korán felfedezni az új funkciókat, és hozzájárulni a szoftverélmény fejlesztéséhez."
 
 msgid "Separate configuration folder."
-msgstr ""
+msgstr "Külön konfigurációs mappa."
 
 msgid "As a beta release, some features may still be under development, and you may occasionally encounter bugs, unexpected behavior, or incomplete functionality. To prevent conflicts with the stable release, Bambu Studio Beta uses a separate configuration folder (Help -> Show Configuration Folder) and operates independently from the standard version of Bambu Studio."
-msgstr ""
+msgstr "Bétaverzióként egyes funkciók még fejlesztés alatt állhatnak, és időnként hibákkal, váratlan viselkedéssel vagy hiányos működéssel találkozhat. A stabil kiadással való ütközések elkerülése érdekében a Bambu Studio Beta egy külön konfigurációs mappát használ (Súgó -> Konfigurációs mappa megjelenítése), és a Bambu Studio standard verziójától függetlenül működik."
 
 msgid "(Help -> Show Configuration Folder)"
-msgstr ""
+msgstr "(Súgó -> Konfigurációs mappa megjelenítése)"
 
 msgid "Why use the Beta version?"
-msgstr ""
+msgstr "Miért érdemes a bétaverziót használni?"
 
 msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
-msgstr ""
+msgstr "A bétaverzió használatával, valamint visszajelzések, hibajelentések és javaslatok megosztásával segíthet a Bambu Labnak a stabilitás, a kompatibilitás és a jövőbeli funkciók fejlesztésében a hivatalos megjelenés előtt."
 
 msgid "How to change settings?"
-msgstr ""
+msgstr "Hogyan lehet módosítani a beállításokat?"
 
 msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
-msgstr ""
+msgstr "Ha nem szeretne részt venni a bétaprogramban, bármikor letilthatja a bétafrissítési értesítéseket a Beállításokban."
 
 msgid "Air Pump"
 msgstr "Légszivattyú"
@@ -11597,7 +11597,7 @@ msgid "Repaired 3mf file contains more than one volume"
 msgstr "A megjavított 3mf fájl egynél több kötetet tartalmaz"
 
 msgid "Repaired 3mf file contains more than one instance"
-msgstr ""
+msgstr "A javított 3mf fájl egynél több példányt tartalmaz"
 
 msgid "Repair finished"
 msgstr "Javítás befejezve"
@@ -12988,10 +12988,10 @@ msgid "Optional Photoshop-style custom curve mapping Z progress to the first com
 msgstr ""
 
 msgid "Mixed filament per-part gradient"
-msgstr ""
+msgstr "Vegyes filament/alkatrész gradiens"
 
 msgid "When gradient mode is enabled, apply the gradient to each part of an assembly independently rather than treating the whole assembly as one Z range."
-msgstr ""
+msgstr "Ha a gradiens mód engedélyezve van, a gradiens az összeállítás minden egyes részére külön alkalmazza, ahelyett, hogy az egész összeállítást egyetlen Z tartományként kezelné."
 
 msgid "Filament printable"
 msgstr "Nyomtatható filament"
@@ -13723,10 +13723,10 @@ msgid "This G-code will be used as a custom code"
 msgstr "Ezt a G-kód egyedi kódként lesz használva."
 
 msgid "Support fast purge mode"
-msgstr ""
+msgstr "Támogatja a gyors tisztítási módot"
 
 msgid "Whether this printer supports fast purge mode with optimized temperature and multiplier."
-msgstr ""
+msgstr "Ez a nyomtató támogatja-e a gyors tisztítási módot optimalizált hőmérséklettel és szorzóval."
 
 msgid "Maximum speed X"
 msgstr "Maximális sebesség X"
@@ -13960,10 +13960,10 @@ msgid "Embedding the wall into parts where the wall loops are absent ensures tha
 msgstr "A fal beágyazása biztosítja, hogy a fal jobban kapcsolódjon a kitöltéshez."
 
 msgid "Alternate extra wall"
-msgstr ""
+msgstr "Alternatív extra fal"
 
 msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
-msgstr ""
+msgstr "Egy extra fal hozzáadásával váltakozó rétegekre javítható a rétegek tapadása és az alkatrészek szilárdsága anélkül, hogy egy állandó extra fal teljes költsége merülne fel."
 
 msgid "Post-processing Scripts"
 msgstr "Utófeldolgozási szkriptek"
@@ -14089,7 +14089,7 @@ msgid "Saving"
 msgstr "Mentés"
 
 msgid "Fast"
-msgstr ""
+msgstr "Gyors"
 
 msgid "length when change hotend"
 msgstr "hossz hotendcsere esetén"
@@ -14211,10 +14211,10 @@ msgid "Distance from skirt to brim or object"
 msgstr "A szoknyától a peremig vagy tárgyig mért távolsága"
 
 msgid "Skirt per object"
-msgstr ""
+msgstr "Szoknya objektumonként"
 
 msgid "Generate independent skirt around each object in sequential printing mode. When disabled, a single skirt is drawn around all objects."
-msgstr ""
+msgstr "Független szoknya létrehozása minden objektum köré szekvenciális nyomtatási módban. Letiltás esetén egyetlen szoknya rajzolódik az összes objektum köré."
 
 msgid "Skirt height"
 msgstr "Szoknya magassága"
@@ -14761,10 +14761,10 @@ msgid "The actual flushing volumes is equal to the flush multiplier multiplied b
 msgstr "A tényleges öblítési mennyiségek megegyeznek az öblítési szorzó értékével, szorozva a táblázatban szereplő öblítési mennyiségekkel."
 
 msgid "Flush multiplier (Fast mode)"
-msgstr ""
+msgstr "Öblítési szorzó (Gyors mód)"
 
 msgid "The flush multiplier used in fast purge mode."
-msgstr ""
+msgstr "A gyors tisztítási módban használt öblítési szorzó."
 
 msgid "Width of prime tower"
 msgstr "Törlőtorony szélessége"
@@ -14930,11 +14930,11 @@ msgid "Detect overhangs for auto-lift"
 msgstr "Túlnyúlások észlelése az automatikus emeléshez"
 
 msgid "Levitating objects cannot be printed without supports."
-msgstr ""
+msgstr "A lebegő objektumok nem nyomtathatók támasztékok nélkül."
 
 #, c-format, boost-format
 msgid "It seems object %s has floating regions. Please re-orient the object or enable support generation."
-msgstr ""
+msgstr "Úgy tűnik, az objektum (%s) lebegő régiókkal rendelkezik. Tájolja át az objektumot, vagy engedélyezze a támogatás támaszték létrehozását."
 
 msgid "Checking support necessity"
 msgstr "Támasz szükségességének ellenőrzése"
@@ -14997,7 +14997,7 @@ msgid "The supplied file couldn't be read because it's empty"
 msgstr "A megadott fájlt nem lehet beolvasni, mert üres"
 
 msgid "The file format is incompatible and cannot be parsed."
-msgstr ""
+msgstr "A fájlformátum nem kompatibilis, és nem elemezhető."
 
 msgid "Unknown file format. Input file must have .stl, .obj, .amf(.xml), .gltf, .glb, .fbx extension."
 msgstr "Ismeretlen fájlformátum. A bemeneti fájl kiterjesztésének a következők egyikének kell lennie .stl, .obj, .amf(.xml), .gltf, .glb vagy .fbx."
@@ -15015,7 +15015,7 @@ msgid "load mtl in obj: failed to parse"
 msgstr "load mtl in obj: failed to parse"
 
 msgid "The file contains polygons with less than 3 vertices."
-msgstr ""
+msgstr "A fájl kevesebb mint 3 csúcsponttal rendelkező poligonokat tartalmaz."
 
 msgid "The file contains invalid vertex index."
 msgstr "A fájl érvénytelen vertexindexet tartalmaz."
@@ -17092,10 +17092,10 @@ msgid "Purge Mode Settings"
 msgstr "Átöblítési mód beállításai"
 
 msgid "Perform full purging with speed and temperature transition for the best print quality."
-msgstr ""
+msgstr "A legjobb nyomtatási minőség érdekében végezzen teljes tisztítást sebesség- és hőmérséklet-átmenettel."
 
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
-msgstr ""
+msgstr "Optimalizált tisztítási hőmérsékletet, szorzót és erősebb extrudálást használ a gyorsabb tisztítás érdekében. Szélsőséges esetekben enyhe színkeveredést okozhat."
 
 msgid "Prime Saving"
 msgstr "Takarékos átöblítés"
@@ -17385,7 +17385,7 @@ msgid "Gradient Effect"
 msgstr "Színátmenet"
 
 msgid "Enable per-part gradient effect"
-msgstr ""
+msgstr "Alkatrészenkénti gradienseffektus engedélyezése"
 
 msgid "Mixing Recommendations"
 msgstr "Keverési javaslatok"
@@ -17421,10 +17421,10 @@ msgstr "Elérted a komponensek maximális számát"
 msgid "Remove the third material"
 msgstr "Harmadik anyag eltávolítása"
 
-msgid "Model Height"
+msgid "Material Ratio"
 msgstr ""
 
-msgid "Material Ratio"
+msgid "Model Height"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]

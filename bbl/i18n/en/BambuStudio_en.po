@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-27 20:41+0800\n"
+"POT-Creation-Date: 2026-05-29 14:32+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -17186,10 +17186,10 @@ msgstr ""
 msgid "Remove the third material"
 msgstr ""
 
-msgid "Model Height"
+msgid "Material Ratio"
 msgstr ""
 
-msgid "Material Ratio"
+msgid "Model Height"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]

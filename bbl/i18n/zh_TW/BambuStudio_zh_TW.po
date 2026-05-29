@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-27 20:41+0800\n"
+"POT-Creation-Date: 2026-05-29 14:32+0800\n"
 "PO-Revision-Date: 2026-05-07 16:00+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -17341,10 +17341,10 @@ msgstr "已達到最大組分數量"
 msgid "Remove the third material"
 msgstr "移除第三種材料"
 
-msgid "Model Height"
+msgid "Material Ratio"
 msgstr ""
 
-msgid "Material Ratio"
+msgid "Model Height"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]

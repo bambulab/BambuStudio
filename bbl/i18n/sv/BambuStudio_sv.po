@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-27 20:41+0800\n"
+"POT-Creation-Date: 2026-05-29 14:32+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3309,86 +3309,86 @@ msgid "Project Filaments"
 msgstr "Projekt Filament"
 
 msgid "New Filaments"
-msgstr ""
+msgstr "Nya filament"
 
 msgid "Add Material"
-msgstr ""
+msgstr "Lägg till material"
 
 #, c-format, boost-format
 msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr ""
+msgstr "Projektet stöder upp till%d filament. Ytterligare filament kommer att kasseras."
 
 msgid "Import Model"
-msgstr ""
+msgstr "Importmodell"
 
 msgid "Original"
 msgstr ""
 
 msgid "Multi-Color"
-msgstr ""
+msgstr "Flerfärgad"
 
 msgid "Your input texture model"
-msgstr ""
+msgstr "Din texturmodell för inmatning"
 
 msgid "Processed multi-color model"
-msgstr ""
+msgstr "Bearbetad flerfärgsmodell"
 
 msgid "Color Count"
-msgstr ""
+msgstr "Färgantal"
 
 msgid "Smooth Level"
-msgstr ""
+msgstr "Jämn nivå"
 
 msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr ""
+msgstr "Bestäm automatiskt endast det optimala färgantalet och beräkna om filamentmappning"
 
 msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr ""
+msgstr "Konvertera textur till målning med hjälp av det angivna färgantalet och utjämningsnivån"
 
 msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr ""
+msgstr "Påminnelse: parametrar ändrade, klicka på Verkställ för att det ska gälla"
 
 msgid "Filament Mapping"
-msgstr ""
+msgstr "Filamentmappning"
 
 msgid "Auto-merge same filament"
-msgstr ""
+msgstr "Automatiskt sammanfoga samma filament"
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr ""
+msgstr "Sammanfoga identiska filament automatiskt med befintliga filament i projektet"
 
 msgid "Skip Matching"
-msgstr ""
+msgstr "Hoppa över matchning"
 
 msgid "Skip filament mapping and import as a single-color model"
-msgstr ""
+msgstr "Hoppa över filamentmappning och importera som en enfärgad modell"
 
 msgid "Processing"
-msgstr ""
+msgstr "Behandlar"
 
 msgid "Computing texture colors..."
-msgstr ""
+msgstr "Beräknar texturfärger..."
 
 msgid "Computation failed. Please adjust parameters and retry."
-msgstr ""
+msgstr "Beräkningen misslyckades. Justera parametrarna och försök igen."
 
 msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr ""
+msgstr "Nätet har en icke-mångfaldig geometri eller öppna gränser. Du kan importera det i befintligt skick eller reparera det med Windows 3D-reparationstjänst innan du importerar."
 
 msgid "Mesh repair"
-msgstr ""
+msgstr "Nät reparation"
 
 msgid "Import without repair"
-msgstr ""
+msgstr "Importera utan reparation"
 
 msgid "Repair and import"
-msgstr ""
+msgstr "Reparation och importera"
 
 msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr ""
+msgstr "Observera att nätet inte har en mångfaldig geometri eller öppna gränser."
 
 msgid "Mesh issue"
-msgstr ""
+msgstr "Nätproblem"
 
 msgid "Continue"
 msgstr "Fortsätt"
@@ -5756,13 +5756,13 @@ msgid "Deselects all objects"
 msgstr "Avmarkera alla objekt"
 
 msgid "Enter Camera Full Screen"
-msgstr ""
+msgstr "Gå in i kamerans helskärm"
 
 msgid "Show the Device camera in full screen"
-msgstr ""
+msgstr "Visa enhetens kamera i helskärm"
 
 msgid "Exit Camera Full Screen"
-msgstr ""
+msgstr "Avsluta kameran i helskärmsläge"
 
 msgid "Use Perspective View"
 msgstr "Använd Perspektiv Vy"
@@ -5828,16 +5828,16 @@ msgid "Temperature Calibration"
 msgstr "Kalibrering av temperatur"
 
 msgid "Coarse"
-msgstr ""
+msgstr "Grov"
 
 msgid "Flow rate test - Coarse"
-msgstr ""
+msgstr "Test av flödeshastighet – Grov"
 
 msgid "Fine"
-msgstr ""
+msgstr "Bra"
 
 msgid "Flow rate test - Fine"
-msgstr ""
+msgstr "Test av flödeshastighet – Fin"
 
 msgid "Flow rate"
 msgstr "Flödeshastighet"
@@ -6373,7 +6373,7 @@ msgid "Go to Login"
 msgstr "Gå till inloggning"
 
 msgid "Camera Full Screen"
-msgstr ""
+msgstr "Kamera i helskärmsläge"
 
 msgctxt "Quit_Switching"
 msgid "Quit"
@@ -6940,7 +6940,7 @@ msgid "Error:"
 msgstr "Fel:"
 
 msgid "Enable support for"
-msgstr ""
+msgstr "Aktivera stöd för"
 
 msgid "Open link for more info"
 msgstr "Öppna länken för mer information"
@@ -7016,10 +7016,10 @@ msgid "Bottom"
 msgstr "Bottenlager"
 
 msgid "There is stringing-prone filament in the current print job. Enabling nozzle clumping detection now may degrade print quality. Are you sure you want to enable it?"
-msgstr ""
+msgstr "Det finns strängningbenägna filament i det nuvarande utskriftsjobbet. Om du aktiverar detektering av nozzlens klumpbildning nu kan utskriftskvaliteten försämras. Är du säker på att du vill aktivera det?"
 
 msgid "Enable Nozzle Clumping Detection"
-msgstr ""
+msgstr "Aktivera detektering av nozzle-klumpbildning"
 
 msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
 msgstr "När den är aktiverad kommer printern automatiskt att ta bilder på utskrivna delar och ladda upp dem till molnet. Vill du aktivera det här alternativet?"
@@ -7594,10 +7594,10 @@ msgstr "Objekt i flera delar har upptäckts"
 
 #, c-format, boost-format
 msgid "Computing texture colors: %s"
-msgstr ""
+msgstr "Beräkning av texturfärger:%s"
 
 msgid "Texture Import Warning"
-msgstr ""
+msgstr "Varning för texturimport"
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Ladda dessa filer som ett enkelt objekt med multipla delar?\n"
@@ -7609,7 +7609,7 @@ msgid "The file does not contain any geometry data."
 msgstr "Filen innehåller ingen geometrisk data."
 
 msgid "Importing model to project..."
-msgstr ""
+msgstr "Importerar modell till projekt..."
 
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr "Ditt objekt verkar vara för stort, vill du skala ner det för att passa byggplattan automatiskt?"
@@ -7618,25 +7618,25 @@ msgid "Object too large"
 msgstr "Objektet är för stort"
 
 msgid "Placing model on the bed..."
-msgstr ""
+msgstr "Placerar modellen på bädden..."
 
 msgid "Updating object list..."
-msgstr ""
+msgstr "Uppdaterar objektlista..."
 
 msgid "Updating 3D view..."
-msgstr ""
+msgstr "Uppdaterar 3D-vyn..."
 
 msgid "Model imported."
-msgstr ""
+msgstr "Importerad modell."
 
 msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
-msgstr ""
+msgstr "Texturimporten misslyckades. Modellen verkar innehålla texturdata, men texturimportprocessen kunde inte slutföras. Modellen kommer endast att importeras som geometri."
 
 msgid "Applying texture colors..."
-msgstr ""
+msgstr "Applicerar texturfärger..."
 
 msgid "Texture colors applied."
-msgstr ""
+msgstr "Texturfärger applicerade."
 
 msgid "Export STL file:"
 msgstr "Exportera STL-fil:"
@@ -8461,10 +8461,10 @@ msgid "With this option enabled, you can print materials with a large temperatur
 msgstr "Med detta alternativet aktiverat kan du skriva ut material med stor temperaturskillnad tillsammans."
 
 msgid "Open full screen camera view on active monitor only."
-msgstr ""
+msgstr "Öppna kameravyn i helskärm endast på aktiv bildskärm."
 
 msgid "When enabled, the camera full screen view opens only on the monitor that contains Bambu Studio."
-msgstr ""
+msgstr "När den är aktiverad öppnas kamerans helskärmsvy endast på skärmen som innehåller Bambu Studio."
 
 msgid "Clear my choice for synchronizing printer preset after loading the file."
 msgstr "Rensa mitt val för synkronisering av printerns inställning efter laddning av filen."
@@ -8473,13 +8473,13 @@ msgid "Clear my choice for Load 3mf dialog settings."
 msgstr "Rensa mitt val för Inställningar för dialogrutan Ladda 3mf."
 
 msgid "Clear my choice for executing post-processing scripts."
-msgstr ""
+msgstr "Ta bort mitt val för att köra post – processingskript."
 
 msgid "Show the security warning dialog again before slicing when post-processing scripts are configured."
-msgstr ""
+msgstr "Visa dialogrutan med säkerhetsvarningen igen innan beredning när efter-processingskripter är konfigurerade."
 
 msgid "Clear my choice for disabling support parameter recommendation."
-msgstr ""
+msgstr "Ta bort mitt val för att inaktivera rekommendation av supportparametrar."
 
 msgid "3D Settings"
 msgstr "3D inställningar"
@@ -9321,7 +9321,7 @@ msgid "Some filaments may switch between extruders during printing. Manual K-val
 msgstr "Vissa filament kan växla mellan extruders under utskrift. Manuell K-värdes kalibrering kan inte appliceras under hela utskriften, vilket kan påverka utskrifts kvaliteten. Aktivering av Kalibrering av flödesdynamik rekommenderas."
 
 msgid "There is stringing-prone filament in this file. For best print quality, we recommend switching nozzle clumping detection to Auto mode."
-msgstr ""
+msgstr "Det finns strängningbenägna filament i den här filen. För bästa utskriftskvalitet rekommenderar vi att du växlar till Auto-läge för detektering av nozzle-klumpbildning."
 
 msgid "Cool"
 msgstr ""
@@ -9969,10 +9969,10 @@ msgid "Multi Filament"
 msgstr ""
 
 msgid "Purge Mode: Standard"
-msgstr ""
+msgstr "Rensningsläge: Standard"
 
 msgid "Purge Mode: Fast"
-msgstr ""
+msgstr "Rensningsläge: Snabbt"
 
 msgid "Printable space"
 msgstr "Utskriftsbar yta"
@@ -11457,43 +11457,43 @@ msgid "Fixing cold prints"
 msgstr "Åtgärdar kalla utskrifter"
 
 msgid "Software Update"
-msgstr ""
+msgstr "Programuppdatering"
 
 msgid "Try Now"
-msgstr ""
+msgstr "Prova nu"
 
 msgid "Don't show me Beta updates again"
-msgstr ""
+msgstr "Visa mig inte betauppdateringar igen"
 
 msgid "New Bambu Studio Beta Available"
-msgstr ""
+msgstr "Ny Bambu Studio Beta tillgänglig"
 
 msgid "Current Version"
-msgstr ""
+msgstr "Aktuell version"
 
 msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
-msgstr ""
+msgstr "Bambu Studio Beta ger dig tidig tillgång till kommande funktioner, förbättringar, optimeringar och buggfixar innan de släpps i den stabila versionen av Bambu Studio. Den är avsedd för avancerade användare som vill utforska nya funktioner tidigt och bidra till att förbättra programvaruupplevelsen."
 
 msgid "Separate configuration folder."
-msgstr ""
+msgstr "Separat konfigurationsmapp."
 
 msgid "As a beta release, some features may still be under development, and you may occasionally encounter bugs, unexpected behavior, or incomplete functionality. To prevent conflicts with the stable release, Bambu Studio Beta uses a separate configuration folder (Help -> Show Configuration Folder) and operates independently from the standard version of Bambu Studio."
-msgstr ""
+msgstr "Eftersom det är en betaversion kan vissa funktioner fortfarande vara under utveckling, och du kan ibland stöta på buggar, oväntat beteende eller ofullständig funktionalitet. För att förhindra konflikter med den stabila versionen använder Bambu Studio Beta en separat konfigurationsmapp (Hjälp -> Show Configuration Folder) och fungerar oberoende av standardversionen av Bambu Studio."
 
 msgid "(Help -> Show Configuration Folder)"
-msgstr ""
+msgstr "(Hjälp -> Show Configuration Folder)"
 
 msgid "Why use the Beta version?"
-msgstr ""
+msgstr "Varför använda betaversionen?"
 
 msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
-msgstr ""
+msgstr "Genom att använda betaversionen och dela feedback, buggrapporter och förslag kan du hjälpa Bambu Lab att förbättra stabilitet, kompatibilitet och framtida funktioner innan den officiella lanseringen."
 
 msgid "How to change settings?"
-msgstr ""
+msgstr "Hur ändrar man inställningar?"
 
 msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
-msgstr ""
+msgstr "Om du föredrar att inte delta i betaprogrammet kan du när som helst inaktivera uppdateringsmeddelanden för betaversionen i Inställningar."
 
 msgid "Air Pump"
 msgstr "Luftpump"
@@ -11595,7 +11595,7 @@ msgid "Repaired 3mf file contains more than one volume"
 msgstr "Den reparerade 3mf filen innehåller mer än en volym"
 
 msgid "Repaired 3mf file contains more than one instance"
-msgstr ""
+msgstr "Reparerad 3mf-fil innehåller mer än ett exempel"
 
 msgid "Repair finished"
 msgstr "Reparation klar"
@@ -12983,10 +12983,10 @@ msgid "Optional Photoshop-style custom curve mapping Z progress to the first com
 msgstr ""
 
 msgid "Mixed filament per-part gradient"
-msgstr ""
+msgstr "Blandad filament per delgradient"
 
 msgid "When gradient mode is enabled, apply the gradient to each part of an assembly independently rather than treating the whole assembly as one Z range."
-msgstr ""
+msgstr "När gradientläget är aktiverat, applicera gradienten oberoende på varje del av en sammansättning istället för att behandla hela sammansättningen som ett Z-område."
 
 msgid "Filament printable"
 msgstr "Utskrivbart filament"
@@ -13718,10 +13718,10 @@ msgid "This G-code will be used as a custom code"
 msgstr "Denna G-kod kommer att användas som en anpassad kod."
 
 msgid "Support fast purge mode"
-msgstr ""
+msgstr "Stöd för snabbt rensningsläge"
 
 msgid "Whether this printer supports fast purge mode with optimized temperature and multiplier."
-msgstr ""
+msgstr "Om den här skrivaren stöder snabbt rensningsläge med optimerad temperatur och multiplikator."
 
 msgid "Maximum speed X"
 msgstr "Max hastighet X"
@@ -13955,10 +13955,10 @@ msgid "Embedding the wall into parts where the wall loops are absent ensures tha
 msgstr "Bädda in väggen i delar där vägg öglorna är frånvarande ser till att väggen ansluts sömlöst till fyllningen."
 
 msgid "Alternate extra wall"
-msgstr ""
+msgstr "Alternativ extra vägg"
 
 msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
-msgstr ""
+msgstr "Lägg till en extra vägg vid alternerande lager för att förbättra lagerbindningen och delarnas styrka utan den fulla kostnaden för en permanent extra vägg."
 
 msgid "Post-processing Scripts"
 msgstr "Skript för efterbehandling"
@@ -14084,7 +14084,7 @@ msgid "Saving"
 msgstr "Sparar"
 
 msgid "Fast"
-msgstr ""
+msgstr "Snabb"
 
 msgid "length when change hotend"
 msgstr "längd vid byte av hotend"
@@ -14206,10 +14206,10 @@ msgid "Distance from skirt to brim or object"
 msgstr "Avståndet ifrån skirt till brim eller objektet"
 
 msgid "Skirt per object"
-msgstr ""
+msgstr "Kjol per objekt"
 
 msgid "Generate independent skirt around each object in sequential printing mode. When disabled, a single skirt is drawn around all objects."
-msgstr ""
+msgstr "Generera en oberoende kjol runt varje objekt i sekventiellt utskriftsläge. När det är inaktiverat ritas en enda kjol runt alla objekt."
 
 msgid "Skirt height"
 msgstr "Skirt höjd"
@@ -14757,10 +14757,10 @@ msgid "The actual flushing volumes is equal to the flush multiplier multiplied b
 msgstr "Den faktiska rensnings volymen är lika med värdet för rensnings multiplikatorn multiplicerat med rensnings volymerna i tabellen."
 
 msgid "Flush multiplier (Fast mode)"
-msgstr ""
+msgstr "Spolningsmultiplikator (snabbt läge)"
 
 msgid "The flush multiplier used in fast purge mode."
-msgstr ""
+msgstr "Spolningsmultiplikatorn som används i snabbt rensningsläge."
 
 msgid "Width of prime tower"
 msgstr "Prime tornets bredd"
@@ -14926,11 +14926,11 @@ msgid "Detect overhangs for auto-lift"
 msgstr "Identifiera överhäng för automatisk lyftning"
 
 msgid "Levitating objects cannot be printed without supports."
-msgstr ""
+msgstr "Svävande objekt kan inte skrivas ut utan stöd."
 
 #, c-format, boost-format
 msgid "It seems object %s has floating regions. Please re-orient the object or enable support generation."
-msgstr ""
+msgstr "Det verkar som föremål%s har flytande områden. Orientera om objektet eller aktivera stödgenerering."
 
 msgid "Checking support necessity"
 msgstr "Kontrollera supportens nödvändighet"
@@ -14993,7 +14993,7 @@ msgid "The supplied file couldn't be read because it's empty"
 msgstr "Den medföljande filen kunde inte läsas eftersom den är tom."
 
 msgid "The file format is incompatible and cannot be parsed."
-msgstr ""
+msgstr "Filformatet är inkompatibelt och kan inte tolkas."
 
 msgid "Unknown file format. Input file must have .stl, .obj, .amf(.xml), .gltf, .glb, .fbx extension."
 msgstr "Okänt filformat. Indatafilen måste ha filändelserna .stl, .obj, .amf(.xml), .gltf, .glb, .fbx."
@@ -15011,7 +15011,7 @@ msgid "load mtl in obj: failed to parse"
 msgstr "ladda mtl i obj: misslyckades med att analysera"
 
 msgid "The file contains polygons with less than 3 vertices."
-msgstr ""
+msgstr "Filen innehåller polygoner med färre än 3 hörn."
 
 msgid "The file contains invalid vertex index."
 msgstr "Filen innehåller ett ogiltigt vertex index."
@@ -17092,10 +17092,10 @@ msgid "Purge Mode Settings"
 msgstr "Inställningar för rensnings läge"
 
 msgid "Perform full purging with speed and temperature transition for the best print quality."
-msgstr ""
+msgstr "Utför fullständig rensning med hastighet och temperaturövergång för bästa utskriftskvalitet."
 
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
-msgstr ""
+msgstr "Använder optimerad rensningstemperatur, multiplikator och starkare extrudering för snabbare rensning. Kan orsaka lätt färgblandning i vissa extrema fall."
 
 msgid "Prime Saving"
 msgstr "Rensnings besparing"
@@ -17385,7 +17385,7 @@ msgid "Gradient Effect"
 msgstr "Gradient effekt"
 
 msgid "Enable per-part gradient effect"
-msgstr ""
+msgstr "Aktivera effekt på gradient per del"
 
 msgid "Mixing Recommendations"
 msgstr "Blandnings rekommendationer"
@@ -17421,10 +17421,10 @@ msgstr "Max antal komponenter uppnått"
 msgid "Remove the third material"
 msgstr "Ta bort det tredje materialet"
 
-msgid "Model Height"
+msgid "Material Ratio"
 msgstr ""
 
-msgid "Material Ratio"
+msgid "Model Height"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]

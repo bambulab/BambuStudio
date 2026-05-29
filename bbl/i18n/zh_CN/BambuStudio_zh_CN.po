@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-27 20:41+0800\n"
+"POT-Creation-Date: 2026-05-29 14:32+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -5596,7 +5596,7 @@ msgid "Isometric View"
 msgstr "等轴测视图"
 
 msgid "Fit Camera"
-msgstr ""
+msgstr "相机适配"
 
 msgid "Start a new window"
 msgstr "打开新窗口"
@@ -10687,16 +10687,16 @@ msgid "Camera view - Behind"
 msgstr "摄像机视角 - 后面"
 
 msgid "Camera view - Left"
-msgstr ""
+msgstr "摄像机视角 - 左面"
 
 msgid "Camera view - Right"
-msgstr ""
+msgstr "摄像机视角 - 右面"
 
 msgid "Camera view - Isometric"
 msgstr "摄像机视角 - 等轴测"
 
 msgid "Camera view - Fit to scene or selection"
-msgstr ""
+msgstr "摄像机视角 - 适应场景或选择区域"
 
 msgid "Shift+E"
 msgstr ""
@@ -17349,11 +17349,11 @@ msgstr "已达到最大组分数量"
 msgid "Remove the third material"
 msgstr "移除第三种材料"
 
-msgid "Model Height"
-msgstr ""
-
 msgid "Material Ratio"
-msgstr ""
+msgstr "耗材比例"
+
+msgid "Model Height"
+msgstr "模型高度"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""

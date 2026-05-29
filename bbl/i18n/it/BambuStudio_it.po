@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-27 20:41+0800\n"
+"POT-Creation-Date: 2026-05-29 14:32+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3314,86 +3314,86 @@ msgid "Project Filaments"
 msgstr "Filamenti Progetto"
 
 msgid "New Filaments"
-msgstr ""
+msgstr "Nuovi filamenti"
 
 msgid "Add Material"
-msgstr ""
+msgstr "Aggiungi materiale"
 
 #, c-format, boost-format
 msgid "The project supports up to %d filaments. Extra filaments will be discarded."
-msgstr ""
+msgstr "Il progetto supporta fino a%d filamenti. I filamenti in eccesso verranno scartati."
 
 msgid "Import Model"
-msgstr ""
+msgstr "Importa modello"
 
 msgid "Original"
 msgstr "Originale"
 
 msgid "Multi-Color"
-msgstr ""
+msgstr "Multicolore"
 
 msgid "Your input texture model"
-msgstr ""
+msgstr "Il tuo modello di texture di input"
 
 msgid "Processed multi-color model"
-msgstr ""
+msgstr "Modello multicolore elaborato"
 
 msgid "Color Count"
-msgstr ""
+msgstr "Conteggio dei colori"
 
 msgid "Smooth Level"
-msgstr ""
+msgstr "Livello uniforme"
 
 msgid "Automatically determine the optimal color count only and recompute filament mapping"
-msgstr ""
+msgstr "Determina automaticamente solo il numero ottimale di colori e ricalcola la mappatura dei filamenti"
 
 msgid "Convert texture to painting using the specified color count and smooth level"
-msgstr ""
+msgstr "Converti la texture in disegno utilizzando il numero di colori e il livello di uniformità specificati"
 
 msgid "Reminder: parameters changed, click Apply to take effect"
-msgstr ""
+msgstr "Promemoria: i parametri sono stati modificati, fare clic su Applica per rendere effettive le modifiche"
 
 msgid "Filament Mapping"
-msgstr ""
+msgstr "Mappatura dei filamenti"
 
 msgid "Auto-merge same filament"
-msgstr ""
+msgstr "Unisci automaticamente lo stesso filamento"
 
 msgid "Automatically merge identical filaments into existing filaments in the project"
-msgstr ""
+msgstr "Unisci automaticamente i filamenti identici ai filamenti esistenti nel progetto"
 
 msgid "Skip Matching"
-msgstr ""
+msgstr "Ignora corrispondenza"
 
 msgid "Skip filament mapping and import as a single-color model"
-msgstr ""
+msgstr "Salta la mappatura dei filamenti e importa come modello monocolore"
 
 msgid "Processing"
-msgstr ""
+msgstr "Elaborazione"
 
 msgid "Computing texture colors..."
-msgstr ""
+msgstr "Elaborazione dei colori delle texture..."
 
 msgid "Computation failed. Please adjust parameters and retry."
-msgstr ""
+msgstr "Elaborazione non riuscita. Regolare i parametri e riprovare."
 
 msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
-msgstr ""
+msgstr "La mesh presenta una geometria con spessore zero o contorni aperti. È possibile importarla così com'è oppure correggerla con il servizio di correzione di Windows 3D prima dell'importazione."
 
 msgid "Mesh repair"
-msgstr ""
+msgstr "Correzione mesh"
 
 msgid "Import without repair"
-msgstr ""
+msgstr "Importa senza correzione"
 
 msgid "Repair and import"
-msgstr ""
+msgstr "Correggi e importa"
 
 msgid "Please note that the mesh has non-manifold geometry or open boundaries."
-msgstr ""
+msgstr "Si prega di notare che la mesh presenta una geometria a spessore zero o contorni aperti."
 
 msgid "Mesh issue"
-msgstr ""
+msgstr "Errore mesh"
 
 msgid "Continue"
 msgstr "Continua"
@@ -5760,13 +5760,13 @@ msgid "Deselects all objects"
 msgstr "Deseleziona tutti gli oggetti"
 
 msgid "Enter Camera Full Screen"
-msgstr ""
+msgstr "Accedi alla telecamera a schermo intero"
 
 msgid "Show the Device camera in full screen"
-msgstr ""
+msgstr "Mostra la telecamera del dispositivo a schermo intero"
 
 msgid "Exit Camera Full Screen"
-msgstr ""
+msgstr "Esci dalla telecamera a schermo intero"
 
 msgid "Use Perspective View"
 msgstr "Usa vista prospettica"
@@ -5832,16 +5832,16 @@ msgid "Temperature Calibration"
 msgstr "Calibrazione temperatura"
 
 msgid "Coarse"
-msgstr ""
+msgstr "Grossolano"
 
 msgid "Flow rate test - Coarse"
-msgstr ""
+msgstr "Test di portata flusso - Grossolano"
 
 msgid "Fine"
 msgstr ""
 
 msgid "Flow rate test - Fine"
-msgstr ""
+msgstr "Test di portata flusso - Fine"
 
 msgid "Flow rate"
 msgstr "Portata flusso"
@@ -6377,7 +6377,7 @@ msgid "Go to Login"
 msgstr "Vai al login"
 
 msgid "Camera Full Screen"
-msgstr ""
+msgstr "Telecamera a schermo intero"
 
 msgctxt "Quit_Switching"
 msgid "Quit"
@@ -6942,7 +6942,7 @@ msgid "Error:"
 msgstr "Errore:"
 
 msgid "Enable support for"
-msgstr ""
+msgstr "Abilita il supporto per"
 
 msgid "Open link for more info"
 msgstr "Apri il link per maggiori informazioni"
@@ -7018,10 +7018,10 @@ msgid "Bottom"
 msgstr "Inferiore"
 
 msgid "There is stringing-prone filament in the current print job. Enabling nozzle clumping detection now may degrade print quality. Are you sure you want to enable it?"
-msgstr ""
+msgstr "Nel lavoro di stampa corrente è presente un filamento soggetto a formazione di ragnatele. L'attivazione del rilevamento dell'agglomerazione del nozzle potrebbe compromettere la qualità di stampa. Attivarlo comunque?"
 
 msgid "Enable Nozzle Clumping Detection"
-msgstr ""
+msgstr "Abilita il rilevamento dell'agglomerazione del nozzle"
 
 msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
 msgstr "Se abilitato, la stampante catturerà automaticamente foto delle parti stampate e le caricherà sul cloud. Vuoi abilitare questa opzione?"
@@ -7598,10 +7598,10 @@ msgstr "Rilevato oggetto in più parti"
 
 #, c-format, boost-format
 msgid "Computing texture colors: %s"
-msgstr ""
+msgstr "Elaborazione dei colori delle texture:%s"
 
 msgid "Texture Import Warning"
-msgstr ""
+msgstr "Avviso sull'importazione delle texture"
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Caricare questi file come un singolo oggetto con più parti?\n"
@@ -7613,7 +7613,7 @@ msgid "The file does not contain any geometry data."
 msgstr "Il file non contiene dati geometrici."
 
 msgid "Importing model to project..."
-msgstr ""
+msgstr "Importazione del modello nel progetto..."
 
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr "Il tuo oggetto è troppo grande, vuoi scalarlo per adattarlo automaticamente al letto di stampa?"
@@ -7622,25 +7622,25 @@ msgid "Object too large"
 msgstr "Oggetto troppo grande"
 
 msgid "Placing model on the bed..."
-msgstr ""
+msgstr "Posizionamento del modello sul letto..."
 
 msgid "Updating object list..."
-msgstr ""
+msgstr "Aggiornamento dell'elenco degli oggetti in corso..."
 
 msgid "Updating 3D view..."
-msgstr ""
+msgstr "Aggiornamento della vista 3D in corso..."
 
 msgid "Model imported."
-msgstr ""
+msgstr "Modello importato."
 
 msgid "Texture import failed. The model appears to contain texture data, but the texture import process could not be completed. The model will be imported as geometry only."
-msgstr ""
+msgstr "Importazione delle texture non riuscita. Il modello sembra contenere dati di texture, ma il processo di importazione delle texture non è stato completato. Il modello verrà importato solo come geometria."
 
 msgid "Applying texture colors..."
-msgstr ""
+msgstr "Applicazione dei colori di texture..."
 
 msgid "Texture colors applied."
-msgstr ""
+msgstr "Colori di texture applicati."
 
 msgid "Export STL file:"
 msgstr "Esporta file STL:"
@@ -8465,10 +8465,10 @@ msgid "With this option enabled, you can print materials with a large temperatur
 msgstr "Con questa opzione abilitata, puoi stampare materiali con una grande differenza di temperatura insieme."
 
 msgid "Open full screen camera view on active monitor only."
-msgstr ""
+msgstr "Visualizza la telecamera a schermo intero solo sul monitor attivo."
 
 msgid "When enabled, the camera full screen view opens only on the monitor that contains Bambu Studio."
-msgstr ""
+msgstr "Quando questa opzione è abilitata, la visualizzazione a schermo intero della telecamera si apre solo sul monitor che ospita Bambu Studio."
 
 msgid "Clear my choice for synchronizing printer preset after loading the file."
 msgstr "Annulla la mia scelta per la sincronizzazione del preset della stampante dopo il caricamento del file."
@@ -8477,13 +8477,13 @@ msgid "Clear my choice for Load 3mf dialog settings."
 msgstr "Cancella la mia scelta per le impostazioni della finestra di dialogo Carica 3mf."
 
 msgid "Clear my choice for executing post-processing scripts."
-msgstr ""
+msgstr "Cancella la mia scelta per l'esecuzione degli script di post-elaborazione."
 
 msgid "Show the security warning dialog again before slicing when post-processing scripts are configured."
-msgstr ""
+msgstr "Quando sono configurati gli script di post-elaborazione, visualizza nuovamente la finestra di dialogo dell'avviso di sicurezza prima di procedere all'elaborazione."
 
 msgid "Clear my choice for disabling support parameter recommendation."
-msgstr ""
+msgstr "Cancella la mia scelta per la disabilitazione dei suggerimenti dei parametri di supporto."
 
 msgid "3D Settings"
 msgstr "Impostazioni 3D"
@@ -9323,7 +9323,7 @@ msgid "Some filaments may switch between extruders during printing. Manual K-val
 msgstr "Alcuni filamenti possono passare da un estrusore all’altro durante la stampa. La calibrazione manuale del valore K non può essere applicata all’intera stampa, il che può influire sulla qualità. Abilita la calibrazione del Flusso Dinamico."
 
 msgid "There is stringing-prone filament in this file. For best print quality, we recommend switching nozzle clumping detection to Auto mode."
-msgstr ""
+msgstr "Questo file contiene un filamento soggetto a formazione di ragnatele. Per una qualità di stampa ottimale, si consiglia di impostare il rilevamento dell'agglomerazione del nozzle su Automatico."
 
 msgid "Cool"
 msgstr ""
@@ -9969,10 +9969,10 @@ msgid "Multi Filament"
 msgstr "Multi filamento"
 
 msgid "Purge Mode: Standard"
-msgstr ""
+msgstr "Modalità di spurgo: Standard"
 
 msgid "Purge Mode: Fast"
-msgstr ""
+msgstr "Modalità di spurgo: Rapida"
 
 msgid "Printable space"
 msgstr "Spazio stampabile"
@@ -11453,43 +11453,43 @@ msgid "Fixing cold prints"
 msgstr "Correzione stampe troppo fredde"
 
 msgid "Software Update"
-msgstr ""
+msgstr "Aggiornamento software"
 
 msgid "Try Now"
-msgstr ""
+msgstr "Prova ora"
 
 msgid "Don't show me Beta updates again"
-msgstr ""
+msgstr "Non mostrare più gli aggiornamenti Beta"
 
 msgid "New Bambu Studio Beta Available"
-msgstr ""
+msgstr "È disponibile la nuova versione beta di Bambu Studio"
 
 msgid "Current Version"
-msgstr ""
+msgstr "Versione corrente"
 
 msgid "Bambu Studio Beta gives you early access to upcoming features, improvements, optimizations, and bug fixes before they are released in the stable version of Bambu Studio. It is intended for advanced users who would like to explore new functionality early and help improve the software experience."
-msgstr ""
+msgstr "Bambu Studio Beta offre un accesso anticipato alle nuove funzionalità, ai miglioramenti, alle ottimizzazioni e alle correzioni di bug prima del loro rilascio nella versione stabile di Bambu Studio. È pensato per gli utenti esperti che desiderano esplorare in anteprima le nuove funzionalità e contribuire a migliorare l'esperienza d'uso del software."
 
 msgid "Separate configuration folder."
-msgstr ""
+msgstr "Cartella di configurazione separata."
 
 msgid "As a beta release, some features may still be under development, and you may occasionally encounter bugs, unexpected behavior, or incomplete functionality. To prevent conflicts with the stable release, Bambu Studio Beta uses a separate configuration folder (Help -> Show Configuration Folder) and operates independently from the standard version of Bambu Studio."
-msgstr ""
+msgstr "Trattandosi di una versione beta, alcune funzionalità potrebbero essere ancora in fase di sviluppo e occasionalmente si potrebbero riscontrare bug, comportamenti imprevisti o funzionalità incomplete. Per evitare conflitti con la versione stabile, Bambu Studio Beta utilizza una cartella di configurazione separata (Guida -> Mostra cartella di configurazione) e funziona indipendentemente dalla versione standard di Bambu Studio."
 
 msgid "(Help -> Show Configuration Folder)"
-msgstr ""
+msgstr "(Guida -> Mostra cartella di configurazione)"
 
 msgid "Why use the Beta version?"
-msgstr ""
+msgstr "Perché utilizzare la versione beta?"
 
 msgid "By using the Beta version and sharing feedback, bug reports, and suggestions, you can help Bambu Lab improve stability, compatibility, and future features before the official release."
-msgstr ""
+msgstr "Utilizzando la versione beta e condividendo feedback, segnalazioni di bug e suggerimenti, puoi aiutare Bambu Lab a migliorare la stabilità, la compatibilità e le funzionalità future prima del rilascio ufficiale."
 
 msgid "How to change settings?"
-msgstr ""
+msgstr "Come modificare le impostazioni?"
 
 msgid "If you prefer not to participate in the Beta program, you can disable Beta Update prompts at any time in Settings."
-msgstr ""
+msgstr "Se preferisci non partecipare al programma Beta, puoi disattivare le notifiche di aggiornamento Beta in qualsiasi momento nelle Impostazioni."
 
 msgid "Air Pump"
 msgstr "Compressore Aria"
@@ -11591,7 +11591,7 @@ msgid "Repaired 3mf file contains more than one volume"
 msgstr "Il file 3mf riparato contiene più di un volume"
 
 msgid "Repaired 3mf file contains more than one instance"
-msgstr ""
+msgstr "Il file 3mf riparato contiene più di un'istanza"
 
 msgid "Repair finished"
 msgstr "Riparazione finita"
@@ -12988,10 +12988,10 @@ msgid "Optional Photoshop-style custom curve mapping Z progress to the first com
 msgstr ""
 
 msgid "Mixed filament per-part gradient"
-msgstr ""
+msgstr "Gradiente per parte di filamento misto"
 
 msgid "When gradient mode is enabled, apply the gradient to each part of an assembly independently rather than treating the whole assembly as one Z range."
-msgstr ""
+msgstr "Quando la modalità gradiente è abilitata, applica il gradiente a ciascuna parte di un assieme in modo indipendente anziché trattare l'intero assieme come un unico intervallo Z."
 
 msgid "Filament printable"
 msgstr "Filamento stampabile"
@@ -13723,10 +13723,10 @@ msgid "This G-code will be used as a custom code"
 msgstr "Questo G-code verrà utilizzato come codice personalizzato"
 
 msgid "Support fast purge mode"
-msgstr ""
+msgstr "Supporta la modalità di spurgo rapido"
 
 msgid "Whether this printer supports fast purge mode with optimized temperature and multiplier."
-msgstr ""
+msgstr "Indica se questa stampante supporta la modalità di spurgo rapido con temperatura e moltiplicatore ottimizzati."
 
 msgid "Maximum speed X"
 msgstr "Velocità massima X"
@@ -13960,10 +13960,10 @@ msgid "Embedding the wall into parts where the wall loops are absent ensures tha
 msgstr "Incorpora la parete nelle parti dove i loop della parete sono assenti, garantendo che la parete si connetta senza interruzioni al riempimento."
 
 msgid "Alternate extra wall"
-msgstr ""
+msgstr "Parete extra alternativa"
 
 msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
-msgstr ""
+msgstr "Aggiungendo una parete extra su strati alternati, è possibile migliorare l'adesione tra gli strati e la resistenza del pezzo senza dover sostenere il costo di una parete extra permanente."
 
 msgid "Post-processing Scripts"
 msgstr "Script post-elaborazione"
@@ -14089,7 +14089,7 @@ msgid "Saving"
 msgstr "Salvataggio"
 
 msgid "Fast"
-msgstr ""
+msgstr "Veloce"
 
 msgid "length when change hotend"
 msgstr "lunghezza quando si cambia hotend"
@@ -14209,10 +14209,10 @@ msgid "Distance from skirt to brim or object"
 msgstr "Distanza dallo skirt al brim o all'oggetto."
 
 msgid "Skirt per object"
-msgstr ""
+msgstr "Bordo per oggetto"
 
 msgid "Generate independent skirt around each object in sequential printing mode. When disabled, a single skirt is drawn around all objects."
-msgstr ""
+msgstr "Genera un bordo indipendente attorno a ciascun oggetto in modalità di stampa sequenziale. Quando questa opzione è disabilitata, viene disegnato un unico bordo attorno a tutti gli oggetti."
 
 msgid "Skirt height"
 msgstr "Altezza skirt"
@@ -14767,10 +14767,10 @@ msgid "The actual flushing volumes is equal to the flush multiplier multiplied b
 msgstr "I volumi di spurgo effettivi sono pari al moltiplicatore di spurgo moltiplicato per i volumi di spurgo indicati nella tabella."
 
 msgid "Flush multiplier (Fast mode)"
-msgstr ""
+msgstr "Moltiplicatore di flusso (modalità veloce)"
 
 msgid "The flush multiplier used in fast purge mode."
-msgstr ""
+msgstr "Il moltiplicatore di flusso utilizzato nella modalità di spurgo rapido."
 
 msgid "Width of prime tower"
 msgstr "Larghezza della Prime Tower."
@@ -14936,11 +14936,11 @@ msgid "Detect overhangs for auto-lift"
 msgstr "Rilevare le sporgenze per il sollevamento automatico"
 
 msgid "Levitating objects cannot be printed without supports."
-msgstr ""
+msgstr "Gli oggetti levitanti non possono essere stampati senza supporti."
 
 #, c-format, boost-format
 msgid "It seems object %s has floating regions. Please re-orient the object or enable support generation."
-msgstr ""
+msgstr "Sembra che l'oggetto %s presenti sezioni fluttuanti. Riorientare l'oggetto o abilitare la generazione dei supporti."
 
 msgid "Checking support necessity"
 msgstr "Verifica necessità di supporto"
@@ -15003,7 +15003,7 @@ msgid "The supplied file couldn't be read because it's empty"
 msgstr "Impossibile leggere il file fornito perché è vuoto."
 
 msgid "The file format is incompatible and cannot be parsed."
-msgstr ""
+msgstr "Il formato del file non è compatibile e non può essere analizzato."
 
 msgid "Unknown file format. Input file must have .stl, .obj, .amf(.xml), .gltf, .glb, .fbx extension."
 msgstr "Formato file sconosciuto. Il file di input deve avere estensione .stl, .obj, .amf (.xml), .gltf, .glb o .fbx."
@@ -15021,7 +15021,7 @@ msgid "load mtl in obj: failed to parse"
 msgstr "carico mtl in obj: analisi fallita"
 
 msgid "The file contains polygons with less than 3 vertices."
-msgstr ""
+msgstr "Il file contiene poligoni con meno di 3 vertici."
 
 msgid "The file contains invalid vertex index."
 msgstr "Il file contiene un indice dei vertici non valido."
@@ -17096,10 +17096,10 @@ msgid "Purge Mode Settings"
 msgstr "Impostazioni Modalità di Spurgo"
 
 msgid "Perform full purging with speed and temperature transition for the best print quality."
-msgstr ""
+msgstr "Eseguire uno spurgo completo con variazione di velocità e temperatura per ottenere la migliore qualità di stampa."
 
 msgid "Uses optimized purge temperature, multiplier and stronger extrusion for faster purging. May cause slight color mixing in some extreme cases."
-msgstr ""
+msgstr "Utilizza una temperatura di spurgo ottimizzata, un moltiplicatore e un'estrusione più forte per uno spurgo più rapido. In alcuni casi estremi potrebbe verificarsi una leggera miscelazione dei colori."
 
 msgid "Prime Saving"
 msgstr "Risparmio Priming"
@@ -17389,7 +17389,7 @@ msgid "Gradient Effect"
 msgstr "Effetto Gradiente"
 
 msgid "Enable per-part gradient effect"
-msgstr ""
+msgstr "Abilita l'effetto sfumatura per parte"
 
 msgid "Mixing Recommendations"
 msgstr "Raccomandazioni Miscelazione"
@@ -17425,10 +17425,10 @@ msgstr "Numero massimo di componenti raggiunto"
 msgid "Remove the third material"
 msgstr "Rimuovere il terzo materiale"
 
-msgid "Model Height"
+msgid "Material Ratio"
 msgstr ""
 
-msgid "Material Ratio"
+msgid "Model Height"
 msgstr ""
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
