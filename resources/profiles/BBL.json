@@ -3156,6 +3156,174 @@
             "sub_path": "filament/fdm_filament_pla.json"
         },
         {
+            "name": "FilAr PLA @base",
+            "sub_path": "filament/FilAr/FilAr PLA @base.json"
+        },
+        {
+            "name": "FilAr PLA @BBL A1",
+            "sub_path": "filament/FilAr/FilAr PLA @BBL A1.json"
+        },
+        {
+            "name": "FilAr PLA @BBL A1 0.2 nozzle",
+            "sub_path": "filament/FilAr/FilAr PLA @BBL A1 0.2 nozzle.json"
+        },
+        {
+            "name": "FilAr PLA @BBL A1M",
+            "sub_path": "filament/FilAr/FilAr PLA @BBL A1M.json"
+        },
+        {
+            "name": "FilAr PLA @BBL A1M 0.2 nozzle",
+            "sub_path": "filament/FilAr/FilAr PLA @BBL A1M 0.2 nozzle.json"
+        },
+        {
+            "name": "FilAr PLA @BBL X1",
+            "sub_path": "filament/FilAr/FilAr PLA @BBL X1.json"
+        },
+        {
+            "name": "FilAr PLA @BBL X1C",
+            "sub_path": "filament/FilAr/FilAr PLA @BBL X1C.json"
+        },
+        {
+            "name": "FilAr PLA @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/FilAr/FilAr PLA @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "FilAr PLA @BBL H2D",
+            "sub_path": "filament/FilAr/FilAr PLA @BBL H2D.json"
+        },
+        {
+            "name": "FilAr PLA @BBL H2D 0.2 nozzle",
+            "sub_path": "filament/FilAr/FilAr PLA @BBL H2D 0.2 nozzle.json"
+        },
+        {
+            "name": "FilAr PLA @BBL H2DP",
+            "sub_path": "filament/FilAr/FilAr PLA @BBL H2DP.json"
+        },
+        {
+            "name": "FilAr PLA @BBL H2DP 0.2 nozzle",
+            "sub_path": "filament/FilAr/FilAr PLA @BBL H2DP 0.2 nozzle.json"
+        },
+        {
+            "name": "FilAr PLA @BBL H2S",
+            "sub_path": "filament/FilAr/FilAr PLA @BBL H2S.json"
+        },
+        {
+            "name": "FilAr PLA @BBL H2S 0.2 nozzle",
+            "sub_path": "filament/FilAr/FilAr PLA @BBL H2S 0.2 nozzle.json"
+        },
+        {
+            "name": "FilAr PLA-mate @base",
+            "sub_path": "filament/FilAr/FilAr PLA-mate @base.json"
+        },
+        {
+            "name": "FilAr PLA-mate @BBL A1",
+            "sub_path": "filament/FilAr/FilAr PLA-mate @BBL A1.json"
+        },
+        {
+            "name": "FilAr PLA-mate @BBL A1 0.2 nozzle",
+            "sub_path": "filament/FilAr/FilAr PLA-mate @BBL A1 0.2 nozzle.json"
+        },
+        {
+            "name": "FilAr PLA-mate @BBL A1M",
+            "sub_path": "filament/FilAr/FilAr PLA-mate @BBL A1M.json"
+        },
+        {
+            "name": "FilAr PLA-mate @BBL A1M 0.2 nozzle",
+            "sub_path": "filament/FilAr/FilAr PLA-mate @BBL A1M 0.2 nozzle.json"
+        },
+        {
+            "name": "FilAr PLA-mate @BBL X1",
+            "sub_path": "filament/FilAr/FilAr PLA-mate @BBL X1.json"
+        },
+        {
+            "name": "FilAr PLA-mate @BBL X1C",
+            "sub_path": "filament/FilAr/FilAr PLA-mate @BBL X1C.json"
+        },
+        {
+            "name": "FilAr PLA-mate @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/FilAr/FilAr PLA-mate @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "FilAr PLA-mate @BBL H2D",
+            "sub_path": "filament/FilAr/FilAr PLA-mate @BBL H2D.json"
+        },
+        {
+            "name": "FilAr PLA-mate @BBL H2D 0.2 nozzle",
+            "sub_path": "filament/FilAr/FilAr PLA-mate @BBL H2D 0.2 nozzle.json"
+        },
+        {
+            "name": "FilAr PLA-mate @BBL H2DP",
+            "sub_path": "filament/FilAr/FilAr PLA-mate @BBL H2DP.json"
+        },
+        {
+            "name": "FilAr PLA-mate @BBL H2DP 0.2 nozzle",
+            "sub_path": "filament/FilAr/FilAr PLA-mate @BBL H2DP 0.2 nozzle.json"
+        },
+        {
+            "name": "FilAr PLA-mate @BBL H2S",
+            "sub_path": "filament/FilAr/FilAr PLA-mate @BBL H2S.json"
+        },
+        {
+            "name": "FilAr PLA-mate @BBL H2S 0.2 nozzle",
+            "sub_path": "filament/FilAr/FilAr PLA-mate @BBL H2S 0.2 nozzle.json"
+        },
+        {
+            "name": "FilAr PETG @base",
+            "sub_path": "filament/FilAr/FilAr PETG @base.json"
+        },
+        {
+            "name": "FilAr PETG @BBL A1",
+            "sub_path": "filament/FilAr/FilAr PETG @BBL A1.json"
+        },
+        {
+            "name": "FilAr PETG @BBL A1 0.2 nozzle",
+            "sub_path": "filament/FilAr/FilAr PETG @BBL A1 0.2 nozzle.json"
+        },
+        {
+            "name": "FilAr PETG @BBL A1M",
+            "sub_path": "filament/FilAr/FilAr PETG @BBL A1M.json"
+        },
+        {
+            "name": "FilAr PETG @BBL A1M 0.2 nozzle",
+            "sub_path": "filament/FilAr/FilAr PETG @BBL A1M 0.2 nozzle.json"
+        },
+        {
+            "name": "FilAr PETG @BBL X1",
+            "sub_path": "filament/FilAr/FilAr PETG @BBL X1.json"
+        },
+        {
+            "name": "FilAr PETG @BBL X1C",
+            "sub_path": "filament/FilAr/FilAr PETG @BBL X1C.json"
+        },
+        {
+            "name": "FilAr PETG @BBL X1C 0.2 nozzle",
+            "sub_path": "filament/FilAr/FilAr PETG @BBL X1C 0.2 nozzle.json"
+        },
+        {
+            "name": "FilAr PETG @BBL H2D",
+            "sub_path": "filament/FilAr/FilAr PETG @BBL H2D.json"
+        },
+        {
+            "name": "FilAr PETG @BBL H2D 0.2 nozzle",
+            "sub_path": "filament/FilAr/FilAr PETG @BBL H2D 0.2 nozzle.json"
+        },
+        {
+            "name": "FilAr PETG @BBL H2DP",
+            "sub_path": "filament/FilAr/FilAr PETG @BBL H2DP.json"
+        },
+        {
+            "name": "FilAr PETG @BBL H2DP 0.2 nozzle",
+            "sub_path": "filament/FilAr/FilAr PETG @BBL H2DP 0.2 nozzle.json"
+        },
+        {
+            "name": "FilAr PETG @BBL H2S",
+            "sub_path": "filament/FilAr/FilAr PETG @BBL H2S.json"
+        },
+        {
+            "name": "FilAr PETG @BBL H2S 0.2 nozzle",
+            "sub_path": "filament/FilAr/FilAr PETG @BBL H2S 0.2 nozzle.json"
+        },
+        {
             "name": "Bambu PLA Aero @base",
             "sub_path": "filament/Bambu PLA Aero @base.json"
         },
