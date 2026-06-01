@@ -28,7 +28,13 @@ SwitchButton::SwitchButton(wxWindow* parent, wxWindowID id)
     , thumb_color(std::pair{0x00AE42, (int) StateColor::Checked}, std::pair{0xD9D9D9, (int) StateColor::Normal})
 {
 	SetBackgroundColour(StaticBox::GetParentBackgroundColor(parent));
-	Bind(wxEVT_TOGGLEBUTTON, [this](auto& e) { update(); e.Skip(); });
+	Bind(wxEVT_TOGGLEBUTTON, [this](auto& e) {
+        update();
+#if wxUSE_ACCESSIBILITY
+        wxAccessible::NotifyEvent(wxACC_EVENT_OBJECT_STATECHANGE, this, wxOBJID_CLIENT, wxACC_SELF);
+#endif
+        e.Skip();
+    });
 	SetFont(Label::Body_12);
 	Rescale();
 #if wxUSE_ACCESSIBILITY
