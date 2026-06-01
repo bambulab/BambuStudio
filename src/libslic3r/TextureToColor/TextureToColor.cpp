@@ -9,6 +9,7 @@
 #include <functional>
 #include <set>
 
+#include <boost/next_prior.hpp>
 #include "CgalUtils.hpp"
 #include "ColorUtils.hpp"
 #include "libslic3r/TriangleMesh.hpp"
