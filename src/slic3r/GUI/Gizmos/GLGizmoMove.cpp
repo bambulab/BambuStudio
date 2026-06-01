@@ -236,7 +236,12 @@ void GLGizmoMove3D::on_render()
                 } else {
                     ModelObject *mo = get_selected_model_object(m_parent);
                     if (mo) {
-                        cur_box = mo->bounding_box();
+                        // Use the convex-hull bounding box of the selected instance.
+                        const int inst_idx = selection.get_instance_idx();
+                        if (inst_idx >= 0 && inst_idx < (int)mo->instances.size())
+                            cur_box = mo->instance_convex_hull_bounding_box((size_t)inst_idx);
+                        else
+                            cur_box = mo->bounding_box();
                     } else {
                         BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << " error:get ModelObject box fail";
                     }
