@@ -857,7 +857,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         if (tcr.nozzle_change_result.heater_off_only) {
             int nozzle_id = group_result->get_nozzle_id(tcr.nozzle_change_result.precool_filament_id, m_layer_idx);
             char buf[128];
-            snprintf(buf, sizeof(buf), "M104 I%d S0 N0\n", nozzle_id);
+            snprintf(buf, sizeof(buf), "M104 I%d S0 N0 C ;Nozzle change heater off\n", nozzle_id); // heater off is a cooling action, mark C (aligned with other slicer M104)
             toolchange_retract_str += buf;
         }
 
