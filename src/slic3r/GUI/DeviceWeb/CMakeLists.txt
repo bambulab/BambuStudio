@@ -179,15 +179,49 @@ endif()
 set(PNPM_STORE_DIR "${CMAKE_CURRENT_BINARY_DIR}/.pnpm-store")
 file(MAKE_DIRECTORY "${PNPM_STORE_DIR}")
 
-add_custom_target(device_page_build ALL
+set(DEVICE_PAGE_BUILD_STAMP "${CMAKE_CURRENT_BINARY_DIR}/device_page.stamp")
+
+file(GLOB_RECURSE DEVICE_PAGE_SRC_FILES CONFIGURE_DEPENDS
+    "${DEVICE_PAGE_SRC_DIR}/src/*"
+)
+file(GLOB_RECURSE DEVICE_PAGE_LOCALE_FILES CONFIGURE_DEPENDS
+    "${DEVICE_PAGE_SRC_DIR}/locales/*"
+)
+file(GLOB_RECURSE DEVICE_PAGE_PUBLIC_FILES CONFIGURE_DEPENDS
+    "${DEVICE_PAGE_SRC_DIR}/public/*"
+)
+
+set(DEVICE_PAGE_BUILD_INPUTS
+    ${DEVICE_PAGE_SRC_FILES}
+    ${DEVICE_PAGE_LOCALE_FILES}
+    ${DEVICE_PAGE_PUBLIC_FILES}
+    "${DEVICE_PAGE_SRC_DIR}/index.html"
+    "${DEVICE_PAGE_SRC_DIR}/package.json"
+    "${DEVICE_PAGE_SRC_DIR}/pnpm-lock.yaml"
+    "${DEVICE_PAGE_SRC_DIR}/vite.config.ts"
+    "${DEVICE_PAGE_SRC_DIR}/tsconfig.json"
+    "${DEVICE_PAGE_SRC_DIR}/tsconfig.app.json"
+    "${DEVICE_PAGE_SRC_DIR}/tsconfig.node.json"
+    "${DEVICE_PAGE_SRC_DIR}/eslint.config.js"
+    "${DEVICE_PAGE_SRC_DIR}/i18next-parser.config.js"
+)
+
+add_custom_command(
+    OUTPUT "${DEVICE_PAGE_BUILD_STAMP}"
     COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEVICE_PAGE_PATH}" "PNPM_STORE_DIR=${PNPM_STORE_DIR}" ${PNPM_EXECUTABLE} install
     COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEVICE_PAGE_PATH}" "PNPM_STORE_DIR=${PNPM_STORE_DIR}" ${PNPM_EXECUTABLE} run build
-    COMMAND  ${CMAKE_COMMAND} -E make_directory "${DEVICE_PAGE_TARGET_DIR}"
-    COMMAND  ${CMAKE_COMMAND} -E copy_directory "${DEVICE_PAGE_DIST_DIR}" "${DEVICE_PAGE_TARGET_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E remove_directory "${DEVICE_PAGE_TARGET_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${DEVICE_PAGE_TARGET_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${DEVICE_PAGE_DIST_DIR}" "${DEVICE_PAGE_TARGET_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E touch "${DEVICE_PAGE_BUILD_STAMP}"
+    DEPENDS ${DEVICE_PAGE_BUILD_INPUTS}
     WORKING_DIRECTORY ${DEVICE_PAGE_SRC_DIR}
-    COMMENT "Installing dependencies and building device_page..."
+    COMMENT "Building device_page web bundle when sources change..."
     VERBATIM
 )
+
+# Not ALL: rebuilt only when a dependent target (libslic3r_gui / BambuStudio) is built.
+add_custom_target(device_page_build DEPENDS "${DEVICE_PAGE_BUILD_STAMP}")
 
 list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/DeviceHttpServer.cpp

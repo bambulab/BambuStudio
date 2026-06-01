@@ -65,9 +65,15 @@ device_page/
 ### 安装依赖
 
 ```bash
-cd resources/web/device_page
+cd src/slic3r/GUI/DeviceWeb/device_page
 pnpm install
 ```
+
+## 构建产物与 CMake
+
+- 运行时只读 **`resources/web/device_page/dist/`**（由 CMake 目标 `device_page_build` 从本目录 `pnpm build` 后复制过去）。
+- 编译 **`libslic3r_gui` / `BambuStudio` / `BambuStudio_app_gui`** 时，若本目录前端输入有变更，会自动重建 `dist`（无需同事手动 `pnpm build`）。
+- `dist/` 与 `resources/.../dist/` 均不提交 Git；拉代码后请至少编一次 GUI 相关目标。
 
 ## 快速开始
 
@@ -106,7 +112,7 @@ C++ 侧（`WebDevicePage.cpp`）支持两种加载方式：
 1. **以 Debug 配置编译并启动桌面应用** — 内置 HTTP 服务器自动在 `localhost:13628` 启动，提供 `dist/` 目录的文件服务
 2. **在终端启动 Vite 开发服务器**：
    ```bash
-   cd resources/web/device_page
+   cd src/slic3r/GUI/DeviceWeb/device_page
    pnpm dev
    ```
    Vite 运行在 `http://localhost:5173`，支持 HMR（热模块替换）。

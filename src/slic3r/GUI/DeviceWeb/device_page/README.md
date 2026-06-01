@@ -65,7 +65,7 @@ device_page/
 ### Install Dependencies
 
 ```bash
-cd resources/web/device_page
+cd src/slic3r/GUI/DeviceWeb/device_page
 pnpm install
 ```
 
@@ -106,7 +106,7 @@ For the best development experience, use the C++ HTTP server + Vite dev server t
 1. **Build & launch the desktop app** (Debug configuration) — the embedded HTTP server starts automatically on `localhost:13628`, serving files from `dist/`
 2. **Run the Vite dev server** in a terminal:
    ```bash
-   cd resources/web/device_page
+   cd src/slic3r/GUI/DeviceWeb/device_page
    pnpm dev
    ```
    Vite runs on `http://localhost:5173` with HMR (Hot Module Replacement).
