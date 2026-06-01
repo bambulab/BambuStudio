@@ -6519,7 +6519,7 @@ bool SelectMachineDialog::slicing_with_fila_switch() const
     }
 
     if (m_print_type == FROM_NORMAL) {
-        auto has_filament_switcher = wxGetApp().preset_bundle->full_config().option<ConfigOptionBool>("has_filament_switcher");
+        auto has_filament_switcher = wxGetApp().preset_bundle->project_config.option<ConfigOptionBool>("has_filament_switcher");
         if (has_filament_switcher) {
             return has_filament_switcher->value;
         }
