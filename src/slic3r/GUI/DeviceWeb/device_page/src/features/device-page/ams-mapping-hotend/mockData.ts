@@ -17,6 +17,7 @@ export const mockAmsMappingHotendState: AmsMappingHotendViewModel = {
   material_index: 'PLA',
   reset_visible: true,
   is_all_ext: false,
+  session_seq: 0,
   hotend_slots: [
     {
       ams_id: '128',

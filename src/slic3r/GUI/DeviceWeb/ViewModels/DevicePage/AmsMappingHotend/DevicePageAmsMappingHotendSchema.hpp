@@ -31,6 +31,10 @@ namespace root {
     inline constexpr const char* is_all_ext          = "is_all_ext";
     inline constexpr const char* sub_ams_groups      = "sub_ams_groups";
     inline constexpr const char* hotend_slots        = "hotend_slots";
+    // Monotonically increasing counter bumped on every `Refresh()` call.
+    // The Web side resets transient view state (e.g. the sub-AMS sub-page) when
+    // the value changes, so re-opening the popup always lands on the main view.
+    inline constexpr const char* session_seq         = "session_seq";
 }
 
 // Per-slot fields — shared between main hotend slots and sub-AMS slots.

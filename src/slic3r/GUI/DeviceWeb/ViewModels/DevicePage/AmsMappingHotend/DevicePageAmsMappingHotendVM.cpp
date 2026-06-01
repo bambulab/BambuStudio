@@ -161,11 +161,55 @@ void DevicePageAmsMappingHotendVM::Refresh(MachineObject*                       
     m_popup                      = popup;
     m_print_from_type            = print_from_type;
 
+    // Bump the session counter so the Web side can tell apart "data refreshed
+    // while popup stayed open" from "popup just (re-)opened" and reset its
+    // sub-page navigation accordingly.
+    ++m_session_seq;
+
     // Force-push the latest state to the web side. Skip diff suppression
     // here because external context (e.g. current_filament_id flipping)
     // can produce identical JSON yet still requires a refresh on selection.
     m_last_report_state.clear();
     ReportState("state", "refresh");
+}
+
+std::pair<int, int> DevicePageAmsMappingHotendVM::RemapMainCardSlot(MachineObject*             obj,
+                                                                    const std::pair<int, int>& original_slot,
+                                                                    int                        nozzle_pos)
+{
+    if (!obj) return original_slot;
+    auto fila_sys = obj->GetFilaSystem();
+    if (!fila_sys) return original_slot;
+
+    const int ams_id = original_slot.first;
+
+    // External spool: keep as-is. The caller still normalizes slot_id to 0
+    // for virtual trays, so we don't have to touch slot_id here.
+    if (fila_sys->GetVirtualTray(ams_id).has_value()) return original_slot;
+
+    const auto& ams_list = fila_sys->GetAmsList();
+    auto it = ams_list.find(std::to_string(ams_id));
+    if (it == ams_list.end() || !it->second) return original_slot;
+
+    const auto at = it->second->GetAmsType();
+    if (at == DevAmsType::ZMULTI_A || at == DevAmsType::ZMULTI_B) {
+        return original_slot;
+    }
+
+    // Anything else (N3S / N3F / AMS sub-units …) -> remap to the
+    // rack-aligned ZMULTI slot for THIS hotend pos. Even when that ZMULTI
+    // slot is empty (is_exists=false) the tray is still in DevAms::m_trays,
+    // so MakeTrayData marks it type=EMPTY and BuildSlotJson renders "-".
+    for (const auto& kv : ams_list) {
+        if (!kv.second) continue;
+        const auto kvat = kv.second->GetAmsType();
+        if (kvat == DevAmsType::ZMULTI_A || kvat == DevAmsType::ZMULTI_B) {
+            return std::make_pair(kv.second->GetAmdIdInt(), nozzle_pos - 0x10);
+        }
+    }
+
+    // No ZMULTI on this rack at all -> leave unchanged (rare).
+    return original_slot;
 }
 
 nlohmann::json DevicePageAmsMappingHotendVM::BuildState() const
@@ -178,6 +222,7 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildState() const
     data[SK::root::show_type]           = show_type_to_string(m_show_type);
     data[SK::root::material_index]      = m_material_index;
     data[SK::root::reset_visible]       = true;
+    data[SK::root::session_seq]         = m_session_seq;
     data[SK::root::hotend_slots]        = nlohmann::json::array();
     data[SK::root::sub_ams_groups]      = nlohmann::json::object();
 
@@ -212,6 +257,12 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildState() const
     // captured, matching the approach used by DevicePageAmsFilamentHotendVM.
     std::vector<TrayData> hotend_trays;
     std::vector<std::optional<std::pair<int, int>>> hotend_preload_slots;
+    // Track the rack-position id alongside each tray so BuildSlotJson can
+    // resolve the parent rack nozzle directly via GetNozzleOptByPosId(...)
+    // without falling back to DevAmsTray::get_nozzle_pos_id (which returns
+    // nullopt for AMS / N3F / N3S sub-trays bound directly to a rack — that
+    // path used to drop the nozzle row + +N badge + sub-AMS list).
+    std::vector<int> hotend_nozzle_positions;
     if (obj->GetNozzleRack()->IsSupported()) {
         std::vector<int> nozzle_positions;
         std::map<int, std::optional<std::pair<int, int>>> nozzle_slots;
@@ -227,8 +278,16 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildState() const
             }
             const auto& ams_slots = rack_nozzle_opt->GetBindAmsSlots();
             if (!ams_slots.empty()) {
-                int ams_id  = ams_slots[0].first;
-                int slot_id = ams_slots[0].second;
+                // Force the main card to a rack-aligned ZMULTI / external-spool
+                // slot when the device-side feed binding hits a sub-AMS. Sub-AMS
+                // info still surfaces via parent_nz->GetBindAms() in the popup.
+                auto remapped = RemapMainCardSlot(obj, ams_slots[0], nozzle_pos);
+                int ams_id  = remapped.first;
+                int slot_id = remapped.second;
+                if (ams_id == 0 && slot_id == 0) {
+                    ams_id = 32;
+                    slot_id = 4;
+                }
                 if (obj->GetFilaSystem()->GetVirtualTray(ams_id).has_value()) {
                     slot_id = 0;
                 }
@@ -268,11 +327,15 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildState() const
             if (td_opt.has_value()) {
                 hotend_trays.push_back(td_opt.value());
                 hotend_preload_slots.push_back(preload_slots[nozzle_pos]);
+                hotend_nozzle_positions.push_back(nozzle_pos);
             }
         }
     } else if (!has_zmulti) {
         hotend_trays = CollectVirtualTrayData(obj);
         hotend_preload_slots.assign(hotend_trays.size(), std::nullopt);
+        // Without a rack, BuildSlotJson takes the legacy non-rack path; the
+        // -1 sentinel keeps GetNozzleOptByPosId(...) a noop on that branch.
+        hotend_nozzle_positions.assign(hotend_trays.size(), -1);
     }
 
     const bool is_all_ext = !has_zmulti;
@@ -283,8 +346,12 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildState() const
         const auto& preload_slot = (i < hotend_preload_slots.size())
                                        ? hotend_preload_slots[i]
                                        : std::optional<std::pair<int, int>>{};
+        const int rack_nozzle_pos = (i < hotend_nozzle_positions.size())
+                                       ? hotend_nozzle_positions[i]
+                                       : -1;
         data[SK::root::hotend_slots].push_back(
-            BuildSlotJson(obj, hotend_trays[i], (int)i + 1, expected_nozzle, is_all_ext, preload_slot));
+            BuildSlotJson(obj, hotend_trays[i], (int)i + 1, rack_nozzle_pos,
+                          expected_nozzle, is_all_ext, preload_slot));
     }
 
     return data;
@@ -376,44 +443,40 @@ SlotJudgement DevicePageAmsMappingHotendVM::ResolveSlotJudgement(MachineObject* 
     return j;
 }
 
-std::vector<SubAmsGroup> DevicePageAmsMappingHotendVM::CollectSubAmsGroups(MachineObject*  obj,
-                                                                          const TrayData& self_td) const
+std::vector<SubAmsGroup> DevicePageAmsMappingHotendVM::CollectSubAmsGroups(MachineObject*                  obj,
+                                                                          const TrayData&                 self_td,
+                                                                          const std::optional<DevNozzle>& parent_nz) const
 {
     std::vector<SubAmsGroup> groups;
     if (!obj || !obj->GetNozzleRack()->IsSupported()) return groups;
 
-    auto tray_opt = obj->get_tray(std::to_string(self_td.ams_id), std::to_string(self_td.slot_id));
-    if (!tray_opt.has_value()) return groups;
+    // The caller pre-resolved the parent rack nozzle from a known rack pos id;
+    // we deliberately do NOT round-trip through `self_td`'s `get_nozzle_pos_id`
+    // here because that helper returns nullopt for AMS / N3F / N3S sub-trays
+    // bound directly to a rack nozzle (see BuildSlotJson comment).
+    if (!parent_nz.has_value()) return groups;
 
-    auto np = tray_opt->get_nozzle_pos_id(obj);
-    if (!np.has_value() || np.value() < 0x10) return groups;
+    // The self tray (whatever it points at — ext spool or AMS sub-slot) is
+    // rendered as the parent card on the left of the SubAmsPanel; the groups
+    // below are the *other* AMS units bound to the same rack nozzle.
+    (void)self_td;
 
-    int addr_id = np.value() - 0x10;
+    const auto& ams_list = obj->GetFilaSystem()->GetAmsList();
+    for (int bind_ams_id : parent_nz->GetBindAms()) {
+        std::string bind_ams_id_str = std::to_string(bind_ams_id);
+        auto ams_it = ams_list.find(bind_ams_id_str);
+        if (ams_it == ams_list.end()) continue;
+        auto at = ams_it->second->GetAmsType();
+        if (at != DevAmsType::N3S && at != DevAmsType::N3F && at != DevAmsType::AMS) continue;
 
-    const bool   is_ext_spool = (self_td.ams_type == DevAmsType::EXT_SPOOL);
-    const auto&  ams_list     = obj->GetFilaSystem()->GetAmsList();
-
-    // Collect each sub-AMS bound to this rack nozzle (excluding self).
-    // The self tray is already rendered as the parent card on the left side
-    // of the SubAmsPanel, so we only include external bound AMS units here.
-    auto nozzle_opt = obj->GetNozzleSystem()->GetNozzleOptByAddrId(addr_id);
-    if (nozzle_opt.has_value()) {
-        for (int bind_ams_id : nozzle_opt->GetBindAms()) {
-            std::string bind_ams_id_str = std::to_string(bind_ams_id);
-            auto ams_it = ams_list.find(bind_ams_id_str);
-            if (ams_it == ams_list.end()) continue;
-            auto at = ams_it->second->GetAmsType();
-            if (at != DevAmsType::N3S && at != DevAmsType::N3F && at != DevAmsType::AMS) continue;
-
-            SubAmsGroup g;
-            g.name = ams_it->second->GetDisplayName();
-            for (auto ti = ams_it->second->GetTrays().cbegin();
-                 ti != ams_it->second->GetTrays().cend(); ++ti) {
-                auto td_opt = MakeTrayData(obj, ams_it->second, ti->second, bind_ams_id_str);
-                if (td_opt.has_value()) g.trays.push_back(td_opt.value());
-            }
-            if (!g.trays.empty()) groups.push_back(g);
+        SubAmsGroup g;
+        g.name = ams_it->second->GetDisplayName();
+        for (auto ti = ams_it->second->GetTrays().cbegin();
+             ti != ams_it->second->GetTrays().cend(); ++ti) {
+            auto td_opt = MakeTrayData(obj, ams_it->second, ti->second, bind_ams_id_str);
+            if (td_opt.has_value()) g.trays.push_back(td_opt.value());
         }
+        if (!g.trays.empty()) groups.push_back(g);
     }
 
     if (groups.empty()) return {};
@@ -423,13 +486,24 @@ std::vector<SubAmsGroup> DevicePageAmsMappingHotendVM::CollectSubAmsGroups(Machi
 nlohmann::json DevicePageAmsMappingHotendVM::BuildSlotJson(MachineObject*                            obj,
                                                             const TrayData&                           td,
                                                             int                                       slot_index,
+                                                            int                                       rack_nozzle_pos,
                                                             const ExpectedNozzleSpec&                 expected_nozzle,
                                                             bool                                      is_all_ext,
                                                             const std::optional<std::pair<int, int>>& preload_slot) const
 {
+    // Resolve the parent rack nozzle from the known rack position handed in
+    // by BuildState. We must NOT round-trip through `tray->get_nozzle_pos_id`
+    // here: that helper drops to the unimplemented TODO branch when the bound
+    // tray belongs to a real AMS sub-unit (DevAmsType::AMS / N3F / N3S), so
+    // the nozzle row, +N badge and sub-AMS list would silently disappear for
+    // that hotend slot — even though the wx popup and the hotend page both
+    // had enough information to render them.
+    auto parent_nz = (obj && rack_nozzle_pos >= 0x10) ? obj->GetNozzleSystem()->GetNozzleOptByAddrId(rack_nozzle_pos - 0x10)
+                         : std::nullopt;
+
     // Pre-compute sub-AMS groups so the state resolver knows whether to
     // grant the slot the "selectable via expand" override.
-    std::vector<SubAmsGroup> sub_groups = CollectSubAmsGroups(obj, td);
+    std::vector<SubAmsGroup> sub_groups = CollectSubAmsGroups(obj, td, parent_nz);
 
     // Preload (pre-feed) AMS slot: when it differs from the current bind,
     // expose the AMS slot as a synthetic sub-AMS group so the sub-page lets
@@ -456,11 +530,10 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildSlotJson(MachineObject*       
         }
     }
 
-    // Resolve the parent hotend's rack nozzle once and reuse it for every
-    // sub-AMS slot below — sub-AMS trays don't carry a direct nozzle pos
-    // binding, they inherit from the parent hotend.
-    auto parent_nz = QueryRackNozzleAt(obj, td);
-
+    // `parent_nz` was resolved up-front from the rack-position id we received
+    // from BuildState (see top of this function); reuse it for the slot
+    // judgement and for every sub-AMS slot below — sub-AMS trays don't carry
+    // a direct nozzle pos binding, they inherit from the parent hotend.
     SlotJudgement j = ResolveSlotJudgement(obj, td, expected_nozzle, parent_nz);
     // Main card pickability: all-ext relaxes Material* but still enforces
     // Nozzle* / Unavailable strictly (see ComputePickable).
@@ -510,26 +583,18 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildSlotJson(MachineObject*       
     }
     slot[SK::slot::multi_colors] = multi_colors;
 
-    // Per-slot nozzle info row.
-    if (obj && obj->GetNozzleRack()->IsSupported()) {
-        auto tray_opt = obj->get_tray(std::to_string(td.ams_id), std::to_string(td.slot_id));
-        if (tray_opt.has_value()) {
-            auto np = tray_opt->get_nozzle_pos_id(obj);
-            if (np.has_value() && np.value() >= 0x10) {
-                int addr_id = np.value() - 0x10;
-                auto nz = obj->GetNozzleSystem()->GetNozzleOptByAddrId(addr_id);
-                if (nz.has_value() && nz->IsExist()) {
-                    wxString dia = wxString::Format("%.1f mm", nz->GetNozzleDiameter());
-                    wxString flow = wxString::FromUTF8(
-                        DevNozzle::ToNozzleVolumeString(
-                            DevNozzle::ToNozzleVolumeType(nz->GetNozzleFlowType())));
-                    slot[SK::slot::nozzle] = {
-                        {SK::nozzle::dia,       dia.ToUTF8().data()},
-                        {SK::nozzle::flow_type, flow.ToUTF8().data()}
-                    };
-                }
-            }
-        }
+    // Per-slot nozzle info row. Use the rack nozzle resolved from the known
+    // rack position rather than reverse-deriving via `tray->get_nozzle_pos_id`,
+    // which fails on AMS sub-slots bound directly to a hotend rack.
+    if (parent_nz.has_value() && parent_nz->IsExist()) {
+        wxString dia = wxString::Format("%.1f mm", parent_nz->GetNozzleDiameter());
+        wxString flow = wxString::FromUTF8(
+            DevNozzle::ToNozzleVolumeString(
+                DevNozzle::ToNozzleVolumeType(parent_nz->GetNozzleFlowType())));
+        slot[SK::slot::nozzle] = {
+            {SK::nozzle::dia,       dia.ToUTF8().data()},
+            {SK::nozzle::flow_type, flow.ToUTF8().data()}
+        };
     }
 
     // Sub-AMS groups payload (mirrors the popup's expand panel).

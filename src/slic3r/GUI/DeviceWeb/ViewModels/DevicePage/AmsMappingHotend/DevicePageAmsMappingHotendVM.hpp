@@ -23,6 +23,7 @@
 #include "slic3r/GUI/AmsMappingPopup.hpp"      // for FilamentInfo, ShowType, ResetCallback
 #include "slic3r/GUI/DevMappingHelpers.h"      // for ExpectedNozzleSpec, HotendSlotState
 
+#include <cstdint>
 #include <functional>
 #include <optional>
 #include <string>
@@ -63,6 +64,23 @@ public:
 private:
     nlohmann::json BuildState() const;
 
+    // Remap the bound AMS slot for the main hotend card.
+    //
+    // The main card in the AMS-mapping popup must only ever display a slot
+    // that lives on the rack itself (ZMULTI_A/B) or an external spool. When
+    // the device pushes a sub-AMS as the current feed source (slot_now hits
+    // N3S/N3F/AMS), GetBindAmsSlots()[0] returns the sub-AMS coords directly
+    // and the card would render the sub-AMS filament — that contradicts the
+    // product spec which expects the rack-aligned ZMULTI slot (possibly
+    // empty) on the main card and the sub-AMS info inside the expand panel.
+    //
+    // Returns the original slot unchanged when:
+    //   - it already points at ZMULTI / external spool,
+    //   - or the device has no ZMULTI on this rack at all.
+    static std::pair<int, int> RemapMainCardSlot(MachineObject*             obj,
+                                                 const std::pair<int, int>& original_slot,
+                                                 int                        nozzle_pos);
+
     // Build the list of TrayData for one ZMULTI AMS unit (main rack).
     std::vector<TrayData> CollectZMultiTrayData(MachineObject* obj, DevAms* ams_group) const;
 
@@ -70,16 +88,33 @@ private:
     std::vector<TrayData> CollectVirtualTrayData(MachineObject* obj) const;
 
     // For one hotend slot, produce its JSON payload (state, color, sub_ams, ...).
+    //
+    // `rack_nozzle_pos` is the rack-position id we were already iterating in
+    // BuildState() (the very same key we used to look up the bound AMS slot).
+    // We pass it down explicitly because reverse-deriving it later from the
+    // bound tray via DevAmsTray::get_nozzle_pos_id() drops to the unimplemented
+    // TODO branch when the tray happens to belong to a real AMS sub-unit
+    // (DevAmsType::AMS / N3F / N3S) hooked directly onto a hotend rack — in
+    // which case we used to silently lose the nozzle row, the +N badge and
+    // the sub-AMS expand list for that hotend slot.
     nlohmann::json BuildSlotJson(MachineObject*                            obj,
                                  const TrayData&                           td,
                                  int                                       slot_index,
+                                 int                                       rack_nozzle_pos,
                                  const ExpectedNozzleSpec&                 expected_nozzle,
                                  bool                                      is_all_ext,
                                  const std::optional<std::pair<int, int>>& preload_slot) const;
 
     // Sub-AMS groups for one hotend slot, mirrors add_ams_mapping_hotend.
-    std::vector<SubAmsGroup> CollectSubAmsGroups(MachineObject*  obj,
-                                                 const TrayData& self_td) const;
+    //
+    // `parent_nz` is the rack nozzle resolved by the caller from the known
+    // rack position. Passing it in lets us avoid the reverse derivation via
+    // `self_td`'s `get_nozzle_pos_id` — that path is unreliable when the
+    // self tray is a real AMS sub-slot bound directly to the rack (see
+    // BuildSlotJson comment).
+    std::vector<SubAmsGroup> CollectSubAmsGroups(MachineObject*                  obj,
+                                                 const TrayData&                 self_td,
+                                                 const std::optional<DevNozzle>& parent_nz) const;
 
     // Resolve the per-slot judgement (state + atomic facts) by walking the
     // same rules as the legacy popup. The returned struct does NOT yet have
@@ -117,6 +152,11 @@ private:
 
     // Last published state JSON, used to suppress duplicate reports.
     std::string m_last_report_state;
+
+    // Bumped on every `Refresh()` so the Web side can detect popup re-opens
+    // (the React component stays mounted across PopupWindow show/hide) and
+    // reset its transient sub-page navigation state.
+    std::uint32_t m_session_seq{0};
 };
 
 }} // namespace Slic3r::GUI

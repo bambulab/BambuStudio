@@ -23,9 +23,14 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  height: 100%;
   padding: 12px 16px;
   background: #ffffff;
   overflow-x: hidden;
+  /* When the popup content exceeds the host-imposed cap (MAPPING_PAGE_MAX_HEIGHT
+     in hostContentSize.ts, e.g. many sub-AMS groups), let the whole page scroll
+     vertically rather than silently clipping at the bottom. */
+  overflow-y: auto;
   color: var(--color-text-primary);
   font-family: "HarmonyOS Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 12px;
@@ -86,27 +91,25 @@
   outline-offset: 2px;
 }
 
+/* Frontend collapses every "non-pickable" backend state into a single muted
+   variant so users only have to read two visual modes (pickable vs not).
+   Backend keeps the granular states (NozzleUnmatch / NozzleEmpty / etc.) for
+   business logic; we just don't surface them in opacity here. */
 .ams-map-hotend__slot-card[data-state="MaterialUnmatch"],
-.ams-map-hotend__slot-card[data-state="NozzleUnmatch"] {
-  opacity: 0.7;
-  cursor: default;
-}
-
+.ams-map-hotend__slot-card[data-state="NozzleUnmatch"],
 .ams-map-hotend__slot-card[data-state="MaterialEmpty"],
-.ams-map-hotend__slot-card[data-state="NozzleEmpty"] {
+.ams-map-hotend__slot-card[data-state="NozzleEmpty"],
+.ams-map-hotend__slot-card[data-state="Unavailable"] {
   opacity: 0.4;
   cursor: default;
 }
 
+/* Sub-AMS-bearing main cards stay fully visible because clicking expands the
+   sub-AMS panel — they are still pickable, just through a different path. */
 .ams-map-hotend__slot-card[data-state="MaterialEmpty"][data-has-sub-ams="true"],
 .ams-map-hotend__slot-card[data-state="NozzleEmpty"][data-has-sub-ams="true"] {
   opacity: 1;
   cursor: pointer;
-}
-
-.ams-map-hotend__slot-card[data-state="Unavailable"] {
-  opacity: 0.5;
-  cursor: default;
 }
 
 
@@ -224,13 +227,18 @@
 
 .ams-map-hotend__nozzle-info__dia {
   font-size: 12px;
-  color: var(--color-text-secondary);
+  /* Match the material-name color on the same card: the entire pickable card
+     reads in one tone, while the unified opacity:0.4 on non-pickable cards
+     drops it into a single muted variant — that gives us the strongest
+     pickable-vs-non-pickable contrast without per-state special casing. */
+  color: var(--color-text-primary);
   text-align: center;
 }
 
 .ams-map-hotend__nozzle-info__flow {
   font-size: 12px;
-  color: var(--color-text-secondary);
+  /* Same intent as __dia above. */
+  color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -335,13 +343,6 @@
   gap: 12px;
   flex: 1;
   min-width: 0;
-  /* Cap the AMS group list so the popup never grows beyond ~500px total
-     (back + tip + parent card area ≈ 140px reserved). Extra groups scroll
-     inside this container; back button, parent card and bottom tip stay
-     visible. */
-  max-height: 360px;
-  overflow-y: auto;
-  padding-right: 4px;
 }
 
 .ams-map-hotend__sub-ams-page__group {

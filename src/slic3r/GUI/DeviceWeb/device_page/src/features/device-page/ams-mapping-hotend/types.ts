@@ -92,6 +92,11 @@ export interface AmsMappingHotendViewModel {
   material_index: string;
   reset_visible: boolean;
   is_all_ext: boolean;
+  // Bumped by the C++ side on every Refresh() (i.e. each popup-open). The
+  // React page watches this to reset its sub-AMS sub-page navigation so a
+  // re-opened popup always lands on the main view, never the previously
+  // entered sub-page.
+  session_seq: number;
   hotend_slots: AmsMappingHotendSlotViewModel[];
 }
 

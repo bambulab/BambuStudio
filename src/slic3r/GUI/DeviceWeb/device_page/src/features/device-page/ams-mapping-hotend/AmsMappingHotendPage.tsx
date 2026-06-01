@@ -75,6 +75,15 @@ export function AmsMappingHotendPage() {
   const [subAmsSlot, setSubAmsSlot] = useState<AmsMappingHotendSlotViewModel | null>(null);
   useReportHostContentSize(pageRef);
 
+  // The PopupWindow on the wx side merely hides/shows this React tree on
+  // dismiss/re-open; component state otherwise survives across opens. The
+  // C++ ViewModel bumps `session_seq` on every Refresh() so we can detect
+  // a fresh popup-open and reset transient navigation (e.g. a previously
+  // entered sub-AMS sub-page) so the user always lands on the main view.
+  useEffect(() => {
+    setSubAmsSlot(null);
+  }, [state.session_seq]);
+
   const topSlots = state.hotend_slots.filter((s) => s.is_top_tier);
   const bottomSlots = state.hotend_slots.filter((s) => !s.is_top_tier);
   const rows = [topSlots, bottomSlots].filter((r) => r.length > 0);
