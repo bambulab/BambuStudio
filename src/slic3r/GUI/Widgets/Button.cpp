@@ -15,6 +15,8 @@ EVT_LEFT_UP(Button::mouseReleased)
 EVT_MOUSE_CAPTURE_LOST(Button::mouseCaptureLost)
 EVT_KEY_DOWN(Button::keyDownUp)
 EVT_KEY_UP(Button::keyDownUp)
+EVT_SET_FOCUS(Button::onSetFocus)
+EVT_KILL_FOCUS(Button::onKillFocus)
 
 // catch paint events
 EVT_PAINT(Button::paintEvent)
@@ -153,7 +155,20 @@ bool Button::Enable(bool enable)
     return result;
 }
 
-void Button::SetCanFocus(bool canFocus) { this->canFocus = canFocus; }
+void Button::SetCanFocus(bool canFocus)
+{
+    this->canFocus = canFocus;
+#ifdef __WIN32__
+    if (GetHandle()) {
+        LONG style = ::GetWindowLong((HWND)GetHandle(), GWL_STYLE);
+        if (canFocus)
+            style |= WS_TABSTOP;
+        else
+            style &= ~WS_TABSTOP;
+        ::SetWindowLong((HWND)GetHandle(), GWL_STYLE, style);
+    }
+#endif
+}
 
 void Button::SetValue(bool state)
 {
@@ -466,7 +481,30 @@ WXLRESULT Button::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
     return wxWindow::MSWWindowProc(nMsg, wParam, lParam);
 }
 
+WXDWORD Button::MSWGetStyle(long style, WXDWORD* exstyle) const
+{
+    WXDWORD msStyle = StaticBox::MSWGetStyle(style, exstyle);
+    if (canFocus)
+        msStyle |= WS_TABSTOP;
+    return msStyle;
+}
+
 #endif
+
+void Button::onSetFocus(wxFocusEvent& event)
+{
+    Refresh();
+#if wxUSE_ACCESSIBILITY
+    wxAccessible::NotifyEvent(wxACC_EVENT_OBJECT_FOCUS, this, wxOBJID_CLIENT, wxACC_SELF);
+#endif
+    event.Skip();
+}
+
+void Button::onKillFocus(wxFocusEvent& event)
+{
+    Refresh();
+    event.Skip();
+}
 
 bool Button::AcceptsFocus() const { return canFocus; }
 
