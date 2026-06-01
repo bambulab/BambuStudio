@@ -4,6 +4,7 @@
 
 #include <wx/tglbtn.h>
 #include "I18N.hpp"
+#include "Widgets/Button.hpp"
 
 // ---------------------------------------------------------------------------
 // ButtonAccessible
@@ -199,12 +200,16 @@ wxAccStatus TabButtonAccessible::GetState(int childId, long* state)
 {
     if (childId == wxACC_SELF) {
         wxWindow* win = GetWindow();
-        *state = wxACC_STATE_SYSTEM_FOCUSABLE;
+        *state = wxACC_STATE_SYSTEM_FOCUSABLE | wxACC_STATE_SYSTEM_SELECTABLE;
         if (win) {
             if (!win->IsEnabled())
                 *state |= wxACC_STATE_SYSTEM_UNAVAILABLE;
             if (win->HasFocus())
-                *state |= wxACC_STATE_SYSTEM_FOCUSED | wxACC_STATE_SYSTEM_SELECTED;
+                *state |= wxACC_STATE_SYSTEM_FOCUSED;
+            // Check the Button's selected (active-tab) state via GetValue()
+            auto* btn = dynamic_cast<Button*>(win);
+            if (btn && btn->GetValue())
+                *state |= wxACC_STATE_SYSTEM_SELECTED;
         }
         return wxACC_OK;
     }
