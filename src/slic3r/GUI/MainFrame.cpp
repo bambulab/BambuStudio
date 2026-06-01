@@ -1382,13 +1382,23 @@ void MainFrame::init_tabpanel()
         }
 #endif
 #ifndef __WXGTK__
-        // macOS: avoid moving first responder into WKWebView on Filament Manager (STUDIO-18111).
+        // Avoid moving focus into embedded WebView2/WKWebView controls:
+        // - macOS: WKWebView captures focus (STUDIO-18111)
+        // - Windows: Edge WebView2 captures Tab, causing NVDA to read "wxwebview" instead
+        //   of real UI controls. WebView panels are excluded so screen readers stay on
+        //   the native toolbar and sidebar buttons.
         if (panel
-#if defined(__WXOSX__)
             && panel != m_web_device
-#endif
+            && panel != m_webview
+            && panel != m_printer_view
         )
             panel->SetFocus();
+#ifdef __WIN32__
+        else if (m_topbar)
+            // WebView panel selected: redirect focus to the topbar so screen
+            // readers (NVDA, Narrator) announce a real accessible control.
+            m_topbar->SetFocus();
+#endif
 #endif
         /*switch (sel) {
         case TabPosition::tpHome:
