@@ -38,7 +38,7 @@ SwitchButton::SwitchButton(wxWindow* parent, wxWindowID id)
 	SetFont(Label::Body_12);
 	Rescale();
 #if wxUSE_ACCESSIBILITY
-    SetAccessible(new ToggleAccessible(this, wxROLE_SYSTEM_PUSHBUTTON));
+    SetAccessible(new ToggleAccessible(this, wxROLE_SYSTEM_CHECKBUTTON));
 #endif
 }
 
