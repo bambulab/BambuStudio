@@ -37,6 +37,7 @@ public:
 
         // smart filament section
         m_smart_filament_checkbox = new CheckBox(this);
+        m_smart_filament_checkbox->SetAccessibleName(_L("Enable smart filament assign"));
         m_smart_filament_checkbox->SetValue(enable_filament_dynamic_map()->getBool());
         m_smart_filament_checkbox->Bind(wxEVT_TOGGLEBUTTON, &SmartFilamentPanel::on_smart_filament_checkbox, this);
 

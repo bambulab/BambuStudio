@@ -94,6 +94,7 @@
 #include "3DScene.hpp"
 #include "GLCanvas3D.hpp"
 #include "OpenGLManager.hpp"
+#include "Accessibility.hpp"
 #include "Selection.hpp"
 #include "GLToolbar.hpp"
 #include "GUI_Preview.hpp"
@@ -2529,6 +2530,7 @@ Sidebar::Sidebar(Plater *parent)
         PlaterPresetComboBox *combo_printer = new PlaterPresetComboBox(p->panel_printer_preset, Preset::TYPE_PRINTER);
         combo_printer->SetWindowStyle(combo_printer->GetWindowStyle() & ~wxALIGN_MASK | wxALIGN_CENTER_HORIZONTAL);
         combo_printer->SetBorderWidth(0);
+        combo_printer->SetToolTip(_L("Printer preset"));
         p->combo_printer = combo_printer;
 
         p->btn_connect_printer = new ScalableButton(p->panel_printer_preset, wxID_ANY, "monitor_signal_strong");
@@ -2580,6 +2582,7 @@ Sidebar::Sidebar(Plater *parent)
 
         p->combo_printer_bed = new ComboBox(p->panel_printer_bed, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY | wxALIGN_CENTER_HORIZONTAL);
         p->combo_printer_bed->SetBorderWidth(0);
+        p->combo_printer_bed->SetToolTip(_L("Bed type"));
         p->combo_printer_bed->GetDropDown().SetUseContentWidth(true);
         reset_bed_type_combox_choices(true);
 
@@ -3233,6 +3236,8 @@ void Sidebar::init_filament_combo(PlaterPresetComboBox **combo, const int filame
     int em = wxGetApp().em_unit();
     combo_and_btn_sizer->Add(FromDIP(10), 0, 0, 0, 0 );
     (*combo)->clr_picker->SetLabel(wxString::Format("%d", filament_idx + 1));
+    (*combo)->clr_picker->SetToolTip(wxString::Format(_L("Filament %d color"), filament_idx + 1));
+    (*combo)->SetToolTip(wxString::Format(_L("Filament %d preset"), filament_idx + 1));
     combo_and_btn_sizer->Add((*combo)->clr_picker, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(4));
     combo_and_btn_sizer->Add(*combo, 1, wxALL | wxEXPAND, FromDIP(2))->SetMinSize({-1, FromDIP(30)});
 
@@ -7276,6 +7281,126 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
 
     // Drop target:
     q->SetDropTarget(new PlaterDropTarget(q));   // if my understanding is right, wxWindow takes the owenership
+
+#if wxUSE_ACCESSIBILITY
+    // --- 3D view canvas accessibility ---
+    {
+        wxString shortcuts = _L(
+            "Keyboard shortcuts: Ctrl+I=Add model, Delete=Delete, "
+            "A=Arrange, Ctrl+Z=Undo, Ctrl+C=Copy, Ctrl+V=Paste, "
+            "Tab=Switch to Preview"
+        );
+        auto* acc3d = new GLCanvasAccessible(view3D_canvas, _L("3D View"), shortcuts);
+        std::vector<GLToolbarEntry> items3d = {
+            // Main toolbar actions
+            {_L("Add model (Ctrl+I)"),          [view3D_canvas]() { wxPostEvent(view3D_canvas, SimpleEvent(EVT_GLTOOLBAR_ADD)); }},
+            {_L("Delete selected (Del)"),       [view3D_canvas]() { wxPostEvent(view3D_canvas, SimpleEvent(EVT_GLTOOLBAR_DELETE)); }},
+            {_L("Arrange all objects (A)"),     [view3D_canvas]() { wxPostEvent(view3D_canvas, SimpleEvent(EVT_GLTOOLBAR_ARRANGE)); }},
+            {_L("Auto orient"),                  [view3D_canvas]() { wxPostEvent(view3D_canvas, SimpleEvent(EVT_GLTOOLBAR_ORIENT)); }},
+            {_L("Split to objects"),             [view3D_canvas]() { wxPostEvent(view3D_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_OBJECTS)); }},
+            {_L("Split to parts"),               [view3D_canvas]() { wxPostEvent(view3D_canvas, SimpleEvent(EVT_GLTOOLBAR_SPLIT_VOLUMES)); }},
+            {_L("Copy (Ctrl+C)"),                [view3D_canvas]() { wxPostEvent(view3D_canvas, SimpleEvent(EVT_GLTOOLBAR_COPY)); }},
+            {_L("Paste (Ctrl+V)"),               [view3D_canvas]() { wxPostEvent(view3D_canvas, SimpleEvent(EVT_GLTOOLBAR_PASTE)); }},
+            // Gizmo tools (left-side panel)
+            {_L("Gizmo: Move (G)"),              [this]() { view3D->get_canvas3d()->get_gizmos_manager().open_gizmo(GLGizmosManager::EType::Move); }},
+            {_L("Gizmo: Rotate (R)"),            [this]() { view3D->get_canvas3d()->get_gizmos_manager().open_gizmo(GLGizmosManager::EType::Rotate); }},
+            {_L("Gizmo: Scale (S)"),             [this]() { view3D->get_canvas3d()->get_gizmos_manager().open_gizmo(GLGizmosManager::EType::Scale); }},
+            {_L("Gizmo: Cut"),                   [this]() { view3D->get_canvas3d()->get_gizmos_manager().open_gizmo(GLGizmosManager::EType::Cut); }},
+            {_L("Gizmo: Color painting"),        [this]() { view3D->get_canvas3d()->get_gizmos_manager().open_gizmo(GLGizmosManager::EType::MmuSegmentation); }},
+            {_L("Gizmo: Support painting"),      [this]() { view3D->get_canvas3d()->get_gizmos_manager().open_gizmo(GLGizmosManager::EType::FdmSupports); }},
+            {_L("Gizmo: Measure"),               [this]() { view3D->get_canvas3d()->get_gizmos_manager().open_gizmo(GLGizmosManager::EType::Measure); }},
+            {_L("Gizmo: Text"),                  [this]() { view3D->get_canvas3d()->get_gizmos_manager().open_gizmo(GLGizmosManager::EType::Text); }},
+        };
+        acc3d->set_toolbar_items(std::move(items3d));
+        view3D_canvas->SetAccessible(acc3d);
+    }
+    // --- Preview canvas accessibility with IMSlider virtual children ---
+    {
+        wxString preview_shortcuts = _L(
+            "Keyboard shortcuts: Shift+mouse=rotate, scroll=zoom, "
+            "PageUp/PageDown=upper layer up/down, "
+            "Shift+PageUp/PageDown=lower layer up/down, "
+            "Tab=Switch to 3D view"
+        );
+        auto* acc_preview = new GLCanvasAccessible(
+            preview_canvas, _L("Slice Preview"), preview_shortcuts);
+        std::vector<GLToolbarEntry> preview_items = {
+            {
+                _L("Layer: upper"),
+                nullptr,
+                [this]() -> wxString {
+                    auto* s = preview->get_canvas3d()->get_gcode_viewer().get_layers_slider();
+                    if (!s || s->GetMaxValue() < 0) return wxEmptyString;
+                    return wxString::Format("%d / %d",
+                        s->GetHigherValue() + 1, s->GetMaxValue() + 1);
+                },
+                wxROLE_SYSTEM_SLIDER
+            },
+            {
+                _L("Layer: lower"),
+                nullptr,
+                [this]() -> wxString {
+                    auto* s = preview->get_canvas3d()->get_gcode_viewer().get_layers_slider();
+                    if (!s || s->GetMaxValue() < 0) return wxEmptyString;
+                    return wxString::Format("%d / %d",
+                        s->GetLowerValue() + 1, s->GetMaxValue() + 1);
+                },
+                wxROLE_SYSTEM_SLIDER
+            },
+        };
+        acc_preview->set_toolbar_items(std::move(preview_items));
+        preview_canvas->SetAccessible(acc_preview);
+
+        // Keyboard control: PageUp/Down moves upper layer, Shift+PageUp/Down moves lower layer
+        preview_canvas->Bind(wxEVT_KEY_DOWN, [this, preview_canvas](wxKeyEvent& e) {
+            auto* layers_slider =
+                preview->get_canvas3d()->get_gcode_viewer().get_layers_slider();
+            if (!layers_slider) { e.Skip(); return; }
+            const int min_v  = layers_slider->GetMinValue();
+            const int max_v  = layers_slider->GetMaxValue();
+            const int lower  = layers_slider->GetLowerValue();
+            const int higher = layers_slider->GetHigherValue();
+            const bool shift = e.ShiftDown();
+            bool changed = false;
+            int  notif_child = 1; // 1=upper, 2=lower
+            switch (e.GetKeyCode()) {
+            case WXK_PAGEUP:
+                if (shift) {
+                    int nv = std::min(lower + 1, higher);
+                    if (nv != lower) { layers_slider->SetLowerValue(nv); changed = true; notif_child = 2; }
+                } else {
+                    int nv = std::min(higher + 1, max_v);
+                    if (nv != higher) { layers_slider->SetHigherValue(nv); changed = true; }
+                }
+                break;
+            case WXK_PAGEDOWN:
+                if (shift) {
+                    int nv = std::max(lower - 1, min_v);
+                    if (nv != lower) { layers_slider->SetLowerValue(nv); changed = true; notif_child = 2; }
+                } else {
+                    int nv = std::max(higher - 1, min_v);
+                    if (nv != higher) { layers_slider->SetHigherValue(nv); changed = true; }
+                }
+                break;
+            default:
+                e.Skip();
+            }
+            if (changed) {
+                layers_slider->set_as_dirty();
+                preview->get_canvas3d()->set_as_dirty();
+                wxAccessible::NotifyEvent(wxACC_EVENT_OBJECT_VALUECHANGE,
+                    preview_canvas, wxOBJID_CLIENT, notif_child);
+            }
+        });
+    }
+    // --- Assembly canvas accessibility ---
+    {
+        wxGLCanvas* assemble_canvas = assemble_view->get_wxglcanvas();
+        assemble_canvas->SetAccessible(new GLCanvasAccessible(
+            assemble_canvas, _L("Assembly View"), wxEmptyString));
+    }
+#endif
+
     q->Layout();
 
     apply_color_mode();

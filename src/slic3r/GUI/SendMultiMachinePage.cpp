@@ -1218,6 +1218,7 @@ wxPanel* SendMultiMachinePage::create_page()
     m_table_head_sizer = new wxBoxSizer(wxHORIZONTAL);
 
     m_select_checkbox = new CheckBox(m_table_head_panel, wxID_ANY);
+    m_select_checkbox->SetAccessibleName(_L("Select All Printers"));
     m_table_head_sizer->AddSpacer(FromDIP(SEND_LEFT_PADDING_LEFT));
     m_table_head_sizer->Add(m_select_checkbox, 0, wxALIGN_CENTER_VERTICAL, 0);
 

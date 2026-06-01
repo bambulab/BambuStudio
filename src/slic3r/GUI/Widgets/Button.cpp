@@ -1,5 +1,6 @@
 #include "Button.hpp"
 #include "Label.hpp"
+#include "../Accessibility.hpp"
 
 #include <wx/dcclient.h>
 #include <wx/dcgraph.h>
@@ -59,6 +60,9 @@ bool Button::Create(wxWindow* parent, wxString text, wxString icon, long style, 
         this->active_icon = ScalableBitmap(this, icon.ToStdString(), iconSize > 0 ? iconSize : 20);
     }
     messureSize();
+#if wxUSE_ACCESSIBILITY
+    SetAccessible(new ButtonAccessible(this));
+#endif
     return true;
 }
 

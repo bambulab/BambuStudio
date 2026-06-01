@@ -1076,6 +1076,7 @@ wxSizer* CalibrationPresetPage::create_slot_items_sizer(wxPanel* slot_items_pane
 
         wxRadioButton *radio_btn               = new wxRadioButton(slot_items_panel, wxID_ANY, "");
         CheckBox *     check_box               = new CheckBox(slot_items_panel);
+        check_box->SetAccessibleName(wxString::Format(_L("Select filament slot %d"), i + 1));
         check_box->SetBackgroundColour(*wxWHITE);
 
         int index = extuder_role == ExtruderRole::MAIN_EXTRUDER ? (i + 4) : i;

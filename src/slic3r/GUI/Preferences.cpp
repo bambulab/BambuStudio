@@ -17,6 +17,7 @@
 #include <map>
 #include "Gizmos/GLGizmoBase.hpp"
 #include "OpenGLManager.hpp"
+#include "Accessibility.hpp"
 #ifdef __WINDOWS__
 #ifdef _MSW_DARK_MODE
 #include "dark_mode.hpp"
@@ -88,6 +89,7 @@ wxBoxSizer *PreferencesDialog::create_item_combobox(wxString title, wxWindow *pa
 
     auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, combox_width == 0?DESIGN_LARGE_COMBOBOX_SIZE:wxSize(combox_width, -1), 0, nullptr, wxCB_READONLY);
     m_combobox_list[m_combobox_list.size()] = combobox;
+    combobox->SetToolTip(title);
     combobox->SetFont(::Label::Body_13);
     combobox->GetDropDown().SetFont(::Label::Body_13);
 
@@ -462,6 +464,10 @@ wxBoxSizer *PreferencesDialog::create_item_input(wxString title, wxString title2
     StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
     input->SetBackgroundColor(input_bg);
     input->GetTextCtrl()->SetValue(app_config->get(param));
+#if wxUSE_ACCESSIBILITY
+    if (!title.IsEmpty())
+        input->GetTextCtrl()->SetAccessible(new TextCtrlLabelAccessible(input->GetTextCtrl(), title));
+#endif
     wxTextValidator validator(wxFILTER_DIGITS);
     input->GetTextCtrl()->SetValidator(validator);
 
@@ -516,6 +522,10 @@ wxBoxSizer *PreferencesDialog::create_item_range_input(
     StateColor input_bg(std::pair<wxColour, int>(wxColour("#F0F0F1"), StateColor::Disabled), std::pair<wxColour, int>(*wxWHITE, StateColor::Enabled));
     input->SetBackgroundColor(input_bg);
     input->GetTextCtrl()->SetValue(app_config->get(param));
+#if wxUSE_ACCESSIBILITY
+    if (!title.IsEmpty())
+        input->GetTextCtrl()->SetAccessible(new TextCtrlLabelAccessible(input->GetTextCtrl(), title));
+#endif
     wxTextValidator validator(wxFILTER_NUMERIC);
     input->GetTextCtrl()->SetValidator(validator);
 
@@ -589,11 +599,21 @@ wxBoxSizer *PreferencesDialog::create_item_range_two_input(wxString             
     input->GetTextCtrl()->SetValue(app_config->get(param));
     wxTextValidator validator(wxFILTER_NUMERIC);
     input->GetTextCtrl()->SetValidator(validator);
+#if wxUSE_ACCESSIBILITY
+    if (!title.IsEmpty()) {
+        input->GetTextCtrl()->SetAccessible(new TextCtrlLabelAccessible(input->GetTextCtrl(), title + _L(" (min)")));
+    }
+#endif
 
      auto       input1 = new ::TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, DESIGN_INPUT_SIZE, wxTE_PROCESS_ENTER);
     input1->SetBackgroundColor(input_bg);
     input1->GetTextCtrl()->SetValue(app_config->get(param1));
     input1->GetTextCtrl()->SetValidator(validator);
+#if wxUSE_ACCESSIBILITY
+    if (!title.IsEmpty()) {
+        input1->GetTextCtrl()->SetAccessible(new TextCtrlLabelAccessible(input1->GetTextCtrl(), title + _L(" (max)")));
+    }
+#endif
 
     sizer_input->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
     sizer_input->Add(input_title, 0, wxALIGN_CENTER_VERTICAL | wxALL, 3);
@@ -666,7 +686,10 @@ wxBoxSizer *PreferencesDialog::create_item_backup_input(wxString title, wxWindow
     input->GetTextCtrl()->SetValue(app_config->get(param));
     wxTextValidator validator(wxFILTER_DIGITS);
     input->GetTextCtrl()->SetValidator(validator);
-
+#if wxUSE_ACCESSIBILITY
+    if (!title.IsEmpty())
+        input->GetTextCtrl()->SetAccessible(new TextCtrlLabelAccessible(input->GetTextCtrl(), title));
+#endif
 
     auto second_title = new wxStaticText(parent, wxID_ANY, _L("Second"), wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
     second_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
@@ -727,6 +750,7 @@ wxBoxSizer *PreferencesDialog::create_item_switch(wxString title, wxWindow *pare
     switch_title->SetToolTip(tooltip);
     switch_title->Wrap(-1);
     auto switchbox = new ::SwitchButton(parent, wxID_ANY);
+    switchbox->SetAccessibleName(title);
 
     /*auto index = app_config->get(param);
     if (!index.empty()) { combobox->SetSelection(atoi(index.c_str())); }*/
@@ -755,6 +779,7 @@ wxBoxSizer* PreferencesDialog::create_item_darkmode_checkbox(wxString title, wxW
     auto checkbox = new ::CheckBox(parent);
     m_checkbox_list[m_checkbox_list.size()] = checkbox;
     checkbox->SetValue((app_config->get(param) == "1") ? true : false);
+    checkbox->SetAccessibleName(title);
     m_dark_mode_ckeckbox = checkbox;
 
     m_sizer_checkbox->Add(checkbox, 0, wxALIGN_CENTER, 0);
@@ -812,6 +837,7 @@ wxBoxSizer *PreferencesDialog::create_item_checkbox(wxString title, wxWindow *pa
 
     auto checkbox = new ::CheckBox(parent);
     m_checkbox_list[m_checkbox_list.size()] = checkbox;
+    checkbox->SetAccessibleName(title);
     if (param == "privacyuse") {
         checkbox->SetValue((app_config->get("firstguide", param) == "true") ? true : false);
     } else if (param == "auto_stop_liveview") {
@@ -1137,6 +1163,13 @@ PreferencesDialog::PreferencesDialog(wxWindow *parent, wxWindowID id, const wxSt
     m_original_use_12h_time_format = wxGetApp().app_config->get("use_12h_time_format");
     create();
     wxGetApp().UpdateDlgDarkUI(this);
+
+    // Set initial keyboard focus so NVDA lands inside the scrolled content
+    Bind(wxEVT_INIT_DIALOG, [this](wxInitDialogEvent& e) {
+        e.Skip();
+        CallAfter([this]() { if (m_scrolledWindow) m_scrolledWindow->SetFocus(); });
+    });
+
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& event) {
         try {
             NetworkAgent* agent = GUI::wxGetApp().getAgent();

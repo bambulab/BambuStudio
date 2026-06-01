@@ -1136,7 +1136,9 @@ void MainFrame::update_filament_tab_ui()
 
 void MainFrame::update_title()
 {
-    return;
+    // Set the OS window title so screen readers (NVDA, Narrator) announce the app name.
+    // The title bar is custom-drawn by BBLTopbar, so this only affects accessibility.
+    SetTitle("Bambu Studio");
 }
 
 void MainFrame::show_calibration_button(bool show, bool is_BBL)

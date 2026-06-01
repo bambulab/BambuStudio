@@ -1,4 +1,5 @@
 #include "AMSMaterialsSetting.hpp"
+#include "Accessibility.hpp"
 #include "ExtrusionCalibration.hpp"
 #include "MsgDialog.hpp"
 #include "GUI_App.hpp"
@@ -158,6 +159,7 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     m_comboBox_filament = new wxComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, 0, nullptr, wxCB_READONLY);
 #else
     m_comboBox_filament = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, 0, nullptr, wxCB_READONLY);
+    m_comboBox_filament->SetToolTip(_L("Filament"));
 #endif
 
     m_sizer_filament->Add(m_comboBox_filament, 1, wxALIGN_CENTER, 0);
@@ -218,6 +220,10 @@ void AMSMaterialsSetting::create_panel_normal(wxWindow* parent)
     m_input_nozzle_max->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
     m_input_nozzle_min->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
     m_input_nozzle_min->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
+#if wxUSE_ACCESSIBILITY
+    m_input_nozzle_max->GetTextCtrl()->SetAccessible(new TextCtrlLabelAccessible(m_input_nozzle_max->GetTextCtrl(), _L("Max nozzle temperature")));
+    m_input_nozzle_min->GetTextCtrl()->SetAccessible(new TextCtrlLabelAccessible(m_input_nozzle_min->GetTextCtrl(), _L("Min nozzle temperature")));
+#endif
 
     degree            = new ScalableBitmap(parent, "degree", 16);
     bitmap_max_degree = new wxStaticBitmap(parent, -1, degree->bmp(), wxDefaultPosition, wxDefaultSize);
@@ -337,6 +343,7 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     m_sizer_nozzle_type->Add(0, 0, 0, wxEXPAND, 0);
 
     m_comboBox_nozzle_type = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, 0, nullptr, wxCB_READONLY);
+    m_comboBox_nozzle_type->SetToolTip(_L("Nozzle type"));
     m_comboBox_nozzle_type->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, &AMSMaterialsSetting::on_select_nozzle_pos_id, this);
     m_sizer_nozzle_type->Add(m_comboBox_nozzle_type, 1, wxALIGN_CENTER, 0);
 
@@ -353,6 +360,7 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     m_sizer_cali_resutl->Add(0, 0, 0, wxEXPAND, 0);
 
     m_comboBox_cali_result = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_COMBOX_WIDTH, 0, nullptr, wxCB_READONLY);
+    m_comboBox_cali_result->SetToolTip(_L("PA Profile"));
     m_sizer_cali_resutl->Add(m_comboBox_cali_result, 1, wxALIGN_CENTER, 0);
 
     auto kn_val_sizer = new wxFlexGridSizer(0, 2, 0, 0);
@@ -373,6 +381,9 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     m_input_k_val->SetMinSize(wxSize(FromDIP(245), -1));
     m_input_k_val->SetMaxSize(wxSize(FromDIP(245), -1));
     m_input_k_val->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+#if wxUSE_ACCESSIBILITY
+    m_input_k_val->GetTextCtrl()->SetAccessible(new TextCtrlLabelAccessible(m_input_k_val->GetTextCtrl(), _L("Factor K")));
+#endif
     kn_val_sizer->Add(m_input_k_val, 0, wxALL | wxEXPAND | wxALIGN_CENTER_VERTICAL, FromDIP(0));
 
     // n params input
@@ -384,6 +395,9 @@ void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
     kn_val_sizer->Add(m_n_param, 1, wxALL | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     m_input_n_val = new TextInput(parent, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_CENTRE | wxTE_PROCESS_ENTER);
     m_input_n_val->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+#if wxUSE_ACCESSIBILITY
+    m_input_n_val->GetTextCtrl()->SetAccessible(new TextCtrlLabelAccessible(m_input_n_val->GetTextCtrl(), _L("Factor N")));
+#endif
     kn_val_sizer->Add(m_input_n_val, 0, wxALL | wxEXPAND | wxALIGN_CENTER_VERTICAL, FromDIP(5));
     m_n_param->Hide();
     m_input_n_val->Hide();

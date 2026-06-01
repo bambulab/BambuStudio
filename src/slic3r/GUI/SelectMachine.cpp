@@ -1,5 +1,6 @@
 #include "SelectMachine.hpp"
 #include "I18N.hpp"
+#include "Accessibility.hpp"
 
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Thread.hpp"
@@ -424,7 +425,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
     /*filament area*/
     /*1 extruder*/
-    m_filament_panel = new StaticBox(m_scroll_area);
+    m_filament_panel = new StaticBox(m_scroll_area, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_filament_panel->SetBackgroundColour(wxColour("#F8F8F8"));
     m_filament_panel->SetBorderWidth(0);
     m_filament_panel->SetMinSize(wxSize(FromDIP(637), -1));
@@ -440,7 +441,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     /*left & right extruder*/
     m_sizer_filament_2extruder = new wxBoxSizer(wxHORIZONTAL);
 
-    m_filament_left_panel = new StaticBox(m_scroll_area);
+    m_filament_left_panel = new StaticBox(m_scroll_area, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_filament_left_panel->SetBackgroundColour(wxColour("#F8F8F8"));
     m_filament_left_panel->SetBorderWidth(0);
     m_filament_left_panel->SetMinSize(wxSize(FromDIP(315), -1));
@@ -460,7 +461,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_filament_left_panel->SetSizer(m_filament_panel_left_sizer);
     m_filament_left_panel->Layout();
 
-    m_filament_right_panel = new StaticBox(m_scroll_area);
+    m_filament_right_panel = new StaticBox(m_scroll_area, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_filament_right_panel->SetBorderWidth(0);
     m_filament_right_panel->SetBackgroundColour(wxColour("#F8F8F8"));
     m_filament_right_panel->SetMinSize(wxSize(FromDIP(315), -1));
@@ -518,6 +519,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     });
 
     m_check_ext_change_assist = new CheckBox(m_scroll_area, wxID_ANY);
+    m_check_ext_change_assist->SetAccessibleName(_L("Multi-color with external spool"));
     m_check_ext_change_assist->SetValue(false);
     m_check_ext_change_assist->SetBackgroundColour(*wxWHITE);
     m_check_ext_change_assist->SetToolTip(_L("Manually change external spool during printing for multi-color printing"));
@@ -578,7 +580,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     sizer_split_options->Add(0, 0, 0, wxEXPAND, 0);
     sizer_split_options->Add(m_split_options_line, 1, wxALIGN_CENTER, 0);
 
-    m_options_other = new wxPanel(m_scroll_area);
+    m_options_other = new wxPanel(m_scroll_area, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
 
 
     auto option_timelapse = new PrintOption(m_options_other, _L("Timelapse"), wxEmptyString, ops_no_auto, "timelapse");
@@ -624,7 +626,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     );
     option_nozzle_offset_cali_cali->Bind(EVT_SWITCH_PRINT_OPTION, &SelectMachineDialog::on_nozzle_offset_option_changed, this);
 
-    m_pa_value_panel = new wxPanel(m_options_other);
+    m_pa_value_panel = new wxPanel(m_options_other, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_pa_value_panel->SetMaxSize(wxSize(FromDIP(315), -1));
     m_pa_value_panel->SetMinSize(wxSize(FromDIP(315), -1));
     wxBoxSizer *m_pa_value_panel_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -635,6 +637,7 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
     m_pa_value_message->Wrap(FromDIP(243));
 
     m_pa_value_switch = new SwitchButton(m_pa_value_panel);
+    m_pa_value_switch->SetAccessibleName(_L("Share PA profile across nozzles and filaments of same type"));
     m_pa_value_switch->SetBackgroundColour(*wxWHITE);
     m_pa_value_switch->SetValue(true);
     m_pa_value_switch->Bind(wxEVT_TOGGLEBUTTON, &SelectMachineDialog::on_pa_value_switch_changed, this);
@@ -928,6 +931,17 @@ SelectMachineDialog::SelectMachineDialog(Plater *plater)
 
 void SelectMachineDialog::init_bind()
 {
+    // Set initial keyboard focus to printer combobox when dialog opens
+    Bind(wxEVT_INIT_DIALOG, [this](wxInitDialogEvent& e) {
+        e.Skip();
+        CallAfter([this]() {
+            if (m_printer_box) {
+                auto* combo = m_printer_box->GetPrinterComboBox();
+                if (combo && combo->IsShown()) combo->SetFocus();
+            }
+        });
+    });
+
     Bind(wxEVT_TIMER, &SelectMachineDialog::on_timer, this);
     Bind(EVT_CLEAR_IPADDRESS, &SelectMachineDialog::clear_ip_address_config, this);
     Bind(EVT_SHOW_ERROR_INFO, [this](auto& e) {show_print_failed_info(true);});
@@ -6864,6 +6878,7 @@ bool SelectMachineDialog::is_used_filament(int fila_logic_id) const
 
      m_printoption_item = new PrintOptionItem(this, m_ops, param);
      m_printoption_item->SetFont(Label::Body_13);
+     m_printoption_item->SetToolTip(title); // accessible name for NVDA
 
      sizer->Add(m_printoption_title, 0, wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, 0);
      sizer->Add(m_printoption_tips, 0, wxLEFT | wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL, FromDIP(2));
@@ -7046,6 +7061,34 @@ PrintOptionItem::PrintOptionItem(wxWindow* parent, std::vector<POItem> ops, std:
     Bind(wxEVT_ENTER_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_HAND); });
     Bind(wxEVT_LEAVE_WINDOW, [this](auto& e) { SetCursor(wxCURSOR_ARROW); });
     Bind(wxEVT_LEFT_DOWN, &PrintOptionItem::on_left_down, this);
+    // Keyboard: Left/Right arrows navigate options; Space/Enter activates next
+    Bind(wxEVT_KEY_DOWN, [this](wxKeyEvent& e) {
+        if (m_ops.empty() || !m_enable) { e.Skip(); return; }
+        int idx = 0;
+        for (int i = 0; i < (int)m_ops.size(); ++i) {
+            if (m_ops[i].key == selected_key) { idx = i; break; }
+        }
+        int new_idx = idx;
+        int code = e.GetKeyCode();
+        if (code == WXK_LEFT || code == WXK_UP) {
+            if (idx > 0) new_idx = idx - 1;
+        } else if (code == WXK_RIGHT || code == WXK_DOWN) {
+            if (idx + 1 < (int)m_ops.size()) new_idx = idx + 1;
+        } else { e.Skip(); return; }
+        if (new_idx != idx) {
+            m_old_selected_key = selected_key;
+            selected_key = m_ops[new_idx].key;
+            wxCommandEvent event(EVT_SWITCH_PRINT_OPTION);
+            event.SetString(selected_key);
+            event.SetEventObject(GetParent());
+            wxPostEvent(GetParent(), event);
+            Refresh();
+#if wxUSE_ACCESSIBILITY
+            wxAccessible::NotifyEvent(wxACC_EVENT_OBJECT_VALUECHANGE, this, wxOBJID_CLIENT, wxACC_SELF);
+#endif
+        }
+    });
+    SetCanFocus(true);
 
     m_selected_bk = ScalableBitmap(this, "print_options_bg", 22);
     m_selected_bk_dark = ScalableBitmap(this, "print_options_bg_dark", 22);
@@ -7054,6 +7097,9 @@ PrintOptionItem::PrintOptionItem(wxWindow* parent, std::vector<POItem> ops, std:
 
     // update the options
     update_options(ops);
+#if wxUSE_ACCESSIBILITY
+    SetAccessible(new PrintOptionItemAccessible(this));
+#endif
 }
 
 void PrintOptionItem::OnPaint(wxPaintEvent& event)
@@ -7212,7 +7258,17 @@ void PrintOptionItem::setValue(std::string value)
 {
     if (selected_key != value) {
         selected_key = value;
+        // Update accessible label so NVDA announces the new selection.
+        for (const auto& op : m_ops) {
+            if (op.key == value) {
+                wxWindow::SetLabel(op.value);
+                break;
+            }
+        }
         Refresh();
+#if wxUSE_ACCESSIBILITY
+        wxAccessible::NotifyEvent(wxACC_EVENT_OBJECT_VALUECHANGE, this, wxOBJID_CLIENT, wxACC_SELF);
+#endif
     }
 }
 
@@ -7499,6 +7555,7 @@ void PrinterInfoBox::Create()
     printer_staticbox->SetBorderColor(wxColour("#CECECE"));
 
     m_comboBox_printer = new ComboBox(printer_staticbox, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
+    m_comboBox_printer->SetToolTip(_L("Printer"));
     m_comboBox_printer->SetBorderWidth(0);
     m_comboBox_printer->SetMinSize(wxSize(FromDIP(300), FromDIP(60)));
     m_comboBox_printer->SetMaxSize(wxSize(FromDIP(300), FromDIP(60)));
@@ -7506,6 +7563,7 @@ void PrinterInfoBox::Create()
     m_comboBox_printer->Bind(wxEVT_COMBOBOX, &SelectMachineDialog::on_selection_changed, m_select_dialog);
 
     m_button_refresh = new ScalableButton(printer_staticbox, wxID_ANY, "refresh_printer", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true);
+    m_button_refresh->SetToolTip(_L("Refresh printer list"));
     m_button_refresh->Bind(wxEVT_BUTTON, &SelectMachineDialog::on_refresh, m_select_dialog);
 
     sizer_printer_staticbox->Add(0, 0, 0, wxLEFT, FromDIP(7));

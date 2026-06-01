@@ -1,4 +1,5 @@
 #include "CheckBox.hpp"
+#include "../Accessibility.hpp"
 
 #include "../wxExtensions.hpp"
 
@@ -27,6 +28,9 @@ CheckBox::CheckBox(wxWindow *parent, int id)
 	SetSize(m_on.GetBmpSize());
 	SetMinSize(m_on.GetBmpSize());
 	update();
+#if wxUSE_ACCESSIBILITY
+    SetAccessible(new ToggleAccessible(this, wxROLE_SYSTEM_CHECKBUTTON));
+#endif
 }
 
 void CheckBox::SetValue(bool value)

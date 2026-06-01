@@ -55,6 +55,7 @@ CameraPopup::CameraPopup(wxWindow *parent)
     m_text_recording->SetFont(Label::Head_14);
     m_text_recording->SetForegroundColour(TEXT_COL);
     m_switch_recording = new SwitchButton(m_panel);
+    m_switch_recording->SetAccessibleName(_L("Auto-record Monitoring"));
 
     //vcamera
     m_text_vcamera = new wxStaticText(m_panel, wxID_ANY, _L("Go Live"));
@@ -62,6 +63,7 @@ CameraPopup::CameraPopup(wxWindow *parent)
     m_text_vcamera->SetFont(Label::Head_14);
     m_text_vcamera->SetForegroundColour(TEXT_COL);
     m_switch_vcamera = new SwitchButton(m_panel);
+    m_switch_vcamera->SetAccessibleName(_L("Go Live"));
 
     top_sizer->Add(m_text_recording, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT | wxALL, FromDIP(5));
     top_sizer->Add(m_switch_recording, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT | wxALL, FromDIP(5));
@@ -74,6 +76,7 @@ CameraPopup::CameraPopup(wxWindow *parent)
     m_text_liveview_retry->SetFont(Label::Head_14);
     m_text_liveview_retry->SetForegroundColour(TEXT_COL);
     m_switch_liveview_retry = new SwitchButton(m_panel);
+    m_switch_liveview_retry->SetAccessibleName(_L("Liveview Retry"));
     bool auto_retry         = wxGetApp().app_config->get("liveview", "auto_retry") != "false";
     m_switch_liveview_retry->SetValue(auto_retry);
 

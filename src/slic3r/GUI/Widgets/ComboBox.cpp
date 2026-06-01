@@ -1,5 +1,6 @@
 #include "ComboBox.hpp"
 #include "Label.hpp"
+#include "../Accessibility.hpp"
 
 #include <wx/dcgraph.h>
 
@@ -74,6 +75,9 @@ ComboBox::ComboBox(wxWindow *parent,
         GetEventHandler()->ProcessEvent(e);
     });
     for (int i = 0; i < n; ++i) Append(choices[i]);
+#if wxUSE_ACCESSIBILITY
+    SetAccessible(new ComboBoxAccessible(this));
+#endif
 }
 
 int ComboBox::GetSelection() const {
@@ -104,7 +108,9 @@ void ComboBox::SetSelection(int n)
     } else {
         SetStaticTips(wxEmptyString, wxNullBitmap);
     }
-
+#if wxUSE_ACCESSIBILITY
+    wxAccessible::NotifyEvent(wxACC_EVENT_OBJECT_VALUECHANGE, this, wxOBJID_CLIENT, wxACC_SELF);
+#endif
 }
 void ComboBox::SelectAndNotify(int n) {
     SetSelection(n);

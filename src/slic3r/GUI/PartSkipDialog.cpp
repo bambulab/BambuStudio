@@ -142,6 +142,7 @@ PartSkipDialog::PartSkipDialog(wxWindow *parent) : DPIDialog(parent, wxID_ANY, _
 
     auto all_checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
     m_all_checkbox          = new CheckBox(m_book_third_panel, wxID_ANY);
+    m_all_checkbox->SetAccessibleName(_L("Select All"));
     m_all_checkbox->SetValue(false);
     m_all_checkbox->SetMinSize(wxSize(FromDIP(18), FromDIP(18)));
     m_all_checkbox->SetBackgroundColour(*wxWHITE);
@@ -781,6 +782,7 @@ void PartSkipDialog::InitDialogUI()
             label->SetForegroundColour(wxColor(107, 107, 107));
             label->Wrap(-1);
             label->SetMinSize(wxSize(-1, FromDIP(18)));
+            checkbox->SetAccessibleName(wxString::FromUTF8(m_parts_name[part_id]));
             checkbox->SetBackgroundColour(*wxWHITE);
             checkbox->SetMinSize(wxSize(FromDIP(18), FromDIP(18)));
             checkbox->SetMaxSize(wxSize(FromDIP(18), FromDIP(18)));

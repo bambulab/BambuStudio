@@ -475,6 +475,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
      wxBoxSizer* sizere_notice_body = new wxBoxSizer(wxHORIZONTAL);
 
      auto m_checkbox_privacy = new CheckBox(m_panel_agreement, wxID_ANY);
+     m_checkbox_privacy->SetAccessibleName(_L("Read and accept Terms and Conditions and Privacy Policy"));
      auto m_st_privacy_title = new Label(m_panel_agreement, _L("Read and accept"));
      m_st_privacy_title->SetFont(Label::Body_13);
      m_st_privacy_title->SetForegroundColour(wxColour(38, 46, 48));
@@ -534,6 +535,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
      wxString notice_link_title = _L("Statement about User Experience Improvement Program");
 
      auto m_checkbox_notice = new CheckBox(m_panel_agreement, wxID_ANY);
+     m_checkbox_notice->SetAccessibleName(notice_title + wxString(" ") + notice_link_title);
      auto m_st_notice_title = new Label(m_panel_agreement, notice_title);
      m_st_notice_title->SetFont(Label::Body_13);
      m_st_notice_title->SetForegroundColour(wxColour(38, 46, 48));

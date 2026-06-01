@@ -25,6 +25,7 @@
 #include "Plater.hpp"
 #include "BitmapCache.hpp"
 #include "BindDialog.hpp"
+#include "Accessibility.hpp"
 
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevFilaSwitch.h"
@@ -69,6 +70,9 @@ const int LEFT_OFFSET = 2;
 
     Bind(wxEVT_PAINT, &MaterialItem::paintEvent, this);
     wxGetApp().UpdateDarkUI(this);
+#if wxUSE_ACCESSIBILITY
+    SetAccessible(new ButtonAccessible(this));
+#endif
  }
 
  MaterialItem::~MaterialItem() {}
@@ -1282,6 +1286,9 @@ void AmsMapingPopup::update_flush_waste(MachineObject* obj)
     mapping_item_checked = ScalableBitmap(this, "mapping_item_checked", FromDIP(20));
     SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     Bind(wxEVT_PAINT, &MappingItem::paintEvent, this);
+#if wxUSE_ACCESSIBILITY
+    SetAccessible(new ButtonAccessible(this));
+#endif
 }
 
  MappingItem::~MappingItem()
@@ -1428,6 +1435,11 @@ void MappingItem::set_data(const wxString &tag_name, wxColour colour, wxString n
         m_support_remain_detect = remain_dect;
         m_to_paint_remain       = (m_tray_data.ams_id != VIRTUAL_TRAY_MAIN_ID && m_tray_data.ams_id != VIRTUAL_TRAY_DEPUTY_ID);
         Refresh();
+    }
+    // Set concise accessible label: "Slot A1: PLA" (read by ButtonAccessible before tooltip)
+    {
+        wxString acc_label = m_tray_index.IsEmpty() ? name : m_tray_index + ": " + name;
+        SetLabel(acc_label);
     }
 
     if (tooltip_opt.has_value())

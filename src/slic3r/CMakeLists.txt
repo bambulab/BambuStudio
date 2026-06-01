@@ -468,6 +468,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/UserPresetsDialog.hpp
     GUI/ExtraRenderers.cpp
     GUI/ExtraRenderers.hpp
+    GUI/Accessibility.cpp
+    GUI/Accessibility.hpp
     GUI/ProjectDirtyStateManager.hpp
     GUI/ProjectDirtyStateManager.cpp
     GUI/DesktopIntegrationDialog.cpp
@@ -741,11 +743,24 @@ if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
 endif ()
 
 if (NOT APPLE)
-    pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
-        libavcodec
-        libswscale
-        libavutil
-    )
+    if (WIN32)
+        # On Windows, FFmpeg is pre-built in deps — no pkg-config available
+        find_library(LIBAVCODEC_LIB avcodec REQUIRED)
+        find_library(LIBSWSCALE_LIB swscale REQUIRED)
+        find_library(LIBAVUTIL_LIB  avutil  REQUIRED)
+        find_path(LIBAV_INCLUDE_DIR libavcodec/avcodec.h REQUIRED)
+        add_library(PkgConfig::LIBAV INTERFACE IMPORTED GLOBAL)
+        set_target_properties(PkgConfig::LIBAV PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${LIBAV_INCLUDE_DIR}"
+            INTERFACE_LINK_LIBRARIES      "${LIBAVCODEC_LIB};${LIBSWSCALE_LIB};${LIBAVUTIL_LIB}"
+        )
+    else()
+        pkg_check_modules(LIBAV REQUIRED IMPORTED_TARGET
+            libavcodec
+            libswscale
+            libavutil
+        )
+    endif()
     target_link_libraries(libslic3r_gui PkgConfig::LIBAV)
 endif()
 

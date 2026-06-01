@@ -18,6 +18,7 @@
 #include "libslic3r/FilamentMixer.hpp"
 #include "I18N.hpp"
 #include "GUI.hpp"
+#include "Accessibility.hpp"
 #include "GUI_App.hpp"
 #include "Tab.hpp"
 #include "libslic3r/Preset.hpp"
@@ -695,6 +696,7 @@ wxBoxSizer* MixedFilamentDialog::create_gradient_section()
 
     m_chk_gradient = new ::CheckBox(this);
     m_chk_gradient->SetValue(m_result.gradient_enabled);
+    m_chk_gradient->SetAccessibleName(_L("Gradient Effect"));
     m_chk_gradient->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent& e) { e.Skip(); on_gradient_toggled(); });
     m_gradient_sizer->Add(m_chk_gradient, 0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, FromDIP(4));
 
@@ -704,6 +706,7 @@ wxBoxSizer* MixedFilamentDialog::create_gradient_section()
 
     m_combo_gradient_dir = new ComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
                                         wxSize(FromDIP(152), FromDIP(24)), 0, nullptr, wxCB_READONLY);
+    m_combo_gradient_dir->SetToolTip(_L("Gradient direction"));
     m_combo_gradient_dir->SetKeepDropArrow(true);
     update_gradient_direction_items();
     m_combo_gradient_dir->SetSelection(m_result.gradient_direction);
@@ -719,6 +722,7 @@ wxBoxSizer* MixedFilamentDialog::create_gradient_section()
 
     m_chk_per_part_gradient = new ::CheckBox(this);
     m_chk_per_part_gradient->SetValue(m_result.per_part_gradient);
+    m_chk_per_part_gradient->SetAccessibleName(_L("Enable per-part gradient effect"));
     m_chk_per_part_gradient->Bind(wxEVT_TOGGLEBUTTON,
         [this](wxCommandEvent& e) { e.Skip(); on_per_part_gradient_toggled(); });
     m_per_part_gradient_sizer->Add(m_chk_per_part_gradient, 0,

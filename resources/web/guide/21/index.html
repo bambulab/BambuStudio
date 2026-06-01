@@ -13,11 +13,12 @@
 <script type="text/javascript" src="../../data/text.js"></script>	
 <script type="text/javascript" src="../js/globalapi.js"></script>	
 <script type="text/javascript" src="../js/common.js"></script>
-<script type="text/javascript" src="21.js"></script>		
+<script type="text/javascript" src="21.js"></script>
+<script type="text/javascript" src="../js/accessibility.js"></script>
 </head>
 <body onLoad="OnInit()">
 <div id="Title">
-	<div class="trans" tid="t10">Printer Selection</div>
+	<div class="trans" role="heading" aria-level="1" tid="t10">Printer Selection</div>
 </div>
 <div id="Content"  class="ZScrol">
 
@@ -111,8 +112,8 @@
 	
 </div>
 <div id="AcceptArea">
-	<div class="GrayBtn trans" id="PreBtn" tid="t8"  onclick="window.open('../3/index.html','_self')">Back</div>
-	<div class="NormalBtn trans" id="AcceptBtn" tid="t9"  onclick="GotoFilamentPage()">Next</div>
+	<div class="GrayBtn trans" id="PreBtn" role="button" tabindex="0" tid="t8" onclick="window.open('../3/index.html','_self')">Back</div>
+	<div class="NormalBtn trans" id="AcceptBtn" role="button" tabindex="0" tid="t9" onclick="GotoFilamentPage()">Next</div>
 </div>
 	
 <div id="NoticeMask"></div>

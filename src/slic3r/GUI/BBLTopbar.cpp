@@ -295,6 +295,16 @@ void BBLTopbar::Init(wxFrame* parent)
     wxBitmap close_bitmap = create_scaled_bitmap("topbar_close", nullptr, TOPBAR_ICON_SIZE);
     wxAuiToolBarItem* close_btn = this->AddTool(wxID_CLOSE_FRAME, "", close_bitmap);
 
+    // Accessible short-help for icon-only buttons (NVDA reads these as tooltip)
+    SetToolShortHelp(ID_TOP_DROPDOWN_MENU, _L("More options"));
+    SetToolShortHelp(wxID_SAVE,            _L("Save project"));
+    SetToolShortHelp(wxID_UNDO,            _L("Undo"));
+    SetToolShortHelp(wxID_REDO,            _L("Redo"));
+    SetToolShortHelp(ID_PUBLISH,           _L("Publish model"));
+    SetToolShortHelp(wxID_ICONIZE_FRAME,   _L("Minimize"));
+    SetToolShortHelp(wxID_MAXIMIZE_FRAME,  _L("Maximize"));
+    SetToolShortHelp(wxID_CLOSE_FRAME,     _L("Close"));
+
     Realize();
     // m_toolbar_h = this->GetSize().GetHeight();
     m_toolbar_h = FromDIP(30);

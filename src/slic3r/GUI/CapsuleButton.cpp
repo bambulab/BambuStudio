@@ -3,6 +3,7 @@
 #include <wx/dcbuffer.h>
 #include "wx/graphics.h"
 #include "Widgets/Label.hpp"
+#include "Accessibility.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -32,6 +33,10 @@ CapsuleButton::CapsuleButton(wxWindow *parent, wxWindowID id, const wxString &la
     m_btn->SetBackgroundColour(*wxWHITE);
 
     m_label = new Label(this, label);
+    SetLabel(label);
+#if wxUSE_ACCESSIBILITY
+    SetAccessible(new ButtonAccessible(this));
+#endif
 
     sizer->AddSpacer(FromDIP(8));
     sizer->Add(m_btn, 0, wxALIGN_CENTER | wxTOP | wxBOTTOM, FromDIP(6));

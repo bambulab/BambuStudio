@@ -42,6 +42,7 @@ bambustudio_add_cmake_project(wxWidgets
         -DwxUSE_WEBVIEW=ON
         ${_wx_edge}
         -DwxUSE_WEBVIEW_IE=OFF
+        -DwxUSE_ACCESSIBILITY=ON
         -DwxUSE_REGEX=builtin
         -DwxUSE_LIBMSPACK=OFF
         -DwxUSE_LIBSDL=OFF

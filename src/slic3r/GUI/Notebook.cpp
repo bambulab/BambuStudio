@@ -5,6 +5,7 @@
 #include "GUI_App.hpp"
 #include "wxExtensions.hpp"
 #include "Widgets/Button.hpp"
+#include "Accessibility.hpp"
 
 //BBS set font size
 #include "Widgets/Label.hpp"
@@ -166,7 +167,15 @@ void ButtonsListCtrl::SetSelection(int sel)
         );
     m_pageButtons[m_selection]->SetSelected(true);
     m_pageButtons[m_selection]->SetTextColor(text_color);
-    
+#if wxUSE_ACCESSIBILITY
+    // Tell NVDA the newly-selected tab has focus/selection.
+    wxAccessible::NotifyEvent(wxACC_EVENT_OBJECT_FOCUS,
+                              m_pageButtons[m_selection],
+                              wxOBJID_CLIENT, wxACC_SELF);
+    wxAccessible::NotifyEvent(wxACC_EVENT_OBJECT_STATECHANGE,
+                              m_pageButtons[m_selection],
+                              wxOBJID_CLIENT, wxACC_SELF);
+#endif
     Refresh();
 }
 
@@ -189,6 +198,11 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString &text, bool bSelect /*
     btn->SetTextColor(text_color);
     btn->SetInactiveIcon(inactive_bmp_name);
     btn->SetSelected(false);
+#if wxUSE_ACCESSIBILITY
+    // Replace generic ButtonAccessible with tab-specific role so NVDA
+    // announces "Prepare, tab" instead of "Prepare, button".
+    btn->SetAccessible(new TabButtonAccessible(btn));
+#endif
     btn->Bind(wxEVT_BUTTON, [this, btn](wxCommandEvent& event) {
         if (auto it = std::find(m_pageButtons.begin(), m_pageButtons.end(), btn); it != m_pageButtons.end()) {
             auto sel = it - m_pageButtons.begin();

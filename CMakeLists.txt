@@ -117,7 +117,7 @@ endif ()
 
 if (MSVC)
     if (SLIC3R_MSVC_COMPILE_PARALLEL AND NOT IS_CLANG_CL)
-           add_compile_options(/MP)
+           add_compile_options(/MP4)
     endif ()
     # /bigobj (Increase Number of Sections in .Obj file)
     # error C3859: virtual memory range for PCH exceeded; please recompile with a command line option of '-Zm90' or greater
@@ -199,7 +199,7 @@ if(WIN32)
        endif()
     endif()
 
-    find_package(PkgConfig REQUIRED)
+    find_package(PkgConfig)  # optional on Windows - not used for Win10SDK detection
     if(NOT DEFINED WIN10SDK_PATH)
         if(DEFINED ENV{WIN10SDK_PATH})
                 set(WIN10SDK_PATH "$ENV{WIN10SDK_PATH}")

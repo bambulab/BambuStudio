@@ -1,6 +1,7 @@
 #include "SwitchButton.hpp"
 #include "Label.hpp"
 #include "StaticBox.hpp"
+#include "../Accessibility.hpp"
 
 #include "../wxExtensions.hpp"
 #include "../Utils/MacDarkMode.hpp"
@@ -30,6 +31,9 @@ SwitchButton::SwitchButton(wxWindow* parent, wxWindowID id)
 	Bind(wxEVT_TOGGLEBUTTON, [this](auto& e) { update(); e.Skip(); });
 	SetFont(Label::Body_12);
 	Rescale();
+#if wxUSE_ACCESSIBILITY
+    SetAccessible(new ToggleAccessible(this, wxROLE_SYSTEM_PUSHBUTTON));
+#endif
 }
 
 void SwitchButton::SetLabels(wxString const& lbl_on, wxString const& lbl_off)
