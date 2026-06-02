@@ -138,6 +138,12 @@ HistoryWindow::HistoryWindow(wxWindow* parent, const std::vector<PACalibResult>&
     scroll_sizer->Add(mew_btn, 0, wxLEFT, FromDIP(20));
     scroll_sizer->AddSpacer(FromDIP(15));
 
+    m_nozzle_tab_panel = new wxPanel(scroll_window);
+    m_nozzle_tab_panel->SetBackgroundColour(*wxWHITE);
+    m_nozzle_tab_panel->Hide();
+    scroll_sizer->Add(m_nozzle_tab_panel, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(15));
+    scroll_sizer->AddSpacer(FromDIP(10));
+
     m_extruder_switch_btn = new SwitchButton(scroll_window);
     m_extruder_switch_btn->SetBackgroundColour(wxColour(0, 174, 66));
     m_extruder_switch_btn->SetMinSize(wxSize(FromDIP(200), FromDIP(24)));
@@ -230,6 +236,13 @@ void HistoryWindow::sync_history_result(MachineObject* obj)
                                << " matched=" << m_calib_results_history.size();
     }
 
+    if (curr_obj && m_nozzle_tab_panel && m_nozzle_tab_panel->IsShown() && m_selected_nozzle_pos.has_value()) {
+        m_calib_results_history.erase(
+            std::remove_if(m_calib_results_history.begin(), m_calib_results_history.end(),
+                [this](const PACalibResult &r) { return r.nozzle_pos_id != m_selected_nozzle_pos.value(); }),
+            m_calib_results_history.end());
+    }
+
     if (m_calib_results_history.empty()) {
         m_tips->SetLabel(_L("No History Result"));
     } else {
@@ -266,6 +279,16 @@ void HistoryWindow::on_device_connected(MachineObject* obj)
     } else {
         m_extruder_switch_btn->Hide();
     }
+
+    auto rack = obj->GetNozzleSystem()->GetNozzleRack();
+    if (rack->IsSupported() && rack->GetRackType() == DevNozzleRack::RackType::RackType_A) {
+        build_nozzle_tab_panel();
+        m_nozzle_tab_panel->Show();
+    } else {
+        m_nozzle_tab_panel->Hide();
+    }
+    Layout();
+    Fit();
 
     // trigger on_select nozzle
     wxCommandEvent evt(wxEVT_COMBOBOX);
@@ -342,12 +365,86 @@ void HistoryWindow::enbale_action_buttons(bool enable) {
     }
 }
 
+void HistoryWindow::build_nozzle_tab_panel()
+{
+    m_nozzle_tab_btns.clear();
+    m_nozzle_tab_panel->DestroyChildren();
+    m_selected_nozzle_pos = std::nullopt;
+
+    auto sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    auto label = new Label(m_nozzle_tab_panel, _L("PrintTool"));
+    label->SetFont(Label::Head_13);
+    label->SetForegroundColour(wxColour("#262E30"));
+    sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(22));
+
+    auto create_tab_btn = [this, &sizer](const wxString &text, std::optional<int> nozzle_pos_id) {
+        auto btn = new Button(m_nozzle_tab_panel, text);
+        btn->SetFont(Label::Body_13);
+        btn->SetMinSize(wxSize(FromDIP(36), FromDIP(24)));
+        btn->SetMaxSize(wxSize(FromDIP(36), FromDIP(24)));
+        btn->SetCornerRadius(FromDIP(12));
+        btn->SetPaddingSize(wxSize(FromDIP(12), FromDIP(2)));
+        btn->Bind(wxEVT_BUTTON, [this, nozzle_pos_id](auto &) { on_click_nozzle_tab(nozzle_pos_id); });
+        m_nozzle_tab_btns.push_back(btn);
+        sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(8));
+    };
+
+    create_tab_btn("All", std::nullopt);
+
+    auto rack = curr_obj->GetNozzleSystem()->GetNozzleRack();
+    int total = rack->GetTotalRackNozzleCount();
+    for (int i = 1; i <= total; i++) {
+        create_tab_btn(wxString::Format("%d", i), 0x10 | (i - 1));
+    }
+
+    m_nozzle_tab_panel->SetSizer(sizer);
+    m_nozzle_tab_panel->Layout();
+    m_nozzle_tab_panel->Fit();
+
+    update_nozzle_tab_styles();
+}
+
+void HistoryWindow::update_nozzle_tab_styles()
+{
+    StateColor btn_bg_selected(std::pair<wxColour, int>(wxColour("#DBFDE7"), StateColor::Normal));
+    StateColor btn_bg_normal(std::pair<wxColour, int>(wxColour("#FFFFFF"), StateColor::Normal));
+
+    for (int i = 0; i < (int)m_nozzle_tab_btns.size(); i++) {
+        auto btn = m_nozzle_tab_btns[i];
+        bool selected = (i == 0 && !m_selected_nozzle_pos.has_value()) ||
+                        (i >= 1 && m_selected_nozzle_pos.has_value() && m_selected_nozzle_pos.value() == (0x10 | (i - 1)));
+        if (selected) {
+            btn->SetBackgroundColor(btn_bg_selected);
+            btn->SetBorderColor(wxColour("#00AE42"));
+            btn->SetTextColor(wxColour("#262E30"));
+        } else {
+            btn->SetBackgroundColor(btn_bg_normal);
+            btn->SetBorderColor(wxColour("#EEEEEE"));
+            btn->SetTextColor(wxColour("#262E30"));
+        }
+        btn->SetBackgroundColour(*wxWHITE);
+        btn->Refresh();
+    }
+}
+
+void HistoryWindow::on_click_nozzle_tab(std::optional<int> nozzle_pos_id)
+{
+    if (m_selected_nozzle_pos == nozzle_pos_id) return;
+    m_selected_nozzle_pos = nozzle_pos_id;
+    update_nozzle_tab_styles();
+    sync_history_result(curr_obj);
+}
+
 void HistoryWindow::sync_history_data() {
     int column_idx = 0;
 
     Freeze();
     m_history_data_panel->DestroyChildren();
     m_history_data_panel->Enable();
+    auto rack = curr_obj->GetNozzleSystem()->GetNozzleRack();
+    bool show_nozzle_id_col = rack->IsSupported() && get_extruder_id() == MAIN_EXTRUDER_ID && !m_selected_nozzle_pos.has_value();
+
     wxGridBagSizer* gbSizer;
     gbSizer = new wxGridBagSizer(FromDIP(0), FromDIP(50));
     gbSizer->SetFlexibleDirection(wxBOTH);
@@ -364,8 +461,7 @@ void HistoryWindow::sync_history_data() {
     title_preset_name->SetFont(Label::Head_14);
     gbSizer->Add(title_preset_name, { 0, column_idx++ }, { 1, 1 }, wxBOTTOM, FromDIP(15));
 
-    auto rack = curr_obj->GetNozzleSystem()->GetNozzleRack();
-    if(rack->IsSupported() && get_extruder_id() == MAIN_EXTRUDER_ID) {
+    if(show_nozzle_id_col) {
         auto nozzle_name = new Label(m_history_data_panel, _L("Nozzle ID"));
         nozzle_name->SetFont(Label::Head_14);
         auto font = nozzle_name->GetFont();
@@ -494,8 +590,7 @@ void HistoryWindow::sync_history_data() {
         gbSizer->Add(name_value, {i, column_idx++}, {1, 1}, wxBOTTOM, FromDIP(15));
         gbSizer->Add(preset_name_value, {i, column_idx++}, {1, 1}, wxBOTTOM, FromDIP(15));
 
-        auto rack = curr_obj->GetNozzleSystem()->GetNozzleRack();
-        if(rack->IsSupported() && get_extruder_id() == MAIN_EXTRUDER_ID){
+        if(show_nozzle_id_col){
             // Nozzle ID
             wxString nozzle_id       = nozzle_id_code_to_string(result.nozzle_pos_id);
             auto     nozzle_id_label = new Label(m_history_data_panel, nozzle_id);
