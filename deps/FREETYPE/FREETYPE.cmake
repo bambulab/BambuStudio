@@ -27,3 +27,24 @@ bambustudio_add_cmake_project(FREETYPE
 if(MSVC)
     add_debug_dep(dep_FREETYPE)
 endif()
+
+# On macOS the FT_DISABLE_ZLIB option above does NOT prevent FreeType from
+# linking the bundled zlib code into ftgzip.c.o - the inline copies of
+# inflate / inflateInit_ / zcalloc / adler32 etc. stay as global T symbols.
+# When BambuStudio is statically linked, those globals satisfy Assimp's
+# `inflateInit_` reference with FreeType's bundled 1.2.12 code while Assimp's
+# `inflate` still binds dynamically to the macOS system libz (1.2.11). The
+# resulting z_stream/state ABI mismatch makes Assimp's FBX 7.4 binary parser
+# fail with "CompressionFailure decompressing this file using gzip." on any
+# FBX that uses compressed property arrays. Strip the zlib externals after
+# install so only FT_Gzip_Uncompress / FT_Stream_OpenGzip remain visible.
+if(APPLE)
+    ExternalProject_Add_Step(dep_FREETYPE strip_zlib_globals
+        COMMENT "Stripping FreeType bundled-zlib globals from libfreetype.a (macOS)"
+        DEPENDEES install
+        ALWAYS 1
+        COMMAND ${CMAKE_COMMAND} -E env bash
+                "${CMAKE_CURRENT_LIST_DIR}/strip_libfreetype_zlib.sh"
+                "${DESTDIR}/usr/local/lib/libfreetype.a"
+    )
+endif()
