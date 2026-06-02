@@ -519,6 +519,9 @@ protected:
     StaticBox*      m_fan_panel;
     StaticLine *    m_line_nozzle;
     wgtCircleItem*  m_main_extruder_nozzle_idx{ nullptr };
+    wxPanel*        m_nozzle_empty_hint{ nullptr };
+    wxStaticBitmap* m_nozzle_empty_hint_icon{ nullptr };
+    Label*          m_nozzle_empty_hint_label{ nullptr };
     TempInput*      m_tempCtrl_nozzle;
     int             m_temp_nozzle_timeout{ 0 };
     TempInput*      m_tempCtrl_nozzle_deputy;

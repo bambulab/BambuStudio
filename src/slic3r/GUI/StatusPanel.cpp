@@ -2436,9 +2436,26 @@ wxBoxSizer *StatusBasePanel::create_temp_control(wxWindow *parent)
     m_main_extruder_nozzle_idx->SetMinSize(wxSize(FromDIP(16), FromDIP(16)));
     m_main_extruder_nozzle_idx->SetValue(1);
 
+    m_nozzle_empty_hint = new wxPanel(parent);
+    m_nozzle_empty_hint->SetBackgroundColour(*wxWHITE);
+    m_nozzle_empty_hint->SetMinSize(TEMP_CTRL_MIN_SIZE_ALIGN_ONE_ICON);
+    m_nozzle_empty_hint->SetMaxSize(TEMP_CTRL_MIN_SIZE_ALIGN_ONE_ICON);
+    auto nozzle_empty_hint_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_nozzle_empty_hint_icon = new wxStaticBitmap(m_nozzle_empty_hint, wxID_ANY, create_scaled_bitmap("monitor_nozzle_temp", this, 16),
+                                                  wxDefaultPosition, wxSize(FromDIP(16), FromDIP(16)), 0);
+    m_nozzle_empty_hint_label = new Label(m_nozzle_empty_hint, _L("No nozzle"));
+    m_nozzle_empty_hint_label->SetFont(Label::Body_12);
+    m_nozzle_empty_hint_label->SetForegroundColour(wxColour("#909090"));
+    nozzle_empty_hint_sizer->Add(FromDIP(12), 0, 0, wxEXPAND, 0);
+    nozzle_empty_hint_sizer->Add(m_nozzle_empty_hint_icon, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(4));
+    nozzle_empty_hint_sizer->Add(m_nozzle_empty_hint_label, 0, wxALIGN_CENTER_VERTICAL, 0);
+    m_nozzle_empty_hint->SetSizer(nozzle_empty_hint_sizer);
+    m_nozzle_empty_hint->Hide();
+
     auto nozzle_main_row = new wxBoxSizer(wxHORIZONTAL);
     nozzle_main_row->Add(m_main_extruder_nozzle_idx, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(6));
     nozzle_main_row->Add(m_tempCtrl_nozzle, 1, wxEXPAND, 0);
+    nozzle_main_row->Add(m_nozzle_empty_hint, 1, wxEXPAND, 0);
     sizer->Add(nozzle_main_row, 0, wxEXPAND | wxALL, 1);
     m_tempCtrl_nozzle_deputy->Hide();
 
@@ -2563,6 +2580,10 @@ void StatusBasePanel::reset_temp_misc_control()
     m_tempCtrl_nozzle->SetIconNormal();
     m_tempCtrl_nozzle->SetLabel(TEMP_BLANK_STR);
     m_tempCtrl_nozzle->GetTextCtrl()->SetValue(TEMP_BLANK_STR);
+    m_tempCtrl_nozzle->Show();
+    if (m_nozzle_empty_hint) {
+        m_nozzle_empty_hint->Hide();
+    }
 
     m_tempCtrl_nozzle_deputy->SetIconNormal();
     m_tempCtrl_nozzle_deputy->SetLabel(TEMP_BLANK_STR);
@@ -3876,21 +3897,31 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
     bool to_update_layout = false;
     int  nozzle_num       = obj->GetExtderSystem()->GetTotalExtderCount();
     if (nozzle_num == 1) {
-        if (obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType::RackType_A || obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType::RackType_B) {
-            int main_extder_nozzle_id = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID)->GetNozzleId();
-            if (main_extder_nozzle_id != 0xE) {
-                if (main_extder_nozzle_id >= 16) {
-                    m_main_extruder_nozzle_idx->SetValue(main_extder_nozzle_id - 16 + 1);
-                } else {
-                    m_main_extruder_nozzle_idx->SetValue(main_extder_nozzle_id + 1);
-                }
+        const bool is_rack_a_or_b = obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType::RackType_A ||
+                                    obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType::RackType_B;
+        const auto main_extder = obj->GetExtderSystem()->GetExtderById(MAIN_EXTRUDER_ID);
+        const bool show_nozzle_empty_hint = is_rack_a_or_b && main_extder.has_value() && !main_extder->GetPickedNozzleAddrId().has_value();
+        if (m_nozzle_empty_hint && m_nozzle_empty_hint->IsShown() != show_nozzle_empty_hint) {
+            to_update_layout = true;
+        }
+        if (m_tempCtrl_nozzle->IsShown() == show_nozzle_empty_hint) {
+            to_update_layout = true;
+        }
 
+        if (show_nozzle_empty_hint) {
+            m_main_extruder_nozzle_idx->Hide();
+            m_tempCtrl_nozzle->Hide();
+            m_nozzle_empty_hint->Show();
+        } else {
+            m_nozzle_empty_hint->Hide();
+            m_tempCtrl_nozzle->Show();
+            if (is_rack_a_or_b && main_extder.has_value() && main_extder->GetPickedNozzleAddrId().has_value()) {
+                const auto picked_addr_id = main_extder->GetPickedNozzleAddrId();
+                m_main_extruder_nozzle_idx->SetValue(picked_addr_id.value() + 1);
                 m_main_extruder_nozzle_idx->Show();
             } else {
                 m_main_extruder_nozzle_idx->Hide();
             }
-        } else {
-            m_main_extruder_nozzle_idx->Hide();
         }
 
         m_tempCtrl_nozzle->SetCurrTemp(obj->GetExtderSystem()->GetNozzleTempCurrent(MAIN_EXTRUDER_ID));
@@ -3905,6 +3936,10 @@ void StatusPanel::update_temp_ctrl(MachineObject *obj)
             m_tempCtrl_nozzle->SetMinSize(TEMP_CTRL_MIN_SIZE_ALIGN_ONE_ICON);
         }
     } else if (nozzle_num == 2) {
+        if (m_nozzle_empty_hint && m_nozzle_empty_hint->IsShown()) {
+            m_nozzle_empty_hint->Hide();
+            to_update_layout = true;
+        }
         m_tempCtrl_nozzle->SetCurrType(TEMP_OF_MAIN_NOZZLE_TYPE);
         m_tempCtrl_nozzle->SetCurrTemp(obj->GetExtderSystem()->GetNozzleTempCurrent(MAIN_EXTRUDER_ID));
         m_tempCtrl_nozzle->Show();
