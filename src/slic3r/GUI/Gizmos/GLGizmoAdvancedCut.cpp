@@ -2447,7 +2447,10 @@ void GLGizmoAdvancedCut::render_cut_plane_input_window(float x, float y, float b
     ImGui::PushItemWidth(3 * unit_size + 2 * space_size);
     ImGui::BBLInputDouble("##cut_height", &m_buffered_height, 0.0f, 0.0f, "%.2f");
     if (m_last_active_item_imgui != current_active_id && std::abs(m_buffered_height - m_plane_center.z()) > EPSILON) {
-        update_plate_center(Axis::Z, m_buffered_height - m_plane_center.z(), false);
+        // Height is the absolute world-Z of the cut plane center, so set world Z directly.
+        Vec3d new_center = m_plane_center;
+        new_center.z()   = m_buffered_height;
+        set_center(new_center, true);
         reset_cut_by_contours();
 
         Plater::TakeSnapshot snapshot(wxGetApp().plater(), "set height for cut plane");
