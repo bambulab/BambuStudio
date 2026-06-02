@@ -1402,131 +1402,16 @@
 
 .hotend-rack-progress-visual-card {
   position: relative;
-  width: 96px;
+  width: 130px;
   height: 156px;
 }
 
-.rack-visual-read-nozzle,
-.rack-visual-read-holder,
-.rack-visual-read-line,
-.rack-visual-read-head,
-.rack-visual-take-body,
-.rack-visual-take-shell,
-.rack-visual-take-tube-dark,
-.rack-visual-take-tube-light,
-.rack-visual-take-nozzle,
-.rack-visual-take-lower-tube,
-.rack-visual-take-left-block,
-.rack-visual-take-right-block,
-.rack-visual-take-arc {
-  position: absolute;
+.rack-visual-hotend-job-preview {
   display: block;
-  max-width: none;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   pointer-events: none;
-}
-
-.rack-visual-read-nozzle {
-  left: 38px;
-  top: 0;
-  width: 20px;
-  height: 48px;
-}
-
-.rack-visual-read-holder {
-  left: 36px;
-  top: 44px;
-  width: 24px;
-  height: 72px;
-}
-
-.rack-visual-read-line {
-  left: 47px;
-  top: 8px;
-  width: 2px;
-  height: 126px;
-}
-
-.rack-visual-read-head {
-  left: 41px;
-  top: 124px;
-  width: 14px;
-  height: 14px;
-}
-
-.rack-visual-toolhead {
-  position: relative;
-  width: 96px;
-  height: 156px;
-}
-
-.rack-visual-take-body {
-  left: 26px;
-  top: 58px;
-  width: 44px;
-  height: 92px;
-}
-
-.rack-visual-take-shell {
-  left: 21px;
-  top: 0;
-  width: 54px;
-  height: 84px;
-}
-
-.rack-visual-take-tube-dark.top {
-  left: 43px;
-  top: 12px;
-  width: 10px;
-  height: 46px;
-}
-
-.rack-visual-take-tube-light.top {
-  left: 46px;
-  top: 20px;
-  width: 4px;
-  height: 30px;
-}
-
-.rack-visual-take-nozzle {
-  left: 40px;
-  top: 124px;
-  width: 16px;
-  height: 32px;
-}
-
-.rack-visual-take-tube-dark.bottom {
-  left: 43px;
-  top: 82px;
-  width: 10px;
-  height: 46px;
-}
-
-.rack-visual-take-tube-light.bottom {
-  left: 46px;
-  top: 88px;
-  width: 4px;
-  height: 30px;
-}
-
-.rack-visual-take-left-block {
-  left: 16px;
-  top: 88px;
-  width: 28px;
-  height: 18px;
-}
-
-.rack-visual-take-right-block {
-  left: 52px;
-  top: 88px;
-  width: 28px;
-  height: 18px;
-}
-
-.rack-visual-take-arc {
-  left: 54px;
-  top: 12px;
-  width: 26px;
-  height: 26px;
 }
 
 .hotend-rack-progress-actions {

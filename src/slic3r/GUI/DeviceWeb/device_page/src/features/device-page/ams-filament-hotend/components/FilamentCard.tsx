@@ -30,11 +30,10 @@ export function FilamentCard({
   const canSelect = inBatchMode ? !!selectAction?.can_select : false;
   const notAllowed = inBatchMode && !canSelect;
   // Card-head right slot priority: loading > batch checkbox > nothing.
-  // Loading wins because the running filament-change run keeps that slot
-  // out of any batch selection anyway, and the user needs the visual cue
-  // that the slot is busy regardless of page mode.
-  const cardState = slot.filament_card.state;
-  const isTransporting = cardState === 'Loading' || cardState === 'Unloading';
+  // Loading is a transport state carried by filament_line, so it can coexist
+  // with material identity states such as Unknown.
+  const lineState = slot.filament_line.state;
+  const isTransporting = lineState === 'loading' || lineState === 'unloading';
 
   const cls = ['filament-card'];
   if (slot.selected || (inBatchMode && batchChecked)) cls.push('selected');

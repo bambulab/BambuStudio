@@ -245,32 +245,12 @@ void ctrl_hotend_rack_ams_control(const DevNozzleRack* rack, const std::string& 
 }
 }
 
-void DevNozzleRack::CtrlStopHotendRead() const
+void DevNozzleRack::CtrlStopHotendRackJob() const
 {
     ctrl_hotend_rack_ams_control(this, "abort");
 }
 
-void DevNozzleRack::CtrlStopHotendPlace() const
-{
-    ctrl_hotend_rack_ams_control(this, "abort");
-}
-
-void DevNozzleRack::CtrlStopHotendPick() const
-{
-    ctrl_hotend_rack_ams_control(this, "abort");
-}
-
-void DevNozzleRack::CtrlRetryHotendRead() const
-{
-    ctrl_hotend_rack_ams_control(this, "resume");
-}
-
-void DevNozzleRack::CtrlRetryHotendPlace() const
-{
-    ctrl_hotend_rack_ams_control(this, "resume");
-}
-
-void DevNozzleRack::CtrlRetryHotendPick() const
+void DevNozzleRack::CtrlRetryHotendRackJob() const
 {
     ctrl_hotend_rack_ams_control(this, "resume");
 }

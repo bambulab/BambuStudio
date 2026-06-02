@@ -34,7 +34,11 @@ private:
                              const Slic3r::DevAms* fallback_dryer_unit) const;
 
     std::string ResolveCardState(Slic3r::MachineObject* machine_obj, const Slic3r::DevAmsTray* tray, const std::string& ams_id, const std::string& slot_id, int nozzle_pos) const;
-    std::string ResolveLineState(const std::string& card_state, bool has_hotend_slot) const;
+    std::string ResolveLineState(const std::string& card_state,
+                                 bool has_hotend_slot,
+                                 bool filament_changing,
+                                 bool listed_as_changing,
+                                 bool loaded_in_extruder) const;
     std::string ResolveNozzleState(const std::string& card_state, const std::string& line_state) const;
     std::string ResolveStatusText(const std::string& card_state) const;
     nlohmann::json BuildFilamentChangeStatus(Slic3r::MachineObject* machine_obj,

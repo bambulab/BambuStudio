@@ -149,12 +149,8 @@ public:
     void CtrlNozzleExchange(int from, int to) const;
     bool CtrlCanReadAll() const;
 
-    void CtrlStopHotendRead() const;
-    void CtrlStopHotendPlace() const;
-    void CtrlStopHotendPick() const;
-    void CtrlRetryHotendRead() const;
-    void CtrlRetryHotendPlace() const;
-    void CtrlRetryHotendPick() const;
+    void CtrlStopHotendRackJob() const;
+    void CtrlRetryHotendRackJob() const;
 
     void SetNozzleTargetTemp(int nozzle_pos_id, int temp);
 

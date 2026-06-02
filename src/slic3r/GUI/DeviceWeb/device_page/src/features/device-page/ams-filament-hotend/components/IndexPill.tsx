@@ -3,8 +3,8 @@ import type { AmsFilamentHotendSlotViewModel } from '../types';
 
 export function IndexPill({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
   const { t } = useTranslation();
-  const cardState = slot.filament_card.state;
-  const isTransporting = cardState === 'Loading' || cardState === 'Unloading';
+  const lineState = slot.filament_line.state;
+  const isTransporting = lineState === 'loading' || lineState === 'unloading';
   const cls = ['card-index'];
   // `selected` covers both the user's manual UI selection and the firmware-
   // reported transport states so the pill matches the green-highlight in

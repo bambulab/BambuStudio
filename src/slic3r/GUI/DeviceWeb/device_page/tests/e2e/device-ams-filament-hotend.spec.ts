@@ -106,6 +106,80 @@ test.describe('AMS filament hotend page', () => {
     await expect(page.getByRole('menuitem', { name: 'AMS操作' })).toBeVisible();
   });
 
+  test('renders unknown filament independently from loading state', async ({ page }) => {
+    await page.evaluate(() => {
+      document.dispatchEvent(new CustomEvent('cpp:device', {
+        detail: {
+          head: { version: '1.0', type: 'report', seq: 9002, ts: Date.now() },
+          body: {
+            module: 'device_page_ams_filament_hotend',
+            submod: 'state',
+            action: 'changed',
+            error_code: 0,
+            message: '',
+            payload: {
+              filament_page: {
+                actions: {},
+                filament_change_status: {
+                  active: true,
+                  mode: 'single',
+                  operation: 'change',
+                  running_slot: { ams_id: '0', slot_id: '0', display_index: 1 },
+                  current_step: 6,
+                  current_step_name: 'Grab new filament',
+                  steps: [6],
+                  step_labels: ['Grab new filament'],
+                  current_step_index: 1,
+                  current_step_total: 1,
+                  message: 'Slot 1 loading/unloading filament in progress',
+                  tips: '',
+                },
+                hotend_slots: [{
+                  nozzle_pos: 16,
+                  display_index: 1,
+                  ams_id: '0',
+                  slot_id: '0',
+                  bind_ams: [],
+                  bind_ams_slot_count: 0,
+                  is_top_tier: false,
+                  enabled: true,
+                  filament_card: {
+                    state: 'Unknown',
+                    color: '#D9D9D9',
+                    color_type: 'single',
+                    name: '',
+                    type: '',
+                    remain: 100,
+                    status_text: 'Unknown filament',
+                  },
+                  filament_line: { state: 'loading', has_filament: true, filament_color: '' },
+                  filament_nozzle: { state: 'Active', has_filament: true, filament_color: '', on_extruder: true },
+                }],
+              },
+              hotend_page: {
+                actions: {},
+                hotend_slots: [{
+                  nozzle_pos: 16,
+                  display_index: 1,
+                  ams_id: '0',
+                  slot_id: '0',
+                  enabled: true,
+                  taken: true,
+                  hotend: { current_temp: 220, target_temp: 0, op_state: 'Idle', tool_kind: 'nozzle' },
+                }],
+              },
+            },
+          },
+        },
+      }));
+    });
+
+    await expect(page.getByTestId('ams-hotend-slot-1')).toHaveAttribute('data-card-state', 'Unknown');
+    await expect(page.getByTestId('ams-hotend-slot-1')).toHaveAttribute('data-line-state', 'loading');
+    await expect(page.getByTestId('ams-hotend-slot-name-1')).toContainText('?');
+    await expect(page.getByTestId('ams-hotend-card-loading')).toBeVisible();
+  });
+
   test('shows slot progress and disables other hotend operations while one hotend is reading', async ({ page }) => {
     await page.getByTestId('ams-hotend-tab-hotend').click();
     await page.getByLabel('hotend menu 9').click();
@@ -120,4 +194,5 @@ test.describe('AMS filament hotend page', () => {
     await expect(page.getByRole('menuitem', { name: '取用' })).toBeDisabled();
     await expect(page.getByRole('menuitem', { name: '详情' })).toBeEnabled();
   });
+
 });
