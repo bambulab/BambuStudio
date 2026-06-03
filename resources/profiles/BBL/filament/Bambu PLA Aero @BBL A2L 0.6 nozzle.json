@@ -23,7 +23,7 @@
     "fan_min_speed": [
         "60"
     ],
-    "filament_flush_temp": [
+    "filament_flush_temp_fast": [
         "220"
     ],
     "overhang_fan_threshold": [

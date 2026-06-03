@@ -17,7 +17,7 @@
     "filament_flow_ratio": [
         "0.94"
     ],
-    "filament_flush_temp": [
+    "filament_flush_temp_fast": [
         "240"
     ],
     "filament_long_retractions_when_cut": [
