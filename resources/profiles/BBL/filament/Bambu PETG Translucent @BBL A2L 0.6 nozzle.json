@@ -11,7 +11,7 @@
     "fan_min_speed": [
         "20"
     ],
-    "filament_flush_temp": [
+    "filament_flush_temp_fast": [
         "245"
     ],
     "filament_long_retractions_when_cut": [

@@ -5,7 +5,7 @@
     "from": "system",
     "setting_id": "GFSG98_11",
     "instantiation": "true",
-    "filament_flush_temp": [
+    "filament_flush_temp_fast": [
         "255"
     ],
     "filament_max_volumetric_speed": [

@@ -5,7 +5,7 @@
     "from": "system",
     "setting_id": "GFSG96_21",
     "instantiation": "true",
-    "filament_flush_temp": [
+    "filament_flush_temp_fast": [
         "220"
     ],
     "filament_retraction_length": [
