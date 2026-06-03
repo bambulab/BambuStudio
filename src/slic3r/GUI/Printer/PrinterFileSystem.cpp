@@ -1864,6 +1864,7 @@ StaticBambuLib &StaticBambuLib::get(BambuLib *copy)
     GET_FUNC(Bambu_Close);
     GET_FUNC(Bambu_Destroy);
     GET_FUNC(Bambu_SetLogger);
+    GET_FUNC(Bambu_SetStreamInfoCallback);
     GET_FUNC(Bambu_FreeLogMsg);
     GET_FUNC(Bambu_Deinit);
 
