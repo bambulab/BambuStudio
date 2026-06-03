@@ -826,6 +826,7 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
         if (ImGui::RadioButton(m_desc["same_color_connection"].ToUTF8().data(), is_same_color)) {
             m_bucket_fill_mode = BucketFillType::SameColor;
             m_smart_fill_angle = -1; // set to negative value to disable edge detection
+            is_detect_geometry_edge = m_bucket_fill_mode == BucketFillType::EdgeDetect;
         }
         ImGuiWrapper::pop_radio_style();
         m_tool_type = ToolType::BUCKET_FILL;
