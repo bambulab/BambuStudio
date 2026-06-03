@@ -41,6 +41,9 @@
         "20",
         "30"
     ],
+    "filament_prime_tower_speed_factor_curve": [
+        "1"
+    ],
     "filament_prime_volume": [
         "30"
     ],
