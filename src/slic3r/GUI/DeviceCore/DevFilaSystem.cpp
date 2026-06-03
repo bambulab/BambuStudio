@@ -238,6 +238,16 @@ std::optional<int> DevAmsTray::get_nozzle_pos_id(MachineObject* obj) const
             } else if (ams_type == DevAmsType::EXT_SPOOL) {
                 return 255 - std::stoi(this->id) + 16;
             } else {
+                const auto& nozzle_map = obj->GetNozzleSystem()->GetRackNozzles();
+                for (const auto& [nozzle_id, nozzle] : nozzle_map) {
+                    const auto& bind_ams_list = nozzle.GetBindAms();
+                    for (const auto& bind_ams : bind_ams_list) {
+                        if (std::to_string(bind_ams) == ams_id) {
+                            return nozzle.GetNozzlePosId();
+                        }
+                    }
+                }
+
                 return std::nullopt;//TODO
             }
         }
