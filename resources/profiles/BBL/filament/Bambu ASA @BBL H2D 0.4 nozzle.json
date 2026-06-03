@@ -9,13 +9,16 @@
         "65"
     ],
     "counter_coef_2": [
-        "0.007"
+        "0.0094"
     ],
     "counter_coef_3": [
-        "0.003"
+        "-0.0092"
     ],
     "counter_limit_max": [
-        "0.1"
+        "0.2258"
+    ],
+    "counter_limit_min": [
+        "-0.0092"
     ],
     "filament_cooling_before_tower": [
         "10",
@@ -52,16 +55,16 @@
         "4"
     ],
     "hole_coef_2": [
-        "-0.006"
+        "0.0013"
     ],
     "hole_coef_3": [
-        "0.25"
+        "0.1261"
     ],
     "hole_limit_min": [
-        "-0.088"
+        "0.1261"
     ],
     "hole_limit_max": [
-        "0.14"
+        "0.1586"
     ],
     "include": [
         "fdm_filament_template_direct_dual"
