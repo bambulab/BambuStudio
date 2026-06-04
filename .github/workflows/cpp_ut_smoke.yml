@@ -75,7 +75,7 @@ jobs:
       DEPS_ROOT: ${{ github.workspace }}\deps\build\BambuStudio_dep
       BUILD_DIR: ${{ github.workspace }}\build-smoke
       SCCACHE_GHA_ENABLED: "true"
-      SCCACHE_DIR: ${{ runner.temp }}\sccache
+      SCCACHE_DIR: ${{ github.workspace }}\_sccache
     steps:
       - name: Checkout
         uses: actions/checkout@v6
