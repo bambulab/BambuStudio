@@ -15,6 +15,7 @@
 #include <atomic>
 
 wxDECLARE_EVENT(EVT_MEDIA_CTRL_STAT, wxCommandEvent);
+wxDECLARE_EVENT(EVT_MEDIA_CTRL_FIRST_FRAME, wxCommandEvent);
 
 void wxMediaCtrl_OnSize(wxWindow * ctrl, wxSize const & videoSize, int width, int height);
 
@@ -48,7 +49,9 @@ public:
 
     ~wxMediaCtrl3();
 
-    void Load(wxURI url);
+    void Load(wxURI url, std::chrono::system_clock::time_point play_start_time = {});
+
+    std::chrono::system_clock::time_point m_play_start_time;
 
     void Play();
 
@@ -62,6 +65,9 @@ public:
     int GetLastError();
 
     wxSize GetVideoSize();
+
+    void SetConstrainByAspectRatio(bool constrain) { m_constrain_by_aspect_ratio = constrain; }
+    bool GetConstrainByAspectRatio() const { return m_constrain_by_aspect_ratio; }
 
 protected:
     DECLARE_EVENT_TABLE()
@@ -96,6 +102,7 @@ private:
     std::condition_variable m_cond;
     std::thread m_thread;
 
+    bool m_constrain_by_aspect_ratio{true};
     const int m_buffer_time = 300;
     Slic3r::Utils::FixedOverwriteBuffer<PlayFrame> m_frame_buffer;
     std::thread m_get_frame_thread;

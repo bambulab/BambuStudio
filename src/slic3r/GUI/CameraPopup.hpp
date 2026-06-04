@@ -7,6 +7,7 @@
 #include <wx/panel.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
+#include <wx/statbmp.h>
 #include <wx/sizer.h>
 #include <wx/timer.h>
 #include <chrono>
@@ -113,10 +114,17 @@ public:
 
     void msw_rescale();
     void on_enter_win(wxMouseEvent &evt);
-    void on_level_win(wxMouseEvent &evt);
-    void paintEvent(wxPaintEvent &evt);
-    void render(wxDC &dc);
-    void doRender(wxDC &dc);
+    void on_leave_win(wxMouseEvent &evt);
+    void reset_hover();
+
+    bool Enable(bool enable = true) override;
+
+private:
+    void update_displayed_bitmap();
+    wxBitmap make_disabled_bitmap(const wxBitmap &bmp) const;
+    void forward_mouse_event(wxMouseEvent &evt);
+
+    wxStaticBitmap *m_image{nullptr};
 };
 
 }

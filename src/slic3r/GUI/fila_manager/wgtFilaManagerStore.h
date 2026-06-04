@@ -26,8 +26,12 @@ struct FilamentSpool {
     int                      color_type = 2;
     float                    diameter   = 1.75f;
 
-    float       initial_weight  = 0;
-    float       spool_weight    = 0;
+    // STUDIO-17959: weights stored as double so values up to MAX_NET_WEIGHT_GRAMS
+    // (999_999_999) round-trip without float32 precision loss (float32 precise
+    // integer range tops out at 2^24 = 16,777,216, so 999_999_999 would snap to
+    // 1.0e9 and surface as "user types 999999999 -> list shows 1000000000").
+    double      initial_weight  = 0;
+    double      spool_weight    = 0;
     int         remain_percent  = 100;
     std::string status          = "active"; // "active" | "low" | "empty" | "archived"
 
@@ -41,7 +45,7 @@ struct FilamentSpool {
     std::string note;
 
     bool        favorite          = false;
-    float       net_weight        = 0;
+    double      net_weight        = 0;
 
     // Cloud synchronization marker. Cloud is the source of truth: this flag
     // is true iff the spool was present in the latest cloud pull.
@@ -57,9 +61,9 @@ struct FilamentSpool {
     // legacy 数据仍以 initial_weight=毛重 + spool_weight=料盘重 形式存在，
     // 减法兜底回收"整卷净重"。返回 <= 0 表示该 spool **缺整卷净重**，
     // AMS 自动同步路径会按 design Q7 决策整条冻结。
-    float effective_total_net_weight() const
+    double effective_total_net_weight() const
     {
-        return (spool_weight > 0.f && initial_weight > spool_weight)
+        return (spool_weight > 0.0 && initial_weight > spool_weight)
             ? (initial_weight - spool_weight)
             : initial_weight;
     }

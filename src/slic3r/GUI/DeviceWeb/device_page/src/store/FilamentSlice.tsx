@@ -6,7 +6,7 @@ import type {
   CloudSyncHistoryEntry, CloudAutoPushSummary,
   DebugLogEntry, DebugLogFilter,
   CandidateColor,
-} from '../features/filament/types';
+} from '../features/filament-manager/types';
 
 const DEFAULT_SYNC_STATE: CloudSyncState = {
   logged_in: false,
@@ -30,7 +30,7 @@ export interface FilamentState {
   isLoading: boolean;
   error: string | null;
 
-  // Cloud sync layer (Web-layer mirror of FilaManagerVM cloud state)
+  // Cloud sync layer (Web-layer mirror of FilamentManagerVM cloud state)
   cloudSync: CloudSyncState;
   cloudConfig: CloudFilamentConfig | null;
   cloudSyncHistory: CloudSyncHistoryEntry[];
@@ -228,7 +228,7 @@ export const createFilamentSlice: StateCreator<
         if (!filaId) return;
         const next = Array.isArray(candidates) ? candidates : [];
         // STUDIO-17977: don't clobber a populated cache entry with an empty
-        // list. AddEditDialog.loadCandidates and useFilamentBridge's
+        // list. AddEditDialog.loadCandidates and useFilamentManagerBridge's
         // prefetch effect can both fire RPCs for the same fila_id; the
         // dialog typically queues first when the user opens it, but the
         // prefetch may finish later — and in production the C++ side

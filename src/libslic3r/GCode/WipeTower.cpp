@@ -1758,7 +1758,8 @@ WipeTower::WipeTower(const PrintConfig& config, int plate_idx, Vec3d plate_origi
     m_flat_ironing(config.prime_tower_flat_ironing.value),
     m_enable_tower_interface_features(config.enable_tower_interface_features.value),
     m_physical_extruder_map(config.physical_extruder_map.values),
-    m_enable_arc_fitting(config.enable_arc_fitting.value)
+    m_enable_arc_fitting(config.enable_arc_fitting.value),
+    m_has_filament_switcher(config.has_filament_switcher.value)
 {
     m_contact_speed                  = 20 * 60.f;
     m_filaments_change_length.first = config.filament_change_length.values;
@@ -1950,6 +1951,7 @@ void WipeTower::set_extruder(size_t idx, const PrintConfig& config)
     m_filpar[idx].retract_speed  = config.retraction_speed.get_at(idx);
     m_filpar[idx].wipe_dist      = config.wipe_distance.get_at(idx);
     m_filpar[idx].filament_cooling_before_tower = config.filament_cooling_before_tower.get_at(idx);
+    m_filpar[idx].filament_petg_pre_extrusion_offset_dist = config.filament_tower_interface_pre_extrusion_dist.get_at(idx);
     if (config.enable_tower_interface_features.value) {
         m_filpar[idx].filament_tower_interface_print_temp = config.filament_tower_interface_print_temp.get_at(idx) == -1 ? config.nozzle_temperature_range_high.get_at(idx) :
                                                                                                                            config.filament_tower_interface_print_temp.get_at(idx);
@@ -2006,9 +2008,13 @@ Vec2f WipeTower::get_next_pos(const WipeTower::box_coordinates &cleaning_box, fl
         break;
     default: break;
     }
-    if (solid_toolchange&&m_enable_tower_interface_features) {
+    bool is_contact_pre_extrusion = solid_toolchange && m_enable_tower_interface_features;
+    bool is_petg_pre_extrusion   = !is_contact_pre_extrusion && is_petg_filament(m_current_tool) && m_has_filament_switcher;
+    if (is_contact_pre_extrusion || is_petg_pre_extrusion) {
         Vec2f        stop_pos                                    = res;
-        float        filament_tower_interface_pre_extrusion_dist = m_filpar[m_current_tool].filament_tower_interface_pre_extrusion_dist;
+        float        filament_tower_interface_pre_extrusion_dist = is_petg_pre_extrusion
+                                                                       ? m_filpar[m_current_tool].filament_petg_pre_extrusion_offset_dist
+                                                                       : m_filpar[m_current_tool].filament_tower_interface_pre_extrusion_dist;
         BoundingBoxf printer_bbx                                 = unscaled(get_extents(m_shared_print_bed));
         printer_bbx.translate((-m_wipe_tower_pos - m_rib_offset).cast<double>()); // first layer never be contact
         if (stop_pos.x() < m_wipe_tower_width / 2.f)
@@ -3064,6 +3070,11 @@ void WipeTower::save_on_last_wipe()
 bool WipeTower::is_tpu_filament(int filament_id) const
 {
     return m_filpar[filament_id].material == "TPU";
+}
+
+bool WipeTower::is_petg_filament(int filament_id) const
+{
+    return m_filpar[filament_id].material == "PETG";
 }
 
 bool WipeTower::is_need_reverse_travel(int filament_id,bool extruder_change) const

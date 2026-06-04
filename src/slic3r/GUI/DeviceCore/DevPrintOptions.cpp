@@ -217,15 +217,18 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
          if (time(nullptr) - opts->m_purify_air_at_print_end.detect_hold_start > HOLD_TIME_3SEC)
             opts->m_purify_air_at_print_end.current_detect_value = DevUtil::get_flag_bits(cfg, 36, 2);
 
+         if (time(nullptr) - opts->m_nozzle_blob_detection.detect_hold_start > HOLD_TIME_3SEC)
+             opts->m_nozzle_blob_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 24);
+
+        // Smart nozzle blob detection mode: cfg bit 43-44 (2 bits), 0=off, 1=on, 2=auto
+        if (time(nullptr) - opts->m_smart_nozzle_blob_detection.detect_hold_start > HOLD_TIME_3SEC)
+            opts->m_smart_nozzle_blob_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 43, 2);
+
         if (time(nullptr) - opts->m_snapshot_detection.detect_hold_start > HOLD_TIME_3SEC) {
             opts->m_snapshot_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 38, 2);
             opts->m_snapshot_detection.is_support_detect =
                 opts->m_snapshot_detection.current_detect_value != 0 && opts->m_snapshot_detection.current_detect_value != 3;
         }
-         if (time(nullptr) - opts->m_nozzle_blob_detection.detect_hold_start > HOLD_TIME_3SEC)
-             opts->m_nozzle_blob_detection.current_detect_value = DevUtil::get_flag_bits(cfg, 24);
-
-
     }
 
     // fun1 part
@@ -277,10 +280,11 @@ void DevPrintOptionsParser::ParseDetectionV1_0(DevPrintOptions *opts, const nloh
         fun2 = print_json["fun2"].get<std::string>();
         BOOST_LOG_TRIVIAL(info) << "new print data fun2 = " << fun2;
 
-        opts->m_buildplate_align_detection.is_support_detect = DevUtil::get_flag_bits_no_border(fun2, 2) == 1;
-        opts->m_purify_air_at_print_end.is_support_detect    = DevUtil::get_flag_bits_no_border(fun2, 4);
-        opts->m_fod_check_detection.is_support_detect        = DevUtil::get_flag_bits_no_border(fun2, 13);
-        opts->m_displacement_detection.is_support_detect     = DevUtil::get_flag_bits_no_border(fun2, 14);
+        opts->m_buildplate_align_detection.is_support_detect   = DevUtil::get_flag_bits_no_border(fun2, 2) == 1;
+        opts->m_purify_air_at_print_end.is_support_detect      = DevUtil::get_flag_bits_no_border(fun2, 4);
+        opts->m_fod_check_detection.is_support_detect          = DevUtil::get_flag_bits_no_border(fun2, 13);
+        opts->m_displacement_detection.is_support_detect       = DevUtil::get_flag_bits_no_border(fun2, 14);
+        opts->m_smart_nozzle_blob_detection.is_support_detect  = DevUtil::get_flag_bits_no_border(fun2, 15);
     }
 }
 
@@ -305,7 +309,8 @@ DevPrintOptions::DevPrintOptions(MachineObject *obj) : m_obj(obj)
                         {PrintOptionEnum::Purify_Air_At_Print_End, &m_purify_air_at_print_end},
                         {PrintOptionEnum::Snapshot_Detection, &m_snapshot_detection},
                         {PrintOptionEnum::FOD_Check_Detection, &m_fod_check_detection},
-                        {PrintOptionEnum::Displacement_Detection, &m_displacement_detection}
+                        {PrintOptionEnum::Displacement_Detection, &m_displacement_detection},
+                        {PrintOptionEnum::Smart_Nozzle_Blob_Detection, &m_smart_nozzle_blob_detection}
     };
 };
 
@@ -539,6 +544,17 @@ int DevPrintOptions::command_set_snapshot_control(int on_off, MachineObject *obj
     j["camera"]["sequence_id"]            = std::to_string(MachineObject::m_sequence_id++);
     j["camera"]["control"]                = on_off? "enable": "disable";
     return obj->publish_json(j);
+}
+
+int DevPrintOptions::command_smart_nozzle_blob_detect_mode(int mode)
+{
+    json j;
+    j["print"]["command"]               = "print_option";
+    j["print"]["sequence_id"]           = std::to_string(MachineObject::m_sequence_id++);
+    j["print"]["nozzle_blob_detect_v2"] = mode;  // int: 0=off, 1=on, 2=auto
+    m_smart_nozzle_blob_detection.current_detect_value = mode;
+    m_smart_nozzle_blob_detection.detect_hold_start = time(nullptr);
+    return m_obj->publish_json(j);
 }
 
 int DevPrintOptions::command_xcam_control_fod_check(bool on_off)

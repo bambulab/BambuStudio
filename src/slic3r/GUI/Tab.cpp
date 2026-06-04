@@ -1969,6 +1969,16 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
     if (opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
         update_wiping_button_visibility();
 
+    // BBS: 用户在 UI 上主动开启支撑时，联动开启识别悬空外墙（辅助体验，配合支撑可改善打印效果）。
+    // preset 切换 / 3MF 加载走 Field::set_value(value, false) 不会进入本回调，已存值不会被覆盖。
+    if (opt_key == "enable_support" && boost::any_cast<bool>(value)) {
+        if (!m_config->opt_bool("detect_overhang_wall")) {
+            DynamicPrintConfig new_conf = *m_config;
+            new_conf.set_key_value("detect_overhang_wall", new ConfigOptionBool(true));
+            m_config_manipulation.apply(m_config, &new_conf);
+        }
+    }
+
     if (opt_key == "enable_prime_tower") {
         auto timelapse_type = m_config->option<ConfigOptionEnum<TimelapseType>>("timelapse_type");
         bool timelapse_enabled = timelapse_type->value == TimelapseType::tlSmooth;
@@ -2059,6 +2069,28 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
                 m_config_manipulation.apply(m_config, &new_conf);
             }
             wxGetApp().plater()->update();
+        }
+    }
+
+    if (opt_key == "cool_plate_temp" || opt_key == "cool_plate_temp_initial_layer" ||
+        opt_key == "eng_plate_temp" || opt_key == "eng_plate_temp_initial_layer" ||
+        opt_key == "hot_plate_temp" || opt_key == "hot_plate_temp_initial_layer" ||
+        opt_key == "textured_plate_temp" || opt_key == "textured_plate_temp_initial_layer" ||
+        opt_key == "supertack_plate_temp" || opt_key == "supertack_plate_temp_initial_layer") {
+        std::string printer_id = m_preset_bundle->printers.get_edited_preset().get_printer_type(m_preset_bundle);
+        int bed_temperature_limit = DevPrinterConfigUtil::get_bed_temperature_limit(printer_id);
+        if (bed_temperature_limit > 0 && bed_temperature_limit < BED_TEMP_LIMIT) {
+            if (boost::any_cast<int>(value) > bed_temperature_limit) {
+                wxString msg_text = wxString::Format(
+                    _L("The selected printer has a bed temperature limit of %d°C.\nSetting a higher bed temperature may cause damage to the printer."),
+                    bed_temperature_limit);
+                MessageDialog dialog(wxGetApp().plater(), msg_text, "", wxICON_WARNING | wxOK);
+                dialog.ShowModal();
+                DynamicPrintConfig new_conf = *m_config;
+                new_conf.set_key_value(opt_key, new ConfigOptionInts{bed_temperature_limit});
+                m_config_manipulation.apply(m_config, &new_conf);
+                on_value_change(opt_key, bed_temperature_limit);
+            }
         }
     }
 
@@ -3223,6 +3255,7 @@ void TabPrint::build()
 
         optgroup = page->new_optgroup(L("Advanced"), L"advanced");
         optgroup->append_single_option_line("enable_wrapping_detection", "nozzle-clumping-detection-by-probing");
+        optgroup->append_single_option_line("enable_order_independent_overlap_carving");
         optgroup->append_single_option_line("interlocking_beam");
         // optgroup->append_single_option_line("mmu_segmented_region_max_width");
         optgroup->append_single_option_line("mmu_segmented_region_interlocking_depth");
@@ -3339,19 +3372,6 @@ void TabPrint::update()
         return; // ys_FIXME
 
     m_update_cnt++;
-
-    // ysFIXME: It's temporary workaround and should be clewer reworked:
-    // Note: This workaround works till "enable_support" and "overhangs" is exclusive sets of mutually no-exclusive parameters.
-    // But it should be corrected when we will have more such sets.
-    // Disable check of the compatibility of the "enable_support" and "overhangs" options for saved user profile
-    // NOTE: Initialization of the support_material_overhangs_queried value have to be processed just ones
-    if (!m_config_manipulation.is_initialized_support_material_overhangs_queried())
-    {
-        const Preset& selected_preset = m_preset_bundle->prints.get_selected_preset();
-        bool is_user_and_saved_preset = !selected_preset.is_system && !selected_preset.is_dirty;
-        bool support_material_overhangs_queried = m_config->opt_bool("enable_support") && !m_config->opt_bool("detect_overhang_wall");
-        m_config_manipulation.initialize_support_material_overhangs_queried(is_user_and_saved_preset && support_material_overhangs_queried);
-    }
 
     m_config_manipulation.update_print_fff_config(m_config, m_type < Preset::TYPE_COUNT, m_type == Preset::TYPE_PLATE);
 
@@ -4554,8 +4574,9 @@ void TabFilament::build()
 
     page = add_options_page(L("Multi Filament"), "advanced");
         optgroup = page->new_optgroup(L("Multi Filament"));
-        // optgroup->append_single_option_line("filament_flush_temp", "", 0);
-        // optgroup->append_single_option_line("filament_flush_volumetric_speed", "", 0);
+        optgroup->append_single_option_line("filament_flush_temp", "", 0);
+        optgroup->append_single_option_line("filament_flush_temp_fast", "", 0);
+        optgroup->append_single_option_line("filament_flush_volumetric_speed", "", 0);
         optgroup->append_single_option_line("long_retractions_when_ec", "" , 0);
         optgroup->append_single_option_line("retraction_distances_when_ec", "" , 0);
         //BBS
@@ -4679,8 +4700,9 @@ void TabFilament::toggle_options()
         bool enable_fit = volumetric_speed_cos != "0 0 0 0 0 0";
         toggle_option("filament_adaptive_volumetric_speed", enable_fit, 256 + (unsigned int) (m_variant_combo->GetSelection()));
         auto prime_volume = this->m_preset_bundle->project_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode")->value;
-        toggle_option("filament_prime_volume", prime_volume == PrimeVolumeMode::pvmDefault, 256 + (unsigned int) (m_variant_combo->GetSelection()));
-        toggle_option("filament_prime_volume_nc", prime_volume == PrimeVolumeMode::pvmDefault, 256 + (unsigned int) (m_variant_combo->GetSelection()));
+        bool prime_volume_editable = (prime_volume != PrimeVolumeMode::pvmSaving);
+        toggle_option("filament_prime_volume", prime_volume_editable, 256 + (unsigned int) (m_variant_combo->GetSelection()));
+        toggle_option("filament_prime_volume_nc", prime_volume_editable, 256 + (unsigned int) (m_variant_combo->GetSelection()));
 
         std::string printer_model = m_preset_bundle->printers.get_edited_preset().config.opt_string("printer_model");
         bool is_tower_interface_supported = (printer_model.find("H2C") != std::string::npos ||
@@ -4691,10 +4713,59 @@ void TabFilament::toggle_options()
             toggle_line(el, is_tower_interface_supported);
     }
 
-    if (m_active_page->title() == "Multi Filament") {
-        const int extruder_idx = m_variant_combo->GetSelection();
+    if (m_active_page && m_active_page->title() == "Multi Filament") {
+        const int extruder_idx = m_variant_combo ? m_variant_combo->GetSelection() : 0;
+        auto support_fast_purge_opt = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("support_fast_purge_mode");
+        bool support_fast_purge     = support_fast_purge_opt ? support_fast_purge_opt->value : false;
+
+        if (!m_flush_mode_panel && support_fast_purge) {
+            m_flush_mode_panel = new wxWindow(m_active_page->parent(), wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+            m_flush_mode_panel->SetBackgroundColour(m_active_page->parent()->GetBackgroundColour());
+            m_flush_mode_switch = new MultiSwitchButton(m_flush_mode_panel);
+            m_flush_mode_switch->SetOptions({_L("Purge Mode: Standard"), _L("Purge Mode: Fast")});
+            m_flush_mode_switch->SetSelection(m_flush_mode_selection);
+            for (unsigned int i = 0; i < m_flush_mode_switch->GetCount(); ++i) {
+                Button *btn = m_flush_mode_switch->GetButton(i);
+                if (btn)
+                    btn->SetToolTip(m_flush_mode_switch->GetOptionText(i));
+            }
+            m_flush_mode_switch->Bind(wxCUSTOMEVT_MULTISWITCH_SELECTION, [this](auto &evt) {
+                evt.Skip();
+                m_flush_mode_selection = m_flush_mode_switch->GetSelection();
+                toggle_options();
+            });
+            auto *panel_sizer = new wxBoxSizer(wxHORIZONTAL);
+            panel_sizer->Add(m_flush_mode_switch, 1, wxEXPAND);
+            panel_sizer->AddStretchSpacer(2);
+            m_flush_mode_panel->SetSizer(panel_sizer);
+            m_active_page->vsizer()->Insert(0, m_flush_mode_panel, 0, wxEXPAND | wxLEFT | wxRIGHT | wxTOP, 10);
+        }
+
+        if (m_flush_mode_panel) {
+            m_flush_mode_panel->Show(support_fast_purge);
+        }
+
+        if (support_fast_purge && m_flush_mode_switch) {
+            bool show_fast = m_flush_mode_switch->GetSelection() == 1;
+            toggle_line("filament_flush_temp#0", !show_fast);
+            toggle_line("filament_flush_temp_fast#0", show_fast);
+
+            const auto& saved_config = m_presets->get_selected_preset().config;
+            const auto& edited_config = m_presets->get_edited_preset().config;
+            bool std_dirty = saved_config.opt_serialize("filament_flush_temp") != edited_config.opt_serialize("filament_flush_temp");
+            bool fast_dirty = saved_config.opt_serialize("filament_flush_temp_fast") != edited_config.opt_serialize("filament_flush_temp_fast");
+            StateColor default_color(std::make_pair(0x6B6B6B, (int) StateColor::NotChecked), std::make_pair(0xFFFFFE, (int) StateColor::Normal));
+            StateColor modified_color(m_modified_label_clr);
+            m_flush_mode_switch->SetButtonTextColor(0, show_fast ? (std_dirty ? modified_color : default_color) : default_color);
+            m_flush_mode_switch->SetButtonTextColor(1, !show_fast ? (fast_dirty ? modified_color : default_color) : default_color);
+        } else {
+            toggle_line("filament_flush_temp#0", true);
+            toggle_line("filament_flush_temp_fast#0", false);
+        }
         toggle_line("long_retractions_when_ec", is_multi_extruder && is_BBL_printer, 256 + extruder_idx);
         toggle_line("retraction_distances_when_ec", is_multi_extruder && is_BBL_printer && m_config->opt_bool_nullable("long_retractions_when_ec", extruder_idx), 256 + extruder_idx);
+        m_active_page->update_visibility(m_mode, true);
+        update_changed_ui();
     }
 
     if (m_active_page->title() == "Setting Overrides")
@@ -4730,6 +4801,8 @@ void TabFilament::clear_pages()
 
     m_volumetric_speed_description_line = nullptr;
 	m_cooling_description_line = nullptr;
+	m_flush_mode_switch = nullptr;
+	m_flush_mode_panel = nullptr;
 
     //BBS: GUI refactor
     m_overrides_options.clear();
@@ -5242,6 +5315,9 @@ PageShp TabPrinter::build_kinematics_page()
         if (gcf == gcfMarlinFirmware || gcf == gcfMarlinLegacy || gcf == gcfKlipper) {
             append_option_line(optgroup, "machine_max_acceleration_travel");
         }
+        append_option_line(optgroup, "machine_max_force_Y");
+        append_option_line(optgroup, "machine_bed_mass_Y");
+        append_option_line(optgroup, "machine_max_printed_mass");
 
     optgroup = page->new_optgroup(L("Jerk limitation"));
         for (const std::string &axis : axes)	{
@@ -5571,10 +5647,17 @@ void TabPrinter::on_preset_loaded()
             m_preset_bundle->extruder_nozzle_stat.set_nozzle_data_flag(ExtruderNozzleStat::ndfNone);
 
             // only trigger prime volume type for printers with multi nozzle
-            auto prime_volume_type = m_preset_bundle->project_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode");
-            if(!has_multiple_nozzle)
+            auto support_fast_purge_opt = current_printer.config.option<ConfigOptionBool>("support_fast_purge_mode");
+            bool support_fast_purge     = support_fast_purge_opt ? support_fast_purge_opt->value : false;
+            bool show_purge_mode    = has_multiple_nozzle || support_fast_purge;
+            auto prime_volume_type  = m_preset_bundle->project_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode");
+            if (!show_purge_mode)
                 prime_volume_type->value = PrimeVolumeMode::pvmDefault;
-            wxGetApp().plater()->sidebar().enable_purge_mode_btn(has_multiple_nozzle);
+            else if (!has_multiple_nozzle && prime_volume_type->value == PrimeVolumeMode::pvmSaving)
+                prime_volume_type->value = PrimeVolumeMode::pvmDefault;
+            else if (!support_fast_purge && prime_volume_type->value == PrimeVolumeMode::pvmFast)
+                prime_volume_type->value = PrimeVolumeMode::pvmDefault;
+            wxGetApp().plater()->sidebar().enable_purge_mode_btn(show_purge_mode);
             wxGetApp().plater()->get_notification_manager()->remove_notification_of_type(NotificationType::BBLArcFittingInfo);
         }
         m_base_preset_model = base_model;
@@ -5787,7 +5870,7 @@ void TabPrinter::toggle_options()
         for (const std::string& opt : { "machine_max_acceleration_extruding", "machine_max_acceleration_retracting", "machine_max_acceleration_travel",
             "machine_max_acceleration_x", "machine_max_acceleration_y", "machine_max_acceleration_z", "machine_max_acceleration_e",
             "machine_max_speed_x", "machine_max_speed_y", "machine_max_speed_z", "machine_max_speed_e",
-            "machine_min_extruding_rate", "machine_min_travel_rate" })
+            "machine_min_extruding_rate", "machine_min_travel_rate", "machine_max_force_Y", "machine_bed_mass_Y", "machine_max_printed_mass" })
             for (int i = 0; i < max_field; ++ i)
 	            toggle_option(opt, !is_BBL_printer, i);
     }

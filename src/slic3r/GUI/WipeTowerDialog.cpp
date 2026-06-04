@@ -7,6 +7,7 @@
 #include "I18N.hpp"
 #include "GUI_App.hpp"
 #include "libslic3r/Config.hpp"
+#include "libslic3r/PrintConfig.hpp"
 #include "MainFrame.hpp"
 #include "DeviceCore/DevConfigUtil.h"
 
@@ -21,7 +22,8 @@ bool is_flush_config_modified()
 {
     const auto &project_config    = wxGetApp().preset_bundle->project_config;
     const std::vector<double> &config_matrix     = (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values;
-    const std::vector<double> &config_multiplier = (project_config.option<ConfigOptionFloats>("flush_multiplier"))->values;
+    bool                       use_fast_multiplier = project_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode")->value == PrimeVolumeMode::pvmFast;
+    const std::vector<double> &config_multiplier   = (project_config.option<ConfigOptionFloats>(use_fast_multiplier ? "flush_multiplier_fast" : "flush_multiplier"))->values;
     auto physical_indices = wxGetApp().preset_bundle->physical_filament_config_indices();
     size_t full_n = project_config.option<ConfigOptionStrings>("filament_colour")->values.size();
 
@@ -59,7 +61,9 @@ void open_flushing_dialog(wxEvtHandler *parent, const wxEvent &event)
         auto matrix = dlg.GetFlattenMatrix();
         auto flush_multipliers = dlg.GetMultipliers();
         (project_config.option<ConfigOptionFloats>("flush_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
-        (project_config.option<ConfigOptionFloats>("flush_multiplier"))->values = std::vector<double>(flush_multipliers.begin(), flush_multipliers.end());
+        bool        use_fast_multiplier = project_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode")->value == PrimeVolumeMode::pvmFast;
+        const char *multiplier_key      = use_fast_multiplier ? "flush_multiplier_fast" : "flush_multiplier";
+        (project_config.option<ConfigOptionFloats>(multiplier_key))->values = std::vector<double>(flush_multipliers.begin(), flush_multipliers.end());
         bool flushing_volume_modify = is_flush_config_modified();
         wxGetApp().sidebar().set_flushing_volume_warning(flushing_volume_modify);
         wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
@@ -110,7 +114,9 @@ wxString WipingDialog::BuildTableObjStr()
 {
     auto full_config = wxGetApp().preset_bundle->full_config();
     auto all_filament_colors = full_config.option<ConfigOptionStrings>("filament_colour")->values;
-    auto flush_multiplier = full_config.option<ConfigOptionFloats>("flush_multiplier")->values;
+    bool use_fast_multiplier  = full_config.option<ConfigOptionEnum<PrimeVolumeMode>>("prime_volume_mode")->value == PrimeVolumeMode::pvmFast;
+    auto flush_multiplier     = use_fast_multiplier ? full_config.option<ConfigOptionFloats>("flush_multiplier_fast")->values :
+                                                      full_config.option<ConfigOptionFloats>("flush_multiplier")->values;
     int nozzle_num = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter")->values.size();
     auto raw_matrix_data = full_config.option<ConfigOptionFloats>("flush_volumes_matrix")->values;
     auto nozzle_flush_dataset = full_config.option<ConfigOptionIntsNullable>("nozzle_flush_dataset")->values;

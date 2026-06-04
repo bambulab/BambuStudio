@@ -23,9 +23,8 @@ namespace GUI {
 class ConfigManipulation
 {
     bool                is_msg_dlg_already_exist{ false };
-    bool                m_is_initialized_support_material_overhangs_queried{ false };
-    bool                m_support_material_overhangs_queried{ false };
     bool                is_BBL_Printer{false};
+    bool                m_alt_suboptimal_acknowledged{ false };
 
     // function to loading of changed configuration
     std::function<void()>                                       load_config = nullptr;
@@ -87,12 +86,6 @@ public:
     void    update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config = false);
     void    toggle_print_sla_options(DynamicPrintConfig* config);
 
-    bool    is_initialized_support_material_overhangs_queried() { return m_is_initialized_support_material_overhangs_queried; }
-    void    initialize_support_material_overhangs_queried(bool queried)
-    {
-        m_is_initialized_support_material_overhangs_queried = true;
-        m_support_material_overhangs_queried = queried;
-    }
     int    show_spiral_mode_settings_dialog(bool is_object_config = false);
 
 private:

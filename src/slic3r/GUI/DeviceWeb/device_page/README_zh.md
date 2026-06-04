@@ -29,7 +29,8 @@ device_page/
 │   │   ├── __root.tsx       # 根布局（导航栏，按路由条件显示/隐藏）
 │   │   ├── index.tsx        # / （首页）
 │   │   ├── calibration.tsx  # /calibration
-│   │   ├── filament.tsx     # /filament
+│   │   ├── filament_manager.tsx     # /filament_manager
+│   │   ├── device_page/             # /device_page/*
 │   │   ├── webcalib.tsx     # /webcalib
 │   │   └── ...
 │   ├── features/            # 功能模块
@@ -136,7 +137,7 @@ npx vite build                    # 构建到 dist/
 ```
 主程序 Tab 栏
   ├── Web Device       → WebDevicePage → #/calibration
-  ├── Filament Manager → WebDevicePage → #/filament
+  ├── Filament Manager → WebDevicePage → #/filament_manager
   └── Calibration      → WebDevicePage → #/webcalib
 ```
 
@@ -194,7 +195,8 @@ else if (sel == tpMyFeature)
 在 `src/routes/__root.tsx` 中将路由加入 `hideNav` 条件：
 
 ```tsx
-const hideNav = pathname === '/filament' || pathname === '/webcalib' || pathname === '/myfeature';
+const embeddedRoutes = new Set(['/filament_manager', '/webcalib', '/myfeature']);
+const hideNav = embeddedRoutes.has(pathname);
 ```
 
 ### 5. 构建验证
@@ -224,7 +226,7 @@ src/features/calibration/
 #### 1. 定义类型（`types.ts`）
 
 ```ts
-// src/features/filament/types.ts
+// src/features/filament-manager/types.ts
 export interface FilamentItem {
   id: string;
   name: string;
@@ -247,7 +249,7 @@ export interface BridgeResponseBody {
 ```tsx
 import type { StateCreator } from 'zustand';
 import type { RootState } from './AppStore';
-import type { FilamentItem } from '../features/filament/types';
+import type { FilamentItem } from '../features/filament-manager/types';
 
 export interface FilamentSlice {
   filament: {
@@ -286,7 +288,7 @@ export type RootState = ... & FilamentSlice;
 ...createFilamentSlice(set, get, api),
 ```
 
-#### 3. 创建 Bridge Hook（`useFilamentBridge.ts`）
+#### 3. 创建 Bridge Hook（`useFilamentManagerBridge.ts`）
 
 ```ts
 import { useCallback } from 'react';
@@ -298,7 +300,7 @@ function makeBody(resource: string, action: string, payload?: Record<string, unk
   return { module: 'filament', resource, action, payload: payload ?? {} };
 }
 
-export function useFilamentBridge() {
+export function useFilamentManagerBridge() {
   const request = useDeviceBridge();
   const setItems = useStore((s) => s.filament.setItems);
   const setLoading = useStore((s) => s.filament.setLoading);
@@ -321,17 +323,17 @@ export function useFilamentBridge() {
 }
 ```
 
-#### 4. 编写页面组件（`FilamentPage.tsx`）
+#### 4. 编写页面组件（`FilamentManagerPage.tsx`）
 
 ```tsx
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useFilamentBridge } from './useFilamentBridge';
+import { useFilamentManagerBridge } from './useFilamentManagerBridge';
 import useStore from '../../store/AppStore';
 
-export function FilamentPage() {
+export function FilamentManagerPage() {
   const { t } = useTranslation();
-  const { fetchList } = useFilamentBridge();
+  const { fetchList } = useFilamentManagerBridge();
   const items = useStore((s) => s.filament.items);
   const isLoading = useStore((s) => s.filament.isLoading);
 

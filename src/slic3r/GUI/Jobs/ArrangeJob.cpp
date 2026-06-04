@@ -259,7 +259,8 @@ void ArrangeJob::prepare_all() {
     prepare_wipe_tower();
 
     const DynamicPrintConfig& current_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-    bool   enable_wrapping = current_config.option<ConfigOptionBool>("enable_wrapping_detection")->value;
+    const auto* opt_enable_wrapping = current_config.option<ConfigOptionBool>("enable_wrapping_detection");
+    bool   enable_wrapping = opt_enable_wrapping ? opt_enable_wrapping->value : false;
 
     // add the virtual object into unselect list if has
     plate_list.preprocess_exclude_areas(m_unselected, enable_wrapping, MAX_NUM_PLATES);
@@ -436,7 +437,8 @@ void ArrangeJob::prepare_partplate() {
     }
 
     const DynamicPrintConfig &current_config  = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-    bool   enable_wrapping = current_config.option<ConfigOptionBool>("enable_wrapping_detection")->value;
+    const auto* opt_enable_wrapping = current_config.option<ConfigOptionBool>("enable_wrapping_detection");
+    bool   enable_wrapping = opt_enable_wrapping ? opt_enable_wrapping->value : false;
 
     // add the virtual object into unselect list if has
     plate_list.preprocess_exclude_areas(m_unselected, enable_wrapping, current_plate_index + 1);
@@ -530,7 +532,8 @@ void ArrangeJob::prepare_outside_plate() {
     prepare_wipe_tower(true);
 
     const DynamicPrintConfig &current_config  = wxGetApp().preset_bundle->prints.get_edited_preset().config;
-    bool enable_wrapping = current_config.option<ConfigOptionBool>("enable_wrapping_detection")->value;
+    const auto* opt_enable_wrapping = current_config.option<ConfigOptionBool>("enable_wrapping_detection");
+    bool enable_wrapping = opt_enable_wrapping ? opt_enable_wrapping->value : false;
 
     // add the virtual object into unselect list if has
     plate_list.preprocess_exclude_areas(m_unselected, enable_wrapping, current_plate_index + 1);
@@ -664,7 +667,8 @@ void ArrangeJob::process()
 
     Points      bedpts = get_shrink_bedpts(global_config,params);
 
-    bool   enable_wrapping = global_config.option<ConfigOptionBool>("enable_wrapping_detection")->value;
+    const auto* opt_enable_wrapping = global_config.option<ConfigOptionBool>("enable_wrapping_detection");
+    bool   enable_wrapping = opt_enable_wrapping ? opt_enable_wrapping->value : false;
     partplate_list.preprocess_exclude_areas(params.excluded_regions, enable_wrapping, 1, scale_(1));
 
     ARRANGE_LOG(debug) << "bedpts:" << bedpts[0].transpose() << ", " << bedpts[1].transpose() << ", " << bedpts[2].transpose() << ", " << bedpts[3].transpose();

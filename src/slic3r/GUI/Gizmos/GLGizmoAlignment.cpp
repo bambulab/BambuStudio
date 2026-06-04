@@ -114,7 +114,7 @@ bool GLGizmoAlignment::align_to_center(AlignType type,bool align_parent)
             for (unsigned int idx : selection.get_volume_idxs()) {
                 const GLVolume *volume = selection.get_volume(idx);
                 if (volume) {
-                    get_selection().translate(volume->object_idx(), volume->instance_idx(), volume->volume_idx(), displacement);
+                    get_selection().translate(volume->object_idx(), volume->instance_idx(), volume->volume_idx(), displacement, false);
                 }
             }
             finish_operation("Align to parent center " + type_str);
@@ -161,7 +161,7 @@ bool GLGizmoAlignment::align_to_center(AlignType type,bool align_parent)
                 double current  = get_current_coord(operation_name, temp_box);
                 double offset = selection_center - current;
                 Vec3d displacement = generate_displacement(operation_name, offset);
-                get_selection().translate(volume->object_idx(), volume->instance_idx(), volume->volume_idx(), displacement);
+                get_selection().translate(volume->object_idx(), volume->instance_idx(), volume->volume_idx(), displacement, false);
             }
         }
 
@@ -270,7 +270,7 @@ bool GLGizmoAlignment::align_objects_generic(GetCoordFunc get_coord, SetCoordFun
             Vec3d  displacement  = generate_displacement(operation_name, reference_coord - current_coord);
             for (const GLVolume *volume : volumes) {
                 if (displacement.norm() > 1e-6) {
-                    get_selection().translate(volume->object_idx(), volume->instance_idx(), volume->volume_idx(), displacement);
+                    get_selection().translate(volume->object_idx(), volume->instance_idx(), volume->volume_idx(), displacement, false);
                 }
             }
 
@@ -381,7 +381,7 @@ bool GLGizmoAlignment::align_objects_generic(GetCoordFunc get_coord, SetCoordFun
             }
 
             if (displacement.norm() > 1e-6) {
-                get_selection().translate(volume->object_idx(), volume->instance_idx(), volume->volume_idx(), displacement);
+                get_selection().translate(volume->object_idx(), volume->instance_idx(), volume->volume_idx(), displacement, false);
             }
         }
 

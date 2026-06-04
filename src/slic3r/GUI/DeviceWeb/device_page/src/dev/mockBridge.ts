@@ -1,4 +1,4 @@
-// STUDIO-17977 dev-only mock bridge.
+﻿// STUDIO-17977 dev-only mock bridge.
 //
 // Only loaded when `import.meta.env.DEV` is truthy AND no webview host is
 // detected. Production builds (`pnpm build`) drop this file via tree-shaking
@@ -12,7 +12,7 @@
 //   2. BBL official colour code surfacing,
 //   3. type-aggregated fallback palette for non-official spools,
 //   4. brand/material/series/color reactivity.
-// The shape mirrors what FilaManagerVM produces; nothing here is meant to
+// The shape mirrors what FilamentManagerVM produces; nothing here is meant to
 // match real product IDs.
 
 import type {
@@ -22,7 +22,7 @@ import type {
   CandidateColor,
   CloudSyncState,
   CloudFilamentConfig,
-} from '../features/filament/types';
+} from '../features/filament-manager/types';
 
 interface RequestPacket {
   head: { version: string; type: string; seq: number; ts: number };
@@ -30,6 +30,7 @@ interface RequestPacket {
 }
 
 const SDK_VERSION = '1.0';
+const mockAmsFilamentHotendState: Record<string, unknown> = {};
 
 // --- Mock catalogue ---------------------------------------------------------
 
@@ -252,10 +253,29 @@ function makeOk(submod: string, action: string, payload: unknown): Record<string
   };
 }
 
+function makeModuleOk(module: string, submod: string, action: string, payload: unknown): Record<string, unknown> {
+  return {
+    module, submod, action,
+    error_code: 0, message: '',
+    payload: payload as Record<string, unknown>,
+  };
+}
+
 function handleRequest(pkt: RequestPacket) {
   const { module, submod, action, payload = {} } = pkt.body;
   // Per-call audit log so we can replay request order in the console.
   console.debug('[mockBridge] req', module, submod, action, payload);
+  if (module === 'device_page_ams_filament_hotend') {
+    if (submod === 'state' && (action === 'get' || action === 'init')) {
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, mockAmsFilamentHotendState));
+      return;
+    }
+    if (submod === 'action') {
+      dispatchResponse(pkt.head.seq, makeModuleOk(module, submod, action, mockAmsFilamentHotendState));
+      dispatchReport(makeModuleOk(module, 'state', 'changed', mockAmsFilamentHotendState));
+      return;
+    }
+  }
   if (module !== 'filament') {
     dispatchResponse(pkt.head.seq, {
       module, submod, action, error_code: -1,
@@ -292,6 +312,27 @@ function handleRequest(pkt: RequestPacket) {
       const id = `sp-${Date.now()}-${i}`;
       SPOOLS = [...SPOOLS, { ...(sp as Spool), spool_id: id }];
     }
+    dispatchResponse(pkt.head.seq, makeOk('spool', action, SPOOLS));
+    dispatchReport({ module: 'filament', submod: 'spool', action: 'list', payload: SPOOLS });
+    return;
+  }
+
+  // STUDIO-18344: AMS multi-select fast path. `creates[]` get appended with
+  // fresh ids, `updates[]` are merged into the existing record by spool_id
+  // (mirroring the C++ batch_create dispatcher behaviour). Either bucket
+  // may be empty so an "all updates" or "all creates" save still works.
+  if (submod === 'spool' && action === 'batch_create') {
+    const creates = (payload.creates as Partial<Spool>[] | undefined) ?? [];
+    const updates = (payload.updates as Partial<Spool>[] | undefined) ?? [];
+    creates.forEach((sp, i) => {
+      const id = `sp-${Date.now()}-c${i}`;
+      SPOOLS = [...SPOOLS, { ...(sp as Spool), spool_id: id }];
+    });
+    updates.forEach((sp) => {
+      const id = String(sp.spool_id ?? '');
+      if (!id) return;
+      SPOOLS = SPOOLS.map((s) => s.spool_id === id ? { ...s, ...sp } as Spool : s);
+    });
     dispatchResponse(pkt.head.seq, makeOk('spool', action, SPOOLS));
     dispatchReport({ module: 'filament', submod: 'spool', action: 'list', payload: SPOOLS });
     return;

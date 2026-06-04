@@ -816,16 +816,16 @@ void GLGizmoMmuSegmentation::on_render_input_window(float x, float y, float bott
     } else if (m_current_tool == ImGui::FillButtonIcon) {
         m_cursor_type = TriangleSelector::CursorType::POINTER;
         bool is_same_color = m_bucket_fill_mode == BucketFillType::SameColor;
-        ImGuiWrapper::push_radio_style();
-        if (ImGui::RadioButton(m_desc["same_color_connection"].ToUTF8().data(), is_same_color)) {
-            m_bucket_fill_mode = BucketFillType::SameColor;
-            m_smart_fill_angle = -1;// set to negative value to disable edge detection
-        }
-        ImGui::SameLine();
         bool is_detect_geometry_edge = m_bucket_fill_mode == BucketFillType::EdgeDetect;
+        ImGuiWrapper::push_radio_style();
         if (ImGui::RadioButton(m_desc["edge_detection"].ToUTF8().data(), is_detect_geometry_edge)) {
             m_bucket_fill_mode = BucketFillType::EdgeDetect;
             m_smart_fill_angle = m_last_edge_detection_smart_fill_angle;
+        }
+        ImGui::SameLine();
+        if (ImGui::RadioButton(m_desc["same_color_connection"].ToUTF8().data(), is_same_color)) {
+            m_bucket_fill_mode = BucketFillType::SameColor;
+            m_smart_fill_angle = -1; // set to negative value to disable edge detection
         }
         ImGuiWrapper::pop_radio_style();
         m_tool_type = ToolType::BUCKET_FILL;
@@ -1148,7 +1148,6 @@ void GLGizmoMmuSegmentation::on_set_state()
             m_selected_extruder_idx = 1;
         }
         m_non_manifold_edges_model.reset();
-        m_bucket_fill_mode = BucketFillType::SameColor;
         m_smart_fill_angle = -1;
     }
     else if (get_state() == Off) {

@@ -103,7 +103,7 @@ namespace BBL {
 #define BAMBU_NETWORK_LIBRARY               "bambu_networking"
 #define BAMBU_NETWORK_AGENT_NAME            "bambu_network_agent"
 
-#define BAMBU_NETWORK_AGENT_VERSION         "02.06.01.50"
+#define BAMBU_NETWORK_AGENT_VERSION         "02.07.01.51"
 
 //iot preset type strings
 #define IOT_PRINTER_TYPE_STRING     "printer"
@@ -244,6 +244,7 @@ struct PrintParams {
     int             extruder_cali_manual_mode{ -1 };
     bool            task_ext_change_assist;
     bool            try_emmc_print;
+    std::string     svc_context;
 };
 
 struct TaskQueryParams

@@ -75,28 +75,19 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
             }
         }
     }
-    // Count the faces and verify, that all faces are triangular.
-    size_t num_faces = 0;
-    size_t num_quads = 0;
+    // Count the generated triangles and verify that all faces are valid polygons.
+    size_t num_triangles = 0;
     for (size_t i = 0; i < data.vertices.size(); ++ i) {
         // Find the end of face.
         size_t j = i;
         for (; j < data.vertices.size() && data.vertices[j].coordIdx != -1; ++ j) ;
         if (size_t num_face_vertices = j - i; num_face_vertices > 0) {
-            if (num_face_vertices > 4) {
-                // Non-triangular and non-quad faces are not supported as of now.
-                BOOST_LOG_TRIVIAL(error) << "load_obj: failed to parse " << path << ". The file contains polygons with more than 4 vertices.";
-                message = _L("The file contains polygons with more than 4 vertices.");
-                return false;
-            } else if (num_face_vertices < 3) {
-                // Non-triangular and non-quad faces are not supported as of now.
-                BOOST_LOG_TRIVIAL(error) << "load_obj: failed to parse " << path << ". The file contains polygons with less than 2 vertices.";
-                message = _L("The file contains polygons with less than 2 vertices.");
+            if (num_face_vertices < 3) {
+                BOOST_LOG_TRIVIAL(error) << "load_obj: failed to parse " << path << ". The file contains polygons with less than 3 vertices.";
+                message = _L("The file contains polygons with less than 3 vertices.");
                 return false;
             }
-            if (num_face_vertices == 4)
-                ++ num_quads;
-            ++ num_faces;
+            num_triangles += num_face_vertices - 2;
             i = j;
         }
     }
@@ -104,13 +95,13 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
     indexed_triangle_set its;
     size_t               num_vertices = data.coordinates.size() / OBJ_VERTEX_LENGTH;
     its.vertices.reserve(num_vertices);
-    its.indices.reserve(num_faces + num_quads);
+    its.indices.reserve(num_triangles);
     if (exist_mtl) {
         obj_info.is_single_mtl = data.usemtls.size() == 1 && mtl_data.new_mtl_unmap.size() == 1;
-        obj_info.face_colors.reserve(num_faces + num_quads);
+        obj_info.face_colors.reserve(num_triangles);
+        obj_info.uvs.reserve(num_triangles);
         obj_info.usemtls = data.usemtls;
     }
-    bool has_color = data.has_vertex_color;
     for (size_t i = 0; i < num_vertices; ++ i) {
         size_t j = i * OBJ_VERTEX_LENGTH;
         its.vertices.emplace_back(data.coordinates[j], data.coordinates[j + 1], data.coordinates[j + 2]);
@@ -125,32 +116,25 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
             obj_info.vertex_colors.emplace_back(color);
         }
     }
-    int indices[ONE_FACE_SIZE];
-    int uvs[ONE_FACE_SIZE];
     for (size_t i = 0; i < data.vertices.size();)
         if (data.vertices[i].coordIdx == -1)
             ++ i;
         else {
-            int cnt = 0;
+            std::vector<int> indices;
+            std::vector<int> uvs;
             while (i < data.vertices.size())
                 if (const ObjParser::ObjVertex &vertex = data.vertices[i ++]; vertex.coordIdx == -1) {
                     break;
                 } else {
-                    assert(cnt < OBJ_VERTEX_LENGTH);
                     if (vertex.coordIdx < 0 || vertex.coordIdx >= int(its.vertices.size())) {
                         BOOST_LOG_TRIVIAL(error) << "load_obj: failed to parse " << path << ". The file contains invalid vertex index.";
                         message = _L("The file contains invalid vertex index.");
                         return false;
                     }
-                    indices[cnt] = vertex.coordIdx;
-                    uvs[cnt]     = vertex.textureCoordIdx;
-                    cnt++;
+                    indices.push_back(vertex.coordIdx);
+                    uvs.push_back(vertex.textureCoordIdx);
                 }
-            if (cnt) {
-                assert(cnt == 3 || cnt == 4);
-                // Insert one or two faces (triangulate a quad).
-                its.indices.emplace_back(indices[0], indices[1], indices[2]);
-                int  face_index =its.indices.size() - 1;
+            if (!indices.empty()) {
                 auto get_face_color = [&mtl_data ,& gamma_correct](const std::string mtl_name, RGBA &face_color) {
                     if (mtl_data.new_mtl_unmap.find(mtl_name) != mtl_data.new_mtl_unmap.end()) {
                         for (size_t n = 0; n < 3; n++) { // 0.1 is light ambient
@@ -167,7 +151,7 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
                     }
                     return false;
                 };
-                auto set_face_color = [&uvs, &data, &mtl_data, &obj_info, &get_face_color](int face_index, const std::string mtl_name) {
+                auto set_face_color = [&data, &mtl_data, &obj_info, &get_face_color](int face_index, const std::string mtl_name, const std::array<int, 3>& tri_uvs) {
                     if (mtl_data.new_mtl_unmap.find(mtl_name) != mtl_data.new_mtl_unmap.end()) {
                         RGBA face_color;
                         get_face_color(mtl_name,face_color);
@@ -178,9 +162,14 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
                             obj_info.uv_map_pngs[face_index] = png_name;
                         }
                         if (data.textureCoordinates.size() > 0) {
-                            Vec2f                uv0(data.textureCoordinates[uvs[0] * 2], data.textureCoordinates[uvs[0] * 2 + 1]);
-                            Vec2f                uv1(data.textureCoordinates[uvs[1] * 2], data.textureCoordinates[uvs[1] * 2 + 1]);
-                            Vec2f                uv2(data.textureCoordinates[uvs[2] * 2], data.textureCoordinates[uvs[2] * 2 + 1]);
+                            auto get_uv = [&data](int uv_idx) {
+                                if (uv_idx < 0 || (uv_idx + 1) * 2 > static_cast<int>(data.textureCoordinates.size()))
+                                    return Vec2f(0.f, 0.f);
+                                return Vec2f(data.textureCoordinates[uv_idx * 2], data.textureCoordinates[uv_idx * 2 + 1]);
+                            };
+                            Vec2f                uv0 = get_uv(tri_uvs[0]);
+                            Vec2f                uv1 = get_uv(tri_uvs[1]);
+                            Vec2f                uv2 = get_uv(tri_uvs[2]);
                             std::array<Vec2f, 3> uv_array{uv0, uv1, uv2};
                             obj_info.uvs.emplace_back(uv_array);
                         }
@@ -192,14 +181,14 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
                         }
                     }
                 };
-                auto set_face_color_by_mtl = [&data, &set_face_color](int face_index) {
+                auto set_face_color_by_mtl = [&data, &set_face_color](int face_index, const std::array<int, 3>& tri_uvs) {
                     if (data.usemtls.size() == 1) {
-                        set_face_color(face_index, data.usemtls[0].name);
+                        set_face_color(face_index, data.usemtls[0].name, tri_uvs);
                     } else {
                         for (size_t k = 0; k < data.usemtls.size(); k++) {
                             auto mtl = data.usemtls[k];
                             if (face_index >= mtl.face_start && face_index <= mtl.face_end) {
-                                set_face_color(face_index, data.usemtls[k].name);
+                                set_face_color(face_index, data.usemtls[k].name, tri_uvs);
                                 break;
                             }
                         }
@@ -220,13 +209,14 @@ bool load_obj(const char *path, TriangleMesh *meshptr, ObjInfo &obj_info, std::s
                             }
                         }
                     }
-                    set_face_color_by_mtl(face_index);
                 }
-                if (cnt == 4) {
-                    its.indices.emplace_back(indices[0], indices[2], indices[3]);
-                    int face_index = its.indices.size() - 1;
+
+                for (size_t tri = 0; tri + 2 < indices.size(); ++tri) {
+                    its.indices.emplace_back(indices[0], indices[tri + 1], indices[tri + 2]);
+                    int face_index = static_cast<int>(its.indices.size()) - 1;
                     if (exist_mtl) {
-                        set_face_color_by_mtl(face_index);
+                        const std::array<int, 3> tri_uvs{uvs[0], uvs[tri + 1], uvs[tri + 2]};
+                        set_face_color_by_mtl(face_index, tri_uvs);
                     }
                 }
             }

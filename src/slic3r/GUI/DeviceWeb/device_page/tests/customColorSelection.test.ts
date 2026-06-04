@@ -3,7 +3,7 @@ import {
   commitCustomColorSelection,
   isPresetColor,
   normalizeColorCode,
-} from '../src/features/filament/customColorSelection.ts';
+} from '../src/features/filament-manager/customColorSelection.ts';
 
 const presetColors = ['#000000', '#FFFFFF'];
 

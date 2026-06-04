@@ -74,6 +74,9 @@
         "20",
         "20"
     ],
+    "supertack_plate_temp": [
+        "40"
+    ],
     "compatible_printers": [
         "Bambu Lab X2D 0.4 nozzle"
     ],

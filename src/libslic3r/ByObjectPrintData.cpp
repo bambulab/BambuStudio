@@ -108,6 +108,12 @@ ByObjectPrintData ByObjectPrintData::build(Print* print)
     auto used_filaments = collect_sorted_used_filaments(all_filaments);
     auto physical_unprintables = print->get_physical_unprintable_filaments(used_filaments);
     auto geometric_unprintables = print->get_geometric_unprintable_filaments();
+
+    const auto &is_mixed  = print->config().filament_is_mixed.values;
+    const auto &comp_strs = print->config().filament_mixed_components.values;
+    if (has_any_mixed_filament(is_mixed))
+        expand_mixed_slots_in_unprintables(geometric_unprintables, is_mixed, comp_strs);
+
     auto filament_unprintable_volumes = print->get_filament_unprintable_flow(used_filaments);
 
     if (!print->is_dynamic_group_reorder()) {

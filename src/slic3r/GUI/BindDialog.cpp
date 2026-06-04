@@ -322,7 +322,7 @@ void PingCodeBindDialog::on_bind_printer(wxCommandEvent& event)
         if (result < 0) {
             MessageDialog msg_wingow(nullptr, _L("Login failed. Please check the following items:\n"
                                                  "1. Ensure the Pin code is entered correctly.\n"
-                                                 "2. Confirm that the region settings of the printer and Bambu Studio are consistent."), "", wxAPPLY | wxOK);
+                                                 "2. Confirm that the region settings of the printer and Bambu Studio are consistent."), "", wxICON_WARNING | wxOK);
             msg_wingow.ShowModal();
             return;
         }

@@ -125,6 +125,12 @@
         "4",
         "4"
     ],
+    "supertack_plate_temp": [
+        "60"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "60"
+    ],
     "compatible_printers": [
         "Bambu Lab X2D 0.6 nozzle"
     ],

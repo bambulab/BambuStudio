@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-14 16:05+0800\n"
+"POT-Creation-Date: 2026-06-01 09:40+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -3294,28 +3294,11 @@ msgstr "Odesílání tiskové úlohy přes LAN"
 msgid "Sending print job through cloud service"
 msgstr "Odesílání tiskové úlohy přes cloudovou službu"
 
-msgid "Print task sending times out."
-msgstr "Časový limit pro odesílání tiskové úlohy vypršel."
-
 msgid "Service Unavailable"
 msgstr "Služba není dostupná"
 
 msgid "Unknown Error."
 msgstr "Neznámá chyba."
-
-msgid "Sending print configuration"
-msgstr "Odesílání konfigurace tisku"
-
-#, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the device page in %ss"
-msgstr "Úspěšně odesláno. Automaticky přejde na stránku zařízení za %ss"
-
-#, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the next page in %ss"
-msgstr "Úspěšně odesláno. Automaticky přejde na další stránku za %ss"
-
-msgid "Storage needs to be inserted before printing via LAN."
-msgstr "Před tiskem přes LAN je třeba vložit úložiště."
 
 msgid "Sending gcode file over LAN"
 msgstr "Odesílání souboru G-kódu přes LAN"
@@ -3365,7 +3348,10 @@ msgstr ""
 msgid "Multi-Color"
 msgstr ""
 
-msgid "Filament Mapping"
+msgid "Your input texture model"
+msgstr ""
+
+msgid "Processed multi-color model"
 msgstr ""
 
 msgid "Color Count"
@@ -3381,6 +3367,9 @@ msgid "Convert texture to painting using the specified color count and smooth le
 msgstr ""
 
 msgid "Reminder: parameters changed, click Apply to take effect"
+msgstr ""
+
+msgid "Filament Mapping"
 msgstr ""
 
 msgid "Auto-merge same filament"
@@ -3403,6 +3392,27 @@ msgstr ""
 
 msgid "Computation failed. Please adjust parameters and retry."
 msgstr ""
+
+msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+msgstr ""
+
+msgid "Mesh repair"
+msgstr ""
+
+msgid "Import without repair"
+msgstr ""
+
+msgid "Repair and import"
+msgstr ""
+
+msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+msgstr ""
+
+msgid "Mesh issue"
+msgstr ""
+
+msgid "Continue"
+msgstr "Pokračovat"
 
 msgid "Choose SLA archive:"
 msgstr "Vyberte SLA archiv:"
@@ -4287,8 +4297,40 @@ msgstr ""
 "Obnoveno na 50%% tloušťky slupkyHloubka zámku by měla být menší než hloubka povrchu.\n"
 "Nastaveno na 50%% hloubky povrchu"
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
-msgstr "Spirálový režim funguje pouze tehdy, když je počet smyček stěn 1, podpěry jsou vypnuté, detekce shlukování sondováním je vypnutá, počet horních vrstev je 0, hustota řídké výplně je 0, typ časosběru je tradiční a vyhlazování rychlosti stěn v ose Z je vypnuté."
+msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
+msgstr ""
+
+msgid "Set ensure vertical shell thickness to Partial."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Set wall loops to %d."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Set sparse infill density to %d%%."
+msgstr ""
+
+msgid "Disable spiral vase mode."
+msgstr ""
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Apply and keep alternate extra wall enabled\n"
+"No  - Don't use alternate extra wall"
+msgstr ""
+
+msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
+msgstr ""
+
+msgid ""
+"Apply these adjustments?\n"
+"Yes - Apply and keep alternate extra wall enabled\n"
+"No  - Keep current settings and alternate extra wall enabled"
+msgstr ""
+
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Ale stroje s konstrukcí I3 nevytvářejí videa typu timelapse."
@@ -5260,6 +5302,9 @@ msgstr "Přizpůsobit kameru scéně nebo vybranému objektu."
 msgid "Paint Toolbar"
 msgstr "Panel nástrojů Malování"
 
+msgid "This border is used to distinguish it from the background"
+msgstr ""
+
 msgid "Explosion Ratio"
 msgstr "Koeficient expanze"
 
@@ -5776,6 +5821,15 @@ msgstr "Odznačit vše"
 msgid "Deselects all objects"
 msgstr "Odznačit všechny objekty"
 
+msgid "Enter Camera Full Screen"
+msgstr ""
+
+msgid "Show the Device camera in full screen"
+msgstr ""
+
+msgid "Exit Camera Full Screen"
+msgstr ""
+
 msgid "Use Perspective View"
 msgstr "Použít perspektivní pohled"
 
@@ -5839,17 +5893,17 @@ msgstr "Nápověda"
 msgid "Temperature Calibration"
 msgstr "Kalibrace teploty"
 
-msgid "Pass 1"
-msgstr "Průchod 1"
+msgid "Coarse"
+msgstr ""
 
-msgid "Flow rate test - Pass 1"
-msgstr "Test průtoku – průchod 1"
+msgid "Flow rate test - Coarse"
+msgstr ""
 
-msgid "Pass 2"
-msgstr "Průchod 2"
+msgid "Fine"
+msgstr ""
 
-msgid "Flow rate test - Pass 2"
-msgstr "Test průtoku – průchod 2"
+msgid "Flow rate test - Fine"
+msgstr ""
 
 msgid "Flow rate"
 msgstr "Průtok"
@@ -6020,6 +6074,9 @@ msgstr "Přehrávač není načten. Klikněte na tlačítko \"Přehrát\" a zkus
 
 msgid "Plugin library failed to load. Click here to view the solution."
 msgstr "Knihovnu pluginu se nepodařilo načíst. Klikněte sem pro zobrazení řešení."
+
+msgid "Loading failed. Please check the network and try again."
+msgstr ""
 
 msgid "Temporarily closed because there is no operation for a while."
 msgstr "Dočasně uzavřeno z důvodu nečinnosti."
@@ -6389,6 +6446,9 @@ msgstr ""
 
 msgid "Go to Login"
 msgstr "Přejít k přihlášení"
+
+msgid "Camera Full Screen"
+msgstr ""
 
 msgctxt "Quit_Switching"
 msgid "Quit"
@@ -6955,6 +7015,9 @@ msgstr "Přeskočit na"
 msgid "Error:"
 msgstr "Chyba:"
 
+msgid "Enable support for"
+msgstr ""
+
 msgid "Open link for more info"
 msgstr "Otevřít odkaz pro více informací"
 
@@ -7028,6 +7091,12 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Spodní"
 
+msgid "There is stringing-prone filament in the current print job. Enabling nozzle clumping detection now may degrade print quality. Are you sure you want to enable it?"
+msgstr ""
+
+msgid "Enable Nozzle Clumping Detection"
+msgstr ""
+
 msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
 msgstr "Pokud je tato možnost povolena, tiskárna bude automaticky pořizovat fotografie vytištěných částí a nahrávat je do cloudu. Chcete tuto možnost povolit?"
 
@@ -7046,8 +7115,8 @@ msgstr "Čistí vzduch v komoře pomocí vnitřní cirkulace po dokončení kaž
 msgid "Enable detection of build plate position"
 msgstr "Povolit detekci polohy tiskové podložky"
 
-msgid "The localization tag of build plate is detected, and printing is paused if the tag is not in predefined range."
-msgstr "Je detekována lokalizační značka tiskové podložky a tisk se pozastaví, pokud se značka nenachází v předdefinovaném rozsahu."
+msgid "Pauses printing when build plate misalignment is detected."
+msgstr "Pozastaví tisk při zjištění nesprávného vyrovnání tiskové podložky."
 
 msgid "Build Plate Detection"
 msgstr "Detekce tiskové podložky"
@@ -7112,9 +7181,6 @@ msgstr "Pozastaví tisk, pokud detekovaný typ tiskové podložky neodpovídá v
 msgid "Alignment Detection"
 msgstr "Detekce zarovnání"
 
-msgid "Pauses printing when build plate misalignment is detected."
-msgstr "Pozastaví tisk při zjištění nesprávného vyrovnání tiskové podložky."
-
 msgid "First Layer Inspection"
 msgstr "Kontrola první vrstvy"
 
@@ -7142,6 +7208,9 @@ msgstr "Detekce zamotání filamentu"
 msgid "Checks if the nozzle is clumping by filament or other foreign objects."
 msgstr "Kontroluje, zda na trysce neulpívá filament nebo jiné cizí předměty."
 
+msgid "On"
+msgstr "Zapnuto"
+
 msgid "Open Door Detection"
 msgstr "Detekce otevřených dveří"
 
@@ -7159,6 +7228,15 @@ msgstr "Snímek stavu tisku"
 
 msgid "Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."
 msgstr "Automaticky pořizuje a nahrává fotografie tisku zobrazující vady během tisku i konečný výsledek pro vzdálené sledování."
+
+msgid "Automatically match the corresponding switch strategy for leak-prone filaments (disable blob detection) and regular filaments (enable blob detection)."
+msgstr ""
+
+msgid "Detect whether the nozzle is wrapped by filament or other foreign matter."
+msgstr ""
+
+msgid "After disabling, nozzle wrapping cannot be detected, which may lead to print failure or nozzle damage."
+msgstr ""
 
 msgctxt "Nozzle Type"
 msgid "Type"
@@ -8480,11 +8558,26 @@ msgstr "Odstranit omezení smíšeného tisku filamentů s vysokou a nízkou tep
 msgid "With this option enabled, you can print materials with a large temperature difference together."
 msgstr "Pokud je tato volba povolena, můžete současně tisknout materiály s velkým rozdílem teplot."
 
+msgid "Open full screen camera view on active monitor only."
+msgstr ""
+
+msgid "When enabled, the camera full screen view opens only on the monitor that contains Bambu Studio."
+msgstr ""
+
 msgid "Clear my choice for synchronizing printer preset after loading the file."
 msgstr "Vymazat mou volbu pro synchronizaci přednastavení tiskárny po načtení souboru."
 
 msgid "Clear my choice for Load 3mf dialog settings."
 msgstr "Vymazat mou volbu pro nastavení dialogu Načíst 3MF."
+
+msgid "Clear my choice for executing post-processing scripts."
+msgstr ""
+
+msgid "Show the security warning dialog again before slicing when post-processing scripts are configured."
+msgstr ""
+
+msgid "Clear my choice for disabling support parameter recommendation."
+msgstr ""
 
 msgid "3D Settings"
 msgstr "3D nastavení"
@@ -9053,9 +9146,6 @@ msgstr "Bambu Cool Plate SuperTack"
 msgid "Send print job"
 msgstr "Odeslat tiskovou úlohu"
 
-msgid "On"
-msgstr "Zapnuto"
-
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Nejste spokojeni se seskupením filamentů? Přeskupte a proveďte řez ->"
 
@@ -9326,11 +9416,14 @@ msgstr "Vaše aktuální verze firmwaru nemůže spustit tuto tiskovou úlohu. P
 msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr "Tvrdost aktuálního materiálu (%s) převyšuje tvrdost %s (%s). Může to způsobit opotřebení trysky, což vede k úniku materiálu a nestabilnímu toku. Při používání buďte prosím opatrní."
 
-msgid "It is recommended to perform an mannual flow calibration for TPU filament on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the previous calibration value and skip the flow calibration process."
+msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
 msgstr ""
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "Některé filamenty mohou během tisku přepínat mezi extrudery. Ruční kalibraci hodnoty K nelze použít po celou dobu tisku, což může ovlivnit kvalitu tisku. Doporučuje se povolit kalibraci dynamiky toku."
+
+msgid "There is stringing-prone filament in this file. For best print quality, we recommend switching nozzle clumping detection to Auto mode."
+msgstr ""
 
 msgid "Cool"
 msgstr "Chladná"
@@ -9382,6 +9475,9 @@ msgstr "Nepoužívejte prosím Ext a AMS současně"
 
 msgid "Invalid nozzle information, please refresh or manually set nozzle information."
 msgstr "Neplatné informace o trysce. Obnovte nebo nastavte informace o trysce ručně."
+
+msgid "Storage needs to be inserted before printing via LAN."
+msgstr "Před tiskem přes LAN je třeba vložit úložiště."
 
 msgid "Storage is not available or is in read-only mode."
 msgstr "Úložiště není k dispozici nebo je v režimu pouze pro čtení."
@@ -11609,6 +11705,9 @@ msgstr "Opravený soubor 3mf neobsahuje žádný objem"
 msgid "Repaired 3mf file contains more than one volume"
 msgstr "Opravený soubor 3mf obsahuje více než jeden objem"
 
+msgid "Repaired 3mf file contains more than one instance"
+msgstr ""
+
 msgid "Repair finished"
 msgstr "Oprava dokončena"
 
@@ -11623,6 +11722,20 @@ msgstr "Konfigurační balíček byl aktualizován na "
 
 msgid "Open G-code file:"
 msgstr "Otevřít soubor G-kódu:"
+
+msgid "Print task sending times out."
+msgstr "Časový limit pro odesílání tiskové úlohy vypršel."
+
+msgid "Sending print configuration"
+msgstr "Odesílání konfigurace tisku"
+
+#, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the device page in %ss"
+msgstr "Úspěšně odesláno. Automaticky přejde na stránku zařízení za %ss"
+
+#, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the next page in %ss"
+msgstr "Úspěšně odesláno. Automaticky přejde na další stránku za %ss"
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "Následující objekt(y) mají prázdnou počáteční vrstvu a nelze je tisknout. Odřízněte spodní část nebo povolte podpěry."
@@ -12784,7 +12897,7 @@ msgstr "Teplota proplachu"
 msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
 msgstr "teplota při proplachování filamentu. 0 označuje horní hranici doporučeného teplotního rozsahu trysky"
 
-msgid "Flush temperature used in fast purge mode. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgid "Flush temperature used in fast purge mode."
 msgstr ""
 
 msgid "Flush volumetric speed"
@@ -12987,6 +13100,12 @@ msgstr "Rozsah gradientu smíšeného filamentu"
 
 msgid "Start and end ratios for the first component in gradient mode. Comma-separated pair, e.g. \"0.10,0.90\" means 10% to 90%."
 msgstr "Počáteční a koncové poměry první složky v režimu gradientu. Dvojice oddělená čárkou, např. \"0.10,0.90\" znamená 10 % až 90 %."
+
+msgid "Mixed filament gradient curve"
+msgstr ""
+
+msgid "Optional Photoshop-style custom curve mapping Z progress to the first component ratio. Encoded as pipe-separated control points, either \"x,y\" (legacy) or \"x,y,m_in,m_out\" when a tangent override is needed (empty token or \"nan\" means use PCHIP default). x in [0,1]; y is clamped to the configured ratio range, e.g. \"0,0.15|0.5,0.50|1,0.85\". When empty, the linear gradient_range is used instead."
+msgstr ""
 
 msgid "Mixed filament per-part gradient"
 msgstr ""
@@ -13398,6 +13517,12 @@ msgstr "Je-li tato možnost povolena, tiskne se po směru hodinových ručiček,
 
 msgid "Enable clumping detection"
 msgstr "Povolit detekci shlukování"
+
+msgid "Order-independent overlap carving"
+msgstr ""
+
+msgid "When enabled, overlapping model parts are carved by bounding-box size so smaller embedded parts are not removed by larger parts due to volume order."
+msgstr ""
 
 msgid "Clumping detection layers"
 msgstr "Vrstvy pro detekci shlukování"
@@ -13954,6 +14079,12 @@ msgstr "Zapuštění stěny do výplně"
 msgid "Embedding the wall into parts where the wall loops are absent ensures that the wall connects seamlessly to the infill."
 msgstr "Zapuštění stěny do částí, kde chybí smyčky stěn, zajišťuje plynulé spojení stěny s výplní."
 
+msgid "Alternate extra wall"
+msgstr ""
+
+msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
+msgstr ""
+
 msgid "Post-processing Scripts"
 msgstr "Skripty pro následné zpracování"
 
@@ -14200,6 +14331,12 @@ msgstr "Vzdálenost sukně"
 
 msgid "Distance from skirt to brim or object"
 msgstr "Vzdálenost sukně od lemu nebo objektu"
+
+msgid "Skirt per object"
+msgstr ""
+
+msgid "Generate independent skirt around each object in sequential printing mode. When disabled, a single skirt is drawn around all objects."
+msgstr ""
 
 msgid "Skirt height"
 msgstr "Výška sukně"
@@ -14915,6 +15052,13 @@ msgstr "Generování trajektorie výplně"
 msgid "Detect overhangs for auto-lift"
 msgstr "Detekce převisů pro automatické nadzvednutí"
 
+msgid "Levitating objects cannot be printed without supports."
+msgstr ""
+
+#, c-format, boost-format
+msgid "It seems object %s has floating regions. Please re-orient the object or enable support generation."
+msgstr ""
+
 msgid "Checking support necessity"
 msgstr "Kontrola, zda jsou potřeba podpěry"
 
@@ -14977,6 +15121,9 @@ msgstr "Síťování souboru modelu selhalo nebo nebyl nalezen žádný platný 
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "Zadaný soubor nelze přečíst, protože je prázdný"
 
+msgid "The file format is incompatible and cannot be parsed."
+msgstr ""
+
 msgid "Unknown file format. Input file must have .stl, .obj, .amf(.xml), .gltf, .glb, .fbx extension."
 msgstr ""
 
@@ -14992,11 +15139,8 @@ msgstr "načtení_obj: analýza selhala"
 msgid "load mtl in obj: failed to parse"
 msgstr "načtení mtl v obj: analýza selhala"
 
-msgid "The file contains polygons with more than 4 vertices."
-msgstr "Soubor obsahuje polygony s více než 4 vrcholy."
-
-msgid "The file contains polygons with less than 2 vertices."
-msgstr "Soubor obsahuje polygony s méně než 2 vrcholy."
+msgid "The file contains polygons with less than 3 vertices."
+msgstr ""
 
 msgid "The file contains invalid vertex index."
 msgstr "Soubor obsahuje neplatný index vrcholu."
@@ -17074,9 +17218,6 @@ msgstr "Tuto akci nelze vrátit zpět. Pokračovat?"
 msgid "Skipping objects."
 msgstr "Přeskakují se objekty."
 
-msgid "Continue"
-msgstr "Pokračovat"
-
 msgid "Null Color"
 msgstr "Žádná barva"
 
@@ -17460,6 +17601,12 @@ msgstr "Byl dosažen maximální počet komponent"
 msgid "Remove the third material"
 msgstr "Odebrat třetí materiál"
 
+msgid "Material Ratio"
+msgstr ""
+
+msgid "Model Height"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -17780,6 +17927,30 @@ msgid ""
 msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
+
+#~ msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
+#~ msgstr "Spirálový režim funguje pouze tehdy, když je počet smyček stěn 1, podpěry jsou vypnuté, detekce shlukování sondováním je vypnutá, počet horních vrstev je 0, hustota řídké výplně je 0, typ časosběru je tradiční a vyhlazování rychlosti stěn v ose Z je vypnuté."
+
+#~ msgid "Pass 1"
+#~ msgstr "Průchod 1"
+
+#~ msgid "Flow rate test - Pass 1"
+#~ msgstr "Test průtoku – průchod 1"
+
+#~ msgid "Pass 2"
+#~ msgstr "Průchod 2"
+
+#~ msgid "Flow rate test - Pass 2"
+#~ msgstr "Test průtoku – průchod 2"
+
+#~ msgid "The localization tag of build plate is detected, and printing is paused if the tag is not in predefined range."
+#~ msgstr "Je detekována lokalizační značka tiskové podložky a tisk se pozastaví, pokud se značka nenachází v předdefinovaném rozsahu."
+
+#~ msgid "The file contains polygons with more than 4 vertices."
+#~ msgstr "Soubor obsahuje polygony s více než 4 vrcholy."
+
+#~ msgid "The file contains polygons with less than 2 vertices."
+#~ msgstr "Soubor obsahuje polygony s méně než 2 vrcholy."
 
 #~ msgid "Standard Mode"
 #~ msgstr "Standardní režim"

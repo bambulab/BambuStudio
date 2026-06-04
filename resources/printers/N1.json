@@ -26,6 +26,7 @@
 			"support_bed_leveling": 1,
 			"support_update_remain": false,
 			"support_timelapse": true,
+			"timelapse_slow_down": true,
 			"support_filament_backup": true,
 			"support_chamber_fan": false,
 			"support_aux_fan": false,

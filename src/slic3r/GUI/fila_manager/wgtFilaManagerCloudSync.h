@@ -25,7 +25,7 @@ public:
         int64_t     net_weight {0}; // 已由 sync 算好的克数（Q6）
     };
 
-    // auto_push 摘要观察者；FilaManagerVM 在它的生命周期内挂上去，转发到
+    // auto_push 摘要观察者；FilamentManagerVM 在它的生命周期内挂上去，转发到
     // 前端 `submod=sync, action=auto_push_summary` ReportMsg。
     using AutoPushSummaryFn = std::function<void(const nlohmann::json&)>;
 

@@ -2548,6 +2548,9 @@ void GUI_App::init_app_config()
         }
         // Save orig_version here, so its empty if no app_config existed before this run.
         m_last_config_version = app_config->orig_version();//parse_semver_from_ini(app_config->config_path());
+
+        auto loglevel = wxGetApp().app_config->get("severity_level");
+        Slic3r::set_logging_level(Slic3r::level_string_to_boost(loglevel));
     }
     else {
 #ifdef _WIN32
@@ -3604,6 +3607,9 @@ __retry:
             m_agent->set_country_code(country_code);
             m_agent->start();
             m_load_last_machine.InnerLoad(m_agent, getDeviceManager());
+            if (auto dev = getDeviceManager()) {
+                dev->restore_local_machines_from_user_access_config();
+            }
         }
     }
     else {
@@ -4445,6 +4451,11 @@ wxString GUI_App::transition_tridid(int trid_id, std::optional<int> total_extrud
         prefix.append(base);
         return prefix;
     }
+    else if (trid_id >= 24 && trid_id <= 27 )
+    {
+        int id_suffix = trid_id - 24 + 1;//ams lite for n9 trid_id start from 24
+        return wxString::Format("Q%d", id_suffix);
+    }
     else {
         int id_index = std::clamp((int)ceil(trid_id / 4), 0, 25);
         int id_suffix = trid_id % 4 + 1;
@@ -5191,6 +5202,7 @@ void GUI_App::on_user_login_handle(wxCommandEvent &evt)
         dev->update_user_machine_list_info();
         CallAfter([this, dev]() {
             m_load_last_machine.TryLoadFromHttpCB(m_agent, dev);
+            dev->restore_local_machines_from_user_access_config();
         });
     });
 
@@ -5293,11 +5305,15 @@ void GUI_App::check_update(bool show_tips, int by_user)
     } else {
         wxGetApp().app_config->set("upgrade", "force_upgrade", false);
 
-        if (show_tips) {
+        // When the beta channel is enabled, defer the "newest version" toast to
+        // check_beta_version(): the stable channel says no, but GitHub may still have
+        // a newer beta. Showing the toast now would contradict the beta dialog that
+        // pops up moments later from the async GitHub check.
+        if (show_tips && app_config->get("enable_beta_version_update") != "true") {
             this->no_new_version();
+        } else {
+            check_beta_version(show_tips);
         }
-
-        check_beta_version();
     }
 }
 
@@ -5332,10 +5348,14 @@ void GUI_App::check_new_version(bool show_tips, int by_user)
                 if (j["message"].get<std::string>() == "success") {
                     if (j.contains("software")) {
                         if (j["software"].empty()) {
-                            if (show_tips) {
+                            // Same reasoning as in check_update(): suppress the toast when
+                            // the beta channel is enabled so it cannot contradict the beta
+                            // release dialog raised by the async GitHub check below.
+                            if (show_tips && app_config->get("enable_beta_version_update") != "true") {
                                 this->no_new_version();
+                            } else {
+                                check_beta_version(show_tips);
                             }
-                            check_beta_version();
                         }
                         else {
                             if (j["software"].contains("url")
@@ -5368,8 +5388,10 @@ void GUI_App::check_new_version(bool show_tips, int by_user)
     }).perform();
 }
 
-void GUI_App::check_beta_version()
+void GUI_App::check_beta_version(bool show_tips_when_no_beta)
 {
+    // When the beta channel is off the stable callers have already shown the toast
+    // (see check_update / check_new_version), so we just bail out here.
     if (app_config->get("enable_beta_version_update") != "true") {
         return;
     }
@@ -5396,7 +5418,7 @@ void GUI_App::check_beta_version()
     http.header("accept", "application/json")
         .timeout_connect(TIMEOUT_CONNECT)
         .timeout_max(TIMEOUT_RESPONSE)
-        .on_complete([this, platform](std::string body, unsigned) {
+        .on_complete([this, platform, show_tips_when_no_beta](std::string body, unsigned) {
         try {
             json versions = json::parse(body, nullptr, false);
             for (auto version : versions){
@@ -5422,7 +5444,12 @@ void GUI_App::check_beta_version()
                                     version_info.url = url;
                                     version_info.description = "###" + std::string(version["html_url"]) + "###";
                                     version_info.force_upgrade = false;
-                                    CallAfter([this]() {
+                                    CallAfter([this, show_tips_when_no_beta]() {
+                                        auto fallback_tips = [this, show_tips_when_no_beta]() {
+                                            if (show_tips_when_no_beta) {
+                                                this->no_new_version();
+                                            }
+                                        };
 
                                         if (version_info.version_str.empty() || version_info.url.empty()) {
                                             return;
@@ -5433,6 +5460,7 @@ void GUI_App::check_beta_version()
                                         if (curr_version && remote_version && (*remote_version > *curr_version)) {
                                             std::string skip_ver = app_config->get("app", "skip_version");
                                             if (!skip_ver.empty() && version_info.version_str <= skip_ver) {
+                                                fallback_tips();
                                                 return;
                                             }
 
@@ -5446,14 +5474,24 @@ void GUI_App::check_beta_version()
                                                 GUI::wxGetApp().request_new_version(2);
                                                 break;
                                             case wxID_CANCEL:
+                                                // Triggered only by the explicit
+                                                // "Don't show me Beta updates again" button.
                                                 app_config->set("enable_beta_version_update", "false");
                                                 break;
                                             case wxID_NO:
                                                 wxGetApp().set_skip_version(true);
                                                 break;
+                                            case wxID_CLOSE:
+                                                // Window close (X): dismiss the dialog without
+                                                // touching the beta-channel preference or
+                                                // skip_version. Same as default, listed
+                                                // explicitly to document the intent.
+                                                break;
                                             default:
                                                 break;
                                             }
+                                        } else {
+                                            fallback_tips();
                                         }
                                     });
                                 }
@@ -6019,6 +6057,7 @@ void GUI_App::start_sync_user_preset(bool with_progress_dlg)
     m_user_sync_token.reset(new int(0));
     if (with_progress_dlg) {
         auto dlg = new ProgressDialog(_L("Loading"), "", 100, this->mainframe, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
+        dlg->EnableYield(false);
         dlg->Update(0, _L("Loading user preset"));
         progressFn = [this, dlg](int percent) {
             CallAfter([=]{

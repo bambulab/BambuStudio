@@ -174,6 +174,7 @@ public:
         m_last_pos_defined(false),
         m_last_extrusion_role(erNone),
         m_last_width(0.0f),
+        m_last_layer_accumulated_mass(0.0f),
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
         m_last_mm3_per_mm(0.0),
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
@@ -413,6 +414,12 @@ private:
     // slow down by height
     bool slowDownByHeight(double& maxSpeed, double& maxAcc, const ExtrusionPath& path);
 
+    // limit machine acceleration calculations
+    void mass_load_limited_machine_acceleration(const PrintStatistics curr_print_statistics,
+                                                const Print          &print,
+                                                double               &y_acceleration_limit_res,
+                                                double               &accumulated_mass_res);
+
     // Extruding multiple objects with soluble / non-soluble / combined supports
     // on a multi-material printer, trying to minimize tool switches.
     // Following structures sort extrusions by the extruder ID, by an order of objects and object islands.
@@ -541,6 +548,7 @@ private:
     float                               m_last_layer_z{ 0.0f };
     float                               m_max_layer_z{ 0.0f };
     float                               m_last_width{ 0.0f };
+    double                              m_last_layer_accumulated_mass{0.0f};
 #if ENABLE_GCODE_VIEWER_DATA_CHECKING
     double                              m_last_mm3_per_mm;
 #endif // ENABLE_GCODE_VIEWER_DATA_CHECKING
@@ -588,6 +596,8 @@ private:
     // BBS
     Print* m_curr_print = nullptr;
     unsigned int m_toolchange_count;
+    std::vector<unsigned int> m_filament_change_sequence;
+    std::vector<unsigned int> m_nozzle_change_sequence;
     coordf_t m_nominal_z;
     double   m_sub_layer_flow_ratio = 0.0;
     double   m_sub_layer_height     = 0.0;

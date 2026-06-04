@@ -68,6 +68,8 @@ static const int PARTPLATE_PLATENAME_OFFSET_Y  = 10;
 const float WIPE_TOWER_DEFAULT_X_POS = 165.;
 const float WIPE_TOWER_DEFAULT_Y_POS = 250.;  // Max y
 
+const float N9_WIPE_TOWER_DEFAULT_Y_POS = 160.;
+
 const float I3_WIPE_TOWER_DEFAULT_X_POS = 0.;
 const float I3_WIPE_TOWER_DEFAULT_Y_POS = 250.; // Max y
 
@@ -2308,8 +2310,15 @@ Vec3d PartPlate::get_center_origin()
 {
 	Vec3d origin;
 
-	origin(0) = (m_bounding_box.min(0) + m_bounding_box.max(0)) / 2;//m_origin.x() + m_width / 2;
-	origin(1) = (m_bounding_box.min(1) + m_bounding_box.max(1)) / 2; //m_origin.y() + m_depth / 2;
+	// Virtual / unprintable plate has no m_shape and a degenerate bbox; fall
+	// back to origin+size. Real plates keep the bbox formula for non-rect beds.
+	if (m_shape.empty()) {
+		origin(0) = m_origin.x() + m_width / 2.0;
+		origin(1) = m_origin.y() + m_depth / 2.0;
+	} else {
+		origin(0) = (m_bounding_box.min(0) + m_bounding_box.max(0)) / 2;//m_origin.x() + m_width / 2;
+		origin(1) = (m_bounding_box.min(1) + m_bounding_box.max(1)) / 2; //m_origin.y() + m_depth / 2;
+	}
 	origin(2) = m_origin.z();
 
 	return origin;
@@ -2577,7 +2586,10 @@ bool PartPlate::intersect_instance(int obj_id, int instance_id, BoundingBoxf3* b
 	}
 	else
 	{
-		result = is_left_top_of(obj_id, instance_id);
+		// Virtual plate: is_left_top_of() doesn't apply, use bbox intersection.
+		ModelObject*  object       = m_model->objects[obj_id];
+		BoundingBoxf3 instance_box = bounding_box ? *bounding_box : object->instance_convex_hull_bounding_box(instance_id);
+		result = get_plate_box().intersects(instance_box);
 	}
 
 	return result;
@@ -4532,6 +4544,12 @@ void PartPlateList::set_default_wipe_tower_pos_for_plate(int plate_idx, bool ini
         return { WIPE_TOWER_DEFAULT_X_POS, WIPE_TOWER_DEFAULT_Y_POS };
     }();
 
+    std::string printer_type = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+
+    // Note: printer_type == "N9" and printer_structure_opt->value == PrinterStructure::psI3 can both be true
+    if (printer_type == "N9") {
+        y = N9_WIPE_TOWER_DEFAULT_Y_POS;
+    }
     const float margin     = WIPE_TOWER_MARGIN;
     PartPlate* part_plate = get_plate(plate_idx);
     Vec3d plate_origin = part_plate->get_origin();
@@ -4663,7 +4681,9 @@ void PartPlateList::clear(bool delete_plates, bool release_print_list, bool exce
 		m_gcode_result_list.clear();
 	}
 
-	unprintable_plate.clear();
+	// Preserve virtual plate snapshot on in-place rebuilds; only wipe on full delete.
+	if (delete_plates)
+		unprintable_plate.clear();
 }
 
 //clear all the instances in the plate, and delete the plates, only keep the first default plate
@@ -4770,7 +4790,8 @@ int PartPlateList::create_plate(bool adjust_position)
 	{
 		BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": the same cols %1%") % old_cols;
 		Vec3d origin2 = compute_origin_for_unprintable();
-		unprintable_plate.set_pos_and_size(origin2, m_plate_width, m_plate_depth, m_plate_height, false);
+		// do_clear=false: relocating must not wipe inst_set used by reload_all_objects.
+		unprintable_plate.set_pos_and_size(origin2, m_plate_width, m_plate_depth, m_plate_height, false, false);
 
 		//update bounding_boxes
 		calc_bounding_boxes();
@@ -5176,7 +5197,8 @@ void PartPlateList::update_all_plates_pos_and_size(bool adjust_position, bool wi
 	}
 
 	origin2 = compute_origin_for_unprintable();
-	unprintable_plate.set_pos_and_size(origin2, m_plate_width, m_plate_depth, m_plate_height, with_unprintable_move);
+	// do_clear=false: only reload_all_objects is allowed to rebuild inst_set.
+	unprintable_plate.set_pos_and_size(origin2, m_plate_width, m_plate_depth, m_plate_height, with_unprintable_move, false);
 }
 
 //move the plate to position index
@@ -5558,6 +5580,10 @@ int PartPlateList::reload_all_objects(bool except_locked, int plate_index)
 	int ret = 0;
 	unsigned int i, j, k;
 
+	// Snapshot virtual-plate ownership before clear(); otherwise real plates
+	// overlapping the old virtual area could steal the parked instances.
+	std::set<std::pair<int, int>> sticky_virtual = unprintable_plate.get_obj_and_inst_set();
+
 	clear(false, false, except_locked, plate_index);
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": m_model->objects.size() is %1%") % m_model->objects.size();
@@ -5569,6 +5595,21 @@ int PartPlateList::reload_all_objects(bool except_locked, int plate_index)
 		{
 			ModelInstance* instance = object->instances[j];
 			BoundingBoxf3 boundingbox = object->instance_convex_hull_bounding_box(j);
+
+			// Re-park sticky-virtual instances first; re-snap geometry to the
+			// current virtual centre so a shifted origin can't push them into
+			// a brand-new real plate's bbox.
+			if (sticky_virtual.count(std::make_pair((int)i, (int)j)))
+			{
+				Vec3d center = unprintable_plate.get_center_origin();
+				center.z() = instance->get_transformation().get_offset(Z);
+				instance->set_offset(center);
+				object->invalidate_bounding_box();
+				BoundingBoxf3 new_bbox = object->instance_convex_hull_bounding_box(j);
+				unprintable_plate.add_instance(i, j, false, &new_bbox);
+				continue;
+			}
+
 			for (k = 0; k < (unsigned int)m_plate_list.size(); ++k)
 			{
 				PartPlate* plate = m_plate_list[k];
@@ -5611,6 +5652,8 @@ int PartPlateList::construct_objects_list_for_new_plate(int plate_index)
 	bool already_included;
 
 	BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << boost::format(": m_model->objects.size() is %1%") % m_model->objects.size();
+	// Snapshot virtual-plate ownership before clear(); see reload_all_objects.
+	std::set<std::pair<int, int>> sticky_virtual = unprintable_plate.get_obj_and_inst_set();
 	unprintable_plate.clear();
 	//try to find a new plate
 	for (i = 0; i < (unsigned int)m_model->objects.size(); ++i)
@@ -5635,6 +5678,19 @@ int PartPlateList::construct_objects_list_for_new_plate(int plate_index)
 				continue;
 
 			BoundingBoxf3 boundingbox = object->instance_convex_hull_bounding_box(j);
+
+			// Re-park sticky-virtual instances first; re-snap to the virtual centre.
+			if (sticky_virtual.count(std::make_pair((int)i, (int)j)))
+			{
+				Vec3d center = unprintable_plate.get_center_origin();
+				center.z() = instance->get_transformation().get_offset(Z);
+				instance->set_offset(center);
+				object->invalidate_bounding_box();
+				BoundingBoxf3 new_bbox = object->instance_convex_hull_bounding_box(j);
+				unprintable_plate.add_instance(i, j, false, &new_bbox);
+				continue;
+			}
+
 			if (new_plate->intersect_instance(i, j, &boundingbox))
 			{
 				//found a new plate, add it to plate
@@ -6660,15 +6716,51 @@ int PartPlateList::rebuild_plates_after_arrangement(bool recycle_plates, bool ex
 
 	BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(":before rebuild, plates count %1%, recycle_plates %2%") % m_plate_list.size() % recycle_plates;
 
+	// Capture virtual-plate ownership BEFORE std::sort scrambles obj_id, keyed
+	// by ModelObject* (stable across sort). Drop entries whose current bbox no
+	// longer overlaps the virtual plate -- ArrangeJob may have just moved them
+	// onto a real plate, and we must not re-snap them back.
+	std::set<ModelObject*> sticky_virtual_objs;
+	if (m_model) {
+		BoundingBoxf3 virtual_bbox = unprintable_plate.get_plate_box();
+		for (const auto& pr : unprintable_plate.get_obj_and_inst_set()) {
+			if (pr.first < 0 || pr.first >= (int)m_model->objects.size())
+				continue;
+			ModelObject *obj = m_model->objects[pr.first];
+			if (!obj || pr.second < 0 || pr.second >= (int)obj->instances.size())
+				continue;
+			BoundingBoxf3 inst_bbox = obj->instance_convex_hull_bounding_box((size_t)pr.second);
+			if (virtual_bbox.intersects(inst_bbox))
+				sticky_virtual_objs.insert(obj);
+		}
+	}
+
 	// sort by arrange_order
 	std::sort(m_model->objects.begin(), m_model->objects.end(), [](auto a, auto b) {return a->instances[0]->arrange_order < b->instances[0]->arrange_order; });
 	//for (auto object : m_model->objects)
 	//	std::sort(object->instances.begin(), object->instances.end(), [](auto a, auto b) {return a->arrange_order < b->arrange_order; });
 
+	// Rewrite inst_set with post-sort obj_id. Run on ANY pre-filter entries
+	// (even if all got dropped) -- otherwise stale (obj_id, inst_id) pairs
+	// survive and reload_all_objects's sticky_virtual loop re-snaps the
+	// just-arranged objects back to the virtual centre.
+	if (m_model && !unprintable_plate.get_obj_and_inst_set().empty()) {
+		unprintable_plate.clear();
+		for (size_t i = 0; i < m_model->objects.size(); ++i) {
+			if (!sticky_virtual_objs.count(m_model->objects[i])) continue;
+			ModelObject* obj = m_model->objects[i];
+			for (size_t j = 0; j < obj->instances.size(); ++j) {
+				BoundingBoxf3 bbox = obj->instance_convex_hull_bounding_box(j);
+				unprintable_plate.add_instance((int)i, (int)j, false, &bbox);
+			}
+		}
+	}
+
 	ret = reload_all_objects(except_locked, plate_index);
 
 	if (recycle_plates)
 	{
+		// Sweep all empty non-locked plates (incl. middle ones); plate 0 stays via `i > 0`.
 		for (unsigned int i = (unsigned int)m_plate_list.size() - 1; i > 0; --i)
 		{
 			if (m_plate_list[i]->empty()
@@ -6683,7 +6775,7 @@ int PartPlateList::rebuild_plates_after_arrangement(bool recycle_plates, bool ex
 			}
 			else
 			{
-				break;
+				continue;
 			}
 		}
 	}

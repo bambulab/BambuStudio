@@ -100,6 +100,11 @@ namespace Slic3r
             }
         }
 
+        for (int i = 24; i <= 27; i++) /* ams lite for N9*/
+        {
+            if (fila_back_group & (1 << i)) { trayid_group[i] = true; }
+        }
+
         return trayid_group;
     }
 
@@ -351,14 +356,29 @@ namespace Slic3r
             extder_obj.m_cur_temp = DevUtil::get_flag_bits(njon["temp"].get<int>(), 0, 16);
             extder_obj.m_target_temp = DevUtil::get_flag_bits(njon["temp"].get<int>(), 16, 16);
 
-            extder_obj.m_spre.slot_id = std::to_string(DevUtil::get_flag_bits(njon["spre"].get<int>(), 0, 8));
-            extder_obj.m_spre.ams_id = std::to_string(DevUtil::get_flag_bits(njon["spre"].get<int>(), 8, 8));
+            if(system->m_total_extder_count == 1 && njon["spre"].get<int>() == 0xffff) {
+                extder_obj.m_spre.slot_id = "";
+                extder_obj.m_spre.ams_id = "";
+            } else{
+                extder_obj.m_spre.slot_id = std::to_string(DevUtil::get_flag_bits(njon["spre"].get<int>(), 0, 8));
+                extder_obj.m_spre.ams_id = std::to_string(DevUtil::get_flag_bits(njon["spre"].get<int>(), 8, 8));
+            }
 
-            extder_obj.m_snow.slot_id = std::to_string(DevUtil::get_flag_bits(njon["snow"].get<int>(), 0, 8));
-            extder_obj.m_snow.ams_id = std::to_string(DevUtil::get_flag_bits(njon["snow"].get<int>(), 8, 8));
+            if(system->m_total_extder_count == 1 && njon["snow"].get<int>() == 0xffff) {
+                extder_obj.m_snow.slot_id = "";
+                extder_obj.m_snow.ams_id = "";
+            } else{
+                extder_obj.m_snow.slot_id = std::to_string(DevUtil::get_flag_bits(njon["snow"].get<int>(), 0, 8));
+                extder_obj.m_snow.ams_id = std::to_string(DevUtil::get_flag_bits(njon["snow"].get<int>(), 8, 8));
+            }
 
-            extder_obj.m_star.slot_id = std::to_string(DevUtil::get_flag_bits(njon["star"].get<int>(), 0, 8));
-            extder_obj.m_star.ams_id = std::to_string(DevUtil::get_flag_bits(njon["star"].get<int>(), 8, 8));
+            if(system->m_total_extder_count == 1 && njon["star"].get<int>() == 0xffff) {
+                extder_obj.m_star.slot_id = "";
+                extder_obj.m_star.ams_id = "";
+            } else{
+                extder_obj.m_star.slot_id = std::to_string(DevUtil::get_flag_bits(njon["star"].get<int>(), 0, 8));
+                extder_obj.m_star.ams_id = std::to_string(DevUtil::get_flag_bits(njon["star"].get<int>(), 8, 8));
+            }
 
             extder_obj.m_ams_stat = DevUtil::get_flag_bits(njon["stat"].get<int>(), 0, 16);
             extder_obj.m_rfid_stat = DevUtil::get_flag_bits(njon["stat"].get<int>(), 16, 16);

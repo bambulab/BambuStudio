@@ -484,10 +484,11 @@ public:
     bool is_slice_result_ready_for_print() const
     {
         bool result = m_slice_result_valid;
+        int  WARNING_BIT = (1<<11);
         if (result)
-            result = m_gcode_result ?
-            (!m_gcode_result->toolpath_outside && m_gcode_result->gcode_check_result.error_code == 0 && !m_gcode_result->filament_printable_reuslt.has_value()) :
-            false;// && !m_gcode_result->conflict_result.has_value()  gcode conflict can also print
+            result = m_gcode_result ? (!m_gcode_result->toolpath_outside && (m_gcode_result->gcode_check_result.error_code & ~WARNING_BIT) == 0 &&
+                                       !m_gcode_result->filament_printable_reuslt.has_value()) :
+                                      false; // && !m_gcode_result->conflict_result.has_value()  gcode conflict can also print
         return result;
     }
 
@@ -821,6 +822,9 @@ public:
     int get_curr_plate_index() const { return m_current_plate; }
     PartPlate* get_curr_plate() { return m_plate_list[m_current_plate]; }
     const PartPlate *get_curr_plate() const { return m_plate_list[m_current_plate]; }
+    // Accessor for the virtual (unprintable) plate used to park off-bed instances.
+    PartPlate&       get_unprintable_plate() { return unprintable_plate; }
+    const PartPlate& get_unprintable_plate() const { return unprintable_plate; }
     ThumbnailData &get_thumbnail_assembly_view_data() { return m_thumbnail_assembly_view_data; }
     const ThumbnailData &get_thumbnail_assembly_view_data() const { return m_thumbnail_assembly_view_data; }
     void reset_thumbnail_assembly_view_data() { m_thumbnail_assembly_view_data.reset(); }

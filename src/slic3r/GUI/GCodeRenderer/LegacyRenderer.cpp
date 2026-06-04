@@ -1,15 +1,12 @@
 #include "slic3r/GUI/GCodeRenderer/LegacyRenderer.hpp"
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/BuildVolume.hpp"
-#include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Geometry.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/LocalesUtils.hpp"
 #include "libslic3r/PresetBundle.hpp"
-//BBS: add convex hull logic for toolpath check
-#include "libslic3r/Geometry/ConvexHull.hpp"
 #include "slic3r/GUI/OpenGLManager.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
@@ -1326,28 +1323,7 @@ namespace Slic3r {
                     % m_paths_bounding_box.min.x() % m_paths_bounding_box.min.y() % m_paths_bounding_box.max.x() % m_paths_bounding_box.max.y();
                 //if (wxGetApp().is_editor())
                 {
-                    //BBS: use convex_hull for toolpath outside check
-                    m_contained_in_bed = build_volume.all_paths_inside(gcode_result, m_paths_bounding_box);
-                    if (m_contained_in_bed) {
-                        //PartPlateList& partplate_list = wxGetApp().plater()->get_partplate_list();
-                        //PartPlate* plate = partplate_list.get_curr_plate();
-                        //const std::vector<BoundingBoxf3>& exclude_bounding_box = plate->get_exclude_areas();
-                        if (exclude_bounding_box.size() > 0)
-                        {
-                            int index;
-                            Slic3r::Polygon convex_hull_2d = Slic3r::Geometry::convex_hull(std::move(pts));
-                            for (index = 0; index < exclude_bounding_box.size(); index++)
-                            {
-                                Slic3r::Polygon p = exclude_bounding_box[index].polygon(true);  // instance convex hull is scaled, so we need to scale here
-                                if (intersection({ p }, { convex_hull_2d }).empty() == false)
-                                {
-                                    m_contained_in_bed = false;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    (const_cast<GCodeProcessorResult&>(gcode_result)).toolpath_outside = !m_contained_in_bed;
+                    update_toolpath_outside_state(gcode_result, build_volume, exclude_bounding_box, std::move(pts));
                 }
                 if (p_sequential_view) {
                     p_sequential_view->gcode_ids.clear();
@@ -1907,7 +1883,9 @@ namespace Slic3r {
                             }
                             if (path.type == EMoveType::Extrude && !is_visible(path))
                                 continue;
-                            if (m_view_type == EViewType::ColorPrint && !m_tools.m_tool_visibles[path.extruder_id])
+                            if (m_view_type == EViewType::ColorPrint
+                                && path.extruder_id < m_tools.m_tool_visibles.size()
+                                && !m_tools.m_tool_visibles[path.extruder_id])
                                 continue;
                             // store valid path
                             for (size_t j = 0; j < path.sub_paths.size(); ++j) {

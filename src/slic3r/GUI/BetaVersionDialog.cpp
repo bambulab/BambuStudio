@@ -136,6 +136,15 @@ BetaVersionDialog::BetaVersionDialog(wxWindow *parent)
     SetMinSize(GetSize());
     Centre(wxBOTH);
     wxGetApp().UpdateDlgDarkUI(this);
+
+    // The window close box (X) must not be conflated with the explicit
+    // "Don't show me Beta updates again" button: that button intentionally
+    // disables the beta-channel preference, while pressing X is a passive
+    // dismiss. Map X to a dedicated id so the caller can leave preferences
+    // untouched.
+    this->Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent &) {
+        EndModal(wxID_CLOSE);
+    });
 }
 
 BetaVersionDialog::~BetaVersionDialog() {}

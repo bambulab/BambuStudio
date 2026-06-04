@@ -35,6 +35,7 @@
 // BBS: for segment
 #include "MeshBoolean.hpp"
 #include "Format/3mf.hpp"
+#include "Format/AssimpImport.hpp"
 
 // Transtltion
 #include "I18N.hpp"
@@ -347,28 +348,25 @@ Model Model::read_from_file(const std::string&                                  
             }
         }
     }
+    else if (boost::algorithm::iends_with(input_file, ".glb") ||
+             boost::algorithm::iends_with(input_file, ".gltf") ||
+             boost::algorithm::iends_with(input_file, ".fbx")) {
+        auto tex_mesh = std::make_shared<TexturedMesh>();
+        result = load_assimp_textured_model(input_file, *tex_mesh, &message);
+        if (result) {
+            model.texture_mesh = tex_mesh;
+            add_textured_mesh_to_model(model, *tex_mesh, input_file);
+        } else if (!message.empty()) {
+            BOOST_LOG_TRIVIAL(error) << "Assimp: failed to load model: " << message
+                                     << ", path=" << input_file;
+            message = _L("The file format is incompatible and cannot be parsed.");
+        }
+    }
     //BBS: remove the old .amf.xml files
     //else if (boost::algorithm::iends_with(input_file, ".amf") || boost::algorithm::iends_with(input_file, ".amf.xml"))
     else if (boost::algorithm::iends_with(input_file, ".amf"))
         //BBS: is_xxx is used for is_inches when load amf
         result = load_amf(input_file.c_str(), config, config_substitutions, &model, is_xxx);
-    else if (boost::algorithm::iends_with(input_file, ".glb") ||
-             boost::algorithm::iends_with(input_file, ".gltf")) {
-        auto tex_mesh = std::make_shared<TexturedMesh>();
-        result = load_gltf(input_file, *tex_mesh, &message);
-        if (result) {
-            model.texture_mesh = tex_mesh;
-            add_textured_mesh_to_model(model, *tex_mesh, input_file);
-        }
-    }
-    else if (boost::algorithm::iends_with(input_file, ".fbx")) {
-        auto tex_mesh = std::make_shared<TexturedMesh>();
-        result = load_fbx(input_file, *tex_mesh, &message);
-        if (result) {
-            model.texture_mesh = tex_mesh;
-            add_textured_mesh_to_model(model, *tex_mesh, input_file);
-        }
-    }
     else if (boost::algorithm::iends_with(input_file, ".3mf"))
         //BBS: add part plate related logic
         // BBS: backup & restore

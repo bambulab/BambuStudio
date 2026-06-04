@@ -58,6 +58,7 @@ enum DevAmsType : int
     AMS_LITE = 2,       // AMS-Lite
     N3F = 3,            // N3F, AMS 2PRO
     N3S = 4,            // N3S, AMS HT
+    AMS_LITE_MIXED = 5, // AMS-Lite for N9
 };
 
 enum DevFilamentStep
@@ -87,6 +88,9 @@ enum DevFilamentStep
 
 #define VIRTUAL_AMS_MAIN_ID_STR   "255"
 #define VIRTUAL_AMS_DEPUTY_ID_STR "254"
+
+// Tray index offsets for different AMS types
+#define AMS_LITE_MIXED_TRAY_INDEX_OFFSET 24 // Offset for AMS_LITE_MIXED tray index (24)
 
 #define INVALID_AMS_TEMPERATURE std::numeric_limits<float>::min()
 

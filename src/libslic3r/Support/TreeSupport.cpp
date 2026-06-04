@@ -2326,6 +2326,7 @@ void TreeSupport::draw_circles()
     coordf_t support_extrusion_width = m_support_params.support_extrusion_width;
     const coordf_t line_width_scaled                 = scale_(support_extrusion_width);
     const float tree_brim_width = config.raft_first_layer_expansion.value;
+    const bool bottom_expand_enabled = config.tree_support_wall_count > 1 || config.tree_support_wall_count < 0;
 
     if (m_object->support_layer_count() <= m_raft_layers)
         return;
@@ -2460,7 +2461,8 @@ void TreeSupport::draw_circles()
                         }
 
                         if (!area.empty()) has_circle_node = true;
-                        if (node.need_extra_wall) append(extra_wall_area, area);
+                        if (node.need_extra_wall || (bottom_expand_enabled && node.print_z < DO_NOT_MOVER_UNDER_MM && node.dist_mm_to_top > DO_NOT_MOVER_UNDER_MM))
+                            append(extra_wall_area, area);
                         if (node.overhang_degree >= 2) append(cooldown_area, area);
                     }
 
@@ -2866,6 +2868,8 @@ void TreeSupport::drop_nodes()
     const bool support_on_buildplate_only = config.support_on_build_plate_only.value;
     const size_t top_interface_layers = config.support_interface_top_layers.value;
     SupportNode::diameter_angle_scale_factor = diameter_angle_scale_factor;
+    // enabled only when the wall count is set to auto or dual-wall is explicitly enabled by the user.
+    const bool bottom_expand_enabled = config.tree_support_wall_count > 1 || config.tree_support_wall_count < 0;
 
     auto get_max_move_dist = [this, &config, tan_angle, wall_count, support_extrusion_width](const SupportNode *node, int power = 1) {
         if (node->max_move_dist == 0) {
@@ -3243,7 +3247,11 @@ first_pass_next:;
                     ExPolygons overhangs_next{node.overhang};
                     auto       poly_radius   = node.overhang.contour.bounding_box().radius();
                     bool       offseted    = false;
-                    if ((node.print_z < DO_NOT_MOVER_UNDER_MM) || poly_radius < scale_(node.target_radius) || node.overhang.area() < 3. * SQ(scale_(node.target_radius))) {
+                    // polygon support expansion cases:
+                    // 1. bottom expansion is enabled
+                    // 2. large tree supports merge into the region
+                    if ((bottom_expand_enabled && node.print_z < DO_NOT_MOVER_UNDER_MM) ||
+                        (poly_radius < scale_(node.target_radius) || node.overhang.area() < 3. * SQ(scale_(node.target_radius)))) {
                         overhangs_next = offset_ex({node.overhang}, scale_(max_move_distance / 2.));
                         offseted       = true;
                     }
@@ -3458,7 +3466,7 @@ first_pass_next:;
                 to_outside             = projection_onto(next_collision, next_node->position);
                 direction_to_outer     = to_outside - node.position;
                 double dist_to_outer   = unscale_(direction_to_outer.cast<double>().norm());
-                next_node->radius      = (next_node->print_z < DO_NOT_MOVER_UNDER_MM && node.dist_mm_to_top > DO_NOT_MOVER_UNDER_MM) ?
+                next_node->radius      = (bottom_expand_enabled && next_node->print_z < DO_NOT_MOVER_UNDER_MM && node.dist_mm_to_top > DO_NOT_MOVER_UNDER_MM) ?
                                              node.radius + support_extrusion_width / 2. :
                                              std ::max(node.radius, std::min(next_node->radius, dist_to_outer));
                 get_max_move_dist(next_node);
@@ -3576,7 +3584,6 @@ void TreeSupport::smooth_nodes()
     for (int layer_nr = 0; layer_nr< contact_nodes.size(); layer_nr++) {
         std::vector<SupportNode *> &curr_layer_nodes = contact_nodes[layer_nr];
         if (curr_layer_nodes.empty()) continue;
-        if (curr_layer_nodes.front()->print_z < DO_NOT_MOVER_UNDER_MM) continue;
         for (SupportNode *node : curr_layer_nodes) {
             if (!node->is_processed) {
                 std::vector<Point> pts;
