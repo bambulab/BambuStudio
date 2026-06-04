@@ -52,6 +52,15 @@ public:
 };
 
 
+//BBS: per-AMS filament load/unload time, exported so the print start flow can replace the
+// estimated time with the actual AMS time according to the real AMS mapping.
+struct AmsLoadUnloadTimeInfo
+{
+    std::string ams_type;
+    double      load_time{0.0};
+    double      unload_time{0.0};
+};
+
 //BBS: define plate data list related structures
 struct PlateData
 {
@@ -94,6 +103,9 @@ struct PlateData
     std::string     plate_name;
     std::vector<FilamentInfo> slice_filaments_info;
     std::vector<size_t> skipped_objects;
+    // AMS type used for the load/unload time estimation, and the full per-AMS time matrix of this machine.
+    std::string                       selected_ams_type;
+    std::vector<AmsLoadUnloadTimeInfo> ams_list;
     DynamicPrintConfig config;
     bool            is_support_used {false};
     bool            is_sliced_valid = false;

@@ -100,5 +100,20 @@
     "support_object_skip_flush": "1",
     "upward_compatible_machine": [
         "Bambu Lab H2S 0.4 nozzle"
+    ],    
+    "selected_ams_type": "1",
+    "ams_filament_load_time": [
+        "0",
+        "23",
+        "11",
+        "18",
+        "18"
+    ],
+    "ams_filament_unload_time": [
+        "0",
+        "21",
+        "12",
+        "19",
+        "19"
     ]
 }
