@@ -74,11 +74,24 @@ jobs:
       DEPS_ZIP_DIR: ${{ github.workspace }}\deps-artifact
       DEPS_ROOT: ${{ github.workspace }}\deps\build\BambuStudio_dep
       BUILD_DIR: ${{ github.workspace }}\build-smoke
+      SCCACHE_GHA_ENABLED: "true"
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           lfs: "true"
+
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.10
+
+      - name: Reset sccache stats
+        shell: pwsh
+        run: |
+          & $env:SCCACHE_PATH --stop-server | Out-Null
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "sccache server was not running before reset"
+          }
+          & $env:SCCACHE_PATH --zero-stats
 
       - name: Download deps artifact
         env:
@@ -136,6 +149,8 @@ jobs:
             -DSLIC3R_BUILD_TESTS=ON `
             -DSLIC3R_MSVC_COMPILE_PARALLEL=OFF `
             -DSLIC3R_MSVC_PDB=OFF `
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache `
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache `
             -DCMAKE_PREFIX_PATH="${{ env.DEPS_ROOT }}\usr\local" `
             -DPKG_CONFIG_EXECUTABLE="C:/Strawberry/perl/bin/pkg-config.bat" `
             -DWIN10SDK_PATH="C:/Program Files (x86)/Windows Kits/10/Include/${{ steps.windows_sdk.outputs.sdk-version }}"
@@ -164,12 +179,29 @@ jobs:
         run: |
           & "${{ env.BUILD_DIR }}\tests\fff_print\Release\fff_print_tests.exe" "[Model]" 2>&1 | Tee-Object -FilePath .ci\fff-model.log
 
+      - name: Show sccache stats
+        if: always()
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path .ci | Out-Null
+          $stats = & $env:SCCACHE_PATH --show-stats 2>&1
+          $stats | Tee-Object -FilePath .ci\sccache-stats.txt
+          @"
+          ## sccache
+
+          ```text
+          $($stats -join "`n")
+          ```
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
       - name: Upload smoke logs
         if: always()
         uses: actions/upload-artifact@v6
         with:
           name: cpp-ut-smoke-logs
-          path: .ci\*.log
+          path: |
+            .ci\*.log
+            .ci\*.txt
 
       - name: Write summary
         if: always()
