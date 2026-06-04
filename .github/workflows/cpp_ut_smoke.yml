@@ -205,17 +205,23 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path .ci | Out-Null
-          & "${{ env.BUILD_DIR }}\tests\libslic3r\libslic3r_config_smoke.exe" "[Config]" 2>&1 | Tee-Object -FilePath .ci\libslic3r-config.log
+          $exe = "${{ env.BUILD_DIR }}\tests\libslic3r\libslic3r_config_smoke.exe"
+          & $exe "[Config]" 2>&1 | Tee-Object -FilePath .ci\libslic3r-config.log
+          & $exe -r junit -o .ci\libslic3r-config.xml "[Config]" | Out-Null
 
       - name: Run gcodewriter smoke
         shell: pwsh
         run: |
-          & "${{ env.BUILD_DIR }}\tests\fff_print\fff_print_smoke.exe" "[GCodeWriter]" 2>&1 | Tee-Object -FilePath .ci\fff-gcodewriter.log
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\fff_print_smoke.exe"
+          & $exe "[GCodeWriter]" 2>&1 | Tee-Object -FilePath .ci\fff-gcodewriter.log
+          & $exe -r junit -o .ci\fff-gcodewriter.xml "[GCodeWriter]" | Out-Null
 
       - name: Run model smoke
         shell: pwsh
         run: |
-          & "${{ env.BUILD_DIR }}\tests\fff_print\fff_print_smoke.exe" "[Model]" 2>&1 | Tee-Object -FilePath .ci\fff-model.log
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\fff_print_smoke.exe"
+          & $exe "[Model]" 2>&1 | Tee-Object -FilePath .ci\fff-model.log
+          & $exe -r junit -o .ci\fff-model.xml "[Model]" | Out-Null
 
       - name: Show sccache stats
         if: always()
@@ -224,8 +230,53 @@ jobs:
           New-Item -ItemType Directory -Force -Path .ci | Out-Null
           $stats = & $env:SCCACHE_PATH --show-stats 2>&1
           $stats | Tee-Object -FilePath .ci\sccache-stats.txt
+          $selected = @(
+            "Compile requests",
+            "Compile requests executed",
+            "Cache hits",
+            "Cache misses",
+            "Cache hits rate",
+            "Non-cacheable compilations",
+            "Non-cacheable calls",
+            "Cache errors",
+            "Cache size"
+          )
+          $pairs = @{}
+          foreach ($line in $stats) {
+            if ($line -match '^(?<key>.+?)\s{2,}(?<value>.+)$') {
+              $pairs[$matches.key.Trim()] = $matches.value.Trim()
+            }
+          }
+          $reasons = @()
+          $inReasons = $false
+          foreach ($line in $stats) {
+            if ($line -match '^Non-cacheable reasons:') {
+              $inReasons = $true
+              continue
+            }
+            if ($inReasons) {
+              if ([string]::IsNullOrWhiteSpace($line)) {
+                break
+              }
+              $reasons += $line.Trim()
+            }
+          }
           @"
           ## sccache
+
+          | Metric | Value |
+          | --- | --- |
+          $(
+            ($selected | Where-Object { $pairs.ContainsKey($_) } | ForEach-Object { "| $_ | $($pairs[$_]) |" }) -join "`n"
+          )
+
+          $(
+            if ($reasons.Count -gt 0) {
+              "### Non-cacheable reasons`n" + (($reasons | ForEach-Object { "- `$_`" }) -join "`n")
+            } else {
+              ""
+            }
+          )
 
           ```text
           $($stats -join "`n")
@@ -240,18 +291,60 @@ jobs:
           path: |
             .ci\*.log
             .ci\*.txt
+            .ci\*.xml
 
       - name: Write summary
         if: always()
         shell: pwsh
         run: |
+          $suiteMeta = @(
+            @{ Name = "libslic3r_config_smoke [Config]"; Log = ".ci\libslic3r-config.log"; Xml = ".ci\libslic3r-config.xml" },
+            @{ Name = "fff_print_smoke [GCodeWriter]"; Log = ".ci\fff-gcodewriter.log"; Xml = ".ci\fff-gcodewriter.xml" },
+            @{ Name = "fff_print_smoke [Model]"; Log = ".ci\fff-model.log"; Xml = ".ci\fff-model.xml" }
+          )
+
+          $rows = New-Object System.Collections.Generic.List[string]
+          $totalCases = 0
+          $totalAssertions = 0
+          $passedSuites = 0
+
+          foreach ($suite in $suiteMeta) {
+            $cases = 0
+            $assertions = 0
+            if (Test-Path $suite.Log) {
+              $logText = Get-Content $suite.Log -Raw
+              if ($logText -match 'All tests passed \((?<assertions>\d+) assertion[s]? in (?<cases>\d+) test case[s]?\)') {
+                $cases = [int]$matches.cases
+                $assertions = [int]$matches.assertions
+              }
+            }
+
+            if (($cases -eq 0 -or $assertions -eq 0) -and (Test-Path $suite.Xml)) {
+              [xml]$xml = Get-Content $suite.Xml
+              $suiteNode = $xml.testsuites.testsuite
+              if ($suiteNode) {
+                $cases = [int]$suiteNode.testcase.Count
+              }
+            }
+
+            if ($cases -gt 0 -or $assertions -gt 0) {
+              $passedSuites += 1
+            }
+            $totalCases += $cases
+            $totalAssertions += $assertions
+            $rows.Add("| $($suite.Name) | $cases | $assertions |")
+          }
+
           @"
           ## Cpp UT Smoke
 
           - Branch: `${{ needs.resolve-deps-run.outputs.branch-name }}`
           - Deps run id: `${{ needs.resolve-deps-run.outputs.run-id }}`
-          - Smoke set:
-            - `libslic3r_config_smoke.exe [Config]`
-            - `fff_print_smoke.exe [GCodeWriter]`
-            - `fff_print_smoke.exe [Model]`
+          - Smoke commands passed: `$passedSuites / 3`
+          - Reported test cases: `$totalCases`
+          - Reported assertions: `$totalAssertions`
+
+          | Suite | Test Cases | Assertions |
+          | --- | ---: | ---: |
+          $($rows -join "`n")
           "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
