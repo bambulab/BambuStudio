@@ -75,14 +75,28 @@ jobs:
       DEPS_ROOT: ${{ github.workspace }}\deps\build\BambuStudio_dep
       BUILD_DIR: ${{ github.workspace }}\build-smoke
       SCCACHE_GHA_ENABLED: "true"
+      SCCACHE_DIR: ${{ runner.temp }}\sccache
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           lfs: "true"
 
+      - name: Setup MSVC developer command prompt
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
       - name: Setup sccache
         uses: mozilla-actions/sccache-action@v0.0.10
+
+      - name: Show build tool versions
+        shell: pwsh
+        run: |
+          cmake --version
+          ninja --version
+          where.exe cl
+          & $env:SCCACHE_PATH --version
 
       - name: Reset sccache stats
         shell: pwsh
@@ -116,9 +130,6 @@ jobs:
           New-Item -ItemType Directory -Force -Path "${{ env.DEPS_ROOT }}" | Out-Null
           Expand-Archive -Path $zip.FullName -DestinationPath "${{ env.DEPS_ROOT }}"
 
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
-
       - name: Install Windows build tooling
         shell: pwsh
         run: |
@@ -141,9 +152,29 @@ jobs:
           if (Test-Path "${{ env.BUILD_DIR }}") {
             Remove-Item -Recurse -Force "${{ env.BUILD_DIR }}"
           }
+          $cl = Join-Path $env:VCToolsInstallDir "bin\Hostx64\x64\cl.exe"
+          if (-not (Test-Path $cl)) {
+            throw "MSVC compiler not found at $cl"
+          }
+          $sdkBin = "C:\Program Files (x86)\Windows Kits\10\bin\${{ steps.windows_sdk.outputs.sdk-version }}\x64"
+          $rc = Join-Path $sdkBin "rc.exe"
+          $mt = Join-Path $sdkBin "mt.exe"
+          if (-not (Test-Path $rc)) {
+            throw "Windows resource compiler not found at $rc"
+          }
+          if (-not (Test-Path $mt)) {
+            throw "Windows manifest tool not found at $mt"
+          }
+          $cl = $cl -replace "\\","/"
+          $rc = $rc -replace "\\","/"
+          $mt = $mt -replace "\\","/"
           cmake -S . -B "${{ env.BUILD_DIR }}" `
-            -G "Visual Studio 17 2022" `
-            -A x64 `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_C_COMPILER="$cl" `
+            -DCMAKE_CXX_COMPILER="$cl" `
+            -DCMAKE_RC_COMPILER="$rc" `
+            -DCMAKE_MT="$mt" `
             -DSLIC3R_GUI=OFF `
             -DSLIC3R_STATIC=ON `
             -DSLIC3R_BUILD_TESTS=ON `
@@ -157,11 +188,11 @@ jobs:
 
       - name: Build libslic3r config smoke target
         shell: pwsh
-        run: cmake --build "${{ env.BUILD_DIR }}" --config Release --target libslic3r_config_smoke --parallel 1
+        run: cmake --build "${{ env.BUILD_DIR }}" --target libslic3r_config_smoke --parallel 1
 
       - name: Build fff_print smoke target
         shell: pwsh
-        run: cmake --build "${{ env.BUILD_DIR }}" --config Release --target fff_print_smoke --parallel 1
+        run: cmake --build "${{ env.BUILD_DIR }}" --target fff_print_smoke --parallel 1
 
       - name: Add deps runtime DLLs to PATH
         shell: pwsh
@@ -174,17 +205,17 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path .ci | Out-Null
-          & "${{ env.BUILD_DIR }}\tests\libslic3r\Release\libslic3r_config_smoke.exe" "[Config]" 2>&1 | Tee-Object -FilePath .ci\libslic3r-config.log
+          & "${{ env.BUILD_DIR }}\tests\libslic3r\libslic3r_config_smoke.exe" "[Config]" 2>&1 | Tee-Object -FilePath .ci\libslic3r-config.log
 
       - name: Run gcodewriter smoke
         shell: pwsh
         run: |
-          & "${{ env.BUILD_DIR }}\tests\fff_print\Release\fff_print_smoke.exe" "[GCodeWriter]" 2>&1 | Tee-Object -FilePath .ci\fff-gcodewriter.log
+          & "${{ env.BUILD_DIR }}\tests\fff_print\fff_print_smoke.exe" "[GCodeWriter]" 2>&1 | Tee-Object -FilePath .ci\fff-gcodewriter.log
 
       - name: Run model smoke
         shell: pwsh
         run: |
-          & "${{ env.BUILD_DIR }}\tests\fff_print\Release\fff_print_smoke.exe" "[Model]" 2>&1 | Tee-Object -FilePath .ci\fff-model.log
+          & "${{ env.BUILD_DIR }}\tests\fff_print\fff_print_smoke.exe" "[Model]" 2>&1 | Tee-Object -FilePath .ci\fff-model.log
 
       - name: Show sccache stats
         if: always()
