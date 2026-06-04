@@ -1,8 +1,706 @@
 {
     "result": 0,
-    "t": 1776666883,
-    "ver": 202611162200,
+    "t": 1780561700,
+    "ver": 202606041000,
     "data": [
+        {
+            "ecode": "07FB8007",
+            "image": "",
+            "actions": [
+                8,
+                7
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "050080C2",
+            "image": "",
+            "actions": [
+                6,
+                4,
+                27
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "050080C3",
+            "image": "",
+            "actions": [
+                6,
+                4,
+                27
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "05008092",
+            "image": "",
+            "actions": [
+                27,
+                5
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03008046",
+            "image": "",
+            "actions": [
+                11
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "0C008018",
+            "image": "",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "0C008017",
+            "image": "",
+            "actions": [
+                4
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "0300800A",
+            "image": "",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "0C008043",
+            "image": "",
+            "actions": [
+                6,
+                4
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "0C008016",
+            "image": "",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A008047",
+            "image": "",
+            "actions": [
+                4,
+                51,
+                39
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "05008062",
+            "image": "",
+            "actions": [
+                27,
+                28
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A06C00B",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A09C00B",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A05C00B",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A08800B",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A07800B",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A04C00B",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A02800B",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A00800B",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A03C00B",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A09800B",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A00C004",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A01C00B",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A02C00B",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A05800B",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A04800B",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A08C00B",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A00C00B",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "0502C034",
+            "image": "",
+            "actions": [
+                11
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A03800B",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A01800B",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "05008087",
+            "image": "",
+            "actions": [
+                28,
+                27
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A06800B",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A07C00B",
+            "image": "",
+            "actions": [
+                9,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03008063",
+            "image": "",
+            "actions": [
+                4
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03008042",
+            "image": "",
+            "actions": [
+                4
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "05008051",
+            "image": "",
+            "actions": [
+                28,
+                27,
+                5
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07FDC011",
+            "image": "",
+            "actions": [
+                33
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07F9C012",
+            "image": "",
+            "actions": [
+                33
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07F8C012",
+            "image": "",
+            "actions": [
+                33
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07FFC011",
+            "image": "",
+            "actions": [
+                33
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07FBC012",
+            "image": "",
+            "actions": [
+                33
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07F6C011",
+            "image": "",
+            "actions": [
+                33
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07FFC012",
+            "image": "",
+            "actions": [
+                33
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07F8C011",
+            "image": "",
+            "actions": [
+                33
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07FAC011",
+            "image": "",
+            "actions": [
+                33
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07FDC012",
+            "image": "",
+            "actions": [
+                33
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07FCC011",
+            "image": "",
+            "actions": [
+                33
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07F7C011",
+            "image": "",
+            "actions": [
+                33
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07FEC012",
+            "image": "",
+            "actions": [
+                33
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07F7C012",
+            "image": "",
+            "actions": [
+                33
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07FCC012",
+            "image": "",
+            "actions": [
+                33
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07F6C012",
+            "image": "",
+            "actions": [
+                33
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07FBC011",
+            "image": "",
+            "actions": [
+                33
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07F9C011",
+            "image": "",
+            "actions": [
+                33
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07FAC012",
+            "image": "",
+            "actions": [
+                33
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "07FEC011",
+            "image": "",
+            "actions": [
+                33
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A00C069",
+            "image": "",
+            "actions": [
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A088049",
+            "image": "",
+            "actions": [
+                34,
+                5,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A04804A",
+            "image": "",
+            "actions": [
+                34,
+                5,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A008049",
+            "image": "",
+            "actions": [
+                34,
+                5,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A08804A",
+            "image": "",
+            "actions": [
+                34,
+                5,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A07804A",
+            "image": "",
+            "actions": [
+                34,
+                5,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A05804A",
+            "image": "",
+            "actions": [
+                34,
+                5,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "03008019",
+            "image": "",
+            "actions": [
+                4,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A03804A",
+            "image": "",
+            "actions": [
+                34,
+                5,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A00804A",
+            "image": "",
+            "actions": [
+                34,
+                5,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A058049",
+            "image": "",
+            "actions": [
+                34,
+                5,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A02804A",
+            "image": "",
+            "actions": [
+                34,
+                5,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A078049",
+            "image": "",
+            "actions": [
+                34,
+                5,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A068049",
+            "image": "",
+            "actions": [
+                34,
+                5,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A018049",
+            "image": "",
+            "actions": [
+                34,
+                5,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A06804A",
+            "image": "",
+            "actions": [
+                34,
+                5,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A048049",
+            "image": "",
+            "actions": [
+                34,
+                5,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A028049",
+            "image": "",
+            "actions": [
+                34,
+                5,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A038049",
+            "image": "",
+            "actions": [
+                34,
+                5,
+                6
+            ],
+            "device": "32X"
+        },
+        {
+            "ecode": "2A01804A",
+            "image": "",
+            "actions": [
+                34,
+                5,
+                6
+            ],
+            "device": "32X"
+        },
         {
             "ecode": "2A05C00C",
             "image": "",
@@ -469,16 +1167,6 @@
             "device": "32X"
         },
         {
-            "ecode": "2A008047",
-            "image": "",
-            "actions": [
-                34,
-                39,
-                51
-            ],
-            "device": "32X"
-        },
-        {
             "ecode": "2A008045",
             "image": "",
             "actions": [
@@ -565,14 +1253,6 @@
             "actions": [
                 9,
                 6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "2A00C004",
-            "image": "",
-            "actions": [
-                9
             ],
             "device": "32X"
         },
@@ -726,14 +1406,6 @@
             "actions": [
                 34,
                 6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "03008019",
-            "image": "",
-            "actions": [
-                4
             ],
             "device": "32X"
         },
@@ -906,14 +1578,6 @@
         },
         {
             "ecode": "07F68007",
-            "image": "",
-            "actions": [
-                8
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "07FB8007",
             "image": "",
             "actions": [
                 8
@@ -1814,14 +2478,6 @@
             "actions": [
                 9,
                 6
-            ],
-            "device": "32X"
-        },
-        {
-            "ecode": "07FFC011",
-            "image": "",
-            "actions": [
-                33
             ],
             "device": "32X"
         },
@@ -2767,6 +3423,25 @@
             "device": "32X"
         },
         {
+            "ecode": "03008007",
+            "image": "",
+            "actions": [
+                2,
+                5,
+                39
+            ],
+            "device": "default"
+        },
+        {
+            "ecode": "0300800C",
+            "image": "",
+            "actions": [
+                2,
+                6
+            ],
+            "device": "default"
+        },
+        {
             "ecode": "07FF8030",
             "image": "",
             "actions": [
@@ -2885,19 +3560,19 @@
             "device": "default"
         },
         {
+            "ecode": "03008000",
+            "image": "",
+            "actions": [
+                2
+            ],
+            "device": "default"
+        },
+        {
             "ecode": "05004042",
             "image": "",
             "actions": [
                 36,
                 37
-            ],
-            "device": "default"
-        },
-        {
-            "ecode": "03008000",
-            "image": "",
-            "actions": [
-                2
             ],
             "device": "default"
         },
@@ -2918,14 +3593,6 @@
             "device": "default"
         },
         {
-            "ecode": "05004007",
-            "image": "",
-            "actions": [
-                11
-            ],
-            "device": "default"
-        },
-        {
             "ecode": "0502C014",
             "image": "",
             "actions": [
@@ -2934,10 +3601,10 @@
             "device": "default"
         },
         {
-            "ecode": "0300800C",
+            "ecode": "05004007",
             "image": "",
             "actions": [
-                2
+                11
             ],
             "device": "default"
         },
@@ -2958,14 +3625,6 @@
             "device": "default"
         },
         {
-            "ecode": "0502C012",
-            "image": "",
-            "actions": [
-                11
-            ],
-            "device": "default"
-        },
-        {
             "ecode": "0502C010",
             "image": "",
             "actions": [
@@ -2974,11 +3633,10 @@
             "device": "default"
         },
         {
-            "ecode": "05008092",
+            "ecode": "0502C012",
             "image": "",
             "actions": [
-                27,
-                5
+                11
             ],
             "device": "default"
         },
@@ -3032,14 +3690,6 @@
             "device": "default"
         },
         {
-            "ecode": "03008017",
-            "image": "",
-            "actions": [
-                4
-            ],
-            "device": "default"
-        },
-        {
             "ecode": "03008013",
             "image": "",
             "actions": [
@@ -3048,11 +3698,10 @@
             "device": "default"
         },
         {
-            "ecode": "03008007",
+            "ecode": "03008017",
             "image": "",
             "actions": [
-                2,
-                5
+                4
             ],
             "device": "default"
         },
