@@ -180,6 +180,7 @@ jobs:
             -DSLIC3R_BUILD_TESTS=ON `
             -DSLIC3R_MSVC_COMPILE_PARALLEL=OFF `
             -DSLIC3R_MSVC_PDB=OFF `
+            -DSLIC3R_PCH=OFF `
             -DCMAKE_C_COMPILER_LAUNCHER=sccache `
             -DCMAKE_CXX_COMPILER_LAUNCHER=sccache `
             -DCMAKE_PREFIX_PATH="${{ env.DEPS_ROOT }}\usr\local" `
