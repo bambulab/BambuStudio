@@ -19,7 +19,23 @@ jobs:
         with:
           python-version: "3.11"
       - name: Run validator unit tests
-        run: python -m unittest discover -s tests/quality -p "test_*.py" -v
+        shell: bash
+        run: |
+          mkdir -p .ci
+          python -m unittest discover -s tests/quality -p "test_*.py" -v 2>&1 | tee .ci/validator-unit-tests.log
+          echo "## Validator Unit Tests" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Command: \`python -m unittest discover -s tests/quality -p \"test_*.py\" -v\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Result:" >> "$GITHUB_STEP_SUMMARY"
+          echo '```text' >> "$GITHUB_STEP_SUMMARY"
+          tail -n 12 .ci/validator-unit-tests.log >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload validator logs
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: quality-gate-validator-logs
+          path: .ci/validator-unit-tests.log
 
   profile-config-check:
     name: Profile Config Check
@@ -30,4 +46,20 @@ jobs:
         with:
           python-version: "3.11"
       - name: Validate profile and config assets
-        run: python scripts/quality/profile_config_check.py resources/profiles resources/printers resources/info resources/data
+        shell: bash
+        run: |
+          mkdir -p .ci
+          python scripts/quality/profile_config_check.py resources/profiles resources/printers resources/info resources/data 2>&1 | tee .ci/profile-config-check.log
+          echo "## Profile Config Check" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Command: \`python scripts/quality/profile_config_check.py resources/profiles resources/printers resources/info resources/data\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Result:" >> "$GITHUB_STEP_SUMMARY"
+          echo '```text' >> "$GITHUB_STEP_SUMMARY"
+          tail -n 12 .ci/profile-config-check.log >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload profile check logs
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: quality-gate-profile-check-logs
+          path: .ci/profile-config-check.log
