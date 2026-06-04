@@ -1,0 +1,16 @@
+name: Fork Smoke
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - name: Show repository context
+        run: |
+          git rev-parse --short HEAD
+          test -f CMakeLists.txt
+          test -d tests
