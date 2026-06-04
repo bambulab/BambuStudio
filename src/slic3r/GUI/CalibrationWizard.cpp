@@ -887,7 +887,7 @@ void PressureAdvanceWizard::on_cali_start()
             calib_info.slot_id = tray_ams_slot_map[item.tray_id].second;
             calib_info.index              = preset_page->get_index_by_extruder_tray_id(item.extruder_id, item.tray_id); // preset_page->get_index_by_tray_id(item.first); TODO tray_id can't map to index
             calib_info.extruder_id        = item.extruder_id;
-            calib_info.nozzle_diameter    = preset_page->get_nozzle_diameter(calib_info.extruder_id);
+            calib_info.nozzle_diameter    = preset_page->get_nozzle_diameter(item.nozzle_pos_id);
             calib_info.extruder_type      = preset_page->get_extruder_type(calib_info.extruder_id);
             calib_info.nozzle_volume_type = preset_page->get_nozzle_volume_type(item.nozzle_pos_id);
             calib_info.select_ams         = std::to_string(item.tray_id);
@@ -899,7 +899,7 @@ void PressureAdvanceWizard::on_cali_start()
 
             calib_info.bed_type       = plate_type;
             calib_info.process_bar    = preset_page->get_sending_progress_bar();
-            calib_info.printer_prest  = preset_page->get_printer_preset(curr_obj, preset_page->get_nozzle_diameter(calib_info.extruder_id));
+            calib_info.printer_prest  = preset_page->get_printer_preset(curr_obj, preset_page->get_nozzle_diameter(item.nozzle_pos_id));
             calib_info.print_prest    = preset_page->get_print_preset();
             calib_info.filament_prest = temp_filament_preset;
             std::map<int, DynamicPrintConfig> filament_list = preset_page->get_filament_ams_list();

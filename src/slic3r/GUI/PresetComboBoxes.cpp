@@ -1968,6 +1968,7 @@ void GUI::CalibrateFilamentComboBox::load_tray(const DynamicPrintConfig &config)
     m_filament_exist = config.opt_bool("filament_exist", 0u);
     wxColor clr(m_filament_color);
     clr_picker->SetBitmap(*get_extruder_color_icon(m_filament_color, m_tray_name, FromDIP(20), FromDIP(20)));
+    clr_picker->SetBitmapDisabled(*get_extruder_color_icon(m_filament_color, m_tray_name, FromDIP(20), FromDIP(20)));
 #ifdef __WXOSX__
     clr_picker->SetLabel(clr_picker->GetLabel()); // Let setBezelStyle: be called
     clr_picker->Refresh();

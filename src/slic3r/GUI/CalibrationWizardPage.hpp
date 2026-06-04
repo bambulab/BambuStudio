@@ -14,6 +14,8 @@
 #include "../slic3r/Utils/CalibUtils.hpp"
 #include "../../libslic3r/Calib.hpp"
 
+class wxBitmapButton;
+
 namespace Slic3r { namespace GUI {
 
 
@@ -28,6 +30,7 @@ namespace Slic3r { namespace GUI {
 #define CALIBRATION_PROGRESSBAR_LENGTH     FromDIP(690)
 
 class CalibrationWizard;
+class SubAmsPopup;
 
 /* note: it's not extruder id !!! */
 enum ExtruderRole {
@@ -169,14 +172,19 @@ public:
     bool IsSubAmsMode() const { return m_subams_mode; }
     wxWindow* GetSubAmsPanel() const { return m_subams_panel; }
 
+    /* The popup is owned (lifetime-wise) by its wx parent; this ext_fcb just holds a
+       reference so each rack slot drives its own independent sub-AMS list. */
+    void        SetSubAmsPopup(SubAmsPopup* popup) { m_subams_popup = popup; }
+    SubAmsPopup* GetSubAmsPopup() const { return m_subams_popup; }
+
     /* SubAms selection state — owned per ext_fcb so popup can restore last picks and the page can collect them at calibration start.*/
     bool GetSubAmsSelected(int tray_id) const;
-    void SetSubAmsSelected(int tray_id, const SelectedFilamentInfo& info);
+    void SetSubAmsSelected(int tray_id, const SelectedFilamentInfo& info, const wxBitmap& picker_bmp = wxNullBitmap);
     void ClearSubAmsSelected(int tray_id);
-    void ClearSubAmsSelection() { m_subams_selection.clear(); }
+    void ClearSubAmsSelection(bool refresh = true);
     const std::map<int, SelectedFilamentInfo>& GetSubAmsSelection() const { return m_subams_selection; }
 
-    // Refresh m_subams_label from current selection ("A4; B2"); empty -> fallback.
+    // Refresh the SubAms summary from current selection; empty -> fallback label.
     void RefreshSubAmsLabel(const wxString& empty_fallback = wxEmptyString);
 
     bool Enable(bool enable) override;
@@ -186,6 +194,11 @@ private:
     void init_diameter_combo(MachineObject* obj, const NozzleVolumeType& volume_type);
     void init_flow_type_combo(MachineObject* obj);
 
+    // Post EVT_SUBAMS_CLICK to open the popup (no-op when the sub-AMS area is disabled).
+    void NotifySubAmsClick();
+    // Update the hover highlight of the sub-AMS panel border (forced off when disabled).
+    void SetSubAmsHover(bool hover);
+
     int       m_nozzle_id{-1};
     int       m_nozzle_pos_id{-1};
     Label*    m_id_label{nullptr};
@@ -193,9 +206,16 @@ private:
     ComboBox* m_diameter_combo{nullptr};
     ComboBox* m_flow_type_combo{nullptr};
     wxPanel*  m_subams_panel{nullptr};
-    Label*    m_subams_label{nullptr};
+    Button*   m_subams_label{nullptr};
+    wxBoxSizer* m_subams_picker_sizer{nullptr};
+    std::vector<wxBitmapButton*> m_subams_picker_buttons;
+    wxButton* m_subams_ellipsis_picker{nullptr};
     bool      m_subams_mode{false};
+    bool      m_subams_enabled{true};
+    bool      m_subams_hover{false};
+    SubAmsPopup* m_subams_popup{nullptr};
     std::map<int, SelectedFilamentInfo> m_subams_selection;
+    std::map<int, wxBitmap> m_subams_picker_bitmaps;
 };
 
 typedef std::vector<FilamentComboBox*> FilamentComboBoxList;

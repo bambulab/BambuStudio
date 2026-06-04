@@ -1027,6 +1027,10 @@ void CalibUtils::set_for_auto_pa_model_and_config(const std::vector<CalibInfo> &
         ConfigOptionFloatsNullable *wall_speed_speed_opt = print_config.option<ConfigOptionFloatsNullable>("outer_wall_speed");
         std::vector<double> new_speeds = wall_speed_speed_opt->values;
         new_speeds[index] = wall_speed;
+        if (calib_info.index < 0 || calib_info.index >= (int) model.objects.size()) {
+            BOOST_LOG_TRIVIAL(error) << "calib_info.index is out of range: " << calib_info.index << " for model.objects.size(): " << model.objects.size();
+            continue;
+        }
         ModelObject* object = model.objects[calib_info.index];
         object->config.set_key_value("outer_wall_speed", new ConfigOptionFloatsNullable(new_speeds));
     }
@@ -1897,6 +1901,12 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
     if (cali_infos.empty())
         return true;
 
+    if(!std::all_of(cali_infos.begin(), cali_infos.end(), [&](auto& info){ return is_approx(info.nozzle_diameter, cali_infos.front().nozzle_diameter);}))
+    {
+        error_message = _L("Flow calibration does not support multiple nozzle diameters at the same time. Please ensure that the nozzle diameter used by the filament being calibrated is consistent before starting the calibration again.");
+        return false;
+    }
+
     bool is_multi_extruder = obj->is_multi_extruders();
     Preset *printer_preset = get_printer_preset(obj);
 
@@ -1962,12 +1972,6 @@ bool CalibUtils::check_printable_status_before_cali(const MachineObject *obj, co
                 error_message = nozzle_volume_type_not_match_text;
             return false;
         }
-    }
-
-    if(!std::all_of(cali_infos.begin(), cali_infos.end(), [&](auto& info){ return is_approx(info.nozzle_diameter, cali_infos.front().nozzle_diameter);}))
-    {
-        error_message = _L("Flow calibration does not support multiple nozzle diameters at the same time. Please ensure that the nozzle diameter used by the filament being calibrated is consistent before starting the calibration again.");
-        return false;
     }
 
     return true;

@@ -33,12 +33,20 @@ public:
                  const std::map<int, DynamicPrintConfig>& fila_ams_list,
                  CalibrationFilamentMode mode,
                  FilamentExtendComboBox* owner,
-                 const std::set<int>& bind_ams_ids = {});
+                 const std::set<DevAmsSlotId>& slots = {});
     void PopupAt(wxWindow* anchor);
 
     FilamentExtendComboBox* GetOwner() const { return m_owner; }
     /* Page-driven visual sync used when another fcb claims the radio under SINGLE mode. */
     void ClearAllRadioVisuals();
+
+    /* Assign model indices to currently selectable rows (tray_id >= 0), advancing `running`;
+       rows beyond `cap` get -1 (unusable). Shares the global counter with
+       CalibrationPresetPage::assign_rack_model_indices() to keep indices continuous. */
+    void AssignModelIndices(int& running, int cap);
+
+protected:
+    void Dismiss() override;
 
 private:
     wxScrolledWindow*           m_scroll{nullptr};
@@ -46,6 +54,7 @@ private:
     FilamentComboBoxList        m_fcb_list;
 
     FilamentExtendComboBox*     m_owner{nullptr};
+    bool                        m_combo_dropdown_open{false};
 };
 
 class CaliPresetCaliStagePanel : public wxPanel
@@ -245,6 +254,9 @@ public:
 
     int get_index_by_extruder_tray_id(int extruder_id, int tray_id);
 
+    // Assign continuous model indices to rack direct slots / sub-AMS rows, stored on the fcbs.
+    void assign_rack_model_indices();
+
     std::vector<SelectedFilamentInfo> get_selected_filament_combobox();
 
     // key is tray_id
@@ -274,7 +286,9 @@ public:
     void msw_rescale() override;
     void on_sys_color_changed() override;
 
-    float get_nozzle_diameter(int extruder_id) const;
+    // For extruder ids 0/1 returns the UI combo value; for rack nozzle codes (>=0x10) returns the
+    // actual nozzle diameter. (extruder_id == nozzle_pos_id for non-rack machines.)
+    float get_nozzle_diameter(int nozzle_pos_id) const;
     NozzleVolumeType get_nozzle_volume_type(int extruder_id) const;
     ExtruderType get_extruder_type(int extruder_id) const;
 
@@ -427,7 +441,6 @@ protected:
     bool m_has_filament_incompatible { false };
     MachineObject* curr_obj { nullptr };
 
-    SubAmsPopup* m_subams_popup{nullptr};
 };
 
 class MaxVolumetricSpeedPresetPage : public CalibrationPresetPage
