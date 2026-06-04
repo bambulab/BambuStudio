@@ -1,0 +1,33 @@
+name: Quality Gate
+
+on:
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+  push:
+    branches:
+      - "ci/**"
+
+jobs:
+  validator-unit-tests:
+    name: Validator Unit Tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Run validator unit tests
+        run: python -m unittest discover -s tests/quality -p "test_*.py" -v
+
+  profile-config-check:
+    name: Profile Config Check
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Validate profile and config assets
+        run: python scripts/quality/profile_config_check.py resources/profiles resources/printers resources/info resources/data
