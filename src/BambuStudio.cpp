@@ -1337,6 +1337,15 @@ static bool is_preset_compatible_with_printer(const std::vector<std::string> &co
     return std::find(compatible_printers.begin(), compatible_printers.end(), printer_system_name) != compatible_printers.end();
 }
 
+// todo: temp modify: P1P/P1S share filament presets loosely; skip compatible_printers validation for them.
+static bool is_p1p_or_p1s_printer(const std::string &printer_model_name, const std::string &printer_system_name)
+{
+    if (printer_model_name == "Bambu Lab P1P" || printer_model_name == "Bambu Lab P1S")
+        return true;
+    return printer_system_name.find("P1P") != std::string::npos
+        || printer_system_name.find("P1S") != std::string::npos;
+}
+
 // For estimate_mode: given a source filament preset name (e.g. "Bambu PLA Basic @BBL P1S 0.4 nozzle")
 // and the new machine's BBL tag (e.g. "X2D 0.4 nozzle"), construct the target filament preset name
 // (e.g. "Bambu PLA Basic @BBL X2D 0.4 nozzle") and verify it exists in filament_full_dir.
@@ -2994,7 +3003,10 @@ int CLI::run(int argc, char **argv)
         else
             effective_printer_system_name = current_printer_system_name;
 
-        if (!effective_printer_system_name.empty()) {
+        const std::string effective_printer_model = !printer_model.empty() ? printer_model : current_printer_model;
+
+        if (!is_p1p_or_p1s_printer(effective_printer_model, effective_printer_system_name)
+            && !effective_printer_system_name.empty()) {
             for (size_t index = 0; index < load_filaments_config.size(); ++index) {
                 const auto *compatible_printers_opt = load_filaments_config[index].option<ConfigOptionStrings>("compatible_printers");
                 if (!compatible_printers_opt)
