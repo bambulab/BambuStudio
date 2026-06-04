@@ -44,3 +44,12 @@ endif()
 
 # catch_discover_tests(${_TEST_NAME}_tests TEST_PREFIX "${_TEST_NAME}: ")
 add_test(${_TEST_NAME}_tests ${_TEST_NAME}_tests ${CATCH_EXTRA_ARGS})
+
+add_executable(libslic3r_config_smoke
+    ${_TEST_NAME}_tests.cpp
+    test_config_smoke.cpp
+)
+target_link_libraries(libslic3r_config_smoke test_common libslic3r)
+target_link_libraries(libslic3r_config_smoke test_smoke_support)
+set_property(TARGET libslic3r_config_smoke PROPERTY FOLDER "tests")
+add_test(libslic3r_config_smoke libslic3r_config_smoke ${CATCH_EXTRA_ARGS})

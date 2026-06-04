@@ -27,3 +27,13 @@ endif()
 
 # catch_discover_tests(${_TEST_NAME}_tests TEST_PREFIX "${_TEST_NAME}: ")
 add_test(${_TEST_NAME}_tests ${_TEST_NAME}_tests ${CATCH_EXTRA_ARGS})
+
+add_executable(fff_print_smoke
+	${_TEST_NAME}_tests.cpp
+	test_gcodewriter_smoke.cpp
+	test_model_smoke.cpp
+)
+target_link_libraries(fff_print_smoke test_common libslic3r)
+target_link_libraries(fff_print_smoke test_smoke_support)
+set_property(TARGET fff_print_smoke PROPERTY FOLDER "tests")
+add_test(fff_print_smoke fff_print_smoke ${CATCH_EXTRA_ARGS})

@@ -155,29 +155,36 @@ jobs:
             -DPKG_CONFIG_EXECUTABLE="C:/Strawberry/perl/bin/pkg-config.bat" `
             -DWIN10SDK_PATH="C:/Program Files (x86)/Windows Kits/10/Include/${{ steps.windows_sdk.outputs.sdk-version }}"
 
-      - name: Build libslic3r smoke target
+      - name: Build libslic3r config smoke target
         shell: pwsh
-        run: cmake --build "${{ env.BUILD_DIR }}" --config Release --target libslic3r_tests --parallel 1
+        run: cmake --build "${{ env.BUILD_DIR }}" --config Release --target libslic3r_config_smoke --parallel 1
 
       - name: Build fff_print smoke target
         shell: pwsh
-        run: cmake --build "${{ env.BUILD_DIR }}" --config Release --target fff_print_tests --parallel 1
+        run: cmake --build "${{ env.BUILD_DIR }}" --config Release --target fff_print_smoke --parallel 1
+
+      - name: Add deps runtime DLLs to PATH
+        shell: pwsh
+        run: |
+          "${{ env.DEPS_ROOT }}\usr\local\bin" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
+          "${{ env.DEPS_ROOT }}\usr\local\bin\occt" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
+          "${{ env.DEPS_ROOT }}\usr\local\x64\vc17\bin" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
 
       - name: Run libslic3r config smoke
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path .ci | Out-Null
-          & "${{ env.BUILD_DIR }}\tests\libslic3r\Release\libslic3r_tests.exe" "[Config]" 2>&1 | Tee-Object -FilePath .ci\libslic3r-config.log
+          & "${{ env.BUILD_DIR }}\tests\libslic3r\Release\libslic3r_config_smoke.exe" "[Config]" 2>&1 | Tee-Object -FilePath .ci\libslic3r-config.log
 
       - name: Run gcodewriter smoke
         shell: pwsh
         run: |
-          & "${{ env.BUILD_DIR }}\tests\fff_print\Release\fff_print_tests.exe" "[GCodeWriter]" 2>&1 | Tee-Object -FilePath .ci\fff-gcodewriter.log
+          & "${{ env.BUILD_DIR }}\tests\fff_print\Release\fff_print_smoke.exe" "[GCodeWriter]" 2>&1 | Tee-Object -FilePath .ci\fff-gcodewriter.log
 
       - name: Run model smoke
         shell: pwsh
         run: |
-          & "${{ env.BUILD_DIR }}\tests\fff_print\Release\fff_print_tests.exe" "[Model]" 2>&1 | Tee-Object -FilePath .ci\fff-model.log
+          & "${{ env.BUILD_DIR }}\tests\fff_print\Release\fff_print_smoke.exe" "[Model]" 2>&1 | Tee-Object -FilePath .ci\fff-model.log
 
       - name: Show sccache stats
         if: always()
@@ -213,7 +220,7 @@ jobs:
           - Branch: `${{ needs.resolve-deps-run.outputs.branch-name }}`
           - Deps run id: `${{ needs.resolve-deps-run.outputs.run-id }}`
           - Smoke set:
-            - `libslic3r_tests.exe [Config]`
-            - `fff_print_tests.exe [GCodeWriter]`
-            - `fff_print_tests.exe [Model]`
+            - `libslic3r_config_smoke.exe [Config]`
+            - `fff_print_smoke.exe [GCodeWriter]`
+            - `fff_print_smoke.exe [Model]`
           "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
