@@ -1145,6 +1145,7 @@ static std::vector<std::string> s_Preset_filament_options {/*"filament_colour", 
     "filament_tower_ironing_area",
     "filament_tower_interface_purge_volume",
     "filament_tower_interface_print_temp",
+    "max_temperature_drop_when_ec",
     //ams chamber
     "filament_dev_ams_drying_ams_limitations", "filament_dev_ams_drying_temperature", "filament_dev_ams_drying_time", "filament_dev_ams_drying_heat_distortion_temperature",
     "filament_dev_chamber_drying_bed_temperature", "filament_dev_chamber_drying_time",

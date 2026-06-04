@@ -4977,6 +4977,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_flush_temp", "", 0);
         optgroup->append_single_option_line("filament_flush_temp_fast", "", 0);
         optgroup->append_single_option_line("filament_flush_volumetric_speed", "", 0);
+        optgroup->append_single_option_line("filament_preheat_temperature_delta", "", 0);
         optgroup->append_single_option_line("long_retractions_when_ec", "" , 0);
         optgroup->append_single_option_line("retraction_distances_when_ec", "" , 0);
         //BBS
@@ -5118,6 +5119,7 @@ void TabFilament::toggle_options()
 
     if (m_active_page && m_active_page->title() == "Multi Filament") {
         const int extruder_idx = m_variant_combo ? m_variant_combo->GetSelection() : 0;
+        bool handle_hotend_as_extruder = m_preset_bundle->printers.get_edited_preset().config.opt_bool("handle_hotend_as_extruder");
         auto support_fast_purge_opt = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("support_fast_purge_mode");
         bool support_fast_purge     = support_fast_purge_opt ? support_fast_purge_opt->value : false;
 
@@ -5165,8 +5167,10 @@ void TabFilament::toggle_options()
             toggle_line("filament_flush_temp#0", true);
             toggle_line("filament_flush_temp_fast#0", false);
         }
-        toggle_line("long_retractions_when_ec", is_multi_extruder && is_BBL_printer, 256 + extruder_idx);
-        toggle_line("retraction_distances_when_ec", is_multi_extruder && is_BBL_printer && m_config->opt_bool_nullable("long_retractions_when_ec", extruder_idx), 256 + extruder_idx);
+        const bool is_ec_retraction_printer = is_multi_extruder || handle_hotend_as_extruder;
+        toggle_line("filament_preheat_temperature_delta", handle_hotend_as_extruder, 256 + extruder_idx);
+        toggle_line("long_retractions_when_ec", is_ec_retraction_printer && is_BBL_printer, 256 + extruder_idx);
+        toggle_line("retraction_distances_when_ec", is_ec_retraction_printer && is_BBL_printer && m_config->opt_bool_nullable("long_retractions_when_ec", extruder_idx), 256 + extruder_idx);
         m_active_page->update_visibility(m_mode, true);
         update_changed_ui();
     }

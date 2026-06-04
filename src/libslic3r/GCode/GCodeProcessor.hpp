@@ -986,7 +986,7 @@ namespace Slic3r {
             const std::vector<std::pair<unsigned int, unsigned int>>& skippable_blocks;
             const std::vector<int>& extruder_max_nozzle_count;
             const std::vector<double>& filament_preheat_temperature_delta;
-            const std::vector<double>& filament_max_temperature_drop_when_ec;
+            const std::vector<double>& filament_max_temperature_drop_when_ec; // per-filament max temperature drop when extruder change
             const unsigned int machine_start_gcode_end_id;
             const unsigned int machine_end_gcode_start_id;
             const std::vector<ExtruderType>& extruder_types;
