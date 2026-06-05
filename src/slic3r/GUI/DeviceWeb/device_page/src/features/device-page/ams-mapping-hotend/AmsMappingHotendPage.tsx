@@ -71,7 +71,7 @@ function useReportHostContentSize(rootRef: RefObject<HTMLElement | null>) {
 
 export function AmsMappingHotendPage() {
   const pageRef = useRef<HTMLDivElement>(null);
-  const { state, error, selectSlot } = useAmsMappingHotendBridge();
+  const { state, error, selectSlot, editSlot } = useAmsMappingHotendBridge();
   const [subAmsSlot, setSubAmsSlot] = useState<AmsMappingHotendSlotViewModel | null>(null);
   useReportHostContentSize(pageRef);
 
@@ -97,6 +97,7 @@ export function AmsMappingHotendPage() {
             void selectSlot(sub);
             setSubAmsSlot(null);
           }}
+          onEdit={(sub) => void editSlot(sub)}
           onBack={() => setSubAmsSlot(null)}
         />
       </div>
@@ -121,6 +122,7 @@ export function AmsMappingHotendPage() {
                     slot={slot}
                     onClick={() => void selectSlot(slot)}
                     onEnterSubAms={() => setSubAmsSlot(slot)}
+                    onEdit={() => void editSlot(slot)}
                   />
                 ))}
               </div>

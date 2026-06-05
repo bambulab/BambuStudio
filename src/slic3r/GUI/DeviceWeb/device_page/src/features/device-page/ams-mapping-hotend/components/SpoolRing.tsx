@@ -47,6 +47,9 @@ export function SpoolRing({
   const center = OUTER;
   const rawColors = colors && colors.length > 1 ? colors : [color];
   const effectiveColors = rawColors.map(stripAlpha);
+  // `remain` already carries the display value (the C++ side floors a present
+  // spool's remain to >= 5% so its color arc stays visible). The web layer
+  // only renders it.
   const clampedRemain = Math.max(0, Math.min(100, remain));
 
   const isTransparent =

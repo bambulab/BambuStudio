@@ -1,5 +1,6 @@
 #include "DevicePageAmsFilamentHotendVM.hpp"
 #include "DevicePageAmsFilamentHotendSchema.hpp"
+#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/DevicePageDialogHelpers.h"
 #include "Modes/NormalModeBuilder.hpp"
 #include "Modes/BatchAmsLoadModeBuilder.hpp"
 #include "Modes/BatchExtLoadModeBuilder.hpp"
@@ -430,70 +431,9 @@ nlohmann::json build_ext_filament_edit_payload(MachineObject* machine_obj, const
 
 void open_ams_materials_setting(const std::string& ams_id, const std::string& slot_id)
 {
-    auto* dev_mgr = wxGetApp().getDeviceManager();
-    MachineObject* machine_obj = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
-    if (!machine_obj || ams_id.empty() || slot_id.empty()) return;
-    if (!machine_obj->get_tray(ams_id, slot_id).has_value()) return;
-
-    auto tray = machine_obj->get_tray(ams_id, slot_id).value();
-
-    int ams_id_int = 0;
-    int slot_id_int = 0;
-    try {
-        ams_id_int = std::stoi(ams_id);
-        slot_id_int = std::stoi(slot_id);
-    } catch (...) {
-        return;
-    }
-
-    wxWindow* parent = wxGetApp().mainframe;
-    AMSMaterialsSetting dlg(parent, wxID_ANY);
-    dlg.obj = machine_obj;
-    dlg.ams_id = ams_id_int;
-    dlg.slot_id = slot_id_int;
-
-    std::string filament;
-    std::string sn_number;
-    std::string temp_max;
-    std::string temp_min;
-    wxString k_val;
-    wxString n_val;
-
-    k_val = wxString::Format("%.3f", tray.k);
-    n_val = wxString::Format("%.3f", tray.n);
-    wxColor color = DevAmsTray::decode_color(tray.color);
-
-    std::vector<wxColour> cols;
-    for (const auto& col : tray.cols) {
-        cols.push_back(DevAmsTray::decode_color(col));
-    }
-
-    dlg.set_ctype(tray.ctype);
-    dlg.ams_filament_id = tray.setting_id;
-    if (dlg.ams_filament_id.empty()) {
-        dlg.set_empty_color(color);
-    } else {
-        dlg.set_color(color);
-        dlg.set_colors(cols);
-    }
-
-    dlg.m_is_third = !DevFilaSystem::IsBBL_Filament(tray.tag_uid);
-
-#if !BBL_RELEASE_TO_PUBLIC
-    if (machine_obj && (machine_obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A ||
-        machine_obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B)) {
-        dlg.m_is_third = true;
-    }
-#endif
-
-    if (!dlg.m_is_third) {
-        sn_number = tray.uuid;
-        filament = tray.sub_brands;
-        temp_max = tray.nozzle_temp_max;
-        temp_min = tray.nozzle_temp_min;
-    }
-
-    dlg.Popup(filament, sn_number, temp_min, temp_max, k_val, n_val);
+    // Shared with the send-to-print AMS-mapping view-model so both edit paths
+    // build the exact same AMSMaterialsSetting dialog (see DevicePageDialogHelpers).
+    OpenAmsMaterialsSetting(ams_id, slot_id);
 }
 
 MachineObject* get_selected_machine_for_dialog()

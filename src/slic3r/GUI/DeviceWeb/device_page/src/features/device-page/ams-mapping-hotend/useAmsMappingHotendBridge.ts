@@ -103,6 +103,21 @@ export function useAmsMappingHotendBridge() {
     );
   }, [request, state.current_filament_id]);
 
+  const editSlot = useCallback(async (
+    slot: AmsMappingHotendSlotViewModel | AmsMappingHotendSubSlotViewModel,
+  ) => {
+    await request<ReturnType<typeof makeBody>, BridgeResponseBody<AmsMappingHotendViewModel>>(
+      makeBody('action', 'edit', { ams_id: slot.ams_id, slot_id: slot.slot_id }),
+      8000,
+    );
+    // C++ re-publishes state on its own after the modal closes (immediate +
+    // delayed). These web-side refreshes are a defensive fallback in case a
+    // report is missed while the device echo is still in flight.
+    void refresh();
+    window.setTimeout(() => void refresh(), 500);
+    window.setTimeout(() => void refresh(), 1500);
+  }, [request, refresh]);
+
   const resetMapping = useCallback(async () => {
     await request<ReturnType<typeof makeBody>, BridgeResponseBody<AmsMappingHotendViewModel>>(
       makeBody('action', 'reset', {}),
@@ -136,5 +151,5 @@ export function useAmsMappingHotendBridge() {
     return () => document.removeEventListener('cpp:device', handler);
   }, [applyState]);
 
-  return { state, error, refresh, selectSlot, resetMapping, dismiss };
+  return { state, error, refresh, selectSlot, editSlot, resetMapping, dismiss };
 }

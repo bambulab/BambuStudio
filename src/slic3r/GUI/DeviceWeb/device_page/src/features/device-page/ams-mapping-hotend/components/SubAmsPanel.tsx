@@ -7,14 +7,17 @@ import { SpoolRing } from './SpoolRing';
 interface SubAmsPanelProps {
   slot: AmsMappingHotendSlotViewModel;
   onSelect: (sub: AmsMappingHotendSubSlotViewModel) => void;
+  onEdit?: (sub: AmsMappingHotendSubSlotViewModel) => void;
 }
 
 function SubCard({
   sub,
   onSelect,
+  onEdit,
 }: {
   sub: AmsMappingHotendSubSlotViewModel;
   onSelect: (sub: AmsMappingHotendSubSlotViewModel) => void;
+  onEdit?: (sub: AmsMappingHotendSubSlotViewModel) => void;
 }) {
   const disabled = !sub.is_pickable;
   const multiColors = sub.multi_colors && sub.multi_colors.length > 1 ? sub.multi_colors : undefined;
@@ -50,7 +53,24 @@ function SubCard({
       </div>
       <div className="ams-map-hotend__sub-card__spool-area">
         <SpoolRing size={52} color={sub.color} colors={multiColors} remain={sub.remain} isEmpty={isEmpty} />
-        <div className="ams-map-hotend__sub-card__name">{displayName}</div>
+        <div className="ams-map-hotend__sub-card__name-row">
+          <div className="ams-map-hotend__sub-card__name">{displayName}</div>
+          {sub.can_edit && onEdit && (
+            <button
+              type="button"
+              className="ams-map-hotend__sub-card__edit-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(sub);
+              }}
+              aria-label="Edit filament"
+            >
+              <svg width="17" height="17" viewBox="0 0 16 16" fill="none">
+                <path d="M11.2 2.8a1.13 1.13 0 0 1 1.6 1.6L5.3 11.9l-2.3.7.7-2.3 7.5-7.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

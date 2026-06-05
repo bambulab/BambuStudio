@@ -100,16 +100,39 @@
 .ams-map-hotend__slot-card[data-state="MaterialEmpty"],
 .ams-map-hotend__slot-card[data-state="NozzleEmpty"],
 .ams-map-hotend__slot-card[data-state="Unavailable"] {
-  opacity: 0.4;
   cursor: default;
+}
+
+/* Dim the *content* of a non-pickable card rather than the card root: the
+   inline edit (pencil) button must stay fully legible because an already-
+   edited third-party filament that no longer matches the slicing job is still
+   editable. Root-level opacity would fade the pencil too (a descendant cannot
+   raise its opacity above its parent), so the muting is applied per content
+   block and deliberately skips the edit button. */
+.ams-map-hotend__slot-card:is([data-state="MaterialUnmatch"],[data-state="NozzleUnmatch"],[data-state="MaterialEmpty"],[data-state="NozzleEmpty"],[data-state="Unavailable"]) :is(
+  .ams-map-hotend__slot-card__head,
+  .ams-map-hotend__slot-card__spool-wrapper,
+  .ams-map-hotend__slot-card__material-name,
+  .ams-map-hotend__slot-card__divider,
+  .ams-map-hotend__nozzle-info
+) {
+  opacity: 0.4;
 }
 
 /* Sub-AMS-bearing main cards stay fully visible because clicking expands the
    sub-AMS panel — they are still pickable, just through a different path. */
 .ams-map-hotend__slot-card[data-state="MaterialEmpty"][data-has-sub-ams="true"],
 .ams-map-hotend__slot-card[data-state="NozzleEmpty"][data-has-sub-ams="true"] {
-  opacity: 1;
   cursor: pointer;
+}
+.ams-map-hotend__slot-card:is([data-state="MaterialEmpty"],[data-state="NozzleEmpty"])[data-has-sub-ams="true"] :is(
+  .ams-map-hotend__slot-card__head,
+  .ams-map-hotend__slot-card__spool-wrapper,
+  .ams-map-hotend__slot-card__material-name,
+  .ams-map-hotend__slot-card__divider,
+  .ams-map-hotend__nozzle-info
+) {
+  opacity: 1;
 }
 
 
@@ -190,6 +213,49 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Material name + inline edit pencil sit on one centered row (see image 2). */
+.ams-map-hotend__slot-card__material-row,
+.ams-map-hotend__sub-card__name-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+}
+
+.ams-map-hotend__slot-card__material-row .ams-map-hotend__slot-card__material-name,
+.ams-map-hotend__sub-card__name-row .ams-map-hotend__sub-card__name {
+  width: auto;
+  max-width: calc(100% - 18px);
+}
+
+/* Inline edit (pencil) entry for third-party filament. Always actionable —
+   even on a disabled card it keeps full opacity and pointer events so the
+   user can re-edit an already-set but mismatched third-party spool. */
+.ams-map-hotend__slot-card__edit-btn,
+.ams-map-hotend__sub-card__edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 19px;
+  height: 19px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  pointer-events: auto;
+  border-radius: 3px;
+  opacity: 1;
+}
+
+.ams-map-hotend__slot-card__edit-btn:hover,
+.ams-map-hotend__sub-card__edit-btn:hover {
+  color: var(--color-text-primary);
+  background: rgba(0, 0, 0, 0.06);
 }
 
 /* Divider */
@@ -438,8 +504,17 @@
 .ams-map-hotend__sub-card[data-state="NozzleUnmatch"],
 .ams-map-hotend__sub-card[data-state="NozzleEmpty"],
 .ams-map-hotend__sub-card[data-state="Unavailable"] {
-  opacity: 0.5;
   cursor: default;
+}
+
+/* Same content-only dim as the main card so the sub-card edit pencil stays
+   fully legible and clickable on a non-pickable third-party sub slot. */
+.ams-map-hotend__sub-card:is([data-state="MaterialUnmatch"],[data-state="MaterialEmpty"],[data-state="NozzleUnmatch"],[data-state="NozzleEmpty"],[data-state="Unavailable"]) :is(
+  .ams-map-hotend__sub-card__head,
+  .ams-map-hotend__sub-card__name,
+  .spool-ring
+) {
+  opacity: 0.5;
 }
 
 .ams-map-hotend__sub-card[data-checked="true"] {

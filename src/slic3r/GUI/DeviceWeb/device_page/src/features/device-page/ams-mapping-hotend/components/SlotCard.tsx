@@ -6,9 +6,10 @@ interface SlotCardProps {
   slot: AmsMappingHotendSlotViewModel;
   onClick: () => void;
   onEnterSubAms: () => void;
+  onEdit: () => void;
 }
 
-export function SlotCard({ slot, onClick, onEnterSubAms }: SlotCardProps) {
+export function SlotCard({ slot, onClick, onEnterSubAms, onEdit }: SlotCardProps) {
   const hasRealSubAms = !!slot.sub_ams && slot.sub_ams.some(g => !g.is_preload);
   const hasSubAms = !!slot.sub_ams && slot.sub_ams.length > 0;
   // Pickability is decided in C++ (see ComputePickable). All-ext relaxation
@@ -108,7 +109,29 @@ export function SlotCard({ slot, onClick, onEnterSubAms }: SlotCardProps) {
             </svg>
           )}
         </div>
-        <div className="ams-map-hotend__slot-card__material-name">{displayName}</div>
+        <div className="ams-map-hotend__slot-card__material-row">
+          <div className="ams-map-hotend__slot-card__material-name">{displayName}</div>
+          {slot.can_edit && (
+            <button
+              type="button"
+              className="ams-map-hotend__slot-card__edit-btn"
+              data-testid={`ams-mapping-hotend-edit-${slot.ams_id}-${slot.slot_id}`}
+              // Editing must stay available even when the card itself is
+              // disabled (e.g. an already-edited third-party filament that no
+              // longer matches the slicing job). Stop propagation so the
+              // card's select/sub-AMS handler doesn't also fire.
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
+              aria-label="Edit filament"
+            >
+              <svg width="17" height="17" viewBox="0 0 16 16" fill="none">
+                <path d="M11.2 2.8a1.13 1.13 0 0 1 1.6 1.6L5.3 11.9l-2.3.7.7-2.3 7.5-7.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Divider */}

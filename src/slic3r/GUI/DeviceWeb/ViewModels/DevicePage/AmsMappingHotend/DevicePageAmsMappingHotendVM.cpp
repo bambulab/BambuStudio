@@ -9,6 +9,7 @@
 #include "DevicePageAmsMappingHotendSchema.hpp"
 
 #include "slic3r/GUI/DeviceWeb/DeviceWebBridge.hpp"
+#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/DevicePageDialogHelpers.h"
 #include "slic3r/GUI/GUI_App.hpp"
 #include "slic3r/GUI/MainFrame.hpp"
 #include "slic3r/GUI/DeviceManager.hpp"
@@ -89,6 +90,37 @@ bool ComputePickable(HotendSlotState state, bool is_all_ext)
         // NozzleUnmatch / NozzleEmpty / Unavailable are never relaxed.
     }
     return false;
+}
+
+// Whether a slot exposes the inline edit (pencil) entry that re-uses the
+// device-page AMSMaterialsSetting dialog. Editable == a third-party (non-BBL)
+// spool is physically present. This mirrors the dialog's own editability gate
+// `m_is_third == !IsBBL_Filament(tag_uid)` (see DevicePageDialogHelpers.cpp),
+// so the pencil shows exactly when the dialog would treat the slot as an
+// editable third-party tray. We must NOT use DevAmsTray::is_bbl: it is never
+// populated from device data (only the AMS-level tray_is_bbl_bits is), so it
+// stays false for every tray. The check is on tag_uid, NOT on TrayType:
+// editing an unidentified third-party spool fills in its color / type so
+// MakeTrayData flips it from THIRD to NORMAL, yet it is still a third-party
+// spool and must keep the pencil. EMPTY slots have no spool to edit.
+bool ComputeCanEdit(MachineObject* obj, const TrayData& td)
+{
+    if (!obj || td.type == EMPTY) return false;
+    auto tray_opt = obj->get_tray(td.ams_id, td.slot_id);
+    if (!tray_opt.has_value()) return false;
+    return !DevFilaSystem::IsBBL_Filament(tray_opt->tag_uid);
+}
+
+// Display remain (%) for the spool ring. A present spool (slot is not EMPTY)
+// whose reported remain is below 5% — including an unknown 0 — is floored to
+// 5% so its color arc stays visible; otherwise a 0% spool renders as a blank
+// ring even though its color is known. The web layer only renders this value.
+// `out_of_range_fallback` keeps the legacy behaviour for malformed inputs.
+int ComputeDisplayRemain(const TrayData& td, int out_of_range_fallback)
+{
+    int remain = (td.remain >= 0 && td.remain <= 100) ? td.remain : out_of_range_fallback;
+    if (td.type != EMPTY && remain < 5) remain = 5;
+    return remain;
 }
 
 } // namespace
@@ -562,9 +594,10 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildSlotJson(MachineObject*       
     slot[SK::slot::color]           = normalize_hex_for_web(display_color);
     slot[SK::slot::ctype]           = td.ctype;
     slot[SK::slot::color_type]      = color_type_to_string(td.ctype);
-    slot[SK::slot::remain]          = (td.remain >= 0 && td.remain <= 100) ? td.remain : 0;
+    slot[SK::slot::remain]          = ComputeDisplayRemain(td, 0);
     slot[SK::slot::has_filament]    = j.has_filament;
     slot[SK::slot::is_pickable]     = j.is_pickable;
+    slot[SK::slot::can_edit]        = ComputeCanEdit(obj, td);
     slot[SK::slot::checked]         = false;
 
     // Mark the checked slot if it appears in the current mapping result.
@@ -638,9 +671,10 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildSlotJson(MachineObject*       
             sub_slot[SK::slot::color]          = normalize_hex_for_web(sub_col);
             sub_slot[SK::slot::ctype]          = sub_td.ctype;
             sub_slot[SK::slot::color_type]     = color_type_to_string(sub_td.ctype);
-            sub_slot[SK::slot::remain]         = (sub_td.remain >= 0 && sub_td.remain <= 100) ? sub_td.remain : 100;
+            sub_slot[SK::slot::remain]         = ComputeDisplayRemain(sub_td, 100);
             sub_slot[SK::slot::has_filament]   = sj.has_filament;
             sub_slot[SK::slot::is_pickable]    = sj.is_pickable;
+            sub_slot[SK::slot::can_edit]       = ComputeCanEdit(obj, sub_td);
             sub_slot[SK::slot::checked]        = false;
             for (const auto& mapping_res : m_mapping_result) {
                 if (mapping_res.id == m_current_filament_id &&
@@ -671,6 +705,30 @@ nlohmann::json DevicePageAmsMappingHotendVM::HandleAction(const std::string& act
 {
     if (action == "select") {
         PostSelectEvent(payload);
+    } else if (action == "edit") {
+        namespace SK = AmsMappingHotendSchema::keys;
+        const std::string ams_id  = payload.value(SK::slot::ams_id, "");
+        const std::string slot_id = payload.value(SK::slot::slot_id, "");
+        if (!ams_id.empty() && !slot_id.empty()) {
+            // Open the shared AMSMaterialsSetting modal on the UI thread, then
+            // re-publish state so the mapping popup reflects the edited tray.
+            // The dialog writes to the device asynchronously, so push an
+            // immediate report once the modal returns plus a delayed one to
+            // catch the device echo (mirrors the device-page edit refresh).
+            auto* self = this;
+            wxGetApp().CallAfter([self, ams_id, slot_id]() {
+                OpenAmsMaterialsSetting(ams_id, slot_id);
+                // The modal AMSMaterialsSetting steals focus and dismisses the
+                // transient mapping popup. Re-show it so the user can keep
+                // picking filament after editing (its WebView stays alive
+                // across the dismiss, and wxEVT_SHOW re-positions it relative
+                // to the still-set parent item).
+                if (self->m_popup && !self->m_popup->IsShown()) {
+                    self->m_popup->Popup();
+                }
+                self->RefreshAfterEdit();
+            });
+        }
     } else if (action == "reset") {
         if (m_reset_callback) {
             const std::string idx = m_material_index;
@@ -684,6 +742,15 @@ nlohmann::json DevicePageAmsMappingHotendVM::HandleAction(const std::string& act
     }
 
     return MakeResponse(GetModule(), "action", action, 0, "", BuildState());
+}
+
+void DevicePageAmsMappingHotendVM::RefreshAfterEdit()
+{
+    // Report once the modal returns (the user has confirmed by now). Clearing
+    // the dedup cache forces this report through even if the cached payload
+    // hasn't changed yet.
+    m_last_report_state.clear();
+    ReportState("state", "changed");
 }
 
 void DevicePageAmsMappingHotendVM::PostSelectEvent(const nlohmann::json& payload)

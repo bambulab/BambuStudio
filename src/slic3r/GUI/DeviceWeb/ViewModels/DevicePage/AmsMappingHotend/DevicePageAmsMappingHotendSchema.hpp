@@ -55,6 +55,7 @@ namespace slot {
     inline constexpr const char* remain        = "remain";
     inline constexpr const char* has_filament  = "has_filament";
     inline constexpr const char* is_pickable   = "is_pickable";
+    inline constexpr const char* can_edit      = "can_edit";
     inline constexpr const char* checked       = "checked";
     inline constexpr const char* multi_colors  = "multi_colors";
     inline constexpr const char* nozzle        = "nozzle";

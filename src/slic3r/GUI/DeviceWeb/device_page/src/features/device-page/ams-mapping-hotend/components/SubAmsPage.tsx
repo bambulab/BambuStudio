@@ -7,15 +7,18 @@ import { SpoolRing } from './SpoolRing';
 interface SubAmsPageProps {
   slot: AmsMappingHotendSlotViewModel;
   onSelect: (sub: AmsMappingHotendSubSlotViewModel) => void;
+  onEdit: (sub: AmsMappingHotendSubSlotViewModel) => void;
   onBack: () => void;
 }
 
 function SubCard({
   sub,
   onSelect,
+  onEdit,
 }: {
   sub: AmsMappingHotendSubSlotViewModel;
   onSelect: (sub: AmsMappingHotendSubSlotViewModel) => void;
+  onEdit: (sub: AmsMappingHotendSubSlotViewModel) => void;
 }) {
   const disabled = !sub.is_pickable;
   const multiColors = sub.multi_colors && sub.multi_colors.length > 1 ? sub.multi_colors : undefined;
@@ -60,13 +63,31 @@ function SubCard({
           isThird={isThird}
           colorType={sub.color_type}
         />
-        <div className="ams-map-hotend__sub-card__name">{displayName}</div>
+        <div className="ams-map-hotend__sub-card__name-row">
+          <div className="ams-map-hotend__sub-card__name">{displayName}</div>
+          {sub.can_edit && (
+            <button
+              type="button"
+              className="ams-map-hotend__sub-card__edit-btn"
+              data-testid={`ams-mapping-hotend-sub-edit-${sub.ams_id}-${sub.slot_id}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(sub);
+              }}
+              aria-label="Edit filament"
+            >
+              <svg width="17" height="17" viewBox="0 0 16 16" fill="none">
+                <path d="M11.2 2.8a1.13 1.13 0 0 1 1.6 1.6L5.3 11.9l-2.3.7.7-2.3 7.5-7.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-export function SubAmsPage({ slot, onSelect, onBack }: SubAmsPageProps) {
+export function SubAmsPage({ slot, onSelect, onEdit, onBack }: SubAmsPageProps) {
   if (!slot.sub_ams || slot.sub_ams.length === 0) return null;
 
   // Preload mode: current bind is Ext, preload AMS slot injected as sub_ams
@@ -88,6 +109,7 @@ export function SubAmsPage({ slot, onSelect, onBack }: SubAmsPageProps) {
     remain:        slot.remain,
     has_filament:  slot.has_filament,
     is_pickable:   slot.is_pickable,
+    can_edit:      slot.can_edit,
     checked:       slot.checked,
     multi_colors:  slot.multi_colors,
   };
@@ -120,10 +142,11 @@ export function SubAmsPage({ slot, onSelect, onBack }: SubAmsPageProps) {
                 key={`${sub.ams_id}-${sub.slot_id}`}
                 sub={sub}
                 onSelect={onSelect}
+                onEdit={onEdit}
               />
             ))
           )}
-          <SubCard sub={extAsSubSlot} onSelect={onSelect} />
+          <SubCard sub={extAsSubSlot} onSelect={onSelect} onEdit={onEdit} />
         </div>
       ) : (
         /* Normal sub-AMS mode: parent card left + group containers right */
@@ -166,7 +189,25 @@ export function SubAmsPage({ slot, onSelect, onBack }: SubAmsPageProps) {
                   isThird={parentIsThird}
                   colorType={slot.color_type}
                 />
-                <div className="ams-map-hotend__sub-card__name">{parentDisplayName}</div>
+                <div className="ams-map-hotend__sub-card__name-row">
+                  <div className="ams-map-hotend__sub-card__name">{parentDisplayName}</div>
+                  {slot.can_edit && (
+                    <button
+                      type="button"
+                      className="ams-map-hotend__sub-card__edit-btn"
+                      data-testid={`ams-mapping-hotend-sub-edit-${slot.ams_id}-${slot.slot_id}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(extAsSubSlot);
+                      }}
+                      aria-label="Edit filament"
+                    >
+                      <svg width="17" height="17" viewBox="0 0 16 16" fill="none">
+                        <path d="M11.2 2.8a1.13 1.13 0 0 1 1.6 1.6L5.3 11.9l-2.3.7.7-2.3 7.5-7.5Z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -180,6 +221,7 @@ export function SubAmsPage({ slot, onSelect, onBack }: SubAmsPageProps) {
                       key={`${sub.ams_id}-${sub.slot_id}`}
                       sub={sub}
                       onSelect={onSelect}
+                      onEdit={onEdit}
                     />
                   ))}
                 </div>

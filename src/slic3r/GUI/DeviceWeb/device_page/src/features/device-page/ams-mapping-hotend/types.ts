@@ -53,6 +53,9 @@ export interface AmsMappingHotendSubSlotViewModel {
   remain: number;
   has_filament: boolean;
   is_pickable: boolean;
+  // Whether the inline edit (pencil) entry is shown. True for third-party
+  // (non-BBL) spools; stays clickable even when the card itself is disabled.
+  can_edit: boolean;
   checked: boolean;
   multi_colors: string[];
 }
@@ -80,6 +83,7 @@ export interface AmsMappingHotendSlotViewModel {
   has_filament: boolean;
   is_pickable: boolean;
   checked: boolean;
+  can_edit: boolean;
   multi_colors: string[];
   nozzle?: AmsMappingHotendNozzleInfo;
   sub_ams?: AmsMappingHotendSubAmsGroupViewModel[];

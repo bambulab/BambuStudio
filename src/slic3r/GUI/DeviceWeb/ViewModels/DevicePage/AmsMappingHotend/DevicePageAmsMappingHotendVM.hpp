@@ -25,6 +25,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
@@ -137,6 +138,10 @@ private:
     nlohmann::json HandleAction(const std::string& action, const nlohmann::json& payload);
 
     void PostSelectEvent(const nlohmann::json& payload);
+
+    // Re-publish state after the AMSMaterialsSetting modal closes (the user has
+    // confirmed). Pushes a single immediate report.
+    void RefreshAfterEdit();
 
     // Cached snapshot of the popup context.
     MachineObject*               m_obj{nullptr};
