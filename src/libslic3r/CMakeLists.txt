@@ -535,6 +535,16 @@ add_library(libslic3r_gcodewriter_core STATIC
     ${libslic3r_gcodewriter_core_sources}
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
 
+set(libslic3r_model_basic_core_sources
+    ObjectID.cpp
+    TriangleMeshBasic.cpp
+    ModelAssembly.cpp
+)
+
+add_library(libslic3r_model_basic_core STATIC
+    ${libslic3r_model_basic_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
 if (SLIC3R_STATIC)
     set(CGAL_Boost_USE_STATIC_LIBS ON CACHE BOOL "" FORCE)
 endif ()
@@ -593,17 +603,21 @@ encoding_check(libslic3r)
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_compile_definitions(libslic3r_config_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_compile_definitions(libslic3r_gcodewriter_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
+target_compile_definitions(libslic3r_model_basic_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/TextureToColor PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r PUBLIC ${EXPAT_INCLUDE_DIRS})
 target_include_directories(libslic3r_config_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r_config_core PUBLIC ${EXPAT_INCLUDE_DIRS})
 target_include_directories(libslic3r_gcodewriter_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r_gcodewriter_core PUBLIC ${EXPAT_INCLUDE_DIRS})
+target_include_directories(libslic3r_model_basic_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(libslic3r_model_basic_core PUBLIC ${EXPAT_INCLUDE_DIRS})
 
 # Find the OCCT and related libraries
 set(OpenCASCADE_DIR "${CMAKE_PREFIX_PATH}/lib/cmake/occt")
 find_package(OpenCASCADE REQUIRED)
 target_include_directories(libslic3r PUBLIC ${OpenCASCADE_INCLUDE_DIR})
+target_include_directories(libslic3r_model_basic_core PUBLIC ${OpenCASCADE_INCLUDE_DIR})
 
 set(OCCT_LIBS
     TKXDESTEP
@@ -679,6 +693,24 @@ target_link_libraries(libslic3r_gcodewriter_core
     TBB::tbbmalloc
 )
 
+target_link_libraries(libslic3r_model_basic_core
+    libslic3r_config_core
+    admesh
+    cereal
+    libigl
+    miniz
+    boost_libs
+    clipper
+    nowide
+    ${EXPAT_LIBRARIES}
+    glu-libtess
+    qhull
+    semver
+    TBB::tbb
+    TBB::tbbmalloc
+    ${OCCT_LIBS}
+)
+
 if(NOT WIN32)
     target_link_libraries(libslic3r freetype)
     if (NOT APPLE)
@@ -710,4 +742,8 @@ endif ()
 
 if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
     add_precompiled_header(libslic3r_gcodewriter_core pchheader.hpp FORCEINCLUDE)
+endif ()
+
+if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
+    add_precompiled_header(libslic3r_model_basic_core pchheader.hpp FORCEINCLUDE)
 endif ()

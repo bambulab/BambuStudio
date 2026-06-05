@@ -123,6 +123,9 @@ jobs:
           $gcodewriterEnabled = $true
           $gcodewriterReason = "workflow_dispatch"
           $gcodewriterMatched = "n/a"
+          $modelAssemblyEnabled = $true
+          $modelAssemblyReason = "workflow_dispatch"
+          $modelAssemblyMatched = "n/a"
           $fffEnabled = $true
           $fffReason = "workflow_dispatch"
           $fffMatched = "n/a"
@@ -138,12 +141,14 @@ jobs:
             if ([string]::IsNullOrWhiteSpace($base) -or $base -match '^0+$') {
               $configReason = "missing_base_sha"
               $gcodewriterReason = "missing_base_sha"
+              $modelAssemblyReason = "missing_base_sha"
               $fffReason = "missing_base_sha"
             } else {
               git fetch --no-tags --depth=1 origin $base | Out-Null
               if ($LASTEXITCODE -ne 0) {
                 $configReason = "fetch_base_failed"
                 $gcodewriterReason = "fetch_base_failed"
+                $modelAssemblyReason = "fetch_base_failed"
                 $fffReason = "fetch_base_failed"
               } else {
                 $changed = @(git diff --name-only $base $head | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
@@ -151,6 +156,7 @@ jobs:
 
                 $configScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/config-fast-gate-paths.txt"
                 $gcodewriterScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/gcodewriter-smoke-paths.txt"
+                $modelAssemblyScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/model-assembly-smoke-paths.txt"
                 $fffScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/fff-print-smoke-paths.txt"
 
                 $configEnabled = $configScope.Enabled
@@ -159,6 +165,9 @@ jobs:
                 $gcodewriterEnabled = $gcodewriterScope.Enabled
                 $gcodewriterReason = $gcodewriterScope.Reason
                 $gcodewriterMatched = $gcodewriterScope.Matched
+                $modelAssemblyEnabled = $modelAssemblyScope.Enabled
+                $modelAssemblyReason = $modelAssemblyScope.Reason
+                $modelAssemblyMatched = $modelAssemblyScope.Matched
                 $fffEnabled = $fffScope.Enabled
                 $fffReason = $fffScope.Reason
                 $fffMatched = $fffScope.Matched
@@ -166,7 +175,7 @@ jobs:
             }
           }
 
-          $anyEnabled = $configEnabled -or $gcodewriterEnabled -or $fffEnabled
+          $anyEnabled = $configEnabled -or $gcodewriterEnabled -or $modelAssemblyEnabled -or $fffEnabled
           "any_enabled=$($anyEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "changed=$changedText" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "config_enabled=$($configEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
@@ -175,6 +184,9 @@ jobs:
           "gcodewriter_enabled=$($gcodewriterEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "gcodewriter_reason=$gcodewriterReason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "gcodewriter_matched=$gcodewriterMatched" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "model_assembly_enabled=$($modelAssemblyEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "model_assembly_reason=$modelAssemblyReason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "model_assembly_matched=$modelAssemblyMatched" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "fff_enabled=$($fffEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "fff_reason=$fffReason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "fff_matched=$fffMatched" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
@@ -186,6 +198,7 @@ jobs:
           }
           Write-Host "config gate enabled=$configEnabled reason=$configReason matched=$configMatched"
           Write-Host "gcodewriter smoke gate enabled=$gcodewriterEnabled reason=$gcodewriterReason matched=$gcodewriterMatched"
+          Write-Host "model assembly smoke gate enabled=$modelAssemblyEnabled reason=$modelAssemblyReason matched=$modelAssemblyMatched"
           Write-Host "fff smoke gate enabled=$fffEnabled reason=$fffReason matched=$fffMatched"
 
       - name: Setup MSVC developer command prompt
@@ -311,6 +324,11 @@ jobs:
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target gcodewriter_smoke_tests --parallel 1
 
+      - name: Build model assembly smoke target
+        if: steps.smoke_scope.outputs.model_assembly_enabled == 'true'
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target model_basic_smoke_tests --parallel 1
+
       - name: Build fff_print smoke target
         if: steps.smoke_scope.outputs.fff_enabled == 'true'
         shell: pwsh
@@ -368,12 +386,34 @@ jobs:
           - Matched files: `${{ steps.smoke_scope.outputs.gcodewriter_matched }}`
           "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
 
+      - name: Run model assembly smoke
+        if: steps.smoke_scope.outputs.model_assembly_enabled == 'true'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path .ci | Out-Null
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\model_basic_smoke_tests.exe"
+          & $exe "[ModelAssembly]" 2>&1 | Tee-Object -FilePath .ci\model-assembly-smoke.log
+          & $exe -r junit -o .ci\model-assembly-smoke.xml "[ModelAssembly]" | Out-Null
+
+      - name: Note skipped model assembly smoke target
+        if: steps.smoke_scope.outputs.model_assembly_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## Model Assembly Smoke Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.model_assembly_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.model_assembly_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
       - name: Note skipped fff_print smoke target
         if: steps.smoke_scope.outputs.fff_enabled != 'true'
         shell: pwsh
         run: |
           @"
-          ## FFF Print Smoke Gate
+          ## Model Placement Smoke Gate
 
           - Enabled: `false`
           - Reason: `${{ steps.smoke_scope.outputs.fff_reason }}`
@@ -385,9 +425,10 @@ jobs:
         if: steps.smoke_scope.outputs.fff_enabled == 'true'
         shell: pwsh
         run: |
+          New-Item -ItemType Directory -Force -Path .ci | Out-Null
           $exe = "${{ env.BUILD_DIR }}\tests\fff_print\fff_print_smoke.exe"
-          & $exe "[Model]" 2>&1 | Tee-Object -FilePath .ci\fff-model.log
-          & $exe -r junit -o .ci\fff-model.xml "[Model]" | Out-Null
+          & $exe "[ModelPlacement]" 2>&1 | Tee-Object -FilePath .ci\fff-model-placement.log
+          & $exe -r junit -o .ci\fff-model-placement.xml "[ModelPlacement]" | Out-Null
 
       - name: Show sccache stats
         if: always() && steps.smoke_scope.outputs.any_enabled == 'true'
@@ -468,12 +509,15 @@ jobs:
           $configFastReason = "${{ steps.smoke_scope.outputs.config_reason }}"
           $gcodewriterSmokeEnabled = "${{ steps.smoke_scope.outputs.gcodewriter_enabled }}" -eq "true"
           $gcodewriterSmokeReason = "${{ steps.smoke_scope.outputs.gcodewriter_reason }}"
+          $modelAssemblyEnabled = "${{ steps.smoke_scope.outputs.model_assembly_enabled }}" -eq "true"
+          $modelAssemblyReason = "${{ steps.smoke_scope.outputs.model_assembly_reason }}"
           $fffSmokeEnabled = "${{ steps.smoke_scope.outputs.fff_enabled }}" -eq "true"
           $fffSmokeReason = "${{ steps.smoke_scope.outputs.fff_reason }}"
           $suiteMeta = @(
             @{ Name = "libslic3r_config_tests [ConfigCore]"; Log = ".ci\libslic3r-config-fast.log"; Xml = ".ci\libslic3r-config-fast.xml" },
             @{ Name = "gcodewriter_smoke_tests [GCodeWriter]"; Log = ".ci\gcodewriter-smoke.log"; Xml = ".ci\gcodewriter-smoke.xml" },
-            @{ Name = "fff_print_smoke [Model]"; Log = ".ci\fff-model.log"; Xml = ".ci\fff-model.xml" }
+            @{ Name = "model_basic_smoke_tests [ModelAssembly]"; Log = ".ci\model-assembly-smoke.log"; Xml = ".ci\model-assembly-smoke.xml" },
+            @{ Name = "fff_print_smoke [ModelPlacement]"; Log = ".ci\fff-model-placement.log"; Xml = ".ci\fff-model-placement.xml" }
           )
 
           $rows = New-Object System.Collections.Generic.List[string]
@@ -489,6 +533,10 @@ jobs:
             }
             if ($suite.Name -like 'gcodewriter_smoke_tests*' -and -not $gcodewriterSmokeEnabled) {
               $rows.Add("| $($suite.Name) | skipped ($gcodewriterSmokeReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'model_basic_smoke_tests*' -and -not $modelAssemblyEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($modelAssemblyReason) | 0 | 0 |")
               continue
             }
             if ($suite.Name -like 'fff_print_smoke*' -and -not $fffSmokeEnabled) {
@@ -533,6 +581,8 @@ jobs:
           - Config fast gate reason: `$configFastReason`
           - GCodeWriter smoke gate enabled: `$gcodewriterSmokeEnabled`
           - GCodeWriter smoke gate reason: `$gcodewriterSmokeReason`
+          - Model assembly smoke gate enabled: `$modelAssemblyEnabled`
+          - Model assembly smoke gate reason: `$modelAssemblyReason`
           - FFF smoke gate enabled: `$fffSmokeEnabled`
           - FFF smoke gate reason: `$fffSmokeReason`
           - Smoke commands passed: `$passedSuites / $eligibleSuites`
