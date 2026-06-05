@@ -1593,6 +1593,8 @@ void GLCanvas3D::set_type(ECanvasType type)
                     wxGetApp().plater()->mark_assemble_view_requires_zoom_to_volumes();
                     m_dirty = true;
                     request_extra_frame();
+                } else if (cmd == "update_gizmos_on_off_state") {
+                    update_gizmos_on_off_state();
                 } else if (parts.size() > 1) {
                     if (cmd == "set_cursor") {
                         const std::string &cursor_name = parts[1];
@@ -5506,14 +5508,17 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_dirty = true;
     }
     else if (evt.LeftDClick()) {
-        if (m_canvas_type == ECanvasType::CanvasAssembleView && !m_selection.is_empty()) {
-            deselect_all();
-            if (m_assembly_steps) {
-                m_assembly_steps->set_selected_node(-1);
+        if (m_canvas_type == ECanvasType::CanvasAssembleView) {
+            if (m_hover_volume_idxs.empty() && !m_selection.is_empty()) {
+                deselect_all();
+                if (m_assembly_steps) {
+                    m_assembly_steps->set_selected_node(-1);
+                }
+                m_dirty = true;
+                return;
             }
-            m_dirty = true;
-            return;
         }
+
         // switch to object panel if double click on object, otherwise switch to global panel if double click on background
         if (selected_object_idx >= 0)
             post_event(SimpleEvent(EVT_GLCANVAS_SWITCH_TO_OBJECT));
@@ -7256,7 +7261,7 @@ static float       identityMatrix[16]   = {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.
 static const float cameraProjection[16] = {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f};
 void GLCanvas3D::_render_3d_navigator()
 {
-    if (m_assembly_steps && m_assembly_steps->is_show_video_title_mode())
+    if (is_assembly_play_or_export_mode())
         return;
     if (!wxGetApp().show_3d_navigator()) {
         return;
@@ -9121,7 +9126,7 @@ void GLCanvas3D::_render_main_toolbar()
     }
     if (!p_main_toolbar->is_enabled())
         return;
-    if (m_assembly_steps && m_assembly_steps->is_export_mode())
+    if (is_assembly_play_or_export_mode())
         return;
     const auto& t_camera = get_active_camera();
 
@@ -9849,6 +9854,11 @@ bool GLCanvas3D::_allow_sync_in_assemble_view()
     return true;
 }
 
+bool GLCanvas3D::is_assembly_play_or_export_mode() const
+{
+    return m_assembly_steps && m_assembly_steps->is_play_or_export_mode();
+}
+
 void GLCanvas3D::_try_update_selected_keyframe()
 {
     if (m_canvas_type == ECanvasType::CanvasAssembleView && m_assembly_steps) {
@@ -9874,7 +9884,7 @@ void GLCanvas3D::_render_return_toolbar()
 {
     if (!m_return_toolbar.is_enabled())
         return;
-    if (m_assembly_steps && m_assembly_steps->is_export_mode())
+    if (is_assembly_play_or_export_mode())
         return;
 
     float font_size = ImGui::GetFontSize();
@@ -9987,7 +9997,7 @@ void GLCanvas3D::_render_return_toolbar()
 
 void GLCanvas3D::_render_fit_camera_toolbar()
 {
-    if (m_assembly_steps  && m_assembly_steps->is_export_mode())
+    if (is_assembly_play_or_export_mode())
         return;
     float  font_size        = ImGui::GetFontSize();
     ImVec2 button_icon_size = ImVec2(font_size * 2.5, font_size * 2.5);
@@ -10126,7 +10136,7 @@ void GLCanvas3D::_render_paint_toolbar() const
 {
     if (m_canvas_type != ECanvasType::CanvasAssembleView)
         return;
-    if (m_assembly_steps && m_assembly_steps->is_export_mode())
+    if (is_assembly_play_or_export_mode())
         return;
 #if ENABLE_RETINA_GL
     float f_scale = m_retina_helper->get_scale_factor();
@@ -10339,7 +10349,7 @@ void GLCanvas3D::_render_assemble_control()
         GLVolume::explosion_ratio = m_explosion_ratio = 1.0;
         return;
     }
-    if (m_assembly_steps && m_assembly_steps->is_export_mode())
+    if (is_assembly_play_or_export_mode())
         return;
     if (m_gizmos.get_current_type() == GLGizmosManager::EType::MmuSegmentation) {
         m_gizmos.m_assemble_view_data->model_objects_clipper()->set_position(0.0, true);

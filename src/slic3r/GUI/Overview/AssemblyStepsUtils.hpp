@@ -366,6 +366,7 @@ public://logic
     void do_commond_callback(std::string);
     void set_in_assembly_view(bool in_assembly_view);
 
+    bool            is_key_frame_playing() { return m_keyframe_playing; }
     bool            is_final_assembly_folder(int folder_idx) const;
     int             get_selected_node() const { return selected_node; }
     void            set_selected_node(int node) { selected_node = node; }
@@ -462,6 +463,9 @@ public://logic
     bool                     is_assembly_camera_lock_blink_active(std::chrono::steady_clock::time_point now,
                                                                   std::chrono::milliseconds blink_window) const;
     bool                     goto_global_frame(int global_idx);
+    // Map a horizontal mouse position over the progress bar to a global frame and
+    // seek to it. progress_x0 is the bar's left screen-x, progress_w its width.
+    bool                     seek_global_frame_from_mouse_x(float mouse_x, float progress_x0, float progress_w, int total_frames);
     void                     play_global_frame(bool from_btn_click = false);
     void                     start_playback_with_intro();
     void                     prepare_export_to_play_global_frame();
@@ -476,11 +480,13 @@ public://logic
     void                     on_export_pdf(std::string path);
     void                     on_export_markdown(std::string path);
     void                     on_export_mp4(std::string path);
+    void                     save_existing_project_if_dirty();
     // Reveal a freshly exported file in the system file manager (selects the file on Windows, opens the containing folder on macOS / Linux).
     void                     open_export_output_folder(const std::string &file_path);
     bool is_export_mode() const { return m_is_export_mode; }
     // True whenever the canvas should render the centred title overlay instead
     bool is_show_video_title_mode() const { return m_show_video_title_mode || m_video_intro_active; }
+    bool is_play_or_export_mode() const { return is_show_video_title_mode() || is_export_mode() || m_keyframe_playing; }
 
     // Drains a frame from the GL pipeline into the MP4 encoder. Must be invoked
     void process_video_capture_per_frame();
@@ -592,6 +598,7 @@ public://logic
     void                                    sync_structure_select_popup_to_canvas(const AssemblyTreeData &popup_tree);
     void                                    begin_structure_step_rename(int node_idx, const std::string &fallback_title = std::string());
     void                                    open_structure_add_tree(int card_idx, int step_node_idx, const ImVec2 &pos);
+    void                                    exit_render_assembly_tree_ui();
     void                                    insert_structure_step_relative(int ref_node_idx, bool before);
     void                                    delete_structure_step(int node_idx);
     void                                    show_pdf_export_settings_dialog();
@@ -623,15 +630,15 @@ public://imgui
     void refresh_guide_show_part_numbers_from_current();
     // Drop the stored part-number labels of every keyframe so a model structure
     void clear_all_keyframe_part_number_labels();
-    void draw_arrow_lines(const std::vector<std::pair<ImVec2, ImVec2>> &arrows,const std::array<float, 4> &color,float thickness,const std::array<int, 4> &viewport);
+    void draw_arrow_lines(const std::vector<std::pair<ImVec2, ImVec2>> &arrows,const std::array<float, 4> &color,float thickness,const std::array<int, 4> &viewport, bool draw_arrowhead = false);
     void draw_arrow_svg_icon(int idx, const ImVec2 &center, const ImVec2 &box_sz, ImTextureID tex, bool selected) const;
     void render_part_number_labels_on_canvas(const std::array<int, 4> &viewport, float viewport_height);
     void render_assembly_notes_on_canvas(const Vec2d &object_screen_center);
     void render_assembly_structure_panel(float canvas_w, float canvas_h);
+    void render_panel_tooltip(const std::string &text, bool use_dark_style = true) const;
     bool render_structure_card_select_controls(int card_idx, const ImVec2& pos,
         const AssemblySelectControlsStyle& style,
-        const std::string& value_label, const std::string& full_value_label,
-        const std::function<void(const std::string&)> &show_tooltip = nullptr);
+        const std::string& value_label, const std::string& full_value_label);
     // Render a popup tree selector for a specific card. Shows a tree view
     void render_structure_card_select_popup(int card_idx, const AssemblyTreeData *popup_tree_ptr);
     void render_assembly_structure_option_menu(ImGuiWrapper &imgui, float sc, bool is_dark);

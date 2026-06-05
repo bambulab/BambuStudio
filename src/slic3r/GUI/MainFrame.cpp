@@ -127,6 +127,12 @@ static bool should_skip_fit_camera_shortcut(Plater *plater)
            is_gizmo_running(plater->get_current_canvas3D());
 }
 
+static bool should_block_window_resize_for_assembly(Plater *plater)
+{
+    GLCanvas3D *canvas = plater ? plater->get_assmeble_canvas3D() : nullptr;
+    return canvas && canvas->is_assembly_play_or_export_mode();
+}
+
 enum class ERescaleTarget
 {
     Mainframe,
@@ -388,6 +394,9 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                 m_topbar->SetMaximizedSize();
             }
 #endif
+        if (should_block_window_resize_for_assembly(m_plater))
+            return;
+
 #ifdef _WIN32
         if (m_is_in_move_or_resize) {
             ULONGLONG now = GetTickCount64();
@@ -909,10 +918,14 @@ WXLRESULT MainFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam
         break;
     }
     case WM_ENTERSIZEMOVE:
+        if (should_block_window_resize_for_assembly(m_plater))
+            return 0;
         m_is_in_move_or_resize = true;
         break;
     case WM_EXITSIZEMOVE:
         m_is_in_move_or_resize = false;
+        if (should_block_window_resize_for_assembly(m_plater))
+            return 0;
         Refresh();
         Layout();
         wxQueueEvent(wxGetApp().plater(), new SimpleEvent(EVT_NOTICE_CHILDE_SIZE_CHANGED));

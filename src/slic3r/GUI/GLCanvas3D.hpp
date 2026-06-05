@@ -1297,6 +1297,7 @@ public:
     // Get assembly view button information
     AssemblyViewButtonInfo get_assembly_view_button_info() const;
     std::vector<std::array<float, 4>> get_active_colors();
+    bool is_assembly_play_or_export_mode() const;
 
 private:
     bool _is_shown_on_screen() const;
