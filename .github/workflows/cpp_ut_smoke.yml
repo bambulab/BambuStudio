@@ -180,7 +180,6 @@ jobs:
             -DSLIC3R_BUILD_TESTS=ON `
             -DSLIC3R_MSVC_COMPILE_PARALLEL=OFF `
             -DSLIC3R_MSVC_PDB=OFF `
-            -DSLIC3R_PCH=OFF `
             -DCMAKE_C_COMPILER_LAUNCHER=sccache `
             -DCMAKE_CXX_COMPILER_LAUNCHER=sccache `
             -DCMAKE_PREFIX_PATH="${{ env.DEPS_ROOT }}\usr\local" `
@@ -262,27 +261,28 @@ jobs:
               $reasons += $line.Trim()
             }
           }
-          @"
-          ## sccache
-
-          | Metric | Value |
-          | --- | --- |
-          $(
-            ($selected | Where-Object { $pairs.ContainsKey($_) } | ForEach-Object { "| $_ | $($pairs[$_]) |" }) -join "`n"
+          $summaryRows = $selected |
+            Where-Object { $pairs.ContainsKey($_) } |
+            ForEach-Object { "| $_ | $($pairs[$_]) |" }
+          $reasonLines = if ($reasons.Count -gt 0) {
+            @("### Non-cacheable reasons") + ($reasons | ForEach-Object { "- $_" })
+          } else {
+            @()
+          }
+          $summaryLines = @(
+            "## sccache",
+            "",
+            "| Metric | Value |",
+            "| --- | --- |"
+          ) + $summaryRows + @(
+            ""
+          ) + $reasonLines + @(
+            "",
+            "```text"
+          ) + $stats + @(
+            "```"
           )
-
-          $(
-            if ($reasons.Count -gt 0) {
-              "### Non-cacheable reasons`n" + (($reasons | ForEach-Object { "- `$_`" }) -join "`n")
-            } else {
-              ""
-            }
-          )
-
-          ```text
-          $($stats -join "`n")
-          ```
-          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+          $summaryLines | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
 
       - name: Upload smoke logs
         if: always()
