@@ -1040,18 +1040,6 @@ bool is_idx_file(const boost::filesystem::directory_entry &dir_entry)
 	return is_plain_file(dir_entry) && strcasecmp(dir_entry.path().extension().string().c_str(), ".idx") == 0;
 }
 
-//BBS: refine gcode appendix
-bool is_gcode_file(const std::string &path)
-{
-	return boost::iends_with(path, ".gcode"); // || boost::iends_with(path, ".g");
-}
-
-//BBS: add json support
-bool is_json_file(const std::string& path)
-{
-	return boost::iends_with(path, ".json");
-}
-
 bool is_img_file(const std::string &path)
 {
 	return boost::iends_with(path, ".png") || boost::iends_with(path, ".svg");
@@ -1170,11 +1158,6 @@ std::string string_printf(const char *format, ...)
     buffer.resize(bufflen);
 
     return buffer;
-}
-
-std::string header_slic3r_generated()
-{
-	return std::string(SLIC3R_APP_NAME " " SLIC3R_VERSION);
 }
 
 std::string header_gcodeviewer_generated()

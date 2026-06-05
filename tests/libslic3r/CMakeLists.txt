@@ -7,6 +7,7 @@ add_executable(${_TEST_NAME}_tests
 	test_clipper_offset.cpp
 	test_clipper_utils.cpp
 	test_config.cpp
+	test_config_runtime.cpp
 	test_elephant_foot_compensation.cpp
 	test_geometry.cpp
 	test_placeholder_parser.cpp
@@ -53,3 +54,16 @@ target_link_libraries(libslic3r_config_smoke test_common libslic3r)
 target_link_libraries(libslic3r_config_smoke test_smoke_support)
 set_property(TARGET libslic3r_config_smoke PROPERTY FOLDER "tests")
 add_test(libslic3r_config_smoke libslic3r_config_smoke ${CATCH_EXTRA_ARGS})
+
+add_executable(libslic3r_config_tests
+    config_tests_main.cpp
+    test_config.cpp
+)
+target_link_libraries(libslic3r_config_tests PRIVATE test_common libslic3r_config_core)
+target_include_directories(libslic3r_config_tests PRIVATE
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/src/libslic3r
+    ${PROJECT_BINARY_DIR}/src/libslic3r
+)
+set_property(TARGET libslic3r_config_tests PROPERTY FOLDER "tests")
+add_test(libslic3r_config_tests libslic3r_config_tests ${CATCH_EXTRA_ARGS})

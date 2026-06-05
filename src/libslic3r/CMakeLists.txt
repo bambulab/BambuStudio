@@ -68,6 +68,7 @@ set(lisbslic3r_sources
     Color.hpp
     CommonDefs.hpp
     Config.cpp
+    ConfigFileUtils.cpp
     Config.hpp
     CurveAnalyzer.cpp
     CurveAnalyzer.hpp
@@ -305,8 +306,10 @@ set(lisbslic3r_sources
     PrintApply.cpp
     PrintBase.cpp
     PrintBase.hpp
+    PrintConfigGeometry.cpp
     PrintConfig.cpp
     PrintConfig.hpp
+    PrintConfigRuntime.cpp
     PrintObject.cpp
     PrintObjectSlice.cpp
     PrintRegion.cpp
@@ -506,6 +509,18 @@ add_library(libslic3r STATIC ${lisbslic3r_sources}
     ${OpenVDBUtils_SOURCES})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${lisbslic3r_sources})
 
+set(libslic3r_config_core_sources
+    Config.cpp
+    ConfigFileUtils.cpp
+    LocalesUtils.cpp
+    PrintConfig.cpp
+    PrintConfigRuntime.cpp
+)
+
+add_library(libslic3r_config_core STATIC
+    ${libslic3r_config_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
 if (SLIC3R_STATIC)
     set(CGAL_Boost_USE_STATIC_LIBS ON CACHE BOOL "" FORCE)
 endif ()
@@ -562,8 +577,11 @@ endif ()
 encoding_check(libslic3r)
 
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
+target_compile_definitions(libslic3r_config_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/TextureToColor PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r PUBLIC ${EXPAT_INCLUDE_DIRS})
+target_include_directories(libslic3r_config_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(libslic3r_config_core PUBLIC ${EXPAT_INCLUDE_DIRS})
 
 # Find the OCCT and related libraries
 set(OpenCASCADE_DIR "${CMAKE_PREFIX_PATH}/lib/cmake/occt")
@@ -627,6 +645,14 @@ target_link_libraries(libslic3r
     ${_cgal_tgt}
     assimp::assimp
     )
+
+target_link_libraries(libslic3r_config_core
+    boost_libs
+    nowide
+    semver
+    TBB::tbb
+    TBB::tbbmalloc
+)
 
 if(NOT WIN32)
     target_link_libraries(libslic3r freetype)

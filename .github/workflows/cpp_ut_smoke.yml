@@ -186,9 +186,9 @@ jobs:
             -DPKG_CONFIG_EXECUTABLE="C:/Strawberry/perl/bin/pkg-config.bat" `
             -DWIN10SDK_PATH="C:/Program Files (x86)/Windows Kits/10/Include/${{ steps.windows_sdk.outputs.sdk-version }}"
 
-      - name: Build libslic3r config smoke target
+      - name: Build libslic3r config fast target
         shell: pwsh
-        run: cmake --build "${{ env.BUILD_DIR }}" --target libslic3r_config_smoke --parallel 1
+        run: cmake --build "${{ env.BUILD_DIR }}" --target libslic3r_config_tests --parallel 1
 
       - name: Build fff_print smoke target
         shell: pwsh
@@ -201,13 +201,13 @@ jobs:
           "${{ env.DEPS_ROOT }}\usr\local\bin\occt" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
           "${{ env.DEPS_ROOT }}\usr\local\x64\vc17\bin" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
 
-      - name: Run libslic3r config smoke
+      - name: Run libslic3r config fast target
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path .ci | Out-Null
-          $exe = "${{ env.BUILD_DIR }}\tests\libslic3r\libslic3r_config_smoke.exe"
-          & $exe "[Config]" 2>&1 | Tee-Object -FilePath .ci\libslic3r-config.log
-          & $exe -r junit -o .ci\libslic3r-config.xml "[Config]" | Out-Null
+          $exe = "${{ env.BUILD_DIR }}\tests\libslic3r\libslic3r_config_tests.exe"
+          & $exe "[ConfigCore]" 2>&1 | Tee-Object -FilePath .ci\libslic3r-config-fast.log
+          & $exe -r junit -o .ci\libslic3r-config-fast.xml "[ConfigCore]" | Out-Null
 
       - name: Run gcodewriter smoke
         shell: pwsh
@@ -228,7 +228,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path .ci | Out-Null
-          $stats = & $env:SCCACHE_PATH --show-stats 2>&1
+          $stats = @(& "$env:SCCACHE_PATH" --show-stats 2>&1 | ForEach-Object { $_.ToString() })
           $stats | Tee-Object -FilePath .ci\sccache-stats.txt
           $selected = @(
             "Compile requests",
@@ -263,9 +263,9 @@ jobs:
           }
           $summaryRows = $selected |
             Where-Object { $pairs.ContainsKey($_) } |
-            ForEach-Object { "| $_ | $($pairs[$_]) |" }
+            ForEach-Object { '| {0} | {1} |' -f $_, $pairs[$_] }
           $reasonLines = if ($reasons.Count -gt 0) {
-            @("### Non-cacheable reasons") + ($reasons | ForEach-Object { "- $_" })
+            @("### Non-cacheable reasons") + ($reasons | ForEach-Object { '- {0}' -f $_ })
           } else {
             @()
           }
@@ -299,7 +299,7 @@ jobs:
         shell: pwsh
         run: |
           $suiteMeta = @(
-            @{ Name = "libslic3r_config_smoke [Config]"; Log = ".ci\libslic3r-config.log"; Xml = ".ci\libslic3r-config.xml" },
+            @{ Name = "libslic3r_config_tests [ConfigCore]"; Log = ".ci\libslic3r-config-fast.log"; Xml = ".ci\libslic3r-config-fast.xml" },
             @{ Name = "fff_print_smoke [GCodeWriter]"; Log = ".ci\fff-gcodewriter.log"; Xml = ".ci\fff-gcodewriter.xml" },
             @{ Name = "fff_print_smoke [Model]"; Log = ".ci\fff-model.log"; Xml = ".ci\fff-model.xml" }
           )
