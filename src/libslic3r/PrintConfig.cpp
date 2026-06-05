@@ -6,6 +6,7 @@
 #include "FilamentMixer.hpp"
 
 #include <set>
+#include <cmath>
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -710,6 +711,62 @@ NozzleVolumeType convert_to_nvt_type(const std::string &variant_str) {
     }
 
     return nvtHybrid;
+}
+
+void DynamicPrintConfig::repair_nil_filament_max_volumetric_speed()
+{
+    auto* speed_opt   = this->option<ConfigOptionFloats>("filament_max_volumetric_speed");
+    auto* variant_opt = this->option<ConfigOptionStrings>("filament_extruder_variant");
+    auto* self_opt    = this->option<ConfigOptionInts>("filament_self_index");
+    if (!speed_opt || !variant_opt || !self_opt)
+        return;
+
+    std::vector<double>& speeds = speed_opt->values;
+    const std::vector<std::string>& variants = variant_opt->values;
+    const std::vector<int>& self_idx = self_opt->values;
+    const size_t n = speeds.size();
+    if (variants.size() != n || self_idx.size() != n)
+        return; // arrays not aligned, skip repair to stay safe
+
+    // First valid (finite, positive) speed of `filament_id` whose variant satisfies `variant_pred`.
+    auto find_speed = [&](int filament_id, auto variant_pred) -> double {
+        for (size_t i = 0; i < n; ++i) {
+            if (self_idx[i] != filament_id) continue;
+            if (!variant_pred(variants[i])) continue;
+            if (std::isfinite(speeds[i]) && speeds[i] > 0.) return speeds[i];
+        }
+        return 0.;
+    };
+
+    for (size_t i = 0; i < n; ++i) {
+        if (std::isfinite(speeds[i]) && speeds[i] > 0.)
+            continue; // valid, nothing to repair
+
+        const int              filament_id  = self_idx[i];
+        const std::string&     slot_variant = variants[i];
+        const NozzleVolumeType nvt          = convert_to_nvt_type(slot_variant);
+
+        double filled = 0.;
+
+        // 1) DD High Flow: borrow the same nozzle volume type from the Bowden extruder of the same
+        if (nvt != nvtStandard) {
+            const std::string bowden_variant = get_extruder_variant_string(etBowden, nvt);
+            filled = find_speed(filament_id, [&](const std::string& v) { return v == bowden_variant; });
+        }
+
+        // 2) any Standard value of the same filament (Direct Drive / Bowden interchangeable):
+        //    Standard <= High Flow, so it is always safe to fill any remaining slot.
+        if (filled <= 0.)
+            filled = find_speed(filament_id, [&](const std::string& v) { return convert_to_nvt_type(v) == nvtStandard; });
+
+        // 3) safe floor when the filament has no usable value at all.
+        const double repaired = filled > 0. ? filled : 3.;
+
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__
+            << boost::format(": repaired nil filament_max_volumetric_speed at index %1% (filament %2%, variant '%3%') -> %4% mm3/s")
+               % i % filament_id % slot_variant % repaired;
+        speeds[i] = repaired;
+    }
 }
 
 std::vector<std::string> save_extruder_nozzle_stats_to_string(const std::vector<std::map<NozzleVolumeType,int>>& extruder_nozzle_stats)

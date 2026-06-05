@@ -477,6 +477,10 @@ void Preset::normalize(DynamicPrintConfig &config)
     }
 
     handle_legacy_sla(config);
+
+    // Repair nil/invalid filament_max_volumetric_speed entries carried by corrupted/legacy
+    // project files, before they propagate NaN into slicing speeds (the -35791396 bug).
+    config.repair_nil_filament_max_volumetric_speed();
 }
 
 std::string Preset::remove_invalid_keys(DynamicPrintConfig &config, const DynamicPrintConfig &default_config)

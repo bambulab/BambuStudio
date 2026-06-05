@@ -602,6 +602,10 @@ public:
     void                normalize_fdm();
     void                normalize_fdm_1();
     
+    // Repair nil/invalid filament_max_volumetric_speed entries carried by corrupted/legacy
+    // project files, before they propagate NaN into slicing speeds
+    void                repair_nil_filament_max_volumetric_speed();
+
     // Normalize FDM config based on print conditions (single/multi filament, print sequence, etc.)
     // Returns the list of config keys that were changed.
     // @param ori_values: Optional external storage for backup/restore of config values.
