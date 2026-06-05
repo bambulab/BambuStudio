@@ -9,6 +9,8 @@
 #endif
 
 #include <wx/sizer.h>
+#include <boost/log/trivial.hpp>
+#include <chrono>
 
 namespace Slic3r { namespace GUI {
 
@@ -16,17 +18,38 @@ namespace Slic3r { namespace GUI {
 #define DEVICE_USE_HTTP_SERVER
 #endif
 
-DeviceWebHost::DeviceWebHost(wxWindow* parent, DeviceWebHostMode mode, std::string initial_path)
+static std::uint64_t TimeNowMs() {
+    return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count());
+}
+
+DeviceWebHost::DeviceWebHost(wxWindow* parent, DeviceWebHostMode mode,
+                             std::string initial_path, bool allow_lazy)
     : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
     , m_mode(mode)
     , m_initial_path(std::move(initial_path))
+    , m_allow_lazy(allow_lazy)
 {
+    if (!m_allow_lazy) {
+        EnsureBuilt();
+    }
+    // Ensure the panel has a valid minimum size even before the webview is built,
+    // so the tab placeholder renders correctly.
+    SetMinSize(wxSize(FromDIP(320), FromDIP(260)));
+}
+
+void DeviceWebHost::EnsureBuilt()
+{
+    if (m_built) return;
+    m_built = true;
+
+    auto t0 = TimeNowMs();
+
 #ifdef DEVICE_USE_HTTP_SERVER
     m_device_http_server = std::make_unique<DeviceHttpServer>();
 #endif
 
-    m_device_webview    = new PrinterWebView(this);
-    SetMinSize(wxSize(FromDIP(320), FromDIP(260)));
+    m_device_webview = new PrinterWebView(this);
     m_device_webview->SetMinSize(wxSize(FromDIP(320), FromDIP(260)));
     m_device_web_bridge = std::make_unique<DeviceWebBridge>(m_device_webview->GetWebView());
 
@@ -53,10 +76,32 @@ DeviceWebHost::DeviceWebHost(wxWindow* parent, DeviceWebHostMode mode, std::stri
     });
 
     LoadUrl();
-    Layout();
-    web_sizer->Layout();
-    m_device_webview->Layout();
-    Fit();
+
+    // When built lazily the panel already has its final size; force the webview
+    // to fill it immediately rather than waiting for the next SIZE event.
+    if (m_allow_lazy) {
+        const wxSize cur = GetClientSize();
+        if (cur.GetWidth() > 0 && cur.GetHeight() > 0) {
+            m_device_webview->SetSize(cur);
+            if (auto* wv = m_device_webview->GetWebView()) {
+                wv->SetSize(m_device_webview->GetClientSize());
+            }
+        }
+        Layout();
+        web_sizer->Layout();
+        m_device_webview->Layout();
+        if (GetParent()) GetParent()->Layout();
+    } else {
+        Layout();
+        web_sizer->Layout();
+        m_device_webview->Layout();
+        Fit();
+    }
+
+    BOOST_LOG_TRIVIAL(info) << "[DevWebPerf] EnsureBuilt: done in " << (TimeNowMs() - t0) << "ms";
+    // Mark so NavigateTo skips the next call: LoadUrl already loaded the correct URL,
+    // and running JS hash navigation before the page is ready causes a white screen.
+    m_just_built = true;
 }
 
 DeviceWebHost::~DeviceWebHost()
@@ -87,15 +132,26 @@ wxString DeviceWebHost::BuildUrl(const std::string& path) const
 
 void DeviceWebHost::LoadUrl()
 {
-    const wxString url = BuildUrl(m_initial_path);
-    m_device_webview->load_url(url);
+    if (!m_device_webview) return;
+    m_device_webview->load_url(BuildUrl(m_initial_path));
 }
 
 void DeviceWebHost::NavigateTo(const std::string& path)
 {
     if (!m_device_webview) {
+        // Lazy init: trigger build on first navigation
+        EnsureBuilt();
         return;
     }
+
+    // Skip navigation immediately after lazy init: LoadUrl() already loaded
+    // the correct URL with the right hash; running JS before the page is ready
+    // causes a white screen.
+    if (m_just_built) {
+        m_just_built = false;
+        return;
+    }
+
     m_device_webview->load_url(BuildUrl(path));
 }
 
