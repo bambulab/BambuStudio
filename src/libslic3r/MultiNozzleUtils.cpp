@@ -533,6 +533,11 @@ std::optional<StaticNozzleGroupResult> StaticNozzleGroupResult::create(
         auto fil_id = filament_info.id;
         auto nozzles_id     = filament_info.group_id;
         std::set<int> nozzles_set(nozzles_id.begin(), nozzles_id.end());
+        // 兼容旧版（单喷嘴）gcode.3mf：filament 未记录 group_id，避免映射为空
+        if (nozzles_set.empty()) {
+            for (const auto& nozzle_entry : nozzle_list_map)
+                nozzles_set.insert(nozzle_entry.first);
+        }
         filament_to_nozzles[fil_id] = nozzles_set;
     }
 
