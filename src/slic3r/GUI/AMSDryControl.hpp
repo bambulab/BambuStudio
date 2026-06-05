@@ -123,6 +123,8 @@ private:
     ScalableBitmap m_zmulti_humidity_icon;
     ScalableBitmap m_zmulti_temp_icon;
     int m_last_visible_zmulti_a = -1; // -1=unset, 0=hidden, 1=shown
+    int m_last_desc_section_shown = -1; // -1=unset, 0=hidden, 1=shown
+    int m_last_time_container_shown = -1; // -1=unset, 0=hidden, 1=shown
     int m_ambient_humidity_percent = -1;
     int m_ambient_temperature = 0;
 

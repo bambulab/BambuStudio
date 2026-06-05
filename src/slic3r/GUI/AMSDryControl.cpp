@@ -1480,7 +1480,11 @@ int AMSDryCtrWin::update_image(DevAmsType model, DevAms::DryStatus status, DevAm
         }
     }
 
-    update_img_description(status, sub_status);
+    if (model == DevAmsType::ZMULTI_A) {
+        m_image_description_icon->Show(false);
+    } else {
+        update_img_description(status, sub_status);
+    }
 
     return 1;
 }
@@ -1830,13 +1834,28 @@ int AMSDryCtrWin::update_dryness_status(DevAms* dev_ams)
         updated += 1;
     }
 
-    if (is_dry_ctr_idle(dev_ams)) {
-        m_time_descrition_container->Show(false);
-        m_original_page->Layout();
+    const bool is_zmulti_a = (dev_ams->GetAmsType() == DevAmsType::ZMULTI_A);
+    const bool idle = is_dry_ctr_idle(dev_ams);
+    bool need_layout = false;
+
+    const bool show_desc_section = !is_zmulti_a || !idle;
+    if (m_descriptions_section_sizer && m_last_desc_section_shown != (show_desc_section ? 1 : 0)) {
+        m_last_desc_section_shown = show_desc_section ? 1 : 0;
+        m_descriptions_section_sizer->ShowItems(show_desc_section);
+        need_layout = true;
+    }
+
+    if (idle) {
+        if (m_last_time_container_shown != 0) {
+            m_last_time_container_shown = 0;
+            m_time_descrition_container->Show(false);
+            need_layout = true;
+        }
     } else {
-        if (is_dry_status_changed(dev_ams)) {
+        if (m_last_time_container_shown != 1) {
+            m_last_time_container_shown = 1;
             m_time_descrition_container->Show(true);
-            m_original_page->Layout();
+            need_layout = true;
         }
 
         if (m_ams_info.m_left_dry_time != dry.left_dry_time) {
@@ -1847,15 +1866,14 @@ int AMSDryCtrWin::update_dryness_status(DevAms* dev_ams)
         }
     }
 
-    bool is_zmulti_a = (dev_ams->GetAmsType() == DevAmsType::ZMULTI_A);
-    int  visible_now = is_zmulti_a ? 1 : 0;
+    int visible_now = is_zmulti_a ? 1 : 0;
     if (m_last_visible_zmulti_a != visible_now) {
         m_last_visible_zmulti_a = visible_now;
         if (m_image_desc_sizer) m_image_desc_sizer->ShowItems(!is_zmulti_a);
-        if (m_descriptions_section_sizer) m_descriptions_section_sizer->ShowItems(!is_zmulti_a);
         if (m_zmulti_m2y_pill) m_zmulti_m2y_pill->Show(is_zmulti_a);
-        if (m_original_page) m_original_page->Layout();
+        need_layout = true;
     }
+    if (need_layout && m_original_page) m_original_page->Layout();
 
     if (is_zmulti_a && updated > 0 && m_zmulti_image_overlay) {
         m_zmulti_image_overlay->Refresh();
