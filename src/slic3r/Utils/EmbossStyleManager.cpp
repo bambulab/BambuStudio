@@ -2,6 +2,7 @@
 #include <optional>
 #include <GL/glew.h> // Imgui texture
 #include <imgui/imgui_internal.h> // ImTextCharFromUtf8
+#include <imgui/imstb_truetype.h> // stbtt_FindGlyphIndex
 #include <libslic3r/AppConfig.hpp>
 #include <libslic3r/Utils.hpp> // ScopeGuard
 
@@ -38,6 +39,7 @@ void                    store_style_index(AppConfig &cfg, size_t index);
 StyleManager::Styles load_styles(const AppConfig &cfg);
 void store_styles(AppConfig &cfg, const StyleManager::Styles &styles);
 void make_unique_name(const StyleManager::Styles &styles, std::string &name);
+bool font_has_any_glyph_in_ranges(const FontFile &font, const ImVector<ImWchar> &ranges);
 
 // Enum map to string and vice versa
 using HorizontalAlignToName = boost::bimap<FontProp::HorizontalAlign, std::string_view>;
@@ -52,6 +54,28 @@ boost::assign::list_of<VerticalAlignToName::relation>
     (FontProp::VerticalAlign::top, "top")
     (FontProp::VerticalAlign::center, "middle")
     (FontProp::VerticalAlign::bottom, "bottom");
+
+bool font_has_any_glyph_in_ranges(const FontFile &font, const ImVector<ImWchar> &ranges)
+{
+    if (font.data == nullptr || font.data->empty() || ranges.empty())
+        return false;
+
+    // Keep this in sync with ImGui's default FontNo used by AddFontFromMemoryTTF().
+    int font_offset = stbtt_GetFontOffsetForIndex(font.data->data(), 0);
+    if (font_offset < 0)
+        return false;
+
+    stbtt_fontinfo font_info;
+    if (stbtt_InitFont(&font_info, font.data->data(), font_offset) == 0)
+        return false;
+
+    for (const ImWchar *range = ranges.Data; range[0] && range[1]; range += 2)
+        for (unsigned int codepoint = range[0]; codepoint <= range[1]; ++codepoint)
+            if (stbtt_FindGlyphIndex(&font_info, codepoint) != 0)
+                return true;
+
+    return false;
+}
 } // namespace
 
 void StyleManager::init(AppConfig *app_config)
@@ -484,11 +508,30 @@ ImFont *StyleManager::create_imgui_font(const std::string &text, double scale, b
 
     font_config.FontDataOwnedByAtlas = false;
     ImFont *font{nullptr};
-    const std::vector<unsigned char> &buffer = *font_file.data;
+    const FontFile *base_font_file = &font_file;
+    int base_backup_index = -1;
+    if (!font_has_any_glyph_in_ranges(font_file, m_style_cache.ranges) && support_backup_fonts) {
+        for (int i = 0; i < Slic3r::GUI::BackupFonts::backup_fonts.size(); i++) {
+            if (!Slic3r::GUI::BackupFonts::backup_fonts[i].has_value())
+                continue;
+
+            const FontFile &temp_font_file = *Slic3r::GUI::BackupFonts::backup_fonts[i].font_file;
+            if (!font_has_any_glyph_in_ranges(temp_font_file, m_style_cache.ranges))
+                continue;
+
+            base_font_file = &temp_font_file;
+            base_backup_index = i;
+            break;
+        }
+    }
+
+    const std::vector<unsigned char> &buffer = *base_font_file->data;
     font = m_style_cache.atlas.AddFontFromMemoryTTF((void *) buffer.data(), buffer.size(), font_size, &font_config, m_style_cache.ranges.Data);
     if (support_backup_fonts) {
         font_config.MergeMode = true;
         for (int i = 0; i < Slic3r::GUI::BackupFonts::backup_fonts.size(); i++) {
+            if (i == base_backup_index)
+                continue;
             if (Slic3r::GUI::BackupFonts::backup_fonts[i].has_value()) {
                 auto &                            temp_ff        = Slic3r::GUI::BackupFonts::backup_fonts[i];
                 const FontFile &                  temp_font_file = *temp_ff.font_file;
@@ -500,6 +543,10 @@ ImFont *StyleManager::create_imgui_font(const std::string &text, double scale, b
 
     unsigned char *pixels;
     int            width, height;
+    if (!m_style_cache.atlas.Build()) {
+        m_style_cache.atlas.Clear();
+        return nullptr;
+    }
     m_style_cache.atlas.GetTexDataAsRGBA32(&pixels, &width, &height);
 
     // Upload texture to graphics system
