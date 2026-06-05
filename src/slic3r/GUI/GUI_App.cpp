@@ -5552,10 +5552,19 @@ void GUI_App::check_beta_version(bool show_tips_when_no_beta)
                                 }
                             }
                         }
+                        // Newest beta located and scheduled; stop scanning older entries.
+                        return;
                     }
                 }
-                return;
             }
+            // No beta release exists across all GitHub releases (e.g. the newest
+            // release is stable). Fall back to the regular "no new version" toast
+            // instead of silently returning after inspecting only the first entry.
+            CallAfter([this, show_tips_when_no_beta]() {
+                if (show_tips_when_no_beta) {
+                    this->no_new_version();
+                }
+            });
         }
         catch (...) {
             ;
