@@ -82,6 +82,72 @@ jobs:
         with:
           lfs: "true"
 
+      - name: Detect config fast gate scope
+        id: config_scope
+        shell: pwsh
+        run: |
+          $enabled = $true
+          $reason = "workflow_dispatch"
+          $matched = @()
+          $changed = @()
+
+          if ("${{ github.event_name }}" -ne "workflow_dispatch") {
+            $base = if ("${{ github.event_name }}" -eq "pull_request") {
+              "${{ github.event.pull_request.base.sha }}"
+            } else {
+              "${{ github.event.before }}"
+            }
+            $head = "${{ github.sha }}"
+
+            if ([string]::IsNullOrWhiteSpace($base) -or $base -match '^0+$') {
+              $enabled = $true
+              $reason = "missing_base_sha"
+            } else {
+              git fetch --no-tags --depth=1 origin $base | Out-Null
+              if ($LASTEXITCODE -ne 0) {
+                $enabled = $true
+                $reason = "fetch_base_failed"
+              } else {
+                $changed = @(git diff --name-only $base $head | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+                $patterns = Get-Content ".github/config-fast-gate-paths.txt" |
+                  Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and -not $_.Trim().StartsWith('#') } |
+                  ForEach-Object { $_.Trim() }
+
+                foreach ($file in $changed) {
+                  foreach ($pattern in $patterns) {
+                    if ($file -like $pattern) {
+                      $matched += $file
+                      break
+                    }
+                  }
+                }
+
+                $enabled = $matched.Count -gt 0
+                $reason = if ($enabled) { "matched_paths" } else { "no_matching_paths" }
+              }
+            }
+          }
+
+          "enabled=$($enabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "reason=$reason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+
+          $changedText = if ($changed.Count -gt 0) { $changed -join ', ' } else { 'n/a' }
+          $matchedUnique = @($matched | Select-Object -Unique)
+          $matchedText = if ($matchedUnique.Count -gt 0) { $matchedUnique -join ', ' } else { 'n/a' }
+
+          "changed=$changedText" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "matched=$matchedText" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+
+          Write-Host "config fast gate enabled=$enabled reason=$reason"
+          if ($changed.Count -gt 0) {
+            Write-Host "changed files:"
+            $changed | ForEach-Object { Write-Host "  $_" }
+          }
+          if ($matched.Count -gt 0) {
+            Write-Host "matched files:"
+            $matched | Select-Object -Unique | ForEach-Object { Write-Host "  $_" }
+          }
+
       - name: Setup MSVC developer command prompt
         uses: ilammy/msvc-dev-cmd@v1
         with:
@@ -187,6 +253,7 @@ jobs:
             -DWIN10SDK_PATH="C:/Program Files (x86)/Windows Kits/10/Include/${{ steps.windows_sdk.outputs.sdk-version }}"
 
       - name: Build libslic3r config fast target
+        if: steps.config_scope.outputs.enabled == 'true'
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target libslic3r_config_tests --parallel 1
 
@@ -202,12 +269,25 @@ jobs:
           "${{ env.DEPS_ROOT }}\usr\local\x64\vc17\bin" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
 
       - name: Run libslic3r config fast target
+        if: steps.config_scope.outputs.enabled == 'true'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path .ci | Out-Null
           $exe = "${{ env.BUILD_DIR }}\tests\libslic3r\libslic3r_config_tests.exe"
           & $exe "[ConfigCore]" 2>&1 | Tee-Object -FilePath .ci\libslic3r-config-fast.log
           & $exe -r junit -o .ci\libslic3r-config-fast.xml "[ConfigCore]" | Out-Null
+
+      - name: Note skipped config fast target
+        if: steps.config_scope.outputs.enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## Config Fast Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.config_scope.outputs.reason }}`
+          - Changed files: `${{ steps.config_scope.outputs.changed }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
 
       - name: Run gcodewriter smoke
         shell: pwsh
@@ -298,6 +378,8 @@ jobs:
         if: always()
         shell: pwsh
         run: |
+          $configFastEnabled = "${{ steps.config_scope.outputs.enabled }}" -eq "true"
+          $configFastReason = "${{ steps.config_scope.outputs.reason }}"
           $suiteMeta = @(
             @{ Name = "libslic3r_config_tests [ConfigCore]"; Log = ".ci\libslic3r-config-fast.log"; Xml = ".ci\libslic3r-config-fast.xml" },
             @{ Name = "fff_print_smoke [GCodeWriter]"; Log = ".ci\fff-gcodewriter.log"; Xml = ".ci\fff-gcodewriter.xml" },
@@ -310,6 +392,10 @@ jobs:
           $passedSuites = 0
 
           foreach ($suite in $suiteMeta) {
+            if ($suite.Name -like 'libslic3r_config_tests*' -and -not $configFastEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($configFastReason) | 0 | 0 |")
+              continue
+            }
             $cases = 0
             $assertions = 0
             if (Test-Path $suite.Log) {
@@ -333,7 +419,7 @@ jobs:
             }
             $totalCases += $cases
             $totalAssertions += $assertions
-            $rows.Add("| $($suite.Name) | $cases | $assertions |")
+            $rows.Add("| $($suite.Name) | ran | $cases | $assertions |")
           }
 
           @"
@@ -341,11 +427,13 @@ jobs:
 
           - Branch: `${{ needs.resolve-deps-run.outputs.branch-name }}`
           - Deps run id: `${{ needs.resolve-deps-run.outputs.run-id }}`
+          - Config fast gate enabled: `$configFastEnabled`
+          - Config fast gate reason: `$configFastReason`
           - Smoke commands passed: `$passedSuites / 3`
           - Reported test cases: `$totalCases`
           - Reported assertions: `$totalAssertions`
 
-          | Suite | Test Cases | Assertions |
-          | --- | ---: | ---: |
+          | Suite | Status | Test Cases | Assertions |
+          | --- | --- | ---: | ---: |
           $($rows -join "`n")
           "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
