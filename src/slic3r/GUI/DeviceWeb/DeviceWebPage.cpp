@@ -3,7 +3,7 @@
 namespace Slic3r { namespace GUI {
 
 DeviceWebPage::DeviceWebPage(wxWindow *parent)
-    : DeviceWebHost(parent, DeviceWebHostMode::FilamentManager, "/filament_manager")
+    : DeviceWebHost(parent, DeviceWebHostMode::FilamentManager, "/filament_manager", /*allow_lazy=*/true)
 {
 }
 
