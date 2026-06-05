@@ -82,14 +82,47 @@ jobs:
         with:
           lfs: "true"
 
-      - name: Detect config fast gate scope
-        id: config_scope
+      - name: Detect smoke gate scopes
+        id: smoke_scope
         shell: pwsh
         run: |
-          $enabled = $true
-          $reason = "workflow_dispatch"
-          $matched = @()
           $changed = @()
+          $changedText = "n/a"
+
+          function Get-ScopeResult {
+            param(
+              [string[]]$ChangedFiles,
+              [string]$PatternsPath
+            )
+
+            $patterns = Get-Content $PatternsPath |
+              Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and -not $_.Trim().StartsWith('#') } |
+              ForEach-Object { $_.Trim() }
+
+            $matched = New-Object System.Collections.Generic.List[string]
+            foreach ($file in $ChangedFiles) {
+              foreach ($pattern in $patterns) {
+                if ($file -like $pattern) {
+                  $matched.Add($file)
+                  break
+                }
+              }
+            }
+
+            $matchedUnique = @($matched | Select-Object -Unique)
+            return @{
+              Enabled = ($matchedUnique.Count -gt 0)
+              Reason  = if ($matchedUnique.Count -gt 0) { "matched_paths" } else { "no_matching_paths" }
+              Matched = if ($matchedUnique.Count -gt 0) { $matchedUnique -join ', ' } else { 'n/a' }
+            }
+          }
+
+          $configEnabled = $true
+          $configReason = "workflow_dispatch"
+          $configMatched = "n/a"
+          $fffEnabled = $true
+          $fffReason = "workflow_dispatch"
+          $fffMatched = "n/a"
 
           if ("${{ github.event_name }}" -ne "workflow_dispatch") {
             $base = if ("${{ github.event_name }}" -eq "pull_request") {
@@ -100,63 +133,60 @@ jobs:
             $head = "${{ github.sha }}"
 
             if ([string]::IsNullOrWhiteSpace($base) -or $base -match '^0+$') {
-              $enabled = $true
-              $reason = "missing_base_sha"
+              $configReason = "missing_base_sha"
+              $fffReason = "missing_base_sha"
             } else {
               git fetch --no-tags --depth=1 origin $base | Out-Null
               if ($LASTEXITCODE -ne 0) {
-                $enabled = $true
-                $reason = "fetch_base_failed"
+                $configReason = "fetch_base_failed"
+                $fffReason = "fetch_base_failed"
               } else {
                 $changed = @(git diff --name-only $base $head | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-                $patterns = Get-Content ".github/config-fast-gate-paths.txt" |
-                  Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and -not $_.Trim().StartsWith('#') } |
-                  ForEach-Object { $_.Trim() }
+                $changedText = if ($changed.Count -gt 0) { $changed -join ', ' } else { 'n/a' }
 
-                foreach ($file in $changed) {
-                  foreach ($pattern in $patterns) {
-                    if ($file -like $pattern) {
-                      $matched += $file
-                      break
-                    }
-                  }
-                }
+                $configScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/config-fast-gate-paths.txt"
+                $fffScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/fff-print-smoke-paths.txt"
 
-                $enabled = $matched.Count -gt 0
-                $reason = if ($enabled) { "matched_paths" } else { "no_matching_paths" }
+                $configEnabled = $configScope.Enabled
+                $configReason = $configScope.Reason
+                $configMatched = $configScope.Matched
+                $fffEnabled = $fffScope.Enabled
+                $fffReason = $fffScope.Reason
+                $fffMatched = $fffScope.Matched
               }
             }
           }
 
-          "enabled=$($enabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
-          "reason=$reason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
-
-          $changedText = if ($changed.Count -gt 0) { $changed -join ', ' } else { 'n/a' }
-          $matchedUnique = @($matched | Select-Object -Unique)
-          $matchedText = if ($matchedUnique.Count -gt 0) { $matchedUnique -join ', ' } else { 'n/a' }
-
+          $anyEnabled = $configEnabled -or $fffEnabled
+          "any_enabled=$($anyEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "changed=$changedText" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
-          "matched=$matchedText" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "config_enabled=$($configEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "config_reason=$configReason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "config_matched=$configMatched" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "fff_enabled=$($fffEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "fff_reason=$fffReason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "fff_matched=$fffMatched" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
 
-          Write-Host "config fast gate enabled=$enabled reason=$reason"
+          Write-Host "smoke any_enabled=$anyEnabled"
           if ($changed.Count -gt 0) {
             Write-Host "changed files:"
             $changed | ForEach-Object { Write-Host "  $_" }
           }
-          if ($matched.Count -gt 0) {
-            Write-Host "matched files:"
-            $matched | Select-Object -Unique | ForEach-Object { Write-Host "  $_" }
-          }
+          Write-Host "config gate enabled=$configEnabled reason=$configReason matched=$configMatched"
+          Write-Host "fff smoke gate enabled=$fffEnabled reason=$fffReason matched=$fffMatched"
 
       - name: Setup MSVC developer command prompt
+        if: steps.smoke_scope.outputs.any_enabled == 'true'
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
 
       - name: Setup sccache
+        if: steps.smoke_scope.outputs.any_enabled == 'true'
         uses: mozilla-actions/sccache-action@v0.0.10
 
       - name: Show build tool versions
+        if: steps.smoke_scope.outputs.any_enabled == 'true'
         shell: pwsh
         run: |
           cmake --version
@@ -165,6 +195,7 @@ jobs:
           & $env:SCCACHE_PATH --version
 
       - name: Reset sccache stats
+        if: steps.smoke_scope.outputs.any_enabled == 'true'
         shell: pwsh
         run: |
           & $env:SCCACHE_PATH --stop-server | Out-Null
@@ -174,6 +205,7 @@ jobs:
           & $env:SCCACHE_PATH --zero-stats
 
       - name: Download deps artifact
+        if: steps.smoke_scope.outputs.any_enabled == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
@@ -184,6 +216,7 @@ jobs:
             -D "${{ env.DEPS_ZIP_DIR }}"
 
       - name: Expand deps artifact
+        if: steps.smoke_scope.outputs.any_enabled == 'true'
         shell: pwsh
         run: |
           $zip = Get-ChildItem "${{ env.DEPS_ZIP_DIR }}" -Filter *.zip | Select-Object -First 1
@@ -197,12 +230,14 @@ jobs:
           Expand-Archive -Path $zip.FullName -DestinationPath "${{ env.DEPS_ROOT }}"
 
       - name: Install Windows build tooling
+        if: steps.smoke_scope.outputs.any_enabled == 'true'
         shell: pwsh
         run: |
           choco install strawberryperl --no-progress -y
           choco install pkgconfiglite --no-progress -y
 
       - name: Detect Windows SDK
+        if: steps.smoke_scope.outputs.any_enabled == 'true'
         id: windows_sdk
         shell: pwsh
         run: |
@@ -213,6 +248,7 @@ jobs:
           echo "sdk-version=$sdk" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
 
       - name: Configure cpp smoke build
+        if: steps.smoke_scope.outputs.any_enabled == 'true'
         shell: pwsh
         run: |
           if (Test-Path "${{ env.BUILD_DIR }}") {
@@ -253,15 +289,17 @@ jobs:
             -DWIN10SDK_PATH="C:/Program Files (x86)/Windows Kits/10/Include/${{ steps.windows_sdk.outputs.sdk-version }}"
 
       - name: Build libslic3r config fast target
-        if: steps.config_scope.outputs.enabled == 'true'
+        if: steps.smoke_scope.outputs.config_enabled == 'true'
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target libslic3r_config_tests --parallel 1
 
       - name: Build fff_print smoke target
+        if: steps.smoke_scope.outputs.fff_enabled == 'true'
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target fff_print_smoke --parallel 1
 
       - name: Add deps runtime DLLs to PATH
+        if: steps.smoke_scope.outputs.any_enabled == 'true'
         shell: pwsh
         run: |
           "${{ env.DEPS_ROOT }}\usr\local\bin" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
@@ -269,7 +307,7 @@ jobs:
           "${{ env.DEPS_ROOT }}\usr\local\x64\vc17\bin" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
 
       - name: Run libslic3r config fast target
-        if: steps.config_scope.outputs.enabled == 'true'
+        if: steps.smoke_scope.outputs.config_enabled == 'true'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path .ci | Out-Null
@@ -278,18 +316,33 @@ jobs:
           & $exe -r junit -o .ci\libslic3r-config-fast.xml "[ConfigCore]" | Out-Null
 
       - name: Note skipped config fast target
-        if: steps.config_scope.outputs.enabled != 'true'
+        if: steps.smoke_scope.outputs.config_enabled != 'true'
         shell: pwsh
         run: |
           @"
           ## Config Fast Gate
 
           - Enabled: `false`
-          - Reason: `${{ steps.config_scope.outputs.reason }}`
-          - Changed files: `${{ steps.config_scope.outputs.changed }}`
+          - Reason: `${{ steps.smoke_scope.outputs.config_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.config_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Note skipped fff_print smoke target
+        if: steps.smoke_scope.outputs.fff_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## FFF Print Smoke Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.fff_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.fff_matched }}`
           "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
 
       - name: Run gcodewriter smoke
+        if: steps.smoke_scope.outputs.fff_enabled == 'true'
         shell: pwsh
         run: |
           $exe = "${{ env.BUILD_DIR }}\tests\fff_print\fff_print_smoke.exe"
@@ -297,6 +350,7 @@ jobs:
           & $exe -r junit -o .ci\fff-gcodewriter.xml "[GCodeWriter]" | Out-Null
 
       - name: Run model smoke
+        if: steps.smoke_scope.outputs.fff_enabled == 'true'
         shell: pwsh
         run: |
           $exe = "${{ env.BUILD_DIR }}\tests\fff_print\fff_print_smoke.exe"
@@ -304,7 +358,7 @@ jobs:
           & $exe -r junit -o .ci\fff-model.xml "[Model]" | Out-Null
 
       - name: Show sccache stats
-        if: always()
+        if: always() && steps.smoke_scope.outputs.any_enabled == 'true'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path .ci | Out-Null
@@ -365,7 +419,7 @@ jobs:
           $summaryLines | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
 
       - name: Upload smoke logs
-        if: always()
+        if: always() && steps.smoke_scope.outputs.any_enabled == 'true'
         uses: actions/upload-artifact@v6
         with:
           name: cpp-ut-smoke-logs
@@ -378,8 +432,10 @@ jobs:
         if: always()
         shell: pwsh
         run: |
-          $configFastEnabled = "${{ steps.config_scope.outputs.enabled }}" -eq "true"
-          $configFastReason = "${{ steps.config_scope.outputs.reason }}"
+          $configFastEnabled = "${{ steps.smoke_scope.outputs.config_enabled }}" -eq "true"
+          $configFastReason = "${{ steps.smoke_scope.outputs.config_reason }}"
+          $fffSmokeEnabled = "${{ steps.smoke_scope.outputs.fff_enabled }}" -eq "true"
+          $fffSmokeReason = "${{ steps.smoke_scope.outputs.fff_reason }}"
           $suiteMeta = @(
             @{ Name = "libslic3r_config_tests [ConfigCore]"; Log = ".ci\libslic3r-config-fast.log"; Xml = ".ci\libslic3r-config-fast.xml" },
             @{ Name = "fff_print_smoke [GCodeWriter]"; Log = ".ci\fff-gcodewriter.log"; Xml = ".ci\fff-gcodewriter.xml" },
@@ -390,12 +446,19 @@ jobs:
           $totalCases = 0
           $totalAssertions = 0
           $passedSuites = 0
+          $eligibleSuites = 0
 
           foreach ($suite in $suiteMeta) {
             if ($suite.Name -like 'libslic3r_config_tests*' -and -not $configFastEnabled) {
               $rows.Add("| $($suite.Name) | skipped ($configFastReason) | 0 | 0 |")
               continue
             }
+            if ($suite.Name -like 'fff_print_smoke*' -and -not $fffSmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($fffSmokeReason) | 0 | 0 |")
+              continue
+            }
+
+            $eligibleSuites += 1
             $cases = 0
             $assertions = 0
             if (Test-Path $suite.Log) {
@@ -427,9 +490,12 @@ jobs:
 
           - Branch: `${{ needs.resolve-deps-run.outputs.branch-name }}`
           - Deps run id: `${{ needs.resolve-deps-run.outputs.run-id }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
           - Config fast gate enabled: `$configFastEnabled`
           - Config fast gate reason: `$configFastReason`
-          - Smoke commands passed: `$passedSuites / 3`
+          - FFF smoke gate enabled: `$fffSmokeEnabled`
+          - FFF smoke gate reason: `$fffSmokeReason`
+          - Smoke commands passed: `$passedSuites / $eligibleSuites`
           - Reported test cases: `$totalCases`
           - Reported assertions: `$totalAssertions`
 

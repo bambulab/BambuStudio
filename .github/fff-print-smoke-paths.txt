@@ -1,0 +1,13 @@
+# fff_print smoke source surface
+src/libslic3r/GCodeWriter*
+src/libslic3r/Model*
+src/libslic3r/TriangleMesh*
+
+# fff_print smoke target tests
+tests/fff_print/CMakeLists.txt
+tests/fff_print/fff_print_tests.cpp
+tests/fff_print/test_gcodewriter_smoke.cpp
+tests/fff_print/test_model_smoke.cpp
+
+# workflow changes should re-run the smoke gate
+.github/workflows/cpp_ut_smoke.yml
