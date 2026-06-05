@@ -7310,7 +7310,13 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         // may pass through nearby coordinates but their physical position differs.
         if (!m_writer.filament() || get_extruder_id(m_writer.filament()->id()) != m_farthest_point_timelapse.most_used_extruder)
             return;
-        Vec2d endpoint_mm = this->point_to_gcode(endpoint_scaled);
+        // Compare in the global print frame to match farthest_gcode_pos, which is
+        // unscale(farthest_point) without the per-extruder nozzle offset. Using
+        // point_to_gcode() here would subtract extruder_offset on this side only,
+        // leaving a constant mismatch (e.g. P1P offset (0,2) = 2mm > 0.5mm tolerance)
+        // that prevents the inline photo from ever triggering on machines with a
+        // non-zero photo-head extruder_offset.
+        Vec2d endpoint_mm = unscale(endpoint_scaled) + m_origin;
         if ((endpoint_mm - m_farthest_point_timelapse.farthest_gcode_pos).norm() >= 0.5)
             return;
 
