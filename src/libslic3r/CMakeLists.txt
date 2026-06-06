@@ -867,29 +867,9 @@ set(libslic3r_print_filament_mapping_core_sources
     ${libslic3r_print_perimeters_core_sources}
 )
 list(REMOVE_ITEM libslic3r_print_filament_mapping_core_sources
-    PerimeterGenerator.cpp
     PrintProcessPerimeters.cpp
     PrintProcessPerimetersCompat.cpp
-    PrintPerimetersInfillCompat.cpp
     PrintObjectPerimeters.cpp
-    VariableWidth.cpp
-    Surface.cpp
-    SurfaceCollection.cpp
-    Arachne/BeadingStrategy/BeadingStrategy.cpp
-    Arachne/BeadingStrategy/BeadingStrategyFactory.cpp
-    Arachne/BeadingStrategy/DistributedBeadingStrategy.cpp
-    Arachne/BeadingStrategy/LimitedBeadingStrategy.cpp
-    Arachne/BeadingStrategy/OuterWallContourStrategy.cpp
-    Arachne/BeadingStrategy/OuterWallInsetBeadingStrategy.cpp
-    Arachne/BeadingStrategy/RedistributeBeadingStrategy.cpp
-    Arachne/BeadingStrategy/WideningBeadingStrategy.cpp
-    Arachne/utils/ExtrusionJunction.cpp
-    Arachne/utils/ExtrusionLine.cpp
-    Arachne/utils/PolylineStitcher.cpp
-    Arachne/utils/SquareGrid.cpp
-    Arachne/SkeletalTrapezoidation.cpp
-    Arachne/SkeletalTrapezoidationGraph.cpp
-    Arachne/WallToolPaths.cpp
 )
 list(APPEND libslic3r_print_filament_mapping_core_sources
     PrintFilamentMappingCompat.cpp
