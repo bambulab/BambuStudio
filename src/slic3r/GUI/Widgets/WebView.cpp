@@ -233,6 +233,12 @@ public:
         assert(iter != g_webviews.end());
         if (iter != g_webviews.end())
             g_webviews.erase(iter);
+        // Also drop it from the delayed list so a pending flush of g_delay_webviews
+        // never calls AddScriptMessageHandler() on an already-destroyed view.
+        // See bambulab/BambuStudio #11004 and #10968.
+        auto diter = std::find(g_delay_webviews.begin(), g_delay_webviews.end(), m_webView);
+        if (diter != g_delay_webviews.end())
+            g_delay_webviews.erase(diter);
     }
     wxWebView *m_webView;
 };
@@ -344,6 +350,14 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
         };
 #ifndef __WIN32__
         webView->CallAfter([webView, addScriptMessageHandler] {
+            // This async callback may fire after webView has already been destroyed,
+            // which would call AddScriptMessageHandler() on a dangling pointer
+            // (use-after-free -> pointer-authentication crash on Apple Silicon, or a
+            // long hang during startup on macOS 26.5+). g_webviews lists every live
+            // view, so bail out if this one is already gone.
+            // See bambulab/BambuStudio #11004 and #10968.
+            if (std::find(g_webviews.begin(), g_webviews.end(), webView) == g_webviews.end())
+                return;
 #endif
             if (Slic3r::GUI::wxGetApp().is_adding_script_handler()) {
                 g_delay_webviews.push_back(webView);
