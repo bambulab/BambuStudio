@@ -224,9 +224,9 @@ set(DEVICE_PAGE_BUILD_INPUTS
 add_custom_command(
     OUTPUT "${DEVICE_PAGE_BUILD_STAMP}"
     COMMAND echo "Running PNPM install"
-    COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEVICE_PAGE_PATH}" "PNPM_STORE_DIR=${PNPM_STORE_DIR}" ${PNPM_EXECUTABLE} install
+    COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEVICE_PAGE_PATH}" ${PNPM_EXECUTABLE} install --store-dir ${PNPM_STORE_DIR}
     COMMAND echo "Running PNPM run build"
-    COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEVICE_PAGE_PATH}" "PNPM_STORE_DIR=${PNPM_STORE_DIR}" ${PNPM_EXECUTABLE} run build
+    COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEVICE_PAGE_PATH}" ${PNPM_EXECUTABLE} run build
     COMMAND echo "Removing page target directory"
     COMMAND ${CMAKE_COMMAND} -E remove_directory "${DEVICE_PAGE_TARGET_DIR}"
     COMMAND echo "Creating page target directory"
