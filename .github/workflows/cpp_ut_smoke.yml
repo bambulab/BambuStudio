@@ -473,6 +473,7 @@ jobs:
           $smokeRunFailed = New-Object System.Collections.Generic.List[string]
           $upstreamBlocked = New-Object System.Collections.Generic.List[string]
           $missing = New-Object System.Collections.Generic.List[string]
+          $failedWithoutEvidence = New-Object System.Collections.Generic.List[string]
           $uploadableFiles = New-Object System.Collections.Generic.List[string]
           foreach ($suite in $expected) {
             $logPath = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" $suite.Log
@@ -507,6 +508,9 @@ jobs:
                 $present.Add($suite.Xml)
               }
               $presentText = if ($present.Count -gt 0) { $present -join ', ' } else { 'none' }
+              if ($present.Count -eq 0) {
+                $failedWithoutEvidence.Add("$($suite.Name): missing log ($($suite.Log)); missing xml ($($suite.Xml))")
+              }
               $smokeRunFailed.Add("$($suite.Name): smoke_run_failed (present: $presentText)")
               continue
             }
@@ -544,8 +548,8 @@ jobs:
           "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
           }
 
-          if ($missing.Count -gt 0) {
-            $details = $missing -join '; '
+          if ($missing.Count -gt 0 -or $failedWithoutEvidence.Count -gt 0) {
+            $details = @($missing + $failedWithoutEvidence) -join '; '
             @"
           ## Smoke Output Verification
 
