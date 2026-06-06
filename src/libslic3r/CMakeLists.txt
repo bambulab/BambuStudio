@@ -214,6 +214,7 @@ set(lisbslic3r_sources
     GCodeWriter.cpp
     GCodeWriter.hpp
     Geometry.cpp
+    GeometryTransformation.cpp
     Geometry.hpp
     Geometry/Bicubic.hpp
     Geometry/Circle.cpp
@@ -595,6 +596,7 @@ set(libslic3r_model_basic_core_sources
     PolygonLines.cpp
     TriangleMeshBasic.cpp
     ModelAssembly.cpp
+    GeometryTransformation.cpp
     ModelGeometry.cpp
     ModelPlacement.cpp
     ModelCopy.cpp
@@ -659,6 +661,7 @@ set(libslic3r_print_process_core_sources
     GCode/WipeTower.cpp
     GCodeLayerOrdering.cpp
     Geometry.cpp
+    GeometryTransformation.cpp
     Geometry/Circle.cpp
     Geometry/ConvexHull.cpp
     Geometry/MedialAxis.cpp

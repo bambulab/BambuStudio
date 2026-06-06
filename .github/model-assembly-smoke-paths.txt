@@ -1,5 +1,7 @@
 # model assembly fast-gate source surface
 src/libslic3r/ModelAssembly.cpp
+src/libslic3r/GeometryTransformation.cpp
+src/libslic3r/ModelPlacement.cpp
 src/libslic3r/TriangleMeshBasic.cpp
 src/libslic3r/Model.hpp
 src/libslic3r/TriangleMesh.hpp

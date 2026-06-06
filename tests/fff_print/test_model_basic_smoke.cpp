@@ -37,3 +37,26 @@ SCENARIO("Model assembly smoke path covers object assembly and mesh preservation
         }
     }
 }
+
+SCENARIO("Model assembly smoke path covers bed placement", "[ModelAssembly]") {
+    GIVEN("a cube instance below the bed") {
+        Model model;
+        TriangleMesh sample_mesh = make_cube(20, 20, 20);
+
+        ModelObject *model_object = model.add_object();
+        model_object->add_volume(sample_mesh);
+        ModelInstance *instance = model_object->add_instance();
+        instance->set_offset(Vec3d(0.0, 0.0, -7.0));
+
+        REQUIRE(model_object->get_min_z() == Approx(-7.0));
+
+        WHEN("ensure_on_bed is applied") {
+            model_object->ensure_on_bed();
+
+            THEN("the instance is lifted back onto the bed") {
+                REQUIRE(instance->get_offset(Z) == Approx(0.0));
+                REQUIRE(model_object->get_min_z() == Approx(0.0));
+            }
+        }
+    }
+}
