@@ -53,11 +53,18 @@ target_link_libraries(model_basic_smoke_tests PRIVATE test_common libslic3r_mode
 set_property(TARGET model_basic_smoke_tests PROPERTY FOLDER "tests")
 add_test(model_basic_smoke_tests model_basic_smoke_tests ${CATCH_EXTRA_ARGS})
 
-add_executable(print_process_smoke_tests
+add_executable(print_filament_mapping_smoke_tests
 	${_TEST_NAME}_tests.cpp
 	test_print_filament_mapping_smoke.cpp
+)
+target_link_libraries(print_filament_mapping_smoke_tests PRIVATE test_common libslic3r_print_perimeters_core)
+set_property(TARGET print_filament_mapping_smoke_tests PROPERTY FOLDER "tests")
+add_test(print_filament_mapping_smoke_tests print_filament_mapping_smoke_tests ${CATCH_EXTRA_ARGS})
+
+add_executable(print_perimeters_stage_smoke_tests
+	${_TEST_NAME}_tests.cpp
 	test_print_process_smoke.cpp
 )
-target_link_libraries(print_process_smoke_tests PRIVATE test_common libslic3r_print_perimeters_core)
-set_property(TARGET print_process_smoke_tests PROPERTY FOLDER "tests")
-add_test(print_process_smoke_tests print_process_smoke_tests ${CATCH_EXTRA_ARGS})
+target_link_libraries(print_perimeters_stage_smoke_tests PRIVATE test_common libslic3r_print_perimeters_core)
+set_property(TARGET print_perimeters_stage_smoke_tests PROPERTY FOLDER "tests")
+add_test(print_perimeters_stage_smoke_tests print_perimeters_stage_smoke_tests ${CATCH_EXTRA_ARGS})

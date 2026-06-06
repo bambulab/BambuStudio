@@ -7,7 +7,7 @@
 
 using namespace Slic3r;
 
-SCENARIO("Print perimeter stage smoke path keeps wall generation executable", "[PrintProcess]") {
+SCENARIO("Print perimeter stage smoke path keeps wall generation executable", "[PrintPerimeters]") {
     GIVEN("A cube mesh prepared through the minimal print pipeline") {
         DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
         config.set_deserialize_strict({

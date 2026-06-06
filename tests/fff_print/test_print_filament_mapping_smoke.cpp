@@ -61,7 +61,7 @@ void init_dual_extruder_print(Print &print, const DynamicPrintConfig &config)
 
 } // namespace
 
-SCENARIO("Print filament mapping smoke keeps dynamic reorder derivation stable", "[PrintProcess][FilamentMapping]") {
+SCENARIO("Print filament mapping smoke keeps dynamic reorder derivation stable", "[PrintFilamentMapping]") {
     GIVEN("A two-extruder print with dynamic filament mapping enabled") {
         WHEN("used filaments are not mixed") {
             Print print;
@@ -83,7 +83,7 @@ SCENARIO("Print filament mapping smoke keeps dynamic reorder derivation stable",
     }
 }
 
-SCENARIO("Print filament mapping smoke keeps config-facing map updates stable", "[PrintProcess][FilamentMapping]") {
+SCENARIO("Print filament mapping smoke keeps config-facing map updates stable", "[PrintFilamentMapping]") {
     GIVEN("A two-extruder print with standard and high-flow nozzle variants") {
         Print print;
         init_dual_extruder_print(print, make_filament_mapping_config(false));
