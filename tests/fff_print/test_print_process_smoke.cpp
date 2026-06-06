@@ -12,6 +12,10 @@ SCENARIO("Print perimeter stage smoke path keeps wall generation executable", "[
         DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
         config.set_deserialize_strict({
             { "fill_density", 0 },
+            { "layer_height", 0.3 },
+            { "initial_layer_height", 0.3 },
+            { "wall_generator", "classic" },
+            { "wall_loops", 3 },
             { "skirts", 0 },
             { "brim_width", 0 }
         });
@@ -32,11 +36,21 @@ SCENARIO("Print perimeter stage smoke path keeps wall generation executable", "[
         WHEN("the print backend runs the perimeter stage") {
             REQUIRE_NOTHROW(print.process_perimeters());
 
-            THEN("the processed object exposes generated perimeter layers") {
+            THEN("the processed object preserves the legacy perimeter-generation invariants") {
                 REQUIRE(print.objects().size() == 1);
                 const PrintObject &object = *print.objects().front();
-                REQUIRE_FALSE(object.layers().empty());
-                REQUIRE(object.layers().front()->regions().front()->perimeters.items_count() > 0);
+                REQUIRE(object.layers().size() == 67);
+
+                for (size_t layer_idx = 0; layer_idx < 66; ++layer_idx) {
+                    const Layer *layer = object.layers()[layer_idx];
+                    CAPTURE(layer_idx);
+                    REQUIRE(layer->regions().front()->perimeters.entities.size() == 1);
+                    REQUIRE(layer->regions().front()->perimeters.items_count() == 3);
+                }
+
+                const Layer *top_layer = object.layers().back();
+                REQUIRE(top_layer->regions().front()->perimeters.entities.size() == 1);
+                REQUIRE(top_layer->regions().front()->perimeters.items_count() == 1);
             }
         }
     }
