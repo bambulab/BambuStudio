@@ -6,6 +6,17 @@ else()
     set(_assimp_hash "SHA256=66dfbaee288f2bc43172440a55d0235dfc7bf885dda6435c038e8000e79582cb")
 endif()
 
+# Assimp bundles an old zlib (contrib/zlib) whose K&R-style function declarations
+# (e.g. `int ZEXPORT compress2(dest, destLen, ...)`) and fdopen() macro no longer
+# parse against the macOS 15+ / 26 SDK, breaking the dependency build on Mac.
+# The system zlib is always available on macOS and Linux, so link against it there
+# and only keep Assimp's bundled copy on Windows.
+if (WIN32)
+    set(_assimp_build_zlib ON)
+else ()
+    set(_assimp_build_zlib OFF)
+endif ()
+
 bambustudio_add_cmake_project(Assimp
     URL ${_assimp_url}
     URL_HASH ${_assimp_hash}
@@ -19,7 +30,7 @@ bambustudio_add_cmake_project(Assimp
         -DASSIMP_BUILD_GLTF_IMPORTER=ON
         -DASSIMP_BUILD_OBJ_IMPORTER=ON
         -DASSIMP_BUILD_FBX_IMPORTER=ON
-        -DASSIMP_BUILD_ZLIB=ON
+        -DASSIMP_BUILD_ZLIB=${_assimp_build_zlib}
         -DASSIMP_WARNINGS_AS_ERRORS=OFF
         -DBUILD_WITH_STATIC_CRT=OFF
 )
