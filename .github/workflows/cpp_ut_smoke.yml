@@ -74,6 +74,7 @@ jobs:
       DEPS_ZIP_DIR: ${{ github.workspace }}\deps-artifact
       DEPS_ROOT: ${{ github.workspace }}\deps\build\BambuStudio_dep
       BUILD_DIR: ${{ github.workspace }}\build-smoke
+      SMOKE_OUTPUT_DIR: ${{ github.workspace }}\.ci\smoke
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -323,14 +324,24 @@ jobs:
           "${{ env.DEPS_ROOT }}\usr\local\bin\occt" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
           "${{ env.DEPS_ROOT }}\usr\local\x64\vc17\bin" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
 
+      - name: Initialize smoke output directory
+        if: steps.smoke_scope.outputs.any_enabled == 'true'
+        shell: pwsh
+        run: |
+          if (Test-Path "${{ env.SMOKE_OUTPUT_DIR }}") {
+            Remove-Item -Recurse -Force "${{ env.SMOKE_OUTPUT_DIR }}"
+          }
+          New-Item -ItemType Directory -Force -Path "${{ env.SMOKE_OUTPUT_DIR }}" | Out-Null
+
       - name: Run libslic3r config fast target
         if: steps.smoke_scope.outputs.config_enabled == 'true'
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path .ci | Out-Null
           $exe = "${{ env.BUILD_DIR }}\tests\libslic3r\libslic3r_config_tests.exe"
-          & $exe "[ConfigCore]" 2>&1 | Tee-Object -FilePath .ci\libslic3r-config-fast.log
-          & $exe -r junit -o .ci\libslic3r-config-fast.xml "[ConfigCore]" | Out-Null
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "libslic3r-config-fast.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "libslic3r-config-fast.xml"
+          & $exe "[ConfigCore]" 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml "[ConfigCore]" | Out-Null
 
       - name: Note skipped config fast target
         if: steps.smoke_scope.outputs.config_enabled != 'true'
@@ -349,10 +360,11 @@ jobs:
         if: steps.smoke_scope.outputs.gcodewriter_enabled == 'true'
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path .ci | Out-Null
           $exe = "${{ env.BUILD_DIR }}\tests\fff_print\gcodewriter_smoke_tests.exe"
-          & $exe "[GCodeWriter]" 2>&1 | Tee-Object -FilePath .ci\gcodewriter-smoke.log
-          & $exe -r junit -o .ci\gcodewriter-smoke.xml "[GCodeWriter]" | Out-Null
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "gcodewriter-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "gcodewriter-smoke.xml"
+          & $exe "[GCodeWriter]" 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml "[GCodeWriter]" | Out-Null
 
       - name: Note skipped gcodewriter smoke target
         if: steps.smoke_scope.outputs.gcodewriter_enabled != 'true'
@@ -371,10 +383,11 @@ jobs:
         if: steps.smoke_scope.outputs.model_assembly_enabled == 'true'
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path .ci | Out-Null
           $exe = "${{ env.BUILD_DIR }}\tests\fff_print\model_basic_smoke_tests.exe"
-          & $exe "[ModelAssembly]" 2>&1 | Tee-Object -FilePath .ci\model-assembly-smoke.log
-          & $exe -r junit -o .ci\model-assembly-smoke.xml "[ModelAssembly]" | Out-Null
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "model-assembly-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "model-assembly-smoke.xml"
+          & $exe "[ModelAssembly]" 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml "[ModelAssembly]" | Out-Null
 
       - name: Note skipped model assembly smoke target
         if: steps.smoke_scope.outputs.model_assembly_enabled != 'true'
@@ -406,19 +419,69 @@ jobs:
         if: steps.smoke_scope.outputs.fff_enabled == 'true'
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path .ci | Out-Null
           $exe = "${{ env.BUILD_DIR }}\tests\fff_print\print_process_smoke_tests.exe"
-          & $exe "[PrintProcess]" 2>&1 | Tee-Object -FilePath .ci\print-process-smoke.log
-          & $exe -r junit -o .ci\print-process-smoke.xml "[PrintProcess]" | Out-Null
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-process-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-process-smoke.xml"
+          & $exe "[PrintProcess]" 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml "[PrintProcess]" | Out-Null
+
+      - name: Verify smoke output files
+        if: always() && steps.smoke_scope.outputs.any_enabled == 'true'
+        shell: pwsh
+        run: |
+          $expected = New-Object System.Collections.Generic.List[object]
+          if ("${{ steps.smoke_scope.outputs.config_enabled }}" -eq "true") {
+            $expected.Add(@{ Name = "libslic3r_config_tests [ConfigCore]"; Log = "libslic3r-config-fast.log"; Xml = "libslic3r-config-fast.xml" })
+          }
+          if ("${{ steps.smoke_scope.outputs.gcodewriter_enabled }}" -eq "true") {
+            $expected.Add(@{ Name = "gcodewriter_smoke_tests [GCodeWriter]"; Log = "gcodewriter-smoke.log"; Xml = "gcodewriter-smoke.xml" })
+          }
+          if ("${{ steps.smoke_scope.outputs.model_assembly_enabled }}" -eq "true") {
+            $expected.Add(@{ Name = "model_basic_smoke_tests [ModelAssembly]"; Log = "model-assembly-smoke.log"; Xml = "model-assembly-smoke.xml" })
+          }
+          if ("${{ steps.smoke_scope.outputs.fff_enabled }}" -eq "true") {
+            $expected.Add(@{ Name = "print_process_smoke_tests [PrintProcess]"; Log = "print-process-smoke.log"; Xml = "print-process-smoke.xml" })
+          }
+
+          $files = @(Get-ChildItem "${{ env.SMOKE_OUTPUT_DIR }}" -File -ErrorAction SilentlyContinue)
+          $missing = New-Object System.Collections.Generic.List[string]
+          foreach ($suite in $expected) {
+            $logPath = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" $suite.Log
+            $xmlPath = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" $suite.Xml
+            if (-not (Test-Path $logPath)) {
+              $missing.Add("$($suite.Name): missing log ($($suite.Log))")
+            }
+            if (-not (Test-Path $xmlPath)) {
+              $missing.Add("$($suite.Name): missing xml ($($suite.Xml))")
+            }
+          }
+
+          if ($files.Count -eq 0 -or $missing.Count -gt 0) {
+            $result = if ($files.Count -eq 0) { "no_output_files_found" } else { "missing_expected_files" }
+            $details = if ($missing.Count -gt 0) { $missing -join '; ' } else { 'n/a' }
+            @"
+          ## Smoke Output Verification
+
+          - Result: `failed`
+          - Reason: `$result`
+          - Directory: `${{ env.SMOKE_OUTPUT_DIR }}`
+          - Missing: `$details`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+            throw "Smoke output verification failed: $result"
+          }
+
+          Write-Host "Smoke output files:"
+          $files | ForEach-Object { Write-Host "  $($_.FullName)" }
 
       - name: Upload smoke logs
         if: always() && steps.smoke_scope.outputs.any_enabled == 'true'
         uses: actions/upload-artifact@v6
         with:
           name: cpp-ut-smoke-logs
+          if-no-files-found: error
           path: |
-            .ci\*.log
-            .ci\*.xml
+            .ci/smoke/*.log
+            .ci/smoke/*.xml
 
       - name: Write summary
         if: always()
@@ -433,10 +496,10 @@ jobs:
           $fffSmokeEnabled = "${{ steps.smoke_scope.outputs.fff_enabled }}" -eq "true"
           $fffSmokeReason = "${{ steps.smoke_scope.outputs.fff_reason }}"
           $suiteMeta = @(
-            @{ Name = "libslic3r_config_tests [ConfigCore]"; Log = ".ci\libslic3r-config-fast.log"; Xml = ".ci\libslic3r-config-fast.xml" },
-            @{ Name = "gcodewriter_smoke_tests [GCodeWriter]"; Log = ".ci\gcodewriter-smoke.log"; Xml = ".ci\gcodewriter-smoke.xml" },
-            @{ Name = "model_basic_smoke_tests [ModelAssembly]"; Log = ".ci\model-assembly-smoke.log"; Xml = ".ci\model-assembly-smoke.xml" },
-            @{ Name = "print_process_smoke_tests [PrintProcess]"; Log = ".ci\print-process-smoke.log"; Xml = ".ci\print-process-smoke.xml" }
+            @{ Name = "libslic3r_config_tests [ConfigCore]"; Log = ".ci/smoke/libslic3r-config-fast.log"; Xml = ".ci/smoke/libslic3r-config-fast.xml" },
+            @{ Name = "gcodewriter_smoke_tests [GCodeWriter]"; Log = ".ci/smoke/gcodewriter-smoke.log"; Xml = ".ci/smoke/gcodewriter-smoke.xml" },
+            @{ Name = "model_basic_smoke_tests [ModelAssembly]"; Log = ".ci/smoke/model-assembly-smoke.log"; Xml = ".ci/smoke/model-assembly-smoke.xml" },
+            @{ Name = "print_process_smoke_tests [PrintProcess]"; Log = ".ci/smoke/print-process-smoke.log"; Xml = ".ci/smoke/print-process-smoke.xml" }
           )
 
           $rows = New-Object System.Collections.Generic.List[string]
