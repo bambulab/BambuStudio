@@ -15,4 +15,5 @@ tests/fff_print/fff_print_tests.cpp
 tests/fff_print/test_print_filament_mapping_smoke.cpp
 
 # workflow changes should re-run the smoke gate
+.github/print-filament-mapping-smoke-paths.txt
 .github/workflows/cpp_ut_smoke.yml
