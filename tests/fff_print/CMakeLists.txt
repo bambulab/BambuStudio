@@ -57,7 +57,7 @@ add_executable(print_filament_mapping_smoke_tests
 	${_TEST_NAME}_tests.cpp
 	test_print_filament_mapping_smoke.cpp
 )
-target_link_libraries(print_filament_mapping_smoke_tests PRIVATE test_common libslic3r_print_perimeters_core)
+target_link_libraries(print_filament_mapping_smoke_tests PRIVATE test_common libslic3r_print_filament_mapping_core)
 set_property(TARGET print_filament_mapping_smoke_tests PROPERTY FOLDER "tests")
 add_test(print_filament_mapping_smoke_tests print_filament_mapping_smoke_tests ${CATCH_EXTRA_ARGS})
 

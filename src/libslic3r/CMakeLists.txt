@@ -863,12 +863,48 @@ list(APPEND libslic3r_print_perimeters_core_sources
     ShortestPath.cpp
 )
 
+set(libslic3r_print_filament_mapping_core_sources
+    ${libslic3r_print_perimeters_core_sources}
+)
+list(REMOVE_ITEM libslic3r_print_filament_mapping_core_sources
+    PerimeterGenerator.cpp
+    PrintProcessPerimeters.cpp
+    PrintProcessPerimetersCompat.cpp
+    PrintPerimetersInfillCompat.cpp
+    PrintObjectPerimeters.cpp
+    VariableWidth.cpp
+    Surface.cpp
+    SurfaceCollection.cpp
+    Arachne/BeadingStrategy/BeadingStrategy.cpp
+    Arachne/BeadingStrategy/BeadingStrategyFactory.cpp
+    Arachne/BeadingStrategy/DistributedBeadingStrategy.cpp
+    Arachne/BeadingStrategy/LimitedBeadingStrategy.cpp
+    Arachne/BeadingStrategy/OuterWallContourStrategy.cpp
+    Arachne/BeadingStrategy/OuterWallInsetBeadingStrategy.cpp
+    Arachne/BeadingStrategy/RedistributeBeadingStrategy.cpp
+    Arachne/BeadingStrategy/WideningBeadingStrategy.cpp
+    Arachne/utils/ExtrusionJunction.cpp
+    Arachne/utils/ExtrusionLine.cpp
+    Arachne/utils/PolylineStitcher.cpp
+    Arachne/utils/SquareGrid.cpp
+    Arachne/SkeletalTrapezoidation.cpp
+    Arachne/SkeletalTrapezoidationGraph.cpp
+    Arachne/WallToolPaths.cpp
+)
+list(APPEND libslic3r_print_filament_mapping_core_sources
+    PrintFilamentMappingCompat.cpp
+)
+
 add_library(libslic3r_print_process_core STATIC
     ${libslic3r_print_process_core_sources}
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
 
 add_library(libslic3r_print_perimeters_core STATIC
     ${libslic3r_print_perimeters_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
+add_library(libslic3r_print_filament_mapping_core STATIC
+    ${libslic3r_print_filament_mapping_core_sources}
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
 
 if (SLIC3R_STATIC)
@@ -930,12 +966,6 @@ target_compile_definitions(libslic3r PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTI
 target_compile_definitions(libslic3r_config_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_compile_definitions(libslic3r_gcodewriter_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_compile_definitions(libslic3r_model_basic_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
-target_compile_definitions(libslic3r_print_process_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
-target_compile_definitions(libslic3r_print_perimeters_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0 -DSLIC3R_PERIMETERS_ONLY_BUILD)
-if (MSVC)
-    target_compile_options(libslic3r_print_process_core PRIVATE /Gy)
-    target_compile_options(libslic3r_print_perimeters_core PRIVATE /Gy)
-endif()
 target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/TextureToColor PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r PUBLIC ${EXPAT_INCLUDE_DIRS})
 target_include_directories(libslic3r_config_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
@@ -944,18 +974,12 @@ target_include_directories(libslic3r_gcodewriter_core PRIVATE ${CMAKE_CURRENT_SO
 target_include_directories(libslic3r_gcodewriter_core PUBLIC ${EXPAT_INCLUDE_DIRS})
 target_include_directories(libslic3r_model_basic_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r_model_basic_core PUBLIC ${EXPAT_INCLUDE_DIRS})
-target_include_directories(libslic3r_print_process_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/../libnest2d/include PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(libslic3r_print_process_core PUBLIC ${EXPAT_INCLUDE_DIRS})
-target_include_directories(libslic3r_print_perimeters_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/../libnest2d/include PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(libslic3r_print_perimeters_core PUBLIC ${EXPAT_INCLUDE_DIRS})
 
 # Find the OCCT and related libraries
 set(OpenCASCADE_DIR "${CMAKE_PREFIX_PATH}/lib/cmake/occt")
 find_package(OpenCASCADE REQUIRED)
 target_include_directories(libslic3r PUBLIC ${OpenCASCADE_INCLUDE_DIR})
 target_include_directories(libslic3r_model_basic_core PUBLIC ${OpenCASCADE_INCLUDE_DIR})
-target_include_directories(libslic3r_print_process_core PUBLIC ${OpenCASCADE_INCLUDE_DIR})
-target_include_directories(libslic3r_print_perimeters_core PUBLIC ${OpenCASCADE_INCLUDE_DIR})
 
 set(OCCT_LIBS
     TKXDESTEP
@@ -985,6 +1009,50 @@ set(OCCT_LIBS
     TKMath
     TKernel
 )
+
+function(configure_print_smoke_core target)
+    target_compile_definitions(${target} PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
+    if (MSVC)
+        target_compile_options(${target} PRIVATE /Gy)
+    endif()
+    target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/../libnest2d/include PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+    target_include_directories(${target} PUBLIC ${EXPAT_INCLUDE_DIRS})
+    target_include_directories(${target} PUBLIC ${OpenCASCADE_INCLUDE_DIR})
+    target_link_libraries(${target}
+        noise::noise
+        admesh
+        cereal
+        libigl
+        miniz
+        boost_libs
+        clipper
+        nowide
+        ${EXPAT_LIBRARIES}
+        glu-libtess
+        qhull
+        semver
+        TBB::tbb
+        TBB::tbbmalloc
+        libslic3r_cgal
+        ${CMAKE_DL_LIBS}
+        PNG::PNG
+        ZLIB::ZLIB
+        ${OCCT_LIBS}
+        Clipper2
+        mcut
+        opencv_world
+        ${_cgal_tgt}
+        assimp::assimp
+    )
+    if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
+        add_precompiled_header(${target} pchheader.hpp FORCEINCLUDE)
+    endif ()
+endfunction()
+
+configure_print_smoke_core(libslic3r_print_process_core)
+configure_print_smoke_core(libslic3r_print_perimeters_core)
+configure_print_smoke_core(libslic3r_print_filament_mapping_core)
+target_compile_definitions(libslic3r_print_perimeters_core PUBLIC -DSLIC3R_PERIMETERS_ONLY_BUILD)
 
 
 target_link_libraries(libslic3r
@@ -1049,60 +1117,6 @@ target_link_libraries(libslic3r_model_basic_core
     ${OCCT_LIBS}
 )
 
-target_link_libraries(libslic3r_print_process_core
-    noise::noise
-    admesh
-    cereal
-    libigl
-    miniz
-    boost_libs
-    clipper
-    nowide
-    ${EXPAT_LIBRARIES}
-    glu-libtess
-    qhull
-    semver
-    TBB::tbb
-    TBB::tbbmalloc
-    libslic3r_cgal
-    ${CMAKE_DL_LIBS}
-    PNG::PNG
-    ZLIB::ZLIB
-    ${OCCT_LIBS}
-    Clipper2
-    mcut
-    opencv_world
-    ${_cgal_tgt}
-    assimp::assimp
-)
-
-target_link_libraries(libslic3r_print_perimeters_core
-    noise::noise
-    admesh
-    cereal
-    libigl
-    miniz
-    boost_libs
-    clipper
-    nowide
-    ${EXPAT_LIBRARIES}
-    glu-libtess
-    qhull
-    semver
-    TBB::tbb
-    TBB::tbbmalloc
-    libslic3r_cgal
-    ${CMAKE_DL_LIBS}
-    PNG::PNG
-    ZLIB::ZLIB
-    ${OCCT_LIBS}
-    Clipper2
-    mcut
-    opencv_world
-    ${_cgal_tgt}
-    assimp::assimp
-)
-
 if(NOT WIN32)
     target_link_libraries(libslic3r freetype)
     if (NOT APPLE)
@@ -1138,12 +1152,4 @@ endif ()
 
 if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
     add_precompiled_header(libslic3r_model_basic_core pchheader.hpp FORCEINCLUDE)
-endif ()
-
-if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
-    add_precompiled_header(libslic3r_print_process_core pchheader.hpp FORCEINCLUDE)
-endif ()
-
-if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
-    add_precompiled_header(libslic3r_print_perimeters_core pchheader.hpp FORCEINCLUDE)
 endif ()
