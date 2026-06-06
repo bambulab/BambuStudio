@@ -334,6 +334,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path "${{ env.SMOKE_OUTPUT_DIR }}" | Out-Null
 
       - name: Run libslic3r config fast target
+        id: run_config_fast
         if: steps.smoke_scope.outputs.config_enabled == 'true'
         shell: pwsh
         run: |
@@ -357,6 +358,7 @@ jobs:
           "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
 
       - name: Run gcodewriter smoke
+        id: run_gcodewriter_smoke
         if: steps.smoke_scope.outputs.gcodewriter_enabled == 'true'
         shell: pwsh
         run: |
@@ -380,6 +382,7 @@ jobs:
           "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
 
       - name: Run model assembly smoke
+        id: run_model_assembly_smoke
         if: steps.smoke_scope.outputs.model_assembly_enabled == 'true'
         shell: pwsh
         run: |
@@ -416,6 +419,7 @@ jobs:
           "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
 
       - name: Run print process smoke
+        id: run_print_process_smoke
         if: steps.smoke_scope.outputs.fff_enabled == 'true'
         shell: pwsh
         run: |
@@ -426,39 +430,56 @@ jobs:
           & $exe -r junit -o $xml "[PrintProcess]" | Out-Null
 
       - name: Verify smoke output files
+        id: smoke_verify
         if: always() && steps.smoke_scope.outputs.any_enabled == 'true'
         shell: pwsh
         run: |
+          "files_ready=false" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           $expected = New-Object System.Collections.Generic.List[object]
           if ("${{ steps.smoke_scope.outputs.config_enabled }}" -eq "true") {
-            $expected.Add(@{ Name = "libslic3r_config_tests [ConfigCore]"; Log = "libslic3r-config-fast.log"; Xml = "libslic3r-config-fast.xml" })
+            $expected.Add(@{
+              Name = "libslic3r_config_tests [ConfigCore]"
+              Log = "libslic3r-config-fast.log"
+              Xml = "libslic3r-config-fast.xml"
+              Conclusion = "${{ steps.run_config_fast.conclusion }}"
+            })
           }
           if ("${{ steps.smoke_scope.outputs.gcodewriter_enabled }}" -eq "true") {
-            $expected.Add(@{ Name = "gcodewriter_smoke_tests [GCodeWriter]"; Log = "gcodewriter-smoke.log"; Xml = "gcodewriter-smoke.xml" })
+            $expected.Add(@{
+              Name = "gcodewriter_smoke_tests [GCodeWriter]"
+              Log = "gcodewriter-smoke.log"
+              Xml = "gcodewriter-smoke.xml"
+              Conclusion = "${{ steps.run_gcodewriter_smoke.conclusion }}"
+            })
           }
           if ("${{ steps.smoke_scope.outputs.model_assembly_enabled }}" -eq "true") {
-            $expected.Add(@{ Name = "model_basic_smoke_tests [ModelAssembly]"; Log = "model-assembly-smoke.log"; Xml = "model-assembly-smoke.xml" })
+            $expected.Add(@{
+              Name = "model_basic_smoke_tests [ModelAssembly]"
+              Log = "model-assembly-smoke.log"
+              Xml = "model-assembly-smoke.xml"
+              Conclusion = "${{ steps.run_model_assembly_smoke.conclusion }}"
+            })
           }
           if ("${{ steps.smoke_scope.outputs.fff_enabled }}" -eq "true") {
-            $expected.Add(@{ Name = "print_process_smoke_tests [PrintProcess]"; Log = "print-process-smoke.log"; Xml = "print-process-smoke.xml" })
+            $expected.Add(@{
+              Name = "print_process_smoke_tests [PrintProcess]"
+              Log = "print-process-smoke.log"
+              Xml = "print-process-smoke.xml"
+              Conclusion = "${{ steps.run_print_process_smoke.conclusion }}"
+            })
           }
 
           $files = @(Get-ChildItem "${{ env.SMOKE_OUTPUT_DIR }}" -File -ErrorAction SilentlyContinue)
-          if ($files.Count -eq 0) {
-            @"
-          ## Smoke Output Verification
-
-          - Result: `skipped`
-          - Reason: `no_smoke_outputs_present`
-          - Directory: `${{ env.SMOKE_OUTPUT_DIR }}`
-          - Note: `No smoke artifacts were present to validate; preserving earlier setup/build/run failure state.`
-          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
-            Write-Host "No smoke output files found; skipping missing-file validation to avoid masking earlier failures."
-            exit 0
-          }
-
+          $successfulSuites = New-Object System.Collections.Generic.List[string]
+          $upstreamBlocked = New-Object System.Collections.Generic.List[string]
           $missing = New-Object System.Collections.Generic.List[string]
           foreach ($suite in $expected) {
+            if ($suite.Conclusion -ne "success") {
+              $upstreamBlocked.Add("$($suite.Name): upstream_failure_or_not_reached ($($suite.Conclusion))")
+              continue
+            }
+
+            $successfulSuites.Add($suite.Name)
             $logPath = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" $suite.Log
             $xmlPath = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" $suite.Xml
             if (-not (Test-Path $logPath)) {
@@ -467,6 +488,22 @@ jobs:
             if (-not (Test-Path $xmlPath)) {
               $missing.Add("$($suite.Name): missing xml ($($suite.Xml))")
             }
+          }
+
+          if ($upstreamBlocked.Count -gt 0) {
+            @"
+          ## Smoke Output Verification
+
+          - Result: `skipped`
+          - Reason: `upstream_failure_or_not_reached`
+          - Directory: `${{ env.SMOKE_OUTPUT_DIR }}`
+          - Details: `$($upstreamBlocked -join '; ')`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+          }
+
+          if ($successfulSuites.Count -eq 0) {
+            Write-Host "No successful smoke run steps produced outputs eligible for upload."
+            exit 0
           }
 
           if ($missing.Count -gt 0) {
@@ -482,11 +519,24 @@ jobs:
             throw "Smoke output verification failed: missing_expected_files"
           }
 
+          if ($files.Count -eq 0) {
+            @"
+          ## Smoke Output Verification
+
+          - Result: `failed`
+          - Reason: `no_output_files_found`
+          - Directory: `${{ env.SMOKE_OUTPUT_DIR }}`
+          - Successful suites: `$($successfulSuites -join '; ')`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+            throw "Smoke output verification failed: no_output_files_found"
+          }
+
+          "files_ready=true" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           Write-Host "Smoke output files:"
           $files | ForEach-Object { Write-Host "  $($_.FullName)" }
 
       - name: Upload smoke logs
-        if: always() && steps.smoke_scope.outputs.any_enabled == 'true'
+        if: always() && steps.smoke_verify.outputs.files_ready == 'true'
         uses: actions/upload-artifact@v6
         with:
           name: cpp-ut-smoke-logs
