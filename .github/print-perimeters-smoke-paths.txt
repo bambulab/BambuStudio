@@ -1,4 +1,5 @@
 # print perimeters smoke source surface
+src/libslic3r/Print.cpp
 src/libslic3r/PrintApply.cpp
 src/libslic3r/PrintExtruderUtils.cpp
 src/libslic3r/PrintProcessPerimeters.cpp
@@ -8,8 +9,10 @@ src/libslic3r/VariableWidth.cpp
 src/libslic3r/Surface.cpp
 src/libslic3r/SurfaceCollection.cpp
 src/libslic3r/libslic3r.h
+src/libslic3r/Model.cpp
 src/libslic3r/Model.hpp
 src/libslic3r/Layer.hpp
+src/libslic3r/TriangleMesh.hpp
 src/libslic3r/Print.hpp
 src/libslic3r/Print*.hpp
 
@@ -17,6 +20,8 @@ src/libslic3r/Print*.hpp
 tests/fff_print/CMakeLists.txt
 tests/fff_print/fff_print_tests.cpp
 tests/fff_print/test_print_process_smoke.cpp
+tests/catch_main.hpp
+tests/catch2/catch.hpp
 
 # workflow changes should re-run the smoke gate
 .github/print-perimeters-smoke-paths.txt
