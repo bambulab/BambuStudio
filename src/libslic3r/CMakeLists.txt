@@ -332,6 +332,7 @@ set(lisbslic3r_sources
     PrintCache.cpp
     PrintValidate.cpp
     PrintProcessPerimeters.cpp
+    PrintStatistics.cpp
     PrintExport.cpp
     PrintProcess.cpp
     PrintWipeTower.cpp
@@ -609,6 +610,7 @@ set(libslic3r_print_process_core_sources
     BoundingBox.cpp
     BridgeDetector.cpp
     Brim.cpp
+    BuildVolume.cpp
     ByObjectPrintData.cpp
     Circle.cpp
     clipper.cpp
@@ -718,6 +720,7 @@ set(libslic3r_print_process_core_sources
     PrintProcessPerimeters.cpp
     PrintBaseOutput.cpp
     PrintOutputFilename.cpp
+    PrintStatistics.cpp
     PrintProcess.cpp
     PrintWipeTower.cpp
     PrintProcessSupport.cpp

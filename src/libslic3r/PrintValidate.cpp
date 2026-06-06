@@ -5,6 +5,7 @@
 #include "Model.hpp"
 #include "PrintConfig.hpp"
 #include "Support/SupportMaterial.hpp"
+#include "format.hpp"
 
 #include <limits>
 

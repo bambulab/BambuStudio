@@ -1,5 +1,6 @@
 #include "Print.hpp"
 
+#include "ClipperUtils.hpp"
 #include "GCode/ConflictChecker.hpp"
 #include "Layer.hpp"
 #include "Utils.hpp"
