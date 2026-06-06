@@ -1322,6 +1322,15 @@ int GLVolumeCollection::load_object_volume(
     bool                 use_loaded_id,
     bool                 lod_enabled)
 {
+    // Guard against malformed or partially-loaded objects: the code below
+    // dereferences volumes[volume_idx] and, in particular, instances[instance_idx]
+    // (e.g. instance->get_transformation()). An object with no instances - or an
+    // out-of-range index - would dereference a null/garbage pointer and crash.
+    // Seen when opening some MakerWorld 3MFs via the object-color dialog. See #11016.
+    if (model_object == nullptr
+        || volume_idx < 0 || volume_idx >= (int) model_object->volumes.size()
+        || instance_idx < 0 || instance_idx >= (int) model_object->instances.size())
+        return -1;
     const ModelVolume   *model_volume = model_object->volumes[volume_idx];
     const int            extruder_id  = model_volume->extruder_id();
     const ModelInstance *instance 	  = model_object->instances[instance_idx];
