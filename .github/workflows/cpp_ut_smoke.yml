@@ -469,25 +469,68 @@ jobs:
             })
           }
 
-          $files = @(Get-ChildItem "${{ env.SMOKE_OUTPUT_DIR }}" -File -ErrorAction SilentlyContinue)
           $successfulSuites = New-Object System.Collections.Generic.List[string]
+          $smokeRunFailed = New-Object System.Collections.Generic.List[string]
           $upstreamBlocked = New-Object System.Collections.Generic.List[string]
           $missing = New-Object System.Collections.Generic.List[string]
+          $uploadableFiles = New-Object System.Collections.Generic.List[string]
           foreach ($suite in $expected) {
-            if ($suite.Conclusion -ne "success") {
-              $upstreamBlocked.Add("$($suite.Name): upstream_failure_or_not_reached ($($suite.Conclusion))")
+            $logPath = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" $suite.Log
+            $xmlPath = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" $suite.Xml
+            $logExists = Test-Path $logPath
+            $xmlExists = Test-Path $xmlPath
+
+            if ($logExists) {
+              $uploadableFiles.Add($logPath)
+            }
+            if ($xmlExists) {
+              $uploadableFiles.Add($xmlPath)
+            }
+
+            if ($suite.Conclusion -eq "success") {
+              $successfulSuites.Add($suite.Name)
+              if (-not $logExists) {
+                $missing.Add("$($suite.Name): missing log ($($suite.Log))")
+              }
+              if (-not $xmlExists) {
+                $missing.Add("$($suite.Name): missing xml ($($suite.Xml))")
+              }
               continue
             }
 
-            $successfulSuites.Add($suite.Name)
-            $logPath = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" $suite.Log
-            $xmlPath = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" $suite.Xml
-            if (-not (Test-Path $logPath)) {
-              $missing.Add("$($suite.Name): missing log ($($suite.Log))")
+            if ($suite.Conclusion -eq "failure") {
+              $present = New-Object System.Collections.Generic.List[string]
+              if ($logExists) {
+                $present.Add($suite.Log)
+              }
+              if ($xmlExists) {
+                $present.Add($suite.Xml)
+              }
+              $presentText = if ($present.Count -gt 0) { $present -join ', ' } else { 'none' }
+              $smokeRunFailed.Add("$($suite.Name): smoke_run_failed (present: $presentText)")
+              continue
             }
-            if (-not (Test-Path $xmlPath)) {
-              $missing.Add("$($suite.Name): missing xml ($($suite.Xml))")
+
+            if ([string]::IsNullOrWhiteSpace($suite.Conclusion)) {
+              $upstreamBlocked.Add("$($suite.Name): upstream_failure_or_not_reached (empty)")
+            } else {
+              $upstreamBlocked.Add("$($suite.Name): upstream_failure_or_not_reached ($($suite.Conclusion))")
             }
+          }
+
+          if ($uploadableFiles.Count -gt 0) {
+            "files_ready=true" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          }
+
+          if ($smokeRunFailed.Count -gt 0) {
+            @"
+          ## Smoke Output Verification
+
+          - Result: `diagnostic`
+          - Reason: `smoke_run_failed`
+          - Directory: `${{ env.SMOKE_OUTPUT_DIR }}`
+          - Details: `$($smokeRunFailed -join '; ')`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
           }
 
           if ($upstreamBlocked.Count -gt 0) {
@@ -499,11 +542,6 @@ jobs:
           - Directory: `${{ env.SMOKE_OUTPUT_DIR }}`
           - Details: `$($upstreamBlocked -join '; ')`
           "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
-          }
-
-          if ($successfulSuites.Count -eq 0) {
-            Write-Host "No successful smoke run steps produced outputs eligible for upload."
-            exit 0
           }
 
           if ($missing.Count -gt 0) {
@@ -519,21 +557,13 @@ jobs:
             throw "Smoke output verification failed: missing_expected_files"
           }
 
-          if ($files.Count -eq 0) {
-            @"
-          ## Smoke Output Verification
-
-          - Result: `failed`
-          - Reason: `no_output_files_found`
-          - Directory: `${{ env.SMOKE_OUTPUT_DIR }}`
-          - Successful suites: `$($successfulSuites -join '; ')`
-          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
-            throw "Smoke output verification failed: no_output_files_found"
+          if ($uploadableFiles.Count -eq 0) {
+            Write-Host "No uploadable smoke output files were found."
+            exit 0
           }
 
-          "files_ready=true" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           Write-Host "Smoke output files:"
-          $files | ForEach-Object { Write-Host "  $($_.FullName)" }
+          $uploadableFiles | Select-Object -Unique | ForEach-Object { Write-Host "  $_" }
 
       - name: Upload smoke logs
         if: always() && steps.smoke_verify.outputs.files_ready == 'true'
