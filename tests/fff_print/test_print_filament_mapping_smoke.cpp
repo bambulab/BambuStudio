@@ -10,7 +10,15 @@ using namespace Slic3r;
 
 namespace {
 
-DynamicPrintConfig make_filament_mapping_config(bool mixed_first_filament = false)
+void append_nozzle_variants(std::vector<std::string> &variants, std::vector<int> &ids, int id, ExtruderType extruder_type)
+{
+    variants.push_back(get_extruder_variant_string(extruder_type, nvtStandard));
+    ids.push_back(id);
+    variants.push_back(get_extruder_variant_string(extruder_type, nvtHighFlow));
+    ids.push_back(id);
+}
+
+DynamicPrintConfig make_filament_mapping_config(bool mixed_first_filament = false, ExtruderType second_extruder_type = etDirectDrive)
 {
     DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
     config.set_deserialize_strict({
@@ -26,13 +34,27 @@ DynamicPrintConfig make_filament_mapping_config(bool mixed_first_filament = fals
     config.option<ConfigOptionStrings>("filament_type")->values                 = { "PLA", "PLA" };
     config.option<ConfigOptionStrings>("filament_colour")->values               = { "#FFFFFF", "#000000" };
     config.option<ConfigOptionBools>("filament_is_mixed")->values               = { mixed_first_filament, false };
-    config.option<ConfigOptionEnumsGeneric>("extruder_type")->values            = { etDirectDrive, etDirectDrive };
+    config.option<ConfigOptionEnumsGeneric>("extruder_type")->values            = { etDirectDrive, second_extruder_type };
     config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values       = { nvtStandard, nvtHighFlow };
-    config.option<ConfigOptionStrings>("printer_extruder_variant")->values      = { "Direct Drive Standard", "Direct Drive High Flow" };
-    config.option<ConfigOptionStrings>("print_extruder_variant")->values        = { "Direct Drive Standard", "Direct Drive High Flow" };
-    config.option<ConfigOptionInts>("print_extruder_id")->values                = { 1, 2 };
-    config.option<ConfigOptionStrings>("filament_extruder_variant")->values     = { "Direct Drive Standard", "Direct Drive High Flow" };
-    config.option<ConfigOptionInts>("filament_self_index")->values              = { 1, 2 };
+
+    std::vector<std::string> extruder_variants;
+    std::vector<int>         extruder_ids;
+    append_nozzle_variants(extruder_variants, extruder_ids, 1, etDirectDrive);
+    append_nozzle_variants(extruder_variants, extruder_ids, 2, second_extruder_type);
+    config.option<ConfigOptionStrings>("printer_extruder_variant")->values = extruder_variants;
+    config.option<ConfigOptionInts>("printer_extruder_id")->values         = extruder_ids;
+    config.option<ConfigOptionStrings>("print_extruder_variant")->values   = extruder_variants;
+    config.option<ConfigOptionInts>("print_extruder_id")->values           = extruder_ids;
+
+    std::vector<std::string> filament_variants;
+    std::vector<int>         filament_ids;
+    for (int filament_id = 1; filament_id <= 2; ++filament_id) {
+        append_nozzle_variants(filament_variants, filament_ids, filament_id, etDirectDrive);
+        if (second_extruder_type != etDirectDrive)
+            append_nozzle_variants(filament_variants, filament_ids, filament_id, second_extruder_type);
+    }
+    config.option<ConfigOptionStrings>("filament_extruder_variant")->values = filament_variants;
+    config.option<ConfigOptionInts>("filament_self_index")->values          = filament_ids;
 
     return config;
 }
@@ -92,6 +114,45 @@ SCENARIO("Print filament mapping smoke keeps config-facing map updates stable", 
             print.update_filament_maps_to_config({ 2, 1 }, { nvtHighFlow, nvtStandard }, { 2, 1 });
 
             THEN("the exposed mapping getters reflect the synchronized values") {
+                REQUIRE(print.get_filament_maps() == std::vector<int>{ 2, 1 });
+                REQUIRE(print.get_filament_volume_maps() == std::vector<int>{ nvtHighFlow, nvtStandard });
+                REQUIRE(print.get_filament_nozzle_maps() == std::vector<int>{ 2, 1 });
+            }
+        }
+    }
+}
+
+SCENARIO("Print filament mapping smoke exposes available map modes by extruder type", "[PrintFilamentMapping]") {
+    GIVEN("A two-extruder print with matching extruder types") {
+        Print print;
+        init_dual_extruder_print(print, make_filament_mapping_config(false));
+
+        THEN("quality mapping is not offered") {
+            const auto modes = print.get_available_filament_map_modes();
+            REQUIRE(modes == std::vector<FilamentMapMode>{ fmmAutoForFlush, fmmAutoForMatch, fmmManual });
+        }
+    }
+
+    GIVEN("A two-extruder print with different extruder types") {
+        Print print;
+        init_dual_extruder_print(print, make_filament_mapping_config(false, etBowden));
+
+        THEN("quality mapping is offered before manual mapping") {
+            const auto modes = print.get_available_filament_map_modes();
+            REQUIRE(modes == std::vector<FilamentMapMode>{ fmmAutoForFlush, fmmAutoForMatch, fmmAutoForQuality, fmmManual });
+        }
+    }
+}
+
+SCENARIO("Print filament mapping smoke derives volume map defaults from mapped nozzles", "[PrintFilamentMapping]") {
+    GIVEN("A two-extruder print with standard and high-flow nozzle variants") {
+        Print print;
+        init_dual_extruder_print(print, make_filament_mapping_config(false));
+
+        WHEN("filament maps are updated without an explicit volume map") {
+            print.update_filament_maps_to_config({ 2, 1 }, {}, { 2, 1 });
+
+            THEN("the volume map follows the mapped nozzle volume types") {
                 REQUIRE(print.get_filament_maps() == std::vector<int>{ 2, 1 });
                 REQUIRE(print.get_filament_volume_maps() == std::vector<int>{ nvtHighFlow, nvtStandard });
                 REQUIRE(print.get_filament_nozzle_maps() == std::vector<int>{ 2, 1 });
