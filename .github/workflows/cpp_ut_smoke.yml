@@ -74,7 +74,7 @@ jobs:
       DEPS_ZIP_DIR: ${{ github.workspace }}\deps-artifact
       DEPS_ROOT: ${{ github.workspace }}\deps\build\BambuStudio_dep
       BUILD_DIR: ${{ github.workspace }}\build-smoke
-      SMOKE_OUTPUT_DIR: ${{ github.workspace }}\.ci\smoke
+      SMOKE_OUTPUT_DIR: .ci\smoke
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -444,6 +444,19 @@ jobs:
           }
 
           $files = @(Get-ChildItem "${{ env.SMOKE_OUTPUT_DIR }}" -File -ErrorAction SilentlyContinue)
+          if ($files.Count -eq 0) {
+            @"
+          ## Smoke Output Verification
+
+          - Result: `skipped`
+          - Reason: `no_smoke_outputs_present`
+          - Directory: `${{ env.SMOKE_OUTPUT_DIR }}`
+          - Note: `No smoke artifacts were present to validate; preserving earlier setup/build/run failure state.`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+            Write-Host "No smoke output files found; skipping missing-file validation to avoid masking earlier failures."
+            exit 0
+          }
+
           $missing = New-Object System.Collections.Generic.List[string]
           foreach ($suite in $expected) {
             $logPath = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" $suite.Log
@@ -456,18 +469,17 @@ jobs:
             }
           }
 
-          if ($files.Count -eq 0 -or $missing.Count -gt 0) {
-            $result = if ($files.Count -eq 0) { "no_output_files_found" } else { "missing_expected_files" }
-            $details = if ($missing.Count -gt 0) { $missing -join '; ' } else { 'n/a' }
+          if ($missing.Count -gt 0) {
+            $details = $missing -join '; '
             @"
           ## Smoke Output Verification
 
           - Result: `failed`
-          - Reason: `$result`
+          - Reason: `missing_expected_files`
           - Directory: `${{ env.SMOKE_OUTPUT_DIR }}`
           - Missing: `$details`
           "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
-            throw "Smoke output verification failed: $result"
+            throw "Smoke output verification failed: missing_expected_files"
           }
 
           Write-Host "Smoke output files:"
@@ -478,6 +490,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: cpp-ut-smoke-logs
+          include-hidden-files: true
           if-no-files-found: error
           path: |
             .ci/smoke/*.log
