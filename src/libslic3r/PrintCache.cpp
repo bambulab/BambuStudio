@@ -1,5 +1,6 @@
 #include "Exception.hpp"
 #include "Print.hpp"
+#include "Layer.hpp"
 #include "BoundingBox.hpp"
 
 #include <boost/filesystem/path.hpp>

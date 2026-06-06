@@ -121,48 +121,74 @@ static StringObjectException layered_print_cleareance_valid(const Print &print, 
 StringObjectException Print::validate(StringObjectException *warning, Polygons *collison_polygons, std::vector<std::pair<Polygon, float>> *height_polygons) const
 {
     std::vector<unsigned int> extruders = this->extruders();
+    if (m_objects.empty())
+        return {std::string()};
+
     if (extruders.empty())
-        return {};
+        return {L("No extrusions under current settings.")};
 
-    auto ret = check_multi_filament_valid(*this);
-    if (! ret.is_warning) {
-        if (! ret.string.empty())
-            return ret;
-    } else if (warning && warning->string.empty()) {
-        *warning = ret;
-    }
-
-    if (m_config.print_sequence == PrintSequence::ByObject) {
-        auto ret = sequential_print_clearance_valid(*this, collison_polygons, height_polygons);
-        if (! ret.string.empty())
-            return ret;
-    } else {
-        for (const PrintObject *print_object : print_objects()) {
-            if (print_object->model_object()->is_too_large()) {
-                StringObjectException ret;
-                ret.string           = (boost::format(L("%1% is too large, there may be collisions when printing.")) % print_object->model_object()->name).str();
-                ret.object           = print_object->model_object();
+    if (extruders.size() > 1) {
+        auto ret = check_multi_filament_valid(*this);
+        if (! ret.string.empty()) {
+            ret.type = STRING_EXCEPT_FILAMENTS_DIFFERENT_TEMP;
+            if (ret.is_warning && warning != nullptr) {
+                *warning = ret;
+            } else {
                 return ret;
             }
         }
     }
 
-    if (m_config.enable_prime_tower && m_config.prime_tower_with_more_brush && this->is_timelapse_print())
-        return {L("Prime tower with more flush is not supported when timelapse smooth is enabled."), nullptr, "prime_tower_with_more_brush"};
-    if (this->is_timelapse_print() && m_config.vibration_compensation == vcAuto)
-        return {L("Auto vibration compensation is not supported when timelapse smooth is enabled."), nullptr, "vibration_compensation"};
+    if (m_config.print_sequence == PrintSequence::ByObject && m_objects.size() > 1) {
+        if (m_config.timelapse_type == TimelapseType::tlSmooth)
+            return {L("Smooth mode of timelapse is not supported when \"by object\" sequence is enabled.")};
 
-    {
-        auto ret = layered_print_cleareance_valid(*this, warning);
-        if (! ret.string.empty())
+        if (m_config.enable_wrapping_detection) {
+            StringObjectException clumping_detection_setting_err;
+            clumping_detection_setting_err.string  = L("Clumping detection is not supported when \"by object\" sequence is enabled.");
+            clumping_detection_setting_err.opt_key = "enable_wrapping_detection";
+            return clumping_detection_setting_err;
+        }
+
+        auto ret = sequential_print_clearance_valid(*this, collison_polygons, height_polygons);
+        if (! ret.string.empty()) {
+            ret.type = STRING_EXCEPT_OBJECT_COLLISION_IN_SEQ_PRINT;
             return ret;
+        }
+    } else {
+        auto ret = layered_print_cleareance_valid(*this, warning);
+        if (! ret.string.empty()) {
+            ret.type = STRING_EXCEPT_OBJECT_COLLISION_IN_LAYER_PRINT;
+            return ret;
+        }
+    }
+
+    if (! m_config.enable_prime_tower) {
+        if (m_config.enable_wrapping_detection && warning != nullptr) {
+            StringObjectException warningtemp;
+            warningtemp.string     = L("Prime tower is required for clumping detection; otherwise, there may be flaws on the model.");
+            warningtemp.opt_key    = "enable_prime_tower";
+            warningtemp.is_warning = true;
+            warningtemp.hypetext   = L("Jump to: Prime tower");
+            *warning               = warningtemp;
+        }
     }
 
     if (m_config.spiral_mode) {
-        for (const PrintObject *print_object : print_objects()) {
-            if (print_object->all_regions().size() > 1)
-                return {L("Spiral mode only works when an object contains a single material."), nullptr, "spiral_mode"};
+        size_t total_copies_count = 0;
+        for (const PrintObject *object : m_objects)
+            total_copies_count += object->instances().size();
+        if (total_copies_count > 1 && m_config.print_sequence != PrintSequence::ByObject)
+            return {L("Please select \"By object\" print sequence to print multiple objects in spiral vase mode."), nullptr, "spiral_mode"};
+        bool sfff_enabled = false;
+        for (const PrintObject *object : m_objects) {
+            auto cfg = object->object_extruders();
+            if (cfg.size() > 1)
+                sfff_enabled = true;
         }
+        assert(m_objects.size() == 1);
+        if (m_objects.front()->all_regions().size() > 1 || sfff_enabled)
+            return {L("The spiral vase mode does not work when an object contains more than one materials."), nullptr, "spiral_mode"};
     }
 
     std::vector<std::vector<coordf_t>> layer_height_profiles;

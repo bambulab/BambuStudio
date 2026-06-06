@@ -2,7 +2,7 @@
 
 namespace Slic3r {
 
-void apply_interlocking_features(PrintObject&)
+void apply_interlocking_features(PrintObject&, const std::function<void()>&)
 {
 }
 

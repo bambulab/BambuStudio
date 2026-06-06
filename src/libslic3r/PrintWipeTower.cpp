@@ -1,5 +1,7 @@
 #include "Print.hpp"
 
+#include "GCode/ConflictChecker.hpp"
+#include "Layer.hpp"
 #include "Utils.hpp"
 
 namespace Slic3r {

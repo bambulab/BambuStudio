@@ -1196,7 +1196,7 @@ void PrintObject::slice_volumes()
         apply_fuzzy_skin_segmentation(*this, [print]() { print->throw_if_canceled(); });
     }
 
-    apply_interlocking_features(*this);
+    apply_interlocking_features(*this, [this]() { this->throw_if_canceled(); });
     m_print->throw_if_canceled();
 
     // SuperSlicer: filament shrink

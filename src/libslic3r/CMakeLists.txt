@@ -264,6 +264,7 @@ set(lisbslic3r_sources
     ModelArrange.cpp
     MultiMaterialSegmentation.cpp
     MultiMaterialSegmentation.hpp
+    MixedFilamentUtils.cpp
     Measure.hpp
     Measure.cpp
     MeasureUtils.hpp
@@ -330,8 +331,10 @@ set(lisbslic3r_sources
     PrintFilamentCompatibility.cpp
     PrintCache.cpp
     PrintValidate.cpp
+    PrintProcessPerimeters.cpp
     PrintExport.cpp
     PrintProcess.cpp
+    PrintWipeTower.cpp
     PrintProcessSupport.cpp
     Print.hpp
     PrintApply.cpp
@@ -345,6 +348,7 @@ set(lisbslic3r_sources
     PrintObjectAnalysis.cpp
     PrintObjectInvalidation.cpp
     PrintObjectLayers.cpp
+    PrintObjectInfill.cpp
     PrintObjectPerimeters.cpp
     PrintObjectPostProcess.cpp
     PrintObjectSlicingConfig.cpp
