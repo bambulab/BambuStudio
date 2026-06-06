@@ -586,37 +586,37 @@ jobs:
           }
 
           if ($smokeRunFailed.Count -gt 0) {
-            @"
-          ## Smoke Output Verification
-
-          - Result: `diagnostic`
-          - Reason: `smoke_run_failed`
-          - Directory: `${{ env.SMOKE_OUTPUT_DIR }}`
-          - Details: `$($smokeRunFailed -join '; ')`
-          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+            @(
+              "## Smoke Output Verification"
+              ""
+              "- Result: diagnostic"
+              "- Reason: smoke_run_failed"
+              "- Directory: ${{ env.SMOKE_OUTPUT_DIR }}"
+              "- Details: $($smokeRunFailed -join '; ')"
+            ) | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
           }
 
           if ($upstreamBlocked.Count -gt 0) {
-            @"
-          ## Smoke Output Verification
-
-          - Result: `skipped`
-          - Reason: `upstream_failure_or_not_reached`
-          - Directory: `${{ env.SMOKE_OUTPUT_DIR }}`
-          - Details: `$($upstreamBlocked -join '; ')`
-          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+            @(
+              "## Smoke Output Verification"
+              ""
+              "- Result: skipped"
+              "- Reason: upstream_failure_or_not_reached"
+              "- Directory: ${{ env.SMOKE_OUTPUT_DIR }}"
+              "- Details: $($upstreamBlocked -join '; ')"
+            ) | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
           }
 
           if ($missing.Count -gt 0 -or $failedWithMissingEvidence.Count -gt 0) {
             $details = @($missing + $failedWithMissingEvidence) -join '; '
-            @"
-          ## Smoke Output Verification
-
-          - Result: `failed`
-          - Reason: `missing_expected_files`
-          - Directory: `${{ env.SMOKE_OUTPUT_DIR }}`
-          - Missing: `$details`
-          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+            @(
+              "## Smoke Output Verification"
+              ""
+              "- Result: failed"
+              "- Reason: missing_expected_files"
+              "- Directory: ${{ env.SMOKE_OUTPUT_DIR }}"
+              "- Missing: $details"
+            ) | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
             throw "Smoke output verification failed: missing_expected_files"
           }
 
