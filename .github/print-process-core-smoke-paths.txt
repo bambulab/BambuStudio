@@ -1,5 +1,8 @@
-# print skirt/brim smoke source surface
+# print process core smoke source surface
 src/libslic3r/Brim.cpp
+src/libslic3r/ExtrusionEntity.cpp
+src/libslic3r/ExtrusionEntityCollection.cpp
+src/libslic3r/Flow.cpp
 src/libslic3r/PrintApply.cpp
 src/libslic3r/PrintBaseOutput.cpp
 src/libslic3r/PrintOutputFilename.cpp
@@ -19,13 +22,14 @@ src/libslic3r/Print*.hpp
 src/libslic3r/PrintConfig*
 src/libslic3r/Config*
 
-# print skirt/brim smoke target tests
+# print process core smoke target tests
 tests/fff_print/CMakeLists.txt
 tests/fff_print/fff_print_tests.cpp
+tests/fff_print/test_print_process_core_smoke.cpp
 tests/fff_print/test_print_skirt_brim_smoke.cpp
 tests/catch_main.hpp
 tests/catch2/catch.hpp
 
 # workflow changes should re-run the smoke gate
-.github/print-skirt-brim-smoke-paths.txt
+.github/print-process-core-smoke-paths.txt
 .github/workflows/cpp_ut_smoke.yml

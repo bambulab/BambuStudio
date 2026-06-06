@@ -21,7 +21,7 @@ on:
       - "build_win.bat"
       - ".github/print-filament-mapping-smoke-paths.txt"
       - ".github/print-perimeters-smoke-paths.txt"
-      - ".github/print-skirt-brim-smoke-paths.txt"
+      - ".github/print-process-core-smoke-paths.txt"
       - ".github/workflows/cpp_ut_smoke.yml"
       - ".github/workflows/deps_build.yml"
 
@@ -135,9 +135,9 @@ jobs:
           $perimetersEnabled = $true
           $perimetersReason = "workflow_dispatch"
           $perimetersMatched = "n/a"
-          $skirtBrimEnabled = $true
-          $skirtBrimReason = "workflow_dispatch"
-          $skirtBrimMatched = "n/a"
+          $processCoreEnabled = $true
+          $processCoreReason = "workflow_dispatch"
+          $processCoreMatched = "n/a"
 
           if ("${{ github.event_name }}" -ne "workflow_dispatch") {
             $base = if ("${{ github.event_name }}" -eq "pull_request") {
@@ -153,7 +153,7 @@ jobs:
               $modelAssemblyReason = "missing_base_sha"
               $filamentMappingReason = "missing_base_sha"
               $perimetersReason = "missing_base_sha"
-              $skirtBrimReason = "missing_base_sha"
+              $processCoreReason = "missing_base_sha"
             } else {
               git fetch --no-tags --depth=1 origin $base | Out-Null
               if ($LASTEXITCODE -ne 0) {
@@ -162,7 +162,7 @@ jobs:
                 $modelAssemblyReason = "fetch_base_failed"
                 $filamentMappingReason = "fetch_base_failed"
                 $perimetersReason = "fetch_base_failed"
-                $skirtBrimReason = "fetch_base_failed"
+                $processCoreReason = "fetch_base_failed"
               } else {
                 $changed = @(git diff --name-only $base $head | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
                 $changedText = if ($changed.Count -gt 0) { $changed -join ', ' } else { 'n/a' }
@@ -172,7 +172,7 @@ jobs:
                 $modelAssemblyScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/model-assembly-smoke-paths.txt"
                 $filamentMappingScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/print-filament-mapping-smoke-paths.txt"
                 $perimetersScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/print-perimeters-smoke-paths.txt"
-                $skirtBrimScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/print-skirt-brim-smoke-paths.txt"
+                $processCoreScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/print-process-core-smoke-paths.txt"
 
                 $configEnabled = $configScope.Enabled
                 $configReason = $configScope.Reason
@@ -189,14 +189,14 @@ jobs:
                 $perimetersEnabled = $perimetersScope.Enabled
                 $perimetersReason = $perimetersScope.Reason
                 $perimetersMatched = $perimetersScope.Matched
-                $skirtBrimEnabled = $skirtBrimScope.Enabled
-                $skirtBrimReason = $skirtBrimScope.Reason
-                $skirtBrimMatched = $skirtBrimScope.Matched
+                $processCoreEnabled = $processCoreScope.Enabled
+                $processCoreReason = $processCoreScope.Reason
+                $processCoreMatched = $processCoreScope.Matched
               }
             }
           }
 
-          $anyEnabled = $configEnabled -or $gcodewriterEnabled -or $modelAssemblyEnabled -or $filamentMappingEnabled -or $perimetersEnabled -or $skirtBrimEnabled
+          $anyEnabled = $configEnabled -or $gcodewriterEnabled -or $modelAssemblyEnabled -or $filamentMappingEnabled -or $perimetersEnabled -or $processCoreEnabled
           "any_enabled=$($anyEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "changed=$changedText" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "config_enabled=$($configEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
@@ -214,9 +214,9 @@ jobs:
           "perimeters_enabled=$($perimetersEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "perimeters_reason=$perimetersReason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "perimeters_matched=$perimetersMatched" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
-          "skirt_brim_enabled=$($skirtBrimEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
-          "skirt_brim_reason=$skirtBrimReason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
-          "skirt_brim_matched=$skirtBrimMatched" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "process_core_enabled=$($processCoreEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "process_core_reason=$processCoreReason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "process_core_matched=$processCoreMatched" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
 
           Write-Host "smoke any_enabled=$anyEnabled"
           if ($changed.Count -gt 0) {
@@ -228,7 +228,7 @@ jobs:
           Write-Host "model assembly smoke gate enabled=$modelAssemblyEnabled reason=$modelAssemblyReason matched=$modelAssemblyMatched"
           Write-Host "print filament mapping smoke gate enabled=$filamentMappingEnabled reason=$filamentMappingReason matched=$filamentMappingMatched"
           Write-Host "print perimeters smoke gate enabled=$perimetersEnabled reason=$perimetersReason matched=$perimetersMatched"
-          Write-Host "print skirt/brim smoke gate enabled=$skirtBrimEnabled reason=$skirtBrimReason matched=$skirtBrimMatched"
+          Write-Host "print process core smoke gate enabled=$processCoreEnabled reason=$processCoreReason matched=$processCoreMatched"
 
       - name: Setup MSVC developer command prompt
         if: steps.smoke_scope.outputs.any_enabled == 'true'
@@ -353,10 +353,10 @@ jobs:
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target print_perimeters_stage_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
 
-      - name: Build print skirt/brim smoke target
-        if: steps.smoke_scope.outputs.skirt_brim_enabled == 'true'
+      - name: Build print process core smoke target
+        if: steps.smoke_scope.outputs.process_core_enabled == 'true'
         shell: pwsh
-        run: cmake --build "${{ env.BUILD_DIR }}" --target print_skirt_brim_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
+        run: cmake --build "${{ env.BUILD_DIR }}" --target print_process_core_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
 
       - name: Add deps runtime DLLs to PATH
         if: steps.smoke_scope.outputs.any_enabled == 'true'
@@ -495,29 +495,30 @@ jobs:
           & $exe "[PrintPerimeters]" 2>&1 | Tee-Object -FilePath $log
           & $exe -r junit -o $xml "[PrintPerimeters]" | Out-Null
 
-      - name: Note skipped print skirt/brim smoke target
-        if: steps.smoke_scope.outputs.skirt_brim_enabled != 'true'
+      - name: Note skipped print process core smoke target
+        if: steps.smoke_scope.outputs.process_core_enabled != 'true'
         shell: pwsh
         run: |
           @"
-          ## Print Skirt/Brim Smoke Gate
+          ## Print Process Core Smoke Gate
 
           - Enabled: `false`
-          - Reason: `${{ steps.smoke_scope.outputs.skirt_brim_reason }}`
+          - Reason: `${{ steps.smoke_scope.outputs.process_core_reason }}`
           - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
-          - Matched files: `${{ steps.smoke_scope.outputs.skirt_brim_matched }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.process_core_matched }}`
           "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
 
-      - name: Run print skirt/brim smoke
-        id: run_print_skirt_brim_smoke
-        if: steps.smoke_scope.outputs.skirt_brim_enabled == 'true'
+      - name: Run print process core smoke
+        id: run_print_process_core_smoke
+        if: steps.smoke_scope.outputs.process_core_enabled == 'true'
         shell: pwsh
         run: |
-          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\print_skirt_brim_smoke_tests.exe"
-          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-skirt-brim-smoke.log"
-          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-skirt-brim-smoke.xml"
-          & $exe "[PrintSkirtBrim]" 2>&1 | Tee-Object -FilePath $log
-          & $exe -r junit -o $xml "[PrintSkirtBrim]" | Out-Null
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\print_process_core_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-process-core-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-process-core-smoke.xml"
+          $filter = "[PrintProcessCore],[PrintSkirtBrim]"
+          & $exe $filter 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml $filter | Out-Null
 
       - name: Verify smoke output files
         id: smoke_verify
@@ -566,12 +567,12 @@ jobs:
               Conclusion = "${{ steps.run_print_perimeters_smoke.conclusion }}"
             })
           }
-          if ("${{ steps.smoke_scope.outputs.skirt_brim_enabled }}" -eq "true") {
+          if ("${{ steps.smoke_scope.outputs.process_core_enabled }}" -eq "true") {
             $expected.Add(@{
-              Name = "print_skirt_brim_smoke_tests [PrintSkirtBrim]"
-              Log = "print-skirt-brim-smoke.log"
-              Xml = "print-skirt-brim-smoke.xml"
-              Conclusion = "${{ steps.run_print_skirt_brim_smoke.conclusion }}"
+              Name = "print_process_core_smoke_tests [PrintProcessCore],[PrintSkirtBrim]"
+              Log = "print-process-core-smoke.log"
+              Xml = "print-process-core-smoke.xml"
+              Conclusion = "${{ steps.run_print_process_core_smoke.conclusion }}"
             })
           }
 
@@ -707,15 +708,15 @@ jobs:
           $filamentMappingSmokeReason = "${{ steps.smoke_scope.outputs.filament_mapping_reason }}"
           $perimetersSmokeEnabled = "${{ steps.smoke_scope.outputs.perimeters_enabled }}" -eq "true"
           $perimetersSmokeReason = "${{ steps.smoke_scope.outputs.perimeters_reason }}"
-          $skirtBrimSmokeEnabled = "${{ steps.smoke_scope.outputs.skirt_brim_enabled }}" -eq "true"
-          $skirtBrimSmokeReason = "${{ steps.smoke_scope.outputs.skirt_brim_reason }}"
+          $processCoreSmokeEnabled = "${{ steps.smoke_scope.outputs.process_core_enabled }}" -eq "true"
+          $processCoreSmokeReason = "${{ steps.smoke_scope.outputs.process_core_reason }}"
           $suiteMeta = @(
             @{ Name = "libslic3r_config_tests [ConfigCore]"; Log = ".ci/smoke/libslic3r-config-fast.log"; Xml = ".ci/smoke/libslic3r-config-fast.xml" },
             @{ Name = "gcodewriter_smoke_tests [GCodeWriter]"; Log = ".ci/smoke/gcodewriter-smoke.log"; Xml = ".ci/smoke/gcodewriter-smoke.xml" },
             @{ Name = "model_basic_smoke_tests [ModelAssembly]"; Log = ".ci/smoke/model-assembly-smoke.log"; Xml = ".ci/smoke/model-assembly-smoke.xml" },
             @{ Name = "print_filament_mapping_smoke_tests [PrintFilamentMapping]"; Log = ".ci/smoke/print-filament-mapping-smoke.log"; Xml = ".ci/smoke/print-filament-mapping-smoke.xml" },
             @{ Name = "print_perimeters_stage_smoke_tests [PrintPerimeters]"; Log = ".ci/smoke/print-perimeters-smoke.log"; Xml = ".ci/smoke/print-perimeters-smoke.xml" },
-            @{ Name = "print_skirt_brim_smoke_tests [PrintSkirtBrim]"; Log = ".ci/smoke/print-skirt-brim-smoke.log"; Xml = ".ci/smoke/print-skirt-brim-smoke.xml" }
+            @{ Name = "print_process_core_smoke_tests [PrintProcessCore],[PrintSkirtBrim]"; Log = ".ci/smoke/print-process-core-smoke.log"; Xml = ".ci/smoke/print-process-core-smoke.xml" }
           )
 
           $rows = New-Object System.Collections.Generic.List[string]
@@ -745,8 +746,8 @@ jobs:
               $rows.Add("| $($suite.Name) | skipped ($perimetersSmokeReason) | 0 | 0 |")
               continue
             }
-            if ($suite.Name -like 'print_skirt_brim_smoke_tests*' -and -not $skirtBrimSmokeEnabled) {
-              $rows.Add("| $($suite.Name) | skipped ($skirtBrimSmokeReason) | 0 | 0 |")
+            if ($suite.Name -like 'print_process_core_smoke_tests*' -and -not $processCoreSmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($processCoreSmokeReason) | 0 | 0 |")
               continue
             }
 
@@ -793,8 +794,8 @@ jobs:
           - Print filament mapping smoke gate reason: `$filamentMappingSmokeReason`
           - Print perimeters smoke gate enabled: `$perimetersSmokeEnabled`
           - Print perimeters smoke gate reason: `$perimetersSmokeReason`
-          - Print skirt/brim smoke gate enabled: `$skirtBrimSmokeEnabled`
-          - Print skirt/brim smoke gate reason: `$skirtBrimSmokeReason`
+          - Print process core smoke gate enabled: `$processCoreSmokeEnabled`
+          - Print process core smoke gate reason: `$processCoreSmokeReason`
           - Smoke commands passed: `$passedSuites / $eligibleSuites`
           - Reported test cases: `$totalCases`
           - Reported assertions: `$totalAssertions`
