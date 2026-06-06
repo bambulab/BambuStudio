@@ -7,6 +7,8 @@ src/libslic3r/PrintObjectPerimeters.cpp
 src/libslic3r/VariableWidth.cpp
 src/libslic3r/Surface.cpp
 src/libslic3r/SurfaceCollection.cpp
+src/libslic3r/Model.hpp
+src/libslic3r/Layer.hpp
 src/libslic3r/Print.hpp
 src/libslic3r/Print*.hpp
 
