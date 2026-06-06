@@ -19,6 +19,8 @@ on:
       - "deps/**"
       - "**/CMakeLists.txt"
       - "build_win.bat"
+      - ".github/print-filament-mapping-smoke-paths.txt"
+      - ".github/print-perimeters-smoke-paths.txt"
       - ".github/workflows/cpp_ut_smoke.yml"
       - ".github/workflows/deps_build.yml"
 
