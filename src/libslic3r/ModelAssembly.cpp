@@ -6,11 +6,6 @@ void delete_object_mesh(ModelObject &) {}
 
 void save_object_mesh(ModelObject &) {}
 
-Lines Polygon::lines() const
-{
-    return to_lines(*this);
-}
-
 void Model::assign_new_unique_ids_recursive()
 {
     this->set_new_unique_id();
@@ -128,8 +123,13 @@ void ModelVolume::translate(const Vec3d &displacement)
 
 void ModelVolume::calculate_convex_hull()
 {
-    m_convex_hull.reset();
+    m_convex_hull = std::make_shared<TriangleMesh>(this->mesh());
     invalidate_convex_hull_2d();
+}
+
+const TriangleMesh &ModelVolume::get_convex_hull() const
+{
+    return m_convex_hull ? *m_convex_hull.get() : *m_mesh.get();
 }
 
 void ModelVolume::assign_new_unique_ids_recursive()

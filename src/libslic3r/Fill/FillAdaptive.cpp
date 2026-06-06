@@ -4,7 +4,7 @@
 #include "../Geometry.hpp"
 #include "../Layer.hpp"
 #include "../Print.hpp"
-#include "../ShortestPath.hpp"
+#include "../ShortestPathExtras.hpp"
 
 #include "FillAdaptive.hpp"
 

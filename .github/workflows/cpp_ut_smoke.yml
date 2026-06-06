@@ -74,8 +74,6 @@ jobs:
       DEPS_ZIP_DIR: ${{ github.workspace }}\deps-artifact
       DEPS_ROOT: ${{ github.workspace }}\deps\build\BambuStudio_dep
       BUILD_DIR: ${{ github.workspace }}\build-smoke
-      SCCACHE_GHA_ENABLED: "true"
-      SCCACHE_DIR: ${{ github.workspace }}\_sccache
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -207,10 +205,6 @@ jobs:
         with:
           arch: x64
 
-      - name: Setup sccache
-        if: steps.smoke_scope.outputs.any_enabled == 'true'
-        uses: mozilla-actions/sccache-action@v0.0.10
-
       - name: Show build tool versions
         if: steps.smoke_scope.outputs.any_enabled == 'true'
         shell: pwsh
@@ -218,17 +212,6 @@ jobs:
           cmake --version
           ninja --version
           where.exe cl
-          & $env:SCCACHE_PATH --version
-
-      - name: Reset sccache stats
-        if: steps.smoke_scope.outputs.any_enabled == 'true'
-        shell: pwsh
-        run: |
-          & $env:SCCACHE_PATH --stop-server | Out-Null
-          if ($LASTEXITCODE -ne 0) {
-            Write-Host "sccache server was not running before reset"
-          }
-          & $env:SCCACHE_PATH --zero-stats
 
       - name: Download deps artifact
         if: steps.smoke_scope.outputs.any_enabled == 'true'
@@ -308,8 +291,6 @@ jobs:
             -DSLIC3R_BUILD_TESTS=ON `
             -DSLIC3R_MSVC_COMPILE_PARALLEL=OFF `
             -DSLIC3R_MSVC_PDB=OFF `
-            -DCMAKE_C_COMPILER_LAUNCHER=sccache `
-            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache `
             -DCMAKE_PREFIX_PATH="${{ env.DEPS_ROOT }}\usr\local" `
             -DPKG_CONFIG_EXECUTABLE="C:/Strawberry/perl/bin/pkg-config.bat" `
             -DWIN10SDK_PATH="C:/Program Files (x86)/Windows Kits/10/Include/${{ steps.windows_sdk.outputs.sdk-version }}"
@@ -329,10 +310,10 @@ jobs:
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target model_basic_smoke_tests --parallel 1
 
-      - name: Build fff_print smoke target
+      - name: Build print process smoke target
         if: steps.smoke_scope.outputs.fff_enabled == 'true'
         shell: pwsh
-        run: cmake --build "${{ env.BUILD_DIR }}" --target fff_print_smoke --parallel 1
+        run: cmake --build "${{ env.BUILD_DIR }}" --target print_process_smoke_tests --parallel 1
 
       - name: Add deps runtime DLLs to PATH
         if: steps.smoke_scope.outputs.any_enabled == 'true'
@@ -408,12 +389,12 @@ jobs:
           - Matched files: `${{ steps.smoke_scope.outputs.model_assembly_matched }}`
           "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
 
-      - name: Note skipped fff_print smoke target
+      - name: Note skipped print process smoke target
         if: steps.smoke_scope.outputs.fff_enabled != 'true'
         shell: pwsh
         run: |
           @"
-          ## Model Placement Smoke Gate
+          ## Print Process Smoke Gate
 
           - Enabled: `false`
           - Reason: `${{ steps.smoke_scope.outputs.fff_reason }}`
@@ -421,75 +402,14 @@ jobs:
           - Matched files: `${{ steps.smoke_scope.outputs.fff_matched }}`
           "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
 
-      - name: Run model smoke
+      - name: Run print process smoke
         if: steps.smoke_scope.outputs.fff_enabled == 'true'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path .ci | Out-Null
-          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\fff_print_smoke.exe"
-          & $exe "[ModelPlacement]" 2>&1 | Tee-Object -FilePath .ci\fff-model-placement.log
-          & $exe -r junit -o .ci\fff-model-placement.xml "[ModelPlacement]" | Out-Null
-
-      - name: Show sccache stats
-        if: always() && steps.smoke_scope.outputs.any_enabled == 'true'
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path .ci | Out-Null
-          $stats = @(& "$env:SCCACHE_PATH" --show-stats 2>&1 | ForEach-Object { $_.ToString() })
-          $stats | Tee-Object -FilePath .ci\sccache-stats.txt
-          $selected = @(
-            "Compile requests",
-            "Compile requests executed",
-            "Cache hits",
-            "Cache misses",
-            "Cache hits rate",
-            "Non-cacheable compilations",
-            "Non-cacheable calls",
-            "Cache errors",
-            "Cache size"
-          )
-          $pairs = @{}
-          foreach ($line in $stats) {
-            if ($line -match '^(?<key>.+?)\s{2,}(?<value>.+)$') {
-              $pairs[$matches.key.Trim()] = $matches.value.Trim()
-            }
-          }
-          $reasons = @()
-          $inReasons = $false
-          foreach ($line in $stats) {
-            if ($line -match '^Non-cacheable reasons:') {
-              $inReasons = $true
-              continue
-            }
-            if ($inReasons) {
-              if ([string]::IsNullOrWhiteSpace($line)) {
-                break
-              }
-              $reasons += $line.Trim()
-            }
-          }
-          $summaryRows = $selected |
-            Where-Object { $pairs.ContainsKey($_) } |
-            ForEach-Object { '| {0} | {1} |' -f $_, $pairs[$_] }
-          $reasonLines = if ($reasons.Count -gt 0) {
-            @("### Non-cacheable reasons") + ($reasons | ForEach-Object { '- {0}' -f $_ })
-          } else {
-            @()
-          }
-          $summaryLines = @(
-            "## sccache",
-            "",
-            "| Metric | Value |",
-            "| --- | --- |"
-          ) + $summaryRows + @(
-            ""
-          ) + $reasonLines + @(
-            "",
-            "```text"
-          ) + $stats + @(
-            "```"
-          )
-          $summaryLines | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\print_process_smoke_tests.exe"
+          & $exe "[PrintProcess]" 2>&1 | Tee-Object -FilePath .ci\print-process-smoke.log
+          & $exe -r junit -o .ci\print-process-smoke.xml "[PrintProcess]" | Out-Null
 
       - name: Upload smoke logs
         if: always() && steps.smoke_scope.outputs.any_enabled == 'true'
@@ -498,7 +418,6 @@ jobs:
           name: cpp-ut-smoke-logs
           path: |
             .ci\*.log
-            .ci\*.txt
             .ci\*.xml
 
       - name: Write summary
@@ -517,7 +436,7 @@ jobs:
             @{ Name = "libslic3r_config_tests [ConfigCore]"; Log = ".ci\libslic3r-config-fast.log"; Xml = ".ci\libslic3r-config-fast.xml" },
             @{ Name = "gcodewriter_smoke_tests [GCodeWriter]"; Log = ".ci\gcodewriter-smoke.log"; Xml = ".ci\gcodewriter-smoke.xml" },
             @{ Name = "model_basic_smoke_tests [ModelAssembly]"; Log = ".ci\model-assembly-smoke.log"; Xml = ".ci\model-assembly-smoke.xml" },
-            @{ Name = "fff_print_smoke [ModelPlacement]"; Log = ".ci\fff-model-placement.log"; Xml = ".ci\fff-model-placement.xml" }
+            @{ Name = "print_process_smoke_tests [PrintProcess]"; Log = ".ci\print-process-smoke.log"; Xml = ".ci\print-process-smoke.xml" }
           )
 
           $rows = New-Object System.Collections.Generic.List[string]
@@ -539,7 +458,7 @@ jobs:
               $rows.Add("| $($suite.Name) | skipped ($modelAssemblyReason) | 0 | 0 |")
               continue
             }
-            if ($suite.Name -like 'fff_print_smoke*' -and -not $fffSmokeEnabled) {
+            if ($suite.Name -like 'print_process_smoke_tests*' -and -not $fffSmokeEnabled) {
               $rows.Add("| $($suite.Name) | skipped ($fffSmokeReason) | 0 | 0 |")
               continue
             }
@@ -583,8 +502,8 @@ jobs:
           - GCodeWriter smoke gate reason: `$gcodewriterSmokeReason`
           - Model assembly smoke gate enabled: `$modelAssemblyEnabled`
           - Model assembly smoke gate reason: `$modelAssemblyReason`
-          - FFF smoke gate enabled: `$fffSmokeEnabled`
-          - FFF smoke gate reason: `$fffSmokeReason`
+          - Print process smoke gate enabled: `$fffSmokeEnabled`
+          - Print process smoke gate reason: `$fffSmokeReason`
           - Smoke commands passed: `$passedSuites / $eligibleSuites`
           - Reported test cases: `$totalCases`
           - Reported assertions: `$totalAssertions`

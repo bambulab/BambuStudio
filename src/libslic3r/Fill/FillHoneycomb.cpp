@@ -1,5 +1,5 @@
 #include "../ClipperUtils.hpp"
-#include "../ShortestPath.hpp"
+#include "../ShortestPathExtras.hpp"
 #include "../Surface.hpp"
 
 #include "FillHoneycomb.hpp"

@@ -859,6 +859,8 @@ public:
 
     ApplyStatus         apply(const Model &model, DynamicPrintConfig config, bool extruder_applied = false) override;
 
+    // Run the slicing and perimeter generation stage only.
+    void                process_perimeters(std::unordered_map<std::string, long long>* slice_time = nullptr, bool use_cache = false);
     void                process(std::unordered_map<std::string, long long>* slice_time = nullptr, bool use_cache = false) override;
     // Exports G-code into a file name based on the path_template, returns the file path of the generated G-code file.
     // If preview_data is not null, the preview_data is filled in for the G-code visualization (not used by the command line Slic3r).
@@ -1148,6 +1150,8 @@ private:
     bool                has_tpu_filament() const;
     bool                invalidate_state_by_config_options(const ConfigOptionResolver &new_config, const std::vector<t_config_option_key> &opt_keys);
 
+    void                prepare_shared_slicing_context(bool use_cache);
+    void                process_perimeters_stage(std::unordered_map<std::string, long long>* slice_time = nullptr);
     void                _make_skirt();
     void                _make_wipe_tower();
     void                finalize_first_layer_convex_hull();

@@ -2,7 +2,7 @@
 
 #include "PresetBundle.hpp"
 #include "Semver.hpp"
-#include "FilamentMixer.hpp"
+#include "MixedFilamentUtils.hpp"
 #include "nlohmann/json.hpp"
 #include "libslic3r.h"
 #include "I18N.hpp"

@@ -3,6 +3,9 @@
 
 namespace Slic3r {
 
+PrintRegion::PrintRegion(const PrintRegionConfig &config) : PrintRegion(config, config.hash()) {}
+PrintRegion::PrintRegion(PrintRegionConfig &&config) : PrintRegion(std::move(config), config.hash()) {}
+
 // 1-based extruder identifier for this region and role.
 unsigned int PrintRegion::extruder(FlowRole role) const
 {

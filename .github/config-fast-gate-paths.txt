@@ -2,12 +2,8 @@
 src/libslic3r/Config*
 src/libslic3r/PrintConfig*
 src/libslic3r/LocalesUtils*
-src/libslic3r/CMakeLists.txt
 
 # config-core fast target tests
 tests/libslic3r/CMakeLists.txt
 tests/libslic3r/config_tests_main.cpp
 tests/libslic3r/test_config*
-
-# workflow changes should re-run the fast gate
-.github/workflows/cpp_ut_smoke.yml

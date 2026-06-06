@@ -52,3 +52,12 @@ add_executable(model_basic_smoke_tests
 target_link_libraries(model_basic_smoke_tests PRIVATE test_common libslic3r_model_basic_core)
 set_property(TARGET model_basic_smoke_tests PROPERTY FOLDER "tests")
 add_test(model_basic_smoke_tests model_basic_smoke_tests ${CATCH_EXTRA_ARGS})
+
+add_executable(print_process_smoke_tests
+	${_TEST_NAME}_tests.cpp
+	test_print_filament_mapping_smoke.cpp
+	test_print_process_smoke.cpp
+)
+target_link_libraries(print_process_smoke_tests PRIVATE test_common libslic3r_print_perimeters_core)
+set_property(TARGET print_process_smoke_tests PROPERTY FOLDER "tests")
+add_test(print_process_smoke_tests print_process_smoke_tests ${CATCH_EXTRA_ARGS})

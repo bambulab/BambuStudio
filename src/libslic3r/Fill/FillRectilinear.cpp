@@ -15,7 +15,7 @@
 #include "../ExPolygon.hpp"
 #include "../Geometry.hpp"
 #include "../Surface.hpp"
-#include "../ShortestPath.hpp"
+#include "../ShortestPathExtras.hpp"
 #include "../VariableWidth.hpp"
 
 #include "FillRectilinear.hpp"

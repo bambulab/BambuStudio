@@ -4,7 +4,7 @@
 #include "GCode.hpp"
 #include "GCode/ToolOrdering.hpp"
 #include "MultiNozzleUtils.hpp"
-#include "FilamentMixer.hpp"
+#include "MixedFilamentUtils.hpp"
 
 #include <algorithm>
 #include <unordered_map>

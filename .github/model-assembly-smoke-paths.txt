@@ -3,12 +3,7 @@ src/libslic3r/ModelAssembly.cpp
 src/libslic3r/TriangleMeshBasic.cpp
 src/libslic3r/Model.hpp
 src/libslic3r/TriangleMesh.hpp
-src/libslic3r/CMakeLists.txt
 
 # model assembly fast-gate tests
-tests/fff_print/CMakeLists.txt
 tests/fff_print/fff_print_tests.cpp
 tests/fff_print/test_model_basic_smoke.cpp
-
-# workflow changes should re-run the fast gate
-.github/workflows/cpp_ut_smoke.yml

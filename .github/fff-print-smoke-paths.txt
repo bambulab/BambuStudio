@@ -1,14 +1,14 @@
-# model placement smoke source surface
-src/libslic3r/Model.cpp
-src/libslic3r/Model.hpp
-src/libslic3r/TriangleMesh.cpp
-src/libslic3r/TriangleMesh.hpp
-src/libslic3r/CMakeLists.txt
+# print process smoke source surface
+src/libslic3r/Print*.cpp
+src/libslic3r/Print.hpp
+src/libslic3r/Print*.hpp
+src/libslic3r/ModelArrange.hpp
 
-# model placement smoke target tests
+# print process smoke target tests
 tests/fff_print/CMakeLists.txt
 tests/fff_print/fff_print_tests.cpp
-tests/fff_print/test_model_smoke.cpp
+tests/fff_print/test_print_filament_mapping_smoke.cpp
+tests/fff_print/test_print_process_smoke.cpp
 
 # workflow changes should re-run the smoke gate
 .github/workflows/cpp_ut_smoke.yml
