@@ -48,6 +48,22 @@ SCENARIO("Print process core smoke path covers legacy flow math", "[PrintProcess
             REQUIRE(flow.spacing() == Approx(nozzle_diameter + BRIDGE_EXTRA_SPACING));
         }
     }
+
+    GIVEN("a 0.25mm nozzle with representative layer heights") {
+        constexpr float nozzle_diameter = 0.25f;
+
+        THEN("auto perimeter width stays tied to the nozzle-derived width at low layer height") {
+            const Flow flow = Flow::new_from_config_width(frPerimeter, ConfigOptionFloatOrPercent(0, false), nozzle_diameter, 0.15f);
+
+            REQUIRE(flow.width() == Approx(1.125 * nozzle_diameter));
+        }
+
+        THEN("auto perimeter width stays tied to the nozzle-derived width at matching layer height") {
+            const Flow flow = Flow::new_from_config_width(frPerimeter, ConfigOptionFloatOrPercent(0, false), nozzle_diameter, 0.25f);
+
+            REQUIRE(flow.width() == Approx(1.125 * nozzle_diameter));
+        }
+    }
 }
 
 SCENARIO("Print process core smoke path covers legacy extrusion entity flattening", "[PrintProcessCore]") {
