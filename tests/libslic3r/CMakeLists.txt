@@ -58,6 +58,7 @@ add_test(libslic3r_config_smoke libslic3r_config_smoke ${CATCH_EXTRA_ARGS})
 add_executable(libslic3r_config_tests
     config_tests_main.cpp
     test_config.cpp
+    test_print_filament_mapping_rules.cpp
 )
 target_link_libraries(libslic3r_config_tests PRIVATE test_common libslic3r_config_core)
 target_include_directories(libslic3r_config_tests PRIVATE

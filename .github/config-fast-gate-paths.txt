@@ -1,5 +1,6 @@
 # libslic3r config core source surface
 src/libslic3r/Config*
+src/libslic3r/PrintFilamentMappingRules*
 src/libslic3r/PrintConfig*
 src/libslic3r/LocalesUtils*
 
@@ -7,3 +8,4 @@ src/libslic3r/LocalesUtils*
 tests/libslic3r/CMakeLists.txt
 tests/libslic3r/config_tests_main.cpp
 tests/libslic3r/test_config*
+tests/libslic3r/test_print_filament_mapping_rules.cpp

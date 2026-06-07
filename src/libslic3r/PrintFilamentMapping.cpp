@@ -1,4 +1,5 @@
 #include "Print.hpp"
+#include "PrintFilamentMappingRules.hpp"
 
 #include <set>
 #include <unordered_map>
@@ -10,15 +11,12 @@ namespace Slic3r {
 
 bool Print::is_dynamic_group_reorder() const
 {
-    if (!config().enable_filament_dynamic_map || config().filament_map_mode != FilamentMapMode::fmmAutoForFlush || config().nozzle_diameter.size() <= 1)
-        return false;
-
-    const auto &is_mixed = config().filament_is_mixed.values;
-    for (unsigned int filament_id : extruders()) {
-        if (filament_id < is_mixed.size() && is_mixed[filament_id])
-            return false;
-    }
-    return true;
+    return FilamentMappingRules::is_dynamic_group_reorder_enabled(
+        config().enable_filament_dynamic_map,
+        config().filament_map_mode,
+        config().nozzle_diameter.size(),
+        config().filament_is_mixed.values,
+        extruders());
 }
 
 int Print::get_filament_config_indx(int filament_id, int layer_id)
@@ -271,28 +269,8 @@ FilamentMapMode Print::get_filament_map_mode() const
 
 std::vector<FilamentMapMode> Print::get_available_filament_map_modes() const
 {
-    std::vector<FilamentMapMode> available_modes;
-
-    available_modes.push_back(fmmAutoForFlush);
-    available_modes.push_back(fmmAutoForMatch);
-
     auto opt_extruder_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(m_config.option("extruder_type"));
-    if (opt_extruder_type && opt_extruder_type->values.size() > 1) {
-        bool has_different_types = false;
-        ExtruderType first_type = (ExtruderType)(opt_extruder_type->values[0]);
-        for (size_t i = 1; i < opt_extruder_type->values.size(); ++i) {
-            if ((ExtruderType)(opt_extruder_type->values[i]) != first_type) {
-                has_different_types = true;
-                break;
-            }
-        }
-        if (has_different_types) {
-            available_modes.push_back(fmmAutoForQuality);
-        }
-    }
-
-    available_modes.push_back(fmmManual);
-    return available_modes;
+    return FilamentMappingRules::available_modes_for_extruder_types(opt_extruder_type ? opt_extruder_type->values : std::vector<int>{});
 }
 
 bool Print::get_full_filament_extruder_variants(const size_t filament_id, std::vector<std::string> &variants) const
