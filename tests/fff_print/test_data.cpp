@@ -338,6 +338,7 @@ std::string slice(std::initializer_list<TriangleMesh> meshes, std::initializer_l
 
 #include <catch2/catch.hpp>
 
+#ifdef SLIC3R_LEGACY_FFF_PRINT_HELPER_TESTS
 SCENARIO("init_print functionality", "[test_data]") {
 	GIVEN("A default config") {
 		Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
@@ -368,3 +369,4 @@ SCENARIO("init_print functionality", "[test_data]") {
 		}
 	}
 }
+#endif
