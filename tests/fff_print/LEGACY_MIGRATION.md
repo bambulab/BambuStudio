@@ -26,6 +26,7 @@ Status key:
 | `print_process_core_smoke_tests` | full print process behaviors that still need the heavy print core | Fast PR smoke for now; split later |
 | `fill_smoke_tests` | fill geometry and path generation | Migration smoke; not wired into PR workflow yet |
 | `support_material_smoke_tests` | support material layer generation | Migration smoke; not wired into PR workflow yet |
+| `trianglemesh_geometry_smoke_tests` | TriangleMesh geometry, topology, primitive factories, and slicing | Migration smoke; not wired into PR workflow yet |
 
 ## Legacy File Inventory
 
