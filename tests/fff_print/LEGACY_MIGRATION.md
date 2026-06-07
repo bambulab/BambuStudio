@@ -49,6 +49,7 @@ Status key:
 | `test_flow.cpp` | non-bridge flow math | done | `print_process_math_smoke_tests` | Migrated into light math target. |
 | `test_flow.cpp` | bridge flow math | done | `print_process_math_smoke_tests` | Migrated into light math target. |
 | `test_flow.cpp` | 0.25mm nozzle auto-width edge cases | done | `print_process_math_smoke_tests` | Migrated into light math target. |
+| `test_flow.cpp` | disabled solid spacing non-zero edge case | done | `fill_smoke_tests` | Migrated against the current `Fill::_adjust_solid_spacing` boundary; the old `Flow::new_from_spacing` API no longer exists. |
 | `test_flow.cpp` | extrusion width specifics through G-code export | manual/nightly | future G-code export target | Depends on full G-code generation. |
 | `test_flow.cpp` | bridge flow specifics placeholders | skip | none | Empty placeholder sections. |
 | `test_extrusion_entity.cpp` | collection flattening | done | `print_process_math_smoke_tests` | Migrated into light math/data-structure target. |
