@@ -77,9 +77,11 @@ Status key:
 
 ## Next Migration Candidates
 
-1. Remaining `Fill` large solid surface helper case: keep pending/manual unless current behavior is intentionally updated.
-2. `GCode` origin manipulation: only after introducing a real G-code core/export boundary; direct `GCode.cpp` linkage is too broad for PR smoke.
-3. `PrintGCode` export checks: create manual/nightly target first; do not add to PR smoke by default.
+1. Remaining `Fill` large solid surface helper case: keep manual unless current Fill behavior is intentionally updated; the narrow representative is already in PR smoke.
+2. `SupportMaterial` cube-with-hole contact-distance/top-spacing details: keep manual/nightly unless a stable support-core harness can inspect those layers without broad export or brittle geometry assumptions.
+3. `GCode` origin manipulation and `PrintGCode` export checks: require a proper G-code core/export harness first; direct `GCode.cpp` / full-export linkage is too broad and currently unsafe for PR smoke.
+4. `Skirt/Brim` G-code parser/tool-selection leftovers: keep manual/nightly or skip as documented above; print-core geometry representatives are already in PR smoke.
+5. After the remaining legacy items are classified, shift focus from migration to target split/runtime reduction for `print_process_core_smoke_tests`.
 
 ## Later Split Targets
 
