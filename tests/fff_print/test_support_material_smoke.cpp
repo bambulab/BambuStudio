@@ -69,3 +69,38 @@ SCENARIO("Support material smoke covers migrated raft layer count", "[SupportMat
         }
     }
 }
+
+SCENARIO("Support material smoke covers migrated support layer height variants", "[SupportMaterial]") {
+    GIVEN("a 20mm cube with raft-backed support layers") {
+        WHEN("the first layer height is 0.3mm") {
+            Print print;
+            init_and_process_mesh_print(print, make_cube(20, 20, 20), {
+                { "support_material", 1 },
+                { "raft_layers", 3 },
+                { "layer_height", 0.2 },
+                { "first_layer_height", 0.3 }
+            });
+
+            THEN("support layers honor the configured first layer height and bounds") {
+                REQUIRE(print.objects().front()->support_layers().size() == 3);
+                assert_support_layers_respect_height_bounds(print);
+            }
+        }
+
+        WHEN("the layer height matches the nozzle diameter") {
+            Print print;
+            init_and_process_mesh_print(print, make_cube(20, 20, 20), {
+                { "support_material", 1 },
+                { "raft_layers", 3 },
+                { "layer_height", 0.4 },
+                { "first_layer_height", 0.3 },
+                { "nozzle_diameter", 0.4 }
+            });
+
+            THEN("support layer deltas stay within the nozzle-derived maximum") {
+                REQUIRE(print.objects().front()->support_layers().size() == 3);
+                assert_support_layers_respect_height_bounds(print);
+            }
+        }
+    }
+}
