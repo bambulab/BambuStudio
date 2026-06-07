@@ -1,10 +1,7 @@
-# print filament mapping smoke source surface
-src/libslic3r/Print.cpp
+# print filament mapping Print API integration smoke source surface
 src/libslic3r/PrintApply.cpp
 src/libslic3r/PrintBase.hpp
 src/libslic3r/PrintFilamentMapping.cpp
-src/libslic3r/PrintFilamentCompatibility.cpp
-src/libslic3r/PrintQueries.cpp
 src/libslic3r/libslic3r.h
 src/libslic3r/Print.hpp
 src/libslic3r/PrintConfig*
@@ -13,7 +10,7 @@ src/libslic3r/Model.cpp
 src/libslic3r/Model.hpp
 src/libslic3r/TriangleMesh.hpp
 
-# print filament mapping smoke target tests
+# print filament mapping Print API integration smoke target tests
 tests/fff_print/CMakeLists.txt
 tests/fff_print/fff_print_tests.cpp
 tests/fff_print/test_print_filament_mapping_smoke.cpp
