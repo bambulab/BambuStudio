@@ -15,6 +15,21 @@ static size_t brim_items_count(Slic3r::Print &print)
     return count;
 }
 
+struct ScopedMinSkirtLength
+{
+    explicit ScopedMinSkirtLength(float value) : previous(Print::min_skirt_length)
+    {
+        Print::min_skirt_length = value;
+    }
+
+    ~ScopedMinSkirtLength()
+    {
+        Print::min_skirt_length = previous;
+    }
+
+    float previous;
+};
+
 static void init_and_process_cube_print(Slic3r::Print &print, std::initializer_list<Slic3r::ConfigBase::SetDeserializeItem> config_items)
 {
     Slic3r::DynamicPrintConfig config = Slic3r::DynamicPrintConfig::full_print_config();
@@ -76,6 +91,20 @@ SCENARIO("Print skirt and brim smoke path covers migrated legacy adhesion scenar
 
             THEN("the print process completes without generating skirt loops") {
                 REQUIRE(print.skirt().empty());
+            }
+        }
+
+        WHEN("a large minimum skirt length is requested") {
+            ScopedMinSkirtLength min_skirt_length(20.0f);
+
+            Slic3r::Print print;
+            init_and_process_cube_print(print, {
+                { "skirt_height", 1 },
+                { "skirt_loops", 1 }
+            });
+
+            THEN("skirt generation remains executable and adds loops to satisfy the length request") {
+                REQUIRE(print.skirt().items_count() > 1);
             }
         }
     }
