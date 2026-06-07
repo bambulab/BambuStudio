@@ -40,12 +40,31 @@ SCENARIO("TriangleMesh geometry smoke covers migrated transform operations", "[T
             }
         }
 
+        WHEN("the cube is scaled down on the X axis") {
+            TriangleMesh cube = geometry_cube();
+            cube.scale(Vec3f(0.25f, 1.0f, 1.0f));
+
+            THEN("volume and X size shrink by the same factor") {
+                REQUIRE(std::abs(cube.volume() - 0.25 * 20.0 * 20.0 * 20.0) < 1e-2);
+                REQUIRE(cube.size().x() == Approx(5.0));
+            }
+        }
+
         WHEN("the cube is rotated around Z") {
             TriangleMesh cube = geometry_cube();
             cube.rotate_z(float(PI / 4.0));
 
             THEN("the bounding-box X size reflects the rotation") {
                 REQUIRE(cube.size().x() == Approx(std::sqrt(2.0) * 20.0).margin(1e-2));
+            }
+        }
+
+        WHEN("the cube is translated with a vector") {
+            TriangleMesh cube = geometry_cube();
+            cube.translate(Vec3f(5.0f, 10.0f, 0.0f));
+
+            THEN("vertices move by the vector offset") {
+                REQUIRE(cube.its.vertices.at(0) == Vec3f(25.0f, 30.0f, 0.0f));
             }
         }
 
@@ -110,6 +129,8 @@ SCENARIO("TriangleMesh geometry smoke covers migrated primitive factories", "[Tr
 
         WHEN("a cylinder is created") {
             TriangleMesh cylinder = make_cylinder(10.0, 10.0, PI / 243.0);
+            const double cylinder_angle = 2.0 * PI / std::floor(2.0 * PI / (PI / 243.0));
+            const size_t cylinder_segments = static_cast<size_t>(std::llround(2.0 * PI / cylinder_angle));
 
             THEN("it has the expected axis vertices and approximate volume") {
                 REQUIRE(std::count_if(cylinder.its.vertices.begin(), cylinder.its.vertices.end(), [](const Vec3f &vertex) {
@@ -118,6 +139,8 @@ SCENARIO("TriangleMesh geometry smoke covers migrated primitive factories", "[Tr
                 REQUIRE(std::count_if(cylinder.its.vertices.begin(), cylinder.its.vertices.end(), [](const Vec3f &vertex) {
                     return vertex.x() == 0.0f && vertex.y() == 0.0f && vertex.z() == 10.0f;
                 }) == 1);
+                REQUIRE(cylinder.its.vertices.size() == 2 + cylinder_segments * 2);
+                REQUIRE(cylinder.its.indices.size() == cylinder_segments * 4);
                 REQUIRE(std::abs(cylinder.volume() - (10.0 * PI * std::pow(10.0, 2))) < 1.0);
             }
         }

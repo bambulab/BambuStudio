@@ -39,9 +39,9 @@ Status key:
 | `test_model.cpp` | `Model construction` | done | `model_basic_smoke_tests` | Migrated via object, volume, instance, mesh preservation checks. |
 | `test_trianglemesh.cpp` | basic mesh statistics | done | `model_basic_smoke_tests` | Migrated within `TriangleMeshBasic` boundary. |
 | `test_trianglemesh.cpp` | translation / cube factory basics | done | `model_basic_smoke_tests` | Added within `TriangleMeshBasic` boundary. |
-| `test_trianglemesh.cpp` | transformation functions | done | `trianglemesh_geometry_smoke_tests` | Migrated and path-filtered into PR smoke. |
+| `test_trianglemesh.cpp` | transformation functions | done | `trianglemesh_geometry_smoke_tests` | Migrated and path-filtered into PR smoke, including axis scale-up/down, vector/double translation, rotation, and origin alignment representatives. |
 | `test_trianglemesh.cpp` | slice behavior | done | `trianglemesh_geometry_smoke_tests` | Migrated and path-filtered into PR smoke. |
-| `test_trianglemesh.cpp` | cylinder/sphere factory helpers | done | `trianglemesh_geometry_smoke_tests` | Migrated and path-filtered into PR smoke. |
+| `test_trianglemesh.cpp` | cylinder/sphere factory helpers | done | `trianglemesh_geometry_smoke_tests` | Migrated and path-filtered into PR smoke, including primitive topology counts and approximate volumes. |
 | `test_trianglemesh.cpp` | split / merge / cut behavior | done | `trianglemesh_geometry_smoke_tests` | Migrated and path-filtered into PR smoke. |
 | `test_trianglemesh.cpp` | issue #4486 performance/profile tests | manual/nightly | nightly regression bucket | Performance guard; not PR smoke. |
 | `test_flow.cpp` | non-bridge flow math | done | `print_process_math_smoke_tests` | Migrated into light math target. |
