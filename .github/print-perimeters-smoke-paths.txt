@@ -1,5 +1,4 @@
 # print perimeters smoke source surface
-src/libslic3r/Print.cpp
 src/libslic3r/PrintApply.cpp
 src/libslic3r/PrintExtruderUtils.cpp
 src/libslic3r/PrintProcessPerimeters.cpp

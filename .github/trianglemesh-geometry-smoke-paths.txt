@@ -5,7 +5,6 @@ src/libslic3r/TriangleMesh*
 src/libslic3r/Mesh*
 src/libslic3r/Geometry.cpp
 src/libslic3r/GeometryTransformation.cpp
-src/libslic3r/ModelCut.cpp
 src/libslic3r/ModelTransform.cpp
 
 # trianglemesh geometry smoke target tests
