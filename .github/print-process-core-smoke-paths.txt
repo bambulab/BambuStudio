@@ -5,6 +5,7 @@ src/libslic3r/PrintBase.hpp
 src/libslic3r/Print.hpp
 src/libslic3r/PrintConfig*
 src/libslic3r/PrintObject.cpp
+src/libslic3r/PrintObjectExtruders.cpp
 src/libslic3r/PrintObjectInfill.cpp
 src/libslic3r/PrintObjectInvalidation.cpp
 src/libslic3r/PrintObjectLayers.cpp
@@ -12,6 +13,9 @@ src/libslic3r/PrintObjectSlice.cpp
 src/libslic3r/PrintObjectSliceInterlocking.cpp
 src/libslic3r/PrintObjectSliceInterlocking.hpp
 src/libslic3r/PrintObjectSlicingConfig.cpp
+src/libslic3r/PrintObjectUpdateSlicingParameters.cpp
+src/libslic3r/PrintRegionConfigExtruders.cpp
+src/libslic3r/PrintRegionExtruders.cpp
 src/libslic3r/Config*
 src/libslic3r/Fill/*
 src/libslic3r/Flow.cpp

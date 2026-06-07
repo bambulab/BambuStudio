@@ -9,6 +9,7 @@ src/libslic3r/Model.hpp
 src/libslic3r/Layer.hpp
 src/libslic3r/TriangleMesh.hpp
 src/libslic3r/Print.hpp
+src/libslic3r/PrintRegionConfigExtruders.cpp
 src/libslic3r/PrintObjectSlicingConfig.cpp
 src/libslic3r/PrintBase.hpp
 src/libslic3r/PrintObjectSliceInterlocking.hpp
