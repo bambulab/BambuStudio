@@ -1,5 +1,7 @@
 # support material smoke source surface
 src/libslic3r/PrintProcessSupport.cpp
+src/libslic3r/PrintObjectSupport.cpp
+src/libslic3r/PrintObjectSupportGeometry.cpp
 src/libslic3r/Support/SupportMaterial.cpp
 src/libslic3r/Support/SupportMaterial.hpp
 src/libslic3r/Support/SupportCommon*
