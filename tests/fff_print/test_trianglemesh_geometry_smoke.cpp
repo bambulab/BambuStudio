@@ -21,6 +21,10 @@ static TriangleMesh geometry_cube()
 
 SCENARIO("TriangleMesh geometry smoke covers migrated transform operations", "[TriangleMeshGeometry]") {
     GIVEN("a 20mm cube with one corner on the origin") {
+        THEN("the geometric center matches the cube midpoint") {
+            REQUIRE(geometry_cube().center() == Vec3d(10.0, 10.0, 10.0));
+        }
+
         WHEN("the cube is uniformly scaled") {
             TriangleMesh cube = geometry_cube();
             cube.scale(2.0f);
