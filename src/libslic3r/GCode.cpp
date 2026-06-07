@@ -18,6 +18,8 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <cerrno>
+#include <cstring>
 #include <chrono>
 #include <math.h>
 #include <utility>
@@ -1731,9 +1733,15 @@ void GCode::do_export(Print* print, const char* path, GCodeProcessorResult* resu
         this->_do_export(*print, file, thumbnail_cb);
         file.flush();
         if (file.is_error()) {
+            // Report the real OS error (e.g. "No space left on device", "Permission
+            // denied") instead of always guessing "disk full" — the write can also
+            // fail on a full temp volume, a read-only path, antivirus locks, etc.
+            std::string os_error = file.get_last_error();
             file.close();
             boost::nowide::remove(path_tmp.c_str());
-            throw Slic3r::RuntimeError(std::string("G-code export to ") + PathSanitizer::sanitize(path) + " failed\nIs the disk full?\n");
+            throw Slic3r::RuntimeError(std::string("G-code export to ") + PathSanitizer::sanitize(path) +
+                (os_error.empty() ? " failed\nIs the disk full?\n"
+                                  : " failed: " + os_error + "\nIs the disk full?\n"));
         }
     } catch (std::exception & /* ex */) {
         // Rethrow on any exception. std::runtime_exception and CanceledException are expected to be thrown.
@@ -6179,9 +6187,15 @@ bool GCode::GCodeOutputStream::is_error() const
     return ::ferror(this->f);
 }
 
+std::string GCode::GCodeOutputStream::get_last_error() const
+{
+    return m_write_errno == 0 ? std::string() : std::string(::strerror(m_write_errno));
+}
+
 void GCode::GCodeOutputStream::flush()
 {
-    ::fflush(this->f);
+    if (::fflush(this->f) != 0 && m_write_errno == 0)
+        m_write_errno = errno;
 }
 
 void GCode::GCodeOutputStream::close()
@@ -6197,7 +6211,9 @@ void GCode::GCodeOutputStream::write(const char *what)
     if (what != nullptr) {
         const char* gcode = what;
         // writes string to file
-        fwrite(gcode, 1, ::strlen(gcode), this->f);
+        const size_t len = ::strlen(gcode);
+        if (::fwrite(gcode, 1, len, this->f) != len && m_write_errno == 0)
+            m_write_errno = errno;
         //FIXME don't allocate a string, maybe process a batch of lines?
         m_processor.process_buffer(std::string(gcode));
     }
