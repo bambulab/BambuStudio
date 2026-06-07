@@ -68,7 +68,7 @@ Status key:
 | `test_fill.cpp` | rotated square fill | done | `fill_smoke_tests` | Migrated and path-filtered into PR smoke. |
 | `test_fill.cpp` | solid surface fill helper cases | partial | `fill_smoke_tests` | Migrated narrow representative; large representative is not stable against current Fill behavior. |
 | `test_support_material.cpp` | raft layer count | done | `support_material_smoke_tests` | Migrated and path-filtered into PR smoke. |
-| `test_support_material.cpp` | support layer Z/contact distance | partial | `support_material_smoke_tests` | Migrated stable first-Z and thickness-bound variants through raft-backed support layers, including 0.3mm first layer and nozzle-sized layer-height representatives; cube-with-hole contact-distance/top-spacing details remain pending/manual. |
+| `test_support_material.cpp` | support layer Z/contact distance | partial | `support_material_smoke_tests` | Migrated stable first-Z and thickness-bound variants through raft-backed support layers and the legacy cube-with-hole support mesh, including 0.3mm first layer and nozzle-sized layer-height representatives; contact-distance/top-spacing internals remain manual/nightly until a stable support-core inspection boundary exists. |
 | `test_support_material.cpp` | forced support / bridge speed disabled block | skip/manual | none or nightly | Currently disabled / incomplete. |
 | `test_printgcode.cpp` | basic G-code output structure | manual/nightly | future G-code export smoke | Valuable, but should not be mixed into current PR smoke; direct full-export target needs a proper export harness because the current test-only setup crashes after `Print::process()` on Windows. |
 | `test_printgcode.cpp` | complete objects, support material, macros | manual/nightly | future G-code export smoke | Heavy export coverage; keep separate behind the same export harness boundary. |
@@ -78,7 +78,7 @@ Status key:
 ## Next Migration Candidates
 
 1. Remaining `Fill` large solid surface helper case: keep manual unless current Fill behavior is intentionally updated; the narrow representative is already in PR smoke.
-2. `SupportMaterial` cube-with-hole contact-distance/top-spacing details: keep manual/nightly unless a stable support-core harness can inspect those layers without broad export or brittle geometry assumptions.
+2. `SupportMaterial` contact-distance/top-spacing internals: keep manual/nightly unless a stable support-core harness can inspect those layers without broad export or brittle geometry assumptions; the cube-with-hole layer-bound representatives are now in PR smoke.
 3. `GCode` origin manipulation and `PrintGCode` export checks: require a proper G-code core/export harness first; direct `GCode.cpp` / full-export linkage is too broad and currently unsafe for PR smoke.
 4. `Skirt/Brim` G-code parser/tool-selection leftovers: keep manual/nightly or skip as documented above; print-core geometry representatives are already in PR smoke.
 5. After the remaining legacy items are classified, shift focus from migration to target split/runtime reduction for `print_process_core_smoke_tests`.
