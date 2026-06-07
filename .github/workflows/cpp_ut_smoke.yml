@@ -16,6 +16,7 @@ on:
     paths:
       - "src/**"
       - "tests/**"
+      - "!tests/fff_print/LEGACY_MIGRATION.md"
       - "deps/**"
       - "**/CMakeLists.txt"
       - "build_win.bat"
