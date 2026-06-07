@@ -30,6 +30,7 @@ Status key:
 | `print_object_layers_smoke_tests` | object layer height generation | Fast PR smoke when object layer/slicing paths change |
 | `print_adhesion_smoke_tests` | skirt/brim adhesion generation | Fast PR smoke when adhesion paths change |
 | `fill_smoke_tests` | fill geometry and path generation | Fast PR smoke when fill paths change |
+| `support_material_layers_smoke_tests` | support generator layer helper z/height initialization | Fast PR smoke when support layer helper paths change |
 | `support_material_smoke_tests` | support material layer generation | Fast PR smoke when support paths change |
 | `trianglemesh_geometry_smoke_tests` | TriangleMesh geometry, topology, primitive factories, and slicing | Fast PR smoke when geometry paths change |
 
@@ -89,6 +90,7 @@ Status key:
 | Filament mapping pure rules | done | `libslic3r_config_tests` | `Print::is_dynamic_group_reorder()` and `Print::get_available_filament_map_modes()` now delegate their pure decisions to `FilamentMappingRules`, keeping the existing `Print` API behavior while covering those rules in the lighter config-core target. |
 | Filament mapping config synchronization | partial | `libslic3r_config_tests`, `print_filament_mapping_smoke_tests` | `FilamentMappingConfigSync::sync_maps_to_config()` now owns the config synchronization rules in config-core, including explicit volume/nozzle maps and default volume-map derivation. `Print::update_filament_maps_to_config()` remains covered by the heavier mapping smoke as the integration API for placeholder parser updates, cache refresh, and auto-map state. |
 | Print apply/validate initialization | done | `print_apply_validate_smoke_tests` | `test_print_init_smoke.cpp` now runs against real `PrintApply.cpp` and `PrintValidate.cpp`; `Print::process()` remains guarded by apply/validate compat so the target cannot silently become full slicing coverage. |
+| Support material layer helpers | done | `support_material_layers_smoke_tests`, `support_material_smoke_tests` | `layer_z()`, `layer_initialize()`, and `layer_allocate()` now live in `SupportLayerUtils.hpp`, a light support-layer helper boundary. The new smoke target covers z/height initialization without pulling `Print::process()`, while the existing support material smoke keeps full raft/support generation coverage. |
 
 ## Next Migration Candidates
 

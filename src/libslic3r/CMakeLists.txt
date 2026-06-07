@@ -390,6 +390,7 @@ set(lisbslic3r_sources
     SlicingAdaptive.hpp
     Support/SupportCommon.cpp
     Support/SupportCommon.hpp
+    Support/SupportLayerUtils.hpp
     Support/SupportMaterial.cpp
     Support/SupportMaterial.hpp
     Support/TreeSupport.hpp
