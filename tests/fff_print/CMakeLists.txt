@@ -81,6 +81,7 @@ add_test(print_process_math_smoke_tests print_process_math_smoke_tests ${CATCH_E
 
 add_executable(print_process_core_smoke_tests
 	${_TEST_NAME}_tests.cpp
+	test_print_init_smoke.cpp
 	test_print_solid_layers_smoke.cpp
 	test_printobject_layers_smoke.cpp
 	test_print_skirt_brim_smoke.cpp
