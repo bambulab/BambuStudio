@@ -203,38 +203,6 @@ SCENARIO("Fill smoke covers migrated rotated square fill", "[Fill]") {
     }
 }
 
-SCENARIO("Fill smoke covers migrated solid spacing adjustment", "[Fill]") {
-    GIVEN("a solid surface width and requested line distance from the legacy adjusted-distance case") {
-        const coord_t surface_width = scale_(250.0);
-        const coord_t requested_distance = scale_(47.0);
-
-        WHEN("solid spacing is adjusted to better cover the width") {
-            const coord_t adjusted_distance = Fill::_adjust_solid_spacing(surface_width, requested_distance);
-
-            THEN("the adjusted distance stays close to the legacy 50mm representative and within the 20 percent limit") {
-                REQUIRE(adjusted_distance > requested_distance);
-                REQUIRE(adjusted_distance == Approx(scale_(50.0)).margin(2.0));
-                REQUIRE(adjusted_distance <= static_cast<coord_t>(std::floor(double(requested_distance) * 1.2 + 0.5)));
-            }
-        }
-    }
-
-    GIVEN("a narrow solid surface where adjustment could otherwise collapse spacing") {
-        const coord_t surface_width = scale_(2.0);
-        const coord_t requested_distance = scale_(0.414159);
-
-        WHEN("solid spacing is adjusted") {
-            const coord_t adjusted_distance = Fill::_adjust_solid_spacing(surface_width, requested_distance);
-
-            THEN("the adjusted distance remains positive and bounded by the same current limit") {
-                REQUIRE(adjusted_distance > 0);
-                REQUIRE(adjusted_distance >= requested_distance);
-                REQUIRE(adjusted_distance <= static_cast<coord_t>(std::floor(double(requested_distance) * 1.2 + 0.5)));
-            }
-        }
-    }
-}
-
 SCENARIO("Fill smoke covers migrated solid surface fill representatives", "[Fill]") {
     GIVEN("a narrow rectangular solid surface") {
         const Points points {

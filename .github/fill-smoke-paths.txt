@@ -1,6 +1,12 @@
 # fill smoke source surface
-src/libslic3r/Fill/*
-src/libslic3r/Fill.cpp
+src/libslic3r/Fill/Fill.cpp
+src/libslic3r/Fill/Fill.hpp
+src/libslic3r/Fill/FillBase.cpp
+src/libslic3r/Fill/FillBase.hpp
+src/libslic3r/Fill/FillLine.cpp
+src/libslic3r/Fill/FillLine.hpp
+src/libslic3r/Fill/FillRectilinear.cpp
+src/libslic3r/Fill/FillRectilinear.hpp
 src/libslic3r/Flow.cpp
 src/libslic3r/Surface.cpp
 src/libslic3r/SurfaceCollection.cpp

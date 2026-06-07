@@ -7,6 +7,8 @@ src/libslic3r/ExPolygon.cpp
 src/libslic3r/ExPolygonSecondMoment.cpp
 src/libslic3r/ExtrusionEntity.cpp
 src/libslic3r/ExtrusionEntityCollection.cpp
+src/libslic3r/Fill/FillBase.hpp
+src/libslic3r/Fill/FillSpacing.cpp
 src/libslic3r/Flow.cpp
 src/libslic3r/Flow.hpp
 src/libslic3r/Geometry.cpp

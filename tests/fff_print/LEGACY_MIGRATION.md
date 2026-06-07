@@ -49,7 +49,7 @@ Status key:
 | `test_flow.cpp` | non-bridge flow math | done | `print_process_math_smoke_tests` | Migrated into light math target. |
 | `test_flow.cpp` | bridge flow math | done | `print_process_math_smoke_tests` | Migrated into light math target. |
 | `test_flow.cpp` | 0.25mm nozzle auto-width edge cases | done | `print_process_math_smoke_tests` | Migrated into light math target. |
-| `test_flow.cpp` | disabled solid spacing non-zero edge case | done | `fill_smoke_tests` | Migrated against the current `Fill::_adjust_solid_spacing` boundary; the old `Flow::new_from_spacing` API no longer exists. |
+| `test_flow.cpp` | disabled solid spacing non-zero edge case | done | `print_process_math_smoke_tests` | Migrated against the current `Fill::_adjust_solid_spacing` helper boundary; the old `Flow::new_from_spacing` API no longer exists. |
 | `test_flow.cpp` | extrusion width specifics through G-code export | manual/nightly | future G-code export target | Depends on full G-code generation. |
 | `test_flow.cpp` | bridge flow specifics placeholders | skip | none | Empty placeholder sections. |
 | `test_extrusion_entity.cpp` | collection flattening | done | `print_process_math_smoke_tests` | Migrated into light math/data-structure target. |
@@ -69,7 +69,7 @@ Status key:
 | `test_fill.cpp` | rectilinear path length / hole avoidance | done | `fill_smoke_tests` | Migrated and path-filtered into PR smoke. |
 | `test_fill.cpp` | missing infill segment regression | done | `fill_smoke_tests` | Migrated and path-filtered into PR smoke. |
 | `test_fill.cpp` | rotated square fill | done | `fill_smoke_tests` | Migrated and path-filtered into PR smoke. |
-| `test_fill.cpp` | adjusted solid distance | done | `fill_smoke_tests` | Migrated against current `Fill::_adjust_solid_spacing` boundary, including the legacy 250/47 representative and a non-zero narrow-width regression. |
+| `test_fill.cpp` | adjusted solid distance | done | `print_process_math_smoke_tests` | Migrated against current `Fill::_adjust_solid_spacing` helper boundary, including the legacy 250/47 representative and a non-zero narrow-width regression. |
 | `test_fill.cpp` | solid surface fill helper cases | partial | `fill_smoke_tests` | Migrated narrow representative; large representative is not stable against current Fill behavior. |
 | `test_support_material.cpp` | raft layer count | done | `support_material_smoke_tests` | Migrated and path-filtered into PR smoke. |
 | `test_support_material.cpp` | support layer Z/contact distance | partial | `support_material_smoke_tests` | Migrated stable first-Z and thickness-bound variants through raft-backed support layers and the legacy cube-with-hole support mesh, including 0.3mm first layer and nozzle-sized layer-height representatives; contact-distance/top-spacing internals remain manual/nightly until a stable support-core inspection boundary exists. |
@@ -81,7 +81,7 @@ Status key:
 
 ## Next Migration Candidates
 
-1. Remaining `Fill` large solid surface helper case: keep manual unless current Fill behavior is intentionally updated; the narrow representative and solid-spacing adjustment representatives are already in PR smoke.
+1. Remaining `Fill` large solid surface helper case: keep manual unless current Fill behavior is intentionally updated; the narrow representative is in `fill_smoke_tests`, and solid-spacing adjustment representatives are in the lighter `print_process_math_smoke_tests`.
 2. `SupportMaterial` contact-distance/top-spacing internals: keep manual/nightly unless a stable support-core harness can inspect those layers without broad export or brittle geometry assumptions; the cube-with-hole layer-bound representatives are now in PR smoke.
 3. `GCode` origin manipulation, `PrintGCode` export checks, and the export half of `Model construction` / `test_data` helpers: require a proper G-code core/export harness first; direct `GCode.cpp` / full-export linkage is too broad and currently unsafe for PR smoke.
 4. `Skirt/Brim` G-code parser/tool-selection leftovers: keep manual/nightly or skip as documented above; print-core geometry representatives are already in PR smoke.

@@ -134,6 +134,7 @@ set(lisbslic3r_sources
     Fill/FillRectilinear.hpp
     Fill/FillFloatingConcentric.hpp
     Fill/FillFloatingConcentric.cpp
+    Fill/FillSpacing.cpp
     Flow.cpp
     Flow.hpp
     FlowPrint.cpp
@@ -605,6 +606,7 @@ set(libslic3r_print_process_math_core_sources
     Extruder.cpp
     ExtrusionEntity.cpp
     ExtrusionEntityCollection.cpp
+    Fill/FillSpacing.cpp
     Flow.cpp
     Geometry/MedialAxis.cpp
     Geometry/Voronoi.cpp
@@ -680,6 +682,7 @@ set(libslic3r_print_process_core_sources
     Fill/FillLightning.cpp
     Fill/FillPlanePath.cpp
     Fill/FillRectilinear.cpp
+    Fill/FillSpacing.cpp
     Fill/Lightning/DistanceField.cpp
     Fill/Lightning/Generator.cpp
     Fill/Lightning/Layer.cpp
@@ -858,6 +861,7 @@ list(REMOVE_ITEM libslic3r_print_perimeters_core_sources
     Fill/FillLightning.cpp
     Fill/FillPlanePath.cpp
     Fill/FillRectilinear.cpp
+    Fill/FillSpacing.cpp
     Fill/Lightning/DistanceField.cpp
     Fill/Lightning/Generator.cpp
     Fill/Lightning/Layer.cpp
