@@ -119,13 +119,6 @@ PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &defau
     return config;
 }
 
-void PrintObject::update_slicing_parameters()
-{
-    if (!m_slicing_params.valid)
-        m_slicing_params = SlicingParameters::create_from_config(
-            this->print()->config(), m_config, this->model_object()->bounding_box().max.z(), this->object_extruders());
-}
-
 SlicingParameters PrintObject::slicing_parameters(const DynamicPrintConfig &full_config, const ModelObject &model_object, float object_max_z, std::vector<int> variant_index)
 {
     PrintConfig       print_config;

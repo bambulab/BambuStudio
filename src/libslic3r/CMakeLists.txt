@@ -362,12 +362,16 @@ set(lisbslic3r_sources
     PrintObjectPostProcess.cpp
     PrintObjectSlicingConfig.cpp
     PrintObject.cpp
+    PrintObjectExtruders.cpp
+    PrintObjectUpdateSlicingParameters.cpp
     PrintObjectSupportGeometry.cpp
     PrintObjectSupport.cpp
     PrintObjectSlice.cpp
     PrintObjectSliceInterlocking.hpp
     PrintObjectSliceInterlocking.cpp
     PrintRegion.cpp
+    PrintRegionConfigExtruders.cpp
+    PrintRegionExtruders.cpp
     PNGReadWrite.hpp
     PNGReadWrite.cpp
     QuadricEdgeCollapse.cpp
@@ -656,6 +660,33 @@ add_library(libslic3r_model_basic_core STATIC
     ${libslic3r_model_basic_core_sources}
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
 
+set(libslic3r_print_object_layers_core_sources
+    ObjectID.cpp
+    TriangleMeshBasic.cpp
+    ModelAssembly.cpp
+    ModelGeometry.cpp
+    ModelPlacement.cpp
+    ModelCopy.cpp
+    ModelTransform.cpp
+    Slicing.cpp
+    SlicingAdaptive.cpp
+    PrintObjectSlicingConfig.cpp
+    PrintObjectLayers.cpp
+    PrintObjectSlice.cpp
+    PrintRegionConfigExtruders.cpp
+    Layer.cpp
+    LayerRegion.cpp
+    ModelBounds.cpp
+    ModelRawMesh.cpp
+    SurfaceCollection.cpp
+    TriangleMeshTopology.cpp
+    TriangleMeshTransform.cpp
+)
+
+add_library(libslic3r_print_object_layers_core STATIC
+    ${libslic3r_print_object_layers_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
 set(libslic3r_print_process_core_sources
     ArcFitter.cpp
     BoundingBox.cpp
@@ -793,11 +824,15 @@ set(libslic3r_print_process_core_sources
     PrintObjectPostProcess.cpp
     PrintObjectSlicingConfig.cpp
     PrintObject.cpp
+    PrintObjectExtruders.cpp
+    PrintObjectUpdateSlicingParameters.cpp
     PrintObjectSupportGeometry.cpp
     PrintObjectSupport.cpp
     PrintObjectSlice.cpp
     PrintObjectSliceInterlocking.cpp
     PrintRegion.cpp
+    PrintRegionConfigExtruders.cpp
+    PrintRegionExtruders.cpp
     ShortestPath.cpp
     ShortestPathExtras.cpp
     Slicing.cpp
@@ -1028,6 +1063,7 @@ target_compile_definitions(libslic3r PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTI
 target_compile_definitions(libslic3r_config_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_compile_definitions(libslic3r_gcodewriter_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_compile_definitions(libslic3r_print_process_math_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
+target_compile_definitions(libslic3r_print_object_layers_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_compile_definitions(libslic3r_model_basic_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/TextureToColor PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r PUBLIC ${EXPAT_INCLUDE_DIRS})
@@ -1045,6 +1081,7 @@ set(OpenCASCADE_DIR "${CMAKE_PREFIX_PATH}/lib/cmake/occt")
 find_package(OpenCASCADE REQUIRED)
 target_include_directories(libslic3r PUBLIC ${OpenCASCADE_INCLUDE_DIR})
 target_include_directories(libslic3r_model_basic_core PUBLIC ${OpenCASCADE_INCLUDE_DIR})
+target_include_directories(libslic3r_print_object_layers_core PUBLIC ${OpenCASCADE_INCLUDE_DIR})
 
 set(OCCT_LIBS
     TKXDESTEP
@@ -1176,6 +1213,25 @@ target_link_libraries(libslic3r_print_process_math_core
 
 target_link_libraries(libslic3r_model_basic_core
     libslic3r_config_core
+    admesh
+    cereal
+    libigl
+    miniz
+    boost_libs
+    clipper
+    nowide
+    ${EXPAT_LIBRARIES}
+    glu-libtess
+    qhull
+    semver
+    TBB::tbb
+    TBB::tbbmalloc
+    ${OCCT_LIBS}
+)
+
+target_link_libraries(libslic3r_print_object_layers_core
+    libslic3r_config_core
+    libslic3r_print_process_math_core
     admesh
     cereal
     libigl
