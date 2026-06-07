@@ -83,6 +83,7 @@ jobs:
     name: Cpp UT Smoke
     needs: resolve-deps-run
     runs-on: windows-latest
+    timeout-minutes: 180
     env:
       DEPS_ZIP_DIR: ${{ github.workspace }}\deps-artifact
       DEPS_ROOT: ${{ github.workspace }}\deps\build\BambuStudio_dep
@@ -431,66 +432,79 @@ jobs:
 
       - name: Build libslic3r config fast target
         if: steps.smoke_scope.outputs.config_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target libslic3r_config_tests --parallel ${{ env.BUILD_PARALLEL }}
 
       - name: Build gcodewriter smoke target
         if: steps.smoke_scope.outputs.gcodewriter_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target gcodewriter_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
 
       - name: Build model assembly smoke target
         if: steps.smoke_scope.outputs.model_assembly_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target model_basic_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
 
       - name: Build print filament mapping smoke target
         if: steps.smoke_scope.outputs.filament_mapping_enabled == 'true'
+        timeout-minutes: 30
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target print_filament_mapping_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
 
       - name: Build print apply/validate smoke target
         if: steps.smoke_scope.outputs.apply_validate_enabled == 'true'
+        timeout-minutes: 30
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target print_apply_validate_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
 
       - name: Build print perimeters smoke target
         if: steps.smoke_scope.outputs.perimeters_enabled == 'true'
+        timeout-minutes: 30
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target print_perimeters_stage_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
 
       - name: Build print process math smoke target
         if: steps.smoke_scope.outputs.process_math_enabled == 'true'
+        timeout-minutes: 15
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target print_process_math_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
 
       - name: Build print process core smoke target
         if: steps.smoke_scope.outputs.process_core_enabled == 'true'
+        timeout-minutes: 45
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target print_process_core_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
 
       - name: Build print object layers smoke target
         if: steps.smoke_scope.outputs.object_layers_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target print_object_layers_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
 
       - name: Build print adhesion smoke target
         if: steps.smoke_scope.outputs.adhesion_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target print_adhesion_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
 
       - name: Build fill smoke target
         if: steps.smoke_scope.outputs.fill_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target fill_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
 
       - name: Build support material smoke target
         if: steps.smoke_scope.outputs.support_material_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target support_material_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
 
       - name: Build trianglemesh geometry smoke target
         if: steps.smoke_scope.outputs.trianglemesh_geometry_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target trianglemesh_geometry_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
 
