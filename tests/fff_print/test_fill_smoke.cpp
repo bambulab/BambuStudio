@@ -2,9 +2,11 @@
 
 #include "libslic3r/ClipperUtils.hpp"
 #include "libslic3r/Fill/Fill.hpp"
+#include "libslic3r/Flow.hpp"
 #include "libslic3r/Surface.hpp"
 #include "libslic3r/libslic3r.h"
 
+#include <algorithm>
 #include <cmath>
 #include <memory>
 #include <vector>
@@ -36,6 +38,40 @@ static Polylines rectilinear_fill(const ExPolygon &expolygon, double angle, doub
 
     Surface surface(stTop, expolygon);
     return filler->fill_surface(&surface, params);
+}
+
+static bool solid_surface_fully_filled(const ExPolygon &expolygon, double flow_spacing, double angle, float density)
+{
+    std::unique_ptr<Fill> filler(Fill::new_from_type(ipRectilinear));
+    REQUIRE(filler != nullptr);
+
+    filler->set_bounding_box(get_extents(expolygon.contour));
+    filler->angle = static_cast<float>(angle);
+
+    const Flow flow(static_cast<float>(flow_spacing), 0.4f, static_cast<float>(flow_spacing));
+    filler->spacing = flow.spacing();
+
+    FillParams params;
+    params.density     = density;
+    params.dont_adjust = false;
+
+    Surface surface(stBottom, expolygon);
+    const Polylines paths = filler->fill_surface(&surface, params);
+
+    Polygons grown_paths;
+    grown_paths.reserve(paths.size());
+
+    const float line_offset = static_cast<float>(scale_(filler->spacing / 2.0 + EPSILON));
+    for (const Polyline &path : paths)
+        polygons_append(grown_paths, offset(path, line_offset));
+
+    ExPolygons uncovered = diff_ex(offset(expolygon, -float(0.2 * scale_(flow_spacing))), grown_paths, ApplySafetyOffset::Yes);
+    const double scaled_flow_spacing = std::pow(scale_(flow_spacing), 2);
+    uncovered.erase(std::remove_if(uncovered.begin(), uncovered.end(), [scaled_flow_spacing](const ExPolygon &poly) {
+        return poly.area() < scaled_flow_spacing;
+    }), uncovered.end());
+
+    return uncovered.empty();
 }
 
 } // namespace
@@ -133,6 +169,52 @@ SCENARIO("Fill smoke covers migrated missing infill segment regression", "[Fill]
                 REQUIRE(paths.size() == 1);
                 REQUIRE(paths.front().length() > scale_(50));
             }
+        }
+    }
+}
+
+SCENARIO("Fill smoke covers migrated rotated square fill", "[Fill]") {
+    GIVEN("a square bottom surface with rectilinear fill") {
+        const Points    square { Point::new_scale(0, 0), Point::new_scale(50, 0), Point::new_scale(50, 50), Point::new_scale(0, 50) };
+        const ExPolygon expolygon(square);
+
+        std::unique_ptr<Fill> filler(Fill::new_from_type(ipRectilinear));
+        REQUIRE(filler != nullptr);
+        filler->set_bounding_box(get_extents(expolygon.contour));
+        filler->angle = 0;
+        filler->spacing = Flow(0.69f, 0.4f, 0.50f).spacing();
+
+        FillParams params;
+        params.density = 1.0f;
+
+        for (double angle : { 0.0, 45.0 }) {
+            CAPTURE(angle);
+            Surface surface(stTop, expolygon);
+            surface.expolygon.rotate(angle, Point(0, 0));
+
+            WHEN("rectilinear fill is generated for the representative orientation") {
+                const Polylines paths = filler->fill_surface(&surface, params);
+
+                THEN("one continuous path is produced") {
+                    REQUIRE(paths.size() == 1);
+                }
+            }
+        }
+    }
+}
+
+SCENARIO("Fill smoke covers migrated solid surface fill representatives", "[Fill]") {
+    GIVEN("a narrow rectangular solid surface") {
+        const Points points {
+            Point::new_scale(0, 0),
+            Point::new_scale(98, 0),
+            Point::new_scale(98, 10),
+            Point::new_scale(0, 10)
+        };
+        const ExPolygon expolygon(points);
+
+        THEN("the solid surface is filled at the legacy representative angle and density") {
+            REQUIRE(solid_surface_fully_filled(expolygon, 0.5, 45.0, 0.99f));
         }
     }
 }
