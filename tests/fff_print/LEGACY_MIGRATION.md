@@ -56,7 +56,13 @@ Status key:
 | `test_print.cpp` | skirt generation | done | `print_process_core_smoke_tests` | Migrated with adhesion scenarios. |
 | `test_print.cpp` | solid surface re-slice classification | done | `print_process_core_smoke_tests` | Migrated. |
 | `test_print.cpp` | brim generation | done | `print_process_core_smoke_tests` | Migrated with adhesion scenarios. |
-| `test_skirt_brim.cpp` | skirt height and original skirt/brim cases | partial | `print_process_core_smoke_tests` | Migrated representative adhesion and config edge cases, including large brim vs skirt, disabled skirt height, and large minimum skirt length; G-code parser/tool-selection details remain candidate/manual. |
+| `test_skirt_brim.cpp` | print-core skirt/brim geometry cases | done | `print_process_core_smoke_tests` | Migrated representative adhesion and config edge cases, including generated skirt loops, large brim vs skirt, disabled skirt height, brim width/line-width scaling, and large minimum skirt length. |
+| `test_skirt_brim.cpp` | skirt height across G-code layers | manual/nightly | future G-code export smoke | Requires full G-code export and parser speed/layer inspection; keep out of PR smoke until a stable export harness exists. |
+| `test_skirt_brim.cpp` | brim generated in G-code | manual/nightly | future G-code export smoke | Requires G-code export/parser inspection; current print-core smoke covers brim geometry directly instead. |
+| `test_skirt_brim.cpp` | brim tool-selection through exported G-code | skip/manual | future G-code export smoke only if behavior is revalidated | Legacy cases are inside `#if 0` and note a real historical mismatch; do not revive without product confirmation and a stable export harness. |
+| `test_skirt_brim.cpp` | brim ears cases | skip | none | Legacy cases are disabled and current config/behavior boundary is not established for PR smoke. |
+| `test_skirt_brim.cpp` | overhang support plus brim exports G-code | manual/nightly | future G-code export smoke | Crosses support + adhesion + export; too broad for PR smoke. |
+| `test_skirt_brim.cpp` | support-containing skirt length parser check | skip/manual | future export/support regression only if completed | Legacy block is disabled and marked unfinished; do not migrate as an executable regression yet. |
 | `test_fill.cpp` | rectilinear path length / hole avoidance | done | `fill_smoke_tests` | Migrated and path-filtered into PR smoke. |
 | `test_fill.cpp` | missing infill segment regression | done | `fill_smoke_tests` | Migrated and path-filtered into PR smoke. |
 | `test_fill.cpp` | rotated square fill | done | `fill_smoke_tests` | Migrated and path-filtered into PR smoke. |
