@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <vector>
 
 using namespace Slic3r;
 
@@ -17,6 +18,18 @@ static ExtrusionPath process_math_path(std::initializer_list<Point> points)
     for (const Point &point : points)
         path.polyline.append(point);
     return path;
+}
+
+static std::vector<coord_t> collect_ordered_path_coordinates(const ExtrusionEntityCollection &collection, bool collect_x)
+{
+    std::vector<coord_t> ordered;
+    for (const ExtrusionEntity *entity : collection.entities) {
+        const auto *path = dynamic_cast<const ExtrusionPath *>(entity);
+        REQUIRE(path != nullptr);
+        for (const Point &point : path->polyline.points)
+            ordered.push_back(collect_x ? point.x() : point.y());
+    }
+    return ordered;
 }
 
 SCENARIO("Print process math smoke path covers legacy flow math", "[PrintProcessMath]") {
@@ -116,6 +129,40 @@ SCENARIO("Print process math smoke path covers legacy extrusion entity flattenin
                     REQUIRE(preserved->entities[i]->first_point() == no_sort_paths[i].first_point());
                     REQUIRE(preserved->entities[i]->last_point() == no_sort_paths[i].last_point());
                 }
+            }
+        }
+    }
+}
+
+SCENARIO("Print process math smoke path covers legacy extrusion entity chaining", "[PrintProcessMath]") {
+    GIVEN("two vertical paths where the nearest endpoint should be reversed first") {
+        ExtrusionEntityCollection collection;
+        collection.append({
+            process_math_path({ Point(0, 15), Point(0, 18), Point(0, 20) }),
+            process_math_path({ Point(0, 10), Point(0, 8), Point(0, 5) }),
+        });
+
+        WHEN("the collection is chained from above the paths") {
+            const ExtrusionEntityCollection chained = collection.chained_path_from(Point(0, 30));
+
+            THEN("the path order and directions follow the legacy nearest-travel behavior") {
+                REQUIRE(collect_ordered_path_coordinates(chained, false) == std::vector<coord_t>({ 20, 18, 15, 10, 8, 5 }));
+            }
+        }
+    }
+
+    GIVEN("two horizontal paths where the second path is closest to the start point") {
+        ExtrusionEntityCollection collection;
+        collection.append({
+            process_math_path({ Point(4, 0), Point(10, 0), Point(15, 0) }),
+            process_math_path({ Point(10, 5), Point(15, 5), Point(20, 5) }),
+        });
+
+        WHEN("the collection is chained from the right side") {
+            const ExtrusionEntityCollection chained = collection.chained_path_from(Point(30, 0));
+
+            THEN("the nearest path is chosen first and both paths are reversed to minimize travel") {
+                REQUIRE(collect_ordered_path_coordinates(chained, true) == std::vector<coord_t>({ 20, 15, 10, 15, 10, 4 }));
             }
         }
     }
