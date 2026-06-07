@@ -37,10 +37,10 @@ Status key:
 | `test_model.cpp` | `Model construction` | done | `model_basic_smoke_tests` | Migrated via object, volume, instance, mesh preservation checks. |
 | `test_trianglemesh.cpp` | basic mesh statistics | done | `model_basic_smoke_tests` | Migrated within `TriangleMeshBasic` boundary. |
 | `test_trianglemesh.cpp` | translation / cube factory basics | done | `model_basic_smoke_tests` | Added within `TriangleMeshBasic` boundary. |
-| `test_trianglemesh.cpp` | transformation functions | pending | future model geometry target | Requires broader `TriangleMesh` implementation beyond `TriangleMeshBasic`. |
-| `test_trianglemesh.cpp` | slice behavior | pending | future geometry/slicer target | Requires `TriangleMeshSlicer`; likely not PR-fast unless isolated. |
-| `test_trianglemesh.cpp` | cylinder/sphere factory helpers | pending | future model geometry target | Requires full `TriangleMesh.cpp`; keep out of basic target. |
-| `test_trianglemesh.cpp` | split / merge / cut behavior | pending | future topology/slicer target | Requires topology/slicer implementation. |
+| `test_trianglemesh.cpp` | transformation functions | done | `trianglemesh_geometry_smoke_tests` | Migrated; not wired into PR workflow yet. |
+| `test_trianglemesh.cpp` | slice behavior | done | `trianglemesh_geometry_smoke_tests` | Migrated; not wired into PR workflow yet. |
+| `test_trianglemesh.cpp` | cylinder/sphere factory helpers | done | `trianglemesh_geometry_smoke_tests` | Migrated; not wired into PR workflow yet. |
+| `test_trianglemesh.cpp` | split / merge / cut behavior | done | `trianglemesh_geometry_smoke_tests` | Migrated; not wired into PR workflow yet. |
 | `test_trianglemesh.cpp` | issue #4486 performance/profile tests | manual/nightly | nightly regression bucket | Performance guard; not PR smoke. |
 | `test_flow.cpp` | non-bridge flow math | done | `print_process_core_smoke_tests` | Migrated. Later split to a light flow/math target. |
 | `test_flow.cpp` | bridge flow math | done | `print_process_core_smoke_tests` | Migrated. Later split to a light flow/math target. |
