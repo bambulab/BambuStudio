@@ -33,7 +33,7 @@ Status key:
 |---|---|---|---|---|
 | `test_gcodewriter.cpp` | `lift() is not ignored after unlift()` | done | `gcodewriter_smoke_tests` | Migrated as representative lift-state heights. |
 | `test_gcodewriter.cpp` | `set_speed emits values with fixed-point output` | done | `gcodewriter_smoke_tests` | Migrated. |
-| `test_gcode.cpp` | `Origin manipulation` | pending | future `gcode_core_smoke_tests` or manual | Requires `GCode.cpp`; do not force into `GCodeWriter` boundary. |
+| `test_gcode.cpp` | `Origin manipulation` | manual/nightly | future `gcode_core_smoke_tests` or G-code export target | `GCode.cpp` pulls the full export dependency chain; do not force into `GCodeWriter` or PR smoke. |
 | `test_model.cpp` | `Model construction` | done | `model_basic_smoke_tests` | Migrated via object, volume, instance, mesh preservation checks. |
 | `test_trianglemesh.cpp` | basic mesh statistics | done | `model_basic_smoke_tests` | Migrated within `TriangleMeshBasic` boundary. |
 | `test_trianglemesh.cpp` | translation / cube factory basics | done | `model_basic_smoke_tests` | Added within `TriangleMeshBasic` boundary. |
@@ -67,8 +67,8 @@ Status key:
 
 ## Next Migration Candidates
 
-1. `GCode` origin manipulation: only after introducing a small `gcode_core_smoke_tests` boundary.
-2. Remaining `Fill` large solid surface helper case: keep pending/manual unless current behavior is intentionally updated.
+1. Remaining `Fill` large solid surface helper case: keep pending/manual unless current behavior is intentionally updated.
+2. `GCode` origin manipulation: only after introducing a real G-code core/export boundary; direct `GCode.cpp` linkage is too broad for PR smoke.
 3. `PrintGCode` export checks: create manual/nightly target first; do not add to PR smoke by default.
 
 ## Later Split Targets
