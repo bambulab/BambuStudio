@@ -68,6 +68,7 @@ Status key:
 | `test_fill.cpp` | rectilinear path length / hole avoidance | done | `fill_smoke_tests` | Migrated and path-filtered into PR smoke. |
 | `test_fill.cpp` | missing infill segment regression | done | `fill_smoke_tests` | Migrated and path-filtered into PR smoke. |
 | `test_fill.cpp` | rotated square fill | done | `fill_smoke_tests` | Migrated and path-filtered into PR smoke. |
+| `test_fill.cpp` | adjusted solid distance | done | `fill_smoke_tests` | Migrated against current `Fill::_adjust_solid_spacing` boundary, including the legacy 250/47 representative and a non-zero narrow-width regression. |
 | `test_fill.cpp` | solid surface fill helper cases | partial | `fill_smoke_tests` | Migrated narrow representative; large representative is not stable against current Fill behavior. |
 | `test_support_material.cpp` | raft layer count | done | `support_material_smoke_tests` | Migrated and path-filtered into PR smoke. |
 | `test_support_material.cpp` | support layer Z/contact distance | partial | `support_material_smoke_tests` | Migrated stable first-Z and thickness-bound variants through raft-backed support layers and the legacy cube-with-hole support mesh, including 0.3mm first layer and nozzle-sized layer-height representatives; contact-distance/top-spacing internals remain manual/nightly until a stable support-core inspection boundary exists. |
