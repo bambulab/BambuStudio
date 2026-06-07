@@ -9,3 +9,7 @@ tests/libslic3r/CMakeLists.txt
 tests/libslic3r/config_tests_main.cpp
 tests/libslic3r/test_config*
 tests/libslic3r/test_print_filament_mapping_rules.cpp
+
+# workflow changes should re-run the smoke gate
+.github/config-fast-gate-paths.txt
+.github/workflows/cpp_ut_smoke.yml

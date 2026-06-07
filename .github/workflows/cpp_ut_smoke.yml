@@ -35,7 +35,7 @@ on:
       - ".github/workflows/deps_build.yml"
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 jobs:
@@ -170,7 +170,7 @@ jobs:
             $baseRef = if ("${{ github.event_name }}" -eq "pull_request") {
               "${{ github.event.pull_request.base.sha }}"
             } else {
-              "${{ github.event.repository.default_branch }}"
+              "${{ github.event.before }}"
             }
             $head = "${{ github.sha }}"
 
@@ -203,8 +203,7 @@ jobs:
                 $supportMaterialReason = "fetch_base_failed"
                 $trianglemeshGeometryReason = "fetch_base_failed"
               } else {
-                $base = if ("${{ github.event_name }}" -eq "pull_request") { $baseRef } else { "FETCH_HEAD" }
-                $changed = @(git diff --name-only $base $head | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+                $changed = @(git diff --name-only FETCH_HEAD $head | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
                 $changedText = if ($changed.Count -gt 0) { $changed -join ', ' } else { 'n/a' }
 
                 $configScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/config-fast-gate-paths.txt"

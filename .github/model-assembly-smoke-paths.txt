@@ -10,3 +10,7 @@ src/libslic3r/TriangleMesh.hpp
 tests/fff_print/fff_print_tests.cpp
 tests/fff_print/test_model_basic_smoke.cpp
 tests/fff_print/test_trianglemesh_basic_smoke.cpp
+
+# workflow changes should re-run the smoke gate
+.github/model-assembly-smoke-paths.txt
+.github/workflows/cpp_ut_smoke.yml
