@@ -16,6 +16,7 @@ src/libslic3r/PrintConfig*
 src/libslic3r/Config*
 
 # fill smoke target tests
+tests/fff_print/cmake/FillSmoke.cmake
 tests/fff_print/CMakeLists.txt
 tests/fff_print/fff_print_tests.cpp
 tests/fff_print/test_fill_smoke.cpp

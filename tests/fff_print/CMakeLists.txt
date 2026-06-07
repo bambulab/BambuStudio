@@ -94,33 +94,9 @@ target_link_libraries(print_adhesion_smoke_tests PRIVATE test_common libslic3r_p
 set_property(TARGET print_adhesion_smoke_tests PROPERTY FOLDER "tests")
 add_test(print_adhesion_smoke_tests print_adhesion_smoke_tests ${CATCH_EXTRA_ARGS})
 
-add_executable(fill_smoke_tests
-	${_TEST_NAME}_tests.cpp
-	test_fill_smoke.cpp
-)
-target_link_libraries(fill_smoke_tests PRIVATE test_common libslic3r_print_process_core)
-set_property(TARGET fill_smoke_tests PROPERTY FOLDER "tests")
-add_test(fill_smoke_tests fill_smoke_tests ${CATCH_EXTRA_ARGS})
-
-add_executable(support_material_smoke_tests
-	${_TEST_NAME}_tests.cpp
-	test_support_material_smoke.cpp
-)
-target_link_libraries(support_material_smoke_tests PRIVATE test_common libslic3r_print_process_core)
-set_property(TARGET support_material_smoke_tests PROPERTY FOLDER "tests")
-add_test(support_material_smoke_tests support_material_smoke_tests ${CATCH_EXTRA_ARGS})
-
-add_executable(support_material_layers_smoke_tests
-	${_TEST_NAME}_tests.cpp
-	test_support_material_layers_smoke.cpp
-)
-target_include_directories(support_material_layers_smoke_tests PRIVATE
-	${CMAKE_SOURCE_DIR}/src/libslic3r
-	${CMAKE_BINARY_DIR}/src/libslic3r
-)
-target_link_libraries(support_material_layers_smoke_tests PRIVATE test_common boost_libs TBB::tbb TBB::tbbmalloc)
-set_property(TARGET support_material_layers_smoke_tests PROPERTY FOLDER "tests")
-add_test(support_material_layers_smoke_tests support_material_layers_smoke_tests ${CATCH_EXTRA_ARGS})
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/FillSmoke.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/SupportMaterialSmoke.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/SupportMaterialLayersSmoke.cmake)
 
 add_executable(trianglemesh_geometry_smoke_tests
 	${_TEST_NAME}_tests.cpp
