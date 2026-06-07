@@ -5,6 +5,7 @@
 #include "ExtrusionEntity.hpp"
 #include "EdgeGrid.hpp"
 #include "Geometry/ConvexHull.hpp"
+#include "GCode/GCodeOrigin.hpp"
 #include "GCode/PrintExtents.hpp"
 #include "GCode/WipeTower.hpp"
 #include "ShortestPath.hpp"
@@ -5336,13 +5337,9 @@ void GCode::set_extruders(const std::vector<unsigned int> &extruder_ids)
 void GCode::set_origin(const Vec2d &pointf)
 {
     // if origin increases (goes towards right), last_pos decreases because it goes towards left
-    const Point translate(
-        scale_(m_origin(0) - pointf(0)),
-        scale_(m_origin(1) - pointf(1))
-    );
+    const Point translate = GCodeOriginState::set_origin(m_origin, pointf);
     m_last_pos += translate;
     m_wipe.path.translate(translate);
-    m_origin = pointf;
 }
 
 std::string GCode::preamble()

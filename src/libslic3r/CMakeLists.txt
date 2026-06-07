@@ -200,6 +200,7 @@ set(lisbslic3r_sources
     GCode/ConflictChecker.hpp
     GCode/BedExcludeChecker.cpp
     GCode/BedExcludeChecker.hpp
+    GCode/GCodeOrigin.hpp
     GCode/Smoothing.cpp
     GCode/Smoothing.hpp
     GCode/CoolingBuffer.cpp

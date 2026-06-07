@@ -4,7 +4,6 @@ add_executable(${_TEST_NAME}_tests
 	# Residual maintained legacy cases. Files already migrated to responsibility
 	# smoke targets stay out of this full target to avoid obsolete API noise.
 	test_extrusion_entity.cpp
-	test_gcode.cpp
 	)
 target_link_libraries(${_TEST_NAME}_tests test_common libslic3r)
 target_link_libraries(${_TEST_NAME}_tests test_smoke_support)
@@ -30,6 +29,7 @@ add_test(fff_print_smoke fff_print_smoke ${CATCH_EXTRA_ARGS})
 
 add_executable(gcodewriter_smoke_tests
 	${_TEST_NAME}_tests.cpp
+	test_gcode_origin_smoke.cpp
 	test_gcodewriter_smoke.cpp
 	test_gcodewriter_state_smoke.cpp
 )
