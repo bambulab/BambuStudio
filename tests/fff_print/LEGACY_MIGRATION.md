@@ -51,6 +51,7 @@ Status key:
 | `test_flow.cpp` | bridge flow specifics placeholders | skip | none | Empty placeholder sections. |
 | `test_extrusion_entity.cpp` | collection flattening | done | `print_process_math_smoke_tests` | Migrated into light math/data-structure target. |
 | `test_printobject.cpp` | object layer heights | done | `print_process_core_smoke_tests` | Migrated. |
+| `test_printobject.cpp` | disabled nozzle/max layer-height limit block | skip | none | Legacy block was already disabled; current layer-height generation does not preserve that obsolete fixed-count assumption, so do not change production behavior to satisfy it. |
 | `test_print.cpp` | perimeter generation | done | `print_perimeters_stage_smoke_tests` | Migrated as stage executable smoke. |
 | `test_print.cpp` | skirt generation | done | `print_process_core_smoke_tests` | Migrated with adhesion scenarios. |
 | `test_print.cpp` | solid surface re-slice classification | done | `print_process_core_smoke_tests` | Migrated. |
