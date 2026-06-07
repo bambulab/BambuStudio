@@ -1,6 +1,7 @@
 # print solid-layer re-slice smoke source surface
 src/libslic3r/PrintProcess.cpp
 src/libslic3r/PrintApply.cpp
+src/libslic3r/PrintFilamentState.cpp
 src/libslic3r/PrintBase.hpp
 src/libslic3r/Print.hpp
 src/libslic3r/PrintConfig*

@@ -4,6 +4,7 @@ src/libslic3r/PrintApply.cpp
 src/libslic3r/PrintApplyValidateCompat.cpp
 src/libslic3r/PrintBase.hpp
 src/libslic3r/PrintFilamentCompatibility.cpp
+src/libslic3r/PrintFilamentState.cpp
 src/libslic3r/PrintObjectExtruders.cpp
 src/libslic3r/PrintValidate.cpp
 src/libslic3r/LayerLifecycle.cpp

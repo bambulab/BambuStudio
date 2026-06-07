@@ -326,6 +326,7 @@ set(lisbslic3r_sources
     PrintQueries.cpp
     PrintExtruderPrintableArea.cpp
     PrintFilamentPrintability.cpp
+    PrintFilamentState.cpp
     PrintFilamentMappingConfigSync.cpp
     PrintFilamentMappingConfigSync.hpp
     PrintFilamentMapping.cpp
@@ -796,6 +797,7 @@ set(libslic3r_print_process_core_sources
     PrintQueries.cpp
     PrintExtruderPrintableArea.cpp
     PrintFilamentPrintability.cpp
+    PrintFilamentState.cpp
     PrintFilamentMappingConfigSync.cpp
     PrintFilamentMapping.cpp
     PrintFilamentMappingRules.cpp
@@ -1003,7 +1005,10 @@ list(REMOVE_ITEM libslic3r_print_apply_validate_core_sources
     LayerSvg.cpp
     OverhangDetector.cpp
     PerimeterGenerator.cpp
+    PrintFilamentMapping.cpp
+    PrintFilamentMappingConfigSync.cpp
     PrintFilamentMappingCompat.cpp
+    PrintFilamentMappingRules.cpp
     PrintPerimetersValidateCompat.cpp
     Surface.cpp
     SurfaceCollection.cpp

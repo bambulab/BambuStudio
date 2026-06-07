@@ -2,6 +2,7 @@
 src/libslic3r/Brim.cpp
 src/libslic3r/FlowPrint.cpp
 src/libslic3r/PrintApply.cpp
+src/libslic3r/PrintFilamentState.cpp
 src/libslic3r/PrintProcess.cpp
 src/libslic3r/PrintStatistics.cpp
 src/libslic3r/libslic3r.h
