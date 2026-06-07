@@ -47,7 +47,7 @@ std::vector<coordf_t> generate_cube_print_zs(std::initializer_list<ConfigBase::S
 
 } // namespace
 
-SCENARIO("Print process core smoke path covers migrated PrintObject layer height generation", "[PrintProcessCore]") {
+SCENARIO("Print object layers smoke path covers migrated PrintObject layer height generation", "[PrintObjectLayers]") {
     GIVEN("a 20mm cube with 2mm first layer height") {
         WHEN("layer height is 2mm and nozzle diameter is 3mm") {
             const std::vector<coordf_t> print_zs = generate_cube_print_zs({

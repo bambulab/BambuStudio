@@ -24,7 +24,9 @@ Status key:
 | `print_filament_mapping_smoke_tests` | print filament mapping and config-facing map updates | Fast PR smoke |
 | `print_perimeters_stage_smoke_tests` | perimeter generation stage | Fast PR smoke |
 | `print_process_math_smoke_tests` | Flow math and `ExtrusionEntityCollection` flattening | Fast PR smoke |
-| `print_process_core_smoke_tests` | full print process behaviors that still need the heavy print core | Fast PR smoke for now; split later |
+| `print_process_core_smoke_tests` | print initialization and solid layer re-slice behavior that still need the heavy print core | Fast PR smoke when core print process paths change |
+| `print_object_layers_smoke_tests` | object layer height generation | Fast PR smoke when object layer/slicing paths change |
+| `print_adhesion_smoke_tests` | skirt/brim adhesion generation | Fast PR smoke when adhesion paths change |
 | `fill_smoke_tests` | fill geometry and path generation | Fast PR smoke when fill paths change |
 | `support_material_smoke_tests` | support material layer generation | Fast PR smoke when support paths change |
 | `trianglemesh_geometry_smoke_tests` | TriangleMesh geometry, topology, primitive factories, and slicing | Fast PR smoke when geometry paths change |
@@ -50,13 +52,13 @@ Status key:
 | `test_flow.cpp` | extrusion width specifics through G-code export | manual/nightly | future G-code export target | Depends on full G-code generation. |
 | `test_flow.cpp` | bridge flow specifics placeholders | skip | none | Empty placeholder sections. |
 | `test_extrusion_entity.cpp` | collection flattening | done | `print_process_math_smoke_tests` | Migrated into light math/data-structure target. |
-| `test_printobject.cpp` | object layer heights | done | `print_process_core_smoke_tests` | Migrated. |
+| `test_printobject.cpp` | object layer heights | done | `print_object_layers_smoke_tests` | Migrated and split from print process core by object-layer responsibility. |
 | `test_printobject.cpp` | disabled nozzle/max layer-height limit block | skip | none | Legacy block was already disabled; current layer-height generation does not preserve that obsolete fixed-count assumption, so do not change production behavior to satisfy it. |
 | `test_print.cpp` | perimeter generation | done | `print_perimeters_stage_smoke_tests` | Migrated as stage executable smoke. |
-| `test_print.cpp` | skirt generation | done | `print_process_core_smoke_tests` | Migrated with adhesion scenarios. |
+| `test_print.cpp` | skirt generation | done | `print_adhesion_smoke_tests` | Migrated with adhesion scenarios and split from print process core. |
 | `test_print.cpp` | solid surface re-slice classification | done | `print_process_core_smoke_tests` | Migrated. |
-| `test_print.cpp` | brim generation | done | `print_process_core_smoke_tests` | Migrated with adhesion scenarios. |
-| `test_skirt_brim.cpp` | print-core skirt/brim geometry cases | done | `print_process_core_smoke_tests` | Migrated representative adhesion and config edge cases, including generated skirt loops, large brim vs skirt, disabled skirt height, brim width/line-width scaling, and large minimum skirt length. |
+| `test_print.cpp` | brim generation | done | `print_adhesion_smoke_tests` | Migrated with adhesion scenarios and split from print process core. |
+| `test_skirt_brim.cpp` | print-core skirt/brim geometry cases | done | `print_adhesion_smoke_tests` | Migrated representative adhesion and config edge cases, including generated skirt loops, large brim vs skirt, disabled skirt height, brim width/line-width scaling, and large minimum skirt length. |
 | `test_skirt_brim.cpp` | skirt height across G-code layers | manual/nightly | future G-code export smoke | Requires full G-code export and parser speed/layer inspection; keep out of PR smoke until a stable export harness exists. |
 | `test_skirt_brim.cpp` | brim generated in G-code | manual/nightly | future G-code export smoke | Requires G-code export/parser inspection; current print-core smoke covers brim geometry directly instead. |
 | `test_skirt_brim.cpp` | brim tool-selection through exported G-code | skip/manual | future G-code export smoke only if behavior is revalidated | Legacy cases are inside `#if 0` and note a real historical mismatch; do not revive without product confirmation and a stable export harness. |
@@ -81,13 +83,10 @@ Status key:
 2. `SupportMaterial` contact-distance/top-spacing internals: keep manual/nightly unless a stable support-core harness can inspect those layers without broad export or brittle geometry assumptions; the cube-with-hole layer-bound representatives are now in PR smoke.
 3. `GCode` origin manipulation and `PrintGCode` export checks: require a proper G-code core/export harness first; direct `GCode.cpp` / full-export linkage is too broad and currently unsafe for PR smoke.
 4. `Skirt/Brim` G-code parser/tool-selection leftovers: keep manual/nightly or skip as documented above; print-core geometry representatives are already in PR smoke.
-5. After the remaining legacy items are classified, shift focus from migration to target split/runtime reduction for `print_process_core_smoke_tests`.
+5. After the remaining legacy items are classified, continue runtime reduction with target-level path filter tuning and CI timing evidence.
 
-## Later Split Targets
+## Manual / Future Targets
 
 | Future target | Moves from | Purpose |
 |---|---|---|
-| `fill_smoke_tests` | `test_fill.cpp` candidates | Fill geometry regressions. |
-| `support_material_smoke_tests` | `test_support_material.cpp` candidates | Support-specific full-process checks. |
 | `gcode_export_smoke_tests` | `test_printgcode.cpp` candidates | Manual/nightly G-code export regressions. |
-| `trianglemesh_geometry_smoke_tests` | `test_trianglemesh.cpp` non-basic candidates | Geometry/topology/slicer checks beyond `TriangleMeshBasic`. |
