@@ -14,7 +14,8 @@ src/libslic3r/Model.hpp
 src/libslic3r/Layer.hpp
 src/libslic3r/TriangleMesh.hpp
 src/libslic3r/Print.hpp
-src/libslic3r/Print*.hpp
+src/libslic3r/PrintBase.hpp
+src/libslic3r/PrintObjectSliceInterlocking.hpp
 src/libslic3r/PrintConfig*
 src/libslic3r/Config*
 
