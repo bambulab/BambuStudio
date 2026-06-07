@@ -24,6 +24,8 @@ Status key:
 | `print_filament_mapping_smoke_tests` | print filament mapping and config-facing map updates | Fast PR smoke |
 | `print_perimeters_stage_smoke_tests` | perimeter generation stage | Fast PR smoke |
 | `print_process_core_smoke_tests` | full print process behaviors that still need the heavy print core | Fast PR smoke for now; split later |
+| `fill_smoke_tests` | fill geometry and path generation | Migration smoke; not wired into PR workflow yet |
+| `support_material_smoke_tests` | support material layer generation | Migration smoke; not wired into PR workflow yet |
 
 ## Legacy File Inventory
 
@@ -56,8 +58,8 @@ Status key:
 | `test_fill.cpp` | missing infill segment regression | done | `fill_smoke_tests` | Migrated; not wired into PR workflow yet. |
 | `test_fill.cpp` | rotated square fill | pending | future fill smoke target | Candidate if deterministic. |
 | `test_fill.cpp` | solid surface fill helper cases | pending | future fill smoke target | Higher risk; verify stability before PR gate. |
-| `test_support_material.cpp` | raft layer count | pending | future support smoke target | High-value but print-process-heavy. |
-| `test_support_material.cpp` | support layer Z/contact distance | pending | future support smoke target | High-value but print-process-heavy. |
+| `test_support_material.cpp` | raft layer count | done | `support_material_smoke_tests` | Migrated; not wired into PR workflow yet. |
+| `test_support_material.cpp` | support layer Z/contact distance | pending | future support smoke or manual target | Legacy cube-with-hole invariant is not stable against current support layer storage; do not force into PR smoke. |
 | `test_support_material.cpp` | forced support / bridge speed disabled block | skip/manual | none or nightly | Currently disabled / incomplete. |
 | `test_printgcode.cpp` | basic G-code output structure | manual/nightly | future G-code export smoke | Valuable, but should not be mixed into current PR smoke. |
 | `test_printgcode.cpp` | complete objects, support material, macros | manual/nightly | future G-code export smoke | Heavy export coverage; keep separate. |
@@ -65,10 +67,9 @@ Status key:
 
 ## Next Migration Candidates
 
-1. `SupportMaterial` raft layer count: one full-process support smoke, kept separate from generic `PrintProcessCore` if possible.
-2. `GCode` origin manipulation: only after introducing a small `gcode_core_smoke_tests` boundary.
-3. Remaining `Fill` solid surface fill helper cases: migrate only if deterministic in the new `fill_smoke_tests` target.
-4. `PrintGCode` export checks: create manual/nightly target first; do not add to PR smoke by default.
+1. `GCode` origin manipulation: only after introducing a small `gcode_core_smoke_tests` boundary.
+2. Remaining `Fill` solid surface fill helper cases: migrate only if deterministic in the new `fill_smoke_tests` target.
+3. `PrintGCode` export checks: create manual/nightly target first; do not add to PR smoke by default.
 
 ## Later Split Targets
 

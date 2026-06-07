@@ -89,3 +89,11 @@ add_executable(fill_smoke_tests
 target_link_libraries(fill_smoke_tests PRIVATE test_common libslic3r_print_process_core)
 set_property(TARGET fill_smoke_tests PROPERTY FOLDER "tests")
 add_test(fill_smoke_tests fill_smoke_tests ${CATCH_EXTRA_ARGS})
+
+add_executable(support_material_smoke_tests
+	${_TEST_NAME}_tests.cpp
+	test_support_material_smoke.cpp
+)
+target_link_libraries(support_material_smoke_tests PRIVATE test_common libslic3r_print_process_core)
+set_property(TARGET support_material_smoke_tests PROPERTY FOLDER "tests")
+add_test(support_material_smoke_tests support_material_smoke_tests ${CATCH_EXTRA_ARGS})
