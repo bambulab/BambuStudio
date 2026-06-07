@@ -39,8 +39,8 @@ Status key:
 | `test_gcodewriter.cpp` | `set_speed emits values with fixed-point output` | done | `gcodewriter_smoke_tests` | Migrated. |
 | `test_gcode.cpp` | `Origin manipulation` | manual/nightly | future `gcode_core_smoke_tests` or G-code export target | `GCode.cpp` pulls the full export dependency chain; do not force into `GCodeWriter` or PR smoke. |
 | `test_model.cpp` | `Model construction` | done | `model_basic_smoke_tests` | Migrated via object, volume, instance, mesh preservation checks. |
-| `test_trianglemesh.cpp` | basic mesh statistics | done | `model_basic_smoke_tests` | Migrated within `TriangleMeshBasic` boundary. |
-| `test_trianglemesh.cpp` | translation / cube factory basics | done | `model_basic_smoke_tests` | Added within `TriangleMeshBasic` boundary. |
+| `test_trianglemesh.cpp` | basic mesh statistics | done | `model_basic_smoke_tests` | Migrated within `TriangleMeshBasic` boundary, including volume, facet count, size, bounds, and vertex/facet arrays; `center()` is kept out because it widens the current light link boundary through `BoundingBox3Base`. |
+| `test_trianglemesh.cpp` | translation / cube factory basics | done | `model_basic_smoke_tests` | Added within `TriangleMeshBasic` boundary, including translated bounds and the legacy single-origin-vertex cube factory representative. |
 | `test_trianglemesh.cpp` | transformation functions | done | `trianglemesh_geometry_smoke_tests` | Migrated and path-filtered into PR smoke, including axis scale-up/down, vector/double translation, rotation, and origin alignment representatives. |
 | `test_trianglemesh.cpp` | slice behavior | done | `trianglemesh_geometry_smoke_tests` | Migrated and path-filtered into PR smoke. |
 | `test_trianglemesh.cpp` | cylinder/sphere factory helpers | done | `trianglemesh_geometry_smoke_tests` | Migrated and path-filtered into PR smoke, including primitive topology counts and approximate volumes. |

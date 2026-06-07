@@ -3,6 +3,7 @@
 #include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/libslic3r.h"
 
+#include <algorithm>
 #include <cmath>
 #include <vector>
 
@@ -69,6 +70,9 @@ SCENARIO("Model assembly smoke path covers TriangleMesh cube factory basics", "[
             THEN("its topology and volume match the expected primitive") {
                 REQUIRE(cube.its.vertices.size() == 8);
                 REQUIRE(cube.its.indices.size() == 12);
+                REQUIRE(std::count_if(cube.its.vertices.begin(), cube.its.vertices.end(), [](const Vec3f &vertex) {
+                    return vertex == Vec3f(0.0f, 0.0f, 0.0f);
+                }) == 1);
                 REQUIRE(cube.bounding_box().min == Vec3d(0.0, 0.0, 0.0));
                 REQUIRE(cube.bounding_box().max == Vec3d(20.0, 20.0, 20.0));
                 REQUIRE(std::abs(cube.volume() - 20.0 * 20.0 * 20.0) < 1e-2);
