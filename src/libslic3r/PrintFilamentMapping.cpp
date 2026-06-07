@@ -1,4 +1,5 @@
 #include "Print.hpp"
+#include "PrintFilamentMappingConfigSync.hpp"
 #include "PrintFilamentMappingRules.hpp"
 
 #include <set>
@@ -113,83 +114,22 @@ int Print::get_config_index(int filament_id, int layer_id, const std::vector<std
 
 void Print::update_filament_maps_to_config(std::vector<int> f_maps, std::vector<int> f_volume_maps, std::vector<int> f_nozzle_maps)
 {
-    if ((m_config.filament_map.values != f_maps) || (m_config.filament_volume_map.values != f_volume_maps) || (m_config.filament_nozzle_map.values != f_nozzle_maps))
-    {
+    const auto sync_result = FilamentMappingConfigSync::sync_maps_to_config(
+        m_config,
+        m_ori_full_print_config,
+        m_full_print_config,
+        f_maps,
+        f_volume_maps,
+        f_nozzle_maps);
+
+    if (sync_result.maps_changed)
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": filament maps changed after pre-slicing.");
-        m_ori_full_print_config.option<ConfigOptionInts>("filament_map", true)->values = f_maps;
-        m_config.filament_map.values = f_maps;
 
-        if (!f_volume_maps.empty()) {
-            m_ori_full_print_config.option<ConfigOptionInts>("filament_volume_map", true)->values = f_volume_maps;
-            m_config.filament_volume_map.values = f_volume_maps;
-        }
-        else {
-            m_ori_full_print_config.option<ConfigOptionInts>("filament_volume_map", true)->values.resize(f_maps.size(), nvtStandard);
-            m_config.filament_volume_map.values.resize(f_maps.size(), nvtStandard);
-        }
+    if (!sync_result.print_diff.empty())
+        m_placeholder_parser.apply_config(sync_result.filament_overrides);
 
-        if (!f_nozzle_maps.empty()) {
-            m_ori_full_print_config.option<ConfigOptionInts>("filament_nozzle_map", true)->values = f_nozzle_maps;
-            m_config.filament_nozzle_map.values = f_nozzle_maps;
-        }
-    }
-
-    {
-        int extruder_count, extruder_volume_type_count;
-        bool support_multi = m_ori_full_print_config.support_different_extruders(extruder_count);
-        std::vector<std::vector<NozzleVolumeType>> nozzle_volume_types;
-        extruder_volume_type_count = m_ori_full_print_config.get_extruder_nozzle_volume_count(extruder_count, nozzle_volume_types);
-
-        //filament_map_2
-        m_config.filament_map_2.values = f_maps;
-        auto opt_extruder_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(m_ori_full_print_config.option("extruder_type"));
-        auto opt_nozzle_volume_type = dynamic_cast<const ConfigOptionEnumsGeneric*>(m_ori_full_print_config.option("nozzle_volume_type"));
-        for (int index = 0; index < f_maps.size(); index++)
-        {
-            ExtruderType extruder_type = (ExtruderType)(opt_extruder_type->get_at(f_maps[index] - 1));
-            NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(f_maps[index] - 1));
-            if (f_volume_maps.empty()) {
-                m_config.filament_volume_map.values[index] = nozzle_volume_type;
-                m_ori_full_print_config.option<ConfigOptionInts>("filament_volume_map")->values[index] = nozzle_volume_type;
-            }
-            else if ((extruder_volume_type_count > extruder_count) && (m_config.filament_volume_map.values.size() > index))
-                nozzle_volume_type = (NozzleVolumeType)(m_config.filament_volume_map.values[index]);
-            m_config.filament_map_2.values[index] = m_ori_full_print_config.get_index_for_extruder(f_maps[index], "print_extruder_id", extruder_type, nozzle_volume_type, "print_extruder_variant");
-        }
-        m_full_print_config = m_ori_full_print_config;
-
-        BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(", Line %1%:  extruder_count %2%, extruder_volume_type_count %3%")%__LINE__ %extruder_count %extruder_volume_type_count;
-        std::set<std::string> filament_keys = filament_options_with_variant;
-        filament_keys.insert("filament_self_index");
-        if ((extruder_count > 1) || support_multi)
-            m_full_print_config.update_values_to_printer_extruders_for_multiple_filaments(m_full_print_config, extruder_count, extruder_volume_type_count, filament_keys,  "filament_self_index", "filament_extruder_variant");
-
-        const std::vector<std::string> &extruder_retract_keys = print_config_def.extruder_retract_keys();
-        const std::string               filament_prefix       = "filament_";
-        t_config_option_keys            print_diff;
-        DynamicPrintConfig              filament_overrides;
-        for (auto& opt_key: extruder_retract_keys)
-        {
-            const ConfigOption *opt_new_filament = m_full_print_config.option(filament_prefix + opt_key);
-            const ConfigOption *opt_new_machine = m_full_print_config.option(opt_key);
-            const ConfigOption *opt_old_machine = m_config.option(opt_key);
-
-            if (opt_new_filament)
-                compute_filament_override_value(opt_key, opt_old_machine, opt_new_machine, opt_new_filament, m_full_print_config, print_diff, filament_overrides, m_config.filament_map_2.values);
-        }
-
-        if ((extruder_count > 1) || support_multi) {
-            t_config_option_keys keys(filament_options_with_variant.begin(), filament_options_with_variant.end());
-            keys.push_back("filament_self_index");
-            m_config.apply_only(m_full_print_config, keys, true);
-        }
-        if (!print_diff.empty()) {
-            m_placeholder_parser.apply_config(filament_overrides);
-            m_config.apply(filament_overrides);
-        }
-    }
     update_filament_self_index_cache();
-    m_has_auto_filament_map_result = true;
+    m_has_auto_filament_map_result = sync_result.has_auto_filament_map_result;
 }
 
 void Print::update_to_config_by_nozzle_group_result(const MultiNozzleUtils::NozzleGroupResultBase& group_result)

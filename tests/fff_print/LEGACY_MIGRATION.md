@@ -87,7 +87,7 @@ Status key:
 | Area | Status | Target / future bucket | Notes |
 |---|---|---|---|
 | Filament mapping pure rules | done | `libslic3r_config_tests` | `Print::is_dynamic_group_reorder()` and `Print::get_available_filament_map_modes()` now delegate their pure decisions to `FilamentMappingRules`, keeping the existing `Print` API behavior while covering those rules in the lighter config-core target. |
-| Filament mapping config synchronization | pending | `print_filament_mapping_smoke_tests` until a narrower state-sync boundary exists | `update_filament_maps_to_config()` still needs `Print` state and config synchronization, so it remains in the heavier print filament mapping boundary. |
+| Filament mapping config synchronization | partial | `libslic3r_config_tests`, `print_filament_mapping_smoke_tests` | `FilamentMappingConfigSync::sync_maps_to_config()` now owns the config synchronization rules in config-core, including explicit volume/nozzle maps and default volume-map derivation. `Print::update_filament_maps_to_config()` remains covered by the heavier mapping smoke as the integration API for placeholder parser updates, cache refresh, and auto-map state. |
 | Print apply/validate initialization | done | `print_apply_validate_smoke_tests` | `test_print_init_smoke.cpp` now runs against real `PrintApply.cpp` and `PrintValidate.cpp`; `Print::process()` remains guarded by apply/validate compat so the target cannot silently become full slicing coverage. |
 
 ## Next Migration Candidates
@@ -96,7 +96,7 @@ Status key:
 2. `SupportMaterial` contact-distance/top-spacing internals: keep manual/nightly unless a stable support-core harness can inspect those layers without broad export or brittle geometry assumptions; the cube-with-hole layer-bound representatives are now in PR smoke.
 3. `GCode` origin manipulation, `PrintGCode` export checks, and the export half of `Model construction` / `test_data` helpers: require a proper G-code core/export harness first; direct `GCode.cpp` / full-export linkage is too broad and currently unsafe for PR smoke.
 4. `Skirt/Brim` G-code parser/tool-selection leftovers: keep manual/nightly or skip as documented above; print-core geometry representatives are already in PR smoke.
-5. Filament mapping config synchronization: extract only after a stable state-sync boundary is identified; do not move `update_filament_maps_to_config()` merely to reduce test time.
+5. Filament mapping config synchronization: config sync rules are now extracted into `PrintFilamentMappingConfigSync`; continue reducing the heavy mapping target only after the remaining `Print::apply()` integration responsibilities are isolated by real ownership.
 6. With the stable legacy items now migrated or explicitly classified, continue runtime reduction with target-level path filter tuning and CI timing evidence.
 
 ## G-code Export Harness Investigation

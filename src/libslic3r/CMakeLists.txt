@@ -324,6 +324,8 @@ set(lisbslic3r_sources
     PrintQueries.cpp
     PrintExtruderPrintableArea.cpp
     PrintFilamentPrintability.cpp
+    PrintFilamentMappingConfigSync.cpp
+    PrintFilamentMappingConfigSync.hpp
     PrintFilamentMapping.cpp
     PrintFilamentMappingRules.cpp
     PrintFilamentMappingRules.hpp
@@ -574,6 +576,7 @@ set(libslic3r_config_core_sources
     ConfigFileUtils.cpp
     LocalesUtils.cpp
     PrintConfig.cpp
+    PrintFilamentMappingConfigSync.cpp
     PrintFilamentMappingRules.cpp
     PrintConfigRuntime.cpp
 )
@@ -757,6 +760,7 @@ set(libslic3r_print_process_core_sources
     PrintQueries.cpp
     PrintExtruderPrintableArea.cpp
     PrintFilamentPrintability.cpp
+    PrintFilamentMappingConfigSync.cpp
     PrintFilamentMapping.cpp
     PrintFilamentMappingRules.cpp
     PrintEnvelope.cpp
