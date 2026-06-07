@@ -61,7 +61,7 @@ Status key:
 | `test_fill.cpp` | rotated square fill | done | `fill_smoke_tests` | Migrated and path-filtered into PR smoke. |
 | `test_fill.cpp` | solid surface fill helper cases | partial | `fill_smoke_tests` | Migrated narrow representative; large representative is not stable against current Fill behavior. |
 | `test_support_material.cpp` | raft layer count | done | `support_material_smoke_tests` | Migrated and path-filtered into PR smoke. |
-| `test_support_material.cpp` | support layer Z/contact distance | pending | future support smoke or manual target | Legacy cube-with-hole invariant is not stable against current support layer storage; do not force into PR smoke. |
+| `test_support_material.cpp` | support layer Z/contact distance | partial | `support_material_smoke_tests` | Migrated stable support layer first-Z and thickness bounds through raft-backed support layers; cube-with-hole contact-distance/top-spacing details remain pending/manual. |
 | `test_support_material.cpp` | forced support / bridge speed disabled block | skip/manual | none or nightly | Currently disabled / incomplete. |
 | `test_printgcode.cpp` | basic G-code output structure | manual/nightly | future G-code export smoke | Valuable, but should not be mixed into current PR smoke. |
 | `test_printgcode.cpp` | complete objects, support material, macros | manual/nightly | future G-code export smoke | Heavy export coverage; keep separate. |

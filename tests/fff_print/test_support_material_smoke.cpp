@@ -29,6 +29,25 @@ static void init_and_process_mesh_print(Print &print, const TriangleMesh &mesh, 
     REQUIRE_NOTHROW(print.process());
 }
 
+static void assert_support_layers_respect_height_bounds(const Print &print)
+{
+    const ConstSupportLayerPtrsAdaptor support_layers = print.objects().front()->support_layers();
+    REQUIRE_FALSE(support_layers.empty());
+
+    REQUIRE(support_layers.front()->print_z == Approx(print.config().initial_layer_print_height.value));
+
+    const double min_layer_height = print.config().min_layer_height.values.front();
+    double       max_layer_height = print.config().nozzle_diameter.values.front();
+    if (print.config().max_layer_height.values.front() > EPSILON)
+        max_layer_height = std::min(max_layer_height, print.config().max_layer_height.values.front());
+
+    for (size_t i = 1; i < support_layers.size(); ++i) {
+        const double layer_delta = support_layers[i]->print_z - support_layers[i - 1]->print_z;
+        REQUIRE(layer_delta >= min_layer_height - EPSILON);
+        REQUIRE(layer_delta <= max_layer_height + EPSILON);
+    }
+}
+
 } // namespace
 
 SCENARIO("Support material smoke covers migrated raft layer count", "[SupportMaterial]") {
@@ -36,11 +55,17 @@ SCENARIO("Support material smoke covers migrated raft layer count", "[SupportMat
         Print print;
         init_and_process_mesh_print(print, make_cube(20, 20, 20), {
             { "support_material", 1 },
-            { "raft_layers", 3 }
+            { "raft_layers", 3 },
+            { "layer_height", 0.2 },
+            { "first_layer_height", 0.4 }
         });
 
         THEN("three support layers are created for the raft") {
             REQUIRE(print.objects().front()->support_layers().size() == 3);
+        }
+
+        THEN("support layers honor the first layer height and configured thickness bounds") {
+            assert_support_layers_respect_height_bounds(print);
         }
     }
 }
