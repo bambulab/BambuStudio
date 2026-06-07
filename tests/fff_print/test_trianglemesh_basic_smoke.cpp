@@ -42,3 +42,47 @@ SCENARIO("Model assembly smoke path covers migrated TriangleMesh basic statistic
         }
     }
 }
+
+SCENARIO("Model assembly smoke path covers TriangleMesh basic translation state", "[ModelAssembly]") {
+    GIVEN("a 20mm cube with one corner on the origin") {
+        TriangleMesh cube = make_cube(20.0, 20.0, 20.0);
+
+        WHEN("the cube is translated") {
+            cube.translate(5.0, 10.0, 0.0);
+
+            THEN("vertices and bounding box move without changing volume or size") {
+                REQUIRE(cube.its.vertices.at(0) == Vec3f(25.0f, 30.0f, 0.0f));
+                REQUIRE(cube.bounding_box().min == Vec3d(5.0, 10.0, 0.0));
+                REQUIRE(cube.bounding_box().max == Vec3d(25.0, 30.0, 20.0));
+                REQUIRE(cube.size() == Vec3d(20.0, 20.0, 20.0));
+                REQUIRE(std::abs(cube.volume() - 20.0 * 20.0 * 20.0) < 1e-2);
+            }
+        }
+    }
+}
+
+SCENARIO("Model assembly smoke path covers TriangleMesh cube factory basics", "[ModelAssembly]") {
+    GIVEN("primitive meshes created by the basic cube factory") {
+        WHEN("a cube is created") {
+            TriangleMesh cube = make_cube(20.0, 20.0, 20.0);
+
+            THEN("its topology and volume match the expected primitive") {
+                REQUIRE(cube.its.vertices.size() == 8);
+                REQUIRE(cube.its.indices.size() == 12);
+                REQUIRE(cube.bounding_box().min == Vec3d(0.0, 0.0, 0.0));
+                REQUIRE(cube.bounding_box().max == Vec3d(20.0, 20.0, 20.0));
+                REQUIRE(std::abs(cube.volume() - 20.0 * 20.0 * 20.0) < 1e-2);
+            }
+        }
+    }
+}
+
+SCENARIO("Model assembly smoke path documents TriangleMeshBasic split boundary", "[ModelAssembly]") {
+    GIVEN("a basic cube mesh in the model basic core target") {
+        TriangleMesh cube = make_cube(20.0, 20.0, 20.0);
+
+        THEN("splitting is intentionally outside the basic target boundary") {
+            REQUIRE_FALSE(cube.is_splittable());
+        }
+    }
+}
