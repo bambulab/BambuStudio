@@ -155,5 +155,20 @@ SCENARIO("Support material smoke covers migrated cube-with-hole support layer bo
                 assert_support_layers_respect_height_bounds(print);
             }
         }
+
+        WHEN("support material is generated with zero top contact distance") {
+            Print print;
+            init_and_process_mesh_print(print, mesh, {
+                { "enable_support", 1 },
+                { "layer_height", 0.2 },
+                { "first_layer_height", 0.3 },
+                { "support_top_z_distance", 0.0 },
+                { "dont_support_bridges", false }
+            });
+
+            THEN("support generation remains valid for the migrated contact-distance representative") {
+                assert_support_layers_respect_height_bounds(print);
+            }
+        }
     }
 }
