@@ -40,6 +40,7 @@ add_test(fff_print_smoke fff_print_smoke ${CATCH_EXTRA_ARGS})
 add_executable(gcodewriter_smoke_tests
 	${_TEST_NAME}_tests.cpp
 	test_gcodewriter_smoke.cpp
+	test_gcodewriter_state_smoke.cpp
 )
 target_link_libraries(gcodewriter_smoke_tests PRIVATE test_common libslic3r_gcodewriter_core)
 set_property(TARGET gcodewriter_smoke_tests PROPERTY FOLDER "tests")
@@ -48,6 +49,7 @@ add_test(gcodewriter_smoke_tests gcodewriter_smoke_tests ${CATCH_EXTRA_ARGS})
 add_executable(model_basic_smoke_tests
 	${_TEST_NAME}_tests.cpp
 	test_model_basic_smoke.cpp
+	test_trianglemesh_basic_smoke.cpp
 )
 target_link_libraries(model_basic_smoke_tests PRIVATE test_common libslic3r_model_basic_core)
 set_property(TARGET model_basic_smoke_tests PROPERTY FOLDER "tests")
@@ -72,6 +74,8 @@ add_test(print_perimeters_stage_smoke_tests print_perimeters_stage_smoke_tests $
 add_executable(print_process_core_smoke_tests
 	${_TEST_NAME}_tests.cpp
 	test_print_process_core_smoke.cpp
+	test_print_solid_layers_smoke.cpp
+	test_printobject_layers_smoke.cpp
 	test_print_skirt_brim_smoke.cpp
 )
 target_link_libraries(print_process_core_smoke_tests PRIVATE test_common libslic3r_print_process_core)
