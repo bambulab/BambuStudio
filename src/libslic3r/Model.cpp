@@ -1066,6 +1066,30 @@ std::string Model::get_backup_path()
     {
         auto pid = get_current_pid();
         boost::filesystem::path parent_path(temporary_dir());
+        // Guard against a system temp dir that is low on free space — most often a
+        // small RAM-backed tmpfs /tmp on Linux, which a multi-GB multi-colour
+        // G-code export can overflow (surfaced to the user as "Is the disk full?").
+        // When the temp volume is nearly full, fall back to a folder on the
+        // user-data volume (always on real disk) if it offers materially more room.
+        // Best-effort only: any filesystem error leaves the default temp dir in place.
+        try {
+            namespace fs = boost::filesystem;
+            const boost::uintmax_t min_free  = boost::uintmax_t(2) << 30; // 2 GiB headroom
+            const boost::uintmax_t temp_free = fs::space(parent_path).available;
+            if (temp_free < min_free && !data_dir().empty()) {
+                fs::path fallback = fs::path(data_dir()) / "tmp";
+                fs::create_directories(fallback);
+                if (fs::space(fallback).available > temp_free) {
+                    BOOST_LOG_TRIVIAL(warning) << boost::format(
+                        "backup temp dir %1% low on space (%2% MiB free); falling back to %3%")
+                        % PathSanitizer::sanitize(parent_path) % (temp_free >> 20)
+                        % PathSanitizer::sanitize(fallback);
+                    parent_path = fallback;
+                }
+            }
+        } catch (const std::exception &ex) {
+            BOOST_LOG_TRIVIAL(warning) << "backup temp dir space check failed, using default: " << ex.what();
+        }
         std::time_t t = std::time(0);
         std::tm* now_time = std::localtime(&t);
         std::stringstream buf;
