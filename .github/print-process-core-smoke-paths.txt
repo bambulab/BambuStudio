@@ -22,6 +22,7 @@ src/libslic3r/Flow.cpp
 src/libslic3r/Flow.hpp
 src/libslic3r/Layer.cpp
 src/libslic3r/Layer.hpp
+src/libslic3r/LayerLifecycle.cpp
 src/libslic3r/LayerRegion.cpp
 src/libslic3r/Model.cpp
 src/libslic3r/Model.hpp

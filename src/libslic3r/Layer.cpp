@@ -12,14 +12,6 @@ static const int dist_scale_threshold = 1.2;
 
 namespace Slic3r {
 
-Layer::~Layer()
-{
-    this->lower_layer = this->upper_layer = nullptr;
-    for (LayerRegion *region : m_regions)
-        delete region;
-    m_regions.clear();
-}
-
 // Test whether whether there are any slices assigned to this layer.
 bool Layer::empty() const
 {

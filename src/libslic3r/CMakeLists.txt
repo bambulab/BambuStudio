@@ -244,6 +244,7 @@ set(lisbslic3r_sources
     JumpPointSearch.cpp
     KDTreeIndirect.hpp
     Layer.cpp
+    LayerLifecycle.cpp
     LayerSvg.cpp
     Layer.hpp
     LayerRegion.cpp
@@ -675,6 +676,7 @@ set(libslic3r_print_object_layers_core_sources
     PrintObjectSlice.cpp
     PrintRegionConfigExtruders.cpp
     Layer.cpp
+    LayerLifecycle.cpp
     LayerRegion.cpp
     ModelBounds.cpp
     ModelRawMesh.cpp
@@ -755,6 +757,7 @@ set(libslic3r_print_process_core_sources
     Interlocking/InterlockingGenerator.cpp
     LayerSvg.cpp
     Layer.cpp
+    LayerLifecycle.cpp
     LayerSvg.cpp
     LayerRegion.cpp
     Line.cpp
@@ -978,11 +981,37 @@ set(libslic3r_print_apply_validate_core_sources
     ${libslic3r_print_filament_mapping_core_sources}
 )
 list(REMOVE_ITEM libslic3r_print_apply_validate_core_sources
+    Arachne/BeadingStrategy/BeadingStrategy.cpp
+    Arachne/BeadingStrategy/BeadingStrategyFactory.cpp
+    Arachne/BeadingStrategy/DistributedBeadingStrategy.cpp
+    Arachne/BeadingStrategy/LimitedBeadingStrategy.cpp
+    Arachne/BeadingStrategy/OuterWallContourStrategy.cpp
+    Arachne/BeadingStrategy/OuterWallInsetBeadingStrategy.cpp
+    Arachne/BeadingStrategy/RedistributeBeadingStrategy.cpp
+    Arachne/BeadingStrategy/WideningBeadingStrategy.cpp
+    Arachne/SkeletalTrapezoidation.cpp
+    Arachne/SkeletalTrapezoidationGraph.cpp
+    Arachne/WallToolPaths.cpp
+    Arachne/utils/ExtrusionJunction.cpp
+    Arachne/utils/ExtrusionLine.cpp
+    Arachne/utils/PolylineStitcher.cpp
+    Arachne/utils/SquareGrid.cpp
+    BridgeDetector.cpp
+    InternalBridgeDetector.cpp
+    Layer.cpp
+    LayerRegion.cpp
+    LayerSvg.cpp
+    OverhangDetector.cpp
+    PerimeterGenerator.cpp
     PrintFilamentMappingCompat.cpp
     PrintPerimetersValidateCompat.cpp
+    Surface.cpp
+    SurfaceCollection.cpp
+    VariableWidth.cpp
 )
 list(APPEND libslic3r_print_apply_validate_core_sources
     GCodeLayerOrdering.cpp
+    LayerLifecycle.cpp
     PrintApplyValidateCompat.cpp
     PrintFilamentCompatibility.cpp
     PrintValidate.cpp

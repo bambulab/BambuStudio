@@ -6,6 +6,7 @@ src/libslic3r/PrintBase.hpp
 src/libslic3r/PrintFilamentCompatibility.cpp
 src/libslic3r/PrintObjectExtruders.cpp
 src/libslic3r/PrintValidate.cpp
+src/libslic3r/LayerLifecycle.cpp
 src/libslic3r/libslic3r.h
 src/libslic3r/Model.cpp
 src/libslic3r/Model.hpp
