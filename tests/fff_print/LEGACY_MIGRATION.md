@@ -64,8 +64,8 @@ Status key:
 | `test_support_material.cpp` | raft layer count | done | `support_material_smoke_tests` | Migrated and path-filtered into PR smoke. |
 | `test_support_material.cpp` | support layer Z/contact distance | partial | `support_material_smoke_tests` | Migrated stable support layer first-Z and thickness bounds through raft-backed support layers; cube-with-hole contact-distance/top-spacing details remain pending/manual. |
 | `test_support_material.cpp` | forced support / bridge speed disabled block | skip/manual | none or nightly | Currently disabled / incomplete. |
-| `test_printgcode.cpp` | basic G-code output structure | manual/nightly | future G-code export smoke | Valuable, but should not be mixed into current PR smoke. |
-| `test_printgcode.cpp` | complete objects, support material, macros | manual/nightly | future G-code export smoke | Heavy export coverage; keep separate. |
+| `test_printgcode.cpp` | basic G-code output structure | manual/nightly | future G-code export smoke | Valuable, but should not be mixed into current PR smoke; direct full-export target needs a proper export harness because the current test-only setup crashes after `Print::process()` on Windows. |
+| `test_printgcode.cpp` | complete objects, support material, macros | manual/nightly | future G-code export smoke | Heavy export coverage; keep separate behind the same export harness boundary. |
 | `test_data.cpp` | single-mesh `init_print` model/print setup | done | `print_process_core_smoke_tests` | Migrated as a direct initialization invariant without full slicing or G-code export. |
 | `test_data.cpp` | `print.process()` and G-code output through helpers | manual/nightly | future G-code export smoke | Helper coverage crosses into full slicing/export; keep out of PR smoke. |
 
