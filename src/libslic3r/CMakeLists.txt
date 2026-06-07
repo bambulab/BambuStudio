@@ -933,6 +933,20 @@ list(APPEND libslic3r_print_filament_mapping_core_sources
     PrintFilamentMappingCompat.cpp
 )
 
+set(libslic3r_print_apply_validate_core_sources
+    ${libslic3r_print_filament_mapping_core_sources}
+)
+list(REMOVE_ITEM libslic3r_print_apply_validate_core_sources
+    PrintFilamentMappingCompat.cpp
+    PrintPerimetersValidateCompat.cpp
+)
+list(APPEND libslic3r_print_apply_validate_core_sources
+    GCodeLayerOrdering.cpp
+    PrintApplyValidateCompat.cpp
+    PrintFilamentCompatibility.cpp
+    PrintValidate.cpp
+)
+
 add_library(libslic3r_print_process_core STATIC
     ${libslic3r_print_process_core_sources}
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
@@ -943,6 +957,10 @@ add_library(libslic3r_print_perimeters_core STATIC
 
 add_library(libslic3r_print_filament_mapping_core STATIC
     ${libslic3r_print_filament_mapping_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
+add_library(libslic3r_print_apply_validate_core STATIC
+    ${libslic3r_print_apply_validate_core_sources}
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
 
 if (SLIC3R_STATIC)
@@ -1093,6 +1111,7 @@ endfunction()
 configure_print_smoke_core(libslic3r_print_process_core)
 configure_print_smoke_core(libslic3r_print_perimeters_core)
 configure_print_smoke_core(libslic3r_print_filament_mapping_core)
+configure_print_smoke_core(libslic3r_print_apply_validate_core)
 target_compile_definitions(libslic3r_print_perimeters_core PUBLIC -DSLIC3R_PERIMETERS_ONLY_BUILD)
 
 

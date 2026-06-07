@@ -7,7 +7,7 @@
 
 using namespace Slic3r;
 
-SCENARIO("Print process core smoke path covers legacy single-mesh print initialization", "[PrintProcessCore]") {
+SCENARIO("Print apply/validate smoke path covers legacy single-mesh print initialization", "[PrintApplyValidate]") {
     GIVEN("a default print config and a 20mm cube mesh") {
         DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
         Model              model;

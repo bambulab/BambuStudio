@@ -23,9 +23,10 @@ Status key:
 | `gcodewriter_smoke_tests` | `GCodeWriter`, `Extruder`, writer-local config/state | Fast PR smoke |
 | `model_basic_smoke_tests` | `Model` assembly, placement, `TriangleMeshBasic` | Fast PR smoke |
 | `print_filament_mapping_smoke_tests` | print filament mapping and config-facing map updates | Fast PR smoke |
+| `print_apply_validate_smoke_tests` | `Print::apply()` / `Print::validate()` initialization invariants without full slicing | Fast PR smoke when apply/validate paths change |
 | `print_perimeters_stage_smoke_tests` | perimeter generation stage | Fast PR smoke |
 | `print_process_math_smoke_tests` | Flow math and `ExtrusionEntityCollection` flattening | Fast PR smoke |
-| `print_process_core_smoke_tests` | print initialization and solid layer re-slice behavior that still need the heavy print core | Fast PR smoke when core print process paths change |
+| `print_process_core_smoke_tests` | solid layer re-slice behavior that still needs the heavy print core | Fast PR smoke when core print process paths change |
 | `print_object_layers_smoke_tests` | object layer height generation | Fast PR smoke when object layer/slicing paths change |
 | `print_adhesion_smoke_tests` | skirt/brim adhesion generation | Fast PR smoke when adhesion paths change |
 | `fill_smoke_tests` | fill geometry and path generation | Fast PR smoke when fill paths change |
@@ -78,7 +79,7 @@ Status key:
 | `test_support_material.cpp` | forced support / bridge speed disabled block | skip/manual | none or nightly | Currently disabled / incomplete. |
 | `test_printgcode.cpp` | basic G-code output structure | manual/nightly | future G-code export smoke | Valuable, but should not be mixed into current PR smoke; direct full-export target needs a proper export harness because the current test-only setup crashes after `Print::process()` on Windows. |
 | `test_printgcode.cpp` | complete objects, support material, macros | manual/nightly | future G-code export smoke | Heavy export coverage; keep separate behind the same export harness boundary. |
-| `test_data.cpp` | single-mesh `init_print` model/print setup | done | `print_process_core_smoke_tests` | Migrated as a direct initialization invariant without full slicing or G-code export. |
+| `test_data.cpp` | single-mesh `init_print` model/print setup | done | `print_apply_validate_smoke_tests` | Migrated as a direct apply/validate initialization invariant without full slicing or G-code export. |
 | `test_data.cpp` | `print.process()` and G-code output through helpers | manual/nightly | future G-code export smoke | Helper coverage crosses into full slicing/export; keep out of PR smoke. |
 
 ## Post-Migration Responsibility Splits
@@ -87,6 +88,7 @@ Status key:
 |---|---|---|---|
 | Filament mapping pure rules | done | `libslic3r_config_tests` | `Print::is_dynamic_group_reorder()` and `Print::get_available_filament_map_modes()` now delegate their pure decisions to `FilamentMappingRules`, keeping the existing `Print` API behavior while covering those rules in the lighter config-core target. |
 | Filament mapping config synchronization | pending | `print_filament_mapping_smoke_tests` until a narrower state-sync boundary exists | `update_filament_maps_to_config()` still needs `Print` state and config synchronization, so it remains in the heavier print filament mapping boundary. |
+| Print apply/validate initialization | done | `print_apply_validate_smoke_tests` | `test_print_init_smoke.cpp` now runs against real `PrintApply.cpp` and `PrintValidate.cpp`; `Print::process()` remains guarded by apply/validate compat so the target cannot silently become full slicing coverage. |
 
 ## Next Migration Candidates
 

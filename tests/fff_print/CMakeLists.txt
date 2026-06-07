@@ -81,12 +81,19 @@ add_test(print_process_math_smoke_tests print_process_math_smoke_tests ${CATCH_E
 
 add_executable(print_process_core_smoke_tests
 	${_TEST_NAME}_tests.cpp
-	test_print_init_smoke.cpp
 	test_print_solid_layers_smoke.cpp
 )
 target_link_libraries(print_process_core_smoke_tests PRIVATE test_common libslic3r_print_process_core)
 set_property(TARGET print_process_core_smoke_tests PROPERTY FOLDER "tests")
 add_test(print_process_core_smoke_tests print_process_core_smoke_tests ${CATCH_EXTRA_ARGS})
+
+add_executable(print_apply_validate_smoke_tests
+	${_TEST_NAME}_tests.cpp
+	test_print_init_smoke.cpp
+)
+target_link_libraries(print_apply_validate_smoke_tests PRIVATE test_common libslic3r_print_apply_validate_core)
+set_property(TARGET print_apply_validate_smoke_tests PROPERTY FOLDER "tests")
+add_test(print_apply_validate_smoke_tests print_apply_validate_smoke_tests ${CATCH_EXTRA_ARGS})
 
 add_executable(print_object_layers_smoke_tests
 	${_TEST_NAME}_tests.cpp
