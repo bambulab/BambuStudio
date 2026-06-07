@@ -72,7 +72,7 @@ Status key:
 | `test_fill.cpp` | missing infill segment regression | done | `fill_smoke_tests` | Migrated and path-filtered into PR smoke. |
 | `test_fill.cpp` | rotated square fill | done | `fill_smoke_tests` | Migrated and path-filtered into PR smoke. |
 | `test_fill.cpp` | adjusted solid distance | done | `print_process_math_smoke_tests` | Migrated against current `Fill::_adjust_solid_spacing` helper boundary, including the legacy 250/47 representative and a non-zero narrow-width regression. |
-| `test_fill.cpp` | solid surface fill helper cases | partial | `fill_smoke_tests` | Migrated narrow representative; the obsolete legacy source is no longer part of `fff_print_tests` because the large direct-fill representative is unstable against current Fill internals and crashed the full legacy executable on Windows. |
+| `test_fill.cpp` | solid surface fill helper cases | partial | `fill_smoke_tests` | Migrated narrow representative; the obsolete legacy source is no longer part of `fff_print_tests` because the large direct-fill representative is unstable against current Fill internals. A 2026-06-08 local trial inside `fill_smoke_tests` compiled, but `solid_surface_fully_filled(expolygon, 0.55, 0.0, 1.0f)` returned false against current production behavior, so keep it out of PR smoke unless a product bugfix intentionally changes Fill output. |
 | `test_fill.cpp` | legacy path chaining comment block | done | `print_process_math_smoke_tests` | Migrated the lightweight `ExtrusionEntityCollection::chained_path_from()` representatives from the old Perl comment block into the current extrusion-entity boundary. The horizontal fixture is asserted against current nearest-path behavior rather than the obsolete exact order from the comment, preserving production logic. |
 | `test_support_material.cpp` | raft layer count | done | `support_material_smoke_tests` | Migrated and path-filtered into PR smoke; the obsolete legacy source is no longer part of `fff_print_tests` because remaining checks use old config access patterns and incomplete support internals. |
 | `test_support_material.cpp` | support layer Z/contact distance | partial | `support_material_smoke_tests` | Migrated stable first-Z and thickness-bound variants through raft-backed support layers and the legacy cube-with-hole support mesh, including 0.3mm first layer and nozzle-sized layer-height representatives; contact-distance/top-spacing internals remain manual/nightly until a stable support-core inspection boundary exists. |
@@ -92,15 +92,25 @@ Status key:
 
 ## Next Migration Candidates
 
-1. Remaining `Fill` large solid surface helper case: keep manual unless current Fill behavior is intentionally updated; the narrow representative is in `fill_smoke_tests`, and solid-spacing adjustment representatives are in the lighter `print_process_math_smoke_tests`.
+1. Remaining `Fill` large solid surface helper case: keep manual unless current Fill behavior is intentionally updated; the narrow representative is in `fill_smoke_tests`, and solid-spacing adjustment representatives are in the lighter `print_process_math_smoke_tests`. 2026-06-08 local validation showed the large representative currently fails at 0-degree orientation without changing production code.
 2. `SupportMaterial` contact-distance/top-spacing internals: keep manual/nightly unless a stable support-core harness can inspect those layers without broad export or brittle geometry assumptions; the cube-with-hole layer-bound representatives are now in PR smoke.
 3. `GCode` origin manipulation, `PrintGCode` export checks, and the export half of `Model construction` / `test_data` helpers: require a proper G-code core/export harness first; direct `GCode.cpp` / full-export linkage is too broad and currently unsafe for PR smoke.
 4. `Skirt/Brim` G-code parser/tool-selection leftovers: keep manual/nightly or skip as documented above; print-core geometry representatives are already in PR smoke.
 5. Filament mapping config synchronization: extract only after a stable state-sync boundary is identified; do not move `update_filament_maps_to_config()` merely to reduce test time.
 6. With the stable legacy items now migrated or explicitly classified, continue runtime reduction with target-level path filter tuning and CI timing evidence.
 
+## G-code Export Harness Investigation
+
+2026-06-08 local investigation attempted a first `gcode_export_smoke_tests` target for the stable legacy `test_printgcode.cpp` coverage:
+
+- Candidate assertions were limited to non-empty cube export, max-Z parsing through `GCodeReader`, and stable start/end custom G-code placeholder expansion.
+- The target necessarily linked full `libslic3r`; a clean local build of that target took about 10 minutes even before runtime assertions, confirming it does not belong in Windows PR fast smoke.
+- The old `Slic3r::Test::init_print()` helper is not safe for this fork's current export path because its legacy arrange/default-bed assumptions can throw `Objects could not fit on the bed`.
+- Rebuilding the test with direct `Print::apply()` / `Print::validate()` initialization moved the failure into `Print::export_gcode()`, where a bare `DynamicPrintConfig::full_print_config()` crashes while serializing the full config block through `GCode::append_full_config()`.
+- Conclusion: do not add a CTest target around full G-code export until the harness loads a real printer/process/filament preset bundle, or a separate production bugfix makes bare full-config export safe. This remains a manual/nightly bucket, not a PR fast migration candidate.
+
 ## Manual / Future Targets
 
 | Future target | Moves from | Purpose |
 |---|---|---|
-| `gcode_export_smoke_tests` | `test_printgcode.cpp` candidates | Manual/nightly G-code export regressions. |
+| `gcode_export_smoke_tests` | `test_printgcode.cpp` candidates | Manual/nightly G-code export regressions; must be preset-backed rather than `full_print_config()`-only. |
