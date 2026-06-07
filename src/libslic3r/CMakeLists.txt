@@ -136,6 +136,7 @@ set(lisbslic3r_sources
     Fill/FillFloatingConcentric.cpp
     Flow.cpp
     Flow.hpp
+    FlowPrint.cpp
     Frustum.cpp
     Frustum.hpp
     FlushVolCalc.cpp
@@ -591,6 +592,44 @@ add_library(libslic3r_gcodewriter_core STATIC
     ${libslic3r_gcodewriter_core_sources}
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
 
+set(libslic3r_print_process_math_core_sources
+    ArcFitter.cpp
+    BoundingBox.cpp
+    Circle.cpp
+    clipper.cpp
+    ClipperUtils.cpp
+    Config.cpp
+    ConfigFileUtils.cpp
+    ExPolygon.cpp
+    ExPolygonSecondMoment.cpp
+    Extruder.cpp
+    ExtrusionEntity.cpp
+    ExtrusionEntityCollection.cpp
+    Flow.cpp
+    Geometry/MedialAxis.cpp
+    Geometry/Voronoi.cpp
+    Geometry/VoronoiOffset.cpp
+    Geometry/VoronoiUtils.cpp
+    Geometry.cpp
+    GeometryTransformation.cpp
+    I18N.cpp
+    Line.cpp
+    LocalesUtils.cpp
+    MultiPoint.cpp
+    Point.cpp
+    Polygon.cpp
+    Polyline.cpp
+    PrintConfig.cpp
+    PrintConfigRuntime.cpp
+    ShortestPath.cpp
+    Surface.cpp
+    Utils.cpp
+)
+
+add_library(libslic3r_print_process_math_core STATIC
+    ${libslic3r_print_process_math_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
 set(libslic3r_model_basic_core_sources
     ObjectID.cpp
     PolygonLines.cpp
@@ -647,6 +686,7 @@ set(libslic3r_print_process_core_sources
     Fill/Lightning/TreeNode.cpp
     FuzzySkin.cpp
     Flow.cpp
+    FlowPrint.cpp
     FilamentGroup.cpp
     FilamentGroupUtils.cpp
     FilamentMixer.cpp
@@ -955,6 +995,7 @@ encoding_check(libslic3r)
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_compile_definitions(libslic3r_config_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_compile_definitions(libslic3r_gcodewriter_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
+target_compile_definitions(libslic3r_print_process_math_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_compile_definitions(libslic3r_model_basic_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/TextureToColor PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r PUBLIC ${EXPAT_INCLUDE_DIRS})
@@ -962,6 +1003,8 @@ target_include_directories(libslic3r_config_core PRIVATE ${CMAKE_CURRENT_SOURCE_
 target_include_directories(libslic3r_config_core PUBLIC ${EXPAT_INCLUDE_DIRS})
 target_include_directories(libslic3r_gcodewriter_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r_gcodewriter_core PUBLIC ${EXPAT_INCLUDE_DIRS})
+target_include_directories(libslic3r_print_process_math_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(libslic3r_print_process_math_core PUBLIC ${EXPAT_INCLUDE_DIRS})
 target_include_directories(libslic3r_model_basic_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r_model_basic_core PUBLIC ${EXPAT_INCLUDE_DIRS})
 
@@ -1083,6 +1126,15 @@ target_link_libraries(libslic3r_config_core
 
 target_link_libraries(libslic3r_gcodewriter_core
     boost_libs
+    nowide
+    semver
+    TBB::tbb
+    TBB::tbbmalloc
+)
+
+target_link_libraries(libslic3r_print_process_math_core
+    boost_libs
+    clipper
     nowide
     semver
     TBB::tbb

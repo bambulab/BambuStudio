@@ -1,8 +1,6 @@
 # print process core smoke source surface
 src/libslic3r/Brim.cpp
-src/libslic3r/ExtrusionEntity.cpp
-src/libslic3r/ExtrusionEntityCollection.cpp
-src/libslic3r/Flow.cpp
+src/libslic3r/FlowPrint.cpp
 src/libslic3r/PrintApply.cpp
 src/libslic3r/PrintBaseOutput.cpp
 src/libslic3r/PrintOutputFilename.cpp
@@ -25,7 +23,6 @@ src/libslic3r/Config*
 # print process core smoke target tests
 tests/fff_print/CMakeLists.txt
 tests/fff_print/fff_print_tests.cpp
-tests/fff_print/test_print_process_core_smoke.cpp
 tests/fff_print/test_print_solid_layers_smoke.cpp
 tests/fff_print/test_printobject_layers_smoke.cpp
 tests/fff_print/test_print_skirt_brim_smoke.cpp

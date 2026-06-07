@@ -21,6 +21,7 @@ on:
       - "build_win.bat"
       - ".github/print-filament-mapping-smoke-paths.txt"
       - ".github/print-perimeters-smoke-paths.txt"
+      - ".github/print-process-math-smoke-paths.txt"
       - ".github/print-process-core-smoke-paths.txt"
       - ".github/workflows/cpp_ut_smoke.yml"
       - ".github/workflows/deps_build.yml"
@@ -135,6 +136,9 @@ jobs:
           $perimetersEnabled = $true
           $perimetersReason = "workflow_dispatch"
           $perimetersMatched = "n/a"
+          $processMathEnabled = $true
+          $processMathReason = "workflow_dispatch"
+          $processMathMatched = "n/a"
           $processCoreEnabled = $true
           $processCoreReason = "workflow_dispatch"
           $processCoreMatched = "n/a"
@@ -153,6 +157,7 @@ jobs:
               $modelAssemblyReason = "missing_base_sha"
               $filamentMappingReason = "missing_base_sha"
               $perimetersReason = "missing_base_sha"
+              $processMathReason = "missing_base_sha"
               $processCoreReason = "missing_base_sha"
             } else {
               git fetch --no-tags --depth=1 origin $base | Out-Null
@@ -162,6 +167,7 @@ jobs:
                 $modelAssemblyReason = "fetch_base_failed"
                 $filamentMappingReason = "fetch_base_failed"
                 $perimetersReason = "fetch_base_failed"
+                $processMathReason = "fetch_base_failed"
                 $processCoreReason = "fetch_base_failed"
               } else {
                 $changed = @(git diff --name-only $base $head | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
@@ -172,6 +178,7 @@ jobs:
                 $modelAssemblyScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/model-assembly-smoke-paths.txt"
                 $filamentMappingScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/print-filament-mapping-smoke-paths.txt"
                 $perimetersScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/print-perimeters-smoke-paths.txt"
+                $processMathScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/print-process-math-smoke-paths.txt"
                 $processCoreScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/print-process-core-smoke-paths.txt"
 
                 $configEnabled = $configScope.Enabled
@@ -189,6 +196,9 @@ jobs:
                 $perimetersEnabled = $perimetersScope.Enabled
                 $perimetersReason = $perimetersScope.Reason
                 $perimetersMatched = $perimetersScope.Matched
+                $processMathEnabled = $processMathScope.Enabled
+                $processMathReason = $processMathScope.Reason
+                $processMathMatched = $processMathScope.Matched
                 $processCoreEnabled = $processCoreScope.Enabled
                 $processCoreReason = $processCoreScope.Reason
                 $processCoreMatched = $processCoreScope.Matched
@@ -196,7 +206,7 @@ jobs:
             }
           }
 
-          $anyEnabled = $configEnabled -or $gcodewriterEnabled -or $modelAssemblyEnabled -or $filamentMappingEnabled -or $perimetersEnabled -or $processCoreEnabled
+          $anyEnabled = $configEnabled -or $gcodewriterEnabled -or $modelAssemblyEnabled -or $filamentMappingEnabled -or $perimetersEnabled -or $processMathEnabled -or $processCoreEnabled
           "any_enabled=$($anyEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "changed=$changedText" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "config_enabled=$($configEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
@@ -214,6 +224,9 @@ jobs:
           "perimeters_enabled=$($perimetersEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "perimeters_reason=$perimetersReason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "perimeters_matched=$perimetersMatched" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "process_math_enabled=$($processMathEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "process_math_reason=$processMathReason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "process_math_matched=$processMathMatched" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "process_core_enabled=$($processCoreEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "process_core_reason=$processCoreReason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "process_core_matched=$processCoreMatched" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
@@ -228,6 +241,7 @@ jobs:
           Write-Host "model assembly smoke gate enabled=$modelAssemblyEnabled reason=$modelAssemblyReason matched=$modelAssemblyMatched"
           Write-Host "print filament mapping smoke gate enabled=$filamentMappingEnabled reason=$filamentMappingReason matched=$filamentMappingMatched"
           Write-Host "print perimeters smoke gate enabled=$perimetersEnabled reason=$perimetersReason matched=$perimetersMatched"
+          Write-Host "print process math smoke gate enabled=$processMathEnabled reason=$processMathReason matched=$processMathMatched"
           Write-Host "print process core smoke gate enabled=$processCoreEnabled reason=$processCoreReason matched=$processCoreMatched"
 
       - name: Setup MSVC developer command prompt
@@ -352,6 +366,11 @@ jobs:
         if: steps.smoke_scope.outputs.perimeters_enabled == 'true'
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target print_perimeters_stage_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
+
+      - name: Build print process math smoke target
+        if: steps.smoke_scope.outputs.process_math_enabled == 'true'
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target print_process_math_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
 
       - name: Build print process core smoke target
         if: steps.smoke_scope.outputs.process_core_enabled == 'true'
@@ -508,6 +527,30 @@ jobs:
           - Matched files: `${{ steps.smoke_scope.outputs.process_core_matched }}`
           "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
 
+      - name: Note skipped print process math smoke target
+        if: steps.smoke_scope.outputs.process_math_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## Print Process Math Smoke Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.process_math_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.process_math_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Run print process math smoke
+        id: run_print_process_math_smoke
+        if: steps.smoke_scope.outputs.process_math_enabled == 'true'
+        shell: pwsh
+        run: |
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\print_process_math_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-process-math-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-process-math-smoke.xml"
+          & $exe "[PrintProcessMath]" 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml "[PrintProcessMath]" | Out-Null
+
       - name: Run print process core smoke
         id: run_print_process_core_smoke
         if: steps.smoke_scope.outputs.process_core_enabled == 'true'
@@ -565,6 +608,14 @@ jobs:
               Log = "print-perimeters-smoke.log"
               Xml = "print-perimeters-smoke.xml"
               Conclusion = "${{ steps.run_print_perimeters_smoke.conclusion }}"
+            })
+          }
+          if ("${{ steps.smoke_scope.outputs.process_math_enabled }}" -eq "true") {
+            $expected.Add(@{
+              Name = "print_process_math_smoke_tests [PrintProcessMath]"
+              Log = "print-process-math-smoke.log"
+              Xml = "print-process-math-smoke.xml"
+              Conclusion = "${{ steps.run_print_process_math_smoke.conclusion }}"
             })
           }
           if ("${{ steps.smoke_scope.outputs.process_core_enabled }}" -eq "true") {
@@ -708,6 +759,8 @@ jobs:
           $filamentMappingSmokeReason = "${{ steps.smoke_scope.outputs.filament_mapping_reason }}"
           $perimetersSmokeEnabled = "${{ steps.smoke_scope.outputs.perimeters_enabled }}" -eq "true"
           $perimetersSmokeReason = "${{ steps.smoke_scope.outputs.perimeters_reason }}"
+          $processMathSmokeEnabled = "${{ steps.smoke_scope.outputs.process_math_enabled }}" -eq "true"
+          $processMathSmokeReason = "${{ steps.smoke_scope.outputs.process_math_reason }}"
           $processCoreSmokeEnabled = "${{ steps.smoke_scope.outputs.process_core_enabled }}" -eq "true"
           $processCoreSmokeReason = "${{ steps.smoke_scope.outputs.process_core_reason }}"
           $suiteMeta = @(
@@ -716,6 +769,7 @@ jobs:
             @{ Name = "model_basic_smoke_tests [ModelAssembly]"; Log = ".ci/smoke/model-assembly-smoke.log"; Xml = ".ci/smoke/model-assembly-smoke.xml" },
             @{ Name = "print_filament_mapping_smoke_tests [PrintFilamentMapping]"; Log = ".ci/smoke/print-filament-mapping-smoke.log"; Xml = ".ci/smoke/print-filament-mapping-smoke.xml" },
             @{ Name = "print_perimeters_stage_smoke_tests [PrintPerimeters]"; Log = ".ci/smoke/print-perimeters-smoke.log"; Xml = ".ci/smoke/print-perimeters-smoke.xml" },
+            @{ Name = "print_process_math_smoke_tests [PrintProcessMath]"; Log = ".ci/smoke/print-process-math-smoke.log"; Xml = ".ci/smoke/print-process-math-smoke.xml" },
             @{ Name = "print_process_core_smoke_tests [PrintProcessCore],[PrintSkirtBrim]"; Log = ".ci/smoke/print-process-core-smoke.log"; Xml = ".ci/smoke/print-process-core-smoke.xml" }
           )
 
@@ -744,6 +798,10 @@ jobs:
             }
             if ($suite.Name -like 'print_perimeters_stage_smoke_tests*' -and -not $perimetersSmokeEnabled) {
               $rows.Add("| $($suite.Name) | skipped ($perimetersSmokeReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'print_process_math_smoke_tests*' -and -not $processMathSmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($processMathSmokeReason) | 0 | 0 |")
               continue
             }
             if ($suite.Name -like 'print_process_core_smoke_tests*' -and -not $processCoreSmokeEnabled) {
@@ -794,6 +852,8 @@ jobs:
           - Print filament mapping smoke gate reason: `$filamentMappingSmokeReason`
           - Print perimeters smoke gate enabled: `$perimetersSmokeEnabled`
           - Print perimeters smoke gate reason: `$perimetersSmokeReason`
+          - Print process math smoke gate enabled: `$processMathSmokeEnabled`
+          - Print process math smoke gate reason: `$processMathSmokeReason`
           - Print process core smoke gate enabled: `$processCoreSmokeEnabled`
           - Print process core smoke gate reason: `$processCoreSmokeReason`
           - Smoke commands passed: `$passedSuites / $eligibleSuites`

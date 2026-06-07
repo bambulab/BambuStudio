@@ -1,0 +1,35 @@
+# print process math smoke source surface
+src/libslic3r/ArcFitter.cpp
+src/libslic3r/BoundingBox.cpp
+src/libslic3r/Circle.cpp
+src/libslic3r/ClipperUtils.cpp
+src/libslic3r/ExPolygon.cpp
+src/libslic3r/ExPolygonSecondMoment.cpp
+src/libslic3r/ExtrusionEntity.cpp
+src/libslic3r/ExtrusionEntityCollection.cpp
+src/libslic3r/Flow.cpp
+src/libslic3r/Flow.hpp
+src/libslic3r/Geometry.cpp
+src/libslic3r/Geometry/MedialAxis.cpp
+src/libslic3r/Geometry/Voronoi.cpp
+src/libslic3r/Geometry/VoronoiOffset.cpp
+src/libslic3r/Geometry/VoronoiUtils.cpp
+src/libslic3r/GeometryTransformation.cpp
+src/libslic3r/MultiPoint.cpp
+src/libslic3r/Point.cpp
+src/libslic3r/Polygon.cpp
+src/libslic3r/Polyline.cpp
+src/libslic3r/PrintConfig*
+src/libslic3r/Config*
+src/libslic3r/libslic3r.h
+
+# print process math smoke target tests
+tests/fff_print/CMakeLists.txt
+tests/fff_print/fff_print_tests.cpp
+tests/fff_print/test_print_process_math_smoke.cpp
+tests/catch_main.hpp
+tests/catch2/catch.hpp
+
+# workflow changes should re-run the smoke gate
+.github/print-process-math-smoke-paths.txt
+.github/workflows/cpp_ut_smoke.yml

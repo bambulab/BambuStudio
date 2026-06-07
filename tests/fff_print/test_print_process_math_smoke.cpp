@@ -10,7 +10,7 @@
 
 using namespace Slic3r;
 
-static ExtrusionPath process_core_path(std::initializer_list<Point> points)
+static ExtrusionPath process_math_path(std::initializer_list<Point> points)
 {
     ExtrusionPath path { erPerimeter, 1.0, 1.0, 1.0 };
     for (const Point &point : points)
@@ -18,7 +18,7 @@ static ExtrusionPath process_core_path(std::initializer_list<Point> points)
     return path;
 }
 
-SCENARIO("Print process core smoke path covers legacy flow math", "[PrintProcessCore]") {
+SCENARIO("Print process math smoke path covers legacy flow math", "[PrintProcessMath]") {
     GIVEN("a 0.4mm nozzle and a 0.4mm layer height") {
         constexpr float nozzle_diameter = 0.4f;
         constexpr float layer_height = 0.4f;
@@ -66,11 +66,11 @@ SCENARIO("Print process core smoke path covers legacy flow math", "[PrintProcess
     }
 }
 
-SCENARIO("Print process core smoke path covers legacy extrusion entity flattening", "[PrintProcessCore]") {
+SCENARIO("Print process math smoke path covers legacy extrusion entity flattening", "[PrintProcessMath]") {
     GIVEN("an extrusion collection containing a no-sort child collection") {
         ExtrusionPaths no_sort_paths;
-        no_sort_paths.push_back(process_core_path({ Point(0, 0), Point(10, 0), Point(10, 10) }));
-        no_sort_paths.push_back(process_core_path({ Point(20, 20), Point(30, 20), Point(30, 30) }));
+        no_sort_paths.push_back(process_math_path({ Point(0, 0), Point(10, 0), Point(10, 10) }));
+        no_sort_paths.push_back(process_math_path({ Point(20, 20), Point(30, 20), Point(30, 30) }));
 
         ExtrusionEntityCollection no_sort_child;
         no_sort_child.no_sort = true;
@@ -78,7 +78,7 @@ SCENARIO("Print process core smoke path covers legacy extrusion entity flattenin
 
         ExtrusionEntityCollection sortable_child;
         sortable_child.no_sort = false;
-        sortable_child.append({ process_core_path({ Point(-10, -10), Point(-20, -10), Point(-20, -20) }) });
+        sortable_child.append({ process_math_path({ Point(-10, -10), Point(-20, -10), Point(-20, -20) }) });
 
         ExtrusionEntityCollection sample;
         sample.append(sortable_child);
@@ -90,8 +90,8 @@ SCENARIO("Print process core smoke path covers legacy extrusion entity flattenin
 
             THEN("the output contains no nested collections") {
                 REQUIRE(std::count_if(output.entities.cbegin(), output.entities.cend(), [](const ExtrusionEntity *entity) {
-                            return entity->is_collection();
-                        }) == 0);
+                    return entity->is_collection();
+                }) == 0);
             }
         }
 

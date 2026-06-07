@@ -23,6 +23,7 @@ Status key:
 | `model_basic_smoke_tests` | `Model` assembly, placement, `TriangleMeshBasic` | Fast PR smoke |
 | `print_filament_mapping_smoke_tests` | print filament mapping and config-facing map updates | Fast PR smoke |
 | `print_perimeters_stage_smoke_tests` | perimeter generation stage | Fast PR smoke |
+| `print_process_math_smoke_tests` | Flow math and `ExtrusionEntityCollection` flattening | Fast PR smoke |
 | `print_process_core_smoke_tests` | full print process behaviors that still need the heavy print core | Fast PR smoke for now; split later |
 | `fill_smoke_tests` | fill geometry and path generation | Migration smoke; not wired into PR workflow yet |
 | `support_material_smoke_tests` | support material layer generation | Migration smoke; not wired into PR workflow yet |
@@ -43,12 +44,12 @@ Status key:
 | `test_trianglemesh.cpp` | cylinder/sphere factory helpers | done | `trianglemesh_geometry_smoke_tests` | Migrated; not wired into PR workflow yet. |
 | `test_trianglemesh.cpp` | split / merge / cut behavior | done | `trianglemesh_geometry_smoke_tests` | Migrated; not wired into PR workflow yet. |
 | `test_trianglemesh.cpp` | issue #4486 performance/profile tests | manual/nightly | nightly regression bucket | Performance guard; not PR smoke. |
-| `test_flow.cpp` | non-bridge flow math | done | `print_process_core_smoke_tests` | Migrated. Later split to a light flow/math target. |
-| `test_flow.cpp` | bridge flow math | done | `print_process_core_smoke_tests` | Migrated. Later split to a light flow/math target. |
-| `test_flow.cpp` | 0.25mm nozzle auto-width edge cases | done | `print_process_core_smoke_tests` | Migrated. Later split to a light flow/math target. |
+| `test_flow.cpp` | non-bridge flow math | done | `print_process_math_smoke_tests` | Migrated into light math target. |
+| `test_flow.cpp` | bridge flow math | done | `print_process_math_smoke_tests` | Migrated into light math target. |
+| `test_flow.cpp` | 0.25mm nozzle auto-width edge cases | done | `print_process_math_smoke_tests` | Migrated into light math target. |
 | `test_flow.cpp` | extrusion width specifics through G-code export | manual/nightly | future G-code export target | Depends on full G-code generation. |
 | `test_flow.cpp` | bridge flow specifics placeholders | skip | none | Empty placeholder sections. |
-| `test_extrusion_entity.cpp` | collection flattening | done | `print_process_core_smoke_tests` | Migrated. Later split to a light data-structure target. |
+| `test_extrusion_entity.cpp` | collection flattening | done | `print_process_math_smoke_tests` | Migrated into light math/data-structure target. |
 | `test_printobject.cpp` | object layer heights | done | `print_process_core_smoke_tests` | Migrated. |
 | `test_print.cpp` | perimeter generation | done | `print_perimeters_stage_smoke_tests` | Migrated as stage executable smoke. |
 | `test_print.cpp` | skirt generation | done | `print_process_core_smoke_tests` | Migrated with adhesion scenarios. |
@@ -76,7 +77,6 @@ Status key:
 
 | Future target | Moves from | Purpose |
 |---|---|---|
-| `print_process_math_smoke_tests` | `test_print_process_core_smoke.cpp` | Flow math and extrusion collection flattening without full print process link cost. |
 | `fill_smoke_tests` | `test_fill.cpp` candidates | Fill geometry regressions. |
 | `support_material_smoke_tests` | `test_support_material.cpp` candidates | Support-specific full-process checks. |
 | `gcode_export_smoke_tests` | `test_printgcode.cpp` candidates | Manual/nightly G-code export regressions. |
