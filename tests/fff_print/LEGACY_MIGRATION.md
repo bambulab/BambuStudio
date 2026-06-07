@@ -57,7 +57,7 @@ Status key:
 | `test_fill.cpp` | rectilinear path length / hole avoidance | done | `fill_smoke_tests` | Migrated; not wired into PR workflow yet. |
 | `test_fill.cpp` | missing infill segment regression | done | `fill_smoke_tests` | Migrated; not wired into PR workflow yet. |
 | `test_fill.cpp` | rotated square fill | done | `fill_smoke_tests` | Migrated; not wired into PR workflow yet. |
-| `test_fill.cpp` | solid surface fill helper cases | partial | `fill_smoke_tests` | Migrated narrow representative; large precision-sensitive helper remains pending/manual. |
+| `test_fill.cpp` | solid surface fill helper cases | partial | `fill_smoke_tests` | Migrated narrow representative; large representative is not stable against current Fill behavior. |
 | `test_support_material.cpp` | raft layer count | done | `support_material_smoke_tests` | Migrated; not wired into PR workflow yet. |
 | `test_support_material.cpp` | support layer Z/contact distance | pending | future support smoke or manual target | Legacy cube-with-hole invariant is not stable against current support layer storage; do not force into PR smoke. |
 | `test_support_material.cpp` | forced support / bridge speed disabled block | skip/manual | none or nightly | Currently disabled / incomplete. |
@@ -68,7 +68,7 @@ Status key:
 ## Next Migration Candidates
 
 1. `GCode` origin manipulation: only after introducing a small `gcode_core_smoke_tests` boundary.
-2. Remaining `Fill` large solid surface helper case: migrate only if deterministic in the new `fill_smoke_tests` target.
+2. Remaining `Fill` large solid surface helper case: keep pending/manual unless current behavior is intentionally updated.
 3. `PrintGCode` export checks: create manual/nightly target first; do not add to PR smoke by default.
 
 ## Later Split Targets
