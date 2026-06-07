@@ -1,0 +1,7 @@
+add_executable(print_object_layers_smoke_tests
+	${_TEST_NAME}_tests.cpp
+	test_printobject_layers_smoke.cpp
+)
+target_link_libraries(print_object_layers_smoke_tests PRIVATE test_common libslic3r_print_process_core)
+set_property(TARGET print_object_layers_smoke_tests PROPERTY FOLDER "tests")
+add_test(print_object_layers_smoke_tests print_object_layers_smoke_tests ${CATCH_EXTRA_ARGS})

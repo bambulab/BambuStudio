@@ -28,81 +28,15 @@ set_property(TARGET fff_print_smoke PROPERTY FOLDER "tests")
 add_test(fff_print_smoke fff_print_smoke ${CATCH_EXTRA_ARGS})
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/GCodeWriterSmoke.cmake)
-
-add_executable(model_basic_smoke_tests
-	${_TEST_NAME}_tests.cpp
-	test_model_basic_smoke.cpp
-	test_trianglemesh_basic_smoke.cpp
-)
-target_link_libraries(model_basic_smoke_tests PRIVATE test_common libslic3r_model_basic_core)
-set_property(TARGET model_basic_smoke_tests PROPERTY FOLDER "tests")
-add_test(model_basic_smoke_tests model_basic_smoke_tests ${CATCH_EXTRA_ARGS})
-
-add_executable(print_filament_mapping_smoke_tests
-	${_TEST_NAME}_tests.cpp
-	test_print_filament_mapping_smoke.cpp
-)
-target_link_libraries(print_filament_mapping_smoke_tests PRIVATE test_common libslic3r_print_filament_mapping_core)
-set_property(TARGET print_filament_mapping_smoke_tests PROPERTY FOLDER "tests")
-add_test(print_filament_mapping_smoke_tests print_filament_mapping_smoke_tests ${CATCH_EXTRA_ARGS})
-
-add_executable(print_perimeters_stage_smoke_tests
-	${_TEST_NAME}_tests.cpp
-	test_print_process_smoke.cpp
-)
-target_link_libraries(print_perimeters_stage_smoke_tests PRIVATE test_common libslic3r_print_perimeters_core)
-set_property(TARGET print_perimeters_stage_smoke_tests PROPERTY FOLDER "tests")
-add_test(print_perimeters_stage_smoke_tests print_perimeters_stage_smoke_tests ${CATCH_EXTRA_ARGS})
-
-add_executable(print_process_math_smoke_tests
-	${_TEST_NAME}_tests.cpp
-	test_print_process_math_smoke.cpp
-)
-target_link_libraries(print_process_math_smoke_tests PRIVATE test_common libslic3r_print_process_math_core)
-set_property(TARGET print_process_math_smoke_tests PROPERTY FOLDER "tests")
-add_test(print_process_math_smoke_tests print_process_math_smoke_tests ${CATCH_EXTRA_ARGS})
-
-add_executable(print_process_core_smoke_tests
-	${_TEST_NAME}_tests.cpp
-	test_print_solid_layers_smoke.cpp
-)
-target_link_libraries(print_process_core_smoke_tests PRIVATE test_common libslic3r_print_process_core)
-set_property(TARGET print_process_core_smoke_tests PROPERTY FOLDER "tests")
-add_test(print_process_core_smoke_tests print_process_core_smoke_tests ${CATCH_EXTRA_ARGS})
-
-add_executable(print_apply_validate_smoke_tests
-	${_TEST_NAME}_tests.cpp
-	test_print_init_smoke.cpp
-)
-target_link_libraries(print_apply_validate_smoke_tests PRIVATE test_common libslic3r_print_apply_validate_core)
-set_property(TARGET print_apply_validate_smoke_tests PROPERTY FOLDER "tests")
-add_test(print_apply_validate_smoke_tests print_apply_validate_smoke_tests ${CATCH_EXTRA_ARGS})
-
-add_executable(print_object_layers_smoke_tests
-	${_TEST_NAME}_tests.cpp
-	test_printobject_layers_smoke.cpp
-)
-target_link_libraries(print_object_layers_smoke_tests PRIVATE test_common libslic3r_print_process_core)
-set_property(TARGET print_object_layers_smoke_tests PROPERTY FOLDER "tests")
-add_test(print_object_layers_smoke_tests print_object_layers_smoke_tests ${CATCH_EXTRA_ARGS})
-
-add_executable(print_adhesion_smoke_tests
-	${_TEST_NAME}_tests.cpp
-	test_print_skirt_brim_smoke.cpp
-)
-target_link_libraries(print_adhesion_smoke_tests PRIVATE test_common libslic3r_print_process_core)
-set_property(TARGET print_adhesion_smoke_tests PROPERTY FOLDER "tests")
-add_test(print_adhesion_smoke_tests print_adhesion_smoke_tests ${CATCH_EXTRA_ARGS})
-
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/ModelBasicSmoke.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/PrintFilamentMappingSmoke.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/PrintPerimetersStageSmoke.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/PrintProcessMathSmoke.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/PrintProcessCoreSmoke.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/PrintApplyValidateSmoke.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/PrintObjectLayersSmoke.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/PrintAdhesionSmoke.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/FillSmoke.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/SupportMaterialSmoke.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/SupportMaterialLayersSmoke.cmake)
-
-add_executable(trianglemesh_geometry_smoke_tests
-	${_TEST_NAME}_tests.cpp
-	${CMAKE_SOURCE_DIR}/src/libslic3r/TriangleMesh.cpp
-	test_trianglemesh_geometry_smoke.cpp
-)
-target_link_libraries(trianglemesh_geometry_smoke_tests PRIVATE test_common libslic3r_print_process_core)
-set_property(TARGET trianglemesh_geometry_smoke_tests PROPERTY FOLDER "tests")
-add_test(trianglemesh_geometry_smoke_tests trianglemesh_geometry_smoke_tests ${CATCH_EXTRA_ARGS})
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/TriangleMeshGeometrySmoke.cmake)

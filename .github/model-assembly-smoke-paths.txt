@@ -7,6 +7,7 @@ src/libslic3r/Model.hpp
 src/libslic3r/TriangleMesh.hpp
 
 # model assembly fast-gate tests
+tests/fff_print/cmake/ModelBasicSmoke.cmake
 tests/fff_print/fff_print_tests.cpp
 tests/fff_print/test_model_basic_smoke.cpp
 tests/fff_print/test_trianglemesh_basic_smoke.cpp

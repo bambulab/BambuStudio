@@ -1,0 +1,8 @@
+add_executable(trianglemesh_geometry_smoke_tests
+	${_TEST_NAME}_tests.cpp
+	${CMAKE_SOURCE_DIR}/src/libslic3r/TriangleMesh.cpp
+	test_trianglemesh_geometry_smoke.cpp
+)
+target_link_libraries(trianglemesh_geometry_smoke_tests PRIVATE test_common libslic3r_print_process_core)
+set_property(TARGET trianglemesh_geometry_smoke_tests PROPERTY FOLDER "tests")
+add_test(trianglemesh_geometry_smoke_tests trianglemesh_geometry_smoke_tests ${CATCH_EXTRA_ARGS})

@@ -11,6 +11,7 @@ src/libslic3r/Model.hpp
 src/libslic3r/TriangleMesh.hpp
 
 # print filament mapping Print API integration smoke target tests
+tests/fff_print/cmake/PrintFilamentMappingSmoke.cmake
 tests/fff_print/CMakeLists.txt
 tests/fff_print/fff_print_tests.cpp
 tests/fff_print/test_print_filament_mapping_smoke.cpp
