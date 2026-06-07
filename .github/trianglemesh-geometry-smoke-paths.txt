@@ -1,0 +1,20 @@
+# trianglemesh geometry smoke source surface
+src/libslic3r/TriangleMesh.cpp
+src/libslic3r/TriangleMesh.hpp
+src/libslic3r/TriangleMesh*
+src/libslic3r/Mesh*
+src/libslic3r/Geometry.cpp
+src/libslic3r/GeometryTransformation.cpp
+src/libslic3r/ModelCut.cpp
+src/libslic3r/ModelTransform.cpp
+
+# trianglemesh geometry smoke target tests
+tests/fff_print/CMakeLists.txt
+tests/fff_print/fff_print_tests.cpp
+tests/fff_print/test_trianglemesh_geometry_smoke.cpp
+tests/catch_main.hpp
+tests/catch2/catch.hpp
+
+# workflow changes should re-run the smoke gate
+.github/trianglemesh-geometry-smoke-paths.txt
+.github/workflows/cpp_ut_smoke.yml

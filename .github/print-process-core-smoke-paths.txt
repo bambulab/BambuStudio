@@ -6,7 +6,6 @@ src/libslic3r/PrintBaseOutput.cpp
 src/libslic3r/PrintOutputFilename.cpp
 src/libslic3r/PrintProcess.cpp
 src/libslic3r/PrintProcessPerimeters.cpp
-src/libslic3r/PrintProcessSupport.cpp
 src/libslic3r/PrintStatistics.cpp
 src/libslic3r/PrintValidate.cpp
 src/libslic3r/PrintWipeTower.cpp

@@ -23,6 +23,9 @@ on:
       - ".github/print-perimeters-smoke-paths.txt"
       - ".github/print-process-math-smoke-paths.txt"
       - ".github/print-process-core-smoke-paths.txt"
+      - ".github/fill-smoke-paths.txt"
+      - ".github/support-material-smoke-paths.txt"
+      - ".github/trianglemesh-geometry-smoke-paths.txt"
       - ".github/workflows/cpp_ut_smoke.yml"
       - ".github/workflows/deps_build.yml"
 
@@ -142,6 +145,15 @@ jobs:
           $processCoreEnabled = $true
           $processCoreReason = "workflow_dispatch"
           $processCoreMatched = "n/a"
+          $fillEnabled = $true
+          $fillReason = "workflow_dispatch"
+          $fillMatched = "n/a"
+          $supportMaterialEnabled = $true
+          $supportMaterialReason = "workflow_dispatch"
+          $supportMaterialMatched = "n/a"
+          $trianglemeshGeometryEnabled = $true
+          $trianglemeshGeometryReason = "workflow_dispatch"
+          $trianglemeshGeometryMatched = "n/a"
 
           if ("${{ github.event_name }}" -ne "workflow_dispatch") {
             $base = if ("${{ github.event_name }}" -eq "pull_request") {
@@ -159,6 +171,9 @@ jobs:
               $perimetersReason = "missing_base_sha"
               $processMathReason = "missing_base_sha"
               $processCoreReason = "missing_base_sha"
+              $fillReason = "missing_base_sha"
+              $supportMaterialReason = "missing_base_sha"
+              $trianglemeshGeometryReason = "missing_base_sha"
             } else {
               git fetch --no-tags --depth=1 origin $base | Out-Null
               if ($LASTEXITCODE -ne 0) {
@@ -169,6 +184,9 @@ jobs:
                 $perimetersReason = "fetch_base_failed"
                 $processMathReason = "fetch_base_failed"
                 $processCoreReason = "fetch_base_failed"
+                $fillReason = "fetch_base_failed"
+                $supportMaterialReason = "fetch_base_failed"
+                $trianglemeshGeometryReason = "fetch_base_failed"
               } else {
                 $changed = @(git diff --name-only $base $head | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
                 $changedText = if ($changed.Count -gt 0) { $changed -join ', ' } else { 'n/a' }
@@ -180,6 +198,9 @@ jobs:
                 $perimetersScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/print-perimeters-smoke-paths.txt"
                 $processMathScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/print-process-math-smoke-paths.txt"
                 $processCoreScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/print-process-core-smoke-paths.txt"
+                $fillScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/fill-smoke-paths.txt"
+                $supportMaterialScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/support-material-smoke-paths.txt"
+                $trianglemeshGeometryScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/trianglemesh-geometry-smoke-paths.txt"
 
                 $configEnabled = $configScope.Enabled
                 $configReason = $configScope.Reason
@@ -202,11 +223,20 @@ jobs:
                 $processCoreEnabled = $processCoreScope.Enabled
                 $processCoreReason = $processCoreScope.Reason
                 $processCoreMatched = $processCoreScope.Matched
+                $fillEnabled = $fillScope.Enabled
+                $fillReason = $fillScope.Reason
+                $fillMatched = $fillScope.Matched
+                $supportMaterialEnabled = $supportMaterialScope.Enabled
+                $supportMaterialReason = $supportMaterialScope.Reason
+                $supportMaterialMatched = $supportMaterialScope.Matched
+                $trianglemeshGeometryEnabled = $trianglemeshGeometryScope.Enabled
+                $trianglemeshGeometryReason = $trianglemeshGeometryScope.Reason
+                $trianglemeshGeometryMatched = $trianglemeshGeometryScope.Matched
               }
             }
           }
 
-          $anyEnabled = $configEnabled -or $gcodewriterEnabled -or $modelAssemblyEnabled -or $filamentMappingEnabled -or $perimetersEnabled -or $processMathEnabled -or $processCoreEnabled
+          $anyEnabled = $configEnabled -or $gcodewriterEnabled -or $modelAssemblyEnabled -or $filamentMappingEnabled -or $perimetersEnabled -or $processMathEnabled -or $processCoreEnabled -or $fillEnabled -or $supportMaterialEnabled -or $trianglemeshGeometryEnabled
           "any_enabled=$($anyEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "changed=$changedText" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "config_enabled=$($configEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
@@ -230,6 +260,15 @@ jobs:
           "process_core_enabled=$($processCoreEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "process_core_reason=$processCoreReason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "process_core_matched=$processCoreMatched" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "fill_enabled=$($fillEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "fill_reason=$fillReason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "fill_matched=$fillMatched" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "support_material_enabled=$($supportMaterialEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "support_material_reason=$supportMaterialReason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "support_material_matched=$supportMaterialMatched" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "trianglemesh_geometry_enabled=$($trianglemeshGeometryEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "trianglemesh_geometry_reason=$trianglemeshGeometryReason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "trianglemesh_geometry_matched=$trianglemeshGeometryMatched" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
 
           Write-Host "smoke any_enabled=$anyEnabled"
           if ($changed.Count -gt 0) {
@@ -243,6 +282,9 @@ jobs:
           Write-Host "print perimeters smoke gate enabled=$perimetersEnabled reason=$perimetersReason matched=$perimetersMatched"
           Write-Host "print process math smoke gate enabled=$processMathEnabled reason=$processMathReason matched=$processMathMatched"
           Write-Host "print process core smoke gate enabled=$processCoreEnabled reason=$processCoreReason matched=$processCoreMatched"
+          Write-Host "fill smoke gate enabled=$fillEnabled reason=$fillReason matched=$fillMatched"
+          Write-Host "support material smoke gate enabled=$supportMaterialEnabled reason=$supportMaterialReason matched=$supportMaterialMatched"
+          Write-Host "trianglemesh geometry smoke gate enabled=$trianglemeshGeometryEnabled reason=$trianglemeshGeometryReason matched=$trianglemeshGeometryMatched"
 
       - name: Setup MSVC developer command prompt
         if: steps.smoke_scope.outputs.any_enabled == 'true'
@@ -376,6 +418,21 @@ jobs:
         if: steps.smoke_scope.outputs.process_core_enabled == 'true'
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target print_process_core_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
+
+      - name: Build fill smoke target
+        if: steps.smoke_scope.outputs.fill_enabled == 'true'
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target fill_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
+
+      - name: Build support material smoke target
+        if: steps.smoke_scope.outputs.support_material_enabled == 'true'
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target support_material_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
+
+      - name: Build trianglemesh geometry smoke target
+        if: steps.smoke_scope.outputs.trianglemesh_geometry_enabled == 'true'
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target trianglemesh_geometry_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
 
       - name: Add deps runtime DLLs to PATH
         if: steps.smoke_scope.outputs.any_enabled == 'true'
@@ -563,6 +620,78 @@ jobs:
           & $exe $filter 2>&1 | Tee-Object -FilePath $log
           & $exe -r junit -o $xml $filter | Out-Null
 
+      - name: Note skipped fill smoke target
+        if: steps.smoke_scope.outputs.fill_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## Fill Smoke Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.fill_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.fill_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Run fill smoke
+        id: run_fill_smoke
+        if: steps.smoke_scope.outputs.fill_enabled == 'true'
+        shell: pwsh
+        run: |
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\fill_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "fill-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "fill-smoke.xml"
+          & $exe 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml | Out-Null
+
+      - name: Note skipped support material smoke target
+        if: steps.smoke_scope.outputs.support_material_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## Support Material Smoke Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.support_material_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.support_material_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Run support material smoke
+        id: run_support_material_smoke
+        if: steps.smoke_scope.outputs.support_material_enabled == 'true'
+        shell: pwsh
+        run: |
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\support_material_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "support-material-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "support-material-smoke.xml"
+          & $exe 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml | Out-Null
+
+      - name: Note skipped trianglemesh geometry smoke target
+        if: steps.smoke_scope.outputs.trianglemesh_geometry_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## TriangleMesh Geometry Smoke Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.trianglemesh_geometry_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.trianglemesh_geometry_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Run trianglemesh geometry smoke
+        id: run_trianglemesh_geometry_smoke
+        if: steps.smoke_scope.outputs.trianglemesh_geometry_enabled == 'true'
+        shell: pwsh
+        run: |
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\trianglemesh_geometry_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "trianglemesh-geometry-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "trianglemesh-geometry-smoke.xml"
+          & $exe 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml | Out-Null
+
       - name: Verify smoke output files
         id: smoke_verify
         if: always() && steps.smoke_scope.outputs.any_enabled == 'true'
@@ -624,6 +753,30 @@ jobs:
               Log = "print-process-core-smoke.log"
               Xml = "print-process-core-smoke.xml"
               Conclusion = "${{ steps.run_print_process_core_smoke.conclusion }}"
+            })
+          }
+          if ("${{ steps.smoke_scope.outputs.fill_enabled }}" -eq "true") {
+            $expected.Add(@{
+              Name = "fill_smoke_tests"
+              Log = "fill-smoke.log"
+              Xml = "fill-smoke.xml"
+              Conclusion = "${{ steps.run_fill_smoke.conclusion }}"
+            })
+          }
+          if ("${{ steps.smoke_scope.outputs.support_material_enabled }}" -eq "true") {
+            $expected.Add(@{
+              Name = "support_material_smoke_tests"
+              Log = "support-material-smoke.log"
+              Xml = "support-material-smoke.xml"
+              Conclusion = "${{ steps.run_support_material_smoke.conclusion }}"
+            })
+          }
+          if ("${{ steps.smoke_scope.outputs.trianglemesh_geometry_enabled }}" -eq "true") {
+            $expected.Add(@{
+              Name = "trianglemesh_geometry_smoke_tests"
+              Log = "trianglemesh-geometry-smoke.log"
+              Xml = "trianglemesh-geometry-smoke.xml"
+              Conclusion = "${{ steps.run_trianglemesh_geometry_smoke.conclusion }}"
             })
           }
 
@@ -763,6 +916,12 @@ jobs:
           $processMathSmokeReason = "${{ steps.smoke_scope.outputs.process_math_reason }}"
           $processCoreSmokeEnabled = "${{ steps.smoke_scope.outputs.process_core_enabled }}" -eq "true"
           $processCoreSmokeReason = "${{ steps.smoke_scope.outputs.process_core_reason }}"
+          $fillSmokeEnabled = "${{ steps.smoke_scope.outputs.fill_enabled }}" -eq "true"
+          $fillSmokeReason = "${{ steps.smoke_scope.outputs.fill_reason }}"
+          $supportMaterialSmokeEnabled = "${{ steps.smoke_scope.outputs.support_material_enabled }}" -eq "true"
+          $supportMaterialSmokeReason = "${{ steps.smoke_scope.outputs.support_material_reason }}"
+          $trianglemeshGeometrySmokeEnabled = "${{ steps.smoke_scope.outputs.trianglemesh_geometry_enabled }}" -eq "true"
+          $trianglemeshGeometrySmokeReason = "${{ steps.smoke_scope.outputs.trianglemesh_geometry_reason }}"
           $suiteMeta = @(
             @{ Name = "libslic3r_config_tests [ConfigCore]"; Log = ".ci/smoke/libslic3r-config-fast.log"; Xml = ".ci/smoke/libslic3r-config-fast.xml" },
             @{ Name = "gcodewriter_smoke_tests [GCodeWriter]"; Log = ".ci/smoke/gcodewriter-smoke.log"; Xml = ".ci/smoke/gcodewriter-smoke.xml" },
@@ -770,7 +929,10 @@ jobs:
             @{ Name = "print_filament_mapping_smoke_tests [PrintFilamentMapping]"; Log = ".ci/smoke/print-filament-mapping-smoke.log"; Xml = ".ci/smoke/print-filament-mapping-smoke.xml" },
             @{ Name = "print_perimeters_stage_smoke_tests [PrintPerimeters]"; Log = ".ci/smoke/print-perimeters-smoke.log"; Xml = ".ci/smoke/print-perimeters-smoke.xml" },
             @{ Name = "print_process_math_smoke_tests [PrintProcessMath]"; Log = ".ci/smoke/print-process-math-smoke.log"; Xml = ".ci/smoke/print-process-math-smoke.xml" },
-            @{ Name = "print_process_core_smoke_tests [PrintProcessCore],[PrintSkirtBrim]"; Log = ".ci/smoke/print-process-core-smoke.log"; Xml = ".ci/smoke/print-process-core-smoke.xml" }
+            @{ Name = "print_process_core_smoke_tests [PrintProcessCore],[PrintSkirtBrim]"; Log = ".ci/smoke/print-process-core-smoke.log"; Xml = ".ci/smoke/print-process-core-smoke.xml" },
+            @{ Name = "fill_smoke_tests"; Log = ".ci/smoke/fill-smoke.log"; Xml = ".ci/smoke/fill-smoke.xml" },
+            @{ Name = "support_material_smoke_tests"; Log = ".ci/smoke/support-material-smoke.log"; Xml = ".ci/smoke/support-material-smoke.xml" },
+            @{ Name = "trianglemesh_geometry_smoke_tests"; Log = ".ci/smoke/trianglemesh-geometry-smoke.log"; Xml = ".ci/smoke/trianglemesh-geometry-smoke.xml" }
           )
 
           $rows = New-Object System.Collections.Generic.List[string]
@@ -806,6 +968,18 @@ jobs:
             }
             if ($suite.Name -like 'print_process_core_smoke_tests*' -and -not $processCoreSmokeEnabled) {
               $rows.Add("| $($suite.Name) | skipped ($processCoreSmokeReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'fill_smoke_tests*' -and -not $fillSmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($fillSmokeReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'support_material_smoke_tests*' -and -not $supportMaterialSmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($supportMaterialSmokeReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'trianglemesh_geometry_smoke_tests*' -and -not $trianglemeshGeometrySmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($trianglemeshGeometrySmokeReason) | 0 | 0 |")
               continue
             }
 
@@ -856,6 +1030,12 @@ jobs:
           - Print process math smoke gate reason: `$processMathSmokeReason`
           - Print process core smoke gate enabled: `$processCoreSmokeEnabled`
           - Print process core smoke gate reason: `$processCoreSmokeReason`
+          - Fill smoke gate enabled: `$fillSmokeEnabled`
+          - Fill smoke gate reason: `$fillSmokeReason`
+          - Support material smoke gate enabled: `$supportMaterialSmokeEnabled`
+          - Support material smoke gate reason: `$supportMaterialSmokeReason`
+          - TriangleMesh geometry smoke gate enabled: `$trianglemeshGeometrySmokeEnabled`
+          - TriangleMesh geometry smoke gate reason: `$trianglemeshGeometrySmokeReason`
           - Smoke commands passed: `$passedSuites / $eligibleSuites`
           - Reported test cases: `$totalCases`
           - Reported assertions: `$totalAssertions`
