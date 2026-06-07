@@ -85,6 +85,10 @@ SCENARIO("Filament mapping config sync keeps explicit map updates stable", "[Con
                 REQUIRE(print_config.filament_map.values == std::vector<int>{ 2, 1 });
                 REQUIRE(print_config.filament_volume_map.values == std::vector<int>{ nvtHighFlow, nvtStandard });
                 REQUIRE(print_config.filament_nozzle_map.values == std::vector<int>{ 2, 1 });
+                REQUIRE(original_full_config.option<ConfigOptionInts>("filament_map")->values == std::vector<int>{ 2, 1 });
+                REQUIRE(original_full_config.option<ConfigOptionInts>("filament_volume_map")->values == std::vector<int>{ nvtHighFlow, nvtStandard });
+                REQUIRE(full_config.option<ConfigOptionInts>("filament_map")->values == std::vector<int>{ 2, 1 });
+                REQUIRE(full_config.option<ConfigOptionInts>("filament_volume_map")->values == std::vector<int>{ nvtHighFlow, nvtStandard });
             }
         }
     }
@@ -112,6 +116,10 @@ SCENARIO("Filament mapping config sync derives volume maps from mapped nozzles",
                 REQUIRE(print_config.filament_map.values == std::vector<int>{ 2, 1 });
                 REQUIRE(print_config.filament_volume_map.values == std::vector<int>{ nvtHighFlow, nvtStandard });
                 REQUIRE(print_config.filament_nozzle_map.values == std::vector<int>{ 2, 1 });
+                REQUIRE(original_full_config.option<ConfigOptionInts>("filament_map")->values == std::vector<int>{ 2, 1 });
+                REQUIRE(original_full_config.option<ConfigOptionInts>("filament_volume_map")->values == std::vector<int>{ nvtHighFlow, nvtStandard });
+                REQUIRE(full_config.option<ConfigOptionInts>("filament_map")->values == std::vector<int>{ 2, 1 });
+                REQUIRE(full_config.option<ConfigOptionInts>("filament_volume_map")->values == std::vector<int>{ nvtHighFlow, nvtStandard });
             }
         }
     }
