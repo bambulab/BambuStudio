@@ -51,6 +51,35 @@ SCENARIO("Print skirt and brim smoke path covers migrated legacy adhesion scenar
         }
     }
 
+    GIVEN("a 20mm cube and legacy skirt/brim edge configurations") {
+        WHEN("the brim width is larger than the skirt area") {
+            Slic3r::Print print;
+            init_and_process_cube_print(print, {
+                { "skirt_height", 1 },
+                { "skirt_loops", 1 },
+                { "brim_type", "outer_only" },
+                { "brim_width", 10 }
+            });
+
+            THEN("the print process keeps both adhesion features executable") {
+                REQUIRE(print.skirt().items_count() == 1);
+                REQUIRE(brim_items_count(print) > 0);
+            }
+        }
+
+        WHEN("skirt height is disabled while skirt loops remain configured") {
+            Slic3r::Print print;
+            init_and_process_cube_print(print, {
+                { "skirt_height", 0 },
+                { "skirt_loops", 2 }
+            });
+
+            THEN("the print process completes without generating skirt loops") {
+                REQUIRE(print.skirt().empty());
+            }
+        }
+    }
+
     GIVEN("a 20mm cube and the legacy brim configuration") {
         WHEN("brim width is 3mm with 1mm initial-layer line width") {
             Slic3r::Print print;

@@ -55,7 +55,7 @@ Status key:
 | `test_print.cpp` | skirt generation | done | `print_process_core_smoke_tests` | Migrated with adhesion scenarios. |
 | `test_print.cpp` | solid surface re-slice classification | done | `print_process_core_smoke_tests` | Migrated. |
 | `test_print.cpp` | brim generation | done | `print_process_core_smoke_tests` | Migrated with adhesion scenarios. |
-| `test_skirt_brim.cpp` | skirt height and original skirt/brim cases | partial | `print_process_core_smoke_tests` | Representative adhesion coverage migrated; G-code parser details remain candidate/manual. |
+| `test_skirt_brim.cpp` | skirt height and original skirt/brim cases | partial | `print_process_core_smoke_tests` | Migrated representative adhesion and config edge cases, including large brim vs skirt and disabled skirt height; G-code parser/tool-selection details remain candidate/manual. |
 | `test_fill.cpp` | rectilinear path length / hole avoidance | done | `fill_smoke_tests` | Migrated and path-filtered into PR smoke. |
 | `test_fill.cpp` | missing infill segment regression | done | `fill_smoke_tests` | Migrated and path-filtered into PR smoke. |
 | `test_fill.cpp` | rotated square fill | done | `fill_smoke_tests` | Migrated and path-filtered into PR smoke. |
