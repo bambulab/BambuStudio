@@ -214,6 +214,7 @@ jobs:
             $unknown = New-Object System.Collections.Generic.List[string]
             $matched = New-Object System.Collections.Generic.List[string]
             $currentScopes = @()
+            $fullSourceListOnly = $false
             $diffLines = @(git diff --unified=0 $BaseRef $Head -- src/libslic3r/CMakeLists.txt)
             if ($LASTEXITCODE -ne 0) {
               return @{
@@ -253,6 +254,7 @@ jobs:
                 # Full libslic3r source-list entries do not by themselves identify
                 # a focused smoke boundary. Scoped smoke target source-list hunks in
                 # the same diff will enable the concrete target(s) they affect.
+                $fullSourceListOnly = $true
                 $matched.Add("src/libslic3r/CMakeLists.txt:$changedLine")
                 continue
               }
@@ -265,6 +267,15 @@ jobs:
                 Classified = $false
                 Reason = 'central_cmake_unclassified'
                 Matched = "src/libslic3r/CMakeLists.txt: $($unknown -join '; ')"
+                Enabled = $enabled
+              }
+            }
+
+            if ($fullSourceListOnly -and -not ($enabled.Values -contains $true)) {
+              return @{
+                Classified = $false
+                Reason = 'central_cmake_full_source_only'
+                Matched = if ($matched.Count -gt 0) { ($matched | Select-Object -Unique) -join ', ' } else { 'src/libslic3r/CMakeLists.txt' }
                 Enabled = $enabled
               }
             }
