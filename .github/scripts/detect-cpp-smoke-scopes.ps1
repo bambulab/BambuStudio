@@ -133,7 +133,7 @@ function Get-CMakeScopesFromContext {
   if ($Context -match 'libslic3r_print_perimeters_core_sources|add_library\(libslic3r_print_perimeters_core') {
     return @('perimeters', 'apply_validate', 'filament_mapping')
   }
-  if ($Context -match 'libslic3r_print_apply_base_core_sources|add_library\(libslic3r_print_apply_base_core') {
+  if ($Context -match 'libslic3r_print_apply_base_core_sources|add_library\(libslic3r_print_apply_base_core|configure_print_smoke_core\(libslic3r_print_apply_base_core|target_link_libraries\(libslic3r_print_(filament_mapping|apply_validate)_core.*libslic3r_print_apply_base_core') {
     return @('apply_validate', 'filament_mapping')
   }
   if ($Context -match 'libslic3r_print_apply_validate_core_sources|add_library\(libslic3r_print_apply_validate_core') {
@@ -190,6 +190,15 @@ function Get-CentralCMakeScopeResult {
 
     if ($currentScopes.Count -gt 0) {
       foreach ($scope in $currentScopes) {
+        $enabled[$scope] = $true
+      }
+      $matched.Add("src/libslic3r/CMakeLists.txt:$changedLine")
+      continue
+    }
+
+    $changedLineScopes = @(Get-CMakeScopesFromContext $changedLine)
+    if ($changedLineScopes.Count -gt 0) {
+      foreach ($scope in $changedLineScopes) {
         $enabled[$scope] = $true
       }
       $matched.Add("src/libslic3r/CMakeLists.txt:$changedLine")
