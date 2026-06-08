@@ -598,6 +598,7 @@ jobs:
       - name: Run libslic3r config fast target
         id: run_config_fast
         if: steps.smoke_scope.outputs.config_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: |
           $exe = "${{ env.BUILD_DIR }}\tests\libslic3r\libslic3r_config_tests.exe"
@@ -622,6 +623,7 @@ jobs:
       - name: Run gcodewriter smoke
         id: run_gcodewriter_smoke
         if: steps.smoke_scope.outputs.gcodewriter_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: |
           $exe = "${{ env.BUILD_DIR }}\tests\fff_print\gcodewriter_smoke_tests.exe"
@@ -646,6 +648,7 @@ jobs:
       - name: Run model assembly smoke
         id: run_model_assembly_smoke
         if: steps.smoke_scope.outputs.model_assembly_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: |
           $exe = "${{ env.BUILD_DIR }}\tests\fff_print\model_basic_smoke_tests.exe"
@@ -683,6 +686,7 @@ jobs:
       - name: Run print filament mapping smoke
         id: run_print_filament_mapping_smoke
         if: steps.smoke_scope.outputs.filament_mapping_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: |
           $exe = "${{ env.BUILD_DIR }}\tests\fff_print\print_filament_mapping_smoke_tests.exe"
@@ -707,6 +711,7 @@ jobs:
       - name: Run print apply/validate smoke
         id: run_print_apply_validate_smoke
         if: steps.smoke_scope.outputs.apply_validate_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: |
           $exe = "${{ env.BUILD_DIR }}\tests\fff_print\print_apply_validate_smoke_tests.exe"
@@ -731,6 +736,7 @@ jobs:
       - name: Run print perimeters smoke
         id: run_print_perimeters_smoke
         if: steps.smoke_scope.outputs.perimeters_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: |
           $exe = "${{ env.BUILD_DIR }}\tests\fff_print\print_perimeters_stage_smoke_tests.exe"
@@ -768,6 +774,7 @@ jobs:
       - name: Run print process math smoke
         id: run_print_process_math_smoke
         if: steps.smoke_scope.outputs.process_math_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: |
           $exe = "${{ env.BUILD_DIR }}\tests\fff_print\print_process_math_smoke_tests.exe"
@@ -779,6 +786,7 @@ jobs:
       - name: Run print process core smoke
         id: run_print_process_core_smoke
         if: steps.smoke_scope.outputs.process_core_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: |
           $exe = "${{ env.BUILD_DIR }}\tests\fff_print\print_process_core_smoke_tests.exe"
@@ -804,6 +812,7 @@ jobs:
       - name: Run print object layers smoke
         id: run_print_object_layers_smoke
         if: steps.smoke_scope.outputs.object_layers_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: |
           $exe = "${{ env.BUILD_DIR }}\tests\fff_print\print_object_layers_smoke_tests.exe"
@@ -828,6 +837,7 @@ jobs:
       - name: Run print adhesion smoke
         id: run_print_adhesion_smoke
         if: steps.smoke_scope.outputs.adhesion_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: |
           $exe = "${{ env.BUILD_DIR }}\tests\fff_print\print_adhesion_smoke_tests.exe"
@@ -852,6 +862,7 @@ jobs:
       - name: Run fill smoke
         id: run_fill_smoke
         if: steps.smoke_scope.outputs.fill_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: |
           $exe = "${{ env.BUILD_DIR }}\tests\fff_print\fill_smoke_tests.exe"
@@ -876,6 +887,7 @@ jobs:
       - name: Run support material layers smoke
         id: run_support_material_layers_smoke
         if: steps.smoke_scope.outputs.support_material_layers_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: |
           $exe = "${{ env.BUILD_DIR }}\tests\fff_print\support_material_layers_smoke_tests.exe"
@@ -900,6 +912,7 @@ jobs:
       - name: Run support material smoke
         id: run_support_material_smoke
         if: steps.smoke_scope.outputs.support_material_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: |
           $exe = "${{ env.BUILD_DIR }}\tests\fff_print\support_material_smoke_tests.exe"
@@ -924,6 +937,7 @@ jobs:
       - name: Run trianglemesh geometry smoke
         id: run_trianglemesh_geometry_smoke
         if: steps.smoke_scope.outputs.trianglemesh_geometry_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: |
           $exe = "${{ env.BUILD_DIR }}\tests\fff_print\trianglemesh_geometry_smoke_tests.exe"
