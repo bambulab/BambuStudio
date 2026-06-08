@@ -534,9 +534,14 @@ extern bool is_filament_extruder_override_key(const std::string &opt_key);
 
 // for parse extruder_ams_count
 extern std::vector<std::map<int, int>> get_extruder_ams_count(const std::vector<std::string> &strs);
+// Effective AMS nozzle slot: the configured ams_nozzle_idx when an AMS is actually present
+// (extruder_ams_count has a non-zero slot), otherwise -1 (treat the machine as all fixed nozzles).
+extern int get_effective_ams_nozzle_idx(const ConfigBase &config);
 extern std::vector<std::string> save_extruder_ams_count_to_string(const std::vector<std::map<int, int>> &extruder_ams_count);
 extern NozzleVolumeType convert_to_nvt_type(const std::string& variant_str);
 extern bool is_nozzle_printable_for_filament(NozzleVolumeType machine_nvt, const std::vector<std::string>& filament_variants, bool variants_are_complete);
+// Convert a bare nozzle flow/volume string ("Standard" / "High Flow" / "TPU High Flow") to enum.
+extern NozzleVolumeType nozzle_volume_type_from_string(const std::string& name);
 extern std::vector<std::map<NozzleVolumeType, int>> get_extruder_nozzle_stats(const std::vector<std::string> & strs);
 extern std::vector<std::string> save_extruder_nozzle_stats_to_string(const std::vector<std::map<NozzleVolumeType, int>> &extruder_nozzle_stats);
 extern NozzleVolumeType legacy_fallback_nozzle_volume_type(NozzleVolumeType nozzle_volume_type);
@@ -1435,6 +1440,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                support_cooling_filter))
     ((ConfigOptionBool,                cooling_filter_enabled))
     ((ConfigOptionIntsNullable,        extruder_max_nozzle_count))
+    ((ConfigOptionInts,                ams_nozzle_idx))
     ((ConfigOptionBool,                handle_hotend_as_extruder))
     ((ConfigOptionBool,                support_fast_purge_mode))
     ((ConfigOptionBool,                accel_to_decel_enable))
@@ -1443,6 +1449,16 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionEnumsGeneric,        nozzle_volume_type))
     ((ConfigOptionStrings,             extruder_ams_count))
     ((ConfigOptionStrings,             extruder_nozzle_stats))
+    // Per-slot nozzle description consumed by the grouping backend: extruder_nozzle_count = nozzle
+    // count per extruder; extruder_nozzle_volume_type = flat per-slot volume types in physical order;
+    // extruder_nozzle_diameter = flat per-slot diameters (future mixed-diameter nozzles; falls back to
+    // nozzle_diameter when absent).
+    ((ConfigOptionInts,                extruder_nozzle_count))
+    ((ConfigOptionEnumsGeneric,        extruder_nozzle_volume_type))
+    ((ConfigOptionFloats,              extruder_nozzle_diameter))
+    // Physical slot index per installed nozzle; lets group_id stay equal to the physical slot even with
+    // empty slots (falls back to dense ordering when absent).
+    ((ConfigOptionInts,                extruder_nozzle_slot))
     ((ConfigOptionBool,                enable_filament_dynamic_map))
     ((ConfigOptionBool,                has_filament_switcher))
     ((ConfigOptionEnum<PrimeVolumeMode>,prime_volume_mode))

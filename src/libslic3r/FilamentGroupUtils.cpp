@@ -324,6 +324,7 @@ namespace FilamentGroupUtils
     {
         std::map<int, std::vector<int>> ret;
         for (auto& nozzle : nozzle_list) {
+            if (!nozzle.installed) continue; // empty physical slot: never a grouping target
             ret[nozzle.extruder_id].emplace_back(nozzle.group_id);
         }
 

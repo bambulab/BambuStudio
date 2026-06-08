@@ -3,14 +3,129 @@
 #include "GUI_App.hpp"
 #include "Plater.hpp"
 #include "DeviceCore/DevConfigUtil.h"
+#include "DeviceCore/DevNozzleSystem.h"
 #include <boost/log/trivial.hpp>
 #include <cassert>
 #include <wx/dcbuffer.h>
 #include "wx/graphics.h"
 #include <map>
+#include <set>
 #include <algorithm>
+#include <cstdlib>
 
 namespace Slic3r::GUI {
+
+std::vector<int> get_fixed_nozzle_indices(int total_count, int ams_index)
+{
+    std::vector<int> result;
+    for (int i = 0; i < total_count; ++i)
+        if (i != ams_index) result.push_back(i);
+    return result;
+}
+
+wxString get_ams_nozzle_label(int ams_index_0based)
+{
+    return wxString::Format(_L("Nozzle %d"), ams_index_0based + 1);
+}
+
+wxString get_fixed_nozzle_label(int total_count, int ams_index_0based)
+{
+    auto indices = get_fixed_nozzle_indices(total_count, ams_index_0based);
+    if (indices.empty()) return _L("Nozzle");
+
+    wxString label = _L("Nozzle ");
+    bool first_range = true;
+    size_t i = 0;
+    while (i < indices.size()) {
+        int start = indices[i] + 1;
+        int end = start;
+        while (i + 1 < indices.size() && indices[i + 1] == indices[i] + 1) {
+            ++i;
+            end = indices[i] + 1;
+        }
+        if (!first_range) label += "/";
+        if (start == end)
+            label += wxString::Format("%d", start);
+        else
+            label += wxString::Format("%d-%d", start, end);
+        first_range = false;
+        ++i;
+    }
+    return label;
+}
+
+int get_effective_ams_nozzle_idx_for_active_diameter(const ConfigBase& config)
+{
+    int ams_idx = get_effective_ams_nozzle_idx(config);
+    if (ams_idx < 0)
+        return -1;
+
+    const auto* nd = dynamic_cast<const ConfigOptionFloatsNullable*>(config.option("nozzle_diameter"));
+    const std::string active_diameter = (nd && !nd->values.empty()) ? format_diameter_to_str(nd->values.front()) : std::string();
+    auto full_stats = wxGetApp().preset_bundle->extruder_full_stat.get_extruder_stats(0);
+    if (ams_idx >= (int) full_stats.size())
+        return -1;
+
+    const std::string& ams_diam = full_stats[ams_idx].first;
+    const std::string& ams_vol  = full_stats[ams_idx].second;
+    const bool usable = !ams_vol.empty() &&
+        (active_diameter.empty() || ams_diam.empty() || format_diameter_to_str(std::atof(ams_diam.c_str())) == active_diameter);
+    return usable ? ams_idx : -1;
+}
+
+static std::map<NozzleVolumeType, int> get_fixed_nozzle_counts_from_full_stat(int ams_nozzle_idx, bool has_ams, const std::string& active_diameter, bool& has_full_stat)
+{
+    std::map<NozzleVolumeType, int> ret;
+    auto preset_bundle = wxGetApp().preset_bundle;
+    auto full_stats = preset_bundle->extruder_full_stat.get_extruder_stats(0);
+    has_full_stat = !full_stats.empty();
+
+    for (const auto &slot : full_stats) {
+        const std::string &diameter = slot.first;
+        const std::string &vol = slot.second;
+        if (vol.empty()) continue;
+        if (!active_diameter.empty() && !diameter.empty() && format_diameter_to_str(std::atof(diameter.c_str())) != active_diameter)
+            continue;
+        ret[DevNozzle::ToNozzleVolumeType(vol)]++;
+    }
+
+    if (has_ams && !ret.empty() && ams_nozzle_idx >= 0 && ams_nozzle_idx < (int) full_stats.size()) {
+        const std::string& ams_diam = full_stats[ams_nozzle_idx].first;
+        const std::string& ams_vol  = full_stats[ams_nozzle_idx].second;
+        const bool ams_counted = !ams_vol.empty() &&
+            (active_diameter.empty() || ams_diam.empty() || format_diameter_to_str(std::atof(ams_diam.c_str())) == active_diameter);
+        if (ams_counted) {
+            NozzleVolumeType ams_vt = DevNozzle::ToNozzleVolumeType(ams_vol);
+            auto it = ret.find(ams_vt);
+            if (it != ret.end() && --(it->second) <= 0)
+                ret.erase(it);
+        }
+    }
+    return ret;
+}
+
+static int get_ams_slot_count_from_config(const ConfigBase& config)
+{
+    const auto* ams_count_opt = dynamic_cast<const ConfigOptionStrings*>(config.option("extruder_ams_count"));
+    if (!ams_count_opt)
+        return 1;
+    const auto counts = get_extruder_ams_count(ams_count_opt->values);
+    int slots = 0;
+    for (const auto& ext : counts)
+        for (const auto& kv : ext)
+            slots += kv.first * kv.second;
+    return std::max(1, slots);
+}
+
+static NozzleVolumeType get_ams_nozzle_volume_from_full_stat(int ams_nozzle_idx)
+{
+    auto preset_bundle = wxGetApp().preset_bundle;
+    auto full_stats = preset_bundle->extruder_full_stat.get_extruder_stats(0);
+    if (ams_nozzle_idx >= 0 && ams_nozzle_idx < (int) full_stats.size() && !full_stats[ams_nozzle_idx].second.empty())
+        return DevNozzle::ToNozzleVolumeType(full_stats[ams_nozzle_idx].second);
+    auto vals = preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type")->values;
+    return vals.empty() ? nvtStandard : NozzleVolumeType(vals[0]);
+}
 
 static const wxColour BgNormalColor  = wxColour("#FFFFFF");
 static const wxColour BgSelectColor  = wxColour("#EBF9F0");
@@ -40,8 +155,8 @@ void FilamentMapManualPanel::OnTimer(wxTimerEvent &)
     std::vector<int>nozzle_count(nozzle_volume_values.size());
     for (size_t eid = 0; eid < nozzle_volume_values.size(); ++eid) {
         NozzleVolumeType extruder_volume_type = NozzleVolumeType(nozzle_volume_values[eid]);
-        bool extruder_used = std::find_if(m_filament_list.begin(), m_filament_list.end(), 
-            [this, eid, filament_map](int fid) { 
+        bool extruder_used = std::find_if(m_filament_list.begin(), m_filament_list.end(),
+            [this, eid, filament_map](int fid) {
                 return (filament_map[fid - 1] - 1) == eid;
             }) != m_filament_list.end();
 
@@ -56,16 +171,16 @@ void FilamentMapManualPanel::OnTimer(wxTimerEvent &)
             auto has_material_of_type = [this, eid, &filament_map, &filament_volume_map](NozzleVolumeType volume_type) {
                 return std::find_if(m_filament_list.begin(), m_filament_list.end(),
                     [this, eid, &filament_map, &filament_volume_map, volume_type](int fid) {
-                        return (filament_map[fid - 1] - 1) == eid && 
-                               fid - 1 < filament_volume_map.size() && 
+                        return (filament_map[fid - 1] - 1) == eid &&
+                               fid - 1 < filament_volume_map.size() &&
                                filament_volume_map[fid - 1] == static_cast<int>(volume_type);
                     }) != m_filament_list.end();
             };
-            
+
             bool has_standard = has_material_of_type(NozzleVolumeType::nvtStandard);
             bool has_highflow = has_material_of_type(NozzleVolumeType::nvtHighFlow);
 
-            if ((has_standard && standard_count == 0) || 
+            if ((has_standard && standard_count == 0) ||
                 (has_highflow && highflow_count == 0)) {
                 valid = false;
                 invalid_eid = eid;
@@ -287,8 +402,8 @@ FilamentMapManualPanel::FilamentMapManualPanel(wxWindow                       *p
             m_left_panel->AddColorBlock(type, idx + 1);
         } else {
             assert(m_filament_map[idx] == 2);
-            bool is_high_flow = (idx < m_filament_volume_map.size()) && (m_filament_volume_map[idx] == 1);
-            m_right_panel->AddColorBlock(type, idx + 1, is_high_flow);
+            NozzleVolumeType vol_type = (idx < m_filament_volume_map.size()) ? NozzleVolumeType(m_filament_volume_map[idx]) : nvtStandard;
+            m_right_panel->AddColorBlock(color, type, idx + 1, vol_type);
         }
     }
     m_left_panel->SetMinSize({FromDIP(260), FromDIP(110)});
@@ -384,7 +499,13 @@ void FilamentMapManualPanel::UpdateNozzleCountDisplay()
     if (m_right_panel->IsUseSeparation()) {
         int standard_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1, NozzleVolumeType::nvtStandard);
         int highflow_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1, NozzleVolumeType::nvtHighFlow);
-        wxString right_title = wxString::Format(main_ext_name + "(Std: %d, HF: %d)", standard_count, highflow_count);
+        int tpu_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1, NozzleVolumeType::nvtTPUHighFlow)
+                      + preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1, NozzleVolumeType::nvtTPU285);
+        wxString right_title;
+        if (tpu_count > 0)
+            right_title = wxString::Format(main_ext_name + "(Std: %d, HF: %d, TPU: %d)", standard_count, highflow_count, tpu_count);
+        else
+            right_title = wxString::Format(main_ext_name + "(Std: %d, HF: %d)", standard_count, highflow_count);
         m_right_panel->UpdateLabel(right_title);
     } else {
         int right_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(1);
@@ -404,7 +525,7 @@ void FilamentMapManualPanel::OnSwitchFilament(wxCommandEvent &)
     auto right_blocks = m_right_panel->get_filament_blocks();
 
     for (auto &block : left_blocks) {
-        m_right_panel->AddColorBlock(block->GetType(), block->GetFilamentId(), false, false);
+        m_right_panel->AddColorBlock(block->GetColor(), block->GetType(), block->GetFilamentId(), nvtStandard, false);
         m_left_panel->RemoveColorBlock(block, false);
     }
 
@@ -436,6 +557,389 @@ bool FilamentMapManualPanel::Show(bool show)
 
     return FilamentMapPanel::Show(show);
 }
+
+// ===================== FilamentMapMultiNozzlePanel =====================
+
+FilamentMapMultiNozzlePanel::FilamentMapMultiNozzlePanel(wxWindow                       *parent,
+                                         const std::vector<std::string> &color,
+                                         const std::vector<std::string> &type,
+                                         const std::vector<int>         &filament_list,
+                                         const std::vector<int>         &filament_map,
+                                         const std::vector<int>         &filament_volume_map)
+    : FilamentMapPanel(parent)
+    , m_filament_map(filament_map)
+    , m_filament_volume_map(filament_volume_map)
+    , m_filament_list(filament_list)
+    , m_filament_color(color)
+    , m_filament_type(type)
+{
+    SetName(wxT("FilamentMapMultiNozzlePanel"));
+    SetBackgroundColour(BgNormalColor);
+
+    auto preset_bundle = wxGetApp().preset_bundle;
+    auto full_cfg = preset_bundle->full_config();
+    auto cnt_opt = full_cfg.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    m_total_nozzle_count = (cnt_opt && !cnt_opt->values.empty()) ? cnt_opt->values[0] : 1;
+    m_ams_nozzle_idx = get_effective_ams_nozzle_idx_for_active_diameter(full_cfg);
+    bool has_ams = (m_ams_nozzle_idx >= 0);
+    m_ams_slot_count = has_ams ? get_ams_slot_count_from_config(full_cfg) : 1;
+
+    auto top_sizer = new wxBoxSizer(wxVERTICAL);
+
+    m_description = new Label(this, _L("We will slice according to this arrangement:"));
+    top_sizer->Add(m_description, 0, wxALIGN_LEFT | wxLEFT, FromDIP(15));
+    m_description->Wrap(FromDIP(520));
+    top_sizer->AddSpacer(FromDIP(8));
+
+    auto drag_sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    if (has_ams) {
+        m_left_panel  = new SeparatedDragDropPanel(this, get_ams_nozzle_label(m_ams_nozzle_idx), false);
+        m_right_panel = new SeparatedDragDropPanel(this, get_fixed_nozzle_label(m_total_nozzle_count, m_ams_nozzle_idx), false);
+    } else {
+        m_left_panel  = nullptr;
+        wxString panel_label = wxString::Format(_L("Nozzle (%d)"), m_total_nozzle_count);
+        m_right_panel = new SeparatedDragDropPanel(this, panel_label, false);
+    }
+
+    UpdateNozzleVolumeType();
+
+    for (size_t idx = 0; idx < m_filament_map.size(); ++idx) {
+        auto iter = std::find(m_filament_list.begin(), m_filament_list.end(), idx + 1);
+        if (iter == m_filament_list.end()) continue;
+        wxColor clr = Hex2Color(m_filament_color[idx]);
+        std::string tp = m_filament_type[idx];
+        NozzleVolumeType vol_type = (idx < m_filament_volume_map.size()) ? NozzleVolumeType(m_filament_volume_map[idx]) : nvtStandard;
+        if (has_ams && m_filament_map[idx] == 1) {
+            m_left_panel->AddColorBlock(clr, tp, idx + 1, vol_type);
+        } else {
+            m_right_panel->AddColorBlock(clr, tp, idx + 1, vol_type);
+        }
+    }
+
+    if (has_ams) {
+        m_left_panel->SetMinSize({FromDIP(160), -1});
+        m_right_panel->SetMinSize({FromDIP(360), -1});
+        drag_sizer->Add(m_left_panel, 3, wxALIGN_CENTER | wxEXPAND);
+        drag_sizer->AddSpacer(FromDIP(12));
+        drag_sizer->Add(m_right_panel, 7, wxALIGN_CENTER | wxEXPAND);
+    } else {
+        m_right_panel->SetMinSize({FromDIP(550), -1});
+        drag_sizer->AddStretchSpacer(1);
+        drag_sizer->Add(m_right_panel, 0, wxALIGN_CENTER);
+        drag_sizer->AddStretchSpacer(1);
+    }
+
+    top_sizer->Add(drag_sizer, 0, wxEXPAND);
+
+    m_tips = new Label(this, _L("Tips: You can drag the filaments to reassign them to different nozzles."));
+    m_tips->SetFont(Label::Body_13);
+    m_tips->SetForegroundColour(TextNormalGreyColor);
+    m_tips->Wrap(FromDIP(520));
+    top_sizer->AddSpacer(FromDIP(20));
+    top_sizer->Add(m_tips, 0, wxALIGN_LEFT | wxLEFT, FromDIP(15));
+
+    m_errors = new Label(this, "");
+    m_errors->SetFont(Label::Body_13);
+    m_errors->SetForegroundColour(TextErrorColor);
+    m_errors->Wrap(FromDIP(520));
+    top_sizer->AddSpacer(FromDIP(10));
+    top_sizer->Add(m_errors, 0, wxALIGN_LEFT | wxLEFT, FromDIP(15));
+    m_errors->Hide();
+
+    m_timer = new wxTimer(this);
+    Bind(wxEVT_TIMER, &FilamentMapMultiNozzlePanel::OnTimer, this);
+    Bind(wxEVT_DRAG_DROP_COMPLETED, &FilamentMapMultiNozzlePanel::OnDragDropCompleted, this);
+
+    SetSizer(top_sizer);
+    SetMinSize(wxSize(FromDIP(580), -1));
+    Layout();
+    Fit();
+    GUI::wxGetApp().UpdateDarkUIWin(this);
+}
+
+FilamentMapMultiNozzlePanel::~FilamentMapMultiNozzlePanel()
+{
+    m_timer->Stop();
+}
+
+std::vector<int> FilamentMapMultiNozzlePanel::GetFilamentMaps() const
+{
+    std::vector<int> new_filament_map = m_filament_map;
+
+    if (!m_left_panel) {
+        // No AMS: single extruder, all filaments on extruder 1
+        std::fill(new_filament_map.begin(), new_filament_map.end(), 1);
+        return new_filament_map;
+    }
+
+    std::vector<int> left_filaments  = this->GetLeftFilaments();
+    std::vector<int> right_filaments = this->GetRightFilaments();
+
+    for (int i = 0; i < (int)new_filament_map.size(); ++i) {
+        if (std::find(left_filaments.begin(), left_filaments.end(), i + 1) != left_filaments.end()) {
+            new_filament_map[i] = 1;
+        } else if (std::find(right_filaments.begin(), right_filaments.end(), i + 1) != right_filaments.end()) {
+            new_filament_map[i] = 2;
+        }
+    }
+    return new_filament_map;
+}
+
+std::vector<int> FilamentMapMultiNozzlePanel::GetFilamentVolumeMaps() const
+{
+    std::vector<int> volume_map(m_filament_map.size(), 0);
+
+    auto find_in = [](const std::vector<int> &v, int id) {
+        return std::find(v.begin(), v.end(), id) != v.end();
+    };
+
+    std::vector<int> right_hf  = this->GetRightHighFlowFilaments();
+    std::vector<int> right_std = this->GetRightStandardFilaments();
+    std::vector<int> right_tpu = this->GetRightTPUHighFlowFilaments();
+
+    if (m_left_panel) {
+        std::vector<int> left_filaments = this->GetLeftFilaments();
+        // AMS filaments use the AMS nozzle's real volume type (its physical slot ams_nozzle_idx),
+        // consistent with the displayed AMS nozzle and the back-end physical nozzle list.
+        const int ams_vol = static_cast<int>(get_ams_nozzle_volume_from_full_stat(m_ams_nozzle_idx));
+
+        for (int i = 0; i < (int)volume_map.size(); ++i) {
+            int fid = i + 1;
+            if (find_in(left_filaments, fid)) {
+                volume_map[i] = ams_vol;
+            }
+            else if (find_in(right_hf, fid))
+                volume_map[i] = static_cast<int>(NozzleVolumeType::nvtHighFlow);
+            else if (find_in(right_std, fid))
+                volume_map[i] = static_cast<int>(NozzleVolumeType::nvtStandard);
+            else if (find_in(right_tpu, fid))
+                volume_map[i] = static_cast<int>(NozzleVolumeType::nvtTPU285);
+        }
+    } else {
+        for (int i = 0; i < (int)volume_map.size(); ++i) {
+            int fid = i + 1;
+            if (find_in(right_hf, fid))
+                volume_map[i] = static_cast<int>(NozzleVolumeType::nvtHighFlow);
+            else if (find_in(right_std, fid))
+                volume_map[i] = static_cast<int>(NozzleVolumeType::nvtStandard);
+            else if (find_in(right_tpu, fid))
+                volume_map[i] = static_cast<int>(NozzleVolumeType::nvtTPU285);
+        }
+    }
+
+    return volume_map;
+}
+
+void FilamentMapMultiNozzlePanel::SyncPanelHeights()
+{
+    if (!m_right_panel) return;
+
+    if (m_left_panel) {
+        m_left_panel->SetMinSize(wxSize(FromDIP(160), -1));
+        m_right_panel->SetMinSize(wxSize(FromDIP(360), -1));
+
+        m_left_panel->Layout();
+        m_left_panel->Fit();
+        m_right_panel->Layout();
+        m_right_panel->Fit();
+
+        wxSize left_best_size  = m_left_panel->GetBestSize();
+        wxSize right_best_size = m_right_panel->GetBestSize();
+
+        int max_height = std::max(left_best_size.GetHeight(), right_best_size.GetHeight());
+
+        m_left_panel->SetMinSize(wxSize(FromDIP(160), max_height));
+        m_right_panel->SetMinSize(wxSize(FromDIP(360), max_height));
+    } else {
+        m_right_panel->Layout();
+        m_right_panel->Fit();
+    }
+
+    Layout();
+    Fit();
+
+    if (GetParent()) {
+        GetParent()->Layout();
+        GetParent()->Fit();
+    }
+}
+
+void FilamentMapMultiNozzlePanel::OnDragDropCompleted(wxCommandEvent& event)
+{
+    if (!m_pending_height_sync) {
+        m_pending_height_sync = true;
+        CallAfter([this]() {
+            m_pending_height_sync = false;
+            SyncPanelHeights();
+        });
+    }
+    event.Skip();
+}
+
+void FilamentMapMultiNozzlePanel::OnTimer(wxTimerEvent &)
+{
+    bool update_ui  = m_invalid_id != -1;
+    bool send_event = update_ui || m_force_validation;
+
+    m_invalid_id = -1;
+
+    if (update_ui) {
+        m_errors->Hide();
+        if (m_left_panel) m_left_panel->Freeze();
+        m_right_panel->Freeze();
+        Layout();
+        Fit();
+        this->GetParent()->Layout();
+        this->GetParent()->Fit();
+        if (m_left_panel) m_left_panel->Thaw();
+        m_right_panel->Thaw();
+    }
+
+    if (send_event) {
+        wxCommandEvent event(wxEVT_INVALID_MANUAL_MAP);
+        event.SetInt(1);
+        ProcessEvent(event);
+        m_force_validation = false;
+    }
+}
+
+static wxString get_volume_type_label(NozzleVolumeType type)
+{
+    switch (type) {
+    case nvtStandard:    return _L("Standard");
+    case nvtHighFlow:    return _L("High Flow");
+    case nvtTPUHighFlow: return _L("TPU");
+    case nvtTPU285:      return _L("TPU");
+    default:             return _L("Standard");
+    }
+}
+
+void FilamentMapMultiNozzlePanel::UpdateNozzleVolumeType()
+{
+    auto preset_bundle = wxGetApp().preset_bundle;
+    auto full_cfg = preset_bundle->full_config();
+    auto nozzle_diameters = full_cfg.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    const std::string active_diameter = (nozzle_diameters && !nozzle_diameters->values.empty())
+        ? format_diameter_to_str(nozzle_diameters->values.front()) : std::string();
+
+    std::set<NozzleVolumeType> types;
+    auto full_stats = preset_bundle->extruder_full_stat.get_extruder_stats(0);
+    for (size_t idx = 0; idx < full_stats.size(); ++idx) {
+        if (m_ams_nozzle_idx >= 0 && static_cast<int>(idx) == m_ams_nozzle_idx)
+            continue;
+        const auto& slot = full_stats[idx];
+        const std::string& diameter = slot.first;
+        const std::string& vol = slot.second;
+        if (vol.empty()) continue;
+        if (!active_diameter.empty() && !diameter.empty() && format_diameter_to_str(std::atof(diameter.c_str())) != active_diameter)
+            continue;
+        types.insert(DevNozzle::ToNozzleVolumeType(vol));
+    }
+    bool should_separate = types.size() > 1;
+
+    m_right_panel->SetUseSeparation(should_separate);
+
+    UpdateNozzleCountDisplay();
+
+    Layout();
+    Fit();
+}
+
+void FilamentMapMultiNozzlePanel::UpdateNozzleCountDisplay()
+{
+    auto preset_bundle = wxGetApp().preset_bundle;
+    auto full_cfg = preset_bundle->full_config();
+    bool has_ams = (m_left_panel != nullptr);
+
+    auto nozzle_diameters = full_cfg.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    const std::string active_diameter = (nozzle_diameters && !nozzle_diameters->values.empty())
+        ? format_diameter_to_str(nozzle_diameters->values.front()) : std::string();
+    bool has_full_stat = false;
+    std::map<NozzleVolumeType, int> fixed_counts = get_fixed_nozzle_counts_from_full_stat(m_ams_nozzle_idx, has_ams, active_diameter, has_full_stat);
+    auto fixed_count_of = [&fixed_counts](NozzleVolumeType vt) {
+        auto it = fixed_counts.find(vt);
+        return it != fixed_counts.end() ? it->second : 0;
+    };
+
+    int total = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(0);
+
+    if (m_right_panel->IsUseSeparation()) {
+        int standard_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(0, NozzleVolumeType::nvtStandard);
+        int highflow_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(0, NozzleVolumeType::nvtHighFlow);
+        int tpu_count = preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(0, NozzleVolumeType::nvtTPUHighFlow)
+                      + preset_bundle->extruder_nozzle_stat.get_extruder_nozzle_count(0, NozzleVolumeType::nvtTPU285);
+
+        if (has_ams) {
+            NozzleVolumeType ams_type = nvtStandard;
+            auto full_stats = preset_bundle->extruder_full_stat.get_extruder_stats(0);
+            if ((int)full_stats.size() > m_ams_nozzle_idx && !full_stats[m_ams_nozzle_idx].second.empty()) {
+                ams_type = DevNozzle::ToNozzleVolumeType(full_stats[m_ams_nozzle_idx].second);
+            }
+
+            wxString ams_label   = get_ams_nozzle_label(m_ams_nozzle_idx);
+            wxString fixed_label = get_fixed_nozzle_label(m_total_nozzle_count, m_ams_nozzle_idx);
+
+            int left_count = m_ams_slot_count;
+            wxString left_title = wxString::Format(ams_label + "(%d) - %s", left_count, get_volume_type_label(ams_type));
+            m_left_panel->UpdateLabel(left_title);
+
+            int right_std = has_full_stat ? fixed_count_of(nvtStandard)
+                                          : ((ams_type == nvtStandard) ? std::max(0, standard_count - 1) : standard_count);
+            int right_hf  = has_full_stat ? fixed_count_of(nvtHighFlow)
+                                          : ((ams_type == nvtHighFlow) ? std::max(0, highflow_count - 1) : highflow_count);
+            int right_tpu = has_full_stat ? fixed_count_of(nvtTPU285)
+                                          : ((ams_type == nvtTPUHighFlow || ams_type == nvtTPU285) ? std::max(0, tpu_count - 1) : tpu_count);
+
+            wxString right_title;
+            if (tpu_count > 0)
+                right_title = wxString::Format(fixed_label + "(Std: %d, HF: %d, TPU: %d)", right_std, right_hf, right_tpu);
+            else
+                right_title = wxString::Format(fixed_label + "(Std: %d, HF: %d)", right_std, right_hf);
+            m_right_panel->UpdateLabel(right_title);
+        } else {
+            wxString title;
+            if (tpu_count > 0)
+                title = wxString::Format(_L("Nozzle (%d) - Std: %d, HF: %d, TPU: %d"), m_total_nozzle_count, standard_count, highflow_count, tpu_count);
+            else
+                title = wxString::Format(_L("Nozzle (%d) - Std: %d, HF: %d"), m_total_nozzle_count, standard_count, highflow_count);
+            m_right_panel->UpdateLabel(title);
+        }
+    } else {
+        if (has_ams) {
+            wxString ams_label   = get_ams_nozzle_label(m_ams_nozzle_idx);
+            wxString fixed_label = get_fixed_nozzle_label(m_total_nozzle_count, m_ams_nozzle_idx);
+
+            int left_count = m_ams_slot_count;
+            wxString left_title = wxString::Format(ams_label + "(%d)", left_count);
+            m_left_panel->UpdateLabel(left_title);
+
+            int right_count = 0;
+            if (has_full_stat)
+                for (const auto &kv : fixed_counts) right_count += kv.second;
+            else
+                right_count = std::max(0, total - 1);
+            wxString right_title = wxString::Format(fixed_label + "(%d)", right_count);
+            m_right_panel->UpdateLabel(right_title);
+        } else {
+            wxString title = wxString::Format(_L("Nozzle (%d)"), m_total_nozzle_count);
+            m_right_panel->UpdateLabel(title);
+        }
+    }
+}
+
+bool FilamentMapMultiNozzlePanel::Show(bool show)
+{
+    m_force_validation = show;
+    if (show)
+        m_timer->Start(500);
+    else
+        m_timer->Stop();
+
+    return FilamentMapPanel::Show(show);
+}
+
+// ===================== FilamentMapBtnPanel =====================
 
 class FilamentMapBtnPanel : public wxPanel
 {

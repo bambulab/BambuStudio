@@ -20,6 +20,7 @@ struct NozzleInfo
     NozzleVolumeType volume_type;
     int              extruder_id{-1}; // 逻辑挤出机id
     int              group_id{-1};   // 对应逻辑喷嘴id
+    bool             installed{true}; // false: physical slot has no nozzle (placeholder, never assigned)
 
     std::string serialize() const;
 
@@ -280,6 +281,10 @@ std::vector<int> find_optimal_physical_assignment(
 std::vector<NozzleInfo> build_nozzle_list(std::vector<NozzleGroupInfo> info);
 std::vector<NozzleInfo> build_nozzle_list(double diameter, const std::vector<int>& filament_nozzle_map,
                                           const std::vector<int>& filament_volume_map, const std::vector<int>& filament_map);
+// Build the nozzle list from the per-slot params (extruder_nozzle_count / _volume_type / _diameter /
+// _slot): group_id == physical slot, empty slots become placeholders. Returns empty when the params
+// are absent or inconsistent (caller falls back).
+std::vector<NozzleInfo> build_nozzle_list_from_extruder_nozzles(const PrintConfig& print_config);
 // 从gcode.3mf中加载nozzle info需要处理前后兼容性
 std::vector<NozzleInfo> load_nozzle_infos_with_compatibility(
     const std::vector<NozzleInfo>& nozzle_infos,

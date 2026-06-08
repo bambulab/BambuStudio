@@ -7,6 +7,7 @@
 #include "PartPlate.hpp"
 #include "Plater.hpp"
 #include "FilamentMapDialog.hpp"
+#include "FilamentMapPanel.hpp"
 #include "DeviceCore/DevConfigUtil.h"
 
 #include <algorithm>
@@ -25,7 +26,43 @@ static bool should_pop_up()
     const auto &preset_bundle    = wxGetApp().preset_bundle;
     const auto &full_config      = preset_bundle->full_config();
     const auto  nozzle_diameters = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-    return nozzle_diameters->size() > 1;
+    const auto  extruder_max_nozzle_count = full_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    bool support_multi_nozzle = extruder_max_nozzle_count
+        && std::any_of(
+            extruder_max_nozzle_count->values.begin(),
+            extruder_max_nozzle_count->values.end(),
+            [](int val) { return val > 1; });
+    return (nozzle_diameters && nozzle_diameters->size() > 1) || support_multi_nozzle;
+}
+
+static bool is_multi_nozzle_single_extruder()
+{
+    const auto &full_config = wxGetApp().preset_bundle->full_config();
+    auto opt_hotend = full_config.option<ConfigOptionBool>("handle_hotend_as_extruder");
+    auto nozzle_diameters = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    auto extruder_max_nozzle_count = full_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    bool support_multi_nozzle = extruder_max_nozzle_count
+        && std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(),
+                       [](int val) { return val > 1; });
+    return opt_hotend && opt_hotend->value
+        && nozzle_diameters && nozzle_diameters->size() == 1
+        && support_multi_nozzle;
+}
+
+static void get_nozzle_group_names(wxString &left_name, wxString &right_name)
+{
+    if (is_multi_nozzle_single_extruder()) {
+        const auto &full_config = wxGetApp().preset_bundle->full_config();
+        auto nozzle_count_opt = full_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+        int total = (nozzle_count_opt && !nozzle_count_opt->values.empty()) ? nozzle_count_opt->values[0] : 1;
+        int ams_idx = full_config.opt_int("ams_nozzle_idx", 0);
+        left_name  = get_ams_nozzle_label(ams_idx).Lower();
+        right_name = get_fixed_nozzle_label(total, ams_idx).Lower();
+    } else {
+        std::string pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+        left_name  = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
+        right_name = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
+    }
 }
 
 static FilamentMapMode get_prefered_map_mode()
@@ -101,9 +138,8 @@ void FilamentGroupPopup::RecreateUIElements()
     const wxString AutoForQualityLabel = _L("Quality Mode");
     const wxString ManualLabel       = _L("Custom Mode");
 
-    std::string pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
-    wxString main_nozzle_lower   = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
-    wxString deputy_nozzle_lower = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
+    wxString deputy_nozzle_lower, main_nozzle_lower;
+    get_nozzle_group_names(deputy_nozzle_lower, main_nozzle_lower);
 
     const wxString AutoForFlushDetail = wxString::Format(_L("Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"), deputy_nozzle_lower, main_nozzle_lower);
     const wxString AutoForMatchDetail = wxString::Format(_L("Generates filament grouping for the %s and %s based on the printer's actual filament status, reducing the need for manual filament adjustment"), deputy_nozzle_lower, main_nozzle_lower);
@@ -283,9 +319,8 @@ void FilamentGroupPopup::UpdateNozzleLabels()
     if (detail_infos.empty())
         return;
 
-    std::string pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
-    wxString main_nozzle_lower   = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
-    wxString deputy_nozzle_lower = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
+    wxString deputy_nozzle_lower, main_nozzle_lower;
+    get_nozzle_group_names(deputy_nozzle_lower, main_nozzle_lower);
 
     for (size_t idx = 0; idx < m_all_modes.size() && idx < detail_infos.size(); ++idx) {
         wxString detail;
@@ -394,6 +429,10 @@ void FilamentGroupPopup::Init(const std::vector<FilamentMapMode>& available_mode
     }
 
     m_mode = GetFilamentMapMode();
+    // fmmNozzleManual is the internal representation of Custom mode for multi-nozzle machines;
+    // treat it as fmmManual in the UI
+    if (m_mode == fmmNozzleManual)
+        m_mode = fmmManual;
     if (m_mode == fmmAutoForMatch && !m_connected) {
         SetFilamentMapMode(fmmAutoForFlush);
         m_mode = fmmAutoForFlush;
@@ -494,13 +533,13 @@ void FilamentGroupPopup::OnRadioBtn(int idx)
 {
     if (idx < 0 || static_cast<size_t>(idx) >= m_all_modes.size())
         return;
-        
+
     FilamentMapMode mode = m_all_modes.at(idx);
-    
+
     // Check if this mode is available
     if (std::find(m_available_modes.begin(), m_available_modes.end(), mode) == m_available_modes.end())
         return;
-    
+
     if (mode == FilamentMapMode::fmmAutoForMatch && !m_connected)
         return;
     if (m_mode != mode) {
@@ -532,11 +571,11 @@ void FilamentGroupPopup::UpdateButtonStatus(int hover_idx)
 {
     for (size_t i = 0; i < m_all_modes.size(); ++i) {
         FilamentMapMode mode = m_all_modes[i];
-        
+
         // Skip unavailable modes
         if (std::find(m_available_modes.begin(), m_available_modes.end(), mode) == m_available_modes.end())
             continue;
-            
+
 #if 0  // do not display global mode tag
         if (mode == global_mode)
             global_mode_tags[i]->Show();

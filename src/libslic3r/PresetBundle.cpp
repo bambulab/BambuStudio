@@ -69,6 +69,10 @@ static std::vector<std::string> s_project_options {
     "extruder_nozzle_stats",
     "extruder_nozzle_stats_new",
     "prime_volume_mode",
+    "extruder_nozzle_count",
+    "extruder_nozzle_volume_type",
+    "extruder_nozzle_diameter",
+    "extruder_nozzle_slot",
     "enable_filament_dynamic_map",
     "filament_is_mixed",
     "filament_mixed_components",
@@ -1771,6 +1775,116 @@ VendorProfile PresetBundle::get_custom_vendor_models() const
         }
     }
     return vendor;
+}
+
+std::string GetNozzleVolumeTypeStr(const NozzleVolumeType &type)
+{
+    switch (type) {
+    case NozzleVolumeType::nvtStandard: return "Standard";
+    case NozzleVolumeType::nvtHighFlow: return "High Flow";
+    case NozzleVolumeType::nvtTPUHighFlow: return "TPU High Flow";
+    case NozzleVolumeType::nvtTPU285: return "TPU285";
+    case NozzleVolumeType::nvtHybrid: return "Hybrid";
+    default: return std::string();
+    }
+}
+
+void PresetBundle::update_extruder_full_stats_from_config()
+{
+    // Rebuild the per-slot snapshot from the per-slot nozzle params instead of a dedicated
+    // extruder_full_stats string. The four params already persist with the project; the snapshot is
+    // their per-extruder, slot-aligned view (installed slots filled, others left empty).
+    const ConfigOptionInts*         count_opt = project_config.option<ConfigOptionInts>("extruder_nozzle_count");
+    const ConfigOptionEnumsGeneric* vtype_opt = project_config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type");
+    const ConfigOptionFloats*       diam_opt  = project_config.option<ConfigOptionFloats>("extruder_nozzle_diameter");
+    const ConfigOptionInts*         slot_opt  = project_config.option<ConfigOptionInts>("extruder_nozzle_slot");
+
+    const std::vector<int>    counts = count_opt ? count_opt->values : std::vector<int>{};
+    const std::vector<int>    vtypes = vtype_opt ? vtype_opt->values : std::vector<int>{};
+    const std::vector<double> diams  = diam_opt ? diam_opt->values : std::vector<double>{};
+    const std::vector<int>    slots  = slot_opt ? slot_opt->values : std::vector<int>{};
+
+    int total = 0;
+    for (int c : counts) total += c;
+    if (total <= 0 || static_cast<int>(vtypes.size()) != total) {
+        // Params absent / inconsistent: fall back to the aggregate-based default.
+        generate_extruder_full_stats_from_nozzle_stats();
+        return;
+    }
+
+    const bool has_per_slot_diameter = (static_cast<int>(diams.size()) == total);
+    const bool has_slot_id           = (static_cast<int>(slots.size()) == total);
+
+    const Preset& printer_preset    = printers.get_edited_preset();
+    auto          max_nozzle_count  = printer_preset.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    const std::string default_diam  = printer_preset.config.opt_string("printer_variant");
+
+    extruder_full_stat.clear();
+    extruder_full_stat.resize(counts.size());
+
+    int vi          = 0; // running installed-nozzle index, aligned across the flat arrays
+    int global_base = 0; // global slot offset of the current extruder (slot ids are continuous)
+    for (size_t e = 0; e < counts.size(); ++e) {
+        int slot_num = counts[e];
+        if (max_nozzle_count && e < max_nozzle_count->values.size())
+            slot_num = std::max(slot_num, max_nozzle_count->values[e]);
+
+        std::vector<std::pair<std::string, std::string>> slots_vec(slot_num, {std::string(), std::string()});
+        for (int k = 0; k < counts[e]; ++k, ++vi) {
+            int local = has_slot_id ? (slots[vi] - global_base) : k;
+            if (local < 0 || local >= slot_num)
+                local = k; // defensive: keep dense order when slot id is out of range
+            if (local < 0 || local >= slot_num)
+                continue;
+            std::string diam_str = has_per_slot_diameter ? format_diameter_to_str(diams[vi]) : default_diam;
+            std::string vol_str  = GetNozzleVolumeTypeStr(NozzleVolumeType(vtypes[vi]));
+            slots_vec[local]     = {diam_str, vol_str};
+        }
+        extruder_full_stat.set_extruder_stats(e, slots_vec);
+        global_base += slot_num;
+    }
+}
+
+void PresetBundle::generate_extruder_full_stats_from_nozzle_stats()
+{
+    if (extruder_nozzle_stat.get_force_keep_flag()) {
+        return;
+    }
+    extruder_full_stat.clear();
+    auto raw_stats = extruder_nozzle_stat.get_raw_stat();
+    const Preset &printer_preset            = printers.get_edited_preset();
+    auto  diameter                          = printer_preset.config.opt_string("printer_variant");
+    auto  extruder_max_nozzle_count         = printer_preset.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+
+    extruder_full_stat.resize(raw_stats.size());
+    for (size_t extruder_id = 0; extruder_id < raw_stats.size(); ++extruder_id) {
+        std::vector<std::pair<std::string, std::string>> nozzle_stats;
+
+        for (const auto &[volume_type, count] : raw_stats[extruder_id]) {
+            std::string volume_str = GetNozzleVolumeTypeStr(volume_type);
+
+            for (int i = 0; i < count; ++i) {
+                nozzle_stats.emplace_back(diameter, volume_str);
+            }
+
+            int current_count = nozzle_stats.size();
+            int max_count = extruder_max_nozzle_count->values[extruder_id];
+
+            if (current_count < max_count) {
+                std::vector<std::string> diameters = {"0.2", "0.4", "0.6", "0.8"};
+                for (const auto& d : diameters) {
+                    if (d != diameter) {
+                        for (int i = current_count; i < max_count; ++i) {
+                            nozzle_stats.emplace_back(d, "Standard");
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        extruder_full_stat.set_extruder_stats(extruder_id, nozzle_stats);
+    }
 }
 
 // Merge one vendor's presets with the other vendor's presets, report duplicates.
@@ -3556,6 +3670,36 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     add_if_some_non_empty(std::move(print_compatible_printers),     "print_compatible_printers");
     out.option<ConfigOptionStrings>("extruder_ams_count", true)->values   = save_extruder_ams_count_to_string(this->extruder_ams_counts);
     out.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values = save_extruder_nozzle_stats_to_string(this->extruder_nozzle_stat.get_raw_stat());
+
+    // Per-slot nozzle params (count + volume type) for the grouping backend, derived in physical-slot
+    // order from the per-slot stat. The backend builds its nozzle list from these, not from the
+    // *_stats strings.
+    {
+        const auto raw = this->extruder_full_stat.get_raw_stat(); // per extruder -> per slot (diameter, volume)
+        std::vector<int>    nozzle_counts;
+        std::vector<int>    nozzle_volume_types;
+        std::vector<double> nozzle_diameters;
+        std::vector<int>    nozzle_slots;
+        nozzle_counts.reserve(raw.size());
+        int global_slot = 0; // physical slot index, advances for every slot incl. empty ones
+        for (const auto& ext : raw) {
+            int installed = 0;
+            for (const auto& slot : ext) {
+                if (!slot.second.empty()) { // skip empty physical slot, but still advance global_slot
+                    nozzle_volume_types.push_back(static_cast<int>(nozzle_volume_type_from_string(slot.second)));
+                    nozzle_diameters.push_back(slot.first.empty() ? 0.0 : atof(slot.first.c_str()));
+                    nozzle_slots.push_back(global_slot);
+                    ++installed;
+                }
+                ++global_slot;
+            }
+            nozzle_counts.push_back(installed);
+        }
+        out.option<ConfigOptionInts>("extruder_nozzle_count", true)->values         = std::move(nozzle_counts);
+        out.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type", true)->values = std::move(nozzle_volume_types);
+        out.option<ConfigOptionFloats>("extruder_nozzle_diameter", true)->values    = std::move(nozzle_diameters);
+        out.option<ConfigOptionInts>("extruder_nozzle_slot", true)->values          = std::move(nozzle_slots);
+    }
 
 	out.option<ConfigOptionEnumGeneric>("printer_technology", true)->value = ptFFF;
     return out;

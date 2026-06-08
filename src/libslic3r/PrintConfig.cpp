@@ -801,6 +801,29 @@ std::vector<std::map<int, int>> get_extruder_ams_count(const std::vector<std::st
     return extruder_ams_counts;
 }
 
+int get_effective_ams_nozzle_idx(const ConfigBase& config)
+{
+    // Static machine config: physical slot reserved for the AMS-fed nozzle (-1 means the model has
+    // no AMS slot at all, e.g. an all-fixed multi-nozzle machine).
+    const auto* ams_idx_opt = dynamic_cast<const ConfigOptionInts*>(config.option("ams_nozzle_idx"));
+    int ams_idx = (ams_idx_opt && !ams_idx_opt->values.empty()) ? ams_idx_opt->get_at(0) : -1;
+    if (ams_idx < 0)
+        return -1;
+
+    // Runtime: an AMS-capable model may currently have no AMS connected. In that case every nozzle
+    // (including the AMS slot) is a fixed nozzle, so report -1 to make both the UI and the grouping
+    // take the "all fixed nozzles" path consistently.
+    const auto* ams_count_opt = dynamic_cast<const ConfigOptionStrings*>(config.option("extruder_ams_count"));
+    if (!ams_count_opt)
+        return ams_idx; // missing data: stay permissive and keep the configured slot
+    const auto counts = get_extruder_ams_count(ams_count_opt->values);
+    for (const auto& ext : counts)
+        for (const auto& slot : ext)
+            if (slot.second > 0)
+                return ams_idx;
+    return -1;
+}
+
 std::vector<std::map<NozzleVolumeType,int>> get_extruder_nozzle_stats(const std::vector<std::string>& strs)
 {
     std::vector<std::map<NozzleVolumeType,int>> extruder_nozzle_counts;
@@ -851,6 +874,14 @@ std::vector<std::string> save_extruder_ams_count_to_string(const std::vector<std
         extruder_ams_count_str.push_back(oss.str());
     }
     return extruder_ams_count_str;
+}
+
+NozzleVolumeType nozzle_volume_type_from_string(const std::string &name)
+{
+    auto iter = s_keys_map_NozzleVolumeType.find(name);
+    if (iter != s_keys_map_NozzleVolumeType.end())
+        return NozzleVolumeType(iter->second);
+    return nvtStandard;
 }
 
 NozzleVolumeType convert_to_nvt_type(const std::string &variant_str) {
@@ -4415,6 +4446,10 @@ void PrintConfigDef::init_fff_params()
     def->nullable = true;
     def->set_default_value(new ConfigOptionIntsNullable{ 1 });
 
+    def = this->add("ams_nozzle_idx", coInts);
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionInts{ 0 });
+
     def = this->add("handle_hotend_as_extruder", coBool);
     def->set_default_value(new ConfigOptionBool{false});
 
@@ -5197,6 +5232,21 @@ void PrintConfigDef::init_fff_params()
     def->enum_labels.push_back(L("E3D High Flow"));
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionEnumsGeneric{ NozzleVolumeType::nvtStandard });
+
+    def = this->add("extruder_nozzle_diameter", coFloats);
+    def->label = "extruder nozzle diameter";
+    def->tooltip = "Per-slot nozzle diameter, flat list in physical nozzle order. Lets one extruder mix "
+                   "nozzles of different diameters; falls back to nozzle_diameter when not provided.";
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionFloats{ 0.4 });
+
+    def = this->add("extruder_nozzle_slot", coInts);
+    def->label = "extruder nozzle slot";
+    def->tooltip = "Physical slot index for each installed nozzle (flat list, same order as "
+                   "extruder_nozzle_volume_type). Makes group_id equal the physical slot even when some "
+                   "slots are empty; falls back to dense ordering when not provided.";
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionInts{});
 
     def = this->add("printer_extruder_id", coInts);
     def->label = "Printer extruder id";

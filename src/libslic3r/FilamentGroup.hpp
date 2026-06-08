@@ -109,6 +109,10 @@ namespace Slic3r
             std::map<int, std::vector<int>> extruder_nozzle_list;
             std::vector<MultiNozzleUtils::NozzleInfo> nozzle_list;
             std::unordered_map<int, int> nozzle_status;
+            // Explicit per-nozzle filament capacity, indexed by nozzle group_id (== nozzle_list index).
+            // Used by the single-extruder N1X model (AMS nozzle = AMS slot count, fixed nozzles = 1,
+            // empty slots = 0). Empty -> fall back to the flush-based heuristic.
+            std::vector<int> per_nozzle_capacity;
         } nozzle_info;
     };
 

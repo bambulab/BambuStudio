@@ -321,7 +321,7 @@ void DragDropPanel::NotifyDragDropCompleted()
     wxWindow *parent = GetParent();
     while (parent) {
         auto name = parent->GetName();
-        if (name == wxT("FilamentMapManualPanel")) {
+        if (name == wxT("FilamentMapManualPanel") || name == wxT("FilamentMapMultiNozzlePanel")) {
             parent->GetEventHandler()->ProcessEvent(event);
             break;
         }
@@ -350,7 +350,7 @@ wxDragResult SeparatedColorDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult
 {
     if (!GetData()) return wxDragNone;
 
-    m_panel->AddColorBlock(m_data->GetType(), m_data->GetFilament(), false);
+    m_panel->AddColorBlock(m_data->GetColor(), m_data->GetType(), m_data->GetFilament(), nvtStandard);
     return wxDragCopy;
 }
 
@@ -381,10 +381,12 @@ SeparatedDragDropPanel::SeparatedDragDropPanel(wxWindow *parent, const wxString 
 
     m_high_flow_panel = new DragDropPanel(m_content_panel, _L("High Flow"), false, true, true);
     m_standard_panel  = new DragDropPanel(m_content_panel, _L("Standard"), false, true, true);
+    m_tpu_panel       = new DragDropPanel(m_content_panel, _L("TPU"), false, true, true);
     m_unified_panel   = new DragDropPanel(m_content_panel, wxEmptyString, false, false);
 
     m_high_flow_panel->SetBackgroundColour(0xF8F8F8);
     m_standard_panel->SetBackgroundColour(0xF8F8F8);
+    m_tpu_panel->SetBackgroundColour(0xF8F8F8);
     m_unified_panel->SetBackgroundColour(0xF8F8F8);
     m_unified_panel->SetMinSize({FromDIP(260), -1});
 
@@ -406,27 +408,63 @@ void SeparatedDragDropPanel::UpdateLayout()
 
     if (m_use_separation) {
         m_unified_panel->Hide();
-        m_high_flow_panel->Show();
-        m_standard_panel->Show();
 
-        wxSize content_size = m_content_panel->GetSize();
-        int panel_width = (content_size.GetWidth() - FromDIP(1) - FromDIP(8)) / 2;
-        if (panel_width > 0) {
-            m_high_flow_panel->SetMinSize(wxSize(panel_width, -1));
-            m_standard_panel->SetMinSize(wxSize(panel_width, -1));
+        auto preset_bundle = wxGetApp().preset_bundle;
+        auto extruder_nozzle_counts = preset_bundle->extruder_nozzle_stat.get_raw_stat();
+
+        auto has_nozzle_type = [&](NozzleVolumeType type) {
+            for (size_t eid = 0; eid < extruder_nozzle_counts.size(); ++eid) {
+                if (extruder_nozzle_counts[eid].count(type) > 0 &&
+                    extruder_nozzle_counts[eid].at(type) > 0)
+                    return true;
+            }
+            return false;
+        };
+
+        // Also check extruder_variant_list to determine supported nozzle types
+        bool variant_has_std = false, variant_has_hf = false, variant_has_tpu = false;
+        auto variant_opt = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionStrings>("extruder_variant_list");
+        if (variant_opt) {
+            for (const auto &v : variant_opt->values) {
+                if (v.find("Standard") != std::string::npos) variant_has_std = true;
+                if (v.find("High Flow") != std::string::npos) variant_has_hf = true;
+                if (v.find("TPU") != std::string::npos) variant_has_tpu = true;
+            }
         }
 
-        m_content_sizer->Add(m_high_flow_panel, 1, wxEXPAND | wxLEFT, FromDIP(8));
+        bool has_std = !m_standard_panel->get_filament_blocks().empty() || has_nozzle_type(NozzleVolumeType::nvtStandard) || variant_has_std;
+        bool has_hf  = !m_high_flow_panel->get_filament_blocks().empty() || has_nozzle_type(NozzleVolumeType::nvtHighFlow) || variant_has_hf;
+        bool has_tpu = !m_tpu_panel->get_filament_blocks().empty() || ((has_nozzle_type(NozzleVolumeType::nvtTPUHighFlow) || has_nozzle_type(NozzleVolumeType::nvtTPU285)) && variant_has_tpu);
 
-        auto separator = new wxPanel(m_content_panel, wxID_ANY);
-        separator->SetBackgroundColour(0xCCCCCC);
-        separator->SetMinSize(wxSize(FromDIP(1), -1));
-        m_content_sizer->Add(separator, 0, wxEXPAND | wxALL, FromDIP(4));
+        m_standard_panel->Show(has_std);
+        m_high_flow_panel->Show(has_hf);
+        m_tpu_panel->Show(has_tpu);
 
-        m_content_sizer->Add(m_standard_panel, 1, wxEXPAND | wxRIGHT, FromDIP(8));
+        auto add_separator = [this]() {
+            auto separator = new wxPanel(m_content_panel, wxID_ANY);
+            separator->SetBackgroundColour(0xCCCCCC);
+            separator->SetMinSize(wxSize(FromDIP(1), -1));
+            m_content_sizer->Add(separator, 0, wxEXPAND | wxALL, FromDIP(4));
+        };
+
+        bool need_separator = false;
+        if (has_std) {
+            m_content_sizer->Add(m_standard_panel, 1, wxEXPAND | wxLEFT, FromDIP(8));
+            need_separator = true;
+        }
+        if (has_hf) {
+            if (need_separator) add_separator();
+            m_content_sizer->Add(m_high_flow_panel, 1, wxEXPAND);
+            need_separator = true;
+        }
+        if (has_tpu) {
+            if (need_separator) add_separator();
+            m_content_sizer->Add(m_tpu_panel, 1, wxEXPAND | wxRIGHT, FromDIP(8));
+        }
     } else {
         m_high_flow_panel->Hide();
         m_standard_panel->Hide();
+        m_tpu_panel->Hide();
         m_unified_panel->Show();
 
         m_content_sizer->Add(m_unified_panel, 1, wxEXPAND);
@@ -465,6 +503,7 @@ void SeparatedDragDropPanel::SetUseSeparation(bool use_separation)
         } else {
             auto high_flow_blocks = m_high_flow_panel->get_filament_blocks();
             auto standard_blocks  = m_standard_panel->get_filament_blocks();
+            auto tpu_blocks       = m_tpu_panel->get_filament_blocks();
 
             for (auto &block : high_flow_blocks) {
                 m_unified_panel->AddColorBlock(block->GetType(), block->GetFilamentId(), false);
@@ -475,27 +514,28 @@ void SeparatedDragDropPanel::SetUseSeparation(bool use_separation)
                 m_unified_panel->AddColorBlock(block->GetType(), block->GetFilamentId(), false);
                 m_standard_panel->RemoveColorBlock(block, false);
             }
+
+            for (auto &block : tpu_blocks) {
+                m_unified_panel->AddColorBlock(block->GetColor(), block->GetType(), block->GetFilamentId(), false);
+                m_tpu_panel->RemoveColorBlock(block, false);
+            }
         }
 
         UpdateLayout();
     }
 }
 
-void SeparatedDragDropPanel::AddColorBlock(const std::string &type, int filament_id, bool is_high_flow, bool update_ui)
+void SeparatedDragDropPanel::AddColorBlock(const wxColour &color, const std::string &type, int filament_id, NozzleVolumeType volume_type, bool update_ui)
 {
     if (m_use_separation) {
-        if (is_high_flow) {
-            m_high_flow_panel->AddColorBlock(type, filament_id, update_ui);
+        if (volume_type == NozzleVolumeType::nvtHighFlow) {
+            m_high_flow_panel->AddColorBlock(color, type, filament_id, update_ui);
+        } else if (volume_type == NozzleVolumeType::nvtTPUHighFlow || volume_type == NozzleVolumeType::nvtTPU285) {
+            m_tpu_panel->AddColorBlock(color, type, filament_id, update_ui);
         } else {
             m_standard_panel->AddColorBlock(type, filament_id, update_ui);
         }
 
-        if (update_ui) {
-            CallAfter([this]() {
-                Layout();
-                GetParent()->Layout();
-            });
-        }
     } else {
         m_unified_panel->AddColorBlock(type, filament_id, update_ui);
     }
@@ -505,22 +545,19 @@ void SeparatedDragDropPanel::RemoveColorBlock(ColorPanel *panel, bool update_ui)
 {
     auto high_flow_blocks = m_high_flow_panel->get_filament_blocks();
     auto standard_blocks  = m_standard_panel->get_filament_blocks();
+    auto tpu_blocks       = m_tpu_panel->get_filament_blocks();
     auto unified_blocks   = m_unified_panel->get_filament_blocks();
 
     if (std::find(high_flow_blocks.begin(), high_flow_blocks.end(), panel) != high_flow_blocks.end()) {
         m_high_flow_panel->RemoveColorBlock(panel, update_ui);
     } else if (std::find(standard_blocks.begin(), standard_blocks.end(), panel) != standard_blocks.end()) {
         m_standard_panel->RemoveColorBlock(panel, update_ui);
+    } else if (std::find(tpu_blocks.begin(), tpu_blocks.end(), panel) != tpu_blocks.end()) {
+        m_tpu_panel->RemoveColorBlock(panel, update_ui);
     } else if (std::find(unified_blocks.begin(), unified_blocks.end(), panel) != unified_blocks.end()) {
         m_unified_panel->RemoveColorBlock(panel, update_ui);
     }
 
-    if (update_ui && m_use_separation) {
-        CallAfter([this]() {
-            Layout();
-            GetParent()->Layout();
-        });
-    }
 }
 
 std::vector<int> SeparatedDragDropPanel::GetAllFilaments() const
@@ -528,10 +565,12 @@ std::vector<int> SeparatedDragDropPanel::GetAllFilaments() const
     if (m_use_separation) {
         auto high_flow = m_high_flow_panel->GetAllFilaments();
         auto standard  = m_standard_panel->GetAllFilaments();
+        auto tpu       = m_tpu_panel->GetAllFilaments();
 
         std::vector<int> result;
         result.insert(result.end(), high_flow.begin(), high_flow.end());
         result.insert(result.end(), standard.begin(), standard.end());
+        result.insert(result.end(), tpu.begin(), tpu.end());
         return result;
     } else {
         return m_unified_panel->GetAllFilaments();
@@ -574,7 +613,7 @@ std::vector<int> SeparatedDragDropPanel::GetStandardFilaments() const
 std::vector<int> SeparatedDragDropPanel::GetTPUHighFlowFilaments() const 
 {
     if (m_use_separation) {
-        return {};
+        return m_tpu_panel->GetAllFilaments();
     }
     auto nozzle_volumes = wxGetApp().preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
     const int right_eid = 1;
@@ -592,10 +631,12 @@ std::vector<ColorPanel *> SeparatedDragDropPanel::get_filament_blocks() const
     if (m_use_separation) {
         auto high_flow = m_high_flow_panel->get_filament_blocks();
         auto standard  = m_standard_panel->get_filament_blocks();
+        auto tpu       = m_tpu_panel->get_filament_blocks();
 
         std::vector<ColorPanel *> result;
         result.insert(result.end(), high_flow.begin(), high_flow.end());
         result.insert(result.end(), standard.begin(), standard.end());
+        result.insert(result.end(), tpu.begin(), tpu.end());
         return result;
     } else {
         return m_unified_panel->get_filament_blocks();
@@ -612,6 +653,11 @@ std::vector<ColorPanel *> SeparatedDragDropPanel::get_standard_blocks() const
     return m_standard_panel->get_filament_blocks();
 }
 
+std::vector<ColorPanel *> SeparatedDragDropPanel::get_tpu_blocks() const
+{
+    return m_tpu_panel->get_filament_blocks();
+}
+
 void SeparatedDragDropPanel::ClearAllBlocks()
 {
     auto high_flow_blocks = m_high_flow_panel->get_filament_blocks();
@@ -622,6 +668,11 @@ void SeparatedDragDropPanel::ClearAllBlocks()
     auto standard_blocks = m_standard_panel->get_filament_blocks();
     for (auto &block : standard_blocks) {
         m_standard_panel->RemoveColorBlock(block, false);
+    }
+
+    auto tpu_blocks = m_tpu_panel->get_filament_blocks();
+    for (auto &block : tpu_blocks) {
+        m_tpu_panel->RemoveColorBlock(block, false);
     }
 
     auto unified_blocks = m_unified_panel->get_filament_blocks();

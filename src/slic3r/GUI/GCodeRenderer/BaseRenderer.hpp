@@ -241,6 +241,9 @@ namespace Slic3r {
                 std::vector<ExtruderFilament> m_left_extruder_filament;
                 std::vector<ExtruderFilament> m_right_extruder_filament;
                 size_t m_nozzle_nums{ 0 };
+                bool   m_single_ext_multi_nozzle{ false };
+                int    m_ams_nozzle_idx{ -1 };
+                int    m_total_nozzle_count{ 1 };
                 bool m_fold{ false };
                 std::vector<size_t> m_ssid_to_moveid_map;
                 std::vector<int> m_plater_extruder;

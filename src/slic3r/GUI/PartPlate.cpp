@@ -849,7 +849,13 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id, bool ren
         }
 
 		int extruder_count = wxGetApp().preset_bundle->get_printer_extruder_count();
-        if (extruder_count == 2) {
+        bool has_multiple_nozzle = false;
+        {
+            auto nozzle_count_opt = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+            if (nozzle_count_opt)
+                has_multiple_nozzle = std::any_of(nozzle_count_opt->values.begin(), nozzle_count_opt->values.end(), [](int i) { return i > 1; });
+        }
+        if (extruder_count == 2 || has_multiple_nozzle) {
             if (hover_id == PLATE_FILAMENT_MAP_ID){
                 render_icon_texture(m_partplate_list->m_plate_filament_map_icon, m_partplate_list->m_plate_set_filament_map_hovered_texture);
                 show_tooltip(_u8L("Edit filament grouping"));

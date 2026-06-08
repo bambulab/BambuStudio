@@ -3953,7 +3953,8 @@ void Print::_make_wipe_tower()
         int layer_idx = -1;
 
         unsigned int old_filament_id = m_wipe_tower_data.tool_ordering.first_extruder();
-        nozzle_recorder.set_nozzle_status(group_result->get_nozzle_for_filament(old_filament_id, layer_idx)->group_id, old_filament_id);
+        if (auto first_nozzle_info = group_result->get_nozzle_for_filament(old_filament_id, layer_idx))
+            nozzle_recorder.set_nozzle_status(first_nozzle_info->group_id, old_filament_id);
 
         for (auto& layer_tools : m_wipe_tower_data.tool_ordering.layer_tools()) { // for all layers
             ++layer_idx;
@@ -3969,6 +3970,11 @@ void Print::_make_wipe_tower()
                     continue;
 
                 auto nozzle_info = group_result->get_nozzle_for_filament(filament_id, layer_idx);
+                // The filament may not be mapped to any nozzle on this layer. Skip it instead of
+                // dereferencing a disengaged optional, which yields garbage extruder_id/nozzle_id
+                // and later an out-of-range flush-matrix access.
+                if (!nozzle_info)
+                    continue;
 
                 int extruder_id = nozzle_info->extruder_id;
                 int nozzle_id = nozzle_info->group_id;

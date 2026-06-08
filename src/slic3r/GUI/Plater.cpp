@@ -196,6 +196,8 @@
 #include "StepMeshDialog.hpp"
 #include "PurgeModeDialog.hpp"
 #include "FilamentMapDialog.hpp"
+#include "FilamentMapPanel.hpp"
+#include "ExtruderPanel.hpp"
 
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevManager.h"
@@ -2035,6 +2037,7 @@ void Sidebar::priv::update_extruder_full_stats(int extruder_id, wxString diamete
     if (type == nvtHybrid) {
         preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(extruder_id, nvtStandard, volume_counts[nvtStandard], true);
         preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(extruder_id, nvtHighFlow, volume_counts[nvtHighFlow], false);
+        preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(extruder_id, nvtTPUHighFlow, volume_counts[nvtTPUHighFlow] + volume_counts[nvtTPU285], false);
     }
     else {
         preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(extruder_id, type, volume_counts[type], true);
@@ -3208,36 +3211,101 @@ Sidebar::Sidebar(Plater *parent)
         });
         p->btn_sync_printer = btn_sync;
 
-        p->left_extruder = new ExtruderGroup(p->m_panel_printer_content, 0, _L("Left Nozzle"));
-        p->right_extruder = new ExtruderGroup(p->m_panel_printer_content, 1, _L("Right Nozzle"));
+        p->diameter_btns   = new DiameterButtonPanel(p->m_panel_printer_content);
+        p->diameter_btns->SetNozzleQueryCallback([this](const wxString &query_diameter) -> bool {
+            PresetBundle *preset_bundle     = wxGetApp().preset_bundle;
+            auto          extruder_variants = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionStrings>("extruder_variant_list");
+            bool          is_dual           = extruder_variants && extruder_variants->size() == 2;
+
+            const std::vector<NozzleConfig> &left_configs  = is_dual ? p->l_ext_cfg : p->s_ext_cfg;
+            const std::vector<NozzleConfig> &right_configs = p->r_ext_cfg;
+
+            for (const auto &cfg : left_configs) {
+                if (cfg.diameter == query_diameter) {
+                    return true;
+                }
+            }
+
+            if (is_dual) {
+                for (const auto &cfg : right_configs) {
+                    if (cfg.diameter == query_diameter) {return true;
+                    }
+                }
+            }
+
+            return false;
+        });
+
+        p->diameter_btns->Bind(wxEVT_BUTTON, [this](wxCommandEvent &evt) {
+            auto selected_diameter = p->diameter_btns->GetSelectedDiameter();
+            p->is_switching_diameter = true;
+            auto result = p->switch_diameter(false);
+            p->is_switching_diameter = false;
+            if (!result) {
+                auto previous_diameter = wxGetApp().preset_bundle->printers.get_edited_preset().config.opt_string("printer_variant");
+                p->diameter_btns->SetSelectedDiameter(wxString(previous_diameter));
+            }
+
+            for (auto* panel : { p->r_extruder_panel, p->l_extruder_panel, p->s_extruder_panel }) {
+                if (panel && panel->IsShownOnScreen()) {
+                    auto printer_tab = dynamic_cast<TabPrinter*>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
+                    auto index = panel->GetType() == ExtruderPanel::RightExtruder ? 1 : 0;
+                    auto cfg = panel->GetType() == ExtruderPanel::RightExtruder ? p->r_ext_cfg : panel->GetType() == ExtruderPanel::LeftExtruder ? p->l_ext_cfg : p->s_ext_cfg;
+                    NozzleVolumeType volume_type = p->get_volume_type_from_configs(selected_diameter, cfg);
+
+                    auto  preset_bundle = wxGetApp().preset_bundle;
+                    std::map<NozzleVolumeType, int> volume_counts;
+                    for (const auto &c : cfg) {
+                        if (!c.diameter.IsEmpty() && c.diameter == selected_diameter) volume_counts[c.volume]++;
+                    }
+                    if (volume_type == nvtHybrid) {
+                        preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, nvtStandard, volume_counts[nvtStandard], true);
+                        preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, nvtHighFlow, volume_counts[nvtHighFlow], false);
+                        preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, nvtTPUHighFlow, volume_counts[nvtTPUHighFlow] + volume_counts[nvtTPU285], false);
+                    } else {
+                        preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, volume_type, volume_counts[volume_type], true);
+                    }
+
+                    printer_tab->set_extruder_volume_type(index, volume_type);
+                    auto plater = wxGetApp().plater();
+                    if (plater) {
+                        plater->update_filament_volume_map(index, static_cast<int>(volume_type));
+                        plater->update_machine_sync_status();
+                    }
+                }
+            }
+        });
+
+        p->dual_panel       = new ExtruderPanelGroup(p->m_panel_printer_content, ExtruderPanelGroup::Dual);
+        p->single_panel     = new ExtruderPanelGroup(p->m_panel_printer_content, ExtruderPanelGroup::Single);
+        //p->l_extruder_panel = new ExtruderPanel(p->dual_panel, ExtruderPanel::LeftExtruder);
+        //p->r_extruder_panel = new ExtruderPanel(p->dual_panel, ExtruderPanel::RightExtruder);
+        //p->s_extruder_panel = new ExtruderPanel(p->single_panel, ExtruderPanel::SingleExtruder);
+        p->l_extruder_panel = p->dual_panel->GetPanel(0);
+        p->r_extruder_panel = p->dual_panel->GetPanel(1);
+        p->s_extruder_panel = p->single_panel->GetPanel(0);
+
+        p->dual_panel->SetOnClick([this](bool is_dual) {
+            p->open_extruder_settings_dialog(is_dual);
+        });
+
+        p->single_panel->SetOnClick([this](bool is_dual) {
+            p->open_extruder_settings_dialog(is_dual);
+        });
+
+        //p->left_extruder = new ExtruderGroup(p->m_panel_printer_content, 0, _L("Left Nozzle"));
+        //p->right_extruder = new ExtruderGroup(p->m_panel_printer_content, 1, _L("Right Nozzle"));
         p->single_extruder = new ExtruderGroup(p->m_panel_printer_content, -1, _L("Nozzle"));
 
-        p->left_extruder->SetOnHoverClick([this, parent]() {
-            GUI::manuallySetNozzleCount(0);
-            wxGetApp().plater()->update();
-            });
-        p->right_extruder->SetOnHoverClick([this, parent]() {
-            GUI::manuallySetNozzleCount(1);
-            wxGetApp().plater()->update();
-            });
+        //p->left_extruder->SetOnHoverClick([this, parent]() {
+        //    GUI::manuallySetNozzleCount(0);
+        //    wxGetApp().plater()->update();
+        //    });
+        //p->right_extruder->SetOnHoverClick([this, parent]() {
+        //    GUI::manuallySetNozzleCount(1);
+        //    wxGetApp().plater()->update();
+        //    });
         p->single_extruder->SetEditEnabled(false);
-        p->left_extruder->Bind(wxEVT_SIZE, [this](wxSizeEvent &evt) {
-            if (!p->extruder_separator_icon->IsShown()) return;
-            wxPoint left_box_pos  = p->left_extruder->GetPosition();
-            wxSize  left_box_size = p->left_extruder->GetSize();
-            wxPoint ams_local_pos = p->left_extruder->hsizer_ams->GetPosition();
-            wxSize  left_size     = p->left_extruder->sizer->GetSize();
-            wxSize  ams_size      = p->left_extruder->hsizer_ams->GetSize();
-            wxSize  icon_size     = p->extruder_separator_icon->GetSize();
-            int     ams_abs_y     = left_box_pos.y + ams_local_pos.y + FromDIP(4);
-            int     center_x      = left_size.GetWidth() + FromDIP(6);
-            int     center_y      = ams_abs_y + (ams_size.GetHeight() - icon_size.GetHeight()) / 2;
-            center_x -= icon_size.GetWidth() / 2;
-            center_y -= icon_size.GetHeight() / 2;
-            p->extruder_separator_icon->SetPosition(wxPoint(center_x, center_y));
-            p->m_panel_printer_content->Refresh();
-            evt.Skip();
-        });
 
         auto switch_diameter = [this](wxCommandEvent & evt) {
             auto extruder = dynamic_cast<ExtruderGroup *>(dynamic_cast<ComboBox *>(evt.GetEventObject())->GetParent());
@@ -11635,6 +11703,41 @@ void Plater::priv::process_validation_warning(StringObjectException const &warni
     }
 }
 
+
+// Build the print-apply config for a given plate, honoring both multi-extruder machines and
+// single-extruder multi-nozzle machines (handle_hotend_as_extruder). For the latter the
+// plate-specific filament_map_mode and filament_nozzle_map must be injected into the config;
+// otherwise a subsequent apply() rebuilds a different config (global map mode and no nozzle map)
+// and spuriously invalidates a still-valid slice result, i.e. the slice state is reset right
+// after slicing in custom (manual / nozzle-manual) filament grouping mode.
+static DynamicPrintConfig build_plate_apply_config(PresetBundle* preset_bundle, PartPlate* plate)
+{
+    auto full_cfg = preset_bundle->full_config();
+    auto ext_max_nozzle = full_cfg.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    bool has_multi_nozzle = ext_max_nozzle && std::any_of(ext_max_nozzle->values.begin(), ext_max_nozzle->values.end(), [](int v) { return v > 1; });
+    bool multi_extruder = preset_bundle->get_printer_extruder_count() > 1;
+    if (!multi_extruder && !has_multi_nozzle)
+        return preset_bundle->full_config(false);
+
+    std::vector<int> f_maps = plate->get_real_filament_maps(preset_bundle->project_config);
+    std::vector<int> f_volume_maps = plate->get_filament_volume_maps();
+    if (f_volume_maps.empty())
+        f_volume_maps = preset_bundle->get_default_nozzle_volume_types_for_filaments(f_maps);
+    auto apply_config = preset_bundle->full_config(false, f_maps, f_volume_maps);
+
+    // Only single-extruder multi-nozzle (N1X) needs the plate-specific filament_map_mode and
+    // filament_nozzle_map injected so this apply config matches the one update_background_process()
+    // uses when slicing. Multi-extruder machines (e.g. H2D) keep their original apply path unchanged.
+    if (has_multi_nozzle && !multi_extruder) {
+        FilamentMapMode plate_mode = plate->get_real_filament_map_mode(preset_bundle->project_config);
+        apply_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = plate_mode;
+        auto plate_nozzle_maps = plate->get_filament_nozzle_maps();
+        if (!plate_nozzle_maps.empty())
+            apply_config.option<ConfigOptionInts>("filament_nozzle_map", true)->values = plate_nozzle_maps;
+    }
+    return apply_config;
+}
+
 // Update background processing thread from the current config and Model.
 // Returns a bitmask of UpdateBackgroundProcessReturnState.
 unsigned int Plater::priv::update_background_process(bool force_validation, bool postpone_error_messages, bool switch_print)
@@ -11665,14 +11768,25 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
 
     Print::ApplyStatus invalidated;
     const auto& preset_bundle = wxGetApp().preset_bundle;
-    if (preset_bundle->get_printer_extruder_count() > 1) {
+    auto full_cfg = preset_bundle->full_config();
+    auto ext_max_nozzle = full_cfg.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    bool has_multi_nozzle = ext_max_nozzle && std::any_of(ext_max_nozzle->values.begin(), ext_max_nozzle->values.end(), [](int v){ return v > 1; });
+    if (preset_bundle->get_printer_extruder_count() > 1 || has_multi_nozzle) {
         PartPlate* cur_plate = background_process.get_current_plate();
         std::vector<int> f_maps = cur_plate->get_real_filament_maps(preset_bundle->project_config);
         std::vector<int> f_volume_maps = cur_plate->get_filament_volume_maps();
         if (f_volume_maps.empty()) {
             f_volume_maps = preset_bundle->get_default_nozzle_volume_types_for_filaments(f_maps);
         }
-        invalidated = background_process.apply(this->model, preset_bundle->full_config(false, f_maps, f_volume_maps));
+        auto apply_config = preset_bundle->full_config(false, f_maps, f_volume_maps);
+        // Apply plate-specific filament_map_mode and filament_nozzle_map
+        FilamentMapMode plate_mode = cur_plate->get_real_filament_map_mode(preset_bundle->project_config);
+        apply_config.option<ConfigOptionEnum<FilamentMapMode>>("filament_map_mode", true)->value = plate_mode;
+        auto plate_nozzle_maps = cur_plate->get_filament_nozzle_maps();
+        if (!plate_nozzle_maps.empty()) {
+            apply_config.option<ConfigOptionInts>("filament_nozzle_map", true)->values = plate_nozzle_maps;
+        }
+        invalidated = background_process.apply(this->model, apply_config);
         background_process.fff_print()->set_extruder_filament_info(get_extruder_filament_info());
     }
     else
@@ -26833,16 +26947,7 @@ void Plater::apply_background_progress()
     const auto& preset_bundle = wxGetApp().preset_bundle;
     //always apply the current plate's print
     Print::ApplyStatus invalidated;
-    if (preset_bundle->get_printer_extruder_count() > 1) {
-        std::vector<int> f_maps = part_plate->get_real_filament_maps(preset_bundle->project_config);
-        std::vector<int> f_volume_maps = part_plate->get_filament_volume_maps();
-        if (f_volume_maps.empty()) {
-            f_volume_maps = preset_bundle->get_default_nozzle_volume_types_for_filaments(f_maps);
-        }
-        invalidated = p->background_process.apply(this->model(), preset_bundle->full_config(false, f_maps, f_volume_maps));
-    }
-    else
-        invalidated = p->background_process.apply(this->model(), preset_bundle->full_config(false));
+    invalidated = p->background_process.apply(this->model(), build_plate_apply_config(preset_bundle, part_plate));
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: plate %2%, after apply, invalidated= %3%, previous result_valid %4% ") % __LINE__ % plate_index % invalidated % result_valid;
     if (invalidated & PrintBase::APPLY_STATUS_INVALIDATED)
@@ -26882,16 +26987,7 @@ int Plater::select_plate(int plate_index, bool need_slice)
         part_plate->get_print(&print, &gcode_result, NULL);
 
         //always apply the current plate's print
-        if (preset_bundle->get_printer_extruder_count() > 1) {
-            std::vector<int> f_maps = part_plate->get_real_filament_maps(preset_bundle->project_config);
-            std::vector<int> f_volume_maps = part_plate->get_filament_volume_maps();
-            if (f_volume_maps.empty()) {
-                f_volume_maps = preset_bundle->get_default_nozzle_volume_types_for_filaments(f_maps);
-            }
-            invalidated = p->background_process.apply(this->model(), preset_bundle->full_config(false, f_maps, f_volume_maps));
-        }
-        else
-            invalidated = p->background_process.apply(this->model(), preset_bundle->full_config(false));
+        invalidated = p->background_process.apply(this->model(), build_plate_apply_config(preset_bundle, part_plate));
         bool model_fits, validate_err;
 
         BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: plate %2%, after apply, invalidated= %3%, previous result_valid %4% ")%__LINE__ %plate_index  %invalidated %result_valid;
@@ -27232,6 +27328,10 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
     bool need_slice = value ==1;  // If from gcode view, should slice
 
     auto preset_bundle = wxGetApp().preset_bundle;
+    // Make sure the per-slot nozzle snapshot exists before the panel reads it (it is otherwise only
+    // populated on printer model change / 3mf load, so the first open could show empty nozzle info).
+    if (preset_bundle->extruder_full_stat.empty())
+        preset_bundle->generate_extruder_full_stats_from_nozzle_stats();
     const auto& project_config = wxGetApp().preset_bundle->project_config;
     auto filament_colors = config()->option<ConfigOptionStrings>("filament_colour")->values;
     auto filament_types = config()->option<ConfigOptionStrings>("filament_type")->values;
@@ -27239,10 +27339,26 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
     auto plate_filament_maps = curr_plate->get_real_filament_maps(project_config);
     auto plate_filament_map_mode = curr_plate->get_filament_map_mode();
     auto plate_filament_volume_maps = curr_plate->get_real_filament_volume_maps(project_config);
-    if (plate_filament_maps.size() != filament_colors.size())  // refine it later, save filament map to app config
+    if (plate_filament_maps.size() != filament_colors.size())
         plate_filament_maps.resize(filament_colors.size(), 1);
     if (plate_filament_volume_maps.size() != filament_colors.size())
         plate_filament_volume_maps.resize(filament_colors.size(), 0);
+
+    // N1X keeps the AMS/fixed split in filament_nozzle_map (filament_map stays all-1). Rebuild the
+    // manual-panel display from it whenever available, regardless of the current mode, so a prior auto
+    // grouping result is also reflected when the user switches to the custom panel.
+    {
+        auto full_cfg = preset_bundle->full_config();
+        auto opt_hotend = full_cfg.option<ConfigOptionBool>("handle_hotend_as_extruder");
+        int ams_idx = get_effective_ams_nozzle_idx_for_active_diameter(full_cfg);
+        if (opt_hotend && opt_hotend->value && ams_idx >= 0) {
+            auto plate_nozzle_maps = curr_plate->get_filament_nozzle_maps();
+            for (size_t i = 0; i < plate_filament_maps.size() && i < plate_nozzle_maps.size(); ++i)
+                plate_filament_maps[i] = (plate_nozzle_maps[i] == ams_idx) ? 1 : 2;
+        }
+    }
+    if (plate_filament_map_mode == fmmNozzleManual)
+        plate_filament_map_mode = fmmManual;
 
     std::vector<FilamentMapMode> requested_modes = { fmmAutoForFlush, fmmAutoForMatch, fmmAutoForQuality };
     Print* print_obj = curr_plate->fff_print();
@@ -27278,9 +27394,28 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
             curr_plate->set_filament_map_mode(new_map_mode);
         }
 
-        if (new_map_mode == fmmManual){
-            curr_plate->set_filament_maps(new_filament_maps);
-            curr_plate->set_filament_volume_maps(new_filament_volume_maps);
+        if (new_map_mode == fmmManual) {
+            // For single-extruder multi-nozzle without AMS: convert to fmmNozzleManual
+            auto full_cfg = preset_bundle->full_config();
+            auto opt_hotend = full_cfg.option<ConfigOptionBool>("handle_hotend_as_extruder");
+            auto ext_nozzle_cnt = full_cfg.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+            bool has_multi = ext_nozzle_cnt && std::any_of(ext_nozzle_cnt->values.begin(), ext_nozzle_cnt->values.end(), [](int v){return v>1;});
+            int ams_idx = get_effective_ams_nozzle_idx_for_active_diameter(full_cfg);
+            bool is_fixed_multi = opt_hotend && opt_hotend->value && has_multi && ams_idx < 0;
+
+            if (is_fixed_multi) {
+
+                std::vector<int> nozzle_maps(new_filament_maps.size(), 0);
+                new_map_mode = fmmNozzleManual;
+                std::fill(new_filament_maps.begin(), new_filament_maps.end(), 1);
+                curr_plate->set_filament_map_mode(new_map_mode);
+                curr_plate->set_filament_maps(new_filament_maps);
+                curr_plate->set_filament_volume_maps(new_filament_volume_maps);
+                curr_plate->set_filament_nozzle_maps(nozzle_maps);
+            } else {
+                curr_plate->set_filament_maps(new_filament_maps);
+                curr_plate->set_filament_volume_maps(new_filament_volume_maps);
+            }
         }
 
         bool need_invalidate = (old_map_mode != new_map_mode ||
@@ -27342,16 +27477,7 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
 
             part_plate->get_print(&print, &gcode_result, NULL);
             //always apply the current plate's print
-            if (preset_bundle->get_printer_extruder_count() > 1) {
-                std::vector<int> f_maps = part_plate->get_real_filament_maps(preset_bundle->project_config);
-                std::vector<int> f_volume_maps = part_plate->get_filament_volume_maps();
-                if (f_volume_maps.empty()) {
-                    f_volume_maps = preset_bundle->get_default_nozzle_volume_types_for_filaments(f_maps);
-                }
-                invalidated = p->background_process.apply(this->model(), preset_bundle->full_config(false, f_maps, f_volume_maps));
-            }
-            else
-                invalidated = p->background_process.apply(this->model(), preset_bundle->full_config(false));
+            invalidated = p->background_process.apply(this->model(), build_plate_apply_config(preset_bundle, part_plate));
             bool model_fits, validate_err;
             validate_current_plate(model_fits, validate_err);
 

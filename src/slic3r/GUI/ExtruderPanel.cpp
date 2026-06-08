@@ -777,6 +777,8 @@ ExtruderDialogPanel::ExtruderDialogPanel(wxWindow *parent, GroupType type, std::
     auto diameter           = printer_preset.config.opt_string("printer_variant");
     bool has_multiple_nozzles = extruder_max_nozzle_count->values[index] > 1;
 
+    bool has_ams = printer_preset.config.opt_int("ams_nozzle_idx", 0) >= 0;
+
     m_add_btn = new ScalableButton(this, wxID_ANY, "add_filament", wxEmptyString, wxDefaultSize, wxDefaultPosition, wxBU_EXACTFIT | wxNO_BORDER, true, 12);
     m_add_btn->Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent &evt) {
         ShowAMSCountPopup();
@@ -815,6 +817,10 @@ ExtruderDialogPanel::ExtruderDialogPanel(wxWindow *parent, GroupType type, std::
     ams_container_panel->SetBackgroundColour(wxColour("#F7F7F7"));
     ams_container_panel->SetMinSize(wxSize(-1, FromDIP(40)));
     ams_container_panel->SetMaxSize(wxSize(FromDIP(450), -1));
+    if (!has_ams) {
+        m_add_btn->Hide();
+        ams_container_panel->Hide();
+    }
 
     m_ams_sizer = new wxBoxSizer(wxHORIZONTAL);
     ams_container_panel->SetSizer(m_ams_sizer);
@@ -937,7 +943,7 @@ ExtruderDialogPanel::ExtruderDialogPanel(wxWindow *parent, GroupType type, std::
             nozzle_internal_sizer->Add(nozzle_internal.material_color_panel, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(4));
             nozzle_internal.nozzle_label->Hide();
 
-            if (i == m_nozzle_configs.size() / 2) { // 中间位置
+            if (has_ams && i == m_nozzle_configs.size() / 2) {
                 wxBoxSizer *filament_sizer = new wxBoxSizer(wxHORIZONTAL);
                 m_filament_label = new Label(this, _L("AMS"));
                 m_filament_label->SetFont(Label::Body_14);
@@ -967,7 +973,7 @@ ExtruderDialogPanel::ExtruderDialogPanel(wxWindow *parent, GroupType type, std::
         m_nozzles.push_back(nozzle_internal);
     }
 
-    if (!is_single) {
+    if (!is_single && has_ams) {
         wxBoxSizer *filament_sizer = new wxBoxSizer(wxHORIZONTAL);
         m_filament_label = new Label(this, _L("AMS"));
         m_filament_label->SetFont(Label::Body_14);
@@ -1270,7 +1276,8 @@ ExtruderNozzleStat ExtruderDialogPanel::BuildExtruderNozzleStat(wxString diamete
     int  extruder_id = m_type == LeftExtruder ? 0 : m_type == RightExtruder ? 1 : 0;
     if (type == nvtHybrid) {
         stat.set_extruder_nozzle_count(extruder_id, nvtStandard, volume_counts[nvtStandard], true);
-        stat.set_extruder_nozzle_count(extruder_id, nvtHighFlow, volume_counts[nvtHighFlow], true);
+        stat.set_extruder_nozzle_count(extruder_id, nvtHighFlow, volume_counts[nvtHighFlow], false);
+        stat.set_extruder_nozzle_count(extruder_id, nvtTPUHighFlow, volume_counts[nvtTPUHighFlow] + volume_counts[nvtTPU285], false);
     } else {
         stat.set_extruder_nozzle_count(extruder_id, type, volume_counts[type], false);
     }

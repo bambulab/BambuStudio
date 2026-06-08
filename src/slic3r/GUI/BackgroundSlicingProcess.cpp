@@ -231,13 +231,21 @@ void BackgroundSlicingProcess::process_fff()
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: gcode_result reseted, will start print::process")%__LINE__;
 		m_print->process();
 		BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(" %1%: after print::process, send slicing complete event to gui...")%__LINE__;
-		if (is_auto_filament_map_mode(m_current_plate->get_real_filament_map_mode(preset_bundle.project_config))) {
+		FilamentMapMode real_map_mode = m_current_plate->get_real_filament_map_mode(preset_bundle.project_config);
+		// Single-extruder multi-nozzle (N1X) only: the slicer derives filament_volume_map even in
+		// manual modes, so it must be synced back to avoid resetting the just-finished slice. Other
+		// machines (e.g. multi-extruder H2D) keep their original write-back path untouched.
+		bool single_ext_multi_nozzle = m_fff_print->config().handle_hotend_as_extruder.value;
+		if (is_auto_filament_map_mode(real_map_mode)) {
 			m_current_plate->set_filament_maps(m_fff_print->get_filament_maps());
 			m_current_plate->set_filament_volume_maps(m_fff_print->get_filament_volume_maps());
 		}
-		if(m_current_plate->get_real_filament_map_mode(preset_bundle.project_config) != FilamentMapMode::fmmNozzleManual){
-            std::vector<int> f_nozzle_maps = m_fff_print->get_filament_nozzle_maps();
-            m_current_plate->set_filament_nozzle_maps(f_nozzle_maps);
+		else if (single_ext_multi_nozzle) {
+			m_current_plate->set_filament_volume_maps(m_fff_print->get_filament_volume_maps());
+		}
+		if (real_map_mode != FilamentMapMode::fmmNozzleManual) {
+			std::vector<int> f_nozzle_maps = m_fff_print->get_filament_nozzle_maps();
+			m_current_plate->set_filament_nozzle_maps(f_nozzle_maps);
 		}
 		wxCommandEvent evt(m_event_slicing_completed_id);
 		// Post the Slicing Finished message for the G-code viewer to update.

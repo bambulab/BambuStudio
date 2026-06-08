@@ -6662,6 +6662,10 @@ int CLI::run(int argc, char **argv)
                                         extruder_nozzle_stats_maps[e_index] = std::move(nozzle_volume_type_maps);
                                     }
                                     nozzle_stats_obj.set_raw_stat(extruder_nozzle_stats_maps);
+                                    m_print_config.option<ConfigOptionInts>("extruder_nozzle_count", true)->values = extruder_nozzle_counts;
+                                    m_print_config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type", true)->values = extruder_nozzle_volume_types;
+                                    if (m_extra_config.has("extruder_nozzle_slot"))
+                                        m_print_config.option<ConfigOptionInts>("extruder_nozzle_slot", true)->values = m_extra_config.option<ConfigOptionInts>("extruder_nozzle_slot")->values;
                                 } else {
                                     // 未传入精细喷嘴配置时，退回到 nozzle_volume_type 同步
                                     for (size_t eid = 0; eid < new_nozzle_volume_type.size(); ++eid) {

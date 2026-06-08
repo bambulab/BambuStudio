@@ -1320,6 +1320,7 @@ std::vector<MultiNozzleUtils::NozzleGroupInfo> build_nozzle_groups(
     std::vector<MultiNozzleUtils::NozzleGroupInfo> nozzle_groups;
     auto extruder_nozzle_counts = get_extruder_nozzle_stats(print_config.extruder_nozzle_stats.values);
     auto nozzle_volume_types = print_config.nozzle_volume_type.values;
+
     for(size_t idx = 0; idx < extruder_nums; ++idx){
         if (idx >= extruder_nozzle_counts.size() || extruder_nozzle_counts[idx].empty()) {
             nozzle_groups.emplace_back(format_diameter_to_str(print_config.nozzle_diameter.values[idx]), NozzleVolumeType(print_config.nozzle_volume_type.values[idx]), idx,
@@ -1337,6 +1338,95 @@ std::vector<MultiNozzleUtils::NozzleGroupInfo> build_nozzle_groups(
         }
     }
     return nozzle_groups;
+}
+
+// N1X manual modes: AMS-group filaments use AMS; fixed-group filaments stay on compatible fixed nozzles.
+std::vector<int> build_manual_nozzle_map(const PrintConfig &print_config,
+                                             const std::vector<MultiNozzleUtils::NozzleInfo> &nozzle_list,
+                                             const std::vector<unsigned int> &used_filaments,
+                                             FilamentMapMode mode, int ams_nozzle_idx, int ams_capacity,
+                                             size_t filament_nums)
+{
+    std::vector<int> fnmap(filament_nums, ams_nozzle_idx >= 0 ? ams_nozzle_idx : 0);
+    const auto& fmap  = print_config.filament_map.values;
+    const auto& ufnm  = print_config.filament_nozzle_map.values;
+    const auto& fvmap = print_config.filament_volume_map.values;
+
+    auto compatible = [](int nozzle_vt, int filament_vt) {
+        return nozzle_vt == nvtHybrid || filament_vt == nvtHybrid || nozzle_vt == filament_vt;
+    };
+
+    auto in_ams_group = [&](unsigned int f) {
+        if (ams_nozzle_idx < 0) return false;
+        return mode == FilamentMapMode::fmmManual ? (f < fmap.size() && fmap[f] == 1)
+                                                  : (f < ufnm.size() && ufnm[f] == ams_nozzle_idx);
+    };
+
+    std::set<int> used_fixed;   // fixed nozzle group_ids already taken
+    std::map<int, std::vector<unsigned int>> fixed_nozzle_filaments;
+    int ams_group_count = 0;
+
+    auto flush_cost = [&](unsigned int from, unsigned int to) -> double {
+        const auto& matrix = print_config.flush_volumes_matrix.values;
+        if (from >= filament_nums || to >= filament_nums || matrix.size() < filament_nums * filament_nums)
+            return 0.0;
+        return matrix[from * filament_nums + to];
+    };
+
+    auto shared_fixed_nozzle = [&](unsigned int f, int req_vol) -> int {
+        int best_nozzle = -1;
+        double best_cost = std::numeric_limits<double>::max();
+        for (const auto& n : nozzle_list) {
+            if (!n.installed || n.group_id == ams_nozzle_idx || !compatible((int) n.volume_type, req_vol))
+                continue;
+            const auto it = fixed_nozzle_filaments.find(n.group_id);
+            if (it == fixed_nozzle_filaments.end() || it->second.empty())
+                continue;
+
+            double cost = 0.0;
+            for (auto existing_f : it->second)
+                cost += flush_cost(existing_f, f) + flush_cost(f, existing_f);
+            if (cost < best_cost) {
+                best_cost = cost;
+                best_nozzle = n.group_id;
+            }
+        }
+        return best_nozzle;
+    };
+
+    for (auto f : used_filaments) {
+        if (in_ams_group(f)) {
+            fnmap[f] = ams_nozzle_idx;
+            ++ams_group_count;
+            continue;
+        }
+
+        int req_vol = (f < fvmap.size()) ? fvmap[f] : (int) nvtStandard;
+        int chosen   = -1;
+        for (const auto& n : nozzle_list) {
+            if (!n.installed || n.group_id == ams_nozzle_idx || used_fixed.count(n.group_id))
+                continue;
+            if (compatible((int) n.volume_type, req_vol)) {
+                chosen = n.group_id;
+                break;
+            }
+        }
+        if (chosen >= 0) {
+            used_fixed.insert(chosen);
+            fnmap[f] = chosen;
+            fixed_nozzle_filaments[chosen].push_back(f);
+        } else if ((chosen = shared_fixed_nozzle(f, req_vol)) >= 0) {
+            fnmap[f] = chosen;
+            fixed_nozzle_filaments[chosen].push_back(f);
+        } else {
+            return {};
+        }
+    }
+
+    if (ams_nozzle_idx >= 0 && ams_capacity > 0 && ams_group_count > ams_capacity)
+        return {}; // AMS group exceeds AMS slot count
+
+    return fnmap;
 }
 
 std::vector<MultiNozzleUtils::NozzleInfo> build_default_nozzle_list(const PrintConfig &print_config, size_t extruder_nums)
@@ -1377,8 +1467,11 @@ FilamentGroupContext build_filament_group_context(
 
     auto nozzle_flush_mtx = prepare_flush_matrices(print_config);
 
-    // 构造可用喷嘴列表
-    auto nozzle_groups = build_nozzle_groups(print_config, extruder_nums);
+    int ams_nozzle_idx_ctx = get_effective_ams_nozzle_idx(print_config);
+    // Single-extruder multi-nozzle (N1X): one physical extruder driving several nozzles. AMS presence
+    // is a separate runtime fact: ams_nozzle_idx_ctx >= 0 means the AMS-fed nozzle exists at that slot;
+    // when no AMS is connected every nozzle is a dedicated fixed nozzle (one filament each, no flush).
+    bool single_ext_multi_nozzle = print_config.handle_hotend_as_extruder && extruder_nums == 1 && has_multiple_nozzle;
 
     // 收集不可打印限制
     std::vector<std::set<int>> ext_unprintable_filaments(2);
@@ -1409,6 +1502,16 @@ FilamentGroupContext build_filament_group_context(
     auto extruder_ams_counts = get_extruder_ams_count(extruder_ams_count_str);
     std::vector<int> group_size = calc_max_group_size(extruder_ams_counts, ignore_ext_filament);
 
+    // Single real extruder model: AMS nozzle capacity = real AMS slot count (1 when no AMS),
+    // captured here before group_size is collapsed to a single group.
+    int ams_nozzle_capacity = 1;
+    if (single_ext_multi_nozzle) {
+        if (ams_nozzle_idx_ctx >= 0)
+            ams_nozzle_capacity = group_size.empty() ? 1 : std::max(1, group_size[0]);
+        // One real extruder holding all filaments; the per-nozzle capacity limits each physical nozzle.
+        group_size = { (int) filament_nums };
+    }
+
     // When filament switcher is connected, disable AMS capacity limit for grouping
     if (print_config.has_filament_switcher) {
         int total_filaments = (int)filament_nums;
@@ -1416,9 +1519,13 @@ FilamentGroupContext build_filament_group_context(
             s = std::max(s, total_filaments);
     }
 
-    std::vector<bool> prefer_non_model_filament(extruder_nums);
-    for (size_t idx = 0; idx < extruder_nums; ++idx)
-        prefer_non_model_filament[idx] = (print_config.extruder_type.values[idx] == ExtruderType::etBowden);
+    // Single real extruder for N1X: size by the real extruder count and skip the per-extruder Bowden
+    // preference (it does not apply to the single-extruder multi-nozzle model).
+    std::vector<bool> prefer_non_model_filament(extruder_nums, false);
+    if (!single_ext_multi_nozzle) {
+        for (size_t idx = 0; idx < extruder_nums; ++idx)
+            prefer_non_model_filament[idx] = (print_config.extruder_type.values[idx] == ExtruderType::etBowden);
+    }
 
     auto machine_filament_info = build_machine_filaments(print->get_extruder_filament_info(), extruder_ams_counts, ignore_ext_filament);
 
@@ -1429,6 +1536,9 @@ FilamentGroupContext build_filament_group_context(
     std::vector<FilamentUsageType> filament_usage_types = print->get_filament_usage_type();
 
     FGMode fg_mode = mode == FilamentMapMode::fmmAutoForMatch ? FGMode::MatchMode: FGMode::FlushMode;
+    // N1X uses a single real extruder with one real flush matrix: the AMS nozzle (capacity > 1) gets
+    // real flush between its filaments; fixed nozzles (capacity 1) hold a single filament so no
+    // intra-nozzle flush applies. No virtual-extruder flush duplication/zeroing is needed.
     context.model_info.flush_matrix = std::move(nozzle_flush_mtx);
     context.model_info.unprintable_filaments = ext_unprintable_filaments;
     context.model_info.layer_filaments = layer_filaments;
@@ -1474,7 +1584,53 @@ FilamentGroupContext build_filament_group_context(
     else    // hrybid flow means no special request
         context.group_info.filament_volume_map = std::vector<int>(filament_nums,(int)(NozzleVolumeType::nvtHybrid));
 
-    context.nozzle_info.nozzle_list = build_nozzle_list(nozzle_groups);
+    // Build the global nozzle list. For ALL machine types, prefer the per-slot nozzle params
+    // (extruder_nozzle_count + extruder_nozzle_volume_type) so the exported group_id == the physical
+    // nozzle index in the input order (front-end and back-end share the same ordered source ->
+    // consistent by construction, no independent volume-type sorting).
+    {
+        auto ordered = build_nozzle_list_from_extruder_nozzles(print_config);
+        // For N1X, the AMS slot must actually carry a nozzle; otherwise the per-slot data is invalid.
+        const bool ams_slot_ok = !single_ext_multi_nozzle || ams_nozzle_idx_ctx < 0 ||
+            (ams_nozzle_idx_ctx < static_cast<int>(ordered.size()) && ordered[ams_nozzle_idx_ctx].installed);
+
+        if (!ordered.empty() && ams_slot_ok) {
+            context.nozzle_info.nozzle_list = std::move(ordered);
+        }
+        else if (single_ext_multi_nozzle) {
+            // N1X must always have valid per-slot params (and, when AMS is connected, a nozzle on the
+            // AMS slot) by the time slicing runs. The aggregate-count offline fallback was removed; if
+            // this path is ever reached the per-slot data is genuinely broken, so fail loudly instead of
+            // silently building a semantically wrong multi-extruder list.
+            throw Slic3r::RuntimeError(_L("No valid nozzle found. Please check nozzle count."));
+        }
+        else {
+            // Multi-extruder fallback: real per-extruder nozzle groups, no remap.
+            context.nozzle_info.nozzle_list = build_nozzle_list(build_nozzle_groups(print_config, extruder_nums));
+        }
+    }
+
+    // N1X single real extruder model: drop nozzles whose diameter differs from the active one and assign
+    // an explicit per-nozzle filament capacity: AMS nozzle = real AMS slot count, fixed nozzles = 1,
+    // empty / unavailable slots = 0. The AMS nozzle is identified by group_id == ams_nozzle_idx.
+    if (single_ext_multi_nozzle) {
+        auto& nl = context.nozzle_info.nozzle_list;
+        const std::string active_diameter = print_config.nozzle_diameter.values.empty()
+            ? std::string() : format_diameter_to_str(print_config.nozzle_diameter.values.front());
+        std::vector<int> caps(nl.size(), 1);
+        for (size_t i = 0; i < nl.size(); ++i) {
+            if (nl[i].installed && !active_diameter.empty() && nl[i].diameter != active_diameter)
+                nl[i].installed = false;
+            if (!nl[i].installed)
+                caps[i] = 0;
+            else if (ams_nozzle_idx_ctx >= 0 && nl[i].group_id == ams_nozzle_idx_ctx)
+                caps[i] = std::max(1, ams_nozzle_capacity);
+            else
+                caps[i] = 1;
+        }
+        context.nozzle_info.per_nozzle_capacity = std::move(caps);
+    }
+
     context.nozzle_info.extruder_nozzle_list = build_extruder_nozzle_list(context.nozzle_info.nozzle_list);
 
     if(context.nozzle_info.nozzle_list.empty())
@@ -1871,6 +2027,25 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
         print_config.extruder_max_nozzle_count.values.end(),
         [](int v) { return v>1;});
     bool has_multiple_extruder = extruder_nums > 1;
+    // Single real extruder driving multiple nozzles. Grouping uses the single-extruder model (no virtual
+    // extruder). Manual modes (fmmManual / fmmNozzleManual) build the filament -> nozzle map directly;
+    // auto modes run calc_filament_group_by_pam with explicit per-nozzle capacity from the context.
+    bool single_ext_multi_nozzle = print_config.handle_hotend_as_extruder && extruder_nums == 1 && has_multiple_nozzle;
+
+    // Single-extruder multi-nozzle manual modes (fmmManual / fmmNozzleManual) build the
+    // filament -> nozzle map directly (no PAM): AMS-group filaments share the AMS nozzle, fixed-group
+    // filaments take distinct compatible nozzles. Shared by both manual dispatch branches below.
+    auto build_manual_map_or_throw = [&](const FilamentGroupContext& context) -> std::vector<int> {
+        int ams_idx = get_effective_ams_nozzle_idx(print_config);
+        if (ams_idx < 0 || ams_idx >= (int) context.nozzle_info.nozzle_list.size() || !context.nozzle_info.nozzle_list[ams_idx].installed)
+            ams_idx = -1;
+        int ams_cap = ams_idx >= 0 ? static_cast<int>(used_filaments.size()) : 0;
+        auto map = build_manual_nozzle_map(print_config, context.nozzle_info.nozzle_list, used_filaments,
+                                           mode, ams_idx, ams_cap, filament_nums);
+        if (map.empty())
+            throw Slic3r::RuntimeError(_L("Nozzle assignment error: no compatible fixed nozzle is available for the fixed filament group. Please check the nozzle setup or regroup."));
+        return map;
+    };
 
     auto nozzle_list = build_default_nozzle_list(print_config, extruder_nums);
 
@@ -1882,21 +2057,30 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
         return result ? *result : LayeredNozzleGroupResult();
     }
 
-    // 处理H2C的全手动模式，从传入参数直接构造结果
-    if (mode == FilamentMapMode::fmmNozzleManual) {
-        // directly build group result based on filament nozzle map
-        auto manual_filament_map = print_config.filament_map.values;
-        std::transform(manual_filament_map.begin(), manual_filament_map.end(), manual_filament_map.begin(), [](int v) { return v - 1; });
-        auto nozzle_result = LayeredNozzleGroupResult::create(used_filaments, manual_filament_map, print_config.filament_volume_map.values,
-                                                              print_config.filament_nozzle_map.values,
-                                                              get_extruder_nozzle_stats(print_config.extruder_nozzle_stats.values),
-                                                              print_config.nozzle_diameter.values.front(),
-                                                              print_config.handle_hotend_as_extruder);
-        if (!nozzle_result) {
-            BOOST_LOG_TRIVIAL(error) << "Failed to build nozzle group result from filament nozzle map!";
-            return LayeredNozzleGroupResult();
+    // fmmNozzleManual: both N1X and non-N1X build the filament -> nozzle map directly (no PAM). N1X uses
+    // build_manual_nozzle_map (AMS vs compatible fixed); non-N1X honors the exact filament_nozzle_map.
+    if (mode == FilamentMapMode::fmmNozzleManual && has_multiple_nozzle) {
+        auto context = build_filament_group_context(
+            print, layer_filaments, physical_unprintables, geometric_unprintables, unprintable_volumes, mode, nozzle_status);
+
+        std::vector<int> ret;
+        if (single_ext_multi_nozzle) {
+            ret = build_manual_map_or_throw(context);
+        } else {
+
+            const auto& user_nozzle_map = print_config.filament_nozzle_map.values;
+            const int   nozzle_cnt      = static_cast<int>(context.nozzle_info.nozzle_list.size());
+            ret.assign(filament_nums, 0);
+            for (auto fil : used_filaments) {
+                if (fil >= user_nozzle_map.size() || user_nozzle_map[fil] < 0 || user_nozzle_map[fil] >= nozzle_cnt)
+                    throw Slic3r::RuntimeError(_L("Nozzle assignment error: invalid per-filament nozzle map. Please check the nozzle setup or regroup."));
+                ret[fil] = user_nozzle_map[fil];
+            }
         }
-        return *nozzle_result;
+        auto result_opt = LayeredNozzleGroupResult::create(ret, context.nozzle_info.nozzle_list, used_filaments, print_config.handle_hotend_as_extruder);
+        if (result_opt)
+            return *result_opt;
+        return LayeredNozzleGroupResult();
     }
 
     int master_extruder_id = print_config.master_extruder_id.value - 1;
@@ -1906,24 +2090,35 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
         auto context = build_filament_group_context(
             print,layer_filaments,physical_unprintables,geometric_unprintables, unprintable_volumes, mode, nozzle_status);
 
-        if (has_multiple_nozzle && mode == FilamentMapMode::fmmManual) {
-            auto manual_filament_map = print_config.filament_map.values;
-            std::transform(manual_filament_map.begin(), manual_filament_map.end(), manual_filament_map.begin(), [](int v) { return v - 1; });
-            ret = calc_filament_group_for_manual_multi_nozzle(manual_filament_map, context);
-        } else if (has_multiple_nozzle && mode == FilamentMapMode::fmmAutoForMatch) {
-            ret = calc_filament_group_for_match_multi_nozzle(context);
-        } else {
-            FilamentGroup fg(context);
-            if (!has_multiple_nozzle)
-                fg.get_custom_seq = create_custom_seq_function(print_config, false);
-            ret = fg.calc_filament_group();
-        }
-
         if (has_multiple_nozzle) {
-            auto result_opt = LayeredNozzleGroupResult::create(ret, context.nozzle_info.nozzle_list, used_filaments);
+            if (single_ext_multi_nozzle) {
+                if (mode == FilamentMapMode::fmmManual) {
+                    ret = build_manual_map_or_throw(context);
+                } else {
+                    // Single-extruder multi-nozzle auto: single real extruder PAM with explicit per-nozzle capacity.
+                    FilamentGroupMultiNozzle fg(context);
+                    ret = fg.calc_filament_group_by_pam();
+                }
+            }
+            else if(mode == FilamentMapMode::fmmManual){
+                auto manual_filament_map = print_config.filament_map.values;
+                std::transform(manual_filament_map.begin(), manual_filament_map.end(), manual_filament_map.begin(), [](int v) { return v - 1; });
+                ret = calc_filament_group_for_manual_multi_nozzle(manual_filament_map,context);
+            }
+            else if(mode == FilamentMapMode::fmmAutoForMatch){
+                ret = calc_filament_group_for_match_multi_nozzle(context);
+            }
+            else{
+                FilamentGroupMultiNozzle fg(context);
+                ret = fg.calc_filament_group_by_pam();
+            }
+            auto result_opt = LayeredNozzleGroupResult::create(ret, context.nozzle_info.nozzle_list, used_filaments, print_config.handle_hotend_as_extruder);
             if (!result_opt) return LayeredNozzleGroupResult();
             auto result = *result_opt;
-            if (mode == FilamentMapMode::fmmManual) {
+            // Manual-mode extruder validation only applies to the virtual-extruder model; the
+            // single-extruder multi-nozzle model uses one real extruder (filament_map stays all-1,
+            // AMS/fixed is a nozzle-level constraint).
+            if (mode == FilamentMapMode::fmmManual && !single_ext_multi_nozzle) {
                 auto result_map = result.get_extruder_map();
                 for (auto fid : used_filaments) {
                     if (result_map[fid] != print_config.filament_map.values[fid] - 1) {
@@ -2076,10 +2271,14 @@ ToolOrdering::OrderingContext ToolOrdering::prepare_ordering_context(const Print
 
     context.get_custom_seq = create_custom_seq_function(print_config, !reorder_first_layer, first_layer_filaments);
 
-    context.support_multi_nozzle = std::any_of(
-        print_config.extruder_max_nozzle_count.values.begin(),
-        print_config.extruder_max_nozzle_count.values.end(),
-        [](auto v){ return v>1;});
+    {
+        bool has_multi_nozzle = std::any_of(
+            print_config.extruder_max_nozzle_count.values.begin(),
+            print_config.extruder_max_nozzle_count.values.end(),
+            [](auto v){ return v>1;});
+        context.support_multi_nozzle = has_multi_nozzle &&
+            (print_config.handle_hotend_as_extruder || print_config.nozzle_diameter.values.size() > 1);
+    }
 
     context.support_dynamic_map = print_config.enable_filament_dynamic_map.value;
 
@@ -2810,11 +3009,17 @@ void ToolOrdering::reorder_extruders_for_minimum_flush_volume(bool reorder_first
     if (!m_print->is_sequential_print()) {
         m_print->set_nozzle_group_result(std::make_shared<MultiNozzleUtils::LayeredNozzleGroupResult>(grouping_result));
         if (!grouping_result.is_support_dynamic_nozzle_map()) {
+            // N1X 只有一个真实挤出机，所有喷嘴的 extruder_id 都是 0，所以 get_extruder_map() 全是 1，
+            // filament_map 不用特殊处理。只有 fmmNozzleManual 模式要保留用户原来的 filament_nozzle_map：
+            // 切片真正用的是后端重算出来的喷嘴分配，但写回 config 的这份必须和 plate 上存的那份保持一致，
+            // 否则"配置变了"的检查会误判，把刚切好的结果重置掉。
+            bool keep_user_nozzle_map = print_config->handle_hotend_as_extruder
+                && print_config->filament_map_mode.value == FilamentMapMode::fmmNozzleManual;
             m_print->update_filament_maps_to_config(FilamentGroupUtils::update_used_filament_values(print_config->filament_map.values, grouping_result.get_extruder_map(false),
                                                                                                     layer_data.used_filaments),
                                                     FilamentGroupUtils::update_used_filament_values(print_config->filament_volume_map.values, grouping_result.get_volume_map(),
                                                                                                     layer_data.used_filaments),
-                                                    grouping_result.get_nozzle_map());
+                                                    keep_user_nozzle_map ? print_config->filament_nozzle_map.values : grouping_result.get_nozzle_map());
         } else {
             m_print->update_to_config_by_nozzle_group_result(grouping_result);
         }

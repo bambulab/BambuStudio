@@ -157,7 +157,14 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
 {
     auto full_config = wxGetApp().preset_bundle->full_config();
     const auto nozzle_diameters = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-    if (nozzle_diameters->size() <= 1)
+    const auto extruder_max_nozzle_count = full_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    bool support_multi_nozzle = extruder_max_nozzle_count
+        && std::any_of(
+            extruder_max_nozzle_count->values.begin(),
+            extruder_max_nozzle_count->values.end(),
+            [](int val) { return val > 1; });
+    bool support_popup = (nozzle_diameters && nozzle_diameters->size() > 1) || support_multi_nozzle;
+    if (!support_popup)
         return true;
 
     bool sync_plate = true;
@@ -169,6 +176,20 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
     std::vector<int> applied_volume_maps = get_applied_volume_map(full_config, plater_ref, partplate_ref, sync_plate);
     applied_maps.resize(filament_colors.size(), 1);
     applied_volume_maps.resize(filament_colors.size(), 0);
+
+    // N1X keeps the AMS/fixed split in filament_nozzle_map (filament_map stays all-1). Rebuild the
+    // manual-panel display from it whenever available, regardless of the current mode.
+    {
+        auto opt_hotend = full_config.option<ConfigOptionBool>("handle_hotend_as_extruder");
+        int ams_idx = get_effective_ams_nozzle_idx_for_active_diameter(full_config);
+        if (opt_hotend && opt_hotend->value && ams_idx >= 0) {
+            auto plate_nozzle_maps = partplate_ref->get_filament_nozzle_maps();
+            for (size_t i = 0; i < applied_maps.size() && i < plate_nozzle_maps.size(); ++i)
+                applied_maps[i] = (plate_nozzle_maps[i] == ams_idx) ? 1 : 2;
+        }
+    }
+    if (applied_mode == fmmNozzleManual)
+        applied_mode = fmmManual;
 
     if (!force_pop_up && applied_mode != fmmManual)
         return true;
@@ -190,6 +211,10 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
         plater_ref->get_machine_sync_status()
     );
 
+    // Ensure the per-slot nozzle snapshot is populated before the panel reads it.
+    if (wxGetApp().preset_bundle->extruder_full_stat.empty())
+        wxGetApp().preset_bundle->generate_extruder_full_stats_from_nozzle_stats();
+
     FilamentMapDialog map_dlg(plater_ref,
         filament_types,
         applied_maps,
@@ -207,34 +232,80 @@ bool try_pop_up_before_slice(bool is_slice_all, Plater* plater_ref, PartPlate* p
         FilamentMapMode new_mode = map_dlg.get_mode();
         std::vector<int> new_maps = map_dlg.get_filament_maps();
         std::vector<int> new_volume_maps = map_dlg.get_filament_volume_maps();
-        if (sync_plate) {
-            if (is_slice_all) {
-                auto plate_list = plater_ref->get_partplate_list().get_plate_list();
-                for (int i = 0; i < plate_list.size(); ++i) {
-                    plate_list[i]->set_filament_map_mode(new_mode);
+
+        auto opt_hotend_slice = full_config.option<ConfigOptionBool>("handle_hotend_as_extruder");
+        bool is_multi_nozzle_style = opt_hotend_slice && opt_hotend_slice->value
+                                  && nozzle_diameters->size() == 1 && support_multi_nozzle;
+
+        if (is_multi_nozzle_style && new_mode == fmmManual && !new_maps.empty()) {
+            int total_nozzles = extruder_max_nozzle_count->values[0];
+            int ams_idx = get_effective_ams_nozzle_idx_for_active_diameter(full_config);
+            bool has_ams = (ams_idx >= 0);
+
+            // The dialog only lets the user pick a group (AMS group vs fixed group). Persist just that
+            // group choice into filament_nozzle_map and let the backend (build_manual_nozzle_map) be the
+            // single authority that assigns the concrete, volume-compatible physical fixed nozzle:
+            //   AMS-group filament   -> the AMS nozzle slot (ams_idx)
+            //   fixed-group filament -> a fixed-group marker (the backend reassigns the real nozzle)
+            std::vector<int> new_nozzle_maps(new_maps.size(), 0);
+            if (has_ams) {
+                const std::vector<int> fixed_nozzle_ids = get_fixed_nozzle_indices(total_nozzles, ams_idx);
+                const int fixed_marker = fixed_nozzle_ids.empty() ? 0 : fixed_nozzle_ids.front();
+                for (size_t i = 0; i < new_maps.size(); ++i)
+                    new_nozzle_maps[i] = (new_maps[i] == 1) ? ams_idx : fixed_marker;
+            }
+            // No AMS: every filament is a fixed-group filament; the marker stays 0 and the backend
+            // assigns each one a distinct volume-compatible nozzle.
+
+            // filament_map stays all 1 for single extruder
+            std::fill(new_maps.begin(), new_maps.end(), 1);
+            // Use fmmNozzleManual so slicing engine reads filament_nozzle_map
+            new_mode = fmmNozzleManual;
+
+            auto apply_to_plate = [&](PartPlate* plate) {
+                plate->set_filament_map_mode(new_mode);
+                plate->set_filament_maps(new_maps);
+                plate->set_filament_volume_maps(new_volume_maps);
+                plate->set_filament_nozzle_maps(new_nozzle_maps);
+            };
+
+            if (sync_plate) {
+                if (is_slice_all) {
+                    for (auto* plate : plater_ref->get_partplate_list().get_plate_list())
+                        apply_to_plate(plate);
+                } else {
+                    apply_to_plate(partplate_ref);
+                }
+            }
+        } else {
+            if (sync_plate) {
+                if (is_slice_all) {
+                    auto plate_list = plater_ref->get_partplate_list().get_plate_list();
+                    for (int i = 0; i < plate_list.size(); ++i) {
+                        plate_list[i]->set_filament_map_mode(new_mode);
+                        if (new_mode == fmmManual) {
+                            plate_list[i]->set_filament_maps(new_maps);
+                            plate_list[i]->set_filament_volume_maps(new_volume_maps);
+                        }
+                    }
+                }
+                else {
+                    partplate_ref->set_filament_map_mode(new_mode);
                     if (new_mode == fmmManual) {
-                        plate_list[i]->set_filament_maps(new_maps);
-                        plate_list[i]->set_filament_volume_maps(new_volume_maps);
+                        partplate_ref->set_filament_maps(new_maps);
+                        partplate_ref->set_filament_volume_maps(new_volume_maps);
                     }
                 }
             }
             else {
-                partplate_ref->set_filament_map_mode(new_mode);
+                plater_ref->set_global_filament_map_mode(new_mode);
                 if (new_mode == fmmManual) {
-                    partplate_ref->set_filament_maps(new_maps);
-                    partplate_ref->set_filament_volume_maps(new_volume_maps);
+                    plater_ref->set_global_filament_map(new_maps);
+                    plater_ref->set_global_filament_volume_map(new_volume_maps);
                 }
             }
         }
-        else {
-            plater_ref->set_global_filament_map_mode(new_mode);
-            if (new_mode == fmmManual) {
-                plater_ref->set_global_filament_map(new_maps);
-                plater_ref->set_global_filament_volume_map(new_volume_maps);
-            }
-        }
         plater_ref->update(false, true);
-        // check whether able to slice, if not, return false
         if (!get_left_extruder_unprintable_text().empty() || !get_right_extruder_unprintable_text().empty()){
             return false;
         }
@@ -337,7 +408,26 @@ void FilamentMapDialog::make_body(
     if (std::find(modes_to_use.begin(), modes_to_use.end(), default_auto_mode) == modes_to_use.end())
         default_auto_mode = modes_to_use.front();
 
-    m_manual_panel = new FilamentMapManualPanel(this, m_filament_type, filaments, m_filament_map, m_filament_volume_map);
+    auto full_config = wxGetApp().preset_bundle->full_config();
+    bool is_multi_nozzle_mode = false;
+    {
+        auto opt_hotend = full_config.option<ConfigOptionBool>("handle_hotend_as_extruder");
+        auto nozzle_diameters = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+        auto extruder_max_nozzle_count = full_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+        bool support_multi_nozzle = extruder_max_nozzle_count
+            && std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(),
+                           [](int val) { return val > 1; });
+        is_multi_nozzle_mode = opt_hotend && opt_hotend->value
+                            && nozzle_diameters && nozzle_diameters->size() == 1
+                            && support_multi_nozzle;
+    }
+
+    if (is_multi_nozzle_mode) {
+        m_manual_panel = new FilamentMapMultiNozzlePanel(this, m_filament_color, m_filament_type, filaments, m_filament_map, m_filament_volume_map);
+        SetTitle(_L("Set filament placement"));
+    } else {
+        m_manual_panel = new FilamentMapManualPanel(this, m_filament_color, m_filament_type, filaments, m_filament_map, m_filament_volume_map);
+    }
     m_manual_panel->Bind(wxEVT_INVALID_MANUAL_MAP, [this](wxCommandEvent &event) {
         if (m_page_type != PageType::ptManual) {
             if (!m_ok_btn->IsEnabled()) { m_ok_btn->Enable(); }
@@ -417,9 +507,13 @@ int FilamentMapDialog::ShowModal()
 void FilamentMapDialog::on_ok(wxCommandEvent &event)
 {
     if (m_page_type == PageType::ptManual) {
-        auto manual           = dynamic_cast<FilamentMapManualPanel *>(m_manual_panel);
-        m_filament_map        = manual->GetFilamentMaps();
-        m_filament_volume_map = manual->GetFilamentVolumeMaps();
+        if (auto multi_nozzle = dynamic_cast<FilamentMapMultiNozzlePanel *>(m_manual_panel)) {
+            m_filament_map        = multi_nozzle->GetFilamentMaps();
+            m_filament_volume_map = multi_nozzle->GetFilamentVolumeMaps();
+        } else if (auto manual = dynamic_cast<FilamentMapManualPanel *>(m_manual_panel)) {
+            m_filament_map        = manual->GetFilamentMaps();
+            m_filament_volume_map = manual->GetFilamentVolumeMaps();
+        }
     }
 
     EndModal(wxID_OK);

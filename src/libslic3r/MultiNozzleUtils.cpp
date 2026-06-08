@@ -29,6 +29,79 @@ std::vector<NozzleInfo> build_nozzle_list(std::vector<NozzleGroupInfo> nozzle_gr
     return ret;
 }
 
+// Build the nozzle list from the per-slot params (extruder_nozzle_count / _volume_type / _diameter /
+// _slot): group_id == physical slot index in input order (no volume-type reorder), empty slots become
+// placeholders, and N1X puts every nozzle on the single real extruder 0. Returns empty (caller falls
+// back) when the params are absent or inconsistent.
+std::vector<NozzleInfo> build_nozzle_list_from_extruder_nozzles(const PrintConfig &print_config)
+{
+    std::vector<NozzleInfo> ret;
+
+    const auto& counts = print_config.extruder_nozzle_count.values;
+    const auto& vtypes = print_config.extruder_nozzle_volume_type.values;
+    const auto& diams  = print_config.extruder_nozzle_diameter.values;
+    const auto& slots  = print_config.extruder_nozzle_slot.values;
+    if (counts.empty())
+        return ret;
+
+    int total = 0;
+    for (int c : counts)
+        total += c;
+    if (total <= 0 || static_cast<int>(vtypes.size()) != total)
+        return ret; // flat volume-type list must cover exactly the summed nozzle count
+
+    // Per-slot diameter / physical slot id when the flat lists match the summed nozzle count; otherwise
+    // fall back to the per-extruder nozzle_diameter / dense ordering.
+    const bool has_per_slot_diameter = (static_cast<int>(diams.size()) == total);
+    const bool has_slot_id           = (static_cast<int>(slots.size()) == total);
+
+    const size_t extruder_nums = print_config.nozzle_diameter.values.size();
+    const bool has_multiple_nozzle = std::any_of(print_config.extruder_max_nozzle_count.values.begin(),
+                                                 print_config.extruder_max_nozzle_count.values.end(),
+                                                 [](int v) { return v > 1; });
+    const bool single_ext_multi_nozzle = print_config.handle_hotend_as_extruder && extruder_nums == 1 && has_multiple_nozzle;
+
+    // List spans every physical slot so that group_id == index == physical slot.
+    int list_size = total;
+    if (has_slot_id) {
+        for (int s : slots)
+            list_size = std::max(list_size, s + 1);
+    }
+
+    const std::string default_diameter_str = print_config.nozzle_diameter.values.empty()
+        ? std::string() : format_diameter_to_str(print_config.nozzle_diameter.values.front());
+
+    // Pre-fill empty placeholders (group_id == index keeps the invariant that filament_nozzle_map
+    // values index nozzle_list directly).
+    ret.resize(list_size);
+    for (int i = 0; i < list_size; ++i) {
+        ret[i].diameter    = default_diameter_str;
+        ret[i].volume_type = nvtStandard;
+        ret[i].group_id    = i;
+        ret[i].extruder_id = 0;
+        ret[i].installed   = false;
+    }
+
+    int dense = 0;
+    size_t vi = 0;
+    for (size_t e = 0; e < counts.size(); ++e) {
+        const std::string ext_diameter_str = (e < print_config.nozzle_diameter.values.size())
+            ? format_diameter_to_str(print_config.nozzle_diameter.values[e]) : default_diameter_str;
+        for (int s = 0; s < counts[e]; ++s, ++vi, ++dense) {
+            const int idx = has_slot_id ? slots[vi] : dense;
+            if (idx < 0 || idx >= list_size)
+                return {}; // inconsistent slot id -> caller falls back
+            NozzleInfo& info = ret[idx];
+            info.diameter    = has_per_slot_diameter ? format_diameter_to_str(diams[vi]) : ext_diameter_str;
+            info.volume_type = NozzleVolumeType(vtypes[vi]);
+            info.group_id    = idx;
+            info.extruder_id = single_ext_multi_nozzle ? 0 : static_cast<int>(e);
+            info.installed   = true;
+        }
+    }
+    return ret;
+}
+
 std::vector<NozzleInfo> build_nozzle_list(double diameter, const std::vector<int>& filament_nozzle_map, const std::vector<int>& filament_volume_map, const std::vector<int>& filament_map)
 {
     std::string diameter_str = format_diameter_to_str(diameter);

@@ -6,6 +6,7 @@
 #include "slic3r/GUI/GUI_Utils.hpp"
 #include "slic3r/GUI/MsgDialog.hpp"
 #include "slic3r/GUI/FilamentGroupPopup.hpp"
+#include "slic3r/GUI/FilamentMapPanel.hpp"
 #include "slic3r/GUI/GLToolbar.hpp"
 #include "slic3r/GUI/DeviceCore/DevUtilBackend.h"
 #include "../DeviceCore/DevConfigUtil.h"
@@ -605,14 +606,28 @@ namespace Slic3r
                 std::vector<std::string> color_opt = print.config().option<ConfigOptionStrings>("filament_colour")->values;
                 std::vector<std::string> type_opt = print.config().option<ConfigOptionStrings>("filament_type")->values;
                 std::vector<unsigned char> support_filament_opt = print.config().option<ConfigOptionBools>("filament_is_support")->values;
+                // N1X single-extruder multi-nozzle: the grouping legend splits filaments by AMS vs fixed
+                // nozzle (group_id == ams_nozzle_idx) instead of by extruder. The per-filament nozzle is
+                // taken from the slice nozzle-group result (same source used to write group_id to 3MF).
+                {
+                    auto emnc = print.config().option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+                    bool has_multi_nozzle = emnc && std::any_of(emnc->values.begin(), emnc->values.end(), [](int v) { return v > 1; });
+                    auto hh = print.config().option<ConfigOptionBool>("handle_hotend_as_extruder");
+                    m_single_ext_multi_nozzle = hh && hh->value && m_nozzle_nums == 1 && has_multi_nozzle;
+                    m_ams_nozzle_idx = m_single_ext_multi_nozzle ? get_effective_ams_nozzle_idx_for_active_diameter(print.config()) : -1;
+                    m_total_nozzle_count = (emnc && !emnc->values.empty()) ? emnc->values.front() : 1;
+                }
+                auto nozzle_group_result = print.get_nozzle_group_result();
                 for (auto extruder_id : m_extruder_ids) {
                     // 防御：某些异常工程文件中 project_settings.config 的
                     // filament_* 数组长度不一致 — filament_colour/type 可能为 N，但 filament_is_support
                     // 等可能缺失或更短，按 extruder_id 索引会越界。任一数组覆盖不到当前 extruder_id 时跳过。
-                    if (extruder_id >= filament_maps.size()
-                        || extruder_id >= type_opt.size()
-                        || extruder_id >= color_opt.size()
-                        || extruder_id >= support_filament_opt.size()) {
+                    // filament_map is only required by the extruder-based (non-N1X) split.
+                    bool arrays_ok = extruder_id < type_opt.size()
+                        && extruder_id < color_opt.size()
+                        && extruder_id < support_filament_opt.size()
+                        && (m_single_ext_multi_nozzle || extruder_id < filament_maps.size());
+                    if (!arrays_ok) {
                         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << ": filament_* config arrays too short for extruder_id=" << int(extruder_id)
                             << ", sizes=[map " << filament_maps.size()
                             << ", type " << type_opt.size()
@@ -620,7 +635,19 @@ namespace Slic3r
                             << ", is_support " << support_filament_opt.size() << "], skip";
                         continue;
                     }
-                    if (filament_maps[extruder_id] == 1) {
+                    bool to_left;
+                    if (m_single_ext_multi_nozzle) {
+                        // AMS group (nozzle group_id == ams_nozzle_idx) goes left, fixed nozzles right.
+                        int gid = -1;
+                        if (nozzle_group_result) {
+                            auto nz = nozzle_group_result->get_first_nozzle_for_filament(static_cast<int>(extruder_id));
+                            if (nz) gid = nz->group_id;
+                        }
+                        to_left = (m_ams_nozzle_idx >= 0 && gid == m_ams_nozzle_idx);
+                    } else {
+                        to_left = (filament_maps[extruder_id] == 1);
+                    }
+                    if (to_left) {
                         m_left_extruder_filament.push_back({ type_opt[extruder_id], color_opt[extruder_id], extruder_id, (bool)(support_filament_opt[extruder_id]) });
                     }
                     else {
@@ -1221,6 +1248,9 @@ namespace Slic3r
                 m_left_extruder_filament.clear();
                 m_right_extruder_filament.clear();
                 m_nozzle_nums = 0;
+                m_single_ext_multi_nozzle = false;
+                m_ams_nozzle_idx = -1;
+                m_total_nozzle_count = 1;
                 m_extruder_ids.clear();
                 m_filament_diameters.clear();
                 m_filament_densities.clear();
@@ -2734,7 +2764,7 @@ namespace Slic3r
                         append_option_item(item, offsets);
                 }
                 ImGui::Dummy({ window_padding, window_padding });
-                if (m_nozzle_nums > 1)
+                if (m_nozzle_nums > 1 || m_single_ext_multi_nozzle)
                     render_legend_color_arr_recommen(window_padding, is_show_left_right_result);
                 legend_height = ImGui::GetCurrentWindow()->Size.y;
                 imgui.end();
@@ -2914,8 +2944,12 @@ namespace Slic3r
                         std::string br_pt = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
                         ImGui::BeginChild("#LeftAMS", ImVec2(half_width, ams_item_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
                         {
-                            std::string br_dep_nz = DevPrinterConfigUtil::get_toolhead_display_name(br_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase);
-                            imgui.text(_u8L(br_dep_nz.c_str()));
+                            std::string br_dep_nz;
+                            if (m_single_ext_multi_nozzle)
+                                br_dep_nz = m_ams_nozzle_idx >= 0 ? std::string(get_ams_nozzle_label(m_ams_nozzle_idx).ToUTF8().data()) : _u8L("AMS nozzle");
+                            else
+                                br_dep_nz = _u8L(DevPrinterConfigUtil::get_toolhead_display_name(br_pt, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase).c_str());
+                            imgui.text(br_dep_nz);
                             ImGui::Dummy({window_padding, window_padding});
                             int index = 1;
                             for (const auto &extruder_filament : m_left_extruder_filament) {
@@ -2931,8 +2965,12 @@ namespace Slic3r
                         child_begin_draw_list->AddRectFilled(cursor_pos, ImVec2(cursor_pos.x + half_width, cursor_pos.y + line_height), IM_COL32(0, 0, 0, 20));
                         ImGui::BeginChild("#RightAMS", ImVec2(half_width, ams_item_height), false, ImGuiWindowFlags_AlwaysUseWindowPadding);
                         {
-                            std::string br_main_nz = DevPrinterConfigUtil::get_toolhead_display_name(br_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase);
-                            imgui.text(_u8L(br_main_nz.c_str()));
+                            std::string br_main_nz;
+                            if (m_single_ext_multi_nozzle)
+                                br_main_nz = std::string(get_fixed_nozzle_label(m_total_nozzle_count, m_ams_nozzle_idx).ToUTF8().data());
+                            else
+                                br_main_nz = _u8L(DevPrinterConfigUtil::get_toolhead_display_name(br_pt, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::SentenceCase).c_str());
+                            imgui.text(br_main_nz);
                             ImGui::Dummy({window_padding, window_padding});
                             int index = 1;
                             for (const auto &extruder_filament : m_right_extruder_filament) {

@@ -1400,9 +1400,12 @@ namespace Slic3r
         auto used_filaments = collect_sorted_used_filaments(ctx.model_info.layer_filaments);
         for(size_t idx = 0; idx < used_filaments.size(); ++idx)
             new_ctx.model_info.unprintable_filaments[1 - filament_extruder_map[used_filaments[idx]]].insert(used_filaments[idx]);
-        new_ctx.machine_info.max_group_size.assign(new_ctx.machine_info.max_group_size.size(), std::numeric_limits<int>::max());
-        FilamentGroup fg(new_ctx);
-        return fg.calc_filament_group_for_flush();
+        // Finite "no extra limit" value, see calc_filament_group_for_manual_multi_nozzle: INT_MAX
+        // overflows have_enough_size() and disables the per-nozzle capacity that spreads fixed nozzles.
+        int group_cap = std::max(1, new_ctx.group_info.total_filament_num);
+        new_ctx.machine_info.max_group_size.assign(new_ctx.machine_info.max_group_size.size(), group_cap);
+        FilamentGroupMultiNozzle fg(new_ctx);
+        return fg.calc_filament_group_by_pam();
     }
 
     std::vector<FilamentPlanRes> plan_filament_nozzle_mapping_and_order(const FilamentGroupContext &ctx)
@@ -1543,7 +1546,8 @@ namespace Slic3r
         for(size_t idx = 0; idx < used_filaments.size(); ++idx)
             new_ctx.model_info.unprintable_filaments[1 - filament_map_manual[used_filaments[idx]]].insert(used_filaments[idx]);
 
-        new_ctx.machine_info.max_group_size.assign(new_ctx.machine_info.max_group_size.size(), std::numeric_limits<int>::max());
+        int group_cap = std::max(1, new_ctx.group_info.total_filament_num);
+        new_ctx.machine_info.max_group_size.assign(new_ctx.machine_info.max_group_size.size(), group_cap);
         FilamentGroup fg(new_ctx);
         return fg.calc_filament_group_for_flush();
     }
