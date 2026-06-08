@@ -693,6 +693,43 @@ add_library(libslic3r_fill_core STATIC
     ${libslic3r_fill_core_sources}
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
 
+set(libslic3r_trianglemesh_geometry_core_sources
+    ArcFitter.cpp
+    BoundingBox.cpp
+    Circle.cpp
+    clipper.cpp
+    ClipperUtils.cpp
+    ExPolygon.cpp
+    ExPolygonSecondMoment.cpp
+    ExtrusionEntity.cpp
+    ExtrusionEntityCollection.cpp
+    Flow.cpp
+    Geometry.cpp
+    GeometryTransformation.cpp
+    Geometry/ConvexHull.cpp
+    Geometry/MedialAxis.cpp
+    Geometry/Voronoi.cpp
+    Geometry/VoronoiOffset.cpp
+    Geometry/VoronoiUtils.cpp
+    I18N.cpp
+    Line.cpp
+    LocalesUtils.cpp
+    MeshDiagnostics.cpp
+    MultiPoint.cpp
+    Point.cpp
+    Polygon.cpp
+    Polyline.cpp
+    ShortestPath.cpp
+    Tesselate.cpp
+    TriangleMesh.cpp
+    TriangleMeshSlicer.cpp
+    Utils.cpp
+)
+
+add_library(libslic3r_trianglemesh_geometry_core STATIC
+    ${libslic3r_trianglemesh_geometry_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
 set(libslic3r_model_basic_core_sources
     ObjectID.cpp
     PolygonLines.cpp
@@ -1247,6 +1284,7 @@ configure_print_smoke_core(libslic3r_print_perimeters_core)
 configure_print_smoke_core(libslic3r_print_filament_mapping_core)
 configure_print_smoke_core(libslic3r_print_apply_validate_core)
 configure_print_smoke_core(libslic3r_fill_core)
+configure_print_smoke_core(libslic3r_trianglemesh_geometry_core)
 target_compile_definitions(libslic3r_print_perimeters_core PUBLIC -DSLIC3R_PERIMETERS_ONLY_BUILD)
 
 
