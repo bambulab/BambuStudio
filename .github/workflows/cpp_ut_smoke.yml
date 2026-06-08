@@ -10,6 +10,31 @@ on:
   pull_request:
     branches:
       - master
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "!tests/fff_print/LEGACY_MIGRATION.md"
+      - "deps/**"
+      - "**/CMakeLists.txt"
+      - "build_win.bat"
+      - ".github/config-fast-gate-paths.txt"
+      - ".github/placeholder-parser-smoke-paths.txt"
+      - ".github/gcode-reader-smoke-paths.txt"
+      - ".github/gcodewriter-smoke-paths.txt"
+      - ".github/model-assembly-smoke-paths.txt"
+      - ".github/print-filament-mapping-smoke-paths.txt"
+      - ".github/print-apply-validate-smoke-paths.txt"
+      - ".github/print-perimeters-smoke-paths.txt"
+      - ".github/print-process-math-smoke-paths.txt"
+      - ".github/print-process-core-smoke-paths.txt"
+      - ".github/print-object-layers-smoke-paths.txt"
+      - ".github/print-adhesion-smoke-paths.txt"
+      - ".github/fill-smoke-paths.txt"
+      - ".github/support-material-layers-smoke-paths.txt"
+      - ".github/support-material-smoke-paths.txt"
+      - ".github/trianglemesh-geometry-smoke-paths.txt"
+      - ".github/workflows/cpp_ut_smoke.yml"
+      - ".github/workflows/deps_build.yml"
   push:
     branches:
       - "ci/**"
