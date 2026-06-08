@@ -1085,10 +1085,10 @@ list(APPEND libslic3r_print_perimeters_core_sources
     ShortestPath.cpp
 )
 
-set(libslic3r_print_apply_validate_core_sources
+set(libslic3r_print_apply_base_core_sources
     ${libslic3r_print_perimeters_core_sources}
 )
-list(REMOVE_ITEM libslic3r_print_apply_validate_core_sources
+list(REMOVE_ITEM libslic3r_print_apply_base_core_sources
     Arachne/BeadingStrategy/BeadingStrategy.cpp
     Arachne/BeadingStrategy/BeadingStrategyFactory.cpp
     Arachne/BeadingStrategy/DistributedBeadingStrategy.cpp
@@ -1146,25 +1146,18 @@ list(REMOVE_ITEM libslic3r_print_apply_validate_core_sources
     Tesselate.cpp
     VariableWidth.cpp
 )
-list(APPEND libslic3r_print_apply_validate_core_sources
-    GCodeLayerOrdering.cpp
-    LayerLifecycle.cpp
-    PrintApplyValidateCompat.cpp
+list(APPEND libslic3r_print_apply_base_core_sources
     PrintApplyValidateSupportCompat.cpp
+)
+
+set(libslic3r_print_apply_validate_core_sources
+    GCodeLayerOrdering.cpp
+    PrintApplyValidateCompat.cpp
     PrintFilamentCompatibility.cpp
     PrintValidate.cpp
 )
 
 set(libslic3r_print_filament_mapping_core_sources
-    ${libslic3r_print_apply_validate_core_sources}
-)
-list(REMOVE_ITEM libslic3r_print_filament_mapping_core_sources
-    PrintApplyValidateCompat.cpp
-    GCodeLayerOrdering.cpp
-    PrintFilamentCompatibility.cpp
-    PrintValidate.cpp
-)
-list(APPEND libslic3r_print_filament_mapping_core_sources
     PrintFilamentMapping.cpp
     PrintFilamentMappingConfigSync.cpp
     PrintFilamentMappingCompat.cpp
@@ -1177,6 +1170,10 @@ add_library(libslic3r_print_process_core STATIC
 
 add_library(libslic3r_print_perimeters_core STATIC
     ${libslic3r_print_perimeters_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
+add_library(libslic3r_print_apply_base_core STATIC
+    ${libslic3r_print_apply_base_core_sources}
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
 
 add_library(libslic3r_print_filament_mapping_core STATIC
@@ -1342,11 +1339,14 @@ endfunction()
 
 configure_print_smoke_core(libslic3r_print_process_core)
 configure_print_smoke_core(libslic3r_print_perimeters_core)
+configure_print_smoke_core(libslic3r_print_apply_base_core)
 configure_print_smoke_core(libslic3r_print_filament_mapping_core)
 configure_print_smoke_core(libslic3r_print_apply_validate_core)
 configure_print_smoke_core(libslic3r_fill_core)
 configure_print_smoke_core(libslic3r_trianglemesh_geometry_core)
 target_compile_definitions(libslic3r_print_perimeters_core PUBLIC -DSLIC3R_PERIMETERS_ONLY_BUILD)
+target_link_libraries(libslic3r_print_filament_mapping_core libslic3r_print_apply_base_core)
+target_link_libraries(libslic3r_print_apply_validate_core libslic3r_print_apply_base_core)
 
 
 target_link_libraries(libslic3r
