@@ -8,10 +8,13 @@ src/libslic3r/PrintConfig*
 
 # gcodewriter smoke target tests
 tests/fff_print/cmake/GCodeWriterSmoke.cmake
+tests/fff_print/CMakeLists.txt
 tests/fff_print/fff_print_tests.cpp
 tests/fff_print/test_gcode_origin_smoke.cpp
 tests/fff_print/test_gcodewriter_smoke.cpp
 tests/fff_print/test_gcodewriter_state_smoke.cpp
+tests/catch_main.hpp
+tests/catch2/catch.hpp
 
 # workflow changes should re-run the smoke gate
 .github/gcodewriter-smoke-paths.txt
