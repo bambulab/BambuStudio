@@ -1152,6 +1152,7 @@ private:
 
     void                prepare_shared_slicing_context(bool use_cache);
     void                process_perimeters_stage(std::unordered_map<std::string, long long>* slice_time = nullptr);
+    void                check_gcode_path_conflicts_after_process();
     void                _make_skirt();
     void                _make_wipe_tower();
     void                finalize_first_layer_convex_hull();

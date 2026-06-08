@@ -345,6 +345,7 @@ set(lisbslic3r_sources
     PrintStatistics.cpp
     PrintExport.cpp
     PrintProcess.cpp
+    PrintPathConflictCheck.cpp
     PrintWipeTower.cpp
     PrintProcessSupport.cpp
     Print.hpp
@@ -846,7 +847,6 @@ set(libslic3r_print_process_core_sources
     FilamentMixer.cpp
     FlushVolPredictor.cpp
     EdgeGridSvg.cpp
-    GCode/ConflictChecker.cpp
     GCode/GCodeProcessor.cpp
     GCodeReader.cpp
     GCode/ThumbnailData.cpp
@@ -923,6 +923,7 @@ set(libslic3r_print_process_core_sources
     PrintOutputFilename.cpp
     PrintStatistics.cpp
     PrintProcess.cpp
+    PrintPathConflictCheckCompat.cpp
     PrintWipeTower.cpp
     PrintProcessSupport.cpp
     PrintApply.cpp
