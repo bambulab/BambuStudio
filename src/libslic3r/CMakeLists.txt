@@ -646,6 +646,53 @@ add_library(libslic3r_print_process_math_core STATIC
     ${libslic3r_print_process_math_core_sources}
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
 
+set(libslic3r_fill_core_sources
+    ${libslic3r_print_process_math_core_sources}
+    Clipper2Utils.cpp
+    EdgeGrid.cpp
+    PNGReadWrite.cpp
+    ShortestPathExtras.cpp
+    SVG.cpp
+    VariableWidth.cpp
+    Arachne/BeadingStrategy/BeadingStrategy.cpp
+    Arachne/BeadingStrategy/BeadingStrategyFactory.cpp
+    Arachne/BeadingStrategy/DistributedBeadingStrategy.cpp
+    Arachne/BeadingStrategy/LimitedBeadingStrategy.cpp
+    Arachne/BeadingStrategy/OuterWallContourStrategy.cpp
+    Arachne/BeadingStrategy/OuterWallInsetBeadingStrategy.cpp
+    Arachne/BeadingStrategy/RedistributeBeadingStrategy.cpp
+    Arachne/BeadingStrategy/WideningBeadingStrategy.cpp
+    Arachne/utils/ExtrusionJunction.cpp
+    Arachne/utils/ExtrusionLine.cpp
+    Arachne/utils/PolylineStitcher.cpp
+    Arachne/utils/SquareGrid.cpp
+    Arachne/SkeletalTrapezoidation.cpp
+    Arachne/SkeletalTrapezoidationGraph.cpp
+    Arachne/WallToolPaths.cpp
+    Fill/Fill.cpp
+    Fill/Fill3DHoneycomb.cpp
+    Fill/FillAdaptive.cpp
+    Fill/FillBase.cpp
+    Fill/FillConcentric.cpp
+    Fill/FillConcentricInternal.cpp
+    Fill/FillCrossHatch.cpp
+    Fill/FillFloatingConcentric.cpp
+    Fill/FillGyroid.cpp
+    Fill/FillHoneycomb.cpp
+    Fill/FillLine.cpp
+    Fill/FillLightning.cpp
+    Fill/FillPlanePath.cpp
+    Fill/FillRectilinear.cpp
+    Fill/Lightning/DistanceField.cpp
+    Fill/Lightning/Generator.cpp
+    Fill/Lightning/Layer.cpp
+    Fill/Lightning/TreeNode.cpp
+)
+
+add_library(libslic3r_fill_core STATIC
+    ${libslic3r_fill_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
 set(libslic3r_model_basic_core_sources
     ObjectID.cpp
     PolygonLines.cpp
@@ -1199,6 +1246,7 @@ configure_print_smoke_core(libslic3r_print_process_core)
 configure_print_smoke_core(libslic3r_print_perimeters_core)
 configure_print_smoke_core(libslic3r_print_filament_mapping_core)
 configure_print_smoke_core(libslic3r_print_apply_validate_core)
+configure_print_smoke_core(libslic3r_fill_core)
 target_compile_definitions(libslic3r_print_perimeters_core PUBLIC -DSLIC3R_PERIMETERS_ONLY_BUILD)
 
 

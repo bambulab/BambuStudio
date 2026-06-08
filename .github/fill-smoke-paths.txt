@@ -14,6 +14,7 @@ src/libslic3r/ExtrusionEntity.cpp
 src/libslic3r/ExtrusionEntityCollection.cpp
 src/libslic3r/PrintConfig*
 src/libslic3r/Config*
+src/libslic3r/CMakeLists.txt
 
 # fill smoke target tests
 tests/fff_print/cmake/FillSmoke.cmake
