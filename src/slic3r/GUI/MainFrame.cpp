@@ -295,6 +295,19 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 	});
 #endif
 
+    // Auto-save timer: silently saves the open project every 5 minutes when enabled
+    m_autosave_timer = new wxTimer(this);
+    Bind(wxEVT_TIMER, [this](wxTimerEvent& e) {
+        if (e.GetTimer().GetId() != m_autosave_timer->GetId()) { e.Skip(); return; }
+        if (!wxGetApp().app_config || wxGetApp().app_config->get("autosave_enabled") != "1") return;
+        if (!m_plater) return;
+        if (!m_plater->is_project_dirty()) return;
+        if (m_plater->get_project_filename(".3mf").IsEmpty()) return;
+        BOOST_LOG_TRIVIAL(info) << "auto-save: saving project";
+        m_plater->save_project(false);
+    });
+    m_autosave_timer->Start(5 * 60 * 1000); // every 5 minutes
+
 #ifdef __APPLE__
     // Initialize the docker task bar icon.
     switch (wxGetApp().get_app_mode()) {
@@ -762,6 +775,15 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
             return;
         }
 
+        // F1–F4: switch main tabs; F5: reslice
+        if (!evt.HasAnyModifiers()) {
+            if (key_code == WXK_F1) { select_tab(size_t(tp3DEditor)); return; }
+            if (key_code == WXK_F2) { select_tab(size_t(tpPreview));  return; }
+            if (key_code == WXK_F3) { select_tab(size_t(tpMonitor));  return; }
+            if (key_code == WXK_F4) { select_tab(size_t(tpProject));  return; }
+            if (key_code == WXK_F5) { if (can_reslice()) reslice_now(); return; }
+        }
+
         // Pass 3D view preset shortcuts directly to the current canvas. (Only 0-7 currently used but reserve 8 & 9 anyway.)
         if (evt.CmdDown() && ((key_code >= '0' && key_code <= '9') || (key_code >= WXK_NUMPAD0 && key_code <= WXK_NUMPAD9)) && m_plater) {
             if (auto *canvas = m_plater->canvas3D()) {
@@ -789,6 +811,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
                  m_topbar->EnableSaveItem(can_save());
                  m_topbar->EnableUndoItem(m_plater->can_undo());
                  m_topbar->EnableRedoItem(m_plater->can_redo());
+                 update_title();
              }
          }));
 #ifdef _MSW_DARK_MODE
@@ -1135,7 +1158,20 @@ void MainFrame::update_filament_tab_ui()
 
 void MainFrame::update_title()
 {
-    return;
+#ifndef __APPLE__
+    if (!m_topbar) return;
+    wxString title = wxString(SLIC3R_APP_FULL_NAME) + " " + SLIC3R_VERSION;
+    if (m_plater) {
+        wxString proj = m_plater->get_project_filename();
+        if (!proj.IsEmpty()) {
+            wxFileName fn(proj);
+            title = fn.GetName() + " - " + title;
+        }
+        if (m_plater->is_project_dirty())
+            title = "* " + title;
+    }
+    m_topbar->SetTitle(title);
+#endif
 }
 
 void MainFrame::show_calibration_button(bool show, bool is_BBL)
@@ -2614,10 +2650,8 @@ void MainFrame::on_sys_color_changed()
     // update label colors in respect to the system mode
     wxGetApp().init_label_colours();
 
-#ifndef __WINDOWS__
     wxGetApp().force_colors_update();
     wxGetApp().update_ui_from_settings();
-#endif //__APPLE__
 
 #ifdef __WXMSW__
     wxGetApp().UpdateDarkUI(m_tabpanel);

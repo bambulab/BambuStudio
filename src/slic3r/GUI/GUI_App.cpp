@@ -2061,10 +2061,14 @@ void GUI_App::init_networking_callbacks()
                 GUI::wxGetApp().CallAfter([this] {
                     static bool is_showing = false;
                     if (is_showing) return;
+                    if (app_config && app_config->get("suppress_cloud_warnings") == "1") return;
                     is_showing = true;
                     BOOST_LOG_TRIVIAL(trace) << "static: server connection failed";
-                    MessageDialog msg_dlg(nullptr, _L("Failed to connect to the cloud device server. Please check your network and firewall."), "", wxOK);
+                    RichMessageDialog msg_dlg(nullptr, _L("Failed to connect to the cloud device server. Please check your network and firewall."), "", wxOK);
+                    msg_dlg.ShowCheckBox(_L("Don't show this warning again"));
                     msg_dlg.ShowModal();
+                    if (msg_dlg.IsCheckBoxChecked() && app_config)
+                        app_config->set("suppress_cloud_warnings", "1");
                     is_showing = false;
                 });
                 return;
@@ -3019,11 +3023,18 @@ bool GUI_App::on_init_inner()
     load_language(wxString(), true);
 #ifdef _MSW_DARK_MODE
 
-#ifndef __WINDOWS__
-    wxSystemAppearance app = wxSystemSettings::GetAppearance();
-    GUI::wxGetApp().app_config->set("dark_color_mode", app.IsDark() ? "1" : "0");
-    GUI::wxGetApp().app_config->save();
-#endif // __APPLE__
+    {
+        wxSystemAppearance app = wxSystemSettings::GetAppearance();
+#ifdef __WINDOWS__
+        if (app_config->get("dark_mode_follow_system") == "1") {
+            app_config->set("dark_color_mode", app.IsDark() ? "1" : "0");
+            app_config->save();
+        }
+#else
+        GUI::wxGetApp().app_config->set("dark_color_mode", app.IsDark() ? "1" : "0");
+        GUI::wxGetApp().app_config->save();
+#endif
+    }
 
 
     bool init_dark_color_mode = dark_mode();
@@ -3649,7 +3660,9 @@ bool GUI_App::dark_mode()
     // proper dark mode was first introduced.
     return wxPlatformInfo::Get().CheckOSVersion(10, 14) && mac_dark_mode();
 #else
-    return wxGetApp().app_config->get("dark_color_mode") == "1" ? true : check_dark_mode();
+    if (wxGetApp().app_config->get("dark_mode_follow_system") == "1")
+        return check_dark_mode();
+    return wxGetApp().app_config->get("dark_color_mode") == "1";
     //const unsigned luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
     //return luma < 128;
 #endif

@@ -95,7 +95,8 @@ public:
     // debug mode
     ::CheckBox * m_developer_mode_ckeckbox   = {nullptr};
     ::CheckBox * m_internal_developer_mode_ckeckbox = {nullptr};
-    ::CheckBox * m_dark_mode_ckeckbox        = {nullptr};
+    ::CheckBox * m_dark_mode_ckeckbox               = {nullptr};
+    ::CheckBox * m_dark_mode_follow_system_checkbox = {nullptr};
     ::TextInput *m_backup_interval_textinput = {nullptr};
 
     wxString m_developer_mode_def;

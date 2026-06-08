@@ -1303,7 +1303,11 @@ void WebViewPanel::SetMakerworldPageLoginStatus(bool login ,wxString ticket)
 
             wxString language_code = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
 
-            mw_currenturl = (boost::format("%1%%2%/studio/webview?from=bambustudio") % host % language_code.mb_str()).str();
+            bool full_site = wxGetApp().app_config->get("makerworld_use_full_site") == "1";
+            if (full_site)
+                mw_currenturl = (boost::format("%1%%2%/?from=bambustudio") % host % language_code.mb_str()).str();
+            else
+                mw_currenturl = (boost::format("%1%%2%/studio/webview?from=bambustudio") % host % language_code.mb_str()).str();
         }
     } else {
         //std::cout << "The string does not match the pattern." << std::endl;
@@ -1946,7 +1950,11 @@ void WebViewPanel::OpenMakerworldSearchPage(std::string KeyWord)
 
     wxString language_code = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
 
-    m_online_LastUrl = (boost::format("%1%%2%/studio/webview/search?from=bambustudio&keyword=%3%&from_studio_home=true") % host % language_code.mb_str() % UrlEncode(KeyWord)).str();
+    bool full_site_search = wxGetApp().app_config->get("makerworld_use_full_site") == "1";
+    if (full_site_search)
+        m_online_LastUrl = (boost::format("%1%%2%/search?from=bambustudio&keyword=%3%&from_studio_home=true") % host % language_code.mb_str() % UrlEncode(KeyWord)).str();
+    else
+        m_online_LastUrl = (boost::format("%1%%2%/studio/webview/search?from=bambustudio&keyword=%3%&from_studio_home=true") % host % language_code.mb_str() % UrlEncode(KeyWord)).str();
     SwitchWebContent("online");
     //SwitchLeftMenu("online");
 }
@@ -1957,10 +1965,18 @@ void WebViewPanel::SetMakerworldModelID(std::string ModelID)
 
     wxString language_code = wxString::FromUTF8(GetStudioLanguage()).BeforeFirst('_');
 
-    if (ModelID != "")
-        m_online_LastUrl = (boost::format("%1%%2%/studio/webview?modelid=%3%&from=bambustudio") % host % language_code.mb_str() % ModelID).str();
-    else
-        m_online_LastUrl = (boost::format("%1%%2%/studio/webview?from=bambustudio") % host % language_code.mb_str()).str();
+    bool full_site_model = wxGetApp().app_config->get("makerworld_use_full_site") == "1";
+    if (ModelID != "") {
+        if (full_site_model)
+            m_online_LastUrl = (boost::format("%1%%2%/models/%3%?from=bambustudio") % host % language_code.mb_str() % ModelID).str();
+        else
+            m_online_LastUrl = (boost::format("%1%%2%/studio/webview?modelid=%3%&from=bambustudio") % host % language_code.mb_str() % ModelID).str();
+    } else {
+        if (full_site_model)
+            m_online_LastUrl = (boost::format("%1%%2%/?from=bambustudio") % host % language_code.mb_str()).str();
+        else
+            m_online_LastUrl = (boost::format("%1%%2%/studio/webview?from=bambustudio") % host % language_code.mb_str()).str();
+    }
 }
 
 void WebViewPanel::SetPrintHistoryTaskID(int TaskID)
