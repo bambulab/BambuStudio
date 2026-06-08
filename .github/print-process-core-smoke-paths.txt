@@ -53,14 +53,18 @@ src/libslic3r/Layer.cpp
 src/libslic3r/Layer.hpp
 src/libslic3r/LayerLifecycle.cpp
 src/libslic3r/LayerRegion.cpp
-src/libslic3r/Model.cpp
 src/libslic3r/Model.hpp
 src/libslic3r/Slicing.cpp
 src/libslic3r/Surface.cpp
 src/libslic3r/Surface.hpp
 src/libslic3r/SurfaceCollection.cpp
 src/libslic3r/SurfaceCollection.hpp
-src/libslic3r/TriangleMesh*
+src/libslic3r/TriangleMesh.hpp
+src/libslic3r/TriangleMeshBasic.cpp
+src/libslic3r/TriangleMeshSlicer.cpp
+src/libslic3r/TriangleMeshSlicer.hpp
+src/libslic3r/TriangleMeshTopology.cpp
+src/libslic3r/TriangleMeshTransform.cpp
 src/libslic3r/libslic3r.h
 
 # print solid-layer re-slice smoke target tests
