@@ -21,6 +21,7 @@ on:
       - "**/CMakeLists.txt"
       - "build_win.bat"
       - ".github/config-fast-gate-paths.txt"
+      - ".github/placeholder-parser-smoke-paths.txt"
       - ".github/gcode-reader-smoke-paths.txt"
       - ".github/gcodewriter-smoke-paths.txt"
       - ".github/model-assembly-smoke-paths.txt"
@@ -137,6 +138,9 @@ jobs:
           $configEnabled = $true
           $configReason = "workflow_dispatch"
           $configMatched = "n/a"
+          $placeholderParserEnabled = $true
+          $placeholderParserReason = "workflow_dispatch"
+          $placeholderParserMatched = "n/a"
           $gcodewriterEnabled = $true
           $gcodewriterReason = "workflow_dispatch"
           $gcodewriterMatched = "n/a"
@@ -190,6 +194,7 @@ jobs:
 
             if ([string]::IsNullOrWhiteSpace($baseRef) -or $baseRef -match '^0+$') {
               $configReason = "missing_base_sha"
+              $placeholderParserReason = "missing_base_sha"
               $gcodewriterReason = "missing_base_sha"
               $gcodeReaderReason = "missing_base_sha"
               $modelAssemblyReason = "missing_base_sha"
@@ -208,6 +213,7 @@ jobs:
               git fetch --no-tags --depth=1 origin $baseRef | Out-Null
               if ($LASTEXITCODE -ne 0) {
                 $configReason = "fetch_base_failed"
+                $placeholderParserReason = "fetch_base_failed"
                 $gcodewriterReason = "fetch_base_failed"
                 $gcodeReaderReason = "fetch_base_failed"
                 $modelAssemblyReason = "fetch_base_failed"
@@ -227,6 +233,7 @@ jobs:
                 $changedText = if ($changed.Count -gt 0) { $changed -join ', ' } else { 'n/a' }
 
                 $configScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/config-fast-gate-paths.txt"
+                $placeholderParserScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/placeholder-parser-smoke-paths.txt"
                 $gcodewriterScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/gcodewriter-smoke-paths.txt"
                 $gcodeReaderScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/gcode-reader-smoke-paths.txt"
                 $modelAssemblyScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/model-assembly-smoke-paths.txt"
@@ -247,6 +254,9 @@ jobs:
                 $configEnabled = $configScope.Enabled
                 $configReason = $configScope.Reason
                 $configMatched = $configScope.Matched
+                $placeholderParserEnabled = $placeholderParserScope.Enabled
+                $placeholderParserReason = $placeholderParserScope.Reason
+                $placeholderParserMatched = $placeholderParserScope.Matched
                 $gcodewriterEnabled = $gcodewriterScope.Enabled
                 $gcodewriterReason = $gcodewriterScope.Reason
                 $gcodewriterMatched = $gcodewriterScope.Matched
@@ -292,6 +302,7 @@ jobs:
 
                 if ($centralCMakeChanged) {
                   $configEnabled = $true
+                  $placeholderParserEnabled = $true
                   $gcodewriterEnabled = $true
                   $gcodeReaderEnabled = $true
                   $modelAssemblyEnabled = $true
@@ -308,6 +319,7 @@ jobs:
                   $trianglemeshGeometryEnabled = $true
 
                   $configReason = "central_cmake_changed"
+                  $placeholderParserReason = "central_cmake_changed"
                   $gcodewriterReason = "central_cmake_changed"
                   $gcodeReaderReason = "central_cmake_changed"
                   $modelAssemblyReason = "central_cmake_changed"
@@ -324,6 +336,7 @@ jobs:
                   $trianglemeshGeometryReason = "central_cmake_changed"
 
                   $configMatched = "src/libslic3r/CMakeLists.txt"
+                  $placeholderParserMatched = "src/libslic3r/CMakeLists.txt"
                   $gcodewriterMatched = "src/libslic3r/CMakeLists.txt"
                   $gcodeReaderMatched = "src/libslic3r/CMakeLists.txt"
                   $modelAssemblyMatched = "src/libslic3r/CMakeLists.txt"
@@ -343,12 +356,15 @@ jobs:
             }
           }
 
-          $anyEnabled = $configEnabled -or $gcodewriterEnabled -or $gcodeReaderEnabled -or $modelAssemblyEnabled -or $filamentMappingEnabled -or $applyValidateEnabled -or $perimetersEnabled -or $processMathEnabled -or $processCoreEnabled -or $objectLayersEnabled -or $adhesionEnabled -or $fillEnabled -or $supportMaterialLayersEnabled -or $supportMaterialEnabled -or $trianglemeshGeometryEnabled
+          $anyEnabled = $configEnabled -or $placeholderParserEnabled -or $gcodewriterEnabled -or $gcodeReaderEnabled -or $modelAssemblyEnabled -or $filamentMappingEnabled -or $applyValidateEnabled -or $perimetersEnabled -or $processMathEnabled -or $processCoreEnabled -or $objectLayersEnabled -or $adhesionEnabled -or $fillEnabled -or $supportMaterialLayersEnabled -or $supportMaterialEnabled -or $trianglemeshGeometryEnabled
           "any_enabled=$($anyEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "changed=$changedText" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "config_enabled=$($configEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "config_reason=$configReason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "config_matched=$configMatched" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "placeholder_parser_enabled=$($placeholderParserEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "placeholder_parser_reason=$placeholderParserReason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "placeholder_parser_matched=$placeholderParserMatched" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "gcodewriter_enabled=$($gcodewriterEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "gcodewriter_reason=$gcodewriterReason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "gcodewriter_matched=$gcodewriterMatched" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
@@ -398,6 +414,7 @@ jobs:
             $changed | ForEach-Object { Write-Host "  $_" }
           }
           Write-Host "config gate enabled=$configEnabled reason=$configReason matched=$configMatched"
+          Write-Host "placeholder parser smoke gate enabled=$placeholderParserEnabled reason=$placeholderParserReason matched=$placeholderParserMatched"
           Write-Host "gcodewriter smoke gate enabled=$gcodewriterEnabled reason=$gcodewriterReason matched=$gcodewriterMatched"
           Write-Host "gcode reader smoke gate enabled=$gcodeReaderEnabled reason=$gcodeReaderReason matched=$gcodeReaderMatched"
           Write-Host "model assembly smoke gate enabled=$modelAssemblyEnabled reason=$modelAssemblyReason matched=$modelAssemblyMatched"
@@ -516,6 +533,12 @@ jobs:
         timeout-minutes: 10
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target libslic3r_config_tests --parallel ${{ env.BUILD_PARALLEL }}
+
+      - name: Build placeholder parser smoke target
+        if: steps.smoke_scope.outputs.placeholder_parser_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target placeholder_parser_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
 
       - name: Build gcodewriter smoke target
         if: steps.smoke_scope.outputs.gcodewriter_enabled == 'true'
@@ -641,6 +664,31 @@ jobs:
           - Reason: `${{ steps.smoke_scope.outputs.config_reason }}`
           - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
           - Matched files: `${{ steps.smoke_scope.outputs.config_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Run placeholder parser smoke
+        id: run_placeholder_parser_smoke
+        if: steps.smoke_scope.outputs.placeholder_parser_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $exe = "${{ env.BUILD_DIR }}\tests\libslic3r\placeholder_parser_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "placeholder-parser-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "placeholder-parser-smoke.xml"
+          & $exe "[PlaceholderParser]" 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml "[PlaceholderParser]" | Out-Null
+
+      - name: Note skipped placeholder parser smoke target
+        if: steps.smoke_scope.outputs.placeholder_parser_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## Placeholder Parser Smoke
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.placeholder_parser_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.placeholder_parser_matched }}`
           "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
 
       - name: Run gcodewriter smoke
@@ -1010,6 +1058,14 @@ jobs:
               Conclusion = "${{ steps.run_config_fast.conclusion }}"
             })
           }
+          if ("${{ steps.smoke_scope.outputs.placeholder_parser_enabled }}" -eq "true") {
+            $expected.Add(@{
+              Name = "placeholder_parser_smoke_tests [PlaceholderParser]"
+              Log = "placeholder-parser-smoke.log"
+              Xml = "placeholder-parser-smoke.xml"
+              Conclusion = "${{ steps.run_placeholder_parser_smoke.conclusion }}"
+            })
+          }
           if ("${{ steps.smoke_scope.outputs.gcodewriter_enabled }}" -eq "true") {
             $expected.Add(@{
               Name = "gcodewriter_smoke_tests [GCodeWriter]"
@@ -1247,6 +1303,8 @@ jobs:
         run: |
           $configFastEnabled = "${{ steps.smoke_scope.outputs.config_enabled }}" -eq "true"
           $configFastReason = "${{ steps.smoke_scope.outputs.config_reason }}"
+          $placeholderParserSmokeEnabled = "${{ steps.smoke_scope.outputs.placeholder_parser_enabled }}" -eq "true"
+          $placeholderParserSmokeReason = "${{ steps.smoke_scope.outputs.placeholder_parser_reason }}"
           $gcodewriterSmokeEnabled = "${{ steps.smoke_scope.outputs.gcodewriter_enabled }}" -eq "true"
           $gcodewriterSmokeReason = "${{ steps.smoke_scope.outputs.gcodewriter_reason }}"
           $gcodeReaderSmokeEnabled = "${{ steps.smoke_scope.outputs.gcode_reader_enabled }}" -eq "true"
@@ -1277,6 +1335,7 @@ jobs:
           $trianglemeshGeometrySmokeReason = "${{ steps.smoke_scope.outputs.trianglemesh_geometry_reason }}"
           $suiteMeta = @(
             @{ Name = "libslic3r_config_tests [ConfigCore]"; Log = ".ci/smoke/libslic3r-config-fast.log"; Xml = ".ci/smoke/libslic3r-config-fast.xml" },
+            @{ Name = "placeholder_parser_smoke_tests [PlaceholderParser]"; Log = ".ci/smoke/placeholder-parser-smoke.log"; Xml = ".ci/smoke/placeholder-parser-smoke.xml" },
             @{ Name = "gcodewriter_smoke_tests [GCodeWriter]"; Log = ".ci/smoke/gcodewriter-smoke.log"; Xml = ".ci/smoke/gcodewriter-smoke.xml" },
             @{ Name = "gcode_reader_smoke_tests [GCodeReader]"; Log = ".ci/smoke/gcode-reader-smoke.log"; Xml = ".ci/smoke/gcode-reader-smoke.xml" },
             @{ Name = "model_basic_smoke_tests [ModelAssembly]"; Log = ".ci/smoke/model-assembly-smoke.log"; Xml = ".ci/smoke/model-assembly-smoke.xml" },
@@ -1302,6 +1361,10 @@ jobs:
           foreach ($suite in $suiteMeta) {
             if ($suite.Name -like 'libslic3r_config_tests*' -and -not $configFastEnabled) {
               $rows.Add("| $($suite.Name) | skipped ($configFastReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'placeholder_parser_smoke_tests*' -and -not $placeholderParserSmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($placeholderParserSmokeReason) | 0 | 0 |")
               continue
             }
             if ($suite.Name -like 'gcodewriter_smoke_tests*' -and -not $gcodewriterSmokeEnabled) {

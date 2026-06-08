@@ -69,3 +69,16 @@ target_include_directories(libslic3r_config_tests PRIVATE
 )
 set_property(TARGET libslic3r_config_tests PROPERTY FOLDER "tests")
 add_test(libslic3r_config_tests libslic3r_config_tests ${CATCH_EXTRA_ARGS})
+
+add_executable(placeholder_parser_smoke_tests
+    config_tests_main.cpp
+    test_placeholder_parser_smoke.cpp
+)
+target_link_libraries(placeholder_parser_smoke_tests PRIVATE test_common libslic3r_placeholder_parser_core)
+target_include_directories(placeholder_parser_smoke_tests PRIVATE
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/src/libslic3r
+    ${PROJECT_BINARY_DIR}/src/libslic3r
+)
+set_property(TARGET placeholder_parser_smoke_tests PROPERTY FOLDER "tests")
+add_test(placeholder_parser_smoke_tests placeholder_parser_smoke_tests ${CATCH_EXTRA_ARGS})
