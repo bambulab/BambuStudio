@@ -1096,7 +1096,11 @@ list(REMOVE_ITEM libslic3r_print_apply_validate_core_sources
     Arachne/utils/PolylineStitcher.cpp
     Arachne/utils/SquareGrid.cpp
     BridgeDetector.cpp
+    Clipper2Utils.cpp
+    EdgeGridSvg.cpp
+    FuzzySkin.cpp
     InternalBridgeDetector.cpp
+    Geometry/Circle.cpp
     Layer.cpp
     LayerRegion.cpp
     LayerSvg.cpp
@@ -1112,11 +1116,24 @@ list(REMOVE_ITEM libslic3r_print_apply_validate_core_sources
     PrintPerimetersOutputCompat.cpp
     PrintPerimetersValidateCompat.cpp
     PrintPerimetersWipeTowerCompat.cpp
+    PrintObjectAnalysis.cpp
+    PrintObjectInfill.cpp
+    PrintObjectPostProcess.cpp
     PrintProcessInterlockingCompat.cpp
     PrintProcessPerimeters.cpp
     PrintProcessPerimetersCompat.cpp
+    PrintProcessSupport.cpp
+    SVG.cpp
     Surface.cpp
     SurfaceCollection.cpp
+    SurfaceCollectionSvg.cpp
+    SurfaceSvg.cpp
+    Support/SupportCommon.cpp
+    Support/SupportMaterial.cpp
+    Support/TreeModelVolumes.cpp
+    Support/TreeSupport.cpp
+    Support/TreeSupport3D.cpp
+    Tesselate.cpp
     VariableWidth.cpp
 )
 list(APPEND libslic3r_print_apply_validate_core_sources
