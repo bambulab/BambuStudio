@@ -15,7 +15,6 @@ src/libslic3r/Geometry/Voronoi*
 src/libslic3r/ModelTransform.cpp
 src/libslic3r/Tesselate.cpp
 src/libslic3r/Tesselate.hpp
-src/libslic3r/CMakeLists.txt
 
 # trianglemesh geometry smoke target tests
 tests/fff_print/cmake/TriangleMeshGeometrySmoke.cmake
