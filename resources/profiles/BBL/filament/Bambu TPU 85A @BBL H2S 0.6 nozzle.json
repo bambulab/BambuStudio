@@ -1,0 +1,99 @@
+{
+    "type": "filament",
+    "name": "Bambu TPU 85A @BBL H2S 0.6 nozzle",
+    "inherits": "Bambu TPU 85A @base",
+    "from": "system",
+    "setting_id": "GFSU04_8",
+    "instantiation": "true",
+    "additional_cooling_fan_speed": [
+        "100"
+    ],
+    "eng_plate_temp": [
+        "35"
+    ],
+    "eng_plate_temp_initial_layer": [
+        "35"
+    ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
+    "filament_deretraction_speed": [
+        "10",
+        "10"
+    ],
+    "filament_flow_ratio": [
+        "1",
+        "1"
+    ],
+    "filament_max_volumetric_speed": [
+        "3",
+        "3"
+    ],
+    "filament_ramming_volumetric_speed": [
+        "0.55",
+        "0.55"
+    ],
+    "filament_retraction_length": [
+        "2",
+        "2"
+    ],
+    "filament_retraction_speed": [
+        "10",
+        "10"
+    ],
+    "filament_wipe": [
+        "1",
+        "1"
+    ],
+    "filament_wipe_distance": [
+        "1",
+        "1"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift",
+        "Spiral Lift"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
+    "include": [
+        "fdm_filament_template_direct_dual"
+    ],
+    "long_retractions_when_ec": [
+        "0",
+        "0"
+    ],
+    "nozzle_temperature": [
+        "225",
+        "225"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "225",
+        "225"
+    ],
+    "pre_start_fan_time": [
+        "2"
+    ],
+    "retraction_distances_when_ec": [
+        "0",
+        "0"
+    ],
+    "slow_down_for_layer_cooling": [
+        "0"
+    ],
+    "volumetric_speed_coefficients": [
+        "12.4717 -2.8601 9.7830 2.9503 3.9235 -1.8644",
+        "12.4717 -2.8601 9.7830 2.9503 3.9235 -1.8644"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2S 0.6 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\n"
+    ],
+    "filament_end_gcode": [
+        "; filament end gcode \n"
+    ]
+}

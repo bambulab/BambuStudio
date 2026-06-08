@@ -1,0 +1,21 @@
+{
+    "type": "filament",
+    "filament_id": "GFB00",
+    "setting_id": "GFSB00_Qidi_40",
+    "name": "QIDI ABS Rapido Metal @Qidi 0.2 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "QIDI ABS Rapido Metal @Qidi",
+    "filament_max_volumetric_speed": [
+        "2"
+    ],
+    "chamber_temperatures" : [
+        "0"
+    ],
+	"compatible_printers": [
+        "Qidi X-CF Pro 0.2 nozzle",
+		"Qidi X-Smart 3 0.2 nozzle",
+		"Qidi X-Plus 3 0.2 nozzle",
+		"Qidi X-Max 3 0.2 nozzle"
+	]
+}

@@ -1,0 +1,18 @@
+{
+    "type": "filament",
+    "filament_id": "GFN04",
+    "setting_id": "GFSN04_Qidi_13",
+    "name": "QIDI PA-Ultra @Qidi X-Plus 4 0.8 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "QIDI PA-Ultra @Qidi",
+    "filament_max_volumetric_speed": [
+        "4"
+    ],
+    "slow_down_min_speed": [
+        "20"
+    ],
+    "compatible_printers": [
+        "Qidi X-Plus 4 0.8 nozzle"
+    ]
+}

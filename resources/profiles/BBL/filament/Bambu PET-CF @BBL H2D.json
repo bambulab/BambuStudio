@@ -1,0 +1,79 @@
+{
+    "type": "filament",
+    "name": "Bambu PET-CF @BBL H2D",
+    "inherits": "Bambu PET-CF @base",
+    "from": "system",
+    "setting_id": "GFST01_02",
+    "instantiation": "true",
+    "chamber_temperatures": [
+        "50"
+    ],
+    "counter_coef_2": [
+        "0.0075"
+    ],
+    "counter_coef_3": [
+        "-0.052"
+    ],
+    "eng_plate_temp": [
+        "100"
+    ],
+    "eng_plate_temp_initial_layer": [
+        "100"
+    ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
+    "filament_flow_ratio": [
+        "1",
+        "1"
+    ],
+    "filament_max_volumetric_speed": [
+        "8",
+        "8"
+    ],
+    "filament_printable": [
+        "1"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
+    "filament_prime_volume": [
+        "30"
+    ],
+    "filament_change_length": [
+        "4"
+    ],
+    "hole_coef_2": [
+        "-0.012"
+    ],
+    "hole_coef_3": [
+        "0.35043"
+    ],
+    "hole_limit_min": [
+        "0.07"
+    ],
+    "include": [
+        "fdm_filament_template_direct_dual"
+    ],
+    "nozzle_temperature": [
+        "270",
+        "270"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "270",
+        "270"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2D 0.4 nozzle",
+        "Bambu Lab H2D 0.6 nozzle",
+        "Bambu Lab H2D 0.8 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\n"
+    ],
+    "filament_end_gcode": [
+        "; filament end gcode \n"
+    ]
+}

@@ -1,0 +1,14 @@
+{
+    "type": "process",
+    "setting_id": "GP_CREALITY_005",
+    "name": "0.12mm Fine @Creality CR10Max",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_process_creality_common",
+    "bottom_shell_layers": "5",
+    "layer_height": "0.12",
+    "top_shell_layers": "6",
+    "compatible_printers": [
+        "Creality CR-10 Max 0.4 nozzle"
+    ]
+}

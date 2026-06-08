@@ -1,0 +1,24 @@
+{
+    "type": "filament",
+    "filament_id": "GFA00",
+    "setting_id": "GFSA00_Qidi_30",
+    "name": "QIDI PLA-CF @Qidi X-Plus 4 0.4 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "QIDI PLA-CF @Qidi",
+    "filament_flow_ratio": [
+        "0.93"
+    ],
+    "filament_max_volumetric_speed": [
+        "15"
+    ],
+    "nozzle_temperature": [
+        "220"
+    ],
+    "pressure_advance": [
+        "0.034"
+    ],
+    "compatible_printers": [
+        "Qidi X-Plus 4 0.4 nozzle"
+    ]
+}

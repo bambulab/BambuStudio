@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<script type="text/javascript" src="js/index.js"></script>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            position: absolute;
+            width: 690px;
+            height: 445px;
+            font-family: 'HarmonyOS Sans SC', sans-serif;
+            font-style: normal;
+            font-weight: 400;
+            font-size: 14px;
+            line-height: 22px; /* 157% */
+            color: #5C5C5C;
+            margin: 10;
+            box-sizing: border-box;
+        }
+        .header {
+            background-color: #f5f5f5;
+            padding: 10px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+		.underline {
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+        .header h1 {
+            font-size: 16px;
+            margin: 0;
+            color: #333333;
+        }
+        h2 {
+            font-size: 16px;
+            margin: 0 0 15px 0;
+            color: #333333;
+        }
+        p {
+            margin: 0 0 15px 0;
+            text-align: justify;
+        }
+        strong {
+            font-weight: 600;
+            color: #333333;
+        }
+        a {
+            color: #0066CC;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        ul {
+            margin: 0 0 15px 20px;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        .buttons {
+            margin-top: 25px;
+            display: flex;
+            gap: 15px;
+        }
+        .btn {
+            padding: 8px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'HarmonyOS Sans SC', sans-serif;
+            font-size: 14px;
+            line-height: 1;
+            border: none;
+        }
+        .btn-primary {
+            background-color: #007DFF;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0066CC;
+        }
+        .btn-secondary {
+            background-color: #F5F5F5;
+            color: #5C5C5C;
+            border: 1px solid #DDDDDD;
+        }
+        .btn-secondary:hover {
+            background-color: #EAEAEA;
+        }
+        .warning {
+            color: #FF5722;
+        }
+		
+		body.dark {
+            background-color: #2d2d31;
+            color: #FFFFFF;
+        }
+
+        body.dark .header {
+            background-color: #2d2d2d;
+            border-bottom-color: #444;
+
+        }
+
+        body.dark h1,
+        body.dark h2,
+        body.dark strong {
+            color: #FFFFFF;
+        }
+
+        body.dark a {
+            color: #90caf9;
+        }
+
+        body.dark .btn-secondary {
+            background-color: #333;
+            color: #FFFFFF;
+            border-color: #555;
+        }
+
+        body.dark .btn-secondary:hover {
+            background-color: #444;
+        }
+
+        body.dark .warning {
+            color: #ff8a65;
+        }
+    </style>
+</head>
+<body>
+    <p>您正准备开启一个来自<strong class="underline">Helio Additive</strong><strong>的第三方软件服务功能</strong>！在确认使用此功能前，请仔细阅读以下声明。</p>
+    
+    <p>除非特殊说明，拓竹科技仅对官方提供的软件功能提供支持。本软件中基于Helio Additive云端服务的切片评估和切片优化功能<strong>由Helio Additive负责开发、维护以及对外提供服务，其服务效果和可用性由Helio Additive负责</strong>。本服务的优化功能<strong>可能修改默认的打印指令，存在打印机损坏的风险。</strong></span>同时这些功能将<strong>收集必要的用户信息和数据</strong>以实现相关服务功能，并可能<strong>涉及订阅与付费</strong>，请访问<a class="underline" href="#" onclick="OpenHomeLink()">Helio Addtive</a>和参考<a class="underline" href="#" onclick="OpenPPLink()">Helio Additive隐私协议</a>和<a class="underline" href="#" onclick="OpenTouLink()">Helio Addtive 用户使用协议</a>获取详细信息。</p>
+    
+    <p>同时，您理解本产品是<strong>基于Helio Additive的服务“按原样”向您提供</strong>，拓竹不存在任何形式的明示或暗示担保，也无法控制服务效果，并且在适用法律允许的最大范围内，拓竹、其许可方/附属公司均不提供任何明示或暗示的陈述或保证，包括但不限于有关适销性、满意质量、适用于特定目的、准确性、保密权以及不侵犯第三方权利的保证。基于网络服务的特性，拓竹无法保证该服务随时可达，并且拓竹有权根据相关情况终止该服务。</p>
+    
+    <p>您同意不使用本产品及相关更新内容从事以下行为：</p>
+    <ol>
+        <li>在Helio Additive和拓竹授权范围之外复制或使用本产品的任何一部分内容；</li>
+        <li>企图破坏、绕过、改变、作废或者逃避和本产品相关的以及/或者属于本产品有机组成的一部分的任何数字版权管理系统；</li>
+        <li>利用本软件和服务进行任何不当或违反法律的行为。</li>
+    </ol>
+    
+    <p><strong>当您确认开启此功能后，代表您已经确认和同意以上声明。</strong></p>
+</body>
+</html>
+
+<script type="text/javascript">
+	const darkmode = getUrlParam('darkmode');
+	if (darkmode === '1') {
+		document.body.classList.add('dark');
+    }
+</script>

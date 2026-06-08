@@ -1,0 +1,86 @@
+{
+    "type": "machine",
+    "name": "Bambu Lab A1 0.4 nozzle",
+    "inherits": "fdm_bbl_3dp_001_common",
+    "from": "system",
+    "setting_id": "GM030",
+    "instantiation": "true",
+    "nozzle_diameter": [
+        "0.4"
+    ],
+    "printer_model": "Bambu Lab A1",
+    "printer_variant": "0.4",
+    "auxiliary_fan": "0",
+    "bed_exclude_area": [],
+    "default_filament_profile": [
+        "Bambu PLA Basic @BBL A1"
+    ],
+    "default_print_profile": "0.20mm Standard @BBL A1",
+    "enable_long_retraction_when_cut": "2",
+    "extruder_clearance_dist_to_rod": "56.5",
+    "extruder_clearance_height_to_lid": "256",
+    "extruder_clearance_height_to_rod": "25",
+    "extruder_clearance_max_radius": "73",
+    "grab_length": [
+        "17.4"
+    ],
+    "head_wrap_detect_zone": [
+        "226x224",
+        "256x224",
+        "256x256",
+        "226x256"
+    ],
+    "include": [
+        "Bambu Lab A1 0.4 nozzle template machine_start_gcode",
+        "Bambu Lab A1 0.4 nozzle template machine_end_gcode",
+        "Bambu Lab A1 0.4 nozzle template time_lapse_gcode",
+        "Bambu Lab A1 0.4 nozzle template change_filament_gcode",
+        "Bambu Lab A1 0.4 nozzle template layer_change_gcode"
+    ],
+    "machine_load_filament_time": "25",
+    "machine_max_acceleration_extruding": [
+        "12000",
+        "12000"
+    ],
+    "machine_max_acceleration_x": [
+        "12000",
+        "12000"
+    ],
+    "machine_max_acceleration_y": [
+        "12000",
+        "12000"
+    ],
+    "machine_max_acceleration_z": [
+        "1500",
+        "1500"
+    ],
+    "machine_max_jerk_e": [
+        "3",
+        "3"
+    ],
+    "machine_max_speed_z": [
+        "30",
+        "30"
+    ],
+    "nozzle_height": "4.76",
+    "nozzle_type": [
+        "stainless_steel"
+    ],
+    "nozzle_volume": [
+        "92"
+    ],
+    "printable_height": "256",
+    "printer_structure": "i3",
+    "retract_lift_below": [
+        "255"
+    ],
+    "upward_compatible_machine": [
+        "Bambu Lab H2D 0.4 nozzle",
+        "Bambu Lab H2D Pro 0.4 nozzle",
+        "Bambu Lab H2S 0.4 nozzle",
+        "Bambu Lab P2S 0.4 nozzle",
+        "Bambu Lab H2C 0.4 nozzle",
+        "Bambu Lab X2D 0.4 nozzle",
+        "Bambu Lab A2L 0.4 nozzle"
+    ]
+}

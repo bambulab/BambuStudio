@@ -1,0 +1,54 @@
+{
+    "type": "filament",
+    "name": "Generic PPS @BBL H2S 0.4 nozzle",
+    "inherits": "Generic PPS @base",
+    "from": "system",
+    "setting_id": "GFST97_5",
+    "instantiation": "true",
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
+    "filament_flow_ratio": [
+        "0.96",
+        "0.96"
+    ],
+    "filament_max_volumetric_speed": [
+        "4",
+        "4"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
+    "first_x_layer_fan_speed": [
+        "0"
+    ],
+    "include": [
+        "fdm_filament_template_direct_dual"
+    ],
+    "long_retractions_when_ec": [
+        "0",
+        "0"
+    ],
+    "nozzle_temperature": [
+        "320",
+        "320"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "320",
+        "320"
+    ],
+    "retraction_distances_when_ec": [
+        "0",
+        "0"
+    ],
+    "temperature_vitrification": [
+        "80"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2S 0.6 nozzle",
+        "Bambu Lab H2S 0.8 nozzle",
+        "Bambu Lab H2S 0.4 nozzle"
+    ]
+}

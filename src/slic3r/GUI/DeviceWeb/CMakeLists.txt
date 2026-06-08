@@ -1,0 +1,208 @@
+﻿# GUI/DeviceWeb
+# usage -- GUI about device web for BambuStudio
+# date -- 2025.01.01
+# status -- Building
+
+# ==================== Node.js/pnpm 环境准备（仅用于 deviceweb 构建）====================
+
+function(prepare_node_env)
+    # 定义版本号
+    set(NODE_VERSION "22.22.2")
+    set(PNPM_VERSION "10.12.1")
+
+    # 定义本地缓存目录（放在项目同级目录，clean build 后不会丢失）
+    set(NODE_CACHE_DIR "${CMAKE_SOURCE_DIR}/../node-cache")
+
+    # 根据平台确定下载 URL、文件名和 hash 值
+    if(WIN32)
+        set(NODE_URL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-win-x64.zip")
+        set(NODE_ARCHIVE_NAME "node-v${NODE_VERSION}-win-x64.zip")
+        set(NODE_BIN_DIR "node-v${NODE_VERSION}-win-x64")
+        set(NODE_EXEC "node.exe")
+        set(NODE_HASH "7c93e9d92bf68c07182b471aa187e35ee6cd08ef0f24ab060dfff605fcc1c57c")
+        set(PNPM_URL "https://github.com/pnpm/pnpm/releases/download/v${PNPM_VERSION}/pnpm-win-x64.exe")
+        set(PNPM_EXEC_NAME "pnpm.exe")
+        set(PNPM_HASH "9b802759436b3bccfe0a78cb0b86e937ac44902ec16597260f59d5394602f092")
+    elseif(APPLE)
+        if(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
+            set(NODE_URL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-darwin-arm64.tar.gz")
+            set(NODE_ARCHIVE_NAME "node-v${NODE_VERSION}-darwin-arm64.tar.gz")
+            set(NODE_BIN_DIR "node-v${NODE_VERSION}-darwin-arm64/bin")
+            set(NODE_HASH "db4b275b83736df67533529a18cc55de2549a8329ace6c7bcc68f8d22d3c9000")
+
+            set(PNPM_URL "https://github.com/pnpm/pnpm/releases/download/v${PNPM_VERSION}/pnpm-macos-arm64")
+            set(PNPM_HASH "8b39b2129a19eeec9511eb7cdde2450b604e389551d59ad738167f7495b56d52")
+        else()
+            set(NODE_URL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-darwin-x64.tar.gz")
+            set(NODE_ARCHIVE_NAME "node-v${NODE_VERSION}-darwin-x64.tar.gz")
+            set(NODE_BIN_DIR "node-v${NODE_VERSION}-darwin-x64/bin")
+            set(NODE_HASH "12a6abb9c2902cf48a21120da13f87fde1ed1b71a13330712949e8db818708ba")
+
+            set(PNPM_URL "https://github.com/pnpm/pnpm/releases/download/v${PNPM_VERSION}/pnpm-macos-x64")
+            set(PNPM_HASH "4c78e34022bfecfae60c041148a8022858b80b50e3b31c8fa8ba7b2b6259dd4a")
+        endif()
+        set(NODE_EXEC "node")
+        set(PNPM_EXEC_NAME "pnpm")
+    else()
+        set(NODE_URL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz")
+        set(NODE_ARCHIVE_NAME "node-v${NODE_VERSION}-linux-x64.tar.xz")
+        set(NODE_BIN_DIR "node-v${NODE_VERSION}-linux-x64/bin")
+        set(NODE_EXEC "node")
+        set(NODE_HASH "88fd1ce767091fd8d4a99fdb2356e98c819f93f3b1f8663853a2dee9b438068a")
+
+        set(PNPM_URL "https://github.com/pnpm/pnpm/releases/download/v${PNPM_VERSION}/pnpm-linux-x64")
+        set(PNPM_EXEC_NAME "pnpm")
+        set(PNPM_HASH "eb2dc1f109bca046ce734d062c8dd8f34db2b58a115992f9b086456efd7b2305")
+    endif()
+
+    # 定义最终的可执行文件路径
+    set(NODE_EXECUTABLE "${NODE_CACHE_DIR}/${NODE_BIN_DIR}/${NODE_EXEC}")
+    # pnpm 放到 node 同目录，这样执行 pnpm 时 PATH 中天然能找到 node
+    set(PNPM_EXECUTABLE "${NODE_CACHE_DIR}/${NODE_BIN_DIR}/${PNPM_EXEC_NAME}")
+
+    # ============ Node.js 下载 + 解压 ============
+    if(NOT EXISTS "${NODE_EXECUTABLE}")
+        message(STATUS "Downloading Node.js v${NODE_VERSION} from ${NODE_URL}")
+        file(MAKE_DIRECTORY "${NODE_CACHE_DIR}")
+
+        file(DOWNLOAD
+            ${NODE_URL}
+            "${NODE_CACHE_DIR}/${NODE_ARCHIVE_NAME}"
+            SHOW_PROGRESS
+            STATUS node_dl_status
+            EXPECTED_HASH SHA256=${NODE_HASH}
+            TLS_VERIFY OFF
+        )
+        list(GET node_dl_status 0 node_dl_code)
+        list(GET node_dl_status 1 node_dl_msg)
+        if(NOT node_dl_code EQUAL 0)
+            file(REMOVE "${NODE_CACHE_DIR}/${NODE_ARCHIVE_NAME}")
+            message(FATAL_ERROR "Failed to download Node.js: ${node_dl_msg}")
+        endif()
+
+        message(STATUS "Extracting Node.js...")
+        if(WIN32)
+            execute_process(
+                COMMAND powershell -NoProfile -Command
+                        "Expand-Archive -Path '${NODE_CACHE_DIR}/${NODE_ARCHIVE_NAME}' -DestinationPath '${NODE_CACHE_DIR}' -Force"
+                WORKING_DIRECTORY "${NODE_CACHE_DIR}"
+                RESULT_VARIABLE extract_result
+                OUTPUT_VARIABLE extract_output
+                ERROR_VARIABLE extract_error
+            )
+        else()
+            execute_process(
+                COMMAND tar -xf "${NODE_ARCHIVE_NAME}"
+                WORKING_DIRECTORY "${NODE_CACHE_DIR}"
+                RESULT_VARIABLE extract_result
+                OUTPUT_VARIABLE extract_output
+                ERROR_VARIABLE extract_error
+            )
+        endif()
+
+        if(NOT extract_result EQUAL 0)
+            message(FATAL_ERROR "Failed to extract Node.js archive: ${extract_error}")
+        endif()
+
+        # 清理压缩包（节省空间）
+        file(REMOVE "${NODE_CACHE_DIR}/${NODE_ARCHIVE_NAME}")
+
+        if(NOT EXISTS "${NODE_EXECUTABLE}")
+            message(FATAL_ERROR "Node.js extraction finished but executable not found: ${NODE_EXECUTABLE}")
+        endif()
+
+        message(STATUS "Node.js extracted to: ${NODE_EXECUTABLE}")
+    else()
+        message(STATUS "Found cached Node.js: ${NODE_EXECUTABLE}")
+    endif()
+
+    # ============ pnpm 独立二进制下载 ============
+    if(NOT EXISTS "${PNPM_EXECUTABLE}")
+        message(STATUS "Downloading pnpm v${PNPM_VERSION} from ${PNPM_URL}")
+
+        file(DOWNLOAD
+            ${PNPM_URL}
+            "${PNPM_EXECUTABLE}"
+            SHOW_PROGRESS
+            STATUS pnpm_dl_status
+            EXPECTED_HASH SHA256=${PNPM_HASH}
+            TLS_VERIFY OFF
+        )
+        list(GET pnpm_dl_status 0 pnpm_dl_code)
+        list(GET pnpm_dl_status 1 pnpm_dl_msg)
+        if(NOT pnpm_dl_code EQUAL 0)
+            file(REMOVE "${PNPM_EXECUTABLE}")
+            message(FATAL_ERROR "Failed to download pnpm: ${pnpm_dl_msg}")
+        endif()
+
+        if(NOT WIN32)
+            execute_process(
+                COMMAND chmod +x "${PNPM_EXECUTABLE}"
+                RESULT_VARIABLE chmod_result
+                ERROR_VARIABLE chmod_error
+            )
+            if(NOT chmod_result EQUAL 0)
+                message(FATAL_ERROR "Failed to chmod +x pnpm: ${chmod_error}")
+            endif()
+        endif()
+
+        message(STATUS "pnpm installed: ${PNPM_EXECUTABLE}")
+    else()
+        message(STATUS "Found cached pnpm: ${PNPM_EXECUTABLE}")
+    endif()
+
+    # 设置输出变量（使用绝对路径）
+    set(NODE_EXECUTABLE "${NODE_EXECUTABLE}" PARENT_SCOPE)
+    set(PNPM_EXECUTABLE "${PNPM_EXECUTABLE}" PARENT_SCOPE)
+endfunction()
+
+# 执行环境准备（在 config 阶段执行）
+prepare_node_env()
+
+# ==================== 前端工程构建 ====================
+
+set(DEVICE_PAGE_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/device_page")
+set(DEVICE_PAGE_DIST_DIR "${DEVICE_PAGE_SRC_DIR}/dist")
+set(DEVICE_PAGE_TARGET_DIR "${CMAKE_SOURCE_DIR}/resources/web/device_page/dist")
+
+get_filename_component(NODE_BIN_PATH "${NODE_EXECUTABLE}" DIRECTORY)
+
+if(WIN32)
+    # 原本PATH末尾的\会影响后续的分隔符，需要处理
+    set(DEVICE_PAGE_PATH_UNESCAPED "${NODE_BIN_PATH};$ENV{PATH}")
+    string(REPLACE "\;" ";" DEVICE_PAGE_PATH "${DEVICE_PAGE_PATH_UNESCAPED}")
+else()
+    # Unix PATH 分隔符是 :
+    set(DEVICE_PAGE_PATH "${NODE_BIN_PATH}:$ENV{PATH}")
+endif()
+
+set(PNPM_STORE_DIR "${CMAKE_CURRENT_BINARY_DIR}/.pnpm-store")
+file(MAKE_DIRECTORY "${PNPM_STORE_DIR}")
+
+add_custom_target(device_page_build ALL
+    COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEVICE_PAGE_PATH}" "PNPM_STORE_DIR=${PNPM_STORE_DIR}" ${PNPM_EXECUTABLE} install
+    COMMAND ${CMAKE_COMMAND} -E env "PATH=${DEVICE_PAGE_PATH}" "PNPM_STORE_DIR=${PNPM_STORE_DIR}" ${PNPM_EXECUTABLE} run build
+    COMMAND  ${CMAKE_COMMAND} -E make_directory "${DEVICE_PAGE_TARGET_DIR}"
+    COMMAND  ${CMAKE_COMMAND} -E copy_directory "${DEVICE_PAGE_DIST_DIR}" "${DEVICE_PAGE_TARGET_DIR}"
+    WORKING_DIRECTORY ${DEVICE_PAGE_SRC_DIR}
+    COMMENT "Installing dependencies and building device_page..."
+    VERBATIM
+)
+
+list(APPEND SLIC3R_GUI_SOURCES
+    GUI/DeviceWeb/DeviceHttpServer.cpp
+    GUI/DeviceWeb/DeviceHttpServer.hpp
+    GUI/DeviceWeb/DeviceWebPage.cpp
+    GUI/DeviceWeb/DeviceWebPage.hpp
+    GUI/DeviceWeb/DeviceWebHost.cpp
+    GUI/DeviceWeb/DeviceWebHost.hpp
+    GUI/DeviceWeb/DeviceWebBridge.cpp
+    GUI/DeviceWeb/DeviceWebBridge.hpp
+    GUI/DeviceWeb/DeviceWebModel.hpp
+    GUI/DeviceWeb/IViewModel.hpp
+    GUI/DeviceWeb/DeviceWebManager.cpp
+    GUI/DeviceWeb/DeviceWebManager.hpp
+    GUI/DeviceWeb/ViewModels/FilamentManager/FilamentManagerVM.cpp
+    GUI/DeviceWeb/ViewModels/FilamentManager/FilamentManagerVM.hpp
+)
+set(SLIC3R_GUI_SOURCES ${SLIC3R_GUI_SOURCES} PARENT_SCOPE)

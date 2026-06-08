@@ -1,0 +1,68 @@
+{
+    "type": "filament",
+    "name": "Bambu TPU 90A @BBL X1C",
+    "inherits": "Bambu TPU 90A @base",
+    "from": "system",
+    "setting_id": "GFSU03_00",
+    "instantiation": "true",
+    "filament_max_volumetric_speed": [
+        "2.8",
+        "2.8"
+    ],
+    "filament_retraction_length": [
+        "0.8",
+        "0.4"
+    ],
+    "filament_flow_ratio": [
+        "1.029",
+        "1"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
+    "filament_z_hop": [
+        "0.6",
+        "nil"
+    ],
+    "filament_z_hop_types": [
+        "Spiral Lift",
+        "nil"
+    ],
+    "include": [
+        "fdm_filament_template_direct_dual"
+    ],
+    "long_retractions_when_ec": [
+        "0",
+        "0"
+    ],
+    "nozzle_temperature": [
+        "225",
+        "225"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "225",
+        "225"
+    ],
+    "retraction_distances_when_ec": [
+        "0",
+        "0"
+    ],
+    "slow_down_layer_time": [
+        "0"
+    ],
+    "compatible_printers": [
+        "Bambu Lab X1 0.4 nozzle",
+        "Bambu Lab X1 0.6 nozzle",
+        "Bambu Lab X1 0.8 nozzle",
+        "Bambu Lab X1 Carbon 0.4 nozzle",
+        "Bambu Lab X1 Carbon 0.6 nozzle",
+        "Bambu Lab X1 Carbon 0.8 nozzle",
+        "Bambu Lab X1E 0.4 nozzle",
+        "Bambu Lab X1E 0.6 nozzle",
+        "Bambu Lab X1E 0.8 nozzle",
+        "Bambu Lab P1S 0.4 nozzle",
+        "Bambu Lab P1S 0.6 nozzle",
+        "Bambu Lab P1S 0.8 nozzle"
+    ]
+}

@@ -1,0 +1,113 @@
+#ifndef slic3r_ConfigManipulation_hpp_
+#define slic3r_ConfigManipulation_hpp_
+
+/*	 Class for validation config options
+ *	 and update (enable/disable) IU components
+ *
+ *	 Used for config validation for global config (Print Settings Tab)
+ *	 and local config (overrides options on sidebar)
+ * */
+
+#include "libslic3r/PrintConfig.hpp"
+#include "Field.hpp"
+#include <wx/string.h>
+#include <set>
+
+namespace Slic3r {
+
+class ModelConfig;
+class ObjectBase;
+
+namespace GUI {
+
+class ConfigManipulation
+{
+    bool                is_msg_dlg_already_exist{ false };
+    bool                is_BBL_Printer{false};
+    bool                m_alt_suboptimal_acknowledged{ false };
+
+    // function to loading of changed configuration
+    std::function<void()>                                       load_config = nullptr;
+    std::function<void (const std::string&, bool toggle, int opt_index)>   cb_toggle_field = nullptr;
+    std::function<void(const std::string &, bool toggle, int opt_index)> cb_toggle_line  = nullptr;
+    // callback to propagation of changed value, if needed
+    std::function<void(const std::string&, const boost::any&)>  cb_value_change = nullptr;
+    //BBS: change local config to const DynamicPrintConfig
+    const DynamicPrintConfig* local_config = nullptr;
+    //ModelConfig* local_config = nullptr;
+    wxWindow*    m_msg_dlg_parent {nullptr};
+
+    t_config_option_keys m_applying_keys;
+
+public:
+    ConfigManipulation(std::function<void()> load_config,
+        std::function<void(const std::string&, bool toggle, int opt_index)> cb_toggle_field,
+        std::function<void(const std::string&, bool toggle, int opt_index)> cb_toggle_line,
+        std::function<void(const std::string&, const boost::any&)>  cb_value_change,
+        //BBS: change local config to DynamicPrintConfig
+        const DynamicPrintConfig* local_config = nullptr,
+        wxWindow* msg_dlg_parent  = nullptr) :
+        load_config(load_config),
+        cb_toggle_field(cb_toggle_field),
+        cb_toggle_line(cb_toggle_line),
+        cb_value_change(cb_value_change),
+        m_msg_dlg_parent(msg_dlg_parent),
+        local_config(local_config) {}
+    ConfigManipulation() {}
+
+    ~ConfigManipulation() {
+        load_config = nullptr;
+        cb_toggle_field = nullptr;
+        cb_toggle_line = nullptr;
+        cb_value_change = nullptr;
+    }
+
+    bool    is_applying() const;
+
+    void    apply(DynamicPrintConfig* config, DynamicPrintConfig* new_config);
+    t_config_option_keys const &applying_keys() const;
+    void    toggle_field(const std::string& field_key, const bool toggle, int opt_index = -1);
+    void    toggle_line(const std::string& field_key, const bool toggle, int opt_index = -1);
+
+    // FFF print
+    void    update_print_fff_config(DynamicPrintConfig* config, const bool is_global_config = false, const bool is_plate_config = false);
+    void    toggle_print_fff_options(DynamicPrintConfig* config, int variant_index, const bool is_global_config = false);
+    void    apply_null_fff_config(DynamicPrintConfig *config, std::vector<std::string> const &keys, std::map<ObjectBase*, ModelConfig*> const & configs);
+
+    //BBS: FFF filament nozzle temperature range
+    void    check_nozzle_recommended_temperature_range(DynamicPrintConfig *config);
+    void    check_nozzle_temperature_range(DynamicPrintConfig* config);
+    void    check_nozzle_temperature_initial_layer_range(DynamicPrintConfig* config);
+    void    check_filament_max_volumetric_speed(DynamicPrintConfig *config);
+    void    check_filament_scarf_setting(DynamicPrintConfig *config);
+    void    check_chamber_temperature(DynamicPrintConfig* config);
+    void    set_is_BBL_Printer(bool is_bbl_printer) { is_BBL_Printer = is_bbl_printer; };
+    // SLA print
+    void    update_print_sla_config(DynamicPrintConfig* config, const bool is_global_config = false);
+    void    toggle_print_sla_options(DynamicPrintConfig* config);
+
+    int    show_spiral_mode_settings_dialog(bool is_object_config = false);
+
+private:
+    bool get_temperature_range(DynamicPrintConfig *config, int &range_low, int &range_high);
+};
+
+// 根据支撑材料和主体材料，构建推荐配置到 DynamicPrintConfig
+// 返回是否有推荐参数
+bool build_support_recommended_config(const std::string& support_material, const std::string& model_material, DynamicPrintConfig& out_config);
+
+// 根据用户已选择的支撑料和模型主体料，查询是否有推荐参数
+// support_filament_index: 用户选择的支撑料索引 (0-based)
+// model_material_type: 模型主体料类型 (如 "PLA")
+// model_material_name: 模型主体料名称 (如 "Bambu PLA Basic")
+// 返回 true 表示找到推荐参数，out_config 包含推荐配置
+bool query_support_recommended_params_for_combination(
+    int support_filament_index,
+    const std::string& model_material_type,
+    const std::string& model_material_name,
+    DynamicPrintConfig& out_config);
+
+} // GUI
+} // Slic3r
+
+#endif /* slic3r_ConfigManipulation_hpp_ */

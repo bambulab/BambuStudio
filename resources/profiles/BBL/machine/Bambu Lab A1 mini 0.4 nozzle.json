@@ -1,0 +1,92 @@
+{
+    "type": "machine",
+    "name": "Bambu Lab A1 mini 0.4 nozzle",
+    "inherits": "fdm_bbl_3dp_001_common",
+    "from": "system",
+    "setting_id": "GM020",
+    "instantiation": "true",
+    "nozzle_diameter": [
+        "0.4"
+    ],
+    "printer_model": "Bambu Lab A1 mini",
+    "printer_variant": "0.4",
+    "auxiliary_fan": "0",
+    "bed_exclude_area": [],
+    "best_object_pos": "0.7x0.5",
+    "default_filament_profile": [
+        "Bambu PLA Basic @BBL A1M"
+    ],
+    "default_print_profile": "0.20mm Standard @BBL A1M",
+    "enable_long_retraction_when_cut": "2",
+    "extruder_clearance_dist_to_rod": "56.5",
+    "extruder_clearance_height_to_lid": "180",
+    "extruder_clearance_height_to_rod": "25",
+    "extruder_clearance_max_radius": "73",
+    "grab_length": [
+        "17.4"
+    ],
+    "head_wrap_detect_zone": [
+        "156x152",
+        "180x152",
+        "180x180",
+        "156x180"
+    ],
+    "include": [
+        "Bambu Lab A1 mini 0.4 nozzle template machine_start_gcode",
+        "Bambu Lab A1 mini 0.4 nozzle template machine_end_gcode",
+        "Bambu Lab A1 mini 0.4 nozzle template layer_change_gcode",
+        "Bambu Lab A1 mini 0.4 nozzle template time_lapse_gcode",
+        "Bambu Lab A1 mini 0.4 nozzle template change_filament_gcode"
+    ],
+    "machine_load_filament_time": "28",
+    "machine_max_acceleration_z": [
+        "1500",
+        "1500"
+    ],
+    "machine_max_jerk_e": [
+        "3",
+        "3"
+    ],
+    "machine_max_jerk_z": [
+        "5",
+        "5"
+    ],
+    "machine_max_speed_z": [
+        "30",
+        "30"
+    ],
+    "machine_unload_filament_time": "34",
+    "nozzle_height": "4.76",
+    "nozzle_type": [
+        "stainless_steel"
+    ],
+    "nozzle_volume": [
+        "92"
+    ],
+    "printable_area": [
+        "0x0",
+        "180x0",
+        "180x180",
+        "0x180"
+    ],
+    "printable_height": "180",
+    "printer_structure": "i3",
+    "retract_lift_below": [
+        "179"
+    ],
+    "upward_compatible_machine": [
+        "Bambu Lab P1S 0.4 nozzle",
+        "Bambu Lab P1P 0.4 nozzle",
+        "Bambu Lab X1 0.4 nozzle",
+        "Bambu Lab X1 Carbon 0.4 nozzle",
+        "Bambu Lab X1E 0.4 nozzle",
+        "Bambu Lab A1 0.4 nozzle",
+        "Bambu Lab H2D 0.4 nozzle",
+        "Bambu Lab H2D Pro 0.4 nozzle",
+        "Bambu Lab H2S 0.4 nozzle",
+        "Bambu Lab P2S 0.4 nozzle",
+        "Bambu Lab H2C 0.4 nozzle",
+        "Bambu Lab X2D 0.4 nozzle",
+        "Bambu Lab A2L 0.4 nozzle"
+    ]
+}

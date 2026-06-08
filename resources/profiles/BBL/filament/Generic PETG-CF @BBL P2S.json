@@ -1,0 +1,62 @@
+{
+    "type": "filament",
+    "name": "Generic PETG-CF @BBL P2S",
+    "inherits": "Generic PETG-CF @base",
+    "from": "system",
+    "setting_id": "GFSG98_03",
+    "instantiation": "true",
+    "fan_cooling_layer_time": [
+        "30"
+    ],
+    "fan_max_speed": [
+        "40"
+    ],
+    "fan_min_speed": [
+        "5"
+    ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
+    "filament_max_volumetric_speed": [
+        "11.5",
+        "11.5"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
+    "first_x_layer_fan_speed": [
+        "0"
+    ],
+    "include": [
+        "fdm_filament_template_direct_dual"
+    ],
+    "long_retractions_when_ec": [
+        "0",
+        "0"
+    ],
+    "nozzle_temperature": [
+        "255",
+        "255"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "255",
+        "255"
+    ],
+    "overhang_fan_speed": [
+        "100"
+    ],
+    "retraction_distances_when_ec": [
+        "0",
+        "0"
+    ],
+    "compatible_printers": [
+        "Bambu Lab P2S 0.4 nozzle",
+        "Bambu Lab P2S 0.6 nozzle",
+        "Bambu Lab P2S 0.8 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\n"
+    ]
+}

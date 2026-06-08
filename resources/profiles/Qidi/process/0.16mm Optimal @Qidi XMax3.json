@@ -1,0 +1,11 @@
+{
+    "type": "process",
+    "setting_id": "GP_Qidi_033",
+    "name": "0.16mm Optimal @Qidi XMax3",
+    "from": "system",
+    "inherits": "0.16mm Optimal @Qidi X3",
+    "instantiation": "true",
+    "compatible_printers": [
+        "Qidi X-Max 3 0.4 nozzle"
+    ]
+}

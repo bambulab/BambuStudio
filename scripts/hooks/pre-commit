@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# 检查是否有 `wxColour(0x......)` 格式的代码
+if git diff --cached --name-only | xargs grep -nE 'wxColour\(0x[0-9A-Fa-f]{6}\)'; then
+    echo "❌ 错误：禁止直接使用 wxColour(0x......)，请改用 wxColour(\"#......\") 或 wxColour(r, g, b) 格式。"
+    echo "违规代码位置见上方输出。"
+    exit 1  # 阻止提交
+fi
+

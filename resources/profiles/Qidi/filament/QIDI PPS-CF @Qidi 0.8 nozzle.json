@@ -1,0 +1,27 @@
+{
+    "type": "filament",
+    "filament_id": "GFT02",
+    "setting_id": "GFST02_Qidi_08",
+    "name": "QIDI PPS-CF @Qidi 0.8 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "QIDI PPS-CF @Qidi",
+    "nozzle_temperature": [
+        "320"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "320"
+    ],
+    "pressure_advance": [
+        "0.008"
+    ],
+    "slow_down_min_speed": [
+        "20"
+    ],
+    "compatible_printers": [
+        "Qidi X-CF Pro 0.8 nozzle",
+        "Qidi X-Smart 3 0.8 nozzle",
+        "Qidi X-Plus 3 0.8 nozzle",
+        "Qidi X-Max 3 0.8 nozzle"
+    ]
+}

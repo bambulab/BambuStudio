@@ -1,0 +1,82 @@
+{
+    "type": "filament",
+    "name": "Bambu PETG-CF @BBL H2D 0.4 nozzle",
+    "inherits": "Bambu PETG-CF @base",
+    "from": "system",
+    "setting_id": "GFSG50_08",
+    "instantiation": "true",
+    "counter_coef_2": [
+        "0.00565"
+    ],
+    "counter_coef_3": [
+        "-0.0112"
+    ],
+    "counter_limit_max": [
+        "0.065"
+    ],
+    "fan_cooling_layer_time": [
+        "30"
+    ],
+    "fan_max_speed": [
+        "40"
+    ],
+    "fan_min_speed": [
+        "5"
+    ],
+    "filament_cooling_before_tower": [
+        "10",
+        "10"
+    ],
+    "filament_max_volumetric_speed": [
+        "11.5",
+        "11.5"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
+    "filament_prime_volume": [
+        "30"
+    ],
+    "filament_change_length": [
+        "4"
+    ],
+    "hole_coef_2": [
+        "-0.0121"
+    ],
+    "hole_coef_3": [
+        "0.145"
+    ],
+    "hole_limit_min": [
+        "0.068"
+    ],
+    "include": [
+        "fdm_filament_template_direct_dual"
+    ],
+    "nozzle_temperature": [
+        "255",
+        "255"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "255",
+        "255"
+    ],
+    "overhang_fan_speed": [
+        "100"
+    ],
+    "supertack_plate_temp": [
+        "60"
+    ],
+    "supertack_plate_temp_initial_layer": [
+        "60"
+    ],
+    "compatible_printers": [
+        "Bambu Lab H2D 0.4 nozzle"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\n"
+    ],
+    "filament_end_gcode": [
+        "; filament end gcode \n"
+    ]
+}

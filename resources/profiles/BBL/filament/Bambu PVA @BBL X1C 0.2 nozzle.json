@@ -1,0 +1,49 @@
+{
+    "type": "filament",
+    "name": "Bambu PVA @BBL X1C 0.2 nozzle",
+    "inherits": "Bambu PVA @base",
+    "from": "system",
+    "setting_id": "GFSS04_01",
+    "instantiation": "true",
+    "filament_flow_ratio": [
+        "1",
+        "1"
+    ],
+    "filament_max_volumetric_speed": [
+        "1",
+        "1"
+    ],
+    "filament_ramming_travel_time": [
+        "0",
+        "0"
+    ],
+    "include": [
+        "fdm_filament_template_direct_dual"
+    ],
+    "long_retractions_when_ec": [
+        "0",
+        "0"
+    ],
+    "nozzle_temperature": [
+        "240",
+        "240"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "240",
+        "240"
+    ],
+    "retraction_distances_when_ec": [
+        "0",
+        "0"
+    ],
+    "slow_down_min_speed": [
+        "20",
+        "20"
+    ],
+    "compatible_printers": [
+        "Bambu Lab X1 Carbon 0.2 nozzle",
+        "Bambu Lab X1E 0.2 nozzle",
+        "Bambu Lab X1 0.2 nozzle",
+        "Bambu Lab P1S 0.2 nozzle"
+    ]
+}

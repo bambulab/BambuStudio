@@ -1,0 +1,78 @@
+
+/*----Login----*/
+#LoginBtn
+{
+	display:none;
+}
+
+#Icon1
+{
+	margin-right: 0px;
+}
+
+#UserAvatarIcon
+{
+	height: 36px;
+}
+
+#UserName
+{
+	display: none;
+}
+
+#LogoutBtn
+{
+	display: none;
+}
+
+.BtnItem
+{
+	padding: 0px;
+	justify-content:center;
+}
+
+.BtnText
+{
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	display: none;
+}
+
+.BtnIcon
+{
+	margin:0px;
+}
+
+#NoPluginTip
+{
+	display:none!important;
+}
+/*-----Left Menu-------*/
+.JumpIcon
+{
+	display: none!important;
+}
+
+.BtnNewIcon
+{
+	display: none!important;
+}
+
+.BtnIcon-Right
+{
+	display: none!important;
+}
+
+/*-----Hide Button-----*/
+#HideBtn
+{
+	transform: scaleX(-1);
+	border-radius: 0px 4px 4px 0px;
+	border-left: 0px solid rgba(238, 238, 238, 1);
+	border-right: 1px solid rgba(238, 238, 238, 1);
+}
+
+.auto-hide {
+    display: none!important;
+  }

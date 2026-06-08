@@ -1,0 +1,57 @@
+#ifndef DEVICEWEBHOST_H
+#define DEVICEWEBHOST_H
+
+#include <memory>
+#include <string>
+
+#include <wx/panel.h>
+
+#include "DeviceHttpServer.hpp"
+#include "DeviceWebBridge.hpp"
+#include "DeviceWebManager.hpp"
+#include "ViewModels/FilamentManager/FilamentManagerVM.hpp"
+#include "slic3r/GUI/PrinterWebView.hpp"
+
+namespace Slic3r {
+namespace GUI {
+
+enum class DeviceWebHostMode {
+    FilamentManager,
+    AllForDebug
+};
+
+class DeviceWebHost : public wxPanel {
+public:
+    explicit DeviceWebHost(wxWindow* parent, DeviceWebHostMode mode, std::string initial_path = {});
+    ~DeviceWebHost() override;
+
+    void LoadUrl();
+    void NavigateTo(const std::string& path);
+
+    void NotifyFilamentSessionState();
+    void NotifyFilamentMachineChanged();
+
+    void on_sys_color_changed();
+    void msw_rescale();
+
+    wxWebView* GetWebView() const {
+        if (m_device_webview) return m_device_webview->GetWebView();
+        return nullptr;
+    }
+
+private:
+    wxString BuildUrl(const std::string& path) const;
+
+private:
+    DeviceWebHostMode                 m_mode{ DeviceWebHostMode::AllForDebug };
+    std::string                       m_initial_path;
+    PrinterWebView*                   m_device_webview{ nullptr }; // owned by wx parent
+    std::unique_ptr<DeviceHttpServer> m_device_http_server;
+    std::unique_ptr<DeviceWebBridge>  m_device_web_bridge;
+    std::unique_ptr<DeviceWebManager> m_device_web_mgr;
+};
+
+} // namespace GUI
+} // namespace Slic3r
+
+#endif // DEVICEWEBHOST_H

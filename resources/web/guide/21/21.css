@@ -1,0 +1,152 @@
+
+#Content
+{
+	overflow-y:auto;
+}
+
+.BlockBanner
+{
+	padding: 0px;
+	border-bottom:#00AE42 1px solid;
+	width: 100%;
+	display: flex;
+	justify-content:space-between;
+	align-items: center;
+}
+
+.BannerBtns
+{
+	text-align: center;
+	margin-right: 10px;
+}
+
+.BannerBtns .SmallBtn,.SmallBtn_Green
+{
+	margin-left:6px;
+}
+
+.BlockBanner  a
+{
+	display: inline-block;
+	background-color:#00AE42;
+	line-height: 40px;
+	height: 40px;
+	padding: 0px 24px;
+	color: #fff;
+}
+
+.PrinterArea
+{
+	padding: 0px;
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.PrinterBlock
+{
+	width: 160px;
+	text-align: center;
+	padding: 8px;
+}
+
+.PImg
+{
+	position:relative;
+	background-color: #EEEEEE;
+	width:160px;
+	height: 160px;	
+}
+
+.ModelCheckBox
+{
+	position: absolute;
+	width: 20px;
+	height: 20px;
+	right: 10px;
+	top: 10px;
+	cursor: pointer;
+	background-image: url("../img/emptycheck.svg");
+	background-size: cover;
+}
+
+.ModelCheckBox.ModelCheckBoxSelected
+{
+	background-image: url("../img/greencheck.svg");
+}
+
+img.ModelThumbnail
+{
+	width:  100%;
+	height: 100%;
+}
+
+.PName
+{
+	font-weight: 700;
+	text-align: left;
+}
+
+.pNozzel
+{
+	display: none;
+	align-items: center;
+	justify-content:flex-start;
+	color: #5A5A5A;	
+	padding-left: 10px;
+}
+
+.pNozzel input
+{
+	vertical-align: middle;
+	margin-right: 5px;
+}
+
+
+/*-----Notice-----*/
+#NoticeMask
+{
+	background-color: #000;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	opacity: 0.05;
+	display: none;
+}
+
+#NoticeBody
+{
+	display: none;
+	width: 400px;
+	border-width: 1px;
+	border-style: solid;
+	border-radius: 4px;
+	background-color: inherit;	
+	position: absolute;
+	left: 50%;
+	top: 200px;
+	margin-left: -200px;
+}
+
+#NoticeBar
+{
+	background-color:#00B35C;
+	height: 40px;
+	line-height: 40px;
+	color: #fff;
+	text-align: center;
+}
+
+#NoticeContent
+{
+	padding: 4mm 10mm;	
+}
+
+
+#NoticeBtns
+{
+	margin-top: 4mm;
+	display: flex;
+	justify-content:space-around;
+}

@@ -1,0 +1,26 @@
+{
+    "type": "machine",
+    "setting_id": "GM_CREALITY_001",
+    "name": "Creality CR-10 Max 0.4 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "fdm_creality_common",
+    "nozzle_diameter": [
+        "0.4"
+    ],
+    "printer_model": "Creality CR-10 Max",
+    "default_print_profile": "0.20mm Standard @Creality CR10Max",
+    "extruder_type": [
+        "Bowden"
+    ],
+    "printable_area": [
+        "0x0",
+        "450x0",
+        "450x450",
+        "0x450"
+    ],
+    "printable_height": "470",
+    "retract_lift_below":[
+        "469"
+    ]
+}

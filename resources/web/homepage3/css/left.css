@@ -1,0 +1,407 @@
+*
+{
+	padding:0px;
+	border: 0px;
+	margin: 0px;
+    font-family: "system-ui", "Segoe UI", Roboto, Oxygen, Ubuntu, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-sans;
+	border-color: #D7D7D7;
+	user-select: none;
+}
+
+html, body {
+	height: 100%;
+	width: 100%;
+    margin: 0px;
+    padding: 0px;
+	line-height: 20px;
+    font-size: 16px;	
+}
+
+.ZScrol::-webkit-scrollbar {/*滚动条整体样式*/
+    width: 12px;     /*高宽分别对应横竖滚动条的尺寸*/
+    height: 1px;
+	padding: 2px;
+}
+
+.ZScrol::-webkit-scrollbar-thumb {/*滚动条里面小方块*/
+    border-radius: 6px;
+    -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+	box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+    background-color: #AAAAAA;
+}
+
+.ZScrol::-webkit-scrollbar-track {/*滚动条里面轨道*/
+        -webkit-box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+	    box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+        border-radius: 10px;
+        background: #EDEDED;
+}
+
+
+.RedFont
+{
+	font-size:12px;
+	color: #F07E4A;		
+}
+
+.LinkBtn
+{
+	font-size:12px;
+	color: #00AE42;	
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+.LinkBtn:hover
+{
+	text-decoration:underline;
+}
+
+/*------------------*/
+#DebugText
+{
+	height:30px;
+}
+
+/*------------------*/
+body
+{
+	display:flex;
+	justify-content: flex-start;
+}
+
+#LeftBoard
+{
+	border-right-width: 1px;
+	border-right-style: solid;
+	width: calc(100% - 1px);
+	height: 100%;
+}
+
+#LoginArea
+{
+	height: 90px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: nowrap;
+	position: relative;
+	width:100%;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+
+#Login1
+{
+	height:36px;
+	line-height: 36px;
+	display: flex;
+	justify-content: center;
+	user-select: none;
+	cursor:pointer;
+}
+
+#LoginBtn
+{
+	display: flex;
+	align-items: center;
+	width: 120px;
+	word-wrap: break-word;
+	line-height: 1.2;
+	flex-wrap: wrap;
+	white-space: normal;
+}
+
+#Login1:hover #LoginBtn
+{
+	transform: scale(1.05);
+}
+
+
+#NoPluginTip
+{
+	margin-top: 5px;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	padding-top: 0px;
+	padding-bottom: 0px;
+	padding-left: 5px;
+	padding-right: 5px;
+	border-radius: 4px;
+	border: 1px solid var(--remind, #FF6F00);
+	background: rgba(255, 111, 0, 0.15);
+}
+
+
+#DownloadBtn
+{
+	color:#0A00FF;
+}
+
+
+#Icon1
+{
+	margin-right: 10px;	
+}
+
+#BBLIcon
+{
+	height:36px;
+}
+
+#Login2
+{
+	display: none;
+	align-items: center;
+	text-align: center;
+	justify-content: center;
+	width: 95%;
+	cursor: pointer;
+}
+
+#UserAvatarIcon
+{
+	height: 36px;
+}
+
+#UserName
+{
+	white-space: normal;
+	text-overflow: ellipsis;
+	text-align: left;
+	overflow: hidden; 
+	margin-left: 12px;
+	word-wrap: break-word;
+  line-height: 1.2;
+}
+
+.PullBtn
+{
+	margin-left: 10px;
+	width: 16px;
+	height: 16px;
+	background-image: url('../img/left_pull_btn.svg');
+	background-size: cover;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+#LogoutBtn
+{
+	font-size: 14px;
+	height: 24px;
+	line-height: 24px;
+	color: #00B731;
+	border: 1px solid  #00AE42;
+	border-radius: 4px;
+	cursor: pointer;
+	margin-top: 5px;
+	padding: 0px 8px;
+}
+
+#LogoutBtn:hover
+{
+	background: #00B731;
+	color: #fff;
+}
+
+
+/*------------------*/
+#BtnArea
+{
+	height: calc(100% - 91px);
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.BtnItem
+{
+  padding-left: 20px;	
+	padding-right: 20px;
+	height:50px;
+	line-height: 50px;
+	display: flex;
+	justify-content:flex-start;
+	align-items: center;
+	cursor: pointer;
+	position: relative;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.TopDivider
+{
+	border-top-width: 1px;
+	border-top-style: solid;
+}
+
+.BtnItem[menu="online"]
+{
+	display: none;
+}
+
+.BtnItem[menu="makerlab"]
+{
+	display: none;
+}
+
+.BtnItem[menu="printhistory"]
+{
+	display: none;
+}
+
+.BtnItem:hover
+{
+	background-color: #E0FCEB;
+}
+
+.BtnItemSelected
+{
+	background-color: #E0FCEB;
+}
+
+.BtnIcon
+{
+	margin-right:6px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.BtnIcon-Right
+{
+	display: block;
+	margin-left: auto;
+}
+
+.BtnText
+{
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.LeftIcon
+{
+	width: 24px;
+	height: 24px;
+}
+
+.RightIcon
+{
+	width: 15px;
+	height: 15px;
+}
+
+.BtnNewIcon
+{
+	height: 12px;
+	line-height: 12px;
+	font-size: 10px;
+	background-color: #00AE42;
+	color: white;
+	padding: 2px 4px;
+	position: absolute;
+	top: calc(50% - 8px);
+	right: 12px;
+	display: none;
+}
+
+/*dropdown*/
+#DropdownWrapper {
+	visibility: hidden;
+	width: 95%;
+	border-radius: 8px;
+	overflow: hidden;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+	position: absolute;
+	z-index: 1;
+	top: 70%;
+	left: 3px;
+}
+.dropdown-header {
+	display: flex;
+	align-items: center;
+	padding: 12px;
+}
+.avatar {
+	width: 38px;
+	height: 38px;
+	min-width: 38px;
+	margin-right: 16px;
+	background-image: url('../img/left_home_account.svg');
+	background-size: cover;
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+.user-details {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+.UserName {
+	font-size: 15px;
+	font-weight: bold;
+	text-align: left;
+}
+.UserEmail {
+	font-size: 10px;
+	white-space: normal;
+	word-break: break-word;
+	overflow: hidden;
+	max-width: 92%;
+	text-align: left;
+	line-height: 1.4;
+}
+.DropdownFooter {
+	padding: 10px;
+	display: flex;
+	align-items: center;
+	cursor: pointer;
+	transition: background 0.2s;
+}
+
+.LogoutIcon {
+	width: 15px;
+	height: 15px;
+	background-image: url('../img/left_logout_icon.svg');
+	background-size: cover;
+	background-position: center center;
+	background-repeat: no-repeat;
+	margin-right: 8px;
+}
+.LogoutBtn
+{
+	font-size: 13px;
+}
+
+
+/*-----Hide Button-----*/
+#HideBtn
+{
+	position: absolute;
+	height: 60px;
+	width: 12px;
+	right: 0px;
+	top: calc(50% - 30px);
+	cursor: pointer;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-image: url('../img/arrow_dark_left.svg');
+    border-left: 1px solid rgba(238, 238, 238, 1);
+	border-top: 1px solid rgba(238, 238, 238, 1);
+	border-bottom: 1px solid rgba(238, 238, 238, 1);
+	border-radius: 4px 0px 0px 4px;
+	z-index: 99;
+}
+
+#HideBtn:hover
+{
+	background-color: rgba(238, 238, 238, 1);
+}
+

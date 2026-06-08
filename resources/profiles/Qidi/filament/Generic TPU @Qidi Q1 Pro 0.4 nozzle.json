@@ -1,0 +1,15 @@
+{
+    "type": "filament",
+    "filament_id": "GFU99",
+    "setting_id": "GFSU99_Qidi_01",
+    "name": "Generic TPU @Qidi Q1 Pro 0.4 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Generic TPU @Qidi",
+    "fan_cooling_layer_time": [
+        "60"
+    ],
+    "compatible_printers": [
+        "Qidi Q1 Pro 0.4 nozzle"
+    ]
+}

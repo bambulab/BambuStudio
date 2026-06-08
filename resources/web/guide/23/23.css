@@ -1,0 +1,225 @@
+#leftBlock {
+  flex: 1;
+  padding-left: 9px;
+  padding-right: 9px;
+  border-right: 1px solid #EEEEEE;
+}
+
+#rightBlock {
+  flex: 2;
+  padding-left: 15px;
+  padding-right: 9px;
+}
+
+.CNameBlock {
+  font-weight: 700;
+  height: 28px;
+}
+
+.inlineAlign {
+  display: inline-block;
+  vertical-align: middle;
+  line-height:normal;
+}
+
+.CNameIcon {
+  width: 16px;
+  height: 16px;
+}
+
+.CArrow
+{
+  width: 20px;
+  height: 20px;
+  background-image: url(../img/pull.svg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  float: right;
+  transition: transform 0.3s ease;
+  transform: rotate(90deg);
+}
+.CArrow.active {
+  transform: rotate(0deg);
+}
+
+.CValues {
+  padding: 8px;
+  background-color: #F8F8F8;
+}
+
+input {
+	margin-right: 8px;
+	vertical-align: middle;
+  width: 16px;
+  height: 16px;
+}
+
+.inputIndent { margin-left: 8px;}
+
+.checkboxText {
+  width: 212px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+/* right block */
+.SelectAll {
+  width: 100%;
+  text-align: right;
+  font-weight: 700;
+}
+
+#ItemBlockArea {
+  column-count: 2;
+  column-gap: 16px;
+  padding-top: 16px;
+}
+
+.cols > *{
+  break-inside: avoid;
+}
+
+
+#NoticeMask
+{
+	background-color: #000;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	opacity: 0.05;
+	display: none;
+}
+
+#NoticeBody
+{
+	display: none;
+	width: 500px;
+	border-width: 1px;
+	border-style: solid;
+	border-radius: 4px;
+	background-color: inherit;	
+	position: absolute;
+	left: 50%;
+	top: 200px;
+	margin-left: -250px;
+}
+
+#NoticeBar
+{
+	background-color:#00B35C;
+	height: 40px;
+	line-height: 40px;
+	color: #fff;
+	text-align: center;
+}
+
+#NoticeContent
+{
+	padding: 4mm 10mm;	
+}
+
+
+#NoticeBtns
+{
+	margin-top: 4mm;
+	display: flex;
+	justify-content:space-around;
+}
+
+#SystemFilamentsArea
+{
+	display: none;
+	flex-direction: row;
+}
+
+#CFilament_Btn_Area
+{
+	display: flex;
+	align-items: center;
+	height: 30px;
+}
+
+#Title
+{
+	margin: 0px 40px;
+	border-bottom: 1px solid #000;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+}
+
+#Title div
+{
+	cursor: pointer;
+	font-size: 24px;
+}
+
+#Title div.TitleSelected
+{
+	height: calc(100% - 6px);
+	display: flex;
+	align-items: center;
+	border-bottom: 6px solid #00AE42;
+}
+
+#Title div.TitleUnselected
+{
+	height: 100%;
+	display: flex;
+	align-items: center;
+	color: #000;
+}
+
+#CustomFilamentsArea
+{
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+#CFilament_List
+{
+	display:flex;
+	overflow-x:auto;
+	flex-wrap:wrap;
+	flex-direction: column;
+	justify-content:flex-start;
+	align-items: flex-start;
+	align-content:flex-start;
+	line-height: 32px;
+
+	height: 100%;
+}
+
+.CFilament_Item
+{
+	display: flex;
+	align-items: center;
+	margin-right: 30px;
+}
+
+.CFilament_Name
+{
+	width: 220px;
+	overflow: hidden;
+    white-space: nowrap; /* 防止文字换行 */
+    text-overflow: ellipsis; /* 超出部分显示省略号 */
+}
+
+.CFilament_EditBtn
+{
+	cursor: pointer;
+	width: 20px;
+	height: 20px;
+}
+
+.CFilament_EditBtn:hover
+{
+	
+}

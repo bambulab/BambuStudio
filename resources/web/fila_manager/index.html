@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>耗材管理</title>
+    <link rel="stylesheet" href="index.css">
+    <script src="../include/jquery-2.1.1.min.js"></script>
+    <script src="../include/globalapi.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Left sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <div class="nav-item active" data-view="my">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" fill="currentColor"/><rect x="9" y="2" width="5" height="5" rx="1" fill="currentColor"/><rect x="2" y="9" width="5" height="5" rx="1" fill="currentColor"/><rect x="9" y="9" width="5" height="5" rx="1" fill="currentColor"/></svg>
+                <span>耗材列表</span>
+            </div>
+            <div class="nav-item" data-view="stats">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2"/><path d="M8 4v4l2.5 2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                <span>统计</span>
+            </div>
+            <div class="nav-item" data-view="archived">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="4" rx="1" fill="currentColor"/><path d="M2 7h12v6a1 1 0 01-1 1H3a1 1 0 01-1-1V7z" fill="currentColor" opacity=".6"/><rect x="6" y="9" width="4" height="1.5" rx=".5" fill="currentColor"/></svg>
+                <span>存档</span>
+            </div>
+        </nav>
+
+        <!-- Main content -->
+        <div class="main-content">
+            <!-- Statistics View -->
+            <div class="stats-view" id="stats-view" style="display:none;">
+                <div class="stats-row-top">
+                    <div class="stats-top-left">
+                        <div class="stats-cards">
+                            <div class="stat-card">
+                                <div class="stat-value" id="stat-total-value">$ 0</div>
+                                <div class="stat-footer"><span class="stat-label">总价值</span><span class="stat-change up" id="stat-value-change">+20%</span><span class="stat-compare">同比上月</span></div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="stat-total-count">0</div>
+                                <div class="stat-footer"><span class="stat-label">总耗材数</span><span class="stat-change down" id="stat-count-change">-20%</span><span class="stat-compare">同比上月</span></div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value" id="stat-color-count">0</div>
+                                <div class="stat-footer"><span class="stat-label">耗材颜色</span><span class="stat-change up" id="stat-color-change">+20%</span><span class="stat-compare">同比上月</span></div>
+                            </div>
+                        </div>
+                        <div class="stats-panel">
+                            <div class="panel-header"><span>耗材详情</span><button class="panel-more">···</button></div>
+                            <div class="panel-body pie-row">
+                                <div class="pie-block"><canvas id="pie-type" width="120" height="120"></canvas><div class="pie-legend" id="legend-type"></div></div>
+                                <div class="pie-block"><canvas id="pie-color" width="120" height="120"></canvas><div class="pie-legend" id="legend-color"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stats-reminders">
+                        <div class="panel-header"><span>提醒事项</span></div>
+                        <div class="reminder-tabs" id="reminder-tabs">
+                            <div class="reminder-tab active" data-rtab="low">低余量</div>
+                            <div class="reminder-tab" data-rtab="dry">需烘干</div>
+                            <div class="reminder-tab" data-rtab="empty">已用尽</div>
+                        </div>
+                        <div class="reminder-list" id="reminder-list"></div>
+                    </div>
+                </div>
+                <div class="stats-row-mid">
+                    <div class="stats-panel">
+                        <div class="panel-header"><span>耗材使用</span><div class="panel-controls"><select id="heatmap-month" class="panel-select"></select><button class="panel-more">···</button></div></div>
+                        <div class="panel-body"><div class="heatmap-wrap" id="heatmap-wrap"></div></div>
+                    </div>
+                    <div class="stats-panel">
+                        <div class="panel-header"><span>耗材消耗情况</span><div class="panel-controls"><select id="line-range" class="panel-select"><option value="7">过去7天</option><option value="30">过去30天</option></select><button class="panel-more">···</button></div></div>
+                        <div class="panel-body"><canvas id="chart-line" width="460" height="180"></canvas></div>
+                    </div>
+                </div>
+                <div class="stats-panel stats-bar-panel">
+                    <div class="panel-header"><span>消耗量</span><div class="panel-controls"><select id="bar-range" class="panel-select"><option value="7">过去7天</option><option value="30">过去30天</option></select><button class="panel-more">···</button></div></div>
+                    <div class="panel-body"><canvas id="chart-bar" width="900" height="200"></canvas></div>
+                </div>
+            </div>
+
+            <!-- List View -->
+            <div class="list-view" id="list-view">
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <div class="tab-group" id="tab-group">
+                        <div class="tab-pill active" data-tab="all">全部</div>
+                        <div class="tab-pill" data-tab="favorite">收藏</div>
+                        <div class="tab-pill" data-tab="ams">AMS</div>
+                    </div>
+                    <div class="toolbar-divider"></div>
+                    <div class="filter-group" id="filter-group">
+                        <div class="filter-btn" data-filter="brand">品牌<svg width="14" height="14" viewBox="0 0 14 14"><path d="M4 6l3 3 3-3" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
+                        <div class="filter-btn" data-filter="material_type">类型<svg width="14" height="14" viewBox="0 0 14 14"><path d="M4 6l3 3 3-3" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
+                        <div class="filter-btn" data-filter="series">系列<svg width="14" height="14" viewBox="0 0 14 14"><path d="M4 6l3 3 3-3" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
+                        <div class="filter-btn" data-filter="status">状态<svg width="14" height="14" viewBox="0 0 14 14"><path d="M4 6l3 3 3-3" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
+                    </div>
+                </div>
+                <div class="toolbar-right">
+                    <div class="search-box">
+                        <svg class="search-icon" width="12" height="12" viewBox="0 0 12 12"><circle cx="5" cy="5" r="3.5" stroke="currentColor" stroke-width="1.2" fill="none"/><line x1="7.5" y1="7.5" x2="10.5" y2="10.5" stroke="currentColor" stroke-width="1.2"/></svg>
+                        <input type="text" id="search-input" placeholder="搜索耗材类型">
+                    </div>
+                    <button class="btn btn-outline btn-delete" id="btn-delete" disabled>
+                        <svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 4h8l-.7 8H3.7L3 4zM5.5 2h3M2 4h10" stroke="currentColor" stroke-width="1" fill="none"/></svg>
+                        删除
+                    </button>
+                    <button class="btn btn-outline" id="btn-group">
+                        <svg width="14" height="14" viewBox="0 0 14 14"><rect x="1" y="1" width="5" height="5" rx=".5" stroke="currentColor" fill="none"/><rect x="8" y="1" width="5" height="5" rx=".5" stroke="currentColor" fill="none"/><rect x="1" y="8" width="5" height="5" rx=".5" stroke="currentColor" fill="none"/><rect x="8" y="8" width="5" height="5" rx=".5" stroke="currentColor" fill="none"/></svg>
+                        分组
+                    </button>
+                    <button class="btn btn-primary" id="btn-add">
+                        <svg width="14" height="14" viewBox="0 0 14 14"><line x1="7" y1="2" x2="7" y2="12" stroke="currentColor" stroke-width="1.5"/><line x1="2" y1="7" x2="12" y2="7" stroke="currentColor" stroke-width="1.5"/></svg>
+                        添加耗材
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter dropdown (shared, repositioned per button) -->
+            <div class="filter-dropdown" id="filter-dropdown" style="display:none;">
+                <div class="filter-dropdown-list" id="filter-dropdown-list"></div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-wrap">
+                <table class="spool-table" id="spool-table">
+                    <thead>
+                        <tr>
+                            <th class="col-check"><input type="checkbox" id="check-all"></th>
+                            <th class="col-filament sortable" data-sort="brand">耗材<span class="sort-icon"></span></th>
+                            <th class="col-remain sortable" data-sort="remain_percent">余量<span class="sort-icon"></span></th>
+                            <th class="col-status sortable" data-sort="status">状态<span class="sort-icon"></span></th>
+                            <th class="col-price sortable" data-sort="unit_price">单价 (/kg)<span class="sort-icon"></span></th>
+                            <th class="col-actions">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="spool-tbody"></tbody>
+                </table>
+                <div class="empty-state" id="empty-state" style="display:none;">
+                    <div class="empty-illustration">
+                        <svg width="120" height="90" viewBox="0 0 120 90" fill="none">
+                            <rect x="10" y="30" width="100" height="50" rx="6" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+                            <path d="M20 30 C20 20, 40 10, 60 10 C80 10, 100 20, 100 30" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none"/>
+                            <rect x="35" y="45" width="50" height="8" rx="2" fill="rgba(255,255,255,0.08)"/>
+                            <rect x="45" y="60" width="30" height="6" rx="2" fill="rgba(255,255,255,0.06)"/>
+                        </svg>
+                    </div>
+                    <p>暂无数据</p>
+                </div>
+            </div>
+            <div class="pagination" id="pagination"></div>
+            </div><!-- /list-view -->
+        </div>
+    </div>
+
+    <!-- Add/Edit Dialog -->
+    <div class="dialog-overlay" id="dialog-overlay" style="display:none;">
+        <div class="dialog">
+            <div class="dialog-header">
+                <h3 id="dialog-title">添加耗材</h3>
+                <button class="dialog-close" id="dialog-close">&times;</button>
+            </div>
+
+            <div class="dialog-tabs">
+                <div class="dialog-tab active" data-mode="manual">手动添加</div>
+                <div class="dialog-tab" data-mode="ams">从 AMS 上读取</div>
+            </div>
+
+            <!-- AMS mode content -->
+            <div class="ams-section" id="ams-section" style="display:none;">
+                <div class="form-section-title">选择设备</div>
+
+                <!-- Has device: device selector + AMS slots -->
+                <div class="ams-device-area" id="ams-device-area" style="display:none;">
+                    <div class="ams-device-row">
+                        <div class="ams-device-select-wrap">
+                            <svg class="ams-dev-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.2"/><circle cx="11.5" cy="8" r="1.5" fill="currentColor"/></svg>
+                            <select id="ams-device-select"></select>
+                        </div>
+                        <div class="ams-unit-icons" id="ams-unit-icons"></div>
+                    </div>
+                    <div class="ams-slots" id="ams-slots"></div>
+                </div>
+
+                <!-- No device / no AMS empty state -->
+                <div class="ams-empty" id="ams-empty" style="display:none;">
+                    <div class="ams-empty-illustration">
+                        <svg width="194" height="180" viewBox="0 0 194 180" fill="none">
+                            <rect x="17" y="40" width="160" height="100" rx="8" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+                            <path d="M37 40c0-16 28-30 60-30s60 14 60 30" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none"/>
+                            <rect x="47" y="60" width="100" height="12" rx="3" fill="rgba(255,255,255,0.06)"/>
+                            <rect x="47" y="80" width="100" height="12" rx="3" fill="rgba(255,255,255,0.04)"/>
+                            <rect x="47" y="100" width="60" height="12" rx="3" fill="rgba(255,255,255,0.03)"/>
+                            <path d="M57 150h80" stroke="rgba(255,255,255,0.1)" stroke-width="1.2"/>
+                        </svg>
+                    </div>
+                    <p class="ams-empty-text">正在获取设备信息…</p>
+                </div>
+            </div>
+
+            <div class="dialog-body" id="dialog-body">
+                <div class="form-section-title">耗材信息</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>品牌 <span class="required">*</span></label>
+                        <select id="form-brand"><option value="">选择品牌</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>类型 <span class="required">*</span></label>
+                        <select id="form-type"><option value="">选择类型</option></select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>系列 <span class="required">*</span></label>
+                    <select id="form-series"><option value="">选择系列</option></select>
+                </div>
+
+                <div class="form-group">
+                    <label>颜色 <span class="required">*</span></label>
+                    <div class="color-palette" id="color-palette"></div>
+                    <input type="hidden" id="form-color-code" value="">
+                    <input type="text" id="form-color-name" placeholder="颜色名称" class="mt-8">
+                </div>
+
+                <div class="form-section-title">重量 <span class="required">*</span></div>
+                <div class="weight-box">
+                    <div class="form-row form-row-3">
+                        <div class="form-group">
+                            <label>总重量</label>
+                            <div class="input-suffix"><input type="number" id="form-total-weight" value="1000"><span>g</span></div>
+                        </div>
+                        <div class="form-group form-separator">-</div>
+                        <div class="form-group">
+                            <label>料盘重量</label>
+                            <div class="input-suffix"><input type="number" id="form-spool-weight" value="250"><span>g</span></div>
+                        </div>
+                        <div class="form-group form-separator">=</div>
+                        <div class="form-group">
+                            <label>净重</label>
+                            <div class="input-suffix"><input type="number" id="form-net-weight" value="750" readonly><span>g</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced settings -->
+                <div class="advanced-toggle" id="advanced-toggle">高级设置 <svg width="12" height="12" viewBox="0 0 12 12"><path d="M3 5l3 3 3-3" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
+                <div class="advanced-section" id="advanced-section" style="display:none;">
+                    <div class="form-section-title">基础参数</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>有什么参数要放出来放在这里</label>
+                            <select id="form-param1"><option value="">选择品牌</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label>参数2</label>
+                            <select id="form-param2"><option value="">选择品牌</option></select>
+                        </div>
+                    </div>
+
+                    <div class="form-section-title">状态提醒</div>
+                    <div class="form-group">
+                        <label>余量提醒</label>
+                        <select id="form-remain-alert">
+                            <option value="0">选择余量</option>
+                            <option value="10">≦ 10g</option>
+                            <option value="20">≦ 20g</option>
+                            <option value="30">≦ 30g</option>
+                            <option value="50">≦ 50g</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>最近一次烘干日期</label>
+                            <input type="date" id="form-dry-date">
+                        </div>
+                        <div class="form-group">
+                            <label>烘干提醒</label>
+                            <select id="form-dry-reminder">
+                                <option value="0">选择烘干提醒周期</option>
+                                <option value="7">每周</option>
+                                <option value="14">每两周</option>
+                                <option value="30">每月</option>
+                                <option value="60">每两月</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-section-title">其他</div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex:0 0 120px">
+                            <label>价格</label>
+                            <select id="form-currency">
+                                <option value="">选择币种</option>
+                                <option value="CNY">CNY</option>
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="JPY">JPY</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <div class="input-suffix"><input type="number" id="form-price" placeholder="输入单价"><span>/kg</span></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>备注</label>
+                        <div class="textarea-wrap">
+                            <textarea id="form-note" maxlength="50" rows="2" placeholder="输入备注"></textarea>
+                            <span class="char-count" id="char-count">0/50</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dialog-footer">
+                <div class="quantity-control" id="quantity-control">
+                    <button class="qty-btn" id="qty-minus">-</button>
+                    <span class="qty-value" id="qty-value">1</span>
+                    <span class="qty-unit">卷</span>
+                    <button class="qty-btn" id="qty-plus">+</button>
+                </div>
+                <div class="dialog-actions">
+                    <button class="btn btn-outline" id="dialog-cancel">取消</button>
+                    <button class="btn btn-primary" id="dialog-confirm">添加</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Dialog -->
+    <div class="detail-overlay" id="detail-overlay" style="display:none;">
+        <div class="detail-dialog">
+            <div class="detail-header">
+                <h3>耗材详情</h3>
+                <div class="detail-nav">
+                    <button class="detail-nav-btn" id="det-prev" title="上一个">
+                        <svg width="14" height="14" viewBox="0 0 14 14"><path d="M8.5 3L4.5 7l4 4" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+                        <span>上一个</span>
+                    </button>
+                    <button class="detail-nav-btn" id="det-next" title="下一个">
+                        <span>下一个</span>
+                        <svg width="14" height="14" viewBox="0 0 14 14"><path d="M5.5 3L9.5 7l-4 4" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+                    </button>
+                </div>
+                <button class="dialog-close" id="det-close">&times;</button>
+            </div>
+
+            <div class="detail-spool-banner" id="det-banner">
+                <div class="spool-icon" id="det-spool-icon" style="--spool-color:#888"><div class="color-indicator"></div></div>
+                <div class="detail-spool-info">
+                    <div class="detail-spool-name">
+                        <svg width="12" height="12" viewBox="0 0 12 12"><rect x="1" y="1" width="10" height="10" rx="1.5" fill="currentColor" opacity="0.5"/></svg>
+                        <span id="det-spool-name">—</span>
+                        <span class="detail-entry-tag" id="det-entry-tag"></span>
+                    </div>
+                    <div class="detail-spool-sub" id="det-spool-sub">—</div>
+                </div>
+            </div>
+
+            <div class="detail-tabs" id="det-tabs">
+                <div class="detail-tab active" data-dtab="info">耗材信息</div>
+                <div class="detail-tab" data-dtab="usage">使用记录</div>
+            </div>
+
+            <div class="detail-body" id="det-body">
+                <div class="detail-tab-content" id="dtab-info">
+                    <div class="form-section-title">耗材信息</div>
+                    <div class="det-field-row">
+                        <div class="det-field"><label>品牌</label><span class="det-value" id="det-v-brand">—</span></div>
+                        <div class="det-field"><label>类型</label><span class="det-value" id="det-v-type">—</span></div>
+                    </div>
+                    <div class="det-field-row">
+                        <div class="det-field"><label>系列</label><span class="det-value" id="det-v-series">—</span></div>
+                        <div class="det-field"><label>颜色</label><div class="det-color-swatch" id="det-v-color"></div></div>
+                    </div>
+                    <div class="det-field">
+                        <label>重量</label>
+                        <div class="det-weight-box" id="det-v-weight">
+                            <div class="det-weight-col"><span class="det-weight-label">总重量</span><span class="det-weight-val" id="det-v-tw">—</span></div>
+                            <span class="det-weight-op">-</span>
+                            <div class="det-weight-col"><span class="det-weight-label">料盘重量</span><span class="det-weight-val" id="det-v-sw">—</span></div>
+                            <span class="det-weight-op">=</span>
+                            <div class="det-weight-col"><span class="det-weight-label">净重</span><span class="det-weight-val" id="det-v-nw">—</span></div>
+                        </div>
+                    </div>
+
+                    <div class="form-section-title">基础信息</div>
+                    <div class="det-field"><label>参数1</label><span class="det-value" id="det-v-param1">—</span></div>
+
+                    <div class="form-section-title">状态提醒</div>
+                    <div class="det-field"><label>余量提醒</label><span class="det-value" id="det-v-remain-alert">—</span></div>
+                    <div class="det-field-row">
+                        <div class="det-field"><label>最近一次烘干日期</label><span class="det-value" id="det-v-dry-date">—</span></div>
+                        <div class="det-field"><label>烘干提醒</label><span class="det-value" id="det-v-dry-reminder">—</span></div>
+                    </div>
+
+                    <div class="form-section-title">其他</div>
+                    <div class="det-field"><label>价格</label><span class="det-value" id="det-v-price">—</span></div>
+                    <div class="det-field"><label>备注</label><span class="det-value" id="det-v-note">—</span></div>
+                </div>
+
+                <div class="detail-tab-content" id="dtab-usage" style="display:none;">
+                    <div class="detail-usage-empty">
+                        <p>暂无使用记录</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-footer">
+                <button class="btn btn-primary" id="det-edit-btn">编辑耗材信息</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+</html>

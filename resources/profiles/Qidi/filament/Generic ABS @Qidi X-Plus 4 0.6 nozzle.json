@@ -1,0 +1,18 @@
+{
+    "type": "filament",
+    "filament_id": "GFB99",
+    "setting_id": "GFSB99_Qidi_11",
+    "name": "Generic ABS @Qidi X-Plus 4 0.6 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Generic ABS @Qidi",
+    "pressure_advance": [
+        "0.014"
+    ],
+    "filament_max_volumetric_speed": [
+        "24.5"
+    ],
+    "compatible_printers": [
+        "Qidi X-Plus 4 0.6 nozzle"
+    ]
+}

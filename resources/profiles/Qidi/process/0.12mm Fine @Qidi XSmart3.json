@@ -1,0 +1,11 @@
+{
+    "type": "process",
+    "setting_id": "GP_Qidi_020",
+    "name": "0.12mm Fine @Qidi XSmart3",
+    "from": "system",
+    "inherits": "0.12mm Fine @Qidi X3",
+    "instantiation": "true",
+    "compatible_printers": [
+        "Qidi X-Smart 3 0.4 nozzle"
+    ]
+}

@@ -1,0 +1,64 @@
+{
+    "type": "filament",
+    "name": "fdm_filament_pet",
+    "from": "system",
+    "instantiation": "false",
+    "inherits": "fdm_filament_common",
+    "eng_plate_temp": [
+        "0"
+    ],
+    "hot_plate_temp": [
+        "80"
+    ],
+    "textured_plate_temp": [
+        "80"
+    ],
+    "eng_plate_temp_initial_layer": [
+        "0"
+    ],
+    "hot_plate_temp_initial_layer": [
+        "80"
+    ],
+    "textured_plate_temp_initial_layer": [
+        "80"
+    ],
+    "fan_cooling_layer_time": [
+        "20"
+    ],
+    "filament_max_volumetric_speed": [
+        "25"
+    ],
+    "filament_type": [
+        "PETG"
+    ],
+    "filament_density": [
+        "1.27"
+    ],
+    "filament_cost": [
+        "30"
+    ],
+    "nozzle_temperature_initial_layer": [
+        "255"
+    ],
+    "reduce_fan_stop_start_freq": [
+        "1"
+    ],
+    "fan_min_speed": [
+        "20"
+    ],
+    "nozzle_temperature": [
+        "255"
+    ],
+    "temperature_vitrification": [
+        "80"
+    ],
+    "nozzle_temperature_range_low": [
+        "220"
+    ],
+    "nozzle_temperature_range_high": [
+        "260"
+    ],
+    "filament_start_gcode": [
+        "; filament start gcode\n"
+    ]
+}

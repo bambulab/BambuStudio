@@ -1,0 +1,58 @@
+
+html
+{
+	background-color: #FFF;
+	padding: 28px 36px;
+	display: flex;
+	justify-content: center;
+}
+
+body
+{
+	width: 100%;
+	min-width: 544px;
+	max-width:1776px;
+	overflow-y: scroll;
+}
+
+/*----TITLE-------*/
+.Title_Bar
+{
+	display:flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0px 10px;
+}
+
+.Title_Left_Area
+{
+	display:flex;
+	align-items: center;
+	padding: 6px 0px;	
+}
+
+.TitleSmallIcon
+{
+	width:30px;
+	height: 30px;
+	margin-right: 10px;
+}
+
+.Content-Title
+{
+	line-height: 30px;
+	font-weight: 700;
+	font-size: 18px;
+}
+
+
+.Right_Title_More
+{
+	font-size:16px;
+	cursor: pointer;
+}
+
+.Right_Title_More:hover
+{
+	color:#00AE42;	
+}

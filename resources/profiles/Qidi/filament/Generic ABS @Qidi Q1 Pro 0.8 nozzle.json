@@ -1,0 +1,18 @@
+{
+    "type": "filament",
+    "filament_id": "GFB99",
+    "setting_id": "GFSB99_Qidi_06",
+    "name": "Generic ABS @Qidi Q1 Pro 0.8 nozzle",
+    "from": "system",
+    "instantiation": "true",
+    "inherits": "Generic ABS @Qidi",
+    "pressure_advance": [
+        "0.011"
+    ],
+    "filament_max_volumetric_speed": [
+        "24.5"
+    ],
+	"compatible_printers": [
+		"Qidi Q1 Pro 0.8 nozzle"
+	]
+}

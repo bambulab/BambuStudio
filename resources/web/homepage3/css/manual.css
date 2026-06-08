@@ -1,0 +1,47 @@
+/*---------Wiki----------*/
+
+#WikiGuideBoard
+{
+	display: none;
+	flex-wrap: wrap;
+	align-content: flex-start;
+	overflow-y: auto;
+	position: relative;
+	top: 0px;
+	bottom: 0px;
+	right: 0px;
+	left: 0px;
+}
+
+.UG_IMG
+{
+	width: 100%;
+	line-height: 0px;
+	border-radius: 8px;
+	line-height: 0px;
+}
+
+.UG_IMG img
+{
+	width: 100%;
+    border-radius: 8px;
+	aspect-ratio: 4/3;
+}
+
+.UG_TITLE
+{
+	font-size: 18px;
+	font-weight: 700;
+	line-height: 20px;
+	width: 100%;
+	margin-top: 20px;
+	margin-bottom: 4px;
+}
+
+.UG_DESC
+{
+	width: 100%;
+	line-height: 18px;
+	color: #4E5454;
+	font-size: 14px;
+}
