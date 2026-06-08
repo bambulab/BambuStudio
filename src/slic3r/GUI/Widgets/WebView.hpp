@@ -14,6 +14,10 @@ public:
 
     static void RecreateAll();
 
+    // Remove WebView cookies named "token" on domains containing "bambulab".
+    // Windows: WebView2 CookieManager; macOS: WKHTTPCookieStore (default data store).
+    static void ClearBambulabTokenCookies();
+
     /*Find a user data path*/
     static wxString BuildEdgeUserDataPath();
 };

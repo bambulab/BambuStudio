@@ -100,6 +100,21 @@ void WKWebView_setTransparentBackground(void * web)
     [webView registerForDraggedTypes: @[NSFilenamesPboardType]];
 }
 
+void WKWebView_clearBambulabTokenCookies()
+{
+    WKHTTPCookieStore *store = [WKWebsiteDataStore defaultDataStore].httpCookieStore;
+    [store getAllCookies:^(NSArray<NSHTTPCookie *> *cookies) {
+        for (NSHTTPCookie *cookie in cookies) {
+            if (![cookie.name isEqualToString:@"token"])
+                continue;
+            NSRange found = [cookie.domain rangeOfString:@"bambulab"
+                                                 options:NSCaseInsensitiveSearch];
+            if (found.location != NSNotFound)
+                [store deleteCookie:cookie completionHandler:nil];
+        }
+    }];
+}
+
 void openFolderForFile(wxString const & file)
 {
     NSArray *fileURLs = [NSArray arrayWithObjects:wxCFStringRef(file).AsNSString(), /* ... */ nil];
