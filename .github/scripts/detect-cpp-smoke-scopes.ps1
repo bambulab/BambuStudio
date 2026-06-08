@@ -130,6 +130,9 @@ function Get-CMakeScopesFromContext {
   if ($Context -match 'libslic3r_print_process_core_sources|add_library\(libslic3r_print_process_core') {
     return @('process_core', 'adhesion', 'support_material', 'perimeters', 'apply_validate', 'filament_mapping')
   }
+  if ($Context -match 'libslic3r_print_stage_base_core_sources|add_library\(libslic3r_print_stage_base_core|configure_print_smoke_core\(libslic3r_print_stage_base_core|target_link_libraries\(libslic3r_print_(process|perimeters)_core.*libslic3r_print_stage_base_core') {
+    return @('process_core', 'adhesion', 'support_material', 'perimeters', 'apply_validate', 'filament_mapping')
+  }
   if ($Context -match 'libslic3r_print_perimeters_core_sources|add_library\(libslic3r_print_perimeters_core') {
     return @('perimeters', 'apply_validate', 'filament_mapping')
   }
