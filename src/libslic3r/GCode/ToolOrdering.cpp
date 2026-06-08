@@ -709,10 +709,11 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
 	it_per_layer_extruder_override = per_layer_extruder_switches.begin();
     unsigned int extruder_override = 0;
 
-    // Pre-compute 1-based IDs of gradient mixed filament slots for per-object tracking.
-    // per_part_slots_1based is the subset of gradient_slots_1based for which per-part gradient is
-    // enabled (filament_mixed_gradient_per_part[i] = true). Used by the per-volume collection
-    // pass that runs alongside the existing per-object pass below.
+    // Pre-compute 1-based IDs of mixed filament slots for per-object tracking.
+    // mixed_slots_1based covers ALL mixed slots (needed by calc_slot_lh for
+    // accurate layer height when a slot skips layers). gradient_slots_1based
+    // and per_part_slots_1based are subsets for gradient-specific logic.
+    std::set<unsigned int> mixed_slots_1based;
     std::set<unsigned int> gradient_slots_1based;
     std::set<unsigned int> per_part_slots_1based;
     {
@@ -727,6 +728,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
             auto comps = parse_mixed_components(i < comp_strs.size() ? comp_strs[i] : "");
             if (comps.size() != 2)
                 continue;
+            mixed_slots_1based.insert(static_cast<unsigned int>(i + 1));
             if (i >= grad_flags.size() || !grad_flags[i])
                 continue;
             gradient_slots_1based.insert(static_cast<unsigned int>(i + 1));
@@ -820,14 +822,16 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                 layer_tools.has_object = true;
         }
 
-        // Record gradient slot usage for this object at this layer (for per-object gradient).
-        if (!gradient_slots_1based.empty()) {
+        // Record mixed slot usage for this object at this layer.
+        // All mixed slots are tracked (not just gradient) so that calc_slot_lh
+        // can compute accurate layer heights even when a slot skips layers.
+        if (!mixed_slots_1based.empty()) {
             size_t layer_idx = static_cast<size_t>(&layer_tools - m_layer_tools.data());
             std::set<unsigned int> seen;
             for (size_t ei = ext_snapshot; ei < layer_tools.extruders.size(); ++ei) {
                 unsigned int ext_1based = layer_tools.extruders[ei];
-                if (gradient_slots_1based.count(ext_1based) && seen.insert(ext_1based).second)
-                    m_gradient_object_layers[ext_1based - 1][&object].push_back(layer_idx);
+                if (mixed_slots_1based.count(ext_1based) && seen.insert(ext_1based).second)
+                    m_mixed_object_layers[ext_1based - 1][&object].push_back(layer_idx);
             }
         }
 
@@ -2130,20 +2134,20 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
     for (size_t i = 0; i < is_mixed.size(); ++i)
         if (is_gradient[i]) gradient_runs[static_cast<unsigned int>(i)] = {};
 
-    // Build per-slot sets of all layer indices where any slot-using object has a layer.
-    // Used by gradient run detection: a gap is real only if the slot is absent at
-    // a layer belonging to one of its own objects, not just absent because another
-    // object with different layer heights contributed a layer here.
+    // Build per-slot sets of all layer indices where any slot-owning object has a
+    // layer.  Used by gradient run detection (a gap is real only if the slot is
+    // absent at a layer belonging to one of its own objects) and by calc_slot_lh
+    // to keep prev_relevant_z_for_slot current even when a slot skips many layers.
     std::map<unsigned int, std::set<size_t>> slot_relevant_layers;
-    if (!gradient_runs.empty()) {
-        for (auto &[slot_idx, obj_map] : m_gradient_object_layers) {
-            for (auto &[obj, _] : obj_map) {
-                auto it = m_object_all_layer_indices.find(obj);
-                if (it != m_object_all_layer_indices.end())
-                    slot_relevant_layers[slot_idx].insert(it->second.begin(), it->second.end());
-            }
+    for (auto &[slot_idx, obj_map] : m_mixed_object_layers) {
+        for (auto &[obj, _] : obj_map) {
+            auto it = m_object_all_layer_indices.find(obj);
+            if (it != m_object_all_layer_indices.end())
+                slot_relevant_layers[slot_idx].insert(it->second.begin(), it->second.end());
         }
+    }
 
+    if (!gradient_runs.empty()) {
         for (size_t li = 0; li < m_layer_tools.size(); ++li) {
             if (li == 0) continue;
             const auto &lt = m_layer_tools[li];
@@ -2216,7 +2220,7 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
     };
 
     std::map<unsigned int, std::map<const PrintObject*, PerObjRunState>> per_obj_runs;
-    for (auto &[slot, obj_map] : m_gradient_object_layers) {
+    for (auto &[slot, obj_map] : m_mixed_object_layers) {
         if (slot >= is_gradient.size() || !is_gradient[slot])
             continue;
         for (auto &[obj, layer_indices] : obj_map) {
@@ -2426,7 +2430,7 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
 
                     auto runs_slot_it = per_obj_runs.find(ext);
                     if (runs_slot_it != per_obj_runs.end()) {
-                        auto slot_it = m_gradient_object_layers.find(ext);
+                        auto slot_it = m_mixed_object_layers.find(ext);
                         for (auto &[obj, st] : runs_slot_it->second) {
                             auto &layer_indices = slot_it->second[obj];
                             if (!std::binary_search(layer_indices.begin(), layer_indices.end(), layer_idx))
