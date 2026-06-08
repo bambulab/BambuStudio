@@ -24,6 +24,7 @@ static void init_and_process_mesh_print(Print &print, const TriangleMesh &mesh, 
 
     print.auto_assign_extruders(model_object);
     print.set_status_silent();
+    print.set_no_check_flag(true);
     REQUIRE_NOTHROW(print.apply(model, config));
     REQUIRE_NOTHROW(print.validate());
     REQUIRE_NOTHROW(print.process());

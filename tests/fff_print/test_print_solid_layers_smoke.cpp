@@ -23,6 +23,7 @@ void init_cube_print(Print &print, Model &model, const DynamicPrintConfig &confi
 
     print.auto_assign_extruders(model_object);
     print.set_status_silent();
+    print.set_no_check_flag(true);
     REQUIRE_NOTHROW(print.apply(model, config));
     REQUIRE_NOTHROW(print.validate());
 }

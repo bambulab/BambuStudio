@@ -46,6 +46,7 @@ static void init_and_process_cube_print(Slic3r::Print &print, std::initializer_l
 
     print.auto_assign_extruders(model_object);
     print.set_status_silent();
+    print.set_no_check_flag(true);
     REQUIRE_NOTHROW(print.apply(model, config));
     REQUIRE_NOTHROW(print.validate());
     REQUIRE_NOTHROW(print.process());
