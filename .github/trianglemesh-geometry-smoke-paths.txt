@@ -18,6 +18,7 @@ src/libslic3r/Tesselate.cpp
 src/libslic3r/Tesselate.hpp
 
 # trianglemesh geometry smoke target tests
+tests/CMakeLists.txt
 tests/fff_print/cmake/TriangleMeshGeometrySmoke.cmake
 tests/fff_print/CMakeLists.txt
 tests/fff_print/fff_print_tests.cpp

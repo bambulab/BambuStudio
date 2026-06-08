@@ -15,6 +15,7 @@ src/libslic3r/PrintConfig*
 src/libslic3r/Config*
 
 # print adhesion smoke target tests
+tests/CMakeLists.txt
 tests/fff_print/cmake/PrintAdhesionSmoke.cmake
 tests/fff_print/CMakeLists.txt
 tests/fff_print/fff_print_tests.cpp

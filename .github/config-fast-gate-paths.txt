@@ -6,11 +6,14 @@ src/libslic3r/PrintConfig*
 src/libslic3r/LocalesUtils*
 
 # config-core fast target tests
+tests/CMakeLists.txt
 tests/libslic3r/CMakeLists.txt
 tests/libslic3r/config_tests_main.cpp
 tests/libslic3r/test_config*
 tests/libslic3r/test_print_filament_mapping_config_sync.cpp
 tests/libslic3r/test_print_filament_mapping_rules.cpp
+tests/catch_main.hpp
+tests/catch2/catch.hpp
 
 # workflow changes should re-run the smoke gate
 .github/config-fast-gate-paths.txt

@@ -16,6 +16,7 @@ src/libslic3r/PrintConfig*
 src/libslic3r/Config*
 
 # support material smoke target tests
+tests/CMakeLists.txt
 tests/fff_print/cmake/SupportMaterialSmoke.cmake
 tests/fff_print/CMakeLists.txt
 tests/fff_print/fff_print_tests.cpp

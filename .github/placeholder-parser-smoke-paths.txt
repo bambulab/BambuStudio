@@ -7,9 +7,12 @@ src/libslic3r/PrintConfig*
 src/libslic3r/Flow*
 
 # placeholder parser smoke target
+tests/CMakeLists.txt
 tests/libslic3r/CMakeLists.txt
 tests/libslic3r/config_tests_main.cpp
 tests/libslic3r/test_placeholder_parser_smoke.cpp
+tests/catch_main.hpp
+tests/catch2/catch.hpp
 
 # workflow changes should re-run the smoke gate
 .github/placeholder-parser-smoke-paths.txt

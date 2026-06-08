@@ -26,6 +26,7 @@ src/libslic3r/Config*
 src/libslic3r/libslic3r.h
 
 # print process math smoke target tests
+tests/CMakeLists.txt
 tests/fff_print/cmake/PrintProcessMathSmoke.cmake
 tests/fff_print/CMakeLists.txt
 tests/fff_print/fff_print_tests.cpp

@@ -69,6 +69,7 @@ src/libslic3r/TriangleMeshTransform.cpp
 src/libslic3r/libslic3r.h
 
 # print solid-layer re-slice smoke target tests
+tests/CMakeLists.txt
 tests/fff_print/cmake/PrintProcessCoreSmoke.cmake
 tests/fff_print/CMakeLists.txt
 tests/fff_print/fff_print_tests.cpp
