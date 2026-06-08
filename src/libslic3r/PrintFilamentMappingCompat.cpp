@@ -28,4 +28,15 @@ void Print::process(std::unordered_map<std::string, long long> *slice_time, bool
     filament_mapping_only_unreachable("Print::process");
 }
 
+StringObjectException Print::validate(
+    StringObjectException *warning,
+    Polygons *collison_polygons,
+    std::vector<std::pair<Polygon, float>> *height_polygons) const
+{
+    (void) warning;
+    (void) collison_polygons;
+    (void) height_polygons;
+    filament_mapping_only_unreachable("Print::validate");
+}
+
 } // namespace Slic3r

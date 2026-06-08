@@ -4,6 +4,7 @@ src/libslic3r/PrintApplyValidateSupportCompat.cpp
 src/libslic3r/PrintBase.hpp
 src/libslic3r/PrintFilamentState.cpp
 src/libslic3r/PrintFilamentMapping.cpp
+src/libslic3r/PrintFilamentMappingCompat.cpp
 src/libslic3r/libslic3r.h
 src/libslic3r/Print.hpp
 src/libslic3r/PrintConfig*

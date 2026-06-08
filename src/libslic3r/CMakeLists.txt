@@ -1133,6 +1133,9 @@ set(libslic3r_print_filament_mapping_core_sources
 )
 list(REMOVE_ITEM libslic3r_print_filament_mapping_core_sources
     PrintApplyValidateCompat.cpp
+    GCodeLayerOrdering.cpp
+    PrintFilamentCompatibility.cpp
+    PrintValidate.cpp
 )
 list(APPEND libslic3r_print_filament_mapping_core_sources
     PrintFilamentMapping.cpp
