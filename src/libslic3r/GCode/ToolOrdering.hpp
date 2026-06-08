@@ -420,7 +420,7 @@ private:
 
     // Per-object gradient tracking: slot(0-based) -> PrintObject* -> list of layer indices
     // where that object uses the slot. Populated by collect_extruders, consumed by resolve_mixed_filaments.
-    std::map<unsigned int, std::map<const PrintObject*, std::vector<size_t>>> m_gradient_object_layers;
+    std::map<unsigned int, std::map<const PrintObject*, std::vector<size_t>>> m_mixed_object_layers;
 
     // All layer indices (in m_layer_tools) where each object has any layer.
     // Used by gradient run detection to distinguish real gaps (object has a layer
@@ -429,7 +429,7 @@ private:
 
     // Per-volume gradient tracking: slot(0-based) -> (PrintObject*, ModelVolume id) -> list of
     // layer indices where the given volume contributes to the slot. Populated by collect_extruders
-    // alongside m_gradient_object_layers when per_part gradient is enabled for the slot AND the
+    // alongside m_mixed_object_layers when per_part gradient is enabled for the slot AND the
     // ModelObject has >=2 model-part volumes using the slot. Empty for all other configurations,
     // which keeps every legacy per-object code path bit-identical (loops over an empty map are
     // no-ops; downstream emission falls through to the per-object branch).
