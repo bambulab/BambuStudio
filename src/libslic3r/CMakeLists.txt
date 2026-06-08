@@ -967,20 +967,8 @@ list(APPEND libslic3r_print_perimeters_core_sources
     ShortestPath.cpp
 )
 
-set(libslic3r_print_filament_mapping_core_sources
-    ${libslic3r_print_perimeters_core_sources}
-)
-list(REMOVE_ITEM libslic3r_print_filament_mapping_core_sources
-    PrintProcessPerimeters.cpp
-    PrintProcessPerimetersCompat.cpp
-    PrintObjectPerimeters.cpp
-)
-list(APPEND libslic3r_print_filament_mapping_core_sources
-    PrintFilamentMappingCompat.cpp
-)
-
 set(libslic3r_print_apply_validate_core_sources
-    ${libslic3r_print_filament_mapping_core_sources}
+    ${libslic3r_print_perimeters_core_sources}
 )
 list(REMOVE_ITEM libslic3r_print_apply_validate_core_sources
     Arachne/BeadingStrategy/BeadingStrategy.cpp
@@ -1009,7 +997,15 @@ list(REMOVE_ITEM libslic3r_print_apply_validate_core_sources
     PrintFilamentMappingConfigSync.cpp
     PrintFilamentMappingCompat.cpp
     PrintFilamentMappingRules.cpp
+    PrintObjectPerimeters.cpp
+    PrintPerimetersCacheCompat.cpp
+    PrintPerimetersInfillCompat.cpp
+    PrintPerimetersOutputCompat.cpp
     PrintPerimetersValidateCompat.cpp
+    PrintPerimetersWipeTowerCompat.cpp
+    PrintProcessInterlockingCompat.cpp
+    PrintProcessPerimeters.cpp
+    PrintProcessPerimetersCompat.cpp
     Surface.cpp
     SurfaceCollection.cpp
     VariableWidth.cpp
@@ -1018,8 +1014,22 @@ list(APPEND libslic3r_print_apply_validate_core_sources
     GCodeLayerOrdering.cpp
     LayerLifecycle.cpp
     PrintApplyValidateCompat.cpp
+    PrintApplyValidateSupportCompat.cpp
     PrintFilamentCompatibility.cpp
     PrintValidate.cpp
+)
+
+set(libslic3r_print_filament_mapping_core_sources
+    ${libslic3r_print_apply_validate_core_sources}
+)
+list(REMOVE_ITEM libslic3r_print_filament_mapping_core_sources
+    PrintApplyValidateCompat.cpp
+)
+list(APPEND libslic3r_print_filament_mapping_core_sources
+    PrintFilamentMapping.cpp
+    PrintFilamentMappingConfigSync.cpp
+    PrintFilamentMappingCompat.cpp
+    PrintFilamentMappingRules.cpp
 )
 
 add_library(libslic3r_print_process_core STATIC
