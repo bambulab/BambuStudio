@@ -71,6 +71,37 @@ SCENARIO("GCodeReader smoke covers migrated object reset and tool-selection pars
     REQUIRE(z_values[1] > z_values[2]);
 }
 
+SCENARIO("GCodeReader smoke covers migrated first-extrusion tool tracking", "[GCodeReader]")
+{
+    const std::string gcode =
+        "T1\n"
+        "G1 X0 Y0 F3000\n"
+        "G1 X5 Y0 E0.25\n"
+        "T2\n"
+        "G1 X10 Y0 E0.50\n";
+
+    GCodeReader reader;
+    int current_tool = -1;
+    int first_extrusion_tool = -1;
+    size_t extrusion_moves = 0;
+
+    reader.parse_buffer(gcode, [&](GCodeReader& self, const GCodeReader::GCodeLine& line) {
+        if (!line.cmd().empty() && line.cmd().front() == 'T') {
+            current_tool = std::stoi(std::string(line.cmd().substr(1)));
+            return;
+        }
+
+        if (line.cmd() == "G1" && line.extruding(self) && line.dist_XY(self) > 0.0f) {
+            if (first_extrusion_tool < 0)
+                first_extrusion_tool = current_tool;
+            ++extrusion_moves;
+        }
+    });
+
+    REQUIRE(first_extrusion_tool == 1);
+    REQUIRE(extrusion_moves == 2);
+}
+
 SCENARIO("GCodeReader smoke covers migrated complete-object Z reset ordering", "[GCodeReader]")
 {
     const std::string gcode =
