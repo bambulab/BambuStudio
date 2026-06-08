@@ -1355,7 +1355,7 @@ void GLGizmoSVG::draw_window()
         draw_model_type();
     }
     if (!m_can_use_surface) {
-        m_imgui->text_wrapped(_L("Tip:If you want to place svg file on another part surface,you should select part first, and then drag svg file to the part surface."),
+        m_imgui->text_wrapped(_L("Tip: If you want to place an SVG file on another part surface, select the part first, then drag the SVG file to the part surface."),
                               m_gui_cfg->input_offset + m_gui_cfg->input_width + m_gui_cfg->icon_width);
     }
 }
