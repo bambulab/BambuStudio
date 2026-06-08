@@ -1371,14 +1371,19 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
         // #4043
         if (total_copies_count > 1 && m_config.print_sequence != PrintSequence::ByObject)
             return {L("Please select \"By object\" print sequence to print multiple objects in spiral vase mode."), nullptr, "spiral_mode"};
-        bool SFFF_enabled = false;
+
+        bool multi_material = false;
+        bool multi_region   = false;
         for (const PrintObject *object : m_objects) {
-            auto cfg = object->object_extruders();
-            if (cfg.size() > 1) SFFF_enabled = true;
+            if (object->object_extruders().size() > 1)
+                multi_material = true;
+            if (object->all_regions().size() > 1)
+                multi_region = true;
         }
-        assert(m_objects.size() == 1);
-        if (m_objects.front()->all_regions().size() > 1 || SFFF_enabled)
+        if (multi_material)
             return {L("The spiral vase mode does not work when an object contains more than one materials."), nullptr, "spiral_mode"};
+        if (multi_region)
+            return {L("The spiral vase mode does not work when an object contains regions with different print settings."), nullptr, "spiral_mode"};
     }
 
     // Cache of layer height profiles for checking:
