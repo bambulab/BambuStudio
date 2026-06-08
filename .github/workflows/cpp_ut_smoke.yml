@@ -491,6 +491,7 @@ jobs:
 
       - name: Configure cpp smoke build
         if: steps.smoke_scope.outputs.any_enabled == 'true'
+        timeout-minutes: 30
         shell: pwsh
         run: |
           if (Test-Path "${{ env.BUILD_DIR }}") {
