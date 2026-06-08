@@ -390,10 +390,10 @@ jobs:
 
       - name: Install Windows build tooling
         if: steps.smoke_scope.outputs.any_enabled == 'true'
+        timeout-minutes: 10
         shell: pwsh
         run: |
-          choco install strawberryperl --no-progress -y
-          choco install pkgconfiglite --no-progress -y
+          choco install strawberryperl pkgconfiglite --no-progress -y
 
       - name: Detect Windows SDK
         if: steps.smoke_scope.outputs.any_enabled == 'true'
