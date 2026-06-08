@@ -100,7 +100,7 @@ export interface FilamentNozzleInfo {
  * separate {@link HotendSlotViewModel}.
  */
 export interface AmsFilamentHotendSlotViewModel {
-  nozzle_pos: number;
+  addr_id: number;
   display_index: number;
   ams_id: string;
   slot_id: string;
@@ -120,14 +120,11 @@ export interface AmsFilamentHotendSlotViewModel {
     can_ams_operation?: boolean;
   };
   /**
-   * Backend data for the AMS Operation dialog of this slot. When
-   * `can_ams_operation === true` C++ ships the bound AMS units (with trays)
-   * here; this is the sole source for the dialog (there is no top-level
-   * units array anymore).
+   * Lightweight availability flag for the AMS Operation menu. Full dialog data
+   * lives in `ams_ext_operation_page.slots[]`.
    */
   ams_operation?: {
     available?: boolean;
-    units: AmsUnitInfo[];
   };
 
   // Grouped render zones. C++ guarantees these objects always exist on a
@@ -178,7 +175,7 @@ export interface BatchActionState {
 /** Slot payload consumed by the Hotend tab only. Mirrors C++
  *  `state.hotend_page.hotend_slots[]`. */
 export interface HotendSlotViewModel {
-  nozzle_pos: number;
+  addr_id: number;
   display_index: number;
   ams_id: string;
   slot_id: string;
@@ -353,9 +350,28 @@ export interface HotendPageViewModel {
   hotend_slots: HotendSlotViewModel[];
 }
 
+export interface AmsExtOperationSlotViewModel {
+  addr_id: number;
+  display_index: number;
+  ams_id: string;
+  slot_id: string;
+  bind_ams?: Array<{
+    ams_id: string;
+    ams_type?: string;
+    slot_count: number;
+  }>;
+  bind_ams_slot_count?: number;
+  units: AmsUnitInfo[];
+}
+
+export interface AmsExtOperationPageViewModel {
+  slots: AmsExtOperationSlotViewModel[];
+}
+
 export interface AmsFilamentHotendViewModel {
   filament_page: FilamentPageViewModel;
   hotend_page: HotendPageViewModel;
+  ams_ext_operation_page?: AmsExtOperationPageViewModel;
 }
 
 export interface BridgeResponseBody<T = unknown> {

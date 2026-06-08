@@ -1,5 +1,5 @@
-#ifndef DEVICEPAGEAMSFILAMENTHOTENDSCHEMA_HPP
-#define DEVICEPAGEAMSFILAMENTHOTENDSCHEMA_HPP
+#ifndef DEVICEPAGESCHEMA_AMSFILAMENTHOTEND_HPP
+#define DEVICEPAGESCHEMA_AMSFILAMENTHOTEND_HPP
 
 // Schema for the JSON payload exchanged between the C++ ViewModel
 // `device_page_ams_filament_hotend` and its Web counterpart living under
@@ -24,8 +24,9 @@ namespace keys {
 // Top-level state payload — split per page so each tab/component only sees
 // the data it actually renders.
 namespace root {
-    inline constexpr const char* filament_page = "filament_page";
-    inline constexpr const char* hotend_page   = "hotend_page";
+    inline constexpr const char* filament_page          = "filament_page";
+    inline constexpr const char* hotend_page            = "hotend_page";
+    inline constexpr const char* ams_ext_operation_page = "ams_ext_operation_page";
 }
 
 // state.filament_page — everything the Filament tab renders.
@@ -53,6 +54,24 @@ namespace hotend_page {
     inline constexpr const char* actions            = "actions";
     inline constexpr const char* hotend_rack_status = "hotend_rack_status";
     inline constexpr const char* hotend_slots       = "hotend_slots";
+}
+
+// state.ams_ext_operation_page — data source for the Ext AMS operation dialog.
+// It mirrors the visible hotend slots that can open the dialog, but carries the
+// complete AMS-unit payload directly so Web does not need to reconstruct it
+// from slot.bind_ams or URL query fallbacks.
+namespace ams_ext_operation_page {
+    inline constexpr const char* slots = "slots";
+}
+
+namespace ams_ext_operation_slot {
+    inline constexpr const char* addr_id             = "addr_id";
+    inline constexpr const char* display_index       = "display_index";
+    inline constexpr const char* ams_id              = "ams_id";
+    inline constexpr const char* slot_id             = "slot_id";
+    inline constexpr const char* bind_ams            = "bind_ams";
+    inline constexpr const char* bind_ams_slot_count = "bind_ams_slot_count";
+    inline constexpr const char* units               = "units";
 }
 
 // state.filament_page.actions — filament tab toolbar.
@@ -157,7 +176,7 @@ namespace batch_progress_item {
 // They are stripped from the final filament_page.hotend_slots[] entries.
 namespace filament_slot {
     // identity / layout
-    inline constexpr const char* nozzle_pos          = "nozzle_pos";
+    inline constexpr const char* addr_id             = "addr_id";
     inline constexpr const char* display_index       = "display_index";
     inline constexpr const char* ams_id              = "ams_id";
     inline constexpr const char* slot_id             = "slot_id";
@@ -189,7 +208,7 @@ namespace filament_slot {
 
 // state.hotend_page.hotend_slots[] — Hotend tab cards only.
 namespace hotend_slot {
-    inline constexpr const char* nozzle_pos    = "nozzle_pos";
+    inline constexpr const char* addr_id       = "addr_id";
     inline constexpr const char* display_index = "display_index";
     inline constexpr const char* ams_id        = "ams_id";
     inline constexpr const char* slot_id       = "slot_id";
@@ -256,7 +275,6 @@ namespace menu_actions {
 // slot.ams_operation
 namespace ams_operation {
     inline constexpr const char* available = "available";
-    inline constexpr const char* units     = "units";
 }
 
 // slot.bind_ams[]
@@ -266,7 +284,7 @@ namespace bind_ams {
     inline constexpr const char* slot_count = "slot_count";
 }
 
-// state.ams.units[]   (also slot.ams_operation.units[])
+// state.ams_ext_operation_page.slots[].units[]
 // Web does not consume `exist`, `temp`, the 0-5 `humidity` level, `dry_time`
 // or `dry_sub_status`; keep them out of the payload until a UI needs them.
 namespace ams_unit {
@@ -278,7 +296,7 @@ namespace ams_unit {
     inline constexpr const char* trays        = "trays";
 }
 
-// state.ams.units[].trays[]
+// state.ams_ext_operation_page.slots[].units[].trays[]
 // `reading` is a duplicate of `tray_state == "reading"`; Web reads tray_state
 // instead so it is dropped here.
 namespace ams_tray {
@@ -480,4 +498,29 @@ namespace hotend_op_state {
 
 }}} // namespace Slic3r::GUI::AmsHotendSchema
 
-#endif // DEVICEPAGEAMSFILAMENTHOTENDSCHEMA_HPP
+#include "DevicePageSchema_AmsFilamentPage.hpp"
+#include "DevicePageSchema_AmsHotendPage.hpp"
+#include "DevicePageSchema_AmsExtOperationPage.hpp"
+
+namespace Slic3r { namespace GUI { namespace AmsHotendSchema { namespace format {
+
+struct State
+{
+    FilamentPage        filament_page;
+    HotendPage          hotend_page;
+    AmsExtOperationPage ams_ext_operation_page;
+};
+
+inline void to_json(nlohmann::json& j, const State& v)
+{
+    namespace SK = AmsHotendSchema::keys;
+    j = {
+        {SK::root::filament_page,          v.filament_page},
+        {SK::root::hotend_page,            v.hotend_page},
+        {SK::root::ams_ext_operation_page, v.ams_ext_operation_page}
+    };
+}
+
+}}}} // namespace Slic3r::GUI::AmsHotendSchema::format
+
+#endif // DEVICEPAGESCHEMA_AMSFILAMENTHOTEND_HPP

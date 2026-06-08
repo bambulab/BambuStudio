@@ -6186,6 +6186,8 @@ void StatusPanel::set_default()
     m_ams_control->Hide();
     m_ams_control_box->Hide();
     m_ams_control->Reset();
+    m_hotend_rack_control->Hide();
+    m_filament_hotend_web->Hide();
     m_ams_rack_switch->updateState("left");
     m_ams_rack_switch->Hide();
     m_panel_nozzle_rack->Hide();

@@ -63,7 +63,7 @@ const buildSlot = (seed: SlotSeed): AmsFilamentHotendSlotViewModel => {
   const lineState = seed.line_state ?? lineFor(seed.card_state);
   const nozzleState = seed.nozzle_state ?? nozzleFor(seed.card_state);
   return {
-    nozzle_pos: seed.display_index - 1,
+    addr_id: seed.display_index - 1,
     display_index: seed.display_index,
     ams_id: '0',
     slot_id: String(seed.display_index - 1),
@@ -105,7 +105,7 @@ const buildSlot = (seed: SlotSeed): AmsFilamentHotendSlotViewModel => {
 };
 
 const buildHotendSlot = (display_index: number, seed: SlotSeed): HotendSlotViewModel => ({
-  nozzle_pos: display_index - 1,
+  addr_id: display_index - 1,
   display_index,
   ams_id: '0',
   slot_id: String(display_index - 1),
@@ -158,21 +158,6 @@ const slotSeeds: SlotSeed[] = [
     filament_remain: 35,
     ams_operation: {
       available: true,
-      units: [
-        {
-          ams_id: '32',
-          ams_type: '1',
-          slot_count: 4,
-          humidity_raw: 55,
-          dry_status: 'Idle',
-          trays: [
-            { ams_id: '32', slot_id: '0', exists: false, tray_state: 'empty',   filament_type: '',     filament_name: '',           color: '#D9D9D9', actions: { can_read: true } },
-            { ams_id: '32', slot_id: '1', exists: true,  tray_state: 'unknown', filament_type: '',     filament_name: '?',           color: '#BFBFBF', actions: { can_read: true, can_load: true } },
-            { ams_id: '32', slot_id: '2', exists: true,  tray_state: 'unknown', filament_type: '',     filament_name: '?',           color: '#BFBFBF', actions: { can_read: true, can_load: true } },
-            { ams_id: '32', slot_id: '3', exists: true,  tray_state: 'ready',   filament_type: 'PETG', filament_name: 'PETG',       color: '#C29CFF', actions: { can_read: true, can_unload: true } },
-          ],
-        },
-      ],
     },
     hotend: mockHotend(5),
   },
@@ -250,5 +235,48 @@ export const mockAmsFilamentHotendState: AmsFilamentHotendViewModel = {
       can_retry: false,
     },
     hotend_slots: slotSeeds.map((seed) => buildHotendSlot(seed.display_index, seed)),
+  },
+  ams_ext_operation_page: {
+    slots: [
+      {
+        addr_id: 4,
+        display_index: 5,
+        ams_id: '0',
+        slot_id: '0',
+        bind_ams_slot_count: 8,
+        bind_ams: [
+          { ams_id: '32', ams_type: '1', slot_count: 4 },
+          { ams_id: '33', ams_type: '1', slot_count: 4 },
+        ],
+        units: [
+          {
+            ams_id: '32',
+            ams_type: '1',
+            slot_count: 4,
+            humidity_raw: 55,
+            dry_status: 'Idle',
+            trays: [
+              { ams_id: '32', slot_id: '0', exists: false, tray_state: 'empty',   filament_type: '',     filament_name: '',     color: '#D9D9D9', actions: { can_read: true } },
+              { ams_id: '32', slot_id: '1', exists: true,  tray_state: 'unknown', filament_type: '',     filament_name: '?',    color: '#BFBFBF', actions: { can_read: true, can_load: true } },
+              { ams_id: '32', slot_id: '2', exists: true,  tray_state: 'unknown', filament_type: '',     filament_name: '?',    color: '#BFBFBF', actions: { can_read: true, can_load: true } },
+              { ams_id: '32', slot_id: '3', exists: true,  tray_state: 'ready',   filament_type: 'PETG', filament_name: 'PETG', color: '#C29CFF', actions: { can_read: true, can_unload: true } },
+            ],
+          },
+          {
+            ams_id: '33',
+            ams_type: '1',
+            slot_count: 4,
+            humidity_raw: 41,
+            dry_status: 'Idle',
+            trays: [
+              { ams_id: '33', slot_id: '0', exists: true, tray_state: 'ready',   filament_type: 'PLA', filament_name: 'PLA Basic', color: '#00AE42', actions: { can_read: true, can_load: true } },
+              { ams_id: '33', slot_id: '1', exists: true, tray_state: 'ready',   filament_type: 'ABS', filament_name: 'ABS',       color: '#999999', actions: { can_read: true, can_load: true } },
+              { ams_id: '33', slot_id: '2', exists: true, tray_state: 'unknown', filament_type: '',    filament_name: '?',         color: '#BFBFBF', actions: { can_read: true, can_load: true } },
+              { ams_id: '33', slot_id: '3', exists: false, tray_state: 'empty',  filament_type: '',    filament_name: '',          color: '#D9D9D9', actions: { can_read: true } },
+            ],
+          },
+        ],
+      },
+    ],
   },
 };

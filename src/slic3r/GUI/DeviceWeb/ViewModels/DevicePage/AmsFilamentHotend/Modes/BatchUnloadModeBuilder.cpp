@@ -1,5 +1,5 @@
 #include "BatchUnloadModeBuilder.hpp"
-#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendSchema.hpp"
+#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageSchema_AmsFilamentHotend.hpp"
 #include "slic3r/GUI/I18N.hpp"
 
 namespace Slic3r { namespace GUI {
@@ -64,7 +64,7 @@ nlohmann::json BatchUnloadModeBuilder::BuildFilamentPage(
     // groups so cards still draw normally, drop only the menu / dialog hooks.
     for (const auto& slot : src_slots) {
         slots.push_back({
-            {SK::filament_slot::nozzle_pos,        slot.value(SK::filament_slot::nozzle_pos,        0)},
+            {SK::filament_slot::addr_id,           slot.value(SK::filament_slot::addr_id,           0)},
             {SK::filament_slot::display_index,     slot.value(SK::filament_slot::display_index,     0)},
             {SK::filament_slot::ams_id,            slot.value(SK::filament_slot::ams_id,            std::string())},
             {SK::filament_slot::slot_id,           slot.value(SK::filament_slot::slot_id,           std::string())},

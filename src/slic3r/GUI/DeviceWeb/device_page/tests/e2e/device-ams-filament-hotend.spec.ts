@@ -63,7 +63,7 @@ test.describe('AMS filament hotend page', () => {
                 actions: {},
                 filament_change_status: { active: false, mode: 'idle', message: '', tips: '' },
                 hotend_slots: [{
-                  nozzle_pos: 20,
+                  addr_id: 4,
                   display_index: 5,
                   ams_id: '',
                   slot_id: '',
@@ -87,7 +87,7 @@ test.describe('AMS filament hotend page', () => {
               hotend_page: {
                 actions: {},
                 hotend_slots: [{
-                  nozzle_pos: 20,
+                  addr_id: 4,
                   display_index: 5,
                   ams_id: '',
                   slot_id: '',
@@ -135,7 +135,7 @@ test.describe('AMS filament hotend page', () => {
                   tips: '',
                 },
                 hotend_slots: [{
-                  nozzle_pos: 16,
+                  addr_id: 0,
                   display_index: 1,
                   ams_id: '0',
                   slot_id: '0',
@@ -159,7 +159,7 @@ test.describe('AMS filament hotend page', () => {
               hotend_page: {
                 actions: {},
                 hotend_slots: [{
-                  nozzle_pos: 16,
+                  addr_id: 0,
                   display_index: 1,
                   ams_id: '0',
                   slot_id: '0',

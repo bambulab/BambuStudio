@@ -1,5 +1,5 @@
 #include "BatchExtLoadModeBuilder.hpp"
-#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendSchema.hpp"
+#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageSchema_AmsFilamentHotend.hpp"
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
@@ -67,9 +67,9 @@ nlohmann::json make_select_action(bool can_select, std::string reason)
     };
 }
 
-int ext_tray_id_for_nozzle_pos(int nozzle_pos)
+int ext_tray_id_for_addr_id(int addr_id)
 {
-    return 255 - nozzle_pos + 16;
+    return 255 - addr_id;
 }
 
 } // namespace
@@ -105,9 +105,9 @@ nlohmann::json BatchExtLoadModeBuilder::BuildFilamentPage(
     // Unknown ("?") so the Web can force the edit flow before starting the
     // load command.
     for (const auto& slot : src_slots) {
-        const int nozzle_pos    = slot.value(SK::filament_slot::nozzle_pos, 0);
+        const int addr_id       = slot.value(SK::filament_slot::addr_id, 0);
         const int display_index = slot.value(SK::filament_slot::display_index, 0);
-        const int ext_tray_id   = ext_tray_id_for_nozzle_pos(nozzle_pos);
+        const int ext_tray_id   = ext_tray_id_for_addr_id(addr_id);
         const std::string ext_ams_id  = std::to_string(ext_tray_id);
         const std::string ext_slot_id = "0";
 
@@ -174,7 +174,7 @@ nlohmann::json BatchExtLoadModeBuilder::BuildFilamentPage(
         };
 
         slots.push_back({
-            {SK::filament_slot::nozzle_pos,        nozzle_pos},
+            {SK::filament_slot::addr_id,           addr_id},
             {SK::filament_slot::display_index,     display_index},
             {SK::filament_slot::ams_id,            ext_ams_id},
             {SK::filament_slot::slot_id,           ext_slot_id},

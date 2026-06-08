@@ -275,8 +275,14 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/SchemaData.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsControlWeb/SchemaDisplay.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendVM.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendVM_ExtAmsPage.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendVM_FilamentPage.cpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendVM_HotendPage.cpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendVM.hpp
-    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendSchema.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageSchema_AmsExtOperationPage.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageSchema_AmsFilamentPage.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageSchema_AmsHotendPage.hpp
+    GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageSchema_AmsFilamentHotend.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/IFilamentPageModeBuilder.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/NormalModeBuilder.hpp
     GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/Modes/NormalModeBuilder.cpp

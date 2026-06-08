@@ -1,0 +1,79 @@
+#ifndef DEVICEPAGESCHEMA_AMSFILAMENTPAGE_HPP
+#define DEVICEPAGESCHEMA_AMSFILAMENTPAGE_HPP
+
+#include "DevicePageSchema_AmsFilamentHotend.hpp"
+
+#include <nlohmann/json.hpp>
+
+#include <string>
+
+namespace Slic3r { namespace GUI { namespace AmsHotendSchema { namespace format {
+
+struct FilamentActions
+{
+    bool        can_load = true;
+    bool        can_load_external = true;
+    bool        can_load_auto = true;
+    bool        can_unload = true;
+    bool        can_dry = true;
+    bool        show_ams_settings = false;
+    bool        show_auto_refill = false;
+    std::string tips;
+};
+
+struct FilamentChangeStatus
+{
+    bool        active = false;
+    std::string mode = values::filament_change_mode::idle;
+    std::string message;
+    std::string tips;
+};
+
+struct FilamentPage
+{
+    FilamentActions      actions;
+    FilamentChangeStatus filament_change_status;
+    nlohmann::json       ams_dry_zones = nlohmann::json::array();
+    nlohmann::json       hotend_slots = nlohmann::json::array();
+};
+
+inline void to_json(nlohmann::json& j, const FilamentActions& v)
+{
+    namespace SK = AmsHotendSchema::keys;
+    j = {
+        {SK::filament_actions::can_load,          v.can_load},
+        {SK::filament_actions::can_load_external, v.can_load_external},
+        {SK::filament_actions::can_load_auto,     v.can_load_auto},
+        {SK::filament_actions::can_unload,        v.can_unload},
+        {SK::filament_actions::can_dry,           v.can_dry},
+        {SK::filament_actions::show_ams_settings, v.show_ams_settings},
+        {SK::filament_actions::show_auto_refill,  v.show_auto_refill},
+        {SK::filament_actions::tips,              v.tips}
+    };
+}
+
+inline void to_json(nlohmann::json& j, const FilamentChangeStatus& v)
+{
+    namespace SK = AmsHotendSchema::keys;
+    j = {
+        {SK::filament_change::active,  v.active},
+        {SK::filament_change::mode,    v.mode},
+        {SK::filament_change::message, v.message},
+        {SK::filament_change::tips,    v.tips}
+    };
+}
+
+inline void to_json(nlohmann::json& j, const FilamentPage& v)
+{
+    namespace SK = AmsHotendSchema::keys;
+    j = {
+        {SK::filament_page::actions,                v.actions},
+        {SK::filament_page::filament_change_status, v.filament_change_status},
+        {SK::filament_page::ams_dry_zones,          v.ams_dry_zones},
+        {SK::filament_page::hotend_slots,           v.hotend_slots}
+    };
+}
+
+}}}} // namespace Slic3r::GUI::AmsHotendSchema::format
+
+#endif // DEVICEPAGESCHEMA_AMSFILAMENTPAGE_HPP

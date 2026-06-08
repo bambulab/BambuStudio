@@ -267,7 +267,7 @@ export function AmsFilamentHotendPage() {
         runSlotAction('batch_ext_edit', undefined, {
           intent: 'run',
           slots: selectedSlots.map((s) => ({
-            nozzle_pos: s.nozzle_pos,
+            addr_id: s.addr_id,
             ams_id: s.ams_id,
             slot_id: s.slot_id,
             display_index: s.display_index,
@@ -285,7 +285,7 @@ export function AmsFilamentHotendPage() {
     runSlotAction('batch_ext_edit', undefined, {
       intent: 'edit',
       slots: selectedSlots.map((s) => ({
-        nozzle_pos: s.nozzle_pos,
+        addr_id: s.addr_id,
         ams_id: s.ams_id,
         slot_id: s.slot_id,
         display_index: s.display_index,

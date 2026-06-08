@@ -2,7 +2,7 @@
 #define DEVICEPAGEAMSFILAMENTHOTENDVM_HPP
 
 #include "slic3r/GUI/DeviceWeb/IViewModel.hpp"
-#include "DevicePageAmsFilamentHotendSchema.hpp"
+#include "DevicePageSchema_AmsFilamentHotend.hpp"
 
 #include <optional>
 #include <string>
@@ -27,18 +27,20 @@ public:
     void OnSysColorChanged() override;
 
 private:
+    nlohmann::json BuildDefaultState() const;
     nlohmann::json BuildState() const;
     nlohmann::json BuildSlot(Slic3r::MachineObject* machine_obj,
-                             int nozzle_pos,
+                             int addr_id,
                              const std::optional<std::pair<int, int>>& slot_id,
                              const Slic3r::DevAms* fallback_dryer_unit) const;
+    void BuildHotendRackStatus(Slic3r::MachineObject* machine_obj, nlohmann::json& hotend_page) const;
 
-    std::string ResolveCardState(Slic3r::MachineObject* machine_obj, const Slic3r::DevAmsTray* tray, const std::string& ams_id, const std::string& slot_id, int nozzle_pos) const;
+    std::string ResolveCardState(Slic3r::MachineObject* machine_obj, const Slic3r::DevAmsTray* tray, const std::string& ams_id, const std::string& slot_id, int addr_id) const;
     std::string ResolveLineState(const std::string& card_state,
                                  bool has_hotend_slot,
                                  bool filament_changing,
                                  bool listed_as_changing,
-                                 bool loaded_in_extruder) const;
+                                 bool loaded_in_nozzle) const;
     std::string ResolveNozzleState(const std::string& card_state, const std::string& line_state) const;
     std::string ResolveStatusText(const std::string& card_state) const;
     nlohmann::json BuildFilamentChangeStatus(Slic3r::MachineObject* machine_obj,
@@ -51,12 +53,16 @@ private:
     // the slot without re-querying.
     nlohmann::json BuildAmsUnitJson(Slic3r::MachineObject* machine_obj, const Slic3r::DevAms* ams_unit) const;
     bool IsSlotLoadedInExtruder(Slic3r::MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id) const;
+    bool IsSlotLoadedInNozzle(Slic3r::MachineObject* machine_obj, int addr_id, const std::string& ams_id, const std::string& slot_id) const;
     bool IsSlotTargetForExtruder(Slic3r::MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id) const;
     bool IsSlotInFilamentChangeList(Slic3r::MachineObject* machine_obj, const std::string& ams_id, const std::string& slot_id) const;
     bool IsFilamentChangeActive(Slic3r::MachineObject* machine_obj) const;
-    bool IsNozzleOnExtruder(Slic3r::MachineObject* machine_obj, int nozzle_pos) const;
+    bool IsNozzleOnExtruder(Slic3r::MachineObject* machine_obj, int addr_id) const;
 
     nlohmann::json HandleAction(const std::string& action, const nlohmann::json& payload);
+    std::optional<nlohmann::json> HandleExtAmsAction(const std::string& action, const nlohmann::json& payload, Slic3r::MachineObject* machine_obj);
+    std::optional<nlohmann::json> HandleFilamentAction(const std::string& action, const nlohmann::json& payload, Slic3r::MachineObject* machine_obj);
+    std::optional<nlohmann::json> HandleHotendAction(const std::string& action, const nlohmann::json& payload, Slic3r::MachineObject* machine_obj);
     nlohmann::json HandleDebug(const std::string& action, const nlohmann::json& payload);
     nlohmann::json BuildDebugSnapshot(const nlohmann::json& payload) const;
 

@@ -76,7 +76,7 @@ export function AmsExtFilamentEditPage() {
     const selected = all.filter((slot) => queryKeys.has(selectionKey(slot)));
     if (selected.length) return selected;
     return query.slots.map((slot): AmsFilamentHotendSlotViewModel => ({
-      nozzle_pos: 0,
+      addr_id: 0,
       display_index: slot.display_index,
       ams_id: slot.ams_id,
       slot_id: slot.slot_id,

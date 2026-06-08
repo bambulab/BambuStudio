@@ -137,7 +137,7 @@ export function useAmsFilamentHotendBridge() {
   ) => {
     const payload = slot
       ? {
-        nozzle_pos: slot.nozzle_pos,
+        addr_id: slot.addr_id,
         display_index: slot.display_index,
         ams_id: slot.ams_id,
         slot_id: slot.slot_id,

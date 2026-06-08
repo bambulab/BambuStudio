@@ -15,7 +15,7 @@ type BindAms = {
 };
 
 type SlotQuery = {
-  nozzle_pos: string;
+  addr_id: string;
   display_index: string;
   ams_id: string;
   slot_id: string;
@@ -40,7 +40,7 @@ function getQuery(): SlotQuery {
   const query = hash.includes('?') ? hash.slice(hash.indexOf('?') + 1) : '';
   const params = new URLSearchParams(query);
   return {
-    nozzle_pos: params.get('nozzle_pos') ?? '',
+    addr_id: params.get('addr_id') ?? '',
     display_index: params.get('display_index') ?? '',
     ams_id: params.get('ams_id') ?? '',
     slot_id: params.get('slot_id') ?? '',
@@ -112,22 +112,32 @@ export function AmsExtOperationPage() {
   }, [applyState]);
 
   const selectedSlot = useMemo(() => {
-    const nozzlePos = Number(query.nozzle_pos);
-    return state?.filament_page?.hotend_slots?.find((slot) => slot.nozzle_pos === nozzlePos);
-  }, [query.nozzle_pos, state]);
+    const addrId = Number(query.addr_id);
+    return state?.filament_page?.hotend_slots?.find((slot) => slot.addr_id === addrId);
+  }, [query.addr_id, state]);
 
-  const bindAms = selectedSlot?.bind_ams && selectedSlot.bind_ams.length > 0
+  const operationSlot = useMemo(() => {
+    const addrId = Number(query.addr_id);
+    return state?.ams_ext_operation_page?.slots?.find((slot) => slot.addr_id === addrId);
+  }, [query.addr_id, state]);
+
+  const bindAms = operationSlot?.bind_ams && operationSlot.bind_ams.length > 0
+    ? operationSlot.bind_ams
+    : selectedSlot?.bind_ams && selectedSlot.bind_ams.length > 0
     ? selectedSlot.bind_ams
     : query.bind_ams.length > 0
     ? query.bind_ams
     : [{ ams_id: query.ams_id || '0', ams_type: 'ZMULTI_A', slot_count: Number(query.count || 4) }];
 
-  // Dialog AMS units come from the selected slot.
-  const slotAmsUnits = selectedSlot?.ams_operation?.units;
-  const amsUnits = bindAms.map((ams) => {
-    const unit = slotAmsUnits?.find((item) => item.ams_id === ams.ams_id);
-    return unit ?? { ...ams, trays: [] };
-  });
+  // Dialog AMS units come from the dedicated C++ operation-page payload.
+  // Fall back to legacy slot/query reconstruction for compatibility with
+  // older payloads or mock data that predates ams_ext_operation_page.
+  const operationUnits = operationSlot?.units ?? [];
+  const amsUnits = operationUnits.length > 0
+    ? operationUnits
+    : bindAms.map((ams) => {
+      return { ...ams, humidity_raw: -1, dry_status: '', trays: [] };
+    });
 
   useEffect(() => {
     if (!amsUnits.length) return;
@@ -143,14 +153,14 @@ export function AmsExtOperationPage() {
       submod: 'action',
       action,
       payload: {
-        nozzle_pos: Number(query.nozzle_pos) || selectedSlot?.nozzle_pos || 0,
+        addr_id: Number(query.addr_id) || selectedSlot?.addr_id || 0,
         display_index: Number(query.display_index) || 0,
         ams_id: tray.ams_id,
         slot_id: tray.slot_id,
       },
     };
     await request(body, 8000);
-  }, [query.display_index, query.nozzle_pos, request, selectedSlot]);
+  }, [query.display_index, query.addr_id, request, selectedSlot]);
 
   const selectedAms = amsUnits.find((ams) => ams.ams_id === selectedAmsId) ?? amsUnits[0];
   const selectedTrays = selectedAms?.trays ?? [];
@@ -250,7 +260,7 @@ function trayToSlot(tray: ExtAmsTray, index: number): AmsFilamentHotendSlotViewM
     'ReadyToLoad';
 
   return {
-    nozzle_pos: index,
+    addr_id: index,
     display_index: Number(tray.slot_id) + 1 || index + 1,
     ams_id: tray.ams_id,
     slot_id: tray.slot_id,
