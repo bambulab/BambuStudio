@@ -9,7 +9,6 @@ src/libslic3r/VariableWidth.cpp
 src/libslic3r/Surface.cpp
 src/libslic3r/SurfaceCollection.cpp
 src/libslic3r/libslic3r.h
-src/libslic3r/Model.cpp
 src/libslic3r/Model.hpp
 src/libslic3r/Layer.hpp
 src/libslic3r/LayerLifecycle.cpp

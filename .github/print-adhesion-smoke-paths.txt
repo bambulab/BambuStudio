@@ -6,7 +6,6 @@ src/libslic3r/PrintFilamentState.cpp
 src/libslic3r/PrintProcess.cpp
 src/libslic3r/PrintStatistics.cpp
 src/libslic3r/libslic3r.h
-src/libslic3r/Model.cpp
 src/libslic3r/Model.hpp
 src/libslic3r/Layer.hpp
 src/libslic3r/TriangleMesh.hpp

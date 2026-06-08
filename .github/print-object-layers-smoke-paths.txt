@@ -5,7 +5,6 @@ src/libslic3r/PrintObjectLayers.cpp
 src/libslic3r/PrintObjectSlice.cpp
 src/libslic3r/Slicing.cpp
 src/libslic3r/libslic3r.h
-src/libslic3r/Model.cpp
 src/libslic3r/Model.hpp
 src/libslic3r/Layer.hpp
 src/libslic3r/LayerLifecycle.cpp
