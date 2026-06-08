@@ -1048,8 +1048,10 @@ list(REMOVE_ITEM libslic3r_print_perimeters_core_sources
     PrintFilamentMappingNozzleConfig.cpp
     PrintFilamentMappingRules.cpp
     PrintOutputFilename.cpp
+    PrintPathConflictCheckCompat.cpp
     PrintProcess.cpp
     PrintObjectSliceInterlocking.cpp
+    PrintStatistics.cpp
     PrintWipeTower.cpp
     PrintProcessSupport.cpp
     PrintValidate.cpp
