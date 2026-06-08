@@ -160,6 +160,123 @@ jobs:
             }
           }
 
+          function Test-CMakeSourceListEntry {
+            param([string]$Line)
+
+            return $Line -match '^[A-Za-z0-9_./+-]+\.(c|cc|cpp|cxx|h|hpp)$'
+          }
+
+          function Get-CMakeScopesFromContext {
+            param([string]$Context)
+
+            $scopes = New-Object System.Collections.Generic.List[string]
+            if ($Context -match 'libslic3r_print_process_math_core_sources|add_library\(libslic3r_print_process_math_core') {
+              $scopes.Add('process_math')
+              $scopes.Add('fill')
+            } elseif ($Context -match 'libslic3r_fill_core_sources|add_library\(libslic3r_fill_core') {
+              $scopes.Add('fill')
+            } elseif ($Context -match 'libslic3r_trianglemesh_geometry_core_sources|add_library\(libslic3r_trianglemesh_geometry_core') {
+              $scopes.Add('trianglemesh_geometry')
+            } elseif ($Context -match 'libslic3r_print_object_layers_core_sources|add_library\(libslic3r_print_object_layers_core') {
+              $scopes.Add('object_layers')
+            } elseif ($Context -match 'libslic3r_print_process_core_sources|add_library\(libslic3r_print_process_core') {
+              $scopes.Add('process_core')
+            } elseif ($Context -match 'libslic3r_print_perimeters_core_sources|add_library\(libslic3r_print_perimeters_core') {
+              $scopes.Add('perimeters')
+              $scopes.Add('apply_validate')
+              $scopes.Add('filament_mapping')
+            } elseif ($Context -match 'libslic3r_print_apply_validate_core_sources|add_library\(libslic3r_print_apply_validate_core') {
+              $scopes.Add('apply_validate')
+              $scopes.Add('filament_mapping')
+            } elseif ($Context -match 'libslic3r_print_filament_mapping_core_sources|add_library\(libslic3r_print_filament_mapping_core') {
+              $scopes.Add('filament_mapping')
+            }
+
+            return @($scopes | Select-Object -Unique)
+          }
+
+          function Get-CentralCMakeScopeResult {
+            param(
+              [string]$BaseRef,
+              [string]$Head
+            )
+
+            $enabled = @{
+              process_math = $false
+              fill = $false
+              trianglemesh_geometry = $false
+              object_layers = $false
+              process_core = $false
+              perimeters = $false
+              apply_validate = $false
+              filament_mapping = $false
+            }
+            $unknown = New-Object System.Collections.Generic.List[string]
+            $matched = New-Object System.Collections.Generic.List[string]
+            $currentScopes = @()
+            $diffLines = @(git diff --unified=0 $BaseRef $Head -- src/libslic3r/CMakeLists.txt)
+            if ($LASTEXITCODE -ne 0) {
+              return @{
+                Classified = $false
+                Reason = 'cmake_diff_failed'
+                Matched = 'src/libslic3r/CMakeLists.txt'
+                Enabled = $enabled
+              }
+            }
+
+            foreach ($line in $diffLines) {
+              if ($line -match '^@@ .* @@(?<context>.*)$') {
+                $currentScopes = @(Get-CMakeScopesFromContext $matches.context)
+                continue
+              }
+              if ($line -match '^(diff --git|index |--- |\+\+\+ )') {
+                continue
+              }
+              if (-not ($line.StartsWith('+') -or $line.StartsWith('-'))) {
+                continue
+              }
+
+              $changedLine = $line.Substring(1).Trim()
+              if ([string]::IsNullOrWhiteSpace($changedLine) -or $changedLine.StartsWith('#')) {
+                continue
+              }
+
+              if ($currentScopes.Count -gt 0) {
+                foreach ($scope in $currentScopes) {
+                  $enabled[$scope] = $true
+                }
+                $matched.Add("src/libslic3r/CMakeLists.txt:$changedLine")
+                continue
+              }
+
+              if (($changedLine -match 'slic3r_sources') -or (Test-CMakeSourceListEntry $changedLine)) {
+                # Full libslic3r source-list entries do not by themselves identify
+                # a focused smoke boundary. Scoped smoke target source-list hunks in
+                # the same diff will enable the concrete target(s) they affect.
+                $matched.Add("src/libslic3r/CMakeLists.txt:$changedLine")
+                continue
+              }
+
+              $unknown.Add($changedLine)
+            }
+
+            if ($unknown.Count -gt 0) {
+              return @{
+                Classified = $false
+                Reason = 'central_cmake_unclassified'
+                Matched = "src/libslic3r/CMakeLists.txt: $($unknown -join '; ')"
+                Enabled = $enabled
+              }
+            }
+
+            return @{
+              Classified = $true
+              Reason = 'central_cmake_scoped'
+              Matched = if ($matched.Count -gt 0) { ($matched | Select-Object -Unique) -join ', ' } else { 'src/libslic3r/CMakeLists.txt' }
+              Enabled = $enabled
+            }
+          }
+
           $configEnabled = $true
           $configReason = "workflow_dispatch"
           $configMatched = "n/a"
@@ -326,56 +443,100 @@ jobs:
                 $trianglemeshGeometryMatched = $trianglemeshGeometryScope.Matched
 
                 if ($centralCMakeChanged) {
-                  $configEnabled = $true
-                  $placeholderParserEnabled = $true
-                  $gcodewriterEnabled = $true
-                  $gcodeReaderEnabled = $true
-                  $modelAssemblyEnabled = $true
-                  $filamentMappingEnabled = $true
-                  $applyValidateEnabled = $true
-                  $perimetersEnabled = $true
-                  $processMathEnabled = $true
-                  $processCoreEnabled = $true
-                  $objectLayersEnabled = $true
-                  $adhesionEnabled = $true
-                  $fillEnabled = $true
-                  $supportMaterialLayersEnabled = $true
-                  $supportMaterialEnabled = $true
-                  $trianglemeshGeometryEnabled = $true
+                  $cmakeScope = Get-CentralCMakeScopeResult -BaseRef FETCH_HEAD -Head $head
+                  if ($cmakeScope.Classified) {
+                    if ($cmakeScope.Enabled.filament_mapping -and -not $filamentMappingEnabled) {
+                      $filamentMappingEnabled = $true
+                      $filamentMappingReason = $cmakeScope.Reason
+                      $filamentMappingMatched = $cmakeScope.Matched
+                    }
+                    if ($cmakeScope.Enabled.apply_validate -and -not $applyValidateEnabled) {
+                      $applyValidateEnabled = $true
+                      $applyValidateReason = $cmakeScope.Reason
+                      $applyValidateMatched = $cmakeScope.Matched
+                    }
+                    if ($cmakeScope.Enabled.perimeters -and -not $perimetersEnabled) {
+                      $perimetersEnabled = $true
+                      $perimetersReason = $cmakeScope.Reason
+                      $perimetersMatched = $cmakeScope.Matched
+                    }
+                    if ($cmakeScope.Enabled.process_math -and -not $processMathEnabled) {
+                      $processMathEnabled = $true
+                      $processMathReason = $cmakeScope.Reason
+                      $processMathMatched = $cmakeScope.Matched
+                    }
+                    if ($cmakeScope.Enabled.process_core -and -not $processCoreEnabled) {
+                      $processCoreEnabled = $true
+                      $processCoreReason = $cmakeScope.Reason
+                      $processCoreMatched = $cmakeScope.Matched
+                    }
+                    if ($cmakeScope.Enabled.object_layers -and -not $objectLayersEnabled) {
+                      $objectLayersEnabled = $true
+                      $objectLayersReason = $cmakeScope.Reason
+                      $objectLayersMatched = $cmakeScope.Matched
+                    }
+                    if ($cmakeScope.Enabled.fill -and -not $fillEnabled) {
+                      $fillEnabled = $true
+                      $fillReason = $cmakeScope.Reason
+                      $fillMatched = $cmakeScope.Matched
+                    }
+                    if ($cmakeScope.Enabled.trianglemesh_geometry -and -not $trianglemeshGeometryEnabled) {
+                      $trianglemeshGeometryEnabled = $true
+                      $trianglemeshGeometryReason = $cmakeScope.Reason
+                      $trianglemeshGeometryMatched = $cmakeScope.Matched
+                    }
+                  } else {
+                    $configEnabled = $true
+                    $placeholderParserEnabled = $true
+                    $gcodewriterEnabled = $true
+                    $gcodeReaderEnabled = $true
+                    $modelAssemblyEnabled = $true
+                    $filamentMappingEnabled = $true
+                    $applyValidateEnabled = $true
+                    $perimetersEnabled = $true
+                    $processMathEnabled = $true
+                    $processCoreEnabled = $true
+                    $objectLayersEnabled = $true
+                    $adhesionEnabled = $true
+                    $fillEnabled = $true
+                    $supportMaterialLayersEnabled = $true
+                    $supportMaterialEnabled = $true
+                    $trianglemeshGeometryEnabled = $true
 
-                  $configReason = "central_cmake_changed"
-                  $placeholderParserReason = "central_cmake_changed"
-                  $gcodewriterReason = "central_cmake_changed"
-                  $gcodeReaderReason = "central_cmake_changed"
-                  $modelAssemblyReason = "central_cmake_changed"
-                  $filamentMappingReason = "central_cmake_changed"
-                  $applyValidateReason = "central_cmake_changed"
-                  $perimetersReason = "central_cmake_changed"
-                  $processMathReason = "central_cmake_changed"
-                  $processCoreReason = "central_cmake_changed"
-                  $objectLayersReason = "central_cmake_changed"
-                  $adhesionReason = "central_cmake_changed"
-                  $fillReason = "central_cmake_changed"
-                  $supportMaterialLayersReason = "central_cmake_changed"
-                  $supportMaterialReason = "central_cmake_changed"
-                  $trianglemeshGeometryReason = "central_cmake_changed"
+                    $configReason = $cmakeScope.Reason
+                    $placeholderParserReason = $cmakeScope.Reason
+                    $gcodewriterReason = $cmakeScope.Reason
+                    $gcodeReaderReason = $cmakeScope.Reason
+                    $modelAssemblyReason = $cmakeScope.Reason
+                    $filamentMappingReason = $cmakeScope.Reason
+                    $applyValidateReason = $cmakeScope.Reason
+                    $perimetersReason = $cmakeScope.Reason
+                    $processMathReason = $cmakeScope.Reason
+                    $processCoreReason = $cmakeScope.Reason
+                    $objectLayersReason = $cmakeScope.Reason
+                    $adhesionReason = $cmakeScope.Reason
+                    $fillReason = $cmakeScope.Reason
+                    $supportMaterialLayersReason = $cmakeScope.Reason
+                    $supportMaterialReason = $cmakeScope.Reason
+                    $trianglemeshGeometryReason = $cmakeScope.Reason
 
-                  $configMatched = "src/libslic3r/CMakeLists.txt"
-                  $placeholderParserMatched = "src/libslic3r/CMakeLists.txt"
-                  $gcodewriterMatched = "src/libslic3r/CMakeLists.txt"
-                  $gcodeReaderMatched = "src/libslic3r/CMakeLists.txt"
-                  $modelAssemblyMatched = "src/libslic3r/CMakeLists.txt"
-                  $filamentMappingMatched = "src/libslic3r/CMakeLists.txt"
-                  $applyValidateMatched = "src/libslic3r/CMakeLists.txt"
-                  $perimetersMatched = "src/libslic3r/CMakeLists.txt"
-                  $processMathMatched = "src/libslic3r/CMakeLists.txt"
-                  $processCoreMatched = "src/libslic3r/CMakeLists.txt"
-                  $objectLayersMatched = "src/libslic3r/CMakeLists.txt"
-                  $adhesionMatched = "src/libslic3r/CMakeLists.txt"
-                  $fillMatched = "src/libslic3r/CMakeLists.txt"
-                  $supportMaterialLayersMatched = "src/libslic3r/CMakeLists.txt"
-                  $supportMaterialMatched = "src/libslic3r/CMakeLists.txt"
-                  $trianglemeshGeometryMatched = "src/libslic3r/CMakeLists.txt"
+                    $configMatched = $cmakeScope.Matched
+                    $placeholderParserMatched = $cmakeScope.Matched
+                    $gcodewriterMatched = $cmakeScope.Matched
+                    $gcodeReaderMatched = $cmakeScope.Matched
+                    $modelAssemblyMatched = $cmakeScope.Matched
+                    $filamentMappingMatched = $cmakeScope.Matched
+                    $applyValidateMatched = $cmakeScope.Matched
+                    $perimetersMatched = $cmakeScope.Matched
+                    $processMathMatched = $cmakeScope.Matched
+                    $processCoreMatched = $cmakeScope.Matched
+                    $objectLayersMatched = $cmakeScope.Matched
+                    $adhesionMatched = $cmakeScope.Matched
+                    $fillMatched = $cmakeScope.Matched
+                    $supportMaterialLayersMatched = $cmakeScope.Matched
+                    $supportMaterialMatched = $cmakeScope.Matched
+                    $trianglemeshGeometryMatched = $cmakeScope.Matched
+                  }
                 }
               }
             }
