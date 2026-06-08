@@ -114,7 +114,23 @@ Status key:
 | Support material runtime boundary | done | `support_material_smoke_tests` | 2026-06-08 review confirmed this remains a real full-support boundary: the smoke initializes real prints, runs `Print::process()`, and asserts `PrintObject::support_layers()` for raft and cube-with-hole support scenarios. It covers `SupportMaterial::generate()`, raft/support layer construction, generated support layers, and toolpath preparation through production flow; keep it full-process unless a stable production support-core API is extracted. |
 | Support material layer helpers | done | `support_material_layers_smoke_tests`, `support_material_smoke_tests` | `layer_z()`, `layer_initialize()`, and `layer_allocate()` now live in `SupportLayerUtils.hpp`, a light support-layer helper boundary. The new smoke target covers z/height initialization without pulling `Print::process()`, while the existing support material smoke keeps full raft/support generation coverage. |
 
-## Next Migration Candidates
+## PR-Smoke Legacy Migration Closure
+
+2026-06-08 audit result: the stable `tests/fff_print` legacy cases that are appropriate for Windows PR smoke are migrated into focused targets or intentionally kept as the residual `fff_print_tests` baseline. The remaining legacy inventory is classified as `manual/nightly`, `skip`, `skip/manual`, or the single `partial` Fill large-solid-surface case whose old assertion contradicts current production behavior.
+
+Current inventory count:
+
+| Status | Count | PR-smoke action |
+|---|---:|---|
+| `done` | 32 | Covered by focused smoke targets or the maintained residual baseline |
+| `manual/nightly` | 8 | Requires preset-backed export/full slicing/performance harnesses outside PR fast smoke |
+| `partial` | 1 | Keep out of PR smoke unless a product bugfix intentionally changes current Fill output |
+| `skip` | 3 | Disabled, obsolete, or empty placeholder coverage |
+| `skip/manual` | 3 | Disabled or unfinished legacy behavior; needs product confirmation before revival |
+
+Conclusion: do not keep expanding Windows PR smoke with full-export or disabled legacy assertions. Continue from here with runtime reduction, target-level path-filter tuning, and future manual/nightly harness design for export-heavy regressions.
+
+## Remaining Non-PR Candidates
 
 1. Remaining `Fill` large solid surface helper case: keep manual unless current Fill behavior is intentionally updated; the narrow representative is in `fill_smoke_tests`, and solid-spacing adjustment representatives are in the lighter `print_process_math_smoke_tests`. 2026-06-08 local validation showed the large representative currently fails at 0-degree orientation without changing production code.
 2. `SupportMaterial` top-spacing internals: keep manual/nightly unless a stable support-core harness can inspect those layers without broad export or brittle geometry assumptions; the cube-with-hole layer-bound and zero top-contact-distance representatives are now in PR smoke.
