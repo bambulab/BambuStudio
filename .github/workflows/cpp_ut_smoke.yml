@@ -506,6 +506,12 @@ jobs:
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target gcodewriter_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
 
+      - name: Build gcode reader smoke target
+        if: steps.smoke_scope.outputs.gcodewriter_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target gcode_reader_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
+
       - name: Build model assembly smoke target
         if: steps.smoke_scope.outputs.model_assembly_enabled == 'true'
         timeout-minutes: 10
@@ -631,6 +637,19 @@ jobs:
           $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "gcodewriter-smoke.xml"
           & $exe "[GCodeWriter]" 2>&1 | Tee-Object -FilePath $log
           & $exe -r junit -o $xml "[GCodeWriter]" | Out-Null
+
+      - name: Run gcode reader smoke
+        id: run_gcode_reader_smoke
+        if: steps.smoke_scope.outputs.gcodewriter_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "${{ env.SMOKE_OUTPUT_DIR }}" | Out-Null
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\gcode_reader_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "gcode-reader-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "gcode-reader-smoke.xml"
+          & $exe "[GCodeReader]" 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml "[GCodeReader]" | Out-Null
 
       - name: Note skipped gcodewriter smoke target
         if: steps.smoke_scope.outputs.gcodewriter_enabled != 'true'
@@ -968,6 +987,12 @@ jobs:
               Xml = "gcodewriter-smoke.xml"
               Conclusion = "${{ steps.run_gcodewriter_smoke.conclusion }}"
             })
+            $expected.Add(@{
+              Name = "gcode_reader_smoke_tests [GCodeReader]"
+              Log = "gcode-reader-smoke.log"
+              Xml = "gcode-reader-smoke.xml"
+              Conclusion = "${{ steps.run_gcode_reader_smoke.conclusion }}"
+            })
           }
           if ("${{ steps.smoke_scope.outputs.model_assembly_enabled }}" -eq "true") {
             $expected.Add(@{
@@ -1219,6 +1244,7 @@ jobs:
           $suiteMeta = @(
             @{ Name = "libslic3r_config_tests [ConfigCore]"; Log = ".ci/smoke/libslic3r-config-fast.log"; Xml = ".ci/smoke/libslic3r-config-fast.xml" },
             @{ Name = "gcodewriter_smoke_tests [GCodeWriter]"; Log = ".ci/smoke/gcodewriter-smoke.log"; Xml = ".ci/smoke/gcodewriter-smoke.xml" },
+            @{ Name = "gcode_reader_smoke_tests [GCodeReader]"; Log = ".ci/smoke/gcode-reader-smoke.log"; Xml = ".ci/smoke/gcode-reader-smoke.xml" },
             @{ Name = "model_basic_smoke_tests [ModelAssembly]"; Log = ".ci/smoke/model-assembly-smoke.log"; Xml = ".ci/smoke/model-assembly-smoke.xml" },
             @{ Name = "print_filament_mapping_smoke_tests [PrintFilamentMapping]"; Log = ".ci/smoke/print-filament-mapping-smoke.log"; Xml = ".ci/smoke/print-filament-mapping-smoke.xml" },
             @{ Name = "print_apply_validate_smoke_tests [PrintApplyValidate]"; Log = ".ci/smoke/print-apply-validate-smoke.log"; Xml = ".ci/smoke/print-apply-validate-smoke.xml" },
@@ -1245,6 +1271,10 @@ jobs:
               continue
             }
             if ($suite.Name -like 'gcodewriter_smoke_tests*' -and -not $gcodewriterSmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($gcodewriterSmokeReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'gcode_reader_smoke_tests*' -and -not $gcodewriterSmokeEnabled) {
               $rows.Add("| $($suite.Name) | skipped ($gcodewriterSmokeReason) | 0 | 0 |")
               continue
             }

@@ -607,6 +607,20 @@ add_library(libslic3r_gcodewriter_core STATIC
     ${libslic3r_gcodewriter_core_sources}
     "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
 
+set(libslic3r_gcode_reader_core_sources
+    Config.cpp
+    ConfigFileUtils.cpp
+    GCodeReader.cpp
+    LocalesUtils.cpp
+    PrintConfig.cpp
+    PrintConfigRuntime.cpp
+    Utils.cpp
+)
+
+add_library(libslic3r_gcode_reader_core STATIC
+    ${libslic3r_gcode_reader_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
 set(libslic3r_print_process_math_core_sources
     ArcFitter.cpp
     BoundingBox.cpp
@@ -1189,6 +1203,7 @@ encoding_check(libslic3r)
 
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_compile_definitions(libslic3r_config_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
+target_compile_definitions(libslic3r_gcode_reader_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_compile_definitions(libslic3r_gcodewriter_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_compile_definitions(libslic3r_print_process_math_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_compile_definitions(libslic3r_print_object_layers_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
@@ -1197,6 +1212,8 @@ target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE
 target_include_directories(libslic3r PUBLIC ${EXPAT_INCLUDE_DIRS})
 target_include_directories(libslic3r_config_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r_config_core PUBLIC ${EXPAT_INCLUDE_DIRS})
+target_include_directories(libslic3r_gcode_reader_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(libslic3r_gcode_reader_core PUBLIC ${EXPAT_INCLUDE_DIRS})
 target_include_directories(libslic3r_gcodewriter_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r_gcodewriter_core PUBLIC ${EXPAT_INCLUDE_DIRS})
 target_include_directories(libslic3r_print_process_math_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
@@ -1324,6 +1341,14 @@ target_link_libraries(libslic3r_config_core
     TBB::tbbmalloc
 )
 
+target_link_libraries(libslic3r_gcode_reader_core
+    boost_libs
+    nowide
+    semver
+    TBB::tbb
+    TBB::tbbmalloc
+)
+
 target_link_libraries(libslic3r_gcodewriter_core
     boost_libs
     nowide
@@ -1408,6 +1433,7 @@ if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
 endif ()
 
 if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
+    add_precompiled_header(libslic3r_gcode_reader_core pchheader.hpp FORCEINCLUDE)
     add_precompiled_header(libslic3r_gcodewriter_core pchheader.hpp FORCEINCLUDE)
 endif ()
 

@@ -28,6 +28,7 @@ set_property(TARGET fff_print_smoke PROPERTY FOLDER "tests")
 add_test(fff_print_smoke fff_print_smoke ${CATCH_EXTRA_ARGS})
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/GCodeWriterSmoke.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/GCodeReaderSmoke.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/ModelBasicSmoke.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/PrintFilamentMappingSmoke.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/PrintPerimetersStageSmoke.cmake)
