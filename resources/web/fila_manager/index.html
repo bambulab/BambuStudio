@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>耗材管理</title>
+    <title data-i18n="title">Filament Manager</title>
     <link rel="stylesheet" href="index.css">
     <script src="../include/jquery-2.1.1.min.js"></script>
     <script src="../include/globalapi.js"></script>
@@ -14,15 +14,15 @@
         <nav class="sidebar" id="sidebar">
             <div class="nav-item active" data-view="my">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" fill="currentColor"/><rect x="9" y="2" width="5" height="5" rx="1" fill="currentColor"/><rect x="2" y="9" width="5" height="5" rx="1" fill="currentColor"/><rect x="9" y="9" width="5" height="5" rx="1" fill="currentColor"/></svg>
-                <span>耗材列表</span>
+                <span data-i18n="nav_list">Filament List</span>
             </div>
             <div class="nav-item" data-view="stats">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2"/><path d="M8 4v4l2.5 2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-                <span>统计</span>
+                <span data-i18n="nav_stats">Statistics</span>
             </div>
             <div class="nav-item" data-view="archived">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="4" rx="1" fill="currentColor"/><path d="M2 7h12v6a1 1 0 01-1 1H3a1 1 0 01-1-1V7z" fill="currentColor" opacity=".6"/><rect x="6" y="9" width="4" height="1.5" rx=".5" fill="currentColor"/></svg>
-                <span>存档</span>
+                <span data-i18n="nav_archive">Archive</span>
             </div>
         </nav>
 
@@ -35,19 +35,19 @@
                         <div class="stats-cards">
                             <div class="stat-card">
                                 <div class="stat-value" id="stat-total-value">$ 0</div>
-                                <div class="stat-footer"><span class="stat-label">总价值</span><span class="stat-change up" id="stat-value-change">+20%</span><span class="stat-compare">同比上月</span></div>
+                                <div class="stat-footer"><span class="stat-label" data-i18n="stat_total_value">Total Value</span><span class="stat-change up" id="stat-value-change">+20%</span><span class="stat-compare" data-i18n="stat_vs_last_month">vs. last month</span></div>
                             </div>
                             <div class="stat-card">
                                 <div class="stat-value" id="stat-total-count">0</div>
-                                <div class="stat-footer"><span class="stat-label">总耗材数</span><span class="stat-change down" id="stat-count-change">-20%</span><span class="stat-compare">同比上月</span></div>
+                                <div class="stat-footer"><span class="stat-label" data-i18n="stat_total_count">Total Spools</span><span class="stat-change down" id="stat-count-change">-20%</span><span class="stat-compare" data-i18n="stat_vs_last_month">vs. last month</span></div>
                             </div>
                             <div class="stat-card">
                                 <div class="stat-value" id="stat-color-count">0</div>
-                                <div class="stat-footer"><span class="stat-label">耗材颜色</span><span class="stat-change up" id="stat-color-change">+20%</span><span class="stat-compare">同比上月</span></div>
+                                <div class="stat-footer"><span class="stat-label" data-i18n="stat_color_count">Colors</span><span class="stat-change up" id="stat-color-change">+20%</span><span class="stat-compare" data-i18n="stat_vs_last_month">vs. last month</span></div>
                             </div>
                         </div>
                         <div class="stats-panel">
-                            <div class="panel-header"><span>耗材详情</span><button class="panel-more">···</button></div>
+                            <div class="panel-header"><span data-i18n="stat_details">Filament Details</span><button class="panel-more">···</button></div>
                             <div class="panel-body pie-row">
                                 <div class="pie-block"><canvas id="pie-type" width="120" height="120"></canvas><div class="pie-legend" id="legend-type"></div></div>
                                 <div class="pie-block"><canvas id="pie-color" width="120" height="120"></canvas><div class="pie-legend" id="legend-color"></div></div>
@@ -55,27 +55,27 @@
                         </div>
                     </div>
                     <div class="stats-reminders">
-                        <div class="panel-header"><span>提醒事项</span></div>
+                        <div class="panel-header"><span data-i18n="stat_reminders">Reminders</span></div>
                         <div class="reminder-tabs" id="reminder-tabs">
-                            <div class="reminder-tab active" data-rtab="low">低余量</div>
-                            <div class="reminder-tab" data-rtab="dry">需烘干</div>
-                            <div class="reminder-tab" data-rtab="empty">已用尽</div>
+                            <div class="reminder-tab active" data-rtab="low" data-i18n="reminder_low">Low Stock</div>
+                            <div class="reminder-tab" data-rtab="dry" data-i18n="reminder_dry">Needs Drying</div>
+                            <div class="reminder-tab" data-rtab="empty" data-i18n="reminder_empty">Empty</div>
                         </div>
                         <div class="reminder-list" id="reminder-list"></div>
                     </div>
                 </div>
                 <div class="stats-row-mid">
                     <div class="stats-panel">
-                        <div class="panel-header"><span>耗材使用</span><div class="panel-controls"><select id="heatmap-month" class="panel-select"></select><button class="panel-more">···</button></div></div>
+                        <div class="panel-header"><span data-i18n="stat_usage">Filament Usage</span><div class="panel-controls"><select id="heatmap-month" class="panel-select"></select><button class="panel-more">···</button></div></div>
                         <div class="panel-body"><div class="heatmap-wrap" id="heatmap-wrap"></div></div>
                     </div>
                     <div class="stats-panel">
-                        <div class="panel-header"><span>耗材消耗情况</span><div class="panel-controls"><select id="line-range" class="panel-select"><option value="7">过去7天</option><option value="30">过去30天</option></select><button class="panel-more">···</button></div></div>
+                        <div class="panel-header"><span data-i18n="stat_consumption">Filament Consumption</span><div class="panel-controls"><select id="line-range" class="panel-select"><option value="7" data-i18n="last_7_days">Last 7 days</option><option value="30" data-i18n="last_30_days">Last 30 days</option></select><button class="panel-more">···</button></div></div>
                         <div class="panel-body"><canvas id="chart-line" width="460" height="180"></canvas></div>
                     </div>
                 </div>
                 <div class="stats-panel stats-bar-panel">
-                    <div class="panel-header"><span>消耗量</span><div class="panel-controls"><select id="bar-range" class="panel-select"><option value="7">过去7天</option><option value="30">过去30天</option></select><button class="panel-more">···</button></div></div>
+                    <div class="panel-header"><span data-i18n="stat_consumption_bar">Consumption</span><div class="panel-controls"><select id="bar-range" class="panel-select"><option value="7" data-i18n="last_7_days">Last 7 days</option><option value="30" data-i18n="last_30_days">Last 30 days</option></select><button class="panel-more">···</button></div></div>
                     <div class="panel-body"><canvas id="chart-bar" width="900" height="200"></canvas></div>
                 </div>
             </div>
@@ -86,34 +86,34 @@
             <div class="toolbar">
                 <div class="toolbar-left">
                     <div class="tab-group" id="tab-group">
-                        <div class="tab-pill active" data-tab="all">全部</div>
-                        <div class="tab-pill" data-tab="favorite">收藏</div>
+                        <div class="tab-pill active" data-tab="all" data-i18n="tab_all">All</div>
+                        <div class="tab-pill" data-tab="favorite" data-i18n="tab_favorite">Favorites</div>
                         <div class="tab-pill" data-tab="ams">AMS</div>
                     </div>
                     <div class="toolbar-divider"></div>
                     <div class="filter-group" id="filter-group">
-                        <div class="filter-btn" data-filter="brand">品牌<svg width="14" height="14" viewBox="0 0 14 14"><path d="M4 6l3 3 3-3" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
-                        <div class="filter-btn" data-filter="material_type">类型<svg width="14" height="14" viewBox="0 0 14 14"><path d="M4 6l3 3 3-3" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
-                        <div class="filter-btn" data-filter="series">系列<svg width="14" height="14" viewBox="0 0 14 14"><path d="M4 6l3 3 3-3" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
-                        <div class="filter-btn" data-filter="status">状态<svg width="14" height="14" viewBox="0 0 14 14"><path d="M4 6l3 3 3-3" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
+                        <div class="filter-btn" data-filter="brand"><span data-i18n="filter_brand">Brand</span><svg width="14" height="14" viewBox="0 0 14 14"><path d="M4 6l3 3 3-3" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
+                        <div class="filter-btn" data-filter="material_type"><span data-i18n="filter_type">Type</span><svg width="14" height="14" viewBox="0 0 14 14"><path d="M4 6l3 3 3-3" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
+                        <div class="filter-btn" data-filter="series"><span data-i18n="filter_series">Series</span><svg width="14" height="14" viewBox="0 0 14 14"><path d="M4 6l3 3 3-3" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
+                        <div class="filter-btn" data-filter="status"><span data-i18n="filter_status">Status</span><svg width="14" height="14" viewBox="0 0 14 14"><path d="M4 6l3 3 3-3" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
                     </div>
                 </div>
                 <div class="toolbar-right">
                     <div class="search-box">
                         <svg class="search-icon" width="12" height="12" viewBox="0 0 12 12"><circle cx="5" cy="5" r="3.5" stroke="currentColor" stroke-width="1.2" fill="none"/><line x1="7.5" y1="7.5" x2="10.5" y2="10.5" stroke="currentColor" stroke-width="1.2"/></svg>
-                        <input type="text" id="search-input" placeholder="搜索耗材类型">
+                        <input type="text" id="search-input" data-i18n-placeholder="search_placeholder" placeholder="Search filament type">
                     </div>
                     <button class="btn btn-outline btn-delete" id="btn-delete" disabled>
                         <svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 4h8l-.7 8H3.7L3 4zM5.5 2h3M2 4h10" stroke="currentColor" stroke-width="1" fill="none"/></svg>
-                        删除
+                        <span data-i18n="btn_delete">Delete</span>
                     </button>
                     <button class="btn btn-outline" id="btn-group">
                         <svg width="14" height="14" viewBox="0 0 14 14"><rect x="1" y="1" width="5" height="5" rx=".5" stroke="currentColor" fill="none"/><rect x="8" y="1" width="5" height="5" rx=".5" stroke="currentColor" fill="none"/><rect x="1" y="8" width="5" height="5" rx=".5" stroke="currentColor" fill="none"/><rect x="8" y="8" width="5" height="5" rx=".5" stroke="currentColor" fill="none"/></svg>
-                        分组
+                        <span data-i18n="btn_group">Group</span>
                     </button>
                     <button class="btn btn-primary" id="btn-add">
                         <svg width="14" height="14" viewBox="0 0 14 14"><line x1="7" y1="2" x2="7" y2="12" stroke="currentColor" stroke-width="1.5"/><line x1="2" y1="7" x2="12" y2="7" stroke="currentColor" stroke-width="1.5"/></svg>
-                        添加耗材
+                        <span data-i18n="btn_add">Add Filament</span>
                     </button>
                 </div>
             </div>
@@ -129,11 +129,11 @@
                     <thead>
                         <tr>
                             <th class="col-check"><input type="checkbox" id="check-all"></th>
-                            <th class="col-filament sortable" data-sort="brand">耗材<span class="sort-icon"></span></th>
-                            <th class="col-remain sortable" data-sort="remain_percent">余量<span class="sort-icon"></span></th>
-                            <th class="col-status sortable" data-sort="status">状态<span class="sort-icon"></span></th>
-                            <th class="col-price sortable" data-sort="unit_price">单价 (/kg)<span class="sort-icon"></span></th>
-                            <th class="col-actions">操作</th>
+                            <th class="col-filament sortable" data-sort="brand" data-i18n="col_filament">Filament<span class="sort-icon"></span></th>
+                            <th class="col-remain sortable" data-sort="remain_percent" data-i18n="col_remain">Remaining<span class="sort-icon"></span></th>
+                            <th class="col-status sortable" data-sort="status" data-i18n="col_status">Status<span class="sort-icon"></span></th>
+                            <th class="col-price sortable" data-sort="unit_price" data-i18n="col_price">Unit Price (/kg)<span class="sort-icon"></span></th>
+                            <th class="col-actions" data-i18n="col_actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="spool-tbody"></tbody>
@@ -147,7 +147,7 @@
                             <rect x="45" y="60" width="30" height="6" rx="2" fill="rgba(255,255,255,0.06)"/>
                         </svg>
                     </div>
-                    <p>暂无数据</p>
+                    <p data-i18n="empty_state">No data</p>
                 </div>
             </div>
             <div class="pagination" id="pagination"></div>
@@ -159,18 +159,18 @@
     <div class="dialog-overlay" id="dialog-overlay" style="display:none;">
         <div class="dialog">
             <div class="dialog-header">
-                <h3 id="dialog-title">添加耗材</h3>
+                <h3 id="dialog-title" data-i18n="dialog_add_title">Add Filament</h3>
                 <button class="dialog-close" id="dialog-close">&times;</button>
             </div>
 
             <div class="dialog-tabs">
-                <div class="dialog-tab active" data-mode="manual">手动添加</div>
-                <div class="dialog-tab" data-mode="ams">从 AMS 上读取</div>
+                <div class="dialog-tab active" data-mode="manual" data-i18n="dialog_tab_manual">Manual</div>
+                <div class="dialog-tab" data-mode="ams" data-i18n="dialog_tab_ams">Read from AMS</div>
             </div>
 
             <!-- AMS mode content -->
             <div class="ams-section" id="ams-section" style="display:none;">
-                <div class="form-section-title">选择设备</div>
+                <div class="form-section-title" data-i18n="select_device">Select Device</div>
 
                 <!-- Has device: device selector + AMS slots -->
                 <div class="ams-device-area" id="ams-device-area" style="display:none;">
@@ -196,103 +196,103 @@
                             <path d="M57 150h80" stroke="rgba(255,255,255,0.1)" stroke-width="1.2"/>
                         </svg>
                     </div>
-                    <p class="ams-empty-text">正在获取设备信息…</p>
+                    <p class="ams-empty-text" data-i18n="ams_loading">Loading device info…</p>
                 </div>
             </div>
 
             <div class="dialog-body" id="dialog-body">
-                <div class="form-section-title">耗材信息</div>
+                <div class="form-section-title" data-i18n="section_filament_info">Filament Info</div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label>品牌 <span class="required">*</span></label>
-                        <select id="form-brand"><option value="">选择品牌</option></select>
+                        <label data-i18n="label_brand">Brand <span class="required">*</span></label>
+                        <select id="form-brand"><option value="" data-i18n="placeholder_brand">Select brand</option></select>
                     </div>
                     <div class="form-group">
-                        <label>类型 <span class="required">*</span></label>
-                        <select id="form-type"><option value="">选择类型</option></select>
+                        <label data-i18n="label_type">Type <span class="required">*</span></label>
+                        <select id="form-type"><option value="" data-i18n="placeholder_type">Select type</option></select>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>系列 <span class="required">*</span></label>
-                    <select id="form-series"><option value="">选择系列</option></select>
+                    <label data-i18n="label_series">Series <span class="required">*</span></label>
+                    <select id="form-series"><option value="" data-i18n="placeholder_series">Select series</option></select>
                 </div>
 
                 <div class="form-group">
-                    <label>颜色 <span class="required">*</span></label>
+                    <label data-i18n="label_color">Color <span class="required">*</span></label>
                     <div class="color-palette" id="color-palette"></div>
                     <input type="hidden" id="form-color-code" value="">
-                    <input type="text" id="form-color-name" placeholder="颜色名称" class="mt-8">
+                    <input type="text" id="form-color-name" data-i18n-placeholder="placeholder_color_name" placeholder="Color name" class="mt-8">
                 </div>
 
-                <div class="form-section-title">重量 <span class="required">*</span></div>
+                <div class="form-section-title"><span data-i18n="section_weight">Weight</span> <span class="required">*</span></div>
                 <div class="weight-box">
                     <div class="form-row form-row-3">
                         <div class="form-group">
-                            <label>总重量</label>
+                            <label data-i18n="label_total_weight">Total Weight</label>
                             <div class="input-suffix"><input type="number" id="form-total-weight" value="1000"><span>g</span></div>
                         </div>
                         <div class="form-group form-separator">-</div>
                         <div class="form-group">
-                            <label>料盘重量</label>
+                            <label data-i18n="label_spool_weight">Spool Weight</label>
                             <div class="input-suffix"><input type="number" id="form-spool-weight" value="250"><span>g</span></div>
                         </div>
                         <div class="form-group form-separator">=</div>
                         <div class="form-group">
-                            <label>净重</label>
+                            <label data-i18n="label_net_weight">Net Weight</label>
                             <div class="input-suffix"><input type="number" id="form-net-weight" value="750" readonly><span>g</span></div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Advanced settings -->
-                <div class="advanced-toggle" id="advanced-toggle">高级设置 <svg width="12" height="12" viewBox="0 0 12 12"><path d="M3 5l3 3 3-3" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
+                <div class="advanced-toggle" id="advanced-toggle"><span data-i18n="advanced_settings">Advanced Settings</span> <svg width="12" height="12" viewBox="0 0 12 12"><path d="M3 5l3 3 3-3" stroke="currentColor" stroke-width="1.2" fill="none"/></svg></div>
                 <div class="advanced-section" id="advanced-section" style="display:none;">
-                    <div class="form-section-title">基础参数</div>
+                    <div class="form-section-title" data-i18n="section_basic_params">Basic Parameters</div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>有什么参数要放出来放在这里</label>
-                            <select id="form-param1"><option value="">选择品牌</option></select>
+                            <label data-i18n="label_brand">Brand</label>
+                            <select id="form-param1"><option value="" data-i18n="placeholder_brand">Select brand</option></select>
                         </div>
                         <div class="form-group">
-                            <label>参数2</label>
-                            <select id="form-param2"><option value="">选择品牌</option></select>
+                            <label data-i18n="label_type">Type</label>
+                            <select id="form-param2"><option value="" data-i18n="placeholder_brand">Select brand</option></select>
                         </div>
                     </div>
 
-                    <div class="form-section-title">状态提醒</div>
+                    <div class="form-section-title" data-i18n="section_status_reminders">Status Reminders</div>
                     <div class="form-group">
-                        <label>余量提醒</label>
+                        <label data-i18n="label_remain_alert">Low Stock Alert</label>
                         <select id="form-remain-alert">
-                            <option value="0">选择余量</option>
-                            <option value="10">≦ 10g</option>
-                            <option value="20">≦ 20g</option>
-                            <option value="30">≦ 30g</option>
-                            <option value="50">≦ 50g</option>
+                            <option value="0" data-i18n="placeholder_remain_alert">Select threshold</option>
+                            <option value="10" data-i18n="remain_10">≦ 10g</option>
+                            <option value="20" data-i18n="remain_20">≦ 20g</option>
+                            <option value="30" data-i18n="remain_30">≦ 30g</option>
+                            <option value="50" data-i18n="remain_50">≦ 50g</option>
                         </select>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>最近一次烘干日期</label>
+                            <label data-i18n="label_dry_date">Last Dry Date</label>
                             <input type="date" id="form-dry-date">
                         </div>
                         <div class="form-group">
-                            <label>烘干提醒</label>
+                            <label data-i18n="label_dry_reminder">Dry Reminder</label>
                             <select id="form-dry-reminder">
-                                <option value="0">选择烘干提醒周期</option>
-                                <option value="7">每周</option>
-                                <option value="14">每两周</option>
-                                <option value="30">每月</option>
-                                <option value="60">每两月</option>
+                                <option value="0" data-i18n="placeholder_dry_reminder">Select dry reminder interval</option>
+                                <option value="7" data-i18n="dry_weekly">Weekly</option>
+                                <option value="14" data-i18n="dry_biweekly">Every 2 weeks</option>
+                                <option value="30" data-i18n="dry_monthly">Monthly</option>
+                                <option value="60" data-i18n="dry_bimonthly">Every 2 months</option>
                             </select>
                         </div>
                     </div>
 
-                    <div class="form-section-title">其他</div>
+                    <div class="form-section-title" data-i18n="section_other">Other</div>
                     <div class="form-row">
                         <div class="form-group" style="flex:0 0 120px">
-                            <label>价格</label>
+                            <label data-i18n="label_price">Price</label>
                             <select id="form-currency">
-                                <option value="">选择币种</option>
+                                <option value="" data-i18n="placeholder_currency">Select currency</option>
                                 <option value="CNY">CNY</option>
                                 <option value="USD">USD</option>
                                 <option value="EUR">EUR</option>
@@ -301,13 +301,13 @@
                         </div>
                         <div class="form-group">
                             <label>&nbsp;</label>
-                            <div class="input-suffix"><input type="number" id="form-price" placeholder="输入单价"><span>/kg</span></div>
+                            <div class="input-suffix"><input type="number" id="form-price" data-i18n-placeholder="placeholder_price" placeholder="Enter unit price"><span>/kg</span></div>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>备注</label>
+                        <label data-i18n="label_note">Notes</label>
                         <div class="textarea-wrap">
-                            <textarea id="form-note" maxlength="50" rows="2" placeholder="输入备注"></textarea>
+                            <textarea id="form-note" maxlength="50" rows="2" data-i18n-placeholder="placeholder_note" placeholder="Enter notes"></textarea>
                             <span class="char-count" id="char-count">0/50</span>
                         </div>
                     </div>
@@ -318,12 +318,12 @@
                 <div class="quantity-control" id="quantity-control">
                     <button class="qty-btn" id="qty-minus">-</button>
                     <span class="qty-value" id="qty-value">1</span>
-                    <span class="qty-unit">卷</span>
+                    <span class="qty-unit" data-i18n="qty_unit">spool(s)</span>
                     <button class="qty-btn" id="qty-plus">+</button>
                 </div>
                 <div class="dialog-actions">
-                    <button class="btn btn-outline" id="dialog-cancel">取消</button>
-                    <button class="btn btn-primary" id="dialog-confirm">添加</button>
+                    <button class="btn btn-outline" id="dialog-cancel" data-i18n="btn_cancel">Cancel</button>
+                    <button class="btn btn-primary" id="dialog-confirm" data-i18n="btn_confirm_add">Add</button>
                 </div>
             </div>
         </div>
@@ -333,14 +333,14 @@
     <div class="detail-overlay" id="detail-overlay" style="display:none;">
         <div class="detail-dialog">
             <div class="detail-header">
-                <h3>耗材详情</h3>
+                <h3 data-i18n="detail_title">Filament Details</h3>
                 <div class="detail-nav">
-                    <button class="detail-nav-btn" id="det-prev" title="上一个">
+                    <button class="detail-nav-btn" id="det-prev">
                         <svg width="14" height="14" viewBox="0 0 14 14"><path d="M8.5 3L4.5 7l4 4" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
-                        <span>上一个</span>
+                        <span data-i18n="detail_prev">Previous</span>
                     </button>
-                    <button class="detail-nav-btn" id="det-next" title="下一个">
-                        <span>下一个</span>
+                    <button class="detail-nav-btn" id="det-next">
+                        <span data-i18n="detail_next">Next</span>
                         <svg width="14" height="14" viewBox="0 0 14 14"><path d="M5.5 3L9.5 7l-4 4" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
                     </button>
                 </div>
@@ -360,56 +360,56 @@
             </div>
 
             <div class="detail-tabs" id="det-tabs">
-                <div class="detail-tab active" data-dtab="info">耗材信息</div>
-                <div class="detail-tab" data-dtab="usage">使用记录</div>
+                <div class="detail-tab active" data-dtab="info" data-i18n="detail_tab_info">Filament Info</div>
+                <div class="detail-tab" data-dtab="usage" data-i18n="detail_tab_usage">Usage History</div>
             </div>
 
             <div class="detail-body" id="det-body">
                 <div class="detail-tab-content" id="dtab-info">
-                    <div class="form-section-title">耗材信息</div>
+                    <div class="form-section-title" data-i18n="section_filament_info">Filament Info</div>
                     <div class="det-field-row">
-                        <div class="det-field"><label>品牌</label><span class="det-value" id="det-v-brand">—</span></div>
-                        <div class="det-field"><label>类型</label><span class="det-value" id="det-v-type">—</span></div>
+                        <div class="det-field"><label data-i18n="detail_label_brand">Brand</label><span class="det-value" id="det-v-brand">—</span></div>
+                        <div class="det-field"><label data-i18n="detail_label_type">Type</label><span class="det-value" id="det-v-type">—</span></div>
                     </div>
                     <div class="det-field-row">
-                        <div class="det-field"><label>系列</label><span class="det-value" id="det-v-series">—</span></div>
-                        <div class="det-field"><label>颜色</label><div class="det-color-swatch" id="det-v-color"></div></div>
+                        <div class="det-field"><label data-i18n="detail_label_series">Series</label><span class="det-value" id="det-v-series">—</span></div>
+                        <div class="det-field"><label data-i18n="detail_label_color">Color</label><div class="det-color-swatch" id="det-v-color"></div></div>
                     </div>
                     <div class="det-field">
-                        <label>重量</label>
+                        <label data-i18n="section_weight">Weight</label>
                         <div class="det-weight-box" id="det-v-weight">
-                            <div class="det-weight-col"><span class="det-weight-label">总重量</span><span class="det-weight-val" id="det-v-tw">—</span></div>
+                            <div class="det-weight-col"><span class="det-weight-label" data-i18n="detail_total_weight">Total Weight</span><span class="det-weight-val" id="det-v-tw">—</span></div>
                             <span class="det-weight-op">-</span>
-                            <div class="det-weight-col"><span class="det-weight-label">料盘重量</span><span class="det-weight-val" id="det-v-sw">—</span></div>
+                            <div class="det-weight-col"><span class="det-weight-label" data-i18n="detail_spool_weight">Spool Weight</span><span class="det-weight-val" id="det-v-sw">—</span></div>
                             <span class="det-weight-op">=</span>
-                            <div class="det-weight-col"><span class="det-weight-label">净重</span><span class="det-weight-val" id="det-v-nw">—</span></div>
+                            <div class="det-weight-col"><span class="det-weight-label" data-i18n="detail_net_weight">Net Weight</span><span class="det-weight-val" id="det-v-nw">—</span></div>
                         </div>
                     </div>
 
-                    <div class="form-section-title">基础信息</div>
-                    <div class="det-field"><label>参数1</label><span class="det-value" id="det-v-param1">—</span></div>
+                    <div class="form-section-title" data-i18n="detail_section_basic">Basic Info</div>
+                    <div class="det-field"><label data-i18n="detail_label_param1">Parameter 1</label><span class="det-value" id="det-v-param1">—</span></div>
 
-                    <div class="form-section-title">状态提醒</div>
-                    <div class="det-field"><label>余量提醒</label><span class="det-value" id="det-v-remain-alert">—</span></div>
+                    <div class="form-section-title" data-i18n="detail_section_reminders">Status Reminders</div>
+                    <div class="det-field"><label data-i18n="detail_label_remain_alert">Low Stock Alert</label><span class="det-value" id="det-v-remain-alert">—</span></div>
                     <div class="det-field-row">
-                        <div class="det-field"><label>最近一次烘干日期</label><span class="det-value" id="det-v-dry-date">—</span></div>
-                        <div class="det-field"><label>烘干提醒</label><span class="det-value" id="det-v-dry-reminder">—</span></div>
+                        <div class="det-field"><label data-i18n="detail_label_dry_date">Last Dry Date</label><span class="det-value" id="det-v-dry-date">—</span></div>
+                        <div class="det-field"><label data-i18n="detail_label_dry_reminder">Dry Reminder</label><span class="det-value" id="det-v-dry-reminder">—</span></div>
                     </div>
 
-                    <div class="form-section-title">其他</div>
-                    <div class="det-field"><label>价格</label><span class="det-value" id="det-v-price">—</span></div>
-                    <div class="det-field"><label>备注</label><span class="det-value" id="det-v-note">—</span></div>
+                    <div class="form-section-title" data-i18n="detail_section_other">Other</div>
+                    <div class="det-field"><label data-i18n="detail_label_price">Price</label><span class="det-value" id="det-v-price">—</span></div>
+                    <div class="det-field"><label data-i18n="detail_label_note">Notes</label><span class="det-value" id="det-v-note">—</span></div>
                 </div>
 
                 <div class="detail-tab-content" id="dtab-usage" style="display:none;">
                     <div class="detail-usage-empty">
-                        <p>暂无使用记录</p>
+                        <p data-i18n="no_usage_records">No usage history</p>
                     </div>
                 </div>
             </div>
 
             <div class="detail-footer">
-                <button class="btn btn-primary" id="det-edit-btn">编辑耗材信息</button>
+                <button class="btn btn-primary" id="det-edit-btn" data-i18n="btn_edit_spool">Edit Filament</button>
             </div>
         </div>
     </div>
