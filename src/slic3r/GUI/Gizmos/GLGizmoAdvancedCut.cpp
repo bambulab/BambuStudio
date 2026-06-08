@@ -2795,7 +2795,7 @@ void GLGizmoAdvancedCut::render_input_window_warning() const
                    (m_info_stats.outside_cut_contour == 1 ? _L("connector is out of cut contour") : _L("connectors are out of cut contour"));
         if (m_info_stats.outside_bb > size_t(0))
             out += "\n - " + std::to_string(m_info_stats.outside_bb) +
-                   (m_info_stats.outside_bb == 1 ? _L("connector is out of object") : _L("connectors is out of object"));
+                   (m_info_stats.outside_bb == 1 ? _L("connector is out of object") : _L("connectors are out of object"));
         if (m_info_stats.is_overlap)
             out += "\n - " + _L("Some connectors are overlapped");
         m_imgui->warning_text(out);
