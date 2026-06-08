@@ -21,6 +21,7 @@ on:
       - "**/CMakeLists.txt"
       - "build_win.bat"
       - ".github/config-fast-gate-paths.txt"
+      - ".github/gcode-reader-smoke-paths.txt"
       - ".github/gcodewriter-smoke-paths.txt"
       - ".github/model-assembly-smoke-paths.txt"
       - ".github/print-filament-mapping-smoke-paths.txt"
@@ -139,6 +140,9 @@ jobs:
           $gcodewriterEnabled = $true
           $gcodewriterReason = "workflow_dispatch"
           $gcodewriterMatched = "n/a"
+          $gcodeReaderEnabled = $true
+          $gcodeReaderReason = "workflow_dispatch"
+          $gcodeReaderMatched = "n/a"
           $modelAssemblyEnabled = $true
           $modelAssemblyReason = "workflow_dispatch"
           $modelAssemblyMatched = "n/a"
@@ -187,6 +191,7 @@ jobs:
             if ([string]::IsNullOrWhiteSpace($baseRef) -or $baseRef -match '^0+$') {
               $configReason = "missing_base_sha"
               $gcodewriterReason = "missing_base_sha"
+              $gcodeReaderReason = "missing_base_sha"
               $modelAssemblyReason = "missing_base_sha"
               $filamentMappingReason = "missing_base_sha"
               $applyValidateReason = "missing_base_sha"
@@ -204,6 +209,7 @@ jobs:
               if ($LASTEXITCODE -ne 0) {
                 $configReason = "fetch_base_failed"
                 $gcodewriterReason = "fetch_base_failed"
+                $gcodeReaderReason = "fetch_base_failed"
                 $modelAssemblyReason = "fetch_base_failed"
                 $filamentMappingReason = "fetch_base_failed"
                 $applyValidateReason = "fetch_base_failed"
@@ -222,6 +228,7 @@ jobs:
 
                 $configScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/config-fast-gate-paths.txt"
                 $gcodewriterScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/gcodewriter-smoke-paths.txt"
+                $gcodeReaderScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/gcode-reader-smoke-paths.txt"
                 $modelAssemblyScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/model-assembly-smoke-paths.txt"
                 $filamentMappingScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/print-filament-mapping-smoke-paths.txt"
                 $applyValidateScope = Get-ScopeResult -ChangedFiles $changed -PatternsPath ".github/print-apply-validate-smoke-paths.txt"
@@ -243,6 +250,9 @@ jobs:
                 $gcodewriterEnabled = $gcodewriterScope.Enabled
                 $gcodewriterReason = $gcodewriterScope.Reason
                 $gcodewriterMatched = $gcodewriterScope.Matched
+                $gcodeReaderEnabled = $gcodeReaderScope.Enabled
+                $gcodeReaderReason = $gcodeReaderScope.Reason
+                $gcodeReaderMatched = $gcodeReaderScope.Matched
                 $modelAssemblyEnabled = $modelAssemblyScope.Enabled
                 $modelAssemblyReason = $modelAssemblyScope.Reason
                 $modelAssemblyMatched = $modelAssemblyScope.Matched
@@ -283,6 +293,7 @@ jobs:
                 if ($centralCMakeChanged) {
                   $configEnabled = $true
                   $gcodewriterEnabled = $true
+                  $gcodeReaderEnabled = $true
                   $modelAssemblyEnabled = $true
                   $filamentMappingEnabled = $true
                   $applyValidateEnabled = $true
@@ -298,6 +309,7 @@ jobs:
 
                   $configReason = "central_cmake_changed"
                   $gcodewriterReason = "central_cmake_changed"
+                  $gcodeReaderReason = "central_cmake_changed"
                   $modelAssemblyReason = "central_cmake_changed"
                   $filamentMappingReason = "central_cmake_changed"
                   $applyValidateReason = "central_cmake_changed"
@@ -313,6 +325,7 @@ jobs:
 
                   $configMatched = "src/libslic3r/CMakeLists.txt"
                   $gcodewriterMatched = "src/libslic3r/CMakeLists.txt"
+                  $gcodeReaderMatched = "src/libslic3r/CMakeLists.txt"
                   $modelAssemblyMatched = "src/libslic3r/CMakeLists.txt"
                   $filamentMappingMatched = "src/libslic3r/CMakeLists.txt"
                   $applyValidateMatched = "src/libslic3r/CMakeLists.txt"
@@ -330,7 +343,7 @@ jobs:
             }
           }
 
-          $anyEnabled = $configEnabled -or $gcodewriterEnabled -or $modelAssemblyEnabled -or $filamentMappingEnabled -or $applyValidateEnabled -or $perimetersEnabled -or $processMathEnabled -or $processCoreEnabled -or $objectLayersEnabled -or $adhesionEnabled -or $fillEnabled -or $supportMaterialLayersEnabled -or $supportMaterialEnabled -or $trianglemeshGeometryEnabled
+          $anyEnabled = $configEnabled -or $gcodewriterEnabled -or $gcodeReaderEnabled -or $modelAssemblyEnabled -or $filamentMappingEnabled -or $applyValidateEnabled -or $perimetersEnabled -or $processMathEnabled -or $processCoreEnabled -or $objectLayersEnabled -or $adhesionEnabled -or $fillEnabled -or $supportMaterialLayersEnabled -or $supportMaterialEnabled -or $trianglemeshGeometryEnabled
           "any_enabled=$($anyEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "changed=$changedText" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "config_enabled=$($configEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
@@ -339,6 +352,9 @@ jobs:
           "gcodewriter_enabled=$($gcodewriterEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "gcodewriter_reason=$gcodewriterReason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "gcodewriter_matched=$gcodewriterMatched" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "gcode_reader_enabled=$($gcodeReaderEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "gcode_reader_reason=$gcodeReaderReason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          "gcode_reader_matched=$gcodeReaderMatched" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "model_assembly_enabled=$($modelAssemblyEnabled.ToString().ToLower())" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "model_assembly_reason=$modelAssemblyReason" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           "model_assembly_matched=$modelAssemblyMatched" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
@@ -383,6 +399,7 @@ jobs:
           }
           Write-Host "config gate enabled=$configEnabled reason=$configReason matched=$configMatched"
           Write-Host "gcodewriter smoke gate enabled=$gcodewriterEnabled reason=$gcodewriterReason matched=$gcodewriterMatched"
+          Write-Host "gcode reader smoke gate enabled=$gcodeReaderEnabled reason=$gcodeReaderReason matched=$gcodeReaderMatched"
           Write-Host "model assembly smoke gate enabled=$modelAssemblyEnabled reason=$modelAssemblyReason matched=$modelAssemblyMatched"
           Write-Host "print filament mapping smoke gate enabled=$filamentMappingEnabled reason=$filamentMappingReason matched=$filamentMappingMatched"
           Write-Host "print apply/validate smoke gate enabled=$applyValidateEnabled reason=$applyValidateReason matched=$applyValidateMatched"
@@ -507,7 +524,7 @@ jobs:
         run: cmake --build "${{ env.BUILD_DIR }}" --target gcodewriter_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
 
       - name: Build gcode reader smoke target
-        if: steps.smoke_scope.outputs.gcodewriter_enabled == 'true'
+        if: steps.smoke_scope.outputs.gcode_reader_enabled == 'true'
         timeout-minutes: 10
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target gcode_reader_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
@@ -640,7 +657,7 @@ jobs:
 
       - name: Run gcode reader smoke
         id: run_gcode_reader_smoke
-        if: steps.smoke_scope.outputs.gcodewriter_enabled == 'true'
+        if: steps.smoke_scope.outputs.gcode_reader_enabled == 'true'
         timeout-minutes: 10
         shell: pwsh
         run: |
@@ -650,6 +667,19 @@ jobs:
           $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "gcode-reader-smoke.xml"
           & $exe "[GCodeReader]" 2>&1 | Tee-Object -FilePath $log
           & $exe -r junit -o $xml "[GCodeReader]" | Out-Null
+
+      - name: Note skipped gcode reader smoke target
+        if: steps.smoke_scope.outputs.gcode_reader_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## GCodeReader Smoke Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.gcode_reader_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.gcode_reader_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
 
       - name: Note skipped gcodewriter smoke target
         if: steps.smoke_scope.outputs.gcodewriter_enabled != 'true'
@@ -987,6 +1017,8 @@ jobs:
               Xml = "gcodewriter-smoke.xml"
               Conclusion = "${{ steps.run_gcodewriter_smoke.conclusion }}"
             })
+          }
+          if ("${{ steps.smoke_scope.outputs.gcode_reader_enabled }}" -eq "true") {
             $expected.Add(@{
               Name = "gcode_reader_smoke_tests [GCodeReader]"
               Log = "gcode-reader-smoke.log"
@@ -1217,6 +1249,8 @@ jobs:
           $configFastReason = "${{ steps.smoke_scope.outputs.config_reason }}"
           $gcodewriterSmokeEnabled = "${{ steps.smoke_scope.outputs.gcodewriter_enabled }}" -eq "true"
           $gcodewriterSmokeReason = "${{ steps.smoke_scope.outputs.gcodewriter_reason }}"
+          $gcodeReaderSmokeEnabled = "${{ steps.smoke_scope.outputs.gcode_reader_enabled }}" -eq "true"
+          $gcodeReaderSmokeReason = "${{ steps.smoke_scope.outputs.gcode_reader_reason }}"
           $modelAssemblyEnabled = "${{ steps.smoke_scope.outputs.model_assembly_enabled }}" -eq "true"
           $modelAssemblyReason = "${{ steps.smoke_scope.outputs.model_assembly_reason }}"
           $filamentMappingSmokeEnabled = "${{ steps.smoke_scope.outputs.filament_mapping_enabled }}" -eq "true"
@@ -1274,8 +1308,8 @@ jobs:
               $rows.Add("| $($suite.Name) | skipped ($gcodewriterSmokeReason) | 0 | 0 |")
               continue
             }
-            if ($suite.Name -like 'gcode_reader_smoke_tests*' -and -not $gcodewriterSmokeEnabled) {
-              $rows.Add("| $($suite.Name) | skipped ($gcodewriterSmokeReason) | 0 | 0 |")
+            if ($suite.Name -like 'gcode_reader_smoke_tests*' -and -not $gcodeReaderSmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($gcodeReaderSmokeReason) | 0 | 0 |")
               continue
             }
             if ($suite.Name -like 'model_basic_smoke_tests*' -and -not $modelAssemblyEnabled) {
@@ -1364,6 +1398,8 @@ jobs:
           - Config fast gate reason: `$configFastReason`
           - GCodeWriter smoke gate enabled: `$gcodewriterSmokeEnabled`
           - GCodeWriter smoke gate reason: `$gcodewriterSmokeReason`
+          - GCodeReader smoke gate enabled: `$gcodeReaderSmokeEnabled`
+          - GCodeReader smoke gate reason: `$gcodeReaderSmokeReason`
           - Model assembly smoke gate enabled: `$modelAssemblyEnabled`
           - Model assembly smoke gate reason: `$modelAssemblyReason`
           - Print filament mapping smoke gate enabled: `$filamentMappingSmokeEnabled`
