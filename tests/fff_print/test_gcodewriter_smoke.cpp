@@ -19,6 +19,21 @@ SCENARIO("GCodeWriter emits stable fixed-point speeds", "[GCodeWriter]") {
     }
 }
 
+SCENARIO("GCodeWriter preamble keeps migrated G-code unit setup stable", "[GCodeWriter]") {
+    GIVEN("A default GCodeWriter instance") {
+        GCodeWriter writer;
+
+        WHEN("the writer preamble is emitted") {
+            const std::string preamble = writer.preamble();
+
+            THEN("absolute positioning and millimeter units are selected") {
+                REQUIRE(preamble.find("G90") != std::string::npos);
+                REQUIRE(preamble.find("G21") != std::string::npos);
+            }
+        }
+    }
+}
+
 SCENARIO("GCodeWriter tracks basic extruder and bed temperature state", "[GCodeWriter]") {
     GIVEN("A single-extruder writer") {
         GCodeWriter writer;
