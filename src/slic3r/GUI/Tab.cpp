@@ -8090,8 +8090,13 @@ void Page::update_visibility(ConfigOptionMode mode, bool update_contolls_visibil
 #ifdef __WXMSW__
     if (!m_show) return;
     // BBS: fix field control position
-    wxTheApp->CallAfter([this]() {
-        for (auto group : m_optgroups) {
+    // Capture a weak_ptr so the deferred call is skipped if the Page is
+    // destroyed (e.g. tab rebuilds its pages on a preset/printer switch)
+    // before this event is dispatched, avoiding a use-after-free.
+    wxTheApp->CallAfter([weak_self = weak_from_this()]() {
+        auto self = weak_self.lock();
+        if (!self) return;
+        for (auto group : self->m_optgroups) {
             if (group->custom_ctrl) group->custom_ctrl->fixup_items_positions();
         }
     });
@@ -8129,8 +8134,14 @@ void Page::activate(ConfigOptionMode mode, std::function<void()> throw_if_cancel
 
 #ifdef __WXMSW__
     // BBS: fix field control position
-    wxTheApp->CallAfter([this]() {
-        for (auto group : m_optgroups) {
+    // Capture a weak_ptr so the deferred call is skipped if the Page is
+    // destroyed (e.g. tab rebuilds its pages on a preset/printer switch)
+    // before this event is dispatched, avoiding a use-after-free.
+    std::weak_ptr<Page> weak_self = weak_from_this();
+    wxTheApp->CallAfter([weak_self]() {
+        auto self = weak_self.lock();
+        if (!self) return;
+        for (auto group : self->m_optgroups) {
             if (group->custom_ctrl)
                 group->custom_ctrl->fixup_items_positions();
         }
