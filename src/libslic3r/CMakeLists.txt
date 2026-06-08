@@ -330,6 +330,7 @@ set(lisbslic3r_sources
     PrintFilamentMappingConfigSync.cpp
     PrintFilamentMappingConfigSync.hpp
     PrintFilamentMapping.cpp
+    PrintFilamentMappingNozzleConfig.cpp
     PrintFilamentMappingRules.cpp
     PrintFilamentMappingRules.hpp
     PrintEnvelope.cpp
@@ -909,6 +910,7 @@ set(libslic3r_print_process_core_sources
     PrintFilamentState.cpp
     PrintFilamentMappingConfigSync.cpp
     PrintFilamentMapping.cpp
+    PrintFilamentMappingNozzleConfig.cpp
     PrintFilamentMappingRules.cpp
     PrintEnvelope.cpp
     PrintExtruderUtils.cpp
@@ -1041,6 +1043,7 @@ list(REMOVE_ITEM libslic3r_print_perimeters_core_sources
     PrintBaseOutput.cpp
     PrintCache.cpp
     PrintFilamentCompatibility.cpp
+    PrintFilamentMappingNozzleConfig.cpp
     PrintOutputFilename.cpp
     PrintProcess.cpp
     PrintObjectSliceInterlocking.cpp
@@ -1108,6 +1111,7 @@ list(REMOVE_ITEM libslic3r_print_apply_validate_core_sources
     OverhangDetector.cpp
     PerimeterGenerator.cpp
     PrintFilamentMapping.cpp
+    PrintFilamentMappingNozzleConfig.cpp
     PrintFilamentMappingConfigSync.cpp
     PrintFilamentMappingCompat.cpp
     PrintFilamentMappingRules.cpp
