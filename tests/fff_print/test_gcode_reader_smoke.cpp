@@ -3,6 +3,7 @@
 #include "libslic3r/GCodeReader.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -68,4 +69,37 @@ SCENARIO("GCodeReader smoke covers migrated object reset and tool-selection pars
     REQUIRE(z_values[1] == Approx(20.1));
     REQUIRE(z_values[2] == Approx(0.3));
     REQUIRE(z_values[1] > z_values[2]);
+}
+
+SCENARIO("GCodeReader smoke covers migrated complete-object Z reset ordering", "[GCodeReader]")
+{
+    const std::string gcode =
+        "G1 Z0.3\n"
+        "G1 Z10.0\n"
+        "G1 Z20.1\n"
+        "G1 X0 Y0 ; between-object-gcode\n"
+        "G1 Z0.3\n"
+        "G1 Z20.0\n";
+
+    GCodeReader reader;
+    double max_z = 0.0;
+    bool reset_after_tall_object = false;
+    bool saw_between_object_marker = false;
+
+    reader.parse_buffer(gcode, [&](GCodeReader&, const GCodeReader::GCodeLine& line) {
+        saw_between_object_marker |= line.comment().find("between-object-gcode") != std::string_view::npos;
+
+        if (!line.has_z())
+            return;
+
+        const double z = static_cast<double>(line.z());
+        if (max_z > 0.0 && std::abs(z - 0.3) < 0.01)
+            reset_after_tall_object = max_z > 20.0;
+        else
+            max_z = std::max(max_z, z);
+    });
+
+    REQUIRE(saw_between_object_marker);
+    REQUIRE(reset_after_tall_object);
+    REQUIRE(max_z == Approx(20.1));
 }
