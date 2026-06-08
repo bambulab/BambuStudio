@@ -614,7 +614,7 @@ jobs:
 
       - name: Build support material smoke target
         if: steps.smoke_scope.outputs.support_material_enabled == 'true'
-        timeout-minutes: 10
+        timeout-minutes: 45
         shell: pwsh
         run: cmake --build "${{ env.BUILD_DIR }}" --target support_material_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
 
