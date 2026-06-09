@@ -4260,9 +4260,13 @@ void GCode::compute_farthest_point(const std::vector<LayerToPrint> &layers, int 
         }
     };
 
-    // Single pass: scan all paths, collecting ext-perimeter and fallback candidates
+    // Single pass: scan all paths, collecting ext-perimeter and fallback candidates.
+    // Use original_object (not ltp.object()) to get instance shifts, because
+    // ltp.object() may return a shared/merged PrintObject whose instances() only
+    // reflects one copy's shift. original_object preserves the per-ModelObject
+    // PrintObject with correct instance positions.
     for (const LayerToPrint &ltp : layers) {
-        const PrintObject *print_obj = ltp.object();
+        const PrintObject *print_obj = ltp.original_object;
         if (!print_obj) continue;
 
         for (const PrintInstance &inst : print_obj->instances()) {
