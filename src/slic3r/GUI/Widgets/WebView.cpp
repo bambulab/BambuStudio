@@ -307,6 +307,10 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
         wxWebViewEdge::MSWSetBrowserExecutableDir(edgeFixedDir.GetFullPath());
         wxLogMessage("Using fixed edge version");
     }
+
+    if(!wxWebView::IsBackendAvailable(wxWebViewBackendEdge)) {
+        BOOST_LOG_TRIVIAL(warning) << "WebView2 runtime is not available. WebView based features may not work properly";
+    }
 #endif
     auto url2  = url;
 #ifdef __WIN32__
