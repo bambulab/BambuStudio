@@ -1243,20 +1243,34 @@ void MediaPlayCtrl::SetStatus(wxString const &msg2, bool hyperlink)
     wxString display_text = msg;
     if (msg_size.x > max_status_width) {
         display_text = wxControl::Ellipsize(msg, dc, wxELLIPSIZE_END, max_status_width);
-        m_label_status->SetToolTip(msg);
+        if (m_label_status->GetToolTipText() != msg) {
+            m_label_status->SetToolTip(msg);
+        }
     } else {
-        m_label_status->SetToolTip(wxEmptyString);
+        if (!m_label_status->GetToolTipText().empty()) {
+            m_label_status->SetToolTip(wxEmptyString);
+        }
     }
 
-    m_label_status->SetLabel(display_text);
+    // Only re-layout when the status text or hyperlink style actually changed.
+    const bool text_changed = (m_label_status->GetLabel() != display_text);
+    if (text_changed) {
+        m_label_status->SetLabel(display_text);
+    }
 
     long style = m_label_status->GetWindowStyle() & ~LB_HYPERLINK;
     if (hyperlink) {
         style |= LB_HYPERLINK;
     }
-    m_label_status->SetWindowStyle(style);
-    m_label_status->InvalidateBestSize();
-    Layout();
+    const bool style_changed = (m_label_status->GetWindowStyle() != style);
+    if (style_changed) {
+        m_label_status->SetWindowStyle(style);
+    }
+
+    if (text_changed || style_changed) {
+        m_label_status->InvalidateBestSize();
+        Layout();
+    }
 }
 
 bool MediaPlayCtrl::IsStreaming() const { return m_streaming; }

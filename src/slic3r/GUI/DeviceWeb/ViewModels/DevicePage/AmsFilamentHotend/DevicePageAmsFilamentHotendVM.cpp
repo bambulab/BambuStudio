@@ -149,11 +149,7 @@ void DevicePageAmsFilamentHotendVM::ReportState(const std::string& submod, const
     if (state_key == m_last_report_state) {
         return;
     }
-
-#if 1
-    BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "[new]" << state_key;
-#endif
-
+    
     m_last_report_state = state_key;
     m_bridge->ReportMsg(MakeResponse(GetModule(), submod, action, 0, "", state));
 }

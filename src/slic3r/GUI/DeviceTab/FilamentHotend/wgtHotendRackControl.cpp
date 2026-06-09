@@ -167,59 +167,41 @@ void wgtHotendRackControl::update_state()
         }
     };
 
-    apply_cell(lift, wxString(), m_control_enabled);
-    apply_cell(center, wxString(), m_control_enabled);
-    apply_cell(lower, wxString(), m_control_enabled);
+    // Resolve the final (label, enable) target
+    wxString lift_label, center_label, lower_label;
+    bool lift_enable   = m_control_enabled;
+    bool center_enable = m_control_enabled;
+    bool lower_enable  = m_control_enabled;
 
     auto rack = get_rack(m_obj);
-    if (!rack) {
-        if (changed) {
-            Layout();
-            Refresh();
-        }
-        return;
-    }
-
-    if (rack->GetReadingCount() > 0) {
-        apply_cell(lift, wxString(), false);
-        apply_cell(center, _L("Reading"), false);
-        apply_cell(lower, wxString(), false);
-    } else if (rack->GetStatus() != DevNozzleRack::RACK_STATUS_IDLE &&
-               rack->GetStatus() != DevNozzleRack::RACK_STATUS_UNKNOWN) {
-        apply_cell(lift, wxString(), false);
-        apply_cell(center, _L("Running"), false);
-        apply_cell(lower, wxString(), false);
-    } else {
-        if (rack->GetRackType() == DevNozzleRack::RackType_A) {
+    if (rack) {
+        if (rack->GetReadingCount() > 0) {
+            center_label = _L("Reading");
+            lift_enable = center_enable = lower_enable = false;
+        } else if (rack->GetStatus() != DevNozzleRack::RACK_STATUS_IDLE &&
+                   rack->GetStatus() != DevNozzleRack::RACK_STATUS_UNKNOWN) {
+            center_label = _L("Running");
+            lift_enable = center_enable = lower_enable = false;
+        } else if (rack->GetRackType() == DevNozzleRack::RackType_A) {
             switch (rack->GetRackAPos()) {
-                case DevNozzleRack::RackAPos::RACK_POS_UP:
-                    apply_cell(lift, _L("Raised"), false);
-                    break;
-                case DevNozzleRack::RackAPos::RACK_POS_DOWN:
-                    apply_cell(lower, _L("Lowered"), false);
-                    break;
-                case DevNozzleRack::RackAPos::RACK_POS_CENTRE:
-                    apply_cell(center, _L("Centered"), false);
-                    break;
-                default:
-                    break;
+                case DevNozzleRack::RackAPos::RACK_POS_UP:     lift_label = _L("Raised");    lift_enable = false;   break;
+                case DevNozzleRack::RackAPos::RACK_POS_DOWN:   lower_label = _L("Lowered");  lower_enable = false;  break;
+                case DevNozzleRack::RackAPos::RACK_POS_CENTRE: center_label = _L("Centered"); center_enable = false; break;
+                default: break;
             }
         } else if (rack->GetRackType() == DevNozzleRack::RackType_B) {
             switch (rack->GetRackBPos()) {
-                case DevNozzleRack::RackBPos::RACK_POS_UP:
-                    apply_cell(lift, _L("Raised"), false);
-                    break;
-                case DevNozzleRack::RackBPos::RACK_POS_DOWN:
-                    apply_cell(lower, _L("Lowered"), false);
-                    break;
-                case DevNozzleRack::RackBPos::RACK_POS_CENTRE:
-                    apply_cell(center, _L("Centered"), false);
-                    break;
-                default:
-                    break;
+                case DevNozzleRack::RackBPos::RACK_POS_UP:     lift_label = _L("Raised");    lift_enable = false;   break;
+                case DevNozzleRack::RackBPos::RACK_POS_DOWN:   lower_label = _L("Lowered");  lower_enable = false;  break;
+                case DevNozzleRack::RackBPos::RACK_POS_CENTRE: center_label = _L("Centered"); center_enable = false; break;
+                default: break;
             }
         }
     }
+
+    apply_cell(lift, lift_label, lift_enable);
+    apply_cell(center, center_label, center_enable);
+    apply_cell(lower, lower_label, lower_enable);
 
     if (changed) {
         Layout();

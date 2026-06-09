@@ -119,6 +119,7 @@ void wxMediaCtrl3::SetIdleImage(wxString const &image, wxString const &watermark
     if (m_idle_image == image && m_watermark_text == watermark_text)
         return;
     m_idle_image = image;
+    m_idle_image_raw = wxImage(); // invalidate the raw-image dedup; a path image is now active
     m_watermark_text = watermark_text;
     if (m_url == nullptr) {
         std::unique_lock<std::mutex> lk(m_ui_mutex);
@@ -133,6 +134,14 @@ void wxMediaCtrl3::SetIdleImage(const wxImage &image, wxString const &watermark_
 {
     if (!image.IsOk())
         return;
+    // Skip redundant updates: same image buffer + same watermark. Compare against
+    // m_idle_image_raw (UI thread only), NOT m_frame which the stream thread writes.
+    if (m_idle_image_raw.IsOk()
+        && m_idle_image_raw.GetData() == image.GetData()
+        && m_watermark_text == watermark_text) {
+        return;
+    }
+    m_idle_image_raw = image;
     m_idle_image.clear();
     m_watermark_text = watermark_text;
     if (m_url == nullptr) {

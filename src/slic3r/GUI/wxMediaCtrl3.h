@@ -43,9 +43,7 @@ void wxMediaCtrl_OnSize(wxWindow * ctrl, wxSize const & videoSize, int width, in
 #define BAMBU_DYNAMIC
 #include <condition_variable>
 #include <thread>
-#ifndef _WIN32
-#include <wx/image.h>
-#endif
+#include <wx/image.h> // full type needed for the m_idle_image_raw member
 #include "Printer/BambuTunnel.h"
 #include "Printer/LiveViewTrackContext.h"
 
@@ -117,6 +115,7 @@ protected:
 
 private:
     wxString m_idle_image;
+    wxImage  m_idle_image_raw; // last idle image applied via the wxImage overload (UI thread only)
     wxString m_watermark_text;
     wxBitmap m_logo_bitmap;      // cached rasterized logo (UI thread only)
     wxSize   m_logo_bitmap_size;

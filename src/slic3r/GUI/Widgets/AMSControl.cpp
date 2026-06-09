@@ -1070,6 +1070,10 @@ void AMSControl::UpdateAms(const std::string   &series_name,
                            bool                 is_reset,
                            bool                 test)
 {
+    if (!IsShown()) {
+        return;
+    };
+
     if (!test){
         // update item
         bool fresh = false;

@@ -1696,17 +1696,34 @@ void PrintingTaskPanel::update_stage_value(wxString stage, int val)
 
 void PrintingTaskPanel::update_stage_value_with_machine(wxString stage, int val, MachineObject *obj)
 {
-    m_gauge_progress->SetValue(val);
-    m_printing_stage_value->SetLabelText(stage);
+    bool refresh_layout = false;
+    if (m_gauge_progress->GetValue() != val) {
+        m_gauge_progress->SetValue(val);
+        refresh_layout = true;
+    }
+
+    if (m_printing_stage_value->GetLabelText() != stage) {
+        m_printing_stage_value->SetLabelText(stage);
+        refresh_layout = true;
+    }
 
     if (obj && obj->stage_curr == 58) {
-        m_question_button->Show(); // Show question button
+        if (!m_question_button->IsShown()) {
+            m_question_button->Show(); // Show question button
+            refresh_layout = true;
+        }
     } else {
-        m_question_button->Hide(); // Hide question button
-        m_printing_stage_underline->Hide();
+        if (m_question_button->IsShown() || m_printing_stage_underline->IsShown()) {
+            m_question_button->Hide(); // Hide question button
+            m_printing_stage_underline->Hide();
+            refresh_layout = true;
+        }
     }
-    m_printing_stage_panel->Layout();
-    Layout();
+
+    if (refresh_layout) {
+        m_printing_stage_panel->Layout();
+        Layout();
+    }
 }
 
 void PrintingTaskPanel::on_stage_clicked(wxMouseEvent &event)
@@ -2156,6 +2173,9 @@ wxBoxSizer *StatusBasePanel::create_monitoring_page()
     bSizer_monitoring_title->AddStretchSpacer();
 
     m_staticText_timelapse = new wxStaticText(m_panel_monitoring_title, wxID_ANY, _L("Timelapse"), wxDefaultPosition, wxDefaultSize, 0);
+    m_staticText_timelapse->SetMaxSize(wxSize(FromDIP(200), -1));
+    m_staticText_timelapse->SetMinSize(wxSize(FromDIP(200), -1));
+    m_staticText_timelapse->SetSize(wxSize(FromDIP(200), -1));
     m_staticText_timelapse->Wrap(-1);
     m_staticText_timelapse->Hide();
     bSizer_monitoring_title->Add(m_staticText_timelapse, 0, wxALIGN_CENTER_VERTICAL | wxALL, FromDIP(5));
@@ -3683,35 +3703,52 @@ void StatusPanel::update(MachineObject *obj)
 
         DevConfig *config = obj->GetConfig();
 
+        // Only re-layout the control title bar when a button's visibility actually toggles.
+        bool refresh_control_title = false;
+
         if (config->SupportFirstLayerInspect() || config->SupportAIMonitor() ||
             obj->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Buildplate_Mark_Detection)->is_support_detect ||
             obj->GetPrintOptions()->GetDetectionOption(PrintOptionEnum::Auto_Recovery_Detection)->is_support_detect) {
-            m_options_btn->Show();
+            if (m_options_btn->Show()) {
+                refresh_control_title = true;
+            }
             if (print_options_dlg) {
                 print_options_dlg->update_machine_obj(obj);
                 print_options_dlg->update_options(obj);
             }
         } else {
-            m_options_btn->Hide();
+            if (m_options_btn->Hide()) {
+                refresh_control_title = true;
+            }
         }
 
         if (obj->support_door_open_check()) {
             if (supports_safety) {
-                m_safety_btn->Show();
+                if (m_safety_btn->Show()) {
+                    refresh_control_title = true;
+                }
                 if (safety_options_dlg) {
                     safety_options_dlg->update_machine_obj(obj);
                     safety_options_dlg->update_options(obj);
                 }
             } else {
-                m_safety_btn->Hide();
+                if (m_safety_btn->Hide()) {
+                    refresh_control_title = true;
+                }
             }
         } else {
-            m_safety_btn->Hide();
+            if (m_safety_btn->Hide()) {
+                refresh_control_title = true;
+            }
         }
 
-        m_parts_btn->Show();
+        if (m_parts_btn->Show()) {
+            refresh_control_title = true;
+        }
 
-        if (m_panel_control_title) { m_panel_control_title->Layout(); }
+        if (refresh_control_title && m_panel_control_title) {
+            m_panel_control_title->Layout();
+        }
 
         if (!obj->connection_type().empty()) {
             auto iter_connect_type = m_print_connect_types.find(obj->get_dev_id());
@@ -3731,7 +3768,8 @@ void StatusPanel::update(MachineObject *obj)
     update_camera_state(obj);
 
     // m_machine_ctrl_panel->Thaw();
-    Layout();
+    // warning: do not call layout on the big panel
+    // Layout();
 }
 
 void StatusPanel::show_recenter_dialog()
@@ -4196,7 +4234,9 @@ void StatusPanel::update_ams(MachineObject *obj)
 
         m_ams_control->SetAmsModel(DevAmsType::EXT_SPOOL, ams_mode);
         show_ams_group(false);
-        show_filament_load_group(false);
+        // Filament-load group visibility is owned by update_filament_loading_panel(),
+        // which hides it when the object is null or disconnected. Deciding it here too
+        // would be a redundant, competing toggle.
         m_ams_control->show_auto_refill(false);
     } else {
         m_ams_control->SetAmsModel(ams_mode, ams_mode);
@@ -6376,32 +6416,67 @@ void StatusPanel::msw_rescale()
 
 void StatusPanel::update_rack(MachineObject *obj)
 {
+    // Only re-layout when a child's visibility actually toggles.
+    bool refresh_layout = false;
+
+    // m_ams_control visibility is owned solely by update_ams()/show_ams_group();
+    // update_rack() only drives the rack-specific widgets to avoid a second,
+    // competing visibility decision (which would re-layout the webview host).
     if (obj && obj->GetNozzleSystem()->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_AB) {
-        m_ams_control->Show();
-        m_ams_rack_switch->Show();
+        if (m_ams_rack_switch->Show()) {
+            refresh_layout = true;
+        }
+        if (m_filament_hotend_web->Show(false)) {
+            refresh_layout = true;
+        }
         m_panel_nozzle_rack->UpdateRackInfo(obj->GetNozzleSystem()->GetNozzleRack());
-        m_filament_hotend_web->Show(false);
     } else if (obj && (obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_A || obj->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_B)) {
-        m_ams_control->Show(false);
-        m_ams_rack_switch->Show(false);
-        m_panel_nozzle_rack->Show(false);
-        m_filament_hotend_web->Show(true);
+        if (m_ams_rack_switch->Show(false)) {
+            refresh_layout = true;
+        }
+        if (m_panel_nozzle_rack->Show(false)) {
+            refresh_layout = true;
+        }
+        if (m_filament_hotend_web->Show(true)) {
+            refresh_layout = true;
+        }
         m_filament_hotend_web->UpdateByMachine(obj);
     } else {
-        m_ams_control->Show();
-        m_ams_rack_switch->Show(false);
-        m_panel_nozzle_rack->Show(false);
-        m_filament_hotend_web->Show(false);
+        if (m_ams_rack_switch->Show(false)) {
+            refresh_layout = true;
+        }
+        if (m_panel_nozzle_rack->Show(false)) {
+            refresh_layout = true;
+        }
+        if (m_filament_hotend_web->Show(false)) {
+            refresh_layout = true;
+        }
     }
 
     if (m_hotend_rack_control) m_hotend_rack_control->UpdateByMachine(obj);
 
-    Layout();
+    if (m_rack_extruder_panel && m_legacy_extruder_panel) {
+        const bool use_rack_panel = m_rack_extruder_panel->UpdateByMachine(obj);
+        if (m_rack_extruder_panel->IsShown() != use_rack_panel) {
+            m_rack_extruder_panel->Show(use_rack_panel);
+            refresh_layout = true;
+        }
+        if (m_legacy_extruder_panel->IsShown() == use_rack_panel) {
+            m_legacy_extruder_panel->Show(!use_rack_panel);
+            refresh_layout = true;
+        }
+    }
+
+    if (refresh_layout) {
+        Layout();
+    }
 }
 
 void StatusPanel::update_filament_loading_panel(MachineObject *obj)
 {
-    if (!obj) {
+    // Single decision point for the filament-load group: hide it whenever there is no
+    // object or the object is disconnected (previously also toggled in update_ams()).
+    if (!obj || !obj->is_connected()) {
         show_filament_load_group(false);
         return;
     }
