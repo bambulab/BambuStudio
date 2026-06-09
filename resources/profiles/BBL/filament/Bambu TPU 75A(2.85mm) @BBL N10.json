@@ -72,10 +72,14 @@
         "70"
     ],
     "filament_pre_cooling_temperature": [
-        "195"
+        "195",
+        "0",
+        "0"
     ],
     "filament_pre_cooling_temperature_nc": [
-        "195"
+        "195",
+        "0",
+        "0"
     ],
     "filament_preheat_temperature_delta": [
         "10"
@@ -87,13 +91,19 @@
         "60"
     ],
     "filament_ramming_travel_time": [
-        "20"
+        "20",
+        "0",
+        "0"
     ],
     "filament_ramming_travel_time_nc": [
-        "20"
+        "20",
+        "0",
+        "0"
     ],
     "filament_ramming_volumetric_speed": [
-        "0.7"
+        "0.7",
+        "0.55",
+        "0.55"
     ],
     "filament_ramming_volumetric_speed_nc": [
         "-1"
@@ -163,7 +173,9 @@
         "14"
     ],
     "slow_down_min_speed": [
-        "60"
+        "60",
+        "100",
+        "100"
     ],
     "volumetric_speed_coefficients": [
         "-72.1736 -8.8086 10.6201 29.6592 9.9286 -3.3920"
