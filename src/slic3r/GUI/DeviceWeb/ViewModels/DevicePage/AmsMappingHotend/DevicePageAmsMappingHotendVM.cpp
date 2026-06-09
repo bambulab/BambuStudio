@@ -301,7 +301,10 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildState() const
         std::map<int, std::optional<std::pair<int, int>>> preload_slots;
         const auto& total_nozzles = obj->GetNozzleRack()->GetTotalRackNozzlePosSet();
         for (const auto& nozzle_pos : total_nozzles) {
-            auto rack_nozzle_opt = obj->GetNozzleSystem()->GetNozzleOptByPosId(nozzle_pos);
+            // Resolve by stable addr_id: when this rack nozzle is picked up by
+            // an extruder its id becomes 0, so a pos-based lookup would only hit
+            // an empty placeholder.
+            auto rack_nozzle_opt = obj->GetNozzleSystem()->GetNozzleOptByAddrId(nozzle_pos - 0x10);
             if (!rack_nozzle_opt.has_value()) {
                 nozzle_slots[nozzle_pos] = std::nullopt;
                 preload_slots[nozzle_pos] = std::nullopt;

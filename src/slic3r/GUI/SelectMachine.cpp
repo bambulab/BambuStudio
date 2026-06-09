@@ -6201,15 +6201,29 @@ wxString SelectMachineDialog::get_mapped_nozzle_str(int fila_id)
                 return wxString::Format("%d", nozzle_pos_id - 16 + kNozzleDisplayOffset);
             }
 
-            // Fallback for external AMS (N3S/N3F): find nozzle via bind_ams
+            // Fallback for external AMS (N3S/N3F): the nozzle bound to this AMS
+            // may have been moved off the rack onto the extruder, in which case
+            // its bind_ams now lives on an ext nozzle (m_ext_nozzles) rather than
+            // the rack map. Search both containers, and derive the displayed slot
+            // from the nozzle's own GetNozzlePosId() (addr_id based) so the number
+            // stays its rack-slot identity whether it is parked on the rack or
+            // currently mounted on the extruder.
             int mapped_ams_id = mapped_info->get_ams_id();
-            for (const auto& [nid, nozzle] : obj_->GetNozzleRack()->GetRackNozzles()) {
-                for (int bind_id : nozzle.GetBindAms()) {
-                    if (bind_id == mapped_ams_id) {
-                        return wxString::Format("%d", nid + kNozzleDisplayOffset);
+            auto resolve_by_bind_ams = [&](const std::map<int, DevNozzle>& nozzles) -> wxString {
+                for (const auto& [nid, nozzle] : nozzles) {
+                    for (int bind_id : nozzle.GetBindAms()) {
+                        if (bind_id == mapped_ams_id) {
+                            int pos_id = nozzle.GetNozzlePosId();
+                            if (pos_id >= HOTEND_RACK_INTERNAL_ID_OFFSET) {
+                                return wxString::Format("%d", pos_id - HOTEND_RACK_INTERNAL_ID_OFFSET + kNozzleDisplayOffset);
+                            }
+                        }
                     }
                 }
-            }
+                return wxEmptyString;
+            };
+            if (auto s = resolve_by_bind_ams(obj_->GetNozzleSystem()->GetExtNozzles()); !s.IsEmpty()) return s;
+            if (auto s = resolve_by_bind_ams(obj_->GetNozzleRack()->GetRackNozzles()); !s.IsEmpty()) return s;
         }
 
         return "?";
@@ -6226,45 +6240,46 @@ wxString SelectMachineDialog::get_nozzle_dia_and_type(const std::string &ams_id,
     auto obj_ = get_current_machine();
     if (!obj_) return wxEmptyString;
 
-    auto tray_opt = obj_->get_tray(ams_id, slot_id);
-    if (!tray_opt.has_value()) return wxEmptyString;
-
-    auto nozzle_pos_opt = tray_opt->get_nozzle_pos_id(obj_);
-    int rack_nozzle_id = -1;
-    if (nozzle_pos_opt.has_value()) {
-        rack_nozzle_id = nozzle_pos_opt.value();
-    } else {
-        // Fallback for external AMS (N3S/N3F): find nozzle via bind_ams
-        int ams_id_int = 0;
-        try { ams_id_int = std::stoi(ams_id); } catch (...) { return wxEmptyString; }
-        auto find_nozzle_by_bind_ams = [&]() -> int {
-            for (const auto& [nid, nozzle] : obj_->GetNozzleRack()->GetRackNozzles()) {
-                for (int bind_id : nozzle.GetBindAms()) {
-                    if (bind_id == ams_id_int)
-                        return nid + HOTEND_RACK_INTERNAL_ID_OFFSET;
-                }
-            }
-            return -1;
-        };
-        rack_nozzle_id = find_nozzle_by_bind_ams();
-        if (rack_nozzle_id < 0) return wxEmptyString;
-    }
-    if (rack_nozzle_id >= HOTEND_RACK_INTERNAL_ID_OFFSET) {
-        rack_nozzle_id -= HOTEND_RACK_INTERNAL_ID_OFFSET;
-    }
-
     if (!obj_->GetNozzleRack()->IsSupported()) return wxEmptyString;
 
-    const auto &rack_nozzles = obj_->GetNozzleRack()->GetRackNozzles();
-    auto it = rack_nozzles.find(rack_nozzle_id);
-    if (it == rack_nozzles.end()) return wxEmptyString;
+    // Resolve the bound nozzle object. It can be parked on the rack or currently
+    // mounted on the extruder (then it lives in m_ext_nozzles), so dia/flow must
+    // be read from whichever container actually holds it — not only the rack map,
+    // which is empty / a placeholder once the nozzle has been mounted.
+    std::optional<DevNozzle> nozzle;
+
+    // 1) Normal binding still resolvable through the tray's own nozzle pos.
+    if (auto tray_opt = obj_->get_tray(ams_id, slot_id); tray_opt.has_value()) {
+        if (auto pos = tray_opt->get_nozzle_pos_id(obj_); pos.has_value()) {
+            nozzle = obj_->GetNozzleSystem()->GetNozzleOptByPosId(pos.value());
+        }
+    }
+
+    // 2) Fallback for external AMS whose bound nozzle was moved onto the
+    //    extruder: match it by bind_ams across the ext + rack containers.
+    if (!nozzle.has_value()) {
+        int ams_id_int = -1;
+        try { ams_id_int = std::stoi(ams_id); } catch (...) { return wxEmptyString; }
+        auto scan = [&](const std::map<int, DevNozzle>& nozzles) -> std::optional<DevNozzle> {
+            for (const auto& [nid, n] : nozzles) {
+                for (int bind_id : n.GetBindAms()) {
+                    if (bind_id == ams_id_int) return n;
+                }
+            }
+            return std::nullopt;
+        };
+        nozzle = scan(obj_->GetNozzleSystem()->GetExtNozzles());
+        if (!nozzle.has_value()) nozzle = scan(obj_->GetNozzleRack()->GetRackNozzles());
+    }
+
+    if (!nozzle.has_value()) return wxEmptyString;
 
     auto nozzle_type = wxString::FromUTF8(
         DevNozzle::ToNozzleVolumeShortString(
-            DevNozzle::ToNozzleVolumeType(it->second.GetNozzleFlowType())
+            DevNozzle::ToNozzleVolumeType(nozzle->GetNozzleFlowType())
         )
     );
-    return wxString::Format("%.1f %s", it->second.GetNozzleDiameter(), nozzle_type);
+    return wxString::Format("%.1f %s", nozzle->GetNozzleDiameter(), nozzle_type);
 }
 
 bool SelectMachineDialog::CheckErrorDynamicSwitchNozzle(MachineObject* obj_)

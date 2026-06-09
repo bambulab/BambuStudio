@@ -11,7 +11,19 @@ export function NozzleInfo({ nozzle, state }: NozzleInfoProps) {
     return <div className="ams-map-hotend__nozzle-na">Nozzle N/A</div>;
   }
 
-  if (!nozzle) return null;
+  // No rack nozzle on this slot (e.g. NozzleEmpty). Keep the icon + label
+  // layout so card height stays aligned with Normal / Unmatch siblings; the
+  // single-line "Empty" replaces the dia / flow rows.
+  if (!nozzle) {
+    return (
+      <div className="ams-map-hotend__nozzle-info">
+        <img className="ams-map-hotend__nozzle-info__icon" src={nozzleIcon} alt="" />
+        <div className="ams-map-hotend__nozzle-info__text">
+          <div className="ams-map-hotend__nozzle-info__empty">Empty</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="ams-map-hotend__nozzle-info">

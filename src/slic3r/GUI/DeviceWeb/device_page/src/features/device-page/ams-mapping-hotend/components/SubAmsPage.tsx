@@ -44,6 +44,7 @@ function SubCard({
       <div className="ams-map-hotend__sub-card__head">
         <div className="ams-map-hotend__sub-card__pill">
           <span>{sub.index}</span>
+          {sub.ext && <span className="ams-map-hotend__sub-card__pill-ext">Ext</span>}
         </div>
         <div className="ams-map-hotend__sub-card__radio" data-checked={sub.checked}>
           {sub.checked && (
@@ -91,15 +92,19 @@ export function SubAmsPage({ slot, onSelect, onEdit, onBack }: SubAmsPageProps) 
   if (!slot.sub_ams || slot.sub_ams.length === 0) return null;
 
   // Preload mode: current bind is Ext, preload AMS slot injected as sub_ams
-  // with is_preload flag. Renders two cards flat side-by-side: AMS (left) + Ext (right).
+  // with is_preload flag. The Ext source (the slot itself) sits in the bottom
+  // section, the preloaded AMS slot(s) in the top section.
   const isPreloadMode = slot.ext && slot.sub_ams?.some(g => g.is_preload);
 
+  // The slot itself, projected as a sub-slot so it can be rendered with the
+  // shared SubCard. `ext` mirrors the real slot value (not hard-coded) so the
+  // top/bottom partition and the Ext tag stay correct.
   const extAsSubSlot: AmsMappingHotendSubSlotViewModel = {
     ams_id:        slot.ams_id,
     slot_id:       slot.slot_id,
     tray_id:       slot.tray_id,
     index:         slot.index,
-    ext:           true,
+    ext:           slot.ext,
     state:         slot.state,
     filament_type: slot.filament_type,
     filament_name: slot.filament_name,
@@ -114,27 +119,55 @@ export function SubAmsPage({ slot, onSelect, onEdit, onBack }: SubAmsPageProps) 
     multi_colors:  slot.multi_colors,
   };
 
+  // When the currently selected (checked) source is a non-Ext (AMS) source,
+  // warn the user they must manually pull the external filament to change it.
+  const bannerVisible =
+    (slot.checked && !slot.ext) ||
+    slot.sub_ams.some((g) => g.slots.some((s) => s.checked && !s.ext));
+
   const parentEmpty = !slot.has_filament;
   const parentMultiColors = slot.multi_colors && slot.multi_colors.length > 1 ? slot.multi_colors : undefined;
   const parentIsThird = slot.filament_name === '?';
   const parentDisplayName = parentEmpty ? 'Empty' : slot.filament_name;
 
-  return (
-    <div className="ams-map-hotend__sub-ams-page" data-testid="ams-mapping-hotend-sub-ams-page">
-      {/* Back button */}
-      <button
-        className="ams-map-hotend__sub-ams-page__back"
-        onClick={onBack}
-        type="button"
-      >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path d="M12 15L7 10L12 5" stroke="#262E30" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-        <span>返回</span>
-      </button>
+  const warningBanner = bannerVisible ? (
+    <div className="ams-map-hotend__sub-ams-page__warning">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <circle cx="8" cy="8" r="6.5" stroke="#ea6e00" strokeWidth="1.2" />
+        <rect x="7.3" y="6.8" width="1.4" height="5" rx="0.7" fill="#ea6e00" />
+        <circle cx="8" cy="4.6" r="0.9" fill="#ea6e00" />
+      </svg>
+      <span>打印过程中需要手动抽出外挂耗材进行换料操作</span>
+    </div>
+  ) : null;
 
-      {isPreloadMode ? (
-        /* Preload mode: flat layout, AMS card left + Ext card right */
+  const backButton = (
+    <button
+      className="ams-map-hotend__sub-ams-page__back"
+      onClick={onBack}
+      type="button"
+    >
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M12 15L7 10L12 5" stroke="#262E30" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+      <span>返回</span>
+    </button>
+  );
+
+  const bottomTip = (
+    <div className="ams-map-hotend__sub-ams-page__tip">
+      <span className="ams-map-hotend__sub-ams-page__tip-label">注意：</span>
+      如需了解耗材匹配规则，详细说明请查看Wiki→
+    </div>
+  );
+
+  if (isPreloadMode) {
+    // Top: preloaded AMS source(s). Bottom: the Ext source.
+    return (
+      <div className="ams-map-hotend__sub-ams-page" data-testid="ams-mapping-hotend-sub-ams-page">
+        {warningBanner}
+        {backButton}
+
         <div className="ams-map-hotend__sub-ams-page__body ams-map-hotend__sub-ams-page__body--flat">
           {slot.sub_ams.map((group) =>
             group.slots.map((sub) => (
@@ -146,11 +179,29 @@ export function SubAmsPage({ slot, onSelect, onEdit, onBack }: SubAmsPageProps) 
               />
             ))
           )}
+        </div>
+
+        <div className="ams-map-hotend__sub-ams-page__section-divider" />
+
+        <div className="ams-map-hotend__sub-ams-page__ext-section">
           <SubCard sub={extAsSubSlot} onSelect={onSelect} onEdit={onEdit} />
         </div>
-      ) : (
-        /* Normal sub-AMS mode: parent card left + group containers right */
-        <div className="ams-map-hotend__sub-ams-page__body">
+
+        {bottomTip}
+      </div>
+    );
+  }
+
+  // Normal sub-AMS mode: parent card (left) + AMS group containers (right) in
+  // the top section. When the slot itself is an Ext source it is pushed to the
+  // bottom section below a divider.
+  return (
+    <div className="ams-map-hotend__sub-ams-page" data-testid="ams-mapping-hotend-sub-ams-page">
+      {warningBanner}
+      {backButton}
+
+      <div className="ams-map-hotend__sub-ams-page__body">
+        {!slot.ext && (
           <div className="ams-map-hotend__sub-ams-page__parent">
             <div
               className="ams-map-hotend__sub-card ams-map-hotend__sub-card--parent"
@@ -211,32 +262,37 @@ export function SubAmsPage({ slot, onSelect, onEdit, onBack }: SubAmsPageProps) 
               </div>
             </div>
           </div>
+        )}
 
-          <div className="ams-map-hotend__sub-ams-page__groups">
-            {slot.sub_ams.map((group) => (
-              <div key={group.name} className="ams-map-hotend__sub-ams-page__group">
-                <div className="ams-map-hotend__sub-ams-page__group-inner">
-                  {group.slots.map((sub) => (
-                    <SubCard
-                      key={`${sub.ams_id}-${sub.slot_id}`}
-                      sub={sub}
-                      onSelect={onSelect}
-                      onEdit={onEdit}
-                    />
-                  ))}
-                </div>
-                <div className="ams-map-hotend__sub-ams-page__group-name">{group.name}</div>
+        <div className="ams-map-hotend__sub-ams-page__groups">
+          {slot.sub_ams.map((group) => (
+            <div key={group.name} className="ams-map-hotend__sub-ams-page__group">
+              <div className="ams-map-hotend__sub-ams-page__group-inner">
+                {group.slots.map((sub) => (
+                  <SubCard
+                    key={`${sub.ams_id}-${sub.slot_id}`}
+                    sub={sub}
+                    onSelect={onSelect}
+                    onEdit={onEdit}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
+              <div className="ams-map-hotend__sub-ams-page__group-name">{group.name}</div>
+            </div>
+          ))}
         </div>
+      </div>
+
+      {slot.ext && (
+        <>
+          <div className="ams-map-hotend__sub-ams-page__section-divider" />
+          <div className="ams-map-hotend__sub-ams-page__ext-section">
+            <SubCard sub={extAsSubSlot} onSelect={onSelect} onEdit={onEdit} />
+          </div>
+        </>
       )}
 
-      {/* Bottom tip */}
-      <div className="ams-map-hotend__sub-ams-page__tip">
-        <span className="ams-map-hotend__sub-ams-page__tip-label">注意：</span>
-        如需了解耗材匹配规则，详细说明请查看Wiki→
-      </div>
+      {bottomTip}
     </div>
   );
 }

@@ -311,6 +311,16 @@
   text-align: center;
 }
 
+/* Single-line placeholder when no rack nozzle is bound (NozzleEmpty).
+   Line-height matches the combined height of __dia + __flow (16 + 16) so the
+   card footer stays the same height as Normal / Unmatch siblings. */
+.ams-map-hotend__nozzle-info__empty {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  text-align: center;
+  line-height: 32px;
+}
+
 .ams-map-hotend__nozzle-na {
   font-size: 12px;
   color: var(--color-text-secondary);
@@ -396,7 +406,41 @@
   flex-direction: row;
   align-items: flex-start;
   gap: 16px;
-  padding: 8px 0 0;
+  padding: 8px 16px 0;
+}
+
+/* Top warning banner: shown when the checked source is a non-Ext (AMS) slot,
+   reminding the user to manually pull the external filament for a change-over. */
+.ams-map-hotend__sub-ams-page__warning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  padding: 8px 12px;
+  background: #fff7e6;
+  border: 1px solid #ffd591;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #ea6e00;
+}
+
+.ams-map-hotend__sub-ams-page__warning svg {
+  flex-shrink: 0;
+}
+
+/* Divider between the AMS (top) and the external-spool (bottom) sections. */
+.ams-map-hotend__sub-ams-page__section-divider {
+  height: 0;
+  border-top: 0.5px solid #e0e0e0;
+  margin: 12px 16px;
+}
+
+/* Bottom section that hosts the external-spool (Ext) source card. */
+.ams-map-hotend__sub-ams-page__ext-section {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  padding: 0 16px;
 }
 
 .ams-map-hotend__sub-ams-page__parent {
