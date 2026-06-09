@@ -448,7 +448,43 @@ bool DevicePageAmsFilamentHotendVM::IsFilamentChangeActive(MachineObject* machin
     if (!machine_obj) return false;
     if (machine_obj->is_enable_np && machine_obj->GetExtderSystem()->IsBusyLoading()) return true;
     if (machine_obj->ams_status_main == AMS_STATUS_MAIN_FILAMENT_CHANGE) return true;
+
+    auto fila_sys = machine_obj->GetFilaSystem();
+    if (machine_obj->ams_status_main == AMS_STATUS_MAIN_ASSIST && !fila_sys->GetFilamentChangeSteps().empty() && !fila_sys->GetFilamentChangingSlots().empty()) {
+        return true;
+    }
+
     return false;
+}
+
+static int s_command_unload_filament(MachineObject* obj_, const std::string& ams_id, const std::string& slot_id, int old_temp, int new_temp, std::optional<int> extruder_id)
+{
+    if (obj_) {
+        json j;
+        try {
+            int ams_id_int = atoi(ams_id.c_str());
+            int slot_id_int = atoi(slot_id.c_str());
+            j["print"]["command"] = "ams_change_filament";
+            j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+            j["print"]["curr_temp"] = old_temp;
+            j["print"]["tar_temp"] = new_temp;
+            j["print"]["ams_id"] = ams_id_int;
+            j["print"]["target"] = 255;
+
+            if (obj_->GetFilaSystem()->IsVirtualTrayId(ams_id)) {
+                j["print"]["slot_id"] = 255; // the new protocol to mark unload
+            } else {
+                j["print"]["slot_id"] = slot_id_int;
+            }
+
+            if (extruder_id.has_value()) {
+                j["print"]["extruder_id"] = *extruder_id;
+            }
+
+        } catch (const std::exception&) {}
+
+        return obj_->publish_json(j);
+    }
 }
 
 std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleFilamentAction(const std::string& action,
@@ -499,12 +535,19 @@ std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleFilamentActio
         }
     } else if (action == "unload" && fila_system && !ams_id.empty() && !slot_id.empty()) {
         try {
-            for (const auto& ext : machine_obj->GetExtderSystem()->GetExtruders()) {
-                if (ext.GetSlotNow().ams_id == ams_id && ext.GetSlotNow().slot_id == slot_id) {
-                    machine_obj->command_ams_change_filament(false, ams_id, "255");
-                    break;
+            int old_temp = -1;
+            int new_temp = -1;
+            auto target_tray = machine_obj->get_tray(ams_id, slot_id);
+            if (target_tray && !target_tray->nozzle_temp_max.empty() && !target_tray->nozzle_temp_min.empty()) {
+                new_temp = (atoi(target_tray->nozzle_temp_min.c_str()) + atoi(target_tray->nozzle_temp_max.c_str())) / 2;
+            }
+            if (DevAmsTray* curr_tray = machine_obj->get_curr_tray()) {
+                if (!curr_tray->nozzle_temp_max.empty() && !curr_tray->nozzle_temp_min.empty()) {
+                    old_temp = (atoi(curr_tray->nozzle_temp_min.c_str()) + atoi(curr_tray->nozzle_temp_max.c_str())) / 2;
                 }
             }
+
+            s_command_unload_filament(machine_obj, ams_id, slot_id, old_temp, new_temp, 0);
         } catch (const std::exception& e) {
             return MakeResponse(GetModule(), "action", action, 2, e.what(), BuildState());
         }
