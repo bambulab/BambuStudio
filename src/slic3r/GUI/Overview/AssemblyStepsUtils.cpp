@@ -1,5 +1,6 @@
 #include "AssemblyStepsUtils.hpp"
 #include "AssemblyPdfExportDialog.hpp"
+#include "AssemblyExportProgressWindow.hpp"
 #include "TinyExportMardDown.hpp"
 
 #include "libslic3r/Model.hpp"
@@ -12,6 +13,7 @@
 #include "../GLShader.hpp"
 #include "../GUI_App.hpp"
 #include "../GUI.hpp"
+#include "../GLCanvas3D.hpp"
 #include "../MainFrame.hpp"
 #include "../Plater.hpp"
 #include "../NotificationManager.hpp"
@@ -33,8 +35,10 @@
 #include <hpdf/hpdf.h>
 
 #include <GL/glew.h>
+#include <wx/glcanvas.h>
 #include <imgui/imgui_internal.h>
 
+#include <algorithm>
 #include <chrono>
 #include <climits>
 #include <cctype>
@@ -165,9 +169,11 @@ void AssemblyStepsUtils::set_selection_origin(SelectionOrigin origin)
 
 void AssemblyStepsUtils::clear_when_no_selection()
 {
-    selected_node     = -1;
-    m_keyframe_selected = -1;
-    m_last_folder_idx = -1;
+    if (m_selection_origin == SelectionOrigin::None) {
+        selected_node       = -1;
+        m_keyframe_selected = -1;
+        m_last_folder_idx   = -1;
+    }
 }
 
 void AssemblyStepsUtils::update_model_object_tree() {
@@ -189,6 +195,48 @@ AssemblyStepsUtils::AssemblyStepsUtils()
 // header, so unique_ptr's deleter must be instantiated where the full type is
 // visible (this translation unit, after the MP4 includes above).
 AssemblyStepsUtils::~AssemblyStepsUtils() = default;
+
+void AssemblyStepsUtils::reset_state_on_model_changed()
+{
+    clear_runtime_state();
+
+    clear_note_selection();
+    exit_render_assembly_tree_ui();
+    m_active_assembly_tree_checked = nullptr;
+    m_assembly_tree_ui_current_folder_node = -1;
+    m_assembly_tree_ui_original_checked.clear();
+    m_assembly_tree_search_text.clear();
+    m_assembly_tree_search_active = false;
+    m_assembly_tree_search_focus_pending = false;
+    m_show_assembly_tree_step_quick_select = false;
+
+    m_structure_select_popup_pending_card = -1;
+    m_structure_select_popup_active_card = -1;
+    m_structure_select_popup_checked_card = -1;
+    m_structure_select_popup_tree_card = -1;
+    m_structure_select_popup_tree_step_node = -1;
+    m_structure_select_popup_tree.clear();
+    m_structure_select_popup_checked.clear();
+    m_structure_select_labels.clear();
+    m_structure_select_show_default.clear();
+    m_structure_add_tree_card = -1;
+    m_structure_add_tree_step_node = -1;
+    m_structure_step_rename_node = -1;
+    m_structure_step_rename_open_pending = false;
+    m_structure_step_rename_had_focus = false;
+    m_structure_scroll_to_node = -1;
+
+    apply_keyframe_display_mode(KeyframeDisplayMode::Highlight);
+
+    m_last_rendered_selected_node_for_notes_ = -2;
+    m_last_rendered_keyframe_selected_ = -2;
+    m_last_has_selected_node_ = false;
+    pn_screen_centers_.clear();
+    m_pn_autolayout_pending = false;
+    m_render_interpolated_part_number_labels = false;
+
+    hide_assembly_export_progress();
+}
 
 void AssemblyStepsUtils::set_input(ImGuiWrapper *imgui, Model *model, Camera *camera, Selection *selection, GLVolumeCollection *volumes, bool gizmo_active)
 {
@@ -634,6 +682,8 @@ void AssemblyStepsUtils::fill_folder_keyframes_from_children(int folder_idx)
         }
         entry.need_save = true;
     }
+    if (nd.is_final_assembly)
+        record_current_model_as_last_final_assembly();
 }
 
 std::vector<int> AssemblyStepsUtils::selected_assembly_object_indices() const
@@ -1323,11 +1373,36 @@ bool AssemblyStepsUtils::current_keyframe_matches_final_assembly_end_frame_trans
     return true;
 }
 
+void AssemblyStepsUtils::record_current_model_as_last_final_assembly()
+{
+    m_last_recorded_objects.clear();
+    m_last_recorded_volumes.clear();
+    if (!m_model)
+        return;
+
+    const int obj_count = (int)m_model->objects.size();
+    for (int oi = 0; oi < obj_count; ++oi) {
+        const ModelObject *obj = m_model->objects[oi];
+        if (!obj)
+            continue;
+        const size_t object_id = obj->id().id;
+        if (!obj->instances.empty())
+            m_last_recorded_objects.insert(object_id);
+        for (int vi = 0; vi < (int)obj->volumes.size(); ++vi) {
+            const ModelVolume *volume = obj->volumes[vi];
+            if (volume)
+                m_last_recorded_volumes.insert({object_id, volume->id().id});
+        }
+    }
+}
+
 bool AssemblyStepsUtils::final_assembly_end_frame_matches_model() const
 {
     if (!m_model)
         return false;
-
+    if (m_last_recorded_objects.empty() || m_last_recorded_volumes.empty()) {
+        return false;
+    }
     // Locate the final-assembly folder and its end-frame (id == 0) keyframe.
     const KeyFrameEntry *end_entry = nullptr;
     for (const auto &node : _steps_nodes) {
@@ -1344,33 +1419,26 @@ bool AssemblyStepsUtils::final_assembly_end_frame_matches_model() const
     if (!end_entry)
         return false;
 
-    const KeyFrame &kf = end_entry->data;
+    // Build the expected object / volume key sets from the live model. Use
 
-    // Build the expected object / volume key sets from the live model, mirroring
-    std::set<int>                 expected_objects;
-    std::set<std::pair<int, int>> expected_volumes;
+    std::set<size_t>                     expected_objects;
+    std::set<std::pair<size_t, size_t>>  expected_volumes;
     const int obj_count = (int) m_model->objects.size();
     for (int oi = 0; oi < obj_count; ++oi) {
         const ModelObject *obj = m_model->objects[oi];
         if (!obj)
             continue;
+        const size_t object_id = obj->id().id;
         if (!obj->instances.empty())
-            expected_objects.insert(oi);
+            expected_objects.insert(object_id);
         for (int vi = 0; vi < (int) obj->volumes.size(); ++vi) {
-            if (obj->volumes[vi])
-                expected_volumes.insert({oi, vi});
+            const ModelVolume *volume = obj->volumes[vi];
+            if (volume)
+                expected_volumes.insert({object_id, volume->id().id});
         }
     }
-
-    // Collect what the end frame actually recorded.
-    std::set<int>                 recorded_objects;
-    for (const auto &item : kf.object_transformations)
-        recorded_objects.insert(item.first);
-    std::set<std::pair<int, int>> recorded_volumes;
-    for (const auto &item : kf.volume_transformations)
-        recorded_volumes.insert(item.first);
     // Exact match in both directions: no missing and no stale keys.
-    return recorded_objects == expected_objects && recorded_volumes == expected_volumes;
+    return m_last_recorded_objects == expected_objects && m_last_recorded_volumes == expected_volumes;
 }
 
 bool AssemblyStepsUtils::is_mouse_over_blocking_panel() const
@@ -1537,13 +1605,24 @@ bool AssemblyStepsUtils::seek_global_frame_from_mouse_x(float mouse_x, float pro
     // Skip redundant work while dragging: only seek when crossing into a new frame.
     if (target_frame == m_assembly_play_index)
         return false;
-    return goto_global_frame(target_frame);
+    const bool ok = goto_global_frame(target_frame);
+    if (ok) {
+        // A manual seek redefines the playback position. Drop any transient
+        m_play_queue.clear();
+        m_pending_global_frame_index = -1;
+        m_play_different_folder_waiting = false;
+        m_play_different_folder_phase = 0;
+        m_play_end_waiting = false;
+        m_render_interpolated_part_number_labels = false;
+    }
+    return ok;
 }
 
 void AssemblyStepsUtils::pause_global_frame()
 {
     m_play_global = false;
     m_keyframe_playing = false;
+    clear_playback_pause_state();
     m_play_different_folder_waiting = false;
     m_play_different_folder_phase = 0;
     m_play_end_waiting = false;
@@ -1557,6 +1636,43 @@ void AssemblyStepsUtils::pause_global_frame()
     m_pending_global_frame_index = -1;
     m_play_transition_duration = m_play_transition_expect_duration;
     m_play_interval_step_to_step = m_play_interval_step_to_step_expect;
+}
+
+void AssemblyStepsUtils::clear_playback_pause_state()
+{
+    m_playback_paused = false;
+    m_playback_pause_started_at = 0.0;
+}
+
+void AssemblyStepsUtils::pause_playback()
+{
+    if (!m_keyframe_playing)
+        return;
+    m_keyframe_playing = false;
+    m_playback_paused = true;
+    m_playback_pause_started_at = ImGui::GetTime();
+    do_commond_callback("request_extra_frame");
+}
+
+void AssemblyStepsUtils::resume_playback()
+{
+    if (!m_playback_paused)
+        return;
+
+    const double now = ImGui::GetTime();
+    const double paused_duration = std::max(0.0, now - m_playback_pause_started_at);
+    if (m_video_intro_active)
+        m_video_intro_start_time += paused_duration;
+    if (m_play_different_folder_waiting)
+        m_play_different_folder_start_time += paused_duration;
+    if (m_play_end_waiting)
+        m_play_end_start_time += paused_duration;
+
+    clear_playback_pause_state();
+    m_keyframe_playing = true;
+    if (m_video_intro_active || m_show_video_title_mode || m_pending_global_frame_index > 0)
+        m_play_global = true;
+    do_commond_callback("request_extra_frame");
 }
 
 void AssemblyStepsUtils::play_different_folder_logic()
@@ -1595,6 +1711,9 @@ void AssemblyStepsUtils::play_video_intro_logic()
     if (!m_video_intro_active)
         return;
 
+    if (m_playback_paused)
+        return;
+
     do_commond_callback("dirty");
     do_commond_callback("request_extra_frame");
 
@@ -1630,6 +1749,7 @@ void AssemblyStepsUtils::play_video_intro_logic()
 
 void AssemblyStepsUtils::play_global_frame(bool from_btn_click)
 {
+    clear_playback_pause_state();
     rebuild_play_frame_refs();
     m_assembly_play_count = (int)m_play_frame_refs.size();
     if (from_btn_click && m_assembly_play_index >= m_assembly_play_count) {
@@ -1720,6 +1840,7 @@ void AssemblyStepsUtils::play_global_frame(bool from_btn_click)
 
 void AssemblyStepsUtils::start_playback_with_intro()
 {
+    clear_playback_pause_state();
     rebuild_play_frame_refs();
     m_assembly_play_count = (int)m_play_frame_refs.size();
     if (m_assembly_play_count <= 0)
@@ -2060,6 +2181,45 @@ std::string AssemblyStepsUtils::generate_output_path(ExportType type)
     return out_path;
 }
 
+wxWindow* AssemblyStepsUtils::assembly_export_progress_anchor() const
+{
+    if (wxGetApp().plater()) {
+        if (GLCanvas3D *canvas = wxGetApp().plater()->get_assmeble_canvas3D())
+            return canvas->get_wxglcanvas();
+    }
+    return wxGetApp().mainframe;
+}
+
+void AssemblyStepsUtils::show_assembly_export_progress(ExportType type, const std::string &path, int value, int maximum)
+{
+    update_assembly_export_progress(type, path, value, maximum);
+}
+
+void AssemblyStepsUtils::update_assembly_export_progress(ExportType type, const std::string &path, int value, int maximum)
+{
+    wxWindow *anchor = assembly_export_progress_anchor();
+    if (!anchor)
+        return;
+
+    if (!m_export_progress_window)
+        m_export_progress_window = std::make_unique<AssemblyExportProgressWindow>(wxGetApp().mainframe);
+
+    const wxString filename = path.empty()
+        ? wxString()
+        : from_path(boost::filesystem::path(path).filename());
+    wxString message = _L("Exporting file");
+    if (!filename.empty())
+        message += ": " + filename;
+
+    m_export_progress_window->update_progress(message, value, maximum, anchor);
+}
+
+void AssemblyStepsUtils::hide_assembly_export_progress()
+{
+    if (m_export_progress_window)
+        m_export_progress_window->Hide();
+}
+
 void AssemblyStepsUtils::on_export_pdf(std::string path)
 {
     namespace fs = boost::filesystem;
@@ -2112,10 +2272,10 @@ void AssemblyStepsUtils::on_export_pdf(std::string path)
     m_steps_export_original_play_index    = m_assembly_play_index;
     m_steps_export_original_selected_node = selected_node;
 
-    //
     prepare_export_to_play_global_frame();
     m_steps_export_active     = true;
     m_steps_export_wait_frame = true;
+    show_assembly_export_progress(m_steps_export_type, m_steps_export_output_path, 0, m_steps_export_total);
     do_commond_callback("request_extra_frame");
 
     BOOST_LOG_TRIVIAL(info) << "assembly steps export: start -> " << m_steps_export_output_path
@@ -2174,6 +2334,7 @@ void AssemblyStepsUtils::on_export_markdown(std::string path)
     prepare_export_to_play_global_frame();
     m_steps_export_active     = true;
     m_steps_export_wait_frame = true;
+    show_assembly_export_progress(m_steps_export_type, m_steps_export_output_path, 0, m_steps_export_total);
     do_commond_callback("request_extra_frame");
 
     BOOST_LOG_TRIVIAL(info) << "assembly steps markdown export: start -> " << m_steps_export_output_path
@@ -2265,6 +2426,7 @@ void AssemblyStepsUtils::on_export_mp4(std::string path)
     // m_show_video_title_mode / m_video_intro_active were live.
     m_video_export_skip_first_frame = true;
     m_steps_video_export_active     = true;
+    show_assembly_export_progress(ExportType::MP4, m_steps_video_export_path, 0, total);
 
     // Force one repaint so the first frame the recorder ever sees is the
     // freshly-rendered cover-title overlay, not whatever was on screen before.
@@ -2300,6 +2462,7 @@ void AssemblyStepsUtils::process_assembly_steps_export()
         // above, so reaching here means m_assembly_play_index was nudged out of
         // range while an export was active. Bail out cleanly so we don't hang.
         BOOST_LOG_TRIVIAL(warning) << "assembly steps export: unexpected play index " << cur << " (total=" << m_steps_export_total << "), force finalize";
+        hide_assembly_export_progress();
         return;
     }
 
@@ -2329,6 +2492,7 @@ void AssemblyStepsUtils::process_assembly_steps_export()
             title = std::string("Step ") + std::to_string(cur);
         m_steps_export_titles.push_back(std::move(title));
         m_steps_export_step_indices.push_back(step_index);
+        update_assembly_export_progress(m_steps_export_type, m_steps_export_output_path, (int)m_steps_export_images.size(), m_steps_export_total);
     } else {
         BOOST_LOG_TRIVIAL(warning) << "assembly steps export: screenshot failed for play index " << cur;
     }
@@ -2350,6 +2514,7 @@ void AssemblyStepsUtils::process_assembly_steps_export()
 
 void AssemblyStepsUtils::finalize_steps_export()
 {
+    update_assembly_export_progress(m_steps_export_type, m_steps_export_output_path, m_steps_export_total, m_steps_export_total);
     wxBusyCursor busy;
     if (m_steps_export_type == ExportType::MarkDown) {
         auto project_name = []() -> std::string {
@@ -2394,6 +2559,7 @@ void AssemblyStepsUtils::finalize_steps_export()
     m_is_export_mode          = false;
 
     save_existing_project_if_dirty();
+    hide_assembly_export_progress();
 
     do_commond_callback("dirty");
     do_commond_callback("request_extra_frame");
@@ -2859,14 +3025,17 @@ void AssemblyStepsUtils::render_main(float canvas_w, float canvas_h) {
         m_panel_rect_structure_min = m_panel_rect_structure_max = ImVec2(0, 0);
         m_panel_rect_guide_min = m_panel_rect_guide_max = ImVec2(0, 0);
     }
-    if (!is_show_video_title_mode()) { // Bottom-centered play bar (Figma node 732:22413).
-        if (!is_export_mode()) {
-            const float assemble_control_clearance = 95.0f * sc;
-            const float play_bar_bottom_y          = canvas_h - assemble_control_clearance;
-            render_assemble_play_bar(canvas_w, play_bar_bottom_y);
-        }
+    // Bottom-centered play bar (Figma node 732:22413). Keep it visible for
+    // normal playback, including "play all frames"; hide it only for exports.
+    if (!is_export_mode()) {
+        const float assemble_control_clearance = 95.0f * sc;
+        const float play_bar_bottom_y          = canvas_h - assemble_control_clearance;
+        render_assemble_play_bar(canvas_w, play_bar_bottom_y);
     } else {
         m_panel_rect_playbar_min = m_panel_rect_playbar_max = ImVec2(0, 0);
+    }
+
+    if (is_show_video_title_mode()) {
         // Resolve which title to draw centered on the canvas:
         std::string title;
         // is_cover_phase: only the very first phase of the MP4 export intro
@@ -2906,7 +3075,8 @@ void AssemblyStepsUtils::render_main(float canvas_w, float canvas_h) {
         const float title_font_size = std::max(48.0f * sc, ImGui::GetFontSize() * 3.0f);
         const ImVec2 text_size = font->CalcTextSizeA(title_font_size, FLT_MAX, 0.0f, title.c_str());
         const ImVec2 pos((canvas_w - text_size.x) * 0.5f, (canvas_h - text_size.y) * 0.5f);
-        const ImU32 title_col = IM_COL32(38, 46, 48, 255);
+        // Dark mode: use white text; the near-black title is unreadable on the dark canvas.
+        const ImU32 title_col = m_is_dark ? IM_COL32(255, 255, 255, 255) : IM_COL32(38, 46, 48, 255);
         dl->AddText(font, title_font_size, pos, title_col, title.c_str());
 
         if (is_cover_phase) {
@@ -3005,6 +3175,26 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
         if (step_node_idxs[i] == cur_node_idx) { cur_step_1based = i + 1; break; }
     }
 
+    std::string cur_step_name;
+    std::string cur_frame_kind;
+    if (cur_node_idx >= 0 && cur_node_idx < static_cast<int>(_steps_nodes.size())) {
+        const AssemblyStepsTreeNode &cur_node = _steps_nodes[cur_node_idx];
+        cur_step_name = assembly_step_display_name(cur_node);
+        if (cur_ref.frame_idx >= 0 && cur_ref.frame_idx < static_cast<int>(cur_node.kf_data.entries.size())) {
+            const KeyFrameEntry &cur_entry = cur_node.kf_data.entries[cur_ref.frame_idx];
+            if (cur_entry.is_start())
+                cur_frame_kind = _u8L("Start frame");
+            else if (cur_entry.is_last())
+                cur_frame_kind = _u8L("End frame");
+            else
+                cur_frame_kind = _u8L("Transition frame");
+        }
+    }
+    if (cur_step_name.empty())
+        cur_step_name = std::to_string(cur_step_1based);
+    if (cur_frame_kind.empty())
+        cur_frame_kind = _u8L("Frame");
+
     std::string cur_label = _u8L("step") + " " + std::to_string(cur_step_1based);
     if (cur_node_idx >= 0 && cur_node_idx < static_cast<int>(_steps_nodes.size()) && cur_ref.frame_idx >= 0 &&
         cur_ref.frame_idx < static_cast<int>(_steps_nodes[cur_node_idx].kf_data.entries.size()) && _steps_nodes[cur_node_idx].kf_data.entries[cur_ref.frame_idx].is_start()) {
@@ -3019,7 +3209,8 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
 
     // ---- Layout constants (all match Figma node 732:22413, scaled by `sc`) ----
     const float PLAY_BTN_SZ      = 24.0f * sc;
-    const float PLAY_ICON_SZ     = 16.0f * sc;
+    // Visually match the nav buttons: their 16px arrows fill a 24px dark box,
+    const float PLAY_ICON_SZ     = 20.0f * sc;
     // Use the same font size as render_assembly_guide_export_button so the
     // Export button "Export" label, the speed pill "1.0x", the step number
     // inside the circle, and the step name below all read at the same scale.
@@ -3114,9 +3305,14 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
             dl->AddImage(tex, i0, ImVec2(i0.x + PLAY_ICON_SZ, i0.y + PLAY_ICON_SZ));
         }
         if (clicked) {
-            if (m_keyframe_playing) pause_global_frame();
+            if (m_keyframe_playing) pause_playback();
+            else if (m_playback_paused) resume_playback();
             else {
-                start_playback_with_intro();//old code play_global_frame(true);
+                // Fresh play: start from the frame the progress bar is currently
+                if (cur_global <= 1 || cur_global >= total_frames)
+                    start_playback_with_intro();
+                else
+                    play_global_frame(true);
             }
         }
         if (hovered) {
@@ -3176,9 +3372,12 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
     const float bar_cy      = base.y + main_cy;
     const float bar_y0      = bar_cy - BAR_H * 0.5f;
     const float bar_y1      = bar_cy + BAR_H * 0.5f;
+    const ImU32 bar_bg_col  = m_is_dark ? IM_COL32(0x7A, 0x7A, 0x7A, 255) : IM_COL32(0xCE, 0xCE, 0xCE, 255);
+    const ImU32 tick_col    = m_is_dark ? IM_COL32(0xD0, 0xD0, 0xD0, 255) : IM_COL32(0x9C, 0x9C, 0x9C, 255);
+    const ImU32 label_col   = m_is_dark ? IM_COL32(0xE6, 0xE6, 0xE6, 255) : IM_COL32(0x6B, 0x6B, 0x6B, 255);
 
     dl->AddRectFilled(ImVec2(progress_x0, bar_y0), ImVec2(progress_x1, bar_y1),
-                      IM_COL32(0xCE, 0xCE, 0xCE, 255), BAR_H * 0.5f);
+                      bar_bg_col, BAR_H * 0.5f);
 
     auto frame_t = [&](int frame_1based) -> float {
         if (total_frames <= 1) return (frame_1based >= 1) ? 1.0f : 0.0f;
@@ -3192,6 +3391,9 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
                           IM_COL32(0x2C, 0xAD, 0x00, 255), BAR_H * 0.5f);
     }
 
+    bool  show_seek_drag_preview = false;
+    float seek_drag_preview_x    = progress_x0;
+
     // Click-to-seek over the bar (hit area expanded to circle height so clicks near
     // the marker still register).
     {
@@ -3199,11 +3401,17 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
         ImGui::SetCursorScreenPos(ImVec2(progress_x0, hit_y0));
         m_imgui->disabled_begin(disable_play_controls);
         ImGui::InvisibleButton("##progress_seek", ImVec2(PROGRESS_W, CIRCLE_D));
-        // Click-to-seek plus press-and-drag scrubbing. While the button is held
-        // (IsItemActive) the marker follows the cursor; the final position is
-        // committed on release (IsItemDeactivated). seek_global_frame_from_mouse_x()
-        // throttles itself to only seek when crossing into a new frame.
-        if (ImGui::IsItemActive() || ImGui::IsItemDeactivated())
+        const bool progress_hovered = ImGui::IsItemHovered();
+        const bool left_down_on_bar = progress_hovered && ImGui::IsMouseClicked(0);
+        const bool left_up_on_bar   = progress_hovered && ImGui::IsMouseReleased(0);
+        const bool dragging_progress = ImGui::IsItemActive() && ImGui::IsMouseDown(0);
+        if (left_down_on_bar || dragging_progress) {
+            show_seek_drag_preview = true;
+            seek_drag_preview_x = std::clamp(ImGui::GetIO().MousePos.x, progress_x0, progress_x1);
+        }
+        // Dragging only previews the target. Commit the seek when the mouse is
+        // released from this progress bar, or when release happens over the bar.
+        if (ImGui::IsItemDeactivated() || left_up_on_bar)
             seek_global_frame_from_mouse_x(ImGui::GetIO().MousePos.x, progress_x0, PROGRESS_W, total_frames);
         m_imgui->disabled_end();
     }
@@ -3215,7 +3423,7 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
         if (i == 1 || i == total_frames) continue; // skip start/end (sit at bar caps)
         const float tx = progress_x0 + PROGRESS_W * frame_t(i);
         dl->AddLine(ImVec2(tx, bar_cy - TICK_HALF), ImVec2(tx, bar_cy + TICK_HALF),
-                    IM_COL32(0x9C, 0x9C, 0x9C, 255), TICK_W);
+                    tick_col, TICK_W);
     }
 
     // Current step circular marker + step number inside it + label below.
@@ -3223,15 +3431,19 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
         const float cx = progress_x0 + PROGRESS_W * progress_frac;
         const float cy = bar_cy;
         const float rd = CIRCLE_D * 0.5f;
+        const std::string current_frame_tip =
+            _u8L("Frame") + " " + std::to_string(cur_global) + " (" + cur_frame_kind + ")\n" + cur_step_name;
+        auto show_current_frame_tooltip = [&]() {
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f * sc, 6.0f * sc));
+            m_imgui->tooltip(current_frame_tip, 20.0f * m_imgui->scaled(1.0f));
+            ImGui::PopStyleVar();
+        };
 
         dl->AddCircleFilled(ImVec2(cx, cy), rd, IM_COL32(255, 255, 255, 255), 32);
         ImGui::SetCursorScreenPos(ImVec2(cx - rd, cy - rd));
         ImGui::InvisibleButton("##progress_current_frame_tip", ImVec2(CIRCLE_D, CIRCLE_D));
-        if (ImGui::IsItemHovered()) {
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f * sc, 6.0f * sc));
-            m_imgui->tooltip(_u8L("Frame") + " " + std::to_string(cur_global), 20.0f * m_imgui->scaled(1.0f));
-            ImGui::PopStyleVar();
-        }
+        if (ImGui::IsItemHovered())
+            show_current_frame_tooltip();
 
         char step_text[16];
         std::snprintf(step_text, sizeof(step_text), "%d", cur_global);
@@ -3247,9 +3459,28 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
             // places its top about 6-7 px below the circle's bottom).
             const float label_top = base.y + 27.74f * sc;
             const ImVec2 ls = font->CalcTextSizeA(LABEL_FONT_PX, FLT_MAX, 0.0f, cur_label.c_str());
+            const ImVec2 label_pos(cx - ls.x * 0.5f, label_top);
             dl->AddText(font, LABEL_FONT_PX,
-                        ImVec2(cx - ls.x * 0.5f, label_top),
-                        IM_COL32(0x6B, 0x6B, 0x6B, 255), cur_label.c_str());
+                        label_pos,
+                        label_col, cur_label.c_str());
+            ImGui::SetCursorScreenPos(label_pos);
+            ImGui::InvisibleButton("##progress_current_frame_label_tip", ImVec2(ls.x, ls.y));
+            if (ImGui::IsItemHovered())
+                show_current_frame_tooltip();
+        }
+    }
+
+    if (show_seek_drag_preview) {
+        const ImVec2 preview_c(seek_drag_preview_x, bar_cy);
+        const float preview_r = CIRCLE_D * 0.5f;
+        constexpr float two_pi = 6.2831853071795864769f;
+        constexpr int segments = 32;
+        for (int i = 0; i < segments; i += 2) {
+            const float a0 = two_pi * float(i) / float(segments);
+            const float a1 = two_pi * float(i + 1) / float(segments);
+            dl->AddLine(ImVec2(preview_c.x + std::cos(a0) * preview_r, preview_c.y + std::sin(a0) * preview_r),
+                        ImVec2(preview_c.x + std::cos(a1) * preview_r, preview_c.y + std::sin(a1) * preview_r),
+                        IM_COL32(0x2C, 0xAD, 0x00, 230), 2.0f * sc);
         }
     }
 
@@ -3337,6 +3568,8 @@ void AssemblyStepsUtils::clear_runtime_state()
     m_selected_screen_center_ = Vec2d::Zero();
     m_selected_screen_center_dirty_ = true;
     m_render_interpolated_part_number_labels = false;
+    m_last_recorded_objects.clear();
+    m_last_recorded_volumes.clear();
     invalidate_play_frame_refs();
 }
 
@@ -3350,12 +3583,12 @@ void AssemblyStepsUtils::clear_steps_all()
     clear_runtime_state();
 }
 
-void AssemblyStepsUtils::clear_steps_tree_view(bool save)
+void AssemblyStepsUtils::new_project_clear_assembly_steps_tree_view()
 {
     clear_steps_all();
-    if (save) {
-        save_assembly_steps_json_to_model_and_request_extra_frame();
-    }
+    reset_state_on_model_changed();
+    save_assembly_steps_json_to_model_and_request_extra_frame();
+    clear_when_no_selection();
 }
 
 std::vector<int> AssemblyStepsUtils::selected_object_indices(int object_count, const std::vector<int> &selection_object_indices) const
@@ -4970,6 +5203,7 @@ void AssemblyStepsUtils::deal_once_when_enter_assembly_view() {
     if (!AssemblyTreeData::show_origin_step_tree) {
         // Sync only when the final-assembly end frame no longer matches the live
         if (!final_assembly_end_frame_matches_model()) {//(is_model_object_tree_changed(model_object_tree, temp_model_object_tree)) {
+            record_current_model_as_last_final_assembly();
             sync_all_model_object_to_final_assembly_node();
             sync_steps_objects_with_model();
             clear_all_keyframe_part_number_labels();
@@ -5235,6 +5469,7 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
     bool any_changed = false;
     int  delete_idx  = -1;
     bool note_cursor_requested = false;
+    static bool s_deferred_note_save_until_mouse_release = false;
     static int s_circle_line_drag_idx = -1;
     static int s_plain_arrow_line_drag_idx = -1;
     if (!ImGui::IsMouseDown(0)) {
@@ -6246,9 +6481,21 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
     if (!note_cursor_requested)
         reset_cursor_if_note_cursor();
 
+    const bool mouse_down = ImGui::IsMouseDown(0);
     if (any_changed) {
         cur_entry.need_save = true;
+        if (mouse_down) {
+            // Dragging notes can update every frame. Defer the expensive JSON
+            s_deferred_note_save_until_mouse_release = true;
+            do_commond_callback("request_extra_frame");
+        } else {
+            save_assembly_steps_json_to_model();
+            s_deferred_note_save_until_mouse_release = false;
+        }
+    } else if (s_deferred_note_save_until_mouse_release && !mouse_down) {
+        cur_entry.need_save = true;
         save_assembly_steps_json_to_model();
+        s_deferred_note_save_until_mouse_release = false;
     }
 
     // Part-number labels: pill text + drag (lines already drawn above in Pass 1).
@@ -6629,15 +6876,15 @@ bool AssemblyStepsUtils::render_structure_card_select_controls(
     ImFont*     font      = ImGui::GetFont();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-    const std::string label = _u8L("Select");
-    const float label_w = font->CalcTextSizeA(style.font_size, FLT_MAX, 0.f, label.c_str()).x;
+    const std::string select_label = _u8L("Select");
+    const float label_w = font->CalcTextSizeA(style.font_size, FLT_MAX, 0.f, select_label.c_str()).x;
     const float width = label_w + 2.0f * style.pad_x;
     const ImVec2 max(pos.x + width, pos.y + style.height);
 
     draw_list->AddRectFilled(pos, max, style.bg_col, style.radius);
     draw_list->AddText(font, style.font_size,
                        ImVec2(pos.x + style.pad_x, pos.y + (style.height - style.font_size) * 0.5f),
-                       style.button_text_col, label.c_str());
+                       style.button_text_col, select_label.c_str());
 
     const float value_x = max.x + style.gap;
     const float value_w = value_label.empty()
@@ -6653,6 +6900,8 @@ bool AssemblyStepsUtils::render_structure_card_select_controls(
     ImGui::InvisibleButton(id.c_str(), ImVec2(width, style.height));
     const bool clicked = ImGui::IsItemClicked();
     const bool button_hovered = ImGui::IsItemHovered();
+    if (button_hovered)
+        render_panel_tooltip(_u8L("Select partial parts or objects from the added items to perform operations such as translation, rotation, and coloring. Pose-modifying operations like translation can be used to create custom keyframe animations."));
     if (clicked)
         m_structure_select_popup_pending_card = card_idx;
 
@@ -7418,7 +7667,7 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
                 ImGui::InvisibleButton(add_id.c_str(), ImVec2(add_sz, add_sz));
                 if (ImGui::IsItemHovered()) {
                     suppress_card_click = true;
-                    render_panel_tooltip(_u8L("Add object to current step"));
+                    render_panel_tooltip(_u8L("Add some objects to current step"));
                 }
                 if (ImGui::IsItemClicked() && c.node_idx >= 0) {//popup add object tree
                     open_structure_add_tree(static_cast<int>(ci), c.node_idx, ImVec2(add_max.x + 8.0f * sc, add_min.y));
@@ -7960,6 +8209,11 @@ void AssemblyStepsUtils::render_structure_card_select_popup(int card_idx,
         m_structure_select_popup_active_card  = card_idx;
         m_structure_select_popup_pending_card = -1;
 
+        // Start each popup session with a clean search box.
+        m_assembly_tree_search_active        = false;
+        m_assembly_tree_search_focus_pending = false;
+        m_assembly_tree_search_text.clear();
+
         // Force-seed every node's open state on each popup open. The cache
         if (m_model && m_structure_select_popup_tree_step_node >= 0) {
             const auto &step_nodes = m_model->get_assembly_steps_tree_data().nodes;
@@ -7996,8 +8250,8 @@ void AssemblyStepsUtils::render_structure_card_select_popup(int card_idx,
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f * sc);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f * sc, 10.0f * sc));
     ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 6.0f * sc);
-    ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(1.0f, 1.0f, 1.0f, 0.98f));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(38 / 255.0f, 46 / 255.0f, 48 / 255.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_PopupBg, m_is_dark ? ImVec4(45 / 255.0f, 45 / 255.0f, 49 / 255.0f, 0.98f) : ImVec4(1.0f, 1.0f, 1.0f, 0.98f));
+    ImGui::PushStyleColor(ImGuiCol_Text, m_is_dark ? ImVec4(0xE0 / 255.0f, 0xE0 / 255.0f, 0xE0 / 255.0f, 1.0f) : ImVec4(38 / 255.0f, 46 / 255.0f, 48 / 255.0f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(144 / 255.f, 144 / 255.f, 144 / 255.f, 0.85f));
@@ -8033,25 +8287,95 @@ void AssemblyStepsUtils::render_structure_card_select_popup(int card_idx,
             io.WantCaptureMouse = true;
         }
 
-        // Title row: "Select" on the left, close (cross) icon on the right.
+        // Title row: "Select" / search box on the left, search toggle then the
         {
-            const ImVec2 header_min = ImGui::GetCursorScreenPos();
-            const float  header_w   = ImGui::GetContentRegionAvail().x;
-            const float  header_h   = header_h_calc;
-            const float  icon_sz    = 18.0f * sc;
+            const ImVec2 header_min      = ImGui::GetCursorScreenPos();
+            const float  header_w        = ImGui::GetContentRegionAvail().x;
+            const float  header_h        = header_h_calc;
+            const float  icon_sz         = 18.0f * sc;        // close (cross) icon
+            const float  search_icon_sz  = 16.0f * sc;
+            const float  search_h        = std::min(header_h, 24.0f * sc);
+            ImDrawList  *dl              = ImGui::GetWindowDrawList();
 
-            const std::string title      = _u8L("Select");
-            const ImVec2      title_size = ImGui::CalcTextSize(title.c_str());
-            ImDrawList       *dl         = ImGui::GetWindowDrawList();
-            dl->AddText(ImVec2(header_min.x, header_min.y + (header_h - title_size.y) * 0.5f),
-                IM_COL32(38, 46, 48, 255), title.c_str());
+            // Make sure the search glyph is available before the tree selector
+            load_assembly_tree_icons(sc);
 
-            if (m_tree_icon_cross) {
-                const ImVec2 icon_min(header_min.x + header_w - icon_sz,
-                                      header_min.y + (header_h - icon_sz) * 0.5f);
-                dl->AddImage(m_tree_icon_cross, icon_min,
-                    ImVec2(icon_min.x + icon_sz, icon_min.y + icon_sz));
-                ImGui::SetCursorScreenPos(icon_min);
+            // Close (cross) icon stays anchored at the far right in both states.
+            const ImVec2 close_min(header_min.x + header_w - icon_sz,
+                                   header_min.y + (header_h - icon_sz) * 0.5f);
+
+            if (m_assembly_tree_search_active) {
+                const ImVec2 search_min(header_min.x, header_min.y + (header_h - search_h) * 0.5f);
+                const ImVec2 search_max(close_min.x - 8.0f * sc, search_min.y + search_h);
+                dl->AddRectFilled(search_min, search_max, m_is_dark ? IM_COL32(58, 58, 62, 255) : IM_COL32(248, 248, 248, 255), 12.0f * sc);
+                dl->AddRect(search_min, search_max, m_is_dark ? IM_COL32(78, 78, 82, 255) : IM_COL32(238, 238, 238, 255), 12.0f * sc);
+                const ImVec2 sicon_min(search_min.x + 8.0f * sc, search_min.y + (search_h - search_icon_sz) * 0.5f);
+                ImTextureID search_tex = m_is_dark && s_assembly_tree_icons.search_dark ? s_assembly_tree_icons.search_dark : s_assembly_tree_icons.search;
+                if (search_tex)
+                    dl->AddImage(search_tex, sicon_min,
+                        ImVec2(sicon_min.x + search_icon_sz, sicon_min.y + search_icon_sz));
+                // Clicking the leading icon area exits search and clears the filter.
+                ImGui::SetCursorScreenPos(search_min);
+                ImGui::InvisibleButton("##asp_select_search_close", ImVec2(30.0f * sc, search_h));
+                if (ImGui::IsItemClicked(0)) {
+                    m_assembly_tree_search_active        = false;
+                    m_assembly_tree_search_focus_pending = false;
+                    m_assembly_tree_search_text.clear();
+                }
+
+                // Vertically center the input frame inside the rounded search
+                // box. Using a fixed offset made the text sit too low because the
+                // input frame height (font + 2*padding) is not constant across DPI.
+                const float input_pad_y   = 3.0f * sc;
+                const float input_frame_h = ImGui::GetFontSize() + 2.0f * input_pad_y;
+                ImGui::SetCursorScreenPos(ImVec2(search_min.x + 30.0f * sc,
+                                                 search_min.y + std::max(0.0f, (search_h - input_frame_h) * 0.5f)));
+                ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+                ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0, 0, 0, 0));
+                ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0, 0, 0, 0));
+                ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+                ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, input_pad_y));
+                ImGui::SetNextItemWidth(std::max(0.0f, search_max.x - search_min.x - 36.0f * sc));
+                if (m_assembly_tree_search_focus_pending) {
+                    ImGui::SetKeyboardFocusHere();
+                    m_assembly_tree_search_focus_pending = false;
+                }
+                ImGui::InputTextWithHint("##asp_select_search", _u8L("Search").c_str(), &m_assembly_tree_search_text);
+                ImGui::PopStyleVar(2);
+                ImGui::PopStyleColor(4);
+            } else {
+                const std::string title      = _u8L("Select");
+                const ImVec2      title_size = ImGui::CalcTextSize(title.c_str());
+                dl->AddText(ImVec2(header_min.x, header_min.y + (header_h - title_size.y) * 0.5f),
+                    m_is_dark ? IM_COL32(0xE0, 0xE0, 0xE0, 255) : IM_COL32(38, 46, 48, 255), title.c_str());
+
+                // Search icon sits just to the left of the close icon.
+                const ImVec2 sicon_min(close_min.x - 8.0f * sc - search_icon_sz,
+                                       header_min.y + (header_h - search_icon_sz) * 0.5f);
+                ImTextureID search_tex = m_is_dark && s_assembly_tree_icons.search_dark ? s_assembly_tree_icons.search_dark : s_assembly_tree_icons.search;
+                if (search_tex)
+                    dl->AddImage(search_tex, sicon_min,
+                        ImVec2(sicon_min.x + search_icon_sz, sicon_min.y + search_icon_sz));
+                ImGui::SetCursorScreenPos(sicon_min);
+                ImGui::InvisibleButton("##asp_select_search_open", ImVec2(search_icon_sz, search_icon_sz));
+                if (ImGui::IsItemHovered()) {
+                    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f * sc, 6.0f * sc));
+                    m_imgui->tooltip(_u8L("Search"), 20.0f * m_imgui->scaled(1.0f));
+                    ImGui::PopStyleVar();
+                }
+                if (ImGui::IsItemClicked(0)) {
+                    m_assembly_tree_search_active        = true;
+                    m_assembly_tree_search_focus_pending = true;
+                }
+            }
+
+            // Close (cross) icon - always present, far right.
+            ImTextureID cross_tex = m_is_dark && m_tree_icon_cross_dark ? m_tree_icon_cross_dark : m_tree_icon_cross;
+            if (cross_tex) {
+                dl->AddImage(cross_tex, close_min,
+                    ImVec2(close_min.x + icon_sz, close_min.y + icon_sz));
+                ImGui::SetCursorScreenPos(close_min);
                 ImGui::InvisibleButton("##asp_select_popup_close", ImVec2(icon_sz, icon_sz));
                 if (ImGui::IsItemClicked(0))
                     ImGui::CloseCurrentPopup();
@@ -8076,6 +8400,10 @@ void AssemblyStepsUtils::render_structure_card_select_popup(int card_idx,
     }
     else {
         m_structure_select_popup_active_card = -1;
+        // Drop the shared search filter so it does not leak into the Assembly
+        m_assembly_tree_search_active        = false;
+        m_assembly_tree_search_focus_pending = false;
+        m_assembly_tree_search_text.clear();
     }
 
     ImGui::PopStyleColor(11);
@@ -8347,6 +8675,7 @@ void AssemblyStepsUtils::insert_keyframe_after_selected()
 
 void AssemblyStepsUtils::play_all_keyframes_for_current_node()
 {
+    clear_playback_pause_state();
     m_keyframe_playing = true;
     build_local_play_queue();
     do_commond_callback("exit_gizmo");
@@ -8454,6 +8783,9 @@ void AssemblyStepsUtils::sync_canvas_selection_state()
 
 void AssemblyStepsUtils::play_cur_keyframe_logic()
 {
+    if (m_playback_paused)
+        return;
+
     if (m_play_global) {
         play_global_frame();
         return;
@@ -8938,7 +9270,9 @@ void AssemblyStepsUtils::init_tree_icons()
     IMTexture::load_from_svg_file(m_images_dir + "tree_play_dark.svg", icon_sz, icon_sz, m_tree_icon_play_dark);
     IMTexture::load_from_svg_file(m_images_dir + "tree_pause.svg", icon_sz, icon_sz, m_tree_icon_pause);
     IMTexture::load_from_svg_file(m_images_dir + "tree_apply_camera.svg", icon_sz, icon_sz, m_tree_icon_apply_camera);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_apply_camera_dark.svg", icon_sz, icon_sz, m_tree_icon_apply_camera_dark);
     IMTexture::load_from_svg_file(m_images_dir + "tree_explosion.svg", icon_sz, icon_sz, m_tree_icon_auto_explode);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_explosion_dark.svg", icon_sz, icon_sz, m_tree_icon_auto_explode_dark);
     IMTexture::load_from_svg_file(m_images_dir + "tree_object.svg", icon_sz, icon_sz, m_tree_icon_object);
     IMTexture::load_from_svg_file(m_images_dir + "tree_part.svg", icon_sz, icon_sz, m_tree_icon_part);
 
@@ -8960,6 +9294,7 @@ void AssemblyStepsUtils::init_tree_icons()
     IMTexture::load_from_svg_file(m_images_dir + "tree_pencil.svg", icon_sz, icon_sz, m_note_icon_pencil);
     IMTexture::load_from_svg_file(m_images_dir + "tree_frame.svg",       icon_sz, icon_sz, m_tree_icon_frame);
     IMTexture::load_from_svg_file(m_images_dir + "cross.svg",       icon_sz, icon_sz, m_tree_icon_cross);
+    IMTexture::load_from_svg_file(m_images_dir + "cross_dark.svg",  icon_sz, icon_sz, m_tree_icon_cross_dark);
     IMTexture::load_from_svg_file(m_images_dir + "panel_collapse.svg", icon_sz, icon_sz, m_panel_collapse_icon);
     IMTexture::load_from_svg_file(m_images_dir + "panel_expand.svg", icon_sz, icon_sz, m_panel_expand_icon);
     IMTexture::load_from_svg_file(m_images_dir + "view_help.svg", icon_sz, icon_sz, m_structure_help_icon);
@@ -8968,6 +9303,7 @@ void AssemblyStepsUtils::init_tree_icons()
     IMTexture::load_from_svg_file(m_images_dir + "tree_unedit.svg",   icon_sz, icon_sz, m_structure_step_add_icon_unedit);
     IMTexture::load_from_svg_file(m_images_dir + "tree_cur_edit.svg", icon_sz, icon_sz, m_structure_step_add_icon_edit);
     IMTexture::load_from_svg_file(m_images_dir + "tree_from_assembly_end_frame.svg", icon_sz, icon_sz, m_tree_icon_from_assembly_end_frame);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_from_assembly_end_frame_dark.svg", icon_sz, icon_sz, m_tree_icon_from_assembly_end_frame_dark);
     IMTexture::load_from_svg_file(m_images_dir + "tree_export.svg", icon_sz, icon_sz, m_btn_icon_export);
     IMTexture::load_from_svg_file(m_images_dir + "play_left.svg",   icon_sz, icon_sz, m_play_left_icon);
     IMTexture::load_from_svg_file(m_images_dir + "play_right.svg",  icon_sz, icon_sz, m_play_right_icon);
@@ -9010,6 +9346,13 @@ bool AssemblyStepsUtils::load_assembly_tree_icons(float sc)
                                                                   s_assembly_tree_icons.select) &&
                                    IMTexture::load_from_svg_file(image_path + "tree_search.svg", select_icon_texture_size, select_icon_texture_size,
                                                                   s_assembly_tree_icons.search);
+    // Dark variants are best-effort: a missing file must not flip `loaded`.
+    IMTexture::load_from_svg_file(image_path + "tree_expand_dark.svg", tree_icon_texture_size, tree_icon_texture_size,
+                                  s_assembly_tree_icons.expand_dark);
+    IMTexture::load_from_svg_file(image_path + "tree_collapse_dark.svg", tree_icon_texture_size, tree_icon_texture_size,
+                                  s_assembly_tree_icons.collapse_dark);
+    IMTexture::load_from_svg_file(image_path + "tree_search_dark.svg", select_icon_texture_size, select_icon_texture_size,
+                                  s_assembly_tree_icons.search_dark);
     return s_assembly_tree_icons.loaded;
 }
 
@@ -9025,12 +9368,15 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
 
     load_assembly_tree_icons(sc);
 
-    const ImU32 text_col      = IM_COL32(38, 46, 48, 255);
-    const ImU32 sub_text_col  = IM_COL32(144, 144, 144, 255);
+    const ImU32 text_col      = m_is_dark ? IM_COL32(0xE0, 0xE0, 0xE0, 255) : IM_COL32(38, 46, 48, 255);
+    const ImU32 sub_text_col  = m_is_dark ? IM_COL32(0x90, 0x90, 0x90, 255) : IM_COL32(144, 144, 144, 255);
     const ImU32 green_col     = IM_COL32(0, 174, 66, 255);
-    const ImU32 line_col      = IM_COL32(209, 213, 216, 255);
-    const ImU32 border_col    = IM_COL32(190, 190, 190, 255);
-    const ImU32 separator_col = IM_COL32(229, 229, 229, 255);
+    const ImU32 line_col      = m_is_dark ? IM_COL32(80, 80, 84, 255)  : IM_COL32(209, 213, 216, 255);
+    const ImU32 border_col    = m_is_dark ? IM_COL32(90, 90, 94, 255)  : IM_COL32(190, 190, 190, 255);
+    const ImU32 separator_col = m_is_dark ? IM_COL32(60, 60, 64, 255)  : IM_COL32(229, 229, 229, 255);
+    // Unchecked / partial checkbox background follows the surface color so the
+    // box does not glow white on the dark panel.
+    const ImU32 checkbox_bg_col = m_is_dark ? IM_COL32(45, 45, 49, 255) : IM_COL32(255, 255, 255, 255);
 
     auto to_lower_ascii = [](std::string value) {
         std::transform(value.begin(), value.end(), value.begin(),
@@ -9160,7 +9506,7 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
     const float checkbox_size = 20.0f * sc;
     const float arrow_size = 14.0f * sc;
 
-    auto draw_checkbox = [sc, checkbox_size, green_col, border_col](ImDrawList* target_draw_list, const ImRect& rect, AssemblyTreeCheckState state) {
+    auto draw_checkbox = [sc, checkbox_size, green_col, border_col, checkbox_bg_col](ImDrawList* target_draw_list, const ImRect& rect, AssemblyTreeCheckState state) {
         const bool checked_state = state == AssemblyTreeCheckState::All;
         const bool partial = state == AssemblyTreeCheckState::Partial;
         if (checked_state) {
@@ -9172,12 +9518,12 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
                 target_draw_list->AddImage(s_assembly_tree_icons.select, icon_min, ImVec2(icon_min.x + icon_w, icon_min.y + icon_h));
             }
         } else if (partial) {
-            target_draw_list->AddRectFilled(rect.Min, rect.Max, IM_COL32(255, 255, 255, 255), 3.0f * sc);
+            target_draw_list->AddRectFilled(rect.Min, rect.Max, checkbox_bg_col, 3.0f * sc);
             target_draw_list->AddRect(rect.Min, rect.Max, border_col, 3.0f * sc, 0, 2.0f * sc);
             target_draw_list->AddRectFilled(ImVec2(rect.Min.x + 4.0f * sc, rect.Min.y + 4.0f * sc),
                                             ImVec2(rect.Max.x - 4.0f * sc, rect.Max.y - 4.0f * sc), green_col, 1.0f * sc);
         } else {
-            target_draw_list->AddRectFilled(rect.Min, rect.Max, IM_COL32(255, 255, 255, 255), 3.0f * sc);
+            target_draw_list->AddRectFilled(rect.Min, rect.Max, checkbox_bg_col, 3.0f * sc);
             target_draw_list->AddRect(rect.Min, rect.Max, border_col, 3.0f * sc, 0, 2.0f * sc);
         }
     };
@@ -9211,7 +9557,8 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
         const bool hovered = ImGui::IsItemHovered();
 
         if (hovered)
-            child_draw_list->AddRectFilled(row_min, row_max, IM_COL32(245, 247, 248, 255), 4.0f * sc);
+            child_draw_list->AddRectFilled(row_min, row_max,
+                m_is_dark ? IM_COL32(58, 58, 62, 255) : IM_COL32(245, 247, 248, 255), 4.0f * sc);
 
         const float center_y = row_min.y + row_h * 0.5f;
         const float content_x = row_min.x + depth * indent_step;
@@ -9230,8 +9577,12 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
         const float arrow_x = checkable ? checkbox_rect.Max.x + 10.0f * sc : content_x;
         const ImVec2 arrow_min(arrow_x, center_y - arrow_size * 0.5f);
         const ImRect arrow_rect(arrow_min, ImVec2(arrow_min.x + arrow_size, arrow_min.y + arrow_size));
-        if (has_children && s_assembly_tree_icons.loaded)
-            child_draw_list->AddImage(open ? s_assembly_tree_icons.expand : s_assembly_tree_icons.collapse, arrow_rect.Min, arrow_rect.Max);
+        if (has_children && s_assembly_tree_icons.loaded) {
+            ImTextureID arrow_tex = open
+                ? (m_is_dark && s_assembly_tree_icons.expand_dark ? s_assembly_tree_icons.expand_dark : s_assembly_tree_icons.expand)
+                : (m_is_dark && s_assembly_tree_icons.collapse_dark ? s_assembly_tree_icons.collapse_dark : s_assembly_tree_icons.collapse);
+            child_draw_list->AddImage(arrow_tex, arrow_rect.Min, arrow_rect.Max);
+        }
 
         const float text_x = has_children
             ? arrow_rect.Max.x + 10.0f * sc
@@ -10161,12 +10512,18 @@ bool AssemblyStepsUtils::render_footer_button(const char* id, const std::string&
     const bool hovered = ImGui::IsItemHovered();
     const bool disabled = ImGui::GetItemFlags() & ImGuiItemFlags_Disabled;
 
-    const ImU32 bg = disabled ? IM_COL32(238, 238, 238, 255) :
-        (primary ? (hovered ? IM_COL32(0, 190, 74, 255) : IM_COL32(0, 174, 66, 255)) : IM_COL32(255, 255, 255, 255));
-    const ImU32 border = disabled ? IM_COL32(206, 206, 206, 255) :
-        (primary ? bg : (hovered ? IM_COL32(0, 174, 66, 255) : IM_COL32(202, 202, 202, 255)));
+    const ImU32 sec_bg     = m_is_dark ? IM_COL32(55, 55, 59, 255)   : IM_COL32(255, 255, 255, 255);
+    const ImU32 sec_border = m_is_dark ? IM_COL32(90, 90, 94, 255)   : IM_COL32(202, 202, 202, 255);
+    const ImU32 sec_text   = m_is_dark ? IM_COL32(0xE0, 0xE0, 0xE0, 255) : IM_COL32(38, 46, 48, 255);
+    const ImU32 dis_bg     = m_is_dark ? IM_COL32(60, 60, 64, 255)   : IM_COL32(238, 238, 238, 255);
+    const ImU32 dis_border = m_is_dark ? IM_COL32(70, 70, 74, 255)   : IM_COL32(206, 206, 206, 255);
+
+    const ImU32 bg = disabled ? dis_bg :
+        (primary ? (hovered ? IM_COL32(0, 190, 74, 255) : IM_COL32(0, 174, 66, 255)) : sec_bg);
+    const ImU32 border = disabled ? dis_border :
+        (primary ? bg : (hovered ? IM_COL32(0, 174, 66, 255) : sec_border));
     const ImU32 text = disabled ? IM_COL32(172, 172, 172, 255) :
-        (primary ? IM_COL32(255, 255, 255, 255) : IM_COL32(38, 46, 48, 255));
+        (primary ? IM_COL32(255, 255, 255, 255) : sec_text);
     draw_list->AddRectFilled(pos, ImVec2(pos.x + draw_size.x, pos.y + draw_size.y), bg, draw_size.y * 0.5f);
     draw_list->AddRect(pos, ImVec2(pos.x + draw_size.x, pos.y + draw_size.y), border, draw_size.y * 0.5f, 0, 2.0f * sc);
 
@@ -10456,8 +10813,8 @@ void AssemblyStepsUtils::render_assembly_guide_export_button(float panel_x, floa
         return;
     if (m_gizmo_active)
         return;
-    if (!is_selected_final_assembly_node())
-        return;
+    //if (!is_selected_final_assembly_node())
+        //return;
 
     const float pad_x         = 8.0f * sc;
     const float pad_y         = 4.0f * sc;
@@ -11118,7 +11475,9 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
             ImGui::InvisibleButton("##p", ImVec2(btn_sz, btn_sz));
             if (ImGui::IsItemClicked(0)) {
                 if (m_keyframe_playing)
-                    pause_global_frame();
+                    pause_playback();
+                else if (m_playback_paused)
+                    resume_playback();
                 else
                     play_all_keyframes_for_current_node();
             }
@@ -11130,39 +11489,72 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
             next_btn_x = btn_x + btn_sz + 6.0f * sc;
         }
 
+        const float right_btn_sz  = font_sz;
+        const float right_btn_gap = 6.0f * sc;
+
+        const int auto_explode_folder = find_parent_folder(selected_node);
+        auto *auto_explode_entries = get_current_kf_entries();
+        const auto &auto_explode_nodes = m_model->get_assembly_steps_tree_data().nodes;
+        const bool auto_explode_is_final =
+            auto_explode_folder >= 0 &&
+            auto_explode_folder < static_cast<int>(auto_explode_nodes.size()) &&
+            auto_explode_nodes[auto_explode_folder].is_final_assembly;
+        const bool auto_explode_is_end =
+            auto_explode_entries != nullptr &&
+            m_keyframe_selected >= 0 &&
+            m_keyframe_selected < static_cast<int>(auto_explode_entries->size()) &&
+            (*auto_explode_entries)[m_keyframe_selected].is_last();
+        ImTextureID auto_explode_icon = (m_is_dark && m_tree_icon_auto_explode_dark) ?
+            m_tree_icon_auto_explode_dark : m_tree_icon_auto_explode;
+        const bool show_auto_explode =
+            auto_explode_icon != nullptr &&
+            auto_explode_folder >= 0 &&
+            auto_explode_entries != nullptr &&
+            m_keyframe_selected >= 0 &&
+            m_keyframe_selected < static_cast<int>(auto_explode_entries->size()) &&
+            (!auto_explode_is_final || !auto_explode_is_end);
+
+        const int   from_fae_folder = find_parent_folder(selected_node);
+        auto       *from_fae_entries = get_current_kf_entries();
+        const auto &fae_nodes        = m_model->get_assembly_steps_tree_data().nodes;
+        ImTextureID from_fae_icon = (m_is_dark && m_tree_icon_from_assembly_end_frame_dark) ?
+            m_tree_icon_from_assembly_end_frame_dark : m_tree_icon_from_assembly_end_frame;
+        const bool show_from_fae =
+            from_fae_icon != nullptr &&
+            from_fae_folder >= 0 && from_fae_folder < (int)fae_nodes.size() &&
+            !fae_nodes[from_fae_folder].is_final_assembly &&
+            from_fae_entries != nullptr &&
+            m_keyframe_selected >= 0 &&
+            m_keyframe_selected < (int)from_fae_entries->size();
+
+        ImTextureID apply_camera_icon = (m_is_dark && m_tree_icon_apply_camera_dark) ?
+            m_tree_icon_apply_camera_dark : m_tree_icon_apply_camera;
+        const bool show_apply_camera = apply_camera_icon != nullptr;
+
+        const int right_btn_count = (show_auto_explode ? 1 : 0) + (show_from_fae ? 1 : 0) + (show_apply_camera ? 1 : 0);
+        float right_btn_x = right_btn_count > 0
+            ? card_min.x + card_w - 8.0f * sc - right_btn_count * right_btn_sz - (right_btn_count - 1) * right_btn_gap
+            : 0.0f;
+        auto take_right_btn_x = [&]() {
+            const float x = right_btn_x;
+            right_btn_x += right_btn_sz + right_btn_gap;
+            return x;
+        };
+
         // "Auto explode" button: pushes the current frame's objects/parts
         // outward by their dominant direction from the current overall bbox.
         {
-            const int auto_explode_folder = find_parent_folder(selected_node);
-            auto *auto_explode_entries = get_current_kf_entries();
-            const auto &auto_explode_nodes = m_model->get_assembly_steps_tree_data().nodes;
-            const bool auto_explode_is_final =
-                auto_explode_folder >= 0 &&
-                auto_explode_folder < static_cast<int>(auto_explode_nodes.size()) &&
-                auto_explode_nodes[auto_explode_folder].is_final_assembly;
-            const bool auto_explode_is_end =
-                auto_explode_entries != nullptr &&
-                m_keyframe_selected >= 0 &&
-                m_keyframe_selected < static_cast<int>(auto_explode_entries->size()) &&
-                (*auto_explode_entries)[m_keyframe_selected].is_last();
-            const bool show_auto_explode =
-                m_tree_icon_auto_explode != nullptr &&
-                next_btn_x > 0.f &&
-                auto_explode_folder >= 0 &&
-                auto_explode_entries != nullptr &&
-                m_keyframe_selected >= 0 &&
-                m_keyframe_selected < static_cast<int>(auto_explode_entries->size()) &&
-                (!auto_explode_is_final || !auto_explode_is_end);
             if (show_auto_explode) {
                 const ImVec2 title_sz = ImGui::GetFont()->CalcTextSizeA(font_sz,
                     FLT_MAX, 0.0f, tl_title.c_str());
-                const float btn_sz = font_sz;
+                const float btn_sz = right_btn_sz;
+                const float btn_x  = take_right_btn_x();
                 const float btn_y  = card_min.y + 6.0f * sc + (title_sz.y - btn_sz) * 0.5f;
 
-                draw_list->AddImage(m_tree_icon_auto_explode,
-                    ImVec2(next_btn_x, btn_y), ImVec2(next_btn_x + btn_sz, btn_y + btn_sz));
+                draw_list->AddImage(auto_explode_icon,
+                    ImVec2(btn_x, btn_y), ImVec2(btn_x + btn_sz, btn_y + btn_sz));
 
-                ImGui::SetCursorScreenPos(ImVec2(next_btn_x, btn_y));
+                ImGui::SetCursorScreenPos(ImVec2(btn_x, btn_y));
                 ImGui::PushID("##tl_auto_explode");
                 ImGui::InvisibleButton("##ae", ImVec2(btn_sz, btn_sz));
                 if (ImGui::IsItemClicked(0))
@@ -11172,27 +11564,16 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
                         _u8L("Automatically explode all objects.") :
                         _u8L("Automatically explode all parts."));//Excluding some previously appeared objects
                 ImGui::PopID();
-                next_btn_x += btn_sz + 6.0f * sc;
             }
         }
 
         // "Apply from final-assembly end frame": pulls the live assembled
         {
-            const int   from_fae_folder = find_parent_folder(selected_node);
-            auto       *from_fae_entries = get_current_kf_entries();
-            const auto &fae_nodes        = m_model->get_assembly_steps_tree_data().nodes;
-            const bool  show_from_fae    =
-                m_tree_icon_from_assembly_end_frame != nullptr &&
-                next_btn_x > 0.f &&
-                from_fae_folder >= 0 && from_fae_folder < (int)fae_nodes.size() &&
-                !fae_nodes[from_fae_folder].is_final_assembly &&
-                from_fae_entries != nullptr &&
-                m_keyframe_selected >= 0 &&
-                m_keyframe_selected < (int)from_fae_entries->size();
             if (show_from_fae) {
                 const ImVec2 title_sz = ImGui::GetFont()->CalcTextSizeA(font_sz,
                     FLT_MAX, 0.0f, tl_title.c_str());
-                const float btn_sz = font_sz;
+                const float btn_sz = right_btn_sz;
+                const float btn_x  = take_right_btn_x();
                 const float btn_y  = card_min.y + 6.0f * sc + (title_sz.y - btn_sz) * 0.5f;
 
                 // Greyed out when the current keyframe's pose already
@@ -11200,11 +11581,11 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
                 const ImU32 fae_tint     = fae_disabled
                     ? IM_COL32(255, 255, 255, 128)
                     : IM_COL32_WHITE;
-                draw_list->AddImage(m_tree_icon_from_assembly_end_frame,
-                    ImVec2(next_btn_x, btn_y), ImVec2(next_btn_x + btn_sz, btn_y + btn_sz),
+                draw_list->AddImage(from_fae_icon,
+                    ImVec2(btn_x, btn_y), ImVec2(btn_x + btn_sz, btn_y + btn_sz),
                     ImVec2(0, 0), ImVec2(1, 1), fae_tint);
 
-                ImGui::SetCursorScreenPos(ImVec2(next_btn_x, btn_y));
+                ImGui::SetCursorScreenPos(ImVec2(btn_x, btn_y));
                 ImGui::PushID("##tl_apply_from_assembly_end");
                 ImGui::InvisibleButton("##fae", ImVec2(btn_sz, btn_sz));
                 if (!fae_disabled && ImGui::IsItemClicked(0))
@@ -11214,21 +11595,21 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
                     render_panel_tooltip(_u8L("Apply final-assembly pose onto the current step"));
                 }
                 ImGui::PopID();
-                next_btn_x += btn_sz + 6.0f * sc;
             }
         }
 
         // "Apply camera" button: applies current camera to all frames in the step.
-        if (m_tree_icon_apply_camera && next_btn_x > 0.f) {
+        if (show_apply_camera) {
             const ImVec2 title_sz = ImGui::GetFont()->CalcTextSizeA(font_sz,
                 FLT_MAX, 0.0f, tl_title.c_str());
-            const float btn_sz = font_sz;
+            const float btn_sz = right_btn_sz;
+            const float btn_x  = take_right_btn_x();
             const float btn_y  = card_min.y + 6.0f * sc + (title_sz.y - btn_sz) * 0.5f;
 
-            draw_list->AddImage(m_tree_icon_apply_camera,
-                ImVec2(next_btn_x, btn_y), ImVec2(next_btn_x + btn_sz, btn_y + btn_sz));
+            draw_list->AddImage(apply_camera_icon,
+                ImVec2(btn_x, btn_y), ImVec2(btn_x + btn_sz, btn_y + btn_sz));
 
-            ImGui::SetCursorScreenPos(ImVec2(next_btn_x, btn_y));
+            ImGui::SetCursorScreenPos(ImVec2(btn_x, btn_y));
             ImGui::PushID("##tl_apply_camera");
             ImGui::InvisibleButton("##ac", ImVec2(btn_sz, btn_sz));
             if (ImGui::IsItemClicked(0)) {
@@ -11246,7 +11627,6 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
             if (ImGui::IsItemHovered())
                 render_panel_tooltip(_u8L("Apply current camera angle to all frames of the current step"));
             ImGui::PopID();
-            next_btn_x += btn_sz + 6.0f * sc;
         }
 
         //{//no use
@@ -11628,8 +12008,8 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(14.0f * sc, 14.0f * sc));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 6.0f * sc);
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 1.0f, 1.0f, 0.98f));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(38 / 255.0f, 46 / 255.0f, 48 / 255.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, m_is_dark ? ImVec4(45 / 255.0f, 45 / 255.0f, 49 / 255.0f, 0.98f) : ImVec4(1.0f, 1.0f, 1.0f, 0.98f));
+    ImGui::PushStyleColor(ImGuiCol_Text, m_is_dark ? ImVec4(0xE0 / 255.0f, 0xE0 / 255.0f, 0xE0 / 255.0f, 1.0f) : ImVec4(38 / 255.0f, 46 / 255.0f, 48 / 255.0f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0, 0, 0, 0));
     ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(144 / 255.0f, 144 / 255.0f, 144 / 255.0f, 0.85f));
@@ -11640,7 +12020,7 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
 
     load_assembly_tree_icons(sc);
 
-    const ImU32 separator_col  = IM_COL32(229, 229, 229, 255);
+    const ImU32 separator_col  = m_is_dark ? IM_COL32(60, 60, 64, 255) : IM_COL32(229, 229, 229, 255);
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     const ImVec2 tree_window_min = ImGui::GetWindowPos();
@@ -11657,11 +12037,12 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
         if (m_assembly_tree_search_active) {
             const ImVec2 search_min(header_min.x, header_min.y + (header_h - search_h) * 0.5f);
             const ImVec2 search_max(search_min.x + header_w, search_min.y + search_h);
-            draw_list->AddRectFilled(search_min, search_max, IM_COL32(248, 248, 248, 255), 14.0f * sc);
-            draw_list->AddRect(search_min, search_max, IM_COL32(238, 238, 238, 255), 14.0f * sc);
+            draw_list->AddRectFilled(search_min, search_max, m_is_dark ? IM_COL32(58, 58, 62, 255) : IM_COL32(248, 248, 248, 255), 14.0f * sc);
+            draw_list->AddRect(search_min, search_max, m_is_dark ? IM_COL32(78, 78, 82, 255) : IM_COL32(238, 238, 238, 255), 14.0f * sc);
             const ImVec2 icon_min(search_min.x + 10.0f * sc, search_min.y + (search_h - 16.0f * sc) * 0.5f);
-            if (s_assembly_tree_icons.search)
-                draw_list->AddImage(s_assembly_tree_icons.search, icon_min,
+            ImTextureID list_search_tex = m_is_dark && s_assembly_tree_icons.search_dark ? s_assembly_tree_icons.search_dark : s_assembly_tree_icons.search;
+            if (list_search_tex)
+                draw_list->AddImage(list_search_tex, icon_min,
                     ImVec2(icon_min.x + 16.0f * sc, icon_min.y + 16.0f * sc));
             ImGui::SetCursorScreenPos(ImVec2(search_min.x, search_min.y));
             ImGui::InvisibleButton("##assembly_tree_search_close", ImVec2(34.0f * sc, search_h));
@@ -11690,10 +12071,11 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
             const std::string title = _u8L("List");
             const ImVec2 title_size = ImGui::CalcTextSize(title.c_str());
             draw_list->AddText(ImVec2(header_min.x, header_min.y + (header_h - title_size.y) * 0.5f),
-                IM_COL32(38, 46, 48, 255), title.c_str());
+                m_is_dark ? IM_COL32(0xE0, 0xE0, 0xE0, 255) : IM_COL32(38, 46, 48, 255), title.c_str());
             const ImVec2 icon_min(header_min.x + header_w - icon_sz, header_min.y + (header_h - icon_sz) * 0.5f);
-            if (s_assembly_tree_icons.search)
-                draw_list->AddImage(s_assembly_tree_icons.search, icon_min,
+            ImTextureID list_search_tex = m_is_dark && s_assembly_tree_icons.search_dark ? s_assembly_tree_icons.search_dark : s_assembly_tree_icons.search;
+            if (list_search_tex)
+                draw_list->AddImage(list_search_tex, icon_min,
                     ImVec2(icon_min.x + icon_sz, icon_min.y + icon_sz));
             ImGui::SetCursorScreenPos(icon_min);
             ImGui::InvisibleButton("##assembly_tree_search_open", ImVec2(icon_sz, icon_sz));
@@ -11760,9 +12142,9 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
 
             const ImVec2 chip_min(chip_x, chip_y);
             const ImVec2 chip_max(chip_x + chip_w, chip_y + chip_h);
-            draw_list->AddRectFilled(chip_min, chip_max, IM_COL32(248, 248, 248, 255), 6.0f * sc);
+            draw_list->AddRectFilled(chip_min, chip_max, m_is_dark ? IM_COL32(65, 65, 69, 255) : IM_COL32(248, 248, 248, 255), 6.0f * sc);
             draw_list->AddText(ImVec2(chip_min.x + chip_pad_x, chip_min.y + (chip_h - text_size.y) * 0.5f),
-                IM_COL32(107, 107, 107, 255), label.c_str());
+                m_is_dark ? IM_COL32(0xC0, 0xC0, 0xC0, 255) : IM_COL32(107, 107, 107, 255), label.c_str());
 
             ImGui::SetCursorScreenPos(chip_min);
             ImGui::PushID(chip_idx++);
@@ -11887,6 +12269,7 @@ void AssemblyStepsUtils::process_assembly_steps_video_export()
         m_video_recording = false;
         m_is_export_mode = false;
         m_steps_video_export_path.clear();
+        hide_assembly_export_progress();
         do_commond_callback("request_extra_frame");
         return;
     }
@@ -11918,6 +12301,7 @@ void AssemblyStepsUtils::process_assembly_steps_video_export()
     // Check if playback has finished (not playing and reached the end).
     const bool playback_done = !m_play_global && !m_keyframe_playing && m_play_queue.empty();
     if (playback_done) {
+        update_assembly_export_progress(ExportType::MP4, m_steps_video_export_path, (int)m_play_frame_refs.size(), (int)m_play_frame_refs.size());
         m_mp4_recorder->stop();
         m_video_recording = false;
         BOOST_LOG_TRIVIAL(info) << "assembly steps video export: done -> " << m_steps_video_export_path;
@@ -11928,10 +12312,12 @@ void AssemblyStepsUtils::process_assembly_steps_video_export()
         m_steps_video_export_path.clear();
         m_is_export_mode = false;
         save_existing_project_if_dirty();
+        hide_assembly_export_progress();
         do_commond_callback("request_extra_frame");
         return;
     }
 
+    update_assembly_export_progress(ExportType::MP4, m_steps_video_export_path, m_assembly_play_index, std::max(1, (int)m_play_frame_refs.size()));
     do_commond_callback("request_extra_frame");
 }
 

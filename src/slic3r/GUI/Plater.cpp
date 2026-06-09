@@ -17509,7 +17509,7 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString &project_
         return wxID_CANCEL;
 
     if (auto *assemble_canvas = get_assmeble_canvas3D()) {
-        assemble_canvas->new_project_clear_assembly_steps_tree_view(false);
+        assemble_canvas->new_project_clear_assembly_steps_tree_view(true);
     }
 
     reset_flags_when_new_or_close_project();

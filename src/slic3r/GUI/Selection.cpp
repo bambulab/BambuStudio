@@ -2047,6 +2047,12 @@ void Selection::notify_instance_update(int object_idx, int instance_idx)
     }
 }
 
+void Selection::set_volume_selection_mode(EMode mode)
+{
+    if (!m_volume_selection_locked)
+        m_volume_selection_mode = mode;
+}
+
 void Selection::erase()
 {
     if (!m_valid)

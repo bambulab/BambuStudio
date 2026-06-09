@@ -810,7 +810,6 @@ Step::Step_Status Step::mesh(Model* model,
             }
         }
 
-        int model_object_suffix = 1;
         for (const std::string& object_key : object_order) {
             if (cb_cancel)
                 return;
@@ -818,7 +817,7 @@ Step::Step_Status Step::mesh(Model* model,
             ModelObject* new_object = model->add_object();
             created_objects.emplace_back(new_object);
             const std::string& object_name = object_key_to_name[object_key];
-            new_object->name = object_name + "#" + std::to_string(model_object_suffix++);
+            new_object->name = object_name;
             new_object->input_file = m_path.c_str();
             const int object_idx = static_cast<int>(model->objects.size()) - 1;
             object_key_to_model_idx[object_key] = object_idx;

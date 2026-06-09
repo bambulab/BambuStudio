@@ -3111,7 +3111,7 @@ void GLCanvas3D::close_project_and_save_assembly_steps_tree()//dont delete
 
 void GLCanvas3D::new_project_clear_assembly_steps_tree_view(bool save) {//dont delete
     if (m_assembly_steps)
-        m_assembly_steps->clear_steps_tree_view(save);
+        m_assembly_steps->new_project_clear_assembly_steps_tree_view();
 }
 
 bool GLCanvas3D::prepare_assembly_steps_for_project_save()//dont delete
@@ -5509,11 +5509,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
     else if (evt.LeftDClick()) {
         if (m_canvas_type == ECanvasType::CanvasAssembleView) {
+            if (m_hover_volume_idxs.empty()) {
+                if (m_assembly_steps) {
+                    m_assembly_steps->clear_when_no_selection();
+                }
+            }
             if (m_hover_volume_idxs.empty() && !m_selection.is_empty()) {
                 deselect_all();
-                if (m_assembly_steps) {
-                    m_assembly_steps->set_selected_node(-1);
-                }
                 m_dirty = true;
                 return;
             }
@@ -5569,6 +5571,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         int volume_idx = get_first_hover_volume_idx();
                         bool already_selected = m_selection.contains_volume(volume_idx);
                         bool ctrl_down = evt.CmdDown();
+                        if (ctrl_down) {
+                            m_selection.set_mode(Selection::Instance);
+                        }
                         bool alt_down  = evt.AltDown();
                         Selection::IndicesList curr_idxs = m_selection.get_volume_idxs();
                         if (already_selected && ctrl_down)
@@ -10454,7 +10459,7 @@ void GLCanvas3D::_render_assemble_control()
         ImGui::SameLine(same_line_width);
         // input
         std::vector<std::string> modes = {_u8L("Object"), _u8L("Part")};
-        int selection_idx = m_selection.get_volume_selection_mode() == Selection::Instance ? 0 : 1;
+        int selection_idx = m_selection.get_mode() == Selection::Instance ? 0 : 1;
         auto label         = _u8L("Selection Mode") + ":" ;
         auto label_width   = imgui->calc_text_size(label).x ;
         const char *selected_str = (selection_idx >= 0 && selection_idx < int(modes.size())) ? modes[selection_idx].c_str() : "";
@@ -10486,6 +10491,7 @@ void GLCanvas3D::_render_assemble_control()
         if (selection_idx != selection_out) {//do
             if (selection_out == 0) { m_selection.unlock_volume_selection_mode(); }
             m_selection.set_volume_selection_mode(selection_out == 1 ? Selection::Volume : Selection::Instance);
+            m_selection.set_mode(selection_out == 1 ? Selection::Volume : Selection::Instance);
             if (selection_out == 1) { m_selection.lock_volume_selection_mode(); }
         }
         same_line_width += (combo_visible_width + combo_group_gap);

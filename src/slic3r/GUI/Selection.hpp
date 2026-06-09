@@ -440,7 +440,7 @@ public:
     void mark_bounding_boxes_dirty() { set_bounding_boxes_dirty(); }
     // BBS
     EMode get_volume_selection_mode(){ return m_volume_selection_mode;}
-    void set_volume_selection_mode(EMode mode) { if (!m_volume_selection_locked) m_volume_selection_mode = mode; }
+    void  set_volume_selection_mode(EMode mode);
     void lock_volume_selection_mode() { m_volume_selection_locked = true; }
     void unlock_volume_selection_mode() { m_volume_selection_locked = false; }
 

@@ -7,12 +7,16 @@
 #include "../GLModel.hpp"
 #include "imgui/imgui.h"
 
+
+class wxWindow;
+
 namespace Slic3r {
 namespace GUI {
 
 class ImGuiWrapper;
 class PBOReader;
 class Mp4Recorder;
+class AssemblyExportProgressWindow;
 struct KeyframeObjectDisplayState
 {
     bool active{true};
@@ -122,7 +126,9 @@ class AssemblyStepsUtils
     ImTextureID         m_tree_icon_play_dark{nullptr};
     ImTextureID         m_tree_icon_pause{nullptr};
     ImTextureID         m_tree_icon_apply_camera{nullptr};
+    ImTextureID         m_tree_icon_apply_camera_dark{nullptr};
     ImTextureID         m_tree_icon_auto_explode{nullptr};
+    ImTextureID         m_tree_icon_auto_explode_dark{nullptr};
     ImTextureID         m_tree_icon_object{nullptr};
     ImTextureID         m_tree_icon_part{nullptr};
     ImTextureID         m_tree_icon_screw{nullptr};
@@ -144,6 +150,7 @@ class AssemblyStepsUtils
     ImTextureID         m_note_icon_pencil{nullptr};
     ImTextureID         m_tree_icon_frame{nullptr};
     ImTextureID         m_tree_icon_cross{nullptr};
+    ImTextureID         m_tree_icon_cross_dark{nullptr};
     // Header collapse / expand toggle (panel_collapse.svg / panel_expand.svg).
     ImTextureID         m_panel_collapse_icon{nullptr};
     ImTextureID         m_panel_expand_icon{nullptr};
@@ -158,6 +165,7 @@ class AssemblyStepsUtils
     ImTextureID         m_structure_step_add_icon_edit{nullptr};
     // Inline timeline button: pull transforms from the final-assembly end
     ImTextureID         m_tree_icon_from_assembly_end_frame{nullptr};
+    ImTextureID         m_tree_icon_from_assembly_end_frame_dark{nullptr};
     // Whether the "Assembly Structure" panel is collapsed to header-only.
     bool                m_structure_panel_collapsed{false};
     // Card index whose "Select" popup should be opened this frame (-1 = none).
@@ -253,6 +261,7 @@ class AssemblyStepsUtils
     bool                                m_gizmo_active{false};
     bool                                m_steps_video_export_active{false};
     std::string                         m_steps_video_export_path;
+    std::unique_ptr<AssemblyExportProgressWindow> m_export_progress_window;
     // Set to true by on_export_mp4() right after activating the video capture
     bool                                m_video_export_skip_first_frame{false};
     PlayStrategy                        m_play_strategy{PlayStrategy::Sequential};
@@ -266,6 +275,10 @@ class AssemblyStepsUtils
         ImTextureID collapse{0};
         ImTextureID select{0};
         ImTextureID search{0};
+        // Dark-mode variants (light-colored strokes/fills)
+        ImTextureID expand_dark{0};
+        ImTextureID collapse_dark{0};
+        ImTextureID search_dark{0};
     };
     static AssemblyTreeIcons s_assembly_tree_icons;
 
@@ -339,11 +352,15 @@ class AssemblyStepsUtils
     bool m_select_good_camera_layout_laber_after_auto_explode{true};
     std::vector<PlayFrameRef> m_play_frame_refs;
     bool                      m_play_frame_refs_dirty{true};
+    std::set<size_t>                    m_last_recorded_objects;
+    std::set<std::pair<size_t, size_t>> m_last_recorded_volumes;
     int                       m_assembly_play_index{1};
     int                       m_assembly_play_count{0}; // 0 mean dirty
     float                     m_margin_factor_camera_for_not_last_frame{1.4f};
     bool                      m_note_edit_controls_visible{false};
     bool                      m_tree_icons_loaded{false};
+    bool                      m_playback_paused{false};
+    double                    m_playback_pause_started_at{0.0};
     GLModel                   m_arrow_line_model;
     GLModel                   m_arrow_tri_model;
     std::map<std::string, ImTextureID> m_arrow_svg_icons;
@@ -470,6 +487,9 @@ public://logic
     void                     start_playback_with_intro();
     void                     prepare_export_to_play_global_frame();
     void                     pause_global_frame();
+    void                     pause_playback();
+    void                     resume_playback();
+    void                     clear_playback_pause_state();
     void                     play_different_folder_logic();
     // Drives the MP4 video intro phases. Only invoked while
     void                     play_video_intro_logic();
@@ -480,6 +500,10 @@ public://logic
     void                     on_export_pdf(std::string path);
     void                     on_export_markdown(std::string path);
     void                     on_export_mp4(std::string path);
+    wxWindow*                assembly_export_progress_anchor() const;
+    void                     show_assembly_export_progress(ExportType type, const std::string &path, int value, int maximum);
+    void                     update_assembly_export_progress(ExportType type, const std::string &path, int value, int maximum);
+    void                     hide_assembly_export_progress();
     void                     save_existing_project_if_dirty();
     // Reveal a freshly exported file in the system file manager (selects the file on Windows, opens the containing folder on macOS / Linux).
     void                     open_export_output_folder(const std::string &file_path);
@@ -495,7 +519,7 @@ public://logic
     void clear_runtime_state();
     bool prepare_project_save_end_frame();
     void clear_steps_all();
-    void clear_steps_tree_view(bool save = true);
+    void new_project_clear_assembly_steps_tree_view();
     bool has_pending_play_frames() const { return !m_play_queue.empty(); }
     std::vector<int> selected_object_indices(int object_count, const std::vector<int> &selection_object_indices) const;
     int              next_node_id() const;
@@ -711,6 +735,8 @@ private://logic
     static bool load_assembly_tree_icons(float sc);
     bool        is_mouse_over_blocking_panel() const;
     void        track_assembly_view_export(ExportType type) const;
+    void        reset_state_on_model_changed();
+    void        record_current_model_as_last_final_assembly();
 };
 
 } // namespace GUI

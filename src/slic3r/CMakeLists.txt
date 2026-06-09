@@ -336,6 +336,8 @@ set(SLIC3R_GUI_SOURCES
     GUI/Camera.hpp
     GUI/Overview/AssemblyPdfExportDialog.cpp
     GUI/Overview/AssemblyPdfExportDialog.hpp
+    GUI/Overview/AssemblyExportProgressWindow.cpp
+    GUI/Overview/AssemblyExportProgressWindow.hpp
     GUI/Overview/TinyExportMardDown.cpp
     GUI/Overview/TinyExportMardDown.hpp
     GUI/Overview/AssemblyStepsUtils.cpp

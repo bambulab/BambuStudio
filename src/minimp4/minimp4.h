@@ -3181,7 +3181,7 @@ broken_android_meta_hack:
         // if box is not envelope, just skip it
         if (i == NELEM(g_envelope_box))
         {
-            if (payload_bytes > file_size)
+            if (payload_bytes > (boxsize_t)file_size)
             {
                 eof_flag = 1;
             } else
