@@ -77,6 +77,7 @@ namespace Slic3r
         result.color = tray.color;
         result.type = tray.get_filament_type();
         result.filament_id = tray.setting_id;
+        result.setting_id = tray.filament_setting_id.empty() ? tray.setting_id : tray.filament_setting_id;
         result.ctype = tray.ctype;
         result.colors = tray.cols;
 
@@ -240,6 +241,17 @@ namespace Slic3r
                 {
                     if (c.Alpha() != tray_c.Alpha())
                         val.distance = 999999;
+                    else {
+                        constexpr float kClassDistanceOffset = 1000.f;
+                        constexpr float kTypeDistanceOffset = 2000.f;
+                        const bool is_sub_class_match = !filaments[i].setting_id.empty() && !tray->second.setting_id.empty()
+                            && filaments[i].setting_id == tray->second.setting_id;
+                        const bool is_class_match = !filaments[i].filament_id.empty() && !tray->second.filament_id.empty()
+                            && filaments[i].filament_id == tray->second.filament_id;
+                        if (!is_sub_class_match) {
+                            val.distance += is_class_match ? kClassDistanceOffset : kTypeDistanceOffset;
+                        }
+                    }
                     val.is_type_match = true;
                 }
                 ::sprintf(buffer, "  %6.0f", val.distance);
@@ -261,6 +273,7 @@ namespace Slic3r
             info.tray_id = -1;
             info.type = filaments[i].type;
             info.filament_id = filaments[i].filament_id;
+            info.setting_id = filaments[i].setting_id;
             result.push_back(info);
         }
 
@@ -299,7 +312,6 @@ namespace Slic3r
                     {
                         if (min_val > distance_map[i][j].distance)
                         {
-
                             min_val = distance_map[i][j].distance;
                             picked_src_idx = i;
                             picked_tar_idx = j;
@@ -307,7 +319,6 @@ namespace Slic3r
                         }
                         else if (min_val == distance_map[i][j].distance && filaments[picked_src_idx].filament_id != tray_filaments[picked_tar_idx].filament_id && filaments[i].filament_id == tray_filaments[j].filament_id)
                         {
-
                             picked_src_idx = i;
                             picked_tar_idx = j;
                         }
@@ -350,6 +361,7 @@ namespace Slic3r
                     result[picked_src_idx].type = tray->second.type;
                     result[picked_src_idx].distance = tray->second.distance;
                     result[picked_src_idx].filament_id = tray->second.filament_id;
+                    result[picked_src_idx].setting_id = tray->second.setting_id;
                     result[picked_src_idx].ctype = tray->second.ctype;
                     result[picked_src_idx].colors = tray->second.colors;
 

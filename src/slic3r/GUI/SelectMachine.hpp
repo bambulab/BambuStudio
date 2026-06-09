@@ -289,6 +289,7 @@ private:
 struct pPresetFilaInfo
 {
     std::string filament_id;
+    std::string setting_id;
     std::string filament_type;
     std::string filament_display_type;
     std::string filament_vendor;

@@ -4441,6 +4441,7 @@ std::vector<pPresetFilaInfo> sCollectPresetFilamentInfo()
                 if (preset && filament_name.compare(preset->name) == 0) {
                     pPresetFilaInfo fila_info;
                     fila_info.filament_id = preset->filament_id;
+                    fila_info.setting_id = preset->setting_id;
                     fila_info.filament_type = preset->config.get_filament_type(fila_info.filament_display_type);;
                     auto vendor_opt = dynamic_cast<ConfigOptionStrings*>(preset->config.option("filament_vendor"));
                     if (vendor_opt && (vendor_opt->values.size() > 0)) {
@@ -4632,6 +4633,7 @@ void SelectMachineDialog::reset_and_sync_ams_list()
         info.type = preset_filament.filament_type;
         info.brand = preset_filament.filament_vendor;
         info.filament_id = preset_filament.filament_id;
+        info.setting_id = preset_filament.setting_id;
         info.color = wxString::Format("#%02X%02X%02X%02X", colour_rgb.Red(), colour_rgb.Green(), colour_rgb.Blue(), colour_rgb.Alpha()).ToStdString();
         m_filaments.push_back(info);
     }
