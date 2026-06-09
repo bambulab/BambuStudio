@@ -2380,15 +2380,15 @@ bool MachineObject::is_info_ready(bool check_version) const
     }
 
     std::chrono::system_clock::time_point curr_time = std::chrono::system_clock::now();
-    auto diff = std::chrono::duration_cast<std::chrono::microseconds>(last_push_time - curr_time);
-    if (m_full_msg_count > 0 && m_push_count > 0 && diff.count() < PUSHINFO_TIMEOUT) {
+    auto push_age = std::chrono::duration_cast<std::chrono::milliseconds>(curr_time - last_push_time);
+    if (m_full_msg_count > 0 && m_push_count > 0 && push_age.count() >= 0 && push_age.count() < PUSHINFO_TIMEOUT) {
         return true;
     }
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__
         << ": not ready, m_full_msg_count=" << m_full_msg_count
         << ", m_push_count=" << m_push_count
-        << ", diff.count()=" << diff.count()
+        << ", push_age_ms=" << push_age.count()
         << ", dev_id=" << BBLCrossTalk::Crosstalk_DevId(get_dev_id());
     return false;
 }

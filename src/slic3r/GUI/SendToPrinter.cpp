@@ -1204,6 +1204,8 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
     /* reset timeout and reading printer info */
     //m_status_bar->reset();
     timeout_count      = 0;
+    m_lan_info_reconnect_dev_id.clear();
+    m_lan_info_refresh_tick = 0;
 
     auto selection = m_comboBox_printer->GetSelection();
     DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
@@ -1222,14 +1224,24 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
     }
 
     if (obj) {
-        obj->command_get_version();
-        obj->command_request_push_all();
+        bool reconnected_lan_printer = false;
         if (!dev->get_selected_machine()) {
-            dev->set_selected_machine(m_printer_last_select);
+            reconnected_lan_printer = dev->set_selected_machine(m_printer_last_select) && obj->is_lan_mode_printer();
 
         }else if (dev->get_selected_machine()->get_dev_id() != m_printer_last_select) {
             update_storage_list(std::vector<std::string>());
-            dev->set_selected_machine(m_printer_last_select);
+            reconnected_lan_printer = dev->set_selected_machine(m_printer_last_select) && obj->is_lan_mode_printer();
+        } else if (obj->is_lan_mode_printer() && !obj->is_info_ready(false)) {
+            reconnected_lan_printer = dev->set_selected_machine(m_printer_last_select);
+        }
+
+        if (reconnected_lan_printer) {
+            m_lan_info_reconnect_dev_id = obj->get_dev_id();
+            m_lan_info_refresh_tick = 0;
+            reset_timeout();
+        } else {
+            obj->command_get_version();
+            obj->command_request_push_all();
         }
     }
     else {
@@ -1238,6 +1250,45 @@ void SendToPrinterDialog::on_selection_changed(wxCommandEvent &event)
     }
 
     update_show_status();
+}
+
+bool SendToPrinterDialog::refresh_lan_info_if_needed(MachineObject* obj_)
+{
+    if (!obj_ || !obj_->is_lan_mode_printer())
+        return false;
+
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev)
+        return false;
+
+    const std::string dev_id = obj_->get_dev_id();
+    if (m_lan_info_reconnect_dev_id != dev_id) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+            << ": lan printer info is not ready, reconnect selected machine, dev_id="
+            << BBLCrossTalk::Crosstalk_DevId(dev_id);
+        m_lan_info_reconnect_dev_id = dev_id;
+        m_lan_info_refresh_tick = 0;
+        reset_timeout();
+        dev->set_selected_machine(dev_id);
+        return true;
+    }
+
+    ++m_lan_info_refresh_tick;
+    const int request_interval_ticks = 1000 / LIST_REFRESH_INTERVAL;
+    if (m_lan_info_refresh_tick < request_interval_ticks)
+        return true;
+
+    if ((m_lan_info_refresh_tick - request_interval_ticks) % request_interval_ticks == 0) {
+        int version_ret = obj_->command_get_version(true);
+        int push_ret = obj_->command_request_push_all(true);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+            << ": lan printer info is not ready, request info after reconnect, dev_id="
+            << BBLCrossTalk::Crosstalk_DevId(dev_id)
+            << ", get_version_ret=" << version_ret
+            << ", pushall_ret=" << push_ret;
+    }
+
+    return false;
 }
 
 void SendToPrinterDialog::update_show_status()
@@ -1267,6 +1318,7 @@ void SendToPrinterDialog::update_show_status()
     }
 
     if (!obj_->is_info_ready()) {
+        refresh_lan_info_if_needed(obj_);
         if (is_timeout()) {
             show_status(PrintDialogStatus::PrintStatusReadingTimeout);
             return;
@@ -1280,6 +1332,8 @@ void SendToPrinterDialog::update_show_status()
     }
 
     reset_timeout();
+    m_lan_info_reconnect_dev_id.clear();
+    m_lan_info_refresh_tick = 0;
 
     // reading done
     if (is_blocking_printing(obj_)) {
