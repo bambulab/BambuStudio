@@ -6951,6 +6951,15 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
         exist_preset = true;
     }
 
+    // a user preset with a project embedded preset as parent is not allowed
+    if (!exist_preset && !save_to_project && m_presets->get_edited_preset().is_project_embedded) {
+        MessageDialog dlg(m_parent,
+                          _L("The current preset is a project preset and can't be used to create a new preset. Please select a system preset or user preset, then try again."),
+                          _L("Unable to save preset"), wxICON_WARNING | wxOK);
+        dlg.ShowModal();
+        return;
+    }
+
     // Save the preset into Slic3r::data_dir / presets / section_name / preset_name.ini
     m_presets->save_current_preset(name, detach, save_to_project, nullptr, &extra_map);
 
