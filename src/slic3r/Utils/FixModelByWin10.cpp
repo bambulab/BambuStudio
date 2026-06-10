@@ -137,7 +137,13 @@ static AsyncStatus winrt_async_await(const Microsoft::WRL::ComPtr<T> &asyncActio
 		asyncInfo->get_Status(&status);
 		if (status != AsyncStatus::Started)
 			return status;
-		throw_on_cancel();
+		try {
+			if (throw_on_cancel)
+				throw_on_cancel();
+		} catch (...) {
+			asyncInfo->Cancel();
+			throw;
+		}
 		::Sleep(blocking_tick_ms);
 	}
 }
@@ -221,7 +227,13 @@ void fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 	if (! winrt_load_runtime_object_library())
 		throw Slic3r::RuntimeError(L("Failed to initialize the WinRT library."));
 
+	if (!on_progress)
+		on_progress = [](const char*, unsigned) {};
+
 	HRESULT hr = (*s_RoInitialize)(RO_INIT_MULTITHREADED);
+	struct RoUninitializeGuard {
+		~RoUninitializeGuard() { (*s_RoUninitialize)(); }
+	} ro_uninitialize_guard;
 	{
 		on_progress(L("Exporting objects"), 20);
 
@@ -313,7 +325,6 @@ void fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 		fclose(fout);
 		// Here all the COM objects will be released through the ComPtr destructors.
 	}
-	(*s_RoUninitialize)();
 }
 
 bool is_win10_model_repair_available()
@@ -321,11 +332,11 @@ bool is_win10_model_repair_available()
 	return is_windows10() && winrt_load_runtime_object_library();
 }
 
-bool fix_mesh_by_win10_sdk(const indexed_triangle_set& mesh,
-						   indexed_triangle_set&       repaired_mesh,
-						   Win10RepairProgressFn       progress_callback,
-						   Win10RepairCancelFn         cancel_callback,
-						   std::string*                error_message)
+static bool fix_mesh_by_win10_sdk_impl(const indexed_triangle_set& mesh,
+									   indexed_triangle_set&       repaired_mesh,
+									   Win10RepairProgressFn       progress_callback,
+									   ThrowOnCancelFn             throw_on_cancel,
+									   std::string*                error_message)
 {
 	// RAII guard ensures the intermediate 3mf files are removed even if
 	// store_3mf / fix_model_by_win10_sdk / load_3mf throws.
@@ -362,11 +373,7 @@ bool fix_mesh_by_win10_sdk(const indexed_triangle_set& mesh,
 		model.clear_objects();
 		model.clear_materials();
 
-		fix_model_by_win10_sdk(path_src.string(), path_dst.string(), std::move(progress_callback),
-			[&cancel_callback]() {
-				if (cancel_callback && cancel_callback())
-					throw Slic3r::RuntimeError("Model repair has been canceled.");
-			});
+		fix_model_by_win10_sdk(path_src.string(), path_dst.string(), std::move(progress_callback), std::move(throw_on_cancel));
 
 		DynamicPrintConfig config;
 		ConfigSubstitutionContext config_substitutions{ ForwardCompatibilitySubstitutionRule::EnableSilent };
@@ -407,6 +414,22 @@ bool fix_mesh_by_win10_sdk(const indexed_triangle_set& mesh,
 	}
 }
 
+bool fix_mesh_by_win10_sdk(const indexed_triangle_set& mesh,
+						   indexed_triangle_set&       repaired_mesh,
+						   Win10RepairProgressFn       progress_callback,
+						   Win10RepairCancelFn         cancel_callback,
+						   std::string*                error_message)
+{
+	// The caller is expected to run this on a background thread (so the COM
+	// context can be created as multi-threaded). Cancellation is polled inside
+	// winrt_async_await via throw_on_cancel.
+	return fix_mesh_by_win10_sdk_impl(mesh, repaired_mesh, std::move(progress_callback),
+		[&cancel_callback]() {
+			if (cancel_callback && cancel_callback())
+				throw Slic3r::RuntimeError("Model repair has been canceled.");
+		}, error_message);
+}
+
 class RepairCanceledException : public std::exception {
 public:
    const char* what() const throw() { return "Model repair has been canceled"; }
@@ -427,6 +450,7 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 	} progress;
 	std::atomic<bool>				canceled = false;
 	std::atomic<bool>				finished = false;
+	progress_dialog.EnableYield(true);
 
 	std::vector<ModelVolume*> volumes;
 	if (volume_idx == -1)
@@ -483,13 +507,22 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 		}
 	});
     while (! finished) {
-		condition.wait_for(lock, std::chrono::milliseconds(250), [&progress]{ return progress.updated; });
+		std::string progress_message;
+		int progress_percent = 0;
+		{
+			progress_message = progress.message;
+			progress_percent = progress.percent;
+			progress.updated = false;
+		}
+		lock.unlock();
 		// decrease progress.percent value to avoid closing of the progress dialog
-		if (!progress_dialog.Update(progress.percent-1, msg_header + _(progress.message)))
+		const int dialog_progress = progress_percent > 0 ? progress_percent - 1 : 0;
+		if (progress_dialog.WasCancelled() || !progress_dialog.Update(dialog_progress, msg_header + _(progress_message)))
 			canceled = true;
 		else
 			progress_dialog.Fit();
-		progress.updated = false;
+		lock.lock();
+		condition.wait_for(lock, std::chrono::milliseconds(50), [&progress, &finished]{ return progress.updated || finished.load(); });
     }
 
 	if (canceled) {
