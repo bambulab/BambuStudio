@@ -7899,11 +7899,21 @@ void Tab::update_nozzle_status_display()
     Freeze();
     m_nozzle_status_sizer->Clear(true);
 
+    // Re-layout the container after the sizer contents have been rebuilt, and unfreeze, on
+    // every exit path. Without the layout, newly created child controls keep their default
+    // (0,0) position until the next layout pass; on macOS the native wxStaticText paints
+    // there immediately, so the reminder text briefly shows up at the top of the dialog
+    // instead of in the nozzle status row.
+    ScopeGuard relayout_and_thaw([this]() {
+        if (m_variant_sizer) m_variant_sizer->Layout();
+        m_nozzle_status_sizer->Layout();
+        Thaw();
+    });
+
     const Preset &current_printer  = m_preset_bundle->printers.get_selected_preset();
     auto extruder_max_nozzle_count = current_printer.config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
     bool has_multiple_nozzle       = std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int i) { return i > 1; });
     if (!has_multiple_nozzle) {
-        Thaw();
         return;
     }
 
@@ -7917,7 +7927,6 @@ void Tab::update_nozzle_status_display()
     if (m_preset_bundle->get_printer_extruder_count() > 1)
         l_nozzles = collect_nozzles(DEPUTY_EXTRUDER_ID, extruder_type, flow_type, connected);
     if (!connected) {
-        Thaw();
         return;
     }
     if (r_nozzles.empty() && l_nozzles.empty()) {
@@ -7929,7 +7938,6 @@ void Tab::update_nozzle_status_display()
         reminder_text->SetForegroundColour(m_modified_label_clr);
         m_nozzle_status_sizer->Add(reminder_text, 1, wxALIGN_CENTER_VERTICAL);
 
-        Thaw();
         return;
     }
 
@@ -7974,7 +7982,6 @@ void Tab::update_nozzle_status_display()
             create_nozzle_button(name);
         }
     }
-    Thaw();
 }
 
 std::vector<DevNozzle> Tab::collect_nozzles(int extruder_id, ExtruderType ext_type, NozzleFlowType flow_type, bool& connected)
