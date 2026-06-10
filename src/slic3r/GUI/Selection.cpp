@@ -1208,7 +1208,7 @@ void Selection::move_to_center(const Vec3d& displacement, bool local)
             if (local)
                 v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + displacement);
             else {
-                const Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;
+                const Vec3d local_displacement = m_cache.volumes_data[i].get_instance_full_matrix().linear().inverse() * displacement;
                 v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
             }
         }
@@ -1217,7 +1217,7 @@ void Selection::move_to_center(const Vec3d& displacement, bool local)
                 v.set_instance_offset(m_cache.volumes_data[i].get_instance_position() + displacement);
             }
             else {
-                const Vec3d local_displacement = (m_cache.volumes_data[i].get_instance_rotation_matrix() * m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_instance_mirror_matrix()).inverse() * displacement;
+                const Vec3d local_displacement = m_cache.volumes_data[i].get_instance_full_matrix().linear().inverse() * displacement;
                 v.set_volume_offset(m_cache.volumes_data[i].get_volume_position() + local_displacement);
                 translation_type = Volume;
             }
