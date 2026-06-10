@@ -457,7 +457,7 @@ bool DevicePageAmsFilamentHotendVM::IsFilamentChangeActive(MachineObject* machin
     return false;
 }
 
-static int s_command_unload_filament(MachineObject* obj_, const std::string& ams_id, const std::string& slot_id, int old_temp, int new_temp, std::optional<int> extruder_id)
+static void s_command_unload_filament(MachineObject* obj_, const std::string& ams_id, const std::string& slot_id, int old_temp, int new_temp, std::optional<int> extruder_id)
 {
     if (obj_) {
         json j;
@@ -483,7 +483,7 @@ static int s_command_unload_filament(MachineObject* obj_, const std::string& ams
 
         } catch (const std::exception&) {}
 
-        return obj_->publish_json(j);
+        obj_->publish_json(j);
     }
 }
 
