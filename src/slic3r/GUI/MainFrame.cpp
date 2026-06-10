@@ -1424,6 +1424,7 @@ void MainFrame::init_tabpanel()
             m_webview->load_url(url);
         });
         m_tabpanel->AddPage(m_webview, "", "tab_home_active", "tab_home_active", false);
+        m_tabpanel->SetPageToolTip(tpHome, _L("Home"));
         m_param_panel = new ParamsPanel(m_tabpanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
     }
 
@@ -1939,12 +1940,11 @@ wxBoxSizer* MainFrame::create_side_tools()
     sizer->Add(expand_program_holder, 0, wxALIGN_CENTER, 0);
     sizer->Add(FromDIP(4), 0, 0, 0, 0);
     sizer->Add(split_line_icon, 0, wxALIGN_CENTER, 0);
-    sizer->Add(FromDIP(10), 0, 0, 0, 0);
+    sizer->Add(FromDIP(6), 0, 0, 0, 0);
     sizer->Add(slice_panel);
-    sizer->Add(FromDIP(15), 0, 0, 0, 0);
+    sizer->Add(FromDIP(8), 0, 0, 0, 0);
     sizer->Add(print_panel);
     sizer->Add(FromDIP(4), 0, 0, 0, 0);
-    sizer->Add(FromDIP(19), 0, 0, 0, 0);
 
     sizer->Layout();
 
@@ -2321,7 +2321,7 @@ wxBoxSizer* MainFrame::create_side_tools()
     });
     sizer->Add(aux_btn, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1 * em / 10);
     */
-    sizer->Add(FromDIP(19), 0, 0, 0, 0);
+    // sizer->Add(FromDIP(19), 0, 0, 0, 0);
 
     return sizer;
 }

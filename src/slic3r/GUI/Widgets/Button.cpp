@@ -125,6 +125,14 @@ void Button::SetPaddingSize(const wxSize& size)
     messureSize();
 }
 
+void Button::SetAllowShrink(bool allow)
+{
+    if (m_allow_shrink == allow)
+        return;
+    m_allow_shrink = allow;
+    messureSize();
+}
+
 void Button::SetTextColor(StateColor const& color)
 {
     text_color = color;
@@ -386,6 +394,20 @@ void Button::messureSize()
         if (tip_str.IsEmpty()) {
             SetToolTip(GetLabel());
         }
+    }
+
+    // BBS: when shrinking is allowed, honor the explicit min width as the window's
+    // min size even though the content is wider. The sizer may then compress the
+    // button, and render() truncates the label with an ellipsis. The content width
+    // is still reported as the best size so the button prefers its full width.
+    if (m_allow_shrink && minSize.GetWidth() > 0) {
+        wxSize minWnd = size;
+        minWnd.SetWidth(minSize.GetWidth());
+        wxWindow::SetMinSize(minWnd);
+        // Keep the content size as the best-size hint so the sizer prefers the full
+        // width (up to the max) when there is room, and only compresses when crowded.
+        CacheBestSize(size);
+        return;
     }
 
     if (minSize.GetWidth() > size.GetWidth())

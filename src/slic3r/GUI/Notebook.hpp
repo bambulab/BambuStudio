@@ -29,9 +29,11 @@ public:
     bool SetPageImage(size_t n, const std::string& bmp_name) const;
     void SetPageText(size_t n, const wxString& strText);
     wxString GetPageText(size_t n) const;
+    void SetPageToolTip(size_t n, const wxString& strToolTip);
 
 private:
-    wxFlexGridSizer*                m_buttons_sizer;
+    // BBS: use a box sizer so tabs can shrink (Chrome-style) when space is tight
+    wxBoxSizer*                     m_buttons_sizer;
     wxBoxSizer*                     m_sizer;
     // BBS: use Button
     std::vector<Button*>            m_pageButtons;
@@ -240,6 +242,11 @@ public:
     bool SetPageImage(size_t n, const std::string& bmp_name)
     {
         return GetBtnsListCtrl()->SetPageImage(n, bmp_name);
+    }
+
+    void SetPageToolTip(size_t n, const wxString& strToolTip)
+    {
+        GetBtnsListCtrl()->SetPageToolTip(n, strToolTip);
     }
 
     // Override some wxWindow methods too.

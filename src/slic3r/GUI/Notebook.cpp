@@ -12,6 +12,13 @@
 #include <wx/button.h>
 #include <wx/sizer.h>
 
+namespace {
+constexpr int btn_width_icon      = 40;
+constexpr int btn_width_label_min = 48;
+constexpr int btn_width_label_max = 136;
+constexpr int btn_height          = 36;
+}; // namespace
+
 wxDEFINE_EVENT(wxCUSTOMEVT_NOTEBOOK_SEL_CHANGED, wxCommandEvent);
 
 ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, wxBoxSizer* side_tools) :
@@ -39,11 +46,12 @@ ButtonsListCtrl::ButtonsListCtrl(wxWindow *parent, wxBoxSizer* side_tools) :
     m_sizer = new wxBoxSizer(wxHORIZONTAL);
     this->SetSizer(m_sizer);
 
-    m_buttons_sizer = new wxFlexGridSizer(1, m_btn_margin, m_btn_margin);
-    m_sizer->Add(m_buttons_sizer, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxBOTTOM, m_btn_margin);
+    // a horizontal box sizer (instead of a flex grid) so the tab buttons can
+    // shrink Chrome-style when the window is too narrow
+    m_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
+    m_sizer->Add(m_buttons_sizer, 1, wxALIGN_CENTER_VERTICAL | wxLEFT | wxBOTTOM, m_btn_margin);
 
     if (side_tools != NULL) {
-        m_sizer->AddStretchSpacer(1);
         for (size_t idx = 0; idx < side_tools->GetItemCount(); idx++) {
             wxSizerItem* item = side_tools->GetItem(idx);
             wxWindow* item_win = item->GetWindow();
@@ -123,8 +131,13 @@ void ButtonsListCtrl::Rescale()
     //m_mode_sizer->msw_rescale();
     int em = em_unit(this);
     for (Button* btn : m_pageButtons) {
-        //BBS
-        btn->SetMinSize({(btn->GetLabel().empty() ? 40 : 132) * em / 10, 36 * em / 10});
+        // BBS: keep the Chrome-style shrinkable range in sync with the DPI scale.
+        if (btn->GetLabel().empty()) {
+            btn->SetMinSize({btn_width_icon * em / 10, btn_height * em / 10});
+        } else {
+            btn->SetMinSize({btn_width_label_min * em / 10, btn_height * em / 10});
+            btn->SetMaxSize({btn_width_label_max * em / 10, btn_height * em / 10});
+        }
         btn->Rescale();
     }
 
@@ -175,9 +188,23 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString &text, bool bSelect /*
     Button * btn = new Button(this, text.empty() ? text : " " + text, bmp_name, wxNO_BORDER);
     btn->SetCornerRadius(0);
 
+    // always show the tab name as a tooltip so the user can identify a tab
+    // by hovering even when it is shrunk and the label is truncated with an ellipsis.
+    // Icon-only tabs (empty label) get their tooltip set by the caller via Notebook::SetPageToolTip.
+    if (!text.empty()) btn->SetToolTip(text);
+
     int em = em_unit(this);
-    //BBS set size for button
-    btn->SetMinSize({(text.empty() ? 40 : 136) * em / 10, 36 * em / 10});
+    // BBS set size for button
+    //  Chrome-style labeled tabs may shrink down to a small floor when crowded and
+    //  grow up to the preferred width (136) when there is room, so the side tools
+    //  (slice/print) on the right always stay visible. Icon-only tabs keep a fixed size.
+    if (text.empty()) {
+        btn->SetMinSize({btn_width_icon * em / 10, btn_height * em / 10});
+    } else {
+        btn->SetAllowShrink(true);
+        btn->SetMinSize({btn_width_label_min * em / 10, btn_height * em / 10});
+        btn->SetMaxSize({btn_width_label_max * em / 10, btn_height * em / 10});
+    }
 
     StateColor bg_color = StateColor(
         std::pair{wxColour(107, 107, 107), (int) StateColor::Hovered},
@@ -202,8 +229,10 @@ bool ButtonsListCtrl::InsertPage(size_t n, const wxString &text, bool bSelect /*
     });
     Slic3r::GUI::wxGetApp().UpdateDarkUI(btn);
     m_pageButtons.insert(m_pageButtons.begin() + n, btn);
-    m_buttons_sizer->Insert(n, new wxSizerItem(btn));
-    m_buttons_sizer->SetCols(m_buttons_sizer->GetCols() + 1);
+    // Labeled tabs get proportion 1 so they share the tab region equally (Chrome style)
+    // Icon-only stay fixed (proportion 0) at their own min size
+    wxSizerFlags flags = text.empty() ? wxSizerFlags(0) : wxSizerFlags(1);
+    m_buttons_sizer->Insert(n, btn, flags.Align(wxALIGN_CENTER_VERTICAL));
     m_sizer->Layout();
     return true;
 }
@@ -238,6 +267,14 @@ void ButtonsListCtrl::SetPageText(size_t n, const wxString& strText)
 {
     Button* btn = m_pageButtons[n];
     btn->SetLabel(strText);
+    // keep the hover tooltip in sync with the (possibly truncated) label
+    if (!strText.empty()) btn->SetToolTip(strText);
+}
+
+void ButtonsListCtrl::SetPageToolTip(size_t n, const wxString &strToolTip)
+{
+    if (n >= m_pageButtons.size()) return;
+    m_pageButtons[n]->SetToolTip(strToolTip);
 }
 
 wxString ButtonsListCtrl::GetPageText(size_t n) const
