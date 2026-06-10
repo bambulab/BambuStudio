@@ -88,6 +88,12 @@ namespace
         return output;
     }
 
+    // Minimum extrusion segment length (mm) considered for the volumetric flow rate range.
+    // mm3_per_mm is reverse-computed as A_filament * (dE / dL) from quantized G-code values, so the
+    // relative error grows ~ (q_L/2)/dL. With 3-decimal X/Y output (q_L = 1e-3 mm), keeping the length
+    // term near 1% gives dL >= 0.0005 / 0.01 = 0.05 mm (the 5-decimal dE term adds a few tenths %).
+    // Shorter segments are noise-dominated and would inflate the legend max; scale if X/Y precision changes.
+    static constexpr float VOLUMETRIC_RATE_MIN_SEGMENT_LEN = 0.05f;
     // Round to a bin with minimum two digits resolution.
             // Equivalent to conversion to string with sprintf(buf, "%.2g", value) and conversion back to float, but faster.
     static float round_to_bin(const float value)
@@ -1286,8 +1292,13 @@ namespace Slic3r
                             m_p_extrusions->ranges.fan_speed.update_from(curr.fan_speed);
                             m_p_extrusions->ranges.additional_fan_speed.update_from(curr.additional_fan_speed);
                             m_p_extrusions->ranges.temperature.update_from(curr.temperature);
-                            if (curr.extrusion_role != erCustom || is_extrusion_role_visible(ExtrusionRole::erCustom))
-                                m_p_extrusions->ranges.volumetric_rate.update_from(round_to_bin(curr.volumetric_rate()));
+                            if (curr.extrusion_role != erCustom || is_extrusion_role_visible(ExtrusionRole::erCustom)) {
+                                // Skip sub-resolution segments: their mm3_per_mm is noise-dominated (see
+                                // VOLUMETRIC_RATE_MIN_SEGMENT_LEN) and would inflate the legend max.
+                                const float seg_len = (curr.position - gcode_result.moves[i - 1].position).norm();
+                                if (seg_len >= VOLUMETRIC_RATE_MIN_SEGMENT_LEN)
+                                    m_p_extrusions->ranges.volumetric_rate.update_from(round_to_bin(curr.volumetric_rate()));
+                            }
                             if (curr.layer_duration > 0.f) {
                                 m_p_extrusions->ranges.layer_duration.update_from(curr.layer_duration);
                             }
