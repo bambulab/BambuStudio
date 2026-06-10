@@ -6225,6 +6225,7 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
     // key: ams_id slot_id value: remain
     std::map<std::pair<std::string, std::string>, double> fila_remain_map; //collect fila remain info
     std::map<std::pair<std::string, std::string>, FilamentInfo> fila_used_map;
+    std::map<std::pair<std::string, std::string>, std::vector<int>> fila_ids_in_slot; // all filament ids mapped to the same slot
     {
         for (auto ams_item : obj_->GetFilaSystem()->GetAmsList()) {
             std::string ams_id = ams_item.first;
@@ -6262,10 +6263,17 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
                 auto volumes_map = gcode_result->print_statistics.total_volumes_per_extruder;
                 if (volumes_map.find(fila.id) != volumes_map.end() && fila.id >= 0 && fila.id < densities.size()) {
                     std::pair<std::string, std::string> key{fila.ams_id, fila.slot_id};
-                    FilamentInfo info;
-                    info.id = fila.id;
-                    info.used_g = densities[fila.id] * (volumes_map[fila.id] / 1000); // mm^3 -> cm^3
-                    fila_used_map[key] = info;
+                    double used_g = densities[fila.id] * (volumes_map[fila.id] / 1000); // mm^3 -> cm^3
+                    auto used_it = fila_used_map.find(key);
+                    if (used_it == fila_used_map.end()) {
+                        FilamentInfo info;
+                        info.id = fila.id;
+                        info.used_g = used_g;
+                        fila_used_map[key] = info;
+                    } else {
+                        used_it->second.used_g += used_g;
+                    }
+                    fila_ids_in_slot[key].push_back(fila.id);
                 } else {
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "the list of filament densities can't find "<< fila.id;
                     return true;
@@ -6336,7 +6344,8 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
                             }
                         }
                     } else {
-                        filaments_not_enough.push_back(item.second.id);
+                        const auto& slot_ids = fila_ids_in_slot[ams_slot_key];
+                        filaments_not_enough.insert(filaments_not_enough.end(), slot_ids.begin(), slot_ids.end());
                         BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "The filament is not enough in ams: "
                                                    << ams_slot_key.first << " slot: " << ams_slot_key.second
                                                    << ", used: " << fila_used << ", available: " << total_remain;
@@ -6346,7 +6355,8 @@ bool SelectMachineDialog::CheckWarningFilamentRemain(MachineObject* obj_)
                     return true;
                 }
             } else {
-                filaments_not_enough.push_back(item.second.id);
+                const auto& slot_ids = fila_ids_in_slot[ams_slot_key];
+                filaments_not_enough.insert(filaments_not_enough.end(), slot_ids.begin(), slot_ids.end());
                 BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << "The filament is not enough in ams slot: "
                                            << ams_slot_key.first << " slot: " << ams_slot_key.second
                                            << ", used: " << fila_used << ", available: " << fila_remain;
