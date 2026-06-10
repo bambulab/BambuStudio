@@ -78,7 +78,7 @@
         "0",
         "0"
     ],
-    "machine_load_filament_time": "30",
+    "machine_load_filament_time": "26",
     "machine_max_acceleration_e": [
         "5000",
         "5000",
@@ -248,7 +248,7 @@
         "30"
     ],
     "machine_switch_extruder_time": "5.6",
-    "machine_unload_filament_time": "30",
+    "machine_unload_filament_time": "26",
     "master_extruder_id": "2",
     "machine_max_acceleration_travel": [
         "9000",
