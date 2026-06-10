@@ -5353,7 +5353,11 @@ GCode::LayerResult GCode::process_layer(
                     m_sub_layer_flow_ratio = entry.sub_h / lh;
                     m_sub_layer_height     = entry.sub_h;
                     m_nominal_z            = entry.sub_z;
-                    gcode += m_writer.travel_to_z(entry.sub_z, "move to sublayer Z");
+                    // Use the same lazy-Z mechanism as change_layer():
+                    // set the flag so travel_to fires even when m_last_pos
+                    // coincides with the first extrusion point, ensuring Z
+                    // reaches sub_z via the combined XY+Z move.
+                    m_need_change_layer_lift_z = true;
 
                     for (ObjectByExtruder::Island &island : instance_to_print.object_by_extruder.islands) {
                         const auto &src = island.by_region;
