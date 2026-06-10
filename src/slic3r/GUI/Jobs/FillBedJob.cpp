@@ -353,6 +353,7 @@ void FillBedJob::process()
                 m_selected[i].bed_idx = 0;
                 ++cell_idx;
                 ++placed;
+                m_selected[i].itemid = static_cast<int>(placed);
             } else {
                 m_selected[i].bed_idx = -1;
                 ++skipped;
