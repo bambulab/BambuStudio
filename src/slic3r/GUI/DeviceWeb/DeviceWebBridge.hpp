@@ -11,7 +11,9 @@
 #include <nlohmann/json.hpp>
 #include <atomic>
 #include <chrono>
+#include <functional>
 #include <optional>
+#include <utility>
 
 #include "slic3r/GUI/Widgets/WebView.hpp"
 #include "DeviceWebModel.hpp"
@@ -27,6 +29,7 @@ private:
     std::atomic<std::uint64_t> m_seq{0};
     wxWebView*         m_web{nullptr};
     DeviceWebManager*  m_vm_mgr{nullptr};
+    std::function<bool()> m_report_enabled_handler;
 
     static inline std::uint64_t TimeNowMs() {
         return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -57,10 +60,12 @@ public:
     ~DeviceWebBridge();
 
     void SetManager(DeviceWebManager* mgr) { m_vm_mgr = mgr; }
+    void SetReportEnabledHandler(std::function<bool()> handler) { m_report_enabled_handler = std::move(handler); }
 
     /* C++ → Web: report state change */
     template<typename T>
     void ReportMsg(T&& params) {
+        if (m_report_enabled_handler && !m_report_enabled_handler()) return;
         Header head{DEVICE_WEB_BRIDGE_VERSION, MsgType::Report, m_seq++, TimeNowMs()};
         SendMsg(head, std::forward<T>(params));
     }

@@ -19,6 +19,12 @@ function makeBody(submod: string, action: string, payload?: Record<string, unkno
   return { module: 'filament', submod, action, payload: payload ?? {} };
 }
 
+function isFilamentManagerVisible() {
+  const hashPath = window.location.hash.replace(/^#/, '').split('?')[0] || '';
+  const route = hashPath.startsWith('/') ? hashPath : `/${hashPath}`;
+  return route === '/filament_manager' && document.visibilityState !== 'hidden';
+}
+
 function normalizeCloudFilamentConfig(payload: unknown): CloudFilamentConfig {
   const raw = (payload && typeof payload === 'object') ? payload as Record<string, unknown> : {};
   const settings = Array.isArray(raw.filamentSettings)
@@ -141,6 +147,7 @@ export function useFilamentManagerBridge() {
       if (!detail?.body) return;
       const body = detail.body;
       if (body.module !== 'filament' || detail.head?.type !== 'report') return;
+      if (!isFilamentManagerVisible()) return;
 
       if (body.submod === 'spool') {
         const spools = body.payload as Spool[] | undefined;

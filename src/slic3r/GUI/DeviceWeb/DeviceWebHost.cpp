@@ -52,9 +52,13 @@ void DeviceWebHost::EnsureBuilt()
     m_device_webview = new PrinterWebView(this);
     m_device_webview->SetMinSize(wxSize(FromDIP(320), FromDIP(260)));
     m_device_web_bridge = std::make_unique<DeviceWebBridge>(m_device_webview->GetWebView());
+    m_device_web_bridge->SetReportEnabledHandler([this]() {
+        return CanReportToWeb();
+    });
 
     m_device_web_mgr = std::make_unique<DeviceWebManager>();
-    if (m_mode == DeviceWebHostMode::FilamentManager || m_mode == DeviceWebHostMode::AllForDebug) {
+    if (!wxGetApp().is_fila_manager_disabled() &&
+        (m_mode == DeviceWebHostMode::FilamentManager || m_mode == DeviceWebHostMode::AllForDebug)) {
         m_device_web_mgr->Register(std::make_unique<FilamentManagerVM>());
     }
     m_device_web_mgr->SetBridge(m_device_web_bridge.get());
@@ -155,9 +159,19 @@ void DeviceWebHost::NavigateTo(const std::string& path)
     m_device_webview->load_url(BuildUrl(path));
 }
 
+bool DeviceWebHost::CanReportToWeb() const
+{
+    return m_built && m_device_webview && IsShownOnScreen();
+}
+
+bool DeviceWebHost::CanBuildDeviceState() const
+{
+    return CanReportToWeb();
+}
+
 void DeviceWebHost::NotifyFilamentSessionState()
 {
-    if (!m_device_web_mgr)
+    if (!m_device_web_mgr || !CanReportToWeb())
         return;
 
     m_device_web_mgr->NotifyState("filament", "sync", "state");
@@ -166,7 +180,7 @@ void DeviceWebHost::NotifyFilamentSessionState()
 
 void DeviceWebHost::NotifyFilamentMachineChanged()
 {
-    if (!m_device_web_mgr)
+    if (!m_device_web_mgr || !CanReportToWeb())
         return;
 
     m_device_web_mgr->NotifyState("filament", "machine", "selected_changed");

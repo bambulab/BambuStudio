@@ -46,6 +46,8 @@ private:
     wxString BuildUrl(const std::string& path) const;
     // Deferred construction: build webview + bridge + manager + LoadUrl on first use.
     void EnsureBuilt();
+    bool CanReportToWeb() const;
+    bool CanBuildDeviceState() const;
 
 private:
     DeviceWebHostMode                 m_mode{ DeviceWebHostMode::AllForDebug };
