@@ -44,6 +44,7 @@ option(DEP_BUILD_BLOSC "Compile Blosc" ON)
 option(DEP_BUILD_FREETYPE "Compile freetype" ON)
 option(DEP_BUILD_WXWIDGETS "Compile wxWidgets" ON)
 option(DEP_BUILD_FFMPEG "Compile ffmpeg" ON)
+option(DEP_BUILD_LIBHARU "Compile libharu" ON)
 
 set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
 set(DEP_DOWNLOAD_DIR ${CMAKE_CURRENT_BINARY_DIR} CACHE PATH "Path for downloaded source packages.")
@@ -221,6 +222,11 @@ if (NOT EXPAT_FOUND)
     include(EXPAT/EXPAT.cmake)
     set(EXPAT_PKG dep_EXPAT)
 endif ()
+set(LIBHARU_PKG "")
+if (DEP_BUILD_LIBHARU)
+    include(libharu/libharu.cmake)
+    set(LIBHARU_PKG dep_libharu)
+endif ()
 
 set(DEP_Boost_COMPONENTS system iostreams filesystem thread log locale regex date_time)
 set(BOOST_PKG "")
@@ -304,6 +310,7 @@ set(_dep_list
     ${PNG_PKG}
     ${ZLIB_PKG}
     ${EXPAT_PKG}
+    ${LIBHARU_PKG}
     ${FREETYPE_PKG}
     ${FFMPEG_PKG}
     )
