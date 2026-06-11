@@ -726,9 +726,13 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
             if (!is_mixed[i])
                 continue;
             auto comps = parse_mixed_components(i < comp_strs.size() ? comp_strs[i] : "");
-            if (comps.size() != 2)
+            if (comps.size() < 2)
                 continue;
             mixed_slots_1based.insert(static_cast<unsigned int>(i + 1));
+            // Gradient/per-part are only defined for 2-component slots; keep their
+            // tracking limited to them (mirrors the is_gradient guard at resolve time).
+            if (comps.size() != 2)
+                continue;
             if (i >= grad_flags.size() || !grad_flags[i])
                 continue;
             gradient_slots_1based.insert(static_cast<unsigned int>(i + 1));
