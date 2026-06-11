@@ -6697,6 +6697,8 @@ public:
     void on_slicing_update(SlicingStatusEvent&);
     void on_slicing_completed(wxCommandEvent&);
     void on_process_completed(SlicingProcessCompletedEvent&);
+    // report mesh stats + GPU/OpenGL info for one sliced plate
+    void track_slice_mesh_stat();
     void on_export_began(wxCommandEvent&);
     void on_export_finished(wxCommandEvent&);
     void on_slicing_began();
@@ -12028,6 +12030,38 @@ bool Plater::priv::warnings_dialog()
 
 }
 
+// report mesh stats + GPU/OpenGL info for the just-sliced plate.
+// Emitted once per successfully sliced plate from on_process_completed().
+void Plater::priv::track_slice_mesh_stat()
+{
+    PartPlate *cur_plate = partplate_list.get_curr_plate();
+    if (!cur_plate) return;
+
+    ModelObjectPtrs objs     = cur_plate->get_objects_on_this_plate();
+    json            mesh_arr = json::array(); // counts only, no part names (compliance)
+    size_t          total    = 0;
+    for (ModelObject *o : objs) {
+        if (!o) continue;
+        size_t fc = o->facets_count();
+        total += fc;
+        mesh_arr.push_back(fc); // per-part facet count
+    }
+
+    const auto &gl = OpenGLManager::get_gl_info();
+    json        j;
+    j["plate_index"]  = partplate_list.get_curr_plate_index();
+    j["part_count"]   = objs.size();
+    j["mesh_facets"]  = mesh_arr;
+    j["mesh_total"]   = total;
+    j["gpu_renderer"] = gl.get_renderer();
+    j["gpu_vendor"]   = gl.get_vendor();
+    j["gl_version"]   = gl.get_version();
+
+    // BOOST_LOG_TRIVIAL(warning) << j.dump(2);
+
+    if (wxGetApp().getAgent()) wxGetApp().getAgent()->track_event("slice_mesh_stat", j.dump());
+}
+
 //BBS: add project slice logic
 void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
 {
@@ -12109,6 +12143,9 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
     //BBS: set the current plater's slice result to valid
     if (!this->background_process.empty())
         this->background_process.get_current_plate()->update_slice_result_valid_state(evt.success());
+
+    // mesh stats per plate + GPU/OpenGL info
+    if (!has_error && !evt.cancelled() && evt.success()) track_slice_mesh_stat();
 
     //BBS: update the action button according to the current plate's status
     bool ready_to_slice = !this->partplate_list.get_curr_plate()->is_slice_result_valid();
