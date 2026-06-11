@@ -301,6 +301,25 @@
   height: 16px;
 }
 
+.card-head-right {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.prefeed-indicator {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--ams-card-text-bg);
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px var(--ams-border);
+  box-sizing: border-box;
+  flex: 0 0 auto;
+}
+
 .card-index-row {
   display: inline-flex;
   align-items: center;

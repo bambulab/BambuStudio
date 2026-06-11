@@ -374,6 +374,32 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         if (auto fila_system = machine_obj->GetFilaSystem()) is_external_spool = fila_system->GetVirtualTray(slot_id->first).has_value();
     }
 
+    nlohmann::json prefeed_indicator = {
+        {SK::prefeed_indicator::visible, false},
+        {SK::prefeed_indicator::colors, nlohmann::json::array()},
+        {SK::prefeed_indicator::color_type, std::string("single")}
+    };
+    const bool external_spool_active = is_external_spool
+        && line_state != SV::line_state::no_filament
+        && line_state != SV::line_state::no_hotend;
+    if (external_spool_active && rack_nozzle_opt.has_value() && machine_obj && machine_obj->GetFilaSystem()) {
+        for (const auto& prefeed_slot : rack_nozzle_opt->GetPreloadBindAmsSlots()) {
+            auto prefeed_tray_opt = machine_obj->get_tray(prefeed_slot.first, prefeed_slot.second);
+            if (!prefeed_tray_opt.has_value() || !prefeed_tray_opt->is_exists) continue;
+
+            std::vector<std::string> prefeed_colors = prefeed_tray_opt->cols;
+            if (prefeed_colors.empty()) prefeed_colors.push_back(prefeed_tray_opt->color);
+            for (auto& c : prefeed_colors) c = normalize_hex_for_web(c);
+
+            prefeed_indicator = {
+                {SK::prefeed_indicator::visible, true},
+                {SK::prefeed_indicator::colors, prefeed_colors},
+                {SK::prefeed_indicator::color_type, color_type_for_web(prefeed_tray_opt->ctype)}
+            };
+            break;
+        }
+    }
+
     const bool is_on_extruder = machine_obj && IsNozzleOnExtruder(machine_obj, addr_id);
     const nlohmann::json menu_actions = {
         {SK::menu_actions::can_edit, card_state != SV::card_state::empty},
@@ -391,6 +417,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         {SK::filament_card::name, filament_name},
         {SK::filament_card::type, filament_type},
         {SK::filament_card::remain, filament_remain},
+        {SK::filament_card::prefeed_indicator, prefeed_indicator},
         {SK::filament_card::status_text, ResolveStatusText(card_state)}
     };
 

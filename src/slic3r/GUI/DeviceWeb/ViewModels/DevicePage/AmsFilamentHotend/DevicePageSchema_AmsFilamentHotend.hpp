@@ -226,11 +226,20 @@ namespace filament_card {
     inline constexpr const char* color         = "color";
     inline constexpr const char* color_type    = "color_type";
     inline constexpr const char* colors        = "colors";
+    inline constexpr const char* prefeed_indicator = "prefeed_indicator";
     inline constexpr const char* text          = "text";           // primary card text, e.g. "PLA Basic"
     inline constexpr const char* name          = "name";           // filament name, e.g. "PLA Basic"
     inline constexpr const char* type          = "type";           // filament type,  e.g. "PLA"
     inline constexpr const char* remain        = "remain";         // 0..100
     inline constexpr const char* status_text   = "status_text";
+}
+
+// slot.filament_card.prefeed_indicator — top-right color marker for AMS
+// pre-feed while the hotend card itself is currently sourced from Ext.
+namespace prefeed_indicator {
+    inline constexpr const char* visible    = "visible";
+    inline constexpr const char* colors     = "colors";
+    inline constexpr const char* color_type = "color_type";
 }
 
 // slot.filament_line — feed-line state from the spool to the hotend.

@@ -68,6 +68,11 @@ export interface FilamentCardInfo {
   color: string;                              // hex; #D9D9D9 = unknown
   color_type?: AmsFilamentHotendColorType;
   colors?: string[];
+  prefeed_indicator?: {
+    visible?: boolean;
+    colors?: string[];
+    color_type?: AmsFilamentHotendColorType;
+  };
   text: string;                               // primary card text controlled by C++
   name: string;                               // was slot.filament_name
   type: string;                               // was slot.filament_type

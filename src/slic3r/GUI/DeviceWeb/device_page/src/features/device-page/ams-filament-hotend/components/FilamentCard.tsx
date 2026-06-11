@@ -4,6 +4,7 @@ import { BatchSlotCheckbox } from './BatchSlotCheckbox';
 import { CardContextMenu } from './CardContextMenu';
 import { IndexPill } from './IndexPill';
 import { LoadingArcIcon } from './LoadingArcIcon';
+import { PrefeedIndicator } from './PrefeedIndicator';
 import { SpoolDisc } from './SpoolDisc';
 import { CardText } from './CardText';
 
@@ -34,6 +35,8 @@ export function FilamentCard({
   // with material identity states such as Unknown.
   const lineState = slot.filament_line.state;
   const isTransporting = lineState === 'loading' || lineState === 'unloading';
+  const prefeedIndicator = slot.filament_card.prefeed_indicator;
+  const showPrefeedIndicator = !inBatchMode && !!prefeedIndicator?.visible;
 
   const cls = ['filament-card'];
   if (slot.selected || (inBatchMode && batchChecked)) cls.push('selected');
@@ -72,9 +75,7 @@ export function FilamentCard({
       <div className="card-spool-wrap">
         <div className="card-head">
           <IndexPill slot={slot} />
-          {isTransporting ? (
-            <LoadingArcIcon />
-          ) : inBatchMode ? (
+          {inBatchMode ? (
             <BatchSlotCheckbox
               checked={batchChecked}
               canSelect={canSelect}
@@ -82,6 +83,17 @@ export function FilamentCard({
               displayIndex={slot.display_index}
               onToggle={() => onToggleSelect(slot)}
             />
+          ) : (isTransporting || showPrefeedIndicator) ? (
+            <span className="card-head-right">
+              {isTransporting && <LoadingArcIcon />}
+              {showPrefeedIndicator && (
+                <PrefeedIndicator
+                  displayIndex={slot.display_index}
+                  colors={prefeedIndicator?.colors}
+                  colorType={prefeedIndicator?.color_type}
+                />
+              )}
+            </span>
           ) : null}
         </div>
         <SpoolDisc slot={slot} notAllowed={notAllowed} />

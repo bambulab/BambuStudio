@@ -182,6 +182,81 @@ test.describe('AMS filament hotend page', () => {
     await expect(page.getByTestId('ams-hotend-card-loading')).toBeVisible();
   });
 
+  test('shows prefeed color marker only outside batch mode', async ({ page }) => {
+    const dispatchPrefeedState = async (mode: 'normal' | 'batch_ams_load') => {
+      await page.evaluate((nextMode) => {
+        document.dispatchEvent(new CustomEvent('cpp:device', {
+          detail: {
+            head: { version: '1.0', type: 'report', seq: 9003, ts: Date.now() },
+            body: {
+              module: 'device_page_ams_filament_hotend',
+              submod: 'state',
+              action: 'changed',
+              error_code: 0,
+              message: '',
+              payload: {
+                filament_page: {
+                  mode: nextMode,
+                  actions: {},
+                  filament_change_status: { active: false, mode: 'idle', message: '', tips: '' },
+                  hotend_slots: [{
+                    addr_id: 0,
+                    display_index: 1,
+                    ams_id: '255',
+                    slot_id: '0',
+                    bind_ams: [],
+                    bind_ams_slot_count: 0,
+                    is_top_tier: false,
+                    enabled: true,
+                    is_external_spool: true,
+                    select_action: nextMode === 'batch_ams_load' ? { can_select: true, reason: '' } : undefined,
+                    filament_card: {
+                      state: 'ReadyToUse',
+                      color: '#E02020',
+                      color_type: 'single',
+                      text: 'PLA Basic',
+                      name: 'PLA Basic',
+                      type: 'PLA',
+                      remain: 100,
+                      status_text: '',
+                      prefeed_indicator: {
+                        visible: true,
+                        colors: ['#00CC44'],
+                        color_type: 'single',
+                      },
+                    },
+                    filament_line: { state: 'loading', has_filament: true, filament_color: '#E02020' },
+                    filament_nozzle: { state: 'Active', has_filament: true, filament_color: '#E02020', on_extruder: true },
+                  }],
+                },
+                hotend_page: {
+                  actions: {},
+                  hotend_slots: [{
+                    addr_id: 0,
+                    display_index: 1,
+                    ams_id: '255',
+                    slot_id: '0',
+                    enabled: true,
+                    taken: true,
+                    hotend: { current_temp: 220, target_temp: 0, op_state: 'Idle', tool_kind: 'nozzle' },
+                  }],
+                },
+              },
+            },
+          },
+        }));
+      }, mode);
+    };
+
+    await dispatchPrefeedState('normal');
+    await expect(page.getByTestId('ams-hotend-slot-1')).toHaveAttribute('data-line-state', 'loading');
+    await expect(page.getByTestId('ams-hotend-prefeed-indicator-1')).toBeVisible();
+    await expect(page.getByTestId('ams-hotend-prefeed-indicator-1')).toHaveAttribute('data-color-type', 'single');
+
+    await dispatchPrefeedState('batch_ams_load');
+    await expect(page.getByTestId('ams-hotend-prefeed-indicator-1')).toBeHidden();
+  });
+
   test('shows slot progress and disables other hotend operations while one hotend is reading', async ({ page }) => {
     await page.getByTestId('ams-hotend-tab-hotend').click();
     await page.getByLabel('hotend menu 9').click();
