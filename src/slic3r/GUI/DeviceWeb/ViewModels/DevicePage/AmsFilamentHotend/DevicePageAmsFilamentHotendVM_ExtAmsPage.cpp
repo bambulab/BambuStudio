@@ -238,15 +238,18 @@ void open_ext_filament_edit_dialog(const nlohmann::json& payload)
 {
     wxWindow* parent = wxGetApp().mainframe;
     const std::string intent = payload.value("intent", std::string("edit"));
+    const std::string mode = payload.value("mode", std::string(AmsHotendSchema::values::mode::batch_ext_load));
     const nlohmann::json slot_array = payload.value("slots", nlohmann::json::array());
+    const nlohmann::json run_slot_array = payload.value("run_slots", nlohmann::json::array());
     const std::string slots = make_ext_edit_slots_param(slot_array);
+    const std::string run_slots = make_ext_edit_slots_param(run_slot_array);
     const int slot_count = slot_array.is_array() ? static_cast<int>(slot_array.size()) : 1;
     const bool show_warning = intent == "run";
     const int content_height = std::clamp((show_warning ? 58 : 12) + 40 + std::max(1, slot_count) * 54 + 66, 194, 392);
 
     ExtFilamentEditDialog dlg(parent, content_height);
     ext_filament_edit_dialog() = &dlg;
-    const std::string route = (boost::format("/device_page/ams_ext_filament_edit?intent=%1%&slots=%2%") % intent % slots).str();
+    const std::string route = (boost::format("/device_page/ams_ext_filament_edit?intent=%1%&mode=%2%&slots=%3%&run_slots=%4%") % intent % mode % slots % run_slots).str();
     auto* host = new DeviceWebHost(&dlg, DeviceWebHostMode::DevicePageAmsFilamentHotend, route);
     host->SetMinSize(wxSize(dlg.FromDIP(620), dlg.FromDIP(content_height)));
     auto* sizer = new wxBoxSizer(wxVERTICAL);
@@ -270,6 +273,11 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildDebugSnapshot(const nlohmann:
     snapshot["web_trace"] = payload.value("web_trace", nlohmann::json::array());
     snapshot["cpp_trace"] = m_bridge ? m_bridge->RecentTrace() : nlohmann::json::array();
     return snapshot;
+}
+
+void DevicePageAmsFilamentHotendVM::OpenBatchFilamentEditDialog(const nlohmann::json& payload)
+{
+    open_ext_filament_edit_dialog(payload);
 }
 
 nlohmann::json DevicePageAmsFilamentHotendVM::HandleDebug(const std::string& action, const nlohmann::json& payload)
@@ -301,9 +309,9 @@ std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleExtAmsAction(
     if (action == "ams_operation") {
         const nlohmann::json action_payload = payload;
         wxGetApp().CallAfter([action_payload]() { open_ext_ams_operation(action_payload); });
-    } else if (action == "batch_ext_edit") {
+    } else if (action == "batch_filament_edit" || action == "batch_ext_edit") {
         const nlohmann::json action_payload = payload;
-        wxGetApp().CallAfter([action_payload]() { open_ext_filament_edit_dialog(action_payload); });
+        wxGetApp().CallAfter([this, action_payload]() { OpenBatchFilamentEditDialog(action_payload); });
     } else if (action == "close_dialog") {
         wxGetApp().CallAfter([]() {
             if (auto* dlg = ext_filament_edit_dialog()) {

@@ -1,10 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import type { AmsFilamentHotendSlotViewModel } from '../types';
+import type { AmsFilamentHotendSlotViewModel, FilamentPageMode } from '../types';
 
 export function BatchExternalFilamentDialog({
   open,
   embedded,
   intent,
+  mode,
   slots,
   onClose,
   onEditSlot,
@@ -13,6 +14,7 @@ export function BatchExternalFilamentDialog({
   open: boolean;
   embedded?: boolean;
   intent: 'edit' | 'run';
+  mode?: FilamentPageMode;
   slots: AmsFilamentHotendSlotViewModel[];
   onClose: () => void;
   onEditSlot: (slot: AmsFilamentHotendSlotViewModel) => void;
@@ -23,7 +25,9 @@ export function BatchExternalFilamentDialog({
 
   const hasUnknown = slots.some((slot) => slot.filament_card.state === 'Unknown');
   const title = t('Edit Filament');
-  const confirmLabel = intent === 'run' ? t('Load') : t('Confirm');
+  const confirmLabel = intent === 'run'
+    ? t(mode === 'batch_ams_load' ? 'Auto Load' : 'Load')
+    : t('Confirm');
 
   const dialog = (
       <section

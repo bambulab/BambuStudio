@@ -1,6 +1,13 @@
 #include "BatchAmsLoadModeBuilder.hpp"
+#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendVM.hpp"
 #include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageSchema_AmsFilamentHotend.hpp"
+#include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
+#include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
+#include "slic3r/GUI/DeviceManager.hpp"
 #include "slic3r/GUI/I18N.hpp"
+
+#include <utility>
+#include <vector>
 
 namespace Slic3r { namespace GUI {
 
@@ -9,26 +16,9 @@ namespace SV = AmsHotendSchema::values;
 
 namespace {
 
-// Build a per-slot select_action block for the batch_ams_load mode.
-// `slot` is one entry of prebuilt_normal_page.hotend_slots[]; we read
-// card state + identity to decide whether the user can tick this card.
-//
-// Eligibility (per product spec for "Auto Load → push filament to hotend"):
-//  - slot must be bound to an AMS (any real ams_id, including the Ext slot)
-//  - slot must hold filament that is NOT already loaded into the hotend
-//    (`ReadyToLoad` / `Unknown` qualify; `ReadyToUse` does NOT — that
-//     filament is currently fed to the extruder)
-//  - transient states (`Reading` / `Loading` / `Unloading`) and `Error`
-//    are rejected with a specific reason for the tooltip
-nlohmann::json make_select_action(const nlohmann::json& slot)
+nlohmann::json make_select_action(const std::string& card_state)
 {
-    const auto& card = slot.value(SK::filament_slot::filament_card, nlohmann::json::object());
-    const std::string card_state = card.value(SK::filament_card::state, std::string());
-    const std::string ams_id     = slot.value(SK::filament_slot::ams_id, std::string());
-
-    const bool slot_has_ams    = !ams_id.empty();
     const bool is_empty        = (card_state == SV::card_state::empty);
-    const bool is_ready_to_use = (card_state == SV::card_state::ready_to_use);
     const bool is_ready_to_load= (card_state == SV::card_state::ready_to_load);
     const bool is_unknown_type = (card_state == SV::card_state::unknown);
     const bool is_reading      = (card_state == SV::card_state::reading);
@@ -39,12 +29,8 @@ nlohmann::json make_select_action(const nlohmann::json& slot)
     bool can_select = false;
     std::string reason;
 
-    if (!slot_has_ams) {
-        reason = _u8L("This rack position is not bound to any AMS");
-    } else if (is_empty) {
+    if (is_empty) {
         reason = _u8L("Empty slot");
-    } else if (is_ready_to_use) {
-        reason = _u8L("Filament already loaded into hotend");
     } else if (is_reading) {
         reason = _u8L("RFID is being read");
     } else if (is_loading || is_unloading) {
@@ -63,6 +49,43 @@ nlohmann::json make_select_action(const nlohmann::json& slot)
     };
 }
 
+std::string normalize_hex_for_batch_ams(const std::string& raw)
+{
+    if (raw.empty()) return "#D9D9D9";
+    std::string hex = raw;
+    if (hex[0] != '#') hex = "#" + hex;
+    if (hex.size() >= 7) hex = hex.substr(0, 7);
+    return hex;
+}
+
+std::string color_type_for_batch_ams(DevFilaColorType color_type)
+{
+    switch (color_type) {
+    case DevFilaColorType::CTYPE_MULTI:    return "multi";
+    case DevFilaColorType::CTYPE_GRADIANT: return "gradient";
+    case DevFilaColorType::CTYPE_SINGLE:   return "single";
+    }
+    return "single";
+}
+
+std::string resolve_ams_slot_card_state(MachineObject* machine_obj, const DevAmsTray* tray)
+{
+    if (!tray || !tray->is_exists) return SV::card_state::empty;
+    if (machine_obj && tray->is_reading(machine_obj->tray_reading_bits)) return SV::card_state::reading;
+    if (tray->setting_id.empty() || tray->m_fila_type.empty()) return SV::card_state::unknown;
+    return SV::card_state::ready_to_load;
+}
+
+std::string resolve_status_text(const std::string& card_state)
+{
+    if (card_state == SV::card_state::reading) return _u8L("Reading");
+    if (card_state == SV::card_state::ready_to_load) return _u8L("Ready to load");
+    if (card_state == SV::card_state::empty) return "--";
+    if (card_state == SV::card_state::unknown) return _u8L("Unknown filament");
+    if (card_state == SV::card_state::error) return _u8L("Error");
+    return "";
+}
+
 // Wrap a regular `actions.can_<name>` boolean into the batch-shape
 // `{ enabled, reason }` object expected by the Web in batch modes.
 nlohmann::json make_action_state(bool enabled, std::string reason = "")
@@ -76,17 +99,10 @@ nlohmann::json make_action_state(bool enabled, std::string reason = "")
 } // namespace
 
 nlohmann::json BatchAmsLoadModeBuilder::BuildFilamentPage(
-    const DevicePageAmsFilamentHotendVM& /*vm*/,
-    MachineObject*                       /*machine_obj*/,
+    const DevicePageAmsFilamentHotendVM& vm,
+    MachineObject*                       machine_obj,
     const nlohmann::json&                prebuilt_normal_page) const
 {
-    // Batch payload preserves the three rendering groups (filament_card,
-    // filament_line, filament_nozzle) so each card can keep drawing its
-    // spool disc, colour, status text, feed line and nozzle while the page
-    // is in batch mode. menu_actions / ams_operation are still dropped: the
-    // 3-dot menu and AMS Operation dialog are not reachable in batch mode,
-    // and the per-slot select_action below replaces them as the only
-    // interactive surface.
     nlohmann::json page;
     page[SK::filament_page::mode] = SV::mode::batch_ams_load;
 
@@ -108,23 +124,67 @@ nlohmann::json BatchAmsLoadModeBuilder::BuildFilamentPage(
         {SK::filament_actions::can_unload,        make_action_state(false, other_active)},
     };
 
-    // Project each prebuilt slot to its batch shape.
     nlohmann::json slots = nlohmann::json::array();
-    const auto& src_slots = prebuilt_normal_page.value(SK::filament_page::hotend_slots, nlohmann::json::array());
-    for (const auto& slot : src_slots) {
-        slots.push_back({
-            {SK::filament_slot::addr_id,           slot.value(SK::filament_slot::addr_id,           0)},
-            {SK::filament_slot::display_index,     slot.value(SK::filament_slot::display_index,     0)},
-            {SK::filament_slot::ams_id,            slot.value(SK::filament_slot::ams_id,            std::string())},
-            {SK::filament_slot::slot_id,           slot.value(SK::filament_slot::slot_id,           std::string())},
-            {SK::filament_slot::is_top_tier,       slot.value(SK::filament_slot::is_top_tier,       false)},
-            {SK::filament_slot::is_external_spool, slot.value(SK::filament_slot::is_external_spool, false)},
-            {SK::filament_slot::enabled,           slot.value(SK::filament_slot::enabled,           false)},
-            {SK::filament_slot::filament_card,     slot.value(SK::filament_slot::filament_card,     nlohmann::json::object())},
-            {SK::filament_slot::filament_line,     slot.value(SK::filament_slot::filament_line,     nlohmann::json::object())},
-            {SK::filament_slot::filament_nozzle,   slot.value(SK::filament_slot::filament_nozzle,   nlohmann::json::object())},
-            {SK::filament_slot::select_action,     make_select_action(slot)},
-        });
+    auto fila_system = machine_obj ? machine_obj->GetFilaSystem() : nullptr;
+    if (!fila_system) {
+        page[SK::filament_page::hotend_slots] = std::move(slots);
+        return page;
+    }
+
+    int fallback_display_index = 1;
+    int rack_nozzle_count = machine_obj ? machine_obj->GetNozzleRack()->GetTotalRackNozzleCount() : 0;
+    for (const auto& [ams_id, ams_unit] : fila_system->GetAmsList()) {
+        if (!ams_unit) continue;
+        if (rack_nozzle_count != ams_unit->GetSlotCount()) continue;
+        for (const auto& [slot_id, tray] : ams_unit->GetTrays()) {
+            if (!tray) continue;
+
+            std::vector<std::string> colors = tray->cols;
+            if (colors.empty() && !tray->color.empty()) colors.push_back(tray->color);
+            for (auto& color : colors) color = normalize_hex_for_batch_ams(color);
+
+            const std::string card_state = resolve_ams_slot_card_state(machine_obj, tray);
+            const std::string filament_type = tray->m_fila_type;
+            const std::string filament_name = vm.ResolveFilamentCardText(tray, filament_type);
+            const std::string color = normalize_hex_for_batch_ams(tray->color);
+            const int display_index = fallback_display_index++;
+            const bool is_top_tier = (display_index % 2) == 0;
+
+            const nlohmann::json card_section = {
+                {SK::filament_card::state,       card_state},
+                {SK::filament_card::color,       color},
+                {SK::filament_card::color_type,  color_type_for_batch_ams(tray->ctype)},
+                {SK::filament_card::colors,      colors},
+                {SK::filament_card::text,        filament_name},
+                {SK::filament_card::name,        filament_name},
+                {SK::filament_card::type,        filament_type},
+                {SK::filament_card::remain,      tray->remain},
+                {SK::filament_card::status_text, resolve_status_text(card_state)}
+            };
+
+            slots.push_back({
+                {SK::filament_slot::addr_id,           0},
+                {SK::filament_slot::display_index,     display_index},
+                {SK::filament_slot::ams_id,            ams_id},
+                {SK::filament_slot::slot_id,           slot_id},
+                {SK::filament_slot::is_top_tier,       is_top_tier},
+                {SK::filament_slot::is_external_spool, false},
+                {SK::filament_slot::enabled,           tray->is_exists},
+                {SK::filament_slot::filament_card,     card_section},
+                {SK::filament_slot::filament_line, {
+                    {SK::filament_line::state,          SV::line_state::no_filament},
+                    {SK::filament_line::has_filament,   false},
+                    {SK::filament_line::filament_color, std::string()}
+                }},
+                {SK::filament_slot::filament_nozzle, {
+                    {SK::filament_nozzle::state,          SV::nozzle_state::normal},
+                    {SK::filament_nozzle::has_filament,   false},
+                    {SK::filament_nozzle::filament_color, std::string()},
+                    {SK::filament_nozzle::on_extruder,    false}
+                }},
+                {SK::filament_slot::select_action,     make_select_action(card_state)},
+            });
+        }
     }
     page[SK::filament_page::hotend_slots] = std::move(slots);
 

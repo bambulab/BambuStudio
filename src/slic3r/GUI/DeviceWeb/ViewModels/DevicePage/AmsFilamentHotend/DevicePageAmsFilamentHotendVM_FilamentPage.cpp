@@ -581,6 +581,7 @@ std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleFilamentActio
             return MakeResponse(GetModule(), "action", action, 2, "AMS filament change abort failed", BuildState());
         }
     } else if (action == "batch_run") {
+        namespace SK = AmsHotendSchema::keys;
         namespace SV = AmsHotendSchema::values;
         const std::string batch_mode = payload.value("mode", std::string());
         const auto& slots_array = payload.value("slots", nlohmann::json::array());
@@ -590,16 +591,47 @@ std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleFilamentActio
         const bool is_load = (batch_mode == SV::mode::batch_ams_load || batch_mode == SV::mode::batch_ext_load);
         std::vector<std::pair<int, int>> slot_pairs;
         slot_pairs.reserve(slots_array.size());
+        nlohmann::json run_slots = nlohmann::json::array();
+        nlohmann::json unknown_slots = nlohmann::json::array();
         for (const auto& s : slots_array) {
             try {
                 const std::string ams_str = s.value("ams_id", std::string());
                 const std::string slot_str = s.value("slot_id", std::string());
                 if (ams_str.empty() || slot_str.empty()) continue;
-                slot_pairs.emplace_back(std::stoi(ams_str), std::stoi(slot_str));
+                const int ams_id = std::stoi(ams_str);
+                const int slot_id = std::stoi(slot_str);
+                run_slots.push_back({
+                    {SK::filament_slot::addr_id,       s.value("addr_id", 0)},
+                    {SK::filament_slot::ams_id,        ams_str},
+                    {SK::filament_slot::slot_id,       slot_str},
+                    {SK::filament_slot::display_index, s.value("display_index", 0)}
+                });
+                if (is_load) {
+                    auto tray = machine_obj->get_tray(ams_str, slot_str);
+                    if (!tray.has_value() || tray->setting_id.empty() || tray->m_fila_type.empty()) {
+                        unknown_slots.push_back({
+                            {SK::filament_slot::addr_id,       s.value("addr_id", 0)},
+                            {SK::filament_slot::ams_id,        ams_str},
+                            {SK::filament_slot::slot_id,       slot_str},
+                            {SK::filament_slot::display_index, s.value("display_index", 0)}
+                        });
+                    }
+                }
+                slot_pairs.emplace_back(ams_id, slot_id);
             } catch (const std::exception&) {}
         }
         if (slot_pairs.empty()) {
             return MakeResponse(GetModule(), "action", action, 2, _u8L("All selected slots are invalid"), BuildState());
+        }
+        if (!unknown_slots.empty()) {
+            nlohmann::json edit_payload = {
+                {"intent",    "run"},
+                {"mode",      batch_mode},
+                {"slots",     unknown_slots},
+                {"run_slots", run_slots}
+            };
+            wxGetApp().CallAfter([this, edit_payload]() { OpenBatchFilamentEditDialog(edit_payload); });
+            return MakeResponse(GetModule(), "action", action, 0, "", BuildState());
         }
         const int rc = machine_obj->command_multi_slot_ams_change_filament(is_load, slot_pairs);
         if (rc != 0) {

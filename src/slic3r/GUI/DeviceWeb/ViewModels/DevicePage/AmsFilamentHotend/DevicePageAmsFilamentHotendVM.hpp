@@ -66,6 +66,7 @@ private:
     std::optional<nlohmann::json> HandleHotendAction(const std::string& action, const nlohmann::json& payload, Slic3r::MachineObject* machine_obj);
     nlohmann::json HandleDebug(const std::string& action, const nlohmann::json& payload);
     nlohmann::json BuildDebugSnapshot(const nlohmann::json& payload) const;
+    void OpenBatchFilamentEditDialog(const nlohmann::json& payload);
 
     std::string m_last_report_state;
     // UI mode requested by Web ("normal" / "batch_ams_load" / ...). When the

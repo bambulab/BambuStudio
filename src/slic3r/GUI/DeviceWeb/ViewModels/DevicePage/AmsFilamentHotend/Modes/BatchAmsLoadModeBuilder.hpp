@@ -7,10 +7,10 @@ namespace Slic3r { namespace GUI {
 
 // Batch AMS auto-load mode builder. Triggered by clicking the toolbar
 // "Auto Load" button on the Filament tab. Cards eligible for selection:
-//   * the slot is bound to an AMS (M2Y AMS or the Ext slot)
-//   * the slot currently holds filament that is NOT loaded into the hotend
-//     (ReadyToLoad / Unknown qualify; ReadyToUse, Empty, transient and
-//      error states are rejected)
+//   * the slot comes directly from the AMS tray list, not from hotend-bound
+//     normal-page slots
+//   * the slot currently holds filament or unknown filament info
+//     (ReadyToLoad / Unknown qualify; Empty / Reading / Error are rejected)
 // Ineligible slots receive a localized `reason` string that the Web shows
 // as a tooltip when the user hovers a greyed-out card.
 class BatchAmsLoadModeBuilder final : public IFilamentPageModeBuilder {

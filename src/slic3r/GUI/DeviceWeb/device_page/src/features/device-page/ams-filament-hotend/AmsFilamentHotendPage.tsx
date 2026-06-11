@@ -258,32 +258,15 @@ export function AmsFilamentHotendPage() {
   const onBatchCommit = useCallback(() => {
     if (!inBatchMode) return;
     if (selectedSlots.length === 0) return;
-    // Manual external load requires known filament metadata. C++ surfaces
-    // unknown / never-edited virtual trays as card_state=Unknown; open the
-    // batch edit dialog first and let the user retry the load after saving.
-    if (currentMode === 'batch_ext_load') {
-      const unknownSlot = selectedSlots.find((s) => s.filament_card.state === 'Unknown');
-      if (unknownSlot) {
-        runSlotAction('batch_ext_edit', undefined, {
-          intent: 'run',
-          slots: selectedSlots.map((s) => ({
-            addr_id: s.addr_id,
-            ams_id: s.ams_id,
-            slot_id: s.slot_id,
-            display_index: s.display_index,
-          })),
-        });
-        return;
-      }
-    }
     void runBatchAction(currentMode, selectedSlots);
-  }, [inBatchMode, selectedSlots, runBatchAction, runSlotAction, currentMode]);
+  }, [inBatchMode, selectedSlots, runBatchAction, currentMode]);
 
   const onBatchEdit = useCallback(() => {
     if (currentMode !== 'batch_ext_load') return;
     if (selectedSlots.length === 0) return;
-    runSlotAction('batch_ext_edit', undefined, {
+    runSlotAction('batch_filament_edit', undefined, {
       intent: 'edit',
+      mode: currentMode,
       slots: selectedSlots.map((s) => ({
         addr_id: s.addr_id,
         ams_id: s.ams_id,

@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useAmsFilamentHotendBridge } from '../useAmsFilamentHotendBridge';
 import { useDeviceWebTheme } from '../../../../hooks/useDeviceWebTheme';
-import type { AmsFilamentHotendSlotViewModel } from '../types';
+import type { AmsFilamentHotendSlotViewModel, FilamentPageMode } from '../types';
 import { BatchExternalFilamentDialog } from '../components/BatchExternalFilamentDialog';
 import { selectionKey } from '../components/Stage';
 
@@ -17,8 +17,14 @@ function getQuery() {
   const params = new URLSearchParams(query);
   return {
     intent: (params.get('intent') === 'run' ? 'run' : 'edit') as 'edit' | 'run',
+    mode: parseMode(params.get('mode')),
     slots: parseSlots(params.get('slots') ?? ''),
+    runSlots: parseSlots(params.get('run_slots') ?? ''),
   };
+}
+
+function parseMode(raw: string | null): FilamentPageMode {
+  return raw === 'batch_ams_load' ? 'batch_ams_load' : 'batch_ext_load';
 }
 
 function parseSlots(raw: string): SlotQuery[] {
@@ -39,8 +45,8 @@ export function AmsExtFilamentEditPage() {
   useDeviceWebTheme();
 
   useEffect(() => {
-    void refresh('batch_ext_load');
-  }, [refresh]);
+    void refresh(query.mode);
+  }, [query.mode, refresh]);
 
   // The native filament-settings dialog is opened by C++ after the Web
   // `edit` action has already returned, so a refresh in the Promise `then`
@@ -52,7 +58,7 @@ export function AmsExtFilamentEditPage() {
     const refreshExtRows = () => {
       if (refreshing) return;
       refreshing = true;
-      void refresh('batch_ext_load').finally(() => {
+      void refresh(query.mode).finally(() => {
         refreshing = false;
       });
     };
@@ -64,7 +70,7 @@ export function AmsExtFilamentEditPage() {
       document.removeEventListener('visibilitychange', refreshExtRows);
       window.clearInterval(timer);
     };
-  }, [refresh]);
+  }, [query.mode, refresh]);
 
   const queryKeys = useMemo(
     () => new Set(query.slots.map((slot) => `${slot.ams_id}::${slot.slot_id}`)),
@@ -121,15 +127,15 @@ export function AmsExtFilamentEditPage() {
       // Immediate refresh keeps non-modal edit implementations responsive;
       // delayed refreshes cover the native modal path where the first refresh
       // fires before the user has saved the dialog.
-      void refresh('batch_ext_load');
-      window.setTimeout(() => void refresh('batch_ext_load'), 500);
-      window.setTimeout(() => void refresh('batch_ext_load'), 1500);
+      void refresh(query.mode);
+      window.setTimeout(() => void refresh(query.mode), 500);
+      window.setTimeout(() => void refresh(query.mode), 1500);
     });
   };
 
   const confirmRun = () => {
     if (slots.some((slot) => slot.filament_card.state === 'Unknown')) return;
-    void runBatchAction('batch_ext_load', slots);
+    void runBatchAction(query.mode, query.runSlots.length ? query.runSlots : slots);
     closeDialog();
   };
 
@@ -139,6 +145,7 @@ export function AmsExtFilamentEditPage() {
         open
         embedded
         intent={query.intent}
+        mode={query.mode}
         slots={slots}
         onClose={closeDialog}
         onEditSlot={editSlot}
