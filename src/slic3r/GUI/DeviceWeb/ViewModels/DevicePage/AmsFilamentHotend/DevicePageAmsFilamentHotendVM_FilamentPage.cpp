@@ -212,7 +212,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildAmsUnitJson(MachineObject* ma
             {SK::ams_tray::exists,        tray->is_exists},
             {SK::ams_tray::tray_state,    tray_state},
             {SK::ams_tray::filament_type, tray->m_fila_type},
-            {SK::ams_tray::filament_name, !tray->sub_brands.empty() ? tray->sub_brands : tray->m_fila_type},
+            {SK::ams_tray::filament_name, ResolveFilamentCardText(tray, tray->m_fila_type)},
             {SK::ams_tray::color,         normalize_hex_for_web(tray->color)},
             {SK::ams_tray::color_type,    color_type_for_web(tray->ctype)},
             {SK::ams_tray::colors,        colors},

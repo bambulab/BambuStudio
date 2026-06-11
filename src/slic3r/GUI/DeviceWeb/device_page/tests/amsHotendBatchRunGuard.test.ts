@@ -16,6 +16,7 @@ function slot(state: AmsFilamentHotendSlotViewModel['filament_card']['state']): 
     filament_card: {
       state,
       color: '#D9D9D9',
+      text: '',
       name: '',
       type: '',
       status_text: '',

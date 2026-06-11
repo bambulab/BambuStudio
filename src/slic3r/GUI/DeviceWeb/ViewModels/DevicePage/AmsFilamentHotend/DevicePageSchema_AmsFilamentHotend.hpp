@@ -226,6 +226,7 @@ namespace filament_card {
     inline constexpr const char* color         = "color";
     inline constexpr const char* color_type    = "color_type";
     inline constexpr const char* colors        = "colors";
+    inline constexpr const char* text          = "text";           // primary card text, e.g. "PLA Basic"
     inline constexpr const char* name          = "name";           // filament name, e.g. "PLA Basic"
     inline constexpr const char* type          = "type";           // filament type,  e.g. "PLA"
     inline constexpr const char* remain        = "remain";         // 0..100

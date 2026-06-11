@@ -13,9 +13,12 @@
 #include "slic3r/GUI/DeviceCore/DevManager.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleRack.h"
 #include "slic3r/GUI/DeviceCore/DevNozzleSystem.h"
+#include "libslic3r/PresetBundle.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <memory>
+#include <vector>
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
 
@@ -67,6 +70,46 @@ namespace {
 int addr_id_to_display_idx(int addr_id)
 {
     return addr_id + 1;
+}
+
+std::string trim_copy(std::string value)
+{
+    const auto begin = value.find_first_not_of(" \t\r\n");
+    if (begin == std::string::npos) return {};
+    const auto end = value.find_last_not_of(" \t\r\n");
+    return value.substr(begin, end - begin + 1);
+}
+
+std::string remove_spaces_copy(std::string value)
+{
+    value.erase(std::remove_if(value.begin(), value.end(), [](unsigned char ch) { return std::isspace(ch); }), value.end());
+    return value;
+}
+
+std::string StripFilamentVendorPrefix(std::string shown_name, const std::string& vendor, const std::string& fallback_type)
+{
+    std::string value = trim_copy(std::move(shown_name));
+    if (const auto at_pos = value.find(" @"); at_pos != std::string::npos) {
+        value = trim_copy(value.substr(0, at_pos));
+    }
+    if (value.empty()) return fallback_type;
+
+    std::vector<std::string> aliases;
+    if (!vendor.empty()) {
+        aliases.push_back(vendor);
+        aliases.push_back(remove_spaces_copy(vendor));
+        if (vendor == "Bambu Lab") aliases.push_back("Bambu");
+    }
+    for (const auto& alias : aliases) {
+        if (alias.empty()) continue;
+        if (value == alias) return fallback_type;
+        if (value.rfind(alias + " ", 0) == 0) {
+            value = trim_copy(value.substr(alias.size() + 1));
+            break;
+        }
+    }
+
+    return value.empty() ? fallback_type : value;
 }
 
 std::vector<AmsHotendSchema::format::BindAms> bind_ams_from_json(const nlohmann::json& items)
@@ -168,6 +211,29 @@ void DevicePageAmsFilamentHotendVM::OnSysColorChanged()
     nlohmann::json data;
     data["theme"] = dark ? "dark" : "light";
     m_bridge->ReportMsg(MakeResponse(GetModule(), "init", "theme_changed", 0, "", data));
+}
+
+std::string DevicePageAmsFilamentHotendVM::ResolveFilamentCardText(const DevAmsTray* tray, const std::string& fallback_type) const
+{
+    if (!tray) return fallback_type;
+    if (!tray->sub_brands.empty()) return tray->sub_brands;
+
+    PresetBundle* preset_bundle = wxGetApp().preset_bundle;
+    if (preset_bundle) {
+        auto& filaments = preset_bundle->filaments;
+        for (auto it = filaments.begin(); it != filaments.end(); ++it) {
+            Preset& preset = *it;
+            if (preset.filament_id != tray->setting_id && preset.setting_id != tray->setting_id && preset.setting_id != tray->filament_setting_id) {
+                continue;
+            }
+
+            std::string shown_name = filaments.get_preset_alias(preset, true);
+            if (shown_name.empty()) shown_name = preset.display_name();
+            if (!shown_name.empty()) return StripFilamentVendorPrefix(shown_name, preset.config.get_filament_vendor(), fallback_type);
+        }
+    }
+
+    return fallback_type;
 }
 
 nlohmann::json DevicePageAmsFilamentHotendVM::HandleAction(const std::string& action, const nlohmann::json& payload)

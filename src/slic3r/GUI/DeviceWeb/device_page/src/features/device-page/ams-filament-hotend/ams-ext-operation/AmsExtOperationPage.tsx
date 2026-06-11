@@ -271,6 +271,7 @@ function trayToSlot(tray: ExtAmsTray, index: number): AmsFilamentHotendSlotViewM
       color: tray.color || '#d9d9d9',
       color_type: tray.color_type,
       colors: tray.colors,
+      text: tray.filament_name,
       name: tray.filament_name,
       type: tray.filament_type,
       remain: typeof tray.remain === 'number' ? tray.remain : 100,

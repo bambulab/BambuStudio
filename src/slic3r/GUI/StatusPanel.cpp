@@ -3809,8 +3809,7 @@ void StatusPanel::update(MachineObject *obj)
     update_camera_state(obj);
 
     // m_machine_ctrl_panel->Thaw();
-    // warning: do not call layout on the big panel
-    // Layout();
+    Layout();
 }
 
 void StatusPanel::show_recenter_dialog()

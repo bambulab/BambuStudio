@@ -87,6 +87,7 @@ export function AmsExtFilamentEditPage() {
         state: 'Unknown',
         color: '#D9D9D9',
         color_type: 'single',
+        text: '',
         name: '',
         type: '',
         remain: 100,

@@ -80,6 +80,7 @@ const buildSlot = (seed: SlotSeed): AmsFilamentHotendSlotViewModel => {
       state: seed.card_state,
       color: seed.color ?? '#00AE42',
       color_type: seed.color_type ?? 'single',
+      text: seed.filament_name ?? '',
       name: seed.filament_name ?? '',
       type: seed.filament_name?.split(' ')[0] ?? '',
       remain: seed.filament_remain ?? 100,

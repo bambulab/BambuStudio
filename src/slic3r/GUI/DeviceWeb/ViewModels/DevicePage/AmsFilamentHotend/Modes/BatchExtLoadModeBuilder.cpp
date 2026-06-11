@@ -1,4 +1,5 @@
 #include "BatchExtLoadModeBuilder.hpp"
+#include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageAmsFilamentHotendVM.hpp"
 #include "slic3r/GUI/DeviceWeb/ViewModels/DevicePage/AmsFilamentHotend/DevicePageSchema_AmsFilamentHotend.hpp"
 #include "slic3r/GUI/DeviceCore/DevExtruderSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
@@ -75,7 +76,7 @@ int ext_tray_id_for_addr_id(int addr_id)
 } // namespace
 
 nlohmann::json BatchExtLoadModeBuilder::BuildFilamentPage(
-    const DevicePageAmsFilamentHotendVM& /*vm*/,
+    const DevicePageAmsFilamentHotendVM& vm,
     MachineObject*                       machine_obj,
     const nlohmann::json&                prebuilt_normal_page) const
 {
@@ -127,7 +128,7 @@ nlohmann::json BatchExtLoadModeBuilder::BuildFilamentPage(
 
         if (ext_tray_opt.has_value() && !ext_tray_opt->m_fila_type.empty()) {
             filament_type = ext_tray_opt->m_fila_type;
-            filament_name = !ext_tray_opt->sub_brands.empty() ? ext_tray_opt->sub_brands : filament_type;
+            filament_name = vm.ResolveFilamentCardText(&*ext_tray_opt, filament_type);
             color = normalize_ext_hex_for_web(ext_tray_opt->color);
             color_type = color_type_for_ext_web(ext_tray_opt->ctype);
             colors = ext_tray_opt->cols;
@@ -154,6 +155,7 @@ nlohmann::json BatchExtLoadModeBuilder::BuildFilamentPage(
             {SK::filament_card::color,       color},
             {SK::filament_card::color_type,  color_type},
             {SK::filament_card::colors,      colors},
+            {SK::filament_card::text,        filament_name},
             {SK::filament_card::name,        filament_name},
             {SK::filament_card::type,        filament_type},
             {SK::filament_card::remain,      remain},

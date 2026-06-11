@@ -102,7 +102,7 @@ bool is_ext_dialog_slot_loaded(MachineObject* machine_obj, const std::string& am
     return false;
 }
 
-nlohmann::json build_ext_dialog_slot(MachineObject* machine_obj, const nlohmann::json& source)
+nlohmann::json build_ext_dialog_slot(const DevicePageAmsFilamentHotendVM& vm, MachineObject* machine_obj, const nlohmann::json& source)
 {
     namespace SK = AmsHotendSchema::keys;
     namespace SV = AmsHotendSchema::values;
@@ -124,7 +124,7 @@ nlohmann::json build_ext_dialog_slot(MachineObject* machine_obj, const nlohmann:
 
     if (tray.has_value() && !tray->m_fila_type.empty()) {
         type = tray->m_fila_type;
-        name = !tray->sub_brands.empty() ? tray->sub_brands : type;
+        name = vm.ResolveFilamentCardText(&*tray, type);
         color = normalize_hex_for_web(tray->color);
         color_type = color_type_for_web(tray->ctype);
         colors = tray->cols;
@@ -146,6 +146,7 @@ nlohmann::json build_ext_dialog_slot(MachineObject* machine_obj, const nlohmann:
             {SK::filament_card::color,       color},
             {SK::filament_card::color_type,  color_type},
             {SK::filament_card::colors,      colors},
+            {SK::filament_card::text,        name},
             {SK::filament_card::name,        name},
             {SK::filament_card::type,        type},
             {SK::filament_card::remain,      remain},

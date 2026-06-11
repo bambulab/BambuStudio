@@ -7,13 +7,13 @@ export function CardText({ slot }: { slot: AmsFilamentHotendSlotViewModel }) {
 
   // Loading / Unloading slots intentionally fall through to the default
   // branch: the tray still holds known filament during a change, and the
-  // user expects to see the filament type (e.g. "PLA") under the spool —
+  // user expects to see the C++ controlled card text (e.g. "PLA Basic") under the spool —
   // the spinning indicator on the card head already conveys "in transit".
   const primary = isEmpty
     ? 'Empty'
     : isUnknown
     ? '?'
-    : card.type || card.name || '';
+    : card.text || card.name || card.type || '';
 
   return (
     <div className="card-text" data-card-state={card.state}>

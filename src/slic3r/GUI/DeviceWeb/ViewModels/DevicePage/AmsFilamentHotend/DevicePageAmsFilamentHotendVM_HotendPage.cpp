@@ -50,6 +50,11 @@ std::string nozzle_flow_short_name(NozzleFlowType flow_type)
     }
 }
 
+std::string wx_to_utf8(const wxString& value)
+{
+    return value.ToUTF8().data();
+}
+
 int addr_id_to_display_idx(int addr_id) { return addr_id + 1; }
 
 int rack_pos_id_from_addr_id(int addr_id) { return addr_id + 0x10; }
@@ -299,7 +304,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         else if (tray->m_fila_type == "PA-S") filament_type = "Sup.PA";
         else if (tray->m_fila_type == "ABS-S") filament_type = "Sup.ABS";
         else filament_type = tray->m_fila_type;
-        filament_name = !tray->sub_brands.empty() ? tray->sub_brands : filament_type;
+        filament_name = ResolveFilamentCardText(tray, filament_type);
         color = normalize_hex_for_web(tray->color);
         color_type = color_type_for_web(tray->ctype);
         if (tray->remain >= 0 && tray->remain <= 100) filament_remain = tray->remain;
@@ -311,7 +316,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         const bool has_tool = has_hotend_slot && rack_nozzle_opt->IsExist();
         const bool is_on_extruder = IsNozzleOnExtruder(machine_obj, addr_id);
         const bool has_read_detail = has_tool && !rack_nozzle_opt->IsUnknown();
-        const std::string serial_number = has_read_detail ? rack_nozzle_opt->GetSerialNumber().ToStdString() : "";
+        const std::string serial_number = has_read_detail ? wx_to_utf8(rack_nozzle_opt->GetSerialNumber()) : "";
         std::optional<DevFirmwareVersionInfo> firmware;
         if (has_read_detail && !serial_number.empty()) {
             if (auto rack = machine_obj->GetNozzleSystem()->GetNozzleRack()) firmware = rack->GetNozzleFirmwareInfo(addr_id);
@@ -343,15 +348,15 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
 
         hotend[SK::hotend::op_state] = has_tool ? op_state : std::string(SV::hotend_op_state::idle);
         hotend[SK::hotend::tool_kind] = has_tool ? SV::tool_kind::nozzle : SV::tool_kind::empty;
-        hotend[SK::hotend::nozzle_label] = has_tool ? rack_nozzle_opt->GetNozzleDiameterStr().ToStdString() : "--";
+        hotend[SK::hotend::nozzle_label] = has_tool ? wx_to_utf8(rack_nozzle_opt->GetNozzleDiameterStr()) : "--";
         hotend[SK::hotend::nozzle_subtext] = has_tool ? nozzle_flow_short_name(rack_nozzle_opt->GetNozzleFlowType()) : "";
         hotend_detail_dialog[SK::hotend_detail_dialog::filament_name] = filament_name;
         hotend_detail_dialog[SK::hotend_detail_dialog::filament_color] = color;
         hotend_detail_dialog[SK::hotend_detail_dialog::nozzle_type] = has_tool
             ? (boost::format("%1% %2% %3%")
-                % rack_nozzle_opt->GetNozzleDiameterStr().ToStdString()
-                % rack_nozzle_opt->GetNozzleFlowTypeStr().ToStdString()
-                % rack_nozzle_opt->GetNozzleTypeStr().ToStdString()).str()
+                % wx_to_utf8(rack_nozzle_opt->GetNozzleDiameterStr())
+                % wx_to_utf8(rack_nozzle_opt->GetNozzleFlowTypeStr())
+                % wx_to_utf8(rack_nozzle_opt->GetNozzleTypeStr())).str()
             : "--";
         hotend_detail_dialog[SK::hotend_detail_dialog::firmware_version] = firmware.has_value() && !firmware->sw_ver.empty() ? firmware->sw_ver : "--";
         hotend_detail_dialog[SK::hotend_detail_dialog::serial_number] = has_read_detail ? serial_number : "--";
@@ -382,6 +387,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         {SK::filament_card::state, card_state},
         {SK::filament_card::color, color},
         {SK::filament_card::color_type, color_type},
+        {SK::filament_card::text, filament_name},
         {SK::filament_card::name, filament_name},
         {SK::filament_card::type, filament_type},
         {SK::filament_card::remain, filament_remain},
