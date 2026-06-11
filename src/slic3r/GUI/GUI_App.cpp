@@ -2470,6 +2470,18 @@ static LogEncOptions s_get_log_enc_opts()
     return enc_options;
 };
 
+bool GUI_App::confirm_mesh_paint_warning()
+{
+    MessageDialog dlg(nullptr,
+        _L("This operation rebuilds the model's mesh. Painted color, supports, seam and "
+           "fuzzy-skin will be transferred to the new mesh by a best-effort approximation, "
+           "so the result may be slightly off and, in rare cases, some painting may be lost.\n\n"
+           "Do you want to continue?"),
+        _L("Painting may change"),
+        wxICON_WARNING | wxYES_NO | wxNO_DEFAULT);
+    return dlg.ShowModal() == wxID_YES;
+}
+
 void GUI_App::init_app_config()
 {
 	// Profiles for the alpha are stored into the PrusaSlicer-alpha directory to not mix with the current release.

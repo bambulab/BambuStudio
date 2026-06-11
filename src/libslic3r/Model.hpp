@@ -989,6 +989,11 @@ public:
     t_model_material_id material_id() const { return m_material_id; }
     void                set_material_id(t_model_material_id material_id);
     void                reset_extra_facets();
+    // BBS: best-effort paint preservation across mesh-rebuilding operations
+    // (repair/simplify/smooth). Replaces the mesh, then re-projects all four
+    // paint layers from the OLD mesh onto the new one by nearest-surface lookup.
+    // Approximate: a remeshed surface has no exact face correspondence.
+    void                set_mesh_keep_paint(TriangleMesh &&mesh);
     ModelMaterial*      material() const;
     void                set_material(t_model_material_id material_id, const ModelMaterial &material);
     // Extract the current extruder ID based on this ModelVolume's config and the parent ModelObject's config.
