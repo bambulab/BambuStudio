@@ -396,6 +396,10 @@ public:
 
     bool get_app_conf_exists() { return m_app_conf_exists; }
     void show_message_box(std::string msg) { wxMessageBox(msg); }
+    // BBS: warn before a mesh-rebuilding op (repair/simplify/smooth/boolean) that
+    // painting is transferred by best-effort approximation and may be imperfect.
+    // Returns true if the user chooses to continue.
+    bool confirm_mesh_paint_warning();
     EAppMode get_app_mode() const { return m_app_mode; }
     Slic3r::DeviceManager* getDeviceManager() { return m_device_manager; }
     bool                   is_blocking_printing(MachineObject *obj_ = nullptr);
