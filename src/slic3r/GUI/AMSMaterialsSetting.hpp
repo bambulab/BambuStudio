@@ -125,6 +125,10 @@ public:
     std::string    ams_setting_id;
 
     bool           m_is_third;
+    // View-only mode: when set, the dialog can be opened to inspect filament
+    // info but every editing control is disabled and no command is sent.
+    // Used for 2D mode (laser/cut), mirroring the official-spool read-only flow.
+    bool           m_view_only = false;
     wxString       m_brand_filament;
     wxString       m_brand_sn;
     wxString       m_brand_tmp;

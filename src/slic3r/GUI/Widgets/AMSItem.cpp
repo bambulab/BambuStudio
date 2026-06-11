@@ -1401,6 +1401,11 @@ void AMSLib::render_lite_lib(wxDC& dc)
         }
     }
 
+    // View-only mode forces the read-only (eye) icon even for third-party spools.
+    if (m_view_only) {
+        temp_bitmap_third = temp_bitmap_brand;
+    }
+
     dc.SetPen(wxPen(*wxTRANSPARENT_PEN));
     if (m_info.material_cols.size() > 1) {
         int left = FromDIP(10);
@@ -1490,6 +1495,11 @@ void AMSLib::render_generic_lib(wxDC &dc)
     if (tmp_lib_colour.Alpha() == 0) {
         temp_bitmap_third = m_bitmap_editable;
         temp_bitmap_brand = m_bitmap_readonly;
+    }
+
+    // View-only mode forces the read-only (eye) icon even for third-party spools.
+    if (m_view_only) {
+        temp_bitmap_third = temp_bitmap_brand;
     }
 
     dc.SetPen(wxPen(tmp_lib_colour, 1, wxPENSTYLE_SOLID));

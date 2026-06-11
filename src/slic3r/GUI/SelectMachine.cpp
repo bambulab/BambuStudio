@@ -6167,16 +6167,19 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
             }
         }
 
-        const auto &warning_tpu_filaments = DevPrinterConfigUtil::get_value_from_config<std::vector<std::string>>(obj_->printer_type, "auto_on_cali_warning_tpu_filaments");
-        for (const auto &warning_tpu_filament : warning_tpu_filaments) {
-            if (warning_tpu_filament == check_info.fila_id) {
-                show_status(PrintDialogStatus::PrintStatusTPUUnsuggestCali,
-                            {_L("If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip "
-                                "the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page.")});
-                break;
+        // The hint only applies when Flow Dynamics Calibration is set to Auto/On; skip it when the option is Off or hidden.
+        const bool flow_cali_auto_or_on = m_checkbox_list["flow_cali"]->IsShown() && m_checkbox_list["flow_cali"]->getValue() != "off";
+        if (flow_cali_auto_or_on) {
+            const auto& warning_tpu_filaments = DevPrinterConfigUtil::get_value_from_config<std::vector<std::string>>(obj_->printer_type, "auto_on_cali_warning_tpu_filaments");
+            for (const auto& warning_tpu_filament : warning_tpu_filaments) {
+                if (warning_tpu_filament == check_info.fila_id) {
+                    show_status(PrintDialogStatus::PrintStatusTPUUnsuggestCali,
+                                { _L("If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page.") });
+                    break;
+                }
             }
         }
-    };
+    }
 
     for (const auto &iter : extruder_ams_ext_status) {
         if (iter.second.has_ams && iter.second.has_vt_slot) {

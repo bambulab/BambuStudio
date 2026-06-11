@@ -483,6 +483,9 @@ public:
     void         support_cali(bool sup) { m_support_cali = sup; Refresh(); };
     virtual bool Enable(bool enable = true);
     void         set_disable_mode(bool disable) { m_disable_mode = disable; }
+    // View-only mode (2D laser/cut): show the read-only (eye) icon for every
+    // editable spool while keeping it clickable to open the view-only dialog.
+    void         set_view_only(bool view_only) { if (m_view_only != view_only) { m_view_only = view_only; Refresh(); } }
     void         msw_rescale();
     void         on_pass_road(bool pass);
 
@@ -522,7 +525,8 @@ protected:
     wxColour m_road_def_color;
     wxColour m_lib_color;
     bool m_disable_mode{ false };
-    bool m_pass_road{false};
+    bool m_view_only{ false };
+    bool m_pass_road{ false };
 
     void on_enter_window(wxMouseEvent &evt);
     void on_leave_window(wxMouseEvent &evt);

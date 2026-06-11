@@ -5020,6 +5020,8 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
 
     if (obj) {
         m_filament_setting_dlg->obj = obj;
+        // 2D mode (laser/cut) only allows viewing filament info, not editing.
+        m_filament_setting_dlg->m_view_only = !obj->GetInfo()->IsFdmMode();
 
         int ams_id  = event.GetInt();
         int slot_id = event.GetString().IsEmpty() ? 0 : std::stoi(event.GetString().ToStdString());
@@ -5083,6 +5085,8 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
 
     if (obj) {
         m_filament_setting_dlg->obj = obj;
+        // 2D mode (laser/cut) only allows viewing filament info, not editing.
+        m_filament_setting_dlg->m_view_only = !obj->GetInfo()->IsFdmMode();
 
         int ams_id  = event.GetInt();
         int slot_id = event.GetString().IsEmpty() ? 0 : std::stoi(event.GetString().ToStdString());

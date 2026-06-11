@@ -7,6 +7,7 @@
 #include "slic3r/GUI/DeviceTab/uiAmsHumidityPopup.h"
 
 #include "slic3r/GUI/DeviceCore/DevManager.h"
+#include "slic3r/GUI/DeviceCore/DevInfo.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSystem.h"
 #include "slic3r/GUI/DeviceCore/DevFilaSwitch.h"
 
@@ -1107,6 +1108,16 @@ void AMSControl::UpdateAms(const std::string   &series_name,
                         cans->show_sn_value(m_ams_model == DevAmsType::AMS_LITE ? false : true);
                     }
                 }
+            }
+        }
+
+        // 2D mode (laser/cut) makes every spool view-only: show the eye icon and
+        // route clicks to the read-only filament dialog.
+        const bool view_only = obj && obj->GetInfo() && !obj->GetInfo()->IsFdmMode();
+        for (auto ams_item : m_ams_item_list) {
+            if (ams_item.second == nullptr) { continue; }
+            for (auto lib_it : ams_item.second->get_can_lib_list()) {
+                if (lib_it.second) { lib_it.second->set_view_only(view_only); }
             }
         }
 
