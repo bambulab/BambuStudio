@@ -1359,15 +1359,6 @@ static bool is_preset_compatible_with_printer(const std::vector<std::string> &co
     return std::find(compatible_printers.begin(), compatible_printers.end(), printer_system_name) != compatible_printers.end();
 }
 
-// todo: temp modify: P1P/P1S share filament presets loosely; skip compatible_printers validation for them.
-static bool is_p1p_or_p1s_printer(const std::string &printer_model_name, const std::string &printer_system_name)
-{
-    if (printer_model_name == "Bambu Lab P1P" || printer_model_name == "Bambu Lab P1S")
-        return true;
-    return printer_system_name.find("P1P") != std::string::npos
-        || printer_system_name.find("P1S") != std::string::npos;
-}
-
 // For estimate_mode: given a source filament preset name (e.g. "Bambu PLA Basic @BBL P1S 0.4 nozzle")
 // and the new machine's BBL tag (e.g. "X2D 0.4 nozzle"), construct the target filament preset name
 // (e.g. "Bambu PLA Basic @BBL X2D 0.4 nozzle") and verify it exists in filament_full_dir.
@@ -1683,7 +1674,7 @@ int CLI::run(int argc, char **argv)
     std::vector<plate_obj_size_info_t> plate_obj_size_infos;
     //int arrange_option;
     int plate_to_slice = 0, filament_count = 0, duplicate_count = 0, real_duplicate_count = 0, current_extruder_count = 1, new_extruder_count = 1, current_printer_variant_count = 1, current_print_variant_count = 1, new_printer_variant_count = 1;
-    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false, has_support = false, estimate_mode = false;
+    bool first_file = true, is_bbl_3mf = false, need_arrange = true, has_thumbnails = false, up_config_to_date = false, normative_check = true, duplicate_single_object = false, use_first_fila_as_default = false, minimum_save = false, enable_timelapse = false, has_support = false, estimate_mode = false, check_preset = false;
     bool allow_rotations = true, skip_modified_gcodes = false, avoid_extrusion_cali_region = false, skip_useless_pick = false, allow_newer_file = false, current_is_multi_extruder = false, new_is_multi_extruder = false, allow_mix_temp = false, enable_wrapping_detect = false;
     Semver file_version;
     Slic3r::GUI::Camera::ViewAngleType camera_view = Slic3r::GUI::Camera::ViewAngleType::Iso;
@@ -1755,6 +1746,10 @@ int CLI::run(int argc, char **argv)
     ConfigOptionBool* estimate_mode_option = m_config.option<ConfigOptionBool>("estimate_mode");
     if (estimate_mode_option)
         estimate_mode = estimate_mode_option->value;
+
+    ConfigOptionBool* check_preset_option = m_config.option<ConfigOptionBool>("check_preset");
+    if (check_preset_option)
+        check_preset = check_preset_option->value;
 
     ConfigOptionInt* camera_view_option = m_config.option<ConfigOptionInt>("camera_view");
     if (camera_view_option)
@@ -3018,33 +3013,29 @@ int CLI::run(int argc, char **argv)
     }
 
     // Validate compatible_printers for externally loaded filament presets.
-    // {
-    //     std::string effective_printer_system_name;
-    //     if (!new_printer_system_name.empty())
-    //         effective_printer_system_name = new_printer_system_name;
-    //     else
-    //         effective_printer_system_name = current_printer_system_name;
-    //
-    //     const std::string effective_printer_model = !printer_model.empty() ? printer_model : current_printer_model;
-    //
-    //     if (!is_p1p_or_p1s_printer(effective_printer_model, effective_printer_system_name)
-    //         && !effective_printer_system_name.empty()) {
-    //         for (size_t index = 0; index < load_filaments_config.size(); ++index) {
-    //             const auto *compatible_printers_opt = load_filaments_config[index].option<ConfigOptionStrings>("compatible_printers");
-    //             if (!compatible_printers_opt)
-    //                 continue;
-    //             const std::vector<std::string> &compatible_printers = compatible_printers_opt->values;
-    //             if (is_preset_compatible_with_printer(compatible_printers, effective_printer_system_name))
-    //                 continue;
-    //
-    //             const std::string &filament_name = (index < load_filaments_name.size()) ? load_filaments_name[index] : "";
-    //             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" %1%: filament preset %2% (slot %3%) is not compatible with printer %4%.")
-    //                 % __LINE__ % filament_name % (index + 1) % effective_printer_system_name;
-    //             record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
-    //             flush_and_exit(CLI_CONFIG_FILE_ERROR);
-    //         }
-    //     }
-    // }
+    if (check_preset) {
+        std::string effective_printer_system_name;
+        if (!new_printer_system_name.empty())
+            effective_printer_system_name = new_printer_system_name;
+        else
+            effective_printer_system_name = current_printer_system_name;
+
+        if (!effective_printer_system_name.empty()) {
+            for (size_t index = 0; index < load_filaments_config.size(); ++index) {
+                const auto *compatible_printers_opt = load_filaments_config[index].option<ConfigOptionStrings>("compatible_printers");
+                if (!compatible_printers_opt) continue;
+                const std::vector<std::string> &compatible_printers = compatible_printers_opt->values;
+                if (is_preset_compatible_with_printer(compatible_printers, effective_printer_system_name)) continue;
+
+                const std::string &filament_name = (index < load_filaments_name.size()) ? load_filaments_name[index] : "";
+                BOOST_LOG_TRIVIAL(error) << __FUNCTION__
+                                         << boost::format(" %1%: filament preset %2% (slot %3%) is not compatible with printer %4%.") % __LINE__ % filament_name % (index + 1) %
+                                                effective_printer_system_name;
+                record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
+                flush_and_exit(CLI_CONFIG_FILE_ERROR);
+            }
+        }
+    }
 
     if (estimate_mode && (new_printer_name.empty() || current_printer_name.empty() || (new_printer_name == current_printer_name))) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" %1%: estimate_mode requires a machine switch via --load_settings") % __LINE__;

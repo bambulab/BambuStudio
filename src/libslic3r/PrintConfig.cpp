@@ -10018,6 +10018,11 @@ CLIMiscConfigDef::CLIMiscConfigDef()
     def->tooltip = "When enabled, automatically fill filament presets and extruder state for machine estimation after machine switch";
     def->set_default_value(new ConfigOptionBool(false));
 
+    def = this->add("check_preset", coBool);
+    def->label = "Check preset compatibility";
+    def->tooltip = "If enabled, check whether the externally loaded filament presets are compatible with the target printer";
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("enable_timelapse", coBool);
     def->label = "Enable timeplapse for print";
     def->tooltip = "If enabled, this slicing will be considered using timelapse";
