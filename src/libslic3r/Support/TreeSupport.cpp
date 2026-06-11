@@ -970,16 +970,23 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
                     if (!blocker.empty()) curr = diff_ex(curr, blocker);
                     if (!enforced_overhangs.empty()) curr = union_ex(curr, enforced_overhangs);
                     // BBS detect sharp tail
-                    for (const ExPolygon& expoly : curr) {
-                        bool  is_sharp_tail = false;
+                    for (const ExPolygon &expoly : curr) {
+                        bool is_sharp_tail = false;
                         // 1. nothing below
                         // this is a sharp tail region if it's floating and non-ignorable
-                        if (!overlaps(offset_ex(expoly, 0.1 * extrusion_width_scaled), lower_polys) && area(expoly)<SQ(m_support_params.thresh_big_overhang)) {
+                        // The (area && bbox) gate excludes "large looped structures" but also catches
+                        // thin-but-wide rings (small area, large bbox), which would otherwise be dropped
+                        // by check_small_overhang and end up unsupported. Rescue them here: if eroding by
+                        // radius_thresh_small_overhang (the same radius small-overhang detection uses)
+                        // makes the polygon vanish, treat it as a sharp tail regardless of bbox.
+                        if (!overlaps(offset_ex(expoly, 0.1 * extrusion_width_scaled), lower_polys) &&
+                            area(expoly) < SQ(m_support_params.thresh_big_overhang) &&
+                            (get_extents(expoly).area() < SQ(m_support_params.thresh_big_overhang) ||
+                             offset_ex(expoly, -radius_thresh_small_overhang).empty())) {
                             is_sharp_tail = !offset_ex(expoly, -0.1 * extrusion_width_scaled).empty();
                         }
                         if (is_sharp_tail && lower_layer->lower_layer) {
-                            if (overlaps(offset_ex(expoly, 0.1 * extrusion_width_scaled), lower_layer->lower_layer->lslices_extrudable))
-                                is_sharp_tail = false;
+                            if (overlaps(offset_ex(expoly, 0.1 * extrusion_width_scaled), lower_layer->lower_layer->lslices_extrudable)) is_sharp_tail = false;
                         }
                         if (is_sharp_tail) {
                             layer->sharp_tails.push_back(expoly);
@@ -987,9 +994,9 @@ void TreeSupport::detect_overhangs(bool check_support_necessity/* = false*/)
 
                             has_sharp_tails = true;
 #ifdef SUPPORT_TREE_DEBUG_TO_SVG
-							SVG::export_expolygons(debug_out_path("sharp_tail_orig_%.02f.svg", layer->print_z), { expoly });
+                            SVG::export_expolygons(debug_out_path("sharp_tail_orig_%.02f.svg", layer->print_z), {expoly});
 #endif
-						}
+                        }
                     }
                 }
 
@@ -4104,7 +4111,12 @@ void TreeSupport::generate_contact_points()
 
                     // don't add inner supports for sharp tails
                     if (is_sharp_tail) {
-                        SupportNode *contact_node = insert_point(overhang.contour.centroid(), overhang, radius, false, add_interface);
+                        Point cent = overhang.contour.centroid();
+                        // For ring/concave sharp tails the centroid may fall outside the overhang
+                        // (e.g. inside its hole). In that case project it onto the nearest edge of
+                        // the overhang so the sharp tail still gets a contact point.
+                        if (!is_inside_ex({overhang}, cent)) cent = overhang.point_projection(cent);
+                        insert_point(cent, overhang, radius, false, add_interface);
                         continue;
                     }
 
