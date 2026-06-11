@@ -3,12 +3,15 @@
 var m_HotModelList=null;
 var m_HasNetworkPlugin=true;
 var m_GetPrintHistoryStatus=false;
+var m_IsUserLogin=false;
+var m_ServerConnectFailed=false;
 
 function OnInit()
 {
 	//-----Official-----
     TranslatePage();
 
+	UpdateServerConnectFailTipVisible();
 	SendMsg_GetLoginInfo();
 	GotoMenu( 'home' );
 	$("#Login2").click(function() {
@@ -32,15 +35,25 @@ function HandleStudio( pVal )
 	if(strCmd=='studio_userlogin')
 	{
 		var lastLoginInfo = pVal;
+		m_IsUserLogin=true;
 		SetLoginInfo(pVal['data']['avatar'],pVal['data']['name']);
+		UpdateServerConnectFailTipVisible();
 		if (!m_GetPrintHistoryStatus && (pVal != lastLoginInfo)) {
 			SendMsg_GetPrintHistory();
 		}
 	}
 	else if(strCmd=='studio_useroffline')
 	{
+		m_IsUserLogin=false;
+		m_ServerConnectFailed=false;
 		SetUserOffline();
+		UpdateServerConnectFailTipVisible();
 		m_GetPrintHistoryStatus=false;
+	}
+	else if(strCmd=='homepage_server_connect_status')
+	{
+		m_ServerConnectFailed=(pVal['failed']*1)==1;
+		UpdateServerConnectFailTipVisible();
 	}
 	else if( strCmd=="network_plugin_installtip" )
 	{
@@ -83,6 +96,21 @@ function HandleStudio( pVal )
 	else if(strCmd=='printhistory_task_show')
 	{
 		m_GetPrintHistoryStatus=true;
+	}
+}
+
+function UpdateServerConnectFailTipVisible()
+{
+	if(m_IsUserLogin && m_ServerConnectFailed)
+	{
+		$("#LoginArea").addClass("ServerConnectFailVisible");
+		$("#ServerConnectFailTip").show();
+		$("#ServerConnectFailTip").css("display","flex");
+	}
+	else
+	{
+		$("#LoginArea").removeClass("ServerConnectFailVisible");
+		$("#ServerConnectFailTip").hide();
 	}
 }
 

@@ -523,6 +523,7 @@ public:
     void            request_login(bool show_user_info = false);
     bool            check_login();
     void            get_login_info();
+    void            sync_left_server_connect_status();
     bool            is_user_login();
 
     void            request_user_login(int online_login = 0);
@@ -667,6 +668,7 @@ public:
     PingCodeBindDialog* m_ping_code_binding_dialog{ nullptr };
 
     NetworkErrorDialog* m_server_error_dialog { nullptr };
+    bool            m_homepage_server_connect_failed { false };
 
     void            set_download_model_url(std::string url) {m_mall_model_download_url = url;}
     void            set_download_model_name(std::string name) {m_mall_model_download_name = name;}

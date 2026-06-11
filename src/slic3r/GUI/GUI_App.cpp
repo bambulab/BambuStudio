@@ -2078,21 +2078,25 @@ void GUI_App::init_networking_callbacks()
             }
             if (return_code < 0) { //#define MQTTASYNC_SUCCESS 0
                 GUI::wxGetApp().CallAfter([this] {
-                    static bool is_showing = false;
-                    if (is_showing) return;
-                    is_showing = true;
+                    m_homepage_server_connect_failed = true;
+                    sync_left_server_connect_status();
+
+                    static bool s_mqtt_connect_failed_dialog_shown = false;
+                    if (s_mqtt_connect_failed_dialog_shown) return;
+                    s_mqtt_connect_failed_dialog_shown = true;
                     BOOST_LOG_TRIVIAL(trace) << "static: server connection failed";
                     MessageDialog msg_dlg(nullptr, _L("Failed to connect to the cloud device server. Please check your network and firewall."), "", wxOK);
                     msg_dlg.ShowModal();
-                    is_showing = false;
                 });
                 return;
             }
             GUI::wxGetApp().CallAfter([this] {
-                if (is_closing())
-                    return;
-                BOOST_LOG_TRIVIAL(trace) << "static: server connected";
-                m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
+                    if (is_closing())
+                        return;
+                    m_homepage_server_connect_failed = false;
+                    sync_left_server_connect_status();
+                    BOOST_LOG_TRIVIAL(trace) << "static: server connected";
+                    m_agent->set_user_selected_machine(m_agent->get_user_selected_machine());
                     if (this->is_enable_multi_machine()) {
                         auto evt = new wxCommandEvent(EVT_UPDATE_MACHINE_LIST);
                         wxQueueEvent(this, evt);
@@ -4538,12 +4542,25 @@ void GUI_App::get_login_info()
             GUI::wxGetApp().run_script_left(strJS);
         }
         else {
+            m_homepage_server_connect_failed = false;
             m_agent->user_logout();
             std::string logout_cmd = m_agent->build_logout_cmd();
             wxString strJS = wxString::Format("window.postMessage(%s)", logout_cmd);
             GUI::wxGetApp().run_script_left(strJS);
         }
     }
+    sync_left_server_connect_status();
+}
+
+void GUI_App::sync_left_server_connect_status()
+{
+    json msg           = json::object();
+    msg["sequence_id"] = "10001";
+    msg["command"]     = "homepage_server_connect_status";
+    msg["failed"]      = m_homepage_server_connect_failed ? 1 : 0;
+
+    wxString strJS = wxString::Format("window.postMessage(%s)", msg.dump(-1, ' ', false, json::error_handler_t::ignore));
+    GUI::wxGetApp().run_script_left(strJS);
 }
 
 bool GUI_App::is_user_login()
@@ -4584,6 +4601,9 @@ void GUI_App::request_user_login(int online_login)
 
 void GUI_App::request_user_logout()
 {
+    m_homepage_server_connect_failed = false;
+    sync_left_server_connect_status();
+
     if (m_agent && m_agent->is_user_login()) {
         m_load_last_machine.is_list_ok = false;
         m_load_last_machine.is_mqtt_ok = false;
