@@ -72,10 +72,20 @@
         "75",
         "45",
         "45",
-        "65",
-        "45",
         "75",
+        "45",
+        "65",
         "45"
+    ],
+    "filament_dev_ams_drying_time": [
+        "12",
+        "18",
+        "12",
+        "18",
+        "18",
+        "18",
+        "12",
+        "12"
     ],
     "filament_dev_drying_softening_temperature": [
         "50"

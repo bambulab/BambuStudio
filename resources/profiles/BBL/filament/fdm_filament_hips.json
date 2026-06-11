@@ -57,10 +57,10 @@
         "80",
         "65",
         "75",
-        "65",
-        "65",
         "80",
-        "75"
+        "75",
+        "65",
+        "65"
     ],
     "filament_dev_drying_softening_temperature": [
         "80"
