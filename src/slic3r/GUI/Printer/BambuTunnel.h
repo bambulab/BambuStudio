@@ -87,8 +87,6 @@ typedef struct __Bambu_StreamInfo
     unsigned char const * format_buffer;
 } Bambu_StreamInfo;
 
-typedef void (*StreamInfoCallback)(void *context, Bambu_StreamInfo *info);
-
 typedef enum __Bambu_SampleFlag
 {
     f_sync = 1
@@ -118,8 +116,6 @@ typedef struct __BambuLib {
 BAMBU_EXPORT int BAMBU_FUNC(Bambu_Create)(Bambu_Tunnel* tunnel, char const* path);
 
 BAMBU_EXPORT void BAMBU_FUNC(Bambu_SetLogger)(Bambu_Tunnel tunnel, Logger logger, void * context);
-
-BAMBU_EXPORT void BAMBU_FUNC(Bambu_SetStreamInfoCallback)(Bambu_Tunnel tunnel, StreamInfoCallback callback, void *context);
 
 BAMBU_EXPORT int BAMBU_FUNC(Bambu_Open)(Bambu_Tunnel tunnel);
 

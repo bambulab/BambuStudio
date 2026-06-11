@@ -45,26 +45,6 @@ int AVVideoDecoder::open(Bambu_StreamInfo const &info)
     return 0;
 }
 
-int AVVideoDecoder::reopen(Bambu_StreamInfo const &info)
-{
-    if (sws_ctx_) {
-        sws_freeContext(sws_ctx_);
-        sws_ctx_ = nullptr;
-    }
-    if (frame_)
-        av_frame_free(&frame_);
-    if (codec_ctx_)
-        avcodec_free_context(&codec_ctx_);
-
-    got_frame_ = false;
-    width_     = 0; // force bits_ zero-fill on next scale (new dimensions)
-
-    codec_ctx_ = avcodec_alloc_context3(nullptr);
-    if (codec_ctx_ == nullptr)
-        return -1;
-    return open(info);
-}
-
 int AVVideoDecoder::decode(const Bambu_Sample &sample)
 {
     int ret = -1;

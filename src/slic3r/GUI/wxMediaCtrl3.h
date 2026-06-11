@@ -80,8 +80,6 @@ protected:
 
     static void bambu_log(void *ctx, int level, tchar const *msg);
 
-    static void bambu_streaminfo(void *ctx, Bambu_StreamInfo *info);
-
     void PlayThread();
 
     void NotifyStopped();
@@ -112,12 +110,6 @@ private:
 
     wxTimer m_render_timer;
     std::atomic<bool> m_need_refresh{false};
-
-    struct PendingStreamInfo {
-        std::mutex        mutex;
-        Bambu_StreamInfo  info{};
-        std::atomic<bool> changed{false};
-    } m_pending_stream;
 };
 
 #endif
