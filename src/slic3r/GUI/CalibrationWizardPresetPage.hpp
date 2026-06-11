@@ -255,7 +255,7 @@ protected:
     wxSizer* create_ams_items_sizer(wxPanel* ams_preview_panel, std::vector<AMSPreview*> &ams_preview_list, std::vector<AMSinfo> &ams_info, ExtruderRole role);
     wxSizer* create_slot_items_sizer(wxPanel* slot_items_panel, FilamentComboBoxList& filament_comboBox_list, ExtruderRole extuder_role);
 
-    void manage_filament_radio_btn(ExtruderRole extuder_role);
+    void manage_filament_radio_btn(FilamentComboBox* selected_fcb);
 
     void init_selection_values();
 

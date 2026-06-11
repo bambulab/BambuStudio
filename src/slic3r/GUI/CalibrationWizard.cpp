@@ -395,6 +395,9 @@ void CalibrationWizard::cache_preset_info(MachineObject *obj, float nozzle_dia, 
     obj->GetCalib()->ResetSelectedCalibPreset();
     std::vector<CaliPresetInfo> cali_preset;
     for (auto& item : selected_filaments) {
+        if (!item.filament_preset)
+            continue;
+
         CaliPresetInfo result;
         result.tray_id          = item.tray_id;
         result.nozzle_diameter  = nozzle_dia;
