@@ -1,4 +1,4 @@
-#include "wgtDeviceFilamentHotendWeb.h"
+#include "wgtDeviceFilamentHotendWebPanel.h"
 
 #include "slic3r/GUI/DeviceWeb/DeviceWebHost.hpp"
 
@@ -11,7 +11,7 @@ constexpr int kMinWidthDip  = 560;
 constexpr int kMinHeightDip = 440;
 } // namespace
 
-wgtDeviceFilamentHotendWeb::wgtDeviceFilamentHotendWeb(wxWindow* parent)
+wgtDeviceFilamentHotendWebPanel::wgtDeviceFilamentHotendWebPanel(wxWindow* parent)
     : wxPanel(parent, wxID_ANY)
 {
     auto* root = new wxBoxSizer(wxVERTICAL);
@@ -27,7 +27,7 @@ wgtDeviceFilamentHotendWeb::wgtDeviceFilamentHotendWeb(wxWindow* parent)
     Layout();
 }
 
-void wgtDeviceFilamentHotendWeb::UpdateByMachine(Slic3r::MachineObject* /*obj*/)
+void wgtDeviceFilamentHotendWebPanel::UpdateByMachine(Slic3r::MachineObject* /*obj*/)
 {
     if (m_device_web) {
         m_device_web->NotifyDeviceFilamentChanged();

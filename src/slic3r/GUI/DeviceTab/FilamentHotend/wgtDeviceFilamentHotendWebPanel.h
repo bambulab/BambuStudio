@@ -12,11 +12,11 @@ class DeviceWebHost;
 
 // Thin wxPanel host for the filament/hotend WebView page.
 // DeviceWebHost already handles content size changes.
-class wgtDeviceFilamentHotendWeb : public wxPanel
+class wgtDeviceFilamentHotendWebPanel : public wxPanel
 {
 public:
-    explicit wgtDeviceFilamentHotendWeb(wxWindow* parent);
-    ~wgtDeviceFilamentHotendWeb() override = default;
+    explicit wgtDeviceFilamentHotendWebPanel(wxWindow* parent);
+    ~wgtDeviceFilamentHotendWebPanel() override = default;
 
     void UpdateByMachine(Slic3r::MachineObject* obj);
 

@@ -60,7 +60,8 @@
 #include "DeviceCore/DevPrintTaskInfo.h"
 #include "DeviceCore/DevPrintOptions.h"
 #include "DeviceTab/wgtDeviceNozzleRack.h"
-#include "DeviceTab/FilamentHotend/wgtDeviceFilamentHotendWeb.h"
+#include "DeviceTab/FilamentHotend/wgtDeviceFilamentHotendWebPanel.h"
+#include "DeviceTab/FilamentHotend/wgtDeviceFilamentHotendWebDialog.h"
 #include "DeviceTab/FilamentHotend/wgtHotendRackControl.h"
 #include "DeviceTab/wgtRackExtruder.h"
 #if BBL_ENABLE_AMS_CONTROL_WEB
@@ -2281,6 +2282,14 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
     m_parts_btn->SetSize(wxSize(FromDIP(128), FromDIP(26)));
     m_parts_btn->SetMinSize(wxSize(-1, FromDIP(26)));
 
+    m_filament_hotend_web_dlg_btn = new Button(m_panel_control_title, "Hotend&Filament");
+    m_filament_hotend_web_dlg_btn->SetBackgroundColor(btn_bg_green);
+    m_filament_hotend_web_dlg_btn->SetBorderColor(btn_bd_green);
+    m_filament_hotend_web_dlg_btn->SetTextColor(wxColour("#FFFFFE"));
+    m_filament_hotend_web_dlg_btn->SetSize(wxSize(FromDIP(150), FromDIP(26)));
+    m_filament_hotend_web_dlg_btn->SetMinSize(wxSize(-1, FromDIP(26)));
+    m_filament_hotend_web_dlg_btn->Hide();
+
     m_options_btn = new Button(m_panel_control_title, _L("Print Options"));
     m_options_btn->SetBackgroundColor(btn_bg_green);
     m_options_btn->SetBorderColor(btn_bd_green);
@@ -2309,6 +2318,7 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
     bSizer_control_title->Add(m_staticText_control, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, PAGE_TITLE_LEFT_MARGIN);
     bSizer_control_title->Add(0, 0, 1, wxEXPAND, 0);
     bSizer_control_title->Add(m_parts_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
+    bSizer_control_title->Add(m_filament_hotend_web_dlg_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
     bSizer_control_title->Add(m_options_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
     bSizer_control_title->Add(m_safety_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
     bSizer_control_title->Add(m_calibration_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(10));
@@ -2356,9 +2366,9 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
     m_ams_control_web_panel->Hide();
     bSizer_control->Add(m_ams_control_web_panel, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
 #endif
-    m_filament_hotend_web = new wgtDeviceFilamentHotendWeb(parent);
-    m_filament_hotend_web->Hide();
-    bSizer_control->Add(m_filament_hotend_web, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
+    m_filament_hotend_web_panel = new wgtDeviceFilamentHotendWebPanel(parent);
+    m_filament_hotend_web_panel->Hide();
+    bSizer_control->Add(m_filament_hotend_web_panel, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
     bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(6));
     bSizer_control->Add(m_filament_load_sizer, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(8));
     bSizer_control->Add(0, 0, 0, wxTOP, FromDIP(4));
@@ -3348,6 +3358,7 @@ StatusPanel::StatusPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, co
     m_options_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_print_options), NULL, this);
     m_safety_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_safety_options), NULL, this);
     m_parts_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_parts_options), NULL, this);
+    m_filament_hotend_web_dlg_btn->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_hotend_filament_web), NULL, this);
 }
 
 StatusPanel::~StatusPanel()
@@ -3397,8 +3408,14 @@ StatusPanel::~StatusPanel()
     m_options_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_print_options), NULL, this);
     m_safety_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_safety_options), NULL, this);
     m_parts_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_parts_options), NULL, this);
+    m_filament_hotend_web_dlg_btn->Disconnect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(StatusPanel::on_show_hotend_filament_web), NULL, this);
 
     // remove warning dialogs
+    if (m_filament_hotend_web_dlg) {
+        CloseHotendFilamentDialog();
+        m_filament_hotend_web_dlg->Destroy();
+        m_filament_hotend_web_dlg = nullptr;
+    }
     if (abort_dlg != nullptr) delete abort_dlg;
 
     if (ctrl_e_hint_dlg != nullptr) delete ctrl_e_hint_dlg;
@@ -3756,7 +3773,11 @@ void StatusPanel::update(MachineObject *obj)
             }
         }
 
-        if (m_parts_btn->Show()) {
+        if (m_parts_btn->Show(!CanShowHotendFilamentDialog(obj))) {
+            refresh_control_title = true;
+        }
+
+        if (m_filament_hotend_web_dlg_btn->Show(CanShowHotendFilamentDialog(obj))) {
             refresh_control_title = true;
         }
 
@@ -3777,6 +3798,12 @@ void StatusPanel::update(MachineObject *obj)
         }
 
         update_error_message();
+    }
+
+    if (m_filament_hotend_web_dlg && m_filament_hotend_web_dlg->IsShown() && CanShowHotendFilamentDialog(obj)) {
+        m_filament_hotend_web_dlg->UpdateByMachine(obj);
+    } else if (m_filament_hotend_web_dlg && !CanShowHotendFilamentDialog(obj)) {
+        CloseHotendFilamentDialog();
     }
 
     update_camera_state(obj);
@@ -6150,6 +6177,77 @@ void StatusPanel::on_show_safety_options(wxCommandEvent &event)
     }
 }
 
+bool StatusPanel::CanShowHotendFilamentPanel(MachineObject* obj) const
+{
+    return false;// use dialog now
+
+    if (!obj) {
+        return false;
+    }
+
+    const auto rack_type = obj->GetNozzleRack()->GetRackType();
+    return rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B;
+}
+
+bool StatusPanel::ShowHotendFilamentPanel(MachineObject* obj)
+{
+    if (!CanShowHotendFilamentPanel(obj)) {
+        return CloseHotendFilamentPanel();
+    }
+
+    bool changed = false;
+    if (m_filament_hotend_web_panel->Show(true)) {
+        changed = true;
+    }
+    m_filament_hotend_web_panel->UpdateByMachine(obj);
+    return changed;
+}
+
+bool StatusPanel::CloseHotendFilamentPanel()
+{
+    if (!m_filament_hotend_web_panel) {
+        return false;
+    }
+    return m_filament_hotend_web_panel->Show(false);
+}
+
+bool StatusPanel::CanShowHotendFilamentDialog(MachineObject* obj) const
+{
+    if (!obj) {
+        return false;
+    }
+
+    const auto rack_type = obj->GetNozzleRack()->GetRackType();
+    return rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B;
+}
+
+void StatusPanel::ShowHotendFilamentDialog(MachineObject* obj)
+{
+    if (!CanShowHotendFilamentDialog(obj)) {
+        CloseHotendFilamentDialog();
+        return;
+    }
+
+    if (!m_filament_hotend_web_dlg) {
+        m_filament_hotend_web_dlg = new wgtDeviceFilamentHotendWebDialog(this);
+        m_filament_hotend_web_dlg->Bind(wxEVT_DESTROY, [this](wxWindowDestroyEvent& e) {
+            if (e.GetEventObject() == m_filament_hotend_web_dlg) {
+                m_filament_hotend_web_dlg = nullptr;
+            }
+            e.Skip();
+        });
+    }
+    m_filament_hotend_web_dlg->UpdateByMachine(obj);
+    m_filament_hotend_web_dlg->ShowModal();
+}
+
+void StatusPanel::CloseHotendFilamentDialog()
+{
+    if (m_filament_hotend_web_dlg) {
+        m_filament_hotend_web_dlg->Hide();
+    }
+}
+
 void StatusPanel::on_show_parts_options(wxCommandEvent &event)
 {
     if (obj) {
@@ -6162,6 +6260,11 @@ void StatusPanel::on_show_parts_options(wxCommandEvent &event)
             print_parts_dlg->ShowModal();
         }
     }
+}
+
+void StatusPanel::on_show_hotend_filament_web(wxCommandEvent &event)
+{
+    ShowHotendFilamentDialog(obj);
 }
 
 void StatusPanel::update_printer_parts_options(MachineObject *obj_)
@@ -6230,6 +6333,7 @@ void StatusPanel::set_default()
     m_options_btn->Show();
     m_safety_btn->Show();
     m_parts_btn->Show();
+    m_filament_hotend_web_dlg_btn->Hide();
 
     if (m_panel_control_title) {
         m_panel_control_title->Layout();
@@ -6242,7 +6346,6 @@ void StatusPanel::set_default()
     m_ams_control_box->Hide();
     m_ams_control->Reset();
     m_hotend_rack_control->Hide();
-    m_filament_hotend_web->Hide();
     m_ams_rack_switch->updateState("left");
     m_ams_rack_switch->Hide();
     m_panel_nozzle_rack->Hide();
@@ -6250,6 +6353,10 @@ void StatusPanel::set_default()
     m_filament_load_box->Hide();
     m_filament_step->Hide();
     error_info_reset();
+
+    CloseHotendFilamentPanel();
+    CloseHotendFilamentDialog();
+
 #ifndef __WXGTK__
     SetFocus();
 #endif
@@ -6267,6 +6374,7 @@ void StatusPanel::show_status(int status)
         m_options_btn->Disable();
         m_safety_btn->Disable();
         m_parts_btn->Disable();
+        m_filament_hotend_web_dlg_btn->Disable();
         m_panel_monitoring_title->Disable();
     } else if ((status & (int) MonitorStatus::MONITOR_NORMAL) != 0) {
         show_printing_status(true, true);
@@ -6274,6 +6382,7 @@ void StatusPanel::show_status(int status)
         m_options_btn->Enable();
         m_safety_btn->Enable();
         m_parts_btn->Enable();
+        m_filament_hotend_web_dlg_btn->Enable();
         m_panel_monitoring_title->Enable();
     }
 }
@@ -6423,6 +6532,9 @@ void StatusPanel::msw_rescale()
     m_parts_btn->SetMinSize(wxSize(-1, FromDIP(26)));
     m_parts_btn->Rescale();
 
+    m_filament_hotend_web_dlg_btn->SetMinSize(wxSize(-1, FromDIP(26)));
+    m_filament_hotend_web_dlg_btn->Rescale();
+
     rescale_camera_icons();
 
     Layout();
@@ -6434,14 +6546,8 @@ void StatusPanel::update_rack(MachineObject *obj)
     // Only re-layout when a child's visibility actually toggles.
     bool refresh_layout = false;
 
-    // m_ams_control visibility is owned solely by update_ams()/show_ams_group();
-    // update_rack() only drives the rack-specific widgets to avoid a second,
-    // competing visibility decision (which would re-layout the webview host).
     if (obj && obj->GetNozzleSystem()->GetNozzleRack()->GetRackType() == DevNozzleRack::RackType_AB) {
         if (m_ams_rack_switch->Show()) {
-            refresh_layout = true;
-        }
-        if (m_filament_hotend_web->Show(false)) {
             refresh_layout = true;
         }
         m_panel_nozzle_rack->UpdateRackInfo(obj->GetNozzleSystem()->GetNozzleRack());
@@ -6452,10 +6558,6 @@ void StatusPanel::update_rack(MachineObject *obj)
         if (m_panel_nozzle_rack->Show(false)) {
             refresh_layout = true;
         }
-        if (m_filament_hotend_web->Show(true)) {
-            refresh_layout = true;
-        }
-        m_filament_hotend_web->UpdateByMachine(obj);
     } else {
         if (m_ams_rack_switch->Show(false)) {
             refresh_layout = true;
@@ -6463,12 +6565,21 @@ void StatusPanel::update_rack(MachineObject *obj)
         if (m_panel_nozzle_rack->Show(false)) {
             refresh_layout = true;
         }
-        if (m_filament_hotend_web->Show(false)) {
-            refresh_layout = true;
-        }
     }
 
-    if (m_hotend_rack_control) m_hotend_rack_control->UpdateByMachine(obj);
+    bool can_show_hotend_filament_web_panel = CanShowHotendFilamentPanel(obj);
+    if (can_show_hotend_filament_web_panel != m_filament_hotend_web_panel->IsShown()) {
+        can_show_hotend_filament_web_panel ? ShowHotendFilamentPanel(obj) : CloseHotendFilamentPanel();
+        refresh_layout = true;
+    }
+
+    if (!CanShowHotendFilamentDialog(obj)) {
+        CloseHotendFilamentDialog();
+    }
+
+    if (m_hotend_rack_control) {
+        m_hotend_rack_control->UpdateByMachine(obj);
+    }
 
     if (m_rack_extruder_panel && m_legacy_extruder_panel) {
         const bool use_rack_panel = m_rack_extruder_panel->UpdateByMachine(obj);

@@ -55,10 +55,12 @@ namespace GUI {
 
 // Previous definitions
 class MessageDialog;
+class wgtDeviceFilamentHotendWebDialog;
 class wgtDeviceNozzleRack;
 #if BBL_ENABLE_AMS_CONTROL_WEB
 class wgtAmsControlWebPanel;
 #endif
+class wgtDeviceFilamentHotendWebPanel;
 class wgtHotendRackControl;
 class wgtRackExtruder;
 class CameraFullscreenFrame;
@@ -566,7 +568,11 @@ protected:
 
     /* switch*/
     SwitchBoard*    m_ams_rack_switch;
-    wgtDeviceFilamentHotendWeb* m_filament_hotend_web{ nullptr };
+
+    /* M2Y */
+    wgtDeviceFilamentHotendWebPanel* m_filament_hotend_web_panel{ nullptr };
+    wgtDeviceFilamentHotendWebDialog* m_filament_hotend_web_dlg{ nullptr };
+    Button*         m_filament_hotend_web_dlg_btn{ nullptr };
 
     AMSControl*     m_ams_control;
     StaticBox*      m_ams_control_box;
@@ -823,6 +829,7 @@ protected:
     void on_camera_leave(wxMouseEvent& event);
 
     void on_show_parts_options(wxCommandEvent& event);
+    void on_show_hotend_filament_web(wxCommandEvent& event);
     /* print options */
     void on_show_print_options(wxCommandEvent &event);
     /* safety options */
@@ -856,6 +863,14 @@ protected:
     void update_rack(MachineObject* obj);
     void update_cali(MachineObject* obj);
     void update_calib_bitmap();
+
+    /* M2Y*/
+    bool CanShowHotendFilamentPanel(MachineObject* obj) const;
+    bool ShowHotendFilamentPanel(MachineObject* obj);
+    bool CloseHotendFilamentPanel();
+    bool CanShowHotendFilamentDialog(MachineObject* obj) const;
+    void ShowHotendFilamentDialog(MachineObject* obj);
+    void CloseHotendFilamentDialog();
 
     void update_market_scoring(bool show);
     void reset_printing_values();
