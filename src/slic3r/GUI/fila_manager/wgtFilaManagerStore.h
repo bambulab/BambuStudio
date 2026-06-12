@@ -12,6 +12,7 @@ struct FilamentSpool {
     std::string spool_id;
     std::string setting_id;
     std::string tag_uid;
+    std::string tray_id_name;
 
     std::string brand;
     std::string material_type;

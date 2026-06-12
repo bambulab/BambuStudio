@@ -79,7 +79,7 @@ function getTrayCurrentNetWeight(tray: AmsTray): number {
   return Math.round(init * remain / 100);
 }
 
-function isValidTagUid(tagUid: string): boolean {
+function hasCloudRfid(tagUid: string): boolean {
   return tagUid.length > 0 && /[^0]/.test(tagUid);
 }
 
@@ -1166,8 +1166,9 @@ export function AddEditDialog({
         // `remain_percent` with the authoritative device value so the
         // record lines up with what the printer reports on MQTT.
         const tray = primarySlot.tray;
-        const trayTagUid = tray.tag_uid || '';
-        const existingSpool = isValidTagUid(trayTagUid)
+        const rawTrayTagUid = tray.tag_uid || '';
+        const trayTagUid = hasCloudRfid(rawTrayTagUid) ? rawTrayTagUid : '';
+        const existingSpool = hasCloudRfid(trayTagUid)
           ? spools.find((sp) => (sp.tag_uid || '') === trayTagUid)
           : undefined;
         const trayNetInit = parseInt(String(tray.weight ?? '0'), 10) || 0;
@@ -1178,6 +1179,7 @@ export function AddEditDialog({
         }
         data.entry_method = 'ams_sync';
         data.tag_uid = trayTagUid;
+        data.tray_id_name = tray.tray_id_name || '';
         // Keep the user's edited material choice. The AMS tray setting_id is
         // only a fallback when the form could not resolve a selected preset.
         data.setting_id = data.setting_id || tray.setting_id || '';
@@ -1870,8 +1872,9 @@ export function AddEditDialog({
         .filter((x): x is { key: string; unit: AmsUnit; tray: AmsTray } => x !== null)
     : [];
   const batchUpdateCount = batchSelectionItems.reduce((count, item) => {
-    const trayTagUid = item.tray.tag_uid || '';
-    if (!isValidTagUid(trayTagUid)) return count;
+    const rawTrayTagUid = item.tray.tag_uid || '';
+    const trayTagUid = hasCloudRfid(rawTrayTagUid) ? rawTrayTagUid : '';
+    if (!hasCloudRfid(trayTagUid)) return count;
     return spools.some((sp) => (sp.tag_uid || '') === trayTagUid) ? count + 1 : count;
   }, 0);
 

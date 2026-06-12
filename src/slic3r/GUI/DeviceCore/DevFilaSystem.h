@@ -59,6 +59,7 @@ public:
     std::string              nozzle_temp_min;
     std::string              xcam_info;
     std::string              uuid;
+    std::string              tray_id_name;
     DevFilaColorType         ctype = DevFilaColorType::CTYPE_SINGLE;
     float                    k        = 0.0f; // k range: 0 ~ 0.5
     float                    n        = 0.0f; // k range: 0.6 ~ 2.0

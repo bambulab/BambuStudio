@@ -29,7 +29,7 @@ const MAX_NET_WEIGHT_GRAMS = 999_999_999;
 
 const normalizeColorCode = canonicalizeHex;
 
-function isValidTagUid(tagUid: string): boolean {
+function hasCloudRfid(tagUid: string): boolean {
   return tagUid.length > 0 && /[^0]/.test(tagUid);
 }
 
@@ -189,8 +189,9 @@ export function buildSpoolFromTray(input: BuildSpoolFromTrayInput): BuildSpoolFr
   const { tray, unit, devId, presets, spools } = input;
   const resolved = resolveTrayPreset(tray, presets);
 
-  const trayTagUid = tray.tag_uid || '';
-  const existingSpool = isValidTagUid(trayTagUid)
+  const rawTrayTagUid = tray.tag_uid || '';
+  const trayTagUid = hasCloudRfid(rawTrayTagUid) ? rawTrayTagUid : '';
+  const existingSpool = hasCloudRfid(trayTagUid)
     ? spools.find((sp) => (sp.tag_uid || '') === trayTagUid)
     : undefined;
   const existingSpoolId = existingSpool?.spool_id || '';
@@ -243,6 +244,7 @@ export function buildSpoolFromTray(input: BuildSpoolFromTrayInput): BuildSpoolFr
     note: '',
     entry_method: 'ams_sync',
     tag_uid: trayTagUid,
+    tray_id_name: tray.tray_id_name || '',
     setting_id: resolved.matchedSettingId || tray.setting_id || '',
     bound_ams_id: unit.ams_id,
     bound_dev_id: devId,

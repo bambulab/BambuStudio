@@ -65,6 +65,7 @@ void DevAmsTray::reset()
     nozzle_temp_min     = "";
     xcam_info           = "";
     uuid                = "";
+    tray_id_name        = "";
     k                   = 0.0f;
     n                   = 0.0f;
     is_bbl              = false;
@@ -785,6 +786,7 @@ DevAmsTray* DevFilaSystemParser::ParseAmsTrayInfo(const json& j_tray, MachineObj
     DevJsonValParser::ParseVal(j_tray, "nozzle_temp_min", curr_tray->nozzle_temp_min);
     DevJsonValParser::ParseVal(j_tray, "xcam_info", curr_tray->xcam_info);
     DevJsonValParser::ParseVal(j_tray, "tray_uuid", curr_tray->uuid, std::string("0"));
+    DevJsonValParser::ParseVal(j_tray, "tray_id_name", curr_tray->tray_id_name);
     DevJsonValParser::ParseVal(j_tray, "remain", curr_tray->remain, -1);
     DevJsonValParser::ParseVal(j_tray, "setting_id", curr_tray->filament_setting_id);
 
