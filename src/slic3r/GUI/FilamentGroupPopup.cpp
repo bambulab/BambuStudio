@@ -51,7 +51,7 @@ static bool is_multi_nozzle_single_extruder()
 
 static void get_nozzle_group_names(wxString &left_name, wxString &right_name)
 {
-    if (is_multi_nozzle_single_extruder()) {
+    if (is_multi_nozzle_single_extruder(wxGetApp().preset_bundle->full_config())) {
         const auto &full_config = wxGetApp().preset_bundle->full_config();
         auto nozzle_count_opt = full_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
         int total = (nozzle_count_opt && !nozzle_count_opt->values.empty()) ? nozzle_count_opt->values[0] : 1;
@@ -322,23 +322,42 @@ void FilamentGroupPopup::UpdateNozzleLabels()
     wxString deputy_nozzle_lower, main_nozzle_lower;
     get_nozzle_group_names(deputy_nozzle_lower, main_nozzle_lower);
 
+    const bool single_ext_multi_nozzle = is_multi_nozzle_single_extruder(wxGetApp().preset_bundle->full_config());
+    const bool no_ams = single_ext_multi_nozzle
+        && get_effective_ams_nozzle_idx_for_active_diameter(wxGetApp().preset_bundle->full_config()) < 0;
+
     for (size_t idx = 0; idx < m_all_modes.size() && idx < detail_infos.size(); ++idx) {
-        wxString detail;
+        wxString label, detail;
         switch (m_all_modes[idx]) {
             case fmmAutoForFlush:
-                detail = wxString::Format(_L("Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"), deputy_nozzle_lower, main_nozzle_lower);
+                if (single_ext_multi_nozzle) {
+                    label  = no_ams ? _L("Default") : _L("Filament-Saving Mode");
+                    detail = _L("Automatically and intelligently assigns filaments to minimize filament time consumption");
+                } else {
+                    label  = _L("Filament-Saving Mode");
+                    detail = wxString::Format(_L("Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"), deputy_nozzle_lower, main_nozzle_lower);
+                }
                 break;
             case fmmAutoForMatch:
-                detail = wxString::Format(_L("Generates filament grouping for the %s and %s based on the printer's actual filament status, reducing the need for manual filament adjustment"), deputy_nozzle_lower, main_nozzle_lower);
+                label  = _L("Convenience Mode");
+                detail = single_ext_multi_nozzle
+                    ? _L("Intelligently assigns filaments based on the filaments currently installed in the printer's AMS")
+                    : wxString::Format(_L("Generates filament grouping for the %s and %s based on the printer's actual filament status, reducing the need for manual filament adjustment"), deputy_nozzle_lower, main_nozzle_lower);
                 break;
             case fmmAutoForQuality:
+                label  = _L("Quality Mode");
                 detail = wxString::Format(_L("Generates filament grouping for the %s and %s based on quality optimization principles"), deputy_nozzle_lower, main_nozzle_lower);
                 break;
             case fmmManual:
-                detail = wxString::Format(_L("Manually assign filament to the %s or %s"), deputy_nozzle_lower, main_nozzle_lower);
+                label = no_ams ? _L("Custom") : _L("Custom Mode");
+                detail = single_ext_multi_nozzle
+                    ? _L("Manually assign filaments to the printhead")
+                    : wxString::Format(_L("Manually assign filament to the %s or %s"), deputy_nozzle_lower, main_nozzle_lower);
                 break;
             default: continue;
         }
+        if (idx < button_labels.size())
+            button_labels[idx]->SetLabel(label);
         detail_infos[idx]->SetLabel(detail);
         detail_infos[idx]->Wrap(FromDIP(320));
     }
@@ -462,11 +481,18 @@ void FilamentGroupPopup::tryPopup(Plater* plater,PartPlate* partplate,bool slice
         this->m_sync_plate = true;
         this->m_slice_all = slice_all;
 
-        std::vector<FilamentMapMode> requested_modes = { fmmAutoForFlush, fmmAutoForMatch, fmmAutoForQuality };
-        Print* print_obj = partplate ? partplate->fff_print() : nullptr;
-        std::vector<FilamentMapMode> new_available_modes = resolve_available_auto_modes(print_obj, requested_modes, connect_status);
-
-        new_available_modes.push_back(fmmManual);
+        std::vector<FilamentMapMode> new_available_modes;
+        if (is_multi_nozzle_single_extruder(wxGetApp().preset_bundle->full_config())
+            && get_effective_ams_nozzle_idx_for_active_diameter(wxGetApp().preset_bundle->full_config()) < 0) {
+            // Single-extruder multi-nozzle machine with no AMS: only the auto "Default" and the fully
+            // manual "Custom" modes apply.
+            new_available_modes = { fmmAutoForFlush, fmmManual };
+        } else {
+            std::vector<FilamentMapMode> requested_modes = { fmmAutoForFlush, fmmAutoForMatch, fmmAutoForQuality };
+            Print* print_obj = partplate ? partplate->fff_print() : nullptr;
+            new_available_modes = resolve_available_auto_modes(print_obj, requested_modes, connect_status);
+            new_available_modes.push_back(fmmManual);
+        }
 
         // Check if available modes changed
         bool modes_changed = (m_available_modes != new_available_modes);

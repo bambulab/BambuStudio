@@ -13,6 +13,7 @@ std::vector<int> get_fixed_nozzle_indices(int total_count, int ams_index);
 wxString get_ams_nozzle_label(int ams_index_0based);
 wxString get_fixed_nozzle_label(int total_count, int ams_index_0based);
 int get_effective_ams_nozzle_idx_for_active_diameter(const ConfigBase& config);
+bool             is_multi_nozzle_single_extruder(const ConfigBase &config);
 class FilamentMapBtnPanel;
 
 class FilamentMapPanel : public wxPanel
@@ -148,7 +149,7 @@ private:
 class FilamentMapSavingPanel : public FilamentMapPanel
 {
 public:
-    FilamentMapSavingPanel(wxWindow *parent);
+    FilamentMapSavingPanel(wxWindow *parent, const wxString &description = wxString());
     FilamentMapMode GetMode() const override { return FilamentMapMode::fmmAutoForFlush; }
 };
 

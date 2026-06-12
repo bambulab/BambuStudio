@@ -53,6 +53,15 @@ wxString get_fixed_nozzle_label(int total_count, int ams_index_0based)
     }
     return label;
 }
+bool is_multi_nozzle_single_extruder(const ConfigBase &config)
+{
+    auto       opt_hotend                = config.option<ConfigOptionBool>("handle_hotend_as_extruder");
+    auto       nozzle_diameters          = config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+    auto       extruder_max_nozzle_count = config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
+    const bool support_multi_nozzle      = extruder_max_nozzle_count &&
+                                      std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(), [](int val) { return val > 1; });
+    return opt_hotend && opt_hotend->value && nozzle_diameters && nozzle_diameters->size() == 1 && support_multi_nozzle;
+}
 
 int get_effective_ams_nozzle_idx_for_active_diameter(const ConfigBase& config)
 {
@@ -922,7 +931,15 @@ void FilamentMapMultiNozzlePanel::UpdateNozzleCountDisplay()
             wxString right_title = wxString::Format(fixed_label + "(%d)", right_count);
             m_right_panel->UpdateLabel(right_title);
         } else {
-            wxString title = wxString::Format(_L("Nozzle (%d)"), m_total_nozzle_count);
+            wxString type_label;
+            if (has_full_stat) {
+                for (const auto &kv : fixed_counts) {
+                    if (kv.second > 0) { type_label = get_volume_type_label(kv.first); break; }
+                }
+            }
+            wxString title = type_label.empty()
+                ? wxString::Format(_L("Nozzle (%d)"), m_total_nozzle_count)
+                : wxString::Format(_L("Nozzle (%d) - %s"), m_total_nozzle_count, type_label);
             m_right_panel->UpdateLabel(title);
         }
     }
@@ -1238,28 +1255,46 @@ std::string FilamentMapAutoPanel::GetIconForMode(FilamentMapMode mode)
     }
 }
 
-FilamentMapSavingPanel::FilamentMapSavingPanel(wxWindow *parent) : FilamentMapPanel(parent)
+FilamentMapSavingPanel::FilamentMapSavingPanel(wxWindow *parent, const wxString &description) : FilamentMapPanel(parent)
 {
     SetBackgroundColour(*wxWHITE);
+
+    const bool custom_text = !description.empty();
 
     auto saving_sizer = new wxBoxSizer(wxVERTICAL);
     saving_sizer->AddSpacer(FromDIP(32));
 
-    auto icon_bitmap = create_scaled_bitmap("search_file", nullptr, 80);
-    auto icon_btn    = new wxStaticBitmap(this, wxID_ANY, icon_bitmap);
-    saving_sizer->Add(icon_btn, 0, wxALIGN_CENTER);
-    saving_sizer->AddSpacer(FromDIP(16));
+    if (!custom_text) {
+        auto icon_bitmap = create_scaled_bitmap("search_file", nullptr, 80);
+        auto icon_btn    = new wxStaticBitmap(this, wxID_ANY, icon_bitmap);
+        saving_sizer->Add(icon_btn, 0, wxALIGN_CENTER);
+        saving_sizer->AddSpacer(FromDIP(16));
+    }
 
-    std::string pt_saving = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
-    wxString main_nz_saving   = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt_saving, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
-    wxString deputy_nz_saving = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt_saving, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
-    auto desc_label = new Label(this, wxString::Format(_L("Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"), deputy_nz_saving, main_nz_saving));
-    desc_label->SetFont(Label::Body_12);
+    wxString desc_text = description;
+    if (desc_text.empty()) {
+        std::string pt_saving = wxGetApp().preset_bundle->printers.get_edited_preset().get_printer_type(wxGetApp().preset_bundle);
+        wxString main_nz_saving   = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt_saving, MAIN_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
+        wxString deputy_nz_saving = _L(DevPrinterConfigUtil::get_toolhead_display_name(pt_saving, DEPUTY_EXTRUDER_ID, ToolHeadComponent::Nozzle, ToolHeadNameCase::LowerCase));
+        desc_text = wxString::Format(_L("Generates filament grouping for the %s and %s based on the most filament-saving principles to minimize waste"), deputy_nz_saving, main_nz_saving);
+    }
+    auto desc_label = new Label(this, desc_text);
+    desc_label->SetFont(custom_text ? Label::Body_14 : Label::Body_12);
     desc_label->SetForegroundColour(wxColour("#6B6B6B"));
-    saving_sizer->Add(desc_label, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(50));
+    if (custom_text) {
+        desc_label->SetWindowStyleFlag(desc_label->GetWindowStyleFlag() | wxALIGN_CENTER_HORIZONTAL);
+        saving_sizer->AddStretchSpacer(2);
+        saving_sizer->Add(desc_label, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(50));
+        saving_sizer->AddStretchSpacer(3);
+    } else {
+        saving_sizer->Add(desc_label, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(50));
+    }
     saving_sizer->AddSpacer(FromDIP(32));
 
     SetSizer(saving_sizer);
+
+    if (custom_text)
+        SetMinSize(wxSize(-1, FromDIP(180)));
 }
 
 } // namespace Slic3r::GUI

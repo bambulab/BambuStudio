@@ -63,9 +63,11 @@ public:
     int ShowModal() override;
 
 private:
-    void make_header(wxBoxSizer *sizer, bool only_saving_mode);
+    void make_header(wxBoxSizer *sizer, bool only_saving_mode, bool single_default_mode);
     void make_body(wxBoxSizer                         *sizer,
                    bool                                only_saving_mode,
+                   bool                                single_default_mode,
+                   bool                                is_multi_nozzle_mode,
                    const std::vector<FilamentMapMode> &modes_to_use,
                    const std::vector<int>             &filaments,
                    const FilamentMapMode               mode,

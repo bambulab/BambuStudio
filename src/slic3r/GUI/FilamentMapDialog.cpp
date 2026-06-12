@@ -357,14 +357,19 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                           *parent,
     m_fila_switch_ready = wxGetApp().sidebar().is_fila_switch_ready();
     bool only_saving_mode = m_fila_switch_ready && (std::find(modes_to_use.cbegin(), modes_to_use.cend(), FilamentMapMode::fmmAutoForQuality) == modes_to_use.cend());
 
+
+    auto       full_config          = wxGetApp().preset_bundle->full_config();
+    const bool is_multi_nozzle_mode = is_multi_nozzle_single_extruder(full_config);
+    const bool single_default_mode  = is_multi_nozzle_mode && get_effective_ams_nozzle_idx_for_active_diameter(full_config) < 0;
+
     if (is_auto_filament_map_mode(mode))
         m_page_type = PageType::ptAuto;
     else
         m_page_type = PageType::ptManual;
 
     wxBoxSizer *main_sizer = new wxBoxSizer(wxVERTICAL);
-    make_header(main_sizer, only_saving_mode);
-    make_body(main_sizer, only_saving_mode, modes_to_use, filaments, mode, machine_synced);
+    make_header(main_sizer, only_saving_mode, single_default_mode);
+    make_body(main_sizer, only_saving_mode, single_default_mode, is_multi_nozzle_mode, modes_to_use, filaments, mode, machine_synced);
     make_footer(main_sizer, mode);
 
     SetSizer(main_sizer);
@@ -378,11 +383,12 @@ FilamentMapDialog::FilamentMapDialog(wxWindow                           *parent,
     wxGetApp().UpdateDlgDarkUI(this);
 }
 
-void FilamentMapDialog::make_header(wxBoxSizer *main_sizer, bool only_saving_mode)
+void FilamentMapDialog::make_header(wxBoxSizer *main_sizer, bool only_saving_mode, bool single_default_mode)
 {
     wxBoxSizer *mode_sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    m_auto_btn   = new CapsuleButton(this, PageType::ptAuto, only_saving_mode ? _L("Fila Saving") : _L("Auto"), false);
+    wxString auto_label = single_default_mode ? _L("Default") : (only_saving_mode ? _L("Fila Saving") : _L("Auto"));
+    m_auto_btn   = new CapsuleButton(this, PageType::ptAuto, auto_label, false);
     m_manual_btn = new CapsuleButton(this, PageType::ptManual, _L("Custom"), false);
 
     m_auto_btn->Bind(wxEVT_BUTTON, &FilamentMapDialog::on_switch_mode, this);
@@ -400,27 +406,13 @@ void FilamentMapDialog::make_header(wxBoxSizer *main_sizer, bool only_saving_mod
 }
 
 void FilamentMapDialog::make_body(
-    wxBoxSizer *sizer, bool only_saving_mode, const std::vector<FilamentMapMode> &modes_to_use, const std::vector<int> &filaments, const FilamentMapMode mode, bool machine_synced)
+    wxBoxSizer *sizer, bool only_saving_mode, bool single_default_mode, bool is_multi_nozzle_mode, const std::vector<FilamentMapMode> &modes_to_use, const std::vector<int> &filaments, const FilamentMapMode mode, bool machine_synced)
 {
     FilamentMapMode default_auto_mode = is_auto_filament_map_mode(mode) ? mode : fmmAutoForFlush;
     if (!machine_synced && default_auto_mode == fmmAutoForMatch)
         default_auto_mode = fmmAutoForFlush;
     if (std::find(modes_to_use.begin(), modes_to_use.end(), default_auto_mode) == modes_to_use.end())
         default_auto_mode = modes_to_use.front();
-
-    auto full_config = wxGetApp().preset_bundle->full_config();
-    bool is_multi_nozzle_mode = false;
-    {
-        auto opt_hotend = full_config.option<ConfigOptionBool>("handle_hotend_as_extruder");
-        auto nozzle_diameters = full_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-        auto extruder_max_nozzle_count = full_config.option<ConfigOptionIntsNullable>("extruder_max_nozzle_count");
-        bool support_multi_nozzle = extruder_max_nozzle_count
-            && std::any_of(extruder_max_nozzle_count->values.begin(), extruder_max_nozzle_count->values.end(),
-                           [](int val) { return val > 1; });
-        is_multi_nozzle_mode = opt_hotend && opt_hotend->value
-                            && nozzle_diameters && nozzle_diameters->size() == 1
-                            && support_multi_nozzle;
-    }
 
     if (is_multi_nozzle_mode) {
         m_manual_panel = new FilamentMapMultiNozzlePanel(this, m_filament_color, m_filament_type, filaments, m_filament_map, m_filament_volume_map);
@@ -440,7 +432,9 @@ void FilamentMapDialog::make_body(
         }
     });
 
-    if (only_saving_mode)
+    if (single_default_mode)
+        m_auto_panel = new FilamentMapSavingPanel(this, _L("Automatically and intelligently assigns filaments to minimize filament time consumption"));
+    else if (only_saving_mode)
         m_auto_panel = new FilamentMapSavingPanel(this);
     else
         m_auto_panel = new FilamentMapAutoPanel(this, default_auto_mode, machine_synced, modes_to_use);
