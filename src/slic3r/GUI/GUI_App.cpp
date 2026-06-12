@@ -1441,8 +1441,25 @@ GUI_App::GUI_App()
     }
     this->init_download_path();
 
+#if defined(__WXOSX__)
+    m_macos_pending_pump_timer.Bind(wxEVT_TIMER, &GUI_App::on_macos_pending_pump, this);
+#endif
+
     reset_to_active();
 }
+
+#if defined(__WXOSX__)
+void GUI_App::on_macos_pending_pump(wxTimerEvent& WXUNUSED(evt))
+{
+    // STUDIO-18472: drain wx pending events ourselves. After the Filament Manager
+    // WKWebView churn the macOS run loop no longer reliably wakes to call
+    // ProcessPendingEvents() from its observer, which strands deferred actions
+    // (project restore, tab-bar page switches posted via wxPostEvent). The
+    // HasPendingEvents() guard makes this a no-op on the common (healthy) path.
+    if (wxTheApp && wxTheApp->HasPendingEvents())
+        wxTheApp->ProcessPendingEvents();
+}
+#endif
 
 void GUI_App::shutdown()
 {
@@ -4099,6 +4116,21 @@ void GUI_App::recreate_GUI(const wxString &msg_name)
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "recreate_GUI enter";
     m_is_recreating_gui = true;
 
+#if defined(__WXOSX__)
+    // macOS root cause (STUDIO-18472): switching language rebuilds the MainFrame and
+    // defers destruction of the old one (old_main_frame->Destroy() below), which only
+    // completes once wxEVT_IDLE fires. If the old frame still hosts a live Filament
+    // Manager WKWebView (e.g. the language was changed while that tab was visible, or
+    // the asynchronous about:blank teardown from a tab switch had not finished yet),
+    // its React app keeps the CFRunLoop busy and starves idle app-wide, so the old
+    // frame is never collected and the new frame cannot render or switch tabs.
+    // Proactively suspend it here so the old frame is guaranteed quiet before its
+    // deferred destruction, independent of which tab was visible or how fast the user
+    // reached Preferences. No-op off macOS.
+    if (mainframe && mainframe->web_device())
+        mainframe->web_device()->Suspend();
+#endif
+
     update_http_extra_header();
 
     mainframe->shutdown();
@@ -4154,6 +4186,17 @@ void GUI_App::recreate_GUI(const wxString &msg_name)
     update_publish_status();
 
     m_is_recreating_gui = false;
+
+#if defined(__WXOSX__)
+    // STUDIO-18472: a GUI rebuild just happened (and trigger_restore_project()
+    // queued EVT_RESTORE_PROJECT). From here on the macOS run loop may fail to
+    // wake for wx pending events after the Filament Manager WKWebView churn, so
+    // arm the pending-event pump for the rest of the session. This dispatches
+    // the deferred restore promptly (prepare canvas no longer stays blank) and
+    // keeps later tab-bar page switches (posted via wxPostEvent) responsive.
+    if (!m_macos_pending_pump_timer.IsRunning())
+        m_macos_pending_pump_timer.Start(30);
+#endif
 
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << "recreate_GUI exit";
 }

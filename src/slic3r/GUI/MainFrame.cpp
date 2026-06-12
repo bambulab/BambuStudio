@@ -1370,6 +1370,15 @@ void MainFrame::init_tabpanel()
             m_web_device->NavigateTo("/filament_manager");
 #endif
         }
+#if defined(__WXOSX__)
+        // macOS root cause fix: suspend the Filament Manager WKWebView whenever it
+        // is not the visible tab. Its live React SPA, if left mounted in a hidden
+        // webview, keeps the CFRunLoop busy and starves wxEVT_IDLE app-wide, which
+        // freezes the 3D canvas / tab switching on the prepare page and breaks the
+        // language-switch GUI rebuild. Returning to the tab reloads it (NavigateTo).
+        if (m_web_device && panel != m_web_device)
+            m_web_device->Suspend();
+#endif
 #ifndef __APPLE__
         if (sel == tp3DEditor) {
             m_topbar->EnableUndoRedoItems();

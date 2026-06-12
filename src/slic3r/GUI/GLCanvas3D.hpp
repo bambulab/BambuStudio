@@ -844,6 +844,11 @@ public:
     void on_change_color_mode(bool is_dark, bool reinit = true);
     const bool get_dark_mode_status() { return m_is_dark; }
     void set_as_dirty();
+    // macOS: arm the render-fallback timer so a freshly shown/reloaded scene
+    // paints promptly even when wxEVT_IDLE is starved by a busy WKWebView tab.
+    // No-op on other platforms. Safe to call from outside the canvas (e.g. when
+    // switching tabs).
+    void kick_render_fallback();
     void requires_check_outside_state() { m_requires_check_outside_state = true; }
 
     bool is_in_same_model_object(const std::vector<int> volume_ids);
