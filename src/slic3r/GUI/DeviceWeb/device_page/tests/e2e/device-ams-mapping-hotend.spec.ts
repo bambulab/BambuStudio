@@ -27,6 +27,23 @@ test.describe('AMS mapping hotend popup', () => {
       .toBeVisible();
   });
 
+  test('cutter / pen tools render their own icon and are non-pickable', async ({ page }) => {
+    // Cutter-equipped rack position: forced into NozzleUnmatch by the backend,
+    // shows the "Cutter" label instead of dia / flow.
+    const cutter = page.getByTestId('ams-mapping-hotend-slot-128-6');
+    await expect(cutter).toBeVisible();
+    await expect(cutter).toHaveAttribute('data-state', 'NozzleUnmatch');
+    await expect(cutter.locator('.ams-map-hotend__nozzle-info__tool')).toHaveText('Cutter');
+    await expect(cutter.locator('.ams-map-hotend__nozzle-info__icon--tool')).toHaveCount(1);
+
+    // Pen / marker tool: same non-pickable treatment, "Pen" label.
+    const pen = page.getByTestId('ams-mapping-hotend-slot-128-7');
+    await expect(pen).toBeVisible();
+    await expect(pen).toHaveAttribute('data-state', 'NozzleUnmatch');
+    await expect(pen.locator('.ams-map-hotend__nozzle-info__tool')).toHaveText('Pen');
+    await expect(pen.locator('.ams-map-hotend__nozzle-info__icon--tool')).toHaveCount(1);
+  });
+
   test('reset button is wired to the bridge', async ({ page }) => {
     await expect(page.getByTestId('ams-mapping-hotend-reset')).toBeVisible();
     await page.getByTestId('ams-mapping-hotend-reset').click();

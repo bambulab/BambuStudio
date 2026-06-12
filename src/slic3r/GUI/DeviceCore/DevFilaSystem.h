@@ -241,6 +241,10 @@ public:
     // tray id
     int  GetTrayId(int slot_id) const; //same as tray_exist_bits
 
+    // Feed-hall presence for a given slot, read straight from tray_exist_bits.
+    // Reliable even when no tray object exists for an empty AMS bay.
+    bool IsAmsSlotPreLoadFilament(int slot_id) const;
+
     // mixed ams lite for N9
     bool IsAmsLiteMixed() const { return m_ams_type == DevAmsType::AMS_LITE_MIXED; }
 

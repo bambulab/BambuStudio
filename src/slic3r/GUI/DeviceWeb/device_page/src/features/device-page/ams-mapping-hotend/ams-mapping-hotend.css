@@ -283,6 +283,12 @@
   flex-shrink: 0;
 }
 
+/* Cutter / pen glyphs use an 18x24 viewBox (vs the nozzle's 12x24), so widen
+   the box to keep their aspect ratio instead of squishing them into 12px. */
+.ams-map-hotend__nozzle-info__icon--tool {
+  width: 18px;
+}
+
 .ams-map-hotend__nozzle-info__text {
   display: flex;
   flex-direction: column;
@@ -319,6 +325,18 @@
   color: var(--color-text-secondary);
   text-align: center;
   line-height: 32px;
+}
+
+/* Single-line label for cutter / pen tools. Same vertical rhythm as __empty so
+   the card footer height matches Normal / Unmatch siblings. */
+.ams-map-hotend__nozzle-info__tool {
+  font-size: 12px;
+  color: var(--color-text-primary);
+  text-align: center;
+  line-height: 32px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .ams-map-hotend__nozzle-na {

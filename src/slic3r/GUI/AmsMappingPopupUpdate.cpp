@@ -76,6 +76,10 @@ void AmsMapingPopup::update(MachineObject* obj,
 
     if (!obj) { return; }
 
+    // Default to an immediate show; the hotend-web reopen path re-arms the
+    // deferred (anti-flicker) show below. Legacy wx machines always show now.
+    m_defer_next_show = false;
+
     for (auto& ams_container : m_amsmapping_container_list) {
         ams_container->Destroy();
     }
@@ -728,6 +732,12 @@ void AmsMapingPopup::update_hotend_web(MachineObject* obj,
     // replaces it entirely for hotend-rack machines.
     m_scrolled_window->Show(false);
 
+    // First open builds the host and the React page loads fresh while hidden,
+    // so the immediate show is already flicker-free. Only a reopen (host alive,
+    // page mounted, stale DOM from the previous machine) needs the deferred,
+    // ack-gated show.
+    const bool first_build = (m_hotend_web_host == nullptr);
+
     // Lazily create the WebView host. Parent is the popup itself (this) so the
     // control lives outside m_scrolled_window. We insert it into m_sizer_main
     // right after the title panel (index 1).
@@ -753,8 +763,9 @@ void AmsMapingPopup::update_hotend_web(MachineObject* obj,
     }
     m_hotend_web_host->Show(true);
 
-    // Push the latest snapshot into the registered VM so the next state/get
-    // request from the React side returns the up-to-date payload.
+    // Push the latest snapshot into the registered VM. Refresh() force-pushes
+    // (bypassing the visibility gate) so the still-hidden but alive WebView can
+    // pre-render the new machine's data before the popup is shown.
     if (auto* vm = m_hotend_web_host->GetAmsMappingHotendVM()) {
         vm->Refresh(obj,
                     ams_mapping_result,
@@ -766,6 +777,11 @@ void AmsMapingPopup::update_hotend_web(MachineObject* obj,
                     send_win,
                     this,
                     std::nullopt);
+
+        // Record the session we just pushed and defer the show (reopen only)
+        // until the web acks it has rendered this session.
+        m_last_pushed_seq = vm->SessionSeq();
+        m_defer_next_show = !first_build;
     }
 
     Layout();

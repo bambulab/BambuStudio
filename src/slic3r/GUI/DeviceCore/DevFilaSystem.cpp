@@ -569,6 +569,27 @@ bool DevAms::IsExist() const
     return true;
 }
 
+
+bool DevAms::IsAmsSlotPreLoadFilament(int slot_id) const
+{
+    auto fila_sys = m_fila_system.lock();
+    if (!fila_sys) {
+        return false;
+    }
+
+    auto obj_ = fila_sys->GetOwner();
+    if (!obj_) {
+        return false;
+    }
+
+    int bit = GetTrayId(slot_id);
+    if (bit < 0) {
+        return false;
+    }
+
+    return DevUtil::get_flag_bits(obj_->tray_exist_bits, bit) != 0;
+}
+
 bool DevAms::SupportHumidityPercent() const
 {
     return (m_ams_type == DevAmsType::N3F) || (m_ams_type == DevAmsType::N3S) || (m_ams_type == DevAmsType::ZMULTI_A) || (m_ams_type == DevAmsType::ZMULTI_B);

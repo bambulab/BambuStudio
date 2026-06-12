@@ -33,8 +33,16 @@
 
 #include "DeviceTab/wgtDeviceNozzleSelect.h"
 #include "DeviceTab/wgtMsgPanel.h"
+#include "DeviceWeb/DeviceWebHost.hpp"
 
 namespace Slic3r { namespace GUI {
+
+// Distinct timer ids so the deferred-show fallback timer and the hotend-rack
+// poll timer route to their own handlers (both are owned by the popup).
+enum {
+    ID_AMS_SHOW_FALLBACK_TIMER = wxID_HIGHEST + 1,
+    ID_AMS_HOTEND_POLL_TIMER,
+};
 #define MATERIAL_ITEM_SIZE wxSize(FromDIP(65), FromDIP(50))
 #define MATERIAL_REC_WHEEL_SIZE wxSize(FromDIP(17), FromDIP(16))
 #define MAPPING_ITEM_REAL_SIZE wxSize(FromDIP(48), FromDIP(60))
@@ -818,6 +826,16 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
  {
      Bind(wxEVT_PAINT, &AmsMapingPopup::paintEvent, this);
 
+     // Fallback timer for the deferred (anti-flicker) hotend-rack show: if the
+     // web "rendered" ack never arrives, show the popup anyway after a short
+     // delay so it can never get stuck hidden.
+     m_show_fallback_timer.SetOwner(this, ID_AMS_SHOW_FALLBACK_TIMER);
+     Bind(wxEVT_TIMER, &AmsMapingPopup::OnShowFallbackTimer, this, ID_AMS_SHOW_FALLBACK_TIMER);
+
+     // Periodic refresh while the hotend-rack popup is shown (see handler).
+     m_hotend_poll_timer.SetOwner(this, ID_AMS_HOTEND_POLL_TIMER);
+     Bind(wxEVT_TIMER, &AmsMapingPopup::OnHotendPollTimer, this, ID_AMS_HOTEND_POLL_TIMER);
+
 #ifdef __APPLE__
      Bind(wxEVT_LEFT_UP, &AmsMapingPopup::on_left_down, this);
      Bind(wxEVT_MOTION, &AmsMapingPopup::on_mouse_move, this);
@@ -996,6 +1014,13 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
      Fit();
 
      Bind(wxEVT_SHOW, [this](wxShowEvent& e) {
+         // Drive the hotend-rack live refresh only while the popup is visible.
+         if (e.IsShown()) {
+             if (m_hotend_web_host) m_hotend_poll_timer.Start(500);
+         } else {
+             m_hotend_poll_timer.Stop();
+         }
+
          if (e.IsShown() && m_parent_item)
          {
              auto show_pos = m_parent_item->ClientToScreen(wxPoint(0, 0));
@@ -1067,6 +1092,53 @@ AmsMapingPopup::AmsMapingPopup(wxWindow *parent, bool use_in_sync_dialog) :
          }
      });
  }
+
+void AmsMapingPopup::Popup(wxWindow* focus)
+{
+    // Hotend-rack reopen: update_hotend_web() already pushed the new state into
+    // the (still hidden) WebView. Wait for the web "rendered" ack before showing
+    // so the first painted frame is the new machine's data, not the previous
+    // one. A fallback timer guarantees the popup still appears if no ack comes.
+    if (m_defer_next_show) {
+        m_defer_next_show  = false;
+        m_show_pending     = true;
+        m_pending_show_seq = m_last_pushed_seq;
+        m_show_fallback_timer.StartOnce(250);
+        return;
+    }
+
+    PopupWindow::Popup(focus);
+}
+
+void AmsMapingPopup::OnHotendWebRendered(std::uint32_t seq)
+{
+    if (!m_show_pending) return;
+    // Use >= so a later session's ack also releases an earlier pending show
+    // (e.g. the user clicked another filament item while still pending).
+    if (seq < m_pending_show_seq) return;
+
+    m_show_pending = false;
+    m_show_fallback_timer.Stop();
+    PopupWindow::Popup();
+}
+
+void AmsMapingPopup::OnShowFallbackTimer(wxTimerEvent& /*evt*/)
+{
+    if (!m_show_pending) return;
+    m_show_pending = false;
+    PopupWindow::Popup();
+}
+
+void AmsMapingPopup::OnHotendPollTimer(wxTimerEvent& /*evt*/)
+{
+    // Re-publish state only when the device data actually changed (the VM
+    // dedups) and only while shown (the host visibility gate). This catches the
+    // async device echo after a filament edit so the popup syncs on its own,
+    // matching how the device page refreshes via its Monitor poll. Without this
+    // the mapping popup has no channel to learn about the echo and stays stale
+    // until the user reopens it.
+    if (m_hotend_web_host) m_hotend_web_host->NotifyAmsMappingChanged();
+}
 
  void AmsMapingPopup::reset_ams_info()
  {
@@ -1256,6 +1328,10 @@ void AmsMapingPopup::on_mouse_move(wxMouseEvent &evt)
 
 void AmsMapingPopup::OnDismiss()
 {
+    // Stop the hotend-rack live-refresh poll on dismiss (wxEVT_SHOW also stops
+    // it on hide; this is a safety net for dismiss paths).
+    m_hotend_poll_timer.Stop();
+
 #ifdef __APPLE__
     if (m_tip_popup && m_tip_popup->IsShown ())
         m_tip_popup->Hide();

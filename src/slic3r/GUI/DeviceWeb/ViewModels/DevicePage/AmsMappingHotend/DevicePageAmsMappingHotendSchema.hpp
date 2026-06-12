@@ -66,6 +66,7 @@ namespace slot {
 namespace nozzle {
     inline constexpr const char* dia       = "dia";
     inline constexpr const char* flow_type = "flow_type";
+    inline constexpr const char* tool_kind = "tool_kind";   // values::tool_kind::*
 }
 
 // slot.sub_ams[] — sub-AMS group entry.
@@ -113,6 +114,15 @@ namespace color_type {
     inline constexpr const char* single   = "single";
     inline constexpr const char* multi    = "multi";
     inline constexpr const char* gradient = "gradient";
+}
+
+// slot.nozzle.tool_kind — kind of tool mounted on the rack position. Only a
+// printing nozzle can be matched to a filament; cutter/pen are rendered with
+// their own icon and forced into the non-pickable NozzleUnmatch state.
+namespace tool_kind {
+    inline constexpr const char* nozzle = "nozzle";
+    inline constexpr const char* cutter = "cutter";
+    inline constexpr const char* pen    = "pen";
 }
 
 } // namespace values

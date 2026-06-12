@@ -23,6 +23,9 @@
 #include <wx/artprov.h>
 #include <wx/wrapsizer.h>
 
+#include <wx/timer.h>
+#include <cstdint>
+
 #include "GUI_Utils.hpp"
 #include "wxExtensions.hpp"
 #include "DeviceManager.hpp"
@@ -290,6 +293,15 @@ public:
     AmsMapingPopup(wxWindow *parent,bool use_in_sync_dialog = false);
     ~AmsMapingPopup() {};
 
+    // Defer the show until the hotend-rack WebView acks it has rendered the
+    // freshly pushed state (anti-flicker on machine switch). Falls back to an
+    // immediate show on first open / legacy wx machines / ack timeout.
+    void Popup(wxWindow* focus = nullptr) wxOVERRIDE;
+
+    // Called (via the hotend mapping VM) when the web side reports it has
+    // committed the DOM for `seq`. Shows the deferred popup once seq catches up.
+    void OnHotendWebRendered(std::uint32_t seq);
+
     MaterialItem* m_parent_item{ nullptr };
 
     wxWindow* send_win{ nullptr };
@@ -415,6 +427,22 @@ private:
     // created. nullptr until the popup is first opened on a hotend-rack machine.
     DeviceWebHost*         m_hotend_web_host{nullptr};
     wxBoxSizer*            m_hotend_web_sizer{nullptr};
+
+    // Anti-flicker deferred-show state for the hotend-rack WebView. Set by
+    // update_hotend_web() on reopen so Popup() waits for the web "rendered"
+    // ack (or a fallback timeout) before showing the window.
+    bool                   m_defer_next_show{false};
+    bool                   m_show_pending{false};
+    std::uint32_t          m_last_pushed_seq{0};
+    std::uint32_t          m_pending_show_seq{0};
+    wxTimer                m_show_fallback_timer;
+    void                   OnShowFallbackTimer(wxTimerEvent& evt);
+
+    // Poll while the hotend-rack popup is shown so device echoes (incl. after a
+    // filament edit) re-publish fresh state without reopening the popup, the
+    // same way the device page stays in sync via its Monitor poll.
+    wxTimer                m_hotend_poll_timer;
+    void                   OnHotendPollTimer(wxTimerEvent& evt);
 
     // Last selection metadata staged by the hotend Web VM right before posting
     // EVT_SET_FINISH_MAPPING (so SelectMachine.cpp can recover ctype and

@@ -29,11 +29,24 @@ public:
         Cooling = 3
     };
 
+    // Tool mounted on this rack position. Derived from the device tool-id
+    // string's first character (see s_parse_nozzle_type): H = hotend (printing
+    // nozzle), C = cross cutter (sub type 'E' is a pen/marker), others (L/F/J)
+    // are not printing nozzles. Only Hotend can be matched to a filament.
+    enum class NozzleToolKind: int
+    {
+        Hotend = 0,
+        Cutter = 1,
+        Pen = 2,
+        Unknown = 3
+    };
+
 
     int             m_nozzle_id = -1;
     std::optional<int> m_addr_id;
     NozzleFlowType  m_nozzle_flow = NozzleFlowType::S_FLOW;// 0-common 1-high flow
     NozzleType      m_nozzle_type = NozzleType::ntUndefine;// 0-stainless_steel 1-hardened_steel 5-tungsten_carbide
+    NozzleToolKind  m_tool_kind = NozzleToolKind::Hotend;
     float           m_diameter = 0.4f;// 0.2mm  0.4mm  0.6mm 0.8mm
 
 public:
@@ -71,6 +84,8 @@ public:
     std::optional<int> GetAddrId() const { return m_addr_id; };
     NozzleType     GetNozzleType() const { return m_nozzle_type; }
     NozzleFlowType GetNozzleFlowType() const { return m_nozzle_flow; }
+    NozzleToolKind GetToolKind() const { return m_tool_kind; }
+    bool           IsHotend() const { return m_tool_kind == NozzleToolKind::Hotend; }
     NozzleDiameterType GetNozzleDiameterType() const;
     float          GetNozzleDiameter() const { return m_diameter; }
     float          GetNozzleWear() const { return m_wear; }

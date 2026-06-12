@@ -110,11 +110,16 @@ export function AmsMappingHotendPage() {
 
       <div className="ams-map-hotend-page__grid">
         {rows.map((row, rowIdx) => {
-          const isCentered = row === topSlots && topSlots.length > 0;
+          // Center every tier (not just the top one): the popup container can be
+          // wider than the widest row (e.g. a 7-slot machine whose bottom row has
+          // 4 cards), so a left-aligned bottom row would stick to the left while
+          // the centered top row floats in the middle. Centering both keeps the
+          // interleaved "brick" offset (the shorter top row naturally lands
+          // between the bottom cards) and stays balanced at any container width.
           return (
             <div key={rowIdx} className="ams-map-hotend-page__row-group">
               <div
-                className={`ams-map-hotend-page__row${isCentered ? ' ams-map-hotend-page__row--centered' : ''}`}
+                className="ams-map-hotend-page__row ams-map-hotend-page__row--centered"
               >
                 {row.map((slot) => (
                   <SlotCard

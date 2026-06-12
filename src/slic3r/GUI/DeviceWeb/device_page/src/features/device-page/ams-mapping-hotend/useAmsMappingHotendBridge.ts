@@ -136,6 +136,22 @@ export function useAmsMappingHotendBridge() {
     void refresh();
   }, [refresh]);
 
+  // Acknowledge to C++ once a real (session_seq > 0) state has been committed
+  // to the DOM. The popup defers its show until this ack so the window's first
+  // frame is the freshly pushed machine data (no stale-then-fresh flicker on
+  // machine switch). Runs after render commit, so the DOM is already updated.
+  const ackedSeqRef = useRef(-1);
+  useEffect(() => {
+    const seq = state.session_seq;
+    if (seq > 0 && seq !== ackedSeqRef.current) {
+      ackedSeqRef.current = seq;
+      void request<ReturnType<typeof makeBody>, BridgeResponseBody<AmsMappingHotendViewModel>>(
+        makeBody('action', 'rendered', { session_seq: seq }),
+        2000,
+      );
+    }
+  }, [state.session_seq, request]);
+
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail;

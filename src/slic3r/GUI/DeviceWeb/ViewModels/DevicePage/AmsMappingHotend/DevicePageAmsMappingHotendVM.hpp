@@ -62,8 +62,18 @@ public:
                  AmsMapingPopup*                      popup,
                  std::optional<PrintFromType>         print_from_type);
 
+    // Monotonic session counter, bumped on every Refresh(). The popup uses it
+    // to wait for the web side to acknowledge it has rendered the freshly
+    // pushed state before showing the window (anti-flicker on machine switch).
+    std::uint32_t SessionSeq() const { return m_session_seq; }
+
 private:
     nlohmann::json BuildState() const;
+
+    // Shared body for ReportState(). When `force` is true the report bypasses
+    // the host visibility gate (used by Refresh() to pre-render into a still
+    // hidden popup WebView).
+    void ReportStateImpl(const std::string& submod, const std::string& action, bool force);
 
     // Remap the bound AMS slot for the main hotend card.
     //

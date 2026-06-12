@@ -3,6 +3,7 @@
 #include "DevFilaSystem.h"
 #include "DevUtil.h"
 #include "DevNozzleSystem.h"
+#include "DevNozzleRack.h"
 
 // TODO: remove this include
 #include "slic3r/GUI/DeviceManager.hpp"
@@ -106,8 +107,11 @@ namespace Slic3r
         result.ams_id = std::to_string(ams_id);
         result.slot_id = std::to_string(slot_id);
 
-        if (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID)
+        if (ams_id == VIRTUAL_TRAY_MAIN_ID || ams_id == VIRTUAL_TRAY_DEPUTY_ID
+            || type == DevAmsType::EXT_SPOOL)
         {
+            // External spools (including the hotend-rack virtual trays that are
+            // not the legacy MAIN/DEPUTY ids) use the tray id directly.
             result.tray_id = atoi(tray.id.c_str());
             result.id = atoi(tray.id.c_str());
         }
@@ -148,6 +152,52 @@ namespace Slic3r
         return candidate.remain < picked.remain;
     }
 
+    // Collect every candidate for a hotend-rack machine (e.g. N1X, RackType_A/B):
+    // all ZMULTI internal AMS slots + all external spools (GetVirtualTrays),
+    // independent of map_opt. map_opt is extruder / AMS-toggle oriented and cannot
+    // express the rack's per-nozzle external spools, so the rack path bypasses it.
+    // The nozzle-compat gate (when check_nozzle_type) is still applied later in
+    // Step 2 against the per-slot nozzle recorded in tray_nozzles.
+    static void _collect_mapping_hotend_item_candidates(const MachineObject*                     obj,
+                                                        bool                                     check_nozzle_type,
+                                                        std::map<int, FilamentInfo>&             tray_filaments,
+                                                        std::map<int, std::optional<DevNozzle>>& tray_nozzles)
+    {
+        // (a) internal ZMULTI AMS slots
+        const auto& ams_list = obj->GetFilaSystem()->GetAmsList();
+        for (const auto& [ams_id_str, ams] : ams_list)
+        {
+            if (!ams)
+                continue;
+            const auto ams_type = ams->GetAmsType();
+            if (ams_type != DevAmsType::ZMULTI_A && ams_type != DevAmsType::ZMULTI_B)
+                continue;
+            for (const auto& [tray_id_str, tray] : ams->GetTrays())
+            {
+                if (!tray || !tray->is_tray_info_ready())
+                    continue;
+                FilamentInfo info;
+                _parse_tray_info(atoi(ams_id_str.c_str()), atoi(tray_id_str.c_str()), ams_type, *tray, info);
+                tray_filaments.emplace(info.id, info);
+                if (check_nozzle_type)
+                    tray_nozzles.emplace(info.id, _query_slot_nozzle(obj, tray));
+            }
+        }
+
+        // (b) all external spools (the hotend-rack ext spools live in the virtual
+        // tray map, not in MachineObject::vt_slot which only holds MAIN/DEPUTY)
+        for (const auto& [vt_id_str, vt] : obj->GetFilaSystem()->GetVirtualTrays())
+        {
+            if (!vt.is_tray_info_ready())
+                continue;
+            FilamentInfo info;
+            _parse_tray_info(atoi(vt_id_str.c_str()), 0, DevAmsType::EXT_SPOOL, vt, info);
+            tray_filaments.emplace(info.tray_id, info);
+            if (check_nozzle_type)
+                tray_nozzles.emplace(info.tray_id, _query_slot_nozzle(obj, &vt));
+        }
+    }
+
     int DevMappingUtil::ams_filament_mapping(const MachineObject* obj, const std::vector<FilamentInfo>& filaments, std::vector<FilamentInfo>& result,
                                              std::vector<bool> map_opt, std::vector<int> exclude_id, bool nozzle_has_ams_then_ignore_ext, bool check_nozzle_type)
     {
@@ -170,6 +220,18 @@ namespace Slic3r
         std::map<int, std::optional<DevNozzle>> tray_nozzles;
         bool  left_nozzle_has_ams = false, right_nozzle_has_ams = false;
 
+        const auto rack_type              = obj->GetNozzleRack()->GetRackType();
+        const bool is_mapping_hotend_item = (rack_type == DevNozzleRack::RackType_A ||
+                                             rack_type == DevNozzleRack::RackType_B);
+        if (is_mapping_hotend_item)
+        {
+            // Hotend-rack machines: include every internal AMS slot + external
+            // spool as a candidate via the dedicated collector. map_opt is not
+            // applicable to the rack's per-nozzle external spools.
+            _collect_mapping_hotend_item_candidates(obj, check_nozzle_type, tray_filaments, tray_nozzles);
+        }
+        else
+        {
         const auto& ams_list = obj->GetFilaSystem()->GetAmsList();
         for (auto ams = ams_list.begin(); ams != ams_list.end(); ams++)
         {
@@ -244,6 +306,7 @@ namespace Slic3r
                         tray_nozzles.emplace(info.tray_id, _query_slot_nozzle(obj, &tray));
                 }
             }
+        }
         }
 
         /////////////////////////

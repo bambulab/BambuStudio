@@ -738,15 +738,35 @@ static void s_parse_nozzle_type(const std::string& nozzle_type_str, DevNozzle& n
     }
     else if (nozzle_type_str.length() >= 4)
     {
-        const std::string& flow_type_str = nozzle_type_str.substr(1, 1);
-        if (_str2_nozzle_flow_type.count(flow_type_str) != 0)
+        // Tool-id format: [tool type][sub type][code], e.g. "HS01" / "CE00".
+        // First char selects the tool family: H = hotend (printing nozzle),
+        // C = cross cutter family, L = laser, F = fan, J = focus lens. Within
+        // the C family the device reports the transverse cutter as "CE.." and
+        // a pen/marker as any other C sub type.
+        const char         tool_type    = nozzle_type_str[0];
+        const std::string& sub_type_str = nozzle_type_str.substr(1, 1);
+        if (tool_type == 'C')
         {
-            nozzle.m_nozzle_flow = _str2_nozzle_flow_type[flow_type_str];
+            nozzle.m_tool_kind = (sub_type_str == "E") ? DevNozzle::NozzleToolKind::Cutter
+                                                       : DevNozzle::NozzleToolKind::Pen;
         }
-        const std::string& type_str = nozzle_type_str.substr(2, 2);
-        if (_str2_nozzle_type.count(type_str) != 0)
+        else if (tool_type == 'H')
         {
-            nozzle.m_nozzle_type = _str2_nozzle_type[type_str];
+            nozzle.m_tool_kind = DevNozzle::NozzleToolKind::Hotend;
+            if (_str2_nozzle_flow_type.count(sub_type_str) != 0)
+            {
+                nozzle.m_nozzle_flow = _str2_nozzle_flow_type[sub_type_str];
+            }
+            const std::string& type_str = nozzle_type_str.substr(2, 2);
+            if (_str2_nozzle_type.count(type_str) != 0)
+            {
+                nozzle.m_nozzle_type = _str2_nozzle_type[type_str];
+            }
+        }
+        else
+        {
+            // L/F/J or any other tool: not a printing nozzle.
+            nozzle.m_tool_kind = DevNozzle::NozzleToolKind::Unknown;
         }
     }
     else if (nozzle_type_str == "N/A")

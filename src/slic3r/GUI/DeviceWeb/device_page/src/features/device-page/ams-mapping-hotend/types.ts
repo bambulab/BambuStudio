@@ -27,9 +27,16 @@ export type AmsMappingHotendSlotState =
 
 export type AmsMappingHotendColorType = 'single' | 'multi' | 'gradient';
 
+// Kind of tool mounted on the rack position. Only a printing nozzle can be
+// matched to a filament; cutter/pen carry their own icon and are forced into a
+// non-pickable NozzleUnmatch state by the backend. Optional for backward
+// compatibility — a missing value is treated as a regular nozzle.
+export type AmsMappingHotendToolKind = 'nozzle' | 'cutter' | 'pen';
+
 export interface AmsMappingHotendNozzleInfo {
   dia: string;        // e.g. "0.4 mm"
   flow_type: string;  // e.g. "Standard"
+  tool_kind?: AmsMappingHotendToolKind;
 }
 
 // Display vs. selectability are decoupled on purpose:

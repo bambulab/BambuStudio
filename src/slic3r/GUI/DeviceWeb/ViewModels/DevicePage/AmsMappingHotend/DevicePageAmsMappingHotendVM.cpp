@@ -75,21 +75,18 @@ std::string slot_state_to_string(HotendSlotState s)
     return SV::slot_state::normal;
 }
 
-// Final pickability rule for the *main* slot card. The all-ext mode only
-// relaxes the material dimension (Material*); the nozzle / hardware
-// dimension stays strict in every mode.
+// Final pickability rule for the *main* slot card. A slot is pickable only
+// when fully matched (state == Normal): nozzle present, nozzle spec matches,
+// filament present and material matches. This holds in every mode, including
+// all-ext (external spool): a mismatched or empty external spool is no longer
+// selectable, matching the rack-AMS / sub-slot behavior. The is_all_ext flag
+// is kept on the signature for the caller but no longer relaxes anything.
 //
-// Sub-slot cards do NOT use this helper — they enforce the stricter rule
+// Sub-slot cards do NOT use this helper — they enforce the same strict rule
 // `state == Normal` directly (see BuildSlotJson sub_slot loop).
-bool ComputePickable(HotendSlotState state, bool is_all_ext)
+bool ComputePickable(HotendSlotState state, bool /*is_all_ext*/)
 {
-    if (state == HotendSlotState::Normal) return true;
-    if (is_all_ext) {
-        return state == HotendSlotState::MaterialUnmatch ||
-               state == HotendSlotState::MaterialEmpty;
-        // NozzleUnmatch / NozzleEmpty / Unavailable are never relaxed.
-    }
-    return false;
+    return state == HotendSlotState::Normal;
 }
 
 // Whether a slot exposes the inline edit (pencil) entry that re-uses the
@@ -106,6 +103,10 @@ bool ComputePickable(HotendSlotState state, bool is_all_ext)
 bool ComputeCanEdit(MachineObject* obj, const TrayData& td)
 {
     if (!obj || td.type == EMPTY) return false;
+    // External spool (virtual slot) is always editable: it has no physical AMS
+    // bay behind it, so the user can always (re-)assign its filament info even
+    // when the device reports it as a BBL spool.
+    if (td.ams_type == DevAmsType::EXT_SPOOL) return true;
     auto tray_opt = obj->get_tray(td.ams_id, td.slot_id);
     if (!tray_opt.has_value()) return false;
     return !DevFilaSystem::IsBBL_Filament(tray_opt->tag_uid);
@@ -147,6 +148,11 @@ nlohmann::json DevicePageAmsMappingHotendVM::OnCommand(const std::string& submod
 
 void DevicePageAmsMappingHotendVM::ReportState(const std::string& submod, const std::string& action)
 {
+    ReportStateImpl(submod, action, /*force=*/false);
+}
+
+void DevicePageAmsMappingHotendVM::ReportStateImpl(const std::string& submod, const std::string& action, bool force)
+{
     if (!m_bridge) return;
     nlohmann::json state = BuildState();
     // Device data may contain non-UTF-8 bytes; strict dump() throws
@@ -163,7 +169,11 @@ void DevicePageAmsMappingHotendVM::ReportState(const std::string& submod, const 
     }
 
     m_last_report_state = state_key;
-    m_bridge->ReportMsg(MakeResponse(GetModule(), submod, action, 0, "", state));
+    if (force) {
+        m_bridge->ReportMsgForce(MakeResponse(GetModule(), submod, action, 0, "", state));
+    } else {
+        m_bridge->ReportMsg(MakeResponse(GetModule(), submod, action, 0, "", state));
+    }
 }
 
 void DevicePageAmsMappingHotendVM::OnSysColorChanged()
@@ -201,8 +211,14 @@ void DevicePageAmsMappingHotendVM::Refresh(MachineObject*                       
     // Force-push the latest state to the web side. Skip diff suppression
     // here because external context (e.g. current_filament_id flipping)
     // can produce identical JSON yet still requires a refresh on selection.
+    //
+    // force=true bypasses the host visibility gate: Refresh() runs before the
+    // popup window is shown, so a gated report would be dropped (and would
+    // poison m_last_report_state). Pushing into the still-hidden but alive
+    // WebView lets it pre-render the new machine's data; the popup waits for
+    // the web "rendered" ack before showing, eliminating the switch flicker.
     m_last_report_state.clear();
-    ReportState("state", "refresh");
+    ReportStateImpl("state", "refresh", /*force=*/true);
 }
 
 std::pair<int, int> DevicePageAmsMappingHotendVM::RemapMainCardSlot(MachineObject*             obj,
@@ -301,10 +317,16 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildState() const
         std::map<int, std::optional<std::pair<int, int>>> preload_slots;
         const auto& total_nozzles = obj->GetNozzleRack()->GetTotalRackNozzlePosSet();
         for (const auto& nozzle_pos : total_nozzles) {
-            // Resolve by stable addr_id: when this rack nozzle is picked up by
-            // an extruder its id becomes 0, so a pos-based lookup would only hit
-            // an empty placeholder.
+            // Resolve by stable addr_id first: when this rack nozzle is picked up
+            // by an extruder its id becomes 0, so an addr lookup stays correct.
+            // Fall back to a pos-based lookup so the parser-filled none-exist rack
+            // placeholders (which carry no addr_id but still hold the feed binding
+            // from sTraverseBindAmsSlot) are not dropped — that drop was the root
+            // cause of empty rack positions silently vanishing from the popup.
             auto rack_nozzle_opt = obj->GetNozzleSystem()->GetNozzleOptByAddrId(nozzle_pos - 0x10);
+            if (!rack_nozzle_opt.has_value()) {
+                rack_nozzle_opt = obj->GetNozzleSystem()->GetNozzleOptByPosId(nozzle_pos);
+            }
             if (!rack_nozzle_opt.has_value()) {
                 nozzle_slots[nozzle_pos] = std::nullopt;
                 preload_slots[nozzle_pos] = std::nullopt;
@@ -348,22 +370,94 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildState() const
 
         for (int nozzle_pos : nozzle_positions) {
             auto& slot_opt = nozzle_slots[nozzle_pos];
-            if (!slot_opt.has_value()) continue;
-            auto opt_tray = obj->get_tray(slot_opt->first, slot_opt->second);
-            if (!opt_tray.has_value()) continue;
-            DevAmsTray tray_copy = *opt_tray;
-            DevAms* ams_ptr = nullptr;
-            std::string ams_id_str = std::to_string(slot_opt->first);
-            if (!obj->GetFilaSystem()->GetVirtualTray(slot_opt->first).has_value()) {
-                auto it = ams_list.find(ams_id_str);
-                if (it != ams_list.end()) ams_ptr = it->second;
+
+            // Slot display rule (per product spec):
+            //   * no binding (m_bind_ams_slots empty)                   -> EMPTY.
+            //   * AMS slot, feed-hall absent (tray_exist_bits bit = 0)  -> EMPTY.
+            //   * AMS slot, feed-hall present + readable info           -> NORMAL.
+            //   * AMS slot, feed-hall present + no readable info        -> THIRD ("?").
+            //   * external spool / virtual slot                        -> "always
+            //     loaded": NORMAL when readable, else THIRD ("?"), never EMPTY.
+            // m_bind_ams_slots can stay non-empty on an N1x AMS even when the bay
+            // has no filament fed, so the feed-hall presence bit (tray_exist_bits)
+            // is the authoritative loaded/empty gate for AMS slots. It is read via
+            // DevAms::IsAmsSlotPreLoadFilament, which works even when no tray object
+            // exists for an empty bay (the case where get_tray returns nullopt).
+            std::optional<TrayData> td_opt;
+            if (slot_opt.has_value()) {
+                DevAms* ams_ptr = nullptr;
+                std::string ams_id_str = std::to_string(slot_opt->first);
+                const bool is_vt = obj->GetFilaSystem()->GetVirtualTray(slot_opt->first).has_value();
+                if (!is_vt) {
+                    auto it = ams_list.find(ams_id_str);
+                    if (it != ams_list.end()) ams_ptr = it->second;
+                }
+
+                // External-spool / virtual slots are always considered loaded;
+                // AMS slots are gated by the feed-hall presence bit.
+                const bool ams_loaded =
+                    is_vt ? true
+                          : (ams_ptr ? ams_ptr->IsAmsSlotPreLoadFilament(slot_opt->second) : false);
+
+                if (!is_vt && !ams_loaded) {
+                    // Physically empty AMS bay: render an AMS-typed EMPTY card so
+                    // the slot keeps its real identity (do NOT fall through to "?").
+                    TrayData empty_td;
+                    empty_td.type     = EMPTY;
+                    empty_td.colour   = wxColour(0xCE, 0xCE, 0xCE);
+                    empty_td.ams_id   = slot_opt->first;
+                    empty_td.slot_id  = slot_opt->second;
+                    empty_td.ams_type = ams_ptr ? ams_ptr->GetAmsType() : DevAmsType::AMS;
+                    empty_td.id       = ams_ptr ? ams_ptr->GetTrayId(empty_td.slot_id)
+                                                : empty_td.slot_id;
+                    td_opt = empty_td;
+                } else {
+                    if (auto opt_tray = obj->get_tray(slot_opt->first, slot_opt->second)) {
+                        DevAmsTray tray_copy = *opt_tray;
+                        td_opt = MakeTrayData(obj, ams_ptr, &tray_copy, ams_id_str);
+                    }
+
+                    // Loaded but no usable tray data: show as third-party "?"
+                    // instead of an empty card. Covers a loaded bay whose tray
+                    // object is missing (get_tray miss -> MakeTrayData nullopt) or
+                    // carries no readable filament info (MakeTrayData EMPTY).
+                    if (!td_opt.has_value() || td_opt->type == EMPTY) {
+                        TrayData third_td;
+                        third_td.type    = THIRD;
+                        third_td.colour  = wxColour(0xCE, 0xCE, 0xCE);
+                        third_td.ams_id  = slot_opt->first;
+                        if (is_vt) {
+                            third_td.ams_type = DevAmsType::EXT_SPOOL;
+                            third_td.slot_id  = 0;
+                            third_td.id       = third_td.ams_id;
+                        } else {
+                            third_td.slot_id  = slot_opt->second;
+                            third_td.ams_type = ams_ptr ? ams_ptr->GetAmsType() : DevAmsType::AMS;
+                            third_td.id       = ams_ptr ? ams_ptr->GetTrayId(third_td.slot_id)
+                                                        : third_td.slot_id;
+                        }
+                        td_opt = third_td;
+                    }
+                }
             }
-            auto td_opt = MakeTrayData(obj, ams_ptr, &tray_copy, ams_id_str);
-            if (td_opt.has_value()) {
-                hotend_trays.push_back(td_opt.value());
-                hotend_preload_slots.push_back(preload_slots[nozzle_pos]);
-                hotend_nozzle_positions.push_back(nozzle_pos);
+
+            // No binding at all (m_bind_ams_slots empty): the only case that
+            // renders an EMPTY placeholder. We still keep the card (never drop a
+            // rack position) so the popup mirrors the device page.
+            if (!td_opt.has_value()) {
+                TrayData empty_td;
+                empty_td.type     = EMPTY;
+                empty_td.colour   = wxColour(0xCE, 0xCE, 0xCE);
+                empty_td.ams_id   = 255 - nozzle_pos + 16; // external-spool id for this pos
+                empty_td.slot_id  = 0;
+                empty_td.ams_type = DevAmsType::EXT_SPOOL;
+                empty_td.id       = empty_td.ams_id;
+                td_opt = empty_td;
             }
+
+            hotend_trays.push_back(td_opt.value());
+            hotend_preload_slots.push_back(preload_slots[nozzle_pos]);
+            hotend_nozzle_positions.push_back(nozzle_pos);
         }
     } else if (!has_zmulti) {
         hotend_trays = CollectVirtualTrayData(obj);
@@ -452,7 +546,12 @@ SlotJudgement DevicePageAmsMappingHotendVM::ResolveSlotJudgement(MachineObject* 
     // resolved — in both cases we leave nozzle_match=true to avoid false
     // mismatches on missing data.
     j.nozzle_match = true;
-    if (j.has_nozzle && expected_nozzle.valid) {
+    if (j.has_nozzle && !nz->IsHotend()) {
+        // A cutter / pen / non-printing tool can never accept a filament, so it
+        // is always a nozzle mismatch (and thus non-pickable) regardless of the
+        // slicing spec.
+        j.nozzle_match = false;
+    } else if (j.has_nozzle && expected_nozzle.valid) {
         if (!is_approx(nz->GetNozzleDiameter(), expected_nozzle.diameter)) {
             j.nozzle_match = false;
         } else if (expected_nozzle.flow != NozzleFlowType::NONE_FLOWTYPE &&
@@ -570,8 +669,8 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildSlotJson(MachineObject*       
     // judgement and for every sub-AMS slot below — sub-AMS trays don't carry
     // a direct nozzle pos binding, they inherit from the parent hotend.
     SlotJudgement j = ResolveSlotJudgement(obj, td, expected_nozzle, parent_nz);
-    // Main card pickability: all-ext relaxes Material* but still enforces
-    // Nozzle* / Unavailable strictly (see ComputePickable).
+    // Main card pickability: strictly Normal-only in every mode (external
+    // spool included) — see ComputePickable.
     j.is_pickable = ComputePickable(j.state, is_all_ext);
 
     wxColour display_color =
@@ -623,13 +722,21 @@ nlohmann::json DevicePageAmsMappingHotendVM::BuildSlotJson(MachineObject*       
     // rack position rather than reverse-deriving via `tray->get_nozzle_pos_id`,
     // which fails on AMS sub-slots bound directly to a hotend rack.
     if (parent_nz.has_value() && parent_nz->IsExist()) {
+        namespace SV = AmsMappingHotendSchema::values;
         wxString dia = wxString::Format("%.1f mm", parent_nz->GetNozzleDiameter());
         wxString flow = wxString::FromUTF8(
             DevNozzle::ToNozzleVolumeString(
                 DevNozzle::ToNozzleVolumeType(parent_nz->GetNozzleFlowType())));
+        const char* tool_kind = SV::tool_kind::nozzle;
+        switch (parent_nz->GetToolKind()) {
+        case DevNozzle::NozzleToolKind::Cutter: tool_kind = SV::tool_kind::cutter; break;
+        case DevNozzle::NozzleToolKind::Pen:    tool_kind = SV::tool_kind::pen;    break;
+        default:                                tool_kind = SV::tool_kind::nozzle; break;
+        }
         slot[SK::slot::nozzle] = {
             {SK::nozzle::dia,       dia.ToUTF8().data()},
-            {SK::nozzle::flow_type, flow.ToUTF8().data()}
+            {SK::nozzle::flow_type, flow.ToUTF8().data()},
+            {SK::nozzle::tool_kind, tool_kind}
         };
     }
 
@@ -742,6 +849,16 @@ nlohmann::json DevicePageAmsMappingHotendVM::HandleAction(const std::string& act
         // The popup is owned by SelectMachineDialog; it listens to the same
         // EVT_SET_FINISH_MAPPING / focus loss machinery, so just refresh
         // the cached state. Actual Dismiss() is driven by the popup layer.
+    } else if (action == "rendered") {
+        // The web side acks that it has committed the DOM for a given session.
+        // The popup defers its show until this arrives so the window's first
+        // frame is the new machine's data (no stale-then-fresh flicker).
+        namespace SK = AmsMappingHotendSchema::keys;
+        const std::uint32_t seq = payload.value(SK::root::session_seq, 0u);
+        if (m_popup) {
+            auto* popup = m_popup;
+            wxGetApp().CallAfter([popup, seq]() { popup->OnHotendWebRendered(seq); });
+        }
     }
 
     return MakeResponse(GetModule(), "action", action, 0, "", BuildState());
