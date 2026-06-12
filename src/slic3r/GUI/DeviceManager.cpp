@@ -4216,6 +4216,13 @@ DevAmsTray MachineObject::parse_vt_tray(json vtray)
         else {
             vt_tray.remain = -1;
         }
+
+        if (vtray.contains("remain_g")) {
+            vt_tray.remain_g = vtray["remain_g"].get<int>();
+        }
+        else {
+            vt_tray.remain_g = -1;
+        }
     }
 
     if (vt_tray.id == VIRTUAL_AMS_MAIN_ID_STR) {

@@ -115,6 +115,15 @@ std::optional<Slic3r::DevFilamentDryingPreset> DevAmsTray::get_ams_drying_preset
 
 std::optional<int> DevAmsTray::get_filament_remain_weight() const
 {
+    // Prefer the accurate per-gram value reported by firmware; -1 means not edited/not provided.
+    if (remain_g >= 0) {
+        return remain_g > 0 ? std::optional<int>(remain_g) : std::nullopt;
+    }
+
+    if (weight.empty()) {
+        return std::nullopt;
+    }
+
     std::optional<int> weight_int;
     try {
         weight_int = stoi(weight) * remain / 100;
@@ -788,6 +797,7 @@ DevAmsTray* DevFilaSystemParser::ParseAmsTrayInfo(const json& j_tray, MachineObj
     DevJsonValParser::ParseVal(j_tray, "tray_uuid", curr_tray->uuid, std::string("0"));
     DevJsonValParser::ParseVal(j_tray, "tray_id_name", curr_tray->tray_id_name);
     DevJsonValParser::ParseVal(j_tray, "remain", curr_tray->remain, -1);
+    DevJsonValParser::ParseVal(j_tray, "remain_g", curr_tray->remain_g, -1);
     DevJsonValParser::ParseVal(j_tray, "setting_id", curr_tray->filament_setting_id);
 
     {
