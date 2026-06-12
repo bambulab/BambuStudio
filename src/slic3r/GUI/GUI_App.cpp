@@ -116,6 +116,7 @@
 #include "ModelMall.hpp"
 #include "HintNotification.hpp"
 #include "BBLUtil.hpp"
+#include "fila_manager/wgtFilaManagerFeature.h"
 
 //#ifdef WIN32
 //#include "BaseException.h"
@@ -173,15 +174,6 @@ namespace Slic3r {
 namespace GUI {
 
 class MainFrame;
-
-static bool is_env_flag_enabled(const wxString& name)
-{
-    wxString value;
-    if (!wxGetEnv(name, &value))
-        return false;
-    value.Trim(true).Trim(false).MakeLower();
-    return value == "1" || value == "true" || value == "on" || value == "yes";
-}
 
 void start_ping_test()
 {
@@ -3295,9 +3287,15 @@ bool GUI_App::on_init_inner()
     // Let the libslic3r know the callback, which will translate messages on demand.
     Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
 
-    m_disable_fila_manager = is_env_flag_enabled(wxS("STUDIO_DISABLE_FILA_MANAGER"));
+#ifdef __APPLE__
+    constexpr bool is_macos = true;
+#else
+    constexpr bool is_macos = false;
+#endif
+    m_disable_fila_manager = is_fila_manager_disabled_by_config(
+        app_config->get(FilaManagerEnabledConfigKey), is_macos);
     if (m_disable_fila_manager) {
-        BOOST_LOG_TRIVIAL(info) << "Filament Manager disabled by STUDIO_DISABLE_FILA_MANAGER";
+        BOOST_LOG_TRIVIAL(info) << "Filament Manager disabled by " << FilaManagerEnabledConfigKey;
     } else {
         // Initialize Filament Manager store & sync
         if (!m_fila_manager_store) {

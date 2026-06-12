@@ -5453,6 +5453,12 @@ msgstr "项目"
 msgid "Filament Manager"
 msgstr "耗材管理"
 
+msgid "Take effect after restarting Studio"
+msgstr "重启 Studio 后生效"
+
+msgid "The Filament Manager is turned off by default on macOS because compatibility issues on some systems may cause the application to become unresponsive."
+msgstr "耗材管理器在 macOS 上默认关闭，因为部分系统可能存在兼容性问题，导致应用程序无响应。"
+
 msgid "Yes"
 msgstr "是"
 
