@@ -1508,7 +1508,14 @@ static inline ExPolygons detect_overhangs(
             if (diff_polygons.empty() || offset(diff_polygons, -0.1 * fw).empty())
                 continue;
 
-            if (xy_expansion != 0) { diff_polygons = expand(diff_polygons, xy_expansion, SUPPORT_SURFACES_OFFSET_PARAMETERS); }
+            if (xy_expansion > 0) {
+                // Step-wise expand and diff against the lower layer outline so that the expansion
+                // cannot bridge over thin model walls into regions that don't actually need support.
+                diff_polygons = safe_offset_inc(diff_polygons, xy_expansion, lower_layer_polygons,
+                                                scale_(0.5), 0, 1);
+            } else if (xy_expansion < 0) {
+                diff_polygons = expand(diff_polygons, xy_expansion, SUPPORT_SURFACES_OFFSET_PARAMETERS);
+            }
 
             polygons_append(overhang_polygons, diff_polygons);
         } // for each layer.region
@@ -1636,7 +1643,14 @@ static inline std::tuple<Polygons, Polygons, double> detect_contacts(
                         slices_margin.polygons);
                 }
 #else
-                diff_polygons = diff(offset(diff_polygons, xy_expansion), slices_margin.polygons);
+                if (xy_expansion > 0) {
+                    // Step-wise expand against slices_margin (lower layer outline + gap_xy) so that the
+                    // expansion cannot bridge over thin model walls into regions that don't need support.
+                    diff_polygons = safe_offset_inc(diff_polygons, xy_expansion, slices_margin.polygons,
+                                                    scale_(0.5), 0, 1);
+                } else {
+                    diff_polygons = diff(offset(diff_polygons, xy_expansion), slices_margin.polygons);
+                }
 #endif
             }
             polygons_append(contact_polygons, diff_polygons);
