@@ -31,6 +31,13 @@ public:
     void LoadUrl();
     void NavigateTo(const std::string& path);
 
+    // Suspend tears down the live web document (loads about:blank) so the WKWebView
+    // stops driving the run loop while this tab is hidden. On macOS a live React SPA
+    // left mounted in a hidden WKWebView keeps the CFRunLoop busy and starves
+    // wxEVT_IDLE app-wide, freezing the OpenGL canvas and tab switching on other
+    // pages. NavigateTo() (called when the tab is shown again) reloads the page.
+    void Suspend();
+
     void NotifyFilamentSessionState();
     void NotifyFilamentMachineChanged();
 
@@ -55,6 +62,7 @@ private:
     bool                              m_allow_lazy{false};   // deferred construction enabled
     bool                              m_built{false};        // has EnsureBuilt() run?
     bool                              m_just_built{false};   // skip next NavigateTo after lazy init
+    bool                              m_suspended{false};    // web document torn down (about:blank) while hidden
     PrinterWebView*                   m_device_webview{ nullptr }; // owned by wx parent
     std::unique_ptr<DeviceHttpServer> m_device_http_server;
     std::unique_ptr<DeviceWebBridge>  m_device_web_bridge;

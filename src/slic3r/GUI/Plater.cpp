@@ -11600,6 +11600,20 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
 
     current_panel->SetFocusFromKbd();
 
+#ifdef __WXMAC__
+    // STUDIO-18472: the newly shown canvas marks itself dirty and expects its
+    // first frame (incl. the scene reloaded above) to be drawn from wxEVT_IDLE.
+    // After the Filament Manager WKWebView churn idle is starved on macOS, so the
+    // tab would otherwise stay blank for a few seconds. Arm the render-fallback
+    // timer so it paints promptly; it stands down once real idle resumes.
+    if (current_panel == view3D)
+        view3D->get_canvas3d()->kick_render_fallback();
+    else if (current_panel == preview)
+        preview->get_canvas3d()->kick_render_fallback();
+    else if (current_panel == assemble_view)
+        assemble_view->get_canvas3d()->kick_render_fallback();
+#endif // __WXMAC__
+
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": successfully, exit");
 }
 

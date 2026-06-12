@@ -28,6 +28,7 @@
 #include "slic3r/GUI/GLEnums.hpp"
 
 #include <wx/app.h>
+#include <wx/timer.h>
 #include <wx/colour.h>
 #include <wx/font.h>
 #include <wx/string.h>
@@ -270,6 +271,20 @@ private:
     bool            m_app_conf_exists{ false };
     EAppMode        m_app_mode{ EAppMode::Editor };
     bool            m_is_recreating_gui{ false };
+#if defined(__WXOSX__)
+    // STUDIO-18472: after the Filament Manager WKWebView has churned (tab visit +
+    // language-switch GUI rebuilds) macOS stops reliably waking the run loop to
+    // dispatch wx pending events (wxQueueEvent / wxPostEvent). This strands
+    // deferred actions: the post-rebuild project restore (blank prepare canvas)
+    // and the top tab-bar page switches (ButtonsListCtrl posts the selection via
+    // wxPostEvent -> tab clicks appear dead) until some unrelated wakeup occurs.
+    // A wxTimer is backed by a CFRunLoopTimer that fires regardless of run-loop
+    // state, so we use it to drain the pending-event queue ourselves. Armed once
+    // a rebuild has happened and left running for the session; the
+    // HasPendingEvents() guard keeps the idle cost negligible.
+    wxTimer         m_macos_pending_pump_timer;
+    void            on_macos_pending_pump(wxTimerEvent& evt);
+#endif
 #ifdef __linux__
     bool            m_opengl_initialized{ false };
 #endif

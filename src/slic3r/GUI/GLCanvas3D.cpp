@@ -1682,6 +1682,21 @@ void GLCanvas3D::set_as_dirty()
     m_dirty = true;
 }
 
+void GLCanvas3D::kick_render_fallback()
+{
+#if defined(__WXOSX__)
+    // STUDIO-18472: when a canvas is brought to front by a tab switch its first
+    // frame (and the scene loaded by reload_print/do_reslice) is normally drawn
+    // from wxEVT_IDLE. After the Filament Manager WKWebView churn idle is starved
+    // on macOS, so the Preview tab stays blank for a few seconds until idle
+    // finally fires. Mark dirty and arm the CFRunLoopTimer-backed fallback so the
+    // freshly loaded scene paints promptly; on_idle() stops it as soon as real
+    // idle resumes.
+    m_dirty = true;
+    _ensure_render_fallback_running();
+#endif
+}
+
 const float GLCanvas3D::get_scale() const
 {
 #if ENABLE_RETINA_GL

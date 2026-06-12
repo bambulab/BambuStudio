@@ -150,13 +150,29 @@ void DeviceWebHost::NavigateTo(const std::string& path)
 
     // Skip navigation immediately after lazy init: LoadUrl() already loaded
     // the correct URL with the right hash; running JS before the page is ready
-    // causes a white screen.
-    if (m_just_built) {
+    // causes a white screen. (But if we were suspended to about:blank we must
+    // reload regardless.)
+    if (m_just_built && !m_suspended) {
         m_just_built = false;
         return;
     }
 
+    // Showing the tab again reloads the real document, which also resumes the
+    // WKWebView from a suspended (about:blank) state.
+    m_suspended = false;
     m_device_webview->load_url(BuildUrl(path));
+}
+
+void DeviceWebHost::Suspend()
+{
+    // Nothing running yet if the webview was never built, or already suspended.
+    if (!m_device_webview || m_suspended)
+        return;
+
+    m_suspended = true;
+    // Replace the live React SPA with an empty document so the WKWebView stops
+    // animating/compositing/running timers and lets the macOS run loop go idle.
+    m_device_webview->load_url("about:blank");
 }
 
 bool DeviceWebHost::CanReportToWeb() const
