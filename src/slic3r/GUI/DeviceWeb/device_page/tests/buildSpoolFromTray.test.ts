@@ -31,6 +31,8 @@
 //      with the spool_id stamped on.
 
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   buildSpoolFromTray,
   partitionTraysForBatchCreate,
@@ -74,7 +76,10 @@ const unit: AmsUnit = {
 const rfidTray: AmsTray = {
   slot_id: '0',
   is_exists: true,
-  tag_uid: 'TAG-ABCDEF',
+  // Web payload tag_uid is the cloud RFID value sourced from tray_uuid after
+  // C++ has judged the original device tag_uid as official BBL filament.
+  tag_uid: 'TRAY-UUID-0001',
+  tray_id_name: 'A01-D03',
   setting_id: 'GFA00',
   fila_type: 'PLA',
   sub_brands: 'Bambu Lab',
@@ -104,7 +109,7 @@ const thirdPartyTray: AmsTray = {
 const multiHexTray: AmsTray = {
   slot_id: '2',
   is_exists: true,
-  tag_uid: 'TAG-MULTI01',
+  tag_uid: 'TRAY-UUID-0002',
   setting_id: 'GFA00',
   fila_type: 'PLA',
   sub_brands: 'Bambu Lab',
@@ -131,17 +136,39 @@ const existingSpool: Spool = {
   favorite: false,
   entry_method: 'ams_sync',
   note: '',
-  tag_uid: 'TAG-ABCDEF',
+  tag_uid: 'TRAY-UUID-0001',
   setting_id: 'GFA00',
 };
 
 const otherSpool: Spool = {
   ...existingSpool,
   spool_id: 'sp-other',
-  tag_uid: 'TAG-OTHER',
+  tag_uid: 'TRAY-UUID-0003',
 };
 
 const spools: Spool[] = [existingSpool, otherSpool];
+
+// C++ AMS payload contract: swagger still names the RFID identity `tag_uid`,
+// but it must be sourced from DevAmsTray::uuid, which carries device
+// `tray_uuid`, not from DevAmsTray::tag_uid.
+const vmSource = fs.readFileSync(
+  path.resolve(process.cwd(), '../ViewModels/FilamentManager/FilamentManagerVM.cpp'),
+  'utf8',
+);
+const filaSystemSource = fs.readFileSync(
+  path.resolve(process.cwd(), '../../DeviceCore/DevFilaSystem.cpp'),
+  'utf8',
+);
+const cloudSyncSource = fs.readFileSync(
+  path.resolve(process.cwd(), '../../fila_manager/wgtFilaManagerCloudSync.cpp'),
+  'utf8',
+);
+assert.match(vmSource, /t\["tag_uid"\]\s*=\s*normalize_ams_rfid_for_web\(tray->uuid,\s*tray->tag_uid\)\s*;/);
+assert.doesNotMatch(vmSource, /t\["tag_uid"\]\s*=\s*tray->tag_uid\s*;/);
+assert.match(vmSource, /tag_uid\.size\(\)\s*==\s*16\s*&&\s*tag_uid\.substr\(12,\s*2\)\s*==\s*"01"/);
+assert.match(vmSource, /t\["tray_id_name"\]\s*=\s*tray->tray_id_name\s*;/);
+assert.match(filaSystemSource, /ParseVal\(j_tray,\s*"tray_id_name",\s*curr_tray->tray_id_name/);
+assert.match(cloudSyncSource, /j\["trayIdName"\]\s*=\s*s\.tray_id_name\s*;/);
 
 // ---- 1. RFID tray + setting_id resolves the preset ----
 
@@ -164,7 +191,8 @@ assert.equal(built1.payload.brand, 'Bambu Lab');
 assert.equal(built1.payload.material_type, 'PLA');
 assert.equal(built1.payload.series, 'PLA Basic');
 assert.equal(built1.payload.color_code, '#FF8800');
-assert.equal(built1.payload.tag_uid, 'TAG-ABCDEF');
+assert.equal(built1.payload.tag_uid, 'TRAY-UUID-0001');
+assert.equal(built1.payload.tray_id_name, 'A01-D03');
 assert.equal(built1.payload.setting_id, 'GFA00');
 assert.equal(built1.payload.entry_method, 'ams_sync');
 assert.equal(built1.payload.initial_weight, 1000);
@@ -189,6 +217,8 @@ const built2 = buildSpoolFromTray({
 });
 // Empty tag_uid (all zeros) must not collide with any existing spool.
 assert.equal(built2.existingSpoolId, '', 'all-zero tag_uid never matches existing spools');
+assert.equal(built2.payload.tag_uid, '',
+  'all-zero tray_uuid must upload to cloud as an empty RFID');
 assert.equal(built2.payload.brand, '',
   'with no sub_brands and no preset match the brand stays empty');
 assert.equal(built2.payload.material_type, 'PETG',

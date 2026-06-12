@@ -57,6 +57,11 @@ std::string normalize_ams_hex_for_web(const std::string& raw)
     return hex;
 }
 
+std::string normalize_ams_rfid_for_web(const std::string& tray_uuid, const std::string& tag_uid)
+{
+    return tag_uid.size() == 16 && tag_uid.substr(12, 2) == "01" ? tray_uuid : std::string();
+}
+
 } // namespace
 
 FilamentManagerVM::FilamentManagerVM()
@@ -941,7 +946,8 @@ nlohmann::json FilamentManagerVM::build_ams_data()
                         t["slot_id"]   = slot_id;
                         t["is_exists"] = tray && tray->is_exists;
                         if (tray && tray->is_exists) {
-                            t["tag_uid"]    = tray->tag_uid;
+                            t["tag_uid"]    = normalize_ams_rfid_for_web(tray->uuid, tray->tag_uid);
+                            t["tray_id_name"] = tray->tray_id_name;
                             t["setting_id"] = tray->setting_id;
                             t["fila_type"]  = tray->m_fila_type;
                             t["sub_brands"] = tray->sub_brands;

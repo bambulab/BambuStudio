@@ -26,6 +26,7 @@ export interface Spool {
   entry_method: string;  // "manual" | "ams_sync" | "rfid"
   note: string;
   tag_uid?: string;
+  tray_id_name?: string;
   setting_id?: string;
   bound_ams_id?: string;
   bound_dev_id?: string;
@@ -91,6 +92,7 @@ export interface AmsTray {
   remain?: number;
   diameter?: number | string;
   is_bbl?: boolean;
+  tray_id_name?: string;
 }
 
 export interface AmsUnit {

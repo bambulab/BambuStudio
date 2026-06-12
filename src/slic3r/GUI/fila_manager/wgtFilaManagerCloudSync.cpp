@@ -117,6 +117,7 @@ FilamentSpool wgtFilaManagerCloudSync::cloud_json_to_spool(const nlohmann::json&
     s.spool_id      = str_any({"id", "spool_id"});
     s.setting_id    = str_any({"filamentId", "setting_id"});
     s.tag_uid       = str_any({"RFID", "rfid", "tag_uid"});
+    s.tray_id_name  = str_any({"trayIdName", "tray_id_name"});
     if (!FilamentSpool::is_valid_tag_uid(s.tag_uid))
         s.tag_uid.clear();
 
@@ -202,7 +203,7 @@ FilamentSpool wgtFilaManagerCloudSync::cloud_json_to_spool(const nlohmann::json&
     s.updated_at = str_any({"updatedAt", "updated_at"});
 
     s.bound_dev_id = str_any({"bound_dev_id"});
-    s.bound_ams_id = str_any({"trayIdName", "bound_ams_id"});
+    s.bound_ams_id = str_any({"bound_ams_id"});
     s.note         = str_any({"note"});
 
     s.favorite        = j.contains("favorite") && j["favorite"].is_boolean() && j["favorite"].get<bool>();
@@ -237,8 +238,8 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_json(const FilamentSpool&
         normalize_fila_manager_color_type(s.color_type, s.colors.size())); // STUDIO-17977: was hardcoded 2
     if (!s.colors.empty())                       // STUDIO-17977: surface colors[] when multicolor
         j["colors"]     = s.colors;
-    if (has_valid_rfid && !s.bound_ams_id.empty()) {
-        j["trayIdName"] = s.bound_ams_id;
+    if (has_valid_rfid && !s.tray_id_name.empty()) {
+        j["trayIdName"] = s.tray_id_name;
         j["rolls"]      = 1;
     }
 
