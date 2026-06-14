@@ -40,6 +40,9 @@ if (WIN32)
   target_compile_options(Clipper2 PRIVATE /W4 /WX)
 else()
   target_compile_options(Clipper2 PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  if (CMAKE_CXX_COMPILER_ID MATCHES "AppleClang|Clang")
+    target_compile_options(Clipper2 PRIVATE -Wno-unknown-warning-option)
+  endif()
   target_link_libraries(Clipper2 PUBLIC -lm)
   if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 14.1)
     target_compile_options(Clipper2 PRIVATE -Wno-error=template-id-cdtor)
@@ -51,4 +54,3 @@ set_target_properties(Clipper2 PROPERTIES FOLDER Libraries
                                          SOVERSION ${PROJECT_VERSION_MAJOR}
                                          PUBLIC_HEADER "${CLIPPER2_INC}"
 )
-

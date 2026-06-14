@@ -8,13 +8,16 @@
 #include "Arachne/WallToolPaths.hpp"
 #include "Line.hpp"
 #include "Layer.hpp"
+#include <algorithm>
 #include <cmath>
 #include <cassert>
 #include <random>
 #include <thread>
+#include <tuple>
 #include <unordered_set>
 #include "OverhangDetector.hpp"
 #include "FuzzySkin.hpp"
+#include "WaveOverhangs/WaveOverhangs.hpp"
 
 static const double narrow_loop_length_threshold = 10;
 //BBS: when the width of expolygon is smaller than
@@ -31,6 +34,64 @@ static double random_value() {
     thread_local std::mt19937 gen(rd.entropy() > 0 ? rd() : std::hash<std::thread::id>()(std::this_thread::get_id()));
     thread_local std::uniform_real_distribution<double> dist(0.0, 1.0);
     return dist(gen);
+}
+
+static std::tuple<std::vector<ExtrusionPaths>, Polygons> generate_wave_overhang_paths(
+    ExPolygons               infill_area,
+    const Polygons          &lower_slices_polygons,
+    const PrintRegionConfig &region_config,
+    int                      perimeter_count,
+    const Flow              &overhang_flow,
+    double                   scaled_resolution)
+{
+    if (!region_config.wave_overhangs.value || infill_area.empty() || lower_slices_polygons.empty())
+        return { {}, {} };
+
+    if (region_config.wave_overhang_min_length.value > 0.) {
+        const double min_length = scale_(region_config.wave_overhang_min_length.value);
+        infill_area.erase(std::remove_if(infill_area.begin(), infill_area.end(),
+            [min_length](const ExPolygon &ex) { return ex.contour.length() < min_length; }), infill_area.end());
+        if (infill_area.empty())
+            return { {}, {} };
+    }
+
+    const double wave_line_width = overhang_flow.nozzle_diameter() > 0.f ? overhang_flow.nozzle_diameter() : overhang_flow.width();
+    auto [wave_paths, filled_area] = WaveOverhangs::generate(
+        std::move(infill_area),
+        lower_slices_polygons,
+        perimeter_count,
+        0,
+        region_config.wave_overhang_perimeter_overlap.value,
+        region_config.wave_overhang_minimum_width.value,
+        region_config.wave_overhang_pattern.value,
+        region_config.wave_overhang_line_spacing.value,
+        wave_line_width,
+        overhang_flow,
+        scaled_resolution,
+        region_config.wave_overhang_max_iterations.value,
+        region_config.wave_overhang_min_new_area.value,
+        region_config.wave_overhangs_instead_of_bridges.value,
+        region_config.wave_overhang_corner_taper_enable.value,
+        region_config.wave_overhang_line_spacing_corner.value,
+        region_config.wave_overhang_corner_taper_distance.value,
+        region_config.wave_overhang_corner_angle_threshold.value);
+
+    const double wave_flow = region_config.wave_overhang_flow_mm3_per_mm.value;
+    if (wave_flow > 0.) {
+        for (ExtrusionPaths &region : wave_paths)
+            for (ExtrusionPath &path : region)
+                if (path.is_wave_overhang())
+                    path.mm3_per_mm = wave_flow;
+    }
+
+    return { std::move(wave_paths), std::move(filled_area) };
+}
+
+static void append_wave_overhang_paths(ExtrusionEntityCollection &dst, std::vector<ExtrusionPaths> &&wave_paths)
+{
+    for (ExtrusionPaths &region : wave_paths)
+        if (!region.empty())
+            dst.append(std::move(region));
 }
 
 // Hierarchy of perimeters.
@@ -1412,6 +1473,26 @@ void PerimeterGenerator::process_classic()
         if (!top_fills.empty()) {
             infill_exp = union_ex(infill_exp, offset_ex(top_infill_exp, double(infill_peri_overlap)));
         }
+
+        Polygons wave_filled_area;
+        if (!m_spiral_vase && this->config->detect_overhang_wall && this->config->wave_overhangs.value &&
+            this->lower_slices != nullptr && !m_lower_polygons_series.empty() &&
+            this->config->wall_loops > 0 && this->layer_id > this->object_config->raft_layers) {
+            auto [wave_paths, filled_area] = generate_wave_overhang_paths(
+                infill_exp,
+                m_lower_polygons_series.back(),
+                *this->config,
+                this->config->wall_loops,
+                this->overhang_flow,
+                this->m_scaled_resolution);
+            if (!wave_paths.empty())
+                append_wave_overhang_paths(*this->loops, std::move(wave_paths));
+            if (!filled_area.empty()) {
+                wave_filled_area = std::move(filled_area);
+                infill_exp = diff_ex(infill_exp, wave_filled_area);
+            }
+        }
+
         this->fill_surfaces->append(infill_exp, stInternal);
 
         // BBS: get the no-overlap infill expolygons
@@ -1428,6 +1509,8 @@ void PerimeterGenerator::process_classic()
                     double(-inset - infill_peri_overlap));
             if (!top_fills.empty())
                 polyWithoutOverlap = union_ex(polyWithoutOverlap, top_infill_exp);
+            if (!wave_filled_area.empty())
+                polyWithoutOverlap = diff_ex(polyWithoutOverlap, wave_filled_area);
             this->fill_no_overlap->insert(this->fill_no_overlap->end(), polyWithoutOverlap.begin(), polyWithoutOverlap.end());
         }
 
@@ -1801,6 +1884,21 @@ void PerimeterGenerator::process_arachne()
         // collapse too narrow infill areas
         const auto    min_perimeter_infill_spacing = coord_t(solid_infill_spacing * (1. - INSET_OVERLAP_TOLERANCE));
         // append infill areas to fill_surfaces
+        if (!m_spiral_vase && this->config->detect_overhang_wall && this->config->wave_overhangs.value &&
+            this->lower_slices != nullptr && !this->m_lower_slices_polygons.empty() &&
+            this->config->wall_loops > 0 && this->layer_id > this->object_config->raft_layers) {
+            auto [wave_paths, filled_area] = generate_wave_overhang_paths(
+                infill_contour,
+                this->m_lower_slices_polygons,
+                *this->config,
+                this->config->wall_loops,
+                this->overhang_flow,
+                this->m_scaled_resolution);
+            if (!wave_paths.empty())
+                append_wave_overhang_paths(*this->loops, std::move(wave_paths));
+            if (!filled_area.empty())
+                infill_contour = diff_ex(infill_contour, filled_area);
+        }
         add_infill_contour_for_arachne(infill_contour, loop_number, ext_perimeter_spacing, perimeter_spacing, min_perimeter_infill_spacing, spacing, false);
 
     }

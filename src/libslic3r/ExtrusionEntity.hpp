@@ -237,6 +237,7 @@ public:
         , width(rhs.width)
         , height(rhs.height)
         , smooth_speed(rhs.smooth_speed)
+        , m_wave_overhang(rhs.m_wave_overhang)
         , m_can_reverse(rhs.m_can_reverse)
         , m_role(rhs.m_role)
         , m_no_extrusion(rhs.m_no_extrusion)
@@ -250,6 +251,7 @@ public:
         , width(rhs.width)
         , height(rhs.height)
         , smooth_speed(rhs.smooth_speed)
+        , m_wave_overhang(rhs.m_wave_overhang)
         , m_can_reverse(rhs.m_can_reverse)
         , m_role(rhs.m_role)
         , m_no_extrusion(rhs.m_no_extrusion)
@@ -263,6 +265,7 @@ public:
         , width(rhs.width)
         , height(rhs.height)
         , smooth_speed(rhs.smooth_speed)
+        , m_wave_overhang(rhs.m_wave_overhang)
         , m_can_reverse(rhs.m_can_reverse)
         , m_role(rhs.m_role)
         , m_no_extrusion(rhs.m_no_extrusion)
@@ -276,6 +279,7 @@ public:
         , width(rhs.width)
         , height(rhs.height)
         , smooth_speed(rhs.smooth_speed)
+        , m_wave_overhang(rhs.m_wave_overhang)
         , m_can_reverse(rhs.m_can_reverse)
         , m_role(rhs.m_role)
         , m_no_extrusion(rhs.m_no_extrusion)
@@ -284,6 +288,7 @@ public:
     ExtrusionPath& operator=(const ExtrusionPath& rhs) {
         ExtrusionEntity::operator=(rhs);
         m_can_reverse = rhs.m_can_reverse;
+        m_wave_overhang = rhs.m_wave_overhang;
         m_role = rhs.m_role;
         m_no_extrusion = rhs.m_no_extrusion;
         this->mm3_per_mm = rhs.mm3_per_mm;
@@ -298,6 +303,7 @@ public:
     ExtrusionPath& operator=(ExtrusionPath&& rhs) {
         ExtrusionEntity::operator=(rhs);
         m_can_reverse = rhs.m_can_reverse;
+        m_wave_overhang = rhs.m_wave_overhang;
         m_role = rhs.m_role;
         m_no_extrusion = rhs.m_no_extrusion;
         this->mm3_per_mm = rhs.mm3_per_mm;
@@ -368,6 +374,8 @@ public:
     //BBS:
     bool is_force_no_extrusion() const { return m_no_extrusion; }
     void set_force_no_extrusion(bool no_extrusion) { m_no_extrusion = no_extrusion; }
+    bool is_wave_overhang() const { return m_wave_overhang; }
+    void set_wave_overhang(bool wave_overhang) { m_wave_overhang = wave_overhang; }
     void set_extrusion_role(ExtrusionRole extrusion_role) { m_role = extrusion_role; }
     void set_reverse() override { m_can_reverse = false; }
     bool can_reverse() const override { return m_can_reverse; }
@@ -376,6 +384,7 @@ public:
 
 private:
     void _inflate_collection(const Polylines &polylines, ExtrusionEntityCollection* collection) const;
+    bool m_wave_overhang = false;
     bool m_can_reverse = true;
     ExtrusionRole m_role;
     //BBS

@@ -65,6 +65,12 @@ enum class FuzzySkinMode {
     Combined,
 };
 
+enum class WaveOverhangPattern : int {
+    Monotonic,
+    ZigZag,
+    Smart,
+};
+
 enum PrintHostType {
     htPrusaLink, htOctoPrint, htDuet, htFlashAir, htAstroBox, htRepetier, htMKS
 };
@@ -511,6 +517,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PerimeterGeneratorType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(TopOneWallType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ReduceInfillRetractionMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FilamentMetalStickiness)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(WaveOverhangPattern)
 #undef CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS
 
 // Defines each and every confiuration option of Slic3r, including the properties of the GUI dialogs.
@@ -1078,6 +1085,23 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, ironing_speed))
     // Detect bridging perimeters
     ((ConfigOptionBool, detect_overhang_wall))
+    ((ConfigOptionBool, wave_overhangs))
+    ((ConfigOptionBool, wave_overhangs_instead_of_bridges))
+    ((ConfigOptionInt, wave_overhang_outer_perimeters))
+    ((ConfigOptionFloat, wave_overhang_perimeter_overlap))
+    ((ConfigOptionFloat, wave_overhang_minimum_width))
+    ((ConfigOptionEnum<WaveOverhangPattern>, wave_overhang_pattern))
+    ((ConfigOptionFloat, wave_overhang_line_spacing))
+    ((ConfigOptionFloat, wave_overhang_flow_mm3_per_mm))
+    ((ConfigOptionFloat, wave_overhang_print_speed))
+    ((ConfigOptionBool, wave_overhang_debug_gcode))
+    ((ConfigOptionFloat, wave_overhang_min_length))
+    ((ConfigOptionInt, wave_overhang_max_iterations))
+    ((ConfigOptionFloat, wave_overhang_min_new_area))
+    ((ConfigOptionBool, wave_overhang_corner_taper_enable))
+    ((ConfigOptionFloat, wave_overhang_line_spacing_corner))
+    ((ConfigOptionFloat, wave_overhang_corner_taper_distance))
+    ((ConfigOptionFloat, wave_overhang_corner_angle_threshold))
     ((ConfigOptionBool, smooth_speed_discontinuity_area))
     ((ConfigOptionFloat, smooth_coefficient))
     ((ConfigOptionInt, wall_filament))
