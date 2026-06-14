@@ -87,16 +87,152 @@ static std::tuple<std::vector<ExtrusionPaths>, Polygons> generate_wave_overhang_
     return { std::move(wave_paths), std::move(filled_area) };
 }
 
-static void append_wave_overhang_paths(ExtrusionEntityCollection &dst, std::vector<ExtrusionPaths> &&wave_paths)
+static int kept_wave_overhang_perimeters(const PrintRegionConfig &region_config, int perimeter_count)
 {
+    return std::max(0, std::min(region_config.wave_overhang_outer_perimeters.value, perimeter_count));
+}
+
+static ExPolygons expand_wave_overhang_target_area(const ExPolygons &infill_area, int perimeter_count, int kept_perimeters, coord_t perimeter_spacing)
+{
+    const int reclaimed_perimeters = std::max(0, perimeter_count - kept_perimeters);
+    return reclaimed_perimeters <= 0 ? infill_area : offset_ex(infill_area, float(reclaimed_perimeters * perimeter_spacing));
+}
+
+static bool should_replace_with_wave_path(const ExtrusionPath &path, int kept_perimeters)
+{
+    if (!is_perimeter(path.role()))
+        return false;
+
+    if (kept_perimeters <= 0)
+        return true;
+
+    // Bambu extrusion paths do not carry a perimeter index. Preserve the
+    // external wall for positive keep counts, and let wave paths replace
+    // unindexed inner/overhang perimeters in the filled area.
+    return path.role() != erExternalPerimeter;
+}
+
+static void subtract_wave_replaced_perimeters(const ExtrusionPath &path, const ExPolygons &clip_area, int kept_perimeters, ExtrusionEntitiesPtr &out)
+{
+    if (!should_replace_with_wave_path(path, kept_perimeters)) {
+        out.emplace_back(new ExtrusionPath(path));
+        return;
+    }
+
+    ExtrusionEntityCollection remaining;
+    path.subtract_expolygons(clip_area, &remaining);
+    append(out, remaining.entities);
+    remaining.entities.clear();
+}
+
+static void subtract_wave_replaced_perimeters(ExtrusionEntity *entity, const ExPolygons &clip_area, int kept_perimeters, ExtrusionEntitiesPtr &out)
+{
+    if (auto *collection = dynamic_cast<ExtrusionEntityCollection*>(entity)) {
+        ExtrusionEntitiesPtr filtered;
+        filtered.reserve(collection->entities.size());
+        for (ExtrusionEntity *child : collection->entities)
+            subtract_wave_replaced_perimeters(child, clip_area, kept_perimeters, filtered);
+        collection->entities.clear();
+        delete collection;
+
+        if (filtered.empty())
+            return;
+        if (filtered.size() == 1) {
+            out.emplace_back(filtered.front());
+            return;
+        }
+
+        auto *filtered_collection = new ExtrusionEntityCollection();
+        filtered_collection->entities = std::move(filtered);
+        out.emplace_back(filtered_collection);
+        return;
+    }
+
+    if (auto *loop = dynamic_cast<ExtrusionLoop*>(entity)) {
+        const bool needs_rewrite = std::any_of(loop->paths.begin(), loop->paths.end(), [&](const ExtrusionPath &path) {
+            return should_replace_with_wave_path(path, kept_perimeters);
+        });
+        if (!needs_rewrite) {
+            out.emplace_back(entity);
+            return;
+        }
+
+        for (const ExtrusionPath &path : loop->paths)
+            subtract_wave_replaced_perimeters(path, clip_area, kept_perimeters, out);
+        delete loop;
+        return;
+    }
+
+    if (auto *multi_path = dynamic_cast<ExtrusionMultiPath*>(entity)) {
+        const bool needs_rewrite = std::any_of(multi_path->paths.begin(), multi_path->paths.end(), [&](const ExtrusionPath &path) {
+            return should_replace_with_wave_path(path, kept_perimeters);
+        });
+        if (!needs_rewrite) {
+            out.emplace_back(entity);
+            return;
+        }
+
+        for (const ExtrusionPath &path : multi_path->paths)
+            subtract_wave_replaced_perimeters(path, clip_area, kept_perimeters, out);
+        delete multi_path;
+        return;
+    }
+
+    if (auto *path = dynamic_cast<ExtrusionPath*>(entity)) {
+        subtract_wave_replaced_perimeters(*path, clip_area, kept_perimeters, out);
+        delete path;
+        return;
+    }
+
+    out.emplace_back(entity);
+}
+
+static void subtract_wave_replaced_perimeters(ExtrusionEntitiesPtr &entities, const ExPolygons &clip_area, int kept_perimeters)
+{
+    ExtrusionEntitiesPtr filtered;
+    filtered.reserve(entities.size());
+    for (ExtrusionEntity *entity : entities)
+        subtract_wave_replaced_perimeters(entity, clip_area, kept_perimeters, filtered);
+    entities = std::move(filtered);
+}
+
+static void prepend_wave_overhang_paths(
+    ExtrusionEntityCollection &island_perimeters,
+    std::vector<ExtrusionPaths> &&wave_paths,
+    const Polygons &filled_area,
+    int kept_perimeters)
+{
+    ExtrusionEntitiesPtr old_entities;
+    old_entities.swap(island_perimeters.entities);
+
+    if (!filled_area.empty())
+        subtract_wave_replaced_perimeters(old_entities, to_expolygons(filled_area), kept_perimeters);
+
     for (ExtrusionPaths &region : wave_paths) {
         if (region.empty())
             continue;
 
-        ExtrusionEntityCollection region_collection;
-        region_collection.append(std::move(region));
-        dst.append(std::move(region_collection));
+        island_perimeters.append(std::move(region));
     }
+
+    island_perimeters.append(std::move(old_entities));
+}
+
+static bool prepend_wave_overhang_paths_to_last_island(
+    ExtrusionEntityCollection &loops,
+    std::vector<ExtrusionPaths> &&wave_paths,
+    const Polygons &filled_area,
+    int kept_perimeters)
+{
+    if (wave_paths.empty() || loops.entities.empty())
+        return false;
+
+    auto *island_perimeters = dynamic_cast<ExtrusionEntityCollection*>(loops.entities.back());
+    if (island_perimeters == nullptr)
+        return false;
+
+    prepend_wave_overhang_paths(*island_perimeters, std::move(wave_paths), filled_area, kept_perimeters);
+    return true;
 }
 
 // Hierarchy of perimeters.
@@ -1483,16 +1619,19 @@ void PerimeterGenerator::process_classic()
         if (!m_spiral_vase && this->config->detect_overhang_wall && this->config->wave_overhangs.value &&
             this->lower_slices != nullptr && !m_lower_polygons_series.empty() &&
             this->config->wall_loops > 0 && this->layer_id > this->object_config->raft_layers) {
+            const int perimeter_count = loop_number + 1;
+            const int kept_perimeters = kept_wave_overhang_perimeters(*this->config, perimeter_count);
+            ExPolygons wave_infill_exp = expand_wave_overhang_target_area(infill_exp, perimeter_count, kept_perimeters, perimeter_spacing);
             auto [wave_paths, filled_area] = generate_wave_overhang_paths(
-                infill_exp,
+                wave_infill_exp,
                 m_lower_polygons_series.back(),
                 *this->config,
-                this->config->wall_loops,
+                perimeter_count,
                 this->overhang_flow,
                 this->m_scaled_resolution);
-            if (!wave_paths.empty())
-                append_wave_overhang_paths(*this->loops, std::move(wave_paths));
-            if (!filled_area.empty()) {
+            const bool inserted_wave_paths = !wave_paths.empty() &&
+                prepend_wave_overhang_paths_to_last_island(*this->loops, std::move(wave_paths), filled_area, kept_perimeters);
+            if (inserted_wave_paths && !filled_area.empty()) {
                 wave_filled_area = std::move(filled_area);
                 infill_exp = diff_ex(infill_exp, wave_filled_area);
             }
@@ -1892,16 +2031,19 @@ void PerimeterGenerator::process_arachne()
         if (!m_spiral_vase && this->config->detect_overhang_wall && this->config->wave_overhangs.value &&
             this->lower_slices != nullptr && !this->m_lower_slices_polygons.empty() &&
             this->config->wall_loops > 0 && this->layer_id > this->object_config->raft_layers) {
+            const int perimeter_count = loop_number + 1;
+            const int kept_perimeters = kept_wave_overhang_perimeters(*this->config, perimeter_count);
+            ExPolygons wave_infill_contour = expand_wave_overhang_target_area(infill_contour, perimeter_count, kept_perimeters, perimeter_spacing);
             auto [wave_paths, filled_area] = generate_wave_overhang_paths(
-                infill_contour,
+                wave_infill_contour,
                 this->m_lower_slices_polygons,
                 *this->config,
-                this->config->wall_loops,
+                perimeter_count,
                 this->overhang_flow,
                 this->m_scaled_resolution);
-            if (!wave_paths.empty())
-                append_wave_overhang_paths(*this->loops, std::move(wave_paths));
-            if (!filled_area.empty())
+            const bool inserted_wave_paths = !wave_paths.empty() &&
+                prepend_wave_overhang_paths_to_last_island(*this->loops, std::move(wave_paths), filled_area, kept_perimeters);
+            if (inserted_wave_paths && !filled_area.empty())
                 infill_contour = diff_ex(infill_contour, filled_area);
         }
         add_infill_contour_for_arachne(infill_contour, loop_number, ext_perimeter_spacing, perimeter_spacing, min_perimeter_infill_spacing, spacing, false);
