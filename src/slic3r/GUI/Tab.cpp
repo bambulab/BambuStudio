@@ -9,7 +9,6 @@
 #include "libslic3r/Model.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include "libslic3r/FilamentMixer.hpp"
-#include <array>
 #include <unordered_set>
 #include <set>
 
@@ -80,34 +79,6 @@ namespace GUI {
 #define DISABLE_UNDO_SYS
 
 static const std::vector<std::string> plate_keys = { "curr_bed_type", "first_layer_print_sequence", "first_layer_sequence_choice", "other_layers_print_sequence", "other_layers_sequence_choice", "print_sequence", "spiral_mode"};
-
-static constexpr std::array<const char *, 18> wave_overhang_option_keys = {
-    "wave_overhangs",
-    "wave_overhangs_instead_of_bridges",
-    "wave_overhang_outer_perimeters",
-    "wave_overhang_perimeter_overlap",
-    "wave_overhang_minimum_width",
-    "wave_overhang_pattern",
-    "wave_overhang_line_spacing",
-    "wave_overhang_flow_mm3_per_mm",
-    "wave_overhang_print_speed",
-    "wave_overhang_debug_gcode",
-    "wave_overhang_min_length",
-    "wave_overhang_max_iterations",
-    "wave_overhang_min_new_area",
-    "wave_overhang_corner_taper_enable",
-    "wave_overhang_line_spacing_corner",
-    "wave_overhang_corner_taper_distance",
-    "wave_overhang_corner_angle_threshold",
-    "detect_overhang_wall",
-};
-
-template<size_t Count>
-static void ensure_default_config_options(DynamicPrintConfig &config, const std::array<const char *, Count> &keys)
-{
-    for (const char *key : keys)
-        config.option(key, true);
-}
 
 static std::pair<std::string, std::string> extruder_variant_keys[]{
     {},                                                  // invalid
@@ -3108,8 +3079,6 @@ void TabPrint::build()
         optgroup->append_single_option_line("ensure_vertical_shell_thickness","parameter/strength-advance-settings");
         optgroup->append_single_option_line("detect_floating_vertical_shell","parameter/strength-advance-settings");
         //optgroup->append_single_option_line("internal_bridge_support_thickness","parameter/strength-advance-settings");
-
-    ensure_default_config_options(*m_config, wave_overhang_option_keys);
 
     page = add_options_page(L("Wave overhangs"), "empty");
         optgroup = page->new_optgroup(L("General"), L"param_wall");

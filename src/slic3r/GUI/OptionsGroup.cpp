@@ -1010,19 +1010,28 @@ boost::any ConfigOptionsGroup::config_value(const std::string& opt_key, int opt_
 	}
 }
 
-boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config, const std::string& opt_key, int opt_index /*= -1*/)
+boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& source_config, const std::string& opt_key, int opt_index /*= -1*/)
 {
     size_t idx = opt_index == -1 ? 0 : opt_index;
 
     boost::any ret;
     wxString text_value = wxString("");
-    const ConfigOptionDef* opt = config.def()->get(opt_key);
+    const ConfigOptionDef* opt = source_config.def()->get(opt_key);
     auto opt_key2 = opt_key;
     if (!opt) {
         opt_key2 = opt_key.substr(0, opt_key.find('#'));
         idx      = std::stoi(opt_key.substr(opt_key.find('#') + 1));
-        opt     = config.def()->get(opt_key2);
+        opt     = source_config.def()->get(opt_key2);
     }
+
+    DynamicPrintConfig default_config;
+    const DynamicPrintConfig *config_to_read = &source_config;
+    if (!source_config.has(opt_key2) && opt_key2.rfind("wave_overhang", 0) == 0) {
+        default_config.option(opt_key2, true);
+        config_to_read = &default_config;
+    }
+
+    const DynamicPrintConfig &config = *config_to_read;
 
     if (opt->nullable)
     {
