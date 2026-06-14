@@ -51,6 +51,47 @@ using boost::property_tree::ptree;
 
 namespace Slic3r {
 
+namespace {
+
+const char *const wave_overhang_option_keys[] = {
+    "wave_overhangs",
+    "wave_overhangs_instead_of_bridges",
+    "wave_overhang_outer_perimeters",
+    "wave_overhang_perimeter_overlap",
+    "wave_overhang_minimum_width",
+    "wave_overhang_pattern",
+    "wave_overhang_line_spacing",
+    "wave_overhang_flow_mm3_per_mm",
+    "wave_overhang_print_speed",
+    "wave_overhang_debug_gcode",
+    "wave_overhang_min_length",
+    "wave_overhang_max_iterations",
+    "wave_overhang_min_new_area",
+    "wave_overhang_corner_taper_enable",
+    "wave_overhang_line_spacing_corner",
+    "wave_overhang_corner_taper_distance",
+    "wave_overhang_corner_angle_threshold",
+};
+
+bool looks_like_print_preset(const DynamicPrintConfig &config)
+{
+    return config.has("layer_height") ||
+           config.has("wall_loops") ||
+           config.has("sparse_infill_density") ||
+           config.has("detect_overhang_wall");
+}
+
+void ensure_wave_overhang_defaults(DynamicPrintConfig &config)
+{
+    if (!looks_like_print_preset(config))
+        return;
+
+    for (const char *key : wave_overhang_option_keys)
+        config.option(key, true);
+}
+
+} // namespace
+
 const std::vector<std::string> &get_filament_orders()
 {
     static std::vector<std::string> orders = {"Bambu PLA Basic",
@@ -441,6 +482,8 @@ std::string Preset::remove_suffix_modified(const std::string &name)
 // Update new extruder fields at the printer profile.
 void Preset::normalize(DynamicPrintConfig &config)
 {
+    ensure_wave_overhang_defaults(config);
+
     // BBS
     auto* filament_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("filament_diameter"));
     //not use any more

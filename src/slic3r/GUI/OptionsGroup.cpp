@@ -23,6 +23,11 @@ namespace Slic3r { namespace GUI {
 // BBS: new layout
 constexpr int titleWidth = 20;
 
+static bool is_wave_overhang_option(const std::string &opt_key)
+{
+    return opt_key.rfind("wave_overhang", 0) == 0;
+}
+
 const t_field& OptionsGroup::build_field(const Option& opt) {
     return build_field(opt.opt_id, opt.opt);
 }
@@ -634,7 +639,8 @@ void OptionsGroup::on_change_OG(const t_config_option_key& opt_id, const boost::
 Option ConfigOptionsGroup::get_option(const std::string& opt_key, int opt_index /*= -1*/)
 {
 	if (!m_config->has(opt_key)) {
-		std::cerr << "No " << opt_key << " in ConfigOptionsGroup config.\n";
+		if (!is_wave_overhang_option(opt_key))
+			std::cerr << "No " << opt_key << " in ConfigOptionsGroup config.\n";
 	}
 
 	std::string opt_id = opt_index == -1 ? opt_key : opt_key + "#" + std::to_string(opt_index);
@@ -1026,7 +1032,7 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& source
 
     DynamicPrintConfig default_config;
     const DynamicPrintConfig *config_to_read = &source_config;
-    if (!source_config.has(opt_key2) && opt_key2.rfind("wave_overhang", 0) == 0) {
+    if (!source_config.has(opt_key2) && is_wave_overhang_option(opt_key2)) {
         default_config.option(opt_key2, true);
         config_to_read = &default_config;
     }

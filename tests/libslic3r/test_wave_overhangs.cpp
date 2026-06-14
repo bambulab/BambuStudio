@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
 
 #include "libslic3r/Flow.hpp"
+#include "libslic3r/Preset.hpp"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/WaveOverhangs/WaveOverhangs.hpp"
 
@@ -64,6 +65,31 @@ TEST_CASE("Wave overhang options can be materialized for older presets", "[WaveO
     CHECK(config.opt_enum<WaveOverhangPattern>("wave_overhang_pattern") == WaveOverhangPattern::Smart);
     CHECK(config.opt_float("wave_overhang_line_spacing") == Approx(0.35));
     CHECK(config.opt_float("wave_overhang_print_speed") == Approx(2.0));
+}
+
+TEST_CASE("Wave overhang options are normalized into legacy print presets", "[WaveOverhangs]")
+{
+    DynamicPrintConfig config;
+    REQUIRE(config.option("layer_height", true) != nullptr);
+    REQUIRE_FALSE(config.has("wave_overhangs"));
+
+    Preset::normalize(config);
+
+    for (const std::string &key : wave_overhang_option_keys())
+        CHECK(config.has(key));
+
+    CHECK_FALSE(config.opt_bool("wave_overhangs"));
+    CHECK(config.opt_enum<WaveOverhangPattern>("wave_overhang_pattern") == WaveOverhangPattern::Smart);
+}
+
+TEST_CASE("Wave overhang normalization does not pollute non-print presets", "[WaveOverhangs]")
+{
+    DynamicPrintConfig config;
+
+    Preset::normalize(config);
+
+    for (const std::string &key : wave_overhang_option_keys())
+        CHECK_FALSE(config.has(key));
 }
 
 TEST_CASE("Wave overhang generator creates tagged paths for unsupported regions", "[WaveOverhangs]")

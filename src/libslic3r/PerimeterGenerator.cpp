@@ -89,9 +89,14 @@ static std::tuple<std::vector<ExtrusionPaths>, Polygons> generate_wave_overhang_
 
 static void append_wave_overhang_paths(ExtrusionEntityCollection &dst, std::vector<ExtrusionPaths> &&wave_paths)
 {
-    for (ExtrusionPaths &region : wave_paths)
-        if (!region.empty())
-            dst.append(std::move(region));
+    for (ExtrusionPaths &region : wave_paths) {
+        if (region.empty())
+            continue;
+
+        ExtrusionEntityCollection region_collection;
+        region_collection.append(std::move(region));
+        dst.append(std::move(region_collection));
+    }
 }
 
 // Hierarchy of perimeters.
