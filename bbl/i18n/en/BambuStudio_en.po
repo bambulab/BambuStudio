@@ -20365,3 +20365,114 @@ msgstr ""
 
 #~ msgid "⌥+Left mouse button"
 #~ msgstr "⌥+Left mouse button"
+
+msgid "Wave overhangs"
+msgstr "Wave overhangs"
+
+msgid "Use wave overhangs"
+msgstr "Use wave overhangs"
+
+msgid "Generate wave-patterned toolpaths for unsupported overhang regions. The feature is experimental and is intended for steep overhangs that would otherwise need supports."
+msgstr "Generate wave-patterned toolpaths for unsupported overhang regions. The feature is experimental and is intended for steep overhangs that would otherwise need supports."
+
+msgid "Use instead of bridges"
+msgstr "Use instead of bridges"
+
+msgid "Apply wave overhangs to bridge-friendly spans as well. When disabled, simple bridgeable regions may remain regular bridge infill."
+msgstr "Apply wave overhangs to bridge-friendly spans as well. When disabled, simple bridgeable regions may remain regular bridge infill."
+
+msgid "Outer perimeters"
+msgstr "Outer perimeters"
+
+msgid "Number of normal outer perimeters to keep before wave paths start. This first implementation keeps existing walls and uses this value as an algorithm hint."
+msgstr "Number of normal outer perimeters to keep before wave paths start. This first implementation keeps existing walls and uses this value as an algorithm hint."
+
+msgid "Perimeter overlap"
+msgstr "Perimeter overlap"
+
+msgid "Extends wave propagation toward the supported perimeter to improve bonding."
+msgstr "Extends wave propagation toward the supported perimeter to improve bonding."
+
+msgid "Minimum wave width"
+msgstr "Minimum wave width"
+
+msgid "Splits very narrow wave regions before propagation. Larger values split more aggressively."
+msgstr "Splits very narrow wave regions before propagation. Larger values split more aggressively."
+
+msgid "Wave pattern"
+msgstr "Wave pattern"
+
+msgid "Choose how wave-overhang fronts are ordered: monotonic, zig-zag, or smart."
+msgstr "Choose how wave-overhang fronts are ordered: monotonic, zig-zag, or smart."
+
+msgid "Zigzag"
+msgstr "Zigzag"
+
+msgid "Smart"
+msgstr "Smart"
+
+msgid "Line spacing"
+msgstr "Line spacing"
+
+msgid "Center-to-center distance between adjacent wave-overhang lines."
+msgstr "Center-to-center distance between adjacent wave-overhang lines."
+
+msgid "Wave flow"
+msgstr "Wave flow"
+
+msgid "Extruded plastic volume per millimeter of wave-overhang line. The default is a conservative reference value for a 0.4 mm nozzle."
+msgstr "Extruded plastic volume per millimeter of wave-overhang line. The default is a conservative reference value for a 0.4 mm nozzle."
+
+msgid "Print speed"
+msgstr "Print speed"
+
+msgid "Print speed for wave-overhang extrusions."
+msgstr "Print speed for wave-overhang extrusions."
+
+msgid "Debug g-code markers"
+msgstr "Debug g-code markers"
+
+msgid "Emit comments around wave-overhang extrusions in generated G-code."
+msgstr "Emit comments around wave-overhang extrusions in generated G-code."
+
+msgid "Minimum length"
+msgstr "Minimum length"
+
+msgid "Skip wave generation for overhang regions shorter than this length."
+msgstr "Skip wave generation for overhang regions shorter than this length."
+
+msgid "Max iterations"
+msgstr "Max iterations"
+
+msgid "Safety cap on wavefront propagation. 0 means unlimited."
+msgstr "Safety cap on wavefront propagation. 0 means unlimited."
+
+msgid "Minimum new area"
+msgstr "Minimum new area"
+
+msgid "Stop propagation when a new wavefront adds less area than this threshold."
+msgstr "Stop propagation when a new wavefront adds less area than this threshold."
+
+msgid "Corner spacing taper"
+msgstr "Corner spacing taper"
+
+msgid "Densify wave spacing near sharp overhang corners."
+msgstr "Densify wave spacing near sharp overhang corners."
+
+msgid "Corner line spacing"
+msgstr "Corner line spacing"
+
+msgid "Denser line spacing used near detected overhang corners."
+msgstr "Denser line spacing used near detected overhang corners."
+
+msgid "Corner taper distance"
+msgstr "Corner taper distance"
+
+msgid "Radius around detected corners where the denser corner spacing is applied."
+msgstr "Radius around detected corners where the denser corner spacing is applied."
+
+msgid "Corner angle threshold"
+msgstr "Corner angle threshold"
+
+msgid "Interior angle below which a vertex is treated as an overhang corner."
+msgstr "Interior angle below which a vertex is treated as an overhang corner."

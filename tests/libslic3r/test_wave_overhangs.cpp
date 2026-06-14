@@ -1,6 +1,7 @@
 #include <catch2/catch.hpp>
 
 #include "libslic3r/Flow.hpp"
+#include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/WaveOverhangs/WaveOverhangs.hpp"
 
 using namespace Slic3r;
@@ -25,7 +26,45 @@ size_t path_count(const std::vector<ExtrusionPaths> &regions)
     return count;
 }
 
+const std::vector<std::string> &wave_overhang_option_keys()
+{
+    static const std::vector<std::string> keys = {
+        "wave_overhangs",
+        "wave_overhangs_instead_of_bridges",
+        "wave_overhang_outer_perimeters",
+        "wave_overhang_perimeter_overlap",
+        "wave_overhang_minimum_width",
+        "wave_overhang_pattern",
+        "wave_overhang_line_spacing",
+        "wave_overhang_flow_mm3_per_mm",
+        "wave_overhang_print_speed",
+        "wave_overhang_debug_gcode",
+        "wave_overhang_min_length",
+        "wave_overhang_max_iterations",
+        "wave_overhang_min_new_area",
+        "wave_overhang_corner_taper_enable",
+        "wave_overhang_line_spacing_corner",
+        "wave_overhang_corner_taper_distance",
+        "wave_overhang_corner_angle_threshold",
+    };
+    return keys;
+}
+
 } // namespace
+
+TEST_CASE("Wave overhang options can be materialized for older presets", "[WaveOverhangs]")
+{
+    DynamicPrintConfig config;
+    REQUIRE_FALSE(config.has("wave_overhangs"));
+
+    for (const std::string &key : wave_overhang_option_keys())
+        REQUIRE(config.option(key, true) != nullptr);
+
+    CHECK_FALSE(config.opt_bool("wave_overhangs"));
+    CHECK(config.opt_enum<WaveOverhangPattern>("wave_overhang_pattern") == WaveOverhangPattern::Smart);
+    CHECK(config.opt_float("wave_overhang_line_spacing") == Approx(0.35));
+    CHECK(config.opt_float("wave_overhang_print_speed") == Approx(2.0));
+}
 
 TEST_CASE("Wave overhang generator creates tagged paths for unsupported regions", "[WaveOverhangs]")
 {

@@ -22953,8 +22953,8 @@ msgstr ""
 #~ msgid "Shortcuts"
 #~ msgstr "快捷键"
 
-#~ msgid "Smart"
-#~ msgstr "自动"
+msgid "Smart"
+msgstr "智能"
 
 #~ msgid "Total Size:"
 #~ msgstr "总尺寸："
@@ -25541,3 +25541,111 @@ msgstr ""
 
 #~ msgid "Start the application"
 #~ msgstr "启动应用程序"
+
+msgid "Wave overhangs"
+msgstr "波浪悬空"
+
+msgid "Use wave overhangs"
+msgstr "启用波浪悬空"
+
+msgid "Generate wave-patterned toolpaths for unsupported overhang regions. The feature is experimental and is intended for steep overhangs that would otherwise need supports."
+msgstr "为无支撑的悬空区域生成波浪形走线。该功能仍处于实验阶段，适用于原本需要支撑的陡峭悬空。"
+
+msgid "Use instead of bridges"
+msgstr "代替桥接使用"
+
+msgid "Apply wave overhangs to bridge-friendly spans as well. When disabled, simple bridgeable regions may remain regular bridge infill."
+msgstr "也将波浪悬空应用到适合桥接的跨度。关闭时，简单的可桥接区域可能仍使用常规桥接填充。"
+
+msgid "Outer perimeters"
+msgstr "外墙圈数"
+
+msgid "Number of normal outer perimeters to keep before wave paths start. This first implementation keeps existing walls and uses this value as an algorithm hint."
+msgstr "开始生成波浪走线前保留的常规外墙圈数。当前实现会保留已有墙体，并将该值作为算法提示。"
+
+msgid "Perimeter overlap"
+msgstr "外墙重叠"
+
+msgid "Extends wave propagation toward the supported perimeter to improve bonding."
+msgstr "将波浪传播向受支撑的外墙方向扩展，以改善粘结。"
+
+msgid "Minimum wave width"
+msgstr "最小波浪宽度"
+
+msgid "Splits very narrow wave regions before propagation. Larger values split more aggressively."
+msgstr "在传播前拆分过窄的波浪区域。数值越大，拆分越积极。"
+
+msgid "Wave pattern"
+msgstr "波浪模式"
+
+msgid "Choose how wave-overhang fronts are ordered: monotonic, zig-zag, or smart."
+msgstr "选择波浪悬空前沿的排列方式：单调、锯齿或智能。"
+
+msgid "Zigzag"
+msgstr "锯齿"
+
+msgid "Line spacing"
+msgstr "线间距"
+
+msgid "Center-to-center distance between adjacent wave-overhang lines."
+msgstr "相邻波浪悬空线之间的中心距。"
+
+msgid "Wave flow"
+msgstr "波浪流量"
+
+msgid "Extruded plastic volume per millimeter of wave-overhang line. The default is a conservative reference value for a 0.4 mm nozzle."
+msgstr "每毫米波浪悬空线挤出的塑料体积。默认值是针对 0.4 mm 喷嘴的保守参考值。"
+
+msgid "Print speed"
+msgstr "打印速度"
+
+msgid "Print speed for wave-overhang extrusions."
+msgstr "波浪悬空挤出线的打印速度。"
+
+msgid "Debug g-code markers"
+msgstr "调试 G-code 标记"
+
+msgid "Emit comments around wave-overhang extrusions in generated G-code."
+msgstr "在生成的 G-code 中为波浪悬空挤出线前后添加注释。"
+
+msgid "Minimum length"
+msgstr "最小长度"
+
+msgid "Skip wave generation for overhang regions shorter than this length."
+msgstr "对短于该长度的悬空区域跳过波浪生成。"
+
+msgid "Max iterations"
+msgstr "最大迭代次数"
+
+msgid "Safety cap on wavefront propagation. 0 means unlimited."
+msgstr "波前传播的安全迭代上限。0 表示不限制。"
+
+msgid "Minimum new area"
+msgstr "最小新增面积"
+
+msgid "Stop propagation when a new wavefront adds less area than this threshold."
+msgstr "当新波前增加的面积小于该阈值时停止传播。"
+
+msgid "Corner spacing taper"
+msgstr "拐角间距渐变"
+
+msgid "Densify wave spacing near sharp overhang corners."
+msgstr "在尖锐悬空拐角附近加密波浪间距。"
+
+msgid "Corner line spacing"
+msgstr "拐角线间距"
+
+msgid "Denser line spacing used near detected overhang corners."
+msgstr "在检测到的悬空拐角附近使用的更密线间距。"
+
+msgid "Corner taper distance"
+msgstr "拐角渐变距离"
+
+msgid "Radius around detected corners where the denser corner spacing is applied."
+msgstr "检测到的拐角周围应用更密拐角间距的半径。"
+
+msgid "Corner angle threshold"
+msgstr "拐角角度阈值"
+
+msgid "Interior angle below which a vertex is treated as an overhang corner."
+msgstr "当顶点内角低于该值时，将其视为悬空拐角。"
