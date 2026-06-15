@@ -73,6 +73,7 @@ bool ExtrusionPath::can_merge(const ExtrusionPath& other)
             mm3_per_mm == other.mm3_per_mm &&
             width == other.width &&
             height == other.height &&
+            m_wave_overhang == other.m_wave_overhang &&
             m_can_reverse == other.m_can_reverse &&
             m_role == other.m_role &&
             m_no_extrusion == other.m_no_extrusion &&

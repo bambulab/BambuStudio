@@ -5716,7 +5716,9 @@ double GCode::get_path_speed(const ExtrusionPath &path)
     double min_speed = double(m_config.slow_down_min_speed.get_at(m_writer.filament()->id()));
     // set speed
     double speed = 0;
-    if (path.role() == erPerimeter) {
+    if (path.is_wave_overhang() && m_config.wave_overhang_print_speed.value > 0) {
+        speed = m_config.wave_overhang_print_speed.value;
+    } else if (path.role() == erPerimeter) {
         speed = NOZZLE_CONFIG(inner_wall_speed);
         if (is_enable_overhang_speed()) {
             double new_speed = 0;
@@ -6897,6 +6899,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     //        m_config.max_volumetric_speed.value / path.mm3_per_mm
     //    );
     //}
+    if (path.is_wave_overhang() && m_config.wave_overhang_print_speed.value > 0)
+        speed = m_config.wave_overhang_print_speed.value;
+
     if (filament_max_volumetric_speed > 0) {
         double extrude_speed = filament_max_volumetric_speed / _mm3_per_mm_for_speed;
 
@@ -6933,6 +6938,10 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
 
     if (use_seperate_speed)
         gcode += "; Slow Down Start\n";
+
+    const bool emit_wave_overhang_markers = path.is_wave_overhang() && m_config.wave_overhang_debug_gcode.value;
+    if (emit_wave_overhang_markers)
+        gcode += ";WAVE_OVERHANG_START\n";
 
     // Ironing extrusions mark and command
     if (path.role() == erSupportIroning || path.role() == erIroning) { gcode += "M1031 S1 ;IRONING_EXTRUSIONS_START\n"; }
@@ -7111,6 +7120,9 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     if (use_seperate_speed) {
         gcode += "; Slow Down End\n";
     }
+
+    if (emit_wave_overhang_markers)
+        gcode += ";WAVE_OVERHANG_END\n";
 
     this->set_last_pos(path.last_point());
     return gcode;

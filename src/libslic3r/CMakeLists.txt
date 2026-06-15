@@ -135,6 +135,8 @@ set(lisbslic3r_sources
     Flow.hpp
     Frustum.cpp
     Frustum.hpp
+    WaveOverhangs/WaveOverhangs.cpp
+    WaveOverhangs/WaveOverhangs.hpp
     FlushVolCalc.cpp
     FlushVolCalc.hpp
     FuzzySkin.cpp

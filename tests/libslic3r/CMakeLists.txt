@@ -18,6 +18,7 @@ add_executable(${_TEST_NAME}_tests
 	test_marchingsquares.cpp
 	test_timeutils.cpp
 	test_voronoi.cpp
+	test_wave_overhangs.cpp
     test_optimizers.cpp
     test_png_io.cpp
     test_timeutils.cpp
@@ -44,3 +45,12 @@ endif()
 
 # catch_discover_tests(${_TEST_NAME}_tests TEST_PREFIX "${_TEST_NAME}: ")
 add_test(${_TEST_NAME}_tests ${_TEST_NAME}_tests ${CATCH_EXTRA_ARGS})
+
+add_executable(${_TEST_NAME}_wave_overhangs_tests
+    wave_overhangs_tests.cpp
+    test_wave_overhangs.cpp
+    )
+
+target_link_libraries(${_TEST_NAME}_wave_overhangs_tests test_common libslic3r_gui libslic3r)
+set_property(TARGET ${_TEST_NAME}_wave_overhangs_tests PROPERTY FOLDER "tests")
+add_test(${_TEST_NAME}_wave_overhangs_tests ${_TEST_NAME}_wave_overhangs_tests ${CATCH_EXTRA_ARGS})

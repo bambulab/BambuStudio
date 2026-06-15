@@ -15,6 +15,23 @@ boost::regex perimeters_regex("G1 X[-0-9.]* Y[-0-9.]* E[-0-9.]* ; perimeter");
 boost::regex infill_regex("G1 X[-0-9.]* Y[-0-9.]* E[-0-9.]* ; infill");
 boost::regex skirt_regex("G1 X[-0-9.]* Y[-0-9.]* E[-0-9.]* ; skirt");
 
+TEST_CASE("Wave overhang paths remain compatible with tool ordering", "[WaveOverhangs]")
+{
+    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    config.set_deserialize_strict({
+        { "layer_height", 0.2 },
+        { "first_layer_height", 0.2 },
+        { "start_gcode", "" },
+        { "wave_overhangs", true },
+        { "wave_overhangs_instead_of_bridges", true },
+        { "wave_overhang_debug_gcode", true },
+    });
+
+    std::string gcode;
+    REQUIRE_NOTHROW(gcode = Slic3r::Test::slice({ TestMesh::overhang }, config, true));
+    REQUIRE(!gcode.empty());
+}
+
 SCENARIO( "PrintGCode basic functionality", "[PrintGCode]") {
     GIVEN("A default configuration and a print test object") {
         WHEN("the output is executed with no support material") {
