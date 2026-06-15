@@ -970,14 +970,14 @@ nlohmann::json FilamentManagerVM::build_ams_data()
 
                             if (!tray->setting_id.empty() && !colors.empty()) {
                                 if (auto* clr_query = wxGetApp().get_filament_color_code_query()) {
-                                    FilamentColor fc;
+                                    std::vector<wxString> hex_colors;
                                     for (const auto& c : colors) {
                                         if (c.is_string()) {
-                                            fc.m_colors.emplace(wxColour(wxString::FromUTF8(c.get<std::string>())));
+                                            hex_colors.emplace_back(wxString::FromUTF8(c.get<std::string>()));
                                         }
                                     }
-                                    fc.m_color_type = to_filament_color_type(color_type, colors.size());
-                                    if (auto* color_info = clr_query->GetFilaInfo(wxString::FromUTF8(tray->setting_id), fc)) {
+                                    if (auto* color_info = clr_query->GetFilaInfo(
+                                            wxString::FromUTF8(tray->setting_id), hex_colors, color_type)) {
                                         t["color_name"]      = color_info->GetFilaColorName().utf8_string();
                                         t["fila_color_code"] = color_info->GetFilaColorCode().utf8_string();
                                     }

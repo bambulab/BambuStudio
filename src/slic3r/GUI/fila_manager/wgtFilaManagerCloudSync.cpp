@@ -50,6 +50,47 @@ inline std::string err_body_tail(const std::string& err)
 #endif
 }
 
+bool filament_is_support_by_setting_id(const std::string& setting_id)
+{
+    bool is_support = false;
+    if (wxGetApp().preset_bundle) {
+        auto info = wxGetApp().preset_bundle->get_filament_by_filament_id(setting_id);
+        is_support = info.has_value() ? info->is_support : false;
+    }
+    return is_support;
+}
+
+std::string tray_id_name_by_filament_color(const FilamentSpool& s)
+{
+    if (s.setting_id.size() <= 3)
+        return {};
+
+    auto* clr_query = wxGetApp().get_filament_color_code_query();
+    if (!clr_query)
+        return {};
+
+    std::vector<std::string> colors = s.colors;
+    if (colors.empty() && !s.color_code.empty())
+        colors.push_back(s.color_code);
+
+    std::vector<wxString> hex_colors;
+    for (const auto& c : colors) {
+        if (!c.empty())
+            hex_colors.emplace_back(wxString::FromUTF8(c));
+    }
+    if (hex_colors.empty())
+        return {};
+
+    const int color_type = to_fila_manager_color_type_int(
+        normalize_fila_manager_color_type(s.color_type, hex_colors.size()));
+    auto* color_info = clr_query->GetFilaInfo(wxString::FromUTF8(s.setting_id), hex_colors, color_type);
+    if (!color_info)
+        return {};
+
+    const std::string color_code = color_info->GetColorCode().utf8_string();
+    return color_code.empty() ? std::string{} : s.setting_id.substr(3) + "-" + color_code;
+}
+
 } // namespace
 
 wgtFilaManagerCloudSync::wgtFilaManagerCloudSync(
@@ -230,7 +271,7 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_json(const FilamentSpool&
     // back to the material type for the display name and encode monochrome as 2.
     j["filamentName"]   = s.series.empty() ? s.material_type : s.series;
     j["filamentId"]     = s.setting_id;
-    j["isSupport"]      = false; // local schema has no equivalent yet
+    j["isSupport"]      = filament_is_support_by_setting_id(s.setting_id);
     if (has_valid_rfid)
         j["RFID"]       = s.tag_uid;
     j["color"]          = s.color_code;
@@ -238,10 +279,9 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_json(const FilamentSpool&
         normalize_fila_manager_color_type(s.color_type, s.colors.size())); // STUDIO-17977: was hardcoded 2
     if (!s.colors.empty())                       // STUDIO-17977: surface colors[] when multicolor
         j["colors"]     = s.colors;
-    if (has_valid_rfid && !s.tray_id_name.empty()) {
-        j["trayIdName"] = s.tray_id_name;
-        j["rolls"]      = 1;
-    }
+    const std::string tray_id_name = s.tray_id_name.empty() ? tray_id_name_by_filament_color(s) : s.tray_id_name;
+    j["trayIdName"] = tray_id_name;
+    j["rolls"]      = 1;
 
     // Cloud schema (CreateFilamentV2Req): netWeight = 当前净重 (current
     // material remaining), totalNetWeight = 整卷净重 (the spool's full
@@ -397,6 +437,7 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_update_patch(const nlohma
     //   filamentName    string  optional
     //   filamentId      string  optional
     //   isSupport       bool    optional
+    //   trayIdName      string  optional
     //   color           string  optional
     //   colorType       int64   optional   0=渐变 / 1=拼色 / 2=单色
     //   colors          []string optional
@@ -405,7 +446,7 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_update_patch(const nlohma
     //   note            string  optional
     //
     // 规则：只输出 swagger 白名单字段；本地 patch 里未出现或 null 的字段不发，
-    // 服务端"只更新提供的字段"。系统专属字段（createType / RFID / trayIdName /
+    // 服务端"只更新提供的字段"。系统专属字段（createType / RFID /
     // rolls 等 Create/AmsSync 专属）严禁出现在 Update body，否则 go-zero 严格
     // 校验会把请求打回 400（对应到本地 circuit breaker 就是 -29 internal blocking）。
     nlohmann::json j = nlohmann::json::object();
@@ -437,7 +478,10 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_update_patch(const nlohma
     take_str("series",          "filamentName");    // UI 的 Material Type 实际对应云端 filamentName
     take_str("filament_name",   "filamentName");    // 兼容未来显式字段
     take_str("setting_id",      "filamentId");
+    take_str("filamentId",      "filamentId");      // tolerate cloud-field patches
     take_bool("is_support",     "isSupport");       // 同上
+    if (j.contains("filamentId") && j.at("filamentId").is_string())
+        j["isSupport"] = filament_is_support_by_setting_id(j.at("filamentId").get<std::string>());
     take_str("color_code",      "color");
     // STUDIO-17977: colors[] is now a first-class local field; pass it through
     // when the patch carries an explicit colors array.
@@ -505,6 +549,9 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_update_json(const Filamen
         const auto& v = local_patch.at(key);
         return v.is_string() ? v.get<std::string>() : std::string();
     };
+    auto patch_has = [&](const char* key) -> bool {
+        return local_patch.is_object() && local_patch.contains(key) && !local_patch.at(key).is_null();
+    };
 
     // Edit requests must include filamentName even when the user only changes
     // color/weight/note. The visible "Material Type" field is cloud
@@ -514,6 +561,31 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_update_json(const Filamen
         if (filament_name.empty()) filament_name = patch_str("filament_name");
         if (filament_name.empty()) filament_name = s.series.empty() ? s.material_type : s.series;
         j["filamentName"] = filament_name;
+    }
+
+    const bool tray_id_source_changed = patch_has("setting_id") || patch_has("filamentId")
+        || patch_has("color_code") || patch_has("colors") || patch_has("color_type");
+    if (tray_id_source_changed) {
+        FilamentSpool updated = s;
+        std::string setting_id = patch_str("setting_id");
+        if (setting_id.empty()) setting_id = patch_str("filamentId");
+        if (!setting_id.empty()) updated.setting_id = setting_id;
+
+        std::string color_code = patch_str("color_code");
+        if (!color_code.empty()) updated.color_code = color_code;
+        if (local_patch.contains("colors") && local_patch.at("colors").is_array()) {
+            updated.colors.clear();
+            for (const auto& color : local_patch.at("colors")) {
+                if (color.is_string())
+                    updated.colors.push_back(color.get<std::string>());
+            }
+        }
+        if (local_patch.contains("color_type") && local_patch.at("color_type").is_number())
+            updated.color_type = local_patch.at("color_type").get<int>();
+
+        const std::string tray_id_name = tray_id_name_by_filament_color(updated);
+        if (!tray_id_name.empty())
+            j["trayIdName"] = tray_id_name;
     }
 
     return j;
