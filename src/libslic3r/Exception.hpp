@@ -2,7 +2,6 @@
 #define _libslic3r_Exception_h_
 
 #include <stdexcept>
-#include <string>
 #include <vector>
 
 namespace Slic3r {
@@ -31,14 +30,11 @@ class SlicingError : public Exception
 {
 public:
     using Exception::Exception;
-    SlicingError(std::string const &msg, size_t objectId, const std::string &optKey = {})
-        : Exception(msg), objectId_(objectId), opt_key_(optKey) {}
+    SlicingError(std::string const &msg, size_t objectId) : Exception(msg), objectId_(objectId) {}
     size_t objectId() const { return objectId_; }
-    const std::string &optKey() const { return opt_key_; }
 
 private:
     size_t objectId_ = 0;
-    std::string opt_key_;
 };
 
 class SlicingErrors : public Exception

@@ -71,7 +71,7 @@ bool SlicingProcessCompletedEvent::invalidate_plater() const
 	return false;
 }
 
-std::pair<std::string, std::vector<size_t>> SlicingProcessCompletedEvent::format_error_message(std::string *out_opt_key) const
+std::pair<std::string, std::vector<size_t>> SlicingProcessCompletedEvent::format_error_message() const
 {
 	std::string error;
     size_t      monospace = 0;
@@ -90,7 +90,6 @@ std::pair<std::string, std::vector<size_t>> SlicingProcessCompletedEvent::format
     } catch (SlicingError &ex) {
 		error = ex.what();
 		monospace = ex.objectId();
-		if (out_opt_key) *out_opt_key = ex.optKey();
     } catch (SlicingErrors &exs) {
         std::vector<size_t> ids;
         for (auto &ex : exs.errors_) {
