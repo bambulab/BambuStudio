@@ -469,6 +469,26 @@ static std::map<int, DynamicPrintConfig> build_filament_ams_list_for_n1x(Machine
             result.emplace(extruder_flag + (ams_id * 4 + slot_id), build_tray_config(*tray, display, std::to_string(ams_id), std::to_string(slot_id), nozzle_dia));
         }
 
+        // Preload AMS trays — the second filament available on this nozzle.
+        // Only meaningful when the main feed differs (e.g. main = external
+        // spool, preload = internal AMS slot). When the preload matches the
+        // main bind it's the same physical tray and would just duplicate the
+        // entry above. Mirrors DevicePageAmsMappingHotendVM::BuildSlotJson
+        // which renders the preload as a sub-card only when the slots differ.
+        const auto &main_slots = nozzle->GetBindAmsSlots();
+        for (const auto &preload_slot : nozzle->GetPreloadBindAmsSlots()) {
+            const int  ams_id       = preload_slot.first;
+            const int  slot_id      = preload_slot.second;
+            const bool same_as_main = std::any_of(main_slots.begin(), main_slots.end(), [ams_id, slot_id](const auto &s) { return s.first == ams_id && s.second == slot_id; });
+            if (same_as_main) continue;
+            auto ams_it = ams_list.find(std::to_string(ams_id));
+            if (ams_it == ams_list.end()) continue; // rack-matching internal AMS only, no Ext fallback
+            DevAmsTray *tray = ams_it->second->GetTray(std::to_string(slot_id));
+            if (!tray) continue;
+            std::string display = std::to_string(idx + 1);
+            result.emplace(extruder_flag + (ams_id * 4 + slot_id), build_tray_config(*tray, display, std::to_string(ams_id), std::to_string(slot_id), nozzle_dia));
+        }
+
         // ams name is A, B, C, D in order
         size_t ams_4_idx{0}; // for 4 slots ams
         size_t ams_1_idx{0}; // for 1 slots ams
