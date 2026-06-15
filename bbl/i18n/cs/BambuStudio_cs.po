@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-01 09:40+0800\n"
+"POT-Creation-Date: 2026-06-15 21:22+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jakub Hencl <jakub.hencl@seznam.cz>\n"
 "Language-Team: \n"
@@ -2199,11 +2199,14 @@ msgstr "Přidat SVG modifikátor"
 msgid "Select settings"
 msgstr "Vyberte nastavení"
 
-msgid "Hide"
-msgstr "Skrýt"
+msgid "Add to New Step"
+msgstr ""
 
-msgid "Show"
-msgstr "Zobrazit"
+msgid "Add to Current Step"
+msgstr ""
+
+msgid "Add to Existing Step"
+msgstr ""
 
 msgid "Delete the selected object"
 msgstr "Smazat vybraný objekt"
@@ -5162,6 +5165,9 @@ msgstr "Poloha nebo velikost modelu %s přesahuje tisknutelný rozsah tiskárny 
 msgid " Please check and adjust the part's position or size to fit the printable range:\n"
 msgstr " Zkontrolujte a upravte polohu nebo velikost dílu tak, aby odpovídaly tisknutelné oblasti:\n"
 
+msgid "Unnamed"
+msgstr ""
+
 msgid "Mirror Object"
 msgstr "Zrcadlit objekt"
 
@@ -5299,6 +5305,12 @@ msgstr "Přizpůsobit kameru"
 msgid "Fit camera to scene or selected object."
 msgstr "Přizpůsobit kameru scéně nebo vybranému objektu."
 
+msgid "Unlock camera"
+msgstr ""
+
+msgid "Lock camera"
+msgstr ""
+
 msgid "Paint Toolbar"
 msgstr "Panel nástrojů Malování"
 
@@ -5316,6 +5328,15 @@ msgstr "Ovládání sestavy"
 
 msgid "Selection Mode"
 msgstr "Režim výběru"
+
+msgid "OnlyCurrentStep"
+msgstr ""
+
+msgid "Highlight"
+msgstr ""
+
+msgid "Display Mode"
+msgstr ""
 
 msgid "Total Volume:"
 msgstr "Celkový objem:"
@@ -5523,6 +5544,9 @@ msgstr "Náhled"
 
 msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
 msgstr "Aktuální stránka má neuložené změny. Můžete pokračovat v úpravách nebo před odchodem změny uložit či zahodit."
+
+msgid "Home"
+msgstr ""
 
 msgid "Device"
 msgstr "Zařízení"
@@ -7679,6 +7703,12 @@ msgstr ""
 msgid "Texture Import Warning"
 msgstr ""
 
+msgid ""
+"The imported STEP file is split by sub-assembly, so some objects may not be placed on the build plate at first.\n"
+"It is expected if they are placed on the build plate later after translation or similar operations.\n"
+"The overall assembly can be checked from the assembly thumbnail or by entering the assembly view."
+msgstr ""
+
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Načíst tyto soubory jako jeden vícedílný objekt?\n"
 
@@ -8539,6 +8569,12 @@ msgstr "Správa více zařízení (projeví se po restartování Studia)."
 
 msgid "With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."
 msgstr "Pokud je tato volba povolena, můžete odesílat úlohu na více zařízení současně a spravovat více zařízení."
+
+msgid "Take effect after restarting Studio"
+msgstr ""
+
+msgid "The Filament Manager is turned off by default on macOS because compatibility issues on some systems may cause the application to become unresponsive."
+msgstr ""
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "Zobrazit dialog nastavení parametru kroku sítě."
@@ -10162,6 +10198,12 @@ msgstr "Firmwarová retrakce"
 
 msgid "Detached"
 msgstr "Odpojeno"
+
+msgid "The current preset is a project preset and can't be used to create a new preset. Please select a system preset or user preset, then try again."
+msgstr ""
+
+msgid "Unable to save preset"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%d Filament Preset and %d Process Preset is attached to this printer. Those presets would be deleted if the printer is deleted."
@@ -12017,6 +12059,9 @@ msgstr "Pro tisk více objektů v režimu spirálové vázy zvolte tiskovou posl
 msgid "The spiral vase mode does not work when an object contains more than one materials."
 msgstr "Režim spirálové vázy nelze použít, pokud objekt obsahuje více než jeden materiál."
 
+msgid "The spiral vase mode does not work when an object contains regions with different print settings."
+msgstr ""
+
 msgid "Variable layer height is not supported with Organic supports."
 msgstr "Proměnná výška vrstvy není podporována s organickými podpěrami."
 
@@ -12953,6 +12998,18 @@ msgstr "Interval výměny hotendu"
 
 msgid "Time to change hotend."
 msgstr "Je čas vyměnit hotend."
+
+msgid "Cut and unload from extruder time"
+msgstr ""
+
+msgid "Time to cut filament and retract it out of the extruder, used when parallel feeding is supported. For statistics only"
+msgstr ""
+
+msgid "Extruder bite time after pre-feed"
+msgstr ""
+
+msgid "Time for the extruder to bite the filament once it has been pre-fed, used when parallel feeding is supported. For statistics only"
+msgstr ""
 
 msgid "Bed temperature type"
 msgstr "Typ teploty podložky"
@@ -14392,6 +14449,12 @@ msgstr "Pokud je zvolen režim hladký nebo tradiční, bude pro každý tisk vy
 msgid "Traditional"
 msgstr "Tradiční"
 
+msgid "Farthest point timelapse"
+msgstr ""
+
+msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
+msgstr ""
+
 msgid "Temperature variation"
 msgstr "Kolísání teploty"
 
@@ -14887,6 +14950,12 @@ msgid "Flush multiplier (Fast mode)"
 msgstr ""
 
 msgid "The flush multiplier used in fast purge mode."
+msgstr ""
+
+msgid "Alternate extruder printing"
+msgstr ""
+
+msgid "When the printer supports parallel (pre-)feeding, print the two extruders in an alternating order within a layer instead of finishing one extruder first. Only takes effect when the printer supports parallel feeding."
 msgstr ""
 
 msgid "Width of prime tower"
@@ -17927,6 +17996,12 @@ msgid ""
 msgstr ""
 "Spolehlivost hned napoprvé\n"
 "Méně dohledu, předvídatelnější výsledky. Příklad: malá farma tisknoucí díly z PETG se vyhne překvapením typu „selhání v 6. hodině“ a udrží výrobu podle plánu."
+
+#~ msgid "Hide"
+#~ msgstr "Skrýt"
+
+#~ msgid "Show"
+#~ msgstr "Zobrazit"
 
 #~ msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
 #~ msgstr "Spirálový režim funguje pouze tehdy, když je počet smyček stěn 1, podpěry jsou vypnuté, detekce shlukování sondováním je vypnutá, počet horních vrstev je 0, hustota řídké výplně je 0, typ časosběru je tradiční a vyhlazování rychlosti stěn v ose Z je vypnuté."

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-01 09:40+0800\n"
+"POT-Creation-Date: 2026-06-15 21:22+0800\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2185,11 +2185,14 @@ msgstr "Lägg till SVG modifierare"
 msgid "Select settings"
 msgstr "Välj inställningar"
 
-msgid "Hide"
-msgstr "Dölj"
+msgid "Add to New Step"
+msgstr ""
 
-msgid "Show"
-msgstr "Visa"
+msgid "Add to Current Step"
+msgstr ""
+
+msgid "Add to Existing Step"
+msgstr ""
 
 msgid "Delete the selected object"
 msgstr "Radera det valda objektet"
@@ -4235,39 +4238,39 @@ msgstr ""
 "Återställ till 50%% ytdjup"
 
 msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
-msgstr ""
+msgstr "Alternativ extravägg är inte kompatibel med spiralvasläge. För att aktivera alternativ extravägg rekommenderas följande justeringar:"
 
 msgid "Set ensure vertical shell thickness to Partial."
-msgstr ""
+msgstr "Ställ in säkerställande av vertikal skaltjocklek till Delvis."
 
 #, c-format, boost-format
 msgid "Set wall loops to %d."
-msgstr ""
+msgstr "Ställ in väggslingor på %d."
 
 #, c-format, boost-format
 msgid "Set sparse infill density to %d%%."
-msgstr ""
+msgstr "Ställ in gles utfyllnadstäthet till %d%%."
 
 msgid "Disable spiral vase mode."
-msgstr ""
+msgstr "Avaktivera spiralvasläge."
 
 msgid ""
 "Change these settings automatically?\n"
 "Yes - Apply and keep alternate extra wall enabled\n"
 "No  - Don't use alternate extra wall"
-msgstr ""
+msgstr "Ändra dessa inställningar automatiskt? Ja – Använd och håll alternativ extravägg aktiverad Nej – Använd inte alternativ extravägg"
 
 msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
-msgstr ""
+msgstr "För att den alternativa extraväggen ska fungera korrekt rekommenderas följande justeringar:"
 
 msgid ""
 "Apply these adjustments?\n"
 "Yes - Apply and keep alternate extra wall enabled\n"
 "No  - Keep current settings and alternate extra wall enabled"
-msgstr ""
+msgstr "Tillämpa dessa justeringar? Ja – Tillämpa och behåll alternativ extravägg aktiverad Nej–Behåll nuvarande inställningar och alternativ extravägg aktiverad"
 
 msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."
-msgstr ""
+msgstr "Spiralläget fungerar bara när väggslingor är 1, stöd är avaktiverat, klumpbildningsdetektering genom sondering är avaktiverat, översta skallager är 0, gles utfyllnadsdensitet är 0, timelapse-typen är traditionell, utjämning av vägghastighet i z-riktning är falsk och alternativ extravägg är avaktiverad."
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Maskiner med I3-struktur kan dock inte generera timelapse videor."
@@ -5095,6 +5098,9 @@ msgstr "Positionen eller storleken på modellen %s överskrider %s's utskrivbara
 msgid " Please check and adjust the part's position or size to fit the printable range:\n"
 msgstr " Kontrollera och justera delens position eller storlek så att den passar det utskrivbara området:\n"
 
+msgid "Unnamed"
+msgstr ""
+
 msgid "Mirror Object"
 msgstr "Spegelvänd objektet"
 
@@ -5232,11 +5238,17 @@ msgstr "Anpassa kamera"
 msgid "Fit camera to scene or selected object."
 msgstr "Anpassa kameran till en scen eller ett valt objekt."
 
+msgid "Unlock camera"
+msgstr ""
+
+msgid "Lock camera"
+msgstr ""
+
 msgid "Paint Toolbar"
 msgstr "Färgläggningsverktyg"
 
 msgid "This border is used to distinguish it from the background"
-msgstr ""
+msgstr "Denna kantlinje används för att skilja den från bakgrunden"
 
 msgid "Explosion Ratio"
 msgstr "Explosions Förhållande"
@@ -5249,6 +5261,15 @@ msgstr "Monterings Kontroll"
 
 msgid "Selection Mode"
 msgstr "Val av läge"
+
+msgid "OnlyCurrentStep"
+msgstr ""
+
+msgid "Highlight"
+msgstr ""
+
+msgid "Display Mode"
+msgstr ""
 
 msgid "Total Volume:"
 msgstr "Total Volym:"
@@ -5459,6 +5480,9 @@ msgstr "Förhandsvisning"
 
 msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
 msgstr "Den aktuella sidan har osparade ändringar. Du kan fortsätta redigera eller välja att spara/ignorera innan du lämnar."
+
+msgid "Home"
+msgstr ""
 
 msgid "Device"
 msgstr "Enhet"
@@ -6006,7 +6030,7 @@ msgid "Plugin library failed to load. Click here to view the solution."
 msgstr "Plugin biblioteket kunde inte laddas. Klicka här för att visa lösningen."
 
 msgid "Loading failed. Please check the network and try again."
-msgstr ""
+msgstr "Laddningen misslyckades. Kontrollera nätverket och försök igen."
 
 msgid "Temporarily closed because there is no operation for a while."
 msgstr "Tillfälligt stängd eftersom det inte finns någon aktivitet på ett tag."
@@ -7154,13 +7178,13 @@ msgid "Automatically capture and upload print photos, showing defects during pri
 msgstr "Ta automatiskt och ladda upp utskrifts bilder, visa defekter under utskrift och det slutliga resultatet för fjärrvisning."
 
 msgid "Automatically match the corresponding switch strategy for leak-prone filaments (disable blob detection) and regular filaments (enable blob detection)."
-msgstr ""
+msgstr "Matcha automatiskt motsvarande växlingsstrategi för läckagebenägna filament (avaktivera blobdetektering) och vanliga filament (aktivera blobdetektering)."
 
 msgid "Detect whether the nozzle is wrapped by filament or other foreign matter."
-msgstr ""
+msgstr "Upptäck om munstycket är omslutet av filament eller annat främmande material."
 
 msgid "After disabling, nozzle wrapping cannot be detected, which may lead to print failure or nozzle damage."
-msgstr ""
+msgstr "Efter avaktivering kan munstycksomslag inte detekteras, vilket kan leda till utskriftsfel eller skador på munstyckena."
 
 msgctxt "Nozzle Type"
 msgid "Type"
@@ -7598,6 +7622,12 @@ msgstr "Beräkning av texturfärger:%s"
 
 msgid "Texture Import Warning"
 msgstr "Varning för texturimport"
+
+msgid ""
+"The imported STEP file is split by sub-assembly, so some objects may not be placed on the build plate at first.\n"
+"It is expected if they are placed on the build plate later after translation or similar operations.\n"
+"The overall assembly can be checked from the assembly thumbnail or by entering the assembly view."
+msgstr ""
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Ladda dessa filer som ett enkelt objekt med multipla delar?\n"
@@ -8441,6 +8471,12 @@ msgstr "Hantering av flera enheter (träder i kraft efter omstart av Studio)."
 
 msgid "With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."
 msgstr "När det här alternativet är aktiverat kan du skicka en uppgift till flera enheter samtidigt och hantera flera enheter."
+
+msgid "Take effect after restarting Studio"
+msgstr ""
+
+msgid "The Filament Manager is turned off by default on macOS because compatibility issues on some systems may cause the application to become unresponsive."
+msgstr ""
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "Visa dialogrutan för inställning av steg mesh parametrar."
@@ -9315,7 +9351,7 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It
 msgstr "Hårdheten hos aktuellt material (%s) överskrider hårdheten hos %s(%s). Det kan orsaka nozzle slitage, vilket leder till material läckage och instabila flöde. Var försiktig när du använder den."
 
 msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
-msgstr ""
+msgstr "Om \"Dynamisk flödeskalibrering\" är inställd på Auto/På, kommer systemet att använda det manuella kalibreringsvärdet eller standardvärdet och hoppa över flödeskalibreringsprocessen. Du kan utföra en manuell flödeskalibrering för TPU-filament på sidan \"Kalibrering\"."
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "Vissa filament kan växla mellan extruders under utskrift. Manuell K-värdes kalibrering kan inte appliceras under hela utskriften, vilket kan påverka utskrifts kvaliteten. Aktivering av Kalibrering av flödesdynamik rekommenderas."
@@ -10057,6 +10093,12 @@ msgstr "Firmware Retraktion"
 
 msgid "Detached"
 msgstr "Fristående"
+
+msgid "The current preset is a project preset and can't be used to create a new preset. Please select a system preset or user preset, then try again."
+msgstr ""
+
+msgid "Unable to save preset"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%d Filament Preset and %d Process Preset is attached to this printer. Those presets would be deleted if the printer is deleted."
@@ -11904,6 +11946,9 @@ msgstr "Kontrollera \"Per objekt\" utskrifts sekvens för att skriva ut multipla
 msgid "The spiral vase mode does not work when an object contains more than one materials."
 msgstr "Spiral Vase läge fungerar inte när objektet innehåller mer än ett material."
 
+msgid "The spiral vase mode does not work when an object contains regions with different print settings."
+msgstr ""
+
 msgid "Variable layer height is not supported with Organic supports."
 msgstr "Variabel lagerhöjd stöds inte med organiska support."
 
@@ -12774,7 +12819,7 @@ msgid "temperature when flushing filament. 0 indicates the upper bound of the re
 msgstr "temperatur vid rensning av filamentet. 0 anger den övre gränsen för den rekommenderade nozzle temperatur intervallen"
 
 msgid "Flush temperature used in fast purge mode."
-msgstr ""
+msgstr "Spolningstemperatur som används i snabbrensningsläge."
 
 msgid "Flush volumetric speed"
 msgstr "Volymetrisk hastighet för rensning"
@@ -12829,6 +12874,18 @@ msgstr "Tid för byte av hotend"
 
 msgid "Time to change hotend."
 msgstr "Dags att byta hotend."
+
+msgid "Cut and unload from extruder time"
+msgstr ""
+
+msgid "Time to cut filament and retract it out of the extruder, used when parallel feeding is supported. For statistics only"
+msgstr ""
+
+msgid "Extruder bite time after pre-feed"
+msgstr ""
+
+msgid "Time for the extruder to bite the filament once it has been pre-fed, used when parallel feeding is supported. For statistics only"
+msgstr ""
 
 msgid "Bed temperature type"
 msgstr "Typ av bädd temperatur"
@@ -12977,10 +13034,10 @@ msgid "Start and end ratios for the first component in gradient mode. Comma-sepa
 msgstr "Start- och slutförhållanden för den första komponenten i gradient läge. Komma avgränsade par, t.ex. \"0,10,0,90\" betyder 10 % till 90 %."
 
 msgid "Mixed filament gradient curve"
-msgstr ""
+msgstr "Blandad filamentgradientkurva"
 
 msgid "Optional Photoshop-style custom curve mapping Z progress to the first component ratio. Encoded as pipe-separated control points, either \"x,y\" (legacy) or \"x,y,m_in,m_out\" when a tangent override is needed (empty token or \"nan\" means use PCHIP default). x in [0,1]; y is clamped to the configured ratio range, e.g. \"0,0.15|0.5,0.50|1,0.85\". When empty, the linear gradient_range is used instead."
-msgstr ""
+msgstr "Valfri anpassad kurvmappning i Photoshop-stil Z-framsteg till det första komponentförhållandet. Kodad som rörseparerade kontrollpunkter, antingen \"x,y\" (äldre) eller \"x,y,m_in,m_out\" när en tangentöverstyrning behövs (tom token eller \"nan\" betyder att PCHIP-standard används). x in [0,1]; y är begränsat till det konfigurerade förhållandeintervallet, t.ex. \"0,0,15|0,5,0,50|1,0,85\". När värdet är tomt används det linjära gradientintervall istället."
 
 msgid "Mixed filament per-part gradient"
 msgstr "Blandad filament per delgradient"
@@ -13394,10 +13451,10 @@ msgid "Enable clumping detection"
 msgstr "Aktivera klump detektering"
 
 msgid "Order-independent overlap carving"
-msgstr ""
+msgstr "Ordningsoberoende överlappningssnideri"
 
 msgid "When enabled, overlapping model parts are carved by bounding-box size so smaller embedded parts are not removed by larger parts due to volume order."
-msgstr ""
+msgstr "När detta är aktiverat ritas överlappande modelldelar ut efter avgränsningsrutans storlek så att mindre inbäddade delar inte tas bort av större delar på grund av volymordning."
 
 msgid "Clumping detection layers"
 msgstr "Klump detekterings lager"
@@ -14265,6 +14322,12 @@ msgstr "Om Smooth eller Traditionellt läge väljs genereras en timelapse-video 
 msgid "Traditional"
 msgstr "Traditionell"
 
+msgid "Farthest point timelapse"
+msgstr "Timelapse av bortersta punkten"
+
+msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
+msgstr "När den är aktiverad tas timelapse-ögonblicksbilden vid den punkt som är längst bort från kameran istället för att den förflyttas till torkningstornet eller överskottsrännan. Endast effektivt i traditionellt timelapse-läge på skrivare som inte är I3."
+
 msgid "Temperature variation"
 msgstr "Temperatur variation"
 
@@ -14761,6 +14824,12 @@ msgstr "Spolningsmultiplikator (snabbt läge)"
 
 msgid "The flush multiplier used in fast purge mode."
 msgstr "Spolningsmultiplikatorn som används i snabbt rensningsläge."
+
+msgid "Alternate extruder printing"
+msgstr ""
+
+msgid "When the printer supports parallel (pre-)feeding, print the two extruders in an alternating order within a layer instead of finishing one extruder first. Only takes effect when the printer supports parallel feeding."
+msgstr ""
 
 msgid "Width of prime tower"
 msgstr "Prime tornets bredd"
@@ -17422,10 +17491,10 @@ msgid "Remove the third material"
 msgstr "Ta bort det tredje materialet"
 
 msgid "Material Ratio"
-msgstr ""
+msgstr "Materialförhållande"
 
 msgid "Model Height"
-msgstr ""
+msgstr "Modellhöjd"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -17720,6 +17789,12 @@ msgid ""
 msgstr ""
 "Tillförlitlighet vid första försöket\n"
 "Mindre barnpassning, mer förutsägbar produktion. Exempel: en liten farm som kör PETG delar undviker överraskningar med \"fel vid timme 6\" och håller batcherna enligt schemat."
+
+#~ msgid "Hide"
+#~ msgstr "Dölj"
+
+#~ msgid "Show"
+#~ msgstr "Visa"
 
 #~ msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
 #~ msgstr "Spiral läge fungerar bara när väggslingor är 1, support är inaktiverat, klump detektering genom probe är inaktiverad, övre skalet lager är 0, gles utfyllnad densitet är 0, timelapse typ är traditionell och utjämning vägghastighet i z riktning är falsk."
