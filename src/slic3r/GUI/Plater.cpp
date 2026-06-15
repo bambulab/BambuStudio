@@ -1,5 +1,6 @@
 #include "Plater.hpp"
 #include "libslic3r/PerfTrace.hpp"
+#include "DeviceCore/DevNozzleRack.h"
 #include <array>
 #include <boost/format/format_fwd.hpp>
 #include <cassert>
@@ -1916,7 +1917,7 @@ std::vector<NozzleConfig> Sidebar::priv::collect_nozzle_configs_from_machine(Mac
         if (!nozzle) continue;
 
         auto &nozzle_config = nozzle_configs.emplace_back();
-        if (!nozzle->IsExist()) continue;
+        if (!nozzle->IsExist() || nozzle->IsUnknown() || nozzle->IsAbnormal()) continue;
 
         nozzle_config.diameter = get_diameter_string(nozzle->GetNozzleDiameter());
         nozzle_config.volume   = DevNozzle::ToNozzleVolumeType(nozzle->GetNozzleFlowType());
@@ -5056,11 +5057,9 @@ std::map<int, DynamicPrintConfig> Sidebar::build_filament_ams_list(MachineObject
     auto *preset_bundle = wxGetApp().preset_bundle;
     assert(preset_bundle);
 
-    // for machines like N10, which treat hotends as logical extruders)
-    {
-        auto *opt = preset_bundle->printers.get_edited_preset().config.option<ConfigOptionBool>("handle_hotend_as_extruder");
-        if (opt && opt->value) return build_filament_ams_list_for_n1x(obj);
-    }
+    // for machines like N10, which treat hotends as logical extruders
+    const auto rack_type = obj->GetNozzleRack()->GetRackType();
+    if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) { return build_filament_ams_list_for_n1x(obj); }
 
     std::map<int, DynamicPrintConfig> filament_ams_list;
     if (obj->ams_support_virtual_tray) {

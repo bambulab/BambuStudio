@@ -614,8 +614,10 @@ bool PresetComboBox::add_ams_filaments(std::string selected, bool alias_name)
         return {};
     }
 
-    if (cur_printer.config.opt_bool("handle_hotend_as_extruder")) {
-        return add_ams_filaments_grouped_by_nozzle(selected, alias_name);
+    // for machines like N10, which treat hotends as logical extruders
+    if (auto *obj = wxGetApp().getDeviceManager()->get_selected_machine()) {
+        const auto rack_type = obj->GetNozzleRack()->GetRackType();
+        if (rack_type == DevNozzleRack::RackType_A || rack_type == DevNozzleRack::RackType_B) { return add_ams_filaments_grouped_by_nozzle(selected, alias_name); }
     }
 
     bool selected_in_ams      = false;
