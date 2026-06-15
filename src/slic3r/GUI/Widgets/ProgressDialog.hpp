@@ -235,7 +235,7 @@ private:
     // if we are doing a heavy job, we should yield for some time to let others use the main thread
     // Note: this many cause a great delay on operations such as Update()
     // disable this if not needed.
-    bool m_need_yield{false};
+    bool m_need_yield{true};
 
     wxDECLARE_NO_COPY_CLASS(ProgressDialog);
 };
