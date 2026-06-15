@@ -60,9 +60,18 @@ bool filament_is_support_by_setting_id(const std::string& setting_id)
     return is_support;
 }
 
+std::string filament_type_by_setting_id(const std::string& setting_id)
+{
+    if (!wxGetApp().preset_bundle)
+        return {};
+
+    auto info = wxGetApp().preset_bundle->get_filament_by_filament_id(setting_id);
+    return info.has_value() ? info->filament_type : std::string{};
+}
+
 std::string tray_id_name_by_filament_color(const FilamentSpool& s)
 {
-    if (s.setting_id.size() <= 3)
+    if (s.setting_id.size() <= 2)
         return {};
 
     auto* clr_query = wxGetApp().get_filament_color_code_query();
@@ -88,7 +97,7 @@ std::string tray_id_name_by_filament_color(const FilamentSpool& s)
         return {};
 
     const std::string color_code = color_info->GetColorCode().utf8_string();
-    return color_code.empty() ? std::string{} : s.setting_id.substr(3) + "-" + color_code;
+    return color_code.empty() ? std::string{} : s.setting_id.substr(2) + "-" + color_code;
 }
 
 } // namespace
@@ -570,6 +579,11 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_update_json(const Filamen
         std::string setting_id = patch_str("setting_id");
         if (setting_id.empty()) setting_id = patch_str("filamentId");
         if (!setting_id.empty()) updated.setting_id = setting_id;
+        if (!updated.setting_id.empty()) {
+            std::string filament_type = filament_type_by_setting_id(updated.setting_id);
+            if (filament_type.empty()) filament_type = updated.material_type;
+            if (!filament_type.empty()) j["filamentType"] = filament_type;
+        }
 
         std::string color_code = patch_str("color_code");
         if (!color_code.empty()) updated.color_code = color_code;
@@ -584,8 +598,7 @@ nlohmann::json wgtFilaManagerCloudSync::spool_to_cloud_update_json(const Filamen
             updated.color_type = local_patch.at("color_type").get<int>();
 
         const std::string tray_id_name = tray_id_name_by_filament_color(updated);
-        if (!tray_id_name.empty())
-            j["trayIdName"] = tray_id_name;
+        j["trayIdName"] = tray_id_name;
     }
 
     return j;
