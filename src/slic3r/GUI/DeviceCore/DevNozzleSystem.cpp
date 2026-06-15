@@ -90,6 +90,8 @@ NozzleFlowType DevNozzle::VariantToNozzleFlowType(const std::string& variant)
         return NozzleFlowType::U_FLOW;
     } else if (variant.find("E3D High Flow") != std::string::npos) {
         return NozzleFlowType::E_FLOW;
+    } else if (variant.find("TPU285") != std::string::npos) {
+        return NozzleFlowType::T_FLOW;
     } else if (variant.find("High Flow") != std::string::npos) {
         return NozzleFlowType::H_FLOW;
     } else if (variant.find("Standard") != std::string::npos) {
@@ -489,6 +491,7 @@ std::vector<MultiNozzleUtils::NozzleGroupInfo> DevNozzleSystem::GetNozzleGroups(
     auto nozzle_in_extruder = this->GetExtNozzles();
     for (auto& elem : nozzle_in_extruder) {
         auto& nozzle = elem.second;
+        if (!nozzle.IsExist() || nozzle.IsUnknown() || nozzle.IsAbnormal()) continue;
         MultiNozzleUtils::NozzleGroupInfo info;
         info.extruder_id = nozzle.GetLogicExtruderId();
         info.diameter = format_diameter_to_str(nozzle.m_diameter);
@@ -504,8 +507,7 @@ std::vector<MultiNozzleUtils::NozzleGroupInfo> DevNozzleSystem::GetNozzleGroups(
     auto nozzle_in_rack = nozzle_rack->GetRackNozzles(); // nozzles in rack
     for (auto& elem : nozzle_in_rack) {
         auto& nozzle = elem.second;
-        if (nozzle.IsUnknown() || nozzle.IsAbnormal())
-            continue;
+        if (!nozzle.IsExist() || nozzle.IsUnknown() || nozzle.IsAbnormal()) continue;
         int extruder_id = nozzle.GetLogicExtruderId();
         std::string diameter = format_diameter_to_str(nozzle.m_diameter);
         NozzleVolumeType volume_type = DevNozzle::ToNozzleVolumeType(nozzle.m_nozzle_flow);

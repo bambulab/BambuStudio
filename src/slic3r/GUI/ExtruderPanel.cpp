@@ -1257,6 +1257,7 @@ std::vector<NozzleConfig> ExtruderDialogPanel::ExtractConfig()
         cfg.status = internal.error_label && internal.error_label->IsShown() ? NozzleStatus::nsError :
                      internal.unknown_label && internal.unknown_label->IsShown() ? NozzleStatus::nsUnknown :
                                                                                    NozzleStatus::nsNormal;
+        cfg.ams_slot = internal.ams_slot;
         configs.push_back(cfg);
     }
 
