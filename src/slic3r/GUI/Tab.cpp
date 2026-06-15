@@ -6437,10 +6437,15 @@ void TabPrinter::toggle_options()
         // BBS
         toggle_option("wipe_distance", wipe, i);
 
-        toggle_option("retract_length_toolchange", have_multiple_extruders, i);
+        // Toolchange retraction is meaningful on multi-extruder printers, and also on
+        // N1x-style single-extruder machines that treat the hotend as an extruder and
+        // still perform filament switches.
+        const bool handle_hotend_as_extruder = m_config->opt_bool("handle_hotend_as_extruder");
+        const bool toolchange_editable = have_multiple_extruders || handle_hotend_as_extruder;
+        toggle_option("retract_length_toolchange", toolchange_editable, i);
 
         bool toolchange_retraction = m_config->opt_float_nullable("retract_length_toolchange", variant_index) > 0;
-        toggle_option("retract_restart_extra_toolchange", have_multiple_extruders && toolchange_retraction, i);
+        toggle_option("retract_restart_extra_toolchange", toolchange_editable && toolchange_retraction, i);
 
         toggle_option("long_retractions_when_cut", !use_firmware_retraction && m_config->opt_int("enable_long_retraction_when_cut"), i);
         toggle_line("retraction_distances_when_cut", m_config->opt_bool_nullable("long_retractions_when_cut", variant_index), i);
