@@ -454,7 +454,11 @@ public:
 
 	std::vector<wxString>  generate_extruder_options();
 	std::vector<NozzleVariantSwitcher::Option> generate_nozzle_variant_options();
-    std::vector<DevNozzle> collect_nozzles(int extruder_id, ExtruderType ext_type, NozzleFlowType flow_type, bool& connected);
+    // 1-based slot indices in extruder_full_stat[extruder_id] whose volume_type
+    // matches `flow_type` and whose diameter matches the printer preset's
+    // nozzle_diameter[extruder_id]. Reflects the user's saved nozzle inventory
+    // (Extruder Settings dialog), independent of any connected machine.
+    std::vector<int>       collect_configured_nozzles(int extruder_id, NozzleFlowType flow_type);
     NozzleVolumeType       get_actual_nozzle_volume_type(int extruder_id);
     NozzleFlowType         get_actual_nozzle_flow_type(int selection);
     ExtruderType           get_actual_extruder_type(int selection);

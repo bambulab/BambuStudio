@@ -8118,13 +8118,10 @@ void Tab::update_extruder_variants(int extruder_id, bool reload)
         m_variant_combo->SetOptions(options);
         for (int i = 0; i < m_variant_combo->GetCount(); ++i) {
             auto flow_type = get_actual_nozzle_flow_type(i);
-            auto ext_type  = get_actual_extruder_type(i);
-            bool connected = false;
-            auto r_nozzles = collect_nozzles(MAIN_EXTRUDER_ID, ext_type, flow_type, connected);
-            std::vector<DevNozzle> l_nozzles;
-            if (m_preset_bundle->get_printer_extruder_count() > 1)
-                l_nozzles = collect_nozzles(DEPUTY_EXTRUDER_ID, ext_type, flow_type, connected);
-            if (connected && r_nozzles.empty() && l_nozzles.empty()) {
+            auto             r_nozzles = collect_configured_nozzles(MAIN_EXTRUDER_ID, flow_type);
+            std::vector<int> l_nozzles;
+            if (m_preset_bundle->get_printer_extruder_count() > 1) l_nozzles = collect_configured_nozzles(DEPUTY_EXTRUDER_ID, flow_type);
+            if (r_nozzles.empty() && l_nozzles.empty()) {
                 Button *btn = m_variant_combo->GetButton(i);
                 if (btn) {
                     btn->SetGrayed(true);
@@ -8284,40 +8281,14 @@ std::vector<wxString> Tab::generate_extruder_options()
 {
     std::vector<wxString> options;
     if (m_type == Preset::TYPE_FILAMENT) {
+        // Direct Drive Standard -> Direct Drive: Standard
+        // Bowden TPU High Flow  -> Bowden TPU: High Flow
         auto variants = m_config->option<ConfigOptionStrings>("filament_extruder_variant");
-        for (auto &v : variants->values) {
-            std::string drive, nozzle;
-
-            static std::vector<std::string> known_nozzle_types;
-            if (known_nozzle_types.empty()) {
-                for (auto nvt : get_valid_nozzle_volume_type()) {
-                    known_nozzle_types.push_back(get_nozzle_volume_type_string(nvt));
-                }
-                std::sort(known_nozzle_types.begin(), known_nozzle_types.end(),
-                    [](const std::string& a, const std::string& b) { return a.size() > b.size(); });
-            }
-            bool found = false;
-            for (const auto& nozzle_type : known_nozzle_types) {
-                if (v.size() > nozzle_type.size() &&
-                    v.substr(v.size() - nozzle_type.size()) == nozzle_type &&
-                    v[v.size() - nozzle_type.size() - 1] == ' ') {
-                    drive = v.substr(0, v.size() - nozzle_type.size() - 1);
-                    nozzle = nozzle_type;
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                size_t pos = v.rfind(' ');
-                if (pos != std::string::npos) {
-                    drive = v.substr(0, pos);
-                    nozzle = v.substr(pos + 1);
-                } else {
-                    drive = v;
-                    nozzle = "";
-                }
-            }
-            options.push_back(wxString::Format(_L("%s: %s"), _L(drive), _L(nozzle)));
+        for (const auto &v : variants->values) {
+            const std::string flow  = DevNozzle::ToNozzleFlowString(DevNozzle::VariantToNozzleFlowType(v));
+            const size_t      pos   = v.size() - flow.size() - 1;
+            const std::string drive = v.substr(0, pos);
+            options.push_back(wxString::Format(_L("%s: %s"), _L(drive), _L(flow)));
         }
         return options;
     }
@@ -8623,16 +8594,10 @@ void Tab::update_nozzle_status_display()
 
     int selection = m_variant_combo ? m_variant_combo->GetSelection() : -1;
     NozzleFlowType flow_type = get_actual_nozzle_flow_type(selection);
-    ExtruderType extruder_type = get_actual_extruder_type(selection);
 
-    bool connected = false;
-    auto r_nozzles = collect_nozzles(MAIN_EXTRUDER_ID, extruder_type, flow_type, connected);
-    std::vector<DevNozzle> l_nozzles;
-    if (m_preset_bundle->get_printer_extruder_count() > 1)
-        l_nozzles = collect_nozzles(DEPUTY_EXTRUDER_ID, extruder_type, flow_type, connected);
-    if (!connected) {
-        return;
-    }
+    auto             r_nozzles = collect_configured_nozzles(MAIN_EXTRUDER_ID, flow_type);
+    std::vector<int> l_nozzles;
+    if (m_preset_bundle->get_printer_extruder_count() > 1) l_nozzles = collect_configured_nozzles(DEPUTY_EXTRUDER_ID, flow_type);
     if (r_nozzles.empty() && l_nozzles.empty()) {
         auto bmp = ScalableBitmap(this, "warning", 16);
         auto warning_icon = new wxStaticBitmap(this, wxID_ANY, bmp.bmp(), wxDefaultPosition, wxDefaultSize, 0);
@@ -8650,7 +8615,7 @@ void Tab::update_nozzle_status_display()
     reminder_text->SetForegroundColour(wxColour("#00AE42"));
     m_nozzle_status_sizer->Add(reminder_text, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 10);
 
-    auto create_nozzle_button = [this](const wxString &name) {
+    auto add_nozzle_label = [this](const wxString &name) {
         Button *btn = new Button();
         btn->Create(this, name, "", wxBORDER_NONE);
         btn->SetMinSize(wxSize(24, 24));
@@ -8661,68 +8626,44 @@ void Tab::update_nozzle_status_display()
         btn->SetTextColor(fg_color);
         btn->SetCornerRadius(6);
         btn->Enable(false);
-
         m_nozzle_status_sizer->Add(btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
     };
 
-    if (!l_nozzles.empty()) {
-        create_nozzle_button("L");
-    }
-    if (!r_nozzles.empty() && !l_nozzles.empty()) {
-        wxPanel *line = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(4, 16));
-        line->SetBackgroundStyle(wxBG_STYLE_PAINT);
-        line->Bind(wxEVT_PAINT, [line](wxPaintEvent &) {
-            wxPaintDC dc(line);
-            wxColour color = wxGetApp().dark_mode() ? wxColour("#6B6B6B") : wxColour("#C8C8C8");
-            dc.SetPen(wxPen(color, 1));
-            int x = line->GetSize().GetWidth() / 2;
-            dc.DrawLine(x, 0, x, line->GetSize().GetHeight());
-        });
-        m_nozzle_status_sizer->Add(line, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
-    }
-    if (!r_nozzles.empty()) {
-        for (const auto nozzle : r_nozzles) {
-            wxString name = nozzle.IsOnRack() ? "R" + std::to_string(nozzle.GetNozzleId() + 1) : "R";
-            create_nozzle_button(name);
+    const int  extruder_nums = m_preset_bundle->get_printer_extruder_count();
+    const bool dual          = extruder_nums > 1;
+
+    auto add_side = [&](const std::vector<int> &slots, const char *side_prefix) {
+        // Single-extruder (e.g. N1x): just the slot number, no R/L prefix.
+        // Dual-extruder with one slot per side: just the side prefix.
+        // Dual-extruder with multiple slots: prefix + slot number.
+        const bool with_index = slots.size() > 1;
+        for (int slot : slots) {
+            wxString name;
+            if (!dual)             name = std::to_string(slot);
+            else if (with_index)   name = wxString(side_prefix) + std::to_string(slot);
+            else                   name = side_prefix;
+            add_nozzle_label(name);
         }
-    }
+    };
+
+    add_side(l_nozzles, "L");
+    add_side(r_nozzles, "R");
 }
 
-std::vector<DevNozzle> Tab::collect_nozzles(int extruder_id, ExtruderType ext_type, NozzleFlowType flow_type, bool& connected)
+std::vector<int> Tab::collect_configured_nozzles(int extruder_id, NozzleFlowType flow_type)
 {
-    MachineObject *obj = get_current_machine_object();
-    if (!obj) {
-        connected = false;
-        return {};
-    }
+    auto nozzle_diameter = dynamic_cast<const ConfigOptionFloatsNullable *>(m_preset_bundle->printers.get_edited_preset().config.option("nozzle_diameter"));
+    if (!nozzle_diameter || extruder_id < 0 || extruder_id >= int(nozzle_diameter->values.size())) return {};
 
-    std::string printer_type = obj->get_show_printer_type();
-    Preset& printer_preset = m_preset_bundle->printers.get_edited_preset();
-    auto preset_printer_type = printer_preset.get_current_printer_type(m_preset_bundle);
-    if (printer_type != preset_printer_type) {
-        connected = false;
-        return {};
-    }
+    const std::string want_diameter = wxString::Format(wxT("%g"), nozzle_diameter->values[extruder_id]).ToStdString();
+    const std::string want_volume   = DevNozzle::ToNozzleFlowString(flow_type);
 
-    DevNozzleSystem *nozzle_sys = obj->GetNozzleSystem();
-    DevExtderSystem *extder_sys = obj->GetExtderSystem();
-    if (!nozzle_sys || !extder_sys) {
-        connected = false;
-        return {};
+    std::vector<int> result;
+    const auto       stats = m_preset_bundle->extruder_full_stat.get_extruder_stats(extruder_id);
+    for (size_t i = 0; i < stats.size(); ++i) {
+        if (stats[i].first == want_diameter && stats[i].second == want_volume) result.push_back(int(i) + 1);
     }
-
-    connected = true;
-    auto extder_opt = extder_sys->GetExtderById(extruder_id);
-    if (!extder_opt.has_value()) {
-        BOOST_LOG_TRIVIAL(info) << "No extruder found for extruder id " << extruder_id;
-        return {};
-    }
-
-    auto extder_type = ExtruderType::etDirectDrive;
-    if (extder_type != ext_type) {
-        return {};
-    }
-    return nozzle_sys->CollectNozzles(extruder_id, flow_type);
+    return result;
 }
 
 void Tab::compatible_widget_reload(PresetDependencies &deps)
