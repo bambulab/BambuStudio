@@ -641,7 +641,7 @@ int find_printer_variant_index(const DynamicPrintConfig &printer_config, const s
 
 std::string get_nozzle_volume_type_string(NozzleVolumeType nozzle_volume_type)
 {
-    if (nozzle_volume_type > nvtMaxNozzleVolumeType) {
+    if (nozzle_volume_type >= nvtCount) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(", unsupported NozzleVolumeType=%1%") % nozzle_volume_type;
         return "";
     }
@@ -9300,7 +9300,8 @@ void DynamicPrintConfig::update_values_to_printer_extruders_for_multiple_filamen
             ExtruderType extruder_type = (ExtruderType)(opt_extruder_type->get_at(filament_maps[f_index] - 1));
             NozzleVolumeType nozzle_volume_type = (NozzleVolumeType)(opt_nozzle_volume_type->get_at(filament_maps[f_index] - 1));
 
-            if ((extruder_nozzle_volume_count > extruder_count || nozzle_volume_type == nvtHybrid) && (!filament_volume_maps.empty())) {
+            if ((extruder_nozzle_volume_count > extruder_count || nozzle_volume_type == nvtHybrid) &&
+                f_index < (int)filament_volume_maps.size()) {
                 nozzle_volume_type = (NozzleVolumeType)(filament_volume_maps[f_index]);
             }
 
@@ -9518,7 +9519,8 @@ void DynamicPrintConfig::update_filament_config_values_for_multiple_extruders(Dy
                 }
             } else {
                 // filament not used in slicing
-                if ((extruder_nozzle_volume_count > extruder_count || nozzle_volume_type==nvtHybrid) && (!filament_volume_maps.empty())) {
+                if ((extruder_nozzle_volume_count > extruder_count || nozzle_volume_type == nvtHybrid) &&
+                    f_index < (int)filament_volume_maps.size()) {
                     nozzle_volume_type = (NozzleVolumeType) (filament_volume_maps[f_index]);
                 }
                 int param_index = get_index_for_extruder(f_index + 1, id_name, extruder_type, nozzle_volume_type, variant_name);

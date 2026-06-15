@@ -2,9 +2,11 @@
 //#include "slic3r/Utils/Serial.hpp"
 #include "Tab.hpp"
 #include "PresetHints.hpp"
+#include "Widgets/NozzleVariantSwitcher.hpp"
 #include "DeviceCore/DevConfigUtil.h"
 #include "libslic3r/Config.hpp"
 #include "libslic3r/PresetBundle.hpp"
+#include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
@@ -550,9 +552,8 @@ void Tab::create_preset_tab()
     m_main_sizer->Add(m_tabctrl, 0, wxEXPAND | wxALL, 0 );
 
     if (dynamic_cast<TabPrinter *>(this) || dynamic_cast<TabPrint *>(this)) {
-        m_extruder_switch = new MultiSwitchButton(panel);
-        m_extruder_switch->SetMaxSize({em_unit(this) * 40, -1});
-        m_extruder_switch->Bind(wxCUSTOMEVT_MULTISWITCH_SELECTION, [this](auto &evt) {
+        m_variant_switch = new NozzleVariantSwitcher(panel);
+        m_variant_switch->Bind(wxEVT_CHOICE, [this](wxCommandEvent &evt) {
             evt.Skip();
             int selection = evt.GetInt();
 
@@ -561,8 +562,7 @@ void Tab::create_preset_tab()
             parse_extruder_selection(selection, extruder_id, nozzle_type);
             int extruder_count = m_preset_bundle->get_printer_extruder_count();
             m_actual_nozzle_volumes.resize(extruder_count, NozzleVolumeType::nvtStandard);
-            if (extruder_id >= 0 && extruder_id < m_preset_bundle->get_printer_extruder_count())
-                m_actual_nozzle_volumes[extruder_id] = nozzle_type;
+            if (extruder_id >= 0 && extruder_id < extruder_count) m_actual_nozzle_volumes[extruder_id] = nozzle_type;
 
             switch_excluder(extruder_id);
         });
@@ -580,14 +580,14 @@ void Tab::create_preset_tab()
         sync_box_sizer->Add(m_extruder_sync, 1, wxEXPAND);
         m_extruder_sync_box->SetSizer(sync_box_sizer);
 
-        m_variant_sizer  = new wxBoxSizer(wxHORIZONTAL);
-        auto right_sizer = new wxBoxSizer(wxHORIZONTAL);
-
-        m_variant_sizer->AddStretchSpacer(1);
-        m_variant_sizer->Add(m_extruder_switch, 0, wxALIGN_CENTER, 0);
-        m_variant_sizer->Add(right_sizer, 1, wxALIGN_CENTER);
-        right_sizer->AddStretchSpacer(1);
-        right_sizer->Add(m_extruder_sync_box, 0, wxALIGN_CENTER | wxRIGHT, m_em_unit);
+        m_variant_sizer = new wxBoxSizer(wxHORIZONTAL);
+        {
+            // make m_variant_switch center horizontally
+            auto vs = new wxBoxSizer(wxVERTICAL);
+            vs->Add(m_variant_switch, wxSizerFlags().CenterHorizontal());
+            m_variant_sizer->Add(vs, wxSizerFlags().Proportion(1));
+        }
+        m_variant_sizer->Add(m_extruder_sync_box, 0, wxALIGN_RIGHT);
 
         m_main_sizer->Add(m_variant_sizer, 0, wxEXPAND | wxTOP, m_em_unit);
     } else if (dynamic_cast<TabFilament *>(this)) {
@@ -684,67 +684,30 @@ void Tab::create_preset_tab()
 
 void Tab::parse_extruder_selection(int selection, int &extruder_id, NozzleVolumeType &nozzle_type)
 {
-    auto nozzle_volumes = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-    int  extruder_nums  = m_preset_bundle->get_printer_extruder_count();
-
-    int current_index = 0;
-
-    for (int i = 0; i < extruder_nums; ++i) {
-        NozzleVolumeType volume_type = NozzleVolumeType(nozzle_volumes->values[i]);
-
-        if (volume_type == NozzleVolumeType::nvtHybrid) {
-            if (selection == current_index) {
-                extruder_id = i;
-                nozzle_type = NozzleVolumeType::nvtStandard;
-                return;
-            } else if (selection == current_index + 1) {
-                extruder_id = i;
-                nozzle_type = NozzleVolumeType::nvtHighFlow;
-                return;
-            }
-            current_index += 2;
-        } else {
-            if (selection == current_index) {
-                extruder_id = i;
-                nozzle_type = volume_type;
-                return;
-            }
-            current_index += 1;
-        }
+    if (m_variant_switch && selection >= 0 && selection < int(m_variant_switch->GetCount())) {
+        const auto opt = m_variant_switch->GetOption(unsigned(selection));
+        extruder_id    = opt.extruder_id;
+        nozzle_type    = opt.volume_type;
+        return;
     }
-
     extruder_id = 0;
     nozzle_type = NozzleVolumeType::nvtStandard;
 }
 
-int Tab::calculate_selection_index_for_extruder(int extruder_id, NozzleVolumeType nozzle_type)
+int Tab::calculate_selection_index_for_variant(int extruder_id, NozzleVolumeType nozzle_type)
 {
-    auto nozzle_volumes = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-    int  extruder_nums  = m_preset_bundle->get_printer_extruder_count();
-
-    int index = 0;
-
-    for (int i = 0; i < extruder_nums; ++i) {
-        if (i == extruder_id) {
-            NozzleVolumeType volume_type = NozzleVolumeType(nozzle_volumes->values[i]);
-            if (volume_type == NozzleVolumeType::nvtHybrid) {
-                return nozzle_type == NozzleVolumeType::nvtHighFlow ? index + 1 : index;
-            } else {
-                return index;
-            }
-        }
-
-        NozzleVolumeType volume_type = NozzleVolumeType(nozzle_volumes->values[i]);
-        index += (volume_type == NozzleVolumeType::nvtHybrid) ? 2 : 1;
+    if (!m_variant_switch) return 0;
+    for (unsigned i = 0; i < m_variant_switch->GetCount(); ++i) {
+        const auto opt = m_variant_switch->GetOption(i);
+        if (opt.extruder_id == extruder_id && opt.volume_type == nozzle_type) return int(i);
     }
-
     return 0;
 }
 
 int Tab::get_current_active_extruder()
 {
-    if (m_extruder_switch && m_extruder_switch->IsThisEnabled()) {
-        int selection = m_extruder_switch->GetSelection();
+    if (m_variant_switch && m_variant_switch->IsThisEnabled()) {
+        int              selection = m_variant_switch->GetSelection();
         int extruder_id;
         NozzleVolumeType nozzle_type;
         parse_extruder_selection(selection, extruder_id, nozzle_type);
@@ -1155,14 +1118,15 @@ void add_correct_opts_to_options_list(const std::string &opt_key, std::map<std::
 
 void Tab::update_all_extruder_options_status()
 {
-    if (!m_extruder_switch && !m_variant_combo) {
-        return;
-    }
+    if (!m_variant_switch && !m_variant_combo) { return; }
     m_all_extruder_options_status.clear();
 
     int extruder_count = m_preset_bundle->get_printer_extruder_count();
-    auto extruders = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnumsGeneric>("extruder_type");
-    auto nozzle_volumes = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    auto extruders      = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnumsGeneric>("extruder_type");
+    if (!extruders) return;
+    // Guard against a transient state where extruder_count and extruders->values
+    // are out of sync (e.g. mid preset switch).
+    extruder_count = std::min(extruder_count, int(extruders->values.size()));
 
     std::set<int> all_config_indices;
     for (int extruder_id = 0; extruder_id < extruder_count; ++extruder_id) {
@@ -1214,17 +1178,10 @@ void Tab::update_all_extruder_options_status()
 
 void Tab::update_extruder_switch_colors()
 {
-    if (!m_extruder_switch && !m_variant_combo) {
-        return;
-    }
+    if (!m_variant_switch && !m_variant_combo) { return; }
 
-    auto options = generate_extruder_options();
-    auto extruders = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnumsGeneric>("extruder_type");
-
-    for (size_t switch_index = 0; switch_index < options.size(); ++switch_index) {
-        int selection = m_extruder_switch ? m_extruder_switch->GetSelection() : (m_variant_combo ? m_variant_combo->GetSelection() : 0);
-        if (switch_index == selection) continue;
-
+    size_t option_count = m_variant_switch ? size_t(m_variant_switch->GetCount()) : generate_extruder_options().size();
+    for (size_t switch_index = 0; switch_index < option_count; ++switch_index) {
         bool sys_extruder = true;
         bool modified_extruder = false;
         std::vector<PageShp> pages_to_check;
@@ -1245,12 +1202,11 @@ void Tab::update_extruder_switch_colors()
         }
         check_extruder_options_status(switch_index, sys_extruder, modified_extruder, pages_to_check);
 
-        StateColor default_color(std::make_pair(0x6B6B6B, (int) StateColor::NotChecked), std::make_pair(0xFFFFFE, (int) StateColor::Normal));
-        StateColor color = modified_extruder ? StateColor(m_modified_label_clr) : default_color;
+        if (m_variant_switch) m_variant_switch->SetButtonModified(switch_index, modified_extruder);
 
-        if (m_extruder_switch)
-            m_extruder_switch->SetButtonTextColor(switch_index, color);
         if (m_variant_combo) {
+            StateColor default_color(std::make_pair(0x6B6B6B, (int) StateColor::NotChecked), std::make_pair(0xFFFFFE, (int) StateColor::Normal));
+            StateColor color = modified_extruder ? StateColor(m_modified_label_clr) : default_color;
             StateColor default_color_grayed(std::make_pair(0x999999, (int) StateColor::NotChecked), std::make_pair(0x99DFB2, (int) StateColor::Normal));
             Button *btn = m_variant_combo->GetButton(switch_index);
             if (btn) {
@@ -1269,6 +1225,12 @@ void Tab::check_extruder_options_status(int index, bool &sys_extruder, bool &mod
         parse_extruder_selection(index, extruder_id, nozzle_type);
 
         auto extruders = m_preset_bundle->printers.get_edited_preset().config.option<ConfigOptionEnumsGeneric>("extruder_type");
+        // Clamp extruder_id against the new printer preset. The switcher's
+        // stored options can still reflect the previous printer (e.g. H2D had
+        // 2 extruders → idx 1 valid; N10 has 1 → idx 1 OOB) when this runs
+        // before update_extruder_variants refreshes the switcher.
+        if (!extruders || extruders->values.empty()) return;
+        if (extruder_id < 0 || extruder_id >= int(extruders->values.size())) extruder_id = 0;
         auto variant_keys = extruder_variant_keys[m_type >= Preset::TYPE_COUNT ? Preset::TYPE_PRINT : m_type];
         config_index = m_config->get_index_for_extruder(
             extruder_id + 1,
@@ -1450,8 +1412,8 @@ void Tab::update_changed_tree_ui()
                 }
             }
             if (page->title() == "Speed" || page->title() == "Motion ability" || page->title() == "Filament" || page->title() == "Setting Overrides" || page->title() == "Multi Filament") {
-                auto options = generate_extruder_options();
-                for (size_t switch_index = 0; switch_index < options.size(); ++switch_index) {
+                size_t option_count = m_variant_switch ? size_t(m_variant_switch->GetCount()) : generate_extruder_options().size();
+                for (size_t switch_index = 0; switch_index < option_count; ++switch_index) {
                     std::vector<PageShp> pages_to_check = { page };
                     check_extruder_options_status(switch_index, sys_page, modified_page, pages_to_check);
                 }
@@ -1691,8 +1653,7 @@ void Tab::msw_rescale()
 
     if (m_mode_view)
         m_mode_view->Rescale();
-    if (m_extruder_switch)
-        m_extruder_switch->Rescale();
+    if (m_variant_switch) m_variant_switch->Rescale();
     if (m_variant_combo)
         m_variant_combo->Rescale();
 
@@ -1760,8 +1721,7 @@ void Tab::sys_color_changed()
     // update options_groups
     if (m_active_page)
         m_active_page->sys_color_changed();
-    if (m_extruder_switch)
-        m_extruder_switch->Rescale();
+    if (m_variant_switch) m_variant_switch->Rescale();
 
     //BBS: GUI refactor
     //Layout();
@@ -3642,7 +3602,7 @@ void TabPrint::toggle_options()
         m_config_manipulation.set_is_BBL_Printer(is_BBL_printer);
     }
 
-    m_config_manipulation.toggle_print_fff_options(m_config, int(intptr_t(m_extruder_switch->GetClientData())), m_type < Preset::TYPE_COUNT);
+    m_config_manipulation.toggle_print_fff_options(m_config, int(intptr_t(m_variant_switch->GetClientData())), m_type < Preset::TYPE_COUNT);
 
     Field *field = m_active_page->get_field("support_style");
     auto   support_type = m_config->opt_enum<SupportType>("support_type");
@@ -6318,10 +6278,10 @@ void TabPrinter::toggle_options()
     if (!m_active_page || m_presets->get_edited_preset().printer_technology() == ptSLA)
         return;
 
-    auto nozzle_volumes = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
     auto extruders      = m_config->option<ConfigOptionEnumsGeneric>("extruder_type");
-        auto get_index_for_extruder =
-            [this, &extruders, &nozzle_volumes](int extruder_id, int stride = 1) {
+    auto get_index_for_extruder = [this, &extruders](int extruder_id, int stride = 1) {
+        if (!extruders || extruders->values.empty()) return -1;
+        if (extruder_id < 0 || extruder_id >= int(extruders->values.size())) extruder_id = 0;
         return m_config->get_index_for_extruder(extruder_id + 1, "printer_extruder_id",
             ExtruderType(extruders->values[extruder_id]), get_actual_nozzle_volume_type(extruder_id), "printer_extruder_variant", stride);
     };
@@ -7420,7 +7380,7 @@ bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
         this->OnActivate();
         m_parent->set_active_tab(this);
         if (m_variant_sizer) {
-            wxWindow *variant_ctrl = m_extruder_switch ? (wxWindow *) m_extruder_switch : m_variant_combo;
+            wxWindow *variant_ctrl = m_variant_switch ? (wxWindow *) m_variant_switch : m_variant_combo;
             m_main_sizer->Show(m_variant_sizer, variant_ctrl->IsThisEnabled() && !m_active_page->m_opt_id_map.empty() && !m_active_page->title().StartsWith("Extruder "));
             if (m_extruder_sync) m_extruder_sync->Show(variant_ctrl->IsShown());
             show_wiki();
@@ -7437,7 +7397,7 @@ bool Tab::tree_sel_change_delayed(wxCommandEvent& event)
 
     m_active_page = page;
     if (m_variant_sizer) {
-        wxWindow *variant_ctrl = m_extruder_switch ? (wxWindow *) m_extruder_switch : m_variant_combo;
+        wxWindow *variant_ctrl = m_variant_switch ? (wxWindow *) m_variant_switch : m_variant_combo;
         m_main_sizer->Show(m_variant_sizer, variant_ctrl->IsThisEnabled() && !m_active_page->m_opt_id_map.empty() && !m_active_page->title().StartsWith("Extruder"));
         if (m_extruder_sync) m_extruder_sync->Show(variant_ctrl->IsShown());
         show_wiki();
@@ -8124,30 +8084,30 @@ MachineObject* get_current_machine_object()
 void Tab::update_extruder_variants(int extruder_id, bool reload)
 {
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << extruder_id;
-    if (m_extruder_switch) {
+    if (m_variant_switch) {
         auto    nozzle_volumes = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
         int extruder_nums = m_preset_bundle->get_printer_extruder_count();
         nozzle_volumes->values.resize(extruder_nums);
-        if (extruder_nums == 2) {
-            auto options = generate_extruder_options();
-            m_extruder_switch->SetOptions(options);
+        auto options = generate_nozzle_variant_options();
+        if (options.size() > 1) {
+            m_variant_switch->SetOptions(options);
 
             int selection_index;
             if (extruder_id >= 0) {
                 NozzleVolumeType current_nozzle_type = get_actual_nozzle_volume_type(extruder_id);
-                selection_index = calculate_selection_index_for_extruder(extruder_id, current_nozzle_type);
+                selection_index                      = calculate_selection_index_for_variant(extruder_id, current_nozzle_type);
             } else {
-                selection_index = m_extruder_switch->GetSelection();
+                selection_index = m_variant_switch->GetSelection();
                 if (selection_index < 0) {
                     selection_index = 0;
                 }
             }
 
-            m_extruder_switch->SetSelection(selection_index);
-            m_extruder_switch->Enable(true);
+            m_variant_switch->SetSelection(selection_index);
+            m_variant_switch->Enable(true);
             m_extruder_sync->Enable(true);
         } else {
-            m_extruder_switch->Enable(false);
+            m_variant_switch->Enable(false);
             m_extruder_sync->Enable(false);
         }
     } else if (m_variant_combo) {
@@ -8179,7 +8139,7 @@ void Tab::update_extruder_variants(int extruder_id, bool reload)
         update_pages_with_multi_variant();
     }
     if (m_variant_sizer) {
-        wxWindow *variant_ctrl = m_extruder_switch ? (wxWindow *) m_extruder_switch : m_variant_combo;
+        wxWindow *variant_ctrl = m_variant_switch ? (wxWindow *) m_variant_switch : m_variant_combo;
         m_main_sizer->Show(m_variant_sizer, variant_ctrl->IsThisEnabled() && m_active_page && !m_active_page->m_opt_id_map.empty() && !m_active_page->title().StartsWith("Extruder "));
         if (m_extruder_sync) m_extruder_sync->Show(variant_ctrl->IsShown());
         show_wiki();
@@ -8195,6 +8155,129 @@ void Tab::show_wiki()
         m_wiki_bmp->Show(has_direct);
         m_wiki_label->Show(has_direct);
     }
+}
+
+// Build the option list for NozzleVariantSwitcher (printer/print/process tabs only).
+// For each (extruder_id, nozzle_volume_type) supported by the printer preset, emit one Option:
+//   diameter_mm: nozzle_diameter[extruder_id]
+//   volume_type: the resolved (post-hybrid-expansion) NozzleVolumeType
+//   nozzles:     "L<n>"/"R<n>" labels for dual-extruder, "<n>" for single
+//                (only the physical nozzles that match this variant —
+//                requires printer to be connected; empty otherwise).
+// Each Option carries (extruder_id, volume_type) for direct lookup at
+// selection time — see Tab::parse_extruder_selection.
+std::vector<NozzleVariantSwitcher::Option> Tab::generate_nozzle_variant_options()
+{
+    auto nozzle_volumes  = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    int  extruder_nums   = m_preset_bundle->get_printer_extruder_count();
+    auto nozzle_diameter = dynamic_cast<const ConfigOptionFloatsNullable *>(m_preset_bundle->printers.get_edited_preset().config.option("nozzle_diameter"));
+    if (!nozzle_volumes || extruder_nums <= 0 || !nozzle_diameter) return {};
+
+    nozzle_volumes->values.resize(extruder_nums);
+
+    // Cache tool_head_display_names per printer_type (disk read otherwise).
+    const std::string                                      pt = m_preset_bundle->printers.get_edited_preset().get_printer_type(m_preset_bundle);
+    static std::unordered_map<std::string, nlohmann::json> s_names_cache;
+    auto                                                   it = s_names_cache.find(pt);
+    if (it == s_names_cache.end()) it = s_names_cache.emplace(pt, DevPrinterConfigUtil::get_value_from_config<nlohmann::json>(pt, "tool_head_display_names")).first;
+    const nlohmann::json &names = it->second;
+
+    auto label_for = [extruder_nums, &names](int extruder_id, int nozzle_id_one_based) -> std::string {
+        const std::string num = std::to_string(nozzle_id_one_based);
+        if (extruder_nums <= 1 || !names.is_object()) return num;
+        const std::string role = std::to_string(extruder_nums - 1 - extruder_id);
+        return std::string(1, names[role]["extruder"][0].get<std::string>()[0]) + num;
+    };
+
+    // 0 for not supported, 1 for supported
+    auto printer_supported = [this](int extruder_id) {
+        std::array<bool, nvtCount> result{};
+
+        const auto &cfg     = m_preset_bundle->printers.get_edited_preset().config;
+        auto        variant = dynamic_cast<const ConfigOptionStrings *>(cfg.option("printer_extruder_variant"));
+        auto        ids     = dynamic_cast<const ConfigOptionInts *>(cfg.option("printer_extruder_id"));
+        if (!variant) return result;
+
+        for (size_t i = 0; i < variant->values.size(); ++i) {
+            int row_ext = (ids && i < ids->values.size()) ? ids->values[i] - 1 : 0;
+            if (row_ext != extruder_id) continue;
+
+            NozzleVolumeType vt = DevNozzle::ToNozzleVolumeType(DevNozzle::VariantToNozzleFlowType(variant->values[i]));
+            result[int(vt)]     = true;
+        }
+        return result;
+    };
+
+    // Collect the variant set for this extruder. extruder_full_stat is the
+    // user's saved per-nozzle inventory (from the Extruder Settings
+    // dialog) — its distinct volume types are the variants we render,
+    // filtered against what the current printer preset supports.
+    // Each entry is (volume_type, [nozzle index labels]) preserving the
+    // order in which the user laid out nozzles.
+    auto build_variants = [&](int extruder_id) -> std::vector<std::pair<NozzleVolumeType, std::vector<std::string>>> {
+        std::vector<std::pair<NozzleVolumeType, std::vector<std::string>>> result;
+
+        const auto supported = printer_supported(extruder_id);
+
+        // Filter against the current printer's nozzle_diameter for this
+        // extruder. extruder_full_stat carries every nozzle the user has
+        // ever configured across all diameters; we only want the ones that
+        // match the active printer preset's diameter.
+        const std::string want_diameter = wxString::Format(wxT("%g"), nozzle_diameter->values[extruder_id]).ToStdString();
+
+        const auto stats = m_preset_bundle->extruder_full_stat.get_extruder_stats(extruder_id);
+        for (size_t i = 0; i < stats.size(); ++i) {
+            if (stats[i].first != want_diameter) continue;
+            NozzleVolumeType vt = DevNozzle::ToNozzleVolumeType(stats[i].second);
+            if (!supported[int(vt)]) continue;
+
+            std::string label = label_for(extruder_id, int(i) + 1);
+            auto        it    = std::find_if(result.begin(), result.end(), [vt](const auto &p) { return p.first == vt; });
+            if (it == result.end())
+                result.emplace_back(vt, std::vector<std::string>{label});
+            else
+                it->second.push_back(label);
+        }
+        if (!result.empty()) return result;
+
+        // Fallback: extruder_full_stat is empty (or every entry was filtered
+        // out by the new preset's capabilities). Use the legacy project_config
+        // enum. Hybrid still expands to {Standard, HighFlow} for back-compat
+        // with old presets that only know those two.
+        NozzleVolumeType vt = NozzleVolumeType(nozzle_volumes->values[extruder_id]);
+        if (vt == NozzleVolumeType::nvtHybrid) {
+            if (supported[NozzleVolumeType::nvtStandard]) result.emplace_back(NozzleVolumeType::nvtStandard, std::vector<std::string>{});
+            if (supported[NozzleVolumeType::nvtHighFlow]) result.emplace_back(NozzleVolumeType::nvtHighFlow, std::vector<std::string>{});
+        } else if (supported[vt]) {
+            result.emplace_back(vt, std::vector<std::string>{});
+        }
+        // If even the fallback's vt isn't supported by the new preset, fall
+        // through with empty `result` and the caller will skip this extruder.
+        return result;
+    };
+
+    if (m_actual_nozzle_volumes.size() != static_cast<size_t>(extruder_nums)) m_actual_nozzle_volumes.resize(extruder_nums, NozzleVolumeType::nvtStandard);
+
+    std::vector<NozzleVariantSwitcher::Option> options;
+    for (int i = 0; i < extruder_nums; ++i) {
+        const auto variants = build_variants(i);
+
+        // If the cached selection isn't in the new variant set, reset it
+        // to the first variant. Preserves the user's pick when it's still
+        // valid; otherwise selects something coherent.
+        bool cached_ok = std::any_of(variants.begin(), variants.end(), [this, i](const auto &p) { return p.first == m_actual_nozzle_volumes[i]; });
+        if (!cached_ok && !variants.empty()) m_actual_nozzle_volumes[i] = variants.front().first;
+
+        for (const auto &v : variants) {
+            NozzleVariantSwitcher::Option opt;
+            opt.extruder_id = i;
+            opt.diameter_mm = float(nozzle_diameter->values[i]);
+            opt.volume_type = v.first;
+            opt.nozzles     = v.second;
+            options.push_back(std::move(opt));
+        }
+    }
+    return options;
 }
 
 std::vector<wxString> Tab::generate_extruder_options()
@@ -8268,14 +8351,6 @@ std::vector<wxString> Tab::generate_extruder_options()
 NozzleVolumeType Tab::get_actual_nozzle_volume_type(int extruder_id)
 {
     int extruder_count = m_preset_bundle->get_printer_extruder_count();
-    auto nozzle_volumes = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
-    if (extruder_count == 1) {
-        if (extruder_id < 0)
-            return NozzleVolumeType::nvtStandard;
-
-        return NozzleVolumeType(nozzle_volumes->values[extruder_id]);
-    }
-
     if (extruder_id < 0 || extruder_id >= extruder_count)
         return NozzleVolumeType::nvtStandard;
 
@@ -8340,13 +8415,12 @@ bool Tab::get_extruder_sync_enable_state(int extruder_id)
 
 void Tab::switch_excluder(int extruder_id, bool reload)
 {
-    Preset & printer_preset = m_preset_bundle->printers.get_edited_preset();
-    auto nozzle_volumes = m_preset_bundle->project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
+    Preset &printer_preset = m_preset_bundle->printers.get_edited_preset();
     auto extruders      = printer_preset.config.option<ConfigOptionEnumsGeneric>("extruder_type");
-    if (m_extruder_switch) {
+    if (m_variant_switch) {
         int current_extruder = get_current_active_extruder();
         bool sync_enable = get_extruder_sync_enable_state(current_extruder);
-        m_extruder_sync->Enable(m_extruder_switch->IsThisEnabled() && sync_enable);
+        m_extruder_sync->Enable(m_variant_switch->IsThisEnabled() && sync_enable);
         m_extruder_sync->Show();
         if (m_type != Preset::TYPE_PRINTER) {
             if (extruder_id == -1)
@@ -8363,17 +8437,28 @@ void Tab::switch_excluder(int extruder_id, bool reload)
             // assert(false)
             return;
     }
-    auto get_index_for_extruder =
-            [this, &extruders, &nozzle_volumes, variant_keys = extruder_variant_keys[m_type >= Preset::TYPE_COUNT ? Preset::TYPE_PRINT : m_type]](int extruder_id, int stride = 1) {
-        return m_config->get_index_for_extruder(extruder_id + 1, variant_keys.first,
-            ExtruderType(extruders->values[extruder_id]), get_actual_nozzle_volume_type(extruder_id), variant_keys.second, stride);
+    // Fall back to 0 when the (extruder_type, nozzle_volume_type) pair has
+    // no row in the new preset's *_extruder_variant. Returning early here
+    // would leave every option's burned-in opt_index stale from the
+    // previous preset, and reload_config() would then index off the end of
+    // the new preset's per-variant arrays. PrintConfig.cpp:8611 uses the
+    // same fallback for the same reason.
+    auto get_index_for_extruder = [this, &extruders, variant_keys = extruder_variant_keys[m_type >= Preset::TYPE_COUNT ? Preset::TYPE_PRINT : m_type]](int extruder_id,
+                                                                                                                                                       int stride = 1) {
+        // Clamp against the new preset — extruder_id can be stale from the
+        // switcher's pre-refresh state when this runs mid preset switch.
+        if (!extruders || extruders->values.empty()) return 0;
+        if (extruder_id < 0 || extruder_id >= int(extruders->values.size())) extruder_id = 0;
+        int idx = m_config->get_index_for_extruder(extruder_id + 1, variant_keys.first, ExtruderType(extruders->values[extruder_id]), get_actual_nozzle_volume_type(extruder_id),
+                                                   variant_keys.second, stride);
+        return idx < 0 ? 0 : idx;
     };
     auto index = m_variant_combo ? extruder_id : get_index_for_extruder(extruder_id == -1 ? 0 : extruder_id);
     if (index < 0)
         return;
-    if (m_extruder_switch) m_extruder_switch->SetClientData(reinterpret_cast<void*>(static_cast<std::uintptr_t>(index)));
+    if (m_variant_switch) m_variant_switch->SetClientData(reinterpret_cast<void *>(static_cast<std::uintptr_t>(index)));
     if (m_variant_combo) m_variant_combo->SetClientData(reinterpret_cast<void *>(static_cast<std::uintptr_t>(index)));
-    wxWindow *variant_ctrl = m_extruder_switch ? (wxWindow *) m_extruder_switch : m_variant_combo;
+    wxWindow *variant_ctrl = m_variant_switch ? (wxWindow *) m_variant_switch : m_variant_combo;
     for (auto page : m_pages) {
         bool is_extruder = false;
         if (m_type == Preset::TYPE_PRINTER) {
@@ -8422,6 +8507,7 @@ void Tab::sync_excluder()
     auto extruders      = printer_preset.config.option<ConfigOptionEnumsGeneric>("extruder_type");
     auto get_index_for_extruder =
             [this, &extruders, &nozzle_volumes, variant_keys = extruder_variant_keys[m_type >= Preset::TYPE_COUNT ? Preset::TYPE_PRINT : m_type]](int extruder_id, NozzleVolumeType nozzle_type) {
+        if (!extruders || extruder_id < 0 || extruder_id >= int(extruders->values.size())) return -1;
         return m_config->get_index_for_extruder(extruder_id + 1, variant_keys.first,
             ExtruderType(extruders->values[extruder_id]), nozzle_type, variant_keys.second);
     };

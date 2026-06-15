@@ -41,6 +41,7 @@
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/TextInput.hpp"
 #include "Widgets/SwitchButton.hpp"
+#include "Widgets/NozzleVariantSwitcher.hpp"
 #include "UnsavedChangesDialog.hpp"
 #include "DeviceCore/DevDefs.h"
 #include "DeviceCore/DevNozzleSystem.h"
@@ -308,7 +309,7 @@ public:
 
     SwitchButton *m_mode_view = nullptr;
     wxSizer *       m_variant_sizer   = nullptr;
-    MultiSwitchButton *  m_extruder_switch = nullptr;
+    NozzleVariantSwitcher *m_variant_switch = nullptr;
     MultiSwitchButton *  m_variant_combo   = nullptr;
     wxSizer *       m_nozzle_status_sizer = nullptr;
     wxStaticBitmap * m_wiki_bmp  = nullptr;
@@ -446,12 +447,13 @@ public:
     void        sync_excluder();
 	void        update_nozzle_status_display();
 	void        parse_extruder_selection(int selection, int &extruder_id, NozzleVolumeType &nozzle_type);
-    int         calculate_selection_index_for_extruder(int extruder_id, NozzleVolumeType nozzle_type);
+    int         calculate_selection_index_for_variant(int extruder_id, NozzleVolumeType nozzle_type);
 	bool        get_extruder_sync_enable_state(int extruder_id);
 	int         get_current_active_extruder();
     void        show_wiki();
 
 	std::vector<wxString>  generate_extruder_options();
+	std::vector<NozzleVariantSwitcher::Option> generate_nozzle_variant_options();
     std::vector<DevNozzle> collect_nozzles(int extruder_id, ExtruderType ext_type, NozzleFlowType flow_type, bool& connected);
     NozzleVolumeType       get_actual_nozzle_volume_type(int extruder_id);
     NozzleFlowType         get_actual_nozzle_flow_type(int selection);
