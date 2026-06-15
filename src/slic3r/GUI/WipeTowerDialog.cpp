@@ -377,10 +377,10 @@ WipingDialog::WipingDialog(wxWindow* parent, const int max_flush_volume) :
 }
 
 
-int WipingDialog::CalcFlushingVolume(const wxColour& from, const wxColour& to, int min_flush_volume , int nozzle_flush_dataset)
+int WipingDialog::CalcFlushingVolume(const wxColour& from, const wxColour& to, int min_flush_volume , int nozzle_flush_dataset, const std::string& from_filament_id, const std::string& to_filament_id)
 {
     Slic3r::FlushVolCalculator calculator(min_flush_volume, Slic3r::g_max_flush_volume, nozzle_flush_dataset);
-    return calculator.calc_flush_vol(from.Alpha(), from.Red(), from.Green(), from.Blue(), to.Alpha(), to.Red(), to.Green(), to.Blue());
+    return calculator.calc_flush_vol(from_filament_id, to_filament_id, from.Alpha(), from.Red(), from.Green(), from.Blue(), to.Alpha(), to.Red(), to.Green(), to.Blue());
 }
 
 WipingDialog::VolumeMatrix WipingDialog::CalcFlushingVolumes(int extruder_id)
@@ -393,6 +393,10 @@ WipingDialog::VolumeMatrix WipingDialog::CalcFlushingVolumes(int extruder_id)
     std::vector<std::string> all_color_strs = full_config.option<ConfigOptionStrings>("filament_colour")->values;
     int flush_dataset_value = full_config.option<ConfigOptionIntsNullable>("nozzle_flush_dataset")->values[extruder_id];
     const std::vector<int> min_flush_volumes = get_min_flush_volumes(full_config, extruder_id);
+    const std::vector<std::string>& filament_ids = full_config.option<ConfigOptionStrings>("filament_ids")->values;
+    auto get_filament_id = [&filament_ids](int cfg_idx) -> std::string {
+        return (cfg_idx >= 0 && cfg_idx < (int)filament_ids.size()) ? filament_ids[cfg_idx] : std::string();
+    };
 
     std::vector<std::vector<wxColour>> multi_colors;
     for (size_t cfg_idx : physical_indices) {
@@ -424,11 +428,13 @@ WipingDialog::VolumeMatrix WipingDialog::CalcFlushingVolumes(int extruder_id)
                 flushing_volume = Slic3r::g_flush_volume_to_support;
             } else {
                 int min_flush_from = (from_cfg < (int)min_flush_volumes.size()) ? min_flush_volumes[from_cfg] : 0;
+                std::string from_filament_id = get_filament_id(from_cfg);
+                std::string to_filament_id = get_filament_id(to_cfg);
                 for (size_t i = 0; i < multi_colors[pi].size(); ++i) {
                     const wxColour& from = multi_colors[pi][i];
                     for (size_t j = 0; j < multi_colors[pj].size(); ++j) {
                         const wxColour& to = multi_colors[pj][j];
-                        int volume = CalcFlushingVolume(from, to, min_flush_from, flush_dataset_value);
+                        int volume = CalcFlushingVolume(from, to, min_flush_from, flush_dataset_value, from_filament_id, to_filament_id);
                         flushing_volume = std::max(flushing_volume, volume);
                     }
                 }

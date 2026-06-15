@@ -1,5 +1,6 @@
 #include <cmath>
 #include <assert.h>
+#include <boost/log/trivial.hpp>
 #include "slic3r/Utils/ColorSpaceConvert.hpp"
 #include "Utils.hpp"
 #include "FlushVolCalc.hpp"
@@ -98,7 +99,8 @@ int FlushVolCalculator::calc_flush_vol_rgb(unsigned char src_r, unsigned char sr
     return flush_volume;
 }
 
-int FlushVolCalculator::calc_flush_vol(unsigned char src_a, unsigned char src_r, unsigned char src_g, unsigned char src_b,
+int FlushVolCalculator::calc_flush_vol(const std::string& src_filament_id, const std::string& dst_filament_id,
+    unsigned char src_a, unsigned char src_r, unsigned char src_g, unsigned char src_b,
     unsigned char dst_a, unsigned char dst_r, unsigned char dst_g, unsigned char dst_b)
 {
     // BBS: Transparent materials are treated as white materials
@@ -109,22 +111,32 @@ int FlushVolCalculator::calc_flush_vol(unsigned char src_a, unsigned char src_r,
         dst_r = dst_g = dst_b = 255;
     }
 
+    // Color-based predicted purge volume.
     float flush_volume;
-    if(m_flush_dataset != 0  && get_flush_vol_from_data(src_r, src_g, src_b, dst_r, dst_g, dst_b, flush_volume))
-        return std::min((int)flush_volume, m_max_flush_vol);
+    if (!(m_flush_dataset != 0 && get_flush_vol_from_data(src_r, src_g, src_b, dst_r, dst_g, dst_b, flush_volume))) {
+        flush_volume = calc_flush_vol_rgb(src_r, src_g, src_b, dst_r, dst_g, dst_b);
 
+        constexpr float dark_color_thres = 180.f/255.f;
+        constexpr float light_color_thres = 75.f/255.f;
+        bool is_from_dark = get_luminance(src_r, src_g, src_b) > dark_color_thres;
+        bool is_to_light = get_luminance(dst_r, dst_g, dst_b) < light_color_thres;
+        if (m_flush_dataset != 0 && is_from_dark && is_to_light)
+            flush_volume *= 1.3;
 
-    flush_volume = calc_flush_vol_rgb(src_r, src_g, src_b, dst_r, dst_g, dst_b);
+        flush_volume += m_min_flush_vol;
+    }
+    int predicted_purge = std::min((int)flush_volume, m_max_flush_vol);
 
-    constexpr float dark_color_thres = 180.f/255.f;
-    constexpr float light_color_thres = 75.f/255.f;
-    bool is_from_dark = get_luminance(src_r, src_g, src_b) > dark_color_thres;
-    bool is_to_light = get_luminance(dst_r, dst_g, dst_b) < light_color_thres;
-    if (m_flush_dataset != 0 && is_from_dark && is_to_light)
-        flush_volume *= 1.3;
+    // Override with measured purge when this filament-id pair has test data.
+    float measured_purge = 0.f;
+    if (query_measured_purge_volume(src_filament_id, dst_filament_id, measured_purge)) {
+        int final_purge = std::min(std::max(predicted_purge, (int)measured_purge), m_max_flush_vol);
+        BOOST_LOG_TRIVIAL(info) << "measured purge hit: " << src_filament_id << " -> " << dst_filament_id
+            << ", predicted=" << predicted_purge << ", measured=" << (int)measured_purge << ", final=" << final_purge;
+        return final_purge;
+    }
 
-    flush_volume += m_min_flush_vol;
-    return std::min((int)flush_volume, m_max_flush_vol);
+    return predicted_purge;
 }
 
 }

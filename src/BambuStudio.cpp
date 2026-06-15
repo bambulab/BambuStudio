@@ -3835,6 +3835,17 @@ int CLI::run(int argc, char **argv)
             std::vector<double> &flush_vol_matrix = m_print_config.option<ConfigOptionFloats>("flush_volumes_matrix", true)->values;
             flush_vol_matrix.resize(project_filament_count * project_filament_count * new_extruder_count, 0.f);
 
+            const std::vector<std::string>& flush_filament_ids = m_print_config.option<ConfigOptionStrings>("filament_ids", true)->values;
+            auto get_flush_filament_id = [&flush_filament_ids](int idx) -> std::string {
+                return (idx >= 0 && idx < (int)flush_filament_ids.size()) ? flush_filament_ids[idx] : std::string();
+            };
+            {
+                std::ostringstream ids_str;
+                for (size_t i = 0; i < flush_filament_ids.size(); ++i)
+                    ids_str << "[" << i << "]=" << flush_filament_ids[i] << " ";
+                BOOST_LOG_TRIVIAL(info) << "flush filament_ids (count=" << flush_filament_ids.size() << "): " << ids_str.str();
+            }
+
             // set multiplier to 1?
             std::vector<double>& flush_multipliers = m_print_config.option<ConfigOptionFloats>("flush_multiplier", true)->values;
             flush_multipliers.resize(new_extruder_count, 1.f);
@@ -3893,7 +3904,7 @@ int CLI::run(int argc, char **argv)
                                 Slic3r::GUI::BitmapCache::parse_color4(to_color, to_rgb);
 
                                 Slic3r::FlushVolCalculator calculator(min_flush_volumes[from_idx], Slic3r::g_max_flush_volume,nozzle_flush_dataset[nozzle_id]);
-                                flushing_volume = calculator.calc_flush_vol(from_rgb[3], from_rgb[0], from_rgb[1], from_rgb[2], to_rgb[3], to_rgb[0], to_rgb[1], to_rgb[2]);
+                                flushing_volume = calculator.calc_flush_vol(get_flush_filament_id(from_idx), get_flush_filament_id(to_idx), from_rgb[3], from_rgb[0], from_rgb[1], from_rgb[2], to_rgb[3], to_rgb[0], to_rgb[1], to_rgb[2]);
                                 if (is_from_support) { flushing_volume = std::max(Slic3r::g_min_flush_volume_from_support, flushing_volume); }
                             }
 

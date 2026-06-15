@@ -6081,6 +6081,11 @@ void Sidebar::auto_calc_flushing_volumes_internal(const int modify_id, const int
 
     const std::vector<int>& min_flush_volumes = get_min_flush_volumes(full_config, extruder_id);
 
+    const std::vector<std::string>& filament_ids = full_config.option<ConfigOptionStrings>("filament_ids")->values;
+    auto get_filament_id = [&filament_ids](int idx) -> std::string {
+        return (idx >= 0 && idx < (int)filament_ids.size()) ? filament_ids[idx] : std::string();
+    };
+
     ConfigOptionFloat* flush_multi_opt = project_config.option<ConfigOptionFloat>("flush_multiplier");
     float flush_multiplier = flush_multi_opt ? flush_multi_opt->getFloat() : 1.f;
     std::vector<double> matrix = init_matrix;
@@ -6124,11 +6129,13 @@ void Sidebar::auto_calc_flushing_volumes_internal(const int modify_id, const int
                     flushing_volume = Slic3r::g_flush_volume_to_support;
                 }
                 else {
+                    std::string from_filament_id = get_filament_id(from_idx);
+                    std::string to_filament_id = get_filament_id(modify_id);
                     for (int j = 0; j < multi_colours[from_idx].size(); ++j) {
                         const wxColour& from = multi_colours[from_idx][j];
                         for (int k = 0; k < multi_colours[modify_id].size(); ++k) {
                             const wxColour& to = multi_colours[modify_id][k];
-                            int volume = calculator.calc_flush_vol(from.Alpha(), from.Red(), from.Green(), from.Blue(), to.Alpha(), to.Red(), to.Green(), to.Blue());
+                            int volume = calculator.calc_flush_vol(from_filament_id, to_filament_id, from.Alpha(), from.Red(), from.Green(), from.Blue(), to.Alpha(), to.Red(), to.Green(), to.Blue());
                             flushing_volume = std::max(flushing_volume, volume);
                         }
                     }
@@ -6152,11 +6159,13 @@ void Sidebar::auto_calc_flushing_volumes_internal(const int modify_id, const int
                     flushing_volume = Slic3r::g_flush_volume_to_support;
                 }
                 else {
+                    std::string from_filament_id = get_filament_id(modify_id);
+                    std::string to_filament_id = get_filament_id(to_idx);
                     for (int j = 0; j < multi_colours[modify_id].size(); ++j) {
                         const wxColour& from = multi_colours[modify_id][j];
                         for (int k = 0; k < multi_colours[to_idx].size(); ++k) {
                             const wxColour& to = multi_colours[to_idx][k];
-                            int volume = calculator.calc_flush_vol(from.Alpha(), from.Red(), from.Green(), from.Blue(), to.Alpha(), to.Red(), to.Green(), to.Blue());
+                            int volume = calculator.calc_flush_vol(from_filament_id, to_filament_id, from.Alpha(), from.Red(), from.Green(), from.Blue(), to.Alpha(), to.Red(), to.Green(), to.Blue());
                             flushing_volume = std::max(flushing_volume, volume);
                         }
                     }
