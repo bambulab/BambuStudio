@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-01 09:40+0800\n"
+"POT-Creation-Date: 2026-06-15 21:22+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -2188,11 +2188,14 @@ msgstr "Aggiungi modificatore SVG"
 msgid "Select settings"
 msgstr "Seleziona impostazioni"
 
-msgid "Hide"
-msgstr "Nascondi"
+msgid "Add to New Step"
+msgstr ""
 
-msgid "Show"
-msgstr "Mostra"
+msgid "Add to Current Step"
+msgstr ""
+
+msgid "Add to Existing Step"
+msgstr ""
 
 msgid "Delete the selected object"
 msgstr "Elimina l'oggetto selezionato"
@@ -4245,39 +4248,39 @@ msgstr ""
 "Ripristina a 50%% di profondità della skin"
 
 msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
-msgstr ""
+msgstr "La parete aggiuntiva alternativa non è compatibile con la modalità vaso a spirale. Per abilitare la parete aggiuntiva alternativa, si consiglia di effettuare le seguenti regolazioni:"
 
 msgid "Set ensure vertical shell thickness to Partial."
-msgstr ""
+msgstr "Impostare lo spessore verticale del guscio su Parziale."
 
 #, c-format, boost-format
 msgid "Set wall loops to %d."
-msgstr ""
+msgstr "Imposta i loop pareti su %d."
 
 #, c-format, boost-format
 msgid "Set sparse infill density to %d%%."
-msgstr ""
+msgstr "Imposta la densità di riempimento sparso su %d%%."
 
 msgid "Disable spiral vase mode."
-msgstr ""
+msgstr "Disattiva la modalità vaso a spirale."
 
 msgid ""
 "Change these settings automatically?\n"
 "Yes - Apply and keep alternate extra wall enabled\n"
 "No  - Don't use alternate extra wall"
-msgstr ""
+msgstr "Modificare automaticamente queste impostazioni? Sì - Applica e mantieni attiva la parete aggiuntiva alternativa No - Non utilizzare la parete aggiuntiva alternativa"
 
 msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
-msgstr ""
+msgstr "Affinché la parete aggiuntiva alternativa funzioni correttamente, si consigliano le seguenti modifiche:"
 
 msgid ""
 "Apply these adjustments?\n"
 "Yes - Apply and keep alternate extra wall enabled\n"
 "No  - Keep current settings and alternate extra wall enabled"
-msgstr ""
+msgstr "Applicare queste modifiche? Sì - Applica e mantieni la parete aggiuntiva alternativa abilitata No - Mantieni le impostazioni correnti e la parete aggiuntiva alternativa abilitata"
 
 msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."
-msgstr ""
+msgstr "La modalità spirale funziona solo quando i loop pareti sono 1, il supporto è disabilitato, il rilevamento del clumping tramite sondaggio è disabilitato, layer guscio superiore sono 0, la densità di riempimento sparso è 0, il tipo di timelapse è tradizionale, la velocità di parete in direzione z con smussatura è impostata su falsa e la parete aggiuntiva alternativa è disabilitata."
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Ma le macchine con struttura I3 non genereranno video timelapse."
@@ -5103,6 +5106,9 @@ msgstr "La posizione o la dimensione del modello %s supera l'area stampabile di 
 msgid " Please check and adjust the part's position or size to fit the printable range:\n"
 msgstr "Controlla e regola la posizione o le dimensioni del pezzo affinché rientri nel range di stampa:\n"
 
+msgid "Unnamed"
+msgstr ""
+
 msgid "Mirror Object"
 msgstr "Specchia Oggetto"
 
@@ -5240,11 +5246,17 @@ msgstr "Adatta fotocamera"
 msgid "Fit camera to scene or selected object."
 msgstr "Adatta la telecamera alla scena o all'oggetto selezionato."
 
+msgid "Unlock camera"
+msgstr ""
+
+msgid "Lock camera"
+msgstr ""
+
 msgid "Paint Toolbar"
 msgstr "Barra strumenti di pittura"
 
 msgid "This border is used to distinguish it from the background"
-msgstr ""
+msgstr "Questo bordo serve a distinguerlo dallo sfondo"
 
 msgid "Explosion Ratio"
 msgstr "Rapporto di esplosione"
@@ -5257,6 +5269,15 @@ msgstr "Controllo assemblaggio"
 
 msgid "Selection Mode"
 msgstr "Modalità di selezione"
+
+msgid "OnlyCurrentStep"
+msgstr ""
+
+msgid "Highlight"
+msgstr ""
+
+msgid "Display Mode"
+msgstr ""
 
 msgid "Total Volume:"
 msgstr "Volume totale:"
@@ -5463,6 +5484,9 @@ msgstr "Anteprima"
 
 msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
 msgstr "La pagina corrente contiene modifiche non salvate. Puoi continuare a modificare oppure scegliere di salvare/scartare prima di uscire."
+
+msgid "Home"
+msgstr ""
 
 msgid "Device"
 msgstr "Dispositivo"
@@ -6010,7 +6034,7 @@ msgid "Plugin library failed to load. Click here to view the solution."
 msgstr "Impossibile caricare la libreria dei plugin. Fai clic qui per visualizzare la soluzione."
 
 msgid "Loading failed. Please check the network and try again."
-msgstr ""
+msgstr "Caricamento non riuscito. Verificare la connessione di rete e riprovare."
 
 msgid "Temporarily closed because there is no operation for a while."
 msgstr "Chiuso temporaneamente perché non ci sono attività programmate per un po'."
@@ -7156,13 +7180,13 @@ msgid "Automatically capture and upload print photos, showing defects during pri
 msgstr "Cattura e carica automaticamente foto della stampa, mostrando i difetti durante la stampa e il risultato finale per la visualizzazione da remoto."
 
 msgid "Automatically match the corresponding switch strategy for leak-prone filaments (disable blob detection) and regular filaments (enable blob detection)."
-msgstr ""
+msgstr "Abbina automaticamente la strategia di commutazione corrispondente per i filamenti soggetti a perdite (disabilita il rilevamento di accumulo) e per i filamenti regolari (abilita il rilevamento di accumulo)."
 
 msgid "Detect whether the nozzle is wrapped by filament or other foreign matter."
-msgstr ""
+msgstr "Verificare se il nozzle è avvolto da filamenti o altri corpi estranei."
 
 msgid "After disabling, nozzle wrapping cannot be detected, which may lead to print failure or nozzle damage."
-msgstr ""
+msgstr "Dopo la disattivazione, non è possibile rilevare se il nozzle è avvolto, il che può causare errori di stampa o danni al nozzle stesso."
 
 msgctxt "Nozzle Type"
 msgid "Type"
@@ -7602,6 +7626,12 @@ msgstr "Elaborazione dei colori delle texture:%s"
 
 msgid "Texture Import Warning"
 msgstr "Avviso sull'importazione delle texture"
+
+msgid ""
+"The imported STEP file is split by sub-assembly, so some objects may not be placed on the build plate at first.\n"
+"It is expected if they are placed on the build plate later after translation or similar operations.\n"
+"The overall assembly can be checked from the assembly thumbnail or by entering the assembly view."
+msgstr ""
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "Caricare questi file come un singolo oggetto con più parti?\n"
@@ -8445,6 +8475,12 @@ msgstr "Gestione multi-device (Necessario riavvio di Studio)."
 
 msgid "With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."
 msgstr "Con questa opzione abilitata, è possibile inviare un'attività a più dispositivi contemporaneamente e gestire più dispositivi."
+
+msgid "Take effect after restarting Studio"
+msgstr ""
+
+msgid "The Filament Manager is turned off by default on macOS because compatibility issues on some systems may cause the application to become unresponsive."
+msgstr ""
 
 msgid "Show the step mesh parameter setting dialog."
 msgstr "Mostra la finestra di dialogo per l'impostazione dei parametri della maglia a gradini."
@@ -9317,7 +9353,7 @@ msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It
 msgstr "La durezza del materiale attuale (%s) supera la durezza di %s (%s). Potrebbe causare usura del nozzle, con conseguente fuoriuscita di materiale e flusso instabile. Usa questo materiale con cautela."
 
 msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
-msgstr ""
+msgstr "Se l'opzione \"Calibrazione dinamica del flusso\" è impostata su Automatico/Attivato, il sistema utilizzerà il valore di calibrazione manuale o il valore predefinito e salterà il processo di calibrazione del flusso. È possibile eseguire una calibrazione manuale del flusso per il filamento TPU nella pagina \"Calibrazione\"."
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
 msgstr "Alcuni filamenti possono passare da un estrusore all’altro durante la stampa. La calibrazione manuale del valore K non può essere applicata all’intera stampa, il che può influire sulla qualità. Abilita la calibrazione del Flusso Dinamico."
@@ -10057,6 +10093,12 @@ msgstr "Retrazione del firmware"
 
 msgid "Detached"
 msgstr "Distaccato"
+
+msgid "The current preset is a project preset and can't be used to create a new preset. Please select a system preset or user preset, then try again."
+msgstr ""
+
+msgid "Unable to save preset"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%d Filament Preset and %d Process Preset is attached to this printer. Those presets would be deleted if the printer is deleted."
@@ -11902,6 +11944,9 @@ msgstr "Seleziona la sequenza di stampa \"Per oggetto\" per stampare più oggett
 msgid "The spiral vase mode does not work when an object contains more than one materials."
 msgstr "La modalità spirale (vaso) non funziona quando un oggetto contiene più di un materiale."
 
+msgid "The spiral vase mode does not work when an object contains regions with different print settings."
+msgstr ""
+
 msgid "Variable layer height is not supported with Organic supports."
 msgstr "L'altezza variabile del layer non è supportata dai supporti organici."
 
@@ -12775,7 +12820,7 @@ msgid "temperature when flushing filament. 0 indicates the upper bound of the re
 msgstr "temperatura durante lo spurgo filamento. 0 indica il limite superiore dell'intervallo di temperature consigliate per il nozzle."
 
 msgid "Flush temperature used in fast purge mode."
-msgstr ""
+msgstr "Temperatura di lavaggio utilizzata nella modalità di spurgo rapido."
 
 msgid "Flush volumetric speed"
 msgstr "Velocità volumetrica di spurgo"
@@ -12830,6 +12875,18 @@ msgstr "Tempo cambio Hotend"
 
 msgid "Time to change hotend."
 msgstr "È ora di sostituire l'hotend."
+
+msgid "Cut and unload from extruder time"
+msgstr ""
+
+msgid "Time to cut filament and retract it out of the extruder, used when parallel feeding is supported. For statistics only"
+msgstr ""
+
+msgid "Extruder bite time after pre-feed"
+msgstr ""
+
+msgid "Time for the extruder to bite the filament once it has been pre-fed, used when parallel feeding is supported. For statistics only"
+msgstr ""
 
 msgid "Bed temperature type"
 msgstr "Tipo di temperatura del piano"
@@ -12982,10 +13039,10 @@ msgid "Start and end ratios for the first component in gradient mode. Comma-sepa
 msgstr "Rapporti di inizio e fine per la prima parte in modalità gradiente. Coppia separata da virgola, es. \"0.10,0.90\" significa dal 10% al 90%."
 
 msgid "Mixed filament gradient curve"
-msgstr ""
+msgstr "Curva del gradiente del filamento misto"
 
 msgid "Optional Photoshop-style custom curve mapping Z progress to the first component ratio. Encoded as pipe-separated control points, either \"x,y\" (legacy) or \"x,y,m_in,m_out\" when a tangent override is needed (empty token or \"nan\" means use PCHIP default). x in [0,1]; y is clamped to the configured ratio range, e.g. \"0,0.15|0.5,0.50|1,0.85\". When empty, the linear gradient_range is used instead."
-msgstr ""
+msgstr "Mappatura curva personalizzata opzionale in stile Photoshop Avanzamento Z al primo rapporto componente. Codificato come punti di controllo separati da pipe, \"x,y\" (legacy) o \"x,y,m_in,m_out\" quando è necessario un override della tangente (token vuoto o \"nan\" significa usare PCHIP predefinito). x in [0,1]; y è limitato all'intervallo di rapporto configurato, ad esempio \"0,0.15|0.5,0.50|1,0.85\". Se vuoto, viene utilizzato invece il gradient_range lineare."
 
 msgid "Mixed filament per-part gradient"
 msgstr "Gradiente per parte di filamento misto"
@@ -13399,10 +13456,10 @@ msgid "Enable clumping detection"
 msgstr "Abilita rilevamento grumi"
 
 msgid "Order-independent overlap carving"
-msgstr ""
+msgstr "Intaglio di sovrapposizione indipendente dall'ordine"
 
 msgid "When enabled, overlapping model parts are carved by bounding-box size so smaller embedded parts are not removed by larger parts due to volume order."
-msgstr ""
+msgstr "Quando questa opzione è abilitata, le parti del modello sovrapposte vengono ritagliate in base alle dimensioni del riquadro di delimitazione, in modo che le parti incorporate più piccole non vengano rimosse dalle parti più grandi a causa dell'ordine volumetrico."
 
 msgid "Clumping detection layers"
 msgstr "Layers rilevamento grumi"
@@ -14268,6 +14325,12 @@ msgstr "Se è selezionata la modalità smooth o tradizionale, viene generato un 
 msgid "Traditional"
 msgstr "Tradizionale"
 
+msgid "Farthest point timelapse"
+msgstr "Timelapse del punto più lontano"
+
+msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
+msgstr "Quando abilitata, l'istantanea del timelapse viene scattata nel punto più lontano dalla telecamera anziché raggiungere la torre di pulizia o lo scivolo di spurgo. Funziona solo nella modalità timelapse tradizionale su stampanti non I3."
+
 msgid "Temperature variation"
 msgstr "Variazione di temperatura"
 
@@ -14771,6 +14834,12 @@ msgstr "Moltiplicatore di flusso (modalità veloce)"
 
 msgid "The flush multiplier used in fast purge mode."
 msgstr "Il moltiplicatore di flusso utilizzato nella modalità di spurgo rapido."
+
+msgid "Alternate extruder printing"
+msgstr ""
+
+msgid "When the printer supports parallel (pre-)feeding, print the two extruders in an alternating order within a layer instead of finishing one extruder first. Only takes effect when the printer supports parallel feeding."
+msgstr ""
 
 msgid "Width of prime tower"
 msgstr "Larghezza della Prime Tower."
@@ -17426,10 +17495,10 @@ msgid "Remove the third material"
 msgstr "Rimuovere il terzo materiale"
 
 msgid "Material Ratio"
-msgstr ""
+msgstr "Rapporto dei materiali"
 
 msgid "Model Height"
-msgstr ""
+msgstr "Altezza modello"
 
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
@@ -17726,6 +17795,12 @@ msgid ""
 msgstr ""
 "Affidabilità al Primo Tentativo\n"
 "Meno supervisione, risultati più prevedibili. Ad esempio: una piccola produzione che stampa parti in PETG evita sorprese tipo \"fallimento alla sesta ora\" e mantiene i lotti nei tempi previsti."
+
+#~ msgid "Hide"
+#~ msgstr "Nascondi"
+
+#~ msgid "Show"
+#~ msgstr "Mostra"
 
 #~ msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
 #~ msgstr "La modalità a spirale funziona solo quando il numero delle pareti è 1, i supporti sono disattivati, il rilevamento di agglomerati tramite sondaggio è disattivato, gli strati superiori sono 0, la densità di riempimento è 0, il tipo di timelapse è tradizionale e la velocità di parete in direzione Z con smussatura è impostata su falso."
