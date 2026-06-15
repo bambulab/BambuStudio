@@ -29,6 +29,9 @@
         "10",
         "10"
     ],
+    "filament_cost": [
+        "38.99"
+    ],
     "filament_deretraction_speed": [
         "25",
         "25",
@@ -103,6 +106,11 @@
         "0",
         "0",
         "0"
+    ],
+    "filament_preheat_temperature_delta": [
+        "10",
+        "10",
+        "10"
     ],
     "filament_ramming_travel_time": [
         "20",
@@ -186,11 +194,6 @@
     ],
     "impact_strength_z": [
         "88.7"
-    ],
-    "filament_preheat_temperature_delta": [
-        "10",
-        "10",
-        "10"
     ],
     "include": [
         "fdm_filament_template_direct_dual"

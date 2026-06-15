@@ -15,10 +15,13 @@
         "25"
     ],
     "filament_cost": [
-        "36.99"
+        "33.99"
     ],
     "filament_density": [
         "1.02"
+    ],
+    "filament_dev_drying_cooling_temperature": [
+        "95"
     ],
     "filament_flow_ratio": [
         "0.9"
@@ -31,9 +34,6 @@
     ],
     "filament_vendor": [
         "Bambu Lab"
-    ],
-    "filament_dev_drying_cooling_temperature": [
-        "95"
     ],
     "hot_plate_temp": [
         "100"
