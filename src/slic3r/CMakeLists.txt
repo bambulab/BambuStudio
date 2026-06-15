@@ -725,13 +725,18 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SLIC3R_GUI_SOURCES})
 
 encoding_check(libslic3r_gui)
 
-# libharu installs as hpdf.lib on Windows but libhpdf.a on Linux/macOS.
+# libharu: hpdf.lib on Windows (separate Debug build under lib/Debug), libhpdf.a
+# on Linux/macOS. Use find_library so every CMAKE_PREFIX_PATH entry is searched
+# and the platform-specific library name is resolved automatically, instead of
+# hardcoding ${CMAKE_PREFIX_PATH}/lib (which breaks when it is a multi-path list).
 if (WIN32)
+    find_library(HPDF_LIBRARY_RELEASE NAMES hpdf)
+    find_library(HPDF_LIBRARY_DEBUG NAMES hpdf PATH_SUFFIXES Debug)
     set(HPDF_LIBRARY
-        $<$<CONFIG:Debug>:${CMAKE_PREFIX_PATH}/lib/Debug/hpdf.lib>
-        $<$<NOT:$<CONFIG:Debug>>:${CMAKE_PREFIX_PATH}/lib/hpdf.lib>)
+        $<$<CONFIG:Debug>:${HPDF_LIBRARY_DEBUG}>
+        $<$<NOT:$<CONFIG:Debug>>:${HPDF_LIBRARY_RELEASE}>)
 else ()
-    set(HPDF_LIBRARY ${CMAKE_PREFIX_PATH}/lib/libhpdf.a)
+    find_library(HPDF_LIBRARY NAMES hpdf)
 endif ()
 
 target_link_libraries(libslic3r_gui libslic3r cereal imgui imguizmo minilzo GLEW::GLEW OpenGL::GL hidapi

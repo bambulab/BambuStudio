@@ -95,9 +95,9 @@ static void color_from_json(const nlohmann::json &j, const char *key, std::array
 }
 }
 
-// ---- Transform3d helpers ----
+// ---- Transform3d helpers (file-local: only used by this translation unit) ----
 
-nlohmann::json transform3d_to_json(const Transform3d &t)
+static nlohmann::json transform3d_to_json(const Transform3d &t)
 {
     nlohmann::json arr = nlohmann::json::array();
     const auto &m = t.matrix();
@@ -107,7 +107,7 @@ nlohmann::json transform3d_to_json(const Transform3d &t)
     return arr;
 }
 
-Transform3d transform3d_from_json(const nlohmann::json &j)
+static Transform3d transform3d_from_json(const nlohmann::json &j)
 {
     Transform3d t = Transform3d::Identity();
     if (!j.is_array() || j.size() != 16)

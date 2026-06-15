@@ -886,7 +886,7 @@ public:
 
     void active_view();
     // Append a freshly imported STEP hierarchy to the existing assembly tree.
-    void append_step_import_to_assembly_tree(const std::vector<Model::StepImportTreeNode>& step_nodes,
+    void append_step_import_to_assembly_tree(const std::vector<StepImportTreeNode>& step_nodes,
                                              const std::vector<size_t>&                    loaded_idxs,
                                              const std::string&                            source_path);
 
@@ -1082,7 +1082,7 @@ public:
     void add_selected_to_new_assembly_step();
     void add_selected_to_current_assembly_step();
     void add_selected_to_assembly_step(int folder_idx);
-    void _create_assembly_steps_from_step_import_tree(const std::vector<Model::StepImportTreeNode> &step_nodes, const std::string &source_path);
+    void _create_assembly_steps_from_step_import_tree(const std::vector<StepImportTreeNode> &step_nodes, const std::string &source_path);
 
     void delete_selected();
     void ensure_on_bed(unsigned int object_idx, bool allow_negative_z);

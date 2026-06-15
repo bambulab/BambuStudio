@@ -2163,15 +2163,15 @@ void GLCanvas3D::active_view() {
     }
 }
 
-void GLCanvas3D::append_step_import_to_assembly_tree(const std::vector<Model::StepImportTreeNode>& step_nodes,
+void GLCanvas3D::append_step_import_to_assembly_tree(const std::vector<StepImportTreeNode>& step_nodes,
     const std::vector<size_t>&                    loaded_idxs,
     const std::string&                            source_path)
 {
     if (m_model == nullptr || step_nodes.empty() || loaded_idxs.empty() || !m_assembly_steps)
         return;
     // Step 1 — translate model_object_idx from the imported Model's index space
-    std::vector<Model::StepImportTreeNode> remapped = step_nodes;
-    for (Model::StepImportTreeNode& node : remapped) {
+    std::vector<StepImportTreeNode> remapped = step_nodes;
+    for (StepImportTreeNode& node : remapped) {
         if (node.model_object_idx >= 0 && static_cast<size_t>(node.model_object_idx) < loaded_idxs.size())
             node.model_object_idx = static_cast<int>(loaded_idxs[node.model_object_idx]);
         else
@@ -2179,26 +2179,28 @@ void GLCanvas3D::append_step_import_to_assembly_tree(const std::vector<Model::St
     }
     // Step 2 — pick a uid offset that guarantees the new "step:<offset+id>" uids
     AssemblyTreeData& assembly_tree = m_model->get_assembly_tree_data();
-    int uid_offset = 0;
+    // long long (parsed via stoll) keeps the monotonically growing suffix safe from int overflow across repeated imports.
+    long long uid_offset = 0;
     for (const auto& existing : assembly_tree.nodes) {
         if (existing.uid.rfind("step:", 0) != 0)
             continue;
         try {
-            const int suffix = std::stoi(existing.uid.substr(5));
+            const long long suffix = std::stoll(existing.uid.substr(5));
             if (suffix > uid_offset)
                 uid_offset = suffix;
-        } catch (...) {
-            // Non-numeric uid suffix shouldn't happen for step:<N>; ignore.
+        } catch (const std::exception& e) {
+            BOOST_LOG_TRIVIAL(warning) << "append_step_import_to_assembly_tree: ignore malformed step uid \""
+                                       << existing.uid << "\": " << e.what();
         }
     }
 
-    auto is_step_volume_node = [](const Model::StepImportTreeNode& n) {
+    auto is_step_volume_node = [](const StepImportTreeNode& n) {
         return n.has_shape && n.component_count == 0;
     };
     // Step 3 — append the new step:<N> nodes onto Model::m_assembly_tree_data. We mirror
     std::map<size_t, int> local_to_tree_idx;
     int appended_count = 0;
-    for (const Model::StepImportTreeNode& node : remapped) {
+    for (const StepImportTreeNode& node : remapped) {
         int parent_tree_idx = -1;
         if (node.parent_id != 0) {
             auto it = local_to_tree_idx.find(node.parent_id);
@@ -2227,7 +2229,7 @@ void GLCanvas3D::append_step_import_to_assembly_tree(const std::vector<Model::St
         AssemblyTreeNodeData tree_node;
         tree_node.id         = static_cast<int>(assembly_tree.nodes.size());
         tree_node.parent_id  = parent_tree_idx;
-        tree_node.uid        = "step:" + std::to_string(uid_offset + static_cast<int>(node.id));
+        tree_node.uid        = "step:" + std::to_string(uid_offset + static_cast<long long>(node.id));
         tree_node.label      = label;
         tree_node.object_idx = object_idx;
         tree_node.volume_idx = -1;
@@ -9842,7 +9844,7 @@ void GLCanvas3D::_render_assembly_view_preview_menu(float anchor_x, float anchor
 }
 
 void GLCanvas3D::_create_assembly_steps_from_step_import_tree(
-    const std::vector<Model::StepImportTreeNode>& step_nodes,
+    const std::vector<StepImportTreeNode>& step_nodes,
     const std::string&                            source_path)
 {
     if (m_model == nullptr || !m_assembly_steps || step_nodes.empty())

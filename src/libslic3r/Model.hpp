@@ -1606,21 +1606,8 @@ public:
     ModelMaterialMap    materials;
     // Objects are owned by a model. Each model may have multiple instances, each instance having its own transformation (shift, scale, rotation).
     ModelObjectPtrs     objects;
+
     std::string                         step_import_path;
-    struct StepImportTreeNode
-    {
-        size_t              id{0};
-        size_t              parent_id{0};
-        std::vector<size_t> children;
-        std::string         name;
-        std::string         shape_type;
-        std::string         object_name;
-        std::string         object_key;
-        int                 model_object_idx{-1};
-        bool                is_reference{false};
-        bool                has_shape{false};
-        int                 component_count{0};
-    };
     std::vector<StepImportTreeNode>     step_import_tree_nodes;
     // Wipe tower object.
     ModelWipeTower	wipe_tower;

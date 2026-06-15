@@ -1633,12 +1633,6 @@ void PlateData::parse_filament_info(GCodeProcessorResult *result)
                 else if (boost::algorithm::iequals(name, FILAMENT_SEQUENCE_FILE)) {
                     _extract_filament_sequence_from_archive(archive, stat);
                 }
-                else if (boost::algorithm::iequals(name, ASSEMBLY_TREE_FILE)) {
-                    _extract_assembly_tree_from_archive(archive, stat);
-                }
-                else if (boost::algorithm::iequals(name, ASSEMBLY_STEP_JSON_FILE)) {
-                    _extract_assembly_steps_json_from_archive(archive, stat);
-                }
             }
         }
 

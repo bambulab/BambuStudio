@@ -75,9 +75,6 @@ Model& Model::assign_copy(const Model &rhs)
         mo->set_model(this);
 		this->objects.emplace_back(mo);
     }
-    this->step_import_path = rhs.step_import_path;
-    this->step_import_tree_nodes = rhs.step_import_tree_nodes;
-    this->m_assembly_tree_data = rhs.m_assembly_tree_data;
 
     // copy custom code per height
     // BBS
@@ -108,6 +105,8 @@ Model& Model::assign_copy(const Model &rhs)
     this->md_name = rhs.md_name;
     this->md_value = rhs.md_value;
 
+    this->step_import_path = rhs.step_import_path;
+    this->step_import_tree_nodes = rhs.step_import_tree_nodes;
     this->m_assembly_tree_data       = rhs.m_assembly_tree_data;
     this->m_assembly_tree_json_str  = rhs.m_assembly_tree_json_str;
     this->m_assembly_steps_tree_data = rhs.m_assembly_steps_tree_data;
@@ -132,9 +131,6 @@ Model& Model::assign_copy(Model &&rhs)
     for (ModelObject *model_object : this->objects)
         model_object->set_model(this);
     rhs.objects.clear();
-    this->step_import_path = std::move(rhs.step_import_path);
-    this->step_import_tree_nodes = std::move(rhs.step_import_tree_nodes);
-    this->m_assembly_tree_data = std::move(rhs.m_assembly_tree_data);
 
     // copy custom code per height
     // BBS
@@ -165,6 +161,8 @@ Model& Model::assign_copy(Model &&rhs)
     this->profile_info = rhs.profile_info;
     rhs.profile_info.reset();
 
+    this->step_import_path = std::move(rhs.step_import_path);
+    this->step_import_tree_nodes = std::move(rhs.step_import_tree_nodes);
     this->m_assembly_tree_data       = std::move(rhs.m_assembly_tree_data);
     this->m_assembly_tree_json_str   = std::move(rhs.m_assembly_tree_json_str);
     this->m_assembly_steps_tree_data = std::move(rhs.m_assembly_steps_tree_data);

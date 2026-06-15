@@ -15,9 +15,6 @@
 #include "libslic3r/Geometry.hpp"
 
 namespace Slic3r {
-// ---- Helper: Transform3d <-> JSON (16 doubles, row-major) ----
-nlohmann::json transform3d_to_json(const Transform3d &t);
-Transform3d    transform3d_from_json(const nlohmann::json &j);
 // ---- ArrowSvgNote: one arrow + icon group ----
 struct ArrowSvgNote
 {

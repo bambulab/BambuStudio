@@ -88,7 +88,9 @@ static void dump_step_shape_tree_recursive(const Handle(XCAFDoc_ShapeTool)& shap
     bool hasShape = shapeTool->GetShape(referredLabel, shape);
     const char* shapeType = (hasShape && !shape.IsNull()) ? step_shape_type_to_string(shape.ShapeType()) : "NO_SHAPE";
 
-    BOOST_LOG_TRIVIAL(info)
+    // trace level so this diagnostic dump stays out of normal (info) logs but is
+    // still available in the field by raising the log severity to trace.
+    BOOST_LOG_TRIVIAL(trace)
         << "STEP tree: " << std::string(depth * 2, ' ')
         << "- name=\"" << step_label_name(shapeTool, label, referredLabel) << "\""
         << ", type=" << shapeType
@@ -122,7 +124,7 @@ static void collect_step_import_tree_recursive(const Handle(XCAFDoc_ShapeTool)& 
                                                const std::string& objectKey,
                                                unsigned int& id,
                                                unsigned int& objectId,
-                                               std::vector<Model::StepImportTreeNode>& nodes)
+                                               std::vector<StepImportTreeNode>& nodes)
 {
     TDF_Label referredLabel{ label };
     const bool isReference = shapeTool->IsReference(label);
@@ -136,7 +138,7 @@ static void collect_step_import_tree_recursive(const Handle(XCAFDoc_ShapeTool)& 
     const bool hasShape = shapeTool->GetShape(referredLabel, shape) && !shape.IsNull();
     const std::string name = step_label_import_name(shapeTool, label, referredLabel, id);
 
-    Model::StepImportTreeNode node;
+    StepImportTreeNode node;
     node.id              = nodes.size() + 1;
     node.parent_id       = parent_id;
     node.name            = name;
@@ -166,9 +168,9 @@ static void collect_step_import_tree_recursive(const Handle(XCAFDoc_ShapeTool)& 
         collect_step_import_tree_recursive(shapeTool, components.Value(compIndex), current_id, name, current_object_key, id, objectId, nodes);
 }
 
-static std::vector<Model::StepImportTreeNode> collect_step_import_tree(const Handle(XCAFDoc_ShapeTool)& shapeTool)
+static std::vector<StepImportTreeNode> collect_step_import_tree(const Handle(XCAFDoc_ShapeTool)& shapeTool)
 {
-    std::vector<Model::StepImportTreeNode> nodes;
+    std::vector<StepImportTreeNode> nodes;
     if (shapeTool.IsNull())
         return nodes;
 
@@ -664,16 +666,16 @@ Step::Step_Status Step::load()
 void Step::dump_structure_tree() const
 {
     if (m_shape_tool.IsNull()) {
-        BOOST_LOG_TRIVIAL(info) << "STEP tree: shape tool is null, file may not be loaded. path=" << m_path;
+        BOOST_LOG_TRIVIAL(trace) << "STEP tree: shape tool is null, file may not be loaded. path=" << m_path;
         return;
     }
 
     TDF_LabelSequence topLevelShapes;
     m_shape_tool->GetFreeShapes(topLevelShapes);
-    BOOST_LOG_TRIVIAL(info) << "STEP tree: begin path=" << m_path << ", top_level_count=" << topLevelShapes.Length();
+    BOOST_LOG_TRIVIAL(trace) << "STEP tree: begin path=" << m_path << ", top_level_count=" << topLevelShapes.Length();
     for (Standard_Integer iLabel = 1; iLabel <= topLevelShapes.Length(); ++iLabel)
         dump_step_shape_tree_recursive(m_shape_tool, topLevelShapes.Value(iLabel), 0);
-    BOOST_LOG_TRIVIAL(info) << "STEP tree: end path=" << m_path;
+    BOOST_LOG_TRIVIAL(trace) << "STEP tree: end path=" << m_path;
 }
 
 Step::Step_Status Step::mesh(Model* model,
@@ -692,7 +694,7 @@ Step::Step_Status Step::mesh(Model* model,
     const char* last_slash = strrchr(m_path.c_str(), DIR_SEPARATOR);
     const std::string fallback_object_name = (last_slash == nullptr) ? m_path.c_str() : last_slash + 1;
     std::vector<ModelObject*> created_objects;
-    std::vector<Model::StepImportTreeNode> step_import_tree_nodes;
+    std::vector<StepImportTreeNode> step_import_tree_nodes;
 
     auto task = new boost::thread(Slic3r::create_thread([&]() -> void {
         TDF_LabelSequence topLevelShapes;
@@ -835,7 +837,7 @@ Step::Step_Status Step::mesh(Model* model,
             }
         }
         if (!created_objects.empty()) {
-            for (Model::StepImportTreeNode& node : step_import_tree_nodes) {
+            for (StepImportTreeNode& node : step_import_tree_nodes) {
                 auto object_idx_it = object_key_to_model_idx.find(node.object_key);
                 if (object_idx_it != object_key_to_model_idx.end())
                     node.model_object_idx = object_idx_it->second;

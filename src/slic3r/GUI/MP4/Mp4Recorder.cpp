@@ -191,6 +191,16 @@ bool Mp4Recorder::start(uint32_t width, uint32_t height, int fps, const std::str
 
     m_h264_enc     = malloc(sizeof_persist);
     m_h264_scratch = malloc(sizeof_scratch);
+    if (!m_h264_enc || !m_h264_scratch) {
+        BOOST_LOG_TRIVIAL(error) << "Mp4Recorder: failed to allocate H264 encoder buffers";
+        free(m_h264_enc); m_h264_enc = nullptr;
+        free(m_h264_scratch); m_h264_scratch = nullptr;
+        mp4_h26x_write_close(writer_ptr(m_mp4_writer));
+        MP4E_close(mux_ptr(m_mux)); m_mux = nullptr;
+        delete writer_ptr(m_mp4_writer); m_mp4_writer = nullptr;
+        fclose(m_mp4_file); m_mp4_file = nullptr;
+        return false;
+    }
     if (H264E_STATUS_SUCCESS != H264E_init(enc_ptr(m_h264_enc), &create_param)) {
         BOOST_LOG_TRIVIAL(error) << "Mp4Recorder: H264E_init failed";
         free(m_h264_enc); m_h264_enc = nullptr;
@@ -218,6 +228,7 @@ bool Mp4Recorder::start(uint32_t width, uint32_t height, int fps, const std::str
     // (width, height) we'll pass into the converter on the worker thread
     // via m_width/m_height.
 
+    m_dropped_frames = 0;
     m_stop_requested.store(false);
     m_recording.store(true);
     m_thread = std::thread(&Mp4Recorder::encode_thread_func, this);
@@ -239,6 +250,12 @@ void Mp4Recorder::push_frame(const uint8_t* rgba_data, size_t size)
         if (m_frame_queue.size() < 30) {
             m_frame_queue.push(std::move(copy));
             BOOST_LOG_TRIVIAL(debug) << "Mp4Recorder::push_frame: queued, queue_size=" << m_frame_queue.size();
+        } else {
+            // Encoder thread is falling behind; drop this frame. Throttle the warning so a sustained backlog does not flood the log.
+            ++m_dropped_frames;
+            if (m_dropped_frames == 1 || m_dropped_frames % 30 == 0)
+                BOOST_LOG_TRIVIAL(warning) << "Mp4Recorder::push_frame: queue full (30), dropping frame; total dropped="
+                                           << m_dropped_frames;
         }
     }
     m_queue_cv.notify_one();
@@ -256,6 +273,14 @@ void Mp4Recorder::stop()
         m_thread.join();
 
     m_recording.store(false);
+    size_t dropped = 0;
+    {
+        std::lock_guard<std::mutex> lk(m_queue_mutex);
+        dropped = m_dropped_frames;
+    }
+    if (dropped > 0)
+        BOOST_LOG_TRIVIAL(warning) << "Mp4Recorder: " << dropped
+                                   << " frame(s) dropped during recording (encoder fell behind) -> " << m_mp4_path;
     BOOST_LOG_TRIVIAL(info) << "Mp4Recorder: stopped -> " << m_mp4_path;
 }
 

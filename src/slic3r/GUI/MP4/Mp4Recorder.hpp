@@ -66,6 +66,7 @@ private:
     std::mutex                m_queue_mutex;
     std::condition_variable   m_queue_cv;
     std::queue<std::vector<uint8_t>> m_frame_queue;
+    size_t                    m_dropped_frames = 0; // guarded by m_queue_mutex
 };
 
 } // namespace GUI

@@ -224,7 +224,7 @@ class AssemblyStepsUtils
     bool         m_interpolate_part_number_label_arrow_end_offset{true};
     bool         m_render_interpolated_part_number_labels{false};
     KeyFrame     m_interpolated_part_number_label_frame;
-    // Snapshot of (selected_node, m_keyframe_selected) at the previous
+    // Snapshot of (m_selected_node, m_keyframe_selected) at the previous
     int m_last_rendered_selected_node_for_notes_{-2};
     int m_last_rendered_keyframe_selected_{-2};
     bool m_last_has_selected_node_{false};
@@ -292,7 +292,7 @@ class AssemblyStepsUtils
     // Right-side "Assembly Guide" panel
     int m_guide_connection_selected{-1};
     SelectionOrigin m_selection_origin{SelectionOrigin::None};
-    int selected_node{-1};
+    int m_selected_node{-1};
     // (Previous m_guide_start_frame_added / m_guide_timeline_selected removed:
     bool m_guide_panel_collapsed{false};
     // Add Notes -selected tool: -1=none, 0..N-1 indexes into m_note_tools.
@@ -327,8 +327,11 @@ class AssemblyStepsUtils
     bool                  m_video_intro_active{false};
     int                   m_video_intro_phase{0};
     double                m_video_intro_start_time{0.0};
-    double                m_video_intro_cover_duration{1.0};
-    double                m_video_intro_step_duration{0.5};
+    double                m_video_intro_cover_duration{2.0};
+    double                m_video_intro_step_duration{1.5};
+    // Shared intro timing. Same values drive both preview and export.
+    static constexpr double VIDEO_INTRO_COVER_DURATION = 2.0; // cover title (s)
+    static constexpr double VIDEO_INTRO_STEP_DURATION  = 1.5; // Step 1 title (s)
     bool                  m_in_assembly_view{false};
     bool                  m_assembly_camera_locked{false};
     // Wall-clock stamp of the most recent camera-manipulation attempt while the assembly camera is locked.
@@ -385,8 +388,8 @@ public://logic
 
     bool            is_key_frame_playing() { return m_keyframe_playing; }
     bool            is_final_assembly_folder(int folder_idx) const;
-    int             get_selected_node() const { return selected_node; }
-    void            set_selected_node(int node) { selected_node = node; }
+    int             get_selected_node() const { return m_selected_node; }
+    void            set_selected_node(int node) { m_selected_node = node; }
     SelectionOrigin selection_origin() const { return m_selection_origin; }
     void            set_selection_origin(SelectionOrigin origin);
     void            clear_when_no_selection();
@@ -485,6 +488,9 @@ public://logic
     bool                     seek_global_frame_from_mouse_x(float mouse_x, float progress_x0, float progress_w, int total_frames);
     void                     play_global_frame(bool from_btn_click = false);
     void                     start_playback_with_intro();
+    bool                     prepare_global_playback_with_intro(bool export_mode);
+    // Shared intro initializer used by both the playback preview and MP4 export.
+    void                     begin_video_intro();
     void                     prepare_export_to_play_global_frame();
     void                     pause_global_frame();
     void                     pause_playback();
@@ -520,7 +526,7 @@ public://logic
     bool prepare_project_save_end_frame();
     void clear_steps_all();
     void new_project_clear_assembly_steps_tree_view();
-    bool has_pending_play_frames() const { return !m_play_queue.empty(); }
+    bool             has_pending_play_frames() const;
     std::vector<int> selected_object_indices(int object_count, const std::vector<int> &selection_object_indices) const;
     int              next_node_id() const;
     int              next_step() const;
@@ -602,7 +608,7 @@ public://logic
     bool should_show_panels();
     void clear_active_assembly_tree_checked();
     // Seed right-side steps tree from a STEP import tree
-    void create_assembly_steps_from_step_import_tree(const std::vector<Model::StepImportTreeNode> &step_nodes, const std::string &source_path);
+    void create_assembly_steps_from_step_import_tree(const std::vector<StepImportTreeNode> &step_nodes, const std::string &source_path);
     // Build left-side assembly tree from Model objects and plates
     AssemblyTreeData build_assembly_tree_data();
     void             show_all_volume_normal_render();
@@ -610,6 +616,9 @@ public://logic
     // Overload that updates `m_keyframe_display_mode` first, then applies it.
     void apply_keyframe_display_mode();
     void apply_keyframe_display_mode(KeyframeDisplayMode mode);
+    // Live preview of the display mode while the add-object tree is open: drives
+    void apply_tree_checked_display_mode(const AssemblyTreeData &tree,
+                                         const std::unordered_map<std::string, bool> &checked);
 
     static KeyFrame interpolate_keyframe(const KeyFrame &from, const KeyFrame &to, double t, bool interpolate_part_number_label_arrow_end_offset = true);
     void            build_local_play_queue();
@@ -620,6 +629,9 @@ public://logic
     void                                    sync_canvas_selection_to_tree(bool selection_empty, bool selection_instance, const std::vector<int> &selected_object_indices);
     std::vector<AssemblySelectionMatchInfo> sync_single_canvas_selection_to_tree_or_get_matches(bool selection_empty, int selected_object_idx, int selected_volume_idx);
     void                                    sync_structure_select_popup_to_canvas(const AssemblyTreeData &popup_tree);
+    // Highlight the canvas from an arbitrary tree + checked map (shared by the select popup and the "List" add-object tree).
+    void                                    sync_checked_tree_to_canvas(const AssemblyTreeData &tree,
+                                                                        const std::unordered_map<std::string, bool> &checked);
     void                                    begin_structure_step_rename(int node_idx, const std::string &fallback_title = std::string());
     void                                    open_structure_add_tree(int card_idx, int step_node_idx, const ImVec2 &pos);
     void                                    exit_render_assembly_tree_ui();
@@ -644,6 +656,7 @@ public://logic
     void          select_node_and_show_volumes(int node_idx);
     void          update_structure_select_label(int card_idx, const AssemblyTreeData &popup_tree);
     void          reseed_assembly_tree_checked_from_step(int step_node_idx, const AssemblyTreeData &tree);
+    void          clear_all_keyframe_part_number_labels();
 
 public://imgui
     void init_tree_icons();
@@ -652,8 +665,6 @@ public://imgui
     void                     render_assemble_play_bar(float canvas_w, float bottom_y);
     // Re-derive the `Show Part Numbers` checkbox state from the currently
     void refresh_guide_show_part_numbers_from_current();
-    // Drop the stored part-number labels of every keyframe so a model structure
-    void clear_all_keyframe_part_number_labels();
     void draw_arrow_lines(const std::vector<std::pair<ImVec2, ImVec2>> &arrows,const std::array<float, 4> &color,float thickness,const std::array<int, 4> &viewport, bool draw_arrowhead = false);
     void draw_arrow_svg_icon(int idx, const ImVec2 &center, const ImVec2 &box_sz, ImTextureID tex, bool selected) const;
     void render_part_number_labels_on_canvas(const std::array<int, 4> &viewport, float viewport_height);
@@ -712,13 +723,11 @@ public://imgui
     // Generic clickable square checkbox. `*checked` is read and toggled on click. Returns true when the state was changed.
     bool render_checkbox(ImDrawList *dl, float x, float y, float sz,
                          bool *checked, const char *id, float sc);
-    // Given a rectangle [rect_min, rect_max] and an external `from` point, return the anchor on the rect border closest to `from`.Candidates: 4 corners + 4 edge midpoints (8 total).
-    static ImVec2 nearest_rect_anchor(const ImVec2 &rect_min, const ImVec2 &rect_max,  const ImVec2 &from, bool include_corners = false);
-    static bool rects_overlap(const ImVec2 &lhs_min, const ImVec2 &lhs_max,
-                              const ImVec2 &rhs_min, const ImVec2 &rhs_max);
-    bool is_part_number_label_layout_overlapped(const ImVec2 &rect_min, const ImVec2 &rect_max) const;
 
 private://logic
+    bool          is_part_number_label_layout_overlapped(const ImVec2 &rect_min, const ImVec2 &rect_max) const;
+    static ImVec2 nearest_rect_anchor(const ImVec2 &rect_min, const ImVec2 &rect_max, const ImVec2 &from, bool include_corners = false);
+    static bool   rects_overlap(const ImVec2 &lhs_min, const ImVec2 &lhs_max, const ImVec2 &rhs_min, const ImVec2 &rhs_max);
     void update_part_number_label_forbidden_layout_areas(float canvas_w, float canvas_h);
     bool capture_assembly_screenshot_to_png(const std::string &filename);
     // Assembly steps export helpers (entry point is on_export).

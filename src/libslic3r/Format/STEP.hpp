@@ -26,6 +26,21 @@ const int LOAD_STEP_STAGE_UNIT_NUM           = 5;
 typedef std::function<void(int load_stage, int current, int total, bool& cancel)> ImportStepProgressFn;
 typedef std::function<void(bool isUtf8)> StepIsUtf8Fn;
 
+struct StepImportTreeNode
+{
+    size_t              id{0};
+    size_t              parent_id{0};
+    std::vector<size_t> children;
+    std::string         name;
+    std::string         shape_type;
+    std::string         object_name;
+    std::string         object_key;
+    int                 model_object_idx{-1};
+    bool                is_reference{false};
+    bool                has_shape{false};
+    int                 component_count{0};
+};
+
 struct NamedSolid
 {
     NamedSolid(const TopoDS_Shape& s,

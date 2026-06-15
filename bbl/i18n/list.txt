@@ -108,6 +108,9 @@ src/slic3r/GUI/Widgets/AMSItem.cpp
 src/slic3r/GUI/Widgets/FanControl.cpp
 src/slic3r/GUI/Widgets/FilamentLoad.cpp
 src/slic3r/GUI/Widgets/TempInput.cpp
+src/slic3r/GUI/Overview/AssemblyExportProgressWindow.cpp
+src/slic3r/GUI/Overview/AssemblyPdfExportDialog.cpp
+src/slic3r/GUI/Overview/AssemblyStepsUtils.cpp
 src/slic3r/GUI/ImGuiWrapper.cpp
 src/slic3r/GUI/Jobs/ArrangeJob.cpp
 src/slic3r/GUI/Jobs/OrientJob.cpp
