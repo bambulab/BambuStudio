@@ -93,7 +93,8 @@ int DevNozzleRack::GetKnownNozzleCount() const
     int count = 0;
     for (const auto& nozzle : m_rack_nozzles)
     {
-        if (!nozzle.second.IsEmpty() && !nozzle.second.IsUnknown())
+        if (!nozzle.second.IsEmpty() && !nozzle.second.IsUnknown() &&
+            nozzle.second.GetToolDefs().tool_type == DevNozzleToolType::Nozzle)
         {
             count++;
         }

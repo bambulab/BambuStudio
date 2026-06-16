@@ -8,12 +8,44 @@
 
 #include <wx/string.h>
 #include <map>
+#include <optional>
 
 namespace Slic3r
 {
 // Previous definitions
 class MachineObject;
 class DevNozzleRack;
+
+enum class CutType
+{
+    None = 0,
+    Active = 1,
+    Passive = 2,
+    Ultrasonic = 3,
+    Pen = 4,
+    Unknown = 99,
+};
+
+struct CutDef
+{
+    CutType type = CutType::Unknown;
+};
+
+enum class DevNozzleToolType : int
+{
+    None = -1,
+    Nozzle = 0,
+    Cut = 1,
+    Laser = 2,
+    Fan = 3
+};
+
+struct DevNozzleToolDefs
+{
+    DevNozzleToolType tool_type = DevNozzleToolType::None;
+    std::optional<NozzleDef> nozzle_info; // DevNozzleToolType::Nozzle
+    std::optional<CutDef> cut_info; // DevNozzleToolType::Cut
+};
 
 struct DevNozzle
 {
@@ -48,6 +80,7 @@ public:
     NozzleType      m_nozzle_type = NozzleType::ntUndefine;// 0-stainless_steel 1-hardened_steel 5-tungsten_carbide
     NozzleToolKind  m_tool_kind = NozzleToolKind::Hotend;
     float           m_diameter = 0.4f;// 0.2mm  0.4mm  0.6mm 0.8mm
+    DevNozzleToolDefs m_tool_defs;
 
 public:
     static wxString             GetNozzleFlowTypeStr(NozzleFlowType type);
@@ -82,6 +115,8 @@ public:
     int            GetNozzlePosId() const;
     int            GetNozzleId() const { return m_nozzle_id; }
     std::optional<int> GetAddrId() const { return m_addr_id; };
+
+    DevNozzleToolDefs GetToolDefs() const { return m_tool_defs; }
     NozzleType     GetNozzleType() const { return m_nozzle_type; }
     NozzleFlowType GetNozzleFlowType() const { return m_nozzle_flow; }
     NozzleToolKind GetToolKind() const { return m_tool_kind; }
@@ -89,8 +124,8 @@ public:
     NozzleDiameterType GetNozzleDiameterType() const;
     float          GetNozzleDiameter() const { return m_diameter; }
     float          GetNozzleWear() const { return m_wear; }
-
     int            GetNozzlePrintTime() const { return m_nozzle_print_time; }
+
     // display
     wxString GetDisplayId() const;
     wxString GetNozzleDiameterStr() const { return wxString::Format("%.1f mm", m_diameter); }

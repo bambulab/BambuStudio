@@ -105,6 +105,19 @@ const buildSlot = (seed: SlotSeed): AmsFilamentHotendSlotViewModel => {
   };
 };
 
+const hotendMenuActions = (hotend?: HotendSlotInfo) => {
+  const kind = hotend?.tool_kind ?? 'empty';
+  const op = hotend?.op_state ?? 'Idle';
+  const busy = op === 'Reading' || op === 'Taking' || op === 'Placing' || op === 'Removing';
+  const canOperate = !busy;
+  return {
+    can_read: canOperate,
+    can_detail: true,
+    can_set_temperature: canOperate && kind === 'nozzle' && op !== 'Error',
+    can_take_place: canOperate,
+  };
+};
+
 const buildHotendSlot = (display_index: number, seed: SlotSeed): HotendSlotViewModel => ({
   addr_id: display_index - 1,
   display_index,
@@ -112,6 +125,7 @@ const buildHotendSlot = (display_index: number, seed: SlotSeed): HotendSlotViewM
   slot_id: String(display_index - 1),
   enabled: true,
   taken: seed.is_on_extruder ?? false,
+  menu_actions: hotendMenuActions(seed.hotend),
   hotend: seed.hotend ?? { op_state: 'Idle', tool_kind: 'empty' },
   hotend_detail_dialog: buildHotendDetail(seed.hotend),
 });
@@ -119,25 +133,40 @@ const buildHotendSlot = (display_index: number, seed: SlotSeed): HotendSlotViewM
 const mockDetail = {
   filament_name: 'BambuLab PLA Basic',
   filament_color: '#675AFF',
+  show_filament: true,
+  tool_image_name: 'hotend_detail_nozzle',
+  tool_type: '0.4mm Standard Hardened',
   nozzle_type: '0.4mm Standard Hardened',
   firmware_version: '10.10.10.10',
   serial_number: '1234567890',
   used_time_hours: 2057,
 };
 
-const buildHotendDetail = (hotend?: HotendSlotInfo) => (
-  hotend?.tool_kind === 'empty' ? { used_time_hours: null } : mockDetail
-);
+const buildHotendDetail = (hotend?: HotendSlotInfo) => {
+  if (!hotend || hotend.tool_kind === 'empty') return { used_time_hours: null, tool_image_name: 'empty', show_filament: false };
+  if (hotend.tool_kind !== 'nozzle') {
+    return {
+      ...mockDetail,
+      filament_name: '',
+      filament_color: '',
+      show_filament: false,
+      tool_image_name: 'empty',
+      tool_type: hotend.nozzle_label ?? '--',
+      nozzle_type: hotend.nozzle_label ?? '--',
+    };
+  }
+  return mockDetail;
+};
 
 const mockHotend = (display_index: number): HotendSlotInfo => {
   switch (display_index) {
     case 1: return { current_temp: 220, target_temp: 0,   op_state: 'Idle',     tool_kind: 'nozzle',  nozzle_label: '0.4 mm',     nozzle_subtext: 'Std',  selected: true };
     case 2: return { current_temp: 64,  target_temp: 0,   op_state: 'Heating',  tool_kind: 'nozzle',  nozzle_label: '0.4 mm',     nozzle_subtext: 'Std' };
     case 3: return { current_temp: 23,  target_temp: 0,   op_state: 'Idle',     tool_kind: 'nozzle',  nozzle_label: '0.4 mm',     nozzle_subtext: 'Std' };
-    case 4: return {                                                        op_state: 'Idle',     tool_kind: 'cutter',  nozzle_label: 'Cutter?' };
+    case 4: return {                                                        op_state: 'Idle',     tool_kind: 'cutter',  nozzle_label: 'Cutter' };
     case 5: return { current_temp: 23,  target_temp: 0,   op_state: 'Error',    tool_kind: 'pen',     nozzle_label: 'Highlighter' };
-    case 6: return {                                                        op_state: 'Idle',     tool_kind: 'empty',   nozzle_label: '--' };
-    case 7: return { current_temp: 233, target_temp: 0,   op_state: 'Idle',     tool_kind: 'nozzle',  nozzle_label: '0.4 mm',     nozzle_subtext: 'Std' };
+    case 6: return {                                                        op_state: 'Idle',     tool_kind: 'laser',   nozzle_label: 'Laser' };
+    case 7: return {                                                        op_state: 'Idle',     tool_kind: 'fan',     nozzle_label: 'Fan' };
     case 8: return {                                                        op_state: 'Placing',  tool_kind: 'nozzle',  nozzle_label: '0.4 mm',     nozzle_subtext: 'Std' };
     case 9: return {                                                        op_state: 'Reading',  tool_kind: 'nozzle' };
     default: return { op_state: 'Idle', tool_kind: 'empty' };

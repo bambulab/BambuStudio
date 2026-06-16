@@ -124,6 +124,12 @@ void DevNozzleRack::CtrlRackConfirmAll() const
 
 void DevNozzleRack::CrtlRackReadNozzle(int rack_nozzle_id) const
 {
+    const auto nozzle_opt = m_nozzle_system->GetNozzleOptByAddrId(rack_nozzle_id);
+    if (!nozzle_opt.has_value() || !nozzle_opt->IsExist() ||
+        nozzle_opt->GetToolDefs().tool_type != DevNozzleToolType::Nozzle) {
+        return;
+    }
+
     json j;
     j["print"]["command"] = "holder_nozzle_refresh";
     j["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
@@ -150,14 +156,20 @@ bool DevNozzleRack::CtrlCanReadAll() const
     {
         if (!nozzle_pair.second.IsEmpty())
         {
+            if (nozzle_pair.second.GetToolDefs().tool_type != DevNozzleToolType::Nozzle) {
+                return false;
+            }
             has_nozzle_on_rack = true;
-            break;
         }
     }
 
     bool has_nozzle_on_ext = false;
     if (m_nozzle_system->ContainsExtNozzle(MAIN_EXTRUDER_ID)) {
-        has_nozzle_on_ext = true;
+        const auto ext_nozzle = m_nozzle_system->GetExtNozzle(MAIN_EXTRUDER_ID);
+        if (ext_nozzle.GetToolDefs().tool_type != DevNozzleToolType::Nozzle) {
+            return false;
+        }
+        has_nozzle_on_ext = !ext_nozzle.IsEmpty();
     }
 
     if (!has_nozzle_on_rack && !has_nozzle_on_ext) {
@@ -183,6 +195,10 @@ bool DevNozzleRack::CtrlCanReadAll() const
 
 void DevNozzleRack::CtrlRackReadAll(bool gui_check) const
 {
+    if (!CtrlCanReadAll()) {
+        return;
+    }
+
     if (gui_check && wxThread::IsMain())
     {
 #if 0

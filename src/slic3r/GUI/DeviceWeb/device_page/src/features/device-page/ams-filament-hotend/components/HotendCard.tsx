@@ -44,7 +44,12 @@ export function HotendCard({
   const skipBlurCommitRef = useRef(false);
   const isBusy = op === 'Reading' || op === 'Taking' || op === 'Placing' || op === 'Removing';
   const canOperate = slot.enabled && !isBusy && !globalBusy;
-  const canSetTemperature = canOperate && hot.tool_kind !== 'empty' && op !== 'Error';
+  const isNozzleTool = hot.tool_kind === 'nozzle';
+  const menuActions = slot.menu_actions;
+  const canRead = menuActions?.can_read ?? canOperate;
+  const canDetail = menuActions?.can_detail ?? slot.enabled;
+  const canSetTemperature = menuActions?.can_set_temperature ?? (canOperate && isNozzleTool && op !== 'Error');
+  const canTakePlace = menuActions?.can_take_place ?? canOperate;
   const hotendMoveAction = isTaken ? 'place_hotend' : 'take_hotend';
   const hotendMoveLabel = isTaken ? t('Place') : t('Take');
 
@@ -132,10 +137,10 @@ export function HotendCard({
           </button>
           {menuOpen && (
             <div className="hotend-menu-popover" role="menu">
-              <button type="button" role="menuitem" disabled={!canOperate} onClick={() => runMenuAction('read_hotend')}>{t('Read')}</button>
-              <button type="button" role="menuitem" onClick={() => runMenuAction('hotend_detail')}>{t('Details')}</button>
+              <button type="button" role="menuitem" disabled={!canRead} onClick={() => runMenuAction('read_hotend')}>{t('Read')}</button>
+              <button type="button" role="menuitem" disabled={!canDetail} onClick={() => runMenuAction('hotend_detail')}>{t('Details')}</button>
               <button type="button" role="menuitem" disabled={!canSetTemperature} onClick={() => runMenuAction('adjust_temperature')}>{t('Set Temperature')}</button>
-              <button type="button" role="menuitem" disabled={!canOperate} onClick={() => runMenuAction(hotendMoveAction)}>{hotendMoveLabel}</button>
+              <button type="button" role="menuitem" disabled={!canTakePlace} onClick={() => runMenuAction(hotendMoveAction)}>{hotendMoveLabel}</button>
             </div>
           )}
         </span>
@@ -146,7 +151,7 @@ export function HotendCard({
           <TakenReadout />
         ) : isStatusReplaced ? (
           <StatusReadout op={op} />
-        ) : (
+        ) : isNozzleTool ? (
           <TempReadout
             op={op}
             current={hot.current_temp}
@@ -162,6 +167,8 @@ export function HotendCard({
             onSkipBlurCommit={(skip) => { skipBlurCommitRef.current = skip; }}
             shouldSkipBlurCommit={() => skipBlurCommitRef.current}
           />
+        ) : (
+          <div className="hotend-readout hotend-readout-empty" aria-hidden="true" />
         )}
 
         <ToolIcon kind={hot.tool_kind ?? 'empty'} op={op} />
@@ -355,6 +362,15 @@ function ToolIcon({
     return (
       <div className="hotend-tool-icon-wrap">
         <img className="hotend-icon-pen" src={hotendPenUrl} width={24} height={42} alt="pen" />
+      </div>
+    );
+  }
+  if (kind === 'laser' || kind === 'fan' || kind === 'unknown') {
+    return (
+      <div className="hotend-tool-icon-wrap">
+        <div className={`hotend-tool-icon-generic hotend-tool-icon-${kind}`} aria-hidden="true">
+          {kind === 'laser' ? 'L' : kind === 'fan' ? 'F' : '?'}
+        </div>
       </div>
     );
   }

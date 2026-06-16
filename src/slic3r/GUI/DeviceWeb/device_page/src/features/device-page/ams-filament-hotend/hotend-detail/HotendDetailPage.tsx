@@ -10,6 +10,9 @@ import './hotend-detail.css';
 
 const MODULE = 'device_page_ams_filament_hotend';
 const HOTEND_DETAIL_NOZZLE_URL = './assets/hotend_detail_nozzle.png';
+const TOOL_IMAGE_MAP: Record<string, string> = {
+  hotend_detail_nozzle: HOTEND_DETAIL_NOZZLE_URL,
+};
 
 function makeBody(submod: string, action: string, payload?: Record<string, unknown>) {
   return { module: MODULE, submod, action, payload: payload ?? {} };
@@ -34,6 +37,11 @@ function textOrDash(value?: string | null) {
 
 function formatUsedTime(hours?: number | null) {
   return typeof hours === 'number' && Number.isFinite(hours) ? `${Math.max(0, Math.floor(hours))} h` : '--';
+}
+
+function toolImageSrc(imageName?: string | null) {
+  if (!imageName || imageName === 'empty') return null;
+  return TOOL_IMAGE_MAP[imageName] ?? null;
 }
 
 export function HotendDetailPage() {
@@ -84,6 +92,9 @@ export function HotendDetailPage() {
   const selectedSlot = slots.find((slot) => slot.display_index === selectedDisplayIndex) ?? slots[0];
   const hotend: HotendSlotInfo = selectedSlot?.hotend ?? {};
   const detail: HotendDetailDialogInfo = selectedSlot?.hotend_detail_dialog ?? {};
+  const toolImage = toolImageSrc(detail.tool_image_name);
+  const showFilament = detail.show_filament ?? (hotend.tool_kind === 'nozzle');
+  const toolTypeText = detail.tool_type ?? detail.nozzle_type;
 
   return (
     <div className="hotend-detail-page" data-testid="hotend-detail-page">
@@ -103,21 +114,23 @@ export function HotendDetailPage() {
       <div className="hotend-detail-content">
         <aside className="hotend-detail-card">
           <div className="hotend-detail-image">
-            {hotend.tool_kind === 'empty' ? <span className="hotend-detail-empty">--</span> : <img src={HOTEND_DETAIL_NOZZLE_URL} alt="" />}
+            {toolImage ? <img src={toolImage} alt="" /> : <span className="hotend-detail-empty">--</span>}
           </div>
           <InfoLine label="SN" value={textOrDash(detail.serial_number)} />
           <InfoLine label="Usedtime" value={formatUsedTime(detail.used_time_hours)} />
         </aside>
 
         <section className="hotend-detail-info">
-          <InfoBlock label="Nozzle Filament">
-            <div className="hotend-detail-filament">
-              <span className="hotend-detail-color" style={{ backgroundColor: detail.filament_color || '#D9D9D9' }} />
-              <span>{textOrDash(detail.filament_name)}</span>
-            </div>
-          </InfoBlock>
+          {showFilament && (
+            <InfoBlock label="Nozzle Filament">
+              <div className="hotend-detail-filament">
+                <span className="hotend-detail-color" style={{ backgroundColor: detail.filament_color || '#D9D9D9' }} />
+                <span>{textOrDash(detail.filament_name)}</span>
+              </div>
+            </InfoBlock>
+          )}
           <InfoBlock label="Type">
-            <span>{textOrDash(detail.nozzle_type)}</span>
+            <span>{textOrDash(toolTypeText)}</span>
           </InfoBlock>
           <InfoBlock label="Version">
             <span>{textOrDash(detail.firmware_version)}</span>

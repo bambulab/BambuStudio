@@ -452,6 +452,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
             {SK::hotend_slot::slot_id,       full_slot.value(SK::filament_slot::slot_id,        std::string())},
             {SK::hotend_slot::enabled,       full_slot.value(SK::filament_slot::enabled,        false)},
             {SK::hotend_slot::taken,         full_slot.value(SK::filament_slot::is_on_extruder, false)},
+            {SK::hotend_slot::menu_actions,  full_slot.value(SK::filament_slot::hotend_menu_actions, nlohmann::json::object())},
             {SK::hotend_slot::hotend,        full_slot.value(SK::filament_slot::hotend,         nlohmann::json::object())},
             {SK::hotend_slot::hotend_detail_dialog, full_slot.value(SK::filament_slot::hotend_detail_dialog, nlohmann::json::object())}
         };

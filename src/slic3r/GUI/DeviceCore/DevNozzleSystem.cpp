@@ -454,6 +454,10 @@ const std::vector<DevNozzle> DevNozzleSystem::CollectNozzles(int ext_loc, Nozzle
             return false;
         }
 
+        if (nozzle.GetToolDefs().tool_type != DevNozzleToolType::Nozzle) {
+            return false;
+        }
+
         if (diameter >= 0.0f && nozzle.m_diameter != diameter) {
             return false;
         }
@@ -492,6 +496,7 @@ std::vector<MultiNozzleUtils::NozzleGroupInfo> DevNozzleSystem::GetNozzleGroups(
     for (auto& elem : nozzle_in_extruder) {
         auto& nozzle = elem.second;
         if (!nozzle.IsExist() || nozzle.IsUnknown() || nozzle.IsAbnormal()) continue;
+        if (nozzle.GetToolDefs().tool_type != DevNozzleToolType::Nozzle) continue;
         MultiNozzleUtils::NozzleGroupInfo info;
         info.extruder_id = nozzle.GetLogicExtruderId();
         info.diameter = format_diameter_to_str(nozzle.m_diameter);
@@ -508,6 +513,7 @@ std::vector<MultiNozzleUtils::NozzleGroupInfo> DevNozzleSystem::GetNozzleGroups(
     for (auto& elem : nozzle_in_rack) {
         auto& nozzle = elem.second;
         if (!nozzle.IsExist() || nozzle.IsUnknown() || nozzle.IsAbnormal()) continue;
+        if (nozzle.GetToolDefs().tool_type != DevNozzleToolType::Nozzle) continue;
         int extruder_id = nozzle.GetLogicExtruderId();
         std::string diameter = format_diameter_to_str(nozzle.m_diameter);
         NozzleVolumeType volume_type = DevNozzle::ToNozzleVolumeType(nozzle.m_nozzle_flow);
@@ -635,7 +641,8 @@ int DevNozzleSystem::GetKnownNozzleCountOn(int ext_id) const
         count = m_nozzle_rack->GetKnownNozzleCount();
     }
 
-    if (!GetExtNozzle(ext_id).IsUnknown() && !GetExtNozzle(ext_id).IsEmpty()) {
+    const auto& ext_nozzle = GetExtNozzle(ext_id);
+    if (!ext_nozzle.IsUnknown() && !ext_nozzle.IsEmpty() && ext_nozzle.GetToolDefs().tool_type == DevNozzleToolType::Nozzle) {
         count++;
     }
 
@@ -650,7 +657,7 @@ ExtruderNozzleInfos DevNozzleSystem::GetExtruderNozzleInfo() const
     {
         std::unordered_map<NozzleDef, int> installed_nozzle_map_l;
         const auto& left_nozzle = GetExtNozzle(DEPUTY_EXTRUDER_ID);
-        if (!left_nozzle.IsEmpty() && !left_nozzle.IsAbnormal()) {
+        if (!left_nozzle.IsEmpty() && !left_nozzle.IsAbnormal() && left_nozzle.GetToolDefs().tool_type == DevNozzleToolType::Nozzle) {
             NozzleDef data;
             data.nozzle_diameter = left_nozzle.GetNozzleDiameter();
             data.nozzle_flow_type = left_nozzle.GetNozzleFlowType();
@@ -664,7 +671,7 @@ ExtruderNozzleInfos DevNozzleSystem::GetExtruderNozzleInfo() const
     {
         std::unordered_map<NozzleDef, int> installed_nozzle_map_r;
         const auto& r_nozzle = GetExtNozzle(MAIN_EXTRUDER_ID);
-        if (!r_nozzle.IsEmpty() && !r_nozzle.IsAbnormal()) {
+        if (!r_nozzle.IsEmpty() && !r_nozzle.IsAbnormal() && r_nozzle.GetToolDefs().tool_type == DevNozzleToolType::Nozzle) {
             NozzleDef data;
             data.nozzle_diameter = r_nozzle.GetNozzleDiameter();
             data.nozzle_flow_type = r_nozzle.GetNozzleFlowType();
@@ -673,7 +680,7 @@ ExtruderNozzleInfos DevNozzleSystem::GetExtruderNozzleInfo() const
 
         auto rack_nozzles = m_nozzle_rack->GetRackNozzles();
         for (auto rack_nozzle : rack_nozzles)             {
-            if (!rack_nozzle.second.IsEmpty() && !rack_nozzle.second.IsAbnormal()) {
+            if (!rack_nozzle.second.IsEmpty() && !rack_nozzle.second.IsAbnormal() && rack_nozzle.second.GetToolDefs().tool_type == DevNozzleToolType::Nozzle) {
                 NozzleDef data;
                 data.nozzle_diameter = rack_nozzle.second.GetNozzleDiameter();
                 data.nozzle_flow_type = rack_nozzle.second.GetNozzleFlowType();
@@ -730,50 +737,101 @@ static unordered_map<string, NozzleType> _str2_nozzle_type = {
     {"05", NozzleType::ntTungstenCarbide}
 };
 
+static void s_update_nozzle_tool_info(DevNozzle& nozzle)
+{
+    nozzle.m_tool_defs.nozzle_info.reset();
+    if (nozzle.m_tool_defs.tool_type != DevNozzleToolType::Nozzle) {
+        return;
+    }
+
+    NozzleDef nozzle_def;
+    nozzle_def.nozzle_diameter = nozzle.m_diameter;
+    nozzle_def.nozzle_flow_type = nozzle.m_nozzle_flow;
+    nozzle.m_tool_defs.nozzle_info = nozzle_def;
+}
+
+static CutType s_parse_cut_type(const std::string& nozzle_type_str)
+{
+    if (nozzle_type_str.size() < 2) {
+        return CutType::Unknown;
+    }
+
+    switch (nozzle_type_str[1]) {
+    case '0': return CutType::None;
+    case 'A': return CutType::Active;
+    case 'P': return CutType::Passive;
+    case 'U': return CutType::Ultrasonic;
+    case 'E': return CutType::Pen;
+    default:  return CutType::Unknown;
+    }
+}
+
 static void s_parse_nozzle_type(const std::string& nozzle_type_str, DevNozzle& nozzle)
 {
+    nozzle.m_tool_defs = DevNozzleToolDefs();
+
     if (NozzleTypeStrToEumn.count(nozzle_type_str) != 0)
     {
+        nozzle.m_tool_defs.tool_type = DevNozzleToolType::Nozzle;
         nozzle.m_nozzle_type = NozzleTypeStrToEumn[nozzle_type_str];
-    }
-    else if (nozzle_type_str.length() >= 4)
-    {
-        // Tool-id format: [tool type][sub type][code], e.g. "HS01" / "CE00".
-        // First char selects the tool family: H = hotend (printing nozzle),
-        // C = cross cutter family, L = laser, F = fan, J = focus lens. Within
-        // the C family the device reports the transverse cutter as "CE.." and
-        // a pen/marker as any other C sub type.
-        const char         tool_type    = nozzle_type_str[0];
-        const std::string& sub_type_str = nozzle_type_str.substr(1, 1);
-        if (tool_type == 'C')
-        {
-            nozzle.m_tool_kind = (sub_type_str == "E") ? DevNozzle::NozzleToolKind::Cutter
-                                                       : DevNozzle::NozzleToolKind::Pen;
-        }
-        else if (tool_type == 'H')
-        {
-            nozzle.m_tool_kind = DevNozzle::NozzleToolKind::Hotend;
-            if (_str2_nozzle_flow_type.count(sub_type_str) != 0)
-            {
-                nozzle.m_nozzle_flow = _str2_nozzle_flow_type[sub_type_str];
-            }
-            const std::string& type_str = nozzle_type_str.substr(2, 2);
-            if (_str2_nozzle_type.count(type_str) != 0)
-            {
-                nozzle.m_nozzle_type = _str2_nozzle_type[type_str];
-            }
-        }
-        else
-        {
-            // L/F/J or any other tool: not a printing nozzle.
-            nozzle.m_tool_kind = DevNozzle::NozzleToolKind::Unknown;
-        }
     }
     else if (nozzle_type_str == "N/A")
     {
+        nozzle.m_tool_defs.tool_type = DevNozzleToolType::None;
         nozzle.m_nozzle_type = NozzleType::ntUndefine;
         nozzle.m_nozzle_flow = NozzleFlowType::NONE_FLOWTYPE;
     }
+    else if (nozzle_type_str.length() >= 4)
+    {
+        switch (nozzle_type_str[0]) {
+        case 'H':
+            nozzle.m_tool_defs.tool_type = DevNozzleToolType::Nozzle;
+            {
+                const std::string& flow_type_str = nozzle_type_str.substr(1, 1);
+                if (_str2_nozzle_flow_type.count(flow_type_str) != 0)
+                {
+                    nozzle.m_nozzle_flow = _str2_nozzle_flow_type[flow_type_str];
+                }
+                const std::string& type_str = nozzle_type_str.substr(2, 2);
+                if (_str2_nozzle_type.count(type_str) != 0)
+                {
+                    nozzle.m_nozzle_type = _str2_nozzle_type[type_str];
+                }
+                auto diameter_pos = nozzle_type_str.find('-');
+                if (diameter_pos != std::string::npos && diameter_pos + 1 < nozzle_type_str.size())
+                {
+                    float diameter = DevUtil::string_to_float(nozzle_type_str.substr(diameter_pos + 1));
+                    if (diameter > 0.0f) {
+                        nozzle.m_diameter = round(diameter * 10) / 10;
+                    }
+                }
+            }
+            break;
+        case 'C':
+            nozzle.m_tool_defs.tool_type = DevNozzleToolType::Cut;
+            nozzle.m_tool_defs.cut_info = CutDef{ s_parse_cut_type(nozzle_type_str) };
+            nozzle.m_nozzle_type = NozzleType::ntUndefine;
+            nozzle.m_nozzle_flow = NozzleFlowType::NONE_FLOWTYPE;
+            break;
+        case 'L':
+            nozzle.m_tool_defs.tool_type = DevNozzleToolType::Laser;
+            nozzle.m_nozzle_type = NozzleType::ntUndefine;
+            nozzle.m_nozzle_flow = NozzleFlowType::NONE_FLOWTYPE;
+            break;
+        case 'F':
+            nozzle.m_tool_defs.tool_type = DevNozzleToolType::Fan;
+            nozzle.m_nozzle_type = NozzleType::ntUndefine;
+            nozzle.m_nozzle_flow = NozzleFlowType::NONE_FLOWTYPE;
+            break;
+        default:
+            nozzle.m_tool_defs.tool_type = DevNozzleToolType::None;
+            nozzle.m_nozzle_type = NozzleType::ntUndefine;
+            nozzle.m_nozzle_flow = NozzleFlowType::NONE_FLOWTYPE;
+            break;
+        }
+    }
+
+    s_update_nozzle_tool_info(nozzle);
 }
 
 
@@ -789,6 +847,7 @@ void DevNozzleSystemParser::ParseV1_0(const nlohmann::json& nozzletype_json,
     nozzle.m_is_exist = true;
     nozzle.m_nozzle_id = 0;
     nozzle.m_nozzle_flow = NozzleFlowType::S_FLOW; // default flow type
+    nozzle.m_tool_defs.tool_type = DevNozzleToolType::Nozzle;
 
     {
         float nozzle_diameter = 0.0f;
@@ -827,6 +886,7 @@ void DevNozzleSystemParser::ParseV1_0(const nlohmann::json& nozzletype_json,
                 nozzle.m_nozzle_flow = NozzleFlowType::S_FLOW;
             }
         }
+        s_update_nozzle_tool_info(nozzle);
     }
 
     system->m_ext_nozzles[nozzle.m_nozzle_id] = nozzle;
@@ -956,7 +1016,15 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
             if (njon.contains("addr_id")) {
                 nozzle_obj.m_addr_id = njon["addr_id"].get<int>();
             }
-            nozzle_obj.m_diameter = njon["diameter"].get<float>();
+            if (njon.contains("diameter")) {
+                if (njon["diameter"].is_number()) {
+                    nozzle_obj.m_diameter = njon["diameter"].get<float>();
+                } else if (njon["diameter"].is_string()) {
+                    nozzle_obj.m_diameter = DevUtil::string_to_float(njon["diameter"].get<std::string>());
+                }
+            } else {
+                nozzle_obj.m_diameter = 0.0f;
+            }
             s_parse_nozzle_type(njon["type"].get<std::string>(), nozzle_obj);
 
             DevJsonValParser::ParseVal(njon, "fila_id", nozzle_obj.m_fila_id);

@@ -12,8 +12,8 @@ namespace Slic3r::GUI {
 namespace {
 constexpr int kDialogWidthDip  = 900;
 constexpr int kDialogHeightDip = 700;
-constexpr int kMinWidthDip     = 720;
-constexpr int kMinHeightDip    = 520;
+constexpr int kMinWidthDip     = 578;
+constexpr int kMinHeightDip    = 352;
 constexpr int kMaxWidthDip     = 1100;
 constexpr int kMaxHeightDip    = 850;
 constexpr int kSizeEpsilonDip  = 4;

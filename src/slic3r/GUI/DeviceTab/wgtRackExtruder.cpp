@@ -56,6 +56,33 @@ std::optional<int> decode_active_nozzle_label(int nozzle_id)
     return nozzle_id + 1;
 }
 
+bool is_pen_tool(const DevNozzleToolDefs& tool_defs)
+{
+    return tool_defs.tool_type == DevNozzleToolType::Cut &&
+           tool_defs.cut_info.has_value() &&
+           tool_defs.cut_info->type == CutType::Pen;
+}
+
+wxString tool_label(const DevNozzleToolDefs& tool_defs)
+{
+    switch (tool_defs.tool_type) {
+    case DevNozzleToolType::Cut:   return is_pen_tool(tool_defs) ? _L("Pen") : _L("Cutter");
+    case DevNozzleToolType::Laser: return _L("Laser");
+    case DevNozzleToolType::Fan:   return _L("Fan");
+    case DevNozzleToolType::Nozzle:
+    case DevNozzleToolType::None:
+    default:                       return wxEmptyString;
+    }
+}
+
+wxString toolhead_image_name(const DevNozzleToolDefs& tool_defs)
+{
+    switch (tool_defs.tool_type) {
+    case DevNozzleToolType::Cut: return is_pen_tool(tool_defs) ? "dev_rack_toolhead_pen.png" : "dev_rack_toolhead_cutter.png";
+    default:                     return "dev_rack_toolhead.png";
+    }
+}
+
 } // namespace
 
 wgtRackExtruder::wgtRackExtruder(wxWindow* parent)
@@ -179,31 +206,46 @@ void wgtRackExtruder::update_nozzle_info(MachineObject* obj)
         m_nozzle_idx->Hide();
     }
 
-    // Diameter / flow type — read from the on-extruder nozzle so the labels
+    // Resolve the target tool label + visibility once.
+    wxString diameter_label, flowtype_label;
+    bool     diameter_show = false;
     auto ext_nozzle = obj->GetNozzleSystem()->GetExtNozzle(MAIN_EXTRUDER_ID);
-    if (!ext_nozzle.IsEmpty() && ext_nozzle.IsNormal()) {
-        m_nozzle_diameter_label->SetLabel(ext_nozzle.GetNozzleDiameterStr());
-        m_nozzle_flowtype_label->SetLabel(ext_nozzle.GetNozzleFlowTypeStr());
-        m_nozzle_diameter_label->Show();
-        m_nozzle_flowtype_label->Show();
+    auto tool_defs = ext_nozzle.IsEmpty() ? DevNozzleToolDefs() : ext_nozzle.GetToolDefs();
+    if (tool_defs.tool_type == DevNozzleToolType::Nozzle) {
+        if (!ext_nozzle.IsEmpty() && ext_nozzle.IsNormal()) {
+            diameter_label = ext_nozzle.GetNozzleDiameterStr();
+            flowtype_label = ext_nozzle.GetNozzleFlowTypeStr();
+            diameter_show  = true;
+        } else if (!ext_nozzle.IsEmpty() && ext_nozzle.IsAbnormal()) {
+            flowtype_label = _L("Error");
+        } else if (!ext_nozzle.IsEmpty() && ext_nozzle.IsUnknown()) {
+            flowtype_label = _L("Unknown");
+        } else {
+            flowtype_label = _L("Empty");
+        }
     } else if (!ext_nozzle.IsEmpty() && ext_nozzle.IsAbnormal()) {
-        m_nozzle_diameter_label->Hide();
-        m_nozzle_flowtype_label->SetLabel(_L("Error"));
-        m_nozzle_flowtype_label->Show();
+        flowtype_label = _L("Error");
     } else if (!ext_nozzle.IsEmpty() && ext_nozzle.IsUnknown()) {
-        m_nozzle_diameter_label->Hide();
-        m_nozzle_flowtype_label->SetLabel(_L("Unknown"));
-        m_nozzle_flowtype_label->Show();
+        flowtype_label = _L("Unknown");
+    } else if (!tool_label(tool_defs).empty()) {
+        flowtype_label = tool_label(tool_defs);
     } else {
         m_nozzle_diameter_label->Hide();
         m_nozzle_flowtype_label->SetLabel(_L("Empty"));
         m_nozzle_flowtype_label->Show();
     }
 
-    // Toolhead is a static PNG; refresh only to repaint background.
-    if (m_toolhead_image) m_toolhead_image->Refresh();
+    // Toolhead PNG: only re-apply and repaint when its resource path changes.
+    const wxString image_name = toolhead_image_name(tool_defs);
+    if (m_toolhead_image && image_name != m_toolhead_image_name) {
+        m_toolhead_image->SetBitmap(create_scaled_bitmap(image_name.ToStdString(), this, FromDIP(kToolheadHeightDip)));
+        m_toolhead_image_name = image_name;
+        m_toolhead_image->Refresh();
+    }
 
-    Layout();
+    if (changed) {
+        Layout();
+    }
 }
 
 void wgtRackExtruder::SetControlEnabled(bool enabled)
@@ -230,7 +272,7 @@ void wgtRackExtruder::Rescale()
     if (m_btn_up)   m_btn_up->msw_rescale();
     if (m_btn_down) m_btn_down->msw_rescale();
     if (m_toolhead_image) {
-        wxBitmap toolhead_bmp = create_scaled_bitmap("dev_rack_toolhead.png", this,
+        wxBitmap toolhead_bmp = create_scaled_bitmap(m_toolhead_image_name.ToStdString(), this,
                                                       FromDIP(kToolheadHeightDip));
         m_toolhead_image->SetBitmap(toolhead_bmp);
     }

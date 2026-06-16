@@ -39,6 +39,8 @@ export type HotendOpState =
 export type HotendToolKind =
   | 'nozzle'   // 普通喷嘴
   | 'cutter'   // 切刀
+  | 'laser'    // 激光
+  | 'fan'      // 风扇
   | 'pen'      // 荧光笔/标记笔
   | 'unknown'  // 未识别工具
   | 'empty';   // 空槽
@@ -56,6 +58,9 @@ export interface HotendSlotInfo {
 export interface HotendDetailDialogInfo {
   filament_name?: string;    // detail dialog: filament currently associated with this hotend
   filament_color?: string;
+  show_filament?: boolean;
+  tool_image_name?: 'hotend_detail_nozzle' | 'empty' | string;
+  tool_type?: string;
   nozzle_type?: string;      // detail dialog: diameter + flow + material/type
   firmware_version?: string;
   serial_number?: string;
@@ -186,6 +191,12 @@ export interface HotendSlotViewModel {
   ams_id: string;
   slot_id: string;
   enabled: boolean;
+  menu_actions?: {
+    can_read?: boolean;
+    can_detail?: boolean;
+    can_set_temperature?: boolean;
+    can_take_place?: boolean;
+  };
   /** True when this rack nozzle is currently mounted on the extruder; the
    *  Hotend tab card shows a "Taken" overlay instead of the live temperature. */
   taken?: boolean;

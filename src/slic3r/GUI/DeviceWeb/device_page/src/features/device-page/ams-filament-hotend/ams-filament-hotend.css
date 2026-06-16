@@ -1742,6 +1742,20 @@
   border-radius: 2px;
 }
 
+.hotend-tool-icon-generic {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--ams-tab-bar-empty);
+  color: var(--ams-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+}
+
 .hotend-placing-arrow {
   position: absolute;
   left: 0;

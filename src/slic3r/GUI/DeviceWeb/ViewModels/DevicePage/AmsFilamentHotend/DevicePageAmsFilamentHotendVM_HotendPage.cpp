@@ -50,6 +50,43 @@ std::string nozzle_flow_short_name(NozzleFlowType flow_type)
     }
 }
 
+bool is_pen_tool(const DevNozzleToolDefs& tool_defs)
+{
+    return tool_defs.tool_type == DevNozzleToolType::Cut &&
+           tool_defs.cut_info.has_value() &&
+           tool_defs.cut_info->type == CutType::Pen;
+}
+
+std::string tool_kind_for_web(const DevNozzleToolDefs& tool_defs)
+{
+    namespace SV = AmsHotendSchema::values;
+    switch (tool_defs.tool_type) {
+    case DevNozzleToolType::Nozzle: return SV::tool_kind::nozzle;
+    case DevNozzleToolType::Cut:    return is_pen_tool(tool_defs) ? SV::tool_kind::pen : SV::tool_kind::cutter;
+    case DevNozzleToolType::Laser:  return SV::tool_kind::laser;
+    case DevNozzleToolType::Fan:    return SV::tool_kind::fan;
+    case DevNozzleToolType::None:
+    default:                        return SV::tool_kind::empty;
+    }
+}
+
+std::string tool_label_for_web(const DevNozzleToolDefs& tool_defs)
+{
+    switch (tool_defs.tool_type) {
+    case DevNozzleToolType::Cut:   return is_pen_tool(tool_defs) ? _u8L("Pen") : _u8L("Cutter");
+    case DevNozzleToolType::Laser: return _u8L("Laser");
+    case DevNozzleToolType::Fan:   return _u8L("Fan");
+    case DevNozzleToolType::Nozzle:
+    case DevNozzleToolType::None:
+    default:                       return "--";
+    }
+}
+
+std::string detail_tool_image_name(const DevNozzleToolDefs& tool_defs)
+{
+    return tool_defs.tool_type == DevNozzleToolType::Nozzle ? "hotend_detail_nozzle" : "empty";
+}
+
 std::string wx_to_utf8(const wxString& value)
 {
     return value.ToUTF8().data();
@@ -314,6 +351,8 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     nlohmann::json hotend_detail_dialog;
     if (rack_nozzle_opt.has_value()) {
         const bool has_tool = has_hotend_slot && rack_nozzle_opt->IsExist();
+        const auto tool_defs = has_tool ? rack_nozzle_opt->GetToolDefs() : DevNozzleToolDefs();
+        const bool is_nozzle_tool = tool_defs.tool_type == DevNozzleToolType::Nozzle;
         const bool is_on_extruder = IsNozzleOnExtruder(machine_obj, addr_id);
         const bool has_read_detail = has_tool && !rack_nozzle_opt->IsUnknown();
         const std::string serial_number = has_read_detail ? wx_to_utf8(rack_nozzle_opt->GetSerialNumber()) : "";
@@ -347,24 +386,32 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         }
 
         hotend[SK::hotend::op_state] = has_tool ? op_state : std::string(SV::hotend_op_state::idle);
-        hotend[SK::hotend::tool_kind] = has_tool ? SV::tool_kind::nozzle : SV::tool_kind::empty;
-        hotend[SK::hotend::nozzle_label] = has_tool ? wx_to_utf8(rack_nozzle_opt->GetNozzleDiameterStr()) : "--";
-        hotend[SK::hotend::nozzle_subtext] = has_tool ? nozzle_flow_short_name(rack_nozzle_opt->GetNozzleFlowType()) : "";
+        hotend[SK::hotend::tool_kind] = has_tool ? tool_kind_for_web(tool_defs) : SV::tool_kind::empty;
+        hotend[SK::hotend::nozzle_label] = is_nozzle_tool ? wx_to_utf8(rack_nozzle_opt->GetNozzleDiameterStr()) : tool_label_for_web(tool_defs);
+        hotend[SK::hotend::nozzle_subtext] = is_nozzle_tool ? nozzle_flow_short_name(rack_nozzle_opt->GetNozzleFlowType()) : "";
         hotend_detail_dialog[SK::hotend_detail_dialog::filament_name] = filament_name;
         hotend_detail_dialog[SK::hotend_detail_dialog::filament_color] = color;
-        hotend_detail_dialog[SK::hotend_detail_dialog::nozzle_type] = has_tool
+        hotend_detail_dialog[SK::hotend_detail_dialog::show_filament] = is_nozzle_tool;
+        hotend_detail_dialog[SK::hotend_detail_dialog::tool_image_name] = detail_tool_image_name(tool_defs);
+        hotend_detail_dialog[SK::hotend_detail_dialog::tool_type] = is_nozzle_tool
             ? (boost::format("%1% %2% %3%")
                 % wx_to_utf8(rack_nozzle_opt->GetNozzleDiameterStr())
                 % wx_to_utf8(rack_nozzle_opt->GetNozzleFlowTypeStr())
                 % wx_to_utf8(rack_nozzle_opt->GetNozzleTypeStr())).str()
-            : "--";
+            : tool_label_for_web(tool_defs);
+        hotend_detail_dialog[SK::hotend_detail_dialog::nozzle_type] = is_nozzle_tool
+            ? (boost::format("%1% %2% %3%")
+                % wx_to_utf8(rack_nozzle_opt->GetNozzleDiameterStr())
+                % wx_to_utf8(rack_nozzle_opt->GetNozzleFlowTypeStr())
+                % wx_to_utf8(rack_nozzle_opt->GetNozzleTypeStr())).str()
+            : tool_label_for_web(tool_defs);
         hotend_detail_dialog[SK::hotend_detail_dialog::firmware_version] = firmware.has_value() && !firmware->sw_ver.empty() ? firmware->sw_ver : "--";
         hotend_detail_dialog[SK::hotend_detail_dialog::serial_number] = has_read_detail ? serial_number : "--";
         hotend_detail_dialog[SK::hotend_detail_dialog::used_time_hours] = has_read_detail
             ? nlohmann::json(std::max(0, rack_nozzle_opt->GetNozzlePrintTime()) / 60)
             : nlohmann::json(nullptr);
-        hotend[SK::hotend::current_temp] = has_tool ? nlohmann::json(rack_nozzle_opt->GetCurrentTemp()) : nlohmann::json(nullptr);
-        hotend[SK::hotend::target_temp] = has_tool ? rack_nozzle_opt->GetTargetTemp() : 0;
+        hotend[SK::hotend::current_temp] = is_nozzle_tool ? nlohmann::json(rack_nozzle_opt->GetCurrentTemp()) : nlohmann::json(nullptr);
+        hotend[SK::hotend::target_temp] = is_nozzle_tool ? rack_nozzle_opt->GetTargetTemp() : 0;
         hotend[SK::hotend::selected] = is_on_extruder;
     }
 
@@ -401,6 +448,19 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
     }
 
     const bool is_on_extruder = machine_obj && IsNozzleOnExtruder(machine_obj, addr_id);
+    const auto hotend_tool_kind = hotend.value(SK::hotend::tool_kind, std::string(SV::tool_kind::empty));
+    const auto hotend_op_state = hotend.value(SK::hotend::op_state, std::string(SV::hotend_op_state::idle));
+    const bool hotend_busy = hotend_op_state == SV::hotend_op_state::reading ||
+        hotend_op_state == SV::hotend_op_state::taking ||
+        hotend_op_state == SV::hotend_op_state::placing ||
+        hotend_op_state == SV::hotend_op_state::removing;
+    const bool hotend_can_operate = has_hotend_slot && !hotend_busy;
+    const nlohmann::json hotend_menu_actions = {
+        {SK::hotend_menu_actions::can_read, hotend_can_operate && hotend_tool_kind == SV::tool_kind::nozzle},
+        {SK::hotend_menu_actions::can_detail, has_hotend_slot},
+        {SK::hotend_menu_actions::can_set_temperature, hotend_can_operate && hotend_tool_kind == SV::tool_kind::nozzle && hotend_op_state != SV::hotend_op_state::error},
+        {SK::hotend_menu_actions::can_take_place, hotend_can_operate}
+    };
     const nlohmann::json menu_actions = {
         {SK::menu_actions::can_edit, card_state != SV::card_state::empty},
         {SK::menu_actions::can_load, line_state == SV::line_state::no_filament && card_state != SV::card_state::empty},
@@ -446,6 +506,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         {SK::filament_slot::is_external_spool, is_external_spool},
         {SK::filament_slot::is_top_tier, is_top_tier},
         {SK::filament_slot::menu_actions, menu_actions},
+        {SK::filament_slot::hotend_menu_actions, hotend_menu_actions},
         {SK::filament_slot::ams_operation, {
             {SK::ams_operation::available, bind_ams_slot_count > 0},
             {SK::ams_ext_operation_slot::units, ams_operation_units}
