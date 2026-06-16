@@ -166,6 +166,12 @@ void FilamentManagerVM::ReportState(const std::string& submod, const std::string
         return;
     }
 
+    // Push login / cloud-sync state on login/logout (NotifyFilamentSessionState).
+    if (submod == "sync") {
+        publish_sync_state();
+        return;
+    }
+
     // F4.7: broadcast the Studio-wide machine selection change so the
     // "Read from AMS" dialog can stay in sync with whatever printer the
     // rest of Studio is pointing at (triggered by
