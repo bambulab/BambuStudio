@@ -17,6 +17,12 @@
 #endif
 
 #ifdef WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 	#include <windows.h>
 	#include <psapi.h>
 	#include <direct.h>  // for mkdir
@@ -257,52 +263,6 @@ void set_sys_shapes_dir(const std::string &dir)
 const std::string& sys_shapes_dir()
 {
 	return g_sys_shapes_dir;
-}
-
-// Translate function callback, to call wxWidgets translate function to convert non-localized UTF8 string to a localized one.
-Slic3r::I18N::translate_fn_type Slic3r::I18N::translate_fn = nullptr;
-static std::string g_data_dir;
-
-void set_data_dir(const std::string &dir)
-{
-    g_data_dir = dir;
-}
-
-const std::string& data_dir()
-{
-    return g_data_dir;
-}
-
-std::string custom_shapes_dir()
-{
-    return (boost::filesystem::path(g_data_dir) / "shapes").string();
-}
-
-static std::atomic<bool> debug_out_path_called(false);
-
-std::string debug_out_path(const char *name, ...)
-{
-	//static constexpr const char *SLIC3R_DEBUG_OUT_PATH_PREFIX = "out/";
-	auto svg_folder = boost::filesystem::path(g_data_dir) / "SVG/";
-    if (! debug_out_path_called.exchange(true)) {
-		if (!boost::filesystem::exists(svg_folder)) {
-			boost::filesystem::create_directory(svg_folder);
-		}
-		std::string path = boost::filesystem::system_complete(svg_folder).string();
-        printf("Debugging output files will be written to %s\n", path.c_str());
-    }
-	char buffer[2048];
-	va_list args;
-	va_start(args, name);
-	std::vsprintf(buffer, name, args);
-	va_end(args);
-
-	std::string buf(buffer);
-	if (size_t pos = buf.find_first_of('/'); pos != std::string::npos) {
-		std::string sub_dir = buf.substr(0, pos);
-		std::filesystem::create_directory(svg_folder.string() + sub_dir);
-	}
-	return svg_folder.string() + std::string(buffer);
 }
 
 boost::shared_ptr<LogSink> g_log_sink;
@@ -607,16 +567,6 @@ namespace WindowsSupport
 #endif /* _WIN32 */
 
 // borrowed from LVVM lib/Support/Windows/Path.inc
-std::error_code rename_file(const std::string &from, const std::string &to)
-{
-#ifdef _WIN32
-	return WindowsSupport::rename(from, to);
-#else
-	boost::nowide::remove(to.c_str());
-	return std::make_error_code(static_cast<std::errc>(boost::nowide::rename(from.c_str(), to.c_str())));
-#endif
-}
-
 #ifdef __linux__
 // Copied from boost::filesystem.
 // Called by copy_file_linux() in case linux sendfile() API is not supported.
@@ -1034,18 +984,6 @@ bool is_idx_file(const boost::filesystem::directory_entry &dir_entry)
 	return is_plain_file(dir_entry) && strcasecmp(dir_entry.path().extension().string().c_str(), ".idx") == 0;
 }
 
-//BBS: refine gcode appendix
-bool is_gcode_file(const std::string &path)
-{
-	return boost::iends_with(path, ".gcode"); // || boost::iends_with(path, ".g");
-}
-
-//BBS: add json support
-bool is_json_file(const std::string& path)
-{
-	return boost::iends_with(path, ".json");
-}
-
 bool is_img_file(const std::string &path)
 {
 	return boost::iends_with(path, ".png") || boost::iends_with(path, ".svg");
@@ -1164,11 +1102,6 @@ std::string string_printf(const char *format, ...)
     buffer.resize(bufflen);
 
     return buffer;
-}
-
-std::string header_slic3r_generated()
-{
-	return std::string(SLIC3R_APP_NAME " " SLIC3R_VERSION);
 }
 
 std::string header_gcodeviewer_generated()
@@ -1341,15 +1274,6 @@ std::string format_memsize_MB(size_t n)
         out += buf;
     }
     return out + "MB";
-}
-
-std::string format_diameter_to_str(double diameter, int precision)
-{
-    double candidates[] = {0.2, 0.4, 0.6, 0.8};
-    double best = *std::min_element(std::begin(candidates), std::end(candidates), [diameter](double a, double b) { return std::abs(a - diameter) < std::abs(b - diameter); });
-    std::ostringstream oss;
-    oss << std::fixed << std::setprecision(precision) << best;
-    return oss.str();
 }
 
 // Returns platform-specific string to be used as log output or parsed in SysInfoDialog.

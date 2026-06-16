@@ -1,6 +1,6 @@
 #include "../ClipperUtils.hpp"
 #include "../ExPolygon.hpp"
-#include "../ShortestPath.hpp"
+#include "../ShortestPathExtras.hpp"
 #include "../Surface.hpp"
 
 #include "FillLine.hpp"

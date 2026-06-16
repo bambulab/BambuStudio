@@ -713,60 +713,6 @@ void LayerRegion::elephant_foot_compensation_step(const float elephant_foot_comp
     this->slices.set(union_ex(tmp), stInternal);
 }
 
-void LayerRegion::export_region_slices_to_svg(const char *path) const
-{
-    BoundingBox bbox;
-    for (Surfaces::const_iterator surface = this->slices.surfaces.begin(); surface != this->slices.surfaces.end(); ++surface)
-        bbox.merge(get_extents(surface->expolygon));
-    Point legend_size = export_surface_type_legend_to_svg_box_size();
-    Point legend_pos(bbox.min(0), bbox.max(1));
-    bbox.merge(Point(std::max(bbox.min(0) + legend_size(0), bbox.max(0)), bbox.max(1) + legend_size(1)));
-
-    SVG svg(path, bbox);
-    const float transparency = 0.5f;
-    for (Surfaces::const_iterator surface = this->slices.surfaces.begin(); surface != this->slices.surfaces.end(); ++surface)
-        svg.draw(surface->expolygon, surface_type_to_color_name(surface->surface_type), transparency);
-    for (Surfaces::const_iterator surface = this->fill_surfaces.surfaces.begin(); surface != this->fill_surfaces.surfaces.end(); ++surface)
-        svg.draw(surface->expolygon.lines(), surface_type_to_color_name(surface->surface_type));
-    export_surface_type_legend_to_svg(svg, legend_pos);
-    svg.Close();
-}
-
-// Export to "out/LayerRegion-name-%d.svg" with an increasing index with every export.
-void LayerRegion::export_region_slices_to_svg_debug(const char *name) const
-{
-    static std::map<std::string, size_t> idx_map;
-    size_t &idx = idx_map[name];
-    this->export_region_slices_to_svg(debug_out_path("LayerRegion-slices-%s-%d.svg", name, idx ++).c_str());
-}
-
-void LayerRegion::export_region_fill_surfaces_to_svg(const char *path) const
-{
-    BoundingBox bbox;
-    for (Surfaces::const_iterator surface = this->fill_surfaces.surfaces.begin(); surface != this->fill_surfaces.surfaces.end(); ++surface)
-        bbox.merge(get_extents(surface->expolygon));
-    Point legend_size = export_surface_type_legend_to_svg_box_size();
-    Point legend_pos(bbox.min(0), bbox.max(1));
-    bbox.merge(Point(std::max(bbox.min(0) + legend_size(0), bbox.max(0)), bbox.max(1) + legend_size(1)));
-
-    SVG svg(path, bbox);
-    const float transparency = 0.5f;
-    for (const Surface &surface : this->fill_surfaces.surfaces) {
-        svg.draw(surface.expolygon, surface_type_to_color_name(surface.surface_type), transparency);
-        svg.draw_outline(surface.expolygon, "black", "blue", scale_(0.05));
-    }
-    export_surface_type_legend_to_svg(svg, legend_pos);
-    svg.Close();
-}
-
-// Export to "out/LayerRegion-name-%d.svg" with an increasing index with every export.
-void LayerRegion::export_region_fill_surfaces_to_svg_debug(const char *name) const
-{
-    static std::map<std::string, size_t> idx_map;
-    size_t &idx = idx_map[name];
-    this->export_region_fill_surfaces_to_svg(debug_out_path("LayerRegion-fill_surfaces-%s-%d.svg", name, idx ++).c_str());
-}
-
 void LayerRegion::simplify_entity_collection(ExtrusionEntityCollection* entity_collection)
 {
     for (size_t i = 0; i < entity_collection->entities.size(); i++) {

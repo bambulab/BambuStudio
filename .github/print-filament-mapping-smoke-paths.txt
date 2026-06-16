@@ -1,0 +1,25 @@
+# print filament mapping Print API integration smoke source surface
+src/libslic3r/PrintApply.cpp
+src/libslic3r/PrintApplyValidateSupportCompat.cpp
+src/libslic3r/PrintBase.hpp
+src/libslic3r/PrintFilamentState.cpp
+src/libslic3r/PrintFilamentMapping.cpp
+src/libslic3r/PrintFilamentMappingCompat.cpp
+src/libslic3r/libslic3r.h
+src/libslic3r/Print.hpp
+src/libslic3r/PrintConfig*
+src/libslic3r/Config*
+
+# print filament mapping Print API integration smoke target tests
+tests/CMakeLists.txt
+tests/fff_print/cmake/PrintFilamentMappingSmoke.cmake
+tests/fff_print/CMakeLists.txt
+tests/fff_print/fff_print_tests.cpp
+tests/fff_print/test_print_filament_mapping_smoke.cpp
+tests/catch_main.hpp
+tests/catch2/catch.hpp
+
+# workflow changes should re-run the smoke gate
+.github/print-filament-mapping-smoke-paths.txt
+.github/workflows/cpp_ut_smoke.yml
+.github/workflows/build_windows_deps.yml

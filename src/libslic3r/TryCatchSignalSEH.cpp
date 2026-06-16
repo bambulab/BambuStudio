@@ -1,5 +1,11 @@
 #include "TryCatchSignalSEH.hpp"
 
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <windows.h>
 
 static int signal_seh_filter(int sigcnt, const Slic3r::SignalT *sigs,

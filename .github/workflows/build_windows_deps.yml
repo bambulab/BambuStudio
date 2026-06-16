@@ -1,0 +1,109 @@
+name: Windows Deps Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "ci/**"
+    paths:
+      - "deps/**"
+      - "build_win.bat"
+      - ".github/workflows/build_windows_deps.yml"
+      - ".github/workflows/build_deps.yml"
+      - ".github/workflows/build_check_cache.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-windows-deps:
+    name: Windows Deps Build
+    runs-on: windows-2022
+    env:
+      DEPS_ROOT: ${{ github.workspace }}\deps\build\BambuStudio_dep
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          lfs: "true"
+
+      - name: Compute cache metadata
+        id: cache_meta
+        shell: pwsh
+        run: |
+          $cacheKey = "windows-2022-cache-bambustudio_deps-build-${{ hashFiles('deps/**') }}"
+          $artifactFile = "BambuStudio_dep_win64_$((Get-Date).ToString('yyyyMMdd'))_${{ github.sha }}.zip"
+          echo "cache-key=$cacheKey" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          echo "artifact-file=$artifactFile" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+
+      - name: Restore deps cache
+        id: cache_deps
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.DEPS_ROOT }}
+          key: ${{ steps.cache_meta.outputs.cache-key }}
+
+      - name: Setup MSBuild
+        if: steps.cache_deps.outputs.cache-hit != 'true'
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Install Windows build tooling
+        if: steps.cache_deps.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          choco install strawberryperl --no-progress -y
+          choco install pkgconfiglite --no-progress -y
+
+      - name: Build deps on cache miss
+        if: steps.cache_deps.outputs.cache-hit != 'true'
+        working-directory: ${{ github.workspace }}
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\deps\build" | Out-Null
+          New-Item -ItemType Directory -Force -Path "${{ env.DEPS_ROOT }}" | Out-Null
+          Set-Location "${{ github.workspace }}\deps\build"
+          cmake .. -G "Visual Studio 17 2022" -A x64 -DDESTDIR="./BambuStudio_dep" -DCMAKE_BUILD_TYPE=Release -DDEP_DEBUG=OFF
+          msbuild /m ALL_BUILD.vcxproj
+
+      - name: Verify deps payload exists
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${{ env.DEPS_ROOT }}")) {
+            throw "Deps root not found: ${{ env.DEPS_ROOT }}"
+          }
+          $items = Get-ChildItem "${{ env.DEPS_ROOT }}" -Force
+          if ($items.Count -eq 0) {
+            throw "Deps root is empty: ${{ env.DEPS_ROOT }}"
+          }
+
+      - name: Package deps
+        id: package_deps
+        working-directory: ${{ github.workspace }}
+        shell: pwsh
+        run: |
+          $artifactPath = Join-Path "${{ github.workspace }}\deps\build" "${{ steps.cache_meta.outputs.artifact-file }}"
+          if (Test-Path $artifactPath) {
+            Remove-Item -Force $artifactPath
+          }
+          Compress-Archive -Path "${{ env.DEPS_ROOT }}\*" -DestinationPath $artifactPath
+          echo "artifact-path=$artifactPath" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+
+      - name: Upload deps artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: bambustudio-windows-deps
+          path: ${{ steps.package_deps.outputs.artifact-path }}
+
+      - name: Write summary
+        shell: pwsh
+        run: |
+          $cacheStatus = if ("${{ steps.cache_deps.outputs.cache-hit }}" -eq "true") { "hit" } else { "miss" }
+          @"
+          ## Windows Deps Build
+
+          - Cache key: `${{ steps.cache_meta.outputs.cache-key }}`
+          - Cache status: $cacheStatus
+          - Artifact: `bambustudio-windows-deps`
+          - Package file: `${{ steps.cache_meta.outputs.artifact-file }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8

@@ -1,5 +1,5 @@
 #include "../Print.hpp"
-#include "../ShortestPath.hpp"
+#include "../ShortestPathExtras.hpp"
 
 #include "ClipperUtils.hpp"
 #include "FillLightning.hpp"

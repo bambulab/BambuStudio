@@ -1,0 +1,1218 @@
+name: Windows Cpp UT Smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      deps-run-id:
+        description: "Optional Windows Deps Build run id"
+        required: false
+        type: string
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "!tests/fff_print/LEGACY_MIGRATION.md"
+      - "deps/**"
+      - "**/CMakeLists.txt"
+      - "build_win.bat"
+      - ".github/config-fast-gate-paths.txt"
+      - ".github/placeholder-parser-smoke-paths.txt"
+      - ".github/gcode-reader-smoke-paths.txt"
+      - ".github/gcodewriter-smoke-paths.txt"
+      - ".github/model-assembly-smoke-paths.txt"
+      - ".github/print-filament-mapping-smoke-paths.txt"
+      - ".github/print-apply-validate-smoke-paths.txt"
+      - ".github/print-perimeters-smoke-paths.txt"
+      - ".github/print-process-math-smoke-paths.txt"
+      - ".github/print-process-core-smoke-paths.txt"
+      - ".github/print-object-layers-smoke-paths.txt"
+      - ".github/print-adhesion-smoke-paths.txt"
+      - ".github/fill-smoke-paths.txt"
+      - ".github/support-material-layers-smoke-paths.txt"
+      - ".github/support-material-smoke-paths.txt"
+      - ".github/trianglemesh-geometry-smoke-paths.txt"
+      - ".github/scripts/detect-cpp-smoke-scopes.ps1"
+      - ".github/workflows/cpp_ut_smoke.yml"
+      - ".github/workflows/build_windows_deps.yml"
+  push:
+    branches:
+      - "ci/**"
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "!tests/fff_print/LEGACY_MIGRATION.md"
+      - "deps/**"
+      - "**/CMakeLists.txt"
+      - "build_win.bat"
+      - ".github/config-fast-gate-paths.txt"
+      - ".github/placeholder-parser-smoke-paths.txt"
+      - ".github/gcode-reader-smoke-paths.txt"
+      - ".github/gcodewriter-smoke-paths.txt"
+      - ".github/model-assembly-smoke-paths.txt"
+      - ".github/print-filament-mapping-smoke-paths.txt"
+      - ".github/print-apply-validate-smoke-paths.txt"
+      - ".github/print-perimeters-smoke-paths.txt"
+      - ".github/print-process-math-smoke-paths.txt"
+      - ".github/print-process-core-smoke-paths.txt"
+      - ".github/print-object-layers-smoke-paths.txt"
+      - ".github/print-adhesion-smoke-paths.txt"
+      - ".github/fill-smoke-paths.txt"
+      - ".github/support-material-layers-smoke-paths.txt"
+      - ".github/support-material-smoke-paths.txt"
+      - ".github/trianglemesh-geometry-smoke-paths.txt"
+      - ".github/scripts/detect-cpp-smoke-scopes.ps1"
+      - ".github/workflows/cpp_ut_smoke.yml"
+      - ".github/workflows/build_windows_deps.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  resolve-deps-run:
+    name: Resolve Deps Run
+    runs-on: ubuntu-24.04
+    outputs:
+      run-id: ${{ steps.resolve.outputs.run-id }}
+      branch-name: ${{ steps.resolve.outputs.branch-name }}
+    steps:
+      - name: Resolve deps run id
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_RUN_ID: ${{ inputs.deps-run-id }}
+          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "branch-name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
+          if [[ -n "${INPUT_RUN_ID:-}" ]]; then
+            echo "run-id=$INPUT_RUN_ID" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          run_id=""
+          for attempt in $(seq 1 24); do
+            run_id="$(gh run list \
+              -R "$REPOSITORY" \
+              --workflow "Windows Deps Build" \
+              --branch "$BRANCH_NAME" \
+              --json databaseId,conclusion,status \
+              --limit 20 \
+              | python -c 'import json,sys; runs=json.load(sys.stdin); print(next((str(r["databaseId"]) for r in runs if r.get("conclusion")=="success"), ""))')"
+
+            if [[ -n "$run_id" ]]; then
+              break
+            fi
+
+            echo "Waiting for a successful 'Windows Deps Build' run on branch $BRANCH_NAME (attempt $attempt/24)" >&2
+            sleep 10
+          done
+
+          if [[ -z "$run_id" ]]; then
+            echo "No successful 'Windows Deps Build' run found for branch $BRANCH_NAME after waiting 240 seconds" >&2
+            exit 1
+          fi
+
+          echo "run-id=$run_id" >> "$GITHUB_OUTPUT"
+
+  cpp-ut-smoke:
+    name: Windows Cpp UT Smoke
+    needs: resolve-deps-run
+    runs-on: windows-2022
+    timeout-minutes: 180
+    env:
+      DEPS_ZIP_DIR: ${{ github.workspace }}\deps-artifact
+      DEPS_ROOT: ${{ github.workspace }}\deps\build\BambuStudio_dep
+      BUILD_DIR: ${{ github.workspace }}\build-smoke
+      SMOKE_OUTPUT_DIR: .ci\smoke
+      BUILD_PARALLEL: "4"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          lfs: "true"
+
+      - name: Detect smoke gate scopes
+        id: smoke_scope
+        shell: pwsh
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: ./.github/scripts/detect-cpp-smoke-scopes.ps1
+      - name: Setup MSVC developer command prompt
+        if: steps.smoke_scope.outputs.any_enabled == 'true'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Show build tool versions
+        if: steps.smoke_scope.outputs.any_enabled == 'true'
+        shell: pwsh
+        run: |
+          cmake --version
+          ninja --version
+          where.exe cl
+          "Windows runner logical processors: $([Environment]::ProcessorCount)"
+          "CMake build parallelism: ${{ env.BUILD_PARALLEL }}"
+
+      - name: Download deps artifact
+        if: steps.smoke_scope.outputs.any_enabled == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          gh run download ${{ needs.resolve-deps-run.outputs.run-id }} `
+            -R ${{ github.repository }} `
+            -n bambustudio-windows-deps `
+            -D "${{ env.DEPS_ZIP_DIR }}"
+
+      - name: Expand deps artifact
+        if: steps.smoke_scope.outputs.any_enabled == 'true'
+        shell: pwsh
+        run: |
+          $zip = Get-ChildItem "${{ env.DEPS_ZIP_DIR }}" -Filter *.zip | Select-Object -First 1
+          if (-not $zip) {
+            throw "No deps zip found under ${{ env.DEPS_ZIP_DIR }}"
+          }
+          if (Test-Path "${{ env.DEPS_ROOT }}") {
+            Remove-Item -Recurse -Force "${{ env.DEPS_ROOT }}"
+          }
+          New-Item -ItemType Directory -Force -Path "${{ env.DEPS_ROOT }}" | Out-Null
+          Expand-Archive -Path $zip.FullName -DestinationPath "${{ env.DEPS_ROOT }}"
+
+      - name: Install Windows build tooling
+        if: steps.smoke_scope.outputs.any_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          choco install strawberryperl pkgconfiglite --no-progress -y
+
+      - name: Detect Windows SDK
+        if: steps.smoke_scope.outputs.any_enabled == 'true'
+        id: windows_sdk
+        shell: pwsh
+        run: |
+          $sdk = $env:WindowsSDKVersion.TrimEnd('\')
+          if ([string]::IsNullOrWhiteSpace($sdk)) {
+            $sdk = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\Include" -Directory |
+              Where-Object { $_.Name -match '^\d+\.\d+\.\d+\.\d+$' } |
+              Sort-Object Name -Descending |
+              Select-Object -First 1 -ExpandProperty Name
+          }
+          if (-not $sdk) {
+            throw "Windows SDK not found"
+          }
+          echo "sdk-version=$sdk" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+
+      - name: Configure cpp smoke build
+        if: steps.smoke_scope.outputs.any_enabled == 'true'
+        timeout-minutes: 30
+        shell: pwsh
+        run: |
+          if (Test-Path "${{ env.BUILD_DIR }}") {
+            Remove-Item -Recurse -Force "${{ env.BUILD_DIR }}"
+          }
+          $cl = Join-Path $env:VCToolsInstallDir "bin\Hostx64\x64\cl.exe"
+          if (-not (Test-Path $cl)) {
+            throw "MSVC compiler not found at $cl"
+          }
+          $sdkBin = "C:\Program Files (x86)\Windows Kits\10\bin\${{ steps.windows_sdk.outputs.sdk-version }}\x64"
+          $rc = Join-Path $sdkBin "rc.exe"
+          $mt = Join-Path $sdkBin "mt.exe"
+          if (-not (Test-Path $rc)) {
+            throw "Windows resource compiler not found at $rc"
+          }
+          if (-not (Test-Path $mt)) {
+            throw "Windows manifest tool not found at $mt"
+          }
+          $cl = $cl -replace "\\","/"
+          $rc = $rc -replace "\\","/"
+          $mt = $mt -replace "\\","/"
+          cmake -S . -B "${{ env.BUILD_DIR }}" `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_C_COMPILER="$cl" `
+            -DCMAKE_CXX_COMPILER="$cl" `
+            -DCMAKE_RC_COMPILER="$rc" `
+            -DCMAKE_MT="$mt" `
+            -DSLIC3R_GUI=OFF `
+            -DSLIC3R_STATIC=ON `
+            -DSLIC3R_BUILD_TESTS=ON `
+            -DSLIC3R_MSVC_COMPILE_PARALLEL=OFF `
+            -DSLIC3R_MSVC_PDB=OFF `
+            -DCMAKE_PREFIX_PATH="${{ env.DEPS_ROOT }}\usr\local" `
+            -DPKG_CONFIG_EXECUTABLE="C:/Strawberry/perl/bin/pkg-config.bat" `
+            -DWIN10SDK_PATH="C:/Program Files (x86)/Windows Kits/10/Include/${{ steps.windows_sdk.outputs.sdk-version }}"
+
+      - name: Build libslic3r config fast target
+        if: steps.smoke_scope.outputs.config_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target libslic3r_config_tests --parallel ${{ env.BUILD_PARALLEL }}
+
+      - name: Build placeholder parser smoke target
+        if: steps.smoke_scope.outputs.placeholder_parser_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target placeholder_parser_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
+
+      - name: Build gcodewriter smoke target
+        if: steps.smoke_scope.outputs.gcodewriter_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target gcodewriter_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
+
+      - name: Build gcode reader smoke target
+        if: steps.smoke_scope.outputs.gcode_reader_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target gcode_reader_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
+
+      - name: Build model assembly smoke target
+        if: steps.smoke_scope.outputs.model_assembly_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target model_basic_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
+
+      - name: Build print filament mapping smoke target
+        if: steps.smoke_scope.outputs.filament_mapping_enabled == 'true'
+        timeout-minutes: 30
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target print_filament_mapping_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
+
+      - name: Build print apply/validate smoke target
+        if: steps.smoke_scope.outputs.apply_validate_enabled == 'true'
+        timeout-minutes: 30
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target print_apply_validate_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
+
+      - name: Build print perimeters smoke target
+        if: steps.smoke_scope.outputs.perimeters_enabled == 'true'
+        timeout-minutes: 30
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target print_perimeters_stage_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
+
+      - name: Build print process math smoke target
+        if: steps.smoke_scope.outputs.process_math_enabled == 'true'
+        timeout-minutes: 15
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target print_process_math_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
+
+      - name: Build print process core smoke target
+        if: steps.smoke_scope.outputs.process_core_enabled == 'true'
+        timeout-minutes: 45
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target print_process_core_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
+
+      - name: Build print object layers smoke target
+        if: steps.smoke_scope.outputs.object_layers_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target print_object_layers_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
+
+      - name: Build print adhesion smoke target
+        if: steps.smoke_scope.outputs.adhesion_enabled == 'true'
+        timeout-minutes: 30
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target print_adhesion_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
+
+      - name: Build fill smoke target
+        if: steps.smoke_scope.outputs.fill_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target fill_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
+
+      - name: Build support material layers smoke target
+        if: steps.smoke_scope.outputs.support_material_layers_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target support_material_layers_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
+
+      - name: Build support material smoke target
+        if: steps.smoke_scope.outputs.support_material_enabled == 'true'
+        timeout-minutes: 45
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target support_material_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
+
+      - name: Build trianglemesh geometry smoke target
+        if: steps.smoke_scope.outputs.trianglemesh_geometry_enabled == 'true'
+        timeout-minutes: 30
+        shell: pwsh
+        run: cmake --build "${{ env.BUILD_DIR }}" --target trianglemesh_geometry_smoke_tests --parallel ${{ env.BUILD_PARALLEL }}
+
+      - name: Add deps runtime DLLs to PATH
+        if: steps.smoke_scope.outputs.any_enabled == 'true'
+        shell: pwsh
+        run: |
+          "${{ env.DEPS_ROOT }}\usr\local\bin" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
+          "${{ env.DEPS_ROOT }}\usr\local\bin\occt" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
+          "${{ env.DEPS_ROOT }}\usr\local\x64\vc17\bin" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
+
+      - name: Initialize smoke output directory
+        if: steps.smoke_scope.outputs.any_enabled == 'true'
+        shell: pwsh
+        run: |
+          if (Test-Path "${{ env.SMOKE_OUTPUT_DIR }}") {
+            Remove-Item -Recurse -Force "${{ env.SMOKE_OUTPUT_DIR }}"
+          }
+          New-Item -ItemType Directory -Force -Path "${{ env.SMOKE_OUTPUT_DIR }}" | Out-Null
+
+      - name: Run libslic3r config fast target
+        id: run_config_fast
+        if: steps.smoke_scope.outputs.config_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $exe = "${{ env.BUILD_DIR }}\tests\libslic3r\libslic3r_config_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "libslic3r-config-fast.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "libslic3r-config-fast.xml"
+          & $exe "[ConfigCore]" 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml "[ConfigCore]" | Out-Null
+
+      - name: Note skipped config fast target
+        if: steps.smoke_scope.outputs.config_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## Config Fast Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.config_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.config_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Run placeholder parser smoke
+        id: run_placeholder_parser_smoke
+        if: steps.smoke_scope.outputs.placeholder_parser_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $exe = "${{ env.BUILD_DIR }}\tests\libslic3r\placeholder_parser_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "placeholder-parser-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "placeholder-parser-smoke.xml"
+          & $exe "[PlaceholderParser]" 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml "[PlaceholderParser]" | Out-Null
+
+      - name: Note skipped placeholder parser smoke target
+        if: steps.smoke_scope.outputs.placeholder_parser_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## Placeholder Parser Smoke
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.placeholder_parser_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.placeholder_parser_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Run gcodewriter smoke
+        id: run_gcodewriter_smoke
+        if: steps.smoke_scope.outputs.gcodewriter_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\gcodewriter_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "gcodewriter-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "gcodewriter-smoke.xml"
+          & $exe "[GCodeWriter]" 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml "[GCodeWriter]" | Out-Null
+
+      - name: Run gcode reader smoke
+        id: run_gcode_reader_smoke
+        if: steps.smoke_scope.outputs.gcode_reader_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "${{ env.SMOKE_OUTPUT_DIR }}" | Out-Null
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\gcode_reader_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "gcode-reader-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "gcode-reader-smoke.xml"
+          & $exe "[GCodeReader]" 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml "[GCodeReader]" | Out-Null
+
+      - name: Note skipped gcode reader smoke target
+        if: steps.smoke_scope.outputs.gcode_reader_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## GCodeReader Smoke Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.gcode_reader_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.gcode_reader_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Note skipped gcodewriter smoke target
+        if: steps.smoke_scope.outputs.gcodewriter_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## GCodeWriter Smoke Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.gcodewriter_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.gcodewriter_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Run model assembly smoke
+        id: run_model_assembly_smoke
+        if: steps.smoke_scope.outputs.model_assembly_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\model_basic_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "model-assembly-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "model-assembly-smoke.xml"
+          & $exe "[ModelAssembly]" 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml "[ModelAssembly]" | Out-Null
+
+      - name: Note skipped model assembly smoke target
+        if: steps.smoke_scope.outputs.model_assembly_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## Model Assembly Smoke Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.model_assembly_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.model_assembly_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Note skipped print filament mapping smoke target
+        if: steps.smoke_scope.outputs.filament_mapping_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## Print Filament Mapping Smoke Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.filament_mapping_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.filament_mapping_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Run print filament mapping smoke
+        id: run_print_filament_mapping_smoke
+        if: steps.smoke_scope.outputs.filament_mapping_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\print_filament_mapping_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-filament-mapping-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-filament-mapping-smoke.xml"
+          & $exe "[PrintFilamentMapping]" 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml "[PrintFilamentMapping]" | Out-Null
+
+      - name: Note skipped print apply/validate smoke target
+        if: steps.smoke_scope.outputs.apply_validate_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## Print Apply/Validate Smoke Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.apply_validate_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.apply_validate_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Run print apply/validate smoke
+        id: run_print_apply_validate_smoke
+        if: steps.smoke_scope.outputs.apply_validate_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\print_apply_validate_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-apply-validate-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-apply-validate-smoke.xml"
+          & $exe "[PrintApplyValidate]" 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml "[PrintApplyValidate]" | Out-Null
+
+      - name: Note skipped print perimeters smoke target
+        if: steps.smoke_scope.outputs.perimeters_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## Print Perimeters Smoke Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.perimeters_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.perimeters_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Run print perimeters smoke
+        id: run_print_perimeters_smoke
+        if: steps.smoke_scope.outputs.perimeters_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\print_perimeters_stage_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-perimeters-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-perimeters-smoke.xml"
+          & $exe "[PrintPerimeters]" 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml "[PrintPerimeters]" | Out-Null
+
+      - name: Note skipped print process core smoke target
+        if: steps.smoke_scope.outputs.process_core_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## Print Process Core Smoke Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.process_core_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.process_core_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Note skipped print process math smoke target
+        if: steps.smoke_scope.outputs.process_math_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## Print Process Math Smoke Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.process_math_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.process_math_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Run print process math smoke
+        id: run_print_process_math_smoke
+        if: steps.smoke_scope.outputs.process_math_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\print_process_math_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-process-math-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-process-math-smoke.xml"
+          & $exe "[PrintProcessMath]" 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml "[PrintProcessMath]" | Out-Null
+
+      - name: Run print process core smoke
+        id: run_print_process_core_smoke
+        if: steps.smoke_scope.outputs.process_core_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\print_process_core_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-process-core-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-process-core-smoke.xml"
+          $filter = "[PrintProcessCore]"
+          & $exe $filter 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml $filter | Out-Null
+
+      - name: Note skipped print object layers smoke target
+        if: steps.smoke_scope.outputs.object_layers_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## Print Object Layers Smoke Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.object_layers_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.object_layers_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Run print object layers smoke
+        id: run_print_object_layers_smoke
+        if: steps.smoke_scope.outputs.object_layers_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\print_object_layers_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-object-layers-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-object-layers-smoke.xml"
+          & $exe "[PrintObjectLayers]" 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml "[PrintObjectLayers]" | Out-Null
+
+      - name: Note skipped print adhesion smoke target
+        if: steps.smoke_scope.outputs.adhesion_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## Print Adhesion Smoke Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.adhesion_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.adhesion_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Run print adhesion smoke
+        id: run_print_adhesion_smoke
+        if: steps.smoke_scope.outputs.adhesion_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\print_adhesion_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-adhesion-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "print-adhesion-smoke.xml"
+          & $exe "[PrintSkirtBrim]" 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml "[PrintSkirtBrim]" | Out-Null
+
+      - name: Note skipped fill smoke target
+        if: steps.smoke_scope.outputs.fill_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## Fill Smoke Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.fill_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.fill_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Run fill smoke
+        id: run_fill_smoke
+        if: steps.smoke_scope.outputs.fill_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\fill_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "fill-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "fill-smoke.xml"
+          & $exe 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml | Out-Null
+
+      - name: Note skipped support material layers smoke target
+        if: steps.smoke_scope.outputs.support_material_layers_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## Support Material Layers Smoke Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.support_material_layers_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.support_material_layers_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Run support material layers smoke
+        id: run_support_material_layers_smoke
+        if: steps.smoke_scope.outputs.support_material_layers_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\support_material_layers_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "support-material-layers-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "support-material-layers-smoke.xml"
+          & $exe "[SupportMaterialLayers]" 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml "[SupportMaterialLayers]" | Out-Null
+
+      - name: Note skipped support material smoke target
+        if: steps.smoke_scope.outputs.support_material_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## Support Material Smoke Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.support_material_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.support_material_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Run support material smoke
+        id: run_support_material_smoke
+        if: steps.smoke_scope.outputs.support_material_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\support_material_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "support-material-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "support-material-smoke.xml"
+          & $exe 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml | Out-Null
+
+      - name: Note skipped trianglemesh geometry smoke target
+        if: steps.smoke_scope.outputs.trianglemesh_geometry_enabled != 'true'
+        shell: pwsh
+        run: |
+          @"
+          ## TriangleMesh Geometry Smoke Gate
+
+          - Enabled: `false`
+          - Reason: `${{ steps.smoke_scope.outputs.trianglemesh_geometry_reason }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Matched files: `${{ steps.smoke_scope.outputs.trianglemesh_geometry_matched }}`
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+
+      - name: Run trianglemesh geometry smoke
+        id: run_trianglemesh_geometry_smoke
+        if: steps.smoke_scope.outputs.trianglemesh_geometry_enabled == 'true'
+        timeout-minutes: 10
+        shell: pwsh
+        run: |
+          $exe = "${{ env.BUILD_DIR }}\tests\fff_print\trianglemesh_geometry_smoke_tests.exe"
+          $log = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "trianglemesh-geometry-smoke.log"
+          $xml = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" "trianglemesh-geometry-smoke.xml"
+          & $exe 2>&1 | Tee-Object -FilePath $log
+          & $exe -r junit -o $xml | Out-Null
+
+      - name: Verify smoke output files
+        id: smoke_verify
+        if: always() && steps.smoke_scope.outputs.any_enabled == 'true'
+        shell: pwsh
+        run: |
+          "files_ready=false" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          $expected = New-Object System.Collections.Generic.List[object]
+          if ("${{ steps.smoke_scope.outputs.config_enabled }}" -eq "true") {
+            $expected.Add(@{
+              Name = "libslic3r_config_tests [ConfigCore]"
+              Log = "libslic3r-config-fast.log"
+              Xml = "libslic3r-config-fast.xml"
+              Conclusion = "${{ steps.run_config_fast.conclusion }}"
+            })
+          }
+          if ("${{ steps.smoke_scope.outputs.placeholder_parser_enabled }}" -eq "true") {
+            $expected.Add(@{
+              Name = "placeholder_parser_smoke_tests [PlaceholderParser]"
+              Log = "placeholder-parser-smoke.log"
+              Xml = "placeholder-parser-smoke.xml"
+              Conclusion = "${{ steps.run_placeholder_parser_smoke.conclusion }}"
+            })
+          }
+          if ("${{ steps.smoke_scope.outputs.gcodewriter_enabled }}" -eq "true") {
+            $expected.Add(@{
+              Name = "gcodewriter_smoke_tests [GCodeWriter]"
+              Log = "gcodewriter-smoke.log"
+              Xml = "gcodewriter-smoke.xml"
+              Conclusion = "${{ steps.run_gcodewriter_smoke.conclusion }}"
+            })
+          }
+          if ("${{ steps.smoke_scope.outputs.gcode_reader_enabled }}" -eq "true") {
+            $expected.Add(@{
+              Name = "gcode_reader_smoke_tests [GCodeReader]"
+              Log = "gcode-reader-smoke.log"
+              Xml = "gcode-reader-smoke.xml"
+              Conclusion = "${{ steps.run_gcode_reader_smoke.conclusion }}"
+            })
+          }
+          if ("${{ steps.smoke_scope.outputs.model_assembly_enabled }}" -eq "true") {
+            $expected.Add(@{
+              Name = "model_basic_smoke_tests [ModelAssembly]"
+              Log = "model-assembly-smoke.log"
+              Xml = "model-assembly-smoke.xml"
+              Conclusion = "${{ steps.run_model_assembly_smoke.conclusion }}"
+            })
+          }
+          if ("${{ steps.smoke_scope.outputs.filament_mapping_enabled }}" -eq "true") {
+            $expected.Add(@{
+              Name = "print_filament_mapping_smoke_tests [PrintFilamentMapping]"
+              Log = "print-filament-mapping-smoke.log"
+              Xml = "print-filament-mapping-smoke.xml"
+              Conclusion = "${{ steps.run_print_filament_mapping_smoke.conclusion }}"
+            })
+          }
+          if ("${{ steps.smoke_scope.outputs.apply_validate_enabled }}" -eq "true") {
+            $expected.Add(@{
+              Name = "print_apply_validate_smoke_tests [PrintApplyValidate]"
+              Log = "print-apply-validate-smoke.log"
+              Xml = "print-apply-validate-smoke.xml"
+              Conclusion = "${{ steps.run_print_apply_validate_smoke.conclusion }}"
+            })
+          }
+          if ("${{ steps.smoke_scope.outputs.perimeters_enabled }}" -eq "true") {
+            $expected.Add(@{
+              Name = "print_perimeters_stage_smoke_tests [PrintPerimeters]"
+              Log = "print-perimeters-smoke.log"
+              Xml = "print-perimeters-smoke.xml"
+              Conclusion = "${{ steps.run_print_perimeters_smoke.conclusion }}"
+            })
+          }
+          if ("${{ steps.smoke_scope.outputs.process_math_enabled }}" -eq "true") {
+            $expected.Add(@{
+              Name = "print_process_math_smoke_tests [PrintProcessMath]"
+              Log = "print-process-math-smoke.log"
+              Xml = "print-process-math-smoke.xml"
+              Conclusion = "${{ steps.run_print_process_math_smoke.conclusion }}"
+            })
+          }
+          if ("${{ steps.smoke_scope.outputs.process_core_enabled }}" -eq "true") {
+            $expected.Add(@{
+              Name = "print_process_core_smoke_tests [PrintProcessCore]"
+              Log = "print-process-core-smoke.log"
+              Xml = "print-process-core-smoke.xml"
+              Conclusion = "${{ steps.run_print_process_core_smoke.conclusion }}"
+            })
+          }
+          if ("${{ steps.smoke_scope.outputs.object_layers_enabled }}" -eq "true") {
+            $expected.Add(@{
+              Name = "print_object_layers_smoke_tests [PrintObjectLayers]"
+              Log = "print-object-layers-smoke.log"
+              Xml = "print-object-layers-smoke.xml"
+              Conclusion = "${{ steps.run_print_object_layers_smoke.conclusion }}"
+            })
+          }
+          if ("${{ steps.smoke_scope.outputs.adhesion_enabled }}" -eq "true") {
+            $expected.Add(@{
+              Name = "print_adhesion_smoke_tests [PrintSkirtBrim]"
+              Log = "print-adhesion-smoke.log"
+              Xml = "print-adhesion-smoke.xml"
+              Conclusion = "${{ steps.run_print_adhesion_smoke.conclusion }}"
+            })
+          }
+          if ("${{ steps.smoke_scope.outputs.fill_enabled }}" -eq "true") {
+            $expected.Add(@{
+              Name = "fill_smoke_tests"
+              Log = "fill-smoke.log"
+              Xml = "fill-smoke.xml"
+              Conclusion = "${{ steps.run_fill_smoke.conclusion }}"
+            })
+          }
+          if ("${{ steps.smoke_scope.outputs.support_material_layers_enabled }}" -eq "true") {
+            $expected.Add(@{
+              Name = "support_material_layers_smoke_tests [SupportMaterialLayers]"
+              Log = "support-material-layers-smoke.log"
+              Xml = "support-material-layers-smoke.xml"
+              Conclusion = "${{ steps.run_support_material_layers_smoke.conclusion }}"
+            })
+          }
+          if ("${{ steps.smoke_scope.outputs.support_material_enabled }}" -eq "true") {
+            $expected.Add(@{
+              Name = "support_material_smoke_tests"
+              Log = "support-material-smoke.log"
+              Xml = "support-material-smoke.xml"
+              Conclusion = "${{ steps.run_support_material_smoke.conclusion }}"
+            })
+          }
+          if ("${{ steps.smoke_scope.outputs.trianglemesh_geometry_enabled }}" -eq "true") {
+            $expected.Add(@{
+              Name = "trianglemesh_geometry_smoke_tests"
+              Log = "trianglemesh-geometry-smoke.log"
+              Xml = "trianglemesh-geometry-smoke.xml"
+              Conclusion = "${{ steps.run_trianglemesh_geometry_smoke.conclusion }}"
+            })
+          }
+
+          $successfulSuites = New-Object System.Collections.Generic.List[string]
+          $smokeRunFailed = New-Object System.Collections.Generic.List[string]
+          $upstreamBlocked = New-Object System.Collections.Generic.List[string]
+          $missing = New-Object System.Collections.Generic.List[string]
+          $failedWithMissingEvidence = New-Object System.Collections.Generic.List[string]
+          $uploadableFiles = New-Object System.Collections.Generic.List[string]
+          foreach ($suite in $expected) {
+            $logPath = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" $suite.Log
+            $xmlPath = Join-Path "${{ env.SMOKE_OUTPUT_DIR }}" $suite.Xml
+            $logExists = Test-Path $logPath
+            $xmlExists = Test-Path $xmlPath
+
+            if ($logExists) {
+              $uploadableFiles.Add($logPath)
+            }
+            if ($xmlExists) {
+              $uploadableFiles.Add($xmlPath)
+            }
+
+            if ($suite.Conclusion -eq "success") {
+              $successfulSuites.Add($suite.Name)
+              if (-not $logExists) {
+                $missing.Add("$($suite.Name): missing log ($($suite.Log))")
+              }
+              if (-not $xmlExists) {
+                $missing.Add("$($suite.Name): missing xml ($($suite.Xml))")
+              }
+              continue
+            }
+
+            if ($suite.Conclusion -eq "failure") {
+              $present = New-Object System.Collections.Generic.List[string]
+              if ($logExists) {
+                $present.Add($suite.Log)
+              }
+              if ($xmlExists) {
+                $present.Add($suite.Xml)
+              }
+              $presentText = if ($present.Count -gt 0) { $present -join ', ' } else { 'none' }
+              if ($present.Count -lt 2) {
+                $missingOnFailure = New-Object System.Collections.Generic.List[string]
+                if (-not $logExists) {
+                  $missingOnFailure.Add("missing log ($($suite.Log))")
+                }
+                if (-not $xmlExists) {
+                  $missingOnFailure.Add("missing xml ($($suite.Xml))")
+                }
+                $failedWithMissingEvidence.Add("$($suite.Name): $($missingOnFailure -join '; ')")
+              }
+              $smokeRunFailed.Add("$($suite.Name): smoke_run_failed (present: $presentText)")
+              continue
+            }
+
+            if ([string]::IsNullOrWhiteSpace($suite.Conclusion)) {
+              $upstreamBlocked.Add("$($suite.Name): upstream_failure_or_not_reached (empty)")
+            } else {
+              $upstreamBlocked.Add("$($suite.Name): upstream_failure_or_not_reached ($($suite.Conclusion))")
+            }
+          }
+
+          if ($uploadableFiles.Count -gt 0) {
+            "files_ready=true" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
+          }
+
+          if ($smokeRunFailed.Count -gt 0) {
+            @(
+              "## Smoke Output Verification"
+              ""
+              "- Result: diagnostic"
+              "- Reason: smoke_run_failed"
+              "- Directory: ${{ env.SMOKE_OUTPUT_DIR }}"
+              "- Details: $($smokeRunFailed -join '; ')"
+            ) | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+          }
+
+          if ($upstreamBlocked.Count -gt 0) {
+            @(
+              "## Smoke Output Verification"
+              ""
+              "- Result: skipped"
+              "- Reason: upstream_failure_or_not_reached"
+              "- Directory: ${{ env.SMOKE_OUTPUT_DIR }}"
+              "- Details: $($upstreamBlocked -join '; ')"
+            ) | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+          }
+
+          if ($missing.Count -gt 0 -or $failedWithMissingEvidence.Count -gt 0) {
+            $details = @($missing + $failedWithMissingEvidence) -join '; '
+            @(
+              "## Smoke Output Verification"
+              ""
+              "- Result: failed"
+              "- Reason: missing_expected_files"
+              "- Directory: ${{ env.SMOKE_OUTPUT_DIR }}"
+              "- Missing: $details"
+            ) | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
+            throw "Smoke output verification failed: missing_expected_files"
+          }
+
+          if ($uploadableFiles.Count -eq 0) {
+            Write-Host "No uploadable smoke output files were found."
+            exit 0
+          }
+
+          Write-Host "Smoke output files:"
+          $uploadableFiles | Select-Object -Unique | ForEach-Object { Write-Host "  $_" }
+
+      - name: Upload smoke logs
+        if: always() && steps.smoke_verify.outputs.files_ready == 'true'
+        uses: actions/upload-artifact@v6
+        with:
+          name: cpp-ut-smoke-logs
+          include-hidden-files: true
+          if-no-files-found: error
+          path: |
+            .ci/smoke/*.log
+            .ci/smoke/*.xml
+
+      - name: Write summary
+        if: always()
+        shell: pwsh
+        run: |
+          $configFastEnabled = "${{ steps.smoke_scope.outputs.config_enabled }}" -eq "true"
+          $configFastReason = "${{ steps.smoke_scope.outputs.config_reason }}"
+          $placeholderParserSmokeEnabled = "${{ steps.smoke_scope.outputs.placeholder_parser_enabled }}" -eq "true"
+          $placeholderParserSmokeReason = "${{ steps.smoke_scope.outputs.placeholder_parser_reason }}"
+          $gcodewriterSmokeEnabled = "${{ steps.smoke_scope.outputs.gcodewriter_enabled }}" -eq "true"
+          $gcodewriterSmokeReason = "${{ steps.smoke_scope.outputs.gcodewriter_reason }}"
+          $gcodeReaderSmokeEnabled = "${{ steps.smoke_scope.outputs.gcode_reader_enabled }}" -eq "true"
+          $gcodeReaderSmokeReason = "${{ steps.smoke_scope.outputs.gcode_reader_reason }}"
+          $modelAssemblyEnabled = "${{ steps.smoke_scope.outputs.model_assembly_enabled }}" -eq "true"
+          $modelAssemblyReason = "${{ steps.smoke_scope.outputs.model_assembly_reason }}"
+          $filamentMappingSmokeEnabled = "${{ steps.smoke_scope.outputs.filament_mapping_enabled }}" -eq "true"
+          $filamentMappingSmokeReason = "${{ steps.smoke_scope.outputs.filament_mapping_reason }}"
+          $applyValidateSmokeEnabled = "${{ steps.smoke_scope.outputs.apply_validate_enabled }}" -eq "true"
+          $applyValidateSmokeReason = "${{ steps.smoke_scope.outputs.apply_validate_reason }}"
+          $perimetersSmokeEnabled = "${{ steps.smoke_scope.outputs.perimeters_enabled }}" -eq "true"
+          $perimetersSmokeReason = "${{ steps.smoke_scope.outputs.perimeters_reason }}"
+          $processMathSmokeEnabled = "${{ steps.smoke_scope.outputs.process_math_enabled }}" -eq "true"
+          $processMathSmokeReason = "${{ steps.smoke_scope.outputs.process_math_reason }}"
+          $processCoreSmokeEnabled = "${{ steps.smoke_scope.outputs.process_core_enabled }}" -eq "true"
+          $processCoreSmokeReason = "${{ steps.smoke_scope.outputs.process_core_reason }}"
+          $objectLayersSmokeEnabled = "${{ steps.smoke_scope.outputs.object_layers_enabled }}" -eq "true"
+          $objectLayersSmokeReason = "${{ steps.smoke_scope.outputs.object_layers_reason }}"
+          $adhesionSmokeEnabled = "${{ steps.smoke_scope.outputs.adhesion_enabled }}" -eq "true"
+          $adhesionSmokeReason = "${{ steps.smoke_scope.outputs.adhesion_reason }}"
+          $fillSmokeEnabled = "${{ steps.smoke_scope.outputs.fill_enabled }}" -eq "true"
+          $fillSmokeReason = "${{ steps.smoke_scope.outputs.fill_reason }}"
+          $supportMaterialLayersSmokeEnabled = "${{ steps.smoke_scope.outputs.support_material_layers_enabled }}" -eq "true"
+          $supportMaterialLayersSmokeReason = "${{ steps.smoke_scope.outputs.support_material_layers_reason }}"
+          $supportMaterialSmokeEnabled = "${{ steps.smoke_scope.outputs.support_material_enabled }}" -eq "true"
+          $supportMaterialSmokeReason = "${{ steps.smoke_scope.outputs.support_material_reason }}"
+          $trianglemeshGeometrySmokeEnabled = "${{ steps.smoke_scope.outputs.trianglemesh_geometry_enabled }}" -eq "true"
+          $trianglemeshGeometrySmokeReason = "${{ steps.smoke_scope.outputs.trianglemesh_geometry_reason }}"
+          $suiteMeta = @(
+            @{ Name = "libslic3r_config_tests [ConfigCore]"; Log = ".ci/smoke/libslic3r-config-fast.log"; Xml = ".ci/smoke/libslic3r-config-fast.xml" },
+            @{ Name = "placeholder_parser_smoke_tests [PlaceholderParser]"; Log = ".ci/smoke/placeholder-parser-smoke.log"; Xml = ".ci/smoke/placeholder-parser-smoke.xml" },
+            @{ Name = "gcodewriter_smoke_tests [GCodeWriter]"; Log = ".ci/smoke/gcodewriter-smoke.log"; Xml = ".ci/smoke/gcodewriter-smoke.xml" },
+            @{ Name = "gcode_reader_smoke_tests [GCodeReader]"; Log = ".ci/smoke/gcode-reader-smoke.log"; Xml = ".ci/smoke/gcode-reader-smoke.xml" },
+            @{ Name = "model_basic_smoke_tests [ModelAssembly]"; Log = ".ci/smoke/model-assembly-smoke.log"; Xml = ".ci/smoke/model-assembly-smoke.xml" },
+            @{ Name = "print_filament_mapping_smoke_tests [PrintFilamentMapping]"; Log = ".ci/smoke/print-filament-mapping-smoke.log"; Xml = ".ci/smoke/print-filament-mapping-smoke.xml" },
+            @{ Name = "print_apply_validate_smoke_tests [PrintApplyValidate]"; Log = ".ci/smoke/print-apply-validate-smoke.log"; Xml = ".ci/smoke/print-apply-validate-smoke.xml" },
+            @{ Name = "print_perimeters_stage_smoke_tests [PrintPerimeters]"; Log = ".ci/smoke/print-perimeters-smoke.log"; Xml = ".ci/smoke/print-perimeters-smoke.xml" },
+            @{ Name = "print_process_math_smoke_tests [PrintProcessMath]"; Log = ".ci/smoke/print-process-math-smoke.log"; Xml = ".ci/smoke/print-process-math-smoke.xml" },
+            @{ Name = "print_process_core_smoke_tests [PrintProcessCore]"; Log = ".ci/smoke/print-process-core-smoke.log"; Xml = ".ci/smoke/print-process-core-smoke.xml" },
+            @{ Name = "print_object_layers_smoke_tests [PrintObjectLayers]"; Log = ".ci/smoke/print-object-layers-smoke.log"; Xml = ".ci/smoke/print-object-layers-smoke.xml" },
+            @{ Name = "print_adhesion_smoke_tests [PrintSkirtBrim]"; Log = ".ci/smoke/print-adhesion-smoke.log"; Xml = ".ci/smoke/print-adhesion-smoke.xml" },
+            @{ Name = "fill_smoke_tests"; Log = ".ci/smoke/fill-smoke.log"; Xml = ".ci/smoke/fill-smoke.xml" },
+            @{ Name = "support_material_layers_smoke_tests [SupportMaterialLayers]"; Log = ".ci/smoke/support-material-layers-smoke.log"; Xml = ".ci/smoke/support-material-layers-smoke.xml" },
+            @{ Name = "support_material_smoke_tests"; Log = ".ci/smoke/support-material-smoke.log"; Xml = ".ci/smoke/support-material-smoke.xml" },
+            @{ Name = "trianglemesh_geometry_smoke_tests"; Log = ".ci/smoke/trianglemesh-geometry-smoke.log"; Xml = ".ci/smoke/trianglemesh-geometry-smoke.xml" }
+          )
+
+          $rows = New-Object System.Collections.Generic.List[string]
+          $totalCases = 0
+          $totalAssertions = 0
+          $passedSuites = 0
+          $eligibleSuites = 0
+
+          foreach ($suite in $suiteMeta) {
+            if ($suite.Name -like 'libslic3r_config_tests*' -and -not $configFastEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($configFastReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'placeholder_parser_smoke_tests*' -and -not $placeholderParserSmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($placeholderParserSmokeReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'gcodewriter_smoke_tests*' -and -not $gcodewriterSmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($gcodewriterSmokeReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'gcode_reader_smoke_tests*' -and -not $gcodeReaderSmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($gcodeReaderSmokeReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'model_basic_smoke_tests*' -and -not $modelAssemblyEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($modelAssemblyReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'print_filament_mapping_smoke_tests*' -and -not $filamentMappingSmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($filamentMappingSmokeReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'print_apply_validate_smoke_tests*' -and -not $applyValidateSmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($applyValidateSmokeReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'print_perimeters_stage_smoke_tests*' -and -not $perimetersSmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($perimetersSmokeReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'print_process_math_smoke_tests*' -and -not $processMathSmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($processMathSmokeReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'print_process_core_smoke_tests*' -and -not $processCoreSmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($processCoreSmokeReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'print_object_layers_smoke_tests*' -and -not $objectLayersSmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($objectLayersSmokeReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'print_adhesion_smoke_tests*' -and -not $adhesionSmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($adhesionSmokeReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'fill_smoke_tests*' -and -not $fillSmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($fillSmokeReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'support_material_layers_smoke_tests*' -and -not $supportMaterialLayersSmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($supportMaterialLayersSmokeReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'support_material_smoke_tests*' -and -not $supportMaterialSmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($supportMaterialSmokeReason) | 0 | 0 |")
+              continue
+            }
+            if ($suite.Name -like 'trianglemesh_geometry_smoke_tests*' -and -not $trianglemeshGeometrySmokeEnabled) {
+              $rows.Add("| $($suite.Name) | skipped ($trianglemeshGeometrySmokeReason) | 0 | 0 |")
+              continue
+            }
+
+            $eligibleSuites += 1
+            $cases = 0
+            $assertions = 0
+            if (Test-Path $suite.Log) {
+              $logText = Get-Content $suite.Log -Raw
+              if ($logText -match 'All tests passed \((?<assertions>\d+) assertion[s]? in (?<cases>\d+) test case[s]?\)') {
+                $cases = [int]$matches.cases
+                $assertions = [int]$matches.assertions
+              }
+            }
+
+            if (($cases -eq 0 -or $assertions -eq 0) -and (Test-Path $suite.Xml)) {
+              [xml]$xml = Get-Content $suite.Xml
+              $suiteNode = $xml.testsuites.testsuite
+              if ($suiteNode) {
+                $cases = [int]$suiteNode.testcase.Count
+              }
+            }
+
+            if ($cases -gt 0 -or $assertions -gt 0) {
+              $passedSuites += 1
+            }
+            $totalCases += $cases
+            $totalAssertions += $assertions
+            $rows.Add("| $($suite.Name) | ran | $cases | $assertions |")
+          }
+
+          @"
+          ## Windows Cpp UT Smoke
+
+          - Branch: `${{ needs.resolve-deps-run.outputs.branch-name }}`
+          - Deps run id: `${{ needs.resolve-deps-run.outputs.run-id }}`
+          - Changed files: `${{ steps.smoke_scope.outputs.changed }}`
+          - Config fast gate enabled: `$configFastEnabled`
+          - Config fast gate reason: `$configFastReason`
+          - GCodeWriter smoke gate enabled: `$gcodewriterSmokeEnabled`
+          - GCodeWriter smoke gate reason: `$gcodewriterSmokeReason`
+          - GCodeReader smoke gate enabled: `$gcodeReaderSmokeEnabled`
+          - GCodeReader smoke gate reason: `$gcodeReaderSmokeReason`
+          - Model assembly smoke gate enabled: `$modelAssemblyEnabled`
+          - Model assembly smoke gate reason: `$modelAssemblyReason`
+          - Print filament mapping smoke gate enabled: `$filamentMappingSmokeEnabled`
+          - Print filament mapping smoke gate reason: `$filamentMappingSmokeReason`
+          - Print apply/validate smoke gate enabled: `$applyValidateSmokeEnabled`
+          - Print apply/validate smoke gate reason: `$applyValidateSmokeReason`
+          - Print perimeters smoke gate enabled: `$perimetersSmokeEnabled`
+          - Print perimeters smoke gate reason: `$perimetersSmokeReason`
+          - Print process math smoke gate enabled: `$processMathSmokeEnabled`
+          - Print process math smoke gate reason: `$processMathSmokeReason`
+          - Print process core smoke gate enabled: `$processCoreSmokeEnabled`
+          - Print process core smoke gate reason: `$processCoreSmokeReason`
+          - Print object layers smoke gate enabled: `$objectLayersSmokeEnabled`
+          - Print object layers smoke gate reason: `$objectLayersSmokeReason`
+          - Print adhesion smoke gate enabled: `$adhesionSmokeEnabled`
+          - Print adhesion smoke gate reason: `$adhesionSmokeReason`
+          - Fill smoke gate enabled: `$fillSmokeEnabled`
+          - Fill smoke gate reason: `$fillSmokeReason`
+          - Support material layers smoke gate enabled: `$supportMaterialLayersSmokeEnabled`
+          - Support material layers smoke gate reason: `$supportMaterialLayersSmokeReason`
+          - Support material smoke gate enabled: `$supportMaterialSmokeEnabled`
+          - Support material smoke gate reason: `$supportMaterialSmokeReason`
+          - TriangleMesh geometry smoke gate enabled: `$trianglemeshGeometrySmokeEnabled`
+          - TriangleMesh geometry smoke gate reason: `$trianglemeshGeometrySmokeReason`
+          - Smoke commands passed: `$passedSuites / $eligibleSuites`
+          - Reported test cases: `$totalCases`
+          - Reported assertions: `$totalAssertions`
+
+          | Suite | Status | Test Cases | Assertions |
+          | --- | --- | ---: | ---: |
+          $($rows -join "`n")
+          "@ | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8

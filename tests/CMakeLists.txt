@@ -21,6 +21,20 @@ add_library(test_common INTERFACE)
 target_compile_definitions(test_common INTERFACE TEST_DATA_DIR=R"\(${TEST_DATA_DIR}\)" CATCH_CONFIG_FAST_COMPILE)
 target_link_libraries(test_common INTERFACE Catch2::Catch2)
 
+add_library(test_smoke_support STATIC
+    ${PROJECT_SOURCE_DIR}/src/slic3r/Utils/Http.cpp
+    ${PROJECT_SOURCE_DIR}/src/slic3r/Utils/BBLUtil.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/smoke_nanosvg_impl.cpp
+)
+target_include_directories(test_smoke_support PRIVATE
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_BINARY_DIR}/src/libslic3r
+)
+target_link_libraries(test_smoke_support PUBLIC boost_libs libcurl OpenSSL::SSL OpenSSL::Crypto)
+if (WIN32)
+    target_link_libraries(test_smoke_support PUBLIC bcrypt)
+endif()
+
 if (APPLE)
     target_link_libraries(test_common INTERFACE "-liconv -framework IOKit" "-framework CoreFoundation" -lc++)
 endif()
