@@ -19,7 +19,7 @@ concurrency:
 jobs:
   build-windows-deps:
     name: Windows Deps Build
-    runs-on: windows-latest
+    runs-on: windows-2022
     env:
       DEPS_ROOT: ${{ github.workspace }}\deps\build\BambuStudio_dep
     steps:
@@ -32,7 +32,7 @@ jobs:
         id: cache_meta
         shell: pwsh
         run: |
-          $cacheKey = "windows-latest-cache-bambustudio_deps-build-${{ hashFiles('deps/**') }}"
+          $cacheKey = "windows-2022-cache-bambustudio_deps-build-${{ hashFiles('deps/**') }}"
           $artifactFile = "BambuStudio_dep_win64_$((Get-Date).ToString('yyyyMMdd'))_${{ github.sha }}.zip"
           echo "cache-key=$cacheKey" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
           echo "artifact-file=$artifactFile" | Out-File -Append -FilePath $env:GITHUB_OUTPUT -Encoding utf8
