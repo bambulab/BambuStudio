@@ -947,6 +947,10 @@ void ExtruderSwithingStatus::on_retry(wxCommandEvent &event)
 
 PrintingTaskPanel::PrintingTaskPanel(wxWindow *parent, PrintingTaskType type) : wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL)
 {
+#ifdef __WINDOWS__
+    SetDoubleBuffered(true);
+#endif //__WINDOWS__
+
     m_type            = type;
     m_question_button = nullptr;
     create_panel(this);
@@ -2027,7 +2031,6 @@ StatusBasePanel::StatusBasePanel(wxWindow *parent, wxWindowID id, const wxPoint 
 
     m_machine_ctrl_panel = new wxPanel(this);
     m_machine_ctrl_panel->SetBackgroundColour(*wxWHITE);
-    m_machine_ctrl_panel->SetDoubleBuffered(true);
     auto m_machine_control = create_machine_control_page(m_machine_ctrl_panel);
     m_machine_ctrl_panel->SetSizer(m_machine_control);
     m_machine_ctrl_panel->Layout();
@@ -2264,6 +2267,11 @@ wxBoxSizer *StatusBasePanel::create_machine_control_page(wxWindow *parent)
 
     m_panel_control_title = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(-1, PAGE_TITLE_HEIGHT), wxTAB_TRAVERSAL);
     m_panel_control_title->SetBackgroundColour(STATUS_TITLE_BG);
+#ifdef __WINDOWS__
+    // Leaf-level double-buffering for the self-drawn control-title buttons row, so it does not
+    // rely on WS_EX_COMPOSITED on m_machine_ctrl_panel (which would recomposite the WebView subtree).
+    m_panel_control_title->SetDoubleBuffered(true);
+#endif //__WINDOWS__
 
     wxBoxSizer *bSizer_control_title = new wxBoxSizer(wxHORIZONTAL);
     m_staticText_control             = new Label(m_panel_control_title, _L("Control"));
@@ -2382,6 +2390,13 @@ wxBoxSizer *StatusBasePanel::create_temp_axis_group(wxWindow *parent)
 {
     auto sizer = new wxBoxSizer(wxVERTICAL);
     auto box   = new StaticBox(parent);
+
+#ifdef __WINDOWS__
+    // Double-buffer this self-drawn control group (temp / axis / bed / extruder) at the leaf
+    // level so it stays flicker-free without relying on WS_EX_COMPOSITED on m_machine_ctrl_panel.
+    // The WebView host (m_filament_hotend_web_panel) is a sibling, so this box never composites it.
+    box->SetDoubleBuffered(true);
+#endif //__WINDOWS__
 
     StateColor box_colour(std::pair<wxColour, int>(*wxWHITE, StateColor::Normal));
     StateColor box_border_colour(std::pair<wxColour, int>(STATUS_PANEL_BG, StateColor::Normal));
@@ -3773,7 +3788,7 @@ void StatusPanel::update(MachineObject *obj)
             }
         }
 
-        if (m_parts_btn->Show(!CanShowHotendFilamentDialog(obj))) {
+        if (m_parts_btn->Show(!CanShowHotendFilamentDialog(obj) && !CanShowHotendFilamentPanel(obj))) {
             refresh_control_title = true;
         }
 
@@ -6178,8 +6193,6 @@ void StatusPanel::on_show_safety_options(wxCommandEvent &event)
 
 bool StatusPanel::CanShowHotendFilamentPanel(MachineObject* obj) const
 {
-    return false;// use dialog now
-
     if (!obj) {
         return false;
     }
@@ -6212,6 +6225,7 @@ bool StatusPanel::CloseHotendFilamentPanel()
 
 bool StatusPanel::CanShowHotendFilamentDialog(MachineObject* obj) const
 {
+    return false;
     if (!obj) {
         return false;
     }
@@ -6571,9 +6585,15 @@ void StatusPanel::update_rack(MachineObject *obj)
         can_show_hotend_filament_web_panel ? ShowHotendFilamentPanel(obj) : CloseHotendFilamentPanel();
         refresh_layout = true;
     }
+    if (can_show_hotend_filament_web_panel && m_filament_hotend_web_panel) {
+        m_filament_hotend_web_panel->UpdateByMachine(obj);
+    }
 
     if (!CanShowHotendFilamentDialog(obj)) {
         CloseHotendFilamentDialog();
+    }
+    if (m_filament_hotend_web_dlg && m_filament_hotend_web_dlg->IsShown()) {
+        m_filament_hotend_web_dlg->UpdateByMachine(obj);
     }
 
     if (m_hotend_rack_control) {

@@ -102,10 +102,6 @@ MonitorPanel::MonitorPanel(wxWindow* parent, wxWindowID id, const wxPoint& pos, 
     : wxPanel(parent, id, pos, size, style),
     m_select_machine(SelectMachinePopup(this))
 {
-#ifdef __WINDOWS__
-    SetDoubleBuffered(true);
-#endif //__WINDOWS__
-
     init_bitmap();
 
     init_tabpanel();

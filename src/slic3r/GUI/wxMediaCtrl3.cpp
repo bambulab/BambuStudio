@@ -34,6 +34,10 @@ wxMediaCtrl3::wxMediaCtrl3(wxWindow *parent)
     , m_thread([this] { PlayThread(); })
     , m_frame_buffer(9)
 {
+#ifdef __WINDOWS__
+    SetDoubleBuffered(true);
+#endif //__WINDOWS__
+
     SetBackgroundColour("#000001ff");
     m_render_timer.SetOwner(this);
     Bind(wxEVT_TIMER, &wxMediaCtrl3::OnRenderTimer, this);
