@@ -95,16 +95,26 @@ jobs:
             exit 0
           fi
 
-          run_id="$(gh run list \
-            -R "$REPOSITORY" \
-            --workflow "Windows Deps Build" \
-            --branch "$BRANCH_NAME" \
-            --json databaseId,conclusion,status \
-            --limit 20 \
-            | python -c 'import json,sys; runs=json.load(sys.stdin); print(next((str(r["databaseId"]) for r in runs if r.get("conclusion")=="success"), ""))')"
+          run_id=""
+          for attempt in $(seq 1 24); do
+            run_id="$(gh run list \
+              -R "$REPOSITORY" \
+              --workflow "Windows Deps Build" \
+              --branch "$BRANCH_NAME" \
+              --json databaseId,conclusion,status \
+              --limit 20 \
+              | python -c 'import json,sys; runs=json.load(sys.stdin); print(next((str(r["databaseId"]) for r in runs if r.get("conclusion")=="success"), ""))')"
+
+            if [[ -n "$run_id" ]]; then
+              break
+            fi
+
+            echo "Waiting for a successful 'Windows Deps Build' run on branch $BRANCH_NAME (attempt $attempt/24)" >&2
+            sleep 10
+          done
 
           if [[ -z "$run_id" ]]; then
-            echo "No successful 'Windows Deps Build' run found for branch $BRANCH_NAME" >&2
+            echo "No successful 'Windows Deps Build' run found for branch $BRANCH_NAME after waiting 240 seconds" >&2
             exit 1
           fi
 
