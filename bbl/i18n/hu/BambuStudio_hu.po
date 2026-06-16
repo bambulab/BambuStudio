@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-15 21:22+0800\n"
+"POT-Creation-Date: 2026-06-16 21:12+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3128,6 +3128,371 @@ msgstr "A maximális hőmérséklet nem lehet ennél nagyobb "
 msgid "The minmum temperature should not be less than "
 msgstr "A minimális hőmérséklet nem lehet ennél kevesebb "
 
+msgid "Export file Settings"
+msgstr ""
+
+msgid "Homepage  title"
+msgstr ""
+
+msgid "For privacy reasons, image paths are not saved or restored.Just for pdf/md file."
+msgstr ""
+
+msgid "Homepage image"
+msgstr ""
+
+msgid "Second page image"
+msgstr ""
+
+msgid "Browse"
+msgstr "Tallózás"
+
+msgid "Image files"
+msgstr ""
+
+msgid "All files"
+msgstr ""
+
+msgid "Open image file"
+msgstr ""
+
+msgid "Step"
+msgstr "Lépés"
+
+msgid "Empty Step"
+msgstr ""
+
+msgid "New Step"
+msgstr ""
+
+msgid "_copy"
+msgstr ""
+
+msgid "Assembly Guide"
+msgstr "Összeszerelési útmutató"
+
+msgid "PDF files"
+msgstr ""
+
+msgid "Markdown files"
+msgstr ""
+
+msgid "MP4 files"
+msgstr ""
+
+msgid "Export Assembly Guide to PDF"
+msgstr ""
+
+msgid "Export Assembly Guide to Markdown"
+msgstr ""
+
+msgid "Export Assembly Guide to MP4"
+msgstr ""
+
+msgid "Exporting file"
+msgstr ""
+
+msgid "Assembly Step"
+msgstr ""
+
+msgid "Saving project will automatically switch to end frame"
+msgstr ""
+
+msgid "Start frame"
+msgstr ""
+
+msgid "End frame"
+msgstr ""
+
+msgid "Transition frame"
+msgstr ""
+
+msgid "Frame"
+msgstr ""
+
+msgid "step"
+msgstr ""
+
+msgid "Play all frames for all nodes."
+msgstr ""
+
+msgid "Toggle playback speed."
+msgstr ""
+
+msgid "Play previous frame."
+msgstr ""
+
+msgid "Play next frame."
+msgstr ""
+
+msgid "Final assembly"
+msgstr ""
+
+msgid "end frame"
+msgstr ""
+
+msgid "Set export file parameters"
+msgstr ""
+
+msgid "Camera margin factor for the start frame. The larger the value, the more margin."
+msgstr ""
+
+msgid "Start frame camera margin"
+msgstr ""
+
+msgid "Canvas label text size. The default value uses the current text size."
+msgstr ""
+
+msgid "Canvas label text size"
+msgstr ""
+
+msgid "Assembly Structure"
+msgstr ""
+
+msgid "Start your assembly journey from Add Step"
+msgstr ""
+
+msgctxt "AssemblyStructure"
+msgid "Default"
+msgstr ""
+
+msgid "Contain"
+msgstr ""
+
+msgid "Assembly Module"
+msgstr ""
+
+msgid "Add object to current step"
+msgstr ""
+
+msgid "Select"
+msgstr "Kiválasztás"
+
+msgid "Select partial parts or objects from the added items to perform operations such as translation, rotation, and coloring. Pose-modifying operations like translation can be used to create custom keyframe animations."
+msgstr ""
+
+msgid "Edit step name"
+msgstr ""
+
+msgid "Delete step"
+msgstr ""
+
+msgid "Insert step before"
+msgstr ""
+
+msgid "Insert step after"
+msgstr ""
+
+msgid "Tip"
+msgstr "Tipp"
+
+msgid "No step card is currently selected. Pose-changing operations such as translation will affect the actual final-assembly view."
+msgstr ""
+
+msgid "Double-click an empty area to exit all editing states."
+msgstr ""
+
+msgid "Expand"
+msgstr ""
+
+msgid "Collapse"
+msgstr "Összecsuk"
+
+msgid "Options"
+msgstr "Opciók"
+
+msgid "Go to Wiki"
+msgstr "Tovább a Wikihez"
+
+msgid "Current step options: edit the current step name, delete the step, or insert a step before/after."
+msgstr ""
+
+msgid "Add some objects to current step"
+msgstr ""
+
+msgid "Copy Step"
+msgstr ""
+
+msgid "Add Step"
+msgstr ""
+
+msgid "Only copy steps. This is independent of the selected objects on the canvas."
+msgstr ""
+
+msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
+msgstr ""
+
+msgid "Volume"
+msgstr ""
+
+msgid "Model"
+msgstr "Modell"
+
+msgid "Search"
+msgstr "Keresés"
+
+msgid "start frame"
+msgstr ""
+
+msgid "transition frame"
+msgstr ""
+
+#, boost-format
+msgid "Plate %1%"
+msgstr ""
+
+msgid "Click to add Cyber Brick"
+msgstr ""
+
+msgid "Delete this keyframe"
+msgstr ""
+
+msgid "Export PDF"
+msgstr ""
+
+msgid "Export Markdown"
+msgstr ""
+
+msgid "Export MP4"
+msgstr ""
+
+msgid "After exporting the Markdown document, you can edit it in third-party software such as MarkText and then export it to PDF."
+msgstr ""
+
+msgid "Auto recommend"
+msgstr ""
+
+msgid "Model objects only"
+msgstr ""
+
+msgid "Model parts only"
+msgstr ""
+
+msgid "Auto-arrange labels in current view"
+msgstr ""
+
+msgid "Export"
+msgstr "Exportálás"
+
+msgid "Export assembly guide PDF, Markdown or MP4"
+msgstr ""
+
+msgid "Screw"
+msgstr ""
+
+msgid "Show Object Numbers"
+msgstr ""
+
+msgid "Show object names on the model"
+msgstr ""
+
+msgid "Show Part Numbers"
+msgstr ""
+
+msgid "Show part numbers and names on models"
+msgstr ""
+
+msgid "Show Object/Part Numbers"
+msgstr ""
+
+msgid "Show object and part numbers and names on models"
+msgstr ""
+
+msgid "Note"
+msgstr "Megjegyzés"
+
+msgid "Pose changes (e.g. translation) made on the final-assembly step's keyframe will affect the actual assembly display."
+msgstr ""
+
+msgid "Pose changes (e.g. translation) made on this step's keyframe do not affect the actual assembly display."
+msgstr ""
+
+msgid "If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present."
+msgstr ""
+
+msgid "undoing these edits is not yet supported and will be added in a later version."
+msgstr ""
+
+msgid "Connection Type"
+msgstr ""
+
+msgid "Clip"
+msgstr ""
+
+msgid "Glue"
+msgstr ""
+
+msgid "Add Clip"
+msgstr ""
+
+msgid "Add Glue"
+msgstr ""
+
+msgid "Add Screw"
+msgstr ""
+
+msgid "Add Notes"
+msgstr ""
+
+msgid "Add Rectangle"
+msgstr ""
+
+msgid "Add Circle"
+msgstr ""
+
+msgid "Add Arrow"
+msgstr ""
+
+msgid "Add Text"
+msgstr ""
+
+msgid "Text"
+msgstr "Szöveg"
+
+msgid "Background"
+msgstr ""
+
+msgid "Automatically select the optimal camera perspective and auto-arrange auto recommend labels each time the checkbox is re-ticked."
+msgstr ""
+
+msgid "Timeline"
+msgstr ""
+
+msgid "Play all frames for current node"
+msgstr ""
+
+msgid "At least two keyframes are required to play."
+msgstr ""
+
+msgid "Automatically explode all objects."
+msgstr ""
+
+msgid "Automatically explode all parts."
+msgstr ""
+
+msgid "Apply final-assembly pose onto the current step"
+msgstr ""
+
+msgid "Apply current camera angle to all frames of the current step"
+msgstr ""
+
+msgid "Add keyframe"
+msgstr ""
+
+msgid "Click to re-record this frame"
+msgstr ""
+
+msgid "Click to select this frame"
+msgstr ""
+
+msgid "Assembly tree"
+msgstr ""
+
+msgid "List"
+msgstr ""
+
+msgid "Select all parts in a step"
+msgstr ""
+
 msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-arrange on these objects."
@@ -3218,9 +3583,6 @@ msgstr "Nincs érvényes felület a szöveg kivetítéséhez."
 
 msgid "Text mesh ie empty."
 msgstr "A szövegháló üres."
-
-msgid "Text"
-msgstr "Szöveg"
 
 msgid "Error! Unable to create thread!"
 msgstr "Hiba! Nem sikerült létrehozni a szálat!"
@@ -3648,9 +4010,6 @@ msgstr "%s nem támogatja %s"
 msgid "Dynamic flow Calibration"
 msgstr "Dinamikus anyagáramlás-kalibráció"
 
-msgid "Step"
-msgstr "Lépés"
-
 msgid "Unmapped"
 msgstr "Nincs kiosztva"
 
@@ -3893,6 +4252,15 @@ msgstr "AMS-sorrend visszaállítása"
 msgid "File"
 msgstr "Fájl"
 
+msgid "Save Project"
+msgstr "Projekt mentése"
+
+msgid "Undo"
+msgstr "Visszavonás"
+
+msgid "Redo"
+msgstr "Mégis"
+
 msgid "Calibration"
 msgstr "Kalibrálás"
 
@@ -4005,9 +4373,6 @@ msgstr "Eltávolítás"
 
 msgid "Not found:"
 msgstr "Nem található:"
-
-msgid "Model"
-msgstr "Modell"
 
 msgid "Choose an STL file to import bed shape from:"
 msgstr "Válassz egy STL fájlt az asztal alakjának importálásához (PNG/SVG):"
@@ -4846,9 +5211,6 @@ msgstr "Filamentcserék"
 msgid "Wipe"
 msgstr "Törlés"
 
-msgid "Options"
-msgstr "Opciók"
-
 msgid "travel"
 msgstr "mozgás"
 
@@ -5209,9 +5571,6 @@ msgstr "Tálca kiválasztása"
 
 msgid "Change camera perspective"
 msgstr "Kameraperspektíva módosítása"
-
-msgid "Go to Wiki"
-msgstr "Tovább a Wikihez"
 
 #, boost-format
 msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
@@ -5667,9 +6026,6 @@ msgstr "Projektfájl megnyitása"
 msgid "Recent projects"
 msgstr "Legutóbbi projektek"
 
-msgid "Save Project"
-msgstr "Projekt mentése"
-
 msgid "Save current project to file"
 msgstr "Jelenlegi projekt mentése egy fájlba"
 
@@ -5727,9 +6083,6 @@ msgstr "Beállításcsomag exportálása"
 msgid "Export current configuration to files"
 msgstr "Aktuális konfiguráció exportálása fájlokba"
 
-msgid "Export"
-msgstr "Exportálás"
-
 msgid "Publish to MakerWorld"
 msgstr "Közzététel a MakerWorldben"
 
@@ -5738,12 +6091,6 @@ msgstr "Több beállítás együttes kezelése"
 
 msgid "Quit"
 msgstr "Kilépés"
-
-msgid "Undo"
-msgstr "Visszavonás"
-
-msgid "Redo"
-msgstr "Mégis"
 
 msgid "Cut selection to clipboard"
 msgstr "Kijelölés kivágása a vágólapra"
@@ -6156,9 +6503,6 @@ msgstr "Letöltés"
 msgid "Download selected files from printer."
 msgstr "Kiválasztott fájlok letöltése a nyomtatóról."
 
-msgid "Select"
-msgstr "Kiválasztás"
-
 msgid "Batch manage files."
 msgstr "Fájlok kötegelt kezelése."
 
@@ -6339,9 +6683,6 @@ msgstr "Y/Z tengelyek felcserélése"
 
 msgid "(LAN)"
 msgstr "(LAN)"
-
-msgid "Search"
-msgstr "Keresés"
 
 msgid "My Device"
 msgstr "Saját eszköz"
@@ -6808,9 +7149,6 @@ msgstr "%s figyelmeztetés"
 #, c-format, boost-format
 msgid "%s has a warning"
 msgstr "%s figyelmeztetést tartalmaz"
-
-msgid "Collapse"
-msgstr "Összecsuk"
 
 msgid "View details"
 msgstr "Részletek megtekintése"
@@ -8401,9 +8739,6 @@ msgstr ""
 "\n"
 "Biztos, hogy engedélyezed ezt az opciót?"
 
-msgid "Browse"
-msgstr "Tallózás"
-
 msgid "Choose Download Directory"
 msgstr "Válassz letöltési mappát"
 
@@ -9193,8 +9528,14 @@ msgstr "Kérjük, ellenőrizd a következőket:"
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "Kérjük, hárítsd el a fenti hibát, különben a nyomtatás nem folytatható."
 
-msgid "Please click the confirm button if you still want to proceed with printing."
-msgstr "Kérjük, kattints a megerősítés gombra, ha továbbra is folytatni szeretnéd a nyomtatást."
+msgid "Please click the \"Continue printing\"  button if you still want to proceed with printing."
+msgstr ""
+
+msgid "Continue printing"
+msgstr ""
+
+msgid "Return to modify"
+msgstr ""
 
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "Ellenőrzi az asztal szintjét. A szintezés egyenletessé teszi az extrudált magasságot."
@@ -10323,9 +10664,6 @@ msgstr "Képek"
 msgid "Bill of Materials"
 msgstr "Alkatrészlista"
 
-msgid "Assembly Guide"
-msgstr "Összeszerelési útmutató"
-
 msgid "Author"
 msgstr "Szerző"
 
@@ -10426,9 +10764,6 @@ msgstr "A textúra importálása átmenetileg nem érhető el, a részleges szí
 msgid " And "
 msgstr " és "
 
-msgid "Note"
-msgstr "Megjegyzés"
-
 msgid "The color has been selected, you can choose OK to continue or manually adjust it."
 msgstr "A szín kiválasztása megtörtént, az OK gombbal folytathatod vagy beállíthatod kézzel."
 
@@ -10509,9 +10844,6 @@ msgstr ""
 
 msgid "Use AMS"
 msgstr "AMS használata"
-
-msgid "Tip"
-msgstr "Tipp"
 
 msgid "Only synchronize filament type and color, not including AMS slot information."
 msgstr "Csak a filament típusát és színét szinkronizálja, az AMS-helyekre vonatkozó információkat nem."
@@ -17798,6 +18130,9 @@ msgid ""
 msgstr ""
 "Elsőre megbízható\n"
 "Kevesebb figyelem, kiszámíthatóbb eredmények. Példa: egy kis műhely, amely PETG tárgyakat gyárt, elkerülheti a „6. órában le kell állítani“ meglepetéseket, és tartani tudja a határidőket."
+
+#~ msgid "Please click the confirm button if you still want to proceed with printing."
+#~ msgstr "Kérjük, kattints a megerősítés gombra, ha továbbra is folytatni szeretnéd a nyomtatást."
 
 #~ msgid "Hide"
 #~ msgstr "Elrejtés"

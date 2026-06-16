@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-15 21:22+0800\n"
+"POT-Creation-Date: 2026-06-16 21:12+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -2184,13 +2184,13 @@ msgid "Select settings"
 msgstr "选择设置"
 
 msgid "Add to New Step"
-msgstr ""
+msgstr "添加到新步骤"
 
 msgid "Add to Current Step"
-msgstr ""
+msgstr "添加到当前步骤"
 
 msgid "Add to Existing Step"
-msgstr ""
+msgstr "添加到现有步骤"
 
 msgid "Delete the selected object"
 msgstr "删除所选对象"
@@ -3116,6 +3116,371 @@ msgstr "最大温度不超过"
 msgid "The minmum temperature should not be less than "
 msgstr "最低温度不低于"
 
+msgid "Export file Settings"
+msgstr "导出文件设置"
+
+msgid "Homepage  title"
+msgstr "首页标题"
+
+msgid "For privacy reasons, image paths are not saved or restored.Just for pdf/md file."
+msgstr "出于隐私原因，图像路径不会被保存或恢复。仅适用于 pdf/md 文件。"
+
+msgid "Homepage image"
+msgstr "首页图片"
+
+msgid "Second page image"
+msgstr "第二页图片"
+
+msgid "Browse"
+msgstr "浏览"
+
+msgid "Image files"
+msgstr "图像文件"
+
+msgid "All files"
+msgstr "所有文件"
+
+msgid "Open image file"
+msgstr "打开图像文件"
+
+msgid "Step"
+msgstr "步骤"
+
+msgid "Empty Step"
+msgstr "空步骤"
+
+msgid "New Step"
+msgstr "新步骤"
+
+msgid "_copy"
+msgstr "_复制"
+
+msgid "Assembly Guide"
+msgstr "组装指南"
+
+msgid "PDF files"
+msgstr "PDF 文件"
+
+msgid "Markdown files"
+msgstr "Markdown 文件"
+
+msgid "MP4 files"
+msgstr "MP4 文件"
+
+msgid "Export Assembly Guide to PDF"
+msgstr "将装配指南导出到PDF"
+
+msgid "Export Assembly Guide to Markdown"
+msgstr "导出装配指南到Markdown"
+
+msgid "Export Assembly Guide to MP4"
+msgstr "导出装配指南到MP4"
+
+msgid "Exporting file"
+msgstr "导出文件"
+
+msgid "Assembly Step"
+msgstr "组装步骤"
+
+msgid "Saving project will automatically switch to end frame"
+msgstr "保存项目时将自动切换到结束帧"
+
+msgid "Start frame"
+msgstr "起始帧"
+
+msgid "End frame"
+msgstr "结束帧"
+
+msgid "Transition frame"
+msgstr "过渡帧"
+
+msgid "Frame"
+msgstr "帧"
+
+msgid "step"
+msgstr "步骤"
+
+msgid "Play all frames for all nodes."
+msgstr "播放所有节点的所有帧。"
+
+msgid "Toggle playback speed."
+msgstr "切换播放速度。"
+
+msgid "Play previous frame."
+msgstr "播放上一帧"
+
+msgid "Play next frame."
+msgstr "播放下一帧"
+
+msgid "Final assembly"
+msgstr "总装"
+
+msgid "end frame"
+msgstr "结束帧"
+
+msgid "Set export file parameters"
+msgstr "设置导出文件参数"
+
+msgid "Camera margin factor for the start frame. The larger the value, the more margin."
+msgstr "起始帧的相机边距系数。值越大，边距越大。"
+
+msgid "Start frame camera margin"
+msgstr "起始帧相机边距"
+
+msgid "Canvas label text size. The default value uses the current text size."
+msgstr "画布标签文本大小。默认使用当前文本大小。"
+
+msgid "Canvas label text size"
+msgstr "画布标签文本大小"
+
+msgid "Assembly Structure"
+msgstr "装配结构"
+
+msgid "Start your assembly journey from Add Step"
+msgstr "从添加步骤开始您的组装之旅"
+
+msgctxt "AssemblyStructure"
+msgid "Default"
+msgstr "默认"
+
+msgid "Contain"
+msgstr "包含"
+
+msgid "Assembly Module"
+msgstr "装配模块"
+
+msgid "Add object to current step"
+msgstr "将对象添加到当前步骤"
+
+msgid "Select"
+msgstr "选择"
+
+msgid "Select partial parts or objects from the added items to perform operations such as translation, rotation, and coloring. Pose-modifying operations like translation can be used to create custom keyframe animations."
+msgstr "从添加的项目中选择部分零件或对象，以执行诸如平移、旋转和着色之类的操作。平移等姿态修改操作可用于创建自定义关键帧动画。"
+
+msgid "Edit step name"
+msgstr "编辑步骤名称"
+
+msgid "Delete step"
+msgstr "删除步骤"
+
+msgid "Insert step before"
+msgstr "在此步骤前插入"
+
+msgid "Insert step after"
+msgstr "在此步骤后插入"
+
+msgid "Tip"
+msgstr "提示"
+
+msgid "No step card is currently selected. Pose-changing operations such as translation will affect the actual final-assembly view."
+msgstr "当前未选中步骤卡。平移等姿态更改操作会影响实际的最终组装视图。"
+
+msgid "Double-click an empty area to exit all editing states."
+msgstr "双击空白区域退出所有编辑状态。"
+
+msgid "Expand"
+msgstr "展开"
+
+msgid "Collapse"
+msgstr "收起"
+
+msgid "Options"
+msgstr "选项"
+
+msgid "Go to Wiki"
+msgstr "查看Wiki"
+
+msgid "Current step options: edit the current step name, delete the step, or insert a step before/after."
+msgstr "当前步骤选项：编辑当前步骤名称、删除步骤或在当前步骤之前/之后插入步骤。"
+
+msgid "Add some objects to current step"
+msgstr "将一些对象添加到当前步骤"
+
+msgid "Copy Step"
+msgstr "复制步骤"
+
+msgid "Add Step"
+msgstr "添加步骤"
+
+msgid "Only copy steps. This is independent of the selected objects on the canvas."
+msgstr "仅复制步骤。此操作与画布上选定的对象无关。"
+
+msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
+msgstr "仅添加空步骤。这与画布上的选定对象无关。"
+
+msgid "Volume"
+msgstr "体积"
+
+msgid "Model"
+msgstr "模型"
+
+msgid "Search"
+msgstr "搜索"
+
+msgid "start frame"
+msgstr "起始帧"
+
+msgid "transition frame"
+msgstr "过渡帧"
+
+#, boost-format
+msgid "Plate %1%"
+msgstr "盘 %1%"
+
+msgid "Click to add Cyber Brick"
+msgstr "点击添加 Cyber Brick"
+
+msgid "Delete this keyframe"
+msgstr "删除此关键帧"
+
+msgid "Export PDF"
+msgstr "导出PDF"
+
+msgid "Export Markdown"
+msgstr "导出 Markdown"
+
+msgid "Export MP4"
+msgstr "导出 MP4"
+
+msgid "After exporting the Markdown document, you can edit it in third-party software such as MarkText and then export it to PDF."
+msgstr "导出Markdown文档后，您可以在MarkText等第三方软件中进行编辑，然后导出为PDF。"
+
+msgid "Auto recommend"
+msgstr "自动推荐"
+
+msgid "Model objects only"
+msgstr "仅模型对象"
+
+msgid "Model parts only"
+msgstr "仅模型部件"
+
+msgid "Auto-arrange labels in current view"
+msgstr "自动排列当前视图中的标签"
+
+msgid "Export"
+msgstr "导出"
+
+msgid "Export assembly guide PDF, Markdown or MP4"
+msgstr "导出装配指南 PDF、Markdown 或 MP4"
+
+msgid "Screw"
+msgstr "螺丝"
+
+msgid "Show Object Numbers"
+msgstr "显示对象编号"
+
+msgid "Show object names on the model"
+msgstr "在模型上显示对象名称"
+
+msgid "Show Part Numbers"
+msgstr "显示零件号"
+
+msgid "Show part numbers and names on models"
+msgstr "在模型上显示零件号和名称"
+
+msgid "Show Object/Part Numbers"
+msgstr "显示对象/零件编号"
+
+msgid "Show object and part numbers and names on models"
+msgstr "在模型上显示对象和部件编号及名称"
+
+msgid "Note"
+msgstr "提示"
+
+msgid "Pose changes (e.g. translation) made on the final-assembly step's keyframe will affect the actual assembly display."
+msgstr "在最终装配步骤的关键帧上进行的姿态更改（例如平移）将影响实际的装配显示。"
+
+msgid "Pose changes (e.g. translation) made on this step's keyframe do not affect the actual assembly display."
+msgstr "在此关键帧上进行的姿势更改（例如平移）不会影响实际的装配显示。"
+
+msgid "If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present."
+msgstr "如有必要，可以通过按下“应用实际装配姿态”按钮来恢复一个相对较好的位置。"
+
+msgid "undoing these edits is not yet supported and will be added in a later version."
+msgstr "此编辑的撤销尚不支持，将在后续版本中添加。"
+
+msgid "Connection Type"
+msgstr "连接类型"
+
+msgid "Clip"
+msgstr "卡扣"
+
+msgid "Glue"
+msgstr "胶水"
+
+msgid "Add Clip"
+msgstr "添加卡扣"
+
+msgid "Add Glue"
+msgstr "添加胶水"
+
+msgid "Add Screw"
+msgstr "添加螺丝"
+
+msgid "Add Notes"
+msgstr "添加备注"
+
+msgid "Add Rectangle"
+msgstr "添加矩形"
+
+msgid "Add Circle"
+msgstr "添加圆"
+
+msgid "Add Arrow"
+msgstr "添加箭头"
+
+msgid "Add Text"
+msgstr "添加文本"
+
+msgid "Text"
+msgstr ""
+
+msgid "Background"
+msgstr "背景"
+
+msgid "Automatically select the optimal camera perspective and auto-arrange auto recommend labels each time the checkbox is re-ticked."
+msgstr "每次重新勾选复选框时，自动选择最佳相机视角并自动排列自动推荐的标签。"
+
+msgid "Timeline"
+msgstr "时间轴"
+
+msgid "Play all frames for current node"
+msgstr "播放当前节点的所有帧"
+
+msgid "At least two keyframes are required to play."
+msgstr "至少需要两个关键帧才能播放。"
+
+msgid "Automatically explode all objects."
+msgstr "自动爆炸所有对象。"
+
+msgid "Automatically explode all parts."
+msgstr "自动爆炸所有零件。"
+
+msgid "Apply final-assembly pose onto the current step"
+msgstr "将最终装配姿态应用于当前步骤"
+
+msgid "Apply current camera angle to all frames of the current step"
+msgstr "将当前相机角度应用于当前步骤的所有帧"
+
+msgid "Add keyframe"
+msgstr "添加关键帧"
+
+msgid "Click to re-record this frame"
+msgstr "单击重新录制此帧"
+
+msgid "Click to select this frame"
+msgstr "单击以选择此帧"
+
+msgid "Assembly tree"
+msgstr "装配树"
+
+msgid "List"
+msgstr "列表"
+
+msgid "Select all parts in a step"
+msgstr "选择步骤中的所有零件"
+
 msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-arrange on these objects."
@@ -3204,9 +3569,6 @@ msgstr "没有用于文本投影的有效曲面。"
 
 msgid "Text mesh ie empty."
 msgstr "文本网格为空。"
-
-msgid "Text"
-msgstr ""
 
 msgid "Error! Unable to create thread!"
 msgstr "发生错误，无法创建线程！"
@@ -3632,9 +3994,6 @@ msgstr "%s 不支持 %s"
 msgid "Dynamic flow Calibration"
 msgstr "动态流量校准"
 
-msgid "Step"
-msgstr "步骤"
-
 msgid "Unmapped"
 msgstr "未匹配"
 
@@ -3877,6 +4236,15 @@ msgstr "重置AMS序列"
 msgid "File"
 msgstr "文件"
 
+msgid "Save Project"
+msgstr "保存项目"
+
+msgid "Undo"
+msgstr "撤销"
+
+msgid "Redo"
+msgstr "重做"
+
 msgid "Calibration"
 msgstr "校准"
 
@@ -3989,9 +4357,6 @@ msgstr "移除"
 
 msgid "Not found:"
 msgstr "未发现："
-
-msgid "Model"
-msgstr "模型"
 
 msgid "Choose an STL file to import bed shape from:"
 msgstr "选择热床形状的 STL 文件："
@@ -4815,9 +5180,6 @@ msgstr "耗材丝更换"
 msgid "Wipe"
 msgstr "擦拭"
 
-msgid "Options"
-msgstr "选项"
-
 msgid "travel"
 msgstr "空驶"
 
@@ -5079,7 +5441,7 @@ msgid " Please check and adjust the part's position or size to fit the printable
 msgstr " 请检查并调整零件的位置或尺寸以适应打印范围\n"
 
 msgid "Unnamed"
-msgstr ""
+msgstr "未命名"
 
 msgid "Mirror Object"
 msgstr "镜像物体"
@@ -5180,9 +5542,6 @@ msgstr "选择盘"
 msgid "Change camera perspective"
 msgstr "改变相机视角"
 
-msgid "Go to Wiki"
-msgstr "查看Wiki"
-
 #, boost-format
 msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
 msgstr "当前装配率： %1%%%，体积率： %2%%%"
@@ -5220,10 +5579,10 @@ msgid "Fit camera to scene or selected object."
 msgstr "使相机适配场景或选定对象"
 
 msgid "Unlock camera"
-msgstr ""
+msgstr "解锁相机"
 
 msgid "Lock camera"
-msgstr ""
+msgstr "锁定相机"
 
 msgid "Paint Toolbar"
 msgstr "上色工具条"
@@ -5244,13 +5603,13 @@ msgid "Selection Mode"
 msgstr "选择模式"
 
 msgid "OnlyCurrentStep"
-msgstr ""
+msgstr "仅限当前步骤"
 
 msgid "Highlight"
-msgstr ""
+msgstr "高亮"
 
 msgid "Display Mode"
-msgstr ""
+msgstr "显示模式"
 
 msgid "Total Volume:"
 msgstr "总体积："
@@ -5637,9 +5996,6 @@ msgstr "打开项目文件"
 msgid "Recent projects"
 msgstr "最近的项目"
 
-msgid "Save Project"
-msgstr "保存项目"
-
 msgid "Save current project to file"
 msgstr "保存当前项目到文件"
 
@@ -5697,9 +6053,6 @@ msgstr "导出预设包"
 msgid "Export current configuration to files"
 msgstr "导出当前选择的预设"
 
-msgid "Export"
-msgstr "导出"
-
 msgid "Publish to MakerWorld"
 msgstr "发布到MakerWorld"
 
@@ -5708,12 +6061,6 @@ msgstr "批量预设管理"
 
 msgid "Quit"
 msgstr "退出程序"
-
-msgid "Undo"
-msgstr "撤销"
-
-msgid "Redo"
-msgstr "重做"
 
 msgid "Cut selection to clipboard"
 msgstr "剪切所选项到剪贴板"
@@ -6121,9 +6468,6 @@ msgstr "下载"
 msgid "Download selected files from printer."
 msgstr "从打印机中下载选择的文件。"
 
-msgid "Select"
-msgstr "选择"
-
 msgid "Batch manage files."
 msgstr "批量管理文件。"
 
@@ -6303,9 +6647,6 @@ msgstr "交换Y/Z轴"
 
 msgid "(LAN)"
 msgstr "（局域网）"
-
-msgid "Search"
-msgstr "搜索"
 
 msgid "My Device"
 msgstr "我的设备"
@@ -6766,9 +7107,6 @@ msgstr "%s 警告"
 #, c-format, boost-format
 msgid "%s has a warning"
 msgstr "%s 有一个警告"
-
-msgid "Collapse"
-msgstr "收起"
 
 msgid "View details"
 msgstr "查看详情"
@@ -7439,7 +7777,7 @@ msgid "Mixed filament has broken component references"
 msgstr "混色耗材引用了不存在的耗材"
 
 msgid "Edit / Delete / Merge"
-msgstr ""
+msgstr "编辑 / 删除 / 合并"
 
 #, boost-format
 msgid "Do you want to save changes to \"%1%\"?"
@@ -7592,6 +7930,9 @@ msgid ""
 "It is expected if they are placed on the build plate later after translation or similar operations.\n"
 "The overall assembly can be checked from the assembly thumbnail or by entering the assembly view."
 msgstr ""
+"导入的 STEP 文件按子装配体进行拆分，因此最初可能有些对象未放置在构建板上。\n"
+"如果在翻译或类似操作后，这些对象之后被放置在构建板上，则属于正常现象。\n"
+"可以通过装配体缩略图或进入装配体视图来检查整体装配体。"
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "将这些文件加载为一个多零件对象？\n"
@@ -7603,7 +7944,7 @@ msgid "The file does not contain any geometry data."
 msgstr "此文件不包含任何几何数据。"
 
 msgid "Importing model to project..."
-msgstr ""
+msgstr "正在将模型导入项目..."
 
 msgid "Your object appears to be too large, Do you want to scale it down to fit the heat bed automatically?"
 msgstr "对象看起来太大，希望将对象自动缩小以适应热床吗？"
@@ -7612,10 +7953,10 @@ msgid "Object too large"
 msgstr "对象太大"
 
 msgid "Placing model on the bed..."
-msgstr ""
+msgstr "正在将模型放置在打印床上..."
 
 msgid "Updating object list..."
-msgstr ""
+msgstr "正在更新对象列表..."
 
 msgid "Updating 3D view..."
 msgstr "正在更新3D视图……"
@@ -8122,7 +8463,7 @@ msgstr ""
 "请检查其他程序是否打开了该文件，以及磁盘空间是否足够。"
 
 msgid "Export sliced file"
-msgstr "Export Sliced File"
+msgstr "导出切片文件"
 
 #, c-format, boost-format
 msgid "The file %s has been sent to the printer's storage space and can be viewed on the printer."
@@ -8350,9 +8691,6 @@ msgstr ""
 "• 层间粘附问题\n"
 "\n"
 "仍要启用此功能？"
-
-msgid "Browse"
-msgstr "浏览"
 
 msgid "Choose Download Directory"
 msgstr "选择下载文件夹"
@@ -9141,8 +9479,14 @@ msgstr "请检查以下内容："
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "请修复上述错误，否则打印无法继续。"
 
-msgid "Please click the confirm button if you still want to proceed with printing."
-msgstr "如果您仍然想继续打印，请单击“确定”按钮。"
+msgid "Please click the \"Continue printing\"  button if you still want to proceed with printing."
+msgstr ""
+
+msgid "Continue printing"
+msgstr ""
+
+msgid "Return to modify"
+msgstr "返回修改"
 
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "检测热床的平整度。调平可以使挤出的高度更均匀。"
@@ -10264,9 +10608,6 @@ msgstr "图片"
 msgid "Bill of Materials"
 msgstr "物料清单"
 
-msgid "Assembly Guide"
-msgstr "组装指南"
-
 msgid "Author"
 msgstr "作者"
 
@@ -10367,9 +10708,6 @@ msgstr "纹理导入暂时不可用，部分着色将自动替换为默认颜色
 msgid " And "
 msgstr " 并且"
 
-msgid "Note"
-msgstr "提示"
-
 msgid "The color has been selected, you can choose OK to continue or manually adjust it."
 msgstr "颜色已经默认匹配好了，您可以选中确认继续或手动修改它。"
 
@@ -10448,9 +10786,6 @@ msgstr ""
 
 msgid "Use AMS"
 msgstr "使用AMS"
-
-msgid "Tip"
-msgstr "提示"
 
 msgid "Only synchronize filament type and color, not including AMS slot information."
 msgstr "仅同步耗材类型和颜色，不包含AMS槽位信息。"
@@ -10588,7 +10923,7 @@ msgid "Handle New Windows"
 msgstr ""
 
 msgid "Edit Mode"
-msgstr ""
+msgstr "编辑模式"
 
 msgid "Run Script"
 msgstr ""
@@ -15014,7 +15349,7 @@ msgid "The file format is incompatible and cannot be parsed."
 msgstr "文件格式不兼容，无法解析。"
 
 msgid "Unknown file format. Input file must have .stl, .obj, .amf(.xml), .gltf, .glb, .fbx extension."
-msgstr ""
+msgstr "文件格式未知。输入文件必须是 .stl、.obj、.amf(.xml)、.gltf、.glb、.fbx 格式。"
 
 msgid "Unknown file format. Input file must have .3mf or .zip.amf extension."
 msgstr "未知的文件格式。输入文件的扩展名必须为.3mf或.zip .amf。"
@@ -17719,6 +18054,9 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Please click the confirm button if you still want to proceed with printing."
+#~ msgstr "如果您仍然想继续打印，请单击“确定”按钮。"
 
 #~ msgid "Hide"
 #~ msgstr "隐藏"

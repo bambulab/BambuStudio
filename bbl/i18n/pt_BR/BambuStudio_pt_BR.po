@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-15 21:22+0800\n"
+"POT-Creation-Date: 2026-06-16 21:12+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3132,6 +3132,371 @@ msgstr "A temperatura máxima não pode exceder"
 msgid "The minmum temperature should not be less than "
 msgstr "A temperatura mínima não deve ser inferior a"
 
+msgid "Export file Settings"
+msgstr ""
+
+msgid "Homepage  title"
+msgstr ""
+
+msgid "For privacy reasons, image paths are not saved or restored.Just for pdf/md file."
+msgstr ""
+
+msgid "Homepage image"
+msgstr ""
+
+msgid "Second page image"
+msgstr ""
+
+msgid "Browse"
+msgstr "Navegar"
+
+msgid "Image files"
+msgstr ""
+
+msgid "All files"
+msgstr ""
+
+msgid "Open image file"
+msgstr ""
+
+msgid "Step"
+msgstr "Passo"
+
+msgid "Empty Step"
+msgstr ""
+
+msgid "New Step"
+msgstr ""
+
+msgid "_copy"
+msgstr ""
+
+msgid "Assembly Guide"
+msgstr "Guia de montagem"
+
+msgid "PDF files"
+msgstr ""
+
+msgid "Markdown files"
+msgstr ""
+
+msgid "MP4 files"
+msgstr ""
+
+msgid "Export Assembly Guide to PDF"
+msgstr ""
+
+msgid "Export Assembly Guide to Markdown"
+msgstr ""
+
+msgid "Export Assembly Guide to MP4"
+msgstr ""
+
+msgid "Exporting file"
+msgstr ""
+
+msgid "Assembly Step"
+msgstr ""
+
+msgid "Saving project will automatically switch to end frame"
+msgstr ""
+
+msgid "Start frame"
+msgstr ""
+
+msgid "End frame"
+msgstr ""
+
+msgid "Transition frame"
+msgstr ""
+
+msgid "Frame"
+msgstr ""
+
+msgid "step"
+msgstr ""
+
+msgid "Play all frames for all nodes."
+msgstr ""
+
+msgid "Toggle playback speed."
+msgstr ""
+
+msgid "Play previous frame."
+msgstr ""
+
+msgid "Play next frame."
+msgstr ""
+
+msgid "Final assembly"
+msgstr ""
+
+msgid "end frame"
+msgstr ""
+
+msgid "Set export file parameters"
+msgstr ""
+
+msgid "Camera margin factor for the start frame. The larger the value, the more margin."
+msgstr ""
+
+msgid "Start frame camera margin"
+msgstr ""
+
+msgid "Canvas label text size. The default value uses the current text size."
+msgstr ""
+
+msgid "Canvas label text size"
+msgstr ""
+
+msgid "Assembly Structure"
+msgstr ""
+
+msgid "Start your assembly journey from Add Step"
+msgstr ""
+
+msgctxt "AssemblyStructure"
+msgid "Default"
+msgstr ""
+
+msgid "Contain"
+msgstr ""
+
+msgid "Assembly Module"
+msgstr ""
+
+msgid "Add object to current step"
+msgstr ""
+
+msgid "Select"
+msgstr "Selecionar"
+
+msgid "Select partial parts or objects from the added items to perform operations such as translation, rotation, and coloring. Pose-modifying operations like translation can be used to create custom keyframe animations."
+msgstr ""
+
+msgid "Edit step name"
+msgstr ""
+
+msgid "Delete step"
+msgstr ""
+
+msgid "Insert step before"
+msgstr ""
+
+msgid "Insert step after"
+msgstr ""
+
+msgid "Tip"
+msgstr "Dica"
+
+msgid "No step card is currently selected. Pose-changing operations such as translation will affect the actual final-assembly view."
+msgstr ""
+
+msgid "Double-click an empty area to exit all editing states."
+msgstr ""
+
+msgid "Expand"
+msgstr ""
+
+msgid "Collapse"
+msgstr "Recolher"
+
+msgid "Options"
+msgstr "Opções"
+
+msgid "Go to Wiki"
+msgstr "Ir para Wiki"
+
+msgid "Current step options: edit the current step name, delete the step, or insert a step before/after."
+msgstr ""
+
+msgid "Add some objects to current step"
+msgstr ""
+
+msgid "Copy Step"
+msgstr ""
+
+msgid "Add Step"
+msgstr ""
+
+msgid "Only copy steps. This is independent of the selected objects on the canvas."
+msgstr ""
+
+msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
+msgstr ""
+
+msgid "Volume"
+msgstr ""
+
+msgid "Model"
+msgstr "Modelo"
+
+msgid "Search"
+msgstr "Pesquisar"
+
+msgid "start frame"
+msgstr ""
+
+msgid "transition frame"
+msgstr ""
+
+#, boost-format
+msgid "Plate %1%"
+msgstr ""
+
+msgid "Click to add Cyber Brick"
+msgstr ""
+
+msgid "Delete this keyframe"
+msgstr ""
+
+msgid "Export PDF"
+msgstr ""
+
+msgid "Export Markdown"
+msgstr ""
+
+msgid "Export MP4"
+msgstr ""
+
+msgid "After exporting the Markdown document, you can edit it in third-party software such as MarkText and then export it to PDF."
+msgstr ""
+
+msgid "Auto recommend"
+msgstr ""
+
+msgid "Model objects only"
+msgstr ""
+
+msgid "Model parts only"
+msgstr ""
+
+msgid "Auto-arrange labels in current view"
+msgstr ""
+
+msgid "Export"
+msgstr "Exportar"
+
+msgid "Export assembly guide PDF, Markdown or MP4"
+msgstr ""
+
+msgid "Screw"
+msgstr ""
+
+msgid "Show Object Numbers"
+msgstr ""
+
+msgid "Show object names on the model"
+msgstr ""
+
+msgid "Show Part Numbers"
+msgstr ""
+
+msgid "Show part numbers and names on models"
+msgstr ""
+
+msgid "Show Object/Part Numbers"
+msgstr ""
+
+msgid "Show object and part numbers and names on models"
+msgstr ""
+
+msgid "Note"
+msgstr "Nota"
+
+msgid "Pose changes (e.g. translation) made on the final-assembly step's keyframe will affect the actual assembly display."
+msgstr ""
+
+msgid "Pose changes (e.g. translation) made on this step's keyframe do not affect the actual assembly display."
+msgstr ""
+
+msgid "If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present."
+msgstr ""
+
+msgid "undoing these edits is not yet supported and will be added in a later version."
+msgstr ""
+
+msgid "Connection Type"
+msgstr ""
+
+msgid "Clip"
+msgstr ""
+
+msgid "Glue"
+msgstr ""
+
+msgid "Add Clip"
+msgstr ""
+
+msgid "Add Glue"
+msgstr ""
+
+msgid "Add Screw"
+msgstr ""
+
+msgid "Add Notes"
+msgstr ""
+
+msgid "Add Rectangle"
+msgstr ""
+
+msgid "Add Circle"
+msgstr ""
+
+msgid "Add Arrow"
+msgstr ""
+
+msgid "Add Text"
+msgstr ""
+
+msgid "Text"
+msgstr "Texto"
+
+msgid "Background"
+msgstr ""
+
+msgid "Automatically select the optimal camera perspective and auto-arrange auto recommend labels each time the checkbox is re-ticked."
+msgstr ""
+
+msgid "Timeline"
+msgstr ""
+
+msgid "Play all frames for current node"
+msgstr ""
+
+msgid "At least two keyframes are required to play."
+msgstr ""
+
+msgid "Automatically explode all objects."
+msgstr ""
+
+msgid "Automatically explode all parts."
+msgstr ""
+
+msgid "Apply final-assembly pose onto the current step"
+msgstr ""
+
+msgid "Apply current camera angle to all frames of the current step"
+msgstr ""
+
+msgid "Add keyframe"
+msgstr ""
+
+msgid "Click to re-record this frame"
+msgstr ""
+
+msgid "Click to select this frame"
+msgstr ""
+
+msgid "Assembly tree"
+msgstr ""
+
+msgid "List"
+msgstr ""
+
+msgid "Select all parts in a step"
+msgstr ""
+
 msgid ""
 "All the selected objects are on the locked plate,\n"
 "We can not do auto-arrange on these objects."
@@ -3222,9 +3587,6 @@ msgstr "Não há superfície válida para projeção de texto."
 
 msgid "Text mesh ie empty."
 msgstr "A malha de texto está vazia."
-
-msgid "Text"
-msgstr "Texto"
 
 msgid "Error! Unable to create thread!"
 msgstr "Erro! Não foi possível criar um tópico!"
@@ -3652,9 +4014,6 @@ msgstr "%s não suporta %s"
 msgid "Dynamic flow Calibration"
 msgstr "Calibração de fluxo dinâmico"
 
-msgid "Step"
-msgstr "Passo"
-
 msgid "Unmapped"
 msgstr "Não mapeado"
 
@@ -3897,6 +4256,15 @@ msgstr "Reiniciar sequência AMS"
 msgid "File"
 msgstr "Arquivo"
 
+msgid "Save Project"
+msgstr "Salvar projeto"
+
+msgid "Undo"
+msgstr "Desfazer"
+
+msgid "Redo"
+msgstr "Refazer"
+
 msgid "Calibration"
 msgstr "Calibração"
 
@@ -4009,9 +4377,6 @@ msgstr "Remover"
 
 msgid "Not found:"
 msgstr "Não encontrado:"
-
-msgid "Model"
-msgstr "Modelo"
 
 msgid "Choose an STL file to import bed shape from:"
 msgstr "Escolha um arquivo STL para importar a forma da mesa de:"
@@ -4849,9 +5214,6 @@ msgstr "Mudanças de filamento"
 msgid "Wipe"
 msgstr "Limpar"
 
-msgid "Options"
-msgstr "Opções"
-
 msgid "travel"
 msgstr "deslocamento"
 
@@ -5212,9 +5574,6 @@ msgstr "Selecione a placa"
 
 msgid "Change camera perspective"
 msgstr "Alterar a perspectiva da câmera"
-
-msgid "Go to Wiki"
-msgstr "Ir para Wiki"
 
 #, boost-format
 msgid "Current assembly rate: %1%%%, volume rate: %2%%%"
@@ -5670,9 +6029,6 @@ msgstr "Abrir um arquivo de projeto"
 msgid "Recent projects"
 msgstr "Projetos recentes"
 
-msgid "Save Project"
-msgstr "Salvar projeto"
-
 msgid "Save current project to file"
 msgstr "Salvar projeto atual em arquivo"
 
@@ -5730,9 +6086,6 @@ msgstr "Exportar pacotes de predefinição"
 msgid "Export current configuration to files"
 msgstr "Exportar a configuração atual para arquivos"
 
-msgid "Export"
-msgstr "Exportar"
-
 msgid "Publish to MakerWorld"
 msgstr "Publicar no MakerWorld"
 
@@ -5741,12 +6094,6 @@ msgstr "Gerenciamento de predefinições em lote"
 
 msgid "Quit"
 msgstr "Sair"
-
-msgid "Undo"
-msgstr "Desfazer"
-
-msgid "Redo"
-msgstr "Refazer"
 
 msgid "Cut selection to clipboard"
 msgstr "Recortar seleção para a área de transferência"
@@ -6159,9 +6506,6 @@ msgstr "Baixar"
 msgid "Download selected files from printer."
 msgstr "Baixe os arquivos selecionados da impressora."
 
-msgid "Select"
-msgstr "Selecionar"
-
 msgid "Batch manage files."
 msgstr "Gerencie arquivos em lote."
 
@@ -6342,9 +6686,6 @@ msgstr "Trocar eixos Y/Z"
 
 msgid "(LAN)"
 msgstr "(LAN)"
-
-msgid "Search"
-msgstr "Pesquisar"
 
 msgid "My Device"
 msgstr "Meu dispositivo"
@@ -6811,9 +7152,6 @@ msgstr "%s aviso"
 #, c-format, boost-format
 msgid "%s has a warning"
 msgstr "%s tem um aviso"
-
-msgid "Collapse"
-msgstr "Recolher"
 
 msgid "View details"
 msgstr "Ver detalhes"
@@ -8411,9 +8749,6 @@ msgstr ""
 "\n"
 "Continuar habilitando este recurso?"
 
-msgid "Browse"
-msgstr "Navegar"
-
 msgid "Choose Download Directory"
 msgstr "Escolha o diretório de download"
 
@@ -9201,8 +9536,14 @@ msgstr "Por favor, verifique o seguinte:"
 msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "Corrija o erro acima, caso contrário, a impressão não poderá continuar."
 
-msgid "Please click the confirm button if you still want to proceed with printing."
-msgstr "Clique no botão confirmar se ainda quiser continuar com a impressão."
+msgid "Please click the \"Continue printing\"  button if you still want to proceed with printing."
+msgstr ""
+
+msgid "Continue printing"
+msgstr ""
+
+msgid "Return to modify"
+msgstr ""
 
 msgid "This checks the flatness of heatbed. Leveling makes extruded height uniform."
 msgstr "Isso verifica o nivelamento da mesa aquecida. O nivelamento torna a altura extrudada uniforme."
@@ -10335,9 +10676,6 @@ msgstr "Fotos"
 msgid "Bill of Materials"
 msgstr "Lista de materiais"
 
-msgid "Assembly Guide"
-msgstr "Guia de montagem"
-
 msgid "Author"
 msgstr "Autor"
 
@@ -10438,9 +10776,6 @@ msgstr "A importação de texturas está temporariamente indisponível; a colora
 msgid " And "
 msgstr "Y"
 
-msgid "Note"
-msgstr "Nota"
-
 msgid "The color has been selected, you can choose OK to continue or manually adjust it."
 msgstr "A cor foi selecionada; você pode escolher OKpara continuar ou ajustá-lo manualmente."
 
@@ -10521,9 +10856,6 @@ msgstr ""
 
 msgid "Use AMS"
 msgstr "Usar AMS"
-
-msgid "Tip"
-msgstr "Dica"
 
 msgid "Only synchronize filament type and color, not including AMS slot information."
 msgstr "Sincronize apenas o tipo e a cor do filamento, sem incluir as informações do slot AMS."
@@ -17813,6 +18145,9 @@ msgid ""
 msgstr ""
 "Confiabilidade na Primeira Tentativa\n"
 "Menos supervisão, saída mais previsível. Exemplo: uma pequena fazenda produzindo peças de PETG evita surpresas de \"falha na hora 6\" e mantém os lotes no cronograma."
+
+#~ msgid "Please click the confirm button if you still want to proceed with printing."
+#~ msgstr "Clique no botão confirmar se ainda quiser continuar com a impressão."
 
 #~ msgid "Hide"
 #~ msgstr "Ocultar"
