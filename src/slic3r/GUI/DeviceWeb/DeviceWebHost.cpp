@@ -140,26 +140,38 @@ void DeviceWebHost::LoadUrl()
     m_device_webview->load_url(BuildUrl(m_initial_path));
 }
 
-void DeviceWebHost::NavigateTo(const std::string& path)
+void DeviceWebHost::NavigateTo(const std::string& path, bool re_init)
 {
     if (!m_device_webview) {
-        // Lazy init: trigger build on first navigation
+        // Lazy first build, already loaded by EnsureBuilt(). Clear the guard so
+        // a later return to this tab can reload and re-run init().
         EnsureBuilt();
+        m_just_built = false;
         return;
     }
 
-    // Skip navigation immediately after lazy init: LoadUrl() already loaded
-    // the correct URL with the right hash; running JS before the page is ready
-    // causes a white screen. (But if we were suspended to about:blank we must
-    // reload regardless.)
+    // Non-lazy hosts loaded in the constructor: skip the first NavigateTo to
+    // avoid a redundant reload / white screen (unless suspended to about:blank).
     if (m_just_built && !m_suspended) {
         m_just_built = false;
         return;
     }
 
-    // Showing the tab again reloads the real document, which also resumes the
-    // WKWebView from a suspended (about:blank) state.
-    m_suspended = false;
+    if (m_suspended) {
+        // macOS: resume from about:blank; loading the real URL re-runs init().
+        m_suspended = false;
+        m_device_webview->load_url(BuildUrl(path));
+        return;
+    }
+
+    if (re_init) {
+        // Same URL is a no-op in WebView2; force a real reload to re-run init().
+        if (auto* wv = m_device_webview->GetWebView()) {
+            wv->Reload();
+            return;
+        }
+    }
+
     m_device_webview->load_url(BuildUrl(path));
 }
 

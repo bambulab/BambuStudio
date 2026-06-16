@@ -29,7 +29,9 @@ public:
     ~DeviceWebHost() override;
 
     void LoadUrl();
-    void NavigateTo(const std::string& path);
+    // re_init: force a real reload so the web page re-runs init(). Pass true when
+    // switching back to this tab to pick up changes made on other tabs.
+    void NavigateTo(const std::string& path, bool re_init = false);
 
     // Suspend tears down the live web document (loads about:blank) so the WKWebView
     // stops driving the run loop while this tab is hidden. On macOS a live React SPA
