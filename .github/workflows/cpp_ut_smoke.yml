@@ -197,7 +197,13 @@ jobs:
         id: windows_sdk
         shell: pwsh
         run: |
-          $sdk = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\Include" | Sort-Object Name -Descending | Select-Object -First 1 -ExpandProperty Name
+          $sdk = $env:WindowsSDKVersion.TrimEnd('\')
+          if ([string]::IsNullOrWhiteSpace($sdk)) {
+            $sdk = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\Include" -Directory |
+              Where-Object { $_.Name -match '^\d+\.\d+\.\d+\.\d+$' } |
+              Sort-Object Name -Descending |
+              Select-Object -First 1 -ExpandProperty Name
+          }
           if (-not $sdk) {
             throw "Windows SDK not found"
           }
