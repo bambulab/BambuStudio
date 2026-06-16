@@ -12,6 +12,7 @@
 #include "Widgets/RoundedRectangle.hpp"
 #include "Widgets/StaticBox.hpp"
 #include "Widgets/CheckBox.hpp"
+#include "Widgets/RadioBox.hpp"
 #include "Widgets/Label.hpp"
 #include "BackgroundSlicingProcess.hpp"
 #include "ConnectPrinter.hpp"
@@ -2568,25 +2569,32 @@ void SelectMachineDialog::show_timelapse_folder_popup()
     if (!has_sdcard && m_timelapse_storage == "external")
         m_timelapse_storage = "internal";
 
+    // Reuse the themed RadioBox widget (radio_on / radio_off bitmaps) instead of the
+    // native wxRadioButton: the selected state shows a clear filled dot with good
+    // contrast on every platform, matching the storage selector in SendToPrinter.
     auto make_item = [&](const wxString& label, const std::string& val, bool enabled) {
-        auto* radio = new wxRadioButton(panel, wxID_ANY, label, wxDefaultPosition, wxDefaultSize,
-            val == "internal" ? wxRB_GROUP : 0);
+        auto* radio = new RadioBox(panel);
         radio->SetValue(m_timelapse_storage == val);
-        radio->SetFont(Label::Body_14);
-        radio->Enable(enabled);
-        radio->SetForegroundColour(enabled ? wxColour(0x5C, 0x5C, 0x5C) : wxColour(0xAC, 0xAC, 0xAC));
-        sizer->Add(radio, 0, wxALIGN_CENTER_VERTICAL);
+        if (enabled) radio->Enable(); else radio->Disable();
+
+        auto* text = new Label(panel, Label::Body_14, label);
+        text->SetForegroundColour(enabled ? wxColour(0x5C, 0x5C, 0x5C) : wxColour(0xAC, 0xAC, 0xAC));
 
         if (enabled) {
-            radio->Bind(wxEVT_RADIOBUTTON, [this, val](wxCommandEvent&) {
+            auto on_select = [this, val](wxMouseEvent&) {
                 m_timelapse_storage = val;
                 update_timelapse_folder_btn_icon();
                 if (m_timelapse_storage_popup) m_timelapse_storage_popup->Dismiss();
                 DeviceManager* dev = wxGetApp().getDeviceManager();
                 MachineObject* obj = dev ? dev->get_selected_machine() : nullptr;
                 if (obj) check_timelapse_storage_warning(obj);
-            });
+            };
+            radio->Bind(wxEVT_LEFT_DOWN, on_select);
+            text->Bind(wxEVT_LEFT_DOWN, on_select);
         }
+
+        sizer->Add(radio, 0, wxALIGN_CENTER_VERTICAL);
+        sizer->Add(text, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, FromDIP(6));
     };
 
     make_item(_L("Internal"), "internal", true);
