@@ -20,3 +20,4 @@ tests/catch2/catch.hpp
 # workflow changes should re-run the smoke gate
 .github/gcodewriter-smoke-paths.txt
 .github/workflows/cpp_ut_smoke.yml
+.github/workflows/build_windows_deps.yml

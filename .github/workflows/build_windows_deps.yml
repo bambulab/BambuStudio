@@ -1,4 +1,4 @@
-name: Build Windows Deps
+name: Windows Deps Build
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ on:
     paths:
       - "deps/**"
       - "build_win.bat"
-      - ".github/workflows/deps_build.yml"
+      - ".github/workflows/build_windows_deps.yml"
       - ".github/workflows/build_deps.yml"
       - ".github/workflows/build_check_cache.yml"
 
@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   build-windows-deps:
-    name: Build Windows Deps
+    name: Windows Deps Build
     runs-on: windows-latest
     env:
       DEPS_ROOT: ${{ github.workspace }}\deps\build\BambuStudio_dep
@@ -100,7 +100,7 @@ jobs:
         run: |
           $cacheStatus = if ("${{ steps.cache_deps.outputs.cache-hit }}" -eq "true") { "hit" } else { "miss" }
           @"
-          ## Build Windows Deps
+          ## Windows Deps Build
 
           - Cache key: `${{ steps.cache_meta.outputs.cache-key }}`
           - Cache status: $cacheStatus
