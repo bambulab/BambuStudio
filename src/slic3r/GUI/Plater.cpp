@@ -11485,6 +11485,12 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
     bool force_render = (current_panel != nullptr);
 #endif // __WXMAC__
 
+    // Switching INTO the assembly view also collapses the sidebar and re-shows
+    const bool entering_assemble = (panel == assemble_view && current_panel != panel);
+    std::unique_ptr<wxWindowUpdateLocker> assemble_switch_locker;
+    if (entering_assemble)
+        assemble_switch_locker = std::make_unique<wxWindowUpdateLocker>(q);
+
     //BBS: add slice logic when switch to preview page
     auto do_reslice = [this, no_slice]() {
             // see: Plater::priv::object_list_changed()
@@ -11727,6 +11733,8 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             notification_manager->set_canvas_type(preview->get_canvas3d()->get_canvas_type());
     }
     else if (current_panel == assemble_view) {
+        // Switching into the assembly view also collapses the sidebar (above),
+        wxBusyCursor wait;
         if (notification_manager != nullptr)
             notification_manager->set_canvas_type(assemble_view->get_canvas3d()->get_canvas_type());
         if (old_panel == view3D) {
@@ -11752,7 +11760,14 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
             }
         }
 
+        // Force the pending sidebar-collapse / panel layout to settle synchronously
+        if (wxWindow* panel_container = assemble_view->GetParent())
+            panel_container->Layout();
+        // Reset the cached size to force a resize on the next render() so the GL
+        assemble_view->get_canvas3d()->reset_old_size();
         assemble_view->set_as_dirty();
+        // Paint the prepared scene now so the first presented GL frame is the
+        assemble_view->get_canvas3d()->render();
         // BBS
         //view_toolbar.select_item("Assemble");
     }

@@ -341,7 +341,9 @@ set(SLIC3R_GUI_SOURCES
     GUI/Overview/TinyExportMardDown.cpp
     GUI/Overview/TinyExportMardDown.hpp
     GUI/Overview/AssemblyStepsUtils.cpp
+    GUI/Overview/AssemblyStepsUtilsImgui.cpp
     GUI/Overview/AssemblyStepsUtils.hpp
+    GUI/Overview/AssemblyStepsUtilsInternal.hpp
     GUI/CameraUtils.cpp
     GUI/CameraUtils.hpp
     GUI/wxExtensions.cpp

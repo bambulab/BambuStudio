@@ -2977,7 +2977,11 @@ void GLCanvas3D::render(bool only_init)
         right_margin = SLIDER_RIGHT_MARGIN;
         bottom_margin = SLIDER_BOTTOM_MARGIN;
     }
-    wxGetApp().plater()->get_notification_manager()->render_notifications(*this, get_overlay_window_width(), bottom_margin, right_margin);
+    // In the assembly view, suppress notification toasts while exporting (PDF / video)
+    const bool suppress_notifications = m_canvas_type == ECanvasType::CanvasAssembleView
+        && m_assembly_steps && m_assembly_steps->is_play_or_export_mode();
+    if (!suppress_notifications)
+        wxGetApp().plater()->get_notification_manager()->render_notifications(*this, get_overlay_window_width(), bottom_margin, right_margin);
     if (m_canvas_type != ECanvasType::CanvasAssembleView) {
         wxGetApp().plater()->get_dailytips()->render();
     }

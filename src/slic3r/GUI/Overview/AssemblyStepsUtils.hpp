@@ -7,7 +7,6 @@
 #include "../GLModel.hpp"
 #include "imgui/imgui.h"
 
-
 class wxWindow;
 
 namespace Slic3r {
@@ -375,6 +374,7 @@ class AssemblyStepsUtils
     AssemblyNoteSelectionType m_note_selected_type{AssemblyNoteSelectionType::None};
     int                       m_note_selected_idx{-1};
     bool                      m_keyframe_playing{false};
+    bool                      m_use_notify_open_folder_flag{true};
 
 public:
     AssemblyStepsUtils();
