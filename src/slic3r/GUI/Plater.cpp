@@ -12182,12 +12182,15 @@ bool Plater::priv::warnings_dialog()
 // Emitted once per successfully sliced plate from on_process_completed().
 void Plater::priv::track_slice_mesh_stat()
 {
-    PartPlate *cur_plate = partplate_list.get_curr_plate();
+    // Use the plate that was actually sliced, not whichever plate the user has selected in the UI.
+    PartPlate *cur_plate = background_process.get_current_plate();
     if (!cur_plate) return;
 
-    ModelObjectPtrs objs     = cur_plate->get_objects_on_this_plate();
-    json            mesh_arr = json::array(); // counts only, no part names (compliance)
-    size_t          total    = 0;
+    ModelObjectPtrs objs = cur_plate->get_objects_on_this_plate();
+    if (objs.empty()) return; // gcode-only reload, empty plate — nothing to report
+
+    json   mesh_arr = json::array(); // counts only, no part names (compliance)
+    size_t total    = 0;
     for (ModelObject *o : objs) {
         if (!o) continue;
         size_t fc = o->facets_count();
@@ -12197,7 +12200,7 @@ void Plater::priv::track_slice_mesh_stat()
 
     const auto &gl = OpenGLManager::get_gl_info();
     json        j;
-    j["plate_index"]  = partplate_list.get_curr_plate_index();
+    j["plate_index"]  = cur_plate->get_index();
     j["part_count"]   = objs.size();
     j["mesh_facets"]  = mesh_arr;
     j["mesh_total"]   = total;
