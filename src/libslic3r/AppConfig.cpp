@@ -226,6 +226,14 @@ void AppConfig::set_defaults()
     if (get("enable_multi_machine").empty())
         set_bool("enable_multi_machine", false);
 
+    if (get("studio_enable_fila_manager").empty()) {
+#ifdef __APPLE__
+        set_bool("studio_enable_fila_manager", false);
+#else
+        set_bool("studio_enable_fila_manager", true);
+#endif
+    }
+
     if (get("enable_record_gcodeviewer_option_item").empty())
         set_bool("enable_record_gcodeviewer_option_item", false);
     if (get("prefer_to_use_dgpu").empty())

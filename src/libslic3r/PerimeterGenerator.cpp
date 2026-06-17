@@ -921,8 +921,7 @@ void PerimeterGenerator::process_classic()
         const Surface &surface = this->slices->surfaces[surface_order[order_idx]];
         // detect how many perimeters must be generated for this island
         int        loop_number = this->config->wall_loops + surface.extra_perimeters - 1;  // 0-indexed loops
-        int sparse_infill_density = this->config->sparse_infill_density.value;
-        if (this->config->alternate_extra_wall && this->layer_id % 2 == 1 && !m_spiral_vase && sparse_infill_density > 0)
+        if (this->config->alternate_extra_wall && this->layer_id % 2 == 1 && !m_spiral_vase)
             loop_number++;
         //BBS: set the topmost and bottom most layer to be one wall
         if (loop_number > 0 && ((this->object_config->top_one_wall_type != TopOneWallType::None && this->upper_slices == nullptr) || (this->object_config->only_one_wall_first_layer && layer_id == 0)))
@@ -1508,8 +1507,7 @@ void PerimeterGenerator::process_arachne()
     for (const Surface& surface : this->slices->surfaces) {
         // detect how many perimeters must be generated for this island
         int loop_number = this->config->wall_loops + surface.extra_perimeters - 1; // 0-indexed loops
-        int sparse_infill_density = this->config->sparse_infill_density.value;
-        if (this->config->alternate_extra_wall && this->layer_id % 2 == 1 && !m_spiral_vase && sparse_infill_density > 0)
+        if (this->config->alternate_extra_wall && this->layer_id % 2 == 1 && !m_spiral_vase)
             loop_number++;
 
         bool apply_circle_compensation = true;

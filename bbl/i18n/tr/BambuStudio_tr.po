@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-14 16:05+0800\n"
+"POT-Creation-Date: 2026-06-15 21:22+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -2190,11 +2190,14 @@ msgstr "SVG değiştirici ekle"
 msgid "Select settings"
 msgstr "Ayarları şeç"
 
-msgid "Hide"
-msgstr "Gizle"
+msgid "Add to New Step"
+msgstr ""
 
-msgid "Show"
-msgstr "Göster"
+msgid "Add to Current Step"
+msgstr ""
+
+msgid "Add to Existing Step"
+msgstr ""
 
 msgid "Delete the selected object"
 msgstr "Seçilen nesneyi sil"
@@ -3278,28 +3281,11 @@ msgstr "Yazdırma işi LAN üzerinden gönderiliyor"
 msgid "Sending print job through cloud service"
 msgstr "Yazdırma işini bulut hizmeti aracılığıyla gönderme"
 
-msgid "Print task sending times out."
-msgstr "Yazdırma görevi gönderimi zaman aşımına uğradı."
-
 msgid "Service Unavailable"
 msgstr "Hizmet kullanılamıyor"
 
 msgid "Unknown Error."
 msgstr "Bilinmeyen hata oluştu."
-
-msgid "Sending print configuration"
-msgstr "Yazdırma yapılandırması gönderiliyor"
-
-#, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the device page in %ss"
-msgstr "Başarıyla gönderildi. %ss'de otomatik olarak cihaz sayfasına atlayacak"
-
-#, c-format, boost-format
-msgid "Successfully sent. Will automatically jump to the next page in %ss"
-msgstr "Başarıyla gönderildi. %ss'de otomatik olarak bir sonraki sayfaya atlayacak"
-
-msgid "Storage needs to be inserted before printing via LAN."
-msgstr "LAN üzerinden yazdırmadan önce depolama biriminin takılması gerekir."
 
 msgid "Sending gcode file over LAN"
 msgstr "LAN üzerinden gcode dosyası gönderiliyor"
@@ -3349,7 +3335,10 @@ msgstr ""
 msgid "Multi-Color"
 msgstr ""
 
-msgid "Filament Mapping"
+msgid "Your input texture model"
+msgstr ""
+
+msgid "Processed multi-color model"
 msgstr ""
 
 msgid "Color Count"
@@ -3365,6 +3354,9 @@ msgid "Convert texture to painting using the specified color count and smooth le
 msgstr ""
 
 msgid "Reminder: parameters changed, click Apply to take effect"
+msgstr ""
+
+msgid "Filament Mapping"
 msgstr ""
 
 msgid "Auto-merge same filament"
@@ -3387,6 +3379,27 @@ msgstr ""
 
 msgid "Computation failed. Please adjust parameters and retry."
 msgstr ""
+
+msgid "The mesh has non-manifold geometry or open boundaries. You can import it as-is or repair it with Windows 3D repair service before importing."
+msgstr ""
+
+msgid "Mesh repair"
+msgstr ""
+
+msgid "Import without repair"
+msgstr ""
+
+msgid "Repair and import"
+msgstr ""
+
+msgid "Please note that the mesh has non-manifold geometry or open boundaries."
+msgstr ""
+
+msgid "Mesh issue"
+msgstr ""
+
+msgid "Continue"
+msgstr "Devam et"
 
 msgid "Choose SLA archive:"
 msgstr "SLA arşivini seçin:"
@@ -4216,8 +4229,40 @@ msgstr ""
 "kilit derinliği, kaplama derinliğinden küçük olmalıdır.\n"
 "Kaplama derinliğinin %%50'sine sıfırla."
 
-msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
-msgstr "Spiral modu yalnızca duvar döngüleri 1 olduğunda, destek devre dışı bırakıldığında, sondalama yoluyla kümelenme algılama devre dışı bırakıldığında, üst kabuk katmanları 0 olduğunda, seyrek dolgu yoğunluğu 0 olduğunda, zaman atlamalı tür geleneksel olduğunda ve z yönünde duvar hızını yumuşatma yanlış olduğunda çalışır."
+msgid "Alternate extra wall is incompatible with spiral vase mode. To enable alternate extra wall, the following adjustments are recommended:"
+msgstr ""
+
+msgid "Set ensure vertical shell thickness to Partial."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Set wall loops to %d."
+msgstr ""
+
+#, c-format, boost-format
+msgid "Set sparse infill density to %d%%."
+msgstr ""
+
+msgid "Disable spiral vase mode."
+msgstr ""
+
+msgid ""
+"Change these settings automatically?\n"
+"Yes - Apply and keep alternate extra wall enabled\n"
+"No  - Don't use alternate extra wall"
+msgstr ""
+
+msgid "For alternate extra wall to work properly, the following adjustments are recommended:"
+msgstr ""
+
+msgid ""
+"Apply these adjustments?\n"
+"Yes - Apply and keep alternate extra wall enabled\n"
+"No  - Keep current settings and alternate extra wall enabled"
+msgstr ""
+
+msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional, smoothing wall speed in z direction is false and alternate extra wall is disabled."
+msgstr ""
 
 msgid " But machines with I3 structure will not generate timelapse videos."
 msgstr " Ancak I3 yapısına sahip yazıcılar timelapse videolar oluşturmayacaktır."
@@ -4339,10 +4384,10 @@ msgstr "Duraklat (ilk katman hatası)"
 msgid "Pause (nozzle clog)"
 msgstr "Duraklatma (nozul tıkanıklığı)"
 
-msgid "Measuring motion percision"
+msgid "Measuring motion precision"
 msgstr "Hareket hassasiyetinin ölçülmesi"
 
-msgid "Enhancing motion percision"
+msgid "Enhancing motion precision"
 msgstr "Hareket hassasiyetini artırma"
 
 msgid "Measure motion accuracy"
@@ -5045,6 +5090,9 @@ msgstr "Model %s'nin konumu veya boyutu %s'nin yazdırılabilir aralığını a�
 msgid " Please check and adjust the part's position or size to fit the printable range:\n"
 msgstr " Lütfen kontrol edin ve parçanın konumunu veya boyutunu yazdırılabilir aralığa uyacak şekilde ayarlayın:\n"
 
+msgid "Unnamed"
+msgstr ""
+
 msgid "Mirror Object"
 msgstr "Nesneyi Aynala"
 
@@ -5182,8 +5230,17 @@ msgstr "Kamerayı sığdır"
 msgid "Fit camera to scene or selected object."
 msgstr "Kamerayı sahneye veya seçilen nesneye sığdırın."
 
+msgid "Unlock camera"
+msgstr ""
+
+msgid "Lock camera"
+msgstr ""
+
 msgid "Paint Toolbar"
 msgstr "Boyama Araç Çubuğu"
+
+msgid "This border is used to distinguish it from the background"
+msgstr ""
 
 msgid "Explosion Ratio"
 msgstr "Patlama Oranı"
@@ -5196,6 +5253,15 @@ msgstr "Montaj Kontrolü"
 
 msgid "Selection Mode"
 msgstr "Seçim Kipi"
+
+msgid "OnlyCurrentStep"
+msgstr ""
+
+msgid "Highlight"
+msgstr ""
+
+msgid "Display Mode"
+msgstr ""
 
 msgid "Total Volume:"
 msgstr "Toplam Hacim:"
@@ -5405,6 +5471,9 @@ msgid "Preview"
 msgstr "Ön İzleme"
 
 msgid "The current page has unsaved changes. You can continue editing or choose to save/discard before leaving."
+msgstr ""
+
+msgid "Home"
 msgstr ""
 
 msgid "Device"
@@ -5698,6 +5767,15 @@ msgstr "Hiçbirini seçme"
 msgid "Deselects all objects"
 msgstr "Tüm nesnelerin seçimini kaldırır"
 
+msgid "Enter Camera Full Screen"
+msgstr ""
+
+msgid "Show the Device camera in full screen"
+msgstr ""
+
+msgid "Exit Camera Full Screen"
+msgstr ""
+
 msgid "Use Perspective View"
 msgstr "Perspektif Görünüm"
 
@@ -5761,17 +5839,17 @@ msgstr "Yardım"
 msgid "Temperature Calibration"
 msgstr "Sıcaklık Kalibrasyonu"
 
-msgid "Pass 1"
-msgstr "Geçiş 1"
+msgid "Coarse"
+msgstr ""
 
-msgid "Flow rate test - Pass 1"
-msgstr "Akış hızı testi - Başarılı 1"
+msgid "Flow rate test - Coarse"
+msgstr ""
 
-msgid "Pass 2"
-msgstr "Geçiş 2"
+msgid "Fine"
+msgstr ""
 
-msgid "Flow rate test - Pass 2"
-msgstr "Akış hızı testi - Geçiş 2"
+msgid "Flow rate test - Fine"
+msgstr ""
 
 msgid "Flow rate"
 msgstr "Akış hızı"
@@ -5938,6 +6016,9 @@ msgstr "Oynatıcı yüklenmedi, yeniden denemek için lütfen \"oynat\" düğmes
 
 msgid "Plugin library failed to load. Click here to view the solution."
 msgstr "Eklenti kütüphanesi yüklenemedi. Çözümü görüntülemek için buraya tıklayın."
+
+msgid "Loading failed. Please check the network and try again."
+msgstr ""
 
 msgid "Temporarily closed because there is no operation for a while."
 msgstr "Bir süre işlem yapılmadığı için geçici olarak kapatıldı."
@@ -6302,6 +6383,9 @@ msgstr ""
 
 msgid "Go to Login"
 msgstr "Giriş Yap'a git"
+
+msgid "Camera Full Screen"
+msgstr ""
 
 msgctxt "Quit_Switching"
 msgid "Quit"
@@ -6865,6 +6949,9 @@ msgstr "Git"
 msgid "Error:"
 msgstr "Hata:"
 
+msgid "Enable support for"
+msgstr ""
+
 msgid "Open link for more info"
 msgstr ""
 
@@ -6938,6 +7025,12 @@ msgctxt "Layers"
 msgid "Bottom"
 msgstr "Alt"
 
+msgid "There is stringing-prone filament in the current print job. Enabling nozzle clumping detection now may degrade print quality. Are you sure you want to enable it?"
+msgstr ""
+
+msgid "Enable Nozzle Clumping Detection"
+msgstr ""
+
 msgid "When enabled, the printer will automatically capture photos of printed parts and upload them to the cloud. Would you like to enable this option?"
 msgstr ""
 
@@ -6956,8 +7049,8 @@ msgstr ""
 msgid "Enable detection of build plate position"
 msgstr "Yapı plakası konumunun algılanmasını etkinleştir"
 
-msgid "The localization tag of build plate is detected, and printing is paused if the tag is not in predefined range."
-msgstr "Baskı plakasının yerelleştirme etiketi algılanır ve etiket önceden tanımlanmış aralıkta değilse yazdırma duraklatılır."
+msgid "Pauses printing when build plate misalignment is detected."
+msgstr ""
 
 msgid "Build Plate Detection"
 msgstr "Yapı Plakası Algılama"
@@ -7022,9 +7115,6 @@ msgstr ""
 msgid "Alignment Detection"
 msgstr ""
 
-msgid "Pauses printing when build plate misalignment is detected."
-msgstr ""
-
 msgid "First Layer Inspection"
 msgstr "İlk Katman Kontrolü"
 
@@ -7052,6 +7142,9 @@ msgstr "Filament Dolaşma Tespiti"
 msgid "Checks if the nozzle is clumping by filament or other foreign objects."
 msgstr ""
 
+msgid "On"
+msgstr "Açık"
+
 msgid "Open Door Detection"
 msgstr "Açık Kapı Algılama"
 
@@ -7068,6 +7161,15 @@ msgid "Print Status Snapshot"
 msgstr ""
 
 msgid "Automatically capture and upload print photos, showing defects during printing and the final result for remote viewing."
+msgstr ""
+
+msgid "Automatically match the corresponding switch strategy for leak-prone filaments (disable blob detection) and regular filaments (enable blob detection)."
+msgstr ""
+
+msgid "Detect whether the nozzle is wrapped by filament or other foreign matter."
+msgstr ""
+
+msgid "After disabling, nozzle wrapping cannot be detected, which may lead to print failure or nozzle damage."
 msgstr ""
 
 msgctxt "Nozzle Type"
@@ -7507,6 +7609,12 @@ msgid "Computing texture colors: %s"
 msgstr ""
 
 msgid "Texture Import Warning"
+msgstr ""
+
+msgid ""
+"The imported STEP file is split by sub-assembly, so some objects may not be placed on the build plate at first.\n"
+"It is expected if they are placed on the build plate later after translation or similar operations.\n"
+"The overall assembly can be checked from the assembly thumbnail or by entering the assembly view."
 msgstr ""
 
 msgid "Load these files as a single object with multiple parts?\n"
@@ -8328,6 +8436,12 @@ msgstr "Çoklu cihaz yönetimi (Studio yeniden başlatıldıktan sonra etkili ol
 msgid "With this option enabled, you can send a task to multiple devices at the same time and manage multiple devices."
 msgstr "Bu seçenek etkinleştirildiğinde, aynı anda birden fazla cihaza görev gönderebilir ve birden fazla cihazı yönetebilirsiniz."
 
+msgid "Take effect after restarting Studio"
+msgstr ""
+
+msgid "The Filament Manager is turned off by default on macOS because compatibility issues on some systems may cause the application to become unresponsive."
+msgstr ""
+
 msgid "Show the step mesh parameter setting dialog."
 msgstr "Adım ağı parametre ayarı iletişim kutusunu gösterir."
 
@@ -8346,11 +8460,26 @@ msgstr "Yüksek ve düşük sıcaklıktaki filamentlerin karışık baskısı ü
 msgid "With this option enabled, you can print materials with a large temperature difference together."
 msgstr "Bu seçenek etkinleştirildiğinde, büyük sıcaklık farkına sahip malzemeleri birlikte yazdırabilirsiniz."
 
+msgid "Open full screen camera view on active monitor only."
+msgstr ""
+
+msgid "When enabled, the camera full screen view opens only on the monitor that contains Bambu Studio."
+msgstr ""
+
 msgid "Clear my choice for synchronizing printer preset after loading the file."
 msgstr "Dosyayı yükledikten sonra yazıcı ön ayarını senkronize etmek için seçimimi temizleyin."
 
 msgid "Clear my choice for Load 3mf dialog settings."
 msgstr "3mf Yükle pencere ayarlarındaki seçimimi kaldır."
+
+msgid "Clear my choice for executing post-processing scripts."
+msgstr ""
+
+msgid "Show the security warning dialog again before slicing when post-processing scripts are configured."
+msgstr ""
+
+msgid "Clear my choice for disabling support parameter recommendation."
+msgstr ""
 
 msgid "3D Settings"
 msgstr "3D Ayarları"
@@ -8912,9 +9041,6 @@ msgstr "Bambu Soğuk Plaka SuperTack"
 msgid "Send print job"
 msgstr "Yazdırma işini şuraya gönder"
 
-msgid "On"
-msgstr "Açık"
-
 msgid "Not satisfied with the grouping of filaments? Regroup and slice ->"
 msgstr "Filamentlerin gruplandırılmasından memnun değil misiniz? Yeniden gruplandırın ve dilimleyin ->"
 
@@ -9178,10 +9304,13 @@ msgstr ""
 msgid "The hardness of current material (%s) exceeds the hardness of %s (%s). It may cause nozzle wear, leading to material leakage and unstable flow. Please exercise caution when using it."
 msgstr ""
 
-msgid "It is recommended to perform an mannual flow calibration for TPU filament on the 'Calibration' page. If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the previous calibration value and skip the flow calibration process."
+msgid "If 'Dynamic Flow Calibration' is set to Auto/On, the system will use the manual calibration value or the default value and skip the flow calibration process. You can perform a manual flow calibration for TPU filament on the 'Calibration' page."
 msgstr ""
 
 msgid "Some filaments may switch between extruders during printing. Manual K-value calibration cannot be applied throughout the entire print, which may affect print quality. Enabling Flow Dynamics Calibration is recommended."
+msgstr ""
+
+msgid "There is stringing-prone filament in this file. For best print quality, we recommend switching nozzle clumping detection to Auto mode."
 msgstr ""
 
 msgid "Cool"
@@ -9234,6 +9363,9 @@ msgstr "Lütfen Ext'i AMS ile karıştırarak kullanmayın"
 
 msgid "Invalid nozzle information, please refresh or manually set nozzle information."
 msgstr "Geçersiz nozul bilgisi, lütfen nozul bilgisini yenileyin veya manuel olarak ayarlayın."
+
+msgid "Storage needs to be inserted before printing via LAN."
+msgstr "LAN üzerinden yazdırmadan önce depolama biriminin takılması gerekir."
 
 msgid "Storage is not available or is in read-only mode."
 msgstr "Depolama alanı mevcut değil veya salt okunur modda."
@@ -9910,6 +10042,12 @@ msgstr "Firmware Geri Çekme"
 
 msgid "Detached"
 msgstr "Söküldü"
+
+msgid "The current preset is a project preset and can't be used to create a new preset. Please select a system preset or user preset, then try again."
+msgstr ""
+
+msgid "Unable to save preset"
+msgstr ""
 
 #, c-format, boost-format
 msgid "%d Filament Preset and %d Process Preset is attached to this printer. Those presets would be deleted if the printer is deleted."
@@ -11429,6 +11567,9 @@ msgstr "Onarılan 3mf dosyası herhangi bir birim içermiyor"
 msgid "Repaired 3mf file contains more than one volume"
 msgstr "Onarılan 3mf dosyası birden fazla birim içeriyor"
 
+msgid "Repaired 3mf file contains more than one instance"
+msgstr ""
+
 msgid "Repair finished"
 msgstr "Onarım tamamlandı"
 
@@ -11443,6 +11584,20 @@ msgstr "Yapılandırma paketi şu şekilde güncellendi "
 
 msgid "Open G-code file:"
 msgstr "G kodu dosyasını açın:"
+
+msgid "Print task sending times out."
+msgstr "Yazdırma görevi gönderimi zaman aşımına uğradı."
+
+msgid "Sending print configuration"
+msgstr "Yazdırma yapılandırması gönderiliyor"
+
+#, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the device page in %ss"
+msgstr "Başarıyla gönderildi. %ss'de otomatik olarak cihaz sayfasına atlayacak"
+
+#, c-format, boost-format
+msgid "Successfully sent. Will automatically jump to the next page in %ss"
+msgstr "Başarıyla gönderildi. %ss'de otomatik olarak bir sonraki sayfaya atlayacak"
 
 msgid "The following object(s) have empty initial layer and can't be printed. Please cut the bottom or enable supports."
 msgstr "Aşağıdaki nesne(ler) boş başlangıç katmanına sahip ve yazdırılamıyor. Lütfen alt kısmı kesin veya destekleri etkinleştirin."
@@ -11721,6 +11876,9 @@ msgstr "Birden fazla nesneyi spiral vazo modunda yazdırmak için lütfen \"Nesn
 
 msgid "The spiral vase mode does not work when an object contains more than one materials."
 msgstr "Bir nesne birden fazla malzeme içerdiğinde spiral vazo modu çalışmaz."
+
+msgid "The spiral vase mode does not work when an object contains regions with different print settings."
+msgstr ""
 
 msgid "Variable layer height is not supported with Organic supports."
 msgstr "Değişken katman yüksekliği Organik desteklerle desteklenmez."
@@ -12577,7 +12735,7 @@ msgstr "Temizleme sıcaklığı"
 msgid "temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range"
 msgstr "filament temizleme (flushing) sırasında sıcaklık. 0 değeri, önerilen nozül sıcaklık aralığının üst sınırını belirtir"
 
-msgid "Flush temperature used in fast purge mode. 0 indicates the upper bound of the recommended nozzle temperature range"
+msgid "Flush temperature used in fast purge mode."
 msgstr ""
 
 msgid "Flush volumetric speed"
@@ -12632,6 +12790,18 @@ msgid "Hotend change time"
 msgstr ""
 
 msgid "Time to change hotend."
+msgstr ""
+
+msgid "Cut and unload from extruder time"
+msgstr ""
+
+msgid "Time to cut filament and retract it out of the extruder, used when parallel feeding is supported. For statistics only"
+msgstr ""
+
+msgid "Extruder bite time after pre-feed"
+msgstr ""
+
+msgid "Time for the extruder to bite the filament once it has been pre-fed, used when parallel feeding is supported. For statistics only"
 msgstr ""
 
 msgid "Bed temperature type"
@@ -12778,6 +12948,12 @@ msgid "Mixed filament gradient range"
 msgstr ""
 
 msgid "Start and end ratios for the first component in gradient mode. Comma-separated pair, e.g. \"0.10,0.90\" means 10% to 90%."
+msgstr ""
+
+msgid "Mixed filament gradient curve"
+msgstr ""
+
+msgid "Optional Photoshop-style custom curve mapping Z progress to the first component ratio. Encoded as pipe-separated control points, either \"x,y\" (legacy) or \"x,y,m_in,m_out\" when a tangent override is needed (empty token or \"nan\" means use PCHIP default). x in [0,1]; y is clamped to the configured ratio range, e.g. \"0,0.15|0.5,0.50|1,0.85\". When empty, the linear gradient_range is used instead."
 msgstr ""
 
 msgid "Mixed filament per-part gradient"
@@ -13180,6 +13356,12 @@ msgstr ""
 
 msgid "Enable clumping detection"
 msgstr "Topaklanma algılamayı etkinleştir"
+
+msgid "Order-independent overlap carving"
+msgstr ""
+
+msgid "When enabled, overlapping model parts are carved by bounding-box size so smaller embedded parts are not removed by larger parts due to volume order."
+msgstr ""
 
 msgid "Clumping detection layers"
 msgstr "Topaklanma algılama katmanları"
@@ -13736,6 +13918,12 @@ msgstr ""
 msgid "Embedding the wall into parts where the wall loops are absent ensures that the wall connects seamlessly to the infill."
 msgstr ""
 
+msgid "Alternate extra wall"
+msgstr ""
+
+msgid "Add an extra wall on alternating layers to improve layer bonding and part strength without the full cost of a permanent extra wall."
+msgstr ""
+
 msgid "Post-processing Scripts"
 msgstr "İşlem Sonrası Komut Dosyaları"
 
@@ -13979,6 +14167,12 @@ msgstr "Etek mesafesi"
 msgid "Distance from skirt to brim or object"
 msgstr "Etekten kenara veya nesneye olan mesafe"
 
+msgid "Skirt per object"
+msgstr ""
+
+msgid "Generate independent skirt around each object in sequential printing mode. When disabled, a single skirt is drawn around all objects."
+msgstr ""
+
 msgid "Skirt height"
 msgstr "Etek yüksekliği"
 
@@ -14032,6 +14226,12 @@ msgstr "Düzgün veya geleneksel mod seçilirse her baskı için bir hızlandır
 
 msgid "Traditional"
 msgstr "Geleneksel"
+
+msgid "Farthest point timelapse"
+msgstr ""
+
+msgid "When enabled, the timelapse snapshot is taken at the farthest point from camera instead of traveling to the wipe tower or excess chute. Only effective in traditional timelapse mode on non-I3 printers."
+msgstr ""
 
 msgid "Temperature variation"
 msgstr "Sıcaklık değişimi"
@@ -14529,6 +14729,12 @@ msgstr ""
 msgid "The flush multiplier used in fast purge mode."
 msgstr ""
 
+msgid "Alternate extruder printing"
+msgstr ""
+
+msgid "When the printer supports parallel (pre-)feeding, print the two extruders in an alternating order within a layer instead of finishing one extruder first. Only takes effect when the printer supports parallel feeding."
+msgstr ""
+
 msgid "Width of prime tower"
 msgstr "Prime kulesi genişliği"
 
@@ -14692,6 +14898,13 @@ msgstr "Dolgu takım yolu oluşturma"
 msgid "Detect overhangs for auto-lift"
 msgstr "Otomatik kaldırma için çıkıntıları tespit edin"
 
+msgid "Levitating objects cannot be printed without supports."
+msgstr ""
+
+#, c-format, boost-format
+msgid "It seems object %s has floating regions. Please re-orient the object or enable support generation."
+msgstr ""
+
 msgid "Checking support necessity"
 msgstr "Destek gerekliliğinin kontrol edilmesi"
 
@@ -14752,6 +14965,9 @@ msgstr "Bir model dosyasının örgüleme işlemi başarısız oldu veya geçerl
 msgid "The supplied file couldn't be read because it's empty"
 msgstr "Sağlanan dosya boş olduğundan okunamadı"
 
+msgid "The file format is incompatible and cannot be parsed."
+msgstr ""
+
 msgid "Unknown file format. Input file must have .stl, .obj, .amf(.xml), .gltf, .glb, .fbx extension."
 msgstr ""
 
@@ -14767,11 +14983,8 @@ msgstr "load_obj: ayrıştırılamadı"
 msgid "load mtl in obj: failed to parse"
 msgstr "obj içindeki mtl yüklenemedi: Ayrıştırma başarısız oldu"
 
-msgid "The file contains polygons with more than 4 vertices."
-msgstr "Dosya 4'ten fazla köşesi olan çokgenler içeriyor."
-
-msgid "The file contains polygons with less than 2 vertices."
-msgstr "Dosya 2'den az köşesi olan çokgenler içeriyor."
+msgid "The file contains polygons with less than 3 vertices."
+msgstr ""
 
 msgid "The file contains invalid vertex index."
 msgstr "Dosya geçersiz köşe dizini içeriyor."
@@ -16793,9 +17006,6 @@ msgstr "Bu işlem geri alınamaz. Devam edelim mi?"
 msgid "Skipping objects."
 msgstr "Nesneleri atlıyor."
 
-msgid "Continue"
-msgstr "Devam et"
-
 msgid "Null Color"
 msgstr "Boş Renk"
 
@@ -17171,6 +17381,12 @@ msgstr ""
 msgid "Remove the third material"
 msgstr ""
 
+msgid "Material Ratio"
+msgstr ""
+
+msgid "Model Height"
+msgstr ""
+
 #: resources/data/hints.ini: [hint:How to use keyboard shortcuts]
 msgid ""
 "How to use keyboard shortcuts\n"
@@ -17448,6 +17664,36 @@ msgid ""
 "First-Time-Right Reliability\n"
 "Less babysitting, more predictable output. Example: a small farm running PETG parts avoids 'fail at hour 6' surprises and keeps batches on schedule."
 msgstr ""
+
+#~ msgid "Hide"
+#~ msgstr "Gizle"
+
+#~ msgid "Show"
+#~ msgstr "Göster"
+
+#~ msgid "Spiral mode only works when wall loops is 1, support is disabled, clumping detection by probing is disabled, top shell layers is 0, sparse infill density is 0, timelapse type is traditional and smoothing wall speed in z direction is false."
+#~ msgstr "Spiral modu yalnızca duvar döngüleri 1 olduğunda, destek devre dışı bırakıldığında, sondalama yoluyla kümelenme algılama devre dışı bırakıldığında, üst kabuk katmanları 0 olduğunda, seyrek dolgu yoğunluğu 0 olduğunda, zaman atlamalı tür geleneksel olduğunda ve z yönünde duvar hızını yumuşatma yanlış olduğunda çalışır."
+
+#~ msgid "Pass 1"
+#~ msgstr "Geçiş 1"
+
+#~ msgid "Flow rate test - Pass 1"
+#~ msgstr "Akış hızı testi - Başarılı 1"
+
+#~ msgid "Pass 2"
+#~ msgstr "Geçiş 2"
+
+#~ msgid "Flow rate test - Pass 2"
+#~ msgstr "Akış hızı testi - Geçiş 2"
+
+#~ msgid "The localization tag of build plate is detected, and printing is paused if the tag is not in predefined range."
+#~ msgstr "Baskı plakasının yerelleştirme etiketi algılanır ve etiket önceden tanımlanmış aralıkta değilse yazdırma duraklatılır."
+
+#~ msgid "The file contains polygons with more than 4 vertices."
+#~ msgstr "Dosya 4'ten fazla köşesi olan çokgenler içeriyor."
+
+#~ msgid "The file contains polygons with less than 2 vertices."
+#~ msgstr "Dosya 2'den az köşesi olan çokgenler içeriyor."
 
 #~ msgid "non-manifold edges be caused by cut tool, do you want to fix it now?"
 #~ msgstr "kesim aracı tarafından oluşturulan çok katmanlı olmayan kenarlar var, şimdi düzeltmek ister misiniz?"

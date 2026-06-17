@@ -30,6 +30,7 @@ enum class PrintOptionEnum{
     Snapshot_Detection,
     FOD_Check_Detection,
     Displacement_Detection,
+    Smart_Nozzle_Blob_Detection,
 };
 
 struct PrintOptionData
@@ -80,8 +81,10 @@ public:
     int command_xcam_control_build_plate_type_detector(bool on_off);
     int command_xcam_control_build_plate_align_detector(bool on_off);
     int command_xcam_control_purify_air_at_print_end(int on_off);
-    int command_snapshot_control(int on_off);
+
     int command_nozzle_blob_detect(bool nozzle_blob_detect);
+    int command_smart_nozzle_blob_detect_mode(int mode);  // 0=off, 1=on, 2=auto
+    int command_snapshot_control(int on_off);
     int command_xcam_control_fod_check(bool on_off);
     int command_xcam_control_displacement_detection(bool on_off);
 
@@ -116,6 +119,7 @@ private:
     PrintOptionData m_snapshot_detection;
     PrintOptionData m_fod_check_detection;
     PrintOptionData m_displacement_detection;
+    PrintOptionData m_smart_nozzle_blob_detection;
 
     std::map<PrintOptionEnum, PrintOptionData*> m_detection_list;
     DevPrintingSpeedLevel m_speed_level = SPEED_LEVEL_INVALID;

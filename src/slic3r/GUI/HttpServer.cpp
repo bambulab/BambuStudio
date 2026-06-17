@@ -545,13 +545,23 @@ std::optional<std::string> TicketLoginTask::do_request_login_info(const std::str
                 j["data"]["user"]["account"]    = profile_data.account;
                 j["data"]["user"]["avatar"]     = profile_data.avatar;
                 BOOST_LOG_TRIVIAL(info) << "third_party_login: login info ready";
-                return std::string(j.dump());
+                return std::string(j.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace));
             }
         }
     }
+    catch (const nlohmann::json::exception &e)
+    {
+        BOOST_LOG_TRIVIAL(error) << "third_party_login: json exception: " << e.what() << " (id=" << e.id << ")";
+        return std::nullopt;
+    }
+    catch (const std::exception &e)
+    {
+        BOOST_LOG_TRIVIAL(error) << "third_party_login: do_request_login_info exception: " << e.what();
+        return std::nullopt;
+    }
     catch (...)
     {
-        BOOST_LOG_TRIVIAL(info) << "third_party_login: do_request_login_info exception";
+        BOOST_LOG_TRIVIAL(error) << "third_party_login: do_request_login_info unknown exception";
         return std::nullopt;
     }
 }

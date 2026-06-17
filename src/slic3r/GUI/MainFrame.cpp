@@ -242,7 +242,6 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
 
     //reset log level
     auto loglevel = wxGetApp().app_config->get("severity_level");
-    Slic3r::set_logging_level(Slic3r::level_string_to_boost(loglevel));
     std::map<std::string, int> wx_log_levels{{"fatal", wxLOG_FatalError}, {"error", wxLOG_FatalError}, {"warning", wxLOG_Warning},
                                              {"info", wxLOG_Info},        {"debug", wxLOG_Debug},      {"trace", wxLOG_Trace}};
     wxLog::SetLogLevel(wx_log_levels[loglevel]);
@@ -681,8 +680,12 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, BORDERLESS_FRAME_
         const int key_code = evt.GetKeyCode();
 #ifdef __APPLE__
         if (evt.CmdDown() && (evt.GetKeyCode() == 'H')) {
-            //call parent_menu hide behavior
-            return;}
+            // Pass Cmd+H through to the macOS application menu so the
+            // standard "Hide BambuStudio" action fires.  Without evt.Skip()
+            // wxEVT_CHAR_HOOK consumes the event and macOS never sees it.
+            evt.Skip();
+            return;
+        }
         if (evt.CmdDown() && !evt.ShiftDown() && (evt.GetKeyCode() == 'M')) {
             this->Iconize();
             return;
@@ -1361,12 +1364,22 @@ void MainFrame::init_tabpanel()
             // Defer hash navigation until after the notebook paints (macOS + WKWebView).
             CallAfter([this]() {
                 if (m_web_device && m_tabpanel && m_tabpanel->GetCurrentPage() == m_web_device)
-                    m_web_device->NavigateTo("/filament");
+                    m_web_device->NavigateTo("/filament_manager", /*re_init=*/true);
             });
 #else
-            m_web_device->NavigateTo("/filament");
+            // Switching back to this tab: re-run init() to pick up changes.
+            m_web_device->NavigateTo("/filament_manager", /*re_init=*/true);
 #endif
         }
+#if defined(__WXOSX__)
+        // macOS root cause fix: suspend the Filament Manager WKWebView whenever it
+        // is not the visible tab. Its live React SPA, if left mounted in a hidden
+        // webview, keeps the CFRunLoop busy and starves wxEVT_IDLE app-wide, which
+        // freezes the 3D canvas / tab switching on the prepare page and breaks the
+        // language-switch GUI rebuild. Returning to the tab reloads it (NavigateTo).
+        if (m_web_device && panel != m_web_device)
+            m_web_device->Suspend();
+#endif
 #ifndef __APPLE__
         if (sel == tp3DEditor) {
             m_topbar->EnableUndoRedoItems();
@@ -1450,8 +1463,10 @@ void MainFrame::init_tabpanel()
     m_calibration->SetBackgroundColour(*wxWHITE);
     m_tabpanel->AddPage(m_calibration, _L("Calibration"), std::string("tab_calibration_active"), std::string("tab_calibration_active"), false);
 
-    m_web_device = new DeviceWebPage(m_tabpanel);
-    m_tabpanel->AddPage(m_web_device, _L("Filament Manager"), std::string("tab_filament_active"), std::string("tab_filament_active"), false);
+    if (!wxGetApp().is_fila_manager_disabled()) {
+        m_web_device = new DeviceWebPage(m_tabpanel);
+        m_tabpanel->AddPage(m_web_device, _L("Filament Manager"), std::string("tab_filament_active"), std::string("tab_filament_active"), false);
+    }
 
     if (m_plater) {
         // load initial config
@@ -3461,10 +3476,10 @@ void MainFrame::init_menubar_as_editor()
             [this]() {return m_plater->is_view3D_shown();; }, this);
         auto flowrate_menu = new wxMenu();
         append_menu_item(
-            flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
+            flowrate_menu, wxID_ANY, _L("Coarse"), _L("Flow rate test - Coarse"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(1); }, "", nullptr,
             [this]() {return m_plater->is_view3D_shown();; }, this);
-        append_menu_item(flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
+        append_menu_item(flowrate_menu, wxID_ANY, _L("Fine"), _L("Flow rate test - Fine"),
             [this](wxCommandEvent&) { if (m_plater) m_plater->calib_flowrate(2); }, "", nullptr,
             [this]() {return m_plater->is_view3D_shown();; }, this);
         m_topbar->GetCalibMenu()->AppendSubMenu(flowrate_menu, _L("Flow rate"));
@@ -3558,7 +3573,7 @@ void MainFrame::init_menubar_as_editor()
     // Flowrate
     auto flowrate_menu = new wxMenu();
     append_menu_item(
-        flowrate_menu, wxID_ANY, _L("Pass 1"), _L("Flow rate test - Pass 1"),
+        flowrate_menu, wxID_ANY, _L("Coarse"), _L("Flow rate test - Coarse"),
         [this](wxCommandEvent &) {
             if (m_plater) m_plater->calib_flowrate(1);
         },
@@ -3569,7 +3584,7 @@ void MainFrame::init_menubar_as_editor()
         },
         this);
     append_menu_item(
-        flowrate_menu, wxID_ANY, _L("Pass 2"), _L("Flow rate test - Pass 2"),
+        flowrate_menu, wxID_ANY, _L("Fine"), _L("Flow rate test - Fine"),
         [this](wxCommandEvent &) {
             if (m_plater) m_plater->calib_flowrate(2);
         },

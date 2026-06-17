@@ -104,6 +104,7 @@ public:
     static bool support_user_first_setup_tpu_check(std::string type_str){ return get_value_from_config<bool>(type_str, "print", "support_user_first_setup_tpu_check"); }
     static std::string support_user_first_setup_tpu_check_url(std::string type_str){ return get_value_from_config<std::string>(type_str, "print", "support_user_first_setup_tpu_check_url"); }
     static bool support_ams_ext_mix_print(std::string type_str) { return get_value_from_config<bool>(type_str, "print", "support_ams_ext_mix_print"); }
+    static bool support_print_time_estimate_warning(std::string type_str) { return get_value_from_config<bool>(type_str, "print", "support_print_time_estimate_warning"); }
 
     /*calibration*/
     static std::vector<std::string> get_unsupport_auto_cali_filaments(std::string type_str) { return get_value_from_config<std::vector<std::string>>(type_str, "auto_cali_not_support_filaments"); }
@@ -118,6 +119,9 @@ public:
     /*print check*/
     static bool support_print_check_extension_fan_f000_mounted(const std::string& type_str) { return get_value_from_config<bool>(type_str, "print", "support_print_check_extension_fan_f000_mounted"); }
     static std::string air_print_detection_position(const std::string &type_str) { return get_value_from_config<std::string>(type_str, "air_print_detection_position"); }
+
+    /*bed*/
+    static int get_bed_temperature_limit(const std::string &type_str) { return get_value_from_config<int>(type_str, "print", "bed_temperature_limit"); }
 
 public:
     template<typename T>

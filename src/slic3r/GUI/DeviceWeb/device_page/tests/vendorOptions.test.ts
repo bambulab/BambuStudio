@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { buildVendorOptions } from '../src/features/filament/vendorOptions.ts';
-import type { PresetVendor, Spool } from '../src/features/filament/types.ts';
+import { buildVendorOptions } from '../src/features/filament-manager/vendorOptions.ts';
+import type { PresetVendor, Spool } from '../src/features/filament-manager/types.ts';
 
 const presets: PresetVendor[] = [
   { name: 'Bambu Lab', types: [] },

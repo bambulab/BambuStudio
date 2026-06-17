@@ -610,4 +610,48 @@ namespace Slic3r {
         return *m_all_layer_pos;
     }
 
+    bool TimelapsePosPicker::get_is_clear_to_x0(const PosPickCtx &ctx)
+    {
+        bool by_object = m_print_seq == PrintSequence::ByObject;
+        std::vector<const PrintObject *> object_list    = get_object_list(ctx.printed_objects);
+
+        auto range_intersect = [](int left1, int right1, int left2, int right2) {
+            if (left1 <= left2 && left2 <= right1) return true;
+            if (left2 <= left1 && left1 <= right2) return true;
+            return false;
+        };
+
+        ExPolygons   unclear_area;
+        const Layer *layer    = ctx.curr_layer;
+        float        z_target = layer->print_z;
+        float        z_low    = layer->print_z - 0.5;
+        float        z_high   = layer->print_z + 0.5;
+
+        for (auto &obj : object_list) {
+            for (auto &instance : obj->instances()) {
+                auto instance_bbox          = get_real_instance_bbox(instance);
+                bool is_curr_obj = ( obj == object_list.back() ) || ( !by_object ),
+                    higher_than_curr_pos = instance_bbox.max.z() > z_target;
+                if (!is_curr_obj && range_intersect(instance_bbox.min.z(), instance_bbox.max.z(), z_low, z_high)) {
+                    ExPolygon expoly;
+                    expoly.contour = {{scale_(instance_bbox.min.x()), scale_(instance_bbox.min.y())},
+                                      {scale_(instance_bbox.max.x()), scale_(instance_bbox.min.y())},
+                                      {scale_(instance_bbox.max.x()), scale_(instance_bbox.max.y())},
+                                      {scale_(instance_bbox.min.x()), scale_(instance_bbox.max.y())}};
+                    expoly.contour = expand_object_projection(expoly.contour, by_object, higher_than_curr_pos);
+                    unclear_area.emplace_back(std::move(expoly));
+                }
+            }
+        }
+
+        Point curr_pos_in_plate = {ctx.curr_pos.x() - scale_(m_plate_offset.x()), ctx.curr_pos.y() - scale_(m_plate_offset.y())};
+        for (const ExPolygon &expoly : unclear_area) {
+            BoundingBox bbox = expoly.contour.bounding_box();
+            if (curr_pos_in_plate.y() < bbox.min.y() || curr_pos_in_plate.y() > bbox.max.y()) continue;
+            if (bbox.min.x() <= curr_pos_in_plate.x()) return false;
+        }
+
+        return true;
+    }
+
 }

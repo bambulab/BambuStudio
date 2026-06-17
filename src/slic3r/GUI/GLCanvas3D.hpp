@@ -405,6 +405,7 @@ class GLCanvas3D
         ToolHeightOutside,
         TPUPrintableError,
         FilamentPrintableError,
+        PrintedWeightOverLimitWarn,
         LeftExtruderPrintableError, // before slice
         RightExtruderPrintableError, // before slice
         MultiExtruderPrintableError,      // after slice
@@ -646,6 +647,10 @@ private:
     mutable std::shared_ptr<gcode::GCodeViewer> m_p_gcode_viewer{ nullptr };
 
     RenderTimer m_render_timer;
+    // macOS-only fallback that keeps the canvas rendering when wxEVT_IDLE is
+    // starved (see _ensure_render_fallback_running / on_render_fallback_timer).
+    wxTimer m_render_fallback_timer;
+    int     m_render_fallback_quiet_ticks{ 0 };
 
     Selection m_selection;
     const DynamicPrintConfig* m_config;
@@ -839,6 +844,11 @@ public:
     void on_change_color_mode(bool is_dark, bool reinit = true);
     const bool get_dark_mode_status() { return m_is_dark; }
     void set_as_dirty();
+    // macOS: arm the render-fallback timer so a freshly shown/reloaded scene
+    // paints promptly even when wxEVT_IDLE is starved by a busy WKWebView tab.
+    // No-op on other platforms. Safe to call from outside the canvas (e.g. when
+    // switching tabs).
+    void kick_render_fallback();
     void requires_check_outside_state() { m_requires_check_outside_state = true; }
 
     bool is_in_same_model_object(const std::vector<int> volume_ids);
@@ -1092,6 +1102,7 @@ public:
     void on_mouse_wheel(wxMouseEvent& evt);
     void on_timer(wxTimerEvent& evt);
     void on_render_timer(wxTimerEvent& evt);
+    void on_render_fallback_timer(wxTimerEvent& evt);
     void on_set_color_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);
     void on_gesture(wxGestureEvent& evt);
@@ -1287,6 +1298,14 @@ private:
     void _zoom_to_box(const BoundingBoxf3& box, double margin_factor = DefaultCameraZoomToBoxMarginFactor);
     void _update_camera_zoom(double zoom);
     void _refresh_if_shown_on_screen();
+    // Shared body of the idle-driven UI-state refresh + render. Returns true if
+    // another frame is wanted (camera/imgui/3d-mouse still animating). Driven by
+    // wxEVT_IDLE normally and by the macOS render-fallback timer when idle is
+    // starved by a busy WKWebView tab.
+    bool _do_idle_work();
+    // macOS: arm the render-fallback timer so the canvas keeps redrawing even
+    // when wxEVT_IDLE is not being delivered. No-op on other platforms.
+    void _ensure_render_fallback_running();
 
     void _picking_pass();
     void _rectangular_selection_picking_pass();

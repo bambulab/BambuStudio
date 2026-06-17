@@ -11,10 +11,11 @@
 
 #include "CgalUtils.hpp"
 #include "ColorUtils.hpp"
+#include "libslic3r/TriangleMesh.hpp"
 #include <filesystem>
 #include <fstream>
 #include "Repair.hpp"
-#include "KdTree.hpp"
+#include "libslic3r/AABBTreeIndirect.hpp"
 #include <boost/log/trivial.hpp>
 
 namespace Slic3r { namespace tex2color {
@@ -64,6 +65,51 @@ static std::vector<std::size_t> count_cluster_label_usage(const std::vector<std:
         }
     }
     return usage;
+}
+
+static bool discard_unused_cluster_centers(std::vector<RGB>& cluster_centers, std::vector<std::size_t>& face_labels, const char* stage_name)
+{
+    if (cluster_centers.empty()) {
+        BOOST_LOG_TRIVIAL(warning) << "TextureToColor: cannot discard unused cluster centers at " << stage_name
+                                   << ", no cluster center is available.";
+        return false;
+    }
+
+    const std::vector<std::size_t> usage = count_cluster_label_usage(face_labels, cluster_centers.size());
+    std::vector<std::size_t> label_remap(cluster_centers.size(), std::numeric_limits<std::size_t>::max());
+    std::vector<RGB> used_cluster_centers;
+    used_cluster_centers.reserve(cluster_centers.size());
+
+    for (std::size_t cluster_id = 0; cluster_id < cluster_centers.size(); ++cluster_id) {
+        if (usage[cluster_id] == 0) {
+            continue;
+        }
+        label_remap[cluster_id] = used_cluster_centers.size();
+        used_cluster_centers.push_back(cluster_centers[cluster_id]);
+    }
+
+    if (used_cluster_centers.size() == cluster_centers.size()) {
+        return true;
+    }
+    if (used_cluster_centers.empty()) {
+        BOOST_LOG_TRIVIAL(warning) << "TextureToColor: cannot discard unused cluster centers at " << stage_name
+                                   << ", no face uses any valid cluster center.";
+        return false;
+    }
+
+    for (std::size_t& label : face_labels) {
+        if (label >= label_remap.size() || label_remap[label] == std::numeric_limits<std::size_t>::max()) {
+            BOOST_LOG_TRIVIAL(warning) << "TextureToColor: cannot remap cluster label " << label
+                                       << " at " << stage_name << ".";
+            return false;
+        }
+        label = label_remap[label];
+    }
+
+    BOOST_LOG_TRIVIAL(debug) << "TextureToColor: discarded " << (cluster_centers.size() - used_cluster_centers.size())
+                             << " unused adaptive cluster centers at " << stage_name << ".";
+    cluster_centers = std::move(used_cluster_centers);
+    return true;
 }
 
 static bool ensure_all_cluster_centers_used(const std::vector<RGB>& source_face_colors, const std::vector<RGB>& cluster_centers,
@@ -483,40 +529,113 @@ bool TextureToColor(const TriMesh& texture_mesh, const std::vector<std::vector<V
         return false;
     }
 
+    // Sub-stage timing helper for the "Repairing mesh" outer lap. Logs each
+    // sub-phase under a [timing][Repairing mesh] prefix so that regressions in
+    // mesh inspection, RepairMesh, AABB resampling, etc. can be attributed
+    // to a specific sub-stage without changing the outer lap structure.
+    auto sub_lap = [&](const char* sub_name, Clock::time_point t0) {
+        double ms = std::chrono::duration<double, std::milli>(Clock::now() - t0).count();
+        BOOST_LOG_TRIVIAL(debug) << "[timing][Repairing mesh] " << sub_name << ": " << ms << "ms";
+    };
+
     // Step 3: Repair mesh
     // Many textured models have non-manifold, non-closed, or other issues that need to be fixed beforehand
-    auto repair_and_resample_mesh = [&]() -> bool {
-        KdTree before_repair(color_mesh);
-        std::shared_ptr<TriMesh> repaired_mesh;
-        bool success = RepairMesh(color_mesh, repaired_mesh);
-        if (success == false) {
-            BOOST_LOG_TRIVIAL(debug) << "TextureToColor: repair mesh failed.";
-            return false;
-        }
-        if (cancelled()) return false;
-        color_mesh = std::move(*repaired_mesh);
+    auto resample_repaired_mesh = [&](TriMesh&& repaired_mesh) -> bool {
+        // AABBTreeIndirect references vertices/faces externally, so snapshot the
+        // pre-repair geometry by moving them out of color_mesh before it gets
+        // overwritten with the repaired mesh below. std::move on std::vector is
+        // O(1) (pointer adoption), no element copy.
+        const auto t_aabb = Clock::now();
+        TriVertices old_vertices = std::move(color_mesh.vertices);
+        TriFaces    old_indices  = std::move(color_mesh.indices);
+        auto before_repair_tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(old_vertices, old_indices);
+        sub_lap("resample.aabb_build", t_aabb);
+
+        color_mesh = std::move(repaired_mesh);
+
+        const auto t_is_closed = Clock::now();
         if (is_closed(color_mesh)) {
             BOOST_LOG_TRIVIAL(debug) << "TextureToColor: repaired mesh is closed.";
         } else {
             BOOST_LOG_TRIVIAL(debug) << "TextureToColor: repaired mesh is open.";
         }
+        sub_lap("resample.is_closed", t_is_closed);
 
         // New faces after repair inherit old face colors via centroid nearest-neighbor lookup.
         // Since the mesh barely changes after repair, resampling via centroid nearest-neighbor is sufficient.
+        const auto t_resample = Clock::now();
         std::vector<RGB> new_face_colors(color_mesh.facets_count());
         tbb::parallel_for(tbb::blocked_range<std::size_t>(0, color_mesh.facets_count()), [&](const tbb::blocked_range<size_t>& range) {
             for (std::size_t fid = range.begin(); fid < range.end(); ++fid) {
                 const auto& face = color_mesh.indices[fid];
-                auto center = (color_mesh.vertices[face[0]] + color_mesh.vertices[face[1]] + color_mesh.vertices[face[2]]) / 3.0f;
-                auto nearest_node = before_repair.nearest(center);
-                new_face_colors[fid] = face_colors[nearest_node.face_id];
+                Vec3f center = (color_mesh.vertices[face[0]] + color_mesh.vertices[face[1]] + color_mesh.vertices[face[2]]) / 3.0f;
+                size_t hit_idx = 0;
+                Vec3f  closest;
+                AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
+                    old_vertices, old_indices, before_repair_tree, center, hit_idx, closest);
+                new_face_colors[fid] = face_colors[hit_idx];
             }
         });
         face_colors = std::move(new_face_colors);
+        sub_lap("resample.parallel_nearest", t_resample);
         return true;
     };
 
-    if (!cgalutils::is_mesh_halfedge_compatible(color_mesh) && repair_and_resample_mesh() == false) {
+    auto repair_and_resample_mesh = [&]() -> bool {
+        std::shared_ptr<TriMesh> repaired_mesh;
+        const auto t_repair = Clock::now();
+        bool success = RepairMesh(color_mesh, repaired_mesh);
+        sub_lap("RepairMesh", t_repair);
+        if (success == false) {
+            BOOST_LOG_TRIVIAL(debug) << "TextureToColor: repair mesh failed.";
+            return false;
+        }
+        if (cancelled()) return false;
+        return resample_repaired_mesh(std::move(*repaired_mesh));
+    };
+
+    {
+        const auto t_stats = Clock::now();
+        TriangleMesh stats_mesh(static_cast<const indexed_triangle_set&>(color_mesh));
+        const auto& stats = stats_mesh.stats();
+        sub_lap("stats_check", t_stats);
+        if (!stats.manifold() || stats.has_open_edges()) {
+            BOOST_LOG_TRIVIAL(info) << "TextureToColor: mesh has non-manifold geometry or open boundaries, open_edges="
+                                    << stats.open_edges << ", non_manifold_edges=" << stats.non_manifold_edges
+                                    << ", non_manifold_vertices=" << stats.non_manifold_vertices;
+            if (settings.mesh_repair_decision == MeshRepairDecision::Ask) {
+                if (settings.mesh_repair_decision_required)
+                    *settings.mesh_repair_decision_required = true;
+                return false;
+            }
+            if (settings.mesh_repair_decision == MeshRepairDecision::RepairAndImport) {
+                indexed_triangle_set repaired_its;
+                std::string repair_error;
+                const auto t_win3d = Clock::now();
+                bool repaired = settings.mesh_repair_callback && settings.mesh_repair_callback(static_cast<const indexed_triangle_set&>(color_mesh), repaired_its,
+                    [&](const char* message, unsigned percent) {
+                        sub_report(static_cast<int>(percent), 40, 60, message ? message : "Repairing mesh");
+                    },
+                    [&]() { return cancelled(); }, &repair_error);
+                sub_lap("windows_3d_repair", t_win3d);
+                if (repaired) {
+                    if (cancelled()) return false;
+                    BOOST_LOG_TRIVIAL(info) << "TextureToColor: Windows 3D mesh repair finished.";
+                    if (!resample_repaired_mesh(TriMesh(std::move(repaired_its))))
+                        return false;
+                } else {
+                    BOOST_LOG_TRIVIAL(warning) << "TextureToColor: Windows 3D mesh repair failed: " << repair_error;
+                }
+            } else {
+                BOOST_LOG_TRIVIAL(info) << "TextureToColor: importing mesh without Windows 3D repair.";
+            }
+        }
+    }
+
+    const auto t_halfedge = Clock::now();
+    const bool halfedge_ok = cgalutils::is_mesh_halfedge_compatible(color_mesh);
+    sub_lap("is_mesh_halfedge_compatible", t_halfedge);
+    if (!halfedge_ok && repair_and_resample_mesh() == false) {
         BOOST_LOG_TRIVIAL(debug) << "TextureToColor: repair and resample mesh failed.";
         return false;
     }
@@ -534,9 +653,10 @@ bool TextureToColor(const TriMesh& texture_mesh, const std::vector<std::vector<V
     std::vector<RGB> cluster_centers;
     std::vector<RGB> clustered_face_colors = face_colors;
     std::vector<std::size_t> clustered_face_labels(face_colors.size());
+    const bool adaptive_cluster = settings.target_colors_num == 0;
 
     // Compute cluster centers
-    if (settings.target_colors_num == 0) {
+    if (adaptive_cluster) {
         BOOST_LOG_TRIVIAL(debug) << "TextureToColor: use cluster adaptive method.";
         ClusterParameters para;
         para.max_color_distance = settings.max_color_distance;
@@ -601,7 +721,13 @@ bool TextureToColor(const TriMesh& texture_mesh, const std::vector<std::vector<V
             return false;
         }
     }
-    ensure_all_cluster_centers_used(face_colors, cluster_centers, clustered_face_labels, "cluster assignment");
+    if (adaptive_cluster) {
+        if (!discard_unused_cluster_centers(cluster_centers, clustered_face_labels, "cluster assignment")) {
+            return false;
+        }
+    } else {
+        ensure_all_cluster_centers_used(face_colors, cluster_centers, clustered_face_labels, "cluster assignment");
+    }
     lap("Color clustering & labeling");
 #ifdef OUTPUT_TEST_RESULT
     for (std::size_t i = 0; i < clustered_face_colors.size(); ++i) {
@@ -623,7 +749,13 @@ bool TextureToColor(const TriMesh& texture_mesh, const std::vector<std::vector<V
         return false;
     }
     BOOST_LOG_TRIVIAL(debug) << "TextureToColor: smooth region success.";
-    ensure_all_cluster_centers_used(face_colors, cluster_centers, clustered_face_labels, "color smoothing");
+    if (adaptive_cluster) {
+        if (!discard_unused_cluster_centers(cluster_centers, clustered_face_labels, "color smoothing")) {
+            return false;
+        }
+    } else {
+        ensure_all_cluster_centers_used(face_colors, cluster_centers, clustered_face_labels, "color smoothing");
+    }
     report(95, "Updating face colors");
     if (cancelled()) {
         return false;

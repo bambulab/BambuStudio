@@ -1,4 +1,4 @@
-# GUI/DeviceWeb
+﻿# GUI/DeviceWeb
 # usage -- GUI about device web for BambuStudio
 # date -- 2025.01.01
 # status -- Building
@@ -10,8 +10,8 @@ function(prepare_node_env)
     set(NODE_VERSION "22.22.2")
     set(PNPM_VERSION "10.12.1")
 
-    # 定义本地缓存目录（放在 build 目录下，clean 后会重下）
-    set(NODE_CACHE_DIR "${CMAKE_CURRENT_BINARY_DIR}/node-cache")
+    # 定义本地缓存目录（放在项目同级目录，clean build 后不会丢失）
+    set(NODE_CACHE_DIR "${CMAKE_SOURCE_DIR}/../node-cache")
 
     # 根据平台确定下载 URL、文件名和 hash 值
     if(WIN32)
@@ -194,13 +194,15 @@ list(APPEND SLIC3R_GUI_SOURCES
     GUI/DeviceWeb/DeviceHttpServer.hpp
     GUI/DeviceWeb/DeviceWebPage.cpp
     GUI/DeviceWeb/DeviceWebPage.hpp
+    GUI/DeviceWeb/DeviceWebHost.cpp
+    GUI/DeviceWeb/DeviceWebHost.hpp
     GUI/DeviceWeb/DeviceWebBridge.cpp
     GUI/DeviceWeb/DeviceWebBridge.hpp
     GUI/DeviceWeb/DeviceWebModel.hpp
     GUI/DeviceWeb/IViewModel.hpp
     GUI/DeviceWeb/DeviceWebManager.cpp
     GUI/DeviceWeb/DeviceWebManager.hpp
-    GUI/DeviceWeb/FilaManagerVM.cpp
-    GUI/DeviceWeb/FilaManagerVM.hpp
+    GUI/DeviceWeb/ViewModels/FilamentManager/FilamentManagerVM.cpp
+    GUI/DeviceWeb/ViewModels/FilamentManager/FilamentManagerVM.hpp
 )
 set(SLIC3R_GUI_SOURCES ${SLIC3R_GUI_SOURCES} PARENT_SCOPE)

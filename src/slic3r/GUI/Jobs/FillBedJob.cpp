@@ -122,7 +122,8 @@ void FillBedJob::prepare()
 
     if (m_selected.empty()) return;
 
-    bool enable_wrapping = global_config.option<ConfigOptionBool>("enable_wrapping_detection")->value;
+    const auto* opt_enable_wrapping = global_config.option<ConfigOptionBool>("enable_wrapping_detection");
+    bool enable_wrapping = opt_enable_wrapping ? opt_enable_wrapping->value : false;
     //add the virtual object into unselect list if has
     double scaled_exclusion_gap = scale_(1);
     plate_list.preprocess_exclude_areas(params.excluded_regions, enable_wrapping, 1, scaled_exclusion_gap);

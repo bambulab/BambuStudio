@@ -234,7 +234,9 @@ int AMSinfo::get_humidity_display_idx() const
 AMSPanelPos AMSinfo::GetDefaultPanelPos(int total_extruder_count) const
 {
     if (total_extruder_count == 1) {
-        if (ams_type != DevAmsType::EXT_SPOOL) {
+        if (ams_type == DevAmsType::AMS_LITE_MIXED) {
+            return AMSPanelPos::RIGHT_PANEL;
+        } else if (ams_type != DevAmsType::EXT_SPOOL) {
             return AMSPanelPos::LEFT_PANEL;
         } else {
             return AMSPanelPos::RIGHT_PANEL;
@@ -2406,6 +2408,15 @@ void AMSRoadDownPart::UpdateRight(int nozzle_num, AMSRoadShowMode mode)
     Refresh();
 }
 
+void AMSRoadDownPart::UpdateCenter(int nozzle_num, AMSRoadShowMode mode)
+{
+    if (nozzle_num == m_nozzle_num && m_center_rode_mode == mode) { return; }
+
+    this->m_center_rode_mode = mode;
+    m_nozzle_num = nozzle_num;
+    Refresh();
+}
+
 void AMSRoadDownPart::OnVamsLoading(bool load, wxColour col /*= AMS_CONTROL_GRAY500*/)
 {
     /*m_vams_loading = load;
@@ -2550,6 +2561,15 @@ void AMSRoadDownPart::doRender(wxDC& dc)
         default:
             break;
         }
+        switch (m_center_rode_mode)
+        {
+        case AMSRoadShowMode::AMS_ROAD_MODE_ARROW:
+            dc.DrawLine(right_nozzle_pos.x, (size.y / 2), right_nozzle_pos.x + FromDIP(191), (size.y / 2));
+            dc.DrawLine(right_nozzle_pos.x + FromDIP(191), 0, right_nozzle_pos.x + FromDIP(191), (size.y / 2));
+            break;
+        default:
+            break;
+        }
 
         switch (m_right_rode_mode)
         {
@@ -2581,6 +2601,10 @@ void AMSRoadDownPart::doRender(wxDC& dc)
         case AMSRoadShowMode::AMS_ROAD_MODE_AMS_LITE:
             dc.DrawLine(left_nozzle_pos.x, (size.y / 2), left_nozzle_pos.x + FromDIP(145), (size.y / 2));
             dc.DrawLine(left_nozzle_pos.x + FromDIP(145), 0, left_nozzle_pos.x + FromDIP(145), (size.y / 2));
+            break;
+        case AMSRoadShowMode::AMS_ROAD_MODE_ARROW:
+            dc.DrawLine(right_nozzle_pos.x, (size.y / 2), right_nozzle_pos.x + FromDIP(233), (size.y / 2));
+            dc.DrawLine(right_nozzle_pos.x + FromDIP(233), 0, right_nozzle_pos.x + FromDIP(233), (size.y / 2));
             break;
         default:
             break;

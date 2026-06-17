@@ -2,15 +2,9 @@
 
 #ifndef WX_PRECOMP
 #include "wx/utils.h"
-#include "wx/frame.h"
-#include "wx/button.h"
-#include "wx/stattext.h"
 #include "wx/sizer.h"
 #include "wx/event.h"
 #include "wx/gauge.h"
-#include "wx/intl.h"
-#include "wx/dcclient.h"
-#include "wx/timer.h"
 #include "wx/settings.h"
 #include "wx/app.h"
 #endif
@@ -564,7 +558,7 @@ bool ProgressDialog::Update(int value, const wxString &newmsg, bool *skip)
             // allow the window to repaint:
             // NOTE: since we yield only for UI events with this call, there
             //       should be no side-effects
-            wxEventLoopBase::GetActive()->YieldFor(wxEVT_CATEGORY_UI | wxEVT_CATEGORY_USER_INPUT);
+            Yield();
 
             // NOTE: this call results in a new event loop being created
             //       and to a call to ProcessPendingEvents() (which may generate
@@ -622,7 +616,7 @@ bool ProgressDialog::DoBeforeUpdate(bool *skip)
     // also to process the clicks on the cancel and skip buttons
     // NOTE: using YieldFor() this call shouldn't give re-entrancy problems
     //       for event handlers not interested to UI/user-input events.
-    wxEventLoopBase::GetActive()->YieldFor(wxEVT_CATEGORY_UI | wxEVT_CATEGORY_USER_INPUT);
+    Yield();
 
     Update();
 
@@ -640,7 +634,7 @@ void ProgressDialog::DoAfterUpdate()
     // allow the window to repaint:
     // NOTE: since we yield only for UI events with this call, there
     //       should be no side-effects
-    wxEventLoopBase::GetActive()->YieldFor(wxEVT_CATEGORY_UI | wxEVT_CATEGORY_USER_INPUT);
+    Yield();
 }
 
 void ProgressDialog::Resume()
@@ -893,7 +887,14 @@ void ProgressDialog::UpdateMessage(const wxString &newmsg)
         // allow the window to repaint:
         // NOTE: since we yield only for UI events with this call, there
         //       should be no side-effects
-        wxEventLoopBase::GetActive()->YieldFor(wxEVT_CATEGORY_UI | wxEVT_CATEGORY_USER_INPUT);
+        Yield();
     }
 }
+
+void ProgressDialog::Yield()
+{
+    if (!m_need_yield) return;
+    wxEventLoopBase::GetActive()->YieldFor(wxEVT_CATEGORY_UI | wxEVT_CATEGORY_USER_INPUT);
+}
+
 }} // namespace Slic3r::GUI

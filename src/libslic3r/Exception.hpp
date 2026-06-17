@@ -2,6 +2,7 @@
 #define _libslic3r_Exception_h_
 
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 namespace Slic3r {
@@ -26,15 +27,18 @@ SLIC3R_DERIVE_EXCEPTION(ExportError,        CriticalException);
 SLIC3R_DERIVE_EXCEPTION(PlaceholderParserError, RuntimeError);
 // Runtime exception produced by Slicer. Such exception cancels the slicing process and it shall be shown in notifications.
 //SLIC3R_DERIVE_EXCEPTION(SlicingError,       Exception);
-class SlicingError : public Exception 
+class SlicingError : public Exception
 {
 public:
     using Exception::Exception;
-    SlicingError(std::string const &msg, size_t objectId) : Exception(msg), objectId_(objectId) {}
+    SlicingError(std::string const &msg, size_t objectId, const std::string &optKey = {})
+        : Exception(msg), objectId_(objectId), opt_key_(optKey) {}
     size_t objectId() const { return objectId_; }
+    const std::string &optKey() const { return opt_key_; }
 
 private:
     size_t objectId_ = 0;
+    std::string opt_key_;
 };
 
 class SlicingErrors : public Exception

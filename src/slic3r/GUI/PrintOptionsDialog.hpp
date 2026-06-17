@@ -18,6 +18,7 @@
 
 // Previous definitions
 class SwitchBoard;
+class MultiSwitchButton;
 
 namespace Slic3r { namespace GUI {
 
@@ -170,6 +171,11 @@ protected:
     Label* text_plate_align{nullptr};
     Label* text_plate_align_caption{nullptr};
 
+    // Smart Nozzle Blob Detection — 三档选择器
+    MultiSwitchButton* m_smart_nozzle_blob_mode_switch{nullptr};
+    Label* text_smart_nozzle_blob{nullptr};
+    Label* text_smart_nozzle_blob_mode_desc{nullptr};
+
     wxBoxSizer* m_snapshot_sizer {nullptr};
     CheckBox* m_cb_snapshot_enable{nullptr};
 
@@ -218,6 +224,7 @@ public:
     void set_purgechutepileup_detection_sensitivity(wxCommandEvent &evt);
     void set_nozzleclumping_detection_sensitivity(wxCommandEvent &evt);
     void set_airprinting_detection_sensitivity(wxCommandEvent &evt);
+    void update_smart_nozzle_blob_mode_desc(int selection);
 
 private:
     void UpdateOptionSavePrintFileToStorage(MachineObject *obj);

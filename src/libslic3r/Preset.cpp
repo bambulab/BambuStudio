@@ -59,6 +59,7 @@ const std::vector<std::string> &get_filament_orders()
                                               "Bambu PLA Lite",
                                               "Bambu PLA Tough+",
                                               "Bambu PETG Basic",
+                                              "Bambu PETG Matte",
                                               "Bambu PETG HF",
                                               "Bambu ABS",
                                               "Bambu ASA",
@@ -887,7 +888,7 @@ std::string Preset::get_current_printer_type(PresetBundle *preset_bundle)
     if (preset_bundle) {
         auto config = &(this->config);
         std::string vendor_name;
-        for (auto vendor_profile : preset_bundle->vendors) {
+        for (const auto& vendor_profile : preset_bundle->vendors) {
             for (auto vendor_model : vendor_profile.second.models)
                 if (vendor_model.name == config->opt_string("printer_model")) {
                     vendor_name = vendor_profile.first;
@@ -1031,7 +1032,7 @@ static std::vector<std::string> s_Preset_print_options {
     "bridge_speed", "gap_infill_speed", "travel_speed", "travel_speed_z", "initial_layer_speed", "outer_wall_acceleration",
     "initial_layer_acceleration", "top_surface_acceleration", "default_acceleration", "travel_acceleration", "travel_short_distance_acceleration", "initial_layer_travel_acceleration", "inner_wall_acceleration", "sparse_infill_acceleration",
     "accel_to_decel_enable", "accel_to_decel_factor", "skirt_loops", "skirt_distance",
-    "skirt_height", "draft_shield",
+    "skirt_per_object", "skirt_height", "draft_shield",
     "brim_width", "brim_object_gap", "brim_type", "enable_support", "support_type", "support_threshold_angle", "enforce_support_layers",
     "raft_layers", "raft_first_layer_density", "raft_first_layer_expansion", "raft_contact_distance", "raft_expansion",
     "support_base_pattern", "support_base_pattern_spacing", "support_expansion", "support_style",
@@ -1069,7 +1070,7 @@ static std::vector<std::string> s_Preset_print_options {
     "default_jerk", "outer_wall_jerk", "inner_wall_jerk", "infill_jerk", "top_surface_jerk", "initial_layer_jerk", "travel_jerk",
     "filter_out_gap_fill", "mmu_segmented_region_max_width", "mmu_segmented_region_interlocking_depth",
     "small_perimeter_speed", "small_perimeter_threshold", "z_direction_outwall_speed_continuous",
-    "vertical_shell_speed","detect_floating_vertical_shell", "enable_wrapping_detection",
+    "vertical_shell_speed","detect_floating_vertical_shell", "enable_wrapping_detection", "enable_order_independent_overlap_carving",
      // calib
     "print_flow_ratio",
     //Orca
@@ -1110,7 +1111,7 @@ static std::vector<std::string> s_Preset_filament_options {/*"filament_colour", 
     "enable_pressure_advance", "pressure_advance", "chamber_temperatures","filament_notes",
     "filament_long_retractions_when_cut","filament_retraction_distances_when_cut","filament_shrink", "filament_velocity_adaptation_factor",
     //BBS filament change length while the extruder color
-    "filament_change_length","filament_change_length_nc","filament_prime_volume","filament_prime_volume_nc","filament_flush_volumetric_speed","filament_flush_temp",
+    "filament_change_length","filament_change_length_nc","filament_prime_volume","filament_prime_volume_nc","filament_flush_volumetric_speed","filament_flush_temp","filament_flush_temp_fast",
     "long_retractions_when_ec", "retraction_distances_when_ec",
     "filament_enable_overhang_speed",
     "filament_bridge_speed",
@@ -1140,6 +1141,7 @@ static std::vector<std::string> s_Preset_machine_limits_options {
     "machine_max_speed_x", "machine_max_speed_y", "machine_max_speed_z", "machine_max_speed_e",
     "machine_min_extruding_rate", "machine_min_travel_rate",
     "machine_max_jerk_x", "machine_max_jerk_y", "machine_max_jerk_z", "machine_max_jerk_e",
+    "machine_max_force_Y", "machine_bed_mass_Y","machine_max_printed_mass",
 };
 
 static std::vector<std::string> s_Preset_printer_options {
@@ -1164,7 +1166,7 @@ static std::vector<std::string> s_Preset_printer_options {
     "use_relative_e_distances", "extruder_type","use_firmware_retraction",
     "grab_length","machine_switch_extruder_time","hotend_cooling_rate","hotend_heating_rate","enable_pre_heating", "support_object_skip_flush","physical_extruder_map",
     "bed_temperature_formula","machine_prepare_compensation_time", "nozzle_flush_dataset",
-    "group_algo_with_time","extruder_max_nozzle_count"
+    "group_algo_with_time","extruder_max_nozzle_count","support_fast_purge_mode"
 };
 
 static std::vector<std::string> s_Preset_sla_print_options {

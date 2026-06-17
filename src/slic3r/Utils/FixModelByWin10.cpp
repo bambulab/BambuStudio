@@ -23,8 +23,10 @@
 #include <exception>
 #include <string>
 #include <thread>
+#include <utility>
 
 #include <boost/filesystem.hpp>
+#include <boost/log/trivial.hpp>
 #include <boost/nowide/convert.hpp>
 #include <boost/nowide/cstdio.hpp>
 #include <boost/thread.hpp>
@@ -33,6 +35,7 @@
 #include "libslic3r/Print.hpp"
 #include "libslic3r/PresetBundle.hpp"
 #include "libslic3r/Format/3mf.hpp"
+#include "libslic3r/Win10ModelRepair.hpp"
 #include "../GUI/GUI.hpp"
 #include "../GUI/I18N.hpp"
 #include "../GUI/MsgDialog.hpp"
@@ -313,6 +316,97 @@ void fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 	(*s_RoUninitialize)();
 }
 
+bool is_win10_model_repair_available()
+{
+	return is_windows10() && winrt_load_runtime_object_library();
+}
+
+bool fix_mesh_by_win10_sdk(const indexed_triangle_set& mesh,
+						   indexed_triangle_set&       repaired_mesh,
+						   Win10RepairProgressFn       progress_callback,
+						   Win10RepairCancelFn         cancel_callback,
+						   std::string*                error_message)
+{
+	// RAII guard ensures the intermediate 3mf files are removed even if
+	// store_3mf / fix_model_by_win10_sdk / load_3mf throws.
+	struct TempFileGuard {
+		boost::filesystem::path path;
+		~TempFileGuard() {
+			if (!path.empty()) {
+				boost::system::error_code ec;
+				boost::filesystem::remove(path, ec);
+			}
+		}
+	};
+
+	try {
+		boost::filesystem::path path_src = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
+		path_src += ".3mf";
+		boost::filesystem::path path_dst = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
+		path_dst += ".3mf";
+		TempFileGuard src_guard{ path_src };
+		TempFileGuard dst_guard{ path_dst };
+
+		Model model;
+		ModelObject* model_object = model.add_object();
+		model_object->name = "texture_mesh";
+		ModelVolume* volume = model_object->add_volume(TriangleMesh(indexed_triangle_set(mesh)), ModelVolumeType::MODEL_PART, false);
+		volume->name = "texture_mesh";
+		volume->set_transformation(Geometry::Transformation());
+		model_object->add_instance();
+
+		if (!Slic3r::store_3mf(path_src.string().c_str(), &model, nullptr, false, nullptr, false)) {
+			throw Slic3r::RuntimeError(L("Exporting 3mf file failed"));
+		}
+
+		model.clear_objects();
+		model.clear_materials();
+
+		fix_model_by_win10_sdk(path_src.string(), path_dst.string(), std::move(progress_callback),
+			[&cancel_callback]() {
+				if (cancel_callback && cancel_callback())
+					throw Slic3r::RuntimeError("Model repair has been canceled.");
+			});
+
+		DynamicPrintConfig config;
+		ConfigSubstitutionContext config_substitutions{ ForwardCompatibilitySubstitutionRule::EnableSilent };
+		bool loaded = Slic3r::load_3mf(path_dst.string().c_str(), config, config_substitutions, &model, false);
+
+		if (!loaded)
+			throw Slic3r::RuntimeError(L("Import 3mf file failed"));
+		if (model.objects.size() == 0)
+			throw Slic3r::RuntimeError(L("Repaired 3mf file does not contain any object"));
+		if (model.objects.size() > 1)
+			throw Slic3r::RuntimeError(L("Repaired 3mf file contains more than one object"));
+		if (model.objects.front()->volumes.size() == 0)
+			throw Slic3r::RuntimeError(L("Repaired 3mf file does not contain any volume"));
+		if (model.objects.front()->volumes.size() > 1)
+			throw Slic3r::RuntimeError(L("Repaired 3mf file contains more than one volume"));
+
+		ModelObject* repaired_object = model.objects.front();
+		if (repaired_object->instances.size() > 1)
+			throw Slic3r::RuntimeError(L("Repaired 3mf file contains more than one instance"));
+
+		ModelVolume* repaired_volume = repaired_object->volumes.front();
+		const Transform3d volume_matrix = repaired_volume->get_matrix();
+		const Transform3d instance_matrix = repaired_object->instances.empty() ? Transform3d::Identity() : repaired_object->instances.front()->get_matrix();
+		const Transform3d repaired_matrix = instance_matrix * volume_matrix;
+
+		BOOST_LOG_TRIVIAL(info) << "fix_mesh_by_win10_sdk: baking repaired 3mf transform"
+								<< ", instance_offset=(" << instance_matrix(0, 3) << ", " << instance_matrix(1, 3) << ", " << instance_matrix(2, 3) << ")"
+								<< ", volume_offset=(" << volume_matrix(0, 3) << ", " << volume_matrix(1, 3) << ", " << volume_matrix(2, 3) << ")";
+
+		TriangleMesh repaired(repaired_volume->mesh().its);
+		repaired.transform(repaired_matrix, true);
+		repaired_mesh = std::move(repaired.its);
+		return true;
+	} catch (const std::exception& ex) {
+		if (error_message)
+			*error_message = ex.what();
+		return false;
+	}
+}
+
 class RepairCanceledException : public std::exception {
 public:
    const char* what() const throw() { return "Model repair has been canceled"; }
@@ -356,49 +450,16 @@ bool fix_model_by_win10_sdk_gui(ModelObject &model_object, int volume_idx, GUI::
 			std::vector<TriangleMesh> meshes_repaired;
 			meshes_repaired.reserve(volumes.size());
 			for (; ivolume < volumes.size(); ++ ivolume) {
-				on_progress(L("Exporting objects"), 0);
-				boost::filesystem::path path_src = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
-				path_src += ".3mf";
-				Model model;
-                ModelObject *mo = model.add_object();
-                mo->add_volume(*volumes[ivolume]);
-
-                // We are about to save a 3mf, fix it by netfabb and load the fixed 3mf back.
-                // store_3mf currently bakes the volume transformation into the mesh itself.
-                // If we then loaded the repaired 3mf and pushed the mesh into the original ModelVolume
-                // (which remembers the matrix the whole time), the transformation would be used twice.
-                // We will therefore set the volume transform on the dummy ModelVolume to identity.
-                mo->volumes.back()->set_transformation(Geometry::Transformation());
-
-                mo->add_instance();
-				if (!Slic3r::store_3mf(path_src.string().c_str(), &model, nullptr, false, nullptr, false)) {
-					boost::filesystem::remove(path_src);
-					throw Slic3r::RuntimeError(L("Exporting 3mf file failed"));
+				indexed_triangle_set repaired_its;
+				std::string repair_error;
+				bool repaired = Slic3r::fix_mesh_by_win10_sdk(volumes[ivolume]->mesh().its, repaired_its, on_progress,
+					[&canceled]() { return canceled.load(); }, &repair_error);
+				if (!repaired) {
+					if (canceled)
+						throw RepairCanceledException();
+					throw Slic3r::RuntimeError(repair_error.empty() ? L("Repair failed.") : repair_error);
 				}
-				model.clear_objects();
-				model.clear_materials();
-				boost::filesystem::path path_dst = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
-				path_dst += ".3mf";
-				fix_model_by_win10_sdk(path_src.string().c_str(), path_dst.string(), on_progress,
-					[&canceled]() { if (canceled) throw RepairCanceledException(); });
-				boost::filesystem::remove(path_src);
-	            // PresetBundle bundle;
-				on_progress(L("Loading repaired objects"), 80);
-				DynamicPrintConfig config;
-				ConfigSubstitutionContext config_substitutions{ ForwardCompatibilitySubstitutionRule::EnableSilent };
-				bool loaded = Slic3r::load_3mf(path_dst.string().c_str(), config, config_substitutions, &model, false);
-			    boost::filesystem::remove(path_dst);
-				if (! loaded)
-	 				throw Slic3r::RuntimeError(L("Import 3mf file failed"));
-	 			if (model.objects.size() == 0)
-	 				throw Slic3r::RuntimeError(L("Repaired 3mf file does not contain any object"));
-	 			if (model.objects.size() > 1)
-	 				throw Slic3r::RuntimeError(L("Repaired 3mf file contains more than one object"));
-	 			if (model.objects.front()->volumes.size() == 0)
-	 				throw Slic3r::RuntimeError(L("Repaired 3mf file does not contain any volume"));
-				if (model.objects.front()->volumes.size() > 1)
-	 				throw Slic3r::RuntimeError(L("Repaired 3mf file contains more than one volume"));
-	 			meshes_repaired.emplace_back(std::move(model.objects.front()->volumes.front()->mesh()));
+				meshes_repaired.emplace_back(std::move(repaired_its));
 			}
 			for (size_t i = 0; i < volumes.size(); ++ i) {
 				volumes[i]->set_mesh(std::move(meshes_repaired[i]));

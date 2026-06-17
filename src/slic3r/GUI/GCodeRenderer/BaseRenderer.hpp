@@ -180,6 +180,8 @@ namespace Slic3r {
                 void init_tool_maker(PresetBundle* preset_bundle);
                 void render_sequential_view(uint32_t canvas_width, uint32_t canvas_height, int right_margin);
                 virtual bool load_toolpaths(const GCodeProcessorResult& gcode_result, const BuildVolume& build_volume, const std::vector<BoundingBoxf3>& exclude_bounding_box) = 0;
+                void update_toolpath_outside_state(const GCodeProcessorResult& gcode_result, const BuildVolume& build_volume,
+                    const std::vector<BoundingBoxf3>& exclude_bounding_box, Points&& pts);
                 void render_shells();
                 void render_slider(int canvas_width, int canvas_height);
                 virtual void render_legend(float& legend_height, int canvas_width, int canvas_height, int right_margin);
