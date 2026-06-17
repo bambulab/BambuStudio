@@ -1226,6 +1226,11 @@
   cursor: pointer;
 }
 
+.filament-change-stop:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .filament-change-batch-list {
   display: flex;
   align-items: center;

@@ -188,6 +188,7 @@ export function FilamentChangeProgressPanel({
       <button
         type="button"
         className="filament-change-stop"
+        disabled={status.can_stop === false}
         onClick={() => onAction?.('stop_filament_change')}
       >
         {t('Stop')}

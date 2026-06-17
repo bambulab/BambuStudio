@@ -302,8 +302,14 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildFilamentChangeStatus(MachineO
     namespace SK = AmsHotendSchema::keys;
     namespace SV = AmsHotendSchema::values;
 
+    const bool change_active = IsFilamentChangeActive(machine_obj);
+    // Stopping a filament change is only safe while the machine is idle. Block
+    // it whenever a print job (RUNNING/PAUSE/SLICING/PREPARE) or a calibration
+    // routine is in progress, so the user cannot abort mid print/calibration.
+    const bool can_stop = change_active && machine_obj && !machine_obj->is_in_printing() && !machine_obj->is_in_calibration();
+
     nlohmann::json status = {
-        {SK::filament_change::active,             IsFilamentChangeActive(machine_obj)},
+        {SK::filament_change::active,             change_active},
         {SK::filament_change::mode,               SV::filament_change_mode::single},
         {SK::filament_change::operation,          operation.empty() ? std::string(SV::filament_change_operation::unknown) : operation},
         {SK::filament_change::running_slot,       running_slot},
@@ -314,7 +320,8 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildFilamentChangeStatus(MachineO
         {SK::filament_change::current_step_index, 0},
         {SK::filament_change::current_step_total, 0},
         {SK::filament_change::message,            message},
-        {SK::filament_change::tips,               _u8L("Other filaments are info-only")}
+        {SK::filament_change::tips,               _u8L("Other filaments are info-only")},
+        {SK::filament_change::can_stop,           can_stop}
     };
     if (!machine_obj || !machine_obj->GetFilaSystem()) return status;
 
@@ -576,6 +583,13 @@ std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleFilamentActio
             dlg.ShowModal();
         });
     } else if (action == "stop_filament_change") {
+        // Backend guard mirroring the can_stop schema gate: never abort while a
+        // print job or calibration is running, even if a stale Web button or a
+        // direct bridge call slips through.
+        if (machine_obj->is_in_printing() || machine_obj->is_in_calibration()) {
+            return MakeResponse(GetModule(), "action", action, 3,
+                _u8L("Cannot stop filament change while printing or calibrating"), BuildState());
+        }
         const int result = machine_obj->command_ams_control("abort");
         if (result != 0) {
             return MakeResponse(GetModule(), "action", action, 2, "AMS filament change abort failed", BuildState());

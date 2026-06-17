@@ -347,7 +347,7 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildSlot(MachineObject* machine_o
         if (tray->remain >= 0 && tray->remain <= 100) filament_remain = tray->remain;
     }
 
-    nlohmann::json hotend;
+    nlohmann::json hotend = nlohmann::json::object();
     nlohmann::json hotend_detail_dialog;
     if (rack_nozzle_opt.has_value()) {
         const bool has_tool = has_hotend_slot && rack_nozzle_opt->IsExist();

@@ -140,6 +140,10 @@ namespace filament_change {
     inline constexpr const char* current_step_total = "current_step_total";
     inline constexpr const char* message            = "message";
     inline constexpr const char* tips               = "tips";
+    // Whether the user is allowed to abort the running filament change. Only
+    // true while the panel is active AND the printer is neither printing nor
+    // calibrating; Web binds the Stop button's disabled state to it.
+    inline constexpr const char* can_stop           = "can_stop";
     // Per-slot batch progress info (mode == "batch_running"). Same shape as
     // the pre-run `batch_reserved` payload — Web reuses the same item list
     // type but renders a horizontal step strip instead of the reservation

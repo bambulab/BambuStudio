@@ -227,6 +227,7 @@ export const mockAmsFilamentHotendState: AmsFilamentHotendViewModel = {
       current_step_total: 4,
       message: 'Slot 1 loading/unloading filament in progress',
       tips: 'Other filaments are info-only',
+      can_stop: true,
     },
     ams_dry_zones: [
       {

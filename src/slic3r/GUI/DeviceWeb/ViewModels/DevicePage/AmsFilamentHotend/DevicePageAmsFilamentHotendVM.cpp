@@ -220,16 +220,9 @@ std::string DevicePageAmsFilamentHotendVM::ResolveFilamentCardText(const DevAmsT
 
     PresetBundle* preset_bundle = wxGetApp().preset_bundle;
     if (preset_bundle) {
-        auto& filaments = preset_bundle->filaments;
-        for (auto it = filaments.begin(); it != filaments.end(); ++it) {
-            Preset& preset = *it;
-            if (preset.filament_id != tray->setting_id && preset.setting_id != tray->setting_id && preset.setting_id != tray->filament_setting_id) {
-                continue;
-            }
-
-            std::string shown_name = filaments.get_preset_alias(preset, true);
-            if (shown_name.empty()) shown_name = preset.display_name();
-            if (!shown_name.empty()) return StripFilamentVendorPrefix(shown_name, preset.config.get_filament_vendor(), fallback_type);
+        auto fila_item = preset_bundle->get_filament_by_filament_id(tray->get_filament_id());
+        if (fila_item) {
+            return StripFilamentVendorPrefix(fila_item->filament_name, fila_item->vendor, fallback_type);
         }
     }
 
@@ -291,6 +284,10 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
 
     if (auto fila_system = machine_obj->GetFilaSystem()) {
         const bool has_connected_ams = !fila_system->GetAmsList().empty() && machine_obj->ams_exist_bits != 0;
+        if (!has_connected_ams) {
+            fp[SK::filament_page::actions][SK::filament_actions::can_load_auto] = false;
+        }
+
         fp[SK::filament_page::actions][SK::filament_actions::show_ams_settings] = has_connected_ams;
         fp[SK::filament_page::actions][SK::filament_actions::show_auto_refill]  = has_connected_ams;
         // Per-slot ams_operation.units is the canonical source for AMS-unit

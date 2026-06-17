@@ -262,6 +262,10 @@ export interface FilamentChangeStatus {
   current_step_total?: number;
   message?: string;
   tips?: string;
+  // Gate for the Stop button: only true while active AND the printer is not
+  // printing/calibrating. Absent on legacy bridges, so treat undefined as
+  // "stoppable" to preserve the previous always-enabled behavior.
+  can_stop?: boolean;
   batch_reserved?: FilamentChangeBatchReserved;
   batch_running?: FilamentChangeBatchReserved;
 }

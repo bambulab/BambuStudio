@@ -156,9 +156,6 @@ bool DevNozzleRack::CtrlCanReadAll() const
     {
         if (!nozzle_pair.second.IsEmpty())
         {
-            if (nozzle_pair.second.GetToolDefs().tool_type != DevNozzleToolType::Nozzle) {
-                return false;
-            }
             has_nozzle_on_rack = true;
         }
     }

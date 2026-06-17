@@ -969,6 +969,10 @@ void DevNozzleSystemParser::sTraversePreloadBindAmsSlot(DevNozzleSystem* system,
 
 void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* system)
 {
+    if (device_json.contains("holder")) {
+        system->m_nozzle_rack->ParseRackInfo(device_json["holder"]);
+    }
+
     if (device_json.contains("nozzle"))
     {
         const json& nozzle_json = device_json["nozzle"];
@@ -1104,11 +1108,6 @@ void DevNozzleSystemParser::ParseV2_0(const json& device_json, DevNozzleSystem* 
                 system->m_ext_nozzles[nozzle_obj.m_nozzle_id] = nozzle_obj;
             }
         }
-    }
-
-    if (device_json.contains("holder"))
-    {
-        system->m_nozzle_rack->ParseRackInfo(device_json["holder"]);
     }
 
     // fill none-exist nozzles
