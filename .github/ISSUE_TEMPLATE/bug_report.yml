@@ -7,6 +7,19 @@ body:
       value: |
         **Thank you for using Bambu Studio and wanting to report a bug.**
         Before filing, please check if the issue already exists (either open or closed) by using the search bar on the issues page. If it does, comment there. Even if it's closed, we can reopen it based on your comment.
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Type of issue
+      description: |
+        Pick the type that best matches your issue. Each type needs a specific file to help us diagnose it — see "Files to include" below.
+      multiple: true
+      options:
+        - Crash / freeze (the app crashes, hangs, or stops responding)
+        - Performance / lag (slow, stuttering, or laggy UI)
+        - Other (functional bug, wrong result, UI glitch, etc.)
+    validations:
+      required: true
   - type: input
     id: version
     attributes:
@@ -85,24 +98,49 @@ body:
     id: file_required
     attributes:
       value: |
-        Please be sure to add the following files:
-          * Please upload a ZIP archive containing the **project file** used when the problem arise. Please export it just before or after the problem occurs. Even if you did nothing and/or there is no object, export it! (We need the configurations in project file).
-            You can export the project file from the application menu in `File`->`Save project as...`, then zip it
-          * A **log file** for crashes and similar issues.
-            You can find your log file here:
-            Windows: `%APPDATA%\BambuStudio\log` or usually `C:\Users\<your username>\AppData\Roaming\BambuStudio\log`
-            MacOS: `$HOME/Library/Application Support/BambuStudio/log`
-            Linux: `$HOME/.config/BambuStudio/log`
-            If Bambu Studio still starts, you can also reach this directory from the application menu in `Help` -> `Show Configuration Folder`
-            You can zip the log directory, or just select the newest logs when this issue happens, and zip them
+        ## Files to include
+        Please be sure to add the following files. They are essential for us to reproduce and diagnose the problem.
+
+        ### Always include (every issue type)
+          * A **project file** — upload a ZIP archive containing the project file used when the problem arose. Please export it just before or after the problem occurs. Even if you did nothing and/or there is no object, export it! (We need the configurations in the project file.)
+            You can export it from the application menu in `File` -> `Save project as...`, then zip it.
+          * A **log file**.
+            You can find your log directory here:
+            * Windows: `%APPDATA%\BambuStudio\log` or usually `C:\Users\<your username>\AppData\Roaming\BambuStudio\log`
+            * macOS: `$HOME/Library/Application Support/BambuStudio/log`
+            * Linux: `$HOME/.config/BambuStudio/log`
+            If Bambu Studio still starts, you can also reach this directory from the application menu in `Help` -> `Show Configuration Folder`.
+            You can zip the whole log directory, or just select the newest logs from when the issue happened and zip those.
+
+        ### For **Crash / freeze** issues — also include a crash dump / report
+          The file you need depends on your OS and on whether the app crashed or froze. Full guide:
+          https://wiki.bambulab.com/en/bambu-studio/troubleshoot/crash-freeze-issue
+
+          * **Windows — crash:** a `.dmp` dump file is written to the **same log directory** listed above (`...\BambuStudio\log`). Upload the `.dmp` whose timestamp matches the crash, together with the `crash_*.log` / `debug_*.log` files.
+          * **Windows — freeze (app stops responding):** open Task Manager, find the `Bambu Studio` process, right-click -> **Create dump file**, then zip and upload the dump (it can be large — ~2GB — so use cloud storage / a file-sharing link if needed).
+          * **macOS — crash or freeze:** there is no `.dmp` on macOS. When the app crashes, macOS often shows a "Bambu Studio quit unexpectedly" dialog — click **Report...** (or **Show Details**) and copy/save the report text. You can also find the report later as an `.ips` file under `~/Library/Logs/DiagnosticReports` (also viewable in **Console** -> Crash/Diagnostic Reports). For a freeze, force-quit Bambu Studio first to generate the report. Upload the report text or the matching `.ips` file.
+          * **Linux — crash or freeze:** there is no `.dmp` on Linux. Use either approach:
+            * **Automatic core dump:** enable core dumps with `ulimit -c unlimited`, then check `cat /proc/sys/kernel/core_pattern`:
+              * If it **starts with `|`** (piped to a handler such as `systemd-coredump` or apport — common on Ubuntu/Fedora), leave it as is. Reproduce the crash, then retrieve the dump with `coredumpctl dump BambuStudio -o bambustudio.core` (list dumps first with `coredumpctl list`).
+              * If you want a plain core file written next to the binary instead, set a literal pattern: `sudo sysctl -w kernel.core_pattern=core.%e.%p` (writes `core.BambuStudio.<pid>` in the process's working directory). Reproduce the crash, then upload that file.
+            * **gdb backtrace:** run the app under gdb (`gdb BambuStudio_*.AppImage`, then `run`, reproduce, and after the crash run `bt`; for a freeze attach with `--pid <pid>`, press Ctrl+C, then run `bt`), and save the full gdb output to a file.
+            Upload the core dump or the gdb output.
+
+        ### For **Performance / lag** issues — also include a performance profile
+          * For slow, stuttering, or laggy behavior, please capture a performance profile and attach it.
+          * Follow the official guide to record and export the profile (PerfView on Windows, `sample` on macOS):
+            https://wiki.bambulab.com/en/bambu-studio/troubleshoot/performance-testing-method
+          * Also fill in the **Additional system information** field above (CPU / Memory / Display Card).
   - type: textarea
     id: file_uploads
     attributes:
-      label: Project file & Debug log uploads
-      description:  Drop the project file(a ZIP archive containing 3mf file) and debug log here
+      label: File uploads (project / log / crash dump / performance profile)
+      description:  Drop the project file (a ZIP archive containing the 3mf file), the debug log, and any type-specific file (crash dump for crashes, performance profile for lag) here.
       placeholder: |
         Project File: `File` -> `Save project as...` then zip it & drop it here
-        Log File:  `Help` -> `Show Configuration Folder`, then zip the log directory, or just select the newest logs in `log` when this issue happens and zip them, then drop the zip file here
+        Log File:  `Help` -> `Show Configuration Folder`, then zip the log directory (or the newest logs from when the issue happened) and drop the zip here
+        Crash/freeze: also drop the crash dump/report (Windows: `.dmp` from the `log` dir; macOS: `.ips`; Linux: gdb backtrace) — see https://wiki.bambulab.com/en/bambu-studio/troubleshoot/crash-freeze-issue
+        Performance/lag: also drop the performance profile (see https://wiki.bambulab.com/en/bambu-studio/troubleshoot/performance-testing-method)
     validations:
       required: true
   - type: checkboxes
@@ -110,5 +148,7 @@ body:
     attributes:
       label: Checklist of files to include
       options:
-        - label: Log file
-        - label: Project file
+        - label: Project file (always)
+        - label: Log file (always)
+        - label: Crash dump / report — required for crash / freeze issues (Windows .dmp / macOS .ips / Linux gdb backtrace)
+        - label: Performance profile — required for performance / lag issues
