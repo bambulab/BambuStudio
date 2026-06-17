@@ -2581,28 +2581,36 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
     };
 
     if (extruder_nums > 1) {
-        int left_index  = find_string(left_extruder->combo_diameter, get_diameter_string(nozzle_diameters[0]));
-        int right_index = find_string(right_extruder->combo_diameter, get_diameter_string(nozzle_diameters[1]));
-        assert(left_index != -1 && right_index != -1);
-        left_extruder->combo_diameter->SetSelection(left_index);
-        right_extruder->combo_diameter->SetSelection(right_index);
+        wxString selected_diameter = wxString::FromUTF8(get_diameter_string(nozzle_diameters[0]));
+        l_ext_cfg                  = collect_nozzle_configs_from_machine(obj, LOGIC_L_EXTRUDER_ID, extruder_max_nozzle_count[0]);
+        r_ext_cfg                  = collect_nozzle_configs_from_machine(obj, LOGIC_R_EXTRUDER_ID, extruder_max_nozzle_count[1]);
+        update_extruder_full_stats(LOGIC_L_EXTRUDER_ID, selected_diameter, l_ext_cfg);
+        update_extruder_full_stats(LOGIC_R_EXTRUDER_ID, selected_diameter, r_ext_cfg);
+
+        diameter_btns->SetSelectedDiameter(selected_diameter);
         is_switching_diameter = true;
         switch_diameter(false);
         is_switching_diameter = false;
-        AMSCountPopupWindow::SetAMSCount(deputy_index, ams_cnt_map[{DEPUTY_EXTRUDER_ID, 4}], ams_cnt_map[{DEPUTY_EXTRUDER_ID, 1}]);
-        AMSCountPopupWindow::SetAMSCount(main_index, ams_cnt_map[{MAIN_EXTRUDER_ID, 4}], ams_cnt_map[{MAIN_EXTRUDER_ID, 1}]);
-        AMSCountPopupWindow::UpdateAMSCount(0, left_extruder);
-        AMSCountPopupWindow::UpdateAMSCount(1, right_extruder);
+        AMSCountPopupWindow::SetAMSCount(DEPUTY_EXTRUDER_ID, ams_cnt_map[{DEPUTY_EXTRUDER_ID, 4}], ams_cnt_map[{DEPUTY_EXTRUDER_ID, 1}]);
+        AMSCountPopupWindow::SetAMSCount(MAIN_EXTRUDER_ID, ams_cnt_map[{MAIN_EXTRUDER_ID, 4}], ams_cnt_map[{MAIN_EXTRUDER_ID, 1}]);
+
+        AMSCountPopupWindow::UpdateAMSCount(LOGIC_L_EXTRUDER_ID, l_extruder_panel);
+        AMSCountPopupWindow::UpdateAMSCount(LOGIC_R_EXTRUDER_ID, r_extruder_panel);
     } else {
         int index = find_string(single_extruder->combo_diameter, get_diameter_string(nozzle_diameters[0]));
         assert(index != -1);
+
+        wxString selected_diameter = wxString::FromUTF8(get_diameter_string(nozzle_diameters[0]));
+        s_ext_cfg = collect_nozzle_configs_from_machine(obj, 0, extruder_max_nozzle_count[0]);
+        update_extruder_full_stats(LOGIC_UNIQUE_EXTRUDER_ID, selected_diameter, s_ext_cfg);
+
         single_extruder->combo_diameter->SetSelection(index);
         is_switching_diameter = true;
         switch_diameter(true);
         is_switching_diameter = false;
 
-        AMSCountPopupWindow::SetAMSCount(0, ams_cnt_map[{MAIN_EXTRUDER_ID, 4}], ams_cnt_map[{MAIN_EXTRUDER_ID, 1}]);
-        AMSCountPopupWindow::UpdateAMSCount(0, s_extruder_panel);
+        AMSCountPopupWindow::SetAMSCount(LOGIC_UNIQUE_EXTRUDER_ID, ams_cnt_map[{MAIN_EXTRUDER_ID, 4}], ams_cnt_map[{MAIN_EXTRUDER_ID, 1}]);
+        AMSCountPopupWindow::UpdateAMSCount(LOGIC_UNIQUE_EXTRUDER_ID, s_extruder_panel);
     }
 
     // set nozzle volume type after switching prset, so this value can override the old value stored in conf
