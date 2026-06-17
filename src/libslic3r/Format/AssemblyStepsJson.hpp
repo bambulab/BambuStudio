@@ -33,6 +33,8 @@ struct ArrowSvgNote
 struct TextLabelNote
 {
     std::string text{"Note"};
+    // The ModelVolumes this note is bound to, recorded as (object_idx, volume_idx).
+    std::vector<std::pair<int, int>> bound_volumes{};
     Vec2d       pos_offset{Vec2d(60, -60)};
     Vec2d       size{Vec2d(160, 80)};
     std::array<int, 4> color{38, 46, 48, 255};
@@ -45,6 +47,8 @@ struct TextLabelNote
 
 struct CircleNote
 {
+    // Bound ModelVolumes (object_idx, volume_idx); pos_offset is measured from
+    std::vector<std::pair<int, int>> bound_volumes{};
     Vec2d pos_offset{Vec2d(60, -60)};
     Vec2d size{Vec2d(80, 80)};
     std::array<int, 4> color{0, 200, 80, 230};
@@ -55,6 +59,8 @@ struct CircleNote
 
 struct RectangleNote
 {
+    // Bound ModelVolumes (object_idx, volume_idx); pos_offset is measured from
+    std::vector<std::pair<int, int>> bound_volumes{};
     Vec2d pos_offset{Vec2d(60, -60)};
     Vec2d size{Vec2d(80, 80)};
     std::array<int, 4> color{0, 200, 80, 230};
@@ -65,6 +71,8 @@ struct RectangleNote
 
 struct PlainArrowNote
 {
+    // Bound ModelVolumes (object_idx, volume_idx); arrow_start_offset is measured
+    std::vector<std::pair<int, int>> bound_volumes{};
     Vec2d arrow_start_offset{Vec2d::Zero()};
     Vec2d arrow_end_offset{Vec2d(80, -60)};
     std::array<int, 4> color{0, 200, 80, 230};

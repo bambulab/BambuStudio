@@ -216,6 +216,10 @@ class AssemblyStepsUtils
     bool         m_selected_screen_center_dirty_{true};
     Transform3d  m_last_view_matrix_for_anchor_{Transform3d::Identity()};
     Transform3d  m_last_proj_matrix_for_anchor_{Transform3d::Identity()};
+    // Last camera viewport (x, y, w, h) the current static frame was framed for.
+    std::array<int, 4> m_last_fit_viewport_{0, 0, 0, 0};
+    // Set by on_color_mode_changed(); consumed on the next render_main() to re-fit the
+    bool         m_refit_camera_pending_{false};
     // Per-frame cache: part-number label index -> per-object screen center.
     std::map<int, Vec2d> pn_screen_centers_;
     // Set when part-number labels are (re)generated: the next on-canvas render
@@ -351,8 +355,13 @@ class AssemblyStepsUtils
     };
     LabelLayoutForbiddenRect m_part_number_label_forbidden_left_area;
     LabelLayoutForbiddenRect m_part_number_label_forbidden_bottom_area;
-    float                 m_gizmo_toolbar_width{0.f};
-    float                 m_gizmo_toolbar_height{0.f};
+    // On-screen (logical px) rect of the top gizmo/main toolbar, fed from GLCanvas3D.
+    // Used to push the export button / guide panel down when they would overlap it.
+    ImVec2                m_gizmo_toolbar_rect_min{0.f, 0.f};
+    ImVec2                m_gizmo_toolbar_rect_max{0.f, 0.f};
+    // When the export button would overlap the gizmo toolbar at its default spot
+    bool                  m_export_btn_corner_mode{false};
+    float                 m_export_btn_canvas_w{0.f};
 
     bool m_select_good_camera_layout_laber_after_auto_explode{true};
     std::vector<PlayFrameRef> m_play_frame_refs;
@@ -385,6 +394,8 @@ public:
 public://logic
     void set_input(ImGuiWrapper *imgui, Model *model, Camera *camera, Selection *selection, GLVolumeCollection *volumes, bool gizmo_active = false);
     void set_render_input(bool is_dark, const std::string &images_dir, float imgui_scale);
+    // Dark/light mode just toggled. The switch relayouts/resizes the canvas, which
+    void on_color_mode_changed() { m_refit_camera_pending_ = true; }
     void set_commond_callback(CanvasCallBack calback);
     void do_commond_callback(std::string);
     void set_in_assembly_view(bool in_assembly_view);
@@ -591,6 +602,10 @@ public://logic
     static Vec2d compute_selected_volumes_screen_center(const Camera &camera, const std::vector<GLVolume *> &volumes);
     // Screen-space anchor center for an arrow-svg note: the bbox center of the
     Vec2d compute_arrow_svg_anchor_center(const ArrowSvgNote &arrow, const Vec2d &fallback_center);
+    // Screen-space anchor center for any note bound to a set of ModelVolumes: the
+    Vec2d compute_note_anchor_center(const std::vector<std::pair<int, int>> &bound_volumes, const Vec2d &fallback_center);
+    // Fill bound_volumes with the (object_idx, volume_idx) of the currently selected
+    void  bind_current_selection_volumes(std::vector<std::pair<int, int>> &bound_volumes) const;
 
     void deal_once_when_enter_assembly_view();
 
@@ -602,8 +617,14 @@ public://logic
     // Right edge X (canvas coords) of the most-recently rendered
     // "Assembly Structure" panel, or 0 when it hasn't been drawn yet.
     float get_assembly_structure_right_x() const { return m_assembly_structure_right_x; }
-    void  set_gizmo_toolbar_size(float width, float height) { m_gizmo_toolbar_width = width; m_gizmo_toolbar_height = height; }
-    float get_guide_panel_y_offset(float canvas_w, float guide_x) const;
+    void  set_gizmo_toolbar_rect(float x0, float y0, float x1, float y1);
+    // Rendered footprint (w, h) of the floating export button, shared by the renderer
+    // and the toolbar collision tests so both use the exact same rect.
+    ImVec2 export_button_size(float sc) const;
+    // Downward shift for the guide panel so it clears the top gizmo toolbar (and the
+    // relocated corner export button) when they overlap. Also updates
+    // m_export_btn_corner_mode based on a precise export-button vs toolbar AABB test.
+    float get_guide_panel_y_offset(float guide_x, float guide_y_base, float guide_w, float sc);
     void  record_keyframe_logic(KeyFrameEntry &entry);
     void  apply_keyframe_to_canvas(const KeyFrame &kf);
     void  play_cur_keyframe_logic();

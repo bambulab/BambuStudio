@@ -137,6 +137,28 @@ void AssemblyStepsUtils::render_main(float canvas_w, float canvas_h) {
         !m_camera->get_projection_matrix().matrix().isApprox(m_last_proj_matrix_for_anchor_.matrix())) {
         m_selected_screen_center_dirty_ = true;
     }
+    // Re-fit the current step when the framing it was computed for is no longer
+    if (!is_play_or_export_mode()) {
+        const std::array<int, 4> vp           = m_camera->get_viewport();
+        const bool               vp_valid     = vp[2] > 0 && vp[3] > 0;
+        const bool               vp_seeded    = m_last_fit_viewport_[2] != 0 || m_last_fit_viewport_[3] != 0;
+        const bool               vp_changed   = vp[2] != m_last_fit_viewport_[2] || vp[3] != m_last_fit_viewport_[3];
+        // Only the first seeded change is a real resize; the un-seeded first frame
+        // is just initialization and must not stomp the entry framing.
+        const bool               want_refit   = m_refit_camera_pending_ || (vp_valid && vp_seeded && vp_changed);
+        if (vp_valid && vp_changed)
+            m_last_fit_viewport_ = vp;
+        if (want_refit) {
+            m_refit_camera_pending_ = false;
+            if (KeyFrameEntry *entry = get_selected_keyframe_entry()) {
+                fit_camera_to_current_step_main_plane(entry->data.camera_margin_factor);
+                if (m_guide_show_part_numbers)
+                    m_pn_autolayout_pending = true; // re-layout labels for the re-fit view
+                m_selected_screen_center_dirty_ = true;
+                do_commond_callback("request_extra_frame");
+            }
+        }
+    }
     update_step_screen_center();
     update_part_number_label_forbidden_layout_areas(canvas_w, canvas_h);
     //imgui
@@ -147,7 +169,11 @@ void AssemblyStepsUtils::render_main(float canvas_w, float canvas_h) {
         const float guide_w = std::max(260.0f * sc, std::min(300.0f * sc, canvas_w * 0.20f));
         const float guide_x = canvas_w - guide_w - 12.0f * sc;
         const float guide_y_base = 14.0f * sc;
-        const float guide_y = guide_y_base + get_guide_panel_y_offset(canvas_w, guide_x);
+        // get_guide_panel_y_offset() also sets m_export_btn_corner_mode via a precise
+        // export-button vs gizmo-toolbar AABB intersection test.
+        m_export_btn_canvas_w = canvas_w;
+        const float guide_offset = get_guide_panel_y_offset(guide_x, guide_y_base, guide_w, sc);
+        const float guide_y = guide_y_base + guide_offset;
         const float guide_h = canvas_h - guide_y - 20.0f * sc;
         render_assembly_guide_panel(guide_x, guide_y, guide_w, guide_h, sc, m_is_dark);
     } else {
@@ -345,7 +371,9 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
     // main_cy is the vertical center of the top row (play, speed, progress, nav).
     // It must be at least half the tallest element so nothing clips above the window.
     const float top_half = std::max({PLAY_BTN_SZ * 0.5f, SPEED_BADGE_H * 0.5f, CIRCLE_D * 0.5f});
-    const float TOTAL_H = top_half + std::max(top_half + 4.0f * sc, 15.74f * sc + LABEL_FONT_PX + 4.0f * sc);
+    // 21.74 (was 15.74) widens the gap between the step circle and the label below
+    // it; keep this in sync with the label_top offset further down.
+    const float TOTAL_H = top_half + std::max(top_half + 4.0f * sc, 21.74f * sc + LABEL_FONT_PX + 4.0f * sc);
 
     // Window position: centered horizontally, anchored so its bottom edge sits at `bottom_y`.
     const float win_x = canvas_w * 0.5f - TOTAL_W * 0.5f;
@@ -546,9 +574,9 @@ void AssemblyStepsUtils::render_assemble_play_bar(float canvas_w, float bottom_y
         }
 
         if (font && !cur_label.empty()) {
-            // Label sits just below the circle (Figma top-[27.74] within a 44h frame
-            // places its top about 6-7 px below the circle's bottom).
-            const float label_top = base.y + 27.74f * sc;
+            // Label sits below the circle. 33.74 (was Figma's 27.74) drops it a bit
+            // lower to widen the gap; keep in sync with the TOTAL_H label term above.
+            const float label_top = base.y + 33.74f * sc;
             const ImVec2 ls = font->CalcTextSizeA(LABEL_FONT_PX, FLT_MAX, 0.0f, cur_label.c_str());
             const ImVec2 label_pos(cx - ls.x * 0.5f, label_top);
             dl->AddText(font, LABEL_FONT_PX,
@@ -1047,7 +1075,9 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
     std::vector<ArrowScreenData> plain_arrow_screen_data(plain_arrow_count);
     for (int ni = 0; ni < plain_arrow_count; ++ni) {
         const PlainArrowNote &arrow = plain_arrows[ni];
-        Vec2d start_pos = obj_center + arrow.arrow_start_offset;
+        // Anchor to the bound volumes' on-screen bbox center (falls back to step center).
+        const Vec2d arrow_center = compute_note_anchor_center(arrow.bound_volumes, obj_center);
+        Vec2d start_pos = arrow_center + arrow.arrow_start_offset;
         Vec2d end_pos   = start_pos  + arrow.arrow_end_offset;
         plain_arrow_screen_data[ni].start = ImVec2((float)start_pos.x(), (float)start_pos.y());
         plain_arrow_screen_data[ni].end   = ImVec2((float)end_pos.x(),   (float)end_pos.y());
@@ -1484,7 +1514,9 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
     for (int ni = 0; ni < (int)text_labels.size(); ++ni) {
         TextLabelNote &label = text_labels[ni];
         clamp_note_size(label.size, 80.0 * sc, 48.0 * sc);
-        ImVec2 pos((float)(obj_center.x() + label.pos_offset.x()), (float)(obj_center.y() + label.pos_offset.y()));
+        // Anchor to the bound volumes' on-screen bbox center (falls back to step center).
+        const Vec2d label_center = compute_note_anchor_center(label.bound_volumes, obj_center);
+        ImVec2 pos((float)(label_center.x() + label.pos_offset.x()), (float)(label_center.y() + label.pos_offset.y()));
         ImVec2 size((float)label.size.x(), (float)label.size.y());
         bool text_selected = is_note_selected(AssemblyNoteSelectionType::TextLabel, ni);
 
@@ -1734,7 +1766,9 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
     for (int ni = 0; ni < (int)circle_notes.size(); ++ni) {
         CircleNote &circle = circle_notes[ni];
         clamp_note_size(circle.size, 24.0 * sc, 24.0 * sc);
-        ImVec2 pos((float)(obj_center.x() + circle.pos_offset.x()), (float)(obj_center.y() + circle.pos_offset.y()));
+        // Anchor to the bound volumes' on-screen bbox center (falls back to step center).
+        const Vec2d circle_center = compute_note_anchor_center(circle.bound_volumes, obj_center);
+        ImVec2 pos((float)(circle_center.x() + circle.pos_offset.x()), (float)(circle_center.y() + circle.pos_offset.y()));
         ImVec2 size((float)circle.size.x(), (float)circle.size.y());
         ImVec2 center(pos.x + size.x * 0.5f, pos.y + size.y * 0.5f);
         ImVec2 radius(size.x * 0.5f, size.y * 0.5f);
@@ -1887,7 +1921,9 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
     for (int ni = 0; ni < (int)rectangle_notes.size(); ++ni) {
         RectangleNote &rect = rectangle_notes[ni];
         clamp_note_size(rect.size, 24.0 * sc, 24.0 * sc);
-        ImVec2 pos((float)(obj_center.x() + rect.pos_offset.x()), (float)(obj_center.y() + rect.pos_offset.y()));
+        // Anchor to the bound volumes' on-screen bbox center (falls back to step center).
+        const Vec2d rect_center = compute_note_anchor_center(rect.bound_volumes, obj_center);
+        ImVec2 pos((float)(rect_center.x() + rect.pos_offset.x()), (float)(rect_center.y() + rect.pos_offset.y()));
         ImVec2 size((float)rect.size.x(), (float)rect.size.y());
         ImVec2 max_pt(pos.x + size.x, pos.y + size.y);
         bool rect_selected = is_note_selected(AssemblyNoteSelectionType::Rectangle, ni);
@@ -2836,14 +2872,16 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
             ? (card_max.x - card_pad - title_action_sz)
             : (card_max.x - card_pad);
         const std::string default_select_label = _CTX_utf8(L_CONTEXT("Default", "AssemblyStructure"), "AssemblyStructure");
-        const auto select_full_label = [&]() -> std::string {
-            if (c.is_final_assembly)
-                return c.select_show_default
-                    ? default_select_label
-                    : c.select_label;
-            return c.select_label.empty()
-                ? default_select_label
-                : c.select_label;
+        // "Select all" collapses the chip text to "Default" (for both the
+        const bool select_show_default = c.select_show_default || c.select_label.empty();
+        const auto select_chip_label = [&]() -> std::string {
+            return select_show_default ? default_select_label : c.select_label;
+        };
+        // Tooltip text. When the chip shows "Default" (every object/part of this step
+        const auto select_tooltip_label = [&]() -> std::string {
+            if (select_show_default)
+                return _u8L("All parts of the current step are selected");
+            return c.select_label;
         };
         const auto select_display_label = [&](const std::string &lbl, float right_anchor) -> std::string {
             const float sel_text_w = text_w_fn(fs_chip, _u8L("Select"));
@@ -2858,7 +2896,7 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         const auto calc_select_start_x = [&](float right_anchor) -> float {
             if (!show_select_controls)
                 return right_anchor;
-            const std::string lbl = select_full_label();
+            const std::string lbl = select_chip_label();
             const std::string display_lbl = select_display_label(lbl, right_anchor);
             const float sel_text_w = text_w_fn(fs_chip, _u8L("Select"));
             const float sel_btn_w = sel_text_w + 2.f * chip_h_pad;
@@ -2959,7 +2997,8 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
 
             // "Select" button + value label, placed on the title row.
             if (show_select_controls) {
-                const std::string lbl = select_full_label();
+                const std::string lbl = select_chip_label();
+                const std::string tooltip_lbl = select_tooltip_label();
                 const float sel_text_w = text_w_fn(fs_chip, _u8L("Select"));
                 const float sel_btn_w = sel_text_w + 2.f * chip_h_pad;
                 const std::string display_lbl = select_display_label(lbl, right_anchor);
@@ -2977,7 +3016,7 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
                 sel_style.button_text_col = col_white;
                 sel_style.label_text_col  = col_text_mid;
                 if (render_structure_card_select_controls(static_cast<int>(ci), sel_min, sel_style,
-                                                          display_lbl, lbl)) {
+                                                          display_lbl, tooltip_lbl)) {
                     suppress_card_click = true;
                 }
             }
@@ -4629,11 +4668,25 @@ void AssemblyStepsUtils::render_assembly_guide_export_button(float panel_x, floa
     const std::string label_str = _u8L("Export");
     const ImVec2 text_sz = ImGui::GetFont()->CalcTextSizeA(label_fs, FLT_MAX, 0.0f, label_str.c_str());
 
-    const float btn_w = std::max(icon_sz, text_sz.x) + pad_x * 2.0f;
-    const float btn_h = pad_y + icon_sz + label_line + pad_y;
+    // Single source of truth for the button footprint so collision detection
+    // (export_button_intersects_toolbar / get_guide_panel_y_offset) matches exactly.
+    const ImVec2 btn_sz = export_button_size(sc);
+    const float  btn_w  = btn_sz.x;
+    const float  btn_h  = btn_sz.y;
 
-    const float btn_x = panel_x - btn_w - gap;
-    const float btn_y = panel_y;
+    float btn_x, btn_y;
+    if (m_export_btn_corner_mode) {
+        // Overlapping the gizmo toolbar at the default spot: relocate to the canvas
+        // top-right corner, right-aligned with the guide panel's right edge and
+        // TOP-aligned with the gizmo toolbar's top. The button card is taller than the
+        // toolbar, so bottom-aligning would push it above the toolbar; top-aligning
+        // keeps it within the top band and the panel is shifted down to leave a gap.
+        btn_x = m_export_btn_canvas_w - 12.0f * sc - btn_w;
+        btn_y = m_gizmo_toolbar_rect_min.y + 8.0f * sc;
+    } else {
+        btn_x = panel_x - btn_w - gap;
+        btn_y = panel_y;
+    }
 
     ImGui::SetNextWindowPos(ImVec2(btn_x, btn_y), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(btn_w, btn_h), ImGuiCond_Always);
@@ -5642,6 +5695,18 @@ void AssemblyStepsUtils::apply_assembly_tree_checked_to_step(
             checked_objects.insert(node.object_idx);
     }
 
+    // Whether this step had no parts before this edit. An empty step never carried
+    bool folder_was_empty = true;
+    for (int child_idx : steps_tree.nodes[active_step_node].children) {
+        if (child_idx < 0 || child_idx >= static_cast<int>(steps_tree.nodes.size()))
+            continue;
+        const auto &child = steps_tree.nodes[child_idx];
+        if (child.type == AssemblyStepsTreeNode::Type::Object && child.object_idx >= 0) {
+            folder_was_empty = false;
+            break;
+        }
+    }
+
     bool step_changed = false;
     std::set<int> existing_objects;
 
@@ -5697,9 +5762,15 @@ void AssemblyStepsUtils::apply_assembly_tree_checked_to_step(
         m_structure_select_popup_checked.clear();
         sync_keyframe_tree();
         // The step's children just changed (e.g. an empty step that got objects
-        // added). Aggregate the children's current transforms into this folder's
-        // keyframe entries, mirroring add_objects_to_assembly_step().
         fill_folder_keyframes_from_children(active_step_node);
+        // A step that was empty before this confirm had no real camera (its default
+        if (folder_was_empty && !checked_objects.empty()) {
+            for (auto &entry : steps_tree.nodes[active_step_node].kf_data.entries) {
+                record_camera(entry.data);
+                entry.data.is_camera_define = true;
+                entry.need_save            = true;
+            }
+        }
         save_assembly_steps_json_to_model();
         do_commond_callback("dirty");
         do_commond_callback("request_extra_frame");

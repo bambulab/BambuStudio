@@ -1732,6 +1732,9 @@ void GLCanvas3D::on_change_color_mode(bool is_dark, bool reinit) {
                 p_main_toolbar->set_icon_dirty();
             }
         }
+        // The dark-mode switch relayouts/resizes the canvas, leaving the assembly
+        if (m_assembly_steps)
+            m_assembly_steps->on_color_mode_changed();
     }
 }
 
@@ -9888,6 +9891,38 @@ void GLCanvas3D::_render_assembly_steps_view()
         return;
     m_assembly_steps->set_render_input(m_is_dark, Slic3r::resources_dir() + "/images/", get_scale());
     const Size cnv_sz = get_canvas_size();
+    // Feed the top gizmo/main toolbar's on-screen rect (logical px) so the guide
+    // panel / export button can dodge it. The toolbar items' render_rect is in world
+    // coords (centered origin); convert to canvas px the same way _render_return_toolbar
+    // does: screen_x = 0.5*w + worldX*zoom, screen_y = 0.5*h - worldY*zoom.
+    {
+        float tb_x0 = 0.f, tb_y0 = 0.f, tb_x1 = 0.f, tb_y1 = 0.f;
+        const auto &p_main_toolbar = get_main_toolbar();
+        if (p_main_toolbar && p_main_toolbar->is_enabled() && !is_assembly_play_or_export_mode()) {
+            const float canvas_w = static_cast<float>(cnv_sz.get_width());
+            const float canvas_h = static_cast<float>(cnv_sz.get_height());
+            const float zoom     = (float) get_active_camera().get_zoom();
+            float wl = FLT_MAX, wr = -FLT_MAX, wb = FLT_MAX, wt = -FLT_MAX;
+            bool  any = false;
+            for (const auto &item : p_main_toolbar->get_items()) {
+                if (!item || !item->is_visible() || item->is_separator())
+                    continue;
+                const float *rr = item->render_rect; // left, right, bottom, top (world)
+                wl = std::min(wl, rr[0]);
+                wr = std::max(wr, rr[1]);
+                wb = std::min(wb, rr[2]);
+                wt = std::max(wt, rr[3]);
+                any = true;
+            }
+            if (any) {
+                tb_x0 = 0.5f * canvas_w + wl * zoom;
+                tb_x1 = 0.5f * canvas_w + wr * zoom;
+                tb_y0 = 0.5f * canvas_h - wt * zoom; // world top  -> screen top
+                tb_y1 = 0.5f * canvas_h - wb * zoom; // world bottom -> screen bottom
+            }
+        }
+        m_assembly_steps->set_gizmo_toolbar_rect(tb_x0, tb_y0, tb_x1, tb_y1);
+    }
     m_assembly_steps->render_main(static_cast<float>(cnv_sz.get_width()), static_cast<float>(cnv_sz.get_height()));
 }
 
@@ -10309,8 +10344,6 @@ void GLCanvas3D::_render_paint_toolbar() const
     ImGui::PopStyleVar();
 
     m_paint_toolbar_width = ImGui::GetWindowWidth() + paint_to_toolbar_offset;
-    if (m_assembly_steps)
-        m_assembly_steps->set_gizmo_toolbar_size(m_paint_toolbar_width, ImGui::GetWindowHeight());
     imgui.end();
     ImGui::PopStyleVar(4);
     ImGui::PopStyleColor(5);

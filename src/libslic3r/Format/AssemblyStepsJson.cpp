@@ -70,6 +70,27 @@ static void color_to_json(nlohmann::json &j, const char *key, const std::array<i
     j[key] = {color[0], color[1], color[2], color[3]};
 }
 
+static void bound_volumes_to_json(nlohmann::json &j, const char *key,
+                                  const std::vector<std::pair<int, int>> &bound_volumes)
+{
+    nlohmann::json bv = nlohmann::json::array();
+    for (const auto &p : bound_volumes)
+        bv.push_back({p.first, p.second});
+    j[key] = bv;
+}
+
+static void bound_volumes_from_json(const nlohmann::json &j, const char *key,
+                                    std::vector<std::pair<int, int>> &bound_volumes)
+{
+    bound_volumes.clear();
+    if (j.contains(key) && j[key].is_array()) {
+        for (const auto &item : j[key]) {
+            if (item.is_array() && item.size() == 2 && item[0].is_number_integer() && item[1].is_number_integer())
+                bound_volumes.emplace_back(item[0].get<int>(), item[1].get<int>());
+        }
+    }
+}
+
 static void color_from_json(const nlohmann::json &j, const char *key, std::array<int, 4> &color)
 {
     if (!j.contains(key) || !j[key].is_array())
@@ -158,6 +179,7 @@ void ArrowSvgNote::from_json(const nlohmann::json &j)
 void TextLabelNote::to_json(nlohmann::json &j) const
 {
     j["text"]       = text;
+    bound_volumes_to_json(j, "bound_volumes", bound_volumes);
     j["pos_offset"] = {pos_offset.x(), pos_offset.y()};
     j["size"]       = {size.x(), size.y()};
     color_to_json(j, "color", color);
@@ -167,6 +189,7 @@ void TextLabelNote::to_json(nlohmann::json &j) const
 void TextLabelNote::from_json(const nlohmann::json &j)
 {
     json_get_string(j, "text", text);
+    bound_volumes_from_json(j, "bound_volumes", bound_volumes);
     json_get_vec2d(j, "pos_offset", pos_offset);
     json_get_vec2d(j, "size", size);
     color_from_json(j, "color", color);
@@ -176,6 +199,7 @@ void TextLabelNote::from_json(const nlohmann::json &j)
 // ---- CircleNote ----
 void CircleNote::to_json(nlohmann::json &j) const
 {
+    bound_volumes_to_json(j, "bound_volumes", bound_volumes);
     j["pos_offset"] = {pos_offset.x(), pos_offset.y()};
     j["size"]       = {size.x(), size.y()};
     color_to_json(j, "color", color);
@@ -183,6 +207,7 @@ void CircleNote::to_json(nlohmann::json &j) const
 
 void CircleNote::from_json(const nlohmann::json &j)
 {
+    bound_volumes_from_json(j, "bound_volumes", bound_volumes);
     json_get_vec2d(j, "pos_offset", pos_offset);
     json_get_vec2d(j, "size", size);
     color_from_json(j, "color", color);
@@ -191,6 +216,7 @@ void CircleNote::from_json(const nlohmann::json &j)
 // ---- RectangleNote ----
 void RectangleNote::to_json(nlohmann::json &j) const
 {
+    bound_volumes_to_json(j, "bound_volumes", bound_volumes);
     j["pos_offset"] = {pos_offset.x(), pos_offset.y()};
     j["size"]       = {size.x(), size.y()};
     color_to_json(j, "color", color);
@@ -198,6 +224,7 @@ void RectangleNote::to_json(nlohmann::json &j) const
 
 void RectangleNote::from_json(const nlohmann::json &j)
 {
+    bound_volumes_from_json(j, "bound_volumes", bound_volumes);
     json_get_vec2d(j, "pos_offset", pos_offset);
     json_get_vec2d(j, "size", size);
     color_from_json(j, "color", color);
@@ -206,6 +233,7 @@ void RectangleNote::from_json(const nlohmann::json &j)
 // ---- PlainArrowNote ----
 void PlainArrowNote::to_json(nlohmann::json &j) const
 {
+    bound_volumes_to_json(j, "bound_volumes", bound_volumes);
     j["arrow_start_offset"] = {arrow_start_offset.x(), arrow_start_offset.y()};
     j["arrow_end_offset"]   = {arrow_end_offset.x(), arrow_end_offset.y()};
     color_to_json(j, "color", color);
@@ -213,6 +241,7 @@ void PlainArrowNote::to_json(nlohmann::json &j) const
 
 void PlainArrowNote::from_json(const nlohmann::json &j)
 {
+    bound_volumes_from_json(j, "bound_volumes", bound_volumes);
     json_get_vec2d(j, "arrow_start_offset", arrow_start_offset);
     json_get_vec2d(j, "arrow_end_offset", arrow_end_offset);
     color_from_json(j, "color", color);

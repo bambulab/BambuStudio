@@ -2966,16 +2966,79 @@ bool AssemblyStepsUtils::build_assembly_steps_pdf(const std::string &pdf_filenam
     return true;
 }
 
-float AssemblyStepsUtils::get_guide_panel_y_offset(float canvas_w, float guide_x) const
+void AssemblyStepsUtils::set_gizmo_toolbar_rect(float x0, float y0, float x1, float y1)
 {
-    if (m_gizmo_toolbar_width <= 0.f || m_gizmo_toolbar_height <= 0.f)
+    m_gizmo_toolbar_rect_min = ImVec2(x0, y0);
+    m_gizmo_toolbar_rect_max = ImVec2(x1, y1);
+}
+
+ImVec2 AssemblyStepsUtils::export_button_size(float sc) const
+{
+    // Mirror render_assembly_guide_export_button()'s footprint so collision tests use
+    // the exact same width/height as the rendered button.
+    const float pad_x      = 8.0f * sc;
+    const float pad_y      = 4.0f * sc;
+    const float icon_sz    = 24.0f * sc;
+    const float label_fs   = ImGui::GetFontSize();
+    const float label_line = std::max(20.0f * sc, label_fs + 4.0f * sc);
+    float btn_w = icon_sz + pad_x * 2.0f;
+    if (ImFont *f = ImGui::GetFont()) {
+        const std::string label_str = _u8L("Export");
+        const ImVec2      ts        = f->CalcTextSizeA(label_fs, FLT_MAX, 0.0f, label_str.c_str());
+        btn_w = std::max(icon_sz, ts.x) + pad_x * 2.0f;
+    }
+    const float btn_h = pad_y + icon_sz + label_line + pad_y;
+    return ImVec2(btn_w, btn_h);
+}
+
+float AssemblyStepsUtils::get_guide_panel_y_offset(float guide_x, float guide_y_base, float guide_w, float sc)
+{
+    // The top gizmo/main toolbar rect (logical px) is fed from GLCanvas3D.
+    m_export_btn_corner_mode = false;
+
+    const float tb_x0 = m_gizmo_toolbar_rect_min.x;
+    const float tb_y0 = m_gizmo_toolbar_rect_min.y;
+    const float tb_x1 = m_gizmo_toolbar_rect_max.x;
+    const float tb_y1 = m_gizmo_toolbar_rect_max.y;
+    if (tb_x1 <= tb_x0 || tb_y1 <= tb_y0)
+        return 0.f; // toolbar not visible / no rect this frame
+
+    // Export button DEFAULT rect (left of the guide panel, top at guide_y_base).
+    const ImVec2 bsz = export_button_size(sc);
+    const float  gap = 12.0f * sc;
+    const float  bx1 = guide_x - gap;          // right edge (gap to the panel)
+    const float  bx0 = bx1 - bsz.x;            // left edge
+    const float  by0 = guide_y_base;
+    const float  by1 = guide_y_base + bsz.y;
+
+    // Inflate the toolbar rect by a small margin so the corner layout also kicks in
+    // when the button merely gets close to (not strictly overlapping) the toolbar.
+    const float margin = 10.0f * sc;
+    const float etb_x0 = tb_x0 - margin;
+    const float etb_y0 = tb_y0 - margin;
+    const float etb_x1 = tb_x1 + margin;
+    const float etb_y1 = tb_y1 + margin;
+
+    // AABB intersection between the export button rect and the (margin-inflated)
+    // toolbar rect: this alone decides whether the button switches to the corner.
+    const bool btn_hits = (etb_x0 < bx1) && (etb_x1 > bx0) && (etb_y0 < by1) && (etb_y1 > by0);
+    m_export_btn_corner_mode = btn_hits;
+
+    // Panel rect: right side of the canvas, extends well below the toolbar.
+    const bool panel_hits = (etb_x0 < guide_x + guide_w) && (etb_x1 > guide_x) && (etb_y1 > by0);
+
+    // When the button moves to the corner it is TOP-aligned to the toolbar top, so the
+    // panel must clear the corner button's bottom edge (toolbar_top + button height).
+    float bottom_obstacle = 0.f;
+    if (btn_hits)
+        bottom_obstacle = std::max(bottom_obstacle, tb_y0 + bsz.y); // corner button bottom
+    if (panel_hits)
+        bottom_obstacle = std::max(bottom_obstacle, tb_y1);         // toolbar bottom
+    if (bottom_obstacle <= guide_y_base)
         return 0.f;
-    const float toolbar_right = (canvas_w + m_gizmo_toolbar_width) * 0.5f;
-    const float export_btn_w = 60.0f * m_imgui_scale;
-    const float effective_left = guide_x - export_btn_w;
-    if (toolbar_right > effective_left)
-        return m_gizmo_toolbar_height;
-    return 0.f;
+
+    // Push the panel down so its top sits below the obstacle, plus an 8px gap.
+    return (bottom_obstacle - guide_y_base) + 8.0f * sc;
 }
 
 
@@ -3701,13 +3764,7 @@ bool AssemblyStepsUtils::add_arrow_svg_note(const std::string &svg_name)
     arrow.svg_name = svg_name;
     arrow.color    = note_color_from_palette_index(m_guide_note_color_selected);
     // Bind the arrow to the ModelVolumes currently selected, so its start point can anchor to their on-screen bbox center (computed at render time).
-    if (m_selection != nullptr) {
-        for (unsigned int idx : m_selection->get_volume_idxs()) {
-            const GLVolume *v = m_selection->get_volume(idx);
-            if (v != nullptr)
-                arrow.bound_volumes.emplace_back(v->object_idx(), v->volume_idx());
-        }
-    }
+    bind_current_selection_volumes(arrow.bound_volumes);
     cur_entry.data.assembly_note.arrow_svgs.push_back(std::move(arrow));
     m_note_selected_type = AssemblyNoteSelectionType::ArrowSvg;
     m_note_selected_idx = (int)cur_entry.data.assembly_note.arrow_svgs.size() - 1;
@@ -3727,6 +3784,8 @@ bool AssemblyStepsUtils::add_text_label_note()
     cur_entry.data.assembly_note.text_labels.emplace_back();
     cur_entry.data.assembly_note.text_labels.back().color =
         note_color_from_palette_index(m_guide_note_color_selected);
+    // Anchor the note to the currently selected volumes' on-screen bbox center.
+    bind_current_selection_volumes(cur_entry.data.assembly_note.text_labels.back().bound_volumes);
     {
         // Inherit the alpha used historically for the label background so the
         // canvas underneath still shows through.
@@ -3755,6 +3814,8 @@ bool AssemblyStepsUtils::add_circle_note()
     cur_entry.data.assembly_note.circle_notes.emplace_back();
     cur_entry.data.assembly_note.circle_notes.back().color =
         note_color_from_palette_index(m_guide_note_color_selected);
+    // Anchor the note to the currently selected volumes' on-screen bbox center.
+    bind_current_selection_volumes(cur_entry.data.assembly_note.circle_notes.back().bound_volumes);
     m_note_selected_type = AssemblyNoteSelectionType::Circle;
     m_note_selected_idx = (int)cur_entry.data.assembly_note.circle_notes.size() - 1;
     set_note_edit_controls_visible(true);
@@ -3773,6 +3834,8 @@ bool AssemblyStepsUtils::add_rectangle_note()
     cur_entry.data.assembly_note.rectangle_notes.emplace_back();
     cur_entry.data.assembly_note.rectangle_notes.back().color =
         note_color_from_palette_index(m_guide_note_color_selected);
+    // Anchor the note to the currently selected volumes' on-screen bbox center.
+    bind_current_selection_volumes(cur_entry.data.assembly_note.rectangle_notes.back().bound_volumes);
     m_note_selected_type = AssemblyNoteSelectionType::Rectangle;
     m_note_selected_idx = (int)cur_entry.data.assembly_note.rectangle_notes.size() - 1;
     set_note_edit_controls_visible(true);
@@ -3791,6 +3854,8 @@ bool AssemblyStepsUtils::add_plain_arrow_note()
     cur_entry.data.assembly_note.plain_arrows.emplace_back();
     cur_entry.data.assembly_note.plain_arrows.back().color =
         note_color_from_palette_index(m_guide_note_color_selected);
+    // Anchor the arrow start to the currently selected volumes' on-screen bbox center.
+    bind_current_selection_volumes(cur_entry.data.assembly_note.plain_arrows.back().bound_volumes);
     m_note_selected_type = AssemblyNoteSelectionType::PlainArrow;
     m_note_selected_idx = (int)cur_entry.data.assembly_note.plain_arrows.size() - 1;
     set_note_edit_controls_visible(true);
@@ -4370,9 +4435,9 @@ Vec2d AssemblyStepsUtils::compute_selected_volumes_screen_center(
     return Vec2d(x, y);
 }
 
-Vec2d AssemblyStepsUtils::compute_arrow_svg_anchor_center(const ArrowSvgNote &arrow, const Vec2d &fallback_center)
+Vec2d AssemblyStepsUtils::compute_note_anchor_center(const std::vector<std::pair<int, int>> &bound_volumes, const Vec2d &fallback_center)
 {
-    if (arrow.bound_volumes.empty() || !m_camera || !m_volumes)
+    if (bound_volumes.empty() || !m_camera || !m_volumes)
         return fallback_center;
 
     // Collect the live GLVolumes whose (object, volume) matches the bound set, so
@@ -4381,7 +4446,7 @@ Vec2d AssemblyStepsUtils::compute_arrow_svg_anchor_center(const ArrowSvgNote &ar
     for (GLVolume *vol : m_volumes->volumes) {
         if (!vol || !vol->is_active)
             continue;
-        for (const auto &key : arrow.bound_volumes) {
+        for (const auto &key : bound_volumes) {
             if (vol->object_idx() == key.first && vol->volume_idx() == key.second) {
                 bound.push_back(vol);
                 break;
@@ -4391,6 +4456,23 @@ Vec2d AssemblyStepsUtils::compute_arrow_svg_anchor_center(const ArrowSvgNote &ar
     if (bound.empty())
         return fallback_center;
     return compute_selected_volumes_screen_center(*m_camera, bound);
+}
+
+Vec2d AssemblyStepsUtils::compute_arrow_svg_anchor_center(const ArrowSvgNote &arrow, const Vec2d &fallback_center)
+{
+    return compute_note_anchor_center(arrow.bound_volumes, fallback_center);
+}
+
+void AssemblyStepsUtils::bind_current_selection_volumes(std::vector<std::pair<int, int>> &bound_volumes) const
+{
+    bound_volumes.clear();
+    if (m_selection == nullptr)
+        return;
+    for (unsigned int idx : m_selection->get_volume_idxs()) {
+        const GLVolume *v = m_selection->get_volume(idx);
+        if (v != nullptr)
+            bound_volumes.emplace_back(v->object_idx(), v->volume_idx());
+    }
 }
 
 void AssemblyStepsUtils::deal_once_when_enter_assembly_view() {
@@ -4682,6 +4764,7 @@ AssemblyStructurePanelData AssemblyStepsUtils::build_assembly_structure_panel_da
         auto select_label_it = m_structure_select_labels.find(root_idx);
         if (select_label_it != m_structure_select_labels.end())
             step.select_label = select_label_it->second;
+        step.select_show_default = m_structure_select_show_default.count(root_idx) > 0;
 
         std::set<int> obj_set;
         std::function<void(int)> collect = [&](int idx) {
@@ -5159,16 +5242,13 @@ void AssemblyStepsUtils::update_structure_select_label(int card_idx, const Assem
 
         const bool all_selected = !all_objects.empty() && selected_objects.size() == all_objects.size();
         if (all_selected) {
+            // Chip collapses to "Default"; the tooltip is built on demand at hover.
             m_structure_select_show_default.insert(step_node_idx);
             m_structure_select_labels.erase(step_node_idx);
             return;
         }
 
         m_structure_select_show_default.erase(step_node_idx);
-        if (selected_objects.empty()) {
-            m_structure_select_labels[step_node_idx] = std::string();
-            return;
-        }
 
         std::string label;
         std::set<int> added;
@@ -5182,7 +5262,11 @@ void AssemblyStepsUtils::update_structure_select_label(int card_idx, const Assem
                 label += ", ";
             label += node.label;
         }
-        m_structure_select_labels[step_node_idx] = label;
+
+        if (label.empty())
+            m_structure_select_labels.erase(step_node_idx);
+        else
+            m_structure_select_labels[step_node_idx] = label;
         return;
     }
 
@@ -5216,6 +5300,28 @@ void AssemblyStepsUtils::update_structure_select_label(int card_idx, const Assem
         if (i > 0)
             label += ", ";
         label += labels[i];
+    }
+
+    // "Select all" detection for a regular step: every selectable leaf (a volume
+    int leaf_total   = 0;
+    int leaf_checked = 0;
+    for (const auto &node : popup_tree.nodes) {
+        if (!node.selectable || node.object_idx < 0)
+            continue;
+        const bool is_leaf = node.volume_idx >= 0 || node.children.empty();
+        if (!is_leaf)
+            continue;
+        ++leaf_total;
+        auto it = m_structure_select_popup_checked.find(node.uid);
+        if (it != m_structure_select_popup_checked.end() && it->second)
+            ++leaf_checked;
+    }
+    const bool all_selected = leaf_total > 0 && leaf_checked == leaf_total;
+    if (all_selected) {
+        // Chip collapses to "Default"; the tooltip is built on demand at hover.
+        m_structure_select_show_default.insert(step_node_idx);
+        m_structure_select_labels.erase(step_node_idx);
+        return;
     }
 
     m_structure_select_show_default.erase(step_node_idx);
