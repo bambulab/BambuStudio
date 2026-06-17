@@ -417,7 +417,7 @@ function stopMockFilamentChange() {
         ...AMS_FILAMENT_HOTEND_STATE.filament_page.actions,
         can_load: true,
         can_load_external: true,
-        can_load_auto: true,
+        can_show_load_auto: true,
         can_unload: true,
         tips: '',
       },

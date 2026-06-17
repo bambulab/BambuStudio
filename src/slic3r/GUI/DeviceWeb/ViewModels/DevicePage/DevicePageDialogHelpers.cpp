@@ -77,6 +77,8 @@ std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams
     std::string sn_number;
     std::string temp_max;
     std::string temp_min;
+    wxString total_weight;
+    wxString remain_weight;
     wxString k_val;
     wxString n_val;
 
@@ -108,9 +110,12 @@ std::optional<EditedFilamentInfo> OpenAmsMaterialsSetting(const std::string& ams
         temp_max = tray.nozzle_temp_max;
         temp_min = tray.nozzle_temp_min;
     }
-    // AMSMaterialsSetting has no filament-weight editing on this branch, so the
-    // total / remain weights the dialog would otherwise prefill are not passed.
-    dlg.Popup(filament, sn_number, temp_min, temp_max, k_val, n_val);
+    total_weight = wxString::FromUTF8(tray.weight.c_str());
+    if (auto weight = tray.get_filament_remain_weight()) {
+        remain_weight = wxString::Format("%d", *weight);
+    }
+
+    dlg.Popup(filament, sn_number, temp_min, temp_max, k_val, n_val, total_weight, remain_weight);
 
     if (!dlg.m_confirmed) return std::nullopt;
 

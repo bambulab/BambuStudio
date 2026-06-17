@@ -1,7 +1,9 @@
 #include <nlohmann/json.hpp>
+#include <boost/log/trivial.hpp>
 #include "DevFilaSystem.h"
 
 #include "slic3r/GUI/DeviceManager.hpp"// TODO: remove this include
+#include "DevFilamentWeight.h"
 #include "DevUtil.h"
 
 using namespace nlohmann;
@@ -13,6 +15,25 @@ int DevFilaSystem::CtrlAmsReset() const
     json jj_command;
     jj_command["print"]["command"] = "ams_reset";
     jj_command["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    return m_owner->publish_json(jj_command);
+}
+
+int DevFilaSystem::CtrlSetFilamentWeight(int ams_id, int slot_id, int total, int remain) const
+{
+    const auto validation = DevFilamentWeight::Validate(total, remain);
+    if (!validation.valid) {
+        BOOST_LOG_TRIVIAL(warning) << __FUNCTION__ << " invalid filament weight, total=" << total << ", remain=" << remain;
+        return -1;
+    }
+
+    json jj_command;
+    jj_command["print"]["command"] = "set_filament_weight";
+    jj_command["print"]["sequence_id"] = std::to_string(MachineObject::m_sequence_id++);
+    jj_command["print"]["ams_id"] = ams_id;
+    jj_command["print"]["slot_id"] = slot_id;
+    jj_command["print"]["total"] = total;
+    jj_command["print"]["remain"] = remain;
+    jj_command["print"]["src_id"] = 1;
     return m_owner->publish_json(jj_command);
 }
 

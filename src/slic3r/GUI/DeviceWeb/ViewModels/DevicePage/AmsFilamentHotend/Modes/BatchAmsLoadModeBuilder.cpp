@@ -120,7 +120,7 @@ nlohmann::json BatchAmsLoadModeBuilder::BuildFilamentPage(
     const bool src_can_dry = src_actions.value(SK::filament_actions::can_dry, false);
     page[SK::filament_page::actions] = {
         {SK::filament_actions::can_dry,           make_action_state(src_can_dry)},
-        {SK::filament_actions::can_load_auto,     make_action_state(true)},
+        {SK::filament_actions::can_show_load_auto, make_action_state(true)},
         {SK::filament_actions::can_load_external, make_action_state(false, other_active)},
         {SK::filament_actions::can_unload,        make_action_state(false, other_active)},
     };

@@ -128,7 +128,8 @@ public:
     bool Show(bool show) override;
     void Popup(wxString filament = wxEmptyString, wxString sn = wxEmptyString,
                wxString temp_min = wxEmptyString, wxString temp_max = wxEmptyString,
-               wxString k = wxEmptyString, wxString n = wxEmptyString);
+               wxString k = wxEmptyString, wxString n = wxEmptyString,
+               wxString total_weight = wxEmptyString, wxString remain_weight = wxEmptyString);
 
     void trigger_select_filament(const std::string& spool_id, bool from_printer, const wxString& display_text);
     void set_color(wxColour color);
@@ -165,6 +166,7 @@ protected:
     void create_panel_normal(wxWindow* parent);
     void create_panel_kn(wxWindow* parent);
     void create_panel_rfid_display(wxWindow* parent);   // read-only card shown for official RFID filament (m_is_third == false)
+    void create_panel_weight(wxWindow* parent);          // shared remain/total weight panel (both modes)
     void on_dpi_changed(const wxRect &suggested_rect) override;
     void apply_filament_selection();
     void on_select_ok(wxCommandEvent &event);
@@ -180,6 +182,11 @@ protected:
 
     void update_filament_editing(bool is_printing);
     int  get_cali_index_by_ams_slot(MachineObject* obj, int ams_id, int slot_id);
+    bool support_filament_remain_edit() const;
+    bool can_edit_filament_weight() const;
+    bool validate_filament_weight_inputs(int& total_weight, int& remain_weight) const;
+    bool filament_weight_changed(int total_weight, int remain_weight) const;
+    void update_filament_weight_editing();
     std::vector<ColorPickerPopup::ColorItem> get_preset_color_items(const std::string& filament_id) const;
 
     void get_filaments_info(const MachineObject*                     obj,
@@ -229,6 +236,13 @@ protected:
     wxStaticText* m_title_nozzle_type{nullptr};
     wxSizerItem*  m_nozzle_type_spacer_item{nullptr};
     wxStaticText* m_title_pa_profile{nullptr};
+
+    wxPanel*   m_panel_filament_weight{nullptr};
+    TextInput* m_input_total_weight{nullptr};
+    TextInput* m_input_remain_weight{nullptr};
+    bool m_has_initial_filament_weight{false};
+    int  m_initial_total_weight{0};
+    int  m_initial_remain_weight{0};
 
     StateColor          m_btn_bg_green;
     StateColor          m_btn_bg_gray;

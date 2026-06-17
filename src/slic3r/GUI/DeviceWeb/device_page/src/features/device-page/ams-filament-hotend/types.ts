@@ -312,10 +312,12 @@ export interface FilamentChangeStatus {
 export interface FilamentPageActionState {
   can_dry: boolean;
   can_unload: boolean;
-  /** @deprecated Prefer can_load_external + can_load_auto on new bridges. */
+  /** @deprecated Prefer can_load_external + can_show_load_auto on new bridges. */
   can_load?: boolean;
   can_load_external?: boolean;
-  can_load_auto?: boolean;
+  // Controls whether the Auto Load button is rendered at all (show/hide), not
+  // just its enabled state. Undefined on legacy bridges → treated as shown.
+  can_show_load_auto?: boolean;
   show_ams_settings: boolean;
   show_auto_refill: boolean;
   tips: string;

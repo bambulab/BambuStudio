@@ -5524,7 +5524,7 @@ void StatusPanel::on_filament_edit(wxCommandEvent &event)
             }
 
             m_filament_setting_dlg->Move(wxPoint(current_position_x, current_position_y));
-            m_filament_setting_dlg->Popup(filament, sn_number, temp_min, temp_max, k_val, n_val);
+            m_filament_setting_dlg->Popup(filament, sn_number, temp_min, temp_max, k_val, n_val, total_weight, remain_weight);
         } catch (...) {
             ;
         }
@@ -5804,7 +5804,7 @@ void StatusPanel::on_ext_spool_edit(wxCommandEvent &event)
             }
 
             m_filament_setting_dlg->Move(wxPoint(current_position_x, current_position_y));
-            m_filament_setting_dlg->Popup(filament, sn_number, temp_min, temp_max, k_val, n_val);
+            m_filament_setting_dlg->Popup(filament, sn_number, temp_min, temp_max, k_val, n_val, total_weight, remain_weight);
         } catch (...) {
             ;
         }

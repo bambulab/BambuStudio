@@ -285,14 +285,14 @@ nlohmann::json DevicePageAmsFilamentHotendVM::BuildState() const
     if (filament_changing) {
         fp[SK::filament_page::actions][SK::filament_actions::can_load]          = false;
         fp[SK::filament_page::actions][SK::filament_actions::can_load_external] = false;
-        fp[SK::filament_page::actions][SK::filament_actions::can_load_auto]     = false;
+        fp[SK::filament_page::actions][SK::filament_actions::can_show_load_auto] = false;
         fp[SK::filament_page::actions][SK::filament_actions::can_unload]        = false;
     }
 
     if (auto fila_system = machine_obj->GetFilaSystem()) {
         const bool has_connected_ams = !fila_system->GetAmsList().empty() && machine_obj->ams_exist_bits != 0;
         if (!has_connected_ams) {
-            fp[SK::filament_page::actions][SK::filament_actions::can_load_auto] = false;
+            fp[SK::filament_page::actions][SK::filament_actions::can_show_load_auto] = false;
         }
 
         fp[SK::filament_page::actions][SK::filament_actions::show_ams_settings] = has_connected_ams;

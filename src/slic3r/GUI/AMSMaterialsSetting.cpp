@@ -22,6 +22,7 @@
 #include "DeviceCore/DevConfigUtil.h"
 #include "DeviceCore/DevExtruderSystem.h"
 #include "DeviceCore/DevFilaBlackList.h"
+#include "DeviceCore/DevFilamentWeight.h"
 #include "DeviceCore/DevFilaSystem.h"
 #include "DeviceCore/DevManager.h"
 
@@ -140,6 +141,7 @@ void AMSMaterialsSetting::create()
     m_panel_kn = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     m_panel_kn->SetBackgroundColour(StateColor::darkModeColorFor(*wxWHITE));
     create_panel_kn(m_panel_kn);
+    create_panel_weight(this);
 
     wxBoxSizer *m_sizer_button = new wxBoxSizer(wxHORIZONTAL);
 
@@ -181,6 +183,8 @@ void AMSMaterialsSetting::create()
     m_sizer_main->Add(m_panel_normal, 0, wxEXPAND, 0);
 
     m_sizer_main->Add(m_panel_rfid_display, 0, wxEXPAND, 0);
+
+    m_sizer_main->Add(m_panel_filament_weight, 0, wxLEFT | wxRIGHT | wxTOP, FromDIP(20));
 
     m_sizer_main->Add(m_panel_kn, 0, wxEXPAND, 0);
 
@@ -373,6 +377,62 @@ void AMSMaterialsSetting::create_panel_rfid_display(wxWindow* parent)
     parent->SetSizer(sizer);
 }
 
+void AMSMaterialsSetting::create_panel_weight(wxWindow* parent)
+{
+    m_panel_filament_weight = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    wxBoxSizer* m_sizer_filament_weight = new wxBoxSizer(wxHORIZONTAL);
+    const wxSize weight_label_size(AMS_MATERIALS_SETTING_LABEL_WIDTH, -1);
+
+    auto m_title_filament_weight = new wxStaticText(m_panel_filament_weight, wxID_ANY, _L("Weight"), wxDefaultPosition,
+                                                     wxSize(AMS_MATERIALS_SETTING_CALI_COL_INDENT, -1), 0);
+    m_title_filament_weight->SetFont(::Label::Body_13);
+    m_title_filament_weight->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
+    m_title_filament_weight->Wrap(-1);
+    m_sizer_filament_weight->Add(m_title_filament_weight, 0, wxALIGN_CENTER_VERTICAL, 0);
+
+    wxBoxSizer* sizer_weight_inputs = new wxBoxSizer(wxVERTICAL);
+
+    wxBoxSizer* m_sizer_total_weight = new wxBoxSizer(wxHORIZONTAL);
+    auto m_title_total_weight = new wxStaticText(m_panel_filament_weight, wxID_ANY, _L("Total Weight"), wxDefaultPosition, weight_label_size, 0);
+    m_title_total_weight->SetFont(::Label::Body_13);
+    m_title_total_weight->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
+    m_title_total_weight->Wrap(-1);
+    m_sizer_total_weight->Add(m_title_total_weight, 0, wxALIGN_CENTER, 0);
+    m_input_total_weight = new ::TextInput(m_panel_filament_weight, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_input_total_weight->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    m_input_total_weight->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
+    m_sizer_total_weight->Add(m_input_total_weight, 0, wxALIGN_CENTER, 0);
+    auto m_unit_total_weight = new wxStaticText(m_panel_filament_weight, wxID_ANY, "g", wxDefaultPosition, wxDefaultSize, 0);
+    m_unit_total_weight->SetFont(::Label::Body_13);
+    m_unit_total_weight->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
+    m_sizer_total_weight->Add(m_unit_total_weight, 0, wxALIGN_CENTER | wxLEFT, FromDIP(6));
+
+    wxBoxSizer* m_sizer_remain_weight = new wxBoxSizer(wxHORIZONTAL);
+    auto m_title_remain_weight = new wxStaticText(m_panel_filament_weight, wxID_ANY, _L("Remain Weight"), wxDefaultPosition, weight_label_size, 0);
+    m_title_remain_weight->SetFont(::Label::Body_13);
+    m_title_remain_weight->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
+    m_title_remain_weight->Wrap(-1);
+    m_sizer_remain_weight->Add(m_title_remain_weight, 0, wxALIGN_CENTER, 0);
+    m_input_remain_weight = new ::TextInput(m_panel_filament_weight, wxEmptyString, wxEmptyString, wxEmptyString, wxDefaultPosition, AMS_MATERIALS_SETTING_INPUT_SIZE, wxTE_CENTRE | wxTE_PROCESS_ENTER);
+    m_input_remain_weight->GetTextCtrl()->SetValidator(wxTextValidator(wxFILTER_NUMERIC));
+    m_input_remain_weight->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
+    m_sizer_remain_weight->Add(m_input_remain_weight, 0, wxALIGN_CENTER, 0);
+    auto m_unit_remain_weight = new wxStaticText(m_panel_filament_weight, wxID_ANY, "g", wxDefaultPosition, wxDefaultSize, 0);
+    m_unit_remain_weight->SetFont(::Label::Body_13);
+    m_unit_remain_weight->SetForegroundColour(AMS_MATERIALS_SETTING_GREY800);
+    m_sizer_remain_weight->Add(m_unit_remain_weight, 0, wxALIGN_CENTER | wxLEFT, FromDIP(6));
+    sizer_weight_inputs->Add(m_sizer_remain_weight, 0, wxEXPAND, 0);
+    sizer_weight_inputs->Add(0, 0, 0, wxTOP, FromDIP(8));
+    sizer_weight_inputs->Add(m_sizer_total_weight, 0, wxEXPAND, 0);
+    m_sizer_filament_weight->Add(sizer_weight_inputs, 0, wxALL | wxALIGN_CENTER, 0);
+    m_sizer_filament_weight->AddStretchSpacer();
+
+    m_panel_filament_weight->SetSizer(m_sizer_filament_weight);
+    m_panel_filament_weight->Layout();
+    m_panel_filament_weight->Fit();
+    m_panel_filament_weight->Hide();
+}
+
 void AMSMaterialsSetting::create_panel_kn(wxWindow* parent)
 {
     auto sizer = new wxBoxSizer(wxVERTICAL);
@@ -563,6 +623,61 @@ void AMSMaterialsSetting::update_filament_editing(bool is_printing)
     }
 }
 
+bool AMSMaterialsSetting::support_filament_remain_edit() const
+{
+    return obj && obj->GetConfig() && obj->GetConfig()->SupportFilamentRemainEdit() && !m_view_only;
+}
+
+bool AMSMaterialsSetting::can_edit_filament_weight() const
+{
+    return support_filament_remain_edit() && !m_filament_type.empty();
+}
+
+bool AMSMaterialsSetting::validate_filament_weight_inputs(int& total_weight, int& remain_weight) const
+{
+    if (!can_edit_filament_weight()) return true;
+
+    wxString total_text = m_input_total_weight->GetTextCtrl()->GetValue();
+    wxString remain_text = m_input_remain_weight->GetTextCtrl()->GetValue();
+    long total = 0;
+    long remain = 0;
+    if (!total_text.ToLong(&total) || !remain_text.ToLong(&remain)) {
+        MessageDialog msg_dlg(nullptr, _L("Please enter valid filament weights."), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
+
+    const auto validation = DevFilamentWeight::Validate(static_cast<int>(total), static_cast<int>(remain));
+    if (!validation.valid) {
+        MessageDialog msg_dlg(nullptr, from_u8(validation.message), wxEmptyString, wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+        return false;
+    }
+
+    total_weight = static_cast<int>(total);
+    remain_weight = static_cast<int>(remain);
+    return true;
+}
+
+bool AMSMaterialsSetting::filament_weight_changed(int total_weight, int remain_weight) const
+{
+    if (!m_has_initial_filament_weight) return true;
+    return total_weight != m_initial_total_weight || remain_weight != m_initial_remain_weight;
+}
+
+void AMSMaterialsSetting::update_filament_weight_editing()
+{
+    if (!support_filament_remain_edit()) {
+        m_panel_filament_weight->Hide();
+        return;
+    }
+
+    m_panel_filament_weight->Show();
+    const bool editable = can_edit_filament_weight();
+    m_input_total_weight->Enable(editable);
+    m_input_remain_weight->Enable(editable);
+}
+
 std::vector<ColorPickerPopup::ColorItem> AMSMaterialsSetting::get_preset_color_items(const std::string& filament_id) const
 {
     std::vector<ColorPickerPopup::ColorItem> items;
@@ -633,6 +748,9 @@ void AMSMaterialsSetting::on_select_reset(wxCommandEvent& event) {
     m_nozzle_temp_min_str = wxString();
     m_nozzle_temp_max_str = wxString();
     update_nozzle_temp_display();
+    m_input_total_weight->GetTextCtrl()->SetValue("");
+    m_input_remain_weight->GetTextCtrl()->SetValue("");
+    m_has_initial_filament_weight = false;
     ams_filament_id = "";
     ams_setting_id = "";
 
@@ -821,8 +939,14 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
     }
 
     if (!m_is_third) {
+        int total_weight = 0;
+        int remain_weight = 0;
+        if (!validate_filament_weight_inputs(total_weight, remain_weight))
+            return;
         if (!save_pa_profile_selection())
             return;
+        if (can_edit_filament_weight() && filament_weight_changed(total_weight, remain_weight))
+            obj->GetFilaSystem()->CtrlSetFilamentWeight(ams_id, slot_id, total_weight, remain_weight);
         Close();
         return;
     }
@@ -921,6 +1045,12 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
 
     // the combobox item
     auto filament_item = map_filament_items[into_u8(m_current_filament_alias)];
+
+    int total_weight = 0;
+    int remain_weight = 0;
+    if (!validate_filament_weight_inputs(total_weight, remain_weight)) {
+        return;
+    }
 
     //get filament id
     ams_filament_id = "";
@@ -1061,6 +1191,10 @@ void AMSMaterialsSetting::on_select_ok(wxCommandEvent& event)
 
     if (!save_pa_profile_selection())
         return;
+
+    if (can_edit_filament_weight() && filament_weight_changed(total_weight, remain_weight)) {
+        obj->GetFilaSystem()->CtrlSetFilamentWeight(ams_id, slot_id, total_weight, remain_weight);
+    }
 
     // When the user picked a Filament Manager spool, immediately update its
     // in-printer snapshot without waiting for the next MQTT push_status.
@@ -1240,6 +1374,8 @@ bool AMSMaterialsSetting::Show(bool show)
 
     if (show) {
         m_button_confirm->SetMinSize(AMS_MATERIALS_SETTING_BUTTON_SIZE);
+        m_input_total_weight->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
+        m_input_remain_weight->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
         //m_clr_picker->set_color(m_clr_picker->GetParent()->GetBackgroundColour());
 
         m_ratio_text->Show();
@@ -1591,7 +1727,7 @@ void AMSMaterialsSetting::on_open_filament_select_dialog()
     }
 }
 
-void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_min, wxString temp_max, wxString k, wxString n)
+void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_min, wxString temp_max, wxString k, wxString n, wxString total_weight, wxString remain_weight)
 {
     if (!obj) return;
 
@@ -1665,6 +1801,18 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
         std::string display_filament_type;
         m_filament_type = ams_fila_it->config.get_filament_type(display_filament_type);
     }
+
+    m_input_total_weight->GetTextCtrl()->SetValue(total_weight);
+    m_input_remain_weight->GetTextCtrl()->SetValue(remain_weight);
+    long initial_total = 0;
+    long initial_remain = 0;
+    m_has_initial_filament_weight = total_weight.ToLong(&initial_total) && remain_weight.ToLong(&initial_remain)
+        && DevFilamentWeight::Validate(static_cast<int>(initial_total), static_cast<int>(initial_remain)).valid;
+    if (m_has_initial_filament_weight) {
+        m_initial_total_weight = static_cast<int>(initial_total);
+        m_initial_remain_weight = static_cast<int>(initial_remain);
+    }
+    update_filament_weight_editing();
 
     if (obj) {
         if (!m_is_third) {
@@ -2271,6 +2419,7 @@ void AMSMaterialsSetting::apply_filament_selection()
         m_input_n_val->GetTextCtrl()->SetValue(wxEmptyString);
         m_pending_spool_id.clear();
         m_pending_from_printer = false;
+        update_filament_weight_editing();
         set_empty_color(*wxWHITE);
         if (m_color_picker_popup) {
             const bool visible  = colour_palette_visible();
@@ -2416,6 +2565,7 @@ void AMSMaterialsSetting::apply_filament_selection()
 
     m_pending_spool_id.clear();
     m_pending_from_printer = false;
+    update_filament_weight_editing();
 
     if (!m_snap_taken) {
         m_open_spool_id    = m_selected_spool_id;
@@ -2446,6 +2596,8 @@ void AMSMaterialsSetting::apply_filament_selection()
 
 void AMSMaterialsSetting::on_dpi_changed(const wxRect &suggested_rect)
 {
+    m_input_total_weight->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
+    m_input_remain_weight->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
     m_input_k_val->GetTextCtrl()->SetSize(wxSize(-1, FromDIP(20)));
     m_clr_picker->msw_rescale();
     m_filament_box->SetMinSize(AMS_MATERIALS_SETTING_COMBOX_WIDTH);

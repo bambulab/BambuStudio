@@ -152,10 +152,8 @@ bool DevNozzleRack::CtrlCanReadAll() const
 
     //if have nozzle
     bool has_nozzle_on_rack = false;
-    for (const auto &nozzle_pair : m_rack_nozzles)
-    {
-        if (!nozzle_pair.second.IsEmpty())
-        {
+    for (const auto &nozzle_pair : m_rack_nozzles) {
+        if (!nozzle_pair.second.IsEmpty()) {
             has_nozzle_on_rack = true;
         }
     }
@@ -163,9 +161,6 @@ bool DevNozzleRack::CtrlCanReadAll() const
     bool has_nozzle_on_ext = false;
     if (m_nozzle_system->ContainsExtNozzle(MAIN_EXTRUDER_ID)) {
         const auto ext_nozzle = m_nozzle_system->GetExtNozzle(MAIN_EXTRUDER_ID);
-        if (ext_nozzle.GetToolDefs().tool_type != DevNozzleToolType::Nozzle) {
-            return false;
-        }
         has_nozzle_on_ext = !ext_nozzle.IsEmpty();
     }
 

@@ -202,7 +202,7 @@ export const mockAmsFilamentHotendState: AmsFilamentHotendViewModel = {
     actions: {
       can_load: false,
       can_load_external: false,
-      can_load_auto: false,
+      can_show_load_auto: false,
       can_unload: false,
       can_dry: true,
       show_ams_settings: true,

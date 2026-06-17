@@ -37,6 +37,9 @@ public:
     bool SupportPrintWithoutSD() const { return m_support_print_without_sd; }
     bool SupportPrintAllPlates() const { return m_support_print_all; }
 
+    // filament
+    bool SupportFilamentRemainEdit() const { return m_support_filament_remain_edit; }
+
     // calibration options
     bool SupportCalibrationLidar() const { return m_support_calibration_lidar; }
     bool SupportCalibrationNozzleOffset() const { return m_support_calibration_nozzle_offset; }
@@ -74,6 +77,7 @@ private:
 
     bool m_support_print_without_sd = false;
     bool m_support_print_all = false;
+    bool m_support_filament_remain_edit = false;
 
     // calibration options
     bool m_support_calibration_lidar = false;

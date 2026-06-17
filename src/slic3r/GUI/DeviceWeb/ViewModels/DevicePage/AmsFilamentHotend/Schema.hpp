@@ -80,7 +80,7 @@ namespace filament_actions {
     inline constexpr const char* can_unload        = "can_unload";
     inline constexpr const char* can_load          = "can_load";
     inline constexpr const char* can_load_external = "can_load_external";
-    inline constexpr const char* can_load_auto     = "can_load_auto";
+    inline constexpr const char* can_show_load_auto = "can_show_load_auto";
     inline constexpr const char* show_ams_settings = "show_ams_settings";
     inline constexpr const char* show_auto_refill  = "show_auto_refill";
     inline constexpr const char* tips              = "tips";

@@ -68,7 +68,9 @@ function FilamentActions({
 }) {
   const { t } = useTranslation();
   const canLoadExternal = actions.can_load_external ?? actions.can_load ?? false;
-  const canLoadAuto     = actions.can_load_auto     ?? actions.can_load ?? false;
+  // can_show_load_auto governs visibility (show/hide), not the disabled state.
+  // Legacy bridges omit it → keep the button visible to preserve old behavior.
+  const showLoadAuto    = actions.can_show_load_auto ?? true;
   return (
     <div className="action-group">
       <button
@@ -88,14 +90,15 @@ function FilamentActions({
       >
         {t('Load External Spool')}
       </button>
-      <button
-        type="button"
-        data-testid="ams-hotend-action-load-auto"
-        disabled={!canLoadAuto}
-        onClick={() => onAction('load_auto')}
-      >
-        {t('Auto Load')}
-      </button>
+      {showLoadAuto && (
+        <button
+          type="button"
+          data-testid="ams-hotend-action-load-auto"
+          onClick={() => onAction('load_auto')}
+        >
+          {t('Auto Load')}
+        </button>
+      )}
       <button
         type="button"
         data-testid="ams-hotend-action-unload"

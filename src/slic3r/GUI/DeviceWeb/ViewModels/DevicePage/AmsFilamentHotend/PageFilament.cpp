@@ -88,6 +88,8 @@ void open_ams_materials_setting(const std::string& ams_id, const std::string& sl
     std::string sn_number;
     std::string temp_max;
     std::string temp_min;
+    wxString total_weight;
+    wxString remain_weight;
     wxString k_val = wxString::Format("%.3f", tray.k);
     wxString n_val = wxString::Format("%.3f", tray.n);
     wxColor color = DevAmsTray::decode_color(tray.color);
@@ -110,14 +112,26 @@ void open_ams_materials_setting(const std::string& ams_id, const std::string& sl
         dlg.m_is_third = true;
     }
 #endif
-    if (!dlg.m_is_third) {
+    if (tray.tag_uid.size() == 16 && tray.tag_uid.substr(12, 2) == "01") {
         sn_number = tray.uuid;
+    }
+    if (!dlg.m_is_third) {
         filament = tray.sub_brands;
         temp_max = tray.nozzle_temp_max;
         temp_min = tray.nozzle_temp_min;
     }
 
-    dlg.Popup(filament, sn_number, temp_min, temp_max, k_val, n_val);
+    if (!tray.setting_id.empty()) {
+        if (tray.weight != "-1") {
+            total_weight = wxString::FromUTF8(tray.weight.c_str());
+        }
+
+        if (auto weight = tray.get_filament_remain_weight(); weight.has_value() && weight.value() >= 0) {
+            remain_weight = wxString::Format("%d", *weight);
+        }
+    }
+
+    dlg.Popup(filament, sn_number, temp_min, temp_max, k_val, n_val, total_weight, remain_weight);
 }
 
 void open_ams_settings()

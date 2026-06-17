@@ -14,7 +14,7 @@ struct FilamentActions
 {
     bool        can_load = true;
     bool        can_load_external = true;
-    bool        can_load_auto = true;
+    bool        can_show_load_auto = true;
     bool        can_unload = true;
     bool        can_dry = true;
     bool        show_ams_settings = false;
@@ -36,7 +36,7 @@ inline void to_json(nlohmann::json& j, const FilamentActions& v)
     j = {
         {SK::filament_actions::can_load,          v.can_load},
         {SK::filament_actions::can_load_external, v.can_load_external},
-        {SK::filament_actions::can_load_auto,     v.can_load_auto},
+        {SK::filament_actions::can_show_load_auto, v.can_show_load_auto},
         {SK::filament_actions::can_unload,        v.can_unload},
         {SK::filament_actions::can_dry,           v.can_dry},
         {SK::filament_actions::show_ams_settings, v.show_ams_settings},
