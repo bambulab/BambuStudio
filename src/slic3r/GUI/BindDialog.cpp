@@ -871,7 +871,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
 
      m_simplebook->SetSelection(0);
      m_bind_job = std::make_shared<BindJob>(m_status_bar, wxGetApp().plater(),
-         m_machine_info->get_dev_id(), m_machine_info->get_dev_ip(), m_machine_info->bind_sec_link, m_machine_info->bind_ssdp_version);
+         m_machine_info->get_dev_id(), m_machine_info->get_dev_ip(), m_machine_info->get_show_printer_type(), m_machine_info->bind_sec_link, m_machine_info->bind_ssdp_version);
 
      if (m_machine_info && (m_machine_info->get_printer_series() == PrinterSeries::SERIES_X1)) {
          m_bind_job->set_improved(false);

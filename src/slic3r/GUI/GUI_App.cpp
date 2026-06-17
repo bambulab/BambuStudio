@@ -34,6 +34,11 @@
 #include <boost/nowide/convert.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
+#include "Printer/LiveViewTrackContext.h"
 
 #include <wx/stdpaths.h>
 #include <wx/imagpng.h>
@@ -2884,6 +2889,41 @@ class wxBoostLog : public wxLog
     }
 };
 
+// Populate process-wide live-view track context (client + session).
+// Called once during GUI_App::OnInit, before any tunnel-using code can emit
+// a track event.
+//
+// Fields filled here are the ones we can know reliably at startup. Other
+// fields (region / network_type / os_version) are intentionally left empty
+// — they can be filled later as the data becomes available; build_envelope
+// just skips empty strings.
+static void init_live_view_track_context(AppConfig* app_config)
+{
+    namespace track = BambuLiveViewTrack;
+
+    track::ClientInfo client;
+    client.client_ver = SLIC3R_VERSION;
+    if (app_config) {
+        client.client_id = app_config->get("slicer_uuid");
+    }
+#if defined(_WIN32)
+    client.platform = "windows";
+#elif defined(__APPLE__)
+    client.platform = "macos";
+#else
+    client.platform = "linux";
+#endif
+
+    track::SessionInfo session;
+    session.session_id = boost::uuids::to_string(boost::uuids::random_generator()());
+    session.start_time_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+
+    auto& ctx = track::LiveViewTrackContext::instance();
+    ctx.init_client(client);
+    ctx.init_session(session);
+}
+
 std::string get_system_info()
 {
     std::stringstream out;
@@ -2976,6 +3016,8 @@ bool GUI_App::on_init_inner()
 #endif
 
     BOOST_LOG_TRIVIAL(info) << get_system_info();
+
+    init_live_view_track_context(app_config);
 
 // initialize label colors and fonts
     init_label_colours();

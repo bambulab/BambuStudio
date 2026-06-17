@@ -99,6 +99,7 @@ private:
 
     wxMediaCtrl3 * m_media_ctrl;
     wxMediaState m_last_state = MEDIASTATE_IDLE;
+    MachineObject* m_obj = nullptr;
     std::string m_machine;
     int m_lan_proto = 0;
     std::string m_lan_ip;
@@ -131,6 +132,11 @@ private:
     int           m_print_idle = 0;
     int           m_load_duration = 0;
     std::string   m_pending_start_liveview_json;
+
+    // session-end tracking
+    bool    m_session_connect_success     = false;
+    bool    m_session_first_frame_success = false;
+    int     m_session_first_frame_cost_ms = 0;
 
     std::shared_ptr<int> m_image_token = std::make_shared<int>(0);
     std::chrono::steady_clock::time_point m_image_last_success_time;

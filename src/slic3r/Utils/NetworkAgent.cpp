@@ -1101,11 +1101,11 @@ int NetworkAgent::set_server_callback(OnServerErrFn fn)
     return ret;
 }
 
-int NetworkAgent::bind(std::string dev_ip, std::string dev_id, std::string sec_link, std::string timezone,  bool improved, OnUpdateStatusFn update_fn)
+int NetworkAgent::bind(std::string dev_ip, std::string dev_id, std::string dev_model, std::string sec_link, std::string timezone,  bool improved, OnUpdateStatusFn update_fn)
 {
     int ret = 0;
     if (network_agent && bind_ptr) {
-        ret = bind_ptr(network_agent, dev_ip, dev_id, sec_link, timezone, improved, update_fn);
+        ret = bind_ptr(network_agent, dev_ip, dev_id, dev_model, sec_link, timezone, improved, update_fn);
         if (ret)
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" error: network_agent=%1%, ret=%2%, dev_ip=%3%, timezone=%4%") %network_agent %ret %BBLCrossTalk::Crosstalk_DevIP(dev_ip) %timezone;
     }

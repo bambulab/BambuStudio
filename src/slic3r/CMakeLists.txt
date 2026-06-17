@@ -8,6 +8,8 @@ set(SLIC3R_GUI_SOURCES
     pchheader.hpp
     GUI/Printer/PrinterFileSystem.cpp
     GUI/Printer/PrinterFileSystem.h
+    GUI/Printer/LiveViewTrackContext.cpp
+    GUI/Printer/LiveViewTrackContext.h
     GUI/Widgets/AnimaController.hpp
     GUI/Widgets/AnimaController.cpp
     GUI/Widgets/AxisCtrlButton.cpp
