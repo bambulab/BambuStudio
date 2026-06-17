@@ -128,6 +128,10 @@ static Transform3d transform3d_from_json(const nlohmann::json &j)
 void ArrowSvgNote::to_json(nlohmann::json &j) const
 {
     j["svg_name"]           = svg_name;
+    nlohmann::json bv = nlohmann::json::array();
+    for (const auto &p : bound_volumes)
+        bv.push_back({p.first, p.second});
+    j["bound_volumes"]      = bv;
     j["arrow_start_offset"] = {arrow_start_offset.x(), arrow_start_offset.y()};
     j["arrow_end_offset"]   = {arrow_end_offset.x(), arrow_end_offset.y()};
     j["label_size"]         = {label_size.x(), label_size.y()};
@@ -137,6 +141,13 @@ void ArrowSvgNote::to_json(nlohmann::json &j) const
 void ArrowSvgNote::from_json(const nlohmann::json &j)
 {
     json_get_string(j, "svg_name", svg_name);
+    bound_volumes.clear();
+    if (j.contains("bound_volumes") && j["bound_volumes"].is_array()) {
+        for (const auto &item : j["bound_volumes"]) {
+            if (item.is_array() && item.size() == 2 && item[0].is_number_integer() && item[1].is_number_integer())
+                bound_volumes.emplace_back(item[0].get<int>(), item[1].get<int>());
+        }
+    }
     json_get_vec2d(j, "arrow_start_offset", arrow_start_offset);
     json_get_vec2d(j, "arrow_end_offset", arrow_end_offset);
     json_get_vec2d(j, "label_size", label_size);
@@ -357,6 +368,7 @@ void KeyFrame::to_json(nlohmann::json &j) const
     j["projection_matrix"] = transform3d_to_json(projection_matrix);
     j["camera_target"]     = {camera_target.x(), camera_target.y(), camera_target.z()};
     j["camera_zoom"]       = camera_zoom;
+    j["camera_margin_factor"] = camera_margin_factor;
     j["labels_show_type"]  = (int) labels_show_type;
     // Per-object instance assemble matrices. Captured separately so replay can
     nlohmann::json ot_arr = nlohmann::json::array();
@@ -403,6 +415,7 @@ void KeyFrame::from_json(const nlohmann::json &j)
         j["camera_target"][0].is_number() && j["camera_target"][1].is_number() && j["camera_target"][2].is_number())
         camera_target = Vec3d(j["camera_target"][0].get<double>(), j["camera_target"][1].get<double>(), j["camera_target"][2].get<double>());
     json_get_double(j, "camera_zoom", camera_zoom);
+    json_get_double(j, "camera_margin_factor", camera_margin_factor);
     int labels_show_type_value = (int) LabelsShowType::AutoRecommend;
     if (json_get_int(j, "labels_show_type", labels_show_type_value))
         labels_show_type = (LabelsShowType) labels_show_type_value;

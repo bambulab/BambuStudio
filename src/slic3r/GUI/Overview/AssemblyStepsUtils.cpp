@@ -1016,6 +1016,34 @@ void AssemblyStepsUtils::fit_camera_to_current_step_main_plane(double margin_fac
     m_camera->apply_projection(bbox);
 }
 
+KeyFrameEntry *AssemblyStepsUtils::get_selected_keyframe_entry()
+{
+    auto *entries = get_current_kf_entries();
+    if (!entries || m_keyframe_selected < 0 || m_keyframe_selected >= (int) entries->size())
+        return nullptr;
+    return &(*entries)[m_keyframe_selected];
+}
+
+void AssemblyStepsUtils::apply_camera_margin_to_selected_keyframe(float margin_factor, bool commit)
+{
+    KeyFrameEntry *entry = get_selected_keyframe_entry();
+    if (entry == nullptr)
+        return;
+
+    entry->data.camera_margin_factor = margin_factor;
+    // Live preview: re-frame the current step with the new margin and capture the
+    fit_camera_to_current_step_main_plane(margin_factor);
+    record_camera(entry->data);
+    entry->data.is_camera_define = true;
+    entry->need_save = true;
+
+    do_commond_callback("dirty");
+    do_commond_callback("request_extra_frame");
+    // Only persist to the model when the edit is finished (slider released), to
+    if (commit)
+        save_assembly_steps_json_to_model();
+}
+
 void AssemblyStepsUtils::apply_instance_transform(int object_idx, const Geometry::Transformation &transform)
 {
     if (!m_volumes || !m_model || object_idx < 0 || object_idx >= (int) m_model->objects.size())
@@ -1444,6 +1472,8 @@ void AssemblyStepsUtils::look_cur_frame_logic(const KeyFrameEntry &entry)
     if (!entry.need_save)
         return;
     apply_keyframe_to_canvas(entry.data);
+    // camera_margin_factor is the source of truth for this frame's framing. The
+    fit_camera_to_current_step_main_plane(entry.data.camera_margin_factor);
 }
 
 int AssemblyStepsUtils::get_object_volume_count(int object_idx)
@@ -3557,6 +3587,8 @@ void AssemblyStepsUtils::ensure_default_keyframe_for_node(int node_idx, const st
     KeyFrameEntry last;
     last.data.id   = 0;
     last.data.name = last_frame_name;
+    // The end frame frames the fully assembled model, so it defaults to a wider
+    last.data.camera_margin_factor = 2.0;
     fill_default_transforms(last, node.object_idx);//ensure_default_keyframe_for_node
     kf.entries.push_back(std::move(last));
     invalidate_play_frame_refs();//ensure_default_keyframe_for_node
@@ -3659,6 +3691,14 @@ bool AssemblyStepsUtils::add_arrow_svg_note(const std::string &svg_name)
     ArrowSvgNote arrow;
     arrow.svg_name = svg_name;
     arrow.color    = note_color_from_palette_index(m_guide_note_color_selected);
+    // Bind the arrow to the ModelVolumes currently selected, so its start point can anchor to their on-screen bbox center (computed at render time).
+    if (m_selection != nullptr) {
+        for (unsigned int idx : m_selection->get_volume_idxs()) {
+            const GLVolume *v = m_selection->get_volume(idx);
+            if (v != nullptr)
+                arrow.bound_volumes.emplace_back(v->object_idx(), v->volume_idx());
+        }
+    }
     cur_entry.data.assembly_note.arrow_svgs.push_back(std::move(arrow));
     m_note_selected_type = AssemblyNoteSelectionType::ArrowSvg;
     m_note_selected_idx = (int)cur_entry.data.assembly_note.arrow_svgs.size() - 1;
@@ -3688,6 +3728,7 @@ bool AssemblyStepsUtils::add_text_label_note()
     m_note_selected_type = AssemblyNoteSelectionType::TextLabel;
     m_note_selected_idx = (int)cur_entry.data.assembly_note.text_labels.size() - 1;
     m_note_text_focus_request = m_note_selected_idx;
+    m_note_text_focus_keep_cursor = false; // new label: drop caret at the end
     set_note_edit_controls_visible(true);
     set_selection_origin(SelectionOrigin::ImGuiNote);
     cur_entry.need_save = true;
@@ -4271,13 +4312,13 @@ void AssemblyStepsUtils::toggle_part_number_labels_to_keyframe(KeyFrameEntry &sr
     }
     // Only an explicit user toggle reframes the step and auto-arranges labels.
     if (user_initiated) {
-        if (src.is_last()) {
-            fit_camera_to_current_step_main_plane(2.f);
-        } else {
-            fit_camera_to_current_step_main_plane(m_margin_factor_camera_for_not_last_frame);
-        }
-        // Persist the freshly framed camera into THIS keyframe right away.
+        // Every frame uses its own per-keyframe margin (persisted to the 3mf, so
+
+        const double used_margin = src.data.camera_margin_factor;
+        fit_camera_to_current_step_main_plane(used_margin);
+        // Persist the freshly framed camera (and the margin used) into THIS keyframe.
         record_camera(src.data);
+        src.data.camera_margin_factor = used_margin;
         src.data.is_camera_define = true;
         m_pn_autolayout_pending = true;
     }
@@ -4318,6 +4359,29 @@ Vec2d AssemblyStepsUtils::compute_selected_volumes_screen_center(
     double x = 0.5 * (1.0 + ndc.x() / ndc.w()) * viewport[2];
     double y = 0.5 * (1.0 - ndc.y() / ndc.w()) * viewport[3];
     return Vec2d(x, y);
+}
+
+Vec2d AssemblyStepsUtils::compute_arrow_svg_anchor_center(const ArrowSvgNote &arrow, const Vec2d &fallback_center)
+{
+    if (arrow.bound_volumes.empty() || !m_camera || !m_volumes)
+        return fallback_center;
+
+    // Collect the live GLVolumes whose (object, volume) matches the bound set, so
+    // the anchor uses their current (per-keyframe) transformed positions.
+    std::vector<GLVolume *> bound;
+    for (GLVolume *vol : m_volumes->volumes) {
+        if (!vol || !vol->is_active)
+            continue;
+        for (const auto &key : arrow.bound_volumes) {
+            if (vol->object_idx() == key.first && vol->volume_idx() == key.second) {
+                bound.push_back(vol);
+                break;
+            }
+        }
+    }
+    if (bound.empty())
+        return fallback_center;
+    return compute_selected_volumes_screen_center(*m_camera, bound);
 }
 
 void AssemblyStepsUtils::deal_once_when_enter_assembly_view() {

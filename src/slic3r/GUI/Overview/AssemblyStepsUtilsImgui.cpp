@@ -1026,7 +1026,9 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
         const double svg_min_dim = 32.0 * sc;
         arrow.label_size.x() = std::max(arrow.label_size.x(), svg_min_dim);
         arrow.label_size.y() = std::max(arrow.label_size.y(), svg_min_dim);
-        Vec2d start_pos = obj_center + arrow.arrow_start_offset;
+        // Anchor to the bound volumes' on-screen bbox center (falls back to the.
+        const Vec2d arrow_center = compute_arrow_svg_anchor_center(arrow, obj_center);
+        Vec2d start_pos = arrow_center + arrow.arrow_start_offset;
         Vec2d end_pos   = start_pos  + arrow.arrow_end_offset;
         screen_data[ni].start = ImVec2((float)start_pos.x(), (float)start_pos.y());
         screen_data[ni].end   = ImVec2((float)end_pos.x(),   (float)end_pos.y());
@@ -1354,8 +1356,11 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
                     activate_note_edit_controls(AssemblyNoteSelectionType::ArrowSvg, ni);
                 if (ImGui::IsItemActive() && ImGui::IsMouseDragging(0)) {
                     ImVec2 delta = ImGui::GetIO().MouseDelta;
+                    // Move only the start anchor; keep the SVG icon (end) in place
                     arrow.arrow_start_offset.x() += delta.x;
                     arrow.arrow_start_offset.y() += delta.y;
+                    arrow.arrow_end_offset.x()   -= delta.x;
+                    arrow.arrow_end_offset.y()   -= delta.y;
                     any_changed = true;
                 }
                 ImGui::PopID();
@@ -1519,9 +1524,11 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
                 std::string (*wrap_fn)(const std::string &, float);
             };
             const bool focus_request = (m_note_text_focus_request == ni);
+            // A normal focus request (entering edit mode) drops the caret at the end of
+            const bool focus_keep_cursor = focus_request && m_note_text_focus_keep_cursor;
             TextWrapCB cb_data;
             cb_data.cur_wrap_width     = wrap_width;
-            cb_data.move_cursor_to_end = focus_request;
+            cb_data.move_cursor_to_end = focus_request && !focus_keep_cursor;
             cb_data.wrap_fn            = wrap_text_to_width;
             ImGuiInputTextCallback text_wrap_callback = [](ImGuiInputTextCallbackData *data) -> int {
                 TextWrapCB *cb = (TextWrapCB *)data->UserData;
@@ -1559,11 +1566,25 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
             bool text_changed = ImGui::InputTextMultiline("##label_text", &label.text, text_size, text_flags,
                                                           text_selected ? text_wrap_callback : nullptr, &cb_data);
             bool text_active = ImGui::IsItemActive();
-            if (focus_request && (text_active || ImGui::IsItemFocused()))
-                m_note_text_focus_request = -1;
+            if (focus_request && (text_active || ImGui::IsItemFocused())) {
+                m_note_text_focus_request     = -1;
+                m_note_text_focus_keep_cursor = false;
+            }
+            // ImGui deactivates an active InputText whenever a mouse click happens while
+            if (text_selected && ImGui::IsItemDeactivated() && ImGui::IsMouseClicked(0)) {
+                const ImVec2 m = ImGui::GetIO().MousePos;
+                const bool inside = m.x >= pos.x && m.x <= pos.x + size.x &&
+                                    m.y >= pos.y && m.y <= pos.y + size.y;
+                if (inside) {
+                    m_note_text_focus_request     = ni;
+                    m_note_text_focus_keep_cursor = true;
+                }
+            }
             if (ImGui::IsItemClicked(0)) {
-                if (!text_selected)
-                    m_note_text_focus_request = ni;
+                if (!text_selected) {
+                    m_note_text_focus_request     = ni;
+                    m_note_text_focus_keep_cursor = false;
+                }
                 activate_note_edit_controls(AssemblyNoteSelectionType::TextLabel, ni);
             }
             if (text_changed)
@@ -2192,6 +2213,13 @@ void AssemblyStepsUtils::render_assembly_structure_option_menu(
     ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 4.0f * sc);
 
     if (ImGui::BeginPopup("##assembly_structure_option_menu")) {
+        // Reflect the currently selected keyframe's stored margin in the slider when
+        // the menu opens, so each keyframe shows (and edits) its own value.
+        if (ImGui::IsWindowAppearing()) {
+            if (const KeyFrameEntry *cur = get_selected_keyframe_entry())
+                m_margin_factor_camera_for_not_last_frame = (float) cur->data.camera_margin_factor;
+        }
+
         if (ImGui::MenuItem(_u8L("Set export file parameters").c_str()))
             show_pdf_export_settings_dialog();
 
@@ -2199,7 +2227,7 @@ void AssemblyStepsUtils::render_assembly_structure_option_menu(
         {
             const float       margin_slider_w = 120.0f * sc;
             const float       margin_value_w  = 56.0f * sc;
-            const std::string margin_tip      = _u8L("Camera margin factor for the start frame. The larger the value, the more margin.");
+            const std::string margin_tip      = _u8L("Camera margin factor for the current frame. The larger the value, the more margin.");
             auto              set_margin_tip  = [&]() {
                 if (ImGui::IsItemHovered())
                     ImGui::SetTooltip("%s", margin_tip.c_str());
@@ -2208,20 +2236,30 @@ void AssemblyStepsUtils::render_assembly_structure_option_menu(
             imgui.text(_u8L("Modify camera margin"));
             set_margin_tip();
 
+            bool margin_changed  = false;
+            bool margin_released = false;
             ImGui::PushItemWidth(margin_slider_w);
             // bbl_slider_float_style only clears the hovered/active frame bg, so the
             // idle track would otherwise show the theme's dark FrameBg. Match hover.
             ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-            imgui.bbl_slider_float_style("##assembly_start_frame_camera_margin", &m_margin_factor_camera_for_not_last_frame, 1.2f, 2.0f, "%.2f");
+            margin_changed |= imgui.bbl_slider_float_style("##assembly_start_frame_camera_margin", &m_margin_factor_camera_for_not_last_frame, 1.2f, 2.0f, "%.2f");
+            margin_released |= imgui.get_last_slider_status().deactivated_after_edit;
             ImGui::PopStyleColor();
             set_margin_tip();
             ImGui::SameLine();
             ImGui::PushItemWidth(margin_value_w);
             // Drop the idle gray frame background; keep the hover / active styling.
             ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-            ImGui::BBLDragFloat("##assembly_start_frame_camera_margin_input", &m_margin_factor_camera_for_not_last_frame, 0.01f, 1.2f, 2.0f, "%.2f");
+            margin_changed |= ImGui::BBLDragFloat("##assembly_start_frame_camera_margin_input", &m_margin_factor_camera_for_not_last_frame, 0.01f, 1.2f, 2.0f, "%.2f");
+            margin_released |= ImGui::IsItemDeactivatedAfterEdit();
             ImGui::PopStyleColor();
             set_margin_tip();
+
+            // Store the edited margin on the current keyframe and re-frame live; only
+            // persist to the model once the edit ends (slider released) to avoid
+            // rewriting the assembly json on every intermediate drag value.
+            if (margin_changed || margin_released)
+                apply_camera_margin_to_selected_keyframe(m_margin_factor_camera_for_not_last_frame, margin_released);
         }
         ImGui::Separator();
         {
@@ -2588,8 +2626,10 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         const ImVec2 opt_min(win_max.x - 8.f * sc - icon_sz_hdr,
                              title_line_cy - icon_sz_hdr * 0.5f);
         const ImVec2 opt_max(opt_min.x + icon_sz_hdr, opt_min.y + icon_sz_hdr);
-        if (m_structure_option_icon)
-            dl->AddImage(m_structure_option_icon, opt_min, opt_max);
+        ImTextureID option_icon = (m_is_dark && m_structure_option_icon_dark) ?
+            m_structure_option_icon_dark : m_structure_option_icon;
+        if (option_icon)
+            dl->AddImage(option_icon, opt_min, opt_max);
         ImGui::SetCursorScreenPos(opt_min);
         ImGui::PushID("##asp_option");
         ImGui::InvisibleButton("##o", ImVec2(icon_sz_hdr, icon_sz_hdr));
@@ -3490,6 +3530,7 @@ void AssemblyStepsUtils::init_tree_icons()
     IMTexture::load_from_svg_file(m_images_dir + "panel_expand.svg", icon_sz, icon_sz, m_panel_expand_icon);
     IMTexture::load_from_svg_file(m_images_dir + "view_help.svg", icon_sz, icon_sz, m_structure_help_icon);
     IMTexture::load_from_svg_file(m_images_dir + "tree_option.svg", icon_sz, icon_sz, m_structure_option_icon);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_option_dark.svg", icon_sz, icon_sz, m_structure_option_icon_dark);
     IMTexture::load_from_svg_file(m_images_dir + "tree_step_option.svg", icon_sz, icon_sz, m_structure_step_option_icon);
     IMTexture::load_from_svg_file(m_images_dir + "tree_unedit.svg",   icon_sz, icon_sz, m_structure_step_add_icon_unedit);
     IMTexture::load_from_svg_file(m_images_dir + "tree_cur_edit.svg", icon_sz, icon_sz, m_structure_step_add_icon_edit);
@@ -3504,9 +3545,10 @@ void AssemblyStepsUtils::init_tree_icons()
 
 ImTextureID AssemblyStepsUtils::get_arrow_svg_icon(const std::string &svg_name)
 {
-    if (svg_name == "screw") return m_is_dark ? m_tree_icon_screw_dark : m_tree_icon_screw;
-    if (svg_name == "glue") return m_is_dark ? m_tree_icon_glue_dark : m_tree_icon_glue;
-    if (svg_name == "clip") return m_is_dark ? m_tree_icon_clip_dark : m_tree_icon_clip;
+    // These icons are drawn by draw_arrow_svg_icon() onto a box whose background is
+    if (svg_name == "screw") return m_tree_icon_screw;
+    if (svg_name == "glue") return m_tree_icon_glue;
+    if (svg_name == "clip") return m_tree_icon_clip;
     auto it = m_arrow_svg_icons.find(svg_name);
     if (it != m_arrow_svg_icons.end())
         return it->second;
@@ -4644,8 +4686,8 @@ void AssemblyStepsUtils::render_assembly_guide_export_button(float panel_x, floa
 
 void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_y, float panel_w, float panel_h, float sc, bool is_dark)
 {
-    m_panel_rect_guide_min = ImVec2(panel_x, panel_y);
-    m_panel_rect_guide_max = ImVec2(panel_x + panel_w, panel_y + panel_h);
+    // The blocking rect is set to the panel's ACTUAL height once it is known
+    m_panel_rect_guide_min = m_panel_rect_guide_max = ImVec2(0, 0);
     // Single-shot diagnostics: log the FIRST frame where each early-return
     auto log_skip_once = [&](const char *reason) {
         static int s_last_logged_node = -2;
@@ -4845,6 +4887,10 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
     const float desired_h = m_guide_panel_collapsed
         ? header_h
         : header_h + total_content + 4.0f * sc;
+
+    // Block canvas interaction only over the panel's real footprint, not the
+    m_panel_rect_guide_min = ImVec2(panel_x, panel_y);
+    m_panel_rect_guide_max = ImVec2(panel_x + panel_w, panel_y + desired_h);
 
     ImGui::SetNextWindowPos(ImVec2(panel_x, panel_y), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(panel_w, desired_h), ImGuiCond_Always);

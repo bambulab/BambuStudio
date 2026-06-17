@@ -19,7 +19,9 @@ namespace Slic3r {
 struct ArrowSvgNote
 {
     std::string svg_name{};
-    Vec2d       arrow_start_offset{Vec2d::Zero()};   // offset from object bbox screen center
+    // The ModelVolumes this arrow is bound to, recorded as (object_idx, volume_idx)
+    std::vector<std::pair<int, int>> bound_volumes{};
+    Vec2d       arrow_start_offset{Vec2d::Zero()};   // offset from bound-volumes (or step) bbox screen center
     Vec2d       arrow_end_offset{Vec2d(80, -60)};    // offset from arrow start position
     Vec2d       label_size{Vec2d(56, 56)};
     std::array<int, 4> color{0, 200, 80, 230};
@@ -110,6 +112,8 @@ struct KeyFrame
     Transform3d                                              projection_matrix{Transform3d::Identity()};
     Vec3d                                                    camera_target{Vec3d::Zero()};
     double                                                   camera_zoom{1.0};
+    // Camera "zoom-to-box" margin factor used to frame this keyframe. Stored per.
+    double                                                   camera_margin_factor{1.4};
     // Per-keyframe assemble-transformation snapshots, split to mirror the
     std::map<int, Geometry::Transformation>                  object_transformations;
     std::map<std::pair<int, int>, Geometry::Transformation>  volume_transformations;
@@ -136,6 +140,7 @@ struct KeyFrame
         projection_matrix = src.projection_matrix;
         camera_target = src.camera_target;
         camera_zoom = src.camera_zoom;
+        camera_margin_factor = src.camera_margin_factor;
         labels_show_type = src.labels_show_type;
     }
     void to_json(nlohmann::json &j) const;

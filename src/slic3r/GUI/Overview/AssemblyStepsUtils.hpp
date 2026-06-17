@@ -157,6 +157,7 @@ class AssemblyStepsUtils
     ImTextureID         m_structure_help_icon{nullptr};
     // Option/settings icon at the far right of the panel header (tree_option.svg).
     ImTextureID         m_structure_option_icon{nullptr};
+    ImTextureID         m_structure_option_icon_dark{nullptr};
     // Per-step option icon shown at the top-right of step cards (tree_step_option.svg).
     ImTextureID         m_structure_step_option_icon{nullptr};
     // "Add object to step" affordance shown on each step card. Two states:
@@ -336,6 +337,8 @@ class AssemblyStepsUtils
     // Wall-clock stamp of the most recent camera-manipulation attempt while the assembly camera is locked.
     std::chrono::steady_clock::time_point m_assembly_camera_lock_last_attempt_at{};
     int                   m_note_text_focus_request{-1};
+    // When a re-focus is requested to recover from ImGui deactivating the InputText
+    bool                  m_note_text_focus_keep_cursor{false};
     ImVec2                m_panel_rect_structure_min{0, 0};
     ImVec2                m_panel_rect_structure_max{0, 0};
     ImVec2                m_panel_rect_guide_min{0, 0};
@@ -443,6 +446,10 @@ public://logic
     void                     apply_camera(const KeyFrame &frame);
     // Frame the current step: compute the union bbox of all active GLVolumes in
     void                     fit_camera_to_current_step_main_plane(double margin_factor);
+    // The currently selected keyframe entry (or nullptr when none is selected).
+    KeyFrameEntry           *get_selected_keyframe_entry();
+    // Apply an edited camera margin to the current keyframe: store it, re-frame the
+    void                     apply_camera_margin_to_selected_keyframe(float margin_factor, bool commit);
     // Write a keyframe's per-object instance assemble matrix back to
     void                     apply_instance_transform(int object_idx,
                                                       const Geometry::Transformation &transform);
@@ -582,6 +589,8 @@ public://logic
                                         float sc);
     // Compute the on-screen (pixel) coordinates of the merged bounding-box center of
     static Vec2d compute_selected_volumes_screen_center(const Camera &camera, const std::vector<GLVolume *> &volumes);
+    // Screen-space anchor center for an arrow-svg note: the bbox center of the
+    Vec2d compute_arrow_svg_anchor_center(const ArrowSvgNote &arrow, const Vec2d &fallback_center);
 
     void deal_once_when_enter_assembly_view();
 
