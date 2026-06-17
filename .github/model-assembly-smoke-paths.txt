@@ -1,0 +1,23 @@
+# model assembly fast-gate source surface
+src/libslic3r/ModelAssembly.cpp
+src/libslic3r/GeometryTransformation.cpp
+src/libslic3r/ModelPlacement.cpp
+src/libslic3r/ModelTransform.cpp
+src/libslic3r/TriangleMeshBasic.cpp
+src/libslic3r/Model.hpp
+src/libslic3r/TriangleMesh.hpp
+
+# model assembly fast-gate tests
+tests/CMakeLists.txt
+tests/fff_print/cmake/ModelBasicSmoke.cmake
+tests/fff_print/CMakeLists.txt
+tests/fff_print/fff_print_tests.cpp
+tests/fff_print/test_model_basic_smoke.cpp
+tests/fff_print/test_trianglemesh_basic_smoke.cpp
+tests/catch_main.hpp
+tests/catch2/catch.hpp
+
+# workflow changes should re-run the smoke gate
+.github/model-assembly-smoke-paths.txt
+.github/workflows/cpp_ut_smoke.yml
+.github/workflows/build_windows_deps.yml

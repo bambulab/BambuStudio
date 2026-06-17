@@ -68,12 +68,14 @@ set(lisbslic3r_sources
     Color.hpp
     CommonDefs.hpp
     Config.cpp
+    ConfigFileUtils.cpp
     Config.hpp
     CurveAnalyzer.cpp
     CurveAnalyzer.hpp
     CutUtils.cpp
     CutUtils.hpp
     EdgeGrid.cpp
+    EdgeGridSvg.cpp
     EdgeGrid.hpp
     ElephantFootCompensation.cpp
     ElephantFootCompensation.hpp
@@ -82,6 +84,7 @@ set(lisbslic3r_sources
     EmbossShape.hpp
     enum_bitmask.hpp
     ExPolygon.cpp
+    ExPolygonSecondMoment.cpp
     ExPolygon.hpp
     ExPolygonSerialize.hpp
     ExPolygonsIndex.cpp
@@ -131,8 +134,10 @@ set(lisbslic3r_sources
     Fill/FillRectilinear.hpp
     Fill/FillFloatingConcentric.hpp
     Fill/FillFloatingConcentric.cpp
+    Fill/FillSpacing.cpp
     Flow.cpp
     Flow.hpp
+    FlowPrint.cpp
     Frustum.cpp
     Frustum.hpp
     FlushVolCalc.cpp
@@ -195,6 +200,7 @@ set(lisbslic3r_sources
     GCode/ConflictChecker.hpp
     GCode/BedExcludeChecker.cpp
     GCode/BedExcludeChecker.hpp
+    GCode/GCodeOrigin.hpp
     GCode/Smoothing.cpp
     GCode/Smoothing.hpp
     GCode/CoolingBuffer.cpp
@@ -202,6 +208,7 @@ set(lisbslic3r_sources
     GCode/TimelapsePosPicker.cpp
     GCode/TimelapsePosPicker.hpp
     GCode.cpp
+    GCodeLayerOrdering.cpp
     GCode.hpp
     GCodeReader.cpp
     GCodeReader.hpp
@@ -210,6 +217,7 @@ set(lisbslic3r_sources
     GCodeWriter.cpp
     GCodeWriter.hpp
     Geometry.cpp
+    GeometryTransformation.cpp
     Geometry.hpp
     Geometry/Bicubic.hpp
     Geometry/Circle.cpp
@@ -223,11 +231,12 @@ set(lisbslic3r_sources
     Geometry/Voronoi.hpp
     Geometry/VoronoiOffset.cpp
     Geometry/VoronoiOffset.hpp
-	Geometry/VoronoiUtils.hpp
+    Geometry/VoronoiUtils.hpp
     Geometry/VoronoiUtils.cpp
     Geometry/VoronoiUtilsCgal.cpp
     Geometry/VoronoiUtilsCgal.hpp
     Geometry/VoronoiVisualUtils.hpp
+    I18N.cpp
     Int128.hpp
     InternalBridgeDetector.cpp
     InternalBridgeDetector.hpp
@@ -235,6 +244,8 @@ set(lisbslic3r_sources
     JumpPointSearch.cpp
     KDTreeIndirect.hpp
     Layer.cpp
+    LayerLifecycle.cpp
+    LayerSvg.cpp
     Layer.hpp
     LayerRegion.cpp
     libslic3r.h
@@ -245,11 +256,20 @@ set(lisbslic3r_sources
     LocalesUtils.cpp
     LocalesUtils.hpp
     Model.cpp
+    ModelAnnotations.cpp
+    ModelBounds.cpp
+    ModelCopy.cpp
+    ModelDiff.cpp
+    ModelExtruders.cpp
+    ModelGeometry.cpp
+    ModelPlacement.cpp
+    ModelTransform.cpp
     Model.hpp
     ModelArrange.hpp
     ModelArrange.cpp
     MultiMaterialSegmentation.cpp
     MultiMaterialSegmentation.hpp
+    MixedFilamentUtils.cpp
     Measure.hpp
     Measure.cpp
     MeasureUtils.hpp
@@ -276,6 +296,7 @@ set(lisbslic3r_sources
     PerimeterGenerator.hpp
     OverhangDetector.hpp
     OverhangDetector.cpp
+    PlaceholderParserConfig.cpp
     PlaceholderParser.cpp
     PlaceholderParser.hpp
     Platform.cpp
@@ -300,16 +321,61 @@ set(lisbslic3r_sources
     PrincipalComponents2D.cpp
     AppConfig.cpp
     AppConfig.hpp
-    Print.cpp
+    PrintSequential.cpp
+    PrintState.cpp
+    PrintQueries.cpp
+    PrintExtruderPrintableArea.cpp
+    PrintFilamentPrintability.cpp
+    PrintFilamentState.cpp
+    PrintFilamentMappingConfigSync.cpp
+    PrintFilamentMappingConfigSync.hpp
+    PrintFilamentMapping.cpp
+    PrintFilamentMappingNozzleConfig.cpp
+    PrintFilamentMappingRules.cpp
+    PrintFilamentMappingRules.hpp
+    PrintEnvelope.cpp
+    PrintState.cpp
+    PrintExtruderUtils.cpp
+    PrintObjectSharing.cpp
+    PrintRuntime.cpp
+    PrintAuxiliary.cpp
+    PrintFilamentCompatibility.cpp
+    PrintCache.cpp
+    PrintValidate.cpp
+    PrintProcessPerimeters.cpp
+    PrintStatistics.cpp
+    PrintExport.cpp
+    PrintProcess.cpp
+    PrintPathConflictCheck.cpp
+    PrintWipeTower.cpp
+    PrintProcessSupport.cpp
     Print.hpp
     PrintApply.cpp
     PrintBase.cpp
+    PrintBaseOutput.cpp
     PrintBase.hpp
+    PrintConfigGeometry.cpp
     PrintConfig.cpp
     PrintConfig.hpp
+    PrintConfigRuntime.cpp
+    PrintObjectAnalysis.cpp
+    PrintObjectInvalidation.cpp
+    PrintObjectLayers.cpp
+    PrintObjectInfill.cpp
+    PrintObjectPerimeters.cpp
+    PrintObjectPostProcess.cpp
+    PrintObjectSlicingConfig.cpp
     PrintObject.cpp
+    PrintObjectExtruders.cpp
+    PrintObjectUpdateSlicingParameters.cpp
+    PrintObjectSupportGeometry.cpp
+    PrintObjectSupport.cpp
     PrintObjectSlice.cpp
+    PrintObjectSliceInterlocking.hpp
+    PrintObjectSliceInterlocking.cpp
     PrintRegion.cpp
+    PrintRegionConfigExtruders.cpp
+    PrintRegionExtruders.cpp
     PNGReadWrite.hpp
     PNGReadWrite.cpp
     QuadricEdgeCollapse.cpp
@@ -318,6 +384,8 @@ set(lisbslic3r_sources
     ShortEdgeCollapse.cpp
     ShortEdgeCollapse.hpp
     ShortestPath.cpp
+    ShortestPathExtras.cpp
+    ShortestPathInternal.hpp
     ShortestPath.hpp
     SLAPrint.cpp
     SLAPrintSteps.cpp
@@ -331,6 +399,7 @@ set(lisbslic3r_sources
     SlicingAdaptive.hpp
     Support/SupportCommon.cpp
     Support/SupportCommon.hpp
+    Support/SupportLayerUtils.hpp
     Support/SupportMaterial.cpp
     Support/SupportMaterial.hpp
     Support/TreeSupport.hpp
@@ -346,7 +415,9 @@ set(lisbslic3r_sources
     Surface.cpp
     Surface.hpp
     SurfaceCollection.cpp
+    SurfaceCollectionSvg.cpp
     SurfaceCollection.hpp
+    SurfaceSvg.cpp
     SurfaceMesh.hpp
     SVG.cpp
     SVG.hpp
@@ -376,6 +447,10 @@ set(lisbslic3r_sources
     TriangleSelector.hpp
     TriangleSetSampling.cpp
     TriangleSetSampling.hpp
+    UtilsData.cpp
+    UtilsDebug.cpp
+    UtilsFormat.cpp
+    UtilsRename.cpp
     MTUtils.hpp
     VariableWidth.cpp
     VariableWidth.hpp
@@ -506,6 +581,650 @@ add_library(libslic3r STATIC ${lisbslic3r_sources}
     ${OpenVDBUtils_SOURCES})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${lisbslic3r_sources})
 
+set(libslic3r_config_core_sources
+    Config.cpp
+    ConfigFileUtils.cpp
+    LocalesUtils.cpp
+    PrintConfig.cpp
+    PrintFilamentMappingConfigSync.cpp
+    PrintFilamentMappingRules.cpp
+    PrintConfigRuntime.cpp
+)
+
+add_library(libslic3r_config_core STATIC
+    ${libslic3r_config_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
+set(libslic3r_placeholder_parser_core_sources
+    Flow.cpp
+    I18N.cpp
+    PlaceholderParserConfig.cpp
+    PlaceholderParser.cpp
+)
+
+add_library(libslic3r_placeholder_parser_core STATIC
+    ${libslic3r_placeholder_parser_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
+set(libslic3r_gcodewriter_core_sources
+    Config.cpp
+    ConfigFileUtils.cpp
+    LocalesUtils.cpp
+    PrintConfig.cpp
+    PrintConfigRuntime.cpp
+    Extruder.cpp
+    GCodeWriter.cpp
+)
+
+add_library(libslic3r_gcodewriter_core STATIC
+    ${libslic3r_gcodewriter_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
+set(libslic3r_gcode_reader_core_sources
+    Config.cpp
+    ConfigFileUtils.cpp
+    GCodeReader.cpp
+    LocalesUtils.cpp
+    PrintConfig.cpp
+    PrintConfigRuntime.cpp
+    Utils.cpp
+)
+
+add_library(libslic3r_gcode_reader_core STATIC
+    ${libslic3r_gcode_reader_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
+set(libslic3r_print_process_math_core_sources
+    ArcFitter.cpp
+    BoundingBox.cpp
+    Circle.cpp
+    clipper.cpp
+    ClipperUtils.cpp
+    Config.cpp
+    ConfigFileUtils.cpp
+    ExPolygon.cpp
+    ExPolygonSecondMoment.cpp
+    Extruder.cpp
+    ExtrusionEntity.cpp
+    ExtrusionEntityCollection.cpp
+    Fill/FillSpacing.cpp
+    Flow.cpp
+    Geometry/MedialAxis.cpp
+    Geometry/Voronoi.cpp
+    Geometry/VoronoiOffset.cpp
+    Geometry/VoronoiUtils.cpp
+    Geometry.cpp
+    GeometryTransformation.cpp
+    I18N.cpp
+    Line.cpp
+    LocalesUtils.cpp
+    MultiPoint.cpp
+    Point.cpp
+    Polygon.cpp
+    Polyline.cpp
+    PrintConfig.cpp
+    PrintConfigRuntime.cpp
+    ShortestPath.cpp
+    Surface.cpp
+    Utils.cpp
+)
+
+add_library(libslic3r_print_process_math_core STATIC
+    ${libslic3r_print_process_math_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
+set(libslic3r_fill_core_sources
+    ${libslic3r_print_process_math_core_sources}
+    Clipper2Utils.cpp
+    EdgeGrid.cpp
+    PNGReadWrite.cpp
+    ShortestPathExtras.cpp
+    SVG.cpp
+    VariableWidth.cpp
+    Arachne/BeadingStrategy/BeadingStrategy.cpp
+    Arachne/BeadingStrategy/BeadingStrategyFactory.cpp
+    Arachne/BeadingStrategy/DistributedBeadingStrategy.cpp
+    Arachne/BeadingStrategy/LimitedBeadingStrategy.cpp
+    Arachne/BeadingStrategy/OuterWallContourStrategy.cpp
+    Arachne/BeadingStrategy/OuterWallInsetBeadingStrategy.cpp
+    Arachne/BeadingStrategy/RedistributeBeadingStrategy.cpp
+    Arachne/BeadingStrategy/WideningBeadingStrategy.cpp
+    Arachne/utils/ExtrusionJunction.cpp
+    Arachne/utils/ExtrusionLine.cpp
+    Arachne/utils/PolylineStitcher.cpp
+    Arachne/utils/SquareGrid.cpp
+    Arachne/SkeletalTrapezoidation.cpp
+    Arachne/SkeletalTrapezoidationGraph.cpp
+    Arachne/WallToolPaths.cpp
+    Fill/Fill.cpp
+    Fill/Fill3DHoneycomb.cpp
+    Fill/FillAdaptive.cpp
+    Fill/FillBase.cpp
+    Fill/FillConcentric.cpp
+    Fill/FillConcentricInternal.cpp
+    Fill/FillCrossHatch.cpp
+    Fill/FillFloatingConcentric.cpp
+    Fill/FillGyroid.cpp
+    Fill/FillHoneycomb.cpp
+    Fill/FillLine.cpp
+    Fill/FillLightning.cpp
+    Fill/FillPlanePath.cpp
+    Fill/FillRectilinear.cpp
+    Fill/Lightning/DistanceField.cpp
+    Fill/Lightning/Generator.cpp
+    Fill/Lightning/Layer.cpp
+    Fill/Lightning/TreeNode.cpp
+)
+
+add_library(libslic3r_fill_core STATIC
+    ${libslic3r_fill_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
+set(libslic3r_trianglemesh_geometry_core_sources
+    ArcFitter.cpp
+    BoundingBox.cpp
+    Circle.cpp
+    clipper.cpp
+    ClipperUtils.cpp
+    ExPolygon.cpp
+    ExPolygonSecondMoment.cpp
+    ExtrusionEntity.cpp
+    ExtrusionEntityCollection.cpp
+    Flow.cpp
+    Geometry.cpp
+    GeometryTransformation.cpp
+    Geometry/ConvexHull.cpp
+    Geometry/MedialAxis.cpp
+    Geometry/Voronoi.cpp
+    Geometry/VoronoiOffset.cpp
+    Geometry/VoronoiUtils.cpp
+    I18N.cpp
+    Line.cpp
+    LocalesUtils.cpp
+    MeshDiagnostics.cpp
+    MultiPoint.cpp
+    Point.cpp
+    Polygon.cpp
+    Polyline.cpp
+    ShortestPath.cpp
+    Tesselate.cpp
+    TriangleMesh.cpp
+    TriangleMeshSlicer.cpp
+    Utils.cpp
+)
+
+add_library(libslic3r_trianglemesh_geometry_core STATIC
+    ${libslic3r_trianglemesh_geometry_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
+set(libslic3r_model_basic_core_sources
+    ObjectID.cpp
+    PolygonLines.cpp
+    TriangleMeshBasic.cpp
+    ModelAssembly.cpp
+    GeometryTransformation.cpp
+    ModelGeometry.cpp
+    ModelPlacement.cpp
+    ModelCopy.cpp
+    ModelTransform.cpp
+)
+
+add_library(libslic3r_model_basic_core STATIC
+    ${libslic3r_model_basic_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
+set(libslic3r_print_object_layers_core_sources
+    ObjectID.cpp
+    TriangleMeshBasic.cpp
+    ModelAssembly.cpp
+    ModelGeometry.cpp
+    ModelPlacement.cpp
+    ModelCopy.cpp
+    ModelTransform.cpp
+    Slicing.cpp
+    SlicingAdaptive.cpp
+    PrintObjectSlicingConfig.cpp
+    PrintObjectLayers.cpp
+    PrintObjectSlice.cpp
+    PrintRegionConfigExtruders.cpp
+    Layer.cpp
+    LayerLifecycle.cpp
+    LayerRegion.cpp
+    ModelBounds.cpp
+    ModelRawMesh.cpp
+    SurfaceCollection.cpp
+    TriangleMeshTopology.cpp
+    TriangleMeshTransform.cpp
+)
+
+add_library(libslic3r_print_object_layers_core STATIC
+    ${libslic3r_print_object_layers_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
+set(libslic3r_print_process_core_sources
+    ArcFitter.cpp
+    BoundingBox.cpp
+    BridgeDetector.cpp
+    Brim.cpp
+    BuildVolume.cpp
+    ByObjectPrintData.cpp
+    Circle.cpp
+    clipper.cpp
+    ClipperUtils.cpp
+    Clipper2Utils.cpp
+    Config.cpp
+    ConfigFileUtils.cpp
+    ExPolygon.cpp
+    ExPolygonSecondMoment.cpp
+    Extruder.cpp
+    ExtrusionEntity.cpp
+    ExtrusionEntityCollection.cpp
+    EdgeGrid.cpp
+    EdgeGridSvg.cpp
+    Fill/Fill.cpp
+    Fill/Fill3DHoneycomb.cpp
+    Fill/FillAdaptive.cpp
+    Fill/FillBase.cpp
+    Fill/FillConcentric.cpp
+    Fill/FillConcentricInternal.cpp
+    Fill/FillCrossHatch.cpp
+    Fill/FillFloatingConcentric.cpp
+    Fill/FillGyroid.cpp
+    Fill/FillHoneycomb.cpp
+    Fill/FillLine.cpp
+    Fill/FillLightning.cpp
+    Fill/FillPlanePath.cpp
+    Fill/FillRectilinear.cpp
+    Fill/FillSpacing.cpp
+    Fill/Lightning/DistanceField.cpp
+    Fill/Lightning/Generator.cpp
+    Fill/Lightning/Layer.cpp
+    Fill/Lightning/TreeNode.cpp
+    FuzzySkin.cpp
+    Flow.cpp
+    FlowPrint.cpp
+    FilamentGroup.cpp
+    FilamentGroupUtils.cpp
+    FilamentMixer.cpp
+    FlushVolPredictor.cpp
+    EdgeGridSvg.cpp
+    GCode/GCodeProcessor.cpp
+    GCodeReader.cpp
+    GCode/ThumbnailData.cpp
+    GCode/ToolOrdering.cpp
+    GCode/ToolOrderUtils.cpp
+    GCode/WipeTower.cpp
+    GCodeLayerOrdering.cpp
+    Geometry.cpp
+    GeometryTransformation.cpp
+    Geometry/Circle.cpp
+    Geometry/ConvexHull.cpp
+    Geometry/MedialAxis.cpp
+    Geometry/VoronoiOffset.cpp
+    Geometry/Voronoi.cpp
+    Geometry/VoronoiUtils.cpp
+    I18N.cpp
+    InternalBridgeDetector.cpp
+    Interlocking/InterlockingGenerator.cpp
+    LayerSvg.cpp
+    Layer.cpp
+    LayerLifecycle.cpp
+    LayerSvg.cpp
+    LayerRegion.cpp
+    Line.cpp
+    LocalesUtils.cpp
+    ModelAssembly.cpp
+    ModelAnnotations.cpp
+    ModelBounds.cpp
+    ModelDiff.cpp
+    ModelExtruders.cpp
+    ModelExportPath.cpp
+    ModelGeometry.cpp
+    ModelPlacement.cpp
+    ModelCopy.cpp
+    ModelRawMesh.cpp
+    ModelThermal.cpp
+    ModelTransform.cpp
+    MultiMaterialSegmentation.cpp
+    MultiNozzleUtils.cpp
+    MixedFilamentUtils.cpp
+    MultiPoint.cpp
+    MutablePolygon.cpp
+    ObjectID.cpp
+    PrincipalComponents2D.cpp
+    OverhangDetector.cpp
+    ParameterUtils.cpp
+    PerimeterGenerator.cpp
+    PlaceholderParserConfig.cpp
+    PlaceholderParser.cpp
+    Platform.cpp
+    Point.cpp
+    Polygon.cpp
+    PNGReadWrite.cpp
+    Polyline.cpp
+    PrintSequential.cpp
+    PrintState.cpp
+    PrintQueries.cpp
+    PrintExtruderPrintableArea.cpp
+    PrintFilamentPrintability.cpp
+    PrintFilamentState.cpp
+    PrintFilamentMappingConfigSync.cpp
+    PrintFilamentMapping.cpp
+    PrintFilamentMappingNozzleConfig.cpp
+    PrintFilamentMappingRules.cpp
+    PrintEnvelope.cpp
+    PrintExtruderUtils.cpp
+    PrintObjectSharing.cpp
+    PrintRuntime.cpp
+    PrintAuxiliary.cpp
+    PrintFilamentCompatibility.cpp
+    PrintCache.cpp
+    PrintValidate.cpp
+    PrintProcessPerimeters.cpp
+    PrintBaseOutput.cpp
+    PrintOutputFilename.cpp
+    PrintStatistics.cpp
+    PrintProcess.cpp
+    PrintPathConflictCheckCompat.cpp
+    PrintWipeTower.cpp
+    PrintProcessSupport.cpp
+    PrintApply.cpp
+    PrintBase.cpp
+    PrintConfig.cpp
+    PrintConfigGeometry.cpp
+    PrintConfigRuntime.cpp
+    PrintObjectAnalysis.cpp
+    PrintObjectInvalidation.cpp
+    PrintObjectLayers.cpp
+    PrintObjectInfill.cpp
+    PrintObjectPerimeters.cpp
+    PrintObjectPostProcess.cpp
+    PrintObjectSlicingConfig.cpp
+    PrintObject.cpp
+    PrintObjectExtruders.cpp
+    PrintObjectUpdateSlicingParameters.cpp
+    PrintObjectSupportGeometry.cpp
+    PrintObjectSupport.cpp
+    PrintObjectSlice.cpp
+    PrintObjectSliceInterlocking.cpp
+    PrintRegion.cpp
+    PrintRegionConfigExtruders.cpp
+    PrintRegionExtruders.cpp
+    ShortestPath.cpp
+    ShortestPathExtras.cpp
+    Slicing.cpp
+    SlicingAdaptive.cpp
+    SVG.cpp
+    Surface.cpp
+    SurfaceCollection.cpp
+    SurfaceCollectionSvg.cpp
+    SurfaceSvg.cpp
+    Support/SupportCommon.cpp
+    Support/SupportMaterial.cpp
+    Support/TreeModelVolumes.cpp
+    Support/TreeSupport.cpp
+    Support/TreeSupport3D.cpp
+    MinimumSpanningTree.cpp
+    Thread.cpp
+    Time.cpp
+    TriangleMeshBasic.cpp
+    TriangleMeshTopology.cpp
+    TriangleMeshTransform.cpp
+    TriangleMeshSlicer.cpp
+    TriangleSelector.cpp
+    UtilsData.cpp
+    UtilsMemory.cpp
+    UtilsPaths.cpp
+    UtilsDebug.cpp
+    UtilsFormat.cpp
+    UtilsRename.cpp
+    VariableWidth.cpp
+    RegionExpansion.cpp
+    Tesselate.cpp
+    MeshDiagnostics.cpp
+    ElephantFootCompensation.cpp
+    CustomGCode.cpp
+    Interlocking/VoxelUtils.cpp
+    Arachne/BeadingStrategy/BeadingStrategy.cpp
+    Arachne/BeadingStrategy/BeadingStrategyFactory.cpp
+    Arachne/BeadingStrategy/DistributedBeadingStrategy.cpp
+    Arachne/BeadingStrategy/LimitedBeadingStrategy.cpp
+    Arachne/BeadingStrategy/OuterWallContourStrategy.cpp
+    Arachne/BeadingStrategy/OuterWallInsetBeadingStrategy.cpp
+    Arachne/BeadingStrategy/RedistributeBeadingStrategy.cpp
+    Arachne/BeadingStrategy/WideningBeadingStrategy.cpp
+    Arachne/utils/ExtrusionJunction.cpp
+    Arachne/utils/ExtrusionLine.cpp
+    Arachne/utils/PolylineStitcher.cpp
+    Arachne/utils/SquareGrid.cpp
+    Arachne/SkeletalTrapezoidation.cpp
+    Arachne/SkeletalTrapezoidationGraph.cpp
+    Arachne/WallToolPaths.cpp
+    Algorithm/LineSegmentation/LineSegmentation.cpp
+)
+
+set(libslic3r_print_perimeters_core_sources
+    ${libslic3r_print_process_core_sources}
+)
+list(REMOVE_ITEM libslic3r_print_perimeters_core_sources
+    Brim.cpp
+    ByObjectPrintData.cpp
+    Fill/Fill.cpp
+    Fill/Fill3DHoneycomb.cpp
+    Fill/FillAdaptive.cpp
+    Fill/FillBase.cpp
+    Fill/FillConcentric.cpp
+    Fill/FillConcentricInternal.cpp
+    Fill/FillCrossHatch.cpp
+    Fill/FillFloatingConcentric.cpp
+    Fill/FillGyroid.cpp
+    Fill/FillHoneycomb.cpp
+    Fill/FillLine.cpp
+    Fill/FillLightning.cpp
+    Fill/FillPlanePath.cpp
+    Fill/FillRectilinear.cpp
+    Fill/FillSpacing.cpp
+    Fill/Lightning/DistanceField.cpp
+    Fill/Lightning/Generator.cpp
+    Fill/Lightning/Layer.cpp
+    Fill/Lightning/TreeNode.cpp
+    FilamentGroup.cpp
+    FilamentGroupUtils.cpp
+    FilamentMixer.cpp
+    FlushVolPredictor.cpp
+    GCode/ConflictChecker.cpp
+    GCode/GCodeProcessor.cpp
+    GCodeReader.cpp
+    GCode/ThumbnailData.cpp
+    GCode/ToolOrdering.cpp
+    GCode/ToolOrderUtils.cpp
+    GCode/WipeTower.cpp
+    GCodeLayerOrdering.cpp
+    PrintBaseOutput.cpp
+    PrintCache.cpp
+    PrintFilamentCompatibility.cpp
+    PrintFilamentMapping.cpp
+    PrintFilamentMappingConfigSync.cpp
+    PrintFilamentMappingNozzleConfig.cpp
+    PrintFilamentMappingRules.cpp
+    PrintOutputFilename.cpp
+    PrintPathConflictCheckCompat.cpp
+    PrintProcess.cpp
+    PrintObjectSliceInterlocking.cpp
+    PrintStatistics.cpp
+    PrintWipeTower.cpp
+    PrintProcessSupport.cpp
+    PrintValidate.cpp
+    PrintObjectAnalysis.cpp
+    PrintObjectInfill.cpp
+    PrintObjectPostProcess.cpp
+    PrintObjectSupportGeometry.cpp
+    PrintObjectSupport.cpp
+    Interlocking/InterlockingGenerator.cpp
+    Interlocking/VoxelUtils.cpp
+    ShortestPath.cpp
+    ShortestPathExtras.cpp
+    SVG.cpp
+    Support/SupportCommon.cpp
+    Support/SupportMaterial.cpp
+    SurfaceCollectionSvg.cpp
+    SurfaceSvg.cpp
+    Support/TreeModelVolumes.cpp
+    Support/TreeSupport.cpp
+    Support/TreeSupport3D.cpp
+)
+
+list(APPEND libslic3r_print_perimeters_core_sources
+    PrintPerimetersCacheCompat.cpp
+    PrintProcessInterlockingCompat.cpp
+    PrintPerimetersInfillCompat.cpp
+    PrintPerimetersOutputCompat.cpp
+    PrintPerimetersValidateCompat.cpp
+    PrintPerimetersWipeTowerCompat.cpp
+    PrintProcessPerimetersCompat.cpp
+    ShortestPath.cpp
+)
+
+set(libslic3r_print_stage_base_core_sources
+    ${libslic3r_print_perimeters_core_sources}
+)
+list(REMOVE_ITEM libslic3r_print_stage_base_core_sources
+    PrintPerimetersCacheCompat.cpp
+    PrintProcessInterlockingCompat.cpp
+    PrintPerimetersInfillCompat.cpp
+    PrintPerimetersOutputCompat.cpp
+    PrintPerimetersValidateCompat.cpp
+    PrintPerimetersWipeTowerCompat.cpp
+    PrintProcessPerimetersCompat.cpp
+)
+
+set(libslic3r_print_process_core_specific_sources
+    ${libslic3r_print_process_core_sources}
+)
+list(REMOVE_ITEM libslic3r_print_process_core_specific_sources
+    ${libslic3r_print_stage_base_core_sources}
+)
+set(libslic3r_print_process_core_sources
+    ${libslic3r_print_process_core_specific_sources}
+)
+
+set(libslic3r_print_perimeters_core_specific_sources
+    PrintPerimetersCacheCompat.cpp
+    PrintProcessInterlockingCompat.cpp
+    PrintPerimetersInfillCompat.cpp
+    PrintPerimetersOutputCompat.cpp
+    PrintPerimetersValidateCompat.cpp
+    PrintPerimetersWipeTowerCompat.cpp
+    PrintProcessPerimetersCompat.cpp
+)
+set(libslic3r_print_perimeters_core_sources
+    ${libslic3r_print_perimeters_core_specific_sources}
+)
+
+set(libslic3r_print_apply_base_core_sources
+    ${libslic3r_print_stage_base_core_sources}
+    ${libslic3r_print_perimeters_core_specific_sources}
+)
+list(REMOVE_ITEM libslic3r_print_apply_base_core_sources
+    Arachne/BeadingStrategy/BeadingStrategy.cpp
+    Arachne/BeadingStrategy/BeadingStrategyFactory.cpp
+    Arachne/BeadingStrategy/DistributedBeadingStrategy.cpp
+    Arachne/BeadingStrategy/LimitedBeadingStrategy.cpp
+    Arachne/BeadingStrategy/OuterWallContourStrategy.cpp
+    Arachne/BeadingStrategy/OuterWallInsetBeadingStrategy.cpp
+    Arachne/BeadingStrategy/RedistributeBeadingStrategy.cpp
+    Arachne/BeadingStrategy/WideningBeadingStrategy.cpp
+    Arachne/SkeletalTrapezoidation.cpp
+    Arachne/SkeletalTrapezoidationGraph.cpp
+    Arachne/WallToolPaths.cpp
+    Arachne/utils/ExtrusionJunction.cpp
+    Arachne/utils/ExtrusionLine.cpp
+    Arachne/utils/PolylineStitcher.cpp
+    Arachne/utils/SquareGrid.cpp
+    BridgeDetector.cpp
+    Clipper2Utils.cpp
+    EdgeGridSvg.cpp
+    FuzzySkin.cpp
+    InternalBridgeDetector.cpp
+    Geometry/Circle.cpp
+    Layer.cpp
+    LayerRegion.cpp
+    LayerSvg.cpp
+    OverhangDetector.cpp
+    PerimeterGenerator.cpp
+    PrintFilamentMapping.cpp
+    PrintFilamentMappingNozzleConfig.cpp
+    PrintFilamentMappingConfigSync.cpp
+    PrintFilamentMappingCompat.cpp
+    PrintFilamentMappingRules.cpp
+    PrintObjectPerimeters.cpp
+    PrintPerimetersCacheCompat.cpp
+    PrintPerimetersInfillCompat.cpp
+    PrintPerimetersOutputCompat.cpp
+    PrintPerimetersValidateCompat.cpp
+    PrintPerimetersWipeTowerCompat.cpp
+    PrintObjectAnalysis.cpp
+    PrintObjectInfill.cpp
+    PrintObjectPostProcess.cpp
+    PrintProcessInterlockingCompat.cpp
+    PrintProcessPerimeters.cpp
+    PrintProcessPerimetersCompat.cpp
+    PrintProcessSupport.cpp
+    SVG.cpp
+    Surface.cpp
+    SurfaceCollection.cpp
+    SurfaceCollectionSvg.cpp
+    SurfaceSvg.cpp
+    Support/SupportCommon.cpp
+    Support/SupportMaterial.cpp
+    Support/TreeModelVolumes.cpp
+    Support/TreeSupport.cpp
+    Support/TreeSupport3D.cpp
+    Tesselate.cpp
+    VariableWidth.cpp
+)
+list(APPEND libslic3r_print_apply_base_core_sources
+    PrintApplyValidateSupportCompat.cpp
+)
+
+set(libslic3r_print_apply_validate_core_sources
+    GCodeLayerOrdering.cpp
+    PrintApplyValidateCompat.cpp
+    PrintFilamentCompatibility.cpp
+    PrintValidate.cpp
+)
+
+set(libslic3r_print_filament_mapping_core_sources
+    PrintFilamentMapping.cpp
+    PrintFilamentMappingConfigSync.cpp
+    PrintFilamentMappingCompat.cpp
+    PrintFilamentMappingRules.cpp
+)
+
+add_library(libslic3r_print_process_core STATIC
+    ${libslic3r_print_process_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
+add_library(libslic3r_print_perimeters_core STATIC
+    ${libslic3r_print_perimeters_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
+add_library(libslic3r_print_stage_base_core STATIC
+    ${libslic3r_print_stage_base_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
+add_library(libslic3r_print_apply_base_core STATIC
+    ${libslic3r_print_apply_base_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
+add_library(libslic3r_print_filament_mapping_core STATIC
+    ${libslic3r_print_filament_mapping_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
+add_library(libslic3r_print_apply_validate_core STATIC
+    ${libslic3r_print_apply_validate_core_sources}
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h")
+
 if (SLIC3R_STATIC)
     set(CGAL_Boost_USE_STATIC_LIBS ON CACHE BOOL "" FORCE)
 endif ()
@@ -562,13 +1281,34 @@ endif ()
 encoding_check(libslic3r)
 
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
+target_compile_definitions(libslic3r_config_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
+target_compile_definitions(libslic3r_placeholder_parser_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
+target_compile_definitions(libslic3r_gcode_reader_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
+target_compile_definitions(libslic3r_gcodewriter_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
+target_compile_definitions(libslic3r_print_process_math_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
+target_compile_definitions(libslic3r_print_object_layers_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
+target_compile_definitions(libslic3r_model_basic_core PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
 target_include_directories(libslic3r PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/TextureToColor PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(libslic3r PUBLIC ${EXPAT_INCLUDE_DIRS})
+target_include_directories(libslic3r_config_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(libslic3r_config_core PUBLIC ${EXPAT_INCLUDE_DIRS})
+target_include_directories(libslic3r_placeholder_parser_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(libslic3r_placeholder_parser_core PUBLIC ${EXPAT_INCLUDE_DIRS})
+target_include_directories(libslic3r_gcode_reader_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(libslic3r_gcode_reader_core PUBLIC ${EXPAT_INCLUDE_DIRS})
+target_include_directories(libslic3r_gcodewriter_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(libslic3r_gcodewriter_core PUBLIC ${EXPAT_INCLUDE_DIRS})
+target_include_directories(libslic3r_print_process_math_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(libslic3r_print_process_math_core PUBLIC ${EXPAT_INCLUDE_DIRS})
+target_include_directories(libslic3r_model_basic_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(libslic3r_model_basic_core PUBLIC ${EXPAT_INCLUDE_DIRS})
 
 # Find the OCCT and related libraries
 set(OpenCASCADE_DIR "${CMAKE_PREFIX_PATH}/lib/cmake/occt")
 find_package(OpenCASCADE REQUIRED)
 target_include_directories(libslic3r PUBLIC ${OpenCASCADE_INCLUDE_DIR})
+target_include_directories(libslic3r_model_basic_core PUBLIC ${OpenCASCADE_INCLUDE_DIR})
+target_include_directories(libslic3r_print_object_layers_core PUBLIC ${OpenCASCADE_INCLUDE_DIR})
 
 set(OCCT_LIBS
     TKXDESTEP
@@ -599,6 +1339,59 @@ set(OCCT_LIBS
     TKernel
 )
 
+function(configure_print_smoke_core target)
+    target_compile_definitions(${target} PUBLIC -DUSE_TBB -DTBB_USE_CAPTURED_EXCEPTION=0)
+    if (MSVC)
+        target_compile_options(${target} PRIVATE /Gy)
+    endif()
+    target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/../libnest2d/include PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+    target_include_directories(${target} PUBLIC ${EXPAT_INCLUDE_DIRS})
+    target_include_directories(${target} PUBLIC ${OpenCASCADE_INCLUDE_DIR})
+    target_link_libraries(${target}
+        noise::noise
+        admesh
+        cereal
+        libigl
+        miniz
+        boost_libs
+        clipper
+        nowide
+        ${EXPAT_LIBRARIES}
+        glu-libtess
+        qhull
+        semver
+        TBB::tbb
+        TBB::tbbmalloc
+        libslic3r_cgal
+        ${CMAKE_DL_LIBS}
+        PNG::PNG
+        ZLIB::ZLIB
+        ${OCCT_LIBS}
+        Clipper2
+        mcut
+        opencv_world
+        ${_cgal_tgt}
+        assimp::assimp
+    )
+    if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
+        add_precompiled_header(${target} pchheader.hpp FORCEINCLUDE)
+    endif ()
+endfunction()
+
+configure_print_smoke_core(libslic3r_print_process_core)
+configure_print_smoke_core(libslic3r_print_perimeters_core)
+configure_print_smoke_core(libslic3r_print_stage_base_core)
+configure_print_smoke_core(libslic3r_print_apply_base_core)
+configure_print_smoke_core(libslic3r_print_filament_mapping_core)
+configure_print_smoke_core(libslic3r_print_apply_validate_core)
+configure_print_smoke_core(libslic3r_fill_core)
+configure_print_smoke_core(libslic3r_trianglemesh_geometry_core)
+target_compile_definitions(libslic3r_print_perimeters_core PUBLIC -DSLIC3R_PERIMETERS_ONLY_BUILD)
+target_link_libraries(libslic3r_print_process_core libslic3r_print_stage_base_core)
+target_link_libraries(libslic3r_print_perimeters_core libslic3r_print_stage_base_core)
+target_link_libraries(libslic3r_print_filament_mapping_core libslic3r_print_apply_base_core)
+target_link_libraries(libslic3r_print_apply_validate_core libslic3r_print_apply_base_core)
+
 
 target_link_libraries(libslic3r
     noise::noise
@@ -628,6 +1421,85 @@ target_link_libraries(libslic3r
     assimp::assimp
     )
 
+target_link_libraries(libslic3r_config_core
+    boost_libs
+    nowide
+    semver
+    TBB::tbb
+    TBB::tbbmalloc
+)
+
+target_link_libraries(libslic3r_placeholder_parser_core
+    libslic3r_config_core
+    boost_libs
+    nowide
+    semver
+    TBB::tbb
+    TBB::tbbmalloc
+)
+
+target_link_libraries(libslic3r_gcode_reader_core
+    boost_libs
+    nowide
+    semver
+    TBB::tbb
+    TBB::tbbmalloc
+)
+
+target_link_libraries(libslic3r_gcodewriter_core
+    boost_libs
+    nowide
+    semver
+    TBB::tbb
+    TBB::tbbmalloc
+)
+
+target_link_libraries(libslic3r_print_process_math_core
+    boost_libs
+    clipper
+    nowide
+    semver
+    TBB::tbb
+    TBB::tbbmalloc
+)
+
+target_link_libraries(libslic3r_model_basic_core
+    libslic3r_config_core
+    admesh
+    cereal
+    libigl
+    miniz
+    boost_libs
+    clipper
+    nowide
+    ${EXPAT_LIBRARIES}
+    glu-libtess
+    qhull
+    semver
+    TBB::tbb
+    TBB::tbbmalloc
+    ${OCCT_LIBS}
+)
+
+target_link_libraries(libslic3r_print_object_layers_core
+    libslic3r_config_core
+    libslic3r_print_process_math_core
+    admesh
+    cereal
+    libigl
+    miniz
+    boost_libs
+    clipper
+    nowide
+    ${EXPAT_LIBRARIES}
+    glu-libtess
+    qhull
+    semver
+    TBB::tbb
+    TBB::tbbmalloc
+    ${OCCT_LIBS}
+)
+
 if(NOT WIN32)
     target_link_libraries(libslic3r freetype)
     if (NOT APPLE)
@@ -655,4 +1527,13 @@ endif()
 
 if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
     add_precompiled_header(libslic3r pchheader.hpp FORCEINCLUDE)
+endif ()
+
+if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
+    add_precompiled_header(libslic3r_gcode_reader_core pchheader.hpp FORCEINCLUDE)
+    add_precompiled_header(libslic3r_gcodewriter_core pchheader.hpp FORCEINCLUDE)
+endif ()
+
+if (SLIC3R_PCH AND NOT SLIC3R_SYNTAXONLY)
+    add_precompiled_header(libslic3r_model_basic_core pchheader.hpp FORCEINCLUDE)
 endif ()

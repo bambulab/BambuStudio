@@ -1,0 +1,31 @@
+# print apply/validate smoke source surface
+src/libslic3r/GCodeLayerOrdering.cpp
+src/libslic3r/PrintApply.cpp
+src/libslic3r/PrintApplyValidateCompat.cpp
+src/libslic3r/PrintApplyValidateSupportCompat.cpp
+src/libslic3r/PrintBase.hpp
+src/libslic3r/PrintFilamentCompatibility.cpp
+src/libslic3r/PrintFilamentState.cpp
+src/libslic3r/PrintObjectExtruders.cpp
+src/libslic3r/PrintValidate.cpp
+src/libslic3r/LayerLifecycle.cpp
+src/libslic3r/libslic3r.h
+src/libslic3r/Model.hpp
+src/libslic3r/TriangleMesh.hpp
+src/libslic3r/Print.hpp
+src/libslic3r/PrintConfig*
+src/libslic3r/Config*
+
+# print apply/validate smoke target tests
+tests/CMakeLists.txt
+tests/fff_print/cmake/PrintApplyValidateSmoke.cmake
+tests/fff_print/CMakeLists.txt
+tests/fff_print/fff_print_tests.cpp
+tests/fff_print/test_print_init_smoke.cpp
+tests/catch_main.hpp
+tests/catch2/catch.hpp
+
+# workflow changes should re-run the smoke gate
+.github/print-apply-validate-smoke-paths.txt
+.github/workflows/cpp_ut_smoke.yml
+.github/workflows/build_windows_deps.yml

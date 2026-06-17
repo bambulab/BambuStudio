@@ -1,5 +1,6 @@
 #include "BoundingBox.hpp"
 #include "ExPolygon.hpp"
+#include "ExPolygonSecondMoment.hpp"
 #include "Exception.hpp"
 #include "Geometry/MedialAxis.hpp"
 #include "Polygon.hpp"
@@ -13,7 +14,6 @@
 
 namespace Slic3r {
 
-extern bool compSecondMoment(const ExPolygons &expolys, double &smExpolysX, double &smExpolysY); // Brim.cpp
 void ExPolygon::scale(double factor)
 {
     contour.scale(factor);

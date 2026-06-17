@@ -4,7 +4,7 @@
 #include "MultiMaterialSegmentation.hpp"
 #include "Print.hpp"
 #include "ClipperUtils.hpp"
-#include "Interlocking/InterlockingGenerator.hpp"
+#include "PrintObjectSliceInterlocking.hpp"
 //BBS
 #include "ShortestPath.hpp"
 
@@ -1196,10 +1196,7 @@ void PrintObject::slice_volumes()
         apply_fuzzy_skin_segmentation(*this, [print]() { print->throw_if_canceled(); });
     }
 
-    InterlockingGenerator::generate_interlocking_structure(this);
-    m_print->throw_if_canceled();
-
-    InterlockingGenerator::generate_embedding_wall(this);
+    apply_interlocking_features(*this, [this]() { this->throw_if_canceled(); });
     m_print->throw_if_canceled();
 
     // SuperSlicer: filament shrink

@@ -1,0 +1,30 @@
+# support material smoke source surface
+src/libslic3r/PrintProcessSupport.cpp
+src/libslic3r/PrintObjectExtruders.cpp
+src/libslic3r/PrintObjectSupport.cpp
+src/libslic3r/PrintObjectSupportGeometry.cpp
+src/libslic3r/Support/SupportMaterial.cpp
+src/libslic3r/Support/SupportMaterial.hpp
+src/libslic3r/Support/SupportCommon*
+src/libslic3r/Support/SupportLayer.hpp
+src/libslic3r/Support/SupportParameters.hpp
+src/libslic3r/Support/Tree*
+src/libslic3r/Layer.hpp
+src/libslic3r/Print.hpp
+src/libslic3r/PrintBase.hpp
+src/libslic3r/PrintConfig*
+src/libslic3r/Config*
+
+# support material smoke target tests
+tests/CMakeLists.txt
+tests/fff_print/cmake/SupportMaterialSmoke.cmake
+tests/fff_print/CMakeLists.txt
+tests/fff_print/fff_print_tests.cpp
+tests/fff_print/test_support_material_smoke.cpp
+tests/catch_main.hpp
+tests/catch2/catch.hpp
+
+# workflow changes should re-run the smoke gate
+.github/support-material-smoke-paths.txt
+.github/workflows/cpp_ut_smoke.yml
+.github/workflows/build_windows_deps.yml

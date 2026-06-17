@@ -10,7 +10,7 @@
 #include "Layer.hpp"
 #include "MinimumSpanningTree.hpp"
 #include "Print.hpp"
-#include "ShortestPath.hpp"
+#include "ShortestPathExtras.hpp"
 #include "SupportCommon.hpp"
 #include "SVG.hpp"
 #include "TreeSupportCommon.hpp"

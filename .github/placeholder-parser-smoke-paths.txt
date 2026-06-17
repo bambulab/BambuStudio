@@ -1,0 +1,20 @@
+# PlaceholderParser source surface
+src/libslic3r/PlaceholderParser*
+
+# Direct config and flow helpers used by placeholder expansion
+src/libslic3r/Config*
+src/libslic3r/PrintConfig*
+src/libslic3r/Flow*
+
+# placeholder parser smoke target
+tests/CMakeLists.txt
+tests/libslic3r/CMakeLists.txt
+tests/libslic3r/config_tests_main.cpp
+tests/libslic3r/test_placeholder_parser_smoke.cpp
+tests/catch_main.hpp
+tests/catch2/catch.hpp
+
+# workflow changes should re-run the smoke gate
+.github/placeholder-parser-smoke-paths.txt
+.github/workflows/cpp_ut_smoke.yml
+.github/workflows/build_windows_deps.yml

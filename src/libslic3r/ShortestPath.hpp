@@ -22,9 +22,6 @@ void                                 chain_and_reorder_extrusion_entities(std::v
 std::vector<std::pair<size_t, bool>> chain_extrusion_paths(std::vector<ExtrusionPath> &extrusion_paths, const Point *start_near = nullptr);
 void                                 reorder_extrusion_paths(std::vector<ExtrusionPath> &extrusion_paths, std::vector<std::pair<size_t, bool>> &chain);
 void                                 chain_and_reorder_extrusion_paths(std::vector<ExtrusionPath> &extrusion_paths, const Point *start_near = nullptr);
-
-Polylines 							 chain_polylines(Polylines &&src, const Point *start_near = nullptr);
-inline Polylines 					 chain_polylines(const Polylines& src, const Point* start_near = nullptr) { Polylines tmp(src); return chain_polylines(std::move(tmp), start_near); }
 template<typename T> inline void reorder_by_shortest_traverse(std::vector<T> &polylines_out)
 {
     Points start_point;
@@ -40,18 +37,6 @@ template<typename T> inline void reorder_by_shortest_traverse(std::vector<T> &po
 }
 
 std::vector<ClipperLib::PolyNode*>	 chain_clipper_polynodes(const Points &points, const std::vector<ClipperLib::PolyNode*> &items);
-
-// Chain instances of print objects by an approximate shortest path.
-// Returns pairs of PrintObject idx and instance of that PrintObject.
-class Print;
-struct PrintInstance;
-// BBS
-class PrintObject;
-std::vector<const PrintInstance*> chain_print_object_instances(const std::vector<const PrintObject*>& print_objects, const Point* start_near);
-std::vector<const PrintInstance*> 	 chain_print_object_instances(const Print &print);
-
-// Chain lines into polylines.
-Polylines 							 chain_lines(const std::vector<Line> &lines, const double point_distance_epsilon);
 
 } // namespace Slic3r
 
