@@ -2608,6 +2608,12 @@ static HPDF_Font load_unicode_pdf_font(HPDF_Doc pdf)
 #endif
     };
 
+    // A failed/unsupported font load (e.g. the CFF-flavoured PingFang.ttc on
+    // macOS, which libharu cannot parse) leaves an error set on the document.
+    // Because HPDF_New() is created without an error handler, that error
+    // poisons the whole document: every later HPDF call silently becomes a
+    // no-op and the PDF is never written. Reset the error after each failed
+    // attempt so we can fall back to the next candidate (e.g. Arial Unicode).
     for (const auto &c : ttc_candidates) {
         if (!fs::exists(c.path))
             continue;
@@ -2616,6 +2622,7 @@ static HPDF_Font load_unicode_pdf_font(HPDF_Doc pdf)
             if (HPDF_Font f = HPDF_GetFont(pdf, fname, "UTF-8"))
                 return f;
         }
+        HPDF_ResetError(pdf);
     }
     for (const char *p : ttf_candidates) {
         if (!fs::exists(p))
@@ -2625,8 +2632,10 @@ static HPDF_Font load_unicode_pdf_font(HPDF_Doc pdf)
             if (HPDF_Font f = HPDF_GetFont(pdf, fname, "UTF-8"))
                 return f;
         }
+        HPDF_ResetError(pdf);
     }
 
+    HPDF_ResetError(pdf);
     return HPDF_GetFont(pdf, "Helvetica", nullptr);
 }
 

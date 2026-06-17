@@ -29,23 +29,6 @@ std::string escape_markdown_inline(const std::string &text)
     return out;
 }
 
-// Escape for raw-HTML context (used by the centered title / right-aligned subtitle). Markdown escaping is wrong inside an HTML block because most
-std::string escape_html(const std::string &text)
-{
-    std::string out;
-    out.reserve(text.size());
-    for (char ch : text) {
-        switch (ch) {
-        case '&': out += "&amp;";  break;
-        case '<': out += "&lt;";   break;
-        case '>': out += "&gt;";   break;
-        case '"': out += "&quot;"; break;
-        default:  out.push_back(ch); break;
-        }
-    }
-    return out;
-}
-
 std::string md_image_line(const std::string &alt, const std::string &rel_path)
 {
     return "![" + escape_markdown_inline(alt) + "](" + rel_path + ")\n\n";
@@ -144,10 +127,15 @@ bool TinyExportMardDown::build(const AssemblyMarkdownExportParams &params)
     }
 
     const std::string title = params.project_title.empty() ? "Untitled" : params.project_title;
-    // Centered main title, with the "---- Assembly Guide" subtitle right-aligned on its own line below it (mirrors the PDF / video cover layout).
-    ofs << "<h1 align=\"center\">" << escape_html(title) << "</h1>\n\n";
+    // Centered main title with the "---- Assembly Guide" subtitle right-aligned
+    // below it (mirrors the PDF / video cover layout). Use Pandoc "native div"
+    // fences (::: {style=...}): Zettlr and Pandoc honor these and apply the
+    // alignment on export, while the editor shows a clean real Markdown heading
+    // instead of literal <h1>/<div> tags. Markdown inside the fence is parsed,
+    // so the title stays a proper heading.
+    ofs << "::: {style=\"text-align: center\"}\n\n# " << escape_markdown_inline(title) << "\n\n:::\n\n";
     if (!params.subtitle.empty())
-        ofs << "<p align=\"right\">" << escape_html(params.subtitle) << "</p>\n\n";
+        ofs << "::: {style=\"text-align: right\"}\n\n" << escape_markdown_inline(params.subtitle) << "\n\n:::\n\n";
 
     if (!params.cover_image_path.empty()) {
         const fs::path cover_dest = assets_dir / "cover.png";
@@ -185,7 +173,7 @@ bool TinyExportMardDown::build(const AssemblyMarkdownExportParams &params)
         else
             ofs << "## " << escape_markdown_inline(label) << "\n\n";
 
-        ofs << md_image_line(label, copied_frame_paths[f.img_idx]);
+        ofs << md_image_line("", copied_frame_paths[f.img_idx]);
     }
     if (!ofs) {
         BOOST_LOG_TRIVIAL(error) << "assembly markdown export: failed to write " << params.md_filename;

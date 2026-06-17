@@ -2505,12 +2505,15 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
     const float panel_y        = 17.0f * sc;
     const float panel_w        = 384.0f * sc;       // 1.5x of original 256*sc
     const float panel_radius   = 4.0f * sc;
-    const float header_h       = 64.0f * sc;
+    // Header height tracks the title + subtitle text instead of a fixed *sc
+    // value, which left a large empty gap under the subtitle on macOS (the imgui
+    // font is smaller relative to the Retina scale). Mirrors the draw positions:
+    // 6*sc top pad + title line + 4*sc gap + subtitle line + 8*sc bottom pad.
+    const float header_h       = 6.0f * sc + fs_title + 4.0f * sc + fs_small + 8.0f * sc;
     const float side_pad       = 8.0f * sc;
     const float card_gap       = 12.0f * sc;
     const float card_pad       = 8.0f * sc;
     const float card_radius    = 4.0f * sc;
-    const float card_h_fixed   = 113.0f * sc;
     const float tag_h          = 20.0f * sc;
     const float tag_h_pad      = 6.0f * sc;
     const float tag_radius     = 6.0f * sc;
@@ -2518,6 +2521,23 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
     const float chip_h_pad     = 10.0f * sc;
     const float chip_gap       = 8.0f * sc;
     const float chip_radius    = 6.0f * sc;
+    // Per-card height tracks each card's real content (tag row + title line +
+    // an optional chip strip / dashed placeholder row) instead of one shared
+    // hard-coded value. A single fixed height left a large empty band at the
+    // bottom of cards on macOS (where the imgui font is smaller relative to the
+    // Retina DPI scale) and over-reserved a third row for cards that have
+    // neither chips nor a placeholder. Deriving it from the very metrics used
+    // while drawing keeps every card snug on every platform.
+    const float placeholder_row_h = chip_h + 12.0f * sc;
+    auto card_h_of = [&](const auto &c) -> float {
+        float h = card_pad + tag_h + 8.0f * sc + line_h; // tag row + title row
+        if (!c.chips.empty())
+            h += 8.0f * sc + chip_h;                     // single chip strip
+        else if (!c.placeholder_text.empty())
+            h += 8.0f * sc + placeholder_row_h;          // dashed placeholder box
+        h += card_pad;
+        return h;
+    };
     const float action_h       = 34.0f * sc;
     const float bottom_pad     = 16.0f * sc;
     const float icon_sz_hdr    = 16.0f * sc;
@@ -2557,7 +2577,9 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         : (footer_hint_size.y + 8.0f * sc);
 
     // When collapsed only the header is visible.
-    const float cards_total = static_cast<float>(data.cards.size()) * (card_h_fixed + card_gap);
+    float cards_total = 0.0f;
+    for (const auto &c : data.cards)
+        cards_total += card_h_of(c) + card_gap;
     const float scroll_content_h = card_gap + cards_total;
     const float max_scroll_region_h = canvas_h * 0.5f;
     const float scroll_region_h_target = std::min(scroll_content_h, max_scroll_region_h);
@@ -2746,12 +2768,14 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
             if (data.cards[ci].node_idx != m_structure_scroll_to_node)
                 continue;
 
-            const float target_y = card_gap + static_cast<float>(ci) * (card_h_fixed + card_gap);
+            float target_y = card_gap;
+            for (size_t k = 0; k < ci; ++k)
+                target_y += card_h_of(data.cards[k]) + card_gap;
             const float target_scroll_y = std::max(0.0f, target_y - card_gap);
             ImGui::SetScrollY(target_scroll_y);
             scroll_y = target_scroll_y;
 
-            if (target_y >= scroll_y && target_y + card_h_fixed <= scroll_y + scroll_region_h)
+            if (target_y >= scroll_y && target_y + card_h_of(data.cards[ci]) <= scroll_y + scroll_region_h)
                 m_structure_scroll_to_node = -1;
             break;
         }
@@ -2762,7 +2786,7 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         const auto &c = data.cards[ci];
         const float card_x = child_pos.x + side_pad;
         const float card_w = panel_w - 2.f * side_pad;
-        const float card_h = card_h_fixed;
+        const float card_h = card_h_of(c);
         const float card_screen_y = child_pos.y + cur_y - scroll_y;
 
         const ImVec2 card_min(card_x, card_screen_y);
@@ -4341,7 +4365,7 @@ void AssemblyStepsUtils::render_export_menu_popup(const char* popup_id, float sc
     static const int kExportItemCount = 3;
     const std::string labels[] = { _u8L("Export PDF"), _u8L("Export Markdown"), _u8L("Export MP4") };
     const ExportType types[] = { ExportType::PDF, ExportType::MarkDown, ExportType::MP4 };
-    const std::string markdown_tooltip = _u8L("After exporting the Markdown document, you can edit it in third-party software such as MarkText and then export it to PDF.");
+    const std::string markdown_tooltip = _u8L("After exporting the Markdown document, you can edit it in third-party software such as Zettlr and then export it to PDF.");
     const float row_height = 28.0f * sc;
     const float row_spacing = 2.0f * sc;
     const float win_padding = 12.0f * sc;
