@@ -919,7 +919,14 @@ struct Sidebar::priv
     ExtruderGroup *single_extruder = nullptr;
 
     int  FromDIP(int n) { return plater->FromDIP(n); }
-    void layout_printer(bool isBBL, bool isDual);
+    void layout_printer(bool isBBL, bool isDual, bool isMultiNozzle);
+    void update_extruder_panel();
+    void open_extruder_settings_dialog(bool is_dual);
+    void update_extruder_full_stats(int extruder_id, wxString diameter, const std::vector<NozzleConfig> &configs);
+    NozzleVolumeType get_volume_type_from_configs(wxString diameter, const std::vector<NozzleConfig> &configs);
+    NozzleVolumeType derive_volume_type_from_full_stat(int extruder_id, const wxString &diameter) const;
+    std::vector<NozzleConfig> collect_nozzle_configs_from_machine(MachineObject *obj, int extruder_idx, int extruder_nozzle_count);
+    void reset_all_nozzle_status();
 
     void flush_printer_sync(bool restart = false);
     void show_filament_switcher_dialog(bool is_ready, bool is_manual);
@@ -1003,6 +1010,8 @@ struct Sidebar::priv
     void can_search();
 
     bool sync_extruder_list(bool &only_external_material, bool is_manual = false);
+    void sync_extruder_volume_type(MachineObject *obj, const std::optional<NozzleOption> &nozzle_option, int extruder_nums);
+
     std::optional<NozzleOption> get_nozzle_options(MachineObject *obj, int extruder_count, bool support_multi_nozzle, bool is_manual);
     bool switch_diameter(bool single);
     void update_right_extruder_group_color();
@@ -1896,6 +1905,33 @@ NozzleVolumeType Sidebar::priv::get_volume_type_from_configs(wxString diameter, 
     return NozzleVolumeType::nvtStandard;
 }
 
+// Derive the per-extruder NozzleVolumeType from preset_bundle->extruder_full_stat,
+// the slot-level snapshot already populated by both sync_extruder_list and the
+// extruder-settings dialog OK path. Intended as the single source of truth for
+// project_config["nozzle_volume_type"] so both paths agree.
+NozzleVolumeType Sidebar::priv::derive_volume_type_from_full_stat(int extruder_id, const wxString &diameter) const
+{
+    // hack code, only use standard flow for 0.2
+    if (diameter == "0.2") return NozzleVolumeType::nvtStandard;
+
+    auto preset_bundle = wxGetApp().preset_bundle;
+    if (!preset_bundle) return NozzleVolumeType::nvtStandard;
+
+    const auto        stats       = preset_bundle->extruder_full_stat.get_extruder_stats(extruder_id);
+    const std::string diameter_u8 = diameter.ToStdString();
+
+    std::set<NozzleVolumeType> volume_types;
+    for (const auto &[d, v] : stats) {
+        if (d.empty() || v.empty()) continue;
+        if (d != diameter_u8) continue;
+        volume_types.insert(DevNozzle::ToNozzleVolumeType(v));
+    }
+
+    if (volume_types.size() == 1) return *volume_types.begin();
+    if (volume_types.size() > 1) return NozzleVolumeType::nvtHybrid;
+    return NozzleVolumeType::nvtStandard;
+}
+
 std::vector<NozzleConfig> Sidebar::priv::collect_nozzle_configs_from_machine(MachineObject *obj, int extruder_idx, int extruder_nozzle_count)
 {
     if (!obj || !obj->GetNozzleSystem()) { return {}; }
@@ -1992,30 +2028,29 @@ void Sidebar::priv::open_extruder_settings_dialog(bool is_dual)
             diameter_btns->UpdateButtonStates();
         }
 
+        // Derive nozzle_volume_type from preset_bundle->extruder_full_stat (just populated by
+        // update_extruder_full_stats above). Shared with the sync_extruder_list path.
         auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
         if (printer_tab) {
             if (is_dual) {
-                // Set volume type for left extruder (extruder 0)
                 if (!l_ext_cfg.empty()) {
-                    NozzleVolumeType left_type = get_volume_type_from_configs(selected_diameter, l_ext_cfg);
+                    NozzleVolumeType left_type = derive_volume_type_from_full_stat(0, selected_diameter);
                     printer_tab->set_extruder_volume_type(0, left_type);
                     if (plater) {
                         plater->update_filament_volume_map(0, static_cast<int>(left_type));
                     }
                 }
 
-                // Set volume type for right extruder (extruder 1)
                 if (!r_ext_cfg.empty()) {
-                    NozzleVolumeType right_type = get_volume_type_from_configs(selected_diameter, r_ext_cfg);
+                    NozzleVolumeType right_type = derive_volume_type_from_full_stat(1, selected_diameter);
                     printer_tab->set_extruder_volume_type(1, right_type);
                     if (plater) {
                         plater->update_filament_volume_map(1, static_cast<int>(right_type));
                     }
                 }
             } else {
-                // Set volume type for single extruder
                 if (!s_ext_cfg.empty()) {
-                    NozzleVolumeType type = get_volume_type_from_configs(selected_diameter, s_ext_cfg);
+                    NozzleVolumeType type = derive_volume_type_from_full_stat(0, selected_diameter);
                     printer_tab->set_extruder_volume_type(0, type);
                     if (plater) {
                         plater->update_filament_volume_map(0, static_cast<int>(type));
@@ -2432,13 +2467,31 @@ bool Sidebar::priv::switch_diameter(bool single)
     return result;
 }
 
-static bool is_skip_high_flow_printer(const std::string& printer)
+// Write nozzle_volume_type into project_config for every extruder. Caller passes the
+// MachineObject and the (already resolved) NozzleOption so this function never re-runs
+// the multi-nozzle popup or refreshes the AppConfig cache.
+//
+// Volume type precedence: popup user choice > extruder_full_stat-derived value.
+void Sidebar::priv::sync_extruder_volume_type(MachineObject *obj, const std::optional<NozzleOption> &nozzle_option, int extruder_nums)
 {
-    static const std::set<std::string> invalidate_list = {
-        "Bambu Lab X1E"
-    };
-    return invalidate_list.count(printer);
-};
+    if (!obj) return;
+    auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
+    if (!printer_tab) return;
+
+    for (size_t index = 0; index < static_cast<size_t>(extruder_nums); ++index) {
+        float            diameter    = nozzle_option ? atof(nozzle_option->diameter.c_str()) : obj->GetExtderSystem()->GetNozzleDiameter(index);
+        NozzleVolumeType target_type = derive_volume_type_from_full_stat(static_cast<int>(index), wxString::FromUTF8(get_diameter_string(diameter)));
+
+        if (nozzle_option && nozzle_option->extruder_nozzle_stats.count(index)) {
+            if (nozzle_option->extruder_nozzle_stats.at(index).size() > 1)
+                target_type = NozzleVolumeType::nvtHybrid;
+            else
+                target_type = nozzle_option->extruder_nozzle_stats.at(index).begin()->first;
+        }
+
+        printer_tab->set_extruder_volume_type(index, target_type);
+    }
+}
 
 bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_manual)
 {
@@ -2513,39 +2566,11 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
 
     std::vector<float> nozzle_diameters;
     nozzle_diameters.resize(extruder_nums);
-    std::vector<NozzleVolumeType>target_types(extruder_nums, NozzleVolumeType::nvtStandard);
-
-    // Two extruder id spaces are in play here: "index" is the logical id (0 = left, 1 = right),
-    // which is what nozzle_diameters/target_types and every downstream preset consumer are keyed by,
-    // while physical id is used as a device query argument.
     for (size_t index = 0; index < extruder_nums; ++index) {
         int physical_extruder_id = extruder_map[index]; // physical extruder id
         nozzle_diameters[index]  = nozzle_option ? string_to_double_decimal_point(nozzle_option->diameter) : obj->GetExtderSystem()->GetNozzleDiameter(physical_extruder_id);
-        std::optional<NozzleVolumeType> select_type;
-        NozzleVolumeType target_type = NozzleVolumeType::nvtStandard;
-        if (nozzle_option && nozzle_option->extruder_nozzle_stats.count(index)) {
-            if (nozzle_option->extruder_nozzle_stats[index].size() > 1)
-                select_type = NozzleVolumeType::nvtHybrid;
-            else
-                select_type = nozzle_option->extruder_nozzle_stats[index].begin()->first;
-        }
-
-        if (obj->is_nozzle_flow_type_supported()) {
-            if (obj->GetExtderSystem()->GetNozzleFlowType(physical_extruder_id) == NozzleFlowType::NONE_FLOWTYPE) {
-                MessageDialog dlg(this->plater, _L("There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."),
-                                  _L("Sync extruder information"), wxICON_WARNING | wxOK);
-                dlg.ShowModal();
-                continue;
-            }
-            // hack code, only use standard flow for 0.2
-            if (std::fabs(nozzle_diameters[index] - 0.2) > EPSILON && !is_skip_high_flow_printer(printer_model))
-                target_type = DevNozzle::ToNozzleVolumeType(obj->GetExtderSystem()->GetNozzleFlowType(physical_extruder_id));
-        }
-        if (select_type)
-            target_type = *select_type;
-
-        target_types[index] = target_type;
     }
+
     // key:(extruder_id, slot_num) val: count
     std::map<std::pair<int, int>, int> ams_cnt_map{
         {{MAIN_EXTRUDER_ID, 1}, 0},
@@ -2614,21 +2639,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         AMSCountPopupWindow::UpdateAMSCount(LOGIC_UNIQUE_EXTRUDER_ID, s_extruder_panel);
     }
 
-    // set nozzle volume type after switching prset, so this value can override the old value stored in conf
-    auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
-    auto *nozzle_sys = obj->GetNozzleSystem();
-    for (size_t idx = 0; idx < target_types.size(); ++idx) {
-        // When syncing, the connected machine is the source of truth for the nozzle count.
-        // For single-nozzle extruders on_volume_type_switch only carries the previous count
-        // forward and never refreshes it, so read presence straight from the machine here:
-        // 1 if the extruder actually has a nozzle installed, 0 otherwise.
-        if (!support_multi_nozzle && nozzle_sys) {
-            int  physical_extruder_id = extruder_map[idx];
-            bool nozzle_installed     = !nozzle_sys->GetExtNozzle(physical_extruder_id).IsEmpty();
-            preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(idx, target_types[idx], int(nozzle_installed), true);
-        }
-        printer_tab->set_extruder_volume_type(idx, target_types[idx]);
-    }
+    sync_extruder_volume_type(obj, nozzle_option, extruder_nums);
 
     if (extruder_nums > 1) {
         auto fila_switch = obj->GetFilaSwitch();
@@ -2906,9 +2917,6 @@ std::optional<NozzleOption> Sidebar::priv::get_nozzle_options(MachineObject* obj
             }
             if (can_reuse_saved_option) {
                 BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << " Reusing saved nozzle option for dev_id: " << curr_dev_id;
-
-                auto                     &project_config         = preset_bundle->project_config;
-                ConfigOptionEnumsGeneric *nozzle_volume_type_opt = project_config.option<ConfigOptionEnumsGeneric>("nozzle_volume_type");
 
                 // Write to preset bundle config
                 for (int extruder_id = 0; extruder_id < extruder_count; ++extruder_id) {
