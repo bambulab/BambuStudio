@@ -69,6 +69,7 @@ struct SurfaceFillParams
 	float			sparse_infill_speed = 0;
 	float			top_surface_speed = 0;
 	float			solid_infill_speed = 0;
+	float			bridge_speed = 0;
     float           initial_layer_flow_ratio    = 1.f;
     float           infill_shift_step          = 0;// param for cross zag
     float           infill_rotate_step         = 0; // param for zig zag to get cross texture
@@ -105,6 +106,7 @@ struct SurfaceFillParams
 		RETURN_COMPARE_NON_EQUAL(sparse_infill_speed);
 		RETURN_COMPARE_NON_EQUAL(top_surface_speed);
 		RETURN_COMPARE_NON_EQUAL(solid_infill_speed);
+		RETURN_COMPARE_NON_EQUAL(bridge_speed);
 		RETURN_COMPARE_NON_EQUAL(infill_shift_step);
 		RETURN_COMPARE_NON_EQUAL(infill_rotate_step);
 		RETURN_COMPARE_NON_EQUAL(symmetric_infill_y_axis);
@@ -134,6 +136,7 @@ struct SurfaceFillParams
 				this->sparse_infill_speed	== rhs.sparse_infill_speed &&
 				this->top_surface_speed		== rhs.top_surface_speed &&
 				this->solid_infill_speed	== rhs.solid_infill_speed &&
+				this->bridge_speed			== rhs.bridge_speed &&
 				this->infill_shift_step             == rhs.infill_shift_step &&
 				this->infill_rotate_step            == rhs.infill_rotate_step &&
 				this->symmetric_infill_y_axis	== rhs.symmetric_infill_y_axis &&
@@ -277,6 +280,8 @@ std::vector<SurfaceFill> group_fills(const Layer &layer, LockRegionParam &lock_p
                         else
 							params.solid_infill_speed = region_config.bridge_speed.get_at(layer.get_process_config_idx(params.extruder));
 					}
+                } else if (params.extrusion_role == erBridgeInfill) {
+                    params.bridge_speed = region_config.bridge_speed.get_at(layer.get_process_config_idx(params.extruder));
                 }
 				// Calculate flow spacing for infill pattern generation.
 		        if (surface.is_solid() || is_bridge) {
