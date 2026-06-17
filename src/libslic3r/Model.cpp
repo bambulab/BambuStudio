@@ -3373,7 +3373,10 @@ std::vector<int> ModelVolume::get_extruders() const
 
     std::vector<int> volume_extruders = mmuseg_extruders;
     int volume_extruder_id = this->extruder_id();
-    if (m_mmuseg_extruders_has_0_extruder && volume_extruder_id > 0) {
+    // Slicing ignores MMU paint on non-model-part volumes (modifiers, etc.),
+    // so their volume extruder is always effective regardless of paint coverage.
+    bool paint_affects_slicing = this->is_model_part();
+    if ((!paint_affects_slicing || m_mmuseg_extruders_has_0_extruder) && volume_extruder_id > 0) {
         volume_extruders.push_back(volume_extruder_id);
     }
 
