@@ -747,6 +747,9 @@ std::string ObjColorPanel::get_color_str(const wxColour &color) {
 ComboBox *ObjColorPanel::CreateEditorCtrl(wxWindow *parent, int id) // wxRect labelRect,, const wxVariant &value
 {
     std::vector<wxBitmap *> icons = get_extruder_color_icons();
+    // Trim to physical filaments only; m_colours excludes mixed slots.
+    if (icons.size() > m_colours.size())
+        icons.resize(m_colours.size());
     const double            em          = Slic3r::GUI::wxGetApp().em_unit();
     bool                    thin_icon   = false;
     const int               icon_width  = lround((thin_icon ? 2 : 4.4) * em);

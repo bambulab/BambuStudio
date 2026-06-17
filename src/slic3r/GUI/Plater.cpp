@@ -5212,8 +5212,9 @@ void Sidebar::update_mixed_filament_list()
                 auto* grad_panel = new wxPanel(p->m_panel_mixed_content, wxID_ANY,
                                                wxDefaultPosition, wxSize(swatch_sz, swatch_sz));
                 grad_panel->SetMinSize(wxSize(swatch_sz, swatch_sz));
+                grad_panel->SetBackgroundStyle(wxBG_STYLE_PAINT);
                 grad_panel->Bind(wxEVT_PAINT, [grad_panel, col_from, col_to, mix_num, mc_text](wxPaintEvent&) {
-                    wxPaintDC dc(grad_panel);
+                    wxBufferedPaintDC dc(grad_panel);
                     wxSize sz = grad_panel->GetClientSize();
                     dc.GradientFillLinear(wxRect(0, 0, sz.GetWidth(), sz.GetHeight()),
                                           col_from, col_to, wxRIGHT);
@@ -6943,7 +6944,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         "brim_width", "brim_object_gap", "brim_type", "nozzle_diameter", "single_extruder_multi_material",
         "enable_prime_tower", "wipe_tower_x", "wipe_tower_y", "prime_tower_width", "prime_tower_brim_width", "prime_tower_skip_points", "prime_tower_enable_framework","prime_tower_max_speed",
         "prime_tower_rib_wall","prime_tower_extra_rib_length", "prime_tower_rib_width","prime_tower_fillet_wall", "prime_tower_infill_gap","filament_prime_volume","filament_prime_volume_nc",
-        "extruder_colour", "filament_colour", "filament_type", "material_colour", "printable_height", "extruder_printable_height", "printer_model", "printer_technology",
+        "extruder_colour", "filament_colour", "filament_type", "filament_is_support", "material_colour", "printable_height", "extruder_printable_height", "printer_model", "printer_technology",
         // These values are necessary to construct SlicingParameters by the Canvas3D variable layer height editor.
         "layer_height", "initial_layer_print_height", "min_layer_height", "max_layer_height",
         "brim_width", "wall_loops", "wall_filament", "sparse_infill_density", "sparse_infill_filament", "top_shell_layers",
@@ -8330,7 +8331,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         // Only process external standard 3MF files; the BBS's own 3MF files already have complete color processing logic
                         ObjDialogInOut color_dialog_in_out;
                         if (extract_colors_to_obj_dialog(&model, color_group_map, volume_color_data, color_dialog_in_out)) {
-                            const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+                            std::vector<std::string> extruder_colours;
+                            {
+                                const auto& all_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+                                size_t num_physical = sidebar->combos_filament().size();
+                                for (size_t i = 0; i < num_physical && i < all_colours.size(); ++i)
+                                    extruder_colours.push_back(all_colours[i]);
+                            }
                             color_dialog_in_out.model = &model;
                             color_dialog_in_out.input_type = ObjDialogInOut::FormatType::Standard3mf;
                             color_dialog_in_out.volume_colors = volume_color_data;
@@ -8663,7 +8670,13 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     makerlab_id     = in_out.ml_id;
 
                     if (!boost::iends_with(path.string(), ".obj")) { return; }
-                    const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+                    std::vector<std::string> extruder_colours;
+                    {
+                        const auto& all_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+                        size_t num_physical = sidebar->combos_filament().size();
+                        for (size_t i = 0; i < num_physical && i < all_colours.size(); ++i)
+                            extruder_colours.push_back(all_colours[i]);
+                    }
                     ObjColorDialog                 color_dlg(nullptr, in_out, extruder_colours);
                     if (color_dlg.ShowModal() != wxID_OK) {
                         in_out.filament_ids.clear();
@@ -11192,7 +11205,13 @@ void Plater::priv::reload_from_disk()
         const auto& path = input_paths[i].string();
         auto        obj_color_fun = [this, &path](ObjDialogInOut &in_out) {
             if (!boost::iends_with(path, ".obj")) { return; }
-            const std::vector<std::string> extruder_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+            std::vector<std::string> extruder_colours;
+            {
+                const auto& all_colours = wxGetApp().plater()->get_extruder_colors_from_plater_config();
+                size_t num_physical = sidebar->combos_filament().size();
+                for (size_t i = 0; i < num_physical && i < all_colours.size(); ++i)
+                    extruder_colours.push_back(all_colours[i]);
+            }
             ObjColorDialog                 color_dlg(nullptr, in_out, extruder_colours);
             if (color_dlg.ShowModal() != wxID_OK) {
                 in_out.filament_ids.clear();
@@ -12320,7 +12339,30 @@ void Plater::priv::on_process_completed(SlicingProcessCompletedEvent &evt)
         this->background_process.get_current_plate()->update_slice_result_valid_state(evt.success());
 
     // mesh stats per plate + GPU/OpenGL info
-    if (!has_error && !evt.cancelled() && evt.success()) track_slice_mesh_stat();
+    if (!has_error && !evt.cancelled() && evt.success()) {
+        track_slice_mesh_stat();
+        // Re-push warnings from completed PrintObject steps that were not re-run
+        // but whose UI notifications were cleared by on_slicing_began().
+        if (this->printer_technology == ptFFF) {
+            const Print *print = this->background_process.m_fff_print;
+            for (const PrintObject *obj : print->objects()) {
+                const ModelObject *model_obj = obj->model_object();
+                ObjectID           oid       = obj->id();
+                for (int step = 0; step < (int)posCount; ++step) {
+                    auto state = obj->step_state_with_warnings(static_cast<PrintObjectStep>(step));
+                    if (state.state != PrintStateBase::DONE)
+                        continue;
+                    for (const auto &w : state.warnings) {
+                        if (w.current) {
+                            notification_manager->push_slicing_warning_notification(
+                                w.message, false, model_obj, oid, step, w.message_id);
+                            add_warning(w, oid.id);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     //BBS: update the action button according to the current plate's status
     bool ready_to_slice = !this->partplate_list.get_curr_plate()->is_slice_result_valid();
@@ -22407,6 +22449,11 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
         }
         if (opt_key == "filament_type") {
             update_filament_colors_in_full_config();
+            p->sidebar->update_mixed_filament_list();
+            continue;
+        }
+        if (opt_key == "filament_is_support") {
+            p->config->set_key_value(opt_key, config.option(opt_key)->clone());
             p->sidebar->update_mixed_filament_list();
             continue;
         }
