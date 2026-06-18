@@ -345,9 +345,11 @@ namespace Slic3r
             }
             prefer_level += placeable_count * UNPLACEABLE_LIMIT_REWARD;
 
+            // Per-nozzle capacity (indexed by nozzle group_id), provided by ctx for every machine.
+            const std::vector<int>& nozzle_caps = ctx.nozzle_info.per_nozzle_capacity;
             bool size_ok = true;
             for (int g = 0; g < k; g++) {
-                if (g < (int)ctx.machine_info.max_group_size.size() && groups_count[g] > ctx.machine_info.max_group_size[g])
+                if (g < (int)nozzle_caps.size() && groups_count[g] > nozzle_caps[g])
                     size_ok = false;
             }
             if (size_ok)
@@ -356,7 +358,7 @@ namespace Slic3r
             if (ctx.group_info.strategy == FGStrategy::BestFit) {
                 bool all_full = true;
                 for (int g = 0; g < k; g++) {
-                    if (g < (int)ctx.machine_info.max_group_size.size() && groups_count[g] < ctx.machine_info.max_group_size[g])
+                    if (g < (int)nozzle_caps.size() && groups_count[g] < nozzle_caps[g])
                         all_full = false;
                 }
                 if (all_full)
@@ -420,6 +422,15 @@ namespace Slic3r
             cluster_size_limit.emplace_back(clusters);
         }
         PAM.set_cluster_group_size(cluster_size_limit);
+
+
+        if (!ctx.nozzle_info.per_nozzle_capacity.empty()) {
+            const auto& cap = ctx.nozzle_info.per_nozzle_capacity;
+            std::vector<int> per_nozzle_max(k, DEFAULT_CLUSTER_SIZE);
+            for (int nz = 0; nz < k; ++nz)
+                per_nozzle_max[nz] = (nz < (int)cap.size()) ? cap[nz] : DEFAULT_CLUSTER_SIZE;
+            PAM.set_max_cluster_size(per_nozzle_max);
+        }
 
         PAM.do_clustering(ctx, timeout_ms, 30);
 
@@ -940,6 +951,17 @@ namespace Slic3r
         std::unordered_map<int, std::vector<int>> unplaceable_limits;
         extract_unprintable_limit_indices(ctx.model_info.unprintable_filaments, used_filaments, unplaceable_limits);
         unplaceable_limits = rebuild_nozzle_unprintables(used_filaments, unplaceable_limits, ctx.group_info.filament_volume_map);
+
+        // Non-installed nozzles (empty slots / wrong working diameter) are placeholders that keep
+        // group_id aligned with the physical slot index; no filament may be assigned to them.
+        std::vector<int> uninstalled_nozzle_ids;
+        for (const auto& nozzle : ctx.nozzle_info.nozzle_list)
+            if (!nozzle.installed) uninstalled_nozzle_ids.push_back(nozzle.group_id);
+        if (!uninstalled_nozzle_ids.empty())
+            for (int fi = 0; fi < n; ++fi) {
+                auto& lim = unplaceable_limits[fi];
+                lim.insert(lim.end(), uninstalled_nozzle_ids.begin(), uninstalled_nozzle_ids.end());
+            }
 
         m_memoryed_heap = MemoryedGroupHeap();
         std::vector<int> result;

@@ -1610,25 +1610,27 @@ FilamentGroupContext build_filament_group_context(
         }
     }
 
-    // N1X single real extruder model: drop nozzles whose diameter differs from the active one and assign
-    // an explicit per-nozzle filament capacity: AMS nozzle = real AMS slot count, fixed nozzles = 1,
-    // empty / unavailable slots = 0. The AMS nozzle is identified by group_id == ams_nozzle_idx.
-    if (single_ext_multi_nozzle) {
-        auto& nl = context.nozzle_info.nozzle_list;
-        const std::string active_diameter = print_config.nozzle_diameter.values.empty()
-            ? std::string() : format_diameter_to_str(print_config.nozzle_diameter.values.front());
-        std::vector<int> caps(nl.size(), 1);
-        for (size_t i = 0; i < nl.size(); ++i) {
-            if (nl[i].installed && !active_diameter.empty() && nl[i].diameter != active_diameter)
-                nl[i].installed = false;
-            if (!nl[i].installed)
-                caps[i] = 0;
-            else if (ams_nozzle_idx_ctx >= 0 && nl[i].group_id == ams_nozzle_idx_ctx)
-                caps[i] = std::max(1, ams_nozzle_capacity);
-            else
-                caps[i] = 1;
-        }
-        context.nozzle_info.per_nozzle_capacity = std::move(caps);
+    // Disable nozzles whose diameter does not match their extruder's active (working) diameter.
+    {
+        std::vector<MultiNozzleUtils::NozzleInfo>& nozzle_list        = context.nozzle_info.nozzle_list;
+        const std::vector<double>&                 extruder_diameters = print_config.nozzle_diameter.values;
+        for (MultiNozzleUtils::NozzleInfo& nozzle : nozzle_list)
+            if (nozzle.diameter != format_diameter_to_str(extruder_diameters[nozzle.extruder_id]))
+                nozzle.installed = false;//wrong-diameter nozzle: not usable for this print
+
+    // Per-nozzle filament capacity (indexed by nozzle group_id) for every machine, so both the enum and
+    // clustering solvers consume one nozzle-level capacity instead of the per-extruder max_group_size:
+    std::vector<int> caps(nozzle_list.size(), 1);
+    for (size_t i = 0; i < nozzle_list.size(); ++i) {
+        const auto& nz = nozzle_list[i];
+        if (!nz.installed)
+            caps[i] = 0;
+        else if (single_ext_multi_nozzle)
+            caps[i] = (ams_nozzle_idx_ctx >= 0 && nz.group_id == ams_nozzle_idx_ctx) ? std::max(1, ams_nozzle_capacity) : 1;
+        else
+            caps[i] = (nz.extruder_id >= 0 && nz.extruder_id < (int) group_size.size()) ? std::max(1, group_size[nz.extruder_id]) : 1;
+    }
+    context.nozzle_info.per_nozzle_capacity = std::move(caps);
     }
 
     context.nozzle_info.extruder_nozzle_list = build_extruder_nozzle_list(context.nozzle_info.nozzle_list);
@@ -2027,13 +2029,10 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
         print_config.extruder_max_nozzle_count.values.end(),
         [](int v) { return v>1;});
     bool has_multiple_extruder = extruder_nums > 1;
-    // Single real extruder driving multiple nozzles. Grouping uses the single-extruder model (no virtual
-    // extruder). Manual modes (fmmManual / fmmNozzleManual) build the filament -> nozzle map directly;
-    // auto modes run calc_filament_group_by_pam with explicit per-nozzle capacity from the context.
     bool single_ext_multi_nozzle = print_config.handle_hotend_as_extruder && extruder_nums == 1 && has_multiple_nozzle;
 
     // Single-extruder multi-nozzle manual modes (fmmManual / fmmNozzleManual) build the
-    // filament -> nozzle map directly (no PAM): AMS-group filaments share the AMS nozzle, fixed-group
+    // filament -> nozzle map directly : AMS-group filaments share the AMS nozzle, fixed-group
     // filaments take distinct compatible nozzles. Shared by both manual dispatch branches below.
     auto build_manual_map_or_throw = [&](const FilamentGroupContext& context) -> std::vector<int> {
         int ams_idx = get_effective_ams_nozzle_idx(print_config);
@@ -2057,8 +2056,7 @@ MultiNozzleUtils::LayeredNozzleGroupResult ToolOrdering::get_recommended_filamen
         return result ? *result : LayeredNozzleGroupResult();
     }
 
-    // fmmNozzleManual: both N1X and non-N1X build the filament -> nozzle map directly (no PAM). N1X uses
-    // build_manual_nozzle_map (AMS vs compatible fixed); non-N1X honors the exact filament_nozzle_map.
+
     if (mode == FilamentMapMode::fmmNozzleManual && has_multiple_nozzle) {
         auto context = build_filament_group_context(
             print, layer_filaments, physical_unprintables, geometric_unprintables, unprintable_volumes, mode, nozzle_status);
