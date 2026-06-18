@@ -201,6 +201,11 @@ typedef struct  _sliced_plate_info{
 
     std::vector<object_info_t> objects;
     std::vector<filament_info_t> filaments;
+
+    // first-layer bbox data extracted from PrintObjects before Print::clear() in CLI all-plates mode.
+    int    first_extruder{0};
+    std::vector<BBoxData>         bbox_objs;
+    std::vector<coordf_t>         wipe_tower_bbox; // {min.x, min.y, max.x, max.y} if wipe tower exists
 }sliced_plate_info_t;
 
 typedef struct _sliced_info {
@@ -7347,7 +7352,51 @@ int CLI::run(int argc, char **argv)
                                         flush_and_exit(CLI_SLICING_TIME_EXCEEDS_LIMIT);
                                     }
                                 }
+                                // CLI all-plates mode: before pushing to sliced_plates, cache the
+                                // data we'll still need after Print/GCodeResult memory is freed.
+                                if (plate_to_slice == 0) {
+                                    // first-layer bbox of each print object (used by first_layer_bboxes loop)
+                                    sliced_plate_info.first_extruder = print_fff->get_tool_ordering().first_extruder();
+                                    auto orig_cli = part_plate->get_origin();
+                                    Vec2d orig2d_cli = { orig_cli[0], orig_cli[1] };
+                                    for (auto obj_cli : print_fff->objects()) {
+                                        BBoxData bd;
+                                        auto bb_scaled = obj_cli->get_first_layer_bbox(bd.area, bd.layer_height, bd.name);
+                                        auto bb = unscaled(bb_scaled);
+                                        bd.area *= (SCALING_FACTOR * SCALING_FACTOR);
+                                        bd.id   = obj_cli->id().id;
+                                        bd.bbox = { bb.min.x(), bb.min.y(), bb.max.x(), bb.max.y() };
+                                        sliced_plate_info.bbox_objs.emplace_back(std::move(bd));
+                                    }
+                                    if (print_fff->has_wipe_tower()) {
+                                        auto wt_corners = print_fff->first_layer_wipe_tower_corners();
+                                        if (!wt_corners.empty()) {
+                                            BoundingBox bb_scaled = {wt_corners[0], wt_corners[2]};
+                                            auto bb = unscaled(bb_scaled);
+                                            bb.min -= orig2d_cli;
+                                            bb.max -= orig2d_cli;
+                                            sliced_plate_info.wipe_tower_bbox = { bb.min.x(), bb.min.y(), bb.max.x(), bb.max.y() };
+                                        }
+                                    }
+                                }
+
                                 sliced_info.sliced_plates.push_back(sliced_plate_info);
+
+                                // CLI all-plates mode: release the two largest memory consumers
+                                // now that all needed data has been extracted into sliced_plate_info.
+                                // - print_fff->clear() releases all PrintObject slice data (layers, supports).
+                                // - clearing moves/lines_ends frees the gcode path buffer, which is
+                                //   the other large allocation; the rest of gcode_result is left intact
+                                //   so that store_to_3mf_structure() can still read fields like
+                                //   layer_filaments, filament_change_sequence, label_object_enabled, etc.
+                                if (plate_to_slice == 0) {
+                                    print_fff->clear();
+                                    gcode_result->moves.clear();
+                                    gcode_result->moves.shrink_to_fit();
+                                    gcode_result->lines_ends.clear();
+                                    gcode_result->lines_ends.shrink_to_fit();
+                                    BOOST_LOG_TRIVIAL(info) << boost::format("Plate %1%: slice data released to free memory.")%(index+1);
+                                }
                             } catch (const std::exception &ex) {
                                 BOOST_LOG_TRIVIAL(error) << "found slicing or export error for partplate "<<index+1 << std::endl;
                                 boost::nowide::cerr << ex.what() << std::endl;
@@ -7919,6 +7968,7 @@ int CLI::run(int argc, char **argv)
                 plate_bboxes.push_back(new PlateBBoxData());
                 continue;
             }
+
             PrintBase  *print_base=NULL;
             Slic3r::GUI::GCodeResult *gcode_result = NULL;
             int print_index;
@@ -7964,7 +8014,6 @@ int CLI::run(int argc, char **argv)
                 BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% print by object, set from plate self")%(i+1);
                 plate_bbox->is_seq_print = true;
             }
-            plate_bbox->first_extruder = print->get_tool_ordering().first_extruder();
             //bed type;
             BedType plate_bed_type = part_plate->get_bed_type();
             if (plate_bed_type == btDefault) {
@@ -7976,43 +8025,75 @@ int CLI::run(int argc, char **argv)
             }
             else {
                 BOOST_LOG_TRIVIAL(info) << boost::format("plate %1% bed type: %2%, set from plate self")%(i+1) %plate_bed_type;
-                plate_bbox->bed_type       = bed_type_to_gcode_string(plate_bed_type);
+                plate_bbox->bed_type = bed_type_to_gcode_string(plate_bed_type);
             }
-            // get nozzle diameter
-            auto opt_nozzle_diameters = m_print_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
-            if (opt_nozzle_diameters != nullptr)
-                plate_bbox->nozzle_diameter = float(opt_nozzle_diameters->get_at(plate_bbox->first_extruder));
 
-            auto objects = print->objects();
-            auto orig = part_plate->get_origin();
-            Vec2d orig2d = { orig[0], orig[1] };
+            if (plate_to_slice == 0) {
+                // CLI all-plates mode: Print memory was already released after slicing.
+                // Use the bbox data cached into sliced_plate_info during slicing.
+                // sliced_plates is populated in plate order, so index i maps directly.
+                if (i < (int)sliced_info.sliced_plates.size()) {
+                    const sliced_plate_info_t* spi = &sliced_info.sliced_plates[i];
+                    plate_bbox->first_extruder = spi->first_extruder;
+                    // get nozzle diameter
+                    auto opt_nozzle_diameters = m_print_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+                    if (opt_nozzle_diameters != nullptr)
+                        plate_bbox->nozzle_diameter = float(opt_nozzle_diameters->get_at(plate_bbox->first_extruder));
 
-            for (auto obj : objects)
-            {
-                BBoxData data;
-                auto bb_scaled = obj->get_first_layer_bbox(data.area, data.layer_height, data.name);
-                auto bb = unscaled(bb_scaled);
-                bbox_all.merge(bb);
-                data.area *= (SCALING_FACTOR * SCALING_FACTOR); // unscale area
-                data.id = obj->id().id;
-                data.bbox = { bb.min.x(),bb.min.y(),bb.max.x(),bb.max.y() };
-                id_bboxes.emplace_back(std::move(data));
-            }
-            // add wipe tower bounding box
-            if (print->has_wipe_tower()) {
-                BBoxData data;
-                auto   wt_corners = print->first_layer_wipe_tower_corners();
-                // when loading gcode.3mf, wipe tower info may not be correct
-                if (!wt_corners.empty()) {
-                    BoundingBox bb_scaled = {wt_corners[0], wt_corners[2]};
-                    auto        bb        = unscaled(bb_scaled);
-                    bb.min -= orig2d;
-                    bb.max -= orig2d;
+                    for (const BBoxData& bd : spi->bbox_objs) {
+                        BoundingBoxf bb(Vec2d(bd.bbox[0], bd.bbox[1]), Vec2d(bd.bbox[2], bd.bbox[3]));
+                        bbox_all.merge(bb);
+                        id_bboxes.push_back(bd);
+                    }
+                    if (!spi->wipe_tower_bbox.empty()) {
+                        BBoxData data;
+                        BoundingBoxf bb(Vec2d(spi->wipe_tower_bbox[0], spi->wipe_tower_bbox[1]),
+                                        Vec2d(spi->wipe_tower_bbox[2], spi->wipe_tower_bbox[3]));
+                        bbox_all.merge(bb);
+                        data.name = "wipe_tower";
+                        data.id   = partplate_list.get_curr_plate()->get_index() + 1000;
+                        data.bbox = spi->wipe_tower_bbox;
+                        id_bboxes.emplace_back(std::move(data));
+                    }
+                }
+            } else {
+                plate_bbox->first_extruder = print->get_tool_ordering().first_extruder();
+                // get nozzle diameter
+                auto opt_nozzle_diameters = m_print_config.option<ConfigOptionFloatsNullable>("nozzle_diameter");
+                if (opt_nozzle_diameters != nullptr)
+                    plate_bbox->nozzle_diameter = float(opt_nozzle_diameters->get_at(plate_bbox->first_extruder));
+
+                auto objects = print->objects();
+                auto orig = part_plate->get_origin();
+                Vec2d orig2d = { orig[0], orig[1] };
+
+                for (auto obj : objects)
+                {
+                    BBoxData data;
+                    auto bb_scaled = obj->get_first_layer_bbox(data.area, data.layer_height, data.name);
+                    auto bb = unscaled(bb_scaled);
                     bbox_all.merge(bb);
-                    data.name = "wipe_tower";
-                    data.id   = partplate_list.get_curr_plate()->get_index() + 1000;
-                    data.bbox = {bb.min.x(), bb.min.y(), bb.max.x(), bb.max.y()};
+                    data.area *= (SCALING_FACTOR * SCALING_FACTOR); // unscale area
+                    data.id = obj->id().id;
+                    data.bbox = { bb.min.x(),bb.min.y(),bb.max.x(),bb.max.y() };
                     id_bboxes.emplace_back(std::move(data));
+                }
+                // add wipe tower bounding box
+                if (print->has_wipe_tower()) {
+                    BBoxData data;
+                    auto   wt_corners = print->first_layer_wipe_tower_corners();
+                    // when loading gcode.3mf, wipe tower info may not be correct
+                    if (!wt_corners.empty()) {
+                        BoundingBox bb_scaled = {wt_corners[0], wt_corners[2]};
+                        auto        bb        = unscaled(bb_scaled);
+                        bb.min -= orig2d;
+                        bb.max -= orig2d;
+                        bbox_all.merge(bb);
+                        data.name = "wipe_tower";
+                        data.id   = partplate_list.get_curr_plate()->get_index() + 1000;
+                        data.bbox = {bb.min.x(), bb.min.y(), bb.max.x(), bb.max.y()};
+                        id_bboxes.emplace_back(std::move(data));
+                    }
                 }
             }
             plate_bbox->bbox_all = { bbox_all.min.x(),bbox_all.min.y(),bbox_all.max.x(),bbox_all.max.y() };
