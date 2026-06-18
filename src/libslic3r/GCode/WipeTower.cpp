@@ -3739,7 +3739,14 @@ WipeTower::NozzleChangeResult WipeTower::idle_travel_cooling(int old_filament_id
         .append(format_nozzle_change_line(true, old_filament_id, new_filament_id));
     set_for_wipe_tower_writer(writer);
 
-    Vec2f start_pos(xl, block->cur_depth);
+    // Alternate the entry corner every layer (left-bottom / right-top / right-bottom / left-top),
+    // matching the get_next_pos pattern so idle-travel direction aligns with the flushing path.
+    const bool  start_at_left   = (m_cur_layer_id % 4 == 0) || (m_cur_layer_id % 4 == 3);
+    const bool  start_at_bottom = (m_cur_layer_id % 4 == 0) || (m_cur_layer_id % 4 == 2);
+    const float depth_span      = (line_count - 1) * dy;
+
+    Vec2f start_pos(start_at_left ? xl : xr,
+                    start_at_bottom ? block->cur_depth : block->cur_depth + depth_span);
     writer.set_initial_position(start_pos, m_wipe_tower_width, m_wipe_tower_depth, m_internal_rotation);
 
     if (precool_target > 0)
@@ -3750,16 +3757,14 @@ WipeTower::NozzleChangeResult WipeTower::idle_travel_cooling(int old_filament_id
     // --- Wrap idle-travel moves with nozzle change notify (always for idle travel) ---
     writer.append(format_line_M632(new_filament_id));
 
-    bool left_to_right = true;
+    bool  moving_right = start_at_left;
+    float row_step     = start_at_bottom ? dy : -dy;
     for (int i = 0; i < line_count; ++i) {
-        if (left_to_right)
-            writer.travel(xr, writer.y(), travel_speed);
-        else
-            writer.travel(xl, writer.y(), travel_speed);
+        writer.travel(moving_right ? xr : xl, writer.y(), travel_speed);
 
         if (i < line_count - 1)
-            writer.travel(writer.x(), writer.y() + dy);
-        left_to_right = !left_to_right;
+            writer.travel(writer.x(), writer.y() + row_step);
+        moving_right = !moving_right;
     }
 
     writer.append(format_line_M633());
