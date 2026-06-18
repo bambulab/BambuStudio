@@ -885,6 +885,7 @@ public:
     void set_model(Model* model);
 
     void active_view();
+    bool is_assembly_guide_node_selected() const;
     // Append a freshly imported STEP hierarchy to the existing assembly tree.
     void append_step_import_to_assembly_tree(const std::vector<StepImportTreeNode>& step_nodes,
                                              const std::vector<size_t>&                    loaded_idxs,

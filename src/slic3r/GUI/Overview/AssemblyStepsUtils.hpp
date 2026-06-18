@@ -419,10 +419,12 @@ public://logic
     int         find_parent_folder(int node_idx) const;
     void        on_selected_node_changed();
     void        on_selected_node_step_changed(int folder_idx);
-    void        apply_final_assembly_end_keyframe();
-    void        apply_end_keyframe(int folder_idx);
+    void        apply_final_assembly_end_keyframe(bool apply_camera_view = true);
+    void        apply_end_keyframe(int folder_idx, bool apply_camera_view = true);
     // Per-frame edge detector intended for render_main(): when the user goes
     void        auto_apply_final_assembly_on_selection_cleared();
+    // Re-map the currently selected step folder + keyframe to its global play-bar
+    void        sync_play_index_to_selection();
     void        update_step_screen_center();
     void        fill_folder_keyframes_from_children(int folder_idx);
     std::string get_object_name(int object_idx);
@@ -439,6 +441,18 @@ public://logic
     // Apply the canvas selection that corresponds to the user clicking the steps-tree
     void                     select_steps_tree_node_for_canvas(int node_idx);
     std::vector<int>         selected_assembly_object_indices() const;
+    // Upper bound for user-created (non-final-assembly) steps.
+    static constexpr int     MAX_NON_FINAL_ASSEMBLY_STEPS = 99;
+    // Number of top-level steps excluding the final-assembly folder.
+    int                      non_final_assembly_step_count() const;
+    // Whether another non-final-assembly step may still be created. Side effect:
+    // caches the limit-reached state in m_non_final_assembly_step_limit_reached so the
+    // UI (Copy/Add Step tooltips) can read it without re-counting every frame.
+    bool                     can_add_non_final_assembly_step() const;
+    // Cached negation of can_add_non_final_assembly_step()'s result (true == the
+    // non-final step cap has been hit). Refreshed on every can_add_* call. mutable so
+    // the const query above can update it.
+    mutable bool             m_non_final_assembly_step_limit_reached{false};
     void                     add_assembly_step();
     void                     copy_assembly_step();
     void                     add_selected_to_new_assembly_step();//Add to New Step
@@ -457,6 +471,8 @@ public://logic
     void                     apply_camera(const KeyFrame &frame);
     // Frame the current step: compute the union bbox of all active GLVolumes in
     void                     fit_camera_to_current_step_main_plane(double margin_factor);
+    // Rescale a restored user-framed keyframe's zoom to the current viewport so the
+    void                     rescale_user_camera_zoom_to_viewport(const KeyFrame &kf);
     // The currently selected keyframe entry (or nullptr when none is selected).
     KeyFrameEntry           *get_selected_keyframe_entry();
     // Apply an edited camera margin to the current keyframe: store it, re-frame the
@@ -626,7 +642,7 @@ public://logic
     // m_export_btn_corner_mode based on a precise export-button vs toolbar AABB test.
     float get_guide_panel_y_offset(float guide_x, float guide_y_base, float guide_w, float sc);
     void  record_keyframe_logic(KeyFrameEntry &entry);
-    void  apply_keyframe_to_canvas(const KeyFrame &kf);
+    void  apply_keyframe_to_canvas(const KeyFrame &kf, bool apply_camera_view = true);
     void  play_cur_keyframe_logic();
     void  sync_canvas_selection_state();
     // Each operates on the current node's keyframe entries via get_current_kf_entries(),

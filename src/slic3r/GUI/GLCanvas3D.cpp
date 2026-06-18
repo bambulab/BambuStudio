@@ -3131,6 +3131,11 @@ bool GLCanvas3D::prepare_assembly_steps_for_project_save()//dont delete
     return changed;
 }
 
+bool GLCanvas3D::is_assembly_guide_node_selected() const
+{
+    return m_assembly_steps && m_assembly_steps->has_selected_node();
+}
+
 bool GLCanvas3D::can_add_selected_to_assembly_step() const//dont delete
 {
     return m_assembly_steps && m_assembly_steps->can_add_selected_to_assembly_step();

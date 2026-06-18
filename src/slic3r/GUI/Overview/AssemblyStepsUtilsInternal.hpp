@@ -8,6 +8,7 @@
 #include <array>
 #include <imgui/imgui.h>
 #include "libslic3r/Format/AssemblyStepsJson.hpp" // AssemblyNoteSelectionType
+#include "../I18N.hpp" // L() marker for xgettext extraction of color tips
 
 namespace Slic3r {
 namespace GUI {
@@ -25,13 +26,13 @@ struct NoteColorItem {
 };
 
 inline const NoteColorItem kNoteColors[] = {
-    { {213,  61,  64, 255}, "red",    "Red",    false },
-    { {240, 159,  19, 255}, "orange", "Orange", false },
-    { { 35, 169,  46, 255}, "green",  "Green",  false },
-    { { 63, 130, 240, 255}, "blue",   "Blue",   false },
-    { { 29,  32,  45, 255}, "black",  "Black",  false },
-    { {125, 127, 134, 255}, "grey",   "Grey",   false },
-    { {255, 255, 255, 255}, "white",  "White",  true  },
+    { {213,  61,  64, 255}, "red",    L("Red"),    false },
+    { {240, 159,  19, 255}, "orange", L("Orange"), false },
+    { { 35, 169,  46, 255}, "green",  L("Green"),  false },
+    { { 63, 130, 240, 255}, "blue",   L("Blue"),   false },
+    { { 29,  32,  45, 255}, "black",  L("Black"),  false },
+    { {125, 127, 134, 255}, "grey",   L("Grey"),   false },
+    { {255, 255, 255, 255}, "white",  L("White"),  true  },
 };
 
 inline ImU32 note_color_to_im_u32(const std::array<int, 4> &color)

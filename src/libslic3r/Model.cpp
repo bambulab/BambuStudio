@@ -2706,16 +2706,13 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
                 Vec3d shift = model_instance->get_transformation().get_matrix(true) * new_vol->get_offset();
                 model_instance->set_offset(model_instance->get_offset() + shift);
 
-                //BBS: add assemble_view related logic
-                Geometry::Transformation instance_transformation_copy = model_instance->get_transformation();
-                instance_transformation_copy.set_offset(-new_vol->get_offset());
-                const Transform3d &assemble_matrix = model_instance->get_assemble_transformation().get_matrix();
-                const Transform3d &instance_inverse_matrix = instance_transformation_copy.get_matrix().inverse();
-                Transform3d new_instance_inverse_matrix = instance_inverse_matrix * model_instance->get_transformation().get_matrix(true).inverse();
-                Transform3d new_assemble_transform      = assemble_matrix * new_instance_inverse_matrix;
-                model_instance->set_assemble_from_transform(new_assemble_transform);
-                model_instance->set_offset_to_assembly(new_vol->get_offset());
+                // BBS: the copied instance keeps the source assemble matrix but resets the initialized
+                Geometry::Transformation assemble_trafo = model_instance->get_assemble_transformation();
+                model_instance->set_assemble_transformation(assemble_trafo);
             }
+
+            // BBS: keep the assembly-view world transform identical across split.
+            new_vol->set_assemble_transformation(volume->get_assemble_transformation());
 
             new_vol->set_offset(Vec3d::Zero());
             // reset the source to disable reload from disk

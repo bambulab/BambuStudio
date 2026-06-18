@@ -151,7 +151,13 @@ void AssemblyStepsUtils::render_main(float canvas_w, float canvas_h) {
         if (want_refit) {
             m_refit_camera_pending_ = false;
             if (KeyFrameEntry *entry = get_selected_keyframe_entry()) {
-                fit_camera_to_current_step_main_plane(entry->data.camera_margin_factor);
+                // A user-framed keyframe must keep its stored camera across a viewport
+                if (entry->data.camera_user_defined) {
+                    apply_camera(entry->data);
+                    rescale_user_camera_zoom_to_viewport(entry->data);
+                } else {
+                    fit_camera_to_current_step_main_plane(entry->data.camera_margin_factor);
+                }
                 if (m_guide_show_part_numbers)
                     m_pn_autolayout_pending = true; // re-layout labels for the re-fit view
                 m_selected_screen_center_dirty_ = true;
@@ -2396,7 +2402,7 @@ bool AssemblyStepsUtils::render_structure_card_select_controls(
     const bool clicked = ImGui::IsItemClicked();
     const bool button_hovered = ImGui::IsItemHovered();
     if (button_hovered)
-        render_panel_tooltip(_u8L("Select partial parts or objects from the added items to perform operations such as translation, rotation, and coloring. Pose-modifying operations like translation can be used to create custom keyframe animations."));
+        render_panel_tooltip(_u8L("Select partial parts or objects from the added items to perform operations such as move, rotate, and coloring gizmo. Pose-modifying operations like move gizmo can be used to create custom keyframe animations."));
     if (clicked)
         m_structure_select_popup_pending_card = card_idx;
 
@@ -2600,7 +2606,7 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
     // Footer hint shown when no step card is selected: editing object pose
     std::string footer_hint_str;
     if (!has_selected_node())
-        footer_hint_str = _u8L("Tip") + ":" + _u8L("No step card is currently selected. Pose-changing operations such as translation will affect the actual final-assembly view.");
+        footer_hint_str = _u8L("Tip") + ":" + _u8L("No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view.");
     else
         footer_hint_str = _u8L("Tip") + ":" + _u8L("Double-click an empty area to exit all editing states.");
     const float footer_hint_wrap = panel_w - 2.0f * side_pad;
@@ -3272,22 +3278,36 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         const ImVec2 add_btn_size(add_w, action_h);
         const int selected_folder = find_parent_folder(m_selected_node);
         const bool selected_final_assembly = selected_folder >= 0 && selected_folder < (int) _steps_nodes.size() && _steps_nodes[selected_folder].is_final_assembly;
-        const bool copy_disabled = selected_folder < 0 || selected_final_assembly;
-        const bool add_disabled  = selected_final_assembly;
+        // can_add_non_final_assembly_step() also caches the limit state into
+        // m_non_final_assembly_step_limit_reached, which the tooltips read below.
+        const bool reached_step_limit = !can_add_non_final_assembly_step();
+        const bool copy_disabled = selected_folder < 0 || selected_final_assembly || reached_step_limit;
+        const bool add_disabled  = selected_final_assembly || reached_step_limit;
+        // Extra warning appended when the step cap is hit. The cap counts non-final
+        // steps (MAX) plus the single final-assembly step, hence MAX + 1 total.
+        const std::string step_over_limit_tip = (boost::format(_u8L("No more than %1% steps are allowed.")) % (MAX_NON_FINAL_ASSEMBLY_STEPS + 1)).str();
 
         imgui.disabled_begin(copy_disabled);
         if (render_footer_button("##asp_btn_copy", _u8L("Copy Step"), ImVec2(bx0, by), copy_btn_size, false, sc))
             copy_assembly_step();
-        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-            render_panel_tooltip(_u8L("Only copy steps. This is independent of the selected objects on the canvas."));
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+            std::string copy_tip = _u8L("Only copy steps. This is independent of the selected objects on the canvas.");
+            if (m_non_final_assembly_step_limit_reached)
+                copy_tip += "\n" + step_over_limit_tip;
+            render_panel_tooltip(copy_tip);
+        }
         imgui.disabled_end();
 
         imgui.disabled_begin(add_disabled);
         if (render_footer_button("##asp_btn_add", _u8L("Add Step"), ImVec2(bx0 + copy_w + btn_gap, by), add_btn_size, true, sc)) {
             add_assembly_step();
         }
-        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-            render_panel_tooltip(_u8L("Only add empty steps. This has nothing to do with the selected objects on the canvas."));
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+            std::string add_tip = _u8L("Only add empty steps. This has nothing to do with the selected objects on the canvas.");
+            if (m_non_final_assembly_step_limit_reached)
+                add_tip += "\n" + step_over_limit_tip;
+            render_panel_tooltip(add_tip);
+        }
         imgui.disabled_end();
 
         // Footer hint (no-step-selected variant). Drawn directly via the
@@ -4282,7 +4302,7 @@ bool AssemblyStepsUtils::render_note_color_control(ImDrawList *dl, float x, floa
         if (ImGui::IsItemHovered() && m_imgui) {
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,
                 ImVec2(8.0f * sc, 6.0f * sc));
-            m_imgui->tooltip(item.tip, 20.0f * m_imgui->scaled(1.0f));
+            m_imgui->tooltip(_u8L(item.tip), 20.0f * m_imgui->scaled(1.0f));
             ImGui::PopStyleVar();
         }
         ImGui::PopID();
@@ -4354,7 +4374,7 @@ bool AssemblyStepsUtils::render_note_bg_color_control(ImDrawList *dl, float x, f
         if (ImGui::IsItemHovered() && m_imgui) {
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,
                 ImVec2(8.0f * sc, 6.0f * sc));
-            m_imgui->tooltip(item.tip, 20.0f * m_imgui->scaled(1.0f));
+            m_imgui->tooltip(_u8L(item.tip), 20.0f * m_imgui->scaled(1.0f));
             ImGui::PopStyleVar();
         }
         ImGui::PopID();
@@ -4479,6 +4499,12 @@ void AssemblyStepsUtils::render_labels_show_type_menu_popup(const char* popup_id
         LabelsShowType::OnlyModelObject,
         LabelsShowType::OnlyModelVolume
     };
+    // Per-type hover tooltip explaining what each labels-show mode does. Index-aligned with labels[]/types[].
+    const std::string type_tooltips[] = {
+        _u8L("Automatically choose object-or-part-level labels: objects already shown in earlier steps are collapsed into a single object label, while the rest are labeled per individual part."),
+        _u8L("Show one label per model object."),
+        _u8L("Show one label per model part.")
+    };
     // Trailing action row (not a type): relayout the current labels in place.
     const std::string action_label = _u8L("Auto-arrange labels in current view");
 
@@ -4527,6 +4553,7 @@ void AssemblyStepsUtils::render_labels_show_type_menu_popup(const char* popup_id
             if (hovered) {
                 const ImU32 bg = m_is_dark ? IM_COL32(55, 55, 59, 255) : IM_COL32(240, 240, 240, 255);
                 draw_list->AddRectFilled(row_pos, ImVec2(row_pos.x + row_content_w, row_pos.y + row_height), bg, 4.0f * sc);
+                render_panel_tooltip(type_tooltips[i], false);
             }
 
             // Leading check mark for the currently active type.
@@ -4901,8 +4928,8 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
             (*tip_entries)[m_keyframe_selected].is_last();
         if (endframe_selected) {
             endframe_tip_str = tip_step_nodes[tip_folder].is_final_assembly ?
-                                   (_u8L("Note") + ":" + _u8L("Pose changes (e.g. translation) made on the final-assembly step's keyframe will affect the actual assembly display.")) :
-                                   (_u8L("Note") + ":" + _u8L("Pose changes (e.g. translation) made on this step's keyframe do not affect the actual assembly display.") +
+                                   (_u8L("Note") + ":" + _u8L("Pose changes (e.g. move gizmo) made on the final-assembly step's keyframe will affect the actual assembly display.")) :
+                                   (_u8L("Note") + ":" + _u8L("Pose changes (e.g. move gizmo) made on this step's keyframe do not affect the actual assembly display.") +
                                     _u8L("If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present.") +
                                                        _u8L("undoing these edits is not yet supported and will be added in a later version."));
         }
@@ -5611,9 +5638,11 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
                 // accurate even when the delete badge is the last registered item.
                 const ImVec2 slot_min(slot_x, thumb_y);
                 const ImVec2 slot_max(slot_x + thumb_w, thumb_y + thumb_h);
-                if (ImGui::IsMouseHoveringRect(slot_min, slot_max)) {
+                // IsMouseHoveringRect is a pure geometry test that ignores z-order,
+                if (!ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopup) &&
+                    ImGui::IsMouseHoveringRect(slot_min, slot_max)) {
                     render_panel_tooltip(is_sel
-                        ? _u8L("Click to re-record this frame")
+                        ? _u8L("Click to re-record this frame.\nEspecially after rotating the camera view, users want to save the current perspective")
                         : _u8L("Click to select this frame"));
                 }
 

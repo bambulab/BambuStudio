@@ -393,6 +393,7 @@ void KeyFrame::to_json(nlohmann::json &j) const
     j["id"]                = id;
     j["name"]              = name;
     j["is_camera_define"]  = is_camera_define;
+    j["camera_user_defined"] = camera_user_defined;
     j["view_matrix"]       = transform3d_to_json(view_matrix);
     j["projection_matrix"] = transform3d_to_json(projection_matrix);
     j["camera_target"]     = {camera_target.x(), camera_target.y(), camera_target.z()};
@@ -436,6 +437,7 @@ void KeyFrame::from_json(const nlohmann::json &j)
     json_get_int(j, "id", id);
     json_get_string(j, "name", name);
     json_get_bool(j, "is_camera_define", is_camera_define);
+    json_get_bool(j, "camera_user_defined", camera_user_defined);
     if (j.contains("view_matrix"))
         view_matrix = transform3d_from_json(j["view_matrix"]);
     if (j.contains("projection_matrix"))
@@ -627,6 +629,14 @@ void AssemblyStepJson::load_assembly_part_number_label_font_size(const nlohmann:
         m_assembly_part_number_label_font_size = static_cast<float>(font_size);
 }
 
+void AssemblyStepJson::load_camera_ref_viewport(const nlohmann::json &root)
+{
+    m_camera_ref_viewport_w = 0;
+    m_camera_ref_viewport_h = 0;
+    json_get_int(root, "camera_ref_viewport_w", m_camera_ref_viewport_w);
+    json_get_int(root, "camera_ref_viewport_h", m_camera_ref_viewport_h);
+}
+
 bool AssemblyStepJson::load(const std::string &path)
 {
     boost::nowide::ifstream ifs(path);
@@ -642,6 +652,7 @@ bool AssemblyStepJson::load(const std::string &path)
         m_items.clear();
         load_pdf_export_params(root);
         load_assembly_part_number_label_font_size(root);
+        load_camera_ref_viewport(root);
         if (root.contains("items") && root["items"].is_array()) {
             for (const auto &item_j : root["items"]) {
                 auto ptr = AssembleBaseInfo::create_from_json(item_j);
@@ -663,6 +674,7 @@ bool AssemblyStepJson::load_from_string(const std::string &json_str)
         m_items.clear();
         load_pdf_export_params(root);
         load_assembly_part_number_label_font_size(root);
+        load_camera_ref_viewport(root);
         if (root.contains("items") && root["items"].is_array()) {
             for (const auto &item_j : root["items"]) {
                 auto ptr = AssembleBaseInfo::create_from_json(item_j);
@@ -683,6 +695,8 @@ std::string AssemblyStepJson::to_json_string() const
         nlohmann::json root;
         root["version"] = 1;//V1.0 2020610
         root["assembly_part_number_label_font_size"] = m_assembly_part_number_label_font_size;
+        root["camera_ref_viewport_w"] = m_camera_ref_viewport_w;
+        root["camera_ref_viewport_h"] = m_camera_ref_viewport_h;
         root["pdf_export"] = {
             {"title", m_pdf_export_params.title},
         };
@@ -764,6 +778,7 @@ std::string AssemblyStepsTreeData::to_json_string() const
             items.push_back(std::move(item));
     }
     doc.set_items(std::move(items));
+    doc.set_camera_ref_viewport(camera_ref_viewport_w, camera_ref_viewport_h);
     return doc.to_json_string();
 }
 
@@ -982,6 +997,10 @@ bool AssemblyStepsTreeData::from_json_string(
         BOOST_LOG_TRIVIAL(info) << "AssemblyStepsTreeData::from_json_string loaded nodes="
                                 << parsed.nodes.size() << " roots=" << parsed.roots.size()
                                 << " total_root_children=" << total_children;
+
+        // Document-level shared reference viewport (single value for all keyframes).
+        parsed.camera_ref_viewport_w = json_doc.get_camera_ref_viewport_w();
+        parsed.camera_ref_viewport_h = json_doc.get_camera_ref_viewport_h();
 
         tree = std::move(parsed);
         return true;

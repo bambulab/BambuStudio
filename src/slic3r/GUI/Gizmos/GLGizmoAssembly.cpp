@@ -42,6 +42,9 @@ std::string GLGizmoAssembly::on_get_name() const
 {
     if (!on_is_activable() && m_state == EState::Off) {
         if (wxGetApp().plater()->canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView) {
+            if (m_parent.is_assembly_guide_node_selected()) {
+                return _u8L("Assemble") + ":\n" + _u8L("Please double-click the blank area to exit the assembly guide before using this tool.");
+            }
             return _u8L("Assemble") + ":\n" + _u8L("Please confirm explosion ratio = 1 and select at least two volumes.");
         }
         else {
@@ -60,6 +63,10 @@ bool GLGizmoAssembly::on_is_activable() const
     }
     const int    selection_volumes_count = 2;
     if (wxGetApp().plater()->canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView) {
+        // While the assembly guide has a node selected the user is editing assembly steps,
+        if (m_parent.is_assembly_guide_node_selected()) {
+            return false;
+        }
         if (abs(m_parent.get_explosion_ratio() - 1.0f) < 1e-2 && selection.volumes_count() >= selection_volumes_count) {
             return true;
         }

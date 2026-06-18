@@ -9132,7 +9132,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                     q->get_notification_manager()
                         ->bbl_show_sole_text_notification(NotificationType::CustomNotification,
                                                           _u8L("The imported STEP file is split by sub-assembly, so some objects may not be placed on the build plate at first.\n"
-                                                               "It is expected if they are placed on the build plate later after translation or similar operations.\n"
+                                                               "It is expected if they are placed on the build plate later after move,rotate gizmo or similar operations.\n"
                                                                "The overall assembly can be checked from the assembly thumbnail or by entering the assembly view."),
                                                           true, 0, false);
                 }
@@ -24364,6 +24364,42 @@ void Plater::update_slicing_context_to_current_partplate()
     p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
 }
 
+// Sum the real mesh (solid) volume in mm^3 of every selected volume, scaling
+// each by the determinant of its world transform (instance matrix * volume
+// matrix). Shared by the prepare view (object info) and the assembly view
+// (assembly info) so both report the same kind of volume.
+// When only_model_parts is true, modifier / negative volumes are skipped so the
+// result reflects pure material volume (used by the assembly view). When false,
+// every selected volume is counted, preserving the prepare view's behavior of
+// reporting the mesh volume of a single selected modifier part.
+static double selection_real_mesh_volume(const Selection& selection, bool only_model_parts = true)
+{
+    double volume_val = 0.0;
+    const Model* model = selection.get_model();
+    if (model == nullptr)
+        return volume_val;
+    for (unsigned int gl_vol_idx : selection.get_volume_idxs()) {
+        const GLVolume* gl_vol = selection.get_volume(gl_vol_idx);
+        if (gl_vol == nullptr)
+            continue;
+        const int obj_id  = gl_vol->object_idx();
+        const int vol_id  = gl_vol->volume_idx();
+        const int inst_id = gl_vol->instance_idx();
+        if (obj_id < 0 || obj_id >= (int) model->objects.size())
+            continue;
+        const ModelObject* mo = model->objects[obj_id];
+        if (mo == nullptr || vol_id < 0 || vol_id >= (int) mo->volumes.size() ||
+            inst_id < 0 || inst_id >= (int) mo->instances.size())
+            continue;
+        const ModelVolume* mv = mo->volumes[vol_id];
+        if (mv == nullptr || (only_model_parts && !mv->is_model_part()))
+            continue;
+        const Transform3d t = mo->instances[inst_id]->get_matrix() * mv->get_matrix();
+        volume_val += mv->mesh().stats().volume * std::fabs(t.matrix().block(0, 0, 3, 3).determinant());
+    }
+    return volume_val;
+}
+
 //BBS: show object info
 void Plater::show_object_info()
 {
@@ -24456,11 +24492,9 @@ void Plater::show_object_info()
     else
         info_text += (boost::format(_utf8(L("Size: %1% x %2% x %3% mm\n"))) %size(0) %size(1) %size(2)).str();
 
-    const TriangleMeshStats& stats = vol ? vol->mesh().stats() : model_object->get_object_stl_stats();
-    double volume_val = stats.volume;
-    if (vol)
-        volume_val *= std::fabs(t.matrix().block(0, 0, 3, 3).determinant());
-    volume_val = volume_val * pow(koef,3);
+    // Preserve the prepare view's original per-branch filtering: a single.
+    const bool only_model_parts = (vol == nullptr);
+    double volume_val = selection_real_mesh_volume(selection, only_model_parts) * pow(koef, 3);
     if (imperial_units)
         info_text += (boost::format(_utf8(L("Volume: %1% in³\n"))) %volume_val).str();
     else
@@ -24535,10 +24569,14 @@ void Plater::show_assembly_info()
         size2 *= koef;
     }
 
+    // Report the real mesh (solid) volume to stay consistent with the prepare
+    // view's object info, instead of the selection bounding-box volume.
+    double volume_val = selection_real_mesh_volume(t_selection) * pow(koef, 3);
+
     if (imperial_units)
-        info_text += (boost::format(_utf8(L("Volume: %1% in³\n"))) % (size0 * size1 * size2)).str();
+        info_text += (boost::format(_utf8(L("Volume: %1% in³\n"))) % volume_val).str();
     else
-        info_text += (boost::format(_utf8(L("Volume: %1% mm³\n"))) % (size0 * size1 * size2)).str();
+        info_text += (boost::format(_utf8(L("Volume: %1% mm³\n"))) % volume_val).str();
 
     if (imperial_units)
         info_text += (boost::format(_utf8(L("Size: %1% x %2% x %3% in\n"))) % size0 % size1 % size2).str();

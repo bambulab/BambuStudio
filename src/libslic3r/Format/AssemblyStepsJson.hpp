@@ -116,6 +116,12 @@ struct KeyFrame
     std::string                                              name;
     bool                                                     is_sub_assembly{false};
     bool                                                     is_camera_define{false};
+    // Set only when the user explicitly framed this keyframe (gizmo move / re-record).
+    // When true, look_cur_frame_logic() restores the stored camera as-is instead of
+    // auto-framing to the step's main plane, so returning to a hand-framed frame keeps
+    // the user's view. is_camera_define is NOT reused for this because playback prep /
+    // margin / label paths also set it (with a fallback/fit camera).
+    bool                                                     camera_user_defined{false};
     Transform3d                                              view_matrix{Transform3d::Identity()};
     Transform3d                                              projection_matrix{Transform3d::Identity()};
     Vec3d                                                    camera_target{Vec3d::Zero()};
@@ -149,6 +155,7 @@ struct KeyFrame
         camera_target = src.camera_target;
         camera_zoom = src.camera_zoom;
         camera_margin_factor = src.camera_margin_factor;
+        camera_user_defined = src.camera_user_defined;
         labels_show_type = src.labels_show_type;
     }
     void to_json(nlohmann::json &j) const;
@@ -253,12 +260,21 @@ struct AssemblyStepsTreeData
 {
     std::vector<AssemblyStepsTreeNode> nodes;
     std::vector<int>                   roots;
+    // Canvas viewport (px) the user-framed keyframe cameras' zoom was captured at.
+    // Shared by all keyframes (a single document-level value) because every camera is
+    // recorded against the same canvas at a time; storing it once avoids the redundant
+    // per-keyframe copy. Used to rescale a restored user camera's zoom proportionally
+    // when reloaded into a different-sized viewport (window resize / 3mf reopen).
+    int                                camera_ref_viewport_w{0};
+    int                                camera_ref_viewport_h{0};
 
     bool empty() const { return nodes.empty(); }
     void clear()
     {
         nodes.clear();
         roots.clear();
+        camera_ref_viewport_w = 0;
+        camera_ref_viewport_h = 0;
     }
     std::string to_json_string() const;
     static bool from_json_string(const std::string&     json_str,
@@ -291,14 +307,21 @@ public:
     void set_pdf_export_params(const PdfExportParams &params) { m_pdf_export_params = params; }
     float get_assembly_part_number_label_font_size() const { return m_assembly_part_number_label_font_size; }
     void set_assembly_part_number_label_font_size(float font_size) { m_assembly_part_number_label_font_size = font_size; }
+    // Document-level reference viewport (px) shared by all user-framed keyframe cameras.
+    int  get_camera_ref_viewport_w() const { return m_camera_ref_viewport_w; }
+    int  get_camera_ref_viewport_h() const { return m_camera_ref_viewport_h; }
+    void set_camera_ref_viewport(int w, int h) { m_camera_ref_viewport_w = w; m_camera_ref_viewport_h = h; }
 
 private:
     void load_pdf_export_params(const nlohmann::json &root);
     void load_assembly_part_number_label_font_size(const nlohmann::json &root);
+    void load_camera_ref_viewport(const nlohmann::json &root);
 
     std::vector<std::shared_ptr<AssembleBaseInfo>> m_items;
     PdfExportParams m_pdf_export_params;
     float m_assembly_part_number_label_font_size{0.0f};
+    int   m_camera_ref_viewport_w{0};
+    int   m_camera_ref_viewport_h{0};
 };
 } // namespace Slic3r
 #endif // slic3r_OverviewlyJson_hpp_

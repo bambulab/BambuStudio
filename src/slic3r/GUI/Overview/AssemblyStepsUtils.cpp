@@ -470,16 +470,7 @@ void AssemblyStepsUtils::on_selected_node_step_changed(int folder_idx)
 
     // Sync progress bar: find the global frame index matching this folder's
     // selected keyframe so the bar position reflects the current step.
-    if (folder_idx >= 0 && !m_play_frame_refs.empty()) {
-        int target_frame_idx = m_keyframe_selected;
-        for (int gi = 0; gi < (int) m_play_frame_refs.size(); ++gi) {
-            if (m_play_frame_refs[gi].node_idx == folder_idx &&
-                m_play_frame_refs[gi].frame_idx == target_frame_idx) {
-                m_assembly_play_index = gi + 1;
-                break;
-            }
-        }
-    }
+    sync_play_index_to_selection();
 
     if (m_last_folder_idx < 0 || m_last_folder_idx >= (int) _steps_nodes.size()) {
         return;
@@ -487,23 +478,39 @@ void AssemblyStepsUtils::on_selected_node_step_changed(int folder_idx)
     //change folder
 }
 
-void AssemblyStepsUtils::apply_final_assembly_end_keyframe()
+void AssemblyStepsUtils::sync_play_index_to_selection()
+{
+    // Map the currently selected step folder + keyframe to its global play-bar
+    const int folder_idx = find_parent_folder(m_selected_node);
+    if (folder_idx < 0 || m_play_frame_refs.empty())
+        return;
+    const int target_frame_idx = m_keyframe_selected;
+    for (int gi = 0; gi < (int) m_play_frame_refs.size(); ++gi) {
+        if (m_play_frame_refs[gi].node_idx == folder_idx &&
+            m_play_frame_refs[gi].frame_idx == target_frame_idx) {
+            m_assembly_play_index = gi + 1;
+            break;
+        }
+    }
+}
+
+void AssemblyStepsUtils::apply_final_assembly_end_keyframe(bool apply_camera_view)
 {
     for (int i = 0; i < (int) _steps_nodes.size(); ++i) {
         if (_steps_nodes[i].type == AssemblyStepsTreeNode::Type::Folder && _steps_nodes[i].is_final_assembly) {
-            apply_end_keyframe(i);
+            apply_end_keyframe(i, apply_camera_view);
             return;
         }
     }
 }
 
-void AssemblyStepsUtils::apply_end_keyframe(int folder_idx)
+void AssemblyStepsUtils::apply_end_keyframe(int folder_idx, bool apply_camera_view)
 {
     if (folder_idx >= 0 && folder_idx < _steps_nodes.size()) {
         auto &_entries = _steps_nodes[folder_idx].kf_data.entries;
         for (const auto &entry : _entries) {
             if (entry.is_last() && entry.need_save) {
-                apply_keyframe_to_canvas(entry.data);
+                apply_keyframe_to_canvas(entry.data, apply_camera_view);
                 return;
             }
         }
@@ -515,7 +522,10 @@ void AssemblyStepsUtils::auto_apply_final_assembly_on_selection_cleared()
     // Edge-trigger only: act on the "had a node selected -> nothing selected"
     const bool now = has_selected_node();
     if (m_last_has_selected_node_ && !now)
-        apply_final_assembly_end_keyframe();
+        // Restore the final-assembly model state on selection clear, but keep
+        // the user's current camera view (e.g. double-click to exit a step
+        // should not rotate the camera back to the saved keyframe angle).
+        apply_final_assembly_end_keyframe(/*apply_camera_view*/ false);
     m_last_has_selected_node_ = now;
 }
 
@@ -616,7 +626,7 @@ std::vector<int> AssemblyStepsUtils::selected_assembly_object_indices() const
          return;
 
      const std::vector<int> object_idxs = selected_assembly_object_indices();
-     if (_steps_nodes[folder_idx].name == _u8L("Empty Step") && !object_idxs.empty()) {//modify name
+     if (_steps_nodes[folder_idx].name == _u8L("Install parts") && !object_idxs.empty()) {//modify name
          const int first_object_idx = object_idxs.front();
          if (first_object_idx >= 0 && first_object_idx < (int)m_model->objects.size() &&
              m_model->objects[first_object_idx] &&
@@ -624,6 +634,29 @@ std::vector<int> AssemblyStepsUtils::selected_assembly_object_indices() const
              _steps_nodes[folder_idx].name = m_model->objects[first_object_idx]->name;
      }
      add_objects_to_assembly_step(folder_idx, object_idxs);
+ }
+
+ int AssemblyStepsUtils::non_final_assembly_step_count() const
+ {
+     if (!m_model)
+         return 0;
+     int count = 0;
+     for (int ri : _steps_roots) {
+         if (ri < 0 || ri >= (int) _steps_nodes.size())
+             continue;
+         const auto &n = _steps_nodes[ri];
+         if (n.type == AssemblyStepsTreeNode::Type::Folder && !n.is_final_assembly)
+             ++count;
+     }
+     return count;
+ }
+
+ bool AssemblyStepsUtils::can_add_non_final_assembly_step() const
+ {
+     const bool can_add = non_final_assembly_step_count() < MAX_NON_FINAL_ASSEMBLY_STEPS;
+     // Cache the limit-reached state for the Copy/Add Step tooltips (see header).
+     m_non_final_assembly_step_limit_reached = !can_add;
+     return can_add;
  }
 
  void AssemblyStepsUtils::add_assembly_step() {
@@ -634,6 +667,10 @@ std::vector<int> AssemblyStepsUtils::selected_assembly_object_indices() const
      if (selected_folder >= 0 && selected_folder < (int) _steps_nodes.size() && _steps_nodes[selected_folder].is_final_assembly)
          return;
 
+     // Cap the number of user-created steps; final assembly is excluded from the count.
+     if (!can_add_non_final_assembly_step())
+         return;
+
      int insert_before_idx = -1;
      int insert_after_idx = -1;
      if (selected_folder >= 0 && selected_folder < (int) _steps_nodes.size() && _steps_nodes[selected_folder].type == AssemblyStepsTreeNode::Type::Folder) {
@@ -642,7 +679,7 @@ std::vector<int> AssemblyStepsUtils::selected_assembly_object_indices() const
          insert_before_idx = ensure_final_assembly_folder();
      }
 
-     int new_idx = create_folder_node(_u8L("Empty Step"), 0);
+     int new_idx = create_folder_node(_u8L("Install parts"), 0);
      if (new_idx < 0)
          return;
      ensure_default_keyframe(new_idx);
@@ -669,6 +706,9 @@ std::vector<int> AssemblyStepsUtils::selected_assembly_object_indices() const
      on_selected_node_changed();
      clear_selection();
      invalidate_play_frame_refs();
+     // Rebuild now (instead of waiting for the lazy render-time rebuild) so the
+     rebuild_play_frame_refs();
+     sync_play_index_to_selection();
      save_assembly_steps_json_to_model();
      do_commond_callback("zoom_to_volumes");
      do_commond_callback("dirty");
@@ -686,6 +726,10 @@ std::vector<int> AssemblyStepsUtils::selected_assembly_object_indices() const
          return;
      auto source_root_it = std::find(_steps_roots.begin(), _steps_roots.end(), source_folder);
      if (source_root_it == _steps_roots.end())
+         return;
+
+     // Copying produces another non-final step, so it shares the same upper bound.
+     if (!can_add_non_final_assembly_step())
          return;
 
      std::function<int(int)> clone_node = [&](int src_idx) -> int {
@@ -729,6 +773,9 @@ std::vector<int> AssemblyStepsUtils::selected_assembly_object_indices() const
      m_structure_scroll_to_node = copied_folder;
      on_selected_node_changed();
      invalidate_play_frame_refs();
+     rebuild_play_frame_refs();
+     // refs changed (a step was inserted): re-map the play-bar index to the
+     sync_play_index_to_selection();
      save_assembly_steps_json_to_model();
      do_commond_callback("dirty");
      do_commond_callback("request_extra_frame");
@@ -772,8 +819,41 @@ std::vector<int> AssemblyStepsUtils::selected_assembly_object_indices() const
           kf.projection_matrix = cam.get_projection_matrix();
           kf.camera_target     = cam.get_target();
           kf.camera_zoom       = cam.get_zoom();
+          // Remember the viewport this zoom was framed for, so a later restore into a
+          // different-sized viewport can rescale the zoom proportionally. The reference
+          // viewport is shared by all keyframes (single document-level value) since every
+          // camera is recorded against the same canvas at a time.
+          if (m_model) {
+              const std::array<int, 4> vp = cam.get_viewport();
+              if (vp[2] > 0 && vp[3] > 0) {
+                  AssemblyStepsTreeData &tree = m_model->get_assembly_steps_tree_data();
+                  tree.camera_ref_viewport_w  = vp[2];
+                  tree.camera_ref_viewport_h  = vp[3];
+              }
+          }
       }
  }
+
+void AssemblyStepsUtils::rescale_user_camera_zoom_to_viewport(const KeyFrame &kf)
+{
+    // Adjust a restored user-framed camera's zoom so the model keeps the same relative
+    // size when the current viewport differs from the one the zoom was captured at.
+    // Uses the limiting axis (min ratio) so the originally framed content stays fully
+    // visible regardless of aspect-ratio changes. The reference viewport is a single
+    // document-level value shared by all keyframes (see AssemblyStepsTreeData).
+    if (!m_camera || !m_model)
+        return;
+    const AssemblyStepsTreeData &tree = m_model->get_assembly_steps_tree_data();
+    if (tree.camera_ref_viewport_w <= 0 || tree.camera_ref_viewport_h <= 0)
+        return;
+    const std::array<int, 4> vp = m_camera->get_viewport();
+    if (vp[2] <= 0 || vp[3] <= 0)
+        return;
+    const double sx    = (double) vp[2] / (double) tree.camera_ref_viewport_w;
+    const double sy    = (double) vp[3] / (double) tree.camera_ref_viewport_h;
+    const double scale = std::min(sx, sy);
+    m_camera->set_zoom(kf.camera_zoom * scale);
+}
 
  void AssemblyStepsUtils::record_selected_volumes_by_mo_mv(KeyFrame &kf)
  {
@@ -919,6 +999,8 @@ void AssemblyStepsUtils::record_selected_gl_volume_transforms_to_current_keyfram
 
     entry.need_save = true;
     record_camera(kf);
+    // Explicit user edit (gizmo move on a regular step, or re-record): the camera
+    kf.camera_user_defined = true;
     save_assembly_steps_json_to_model();
 }
 
@@ -1472,8 +1554,13 @@ void AssemblyStepsUtils::look_cur_frame_logic(const KeyFrameEntry &entry)
     if (!entry.need_save)
         return;
     apply_keyframe_to_canvas(entry.data);
-    // camera_margin_factor is the source of truth for this frame's framing. The
-    fit_camera_to_current_step_main_plane(entry.data.camera_margin_factor);
+    // When the user explicitly framed this keyframe (gizmo move / re-record)
+    if (!entry.data.camera_user_defined)
+        fit_camera_to_current_step_main_plane(entry.data.camera_margin_factor);
+    else
+        // Keep the user's framing but adapt the zoom if the viewport size changed
+        // since it was recorded (e.g. window resized between frame switches).
+        rescale_user_camera_zoom_to_viewport(entry.data);
 }
 
 int AssemblyStepsUtils::get_object_volume_count(int object_idx)
@@ -3419,6 +3506,13 @@ std::string AssemblyStepsUtils::build_steps_json_string()
 
     update_part_number_label_font_size_from_config();
     assmeble_steps_json.set_assembly_part_number_label_font_size(m_part_number_label_font_size);
+
+    // Persist the document-level shared reference viewport (single value for all
+    // keyframes) so user-framed cameras can be rescaled on reload (see record_camera).
+    if (m_model) {
+        const AssemblyStepsTreeData &tree = m_model->get_assembly_steps_tree_data();
+        assmeble_steps_json.set_camera_ref_viewport(tree.camera_ref_viewport_w, tree.camera_ref_viewport_h);
+    }
 
     assmeble_steps_json.set_items(std::move(items));
 #if !BBL_RELEASE_TO_PUBLIC // for debug
@@ -5377,15 +5471,19 @@ void AssemblyStepsUtils::record_keyframe_logic(KeyFrameEntry &entry)
     }
     KeyFrame &kf = entry.data;
     record_camera(kf);
+    // Explicit user re-record path: preserve this exact camera on return (see
+    // look_cur_frame_logic / record_selected_gl_volume_transforms_to_current_keyframe).
+    kf.camera_user_defined = true;
     entry.need_save = true;
     record_selected_volumes_by_mo_mv(kf);
 
     save_assembly_steps_json_to_model();
 }
 
-void AssemblyStepsUtils::apply_keyframe_to_canvas(const KeyFrame &kf)
+void AssemblyStepsUtils::apply_keyframe_to_canvas(const KeyFrame &kf, bool apply_camera_view)
 {
-    apply_camera(kf);
+    if (apply_camera_view)
+        apply_camera(kf);
 
     // Apply instance matrices BEFORE per-volume matrices: GLVolume composes
     for (const auto &p : kf.object_transformations) {
@@ -6063,22 +6161,30 @@ void AssemblyStepsUtils::rebuild_play_frame_refs()
             ordered_nodes.push_back(std::move(ne));
     };
 
-    // Only folder nodes represented by Assembly Structure cards are playable.
+    // Diagnostic only: warn about keyframe-bearing nodes that no Assembly Structure
     for (int i = 0; i < (int)step_nodes.size(); ++i) {
         if (i == final_assembly_folder)
             continue;
-        auto &entries = step_nodes[i].kf_data.entries;
-        if (entries.empty())
+        if (step_nodes[i].kf_data.entries.empty())
             continue;
         if (step_nodes[i].type != AssemblyStepsTreeNode::Type::Folder) {
             log_unrelated_keyframe_node(i, "not_folder");
             continue;
         }
-        if (step_card_nodes.find(i) == step_card_nodes.end()) {
+        if (step_card_nodes.find(i) == step_card_nodes.end())
             log_unrelated_keyframe_node(i, "no_step_card");
+    }
+
+    // Append playable folders following the Assembly Structure card order, not the node
+    for (const AssemblyStructureCard &card : panel_data.cards) {
+        const int node_idx = card.node_idx;
+        if (node_idx < 0 || node_idx >= (int) step_nodes.size())
             continue;
-        }
-        append_node_entry(i);
+        if (node_idx == final_assembly_folder)
+            continue;
+        if (step_nodes[node_idx].type != AssemblyStepsTreeNode::Type::Folder)
+            continue;
+        append_node_entry(node_idx);
     }
 
     // Append final assembly folder's frames at the end.
