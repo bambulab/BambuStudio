@@ -1,13 +1,28 @@
 import { useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAmsMappingHotendBridge } from './useAmsMappingHotendBridge';
 import { useSendToCpp } from '../../../hooks/Bridge';
 import { SlotCard } from './components/SlotCard';
 import { SubAmsPage } from './components/SubAmsPage';
 import { Tips } from './components/Tips';
+import { BottomWikiTip } from './components/BottomWikiTip';
 import { resolveHostContentSize } from './hostContentSize';
 import type { AmsMappingHotendSlotViewModel } from './types';
 import './ams-mapping-hotend.css';
+
+// True when the currently selected (checked) mapping source is a third-party /
+// unknown-type filament. Mirrors SlotCard's `isThird` test (filament_name ==
+// '?', set by BuildSlotJson for TrayType::THIRD). Covers both top-level slots
+// and sub-AMS sub-slots since either can hold the active selection.
+function hasUnknownTypeSelected(slots: AmsMappingHotendSlotViewModel[]): boolean {
+  return slots.some((slot) => {
+    if (slot.checked && slot.filament_name === '?') return true;
+    return !!slot.sub_ams?.some((group) =>
+      group.slots.some((sub) => sub.checked && sub.filament_name === '?'),
+    );
+  });
+}
 
 const HOST_LAYOUT_MODULE = 'device_host';
 
@@ -71,8 +86,13 @@ function useReportHostContentSize(rootRef: RefObject<HTMLElement | null>) {
 
 export function AmsMappingHotendPage() {
   const pageRef = useRef<HTMLDivElement>(null);
-  const { state, error, selectSlot, editSlot } = useAmsMappingHotendBridge();
-  const [subAmsSlot, setSubAmsSlot] = useState<AmsMappingHotendSlotViewModel | null>(null);
+  const { t } = useTranslation();
+  const { state, error, selectSlot, editSlot, openWiki } = useAmsMappingHotendBridge();
+  // Track the entered sub-AMS page by its slot key rather than a snapshot of
+  // the slot object: an edit inside the sub-page re-publishes fresh state, and
+  // we must re-derive the slot from the latest state so the sub-page reflects
+  // the new color/type live (a stored snapshot would stay stale until re-open).
+  const [subAmsKey, setSubAmsKey] = useState<string | null>(null);
   useReportHostContentSize(pageRef);
 
   // The PopupWindow on the wx side merely hides/shows this React tree on
@@ -81,32 +101,45 @@ export function AmsMappingHotendPage() {
   // a fresh popup-open and reset transient navigation (e.g. a previously
   // entered sub-AMS sub-page) so the user always lands on the main view.
   useEffect(() => {
-    setSubAmsSlot(null);
+    setSubAmsKey(null);
   }, [state.session_seq]);
 
   const topSlots = state.hotend_slots.filter((s) => s.is_top_tier);
   const bottomSlots = state.hotend_slots.filter((s) => !s.is_top_tier);
   const rows = [topSlots, bottomSlots].filter((r) => r.length > 0);
 
+  // Resolve the entered sub-AMS parent slot from the current state every render
+  // so edits sync live; falls back to the main view if the slot is gone.
+  const subAmsSlot = subAmsKey
+    ? state.hotend_slots.find((s) => `${s.ams_id}:${s.slot_id}` === subAmsKey) ?? null
+    : null;
+
   if (subAmsSlot) {
     return (
       <div ref={pageRef} className="ams-map-hotend-page" data-testid="ams-mapping-hotend-page">
         <SubAmsPage
           slot={subAmsSlot}
+          materialIndex={state.material_index}
           onSelect={(sub) => {
             void selectSlot(sub);
-            setSubAmsSlot(null);
+            setSubAmsKey(null);
           }}
           onEdit={(sub) => void editSlot(sub)}
-          onBack={() => setSubAmsSlot(null)}
+          onBack={() => setSubAmsKey(null)}
+          onOpenWiki={() => void openWiki()}
         />
       </div>
     );
   }
 
+  const unknownTypeSelected = hasUnknownTypeSelected(state.hotend_slots);
+
   return (
     <div ref={pageRef} className="ams-map-hotend-page" data-testid="ams-mapping-hotend-page">
       {error && <Tips text={error} />}
+      {unknownTypeSelected && (
+        <Tips text={t('The selected filament type is unknown. Please edit the filament first.')} />
+      )}
 
       <div className="ams-map-hotend-page__grid">
         {rows.map((row, rowIdx) => {
@@ -125,8 +158,9 @@ export function AmsMappingHotendPage() {
                   <SlotCard
                     key={`${slot.ams_id}:${slot.slot_id}`}
                     slot={slot}
+                    materialIndex={state.material_index}
                     onClick={() => void selectSlot(slot)}
-                    onEnterSubAms={() => setSubAmsSlot(slot)}
+                    onEnterSubAms={() => setSubAmsKey(`${slot.ams_id}:${slot.slot_id}`)}
                     onEdit={() => void editSlot(slot)}
                   />
                 ))}
@@ -135,6 +169,8 @@ export function AmsMappingHotendPage() {
           );
         })}
       </div>
+
+      <BottomWikiTip onOpenWiki={() => void openWiki()} />
     </div>
   );
 }

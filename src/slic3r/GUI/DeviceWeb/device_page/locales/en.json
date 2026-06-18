@@ -21,6 +21,12 @@
   "By Type": "By Type",
   "Calibration": "Calibration",
   "Cancel": "Cancel",
+  "Tips: the filament type({{slot}}) does not match with the filament type({{target}}) in the slicing file. If you want to use this slot, you can install {{target}} instead of {{slot}} and change slot information on the 'Device' page.": "Tips: the filament type({{slot}}) does not match with the filament type({{target}}) in the slicing file. If you want to use this slot, you can install {{target}} instead of {{slot}} and change slot information on the 'Device' page.",
+  "Cannot select: the filament type({{slot}}) does not match with the filament type({{target}}) in the slicing file. If you want to use this slot, you can install {{target}} instead of {{slot}} and change slot information on the 'Device' page.": "Cannot select: the filament type({{slot}}) does not match with the filament type({{target}}) in the slicing file. If you want to use this slot, you can install {{target}} instead of {{slot}} and change slot information on the 'Device' page.",
+  "Cannot select: No filament loaded in current slot.": "Cannot select: No filament loaded in current slot.",
+  "Cannot select: No hotends available. Please complete the hotend rack setup and try again.": "Cannot select: No hotends available. Please complete the hotend rack setup and try again.",
+  "Cannot select: The nozzle status is abnormal or unknown. Please refresh the nozzle information and try again.": "Cannot select: The nozzle status is abnormal or unknown. Please refresh the nozzle information and try again.",
+  "Cannot select: The nozzle diameter or flow setting doesn't match with the slicing file. Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing.": "Cannot select: The nozzle diameter or flow setting doesn't match with the slicing file. Please make sure the nozzle installed matches with settings in printer, then set the corresponding printer preset when slicing.",
   "Color": "Color",
   "Copy All": "Copy All",
   "Current Net Weight": "Current Net Weight",
@@ -201,5 +207,8 @@
   "Load": "Load",
   "Unload": "Unload",
   "External Spool": "External Spool",
-  "Quantity": "Quantity"
+  "Quantity": "Quantity",
+  "Note:": "Note:",
+  "To learn about the filaments matching rules.": "To learn about the filaments matching rules.",
+  "The selected filament type is unknown. Please edit the filament first.": "The selected filament type is unknown. Please edit the filament first."
 }

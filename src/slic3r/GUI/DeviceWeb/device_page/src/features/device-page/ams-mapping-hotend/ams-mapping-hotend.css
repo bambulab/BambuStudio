@@ -675,3 +675,21 @@
   border-radius: 4px;
   font-size: 11px;
 }
+
+/* Clickable bottom Wiki hint, shared by the main page and the sub-AMS page. */
+.ams-map-hotend__wiki-tip {
+  font-size: 12px;
+  color: #ea6e00;
+  padding: 12px 16px 8px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.ams-map-hotend__wiki-tip__label {
+  color: #ea6e00;
+  font-weight: 600;
+}
+
+.ams-map-hotend__wiki-tip__link:hover {
+  text-decoration: underline;
+}

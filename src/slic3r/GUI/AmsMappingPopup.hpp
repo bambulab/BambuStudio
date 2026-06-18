@@ -628,6 +628,10 @@ private:
 
 
 wxDECLARE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
+// Posted to the send-to-print window after a slot's filament is edited via the
+// shared AMSMaterialsSetting dialog, so the page can resync only that slot's
+// MaterialItem (sync color when still matching, mark unmatched otherwise).
+wxDECLARE_EVENT(EVT_HOTEND_SLOT_EDITED, wxCommandEvent);
 
 }} // namespace Slic3r::GUI
 

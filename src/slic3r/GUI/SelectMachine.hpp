@@ -533,6 +533,7 @@ public:
     void clear_ip_address_config(wxCommandEvent& e);
     void on_refresh(wxCommandEvent& event);
     void on_set_finish_mapping(wxCommandEvent& evt);
+    void on_hotend_slot_edited(wxCommandEvent& evt);
     void on_print_job_cancel(wxCommandEvent& evt);
     void set_default();
     void change_materialitem_tip(bool no_ams_only_ext);

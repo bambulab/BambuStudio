@@ -132,6 +132,15 @@ export function useAmsMappingHotendBridge() {
     );
   }, [request]);
 
+  // Ask C++ to open the filament-matching-rules Wiki in the system browser.
+  // The WebView cannot navigate away itself, so the URL lives on the C++ side.
+  const openWiki = useCallback(async () => {
+    await request<ReturnType<typeof makeBody>, BridgeResponseBody<AmsMappingHotendViewModel>>(
+      makeBody('action', 'open_wiki', {}),
+      4000,
+    );
+  }, [request]);
+
   useEffect(() => {
     void refresh();
   }, [refresh]);
@@ -167,5 +176,5 @@ export function useAmsMappingHotendBridge() {
     return () => document.removeEventListener('cpp:device', handler);
   }, [applyState]);
 
-  return { state, error, refresh, selectSlot, editSlot, resetMapping, dismiss };
+  return { state, error, refresh, selectSlot, editSlot, resetMapping, dismiss, openWiki };
 }

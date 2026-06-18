@@ -36,6 +36,8 @@ class DevAms;
 class DevAmsTray;
 namespace GUI {
 
+struct EditedFilamentInfo;
+
 class DevicePageAmsMappingHotendVM : public IViewModel {
 public:
     using ResetCallback = std::function<void(const std::string&)>;
@@ -148,6 +150,11 @@ private:
     nlohmann::json HandleAction(const std::string& action, const nlohmann::json& payload);
 
     void PostSelectEvent(const nlohmann::json& payload);
+
+    // Notify the send-to-print window that a slot's filament was edited, so it
+    // can resync only that slot's MaterialItem (sync color when still matching,
+    // mark unmatched otherwise).
+    void PostEditEvent(const EditedFilamentInfo& info);
 
     // Re-publish state after the AMSMaterialsSetting modal closes (the user has
     // confirmed). Pushes a single immediate report.

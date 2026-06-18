@@ -1091,6 +1091,7 @@ void SelectMachineDialog::init_bind()
     Bind(EVT_UPDATE_USER_MACHINE_LIST, &SelectMachineDialog::update_printer_combobox, this);
     Bind(EVT_PRINT_JOB_CANCEL, &SelectMachineDialog::on_print_job_cancel, this);
     Bind(EVT_SET_FINISH_MAPPING, &SelectMachineDialog::on_set_finish_mapping, this);
+    Bind(EVT_HOTEND_SLOT_EDITED, &SelectMachineDialog::on_hotend_slot_edited, this);
     Bind(wxEVT_LEFT_DOWN, [this](auto& e) {check_fcous_state(this);e.Skip();});
     Bind(wxEVT_REFRESH_DATA, &SelectMachineDialog::update_best_pos_dialog, this);
     m_panel_prepare->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {check_fcous_state(this);e.Skip();});
@@ -1334,7 +1335,11 @@ void SelectMachineDialog::sync_ams_mapping_result(const std::vector<FilamentInfo
                 wxString ams_filament_type;
                 if (obj_ && f->tray_id >= 0) {
                     auto tray_opt = obj_->get_tray(f->ams_id, f->slot_id);
-                    if (tray_opt.has_value()) { ams_filament_type = tray_opt->get_display_filament_type(); }
+                    if (tray_opt.has_value()) {
+                        // Third-party / unknown trays carry no type; show "?" to mirror
+                        // the slot popup (BuildSlotJson renders TrayType::THIRD as "?").
+                        ams_filament_type = tray_opt->is_tray_info_ready() ? tray_opt->get_display_filament_type() : "?";
+                    }
                 }
                 m->set_ams_filament_type(ams_filament_type);
 
@@ -2463,11 +2468,17 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
 
     //check for unidentified material
     for (const auto& fila : m_ams_mapping_result) {
-        if (devPrinterUtil::IsVirtualSlot(fila.ams_id)) {
-            continue;//STUDIO-16294
+        auto tray_opt = obj_->get_tray(fila.ams_id, fila.slot_id);
+
+        // External spools are excluded from the unknown-filament confirmation
+        // (STUDIO-16294). Legacy machines tag them with the virtual ams id
+        // (254/255), but hotend-rack machines (N1X/N10) give ext spools their
+        // own tray ids, so also match on the tray ams_type == EXT_SPOOL.
+        if (devPrinterUtil::IsVirtualSlot(fila.ams_id) ||
+            (tray_opt.has_value() && tray_opt->ams_type == DevAmsType::EXT_SPOOL)) {
+            continue;
         }
 
-        auto tray_opt = obj_->get_tray(fila.ams_id, fila.slot_id);
         if (tray_opt.has_value() && (!tray_opt->is_exists || !tray_opt->is_tray_info_ready())) {
             has_slice_warnings = true; //has_unknown_filament
             confirm_text.push_back(ConfirmBeforeSendInfo(_L("There are some unknown filaments in the AMS mappings. Please check whether they are the required filaments. If they are okay, press \"Confirm\" to start printing.")));
@@ -3645,7 +3656,9 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
                     wxString ams_filament_type;
                     auto tray_opt = obj_->get_tray(ams_id, slot_id);
                     if (tray_opt.has_value()) {
-                        ams_filament_type = tray_opt->get_display_filament_type();
+                        // Third-party / unknown trays carry no type; show "?" to mirror
+                        // the slot popup (BuildSlotJson renders TrayType::THIRD as "?").
+                        ams_filament_type = tray_opt->is_tray_info_ready() ? tray_opt->get_display_filament_type() : "?";
                     }
                     m->set_ams_filament_type(ams_filament_type);
 
@@ -3666,6 +3679,68 @@ void SelectMachineDialog::on_set_finish_mapping(wxCommandEvent &evt)
         check_tpu_aero_flow_cali(obj);
         refresh_print_time(obj);
     }
+}
+
+void SelectMachineDialog::on_hotend_slot_edited(wxCommandEvent &evt)
+{
+    // Wire format: ams_id|slot_id|r|g|b|a|ctype|filament_type|col0,col1,...
+    auto arr = wxSplit(evt.GetString().ToStdString(), '|');
+    if (arr.size() < 9) return;
+
+    const std::string ams_id   = arr[0].ToStdString();
+    const std::string slot_id  = arr[1].ToStdString();
+    if (ams_id.empty() || slot_id.empty()) return;
+
+    wxColour          color(wxAtoi(arr[2]), wxAtoi(arr[3]), wxAtoi(arr[4]), wxAtoi(arr[5]));
+    const int         ctype    = wxAtoi(arr[6]);
+    const std::string new_type = arr[7].ToStdString();
+
+    std::vector<std::string> colors;
+    if (!arr[8].empty()) {
+        for (const auto& c : wxSplit(arr[8].ToStdString(), ',')) {
+            if (!c.empty()) colors.push_back(c.ToStdString());
+        }
+    }
+
+    const wxString color_hex = wxString::Format("#%02X%02X%02X%02X", color.Red(), color.Green(), color.Blue(), color.Alpha());
+
+    // Only touch the mapping entries pointing at the edited slot.
+    bool changed = false;
+    for (auto& f : m_ams_mapping_result) {
+        if (f.ams_id != ams_id || f.slot_id != slot_id) continue;
+
+        // Resolve the sliced filament type for this filament id.
+        std::string sliced_type;
+        for (const auto& sf : m_filaments) {
+            if (sf.id == f.id) { sliced_type = sf.type; break; }
+        }
+
+        // Match is decided by filament type, mirroring the auto-mapping gate.
+        // When either side's type is unknown, keep the mapping and just sync the
+        // color rather than risk a false mismatch.
+        const bool now_mismatch = !new_type.empty() && !sliced_type.empty() && (new_type != sliced_type);
+        if (now_mismatch) {
+            // The edited filament no longer matches: drop the mapping so the
+            // MaterialItem renders unmatched and is_valid_mapping_result blocks
+            // the send.
+            f.tray_id  = -1;
+            f.distance = 99999;
+            f.ams_id.clear();
+            f.slot_id.clear();
+        } else {
+            // Still matching: sync the just-applied color/type to the snapshot.
+            f.color  = color_hex.ToStdString();
+            f.ctype  = ctype;
+            f.colors = colors;
+            if (!new_type.empty()) f.type = new_type;
+        }
+        changed = true;
+    }
+
+    if (!changed) return;
+
+    sync_ams_mapping_result(m_ams_mapping_result);
+    update_show_status(get_current_machine());
 }
 
 void SelectMachineDialog::on_print_job_cancel(wxCommandEvent &evt)
@@ -6114,7 +6189,14 @@ std::map<int, DevNozzle> SelectMachineDialog::get_mapped_nozzles(int fila_id) co
                     auto tray_opt = obj_->get_tray(std::to_string(mapped_info->get_ams_id()), std::to_string(mapped_info->get_slot_id()));
                     if (tray_opt.has_value() && tray_opt->get_nozzle_pos_id(obj_).has_value()) {
                         int nozzle_pos_id = tray_opt->get_nozzle_pos_id(obj_).value();
-                        nozzle_map[nozzle_pos_id] = obj_->GetNozzleSystem()->GetNozzleByPosId(nozzle_pos_id);
+                        // The bound nozzle may have been picked off the rack onto the
+                        // extruder, leaving the rack slot empty. Resolve it by its
+                        // stable addr id (= pos id - rack offset), which
+                        // GetNozzleOptByAddrId looks up across both the ext and rack
+                        // containers; fall back to the pos-id lookup for legacy
+                        // machines that don't push an addr id.
+                        auto nozzle_opt = obj_->GetNozzleSystem()->GetNozzleOptByAddrId(nozzle_pos_id - HOTEND_RACK_INTERNAL_ID_OFFSET);
+                        nozzle_map[nozzle_pos_id] = nozzle_opt.value_or(obj_->GetNozzleSystem()->GetNozzleByPosId(nozzle_pos_id));
                     }
                 }
             } else {
@@ -6533,6 +6615,13 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
     };
     std::map<int, pExtruderStatus> extruder_ams_ext_status;
 
+    // On nozzle-rack machines (e.g. N1X) a single extruder drives multiple
+    // hotends/nozzles, so the "mixed AMS + external spool" hint must be judged
+    // per nozzle (pos_id) rather than per extruder; otherwise filaments on
+    // different nozzles get lumped together and falsely flagged. Non-rack
+    // machines keep the per-extruder key (pos_id equals the extruder id there).
+    const bool mix_check_per_nozzle = obj_->GetNozzleRack()->IsSupported();
+
     // filaments check for black list
     for (const auto &fila : m_ams_mapping_result) {
         DevFilaBlacklist::CheckFilamentInfo check_info;
@@ -6575,10 +6664,11 @@ bool SelectMachineDialog::CheckErrorWarningFilamentMapping(MachineObject* obj_)
                 continue;
             };
 
+            const int mix_group_key = mix_check_per_nozzle ? pos_id : nozzle.GetExtruderId();
             if (tray_opt->ams_type != DevAmsType::EXT_SPOOL) {
-                extruder_ams_ext_status[nozzle.GetExtruderId()].has_ams = true;
+                extruder_ams_ext_status[mix_group_key].has_ams = true;
             } else {
-                extruder_ams_ext_status[nozzle.GetExtruderId()].has_vt_slot = true;
+                extruder_ams_ext_status[mix_group_key].has_vt_slot = true;
             }
 
             check_info.extruder_id     = nozzle.GetExtruderId();

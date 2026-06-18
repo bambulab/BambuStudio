@@ -233,5 +233,8 @@
   "Taking hotend": "热端取用中",
   "Taking Hotend": "取用热端",
   "Unlocking Hotend": "解锁热端",
-  "Waiting for hotend to heat": "等待热端升温"
+  "Waiting for hotend to heat": "等待热端升温",
+  "Note:": "注意：",
+  "To learn about the filaments matching rules.": "如需了解耗材匹配规则，详细说明请查看Wiki",
+  "The selected filament type is unknown. Please edit the filament first.": "选中耗材类型未知，请先编辑耗材"
 }

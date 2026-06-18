@@ -827,7 +827,7 @@ nlohmann::json DevicePageAmsMappingHotendVM::HandleAction(const std::string& act
             // catch the device echo (mirrors the device-page edit refresh).
             auto* self = this;
             wxGetApp().CallAfter([self, ams_id, slot_id]() {
-                OpenAmsMaterialsSetting(ams_id, slot_id);
+                auto edited = OpenAmsMaterialsSetting(ams_id, slot_id);
                 // The modal AMSMaterialsSetting steals focus and dismisses the
                 // transient mapping popup. Re-show it so the user can keep
                 // picking filament after editing (its WebView stays alive
@@ -837,6 +837,12 @@ nlohmann::json DevicePageAmsMappingHotendVM::HandleAction(const std::string& act
                     self->m_popup->Popup();
                 }
                 self->RefreshAfterEdit();
+                // Forward the just-applied filament to the send page so it can
+                // resync only the edited slot's MaterialItem without waiting
+                // for the asynchronous device echo.
+                if (edited.has_value()) {
+                    self->PostEditEvent(*edited);
+                }
             });
         }
     } else if (action == "reset") {
@@ -859,6 +865,12 @@ nlohmann::json DevicePageAmsMappingHotendVM::HandleAction(const std::string& act
             auto* popup = m_popup;
             wxGetApp().CallAfter([popup, seq]() { popup->OnHotendWebRendered(seq); });
         }
+    } else if (action == "open_wiki") {
+        // Open the filament-matching-rules Wiki in the system browser. URL kept
+        // identical to the wx popup (AmsMapingPopup::update_ams_tips).
+        wxGetApp().CallAfter([]() {
+            wxLaunchDefaultBrowser("https://e.bambulab.com/t?c=v4Q4e7Rm2dR0dWkw");
+        });
     }
 
     return MakeResponse(GetModule(), "action", action, 0, "", BuildState());
@@ -940,6 +952,37 @@ void DevicePageAmsMappingHotendVM::PostSelectEvent(const nlohmann::json& payload
     if (m_popup) {
         wxGetApp().CallAfter([popup = m_popup]() { popup->Dismiss(); });
     }
+}
+
+void DevicePageAmsMappingHotendVM::PostEditEvent(const EditedFilamentInfo& info)
+{
+    if (!m_send_win) return;
+
+    // Wire format consumed by SelectMachineDialog::on_hotend_slot_edited:
+    //   ams_id|slot_id|r|g|b|a|ctype|filament_type|col0,col1,...
+    // The trailing field is a comma-separated list of "#RRGGBBAA" multi-colors
+    // (may be empty). filament_type / ids never contain '|' or ','.
+    wxString colors_str;
+    for (size_t i = 0; i < info.colors.size(); ++i) {
+        if (i) colors_str += ",";
+        colors_str += wxString::Format("#%02X%02X%02X%02X",
+                                       info.colors[i].Red(), info.colors[i].Green(),
+                                       info.colors[i].Blue(), info.colors[i].Alpha());
+    }
+
+    wxString param = wxString::Format("%s|%s|%d|%d|%d|%d|%d|%s|%s",
+                                      wxString::FromUTF8(info.ams_id.c_str()),
+                                      wxString::FromUTF8(info.slot_id.c_str()),
+                                      info.color.Red(), info.color.Green(),
+                                      info.color.Blue(), info.color.Alpha(),
+                                      info.ctype,
+                                      wxString::FromUTF8(info.filament_type.c_str()),
+                                      colors_str);
+
+    auto* evt = new wxCommandEvent(EVT_HOTEND_SLOT_EDITED);
+    evt->SetString(param);
+    evt->SetEventObject(m_send_win);
+    wxQueueEvent(m_send_win, evt);
 }
 
 }} // namespace Slic3r::GUI

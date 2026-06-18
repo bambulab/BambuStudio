@@ -1,26 +1,36 @@
+import { useTranslation } from 'react-i18next';
 import type {
   AmsMappingHotendSlotViewModel,
   AmsMappingHotendSubSlotViewModel,
 } from '../types';
+import { resolveSlotTooltip } from '../slotTooltip';
 import { SpoolRing } from './SpoolRing';
+import { BottomWikiTip } from './BottomWikiTip';
 
 interface SubAmsPageProps {
   slot: AmsMappingHotendSlotViewModel;
+  // Slicing's expected filament type, forwarded to the sub-card tooltips.
+  materialIndex: string;
   onSelect: (sub: AmsMappingHotendSubSlotViewModel) => void;
   onEdit: (sub: AmsMappingHotendSubSlotViewModel) => void;
   onBack: () => void;
+  onOpenWiki: () => void;
 }
 
 function SubCard({
   sub,
+  materialIndex,
   onSelect,
   onEdit,
 }: {
   sub: AmsMappingHotendSubSlotViewModel;
+  materialIndex: string;
   onSelect: (sub: AmsMappingHotendSubSlotViewModel) => void;
   onEdit: (sub: AmsMappingHotendSubSlotViewModel) => void;
 }) {
+  const { t } = useTranslation();
   const disabled = !sub.is_pickable;
+  const tooltip = resolveSlotTooltip(t, sub.state, sub.is_pickable, sub.filament_type, materialIndex);
   const multiColors = sub.multi_colors && sub.multi_colors.length > 1 ? sub.multi_colors : undefined;
   const isEmpty = !sub.has_filament;
   const isThird = sub.filament_name === '?';
@@ -31,6 +41,7 @@ function SubCard({
       className="ams-map-hotend__sub-card"
       data-state={sub.state}
       data-checked={sub.checked}
+      title={tooltip || undefined}
       onClick={() => { if (!disabled) onSelect(sub); }}
       role="button"
       tabIndex={disabled ? -1 : 0}
@@ -88,7 +99,8 @@ function SubCard({
   );
 }
 
-export function SubAmsPage({ slot, onSelect, onEdit, onBack }: SubAmsPageProps) {
+export function SubAmsPage({ slot, materialIndex, onSelect, onEdit, onBack, onOpenWiki }: SubAmsPageProps) {
+  const { t } = useTranslation();
   if (!slot.sub_ams || slot.sub_ams.length === 0) return null;
 
   // Preload mode: current bind is Ext, preload AMS slot injected as sub_ams
@@ -129,6 +141,7 @@ export function SubAmsPage({ slot, onSelect, onEdit, onBack }: SubAmsPageProps) 
   const parentMultiColors = slot.multi_colors && slot.multi_colors.length > 1 ? slot.multi_colors : undefined;
   const parentIsThird = slot.filament_name === '?';
   const parentDisplayName = parentEmpty ? 'Empty' : slot.filament_name;
+  const parentTooltip = resolveSlotTooltip(t, slot.state, slot.is_pickable, slot.filament_type, materialIndex);
 
   const warningBanner = bannerVisible ? (
     <div className="ams-map-hotend__sub-ams-page__warning">
@@ -154,12 +167,7 @@ export function SubAmsPage({ slot, onSelect, onEdit, onBack }: SubAmsPageProps) 
     </button>
   );
 
-  const bottomTip = (
-    <div className="ams-map-hotend__sub-ams-page__tip">
-      <span className="ams-map-hotend__sub-ams-page__tip-label">注意：</span>
-      如需了解耗材匹配规则，详细说明请查看Wiki→
-    </div>
-  );
+  const bottomTip = <BottomWikiTip onOpenWiki={onOpenWiki} />;
 
   if (isPreloadMode) {
     // Top: preloaded AMS source(s). Bottom: the Ext source.
@@ -174,6 +182,7 @@ export function SubAmsPage({ slot, onSelect, onEdit, onBack }: SubAmsPageProps) 
               <SubCard
                 key={`${sub.ams_id}-${sub.slot_id}`}
                 sub={sub}
+                materialIndex={materialIndex}
                 onSelect={onSelect}
                 onEdit={onEdit}
               />
@@ -184,7 +193,7 @@ export function SubAmsPage({ slot, onSelect, onEdit, onBack }: SubAmsPageProps) 
         <div className="ams-map-hotend__sub-ams-page__section-divider" />
 
         <div className="ams-map-hotend__sub-ams-page__ext-section">
-          <SubCard sub={extAsSubSlot} onSelect={onSelect} onEdit={onEdit} />
+          <SubCard sub={extAsSubSlot} materialIndex={materialIndex} onSelect={onSelect} onEdit={onEdit} />
         </div>
 
         {bottomTip}
@@ -208,6 +217,7 @@ export function SubAmsPage({ slot, onSelect, onEdit, onBack }: SubAmsPageProps) 
               data-state={slot.state}
               data-checked={slot.checked}
               data-clickable={slot.is_pickable}
+              title={parentTooltip || undefined}
               role={slot.is_pickable ? 'button' : undefined}
               tabIndex={slot.is_pickable ? 0 : -1}
               onClick={() => { if (slot.is_pickable) onSelect(extAsSubSlot); }}
@@ -272,6 +282,7 @@ export function SubAmsPage({ slot, onSelect, onEdit, onBack }: SubAmsPageProps) 
                   <SubCard
                     key={`${sub.ams_id}-${sub.slot_id}`}
                     sub={sub}
+                    materialIndex={materialIndex}
                     onSelect={onSelect}
                     onEdit={onEdit}
                   />
@@ -287,7 +298,7 @@ export function SubAmsPage({ slot, onSelect, onEdit, onBack }: SubAmsPageProps) 
         <>
           <div className="ams-map-hotend__sub-ams-page__section-divider" />
           <div className="ams-map-hotend__sub-ams-page__ext-section">
-            <SubCard sub={extAsSubSlot} onSelect={onSelect} onEdit={onEdit} />
+            <SubCard sub={extAsSubSlot} materialIndex={materialIndex} onSelect={onSelect} onEdit={onEdit} />
           </div>
         </>
       )}

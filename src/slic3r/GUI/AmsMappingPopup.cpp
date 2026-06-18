@@ -49,6 +49,7 @@ enum {
 
 
 wxDEFINE_EVENT(EVT_SET_FINISH_MAPPING, wxCommandEvent);
+wxDEFINE_EVENT(EVT_HOTEND_SLOT_EDITED, wxCommandEvent);
 const int LEFT_OFFSET = 2;
 
  MaterialItem::MaterialItem(wxWindow *parent, wxColour mcolour, wxString mname, std::string filament_id)

@@ -1,15 +1,21 @@
+import { useTranslation } from 'react-i18next';
 import type { AmsMappingHotendSlotViewModel } from '../types';
+import { resolveSlotTooltip } from '../slotTooltip';
 import { SpoolRing } from './SpoolRing';
 import { NozzleInfo } from './NozzleInfo';
 
 interface SlotCardProps {
   slot: AmsMappingHotendSlotViewModel;
+  // Slicing's expected filament type for the filament being mapped; used to
+  // interpolate the material-mismatch tooltip.
+  materialIndex: string;
   onClick: () => void;
   onEnterSubAms: () => void;
   onEdit: () => void;
 }
 
-export function SlotCard({ slot, onClick, onEnterSubAms, onEdit }: SlotCardProps) {
+export function SlotCard({ slot, materialIndex, onClick, onEnterSubAms, onEdit }: SlotCardProps) {
+  const { t } = useTranslation();
   const hasRealSubAms = !!slot.sub_ams && slot.sub_ams.some(g => !g.is_preload);
   const hasSubAms = !!slot.sub_ams && slot.sub_ams.length > 0;
   // Pickability is decided in C++ (see ComputePickable). All-ext relaxation
@@ -33,12 +39,19 @@ export function SlotCard({ slot, onClick, onEnterSubAms, onEdit }: SlotCardProps
   const isThird = slot.filament_name === '?';
   const multiColors = slot.multi_colors && slot.multi_colors.length > 1 ? slot.multi_colors : undefined;
 
+  // Hover hint for non-selectable / mismatched slots. Slots that can enter a
+  // sub-AMS expand stay actionable, so we suppress the tooltip for them.
+  const tooltip = hasSubAms
+    ? ''
+    : resolveSlotTooltip(t, slot.state, slot.is_pickable, slot.filament_type, materialIndex);
+
   return (
     <div
       className="ams-map-hotend__slot-card"
       data-state={slot.state}
       data-has-sub-ams={hasSubAms}
       data-testid={`ams-mapping-hotend-slot-${slot.ams_id}-${slot.slot_id}`}
+      title={tooltip || undefined}
       onClick={handleClick}
       role="button"
       tabIndex={0}

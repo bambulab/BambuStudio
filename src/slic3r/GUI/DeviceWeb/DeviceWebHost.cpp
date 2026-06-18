@@ -690,6 +690,30 @@ void DeviceWebHost::OnWebContentSizeChanged(int width, int height)
     // The web page reports its size in DIP/CSS pixels, so FromDIP() is the
     // correct conversion to the physical pixels wxWindow::SetMinSize() expects.
     wxSize content_size(FromDIP(width), FromDIP(height));
+
+    // Hysteresis dead-band against size ping-pong, scoped to the AMS mapping
+    // popup. That popup re-Fit()s itself on every content-size signal, and its
+    // React page measures its own root (width:100%/height:100%), so it echoes
+    // back the size the host just gave it; on fractional-DPI displays the
+    // FromDIP()/CSS-px round-trip can differ by a couple of pixels (or a
+    // transient scrollbar gutter), which would bounce the popup between two
+    // near-equal sizes forever (the popup keeps flickering/resizing). Ignore
+    // changes that stay within a small band on *both* axes; every real layout
+    // change here (machine switch, entering/leaving the sub-AMS page) moves at
+    // least one axis far more than this, so nothing user-visible is suppressed
+    // and content is never clipped. Other hosts (e.g. the resizable Hotend &
+    // Filament dialog, which already has its own IsCloseEnough() tolerance) keep
+    // the original behaviour untouched.
+    if (m_mode == DeviceWebHostMode::DevicePageAmsMappingHotend &&
+        m_last_reported_content_size != wxDefaultSize) {
+        const int jitter = FromDIP(20);
+        const int dw = content_size.GetWidth()  - m_last_reported_content_size.GetWidth();
+        const int dh = content_size.GetHeight() - m_last_reported_content_size.GetHeight();
+        if (dw > -jitter && dw < jitter && dh > -jitter && dh < jitter) {
+            return;
+        }
+    }
+
     if (content_size == m_last_reported_content_size) {
         return;
     }
