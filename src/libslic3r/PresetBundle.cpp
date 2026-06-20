@@ -2560,6 +2560,11 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
     std::vector<std::string> ams_filament_colors;
     std::vector<std::string> ams_filament_color_types;
     std::vector<AMSMapInfo>  ams_array_maps;
+    // BBS: nozzle assignment per built filament (1 = left, 2 = right), kept in lockstep with
+    // ams_filament_presets. The nozzle is encoded in the filament_ams_list key (bit 0x10000
+    // => right/main nozzle, else left/deputy), so we capture it here instead of defaulting all
+    // filaments to the left nozzle.
+    std::vector<int>         ams_filament_nozzles;
     ams_multi_color_filment.clear();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": filament_ams_list size: %1%") % filament_ams_list.size();
     struct AmsInfo
@@ -2570,6 +2575,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         std::string filament_color_type = "";
         std::string filament_preset = "";
         std::vector<std::string> mutli_filament_color;
+        int nozzle{1}; // BBS: 1 = left, 2 = right
     };
     auto is_double_extruder = get_printer_extruder_count() == 2;
     std::vector<AmsInfo> ams_infos;
@@ -2577,6 +2583,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
     std::set<std::pair<std::string, std::string>> added_filaments;
     for (auto &entry : filament_ams_list) {
         auto & ams = entry.second;
+        const int this_nozzle = (entry.first & 0x10000) ? 2 : 1; // BBS: 1 = left, 2 = right
         auto filament_id = ams.opt_string("filament_id", 0u);
         auto tray_name = ams.opt_string("tray_name", 0u);
         if (tray_name == "Ext" && skip_ext) {
@@ -2596,6 +2603,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         auto ams_id     = ams.opt_string("ams_id", 0u);
         auto slot_id    = ams.opt_string("slot_id", 0u);
         ams_infos.push_back({filament_id.empty() ? false : true,false, filament_color});
+        ams_infos.back().nozzle = this_nozzle;
         AMSMapInfo temp = {ams_id, slot_id};
         ams_array_maps.push_back(temp);
         index++;
@@ -2607,6 +2615,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                     }
                 }
                 ams_filament_presets.push_back("Generic PLA");//for unknow matieral
+                ams_filament_nozzles.push_back(this_nozzle);
                 auto default_unknown_color = "#CECECE";
                 ams_filament_colors.push_back(default_unknown_color);
                 ams_filament_color_types.push_back("1");
@@ -2619,6 +2628,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         }
         if (!filament_changed && this->filament_presets.size() > ams_filament_presets.size()) {
             ams_filament_presets.push_back(this->filament_presets[ams_filament_presets.size()]);
+            ams_filament_nozzles.push_back(this_nozzle);
             ams_filament_colors.push_back(filament_color);
             ams_filament_color_types.push_back(filament_color_type);
             ams_multi_color_filment.push_back(filament_multi_color);
@@ -2642,6 +2652,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                 // Prefer old selection
                 if (ams_filament_presets.size() < this->filament_presets.size()) {
                     ams_filament_presets.push_back(this->filament_presets[ams_filament_presets.size()]);
+                    ams_filament_nozzles.push_back(this_nozzle);
                     ams_filament_colors.push_back(filament_color);
                     ams_filament_color_types.push_back(filament_color_type);
                     ams_multi_color_filment.push_back(filament_multi_color);
@@ -2663,6 +2674,7 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
             filament_id = iter->filament_id;
         }
         ams_filament_presets.push_back(iter->name);
+        ams_filament_nozzles.push_back(this_nozzle);
         ams_filament_colors.push_back(filament_color);
         ams_filament_color_types.push_back(filament_color_type);
         ams_multi_color_filment.push_back(filament_multi_color);
@@ -2765,6 +2777,9 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
         auto exist_colors = filament_color->values;
         auto exist_color_types = filament_color_type->values;
         auto exist_filament_presets = this->filament_presets;
+        // BBS: nozzle assignment kept in lockstep with exist_filament_presets (1 = left, 2 = right).
+        std::vector<int> exist_nozzles = filament_map->values;
+        exist_nozzles.resize(exist_filament_presets.size(), 1);
         std::vector<std::vector<std::string>> exist_multi_color_filment;
         exist_multi_color_filment.resize(exist_colors.size());
         for (int i = 0; i < exist_colors.size(); i++) {
@@ -2778,6 +2793,8 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                     exist_color_types[i]      = ams_filament_color_types[valid_index];
                     exist_filament_presets[i] = ams_filament_presets[valid_index];
                     exist_multi_color_filment[i] = ams_multi_color_filment[valid_index];
+                    if (valid_index < (int) ams_filament_nozzles.size() && i < exist_nozzles.size())
+                        exist_nozzles[i] = ams_filament_nozzles[valid_index]; // BBS: real nozzle
                 } else {
                     BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "check error: array bound (mapping exist)";
                 }
@@ -2838,18 +2855,23 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
                 exist_colors.push_back(need_append_colors[i].filament_color);
                 exist_color_types.push_back(need_append_colors[i].filament_color_type);
                 exist_multi_color_filment.push_back(need_append_colors[i].mutli_filament_color);
+                exist_nozzles.push_back(need_append_colors[i].nozzle); // BBS: real nozzle
             }
         }
         filament_color->values = exist_colors;
         filament_color_type->values = exist_color_types;
         ams_multi_color_filment = exist_multi_color_filment;
         this->filament_presets = exist_filament_presets;
+        // BBS: write the real nozzle assignment captured during the build (1 = left, 2 = right).
+        filament_map->values = exist_nozzles;
         filament_map->values.resize(exist_filament_presets.size(), 1);
     }
     else {//overwrite;
         filament_color->values = ams_filament_colors;
         filament_color_type->values = ams_filament_color_types;
         this->filament_presets = ams_filament_presets;
+        // BBS: write the real nozzle assignment captured during the build (1 = left, 2 = right).
+        filament_map->values = ams_filament_nozzles;
         filament_map->values.resize(ams_filament_colors.size(), 1);
 
         auto& print_config = this->prints.get_edited_preset().config;

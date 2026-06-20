@@ -5,6 +5,7 @@
 #include "GUI_Factories.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_App.hpp"
+#include "ExtraRenderers.hpp"
 #include "I18N.hpp"
 #include "Plater.hpp"
 #include "ObjectDataViewModel.hpp"
@@ -942,6 +943,8 @@ void MenuFactory::append_menu_item_change_extruder(wxMenu* menu)
             } else {
                 item_name = from_u8(preset->label(false));
             }
+            // BBS: on a synced dual-nozzle printer, show which nozzle this filament is on.
+            item_name += get_filament_nozzle_suffix(i);
         }
 
         if (is_active_extruder) {
@@ -2358,6 +2361,8 @@ void MenuFactory::append_menu_item_change_filament(wxMenu* menu)
             } else {
                 item_name = from_u8(preset->label(false));
             }
+            // BBS: on a synced dual-nozzle printer, show which nozzle this filament is on.
+            item_name += get_filament_nozzle_suffix(i);
         }
 
         if (is_active_extruder) {

@@ -30,6 +30,7 @@ public:
         wxString group{};
         wxString alias{};
         wxString tip{};
+        wxString text_right{};// optional text drawn right-aligned at the row's right edge
         int      flag{0};
         int      style{ 0 };// the style of item
     };
