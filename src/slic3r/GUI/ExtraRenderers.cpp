@@ -354,7 +354,7 @@ static wxString get_filament_cell_label(const wxString& extruder_text)
 
 // BBS: return a human-readable color name for a hex string (e.g. "#1A1A1A" -> "Black"),
 // picking the nearest entry from a small table of common colors. Falls back to the input.
-static wxString get_color_display_name(const wxString& hex_in)
+wxString get_color_display_name(const wxString& hex_in)
 {
     wxString hex = hex_in;
     if (hex.StartsWith("#") && hex.length() > 7)
@@ -392,7 +392,7 @@ static wxString get_color_display_name(const wxString& hex_in)
 
 // BBS: for each project filament (0-based), the AMS tray it is loaded in (e.g. "A1", "HT-B",
 // "Ext"), derived from the synced AMS list by matching color + filament id. Empty when unknown.
-static std::vector<wxString> build_filament_ams_locations()
+std::vector<wxString> build_filament_ams_locations()
 {
     using namespace Slic3r;
     using namespace Slic3r::GUI;
