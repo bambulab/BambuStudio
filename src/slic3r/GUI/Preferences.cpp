@@ -746,33 +746,46 @@ wxBoxSizer *PreferencesDialog::create_item_switch(wxString title, wxWindow *pare
     return m_sizer_switch;
 }
 
-wxBoxSizer* PreferencesDialog::create_item_darkmode_checkbox(wxString title, wxWindow* parent, wxString tooltip, int padding_left, std::string param)
+wxBoxSizer* PreferencesDialog::create_item_darkmode_combobox(wxString title, wxWindow* parent, wxString tooltip, int padding_left)
 {
-    wxBoxSizer* m_sizer_checkbox = new wxBoxSizer(wxHORIZONTAL);
+    // A single read-only combobox replacing the former dark-mode checkbox, letting the
+    // user pick Light / Dark / Follow system. "Follow system" makes dark_mode() track the
+    // OS appearance; the two underlying config keys are driven from here.
+    std::vector<wxString> label_list = { _L("Light"), _L("Dark"), _L("Follow system") };
 
-    m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
+    wxBoxSizer* m_sizer_combox = new wxBoxSizer(wxHORIZONTAL);
+    m_sizer_combox->Add(0, 0, 0, wxEXPAND | wxLEFT, 23);
 
-    auto checkbox = new ::CheckBox(parent);
-    m_checkbox_list[m_checkbox_list.size()] = checkbox;
-    checkbox->SetValue((app_config->get(param) == "1") ? true : false);
-    m_dark_mode_ckeckbox = checkbox;
+    auto combo_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, DESIGN_TITLE_SIZE, 0);
+    combo_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
+    combo_title->SetFont(::Label::Body_13);
+    combo_title->SetToolTip(tooltip);
+    combo_title->Wrap(-1);
+    m_sizer_combox->Add(combo_title, 0, wxALIGN_CENTER | wxALL, 3);
 
-    m_sizer_checkbox->Add(checkbox, 0, wxALIGN_CENTER, 0);
-    m_sizer_checkbox->Add(0, 0, 0, wxEXPAND | wxLEFT, 8);
+    auto combobox = new ::ComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, DESIGN_LARGE_COMBOBOX_SIZE, 0, nullptr, wxCB_READONLY);
+    m_combobox_list[m_combobox_list.size()] = combobox;
+    combobox->SetFont(::Label::Body_13);
+    combobox->GetDropDown().SetFont(::Label::Body_13);
+    for (auto& label : label_list)
+        combobox->Append(label);
 
-    auto checkbox_title = new wxStaticText(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, 0);
-    checkbox_title->SetForegroundColour(DESIGN_GRAY900_COLOR);
-    checkbox_title->SetFont(::Label::Body_13);
+    // Initial selection: Follow system > Dark > Light.
+    int sel = 0;
+    if (app_config->get("dark_mode_follow_system") == "1")
+        sel = 2;
+    else if (app_config->get("dark_color_mode") == "1")
+        sel = 1;
+    combobox->SetSelection(sel);
 
-    auto size = checkbox_title->GetTextExtent(title);
-    checkbox_title->SetMinSize(wxSize(size.x + FromDIP(40), -1));
-    checkbox_title->Wrap(-1);
-    m_sizer_checkbox->Add(checkbox_title, 0, wxALIGN_CENTER | wxALL, 3);
-
+    m_sizer_combox->Add(combobox, 0, wxALIGN_CENTER, 0);
 
     //// save config
-    checkbox->Bind(wxEVT_TOGGLEBUTTON, [this, checkbox, param](wxCommandEvent& e) {
-        app_config->set(param, checkbox->GetValue() ? "1" : "0");
+    combobox->GetDropDown().Bind(wxEVT_COMBOBOX, [this](wxCommandEvent& e) {
+        int idx = e.GetSelection();
+        app_config->set("dark_mode_follow_system", idx == 2 ? "1" : "0");
+        if (idx != 2)  // Light/Dark set the colour explicitly; Follow system lets the OS decide.
+            app_config->set("dark_color_mode", idx == 1 ? "1" : "0");
         app_config->save();
         wxGetApp().Update_dark_mode_flag();
 
@@ -787,8 +800,8 @@ wxBoxSizer* PreferencesDialog::create_item_darkmode_checkbox(wxString title, wxW
         e.Skip();
         });
 
-    checkbox->SetToolTip(tooltip);
-    return m_sizer_checkbox;
+    combobox->SetToolTip(tooltip);
+    return m_sizer_combox;
 }
 
 void PreferencesDialog::set_dark_mode()
@@ -1459,7 +1472,7 @@ wxWindow* PreferencesDialog::create_general_page()
     //dark mode
 #ifdef _WIN32
     auto title_darkmode = create_item_title(_L("Dark Mode"), page, _L("Dark Mode"));
-    auto item_darkmode = create_item_darkmode_checkbox(_L("Enable dark mode"), page,_L("Enable dark mode"), 50, "dark_color_mode");
+    auto item_darkmode = create_item_darkmode_combobox(_L("Dark mode"), page, _L("Choose the interface theme: light, dark, or follow the system setting."), 50);
 #endif
 
 #if 0
