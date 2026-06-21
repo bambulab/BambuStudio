@@ -152,6 +152,7 @@
 #include "Widgets/StaticBox.hpp"
 #include "Widgets/ComboBox.hpp"
 #include "ExtraRenderers.hpp"
+#include "EncodedFilament.hpp"
 #include "Widgets/StaticGroup.hpp"
 #include "Widgets/MultiNozzleSync.hpp"
 
@@ -581,13 +582,25 @@ static void PositionLabelOverStaticBox(wxPoint top_left, HoverLabel *label_)
 struct ExtruderGroup : StaticGroup
 {
     ExtruderGroup(wxWindow * parent, int index, wxString const &title);
+
+    // BBS: on macOS the static box reports a large intrinsic best width (~299px) which
+    // wxStaticBoxSizer uses as a hard minimum, so two nozzle boxes can't share a narrow
+    // sidebar evenly (the row sizer squeezes the last one). The actual content needs far
+    // less, so report a tiny best width and let the content drive the real size — this lets
+    // the Left/Right Nozzle boxes shrink together symmetrically.
+    wxSize DoGetBestSize() const override { return wxSize(1, wxStaticBox::DoGetBestSize().y); }
+
     int m_index;
     wxBoxSizer *sizer        = nullptr;
     HoverLabel *      hover_label  = nullptr;
     ScalableButton *  btn_edit     = nullptr;
     ComboBox *        combo_diameter = nullptr;
     ComboBox *        combo_flow = nullptr;
-    AMSPreview *      ams[4]       = {nullptr};
+    // BBS: max AMS-unit previews per nozzle (H2C supports up to 4 AMS/AMS2-Pro + 8 AMS-HT).
+    static constexpr size_t MAX_AMS_PREVIEW = 24;
+    AMSPreview *      ams[MAX_AMS_PREVIEW] = {nullptr};
+    AMSinfo           ams_shown[MAX_AMS_PREVIEW]; // BBS: AMSinfo currently shown in each preview slot
+    int               last_panel_w = -1; // BBS: last panel width used to lay out the AMS row
     wxStaticText     *ams_not_installed_msg{nullptr};
     ScalableButton *  btn_up{nullptr};
     ScalableButton *  btn_down{nullptr};
@@ -621,6 +634,9 @@ struct ExtruderGroup : StaticGroup
 
     void update_ams();
 
+    // BBS: clicking an AMS preview highlights the matching project filament(s) in the sidebar.
+    void on_ams_clicked(size_t slot);
+
     void sync_ams(MachineObject const *obj, std::vector<DevAms *> const &ams4, std::vector<DevAms *> const &ams1);
 
     void Rescale()
@@ -631,7 +647,7 @@ struct ExtruderGroup : StaticGroup
         btn_down->msw_rescale();
         combo_diameter->Rescale();
         combo_flow->Rescale();
-        for (int i = 0; i < 4; ++i)
+        for (size_t i = 0; i < MAX_AMS_PREVIEW; ++i)
             ams[i]->msw_rescale();
     }
 };
@@ -1580,6 +1596,9 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
     if (index >= 0) label_diameter->SetMinSize({FromDIP(80), -1});
     auto combo_diameter = new ComboBox(this, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
     combo_diameter->GetDropDown().SetUseContentWidth(true);
+    // BBS: small min width so the two nozzle frames can shrink to share the sidebar evenly;
+    // the combo still expands to fill when there is room.
+    if (index >= 0) combo_diameter->SetMinSize({FromDIP(56), -1});
     this->combo_diameter = combo_diameter;
     wxStaticText *label_flow = new wxStaticText(this, wxID_ANY, _L("Flow"));
     label_flow->SetFont(Label::Body_14);
@@ -1587,6 +1606,7 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
     if (index >= 0) label_flow->SetMinSize({FromDIP(80), -1});
     auto combo_flow = new ComboBox(this, wxID_ANY, wxString(""), wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
     combo_flow->GetDropDown().SetUseContentWidth(true);
+    if (index >= 0) combo_flow->SetMinSize({FromDIP(56), -1});
     combo_flow->Bind(wxEVT_COMBOBOX, [this, index, combo_flow](wxCommandEvent &evt) {
         auto printer_tab = dynamic_cast<TabPrinter *>(wxGetApp().get_tab(Preset::TYPE_PRINTER));
         NozzleVolumeType volume_type = NozzleVolumeType(intptr_t(combo_flow->GetClientData(evt.GetInt())));
@@ -1634,11 +1654,15 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
     ams_not_installed_msg->SetForegroundColour("#262E30");
 
     // AMS group
-    for (size_t i = 0; i < 4; ++i) {
+    for (size_t i = 0; i < MAX_AMS_PREVIEW; ++i) {
         AMSinfo info;
         info.ams_type = DevAmsType::AMS;
         ams[i] = new AMSPreview(this, wxID_ANY, info);
         ams[i]->Close();
+        ams[i]->Bind(wxEVT_LEFT_DOWN, [this, i](wxMouseEvent &e) {
+            e.Skip();
+            on_ams_clicked(i);
+        });
     }
 
     hsizer_ams = new wxBoxSizer(wxHORIZONTAL);
@@ -1691,6 +1715,22 @@ ExtruderGroup::ExtruderGroup(wxWindow * parent, int index, wxString const &title
         this->sizer = vsizer;
     }
     AMSCountPopupWindow::UpdateAMSCount(index < 0 ? 0 : index, this);
+
+    // BBS: recompute how many AMS fit as the frame width changes, so a wider sidebar shows
+    // more AMS and a narrower one pages them (keeping the two nozzle frames equal width).
+    if (index >= 0) {
+        Bind(wxEVT_SIZE, [this](wxSizeEvent &e) {
+            e.Skip();
+            // Re-pack the AMS row when the panel width changes (based on the stable PARENT panel
+            // width, not this frame's own size, to avoid a layout feedback loop).
+            wxWindow *panel = GetParent();
+            const int panelW = panel ? panel->GetClientSize().x : GetClientSize().x;
+            if (panelW != last_panel_w) {
+                last_panel_w = panelW;
+                update_ams();
+            }
+        });
+    }
 }
 
 void ExtruderGroup::SetEditEnabled(bool enable)
@@ -1749,27 +1789,93 @@ void ExtruderGroup::update_ams()
     if (btn_edit == nullptr)
         return;
 
-    page_num  = (ams_n4 * 2 + ams_n1 + 3) / 4;
-    size_t i4 = page_cur * 2;
-    size_t i1 = 0;
-    if (i4 > ams_n4) {
-        i1 = (i4 - ams_n4) * 2;
-        i4 = ams_n4;
-    }
+    // BBS: pack AMS into the available width by their real pixel widths (4-slot = 52, 1-slot = 28,
+    // each plus a 1px gap). This makes the displayed count track the panel width smoothly and the
+    // paging button appear only when an AMS genuinely doesn't fit.
+    const int w4 = FromDIP(52) + FromDIP(1);
+    const int w1 = FromDIP(28) + FromDIP(1);
 
-    size_t left  = 4;
+    // Flat list of AMS to show (4-slot first, then 1-slot), each with its width.
+    struct Entry { AMSinfo info; int width; };
+    std::vector<Entry> all;
+    all.reserve(ams_n4 + ams_n1);
+    for (size_t i = 0; i < ams_n4; ++i) all.push_back({i < ams_4.size() ? ams_4[i] : info4, w4});
+    for (size_t i = 0; i < ams_n1; ++i) all.push_back({i < ams_1.size() ? ams_1[i] : info1, w1});
+
+    // The AMS row gets ~half the panel, minus the "AMS" label and margins.
+    wxWindow *panel = GetParent();
+    const int panelW    = panel ? panel->GetClientSize().x : GetClientSize().x;
+    const int avail_full = std::max(w1, panelW / 2 - FromDIP(8) - FromDIP(50));
+
+    auto pack = [&](int av) {
+        std::vector<size_t> starts;
+        size_t i = 0;
+        while (i < all.size()) {
+            starts.push_back(i);
+            int used = 0; size_t cnt = 0;
+            while (i < all.size() && cnt < MAX_AMS_PREVIEW && (used == 0 || used + all[i].width <= av)) {
+                used += all[i].width; ++i; ++cnt;
+            }
+        }
+        if (starts.empty()) starts.push_back(0);
+        return starts;
+    };
+
+    // Two-pass: pack without the paging button; if it needs more than one page, re-pack with
+    // room reserved for the button so it doesn't overlap the AMS.
+    std::vector<size_t> page_start = pack(avail_full);
+    if (page_start.size() > 1)
+        page_start = pack(std::max(w1, avail_full - FromDIP(22)));
+
+    page_num = page_start.size();
+    if (page_cur >= page_num) page_cur = page_num - 1;
+
+    // BBS: AMS unit display name from its id ("AMS A", "AMS HT-A").
+    auto ams_name = [](const std::string &id) -> wxString {
+        int aid = -1;
+        try { aid = std::stoi(id); } catch (...) {}
+        if (aid >= 128) return wxString::Format("AMS HT-%c", (char) ('A' + (aid - 128)));
+        if (aid >= 0)   return wxString::Format("AMS %c", (char) ('A' + aid));
+        return _L("AMS");
+    };
+
+    const size_t start = page_start[page_cur];
+    const size_t end   = (page_cur + 1 < page_num) ? page_start[page_cur + 1] : all.size();
     size_t index = 0;
-    for (size_t i = i4; i < ams_n4 && left > 0; ++i, ++index, left -= 2) {
-        ams[index]->Update(i < ams_4.size() ? ams_4[i] : info4);
+    for (size_t k = start; k < end && index < MAX_AMS_PREVIEW; ++k, ++index) {
+        const AMSinfo &nfo = all[k].info;
+        ams_shown[index]   = nfo; // remember which AMS this preview shows, for click highlighting
+        ams[index]->Update(nfo);
         ams[index]->Refresh();
         ams[index]->Open();
+
+        // BBS: tooltip with the AMS name and each loaded slot's filament + colour name, one per line.
+        FilamentColorCodeQuery *color_query = wxGetApp().get_filament_color_code_query();
+        wxString tip = ams_name(nfo.ams_id);
+        for (const auto &can : nfo.cans) {
+            if (can.filament_id.empty() && can.material_name.IsEmpty())
+                continue; // empty slot
+
+            // Prefer the real Bambu roll colour name (e.g. "Sunflower Yellow"); fall back to the
+            // nearest readable colour name when the filament isn't in the Bambu colour database.
+            std::vector<wxString> hexes;
+            if (!can.material_cols.empty())
+                for (const auto &c : can.material_cols) hexes.push_back(c.GetAsString(wxC2S_HTML_SYNTAX));
+            else
+                hexes.push_back(can.material_colour.GetAsString(wxC2S_HTML_SYNTAX));
+
+            wxString color_name;
+            if (color_query && !can.filament_id.empty())
+                color_name = color_query->GetFilaColorName(can.filament_id, hexes, can.ctype);
+            if (color_name.IsEmpty())
+                color_name = get_color_display_name(can.material_colour.GetAsString(wxC2S_HTML_SYNTAX));
+
+            const wxString line = can.material_name.IsEmpty() ? color_name : (can.material_name + "  " + color_name);
+            tip += "\n" + line;
+        }
+        ams[index]->SetToolTip(tip);
     }
-    for (size_t i = i1; i < ams_n1 && left > 0; ++i, ++index, --left) {
-        ams[index]->Update(i < ams_1.size() ? ams_1[i] : info1);
-        ams[index]->Refresh();
-        ams[index]->Open();
-    }
-    for (; index < 4; ++index)
+    for (; index < MAX_AMS_PREVIEW; ++index)
         ams[index]->Close();
 
     ams_not_installed_msg->Show(ams_n4 == 0 && ams_n1 == 0);
@@ -1783,7 +1889,7 @@ void ExtruderGroup::update_ams()
         hsizer_ams->Add(ams_not_installed_msg, 0, wxALIGN_CENTER);
         hsizer_ams->AddStretchSpacer(1);
     }
-    for (size_t i = 0; i < 4; ++i) {
+    for (size_t i = 0; i < MAX_AMS_PREVIEW; ++i) {
         if (ams[i]->IsShown())
             hsizer_ams->Add(this->ams[i], 0, wxLEFT, FromDIP(1));
     }
@@ -1804,6 +1910,60 @@ void ExtruderGroup::update_ams()
     }
 
     sizer->Layout();
+}
+
+void ExtruderGroup::on_ams_clicked(size_t slot)
+{
+    if (slot >= MAX_AMS_PREVIEW || ams[slot] == nullptr || !ams[slot]->IsShown())
+        return;
+
+    // Only meaningful when the printer info is currently synced; otherwise the AMS list is stale
+    // and would highlight filaments that don't match the actual AMS setup.
+    Plater *plater = wxGetApp().plater();
+    if (plater == nullptr || !plater->get_machine_sync_status())
+        return;
+
+    const AMSinfo &nfo = ams_shown[slot];
+
+    // The clicked AMS's tray names ("A1".."A4" for a 4-slot AMS, "HT-A" for an HT), derived from
+    // its ams_id exactly as Sidebar::build_filament_ams_list does.
+    int aid = -1;
+    try { aid = std::stoi(nfo.ams_id); } catch (...) { return; }
+    std::set<wxString> ams_trays;
+    if (aid >= 0 && aid < 26) {
+        const char letter = (char) ('A' + aid);
+        for (int s = 1; s <= 4; ++s) ams_trays.insert(wxString::Format("%c%d", letter, s));
+    } else if (aid >= 128 && aid < 153) {
+        ams_trays.insert(wxString::Format("HT-%c", (char) ('A' + (aid - 128))));
+    } else {
+        return;
+    }
+
+    // Authoritative 1:1 mapping of each project filament -> its AMS tray. Using this (rather than
+    // loose colour matching) means a slot can't match several same-coloured filaments and
+    // filaments from other AMS units aren't caught.
+    const std::vector<wxString> locations = build_filament_ams_locations();
+
+    auto &combos = plater->sidebar().combos_filament();
+    // Clear any highlight from a previous AMS click so only this AMS's filaments stay lit.
+    for (auto *c : combos)
+        if (c) c->ClearHighlight();
+    std::vector<PlaterPresetComboBox*> matched;
+    for (size_t i = 0; i < locations.size() && i < combos.size(); ++i) {
+        auto *c = combos[i];
+        if (c == nullptr || !ams_trays.count(locations[i]))
+            continue;
+        // Only highlight filaments actually synced from an AMS (same flag as the sync badge);
+        // a filament whose preset wasn't synced shouldn't light up just because its colour matches.
+        if (c->GetFlag(c->GetSelection()) != (int) PresetComboBox::FilamentAMSType::FROM_AMS)
+            continue;
+        c->FlashHighlight();
+        matched.push_back(c);
+    }
+
+    // Scroll the filament area so all matched filaments are visible if they were off-screen.
+    if (!matched.empty())
+        plater->sidebar().ensure_filament_combos_visible(matched);
 }
 
 void ExtruderGroup::sync_ams(MachineObject const *obj, std::vector<DevAms *> const &ams4, std::vector<DevAms *> const &ams1)
@@ -2277,6 +2437,7 @@ void Sidebar::priv::update_sync_status(const MachineObject *obj)
             right_extruder->ShowBadge(false);
             right_extruder->sync_ams(obj, {}, {});
         }
+
     }
 
     StateColor synced_colour(std::pair<wxColour, int>(wxColour("#CECECE"), StateColor::Normal));
@@ -5001,6 +5162,52 @@ void Sidebar::udpate_combos_filament_badge() {
         c->ShowBadge(ok);
     }
 
+}
+
+void Sidebar::ensure_filament_combos_visible(const std::vector<PlaterPresetComboBox*>& combos)
+{
+    wxScrolledWindow* sw = p->m_physical_scroll_area;
+    if (sw == nullptr || combos.empty())
+        return;
+
+    int ppuX = 0, ppuY = 0;
+    sw->GetScrollPixelsPerUnit(&ppuX, &ppuY);
+    if (ppuY <= 0)
+        return; // not vertically scrollable (all filaments already fit)
+
+    const int sw_screen_y = sw->GetScreenPosition().y;
+    const int client      = sw->GetClientSize().y;
+    const int cur_py      = sw->GetViewStart().y * ppuY;
+
+    // Bounding vertical range of all target combos, relative to the visible viewport (screen
+    // coords handle the intermediate panels/sizers the combos are nested in).
+    int top = INT_MAX, bottom = INT_MIN;
+    for (auto* c : combos) {
+        if (c == nullptr)
+            continue;
+        const int rel = c->GetScreenPosition().y - sw_screen_y;
+        top    = std::min(top, rel);
+        bottom = std::max(bottom, rel + c->GetSize().y);
+    }
+    if (top == INT_MAX)
+        return;
+
+    int new_py = cur_py;
+    if (bottom - top <= client) {
+        // The whole matched range fits: show both ends, preferring to align the top.
+        if (top < 0)
+            new_py = cur_py + top;                     // bring the top match into view
+        else if (bottom > client)
+            new_py = cur_py + (bottom - client);       // bring the bottom match into view
+    } else {
+        // Too tall to fit: align the topmost match.
+        new_py = cur_py + top;
+    }
+    if (new_py < 0)
+        new_py = 0;
+
+    if (new_py != cur_py)
+        sw->Scroll(-1, new_py / ppuY);
 }
 
 // ---- Mixed Filament sidebar methods ----
