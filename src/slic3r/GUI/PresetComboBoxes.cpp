@@ -947,6 +947,49 @@ PlaterPresetComboBox::~PlaterPresetComboBox()
     // BBS.
     if (clr_picker)
         clr_picker->Destroy();
+
+    if (m_highlight_timer) {
+        m_highlight_timer->Stop();
+        delete m_highlight_timer;
+        m_highlight_timer = nullptr;
+    }
+}
+
+// BBS: briefly outline this combo (e.g. when its matching AMS preview is clicked).
+void PlaterPresetComboBox::FlashHighlight()
+{
+    if (!m_highlighting) {
+        m_highlight_saved_border   = border_color;
+        m_highlight_saved_border_w = border_width;
+        m_highlighting             = true;
+    }
+    border_color.setColorForStates(wxColour(0x00, 0xAE, 0x42), 0); // Bambu green outline
+    if (border_width < 2)
+        border_width = 2;
+    Refresh();
+
+    if (m_highlight_timer == nullptr) {
+        m_highlight_timer = new wxTimer();
+        m_highlight_timer->Bind(wxEVT_TIMER, [this](wxTimerEvent &) {
+            border_color   = m_highlight_saved_border;
+            border_width   = m_highlight_saved_border_w;
+            m_highlighting = false;
+            Refresh();
+        });
+    }
+    m_highlight_timer->StartOnce(1500);
+}
+
+void PlaterPresetComboBox::ClearHighlight()
+{
+    if (!m_highlighting)
+        return;
+    if (m_highlight_timer)
+        m_highlight_timer->Stop();
+    border_color   = m_highlight_saved_border;
+    border_width   = m_highlight_saved_border_w;
+    m_highlighting = false;
+    Refresh();
 }
 
 static void run_wizard(ConfigWizard::StartPage sp)
