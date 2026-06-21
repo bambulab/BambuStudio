@@ -201,12 +201,17 @@ public:
 
         this->Bind(wxEVT_SYS_COLOUR_CHANGED, [this](wxSysColourChangedEvent& event)
         {
-#ifndef __WINDOWS__
+#ifdef __WINDOWS__
+            if (GUI::wxGetApp().app_config &&
+                GUI::wxGetApp().app_config->get("dark_mode_follow_system") == "1") {
                 update_dark_config();
                 on_sys_color_changed();
-                event.Skip();
-#endif // __WINDOWS__
-
+            }
+#else
+            update_dark_config();
+            on_sys_color_changed();
+#endif
+            event.Skip();
         });
 
         if (std::is_same<wxDialog, P>::value) {

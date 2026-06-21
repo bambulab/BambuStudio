@@ -3122,11 +3122,25 @@ bool GUI_App::on_init_inner()
     load_language(wxString(), true);
 #ifdef _MSW_DARK_MODE
 
-#ifndef __WINDOWS__
-    wxSystemAppearance app = wxSystemSettings::GetAppearance();
-    GUI::wxGetApp().app_config->set("dark_color_mode", app.IsDark() ? "1" : "0");
-    GUI::wxGetApp().app_config->save();
-#endif // __APPLE__
+    // One-time migration to the Light/Dark/Follow-system selector. Before it existed,
+    // dark_mode() followed the OS appearance whenever dark_color_mode was not "1". Run this
+    // after the config has been loaded so it sees the user's real dark_color_mode (and an
+    // absent dark_mode_follow_system), and only an explicit "Dark" opts out of following the OS.
+    if (app_config->get("dark_mode_follow_system").empty())
+        app_config->set("dark_mode_follow_system", app_config->get("dark_color_mode") == "1" ? "0" : "1");
+
+    {
+        wxSystemAppearance app = wxSystemSettings::GetAppearance();
+#ifdef __WINDOWS__
+        if (app_config->get("dark_mode_follow_system") == "1") {
+            app_config->set("dark_color_mode", app.IsDark() ? "1" : "0");
+            app_config->save();
+        }
+#else
+        GUI::wxGetApp().app_config->set("dark_color_mode", app.IsDark() ? "1" : "0");
+        GUI::wxGetApp().app_config->save();
+#endif
+    }
 
 
     bool init_dark_color_mode = dark_mode();
@@ -3765,7 +3779,9 @@ bool GUI_App::dark_mode()
     // proper dark mode was first introduced.
     return wxPlatformInfo::Get().CheckOSVersion(10, 14) && mac_dark_mode();
 #else
-    return wxGetApp().app_config->get("dark_color_mode") == "1" ? true : check_dark_mode();
+    if (wxGetApp().app_config->get("dark_mode_follow_system") == "1")
+        return check_dark_mode();
+    return wxGetApp().app_config->get("dark_color_mode") == "1";
     //const unsigned luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
     //return luma < 128;
 #endif
