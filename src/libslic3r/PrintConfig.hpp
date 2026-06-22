@@ -361,7 +361,8 @@ enum NozzleVolumeType {
     nvtHighFlow,
     nvtHybrid,
     nvtTPUHighFlow,
-    nvtMaxNozzleVolumeType = nvtTPUHighFlow
+    nvtE3DHighFlow,
+    nvtMaxNozzleVolumeType = nvtE3DHighFlow
 };
 
 enum FilamentMapMode {

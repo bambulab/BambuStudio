@@ -3538,7 +3538,12 @@ void Sidebar::update_presets(Preset::Type preset_type)
             for (size_t i = 0; i < nozzle_volumes_def->enum_labels.size(); ++i) {
                 if (boost::algorithm::contains(extruder_variants->values[index], type + " " + nozzle_volumes_def->enum_labels[i]) ||
                     extruder_max_nozzle_count->values[index] > 1 && nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[i]) == nvtHybrid) {
-                    if (nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[i]) == NozzleVolumeType::nvtHighFlow &&(diameter == "0.2" ||
+                    auto cur_volume_type = nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[i]);
+                    // Defensive: profiles restrict E3D to 0.4 / 0.6; keep it out elsewhere.
+                    if (cur_volume_type == NozzleVolumeType::nvtE3DHighFlow && diameter != "0.4" && diameter != "0.6")
+                        continue;
+                    // 0.2 nozzle has no High Flow variant.
+                    if (cur_volume_type == NozzleVolumeType::nvtHighFlow && (diameter == "0.2" ||
                         is_skip_high_flow_printer(printer_model)))
                         continue;
                     if (nozzle_volumes->values[index] == i)
