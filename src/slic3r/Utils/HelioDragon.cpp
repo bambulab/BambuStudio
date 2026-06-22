@@ -1942,7 +1942,7 @@ void HelioBackgroundProcess::helio_threaded_process_start(std::mutex&           
                                                                                                     create_presigned_url_res.url);
 
             if (upload_file_res.success && !was_canceled()) {
-                status = Slic3r::PrintBase::SlicingStatus(10, _u8L("Helio: file succesfully uploaded"));
+                status = Slic3r::PrintBase::SlicingStatus(10, _u8L("Helio: file successfully uploaded"));
                 evt    = new Slic3r::SlicingStatusEvent(GUI::EVT_SLICING_UPDATE, 0, status);
                 wxQueueEvent(GUI::wxGetApp().plater(), evt);
 
