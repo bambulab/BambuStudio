@@ -38,4 +38,7 @@ compile_commands.json
 **/node_modules/
 .worktrees/
 **/dist/
+# Pre-built web assets for Filament Manager — committed so release packages include them
+!resources/web/device_page/dist/
+!resources/web/device_page/dist/**
 
