@@ -4333,7 +4333,6 @@ void StatusPanel::update_ams(MachineObject *obj)
 
     // must select a current can
     m_ams_control->UpdateAms(obj->get_printer_series_str(), obj->printer_type, ams_info, ext_info, *obj->GetExtderSystem(), obj->get_dev_id(), obj, false);
-    m_ams_control->UpdateAmsDryControl(obj);
 
     if (auto* sync = wxGetApp().fila_manager_sync())
         sync->drain_filament_hints(obj->get_dev_id());

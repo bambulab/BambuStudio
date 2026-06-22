@@ -87,6 +87,11 @@ public:
     AMSDryCtrWin(wxWindow *parent);
     ~AMSDryCtrWin();
 
+    // Single global entry point. At most one modal instance may exist at a
+    // time; a second call while one is shown is silently ignored.
+    static void RunModal(wxWindow* parent, const std::string& ams_id,
+                         const std::optional<wxPoint>& popup_pos = std::nullopt);
+
     void msw_rescale();
     void update(std::shared_ptr<DevFilaSystem> fila_system, MachineObject* obj);
     void set_ams_id(const std::string& ams_id);
@@ -187,6 +192,7 @@ private:
 
 
     bool m_is_ams_changed = false;
+    bool m_is_closing      = false;
     std::weak_ptr<DevFilaSystem> m_fila_system;
     struct {
         std::string m_ams_id;
@@ -238,6 +244,8 @@ private:
     void OnRefreshTimer(wxTimerEvent& event);
     void OnClose(wxCloseEvent& event);
     void OnShow(wxShowEvent& event);
+
+    void close_once();
 
     void OnFilamentSelectionChanged(wxCommandEvent& event);
 

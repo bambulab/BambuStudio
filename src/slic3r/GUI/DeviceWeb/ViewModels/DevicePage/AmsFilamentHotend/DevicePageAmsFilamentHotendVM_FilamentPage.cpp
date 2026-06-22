@@ -572,15 +572,7 @@ std::optional<nlohmann::json> DevicePageAmsFilamentHotendVM::HandleFilamentActio
             return MakeResponse(GetModule(), "action", action, 2, "No dryable AMS unit found", BuildState());
         }
         wxGetApp().CallAfter([dry_ams_id]() {
-            auto* dev_mgr = wxGetApp().getDeviceManager();
-            MachineObject* mo = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
-            if (!mo || !mo->GetFilaSystem()) return;
-            wxWindow* parent = wxGetApp().mainframe;
-            AMSDryCtrWin dlg(parent);
-            dlg.set_ams_id(dry_ams_id);
-            dlg.update(mo->GetFilaSystem(), mo);
-            dlg.enableSelfRefresh(true);
-            dlg.ShowModal();
+            AMSDryCtrWin::RunModal(wxGetApp().mainframe, dry_ams_id);
         });
     } else if (action == "stop_filament_change") {
         // Backend guard mirroring the can_stop schema gate: never abort while a

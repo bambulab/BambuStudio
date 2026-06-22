@@ -31,7 +31,6 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
     , m_Humidity_tip_popup(AmsHumidityTipPopup(this))
     , m_percent_humidity_dry_popup(new uiAmsPercentHumidityDryPopup(this))
     , m_ams_introduce_popup(AmsIntroducePopup(this))
-    , m_ams_dry_ctr_win(new AMSDryCtrWin(this))
 {
     Slic3r::DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
     if (dev) {
@@ -346,12 +345,9 @@ AMSControl::AMSControl(wxWindow *parent, wxWindowID id, const wxPoint &pos, cons
                 if (humidity_value > 0 && humidity_value <= 5) { m_Humidity_tip_popup.set_humidity_level(humidity_value); }
                 m_Humidity_tip_popup.Popup();
             } else if (obj && obj->is_support_remote_dry && (info->ams_type == DevAmsType::N3F || info->ams_type == DevAmsType::N3S || info->ams_type == DevAmsType::ZMULTI_A)){
-                m_ams_dry_ctr_win->set_ams_id(info->ams_id);
-
                 wxPoint img_pos = ClientToScreen(wxPoint(0, 0));
-                wxPoint popup_pos(img_pos.x - m_ams_dry_ctr_win->GetSize().GetWidth() + FromDIP(150), img_pos.y - FromDIP(80));
-                m_ams_dry_ctr_win->Move(popup_pos);
-                m_ams_dry_ctr_win->ShowModal();
+                wxPoint popup_pos(img_pos.x - FromDIP(700) + FromDIP(150), img_pos.y - FromDIP(80));
+                AMSDryCtrWin::RunModal(this, info->ams_id, popup_pos);
             } else {
                 m_percent_humidity_dry_popup->Update(info);
 
@@ -394,9 +390,6 @@ void AMSControl::show_filament_hint(const std::string& ams_id, const std::string
 
 AMSControl::~AMSControl()
 {
-    if (m_ams_dry_ctr_win) {
-        delete m_ams_dry_ctr_win;
-    }
 }
 
 std::string AMSControl::GetCurentAms() {
@@ -646,10 +639,6 @@ void AMSControl::msw_rescale()
 
     if (m_percent_humidity_dry_popup){
         m_percent_humidity_dry_popup->msw_rescale();
-    }
-
-    if (m_ams_dry_ctr_win) {
-        m_ams_dry_ctr_win->msw_rescale();
     }
 
     m_Humidity_tip_popup.msw_rescale();
@@ -1037,27 +1026,6 @@ void AMSControl::enable_ams_setting(bool en)
 void AMSControl::show_vams_kn_value(bool show)
 {
     //m_vams_lib->show_kn_value(show);
-}
-
-void AMSControl::UpdateAmsDryControl(MachineObject* obj)
-{
-    if (!m_ams_dry_ctr_win->IsShown()) {
-        return;
-    }
-
-    if (!obj || !obj->GetFilaSystem()) {
-        m_ams_dry_ctr_win->Close();
-        return;
-    }
-
-    std::weak_ptr<DevFilaSystem> weak_fila_system = obj->GetFilaSystem();
-
-    if (auto locaked_fila_system = weak_fila_system.lock()) {
-        m_ams_dry_ctr_win->update(locaked_fila_system, obj);
-    } else {
-        m_ams_dry_ctr_win->Close();
-        return;
-    }
 }
 
 void AMSControl::UpdateAms(const std::string   &series_name,

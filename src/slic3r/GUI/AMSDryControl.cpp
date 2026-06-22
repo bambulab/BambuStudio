@@ -18,6 +18,7 @@
 
 #include <wx/dcbuffer.h>
 #include <wx/dcgraph.h>
+#include <wx/weakref.h>
 
 namespace Slic3r { namespace GUI {
 
@@ -283,6 +284,34 @@ AMSDryCtrWin::~AMSDryCtrWin()
     if (m_progress_timer) {
         delete m_progress_timer;
     }
+}
+
+// Tracks the single live dialog. wxWeakRef auto-nullifies on destruction, so
+// the guard can never dangle even if the dialog is destroyed by wx teardown.
+static wxWeakRef<AMSDryCtrWin> s_active_dry_ctr_win;
+
+void AMSDryCtrWin::RunModal(wxWindow* parent, const std::string& ams_id,
+                            const std::optional<wxPoint>& popup_pos)
+{
+    if (s_active_dry_ctr_win) {
+        return;
+    }
+
+    auto* dev_mgr = wxGetApp().getDeviceManager();
+    MachineObject* obj = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
+    if (!obj || !obj->GetFilaSystem()) {
+        return;
+    }
+
+    AMSDryCtrWin dlg(parent);
+    s_active_dry_ctr_win = &dlg;
+
+    dlg.set_ams_id(ams_id);
+    if (popup_pos.has_value()) {
+        dlg.Move(popup_pos.value());
+    }
+    dlg.ShowModal();
+    s_active_dry_ctr_win = nullptr;
 }
 
 
@@ -568,7 +597,7 @@ wxPanel* AMSDryCtrWin::create_m2y_pill(wxPanel* parent)
         gc->DrawRoundedRectangle(0, 0, sz.GetWidth(), sz.GetHeight(), pill->FromDIP(12));
 
         wxBitmap icon = ScalableBitmap(pill, "dev_ams_dry_ctr_plugedin", 20).bmp();
-        wxString text("m2y-AMS");
+        wxString text("N10-AMS");
         wxFont font = Label::Body_14;
         gc->SetFont(font, fg);
         wxDouble tw, th, td, te;
@@ -590,7 +619,7 @@ wxPanel* AMSDryCtrWin::create_m2y_pill(wxPanel* parent)
     int icon_w = ScalableBitmap(pill, "dev_ams_dry_ctr_plugedin", 20).bmp().GetWidth();
     wxClientDC dc(pill);
     dc.SetFont(Label::Body_14);
-    wxSize text_size = dc.GetTextExtent("m2y-AMS");
+    wxSize text_size = dc.GetTextExtent("N10-AMS");
     int width = text_size.GetWidth() + icon_w + pill->FromDIP(6) + 2 * pill->FromDIP(14);
     int height = pill->FromDIP(28);
     pill->SetMinSize(wxSize(width, height));
@@ -1141,7 +1170,7 @@ void AMSDryCtrWin::OnRefreshTimer(wxTimerEvent&)
     auto* dev_mgr = wxGetApp().getDeviceManager();
     MachineObject* obj = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
     if (!obj || !obj->GetFilaSystem()) {
-        Close();
+        close_once();
         return;
     }
     update(obj->GetFilaSystem(), obj);
@@ -1196,6 +1225,22 @@ void AMSDryCtrWin::OnShow(wxShowEvent& event)
     if (event.IsShown()) {
         wxGetApp().UpdateDlgDarkUI(this);
         msw_rescale();
+
+        enableSelfRefresh(true);
+
+        wxWeakRef<AMSDryCtrWin> weak_this(this);
+        CallAfter([weak_this]() {
+            if (!weak_this) {
+                return;
+            }
+            auto* dev_mgr = wxGetApp().getDeviceManager();
+            MachineObject* obj = dev_mgr ? dev_mgr->get_selected_machine() : nullptr;
+            if (!obj || !obj->GetFilaSystem()) {
+                weak_this->close_once();
+                return;
+            }
+            weak_this->update(obj->GetFilaSystem(), obj);
+        });
     } else {
         if (m_refresh_timer && m_refresh_timer->IsRunning()) {
             m_refresh_timer->Stop();
@@ -1214,6 +1259,15 @@ void AMSDryCtrWin::enableSelfRefresh(bool enable)
     } else {
         m_refresh_timer->Stop();
     }
+}
+
+void AMSDryCtrWin::close_once()
+{
+    if (m_is_closing) {
+        return;
+    }
+    m_is_closing = true;
+    Close();
 }
 
 void AMSDryCtrWin::OnClose(wxCloseEvent& event)
@@ -1535,7 +1589,7 @@ void AMSDryCtrWin::update_normal_description(DevAms* dev_ams)
     static const AmsTempLimit ams_limits[] = {
         { DevAmsType::N3F, 45, 65, "AMS2" },
         { DevAmsType::N3S, 45, 85, "AMS-S" },
-        { DevAmsType::ZMULTI_A, 45, 85, "m2y-AMS" }
+        { DevAmsType::ZMULTI_A, 45, 85, "N10-AMS" }
     };
 
     for (const auto& lim : ams_limits) {
@@ -2167,7 +2221,7 @@ std::shared_ptr<DevFilaSystem> AMSDryCtrWin::get_fila_system() const
 {
     std::shared_ptr<DevFilaSystem> fila_system = m_fila_system.lock();
     if (!fila_system) {
-        const_cast<AMSDryCtrWin*>(this)->Close();
+        const_cast<AMSDryCtrWin*>(this)->close_once();
     }
     return fila_system;
 }
@@ -2180,6 +2234,9 @@ void AMSDryCtrWin::update_printer_state(MachineObject* obj)
 
 void AMSDryCtrWin::update(std::shared_ptr<DevFilaSystem> fila_system, MachineObject* obj)
 {
+    if (m_is_closing) {
+        return;
+    }
     if (!fila_system || !obj) {
         return;
     }
@@ -2191,13 +2248,13 @@ void AMSDryCtrWin::update(std::shared_ptr<DevFilaSystem> fila_system, MachineObj
     if (!dev_ams) {
         BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::update: Invalid AMS id";
         m_ams_info.m_ams_id = "";
-        Close();
+        close_once();
         return;
     }
 
     if (!dev_ams->IsSupportRemoteDry(fila_system->GetOwner())) {
         BOOST_LOG_TRIVIAL(info) << "AMSDryCtrWin::update: Selected AMS does not support remote drying";
-        Close();
+        close_once();
         return;
     }
 
