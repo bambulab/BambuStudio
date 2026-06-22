@@ -2257,7 +2257,7 @@ void NotificationManager::update_slicing_notif_dailytips(bool need_change)
 				wxGetApp().plater()->get_dailytips()->close();
 				std::string high_shrinkage_filament_names;
 				if (get_high_shrinkage_filament_names(high_shrinkage_filament_names))
-					spn->get_dailytips_panel()->retrieve_data_from_hint_database(HIGH_SHRINKAGE_FILAMENT_HINT_KEY, high_shrinkage_filament_names, true);
+					spn->get_dailytips_panel()->retrieve_data_from_hint_database(HIGH_SHRINKAGE_FILAMENT_HINT_KEY, high_shrinkage_filament_names);
 				else
 					spn->get_dailytips_panel()->retrieve_data_from_hint_database(HintDataNavigation::Random);
 				wxGetApp().plater()->get_current_canvas3D()->schedule_extra_frame(0);
