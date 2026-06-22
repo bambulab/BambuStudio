@@ -112,7 +112,7 @@ public:
     wxBoxSizer *create_item_region_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist);
     wxBoxSizer *create_item_language_combobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param, std::vector<const wxLanguageInfo *> vlist);
     wxBoxSizer *create_item_loglevel_combobox(wxString title, wxWindow *parent, wxString tooltip, std::vector<wxString> vlist);
-    wxBoxSizer *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
+    wxBoxSizer *create_item_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param, std::function<void(int)> callback = nullptr);
     wxBoxSizer *create_item_darkmode_checkbox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string param);
     void set_dark_mode();
     wxBoxSizer *create_item_button(wxString title, wxString title2, wxWindow *parent, wxString tooltip, std::function<void()> onclick);
@@ -131,15 +131,13 @@ public:
                                             std::function<void(wxString)> onchange = {},
                                             std::function<void(wxString)> onchange1 = {});
     wxBoxSizer *create_item_backup_input(wxString title, wxWindow *parent, wxString tooltip, std::string param);
-    wxBoxSizer *create_item_multiple_combobox(
-        wxString title, wxWindow *parent, wxString tooltip, int padding_left, std::string parama, std::vector<wxString> vlista, std::vector<wxString> vlistb);
     wxBoxSizer *create_item_switch(wxString title, wxWindow *parent, wxString tooltip, std::string param);
     wxWindow *  create_item_radiobox(wxString title, wxWindow *parent, wxString tooltip, int padding_left, int groupid, std::string param);
 
     wxWindow* create_general_page();
+    wxWindow* create_camera_page(wxWindow *parent);
     void create_gui_page();
     void create_sync_page();
-    void create_shortcuts_page();
     wxWindow* create_debug_page();
 
     void     on_select_radio(std::string param);

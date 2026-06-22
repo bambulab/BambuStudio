@@ -7632,16 +7632,11 @@ wxString Plater::get_slice_warning_string(GCodeProcessorResult::SliceWarning& wa
 
 void Plater::priv::apply_free_camera_correction(bool apply/* = true*/)
 {
-    bool use_perspective_camera = get_config("use_perspective_camera").compare("true") == 0;
-    if (use_perspective_camera)
+    if (wxGetApp().app_config->get_bool("use_perspective_camera"))
         camera.set_type(Camera::EType::Perspective);
     else
         camera.set_type(Camera::EType::Ortho);
-    if (apply
-#ifdef SUPPORT_FREE_CAMERA
-        && wxGetApp().app_config->get("use_free_camera") != "1"
-#endif
-        )
+    if (apply && !wxGetApp().app_config->get_bool("use_free_camera"))
         camera.recover_from_free_camera();
 }
 
@@ -19770,6 +19765,18 @@ bool Plater::is_any_job_running() const
 }
 
 void Plater::update_ui_from_settings() { p->update_ui_from_settings(); }
+
+void Plater::update_camera_from_settings() const
+{ 
+    update_camera_manipulation_settings();
+    p->apply_free_camera_correction();
+    p->set_current_canvas_as_dirty();
+}
+
+void Plater::update_camera_manipulation_settings() const {
+    // Passthrough to static method, to avoid needing to include GLCanvas3D declarations in other units just for this.
+    GLCanvas3D::update_camera_manipulation_settings();
+}
 
 void Plater::select_view(const std::string& direction) { p->select_view(direction); }
 

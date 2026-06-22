@@ -950,6 +950,7 @@ GLCanvas3D::Mouse::Drag::Drag()
     , move_volume_idx(-1)
     , move_requires_threshold(false)
     , move_start_threshold_position_2D(Invalid_2D_Point)
+    , last_modifiers(0)
 {
 }
 
@@ -958,7 +959,6 @@ GLCanvas3D::Mouse::Mouse()
     , position(DBL_MAX, DBL_MAX)
     , scene_position(DBL_MAX, DBL_MAX, DBL_MAX)
     , ignore_left_up(false)
-    , ignore_right_up(false)
 {
 }
 
@@ -1294,6 +1294,40 @@ void GLCanvas3D::SequentialPrintClearance::reset()
     m_perimeter.reset();
 }
 
+
+// GLCanvas3D::CameraManipulationConf
+
+// static
+GLCanvas3D::CameraRotationMode GLCanvas3D::CameraManipulationConf::camera_rot_mode_config_to_enum(const std::string& name) 
+{
+    if (!name.compare("plate"))     return GLCanvas3D::CameraRotationMode::SelectedPlate;
+    if (!name.compare("center"))    return GLCanvas3D::CameraRotationMode::ViewCenter;
+    if (!name.compare("selection")) return GLCanvas3D::CameraRotationMode::SelectionOrCursor;
+    if (!name.compare("cursor"))    return GLCanvas3D::CameraRotationMode::Cursor;
+    if (!name.compare("target"))    return GLCanvas3D::CameraRotationMode::CameraTarget;
+    return GLCanvas3D::CameraRotationMode::Default;
+}
+
+void GLCanvas3D::CameraManipulationConf::update_from_app_config()
+{
+    const auto *cfg = wxGetApp().app_config;
+    free_camera = cfg->get_bool("use_free_camera");
+    zoom_to_mouse = cfg->get_bool("zoom_to_mouse");
+    reverse_zoom = cfg->get_bool("reverse_mouse_wheel_zoom");
+    rot_button = GUI::mouse_button_name_to_wx_enum(cfg->get("view_rotate_mb"));
+    pan_button = GUI::mouse_button_name_to_wx_enum(cfg->get("view_pan_mb"));
+    rot_mode_nomod = camera_rot_mode_config_to_enum(cfg->get("view_rotate_mode_nomod"));
+    rot_mode_ctrl = camera_rot_mode_config_to_enum(cfg->get("view_rotate_mode_ctrl"));
+    rot_mode_alt = camera_rot_mode_config_to_enum(cfg->get("view_rotate_mode_alt"));
+    rot_speed_factor = std::atof(cfg->get("view_rotate_speed_factor").c_str());
+    if (rot_speed_factor < EPSILON)
+        rot_speed_factor = TRACKBALLSIZE;
+    rot_speed_factor = (PI * rot_speed_factor / 180.0f);
+}
+
+
+// GLCanvas3D
+
 wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_PLATE_NAME_CHANGE, SimpleEvent);
@@ -1344,6 +1378,8 @@ wxDEFINE_EVENT(EVT_GLCANVAS_SMOOTH_LAYER_HEIGHT_PROFILE, HeightProfileSmoothEven
 const double GLCanvas3D::DefaultCameraZoomToBoxMarginFactor = 1.25;
 const double GLCanvas3D::DefaultCameraZoomToBedMarginFactor = 2.00;
 const double GLCanvas3D::DefaultCameraZoomToPlateMarginFactor = 1.25;
+
+GLCanvas3D::CameraManipulationConf GLCanvas3D::m_cam_manip_conf{ };
 
 void GLCanvas3D::load_arrange_settings()
 {
@@ -1533,6 +1569,12 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
     m_assembly_view_desc["number_key"]       = _L("number keys can quickly change the color of objects");
 
     m_render_pipeline_stage_stack.push(ERenderPipelineStage::Normal);
+
+    // init static member only once
+    if (!m_cam_manip_conf.init) {
+        m_cam_manip_conf.init = true;
+        m_cam_manip_conf.update_from_app_config();
+    }
 }
 
 GLCanvas3D::~GLCanvas3D()
@@ -1544,9 +1586,7 @@ GLCanvas3D::~GLCanvas3D()
 
     s_full_screen_mesh.reset();
     m_unit_cube.reset();
-#if ENABLE_SHOW_CAMERA_TARGET
     m_camera_target_mark.reset();
-#endif // ENABLE_SHOW_CAMERA_TARGET
 
     m_sequential_print_clearance.reset();
 }
@@ -2727,9 +2767,6 @@ void GLCanvas3D::render(bool only_init)
     }
 #endif // ENABLE_RENDER_PICKING_PASS
 
-#if ENABLE_SHOW_CAMERA_TARGET
-    _render_camera_target();
-#endif // ENABLE_SHOW_CAMERA_TARGET
     if (m_picking_enabled && m_rectangle_selection.is_dragging())
         m_rectangle_selection.render(*this);
 
@@ -2752,17 +2789,21 @@ void GLCanvas3D::render(bool only_init)
         ImGui::SameLine();
         imgui.text(std::to_string(OpenGLManager::get_gl_info().get_max_tex_size()));
         imgui.end();
+        
+        camera.debug_render();
+        camera.debug_frustum();
+        if (m_rotation_center != Mouse::Drag::Invalid_3D_Point)
+            _render_camera_target(m_rotation_center);
+#if ENABLE_SHOW_CAMERA_TARGET
+        else
+            _render_camera_target(camera.get_target());
+#endif
     }
 
 #if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
     if (wxGetApp().is_editor() && wxGetApp().plater()->is_view3D_shown())
         wxGetApp().plater()->render_project_state_debug_window();
 #endif // ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
-
-    if (wxGetApp().plater()->is_render_statistic_dialog_visible()) {
-        camera.debug_render();
-        camera.debug_frustum();
-    }
 
 #if ENABLE_IMGUI_STYLE_EDITOR
     if (wxGetApp().get_mode() == ConfigOptionMode::comDevelop)
@@ -3894,9 +3935,14 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_MIDDLE_UP, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_RIGHT_DOWN, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_RIGHT_UP, &GLCanvas3D::on_mouse, this);
+        // m_canvas->Bind(wxEVT_AUX1_DOWN, &GLCanvas3D::on_mouse, this);
+        m_canvas->Bind(wxEVT_AUX1_UP, &GLCanvas3D::on_mouse, this);
+        // m_canvas->Bind(wxEVT_AUX2_DOWN, &GLCanvas3D::on_mouse, this);
+        m_canvas->Bind(wxEVT_AUX2_UP, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_MOTION, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_ENTER_WINDOW, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_LEAVE_WINDOW, &GLCanvas3D::on_mouse, this);
+        m_canvas->Bind(wxEVT_MOUSE_CAPTURE_LOST, &GLCanvas3D::on_mouse_capture_lost, this);
         m_canvas->Bind(wxEVT_LEFT_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_MIDDLE_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
@@ -3932,9 +3978,14 @@ void GLCanvas3D::unbind_event_handlers()
         m_canvas->Unbind(wxEVT_MIDDLE_UP, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_RIGHT_DOWN, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_RIGHT_UP, &GLCanvas3D::on_mouse, this);
+        // m_canvas->Unbind(wxEVT_AUX1_DOWN, &GLCanvas3D::on_mouse, this);
+        m_canvas->Unbind(wxEVT_AUX1_UP, &GLCanvas3D::on_mouse, this);
+        // m_canvas->Unbind(wxEVT_AUX2_DOWN, &GLCanvas3D::on_mouse, this);
+        m_canvas->Unbind(wxEVT_AUX2_UP, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_MOTION, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_ENTER_WINDOW, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_LEAVE_WINDOW, &GLCanvas3D::on_mouse, this);
+        m_canvas->Unbind(wxEVT_MOUSE_CAPTURE_LOST, &GLCanvas3D::on_mouse_capture_lost, this);
         m_canvas->Unbind(wxEVT_LEFT_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_MIDDLE_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
@@ -4727,7 +4778,9 @@ void GLCanvas3D::on_key(wxKeyEvent& evt)
         && keyCode != WXK_LEFT
         && keyCode != WXK_UP
         && keyCode != WXK_RIGHT
-        && keyCode != WXK_DOWN) {
+        && keyCode != WXK_DOWN
+        && keyCode != WXK_ALT  // prevent possible focus loss on ALT UP
+    ) {
         evt.Skip();   // Needed to have EVT_CHAR generated as well
     }
 }
@@ -4815,20 +4868,14 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
         return;
     }
     // Calculate the zoom delta and apply it to the current zoom factor
-#ifdef SUPPORT_REVERSE_MOUSE_ZOOM
-    double direction_factor = (wxGetApp().app_config->get("reverse_mouse_wheel_zoom") == "1") ? -1.0 : 1.0;
-#else
-    double direction_factor = 1.0;
-#endif
-    auto delta = direction_factor * (double)evt.GetWheelRotation() / (double)evt.GetWheelDelta();
-    bool zoom_to_mouse = wxGetApp().app_config->get("zoom_to_mouse") == "true";
-    if (!zoom_to_mouse) {// zoom to center
+    const float direction_factor = m_cam_manip_conf.reverse_zoom ? -1.0f : 1.0f;
+    const double delta = direction_factor * evt.GetWheelRotation() / (float)evt.GetWheelDelta();
+    if (!m_cam_manip_conf.zoom_to_mouse) {  // zoom to center
         _update_camera_zoom(delta);
     }
     else {
-        auto cnv_size = get_canvas_size();
         Camera& camera = get_active_camera();
-        auto screen_center_3d_pos = _mouse_to_3d(camera, { cnv_size.get_width() * 0.5, cnv_size.get_height() * 0.5 });
+        auto screen_center_3d_pos = _mouse_to_3d(camera, get_canvas_size().center());
         auto mouse_3d_pos = _mouse_to_3d(camera, {evt.GetX(), evt.GetY()});
         Vec3d displacement = mouse_3d_pos - screen_center_3d_pos;
         camera.translate(displacement);
@@ -5103,7 +5150,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         if (p_main_toolbar->on_mouse(evt, *this)) {
             if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
                 mouse_up_cleanup();
-            m_mouse.set_start_position_3D_as_invalid();
             return;
         }
     }
@@ -5111,7 +5157,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     if (wxGetApp().plater()->get_collapse_toolbar().on_mouse(evt, *this)) {
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
-        m_mouse.set_start_position_3D_as_invalid();
         return;
     }
 
@@ -5120,7 +5165,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     if (wxGetApp().plater()->get_view_toolbar().on_mouse(evt, *this)) {
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
-        m_mouse.set_start_position_3D_as_invalid();
         return;
     }
 #endif
@@ -5161,7 +5205,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
 
-        m_mouse.set_start_position_3D_as_invalid();
         m_mouse.position = pos.cast<double>();
 
         if (evt.Dragging() && current_printer_technology() == ptFFF && (fff_print()->config().print_sequence == PrintSequence::ByObject)) {
@@ -5197,7 +5240,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     int layer_editing_object_idx = is_layers_editing_enabled() ? selected_object_idx : -1;
 
 
-    if (m_mouse.drag.move_requires_threshold && m_mouse.is_move_start_threshold_position_2D_defined() && m_mouse.is_move_threshold_met(pos)) {
+    if (m_mouse.drag.move_requires_threshold && m_mouse.is_move_threshold_met(pos)) {
         m_mouse.drag.move_requires_threshold = false;
         m_mouse.set_move_start_threshold_position_2D_as_invalid();
     }
@@ -5229,12 +5272,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             _refresh_if_shown_on_screen();
             m_tooltip_enabled = true;
         }
-        m_mouse.set_start_position_2D_as_invalid();
 //#endif
     }
     else if (evt.Leaving()) {
         // to remove hover on objects when the mouse goes out of this canvas
         m_mouse.position = Vec2d(-1.0, -1.0);
+        // Allow pan and rotate mouse drag actions to continue outside of current window bounds.
+        if ((m_mouse.rotating || m_mouse.panning) && !m_canvas->HasCapture())
+            m_canvas->CaptureMouse();
         m_dirty = true;
     }
     else if (evt.LeftDClick()) {
@@ -5244,7 +5289,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else
             post_event(SimpleEvent(EVT_GLCANVAS_SWITCH_TO_GLOBAL));
     }
-    else if (evt.LeftDown() || evt.RightDown() || evt.MiddleDown()) {
+    else if (!m_mouse.dragging && evt.ButtonDown()) {
         m_show_assembly_view_preview_menu = false;
         //BBS: add orient deactivate logic
         if (!m_gizmos.on_mouse(evt)) {
@@ -5433,6 +5478,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
     }
     else if (evt.Dragging()) {
+        // Track initial drag starting position for rotate/pan hysterisis.
+        if (!m_mouse.dragging)
+            m_mouse.drag.move_start_threshold_position_2D = pos;
+
         m_mouse.dragging = true;
 
         if (m_layers_editing.state != LayersEditing::Unknown && layer_editing_object_idx != -1) {
@@ -5441,107 +5490,109 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_mouse.position = pos.cast<double>();
             }
         }
-        // do not process the dragging if the left mouse was set down in another canvas
-        else if (evt.LeftIsDown()) {
-            // if dragging over blank area with left button, rotate
-            if ((any_gizmo_active || m_hover_volume_idxs.empty()) && m_mouse.is_start_position_3D_defined()) {
-                const Vec3d rot = (Vec3d(pos.x(), pos.y(), 0.) - m_mouse.drag.start_position_3D) * (PI * TRACKBALLSIZE / 180.);
-                if (this->m_canvas_type == ECanvasType::CanvasAssembleView || m_gizmos.is_paint_gizmo()) {
-                    //BBS rotate around target
+        else {
+            const int drag_mods = evt.GetModifiers() & ~wxMOD_SHIFT;  // dont track shift state changes
+            // Rotate if dragging over blank area with configured rotation button.
+            if (GUI::wx_mouse_button_is_down(evt, m_cam_manip_conf.rot_button)) {
+                const Vec3d pos_3D((double)pos.x(), (double)pos.y(), 0.0);
+                // Do rotation if hysteresis tolerance has already been met on last drag event.
+                if (m_mouse.rotating) {
+                    const float rot_factor = evt.ShiftDown() ? m_cam_manip_conf.rot_speed_factor * .5f : m_cam_manip_conf.rot_speed_factor;
+                    const Vec3d rot = (pos_3D - m_mouse.drag.start_position_3D) * rot_factor;
                     Camera& camera = get_active_camera();
-                    Vec3d rotate_target = Vec3d::Zero();
-                    if (!m_selection.is_empty())
-                        rotate_target = m_selection.get_bounding_box().center();
-                    else
-                        rotate_target = volumes_bounding_box(is_volumes_limit_to_expand_plate()).center();
-                    //BBS do not limit rotate in assemble view
-                    camera.rotate_local_with_target(Vec3d(rot.y(), rot.x(), 0.), rotate_target);
-                    //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), false, rotate_target);
-                }
-                else {
-#ifdef SUPPORT_FEEE_CAMERA
-                    if (wxGetApp().app_config->get("use_free_camera") == "1")
-                        // Virtual track ball (similar to the 3DConnexion mouse).
-                        get_active_camera().rotate_local_around_target(Vec3d(rot.y(), rot.x(), 0.));
-                    else {
-#endif
-                        // Forces camera right vector to be parallel to XY plane in case it has been misaligned using the 3D mouse free rotation.
-                        // It is cheaper to call this function right away instead of testing wxGetApp().plater()->get_mouse3d_controller().connected(),
-                        // which checks an atomics (flushes CPU caches).
-                        // See GH issue #3816.
-                        Camera& camera = get_active_camera();
 
-                        bool rotate_limit = current_printer_technology() != ptSLA;
-                        Vec3d rotate_target = m_selection.get_bounding_box().center();
+                    // Update cached rotation reference point, if needed
+                    if (drag_mods != m_mouse.drag.last_modifiers || m_rotation_center == Mouse::Drag::Invalid_3D_Point) {
+                        // Set rotation target based on view mode or user preferences and any modifier keys.
+                        CameraRotationMode rot_mode;
+                        // Always rotate around selection in paint tool
+                        if (m_gizmos.is_paint_gizmo())
+                            rot_mode = CameraRotationMode::SelectionOrCursor;
+                        else if (drag_mods & wxMOD_CONTROL)
+                            rot_mode = m_cam_manip_conf.rot_mode_ctrl;
+                        else if (drag_mods & wxMOD_ALT)
+                            rot_mode = m_cam_manip_conf.rot_mode_alt;
+                        else
+                            rot_mode = m_cam_manip_conf.rot_mode_nomod;
 
-                        camera.recover_from_free_camera();
-                        //BBS modify rotation
-                        if (evt.ControlDown() || evt.CmdDown()) {
-                            if ((m_rotation_center.x() == 0.f) && (m_rotation_center.y() == 0.f) && (m_rotation_center.z() == 0.f)) {
-                                auto canvas_w = float(get_canvas_size().get_width());
-                                auto canvas_h = float(get_canvas_size().get_height());
-                                Point screen_center(canvas_w/2, canvas_h/2);
-                                //camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, wxGetApp().plater()->get_partplate_list().get_bounding_box().center());
-                                m_rotation_center = _mouse_to_3d(camera, screen_center);
-                                m_rotation_center(2) = 0.f;
-                            }
-                            camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, m_rotation_center);
-                        } else {
-                            //BBS rotate with current plate center
-                            PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate();
-                            if (plate)
-                                camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rotate_limit, plate->get_bounding_box().center());
-                            else
-                                camera.rotate_on_sphere(rot.x(), rot.y(), rotate_limit);
+                        // There's no "current plate" in assembly view, so switch to section/cursor style instead.
+                        if (this->m_canvas_type == ECanvasType::CanvasAssembleView && rot_mode == CameraRotationMode::SelectedPlate)
+                            rot_mode = CameraRotationMode::SelectionOrCursor;
+
+                        switch (rot_mode) {
+                            case CameraRotationMode::ViewCenter:
+                                // Rotate around center of canvas.
+                                m_rotation_center = _mouse_to_3d(camera, get_canvas_size().center());
+                                m_rotation_center(2) = .0;
+                                break;
+                            case CameraRotationMode::SelectionOrCursor:
+                                // Rotate around selection, if any.
+                                if (!m_selection.is_empty()) {
+                                    m_rotation_center = m_selection.get_bounding_box().center();
+                                    break;
+                                }
+                                [[fallthrough]];
+                            case CameraRotationMode::Cursor:
+                                // Rotate around current cursor position.
+                                m_rotation_center = _mouse_to_3d(camera, pos);
+                                break;
+                            case CameraRotationMode::SelectedPlate:
+                                // Rotate around current plate center
+                                if (PartPlate* plate = wxGetApp().plater()->get_partplate_list().get_curr_plate()) {
+                                    m_rotation_center = plate->get_bounding_box().center();
+                                    break;
+                                }
+                                [[fallthrough]];
+                            case CameraRotationMode::CameraTarget:
+                            default:
+                                // Use current camera target
+                                m_rotation_center = camera.get_target();
+                                break;
                         }
-#ifdef SUPPORT_FEEE_CAMERA
-                    }
-#endif
-                }
+                    }  // update m_rotation_center
 
-                m_dirty = true;
-            }
-            if (m_mouse.is_move_threshold_met(pos)) {
-                m_mouse.rotating = true;
-            }
-            m_mouse.drag.start_position_3D = Vec3d((double)pos(0), (double)pos(1), 0.0);
-            m_mouse.drag.move_start_threshold_position_2D = pos;
-        }
-        else if (evt.MiddleIsDown() || evt.RightIsDown()) {
-            // If dragging over blank area with right button, pan.
-            if (m_mouse.is_start_position_2D_defined()) {
-                // get point in model space at Z = 0
-                float z = 0.0f;
-                Camera& camera = get_active_camera();
-                const Vec3d& cur_pos = _mouse_to_3d(camera, pos, &z);
-                Vec3d orig = _mouse_to_3d(camera, m_mouse.drag.start_position_2D, &z);
-#ifdef SUPPORT_FREE_CAMERA
-                if (this->m_canvas_type != ECanvasType::CanvasAssembleView) {
-                    if (wxGetApp().app_config->get("use_free_camera") != "1")
-                        // Forces camera right vector to be parallel to XY plane in case it has been misaligned using the 3D mouse free rotation.
-                        // It is cheaper to call this function right away instead of testing wxGetApp().plater()->get_mouse3d_controller().connected(),
-                        // which checks an atomics (flushes CPU caches).
-                        // See GH issue #3816.
-                        camera.recover_from_free_camera();
+                    //BBS do not limit rotate in paint tool views
+                    const bool rot_constrained = !m_gizmos.is_paint_gizmo() && !m_cam_manip_conf.free_camera;
+                    camera.rotate_on_sphere_with_target(rot.x(), rot.y(), rot_constrained, m_rotation_center);
+                    m_dirty = true;
                 }
-#endif
+                // Start rotating on the next drag event once movement threshold is met.
+                else if (m_mouse.is_move_threshold_met(pos)) {
+                    m_mouse.rotating = true;
+                }
+                // Track last position for movement delta calculation on next drag event.
+                m_mouse.drag.start_position_3D = pos_3D;
+            }
 
-                camera.set_target(camera.get_target() + orig - cur_pos);
-                m_dirty = true;
-                m_mouse.ignore_right_up = true;
+            // Pan if dragging over blank area with configured pan button(s).
+            // wxMouseButton::wxMOUSE_BTN_ANY is a special exception for legacy controls which accepts either middle or right buttons.
+            if ( ( m_cam_manip_conf.pan_button == wxMouseButton::wxMOUSE_BTN_ANY && (evt.MiddleIsDown() || evt.RightIsDown()) )
+                || ( m_cam_manip_conf.pan_button != wxMouseButton::wxMOUSE_BTN_ANY && GUI::wx_mouse_button_is_down(evt, m_cam_manip_conf.pan_button) )
+            ) {
+                // Do panning if hysteresis tolerance has already been met on last drag event.
+                if (m_mouse.panning) {
+                    // get point in model space at Z = 0
+                    float z = 0.0f;
+                    Camera& camera = get_active_camera();
+                    const Vec3d cur_pos = _mouse_to_3d(camera, pos, &z);
+                    const Vec3d orig = _mouse_to_3d(camera, m_mouse.drag.start_position_2D, &z);
+                    camera.set_target(camera.get_target() + orig - cur_pos);
+                    m_dirty = true;
+                }
+                else if (m_mouse.is_move_threshold_met(pos)) {
+                    // Start panning on the next drag event once movement threshold is met.
+                    m_mouse.panning = true;
+                }
+                m_mouse.drag.start_position_2D = pos;
             }
-            if (m_mouse.is_move_threshold_met(pos)) {
-                m_mouse.panning = true;
-            }
-            m_mouse.drag.start_position_2D = pos;
-            m_mouse.drag.move_start_threshold_position_2D = pos;
+
+            m_mouse.drag.last_modifiers = drag_mods;
         }
     }
-    else if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp()) {
+    else if (evt.ButtonUp()) {
 
         if (evt.LeftUp()) {
             m_selection.stop_dragging();
-            m_rotation_center(0) = m_rotation_center(1) = m_rotation_center(2) = 0.f;
         }
 
         if (m_layers_editing.state != LayersEditing::Unknown) {
@@ -5592,7 +5643,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     }
                 }
         }
-        else if (evt.RightUp() && !is_layers_editing_enabled()) {
+        else if (evt.RightUp() && !is_layers_editing_enabled() && !m_mouse.rotating && !m_mouse.panning) {
             m_mouse.position = pos.cast<double>();
             // forces a frame render to ensure that m_hover_volume_idxs is updated even when the user right clicks while
             // the context menu is already shown
@@ -5628,28 +5679,37 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 render();
             }
 
-            Vec2d logical_pos = pos.cast<double>();
-#if ENABLE_RETINA_GL
-            const float factor = m_retina_helper->get_scale_factor();
-            logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
-#endif // ENABLE_RETINA_GL
-
-            if (!m_mouse.ignore_right_up && m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined) {
+            if (m_gizmos.get_current_type() == GLGizmosManager::EType::Undefined) {
                 //BBS post right click event
-                if (!m_hover_plate_idxs.empty()) {
+                Vec2d logical_pos = pos.cast<double>();
+#if ENABLE_RETINA_GL
+                const float factor = m_retina_helper->get_scale_factor();
+                logical_pos = logical_pos.cwiseQuotient(Vec2d(factor, factor));
+#endif // ENABLE_RETINA_GL
+                if (!m_hover_plate_idxs.empty())
                     post_event(RBtnPlateEvent(EVT_GLCANVAS_PLATE_RIGHT_CLICK, { logical_pos, m_hover_plate_idxs.front() }));
-                }
-                else {
-                    // do not post the event if the user is panning the scene
-                    // or if right click was done over the wipe tower
-                    bool post_right_click_event = m_hover_volume_idxs.empty() || !m_volumes.volumes[get_first_hover_volume_idx()]->is_wipe_tower;
-                    if (post_right_click_event)
-                        post_event(RBtnEvent(EVT_GLCANVAS_RIGHT_CLICK, { logical_pos, m_hover_volume_idxs.empty() }));
-                }
+                // do not post the event if right click was done over a volume or the wipe tower
+                else if (m_hover_volume_idxs.empty() || !m_volumes.volumes[get_first_hover_volume_idx()]->is_wipe_tower)
+                    post_event(RBtnEvent(EVT_GLCANVAS_RIGHT_CLICK, { logical_pos, m_hover_volume_idxs.empty() }));
             }
         }
 
-        mouse_up_cleanup();
+        // Only partially reset mouse state if still dragging (with other button(s) down)
+        if (m_mouse.dragging && GUI::wx_mouse_button_is_down(evt, wxMOUSE_BTN_ANY)) {
+            if (!GUI::wx_mouse_button_is_down(evt, m_cam_manip_conf.rot_button)) {
+                m_mouse.rotating = false;
+                if (m_cam_manip_conf.rot_button == wxMouseButton::wxMOUSE_BTN_LEFT)
+                    m_mouse.ignore_left_up = false;
+            }
+            // Special exception for controls setup which accepts either middle or right buttons.
+            if (m_cam_manip_conf.pan_button == wxMouseButton::wxMOUSE_BTN_ANY)
+                m_mouse.panning = evt.MiddleIsDown() || evt.RightIsDown();
+            else
+                m_mouse.panning = GUI::wx_mouse_button_is_down(evt, m_cam_manip_conf.pan_button);
+        }
+        else {
+            mouse_up_cleanup();
+        }
     }
     else if (evt.Moving()) {
         m_mouse.position = pos.cast<double>();
@@ -6412,14 +6472,13 @@ void GLCanvas3D::export_toolpaths_to_obj(const char* filename) const
 void GLCanvas3D::mouse_up_cleanup()
 {
     m_moving = false;
+    m_rotation_center = Mouse::Drag::Invalid_3D_Point;
     m_mouse.drag.move_volume_idx = -1;
-    m_mouse.set_start_position_3D_as_invalid();
-    m_mouse.set_start_position_2D_as_invalid();
+    m_mouse.drag.last_modifiers = 0;
     m_mouse.dragging = false;
     m_mouse.rotating = false;
     m_mouse.panning = false;
     m_mouse.ignore_left_up = false;
-    m_mouse.ignore_right_up = false;
     m_dirty = true;
 
     if (m_canvas->HasCapture())
@@ -10049,8 +10108,7 @@ void GLCanvas3D::_render_assemble_info() const
     ImGuiWrapper::pop_toolbar_style();
 }
 
-#if ENABLE_SHOW_CAMERA_TARGET
-void GLCanvas3D::_render_camera_target() const
+void GLCanvas3D::_render_camera_target(const Vec3d& target) const
 {
     const auto& p_flat_shader = wxGetApp().get_shader("flat");
     if (!p_flat_shader)
@@ -10080,10 +10138,8 @@ void GLCanvas3D::_render_camera_target() const
 
     glsafe(::glDisable(GL_DEPTH_TEST));
 
-    const auto& p_ogl_manager = wxGetApp().get_opengl_manager();
-    p_ogl_manager.set_line_width(2.0f);
-
-    const Vec3d& target = get_active_camera().get_target();
+    if (const auto* p_ogl_manager = wxGetApp().get_opengl_manager().get())
+        p_ogl_manager->set_line_width(2.0f);
 
     const float scale = 2.0f * half_length;
     Transform3d model_matrix{ Transform3d::Identity() };
@@ -10117,7 +10173,6 @@ void GLCanvas3D::_render_camera_target() const
 
     wxGetApp().unbind_shader();
 }
-#endif // ENABLE_SHOW_CAMERA_TARGET
 
 void GLCanvas3D::_render_sla_slices()
 {

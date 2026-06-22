@@ -461,6 +461,10 @@ public:
     // Called after the Preferences dialog is closed and the program settings are saved.
     // Update the UI based on the current preferences.
     void update_ui_from_settings();
+    // Called to update camera type and constraint based on current settings.
+    void update_camera_from_settings() const;
+    // Called to update cached camera manipulation settings based on user preferences.
+    void update_camera_manipulation_settings() const;
 
     //BBS
     void select_curr_plate_all();
