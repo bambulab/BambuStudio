@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 #include <array>
 #include <memory>
 #include <optional>
@@ -150,12 +151,19 @@ struct KeyFrame
         id = src.id;
         name = src.name;
         is_sub_assembly = src.is_sub_assembly;
+        is_camera_define = src.is_camera_define;
+        camera_user_defined = src.camera_user_defined;
+        // Camera framing.
         view_matrix = src.view_matrix;
         projection_matrix = src.projection_matrix;
         camera_target = src.camera_target;
         camera_zoom = src.camera_zoom;
         camera_margin_factor = src.camera_margin_factor;
-        camera_user_defined = src.camera_user_defined;
+        // Per-keyframe assemble-transformation (matrix pose) snapshots: copy them
+        object_transformations = src.object_transformations;
+        volume_transformations = src.volume_transformations;
+        volume_names = src.volume_names;
+        assembly_note = src.assembly_note;
         labels_show_type = src.labels_show_type;
     }
     void to_json(nlohmann::json &j) const;
@@ -212,7 +220,7 @@ struct KeyFrameEntry
     bool     is_transition() const { return data.is_transition(); }
     void     clone_from(const KeyFrameEntry &src)
     {
-        data      = src.data;
+        data.clone_from(src.data);
         need_save = true;
     }
 };
@@ -268,6 +276,11 @@ struct AssemblyStepsTreeData
     int                                camera_ref_viewport_w{0};
     int                                camera_ref_viewport_h{0};
 
+    // Runtime-only (NOT serialized): model object/volume id snapshot captured at the
+    bool                                has_loaded_recorded_baseline{false};
+    std::set<size_t>                    loaded_recorded_objects;
+    std::set<std::pair<size_t, size_t>> loaded_recorded_volumes;
+
     bool empty() const { return nodes.empty(); }
     void clear()
     {
@@ -275,6 +288,9 @@ struct AssemblyStepsTreeData
         roots.clear();
         camera_ref_viewport_w = 0;
         camera_ref_viewport_h = 0;
+        has_loaded_recorded_baseline = false;
+        loaded_recorded_objects.clear();
+        loaded_recorded_volumes.clear();
     }
     std::string to_json_string() const;
     static bool from_json_string(const std::string&     json_str,

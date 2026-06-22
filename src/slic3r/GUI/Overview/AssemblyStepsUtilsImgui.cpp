@@ -118,8 +118,9 @@ void AssemblyStepsUtils::refresh_guide_show_part_numbers_from_current()
             return;
         }
         m_guide_show_part_numbers = note.show_part_labels;
-        if (m_guide_show_part_numbers && note.part_number_labels.empty())
-            toggle_part_number_labels();
+        if (m_guide_show_part_numbers && note.part_number_labels.empty()){
+            toggle_part_number_labels();///*user_initiated=*/true ,check clear_all_keyframe_part_number_labels();
+        }
     } else {
         m_guide_show_part_numbers = false;
     }
@@ -3282,7 +3283,7 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         // m_non_final_assembly_step_limit_reached, which the tooltips read below.
         const bool reached_step_limit = !can_add_non_final_assembly_step();
         const bool copy_disabled = selected_folder < 0 || selected_final_assembly || reached_step_limit;
-        const bool add_disabled  = selected_final_assembly || reached_step_limit;
+        const bool add_disabled  = reached_step_limit;
         // Extra warning appended when the step cap is hit. The cap counts non-final
         // steps (MAX) plus the single final-assembly step, hence MAX + 1 total.
         const std::string step_over_limit_tip = (boost::format(_u8L("No more than %1% steps are allowed.")) % (MAX_NON_FINAL_ASSEMBLY_STEPS + 1)).str();
@@ -5791,7 +5792,9 @@ void AssemblyStepsUtils::apply_assembly_tree_checked_to_step(
         m_structure_select_popup_checked.clear();
         sync_keyframe_tree();
         // The step's children just changed (e.g. an empty step that got objects
-        fill_folder_keyframes_from_children(active_step_node);
+        // added). Only capture the matrix pose for objects added in this confirm;
+        // objects that were already in the step keep their stored pose.
+        fill_folder_keyframes_from_children(active_step_node,/*use_glvolume_tran*/ true);
         // A step that was empty before this confirm had no real camera (its default
         if (folder_was_empty && !checked_objects.empty()) {
             for (auto &entry : steps_tree.nodes[active_step_node].kf_data.entries) {

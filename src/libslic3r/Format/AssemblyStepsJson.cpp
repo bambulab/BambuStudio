@@ -1002,6 +1002,26 @@ bool AssemblyStepsTreeData::from_json_string(
         parsed.camera_ref_viewport_w = json_doc.get_camera_ref_viewport_w();
         parsed.camera_ref_viewport_h = json_doc.get_camera_ref_viewport_h();
 
+        // Capture the load-time model snapshot as the baseline for the assembly view.
+        // The 3mf was saved with model and steps data consistent, so this snapshot
+        // represents "the model state the loaded steps data matches". Runtime-only.
+        parsed.loaded_recorded_objects.clear();
+        parsed.loaded_recorded_volumes.clear();
+        for (int oi = 0; oi < object_count; ++oi) {
+            const ModelObject *obj = model.objects[oi];
+            if (!obj)
+                continue;
+            const size_t object_id = obj->id().id;
+            if (!obj->instances.empty())
+                parsed.loaded_recorded_objects.insert(object_id);
+            for (int vi = 0; vi < (int) obj->volumes.size(); ++vi) {
+                const ModelVolume *volume = obj->volumes[vi];
+                if (volume)
+                    parsed.loaded_recorded_volumes.insert({object_id, volume->id().id});
+            }
+        }
+        parsed.has_loaded_recorded_baseline = true;
+
         tree = std::move(parsed);
         return true;
     } catch (const std::exception& e) {

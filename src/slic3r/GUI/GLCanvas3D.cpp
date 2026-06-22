@@ -2902,6 +2902,14 @@ void GLCanvas3D::render(bool only_init)
     _render_overlays();
 
     if (wxGetApp().plater()->is_render_statistic_dialog_visible()) {
+        // Match the canvas tooltip styling: dark window background with white text,
+        // no rounding/border, compact padding (see GLCanvas3D::Tooltip::render).
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 8.0f));
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.13f, 0.13f, 0.13f, 0.94f));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+
         ImGui::ShowMetricsWindow();
 
         ImGuiWrapper& imgui = *wxGetApp().imgui();
@@ -2917,6 +2925,9 @@ void GLCanvas3D::render(bool only_init)
         ImGui::SameLine();
         imgui.text(std::to_string(OpenGLManager::get_gl_info().get_max_tex_size()));
         imgui.end();
+
+        ImGui::PopStyleColor(2);
+        ImGui::PopStyleVar(3);
     }
 
 #if ENABLE_PROJECT_DIRTY_STATE_DEBUG_WINDOW
@@ -10545,7 +10556,7 @@ void GLCanvas3D::_render_assemble_control()
         const bool disable_display_mode = !m_assembly_steps->has_selected_node();
         ImGui::SameLine(same_line_width);
         imgui->disabled_begin(disable_display_mode);
-        std::vector<std::string> modes = {_u8L("OnlyCurrentStep"), _u8L("Highlight")};//, _u8L("All")
+        std::vector<std::string> modes = {_u8L("Show Current Step Objects Only"), _u8L("X-Ray Other Objects")};//, _u8L("All")
         int display_idx = static_cast<int>(m_assembly_steps->keyframe_display_mode());
         auto label       = _u8L("Display Mode") + ":";
         auto label_width = imgui->calc_text_size(label).x;

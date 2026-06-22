@@ -425,8 +425,11 @@ public://logic
     void        auto_apply_final_assembly_on_selection_cleared();
     // Re-map the currently selected step folder + keyframe to its global play-bar
     void        sync_play_index_to_selection();
+    // After a structural edit (add / copy / insert / delete step) eagerly rebuild
+    void        reschedule_play_bar_after_structure_change();
     void        update_step_screen_center();
-    void        fill_folder_keyframes_from_children(int folder_idx);
+    // When `only_object_idxs` is provided, only those object indices have their
+    void        fill_folder_keyframes_from_children(int folder_idx,  bool use_glvolume_tran = false);
     std::string get_object_name(int object_idx);
     bool        has_instance(int object_idx);
     std::string              get_volume_name(int object_idx, int volume_idx) const;
@@ -580,6 +583,8 @@ public://logic
     void                                     sync_keyframe_tree();
     void                                     ensure_default_keyframe(int node_idx);
     void                                     ensure_default_keyframe_for_node(int node_idx, const std::string &last_frame_name);
+    // Seed a freshly-created step's end frame with the current camera, so switching to
+    void                                     seed_end_frame_camera_from_current(int node_idx);
     KeyFrameEntryVector                     *get_current_kf_entries();
     void                                     fill_default_transforms(KeyFrameEntry &entry, int object_idx);
     int                                      default_keyframe_index();
@@ -658,6 +663,8 @@ public://logic
     // Build left-side assembly tree from Model objects and plates
     AssemblyTreeData build_assembly_tree_data();
     void             show_all_volume_normal_render();
+    // Render every part as a translucent "candidate" for a freshly-created step: parts
+    void             show_volumes_as_step_candidates();
     KeyframeDisplayMode keyframe_display_mode() const { return m_keyframe_display_mode; }
     // Overload that updates `m_keyframe_display_mode` first, then applies it.
     void apply_keyframe_display_mode();
@@ -681,7 +688,7 @@ public://logic
     void                                    begin_structure_step_rename(int node_idx, const std::string &fallback_title = std::string());
     void                                    open_structure_add_tree(int card_idx, int step_node_idx, const ImVec2 &pos);
     void                                    exit_render_assembly_tree_ui();
-    void                                    insert_structure_step_relative(int ref_node_idx, bool before);
+    void                                    insert_structure_step_relative(int ref_node_idx, bool before, const std::string &folder_name = std::string());
     void                                    delete_structure_step(int node_idx);
     void                                    show_pdf_export_settings_dialog();
     // Reverse direction: take the current canvas Selection and write the matching
