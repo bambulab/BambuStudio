@@ -1984,7 +1984,7 @@ bool Sidebar::priv::sync_extruder_list(bool &only_external_material, bool is_man
         if (obj->is_nozzle_flow_type_supported()) {
             if (obj->GetExtderSystem()->GetNozzleFlowType(index) == NozzleFlowType::NONE_FLOWTYPE) {
                 MessageDialog dlg(this->plater, _L("There are unset nozzle types. Please set the nozzle types of all extruders before synchronizing."),
-                                  _L("Sync extruder infomation"), wxICON_WARNING | wxOK);
+                                  _L("Sync extruder information"), wxICON_WARNING | wxOK);
                 dlg.ShowModal();
                 continue;
             }

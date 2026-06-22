@@ -1816,7 +1816,7 @@ void AMSControl::on_filament_load(wxCommandEvent &event)
     const auto& filament_id = get_filament_id(m_current_ams, GetCurrentCan(m_current_ams));
     if (filament_id.empty())
     {
-        MessageDialog msg_dlg(nullptr, _L("Filament type is unknown which is required to perform this action. Please set target filament's informations."),
+        MessageDialog msg_dlg(nullptr, _L("Filament type is unknown which is required to perform this action. Please set target filament's information."),
                               wxEmptyString, wxICON_WARNING | wxOK);
         msg_dlg.ShowModal();
         return;
