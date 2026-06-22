@@ -2059,6 +2059,39 @@ void GLCanvas3D::toggle_model_objects_visibility(bool visible, const ModelObject
         _set_warning_notification(EWarning::SomethingNotShown, false);
 }
 
+void GLCanvas3D::update_plate_volumes_visibility(PartPlateList& plate_list)
+{
+    // Build a set of (object_id, instance_id) pairs that belong to hidden plates
+    std::set<std::pair<int,int>> hidden_instances;
+    for (int i = 0; i < plate_list.get_plate_count(); i++) {
+        const PartPlate* plate = plate_list.get_plate(i);
+        if (plate && !plate->is_visible()) {
+            for (const auto& pair : plate->get_instance_set())
+                hidden_instances.insert(pair);
+        }
+    }
+
+    for (GLVolume* vol : m_volumes.volumes) {
+        int obj_id  = vol->composite_id.object_id;
+        int inst_id = vol->composite_id.instance_id;
+        bool in_hidden;
+        if (vol->is_wipe_tower) {
+            int wt_plate_id = obj_id - 1000;
+            const PartPlate* wt_plate = plate_list.get_plate(wt_plate_id);
+            in_hidden = wt_plate && !wt_plate->is_visible();
+        } else if (obj_id < 0 || obj_id >= 1000) {
+            continue;
+        } else {
+            in_hidden = hidden_instances.count({obj_id, inst_id}) > 0;
+        }
+        if (in_hidden)
+            vol->is_active = false;
+        else if (!vol->is_active) {
+            vol->is_active = true;
+        }
+    }
+}
+
 void GLCanvas3D::update_instance_printable_state_for_object(const size_t obj_idx)
 {
     ModelObject* model_object = m_model->objects[obj_idx];
@@ -3765,6 +3798,8 @@ void GLCanvas3D::reload_scene(bool refresh_immediately, bool force_full_scene_re
 #endif
     }
     wxGetApp().plater()->get_partplate_list().reset_thumbnail_assembly_view_data(); // reload scene
+    // Re-apply per-plate visibility (newly loaded wipe towers default to active).
+    update_plate_volumes_visibility(wxGetApp().plater()->get_partplate_list());
     // and force this canvas to be redrawn.
     m_dirty = true;
 }
@@ -7491,6 +7526,94 @@ bool GLCanvas3D::_init_main_toolbar()
             item.enabling_callback = [this]()->bool {
                 return wxGetApp().plater()->has_assmeble_view();
                 };
+            item.b_collapsible = false;
+            if (!p_main_toolbar->add_item(item))
+                return false;
+        }
+
+        {
+            GLToolbarItem::Data item;
+            item.name = "plate_visibility";
+            item.icon_filename_callback = [](bool is_dark_mode)->std::string {
+                return is_dark_mode ? "toolbar_plate_visibility_dark.svg" : "toolbar_plate_visibility.svg";
+            };
+            item.tooltip = _utf8(L("Show/Hide Plates"));
+            item.sprite_id = sprite_id++;
+            item.left.toggable = false;
+            item.left.action_callback = [this]() {
+                if (m_canvas == nullptr) return;
+                PartPlateList& list = wxGetApp().plater()->get_partplate_list();
+                if (list.get_plate_count() <= 1) return;
+                wxMenu menu;
+
+                auto do_refresh = [this, &list]() {
+                    list.update_unselected_plate_trans(list.get_plate_count());
+                    update_plate_volumes_visibility(list);
+                    wxGetApp().obj_list()->reload_all_plates();
+                    wxGetApp().plater()->update();
+                };
+
+                // Show All
+                wxMenuItem* show_all = menu.Append(wxID_ANY, _L("Show All Plates"));
+                menu.Bind(wxEVT_MENU, [this, &list, do_refresh](wxCommandEvent&) {
+                    for (int i = 0; i < list.get_plate_count(); i++) {
+                        PartPlate* p = list.get_plate(i);
+                        if (p && !p->is_visible()) p->set_visible(true);
+                    }
+                    do_refresh();
+                }, show_all->GetId());
+
+                // Hide Other Plates — disabled if current plate is hidden or no others are visible
+                int curr_idx = list.get_curr_plate_index();
+                PartPlate* curr_plate = list.get_plate(curr_idx);
+                bool curr_is_visible = curr_plate && curr_plate->is_visible();
+                wxMenuItem* hide_others = menu.Append(wxID_ANY, _L("Hide Other Plates"));
+                bool any_other_visible = false;
+                for (int i = 0; i < list.get_plate_count(); i++)
+                    if (i != curr_idx && list.get_plate(i) && list.get_plate(i)->is_visible())
+                        any_other_visible = true;
+                if (!any_other_visible || !curr_is_visible) hide_others->Enable(false);
+                menu.Bind(wxEVT_MENU, [this, &list, curr_idx, do_refresh](wxCommandEvent&) {
+                    PartPlate* curr = list.get_plate(curr_idx);
+                    if (!curr || !curr->is_visible()) return;
+                    for (int i = 0; i < list.get_plate_count(); i++) {
+                        PartPlate* p = list.get_plate(i);
+                        if (p && i != curr_idx && p->is_visible()) p->set_visible(false);
+                    }
+                    do_refresh();
+                }, hide_others->GetId());
+
+                menu.AppendSeparator();
+
+                // Per-plate toggles
+                for (int i = 0; i < list.get_plate_count(); i++) {
+                    PartPlate* plate = list.get_plate(i);
+                    if (!plate) continue;
+                    wxString name = from_u8(plate->get_plate_name());
+                    if (name.empty())
+                        name = wxString::Format(_L("Plate %d"), i + 1);
+                    else
+                        name = wxString::Format("%s (%d)", name, i + 1);
+                    wxMenuItem* mi = menu.AppendCheckItem(wxID_ANY, name);
+                    mi->Check(plate->is_visible());
+                    if (plate->is_visible() && list.get_visible_plate_count() <= 1)
+                        mi->Enable(false);
+                    menu.Bind(wxEVT_MENU, [this, i, &list, do_refresh](wxCommandEvent&) {
+                        PartPlate* p = list.get_plate(i);
+                        if (!p) return;
+                        if (p->is_visible() && list.get_visible_plate_count() <= 1) return;
+                        p->set_visible(!p->is_visible());
+                        do_refresh();
+                    }, mi->GetId());
+                }
+                m_canvas->PopupMenu(&menu);
+            };
+            item.left.render_callback = GLToolbarItem::Default_Render_Callback;
+            item.visible = true;
+            item.visibility_callback = [this]()->bool {
+                return wxGetApp().plater()->get_partplate_list().get_plate_count() > 1;
+            };
+            item.enabling_callback = []()->bool { return true; };
             item.b_collapsible = false;
             if (!p_main_toolbar->add_item(item))
                 return false;

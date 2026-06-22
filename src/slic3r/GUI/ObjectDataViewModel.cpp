@@ -512,6 +512,9 @@ wxDataViewItem ObjectDataViewModel::AddPlate(PartPlate* part_plate, wxString nam
         if (!part_plate->get_plate_name().empty()) {
             plate_name += wxString(" (", wxConvUTF8) + from_u8(part_plate->get_plate_name()) + wxString(")", wxConvUTF8);
         }
+        if (part_plate && !part_plate->is_visible()) {
+            plate_name += wxString(" [") + _L("hidden") + wxString("]");
+        }
     }
     auto plate_node = new ObjectDataViewModelNode(part_plate, plate_name);
 
@@ -1332,12 +1335,18 @@ wxDataViewItem ObjectDataViewModel::GetItemByPlateId(int plate_idx)
 }
 
 void ObjectDataViewModel::SetCurSelectedPlateFullName(int plate_idx, const std::string & custom_name) {
+    PartPlateList* ppl = wxGetApp().plater() ? &wxGetApp().plater()->get_partplate_list() : nullptr;
     for (auto plate : m_plates) {
         if (plate->m_plate_idx == plate_idx) {
             wxString plate_full_name =_L("Plate");
             plate_full_name += wxString::Format(" %d", plate_idx + 1);
             if (!custom_name.empty()) {
                 plate_full_name += wxString(" (", wxConvUTF8) + from_u8(custom_name) + wxString(")", wxConvUTF8);
+            }
+            if (ppl) {
+                PartPlate* pp = ppl->get_plate(plate_idx);
+                if (pp && !pp->is_visible())
+                    plate_full_name += wxString(" [") + _L("hidden") + wxString("]");
             }
             plate->SetName(plate_full_name);
         }

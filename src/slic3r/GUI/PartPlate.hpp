@@ -102,6 +102,7 @@ private:
     float m_height_to_rod;
     bool m_printable;
     bool m_locked;
+    bool m_visible {true};
     bool m_ready_for_slice;
     bool m_slice_result_valid;
     bool m_apply_invalid {false};
@@ -191,9 +192,10 @@ private:
 
 public:
     static const unsigned int PLATE_BASE_ID = 255 * 255 * 253;
-    static const unsigned int GRABBER_COUNT         = 8;
+    static const unsigned int GRABBER_COUNT         = 9;
+    static const unsigned int PLATE_VISIBLE_ID      = GRABBER_COUNT - 3;
     static const unsigned int PLATE_FILAMENT_MAP_ID = GRABBER_COUNT - 2;
-    static const unsigned int PLATE_NAME_ID = GRABBER_COUNT-1;
+    static const unsigned int PLATE_NAME_ID         = GRABBER_COUNT - 1;
 
     static std::array<float, 4> SELECT_COLOR;
     static std::array<float, 4> UNSELECT_COLOR;
@@ -428,13 +430,22 @@ public:
     bool is_locked() const { return m_locked; }
     void lock(bool state) { m_locked = state; }
 
+    //is visible in the 3D viewport or not
+    bool is_visible() const { return m_visible; }
+    void set_visible(bool state) {
+        m_visible = state;
+        if (!state) update_slice_result_valid_state(false);
+    }
+
+    const std::set<std::pair<int,int>>& get_instance_set() const { return obj_to_instance_set; }
+
     //is a printable plate or not
     bool is_printable() const { return m_printable; }
 
     //can be sliced or not
     bool can_slice() const
     {
-        return m_ready_for_slice && !m_apply_invalid;
+        return m_visible && m_ready_for_slice && !m_apply_invalid;
     }
 
     bool can_helio_slice() const {
@@ -477,12 +488,13 @@ public:
     //is slice result valid or not
     bool is_slice_result_valid() const
     {
-        return m_slice_result_valid;
+        return m_visible && m_slice_result_valid;
     }
 
     //is slice result ready for print
     bool is_slice_result_ready_for_print() const
     {
+        if (!m_visible) return false;
         bool result = m_slice_result_valid;
         int  WARNING_BIT = (1<<11);
         if (result)
@@ -495,7 +507,7 @@ public:
     // check whether plate's slice result valid for export to file
     bool is_slice_result_ready_for_export()
     {
-        return is_slice_result_ready_for_print() && has_printable_instances();
+        return m_visible && is_slice_result_ready_for_print() && has_printable_instances();
     }
 
     //invalid sliced result
@@ -556,7 +568,7 @@ public:
         std::vector<std::pair<int, int>>	objects_and_instances;
         std::vector<std::pair<int, int>>	instances_outside;
 
-        ar(m_plate_index, m_print_index, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable, m_tmp_gcode_path, objects_and_instances, instances_outside, m_config, m_name);
+        ar(m_plate_index, m_print_index, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable, m_visible, m_tmp_gcode_path, objects_and_instances, instances_outside, m_config, m_name);
 
         for (std::vector<std::pair<int, int>>::iterator it = objects_and_instances.begin(); it != objects_and_instances.end(); ++it)
             obj_to_instance_set.insert(std::pair(it->first, it->second));
@@ -574,7 +586,7 @@ public:
         for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
             objects_and_instances.emplace_back(it->first, it->second);
 
-        ar(m_plate_index, m_print_index, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable,m_tmp_gcode_path, objects_and_instances, instances_outside, m_config, m_name);
+        ar(m_plate_index, m_print_index, m_locked, m_selected, m_ready_for_slice, m_slice_result_valid, m_apply_invalid, m_printable, m_visible, m_tmp_gcode_path, objects_and_instances, instances_outside, m_config, m_name);
     }
     /*template<class Archive> void serialize(Archive& ar)
     {
@@ -635,6 +647,10 @@ class PartPlateList : public ObjectBase
     GLTexture m_plate_settings_changed_hovered_texture;
     GLTexture m_plate_set_filament_map_texture;
     GLTexture m_plate_set_filament_map_hovered_texture;
+    GLTexture m_plate_visible_texture;
+    GLTexture m_plate_visible_hovered_texture;
+    GLTexture m_plate_hidden_texture;
+    GLTexture m_plate_hidden_hovered_texture;
     GLTexture m_plate_name_edit_texture;
     GLTexture m_plate_name_edit_hovered_texture;
     GLTexture m_idx_textures[MAX_PLATE_COUNT];
@@ -695,6 +711,7 @@ private:
     GLModel                               m_lock_icon;
     GLModel                               m_plate_settings_icon;
     GLModel                               m_plate_filament_map_icon;
+    GLModel                               m_plate_visible_icon;
     GLModel                               m_plate_idx_icon;
     float                                 m_scale_factor{1.0f};
 
@@ -856,6 +873,7 @@ public:
 
     //get the plate counts, not including the invalid plate
     int get_plate_count() const;
+    int get_visible_plate_count() const;
 
     //update the plate cols due to plate count change
     void update_plate_cols();

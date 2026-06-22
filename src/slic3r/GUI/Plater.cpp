@@ -9814,7 +9814,7 @@ void Plater::priv::object_list_changed()
     //sidebar->enable_buttons(!model.objects.empty() && !export_in_progress && model_fits && part_plate->has_printable_instances());
     bool mixed_broken = sidebar->has_broken_mixed_filament();
     bool can_slice = !model.objects.empty() && !export_in_progress && model_fits && part_plate->has_printable_instances()
-                     && !mixed_broken;
+                     && !mixed_broken && part_plate->is_visible();
     BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": can_slice %1%, model_fits= %2%, export_in_progress %3%, has_printable_instances %4%, mixed_broken %5% ")%can_slice %model_fits %export_in_progress %part_plate->has_printable_instances() %mixed_broken;
     main_frame->update_slice_print_status(MainFrame::eEventObjectUpdate, can_slice);
 
@@ -11356,7 +11356,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
 
             BOOST_LOG_TRIVIAL(info) << __FUNCTION__ << boost::format(": from set_current_panel, no_slice %1%, export_in_progress %2%, model_fits %3%, m_is_slicing %4%, mixed_broken %5%")%no_slice%export_in_progress%model_fits%m_is_slicing%mixed_broken;
 
-            if (!no_slice && !this->model.objects.empty() && !export_in_progress && model_fits && current_has_print_instances && !mixed_broken)
+            if (!no_slice && !this->model.objects.empty() && !export_in_progress && model_fits && current_has_print_instances && !mixed_broken && current_plate->is_visible())
             {
                 //if already running in background, not relice here
                 //BBS: add more judge for slicing
@@ -11375,7 +11375,7 @@ void Plater::priv::set_current_panel(wxPanel* panel, bool no_slice)
                     this->partplate_list.select_plate(plate_index);
                 }
             }
-            else if (only_has_gcode_need_preview)
+            else if (only_has_gcode_need_preview && current_plate->is_visible())
             {
                 this->m_slice_all = false;
                 this->q->reslice();
@@ -12302,6 +12302,7 @@ void Plater::priv::on_action_slice_plate(SimpleEvent&)
 {
     if (q != nullptr) {
         BOOST_LOG_TRIVIAL(debug) << __FUNCTION__ << ":received slice plate event\n" ;
+        if (!q->get_partplate_list().get_curr_plate()->is_visible()) return;
         //BBS update extruder params and speed table before slicing
         const Slic3r::DynamicPrintConfig& config = wxGetApp().preset_bundle->full_config();
         auto& print = q->get_partplate_list().get_current_fff_print();
@@ -23923,6 +23924,22 @@ int Plater::select_plate_by_hover_id(int hover_id, bool right_click, bool isModi
             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << "can not select plate %1%" << plate_index;
             ret = -1;
         }
+    }
+    else if ((action == PartPlate::PLATE_VISIBLE_ID) && (!right_click))
+    {
+        // toggle plate visibility
+        take_snapshot("toggle plate visibility");
+        PartPlate* plate = p->partplate_list.get_plate(plate_index);
+        bool will_hide = plate && plate->is_visible();
+        bool allowed   = plate && (!will_hide || p->partplate_list.get_visible_plate_count() > 1);
+        if (allowed && p->partplate_list.get_plate_count() > 1) {
+            plate->set_visible(!plate->is_visible());
+            p->partplate_list.update_unselected_plate_trans(p->partplate_list.get_plate_count());
+            p->view3D->get_canvas3d()->update_plate_volumes_visibility(p->partplate_list);
+            p->sidebar->obj_list()->reload_all_plates();
+            update();
+        }
+        ret = 0;
     }
     else if ((action == PartPlate::PLATE_FILAMENT_MAP_ID) && (!right_click)) {
         ret = select_plate(plate_index);

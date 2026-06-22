@@ -3249,6 +3249,92 @@ void MainFrame::init_menubar_as_editor()
                 m_plater->get_current_canvas3D()->post_event(SimpleEvent(wxEVT_PAINT));
             },
             this, [this]() { return m_plater->is_view3D_shown(); }, [this]() { return m_plater->is_view3D_overhang_shown(); }, this);
+
+        // "Show/Hide Plates" submenu — rebuilt dynamically on open
+        wxMenu* plate_visibility_submenu = new wxMenu();
+        wxMenuItem* plate_vis_submenu_item = viewMenu->AppendSubMenu(plate_visibility_submenu, _L("Show/Hide Plates"));
+
+        // Rebuild the per-plate checkable items each time the parent View menu is opened
+        viewMenu->Bind(wxEVT_MENU_OPEN, [this, plate_visibility_submenu](wxMenuEvent&) {
+            // Clear and rebuild
+            while (plate_visibility_submenu->GetMenuItemCount() > 0)
+                plate_visibility_submenu->Destroy(plate_visibility_submenu->FindItemByPosition(0));
+
+            PartPlateList& list = m_plater->get_partplate_list();
+            int count = list.get_plate_count();
+            if (count <= 1) return;
+
+            auto do_refresh = [this, &list]() {
+                list.update_unselected_plate_trans(list.get_plate_count());
+                m_plater->get_view3D_canvas3D()->update_plate_volumes_visibility(list);
+                wxGetApp().obj_list()->reload_all_plates();
+                m_plater->update();
+            };
+
+            // Show All
+            wxMenuItem* show_all = plate_visibility_submenu->Append(wxID_ANY, _L("Show All Plates"));
+            plate_visibility_submenu->Bind(wxEVT_MENU, [this, do_refresh](wxCommandEvent&) {
+                PartPlateList& list = m_plater->get_partplate_list();
+                for (int i = 0; i < list.get_plate_count(); i++) {
+                    PartPlate* p = list.get_plate(i);
+                    if (p && !p->is_visible()) p->set_visible(true);
+                }
+                do_refresh();
+            }, show_all->GetId());
+
+            // Hide Other Plates — disabled if current plate is hidden or no others are visible
+            int curr_idx = list.get_curr_plate_index();
+            PartPlate* curr_plate = list.get_plate(curr_idx);
+            bool curr_is_visible = curr_plate && curr_plate->is_visible();
+            wxMenuItem* hide_others = plate_visibility_submenu->Append(wxID_ANY, _L("Hide Other Plates"));
+            bool any_other_visible = false;
+            for (int i = 0; i < count; i++)
+                if (i != curr_idx && list.get_plate(i) && list.get_plate(i)->is_visible())
+                    any_other_visible = true;
+            if (!any_other_visible || !curr_is_visible) hide_others->Enable(false);
+            plate_visibility_submenu->Bind(wxEVT_MENU, [this, curr_idx, do_refresh](wxCommandEvent&) {
+                PartPlateList& list = m_plater->get_partplate_list();
+                PartPlate* curr = list.get_plate(curr_idx);
+                if (!curr || !curr->is_visible()) return;
+                for (int i = 0; i < list.get_plate_count(); i++) {
+                    PartPlate* p = list.get_plate(i);
+                    if (p && i != curr_idx && p->is_visible()) p->set_visible(false);
+                }
+                do_refresh();
+            }, hide_others->GetId());
+
+            plate_visibility_submenu->AppendSeparator();
+
+            for (int i = 0; i < count; i++) {
+                PartPlate* plate = list.get_plate(i);
+                if (!plate) continue;
+                wxString plate_name = from_u8(plate->get_plate_name());
+                if (plate_name.empty())
+                    plate_name = wxString::Format(_L("Plate %d"), i + 1);
+                else
+                    plate_name = wxString::Format("%s (%d)", plate_name, i + 1);
+
+                wxMenuItem* item = plate_visibility_submenu->AppendCheckItem(wxID_ANY, plate_name);
+                item->Check(plate->is_visible());
+                // Disable if this is the last visible plate (can't hide it)
+                if (plate->is_visible() && list.get_visible_plate_count() <= 1)
+                    item->Enable(false);
+
+                plate_visibility_submenu->Bind(wxEVT_MENU, [this, i](wxCommandEvent&) {
+                    PartPlateList& list = m_plater->get_partplate_list();
+                    if (list.get_plate_count() <= 1) return;
+                    PartPlate* p = list.get_plate(i);
+                    if (!p) return;
+                    // Guard: don't allow hiding the last visible plate
+                    if (p->is_visible() && list.get_visible_plate_count() <= 1) return;
+                    p->set_visible(!p->is_visible());
+                    list.update_unselected_plate_trans(list.get_plate_count());
+                    m_plater->get_view3D_canvas3D()->update_plate_volumes_visibility(list);
+                    wxGetApp().obj_list()->reload_all_plates();
+                    m_plater->update();
+                }, item->GetId());
+            }
+        });
         viewMenu->AppendSeparator();
         append_menu_item(
             viewMenu, wxID_ANY, _L("Set 3DConnexion"), _L("Set 3DConnexion mouse"),

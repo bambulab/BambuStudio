@@ -118,7 +118,7 @@ PartPlate::PartPlate()
 }
 
 PartPlate::PartPlate(PartPlateList *partplate_list, Vec3d origin, int width, int depth, int height, Plater* platerObj, Model* modelObj, bool printable, PrinterTechnology tech)
-	:m_partplate_list(partplate_list), m_plater(platerObj), m_model(modelObj), printer_technology(tech), m_origin(origin), m_width(width), m_depth(depth), m_height(height),  m_printable(printable)
+	:m_partplate_list(partplate_list), m_plater(platerObj), m_model(modelObj), printer_technology(tech), m_origin(origin), m_width(width), m_depth(depth), m_height(height),  m_printable(printable), m_visible(true)
 {
 	init();
 }
@@ -787,6 +787,27 @@ void PartPlate::render_icons(bool bottom, bool only_body, int hover_id, bool ren
                 render_icon_texture(m_partplate_list->m_lock_icon, m_partplate_list->m_lockopen_texture);
         }
 
+        // visibility (eye) icon — slot PLATE_VISIBLE_ID
+        // Show only when hiding is possible: plate count > 1 and at least one other plate is visible.
+        bool can_toggle_visibility = m_partplate_list->get_plate_count() > 1 &&
+                                     (!this->is_visible() || m_partplate_list->get_visible_plate_count() > 1);
+        if (can_toggle_visibility) {
+            if (hover_id == PLATE_VISIBLE_ID) {
+                if (this->is_visible()) {
+                    render_icon_texture(m_partplate_list->m_plate_visible_icon, m_partplate_list->m_plate_visible_hovered_texture);
+                    show_tooltip(_u8L("Hide current plate"));
+                } else {
+                    render_icon_texture(m_partplate_list->m_plate_visible_icon, m_partplate_list->m_plate_hidden_hovered_texture);
+                    show_tooltip(_u8L("Show current plate"));
+                }
+            } else {
+                if (this->is_visible())
+                    render_icon_texture(m_partplate_list->m_plate_visible_icon, m_partplate_list->m_plate_visible_texture);
+                else
+                    render_icon_texture(m_partplate_list->m_plate_visible_icon, m_partplate_list->m_plate_hidden_texture);
+            }
+        }
+
 		int extruder_count = wxGetApp().preset_bundle->get_printer_extruder_count();
         if (extruder_count == 2) {
             if (hover_id == PLATE_FILAMENT_MAP_ID){
@@ -1087,11 +1108,23 @@ void PartPlate::on_render_for_picking() {
     }
     shader->set_uniform("projection_matrix", proj_mat);
 
+    // Order MUST match GRABBER_COUNT slot indices used in select_plate_by_hover_id():
+    // 0=select, 1=delete, 2=orient, 3=arrange, 4=lock, 5=settings,
+    // 6=visible(PLATE_VISIBLE_ID), 7=filament_map(PLATE_FILAMENT_MAP_ID), 8=name(PLATE_NAME_ID)
     std::vector<GLModel *> gl_models = {&m_partplate_list->m_triangles, &m_partplate_list->m_del_icon, &m_partplate_list->m_orient_icon, &m_partplate_list->m_arrange_icon,
                                         &m_partplate_list->m_lock_icon, &m_partplate_list->m_plate_settings_icon,
+                                        &m_partplate_list->m_plate_visible_icon,
                                         &m_partplate_list->m_plate_filament_map_icon,//some case not show
                                         &m_plate_name_edit_icon};
+
+    // Hidden plates only expose the eye icon for picking so the user can restore them.
+    // All other slots (including the plate body at index 0) are skipped so the plate
+    // is not accidentally selected or acted upon.
+    bool hidden = !m_visible;
+
     for (size_t i = 0; i < gl_models.size(); i++) {
+        if (hidden && i != PLATE_VISIBLE_ID)
+            continue;
         if (!gl_models[i]->get_visible()) {
             continue;
         }
@@ -3978,15 +4011,17 @@ void PartPlateList::update_unselected_plate_trans(int count) {
         return;
 	}
     m_update_unselected_plate_mats_vbo = true;
-    m_unselected_plate_trans.resize(count - 1);
     int cols = compute_colum_count(count);
-    int index = 0;
+    m_unselected_plate_trans.clear();
     for (size_t i = 0; i < count; i++) {
-        if (i == m_current_plate) { continue; }
+        if ((int)i == m_current_plate) { continue; }
+        // skip hidden plates — they are not rendered in the viewport
+        if (i < m_plate_list.size() && !m_plate_list[i]->is_visible()) { continue; }
         Vec2d pos          = compute_shape_position(i, cols);
         Vec3d plate_origin = Vec3d(pos.x(), pos.y(), 0);
-        m_unselected_plate_trans[index].set_offset(plate_origin);
-        index++;
+        Geometry::Transformation t;
+        t.set_offset(plate_origin);
+        m_unselected_plate_trans.push_back(t);
     }
 }
 
@@ -4385,6 +4420,34 @@ void PartPlateList::generate_icon_textures()
         }
     }
 
+    {
+        file_name = path + (m_is_dark ? "plate_visible_dark.svg" : "plate_visible.svg");
+        if (!m_plate_visible_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+        }
+    }
+
+    {
+        file_name = path + (m_is_dark ? "plate_visible_hover_dark.svg" : "plate_visible_hover.svg");
+        if (!m_plate_visible_hovered_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+        }
+    }
+
+    {
+        file_name = path + (m_is_dark ? "plate_hidden_dark.svg" : "plate_hidden.svg");
+        if (!m_plate_hidden_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+        }
+    }
+
+    {
+        file_name = path + (m_is_dark ? "plate_hidden_hover_dark.svg" : "plate_hidden_hover.svg");
+        if (!m_plate_hidden_hovered_texture.load_from_svg_file(file_name, true, false, false, icon_size)) {
+            BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(":load file %1% failed") % file_name;
+        }
+    }
+
 	//if (m_bedtype_changed_texture.get_id() == 0)
 	{
 		file_name = path + (m_is_dark ? "plate_settings_changed_dark.svg" : "plate_settings_changed.svg");
@@ -4483,6 +4546,10 @@ void PartPlateList::release_icon_textures()
 	m_plate_settings_hovered_texture.reset();
     m_plate_set_filament_map_texture.reset();
     m_plate_set_filament_map_hovered_texture.reset();
+    m_plate_visible_texture.reset();
+    m_plate_visible_hovered_texture.reset();
+    m_plate_hidden_texture.reset();
+    m_plate_hidden_hovered_texture.reset();
 	m_plate_name_edit_texture.reset();
 	m_plate_name_edit_hovered_texture.reset();
 	for (int i = 0;i < MAX_PLATE_COUNT; i++) {
@@ -5171,6 +5238,14 @@ int PartPlateList::get_plate_count() const
 	ret = m_plate_list.size();
 
 	return ret;
+}
+
+int PartPlateList::get_visible_plate_count() const
+{
+    int count = 0;
+    for (const PartPlate* p : m_plate_list)
+        if (p && p->is_visible()) ++count;
+    return count;
 }
 
 //update the plate cols due to plate count change
@@ -6065,11 +6140,12 @@ void PartPlateList::render_instance(bool bottom, bool only_current, bool only_bo
            wxGetApp().unbind_shader();
        }
        const auto& shader = wxGetApp().get_shader("flat");
+       bool curr_plate_visible = (m_current_plate < (int)m_plate_list.size()) ? m_plate_list[m_current_plate]->is_visible() : true;
        {//for selected
            wxGetApp().bind_shader(shader);
             shader->set_uniform("view_model_matrix", view_mat * m_plate_trans[m_current_plate].get_matrix());
             shader->set_uniform("projection_matrix", proj_mat);
-            if (!bottom) { // draw background
+            if (!bottom && curr_plate_visible) { // draw background (skip if plate is hidden)
                 render_exclude_area(force_background_color); // for selected_plate
                 if(wxGetApp().plater()->get_enable_wrapping_detection()){
                     if(!m_wrapping_detection_triangles.is_initialized()){
@@ -6089,8 +6165,8 @@ void PartPlateList::render_instance(bool bottom, bool only_current, bool only_bo
                     render_wrapping_detection_area(force_background_color);
                 }
             }
-            if (show_grid)
-                render_grid(bottom); // for selected_plate
+            if (show_grid && curr_plate_visible)
+                render_grid(bottom); // for selected_plate (skip if hidden)
         }
        if (enable_multi_instance) {
            wxGetApp().unbind_shader();
@@ -6284,6 +6360,13 @@ void PartPlateList::render(bool bottom, bool only_current, bool only_body, int h
 		int current_index = (*it)->get_index();
 		if (only_current && (current_index != m_current_plate))
 			continue;
+		// Hidden plates: only render their icons so the user can click the eye to restore them.
+		// The plate background, grid, and logos are skipped entirely.
+		if (!(*it)->is_visible()) {
+			int action = (m_plate_hover_index == current_index) ? m_plate_hover_action : -1;
+			(*it)->render_icons(bottom, only_body, action);
+			continue;
+		}
 		if (current_index == m_current_plate) {
 			PartPlate::HeightLimitMode height_mode = (only_current)?PartPlate::HEIGHT_LIMIT_NONE:m_height_limit_mode;
 			if (m_plate_hover_index == current_index)
@@ -6443,6 +6526,7 @@ bool PartPlateList::set_shapes(const Pointfs              &shape,
         calc_vertex_for_icons(3, m_lock_icon);
         calc_vertex_for_icons(4, m_plate_settings_icon);
         calc_vertex_for_icons(5, m_plate_filament_map_icon);
+        calc_vertex_for_icons(6, m_plate_visible_icon);
         calc_vertex_for_number(0, false, m_plate_idx_icon);
     }
 	return true;
@@ -6532,6 +6616,7 @@ bool PartPlateList::is_all_slice_results_ready_for_print() const
     bool res = false;
 
     for (unsigned int i = 0; i < (unsigned int) m_plate_list.size(); ++i) {
+        if (!m_plate_list[i]->is_visible()) continue;
         if (!m_plate_list[i]->empty()) {
             if (m_plate_list[i]->is_all_instances_unprintable()) {
 				continue;
