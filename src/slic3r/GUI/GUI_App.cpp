@@ -3157,6 +3157,11 @@ bool GUI_App::on_init_inner()
     }
 
     BBLSplashScreen * scrn = nullptr;
+
+    // BBS: ensure the splash screen is torn down on every exit path safely
+    ScopeGuard delete_scrn([&scrn]() {
+        if (scrn) scrn->Destroy();
+    });
     const bool show_splash_screen = true;
     if (show_splash_screen) {
         // make a bitmap with dark grey banner on the left side
@@ -3173,7 +3178,7 @@ bool GUI_App::on_init_inner()
 
         BOOST_LOG_TRIVIAL(info) << "begin to show the splash screen...";
         //BBS use BBL splashScreen
-        scrn = new BBLSplashScreen(bmp, wxSPLASH_CENTRE_ON_SCREEN | wxSPLASH_TIMEOUT, 10000, splashscreen_pos);
+        scrn = new BBLSplashScreen(bmp, wxSPLASH_CENTRE_ON_SCREEN, 0, splashscreen_pos);
 #ifndef __linux__
         wxYield();
 #endif
@@ -3527,8 +3532,6 @@ bool GUI_App::on_init_inner()
     flush_logs();
 
     BOOST_LOG_TRIVIAL(info) << "finished the gui app init";
-    //BBS: delete splash screen
-    delete scrn;
     return true;
 }
 
