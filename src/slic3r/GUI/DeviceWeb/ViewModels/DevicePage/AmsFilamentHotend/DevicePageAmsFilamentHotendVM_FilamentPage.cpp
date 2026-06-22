@@ -481,7 +481,7 @@ static void s_command_unload_filament(MachineObject* obj_, const std::string& am
             if (obj_->GetFilaSystem()->IsVirtualTrayId(ams_id)) {
                 j["print"]["slot_id"] = 255; // the new protocol to mark unload
             } else {
-                j["print"]["slot_id"] = slot_id_int;
+                j["print"]["slot_id"] = 255 - slot_id_int;
             }
 
             if (extruder_id.has_value()) {
