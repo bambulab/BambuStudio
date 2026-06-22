@@ -1088,7 +1088,7 @@ msgstr "個連線件超出了切割面範圍"
 msgid "connector is out of object"
 msgstr "個連線件穿透了模型"
 
-msgid "connectors is out of object"
+msgid "connectors are out of object"
 msgstr "個連線件穿透了模型"
 
 msgid "Some connectors are overlapped"
@@ -1274,13 +1274,13 @@ msgid ""
 "feature 2 has been feature 1"
 msgstr "特徵1已經被重置，特徵2變成特徵1"
 
-msgid "Warning:please select Plane's feature."
+msgid "Warning: Please select a Plane feature."
 msgstr "警告:請選擇面特徵。"
 
-msgid "Warning:please select Point's or Circle's feature."
+msgid "Warning: Please select a Point or Circle feature."
 msgstr "警告:請選擇點或圓特徵。"
 
-msgid "Warning:please select two different mesh."
+msgid "Warning: Please select two different meshes."
 msgstr "警告:請選擇兩個不同的網格。"
 
 msgid "Copy to clipboard"
@@ -1526,31 +1526,31 @@ msgstr "內嵌深度"
 msgid "Text Gap"
 msgstr "文字間距"
 
-msgid "Warning:There is a mirror in the text matrix, and dragging it will completely regenerate it."
+msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr "警告：文字矩陣中有一個映象，拖動它將完全重新生成它。"
 
-msgid "Warning:Due to font upgrades,previous font may not necessarily be replaced successfully, and recommend you to modify the font."
+msgid "Warning: Due to font upgrades, previous font may not necessarily be replaced successfully. Please modify the font."
 msgstr "警告：由於字型升級，以前的字型不一定能替換成功，建議您修改字型。"
 
-msgid "Warning:create text fail."
+msgid "Warning: Text creation failed."
 msgstr "警告：建立文字失敗。"
 
-msgid "Warning:text normal is error."
+msgid "Warning: Text normal has an error."
 msgstr "警告：文字法向量錯誤"
 
-msgid "Warning:text normal has been reset."
+msgid "Warning: Text normal has been reset."
 msgstr "警告:文字法向量已經被重置。"
 
-msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
+msgid "Warning: Current text spacing is not optimal. If you continue editing, a more reasonable text spacing will be generated."
 msgstr "警告：當前文字間距不夠合理。如果繼續編輯，將生成更合理的文字間距。"
 
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "警告：舊矩陣至少有兩個引數：映象、縮放和旋轉。如果繼續編輯，則可能不正確。請拖動文字或取消使用當前姿勢，儲存並重新編輯。"
 
-msgid "Error:Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes.Please drag text,save it then reedit it again."
+msgid "Error: Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes. Please drag text, save it then reedit it again."
 msgstr "錯誤：檢測到不正確的網格id或未知錯誤，重新生成文字可能會導致不正確的結果。請拖動文字，儲存，然後重新編輯。"
 
-msgid "Warning:Due to functional upgrade, rotation information cannot be restored. Please drag or modify text,save it and reedit it will ok."
+msgid "Warning: Due to functional upgrade, rotation information cannot be restored. Please drag or modify text, save it and reedit it to fix the issue."
 msgstr "警告：由於功能升級，旋轉資訊無法還原。請拖曳或修改文字，儲存後再重新編輯即可。"
 
 msgid "Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."
@@ -1768,7 +1768,7 @@ msgstr "缺少浮雕形狀的svg檔案"
 msgid "Missing data of svg file"
 msgstr "svg檔案資料缺失"
 
-msgid "Tip:If you want to place svg file on another part surface,you should select part first, and then drag svg file to the part surface."
+msgid "Tip: If you want to place an SVG file on another part surface, select the part first, then drag the SVG file to the part surface."
 msgstr "提示：如果要將 SVG 檔案放置在另一個零件表面，請先選擇零件，再將 SVG 檔案拖到零件表面。"
 
 #. TRN - Preview of filename after clear local filepath.
@@ -4179,7 +4179,7 @@ msgstr "在插入一卷新料時，AMS將不會自動讀取料卷資訊，預留
 msgid "Power on update"
 msgstr "開機時檢測"
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
 msgstr "每次開機時，AMS將會自動讀取其所插入的耗材資訊(讀取過程會轉料卷)。需要花時大約1分鐘。"
 
 msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
@@ -4423,7 +4423,7 @@ msgid ""
 msgstr "起始高度不應大於100%。將重置為預設值"
 
 #, c-format, boost-format
-msgid "Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"
+msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
 msgstr "當前腔體溫度高於材料的安全溫度，這可能導致材料軟化和堵塞。該材料的最高安全溫度為 %d。"
 
 msgid ""
@@ -4879,7 +4879,7 @@ msgstr "AMS 溫度過高，可能導致列印材料軟化。請等待 AMS 溫度
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "當前腔溫或目標腔溫超過了45℃。為了避免擠出機堵塞，不允許載入低溫度的列印材料（如PLA/PETG/TPU）"
 
-msgid "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to avoid extruder clogging,it is not allowed to set the chamber temperature."
+msgid "Low temperature filament (PLA/PETG/TPU) is loaded in the extruder. In order to avoid extruder clogging, it is not allowed to set the chamber temperature."
 msgstr "擠出機中載入了低溫度的列印材料（如PLA/PETG/TPU）。為了避免擠出機堵塞，不允許設定腔溫。"
 
 msgid "When you set the chamber temperature below 40℃, the chamber temperature control will not be activated. And the target chamber temperature will automatically be set to 0℃."
@@ -6365,7 +6365,7 @@ msgstr "印表機正在忙於下載，請等下載完成後再嘗試。"
 msgid "Printer camera is malfunctioning."
 msgstr "印表機攝像頭異常。"
 
-msgid "Problem occured. Please update the printer firmware and try again."
+msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "出現了一些問題。請更新印表機韌體後重試。"
 
 msgid "LAN Only Liveview is off. Please turn on the liveview on printer screen."
@@ -8819,7 +8819,7 @@ msgstr "在3D視角放大到滑鼠位置，而不是2D視窗的中心。"
 msgid "Always show shells in preview"
 msgstr "在預覽介面總是顯示透明殼"
 
-msgid "Always show shells or not in preview view tab.If change value,you should reslice."
+msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "始終在預覽檢視選項卡中顯示或不顯示殼。如果更改值，您應該重新切片。"
 
 msgid "Import a single SVG and split it"
@@ -9444,7 +9444,7 @@ msgstr "材料編號和AMS槽位中的耗材絲材質不匹配，請更新印表
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
 msgstr "當前選擇的印表機（%s）與列印檔案配置（%s）不相容，請前往準備介面重新選擇印表機預設，或在此頁面選擇相容的印表機。"
 
-msgid "When enable spiral vase mode, machines with I3 structure will not generate timelapse videos."
+msgid "When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "啟用螺旋花瓶模式時，具有I3結構的機器將不會生成延時影片。"
 
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
@@ -9870,7 +9870,7 @@ msgstr "我已閱讀並接受"
 msgid "Terms and Conditions"
 msgstr "使用者使用協議"
 
-msgid "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab device, please read the termsand conditions.By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use(collectively, the \"Terms\"). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
+msgid "Thank you for purchasing a Bambu Lab device. Before using your Bambu Lab device, please read the terms and conditions. By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use (collectively, the \"Terms\"). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr "感謝您購買Bambu Lab裝置，使用Bambu Lab裝置前，請閱讀一下條款，單擊同意使用您的Bambu Lab裝置即表示您同意遵守隱私政策以及使用條款（統稱為“條款”）。如果您不符合或不同意Bambu Lab隱私政策，請不要使用Bambu Lab裝置和服務。"
 
 msgid "and"

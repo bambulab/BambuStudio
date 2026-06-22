@@ -1082,7 +1082,7 @@ msgstr "kontakterna är utanför skuren kontur"
 msgid "connector is out of object"
 msgstr "kontakten är utanför objektet"
 
-msgid "connectors is out of object"
+msgid "connectors are out of object"
 msgstr "Kontakterna måste vara på objektets yta."
 
 msgid "Some connectors are overlapped"
@@ -1270,13 +1270,13 @@ msgstr ""
 "Funktion 1 har återställts, \n"
 "funktion 2 har varit funktion 1"
 
-msgid "Warning:please select Plane's feature."
+msgid "Warning: Please select a Plane feature."
 msgstr "Varning: välj Planets funktion."
 
-msgid "Warning:please select Point's or Circle's feature."
+msgid "Warning: Please select a Point or Circle feature."
 msgstr "Varning: välj Punktens eller Cirkelns funktion."
 
-msgid "Warning:please select two different mesh."
+msgid "Warning: Please select two different meshes."
 msgstr "Varning: välj två olika meshes."
 
 msgid "Copy to clipboard"
@@ -1525,31 +1525,31 @@ msgstr "Inbäddat djup"
 msgid "Text Gap"
 msgstr "Text mellanrum"
 
-msgid "Warning:There is a mirror in the text matrix, and dragging it will completely regenerate it."
+msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr "Varning:Det finns en spegling i textmatrisen, och om du drar i den kommer den att återskapas helt."
 
-msgid "Warning:Due to font upgrades,previous font may not necessarily be replaced successfully, and recommend you to modify the font."
+msgid "Warning: Due to font upgrades, previous font may not necessarily be replaced successfully. Please modify the font."
 msgstr "Varning: På grund av uppgraderingar av teckensnitt kan tidigare teckensnitt inte nödvändigtvis ersättas framgångsrikt och rekommenderar att du ändrar teckensnittet."
 
-msgid "Warning:create text fail."
+msgid "Warning: Text creation failed."
 msgstr "Varning: Det gick inte att skapa text."
 
-msgid "Warning:text normal is error."
+msgid "Warning: Text normal has an error."
 msgstr "Varning: Normal text är fel."
 
-msgid "Warning:text normal has been reset."
+msgid "Warning: Text normal has been reset."
 msgstr "Varning: Normal text har återställts."
 
-msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
+msgid "Warning: Current text spacing is not optimal. If you continue editing, a more reasonable text spacing will be generated."
 msgstr "Varning: nuvarande textavstånd är inte rimligt. Om du fortsätter redigera, kommer ett mer rimligt textavstånd att genereras."
 
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "Varning:gammal matris har minst två parametrar: spegling, skalning och rotation. Om du fortsätter att redigera kanske det inte är korrekt. Dra text eller avbryt med den aktuella ställningen, spara och redigera om igen."
 
-msgid "Error:Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes.Please drag text,save it then reedit it again."
+msgid "Error: Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes. Please drag text, save it then reedit it again."
 msgstr "Fel:Om du upptäcker ett felaktigt nät-ID eller ett okänt fel kan återgenerering av text resultera i felaktiga resultat. Dra texten, spara den och redigera den sedan igen."
 
-msgid "Warning:Due to functional upgrade, rotation information cannot be restored. Please drag or modify text,save it and reedit it will ok."
+msgid "Warning: Due to functional upgrade, rotation information cannot be restored. Please drag or modify text, save it and reedit it to fix the issue."
 msgstr "Varning: På grund av funktionell uppgradering kan rotations information inte återställas. Vänligen dra eller ändra text, spara den och redigera om."
 
 msgid "Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."
@@ -1767,7 +1767,7 @@ msgstr "Saknar svg fil i präglad form"
 msgid "Missing data of svg file"
 msgstr "Saknar data för svg filen"
 
-msgid "Tip:If you want to place svg file on another part surface,you should select part first, and then drag svg file to the part surface."
+msgid "Tip: If you want to place an SVG file on another part surface, select the part first, then drag the SVG file to the part surface."
 msgstr "Tips:Om du vill placera en svg fil på en annan delyta, bör du välja del först och sedan dra svg filen till delytan."
 
 #. TRN - Preview of filename after clear local filepath.
@@ -4191,7 +4191,7 @@ msgstr "Vid matning av nytt filament, AMS läser inte av dess information automa
 msgid "Power on update"
 msgstr "Slå på uppdatering"
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
 msgstr "AMS läser automatiskt informationen om insatt Bambu Lab filament vid uppstart. Det tar cirka 1 minut. Läsprocessen kommer att rulla filamentspolarna."
 
 msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
@@ -4437,7 +4437,7 @@ msgstr ""
 "Återställ till standard"
 
 #, c-format, boost-format
-msgid "Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"
+msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
 msgstr "Nuvarande kammar temperatur är högre än materialets säkra temperatur, det kan resultera i material mjukgörande och igensättning. Den maximala säkra temperaturen för materialet är %d"
 
 msgid ""
@@ -4906,7 +4906,7 @@ msgstr "AMS temperaturen är för hög, vilket kan göra att filamentet mjuknar.
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "Den aktuella kammar temperaturen eller den önskade kammar temperaturen överstiger 45 ℃. För att undvika igensättning av extrudern är det inte tillåtet att ladda filament med låg temperatur (PLA/PETG/TPU)."
 
-msgid "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to avoid extruder clogging,it is not allowed to set the chamber temperature."
+msgid "Low temperature filament (PLA/PETG/TPU) is loaded in the extruder. In order to avoid extruder clogging, it is not allowed to set the chamber temperature."
 msgstr "Filament med låg temperatur (PLA/PETG/TPU) laddas i extrudern. För att undvika igensättning av extrudern är det inte tillåtet att ställa in kammartemperaturen."
 
 msgid "When you set the chamber temperature below 40℃, the chamber temperature control will not be activated. And the target chamber temperature will automatically be set to 0℃."
@@ -6394,7 +6394,7 @@ msgstr "Printern är upptagen med att ladda ner. Vänta tills nedladdningen är 
 msgid "Printer camera is malfunctioning."
 msgstr "Printerns kamera fungerar inte som den ska."
 
-msgid "Problem occured. Please update the printer firmware and try again."
+msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "Ett problem har uppstått. Uppdatera printerns programvara och försök igen."
 
 msgid "LAN Only Liveview is off. Please turn on the liveview on printer screen."
@@ -8864,7 +8864,7 @@ msgstr "Zooma in mot muspekarens position i 3D-vyn, istället för mot 2D-fönst
 msgid "Always show shells in preview"
 msgstr "Visa alltid skal i förhandsgranskningen"
 
-msgid "Always show shells or not in preview view tab.If change value,you should reslice."
+msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "Växlar som visar skal i förhandsgranskningsvyn: om du ändrar värdet bör du bereda om."
 
 msgid "Import a single SVG and split it"
@@ -9489,7 +9489,7 @@ msgstr "Filamentet matchar inte filamentet i AMS-facket. Uppdatera skrivarens pr
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
 msgstr "Den valda printern (%s) är inte kompatibel med konfigurationen av utskrifts filen (%s). Vänligen justera printer inställningen på sidan Förbered eller välj en kompatibel skrivare på den här sidan."
 
-msgid "When enable spiral vase mode, machines with I3 structure will not generate timelapse videos."
+msgid "When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "When spiral vase mode is enabled, machines with I3 structure will not generate timelapse videos."
 
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
@@ -9919,7 +9919,7 @@ msgstr "Läs och acceptera"
 msgid "Terms and Conditions"
 msgstr "Villkor och bestämmelser"
 
-msgid "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab device, please read the termsand conditions.By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use(collectively, the \"Terms\"). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
+msgid "Thank you for purchasing a Bambu Lab device. Before using your Bambu Lab device, please read the terms and conditions. By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use (collectively, the \"Terms\"). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr "Tack för att du har köpt en Bambu Lab enhet. Innan du använder din Bambu Lab enhet ska du läsa villkoren. Genom att klicka för att godkänna användningen av din Bambu Lab enhet godkänner du att följa sekretesspolicyn och användningsvillkoren (gemensamt kallade \"villkoren\"). Om du inte följer eller samtycker till Bambu Labs integritetspolicy ska du inte använda Bambu Labs utrustning och tjänster."
 
 msgid "and"

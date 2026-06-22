@@ -1085,7 +1085,7 @@ msgstr "Connettori fuori dal contorno"
 msgid "connector is out of object"
 msgstr "Connettore fuori dall'oggetto"
 
-msgid "connectors is out of object"
+msgid "connectors are out of object"
 msgstr "I connettori devono trovarsi sulla superficie dell'oggetto."
 
 msgid "Some connectors are overlapped"
@@ -1273,13 +1273,13 @@ msgstr ""
 "La funzione 1 è stata ripristinata,  \n"
 "la funzione 2 è diventata la funzione 1."
 
-msgid "Warning:please select Plane's feature."
+msgid "Warning: Please select a Plane feature."
 msgstr "Avviso: Seleziona la funzione Plane."
 
-msgid "Warning:please select Point's or Circle's feature."
+msgid "Warning: Please select a Point or Circle feature."
 msgstr "Avviso: Seleziona la funzione Punto o Cerchio."
 
-msgid "Warning:please select two different mesh."
+msgid "Warning: Please select two different meshes."
 msgstr "Avviso: Seleziona due mesh diverse."
 
 msgid "Copy to clipboard"
@@ -1528,31 +1528,31 @@ msgstr "Profondità d'incasso"
 msgid "Text Gap"
 msgstr "Gap testo"
 
-msgid "Warning:There is a mirror in the text matrix, and dragging it will completely regenerate it."
+msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr "Attenzione: nella matrice di testo è presente una specchiatura, che trascinando si rigenererà completamente."
 
-msgid "Warning:Due to font upgrades,previous font may not necessarily be replaced successfully, and recommend you to modify the font."
+msgid "Warning: Due to font upgrades, previous font may not necessarily be replaced successfully. Please modify the font."
 msgstr "Avvertenza: a causa degli aggiornamenti dei caratteri, il carattere precedente potrebbe non essere necessariamente sostituito correttamente e ti consigliamo di modificarlo."
 
-msgid "Warning:create text fail."
+msgid "Warning: Text creation failed."
 msgstr "Avviso: Creazione del testo fallita."
 
-msgid "Warning:text normal is error."
+msgid "Warning: Text normal has an error."
 msgstr "Avviso: Il testo normale è un errore."
 
-msgid "Warning:text normal has been reset."
+msgid "Warning: Text normal has been reset."
 msgstr "Avviso: Il testo normale è stato ripristinato."
 
-msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
+msgid "Warning: Current text spacing is not optimal. If you continue editing, a more reasonable text spacing will be generated."
 msgstr "Attenzione: la spaziatura del testo attuale non è ottimale. Continuando a modificare verrà generata una spaziatura più adeguata."
 
 msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 msgstr "Attenzione: La vecchia matrice ha almeno due parametri: mirroring, scaling e rotazione. Se continui a modificare, potrebbe non essere corretto. Per favore, trascina il testo o annulla l'uso della posizione attuale, salvalo e rieditalo di nuovo."
 
-msgid "Error:Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes.Please drag text,save it then reedit it again."
+msgid "Error: Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes. Please drag text, save it then reedit it again."
 msgstr "Errore: rilevato un ID mesh non corretto o un errore sconosciuto. La rigenerazione del testo potrebbe produrre risultati errati. Prova a spostare il testo, salvarlo e poi modificarlo nuovamente."
 
-msgid "Warning:Due to functional upgrade, rotation information cannot be restored. Please drag or modify text,save it and reedit it will ok."
+msgid "Warning: Due to functional upgrade, rotation information cannot be restored. Please drag or modify text, save it and reedit it to fix the issue."
 msgstr "Attenzione: A causa di un aggiornamento funzionale, le informazioni di rotazione non possono essere ripristinate. Per favore, trascina o modifica il testo, salvalo e rieditalo. Sarà tutto a posto."
 
 msgid "Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."
@@ -1770,7 +1770,7 @@ msgstr "Manca il file svg in forma rilievo"
 msgid "Missing data of svg file"
 msgstr "Dati mancanti del file svg"
 
-msgid "Tip:If you want to place svg file on another part surface,you should select part first, and then drag svg file to the part surface."
+msgid "Tip: If you want to place an SVG file on another part surface, select the part first, then drag the SVG file to the part surface."
 msgstr "Suggerimento: Se vuoi posizionare un file SVG su una superficie di un'altra parte, dovresti prima selezionare la parte e poi trascinare il file SVG sulla superficie della parte."
 
 #. TRN - Preview of filename after clear local filepath.
@@ -4199,7 +4199,7 @@ msgstr "Quando si inserisce un nuovo filamento, l'AMS non legge automaticamente 
 msgid "Power on update"
 msgstr "Aggiorna all'avvio"
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
 msgstr "AMS leggerà automaticamente le informazioni sul filamento inserito all’avvio. Tempo circa 1 minuto. Durante il processo di lettura, le bobine di filamento ruotano."
 
 msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
@@ -4447,7 +4447,7 @@ msgstr ""
 "Ripristinato al valore predefinito"
 
 #, c-format, boost-format
-msgid "Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"
+msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
 msgstr "Se la temperatura attuale della camera è superiore alla temperatura di sicurezza del materiale, potrebbe verificarsi un ammorbidimento e un intasamento del materiale. La temperatura massima di sicurezza per il materiale è %d"
 
 msgid ""
@@ -4916,7 +4916,7 @@ msgstr "Temperatura AMS troppo alta, ciò può causare l'ammorbidimento del fila
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr "La temperatura attuale della camera o la temperatura target supera i 45℃. Per evitare l'intasamento dell'estrusore, non è consentito caricare filamenti a bassa temperatura (PLA/PETG/TPU)."
 
-msgid "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to avoid extruder clogging,it is not allowed to set the chamber temperature."
+msgid "Low temperature filament (PLA/PETG/TPU) is loaded in the extruder. In order to avoid extruder clogging, it is not allowed to set the chamber temperature."
 msgstr "Il filamento a bassa temperatura (PLA/PETG/TPU) viene caricato nell'estrusore. Per evitare che l'estrusore clogghi , non è consentito impostare la temperatura della camera."
 
 msgid "When you set the chamber temperature below 40℃, the chamber temperature control will not be activated. And the target chamber temperature will automatically be set to 0℃."
@@ -6398,7 +6398,7 @@ msgstr "La stampante è in fase di download. Attendi il completamento."
 msgid "Printer camera is malfunctioning."
 msgstr "La fotocamera della stampante non funziona correttamente."
 
-msgid "Problem occured. Please update the printer firmware and try again."
+msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr "Si è verificato un problema. Aggiorna il firmware stampante e riprova."
 
 msgid "LAN Only Liveview is off. Please turn on the liveview on printer screen."
@@ -8868,7 +8868,7 @@ msgstr "Ingrandisci verso la posizione del puntatore del mouse nella vista 3D, a
 msgid "Always show shells in preview"
 msgstr "Mostra sempre il guscio in anteprima"
 
-msgid "Always show shells or not in preview view tab.If change value,you should reslice."
+msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr "Attiva/disattiva la visualizzazione del guscio nella scheda di anteprima: se modifichi il valore, è necessario rieffettuare lo slicer."
 
 msgid "Import a single SVG and split it"
@@ -9493,7 +9493,7 @@ msgstr "Il filamento non corrisponde al filamento nello slot AMS. Aggiorna il fi
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
 msgstr "La stampante selezionata (%s) è incompatibile con la configurazione del file di stampa (%s). Per favore, regola il preset della stampante nella pagina di preparazione o scegli una stampante compatibile in questa pagina."
 
-msgid "When enable spiral vase mode, machines with I3 structure will not generate timelapse videos."
+msgid "When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr "Quando si attiva la modalità vaso a spirale, le macchine con struttura I3 non genereranno video timelapse."
 
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
@@ -9921,7 +9921,7 @@ msgstr "Leggi e accetta"
 msgid "Terms and Conditions"
 msgstr "Termini e condizioni"
 
-msgid "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab device, please read the termsand conditions.By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use(collectively, the \"Terms\"). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
+msgid "Thank you for purchasing a Bambu Lab device. Before using your Bambu Lab device, please read the terms and conditions. By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use (collectively, the \"Terms\"). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr "Grazie per aver acquistato un dispositivo Bambu Lab. Prima di utilizzare il dispositivo Bambu Lab, leggi i termini e le condizioni. Facendo clic per accettare di utilizzare il dispositivo Bambu Lab, l'utente accetta di rispettare l'Informativa sulla privacy e i Termini di utilizzo (collettivamente, i «Termini»). Se non rispetti o accetti l'Informativa sulla privacy di Bambu Lab, non utilizzare le attrezzature e i servizi Bambu Lab."
 
 msgid "and"
