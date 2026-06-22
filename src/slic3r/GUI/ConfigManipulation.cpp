@@ -163,7 +163,7 @@ void ConfigManipulation::check_filament_scarf_setting(DynamicPrintConfig *config
 
     }
     if (post_warning) {
-        const wxString msg_text = _(L("Should not large than 100%.\nReset to defualt"));
+        const wxString msg_text = _(L("Should not large than 100%.\nReset to default"));
         MessageDialog  dialog(nullptr, msg_text, "", wxICON_WARNING | wxOK);
         is_msg_dlg_already_exist = true;
         dialog.ShowModal();
