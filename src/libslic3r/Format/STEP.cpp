@@ -34,7 +34,6 @@
 #include "TDataStd_Name.hxx"
 #include "BRepBuilderAPI_Transform.hxx"
 #include "TopExp_Explorer.hxx"
-#include "TopExp_Explorer.hxx"
 #include "BRep_Tool.hxx"
 #include "BRepTools.hxx"
 #include <IMeshTools_Parameters.hxx>
@@ -168,6 +167,17 @@ int StepPreProcessor::preNum(const unsigned char byte) {
     return num;
 }
 
+// OCCT assigns these shape-type strings as default label names when no user
+// name is available (e.g. for geometry that belongs to an assembly but has no
+// separate PRODUCT entity).  Treat them as "no name" and fall back to the
+// parent component name so that tags stay on the component, not the body.
+static bool isOcctShapeTypeName(const std::string& name)
+{
+    return name == "SOLID" || name == "COMPOUND" || name == "COMPSOLID" ||
+           name == "SHELL"  || name == "FACE"     || name == "WIRE"      ||
+           name == "EDGE"   || name == "VERTEX";
+}
+
 static void getNamedSolids(const TopLoc_Location& location,
                            const std::string& prefix,
                            unsigned int& id,
@@ -183,11 +193,35 @@ static void getNamedSolids(const TopLoc_Location& location,
     std::string name;
     Handle(TDataStd_Name) shapeName;
     if (referredLabel.FindAttribute(TDataStd_Name::GetID(), shapeName) ||
-        label.FindAttribute(TDataStd_Name::GetID(), shapeName))
-        name = TCollection_AsciiString(shapeName->Get()).ToCString();
+        label.FindAttribute(TDataStd_Name::GetID(), shapeName)) {
+        // Manually flatten the OCCT extended (UTF-16) string to printable ASCII,
+        // replacing any non-printable / non-ASCII codepoint with a regular space.
+        // OCCT's TCollection_AsciiString conversion preserves raw high bytes which
+        // then fail StepPreProcessor::isUtf8 (a lone 0xA0/0xE9/etc. is invalid as
+        // UTF-8 start), causing the name to fall back to the parent component
+        // name and losing any [tag] the user typed. Normalize here so STEP escapes
+        // like \X\A0 (NBSP) or \X\E9 (é) become a benign space.
+        const TCollection_ExtendedString& ext = shapeName->Get();
+        std::string ascii;
+        ascii.reserve(static_cast<size_t>(ext.Length()));
+        for (Standard_Integer i = 1; i <= ext.Length(); ++i) {
+            Standard_ExtCharacter ch = ext.Value(i);
+            if (ch >= 0x20 && ch < 0x7F)
+                ascii.push_back(static_cast<char>(ch));
+            else
+                ascii.push_back(' ');
+        }
+        name = ascii;
+    }
 
-    if (name == "" || !StepPreProcessor::isUtf8(name))
-        name = std::to_string(id++);
+    // Fall back to the parent component name when OCCT assigned a shape-type
+    // default (e.g. "SOLID") instead of a real user name.
+    if (name.empty() || !StepPreProcessor::isUtf8(name) || isOcctShapeTypeName(name)) {
+        if (!prefix.empty())
+            name = prefix;
+        else
+            name = std::to_string(id++);
+    }
     std::string fullName{name};
 
     TopLoc_Location localLocation = location * shapeTool->GetLocation(label);
