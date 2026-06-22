@@ -1784,6 +1784,7 @@ std::string GetNozzleVolumeTypeStr(const NozzleVolumeType &type)
     case NozzleVolumeType::nvtHighFlow: return "High Flow";
     case NozzleVolumeType::nvtTPUHighFlow: return "TPU High Flow";
     case NozzleVolumeType::nvtTPU285: return "TPU285";
+    case NozzleVolumeType::nvtE3DHighFlow: return "E3D High Flow";
     case NozzleVolumeType::nvtHybrid: return "Hybrid";
     default: return std::string();
     }

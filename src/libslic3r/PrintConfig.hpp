@@ -378,6 +378,7 @@ enum NozzleVolumeType {
     nvtHybrid,
     nvtTPUHighFlow,
     nvtTPU285,
+    nvtE3DHighFlow,
     nvtCount, // Always put this at the end
 };
 

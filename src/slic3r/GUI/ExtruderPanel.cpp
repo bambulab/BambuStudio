@@ -880,9 +880,15 @@ ExtruderDialogPanel::ExtruderDialogPanel(wxWindow *parent, GroupType type, std::
             for (int j = 0; j < nozzle_volumes_def->enum_labels.size(); ++j) {
                 if (boost::algorithm::contains(extruder_variants->values[index], type + " " + nozzle_volumes_def->enum_labels[j]) ||
                     extruder_max_nozzle_count->values[index] > 1 && nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[j]) == nvtHybrid) {
-                    if (diameter.ToStdString() == "0.2" && nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[j]) == NozzleVolumeType::nvtHighFlow)
+                    auto cur_volume_type = nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[j]);
+                    // Defensive: profiles restrict E3D to 0.4 / 0.6; keep it out elsewhere.
+                    if (cur_volume_type == NozzleVolumeType::nvtE3DHighFlow &&
+                        diameter.ToStdString() != "0.4" && diameter.ToStdString() != "0.6")
                         continue;
-                    if (nozzle_volumes_def->enum_keys_map->at(nozzle_volumes_def->enum_values[j]) == NozzleVolumeType::nvtHybrid)
+                    // 0.2 nozzle has no High Flow variant.
+                    if (diameter.ToStdString() == "0.2" && cur_volume_type == NozzleVolumeType::nvtHighFlow)
+                        continue;
+                    if (cur_volume_type == NozzleVolumeType::nvtHybrid)
                         continue;
                     if (flow == j)
                         select = nozzle_internal.flow_combo->GetCount();

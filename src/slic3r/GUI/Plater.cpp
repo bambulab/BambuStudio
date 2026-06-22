@@ -4182,8 +4182,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
                     if (cur_volume_type == NozzleVolumeType::nvtE3DHighFlow && diameter != "0.4" && diameter != "0.6")
                         continue;
                     // 0.2 nozzle has no High Flow variant.
-                    if (cur_volume_type == NozzleVolumeType::nvtHighFlow && (diameter == "0.2" ||
-                        is_skip_high_flow_printer(printer_model)))
+                    if (diameter == "0.2" && cur_volume_type == NozzleVolumeType::nvtHighFlow)
                         continue;
                     // ClientData must be the enum value (e.g. nvtE3DHighFlow=5), not the
                     // enum_labels index. After nvtE3DHighFlow was pinned to 5 with a gap at 4,
@@ -11805,6 +11804,7 @@ unsigned int Plater::priv::update_background_process(bool force_validation, bool
         if (f_volume_maps.empty()) {
             f_volume_maps = preset_bundle->get_default_nozzle_volume_types_for_filaments(f_maps);
         }
+
         auto apply_config = preset_bundle->full_config(false, f_maps, f_volume_maps);
         // Apply plate-specific filament_map_mode and filament_nozzle_map
         FilamentMapMode plate_mode = cur_plate->get_real_filament_map_mode(preset_bundle->project_config);
