@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-17 14:42+0800\n"
+"POT-Creation-Date: 2026-06-22 21:24+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1088,7 +1088,7 @@ msgstr ""
 msgid "connector is out of object"
 msgstr ""
 
-msgid "connectors is out of object"
+msgid "connectors are out of object"
 msgstr ""
 
 msgid "Some connectors are overlapped"
@@ -1268,13 +1268,13 @@ msgid ""
 "feature 2 has been feature 1"
 msgstr ""
 
-msgid "Warning:please select Plane's feature."
+msgid "Warning: Please select a Plane feature."
 msgstr ""
 
-msgid "Warning:please select Point's or Circle's feature."
+msgid "Warning: Please select a Point or Circle feature."
 msgstr ""
 
-msgid "Warning:please select two different mesh."
+msgid "Warning: Please select two different meshes."
 msgstr ""
 
 msgid "Copy to clipboard"
@@ -1317,6 +1317,9 @@ msgid "Flip by Face 2"
 msgstr ""
 
 msgid "Assemble"
+msgstr ""
+
+msgid "Please double-click the blank area to exit the assembly guide before using this tool."
 msgstr ""
 
 msgid "Please confirm explosion ratio = 1 and select at least two volumes."
@@ -1517,31 +1520,31 @@ msgstr ""
 msgid "Text Gap"
 msgstr ""
 
-msgid "Warning:There is a mirror in the text matrix, and dragging it will completely regenerate it."
+msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
 msgstr ""
 
-msgid "Warning:Due to font upgrades,previous font may not necessarily be replaced successfully, and recommend you to modify the font."
+msgid "Warning: Due to font upgrades, previous font may not necessarily be replaced successfully. Please modify the font."
 msgstr ""
 
-msgid "Warning:create text fail."
+msgid "Warning: Text creation failed."
 msgstr ""
 
-msgid "Warning:text normal is error."
+msgid "Warning: Text normal has an error."
 msgstr ""
 
-msgid "Warning:text normal has been reset."
+msgid "Warning: Text normal has been reset."
 msgstr ""
 
-msgid "Warning:current text spacing is not very reasonable. If you continue editing, a more reasonable text spacing will be generated."
+msgid "Warning: Current text spacing is not optimal. If you continue editing, a more reasonable text spacing will be generated."
 msgstr ""
 
-msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
+msgid "Warning: Old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please drag the text or cancel the current pose, save and reedit again."
 msgstr ""
 
-msgid "Error:Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes.Please drag text,save it then reedit it again."
+msgid "Error: Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes. Please drag text, save it then reedit it again."
 msgstr ""
 
-msgid "Warning:Due to functional upgrade, rotation information cannot be restored. Please drag or modify text,save it and reedit it will ok."
+msgid "Warning: Due to functional upgrade, rotation information cannot be restored. Please drag or modify text, save it and reedit it to fix the issue."
 msgstr ""
 
 msgid "Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."
@@ -1757,7 +1760,7 @@ msgstr ""
 msgid "Missing data of svg file"
 msgstr ""
 
-msgid "Tip:If you want to place svg file on another part surface,you should select part first, and then drag svg file to the part surface."
+msgid "Tip: If you want to place an SVG file on another part surface, select the part first, then drag the SVG file to the part surface."
 msgstr ""
 
 #. TRN - Preview of filename after clear local filepath.
@@ -3136,7 +3139,7 @@ msgstr ""
 msgid "Step"
 msgstr ""
 
-msgid "Empty Step"
+msgid "Install parts"
 msgstr ""
 
 msgid "New Step"
@@ -3169,58 +3172,16 @@ msgstr ""
 msgid "Exporting file"
 msgstr ""
 
-msgid "Assembly Step"
+msgid "Export"
 msgstr ""
 
 msgid "Saving project will automatically switch to end frame"
-msgstr ""
-
-msgid "Start frame"
-msgstr ""
-
-msgid "End frame"
-msgstr ""
-
-msgid "Transition frame"
-msgstr ""
-
-msgid "Frame"
-msgstr ""
-
-msgid "step"
-msgstr ""
-
-msgid "Play all frames for all nodes."
-msgstr ""
-
-msgid "Toggle playback speed."
-msgstr ""
-
-msgid "Play previous frame."
-msgstr ""
-
-msgid "Play next frame."
 msgstr ""
 
 msgid "Final assembly"
 msgstr ""
 
 msgid "end frame"
-msgstr ""
-
-msgid "Set export file parameters"
-msgstr ""
-
-msgid "Camera margin factor for the start frame. The larger the value, the more margin."
-msgstr ""
-
-msgid "Start frame camera margin"
-msgstr ""
-
-msgid "Canvas label text size. The default value uses the current text size."
-msgstr ""
-
-msgid "Canvas label text size"
 msgstr ""
 
 msgid "Assembly Structure"
@@ -3242,10 +3203,71 @@ msgstr ""
 msgid "Add object to current step"
 msgstr ""
 
+msgid "Model"
+msgstr ""
+
+msgid "Volume"
+msgstr ""
+
+msgid "start frame"
+msgstr ""
+
+msgid "transition frame"
+msgstr ""
+
+#, possible-boost-format
+msgid "Plate %1%"
+msgstr ""
+
+msgid "Assembly Step"
+msgstr ""
+
+msgid "Start frame"
+msgstr ""
+
+msgid "End frame"
+msgstr ""
+
+msgid "Transition frame"
+msgstr ""
+
+msgid "Frame"
+msgstr ""
+
+msgid "step"
+msgstr ""
+
+msgid "Play all frames for all steps."
+msgstr ""
+
+msgid "Toggle playback speed."
+msgstr ""
+
+msgid "Play previous frame."
+msgstr ""
+
+msgid "Play next frame."
+msgstr ""
+
+msgid "Set export file parameters"
+msgstr ""
+
+msgid "Camera margin factor for the current frame. The larger the value, the more margin."
+msgstr ""
+
+msgid "Modify camera margin"
+msgstr ""
+
+msgid "Modify canvas label text size, and real-time update the label text size of all frames after adjustment."
+msgstr ""
+
+msgid "Canvas label text size"
+msgstr ""
+
 msgid "Select"
 msgstr ""
 
-msgid "Select partial parts or objects from the added items to perform operations such as translation, rotation, and coloring. Pose-modifying operations like translation can be used to create custom keyframe animations."
+msgid "Select partial parts or objects from the added items to perform operations such as move, rotate, and coloring gizmo. Pose-modifying operations like move gizmo can be used to create custom keyframe animations."
 msgstr ""
 
 msgid "Edit step name"
@@ -3263,7 +3285,7 @@ msgstr ""
 msgid "Tip"
 msgstr ""
 
-msgid "No step card is currently selected. Pose-changing operations such as translation will affect the actual final-assembly view."
+msgid "No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view."
 msgstr ""
 
 msgid "Double-click an empty area to exit all editing states."
@@ -3284,6 +3306,9 @@ msgstr ""
 msgid "Current step options: edit the current step name, delete the step, or insert a step before/after."
 msgstr ""
 
+msgid "All parts of the current step are selected"
+msgstr ""
+
 msgid "Add some objects to current step"
 msgstr ""
 
@@ -3293,29 +3318,17 @@ msgstr ""
 msgid "Add Step"
 msgstr ""
 
+#, possible-boost-format
+msgid "No more than %1% steps are allowed."
+msgstr ""
+
 msgid "Only copy steps. This is independent of the selected objects on the canvas."
 msgstr ""
 
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr ""
 
-msgid "Volume"
-msgstr ""
-
-msgid "Model"
-msgstr ""
-
 msgid "Search"
-msgstr ""
-
-msgid "start frame"
-msgstr ""
-
-msgid "transition frame"
-msgstr ""
-
-#, possible-boost-format
-msgid "Plate %1%"
 msgstr ""
 
 msgid "Click to add Cyber Brick"
@@ -3333,7 +3346,7 @@ msgstr ""
 msgid "Export MP4"
 msgstr ""
 
-msgid "After exporting the Markdown document, you can edit it in third-party software such as MarkText and then export it to PDF."
+msgid "After exporting the Markdown document, you can edit it in third-party software such as Zettlr and then export it to PDF."
 msgstr ""
 
 msgid "Auto recommend"
@@ -3345,10 +3358,16 @@ msgstr ""
 msgid "Model parts only"
 msgstr ""
 
-msgid "Auto-arrange labels in current view"
+msgid "Automatically choose object-or-part-level labels: objects already shown in earlier steps are collapsed into a single object label, while the rest are labeled per individual part."
 msgstr ""
 
-msgid "Export"
+msgid "Show one label per model object."
+msgstr ""
+
+msgid "Show one label per model part."
+msgstr ""
+
+msgid "Auto-arrange labels in current view"
 msgstr ""
 
 msgid "Export assembly guide PDF, Markdown or MP4"
@@ -3357,31 +3376,31 @@ msgstr ""
 msgid "Screw"
 msgstr ""
 
-msgid "Show Object Numbers"
+msgid "Show Object labels"
 msgstr ""
 
 msgid "Show object names on the model"
 msgstr ""
 
-msgid "Show Part Numbers"
+msgid "Show Part labels"
 msgstr ""
 
-msgid "Show part numbers and names on models"
+msgid "Show part names on models"
 msgstr ""
 
-msgid "Show Object/Part Numbers"
+msgid "Show Object/Part labels"
 msgstr ""
 
-msgid "Show object and part numbers and names on models"
+msgid "Show object and part names  on models"
 msgstr ""
 
 msgid "Note"
 msgstr ""
 
-msgid "Pose changes (e.g. translation) made on the final-assembly step's keyframe will affect the actual assembly display."
+msgid "Pose changes (e.g. move gizmo) made on the final-assembly step's keyframe will affect the actual assembly display."
 msgstr ""
 
-msgid "Pose changes (e.g. translation) made on this step's keyframe do not affect the actual assembly display."
+msgid "Pose changes (e.g. move gizmo) made on this step's keyframe do not affect the actual assembly display."
 msgstr ""
 
 msgid "If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present."
@@ -3435,7 +3454,7 @@ msgstr ""
 msgid "Timeline"
 msgstr ""
 
-msgid "Play all frames for current node"
+msgid "Play all frames for current step"
 msgstr ""
 
 msgid "At least two keyframes are required to play."
@@ -3456,7 +3475,9 @@ msgstr ""
 msgid "Add keyframe"
 msgstr ""
 
-msgid "Click to re-record this frame"
+msgid ""
+"Click to re-record this frame.\n"
+"Especially after rotating the camera view, users want to save the current perspective"
 msgstr ""
 
 msgid "Click to select this frame"
@@ -3469,6 +3490,27 @@ msgid "List"
 msgstr ""
 
 msgid "Select all parts in a step"
+msgstr ""
+
+msgid "Red"
+msgstr ""
+
+msgid "Orange"
+msgstr ""
+
+msgid "Green"
+msgstr ""
+
+msgid "Blue"
+msgstr ""
+
+msgid "Black"
+msgstr ""
+
+msgid "Grey"
+msgstr ""
+
+msgid "White"
 msgstr ""
 
 msgid ""
@@ -4149,7 +4191,7 @@ msgstr ""
 msgid "Power on update"
 msgstr ""
 
-msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools."
+msgid "The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools."
 msgstr ""
 
 msgid "The AMS will not automatically read information from inserted filament during startup and will continue to use the information recorded before the last shutdown."
@@ -4385,7 +4427,7 @@ msgid ""
 msgstr ""
 
 #, possible-c-format, possible-boost-format
-msgid "Current chamber temperature is higher than the material's safe temperature,it may result in material softening and clogging.The maximum safe temperature for the material is %d"
+msgid "Current chamber temperature is higher than the material's safe temperature, it may result in material softening and clogging. The maximum safe temperature for the material is %d"
 msgstr ""
 
 msgid ""
@@ -4649,10 +4691,10 @@ msgstr ""
 msgid "Pause (nozzle clog)"
 msgstr ""
 
-msgid "Measuring motion percision"
+msgid "Measuring motion precision"
 msgstr ""
 
-msgid "Enhancing motion percision"
+msgid "Enhancing motion precision"
 msgstr ""
 
 msgid "Measure motion accuracy"
@@ -4798,7 +4840,7 @@ msgstr ""
 msgid "The current chamber temperature or the target chamber temperature exceeds 45℃.In order to avoid extruder clogging,low temperature filament(PLA/PETG/TPU) is not allowed to be loaded."
 msgstr ""
 
-msgid "Low temperature filament(PLA/PETG/TPU) is loaded in the extruder.In order to avoid extruder clogging,it is not allowed to set the chamber temperature."
+msgid "Low temperature filament (PLA/PETG/TPU) is loaded in the extruder. In order to avoid extruder clogging, it is not allowed to set the chamber temperature."
 msgstr ""
 
 msgid "When you set the chamber temperature below 40℃, the chamber temperature control will not be activated. And the target chamber temperature will automatically be set to 0℃."
@@ -5506,10 +5548,10 @@ msgstr ""
 msgid "Selection Mode"
 msgstr ""
 
-msgid "OnlyCurrentStep"
+msgid "Show Current Step Objects Only"
 msgstr ""
 
-msgid "Highlight"
+msgid "X-Ray Other Objects"
 msgstr ""
 
 msgid "Display Mode"
@@ -6264,7 +6306,7 @@ msgstr ""
 msgid "Printer camera is malfunctioning."
 msgstr ""
 
-msgid "Problem occured. Please update the printer firmware and try again."
+msgid "Problem occurred. Please update the printer firmware and try again."
 msgstr ""
 
 msgid "LAN Only Liveview is off. Please turn on the liveview on printer screen."
@@ -7146,9 +7188,6 @@ msgstr ""
 msgid "Error:"
 msgstr ""
 
-msgid "Enable support for"
-msgstr ""
-
 msgid "Open link for more info"
 msgstr ""
 
@@ -7796,7 +7835,7 @@ msgstr ""
 
 msgid ""
 "The imported STEP file is split by sub-assembly, so some objects may not be placed on the build plate at first.\n"
-"It is expected if they are placed on the build plate later after translation or similar operations.\n"
+"It is expected if they are placed on the build plate later after move,rotate gizmo or similar operations.\n"
 "The overall assembly can be checked from the assembly thumbnail or by entering the assembly view."
 msgstr ""
 
@@ -8645,7 +8684,7 @@ msgstr ""
 msgid "Always show shells in preview"
 msgstr ""
 
-msgid "Always show shells or not in preview view tab.If change value,you should reslice."
+msgid "Always show shells or not in preview view tab. If you change this value, you should reslice."
 msgstr ""
 
 msgid "Import a single SVG and split it"
@@ -9260,7 +9299,7 @@ msgstr ""
 msgid "The selected printer (%s) is incompatible with the print file configuration (%s). Please adjust the printer preset in the prepare page or choose a compatible printer on this page."
 msgstr ""
 
-msgid "When enable spiral vase mode, machines with I3 structure will not generate timelapse videos."
+msgid "When enabling spiral vase mode, machines with I3 structure will not generate timelapse videos."
 msgstr ""
 
 msgid "The current printer does not support timelapse in Traditional Mode when printing By-Object."
@@ -9679,7 +9718,7 @@ msgstr ""
 msgid "Terms and Conditions"
 msgstr ""
 
-msgid "Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab device, please read the termsand conditions.By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use(collectively, the \"Terms\"). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
+msgid "Thank you for purchasing a Bambu Lab device. Before using your Bambu Lab device, please read the terms and conditions. By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use (collectively, the \"Terms\"). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services."
 msgstr ""
 
 msgid "and"
@@ -12283,6 +12322,22 @@ msgid "Bridge flow"
 msgstr ""
 
 msgid "Decrease this value slightly(for example 0.9) to reduce the amount of material for bridge, to improve sag"
+msgstr ""
+
+msgid "Bridge counterbore holes"
+msgstr ""
+
+msgid ""
+"This option creates bridges for counterbore holes, allowing them to be printed without support. Available modes include:\n"
+"1. None: No bridge is created\n"
+"2. Partially Bridged: Only a part of the unsupported area will be bridged\n"
+"3. Sacrificial Layer: A full sacrificial bridge layer is created"
+msgstr ""
+
+msgid "Partially bridged"
+msgstr ""
+
+msgid "Sacrificial layer"
 msgstr ""
 
 msgid "Top surface flow ratio"
@@ -14985,13 +15040,6 @@ msgid "Generating infill toolpath"
 msgstr ""
 
 msgid "Detect overhangs for auto-lift"
-msgstr ""
-
-msgid "Levitating objects cannot be printed without supports."
-msgstr ""
-
-#, possible-c-format, possible-boost-format
-msgid "It seems object %s has floating regions. Please re-orient the object or enable support generation."
 msgstr ""
 
 msgid "Checking support necessity"

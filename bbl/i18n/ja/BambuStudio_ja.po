@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-17 14:42+0800\n"
+"POT-Creation-Date: 2026-06-22 21:24+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1324,6 +1324,9 @@ msgstr "面2を基準に反転"
 msgid "Assemble"
 msgstr "組立てる"
 
+msgid "Please double-click the blank area to exit the assembly guide before using this tool."
+msgstr ""
+
 msgid "Please confirm explosion ratio = 1 and select at least two volumes."
 msgstr "分解比率を1に設定し、2巻以上を選択してください。"
 
@@ -1545,8 +1548,8 @@ msgstr "警告: テキストの標準がリセットされました。"
 msgid "Warning: Current text spacing is not optimal. If you continue editing, a more reasonable text spacing will be generated."
 msgstr "警告：現在の文字間隔は最適ではありません。編集を続けると、より適切な文字間隔が自動的に調整されます。"
 
-msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
-msgstr "警告: 古いマトリックスには少なくとも2つのパラメータ（反転、スケーリング、回転）が含まれています。編集を続けると、正しくない可能性があります。テキストをドラッグするか、現在のポーズをキャンセルして保存後、再編集してください。"
+msgid "Warning: Old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please drag the text or cancel the current pose, save and reedit again."
+msgstr ""
 
 msgid "Error: Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes. Please drag text, save it then reedit it again."
 msgstr "エラー: 不正なメッシュIDの検出または不明なエラーが発生しました。テキストを再生成すると、正しく処理されない可能性があります。テキストをドラッグし、保存してから再編集してください。"
@@ -3150,7 +3153,7 @@ msgstr ""
 msgid "Step"
 msgstr "手順"
 
-msgid "Empty Step"
+msgid "Install parts"
 msgstr ""
 
 msgid "New Step"
@@ -3183,10 +3186,54 @@ msgstr ""
 msgid "Exporting file"
 msgstr ""
 
-msgid "Assembly Step"
-msgstr ""
+msgid "Export"
+msgstr "エクスポート"
 
 msgid "Saving project will automatically switch to end frame"
+msgstr ""
+
+msgid "Final assembly"
+msgstr ""
+
+msgid "end frame"
+msgstr ""
+
+msgid "Assembly Structure"
+msgstr ""
+
+msgid "Start your assembly journey from Add Step"
+msgstr ""
+
+msgctxt "AssemblyStructure"
+msgid "Default"
+msgstr "デフォルト"
+
+msgid "Contain"
+msgstr ""
+
+msgid "Assembly Module"
+msgstr ""
+
+msgid "Add object to current step"
+msgstr ""
+
+msgid "Model"
+msgstr "モデル"
+
+msgid "Volume"
+msgstr ""
+
+msgid "start frame"
+msgstr ""
+
+msgid "transition frame"
+msgstr ""
+
+#, boost-format
+msgid "Plate %1%"
+msgstr ""
+
+msgid "Assembly Step"
 msgstr ""
 
 msgid "Start frame"
@@ -3204,7 +3251,7 @@ msgstr ""
 msgid "step"
 msgstr ""
 
-msgid "Play all frames for all nodes."
+msgid "Play all frames for all steps."
 msgstr ""
 
 msgid "Toggle playback speed."
@@ -3216,50 +3263,25 @@ msgstr ""
 msgid "Play next frame."
 msgstr ""
 
-msgid "Final assembly"
-msgstr ""
-
-msgid "end frame"
-msgstr ""
-
 msgid "Set export file parameters"
 msgstr ""
 
-msgid "Camera margin factor for the start frame. The larger the value, the more margin."
+msgid "Camera margin factor for the current frame. The larger the value, the more margin."
 msgstr ""
 
-msgid "Start frame camera margin"
+msgid "Modify camera margin"
 msgstr ""
 
-msgid "Canvas label text size. The default value uses the current text size."
+msgid "Modify canvas label text size, and real-time update the label text size of all frames after adjustment."
 msgstr ""
 
 msgid "Canvas label text size"
 msgstr ""
 
-msgid "Assembly Structure"
-msgstr ""
-
-msgid "Start your assembly journey from Add Step"
-msgstr ""
-
-msgctxt "AssemblyStructure"
-msgid "Default"
-msgstr ""
-
-msgid "Contain"
-msgstr ""
-
-msgid "Assembly Module"
-msgstr ""
-
-msgid "Add object to current step"
-msgstr ""
-
 msgid "Select"
 msgstr "選択"
 
-msgid "Select partial parts or objects from the added items to perform operations such as translation, rotation, and coloring. Pose-modifying operations like translation can be used to create custom keyframe animations."
+msgid "Select partial parts or objects from the added items to perform operations such as move, rotate, and coloring gizmo. Pose-modifying operations like move gizmo can be used to create custom keyframe animations."
 msgstr ""
 
 msgid "Edit step name"
@@ -3277,7 +3299,7 @@ msgstr ""
 msgid "Tip"
 msgstr "ヒント"
 
-msgid "No step card is currently selected. Pose-changing operations such as translation will affect the actual final-assembly view."
+msgid "No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view."
 msgstr ""
 
 msgid "Double-click an empty area to exit all editing states."
@@ -3298,6 +3320,9 @@ msgstr "Wikiへ移動"
 msgid "Current step options: edit the current step name, delete the step, or insert a step before/after."
 msgstr ""
 
+msgid "All parts of the current step are selected"
+msgstr ""
+
 msgid "Add some objects to current step"
 msgstr ""
 
@@ -3307,30 +3332,18 @@ msgstr ""
 msgid "Add Step"
 msgstr ""
 
+#, boost-format
+msgid "No more than %1% steps are allowed."
+msgstr ""
+
 msgid "Only copy steps. This is independent of the selected objects on the canvas."
 msgstr ""
 
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr ""
 
-msgid "Volume"
-msgstr ""
-
-msgid "Model"
-msgstr "モデル"
-
 msgid "Search"
 msgstr "検索"
-
-msgid "start frame"
-msgstr ""
-
-msgid "transition frame"
-msgstr ""
-
-#, boost-format
-msgid "Plate %1%"
-msgstr ""
 
 msgid "Click to add Cyber Brick"
 msgstr ""
@@ -3347,7 +3360,7 @@ msgstr ""
 msgid "Export MP4"
 msgstr ""
 
-msgid "After exporting the Markdown document, you can edit it in third-party software such as MarkText and then export it to PDF."
+msgid "After exporting the Markdown document, you can edit it in third-party software such as Zettlr and then export it to PDF."
 msgstr ""
 
 msgid "Auto recommend"
@@ -3359,11 +3372,17 @@ msgstr ""
 msgid "Model parts only"
 msgstr ""
 
-msgid "Auto-arrange labels in current view"
+msgid "Automatically choose object-or-part-level labels: objects already shown in earlier steps are collapsed into a single object label, while the rest are labeled per individual part."
 msgstr ""
 
-msgid "Export"
-msgstr "エクスポート"
+msgid "Show one label per model object."
+msgstr ""
+
+msgid "Show one label per model part."
+msgstr ""
+
+msgid "Auto-arrange labels in current view"
+msgstr ""
 
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr ""
@@ -3371,31 +3390,31 @@ msgstr ""
 msgid "Screw"
 msgstr ""
 
-msgid "Show Object Numbers"
+msgid "Show Object labels"
 msgstr ""
 
 msgid "Show object names on the model"
 msgstr ""
 
-msgid "Show Part Numbers"
+msgid "Show Part labels"
 msgstr ""
 
-msgid "Show part numbers and names on models"
+msgid "Show part names on models"
 msgstr ""
 
-msgid "Show Object/Part Numbers"
+msgid "Show Object/Part labels"
 msgstr ""
 
-msgid "Show object and part numbers and names on models"
+msgid "Show object and part names  on models"
 msgstr ""
 
 msgid "Note"
 msgstr "メモ"
 
-msgid "Pose changes (e.g. translation) made on the final-assembly step's keyframe will affect the actual assembly display."
+msgid "Pose changes (e.g. move gizmo) made on the final-assembly step's keyframe will affect the actual assembly display."
 msgstr ""
 
-msgid "Pose changes (e.g. translation) made on this step's keyframe do not affect the actual assembly display."
+msgid "Pose changes (e.g. move gizmo) made on this step's keyframe do not affect the actual assembly display."
 msgstr ""
 
 msgid "If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present."
@@ -3449,7 +3468,7 @@ msgstr ""
 msgid "Timeline"
 msgstr ""
 
-msgid "Play all frames for current node"
+msgid "Play all frames for current step"
 msgstr ""
 
 msgid "At least two keyframes are required to play."
@@ -3470,7 +3489,9 @@ msgstr ""
 msgid "Add keyframe"
 msgstr ""
 
-msgid "Click to re-record this frame"
+msgid ""
+"Click to re-record this frame.\n"
+"Especially after rotating the camera view, users want to save the current perspective"
 msgstr ""
 
 msgid "Click to select this frame"
@@ -3483,6 +3504,27 @@ msgid "List"
 msgstr ""
 
 msgid "Select all parts in a step"
+msgstr ""
+
+msgid "Red"
+msgstr ""
+
+msgid "Orange"
+msgstr ""
+
+msgid "Green"
+msgstr ""
+
+msgid "Blue"
+msgstr ""
+
+msgid "Black"
+msgstr ""
+
+msgid "Grey"
+msgstr ""
+
+msgid "White"
 msgstr ""
 
 msgid ""
@@ -5609,10 +5651,10 @@ msgstr "組み立て制御"
 msgid "Selection Mode"
 msgstr "選択モード"
 
-msgid "OnlyCurrentStep"
+msgid "Show Current Step Objects Only"
 msgstr ""
 
-msgid "Highlight"
+msgid "X-Ray Other Objects"
 msgstr ""
 
 msgid "Display Mode"
@@ -7267,9 +7309,6 @@ msgstr "確認"
 msgid "Error:"
 msgstr "エラー:"
 
-msgid "Enable support for"
-msgstr "サポートを有効にする対象"
-
 msgid "Open link for more info"
 msgstr "詳細はこちら"
 
@@ -7928,7 +7967,7 @@ msgstr "テクスチャインポート警告"
 
 msgid ""
 "The imported STEP file is split by sub-assembly, so some objects may not be placed on the build plate at first.\n"
-"It is expected if they are placed on the build plate later after translation or similar operations.\n"
+"It is expected if they are placed on the build plate later after move,rotate gizmo or similar operations.\n"
 "The overall assembly can be checked from the assembly thumbnail or by entering the assembly view."
 msgstr ""
 
@@ -12542,6 +12581,22 @@ msgstr "ブリッジ流量"
 msgid "Decrease this value slightly(for example 0.9) to reduce the amount of material for bridge, to improve sag"
 msgstr "この値をわずかに下げる（例：0.9）と、ブリッジに使用する材料量が減り、たるみが改善されます。"
 
+msgid "Bridge counterbore holes"
+msgstr ""
+
+msgid ""
+"This option creates bridges for counterbore holes, allowing them to be printed without support. Available modes include:\n"
+"1. None: No bridge is created\n"
+"2. Partially Bridged: Only a part of the unsupported area will be bridged\n"
+"3. Sacrificial Layer: A full sacrificial bridge layer is created"
+msgstr ""
+
+msgid "Partially bridged"
+msgstr ""
+
+msgid "Sacrificial layer"
+msgstr ""
+
 msgid "Top surface flow ratio"
 msgstr "トップ面の流量比率"
 
@@ -15302,13 +15357,6 @@ msgstr "インフィルパスを生成"
 msgid "Detect overhangs for auto-lift"
 msgstr "オーバーハング自動検出"
 
-msgid "Levitating objects cannot be printed without supports."
-msgstr "浮いたオブジェクトは、サポートなしでは印刷できません。"
-
-#, c-format, boost-format
-msgid "It seems object %s has floating regions. Please re-orient the object or enable support generation."
-msgstr "オブジェクト%sに浮いた領域があるようです。オブジェクトの向きを変更するか、サポート生成を有効にしてください。"
-
 msgid "Checking support necessity"
 msgstr "サポートの必要性を確認"
 
@@ -15953,9 +16001,9 @@ msgid ""
 "Start temp >= End temp + 5)"
 msgstr ""
 "有効な値を入力してください：\n"
-"\t•\t開始温度：350度以下\n"
-"\t•\t終了温度：180度 以上\n"
-"\t•\t開始温度は終了温度より5 度以上高くしてください"
+"	•	開始温度：350度以下\n"
+"	•	終了温度：180度 以上\n"
+"	•	開始温度は終了温度より5 度以上高くしてください"
 
 msgid "Max volumetric speed test"
 msgstr "最大体積速度テスト"
@@ -15975,9 +16023,9 @@ msgid ""
 "end >= start + step)"
 msgstr ""
 "有効な値を入力してください：\n"
-"\t•\t開始値（start） > 0\n"
-"\t•\tステップサイズ（step） ≥ 0\n"
-"\t•\t終了値（end） ≥ 開始値 + ステップサイズ"
+"	•	開始値（start） > 0\n"
+"	•	ステップサイズ（step） ≥ 0\n"
+"	•	終了値（end） ≥ 開始値 + ステップサイズ"
 
 msgid "VFA test"
 msgstr "VFA テスト"
@@ -15994,9 +16042,9 @@ msgid ""
 "end >= start + step)"
 msgstr ""
 "有効な値を入力してください：\n"
-"\t•\t開始値（start） > 10\n"
-"\t•\tステップサイズ（step） ≥ 0\n"
-"\t•\t終了値（end） ≥ 開始値 + ステップサイズ"
+"	•	開始値（start） > 10\n"
+"	•	ステップサイズ（step） ≥ 0\n"
+"	•	終了値（end） ≥ 開始値 + ステップサイズ"
 
 msgid "Start retraction length: "
 msgstr "引き込み開始の長さ： "
@@ -18088,6 +18136,19 @@ msgid ""
 msgstr ""
 "一発成功の信頼性\n"
 "見守りの手間を減らし、より予測可能な造形を実現。例：PETG 部品を小規模ファームで運用する場合でも、「6時間目で失敗」といった不意打ちを避け、バッチを計画どおりに進められます。"
+
+#~ msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
+#~ msgstr "警告: 古いマトリックスには少なくとも2つのパラメータ（反転、スケーリング、回転）が含まれています。編集を続けると、正しくない可能性があります。テキストをドラッグするか、現在のポーズをキャンセルして保存後、再編集してください。"
+
+#~ msgid "Enable support for"
+#~ msgstr "サポートを有効にする対象"
+
+#~ msgid "Levitating objects cannot be printed without supports."
+#~ msgstr "浮いたオブジェクトは、サポートなしでは印刷できません。"
+
+#, c-format, boost-format
+#~ msgid "It seems object %s has floating regions. Please re-orient the object or enable support generation."
+#~ msgstr "オブジェクト%sに浮いた領域があるようです。オブジェクトの向きを変更するか、サポート生成を有効にしてください。"
 
 #~ msgid "Please click the confirm button if you still want to proceed with printing."
 #~ msgstr "印刷を続行する場合は、確認ボタンをクリックしてください。"

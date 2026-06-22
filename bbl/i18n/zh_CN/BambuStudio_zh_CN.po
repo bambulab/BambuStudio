@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-17 14:42+0800\n"
+"POT-Creation-Date: 2026-06-22 21:24+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1088,7 +1088,7 @@ msgid "connector is out of object"
 msgstr "个连接件穿透了模型"
 
 msgid "connectors are out of object"
-msgstr "个连接件穿透了模型"
+msgstr "连接器超出对象范围"
 
 msgid "Some connectors are overlapped"
 msgstr "存在连接件相互重叠"
@@ -1274,13 +1274,13 @@ msgid ""
 msgstr "特征1已经被重置，特征2变成特征1"
 
 msgid "Warning: Please select a Plane feature."
-msgstr "警告:请选择面特征。"
+msgstr "警告：请选择一个平面特征。"
 
 msgid "Warning: Please select a Point or Circle feature."
-msgstr "警告:请选择点或圆特征。"
+msgstr "警告：请选择一个点或圆特征。"
 
 msgid "Warning: Please select two different meshes."
-msgstr "警告:请选择两个不同的网格。"
+msgstr "警告：请选择两个不同的网格。"
 
 msgid "Copy to clipboard"
 msgstr "复制到剪贴板"
@@ -1323,6 +1323,9 @@ msgstr "通过面2翻转"
 
 msgid "Assemble"
 msgstr "装配"
+
+msgid "Please double-click the blank area to exit the assembly guide before using this tool."
+msgstr "请双击空白区域以退出装配指南，然后再使用此工具。"
 
 msgid "Please confirm explosion ratio = 1 and select at least two volumes."
 msgstr "请确保爆炸比例为1且至少选择两个网格。"
@@ -1526,31 +1529,31 @@ msgid "Text Gap"
 msgstr "文字间距"
 
 msgid "Warning: There is a mirror in the text matrix, and dragging it will completely regenerate it."
-msgstr "警告：文本矩阵中有一个镜像，拖动它将完全重新生成它。"
+msgstr "警告：文本矩阵中存在镜像，拖动它将完全重新生成。"
 
 msgid "Warning: Due to font upgrades, previous font may not necessarily be replaced successfully. Please modify the font."
-msgstr "警告：由于字体升级，以前的字体不一定能替换成功，建议您修改字体。"
+msgstr "警告：由于字体升级，可能无法成功替换旧字体。请修改字体。"
 
 msgid "Warning: Text creation failed."
-msgstr "警告：创建文字失败。"
+msgstr "警告：文本创建失败。"
 
 msgid "Warning: Text normal has an error."
-msgstr "警告：文字法向量错误"
+msgstr "警告：文本正常出现错误。"
 
 msgid "Warning: Text normal has been reset."
-msgstr "警告:文字法向量已经被重置。"
+msgstr "警告：文字法向量已经被重置。"
 
 msgid "Warning: Current text spacing is not optimal. If you continue editing, a more reasonable text spacing will be generated."
-msgstr "警告：当前文本间距不够合理。如果继续编辑，将生成更合理的文本间距。"
+msgstr "警告：当前文本间距不理想。如果继续编辑，将生成更合理的文本间距。"
 
-msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
-msgstr "警告：旧矩阵至少有两个参数：镜像、缩放和旋转。如果继续编辑，则可能不正确。请拖动文本或取消使用当前姿势，保存并重新编辑。"
+msgid "Warning: Old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please drag the text or cancel the current pose, save and reedit again."
+msgstr "警告：旧矩阵至少包含两个参数：镜像、缩放和旋转。如果继续编辑，可能会导致不正确的结果。请拖动文本或取消当前姿势，保存后重新编辑。"
 
 msgid "Error: Detecting an incorrect mesh id or an unknown error, regenerating text may result in incorrect outcomes. Please drag text, save it then reedit it again."
-msgstr "错误：检测到不正确的网格id或未知错误，重新生成文本可能会导致不正确的结果。请拖动文本，保存，然后重新编辑。"
+msgstr "错误：检测到错误的网格 ID 或未知错误，重新生成文本可能导致不正确的结果。请拖动文本，保存后再进行编辑。"
 
 msgid "Warning: Due to functional upgrade, rotation information cannot be restored. Please drag or modify text, save it and reedit it to fix the issue."
-msgstr "警告：由于功能升级，旋转信息无法恢复。请拖动或修改文本，保存后重新编辑。"
+msgstr "警告：由于功能升级，旋转信息无法恢复。请拖动或修改文本，保存后重新编辑以修复此问题。"
 
 msgid "Detected that text did not adhere to mesh surface. Please manually drag yellow square to mesh surface that needs to be adhered."
 msgstr "检测到文本未贴合在网格表面。请手动将黄色方块拖动到需要贴合的网格表面。"
@@ -1768,7 +1771,7 @@ msgid "Missing data of svg file"
 msgstr "svg文件数据缺失"
 
 msgid "Tip: If you want to place an SVG file on another part surface, select the part first, then drag the SVG file to the part surface."
-msgstr "提示：如果要将 SVG 文件放置在另一个零件表面，请先选择零件，再将 SVG 文件拖到零件表面。"
+msgstr "提示：如果想将SVG文件放置在其他零件表面上，请先选择零件，然后将SVG文件拖到零件表面。"
 
 #. TRN - Preview of filename after clear local filepath.
 msgid "Unknown filename"
@@ -3146,8 +3149,8 @@ msgstr "打开图像文件"
 msgid "Step"
 msgstr "步骤"
 
-msgid "Empty Step"
-msgstr "空步骤"
+msgid "Install parts"
+msgstr "安装零件"
 
 msgid "New Step"
 msgstr "新步骤"
@@ -3179,59 +3182,17 @@ msgstr "导出装配指南到MP4"
 msgid "Exporting file"
 msgstr "导出文件"
 
-msgid "Assembly Step"
-msgstr "组装步骤"
+msgid "Export"
+msgstr "导出"
 
 msgid "Saving project will automatically switch to end frame"
 msgstr "保存项目时将自动切换到结束帧"
-
-msgid "Start frame"
-msgstr "起始帧"
-
-msgid "End frame"
-msgstr "结束帧"
-
-msgid "Transition frame"
-msgstr "过渡帧"
-
-msgid "Frame"
-msgstr "帧"
-
-msgid "step"
-msgstr "步骤"
-
-msgid "Play all frames for all nodes."
-msgstr "播放所有节点的所有帧。"
-
-msgid "Toggle playback speed."
-msgstr "切换播放速度。"
-
-msgid "Play previous frame."
-msgstr "播放上一帧"
-
-msgid "Play next frame."
-msgstr "播放下一帧"
 
 msgid "Final assembly"
 msgstr "总装"
 
 msgid "end frame"
 msgstr "结束帧"
-
-msgid "Set export file parameters"
-msgstr "设置导出文件参数"
-
-msgid "Camera margin factor for the start frame. The larger the value, the more margin."
-msgstr "起始帧的相机边距系数。值越大，边距越大。"
-
-msgid "Start frame camera margin"
-msgstr "起始帧相机边距"
-
-msgid "Canvas label text size. The default value uses the current text size."
-msgstr "画布标签文本大小。默认使用当前文本大小。"
-
-msgid "Canvas label text size"
-msgstr "画布标签文本大小"
 
 msgid "Assembly Structure"
 msgstr "装配结构"
@@ -3252,11 +3213,72 @@ msgstr "装配模块"
 msgid "Add object to current step"
 msgstr "将对象添加到当前步骤"
 
+msgid "Model"
+msgstr "模型"
+
+msgid "Volume"
+msgstr "体积"
+
+msgid "start frame"
+msgstr "起始帧"
+
+msgid "transition frame"
+msgstr "过渡帧"
+
+#, boost-format
+msgid "Plate %1%"
+msgstr "盘 %1%"
+
+msgid "Assembly Step"
+msgstr "组装步骤"
+
+msgid "Start frame"
+msgstr "起始帧"
+
+msgid "End frame"
+msgstr "结束帧"
+
+msgid "Transition frame"
+msgstr "过渡帧"
+
+msgid "Frame"
+msgstr "帧"
+
+msgid "step"
+msgstr "步骤"
+
+msgid "Play all frames for all steps."
+msgstr "播放所有步骤的所有帧。"
+
+msgid "Toggle playback speed."
+msgstr "切换播放速度。"
+
+msgid "Play previous frame."
+msgstr "播放上一帧"
+
+msgid "Play next frame."
+msgstr "播放下一帧"
+
+msgid "Set export file parameters"
+msgstr "设置导出文件参数"
+
+msgid "Camera margin factor for the current frame. The larger the value, the more margin."
+msgstr "当前帧的相机边距系数。值越大，边距越大。"
+
+msgid "Modify camera margin"
+msgstr "修改相机边距"
+
+msgid "Modify canvas label text size, and real-time update the label text size of all frames after adjustment."
+msgstr "修改画布标签文字大小，调整后实时更新所有画框的标签文字大小。"
+
+msgid "Canvas label text size"
+msgstr "画布标签文本大小"
+
 msgid "Select"
 msgstr "选择"
 
-msgid "Select partial parts or objects from the added items to perform operations such as translation, rotation, and coloring. Pose-modifying operations like translation can be used to create custom keyframe animations."
-msgstr "从添加的项目中选择部分零件或对象，以执行诸如平移、旋转和着色之类的操作。平移等姿态修改操作可用于创建自定义关键帧动画。"
+msgid "Select partial parts or objects from the added items to perform operations such as move, rotate, and coloring gizmo. Pose-modifying operations like move gizmo can be used to create custom keyframe animations."
+msgstr "从添加的项目中选择部分零件或对象，以执行平移、旋转和着色等操作。可以使用诸如平移工具之类的姿势修改操作来创建自定义关键帧动画。"
 
 msgid "Edit step name"
 msgstr "编辑步骤名称"
@@ -3273,8 +3295,8 @@ msgstr "在此步骤后插入"
 msgid "Tip"
 msgstr "提示"
 
-msgid "No step card is currently selected. Pose-changing operations such as translation will affect the actual final-assembly view."
-msgstr "当前未选中步骤卡。平移等姿态更改操作会影响实际的最终组装视图。"
+msgid "No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view."
+msgstr "当前未选中任何步骤卡。诸如移动工具之类的姿态更改操作将影响实际的最终装配视图。"
 
 msgid "Double-click an empty area to exit all editing states."
 msgstr "双击空白区域退出所有编辑状态。"
@@ -3294,6 +3316,9 @@ msgstr "查看Wiki"
 msgid "Current step options: edit the current step name, delete the step, or insert a step before/after."
 msgstr "当前步骤选项：编辑当前步骤名称、删除步骤或在当前步骤之前/之后插入步骤。"
 
+msgid "All parts of the current step are selected"
+msgstr "当前步骤的所有零件均已选中"
+
 msgid "Add some objects to current step"
 msgstr "将一些对象添加到当前步骤"
 
@@ -3303,30 +3328,18 @@ msgstr "复制步骤"
 msgid "Add Step"
 msgstr "添加步骤"
 
+#, boost-format
+msgid "No more than %1% steps are allowed."
+msgstr "最多允许 %1% 步。"
+
 msgid "Only copy steps. This is independent of the selected objects on the canvas."
 msgstr "仅复制步骤。此操作与画布上选定的对象无关。"
 
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr "仅添加空步骤。这与画布上的选定对象无关。"
 
-msgid "Volume"
-msgstr "体积"
-
-msgid "Model"
-msgstr "模型"
-
 msgid "Search"
 msgstr "搜索"
-
-msgid "start frame"
-msgstr "起始帧"
-
-msgid "transition frame"
-msgstr "过渡帧"
-
-#, boost-format
-msgid "Plate %1%"
-msgstr "盘 %1%"
 
 msgid "Click to add Cyber Brick"
 msgstr "点击添加 Cyber Brick"
@@ -3343,8 +3356,8 @@ msgstr "导出 Markdown"
 msgid "Export MP4"
 msgstr "导出 MP4"
 
-msgid "After exporting the Markdown document, you can edit it in third-party software such as MarkText and then export it to PDF."
-msgstr "导出Markdown文档后，您可以在MarkText等第三方软件中进行编辑，然后导出为PDF。"
+msgid "After exporting the Markdown document, you can edit it in third-party software such as Zettlr and then export it to PDF."
+msgstr "导出 Markdown 文档后，您可以使用 Zettlr 等第三方软件对其进行编辑，然后将其导出为 PDF。"
 
 msgid "Auto recommend"
 msgstr "自动推荐"
@@ -3355,11 +3368,17 @@ msgstr "仅模型对象"
 msgid "Model parts only"
 msgstr "仅模型部件"
 
+msgid "Automatically choose object-or-part-level labels: objects already shown in earlier steps are collapsed into a single object label, while the rest are labeled per individual part."
+msgstr "自动选择对象或零件级别的标签：在前面的步骤中已经显示的对象将合并为一个对象标签，而其余对象将按各个零件进行标记。"
+
+msgid "Show one label per model object."
+msgstr "为每个模型对象显示一个标签。"
+
+msgid "Show one label per model part."
+msgstr "为模型的每个零件显示一个标签。"
+
 msgid "Auto-arrange labels in current view"
 msgstr "自动排列当前视图中的标签"
-
-msgid "Export"
-msgstr "导出"
 
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr "导出装配指南 PDF、Markdown 或 MP4"
@@ -3367,32 +3386,32 @@ msgstr "导出装配指南 PDF、Markdown 或 MP4"
 msgid "Screw"
 msgstr "螺丝"
 
-msgid "Show Object Numbers"
-msgstr "显示对象编号"
+msgid "Show Object labels"
+msgstr "显示对象标签"
 
 msgid "Show object names on the model"
 msgstr "在模型上显示对象名称"
 
-msgid "Show Part Numbers"
-msgstr "显示零件号"
+msgid "Show Part labels"
+msgstr "显示零件标签"
 
-msgid "Show part numbers and names on models"
-msgstr "在模型上显示零件号和名称"
+msgid "Show part names on models"
+msgstr "在模型上显示零件名称"
 
-msgid "Show Object/Part Numbers"
-msgstr "显示对象/零件编号"
+msgid "Show Object/Part labels"
+msgstr "显示对象/零件标签"
 
-msgid "Show object and part numbers and names on models"
-msgstr "在模型上显示对象和部件编号及名称"
+msgid "Show object and part names  on models"
+msgstr "在模型上显示对象和零件名称"
 
 msgid "Note"
 msgstr "提示"
 
-msgid "Pose changes (e.g. translation) made on the final-assembly step's keyframe will affect the actual assembly display."
-msgstr "在最终装配步骤的关键帧上进行的姿态更改（例如平移）将影响实际的装配显示。"
+msgid "Pose changes (e.g. move gizmo) made on the final-assembly step's keyframe will affect the actual assembly display."
+msgstr "在最终装配步骤的关键帧上进行的姿态更改（例如平移工具）将影响实际的装配显示。"
 
-msgid "Pose changes (e.g. translation) made on this step's keyframe do not affect the actual assembly display."
-msgstr "在此关键帧上进行的姿势更改（例如平移）不会影响实际的装配显示。"
+msgid "Pose changes (e.g. move gizmo) made on this step's keyframe do not affect the actual assembly display."
+msgstr "在此步骤的关键帧上进行的姿势更改（例如平移工具）不会影响实际组装显示。"
 
 msgid "If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present."
 msgstr "如有必要，可以通过按下“应用实际装配姿态”按钮来恢复一个相对较好的位置。"
@@ -3445,8 +3464,8 @@ msgstr "每次重新勾选复选框时，自动选择最佳相机视角并自动
 msgid "Timeline"
 msgstr "时间轴"
 
-msgid "Play all frames for current node"
-msgstr "播放当前节点的所有帧"
+msgid "Play all frames for current step"
+msgstr "播放当前步骤的所有帧"
 
 msgid "At least two keyframes are required to play."
 msgstr "至少需要两个关键帧才能播放。"
@@ -3466,8 +3485,12 @@ msgstr "将当前相机角度应用于当前步骤的所有帧"
 msgid "Add keyframe"
 msgstr "添加关键帧"
 
-msgid "Click to re-record this frame"
-msgstr "单击重新录制此帧"
+msgid ""
+"Click to re-record this frame.\n"
+"Especially after rotating the camera view, users want to save the current perspective"
+msgstr ""
+"单击以重新录制此帧。\n"
+"尤其是在旋转相机视图后，用户希望保存当前视角。"
 
 msgid "Click to select this frame"
 msgstr "单击以选择此帧"
@@ -3480,6 +3503,27 @@ msgstr "列表"
 
 msgid "Select all parts in a step"
 msgstr "选择步骤中的所有零件"
+
+msgid "Red"
+msgstr "红色"
+
+msgid "Orange"
+msgstr "橙色"
+
+msgid "Green"
+msgstr "绿色"
+
+msgid "Blue"
+msgstr "蓝色"
+
+msgid "Black"
+msgstr "黑色"
+
+msgid "Grey"
+msgstr "灰色"
+
+msgid "White"
+msgstr "白色"
 
 msgid ""
 "All the selected objects are on the locked plate,\n"
@@ -5602,11 +5646,11 @@ msgstr "拼装视图控制"
 msgid "Selection Mode"
 msgstr "选择模式"
 
-msgid "OnlyCurrentStep"
-msgstr "仅限当前步骤"
+msgid "Show Current Step Objects Only"
+msgstr "仅显示当前步骤对象"
 
-msgid "Highlight"
-msgstr "高亮"
+msgid "X-Ray Other Objects"
+msgstr "X 射线其他对象"
 
 msgid "Display Mode"
 msgstr "显示模式"
@@ -6355,7 +6399,7 @@ msgid "Plugin library failed to load. Click here to view the solution."
 msgstr "插件库加载失败，点击这里查看解决办法。"
 
 msgid "Loading failed. Please check the network and try again."
-msgstr ""
+msgstr "加载失败。请检查网络后重试。"
 
 msgid "Temporarily closed because there is no operation for a while."
 msgstr "长时间无操作，监控已关闭。"
@@ -7266,9 +7310,6 @@ msgstr "跳转到"
 msgid "Error:"
 msgstr "错误："
 
-msgid "Enable support for"
-msgstr ""
-
 msgid "Open link for more info"
 msgstr "打开链接获取更多信息"
 
@@ -7927,12 +7968,9 @@ msgstr "导入纹理警告"
 
 msgid ""
 "The imported STEP file is split by sub-assembly, so some objects may not be placed on the build plate at first.\n"
-"It is expected if they are placed on the build plate later after translation or similar operations.\n"
+"It is expected if they are placed on the build plate later after move,rotate gizmo or similar operations.\n"
 "The overall assembly can be checked from the assembly thumbnail or by entering the assembly view."
 msgstr ""
-"导入的 STEP 文件按子装配体进行拆分，因此最初可能有些对象未放置在构建板上。\n"
-"如果在翻译或类似操作后，这些对象之后被放置在构建板上，则属于正常现象。\n"
-"可以通过装配体缩略图或进入装配体视图来检查整体装配体。"
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "将这些文件加载为一个多零件对象？\n"
@@ -9480,10 +9518,10 @@ msgid "Please fix the error above, otherwise printing cannot continue."
 msgstr "请修复上述错误，否则打印无法继续。"
 
 msgid "Please click the \"Continue printing\"  button if you still want to proceed with printing."
-msgstr ""
+msgstr "如果您仍然想继续打印，请单击“确定”按钮。"
 
 msgid "Continue printing"
-msgstr ""
+msgstr "继续打印"
 
 msgid "Return to modify"
 msgstr "返回修改"
@@ -10390,7 +10428,7 @@ msgid "Detached"
 msgstr "分离的"
 
 msgid "The current preset is a project preset and can't be used to create a new preset. Please select a system preset or user preset, then try again."
-msgstr ""
+msgstr "当前预设是3mf文件内的项目预设，修改后请直接保存3mf项目，不支持另存为新预设。"
 
 msgid "Unable to save preset"
 msgstr ""
@@ -10926,7 +10964,7 @@ msgid "Edit Mode"
 msgstr "编辑模式"
 
 msgid "Run Script"
-msgstr ""
+msgstr "运行脚本"
 
 msgid "Add user script"
 msgstr ""
@@ -12536,6 +12574,22 @@ msgstr "桥接流量"
 
 msgid "Decrease this value slightly(for example 0.9) to reduce the amount of material for bridge, to improve sag"
 msgstr "稍微减小这个数值（比如0.9）可以减小桥接的材料量，来改善下垂。"
+
+msgid "Bridge counterbore holes"
+msgstr ""
+
+msgid ""
+"This option creates bridges for counterbore holes, allowing them to be printed without support. Available modes include:\n"
+"1. None: No bridge is created\n"
+"2. Partially Bridged: Only a part of the unsupported area will be bridged\n"
+"3. Sacrificial Layer: A full sacrificial bridge layer is created"
+msgstr ""
+
+msgid "Partially bridged"
+msgstr ""
+
+msgid "Sacrificial layer"
+msgstr ""
 
 msgid "Top surface flow ratio"
 msgstr "顶部表面流量比例"
@@ -15277,13 +15331,6 @@ msgstr "正在生成填充走线"
 
 msgid "Detect overhangs for auto-lift"
 msgstr "探测悬空区域为自动抬升做准备"
-
-msgid "Levitating objects cannot be printed without supports."
-msgstr ""
-
-#, c-format, boost-format
-msgid "It seems object %s has floating regions. Please re-orient the object or enable support generation."
-msgstr ""
 
 msgid "Checking support necessity"
 msgstr "正在检查支撑必要性"
@@ -18054,6 +18101,75 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
+#~ msgstr "警告：旧矩阵至少有两个参数：镜像、缩放和旋转。如果继续编辑，则可能不正确。请拖动文本或取消使用当前姿势，保存并重新编辑。"
+
+#~ msgid "Empty Step"
+#~ msgstr "空步骤"
+
+#~ msgid "Play all frames for all nodes."
+#~ msgstr "播放所有节点的所有帧。"
+
+#~ msgid "Camera margin factor for the start frame. The larger the value, the more margin."
+#~ msgstr "起始帧的相机边距系数。值越大，边距越大。"
+
+#~ msgid "Start frame camera margin"
+#~ msgstr "起始帧相机边距"
+
+#~ msgid "Canvas label text size. The default value uses the current text size."
+#~ msgstr "画布标签文本大小。默认使用当前文本大小。"
+
+#~ msgid "Select partial parts or objects from the added items to perform operations such as translation, rotation, and coloring. Pose-modifying operations like translation can be used to create custom keyframe animations."
+#~ msgstr "从添加的项目中选择部分零件或对象，以执行诸如平移、旋转和着色之类的操作。平移等姿态修改操作可用于创建自定义关键帧动画。"
+
+#~ msgid "No step card is currently selected. Pose-changing operations such as translation will affect the actual final-assembly view."
+#~ msgstr "当前未选中步骤卡。平移等姿态更改操作会影响实际的最终组装视图。"
+
+#~ msgid "After exporting the Markdown document, you can edit it in third-party software such as MarkText and then export it to PDF."
+#~ msgstr "导出Markdown文档后，您可以在MarkText等第三方软件中进行编辑，然后导出为PDF。"
+
+#~ msgid "Show Object Numbers"
+#~ msgstr "显示对象编号"
+
+#~ msgid "Show Part Numbers"
+#~ msgstr "显示零件号"
+
+#~ msgid "Show part numbers and names on models"
+#~ msgstr "在模型上显示零件号和名称"
+
+#~ msgid "Show Object/Part Numbers"
+#~ msgstr "显示对象/零件编号"
+
+#~ msgid "Show object and part numbers and names on models"
+#~ msgstr "在模型上显示对象和部件编号及名称"
+
+#~ msgid "Pose changes (e.g. translation) made on the final-assembly step's keyframe will affect the actual assembly display."
+#~ msgstr "在最终装配步骤的关键帧上进行的姿态更改（例如平移）将影响实际的装配显示。"
+
+#~ msgid "Pose changes (e.g. translation) made on this step's keyframe do not affect the actual assembly display."
+#~ msgstr "在此关键帧上进行的姿势更改（例如平移）不会影响实际的装配显示。"
+
+#~ msgid "Play all frames for current node"
+#~ msgstr "播放当前节点的所有帧"
+
+#~ msgid "Click to re-record this frame"
+#~ msgstr "单击重新录制此帧"
+
+#~ msgid "OnlyCurrentStep"
+#~ msgstr "仅限当前步骤"
+
+#~ msgid "Highlight"
+#~ msgstr "高亮"
+
+#~ msgid ""
+#~ "The imported STEP file is split by sub-assembly, so some objects may not be placed on the build plate at first.\n"
+#~ "It is expected if they are placed on the build plate later after translation or similar operations.\n"
+#~ "The overall assembly can be checked from the assembly thumbnail or by entering the assembly view."
+#~ msgstr ""
+#~ "导入的 STEP 文件按子装配体进行拆分，因此最初可能有些对象未放置在构建板上。\n"
+#~ "如果在翻译或类似操作后，这些对象之后被放置在构建板上，则属于正常现象。\n"
+#~ "可以通过装配体缩略图或进入装配体视图来检查整体装配体。"
 
 #~ msgid "Please click the confirm button if you still want to proceed with printing."
 #~ msgstr "如果您仍然想继续打印，请单击“确定”按钮。"
