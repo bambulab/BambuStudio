@@ -15127,15 +15127,9 @@ void Plater::priv::set_project_name(const wxString& project_name)
 {
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << __LINE__ << " project is:" << project_name;
     m_project_name = project_name;
-    //update topbar title
-#ifdef __WINDOWS__
-    wxGetApp().mainframe->SetTitle(m_project_name + " - BambuStudio");
-    wxGetApp().mainframe->topbar()->SetTitle(m_project_name);
-#else
-    wxGetApp().mainframe->SetTitle(m_project_name);
-    if (!m_project_name.IsEmpty())
-        wxGetApp().mainframe->update_title_colour_after_set_title();
-#endif
+    // Update the window/topbar title. The platform-specific logic (and the
+    // unsaved-changes "*" prefix) lives in MainFrame::update_title().
+    wxGetApp().mainframe->update_title();
 }
 
 void Plater::priv::set_project_filename(const wxString& filename)
