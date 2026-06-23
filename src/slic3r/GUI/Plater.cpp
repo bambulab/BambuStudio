@@ -2058,7 +2058,8 @@ void Sidebar::priv::update_extruder_full_stats(int extruder_id, wxString diamete
     if (type == nvtHybrid) {
         preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(extruder_id, nvtStandard, volume_counts[nvtStandard], true);
         preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(extruder_id, nvtHighFlow, volume_counts[nvtHighFlow], false);
-        preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(extruder_id, nvtTPUHighFlow, volume_counts[nvtTPUHighFlow] + volume_counts[nvtTPU285], false);
+        preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(extruder_id, nvtTPUHighFlow, volume_counts[nvtTPUHighFlow], false);
+        preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(extruder_id, nvtTPU285, volume_counts[nvtTPU285], false);
     }
     else {
         preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(extruder_id, type, volume_counts[type], true);
@@ -3290,7 +3291,8 @@ Sidebar::Sidebar(Plater *parent)
                     if (volume_type == nvtHybrid) {
                         preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, nvtStandard, volume_counts[nvtStandard], true);
                         preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, nvtHighFlow, volume_counts[nvtHighFlow], false);
-                        preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, nvtTPUHighFlow, volume_counts[nvtTPUHighFlow] + volume_counts[nvtTPU285], false);
+                        preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, nvtTPUHighFlow, volume_counts[nvtTPUHighFlow], false);
+                        preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, nvtTPU285, volume_counts[nvtTPU285], false);
                     } else {
                         preset_bundle->extruder_nozzle_stat.set_extruder_nozzle_count(index, volume_type, volume_counts[volume_type], true);
                     }

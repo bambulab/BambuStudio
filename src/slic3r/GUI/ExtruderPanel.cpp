@@ -1284,7 +1284,8 @@ ExtruderNozzleStat ExtruderDialogPanel::BuildExtruderNozzleStat(wxString diamete
     if (type == nvtHybrid) {
         stat.set_extruder_nozzle_count(extruder_id, nvtStandard, volume_counts[nvtStandard], true);
         stat.set_extruder_nozzle_count(extruder_id, nvtHighFlow, volume_counts[nvtHighFlow], false);
-        stat.set_extruder_nozzle_count(extruder_id, nvtTPUHighFlow, volume_counts[nvtTPUHighFlow] + volume_counts[nvtTPU285], false);
+        stat.set_extruder_nozzle_count(extruder_id, nvtTPUHighFlow, volume_counts[nvtTPUHighFlow], false);
+        stat.set_extruder_nozzle_count(extruder_id, nvtTPU285, volume_counts[nvtTPU285], false);
     } else {
         stat.set_extruder_nozzle_count(extruder_id, type, volume_counts[type], false);
     }
