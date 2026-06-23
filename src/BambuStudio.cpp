@@ -7089,6 +7089,16 @@ int CLI::run(int argc, char **argv)
                                     BOOST_LOG_TRIVIAL(info) << "print::process: first time_using_cache is " << slice_time[TIME_USING_CACHE] << " secs.";
                                 }
                                 if (printer_technology == ptFFF) {
+                                    FilamentMapMode current_map_mode = print_fff->config().filament_map_mode.value;
+                                    if (is_auto_filament_map_mode(current_map_mode)) {
+                                        part_plate->set_filament_maps(print_fff->get_filament_maps());
+                                        part_plate->set_filament_volume_maps(print_fff->get_filament_volume_maps());
+                                    }
+                                    if (current_map_mode != FilamentMapMode::fmmNozzleManual) {
+                                        std::vector<int> f_nozzle_maps = print_fff->get_filament_nozzle_maps();
+                                        part_plate->set_filament_nozzle_maps(f_nozzle_maps);
+                                    }
+
                                     std::string conflict_result = print_fff->get_conflict_string();
                                     if (!conflict_result.empty()) {
                                        BOOST_LOG_TRIVIAL(error) << "plate "<< index+1<< ": found slicing result conflict!"<< std::endl;
