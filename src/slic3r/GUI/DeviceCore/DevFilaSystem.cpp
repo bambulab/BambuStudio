@@ -71,6 +71,7 @@ void DevAmsTray::reset()
     is_bbl              = false;
     hold_count          = 0;
     remain              = 0;
+    remain_g            = -1;
 }
 
 

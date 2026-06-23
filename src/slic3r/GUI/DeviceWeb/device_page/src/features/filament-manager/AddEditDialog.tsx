@@ -23,6 +23,7 @@ import {
 // matches an unedited single-slot save byte for byte.
 import {
   buildSpoolFromTray,
+  getTrayCurrentNetWeight,
   partitionTraysForBatchCreate,
 } from './buildSpoolFromTray';
 // STUDIO-18385: gate AMS save on duplicate RFID detection so users explicitly
@@ -64,19 +65,6 @@ const normalizeColorCode = canonicalizeHex;
 
 function isPresetColor(value: string): boolean {
   return BAMBU_COLORS.some((c) => c.toUpperCase() === value.toUpperCase());
-}
-
-// Derive the AMS tray's *current* net weight in grams from the MQTT payload.
-// `tray.weight` is the spool's initial net (e.g. "1000"), and `tray.remain`
-// is the AMS-reported remaining percentage. Falls back to the initial net
-// when remain% is missing so brand-new or non-RFID spools still show a
-// sensible value instead of "—".
-function getTrayCurrentNetWeight(tray: AmsTray): number {
-  const init = parseInt(String(tray.weight ?? '0'), 10) || 0;
-  const remain = typeof tray.remain === 'number' ? tray.remain : 0;
-  if (init <= 0) return 0;
-  if (remain <= 0) return init;
-  return Math.round(init * remain / 100);
 }
 
 function hasCloudRfid(tagUid: string): boolean {

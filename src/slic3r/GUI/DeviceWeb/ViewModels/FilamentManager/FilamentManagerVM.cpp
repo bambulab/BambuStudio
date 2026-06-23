@@ -961,6 +961,12 @@ nlohmann::json FilamentManagerVM::build_ams_data()
                             t["color"]    = color;
                             t["weight"]   = tray->weight;
                             t["remain"]   = tray->remain;
+                            t["remain_g"] = tray->remain_g;
+                            if (auto rw = tray->get_filament_remain_weight()) {
+                                t["remain_weight"] = *rw;
+                            } else {
+                                t["remain_weight"] = nullptr;
+                            }
                             t["diameter"] = tray->diameter;
                             t["is_bbl"]   = tray->is_bbl;
                             nlohmann::json colors = nlohmann::json::array();

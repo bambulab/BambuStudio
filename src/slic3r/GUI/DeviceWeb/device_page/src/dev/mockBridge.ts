@@ -190,20 +190,29 @@ const AMS: AmsData = {
     {
       ams_id: 'ams-1', ams_type: 0,
       trays: [
+        // slot 0: firmware reports remain_g -> UI shows 842g, not the 850g
+        //         the weight * remain% formula would produce. `remain_weight`
+        //         mirrors what FilamentManagerVM gets from
+        //         DevAmsTray::get_filament_remain_weight().
         { slot_id: '0', is_exists: true, tag_uid: 'RFID-A1',
           setting_id: 'BBL_PLA_BASIC', fila_type: 'PLA',
           color: '#FF911A', colors: ['#FF911A'], color_type: 2,
-          weight: 850, remain: 85, diameter: 1.75, is_bbl: true,
+          weight: 1000, remain: 85, remain_g: 842, remain_weight: 842,
+          diameter: 1.75, is_bbl: true,
           sub_brands: 'Bambu Lab' },
+        // slot 1: firmware did not report remain_g (-1) -> falls back to
+        //         weight * remain% = 720g.
         { slot_id: '1', is_exists: true, tag_uid: 'RFID-A2',
           setting_id: 'BBL_PLA_BASIC', fila_type: 'PLA',
           color: '#3F8BFF', colors: ['#3F8BFF', '#FF5BB0'], color_type: 1,
-          weight: 720, remain: 72, diameter: 1.75, is_bbl: true,
+          weight: 1000, remain: 72, remain_g: -1, remain_weight: 720,
+          diameter: 1.75, is_bbl: true,
           sub_brands: 'Bambu Lab' },
         { slot_id: '2', is_exists: true, tag_uid: 'RFID-A3',
           setting_id: 'BBL_PLA_TRANSLUCENT', fila_type: 'PLA',
           color: '#FF7B5A', colors: ['#FF7B5A', '#FFD18C'], color_type: 0,
-          weight: 600, remain: 60, diameter: 1.75, is_bbl: true,
+          weight: 1000, remain: 60, remain_g: 587, remain_weight: 587,
+          diameter: 1.75, is_bbl: true,
           sub_brands: 'Bambu Lab' },
         { slot_id: '3', is_exists: false },
       ],
