@@ -51,12 +51,17 @@ public:
         return nullptr;
     }
 
+    // Persist the current webview zoom level to AppConfig.
+    // Called from MainFrame's close handler so the level survives app restarts.
+    void SaveZoom();
+
 private:
     wxString BuildUrl(const std::string& path) const;
     // Deferred construction: build webview + bridge + manager + LoadUrl on first use.
     void EnsureBuilt();
     bool CanReportToWeb() const;
     bool CanBuildDeviceState() const;
+    void OnWebLoaded(wxWebViewEvent& evt);
 
 private:
     DeviceWebHostMode                 m_mode{ DeviceWebHostMode::AllForDebug };

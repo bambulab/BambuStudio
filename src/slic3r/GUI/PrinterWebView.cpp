@@ -46,9 +46,6 @@ PrinterWebView::PrinterWebView(wxWindow *parent)
     }
     */
 
-    //Zoom
-    m_zoomFactor = 100;
-
     //Connect the idle events
     Bind(wxEVT_CLOSE_WINDOW, &PrinterWebView::OnClose, this);
 
