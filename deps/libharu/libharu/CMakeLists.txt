@@ -131,7 +131,7 @@ set(
 )
 
 # install header files
-install(FILES ${haru_HDRS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(FILES ${haru_HDRS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hpdf)
 
 # install various files
 install(FILES README.md CHANGES DESTINATION ${CMAKE_INSTALL_DOCDIR})
