@@ -13658,10 +13658,10 @@ msgid "Enable clumping detection"
 msgstr "Enable clumping detection by probing"
 
 msgid "Order-independent overlap carving"
-msgstr "无序重叠雕刻"
+msgstr "Order-independent overlap carving"
 
 msgid "When enabled, overlapping model parts are carved by bounding-box size so smaller embedded parts are not removed by larger parts due to volume order."
-msgstr ""
+msgstr "When enabled, overlapping model parts are carved by bounding-box size so smaller embedded parts are not removed by larger parts due to volume order."
 
 msgid "Clumping detection layers"
 msgstr "Layers of clumping detection by probing"
