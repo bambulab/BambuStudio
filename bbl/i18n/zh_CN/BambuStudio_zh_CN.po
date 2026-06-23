@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-22 21:24+0800\n"
+"POT-Creation-Date: 2026-06-23 11:50+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -7971,6 +7971,9 @@ msgid ""
 "It is expected if they are placed on the build plate later after move,rotate gizmo or similar operations.\n"
 "The overall assembly can be checked from the assembly thumbnail or by entering the assembly view."
 msgstr ""
+"导入的 STEP 文件按子装配体分割，因此某些对象可能无法首先放置在打印板上。\n"
+"如果它们在移动、旋转工具或类似操作后稍后放置在打印板上，这是正常的。\n"
+"可以通过装配体缩略图或进入装配体视图来检查整个装配体。"
 
 msgid "Load these files as a single object with multiple parts?\n"
 msgstr "将这些文件加载为一个多零件对象？\n"
@@ -10427,8 +10430,8 @@ msgstr "固件回抽"
 msgid "Detached"
 msgstr "分离的"
 
-msgid "The current preset is a project preset and can't be used to create a new preset. Please select a system preset or user preset, then try again."
-msgstr "当前预设是3mf文件内的项目预设，修改后请直接保存3mf项目，不支持另存为新预设。"
+msgid "The current preset is embedded in the 3MF project file. Please save changes directly.  'Save as new' is not supported for preset inside project."
+msgstr "当前预设是3MF文件内的项目预设，修改后请直接保存，不支持另存为新预设。"
 
 msgid "Unable to save preset"
 msgstr ""
@@ -13211,18 +13214,6 @@ msgstr "热端更换时间"
 msgid "Time to change hotend."
 msgstr "热端更换时间。"
 
-msgid "Cut and unload from extruder time"
-msgstr ""
-
-msgid "Time to cut filament and retract it out of the extruder, used when parallel feeding is supported. For statistics only"
-msgstr ""
-
-msgid "Extruder bite time after pre-feed"
-msgstr ""
-
-msgid "Time for the extruder to bite the filament once it has been pre-fed, used when parallel feeding is supported. For statistics only"
-msgstr ""
-
 msgid "Bed temperature type"
 msgstr "热床温度类型"
 
@@ -15161,12 +15152,6 @@ msgid "Flush multiplier (Fast mode)"
 msgstr ""
 
 msgid "The flush multiplier used in fast purge mode."
-msgstr ""
-
-msgid "Alternate extruder printing"
-msgstr ""
-
-msgid "When the printer supports parallel (pre-)feeding, print the two extruders in an alternating order within a layer instead of finishing one extruder first. Only takes effect when the printer supports parallel feeding."
 msgstr ""
 
 msgid "Width of prime tower"
@@ -18101,6 +18086,9 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "The current preset is a project preset and can't be used to create a new preset. Please select a system preset or user preset, then try again."
+#~ msgstr "当前预设是3mf文件内的项目预设，修改后请直接保存3mf项目，不支持另存为新预设。"
 
 #~ msgid "Warning:old matrix has at least two parameters: mirroring, scaling, and rotation. If you continue editing, it may not be correct. Please dragging text or cancel using current pose, save and reedit again."
 #~ msgstr "警告：旧矩阵至少有两个参数：镜像、缩放和旋转。如果继续编辑，则可能不正确。请拖动文本或取消使用当前姿势，保存并重新编辑。"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-22 21:24+0800\n"
+"POT-Creation-Date: 2026-06-23 11:50+0800\n"
 "PO-Revision-Date: 2025-10-16 12:27+0300\n"
 "Last-Translator: Fatih AYDIN <fatihaydin5228@gmail.com>\n"
 "Language-Team: \n"
@@ -10423,7 +10423,7 @@ msgstr "Firmware Geri Çekme"
 msgid "Detached"
 msgstr "Söküldü"
 
-msgid "The current preset is a project preset and can't be used to create a new preset. Please select a system preset or user preset, then try again."
+msgid "The current preset is embedded in the 3MF project file. Please save changes directly.  'Save as new' is not supported for preset inside project."
 msgstr ""
 
 msgid "Unable to save preset"
@@ -13179,18 +13179,6 @@ msgstr ""
 msgid "Time to change hotend."
 msgstr ""
 
-msgid "Cut and unload from extruder time"
-msgstr ""
-
-msgid "Time to cut filament and retract it out of the extruder, used when parallel feeding is supported. For statistics only"
-msgstr ""
-
-msgid "Extruder bite time after pre-feed"
-msgstr ""
-
-msgid "Time for the extruder to bite the filament once it has been pre-fed, used when parallel feeding is supported. For statistics only"
-msgstr ""
-
 msgid "Bed temperature type"
 msgstr "Yatak sıcaklığı tipi"
 
@@ -15114,12 +15102,6 @@ msgid "Flush multiplier (Fast mode)"
 msgstr ""
 
 msgid "The flush multiplier used in fast purge mode."
-msgstr ""
-
-msgid "Alternate extruder printing"
-msgstr ""
-
-msgid "When the printer supports parallel (pre-)feeding, print the two extruders in an alternating order within a layer instead of finishing one extruder first. Only takes effect when the printer supports parallel feeding."
 msgstr ""
 
 msgid "Width of prime tower"
