@@ -456,6 +456,8 @@ public://logic
     void                     clear_selection();
     // Apply the canvas selection that corresponds to the user clicking the steps-tree
     void                     select_steps_tree_node_for_canvas(int node_idx);
+    // Double-clicking a part-number label clears the current selection
+    void                     select_part_label_glvolume(const PartNumberLabel &lbl);
     std::vector<int>         selected_assembly_object_indices() const;
     // Upper bound for user-created (non-final-assembly) steps.
     static constexpr int     MAX_NON_FINAL_ASSEMBLY_STEPS = 99;

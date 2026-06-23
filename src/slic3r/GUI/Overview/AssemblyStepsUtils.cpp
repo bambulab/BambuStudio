@@ -438,6 +438,27 @@ void AssemblyStepsUtils::select_steps_tree_node_for_canvas(int node_idx)
     do_commond_callback("dirty");
 }
 
+void AssemblyStepsUtils::select_part_label_glvolume(const PartNumberLabel &lbl)
+{
+    if (!m_selection || !m_model)
+        return;
+    if (lbl.object_idx < 0 || lbl.object_idx >= (int) m_model->objects.size())
+        return;
+
+    // Treat this as a UI-driven selection (like clicking a tree node) so the
+    // per-frame canvas->tree sync does not remap or clear it. The selected step
+    // node (m_selected_node) is intentionally left unchanged.
+    set_selection_origin(SelectionOrigin::TreeNode);
+    clear_selection();
+    if (lbl.volume_idx >= 0)
+        m_selection->add_volume((unsigned int) lbl.object_idx, (unsigned int) lbl.volume_idx, 0, false);
+    else
+        m_selection->add_object((unsigned int) lbl.object_idx, false);
+
+    do_commond_callback("dirty");
+    do_commond_callback("request_extra_frame");
+}
+
 
 void AssemblyStepsUtils::clear_all_keyframe_part_number_labels()
 {

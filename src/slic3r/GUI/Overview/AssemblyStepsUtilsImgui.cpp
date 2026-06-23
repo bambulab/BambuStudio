@@ -897,6 +897,9 @@ void AssemblyStepsUtils::render_part_number_labels_on_canvas(
                     lbl.arrow_end_offset.y() += delta.y;
                     any_changed = true;
                 }
+                // Double-click selects the GLVolume(s) for this label's part.
+                if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0))
+                    select_part_label_glvolume(lbl);
                 if (ImGui::IsItemHovered())
                     set_cursor(AssemblyNoteCursorType::Move);
             }
