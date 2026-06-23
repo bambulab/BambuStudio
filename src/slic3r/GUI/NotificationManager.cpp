@@ -222,12 +222,14 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 
 	if (m_state == EState::Hidden) {
 		m_top_y = initial_y - GAP_WIDTH;
+		m_rendered_this_frame = false;
 		return;
 	}
 
 	if (m_state == EState::ClosePending || m_state == EState::Finished)
 	{
 		m_state = EState::Finished;
+		m_rendered_this_frame = false;
 		return;
 	}
 
@@ -249,6 +251,11 @@ void NotificationManager::PopNotification::render(GLCanvas3D& canvas, float init
 	ImVec2 win_pos(1.0f * (float)cnv_size.get_width() - right_gap, 1.0f * (float)cnv_size.get_height() - m_top_y);
 	imgui.set_next_window_pos(win_pos.x, win_pos.y, ImGuiCond_Always, 1.0f, 0.0f);
 	imgui.set_next_window_size(m_window_width, m_window_height, ImGuiCond_Always);
+
+	// Cache the screen-space rect (window is anchored by its top-right corner).
+	m_rendered_win_min   = ImVec2(win_pos.x - m_window_width, win_pos.y);
+	m_rendered_win_max   = ImVec2(win_pos.x, win_pos.y + m_window_height);
+	m_rendered_this_frame = true;
 
 	// find if hovered FIXME:  do it only in update state?
 	if (m_state == EState::Hovered) {
@@ -308,12 +315,14 @@ void NotificationManager::PopNotification::bbl_render_block_notification(GLCanva
 
 	if (m_state == EState::Hidden) {
 		m_top_y = initial_y - GAP_WIDTH;
+		m_rendered_this_frame = false;
 		return;
 	}
 
 	if (m_state == EState::ClosePending || m_state == EState::Finished)
 	{
 		m_state = EState::Finished;
+		m_rendered_this_frame = false;
 		return;
 	}
 
@@ -333,6 +342,11 @@ void NotificationManager::PopNotification::bbl_render_block_notification(GLCanva
     ImVec2 win_pos(1.0f * (float) cnv_size.get_width() - right_gap, 1.0f * (float) cnv_size.get_height() - m_top_y);
     imgui.set_next_window_pos(win_pos.x, win_pos.y, ImGuiCond_Always, 1.0f, 0.0f);
     imgui.set_next_window_size(m_window_width, m_window_height, ImGuiCond_Always);
+
+	// Cache the screen-space rect (window is anchored by its top-right corner).
+	m_rendered_win_min   = ImVec2(win_pos.x - m_window_width, win_pos.y);
+	m_rendered_win_max   = ImVec2(win_pos.x, win_pos.y + m_window_height);
+	m_rendered_this_frame = true;
 
 	// color change based on fading out
 	if (m_state == EState::FadingOut) {
@@ -2520,6 +2534,9 @@ void NotificationManager::render_notifications(GLCanvas3D &canvas, float overlay
 
 	int i = 0;
 	for (const auto& notification : m_pop_notifications) {
+        // Reset each frame; render()/bbl_render_block_notification() set it back
+        // to true (with the cached rect) only for notifications actually drawn.
+        notification->set_not_rendered();
         if (m_canvas_type == GLCanvas3D::ECanvasType::CanvasAssembleView) {
             if (notification->get_type() != NotificationType::AssemblyInfo
                 && notification->get_type() != NotificationType::AssemblyWarning
@@ -2734,6 +2751,15 @@ size_t NotificationManager::get_notification_count() const
 			ret++;
 	}
 	return ret;
+}
+
+bool NotificationManager::is_point_over_any_notification(const ImVec2 &point) const
+{
+	for (const std::unique_ptr<PopNotification>& notification : m_pop_notifications) {
+		if (notification->contains_point(point))
+			return true;
+	}
+	return false;
 }
 
 void NotificationManager::bbl_show_plateinfo_notification(const std::string &text)

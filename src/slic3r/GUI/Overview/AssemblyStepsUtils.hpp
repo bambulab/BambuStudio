@@ -82,25 +82,16 @@ struct AssemblyStructurePanelData
     bool                               always_show_scrollbar{false};//slider// When true the scrollbar is always visible; when false it only appears on overflow.
 };
 
-// Visual style for the per-card "Select" button + value label. Groups the
-struct AssemblySelectControlsStyle
-{
-    float height{0.f};
-    float pad_x{0.f};
-    float gap{0.f};
-    float radius{0.f};
-    float font_size{0.f};
-    ImU32 bg_col{0};
-    ImU32 button_text_col{0};
-    ImU32 label_text_col{0};
-};
-
 struct AssemblyTreeRenderOptions
 {
     bool        allow_object_check{true};
     bool        allow_volume_check{true};
     bool        show_footer{true};
     bool        readonly{false};
+    // When true, clicking a row (away from its checkbox/expander) marks it as the
+    // selected row (green highlight) and selects the matching object/volume on the
+    // canvas; hovering a row fires hover_tree_item_logic().
+    bool        enable_row_select{false};
     const char *child_id{"##assembly_tree_nodes"};
 };
 
@@ -184,11 +175,20 @@ class AssemblyStepsUtils
     int                 m_structure_add_tree_step_node{-1};
     ImVec2              m_structure_add_tree_pos{0.0f, 0.0f};
     bool                m_structure_add_tree_opened_this_frame{false};
+    // Step folder node whose add-object tree should auto-open once its card is
+    // laid out (-1 = none). Set right after a step is created so the tree shows
+    // without the user clicking the card's add affordance first.
+    int                 m_structure_add_tree_pending_node{-1};
     int                 m_structure_step_rename_node{-1};
     bool                m_structure_step_rename_open_pending{false};
     bool                m_structure_step_rename_had_focus{false};
     char                m_structure_step_rename_buf[256]{};
     int                 m_structure_scroll_to_node{-1};
+    // Drag-to-reorder state for non-final-assembly step cards. The drag handle is
+    int                 m_structure_drag_node{-1};
+    bool                m_structure_drag_active{false};
+    float               m_structure_drag_start_y{0.0f};
+    int                 m_structure_drag_insert_before{-1};
     bool                m_show_modelobject_name_when_modelobject_has_occur_before{true};
     // Floating "Export" button icon shown on the left of the guide panel
     ImTextureID         m_btn_icon_export{nullptr};
@@ -228,6 +228,28 @@ class AssemblyStepsUtils
     // Set when part-number labels are (re)generated: the next on-canvas render
     bool         m_pn_autolayout_pending{false};
     float        m_part_number_label_font_size{0.0f};
+    // Inline rename of a part-number label's text. While active the matching pill
+    // shows an ImGui InputText; committing renames the backing ModelObject /
+    // ModelVolume. The target is keyed by (object_idx, volume_idx) so it survives
+    // label-vector reordering. volume_idx < 0 means an object-level label.
+    int          m_pn_label_rename_object_idx{-1};
+    int          m_pn_label_rename_volume_idx{-1};
+    bool         m_pn_label_rename_focus_pending{false};
+    std::string  m_pn_label_rename_buf;
+    // Row selection / hover state for the assembly tree view (render_assembly_tree_ui).
+    // m_assembly_tree_selected_items holds the (object_idx, volume_idx) of every
+    // selected row (green fill highlight; volume_idx < 0 = object-level). Multiple
+    // rows can be selected; m_assembly_tree_hover_id caches the last hovered item's
+    // ObjectID so hover_tree_item_logic() only fires when the hovered row changes.
+    std::set<std::pair<int, int>> m_assembly_tree_selected_items;
+    int          m_assembly_tree_hover_id{-1};
+    // Inline rename of a tree-view row, keyed by (object_idx, volume_idx) of the
+    // backing ModelObject / ModelVolume (volume_idx < 0 = object-level). Mirrors
+    // the part-number label rename flow.
+    int          m_tree_item_rename_object_idx{-1};
+    int          m_tree_item_rename_volume_idx{-1};
+    bool         m_tree_item_rename_focus_pending{false};
+    std::string  m_tree_item_rename_buf;
     bool         m_interpolate_part_number_label_arrow_end_offset{true};
     bool         m_render_interpolated_part_number_labels{false};
     KeyFrame     m_interpolated_part_number_label_frame;
@@ -352,6 +374,13 @@ class AssemblyStepsUtils
     ImVec2                m_panel_rect_guide_max{0, 0};
     ImVec2                m_panel_rect_playbar_min{0, 0};
     ImVec2                m_panel_rect_playbar_max{0, 0};
+    // Extra overlay rects fed from GLCanvas3D that must also block part-number
+    ImVec2                m_overlay_rect_navigator_min{0, 0};
+    ImVec2                m_overlay_rect_navigator_max{0, 0};
+    ImVec2                m_overlay_rect_fit_camera_min{0, 0};
+    ImVec2                m_overlay_rect_fit_camera_max{0, 0};
+    ImVec2                m_overlay_rect_assemble_control_min{0, 0};
+    ImVec2                m_overlay_rect_assemble_control_max{0, 0};
     struct LabelLayoutForbiddenRect {
         ImVec2 min{0, 0};
         ImVec2 max{0, 0};
@@ -458,6 +487,13 @@ public://logic
     void                     select_steps_tree_node_for_canvas(int node_idx);
     // Double-clicking a part-number label clears the current selection
     void                     select_part_label_glvolume(const PartNumberLabel &lbl);
+    // Rebuild the canvas selection from m_assembly_tree_selected_items (the rows
+    // selected in the assembly tree). Supports multiple objects/volumes at once.
+    void                     apply_tree_items_selection_to_canvas();
+    // Hover callback for a tree-view row. The argument is the unique ObjectID of
+    // the hovered ModelObject / ModelVolume (-1 when no row is hovered). The
+    // concrete canvas-hover effect is wired up separately.
+    void                     hover_tree_item_logic(int id);
     std::vector<int>         selected_assembly_object_indices() const;
     // Upper bound for user-created (non-final-assembly) steps.
     static constexpr int     MAX_NON_FINAL_ASSEMBLY_STEPS = 99;
@@ -505,8 +541,13 @@ public://logic
     // Patch the currently-selected keyframe's per-object/per-volume
     void                     apply_final_assembly_end_frame_transforms_to_current_keyframe();
     // Patch the currently-selected keyframe's per-object/per-volume transforms
-    // from the given source frame and push the result to the canvas.
-    void                     apply_src_frame_transforms_to_current_keyframe(KeyFrameEntry &src);
+    // from the given source frame and push the result to the canvas. When
+    // restrict_to_filters is true, only objects in object_filter and volumes in
+    // volume_filter are copied; otherwise every transform in src is applied.
+    void                     apply_src_frame_transforms_to_current_keyframe(KeyFrameEntry &src,
+                                                    const std::set<int> &object_filter = {},
+                                                    const std::set<std::pair<int, int>> &volume_filter = {},
+                                                    bool restrict_to_filters = false);
     // Copy the final-assembly end frame's transforms into the given target keyframe (data only, no canvas push).
     void                     apply_final_assembly_end_frame_transforms_to_keyframe(KeyFrameEntry &target);
     // Returns true when the currently-selected keyframe's
@@ -616,14 +657,29 @@ public://logic
     // user_initiated == true means the user just (re)checked "Show Part
     void toggle_part_number_labels(bool user_initiated = true);
     // Switch which part-number labels are shown. Persists the choice into the
-    void set_labels_show_type(LabelsShowType type);
+    // current keyframe. reframe_camera == false keeps the current camera (the
+    // type rows only relayout labels); the dedicated camera action sets it true.
+    void set_labels_show_type(LabelsShowType type, bool reframe_camera = false);
     // Re-run the pill auto-arrange against the current camera, without reframing
     void auto_layout_labels_in_current_view();
+    // Enter inline-rename mode for the given part-number label (its text becomes
+    // an editable field). Committing renames the backing ModelObject/ModelVolume.
+    void begin_part_label_rename(const PartNumberLabel &lbl);
+    // Enter inline-rename mode for a tree-view row backed by the given
+    // ModelObject (volume_idx < 0) / ModelVolume; committing reuses
+    // rename_model_item_from_label.
+    void begin_tree_item_rename(int object_idx, int volume_idx, const std::string &name);
+    // Apply a new name to the ModelObject (volume_idx < 0) or ModelVolume the
+    // label points at. Returns true when the model name actually changed.
+    bool rename_model_item_from_label(int object_idx, int volume_idx, const std::string &new_name);
+    // Reframe + persist the recommended camera angle for the current keyframe
+    // only, without rebuilding or auto-arranging the part-number labels.
+    void auto_recommend_camera_for_current_view();
     void update_part_number_label_font_size_from_config();
     float part_number_label_font_size() const;
     void save_part_number_label_font_size_to_config(float font_size, bool save_now = false);
     // Rebuild the given keyframe entry's part-number labels (and optionally
-    void toggle_part_number_labels_to_keyframe(KeyFrameEntry &src, bool user_initiated = true);
+    void toggle_part_number_labels_to_keyframe(KeyFrameEntry &src, bool user_initiated = true, bool reframe_camera = true);
     // --- Part-number label data generators (one per LabelsShowType) ---
     void collect_part_number_label_refs(int collect_root,
                                         const std::function<bool(int /*object_idx*/)> &as_object_label,
@@ -656,6 +712,9 @@ public://logic
     // "Assembly Structure" panel, or 0 when it hasn't been drawn yet.
     float get_assembly_structure_right_x() const { return m_assembly_structure_right_x; }
     void  set_gizmo_toolbar_rect(float x0, float y0, float x1, float y1);
+    // Overlay regions (rendered by GLCanvas3D) that part-number labels
+    enum class AssemblyOverlayRect { Navigator, FitCamera, AssembleControl };
+    void  set_assembly_overlay_rect(AssemblyOverlayRect which, const ImVec2 &mn, const ImVec2 &mx);
     // Rendered footprint (w, h) of the floating export button, shared by the renderer
     // and the toolbar collision tests so both use the exact same rect.
     ImVec2 export_button_size(float sc) const;
@@ -704,9 +763,16 @@ public://logic
                                                                         const std::unordered_map<std::string, bool> &checked);
     void                                    begin_structure_step_rename(int node_idx, const std::string &fallback_title = std::string());
     void                                    open_structure_add_tree(int card_idx, int step_node_idx, const ImVec2 &pos);
+    // Queue the currently-selected step folder so its add-object tree auto-opens
+    // on the next panel layout (used after add_assembly_step()).
+    void                                    auto_open_add_tree_for_selected_step();
     void                                    exit_render_assembly_tree_ui();
     // Inserts a step relative to ref_node_idx. When copy is true the reference step
     void                                    insert_structure_step_relative(int ref_node_idx, bool before, const std::string &folder_name = std::string(), bool copy = true);
+    // Reorder a non-final-assembly step so it sits right before `before_node`
+    // (use -1 to move it after the last step). Only the relative order of
+    // non-final steps changes; the final-assembly slot stays put.
+    void                                    reorder_structure_step(int moved_node, int before_node);
     void                                    delete_structure_step(int node_idx);
     void                                    show_pdf_export_settings_dialog();
     // Reverse direction: take the current canvas Selection and write the matching
@@ -744,11 +810,6 @@ public://imgui
     void render_assembly_notes_on_canvas(const Vec2d &object_screen_center);
     void render_assembly_structure_panel(float canvas_w, float canvas_h);
     void render_panel_tooltip(const std::string &text, bool use_dark_style = true) const;
-    bool render_structure_card_select_controls(int card_idx, const ImVec2& pos,
-        const AssemblySelectControlsStyle& style,
-        const std::string& value_label, const std::string& full_value_label);
-    // Render a popup tree selector for a specific card. Shows a tree view
-    void render_structure_card_select_popup(int card_idx, const AssemblyTreeData *popup_tree_ptr);
     void render_assembly_structure_option_menu(ImGuiWrapper &imgui, float sc, bool is_dark);
     void render_structure_step_option_menu(int card_idx, const AssemblyStructureCard& card,
                                            const ImVec2& anchor, float sc, bool is_dark);

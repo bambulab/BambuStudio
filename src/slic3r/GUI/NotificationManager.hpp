@@ -333,6 +333,8 @@ public:
 	bool update_notifications(GLCanvas3D& canvas);
 	// returns number of all notifications shown
 	size_t get_notification_count() const;
+    // returns true if the given screen-space point is inside any notification
+    bool is_point_over_any_notification(const ImVec2 &point) const;
 
 
 	//BBS Notice
@@ -472,6 +474,15 @@ private:
 		int64_t 		       next_render() const { return is_finished() ? 0 : m_next_render; }
 		EState                 get_state()  const { return m_state; }
 		bool				   is_hovered() const { return m_state == EState::Hovered; }
+        // True when the given screen-space point is inside the window rendered last
+        bool                   contains_point(const ImVec2 &p) const {
+            return m_rendered_this_frame &&
+                   p.x >= m_rendered_win_min.x && p.x <= m_rendered_win_max.x &&
+                   p.y >= m_rendered_win_min.y && p.y <= m_rendered_win_max.y;
+        }
+        // Cleared by the manager for notifications it skips so their stale rect
+        // does not keep blocking input.
+        void                   set_not_rendered() { m_rendered_this_frame = false; }
 		void				   set_hovered() { if (m_state != EState::Finished && m_state != EState::ClosePending && m_state != EState::Hidden && m_state != EState::Unknown) m_state = EState::Hovered; }
 		// set start of notification to now. Used by delayed notifications
 		void                   reset_timer() { m_notification_start = GLCanvas3D::timestamp_now(); m_state = EState::Shown; }
@@ -600,6 +611,13 @@ private:
 		float            m_top_y                { 0.0f };
 		//Distance from top of block notifications to bottom of this notification
 		float            m_bottom_y				{ 0.0f };
+        // Screen-space rect of the window as rendered in the last frame. Only valid
+        // when m_rendered_this_frame is true (reset when the notification is skipped
+        // or hidden). Used to keep overlapping ImGui widgets (e.g. assembly part
+        // number labels) from stealing clicks meant for the notification.
+        ImVec2           m_rendered_win_min     { 0.0f, 0.0f };
+        ImVec2           m_rendered_win_max     { 0.0f, 0.0f };
+        bool             m_rendered_this_frame  { false };
 		// Height of text - Used as basic scaling unit!
 		float            m_line_height;
 		// endlines for text1, hypertext excluded

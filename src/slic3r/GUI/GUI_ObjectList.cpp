@@ -1174,6 +1174,40 @@ void ObjectList::update_name_in_list(int obj_idx, int vol_idx) const
     m_objects_model->SetName(new_name, item);
 }
 
+void ObjectList::sync_name_from_model(int obj_idx, int vol_idx)
+{
+    // Selection-independent name refresh: resolve the data-view item directly
+    // from (obj_idx, vol_idx) and pull the current model name. Used when a name
+    // is changed outside the list (e.g. renaming a part-number label in the
+    // assembly view) so the sidebar stays in sync.
+    if (m_objects_model == nullptr || obj_idx < 0 || obj_idx >= static_cast<int>(m_objects->size()))
+        return;
+    ModelObject *mo = (*m_objects)[obj_idx];
+    if (mo == nullptr)
+        return;
+
+    wxDataViewItem item;
+    wxString       new_name;
+    if (vol_idx < 0) {
+        item     = m_objects_model->GetItemById(obj_idx);
+        new_name = from_u8(mo->name);
+    } else {
+        if (vol_idx >= static_cast<int>(mo->volumes.size()) || mo->volumes[vol_idx] == nullptr)
+            return;
+        item = m_objects_model->GetItemByVolumeId(obj_idx, vol_idx);
+        // Single-volume objects show no separate volume row; fall back to the
+        // object item so its name still refreshes.
+        if (!item)
+            item = m_objects_model->GetItemById(obj_idx);
+        new_name = from_u8(mo->volumes[vol_idx]->name);
+    }
+
+    if (!item || new_name.IsEmpty() || m_objects_model->GetName(item) == new_name)
+        return;
+
+    m_objects_model->SetName(new_name, item);
+}
+
 void ObjectList::selection_changed()
 {
     if (m_prevent_list_events) return;

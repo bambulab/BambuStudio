@@ -13,9 +13,11 @@
 #include "../ImGuiWrapper.hpp"
 #include "../GUI_App.hpp"
 #include "../GUI.hpp"
+#include "../GUI_ObjectList.hpp"
 #include "../GLCanvas3D.hpp"
 #include "../MainFrame.hpp"
 #include "../Plater.hpp"
+#include "../MsgDialog.hpp"
 #include "../NotificationManager.hpp"
 #include "../OpenGLManager.hpp"
 #include "../imgui/imgui_stdlib.h"
@@ -28,6 +30,7 @@
 #include <boost/nowide/cstdio.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/trim.hpp>
 
 #include <hpdf/hpdf.h>
 
@@ -93,7 +96,7 @@ void AssemblyStepsUtils::set_selection_origin(SelectionOrigin origin)
     if (m_selection_origin != origin) {
         if (origin == SelectionOrigin::None) {
             exit_note_edit();
-            exit_render_assembly_tree_ui();
+            //exit_render_assembly_tree_ui();
             //this clear_when_no_selection(); Trigger camera rotation and exit the current step editing with a single click
         }
         m_selection_origin = origin;
@@ -454,6 +457,87 @@ void AssemblyStepsUtils::select_part_label_glvolume(const PartNumberLabel &lbl)
         m_selection->add_volume((unsigned int) lbl.object_idx, (unsigned int) lbl.volume_idx, 0, false);
     else
         m_selection->add_object((unsigned int) lbl.object_idx, false);
+
+    do_commond_callback("dirty");
+    do_commond_callback("request_extra_frame");
+}
+
+void AssemblyStepsUtils::apply_tree_items_selection_to_canvas()
+{
+    if (!m_selection || !m_model)
+        return;
+
+    // Same UI-driven selection path as a part-number label click: treat it as a
+    set_selection_origin(SelectionOrigin::TreeNode);
+    clear_selection();
+    for (const auto &item : m_assembly_tree_selected_items) {
+        const int object_idx = item.first;
+        const int volume_idx = item.second;
+        if (object_idx < 0 || object_idx >= (int) m_model->objects.size())
+            continue;
+        if (volume_idx >= 0)
+            m_selection->add_volume((unsigned int) object_idx, (unsigned int) volume_idx, 0, false);
+        else
+            m_selection->add_object((unsigned int) object_idx, false);
+    }
+
+    do_commond_callback("dirty");
+    do_commond_callback("request_extra_frame");
+}
+
+void AssemblyStepsUtils::hover_tree_item_logic(int id)
+{
+    // Canvas-side hover effect of a tree-view row. The argument is the unique
+    // ObjectID of the hovered ModelObject / ModelVolume (-1 when the hover left
+    // every row). Hovering an item previews it as the canvas selection (which
+    // draws its bounding box); leaving restores the persistent click selection.
+    if (m_assembly_tree_hover_id == id)
+        return;
+    m_assembly_tree_hover_id = id;
+
+    if (!m_selection || !m_model)
+        return;
+
+    if (id < 0) {
+        // Hover left the tree: restore the rows selected by clicking.
+        apply_tree_items_selection_to_canvas();
+        return;
+    }
+
+    // Resolve the (object_idx, volume_idx) backing the hovered ObjectID.
+    int obj_idx = -1, vol_idx = -1;
+    for (int oi = 0; oi < (int) m_model->objects.size() && obj_idx < 0; ++oi) {
+        const ModelObject *mo = m_model->objects[oi];
+        if (mo == nullptr)
+            continue;
+        if ((int) mo->id().id == id) {
+            obj_idx = oi;
+            vol_idx = -1;
+            break;
+        }
+        for (int vi = 0; vi < (int) mo->volumes.size(); ++vi) {
+            if (mo->volumes[vi] != nullptr && (int) mo->volumes[vi]->id().id == id) {
+                obj_idx = oi;
+                vol_idx = vi;
+                break;
+            }
+        }
+    }
+    if (obj_idx < 0) {
+        // Unknown id (group/folder row or stale): keep the click selection.
+        apply_tree_items_selection_to_canvas();
+        return;
+    }
+
+    // Preview the hovered item; the selection rendering shows its bounding box.
+    // Treat it as a tree-node selection so the per-frame canvas->tree sync keeps
+    // it stable and m_selected_node is left untouched.
+    set_selection_origin(SelectionOrigin::TreeNode);
+    clear_selection();
+    if (vol_idx >= 0)
+        m_selection->add_volume((unsigned int) obj_idx, (unsigned int) vol_idx, 0, false);
+    else
+        m_selection->add_object((unsigned int) obj_idx, false);
 
     do_commond_callback("dirty");
     do_commond_callback("request_extra_frame");
@@ -833,9 +917,6 @@ std::vector<int> AssemblyStepsUtils::selected_assembly_object_indices() const
           kf.camera_target     = cam.get_target();
           kf.camera_zoom       = cam.get_zoom();
           // Remember the viewport this zoom was framed for, so a later restore into a
-          // different-sized viewport can rescale the zoom proportionally. The reference
-          // viewport is shared by all keyframes (single document-level value) since every
-          // camera is recorded against the same canvas at a time.
           if (m_model) {
               const std::array<int, 4> vp = cam.get_viewport();
               if (vp[2] > 0 && vp[3] > 0) {
@@ -1263,10 +1344,71 @@ void AssemblyStepsUtils::apply_final_assembly_end_frame_transforms_to_current_ke
     if (!src_end_entry)
         return;
 
-    apply_src_frame_transforms_to_current_keyframe(*src_end_entry);
+    // Collect the canvas selection as object / volume keys. Each selected
+    // GLVolume contributes its object (instance-level) and, when it maps to a
+    // ModelVolume, its (object, volume) pair (part-level).
+    std::set<int>                  selected_objects;
+    std::set<std::pair<int, int>>  selected_volumes;
+    if (m_selection) {
+        const auto &sel_idxs = m_selection->get_volume_idxs();
+        for (unsigned int gi : sel_idxs) {
+            const GLVolume *gv = m_selection->get_volume(gi);
+            if (!gv)
+                continue;
+            const int oi = gv->object_idx();
+            const int vi = gv->volume_idx();
+            if (oi < 0 || oi >= (int) m_model->objects.size())
+                continue;
+            selected_objects.insert(oi);
+            if (vi >= 0)
+                selected_volumes.insert({oi, vi});
+        }
+    }
+
+    // With an active selection, only apply the final-assembly pose to the
+    // selected objects/parts. (Covers both single and multi selection.)
+    if (!selected_objects.empty() || !selected_volumes.empty()) {
+        apply_src_frame_transforms_to_current_keyframe(*src_end_entry, selected_objects, selected_volumes, true);
+        return;
+    }
+
+    // No selection: ask before applying the final-assembly pose to every
+    // object/part that was added to the current step.
+    MessageDialog msg_dlg(nullptr,
+        _L("Apply the final assembly pose to the objects or parts added in the current step?"),
+        _L("Apply final assembly pose"),
+        wxICON_QUESTION | wxYES_NO);
+    if (msg_dlg.ShowModal() != wxID_YES)
+        return;
+
+    // Gather the objects that belong to the current step (descendant Object nodes
+    // of the selected step folder), then restrict the apply to those.
+    const int folder = find_parent_folder(m_selected_node);
+    std::set<int>                 step_objects;
+    std::set<std::pair<int, int>> step_volumes;
+    if (folder >= 0 && folder < (int) _steps_nodes.size()) {
+        std::function<void(int)> collect = [&](int idx) {
+            if (idx < 0 || idx >= (int) _steps_nodes.size())
+                return;
+            const auto &node = _steps_nodes[idx];
+            if (node.type == AssemblyStepsTreeNode::Type::Object && node.object_idx >= 0)
+                step_objects.insert(node.object_idx);
+            for (int c : node.children)
+                collect(c);
+        };
+        collect(folder);
+    }
+    for (const auto &item : src_end_entry->data.volume_transformations) {
+        if (step_objects.count(item.first.first))
+            step_volumes.insert(item.first);
+    }
+    apply_src_frame_transforms_to_current_keyframe(*src_end_entry, step_objects, step_volumes, true);
 }
 
-void AssemblyStepsUtils::apply_src_frame_transforms_to_current_keyframe(KeyFrameEntry &src)
+void AssemblyStepsUtils::apply_src_frame_transforms_to_current_keyframe(KeyFrameEntry &src,
+    const std::set<int> &object_filter,
+    const std::set<std::pair<int, int>> &volume_filter,
+    bool restrict_to_filters)
 {
     if (!m_model)
         return;
@@ -1285,11 +1427,14 @@ void AssemblyStepsUtils::apply_src_frame_transforms_to_current_keyframe(KeyFrame
     const KeyFrame &src_data = src.data;
 
     for (const auto &item : src_data.object_transformations)
-        target.object_transformations[item.first] = item.second;
+        if (!restrict_to_filters || object_filter.count(item.first))
+            target.object_transformations[item.first] = item.second;
     for (const auto &item : src_data.volume_transformations)
-        target.volume_transformations[item.first] = item.second;
+        if (!restrict_to_filters || volume_filter.count(item.first))
+            target.volume_transformations[item.first] = item.second;
     for (const auto &item : src_data.volume_names)
-        target.volume_names[item.first] = item.second;
+        if (!restrict_to_filters || volume_filter.count(item.first))
+            target.volume_names[item.first] = item.second;
 
     for (const auto &item : target.object_transformations)
         apply_instance_transform(item.first, item.second);
@@ -1478,9 +1623,21 @@ bool AssemblyStepsUtils::is_mouse_over_blocking_panel() const
                p.x >= mn.x && p.x <= mx.x &&
                p.y >= mn.y && p.y <= mx.y;
     };
-    return in_rect(mouse_pos, m_panel_rect_structure_min, m_panel_rect_structure_max) ||
-           in_rect(mouse_pos, m_panel_rect_guide_min, m_panel_rect_guide_max) ||
-           in_rect(mouse_pos, m_panel_rect_playbar_min, m_panel_rect_playbar_max);
+    if (in_rect(mouse_pos, m_panel_rect_structure_min, m_panel_rect_structure_max) ||
+        in_rect(mouse_pos, m_panel_rect_guide_min, m_panel_rect_guide_max) ||
+        in_rect(mouse_pos, m_panel_rect_playbar_min, m_panel_rect_playbar_max) ||
+        // Camera overlays + bottom control bar + assembly-info panel, fed each
+        // frame from GLCanvas3D's overlay render functions.
+        in_rect(mouse_pos, m_overlay_rect_navigator_min, m_overlay_rect_navigator_max) ||
+        in_rect(mouse_pos, m_overlay_rect_fit_camera_min, m_overlay_rect_fit_camera_max) ||
+        in_rect(mouse_pos, m_overlay_rect_assemble_control_min, m_overlay_rect_assemble_control_max))
+        return true;
+
+    if (Plater *plater = wxGetApp().plater()) {
+        if (NotificationManager *nm = plater->get_notification_manager())
+            return nm->is_point_over_any_notification(mouse_pos);
+    }
+    return false;
 }
 
 void AssemblyStepsUtils::track_assembly_view_export(ExportType type) const
@@ -3085,6 +3242,24 @@ void AssemblyStepsUtils::set_gizmo_toolbar_rect(float x0, float y0, float x1, fl
     m_gizmo_toolbar_rect_max = ImVec2(x1, y1);
 }
 
+void AssemblyStepsUtils::set_assembly_overlay_rect(AssemblyOverlayRect which, const ImVec2 &mn, const ImVec2 &mx)
+{
+    switch (which) {
+    case AssemblyOverlayRect::Navigator:
+        m_overlay_rect_navigator_min = mn;
+        m_overlay_rect_navigator_max = mx;
+        break;
+    case AssemblyOverlayRect::FitCamera:
+        m_overlay_rect_fit_camera_min = mn;
+        m_overlay_rect_fit_camera_max = mx;
+        break;
+    case AssemblyOverlayRect::AssembleControl:
+        m_overlay_rect_assemble_control_min = mn;
+        m_overlay_rect_assemble_control_max = mx;
+        break;
+    }
+}
+
 ImVec2 AssemblyStepsUtils::export_button_size(float sc) const
 {
     // Mirror render_assembly_guide_export_button()'s footprint so collision tests use
@@ -3797,8 +3972,6 @@ void AssemblyStepsUtils::ensure_default_keyframe_for_node(int node_idx, const st
     KeyFrameEntry last;
     last.data.id   = 0;
     last.data.name = last_frame_name;
-    // The end frame frames the fully assembled model, so it defaults to a wider
-    last.data.camera_margin_factor = 1.3f;
     fill_default_transforms(last, node.object_idx);//ensure_default_keyframe_for_node
     kf.entries.push_back(std::move(last));
     invalidate_play_frame_refs();//ensure_default_keyframe_for_node
@@ -4012,19 +4185,40 @@ void AssemblyStepsUtils::toggle_part_number_labels(bool user_initiated)
     toggle_part_number_labels_to_keyframe(cur_entry, user_initiated);
 }
 
-void AssemblyStepsUtils::set_labels_show_type(LabelsShowType type)
+void AssemblyStepsUtils::set_labels_show_type(LabelsShowType type, bool reframe_camera)
 {
     auto *entries = get_current_kf_entries();
     if (!entries || m_keyframe_selected < 0 || m_keyframe_selected >= (int)entries->size())
         return;
-    if (m_cur_labels_show_type == type && m_guide_show_part_numbers)
-        return;
+    // Re-selecting the active type is allowed: it re-runs the label rebuild +
+    // auto-arrange so the user can re-trigger the layout on demand.
     m_cur_labels_show_type = type;
     KeyFrameEntry &cur_entry = (*entries)[m_keyframe_selected];
     cur_entry.data.labels_show_type = type;
     // Picking a label type implies the labels should be visible; the rebuild
     m_guide_show_part_numbers = true;
-    toggle_part_number_labels_to_keyframe(cur_entry, true);
+    toggle_part_number_labels_to_keyframe(cur_entry, true, reframe_camera);
+}
+
+void AssemblyStepsUtils::auto_recommend_camera_for_current_view()
+{
+    auto *entries = get_current_kf_entries();
+    if (!entries || m_keyframe_selected < 0 || m_keyframe_selected >= (int)entries->size())
+        return;
+    KeyFrameEntry &cur_entry = (*entries)[m_keyframe_selected];
+    // Mirror the camera half of toggle_part_number_labels_to_keyframe: reframe to
+    // the recommended angle and persist it into this keyframe, but leave the
+    // part-number labels untouched (no rebuild, no auto-arrange).
+    const double used_margin = cur_entry.data.camera_margin_factor;
+    fit_camera_to_current_step_main_plane(used_margin);
+    record_camera(cur_entry.data);
+    cur_entry.data.camera_margin_factor = used_margin;
+    cur_entry.data.is_camera_define     = true;
+    cur_entry.data.camera_user_defined  = true;
+    cur_entry.need_save = true;
+    save_assembly_steps_json_to_model();
+    do_commond_callback("dirty");
+    do_commond_callback("request_extra_frame");
 }
 
 void AssemblyStepsUtils::auto_layout_labels_in_current_view()
@@ -4034,6 +4228,63 @@ void AssemblyStepsUtils::auto_layout_labels_in_current_view()
     m_pn_autolayout_pending = true;
     do_commond_callback("dirty");
     do_commond_callback("request_extra_frame");
+}
+
+void AssemblyStepsUtils::begin_part_label_rename(const PartNumberLabel &lbl)
+{
+    m_pn_label_rename_object_idx    = lbl.object_idx;
+    m_pn_label_rename_volume_idx    = lbl.volume_idx;
+    m_pn_label_rename_buf           = lbl.part_name;
+    m_pn_label_rename_focus_pending = true;
+}
+
+void AssemblyStepsUtils::begin_tree_item_rename(int object_idx, int volume_idx, const std::string &name)
+{
+    m_tree_item_rename_object_idx    = object_idx;
+    m_tree_item_rename_volume_idx    = volume_idx;
+    m_tree_item_rename_buf           = name;
+    m_tree_item_rename_focus_pending = true;
+}
+
+bool AssemblyStepsUtils::rename_model_item_from_label(int object_idx, int volume_idx, const std::string &new_name)
+{
+    if (!m_model || object_idx < 0 || object_idx >= (int) m_model->objects.size())
+        return false;
+    ModelObject *obj = m_model->objects[object_idx];
+    if (obj == nullptr)
+        return false;
+
+    // Reject blank names so a label never ends up with no text.
+    std::string trimmed = new_name;
+    boost::trim(trimmed);
+    if (trimmed.empty())
+        return false;
+
+    if (volume_idx < 0) {
+        if (obj->name == trimmed)
+            return false;
+        obj->name = trimmed;
+    } else {
+        if (volume_idx >= (int) obj->volumes.size() || obj->volumes[volume_idx] == nullptr)
+            return false;
+        if (obj->volumes[volume_idx]->name == trimmed)
+            return false;
+        obj->volumes[volume_idx]->name = trimmed;
+    }
+    // Keep the sidebar object list in sync with the model rename.
+    if (ObjectList *obj_list = wxGetApp().obj_list())
+        obj_list->sync_name_from_model(object_idx, volume_idx);
+
+    // The tree-selector widgets render from cached AssemblyTreeData snapshots
+    auto patch_tree_label = [object_idx, volume_idx, &trimmed](AssemblyTreeData &tree) {
+        for (auto &node : tree.nodes) {
+            if (node.object_idx == object_idx && node.volume_idx == volume_idx)
+                node.label = trimmed;
+        }
+    };
+    patch_tree_label(m_model->get_assembly_tree_data());
+    patch_tree_label(m_structure_select_popup_tree);
+    return true;
 }
 
 void AssemblyStepsUtils::update_part_number_label_font_size_from_config()
@@ -4473,7 +4724,7 @@ bool AssemblyStepsUtils::auto_layout_part_number_labels(std::vector<PartNumberLa
     return true;
 }
 
-void AssemblyStepsUtils::toggle_part_number_labels_to_keyframe(KeyFrameEntry &src, bool user_initiated)
+void AssemblyStepsUtils::toggle_part_number_labels_to_keyframe(KeyFrameEntry &src, bool user_initiated, bool reframe_camera)
 {
     AssemblyNote &note = src.data.assembly_note;
     auto &labels = note.part_number_labels;
@@ -4522,16 +4773,21 @@ void AssemblyStepsUtils::toggle_part_number_labels_to_keyframe(KeyFrameEntry &sr
         const double radius = 80.0;
         labels[i].arrow_end_offset = Vec2d(radius * std::cos(angle), radius * std::sin(angle));
     }
-    // Only an explicit user toggle reframes the step and auto-arranges labels.
+    // Only an explicit user toggle auto-arranges labels, and only when
+    // reframe_camera is set does it also reframe the step camera. The label
+    // type rows pass reframe_camera == false so they relayout labels in place
+    // without moving the camera.
     if (user_initiated) {
-        // Every frame uses its own per-keyframe margin (persisted to the 3mf, so
+        if (reframe_camera) {
+            // Every frame uses its own per-keyframe margin (persisted to the 3mf, so
 
-        const double used_margin = src.data.camera_margin_factor;
-        fit_camera_to_current_step_main_plane(used_margin);
-        // Persist the freshly framed camera (and the margin used) into THIS keyframe.
-        record_camera(src.data);
-        src.data.camera_margin_factor = used_margin;
-        src.data.is_camera_define = true;
+            const double used_margin = src.data.camera_margin_factor;
+            fit_camera_to_current_step_main_plane(used_margin);
+            // Persist the freshly framed camera (and the margin used) into THIS keyframe.
+            record_camera(src.data);
+            src.data.camera_margin_factor = used_margin;
+            src.data.is_camera_define = true;
+        }
         m_pn_autolayout_pending = true;
     }
 
@@ -4969,6 +5225,19 @@ void AssemblyStepsUtils::open_structure_add_tree(int card_idx, int step_node_idx
     m_assembly_tree_search_text.clear();
 }
 
+void AssemblyStepsUtils::auto_open_add_tree_for_selected_step()
+{
+    const int folder = find_parent_folder(m_selected_node);
+    if (folder < 0 || folder >= (int) _steps_nodes.size())
+        return;
+    if (_steps_nodes[folder].type != AssemblyStepsTreeNode::Type::Folder ||
+        _steps_nodes[folder].is_final_assembly)
+        return;
+    // Defer the actual open to the panel render, where the card's screen rect (and
+    // thus the tree anchor position) is known.
+    m_structure_add_tree_pending_node = folder;
+}
+
 void AssemblyStepsUtils::exit_render_assembly_tree_ui()
 {
     m_structure_add_tree_card = -1;
@@ -5001,12 +5270,19 @@ void AssemblyStepsUtils::update_final_assembly_step_number_to_max()
 {
     int final_idx = -1;
     int max_other_step = 0;
-    for (int i = 0; i < (int) _steps_nodes.size(); ++i) {
-        const auto &node = _steps_nodes[i];
+    // Only consider folders that are still part of the step list (_steps_roots).
+    // delete_structure_step unlinks a deleted step from _steps_roots but keeps it
+    // in _steps_nodes (soft delete), so scanning all nodes would pick up the
+    // orphaned step's stale number and inflate the final-assembly step (e.g.
+    // show "Step 6" after deleting the 5th of 5 steps).
+    for (int root_idx : _steps_roots) {
+        if (root_idx < 0 || root_idx >= (int) _steps_nodes.size())
+            continue;
+        const auto &node = _steps_nodes[root_idx];
         if (node.type != AssemblyStepsTreeNode::Type::Folder)
             continue;
         if (node.is_final_assembly) {
-            final_idx = i;
+            final_idx = root_idx;
             continue;
         }
         max_other_step = std::max(max_other_step, node.step);
@@ -5105,6 +5381,39 @@ void AssemblyStepsUtils::insert_structure_step_relative(int ref_node_idx, bool b
     on_selected_node_changed();
     reschedule_play_bar_after_structure_change();//insert_structure_step_relative
     show_volumes_as_step_candidates();//insert_structure_step_relative
+}
+
+void AssemblyStepsUtils::reorder_structure_step(int moved_node, int before_node)
+{
+    if (!m_model || moved_node < 0 || moved_node >= (int) _steps_nodes.size())
+        return;
+    const auto is_reorderable = [&](int idx) {
+        return idx >= 0 && idx < (int) _steps_nodes.size() &&
+               _steps_nodes[idx].type == AssemblyStepsTreeNode::Type::Folder &&
+               !_steps_nodes[idx].is_final_assembly;
+    };
+    if (!is_reorderable(moved_node))
+        return;
+
+    // Collect the current order of non-final step nodes, then permute it.
+    std::vector<int> steps;
+    for (int root_idx : _steps_roots) {
+        if (is_reorderable(root_idx))
+            steps.push_back(root_idx);
+    }
+    steps.erase(std::remove(steps.begin(), steps.end(), moved_node), steps.end());
+    auto pos = (before_node >= 0) ? std::find(steps.begin(), steps.end(), before_node) : steps.end();
+    steps.insert(pos, moved_node);
+
+    // Write the permuted order back, leaving the final-assembly slot untouched.
+    size_t si = 0;
+    for (int &root_idx : _steps_roots) {
+        if (is_reorderable(root_idx) && si < steps.size())
+            root_idx = steps[si++];
+    }
+
+    renumber_structure_step_roots();
+    reschedule_play_bar_after_structure_change();//reorder_structure_step
 }
 
 void AssemblyStepsUtils::delete_structure_step(int node_idx)
@@ -5832,6 +6141,19 @@ void AssemblyStepsUtils::consume_play_queue_frame(bool update_global_index)
         if (entries && front.play_frame_idx < (int) entries->size()) {
             m_keyframe_selected = front.play_frame_idx;
             refresh_guide_show_part_numbers_from_current();
+        }
+        // Local (single-node) playback does not advance the global play index the
+        if (!m_play_global) {
+            const int folder = find_parent_folder(m_selected_node);
+            if (folder >= 0) {
+                for (int gi = 0; gi < (int) m_play_frame_refs.size(); ++gi) {
+                    if (m_play_frame_refs[gi].node_idx == folder &&
+                        m_play_frame_refs[gi].frame_idx == front.play_frame_idx) {
+                        m_assembly_play_index = gi + 1;
+                        break;
+                    }
+                }
+            }
         }
     }
 

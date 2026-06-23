@@ -7291,6 +7291,9 @@ static float       identityMatrix[16]   = {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.
 static const float cameraProjection[16] = {1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f};
 void GLCanvas3D::_render_3d_navigator()
 {
+    const bool is_assembly_nav = (m_canvas_type == ECanvasType::CanvasAssembleView) && m_assembly_steps;
+    if (is_assembly_nav)
+        m_assembly_steps->set_assembly_overlay_rect(AssemblyStepsUtils::AssemblyOverlayRect::Navigator, ImVec2(0, 0), ImVec2(0, 0));
     if (is_assembly_play_or_export_mode())
         return;
     if (!wxGetApp().show_3d_navigator()) {
@@ -7344,6 +7347,10 @@ void GLCanvas3D::_render_3d_navigator()
     const float size  = 128 * sc;
     m_fit_camrea_button_pos[0] = size - 10;
     m_sc                       = sc;
+
+    if (is_assembly_nav)
+        m_assembly_steps->set_assembly_overlay_rect(AssemblyStepsUtils::AssemblyOverlayRect::Navigator,
+            ImVec2(viewManipulateLeft, viewManipulateTop - size), ImVec2(viewManipulateLeft + size, viewManipulateTop));
     const bool  dirty = ImGuizmo::ViewManipulate(cameraView, cameraProjection, ImGuizmo::OPERATION::ROTATE, ImGuizmo::MODE::WORLD, identityMatrix, camDistance,
                                                 ImVec2(viewManipulateLeft, viewManipulateTop - size), ImVec2(size, size), 0x00101010);
 
@@ -10059,6 +10066,9 @@ void GLCanvas3D::_render_return_toolbar()
 
 void GLCanvas3D::_render_fit_camera_toolbar()
 {
+    const bool is_assembly_fit = (m_canvas_type == ECanvasType::CanvasAssembleView) && m_assembly_steps;
+    if (is_assembly_fit)
+        m_assembly_steps->set_assembly_overlay_rect(AssemblyStepsUtils::AssemblyOverlayRect::FitCamera, ImVec2(0, 0), ImVec2(0, 0));
     if (is_assembly_play_or_export_mode())
         return;
     float  font_size        = ImGui::GetFontSize();
@@ -10080,6 +10090,13 @@ void GLCanvas3D::_render_fit_camera_toolbar()
 
     imgui.begin(_L("Fit camera"), ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove |
                                            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse);//
+
+    // Window holds the fit-camera button plus (in assembly) the camera lock icon.
+    if (is_assembly_fit) {
+        const ImVec2 wp = ImGui::GetWindowPos();
+        const ImVec2 ws = ImGui::GetWindowSize();
+        m_assembly_steps->set_assembly_overlay_rect(AssemblyStepsUtils::AssemblyOverlayRect::FitCamera, wp, ImVec2(wp.x + ws.x, wp.y + ws.y));
+    }
 
     ImTextureID normal_id = m_gizmos.get_icon_texture_id(m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA_DARK : GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA);
     ImTextureID hover_id  = m_gizmos.get_icon_texture_id(m_is_dark ? GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA_DARK_HOVER : GLGizmosManager::MENU_ICON_NAME::IC_FIT_CAMERA_HOVER);
@@ -10409,6 +10426,8 @@ void GLCanvas3D::_render_assemble_control()
         GLVolume::explosion_ratio = m_explosion_ratio = 1.0;
         return;
     }
+    if (m_assembly_steps)
+        m_assembly_steps->set_assembly_overlay_rect(AssemblyStepsUtils::AssemblyOverlayRect::AssembleControl, ImVec2(0, 0), ImVec2(0, 0));
     if (is_assembly_play_or_export_mode())
         return;
     if (m_gizmos.get_current_type() == GLGizmosManager::EType::MmuSegmentation) {
@@ -10433,6 +10452,12 @@ void GLCanvas3D::_render_assemble_control()
 
     imgui->set_next_window_pos(canvas_w / 2, canvas_h - 10.0f * get_scale(), ImGuiCond_Always, 0.5f, 1.0f);
     imgui->begin(_L("Assemble Control"), ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+
+    if (m_assembly_steps) {
+        const ImVec2 wp = ImGui::GetWindowPos();
+        const ImVec2 ws = ImGui::GetWindowSize();
+        m_assembly_steps->set_assembly_overlay_rect(AssemblyStepsUtils::AssemblyOverlayRect::AssembleControl, wp, ImVec2(wp.x + ws.x, wp.y + ws.y));
+    }
 
     ImGui::AlignTextToFramePadding();
     float tip_icon_size;
