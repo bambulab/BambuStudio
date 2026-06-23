@@ -6954,7 +6954,7 @@ void Tab::save_preset(std::string name /*= ""*/, bool detach, bool save_to_proje
     // a user preset with a project embedded preset as parent is not allowed
     if (!exist_preset && !save_to_project && m_presets->get_edited_preset().is_project_embedded) {
         MessageDialog dlg(m_parent,
-                          _L("The current preset is a project preset and can't be used to create a new preset. Please select a system preset or user preset, then try again."),
+                          _L("The current preset is embedded in the 3MF project file. Please save changes directly.  'Save as new' is not supported for preset inside project."),
                           _L("Unable to save preset"), wxICON_WARNING | wxOK);
         dlg.ShowModal();
         return;
