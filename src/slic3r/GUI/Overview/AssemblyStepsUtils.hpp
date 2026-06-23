@@ -195,6 +195,9 @@ class AssemblyStepsUtils
     // Prev/next icons used by the bottom play bar (Figma node 732:22413).
     ImTextureID         m_play_left_icon{nullptr};
     ImTextureID         m_play_right_icon{nullptr};
+    // Exit icon shown to the right of the Copy/Add step button row (tree_exit.svg).
+    ImTextureID         m_structure_exit_icon{nullptr};
+    ImTextureID         m_structure_exit_icon_dark{nullptr};
 
     GLVolumeCollection *m_volumes{nullptr};
     Model              *m_model{nullptr};
@@ -364,6 +367,8 @@ class AssemblyStepsUtils
     float                 m_export_btn_canvas_w{0.f};
 
     bool m_select_good_camera_layout_laber_after_auto_explode{true};
+    // Deadline after which the "kept whole" tip auto-hides (shown for ~2s).
+    std::chrono::steady_clock::time_point m_explode_collapsed_note_until{};
     std::vector<PlayFrameRef> m_play_frame_refs;
     bool                      m_play_frame_refs_dirty{true};
     std::set<size_t>                    m_last_recorded_objects;
@@ -406,7 +411,15 @@ public://logic
     void            set_selected_node(int node) { m_selected_node = node; }
     SelectionOrigin selection_origin() const { return m_selection_origin; }
     void            set_selection_origin(SelectionOrigin origin);
+    // Single chokepoint that resets the currently selected step/object node.
+    // Centralised so every "exit step" path is easy to trace / breakpoint.
+    void            clear_selected_node();
     void            clear_when_no_selection();
+    // Exit the assembly-step editing state: drop note/tree editing UI, clear the
+    // selected step node, and ask the canvas to deselect all volumes. Triggered
+    // by the exit button in the assembly structure panel (previously this was
+    // done by double-clicking a blank area of the assembly view).
+    void            exit_assembly_steps_editing();
     void            update_model_object_tree();
     // Returns true when the two trees differ in structure/labels/selection
     void save_assembly_steps_json_to_model();
@@ -533,6 +546,8 @@ public://logic
     void                     pause_playback();
     void                     resume_playback();
     void                     clear_playback_pause_state();
+    // If playback is paused on the video-intro/title overlay, leave that title mode
+    void                     exit_title_mode_if_paused();
     void                     play_different_folder_logic();
     // Drives the MP4 video intro phases. Only invoked while
     void                     play_video_intro_logic();
@@ -688,7 +703,8 @@ public://logic
     void                                    begin_structure_step_rename(int node_idx, const std::string &fallback_title = std::string());
     void                                    open_structure_add_tree(int card_idx, int step_node_idx, const ImVec2 &pos);
     void                                    exit_render_assembly_tree_ui();
-    void                                    insert_structure_step_relative(int ref_node_idx, bool before, const std::string &folder_name = std::string());
+    // Inserts a step relative to ref_node_idx. When copy is true the reference step
+    void                                    insert_structure_step_relative(int ref_node_idx, bool before, const std::string &folder_name = std::string(), bool copy = true);
     void                                    delete_structure_step(int node_idx);
     void                                    show_pdf_export_settings_dialog();
     // Reverse direction: take the current canvas Selection and write the matching
@@ -705,6 +721,8 @@ public://logic
     std::set<int> collect_node_object_indices(int node_idx) const;
     // Returns true if `object_idx` already appears in any step folder ordered
     bool          is_object_used_in_previous_steps(int object_idx, int folder_idx) const;
+    // Returns true if `object_idx` already appeared in an earlier keyframe of the
+    bool          is_object_used_in_current_step(int object_idx, int folder_idx, int frame_id) const;
     bool          is_empty_structure_step(int folder_idx) const;
     void          select_node_and_show_volumes(int node_idx);
     void          update_structure_select_label(int card_idx, const AssemblyTreeData &popup_tree);

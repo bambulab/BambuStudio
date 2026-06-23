@@ -2608,8 +2608,6 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
     std::string footer_hint_str;
     if (!has_selected_node())
         footer_hint_str = _u8L("Tip") + ":" + _u8L("No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view.");
-    else
-        footer_hint_str = _u8L("Tip") + ":" + _u8L("Double-click an empty area to exit all editing states.");
     const float footer_hint_wrap = panel_w - 2.0f * side_pad;
     const ImVec2 footer_hint_size = footer_hint_str.empty()
         ? ImVec2(0.0f, 0.0f)
@@ -3269,10 +3267,18 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         const float btn_w   = 86.0f * sc;
         const float btn_gap = 12.0f * sc;
         const float btn_pad_x = 14.0f * sc;
+        // Exit icon sizing (Figma node 732:22424: 8px gap before a 20px icon).
+        // Declared here so the icon is part of the centered group width below.
+        const float exit_sz  = 24.0f * sc;
+        const float exit_gap = 8.0f * sc;
         const float copy_w = std::max(btn_w, ImGui::CalcTextSize(_u8L("Copy Step").c_str()).x + 2.0f * btn_pad_x);
         const float add_w  = std::max(btn_w, ImGui::CalcTextSize(_u8L("Add Step").c_str()).x + 2.0f * btn_pad_x);
         const float total_w = copy_w + btn_gap + add_w;
-        const float bx0     = win_min.x + (panel_w - total_w) * 0.5f;
+        // Center the whole group (Copy + Add buttons + exit icon) within the
+        // panel window width (panel_w), matching the Figma layout where the row
+        // is centered as a single flex container.
+        const float group_w = total_w + exit_gap + exit_sz;
+        const float bx0     = win_min.x + (panel_w - group_w) * 0.5f;
         // Anchor the button row to the bottom of the scrollable card region
         const float by      = scroll_region_y + scroll_region_h + card_gap;
         const ImVec2 copy_btn_size(copy_w, action_h);
@@ -3310,6 +3316,28 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
             render_panel_tooltip(add_tip);
         }
         imgui.disabled_end();
+
+        // Exit icon (tree_exit.svg) drawn to the right of the Add Step button,
+        // vertically centered with the button row. Part of the centered group.
+        {
+            const ImVec2 exit_min(bx0 + total_w + exit_gap,
+                                  by + (action_h - exit_sz) * 0.5f);
+            const ImVec2 exit_max(exit_min.x + exit_sz, exit_min.y + exit_sz);
+            ImTextureID exit_icon = (m_is_dark && m_structure_exit_icon_dark) ?
+                m_structure_exit_icon_dark : m_structure_exit_icon;
+            if (exit_icon)
+                dl->AddImage(exit_icon, exit_min, exit_max);
+            ImGui::SetCursorScreenPos(exit_min);
+            ImGui::PushID("##asp_btn_exit");
+            ImGui::InvisibleButton("##e", ImVec2(exit_sz, exit_sz));
+            if (ImGui::IsItemClicked(0))
+                exit_assembly_steps_editing();
+            if (ImGui::IsItemHovered()) {
+                dl->AddRectFilled(exit_min, exit_max, IM_COL32(38, 46, 48, 18), 3.0f * sc);
+                render_panel_tooltip(_u8L("Exit"));
+            }
+            ImGui::PopID();
+        }
 
         // Footer hint (no-step-selected variant). Drawn directly via the
         // window draw list so we can wrap-render at the panel font size
@@ -3623,6 +3651,8 @@ void AssemblyStepsUtils::init_tree_icons()
     IMTexture::load_from_svg_file(m_images_dir + "tree_export.svg", icon_sz, icon_sz, m_btn_icon_export);
     IMTexture::load_from_svg_file(m_images_dir + "play_left.svg",   icon_sz, icon_sz, m_play_left_icon);
     IMTexture::load_from_svg_file(m_images_dir + "play_right.svg",  icon_sz, icon_sz, m_play_right_icon);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_exit.svg",      icon_sz, icon_sz, m_structure_exit_icon);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_exit_dark.svg", icon_sz, icon_sz, m_structure_exit_icon_dark);
     load_assembly_tree_icons(m_imgui_scale > 0.0f ? m_imgui_scale : 1.0f);
     m_tree_icons_loaded = true;
 }
@@ -4918,6 +4948,9 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
 
     // Endframe tip: surfaced under the timeline thumbs whenever the user has
     std::string endframe_tip_str;
+    // Separate transient tip for the "kept whole" auto-explode hint. Kept apart from
+    // endframe_tip_str so it is not swallowed by that tip's 3-line truncation.
+    std::string collapse_note_str;
     {
         const int   tip_folder      = find_parent_folder(m_selected_node);
         auto       *tip_entries     = sp_entries;
@@ -4933,6 +4966,11 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
                                    (_u8L("Note") + ":" + _u8L("Pose changes (e.g. move gizmo) made on this step's keyframe do not affect the actual assembly display.") +
                                     _u8L("If necessary, a relatively good position can be restored by pressing the \"apply actual assembly pose\" button at present.") +
                                                        _u8L("undoing these edits is not yet supported and will be added in a later version."));
+        }
+        // Auto-explode kept some objects whole because they were already used in an
+        if (std::chrono::steady_clock::now() < m_explode_collapsed_note_until) {
+            collapse_note_str = _u8L("Note") + ":" +
+                _u8L("Some objects were used in an earlier keyframe of the current step and are not exploded here. You can explode them manually with the move tool.");
         }
     }
     const float endframe_tip_wrap = card_w - 16.0f * sc;
@@ -4979,7 +5017,16 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
                                            ? 0.0f
                                            : (endframe_tip_size.y + 8.0f * sc);
 
-    const float card_h_tl   = font_sz + 12.0f * sc + thumb_h_tl + small_fs + 16.0f * sc + endframe_tip_extra_h;
+    // Standalone collapse tip: full text (no truncation), measured for its own height.
+    ImVec2 collapse_note_size = collapse_note_str.empty()
+                                    ? ImVec2(0.0f, 0.0f)
+                                    : ImGui::GetFont()->CalcTextSizeA(small_fs, FLT_MAX, endframe_tip_wrap,
+                                                                       collapse_note_str.c_str(), nullptr, nullptr);
+    const float collapse_note_extra_h = collapse_note_str.empty()
+                                            ? 0.0f
+                                            : (collapse_note_size.y + 8.0f * sc);
+
+    const float card_h_tl   = font_sz + 12.0f * sc + thumb_h_tl + small_fs + 16.0f * sc + endframe_tip_extra_h + collapse_note_extra_h;
 
     const float total_content = 8.0f * sc
         + card_h_ct + section_gap
@@ -5671,9 +5718,10 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
             render_add_slot();
 
         // Endframe tip (grey, wrapped) under the thumb row. Only rendered when
+        const float tip_x = card_min.x + 8.0f * sc;
+        float       next_tip_y = thumb_y + thumb_h_tl + small_fs + 8.0f * sc;
         if (!tip_display_str.empty()) {
-            const float tip_y = thumb_y + thumb_h_tl + small_fs + 8.0f * sc;
-            const float tip_x = card_min.x + 8.0f * sc;
+            const float tip_y = next_tip_y;
             draw_list->AddText(ImGui::GetFont(), small_fs,
                 ImVec2(tip_x, tip_y),
                 grey500, tip_display_str.c_str(), nullptr, endframe_tip_wrap);
@@ -5686,6 +5734,13 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
                 if (ImGui::IsMouseHoveringRect(tip_min, tip_max))
                     render_panel_tooltip(endframe_tip_str);
             }
+            next_tip_y += endframe_tip_size.y + 8.0f * sc;
+        }
+        // Standalone "kept whole" tip: its own line, full text, no truncation.
+        if (!collapse_note_str.empty()) {
+            draw_list->AddText(ImGui::GetFont(), small_fs,
+                ImVec2(tip_x, next_tip_y),
+                grey500, collapse_note_str.c_str(), nullptr, endframe_tip_wrap);
         }
 
         ImGui::SetCursorScreenPos(ImVec2(card_min.x, card_min.y + card_h_tl));

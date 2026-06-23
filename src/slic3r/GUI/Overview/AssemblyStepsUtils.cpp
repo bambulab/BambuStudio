@@ -100,13 +100,35 @@ void AssemblyStepsUtils::set_selection_origin(SelectionOrigin origin)
     }
 }
 
+void AssemblyStepsUtils::clear_selected_node()
+{
+    m_selected_node = -1;
+}
+
 void AssemblyStepsUtils::clear_when_no_selection()
 {
     if (m_selection_origin == SelectionOrigin::None) {
-        m_selected_node       = -1;
+        clear_selected_node();
         m_keyframe_selected = -1;
         m_last_folder_idx   = -1;
     }
+}
+
+void AssemblyStepsUtils::exit_assembly_steps_editing()
+{
+    // Mirror what double-clicking a blank area of the assembly view used to do,
+    // but driven explicitly from the exit button: drop any inline note/tree
+    // editing UI, force the selection origin back to None so the step node is
+    // actually cleared, then ask the canvas to deselect all volumes.
+    exit_note_edit();
+    exit_render_assembly_tree_ui();
+    m_selection_origin = SelectionOrigin::None;
+    clear_when_no_selection();
+    apply_keyframe_display_mode();
+
+    do_commond_callback("deselect_all");
+    do_commond_callback("exit_gizmo");
+    do_commond_callback("request_extra_frame");
 }
 
 void AssemblyStepsUtils::update_model_object_tree() {
@@ -370,6 +392,8 @@ void AssemblyStepsUtils::select_steps_tree_node_for_canvas(int node_idx)
         return;
     if (node_idx < 0 || node_idx >= (int) _steps_nodes.size())
         return;
+
+    exit_title_mode_if_paused();
 
     const int object_count = (int) m_model->objects.size();
     auto     &node         = _steps_nodes[node_idx];
@@ -733,7 +757,7 @@ std::vector<int> AssemblyStepsUtils::selected_assembly_object_indices() const
         insert_before = true;
     }
 
-    insert_structure_step_relative(ref_node_idx, insert_before, _u8L("Install parts"));
+    insert_structure_step_relative(ref_node_idx, insert_before, _u8L("Install parts"), /*copy=*/false);
 
 
 }
@@ -747,69 +771,9 @@ std::vector<int> AssemblyStepsUtils::selected_assembly_object_indices() const
          return;
      if (_steps_nodes[source_folder].type != AssemblyStepsTreeNode::Type::Folder || _steps_nodes[source_folder].is_final_assembly)
          return;
-     auto source_root_it = std::find(_steps_roots.begin(), _steps_roots.end(), source_folder);
-     if (source_root_it == _steps_roots.end())
-         return;
 
-     // Copying produces another non-final step, so it shares the same upper bound.
-     if (!can_add_non_final_assembly_step())
-         return;
-
-     std::function<int(int)> clone_node = [&](int src_idx) -> int {
-         if (src_idx < 0 || src_idx >= (int) _steps_nodes.size())
-             return -1;
-
-        AssemblyStepsTreeNode copied = _steps_nodes[src_idx];
-        copied.children.clear();
-        if (copied.type == AssemblyStepsTreeNode::Type::Folder) {
-            copied.id = next_node_id();
-            copied.step = 0;
-            copied.is_final_assembly = false;
-        }
-        // Rebuild the keyframe entries through clone_from so the per-keyframe copy
-        // (camera framing + object/volume matrix pose snapshots) is explicit here,
-        // instead of relying on the implicit whole-struct copy above.
-        {
-            const auto &src_entries = _steps_nodes[src_idx].kf_data.entries;
-            copied.kf_data.entries.clear();
-            copied.kf_data.entries.reserve(src_entries.size());
-            for (const auto &src_entry : src_entries) {
-                KeyFrameEntry cloned_entry;
-                cloned_entry.clone_from(src_entry);
-                copied.kf_data.entries.push_back(std::move(cloned_entry));
-            }
-        }
-        copied.kf_data.node_idx   = (int) _steps_nodes.size();
-        copied.kf_data.is_folder = (copied.type == AssemblyStepsTreeNode::Type::Folder);
-        copied.kf_data.object_idx = copied.object_idx;
-
-         int copied_idx = (int) _steps_nodes.size();
-         _steps_nodes.push_back(std::move(copied));
-         for (int child_idx : _steps_nodes[src_idx].children) {
-             int copied_child = clone_node(child_idx);
-             if (copied_child >= 0) _steps_nodes[copied_idx].children.push_back(copied_child);
-         }
-         return copied_idx;
-     };
-
-    int copied_folder = clone_node(source_folder);
-    if (copied_folder < 0)
-        return;
-
-    {
-        std::string &copied_name = _steps_nodes[copied_folder].name;
-        if (copied_name.empty())
-            copied_name = _u8L("New Step");
-        copied_name += _u8L("_copy");
-    }
-
-    _steps_roots.insert(source_root_it + 1, copied_folder);
-     renumber_structure_step_roots();
-     m_selected_node = copied_folder;
-     m_structure_scroll_to_node = copied_folder;
-     on_selected_node_changed();
-     reschedule_play_bar_after_structure_change();
-     show_volumes_as_step_candidates();//copy_assembly_step
+     // Copy == clone the current step and insert it right after the source.
+     insert_structure_step_relative(source_folder, /*before=*/false, std::string(), /*copy=*/true);
  }
 
  void AssemblyStepsUtils::add_selected_to_assembly_step(int folder_idx) {
@@ -1626,9 +1590,10 @@ bool AssemblyStepsUtils::goto_global_frame(int global_idx)
         m_selected_node = folder_idx;
         //todo scroll listview
         clear_selection();
-        for (int object_idx : collect_node_object_indices(folder_idx)) {
-            if (object_idx >= 0 && m_model && object_idx < (int)m_model->objects.size() && m_selection)
-                m_selection->add_object((unsigned int)object_idx, false);
+        if (!is_play_or_export_mode()) {
+            for (int object_idx : collect_node_object_indices(folder_idx)) {
+                if (object_idx >= 0 && m_model && object_idx < (int) m_model->objects.size() && m_selection) m_selection->add_object((unsigned int) object_idx, false);
+            }
         }
         on_selected_node_changed();
         // Apply the target keyframe LAST. The selection switch above
@@ -1693,6 +1658,13 @@ void AssemblyStepsUtils::clear_playback_pause_state()
 {
     m_playback_paused = false;
     m_playback_pause_started_at = 0.0;
+}
+
+void AssemblyStepsUtils::exit_title_mode_if_paused()
+{
+    if (m_playback_paused && is_show_video_title_mode()) {
+        pause_global_frame();
+    }
 }
 
 void AssemblyStepsUtils::pause_playback()
@@ -1906,11 +1878,11 @@ void AssemblyStepsUtils::play_global_frame(bool from_btn_click)
                 consume_play_queue_frame(false);
         }
     } else {
-
         m_pending_global_frame_index = next_idx;
         play_different_folder_logic();
     }
     do_commond_callback("request_extra_frame");
+    clear_selection();
 }
 
 bool AssemblyStepsUtils::prepare_global_playback_with_intro(bool export_mode)
@@ -1971,6 +1943,7 @@ void AssemblyStepsUtils::auto_explode_current_keyframe()
     KeyFrameEntry &entry = (*entries)[m_keyframe_selected];
     if (final_assembly && entry.is_last())
         return;
+
     //if (m_select_good_camera_layout_laber_after_auto_explode && m_guide_show_part_numbers) {//todo
     //    toggle_part_number_labels(); // auto_explode_current_keyframe
     //    //  The exploded frame is a mid-step (non-end) frame. Keep this node's own end
@@ -2080,7 +2053,9 @@ void AssemblyStepsUtils::auto_explode_current_keyframe()
             if (!obj)
                 continue;
             if (!as_whole_object) {
-                as_whole_object = collapse_repeated_objects && is_object_used_in_previous_steps(oi, folder);
+                as_whole_object = collapse_repeated_objects &&
+                                  ((final_assembly && is_object_used_in_previous_steps(oi, folder)) ||
+                                   (!final_assembly && is_object_used_in_current_step(oi, folder, entry.data.id)));
             }
             if (as_whole_object) {
                 BoundingBoxf3 bbox;
@@ -2093,6 +2068,8 @@ void AssemblyStepsUtils::auto_explode_current_keyframe()
                 item.bbox        = bbox;
                 item.transform   = transform;
                 items.push_back(std::move(item));
+
+                m_explode_collapsed_note_until  = std::chrono::steady_clock::now() + std::chrono::seconds(2);
                 continue;
             }
             for (int vi = 0; vi < static_cast<int>(obj->volumes.size()); ++vi) {
@@ -3196,7 +3173,7 @@ bool AssemblyStepsUtils::prepare_project_save_end_frame()
 
 void AssemblyStepsUtils::clear_runtime_state()
 {
-    m_selected_node = -1;
+    clear_selected_node();
     m_last_folder_idx  = -1;
 
     m_keyframe_selected = -1;
@@ -3651,7 +3628,7 @@ void AssemblyStepsUtils::sync_all_model_object_to_final_assembly_node()
 {
     if (!m_model)
         return;
-    m_selected_node = -1;
+    clear_selected_node();
     const int folder_idx = ensure_final_assembly_folder();
     if (folder_idx < 0 || folder_idx >= (int) _steps_nodes.size())
         return;
@@ -3800,7 +3777,7 @@ void AssemblyStepsUtils::ensure_default_keyframe_for_node(int node_idx, const st
     last.data.id   = 0;
     last.data.name = last_frame_name;
     // The end frame frames the fully assembled model, so it defaults to a wider
-    last.data.camera_margin_factor = 2.0;
+    last.data.camera_margin_factor = 1.3f;
     fill_default_transforms(last, node.object_idx);//ensure_default_keyframe_for_node
     kf.entries.push_back(std::move(last));
     invalidate_play_frame_refs();//ensure_default_keyframe_for_node
@@ -4617,9 +4594,8 @@ void AssemblyStepsUtils::bind_current_selection_volumes(std::vector<std::pair<in
 
 void AssemblyStepsUtils::deal_once_when_enter_assembly_view() {
     if (!m_model) { return; }
-    if (m_playback_paused && is_show_video_title_mode()) {
-        pause_global_frame();
-    }
+    // If the previous session left playback paused on the title overlay, exit it.
+    exit_title_mode_if_paused();
     if (!AssemblyTreeData::show_origin_step_tree) {
         // Sync only when the final-assembly end frame no longer matches the live
 
@@ -4641,7 +4617,7 @@ void AssemblyStepsUtils::deal_once_when_enter_assembly_view() {
             sync_steps_objects_with_model();
             clear_all_keyframe_part_number_labels();
             m_model->set_assembly_tree_data(build_model_object_tree_data());
-            m_selected_node = -1;
+            clear_selected_node();
             invalidate_play_frame_refs();
         }
         const AssemblyTreeData &tree = m_model->get_assembly_tree_data();
@@ -4732,10 +4708,10 @@ void AssemblyStepsUtils::show_pdf_export_settings_dialog()
 void AssemblyStepsUtils::sync_canvas_selection_to_tree(bool selection_empty,bool selection_instance,const std::vector<int> &selected_object_indices)
 {
     if (selection_empty) {
-        bool keep = m_selected_node >= 0 && m_selected_node < (int) _steps_nodes.size() && _steps_nodes[m_selected_node].type == AssemblyStepsTreeNode::Type::Folder;
-        if (!keep) {
-            clear_when_no_selection();
-        }
+        // Clearing the canvas selection (e.g. double-clicking a blank area) must
+        // NOT exit the assembly-step editing state anymore. Exiting is now driven
+        // solely by the dedicated exit button, so keep the selected step node and
+        // do not call clear_when_no_selection() here.
         return;
     }
 
@@ -5024,17 +5000,77 @@ void AssemblyStepsUtils::update_final_assembly_step_number_to_max()
     save_assembly_steps_json_to_model();
 }
 
-void AssemblyStepsUtils::insert_structure_step_relative(int ref_node_idx, bool before, const std::string &folder_name)
+void AssemblyStepsUtils::insert_structure_step_relative(int ref_node_idx, bool before, const std::string &folder_name, bool copy)
 {
     if (!m_model)
         return;
 
-    int new_idx = create_folder_node(folder_name.empty() ? _u8L("New Step") : folder_name, 0);
-    if (new_idx < 0)
+    // Every path produces one more non-final step, so honor the upper bound.
+    if (!can_add_non_final_assembly_step())
         return;
 
-    ensure_default_keyframe(new_idx);
-    seed_end_frame_camera_from_current(new_idx);
+    int new_idx = -1;
+    if (copy) {
+        // Clone the reference step folder (its children + per-keyframe pose/camera
+        // snapshots) into a brand-new step and place the clone next to it.
+        if (ref_node_idx < 0 || ref_node_idx >= (int) _steps_nodes.size())
+            return;
+        if (_steps_nodes[ref_node_idx].type != AssemblyStepsTreeNode::Type::Folder ||
+            _steps_nodes[ref_node_idx].is_final_assembly)
+            return;
+
+        std::function<int(int)> clone_node = [&](int src_idx) -> int {
+            if (src_idx < 0 || src_idx >= (int) _steps_nodes.size())
+                return -1;
+            AssemblyStepsTreeNode copied = _steps_nodes[src_idx];
+            copied.children.clear();
+            if (copied.type == AssemblyStepsTreeNode::Type::Folder) {
+                copied.id = next_node_id();
+                copied.step = 0;
+                copied.is_final_assembly = false;
+            }
+            // Rebuild the keyframe entries through clone_from so the per-keyframe copy
+            // (camera framing + object/volume matrix pose snapshots) is explicit here,
+            // instead of relying on the implicit whole-struct copy above.
+            {
+                const auto &src_entries = _steps_nodes[src_idx].kf_data.entries;
+                copied.kf_data.entries.clear();
+                copied.kf_data.entries.reserve(src_entries.size());
+                for (const auto &src_entry : src_entries) {
+                    KeyFrameEntry cloned_entry;
+                    cloned_entry.clone_from(src_entry);
+                    copied.kf_data.entries.push_back(std::move(cloned_entry));
+                }
+            }
+            copied.kf_data.node_idx   = (int) _steps_nodes.size();
+            copied.kf_data.is_folder  = (copied.type == AssemblyStepsTreeNode::Type::Folder);
+            copied.kf_data.object_idx = copied.object_idx;
+
+            int copied_idx = (int) _steps_nodes.size();
+            _steps_nodes.push_back(std::move(copied));
+            for (int child_idx : _steps_nodes[src_idx].children) {
+                int copied_child = clone_node(child_idx);
+                if (copied_child >= 0)
+                    _steps_nodes[copied_idx].children.push_back(copied_child);
+            }
+            return copied_idx;
+        };
+
+        new_idx = clone_node(ref_node_idx);
+        if (new_idx < 0)
+            return;
+        std::string &copied_name = _steps_nodes[new_idx].name;
+        if (copied_name.empty())
+            copied_name = _u8L("New Step");
+        copied_name += _u8L("_copy");
+    } else {
+        new_idx = create_folder_node(folder_name.empty() ? _u8L("New Step") : folder_name, 0);
+        if (new_idx < 0)
+            return;
+        ensure_default_keyframe(new_idx);
+        seed_end_frame_camera_from_current(new_idx);
+    }
+
     auto it = std::find(_steps_roots.begin(), _steps_roots.end(), ref_node_idx);
     if (it != _steps_roots.end())
         _steps_roots.insert(before ? it : it + 1, new_idx);
@@ -5839,6 +5875,42 @@ bool AssemblyStepsUtils::is_object_used_in_previous_steps(int object_idx, int fo
         const std::set<int> objs = collect_node_object_indices(root_idx);
         if (objs.count(object_idx) > 0)
             return true;
+    }
+    return false;
+}
+
+bool AssemblyStepsUtils::is_object_used_in_current_step(int object_idx, int folder_idx, int frame_id) const
+{
+    if (!m_model || object_idx < 0 || folder_idx < 0 || folder_idx >= (int) _steps_nodes.size())
+        return false;
+    // Frames are stored in play order: start frame first, transition frames in the
+    // middle, end frame (id == 0) last.
+    const auto &entries = _steps_nodes[folder_idx].kf_data.entries;
+
+    // Locate the queried frame by its id within this step.
+    int cur_pos = -1;
+    for (int i = 0; i < (int) entries.size(); ++i) {
+        if (entries[i].data.id == frame_id) {
+            cur_pos = i;
+            break;
+        }
+    }
+    if (cur_pos < 0)
+        return false;
+    // The start frame has no preceding frame, so the object can never have been
+    // used before within this step.
+    if (entries[cur_pos].is_start())
+        return false;
+    // Transition / end frame: the object counts as already used in this step when it
+    // appears (object- or volume-level pose) in any earlier frame of the same step.
+    for (int i = 0; i < cur_pos; ++i) {
+        const KeyFrame &kf = entries[i].data;
+        if (kf.object_transformations.count(object_idx) > 0)
+            return true;
+        for (const auto &kv : kf.volume_transformations) {
+            if (kv.first.first == object_idx)
+                return true;
+        }
     }
     return false;
 }

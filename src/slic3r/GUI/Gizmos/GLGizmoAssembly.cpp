@@ -43,7 +43,7 @@ std::string GLGizmoAssembly::on_get_name() const
     if (!on_is_activable() && m_state == EState::Off) {
         if (wxGetApp().plater()->canvas3D()->get_canvas_type() == GLCanvas3D::ECanvasType::CanvasAssembleView) {
             if (m_parent.is_assembly_guide_node_selected()) {
-                return _u8L("Assemble") + ":\n" + _u8L("Please double-click the blank area to exit the assembly guide before using this tool.");
+                return _u8L("Assemble") + ":\n" + _u8L("Please exit the assembly guide before using this tool.");
             }
             return _u8L("Assemble") + ":\n" + _u8L("Please confirm explosion ratio = 1 and select at least two volumes.");
         }

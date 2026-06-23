@@ -1595,6 +1595,9 @@ void GLCanvas3D::set_type(ECanvasType type)
                     request_extra_frame();
                 } else if (cmd == "update_gizmos_on_off_state") {
                     update_gizmos_on_off_state();
+                } else if (cmd == "deselect_all") {
+                    deselect_all();
+                    m_dirty = true;
                 } else if (parts.size() > 1) {
                     if (cmd == "set_cursor") {
                         const std::string &cursor_name = parts[1];
@@ -5533,17 +5536,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_dirty = true;
     }
     else if (evt.LeftDClick()) {
-        if (m_canvas_type == ECanvasType::CanvasAssembleView) {
-            if (m_hover_volume_idxs.empty()) {
-                if (m_assembly_steps) {
-                    m_assembly_steps->clear_when_no_selection();
-                }
-            }
-            if (m_hover_volume_idxs.empty() && !m_selection.is_empty()) {
-                deselect_all();
-                m_dirty = true;
-                return;
-            }
+        // Double-clicking a blank area deselects everything in both the assembly
+        // and prepare views. Exiting the assembly-step editing state is now done
+        // through the dedicated exit button in the assembly structure panel, so
+        // the double-click no longer calls clear_when_no_selection() here.
+        if (m_hover_volume_idxs.empty() && !m_selection.is_empty()) {
+            deselect_all();
+            m_dirty = true;
+            return;
         }
 
         // switch to object panel if double click on object, otherwise switch to global panel if double click on background
