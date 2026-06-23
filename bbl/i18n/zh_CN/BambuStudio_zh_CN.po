@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-23 11:50+0800\n"
+"POT-Creation-Date: 2026-06-23 14:57+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -1324,8 +1324,8 @@ msgstr "通过面2翻转"
 msgid "Assemble"
 msgstr "装配"
 
-msgid "Please double-click the blank area to exit the assembly guide before using this tool."
-msgstr "请双击空白区域以退出装配指南，然后再使用此工具。"
+msgid "Please exit the assembly guide before using this tool."
+msgstr "请先退出组装指南再使用此工具。"
 
 msgid "Please confirm explosion ratio = 1 and select at least two volumes."
 msgstr "请确保爆炸比例为1且至少选择两个网格。"
@@ -3152,12 +3152,6 @@ msgstr "步骤"
 msgid "Install parts"
 msgstr "安装零件"
 
-msgid "New Step"
-msgstr "新步骤"
-
-msgid "_copy"
-msgstr "_复制"
-
 msgid "Assembly Guide"
 msgstr "组装指南"
 
@@ -3188,6 +3182,9 @@ msgstr "导出"
 msgid "Saving project will automatically switch to end frame"
 msgstr "保存项目时将自动切换到结束帧"
 
+msgid "New Step"
+msgstr "新步骤"
+
 msgid "Final assembly"
 msgstr "总装"
 
@@ -3212,6 +3209,9 @@ msgstr "装配模块"
 
 msgid "Add object to current step"
 msgstr "将对象添加到当前步骤"
+
+msgid "_copy"
+msgstr "_复制"
 
 msgid "Model"
 msgstr "模型"
@@ -3298,9 +3298,6 @@ msgstr "提示"
 msgid "No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view."
 msgstr "当前未选中任何步骤卡。诸如移动工具之类的姿态更改操作将影响实际的最终装配视图。"
 
-msgid "Double-click an empty area to exit all editing states."
-msgstr "双击空白区域退出所有编辑状态。"
-
 msgid "Expand"
 msgstr "展开"
 
@@ -3337,6 +3334,9 @@ msgstr "仅复制步骤。此操作与画布上选定的对象无关。"
 
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
 msgstr "仅添加空步骤。这与画布上的选定对象无关。"
+
+msgid "Exit"
+msgstr "退出"
 
 msgid "Search"
 msgstr "搜索"
@@ -3418,6 +3418,9 @@ msgstr "如有必要，可以通过按下“应用实际装配姿态”按钮来
 
 msgid "undoing these edits is not yet supported and will be added in a later version."
 msgstr "此编辑的撤销尚不支持，将在后续版本中添加。"
+
+msgid "Some objects were used in an earlier keyframe of the current step and are not exploded here. You can explode them manually with the move tool."
+msgstr "某些对象在当前步骤的先前关键帧中使用过，因此此处未将其分解。您可以使用移动工具手动分解它们。"
 
 msgid "Connection Type"
 msgstr "连接类型"
@@ -18086,6 +18089,12 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Please double-click the blank area to exit the assembly guide before using this tool."
+#~ msgstr "请双击空白区域以退出装配指南，然后再使用此工具。"
+
+#~ msgid "Double-click an empty area to exit all editing states."
+#~ msgstr "双击空白区域退出所有编辑状态。"
 
 #~ msgid "The current preset is a project preset and can't be used to create a new preset. Please select a system preset or user preset, then try again."
 #~ msgstr "当前预设是3mf文件内的项目预设，修改后请直接保存3mf项目，不支持另存为新预设。"

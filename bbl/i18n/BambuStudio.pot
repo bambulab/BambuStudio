@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-23 11:50+0800\n"
+"POT-Creation-Date: 2026-06-23 14:57+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1319,7 +1319,7 @@ msgstr ""
 msgid "Assemble"
 msgstr ""
 
-msgid "Please double-click the blank area to exit the assembly guide before using this tool."
+msgid "Please exit the assembly guide before using this tool."
 msgstr ""
 
 msgid "Please confirm explosion ratio = 1 and select at least two volumes."
@@ -3142,12 +3142,6 @@ msgstr ""
 msgid "Install parts"
 msgstr ""
 
-msgid "New Step"
-msgstr ""
-
-msgid "_copy"
-msgstr ""
-
 msgid "Assembly Guide"
 msgstr ""
 
@@ -3178,6 +3172,9 @@ msgstr ""
 msgid "Saving project will automatically switch to end frame"
 msgstr ""
 
+msgid "New Step"
+msgstr ""
+
 msgid "Final assembly"
 msgstr ""
 
@@ -3201,6 +3198,9 @@ msgid "Assembly Module"
 msgstr ""
 
 msgid "Add object to current step"
+msgstr ""
+
+msgid "_copy"
 msgstr ""
 
 msgid "Model"
@@ -3288,9 +3288,6 @@ msgstr ""
 msgid "No step card is currently selected. Pose-changing operations such as move gizmo will affect the actual final-assembly view."
 msgstr ""
 
-msgid "Double-click an empty area to exit all editing states."
-msgstr ""
-
 msgid "Expand"
 msgstr ""
 
@@ -3326,6 +3323,9 @@ msgid "Only copy steps. This is independent of the selected objects on the canva
 msgstr ""
 
 msgid "Only add empty steps. This has nothing to do with the selected objects on the canvas."
+msgstr ""
+
+msgid "Exit"
 msgstr ""
 
 msgid "Search"
@@ -3407,6 +3407,9 @@ msgid "If necessary, a relatively good position can be restored by pressing the 
 msgstr ""
 
 msgid "undoing these edits is not yet supported and will be added in a later version."
+msgstr ""
+
+msgid "Some objects were used in an earlier keyframe of the current step and are not exploded here. You can explode them manually with the move tool."
 msgstr ""
 
 msgid "Connection Type"
