@@ -101,13 +101,20 @@ void OG_CustomCtrl::init_ctrl_lines()
         else if (opt_group->label_width != 0 && (!line.label.IsEmpty() || option_set.front().opt.gui_type == ConfigOptionDef::GUIType::legend) )
         {
             wxSize label_sz = GetTextExtent(line.label);
-            if (opt_group->split_multi_line) {
-                if (option_set.size() > 1) // BBS
-                    height = (label_sz.y + m_v_gap2) * option_set.size() + m_v_gap - m_v_gap2;
-                else
-                    height = label_sz.y * (label_sz.GetWidth() > int(opt_group->label_width * m_em_unit) ? 2 : 1) + m_v_gap;
+            if (opt_group->split_multi_line && option_set.size() > 1) { // BBS
+                height = (label_sz.y + m_v_gap2) * option_set.size() + m_v_gap - m_v_gap2;
             } else {
-                height = label_sz.y * (label_sz.GetWidth() > int(opt_group->label_width * m_em_unit) ? 2 : 1) + m_v_gap;
+                // #11259: reserve the full height of the (possibly wrapped) label.
+                // The previous "(width > column ? 2 : 1)" heuristic assumed a label
+                // wraps to at most two lines, so longer labels (e.g. some translations)
+                // that wrap to three or more lines were drawn on top of the next option
+                // row. Measure the actually wrapped height using the same helper and
+                // width that CtrlLine::render uses to draw the label.
+                wxClientDC dc(this);
+                dc.SetFont(m_font);
+                wxString multiline_text;
+                const wxSize wrapped_sz = Label::split_lines(dc, int(opt_group->label_width * m_em_unit), line.label, multiline_text);
+                height = wrapped_sz.y + m_v_gap;
             }
             ctrl_lines.emplace_back(CtrlLine(height, this, line, false, opt_group->staticbox));
         }
