@@ -92,6 +92,9 @@
         "245",
         "245"
     ],
+    "overhang_fan_speed": [
+        "50"
+    ],
     "retraction_distances_when_ec": [
         "3",
         "3",
