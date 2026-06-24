@@ -19,6 +19,18 @@
   --color-fm-brand-hover: #34c400;
   --color-fm-danger: #e04040;
   --color-fm-warning: #ed7417;
+  /* SpoolColorChip 1px inset ring; sits between the chip fill and the
+     surrounding surface. Dark theme keeps the historical low-alpha white
+     so existing chip silhouettes are unchanged. Light theme uses a low
+     alpha black so a white / near-white chip fill still has a visible
+     outline against the light surface. */
+  --color-fm-chip-ring: rgba(255,255,255,0.10);
+  /* AMS slot card header in AddEditDialog. Dark theme matches the prior
+     hardcoded #424242 + white text; light theme pulls the header tint
+     down to --color-fm-hover so the slot card no longer shows an
+     isolated dark bar on a light surface. */
+  --color-fm-slot-header: #424242;
+  --color-fm-slot-header-text: #fff;
 }
 
 /* ===== Filament Light Theme Overrides ===== */
@@ -41,6 +53,9 @@
   --color-fm-brand-hover: #34c400;
   --color-fm-danger: #d32f2f;
   --color-fm-warning: #e65100;
+  --color-fm-chip-ring: rgba(0,0,0,0.18);
+  --color-fm-slot-header: rgba(0,0,0,0.06);
+  --color-fm-slot-header-text: #1a1a1a;
 }
 
 html, body, #root {

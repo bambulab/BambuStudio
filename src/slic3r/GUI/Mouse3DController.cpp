@@ -49,6 +49,7 @@ static const std::vector<int> _3DCONNEXION_DEVICES =
     0xc633,	/* 50739 spacemouse enterprise */
     0xc635,	/* 50741 spacemouse compact *TESTED* */
     0xc636,	/* 50742 spacemouse module */
+    0xc638,	/* 50737 spacemouse pro wireless BT edition (via USB & BT) *TESTED* */
     0xc63a,	/* 60060 spacemouse wireless (Bluetooth) */
     0xc652, /* 50770 3Dconnexion universal receiver *TESTED* */
 };
@@ -134,6 +135,7 @@ static std::string format_device_string(int vid, int pid)
     case 0xc633: { ret += "spacemouse enterprise"; break; }
     case 0xc635: { ret += "spacemouse compact"; break; }
     case 0xc636: { ret += "spacemouse module"; break; }
+    case 0xc638: { ret += "spacemouse pro wireless BT edition"; break; }
     case 0xc640: { ret += "nulooq"; break; }
     case 0xc652: { ret += "3Dconnexion universal receiver"; break; }
     default:     { ret += "UNKNOWN"; break; }

@@ -95,6 +95,10 @@ namespace Slic3r
             {
                 result.id = ams_id + slot_id;
             }
+            else if (type == DevAmsType::AMS_LITE_MIXED)
+            {
+                result.id = AMS_LITE_MIXED_TRAY_INDEX_OFFSET + slot_id;
+            }
             else
             {
                 result.id = ams_id * 4 + slot_id;
@@ -117,6 +121,10 @@ namespace Slic3r
         {
             std::string ams_id = ams->second->GetAmsId();
             auto        ams_type = ams->second->GetAmsType();
+            if (ams_type == DevAmsType::AMS_LITE && ams->second->IsAmsLiteMixed())
+            {
+                ams_type = DevAmsType::AMS_LITE_MIXED;
+            }
             for (auto tray = ams->second->GetTrays().begin(); tray != ams->second->GetTrays().end(); tray++)
             {
                 int ams_id = atoi(ams->first.c_str());
@@ -125,6 +133,10 @@ namespace Slic3r
                 if (ams_type == DevAmsType::AMS || ams_type == DevAmsType::AMS_LITE || ams_type == DevAmsType::N3F)
                 {
                     tray_index = ams_id * 4 + tray_id;
+                }
+                else if (ams_type == DevAmsType::AMS_LITE_MIXED)
+                {
+                    tray_index = AMS_LITE_MIXED_TRAY_INDEX_OFFSET + tray_id;
                 }
                 else if (ams_type == DevAmsType::N3S)
                 {

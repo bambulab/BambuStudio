@@ -14,7 +14,6 @@
 #include "Utils.hpp"
 
 #include <set>
-#include <fstream>
 
 // #define SLIC3R_DEBUG
 
@@ -710,10 +709,11 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
 	it_per_layer_extruder_override = per_layer_extruder_switches.begin();
     unsigned int extruder_override = 0;
 
-    // Pre-compute 1-based IDs of gradient mixed filament slots for per-object tracking.
-    // per_part_slots_1based is the subset of gradient_slots_1based for which per-part gradient is
-    // enabled (filament_mixed_gradient_per_part[i] = true). Used by the per-volume collection
-    // pass that runs alongside the existing per-object pass below.
+    // Pre-compute 1-based IDs of mixed filament slots for per-object tracking.
+    // mixed_slots_1based covers ALL mixed slots (needed by calc_slot_lh for
+    // accurate layer height when a slot skips layers). gradient_slots_1based
+    // and per_part_slots_1based are subsets for gradient-specific logic.
+    std::set<unsigned int> mixed_slots_1based;
     std::set<unsigned int> gradient_slots_1based;
     std::set<unsigned int> per_part_slots_1based;
     {
@@ -726,6 +726,11 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
             if (!is_mixed[i])
                 continue;
             auto comps = parse_mixed_components(i < comp_strs.size() ? comp_strs[i] : "");
+            if (comps.size() < 2)
+                continue;
+            mixed_slots_1based.insert(static_cast<unsigned int>(i + 1));
+            // Gradient/per-part are only defined for 2-component slots; keep their
+            // tracking limited to them (mirrors the is_gradient guard at resolve time).
             if (comps.size() != 2)
                 continue;
             if (i >= grad_flags.size() || !grad_flags[i])
@@ -744,6 +749,9 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
     // Collect the object extruders.
     for (auto layer : object.layers()) {
         LayerTools &layer_tools = this->tools_for_layer(layer->print_z);
+
+        m_object_all_layer_indices[&object].push_back(
+            static_cast<size_t>(&layer_tools - m_layer_tools.data()));
 
         // Override extruder with the next
     	for (; it_per_layer_extruder_override != per_layer_extruder_switches.end() && it_per_layer_extruder_override->first < layer->print_z + EPSILON; ++ it_per_layer_extruder_override)
@@ -818,14 +826,16 @@ void ToolOrdering::collect_extruders(const PrintObject &object, const std::vecto
                 layer_tools.has_object = true;
         }
 
-        // Record gradient slot usage for this object at this layer (for per-object gradient).
-        if (!gradient_slots_1based.empty()) {
+        // Record mixed slot usage for this object at this layer.
+        // All mixed slots are tracked (not just gradient) so that calc_slot_lh
+        // can compute accurate layer heights even when a slot skips layers.
+        if (!mixed_slots_1based.empty()) {
             size_t layer_idx = static_cast<size_t>(&layer_tools - m_layer_tools.data());
             std::set<unsigned int> seen;
             for (size_t ei = ext_snapshot; ei < layer_tools.extruders.size(); ++ei) {
                 unsigned int ext_1based = layer_tools.extruders[ei];
-                if (gradient_slots_1based.count(ext_1based) && seen.insert(ext_1based).second)
-                    m_gradient_object_layers[ext_1based - 1][&object].push_back(layer_idx);
+                if (mixed_slots_1based.count(ext_1based) && seen.insert(ext_1based).second)
+                    m_mixed_object_layers[ext_1based - 1][&object].push_back(layer_idx);
             }
         }
 
@@ -1478,7 +1488,7 @@ std::vector<FlushMatrix> prepare_flush_matrices(const PrintConfig& print_config)
         nozzle_flush_mtx.emplace_back(wipe_volumes);
     }
 
-    auto flush_multiplies = print_config.flush_multiplier.values;
+    auto flush_multiplies = (print_config.prime_volume_mode == PrimeVolumeMode::pvmFast) ? print_config.flush_multiplier_fast.values : print_config.flush_multiplier.values;
     flush_multiplies.resize(extruder_nums, 1);
     for (size_t nozzle_id = 0; nozzle_id < extruder_nums; ++nozzle_id) {
         for (auto& vec : nozzle_flush_mtx[nozzle_id]) {
@@ -1950,6 +1960,12 @@ ToolOrdering::LayerData ToolOrdering::collect_layer_and_unprintable_data()
     data.used_filaments = collect_sorted_used_filaments(data.layer_filaments);
 
     data.geometric_unprintables = m_print->get_geometric_unprintable_filaments();
+
+    const auto &is_mixed  = m_print->config().filament_is_mixed.values;
+    const auto &comp_strs = m_print->config().filament_mixed_components.values;
+    if (has_any_mixed_filament(is_mixed))
+        expand_mixed_slots_in_unprintables(data.geometric_unprintables, is_mixed, comp_strs);
+
     data.physical_unprintables = m_print->get_physical_unprintable_filaments(data.used_filaments);
     data.filament_unprintable_volumes = m_print->get_filament_unprintable_flow(data.used_filaments);
 
@@ -2082,7 +2098,12 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
     // Parse gradient settings per slot
     const auto &gradient_flags = config.filament_mixed_gradient.values;
     const auto &gradient_range_strs = config.filament_mixed_gradient_range.values;
-    struct GradientInfo { double start = 0.10; double end_val = 0.90; };
+    const auto &gradient_curve_strs = config.filament_mixed_gradient_curve.values;
+    struct GradientInfo {
+        double        start = 0.10;
+        double        end_val = 0.90;
+        GradientCurve curve;  // empty -> use linear (start, end_val); non-empty wins
+    };
     std::vector<bool> is_gradient(is_mixed.size(), false);
     std::vector<GradientInfo> gradient_info(is_mixed.size());
     for (size_t i = 0; i < is_mixed.size(); ++i) {
@@ -2100,6 +2121,8 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
                 gradient_info[i].end_val = v1;
             }
         }
+        if (i < gradient_curve_strs.size() && !gradient_curve_strs[i].empty())
+            gradient_info[i].curve = parse_gradient_curve(gradient_curve_strs[i]);
     }
 
     // Pass 1: identify continuous runs for each gradient slot (Per-Run).
@@ -2109,10 +2132,24 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
         int                 current_run = -1;
         size_t              current_idx = 0;
         bool                prev_appeared = false;
+        bool                last_absent_was_relevant = false;
     };
     std::map<unsigned int, GradientRunInfo> gradient_runs;
     for (size_t i = 0; i < is_mixed.size(); ++i)
         if (is_gradient[i]) gradient_runs[static_cast<unsigned int>(i)] = {};
+
+    // Build per-slot sets of all layer indices where any slot-owning object has a
+    // layer.  Used by gradient run detection (a gap is real only if the slot is
+    // absent at a layer belonging to one of its own objects) and by calc_slot_lh
+    // to keep prev_relevant_z_for_slot current even when a slot skips many layers.
+    std::map<unsigned int, std::set<size_t>> slot_relevant_layers;
+    for (auto &[slot_idx, obj_map] : m_mixed_object_layers) {
+        for (auto &[obj, _] : obj_map) {
+            auto it = m_object_all_layer_indices.find(obj);
+            if (it != m_object_all_layer_indices.end())
+                slot_relevant_layers[slot_idx].insert(it->second.begin(), it->second.end());
+        }
+    }
 
     if (!gradient_runs.empty()) {
         for (size_t li = 0; li < m_layer_tools.size(); ++li) {
@@ -2121,9 +2158,18 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
             for (auto &[slot, run] : gradient_runs) {
                 bool here = std::find(lt.extruders.begin(), lt.extruders.end(), slot) != lt.extruders.end();
                 if (here) {
-                    if (!run.prev_appeared)
+                    bool real_gap = false;
+                    if (!run.prev_appeared && !run.run_lengths.empty()) {
+                        real_gap = run.last_absent_was_relevant;
+                    }
+                    if (run.run_lengths.empty() || real_gap)
                         run.run_lengths.push_back(0);
                     run.run_lengths.back()++;
+                    run.last_absent_was_relevant = false;
+                } else if (!run.run_lengths.empty()) {
+                    auto rel_it = slot_relevant_layers.find(slot);
+                    if (rel_it != slot_relevant_layers.end() && rel_it->second.count(li))
+                        run.last_absent_was_relevant = true;
                 }
                 run.prev_appeared = here;
             }
@@ -2132,6 +2178,7 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
             run.current_run = -1;
             run.current_idx = 0;
             run.prev_appeared = false;
+            run.last_absent_was_relevant = false;
         }
     }
 
@@ -2142,8 +2189,42 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
         int                 current_run = -1;
         size_t              current_idx = 0;
     };
+
+    // Detect whether a gap between two consecutive gradient-slot appearances is a
+    // real run break.  A gap is real only if the object has its own layer inside the
+    // gap that does NOT use the gradient slot (i.e. the slot was genuinely absent).
+    // Uses lower_bound to skip global indices that don't belong to the object.
+    auto has_real_gap = [](size_t prev_idx, size_t cur_idx,
+                           const std::set<size_t>& obj_set,
+                           const std::set<size_t>& slot_set) -> bool {
+        for (auto it = obj_set.lower_bound(prev_idx + 1);
+             it != obj_set.end() && *it < cur_idx; ++it) {
+            if (!slot_set.count(*it))
+                return true;
+        }
+        return false;
+    };
+
+    // Segment a sorted list of layer indices into runs, using has_real_gap to decide
+    // where to break.  Shared by the per-object and per-volume paths below.
+    auto segment_runs = [&](const std::vector<size_t>& layer_indices,
+                            const std::set<size_t>& obj_set,
+                            const std::set<size_t>& slot_set) -> PerObjRunState {
+        PerObjRunState st;
+        for (size_t i = 0; i < layer_indices.size(); ++i) {
+            bool new_run = (i == 0) ||
+                           has_real_gap(layer_indices[i - 1], layer_indices[i], obj_set, slot_set);
+            if (new_run) {
+                st.run_start_offsets.push_back(i);
+                st.run_lengths.push_back(0);
+            }
+            st.run_lengths.back()++;
+        }
+        return st;
+    };
+
     std::map<unsigned int, std::map<const PrintObject*, PerObjRunState>> per_obj_runs;
-    for (auto &[slot, obj_map] : m_gradient_object_layers) {
+    for (auto &[slot, obj_map] : m_mixed_object_layers) {
         if (slot >= is_gradient.size() || !is_gradient[slot])
             continue;
         for (auto &[obj, layer_indices] : obj_map) {
@@ -2151,15 +2232,12 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
             // Erase layer 0 — this mutation is also relied upon by the Pass 2 binary_search below.
             if (!layer_indices.empty() && layer_indices.front() == 0)
                 layer_indices.erase(layer_indices.begin());
-            PerObjRunState st;
-            for (size_t i = 0; i < layer_indices.size(); ++i) {
-                if (i == 0 || layer_indices[i] != layer_indices[i - 1] + 1) {
-                    st.run_start_offsets.push_back(i);
-                    st.run_lengths.push_back(0);
-                }
-                st.run_lengths.back()++;
-            }
-            per_obj_runs[slot][obj] = std::move(st);
+
+            const auto &all_obj_layers = m_object_all_layer_indices[obj];
+            std::set<size_t> all_obj_set(all_obj_layers.begin(), all_obj_layers.end());
+            std::set<size_t> grad_set(layer_indices.begin(), layer_indices.end());
+
+            per_obj_runs[slot][obj] = segment_runs(layer_indices, all_obj_set, grad_set);
         }
     }
 
@@ -2177,19 +2255,43 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
             sort_remove_duplicates(layer_indices);
             if (!layer_indices.empty() && layer_indices.front() == 0)
                 layer_indices.erase(layer_indices.begin());
-            PerObjRunState st;
-            for (size_t i = 0; i < layer_indices.size(); ++i) {
-                if (i == 0 || layer_indices[i] != layer_indices[i - 1] + 1) {
-                    st.run_start_offsets.push_back(i);
-                    st.run_lengths.push_back(0);
-                }
-                st.run_lengths.back()++;
-            }
-            per_vol_runs[slot][vkey] = std::move(st);
+
+            const auto &all_obj_layers = m_object_all_layer_indices[vkey.obj];
+            std::set<size_t> all_obj_set(all_obj_layers.begin(), all_obj_layers.end());
+            std::set<size_t> vol_grad_set(layer_indices.begin(), layer_indices.end());
+
+            per_vol_runs[slot][vkey] = segment_runs(layer_indices, all_obj_set, vol_grad_set);
         }
     }
     // Pass 2: resolve per layer
     coordf_t prev_print_z = 0.;
+    // Track last print_z per mixed slot so that layer height is computed from the
+    // slot's own previous appearance, not from a global Z that may include layers
+    // belonging only to other objects with different layer heights.
+    std::map<unsigned int, coordf_t> prev_print_z_for_slot;
+    // Track the last Z where a slot-owning object had ANY layer (regardless of
+    // whether the slot was present). Used to detect genuine gaps: if the slot was
+    // absent but its owner objects had layers, prev_relevant_z advances while
+    // prev_print_z_for_slot stays stale. Taking the max of both gives correct lh.
+    std::map<unsigned int, coordf_t> prev_relevant_z_for_slot;
+
+    // Compute the effective layer height for a mixed slot by choosing the best
+    // reference Z among: (1) the slot's own last Z, (2) the last Z where the
+    // slot's owning object had any layer, (3) the global previous Z as fallback
+    // when the slot appears for the first time.
+    auto calc_slot_lh = [&](unsigned int ext, coordf_t print_z) -> double {
+        auto slot_pz_it = prev_print_z_for_slot.find(ext);
+        auto rel_pz_it  = prev_relevant_z_for_slot.find(ext);
+        coordf_t base_z = prev_print_z;
+        if (slot_pz_it != prev_print_z_for_slot.end()) {
+            base_z = slot_pz_it->second;
+            if (rel_pz_it != prev_relevant_z_for_slot.end())
+                base_z = std::max(base_z, rel_pz_it->second);
+        }
+        double lh = print_z - base_z;
+        return (lh > 0.) ? lh : 0.2;  // 0.2mm safety fallback; should not trigger in normal operation
+    };
+
     for (LayerTools &lt : m_layer_tools) {
         size_t layer_idx = static_cast<size_t>(&lt - m_layer_tools.data());
 
@@ -2197,9 +2299,18 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
         if (layer_idx > 0) {
             for (auto &[slot, run] : gradient_runs) {
                 bool here = std::find(lt.extruders.begin(), lt.extruders.end(), slot) != lt.extruders.end();
-                if (here && !run.prev_appeared) {
-                    run.current_run++;
-                    run.current_idx = 0;
+                if (here) {
+                    if (!run.prev_appeared) {
+                        if (run.last_absent_was_relevant || run.current_run < 0) {
+                            run.current_run++;
+                            run.current_idx = 0;
+                        }
+                    }
+                    run.last_absent_was_relevant = false;
+                } else {
+                    auto rel_it = slot_relevant_layers.find(slot);
+                    if (rel_it != slot_relevant_layers.end() && rel_it->second.count(layer_idx))
+                        run.last_absent_was_relevant = true;
                 }
                 run.prev_appeared = here;
             }
@@ -2215,8 +2326,7 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
 
             // Skip sublayer splitting for the first layer to preserve bed adhesion.
             if (sublayer_enabled && layer_idx > 0) {
-                double lh = lt.print_z - prev_print_z;
-                if (lh <= 0) lh = 0.2;
+                double lh = calc_slot_lh(ext, lt.print_z);
                 size_t n = s.components.size();
 
                 std::vector<double> sub_heights;
@@ -2230,7 +2340,10 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
                         size_t N   = run.run_lengths[run.current_run];
                         size_t idx = run.current_idx++;
                         double t   = (N > 0) ? (2.0 * idx + 1.0) / (2.0 * N) : 0.5;
-                        double r1  = gradient_info[ext].start + (gradient_info[ext].end_val - gradient_info[ext].start) * t;
+                        // Custom curve wins over linear range when present; OFF path stays bit-identical.
+                        double r1  = gradient_info[ext].curve.empty()
+                                     ? (gradient_info[ext].start + (gradient_info[ext].end_val - gradient_info[ext].start) * t)
+                                     : sample_gradient_curve(gradient_info[ext].curve, t);
                         double r2  = 1.0 - r1;
                         sub_heights.push_back(r1 * lh);
                         sub_heights.push_back(r2 * lh);
@@ -2267,14 +2380,17 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
                 // covers the legacy path bit-identically.
                 bool per_vol_active_for_slot = per_vol_runs.find(ext) != per_vol_runs.end()
                                                 && !per_vol_runs[ext].empty();
+
                 if (gradient_last_no_split && !per_vol_active_for_slot) {
                     lt.mixed_filament_resolution[ext] = gradient_last_dominant_0b;
                     new_extruders.push_back(gradient_last_dominant_0b);
+                    prev_print_z_for_slot[ext] = lt.print_z;
                     continue;
                 }
 
                 LayerTools::MixedSubLayerGroup grp;
                 grp.mixed_slot_0based = ext;
+                grp.layer_height = lh;
                 grp.is_gradient = is_gradient[ext];
                 for (size_t k = 0; k < s.components.size(); ++k) {
                     unsigned int comp_0based = s.components[k] - 1;
@@ -2311,13 +2427,14 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
                                 run_idx,
                                 gradient_info[ext].start,
                                 gradient_info[ext].end_val,
+                                gradient_info[ext].curve,
                             };
                         }
                     }
 
                     auto runs_slot_it = per_obj_runs.find(ext);
                     if (runs_slot_it != per_obj_runs.end()) {
-                        auto slot_it = m_gradient_object_layers.find(ext);
+                        auto slot_it = m_mixed_object_layers.find(ext);
                         for (auto &[obj, st] : runs_slot_it->second) {
                             auto &layer_indices = slot_it->second[obj];
                             if (!std::binary_search(layer_indices.begin(), layer_indices.end(), layer_idx))
@@ -2334,6 +2451,7 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
                                 run_idx,
                                 gradient_info[ext].start,
                                 gradient_info[ext].end_val,
+                                gradient_info[ext].curve,
                             };
                         }
                     }
@@ -2367,13 +2485,14 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
                 for (unsigned int comp : grp.components_0based)
                     new_extruders.push_back(comp);
                 lt.mixed_sub_layer_groups.push_back(std::move(grp));
+                prev_print_z_for_slot[ext] = lt.print_z;
             } else {
                 // Deficit Round-Robin: pick one component per layer.
                 // Weight by layer height so volume ratios stay accurate
                 // even with adaptive layer heights.
-                double lh = lt.print_z - prev_print_z;
-                if (lh <= 0) lh = 0.2;
+                double lh = calc_slot_lh(ext, lt.print_z);
                 long long lh_i = std::llround(lh * 1e6);
+
                 // For 2-component gradient on the first layer, use the gradient's
                 // starting ratio instead of the configured mixing ratio so the
                 // selected filament matches the gradient's "from" end.
@@ -2396,10 +2515,19 @@ void ToolOrdering::resolve_mixed_filaments(const PrintConfig &config)
                 unsigned int resolved = s.components[sel] - 1;
                 lt.mixed_filament_resolution[ext] = resolved;
                 new_extruders.push_back(resolved);
+                prev_print_z_for_slot[ext] = lt.print_z;
             }
         }
         lt.extruders = new_extruders;
         sort_remove_duplicates(lt.extruders);
+
+        // Update prev_relevant_z: for each slot that has relevant-layer tracking,
+        // advance if the current layer belongs to a slot-owning object.
+        for (auto &[slot, rel_set] : slot_relevant_layers) {
+            if (rel_set.count(layer_idx))
+                prev_relevant_z_for_slot[slot] = lt.print_z;
+        }
+
         prev_print_z = lt.print_z;
     }
 }

@@ -85,6 +85,7 @@ public:
 
     /* create machine or update machine properties */
     void on_machine_alive(std::string json_str);
+    void restore_local_machines_from_user_access_config();
     int query_bind_status(std::string& msg);
 
     // mutil-device

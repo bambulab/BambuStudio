@@ -1,8 +1,18 @@
 cmake_minimum_required(VERSION 3.13)
 
-# The CMake version on Windows must not be greater than 4.0.
-if ( ((MSVC) OR (WIN32)) AND (${CMAKE_VERSION} VERSION_GREATER_EQUAL "4.0") )
-    message(FATAL_ERROR "Only cmake versions between 3.13.x and 4.0.x is supported on windows. Detected version: ${CMAKE_VERSION}")
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO RelWithDebInfo Release "")
+
+if(POLICY CMP0167)
+  cmake_policy(SET CMP0167 OLD)
+endif()
+if(POLICY CMP0175)
+  cmake_policy(SET CMP0175 OLD)
+endif()
+
+# The CMake version on Windows: 3.13–4.2 supported (4.2.x is used by VS 2026).
+if ( ((MSVC) OR (WIN32)) AND (${CMAKE_VERSION} VERSION_GREATER_EQUAL "5.0") )
+    message(FATAL_ERROR "Only cmake versions between 3.13.x and 4.2.x is supported on windows. Detected version: ${CMAKE_VERSION}")
 endif()
 
 project(BambuStudio)
@@ -199,6 +209,12 @@ if(WIN32)
        endif()
     endif()
 
+    if(NOT PKG_CONFIG_EXECUTABLE AND DEFINED ENV{PKG_CONFIG_EXECUTABLE})
+        set(PKG_CONFIG_EXECUTABLE "$ENV{PKG_CONFIG_EXECUTABLE}" CACHE FILEPATH "pkg-config executable")
+    endif()
+    if(NOT PKG_CONFIG_EXECUTABLE)
+        find_program(PKG_CONFIG_EXECUTABLE NAMES pkg-config)
+    endif()
     find_package(PkgConfig REQUIRED)
     if(NOT DEFINED WIN10SDK_PATH)
         if(DEFINED ENV{WIN10SDK_PATH})

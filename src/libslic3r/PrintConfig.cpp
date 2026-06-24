@@ -1,6 +1,7 @@
 #include "PrintConfig.hpp"
 #include "ClipperUtils.hpp"
 #include "Config.hpp"
+#include "Flow.hpp"
 #include "I18N.hpp"
 #include "FilamentMixer.hpp"
 
@@ -505,7 +506,8 @@ CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FilamentMapMode)
 
 static const t_config_enum_values s_keys_map_PrimeVolumeMode = {
     { "Default", pvmDefault},
-    { "Saving", pvmSaving}
+    { "Saving", pvmSaving},
+    { "Fast", pvmFast}
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(PrimeVolumeMode)
 
@@ -523,6 +525,13 @@ static const t_config_enum_values s_keys_map_FilamentMetalStickiness = {
     { "High",   fmsHigh }
 };
 CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(FilamentMetalStickiness)
+
+static const t_config_enum_values s_keys_map_CounterboreHoleBridgingOption{
+    { "none", chbNone },
+    { "partiallybridge", chbBridges },
+    { "sacrificiallayer", chbFilled },
+};
+CONFIG_OPTION_ENUM_DEFINE_STATIC_MAPS(CounterboreHoleBridgingOption)
 
 //BBS
 std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type)
@@ -1254,8 +1263,27 @@ void PrintConfigDef::init_fff_params()
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionFloat(1));
 
+    def = this->add("counterbore_hole_bridging", coEnum);
+    def->label = L("Bridge counterbore holes");
+    def->category = L("Quality");
+    def->tooltip  = L(
+        "This option creates bridges for counterbore holes, allowing them to be printed without support. Available modes include:\n"
+         "1. None: No bridge is created\n"
+         "2. Partially Bridged: Only a part of the unsupported area will be bridged\n"
+         "3. Sacrificial Layer: A full sacrificial bridge layer is created");
+    def->mode = comAdvanced;
+    def->enum_keys_map = &ConfigOptionEnum<CounterboreHoleBridgingOption>::get_enum_values();
+    def->enum_values.emplace_back("none");
+    def->enum_values.emplace_back("partiallybridge");
+    def->enum_values.emplace_back("sacrificiallayer");
+    def->enum_labels.emplace_back(L("None"));
+    def->enum_labels.emplace_back(L("Partially bridged"));
+    def->enum_labels.emplace_back(L("Sacrificial layer"));
+    def->set_default_value(new ConfigOptionEnum<CounterboreHoleBridgingOption>(chbNone));
+
     def = this->add("top_solid_infill_flow_ratio", coFloats);
     def->label = L("Top surface flow ratio");
+    def->category = L("Quality");
     def->gui_type = ConfigOptionDef::GUIType::multi_variant;
     def->tooltip = L("This factor affects the amount of material for top solid infill. "
                      "You can decrease it slightly to have smooth surface finish");
@@ -1266,6 +1294,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("initial_layer_flow_ratio", coFloat);
     def->label = L("Initial layer flow ratio");
+    def->category = L("Quality");
     def->tooltip = L("This factor affects the amount of material for the initial layer");
     def->min = 0;
     def->max = 2;
@@ -2061,6 +2090,7 @@ void PrintConfigDef::init_fff_params()
 
     def          = this->add("print_flow_ratio", coFloat);
     def->label   = L("Object flow ratio");
+    def->category = L("Quality");
     def->tooltip = L("The flow ratio set by object, the meaning is the same as flow ratio.");
     def->mode    = comDevelop;
     def->max     = 2;
@@ -2211,6 +2241,16 @@ void PrintConfigDef::init_fff_params()
     def = this->add("filament_flush_temp", coInts);
     def->label = L("Flush temperature");
     def->tooltip = L("temperature when flushing filament. 0 indicates the upper bound of the recommended nozzle temperature range");
+    def->mode = comAdvanced;
+    def->nullable = true;
+    def->min = 0;
+    def->max = max_temp;
+    def->sidetext = "°C";
+    def->set_default_value(new ConfigOptionIntsNullable{0});
+
+    def = this->add("filament_flush_temp_fast", coInts);
+    def->label = L("Flush temperature");
+    def->tooltip = L("Flush temperature used in fast purge mode.");
     def->mode = comAdvanced;
     def->nullable = true;
     def->min = 0;
@@ -2554,6 +2594,18 @@ void PrintConfigDef::init_fff_params()
     def->label   = L("Mixed filament gradient range");
     def->tooltip = L("Start and end ratios for the first component in gradient mode. "
                      "Comma-separated pair, e.g. \"0.10,0.90\" means 10% to 90%.");
+    def->mode    = comDevelop;
+    def->set_default_value(new ConfigOptionStrings{""});
+
+    def          = this->add("filament_mixed_gradient_curve", coStrings);
+    def->label   = L("Mixed filament gradient curve");
+    def->tooltip = L("Optional Photoshop-style custom curve mapping Z progress to the first "
+                     "component ratio. Encoded as pipe-separated control points, "
+                     "either \"x,y\" (legacy) or \"x,y,m_in,m_out\" when a tangent override "
+                     "is needed (empty token or \"nan\" means use PCHIP default). "
+                     "x in [0,1]; y is clamped to the configured ratio range, "
+                     "e.g. \"0,0.15|0.5,0.50|1,0.85\". When empty, the linear "
+                     "gradient_range is used instead.");
     def->mode    = comDevelop;
     def->set_default_value(new ConfigOptionStrings{""});
 
@@ -3263,6 +3315,12 @@ void PrintConfigDef::init_fff_params()
     def->mode    = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
 
+    def          = this->add("enable_order_independent_overlap_carving", coBool);
+    def->label   = L("Order-independent overlap carving");
+    def->tooltip = L("When enabled, overlapping model parts are carved by bounding-box size so smaller embedded parts are not removed by larger parts due to volume order.");
+    def->mode    = comDevelop;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def           = this->add("wrapping_detection_layers", coInt);
     def->label    = L("Clumping detection layers");
     def->tooltip  = L("Clumping detection layers.");
@@ -3861,6 +3919,12 @@ void PrintConfigDef::init_fff_params()
     def->nullable = true;
     def->set_default_value(new ConfigOptionIntsNullable{ 1 });
 
+    def = this->add("support_fast_purge_mode", coBool);
+    def->label = L("Support fast purge mode");
+    def->tooltip = L("Whether this printer supports fast purge mode with optimized temperature and multiplier.");
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBool(false));
+
     def = this->add("has_scarf_joint_seam", coBool);
     def->mode = comAdvanced;
     def->set_default_value(new ConfigOptionBool(false));
@@ -3938,6 +4002,36 @@ void PrintConfigDef::init_fff_params()
             def->mode = comSimple;
             def->nullable = true;
             def->set_default_value(new ConfigOptionFloatsNullable(axis.max_jerk));
+            // Add the machine mass and force limits for X axes (M201)
+            def = this->add("machine_max_force_Y", coFloat);
+            def->full_label = L("Maximum force of the Y axis");
+            def->category   = L("Machine limits");
+            def->readonly   = false;
+            def->tooltip    = L("The allowed maximum output force of Y axis");
+            def->sidetext   = L("N");
+            def->min        = 0;
+            def->mode       = comDevelop;
+            def->set_default_value(new ConfigOptionFloat(0));
+            //Add the machine y axis base mass
+            def             = this->add("machine_bed_mass_Y", coFloat);
+            def->full_label = L("Bed mass of the Y axis");
+            def->category   = L("Machine limits");
+            def->readonly   = false;
+            def->tooltip    = L("The machine bed mass load of Y axis");
+            def->sidetext   = L("g");
+            def->min        = 0;
+            def->mode       = comDevelop;
+            def->set_default_value(new ConfigOptionFloat(0));
+            // Add the machine printed mass limit, due to te motor output limit
+            def             = this->add("machine_max_printed_mass", coFloat);
+            def->full_label = L("The allowed max printed mass");
+            def->category   = L("Machine limits");
+            def->readonly   = false;
+            def->tooltip    = L("The allowed max printed mass on a plate");
+            def->sidetext   = L("g");
+            def->min        = 0;
+            def->mode       = comDevelop;
+            def->set_default_value(new ConfigOptionFloat(0));
         }
     }
 
@@ -4532,8 +4626,10 @@ void PrintConfigDef::init_fff_params()
     def = this->add("prime_volume_mode", coEnum);
     def->enum_values.push_back("Default");
     def->enum_values.push_back("Saving");
+    def->enum_values.push_back("Fast");
     def->enum_labels.push_back(L("Default"));
     def->enum_labels.push_back(L("Saving"));
+    def->enum_labels.push_back(L("Fast"));
     def->enum_keys_map = &ConfigOptionEnum<PrimeVolumeMode>::get_enum_values();
     def->set_default_value(new ConfigOptionEnum<PrimeVolumeMode>{ PrimeVolumeMode::pvmDefault });
 
@@ -4798,6 +4894,12 @@ void PrintConfigDef::init_fff_params()
     def->max = 55;
     def->mode = comDevelop;
     def->set_default_value(new ConfigOptionFloat(2));
+
+    def = this->add("skirt_per_object", coBool);
+    def->label = L("Skirt per object");
+    def->tooltip = L("Generate independent skirt around each object in sequential printing mode. When disabled, a single skirt is drawn around all objects.");
+    def->mode = comDevelop;
+    def->set_default_value(new ConfigOptionBool(true));
 
     def = this->add("skirt_height", coInt);
     def->label = L("Skirt height");
@@ -5777,6 +5879,12 @@ void PrintConfigDef::init_fff_params()
     def->tooltip = L("The actual flushing volumes is equal to the flush multiplier multiplied by the flushing volumes in the table.");
     def->sidetext = "";
     def->set_default_value(new ConfigOptionFloats{1.0});
+
+    def           = this->add("flush_multiplier_fast", coFloats);
+    def->label    = L("Flush multiplier (Fast mode)");
+    def->tooltip  = L("The flush multiplier used in fast purge mode.");
+    def->sidetext = "";
+    def->set_default_value(new ConfigOptionFloats{1.2});
 
     // // BBS
     // def = this->add("prime_volume", coFloat);
@@ -7081,6 +7189,7 @@ std::set<std::string> filament_options_with_variant = {
     "nozzle_temperature",
     "filament_flush_volumetric_speed",
     "filament_flush_temp",
+    "filament_flush_temp_fast",
     "filament_enable_overhang_speed",
     "filament_bridge_speed",
     "filament_overhang_1_4_speed",
@@ -9886,7 +9995,7 @@ Polygon get_bed_shape_with_excluded_area(const PrintConfig& cfg, bool use_share)
     if (!tmp.empty()) bed_poly = tmp[0];
     return bed_poly;
 }
-bool has_skirt(const DynamicPrintConfig& cfg)
+bool has_skirt(const ConfigBase& cfg)
 {
     auto opt_skirt_height = cfg.option("skirt_height");
     auto opt_skirt_loops = cfg.option("skirt_loops");
@@ -9894,31 +10003,48 @@ bool has_skirt(const DynamicPrintConfig& cfg)
     return (opt_skirt_height && opt_skirt_height->getInt() > 0 && opt_skirt_loops && opt_skirt_loops->getInt() > 0)
         || (opt_draft_shield && opt_draft_shield->getInt() != dsDisabled);
 }
-float get_real_skirt_dist(const DynamicPrintConfig& cfg) {
-    if (!has_skirt(cfg)) return 0.f;
+float get_real_skirt_dist(const ConfigBase& cfg)
+{
+    auto opt_skirt_per_object = cfg.option("skirt_per_object");
+    if (!opt_skirt_per_object || !opt_skirt_per_object->getBool())
+        return 0.f;
 
-    float dist = cfg.opt_float("skirt_distance");
+    if (!has_skirt(cfg))
+        return 0.f;
 
-    int loops = cfg.opt_int("skirt_loops");
+    auto opt_skirt_loops = cfg.option("skirt_loops");
+    int skirt_loops = opt_skirt_loops ? opt_skirt_loops->getInt() : 0;
     auto opt_draft_shield = cfg.option("draft_shield");
-    if (opt_draft_shield && opt_draft_shield->getInt() != dsDisabled && loops == 0) {
-        loops = 1;
-    }
+    if (opt_draft_shield && opt_draft_shield->getInt() != dsDisabled && skirt_loops == 0)
+        skirt_loops = 1;
+    if (skirt_loops <= 0)
+        return 0.f;
 
-    float width = cfg.opt_float("initial_layer_line_width");
-    if (width <= 0.f) {
-        width = cfg.opt_float("line_width");
-    }
-    if (width <= 0.f) {
-        auto* nd = cfg.opt<ConfigOptionFloats>("nozzle_diameter");
-        if (nd && !nd->values.empty()) {
-            width = *std::max_element(nd->values.begin(), nd->values.end());
-        } else {
-            width = 0.4f;
-        }
-    }
+    auto  opt_dist       = cfg.option("skirt_distance");
+    float skirt_distance = opt_dist ? static_cast<float>(opt_dist->getFloat()) : 0.f;
 
-    return dist + loops * width;
+    auto  opt_nozzle     = cfg.option("nozzle_diameter");
+    auto  opt_nozzle_f   = dynamic_cast<const ConfigOptionFloats *>(opt_nozzle);
+    float nozzle_dia     = opt_nozzle_f ? static_cast<float>(opt_nozzle_f->get_at(0)) : 0.4f;
+    auto  opt_lh       = cfg.option("initial_layer_print_height");
+    float layer_height = opt_lh ? static_cast<float>(opt_lh->getFloat()) : 0.2f;
+
+    // Use Flow to compute actual extrusion width and spacing,
+    // matching Print::skirt_flow() / _make_skirt() exactly.
+    ConfigOptionFloat width_opt;
+    auto opt_lw = cfg.option("initial_layer_line_width");
+    width_opt.value = (opt_lw && opt_lw->getFloat() > 0) ? opt_lw->getFloat() : 0;
+    if (width_opt.value == 0) {
+        auto opt_gen_lw = cfg.option("line_width");
+        width_opt.value = (opt_gen_lw && opt_gen_lw->getFloat() > 0) ? opt_gen_lw->getFloat() : 0;
+    }
+    Flow flow = Flow::new_from_config_width(frPerimeter, width_opt, nozzle_dia, layer_height);
+    float spacing    = flow.spacing();
+    float flow_width = flow.width();
+
+    // Outermost skirt centerline = skirt_distance + (N-0.5)*spacing,
+    // plus half extrusion width for the physical outer edge.
+    return skirt_distance + (skirt_loops - 0.5f) * spacing + 0.5f * flow_width;
 }
 } // namespace Slic3r
 

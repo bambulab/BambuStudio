@@ -4538,6 +4538,7 @@ void ExportConfigsDialog::data_init()
         if (filament_preset.is_system || filament_preset.is_default) continue;
         Preset *new_filament_preset = new Preset(filament_preset);
         const Preset *base_filament_preset = preset_bundle.filaments.get_preset_base(*new_filament_preset);
+        if(!base_filament_preset) continue;
 
         std::string filament_preset_name = base_filament_preset->name;
         std::string machine_name         = get_machine_name(filament_preset_name);
@@ -4626,6 +4627,7 @@ EditFilamentPresetDialog::EditFilamentPresetDialog(wxWindow *parent, FilamentInf
     this->SetSizer(m_main_sizer);
     this->Layout();
     this->Fit();
+    this->CenterOnParent();
     wxGetApp().UpdateDlgDarkUI(this);
 }
 EditFilamentPresetDialog::~EditFilamentPresetDialog() {}

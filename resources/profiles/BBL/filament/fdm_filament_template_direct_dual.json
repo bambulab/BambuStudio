@@ -31,6 +31,10 @@
         "0",
         "0"
     ],
+    "filament_flush_temp_fast": [
+        "0",
+        "0"
+    ],
     "filament_flush_volumetric_speed": [
         "0",
         "0"

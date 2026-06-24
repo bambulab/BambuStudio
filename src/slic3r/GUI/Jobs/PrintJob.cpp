@@ -323,6 +323,11 @@ void PrintJob::process()
                 } catch (...) {}
             }
         }
+
+        auto svc_context = model_info->metadata_items.find(BBL_SVC_CONTEXT_TAG);
+        if (svc_context != model_info->metadata_items.end()) {
+            params.svc_context = svc_context->second;
+        }
     }
 
     params.stl_design_id = 0;

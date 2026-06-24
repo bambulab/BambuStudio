@@ -322,7 +322,7 @@ void PingCodeBindDialog::on_bind_printer(wxCommandEvent& event)
         if (result < 0) {
             MessageDialog msg_wingow(nullptr, _L("Login failed. Please check the following items:\n"
                                                  "1. Ensure the Pin code is entered correctly.\n"
-                                                 "2. Confirm that the region settings of the printer and Bambu Studio are consistent."), "", wxAPPLY | wxOK);
+                                                 "2. Confirm that the region settings of the printer and Bambu Studio are consistent."), "", wxICON_WARNING | wxOK);
             msg_wingow.ShowModal();
             return;
         }
@@ -485,7 +485,7 @@ PingCodeBindDialog::~PingCodeBindDialog() {
      m_link_Terms_title->Wrap(FromDIP(450));
      m_link_Terms_title->SetForegroundColour(wxColour("#00AE42"));
      m_link_Terms_title->Bind(wxEVT_LEFT_DOWN, [this](auto& e) {
-         wxString txt = _L("Thank you for purchasing a Bambu Lab device.Before using your Bambu Lab device, please read the termsand conditions.By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use(collectively, the \"Terms\"). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services.");
+         wxString txt = _L("Thank you for purchasing a Bambu Lab device. Before using your Bambu Lab device, please read the terms and conditions. By clicking to agree to use your Bambu Lab device, you agree to abide by the Privacy Policy and Terms of Use (collectively, the \"Terms\"). If you do not comply with or agree to the Bambu Lab Privacy Policy, please do not use Bambu Lab equipment and services.");
          ConfirmBeforeSendDialog confirm_dlg(this, wxID_ANY, _L("Terms and Conditions"), ConfirmBeforeSendDialog::ButtonStyle::ONLY_CONFIRM);
          confirm_dlg.update_text(txt);
          confirm_dlg.CenterOnParent();

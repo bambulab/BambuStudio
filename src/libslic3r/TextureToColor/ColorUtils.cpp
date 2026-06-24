@@ -9,6 +9,8 @@
 #include <iostream>
 #include <numeric>
 
+#include <boost/next_prior.hpp>
+
 #include <CGAL/AABB_face_graph_triangle_primitive.h>
 #include <CGAL/AABB_traits.h>
 #include <CGAL/AABB_tree.h>
@@ -24,7 +26,7 @@
 #include <tbb/parallel_for.h>
 
 #include "CgalUtils.hpp"
-#include "KdTree.hpp"
+#include "libslic3r/AABBTreeIndirect.hpp"
 #include <boost/log/trivial.hpp>
 
 namespace Slic3r { namespace tex2color {
@@ -50,6 +52,8 @@ namespace PMP = CGAL::Polygon_mesh_processing;
 
 using cgalutils::CGALMesh;
 using CGALKernel = cgalutils::Kernel;
+
+static constexpr double TOPO_SMOOTH_WEIGHT_THRESHOLD = 0.3;
 
 namespace detail {
 template<typename Mesh>
@@ -690,12 +694,18 @@ bool remesh_mesh(TriMesh& bbs_mesh, std::vector<std::size_t>& face_labels, doubl
         return false;
     }
 
-    // Build a KdTree for the input mesh and back up face colors for recovery after remeshing
-    KdTree kd_tree_of_original_mesh(bbs_mesh);
+    // Back up face labels for recovery after remeshing.
     std::vector<std::size_t> face_labels_of_original_mesh(face_labels);
 
     CGALMesh cgal_mesh;
     cgalutils::convert_trimesh_to_cgal(bbs_mesh, cgal_mesh);
+
+    // AABBTreeIndirect references vertices/faces externally, so snapshot the
+    // pre-remesh geometry by moving it out of bbs_mesh (which is overwritten
+    // below with the post-remesh mesh). std::move on std::vector is O(1).
+    TriVertices old_vertices = std::move(bbs_mesh.vertices);
+    TriFaces    old_indices  = std::move(bbs_mesh.indices);
+    auto original_mesh_tree = AABBTreeIndirect::build_aabb_tree_over_indexed_triangle_set(old_vertices, old_indices);
 
     std::unordered_set<CGAL::SM_Edge_index> feature_edges;
     std::unordered_set<CGAL::SM_Vertex_index> feature_vertices;
@@ -809,8 +819,11 @@ bool remesh_mesh(TriMesh& bbs_mesh, std::vector<std::size_t>& face_labels, doubl
         for (std::size_t fid = range.begin(); fid < range.end(); ++fid) {
             auto& face = bbs_mesh.indices[fid];
             Vec3f face_centroid = (bbs_mesh.vertices[face[0]] + bbs_mesh.vertices[face[1]] + bbs_mesh.vertices[face[2]]) / 3.0;
-            auto node = kd_tree_of_original_mesh.nearest(face_centroid);
-            face_labels[fid] = face_labels_of_original_mesh[node.face_id];
+            size_t hit_idx = 0;
+            Vec3f  closest;
+            AABBTreeIndirect::squared_distance_to_indexed_triangle_set(
+                old_vertices, old_indices, original_mesh_tree, face_centroid, hit_idx, closest);
+            face_labels[fid] = face_labels_of_original_mesh[hit_idx];
         }
     });
 
@@ -879,13 +892,31 @@ bool is_closed(const TriMesh& bbs_mesh) {
     return CGAL::is_closed(cgal_mesh);
 }
 
-bool smooth_region(TriMesh& tri_mesh, std::vector<std::array<std::size_t, 3>>& face_colors, const SmoothParameters& smooth_parameters) {
+static bool smooth_region_labels(TriMesh& tri_mesh, std::vector<std::size_t>& face_labels, const SmoothParameters& smooth_parameters) {
     CGALMesh mesh;
     cgalutils::convert_trimesh_to_cgal(tri_mesh, mesh);
-    if (mesh.number_of_faces() != face_colors.size()) {
+
+    if (mesh.number_of_faces() != face_labels.size()) {
         BOOST_LOG_TRIVIAL(warning) << "Face count does not match label count";
         return false;
     }
+
+    if (smooth_parameters.smooth_weight >= TOPO_SMOOTH_WEIGHT_THRESHOLD) {
+        // Topological smoothing: reassign face labels.
+        smooth_region_topo_boundary(mesh, face_labels);
+    }
+
+    if (smooth_parameters.smooth_weight > EPSILON) {
+        // Geometric smoothing: smooth polylines and project back onto the original mesh.
+        smooth_region_geom_boundary(mesh, face_labels, smooth_parameters);
+    }
+
+    tri_mesh = cgalutils::cgal_to_trimesh(mesh);
+
+    return true;
+}
+
+bool smooth_region(TriMesh& tri_mesh, std::vector<std::array<std::size_t, 3>>& face_colors, const SmoothParameters& smooth_parameters) {
     // Convert colors to labels
     std::size_t label_next = 0;
     std::vector<std::size_t> face_labels;
@@ -901,13 +932,8 @@ bool smooth_region(TriMesh& tri_mesh, std::vector<std::array<std::size_t, 3>>& f
         face_labels.push_back(map_color_to_label[color]);
     }
 
-    // Topological smoothing: reassign face labels
-    smooth_region_topo_boundary(mesh, face_labels);
-
-    // Geometric smoothing: smooth polylines and project back onto the original mesh
-    smooth_region_geom_boundary(mesh, face_labels, smooth_parameters);
-
-    tri_mesh = cgalutils::cgal_to_trimesh(mesh);
+    if (!smooth_region_labels(tri_mesh, face_labels, smooth_parameters))
+        return false;
 
     // Convert labels back to colors
     for (std::size_t fid = 0; fid < face_labels.size(); ++fid) {
@@ -918,23 +944,7 @@ bool smooth_region(TriMesh& tri_mesh, std::vector<std::array<std::size_t, 3>>& f
 }
 
 bool smooth_region(TriMesh& tri_mesh, std::vector<std::size_t>& face_labels, const SmoothParameters& smooth_parameters) {
-    CGALMesh mesh;
-    cgalutils::convert_trimesh_to_cgal(tri_mesh, mesh);
-
-    if (mesh.number_of_faces() != face_labels.size()) {
-        BOOST_LOG_TRIVIAL(warning) << "Face count does not match label count";
-        return false;
-    }
-
-    // Topological smoothing: reassign face labels
-    smooth_region_topo_boundary(mesh, face_labels);
-
-    // Geometric smoothing: smooth polylines and project back onto the original mesh
-    smooth_region_geom_boundary(mesh, face_labels, smooth_parameters);
-
-    tri_mesh = cgalutils::cgal_to_trimesh(mesh);
-
-    return true;
+    return smooth_region_labels(tri_mesh, face_labels, smooth_parameters);
 }
 
 // Compute the squared Euclidean distance between two colors (RGB vectors)

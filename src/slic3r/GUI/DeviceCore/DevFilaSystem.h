@@ -59,6 +59,7 @@ public:
     std::string              nozzle_temp_min;
     std::string              xcam_info;
     std::string              uuid;
+    std::string              tray_id_name;
     DevFilaColorType         ctype = DevFilaColorType::CTYPE_SINGLE;
     float                    k        = 0.0f; // k range: 0 ~ 0.5
     float                    n        = 0.0f; // k range: 0.6 ~ 2.0
@@ -169,19 +170,21 @@ public:
 
 public:
     DevAms(std::shared_ptr<DevFilaSystem> owner, const std::string& ams_id, const std::set<int>& binded_extruder_set, DevAmsType type);
-    DevAms(std::shared_ptr<DevFilaSystem> owner, const std::string& ams_id, const std::set<int>& binded_extruder_set, int type);
     ~DevAms();
 
 public:
     std::string GetAmsId() const { return m_ams_id; }
     wxString    GetDisplayName() const; // display
 
-    void     SetAmsType(int type) { m_ams_type = (DevAmsType) type; }
-    void     SetAmsType(DevAmsType type) { m_ams_type = type; }
-    DevAmsType  GetAmsType() const { return m_ams_type;}
+    void       SetAmsType(int type) { m_ams_type = (DevAmsType) type; }
+    void       SetAmsType(DevAmsType type) { m_ams_type = type; }
+    DevAmsType GetAmsType() const { return m_ams_type == DevAmsType::AMS_LITE_MIXED ? DevAmsType::AMS_LITE : m_ams_type; }
 
     // exist or not
     bool  IsExist() const { return m_exist; }
+
+    // mixed ams lite for N9
+    bool IsAmsLiteMixed() const { return m_ams_type == DevAmsType::AMS_LITE_MIXED; }
 
     // slots
     int   GetSlotCount() const;
@@ -313,7 +316,6 @@ public:
     // crtl
     int  CtrlAmsStartDryingHour(int ams_id, std::string filament_type, int tag_temp, int tag_duration_hour, bool rotate_tray, int cooling_temp, bool close_power_conflict = false) const;
     int  CtrlAmsStopDrying(int ams_id) const;
-
 
 public:
     static bool IsBBL_Filament(std::string tag_uid);

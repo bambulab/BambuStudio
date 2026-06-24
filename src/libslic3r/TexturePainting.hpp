@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+struct indexed_triangle_set;
+
 namespace Slic3r {
 
 class TriangleMesh;
@@ -45,10 +47,26 @@ struct PaintedMesh {
     std::vector<std::array<std::size_t,3>>      cluster_colors;
 };
 
+using PaintProgressCallback = std::function<void(int percent, const char* message)>;
+using PaintCancelCallback   = std::function<bool()>;
+using PaintMeshRepairCallback = std::function<bool(const indexed_triangle_set& mesh,
+                                                   indexed_triangle_set&       repaired_mesh,
+                                                   std::function<void(const char* message, unsigned progress)> progress_callback,
+                                                   std::function<bool()> cancel_callback,
+                                                   std::string* error_message)>;
+
 struct TexturePaintingSettings {
     std::size_t target_colors_num  = 4;
     double      smooth_weight      = 0.5;
     std::size_t oversampling_iters = 0;
+    enum class MeshRepairDecision {
+        Ask,
+        ImportWithoutRepair,
+        RepairAndImport
+    };
+    MeshRepairDecision mesh_repair_decision = MeshRepairDecision::ImportWithoutRepair;
+    bool* mesh_repair_decision_required = nullptr;
+    PaintMeshRepairCallback mesh_repair_callback;
 };
 
 struct FilamentMatch {
@@ -58,9 +76,6 @@ struct FilamentMatch {
     std::array<std::size_t,3> cluster_color   = {0,0,0};
     std::array<float,4>       filament_color  = {0,0,0,1};
 };
-
-using PaintProgressCallback = std::function<void(int percent, const char* message)>;
-using PaintCancelCallback   = std::function<bool()>;
 
 bool texture_to_painting(
     const TexturedMesh& textured,

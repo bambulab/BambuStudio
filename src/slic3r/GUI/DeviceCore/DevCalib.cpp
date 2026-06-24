@@ -86,7 +86,10 @@ void DevCalib::ParseCalibVersion(const json& j, DevCalib* system)
 
 bool DevCalib::IsVersionExpired() const
 {
-    return m_last_calib_version != m_calib_version;
+    if (m_last_calib_version.has_value())
+        return m_last_calib_version.value() != m_calib_version;
+    else
+        return true;
 }
 
 void DevCalib::ParseSupportNewAutoCalib(int flag, DevCalib* system)

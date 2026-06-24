@@ -22,6 +22,7 @@
 #include <wx/glcanvas.h>
 
 #include "GUI_App.hpp"
+#include "Plater.hpp"
 #include "FilamentMapDialog.hpp"
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
@@ -1733,45 +1734,120 @@ void NotificationManager::push_validate_error_notification(StringObjectException
 	set_slicing_progress_hidden();
 }
 
-void NotificationManager::push_slicing_error_notification(const std::string &text, std::vector<ModelObject const *> objs)
+// Helper: build a "[name1, name2, ...]" object-name list, skipping null entries.
+static std::string format_object_name_list(const std::vector<ModelObject const *> &objs)
+{
+    std::string s = "[";
+    bool first = true;
+    for (auto obj : objs) {
+        if (!obj) continue;
+        if (!first) s += ", ";
+        s += obj->name;
+        first = false;
+    }
+    s += "]";
+    return s;
+}
+
+// Helper: resolve cached ObjectIDs to currently live ModelObjects (objects may
+// have been deleted between the notification being posted and the user clicking
+// it, so we look them up by ID rather than holding raw pointers).
+static std::vector<ObjectVolumeID> resolve_objects_for_notification_callback(const std::vector<ObjectID> &ids)
+{
+    auto& objects = wxGetApp().model().objects;
+    std::vector<ObjectVolumeID> ovs;
+    ovs.reserve(ids.size());
+    for (auto id : ids) {
+        auto iter = std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; });
+        if (iter != objects.end())
+            ovs.push_back({ *iter, nullptr });
+    }
+    return ovs;
+}
+
+// Helper: build the "Jump to [obj...]" click handler used by the legacy
+// guidance branch. Clicking just selects the target objects in the 3D editor;
+// no configuration is changed.
+static std::function<bool(wxEvtHandler*)> make_jump_to_callback(std::vector<ObjectID> ids)
+{
+    return [ids = std::move(ids)](wxEvtHandler*) {
+        std::vector<ObjectVolumeID> ovs = resolve_objects_for_notification_callback(ids);
+        if (!ovs.empty()) {
+            wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+            wxGetApp().obj_list()->select_items(ovs);
+        }
+        return false;
+    };
+}
+
+// Helper: build the "Enable support for [obj...]" click handler. Sets the
+// object-level enable_support override on each target object, refreshes the
+// UI to reflect the override, and kicks off a fresh slice via the same code
+// path as the Slice button (force_validation + FORCE_RESTART).
+static std::function<bool(wxEvtHandler*)> make_enable_support_callback(std::vector<ObjectID> ids)
+{
+    return [ids = std::move(ids)](wxEvtHandler*) {
+        std::vector<ObjectVolumeID> ovs = resolve_objects_for_notification_callback(ids);
+        if (ovs.empty())
+            return false;
+
+        wxGetApp().plater()->take_snapshot("Enable support for object");
+        for (auto& ov : ovs) {
+            if (!ov.object) continue;
+            ov.object->config.set_key_value("enable_support", new ConfigOptionBool(true));
+            wxGetApp().obj_list()->object_config_options_changed({ ov.object, nullptr });
+        }
+
+        wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
+        wxGetApp().obj_list()->select_items(ovs);
+        wxGetApp().params_panel()->switch_to_object();
+        wxGetApp().params_panel()->notify_object_config_changed();
+
+        // Intentionally do NOT call reslice() here. The notification's job is
+        // to flip the config and surface the change ("enable_support is now
+        // checked, the affected object is highlighted in the param panel").
+        // The user is then expected to click the Slice button, whose existing
+        // handler already does reslice() + select_view_3D("Preview"), so the
+        // user naturally lands on the preview page after slicing completes.
+        return false;
+    };
+}
+
+void NotificationManager::push_slicing_error_notification(const std::string &text, std::vector<ModelObject const *> objs,
+                                                          const std::string &opt_key)
 {
     std::vector<ObjectID> ids;
     for (auto optr : objs) {
         if (optr)
             ids.push_back(optr->id());
     }
-	std::function<bool(wxEvtHandler*)> callback;
-	if (!objs.empty()) {
-		callback = [ids](wxEvtHandler*) {
-			auto& objects = wxGetApp().model().objects;
-			std::vector<ObjectVolumeID> ovs;
-			for (auto id : ids) {
-				auto iter = std::find_if(objects.begin(), objects.end(), [id](auto o) { return o->id() == id; });
-				if (iter != objects.end()) { ovs.push_back({ *iter, nullptr }); }
-			}
-			if (!ovs.empty()) {
-				wxGetApp().mainframe->select_tab(MainFrame::tp3DEditor);
-				wxGetApp().obj_list()->select_items(ovs);
-			}
-			return false;
-		};
-	}
-    auto link     = callback ? _u8L("Jump to") : "";
-    if (!objs.empty()) {
-        link += " [";
-        for (auto obj : objs) {
-            if (obj)
-                link += obj->name + ", ";
-        }
-        if (!objs.empty()) {
-            link.pop_back();
-            link.pop_back();
-        }
-        link += "] ";
+
+    // The "Enable support" guidance is currently hard-wired to the
+    // "enable_support" config key both in the link label below and in the click
+    // handler. If a future SlicingError throw site passes a different opt_key
+    // (e.g. "enable_brim"), falling through to this branch would show the wrong
+    // label / toggle the wrong option. Until SlicingError carries a typed action
+    // descriptor, refuse anything other than "enable_support" and fall through
+    // to the legacy "Jump to" branch.
+    const bool guide_enable_support = (opt_key == "enable_support") && !objs.empty();
+
+    std::function<bool(wxEvtHandler*)> callback;
+    std::string link;
+    if (guide_enable_support) {
+        link     = _u8L("Enable support for") + " " + format_object_name_list(objs);
+        callback = make_enable_support_callback(std::move(ids));
+    } else if (!objs.empty()) {
+        link     = _u8L("Jump to") + " " + format_object_name_list(objs);
+        callback = make_jump_to_callback(std::move(ids));
     }
+
+    std::string full_text = _u8L("Error:") + "\n" + text;
+    if (!link.empty())
+        full_text += "\n";
     set_all_slicing_errors_gray(false);
-	push_notification_data({ NotificationType::SlicingError, NotificationLevel::ErrorNotificationLevel, 0,  _u8L("Error:") + "\n" + text, link, callback }, 0);
-	set_slicing_progress_hidden();
+    push_notification_data({ NotificationType::SlicingError, NotificationLevel::ErrorNotificationLevel, 0,
+                             full_text, link, callback }, 0);
+    set_slicing_progress_hidden();
 }
 
 void NotificationManager::push_helio_error_notification(const std::string &text)

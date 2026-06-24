@@ -128,7 +128,7 @@ void AMSSetting::create()
     m_sizer_starting_tip_inline = new wxBoxSizer(wxVERTICAL);
 
     m_tip_starting_line1 = new Label(m_panel_body,
-        _L("The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute.The reading process will roll filament spools.")
+        _L("The AMS will automatically read the information of inserted filament on start-up. It will take about 1 minute. The reading process will roll filament spools.")
     );
     m_tip_starting_line1->SetFont(::Label::Body_13);
     m_tip_starting_line1->SetForegroundColour(AMS_SETTING_GREY700);
@@ -758,7 +758,8 @@ void AMSSettingArrangeAMSOrder::CreateGui()
     Label* title = new Label(this, ::Label::Head_13, _L("Arrange AMS Order"));
     title->SetBackgroundColour(*wxWHITE);
 
-    Label* note = new Label(this, ::Label::Head_13, _L("If you want a specific AMS ID sequence, please disconnect all AMS after clicking 'Reset', and then reconnect them in the desired order."));
+    Label* note = new Label(this, ::Label::Head_13, _L("After clicking 'Reconnect', all AMS units will be automatically disconnected.\n"
+                                                       "Please reconnect them in the desired order to set a specific AMS ID sequence."));
     note->SetFont(::Label::Body_13);
     note->SetForegroundColour(AMS_SETTING_GREY700);
     note->SetBackgroundColour(*wxWHITE);

@@ -11,6 +11,7 @@
 
 #include <boost/container/small_vector.hpp>
 #include "../FilamentGroup.hpp"
+#include "../FilamentMixer.hpp"
 #include "../ExtrusionEntity.hpp"
 #include "../PrintConfig.hpp"
 #include "../ObjectID.hpp"
@@ -214,14 +215,16 @@ public:
         unsigned int              mixed_slot_0based;
         std::vector<unsigned int> components_0based;
         std::vector<double>       sub_heights;       // per-component, sum ≈ layer_height
+        double                    layer_height = 0.;  // the actual lh used to compute sub_heights
         bool                      is_gradient = false;
         int                       gradient_first_sorted_idx = 0; // index of "first" config component after sorting
 
         struct ObjectGradient {
-            size_t total_layers;
-            size_t current_idx;
-            double gradient_start;
-            double gradient_end;
+            size_t        total_layers;
+            size_t        current_idx;
+            double        gradient_start;
+            double        gradient_end;
+            GradientCurve curve;    // empty -> linear fallback (start, end); non-empty wins
         };
         std::map<const PrintObject*, ObjectGradient> per_object_gradient;
 
@@ -417,11 +420,16 @@ private:
 
     // Per-object gradient tracking: slot(0-based) -> PrintObject* -> list of layer indices
     // where that object uses the slot. Populated by collect_extruders, consumed by resolve_mixed_filaments.
-    std::map<unsigned int, std::map<const PrintObject*, std::vector<size_t>>> m_gradient_object_layers;
+    std::map<unsigned int, std::map<const PrintObject*, std::vector<size_t>>> m_mixed_object_layers;
+
+    // All layer indices (in m_layer_tools) where each object has any layer.
+    // Used by gradient run detection to distinguish real gaps (object has a layer
+    // that doesn't use the slot) from spurious gaps (another object's layer).
+    std::map<const PrintObject*, std::vector<size_t>> m_object_all_layer_indices;
 
     // Per-volume gradient tracking: slot(0-based) -> (PrintObject*, ModelVolume id) -> list of
     // layer indices where the given volume contributes to the slot. Populated by collect_extruders
-    // alongside m_gradient_object_layers when per_part gradient is enabled for the slot AND the
+    // alongside m_mixed_object_layers when per_part gradient is enabled for the slot AND the
     // ModelObject has >=2 model-part volumes using the slot. Empty for all other configurations,
     // which keeps every legacy per-object code path bit-identical (loops over an empty map are
     // no-ops; downstream emission falls through to the per-object branch).

@@ -297,7 +297,8 @@ enum FanDirection {
 
 enum PrimeVolumeMode {
     pvmDefault = 0,
-    pvmSaving
+    pvmSaving,
+    pvmFast 
 };
 
 static std::unordered_map<NozzleType, std::string>NozzleTypeEumnToStr = {
@@ -383,6 +384,9 @@ inline bool is_auto_filament_map_mode(FilamentMapMode mode) {
     return mode == fmmAutoForFlush || mode == fmmAutoForMatch || mode == fmmAutoForQuality;
 }
 
+enum CounterboreHoleBridgingOption {
+    chbNone, chbBridges, chbFilled
+};
 extern std::string get_extruder_variant_string(ExtruderType extruder_type, NozzleVolumeType nozzle_volume_type);
 
 // 最基础的参数idx查找方法，遍历varint list寻找对应的idx
@@ -510,6 +514,7 @@ CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(PerimeterGeneratorType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(TopOneWallType)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(ReduceInfillRetractionMode)
 CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(FilamentMetalStickiness)
+CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS(CounterboreHoleBridgingOption)
 #undef CONFIG_OPTION_ENUM_DECLARE_STATIC_MAPS
 
 // Defines each and every confiuration option of Slic3r, including the properties of the GUI dialogs.
@@ -1023,6 +1028,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloat, bottom_shell_thickness))
     ((ConfigOptionFloat, bridge_angle))
     ((ConfigOptionFloat, bridge_flow))
+    ((ConfigOptionEnum<CounterboreHoleBridgingOption>, counterbore_hole_bridging))
     ((ConfigOptionFloatsNullable, overhang_totally_speed))
     ((ConfigOptionFloatsNullable, bridge_speed))
     ((ConfigOptionEnum<EnsureVerticalThicknessLevel>, ensure_vertical_shell_thickness))
@@ -1165,7 +1171,11 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloatsNullable,       machine_min_travel_rate))
     // M205 S... [mm/sec]
     ((ConfigOptionFloatsNullable,       machine_min_extruding_rate))
-)
+    // Y axis max force (N) and bed mass (g)
+    ((ConfigOptionFloat, machine_max_force_Y))
+    ((ConfigOptionFloat, machine_bed_mass_Y))
+    ((ConfigOptionFloat, machine_max_printed_mass))
+    )
 
 // This object is mapped to Perl as Slic3r::Config::GCode.
 PRINT_CONFIG_CLASS_DEFINE(
@@ -1198,6 +1208,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionStrings,             filament_mixed_sublayer_ratios))
     ((ConfigOptionBools,               filament_mixed_gradient))
     ((ConfigOptionStrings,             filament_mixed_gradient_range))
+    ((ConfigOptionStrings,             filament_mixed_gradient_curve))
     ((ConfigOptionBools,               filament_mixed_gradient_per_part))
     ((ConfigOptionInts,                filament_printable))
     ((ConfigOptionInts,                filament_extruder_compatibility))
@@ -1249,9 +1260,11 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionFloats,              filament_minimal_purge_on_wipe_tower))
     ((ConfigOptionFloatsNullable,      filament_flush_volumetric_speed))
     ((ConfigOptionIntsNullable,        filament_flush_temp))
+    ((ConfigOptionIntsNullable,        filament_flush_temp_fast))
     // BBS
     ((ConfigOptionBool,                scan_first_layer))
     ((ConfigOptionBool,                enable_wrapping_detection))
+    ((ConfigOptionBool,                enable_order_independent_overlap_carving))
     ((ConfigOptionInt,                 wrapping_detection_layers))
     ((ConfigOptionPoints,              wrapping_exclude_area))
     ((ConfigOptionPoints,              thumbnail_size))
@@ -1306,6 +1319,7 @@ PRINT_CONFIG_CLASS_DEFINE(
     ((ConfigOptionBool,                support_cooling_filter))
     ((ConfigOptionBool,                cooling_filter_enabled))
     ((ConfigOptionIntsNullable,        extruder_max_nozzle_count))
+    ((ConfigOptionBool,                support_fast_purge_mode))
     ((ConfigOptionBool,                accel_to_decel_enable))
     ((ConfigOptionPercent,             accel_to_decel_factor))
     ((ConfigOptionEnumsGeneric,        extruder_type))
@@ -1437,6 +1451,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloatsNullable,     retraction_minimum_travel))
     ((ConfigOptionBoolsNullable,      retract_when_changing_layer))
     ((ConfigOptionFloat,              skirt_distance))
+    ((ConfigOptionBool,               skirt_per_object))
     ((ConfigOptionInt,                skirt_height))
     ((ConfigOptionInt,                skirt_loops))
     ((ConfigOptionInts,               slow_down_layer_time))
@@ -1474,6 +1489,7 @@ PRINT_CONFIG_CLASS_DERIVED_DEFINE(
     ((ConfigOptionFloats,             flush_volumes_vector))
     // BBS: wipe tower is only used for priming
     ((ConfigOptionFloats,             flush_multiplier))
+    ((ConfigOptionFloats,             flush_multiplier_fast))
     //((ConfigOptionFloat,              z_offset))
     // BBS: project filaments
     ((ConfigOptionFloats,             filament_colour_new))
@@ -1817,8 +1833,8 @@ Points get_bed_shape(const DynamicPrintConfig &cfg, bool use_share = true);
 Points get_bed_shape(const PrintConfig &cfg, bool use_share = false);
 Points get_bed_shape(const SLAPrinterConfig &cfg);
 Slic3r::Polygon get_bed_shape_with_excluded_area(const PrintConfig& cfg, bool use_share = false);
-bool has_skirt(const DynamicPrintConfig& cfg);
-float get_real_skirt_dist(const DynamicPrintConfig& cfg);
+bool has_skirt(const ConfigBase& cfg);
+float get_real_skirt_dist(const ConfigBase& cfg);
 
 // ModelConfig is a wrapper around DynamicPrintConfig with an addition of a timestamp.
 // Each change of ModelConfig is tracked by assigning a new timestamp from a global counter.

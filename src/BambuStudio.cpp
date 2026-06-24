@@ -1329,6 +1329,23 @@ static int construct_assemble_list(std::vector<assemble_plate_info_t> &assemble_
     return ret;
 }
 
+// Empty compatible_printers means compatible with all printers (same as Preset::is_compatible_with_printer).
+static bool is_preset_compatible_with_printer(const std::vector<std::string> &compatible_printers, const std::string &printer_system_name)
+{
+    if (printer_system_name.empty() || compatible_printers.empty())
+        return true;
+    return std::find(compatible_printers.begin(), compatible_printers.end(), printer_system_name) != compatible_printers.end();
+}
+
+// todo: temp modify: P1P/P1S share filament presets loosely; skip compatible_printers validation for them.
+static bool is_p1p_or_p1s_printer(const std::string &printer_model_name, const std::string &printer_system_name)
+{
+    if (printer_model_name == "Bambu Lab P1P" || printer_model_name == "Bambu Lab P1S")
+        return true;
+    return printer_system_name.find("P1P") != std::string::npos
+        || printer_system_name.find("P1S") != std::string::npos;
+}
+
 // For estimate_mode: given a source filament preset name (e.g. "Bambu PLA Basic @BBL P1S 0.4 nozzle")
 // and the new machine's BBL tag (e.g. "X2D 0.4 nozzle"), construct the target filament preset name
 // (e.g. "Bambu PLA Basic @BBL X2D 0.4 nozzle") and verify it exists in filament_full_dir.
@@ -1543,7 +1560,7 @@ int CLI::run(int argc, char **argv)
             boost::algorithm::iends_with(boost::filesystem::path(argv[0]).filename().string(), "gcodeviewer");
 #endif // _WIN32*/
 
-    bool translate_old = false, regenerate_thumbnails = false, keep_old_params = false, remove_wrapping_detect = false, filament_color_changed = false, downward_check = false;
+    bool translate_old = false, regenerate_thumbnails = false, keep_old_params = false, remove_wrapping_detect = false, filament_color_changed = false, downward_check = false, skirt_per_object_reset = false;
     int current_printable_width, current_printable_depth, current_printable_height, shrink_to_new_bed = 0;
     int old_printable_height = 0, old_printable_width = 0, old_printable_depth = 0;
     Pointfs old_printable_area, old_exclude_area;
@@ -1878,7 +1895,7 @@ int CLI::run(int argc, char **argv)
                         record_exit_reson(outfile_dir, CLI_FILE_VERSION_NOT_SUPPORTED, 0, cli_errors[CLI_FILE_VERSION_NOT_SUPPORTED], sliced_info);
                         flush_and_exit(CLI_FILE_VERSION_NOT_SUPPORTED);
                     }
-                    Semver old_version(1, 5, 9), old_version2(1, 5, 9), old_version3(2, 0, 0), old_version4(2, 2, 0);
+                    Semver old_version(1, 5, 9), old_version2(1, 5, 9), old_version3(2, 0, 0), old_version4(2, 2, 0), old_version5(2, 7, 0);
                     if ((file_version < old_version) && !config.empty()) {
                         translate_old = true;
                         BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to translate")%file_version.to_string();
@@ -1907,6 +1924,11 @@ int CLI::run(int argc, char **argv)
                     if (file_version < old_version4) {
                         remove_wrapping_detect = true;
                         BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to set enable_wrapping_detection to false")%file_version.to_string();
+                    }
+
+                    if (file_version < old_version5) {
+                        skirt_per_object_reset = true;
+                        BOOST_LOG_TRIVIAL(info) << boost::format("old 3mf version %1%, need to set skirt_per_object to false")%file_version.to_string();
                     }
 
                     if (normative_check) {
@@ -2591,7 +2613,7 @@ int CLI::run(int argc, char **argv)
     if (filament_count == 0)
         filament_count = load_filament_count;
 
-    if (is_bbl_3mf && (load_filament_count > 0) && (load_filaments_set.size() == 1))
+    if (is_bbl_3mf && (load_filament_count > 0) && (load_filaments_set.size() == 1) && !estimate_mode)
     {
         disable_wipe_tower_after_mapping = true;
         BOOST_LOG_TRIVIAL(info) << boost::format("map all the filaments to the same one, load_filament_count %1%")%load_filament_count;
@@ -2972,6 +2994,35 @@ int CLI::run(int argc, char **argv)
         record_exit_reson(outfile_dir, CLI_PROCESS_NOT_COMPATIBLE, 0, cli_errors[CLI_PROCESS_NOT_COMPATIBLE], sliced_info);
         flush_and_exit(CLI_PROCESS_NOT_COMPATIBLE);
     }
+
+    // Validate compatible_printers for externally loaded filament presets.
+    // {
+    //     std::string effective_printer_system_name;
+    //     if (!new_printer_system_name.empty())
+    //         effective_printer_system_name = new_printer_system_name;
+    //     else
+    //         effective_printer_system_name = current_printer_system_name;
+    //
+    //     const std::string effective_printer_model = !printer_model.empty() ? printer_model : current_printer_model;
+    //
+    //     if (!is_p1p_or_p1s_printer(effective_printer_model, effective_printer_system_name)
+    //         && !effective_printer_system_name.empty()) {
+    //         for (size_t index = 0; index < load_filaments_config.size(); ++index) {
+    //             const auto *compatible_printers_opt = load_filaments_config[index].option<ConfigOptionStrings>("compatible_printers");
+    //             if (!compatible_printers_opt)
+    //                 continue;
+    //             const std::vector<std::string> &compatible_printers = compatible_printers_opt->values;
+    //             if (is_preset_compatible_with_printer(compatible_printers, effective_printer_system_name))
+    //                 continue;
+    //
+    //             const std::string &filament_name = (index < load_filaments_name.size()) ? load_filaments_name[index] : "";
+    //             BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" %1%: filament preset %2% (slot %3%) is not compatible with printer %4%.")
+    //                 % __LINE__ % filament_name % (index + 1) % effective_printer_system_name;
+    //             record_exit_reson(outfile_dir, CLI_CONFIG_FILE_ERROR, 0, cli_errors[CLI_CONFIG_FILE_ERROR], sliced_info);
+    //             flush_and_exit(CLI_CONFIG_FILE_ERROR);
+    //         }
+    //     }
+    // }
 
     if (estimate_mode && (new_printer_name.empty() || current_printer_name.empty() || (new_printer_name == current_printer_name))) {
         BOOST_LOG_TRIVIAL(error) << __FUNCTION__ << boost::format(" %1%: estimate_mode requires a machine switch via --load_settings") % __LINE__;
@@ -3788,6 +3839,8 @@ int CLI::run(int argc, char **argv)
             std::vector<double>& flush_multipliers = m_print_config.option<ConfigOptionFloats>("flush_multiplier", true)->values;
             flush_multipliers.resize(new_extruder_count, 1.f);
 
+            std::vector<double> &flush_multipliers_fast = m_print_config.option<ConfigOptionFloats>("flush_multiplier_fast", true)->values;
+            flush_multipliers_fast.resize(new_extruder_count, 1.2f);
             std::vector<int> nozzle_flush_dataset(new_extruder_count, 0);
             {
                 std::vector<int> nozzle_flush_dataset_full = m_print_config.option<ConfigOptionIntsNullable>("nozzle_flush_dataset",true)->values;
@@ -4088,6 +4141,12 @@ int CLI::run(int argc, char **argv)
     BOOST_LOG_TRIVIAL(info) << boost::format("%1%, remove_wrapping_detect %2%, old value %3%")%__LINE__ %remove_wrapping_detect %enable_wrapping_detection_option->value;
     if (is_bbl_3mf && remove_wrapping_detect) {
         enable_wrapping_detection_option->value = false;
+    }
+
+    if (is_bbl_3mf && skirt_per_object_reset) {
+        ConfigOptionBool* skirt_per_object_option = m_print_config.option<ConfigOptionBool>("skirt_per_object", true);
+        BOOST_LOG_TRIVIAL(info) << boost::format("%1%, skirt_per_object_reset, old value %2%")%__LINE__ %skirt_per_object_option->value;
+        skirt_per_object_option->value = false;
     }
     enable_wrapping_detect = enable_wrapping_detection_option->value;
     Pointfs current_wrapping_exclude_area = m_print_config.opt<ConfigOptionPoints>("wrapping_exclude_area", true)->values;
@@ -7095,8 +7154,13 @@ int CLI::run(int argc, char **argv)
                                     BOOST_LOG_TRIVIAL(info) << "export_gcode finished: time_using_cache update to " << slice_time[TIME_USING_CACHE] << " secs.";
 
                                     if (gcode_result && gcode_result->gcode_check_result.error_code) {
-                                        BOOST_LOG_TRIVIAL(error) << "plate " << index + 1 << ": found gcode unprintable! gcode_result->gcode_check_result.error_code = "
+                                        if (gcode_result->gcode_check_result.error_code == (1 << 11))
+                                            BOOST_LOG_TRIVIAL(warning)
+                                                << "plate " << index + 1 << ": found too heavy printed weight for i3. gcode_result->gcode_check_result.error_code = "
                                                 << gcode_result->gcode_check_result.error_code << std::endl;
+                                        else
+                                            BOOST_LOG_TRIVIAL(error) << "plate " << index + 1 << ": found gcode unprintable! gcode_result->gcode_check_result.error_code = "
+                                                                     << gcode_result->gcode_check_result.error_code << std::endl;
                                         //found gcode error
                                         if (gcode_result->gcode_check_result.error_code & 0b1100) {
                                             record_exit_reson(outfile_dir, CLI_GCODE_PATH_OUTSIDE, index + 1, cli_errors[CLI_GCODE_PATH_OUTSIDE], sliced_info);

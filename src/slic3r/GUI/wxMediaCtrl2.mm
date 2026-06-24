@@ -191,7 +191,7 @@ void wxMediaCtrl2::create_player()
     m_player = player;
 }
 
-void wxMediaCtrl2::Load(wxURI url)
+void wxMediaCtrl2::Load(wxURI url, std::chrono::system_clock::time_point play_start_time)
 {
 	if (!m_player) {
 		create_player();
@@ -201,11 +201,22 @@ void wxMediaCtrl2::Load(wxURI url)
 		}
 	}
 
+    m_play_start_time = play_start_time;
     BambuPlayer * player = (BambuPlayer *) m_player;
     if (player) {
         [player close];
         m_error = 0;
         m_error = [player open: url.BuildURI().ToUTF8()];
+        if (m_error == 0 && m_play_start_time != std::chrono::system_clock::time_point{}) {
+            auto now = std::chrono::system_clock::now();
+            int ms = (int) std::chrono::duration_cast<std::chrono::milliseconds>(now - m_play_start_time).count();
+            CallAfter([this, ms] {
+                wxCommandEvent evt(EVT_MEDIA_CTRL_FIRST_FRAME);
+                evt.SetEventObject(this);
+                evt.SetInt(ms);
+                wxPostEvent(this, evt);
+            });
+        }
     }
     // Hide idle image when loading video (must run on main thread for CALayer)
     dispatch_async(dispatch_get_main_queue(), ^{ removeIdleLayer(); });
