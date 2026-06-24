@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-23 14:57+0800\n"
+"POT-Creation-Date: 2026-06-24 22:15+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3152,6 +3152,12 @@ msgstr "步骤"
 msgid "Install parts"
 msgstr "安装零件"
 
+msgid "Apply the final assembly pose to the objects or parts added in the current step?"
+msgstr ""
+
+msgid "Apply final assembly pose"
+msgstr ""
+
 msgid "Assembly Guide"
 msgstr "组装指南"
 
@@ -3274,12 +3280,6 @@ msgstr "修改画布标签文字大小，调整后实时更新所有画框的标
 msgid "Canvas label text size"
 msgstr "画布标签文本大小"
 
-msgid "Select"
-msgstr "选择"
-
-msgid "Select partial parts or objects from the added items to perform operations such as move, rotate, and coloring gizmo. Pose-modifying operations like move gizmo can be used to create custom keyframe animations."
-msgstr "从添加的项目中选择部分零件或对象，以执行平移、旋转和着色等操作。可以使用诸如平移工具之类的姿势修改操作来创建自定义关键帧动画。"
-
 msgid "Edit step name"
 msgstr "编辑步骤名称"
 
@@ -3313,9 +3313,6 @@ msgstr "查看Wiki"
 msgid "Current step options: edit the current step name, delete the step, or insert a step before/after."
 msgstr "当前步骤选项：编辑当前步骤名称、删除步骤或在当前步骤之前/之后插入步骤。"
 
-msgid "All parts of the current step are selected"
-msgstr "当前步骤的所有零件均已选中"
-
 msgid "Add some objects to current step"
 msgstr "将一些对象添加到当前步骤"
 
@@ -3337,9 +3334,6 @@ msgstr "仅添加空步骤。这与画布上的选定对象无关。"
 
 msgid "Exit"
 msgstr "退出"
-
-msgid "Search"
-msgstr "搜索"
 
 msgid "Click to add Cyber Brick"
 msgstr "点击添加 Cyber Brick"
@@ -3379,6 +3373,9 @@ msgstr "为模型的每个零件显示一个标签。"
 
 msgid "Auto-arrange labels in current view"
 msgstr "自动排列当前视图中的标签"
+
+msgid "Auto recommend camera angles"
+msgstr ""
 
 msgid "Export assembly guide PDF, Markdown or MP4"
 msgstr "导出装配指南 PDF、Markdown 或 MP4"
@@ -3479,8 +3476,8 @@ msgstr "自动爆炸所有对象。"
 msgid "Automatically explode all parts."
 msgstr "自动爆炸所有零件。"
 
-msgid "Apply final-assembly pose onto the current step"
-msgstr "将最终装配姿态应用于当前步骤"
+msgid "Apply the final assembly pose to the currently selected object or part(if none is selected, apply it to all objects added in the current frame)"
+msgstr ""
 
 msgid "Apply current camera angle to all frames of the current step"
 msgstr "将当前相机角度应用于当前步骤的所有帧"
@@ -3500,6 +3497,9 @@ msgstr "单击以选择此帧"
 
 msgid "Assembly tree"
 msgstr "装配树"
+
+msgid "Search"
+msgstr "搜索"
 
 msgid "List"
 msgstr "列表"
@@ -6514,6 +6514,9 @@ msgstr "下载"
 
 msgid "Download selected files from printer."
 msgstr "从打印机中下载选择的文件。"
+
+msgid "Select"
+msgstr "选择"
 
 msgid "Batch manage files."
 msgstr "批量管理文件。"
@@ -12582,7 +12585,7 @@ msgid "Decrease this value slightly(for example 0.9) to reduce the amount of mat
 msgstr "稍微减小这个数值（比如0.9）可以减小桥接的材料量，来改善下垂。"
 
 msgid "Bridge counterbore holes"
-msgstr ""
+msgstr "沉孔搭桥"
 
 msgid ""
 "This option creates bridges for counterbore holes, allowing them to be printed without support. Available modes include:\n"
@@ -12590,12 +12593,17 @@ msgid ""
 "2. Partially Bridged: Only a part of the unsupported area will be bridged\n"
 "3. Sacrificial Layer: A full sacrificial bridge layer is created"
 msgstr ""
+"此选项为沉头孔创建桥接结构，使其无需支撑即可打印。\n"
+"可用模式包括：\n"
+"1. 无：不创建桥接\n"
+"2. 部分桥接：仅对悬空区域的一部分进行桥接\n"
+"3. 牺牲层：创建完整的牺牲桥接层"
 
 msgid "Partially bridged"
-msgstr ""
+msgstr "部分桥接"
 
 msgid "Sacrificial layer"
-msgstr ""
+msgstr "牺牲层"
 
 msgid "Top surface flow ratio"
 msgstr "顶部表面流量比例"
@@ -18089,6 +18097,15 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Select partial parts or objects from the added items to perform operations such as move, rotate, and coloring gizmo. Pose-modifying operations like move gizmo can be used to create custom keyframe animations."
+#~ msgstr "从添加的项目中选择部分零件或对象，以执行平移、旋转和着色等操作。可以使用诸如平移工具之类的姿势修改操作来创建自定义关键帧动画。"
+
+#~ msgid "All parts of the current step are selected"
+#~ msgstr "当前步骤的所有零件均已选中"
+
+#~ msgid "Apply final-assembly pose onto the current step"
+#~ msgstr "将最终装配姿态应用于当前步骤"
 
 #~ msgid "Please double-click the blank area to exit the assembly guide before using this tool."
 #~ msgstr "请双击空白区域以退出装配指南，然后再使用此工具。"

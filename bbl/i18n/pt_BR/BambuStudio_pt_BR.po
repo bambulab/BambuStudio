@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-23 14:57+0800\n"
+"POT-Creation-Date: 2026-06-24 22:15+0800\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -3168,6 +3168,12 @@ msgstr "Passo"
 msgid "Install parts"
 msgstr ""
 
+msgid "Apply the final assembly pose to the objects or parts added in the current step?"
+msgstr ""
+
+msgid "Apply final assembly pose"
+msgstr ""
+
 msgid "Assembly Guide"
 msgstr "Guia de montagem"
 
@@ -3290,12 +3296,6 @@ msgstr ""
 msgid "Canvas label text size"
 msgstr ""
 
-msgid "Select"
-msgstr "Selecionar"
-
-msgid "Select partial parts or objects from the added items to perform operations such as move, rotate, and coloring gizmo. Pose-modifying operations like move gizmo can be used to create custom keyframe animations."
-msgstr ""
-
 msgid "Edit step name"
 msgstr ""
 
@@ -3329,9 +3329,6 @@ msgstr "Ir para Wiki"
 msgid "Current step options: edit the current step name, delete the step, or insert a step before/after."
 msgstr ""
 
-msgid "All parts of the current step are selected"
-msgstr ""
-
 msgid "Add some objects to current step"
 msgstr ""
 
@@ -3353,9 +3350,6 @@ msgstr ""
 
 msgid "Exit"
 msgstr ""
-
-msgid "Search"
-msgstr "Pesquisar"
 
 msgid "Click to add Cyber Brick"
 msgstr ""
@@ -3394,6 +3388,9 @@ msgid "Show one label per model part."
 msgstr ""
 
 msgid "Auto-arrange labels in current view"
+msgstr ""
+
+msgid "Auto recommend camera angles"
 msgstr ""
 
 msgid "Export assembly guide PDF, Markdown or MP4"
@@ -3495,7 +3492,7 @@ msgstr ""
 msgid "Automatically explode all parts."
 msgstr ""
 
-msgid "Apply final-assembly pose onto the current step"
+msgid "Apply the final assembly pose to the currently selected object or part(if none is selected, apply it to all objects added in the current frame)"
 msgstr ""
 
 msgid "Apply current camera angle to all frames of the current step"
@@ -3514,6 +3511,9 @@ msgstr ""
 
 msgid "Assembly tree"
 msgstr ""
+
+msgid "Search"
+msgstr "Pesquisar"
 
 msgid "List"
 msgstr ""
@@ -6550,6 +6550,9 @@ msgstr "Baixar"
 
 msgid "Download selected files from printer."
 msgstr "Baixe os arquivos selecionados da impressora."
+
+msgid "Select"
+msgstr "Selecionar"
 
 msgid "Batch manage files."
 msgstr "Gerencie arquivos em lote."
