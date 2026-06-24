@@ -77,6 +77,7 @@ public:
     std::vector<wxColour> m_ams_colors;
     std::vector<ColorPicker*> m_color_pickers;
     std::vector<ColorPicker*> m_ams_color_pickers;
+    TextInput*               m_hex_input{nullptr};
 
 public:
     ColorPickerPopup(wxWindow* parent);
