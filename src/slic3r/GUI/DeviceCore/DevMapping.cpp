@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cmath>
 #include <optional>
+#include <set>
 
 using namespace nlohmann;
 
@@ -77,6 +78,7 @@ namespace Slic3r
         bool  is_same_color = true;
         bool  is_type_match = true;
         bool  is_nozzle_match = true;
+        bool  is_ext = false; // candidate tray is an external spool (hotend-rack)
     };
 
     static std::optional<DevNozzle> _query_slot_nozzle(const MachineObject* obj, const DevAmsTray* tray)
@@ -152,49 +154,69 @@ namespace Slic3r
         return candidate.remain < picked.remain;
     }
 
-    // Collect every candidate for a hotend-rack machine (e.g. N1X, RackType_A/B):
-    // all ZMULTI internal AMS slots + all external spools (GetVirtualTrays),
-    // independent of map_opt. map_opt is extruder / AMS-toggle oriented and cannot
-    // express the rack's per-nozzle external spools, so the rack path bypasses it.
-    // The nozzle-compat gate (when check_nozzle_type) is still applied later in
-    // Step 2 against the per-slot nozzle recorded in tray_nozzles.
+    // Collect candidates for a hotend-rack machine (e.g. N1X, RackType_A/B):
+    // for every rack nozzle position take the slot it is *currently feeding from*
+    // via DevNozzle::GetBindAmsSlots(). That slot is the single coordinate
+    // (ams_id, slot_id) the device reports as the active feed for the nozzle and
+    // is naturally either an external spool or an internal AMS (ZMULTI / N3S /
+    // N3F). A nozzle with no filament reports an empty bind list, so empty
+    // external spools never become candidates. At most one candidate per nozzle
+    // (so at most 7/9 total). ext_tray_keys records which candidate keys are
+    // external spools so the matcher can prefer them on a same-color tie.
     static void _collect_mapping_hotend_item_candidates(const MachineObject*                     obj,
                                                         bool                                     check_nozzle_type,
                                                         std::map<int, FilamentInfo>&             tray_filaments,
-                                                        std::map<int, std::optional<DevNozzle>>& tray_nozzles)
+                                                        std::map<int, std::optional<DevNozzle>>& tray_nozzles,
+                                                        std::set<int>&                           ext_tray_keys)
     {
-        // (a) internal ZMULTI AMS slots
-        const auto& ams_list = obj->GetFilaSystem()->GetAmsList();
-        for (const auto& [ams_id_str, ams] : ams_list)
-        {
-            if (!ams)
-                continue;
-            const auto ams_type = ams->GetAmsType();
-            if (ams_type != DevAmsType::ZMULTI_A && ams_type != DevAmsType::ZMULTI_B)
-                continue;
-            for (const auto& [tray_id_str, tray] : ams->GetTrays())
-            {
-                if (!tray || !tray->is_tray_info_ready())
-                    continue;
-                FilamentInfo info;
-                _parse_tray_info(atoi(ams_id_str.c_str()), atoi(tray_id_str.c_str()), ams_type, *tray, info);
-                tray_filaments.emplace(info.id, info);
-                if (check_nozzle_type)
-                    tray_nozzles.emplace(info.id, _query_slot_nozzle(obj, tray));
-            }
-        }
+        auto  fila_sys   = obj->GetFilaSystem();
+        auto* nozzle_sys = obj->GetNozzleSystem();
+        auto  rack       = obj->GetNozzleRack();
+        if (!fila_sys || !nozzle_sys || !rack)
+            return;
 
-        // (b) all external spools (the hotend-rack ext spools live in the virtual
-        // tray map, not in MachineObject::vt_slot which only holds MAIN/DEPUTY)
-        for (const auto& [vt_id_str, vt] : obj->GetFilaSystem()->GetVirtualTrays())
-        {
-            if (!vt.is_tray_info_ready())
-                continue;
+        // Resolve a candidate coordinate into its tray, build the FilamentInfo and
+        // record it. Readable gate (color + type) is required because the matcher
+        // needs them to compute the color distance.
+        auto try_add = [&](int ams_id, int slot_id, DevAmsType type, const DevAmsTray* tray,
+                           const std::optional<DevNozzle>& nz, bool is_ext) {
+            if (!tray || !tray->is_tray_info_ready())
+                return;
             FilamentInfo info;
-            _parse_tray_info(atoi(vt_id_str.c_str()), 0, DevAmsType::EXT_SPOOL, vt, info);
-            tray_filaments.emplace(info.tray_id, info);
+            _parse_tray_info(ams_id, slot_id, type, *tray, info);
+            const int key = (type == DevAmsType::EXT_SPOOL) ? info.tray_id : info.id;
+            if (!tray_filaments.emplace(key, info).second)
+                return; // same slot reachable from multiple nozzles: keep the first
             if (check_nozzle_type)
-                tray_nozzles.emplace(info.tray_id, _query_slot_nozzle(obj, &vt));
+                tray_nozzles.emplace(key, nz);
+            if (is_ext)
+                ext_tray_keys.insert(key);
+        };
+
+        for (int pos : rack->GetTotalRackNozzlePosSet())
+        {
+            // Resolve by stable addr_id first (the rack nozzle id becomes 0 once
+            // it is picked up by an extruder); fall back to a pos-based lookup.
+            auto nz = nozzle_sys->GetNozzleOptByAddrId(pos - 0x10);
+            if (!nz.has_value())
+                nz = nozzle_sys->GetNozzleOptByPosId(pos);
+            if (!nz.has_value())
+                continue;
+
+            for (const auto& slot : nz->GetBindAmsSlots())
+            {
+                const int ams_id  = slot.first;
+                const int slot_id = slot.second;
+                if (auto vt = fila_sys->GetVirtualTray(ams_id)) // external spool
+                {
+                    try_add(ams_id, 0, DevAmsType::EXT_SPOOL, &(*vt), nz, /*is_ext*/ true);
+                }
+                else if (auto t = obj->get_tray(ams_id, slot_id)) // internal AMS (ZMULTI / N3S / N3F)
+                {
+                    DevAmsTray tray_copy = *t;
+                    try_add(ams_id, slot_id, tray_copy.ams_type, &tray_copy, nz, /*is_ext*/ false);
+                }
+            }
         }
     }
 
@@ -218,6 +240,7 @@ namespace Slic3r
         // Step 1: collect filaments in machine
         std::map<int, FilamentInfo> tray_filaments; // tray_index : tray_color
         std::map<int, std::optional<DevNozzle>> tray_nozzles;
+        std::set<int> ext_tray_keys; // candidate keys that are external spools (rack path)
         bool  left_nozzle_has_ams = false, right_nozzle_has_ams = false;
 
         const auto rack_type              = obj->GetNozzleRack()->GetRackType();
@@ -225,10 +248,10 @@ namespace Slic3r
                                              rack_type == DevNozzleRack::RackType_B);
         if (is_mapping_hotend_item)
         {
-            // Hotend-rack machines: include every internal AMS slot + external
-            // spool as a candidate via the dedicated collector. map_opt is not
-            // applicable to the rack's per-nozzle external spools.
-            _collect_mapping_hotend_item_candidates(obj, check_nozzle_type, tray_filaments, tray_nozzles);
+            // Hotend-rack machines: take each rack nozzle's currently-fed slot
+            // (GetBindAmsSlots) as the candidate. map_opt is not applicable to the
+            // rack's per-nozzle feed.
+            _collect_mapping_hotend_item_candidates(obj, check_nozzle_type, tray_filaments, tray_nozzles, ext_tray_keys);
         }
         else
         {
@@ -333,6 +356,7 @@ namespace Slic3r
             {
                 DisValue val;
                 val.tray_id = tray->second.id;
+                val.is_ext  = ext_tray_keys.count(tray->first) > 0;
                 wxColour c = wxColour(filaments[i].color);
                 wxColour tray_c = DevAmsTray::decode_color(tray->second.color);
                 float color_distance = GUI::calc_color_distance(GUI::convert_to_rgba(c), GUI::convert_to_rgba(tray_c));
@@ -438,10 +462,21 @@ namespace Slic3r
                             picked_tar_idx = j;
                             tray_filaments[picked_tar_idx].distance = min_val;
                         }
-                        else if (min_val == distance_map[i][j].distance && filaments[picked_src_idx].filament_id != tray_filaments[picked_tar_idx].filament_id && filaments[i].filament_id == tray_filaments[j].filament_id)
+                        else if (min_val == distance_map[i][j].distance)
                         {
-                            picked_src_idx = i;
-                            picked_tar_idx = j;
+                            // Same-color (equal-distance) tie-break: prefer an
+                            // external spool first (hotend-rack requirement), then
+                            // fall back to preferring an exact filament_id match.
+                            const bool cur_ext      = distance_map[picked_src_idx][picked_tar_idx].is_ext;
+                            const bool new_ext      = distance_map[i][j].is_ext;
+                            const bool cur_id_match = filaments[picked_src_idx].filament_id == tray_filaments[picked_tar_idx].filament_id;
+                            const bool new_id_match = filaments[i].filament_id == tray_filaments[j].filament_id;
+                            if ((!cur_ext && new_ext) ||
+                                (cur_ext == new_ext && !cur_id_match && new_id_match))
+                            {
+                                picked_src_idx = i;
+                                picked_tar_idx = j;
+                            }
                         }
                         // Same color/type and equal distance: prefer the matching tray with the
                         // least remaining filament, see _prefer_tray_by_remain() for the rules.
@@ -468,10 +503,20 @@ namespace Slic3r
                                 picked_tar_idx = j;
                                 tray_filaments[picked_tar_idx].distance = min_val;
                             }
-                            else if (min_val == distance_map[i][j].distance && filaments[picked_src_idx].filament_id != tray_filaments[picked_tar_idx].filament_id && filaments[i].filament_id == tray_filaments[j].filament_id)
+                            else if (min_val == distance_map[i][j].distance)
                             {
-                                picked_src_idx = i;
-                                picked_tar_idx = j;
+                                // Same-color tie-break (retry-to-used-tray branch):
+                                // prefer external spool, then exact filament_id.
+                                const bool cur_ext      = distance_map[picked_src_idx][picked_tar_idx].is_ext;
+                                const bool new_ext      = distance_map[i][j].is_ext;
+                                const bool cur_id_match = filaments[picked_src_idx].filament_id == tray_filaments[picked_tar_idx].filament_id;
+                                const bool new_id_match = filaments[i].filament_id == tray_filaments[j].filament_id;
+                                if ((!cur_ext && new_ext) ||
+                                    (cur_ext == new_ext && !cur_id_match && new_id_match))
+                                {
+                                    picked_src_idx = i;
+                                    picked_tar_idx = j;
+                                }
                             }
                             // Prefer the matching tray with the least remaining filament (see above).
                             else if (min_val == distance_map[i][j].distance

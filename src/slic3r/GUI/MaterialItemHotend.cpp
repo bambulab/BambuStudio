@@ -196,23 +196,18 @@ void MaterialItemHotend::doRender(wxDC& dc)
     dc.SetTextForeground(StateColor::darkModeColorFor(wxColour(0x26, 0x2E, 0x30)));
     int  text_pos_x = 0, text_pos_y = 0;
     auto ams_filament_type_size = wxSize(0, 0);
-    if (m_ams_filament_type.size() >= 4) {
-        m_ams_filament_type.insert(m_mapping_text.size() / 2, "\n");
-        // Choose a smaller font when the text is long
-        dc.SetFont(::Label::Body_10);
-        ams_filament_type_size = dc.GetTextExtent(m_ams_filament_type);
-        text_pos_y = up + (m_ams_wheel_mitem.GetBmpSize().y - ams_filament_type_size.y) / 2;
-        text_pos_x = ams_filament_type_size.x / 4;
-    } else {
-        dc.SetFont(::Label::Head_12);
-        ams_filament_type_size = dc.GetTextExtent(m_ams_filament_type);
-        text_pos_y = up + (m_ams_wheel_mitem.GetBmpSize().y - ams_filament_type_size.y) / 2;
-        text_pos_x = 0;
-    }
+    // Render from a local copy: doRender runs on every paint, so mutating the
+    // member here would accumulate state on each repaint.
+    wxString display_filament_type = m_ams_filament_type;
+    // Always single line; use a smaller font for long types so they still fit.
+    dc.SetFont(display_filament_type.size() >= 4 ? ::Label::Body_10 : ::Label::Head_12);
+    ams_filament_type_size = dc.GetTextExtent(display_filament_type);
+    text_pos_y = up + (m_ams_wheel_mitem.GetBmpSize().y - ams_filament_type_size.y) / 2;
+    text_pos_x = 0;
     int arrow_left = size.x - m_arraw_bitmap_white.GetBmpSize().x - FromDIP(4) - left_off;
     if (m_match) {
         int text_x = GetSize().x / 2 + (GetSize().x / 2 - ams_filament_type_size.x) / 2 - FromDIP(8) - left_off + text_pos_x;
-        dc.DrawText(m_ams_filament_type, wxPoint(text_x, text_pos_y));
+        dc.DrawText(display_filament_type, wxPoint(text_x, text_pos_y));
         int arrow_y = text_pos_y + (ams_filament_type_size.y - m_arraw_bitmap_white.GetBmpHeight()) / 2;
         if ((acolor.Red() > 160 && acolor.Green() > 160 && acolor.Blue() > 160) &&
             (acolor.Red() < 180 && acolor.Green() < 180 && acolor.Blue() < 180))
