@@ -173,7 +173,7 @@ void AssemblyStepsUtils::render_main(float canvas_w, float canvas_h) {
     if (should_show_panels()) {    // Top-left "Assembly Structure" panel (Figma 732:10276).
         render_assembly_structure_panel(canvas_w, canvas_h);
         //Right-side "Assembly Guide" panel.
-        const float guide_w = std::max(260.0f * sc, std::min(300.0f * sc, canvas_w * 0.20f));
+        const float guide_w = std::max(260.0f * sc, std::min(300.0f * sc, canvas_w * 0.20f)) + 20.0f * sc;
         const float guide_x = canvas_w - guide_w - 12.0f * sc;
         const float guide_y_base = 14.0f * sc;
         // get_guide_panel_y_offset() also sets m_export_btn_corner_mode via a precise
@@ -181,7 +181,11 @@ void AssemblyStepsUtils::render_main(float canvas_w, float canvas_h) {
         m_export_btn_canvas_w = canvas_w;
         const float guide_offset = get_guide_panel_y_offset(guide_x, guide_y_base, guide_w, sc);
         const float guide_y = guide_y_base + guide_offset;
-        const float guide_h = canvas_h - guide_y - 20.0f * sc;
+        // Max render height: canvas height minus the 3D navigator footprint minus a
+        // 50px gap. The navigator rect is published by _render_3d_navigator (0 when
+        // hidden). The guide panel caps itself here and scrolls when content exceeds.
+        const float nav_h = std::max(0.0f, m_overlay_rect_navigator_max.y - m_overlay_rect_navigator_min.y);
+        const float guide_h = std::max(120.0f * sc, canvas_h - nav_h - 50.0f * sc);
         render_assembly_guide_panel(guide_x, guide_y, guide_w, guide_h, sc, m_is_dark);
     } else {
         m_assembly_structure_right_x = 0.f;
@@ -1621,6 +1625,8 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
     static std::vector<float> s_text_label_wrap_widths;
     if (s_text_label_wrap_widths.size() < text_labels.size())
         s_text_label_wrap_widths.resize(text_labels.size(), 0.0f);
+    // Recomputed below from the selected label's InputText active state.
+    m_note_text_caret_active = false;
     for (int ni = 0; ni < (int)text_labels.size(); ++ni) {
         TextLabelNote &label = text_labels[ni];
         clamp_note_size(label.size, 80.0 * sc, 48.0 * sc);
@@ -1708,6 +1714,10 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
             bool text_changed = ImGui::InputTextMultiline("##label_text", &label.text, text_size, text_flags,
                                                           text_selected ? text_wrap_callback : nullptr, &cb_data);
             bool text_active = ImGui::IsItemActive();
+            // Remember caret mode for the selected label so the Delete shortcut can
+            // tell "typing in the label" apart from "label merely selected".
+            if (text_selected)
+                m_note_text_caret_active = text_active;
             if (focus_request && (text_active || ImGui::IsItemFocused())) {
                 m_note_text_focus_request     = -1;
                 m_note_text_focus_keep_cursor = false;
@@ -2293,8 +2303,15 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
     }
 
     // Delete key removes the currently-selected note while it is in edit state.
+    // Only block the shortcut while the user is actively typing in the selected
+    // text label (caret mode) so Delete edits a character there. We must NOT use
+    // the broad IsAnyItemActive() guard: after dragging/resizing a label, a
+    // move/resize handle item can still be the active ImGui item for a frame,
+    // which would wrongly swallow the Delete key.
+    const bool typing_in_selected_label =
+        m_note_selected_type == AssemblyNoteSelectionType::TextLabel && m_note_text_caret_active;
     if (is_note_edit_controls_visible() && m_note_selected_idx >= 0 &&
-        !ImGui::IsAnyItemActive() && ImGui::IsKeyPressedMap(ImGuiKey_Delete, false)) {
+        !typing_in_selected_label && ImGui::IsKeyPressedMap(ImGuiKey_Delete, false)) {
         switch (m_note_selected_type) {
         case AssemblyNoteSelectionType::ArrowSvg:
             if (m_note_selected_idx < count) delete_idx = m_note_selected_idx;
@@ -2445,50 +2462,6 @@ void AssemblyStepsUtils::render_assembly_structure_option_menu(
                 apply_camera_margin_to_selected_keyframe(m_margin_factor_camera_for_not_last_frame, margin_released);
         }
 #endif
-        ImGui::Separator();
-        {
-            update_part_number_label_font_size_from_config();
-
-            const float       label_slider_w = 120.0f * sc;
-            const float       label_value_w  = 56.0f * sc;
-            const float       label_min      = ASSEMBLY_LABEL_DEFAULT_FONT_SIZE;
-            const float       label_max      = ASSEMBLY_LABEL_DEFAULT_FONT_SIZE * ASSEMBLY_LABEL_MAX_FONT_SIZE_FACTOR;
-            float             label_font_size = part_number_label_font_size();
-            const std::string label_tip      = _u8L("Modify canvas label text size, and real-time update the label text size of all frames after adjustment.");
-            auto              set_label_tip  = [&]() {
-                if (ImGui::IsItemHovered())
-                    ImGui::SetTooltip("%s", label_tip.c_str());
-            };
-
-            imgui.text(_u8L("Canvas label text size"));
-            set_label_tip();
-
-            bool label_changed = false;
-            bool label_released = false;
-            ImGui::PushItemWidth(label_slider_w);
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-            label_changed |= imgui.bbl_slider_float_style("##assembly_label_font_size", &label_font_size, label_min, label_max, "%.2f");
-            label_released |= imgui.get_last_slider_status().deactivated_after_edit;
-            ImGui::PopStyleColor();
-            set_label_tip();
-            ImGui::SameLine();
-            ImGui::PushItemWidth(label_value_w);
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-            label_changed |= ImGui::BBLDragFloat("##assembly_label_font_size_input", &label_font_size, 0.1f, label_min, label_max, "%.2f");
-            label_released |= ImGui::IsItemDeactivatedAfterEdit();
-            ImGui::PopStyleColor();
-            set_label_tip();
-
-            if (label_changed) {
-                save_part_number_label_font_size_to_config(label_font_size);
-                do_commond_callback("dirty");
-                do_commond_callback("request_extra_frame");
-            }
-            if (label_released) {
-                save_part_number_label_font_size_to_config(label_font_size, true);
-                auto_layout_labels_in_current_view();
-            }
-        }
 #if !BBL_RELEASE_TO_PUBLIC
  /*       bool explode_repeated_as_whole = m_show_modelobject_name_when_modelobject_has_occur_before;
         if (ImGui::MenuItem(_u8L("Explode repeated model objects as a whole").c_str(), nullptr,
@@ -2710,12 +2683,20 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
     for (const auto &c : data.cards)
         cards_total += card_h_of(c) + card_gap;
     const float scroll_content_h = card_gap + cards_total;
-    const float max_scroll_region_h = canvas_h * 0.5f;
+    // Overall panel budget mirrors the guide panel: keep clear of the 3D
+    // navigator (rect published by _render_3d_navigator, 0 when hidden) and leave
+    // a 50px gap. The card scroll region gets whatever is left after the fixed
+    // chrome (header + action row + footer hint), instead of an arbitrary
+    // half-canvas cap, so the panel fills the available height.
+    const float nav_h = std::max(0.0f, m_overlay_rect_navigator_max.y - m_overlay_rect_navigator_min.y);
+    const float overall_max_h = std::max(header_h, canvas_h - nav_h - 50.0f * sc);
+    const float non_scroll_h  = header_h + action_h + bottom_pad + card_gap + footer_hint_extra_h;
+    const float max_scroll_region_h = std::max(0.0f, overall_max_h - non_scroll_h);
     const float scroll_region_h_target = std::min(scroll_content_h, max_scroll_region_h);
     const float full_h      = header_h + scroll_region_h_target + action_h + bottom_pad + card_gap + footer_hint_extra_h;
     const float panel_h     = m_structure_panel_collapsed
                                 ? header_h
-                                : std::min(canvas_h - panel_y - 12.0f * sc, full_h);
+                                : std::min(overall_max_h, full_h);
 
     // Window setup -----------------------------------------------------------
     imgui.set_next_window_pos(panel_x, panel_y, ImGuiCond_Always);
@@ -2927,12 +2908,12 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         const ImVec2 card_max(card_x + card_w, card_screen_y + card_h);
         bool suppress_card_click = false;
 
-        cdl->AddRectFilled(card_min, card_max, c.selected ? col_white : col_card_bg, card_radius);
+        cdl->AddRectFilled(card_min, card_max, c.is_final_assembly ? col_card_bg : col_white, card_radius);
         cdl->AddRect(card_min, card_max, c.selected ? col_brand : col_card_border, card_radius, 0, 1.0f);
 
         // Tag pill.
-        const ImU32 tag_bg  = (c.tag_style == AssemblyStructureCard::TagStyle::Step) ? col_brand_soft : col_chip_bg;
-        const ImU32 tag_txt = (c.tag_style == AssemblyStructureCard::TagStyle::Step) ? col_brand     : col_text_mid;
+        const ImU32  tag_bg     = c.selected ? col_brand_soft : col_chip_bg;
+        const ImU32  tag_txt    = c.selected ? col_brand : col_text_mid;
         const float tag_text_w = text_w_fn(fs_small, c.tag_text);
         const float tag_w      = tag_text_w + 2.f * tag_h_pad;
         const ImVec2 tag_min(card_x + card_pad, card_screen_y + card_pad);
@@ -2942,21 +2923,60 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
                     ImVec2(tag_min.x + tag_h_pad, tag_min.y + (tag_h - fs_small) * 0.5f),
                     tag_txt, c.tag_text.c_str());
 
-        // Step option icon (top-right of step cards).
+        // Step action icons (top-right): copy / delete / add-objects. Replaces the
+        // former single "..." option menu (figma 4090:10976).
+        const float step_icon_sz  = 16.0f * sc;
+        const float step_icon_gap = 8.0f * sc;
+        const float step_icons_w  = 3.0f * step_icon_sz + 2.0f * step_icon_gap;
         if (c.show_add_button) {
-            const float opt_sz = 20.0f * sc;
-            const ImVec2 opt_min(card_max.x - card_pad - opt_sz, tag_min.y);
-            const ImVec2 opt_max(opt_min.x + opt_sz, opt_min.y + opt_sz);
-            if (m_structure_step_option_icon)
-                cdl->AddImage(m_structure_step_option_icon, opt_min, opt_max);
-            ImGui::SetCursorScreenPos(opt_min);
-            const std::string opt_id = std::string("##asp_step_option_") + std::to_string(ci);
-            ImGui::InvisibleButton(opt_id.c_str(), ImVec2(opt_sz, opt_sz));
-            if (ImGui::IsItemHovered()) {
-                suppress_card_click = true;
-                render_panel_tooltip(_u8L("Current step options: edit the current step name, delete the step, or insert a step before/after."));
+            const float icon_cy = tag_min.y + (tag_h - step_icon_sz) * 0.5f;
+            // Right-aligned, left->right order: copy, delete, object-tree.
+            const float obj_x = card_max.x - card_pad - step_icon_sz;
+            const float del_x = obj_x - step_icon_gap - step_icon_sz;
+            const float cpy_x = del_x - step_icon_gap - step_icon_sz;
+
+            auto pick_step_icon = [&](ImTextureID light, ImTextureID dark) -> ImTextureID {
+                return (m_is_dark && dark) ? dark : light;
+            };
+            auto step_icon_button = [&](float x, ImTextureID tex, const char *id_suffix,
+                                        const std::string &tip) -> bool {
+                const ImVec2 mn(x, icon_cy);
+                const ImVec2 mx(x + step_icon_sz, icon_cy + step_icon_sz);
+                if (tex)
+                    cdl->AddImage(tex, mn, mx);
+                ImGui::SetCursorScreenPos(mn);
+                const std::string id = std::string("##asp_step_") + id_suffix + std::to_string(ci);
+                ImGui::InvisibleButton(id.c_str(), ImVec2(step_icon_sz, step_icon_sz));
+                if (ImGui::IsItemHovered()) {
+                    suppress_card_click = true;
+                    render_panel_tooltip(tip);
+                }
+                const bool clicked = ImGui::IsItemClicked();
+                if (clicked)
+                    suppress_card_click = true;
+                return clicked && c.node_idx >= 0;
+            };
+
+            if (step_icon_button(cpy_x, pick_step_icon(m_structure_step_copy_icon, m_structure_step_copy_icon_dark),
+                                 "copy_", _u8L("Copy current step"))) {
+                select_steps_tree_node_for_canvas(c.node_idx);
+                copy_assembly_step();
             }
-            render_structure_step_option_menu(static_cast<int>(ci), c, opt_min, sc, m_is_dark);
+            if (step_icon_button(del_x, pick_step_icon(m_structure_step_delete_icon, m_structure_step_delete_icon_dark),
+                                 "delete_", _u8L("Delete current step"))) {
+                delete_structure_step(c.node_idx);
+            }
+            if (step_icon_button(obj_x, pick_step_icon(m_structure_step_object_tree_icon, m_structure_step_object_tree_icon_dark),
+                                 "objtree_", _u8L("Add some objects to current step"))) {
+                open_structure_add_tree(static_cast<int>(ci), c.node_idx,
+                                        ImVec2(obj_x + step_icon_sz + 8.0f * sc, icon_cy));
+            }
+            // Deferred auto-open requested right after this step was created.
+            if (c.node_idx >= 0 && c.node_idx == m_structure_add_tree_pending_node) {
+                open_structure_add_tree(static_cast<int>(ci), c.node_idx,
+                                        ImVec2(obj_x + step_icon_sz + 8.0f * sc, icon_cy));
+                m_structure_add_tree_pending_node = -1;
+            }
         }
 
         // Drag-to-reorder handle: the tag row strip, left of the option icon.
@@ -2967,9 +2987,8 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         if (is_reorderable_card) {
             step_geoms.push_back({c.node_idx, card_screen_y, card_screen_y + card_h});
 
-            const float opt_sz = 20.0f * sc;
             const ImVec2 drag_min(card_min.x, card_min.y);
-            const ImVec2 drag_max(card_max.x - card_pad - opt_sz - 4.0f * sc, tag_max.y + 6.0f * sc);
+            const ImVec2 drag_max(card_max.x - card_pad - step_icons_w - 4.0f * sc, tag_max.y + 6.0f * sc);
             ImGui::SetCursorScreenPos(drag_min);
             const std::string drag_id = std::string("##asp_step_drag_") + std::to_string(ci);
             ImGui::InvisibleButton(drag_id.c_str(),
@@ -3002,11 +3021,9 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         // Title row.
         const float title_y      = card_screen_y + card_pad + tag_h + 8.0f * sc;
         const std::string cnt_s  = " (" + std::to_string(c.count) + ")";
-        const float title_action_sz = 20.0f * sc;
-        const float title_action_y = title_y + (fs_title - title_action_sz) * 0.5f;
-        const float title_right_anchor = c.show_add_button
-            ? (card_max.x - card_pad - title_action_sz)
-            : (card_max.x - card_pad);
+        // The per-step add-object button has moved to the top-right action icons,
+        // so the title can span the full card width.
+        const float title_right_anchor = card_max.x - card_pad;
         // The per-step "Select" button/label has been removed; selecting subsets
         // of a step is now driven by row selection inside render_assembly_tree_ui.
         const float title_control_start_x = title_right_anchor;
@@ -3016,8 +3033,8 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
         const bool title_editing = c.node_idx >= 0 &&
                                    c.node_idx == m_structure_step_rename_node;
         if (title_editing) {
-            const float edit_right = title_control_start_x - title_reserved_w;
-            const float edit_w = std::max(60.0f * sc, edit_right - title_left_x);
+            // Match the inline edit box width to the hover hot-zone length.
+            const float edit_w = std::max(60.0f * sc, title_control_start_x - title_left_x);
             ImGui::SetCursorScreenPos(ImVec2(card_x + card_pad, title_y - 2.0f * sc));
             ImGui::SetNextItemWidth(edit_w);
             if (m_structure_step_rename_open_pending) {
@@ -3056,26 +3073,40 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
                 m_structure_step_rename_had_focus = false;
             }
         } else {
+            // Title display font (figma 4092:11484 -> 13px Bold). Bump this knob if
+            // a larger title is desired.
+            const float title_fs = fs_title;
             const float cnt_text_w = text_w_fn(fs_tiny, cnt_s);
             const std::string display_title = title_max_w > cnt_text_w
                 ? utf8_fit_with_ellipsis(c.title, title_max_w - cnt_text_w)
                 : utf8_fit_with_ellipsis(c.title, title_max_w);
-            const float title_text_w = text_w_fn(fs_title, display_title);
-            cdl->AddText(font, fs_title, ImVec2(card_x + card_pad, title_y),
-                        col_text_dark, display_title.c_str());
+            const float title_text_w = text_w_fn(title_fs, display_title);
+            // Faux-bold: only a single font is available, so draw the glyphs twice
+            // with a sub-pixel horizontal offset to emulate a bold weight.
+            auto add_bold_text = [&](float fsz, ImVec2 pos, ImU32 col, const char *txt) {
+                cdl->AddText(font, fsz, pos, col, txt);
+                cdl->AddText(font, fsz, ImVec2(pos.x + 0.6f * sc, pos.y), col, txt);
+            };
+            add_bold_text(title_fs, ImVec2(card_x + card_pad, title_y),
+                          col_text_dark, display_title.c_str());
             cdl->AddText(font, fs_tiny,
-                        ImVec2(card_x + card_pad + title_text_w, title_y + (fs_title - fs_tiny)),
+                        ImVec2(card_x + card_pad + title_text_w, title_y + (title_fs - fs_tiny)),
                         col_text_dark, cnt_s.c_str());
 
             if (c.node_idx >= 0) {
-                const ImVec2 title_hit_min(card_x + card_pad, title_y - 2.0f * sc);
-                const ImVec2 title_hit_size(std::min(card_w - 2.0f * card_pad, title_text_w + cnt_text_w + 8.0f * sc),
-                                            fs_title + 6.0f * sc);
+                // Hover hot-zone spans the full title row width; on hover, show a
+                // rounded grey "editable" border (figma 4092:11532).
+                const ImVec2 title_hit_min(card_x + card_pad, title_y - 3.0f * sc);
+                const float  title_hit_w = std::max(1.0f, title_control_start_x - (card_x + card_pad));
+                const ImVec2 title_hit_size(title_hit_w, title_fs + 6.0f * sc);
                 ImGui::SetCursorScreenPos(title_hit_min);
                 ImGui::InvisibleButton((std::string("##asp_title_rename_") + std::to_string(ci)).c_str(), title_hit_size);
                 const bool title_hovered = ImGui::IsItemHovered();
                 if (title_hovered) {
                     suppress_card_click = true;
+                    cdl->AddRect(title_hit_min,
+                                 ImVec2(title_hit_min.x + title_hit_size.x, title_hit_min.y + title_hit_size.y),
+                                 col_card_border, 2.0f * sc, 0, 1.0f);
                     if (display_title != c.title)
                         render_panel_tooltip(c.title);
                 }
@@ -3091,50 +3122,6 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
             }
         }
 
-        // Add-object button on the second row. Clicking it opens the assembly
-        // tree panel outside this card, anchored to the button's right side.
-        {
-            const float add_sz = title_action_sz;
-            const float add_y = title_action_y;
-            const ImVec2 add_min(card_max.x - card_pad - add_sz, add_y);
-            const ImVec2 add_max(add_min.x + add_sz, add_min.y + add_sz);
-
-            if (c.show_add_button) {
-                // Render the "+ add object to step" affordance with one of
-                const bool add_disabled = !c.selected;
-                ImTextureID add_tex = c.selected ? m_structure_step_add_icon_edit : m_structure_step_add_icon_unedit;
-                if (add_tex) {
-                    const ImU32 add_tint = add_disabled ? IM_COL32(255, 255, 255, 128) : IM_COL32_WHITE;
-                    cdl->AddImage(add_tex, add_min, add_max, ImVec2(0, 0), ImVec2(1, 1), add_tint);
-                } else {
-                    const ImU32 add_bg = add_disabled ? IM_COL32(0xD8, 0xEA, 0xD2, 128) : col_brand_addbg;
-                    const ImU32 add_fg = add_disabled ? IM_COL32(0x00, 0xAE, 0x42, 128) : col_brand;
-                    cdl->AddRectFilled(add_min, add_max, add_bg, card_radius);
-                    const float cx = (add_min.x + add_max.x) * 0.5f;
-                    const float cy = (add_min.y + add_max.y) * 0.5f;
-                    const float arm = 5.f * sc;
-                    cdl->AddLine(ImVec2(cx - arm, cy), ImVec2(cx + arm, cy), add_fg, 1.5f);
-                    cdl->AddLine(ImVec2(cx, cy - arm), ImVec2(cx, cy + arm), add_fg, 1.5f);
-                }
-                ImGui::SetCursorScreenPos(add_min);
-                const std::string add_id = std::string("##asp_add_") + std::to_string(ci);
-                imgui.disabled_begin(add_disabled);
-                ImGui::InvisibleButton(add_id.c_str(), ImVec2(add_sz, add_sz));
-                if (ImGui::IsItemHovered()) {
-                    suppress_card_click = true;
-                    render_panel_tooltip(_u8L("Add some objects to current step"));
-                }
-                if (ImGui::IsItemClicked() && c.node_idx >= 0) {//popup add object tree
-                    open_structure_add_tree(static_cast<int>(ci), c.node_idx, ImVec2(add_max.x + 8.0f * sc, add_min.y));
-                }
-                // Deferred auto-open requested right after this step was created.
-                if (c.node_idx >= 0 && c.node_idx == m_structure_add_tree_pending_node) {
-                    open_structure_add_tree(static_cast<int>(ci), c.node_idx, ImVec2(add_max.x + 8.0f * sc, add_min.y));
-                    m_structure_add_tree_pending_node = -1;
-                }
-                imgui.disabled_end();
-            }
-        }
         // Single-row chip strip (clipped to one line, 20 char ellipsis + hover).
         const float chip_top_y = title_y + line_h + 8.0f * sc;
         if (!c.chips.empty()) {
@@ -3185,7 +3172,7 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
                 const size_t hidden_count = begin_idx < c.chips.size() ? c.chips.size() - begin_idx : 0;
                 // When more than two labels are hidden, lay them out as a bullet
                 // list ("· name") so the overflow tooltip stays readable.
-                const bool bulleted = hidden_count > 2;
+                const bool bulleted = hidden_count > 1;
                 std::string hidden_labels;
                 for (size_t hi = begin_idx; hi < c.chips.size(); ++hi) {
                     if (!hidden_labels.empty())
@@ -3298,10 +3285,8 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
             }
         }
 
-        const bool block_card_click = m_structure_select_popup_active_card >= 0 ||
-                                      m_structure_select_popup_pending_card >= 0 ||
-                                      m_structure_add_tree_card >= 0;
-        if (!suppress_card_click && !block_card_click &&
+
+        if (!suppress_card_click &&
             ImGui::IsMouseHoveringRect(card_min, card_max, true) && ImGui::IsMouseClicked(0)) {
             int click_node = c.node_idx;
             if (click_node < 0 && c.tag_style == AssemblyStructureCard::TagStyle::Default) {
@@ -3356,10 +3341,12 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
 
     if (m_structure_add_tree_card >= 0 &&
         m_structure_add_tree_card < static_cast<int>(data.cards.size())) {
-        const float tree_w = 300.0f * 1.3f * sc;
-        const float tree_h = std::min(420.0f * 1.5f * sc, std::max(180.0f * 1.5f * sc, canvas_h - m_structure_add_tree_pos.y - 12.0f * sc));
+        const float tree_w = 310.0f * sc;
+        // Height is auto-fit to the content inside render_assembly_tree_ui; pass the
+        // remaining on-screen height as the upper clamp so it never runs off canvas.
+        const float tree_h_avail = std::max(180.0f * sc, canvas_h - m_structure_add_tree_pos.y - 12.0f * sc);
         const float tree_x = panel_x + panel_w + 10.0f * sc;
-        render_assembly_tree_ui(tree_x, m_structure_add_tree_pos.y, tree_w, tree_h, sc);
+        render_assembly_tree_ui(tree_x, m_structure_add_tree_pos.y, tree_w, tree_h_avail, sc);
     }
 
     // ---- Action buttons --------------------------------------------------
@@ -3522,14 +3509,23 @@ void AssemblyStepsUtils::init_tree_icons()
     IMTexture::load_from_svg_file(m_images_dir + "tree_note_dark.svg",   icon_sz, icon_sz, m_note_icon_tag_dark);
     IMTexture::load_from_svg_file(m_images_dir + "tree_pencil.svg", icon_sz, icon_sz, m_note_icon_pencil);
     IMTexture::load_from_svg_file(m_images_dir + "tree_frame.svg",       icon_sz, icon_sz, m_tree_icon_frame);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_frame_unselect.svg", icon_sz, icon_sz, m_tree_icon_frame_unselect);
     IMTexture::load_from_svg_file(m_images_dir + "cross.svg",       icon_sz, icon_sz, m_tree_icon_cross);
     IMTexture::load_from_svg_file(m_images_dir + "cross_dark.svg",  icon_sz, icon_sz, m_tree_icon_cross_dark);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_set.svg",       icon_sz, icon_sz, m_tree_icon_set);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_set_hover.svg", icon_sz, icon_sz, m_tree_icon_set_hover);
     IMTexture::load_from_svg_file(m_images_dir + "panel_collapse.svg", icon_sz, icon_sz, m_panel_collapse_icon);
     IMTexture::load_from_svg_file(m_images_dir + "panel_expand.svg", icon_sz, icon_sz, m_panel_expand_icon);
     IMTexture::load_from_svg_file(m_images_dir + "view_help.svg", icon_sz, icon_sz, m_structure_help_icon);
     IMTexture::load_from_svg_file(m_images_dir + "tree_option.svg", icon_sz, icon_sz, m_structure_option_icon);
     IMTexture::load_from_svg_file(m_images_dir + "tree_option_dark.svg", icon_sz, icon_sz, m_structure_option_icon_dark);
     IMTexture::load_from_svg_file(m_images_dir + "tree_step_option.svg", icon_sz, icon_sz, m_structure_step_option_icon);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_copy.svg",             icon_sz, icon_sz, m_structure_step_copy_icon);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_copy_dark.svg",        icon_sz, icon_sz, m_structure_step_copy_icon_dark);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_delete.svg",           icon_sz, icon_sz, m_structure_step_delete_icon);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_delete_dark.svg",      icon_sz, icon_sz, m_structure_step_delete_icon_dark);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_object_tree.svg",      icon_sz, icon_sz, m_structure_step_object_tree_icon);
+    IMTexture::load_from_svg_file(m_images_dir + "tree_object_tree_dark.svg", icon_sz, icon_sz, m_structure_step_object_tree_icon_dark);
     IMTexture::load_from_svg_file(m_images_dir + "tree_unedit.svg",   icon_sz, icon_sz, m_structure_step_add_icon_unedit);
     IMTexture::load_from_svg_file(m_images_dir + "tree_cur_edit.svg", icon_sz, icon_sz, m_structure_step_add_icon_edit);
     IMTexture::load_from_svg_file(m_images_dir + "tree_from_assembly_end_frame.svg", icon_sz, icon_sz, m_tree_icon_from_assembly_end_frame);
@@ -4155,10 +4151,23 @@ int AssemblyStepsUtils::render_timeline_keyframe(
             dl->AddRect(slot_min, slot_max, grey400, 0, 0, 1.0f * sc);
         }
 
-        // Frame icon centered
-        if (m_tree_icon_frame) {
+        // "Unsaved view" dot (Figma 4098:10851): a small amber circle in the
+        // top-left corner, shown only on the selected keyframe when the live
+        // camera no longer matches the camera recorded for that frame.
+        if (selected && m_current_keyframe_changed) {
+            const ImU32  amber = IM_COL32(0xFF, 0xA0, 0x00, 255);
+            const float  dot_r = 4.0f * sc;
+            const ImVec2 dot_c(slot_min.x + 6.0f * sc, slot_min.y + 6.0f * sc);
+            dl->AddCircleFilled(dot_c, dot_r, amber);
+        }
+
+        // Frame icon centered: brand-colored when selected, grey variant otherwise.
+        ImTextureID frame_tex = selected ? m_tree_icon_frame : m_tree_icon_frame_unselect;
+        if (frame_tex == nullptr)
+            frame_tex = m_tree_icon_frame;
+        if (frame_tex) {
             const float ico = 20.0f * sc;
-            dl->AddImage(m_tree_icon_frame,
+            dl->AddImage(frame_tex,
                 ImVec2(x + (w - ico) * 0.5f, y + (h - ico) * 0.5f),
                 ImVec2(x + (w + ico) * 0.5f, y + (h + ico) * 0.5f));
         }
@@ -4170,7 +4179,7 @@ int AssemblyStepsUtils::render_timeline_keyframe(
             ImVec2(x + (w - lsz.x) * 0.5f, y + h + 4.0f * sc), lbl_col, label);
 
         // Delete badge geometry (computed first for hit-test priority)
-        const float badge_r = 7.0f * sc;
+        const float badge_r = 9.0f * sc;
         const ImVec2 badge_c(slot_max.x - 3.0f * sc, slot_min.y + 3.0f * sc);
         const ImVec2 badge_min(badge_c.x - badge_r, badge_c.y - badge_r);
         const ImVec2 badge_max(badge_c.x + badge_r, badge_c.y + badge_r);
@@ -4183,13 +4192,19 @@ int AssemblyStepsUtils::render_timeline_keyframe(
         // Skipped entirely when `show_delete_badge` is false (e.g. the End frame
         // is mandatory and must not be deletable).
         if (show_delete_badge && slot_hovered && selected) {
-            dl->AddCircleFilled(badge_c, badge_r, brand);
-            if (m_tree_icon_cross) {
-                const float cr = 5.0f * sc;
-                dl->AddImage(m_tree_icon_cross,
+            // Dark-grey delete badge (Figma 4098:10802) with a light cross. cross.svg
+            // is drawn in near-black (#262E30), so tinting it white stays dark; use
+            // cross_dark.svg (#E0E0E0) instead to get the white cross (Figma 4098:10803).
+            const ImU32 badge_bg    = IM_COL32(77, 77, 77, 255);
+            const ImU32 badge_cross = IM_COL32(255, 255, 255, 255);
+            dl->AddCircleFilled(badge_c, badge_r, badge_bg);
+            ImTextureID cross_tex = m_tree_icon_cross_dark ? m_tree_icon_cross_dark : m_tree_icon_cross;
+            if (cross_tex) {
+                const float cr = 6.0f * sc;
+                dl->AddImage(cross_tex,
                     ImVec2(badge_c.x - cr, badge_c.y - cr),
                     ImVec2(badge_c.x + cr, badge_c.y + cr),
-                    ImVec2(0, 0), ImVec2(1, 1), white_c);
+                    ImVec2(0, 0), ImVec2(1, 1), badge_cross);
             }
 
             ImGui::SetCursorScreenPos(badge_min);
@@ -4528,33 +4543,22 @@ void AssemblyStepsUtils::render_labels_show_type_menu_popup(const char* popup_id
         _u8L("Show one label per model object."),
         _u8L("Show one label per model part.")
     };
-    // Trailing action rows (not a type): relayout the current labels in place,
-    // and recommend a camera angle without touching the labels.
-    const std::string action_label = _u8L("Auto-arrange labels in current view");
-    const std::string camera_action_label = _u8L("Auto recommend camera angles");
-
     const float row_height = 28.0f * sc;
     const float row_spacing = 2.0f * sc;
     const float win_padding = 12.0f * sc;
     const float row_pad_x = 8.0f * sc;
     const float check_w = 18.0f * sc;       // leading column for the current-selection mark
     const float text_right_margin = 8.0f * sc;
-    const float sep_line_h = 1.0f * sc;
-    const float sep_block_h = row_spacing + sep_line_h + row_spacing; // gap+line+gap
 
     float max_text_width = 0.0f;
     for (int i = 0; i < kTypeCount; ++i)
         max_text_width = std::max(max_text_width, ImGui::CalcTextSize(labels[i].c_str()).x);
-    max_text_width = std::max(max_text_width, ImGui::CalcTextSize(action_label.c_str()).x);
-    max_text_width = std::max(max_text_width, ImGui::CalcTextSize(camera_action_label.c_str()).x);
 
     const float menu_width = std::max(128.0f * sc,
         2.0f * win_padding + row_pad_x + check_w + max_text_width + text_right_margin);
     const float menu_height = win_padding * 2.0f
-        + row_height * (kTypeCount + 2)
-        + row_spacing * (kTypeCount - 1)
-        + row_spacing
-        + sep_block_h;
+        + row_height * kTypeCount
+        + row_spacing * (kTypeCount - 1);
     ImGui::SetNextWindowSize(ImVec2(menu_width, menu_height), ImGuiCond_Always);
 
     ImGui::PushStyleColor(ImGuiCol_PopupBg, m_is_dark ? ImVec4(45 / 255.0f, 45 / 255.0f, 49 / 255.0f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
@@ -4601,57 +4605,6 @@ void AssemblyStepsUtils::render_labels_show_type_menu_popup(const char* popup_id
             if (i + 1 < kTypeCount)
                 ImGui::Dummy(ImVec2(0.0f, row_spacing));
         }
-
-        // Separator between the type list and the action row.
-        ImGui::Dummy(ImVec2(0.0f, row_spacing));
-        {
-            const ImVec2 sp = ImGui::GetCursorScreenPos();
-            const float  full_w = ImGui::GetContentRegionAvail().x;
-            draw_list->AddLine(ImVec2(sp.x, sp.y), ImVec2(sp.x + full_w, sp.y),
-                               m_is_dark ? IM_COL32(70, 70, 74, 255) : IM_COL32(228, 228, 228, 255),
-                               sep_line_h);
-        }
-        ImGui::Dummy(ImVec2(0.0f, row_spacing + sep_line_h));
-
-        // Action row: re-layout labels in the current view (no camera reframe).
-        {
-            ImGui::PushID("##assembly_labels_auto_layout_cur_view");
-            ImVec2      row_pos       = ImGui::GetCursorScreenPos();
-            const float row_content_w = ImGui::GetContentRegionAvail().x;
-            if (ImGui::InvisibleButton("##assembly_labels_auto_layout_item", ImVec2(row_content_w, row_height))) {
-                auto_layout_labels_in_current_view();
-                ImGui::CloseCurrentPopup();
-            }
-            if (ImGui::IsItemHovered()) {
-                const ImU32 bg = m_is_dark ? IM_COL32(55, 55, 59, 255) : IM_COL32(240, 240, 240, 255);
-                draw_list->AddRectFilled(row_pos, ImVec2(row_pos.x + row_content_w, row_pos.y + row_height), bg, 4.0f * sc);
-            }
-            const ImVec2 text_size = ImGui::CalcTextSize(action_label.c_str());
-            draw_list->AddText(ImVec2(row_pos.x + row_pad_x + check_w, row_pos.y + (row_height - text_size.y) * 0.5f),
-                               ImGui::GetColorU32(ImGuiCol_Text), action_label.c_str());
-            ImGui::PopID();
-        }
-
-        // Action row: recommend a camera angle only (does the camera reframe the
-        // label-type rows intentionally skip), leaving the labels as-is.
-        ImGui::Dummy(ImVec2(0.0f, row_spacing));
-        {
-            ImGui::PushID("##assembly_labels_auto_recommend_camera");
-            ImVec2      row_pos       = ImGui::GetCursorScreenPos();
-            const float row_content_w = ImGui::GetContentRegionAvail().x;
-            if (ImGui::InvisibleButton("##assembly_labels_auto_recommend_camera_item", ImVec2(row_content_w, row_height))) {
-                auto_recommend_camera_for_current_view();
-                ImGui::CloseCurrentPopup();
-            }
-            if (ImGui::IsItemHovered()) {
-                const ImU32 bg = m_is_dark ? IM_COL32(55, 55, 59, 255) : IM_COL32(240, 240, 240, 255);
-                draw_list->AddRectFilled(row_pos, ImVec2(row_pos.x + row_content_w, row_pos.y + row_height), bg, 4.0f * sc);
-            }
-            const ImVec2 text_size = ImGui::CalcTextSize(camera_action_label.c_str());
-            draw_list->AddText(ImVec2(row_pos.x + row_pad_x + check_w, row_pos.y + (row_height - text_size.y) * 0.5f),
-                               ImGui::GetColorU32(ImGuiCol_Text), camera_action_label.c_str());
-            ImGui::PopID();
-        }
         ImGui::EndPopup();
     }
 
@@ -4695,6 +4648,302 @@ bool AssemblyStepsUtils::render_checkbox(
         return true;
     }
     return false;
+}
+
+void AssemblyStepsUtils::render_assembly_label_settings_section(
+    ImDrawList *draw_list, const ImVec2 &card_min, float card_w, float card_h, float sc)
+{
+    const float font_sz  = ImGui::GetFontSize();                 // title + row labels: 13px in design
+    const float pill_fs  = font_sz * 12.0f / 13.0f;              // pill text: 12px in design
+    const ImU32 grey700  = m_is_dark ? IM_COL32(0xA0, 0xA0, 0xA0, 255) : IM_COL32(107, 107, 107, 255);
+    const float pad_x    = 8.0f * sc;
+    const float row_h    = 28.0f * sc;
+    (void) card_h;
+
+    const char *popup_id = "##assembly_label_settings_popup";
+    // While the settings popup is open it covers this section; geometry-based
+    // hover tooltips below would otherwise still fire through it, so gate them.
+    const bool popup_open = ImGui::IsPopupOpen(popup_id);
+
+    // Gear icon (tree_set.svg) right after the title text. section_begin already
+    // drew the "Label" title at (card_min + 8*sc, +6*sc).
+    const std::string title  = _u8L("Label");
+    const ImVec2 title_sz    = ImGui::GetFont()->CalcTextSizeA(font_sz, FLT_MAX, 0.0f, title.c_str());
+    const float  gear_sz     = 16.0f * sc;
+    const float  gear_x      = card_min.x + pad_x + title_sz.x + 4.0f * sc;
+    const float  gear_y      = card_min.y + 6.0f * sc + (title_sz.y - gear_sz) * 0.5f;
+    // Hover swaps tree_set.svg -> tree_set_hover.svg (reverts on exit). Hover is
+    // hit-tested first so the right texture is picked before the image is drawn.
+    const bool        gear_hovered = ImGui::IsMouseHoveringRect(
+        ImVec2(gear_x, gear_y), ImVec2(gear_x + gear_sz, gear_y + gear_sz));
+    const ImTextureID gear_tex = (gear_hovered && m_tree_icon_set_hover) ? m_tree_icon_set_hover : m_tree_icon_set;
+    if (gear_tex)
+        draw_list->AddImage(gear_tex, ImVec2(gear_x, gear_y),
+                            ImVec2(gear_x + gear_sz, gear_y + gear_sz));
+    ImGui::SetCursorScreenPos(ImVec2(gear_x, gear_y));
+    ImGui::PushID("##label_settings_gear");
+    const bool gear_clicked = ImGui::InvisibleButton("##gear", ImVec2(gear_sz, gear_sz));
+    if (ImGui::IsItemHovered())
+        render_panel_tooltip(_u8L("Label settings"));
+    ImGui::PopID();
+    // OpenPopup must run outside the PushID scope so its hashed id matches the
+    // bare popup_id used by BeginPopup in render_assembly_label_settings_popup().
+    if (gear_clicked)
+        ImGui::OpenPopup(popup_id);
+
+    // Row 1: "Show Object/Part labels" + checkbox. Drives the actual part-number
+    // labels (same state/action as the old "Show Part Numbers" card).
+    const float row1_y = card_min.y + font_sz + 14.0f * sc;
+    {
+        const float cb_sz = 16.0f * sc;
+        const float cb_x  = card_min.x + card_w - pad_x - cb_sz;
+        const float cb_y  = row1_y + (row_h - cb_sz) * 0.5f;
+
+        // Clamp the label to the space left of the checkbox so a long (e.g.
+        // untranslated/English) string never overlaps the control. Full text on hover.
+        const std::string txt_full  = _u8L("Show Object/Part labels");
+        const float       txt_avail = cb_x - (card_min.x + pad_x) - 6.0f * sc;
+        const std::string txt       = utf8_fit_with_ellipsis(txt_full, txt_avail);
+        const ImVec2 ts = ImGui::GetFont()->CalcTextSizeA(font_sz, FLT_MAX, 0.0f, txt.c_str());
+        const ImVec2 txt_pos(card_min.x + pad_x, row1_y + (row_h - ts.y) * 0.5f);
+        draw_list->AddText(ImGui::GetFont(), font_sz, txt_pos, grey700, txt.c_str());
+        if (!popup_open && ImGui::IsMouseHoveringRect(txt_pos, ImVec2(txt_pos.x + ts.x, txt_pos.y + ts.y))) {
+            render_panel_tooltip(txt != txt_full ? txt_full : _u8L("Show object and part names  on models"));
+        }
+        if (render_checkbox(draw_list, cb_x, cb_y, cb_sz, &m_guide_show_part_numbers, "##label_show_name", sc)) {
+            toggle_part_number_labels();
+        }
+        if (!popup_open && ImGui::IsMouseHoveringRect(ImVec2(cb_x, cb_y), ImVec2(cb_x + cb_sz, cb_y + cb_sz))) {
+            render_panel_tooltip(_u8L("Automatically select the optimal camera perspective and auto-arrange auto recommend labels each time the checkbox is re-ticked."));
+        }
+    }
+
+    // Row 2: "Current view labels" + "Auto layout" pill.
+    const float row2_y = row1_y + row_h;
+    {
+        const std::string pill_label = _u8L("Auto layout");
+        const ImVec2 lbl_sz = ImGui::GetFont()->CalcTextSizeA(pill_fs, FLT_MAX, 0.0f, pill_label.c_str());
+        const float pill_h = 20.0f * sc;
+        const float pill_w = std::max(60.0f * sc, lbl_sz.x + 16.0f * sc);
+        const float pill_x = card_min.x + card_w - pad_x - pill_w;
+        const float pill_y = row2_y + (row_h - pill_h) * 0.5f;
+        const ImVec2 pill_min(pill_x, pill_y), pill_max(pill_x + pill_w, pill_y + pill_h);
+        // The pill only acts when labels are enabled (Row 1 checkbox). When the
+        // checkbox is off it renders greyed out and ignores clicks.
+        const bool  pill_enabled = m_guide_show_part_numbers;
+        const ImU32 pill_col     = pill_enabled ? grey700
+                                                : (m_is_dark ? IM_COL32(0x5A, 0x5A, 0x5A, 255)
+                                                             : IM_COL32(0xC4, 0xC4, 0xC4, 255));
+        draw_list->AddRect(pill_min, pill_max, pill_col, pill_h * 0.5f, 0, 1.0f);
+        draw_list->AddText(ImGui::GetFont(), pill_fs,
+            ImVec2(pill_x + (pill_w - lbl_sz.x) * 0.5f, pill_y + (pill_h - lbl_sz.y) * 0.5f),
+            pill_col, pill_label.c_str());
+        if (pill_enabled) {
+            ImGui::SetCursorScreenPos(pill_min);
+            ImGui::PushID("##label_auto_arrange");
+            if (ImGui::InvisibleButton("##pill", ImVec2(pill_w, pill_h)))
+                auto_layout_labels_in_current_view();
+            if (ImGui::IsItemHovered())
+                render_panel_tooltip(_u8L("Auto-arrange labels in current view"));
+            ImGui::PopID();
+        }
+
+        // Clamp the label to the space left of the pill (avoids overlap when the
+        // string is long, e.g. the untranslated English copy). Full text on hover.
+        const std::string txt_full  = _u8L("Current view labels");
+        const float       txt_avail = pill_x - (card_min.x + pad_x) - 6.0f * sc;
+        const std::string txt       = utf8_fit_with_ellipsis(txt_full, txt_avail);
+        const ImVec2 ts = ImGui::GetFont()->CalcTextSizeA(font_sz, FLT_MAX, 0.0f, txt.c_str());
+        const ImVec2 txt_pos(card_min.x + pad_x, row2_y + (row_h - ts.y) * 0.5f);
+        draw_list->AddText(ImGui::GetFont(), font_sz, txt_pos, grey700, txt.c_str());
+        if (!popup_open && txt != txt_full &&
+            ImGui::IsMouseHoveringRect(txt_pos, ImVec2(txt_pos.x + ts.x, txt_pos.y + ts.y)))
+            render_panel_tooltip(txt_full);
+    }
+
+    // Settings popup (Figma 4125:11316) opened by the gear click above. Anchor it
+    // just below the gear; the popup clamps itself to the screen horizontally.
+    render_assembly_label_settings_popup(popup_id, sc, ImVec2(gear_x, gear_y + gear_sz + 6.0f * sc));
+}
+
+void AssemblyStepsUtils::render_assembly_label_settings_popup(const char *popup_id, float sc, const ImVec2 &anchor)
+{
+    const float  rounding   = 4.0f * sc;
+    const ImU32  panel_fill = m_is_dark ? IM_COL32(45, 45, 49, 255) : IM_COL32(255, 255, 255, 255);
+    const float  win_pad    = 12.0f * sc;
+
+    // Pre-estimate the content width so the popup never clips its widest row (the
+    // display-mode radio group). Radio width = circle (frame height) + inner
+    // spacing + label; radios are separated by ItemSpacing via SameLine.
+    const ImGuiStyle &style   = ImGui::GetStyle();
+    const float       frame_h = ImGui::GetFrameHeight();
+    const float       inner   = style.ItemInnerSpacing.x;
+    const float       spacing = style.ItemSpacing.x;
+    auto              radio_w = [&](const std::string &s) { return frame_h + inner + ImGui::CalcTextSize(s.c_str()).x; };
+    const float       radios_w = radio_w(_u8L("Auto")) + radio_w(_u8L("Object")) + radio_w(_u8L("Part")) + spacing * 2.0f;
+    const float       title_w  = ImGui::CalcTextSize(_u8L("Label Settings").c_str()).x + 14.0f * sc + 8.0f * sc;
+    const float       popup_w  = std::max(217.0f * sc, std::max(radios_w, title_w) + 2.0f * win_pad + 4.0f * sc);
+
+    // Position below the gear, shifted left so the (content-sized) popup stays on
+    // screen horizontally.
+    const float margin   = 8.0f * sc;
+    const float screen_w = ImGui::GetIO().DisplaySize.x;
+    float       pos_x    = anchor.x;
+    if (pos_x + popup_w > screen_w - margin)
+        pos_x = screen_w - margin - popup_w;
+    if (pos_x < margin)
+        pos_x = margin;
+    ImGui::SetNextWindowPos(ImVec2(pos_x, anchor.y), ImGuiCond_Always);
+
+    ImGui::PushStyleColor(ImGuiCol_PopupBg, m_is_dark ? ImVec4(45 / 255.0f, 45 / 255.0f, 49 / 255.0f, 1.0f)
+                                                      : ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+    ImGui::PushStyleColor(ImGuiCol_Text, m_is_dark ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f)
+                                                   : ImVec4(38.0f / 255.0f, 46.0f / 255.0f, 48.0f / 255.0f, 1.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, rounding);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(win_pad, win_pad));
+    // Width sized to content (>= Figma 4125:11316 width 217); height auto-fits.
+    ImGui::SetNextWindowSizeConstraints(ImVec2(popup_w, 0.0f), ImVec2(popup_w, FLT_MAX));
+    if (ImGui::BeginPopup(popup_id, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImDrawList  *dl   = ImGui::GetWindowDrawList();
+        const ImVec2 wmin = ImGui::GetWindowPos();
+        const ImVec2 wsz  = ImGui::GetWindowSize();
+        const ImVec2 wmax(wmin.x + wsz.x, wmin.y + wsz.y);
+
+        // Soft drop shadow (Figma 4166:11594: 0px 4px 2px rgba(0,0,0,0.25)).
+        // Drawn outside the window rect, then the panel fill is repainted on top
+        // so the shadow never darkens the interior. spread mirrors the 2px blur.
+        dl->PushClipRectFullScreen();
+        const int   steps  = 6;
+        const float spread = 2.0f * sc;
+        const float yoff   = 4.0f * sc;
+        for (int s = steps; s >= 1; --s) {
+            const float e = spread * (float) s / (float) steps;
+            const int   a = (int) (64.0f * (1.0f - (float) (s - 1) / (float) steps));
+            dl->AddRectFilled(ImVec2(wmin.x - e, wmin.y - e + yoff),
+                              ImVec2(wmax.x + e, wmax.y + e + yoff),
+                              IM_COL32(0, 0, 0, a), rounding + e);
+        }
+        dl->AddRectFilled(wmin, wmax, panel_fill, rounding);
+        dl->PopClipRect();
+
+        // Content (Figma 4125:11316 panel): title + close, a font-size slider/input,
+        // and a display-mode radio group.
+        ImGuiWrapper &imgui     = *m_imgui;
+        const float   content_w = wsz.x - 24.0f * sc;
+
+        // --- Title row + close "X" (draw_list based so it doesn't shift layout) ---
+        const ImVec2 title_pos = ImGui::GetCursorScreenPos();
+        imgui.text(_u8L("Label Settings"));
+        {
+            const float  xs   = 14.0f * sc;
+            const ImVec2 xmin(title_pos.x + content_w - xs, title_pos.y + (ImGui::GetTextLineHeight() - xs) * 0.5f);
+            const ImVec2 xmax(xmin.x + xs, xmin.y + xs);
+            ImTextureID  cross = m_is_dark ? m_tree_icon_cross_dark : m_tree_icon_cross;
+            const bool   xhover = ImGui::IsMouseHoveringRect(xmin, xmax);
+            if (cross)
+                dl->AddImage(cross, xmin, xmax, ImVec2(0, 0), ImVec2(1, 1),
+                             xhover ? (m_is_dark ? IM_COL32(255, 255, 255, 255) : IM_COL32(0x26, 0x2E, 0x30, 255))
+                                    : (m_is_dark ? IM_COL32(0xC0, 0xC0, 0xC0, 255) : IM_COL32(0x80, 0x80, 0x80, 255)));
+            if (xhover && ImGui::IsMouseClicked(0))
+                ImGui::CloseCurrentPopup();
+        }
+
+        // Divider (Figma 4125:11529): 1px grey300 line spanning the content width.
+        {
+            const ImU32  div_col = m_is_dark ? IM_COL32(60, 60, 64, 255) : IM_COL32(238, 238, 238, 255);
+            const ImVec2 dp      = ImGui::GetCursorScreenPos();
+            dl->AddLine(ImVec2(dp.x, dp.y), ImVec2(dp.x + content_w, dp.y), div_col, 1.0f * sc);
+            ImGui::Dummy(ImVec2(content_w, 1.0f * sc));
+        }
+        ImGui::Dummy(ImVec2(0.0f, 4.0f * sc));
+
+        // --- Font size (slider + numeric input), reusing the existing apply logic ---
+        {
+            update_part_number_label_font_size_from_config();
+            const float label_min       = ASSEMBLY_LABEL_DEFAULT_FONT_SIZE;
+            const float label_max       = ASSEMBLY_LABEL_DEFAULT_FONT_SIZE * ASSEMBLY_LABEL_MAX_FONT_SIZE_FACTOR;
+            float       label_font_size = part_number_label_font_size();
+            const float slider_w        = content_w * 0.58f;
+            const float value_w         = content_w * 0.30f;
+
+            imgui.text(_u8L("Font size"));
+
+            bool changed  = false;
+            bool released = false;
+            ImGui::PushItemWidth(slider_w);
+            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+            changed |= imgui.bbl_slider_float_style("##label_settings_fs_slider", &label_font_size, label_min, label_max, "%.0f");
+            released |= imgui.get_last_slider_status().deactivated_after_edit;
+            ImGui::PopStyleColor();
+            ImGui::SameLine();
+            ImGui::PushItemWidth(value_w);
+            // Give the numeric input a visible 1px border box like the assemble-
+            // view explosion-ratio input (GLCanvas3D). The popup pushed
+            // ImGuiCol_Border transparent and FrameBg here is transparent, so
+            // without this the box has neither fill nor outline.
+            const ImVec4 input_border = m_is_dark ? ImVec4(0.45f, 0.45f, 0.45f, 1.0f)
+                                                  : ImVec4(0.77f, 0.77f, 0.77f, 1.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * sc);
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f * sc);
+            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+            ImGui::PushStyleColor(ImGuiCol_Border, input_border);
+            changed |= ImGui::BBLDragFloat("##label_settings_fs_input", &label_font_size, 0.1f, label_min, label_max, "%.0f");
+            released |= ImGui::IsItemDeactivatedAfterEdit();
+            ImGui::PopStyleColor(2);
+            ImGui::PopStyleVar(2);
+
+            if (changed) {
+                save_part_number_label_font_size_to_config(label_font_size);
+                do_commond_callback("dirty");
+                do_commond_callback("request_extra_frame");
+            }
+            if (released) {
+                save_part_number_label_font_size_to_config(label_font_size, true);
+                auto_layout_labels_in_current_view();
+            }
+        }
+
+        ImGui::Dummy(ImVec2(0.0f, 6.0f * sc));
+
+        // --- Display mode (radio group), style mirrors GLGizmoText::draw_model_type ---
+        {
+            imgui.text(_u8L("Display mode"));
+            const LabelsShowType cur = m_cur_labels_show_type;
+            // The global theme fills unselected radios with a dark FrameBg (solid
+            // disc). Mirror the gizmo's window recipe so they render as hollow
+            // rings: transparent FrameBg + 1px frame border with a visible border
+            // color (the popup pushed ImGuiCol_Border transparent earlier).
+            const ImVec4 radio_ring = m_is_dark ? ImVec4(0.45f, 0.45f, 0.45f, 1.0f)
+                                                : ImVec4(0.77f, 0.77f, 0.77f, 1.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f * sc);
+            ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0, 0, 0, 0));
+            ImGui::PushStyleColor(ImGuiCol_Border, radio_ring);
+            ImGuiWrapper::push_radio_style();
+            if (ImGui::RadioButton(_u8L("Auto").c_str(), cur == LabelsShowType::AutoRecommend))
+                set_labels_show_type(LabelsShowType::AutoRecommend);
+            if (ImGui::IsItemHovered())
+                render_panel_tooltip(_u8L("Automatically choose object-or-part-level labels: objects already shown in earlier steps are collapsed into a single object label, while the rest are labeled per individual part."));
+            ImGui::SameLine();
+            if (ImGui::RadioButton(_u8L("Object").c_str(), cur == LabelsShowType::OnlyModelObject))
+                set_labels_show_type(LabelsShowType::OnlyModelObject);
+            if (ImGui::IsItemHovered())
+                render_panel_tooltip(_u8L("Show one label per model object."));
+            ImGui::SameLine();
+            if (ImGui::RadioButton(_u8L("Part").c_str(), cur == LabelsShowType::OnlyModelVolume))
+                set_labels_show_type(LabelsShowType::OnlyModelVolume);
+            if (ImGui::IsItemHovered())
+                render_panel_tooltip(_u8L("Show one label per model part."));
+            ImGuiWrapper::pop_radio_style();
+            ImGui::PopStyleColor(2);
+            ImGui::PopStyleVar();
+        }
+
+        ImGui::EndPopup();
+    }
+    ImGui::PopStyleVar(3);
+    ImGui::PopStyleColor(3);
 }
 
 bool AssemblyStepsUtils::rects_overlap(const ImVec2 &lhs_min, const ImVec2 &lhs_max,
@@ -4937,29 +5186,10 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
         12.0f * sc;
 
     auto       *sp_entries     = get_current_kf_entries();
-    // Title / description follow the currently selected label-show type so the
-    // section name matches what the menu (auto / objects only / parts only) shows.
-    std::string sp_title_str;
-    std::string desc_sp_str;
-    switch (m_cur_labels_show_type) {
-    case LabelsShowType::OnlyModelObject:
-        sp_title_str = _u8L("Show Object labels");
-        desc_sp_str  = _u8L("Show object names on the model");
-        break;
-    case LabelsShowType::OnlyModelVolume:
-        sp_title_str = _u8L("Show Part labels");
-        desc_sp_str  = _u8L("Show part names on models");
-        break;
-    case LabelsShowType::AutoRecommend:
-    default:
-        sp_title_str = _u8L("Show Object/Part labels");
-        desc_sp_str  = _u8L("Show object and part names  on models");
-        break;
-    }
-    const float desc_sp_wrap = card_w - 16.0f * sc;
-    const ImVec2 desc_sp_size = ImGui::GetFont()->CalcTextSizeA(small_fs, FLT_MAX, desc_sp_wrap,
-        desc_sp_str.c_str(), nullptr, nullptr);
-    const float card_h_sp   = font_sz + 14.0f * sc + desc_sp_size.y + 8.0f * sc;
+
+    // "Label" settings section (Figma 4125:11315): title row + 2 control rows.
+    const float lbl_row_h   = 28.0f * sc;
+    const float card_h_lbl  = font_sz + 14.0f * sc + lbl_row_h * 2.0f + 8.0f * sc;
 
     const float thumb_h_tl  = 48.0f * sc;
 
@@ -5043,19 +5273,28 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
                                             ? 0.0f
                                             : (collapse_note_size.y + 8.0f * sc);
 
-    const float card_h_tl   = font_sz + 12.0f * sc + thumb_h_tl + small_fs + 16.0f * sc + endframe_tip_extra_h + collapse_note_extra_h;
+    // Row under the frame labels for the "save / update" pill (Figma 4098:10831):
+    // gap above the button + pill height + gap below. Kept in sync with the render.
+    const float kf_to_btn_gap      = 18.0f * sc;
+    const float save_btn_h         = 22.0f * sc;
+    const float save_btn_below_gap = 8.0f * sc;
+    const float save_btn_row_h     = kf_to_btn_gap + save_btn_h + save_btn_below_gap;
+    const float card_h_tl   = font_sz + 12.0f * sc + thumb_h_tl + small_fs + save_btn_row_h + 8.0f * sc + endframe_tip_extra_h + collapse_note_extra_h;
 
     const float total_content = 8.0f * sc
         + card_h_ct + section_gap
         + card_h_an + section_gap
-        + card_h_sp + section_gap
+        + card_h_lbl + section_gap
         + card_h_tl + 8.0f * sc;
     // When collapsed, only the header bar is visible. Add a small safety buffer
     // (expanded mode) so the bottom card never gets clipped due to sub-pixel
     // rounding or any residual ImGui spacing.
-    const float desired_h = m_guide_panel_collapsed
-        ? header_h
-        : header_h + total_content + 4.0f * sc;
+    const float content_full_h = header_h + total_content + 4.0f * sc;
+    // panel_h is the caller-provided max height (canvas minus navigator minus gap).
+    // Cap the window there; only the content region scrolls when it does not fit.
+    const float max_h        = std::max(header_h, panel_h);
+    const bool  needs_scroll = !m_guide_panel_collapsed && content_full_h > max_h;
+    const float desired_h    = m_guide_panel_collapsed ? header_h : std::min(content_full_h, max_h);
 
     // Block canvas interaction only over the panel's real footprint, not the
     m_panel_rect_guide_min = ImVec2(panel_x, panel_y);
@@ -5149,6 +5388,16 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
         ImGui::PopStyleVar(4);
         return;
     }
+
+    // Scrollable content region below the fixed header. A vertical scrollbar is
+    // shown only when the sections exceed the capped panel height.
+    ImGui::SetCursorScreenPos(ImVec2(win_pos.x, win_pos.y + header_h));
+    const ImGuiWindowFlags content_flags = needs_scroll
+        ? ImGuiWindowFlags_NoBackground
+        : (ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    ImGui::BeginChild("##assembly_guide_content", ImVec2(panel_w, desired_h - header_h), false, content_flags);
+    // Sections draw into the child's draw list so they clip and scroll with it.
+    draw_list = ImGui::GetWindowDrawList();
 
     ImGui::Dummy(ImVec2(0, 8.0f * sc));
 
@@ -5339,50 +5588,11 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
         ImGui::Dummy(ImVec2(0, section_gap));
     }
 
-    // === Section 3: Show Part Numbers ===
+    // === Section 3.5: Label (Figma 4125:11315) ===
     {
-        ImVec2 card_min = section_begin(sp_title_str.c_str(), card_h_sp);
-
-        // Whole-card click opens the label-type menu. Submitted before the
-        // checkbox (+ SetItemAllowOverlap) so the checkbox still wins its own
-        // top-right corner; clicks over the checkbox are filtered out below.
-        const char *sp_menu_popup_id = "##assembly_labels_show_type_menu";
-        ImGui::SetCursorScreenPos(card_min);
-        ImGui::PushID("##sp_card_menu");
-        const bool sp_card_clicked = ImGui::InvisibleButton("##sp_card", ImVec2(card_w, card_h_sp));
-        ImGui::SetItemAllowOverlap();
-        ImGui::PopID();
-
-        const float cb_sz = 16.0f * sc;
-        const float cb_x  = card_min.x + card_w - 8.0f * sc - cb_sz;
-        const float cb_y  = card_min.y + 6.0f * sc;
-        if (render_checkbox(draw_list, cb_x, cb_y, cb_sz,
-                &m_guide_show_part_numbers, "##show_pn", sc)) {
-            toggle_part_number_labels();
-        }
-        if (ImGui::IsMouseHoveringRect(ImVec2(cb_x, cb_y), ImVec2(cb_x + cb_sz, cb_y + cb_sz))) {
-            std::string pn_tip = _u8L("Automatically select the optimal camera perspective and auto-arrange auto recommend labels each time the checkbox is re-ticked.");
-            bool cur_is_end_frame = false;
-            if (auto *pn_entries = get_current_kf_entries();
-                pn_entries && m_keyframe_selected >= 0 && m_keyframe_selected < (int) pn_entries->size())
-                cur_is_end_frame = (*pn_entries)[m_keyframe_selected].is_last();
-            //if (!cur_is_end_frame)
-               // pn_tip += " " + std::string(_u8L("The final frame will also automatically optimize the camera angle and label layout."));
-            render_panel_tooltip(pn_tip);
-        }
-
-        // Open the label-type menu on a card click that did not land on the checkbox.
-        const bool over_cb = ImGui::IsMouseHoveringRect(ImVec2(cb_x, cb_y), ImVec2(cb_x + cb_sz, cb_y + cb_sz));
-        if (sp_card_clicked && !over_cb) {
-            ImGui::OpenPopup(sp_menu_popup_id);
-        }
-        render_labels_show_type_menu_popup(sp_menu_popup_id, sc);
-
-        draw_list->AddText(ImGui::GetFont(), small_fs,
-            ImVec2(card_min.x + 8.0f * sc, card_min.y + font_sz + 14.0f * sc),
-            grey500, desc_sp_str.c_str(), nullptr, desc_sp_wrap);
-
-        ImGui::SetCursorScreenPos(ImVec2(card_min.x, card_min.y + card_h_sp));
+        ImVec2 card_min = section_begin(_u8L("Label").c_str(), card_h_lbl);
+        render_assembly_label_settings_section(draw_list, card_min, card_w, card_h_lbl, sc);
+        ImGui::SetCursorScreenPos(ImVec2(card_min.x, card_min.y + card_h_lbl));
         ImGui::Dummy(ImVec2(card_w, 0));
         ImGui::Dummy(ImVec2(0, section_gap));
     }
@@ -5397,6 +5607,8 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
         const std::string tl_title = _u8L("Timeline");
         ImVec2 card_min = section_begin(tl_title.c_str(), card_h_tl);
         const float thumb_y = card_min.y + title_h;
+
+        m_current_keyframe_changed = is_current_keyframe_changed();
 
         // Inline "Play" button to the right of the title text (10px spacing).
         float next_btn_x = 0.f;
@@ -5706,21 +5918,24 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
                 // accurate even when the delete badge is the last registered item.
                 const ImVec2 slot_min(slot_x, thumb_y);
                 const ImVec2 slot_max(slot_x + thumb_w, thumb_y + thumb_h);
+                // The delete badge sits in the slot's top-right corner (only when the
+                // frame is selected and deletable). It has its own "Delete this
+                // keyframe" tooltip, so exclude its area from the slot's select tip.
+                const float  badge_r = 9.0f * sc;
+                const ImVec2 badge_c(slot_max.x - 3.0f * sc, slot_min.y + 3.0f * sc);
+                const bool   over_delete_badge = !is_last && is_sel &&
+                    ImGui::IsMouseHoveringRect(ImVec2(badge_c.x - badge_r, badge_c.y - badge_r),
+                                               ImVec2(badge_c.x + badge_r, badge_c.y + badge_r));
                 // IsMouseHoveringRect is a pure geometry test that ignores z-order,
                 if (!ImGui::IsPopupOpen(nullptr, ImGuiPopupFlags_AnyPopup) &&
-                    ImGui::IsMouseHoveringRect(slot_min, slot_max)) {
-                    render_panel_tooltip(is_sel
-                        ? _u8L("Click to re-record this frame.\nEspecially after rotating the camera view, users want to save the current perspective")
-                        : _u8L("Click to select this frame"));
+                    ImGui::IsMouseHoveringRect(slot_min, slot_max) && !over_delete_badge) {
+                    render_panel_tooltip( _u8L("Click to select this frame"));
                 }
 
                 if (r == 1) {
                     // Two-step click semantics:
                     m_selected_screen_center_dirty_ = true;//on_selected_keyframe_change
-                    if (is_sel)
-                        record_keyframe_at(i);
-                    else
-                        on_keyframe_list_item_clicked(i, entry);
+                    on_keyframe_list_item_clicked(i, entry);
                 } else if (r == -1) {
                     m_keyframe_selected = i;
                     delete_selected_keyframe();
@@ -5737,9 +5952,50 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
         if (show_add_slot && !add_slot_done && !entries_mutated)
             render_add_slot();
 
+        // "Save / update" pill button (Figma 4098:10853): on its own line below the
+        if (kf_count > 0) {
+            const bool        save_enabled = m_current_keyframe_changed;
+            const std::string pill_label = _u8L("Save update");
+            // Use the regular panel font (larger than the small caption font).
+            const float       pill_fs = font_sz;
+            const ImVec2      lbl_sz =
+                ImGui::GetFont()->CalcTextSizeA(pill_fs, FLT_MAX, 0.0f, pill_label.c_str());
+            const float pill_h = save_btn_h;
+            const float pill_w = std::max(60.0f * sc, lbl_sz.x + 20.0f * sc);
+
+            // Center under the rendered keyframe slots span [slot_x0, last slot right].
+            const float kf_row_right = slot_x - thumb_gap;
+            const float row_center_x = (slot_x0 + kf_row_right) * 0.5f;
+            const float pill_x = row_center_x - pill_w * 0.5f;
+            const float pill_y = thumb_y + thumb_h_tl + small_fs + kf_to_btn_gap;
+            const ImVec2 pill_min(pill_x, pill_y);
+            const ImVec2 pill_max(pill_x + pill_w, pill_y + pill_h);
+
+            ImGui::SetCursorScreenPos(pill_min);
+            ImGui::PushID("##tl_rerecord_kf");
+            ImGui::InvisibleButton("##btn", ImVec2(pill_w, pill_h));
+            const bool pill_hovered = ImGui::IsItemHovered();
+            const bool pill_clicked = save_enabled && ImGui::IsItemClicked(0);
+            ImGui::PopID();
+
+            const ImU32 pill_col    = save_enabled ? grey900 : grey500;
+            const float pill_radius = pill_h * 0.5f;
+            draw_list->AddRect(pill_min, pill_max, pill_col, pill_radius, 0, 1.0f);
+            draw_list->AddText(ImGui::GetFont(), pill_fs,
+                ImVec2(pill_x + (pill_w - lbl_sz.x) * 0.5f,
+                       pill_y + (pill_h - lbl_sz.y) * 0.5f),
+                pill_col, pill_label.c_str());
+
+            if (pill_hovered)
+                render_panel_tooltip(_u8L("Save current frame"));
+            if (pill_clicked)
+                record_keyframe_at(m_keyframe_selected);
+        }
+
         // Endframe tip (grey, wrapped) under the thumb row. Only rendered when
+        // Offset by save_btn_row_h so the tips sit below the "save / update" pill.
         const float tip_x = card_min.x + 8.0f * sc;
-        float       next_tip_y = thumb_y + thumb_h_tl + small_fs + 8.0f * sc;
+        float       next_tip_y = thumb_y + thumb_h_tl + small_fs + save_btn_row_h;
         if (!tip_display_str.empty()) {
             const float tip_y = next_tip_y;
             draw_list->AddText(ImGui::GetFont(), small_fs,
@@ -5769,6 +6025,8 @@ void AssemblyStepsUtils::render_assembly_guide_panel(float panel_x, float panel_
     }
 
     ImGui::Dummy(ImVec2(0, 8.0f * sc));
+
+    ImGui::EndChild();
 
     imgui.end();
     ImGui::PopStyleColor(1);
@@ -5943,8 +6201,63 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
 
     ImGuiWrapper& imgui = *m_imgui;
 
+    // Auto-fit the panel height to the number of visible rows, capped at 800*sc
+    // (then the row list scrolls). panel_h is the on-screen upper clamp.
+    const float adaptive_h = [&]() {
+        auto to_lower_ascii = [](std::string v) {
+            std::transform(v.begin(), v.end(), v.begin(),
+                [](unsigned char ch) { return static_cast<char>(std::tolower(ch)); });
+            return v;
+        };
+        const std::string search_lc = to_lower_ascii(m_assembly_tree_search_text);
+        std::function<bool(int)> matches = [&](int nid) -> bool {
+            if (search_lc.empty())
+                return true;
+            if (nid < 0 || nid >= static_cast<int>(tree->nodes.size()))
+                return false;
+            if (to_lower_ascii(tree->nodes[nid].label).find(search_lc) != std::string::npos)
+                return true;
+            for (int c : tree->nodes[nid].children)
+                if (matches(c))
+                    return true;
+            return false;
+        };
+        std::function<int(int)> count_visible = [&](int nid) -> int {
+            if (nid < 0 || nid >= static_cast<int>(tree->nodes.size()) || !matches(nid))
+                return 0;
+            const auto &n = tree->nodes[nid];
+            int rows = 1;
+            const bool collapse_single_leaf = search_lc.empty() && n.children.size() == 1 &&
+                n.children[0] >= 0 && n.children[0] < static_cast<int>(tree->nodes.size()) &&
+                tree->nodes[n.children[0]].children.empty();
+            const bool has_children = !n.children.empty() && !collapse_single_leaf;
+            auto it = s_assembly_tree_open_nodes.find(n.uid);
+            const bool open = it == s_assembly_tree_open_nodes.end() ? true : it->second;
+            if ((open || !search_lc.empty()) && has_children)
+                for (int c : n.children)
+                    rows += count_visible(c);
+            return rows;
+        };
+        int visible_rows = 0;
+        for (int root_id : tree->roots)
+            visible_rows += count_visible(root_id);
+        visible_rows = std::max(visible_rows, 1);
+
+        const float row_h    = 36.0f * sc;
+        // Each row is a separate ImGui item, so ItemSpacing.y is inserted between
+        // them - account for it (plus a small buffer) so the last row isn't clipped.
+        const float row_spacing = ImGui::GetStyle().ItemSpacing.y;
+        // window padding (14*2) + header (36) + separator/spacing (14) + footer (58).
+        const float chrome_h = 28.0f * sc + 36.0f * sc + 14.0f * sc + 58.0f * sc;
+        const float content_h = chrome_h + visible_rows * (row_h + row_spacing) + 8.0f * sc;
+        float h = std::min(content_h, 800.0f * sc);
+        if (panel_h > 0.0f)
+            h = std::min(h, panel_h);
+        return h;
+    }();
+
     ImGui::SetNextWindowPos(ImVec2(panel_x, panel_y), ImGuiCond_Always, ImVec2(0.0f, 0.0f));
-    ImGui::SetNextWindowSize(ImVec2(panel_w, panel_h), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(panel_w, adaptive_h), ImGuiCond_Always);
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f * sc);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(14.0f * sc, 14.0f * sc));
@@ -6136,6 +6449,15 @@ void AssemblyStepsUtils::render_assembly_tree_ui(float panel_x, float panel_y, f
     if (render_result.confirm && active_step_node >= 0 && m_active_assembly_tree_checked != nullptr &&
         checked != m_assembly_tree_ui_original_checked) {
         apply_assembly_tree_checked_to_step(active_step_node, *tree, checked);
+        // The step's object/part membership just changed, so the current
+        // keyframe's part-number labels are stale. Rebuild + relayout them in
+        // place (no camera move) when labels are visible.
+        if (m_guide_show_part_numbers) {
+            if (auto *entries = get_current_kf_entries();
+                entries && m_keyframe_selected >= 0 && m_keyframe_selected < (int) entries->size())
+                toggle_part_number_labels_to_keyframe((*entries)[m_keyframe_selected],
+                                                      /*user_initiated*/ true, /*reframe_camera*/ false);
+        }
     } else if (render_result.confirm) {
         do_commond_callback("dirty");
     }

@@ -243,58 +243,6 @@ void AssemblyStepsUtils::set_note_selection(AssemblyNoteSelectionType type, int 
     m_note_selected_idx  = idx;
 }
 
-void AssemblyStepsUtils::set_assembly_camera_locked(bool locked)
-{
-    if (m_assembly_camera_locked == locked)
-        return;
-    m_assembly_camera_locked = locked;
-    reset_assembly_camera_lock_attempt();
-}
-
-void AssemblyStepsUtils::toggle_assembly_camera_locked()
-{
-    set_assembly_camera_locked(!m_assembly_camera_locked);
-}
-
-void AssemblyStepsUtils::reset_assembly_camera_lock_attempt()
-{
-    m_assembly_camera_lock_last_attempt_at = {};
-}
-
-bool AssemblyStepsUtils::has_assembly_camera_lock_attempt() const
-{
-    return m_assembly_camera_lock_last_attempt_at.time_since_epoch().count() != 0;
-}
-
-bool AssemblyStepsUtils::mark_assembly_camera_lock_attempt_if_due(std::chrono::steady_clock::time_point now,
-                                                                  std::chrono::milliseconds min_interval)
-{
-    const bool stamp_unset = !has_assembly_camera_lock_attempt();
-    const auto elapsed = stamp_unset ? min_interval :
-        std::chrono::duration_cast<std::chrono::milliseconds>(now - m_assembly_camera_lock_last_attempt_at);
-    if (stamp_unset || elapsed >= min_interval) {
-        m_assembly_camera_lock_last_attempt_at = now;
-        return true;
-    }
-    return false;
-}
-
-std::chrono::milliseconds AssemblyStepsUtils::assembly_camera_lock_attempt_elapsed(std::chrono::steady_clock::time_point now) const
-{
-    if (!has_assembly_camera_lock_attempt())
-        return std::chrono::milliseconds::max();
-    return std::chrono::duration_cast<std::chrono::milliseconds>(now - m_assembly_camera_lock_last_attempt_at);
-}
-
-bool AssemblyStepsUtils::is_assembly_camera_lock_blink_active(std::chrono::steady_clock::time_point now,
-                                                              std::chrono::milliseconds blink_window) const
-{
-    if (!m_assembly_camera_locked || !has_assembly_camera_lock_attempt())
-        return false;
-    const auto elapsed = assembly_camera_lock_attempt_elapsed(now);
-    return elapsed >= std::chrono::milliseconds(0) && elapsed < blink_window;
-}
-
 std::string AssemblyStepsUtils::assembly_step_display_name(const AssemblyStepsTreeNode &node) const
 {
     wxString label = _L("Step") + wxString::Format("%d ", node.step) + wxString::FromUTF8(node.name.c_str());
@@ -485,6 +433,75 @@ void AssemblyStepsUtils::apply_tree_items_selection_to_canvas()
     do_commond_callback("request_extra_frame");
 }
 
+void AssemblyStepsUtils::seed_tree_selected_items_from_canvas(const AssemblyTreeData &tree)
+{
+    m_assembly_tree_selected_items.clear();
+    if (!m_selection || !m_model || tree.nodes.empty())
+        return;
+
+    // Current canvas selection as (object_idx, volume_idx) pairs.
+    std::set<std::pair<int, int>> sel_pairs;
+    for (auto idx : m_selection->get_volume_idxs()) {
+        const GLVolume *gv = m_selection->get_volume(idx);
+        if (gv == nullptr)
+            continue;
+        sel_pairs.emplace(gv->object_idx(), gv->volume_idx());
+    }
+    if (sel_pairs.empty())
+        return;
+
+    // Object rows: an object is highlighted at the object level when every one of
+    // its selectable volume children is selected (a leaf object node with no
+    // volume children is highlighted when any of its volumes is selected). This
+    // matches the single-child collapse in the renderer, where the object row
+    // represents a single-volume object.
+    std::set<int> whole_objects;
+    for (const auto &n : tree.nodes) {
+        if (!n.selectable || n.volume_idx >= 0 || n.object_idx < 0)
+            continue;
+        bool any_child = false;
+        bool all_child = true;
+        for (int ci : n.children) {
+            if (ci < 0 || ci >= (int) tree.nodes.size())
+                continue;
+            const auto &cn = tree.nodes[ci];
+            if (!cn.selectable || cn.volume_idx < 0)
+                continue;
+            any_child = true;
+            if (sel_pairs.count({cn.object_idx, cn.volume_idx}) == 0) {
+                all_child = false;
+                break;
+            }
+        }
+        bool object_selected = any_child && all_child;
+        if (!any_child) {
+            // Leaf object node (no volume children): selected if any of its
+            // volumes is part of the canvas selection.
+            for (const auto &p : sel_pairs) {
+                if (p.first == n.object_idx) {
+                    object_selected = true;
+                    break;
+                }
+            }
+        }
+        if (object_selected) {
+            whole_objects.insert(n.object_idx);
+            m_assembly_tree_selected_items.emplace(n.object_idx, -1);
+        }
+    }
+
+    // Volume rows: highlight a selected volume unless its object is already
+    // highlighted as a whole (keeps per-row toggling unambiguous).
+    for (const auto &n : tree.nodes) {
+        if (!n.selectable || n.volume_idx < 0 || n.object_idx < 0)
+            continue;
+        if (whole_objects.count(n.object_idx) > 0)
+            continue;
+        if (sel_pairs.count({n.object_idx, n.volume_idx}) > 0)
+            m_assembly_tree_selected_items.emplace(n.object_idx, n.volume_idx);
+    }
+}
+
 void AssemblyStepsUtils::hover_tree_item_logic(int id)
 {
     // Canvas-side hover effect of a tree-view row. The argument is the unique
@@ -581,8 +598,10 @@ void AssemblyStepsUtils::on_selected_node_changed()
 
 void AssemblyStepsUtils::on_selected_node_step_changed(int folder_idx)
 {
-    // Switching step card must leave any in-progress note / connection editing.
+    // Switching step card must leave any in-progress note / connection editing,
+    // and close the add-object tree panel (it belongs to the previous step).
     clear_note_selection();
+    exit_render_assembly_tree_ui();
     if (folder_idx >= 0) {
         if (m_only_final_assembly_endframe_effect_real_assembly) {
             apply_final_assembly_end_keyframe();
@@ -4895,6 +4914,7 @@ void AssemblyStepsUtils::deal_once_when_enter_assembly_view() {
             clear_all_keyframe_part_number_labels();
             m_model->set_assembly_tree_data(build_model_object_tree_data());
             clear_selected_node();
+            exit_render_assembly_tree_ui();
             invalidate_play_frame_refs();
         }
         const AssemblyTreeData &tree = m_model->get_assembly_tree_data();
@@ -5197,7 +5217,7 @@ AssemblyStructurePanelData AssemblyStepsUtils::build_assembly_structure_panel_da
         if (!step.chips.empty())
             step.prefix_text = _u8L("Contain");
         else
-            step.placeholder_text = _u8L("Add object to current step");
+            step.placeholder_text = _u8L("Click to add objects to the current step");
 
         data.cards.push_back(std::move(step));
         ++step_seq;
@@ -5205,8 +5225,6 @@ AssemblyStructurePanelData AssemblyStepsUtils::build_assembly_structure_panel_da
 
     return data;
 }
-
-
 
 void AssemblyStepsUtils::open_structure_add_tree(int card_idx, int step_node_idx, const ImVec2 &pos)
 {
@@ -5216,6 +5234,10 @@ void AssemblyStepsUtils::open_structure_add_tree(int card_idx, int step_node_idx
     m_structure_add_tree_opened_this_frame = true;
     if (m_model && step_node_idx >= 0)
         reseed_assembly_tree_checked_from_step(step_node_idx, m_model->get_assembly_tree_data());
+    // Mirror the current canvas selection onto the tree's row highlight so the
+    // popup opens reflecting what the user already has selected on the canvas.
+    if (m_model)
+        seed_tree_selected_items_from_canvas(m_model->get_assembly_tree_data());
     // Force the tree UI to treat this as a context change so the checked map is
     // re-seeded from the step's current membership (keeps "List" checkboxes in
     // sync with the "Contain" chips even when reopening the same step).
@@ -5245,6 +5267,15 @@ void AssemblyStepsUtils::exit_render_assembly_tree_ui()
     m_assembly_tree_ui_current_folder_node = -1;
     m_assembly_tree_ui_original_checked.clear();
     m_structure_add_tree_opened_this_frame = false;
+    // Drop panel-local row state so a reopened tree starts clean.
+    m_assembly_tree_selected_items.clear();
+    m_assembly_tree_hover_id = -1;
+    m_tree_item_rename_object_idx = -1;
+    m_tree_item_rename_volume_idx = -1;
+    m_tree_item_rename_focus_pending = false;
+    m_assembly_tree_search_active = false;
+    m_assembly_tree_search_focus_pending = false;
+    m_assembly_tree_search_text.clear();
 }
 
 void AssemblyStepsUtils::renumber_structure_step_roots()
@@ -5421,6 +5452,13 @@ void AssemblyStepsUtils::delete_structure_step(int node_idx)
     if (!m_model || node_idx < 0 || node_idx >= (int) _steps_nodes.size())
         return;
     if (_steps_nodes[node_idx].type != AssemblyStepsTreeNode::Type::Folder || _steps_nodes[node_idx].is_final_assembly)
+        return;
+
+    MessageDialog msg_dlg(nullptr,
+        _L("Are you sure you want to delete the current step?"),
+        _L("Delete step"),
+        wxICON_QUESTION | wxYES_NO);
+    if (msg_dlg.ShowModal() != wxID_YES)
         return;
 
     int prev_card_node = -1;
@@ -6062,6 +6100,38 @@ void AssemblyStepsUtils::record_keyframe_at(int idx)
         record_keyframe_logic(entries[idx]);
     }
     refresh_guide_show_part_numbers_from_current();
+}
+
+bool AssemblyStepsUtils::is_current_keyframe_changed()
+{
+    if (!m_camera)
+        return false;
+
+    auto *entries = get_current_kf_entries();
+    if (!entries)
+        return false;
+    if (m_keyframe_selected < 0 || m_keyframe_selected >= (int) entries->size())
+        return false;
+
+    const KeyFrame &kf  = (*entries)[m_keyframe_selected].data;
+    const Camera   &cam = *m_camera;
+
+    // Compare the camera view (orientation + eye position). The orthographic
+    // zoom does not affect the view matrix, so check it separately with a
+    // relative tolerance.
+    if (!cam.get_view_matrix().matrix().isApprox(kf.view_matrix.matrix(), 1e-4))
+        return true;
+
+    // Projection matrix captures the frustum / ortho box (fov, near/far, aspect),
+    // which the view matrix does not encode.
+    if (!cam.get_projection_matrix().matrix().isApprox(kf.projection_matrix.matrix(), 1e-4))
+        return true;
+
+    const double cur_zoom = cam.get_zoom();
+    if (std::abs(cur_zoom - kf.camera_zoom) > 1e-3 * std::max(1.0, std::abs(kf.camera_zoom)))
+        return true;
+
+    return false;
 }
 
 void AssemblyStepsUtils::sync_canvas_selection_state()

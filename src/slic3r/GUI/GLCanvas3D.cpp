@@ -4273,15 +4273,6 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
         m_dirty = true;
         evt.RequestMore();
     }
-
-    // Keep the idle pump alive while the camera-lock blink is animating.
-    if (m_canvas_type == ECanvasType::CanvasAssembleView && m_assembly_steps) {
-        const auto now = std::chrono::steady_clock::now();
-        if (m_assembly_steps->is_assembly_camera_lock_blink_active(now, std::chrono::milliseconds(1200))) {
-            m_dirty = true;
-            evt.RequestMore();
-        }
-    }
 }
 
 void GLCanvas3D::on_char(wxKeyEvent& evt)
@@ -5020,14 +5011,6 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     evt.SetY(evt.GetY() * scale);
 #endif
 
-    // Camera-lock blink trigger: stamp BEFORE the gizmo / lock-bail-out
-    if (m_canvas_type == ECanvasType::CanvasAssembleView && m_assembly_steps && m_assembly_steps->is_assembly_camera_locked()) {
-        const auto now = std::chrono::steady_clock::now();
-        m_assembly_steps->mark_assembly_camera_lock_attempt_if_due(now, std::chrono::milliseconds(1200));
-        m_dirty = true;
-        request_extra_frame();
-    }
-
     if (wxGetApp().imgui()->update_mouse_data(evt)) {
         if (m_canvas_type == CanvasPreview) {
             IMSlider* m_layers_slider = get_gcode_viewer().get_layers_slider();
@@ -5065,9 +5048,6 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
 
     // Inform gizmos about the event so they have the opportunity to react.
     if (m_gizmos.on_mouse_wheel(evt))
-        return;
-
-    if (m_canvas_type == CanvasAssembleView && m_assembly_steps && m_assembly_steps->is_assembly_camera_locked())
         return;
 
     if (m_canvas_type == CanvasAssembleView && (evt.AltDown() || evt.CmdDown())) {
@@ -5337,17 +5317,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
     Point pos(evt.GetX(), evt.GetY());
 
-    // ---- Camera-lock blink trigger (must run BEFORE any toolbar / imgui /
-    if (m_canvas_type == ECanvasType::CanvasAssembleView && m_assembly_steps && m_assembly_steps->is_assembly_camera_locked()) {
-        const bool press_attempt = evt.LeftDown() || evt.RightDown() || evt.MiddleDown();
-        if (press_attempt || evt.Dragging()) {
-            const auto now = std::chrono::steady_clock::now();
-            m_assembly_steps->mark_assembly_camera_lock_attempt_if_due(now, std::chrono::milliseconds(1200));
-            m_dirty = true;
-            request_extra_frame();
-        }
-    }
-
     ImGuiWrapper* imgui = wxGetApp().imgui();
     if (m_tooltip.is_in_imgui() && evt.LeftUp())
         // ignore left up events coming from imgui windows and not processed by them
@@ -5401,15 +5370,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
             mouse_up_cleanup();
         m_mouse.set_start_position_3D_as_invalid();
-        return;
-    }
-
-    if (m_canvas_type == ECanvasType::CanvasAssembleView && m_assembly_steps && m_assembly_steps->is_assembly_camera_locked()) {
-        if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
-            mouse_up_cleanup();
-        m_mouse.set_start_position_3D_as_invalid();
-        m_mouse.position = evt.Leaving() ? Vec2d(-1.0, -1.0) : pos.cast<double>();
-        m_dirty = true;
         return;
     }
 
@@ -10104,19 +10064,9 @@ void GLCanvas3D::_render_fit_camera_toolbar()
     ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {0, 0});
 
-    const bool assembly_camera_locked = is_assembly && m_assembly_steps && m_assembly_steps->is_assembly_camera_locked();
-    const bool fit_camera_disabled = assembly_camera_locked;
-    if (fit_camera_disabled) {
-        ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.45f);
-    }
     if (ImGui::ImageButton3(normal_id, hover_id, button_icon_size, ImVec2(0, 0), ImVec2(1, 1),  -1,
-                           ImVec4(0, 0, 0, 0), ImVec4(1, 1, 1, 1), ImVec2(10, 0)) && !fit_camera_disabled) {
+                           ImVec4(0, 0, 0, 0), ImVec4(1, 1, 1, 1), ImVec2(10, 0))) {
         zoom_to_fit();
-    }
-    if (fit_camera_disabled) {
-        ImGui::PopStyleVar();
-        ImGui::PopItemFlag();
     }
     if (ImGui::IsItemHovered()) {
         auto temp_tooltip = _L("Fit camera to scene or selected object.");
@@ -10142,51 +10092,25 @@ void GLCanvas3D::_render_fit_camera_toolbar()
         if (s_camera_unlock_dark_id == (ImTextureID)0)
             IMTexture::load_from_svg_file(Slic3r::resources_dir() + "/images/camera_unlock_dark.svg", 64, 64, s_camera_unlock_dark_id);
 
-        const ImTextureID lock_normal_id = assembly_camera_locked ?
-            (m_is_dark ? s_camera_lock_dark_id : s_camera_lock_id) :
-            (m_is_dark ? s_camera_unlock_dark_id : s_camera_unlock_id);
-        const ImTextureID lock_hover_id  = lock_normal_id; // Single SVG per state; ImageButton3 still paints its own hover BG.
+        // Default shows the unlock icon; hovering swaps to the lock icon (dark-aware).
+        // ImageButton3 paints lock_hover_id while hovered and reverts on exit.
+        const ImTextureID lock_normal_id = m_is_dark ? s_camera_unlock_dark_id : s_camera_unlock_id;
+        const ImTextureID lock_hover_id  = m_is_dark ? s_camera_lock_dark_id   : s_camera_lock_id;
 
         // Match fit-camera button geometry exactly: same image size AND same
         const ImVec2 lock_btn_size = button_icon_size;
         const ImVec2 lock_btn_padding(10, 0); // same as the fit-camera button
 
-        // 1 Hz blink: when the camera is locked AND the user just tried to
-        bool blink_dim_phase = false;
-        constexpr int blink_window_ms = 1200;
-        if (assembly_camera_locked && m_assembly_steps) {
-            const auto now = std::chrono::steady_clock::now();
-            const auto elapsed = m_assembly_steps->assembly_camera_lock_attempt_elapsed(now);
-            if (elapsed >= std::chrono::milliseconds(0) && elapsed < std::chrono::milliseconds(blink_window_ms)) {
-                blink_dim_phase = ((elapsed.count() / 500) % 2) != 0;
-                // Keep redrawing while the pulse is animating. on_idle also
-                m_dirty = true;
-                request_extra_frame();
-            }
-        }
-
-        bool lock_clicked = false;
-        if (!blink_dim_phase) {
-            // Bright phase: real button + icon.
-            lock_clicked = ImGui::ImageButton3(lock_normal_id, lock_hover_id,
-                lock_btn_size, ImVec2(0, 0), ImVec2(1, 1), -1,
-                ImVec4(0, 0, 0, 0), ImVec4(1, 1, 1, 1), lock_btn_padding);
-        } else {
-            // Dim phase: literally don't draw anything for the lock icon.
-            const ImVec2 hit_size(
-                lock_btn_size.x + lock_btn_padding.x * 2.0f,
-                lock_btn_size.y + lock_btn_padding.y * 2.0f);
-            lock_clicked = ImGui::InvisibleButton(
-                "##assembly_camera_lock_blink_off", hit_size);
-        }
+        // ImageButton3 paints lock_normal_id (unlock) by default and swaps to
+        // lock_hover_id (lock) while hovered, reverting automatically on exit.
+        bool lock_clicked = ImGui::ImageButton3(lock_normal_id, lock_hover_id, lock_btn_size,
+                                                ImVec2(0, 0), ImVec2(1, 1), -1,
+                                                ImVec4(0, 0, 0, 0), ImVec4(1, 1, 1, 1), lock_btn_padding);
         if (lock_clicked && m_assembly_steps) {
-            m_assembly_steps->toggle_assembly_camera_locked();
-            mouse_up_cleanup();
-            m_mouse.set_start_position_3D_as_invalid();
-            m_dirty = true;
+            m_assembly_steps->auto_recommend_camera_for_current_view();
         }
         if (ImGui::IsItemHovered()) {
-            auto tip   = (m_assembly_steps && m_assembly_steps->is_assembly_camera_locked()) ? _L("Unlock camera") : _L("Lock camera");
+            auto tip   = _L("Auto recommend camera angle(Only works when the assembly step function is active)");
             auto width = ImGui::CalcTextSize(tip.c_str()).x + imgui.scaled(2.0f);
             imgui.tooltip(tip, width);
         }

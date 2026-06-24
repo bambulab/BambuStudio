@@ -139,8 +139,14 @@ class AssemblyStepsUtils
     ImTextureID         m_note_icon_tag_dark{nullptr};
     ImTextureID         m_note_icon_pencil{nullptr};
     ImTextureID         m_tree_icon_frame{nullptr};
+    // Unselected-state variant of the keyframe-thumbnail frame icon.
+    ImTextureID         m_tree_icon_frame_unselect{nullptr};
     ImTextureID         m_tree_icon_cross{nullptr};
     ImTextureID         m_tree_icon_cross_dark{nullptr};
+    // Gear/settings icon for the "Label" section header (tree_set.svg) and its
+    // hover variant (tree_set_hover.svg).
+    ImTextureID         m_tree_icon_set{nullptr};
+    ImTextureID         m_tree_icon_set_hover{nullptr};
     // Header collapse / expand toggle (panel_collapse.svg / panel_expand.svg).
     ImTextureID         m_panel_collapse_icon{nullptr};
     ImTextureID         m_panel_expand_icon{nullptr};
@@ -151,6 +157,13 @@ class AssemblyStepsUtils
     ImTextureID         m_structure_option_icon_dark{nullptr};
     // Per-step option icon shown at the top-right of step cards (tree_step_option.svg).
     ImTextureID         m_structure_step_option_icon{nullptr};
+    // Per-step action icons at the top-right of step cards: copy / delete / add-objects.
+    ImTextureID         m_structure_step_copy_icon{nullptr};
+    ImTextureID         m_structure_step_copy_icon_dark{nullptr};
+    ImTextureID         m_structure_step_delete_icon{nullptr};
+    ImTextureID         m_structure_step_delete_icon_dark{nullptr};
+    ImTextureID         m_structure_step_object_tree_icon{nullptr};
+    ImTextureID         m_structure_step_object_tree_icon_dark{nullptr};
     // "Add object to step" affordance shown on each step card. Two states:
     ImTextureID         m_structure_step_add_icon_unedit{nullptr};
     ImTextureID         m_structure_step_add_icon_edit{nullptr};
@@ -362,9 +375,7 @@ class AssemblyStepsUtils
     static constexpr double VIDEO_INTRO_COVER_DURATION = 2.0; // cover title (s)
     static constexpr double VIDEO_INTRO_STEP_DURATION  = 1.5; // Step 1 title (s)
     bool                  m_in_assembly_view{false};
-    bool                  m_assembly_camera_locked{false};
-    // Wall-clock stamp of the most recent camera-manipulation attempt while the assembly camera is locked.
-    std::chrono::steady_clock::time_point m_assembly_camera_lock_last_attempt_at{};
+
     int                   m_note_text_focus_request{-1};
     // When a re-focus is requested to recover from ImGui deactivating the InputText
     bool                  m_note_text_focus_keep_cursor{false};
@@ -406,6 +417,13 @@ class AssemblyStepsUtils
     int                       m_assembly_play_count{0}; // 0 mean dirty
     float                     m_margin_factor_camera_for_not_last_frame{1.4f};
     bool                      m_note_edit_controls_visible{false};
+    // True only while the currently-selected text label is in caret/typing mode
+    // (its InputText is the active item). Refreshed every frame by
+    // render_assembly_notes_on_canvas. Used to gate the Delete-key shortcut so a
+    // character delete during typing does not erase the whole label, while still
+    // allowing Delete to remove a selected (non-caret) label even right after it
+    // was dragged/resized (when a handle item may briefly remain active).
+    bool                      m_note_text_caret_active{false};
     bool                      m_tree_icons_loaded{false};
     bool                      m_playback_paused{false};
     double                    m_playback_pause_started_at{0.0};
@@ -417,6 +435,8 @@ class AssemblyStepsUtils
     char                               m_keyframe_edit_buf[256]{};
     // keyframe_entries_tree was a std::map<int, KFNodeData>; KFNodeData is now embedded directly on AssemblyStepsTreeNode::kf_data, so we look up via nodes[i].kf_data instead.
     int m_keyframe_selected{-1};
+    // Cached per-frame result of is_current_keyframe_changed(), refreshed once at
+    bool                      m_current_keyframe_changed{false};
     AssemblyNoteSelectionType m_note_selected_type{AssemblyNoteSelectionType::None};
     int                       m_note_selected_idx{-1};
     bool                      m_keyframe_playing{false};
@@ -490,6 +510,11 @@ public://logic
     // Rebuild the canvas selection from m_assembly_tree_selected_items (the rows
     // selected in the assembly tree). Supports multiple objects/volumes at once.
     void                     apply_tree_items_selection_to_canvas();
+    // One-shot seed of m_assembly_tree_selected_items from the current canvas
+    // selection, so opening the add-object tree highlights the rows that match
+    // what is selected on the canvas. Whole-object selections map to the object
+    // row; partial selections map to the individual volume rows.
+    void                     seed_tree_selected_items_from_canvas(const AssemblyTreeData &tree);
     // Hover callback for a tree-view row. The argument is the unique ObjectID of
     // the hovered ModelObject / ModelVolume (-1 when no row is hovered). The
     // concrete canvas-hover effect is wired up separately.
@@ -565,16 +590,7 @@ public://logic
     void                     set_note_edit_controls_visible(bool visible) { m_note_edit_controls_visible = visible; }
     bool                     is_note_edit_controls_visible() const { return m_note_edit_controls_visible; }
     void                     set_note_selection(AssemblyNoteSelectionType type, int idx);
-    bool                     is_assembly_camera_locked() const { return m_assembly_camera_locked; }
-    void                     set_assembly_camera_locked(bool locked);
-    void                     toggle_assembly_camera_locked();
-    void                     reset_assembly_camera_lock_attempt();
-    bool                     has_assembly_camera_lock_attempt() const;
-    bool                     mark_assembly_camera_lock_attempt_if_due(std::chrono::steady_clock::time_point now,
-                                                                      std::chrono::milliseconds min_interval);
-    std::chrono::milliseconds assembly_camera_lock_attempt_elapsed(std::chrono::steady_clock::time_point now) const;
-    bool                     is_assembly_camera_lock_blink_active(std::chrono::steady_clock::time_point now,
-                                                                  std::chrono::milliseconds blink_window) const;
+
     bool                     goto_global_frame(int global_idx);
     // Map a horizontal mouse position over the progress bar to a global frame and
     // seek to it. progress_x0 is the bar's left screen-x, progress_w its width.
@@ -786,6 +802,10 @@ public://logic
     void on_keyframe_list_item_clicked(int idx, KeyFrameEntry &entry);
     // Record / re-record the keyframe at `idx` from the current canvas state.
     void          record_keyframe_at(int idx);
+    // True when the live camera no longer matches the camera stored in the
+    // currently selected keyframe (i.e. the user moved the view since the frame
+    // was recorded). Drives the "unsaved view" dot in the timeline thumbnail.
+    bool          is_current_keyframe_changed();
     std::set<int> collect_node_object_indices(int node_idx) const;
     // Returns true if `object_idx` already appears in any step folder ordered
     bool          is_object_used_in_previous_steps(int object_idx, int folder_idx) const;
@@ -857,6 +877,17 @@ public://imgui
     // Generic clickable square checkbox. `*checked` is read and toggled on click. Returns true when the state was changed.
     bool render_checkbox(ImDrawList *dl, float x, float y, float sz,
                          bool *checked, const char *id, float sc);
+    // "Label" settings section (Figma 4125:11315): a gear icon (tree_set.svg) next
+    // to the title opens a settings popup (Figma 4125:11316). Draws the section
+    // content (rows + gear) into the card the caller already positioned; the card
+    // background/title are drawn by the caller's section_begin. UI-only for now.
+    void render_assembly_label_settings_section(ImDrawList *draw_list, const ImVec2 &card_min,
+                                                float card_w, float card_h, float sc);
+    // Popup opened by the gear icon in that section (Figma 4125:11316): a white
+    // rounded panel with a drop shadow. `anchor` is the desired top-left (below
+    // the gear); the popup width is sized to its content and shifted left when it
+    // would run off the right edge of the screen.
+    void render_assembly_label_settings_popup(const char *popup_id, float sc, const ImVec2 &anchor);
 
 private://logic
     bool          is_part_number_label_layout_overlapped(const ImVec2 &rect_min, const ImVec2 &rect_max) const;
