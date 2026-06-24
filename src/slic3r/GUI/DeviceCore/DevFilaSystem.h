@@ -148,6 +148,12 @@ public:
         On = 1,
     };
 
+    enum class RemainEstimateVersion : int
+    {
+        Legacy   = 0,   // Legacy: coarse estimate.
+        Accurate = 1,   // Accurate: O1D U4 precise estimate.
+    };
+
     enum class CannotDryReason : int
     {
         TaskOccupied = 0,
@@ -228,6 +234,8 @@ public:
 
     bool AmsIsDrying();
 
+    RemainEstimateVersion GetRemainEstimateVersion() const { return m_remain_estimate_version; }
+
 private:
     std::weak_ptr<DevFilaSystem> m_fila_system;
 
@@ -260,6 +268,7 @@ private:
     std::optional<DryFanStatus> m_dry_fan2_status;
     std::optional<std::vector<CannotDryReason>> m_dry_cannot_reasons;
     std::optional<DrySettings> m_dry_settings;
+    RemainEstimateVersion m_remain_estimate_version = RemainEstimateVersion::Legacy;
 };
 
 class DevFilaSystem

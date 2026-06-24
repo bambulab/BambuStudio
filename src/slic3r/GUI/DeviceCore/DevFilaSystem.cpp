@@ -589,6 +589,7 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
     std::set<int> binded_extruder_set;
     std::optional<DevFilaSwitch::SwitchPos> binded_switcher_pos;
     auto type_id = DevAmsType::AMS; // 0:dummy 1:ams 2:ams-lite 3:n3f 4:n3s
+    auto remain_estimate_version = DevAms::RemainEstimateVersion::Legacy;
 
     /*ams info*/
     if (j_ams.contains("info")) {
@@ -611,6 +612,8 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
         } else{
             binded_extruder_set = { extuder_id };
         }
+
+        remain_estimate_version = static_cast<DevAms::RemainEstimateVersion>(DevUtil::get_flag_bits(info, 30, 2));
     } else {
         binded_extruder_set = { MAIN_EXTRUDER_ID }; // Default extruder id
         if (!obj->is_enable_ams_np && obj->get_printer_ams_type() == "f1") {
@@ -643,6 +646,7 @@ DevAms* DevFilaSystemParser::ParseAmsInfo(const json& j_ams, MachineObject* obj,
 
     curr_ams->m_binded_switcher_pos = binded_switcher_pos;
     curr_ams->m_binded_extruder_set = binded_extruder_set;
+    curr_ams->m_remain_estimate_version = remain_estimate_version;
 
     /*set ams exist flag*/
     try {
