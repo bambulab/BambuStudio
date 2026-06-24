@@ -495,14 +495,12 @@ namespace Slic3r
 
     void FilamentGroupUtils::update_memoryed_groups(const MemoryedGroup& item, const double gap_threshold, MemoryedGroupHeap& groups)
     {
+        // Use the more lenient of absolute/relative tolerance to avoid losing valid candidates
+        // when scores are small, while still allowing proportional expansion when scores are large.
         auto emplace_if_accepatle = [gap_threshold](MemoryedGroupHeap& heap, const MemoryedGroup& elem, const MemoryedGroup& best) {
-            if (best.cost == 0) {
-                if (std::abs(elem.cost - best.cost) <= ABSOLUTE_FLUSH_GAP_TOLERANCE)
-                    heap.push(elem);
-                return;
-            }
-            double gap_rate = (double)std::abs(elem.cost - best.cost) / (double)best.cost;
-            if (gap_rate <= gap_threshold)
+            double gap = std::abs(elem.cost - best.cost);
+            double tolerance = std::max(ABSOLUTE_FLUSH_GAP_TOLERANCE * 6.0, best.cost * gap_threshold);
+            if (gap <= tolerance)
                 heap.push(elem);
             };
 
