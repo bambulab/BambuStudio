@@ -849,9 +849,24 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
         if (z_hope_type == ZHopType::zhtAuto || z_hope_type == ZHopType::zhtSpiral || z_hope_type == ZHopType::zhtSlope)
             auto_lift_type = LiftType::SpiralLift;
 
-        // BBS: should be placed before toolchange parsing
-        bool full_retract_before_nozzle_change = tcr.is_tool_change && (!is_nozzle_change || tcr.nozzle_change_result.zero_flush_idle_cooling || tcr.nozzle_change_result.heater_off_only);
-        std::string toolchange_retract_str = gcodegen.retract(full_retract_before_nozzle_change, false, auto_lift_type, true);
+        // Retract & spiral lift when leaving the model, heading to the wipe tower.
+        //
+        // Retract distance and lift speed are independent concerns controlled by
+        // separate parameters (toolchange vs slow_lift):
+        //   - Same-nozzle color change:  long retract (no nozzle-change phase to do it later)
+        //   - zero_flush / heater_off:   long retract (filament stays retracted during cooling)
+        //   - Normal nozzle change:      short retract (long retract happens after ramming in phase ②)
+        //
+        // All scenarios use fast lift (slow_lift=false) when leaving the model;
+        // the slow lift is only used after ramming (phase ②).
+        bool need_tc_retract_at_model = tcr.is_tool_change &&
+            (!is_nozzle_change || tcr.nozzle_change_result.zero_flush_idle_cooling || tcr.nozzle_change_result.heater_off_only);
+        std::string toolchange_retract_str;
+        if (need_tc_retract_at_model) {
+            toolchange_retract_str += gcodegen.retract(true, false, auto_lift_type, true, false);
+        } else {
+            toolchange_retract_str += gcodegen.retract(false, false, auto_lift_type, true);
+        }
         check_add_eol(toolchange_retract_str);
 
         if (tcr.nozzle_change_result.heater_off_only) {
@@ -923,7 +938,7 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
                 for (const Vec2f& wipe_pt : tcr.nozzle_change_result.wipe_path)
                     gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt) + plate_origin_2d));
                 if (!tcr.nozzle_change_result.zero_flush_idle_cooling)
-                    nozzle_change_gcode_trans += gcodegen.retract(tcr.is_tool_change, false, auto_lift_type, true);
+                    nozzle_change_gcode_trans += gcodegen.retract(tcr.is_tool_change, false, auto_lift_type, true, tcr.is_tool_change);
             }
             end_filament_gcode_str = nozzle_change_gcode_trans + end_filament_gcode_str;
         }
@@ -1314,7 +1329,10 @@ static std::vector<Vec2d> get_path_of_change_filament(const Print& print)
             gcodegen.m_wipe.reset_path();
             for (const Vec2f& wipe_pt : tcr.wipe_path)
                 gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, transform_wt_pt(wipe_pt) + plate_origin_2d));
-            gcode += gcodegen.retract(false, false, auto_lift_type, true);
+            // Retract & spiral lift when leaving the wipe tower, heading back to the model.
+            // Use normal retract distance (short), but always slow spiral lift (prime_tower_lift_speed)
+            // to avoid stringing from the tower surface.
+            gcode += gcodegen.retract(false, false, auto_lift_type, true, true);
         }
 
         // Let the planner know we are traveling between objects.
@@ -7988,7 +8006,7 @@ bool GCode::needs_retraction(const Polyline &travel, ExtrusionRole role, LiftTyp
     return true;
 }
 
-std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType lift_type,bool apply_instantly)
+std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType lift_type,bool apply_instantly, bool slow_lift)
 {
     std::string gcode;
 
@@ -8012,9 +8030,9 @@ std::string GCode::retract(bool toolchange, bool is_last_retraction, LiftType li
     if (m_writer.filament()->retraction_length() > 0 || m_config.use_firmware_retraction) {
         // BBS: force to use normal lift for spiral vase mode
         if (apply_instantly)
-            gcode += m_writer.eager_lift(lift_type,toolchange);
+            gcode += m_writer.eager_lift(lift_type, slow_lift);
         else
-            gcode += m_writer.lazy_lift(lift_type, m_spiral_vase != nullptr, toolchange);
+            gcode += m_writer.lazy_lift(lift_type, m_spiral_vase != nullptr, slow_lift);
 
     }
 

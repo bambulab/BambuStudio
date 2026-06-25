@@ -239,8 +239,8 @@ public:
 
     // BBS: detect lift type in needs_retraction
     bool        needs_retraction(const Polyline &travel, ExtrusionRole role, LiftType &lift_type);
-    std::string retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::SpiralLift, bool apply_instantly = false);
-    std::string unretract(float extra_retract = 0.f) { return m_writer.unlift() + m_writer.unretract(extra_retract); }
+    std::string retract(bool toolchange = false, bool is_last_retraction = false, LiftType lift_type = LiftType::SpiralLift, bool apply_instantly = false, bool slow_lift = false);
+    std::string unretract(float extra_retract = 0.f);
     //BBS
     bool is_BBL_Printer();
 
