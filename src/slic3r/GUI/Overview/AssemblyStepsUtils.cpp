@@ -6520,8 +6520,11 @@ KeyFrame AssemblyStepsUtils::interpolate_keyframe(
     const bool from_empty = from.object_transformations.empty() && from.volume_transformations.empty();
     const bool to_empty   = to.object_transformations.empty()   && to.volume_transformations.empty();
     if (from_empty || to_empty) {
+        BOOST_LOG_TRIVIAL(warning) << "interpolate_keyframe: empty keyframe transforms (from_empty=" << from_empty << ", to_empty=" << to_empty << "), skip interpolation";
+#if !BBL_RELEASE_TO_PUBLIC
 #ifdef _WIN32
         __debugbreak();
+#endif
 #endif
         return result;
     }
