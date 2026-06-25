@@ -613,6 +613,7 @@ static unordered_map<string, NozzleFlowType> _str2_nozzle_flow_type = {
     {"X", NozzleFlowType::S_FLOW},
     {"E", NozzleFlowType::H_FLOW},
     {"U", NozzleFlowType::U_FLOW},
+    {"B", NozzleFlowType::E_FLOW},
 };
 
 static unordered_map<string, NozzleType> _str2_nozzle_type = {

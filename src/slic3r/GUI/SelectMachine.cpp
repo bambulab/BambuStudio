@@ -93,6 +93,8 @@ std::string get_nozzle_volume_type_cloud_string(NozzleVolumeType nozzle_volume_t
         return "high_flow";
     } else if (nozzle_volume_type == NozzleVolumeType::nvtTPUHighFlow) {
         return "tpu_high_flow";
+    } else if (nozzle_volume_type == NozzleVolumeType::nvtE3DHighFlow) {
+        return "e3d_high_flow";
     } else if(nozzle_volume_type == NozzleVolumeType::nvtHybrid) {
         // to be supported
         return "hybrid_flow";
@@ -2289,7 +2291,7 @@ void SelectMachineDialog::on_ok_btn(wxCommandEvent &event)
             confirm_dlg.update_text(confirm_text, false);
         }
 
-        if (!is_printing_block) 
+        if (!is_printing_block)
         {
             confirm_dlg.update_btn_label(_L("Continue printing"), _L("Return to modify"));
         }
