@@ -3492,6 +3492,12 @@ size_t ModelVolume::split(unsigned int max_extruders, float scale_det)
 
     unsigned int extruder_counter = 0;
     const Vec3d offset = this->get_offset();
+    // Capture the source volume's assembly-view transform up front. Every split
+    // piece inherits this same assemble transform (idx 0 keeps it, idx > 0 copies
+    // it via the ModelVolume copy ctor); below we compensate it per piece for the
+    // geometry recentering so each mesh keeps its world position in assembly view.
+    const bool        src_assemble_initialized = this->is_assemble_initialized();
+    const Transform3d src_assemble_matrix      = this->get_assemble_transformation().get_matrix();
     std::vector<std::string> tris_split_strs;
     auto face_count = m_mesh->its.indices.size();
     tris_split_strs.reserve(face_count);
@@ -3539,9 +3545,17 @@ size_t ModelVolume::split(unsigned int max_extruders, float scale_det)
                 }
             }
         }
-        this->object->volumes[ivolume]->set_offset(Vec3d::Zero());
-        this->object->volumes[ivolume]->center_geometry_after_creation();
-        this->object->volumes[ivolume]->translate(offset);
+        ModelVolume *cur_vol = this->object->volumes[ivolume];
+        cur_vol->set_offset(Vec3d::Zero());
+        // center_geometry_after_creation() recenters the sub-mesh's local origin by
+        // its bbox center. Capture that shift so the inherited assemble transform can
+        // be post-multiplied by it, keeping the piece's assembly-view world position
+        // identical (the edit-view world is already preserved by the offset dance).
+        const Vec3d center_shift = cur_vol->mesh().bounding_box().center();
+        cur_vol->center_geometry_after_creation();
+        cur_vol->translate(offset);
+        if (src_assemble_initialized)
+            cur_vol->set_assemble_from_transform(src_assemble_matrix * Geometry::translation_transform(center_shift));
         this->object->volumes[ivolume]->name = name + "_" + std::to_string(idx + 1);
         //BBS: always set the extruder id the same as original
         this->object->volumes[ivolume]->config.set("extruder", this->extruder_id());

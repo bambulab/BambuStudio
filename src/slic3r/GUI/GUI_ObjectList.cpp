@@ -3047,8 +3047,6 @@ void ObjectList::split()
     float scale_det = std::fabs(world_tran.matrix().block(0, 0, 3, 3).determinant());
     volume->split(filament_cnt, scale_det);
 
-
-
     auto parent = m_objects_model->GetObject(item);
     if (parent)
         m_objects_model->DeleteVolumeChildren(parent);
