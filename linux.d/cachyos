@@ -1,0 +1,51 @@
+FOUND_GTK3=$(pacman -Q gtk3 2>/dev/null || true)
+
+REQUIRED_DEV_PACKAGES=(
+    autoconf
+    automake
+    base-devel
+    cmake
+    cereal
+    dbus
+    eglexternalplatform
+    eigen
+    extra-cmake-modules
+    file
+    gettext
+    git
+    gst-plugins-base
+    gstreamer
+    gtk3
+    libmspack
+    libsecret
+    libtool
+    m4
+    mesa
+    ninja
+    openssl
+    perl
+    texinfo
+    wayland
+    wayland-protocols
+    libxkbcommon
+    wget
+    curl
+    nasm
+    yasm
+    x264
+    bzip2
+)
+
+if [[ -n "$UPDATE_LIB" ]]
+then
+    REQUIRED_DEV_PACKAGES+=(webkit2gtk-4.1)
+
+    sudo pacman -Syu --noconfirm
+    sudo pacman -S --needed --noconfirm ${REQUIRED_DEV_PACKAGES[@]}
+
+    echo -e "done\n"
+    exit 0
+fi
+
+# Arch-based distros do not split most libraries into separate -dev packages.
+FOUND_GTK3_DEV=$(pacman -Q gtk3 2>/dev/null || true)

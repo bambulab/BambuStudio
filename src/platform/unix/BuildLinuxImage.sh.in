@@ -34,10 +34,20 @@ echo -n "[9/9] Generating Linux app..."
     # remove unneeded po from resources
     ## find package/resources/localization -name "*.po" -type f -delete ## FIXME: DD - do we need this?
 
-    # create bin
-cat << EOF >@SLIC3R_APP_CMD@
+    # create launcher script at package root
+cat << EOF >package/@SLIC3R_APP_CMD@
 #!/bin/bash
 DIR=\$(readlink -f "\$0" | xargs dirname)
+
+# Prevent Snap-hosted shells/IDEs from injecting incompatible runtime paths
+# (e.g. /snap/core20 libpthread vs host glibc).
+unset GTK_PATH
+unset GTK_EXE_PREFIX
+unset GIO_MODULE_DIR
+unset GSETTINGS_SCHEMA_DIR
+unset GDK_PIXBUF_MODULE_FILE
+unset LD_PRELOAD
+
 export LD_LIBRARY_PATH="\$DIR/bin"
 
 # FIXME: BambuStudio segfault workarounds
@@ -47,8 +57,7 @@ export LC_ALL=C
 exec "\$DIR/bin/@SLIC3R_APP_CMD@" "\$@"
 EOF
 
-    chmod ug+x @SLIC3R_APP_CMD@
-    cp -f @SLIC3R_APP_CMD@ package/@SLIC3R_APP_CMD@
+    chmod ug+x package/@SLIC3R_APP_CMD@
     pushd package
     tar -cvf ../@SLIC3R_APP_KEY@.tar .  &>/dev/null
     popd
@@ -63,6 +72,11 @@ echo -n "Creating Appimage for distribution..."
     chmod +x ../build_appimage.sh
     ../build_appimage.sh
     popd
+    if [ ! -f package/"@SLIC3R_APP_KEY@_ubu64.AppImage" ]
+    then
+        echo "AppImage packaging failed: package/@SLIC3R_APP_KEY@_ubu64.AppImage not found" >&2
+        exit 1
+    fi
     mv package/"@SLIC3R_APP_KEY@_ubu64.AppImage" "@SLIC3R_APP_KEY@_ubu64.AppImage"
 #} &> $ROOT/Build.log # Capture all command output
 echo "done"

@@ -20,6 +20,7 @@
 #include <cstdio>
 #include <string>
 #include <cstring>
+#include <cstdlib>
 #include <iomanip>
 #include <iostream>
 #include <math.h>
@@ -1486,6 +1487,15 @@ int CLI::run(int argc, char **argv)
     save_main_thread_id();
 
 #ifdef __WXGTK__
+    // Snap-packaged IDE terminals may inject GTK/GIO paths that force loading
+    // /snap/core20 runtime libraries (including libpthread), which are
+    // incompatible with host glibc on rolling distros.
+    ::unsetenv("GTK_PATH");
+    ::unsetenv("GTK_EXE_PREFIX");
+    ::unsetenv("GIO_MODULE_DIR");
+    ::unsetenv("GSETTINGS_SCHEMA_DIR");
+    ::unsetenv("GDK_PIXBUF_MODULE_FILE");
+
     // On Linux, wxGTK has no support for Wayland, and the app crashes on
     // startup if gtk3 is used. This env var has to be set explicitly to
     // instruct the window manager to fall back to X server mode.

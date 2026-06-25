@@ -12,8 +12,33 @@ sed '0,/AI\x02/{s|AI\x02|\x00\x00\x00|}' -i  ../appimagetool.AppImage
 fi
 
 sed -i -e 's#/usr#././#g' bin/@SLIC3R_APP_CMD@
-mv @SLIC3R_APP_CMD@ AppRun
+
+cat <<'EOF' > AppRun
+#!/bin/sh
+
+DIR="$(dirname "$0")"
+
+# Prevent Snap-hosted shells/IDEs from injecting incompatible runtime paths.
+unset GTK_PATH
+unset GTK_EXE_PREFIX
+unset GIO_MODULE_DIR
+unset GSETTINGS_SCHEMA_DIR
+unset GDK_PIXBUF_MODULE_FILE
+unset LD_PRELOAD
+
+export LD_LIBRARY_PATH="$DIR/bin"
+
+exec "$DIR/bin/@SLIC3R_APP_CMD@" "$@"
+EOF
 chmod +x AppRun
+
+# Remove bundled glibc libraries to avoid symbol mismatches at runtime
+# Let the AppImage use system glibc instead
+rm -f usr/lib/x86_64-linux-gnu/libpthread.so.0
+rm -f usr/lib/x86_64-linux-gnu/libc.so.6
+rm -f usr/lib/x86_64-linux-gnu/libm.so.6
+rm -f usr/lib/x86_64-linux-gnu/libdl.so.2
+rm -f usr/lib64/ld-linux-x86-64.so.* 2>/dev/null || true
 
 cp resources/images/@SLIC3R_APP_KEY@_192px.png @SLIC3R_APP_KEY@.png
 for PNG_SIZE in 32 128 192; do
@@ -39,10 +64,16 @@ X-AppImage-Version=@SLIC3R_VERSION@
 EOF
 
 
-if [ -f /.dockerenv ] ; then # Only run if inside of a Docker Container
-  ../appimagetool.AppImage --appimage-extract-and-run . $([ ! -z "${container}" ] && echo '--appimage-extract-and-run')
+if [ -f /.dockerenv ] ; then
+  ../appimagetool.AppImage --appimage-extract-and-run .
 else
-  ../appimagetool.AppImage . $([ ! -z "${container}" ] && echo '--appimage-extract-and-run')
+  # Retry without FUSE when AppImage mount support is unavailable on host.
+  ../appimagetool.AppImage . || ../appimagetool.AppImage --appimage-extract-and-run .
+fi
+
+if [ ! -f @SLIC3R_APP_KEY@-x86_64.AppImage ]; then
+  echo "Failed to produce @SLIC3R_APP_KEY@-x86_64.AppImage" >&2
+  exit 1
 fi
 
 mv @SLIC3R_APP_KEY@-x86_64.AppImage ${APP_IMAGE}

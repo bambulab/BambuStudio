@@ -399,8 +399,13 @@ endif()
 # boost::process was introduced first in version 1.64.0,
 # boost::beast::detail::base64 was introduced first in version 1.66.0
 set(MINIMUM_BOOST_VERSION "1.83.0")
-set(_boost_components "system;filesystem;thread;log;locale;regex;chrono;atomic;date_time;iostreams")
+set(_boost_components "filesystem;thread;log;locale;regex;chrono;atomic;date_time;iostreams")
+if(POLICY CMP0167)
+    # Use BoostConfig.cmake (config mode) when available; Boost 1.84+ ships proper per-component configs.
+    cmake_policy(SET CMP0167 NEW)
+endif()
 find_package(Boost ${MINIMUM_BOOST_VERSION} REQUIRED COMPONENTS ${_boost_components})
+find_package(Boost ${MINIMUM_BOOST_VERSION} QUIET COMPONENTS system)
 
 add_library(boost_libs INTERFACE)
 add_library(boost_headeronly INTERFACE)
@@ -436,6 +441,9 @@ if(TARGET Boost::system)
     foreach(comp ${_boost_components})
         list(APPEND _boost_targets "Boost::${comp}")
     endforeach()
+    if(TARGET Boost::system)
+        list(APPEND _boost_targets "Boost::system")
+    endif()
 
     target_link_libraries(boost_libs INTERFACE
         boost_headeronly # includes the custom compile definitions as well

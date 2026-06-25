@@ -22,6 +22,7 @@ bambustudio_add_cmake_project(JPEG
     URL_HASH SHA256=d6d99e693366bc03897677650e8b2dfa76b5d6c54e2c9e70c03f0af821b0a52f
     DEPENDS ${ZLIB_PKG}
     CMAKE_ARGS
+        -DCMAKE_POLICY_VERSION_MINIMUM=3.5
         -DENABLE_SHARED=OFF
         -DENABLE_STATIC=ON
         ${jpeg_flag}
