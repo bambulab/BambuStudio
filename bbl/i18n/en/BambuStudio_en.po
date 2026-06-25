@@ -13656,7 +13656,7 @@ msgid "Enable clumping detection"
 msgstr "Enable clumping detection by probing"
 
 msgid "Order-independent overlap carving"
-msgstr "无序重叠雕刻"
+msgstr "Order-independent overlap carving"
 
 msgid "When enabled, overlapping model parts are carved by bounding-box size so smaller embedded parts are not removed by larger parts due to volume order."
 msgstr "When enabled, overlapping model parts are carved by bounding-box size so smaller embedded parts are not removed by larger parts due to volume order."
@@ -15960,7 +15960,7 @@ msgid "No overlapping region found. Boolean intersection failed."
 msgstr "No overlapping region found. Boolean intersection failed. Ensure that all items in the list overlap each other."
 
 msgid "Mesh preparation failed."
-msgstr "网格准备失败。"
+msgstr "Mesh preparation failed."
 
 msgid "Mesh Boolean"
 msgstr "Mesh Boolean"
