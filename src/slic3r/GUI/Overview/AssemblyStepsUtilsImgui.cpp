@@ -106,18 +106,16 @@ void AssemblyStepsUtils::refresh_guide_show_part_numbers_from_current()
         m_cur_labels_show_type = entry.data.labels_show_type;
         AssemblyNote &note = entry.data.assembly_note;
         const int current_folder = find_parent_folder(m_selected_node);
+        m_guide_show_part_numbers = note.show_part_labels;
         if (is_empty_structure_step(current_folder)) {
             if (note.show_part_labels || !note.part_number_labels.empty()) {
-                note.show_part_labels = false;
                 note.part_number_labels.clear();
                 entry.need_save = true;
                 save_assembly_steps_json_to_model();
                 do_commond_callback("dirty");
             }
-            m_guide_show_part_numbers = false;
             return;
         }
-        m_guide_show_part_numbers = note.show_part_labels;
         if (m_guide_show_part_numbers && note.part_number_labels.empty()){
             toggle_part_number_labels();///*user_initiated=*/true ,check clear_all_keyframe_part_number_labels();
         }
@@ -1094,6 +1092,9 @@ ImVec2 AssemblyStepsUtils::nearest_rect_anchor(const ImVec2 &rect_min, const ImV
 void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_screen_center)
 {
     if (!m_camera || is_show_video_title_mode()) {
+        return;
+    }
+    if (m_gizmo_active) {
         return;
     }
     const Camera             &camera   = *m_camera;

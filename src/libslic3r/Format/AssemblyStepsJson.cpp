@@ -1020,7 +1020,59 @@ bool AssemblyStepsTreeData::from_json_string(
                     parsed.loaded_recorded_volumes.insert({object_id, volume->id().id});
             }
         }
-        parsed.has_loaded_recorded_baseline = true;
+        // Only trust the snapshot as a baseline when the final-assembly step's end
+        // frame actually covers the same objects/volumes as the loaded model. If
+        // they don't line up (stale steps data vs model), leave the flag false so
+        // the runtime re-syncs instead of skipping it on this loaded baseline.
+        bool baseline_matches_end_frame = false;
+        {
+            const KeyFrame *end_kf = nullptr;
+            for (const auto &node : parsed.nodes) {
+                if (node.type != AssemblyStepsTreeNode::Type::Folder || !node.is_final_assembly)
+                    continue;
+                for (const auto &e : node.kf_data.entries) {
+                    if (e.is_last()) {
+                        end_kf = &e.data;
+                        break;
+                    }
+                }
+                break;
+            }
+            if (end_kf != nullptr) {
+                // Convert the end frame's index-keyed pose maps into the same
+                // (object_id) / (object_id, volume_id) space as the snapshot above.
+                std::set<size_t>                    end_objects;
+                std::set<std::pair<size_t, size_t>> end_volumes;
+                bool keys_valid = true;
+                for (const auto &p : end_kf->object_transformations) {
+                    const int oi = p.first;
+                    if (oi < 0 || oi >= object_count || model.objects[oi] == nullptr) {
+                        keys_valid = false;
+                        break;
+                    }
+                    end_objects.insert(model.objects[oi]->id().id);
+                }
+                for (const auto &p : end_kf->volume_transformations) {
+                    if (!keys_valid)
+                        break;
+                    const int oi = p.first.first;
+                    const int vi = p.first.second;
+                    if (oi < 0 || oi >= object_count || model.objects[oi] == nullptr ||
+                        vi < 0 || vi >= (int) model.objects[oi]->volumes.size() ||
+                        model.objects[oi]->volumes[vi] == nullptr) {
+                        keys_valid = false;
+                        break;
+                    }
+                    end_volumes.insert({model.objects[oi]->id().id, model.objects[oi]->volumes[vi]->id().id});
+                }
+                if (keys_valid &&
+                    end_objects == parsed.loaded_recorded_objects &&
+                    end_volumes == parsed.loaded_recorded_volumes) {
+                    baseline_matches_end_frame = true;
+                }
+            }
+        }
+        parsed.has_loaded_recorded_baseline = baseline_matches_end_frame;
 
         tree = std::move(parsed);
         return true;

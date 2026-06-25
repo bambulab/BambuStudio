@@ -5411,7 +5411,10 @@ void AssemblyStepsUtils::insert_structure_step_relative(int ref_node_idx, bool b
     m_structure_scroll_to_node = new_idx;
     on_selected_node_changed();
     reschedule_play_bar_after_structure_change();//insert_structure_step_relative
-    show_volumes_as_step_candidates();//insert_structure_step_relative
+    // Only an empty (newly-created) step shows all volumes as dimmed candidates.
+    // A copied step already has children, so on_selected_node_changed() above has
+    if (is_empty_structure_step(new_idx))
+        show_volumes_as_step_candidates();//insert_structure_step_relative
 }
 
 void AssemblyStepsUtils::reorder_structure_step(int moved_node, int before_node)
@@ -6437,10 +6440,9 @@ void AssemblyStepsUtils::apply_keyframe_display_mode()
                     node.visible = current_objs.count(node.object_idx) > 0;
             }
 
-            for (const auto &node : step_nodes) {
-                if (node.type != AssemblyStepsTreeNode::Type::Object || node.object_idx < 0) continue;
-                bool is_current = current_objs.count(node.object_idx) > 0;
-                apply_object_state(node.object_idx, {is_current, is_current ? 1.f : 0.f, !is_current});
+            for (int oi = 0; oi < (int) m_model->objects.size(); ++oi) {
+                bool is_current = current_objs.count(oi) > 0;
+                apply_object_state(oi, {is_current, is_current ? 1.f : 0.f, !is_current});
             }
         } else {
             for (auto &node : step_nodes) {
@@ -6457,10 +6459,9 @@ void AssemblyStepsUtils::apply_keyframe_display_mode()
             if (target >= 0 && target < (int) step_nodes.size())
                 current_objs = collect_node_object_indices(target);
 
-            for (const auto &node : step_nodes) {
-                if (node.type != AssemblyStepsTreeNode::Type::Object || node.object_idx < 0) continue;
-                bool is_current = current_objs.count(node.object_idx) > 0;
-                apply_object_state(node.object_idx, {true, is_current ? 1.f : 0.15f,  !is_current});
+            for (int oi = 0; oi < (int) m_model->objects.size(); ++oi) {
+                bool is_current = current_objs.count(oi) > 0;
+                apply_object_state(oi, {true, is_current ? 1.f : 0.15f, !is_current});
             }
         }else{
             show_all_volume_normal_render();
