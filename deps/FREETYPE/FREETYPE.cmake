@@ -16,6 +16,7 @@ bambustudio_add_cmake_project(FREETYPE
     #DEPENDS ${ZLIB_PKG}
     #"${_patch_step}"
     CMAKE_ARGS
+	-D CMAKE_POLICY_VERSION_MINIMUM=3.5
 	-D BUILD_SHARED_LIBS=${library_build_shared}
 	${_ft_disable_zlib}
         -D FT_DISABLE_BZIP2=TRUE

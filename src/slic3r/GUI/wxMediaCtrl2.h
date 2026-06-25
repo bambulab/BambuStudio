@@ -66,7 +66,7 @@ public:
     void SetTrackChannel(const BambuLiveViewTrack::ChannelInfo& info);
     void UpdateSessionStat() {}  // data filled by session-end callback, nothing to do here
 
-    static constexpr wxMediaState MEDIASTATE_BUFFERING = (wxMediaState) 6;
+    static inline wxMediaState MEDIASTATE_BUFFERING = (wxMediaState) 6;
 
 protected:
     void DoSetSize(int x, int y, int width, int height, int sizeFlags) override;

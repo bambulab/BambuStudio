@@ -5,6 +5,8 @@ find_package(OpenGL QUIET REQUIRED)
 bambustudio_add_cmake_project(
   GLEW
   SOURCE_DIR  ${CMAKE_CURRENT_LIST_DIR}/glew
+  CMAKE_ARGS
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 )
 
 if (MSVC)
