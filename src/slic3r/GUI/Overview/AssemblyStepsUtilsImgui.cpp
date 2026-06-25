@@ -106,18 +106,16 @@ void AssemblyStepsUtils::refresh_guide_show_part_numbers_from_current()
         m_cur_labels_show_type = entry.data.labels_show_type;
         AssemblyNote &note = entry.data.assembly_note;
         const int current_folder = find_parent_folder(m_selected_node);
+        m_guide_show_part_numbers    = note.show_part_labels;
         if (is_empty_structure_step(current_folder)) {
             if (note.show_part_labels || !note.part_number_labels.empty()) {
-                note.show_part_labels = false;
                 note.part_number_labels.clear();
                 entry.need_save = true;
                 save_assembly_steps_json_to_model();
                 do_commond_callback("dirty");
             }
-            m_guide_show_part_numbers = false;
             return;
         }
-        m_guide_show_part_numbers = note.show_part_labels;
         if (m_guide_show_part_numbers && note.part_number_labels.empty()){
             toggle_part_number_labels();///*user_initiated=*/true ,check clear_all_keyframe_part_number_labels();
         }
@@ -1096,6 +1094,9 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
     if (!m_camera || is_show_video_title_mode()) {
         return;
     }
+    if (m_gizmo_active) {
+        return;
+    }
     const Camera             &camera   = *m_camera;
     const std::array<int, 4> &viewport = camera.get_viewport();
     auto                      viewport_height = (float) viewport[3];
@@ -1771,6 +1772,16 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
             if (label.size.y() < desired_height) {
                 label.size.y() = desired_height;
                 any_changed = true;
+            }
+            // When the label has no text, don't leave a tall blank box: cap its
+            // height at two lines (kept >= the clamp_note_size min so it doesn't
+            // oscillate against the minimum-height clamp).
+            if (label.text.empty()) {
+                const double two_line_height = std::max(48.0 * sc, 2.0 * ImGui::GetTextLineHeightWithSpacing() + 16.0 * sc);
+                if (label.size.y() > two_line_height) {
+                    label.size.y() = two_line_height;
+                    any_changed = true;
+                }
             }
 
             ImGui::PopID();

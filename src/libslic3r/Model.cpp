@@ -230,7 +230,7 @@ Model Model::read_from_step(const std::string&                                  
             goto _finished;
         }
     }
-    
+
     status = step_file.mesh(&model, is_cb_cancel, is_split_compound, linear_defletion, angle_defletion);
 
 _finished:
@@ -3545,7 +3545,11 @@ size_t ModelVolume::split(unsigned int max_extruders, float scale_det)
                 }
             }
         }
-        ModelVolume *cur_vol = this->object->volumes[ivolume];
+        ModelVolume *cur_vol = nullptr;
+        if (ivolume >= 0 && ivolume < this->object->volumes.size()) {
+            cur_vol = this->object->volumes[ivolume];
+        }
+        if (!cur_vol) { continue; }
         cur_vol->set_offset(Vec3d::Zero());
         // center_geometry_after_creation() recenters the sub-mesh's local origin by
         // its bbox center. Capture that shift so the inherited assemble transform can
@@ -3556,13 +3560,13 @@ size_t ModelVolume::split(unsigned int max_extruders, float scale_det)
         cur_vol->translate(offset);
         if (src_assemble_initialized)
             cur_vol->set_assemble_from_transform(src_assemble_matrix * Geometry::translation_transform(center_shift));
-        this->object->volumes[ivolume]->name = name + "_" + std::to_string(idx + 1);
+        cur_vol->name = name + "_" + std::to_string(idx + 1);
         //BBS: always set the extruder id the same as original
-        this->object->volumes[ivolume]->config.set("extruder", this->extruder_id());
-        //this->object->volumes[ivolume]->config.set("extruder", auto_extruder_id(max_extruders, extruder_counter));
-        this->object->volumes[ivolume]->m_is_splittable = 0;
+        cur_vol->config.set("extruder", this->extruder_id());
+        //cur_vol->config.set("extruder", auto_extruder_id(max_extruders, extruder_counter));
+        cur_vol->m_is_splittable = 0;
         if (this->is_text()) {
-            this->object->volumes[ivolume]->clear_text_info();
+            cur_vol->clear_text_info();
         }
         ++ idx;
         last_all_mesh_face_count += cur_face_count;
