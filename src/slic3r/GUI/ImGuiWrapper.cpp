@@ -36,6 +36,9 @@
 #include "BitmapCache.hpp"
 
 #include "../Utils/MacDarkMode.hpp"
+#ifdef __APPLE__
+#include "MacIME.hpp"
+#endif
 #include "nanosvg/nanosvg.h"
 #include "nanosvg/nanosvgrast.h"
 #include "OpenGLManager.hpp"
@@ -2904,6 +2907,16 @@ void ImGuiWrapper::init_input()
 
     // Don't let imgui special-case Mac, wxWidgets already do that
     io.ConfigMacOSXBehaviors = false;
+
+#ifdef __APPLE__
+    // Forward the input cursor position imgui reports for the focused text widget
+    // to the macOS IME bridge so the candidate window is anchored at the caret.
+    // io.ImeWindowHandle carries the focused canvas NSView (set on focus change).
+    io.ImeSetInputScreenPosFn = [](int x, int y) {
+        if (void *view = ImGui::GetIO().ImeWindowHandle)
+            mac_ime_set_caret(view, x, y, 0);
+    };
+#endif
 
     // Setup clipboard interaction callbacks
     io.SetClipboardTextFn = clipboard_set;

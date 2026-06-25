@@ -684,6 +684,8 @@ if (APPLE)
             GUI/InstanceCheckMac.h
             GUI/CameraFullscreenMac.mm
             GUI/CameraFullscreenMac.hpp
+            GUI/MacIME.mm
+            GUI/MacIME.hpp
             GUI/wxMediaCtrl2.mm
             GUI/wxMediaCtrl2.h
             GUI/wxMediaCtrl3.h

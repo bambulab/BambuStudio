@@ -101,6 +101,9 @@
 #endif
 #include <imgui/imgui_internal.h>
 #include <imguizmo/ImGuizmo.h>
+#ifdef __APPLE__
+#include "MacIME.hpp"
+#endif
 static constexpr const float TRACKBALLSIZE = 0.8f;
 
 static const float SLIDER_DEFAULT_RIGHT_MARGIN  = 10.0f;
@@ -6067,6 +6070,12 @@ void GLCanvas3D::on_paint(wxPaintEvent& evt)
 
 void GLCanvas3D::on_kill_focus(wxFocusEvent &evt)
 {
+#ifdef __APPLE__
+    // Drop the IME target if it points at this canvas, so the imgui IME-position
+    // callback never dereferences a stale native view handle.
+    if (m_canvas != nullptr && ImGui::GetIO().ImeWindowHandle == m_canvas->GetHandle())
+        ImGui::GetIO().ImeWindowHandle = nullptr;
+#endif
     ImGui::SetWindowFocus(nullptr);
     render();
     evt.Skip();
@@ -6078,6 +6087,15 @@ void GLCanvas3D::force_set_focus() {
 
 void GLCanvas3D::on_set_focus(wxFocusEvent& evt)
 {
+#ifdef __APPLE__
+    // Enable CJK IME composition over this canvas (wxWidgets ships only stub
+    // NSTextInputClient methods for custom views, which blocks IME on macOS).
+    // Also route imgui's IME cursor position to this canvas' native view.
+    if (m_canvas != nullptr) {
+        mac_ime_install(m_canvas->GetHandle(), []() { return ImGui::GetIO().WantTextInput; });
+        ImGui::GetIO().ImeWindowHandle = m_canvas->GetHandle();
+    }
+#endif
     m_tooltip_enabled = false;
     _refresh_if_shown_on_screen();
     m_tooltip_enabled = true;
