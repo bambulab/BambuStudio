@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Bambu Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-24 22:15+0800\n"
+"POT-Creation-Date: 2026-06-25 14:32+0800\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -3211,10 +3211,16 @@ msgstr ""
 msgid "Assembly Module"
 msgstr ""
 
-msgid "Add object to current step"
+msgid "Click to add objects to the current step"
 msgstr ""
 
 msgid "_copy"
+msgstr ""
+
+msgid "Are you sure you want to delete the current step?"
+msgstr ""
+
+msgid "Delete step"
 msgstr ""
 
 msgid "Model"
@@ -3272,16 +3278,7 @@ msgstr ""
 msgid "Modify camera margin"
 msgstr ""
 
-msgid "Modify canvas label text size, and real-time update the label text size of all frames after adjustment."
-msgstr ""
-
-msgid "Canvas label text size"
-msgstr ""
-
 msgid "Edit step name"
-msgstr ""
-
-msgid "Delete step"
 msgstr ""
 
 msgid "Insert step before"
@@ -3308,7 +3305,10 @@ msgstr "Options"
 msgid "Go to Wiki"
 msgstr ""
 
-msgid "Current step options: edit the current step name, delete the step, or insert a step before/after."
+msgid "Copy current step"
+msgstr ""
+
+msgid "Delete current step"
 msgstr ""
 
 msgid "Add some objects to current step"
@@ -3369,34 +3369,43 @@ msgstr ""
 msgid "Show one label per model part."
 msgstr ""
 
-msgid "Auto-arrange labels in current view"
+msgid "Label"
 msgstr ""
 
-msgid "Auto recommend camera angles"
-msgstr ""
-
-msgid "Export assembly guide PDF, Markdown or MP4"
-msgstr ""
-
-msgid "Screw"
-msgstr ""
-
-msgid "Show Object labels"
-msgstr ""
-
-msgid "Show object names on the model"
-msgstr ""
-
-msgid "Show Part labels"
-msgstr ""
-
-msgid "Show part names on models"
+msgid "Label settings"
 msgstr ""
 
 msgid "Show Object/Part labels"
 msgstr ""
 
 msgid "Show object and part names  on models"
+msgstr ""
+
+msgid "Automatically select the optimal camera perspective and auto-arrange auto recommend labels each time the checkbox is re-ticked."
+msgstr ""
+
+msgid "Auto layout"
+msgstr ""
+
+msgid "Auto-arrange labels in current view"
+msgstr ""
+
+msgid "Current view labels"
+msgstr ""
+
+msgid "Label Settings"
+msgstr ""
+
+msgid "Font size"
+msgstr ""
+
+msgid "Display mode"
+msgstr ""
+
+msgid "Export assembly guide PDF, Markdown or MP4"
+msgstr ""
+
+msgid "Screw"
 msgstr ""
 
 msgid "Note"
@@ -3456,9 +3465,6 @@ msgstr ""
 msgid "Background"
 msgstr ""
 
-msgid "Automatically select the optimal camera perspective and auto-arrange auto recommend labels each time the checkbox is re-ticked."
-msgstr ""
-
 msgid "Timeline"
 msgstr ""
 
@@ -3483,12 +3489,13 @@ msgstr ""
 msgid "Add keyframe"
 msgstr ""
 
-msgid ""
-"Click to re-record this frame.\n"
-"Especially after rotating the camera view, users want to save the current perspective"
+msgid "Click to select this frame"
 msgstr ""
 
-msgid "Click to select this frame"
+msgid "Save update"
+msgstr ""
+
+msgid "Save current frame"
 msgstr ""
 
 msgid "Assembly tree"
@@ -5603,10 +5610,7 @@ msgstr ""
 msgid "Fit camera to scene or selected object."
 msgstr ""
 
-msgid "Unlock camera"
-msgstr ""
-
-msgid "Lock camera"
+msgid "Auto recommend camera angle(Only works when the assembly step function is active)"
 msgstr ""
 
 msgid "Paint Toolbar"

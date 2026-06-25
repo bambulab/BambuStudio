@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-24 22:15+0800\n"
+"POT-Creation-Date: 2026-06-25 14:32+0800\n"
 "PO-Revision-Date: 2025-02-20 20:32+0800\n"
 "Last-Translator: Jiang Yue <maze1024@gmail.com>\n"
 "Language-Team: \n"
@@ -3153,10 +3153,10 @@ msgid "Install parts"
 msgstr "安装零件"
 
 msgid "Apply the final assembly pose to the objects or parts added in the current step?"
-msgstr ""
+msgstr "将当前步骤中添加的对象或零件应用最终装配姿态？"
 
 msgid "Apply final assembly pose"
-msgstr ""
+msgstr "应用最终装配姿态"
 
 msgid "Assembly Guide"
 msgstr "组装指南"
@@ -3213,11 +3213,17 @@ msgstr "包含"
 msgid "Assembly Module"
 msgstr "装配模块"
 
-msgid "Add object to current step"
-msgstr "将对象添加到当前步骤"
+msgid "Click to add objects to the current step"
+msgstr "单击将对象添加到当前步骤"
 
 msgid "_copy"
 msgstr "_复制"
+
+msgid "Are you sure you want to delete the current step?"
+msgstr "您确定要删除当前步骤吗？"
+
+msgid "Delete step"
+msgstr "删除步骤"
 
 msgid "Model"
 msgstr "模型"
@@ -3274,17 +3280,8 @@ msgstr "当前帧的相机边距系数。值越大，边距越大。"
 msgid "Modify camera margin"
 msgstr "修改相机边距"
 
-msgid "Modify canvas label text size, and real-time update the label text size of all frames after adjustment."
-msgstr "修改画布标签文字大小，调整后实时更新所有画框的标签文字大小。"
-
-msgid "Canvas label text size"
-msgstr "画布标签文本大小"
-
 msgid "Edit step name"
 msgstr "编辑步骤名称"
-
-msgid "Delete step"
-msgstr "删除步骤"
 
 msgid "Insert step before"
 msgstr "在此步骤前插入"
@@ -3310,8 +3307,11 @@ msgstr "选项"
 msgid "Go to Wiki"
 msgstr "查看Wiki"
 
-msgid "Current step options: edit the current step name, delete the step, or insert a step before/after."
-msgstr "当前步骤选项：编辑当前步骤名称、删除步骤或在当前步骤之前/之后插入步骤。"
+msgid "Copy current step"
+msgstr "复制当前步骤"
+
+msgid "Delete current step"
+msgstr "删除当前步骤"
 
 msgid "Add some objects to current step"
 msgstr "将一些对象添加到当前步骤"
@@ -3371,35 +3371,44 @@ msgstr "为每个模型对象显示一个标签。"
 msgid "Show one label per model part."
 msgstr "为模型的每个零件显示一个标签。"
 
-msgid "Auto-arrange labels in current view"
-msgstr "自动排列当前视图中的标签"
+msgid "Label"
+msgstr "标签"
 
-msgid "Auto recommend camera angles"
-msgstr ""
-
-msgid "Export assembly guide PDF, Markdown or MP4"
-msgstr "导出装配指南 PDF、Markdown 或 MP4"
-
-msgid "Screw"
-msgstr "螺丝"
-
-msgid "Show Object labels"
-msgstr "显示对象标签"
-
-msgid "Show object names on the model"
-msgstr "在模型上显示对象名称"
-
-msgid "Show Part labels"
-msgstr "显示零件标签"
-
-msgid "Show part names on models"
-msgstr "在模型上显示零件名称"
+msgid "Label settings"
+msgstr "标签设置"
 
 msgid "Show Object/Part labels"
 msgstr "显示对象/零件标签"
 
 msgid "Show object and part names  on models"
 msgstr "在模型上显示对象和零件名称"
+
+msgid "Automatically select the optimal camera perspective and auto-arrange auto recommend labels each time the checkbox is re-ticked."
+msgstr "每次重新勾选复选框时，自动选择最佳相机视角并自动排列自动推荐的标签。"
+
+msgid "Auto layout"
+msgstr "自动布局"
+
+msgid "Auto-arrange labels in current view"
+msgstr "自动排列当前视图中的标签"
+
+msgid "Current view labels"
+msgstr "当前视图标签"
+
+msgid "Label Settings"
+msgstr "标签设置"
+
+msgid "Font size"
+msgstr "字体大小"
+
+msgid "Display mode"
+msgstr "显示模式"
+
+msgid "Export assembly guide PDF, Markdown or MP4"
+msgstr "导出装配指南 PDF、Markdown 或 MP4"
+
+msgid "Screw"
+msgstr "螺丝"
 
 msgid "Note"
 msgstr "提示"
@@ -3458,9 +3467,6 @@ msgstr ""
 msgid "Background"
 msgstr "背景"
 
-msgid "Automatically select the optimal camera perspective and auto-arrange auto recommend labels each time the checkbox is re-ticked."
-msgstr "每次重新勾选复选框时，自动选择最佳相机视角并自动排列自动推荐的标签。"
-
 msgid "Timeline"
 msgstr "时间轴"
 
@@ -3477,7 +3483,7 @@ msgid "Automatically explode all parts."
 msgstr "自动爆炸所有零件。"
 
 msgid "Apply the final assembly pose to the currently selected object or part(if none is selected, apply it to all objects added in the current frame)"
-msgstr ""
+msgstr "将最终装配姿态应用于当前选定的对象或零件（如果未选择任何内容，则将其应用于当前帧中添加的所有对象）"
 
 msgid "Apply current camera angle to all frames of the current step"
 msgstr "将当前相机角度应用于当前步骤的所有帧"
@@ -3485,15 +3491,14 @@ msgstr "将当前相机角度应用于当前步骤的所有帧"
 msgid "Add keyframe"
 msgstr "添加关键帧"
 
-msgid ""
-"Click to re-record this frame.\n"
-"Especially after rotating the camera view, users want to save the current perspective"
-msgstr ""
-"单击以重新录制此帧。\n"
-"尤其是在旋转相机视图后，用户希望保存当前视角。"
-
 msgid "Click to select this frame"
 msgstr "单击以选择此帧"
+
+msgid "Save update"
+msgstr "保存更新"
+
+msgid "Save current frame"
+msgstr "保存当前帧"
 
 msgid "Assembly tree"
 msgstr "装配树"
@@ -5625,11 +5630,8 @@ msgstr "相机适配"
 msgid "Fit camera to scene or selected object."
 msgstr "使相机适配场景或选定对象"
 
-msgid "Unlock camera"
-msgstr "解锁相机"
-
-msgid "Lock camera"
-msgstr "锁定相机"
+msgid "Auto recommend camera angle(Only works when the assembly step function is active)"
+msgstr "自动推荐相机角度（仅在装配步骤功能激活时有效）"
 
 msgid "Paint Toolbar"
 msgstr "上色工具条"
@@ -18097,6 +18099,43 @@ msgid ""
 msgstr ""
 "一次成功的可靠性\n"
 "更少盯机，更可预测的产出。例如：小型打印农场打印 PETG 零件可降低意外失败的概率，让批次按计划推进。"
+
+#~ msgid "Add object to current step"
+#~ msgstr "将对象添加到当前步骤"
+
+#~ msgid "Modify canvas label text size, and real-time update the label text size of all frames after adjustment."
+#~ msgstr "修改画布标签文字大小，调整后实时更新所有画框的标签文字大小。"
+
+#~ msgid "Canvas label text size"
+#~ msgstr "画布标签文本大小"
+
+#~ msgid "Current step options: edit the current step name, delete the step, or insert a step before/after."
+#~ msgstr "当前步骤选项：编辑当前步骤名称、删除步骤或在当前步骤之前/之后插入步骤。"
+
+#~ msgid "Show Object labels"
+#~ msgstr "显示对象标签"
+
+#~ msgid "Show object names on the model"
+#~ msgstr "在模型上显示对象名称"
+
+#~ msgid "Show Part labels"
+#~ msgstr "显示零件标签"
+
+#~ msgid "Show part names on models"
+#~ msgstr "在模型上显示零件名称"
+
+#~ msgid ""
+#~ "Click to re-record this frame.\n"
+#~ "Especially after rotating the camera view, users want to save the current perspective"
+#~ msgstr ""
+#~ "单击以重新录制此帧。\n"
+#~ "尤其是在旋转相机视图后，用户希望保存当前视角。"
+
+#~ msgid "Unlock camera"
+#~ msgstr "解锁相机"
+
+#~ msgid "Lock camera"
+#~ msgstr "锁定相机"
 
 #~ msgid "Select partial parts or objects from the added items to perform operations such as move, rotate, and coloring gizmo. Pose-modifying operations like move gizmo can be used to create custom keyframe animations."
 #~ msgstr "从添加的项目中选择部分零件或对象，以执行平移、旋转和着色等操作。可以使用诸如平移工具之类的姿势修改操作来创建自定义关键帧动画。"
