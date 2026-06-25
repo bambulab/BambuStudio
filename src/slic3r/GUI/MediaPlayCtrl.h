@@ -89,10 +89,14 @@ private:
     static bool get_stream_url(std::string *url = nullptr);
 
 private:
-    static constexpr wxMediaState MEDIASTATE_IDLE = (wxMediaState) 3;
-    static constexpr wxMediaState MEDIASTATE_INITIALIZING = (wxMediaState) 4;
-    static constexpr wxMediaState MEDIASTATE_LOADING = (wxMediaState) 5;
-    static constexpr wxMediaState MEDIASTATE_BUFFERING = (wxMediaState) 6;
+    static const wxMediaState MEDIASTATE_IDLE = (wxMediaState) 3;
+    // The states below extend wxMediaState beyond its declared range [0, 3].
+    // Converting an out-of-range integer to the enum is ill-formed in a constant
+    // expression (a hard error on Clang / Xcode 26+ that no -Wno- flag can silence),
+    // so these must not be constexpr/const - keep them as runtime-initialized values.
+    static inline wxMediaState MEDIASTATE_INITIALIZING = (wxMediaState) 4;
+    static inline wxMediaState MEDIASTATE_LOADING = (wxMediaState) 5;
+    static inline wxMediaState MEDIASTATE_BUFFERING = (wxMediaState) 6;
 
     // token
     std::shared_ptr<int> m_token = std::make_shared<int>(0);
