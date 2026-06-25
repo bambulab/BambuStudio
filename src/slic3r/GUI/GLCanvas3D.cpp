@@ -1537,7 +1537,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, Bed3D &bed)
     m_assembly_view_desc["object_selection"]         = _L("object selection");
     m_assembly_view_desc["part_selection_caption"]   = alt  + _L("Left mouse button");
     m_assembly_view_desc["part_selection"]         = _L("part selection");
-    m_assembly_view_desc["number_key_caption"]       = "1~16 " + _L("number keys");
+    m_assembly_view_desc["number_key_caption"]       = wxString::Format("1~%d ", (int) EnforcerBlockerType::ExtruderMax) + _L("number keys");
     m_assembly_view_desc["number_key"]       = _L("number keys can quickly change the color of objects");
 
     m_render_pipeline_stage_stack.push(ERenderPipelineStage::Normal);
@@ -3106,6 +3106,12 @@ void GLCanvas3D::select_all()
     }
     m_selection.add_all();
     m_dirty = true;
+    // In the assembly view keep the step/tree state in sync with the selection,
+    // mirroring what a manual volume pick does.
+    if (m_canvas_type == ECanvasType::CanvasAssembleView && m_assembly_steps) {
+        m_assembly_steps->set_selection_origin(SelectionOrigin::GLVolume);
+        m_assembly_steps->sync_tree_ui_selection_from_canvas();
+    }
 }
 
 void GLCanvas3D::deselect_all()
@@ -5502,6 +5508,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // the double-click no longer calls clear_when_no_selection() here.
         if (m_hover_volume_idxs.empty() && !m_selection.is_empty()) {
             deselect_all();
+            // Mirror the now-empty canvas selection onto the assembly tree view
+            // rows (clears their highlight) while that tree view is open.
+            if (m_canvas_type == ECanvasType::CanvasAssembleView && m_assembly_steps)
+                m_assembly_steps->sync_tree_ui_selection_from_canvas();
             m_dirty = true;
             return;
         }
@@ -5613,6 +5623,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                                     m_mouse.drag.move_start_threshold_position_2D = pos;
                             }
                         }
+
+                        // Mirror the freshly-updated canvas selection onto the
+                        // assembly tree view rows while that tree view is open.
+                        if (m_canvas_type == ECanvasType::CanvasAssembleView && m_assembly_steps)
+                            m_assembly_steps->sync_tree_ui_selection_from_canvas();
 
                         // propagate event through callback
                         if (curr_idxs != m_selection.get_volume_idxs()) {

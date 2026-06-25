@@ -7304,6 +7304,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame)
         assemble_canvas->Bind(EVT_GLCANVAS_FORCE_UPDATE, [this](SimpleEvent&) { update(); });
         assemble_canvas->Bind(EVT_GLCANVAS_UNDO, [this](SimpleEvent&) { this->undo(); });
         assemble_canvas->Bind(EVT_GLCANVAS_REDO, [this](SimpleEvent&) { this->redo(); });
+        // Ctrl+A in the assembly view: select all on the assembly canvas itself (the prepare-view binding above only drives view3D).
+        assemble_canvas->Bind(EVT_GLCANVAS_SELECT_ALL, [this](SimpleEvent&) {
+            if (GLCanvas3D *c = assemble_view->get_canvas3d())
+                c->select_all();
+        });
     }
 
     if (wxGetApp().is_editor()) {

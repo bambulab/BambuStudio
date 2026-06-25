@@ -861,7 +861,6 @@ void AssemblyStepsUtils::render_part_number_labels_on_canvas(
         drag_flags |= ImGuiWindowFlags_NoInputs;
 
     bool any_changed = false;
-    bool rename_committed = false;
     // The inline-rename field is rendered once, AFTER the per-label loop, so its
     // window is created last and always sits on top of every pill drag window
     // (creating it mid-loop let later windows stack over it and flicker). These
@@ -1020,17 +1019,12 @@ void AssemblyStepsUtils::render_part_number_labels_on_canvas(
                 ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll;
             const bool entered     = ImGui::InputText("##pn_rename", &m_pn_label_rename_buf, input_flags);
             const bool deactivated = ImGui::IsItemDeactivated();
-            if (entered || deactivated) {
-                if (rename_model_item_from_label(lbl.object_idx, lbl.volume_idx, m_pn_label_rename_buf)) {
-                    // Reflect the committed model name back on the label.
-                    lbl.part_name = (lbl.volume_idx < 0)
-                        ? m_model->objects[lbl.object_idx]->name
-                        : m_model->objects[lbl.object_idx]->volumes[lbl.volume_idx]->name;
-                    rename_committed = true;
-                }
-                m_pn_label_rename_object_idx = -1;
-                m_pn_label_rename_volume_idx = -1;
-            }
+            // entered    : Enter pressed.
+            // deactivated: ImGui dropped focus (click onto another ImGui widget).
+            // A click on the bare 3D canvas (deselect) routes through
+            // set_selection_origin(None) -> commit_part_label_rename() instead.
+            if (entered || deactivated)
+                commit_part_label_rename();
             ImGui::PopStyleVar(2);
             ImGui::PopStyleColor(4);
             ImGui::SetWindowFontScale(1.0f);
@@ -1049,15 +1043,8 @@ void AssemblyStepsUtils::render_part_number_labels_on_canvas(
         do_commond_callback("dirty");
         do_commond_callback("request_extra_frame");
     }
-
-    // A label rename only touches names (no camera), so persist it on its own
-    // path without recording the camera the way the layout-change branch does.
-    if (editable && rename_committed) {
-        cur_entry.need_save = true;
-        save_assembly_steps_json_to_model();
-        do_commond_callback("dirty");
-        do_commond_callback("request_extra_frame");
-    }
+    // Label renames are persisted by commit_part_label_rename() itself, since a
+    // rename can also be confirmed from outside this render pass (canvas click).
 }
 
 ImVec2 AssemblyStepsUtils::nearest_rect_anchor(const ImVec2 &rect_min, const ImVec2 &rect_max,
@@ -1773,6 +1760,16 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
                 label.size.y() = desired_height;
                 any_changed = true;
             }
+            // When the label has no text, don't leave a tall blank box: cap its
+            // height at two lines (kept >= the clamp_note_size min so it doesn't
+            // oscillate against the minimum-height clamp).
+            if (label.text.empty()) {
+                const double two_line_height = std::max(48.0 * sc, 2.0 * ImGui::GetTextLineHeightWithSpacing() + 16.0 * sc);
+                if (label.size.y() > two_line_height) {
+                    label.size.y() = two_line_height;
+                    any_changed = true;
+                }
+            }
 
             ImGui::PopID();
         }
@@ -2190,49 +2187,59 @@ void AssemblyStepsUtils::render_assembly_notes_on_canvas(const Vec2d &object_scr
             float vy = arrow_end.y - arrow_start.y;
             float line_len = std::sqrt(vx * vx + vy * vy);
             float endpoint_hot = handle_sz * 2.0f;
+            ImVec2 line_body_start;
+            ImVec2 line_body_end;
+            float  hit_tol = line_hit_tol;
             if (line_len > endpoint_hot * 2.0f) {
-                ImVec2 line_body_start(arrow_start.x + vx / line_len * endpoint_hot,
-                                       arrow_start.y + vy / line_len * endpoint_hot);
-                ImVec2 line_body_end(arrow_end.x - vx / line_len * endpoint_hot,
-                                     arrow_end.y - vy / line_len * endpoint_hot);
-                ImVec2 line_min(std::min(line_body_start.x, line_body_end.x) - line_hit_tol,
-                                std::min(line_body_start.y, line_body_end.y) - line_hit_tol);
-                ImVec2 line_max(std::max(line_body_start.x, line_body_end.x) + line_hit_tol,
-                                std::max(line_body_start.y, line_body_end.y) + line_hit_tol);
-                ImVec2 line_size(std::max(1.0f, line_max.x - line_min.x),
-                                 std::max(1.0f, line_max.y - line_min.y));
-                char line_win_id[64];
-                snprintf(line_win_id, sizeof(line_win_id), "##plain_arrow_line_%d", ni);
-                ImGui::SetNextWindowPos(line_min, ImGuiCond_Always);
-                ImGui::SetNextWindowSize(line_size, ImGuiCond_Always);
-                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-                ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-                ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
-                ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-                if (ImGui::Begin(line_win_id, nullptr, drag_flags)) {
-                    ImGui::InvisibleButton("##plain_arrow_line_drag", line_size);
-                    bool on_arrow_line = distance_to_segment(mouse_pos, line_body_start, line_body_end) <= line_hit_tol;
-                    if (ImGui::IsItemHovered() && on_arrow_line) {
-                        set_cursor(AssemblyNoteCursorType::Move);
-                        note_cursor_requested = true;
-                    }
-                    if (ImGui::IsItemClicked(0) && on_arrow_line)
-                        activate_note_edit_controls(AssemblyNoteSelectionType::PlainArrow, ni);
-                    if (ImGui::IsItemActivated() && on_arrow_line)
-                        s_plain_arrow_line_drag_idx = ni;
-                    if (s_plain_arrow_line_drag_idx == ni && ImGui::IsItemActive() && ImGui::IsMouseDragging(0)) {
-                        set_cursor(AssemblyNoteCursorType::Move);
-                        note_cursor_requested = true;
-                        ImVec2 delta = ImGui::GetIO().MouseDelta;
-                        arrow.arrow_start_offset.x() += delta.x;
-                        arrow.arrow_start_offset.y() += delta.y;
-                        any_changed = true;
-                    }
-                }
-                ImGui::End();
-                ImGui::PopStyleColor(2);
-                ImGui::PopStyleVar(2);
+                line_body_start = ImVec2(arrow_start.x + vx / line_len * endpoint_hot,
+                                         arrow_start.y + vy / line_len * endpoint_hot);
+                line_body_end   = ImVec2(arrow_end.x - vx / line_len * endpoint_hot,
+                                         arrow_end.y - vy / line_len * endpoint_hot);
+            } else {
+                // The arrow shrank too small to expose a trimmed line body. Keep the
+                // whole (possibly tiny) segment clickable with a larger tolerance so
+                // it can still be selected again after leaving edit mode.
+                line_body_start = arrow_start;
+                line_body_end   = arrow_end;
+                hit_tol         = std::max(line_hit_tol, handle_sz);
             }
+            ImVec2 line_min(std::min(line_body_start.x, line_body_end.x) - hit_tol,
+                            std::min(line_body_start.y, line_body_end.y) - hit_tol);
+            ImVec2 line_max(std::max(line_body_start.x, line_body_end.x) + hit_tol,
+                            std::max(line_body_start.y, line_body_end.y) + hit_tol);
+            ImVec2 line_size(std::max(1.0f, line_max.x - line_min.x),
+                             std::max(1.0f, line_max.y - line_min.y));
+            char line_win_id[64];
+            snprintf(line_win_id, sizeof(line_win_id), "##plain_arrow_line_%d", ni);
+            ImGui::SetNextWindowPos(line_min, ImGuiCond_Always);
+            ImGui::SetNextWindowSize(line_size, ImGuiCond_Always);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+            ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
+            ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
+            if (ImGui::Begin(line_win_id, nullptr, drag_flags)) {
+                ImGui::InvisibleButton("##plain_arrow_line_drag", line_size);
+                bool on_arrow_line = distance_to_segment(mouse_pos, line_body_start, line_body_end) <= hit_tol;
+                if (ImGui::IsItemHovered() && on_arrow_line) {
+                    set_cursor(AssemblyNoteCursorType::Move);
+                    note_cursor_requested = true;
+                }
+                if (ImGui::IsItemClicked(0) && on_arrow_line)
+                    activate_note_edit_controls(AssemblyNoteSelectionType::PlainArrow, ni);
+                if (ImGui::IsItemActivated() && on_arrow_line)
+                    s_plain_arrow_line_drag_idx = ni;
+                if (s_plain_arrow_line_drag_idx == ni && ImGui::IsItemActive() && ImGui::IsMouseDragging(0)) {
+                    set_cursor(AssemblyNoteCursorType::Move);
+                    note_cursor_requested = true;
+                    ImVec2 delta = ImGui::GetIO().MouseDelta;
+                    arrow.arrow_start_offset.x() += delta.x;
+                    arrow.arrow_start_offset.y() += delta.y;
+                    any_changed = true;
+                }
+            }
+            ImGui::End();
+            ImGui::PopStyleColor(2);
+            ImGui::PopStyleVar(2);
         }
 
         auto drag_arrow_point = [&](const char *name, const ImVec2 &point, bool drag_start) {

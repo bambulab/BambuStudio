@@ -1957,7 +1957,10 @@ void GLGizmoMeasure::show_distance_xyz_ui()
                 displacement[2] = m_buffered_distance[2] - distance[2];
                 distance[2]     = m_buffered_distance[2];
             }
-            if (displacement.norm() > 0.0f) { set_distance(m_same_model_object, displacement); }
+            if (displacement.norm() > 0.0f) {
+                set_distance(m_same_model_object, displacement);
+                update_measurement_result();
+            }
         }
     };
     const unsigned int max_measure_row_count = 2;
@@ -2047,6 +2050,7 @@ void GLGizmoMeasure::show_face_face_assembly_common() {
                                   m_is_dark_mode ? ImVec4(255 / 255.0f, 255 / 255.0f, 255 / 255.0f, 1.00f) : ImVec4(255 / 255.0f, 255 / 255.0f, 255 / 255.0f, 1.00f));
             if (m_imgui->button(_L("Center coincidence"))) {
                 set_to_center_coincidence(m_same_model_object);
+                update_measurement_result();
             }
             ImGui::PopStyleColor(4);
             ImGui::SameLine(set_to_center_coincidence_size + m_space_size * 2);
@@ -2055,7 +2059,10 @@ void GLGizmoMeasure::show_face_face_assembly_common() {
 
         m_imgui->disabled_begin(!action.can_set_to_parallel);
         {
-            if (m_imgui->button(_L("Parallel"))) { set_to_parallel(m_same_model_object); }
+            if (m_imgui->button(_L("Parallel"))) {
+                set_to_parallel(m_same_model_object);
+                update_measurement_result();
+            }
         }
         m_imgui->disabled_end();
     }

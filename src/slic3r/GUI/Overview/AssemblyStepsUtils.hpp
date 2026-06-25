@@ -515,6 +515,10 @@ public://logic
     // what is selected on the canvas. Whole-object selections map to the object
     // row; partial selections map to the individual volume rows.
     void                     seed_tree_selected_items_from_canvas(const AssemblyTreeData &tree);
+    // True while the add-object assembly tree view (render_assembly_tree_ui) is open on the canvas.
+    bool                     is_render_assembly_tree_ui_open() const { return m_structure_add_tree_card >= 0; }
+    // Re-map the current canvas selection (m_selection) onto the assembly tree
+    void                     sync_tree_ui_selection_from_canvas();
     // Hover callback for a tree-view row. The argument is the unique ObjectID of
     // the hovered ModelObject / ModelVolume (-1 when no row is hovered). The
     // concrete canvas-hover effect is wired up separately.
@@ -613,6 +617,7 @@ public://logic
     void                     auto_explode_current_keyframe();
     void                     on_export(ExportType type);
     std::string generate_output_path(ExportType type);
+    bool                     is_export_target_locked(const std::string &path);
 
     void                     on_export_pdf(std::string path);
     void                     on_export_markdown(std::string path);
@@ -681,6 +686,9 @@ public://logic
     // Enter inline-rename mode for the given part-number label (its text becomes
     // an editable field). Committing renames the backing ModelObject/ModelVolume.
     void begin_part_label_rename(const PartNumberLabel &lbl);
+    // Confirm any pending part-label inline rename (Enter, ImGui focus loss, or a
+    // canvas click that clears the selection). No-op when not renaming.
+    void commit_part_label_rename();
     // Enter inline-rename mode for a tree-view row backed by the given
     // ModelObject (volume_idx < 0) / ModelVolume; committing reuses
     // rename_model_item_from_label.

@@ -95,8 +95,9 @@ void AssemblyStepsUtils::set_selection_origin(SelectionOrigin origin)
 {
     if (m_selection_origin != origin) {
         if (origin == SelectionOrigin::None) {
+            commit_part_label_rename();
             exit_note_edit();
-            //exit_render_assembly_tree_ui();
+            //ban exit_render_assembly_tree_ui() here;
             //this clear_when_no_selection(); Trigger camera rotation and exit the current step editing with a single click
         }
         m_selection_origin = origin;
@@ -500,6 +501,15 @@ void AssemblyStepsUtils::seed_tree_selected_items_from_canvas(const AssemblyTree
         if (sel_pairs.count({n.object_idx, n.volume_idx}) > 0)
             m_assembly_tree_selected_items.emplace(n.object_idx, n.volume_idx);
     }
+}
+
+void AssemblyStepsUtils::sync_tree_ui_selection_from_canvas()
+{
+    // Only mirror onto the tree rows while the add-object tree view is actually
+    // visible; otherwise there is nothing to reflect the selection onto.
+    if (!is_render_assembly_tree_ui_open() || !m_model)
+        return;
+    seed_tree_selected_items_from_canvas(m_model->get_assembly_tree_data());
 }
 
 void AssemblyStepsUtils::hover_tree_item_logic(int id)
@@ -2376,6 +2386,10 @@ void AssemblyStepsUtils::on_export(ExportType type)
 {
     auto path = generate_output_path(type);
     if (!path.empty()) {
+        // Block the export when the chosen file (PDF / MD / MP4) is held open by
+        // another process; writing would otherwise fail mid-way.
+        if (is_export_target_locked(path))
+            return;
         if (ExportType::PDF == type) {
             on_export_pdf(path);
         } else if (ExportType::MarkDown == type) {
@@ -2384,6 +2398,33 @@ void AssemblyStepsUtils::on_export(ExportType type)
             on_export_mp4(path);
         }
     }
+}
+
+bool AssemblyStepsUtils::is_export_target_locked(const std::string &path)
+{
+    namespace fs = boost::filesystem;
+    if (path.empty())
+        return false;
+
+    boost::system::error_code ec;
+    if (!fs::exists(fs::path(path), ec) || ec)
+        return false;
+
+    bool locked = false;
+    if (FILE *fp = boost::nowide::fopen(path.c_str(), "ab")) {
+        std::fclose(fp);
+    } else {
+        locked = true;
+    }
+
+    if (locked) {
+        MessageDialog msg_dlg(nullptr,
+            _L("The export file is in use by the system. Please close it or export with a different file name, then try again."),
+            _L("Export"),
+            wxICON_WARNING | wxOK);
+        msg_dlg.ShowModal();
+    }
+    return locked;
 }
 
 
@@ -4255,6 +4296,40 @@ void AssemblyStepsUtils::begin_part_label_rename(const PartNumberLabel &lbl)
     m_pn_label_rename_volume_idx    = lbl.volume_idx;
     m_pn_label_rename_buf           = lbl.part_name;
     m_pn_label_rename_focus_pending = true;
+}
+
+void AssemblyStepsUtils::commit_part_label_rename()
+{
+    if (m_pn_label_rename_object_idx < 0)
+        return;
+    const int         oi       = m_pn_label_rename_object_idx;
+    const int         vi       = m_pn_label_rename_volume_idx;
+    const std::string new_name = m_pn_label_rename_buf;
+    // Drop the edit state up front so the save/callbacks below cannot re-enter
+    // this commit path.
+    m_pn_label_rename_object_idx = -1;
+    m_pn_label_rename_volume_idx = -1;
+
+    if (!rename_model_item_from_label(oi, vi, new_name))
+        return;
+
+    // Reflect the committed model name onto the live label so the pill text
+    // refreshes immediately without waiting for a label rebuild.
+    const std::string committed = (vi < 0)
+        ? m_model->objects[oi]->name
+        : m_model->objects[oi]->volumes[vi]->name;
+    auto *entries = get_current_kf_entries();
+    if (entries && m_keyframe_selected >= 0 && m_keyframe_selected < (int) entries->size()) {
+        KeyFrameEntry &cur_entry = (*entries)[m_keyframe_selected];
+        for (auto &lbl : cur_entry.data.assembly_note.part_number_labels) {
+            if (lbl.object_idx == oi && lbl.volume_idx == vi)
+                lbl.part_name = committed;
+        }
+        cur_entry.need_save = true;
+        save_assembly_steps_json_to_model();
+    }
+    do_commond_callback("dirty");
+    do_commond_callback("request_extra_frame");
 }
 
 void AssemblyStepsUtils::begin_tree_item_rename(int object_idx, int volume_idx, const std::string &name)
