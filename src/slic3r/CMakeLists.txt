@@ -787,6 +787,27 @@ if (NOT APPLE)
         libswscale
         libavutil
     )
+
+    if (WIN32 AND TARGET PkgConfig::LIBAV AND DEFINED pkgcfg_lib_LIBAV_avcodec)
+        get_filename_component(_libav_libdir "${pkgcfg_lib_LIBAV_avcodec}" DIRECTORY)
+        get_filename_component(_libav_prefix "${_libav_libdir}" DIRECTORY)
+        set(_libav_include_root "${_libav_prefix}/include")
+
+        get_target_property(_libav_include_dirs PkgConfig::LIBAV INTERFACE_INCLUDE_DIRECTORIES)
+        if (_libav_include_dirs)
+            set(_libav_fixed_include_dirs "")
+            foreach (_dir IN LISTS _libav_include_dirs)
+                if (IS_ABSOLUTE "${_dir}")
+                    list(APPEND _libav_fixed_include_dirs "${_dir}")
+                else ()
+                    list(APPEND _libav_fixed_include_dirs "${_libav_include_root}")
+                endif ()
+            endforeach ()
+            list(REMOVE_DUPLICATES _libav_fixed_include_dirs)
+            set_property(TARGET PkgConfig::LIBAV PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${_libav_fixed_include_dirs}")
+        endif ()
+    endif ()
+
     target_link_libraries(libslic3r_gui PkgConfig::LIBAV)
 endif()
 
