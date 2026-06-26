@@ -1882,6 +1882,7 @@ ColorPickerPopup::ColorPickerPopup(wxWindow* parent)
     :PopupWindow(parent, wxBORDER_NONE)
 {
     m_def_colors.clear();
+    m_def_colors.push_back(wxColour(0, 0, 0, 0)); // transparent / clear filament
     m_def_colors.push_back(wxColour("#FFFFFF"));
     m_def_colors.push_back(wxColour("#fff144"));
     m_def_colors.push_back(wxColour("#DCF478"));
