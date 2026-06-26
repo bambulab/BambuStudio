@@ -85,7 +85,7 @@ void GLGizmoFlatten::on_render_input_window(float x, float y, float bottom_limit
     }
 
     if (m_show_warning) {
-       m_imgui->warning_text(_L("Warning: All triangle areas are too small,The current function is not working."));
+       m_imgui->warning_text(_L("Warning: All triangle areas are too small. The current function is not working."));
     }
 
     GizmoImguiEnd();

@@ -352,7 +352,7 @@ wxBoxSizer* AMSDryCtrWin::create_status_descriptions_section(wxPanel* parent)
     wxStaticLine* vert_separator2 = new wxStaticLine(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL);
     m_time_descrition_container->Add(vert_separator2, 0, wxEXPAND | wxLEFT | wxRIGHT, FromDIP(5));
 
-    wxBoxSizer* time_desc_sizer = create_description_item(parent, _L("Left Time"), m_time_data_label);
+    wxBoxSizer* time_desc_sizer = create_description_item(parent, _L("Remaining Time"), m_time_data_label);
     m_time_descrition_container->Add(time_desc_sizer, 1, wxEXPAND, FromDIP(1));
 
     desc_sizer->Add(m_time_descrition_container, 1, wxEXPAND, 0);
