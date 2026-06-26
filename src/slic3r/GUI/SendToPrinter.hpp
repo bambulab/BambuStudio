@@ -72,6 +72,8 @@ private:
     std::string                         m_print_info;
     std::string                         m_printer_last_select;
     std::string                         m_device_select;
+    std::string                         m_lan_info_reconnect_dev_id;
+    int                                 m_lan_info_refresh_tick{0};
     wxString                            m_current_project_name;
 
     TextInput*                          m_rename_input{ nullptr };
@@ -189,6 +191,7 @@ public:
     void reset_timeout();
     void update_user_printer();
     void update_show_status();
+    bool refresh_lan_info_if_needed(MachineObject* obj_);
     bool is_blocking_printing(MachineObject* obj_);
     void prepare(int print_plate_idx);
     void check_focus(wxWindow* window);

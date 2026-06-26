@@ -3662,6 +3662,8 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     /* reset timeout and reading printer info */
     m_status_bar->reset();
     m_timeout_count      = 0;
+    m_lan_info_reconnect_dev_id.clear();
+    m_lan_info_refresh_tick = 0;
     s_nozzle_mapping_last_request_time = 0;
     m_ams_mapping_result.clear();
     m_pre_print_checker.clear();
@@ -3701,14 +3703,24 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     }
 
     if (obj) {
-        obj->command_get_version();
-        obj->command_request_push_all();
-        obj->get_nozzle_mapping_result()->SetPlater(m_plater);
+        bool reconnected_lan_printer = false;
         if (!dev->get_selected_machine()) {
-            dev->set_selected_machine(m_printer_last_select);
+            reconnected_lan_printer = dev->set_selected_machine(m_printer_last_select) && obj->is_lan_mode_printer();
         }else if (dev->get_selected_machine()->get_dev_id() != m_printer_last_select) {
-            dev->set_selected_machine(m_printer_last_select);
+            reconnected_lan_printer = dev->set_selected_machine(m_printer_last_select) && obj->is_lan_mode_printer();
+        } else if (obj->is_lan_mode_printer() && !obj->is_info_ready(false)) {
+            reconnected_lan_printer = dev->set_selected_machine(m_printer_last_select);
         }
+
+        if (reconnected_lan_printer) {
+            m_lan_info_reconnect_dev_id = obj->get_dev_id();
+            m_lan_info_refresh_tick = 0;
+            reset_timeout();
+        } else {
+            obj->command_get_version();
+            obj->command_request_push_all();
+        }
+        obj->get_nozzle_mapping_result()->SetPlater(m_plater);
 
         // Has changed machine unrecoverably
         m_check_flag = false;
@@ -3725,6 +3737,45 @@ void SelectMachineDialog::on_selection_changed(wxCommandEvent &event)
     show_status(PrintDialogStatus::PrintStatusInit);
     update_show_status();
     update_print_status_msg();
+}
+
+bool SelectMachineDialog::refresh_lan_info_if_needed(MachineObject* obj_)
+{
+    if (!obj_ || !obj_->is_lan_mode_printer())
+        return false;
+
+    DeviceManager* dev = Slic3r::GUI::wxGetApp().getDeviceManager();
+    if (!dev)
+        return false;
+
+    const std::string dev_id = obj_->get_dev_id();
+    if (m_lan_info_reconnect_dev_id != dev_id) {
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+            << ": lan printer info is not ready, reconnect selected machine, dev_id="
+            << BBLCrossTalk::Crosstalk_DevId(dev_id);
+        m_lan_info_reconnect_dev_id = dev_id;
+        m_lan_info_refresh_tick = 0;
+        reset_timeout();
+        dev->set_selected_machine(dev_id);
+        return true;
+    }
+
+    ++m_lan_info_refresh_tick;
+    const int request_interval_ticks = 1000 / LIST_REFRESH_INTERVAL;
+    if (m_lan_info_refresh_tick < request_interval_ticks)
+        return true;
+
+    if ((m_lan_info_refresh_tick - request_interval_ticks) % request_interval_ticks == 0) {
+        int version_ret = obj_->command_get_version(true);
+        int push_ret = obj_->command_request_push_all(true);
+        BOOST_LOG_TRIVIAL(info) << __FUNCTION__
+            << ": lan printer info is not ready, request info after reconnect, dev_id="
+            << BBLCrossTalk::Crosstalk_DevId(dev_id)
+            << ", get_version_ret=" << version_ret
+            << ", pushall_ret=" << push_ret;
+    }
+
+    return false;
 }
 
 void SelectMachineDialog::update_ams_check(MachineObject *obj)
@@ -3933,6 +3984,7 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
     }
 
     if (!obj_->is_info_ready()) {
+        refresh_lan_info_if_needed(obj_);
         if (is_timeout()) {
             m_ams_mapping_result.clear();
             sync_ams_mapping_result(m_ams_mapping_result);
@@ -3945,6 +3997,8 @@ void SelectMachineDialog::update_show_status(MachineObject* obj_)
     }
 
     reset_timeout();
+    m_lan_info_reconnect_dev_id.clear();
+    m_lan_info_refresh_tick = 0;
 
     /*check print all*/
     if (!obj_->GetConfig()->SupportPrintAllPlates() && m_print_plate_idx == PLATE_ALL_IDX)
