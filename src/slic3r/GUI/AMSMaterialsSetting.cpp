@@ -1192,7 +1192,7 @@ void AMSMaterialsSetting::Popup(wxString filament, wxString sn, wxString temp_mi
     if (obj->GetCalib()->IsVersionInited() && !obj->GetCalib()->IsPAHistoryReady()) {
         PACalibExtruderInfo cali_info;
         int ext_id = obj->GetFilaSystem()->GetExtruderIdByAmsId(std::to_string(ams_id));
-        if (ext_id > 0) {
+        if (ext_id >= 0) {
             cali_info.nozzle_diameter = obj->GetExtderSystem()->GetNozzleDiameter(ext_id);
             cali_info.use_extruder_id = false;
             cali_info.use_nozzle_volume_type = false;
