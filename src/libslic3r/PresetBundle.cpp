@@ -459,6 +459,7 @@ PresetBundle& PresetBundle::operator=(const PresetBundle &rhs)
     project_config      = rhs.project_config;
     vendors             = rhs.vendors;
     obsolete_presets    = rhs.obsolete_presets;
+    m_project_file_has_per_slot_nozzle_options = rhs.m_project_file_has_per_slot_nozzle_options;
 
     // Adjust Preset::vendor pointers to point to the copied vendors map.
     prints       .update_vendor_ptrs_after_copy(this->vendors);
@@ -1790,6 +1791,42 @@ std::string GetNozzleVolumeTypeStr(const NozzleVolumeType &type)
     }
 }
 
+static void sync_per_slot_nozzle_options_from_full_stat(DynamicPrintConfig &config, const ExtruderFullStat &full_stat)
+{
+    const auto raw = full_stat.get_raw_stat();
+    std::vector<int>    nozzle_counts;
+    std::vector<int>    nozzle_volume_types;
+    std::vector<double> nozzle_diameters;
+    std::vector<int>    nozzle_slots;
+    nozzle_counts.reserve(raw.size());
+    int global_slot = 0;
+    for (const auto &ext : raw) {
+        int installed = 0;
+        for (const auto &slot : ext) {
+            if (!slot.second.empty()) {
+                nozzle_volume_types.push_back(static_cast<int>(nozzle_volume_type_from_string(slot.second)));
+                nozzle_diameters.push_back(slot.first.empty() ? 0.0 : atof(slot.first.c_str()));
+                nozzle_slots.push_back(global_slot);
+                ++installed;
+            }
+            ++global_slot;
+        }
+        nozzle_counts.push_back(installed);
+    }
+    config.option<ConfigOptionInts>("extruder_nozzle_count", true)->values              = std::move(nozzle_counts);
+    config.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type", true)->values = std::move(nozzle_volume_types);
+    config.option<ConfigOptionFloats>("extruder_nozzle_diameter", true)->values         = std::move(nozzle_diameters);
+    config.option<ConfigOptionInts>("extruder_nozzle_slot", true)->values               = std::move(nozzle_slots);
+}
+
+void PresetBundle::note_per_slot_nozzle_options_from_project_file(const DynamicPrintConfig &raw_file_config)
+{
+    m_project_file_has_per_slot_nozzle_options = raw_file_config.has("extruder_nozzle_count")
+        && raw_file_config.has("extruder_nozzle_volume_type")
+        && raw_file_config.has("extruder_nozzle_diameter")
+        && raw_file_config.has("extruder_nozzle_slot");
+}
+
 void PresetBundle::update_extruder_full_stats_from_config()
 {
     // Rebuild the per-slot snapshot from the per-slot nozzle params instead of a dedicated
@@ -1807,9 +1844,21 @@ void PresetBundle::update_extruder_full_stats_from_config()
 
     int total = 0;
     for (int c : counts) total += c;
-    if (total <= 0 || static_cast<int>(vtypes.size()) != total) {
-        // Params absent / inconsistent: fall back to the aggregate-based default.
+
+    bool counts_match_stats = false;
+    if (total > 0 && static_cast<int>(vtypes.size()) == total) {
+        const auto &raw_stats = extruder_nozzle_stat.get_raw_stat();
+        counts_match_stats = !raw_stats.empty() && counts.size() == raw_stats.size();
+        for (size_t e = 0; counts_match_stats && e < counts.size(); ++e) {
+            if (counts[e] != extruder_nozzle_stat.get_extruder_nozzle_count(static_cast<int>(e)))
+                counts_match_stats = false;
+        }
+    }
+
+    if (!m_project_file_has_per_slot_nozzle_options || !counts_match_stats) {
+        // Old 3mf without the four keys, or defaults / inconsistent data vs extruder_nozzle_stats.
         generate_extruder_full_stats_from_nozzle_stats();
+        sync_per_slot_nozzle_options_from_full_stat(project_config, extruder_full_stat);
         return;
     }
 
@@ -3672,35 +3721,8 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     out.option<ConfigOptionStrings>("extruder_ams_count", true)->values   = save_extruder_ams_count_to_string(this->extruder_ams_counts);
     out.option<ConfigOptionStrings>("extruder_nozzle_stats", true)->values = save_extruder_nozzle_stats_to_string(this->extruder_nozzle_stat.get_raw_stat());
 
-    // Per-slot nozzle params (count + volume type) for the grouping backend, derived in physical-slot
-    // order from the per-slot stat. The backend builds its nozzle list from these, not from the
-    // *_stats strings.
-    {
-        const auto raw = this->extruder_full_stat.get_raw_stat(); // per extruder -> per slot (diameter, volume)
-        std::vector<int>    nozzle_counts;
-        std::vector<int>    nozzle_volume_types;
-        std::vector<double> nozzle_diameters;
-        std::vector<int>    nozzle_slots;
-        nozzle_counts.reserve(raw.size());
-        int global_slot = 0; // physical slot index, advances for every slot incl. empty ones
-        for (const auto& ext : raw) {
-            int installed = 0;
-            for (const auto& slot : ext) {
-                if (!slot.second.empty()) { // skip empty physical slot, but still advance global_slot
-                    nozzle_volume_types.push_back(static_cast<int>(nozzle_volume_type_from_string(slot.second)));
-                    nozzle_diameters.push_back(slot.first.empty() ? 0.0 : atof(slot.first.c_str()));
-                    nozzle_slots.push_back(global_slot);
-                    ++installed;
-                }
-                ++global_slot;
-            }
-            nozzle_counts.push_back(installed);
-        }
-        out.option<ConfigOptionInts>("extruder_nozzle_count", true)->values         = std::move(nozzle_counts);
-        out.option<ConfigOptionEnumsGeneric>("extruder_nozzle_volume_type", true)->values = std::move(nozzle_volume_types);
-        out.option<ConfigOptionFloats>("extruder_nozzle_diameter", true)->values    = std::move(nozzle_diameters);
-        out.option<ConfigOptionInts>("extruder_nozzle_slot", true)->values          = std::move(nozzle_slots);
-    }
+    // Per-slot nozzle params for the grouping backend, derived from extruder_full_stat.
+    sync_per_slot_nozzle_options_from_full_stat(out, this->extruder_full_stat);
 
 	out.option<ConfigOptionEnumGeneric>("printer_technology", true)->value = ptFFF;
     return out;

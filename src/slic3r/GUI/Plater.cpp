@@ -9372,6 +9372,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path>& input_
                         // Based on the printer technology field found in the loaded config, select the base for the config,
                         PrinterTechnology printer_technology = Preset::printer_technology(config_loaded);
 
+                        // Detect per-slot nozzle keys from the raw 3mf config, before defaults fill missing keys.
+                        wxGetApp().preset_bundle->note_per_slot_nozzle_options_from_project_file(config_loaded);
+
                         config.apply(static_cast<const ConfigBase &>(FullPrintConfig::defaults()));
                         // and place the loaded config over the base.
                         config += std::move(config_loaded);
@@ -20820,6 +20823,7 @@ int Plater::new_project(bool skip_confirm, bool silent, const wxString &project_
     //get_partplate_list().update_slice_context_to_current_plate(p->background_process);
     //p->preview->update_gcode_result(p->partplate_list.get_current_slice_result());
     reset(transfer_preset_changes);
+    wxGetApp().preset_bundle->note_per_slot_nozzle_options_from_project_file({});
     reset_project_dirty_after_save();
     reset_project_dirty_initial_presets();
     get_partplate_list().reset_thumbnail_assembly_view_data();

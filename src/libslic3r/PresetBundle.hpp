@@ -412,12 +412,20 @@ public:
     std::pair<PresetsConfigSubstitutions, std::string> load_system_filaments_json(ForwardCompatibilitySubstitutionRule compatibility_rule);
     VendorProfile                                      get_custom_vendor_models() const;
 
+    void update_extruder_full_stats_from_config();
+    void generate_extruder_full_stats_from_nozzle_stats();
+
+    // Call with raw 3mf config before FullPrintConfig defaults are merged in.
+    void note_per_slot_nozzle_options_from_project_file(const DynamicPrintConfig &raw_file_config);
+
     //BBS: add BBL as default
     static const char *BBL_BUNDLE;
 	static const char *BBL_DEFAULT_PRINTER_MODEL;
 	static const char *BBL_DEFAULT_PRINTER_VARIANT;
 	static const char *BBL_DEFAULT_FILAMENT;
 private:
+    bool m_project_file_has_per_slot_nozzle_options{false};
+
     //std::pair<PresetsConfigSubstitutions, std::string> load_system_presets(ForwardCompatibilitySubstitutionRule compatibility_rule);
     //BBS: add json related logic
     std::pair<PresetsConfigSubstitutions, std::string> load_system_presets_from_json(ForwardCompatibilitySubstitutionRule compatibility_rule);
