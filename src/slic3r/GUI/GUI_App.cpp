@@ -2733,6 +2733,21 @@ void GUI_App::MacPowerCallBack(void* refcon, io_service_t service, natural_t mes
             dev_manager->set_selected_machine(last_selected_machine);
             BOOST_LOG_TRIVIAL(info) << "MacPowerCallBack restore selected machine:" << BBLCrossTalk::Crosstalk_DevId(last_selected_machine);
         }
+
+        // After wake, force a re-layout of the main frame on the UI thread.
+        // macOS can leave the selected tab's wxWebView with a stale hidden
+        // NSView (setHidden:YES) after sleep/wake; events still route to the
+        // window but the hit-test view is hidden so keyboard/mouse input is
+        // silently dropped. Re-running Layout()+Refresh() reconciles wx's
+        // notion of visibility with AppKit's and unsticks the content view.
+        wxGetApp().CallAfter([] {
+            MainFrame *mf = wxGetApp().mainframe;
+            if (mf == nullptr) return;
+            BOOST_LOG_TRIVIAL(info) << "MacPowerCallBack: re-laying out main frame after wake";
+            mf->Layout();
+            mf->Refresh();
+            mf->Update();
+        });
     };
 }
 
