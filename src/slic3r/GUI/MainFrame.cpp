@@ -2645,10 +2645,8 @@ void MainFrame::on_sys_color_changed()
     // update label colors in respect to the system mode
     wxGetApp().init_label_colours();
 
-#ifndef __WINDOWS__
     wxGetApp().force_colors_update();
     wxGetApp().update_ui_from_settings();
-#endif //__APPLE__
 
 #ifdef __WXMSW__
     wxGetApp().UpdateDarkUI(m_tabpanel);
