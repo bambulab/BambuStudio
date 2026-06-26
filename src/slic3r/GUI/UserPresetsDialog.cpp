@@ -1,7 +1,10 @@
 
 #include "UserPresetsDialog.hpp"
+#include "GUI.hpp"
 #include "I18N.hpp"
 #include "GUI_App.hpp"
+#include "Plater.hpp"
+#include "NotificationManager.hpp"
 
 #include <slic3r/GUI/Widgets/CheckBox.hpp>
 #include <slic3r/GUI/Widgets/TabCtrl.hpp>
@@ -71,6 +74,16 @@ UserPresetsDialog::UserPresetsDialog(wxWindow *parent)
     auto label = new Label(this, _L("Select All"));
     m_label_check_count = new Label(this);
     m_label_check_count->SetForegroundColour("#6B6B6B");
+    m_button_reload     = new Button(this, _L("Reload from Disk"));
+    m_button_reload->SetToolTip(_L("Reload user presets from disk without restarting") + " [" + GUI::shortkey_ctrl_prefix() + "Shift+P]");
+    // Without this, the button retains focus after click (Button::mouseDown
+    // calls SetFocus), which renders in the gray "hovered" state because
+    // the default background StateColor has takeFocusedAsHovered=true. The
+    // reload has no follow-up dialog to steal focus, so the button looks
+    // stuck. SetCanFocus(false) is the standard Bambu pattern for action
+    // buttons that don't need keyboard focus (cf. Plater::btn_sync,
+    // MediaPlayCtrl::m_button_play).
+    m_button_reload->SetCanFocus(false);
     m_button_delete     = new Button(this, _L("Delete"));
     m_button_delete->SetBorderColorNormal(wxColor("#D01B1B"));
     m_button_delete->SetTextColorNormal(wxColor("#D01B1B"));
@@ -81,10 +94,18 @@ UserPresetsDialog::UserPresetsDialog(wxWindow *parent)
         on_all_checked(checked, true);
     });
     m_button_delete->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &evt) { delete_checked(); });
+    m_button_reload->Bind(wxEVT_COMMAND_BUTTON_CLICKED, [this](auto &evt) {
+        PresetReloadResult result = wxGetApp().reload_user_presets_from_disk();
+        reload_presets_ui();
+        if (result.any_change() && wxGetApp().plater())
+            wxGetApp().plater()->get_notification_manager()->push_notification(
+                build_reload_toast_message(result));
+    });
     wxSizer *sizer_bottom = new wxBoxSizer(wxHORIZONTAL);
     sizer_bottom->Add(m_check_all, 0, wxALIGN_CENTER | wxLEFT, FromDIP(20));
     sizer_bottom->Add(label, 0, wxALIGN_CENTER | wxLEFT, FromDIP(8));
     sizer_bottom->Add(m_label_check_count, 1, wxALIGN_CENTER | wxLEFT, FromDIP(8));
+    sizer_bottom->Add(m_button_reload, 0, wxALIGN_CENTER | wxLEFT, FromDIP(8));
     sizer_bottom->Add(m_button_delete, 0, wxALIGN_CENTER | wxLEFT | wxRIGHT, FromDIP(20));
 
     wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
@@ -501,6 +522,41 @@ void UserPresetsDialog::delete_checked()
         m_hiden_sizers.erase(sizer);
         delete sizer;
     }
+}
+
+void UserPresetsDialog::reload_presets_ui()
+{
+    // Preset bundle has already been reloaded from disk by the caller.
+    // Tear down all cached dialog state derived from the old bundle and
+    // rebuild from scratch. Any selection/checked state is discarded since
+    // presets may have been added, removed, or edited on disk.
+    m_preset_sizers.clear();
+    m_filament_sizers.clear();
+    m_hiden_sizers.clear();
+    m_presets.clear();
+    m_filament_names.clear();
+    m_filament_presets.clear();
+    m_checked_presets.clear();
+    m_checked_filaments.clear();
+    m_check_all->SetValue(false);
+    m_check_all->SetHalfChecked(false);
+
+    init_preset_list();
+    create_preset_list(m_scrolled);
+    layout_preset_list(true);
+    update_preset_counts();
+    update_checked();
+
+    // Newly created Label widgets need the dialog's dark-mode colors applied,
+    // same as the initial constructor pass — otherwise labels render dark-on-dark.
+    wxGetApp().UpdateDlgDarkUI(this);
+
+    m_scrolled->Layout();
+    m_scrolled->FitInside();
+
+    // Return focus to the scrolled window so the Reload button doesn't render
+    // as "still pressed/focused" after the action completes.
+    m_scrolled->SetFocus();
 }
 
 }}
