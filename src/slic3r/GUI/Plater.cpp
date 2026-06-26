@@ -23951,6 +23951,17 @@ void Plater::open_filament_map_setting_dialog(wxCommandEvent &evt)
     const auto& project_config = wxGetApp().preset_bundle->project_config;
     auto filament_colors = config()->option<ConfigOptionStrings>("filament_colour")->values;
     auto filament_types = config()->option<ConfigOptionStrings>("filament_type")->values;
+    // Distinguish support filaments from their base material type so the grouping
+    // panel does not show identical labels (e.g. two "ABS" entries instead of
+    // "ABS" and "Sup.ABS" when one slot holds Support for ABS).
+    const auto& fila_preset_names = preset_bundle->filament_presets;
+    for (size_t i = 0; i < filament_types.size() && i < fila_preset_names.size(); ++i) {
+        const Preset *fila_preset = preset_bundle->filaments.find_preset(fila_preset_names[i]);
+        if (!fila_preset) continue;
+        const auto *is_support = dynamic_cast<const ConfigOptionBools *>(fila_preset->config.option("filament_is_support"));
+        if (is_support && !is_support->values.empty() && is_support->values[0])
+            filament_types[i] = "Sup." + filament_types[i];
+    }
 
     auto plate_filament_maps = curr_plate->get_real_filament_maps(project_config);
     auto plate_filament_map_mode = curr_plate->get_filament_map_mode();
