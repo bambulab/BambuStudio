@@ -11,6 +11,7 @@
 #include <wx/sizer.h>
 #include <boost/log/trivial.hpp>
 #include <chrono>
+#include <stdexcept>
 
 namespace Slic3r { namespace GUI {
 
@@ -51,6 +52,11 @@ void DeviceWebHost::EnsureBuilt()
 
     m_device_webview = new PrinterWebView(this);
     m_device_webview->SetMinSize(wxSize(FromDIP(320), FromDIP(260)));
+
+    // Restore saved zoom once the page has finished loading.
+    if (wxWebView* wv = GetWebView())
+        wv->Bind(wxEVT_WEBVIEW_LOADED, &DeviceWebHost::OnWebLoaded, this);
+
     m_device_web_bridge = std::make_unique<DeviceWebBridge>(m_device_webview->GetWebView());
     m_device_web_bridge->SetReportEnabledHandler([this]() {
         return CanReportToWeb();
@@ -222,6 +228,45 @@ void DeviceWebHost::on_sys_color_changed()
 
 void DeviceWebHost::msw_rescale()
 {
+}
+
+void DeviceWebHost::OnWebLoaded(wxWebViewEvent& evt)
+{
+    evt.Skip();
+
+    auto* config = wxGetApp().app_config;
+    if (!config || !config->has("filament_manager_zoom_factor"))
+        return;
+
+    wxWebView* wv = GetWebView();
+    if (!wv)
+        return;
+
+    try {
+        float zoom = std::stof(config->get("filament_manager_zoom_factor"));
+        if (zoom >= 0.25f && zoom <= 5.0f)
+            wv->SetZoomFactor(zoom);
+    } catch (const std::exception&) {
+        // Ignore malformed config values; browser default (1.0) will be used.
+    }
+}
+
+void DeviceWebHost::SaveZoom()
+{
+    wxWebView* wv = GetWebView();
+    if (!wv)
+        return;
+
+    float zoom = wv->GetZoomFactor();
+    if (zoom <= 0.0f)
+        return;
+
+    auto* config = wxGetApp().app_config;
+    if (!config)
+        return;
+
+    config->set("filament_manager_zoom_factor", std::to_string(zoom));
+    config->save();
 }
 
 }} // namespace Slic3r::GUI

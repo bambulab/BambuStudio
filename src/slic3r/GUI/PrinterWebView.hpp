@@ -44,7 +44,6 @@ public:
 private:
 
     wxWebView* m_browser;
-    long m_zoomFactor;
 
     // DECLARE_EVENT_TABLE()
 };
