@@ -188,4 +188,20 @@ private:
 };
 
 
+// BBS: human-readable tooltip for the filament column, given the extruder text
+// ("1", "2", ... or "default"): "<filament name> (L/R) — <color name>".
+wxString get_filament_column_tooltip(const wxString& extruder_text);
+
+// BBS: nozzle-side suffix for a 1-based filament index on a synced dual-nozzle printer:
+// " (L)" (left), " (R)" (right), or empty for single-nozzle / unknown.
+wxString get_filament_nozzle_suffix(int extruder_idx_1based);
+
+// BBS: readable name for a colour hex ("#1F8EB4" -> "Sky Blue"), nearest of a small table.
+wxString get_color_display_name(const wxString& hex);
+
+// BBS: for each project filament (0-based), the AMS tray it is loaded in ("A1", "HT-B", "Ext"),
+// using the synced AMS list with a 1:1 assignment. Empty string when the filament isn't matched.
+std::vector<wxString> build_filament_ams_locations();
+
+
 #endif // slic3r_GUI_ExtraRenderers_hpp_

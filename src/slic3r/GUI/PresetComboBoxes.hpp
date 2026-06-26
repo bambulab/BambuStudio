@@ -213,9 +213,20 @@ public:
     void sync_colour_config(const std::vector<std::string> &clrs, bool is_gradient);
     void sys_color_changed() override;
 
+    // BBS: briefly outline this combo to draw attention (e.g. clicked the matching AMS).
+    void FlashHighlight();
+    // BBS: immediately cancel any active highlight and restore the normal border.
+    void ClearHighlight();
+
 private:
     // BBS
     wxColor m_color;
+
+    // BBS: transient highlight state for FlashHighlight()
+    wxTimer*   m_highlight_timer{nullptr};
+    StateColor m_highlight_saved_border;
+    int        m_highlight_saved_border_w{1};
+    bool       m_highlighting{false};
 };
 
 

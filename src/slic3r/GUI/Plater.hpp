@@ -261,6 +261,8 @@ public:
     std::vector<PlaterPresetComboBox*>&   combos_filament();
     void                                 clear_combos_filament_badge();
     void                                 udpate_combos_filament_badge();
+    // BBS: scroll the physical-filament area so the given filament combos are all visible.
+    void                                 ensure_filament_combos_visible(const std::vector<PlaterPresetComboBox*>& combos);
 
     // Mixed Filament sidebar
     void add_mixed_filament();
