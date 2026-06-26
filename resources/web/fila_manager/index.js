@@ -1,5 +1,56 @@
 /* Filament Manager — index.js */
 
+/* ===== i18n ===== */
+var g_i18n = {};
+
+function t(key) {
+    return g_i18n[key] !== undefined ? g_i18n[key] : key;
+}
+
+function tf(key, n) {
+    return t(key).replace("%d", n);
+}
+
+function applyTranslations() {
+    document.querySelectorAll("[data-i18n]").forEach(function(el) {
+        var key = el.getAttribute("data-i18n");
+        var text = t(key);
+        if (el.tagName === "TITLE" || el.children.length === 0) {
+            el.textContent = text;
+        } else {
+            var firstText = el.childNodes[0];
+            if (firstText && firstText.nodeType === 3) firstText.textContent = text;
+        }
+    });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach(function(el) {
+        el.placeholder = t(el.getAttribute("data-i18n-placeholder"));
+    });
+}
+
+function loadLocale(lang, callback) {
+    var supported = ["zh_CN", "en", "de_DE", "fr_FR", "es_ES", "it_IT",
+                     "ja_JP", "ko_KR", "pl_PL", "pt_BR", "ru_RU",
+                     "cs_CZ", "hu_HU", "nl_NL", "sv_SE", "tr_TR", "uk_UA"];
+    var locale = "en";
+    if (lang) {
+        var normalized = lang.replace("-", "_");
+        if (supported.indexOf(normalized) !== -1) locale = normalized;
+        else if (supported.indexOf(normalized.split("_")[0]) !== -1) locale = normalized.split("_")[0];
+        else if (normalized.indexOf("zh") === 0) locale = "zh_CN";
+    }
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "locales/" + locale + ".json", true);
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            try { g_i18n = JSON.parse(xhr.responseText); } catch(e) { g_i18n = {}; }
+        }
+        applyTranslations();
+        if (callback) callback();
+    };
+    xhr.onerror = function() { applyTranslations(); if (callback) callback(); };
+    xhr.send();
+}
+
 var g_spools = [];
 var g_view = "my";
 var g_tab = "all";
@@ -123,7 +174,7 @@ function onMachineListResponse(code, data) {
     if (code !== 0) {
         deviceArea.style.display = "none";
         emptyArea.style.display = "flex";
-        if (emptyText) emptyText.textContent = "获取设备列表失败，请重试";
+        if (emptyText) emptyText.textContent = t("ams_error_list");
         document.getElementById("dialog-body").style.display = "none";
         console.error("[FM] get_machine_list failed, code=" + code);
         return;
@@ -134,7 +185,7 @@ function onMachineListResponse(code, data) {
     if (machines.length === 0) {
         deviceArea.style.display = "none";
         emptyArea.style.display = "flex";
-        if (emptyText) emptyText.textContent = "未发现可用打印机，请确保已登录并绑定设备";
+        if (emptyText) emptyText.textContent = t("ams_no_printers");
         document.getElementById("dialog-body").style.display = "none";
         return;
     }
@@ -149,7 +200,7 @@ function onMachineListResponse(code, data) {
         var opt = document.createElement("option");
         opt.value = m.dev_id;
         opt.textContent = m.dev_name || m.dev_id;
-        if (m.is_online) opt.textContent += " (在线)";
+        if (m.is_online) opt.textContent += " (" + t("ams_online") + ")";
         sel.appendChild(opt);
         if (!firstOnlineId && m.is_online) firstOnlineId = m.dev_id;
     });
@@ -161,7 +212,7 @@ function onMachineListResponse(code, data) {
     g_ams_selected_slot = null;
     document.getElementById("ams-unit-icons").innerHTML = "";
     document.getElementById("ams-slots").innerHTML =
-        '<div class="ams-empty-inline">正在加载 AMS 数据…</div>';
+        '<div class="ams-empty-inline">' + t("ams_loading_data") + '</div>';
     sendRequest("get_ams_data", { dev_id: defaultId }, onAmsDataResponse);
 }
 
@@ -170,7 +221,7 @@ function onAmsDataResponse(code, data) {
         console.error("[FM] get_ams_data failed, code=" + code);
         document.getElementById("ams-unit-icons").innerHTML = "";
         document.getElementById("ams-slots").innerHTML =
-            '<div class="ams-empty-inline">获取 AMS 数据失败</div>';
+            '<div class="ams-empty-inline">' + t("ams_error_data") + '</div>';
         document.getElementById("dialog-body").style.display = "none";
         return;
     }
@@ -181,7 +232,7 @@ function onAmsDataResponse(code, data) {
         console.error("[FM] renderAmsSection error:", e);
         document.getElementById("ams-unit-icons").innerHTML = "";
         document.getElementById("ams-slots").innerHTML =
-            '<div class="ams-empty-inline">渲染错误: ' + e.message + '</div>';
+            '<div class="ams-empty-inline">' + t("ams_render_error") + e.message + '</div>';
         document.getElementById("dialog-body").style.display = "none";
     }
 }
@@ -267,11 +318,11 @@ function refresh() {
 function getStatusTags(s) {
     var tags = [];
     var remain = s.remain_percent || 0;
-    if (remain === 0) tags.push({text: "已用尽", cls: "status-empty"});
-    else if (remain < 20) tags.push({text: "低余量", cls: "status-low"});
+    if (remain === 0) tags.push({text: t("status_empty"), cls: "status-empty"});
+    else if (remain < 20) tags.push({text: t("status_low"), cls: "status-low"});
     if (s.dry_reminder_days > 0 && s.dry_date) {
         var diff = (Date.now() - new Date(s.dry_date).getTime()) / 86400000;
-        if (diff >= s.dry_reminder_days) tags.push({text: "需烘干", cls: "status-dry"});
+        if (diff >= s.dry_reminder_days) tags.push({text: t("status_dry"), cls: "status-dry"});
     }
     return tags;
 }
@@ -382,7 +433,7 @@ function createRow(s) {
                 '<div class="name-row">' +
                     '<svg class="fila-brand-icon" width="12" height="12" viewBox="0 0 12 12"><rect x="1" y="1" width="10" height="10" rx="1.5" fill="currentColor" opacity="0.5"/></svg>' +
                     '<span class="fila-name">'+esc(nameParts||"—")+'</span>' +
-                    '<button class="fav-star'+(s.favorite?" active":"")+'" onclick="toggleFav(\''+s.spool_id+'\')" title="收藏"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2l1.8 3.6 4 .6-2.9 2.8.7 4L8 11.2 4.4 13l.7-4L2.2 6.2l4-.6L8 2z" stroke="currentColor" stroke-width="1" fill="'+(s.favorite?"currentColor":"none")+'"/></svg></button>' +
+                    '<button class="fav-star'+(s.favorite?" active":"")+'" onclick="toggleFav(\''+s.spool_id+'\')" title="'+t("tab_favorite")+'">'<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2l1.8 3.6 4 .6-2.9 2.8.7 4L8 11.2 4.4 13l.7-4L2.2 6.2l4-.6L8 2z" stroke="currentColor" stroke-width="1" fill="'+(s.favorite?"currentColor":"none")+'"/></svg></button>' +
                 '</div>' +
                 '<div class="sub-row">'+diam+' mm | '+esc(s.color_name||"—")+'</div>' +
             '</div>' +
@@ -394,9 +445,9 @@ function createRow(s) {
         '<td class="col-status"><div class="status-cell">'+tagsHtml+'</div></td>' +
         '<td class="col-price">'+formatPrice(s.unit_price, s.price_currency)+'</td>' +
         '<td class="col-actions"><div class="row-actions">' +
-            '<button class="action-icon" onclick="editSpool(\''+s.spool_id+'\')" title="详情"><svg viewBox="0 0 16 16" fill="none"><path d="M3 2.5h6.5L13 6v7.5H3V2.5z" stroke="currentColor" stroke-width="1.1"/><path d="M9.5 2.5V6H13" stroke="currentColor" stroke-width="1.1"/><circle cx="7.5" cy="9.5" r="2" stroke="currentColor" stroke-width="1.1"/><line x1="9" y1="11" x2="11" y2="13" stroke="currentColor" stroke-width="1.1"/></svg></button>' +
-            '<button class="action-icon" onclick="addSimilar(\''+s.spool_id+'\')" title="添加"><svg viewBox="0 0 16 16" fill="none"><path d="M3 2.5h6.5L13 6v7.5H3V2.5z" stroke="currentColor" stroke-width="1.1"/><path d="M9.5 2.5V6H13" stroke="currentColor" stroke-width="1.1"/><line x1="8" y1="7.5" x2="8" y2="11.5" stroke="currentColor" stroke-width="1.2"/><line x1="6" y1="9.5" x2="10" y2="9.5" stroke="currentColor" stroke-width="1.2"/></svg></button>' +
-            '<button class="action-icon" onclick="archiveOrDelete(\''+s.spool_id+'\')" title="删除"><svg viewBox="0 0 16 16" fill="none"><path d="M4 5h8l-.6 8H4.6L4 5z" stroke="currentColor" stroke-width="1.1"/><path d="M6 3h4" stroke="currentColor" stroke-width="1.1"/><path d="M3 5h10" stroke="currentColor" stroke-width="1.1"/><path d="M6.5 7v4M9.5 7v4" stroke="currentColor" stroke-width="1"/></svg></button>' +
+            '<button class="action-icon" onclick="editSpool(\''+s.spool_id+'\')" title="'+t("detail_title")+'">'<svg viewBox="0 0 16 16" fill="none"><path d="M3 2.5h6.5L13 6v7.5H3V2.5z" stroke="currentColor" stroke-width="1.1"/><path d="M9.5 2.5V6H13" stroke="currentColor" stroke-width="1.1"/><circle cx="7.5" cy="9.5" r="2" stroke="currentColor" stroke-width="1.1"/><line x1="9" y1="11" x2="11" y2="13" stroke="currentColor" stroke-width="1.1"/></svg></button>' +
+            '<button class="action-icon" onclick="addSimilar(\''+s.spool_id+'\')" title="'+t("btn_add")+'">'<svg viewBox="0 0 16 16" fill="none"><path d="M3 2.5h6.5L13 6v7.5H3V2.5z" stroke="currentColor" stroke-width="1.1"/><path d="M9.5 2.5V6H13" stroke="currentColor" stroke-width="1.1"/><line x1="8" y1="7.5" x2="8" y2="11.5" stroke="currentColor" stroke-width="1.2"/><line x1="6" y1="9.5" x2="10" y2="9.5" stroke="currentColor" stroke-width="1.2"/></svg></button>' +
+            '<button class="action-icon" onclick="archiveOrDelete(\''+s.spool_id+'\')" title="'+t("btn_delete")+'">'<svg viewBox="0 0 16 16" fill="none"><path d="M4 5h8l-.6 8H4.6L4 5z" stroke="currentColor" stroke-width="1.1"/><path d="M6 3h4" stroke="currentColor" stroke-width="1.1"/><path d="M3 5h10" stroke="currentColor" stroke-width="1.1"/><path d="M6.5 7v4M9.5 7v4" stroke="currentColor" stroke-width="1"/></svg></button>' +
         '</div></td>';
     return tr;
 }
@@ -414,7 +465,8 @@ function renderPagination(total) {
         else html += '<button class="page-btn'+(p===g_page?" active":"")+'" data-p="'+p+'">'+p+'</button>';
     });
     html += '<button class="page-btn" data-p="'+(g_page+1)+'"'+(g_page===pages?" disabled":"")+'>›</button>';
-    html += '<select class="page-size-select" id="page-size-sel"><option value="20"'+(g_page_size===20?" selected":"")+'>20/页</option><option value="50"'+(g_page_size===50?" selected":"")+'>50/页</option><option value="100"'+(g_page_size===100?" selected":"")+'>100/页</option></select>';
+    var pp = t("per_page");
+    html += '<select class="page-size-select" id="page-size-sel"><option value="20"'+(g_page_size===20?" selected":"")+'>'+"20"+pp+'</option><option value="50"'+(g_page_size===50?" selected":"")+'>'+"50"+pp+'</option><option value="100"'+(g_page_size===100?" selected":"")+'>'+"100"+pp+'</option></select>';
     el.innerHTML = html;
 }
 
@@ -456,7 +508,7 @@ function toggleFav(id) { sendRequest("toggle_favorite", { spool_id: id }, onSpoo
 
 function archiveOrDelete(id) {
     if (g_view === "archived") {
-        if (confirm("确定删除这条耗材记录？")) sendRequest("remove_spool", { spool_id: id }, onSpoolsUpdated);
+        if (confirm(t("confirm_delete"))) sendRequest("remove_spool", { spool_id: id }, onSpoolsUpdated);
     } else {
         sendRequest("archive_spool", { spool_id: id }, onSpoolsUpdated);
     }
@@ -470,7 +522,7 @@ function openFilterDropdown(btn, filterKey) {
     g_spools.forEach(function(s) { if (s[filterKey]) vals[s[filterKey]] = true; });
     var items = Object.keys(vals).sort();
 
-    list.innerHTML = '<div class="filter-dropdown-item'+((!g_filters[filterKey])?" active":"")+'" data-val="">全部</div>';
+    list.innerHTML = '<div class="filter-dropdown-item'+((!g_filters[filterKey])?" active":"")+'" data-val="">' + t("filter_all") + '</div>';
     items.forEach(function(v) {
         list.innerHTML += '<div class="filter-dropdown-item'+((g_filters[filterKey]===v)?" active":"")+'" data-val="'+esc(v)+'">'+esc(v)+'</div>';
     });
@@ -486,8 +538,8 @@ function openFilterDropdown(btn, filterKey) {
 /* ===== Dialog ===== */
 function openDialog(spool) {
     var isEdit = !!spool;
-    document.getElementById("dialog-title").textContent = isEdit ? "编辑耗材" : "添加耗材";
-    document.getElementById("dialog-confirm").textContent = isEdit ? "保存" : "添加";
+    document.getElementById("dialog-title").textContent = isEdit ? t("dialog_edit_title") : t("dialog_add_title");
+    document.getElementById("dialog-confirm").textContent = isEdit ? t("btn_confirm_save") : t("btn_confirm_add");
     document.getElementById("quantity-control").style.display = isEdit ? "none" : "flex";
     g_quantity = 1;
     document.getElementById("qty-value").textContent = "1";
@@ -554,7 +606,7 @@ function switchDialogMode(mode) {
         document.getElementById("ams-device-area").style.display = "none";
         document.getElementById("ams-empty").style.display = "flex";
         var emptyText = document.querySelector(".ams-empty-text");
-        if (emptyText) emptyText.textContent = "正在获取设备信息…";
+        if (emptyText) emptyText.textContent = t("ams_loading");
         sendRequest("get_machine_list", {}, onMachineListResponse);
     }
 }
@@ -632,7 +684,7 @@ function selectColor(c) {
 /* ===== Helpers ===== */
 function populateDropdowns() {
     var brands = g_preset_vendors.map(function(v) { return v.name; }).sort();
-    fillSelect("form-brand", brands, "选择品牌");
+    fillSelect("form-brand", brands, t("placeholder_brand"));
     populateTypeDropdown();
 }
 
@@ -655,7 +707,7 @@ function populateTypeDropdown() {
     var typeObjs = getTypesForBrand(brand);
     var names = typeObjs.map(function(t) { return t.name; }).sort();
     var prev = getVal("form-type");
-    fillSelect("form-type", names, "选择类型");
+    fillSelect("form-type", names, t("placeholder_type"));
     if (names.indexOf(prev) !== -1) setVal("form-type", prev);
     populateSeriesDropdown();
 }
@@ -676,7 +728,7 @@ function populateSeriesDropdown() {
     seriesList.sort();
 
     var prev = getVal("form-series");
-    fillSelect("form-series", seriesList, "选择系列");
+    fillSelect("form-series", seriesList, t("placeholder_series"));
     if (seriesList.indexOf(prev) !== -1) setVal("form-series", prev);
 }
 
@@ -727,7 +779,7 @@ function openDetail(id) {
     icon.style.setProperty("--spool-color", s.color_code || "#888");
     icon.innerHTML = buildSpoolSvg(s.color_code) + '<div class="color-indicator"></div>';
     var entryTag = document.getElementById("det-entry-tag");
-    var entryMap = {manual:"手动", ams_sync:"自动", rfid:"RFID"};
+    var entryMap = {manual: t("entry_manual"), ams_sync: t("entry_ams"), rfid: t("entry_rfid")};
     entryTag.textContent = entryMap[s.entry_method] || "";
     document.getElementById("det-spool-sub").textContent = (s.diameter || 1.75) + " mm｜" + (s.color_name || "—");
 
@@ -744,7 +796,7 @@ function openDetail(id) {
     var alertMap = {0:"—", 10:"≦ 10g", 20:"≦ 20g", 30:"≦ 30g", 50:"≦ 50g"};
     document.getElementById("det-v-remain-alert").textContent = alertMap[s.remain_alert_pct] || "—";
     document.getElementById("det-v-dry-date").textContent = s.dry_date || "—";
-    var dryMap = {0:"—", 7:"每周", 14:"每两周", 30:"每月", 60:"每两月"};
+    var dryMap = {0:"—", 7: t("dry_weekly"), 14: t("dry_biweekly"), 30: t("dry_monthly"), 60: t("dry_bimonthly")};
     document.getElementById("det-v-dry-reminder").textContent = dryMap[s.dry_reminder_days] || "—";
     var priceStr = "—";
     if (s.unit_price) {
@@ -826,7 +878,7 @@ function renderAmsSection() {
     if (units.length === 0) {
         document.getElementById("ams-unit-icons").innerHTML = "";
         document.getElementById("ams-slots").innerHTML =
-            '<div class="ams-empty-inline">该设备未识别到 AMS</div>';
+            '<div class="ams-empty-inline">' + t("ams_no_ams") + '</div>';
         document.getElementById("dialog-body").style.display = "none";
         return;
     }
@@ -896,7 +948,7 @@ function renderAmsSlots(amsUnit) {
                 '<div class="ams-slot-header">' + label + '</div>' +
                 '<div class="ams-slot-body ams-slot-body-empty">' +
                     '<div class="ams-spool-icon ams-spool-empty">' + buildSmallSpoolSvg("#555") + '</div>' +
-                    '<div class="ams-slot-info"><div class="ams-slot-name" style="color:var(--text-detail)">空</div></div>' +
+                    '<div class="ams-slot-info"><div class="ams-slot-name" style="color:var(--text-detail)">' + t("ams_slot_empty") + '</div></div>' +
                 '</div>';
         }
         container.appendChild(div);
@@ -1028,7 +1080,7 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("btn-delete").addEventListener("click", function() {
         var ids = Object.keys(g_selected_ids);
         if (!ids.length) return;
-        if (confirm("确定删除选中的 " + ids.length + " 条记录？")) {
+        if (confirm(tf("confirm_batch_delete", ids.length))) {
             sendRequest("batch_remove", { spool_ids: ids }, onSpoolsUpdated);
             g_selected_ids = {};
         }
@@ -1109,7 +1161,7 @@ document.addEventListener("DOMContentLoaded", function() {
         g_ams_selected_slot = null;
         document.getElementById("ams-unit-icons").innerHTML = "";
         document.getElementById("ams-slots").innerHTML =
-            '<div class="ams-empty-inline">正在加载 AMS 数据…</div>';
+            '<div class="ams-empty-inline">' + t("ams_loading_data") + '</div>';
         document.getElementById("dialog-body").style.display = "none";
         sendRequest("get_ams_data", { dev_id: devId }, onAmsDataResponse);
     });
@@ -1199,14 +1251,17 @@ document.addEventListener("DOMContentLoaded", function() {
         hmSel.addEventListener("change", function() { renderHeatmap(); });
     }
 
-    // Init: single request, C++ responds with theme + spools + presets
-    sendRequest("init", {}, function(code, data) {
-        if (code !== 0) return;
-        var theme = (data && data.theme) || "dark";
-        document.documentElement.dataset.theme = theme;
-        g_spools = (data && data.spools) || [];
-        g_preset_vendors = (data && data.presets && data.presets.vendors) || [];
-        refresh();
+    // Init: load locale first, then request data from C++
+    var urlLang = new URLSearchParams(window.location.search).get("lang") || "en";
+    loadLocale(urlLang, function() {
+        sendRequest("init", {}, function(code, data) {
+            if (code !== 0) return;
+            var theme = (data && data.theme) || "dark";
+            document.documentElement.dataset.theme = theme;
+            g_spools = (data && data.spools) || [];
+            g_preset_vendors = (data && data.presets && data.presets.vendors) || [];
+            refresh();
+        });
     });
 });
 
@@ -1240,7 +1295,7 @@ function renderStats() {
 function countByColor(arr) {
     var map = {};
     arr.forEach(function(s) {
-        var name = s.color_name || "其他";
+        var name = s.color_name || t("other");
         if (!map[name]) map[name] = {count: 0, color: s.color_code || "#888"};
         map[name].count++;
     });
@@ -1253,7 +1308,7 @@ function countByColor(arr) {
 function countBy(arr, key) {
     var map = {};
     arr.forEach(function(s) {
-        var v = s[key] || "其他";
+        var v = s[key] || t("other");
         map[v] = (map[v] || 0) + 1;
     });
     var result = [];
@@ -1312,7 +1367,7 @@ function renderReminderList(tab) {
         filtered = spools.filter(function(s) { return (s.remain_percent||0) === 0; });
     }
     if (filtered.length === 0) {
-        list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-detail)">暂无提醒</div>';
+        list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-detail)">' + t("no_reminders") + '</div>';
         return;
     }
     list.innerHTML = "";
