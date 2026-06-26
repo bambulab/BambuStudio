@@ -849,8 +849,13 @@ void ConfigManipulation::apply_null_fff_config(DynamicPrintConfig *config, std::
         }
         else if (k == "detect_overhang_wall")
             config->set_key_value(k, new ConfigOptionBool(false));
-        else if (k == "sparse_infill_pattern")
-            config->set_key_value(k, new ConfigOptionEnum<InfillPattern>(ipGrid));
+        else if (k == "sparse_infill_pattern") {
+            InfillPattern default_pattern = ipGrid;
+            std::string pref = wxGetApp().app_config->get("default_infill_pattern");
+            if (!pref.empty())
+                ConfigOptionEnum<InfillPattern>::from_string(pref, default_pattern);
+            config->set_key_value(k, new ConfigOptionEnum<InfillPattern>(default_pattern));
+        }
     }
 }
 

@@ -1422,6 +1422,27 @@ wxWindow* PreferencesDialog::create_general_page()
     auto item_user_sync        = create_item_checkbox(_L("Auto sync user presets(Printer/Filament/Process)"), page, _L("If enabled, auto sync user presets with cloud after Bambu Studio startup or presets modified."), 50, "sync_user_preset");
     auto item_system_sync        = create_item_checkbox(_L("Auto check for system presets updates"), page, _L("If enabled, auto check whether there are system presets updates after Bambu Studio startup."), 50, "sync_system_preset");
 
+    std::vector<wxString> InfillPatternLabels = {
+        _L("Concentric"), _L("Rectilinear"), _L("Grid"), _L("Line"), _L("Cubic"),
+        _L("Triangles"), _L("Tri-hexagon"), _L("Gyroid"), _L("Honeycomb"),
+        _L("Adaptive Cubic"), _L("Aligned Rectilinear"), _L("3D Honeycomb"),
+        _L("Hilbert Curve"), _L("Archimedean Chords"), _L("Octagram Spiral"),
+        _L("Support Cubic"), _L("Lightning"), _L("Cross Hatch"),
+        _L("Zig Zag"), _L("Cross Zag"), _L("Locked Zag"), _L("2D Lattice")
+    };
+    std::vector<std::string> InfillPatternValues = {
+        "concentric", "zig-zag", "grid", "line", "cubic",
+        "triangles", "tri-hexagon", "gyroid", "honeycomb",
+        "adaptivecubic", "alignedrectilinear", "3dhoneycomb",
+        "hilbertcurve", "archimedeanchords", "octagramspiral",
+        "supportcubic", "lightning", "crosshatch",
+        "zigzag", "crosszag", "lockedzag", "2dlattice"
+    };
+    auto item_default_infill_pattern = create_item_combobox(
+        _L("Default infill pattern"), page,
+        _L("The infill pattern used for new configurations and when resolving conflicts between objects. Does not override patterns already set in existing presets or projects."),
+        "default_infill_pattern", InfillPatternLabels, InfillPatternValues, nullptr, FromDIP(150), FromDIP(160));
+
 #ifdef _WIN32
     auto title_associate_file = create_item_title(_L("Associate Files To Bambu Studio"), page, _L("Associate Files To Bambu Studio"));
 
@@ -1539,6 +1560,7 @@ wxWindow* PreferencesDialog::create_general_page()
     sizer_page->Add(title_presets, 0, wxTOP | wxEXPAND, FromDIP(20));
     sizer_page->Add(item_user_sync, 0, wxTOP, FromDIP(3));
     sizer_page->Add(item_system_sync, 0, wxTOP, FromDIP(3));
+    sizer_page->Add(item_default_infill_pattern, 0, wxTOP, FromDIP(3));
 #ifdef _WIN32
     sizer_page->Add(title_associate_file, 0, wxTOP| wxEXPAND, FromDIP(20));
     sizer_page->Add(item_associate_3mf, 0, wxTOP, FromDIP(3));
