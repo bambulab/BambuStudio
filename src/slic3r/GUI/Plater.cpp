@@ -17188,6 +17188,12 @@ void Plater::priv::update_after_undo_redo(const UndoRedo::Snapshot& snapshot, bo
 
     wxGetApp().obj_list()->update_after_undo_redo();
 
+    // #11211: the custom bed (logo) texture is not part of the undo snapshot, so it is lost
+    // when the plates are rebuilt on deserialize. Re-apply it from the (undo-independent)
+    // config. set_bed_shape() only re-sets the logo filename when the bed shape itself is
+    // unchanged, so this is cheap in the common case.
+    q->set_bed_shape();
+
     if (wxGetApp().get_mode() == comSimple && model_has_advanced_features(this->model)) {
         // If the user jumped to a snapshot that require user interface with advanced features, switch to the advanced mode without asking.
         // There is a little risk of surprising the user, as he already must have had the advanced or advanced mode active for such a snapshot to be taken.
