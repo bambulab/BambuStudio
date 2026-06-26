@@ -287,6 +287,12 @@ void ComboBox::SetItemTooltip(unsigned int n, wxString const &value) {
     if (n == drop.GetSelection()) drop.SetToolTip(value);
 }
 
+void ComboBox::SetItemRightText(unsigned int n, wxString const &value) {
+    if (n >= items.size()) return;
+    items[n].text_right = value;
+    drop.Invalidate();
+}
+
 wxBitmap ComboBox::GetItemBitmap(unsigned int n) { return items[n].icon; }
 
 void ComboBox::SetItemBitmap(unsigned int n, wxBitmap const &bitmap)
