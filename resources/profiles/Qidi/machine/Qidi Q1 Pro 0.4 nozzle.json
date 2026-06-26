@@ -38,19 +38,15 @@
         "0.08"
     ],
     "machine_max_jerk_e": [
-        "2",
         "2"
     ],
     "machine_max_jerk_x": [
-        "8",
         "8"
     ],
     "machine_max_jerk_y": [
-        "8",
         "8"
     ],
     "machine_max_jerk_z": [
-        "3",
         "3"
     ],
     "nozzle_type": "hardened_steel",

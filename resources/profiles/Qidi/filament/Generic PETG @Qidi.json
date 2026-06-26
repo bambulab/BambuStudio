@@ -51,6 +51,12 @@
     "filament_vendor": [
         "Generic"
     ],
+    "temperature_vitrification": [
+        "70"
+    ],
+    "nozzle_temperature_range_high": [
+        "270"
+    ],
     "compatible_printers": [
         "Qidi X-Plus 0.4 nozzle",
         "Qidi X-Max 0.4 nozzle",
