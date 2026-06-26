@@ -1,0 +1,13 @@
+{
+    "type": "machine_model",
+    "name": "Elegoo Centauri Carbon",
+    "model_id": "Elegoo-CC",
+    "nozzle_diameter": "0.2;0.4;0.6;0.8",
+    "machine_tech": "FFF",
+    "family": "Elegoo",
+    "bed_model": "elegoo_centuri_carbon_buildplate_model.stl",
+    "bed_texture": "elegoo_centuri_carbon_buildplate_texture.png",
+    "default_bed_type": "Textured PEI Plate",
+    "hotend_model": "",
+    "default_materials": "Generic ABS @Elegoo;Generic PETG @Elegoo;Generic PLA @Elegoo"
+}
