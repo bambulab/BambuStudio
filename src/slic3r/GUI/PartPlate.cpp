@@ -335,7 +335,7 @@ void PartPlate::set_spiral_vase_mode(bool spiral_mode, bool as_global)
 				m_config.set_key_value(key, new ConfigOptionBool(true));
 				set_vase_mode_related_object_config();
 			}
-		}
+        }
 		else
 			m_config.set_key_value(key, new ConfigOptionBool(false));
 	}
@@ -388,7 +388,7 @@ void PartPlate::calc_bounding_boxes() const {
 			exclude_bb.max(2) = m_depth;
 			exclude_bb.min(2) = GROUND_Z;
 			m_exclude_bounding_box.emplace_back(exclude_bb);
-		}
+        }
 	}
 }
 
@@ -1132,11 +1132,14 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
 	const DynamicPrintConfig& glb_config = wxGetApp().preset_bundle->prints.get_edited_preset().config;
 	int glb_support_intf_extr = glb_config.opt_int("support_interface_filament");
 	int glb_support_extr = glb_config.opt_int("support_filament");
+	int glb_raft_extr = glb_config.opt_int("raft_filament");
 	int glb_wall_extr = glb_config.opt_int("wall_filament");
 	int glb_sparse_infill_extr = glb_config.opt_int("sparse_infill_filament");
 	int glb_solid_infill_extr = glb_config.opt_int("solid_infill_filament");
 	bool glb_support = glb_config.opt_bool("enable_support");
-    glb_support |= glb_config.opt_int("raft_layers") > 0;
+	int glb_raft_layers = glb_config.opt_int("raft_layers");
+	bool glb_raft = glb_raft_layers > 0;
+	bool glb_raft_has_interface = glb_raft_layers > 1;
 
 	for (int obj_idx = 0; obj_idx < m_model->objects.size(); obj_idx++) {
 		if (!contain_instance_totally(obj_idx, 0))
@@ -1197,37 +1200,60 @@ std::vector<int> PartPlate::get_extruders(bool conside_custom_gcode) const
         }
 
 		bool obj_support = false;
+		bool obj_raft = false;
+		bool obj_raft_has_interface = false;
 		const ConfigOption* obj_support_opt = mo->config.option("enable_support");
-        const ConfigOption *obj_raft_opt    = mo->config.option("raft_layers");
+		const ConfigOption *obj_raft_opt    = mo->config.option("raft_layers");
 		if (obj_support_opt != nullptr || obj_raft_opt != nullptr) {
-            if (obj_support_opt != nullptr)
+			if (obj_support_opt != nullptr)
 				obj_support = obj_support_opt->getBool();
-            if (obj_raft_opt != nullptr)
-				obj_support |= obj_raft_opt->getInt() > 0;
-        }
-		else
+			if (obj_raft_opt != nullptr) {
+				int obj_raft_layers = obj_raft_opt->getInt();
+				obj_raft = obj_raft_layers > 0;
+				obj_raft_has_interface = obj_raft_layers > 1;
+			}
+		}
+		else {
 			obj_support = glb_support;
+			obj_raft = glb_raft;
+			obj_raft_has_interface = glb_raft_has_interface;
+		}
 
-		if (!obj_support)
+		if (!obj_support && !obj_raft)
 			continue;
 
-		int obj_support_intf_extr = 0;
-		const ConfigOption* support_intf_extr_opt = mo->config.option("support_interface_filament");
-		if (support_intf_extr_opt != nullptr)
-			obj_support_intf_extr = support_intf_extr_opt->getInt();
-		if (obj_support_intf_extr != 0)
-			plate_extruders.push_back(obj_support_intf_extr);
-		else if (glb_support_intf_extr != 0)
-			plate_extruders.push_back(glb_support_intf_extr);
+		if (obj_raft) {
+			int obj_raft_extr = 0;
+			const ConfigOption* raft_extr_opt = mo->config.option("raft_filament");
+			if (raft_extr_opt != nullptr)
+				obj_raft_extr = raft_extr_opt->getInt();
+			if (obj_raft_extr != 0)
+				plate_extruders.push_back(obj_raft_extr);
+			else if (glb_raft_extr != 0)
+				plate_extruders.push_back(glb_raft_extr);
+		}
 
-		int obj_support_extr = 0;
-		const ConfigOption* support_extr_opt = mo->config.option("support_filament");
-		if (support_extr_opt != nullptr)
-			obj_support_extr = support_extr_opt->getInt();
-		if (obj_support_extr != 0)
-			plate_extruders.push_back(obj_support_extr);
-		else if (glb_support_extr != 0)
-			plate_extruders.push_back(glb_support_extr);
+		if (obj_support || obj_raft_has_interface) {
+			int obj_support_intf_extr = 0;
+			const ConfigOption* support_intf_extr_opt = mo->config.option("support_interface_filament");
+			if (support_intf_extr_opt != nullptr)
+				obj_support_intf_extr = support_intf_extr_opt->getInt();
+			if (obj_support_intf_extr != 0)
+				plate_extruders.push_back(obj_support_intf_extr);
+			else if (glb_support_intf_extr != 0)
+				plate_extruders.push_back(glb_support_intf_extr);
+		}
+
+		if (obj_support) {
+			int obj_support_extr = 0;
+			const ConfigOption* support_extr_opt = mo->config.option("support_filament");
+			if (support_extr_opt != nullptr)
+				obj_support_extr = support_extr_opt->getInt();
+			if (obj_support_extr != 0)
+				plate_extruders.push_back(obj_support_extr);
+			else if (glb_support_extr != 0)
+				plate_extruders.push_back(glb_support_extr);
+		}
 	}
 
 	if (conside_custom_gcode) {
@@ -1272,11 +1298,14 @@ std::vector<int> PartPlate::get_extruders_under_cli(bool conside_custom_gcode, D
     // if 3mf file
     int glb_support_intf_extr = full_config.opt_int("support_interface_filament");
     int  glb_support_extr       = full_config.opt_int("support_filament");
+    int  glb_raft_extr          = full_config.opt_int("raft_filament");
     int  glb_wall_extr          = full_config.opt_int("wall_filament");
     int  glb_sparse_infill_extr = full_config.opt_int("sparse_infill_filament");
     int  glb_solid_infill_extr  = full_config.opt_int("solid_infill_filament");
     bool glb_support = full_config.opt_bool("enable_support");
-    glb_support |= full_config.opt_int("raft_layers") > 0;
+    int  glb_raft_layers        = full_config.opt_int("raft_layers");
+    bool glb_raft                = glb_raft_layers > 0;
+    bool glb_raft_has_interface  = glb_raft_layers > 1;
 
     for (std::set<std::pair<int, int>>::iterator it = obj_to_instance_set.begin(); it != obj_to_instance_set.end(); ++it)
     {
@@ -1352,37 +1381,60 @@ std::vector<int> PartPlate::get_extruders_under_cli(bool conside_custom_gcode, D
             }
 
             bool obj_support = false;
+            bool obj_raft = false;
+            bool obj_raft_has_interface = false;
             const ConfigOption* obj_support_opt = object->config.option("enable_support");
             const ConfigOption *obj_raft_opt    = object->config.option("raft_layers");
             if (obj_support_opt != nullptr || obj_raft_opt != nullptr) {
                 if (obj_support_opt != nullptr)
                     obj_support = obj_support_opt->getBool();
-                if (obj_raft_opt != nullptr)
-                    obj_support |= obj_raft_opt->getInt() > 0;
+                if (obj_raft_opt != nullptr) {
+                    int obj_raft_layers = obj_raft_opt->getInt();
+                    obj_raft = obj_raft_layers > 0;
+                    obj_raft_has_interface = obj_raft_layers > 1;
+                }
             }
-            else
+            else {
                 obj_support = glb_support;
+                obj_raft = glb_raft;
+                obj_raft_has_interface = glb_raft_has_interface;
+            }
 
-            if (!obj_support)
+            if (!obj_support && !obj_raft)
                 continue;
 
-            int obj_support_intf_extr = 0;
-            const ConfigOption* support_intf_extr_opt = object->config.option("support_interface_filament");
-            if (support_intf_extr_opt != nullptr)
-                obj_support_intf_extr = support_intf_extr_opt->getInt();
-            if (obj_support_intf_extr != 0)
-                plate_extruders.push_back(obj_support_intf_extr);
-            else if (glb_support_intf_extr != 0)
-                plate_extruders.push_back(glb_support_intf_extr);
+            if (obj_raft) {
+                int obj_raft_extr = 0;
+                const ConfigOption* raft_extr_opt = object->config.option("raft_filament");
+                if (raft_extr_opt != nullptr)
+                    obj_raft_extr = raft_extr_opt->getInt();
+                if (obj_raft_extr != 0)
+                    plate_extruders.push_back(obj_raft_extr);
+                else if (glb_raft_extr != 0)
+                    plate_extruders.push_back(glb_raft_extr);
+            }
 
-            int obj_support_extr = 0;
-            const ConfigOption* support_extr_opt = object->config.option("support_filament");
-            if (support_extr_opt != nullptr)
-                obj_support_extr = support_extr_opt->getInt();
-            if (obj_support_extr != 0)
-                plate_extruders.push_back(obj_support_extr);
-            else if (glb_support_extr != 0)
-                plate_extruders.push_back(glb_support_extr);
+            if (obj_support || obj_raft_has_interface) {
+                int obj_support_intf_extr = 0;
+                const ConfigOption* support_intf_extr_opt = object->config.option("support_interface_filament");
+                if (support_intf_extr_opt != nullptr)
+                    obj_support_intf_extr = support_intf_extr_opt->getInt();
+                if (obj_support_intf_extr != 0)
+                    plate_extruders.push_back(obj_support_intf_extr);
+                else if (glb_support_intf_extr != 0)
+                    plate_extruders.push_back(glb_support_intf_extr);
+            }
+
+            if (obj_support) {
+                int obj_support_extr = 0;
+                const ConfigOption* support_extr_opt = object->config.option("support_filament");
+                if (support_extr_opt != nullptr)
+                    obj_support_extr = support_extr_opt->getInt();
+                if (obj_support_extr != 0)
+                    plate_extruders.push_back(obj_support_extr);
+                else if (glb_support_extr != 0)
+                    plate_extruders.push_back(glb_support_extr);
+            }
         }
     }
 

@@ -245,7 +245,7 @@ DynamicPrintConfig PresetBundle::construct_full_config(
     // BBS: add logic for settings check between different system presets
     out.erase("different_settings_to_system");
 
-    static const char *keys[] = {"support_filament", "support_interface_filament"};
+    static const char *keys[] = {"support_filament", "raft_filament", "support_interface_filament"};
     for (size_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++i) {
         std::string key = std::string(keys[i]);
         auto       *opt = dynamic_cast<ConfigOptionInt *>(out.option(key, false));
@@ -2854,9 +2854,13 @@ unsigned int PresetBundle::sync_ams_list(std::vector<std::pair<DynamicPrintConfi
 
         auto& print_config = this->prints.get_edited_preset().config;
         auto  support_filament_opt = print_config.option<ConfigOptionInt>("support_filament");
+        auto  raft_filament_opt = print_config.option<ConfigOptionInt>("raft_filament");
         auto support_interface_filament_opt = print_config.option<ConfigOptionInt>("support_interface_filament");
         if (support_filament_opt->value > ams_filament_color_types.size())
             support_filament_opt->value = 0;
+
+        if (raft_filament_opt->value > ams_filament_color_types.size())
+            raft_filament_opt->value = 0;
 
         if (support_interface_filament_opt->value > ams_filament_color_types.size())
             support_interface_filament_opt->value = 0;
@@ -3485,7 +3489,7 @@ DynamicPrintConfig PresetBundle::full_fff_config(bool apply_extruder, std::optio
     out.erase("different_settings_to_system");
     out.erase("filament_map_2");
 
-    static const char *keys[] = { "support_filament", "support_interface_filament" };
+    static const char *keys[] = { "support_filament", "raft_filament", "support_interface_filament" };
     for (size_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++ i) {
         std::string key = std::string(keys[i]);
         auto *opt = dynamic_cast<ConfigOptionInt*>(out.option(key, false));

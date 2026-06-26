@@ -478,22 +478,23 @@ std::vector<unsigned int> Print::support_material_extruders() const
     // BBS
     auto num_extruders = (unsigned int)m_config.filament_diameter.size();
 
+    auto collect_support_extruder = [&extruders, &support_uses_current_extruder, num_extruders](const ConfigOptionInt &filament) {
+        assert(filament >= 0);
+        if (filament == 0)
+            support_uses_current_extruder = true;
+        else {
+            unsigned int i = (unsigned int)filament - 1;
+            extruders.emplace_back((i >= num_extruders) ? 0 : i);
+        }
+    };
+
     for (PrintObject *object : m_objects) {
-        if (object->has_support_material()) {
-        	assert(object->config().support_filament >= 0);
-            if (object->config().support_filament == 0)
-                support_uses_current_extruder = true;
-            else {
-            	unsigned int i = (unsigned int)object->config().support_filament - 1;
-                extruders.emplace_back((i >= num_extruders) ? 0 : i);
-            }
-        	assert(object->config().support_interface_filament >= 0);
-            if (object->config().support_interface_filament == 0)
-                support_uses_current_extruder = true;
-            else {
-            	unsigned int i = (unsigned int)object->config().support_interface_filament - 1;
-                extruders.emplace_back((i >= num_extruders) ? 0 : i);
-            }
+        if (object->has_support())
+            collect_support_extruder(object->config().support_filament);
+        if (object->has_raft())
+            collect_support_extruder(object->config().raft_filament);
+        if (object->has_support() || (object->has_raft() && object->config().raft_layers > 1)) {
+            collect_support_extruder(object->config().support_interface_filament);
         }
     }
 
@@ -1232,12 +1233,18 @@ StringObjectException Print::check_multi_filament_valid(const Print& print)
 
             if (print_object->has_support_material()) { // extruder used by supports
                 auto num_extruders                 = (unsigned int) print_config.filament_diameter.size();
-                assert(print_object->config().support_filament >= 0);
-                if (print_object->config().support_filament >= 1 && (unsigned int)print_object->config().support_filament < num_extruders + 1)
-                    obj_used_extruder_ids.insert((unsigned int) print_object->config().support_filament - 1);//0-based extruder id
+                auto add_feature_extruder = [&obj_used_extruder_ids, num_extruders](const ConfigOptionInt &filament) {
+                    assert(filament >= 0);
+                    if (filament >= 1 && (unsigned int)filament < num_extruders + 1)
+                        obj_used_extruder_ids.insert((unsigned int)filament - 1);//0-based extruder id
+                };
+                if (print_object->has_support())
+                    add_feature_extruder(print_object->config().support_filament);
+                if (print_object->has_raft())
+                    add_feature_extruder(print_object->config().raft_filament);
                 assert(print_object->config().support_interface_filament >= 0);
-                if (print_object->config().support_interface_filament >= 1 && (unsigned int)print_object->config().support_interface_filament < num_extruders + 1)
-                    obj_used_extruder_ids.insert((unsigned int) print_object->config().support_interface_filament - 1);
+                if (print_object->has_support() || (print_object->has_raft() && print_object->config().raft_layers > 1))
+                    add_feature_extruder(print_object->config().support_interface_filament);
             }
             std::vector<std::string> filament_types;
             filament_types.reserve(obj_used_extruder_ids.size());
@@ -1608,10 +1615,8 @@ StringObjectException Print::validate(StringObjectException *warning, Polygons* 
             double initial_layer_print_height = m_config.initial_layer_print_height.value;
             double first_layer_min_nozzle_diameter;
             if (object->has_raft()) {
-                // if we have raft layers, only support material extruder is used on first layer
-                size_t first_layer_extruder = object->config().raft_layers == 1
-                    ? object->config().support_interface_filament-1
-                    : object->config().support_filament-1;
+                // If we have raft layers, the first print layer is printed with raft_filament.
+                size_t first_layer_extruder = object->config().raft_filament - 1;
                 first_layer_min_nozzle_diameter = (first_layer_extruder == size_t(-1)) ?
                     min_nozzle_diameter :
                     m_config.nozzle_diameter.get_at(first_layer_extruder);
@@ -3019,9 +3024,12 @@ std::vector<FilamentUsageType> Print::get_filament_usage_type() const
         model_filaments.insert(obj_filaments.begin(), obj_filaments.end());
 
         int support_fil = obj->config().support_filament - 1;
+        int raft_fil = obj->config().raft_filament - 1;
         int support_interface_fil = obj->config().support_interface_filament - 1;
-        if (support_fil >= 0) support_filaments.insert(support_fil);
-        if (support_interface_fil >= 0) support_filaments.insert(support_interface_fil);
+        if (obj->has_support() && support_fil >= 0) support_filaments.insert(support_fil);
+        if (obj->has_raft() && raft_fil >= 0) support_filaments.insert(raft_fil);
+        if ((obj->has_support() || (obj->has_raft() && obj->config().raft_layers > 1)) && support_interface_fil >= 0)
+            support_filaments.insert(support_interface_fil);
     }
 
     for (int idx = 0; idx < m_config.filament_type.size(); ++idx) {

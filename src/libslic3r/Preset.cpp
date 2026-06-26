@@ -1038,7 +1038,7 @@ static std::vector<std::string> s_Preset_print_options {
     "accel_to_decel_enable", "accel_to_decel_factor", "skirt_loops", "skirt_distance",
     "skirt_per_object", "skirt_height", "draft_shield",
     "brim_width", "brim_object_gap", "brim_type", "enable_support", "support_type", "support_threshold_angle", "enforce_support_layers",
-    "raft_layers", "raft_first_layer_density", "raft_first_layer_expansion", "raft_contact_distance", "raft_expansion",
+    "raft_layers", "raft_filament", "raft_first_layer_density", "raft_first_layer_expansion", "raft_contact_distance", "raft_expansion",
     "support_base_pattern", "support_base_pattern_spacing", "support_expansion", "support_style",
     // BBS
     "print_extruder_id", "print_extruder_variant", "independent_support_layer_height",

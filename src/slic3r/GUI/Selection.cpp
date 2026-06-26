@@ -39,6 +39,7 @@ void normalize_pasted_object_filament_config(ModelObject &object, size_t filamen
     auto normalize_pasted_filament_overrides = [filaments_count](auto &config) {
         static const char *keys[] = {
             "support_filament",
+            "raft_filament",
             "support_interface_filament",
             "wall_filament",
             "sparse_infill_filament",

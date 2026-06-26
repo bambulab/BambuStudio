@@ -702,7 +702,7 @@ void ConfigManipulation::update_print_fff_config(DynamicPrintConfig* config, con
     }
 
     // BBS
-    static const char* filament_slot_keys[] = { "support_filament", "support_interface_filament",
+    static const char* filament_slot_keys[] = { "support_filament", "raft_filament", "support_interface_filament",
         "wall_filament", "sparse_infill_filament", "solid_infill_filament"};
     for (int i = 0; i < sizeof(filament_slot_keys) / sizeof(filament_slot_keys[0]); i++) {
         std::string key = std::string(filament_slot_keys[i]);
@@ -1001,7 +1001,8 @@ void ConfigManipulation::toggle_print_fff_options(DynamicPrintConfig *config, in
     //toggle_field("support_material_synchronize_layers", have_support_soluble);
 
     toggle_field("inner_wall_line_width", have_perimeters || have_skirt || have_brim);
-    toggle_field("support_filament", have_support_material || have_skirt);
+    toggle_field("support_filament", config->opt_bool("enable_support") || have_skirt);
+    toggle_field("raft_filament", have_raft);
 
     toggle_line("raft_contact_distance", have_raft && !have_support_soluble);
 
