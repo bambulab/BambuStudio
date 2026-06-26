@@ -1,0 +1,14 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 3-dots-and-lines share glyph, OS-agnostic. Sized to visually
+       match the weight and extent of the refresh icon next to it in
+       the online-models toolbar. -->
+
+  <!-- Connector lines: drawn first so the dots overpaint the joins. -->
+  <path d="M3.2 8 L12.8 13.7 M12.8 2.3 L3.2 8"
+        stroke="#00AE42" stroke-width="1.9" stroke-linecap="round"/>
+
+  <!-- Three dots, radius 2.7, edges of the box. -->
+  <circle cx="13.3" cy="2.3"  r="2.7" fill="#00AE42"/>
+  <circle cx="2.7"  cy="8"    r="2.7" fill="#00AE42"/>
+  <circle cx="13.3" cy="13.7" r="2.7" fill="#00AE42"/>
+</svg>

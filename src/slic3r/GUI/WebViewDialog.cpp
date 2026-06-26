@@ -1,5 +1,6 @@
 #include "WebViewDialog.hpp"
 
+#include "SystemShare.hpp"
 #include "I18N.hpp"
 #include "slic3r/GUI/wxExtensions.hpp"
 #include "slic3r/GUI/GUI_App.hpp"
@@ -159,8 +160,29 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
     left_group->Add(m_online_back_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(12));
     left_group->Add(m_online_refresh_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(12));
 
-    m_online_open_browser_btn = make_online_toolbar_button("open_in_browser", _L("Open in browser"));
-    right_group->Add(m_online_open_browser_btn, 0, wxALIGN_CENTER_VERTICAL);
+    // Share toolbar button. Replaces the previous Open-in-browser button --
+    // the menu Share opens has Open Link as its first item, so the
+    // Open-in-browser flow is preserved as a strict subset of Share. Tinted
+    // Bambu green to read as the primary action on this surface; uses the
+    // same toolbar chrome (no border, same min-size) as the other toolbar
+    // buttons so it slots in cleanly.
+    {
+        const std::string accent = "#00AE42";
+        wxBitmap bitmap = create_scaled_bitmap("share", this, m_online_toolbar_icon_px, false, accent);
+        m_online_share_btn = new wxBitmapButton(m_online_toolbar_panel, wxID_ANY, bitmap,
+                                                wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+        m_online_share_btn->SetToolTip(_L("Share"));
+        m_online_share_btn->SetBackgroundColour(toolbar_bg);
+        m_online_share_btn->SetBitmapDisabled(
+            create_scaled_bitmap("share", this, m_online_toolbar_icon_px, false,
+                                 StateColor::darkModeColorFor(wxColour("#c0babaff"))
+                                     .GetAsString(wxC2S_HTML_SYNTAX).ToStdString()));
+        m_online_share_btn->SetMinSize(wxSize(FromDIP(28), FromDIP(28)));
+        // Right-margin keeps the icon off the window edge -- without this
+        // the Share button sits flush against the right edge of the
+        // toolbar panel, which reads as crowded next to the iframe edge.
+        right_group->Add(m_online_share_btn, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, FromDIP(12));
+    }
 
     m_online_toolbar_sizer->Add(left_group, 0, wxALIGN_CENTER_VERTICAL);
     m_online_toolbar_sizer->AddStretchSpacer(1);
@@ -168,7 +190,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
 
     m_online_back_btn->Enable(false);
     m_online_refresh_btn->Enable(false);
-    m_online_open_browser_btn->Enable(false);
+    m_online_share_btn->Enable(false);
 
     m_online_toolbar_panel->Hide();
     int toolbar_top_padding = FromDIP(8);
@@ -319,7 +341,7 @@ WebViewPanel::WebViewPanel(wxWindow *parent)
 #endif //BBL_RELEASE_TO_PUBLIC
     Bind(wxEVT_BUTTON, &WebViewPanel::OnOnlineBack, this, m_online_back_btn->GetId());
     Bind(wxEVT_BUTTON, &WebViewPanel::OnOnlineReload, this, m_online_refresh_btn->GetId());
-    Bind(wxEVT_BUTTON, &WebViewPanel::OnOpenInBrowser, this, m_online_open_browser_btn->GetId());
+    Bind(wxEVT_BUTTON, &WebViewPanel::OnShareCurrent, this, m_online_share_btn->GetId());
 
     // Connect the menu events
     Bind(wxEVT_MENU, &WebViewPanel::OnViewSourceRequest, this, viewSource->GetId());
@@ -571,22 +593,24 @@ void WebViewPanel::OnOnlineReload(wxCommandEvent& WXUNUSED(evt))
     UpdateOnlineToolbarState();
 }
 
-void WebViewPanel::OnOpenInBrowser(wxCommandEvent& WXUNUSED(evt))
+void WebViewPanel::OnShareCurrent(wxCommandEvent &evt)
 {
-    wxWebView *target = nullptr;
-    if (m_contentname == "online")
-        target = m_browserMW;
-    else if (m_contentname == "makerlab")
-        target = m_browserML;
+    // Only "online" (MakerWorld) shares for now; makerlab URLs don't have a
+    // public-web equivalent that makes sense to share. The Share menu's
+    // "Open Link" item replaces the previous toolbar Open-in-browser
+    // button; "Copy Link" and "Share..." (macOS / Windows) are the new
+    // affordances.
+    if (m_contentname != "online" || !m_browserMW) return;
 
-    if (!target) return;
+    wxString current_url = m_browserMW->GetCurrentURL();
+    if (IsBlankWebUrl(current_url)) return;
 
-    wxString current_url = target->GetCurrentURL();
-    if (IsBlankWebUrl(current_url))
-        return;
+    const wxString public_url = TranslateMakerWorldEmbeddedUrl(current_url);
 
-    wxLaunchDefaultBrowser(current_url);
-    UpdateOnlineToolbarState();
+    wxWindow *anchor = wxDynamicCast(evt.GetEventObject(), wxWindow);
+    if (!anchor) anchor = m_online_share_btn ? (wxWindow *) m_online_share_btn : (wxWindow *) this;
+
+    SystemShare::ShareUrl(anchor, public_url, m_online_last_title);
 }
 
 void WebViewPanel::OnCut(wxCommandEvent& WXUNUSED(evt))
@@ -1244,6 +1268,141 @@ std::string UrlDecode(const std::string &str)
     return strTemp;
 }
 
+// Translate the slicer-embedded MakerWorld view URL to the equivalent public-web
+// URL. The embedded view (loaded as e.g. https://makerworld.com/en/studio/webview
+// ?modelid=12345&from=bambustudio) is a Studio-only iframe shape that hides
+// comments, designer profile, hyperlinks in descriptions, version selection and
+// per-version print profiles. The public-web shape (e.g.
+// https://makerworld.com/en/models/12345) shows all of that. This translation
+// powers the "Open in browser" toolbar button so users see the full model page
+// instead of a duplicate of what's already in the slicer.
+//
+// Returns the input unchanged when no public-web equivalent is known (e.g.
+// agree-terms / sign-in / sign-out auth redirects, makerlab sub-tools); the
+// caller can decide whether to launch as-is or skip.
+wxString WebViewPanel::TranslateMakerWorldEmbeddedUrl(const wxString &embedded_url)
+{
+    if (embedded_url.IsEmpty()) return embedded_url;
+
+    std::string url = embedded_url.ToStdString();
+
+    // Drop #fragment and utm_* tracking params before pattern matching. Both
+    // are noise in any context this function returns into (Open in browser,
+    // Share to system picker, copy link), and we want pass-through URLs (the
+    // ones the recognizer below doesn't match) to be cleaned too.
+    {
+        const size_t hash_pos = url.find('#');
+        if (hash_pos != std::string::npos) url.erase(hash_pos);
+
+        const size_t q_pos = url.find('?');
+        if (q_pos != std::string::npos) {
+            const std::string params = url.substr(q_pos + 1);
+            std::string filtered;
+            size_t start = 0;
+            while (start <= params.size()) {
+                const size_t end = params.find('&', start);
+                const size_t len = (end == std::string::npos)
+                                       ? params.size() - start
+                                       : end - start;
+                const std::string param = params.substr(start, len);
+                const bool is_utm = param.size() > 4
+                                    && param.compare(0, 4, "utm_") == 0;
+                if (!param.empty() && !is_utm) {
+                    if (!filtered.empty()) filtered += '&';
+                    filtered += param;
+                }
+                if (end == std::string::npos) break;
+                start = end + 1;
+            }
+            url = filtered.empty()
+                      ? url.substr(0, q_pos)
+                      : url.substr(0, q_pos + 1) + filtered;
+        }
+    }
+
+    // Find the host root: everything up to and including the first '/' after
+    // the host. We keep the original scheme+host+lang prefix (e.g.
+    // "https://makerworld.com/en/" or "https://makerworld.com.cn/zh-CN/") so
+    // that region- and language-localized embedded URLs translate to the same
+    // region/language on the public web.
+    const size_t scheme_end = url.find("://");
+    if (scheme_end == std::string::npos) return wxString::FromUTF8(url.c_str());
+    const size_t host_start = scheme_end + 3;
+    const size_t host_end = url.find('/', host_start);
+    if (host_end == std::string::npos) return wxString::FromUTF8(url.c_str());
+
+    // Bail out early if this isn't a MakerWorld URL we recognize. We don't
+    // attempt to translate makerlab/, store/, sign-in/, sign-out/, etc.
+    if (url.find("/studio/webview") == std::string::npos &&
+        url.find("/studio/print-history") == std::string::npos)
+        return wxString::FromUTF8(url.c_str());
+
+    // Lang prefix: "/en/", "/zh-CN/", or empty if no lang segment. The first
+    // path segment after the host is the language unless it's "studio" itself
+    // (in which case the URL has no lang prefix and we land at scheme+host+/).
+    std::string base; // scheme+host(+lang)+slash
+    {
+        const bool first_seg_is_studio =
+            url.compare(host_end + 1, 7, "studio/") == 0;
+        if (first_seg_is_studio) {
+            base = url.substr(0, host_end + 1);
+        } else {
+            const size_t lang_end = url.find('/', host_end + 1);
+            if (lang_end == std::string::npos) {
+                base = url.substr(0, host_end + 1);
+            } else {
+                base = url.substr(0, lang_end + 1);
+            }
+        }
+    }
+
+    // Print history is per-user and has no public-web equivalent. Falling back
+    // to the localized homepage is the least-surprising outcome.
+    if (url.find("/studio/print-history") != std::string::npos) {
+        return wxString::FromUTF8(base.c_str());
+    }
+
+    // Find a query parameter value. Matches `?key=` or `&key=` (delimited)
+    // so we don't false-positive on substrings like `?fromodelid=` finding
+    // `modelid=` at offset 4. Returns "" if absent.
+    auto find_param = [&url](const char *key) -> std::string {
+        const std::string needle_q = std::string("?") + key + "=";
+        const std::string needle_a = std::string("&") + key + "=";
+        size_t pos = url.find(needle_q);
+        if (pos == std::string::npos) pos = url.find(needle_a);
+        if (pos == std::string::npos) return std::string();
+        const size_t value_start = pos + needle_q.size(); // same len as needle_a
+        const size_t value_end   = url.find('&', value_start);
+        return url.substr(value_start, value_end == std::string::npos
+                                           ? std::string::npos
+                                           : value_end - value_start);
+    };
+
+    // Single-model detail comes first: a model viewed THROUGH the search
+    // context still has a modelid in the URL, and what the user wants to
+    // share is the model itself, not the search query that found it.
+    //
+    //   /studio/webview?modelid=N             -> /models/N
+    //   /studio/webview/search?...&modelid=N  -> /models/N
+    {
+        const std::string mid = find_param("modelid");
+        if (!mid.empty())
+            return wxString::FromUTF8((base + "models/" + mid).c_str());
+    }
+
+    // Search results with no modelid: there is no public-web search-results
+    // URL we can hand back. /<lang>/search?keyword=K returns 404 on
+    // makerworld.com (verified 2026-05-20). Fall back to the localized
+    // homepage, same shape as the print-history branch above. The user
+    // gets a working link, not a broken one.
+    if (url.find("/studio/webview/search") != std::string::npos) {
+        return wxString::FromUTF8(base.c_str());
+    }
+
+    // Default landing: /studio/webview -> homepage.
+    return wxString::FromUTF8(base.c_str());
+}
+
 bool WebViewPanel::GetJumpUrl(bool login, wxString ticket, wxString targeturl, wxString &finalurl)
 {
     std::string h             = wxGetApp().get_model_http_url(wxGetApp().app_config->get_country_code());
@@ -1585,6 +1744,11 @@ void WebViewPanel::OnDocumentLoaded(wxWebViewEvent& evt)
 void WebViewPanel::OnTitleChanged(wxWebViewEvent &evt)
 {
     BOOST_LOG_TRIVIAL(trace) << __FUNCTION__ << ": " << evt.GetString().ToUTF8().data();
+    // Cache the MakerWorld page title so the system share menu can use it
+    // (Mail subject lines, Messages link previews, etc.).
+    if (m_browserMW != nullptr && evt.GetId() == m_browserMW->GetId()) {
+        m_online_last_title = evt.GetString();
+    }
     // wxGetApp().CallAfter([this] { SendRecentList(); });
 }
 
@@ -2266,7 +2430,7 @@ void WebViewPanel::SetOnlineToolbarVisible(bool visible)
     if (!visible) {
         if (m_online_back_btn) m_online_back_btn->Enable(false);
         if (m_online_refresh_btn) m_online_refresh_btn->Enable(false);
-        if (m_online_open_browser_btn) m_online_open_browser_btn->Enable(false);
+        if (m_online_share_btn) m_online_share_btn->Enable(false);
     } else {
         UpdateOnlineToolbarState();
     }
@@ -2307,13 +2471,18 @@ void WebViewPanel::UpdateOnlineToolbarState()
 
     update_btn_state(m_online_back_btn, can_go_back, "mall_control_back");
     update_btn_state(m_online_refresh_btn, can_show_open_button, "mall_control_refresh");
-    if (m_online_open_browser_btn) {
-        bool has_url = false;
-        if (can_show_open_button) {
-            wxString url = active_webview->GetCurrentURL();
-            has_url      = !IsBlankWebUrl(url);
-        }
-        m_online_open_browser_btn->Enable(has_url);
+    bool has_url = false;
+    if (can_show_open_button) {
+        wxString url = active_webview->GetCurrentURL();
+        has_url      = !IsBlankWebUrl(url);
+    }
+    if (m_online_share_btn) {
+        // The Share button is the only enabled action for "makerlab" too --
+        // wait, actually it's not, because OnShareCurrent early-returns
+        // when m_contentname != "online". So only enable the button on the
+        // online tab. On makerlab/no-content, leave it disabled so clicking
+        // doesn't dead-end.
+        m_online_share_btn->Enable(on_online_tab && has_url);
     }
 }
 
