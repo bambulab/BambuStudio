@@ -6,6 +6,10 @@
 // ImGui code moved to its own translation unit both files need them, so they are
 // declared `inline` here to keep a single definition across both TUs.
 #include <array>
+#include <set>
+#include <string>
+#include <vector>
+#include <cstdint>
 #include <imgui/imgui.h>
 #include "libslic3r/Format/AssemblyStepsJson.hpp" // AssemblyNoteSelectionType
 #include "../I18N.hpp" // L() marker for xgettext extraction of color tips
@@ -75,6 +79,49 @@ inline int note_tool_index_from_selection(AssemblyNoteSelectionType type)
     default:                                    return -1;
     }
 }
+
+// On-demand large-glyph font cache for crisp big text (assembly title overlay and
+// part-number labels). The shared ImGui atlas is baked at the small UI size, so
+// drawing it at 3x upscales the bitmap and looks blurry. This cache bakes only the
+// glyphs actually used, at the requested pixel size, into a private ImFontAtlas +
+// GL texture. The character set accumulates as new glyphs appear; the atlas is
+// rebuilt lazily and the previous GL texture is retired through deferred deletion
+// (freed on the next frame) so draw commands recorded earlier in the current frame
+// stay valid. Call release() on the GL thread to free everything.
+class AssemblyLargeFontCache
+{
+public:
+    AssemblyLargeFontCache() = default;
+    ~AssemblyLargeFontCache();
+
+    AssemblyLargeFontCache(const AssemblyLargeFontCache &) = delete;
+    AssemblyLargeFontCache &operator=(const AssemblyLargeFontCache &) = delete;
+
+    // Registers the glyphs of utf8_text at >= px and returns a font that can render
+    // them crisply (downscaled, never upscaled). Returns nullptr if the atlas could
+    // not be built, in which case callers should fall back to the shared UI font.
+    ImFont *ensure(const std::string &utf8_text, float px);
+
+    // Texture to push on the draw list before AddText() with the returned font.
+    ImTextureID tex_id() const { return m_tex_id; }
+
+    // Frees the GL texture(s) and the private atlas. Must run on the GL thread.
+    void release();
+
+private:
+    bool        rebuild();
+    void        flush_retired_textures();
+
+    ImFontAtlas        *m_atlas{nullptr};
+    ImFont             *m_font{nullptr};
+    ImTextureID         m_tex_id{(ImTextureID)0};
+    unsigned int        m_gl_texture{0};
+    std::set<ImWchar>   m_chars;
+    float               m_baked_px{0.0f};
+    bool                m_dirty{false};
+    int                 m_last_frame{-1};
+    std::vector<unsigned int> m_retired_textures; // freed one frame after retirement
+};
 
 } // namespace GUI
 } // namespace Slic3r

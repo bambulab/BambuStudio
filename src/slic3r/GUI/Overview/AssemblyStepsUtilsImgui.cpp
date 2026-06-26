@@ -97,6 +97,174 @@ std::string utf8_fit_with_ellipsis(const std::string &s, float max_width)
     return best.empty() ? ellipsis : best;
 }
 } // namespace
+
+// ---- AssemblyLargeFontCache: crisp big-text glyph cache (see Internal.hpp) ----
+namespace {
+inline void assembly_collect_codepoints(const std::string &utf8, std::vector<ImWchar> &out)
+{
+    const char *p   = utf8.c_str();
+    const char *end = p + utf8.size();
+    while (p < end) {
+        unsigned int cp = 0;
+        const int    n  = ImTextCharFromUtf8(&cp, p, end);
+        if (n <= 0)
+            break;
+        p += n;
+        if (cp != 0 && cp <= 0xFFFF)
+            out.push_back((ImWchar) cp);
+    }
+}
+} // namespace
+
+AssemblyLargeFontCache::~AssemblyLargeFontCache() { release(); }
+
+void AssemblyLargeFontCache::flush_retired_textures()
+{
+    if (m_retired_textures.empty())
+        return;
+    for (unsigned int t : m_retired_textures)
+        glsafe(::glDeleteTextures(1, &t));
+    m_retired_textures.clear();
+}
+
+void AssemblyLargeFontCache::release()
+{
+    flush_retired_textures();
+    if (m_gl_texture) {
+        glsafe(::glDeleteTextures(1, &m_gl_texture));
+        m_gl_texture = 0;
+    }
+    m_tex_id = (ImTextureID) 0;
+    if (m_atlas) {
+        delete m_atlas;
+        m_atlas = nullptr;
+    }
+    m_font     = nullptr;
+    m_chars.clear();
+    m_baked_px = 0.0f;
+    m_dirty    = false;
+}
+
+bool AssemblyLargeFontCache::rebuild()
+{
+    // Retire the current GL texture instead of deleting it now: draw commands
+    // recorded earlier this frame may still reference it. flush_retired_textures()
+    // frees it at the next frame boundary, once those commands have been presented.
+    if (m_gl_texture) {
+        m_retired_textures.push_back(m_gl_texture);
+        m_gl_texture = 0;
+        m_tex_id     = (ImTextureID) 0;
+    }
+    if (m_atlas) {
+        delete m_atlas;
+        m_atlas = nullptr;
+        m_font  = nullptr;
+    }
+
+    m_dirty = false;
+    if (m_chars.empty() || m_baked_px < 1.0f)
+        return false;
+
+    m_atlas = new ImFontAtlas();
+    m_atlas->Flags |= ImFontAtlasFlags_NoPowerOfTwoHeight;
+
+    ImFontGlyphRangesBuilder builder;
+    for (ImWchar c : m_chars)
+        builder.AddChar(c);
+    ImVector<ImWchar> ranges;
+    builder.BuildRanges(&ranges);
+
+    ImFontConfig cfg;
+    cfg.OversampleH = 2;
+    cfg.OversampleV = 1;
+
+    // Mirror the UI default font choice so script coverage (incl. Korean) matches.
+    ImGuiWrapper *gui = wxGetApp().imgui();
+    const bool    korean = gui != nullptr && gui->is_korean();
+    const std::string path = Slic3r::resources_dir() + "/fonts/"
+        + (korean ? "NanumGothic-Regular.ttf" : "HarmonyOS_Sans_SC_Regular.ttf");
+    m_font = m_atlas->AddFontFromFileTTF(path.c_str(), m_baked_px, &cfg, ranges.Data);
+    if (m_font == nullptr || !m_atlas->Build()) {
+        delete m_atlas;
+        m_atlas = nullptr;
+        m_font  = nullptr;
+        return false;
+    }
+
+    unsigned char *pixels = nullptr;
+    int            w = 0, h = 0;
+    m_atlas->GetTexDataAsRGBA32(&pixels, &w, &h);
+
+    GLint last_texture = 0;
+    glsafe(::glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
+    GLuint tex = 0;
+    glsafe(::glGenTextures(1, &tex));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, tex));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    glsafe(::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    glsafe(::glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
+    glsafe(::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
+    glsafe(::glBindTexture(GL_TEXTURE_2D, (GLuint) last_texture));
+
+    m_gl_texture   = tex;
+    m_tex_id       = (ImTextureID) (intptr_t) tex;
+    m_atlas->TexID = m_tex_id;
+    return true;
+}
+
+ImFont *AssemblyLargeFontCache::ensure(const std::string &utf8_text, float px)
+{
+    const int frame = ImGui::GetFrameCount();
+    if (frame != m_last_frame) {
+        flush_retired_textures();
+        m_last_frame = frame;
+    }
+
+    // Seed basic latin once so digits/letters never trigger a rebuild on their own.
+    if (m_chars.empty()) {
+        for (ImWchar c = 0x20; c < 0x7F; ++c)
+            m_chars.insert(c);
+        m_dirty = true;
+    }
+
+    std::vector<ImWchar> cps;
+    assembly_collect_codepoints(utf8_text, cps);
+    for (ImWchar c : cps)
+        if (m_chars.insert(c).second)
+            m_dirty = true;
+
+    // Bake at the exact (rounded-up) requested size so text is only ever downscaled.
+    float need = (float) (int) (px + 0.999f);
+    if (need > 160.0f)
+        need = 160.0f;//big size
+    if (need > m_baked_px) {
+        m_baked_px = need;
+        m_dirty    = true;
+    }
+
+    if (m_dirty)
+        rebuild();
+    return m_font;
+}
+
+void AssemblyStepsUtils::draw_crisp_large_text(ImDrawList *dl, ImFont *fallback_font, float px,
+                                               const ImVec2 &pos, ImU32 col, const std::string &text)
+{
+    if (dl == nullptr || text.empty())
+        return;
+    if (!m_large_font_cache)
+        m_large_font_cache = std::make_unique<AssemblyLargeFontCache>();
+
+    ImFont *lf = m_large_font_cache->ensure(text, px);
+    if (lf != nullptr && m_large_font_cache->tex_id() != (ImTextureID) 0) {
+        dl->PushTextureID(m_large_font_cache->tex_id());
+        dl->AddText(lf, px, pos, col, text.c_str());
+        dl->PopTextureID();
+    } else {
+        dl->AddText(fallback_font != nullptr ? fallback_font : ImGui::GetFont(), px, pos, col, text.c_str());
+    }
+}
+
 void AssemblyStepsUtils::refresh_guide_show_part_numbers_from_current()
 {
     auto *entries = get_current_kf_entries();
@@ -239,10 +407,12 @@ void AssemblyStepsUtils::render_main(float canvas_w, float canvas_h) {
         ImFont *font = ImGui::GetFont();
         const float title_font_size = std::max(48.0f * sc, ImGui::GetFontSize() * 3.0f);
         const ImVec2 text_size = font->CalcTextSizeA(title_font_size, FLT_MAX, 0.0f, title.c_str());
-        const ImVec2 pos((canvas_w - text_size.x) * 0.5f, (canvas_h - text_size.y) * 0.5f);
+        // Snap the baseline to whole pixels: fractional positions make the already
+        // upscaled glyph bitmap sample between texels and look extra fuzzy.
+        const ImVec2 pos(IM_FLOOR((canvas_w - text_size.x) * 0.5f), IM_FLOOR((canvas_h - text_size.y) * 0.5f));
         // Dark mode: use white text; the near-black title is unreadable on the dark canvas.
         const ImU32 title_col = m_is_dark ? IM_COL32(255, 255, 255, 255) : IM_COL32(38, 46, 48, 255);
-        dl->AddText(font, title_font_size, pos, title_col, title.c_str());
+        draw_crisp_large_text(dl, font, title_font_size, pos, title_col, title);
 
         if (is_cover_phase) {
             const std::string subtitle = std::string("---- ") + _u8L("Assembly Guide");
@@ -252,8 +422,8 @@ void AssemblyStepsUtils::render_main(float canvas_w, float canvas_h) {
             const float line_gap = 6.0f * sc;
             const float sub_x = title_right - sub_size.x;
             const float sub_y = pos.y + text_size.y + line_gap;
-            dl->AddText(font, subtitle_font_size,
-                ImVec2(sub_x, sub_y), title_col, subtitle.c_str());
+            draw_crisp_large_text(dl, font, subtitle_font_size,
+                ImVec2(IM_FLOOR(sub_x), IM_FLOOR(sub_y)), title_col, subtitle);
         }
     }
     if (ImGui::IsMouseClicked(0)) {
@@ -900,7 +1070,10 @@ void AssemblyStepsUtils::render_part_number_labels_on_canvas(
         // static draw-list glyphs.
         if (!renaming) {
             ImVec2 text_pos(label_screen.x - text_sz.x * 0.5f, label_screen.y - text_sz.y * 0.5f);
-            fg->AddText(font, font_sz, text_pos, txt_col, lbl.part_name.c_str());
+            // Use the high-resolution font cache so the pill text stays crisp when
+            // the label font size is scaled up, instead of the blurry upscaled
+            // glyphs the default atlas produces.
+            draw_crisp_large_text(fg, font, font_sz, text_pos, txt_col, lbl.part_name);
         }
 
         if (editable && renaming) {
@@ -3179,7 +3352,7 @@ void AssemblyStepsUtils::render_assembly_structure_panel(float canvas_w, float c
             auto join_hidden_labels = [&](size_t begin_idx) {
                 const size_t hidden_count = begin_idx < c.chips.size() ? c.chips.size() - begin_idx : 0;
                 // When more than two labels are hidden, lay them out as a bullet
-                // list ("· name") so the overflow tooltip stays readable.
+                // list ("?? name") so the overflow tooltip stays readable.
                 const bool bulleted = hidden_count > 1;
                 std::string hidden_labels;
                 for (size_t hi = begin_idx; hi < c.chips.size(); ++hi) {
@@ -3753,8 +3926,8 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
         return only_child >= 0 && only_child < static_cast<int>(tree.nodes.size()) &&
                tree.nodes[only_child].children.empty();
     };
-    // Selected rows use a light-green fill (figma 4092-11872, 图1); hovered rows
-    // are only outlined with a light-green border (图2), no fill.
+    // Selected rows use a light-green fill (figma 4092-11872, ?1); hovered rows
+    // are only outlined with a light-green border (?2), no fill.
     const ImU32 row_select_col       = m_is_dark ? IM_COL32(40, 64, 48, 255)  : IM_COL32(0xD6, 0xF0, 0xDC, 255);
     const ImU32 row_hover_border_col = m_is_dark ? IM_COL32(0x4C, 0x8F, 0x66, 255) : IM_COL32(0x9F, 0xD9, 0xB4, 255);
     bool any_row_hovered = false;
@@ -3808,7 +3981,7 @@ AssemblyTreeRenderResult AssemblyStepsUtils::render_assembly_tree_selector(
             if (row_selected)
                 child_draw_list->AddRectFilled(row_min, row_max, row_select_col, 4.0f * sc);
             else if (hovered)
-                // Hover only outlines the current row (图2), no fill.
+                // Hover only outlines the current row (?2), no fill.
                 child_draw_list->AddRect(row_min, row_max, row_hover_border_col, 4.0f * sc, 0, 1.0f * sc);
         } else if (hovered) {
             child_draw_list->AddRectFilled(row_min, row_max,

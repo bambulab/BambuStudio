@@ -110,6 +110,8 @@ enum class ExportType {
     MP4
 };
 
+class AssemblyLargeFontCache; // crisp big-text glyph cache (defined in Internal.hpp)
+
 class AssemblyStepsUtils
 {
     ImTextureID         m_tree_icon_play{nullptr};
@@ -409,6 +411,10 @@ class AssemblyStepsUtils
     bool m_select_good_camera_layout_laber_after_auto_explode{true};
     // Deadline after which the "kept whole" tip auto-hides (shown for ~2s).
     std::chrono::steady_clock::time_point m_explode_collapsed_note_until{};
+    // On-demand large-glyph atlas so the title overlay / part-number labels render
+    // crisply instead of upscaling the small shared UI font. Built lazily on the GL
+    // thread during render; released when leaving the assembly view.
+    std::unique_ptr<AssemblyLargeFontCache> m_large_font_cache;
     std::vector<PlayFrameRef> m_play_frame_refs;
     bool                      m_play_frame_refs_dirty{true};
     std::set<size_t>                    m_last_recorded_objects;
@@ -702,6 +708,10 @@ public://logic
     void update_part_number_label_font_size_from_config();
     float part_number_label_font_size() const;
     void save_part_number_label_font_size_to_config(float font_size, bool save_now = false);
+   // Draws single-line text crisply via the on-demand large-glyph atlas, falling
+    // back to fallback_font (or the current UI font) if the atlas can't be built.
+    void draw_crisp_large_text(ImDrawList *dl, ImFont *fallback_font, float px,
+                               const ImVec2 &pos, ImU32 col, const std::string &text);
     // Rebuild the given keyframe entry's part-number labels (and optionally
     void toggle_part_number_labels_to_keyframe(KeyFrameEntry &src, bool user_initiated = true, bool reframe_camera = true);
     // --- Part-number label data generators (one per LabelsShowType) ---
