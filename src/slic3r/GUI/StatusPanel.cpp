@@ -6236,7 +6236,7 @@ wxBoxSizer *ScoreDialog::get_photo_btn_sizer()
 
     m_add_photo->Bind(wxEVT_LEFT_DOWN, [this](auto &e) {
         // add photo logic
-        wxFileDialog openFileDialog(this, "Select Images", "", "", "Image files (*.png;*.jpg;*jpeg)|*.png;*.jpg;*.jpeg", wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
+        wxFileDialog openFileDialog(this, "Select Images", from_u8(wxGetApp().app_config->get_last_dir()), "", "Image files (*.png;*.jpg;*jpeg)|*.png;*.jpg;*.jpeg", wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
 
         if (openFileDialog.ShowModal() == wxID_CANCEL) return;
 
