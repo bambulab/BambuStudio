@@ -34,6 +34,25 @@ wxMediaCtrl3::wxMediaCtrl3(wxWindow *parent)
     SetBackgroundColour("#000001ff");
     m_render_timer.SetOwner(this);
     Bind(wxEVT_TIMER, &wxMediaCtrl3::OnRenderTimer, this);
+    Bind(wxEVT_MOUSEWHEEL, &wxMediaCtrl3::mouseWheelEvent, this);
+}
+
+void wxMediaCtrl3::mouseWheelEvent(wxMouseEvent &evt)
+{
+    const int rotation = evt.GetWheelRotation();
+    if (rotation == 0) {
+        evt.Skip();
+        return;
+    }
+    // Digital zoom of the live view, 1x (fit) up to 5x, centred on the view.
+    const double factor = rotation > 0 ? 1.1 : 1.0 / 1.1;
+    double zoom = m_zoom * factor;
+    if (zoom < 1.0) zoom = 1.0;
+    if (zoom > 5.0) zoom = 5.0;
+    if (zoom != m_zoom) {
+        m_zoom = zoom;
+        Refresh();
+    }
 }
 
 wxMediaCtrl3::~wxMediaCtrl3()
@@ -166,20 +185,19 @@ void wxMediaCtrl3::paintEvent(wxPaintEvent &evt)
     auto size2 = current_frame.GetSize();
     if (size2.x != frame_size.x && size2.y == frame_size.y)
         size2.x = frame_size.x;
-    auto size3 = (size - size2) / 2;
-    if (size2.x != size.x && size2.y != size.y) {
-        double scale = 1.;
-        if (size.x * size2.y > size.y * size2.x) {
-            size3 = {size.x * size2.y / size.y, size2.y};
-            scale = double(size.y) / size2.y;
-        } else {
-            size3 = {size2.x, size.y * size2.x / size.x};
-            scale = double(size.x) / size2.x;
-        }
-        dc.SetUserScale(scale, scale);
-        size3 = (size3 - size2) / 2;
-    }
-    dc.DrawBitmap(current_frame, size3.x, size3.y);
+
+    // Base "contain" fit scale, then apply the digital zoom factor (m_zoom),
+    // centring the (possibly cropped) image in the view. At m_zoom == 1 this is
+    // identical to the previous letterboxed, centred rendering.
+    double scale = 1.0;
+    if (size2.x != size.x || size2.y != size.y)
+        scale = (size.x * size2.y > size.y * size2.x) ? double(size.y) / size2.y
+                                                      : double(size.x) / size2.x;
+    const double eff_scale = scale * m_zoom;
+    dc.SetUserScale(eff_scale, eff_scale);
+    const int off_x = wxRound(size.x / 2.0 / eff_scale - size2.x / 2.0);
+    const int off_y = wxRound(size.y / 2.0 / eff_scale - size2.y / 2.0);
+    dc.DrawBitmap(current_frame, off_x, off_y);
 
     // Draw watermark overlay when showing device preview image
     if (!m_watermark_text.empty() && m_url == nullptr) {
