@@ -11,12 +11,13 @@
 <script type="text/javascript" src="../../data/text.js"></script>	
 <script type="text/javascript" src="../js/globalapi.js"></script>	
 <script type="text/javascript" src="../js/common.js"></script>
+<script type="text/javascript" src="../js/accessibility.js"></script>
 </head>
 <body onLoad="TranslatePage()">
-	<div id="SlicerIcon" style="text-align: center;">
-		<img src="../../image/logo.png"/>
+	<div id="SlicerIcon" style="text-align: center;" role="img" aria-label="Bambu Studio">
+		<img src="../../image/logo.png" alt="Bambu Studio logo"/>
 	</div>
-	<div id="Title" class="trans" tid="t1">Welcome to Bambu Studio</div>
+	<div id="Title" class="trans" role="heading" aria-level="1" tid="t1">Welcome to Bambu Studio</div>
 	<div id="STip" class="trans" tid="t2">Bambu Studio will be setup in several steps. Let's start!</div>
 	<div id="BtnArea">
 	    <a id="StartBtn" class="NormalBtn swiper-button-next trans" tid="t24" href="../11/index.html">Get Started</a>

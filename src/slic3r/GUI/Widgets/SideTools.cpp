@@ -8,6 +8,7 @@
 #include "../wxExtensions.hpp"
 #include "../I18N.hpp"
 #include "../GUI.hpp"
+#include "../Accessibility.hpp"
 
 namespace Slic3r { namespace GUI {
 	SideToolsPanel::SideToolsPanel(wxWindow *parent, wxWindowID id, const wxPoint &pos, const wxSize &size)
@@ -41,6 +42,10 @@ namespace Slic3r { namespace GUI {
     this->Bind(wxEVT_LEAVE_WINDOW, &SideToolsPanel::on_mouse_leave, this);
     this->Bind(wxEVT_LEFT_DOWN, &SideToolsPanel::on_mouse_left_down, this);
     this->Bind(wxEVT_LEFT_UP, &SideToolsPanel::on_mouse_left_up, this);
+#if wxUSE_ACCESSIBILITY
+    SetAccessible(new ButtonAccessible(this));
+#endif
+    SetToolTip(_L("No printer connected"));
 }
 
 SideToolsPanel::~SideToolsPanel() { delete m_intetval_timer; }
@@ -48,6 +53,7 @@ SideToolsPanel::~SideToolsPanel() { delete m_intetval_timer; }
 void SideToolsPanel::set_none_printer_mode()
 {
     m_none_printer = true;
+    SetToolTip(_L("No printer connected"));
     Refresh();
 }
 
@@ -61,6 +67,7 @@ void SideToolsPanel::set_current_printer_name(std::string dev_name)
 
      m_none_printer = false;
      m_dev_name     = from_u8(dev_name);
+     SetToolTip(m_dev_name);
      Refresh();
 }
 

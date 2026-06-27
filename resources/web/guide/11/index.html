@@ -12,20 +12,21 @@
 <script type="text/javascript" src="../../data/text.js"></script>	
 <script type="text/javascript" src="../js/globalapi.js"></script>	
 <script type="text/javascript" src="../js/common.js"></script>
-<script type="text/javascript" src="11.js"></script>		
+<script type="text/javascript" src="11.js"></script>
+<script type="text/javascript" src="../js/accessibility.js"></script>
 </head>
 <body onLoad="OnInit()">
 <div id="Title">
-	<div class="trans" tid="t47">Please select your login region</div>
+	<div class="trans" role="heading" aria-level="1" tid="t47">Please select your login region</div>
 </div>
 <div id="Content">
-	<div id="EarthIcon"><img src="earth.png"/></div>
-	<div id="RegionList">
-		<div class="trans RegionItem RegionSelected TextS1" tid="t48" region="Asia-Pacific" onclick="ChooseRegion('Asia-Pacific')">Asia-Pacific</div>
-		<div class="trans RegionItem" tid="t49" region="China" onclick="ChooseRegion('China')">Chinese Mainland</div>
-		<div class="trans RegionItem" tid="t60" region="Europe" onclick="ChooseRegion('Europe')">Europe</div>
-		<div class="trans RegionItem" tid="t61" region="North America" onclick="ChooseRegion('North America')">North America</div>
-		<div class="trans RegionItem" tid="t62" region="Others" onclick="ChooseRegion('Others')">Others</div>
+	<div id="EarthIcon"><img src="earth.png" alt=""/></div>
+	<div id="RegionList" role="listbox" aria-label="Region">
+		<div class="trans RegionItem RegionSelected TextS1" role="option" aria-selected="true"  tabindex="0" tid="t48" region="Asia-Pacific" onclick="ChooseRegion('Asia-Pacific')">Asia-Pacific</div>
+		<div class="trans RegionItem" role="option" aria-selected="false" tabindex="0" tid="t49" region="China" onclick="ChooseRegion('China')">Chinese Mainland</div>
+		<div class="trans RegionItem" role="option" aria-selected="false" tabindex="0" tid="t60" region="Europe" onclick="ChooseRegion('Europe')">Europe</div>
+		<div class="trans RegionItem" role="option" aria-selected="false" tabindex="0" tid="t61" region="North America" onclick="ChooseRegion('North America')">North America</div>
+		<div class="trans RegionItem" role="option" aria-selected="false" tabindex="0" tid="t62" region="Others" onclick="ChooseRegion('Others')">Others</div>
 	</div>
 <!--	<div id="ChangeTip">
 		<div><img class="TipIcon" src="tip.png" /></div>
@@ -33,7 +34,7 @@
 	</div>-->
 </div>
 <div id="AcceptArea">
-	<div class="NormalBtn trans" id="AcceptBtn" tid="t9"  onclick="GotoPolicyPage()">Next</div>
-</div>	
+	<div class="NormalBtn trans" id="AcceptBtn" role="button" tabindex="0" tid="t9" onclick="GotoPolicyPage()">Next</div>
+</div>
 </body>
 </html>

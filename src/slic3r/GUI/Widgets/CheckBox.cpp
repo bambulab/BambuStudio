@@ -1,4 +1,5 @@
 #include "CheckBox.hpp"
+#include "../Accessibility.hpp"
 
 #include "../wxExtensions.hpp"
 
@@ -17,7 +18,14 @@ CheckBox::CheckBox(wxWindow *parent, int id)
 	//SetBackgroundStyle(wxBG_STYLE_TRANSPARENT);
 	if (parent)
 		SetBackgroundColour(parent->GetBackgroundColour());
-	Bind(wxEVT_TOGGLEBUTTON, [this](auto& e) { m_half_checked = false; update(); e.Skip(); });
+	Bind(wxEVT_TOGGLEBUTTON, [this](auto& e) {
+        m_half_checked = false;
+        update();
+#if wxUSE_ACCESSIBILITY
+        wxAccessible::NotifyEvent(wxACC_EVENT_OBJECT_STATECHANGE, this, wxOBJID_CLIENT, wxACC_SELF);
+#endif
+        e.Skip();
+    });
 #ifdef __WXOSX__ // State not fully implement on MacOS
     Bind(wxEVT_SET_FOCUS, &CheckBox::updateBitmap, this);
     Bind(wxEVT_KILL_FOCUS, &CheckBox::updateBitmap, this);
@@ -27,6 +35,9 @@ CheckBox::CheckBox(wxWindow *parent, int id)
 	SetSize(m_on.GetBmpSize());
 	SetMinSize(m_on.GetBmpSize());
 	update();
+#if wxUSE_ACCESSIBILITY
+    SetAccessible(new ToggleAccessible(this, wxROLE_SYSTEM_CHECKBUTTON));
+#endif
 }
 
 void CheckBox::SetValue(bool value)

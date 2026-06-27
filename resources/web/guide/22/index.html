@@ -14,10 +14,11 @@
 <script type="text/javascript" src="../js/globalapi.js"></script>	
 <script type="text/javascript" src="../js/common.js"></script>
 <script type="text/javascript" src="./22.js"></script>
+<script type="text/javascript" src="../js/accessibility.js"></script>
 </head>
 <body onLoad="OnInit()">
   <div id="Title">
-	<div class="trans" tid="t14">Filament Selection</div>
+	<div class="trans" role="heading" aria-level="1" tid="t14">Filament Selection</div>
 </div>
 <div id="Content" class="ZScrol">
   <div id="leftBlock" class="ChooseBlock">
@@ -121,9 +122,9 @@
   </div>
 </div>
 <div id="AcceptArea">
-	<div class="GrayBtn trans" tid="t8" id="PreBtn"  onclick="ReturnPreviewPage()">Back</div>
-	<div class="NormalBtn trans" tid="t25" id="AcceptBtn"  onclick="FinishGuide()">finish</div>
-	<div class="NormalBtn trans" tid="t9" id="GotoNetPluginBtn"  onclick="GotoNetPluginPage()">Next</div>	
+	<div class="GrayBtn trans" id="PreBtn" role="button" tabindex="0" tid="t8" onclick="ReturnPreviewPage()">Back</div>
+	<div class="NormalBtn trans" id="AcceptBtn" role="button" tabindex="0" tid="t25" onclick="FinishGuide()">finish</div>
+	<div class="NormalBtn trans" id="GotoNetPluginBtn" role="button" tabindex="0" tid="t9" onclick="GotoNetPluginPage()">Next</div>
 </div>
 <div id="NoticeMask"></div>
 <div id="NoticeBody">
@@ -132,8 +133,8 @@
     <div id="NoticeText" class="trans" tid="t19">At least one filament must be selected. </div>
     <div id="NoticeText" class="trans" tid="t20">Do you want to use default filament ?</div>
     <div id="NoticeBtns">
-      <div class="SmallBtn trans" tid="t21" onClick="ChooseDefaultFilament()">Yes</div>
-      <div class="SmallBtn trans" tid="t22" onClick="ShowNotice(0)">No</div>
+      <div class="SmallBtn trans" role="button" tabindex="0" tid="t21" onClick="ChooseDefaultFilament()">Yes</div>
+      <div class="SmallBtn trans" role="button" tabindex="0" tid="t22" onClick="ShowNotice(0)">No</div>
     </div>
   </div>
 </div>

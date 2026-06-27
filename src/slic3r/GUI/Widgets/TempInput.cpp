@@ -2,6 +2,7 @@
 #include "Label.hpp"
 #include "PopupWindow.hpp"
 #include "../I18N.hpp"
+#include "../Accessibility.hpp"
 #include <wx/dcgraph.h>
 #include "../GUI.hpp"
 #include "../GUI_App.hpp"
@@ -316,6 +317,18 @@ void TempInput::SetLabel(const wxString &label)
         messureSize();
         Refresh();
     }
+}
+
+void TempInput::SetAccessibleName(const wxString &name)
+{
+#if wxUSE_ACCESSIBILITY
+    if (!text_ctrl || name.IsEmpty()) return;
+    auto* acc = dynamic_cast<TextCtrlLabelAccessible*>(text_ctrl->GetAccessible());
+    if (acc)
+        acc->SetFieldLabel(name);
+    else
+        text_ctrl->SetAccessible(new TextCtrlLabelAccessible(text_ctrl, name));
+#endif
 }
 
 void TempInput::SetTextColor(StateColor const &color)

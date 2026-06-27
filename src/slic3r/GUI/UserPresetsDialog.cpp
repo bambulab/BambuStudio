@@ -24,6 +24,7 @@ UserPresetsDialog::UserPresetsDialog(wxWindow *parent)
     m_tab_ctrl->Bind(wxEVT_TAB_SEL_CHANGED, [this] (auto & evt) { on_collection_changed(evt.GetInt()); });
 
     m_switch_button = new SwitchButton(this);
+    m_switch_button->SetAccessibleName(_L("Preset collection: Custom / Others"));
     m_switch_button->SetFont(Label::Body_13);
     m_switch_button->SetMaxSize({FromDIP(182), -1});
     m_switch_button->SetLabels(" " + _L("Custom") + " ", _L("Others"));
@@ -68,6 +69,7 @@ UserPresetsDialog::UserPresetsDialog(wxWindow *parent)
     }
 
     m_check_all = new CheckBox(this);
+    m_check_all->SetAccessibleName(_L("Select All"));
     auto label = new Label(this, _L("Select All"));
     m_label_check_count = new Label(this);
     m_label_check_count->SetForegroundColour("#6B6B6B");
@@ -147,6 +149,7 @@ wxSizer *UserPresetsDialog::create_preset_line(wxWindow *parent, std::string con
     wxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
     auto check = new CheckBox(parent);
     auto label = new Label(parent, from_u8(preset), wxST_ELLIPSIZE_END);
+    check->SetAccessibleName(from_u8(preset));
     auto line  = new StaticLine(parent);
     label->SetMaxSize({FromDIP(268), -1});
     label->SetToolTip(label->GetLabel());
@@ -172,6 +175,7 @@ wxSizer *UserPresetsDialog::create_filament_group(wxWindow *parent, std::pair<st
     wxSizer * hsizer = new wxBoxSizer(wxHORIZONTAL);
     auto check  = new CheckBox(parent);
     auto label = new Label(parent, from_u8(m_filament_names[filament.first]), wxST_ELLIPSIZE_END);
+    check->SetAccessibleName(from_u8(m_filament_names[filament.first]));
     auto line  = new StaticLine(parent);
     label->SetMaxSize({-1, FromDIP(268)});
     label->SetToolTip(label->GetLabel());

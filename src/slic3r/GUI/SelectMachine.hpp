@@ -230,7 +230,7 @@ public:
     void  msw_rescale();
 
     // override funcs
-    bool  CanBeFocused() const override { return false; }
+    // Note: PrintOptionItem child is focusable for keyboard navigation.
 
 private:
     void OnPaint(wxPaintEvent &event);

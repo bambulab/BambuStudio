@@ -1,4 +1,5 @@
 #include "ProgressBar.hpp"
+#include "../Accessibility.hpp"
 #include "../I18N.hpp"
 #include <wx/dcclient.h>
 #include <wx/dcgraph.h>
@@ -28,6 +29,9 @@ ProgressBar::ProgressBar(wxWindow *parent, wxWindowID id, int max, const wxPoint
 
     SetFont(Label::Head_12);
     create(parent, id, pos, temp_size);
+#if wxUSE_ACCESSIBILITY
+    SetAccessible(new ProgressBarAccessible(this));
+#endif
 }
 
 
@@ -123,6 +127,14 @@ void ProgressBar::SetProgress(int step)
     m_disable = false;
     m_step = step;
     Refresh();
+#if wxUSE_ACCESSIBILITY
+    // Update accessible value so NVDA / Narrator announce the new percentage.
+    if (m_max > 0) {
+        int pct = (int)(100.0 * m_step / m_max);
+        wxWindow::SetLabel(wxString::Format("%d%%", pct));
+        wxAccessible::NotifyEvent(wxACC_EVENT_OBJECT_VALUECHANGE, this, wxOBJID_CLIENT, wxACC_SELF);
+    }
+#endif
 }
 
 

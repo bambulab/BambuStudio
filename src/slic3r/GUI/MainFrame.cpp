@@ -1158,14 +1158,14 @@ void MainFrame::update_filament_tab_ui()
 void MainFrame::update_title()
 {
     if (!m_plater)
-        return;
+        SetTitle("Bambu Studio");
     // Prepend "* " while the project has unsaved changes (#9987), on top of the project name
     // that is already shown: in the custom topbar on Windows, and in the native window title
     // on macOS/Linux (both set by Plater::priv::set_project_name).
     const wxString name  = m_plater->get_project_name();
     const wxString title = (m_plater->is_project_dirty() && !name.IsEmpty()) ? ("* " + name) : name;
     if (title == m_title_cache)
-        return;
+        SetTitle("Bambu Studio");
     m_title_cache = title;
 #ifdef __WINDOWS__
     if (m_topbar)
@@ -1433,13 +1433,23 @@ void MainFrame::init_tabpanel()
         }
 #endif
 #ifndef __WXGTK__
-        // macOS: avoid moving first responder into WKWebView on Filament Manager (STUDIO-18111).
+        // Avoid moving focus into embedded WebView2/WKWebView controls:
+        // - macOS: WKWebView captures focus (STUDIO-18111)
+        // - Windows: Edge WebView2 captures Tab, causing NVDA to read "wxwebview" instead
+        //   of real UI controls. WebView panels are excluded so screen readers stay on
+        //   the native toolbar and sidebar buttons.
         if (panel
-#if defined(__WXOSX__)
             && panel != m_web_device
-#endif
+            && panel != m_webview
+            && panel != m_printer_view
         )
             panel->SetFocus();
+#ifdef __WIN32__
+        else if (m_topbar)
+            // WebView panel selected: redirect focus to the topbar so screen
+            // readers (NVDA, Narrator) announce a real accessible control.
+            m_topbar->SetFocus();
+#endif
 #endif
         /*switch (sel) {
         case TabPosition::tpHome:

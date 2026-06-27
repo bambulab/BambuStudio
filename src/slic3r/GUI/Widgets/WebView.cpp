@@ -339,6 +339,13 @@ wxWebView* WebView::CreateWebView(wxWindow * parent, wxString const & url)
                                                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.52 BBL-Slicer/v%s (%s) BBL-Language/%s",
                                                SLIC3R_VERSION, Slic3r::GUI::wxGetApp().dark_mode() ? "dark" : "light", language_code.mb_str()));
         webView->Create(parent, wxID_ANY, url2, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+        // Remove from Tab order so screen readers (NVDA, Narrator) navigate to real UI controls
+        // instead of getting stuck in the embedded Edge/WebView2 browser control.
+        {
+            HWND hwnd = (HWND)webView->GetHandle();
+            if (hwnd)
+                ::SetWindowLong(hwnd, GWL_STYLE, ::GetWindowLong(hwnd, GWL_STYLE) & ~WS_TABSTOP);
+        }
         // We register the wxfs:// protocol for testing purposes
         webView->RegisterHandler(wxSharedPtr<wxWebViewHandler>(new wxWebViewArchiveHandler("bbl")));
         // And the memory: file system
