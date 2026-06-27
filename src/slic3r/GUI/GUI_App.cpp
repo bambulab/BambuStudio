@@ -3097,9 +3097,14 @@ bool GUI_App::on_init_inner()
 #ifdef _MSW_DARK_MODE
 
 #ifndef __WINDOWS__
-    wxSystemAppearance app = wxSystemSettings::GetAppearance();
-    GUI::wxGetApp().app_config->set("dark_color_mode", app.IsDark() ? "1" : "0");
-    GUI::wxGetApp().app_config->save();
+    // Seed dark mode from the system appearance on first run only. Afterwards the
+    // user's explicit choice (Preferences > Dark Mode, now available on Linux too)
+    // is kept instead of being overwritten by the system appearance on every start.
+    if (GUI::wxGetApp().app_config->get("dark_color_mode").empty()) {
+        wxSystemAppearance app = wxSystemSettings::GetAppearance();
+        GUI::wxGetApp().app_config->set("dark_color_mode", app.IsDark() ? "1" : "0");
+        GUI::wxGetApp().app_config->save();
+    }
 #endif // __APPLE__
 
 
