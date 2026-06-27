@@ -94,6 +94,8 @@ protected:
 
     void DrawLiveviewLogo(wxGraphicsContext *gc, double bg_x, double bg_y, double bg_w, double bg_h);
 
+    void mouseWheelEvent(wxMouseEvent &evt);
+
     wxSize DoGetBestSize() const override;
 
     void DoSetSize(int x, int y, int width, int height, int sizeFlags) override;
@@ -123,6 +125,7 @@ private:
     wxSize m_frame_size = wxDefaultSize;
     PlayFrame m_frame;
     bool m_frame_is_default_bg = false; // whether m_frame currently holds the default background (guarded by m_ui_mutex)
+    double m_zoom = 1.0;   // digital zoom factor for the live view (mouse wheel)
     std::shared_ptr<wxURI> m_url;
     std::atomic<Bambu_Tunnel> m_tunnel{nullptr};
     std::mutex m_mutex;
