@@ -91,6 +91,8 @@ protected:
 
     void paintEvent(wxPaintEvent &evt);
 
+    void mouseWheelEvent(wxMouseEvent &evt);
+
     wxSize DoGetBestSize() const override;
 
     void DoSetSize(int x, int y, int width, int height, int sizeFlags) override;
@@ -117,6 +119,7 @@ private:
     wxSize m_video_size = wxDefaultSize;
     wxSize m_frame_size = wxDefaultSize;
     PlayFrame m_frame;
+    double m_zoom = 1.0;   // digital zoom factor for the live view (mouse wheel)
     std::shared_ptr<wxURI> m_url;
     std::atomic<Bambu_Tunnel> m_tunnel{nullptr};
     std::mutex m_mutex;

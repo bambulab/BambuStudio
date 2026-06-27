@@ -35,6 +35,30 @@ wxMediaCtrl3::wxMediaCtrl3(wxWindow *parent)
     SetBackgroundColour("#000001ff");
     m_render_timer.SetOwner(this);
     Bind(wxEVT_TIMER, &wxMediaCtrl3::OnRenderTimer, this);
+    Bind(wxEVT_MOUSEWHEEL, &wxMediaCtrl3::mouseWheelEvent, this);
+}
+
+void wxMediaCtrl3::mouseWheelEvent(wxMouseEvent &evt)
+{
+    const int rotation = evt.GetWheelRotation();
+    if (rotation == 0) {
+        evt.Skip();
+        return;
+    }
+
+    // Digital zoom of the live view, 1x (fit) up to 5x, centred on the view.
+    const double factor = rotation > 0 ? 1.1 : 1.0 / 1.1;
+    double zoom = m_zoom * factor;
+
+    if (zoom < 1.0)
+        zoom = 1.0;
+    if (zoom > 5.0)
+        zoom = 5.0;
+
+    if (zoom != m_zoom) {
+        m_zoom = zoom;
+        Refresh();
+    }
 }
 
 wxMediaCtrl3::~wxMediaCtrl3()
@@ -196,20 +220,23 @@ void wxMediaCtrl3::paintEvent(wxPaintEvent &evt)
             delete gc;
         }
     } else {
-        auto size3 = (size - size2) / 2;
-        if (size2.x != size.x && size2.y != size.y) {
-            double scale = 1.;
-            if (size.x * size2.y > size.y * size2.x) {
-                size3 = {size.x * size2.y / size.y, size2.y};
-                scale = double(size.y) / size2.y;
-            } else {
-                size3 = {size2.x, size.y * size2.x / size.x};
-                scale = double(size.x) / size2.x;
-            }
-            dc.SetUserScale(scale, scale);
-            size3 = (size3 - size2) / 2;
-        }
-        dc.DrawBitmap(current_frame, size3.x, size3.y);
+        // Base "contain" fit scale, then apply the digital zoom factor.
+        // At m_zoom == 1 this is identical to the normal fitted rendering.
+        double scale = 1.0;
+        if (size2.x != size.x || size2.y != size.y)
+            scale = (size.x * size2.y > size.y * size2.x)
+                ? double(size.y) / size2.y
+                : double(size.x) / size2.x;
+
+        const double effective_scale = scale * m_zoom;
+        dc.SetUserScale(effective_scale, effective_scale);
+
+        const int offset_x =
+            wxRound(size.x / 2.0 / effective_scale - size2.x / 2.0);
+        const int offset_y =
+            wxRound(size.y / 2.0 / effective_scale - size2.y / 2.0);
+
+        dc.DrawBitmap(current_frame, offset_x, offset_y);
     }
 
     // Draw watermark overlay when showing device preview image
